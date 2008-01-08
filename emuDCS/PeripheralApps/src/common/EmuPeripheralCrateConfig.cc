@@ -897,6 +897,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     thisMPC = thisCrate->mpc();
     tmbVector = thisCrate->tmbs();
     dmbVector = thisCrate->daqmbs();
+    chamberVector = thisCrate->chambers();
         
     tmbTestVector = InitTMBTests(thisCrate);
   }
@@ -2752,8 +2753,10 @@ void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out )
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
-  char Name[50];
-  sprintf(Name,"DMB Tests slot=%d",thisDMB->slot());
+  Chamber * thisChamber = chamberVector[dmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s DMB tests, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
   //
   MyHeader(in,out,Name);
   //
@@ -3219,8 +3222,11 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   DAQMB * thisDMB = dmbVector[dmb];
   alct = thisTMB->alctController();
   //
-  char Name[50];
-  sprintf(Name,"Chamber tests TMBslot=%d DMBslot=%d",thisTMB->slot(),thisDMB->slot());
+  Chamber * thisChamber = chamberVector[tmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s synchronization, crate=%s, TMBslot=%d, DMBslot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisTMB->slot(),thisDMB->slot());
   //
   MyHeader(in,out,Name);
   //
@@ -4492,7 +4498,13 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
-  MyHeader(in,out,"CFEBStatus");
+  Chamber * thisChamber = chamberVector[dmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s CFEB status, crate=%s, DMBslot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
+  //
+  MyHeader(in,out,Name);
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
@@ -4556,8 +4568,10 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
-  char Name[50];
-  sprintf(Name,"DMB Utils slot=%d",thisDMB->slot());
+  Chamber * thisChamber = chamberVector[dmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s DMB utilities, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
   //
   MyHeader(in,out,Name);
   //
@@ -5458,7 +5472,13 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   //
   ALCTController * alct = tmbVector[tmb]->alctController();
   //
-  MyHeader(in,out,"ALCTStatus");
+  Chamber * thisChamber = chamberVector[tmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s ALCT status, crate=%s, TMBslot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),tmbVector[tmb]->slot());
+
+  MyHeader(in,out,Name);
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
@@ -5688,7 +5708,13 @@ void EmuPeripheralCrateConfig::RATStatus(xgi::Input * in, xgi::Output * out )
   //
   RAT * rat = tmbVector[tmb]->getRAT();
   //
-  MyHeader(in,out,"RATStatus");
+  Chamber * thisChamber = chamberVector[tmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s RAT status, crate=%s, TMBslot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),tmbVector[tmb]->slot());
+  //
+  MyHeader(in,out,Name);
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
@@ -5724,8 +5750,8 @@ void EmuPeripheralCrateConfig::RATStatus(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  char Name[50] ;
-  sprintf(Name,"CCB Status slot=%d",thisCCB->slot());
+  char Name[100];
+  sprintf(Name,"CCB status, crate=%s, slot=%d",ThisCrateID_.c_str(),thisCCB->slot());
   //
   MyHeader(in,out,Name);
   //
@@ -5789,100 +5815,93 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   //
 }
 //
-  void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-  {
-    //
-    char Name[50] ;
-    sprintf(Name,"Controller Utils slot 1");
-    //
-    MyHeader(in,out,Name);
-    //
-    std::string EnableDisableDebug =
-      toolbox::toString("/%s/EnableDisableDebug",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",EnableDisableDebug)
-	 << std::endl ;
-    *out << cgicc::input().set("type","submit")
-      .set("value","Enable/Disable Debug") 
-	 << std::endl ;
-    //
-    if ( thisCrate->vmeController()->GetDebug() == 0 ) {
-      *out << "Debug disabled";
-    } else {
-      *out << "Debug enabled";
-    }
-    //
-    *out << cgicc::form() << std::endl ;
-    //
+void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  char Name[50] ;
+  sprintf(Name,"Controller Utils slot 1");
+  //
+  MyHeader(in,out,Name);
+  //
+  std::string EnableDisableDebug =
+    toolbox::toString("/%s/EnableDisableDebug",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",EnableDisableDebug) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Enable/Disable Debug") << std::endl ;
+  //
+  if ( thisCrate->vmeController()->GetDebug() == 0 ) {
+    *out << "Debug disabled";
+  } else {
+    *out << "Debug enabled";
   }
   //
-  void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-  {
-    //
-    if ( thisCrate->vmeController()->GetDebug() == 0 ) {
-      std::cout << "debug 1 " << std::endl;
-      thisCrate->vmeController()->Debug(1);
-    } else {
-      std::cout << "debug 0 " << std::endl;
-      thisCrate->vmeController()->Debug(0);
-    }
-    //
-    this->ControllerUtils(in,out);
-    //
+  *out << cgicc::form() << std::endl ;
+  //
+}
+//
+void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  if ( thisCrate->vmeController()->GetDebug() == 0 ) {
+    std::cout << "debug 1 " << std::endl;
+    thisCrate->vmeController()->Debug(1);
+  } else {
+    std::cout << "debug 0 " << std::endl;
+    thisCrate->vmeController()->Debug(0);
   }
   //
-  void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-  {
-    //
-    char Name[50] ;
-    sprintf(Name,"CCB Utils slot=%d",thisCCB->slot());
-    //
-    MyHeader(in,out,Name);
-    //
-    *out << cgicc::h1(Name);
-    *out << cgicc::br();
-    //
-    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-    *out << std::endl;
-    //
-    *out << cgicc::legend("CCB Utils").set("style","color:blue") << cgicc::p() << std::endl ;
-    //
-    std::string ReadCCBRegister =
-      toolbox::toString("/%s/ReadCCBRegister",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",ReadCCBRegister) << std::endl ;
-    *out << "Read Register (hex)..." << std:: endl;
-    *out << cgicc::input().set("type","text").set("value","0")
-      .set("name","CCBRegister") << std::endl ;
-    *out << "Register value : (hex) " << std::hex << CCBRegisterValue_ << std::endl;
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string HardReset =
-      toolbox::toString("/%s/HardReset",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",HardReset) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","HardReset");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_030507.svf";
-    //
-    std::string CCBLoadFirmware =
-       toolbox::toString("/%s/CCBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",CCBLoadFirmware) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Load CCB Firmware") << std::endl ;
-//    sprintf(buf,"%d",ccb);
-//    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << CCBFirmware_.toString();
-    *out << cgicc::form() << std::endl ;
-
-    *out << cgicc::fieldset();
-    //
-  }
-
+  this->ControllerUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  char Name[100];
+  sprintf(Name,"CCB utilities, crate=%s, slot=%d",ThisCrateID_.c_str(),thisCCB->slot());
+  //
+  MyHeader(in,out,Name);
+  //
+  *out << cgicc::h1(Name);
+  *out << cgicc::br();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << std::endl;
+  //
+  *out << cgicc::legend("CCB Utils").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  std::string ReadCCBRegister = 
+    toolbox::toString("/%s/ReadCCBRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadCCBRegister) << std::endl ;
+  *out << "Read Register (hex)..." << std:: endl;
+  *out << cgicc::input().set("type","text").set("value","0").set("name","CCBRegister") << std::endl ;
+  *out << "Register value : (hex) " << std::hex << CCBRegisterValue_ << std::endl;
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string HardReset =
+    toolbox::toString("/%s/HardReset",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",HardReset) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","HardReset");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br();
+  *out << cgicc::br();
+  //
+  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_030507.svf";
+  //
+  std::string CCBLoadFirmware =
+    toolbox::toString("/%s/CCBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CCBLoadFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load CCB Firmware") << std::endl ;
+  //    sprintf(buf,"%d",ccb);
+  //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << CCBFirmware_.toString();
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::fieldset();
+  //
+}
+//
   void EmuPeripheralCrateConfig::CCBLoadFirmware(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -5922,8 +5941,9 @@ void EmuPeripheralCrateConfig::MPCBoardID(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  char Name[50] ;
-  sprintf(Name,"MPC Status slot=%d",thisMPC->slot());
+  char Name[100];
+  sprintf(Name,"MPC status, crate=%s, slot=%d",
+	  ThisCrateID_.c_str(),thisMPC->slot());
   //
   MyHeader(in,out,Name);
   //
@@ -5947,8 +5967,9 @@ void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  char Name[50] ;
-  sprintf(Name,"MPC Utils slot=%d",thisMPC->slot());
+  char Name[100];
+  sprintf(Name,"MPC utilities, crate=%s, slot=%d",
+	  ThisCrateID_.c_str(),thisMPC->slot());
   //
   MyHeader(in,out,Name);
   //
@@ -6014,8 +6035,11 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
   //
   TMB * thisTMB = tmbVector[tmb];
   //
-  char Name[50];
-  sprintf(Name,"TMB Tests slot=%d",thisTMB->slot());	  
+  Chamber * thisChamber = chamberVector[tmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s TMB tests, %s slot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisTMB->slot());
   //
   MyHeader(in,out,Name);
   //
@@ -6549,8 +6573,12 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     //
   }
   //
-  char Name[50];
-  sprintf(Name,"TMB Status slot=%d",thisTMB->slot());	
+  Chamber * thisChamber = chamberVector[tmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s TMB status, crate=%s, slot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisTMB->slot());
+  //
   MyHeader(in,out,Name);
   //
   //*out << cgicc::h1(Name);
@@ -6708,8 +6736,12 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   TMB * thisTMB = tmbVector[tmb];
   //
-  char Name[50];
-  sprintf(Name,"TMB Utils slot=%d",thisTMB->slot());
+  Chamber * thisChamber = chamberVector[tmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s TMB utilities, crate=%s slot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisTMB->slot());
+
   //
   alct = thisTMB->alctController();
   rat = thisTMB->getRAT();
@@ -7503,8 +7535,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
-  char Name[50];
-  sprintf(Name,"DMB Status slot=%d",thisDMB->slot());	
+  Chamber * thisChamber = chamberVector[dmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s DMB status, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());	
   //
   MyHeader(in,out,Name);
   //

@@ -128,6 +128,7 @@ protected:
   vector<TMBTester>   tmbTestVector;
   vector<DAQMB*> dmbVector;
   vector<Crate*> crateVector;
+  vector<Chamber*> chamberVector;
   Crate *thisCrate;
   std::string Operator_;
   std::string RunNumber_;
