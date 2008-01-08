@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.7 2007/08/28 18:06:00 liu Exp $
+// $Id: MPC.cc,v 3.8 2008/01/08 10:59:32 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.8  2008/01/08 10:59:32  liu
+// remove exit() in functions
+//
 // Revision 3.7  2007/08/28 18:06:00  liu
 // remove unused & outdated functions
 //
@@ -475,7 +478,7 @@ this->read_status();
 }
 
 
-void MPC::injectSP(char *injectDataFileName){
+int MPC::injectSP(char *injectDataFileName){
 
 
 // member function as above but here you have passed a file 
@@ -502,7 +505,7 @@ void MPC::injectSP(char *injectDataFileName){
   FILE* myFile = fopen(injectDataFileName , "r" );
   if (myFile==NULL){
     (*MyOutput_)<<"problem opening data file, exiting.."<<std::endl;
-    exit(0);
+    return -1;
   }
   
   
@@ -522,7 +525,7 @@ void MPC::injectSP(char *injectDataFileName){
   (*MyOutput_)<<"first frame 1 :: (first word in file) is "<<std::hex<<dataWordInt_fr1<<std::endl;
   if (readWord<1){
     (*MyOutput_)<<"problem reading first word in file ..exiting..."<<std::endl;
-    exit(0);
+    return -1;
   }
   readWord=fscanf( myFile,"%s",DataWord);
   sscanf(DataWord,"%x",&dataWordInt_fr2);
@@ -593,10 +596,8 @@ void MPC::injectSP(char *injectDataFileName){
   }
   
   this->read_status();
-  return;
+  return 0;
 }
-
-
 
 
 void MPC::setTLK2501TxMode(int mode){

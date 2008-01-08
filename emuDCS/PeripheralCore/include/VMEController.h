@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.14 2007/12/27 00:34:26 liu Exp $
+// $Id: VMEController.h,v 3.15 2008/01/08 10:58:56 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.15  2008/01/08 10:58:56  liu
+// remove exit() in functions
+//
 // Revision 3.14  2007/12/27 00:34:26  liu
 // update
 //
@@ -274,8 +277,8 @@ private:
   void handshake_vme();
   void flush_vme();
   void daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
-  void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
-  void VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
+  int vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
+  int VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
   void dump_outpacket(int nvme);
   int eth_reset(int ethsocket);
   int eth_read();

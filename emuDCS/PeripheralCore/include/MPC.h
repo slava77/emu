@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.6 2007/08/28 18:05:37 liu Exp $
+// $Id: MPC.h,v 3.7 2008/01/08 10:58:56 liu Exp $
 // $Log: MPC.h,v $
+// Revision 3.7  2008/01/08 10:58:56  liu
+// remove exit() in functions
+//
 // Revision 3.6  2007/08/28 18:05:37  liu
 // remove unused & outdated functions
 //
@@ -160,7 +163,7 @@ class MPC : public VMEModule {
   void disablePRBS();
 
   void injectSP();      // injects some test patterns into fifos :dan Holmes
-  void injectSP(char*); // as above you give me file with data in.:dan Holmes
+  int injectSP(char*); // as above you give me file with data in.:dan Holmes
 
   void setTransparentMode();
   void setTransparentMode(unsigned int);
