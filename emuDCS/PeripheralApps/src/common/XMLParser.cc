@@ -752,16 +752,16 @@ Crate * XMLParser::VMEParser(xercesc::DOMNode * pNode)
   parseNode(pNode);
   
   fillInt("crateID",crateid);
-  if(!(fillString("VMEaddress",VMEaddress) and fillInt("port",port)))
+  if(!fillString("VMEaddress",VMEaddress) )
   {
-     std::cerr << "No valid VMEaddress or Port number" << std::endl;
+     std::cerr << "No valid VMEaddress" << std::endl;
      return (Crate *) 0x0;
   }
 
   VMEController * controller = new VMEController(); 
 
   controller->SetVMEAddress(VMEaddress);
-  controller->SetPort(port);
+  if(fillInt("port",port)) controller->SetPort(port);
   
   Crate * crate = new Crate(crateid,controller);
 
