@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.39 2007/10/29 13:07:20 rakness Exp $
+// $Id: ALCTController.cc,v 3.40 2008/01/09 09:45:08 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.40  2008/01/09 09:45:08  rakness
+// modify AFEB mapping and accessors so that user counts from 0 to MaximumUserIndex(), no matter how the AFEBs are physically connected to the ALCT
+//
 // Revision 3.39  2007/10/29 13:07:20  rakness
 // modify ALCT fast control ID decoding for DAQ06 format
 //
@@ -595,7 +598,21 @@ void ALCTController::PrintALCTConfiguration() {
   //
   PrintFastControlId();
   //
-  (*MyOutput_) << "........................ ALCT type = " << std::dec << GetNumberOfChannelsInAlct() << std::endl; 
+  (*MyOutput_) << "........................ ALCT type = " << std::dec << GetNumberOfChannelsInAlct(); 
+  if (GetNumberOfChannelsInAlct() == 288) {
+    if (GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE) {
+      (*MyOutput_) << "n";
+    } else {
+      (*MyOutput_) << "p";
+    }
+    if (GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE) {
+      (*MyOutput_) << "b";
+    } else {
+      (*MyOutput_) << "f";
+    }
+  }
+  (*MyOutput_) << "->" << std::endl;
+  //
   (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
   (*MyOutput_) << "........ Number of Wires per layer = " << GetNumberOfChannelsPerLayer() << std::endl;
   (*MyOutput_) << ".. Number of groups of delay chips = " << GetNumberOfGroupsOfDelayChips() << std::endl; 
@@ -603,6 +620,8 @@ void ALCTController::PrintALCTConfiguration() {
   (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
   (*MyOutput_) << "...hardware AFEB indices count from " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
   (*MyOutput_) << "..while the user indices count from 0 to " << MaximumUserIndex() << std::endl;
+  (*MyOutput_) << "which map as 0 -> " << UserIndexToHardwareIndex_(0) << " and " 
+	       << MaximumUserIndex() << " -> " << UserIndexToHardwareIndex_(MaximumUserIndex()) << std::endl;
   //
   PrintAfebThresholds();
   //
@@ -676,12 +695,12 @@ void ALCTController::CheckALCTConfiguration() {
 				   GetFastControlDay(),
 				   GetExpectedFastControlDay() );
   //
-  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) {
+  for (int afeb=0; afeb<=MaximumUserIndex(); afeb++) {
     // to compare write and read thresholds, we need to compare an 8-bit dac 
     // with a 10-bit adc, with an offset:
     float offset = 24.;
     float slope = 4.;     
-    float dac_converted_to_adc = write_afeb_threshold_[afeb]*slope + offset;    
+    float dac_converted_to_adc = GetAfebThresholdDAC(afeb)*slope + offset;    
     //
     // set the tolerance so the adc is within +/- 3 adc counts of the set value  
     // at low dac values (<~30), this is approximately the precision of the dac/adc
@@ -690,7 +709,7 @@ void ALCTController::CheckALCTConfiguration() {
     std::ostringstream tested_value;
     tested_value << "AFEB threshold AnodeChannel Number " << (afeb+1);
     config_ok &= tmb_->compareValues(tested_value.str(),
-				     (float) read_afeb_threshold_[afeb],
+				     (float) GetAfebThresholdADC(afeb),
 				     dac_converted_to_adc,
 				     threshold);
   }
@@ -713,10 +732,10 @@ void ALCTController::CheckALCTConfiguration() {
     }
   }
   //
-  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) {
+  for (int afeb=0; afeb<=MaximumUserIndex(); afeb++) {
     std::ostringstream tested_value;
     tested_value << "AFEB delay AnodeChannel Number " << (afeb+1);
-    config_ok &= tmb_->compareValues(tested_value.str(),read_asic_delay_[afeb],write_asic_delay_[afeb] );
+    config_ok &= tmb_->compareValues(tested_value.str(),GetAsicDelay(afeb),GetWriteAsicDelay(afeb) );
   }
   //
   config_ok &= tmb_->compareValues("ALCT Trigger Mode"   ,read_trigger_mode_   ,write_trigger_mode_   );
@@ -1182,16 +1201,18 @@ void ALCTController::WriteAfebThresholds() {
   if (debug_)
     (*MyOutput_) << "ALCT: WRITE afeb THRESHOLDS " << std::endl;
   //
-  for (int afebChannel=GetLowestAfebIndex(); afebChannel<=GetHighestAfebIndex(); afebChannel++) {
+  for (int afebChannel=0; afebChannel<=MaximumUserIndex(); afebChannel++) {
     //
-    // Mapping of AFEB channel picks chip through the opcode...
-    int opcode = ALCT_SLOW_WRT_THRESH_DAC0 + afeb_dac_chip[afebChannel];
+    // Mapping of AFEB channel picks chip through the opcode, using the correct AFEB indexing...
+    int opcode = ALCT_SLOW_WRT_THRESH_DAC0 + afeb_dac_chip[UserIndexToHardwareIndex_(afebChannel)];
     //
-    // ..... and the DAC channel through TDI:
+    // ..... and the DAC channel through TDI, again using the correct AFEB indexing 
+    // (N.B. the Get..DAC() method already will access the correct threshold)
     int data_to_send = 
-      ( (afeb_dac_channel[afebChannel]<<8) & 0xf00 ) | write_afeb_threshold_[afebChannel] & 0xff;
+      ( (afeb_dac_channel[UserIndexToHardwareIndex_(afebChannel)]<<8) & 0xf00 ) | GetAfebThresholdDAC(afebChannel) & 0xff;
     if (debug_)
-      (*MyOutput_) << "Channel " << std::dec << afebChannel 
+      (*MyOutput_) << "User AFEB" << std::dec << afebChannel 
+		   << " writes to hardware AFEB " << UserIndexToHardwareIndex_(afebChannel)
 		   << " -> Data to send = " << std::hex << data_to_send 
 		   << std::dec << std::endl;
     //
@@ -1217,8 +1238,11 @@ void ALCTController::ReadAfebThresholds() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ afeb THRESHOLDS " << std::endl;
   //
-  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
-    read_afeb_threshold_[afeb] = read_adc_(afeb_adc_chip[afeb],afeb_adc_channel[afeb]);
+  // Fill the vector of read values indexed by the AFEB indexing, accessing the ADC values connected to the right AFEB
+  //
+  for (int afeb=0; afeb<=MaximumUserIndex(); afeb++)
+    read_afeb_threshold_[UserIndexToHardwareIndex_(afeb)] = 
+      read_adc_( afeb_adc_chip[UserIndexToHardwareIndex_(afeb)], afeb_adc_channel[UserIndexToHardwareIndex_(afeb)] );
   //
   return;
 }
@@ -2359,7 +2383,7 @@ int ALCTController::GetChannelFromAsicMap_(int group,
 void ALCTController::SetAsicDelay(int afebChannel,
 				  int delay) {
   if (delay<0 || delay > 15) {
-    (*MyOutput_) << "SetAsicDelay: ERROR delay should be between 0 and 15" << std::endl;
+    (*MyOutput_) << "SetAsicDelay: ERROR delay = " << std::dec << delay << ", should be between 0 and 15" << std::endl;
     return;
   } 
   //
@@ -2375,6 +2399,20 @@ void ALCTController::SetAsicDelay(int afebChannel,
   //
   return;
 
+}
+//
+int ALCTController::GetWriteAsicDelay(int afebChannel) {
+  //
+  if ( afebChannel<0 || afebChannel>MaximumUserIndex() ) {
+    (*MyOutput_) << "GetWriteAsicDelay: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
+		 << "-> channel " << std::dec << afebChannel
+		 << " invalid ... must be between 0 and " << std::dec << MaximumUserIndex()
+		 << std::endl;
+    return 999;
+  } 
+  //
+  return write_asic_delay_[UserIndexToHardwareIndex_(afebChannel)];
+  //
 }
 //
 int ALCTController::GetAsicDelay(int afebChannel) {
@@ -3814,6 +3852,53 @@ void ALCTController::SetSlowControlAlctType_(int type_of_slow_control_alct) {
   highest_afeb_index_ = GetNumberOfAfebs() - 1;
   //
   return;
+}
+//
+//
+int ALCTController::UserIndexToHardwareIndex_(int index) { 
+  //
+  int index_to_return = 999;
+  //
+  // The idea of this method is to allow the user always to access the AFEBs using indices
+  // labeled 0 to MaximumUserIndex()-1, regardless of how these AFEBs are connected to the ALCT.  
+  //
+  // The user needs access to AFEBs in order to
+  //  1) power them on or off via the standby register (slow control FPGA)
+  //  2) write delay values and patterns to ASICs (fast control FPGA)
+  //  3) write threshold DAC values and readback threshold ADC values (slow control FPGA)
+  //
+  // There are 3 types of ALCT boards:
+  //  a) ALCT288 are used for chambers which have 192 (ME1/3) and 288 (ME1/1) wiregroups.
+  //  b) ALCT384 are used for chambers which have 384 wiregroups (ME1/2, ME2/2, ME3/2, and ME4/2)
+  //  c) ALCT672 are used for chambers which have 576 (ME3/1 and ME4/1) and 672 (ME2/1) wiregroups
+  //
+  // As such, how the AFEBs are accessed depends on:
+  //  - the number of wiregroups in the chamber (defines the number of AFEBs)
+  //  - the ALCT type (each ALCT type has a set number of AFEB input connections)
+  //  - how the AFEBs are connected to the ALCT
+  //
+  // On the chambers which have fewer AFEBs than AFEB input connections (i.e., smaller 
+  // number of wiregroups than the ALCT type), the lowest 6 AFEBs are not connected to 
+  // the ALCT.  See ALCTController::SetSlowControlAlctType_(int).
+  // For ME11 chambers, the positive-forward chambers and the negative-backward 
+  // chambers are cabled such that the AFEBs labeled 1-18 are connected to the 
+  // AFEB inputs on the ALCT from 18-1.
+  //
+  if (GetChamberType() == "ME11" &&
+      ( (GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE && 
+	 GetExpectedFastControlBackwardForwardType()  == FORWARD_FIRMWARE_TYPE   ) || 
+	(GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE && 
+	 GetExpectedFastControlBackwardForwardType()  == BACKWARD_FIRMWARE_TYPE   )  ) ) {
+    //
+    // invert the order from 0->17 to 17->0
+    //
+    index_to_return = abs(index - 17);
+    //
+  } else {
+    index_to_return = index + GetLowestAfebIndex();
+  } 
+  //
+  return index_to_return;
 }
 //
 // Methods used to program ALCT prom: 
