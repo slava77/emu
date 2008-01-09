@@ -155,6 +155,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadTMBRegister, "ReadTMBRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBPrintCounters, "TMBPrintCounters");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBResetCounters, "TMBResetCounters");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMBCounterForFixedTime, "TMBCounterForFixedTime");
   xgi::bind(this,&EmuPeripheralCrateConfig::CalibrationRuns, "CalibrationRuns");
   xgi::bind(this,&EmuPeripheralCrateConfig::TriggerTestInjectALCT, "TriggerTestInjectALCT");
   xgi::bind(this,&EmuPeripheralCrateConfig::TriggerTestInjectCLCT, "TriggerTestInjectCLCT");
@@ -5084,18 +5085,52 @@ void EmuPeripheralCrateConfig::TMBResetCounters(xgi::Input * in, xgi::Output * o
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-    int tmb;
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
-      TMB_ = tmb;
-    }
-    //
-    TMB * thisTMB = tmbVector[tmb];
-    thisTMB->ResetCounters();
-    //
-    this->TMBUtils(in,out);
-    //
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "TMB " << tmb << endl;
+    TMB_ = tmb;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  thisTMB->ResetCounters();
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::TMBCounterForFixedTime(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    TMB_ = tmb;
+  }
+  //
+  int wait_time = 10;
+  if(name != cgi.getElements().end()) {
+    wait_time = cgi["time_to_wait"]->getIntegerValue();
+  }
+  //
+  cout << "Read TMB " << tmb << " counters over " << wait_time << " seconds" << endl;
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  thisTMB->ResetCounters();
+  //
+  ::sleep(wait_time);
+  //
+  thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+  thisTMB->GetCounters();
+  thisTMB->PrintCounters();
+  thisTMB->RedirectOutput(&std::cout);
+  //
+  this->TMBUtils(in,out);
+  //
 }
 //
 void EmuPeripheralCrateConfig::TriggerTestInjectALCT(xgi::Input * in, xgi::Output * out ) 
@@ -6824,7 +6859,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBPrintCounters = toolbox::toString("/%s/TMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBPrintCounters) ;
   *out << cgicc::input().set("type","submit").set("value","Print TMB Counters") ;
@@ -6834,10 +6869,21 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBResetCounters = toolbox::toString("/%s/TMBResetCounters",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBResetCounters) ;
   *out << cgicc::input().set("type","submit").set("value","Reset TMB Counters") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string TMBCounterForFixedTime = toolbox::toString("/%s/TMBCounterForFixedTime",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBCounterForFixedTime) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Read TMB counters--fixed time") << std::endl ;
+  *out << "Number of seconds" << std::endl;
+  *out << cgicc::input().set("type","text").set("value","10").set("name","time_to_wait") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
@@ -6850,7 +6896,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "Inject fake data";
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TriggerTestInjectALCT = toolbox::toString("/%s/TriggerTestInjectALCT",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectALCT) ;
   *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectALCT") ;
@@ -6859,7 +6905,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TriggerTestInjectCLCT = toolbox::toString("/%s/TriggerTestInjectCLCT",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectCLCT) ;
   *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectCLCT") ;
@@ -6875,7 +6921,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "TMB Scope";
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string armScope = toolbox::toString("/%s/armScope",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",armScope) ;
   *out << cgicc::input().set("type","submit").set("value","arm Scope") ;
@@ -6884,7 +6930,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string readoutScope = toolbox::toString("/%s/readoutScope",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",readoutScope) ;
   *out << cgicc::input().set("type","submit").set("value","readout Scope") ;
@@ -6893,7 +6939,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string forceScope = toolbox::toString("/%s/forceScope",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",forceScope) ;
   *out << cgicc::input().set("type","submit").set("value","force Scope") ;
@@ -6909,7 +6955,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "TMB+ALCT User PROMS";
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBClearUserProms = toolbox::toString("/%s/TMBClearUserProms",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBClearUserProms) ;
   *out << cgicc::input().set("type","submit").set("value","Clear TMB+ALCT User Proms") ;
@@ -6925,7 +6971,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "TMB+ALCT Configuration";
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBConfigure = toolbox::toString("/%s/TMBConfigure",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBConfigure) ;
   *out << cgicc::input().set("type","submit").set("value","Configure TMB+ALCT") ;
@@ -6934,7 +6980,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBReadConfiguration = toolbox::toString("/%s/TMBReadConfiguration",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBReadConfiguration) ;
   *out << cgicc::input().set("type","submit").set("value","Read TMB+ALCT Configuration") ;
@@ -6943,7 +6989,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBCheckConfiguration = toolbox::toString("/%s/TMBCheckConfiguration",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBCheckConfiguration) ;
   if ( thisTMB->GetTMBConfigurationStatus() == 1 &&
@@ -6973,7 +7019,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "State Machines";
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBReadStateMachines = toolbox::toString("/%s/TMBReadStateMachines",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBReadStateMachines) ;
   *out << cgicc::input().set("type","submit").set("value","Read TMB State Machines") ;
@@ -6982,7 +7028,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBCheckStateMachines = toolbox::toString("/%s/TMBCheckStateMachines",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBCheckStateMachines) ;
   if ( thisTMB->GetVMEStateMachineStatus()  == 1 && 
@@ -7016,7 +7062,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "Raw Hits";
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string TMBRawHits = toolbox::toString("/%s/TMBRawHits",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBRawHits) ;
   *out << cgicc::input().set("type","submit").set("value","Read TMB Raw Hits") ;
@@ -7025,7 +7071,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
-  *out << cgicc::td().set("ALIGN","center");
+  *out << cgicc::td().set("ALIGN","left");
   std::string ALCTRawHits = toolbox::toString("/%s/ALCTRawHits",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ALCTRawHits) ;
   *out << cgicc::input().set("type","submit").set("value","Read ALCT Raw Hits") ;
