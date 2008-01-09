@@ -298,6 +298,7 @@ private:
   void DMBTurnOn(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBPrintCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBResetCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void TMBCounterForFixedTime(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TriggerTestInjectALCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void armScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void forceScope(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
