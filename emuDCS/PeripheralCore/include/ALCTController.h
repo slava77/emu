@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.23 2007/10/09 11:10:35 rakness Exp $
+// $Id: ALCTController.h,v 3.24 2008/01/09 09:45:07 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.24  2008/01/09 09:45:07  rakness
+// modify AFEB mapping and accessors so that user counts from 0 to MaximumUserIndex(), no matter how the AFEBs are physically connected to the ALCT
+//
 // Revision 3.23  2007/10/09 11:10:35  rakness
 // remove RAT and ALCT inheritance from EMUjtag, i.e., make calls to EMUjtag methods explicitly through TMB
 //
@@ -164,8 +167,9 @@ class TMB;
 class ALCTController {
  public:
   //
+  //!chamberType = ME11, ME12, ME13, ME21, ME22, ME31, ME32, ME41, ME42
   ALCTController(TMB * tmb, 
-		 std::string chamberType); //chamberType = ME11, ME12, ME13, ME21, ME22, ME31, ME32, ME41, ME42
+		 std::string chamberType); 
   ~ALCTController();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
@@ -192,7 +196,7 @@ class ALCTController {
   inline int GetNumberOfChannelsPerLayer() { return NumberOfChannelsPerLayer_; }
   inline int GetNumberOfChannelsInAlct() { return NumberOfChannelsInAlct_; }
   inline int GetNumberOfCollisionPatternGroups() { return NumberOfCollisionPatternGroups_; }
-  // largest AFEB index which the user can access
+  //!largest AFEB index which the user can access
   inline int MaximumUserIndex() { return (GetHighestAfebIndex() - GetLowestAfebIndex()); }
   // min-max hardware delay chip indices
   inline int GetLowestAfebIndex() { return lowest_afeb_index_; }
@@ -270,10 +274,10 @@ class ALCTController {
   //AFEB THRESHOLDS
   //////////////////
   // N.B. DAC is 8 bits, while ADC is 10 bits => write variable is different than read variable
-  void  SetAfebThreshold(int AFEB,                     // set Write values -> AFEB = [0-(GetNumberOfAfebs()-1)]
+  void  SetAfebThreshold(int AFEB,                     // set Write values -> AFEB = [0-(MaximumUserIndex()-1)]
 	 		 int dacValue);                //                     Voltage set = 2.5V * dacValue/256 (8-bit dac)
-  int   GetAfebThresholdDAC(int AFEB);                 // get Write values -> AFEB = [0-(GetNumberOfAfebs()-1)]
-  int   GetAfebThresholdADC(int AFEB);                 // get Read values -> AFEB = [0-(GetNumberOfAfebs()-1)] (10-bit adc value)
+  int   GetAfebThresholdDAC(int AFEB);                 // get Write values -> AFEB = [0-(MaximumUserIndex()-1)]
+  int   GetAfebThresholdADC(int AFEB);                 // get Read values -> AFEB = [0-(MaximumUserIndex()-1)] (10-bit adc value)
   float GetAfebThresholdVolts(int AFEB);               // get Read values -> return voltage = 2.5V * adcValue/1023 
   //
   void  SetPowerUpAfebThresholds();		       // sets Write values to data-taking defaults                
@@ -298,11 +302,10 @@ class ALCTController {
   //////////////////////////////
   // ASIC DELAYS and PATTERNS 
   //////////////////////////////
-  void SetAsicDelay(int AFEB,                        // set Write values -> AFEB = [0-(GetNumberOfAfebs()-1)]
+  void SetAsicDelay(int AFEB,                        // set Write values -> AFEB = [0-(MaximumUserIndex()-1)]
 		    int delay);                      //                    delay = [0-15] (~2ns steps)
-  int  GetAsicDelay(int AFEB);                       // get Read values -> AFEB = [0-(GetNumberOfAfebs()-1)]
-  //
-  inline int GetWriteAsicDelay(int AFEB){ return write_asic_delay_[AFEB]; }
+  int  GetAsicDelay(int AFEB);                       // get Read values -> AFEB = [0-(MaximumUserIndex()-1)]
+  int  GetWriteAsicDelay(int AFEB);                  // get Write values -> AFEB = [0-(MaximumUserIndex()-1)]
   //
   void SetPowerUpAsicDelays();  		     // sets Write values to data-taking defaults
   void PrintAsicDelays();                            // print out Read values
@@ -517,9 +520,9 @@ class ALCTController {
   /////////////////////////////////////////////////
   //STANDBY REGISTER - enable power for each AFEB
   /////////////////////////////////////////////////
-  void SetStandbyRegister_(int AFEB,                   // set Write Values -> AFEB = [0 - GetNumberOfAfebs()-1]
+  void SetStandbyRegister_(int AFEB,                   // set Write Values -> AFEB = [0 - MaximumUserIndex()-1]
 			   int powerswitch);           //                     powerswitch = OFF or ON
-  int  GetStandbyRegister_(int AFEB);                  // get Read Values -> AFEB = [0 - GetNumberOfAfebs()-1]
+  int  GetStandbyRegister_(int AFEB);                  // get Read Values -> AFEB = [0 - MaximumUserIndex()-1]
   //
   void SetPowerUpStandbyRegister_();		      // set Write values to data-taking defaults          
   void PrintStandbyRegister_();			      // print out Read values				       
@@ -594,7 +597,7 @@ private:
   ///////////////////////////////////////////////////////////////////////////////////
   // transformation from "user-interface" to "hardware-interface" delay chip index
   //////////////////////////////////////////////////////////////////////////////////
-  inline int UserIndexToHardwareIndex_(int index) { return (index + GetLowestAfebIndex()); }
+  int UserIndexToHardwareIndex_(int index);
   //
   ////////////////////////////////////////////////////////////////////
   // Private variables specific to the ALCT-type:                   //
