@@ -7,7 +7,6 @@
 #include "MPC.h"
 #include "ALCTController.h"
 #include "VMEController.h"
-#include "CrateSelector.h"
 
 using namespace std;
 

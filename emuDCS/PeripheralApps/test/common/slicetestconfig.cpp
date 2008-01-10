@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: slicetestconfig.cpp,v 1.1 2007/12/26 11:25:04 liu Exp $
+// $Id: slicetestconfig.cpp,v 1.2 2008/01/10 11:57:29 liu Exp $
 // $Log: slicetestconfig.cpp,v $
+// Revision 1.2  2008/01/10 11:57:29  liu
+// update
+//
 // Revision 1.1  2007/12/26 11:25:04  liu
 // new parser and applications
 //
@@ -19,7 +22,6 @@
 #include "VMEController.h"
 #include "Crate.h"
 #include "DAQMB.h"
-#include "DAQMBTester.h"
 #include "CCB.h"
 #include "EmuController.h"
 #include "TMB.h"
