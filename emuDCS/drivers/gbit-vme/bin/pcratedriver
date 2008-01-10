@@ -1,0 +1,83 @@
+#!/bin/bash
+#
+# pcrate driver startup      This is a startup script for use in /etc/init.d 
+# 
+# chkconfig:    345 99 20 
+# description:  Start up custom gbit drivers for CMS/EMU Peripheral Crates  
+#
+# fg/sept07
+#-------------------------------------------------------------------------
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+PROG=$"Peripheral Crate Gbit driver"
+KERNELVERSION=`/bin/uname -r`
+PCRATEDRIVERLIB=/usr/local/lib/modules/${KERNELVERSION}/kernel/drivers/pcrate
+PCRATEPROCFILE=/proc/sys/dev/schar/0
+PCRATELOCKFILE=/var/lock/subsys/pcratedriver
+
+
+case "$1" in     
+start) 
+   echo  $"Starting $PROG: "
+   [ -f $PCRATELOCKFILE ]  && (echo -n "stale lock file, driver not properly stopped"; warning; echo)
+   # look for default (pre-loaded) dl2k modules and remove it.
+   # (this only applies after a cold start)
+   /bin/grep -q dl2k /proc/modules
+   if [ "$?" = "0" ]; then 
+     rmmod dl2k; echo -n "cleaning up old dl2k"; warning; echo
+   fi
+   # 
+   $0 recreate
+   action "eth_hook" /sbin/insmod $PCRATEDRIVERLIB/eth_hook.ko
+   action "dl2k" /sbin/insmod $PCRATEDRIVERLIB/dl2k.ko jumbo=1 mtu=8000 tx_flow=0 rx_flow=0 media=6
+   action "eth2" /sbin/ifconfig eth2 up -arp
+   touch $PCRATELOCKFILE
+  ;;		
+stop)
+  echo  $"Stopping $PROG: "
+  [ -f $PCRATELOCKFILE ]  || (echo -n "no lock file, driver not properly started"; warning; echo)
+  action "eth2" /sbin/ifdown eth2
+  action "dl2k" /sbin/rmmod dl2k
+  action "eth_hook" /sbin/rmmod eth_hook
+  rm -f $PCRATELOCKFILE
+  ;; 		
+restart)
+  # Reload Gbit drivers
+  $0 stop
+  $0 start
+  ;; 				
+condrestart)
+  if [ -f /var/lock/subsys/pcratedriver ]; then
+    $0 stop
+    $0 start
+  fi
+  ;;
+status)     	   
+  echo  $"Status $PROG: "
+  echo "--- /proc/modules:"
+  /bin/grep dl2k /proc/modules || echo "none"
+  echo "--- $PCRATEPROCFILE:"
+  [ -f  $PCRATEPROCFILE ] && /bin/cat $PCRATEPROCFILE || echo "none"
+  ;;
+recreate)
+   # recreate schar device and make writable for group csc
+   echo $"Recreating $PROG (schar device): "
+   [ -c /dev/schar ] || (echo -n "device not present or bad"; warning; echo)
+   /bin/rm -f /dev/schar
+   /bin/mknod /dev/schar c 42 0
+   /bin/chgrp csc /dev/schar
+   /bin/chmod ug+rw /dev/schar
+   # the next two lines should be removed ...
+   /bin/chmod ugo+rwx /dev/schar
+   cd /dev; /bin/ln -sf schar schar2
+   # 
+   echo -n "/dev/schar recreated"
+   [ -c /dev/schar ] && success || failure
+   echo
+   ;;
+*)
+  /bin/echo $"Usage $0 {start|stop|restart|condrestart|recreate|status}"
+  exit 1
+esac
