@@ -25,3 +25,10 @@ _cleanall:
 	/bin/rm -rf *.o *.ko *mod.c .*.cmd .tmp_versions; \
 	cd ../eth_hook_jtag_simple; \
 	/bin/rm -rf *.o *.ko *mod.c .*.cmd .tmp_versions
+
+install:
+	sudo /usr/bin/install -D ./dl2k_driver/dl2k.ko  /tmp/usr/local/lib/modules/`/bin/uname -r`/kernel/drivers/pcrate/dl2k.ko; \
+	sudo /usr/bin/install -D ./eth_hook_jtag_simple/eth_hook.ko  /tmp/usr/local/lib/modules/`/bin/uname -r`/kernel/drivers/pcrate/eth_hook.ko
+	sudo /usr/bin/install -m 755 ./bin/pcratedriver ./etc/rc.d/init.d/pcratedriver ;\
+	sudo /sbin/chkconfig -add pcratedriver; \
+	sudo /sbin/chkconfig pcratedriver on
