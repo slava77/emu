@@ -15,13 +15,10 @@ Package=emuDCS/PeripheralCore
 
 Sources=\
 	ALCTController.cc \
-	AnodeChannel.cc \
 	CCB.cc \
 	RAT.cc \
 	CFEB.cc \
 	Crate.cc \
-	CrateSelector.cc \
-	CrateSetup.cc \
 	DAQMB.cc \
 	MPC.cc \
 	TMBTester.cc \
@@ -31,7 +28,6 @@ Sources=\
 	VMEModule.cc \
 	Chamber.cc \
 	EMUjtag.cc \
-	EmuSystem.cc \
 	EmuEndcap.cc
 
 IncludeDirs = 
