@@ -3,7 +3,6 @@
 #include "CCB.h"
 #include "MPC.h"
 #include "VMEController.h"
-#include "CrateSelector.h"
 #include <unistd.h>
 
 using namespace std;

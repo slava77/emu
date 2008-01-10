@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuConfig.cpp,v 1.1 2007/12/26 11:24:54 liu Exp $
+// $Id: EmuConfig.cpp,v 1.2 2008/01/10 11:57:28 liu Exp $
 // $Log: EmuConfig.cpp,v $
+// Revision 1.2  2008/01/10 11:57:28  liu
+// update
+//
 // Revision 1.1  2007/12/26 11:24:54  liu
 // new parser and applications
 //
@@ -29,7 +32,6 @@
 #include "VMEController.h"
 #include "Crate.h"
 #include "DAQMB.h"
-#include "DAQMBTester.h"
 #include "CCB.h"
 #include "EmuController.h"
 #include "TMB.h"
