@@ -8847,6 +8847,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllVmePromUserid (xoap::Mes
   //implement the DMB VME PROM USER_CODE Readback
   //
   std::cout << "DMB VME PROM USER_CODE Readback " << std::endl;
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
@@ -8858,6 +8863,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllVmePromUserid (xoap::Mes
     }
     //
   }
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   return createReply(message);
 }
 //
@@ -8867,6 +8876,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
   //implement the DMB VME PROM USER_CODE programming
   //
   std::cout << "DMB VME PROM USER_CODE Programming " << std::endl;
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   usleep(200);
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
@@ -8891,6 +8905,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
     }
     //
   }
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   return createReply(message);
 }
 //
@@ -8900,6 +8918,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllCfebPromUserid (xoap::Me
   //implement the CFEB PROM USER_CODE Readback
   //
   std::cout << "CFEB PROM USER_CODE Readback " << std::endl;
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   usleep(200);
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
@@ -8919,6 +8942,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllCfebPromUserid (xoap::Me
     }
     //
   }
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   return createReply(message);
 }
 //
@@ -8928,6 +8955,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
   //implement the CFEB PROM USER_CODE programming
   //
   std::cout << "CFEB PROM USER_CODE Programming " << std::endl;
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
@@ -8965,6 +8997,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
     }
     //
   }
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   return createReply(message);
 }
 
@@ -8976,6 +9012,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT192 (xoap::M
   //
   std::cout << "EnableJtagWriteALCT192 to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -8996,6 +9037,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT192 (xoap::M
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
@@ -9007,6 +9052,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288 (xoap::M
   //
   std::cout << "EnableJtagWriteALCT288 Forward Negative to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -9029,6 +9079,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288 (xoap::M
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
@@ -9040,6 +9094,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288bn (xoap:
   //
   std::cout << "EnableJtagWriteALCT288 Backwards Negative to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -9062,6 +9121,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288bn (xoap:
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
@@ -9073,6 +9136,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288bp (xoap:
   //
   std::cout << "EnableJtagWriteALCT288 Backwards Positive to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -9095,6 +9163,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288bp (xoap:
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
@@ -9106,6 +9178,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288fp (xoap:
   //
   std::cout << "EnableJtagWriteALCT288 Forward Positive to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -9128,6 +9205,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288fp (xoap:
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
@@ -9139,6 +9220,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT384 (xoap::M
   //
   std::cout << "EnableJtagWriteALCT384 to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -9160,6 +9246,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT384 (xoap::M
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
@@ -9171,6 +9261,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT384Mirror (x
   //
   std::cout << "EnableJtagWriteALCT384Mirror to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -9191,6 +9286,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT384Mirror (x
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
@@ -9202,6 +9301,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT576Mirror (x
   //
   std::cout << "EnableJtagWriteALCT576Mirror to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -9223,6 +9327,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT576Mirror (x
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
@@ -9234,6 +9342,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT672 (xoap::M
   //
   std::cout << "EnableJtagWriteALCT672 to TMBs in slots..." << std::endl;
   //
+
+  for(unsigned cv=0; cv=crateVector.size(); cv++) {
+    SetCurrentCrate(cv);
+    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
+
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
@@ -9254,6 +9367,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT672 (xoap::M
   }
   //
   std::cout << std::endl;
+
+  }
+  SetCurrentCrate(this_crate_no_);
+
   //
   return createReply(message);
 }
