@@ -11,21 +11,11 @@ Project=emu
 
 ifeq ($(Set),framework)
 Packages=\
-	emuDCS/drivers/modules1OSUcc\
-	emuDCS/drivers/modules2OSUcc\
-	emuDCS/drivers/OSUcc_and_DDU
+	emuDCS/drivers/gbit-vme
 endif
 
-ifeq ($(Set),modules1OSUcc)
-Packages= emuDCS/drivers/modules1OSUcc
-endif
-
-ifeq ($(Set),modules2OSUcc)
-Packages= emuDCS/drivers/modules2OSUcc
-endif
-
-ifeq ($(Set),OSUcc_and_DDU)
-Packages= emuDCS/drivers/OSUcc_and_DDU
+ifeq ($(Set),gbit-vme)
+Packages= emuDCS/drivers/gbit-vme
 endif
 
 include $(XDAQ_ROOT)/config/Makefile.rules
