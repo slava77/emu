@@ -14,7 +14,7 @@ ifeq ($(Set),framework)
 Packages=\
         extern/dim \
 	emuDCS/PeripheralCore \
-	emuDCS/PeripheralCrate \
+	emuDCS/PeripheralApps \
 	emuDCS/e2p \
 	emuDCS/FEDCrate \
 	emuDAQ/DDUReadout \
@@ -28,7 +28,7 @@ ifeq ($(Set),emuDCS)
 Packages= \
         extern/dim \
         emuDCS/PeripheralCore \
-        emuDCS/PeripheralCrate \
+        emuDCS/PeripheralApps \
 	emuDCS/e2p \
 	emuDCS/FEDCrate
 endif
