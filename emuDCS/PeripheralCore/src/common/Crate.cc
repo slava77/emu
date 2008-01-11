@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.18 2007/12/27 00:33:54 liu Exp $
+// $Id: Crate.cc,v 3.19 2008/01/11 07:40:46 geurts Exp $
 // $Log: Crate.cc,v $
+// Revision 3.19  2008/01/11 07:40:46  geurts
+// removed obsolete include of CrateSetup.h
+//
 // Revision 3.18  2007/12/27 00:33:54  liu
 // update
 //
@@ -119,7 +122,7 @@
 #include <string.h> 
 #include "VMEModule.h"
 #include "VMEController.h"
-#include "CrateSetup.h"
+//#include "CrateSetup.h"
 //#include "Singleton.h"
 #include "DAQMB.h"
 #include "TMB.h"
