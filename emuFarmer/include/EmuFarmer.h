@@ -53,6 +53,11 @@ private:
   ///
   xdata::String configFilesList_;
 
+  ///
+  /// the file containing the list of subsystem config files to be merged, relative to $BUILD_HOME
+  ///
+  xdata::String configFilesListRel_;
+
   /**
    * URL of the XSL transformation file used for merging the subsystem config files
    */
@@ -68,6 +73,10 @@ private:
    */
   xdata::String mergedConfigDirURL_;
 
+  /**
+   * the directory where the merged config file is, relative to $BUILD_HOME
+   */
+  xdata::String mergedConfigDirRel_;
 
   /**
    * user to run the DAQ processes
@@ -201,6 +210,11 @@ private:
   /// process group --> applications map
   ///
   map< string, xdata::Vector<xdata::String>* > applicationNames_;
+
+  ///
+  /// name of the merged config file
+  ///
+  string       mergedConfigFileName_;
 
   ///
   /// URL of the merged config file
