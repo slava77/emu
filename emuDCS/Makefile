@@ -33,5 +33,4 @@ ifeq ($(Set),FEDCrate)
 Packages= emuDCS/FEDCrate
 endif
 
-B
 include $(XDAQ_ROOT)/config/Makefile.rules
