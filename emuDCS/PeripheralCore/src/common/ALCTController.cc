@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.40 2008/01/09 09:45:08 rakness Exp $
+// $Id: ALCTController.cc,v 3.41 2008/01/14 18:17:26 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.41  2008/01/14 18:17:26  rakness
+// correct read of +5.5V_B ADC values on ALCT288
+//
 // Revision 3.40  2008/01/09 09:45:08  rakness
 // modify AFEB mapping and accessors so that user counts from 0 to MaximumUserIndex(), no matter how the AFEBs are physically connected to the ALCT
 //
@@ -1358,6 +1361,34 @@ void ALCTController::PrintAlctTemperature() {
 	       << GetAlctTemperatureCelcius() << " C" << std::endl;
   return;
 }
+//
+float ALCTController::GetAlct_5p5b_Voltage() { 
+  //
+  // Since there are so few AFEBs on ALCT288 boards, they are powered from the +5.5V_A line only.
+  // Therefore, the +5.5V_B ADC inputs on these boards are shorted to ground, hence, the ADC 
+  // values are not useful
+  //
+  float value_to_return = 99998.;
+  //
+  if ( GetNumberOfAfebs() > 18 ) 
+    value_to_return = read_alct_5p5b_voltage_; 
+  //
+  return value_to_return;
+} 
+//
+float ALCTController::GetAlct_5p5b_Current() { 
+  //
+  // Since there are so few AFEBs on ALCT288 boards, they are powered from the +5.5V_A line only.
+  // Therefore, the +5.5V_B ADC inputs on these boards are shorted to ground, hence, the ADC 
+  // values are not useful
+  //
+  float value_to_return = 99998.;
+  //
+  if ( GetNumberOfAfebs() > 18 ) 
+    value_to_return = read_alct_5p5b_current_; 
+  //
+  return value_to_return;
+} 
 //
 int ALCTController::GetAfebThresholdDAC(int afebChannel) { 
   //
