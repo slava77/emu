@@ -77,6 +77,9 @@ void EmuFarmer::exportParams(){
   s->fireItemAvailable( "mergedConfigDir", &mergedConfigDir_ );
   s->fireItemAvailable( "mergedConfigDirURL", &mergedConfigDirURL_ );
 
+  s->fireItemAvailable( "configFilesListRel", &configFilesListRel_ );
+  s->fireItemAvailable( "mergedConfigDirRel", &mergedConfigDirRel_ );
+
   s->fireItemAvailable( "daqUser", &daqUser_ );
   s->fireItemAvailable( "dqmUser", &dqmUser_ );
   s->fireItemAvailable( "fedUser", &fedUser_ );
@@ -204,6 +207,7 @@ string EmuFarmer::mergeConfigFile(){
     }
 
   if ( 0 == success ){
+    mergedConfigFileName_ = fileName;
     mergedConfigFileURL_ = mergedConfigDirURL_.toString()+ "/" + fileName;
   }
   else{
@@ -447,11 +451,21 @@ void EmuFarmer::configListFileTable(xgi::Output *out){
   *out << "<tr class=\"processes\">"                                 << endl;
 
   *out << "  <th class=\"processes\" align=\"center\">"             << endl;
-  *out << "    <a href=\"" << configFilesList_.toString() << "\""
+//   *out << "    <a href=\"" << configFilesList_.toString() << "\""
+//        << " style=\"font-weight: normal;\""
+//        << " id=\"configFilesList\""
+//        << " target=\"_blank\">"
+//        << configFilesList_.toString() << "</a>"                      << endl;
+  *out << "    <a href=\"" 
+       << getApplicationContext()->getContextDescriptor()->getURL() 
+       << "/" << configFilesListRel_.toString()
+       << "\""
        << " style=\"font-weight: normal;\""
        << " id=\"configFilesList\""
        << " target=\"_blank\">"
-       << configFilesList_.toString() << "</a>"                      << endl;
+       << getApplicationContext()->getContextDescriptor()->getURL() 
+       << "/" << configFilesListRel_.toString() 
+       << "</a>"                      << endl;
   *out << "  </th>"                                                  << endl;
 
   *out << "</tr>"                                                    << endl;
@@ -483,10 +497,18 @@ void EmuFarmer::configFileTable(xgi::Output *out, const string& message){
   *out << "<tr class=\"processes\">"                                 << endl;
 
   *out << "  <td  class=\"processes\" align=\"center\">"             << endl;
-  *out << "    <a href=\"" << mergedConfigFileURL_ 
+//   *out << "    <a href=\"" << mergedConfigFileURL_ 
+//        << "\" id=\"mergedConfigFileURL\""
+//        << " target=\"_blank\">";
+//   *out << mergedConfigFileURL_                                       << endl;
+//   *out << "    </a>"                                                 << endl;
+  *out << "    <a href=\"" 
+       << getApplicationContext()->getContextDescriptor()->getURL() << "/"
+       << mergedConfigDirRel_.toString() << "/" << mergedConfigFileName_
        << "\" id=\"mergedConfigFileURL\""
        << " target=\"_blank\">";
-  *out << mergedConfigFileURL_                                       << endl;
+  *out << getApplicationContext()->getContextDescriptor()->getURL() << "/"
+       << mergedConfigDirRel_.toString() << "/" << mergedConfigFileName_;
   *out << "    </a>"                                                 << endl;
   *out << "    <span style=\"color:#ff0000;\">";
   *out <<         message << "</span>"                               << endl;;
