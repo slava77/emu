@@ -5634,13 +5634,21 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td().set("ALIGN","center");
   float value_5p5voltb = alct->GetAlct_5p5b_Voltage();
-  if ( value_5p5voltb < 5.5*0.95 ||
-       value_5p5voltb > 5.5*1.05 ) {
+  // The +5.5V_B ADC inputs on ALCT288 boards are shorted to ground, hence, the ADC values are not useful
+  if ( alct->GetNumberOfAfebs() <= 18 ) {
+    *out << cgicc::span().set("style","color:black");
+  } else if ( value_5p5voltb < 5.5*0.95 ||
+	      value_5p5voltb > 5.5*1.05 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
   }
-  *out << std::setprecision(2) << value_5p5voltb << " V";
+  // The +5.5V_B ADC inputs on ALCT288 boards are shorted to ground, hence, the ADC values are not useful
+  if ( alct->GetNumberOfAfebs() <= 18 ) {
+    *out << "XXXXX";
+  } else {
+    *out << std::setprecision(2) << value_5p5voltb << " V";
+  }
   *out << cgicc::span();
   *out << cgicc::td();
   //
@@ -5695,13 +5703,20 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td().set("ALIGN","center");
   //    float value_5p5ampsb = thisDMB->lowv_adc(3,2)/1000.;
   float value_5p5ampsb = alct->GetAlct_5p5b_Current();
-  if ( value_5p5ampsb < 5.5*0.95 ||
-       value_5p5ampsb > 5.5*1.05 ) {
+  // The +5.5V_B ADC inputs on ALCT288 boards are shorted to ground, hence, the ADC values are not useful...
+  if ( alct->GetNumberOfAfebs() <= 18 ) {
+    *out << cgicc::span().set("style","color:black");
+  } else if ( value_5p5ampsb < 5.5*0.95 ||
+	      value_5p5ampsb > 5.5*1.05 ) {
     *out << cgicc::span().set("style","color:black");
   } else {
     *out << cgicc::span().set("style","color:black");  
   }
-  *out << std::setprecision(2) << value_5p5ampsb << " A" ;
+  if ( alct->GetNumberOfAfebs() <= 18 ) {
+    *out << "XXXXX" ;
+  } else {
+    *out << std::setprecision(2) << value_5p5ampsb << " A" ;
+  }
   *out << cgicc::span();
   *out << cgicc::td();
   //

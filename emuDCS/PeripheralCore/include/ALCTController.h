@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.24 2008/01/09 09:45:07 rakness Exp $
+// $Id: ALCTController.h,v 3.25 2008/01/14 18:17:26 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.25  2008/01/14 18:17:26  rakness
+// correct read of +5.5V_B ADC values on ALCT288
+//
 // Revision 3.24  2008/01/09 09:45:07  rakness
 // modify AFEB mapping and accessors so that user counts from 0 to MaximumUserIndex(), no matter how the AFEBs are physically connected to the ALCT
 //
@@ -293,11 +296,11 @@ class ALCTController {
   inline float GetAlct_1p8_Voltage()  { return read_alct_1p8_voltage_;  } 
   inline float GetAlct_3p3_Voltage()  { return read_alct_3p3_voltage_;  } 
   inline float GetAlct_5p5a_Voltage() { return read_alct_5p5a_voltage_; } 
-  inline float GetAlct_5p5b_Voltage() { return read_alct_5p5b_voltage_; } 
   inline float GetAlct_1p8_Current()  { return read_alct_1p8_current_;  } 
   inline float GetAlct_3p3_Current()  { return read_alct_3p3_current_;  } 
   inline float GetAlct_5p5a_Current() { return read_alct_5p5a_current_; } 
-  inline float GetAlct_5p5b_Current() { return read_alct_5p5b_current_; } 
+  float GetAlct_5p5b_Voltage();
+  float GetAlct_5p5b_Current();
   //
   //////////////////////////////
   // ASIC DELAYS and PATTERNS 
