@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.3 2008/01/08 08:48:16 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.4 2008/01/15 11:35:49 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -347,14 +347,14 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
   cout <<"         This is the DMB board number"<<endl;
   //
   //SOAP message to read back the DMB board ID:
-  PCsendCommand("ReadVmePromUserid","EmuPeripheralCrate");
+  PCsendCommand("ReadVmePromUserid","EmuPeripheralCrateConfig");
   //
   cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
   broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,1);
   //
   cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
   //SOAP message to individual crates to program the PROM_USERCODE
-  PCsendCommand("LoadVmePromUserid","EmuPeripheralCrate");
+  PCsendCommand("LoadVmePromUserid","EmuPeripheralCrateConfig");
   //
   cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
   broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,3);
@@ -373,14 +373,14 @@ void EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Out
   cout <<" Step 1: Sending SOAP message to all the crates to readback the CFEB_PROM_ID"<<endl;
   cout <<"         This is the CFEB board number"<<endl;
   //SOAP message to read back the CFEB board ID:
-  PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrate");
+  PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrateConfig");
   //
   cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<endl;
   broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,1);
   //
   cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<endl;
   //SOAP message to individual crates to program the CFEB PROM_USERCODE
-  PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrate");
+  PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrateConfig");
   //
   cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
   broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,3);
@@ -434,7 +434,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT192: Enable JTAG write for TMBs connected to ALCT192..." << std::endl;
-    PCsendCommand("EnableALCT192","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT192","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT192: Broadcast ALCT192 firmware from " << ALCT192FirmwareFile_ << std::endl;
     //
@@ -454,7 +454,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT384: Enable JTAG write for TMBs connected to ALCT384..." << std::endl;
-    PCsendCommand("EnableALCT384","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT384","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT384: Broadcast ALCT384 firmware from " << ALCT384FirmwareFile_ << std::endl;
     //
@@ -474,7 +474,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT288: Enable JTAG write for TMBs connected to ALCT288..." << std::endl;
-    PCsendCommand("EnableALCT288","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT288","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT288: Broadcast ALCT288 firmware from " << ALCT288FirmwareFile_ << std::endl;
     //
@@ -494,7 +494,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT288bn: Enable JTAG write for TMBs connected to ALCT288bn..." << std::endl;
-    PCsendCommand("EnableALCT288bn","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT288bn","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT288bn: Broadcast ALCT288bn firmware from " << ALCT288bnFirmwareFile_ << std::endl;
     //
@@ -514,7 +514,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT288bp: Enable JTAG write for TMBs connected to ALCT288bp..." << std::endl;
-    PCsendCommand("EnableALCT288bp","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT288bp","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT288bp: Broadcast ALCT288bp firmware from " << ALCT288bpFirmwareFile_ << std::endl;
     //
@@ -534,7 +534,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT288fp: Enable JTAG write for TMBs connected to ALCT288fp..." << std::endl;
-    PCsendCommand("EnableALCT288fp","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT288fp","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT288fp: Broadcast ALCT288fp firmware from " << ALCT288fpFirmwareFile_ << std::endl;
     //
@@ -554,7 +554,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT672: Enable JTAG write for TMBs connected to ALCT672..." << std::endl;
-    PCsendCommand("EnableALCT672","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT672","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT672: Broadcast ALCT672 firmware from " << ALCT672FirmwareFile_ << std::endl;
     //
@@ -574,7 +574,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT576Mirror: Enable JTAG write for TMBs connected to ALCT576Mirror..." << std::endl;
-    PCsendCommand("EnableALCT576Mirror","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT576Mirror","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT576Mirror: Broadcast ALCT576Mirror firmware from " << ALCT576MirrorFirmwareFile_ << std::endl;
     //
@@ -594,7 +594,7 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     broadcastTMB->WriteRegister(0xD4);
     //  
     std::cout << "ALCT384Mirror: Enable JTAG write for TMBs connected to ALCT384Mirror..." << std::endl;
-    PCsendCommand("EnableALCT384Mirror","EmuPeripheralCrate");
+    PCsendCommand("EnableALCT384Mirror","EmuPeripheralCrateConfig");
     //
     std::cout << "ALCT384Mirror: Broadcast ALCT384Mirror firmware from " << ALCT384MirrorFirmwareFile_ << std::endl;
     //
