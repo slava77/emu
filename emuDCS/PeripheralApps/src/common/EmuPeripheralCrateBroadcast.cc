@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.4 2008/01/15 11:35:49 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.5 2008/01/15 16:16:52 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -29,6 +29,7 @@ using namespace std;
 
 EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuApplication(s)
 {	
+  broadcastCrate = 0;
   HomeDir_     = getenv("HOME");
   FirmwareDir_ = HomeDir_+"/firmware/";
   ConfigDir_   = HomeDir_+"/config/";
