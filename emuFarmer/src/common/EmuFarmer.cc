@@ -1074,7 +1074,9 @@ bool EmuFarmer::actOnEmuProcess( const string& action, const string& url )
   // send SOAP message
   xoap::MessageReference reply;
   try {
-    reply = getApplicationContext()->postSOAP( m, jcDescriptor );
+    //reply = getApplicationContext()->postSOAP( m, jcDescriptor );
+    xdaq::ApplicationDescriptor *appDescriptor = getApplicationDescriptor();
+    reply = getApplicationContext()->postSOAP( m, *appDescriptor, *jcDescriptor );
   } catch (xdaq::exception::Exception e) {
     LOG4CPLUS_ERROR( logger_, "Failed to " + action + " " + url
 		     + ": " + xcept::stdformat_exception_history(e) );      
@@ -1107,9 +1109,13 @@ bool EmuFarmer::actOnEmuProcess( const string& action, const string& url )
     try {
       nodeList = replyBody.getDOM()->getChildNodes();
 //       cerr << "Body's child nodes" << endl << printNodeList( nodeList );
-      nodeList = findNode( nodeList, "jidResponse")->getChildNodes();
+//       nodeList = findNode( nodeList, "jidResponse")->getChildNodes();
+      // JobControl returns jid as pid... Therefore:
+      nodeList = findNode( nodeList, "pidResponse")->getChildNodes();
 //       cerr << "jidResponse's child nodes" << endl << printNodeList( nodeList );
-      nodeList = findNode( nodeList, "jid"        )->getChildNodes();
+//       nodeList = findNode( nodeList, "jid"        )->getChildNodes();
+      // JobControl returns jid as pid... Therefore:
+      nodeList = findNode( nodeList, "pid"        )->getChildNodes();
 //       cerr << "jid's child nodes" << endl << printNodeList( nodeList );
       success = true;
     } catch ( xdaq::exception::Exception e ){
