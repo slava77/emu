@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 3.4 2007/10/09 11:10:35 rakness Exp $
+// $Id: RAT.h,v 3.5 2008/01/16 18:36:51 rakness Exp $
 // $Log: RAT.h,v $
+// Revision 3.5  2008/01/16 18:36:51  rakness
+// add broadcast firmware downloading for RAT
+//
 // Revision 3.4  2007/10/09 11:10:35  rakness
 // remove RAT and ALCT inheritance from EMUjtag, i.e., make calls to EMUjtag methods explicitly through TMB
 //
@@ -56,6 +59,16 @@ class RAT {
   //
   //---------------------------------
   // Parameters in the database...
+  //---------------------------------
+  // firmware dates:
+  //---------------------------------
+  void SetExpectedRatFirmwareDay(int day);
+  int  GetExpectedRatFirmwareDay();
+  void SetExpectedRatFirmwareMonth(int month);
+  int  GetExpectedRatFirmwareMonth();
+  void SetExpectedRatFirmwareYear(int year);
+  int  GetExpectedRatFirmwareYear();
+  //
   //---------------------------------
   // RPC-RAT phase:
   //---------------------------------

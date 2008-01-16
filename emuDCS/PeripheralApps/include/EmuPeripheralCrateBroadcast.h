@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.2 2008/01/16 17:04:20 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.3 2008/01/16 18:36:50 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -56,6 +56,8 @@
 #include "DAQMB.h"
 #include "CCB.h"
 #include "ALCTController.h"
+#include "MPC.h"
+#include "RAT.h"
 
 using namespace cgicc;
 using namespace std;
@@ -79,6 +81,9 @@ public:
   std::string DmbVmeFPGAFirmwareFile_;
   std::string CfebFPGAFirmwareFile_;
   std::string TMBFirmwareFile_;
+  std::string RATFirmwareFile_;
+  std::string CCBFirmwareFile_;
+  std::string MPCFirmwareFile_;
   //
   std::string ALCTFirmwareDirectory_     ;
   //
@@ -110,10 +115,12 @@ public:
   void LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw(xgi::exception::Exception);
   void LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadTMBFirmware(xgi::Input * in, xgi::Output * out );
+  void LoadRATFirmware(xgi::Input * in, xgi::Output * out );
+  void LoadCCBFirmware(xgi::Input * in, xgi::Output * out );
+  void LoadMPCFirmware(xgi::Input * in, xgi::Output * out );
   void LoadALCTFirmware(xgi::Input * in, xgi::Output * out );
   void VMECCLoadFirmwareBcast(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCTestBcast(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
-
   //
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception);
   //
@@ -137,8 +144,11 @@ private:
   Crate * broadcastCrate;
   DAQMB * broadcastDMB;
   TMB * broadcastTMB;
+  RAT * broadcastRAT;
+  MPC * broadcastMPC;
   ALCTController * broadcastALCT;
   CCB * broadcastCCB;
+
   xdata::String VMECCFirmwareDir_; 
   xdata::String VMECCFirmwareVer_; 
 
