@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.6 2008/01/16 17:06:04 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.7 2008/01/16 18:36:51 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -41,6 +41,8 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   DmbControlFPGAFirmwareFile_       = FirmwareDir_+"dmb/dmb6cntl_pro.svf";
   DmbVmeFPGAFirmwareFile_           = FirmwareDir_+"dmb/dmb6vme_pro.svf";
   CfebFPGAFirmwareFile_             = FirmwareDir_+"cfeb/cfeb_pro.svf";
+  CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
+  MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_102706.svf";
   //
   //In order to load firmware automatically from the firmware values in the xml files, 
   //the firmware needs to reside in directories in the form:
@@ -84,9 +86,13 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware, "LoadCFEBFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadTMBFirmware, "LoadTMBFirmware");
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadRATFirmware , "LoadRATFirmware" );
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCCBFirmware , "LoadCCBFirmware" );
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadMPCFirmware , "LoadMPCFirmware" );
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCLoadFirmwareBcast,  "VMECCLoadFirmwareBcast"); 
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCTestBcast,  "VMECCTestBcast"); 
+
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onConfigCalCFEB, "ConfigCalCFEB", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBGains, "EnableCalCFEBGains", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk, "EnableCalCFEBCrossTalk", XDAQ_NS_URI);
@@ -230,6 +236,9 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
     broadcastDMB = (broadcastCrate->daqmbs())[0];
     broadcastTMB = (broadcastCrate->tmbs())[0];
     broadcastALCT = broadcastTMB->alctController();
+    broadcastRAT  = broadcastTMB->getRAT();
+    broadcastMPC  = broadcastCrate->mpc();
+    broadcastCCB  = broadcastCrate->ccb();
   }
   //
   cout <<" Broadcast components are defined "<<endl;
@@ -264,16 +273,16 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
-  std::string LoadDMBControlFPGA = toolbox::toString("/%s/LoadDMBControlFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",LoadDMBControlFPGA) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Load DMBs Control FPGA Firmware") << std::endl ;
-  *out << DmbControlFPGAFirmwareFile_;
-  *out << cgicc::form()<<std::endl;
-  //
   std::string LoadDMBvmeFPGA = toolbox::toString("/%s/LoadDMBvmeFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadDMBvmeFPGA) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load DMBs VME FPGA Firmware") << std::endl ;
   *out << DmbVmeFPGAFirmwareFile_;
+  *out << cgicc::form()<<std::endl;
+  //
+  std::string LoadDMBControlFPGA = toolbox::toString("/%s/LoadDMBControlFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadDMBControlFPGA) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load DMBs Control FPGA Firmware") << std::endl ;
+  *out << DmbControlFPGAFirmwareFile_;
   *out << cgicc::form()<<std::endl;
   //
   std::string LoadCFEBFPGA = toolbox::toString("/%s/LoadCFEBFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -284,14 +293,14 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   //
   //
   //create TMB filename for firmware based on expected dates...
-  char date[8];
-  sprintf(date,"%4x%1x%1x%1x%1x",
+  char tmbdate[8];
+  sprintf(tmbdate,"%4x%1x%1x%1x%1x",
 	  broadcastTMB->GetExpectedTmbFirmwareYear()&0xffff,
 	  (broadcastTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
 	  (broadcastTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
 	  (broadcastTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
 	  (broadcastTMB->GetExpectedTmbFirmwareDay()     )&0xf);
-  TMBFirmwareFile_ = FirmwareDir_+"tmb/"+date+"/tmb";   // Note:  ".xsvf" is added in SetXsvfFilename
+  TMBFirmwareFile_ = FirmwareDir_+"tmb/"+tmbdate+"/tmb";   // Note:  ".xsvf" is added in SetXsvfFilename
   //
   std::string LoadTMBFirmware = toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
@@ -299,6 +308,21 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << TMBFirmwareFile_ << ".xsvf";
   *out << cgicc::form()<<std::endl;
   //
+  //create RAT filename for firmware based on expected dates...
+  char ratdate[8];
+  sprintf(ratdate,"%4x%1x%1x%1x%1x",
+	  broadcastRAT->GetExpectedRatFirmwareYear()&0xffff,
+	  (broadcastRAT->GetExpectedRatFirmwareMonth()>>4)&0xf,
+	  (broadcastRAT->GetExpectedRatFirmwareMonth()   )&0xf,
+	  (broadcastRAT->GetExpectedRatFirmwareDay()  >>4)&0xf,
+	  (broadcastRAT->GetExpectedRatFirmwareDay()     )&0xf);
+  RATFirmwareFile_ = FirmwareDir_+"rat/"+ratdate+"/rat.svf";
+  //
+  std::string LoadRATFirmware = toolbox::toString("/%s/LoadRATFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadRATFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load RAT Firmware") << std::endl ;
+  *out << RATFirmwareFile_ << std::endl;
+  *out << cgicc::form()<<std::endl;
   //
   char alctdate[8];
   //create ALCT filename for firmware based on expected dates...
@@ -343,7 +367,19 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << ALCTFirmwareDirectory_ << "...";
   *out << cgicc::form()<<std::endl;
   //
-  *out << cgicc::fieldset()<<std::endl;
+  //  std::string LoadMPCFirmware = toolbox::toString("/%s/LoadMPCFirmware",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",LoadMPCFirmware) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Load MPC Firmware") << std::endl ;
+  //  *out << MPCFirmwareFile_;
+  //  *out << cgicc::form() << std::endl;
+  //
+  //  std::string LoadCCBFirmware = toolbox::toString("/%s/LoadCCBFirmware",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",LoadCCBFirmware) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Load CCB Firmware") << std::endl ;
+  //  *out << CCBFirmwareFile_;
+  //  *out << cgicc::form() << std::endl;
+  //
+  *out << cgicc::fieldset() << std::endl;
   //
 }
 //
@@ -462,10 +498,10 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
   //
   const bool program192       = true;  // ME1/3
   const bool program384       = true;  // ME1/2, ME2/2
-  const bool program288       = true;  // ME1/1
-  const bool program288bn     = true;  // ME1/1
-  const bool program288bp     = true;  // ME1/1
-  const bool program288fp     = true;  // ME1/1
+  const bool program288       = true;  // ME1/1 -endcap forward
+  const bool program288bn     = true;  // ME1/1 -endcap backward
+  const bool program288bp     = true;  // ME1/1 +endcap backward
+  const bool program288fp     = true;  // ME1/1 +endcap forward
   const bool program672       = true;  // ME2/1
   const bool program576Mirror = true;  // ME3/1, ME4/1
   const bool program384Mirror = true;  // ME3/2
@@ -663,6 +699,53 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
   //  
   this->LoadDMBCFEBFPGAFirmware(in, out);
   //
+}
+//
+void EmuPeripheralCrateBroadcast::LoadRATFirmware(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the RAT firmware
+  //
+  std::cout <<" Loading all RATs with firmware from " << RATFirmwareFile_ << std::endl;
+  //
+  int debugMode(0);
+  int jch(7);
+  //
+  broadcastTMB->disableAllClocks();
+  broadcastRAT->SVFLoad(&jch,RATFirmwareFile_.c_str(),debugMode);
+  broadcastTMB->enableAllClocks();
+  //
+  in=NULL;
+  this->LoadDMBCFEBFPGAFirmware(in, out);
+}
+//
+void EmuPeripheralCrateBroadcast::LoadMPCFirmware(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the MPC firmware
+  //
+  std::cout <<" Loading all MPCs with firmware from " << MPCFirmwareFile_ << std::endl;
+  //
+  int debugMode(0);
+  int jch(6);
+  //
+  broadcastMPC->svfLoad(&jch,MPCFirmwareFile_.c_str(),debugMode);
+  //
+  in=NULL;
+  this->LoadDMBCFEBFPGAFirmware(in, out);
+}
+//
+void EmuPeripheralCrateBroadcast::LoadCCBFirmware(xgi::Input * in, xgi::Output * out )  {
+  //
+  // load the CCB firmware
+  //
+  std::cout <<" Loading all CCBs with firmware from " << CCBFirmwareFile_ << std::endl;
+  //
+  int debugMode(0);
+  int jch(6);
+  //
+  broadcastCCB->svfLoad(&jch,CCBFirmwareFile_.c_str(),debugMode);
+  //
+  in=NULL;
+  this->LoadDMBCFEBFPGAFirmware(in, out);
 }
 //
 /////////////////////////////////////////////////////////////////////////////

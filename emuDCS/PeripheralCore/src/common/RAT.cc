@@ -828,3 +828,38 @@ int RAT::SVFLoad(int * arg1, const char * arg2, int arg3) {
   //
   return tmb_->SVFLoad(arg1,arg2,arg3); 
 }
+//
+void RAT::SetExpectedRatFirmwareDay(int day) { 
+  //
+  tmb_->SetExpectedRatFirmwareDay(day); 
+  return;
+}
+//
+int RAT::GetExpectedRatFirmwareDay() { 
+  //
+  return tmb_->GetExpectedRatFirmwareDay(); 
+  //
+}
+//
+void RAT::SetExpectedRatFirmwareMonth(int month) { 
+  //
+  tmb_->SetExpectedRatFirmwareMonth(month); 
+  return;
+}
+int RAT::GetExpectedRatFirmwareMonth() { 
+  //
+  return tmb_->GetExpectedRatFirmwareMonth(); 
+  //
+}
+//
+void RAT::SetExpectedRatFirmwareYear(int year) { 
+  //
+  tmb_->SetExpectedRatFirmwareYear(year); 
+  return;
+}
+//
+int RAT::GetExpectedRatFirmwareYear() { 
+  //
+  return tmb_->GetExpectedRatFirmwareYear(); 
+  //
+}
