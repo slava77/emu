@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.1 2007/12/26 11:22:30 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.2 2008/01/16 17:04:20 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -49,6 +49,7 @@
 
 #include "EmuApplication.h"
 #include "EmuController.h"
+#include "VMEController.h"
 #include "Crate.h"
 #include "CrateUtilities.h"
 #include "TMB.h"
@@ -110,6 +111,9 @@ public:
   void LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadTMBFirmware(xgi::Input * in, xgi::Output * out );
   void LoadALCTFirmware(xgi::Input * in, xgi::Output * out );
+  void VMECCLoadFirmwareBcast(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCTestBcast(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
+
   //
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception);
   //
@@ -135,6 +139,8 @@ private:
   TMB * broadcastTMB;
   ALCTController * broadcastALCT;
   CCB * broadcastCCB;
+  xdata::String VMECCFirmwareDir_; 
+  xdata::String VMECCFirmwareVer_; 
 
 };
 

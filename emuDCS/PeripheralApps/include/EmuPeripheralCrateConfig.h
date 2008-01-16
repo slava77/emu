@@ -77,6 +77,8 @@ protected:
   xdata::String RATFirmware_;
   xdata::String ALCTFirmware_;
   xdata::String CFEBFirmware_;
+  xdata::String VMECCFirmwareDir_; 
+  xdata::String VMECCFirmwareVer_; 
   std::string FirmwareDir_ ;
   //
   xdata::String curlCommand_;         // the curl command's full path
@@ -324,6 +326,8 @@ private:
   void BackplaneID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void EnableDisableDebug(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ReadVMECCRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void VMECCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

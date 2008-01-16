@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.5 2008/01/15 16:16:52 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.6 2008/01/16 17:06:04 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -26,6 +26,9 @@
 
 using namespace cgicc;
 using namespace std;
+
+const string       VMECC_FIRMWARE_DIR = "vcc"; 
+const string       VMECC_FIRMWARE_VER ="4.28";   
 
 EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuApplication(s)
 {	
@@ -82,7 +85,8 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware, "LoadCFEBFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadTMBFirmware, "LoadTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadALCTFirmware, "LoadALCTFirmware");
-
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCLoadFirmwareBcast,  "VMECCLoadFirmwareBcast"); 
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCTestBcast,  "VMECCTestBcast"); 
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onConfigCalCFEB, "ConfigCalCFEB", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBGains, "EnableCalCFEBGains", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk, "EnableCalCFEBCrossTalk", XDAQ_NS_URI);
@@ -120,6 +124,13 @@ void EmuPeripheralCrateBroadcast::MainPage(xgi::Input * in, xgi::Output * out ) 
   *out << cgicc::form().set("method","GET").set("action",LoadDMBCFEBFPGA) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","!!!      Broadcast Download Firmware      !!!") << std::endl ;
   *out << cgicc::form();
+  //
+    std::string VMECCTestBcast =
+      toolbox::toString("/%s/VMECCTestBcast",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",VMECCTestBcast) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value"," VMECC Test Broadcast") << std::endl ;  
+    *out << cgicc::form();
   //
   std::string LoadCFEBchannel = toolbox::toString("/%s/LoadCFEBcalchannel",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadCFEBchannel) << std::endl ;
@@ -234,6 +245,18 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   MyHeader(in,out,"Broadcast Download Firmware,  Be extra careful    !!!");
   //
   DefineBroadcastCrate();
+  //
+  // load the VMECC controller firmware
+  //
+    std::string VMECCLoadFirmwareBcast =
+      toolbox::toString("/%s/VMECCLoadFirmwareBcast",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",VMECCLoadFirmwareBcast)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Load VMECC Firmware(broadcast)") 
+	 << std::endl ;
+    *out << cgicc::form() << std::endl ;
   //
   // load the DAQMB Controller FPGA firmware
   //
@@ -362,6 +385,35 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
   //
   this->LoadDMBCFEBFPGAFirmware(in, out);
 }
+//
+  void EmuPeripheralCrateBroadcast::VMECCLoadFirmwareBcast(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    char buf[50];
+    broadcastCrate->vmeController()->init();
+
+    sprintf(buf," Entered VMECCLoadFirmwareBcast \n");
+    std::cout<<buf<<std::endl;
+    std::string VMECCFirmware = FirmwareDir_+VMECC_FIRMWARE_DIR;
+    VMECCFirmwareDir_=VMECCFirmware;
+   std::cout << " firmware dir: " << VMECCFirmwareDir_ .toString()<< std::endl;
+   std::string VMECCFirmwareD=VMECC_FIRMWARE_VER;
+    VMECCFirmwareVer_=VMECCFirmwareD;
+    std::cout << " firmware ver: " << VMECCFirmwareVer_ .toString()<< std::endl;
+    broadcastCrate->vmeController()->prg_vcc_prom_bcast(VMECCFirmwareDir_.toString().c_str(),VMECCFirmwareVer_.toString().c_str());
+    this->LoadDMBCFEBFPGAFirmware(in,out);
+    //
+  }
+
+void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception)
+{
+  broadcastCrate->vmeController()->init();
+
+  cout <<" Broadcast Crate and DMB are defined "<<endl;
+  broadcastCrate->vmeController()->read_dev_id_broadcast();
+
+  this->Default(in, out);
+ }
+
 //
 void EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out ) {
   //
