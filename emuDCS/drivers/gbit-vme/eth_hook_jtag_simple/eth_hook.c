@@ -122,6 +122,12 @@ static char *bufr;
 static int endcond={0};
 static int wakecond={0};
 static int ERROR={0};
+int rd_tmo = {1000};
+//Added by Jinghua Liu
+static int wakestatus=0;
+static int pack_drop=0;
+
+
 
 static unsigned long int proc_rpackets;
 static unsigned long int proc_rbytesL;
@@ -145,6 +151,7 @@ int init_module2(void)
   pnt_ring=kmalloc(MMT_BUF_SIZE,GFP_KERNEL);
   if (!pnt_ring)printk(KERN_INFO "failed kmalloc\n");
   pack_left=0;
+  pack_drop=0;
   bufw=pnt_ring;
   nbufw=0;
   bufr=pnt_ring;
@@ -164,7 +171,14 @@ int cleanup_exit2(void)
 int netif_rx_hook(struct sk_buff *skb)
 { 
   int i,icnt;
-// write length to first word
+// write length to first word if(nbufw+skb->len+16 > MMT_BUF_SIZE)
+  { printk(KERN_INFO "eth_hook: out of memory, incoming packet dropped! \n");
+    pack_drop++;
+    ERROR=1;
+    kfree_skb(skb);
+    return 1;
+  }
+
   *(int *)bufw=skb->len+14;
   bufw=bufw+2;
 // fill bigphys memory and increment counters
@@ -189,6 +203,7 @@ int netif_rx_hook(struct sk_buff *skb)
   if(wakecond==0&&pack_left>0){
                        wakecond=1;
 		       wake_up_interruptible(&schar_wq);
+                       wakestatus=2;
 		       wake_up_interruptible(&schar_poll_read); 
   }
 
@@ -233,6 +248,7 @@ static int schar_ioctl(struct inode *inode, struct file *file,
 
 		case SCHAR_RESET: {
                   pack_left=0;
+                  pack_drop=0;
                   bufw=pnt_ring;
                   nbufw=0;
                   bufr=pnt_ring;
@@ -251,6 +267,17 @@ static int schar_ioctl(struct inode *inode, struct file *file,
 		// printk(KERN_INFO "ioct:l SCHAR_END %d  \n",blocking); 
 	        return 0;
 		}
+
+	        case SCHAR_READ_TIMEOUT: {
+                  rd_tmo=(int)arg;
+		  // printk(KERN_INFO "SCHAR_READ_TIMEOUT %d ",rd_tmo);
+                  return 0;  
+	        }
+
+                case SCHAR_INQR: {
+                return (pack_left & 0xffff) | (endcond<<16) 
+                       | (wakecond<<20) | (wakestatus<<24) | (ERROR<<28);
+                }
 
 
 		default: {
@@ -284,11 +311,16 @@ static int schar_read_proc(ctl_table *ctl, int write, struct file *file,
 	v2.6remove */
 	len += sprintf(schar_proc_string, "GIGABIT DRIVER SIMPLE JTAG\n\n");
 	len += sprintf(schar_proc_string+len, " LEFT TO READ: \n");
-        len += sprintf(schar_proc_string+len," pack_left\t\t%d packets\n",pack_left); 
+        len += sprintf(schar_proc_string+len," pack_left\t\t%d packets\n",pack_left);
+ 	len += sprintf(schar_proc_string+len, " wakestatus\t\t%d\n",wakestatus);
+        len += sprintf(schar_proc_string+len, " wakecond\t\t%d\n",wakecond);
+	len += sprintf(schar_proc_string+len, " endcond\t\t%d\n",endcond);
+	len += sprintf(schar_proc_string+len, " error\t\t%d\n",ERROR);	
 	len += sprintf(schar_proc_string+len, " RECEIVE: \n");
 	len += sprintf(schar_proc_string+len, "  recieve\t\t%ld packets\n",proc_rpackets);
         len += sprintf(schar_proc_string+len, "  receive    \t\t\t%02d%09ld bytes\n",proc_rbytesH,proc_rbytesL); 
         len += sprintf(schar_proc_string+len, "  memory  \t\t\t%09d bytes\n",MMT_BUF_SIZE);
+        len += sprintf(schar_proc_string+len, "  dropped \t\t%d packets\n",pack_drop);
  	len += sprintf(schar_proc_string+len, " TRANSMIT: \n");
         len += sprintf(schar_proc_string+len, "  transmit\t\t%d packets \n",proc_tpackets);
         len += sprintf(schar_proc_string+len, "  transmit    \t\t\t%02d%09ld bytes\n\n",proc_tbytesH,proc_tbytesL); 
@@ -314,7 +346,9 @@ static ssize_t schar_read(struct file *file, char *buf, size_t count,
   remove sleep_on */
 
   if(pack_left<=0&&endcond!=1)wakecond=0;
-  wait_event_interruptible(schar_wq,(wakecond!=0));
+  wakestatus=1;
+  wait_event_interruptible_timeout(schar_wq,(wakecond!=0),rd_tmo);
+  wakestatus=3;
   if (signal_pending(current))return -EINTR;
   
 
