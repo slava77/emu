@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.31 2008/01/16 14:32:54 liu Exp $
+// $Id: DAQMB.cc,v 3.32 2008/01/16 16:47:46 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.32  2008/01/16 16:47:46  liu
+// update print out
+//
 // Revision 3.31  2008/01/16 14:32:54  liu
 // free momery allocated by malloc()
 //
@@ -2701,7 +2704,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     float percent;
     while (fgets(buf,256,dwnfp) != NULL)  {
       percent = (float)line/(float)nlines;
-      if ((line%10)==0) printf("<   > Processed line %lu of %lu (%.1f%%)\r",line,nlines,percent*100.0);
+      if ((line%20)==0) printf("<   > Processed line %lu of %lu (%.1f%%)\n",line,nlines,percent*100.0);
       fflush(stdout);
       if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
 	//  printf("%s",buf);
@@ -2982,8 +2985,8 @@ ipass == 3 - load only the stuff after the board number
   float percent;
   while (fgets(buf,256,dwnfp) != NULL)  {
     percent = (float)line/(float)nlines;
-    //    if ((line%10)==0) 
-    printf("<   > Processed line %lu of %lu (%.1f%%) Ipass %d pass %d NOWRIT %d\r",line,nlines,percent*100.0,ipass,pass,nowrit);
+    if ((line%20)==0) 
+      printf("<   > Processed line %lu of %lu (%.1f%%) Ipass %d pass %d NOWRIT %d\n",line,nlines,percent*100.0,ipass,pass,nowrit);
     fflush(stdout);
     if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
       //  printf("%s",buf);
