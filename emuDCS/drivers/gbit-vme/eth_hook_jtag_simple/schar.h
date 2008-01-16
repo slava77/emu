@@ -12,6 +12,8 @@
 #define SCHAR_IOCTL_BASE	0xbb
 #define SCHAR_RESET     	_IO(SCHAR_IOCTL_BASE, 0)
 #define SCHAR_END		_IOR(SCHAR_IOCTL_BASE, 1, int)
+#define SCHAR_READ_TIMEOUT      _IOW(SCHAR_IOCTL_BASE,2,unsigned int)
+#define SCHAR_INQR              _IOR(SCHAR_IOCTL_BASE,6,unsigned int)
 
 #define DEBUG
 
