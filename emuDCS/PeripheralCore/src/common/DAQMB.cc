@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.30 2008/01/08 10:22:55 liu Exp $
+// $Id: DAQMB.cc,v 3.31 2008/01/16 14:32:54 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.31  2008/01/16 14:32:54  liu
+// free momery allocated by malloc()
+//
 // Revision 3.30  2008/01/08 10:22:55  liu
 // change %2X to %2hhx in scanf to remove warning; remove epromloadold().
 //
@@ -569,7 +572,7 @@ void DAQMB::configure() {
      sleep(5);
      buckflash_init();
      sleep(1); 
-     
+     free(flash_content);     
      //
 
    }
@@ -1758,9 +1761,7 @@ DEVTYPE dv;
       sndbuf[0]=0;
       devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
 
-      std::cout << std::hex << ibrd << " " << rcvbuf[0] 
-		<< " " << rcvbuf[1]<< " " 
-		<< rcvbuf[2] << " " << rcvbuf[3] << std::endl;
+      printf("from mbpromuser: %08lX %02X %02X %02X %02X\n",ibrd,rcvbuf[0],rcvbuf[1],rcvbuf[2],rcvbuf[3]);
       if (((0xff&rcvbuf[0])!=0xff)||((0xff&rcvbuf[1])!=0xff)||
           ((0xff&rcvbuf[2])!=0xff)||((0xff&rcvbuf[3])!=0xff)) return ibrd;
   }
