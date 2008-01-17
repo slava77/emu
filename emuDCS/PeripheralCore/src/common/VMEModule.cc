@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.13 2007/12/27 00:33:54 liu Exp $
+// $Id: VMEModule.cc,v 3.14 2008/01/17 12:51:48 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.14  2008/01/17 12:51:48  liu
+// disable VME readback in svfLoad()
+//
 // Revision 3.13  2007/12/27 00:33:54  liu
 // update
 //
@@ -126,7 +129,7 @@
 #include "VMEModule.h"
 #include "VMEController.h"
 #include "Crate.h"
-// #include "CrateSetup.h"
+
 #include <cmath>
 #include <string>
 #include <stdio.h>
@@ -684,7 +687,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 	    printf("%c[0m", '\033');
 	    if ( send_packages == total_packages ) printf("\n") ;
 	  //
-	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
+	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 0); 
 	  //
 	  if (cmpflag==1)
 	    {     
@@ -796,7 +799,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 		realsnd[(i+hirbits+nbits)/8] |= (sndtir[i/8] >> (i%8)) << ((i+hirbits+nbits)%8);
 	    }
 	    //
-	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 2); 
+	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 0); 
 	    //	   
 	    if (db)
 	    { 	printf("SIR Send Data:\n");
