@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.19 2008/01/16 16:04:28 gujh Exp $
+// $Id: VMEController.cc,v 3.20 2008/01/17 11:54:02 rakness Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.20  2008/01/17 11:54:02  rakness
+// comment out added functions
+//
 // Revision 3.19  2008/01/16 16:04:28  gujh
 // Added the firmware laoding
 //
@@ -1193,52 +1196,54 @@ int VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sho
   //
 }
 //
-
-void VMEController::write_Ethernet_CR(unsigned short int val)
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x0F;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_Ethernet_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
-
-void VMEController::write_FIFO_CR(unsigned short int val)
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x10;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_FIFO_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
-
-void VMEController::write_ResetMisc_CR(unsigned short int val)
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x11;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_ResetMisc_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
-
+///////////////////////////////////////////////////
+// comment out the next block except write_VME_CR
+///////////////////////////////////////////////////
+//void VMEController::write_Ethernet_CR(unsigned short int val)
+//{
+//  int n;
+//  int l,lcnt;
+//  wbuf[0]=0x00;
+//  wbuf[1]=0x0F;
+//  wbuf[2]=(val>>8)&0xff;
+//  wbuf[3]=val&0xff;
+//  nwbuf=4;
+//  n=eth_write();
+//  std::cout << "Write_Ethernet_CR" << std::endl;
+//  for(l=0;l<8000;l++)lcnt++;
+//  return;
+//}
+//
+//void VMEController::write_FIFO_CR(unsigned short int val)
+//{
+//  int n;
+//  int l,lcnt;
+//  wbuf[0]=0x00;
+//  wbuf[1]=0x10;
+//  wbuf[2]=(val>>8)&0xff;
+//  wbuf[3]=val&0xff;
+//  nwbuf=4;
+//  n=eth_write();
+//  std::cout << "Write_FIFO_CR" << std::endl;
+//  for(l=0;l<8000;l++)lcnt++;
+//  return;
+//}
+//
+//void VMEController::write_ResetMisc_CR(unsigned short int val)
+//{
+//  int n;
+//  int l,lcnt;
+//  wbuf[0]=0x00;
+//  wbuf[1]=0x11;
+//  wbuf[2]=(val>>8)&0xff;
+//  wbuf[3]=val&0xff;
+//  nwbuf=4;
+//  n=eth_write();
+//  std::cout << "Write_ResetMisc_CR" << std::endl;
+//  for(l=0;l<8000;l++)lcnt++;
+//  return;
+//}
+//
 void VMEController::write_VME_CR(unsigned int val)
 {
   int n;
@@ -1258,35 +1263,38 @@ void VMEController::write_VME_CR(unsigned int val)
   for(l=0;l<8000;l++)lcnt++;
   return;
 }
-
-void VMEController::write_BusTimeOut_CR(unsigned short int val)
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x13;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_BusTimeOut_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
-
-void VMEController::write_BusGrantTimeOut_CR(unsigned short int val)
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x14;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_BusGrantTimeOut_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
+//
+//void VMEController::write_BusTimeOut_CR(unsigned short int val)
+//{
+//  int n;
+//  int l,lcnt;
+//  wbuf[0]=0x00;
+//  wbuf[1]=0x13;
+//  wbuf[2]=(val>>8)&0xff;
+//  wbuf[3]=val&0xff;
+//  nwbuf=4;
+//  n=eth_write();
+//  std::cout << "Write_BusTimeOut_CR" << std::endl;
+//  for(l=0;l<8000;l++)lcnt++;
+//  return;
+//}
+//
+//void VMEController::write_BusGrantTimeOut_CR(unsigned short int val)
+//{
+//  int n;
+//  int l,lcnt;
+//  wbuf[0]=0x00;
+//  wbuf[1]=0x14;
+//  wbuf[2]=(val>>8)&0xff;
+//  wbuf[3]=val&0xff;
+//  nwbuf=4;
+//  n=eth_write();
+//  std::cout << "Write_BusGrantTimeOut_CR" << std::endl;
+//  for(l=0;l<8000;l++)lcnt++;
+//  return;
+//}
+///////////////////////////////////////////////////
+// end of "comment out the next block except write_VME_CR"
+///////////////////////////////////////////////////
 
 
