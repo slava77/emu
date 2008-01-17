@@ -13,8 +13,8 @@
 #include "xdata/UnsignedLong.h"
 #include "xdata/Integer.h"
 #include "xdata/Vector.h"
-#include "emu/emuDAQ/emuUtil/include/EmuRunInfo.h"
-#include "emu/emuDAQ/emuUtil/include/EmuELog.h"
+#include "emu/cscSV/include/EmuRunInfo.h"
+#include "emu/cscSV/include/EmuELog.h"
 #include "emu/cscSV/include/EmuApplication.h"
 #include "xdata/ItemEvent.h"
 
