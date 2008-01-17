@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.8 2008/01/17 11:54:02 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.9 2008/01/17 16:19:45 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -385,17 +385,17 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << ALCTFirmwareDirectory_ << "...";
   *out << cgicc::form()<<std::endl;
   //
-  //  std::string LoadMPCFirmware = toolbox::toString("/%s/LoadMPCFirmware",getApplicationDescriptor()->getURN().c_str());
-  //  *out << cgicc::form().set("method","GET").set("action",LoadMPCFirmware) << std::endl ;
-  //  *out << cgicc::input().set("type","submit").set("value","Load MPC Firmware") << std::endl ;
-  //  *out << MPCFirmwareFile_;
-  //  *out << cgicc::form() << std::endl;
+  std::string LoadMPCFirmware = toolbox::toString("/%s/LoadMPCFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadMPCFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load MPC Firmware") << std::endl ;
+  *out << MPCFirmwareFile_;
+  *out << cgicc::form() << std::endl;
   //
-  //  std::string LoadCCBFirmware = toolbox::toString("/%s/LoadCCBFirmware",getApplicationDescriptor()->getURN().c_str());
-  //  *out << cgicc::form().set("method","GET").set("action",LoadCCBFirmware) << std::endl ;
-  //  *out << cgicc::input().set("type","submit").set("value","Load CCB Firmware") << std::endl ;
-  //  *out << CCBFirmwareFile_;
-  //  *out << cgicc::form() << std::endl;
+  std::string LoadCCBFirmware = toolbox::toString("/%s/LoadCCBFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadCCBFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load CCB Firmware") << std::endl ;
+  *out << CCBFirmwareFile_;
+  *out << cgicc::form() << std::endl;
   //
   *out << cgicc::fieldset() << std::endl;
   //
@@ -745,7 +745,11 @@ void EmuPeripheralCrateBroadcast::LoadMPCFirmware(xgi::Input * in, xgi::Output *
   //
   // load the MPC firmware
   //
-  std::cout <<" Loading all MPCs with firmware from " << MPCFirmwareFile_ << std::endl;
+  if (broadcastMPC) {
+    std::cout <<" Loading all MPCs with firmware from " << MPCFirmwareFile_ << std::endl;
+  } else {
+    std::cout <<" No broadcast MPC exists" << std::endl;
+  }
   //
   int debugMode(0);
   int jch(6);
@@ -760,7 +764,11 @@ void EmuPeripheralCrateBroadcast::LoadCCBFirmware(xgi::Input * in, xgi::Output *
   //
   // load the CCB firmware
   //
-  std::cout <<" Loading all CCBs with firmware from " << CCBFirmwareFile_ << std::endl;
+  if (broadcastCCB) {
+    std::cout <<" Loading all CCBs with firmware from " << CCBFirmwareFile_ << std::endl;
+  } else {
+    std::cout <<" No broadcast CCB exists" << std::endl;
+  }
   //
   int debugMode(0);
   int jch(6);
