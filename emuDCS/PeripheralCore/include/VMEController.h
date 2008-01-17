@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.16 2008/01/16 16:02:17 gujh Exp $
+// $Id: VMEController.h,v 3.17 2008/01/17 11:54:02 rakness Exp $
 // $Log: VMEController.h,v $
+// Revision 3.17  2008/01/17 11:54:02  rakness
+// comment out added functions
+//
 // Revision 3.16  2008/01/16 16:02:17  gujh
 // function added for EPROM firmware loading
 //
@@ -210,54 +213,60 @@ public:
   void set_GrantTimeout(int to);
   void Debug(int dbg) { DEBUG=dbg; }
   int  GetDebug() { return DEBUG; }  
-  unsigned char GetDestMAC(int i){return hw_dest_addr[i];} 
-  unsigned char GetSrcMAC(int i){return hw_source_addr[i];}  
-  void write_Ethernet_CR(unsigned short int val);
-  void write_FIFO_CR(unsigned short int val);
-  void write_ResetMisc_CR(unsigned short int val);
+  ///////////////////////////////////////////////////
+  // comment out the next block except write_VME_CR
+  //////////////////////////////////////////////////
+  //  unsigned char GetDestMAC(int i){return hw_dest_addr[i];} 
+  //  unsigned char GetSrcMAC(int i){return hw_source_addr[i];}  
+  //  void write_Ethernet_CR(unsigned short int val);
+  //  void write_FIFO_CR(unsigned short int val);
+  //  void write_ResetMisc_CR(unsigned short int val);
   void write_VME_CR(unsigned int val);
-  void write_BusTimeOut_CR(unsigned short int val);
-  void write_BusGrantTimeOut_CR(unsigned short int val);
-  // eth_lib3.c
-  int eth_read_timeout(int rd_tmo);
-  //jtag_subs
-  void prg_vcc_prom_ver(const char *path,const char *ver);
-  void prg_vcc_prom_bcast(const char *path,const char *ver);
-  void jtag_init();
-  int chk_jtag_conn();
-  unsigned int read_dev_id();
-  unsigned int read_user_code();
-  char *read_customer_code();
-  int erase_prom();
-  int erase_prom_bcast();
-  void program_prom_cmd();
-  void program_prom_cmd_no_ack();
-  void reload_fpga();
-  void verify_prom_cmd();
-  void ld_rtn_base_addr(unsigned short base);
-  void exec_routine(int rtn);
-  unsigned int get_jtag_status();
-  void abort_jtag_cmnds();
-  void write_jtag_fifo_words(unsigned short *buf, int nw);
-  void write_jtag_fifo_bytes(unsigned char *buf, int nb);
-  int read_prg_space(unsigned short base);
-  void print_routines();
-  void  rd_back_prom();
-  void read_mcs(char *fn);
-  void send_ver_prom_data();
-  void send_prg_prom_data();
-  void send_prg_prom_data_bcast();
-  void send_uc_cc_data(char *fn);
-  void read_dev_id_broadcast();
-  //pkt_utils
-  char *dcode_msg_pkt(char *buf);
-  void *ptr_bin_srch(int code, struct ucw *arr, int n);
-  struct rspn_t flush_pkts();
-  //cnfg_subs
-  enum MAC_ID {DEVICE=0, MCAST1=1, MCAST2=2, MCAST3=3, DFLT_SRV=4, ALL_MACS=8};
-  enum CR_ID {ETHER=0, EXTFIFO=1, RESET=2, VME=3, BTO=4, BGTO=5, ALL_CRS=8};
-  enum SET_CLR {CLR=0, SET=1};
-  int set_clr_bits(enum SET_CLR sc, enum CR_ID crid, unsigned int mask);
+  //  void write_BusTimeOut_CR(unsigned short int val);
+  //  void write_BusGrantTimeOut_CR(unsigned short int val);
+  //  // eth_lib3.c
+  //  int eth_read_timeout(int rd_tmo);
+  //  //jtag_subs
+  //  void prg_vcc_prom_ver(const char *path,const char *ver);
+  //  void prg_vcc_prom_bcast(const char *path,const char *ver);
+  //  void jtag_init();
+  //  int chk_jtag_conn();
+  //  unsigned int read_dev_id();
+  //  unsigned int read_user_code();
+  //  char *read_customer_code();
+  //  int erase_prom();
+  //  int erase_prom_bcast();
+  //  void program_prom_cmd();
+  //  void program_prom_cmd_no_ack();
+  //  void reload_fpga();
+  //  void verify_prom_cmd();
+  //  void ld_rtn_base_addr(unsigned short base);
+  //  void exec_routine(int rtn);
+  //  unsigned int get_jtag_status();
+  //  void abort_jtag_cmnds();
+  //  void write_jtag_fifo_words(unsigned short *buf, int nw);
+  //  void write_jtag_fifo_bytes(unsigned char *buf, int nb);
+  //  int read_prg_space(unsigned short base);
+  //  void print_routines();
+  //  void  rd_back_prom();
+  //  void read_mcs(char *fn);
+  //  void send_ver_prom_data();
+  //  void send_prg_prom_data();
+  //  void send_prg_prom_data_bcast();
+  //  void send_uc_cc_data(char *fn);
+  //  void read_dev_id_broadcast();
+  //  //pkt_utils
+  //  char *dcode_msg_pkt(char *buf);
+  //  void *ptr_bin_srch(int code, struct ucw *arr, int n);
+  //  struct rspn_t flush_pkts();
+  //  //cnfg_subs
+  //  enum MAC_ID {DEVICE=0, MCAST1=1, MCAST2=2, MCAST3=3, DFLT_SRV=4, ALL_MACS=8};
+  //  enum CR_ID {ETHER=0, EXTFIFO=1, RESET=2, VME=3, BTO=4, BGTO=5, ALL_CRS=8};
+  //  enum SET_CLR {CLR=0, SET=1};
+  //  int set_clr_bits(enum SET_CLR sc, enum CR_ID crid, unsigned int mask);
+  /////////////////////////////
+  // end of "comment out the next block except write_VME_CR"
+  /////////////////////////////
 
   void set_ErrorServer();
   inline void SetPort(int port) {port_=port;}
