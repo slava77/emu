@@ -164,6 +164,8 @@ public:
 		    const string runType ){
     runNumber_          = runNumber;
     isBookedRunNumber_  = isBookedRunNumber;
+    // Run number 0 cannot possibly have been booked:
+    if ( runNumber_ == 0 ) isBookedRunNumber_ = false;
     runStartTime_       = runStartTime;
     runType_            = runType;
     bytesInRunCounter_  = 0;
