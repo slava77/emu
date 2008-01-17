@@ -176,9 +176,11 @@ void XMLParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
     mpc_->SetTMBDelays(value);
   }
 
-  if(fillInt("BoardID",value)){
-    mpc_->SetBoardID(value);
-  }
+//  if(fillInt("BoardID",value)){
+//    mpc_->SetBoardID(value);
+//  }
+    mpc_->SetBoardID(theCrate->CrateID());
+ 
 }
 
 void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theChamber, xercesc::DOMNode * pNodeGlobal)
@@ -634,10 +636,11 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
     if (fillInt("alct_dav_cable_delay", delay)) {
       daqmb_->SetAlctDavCableDelay(delay); }
 
-    int id;
-    if(fillInt("crate_id",id)){
-      daqmb_->SetCrateId(id);
-    }
+//    int id;
+//    if(fillInt("crate_id",id)){
+//      daqmb_->SetCrateId(id);
+//    }
+      daqmb_->SetCrateId(theCrate->CrateID());
     if ( fillInt("feb_clock_delay",delay)){
       daqmb_->SetCfebClkDelay(delay);
     }
@@ -769,7 +772,7 @@ Crate * XMLParser::VMEParser(xercesc::DOMNode * pNode)
   if(!fillString("label",label)) fillString("crateID",label);  
 
   crate->SetLabel(label);
-
+  std::cout << "Crate ID=" << crateid << " Label=" << label << std::endl;
   return crate;
 }
 
