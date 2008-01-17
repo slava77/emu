@@ -444,12 +444,12 @@ private:
     // End of exported parameters used for monitoring          //
     /////////////////////////////////////////////////////////////
 
-  // DEBUG START
-  EmuClock *ec_rwl; // for the readout workloop
-  EmuClock *ec_swl; // for the server workloop
-  unsigned int visitCount_rwl, visitCount_swl;
+//   // DEBUG START
+//   EmuClock *ec_rwl; // for the readout workloop
+//   EmuClock *ec_swl; // for the server workloop
+//   unsigned int visitCount_rwl, visitCount_swl;
   
-  // DEBUG END
+//   // DEBUG END
 
     /**
      * The blocks of the super-fragment under construction.
