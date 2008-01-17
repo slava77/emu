@@ -140,12 +140,12 @@ applicationBSem_(toolbox::BSem::FULL)
     ruiTaPoolName << "EmuRUI" << instance_ << "-to-EmuTA";
     ruiTaPool_ = createHeapAllocatorMemoryPool(poolFactory_, ruiTaPoolName.str());
 
-    // DEBUG START
-    visitCount_rwl = 0;
-    visitCount_swl = 0;
-    ec_rwl = new EmuClock(100);
-    ec_swl = new EmuClock(100);
-    // DEBUG END
+//     // DEBUG START
+//     visitCount_rwl = 0;
+//     visitCount_swl = 0;
+//     ec_rwl = new EmuClock(100);
+//     ec_swl = new EmuClock(100);
+//     // DEBUG END
 
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
@@ -894,7 +894,6 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
 		     ("maxEvents", &maxEvents_));
 
     inputDataFormat_ = "DDU";
-//     nInputDevices_   = 0;
     inputDeviceType_ = "file";
 
     params.push_back(pair<string,xdata::Serializable *>
@@ -1444,7 +1443,6 @@ throw (toolbox::fsm::exception::Exception)
     // Avoid repeated function calls to obtain RU descriptor and tid
     try
     {
-//         ruDescriptor_ = zone_->getApplicationDescriptor("RU", instance_);
         ruDescriptor_ = zone_->getApplicationDescriptor("rubuilder::ru::Application", instance_);
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound  e)
@@ -1474,19 +1472,6 @@ throw (toolbox::fsm::exception::Exception)
                    << dataBufSize_ << ") to "
                    << threshold_);
 
-    //
-    // EMu-specific stuff
-    //
-    // move to enableAction START
-//     try{
-//       getRunInfo();
-//     }
-//     catch(emuRUI::exception::Exception e){
-//         XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-//             "Failed to get run number and max events from EmuTA", e);
-//     }
-    // move to enableAction END
-
     try{
       getTidOfEmuTA();
     } catch( xcept::Exception e ) {
@@ -1503,8 +1488,6 @@ throw (toolbox::fsm::exception::Exception)
 
     destroyDeviceReader();
     createDeviceReader();
-//     destroyDeviceReaders();
-//     createDeviceReaders();
 
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
@@ -1535,68 +1518,6 @@ throw (toolbox::fsm::exception::Exception)
     }
     if ( isSTEPRun_ ) STEPEventCounter_.reset();
 
-  // Emu: start work loop upon enable, not upon config
-//     if(!workLoopStarted_)
-//     {
-//         workLoopActionSignature_ = toolbox::task::bind
-//         (
-//             this,
-//             &EmuRUI::workLoopAction,
-//             "EmuRUI work loop action"
-//         );
-
-//         if(workLoopName_ == "")
-//         {
-//             stringstream oss;
-//             oss << xmlClass_ << instance_ << "WorkLoop";
-//             workLoopName_ = oss.str();
-//         }
-
-//         try
-//         {
-//             workLoop_ =
-//                 workLoopFactory_->getWorkLoop(workLoopName_, "waiting");
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             string s = "Failed to get work loop : " + workLoopName_.toString();
-
-//             XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
-//         }
-
-//         try
-//         {
-//             workLoop_->submit(workLoopActionSignature_);
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             string s = "Failed to submit action to work loop : " +
-//                        workLoopName_.toString();
-
-
-//             XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
-//         }
-
-//         if(!workLoop_->isActive())
-//         {
-//             try
-//             {
-//                 workLoop_->activate();
-
-//                 LOG4CPLUS_INFO(logger_,
-//                       "Activated work loop : " << workLoopName_.toString());
-//             }
-//             catch(xcept::Exception e)
-//             {
-//                 string s = "Failed to active work loop : " +
-//                            workLoopName_.toString();
-
-//                 XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
-//             }
-//         }
-
-//         workLoopStarted_ = true;
-//     }
 }
 
 
@@ -1604,7 +1525,6 @@ void EmuRUI::enableAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
 
-  // MOVED FROM configureAction START
     try{
       getRunInfo();
     }
@@ -1612,9 +1532,7 @@ throw (toolbox::fsm::exception::Exception)
         XCEPT_RETHROW(toolbox::fsm::exception::Exception,
             "Failed to get run number and max events from EmuTA", e);
     }
-  // MOVED FROM configureAction END
 
-  // Emu: start work loop upon enable, not upon config
     if(!workLoopStarted_)
     {
         workLoopActionSignature_ = toolbox::task::bind
@@ -1634,7 +1552,7 @@ throw (toolbox::fsm::exception::Exception)
         try
         {
             workLoop_ =
-                workLoopFactory_->getWorkLoop(workLoopName_, "polling");
+                workLoopFactory_->getWorkLoop(workLoopName_, "waiting");
         }
         catch(xcept::Exception e)
         {
@@ -1679,69 +1597,74 @@ throw (toolbox::fsm::exception::Exception)
 
     // server loops
     for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
-	
-      if( ! clients_[iClient]->workLoopStarted )
+      // Start separate server loops for SOAP servers only as SOAP messaging is synchronous
+      // and therefore blocking. (I2O messages don't block, they just "fire & forget".)
+      if ( clientProtocol_.elementAt( iClient )->toString() == "SOAP" )
 	{
-	  clients_[iClient]->workLoopActionSignature = toolbox::task::bind
-	    (
-	     this,
-	     &EmuRUI::serverLoopAction,
-	     "EmuRUI server loop action"
-	     );
 
-	  if(clients_[iClient]->workLoopName == "")
+	  if( ! clients_[iClient]->workLoopStarted )
 	    {
-	      stringstream oss;
-	      oss << xmlClass_ << instance_ << "Server" << iClient << "WorkLoop";
-	      clients_[iClient]->workLoopName = oss.str();
-	    }
+	      clients_[iClient]->workLoopActionSignature = toolbox::task::bind
+		(
+		 this,
+		 &EmuRUI::serverLoopAction,
+		 "EmuRUI server loop action"
+		 );
 
-	  try
-	    {
-	      clients_[iClient]->workLoop =
-                workLoopFactory_->getWorkLoop(clients_[iClient]->workLoopName, "polling");
-	    }
-	  catch(xcept::Exception e)
-	    {
-	      string s = "Failed to get work loop : " + clients_[iClient]->workLoopName;
+	      if(clients_[iClient]->workLoopName == "")
+		{
+		  stringstream oss;
+		  oss << xmlClass_ << instance_ << "Server" << iClient << "WorkLoop";
+		  clients_[iClient]->workLoopName = oss.str();
+		}
 
-	      XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
-	    }
-
-	  try
-	    {
-	      clients_[iClient]->workLoop->submit(clients_[iClient]->workLoopActionSignature);
-	    }
-	  catch(xcept::Exception e)
-	    {
-	      string s = "Failed to submit action to work loop : " +
-		clients_[iClient]->workLoopName;
-
-
-	      XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
-	    }
-
-	  if(!clients_[iClient]->workLoop->isActive())
-	    {
 	      try
 		{
-		  clients_[iClient]->workLoop->activate();
-
-		  LOG4CPLUS_INFO(logger_,
-				 "Activated work loop : " << clients_[iClient]->workLoopName);
+		  clients_[iClient]->workLoop =
+		    workLoopFactory_->getWorkLoop(clients_[iClient]->workLoopName, "polling");
 		}
 	      catch(xcept::Exception e)
 		{
-		  string s = "Failed to active work loop : " +
-		    clients_[iClient]->workLoopName;
+		  string s = "Failed to get work loop : " + clients_[iClient]->workLoopName;
 
 		  XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
 		}
-	    }
 
-	  clients_[iClient]->workLoopStarted = true;
-	}
-    }
+	      try
+		{
+		  clients_[iClient]->workLoop->submit(clients_[iClient]->workLoopActionSignature);
+		}
+	      catch(xcept::Exception e)
+		{
+		  string s = "Failed to submit action to work loop : " +
+		    clients_[iClient]->workLoopName;
+
+
+		  XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
+		}
+
+	      if(!clients_[iClient]->workLoop->isActive())
+		{
+		  try
+		    {
+		      clients_[iClient]->workLoop->activate();
+
+		      LOG4CPLUS_INFO(logger_,
+				     "Activated work loop : " << clients_[iClient]->workLoopName);
+		    }
+		  catch(xcept::Exception e)
+		    {
+		      string s = "Failed to active work loop : " +
+			clients_[iClient]->workLoopName;
+
+		      XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
+		    }
+		}
+
+	      clients_[iClient]->workLoopStarted = true;
+	    } // if( ! clients_[iClient]->workLoopStarted )
+	} // if ( clientProtocol_.elementAt( iClient )->toString() == "SOAP" )
+    } // for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
 
 }
 
@@ -1749,8 +1672,7 @@ void EmuRUI::haltAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
 
-//     vector<toolbox::mem::Reference*>::iterator pos;
-    deque<toolbox::mem::Reference*>::iterator pos; // BK
+    deque<toolbox::mem::Reference*>::iterator pos;
     toolbox::mem::Reference *bufRef = 0;
 
 
@@ -1769,7 +1691,6 @@ throw (toolbox::fsm::exception::Exception)
     // Reset previous event number
     previousEventNumber_ = 0;
 
-    // EMu specific
     if ( fileWriter_ ){
       fileWriter_->endRun();
       delete fileWriter_;
@@ -1815,14 +1736,12 @@ throw (toolbox::fsm::exception::Exception)
 
 void EmuRUI::bindI2oCallbacks()
 {
-    // Do nothing
 
-  // EMu-specific stuff
   i2o::bind(this, &EmuRUI::onI2OClientCreditMsg, I2O_EMUCLIENT_CODE, XDAQ_ORGANIZATION_ID );
 
 }
 
-void EmuRUI::moveToFailedState(){ // Emu-specific
+void EmuRUI::moveToFailedState(){
   // Use this from inside the work loop to force the FSM to Failed state 
 
   try
@@ -2001,9 +1920,6 @@ throw (xgi::exception::Exception)
     for(pos = params.begin(); pos != params.end(); ++pos)
     {
 
-      //
-      // EMu-specific stuff
-      //
       if ( pos->second->type() == "vector" ){
 
 	// Q: How do I determine the type of a xdata::Vector's elements 
@@ -2125,60 +2041,6 @@ string EmuRUI::serializableBooleanToString(xdata::Serializable *s)
 }
 
 
-// bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
-// {
-//     try
-//     {
-//         applicationBSem_.take();
-
-//         toolbox::fsm::State state = fsm_.getCurrentState();
-
-//         switch(state)
-//         {
-//         case 'H':  // Halted
-//         case 'R':  // Ready
-//             break;
-//         case 'E':  // Enabled
-//             processAndCommunicate();
-//             break;
-//         default:
-//             // Should never get here
-//             LOG4CPLUS_FATAL(logger_,
-//                 "EmuRUI" << instance_ << " is in an undefined state");
-//         }
-
-//         applicationBSem_.give();
-
-//         // Reschedule this action code
-//         return true;
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         LOG4CPLUS_FATAL(logger_,
-//             "Failed to execute \"self-driven\" behaviour"
-//             << " : " << xcept::stdformat_exception_history(e));
-
-//         try
-//         {
-//             // Move to the failed state
-//             toolbox::Event::Reference evtRef(new toolbox::Event("Fail", this));
-//             fsm_.fireEvent(evtRef);
-//             applicationBSem_.give();
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             applicationBSem_.give();
-
-//             LOG4CPLUS_FATAL(logger_,
-//                 "Failed to move to the Failed state : "
-//                 << xcept::stdformat_exception_history(e));
-//         }
-
-//         // Do not reschedule this action code as the application has failed
-//         return false;
-//     }
-// }
-
 bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
 {
     try
@@ -2198,22 +2060,32 @@ bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
 	  pauseForOtherThreads = 5000;
 	  break;
         case 'E':  // Enabled
-	  // DEBUG START
-	  visitCount_rwl++;
-	  if ( ec_rwl->timeIsUp() ){
-	    std::cout << "  " << workLoopName_.toString()
-		      << "   readout loop: " << visitCount_rwl
-		      << "   server loop: " << visitCount_swl
-		      << std::endl << std::flush;
-	    LOG4CPLUS_INFO(logger_,
-			   "  " << workLoopName_.toString()
-			   << "   readout loop: " << visitCount_rwl
-			   << "   server loop: " << visitCount_swl
-			   );
-	  }
-	  // DEBUG END
+// 	  // DEBUG START
+// 	  visitCount_rwl++;
+// 	  if ( ec_rwl->timeIsUp() ){
+// 	    std::cout << "  " << workLoopName_.toString()
+// 		      << "   readout loop: " << visitCount_rwl
+// 		      << "   server loop: " << visitCount_swl
+// 		      << std::endl << std::flush;
+// 	    LOG4CPLUS_INFO(logger_,
+// 			   "  " << workLoopName_.toString()
+// 			   << "   readout loop: " << visitCount_rwl
+// 			   << "   server loop: " << visitCount_swl
+// 			   );
+// 	  }
+// 	  // DEBUG END
 	  pauseForOtherThreads = processAndCommunicate();
 	  isToBeRescheduled    = ( pauseForOtherThreads >= 0 );
+
+	  // Run the servers too in the readout thread.
+	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	    // Service only I2O clients here in the readout loop as I2O messages
+	    // are non-blocking (fire & forget).
+	    if ( clientProtocol_.elementAt( iClient )->toString() == "I2O" ){
+	      clients_[iClient]->server->sendData();
+	    }
+	  }
+
 	  break;
         default:
 	  // Should never get here
@@ -2278,20 +2150,20 @@ bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
 	  // Find out from which work loop we dropped in here
 	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
 	    if ( clients_[iClient]->workLoop == wl ){
-	      // DEBUG START
-	      visitCount_swl++;
-	      if ( ec_swl->timeIsUp() ){
-		std::cout << "  " << clients_[iClient]->workLoopName 
-			  << "   readout loop: " << visitCount_rwl
-			  << "   server loop: " << visitCount_swl
-			  << std::endl << std::flush;
-		LOG4CPLUS_INFO(logger_,
-			       "  " << clients_[iClient]->workLoopName 
-			       << "   readout loop: " << visitCount_rwl
-			       << "   server loop: " << visitCount_swl
-			       );
-	      }
-	      // DEBUG END
+// 	      // DEBUG START
+// 	      visitCount_swl++;
+// 	      if ( ec_swl->timeIsUp() ){
+// 		std::cout << "  " << clients_[iClient]->workLoopName 
+// 			  << "   readout loop: " << visitCount_rwl
+// 			  << "   server loop: " << visitCount_swl
+// 			  << std::endl << std::flush;
+// 		LOG4CPLUS_INFO(logger_,
+// 			       "  " << clients_[iClient]->workLoopName 
+// 			       << "   readout loop: " << visitCount_rwl
+// 			       << "   server loop: " << visitCount_swl
+// 			       );
+// 	      }
+// 	      // DEBUG END
 // 	      LOG4CPLUS_INFO(logger_, "Sending data from " << clients_[iClient]->workLoopName << " ("<< wl << ")");
 	      clients_[iClient]->server->sendData();
 	    break;
@@ -2358,8 +2230,6 @@ int EmuRUI::processAndCommunicate()
                 "Failed to send data block to RU" << instance_ << "."
                 << "Will try again later");
         }
-      // Send data to clients from here if not from serverLoopAction() in another thread
-      //       sendDataToClients();
     }
     else
     {
@@ -2379,35 +2249,6 @@ int EmuRUI::processAndCommunicate()
   return pauseForOtherThreads;
 }
 
-// void EmuRUI::processAndCommunicate()
-// {
-//     if(blocksArePendingTransmission_)
-//     {
-//         try
-//         {
-//             sendNextPendingBlock();
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             LOG4CPLUS_WARN(logger_,
-//                 "Failed to send data block to RU" << instance_ << "."
-//                 << "Will try again later");
-//         }
-//     }
-//     else
-//     {
-//         try
-//         {
-//             continueConstructionOfSuperFrag();
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             LOG4CPLUS_ERROR(logger_,
-//                 "Failed to contnue construction of super-fragment"
-//                 << " : " << stdformat_exception_history(e));
-//         }
-//     }
-// }
 
 
 void EmuRUI::sendNextPendingBlock()
@@ -2467,6 +2308,14 @@ void EmuRUI::createFileWriters(){
 	      app << instance_;
 	      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
 	    }
+	  else if ( runType_.toString() != "Monitor" &&
+		    runType_.toString() != "Debug"      ) // must be a calibration or STEP run...
+	    {
+	      LOG4CPLUS_FATAL( logger_, "A calibration run or a STEP run has been started without specifying a directory and/or maximum size for data files. Please set \"pathToRUIDataOutFile\" and \"ruiFileSizeInMegaBytes\" to nonzero values in the XML configuration file." );
+	      moveToFailedState();
+	    }
+
+	  // inform the file writer about the new run
 	  try{
 	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
 							 isBookedRunNumber_.value_,
@@ -3037,153 +2886,6 @@ int EmuRUI::continueSTEPRun()
 }
 
 
-// bool EmuRUI::continueConstructionOfSuperFrag()
-//   throw (emuRUI::exception::Exception)
-//   // Version with multiple devices
-// {
-
-// //   bool keepRunning = true;
-//   unsigned int   nBytesRead = 0;
-//   unsigned short errorFlag  = 0;
-
-//   if ( maxEvents_.value_ > 0 && nEventsRead_.value_ >= maxEvents_.value_ ) return false;
-
-//   if (deviceReaders_[iCurrentDeviceReader_]){
-//     try{
-//       nBytesRead = deviceReaders_[iCurrentDeviceReader_]->readNextEvent();
-//     }
-//     catch(...){
-//       stringstream oss;
-//       oss << "Failed to read from " << inputDeviceNames_.at(iCurrentDeviceReader_).toString()
-// 	  << ": unknown exception.";
-//       LOG4CPLUS_ERROR(logger_, oss.str());
-//     }
-
-//     if ( deviceReaders_[iCurrentDeviceReader_]->getLogMessage().length() > 0 )
-//       LOG4CPLUS_INFO(logger_, deviceReaders_[iCurrentDeviceReader_]->getLogMessage());
-//   }
-
-//   // No data ==> no business being here. Try to read again later.
-//   if ( nBytesRead == 0 ) return true;
-
-//   errorFlag = deviceReaders_[iCurrentDeviceReader_]->getErrorFlag();
-
-//   if ( nBytesRead < 8 ){
-//     LOG4CPLUS_ERROR(logger_, 
-// 		    " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
-// 		    "[" << iCurrentDeviceReader_ << "] read " << nBytesRead << " bytes only.");
-//   }
-
-//   if ( nEventsRead_ == (unsigned long) 0 ) // first event being read --> a new run
-//     {
-//       if ( iCurrentDeviceReader_ == 0 ) // don't do it for all devices...
-// 	{
-// 	  createFileWriters();
-// 	} // if first input device 
-//     } // if first event 
-
-//   bool badData = false;
-
-//     char* data;
-//     int   dataLength  = 0;
-
-//     if ( deviceReaders_[iCurrentDeviceReader_] ) {
-//       //     if ( true ) { // let's see those too short events too !!!
-      
-//       data       = deviceReaders_[iCurrentDeviceReader_]->data();
-
-//       if ( data!=NULL ){
-// 	dataLength = deviceReaders_[iCurrentDeviceReader_]->dataLength();
-// 	if ( dataLength>0 ) eventNumber_ = deviceReaders_[iCurrentDeviceReader_]->eventNumber();
-
-// 	if ( inputDataFormatInt_ == EmuReader::DDU ){
-// 	  int dataLengthWithoutPadding = getDDUDataLengthWithoutPadding(data,dataLength);
-// 	  if ( dataLengthWithoutPadding >= 0 ){
-// 	    dataLength = dataLengthWithoutPadding;
-// 	    badData    = interestingDDUErrorBitPattern(data,dataLength);
-// 	    if ( badData ) nDevicesWithBadData_++;
-// 	  }
-// 	}
-//       }
-
-//       if ( ( nEventsRead_.value_+1 <   10                                        ) ||
-// 	   ( nEventsRead_.value_+1 <  100 && (nEventsRead_.value_+1) %   10 == 0 ) ||
-// 	   ( nEventsRead_.value_+1 < 1000 && (nEventsRead_.value_+1) %  100 == 0 ) ||
-// 	   (                                 (nEventsRead_.value_+1) % 1000 == 0 )    )
-// 	LOG4CPLUS_DEBUG(logger_, 
-// 			"Read event "    << eventNumber_                          << 
-// 			" ("             << nEventsRead_                              <<
-// 			" so far) from " << inputDeviceNames_.at(iCurrentDeviceReader_).toString() <<
-// 			", size: "       << dataLength   
-// 			);
-
-//     } // if ( deviceReaders_[iCurrentDeviceReader_] )
-    
-//     bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
-//     if ( lastChunkOfEvent ) nEventsRead_++;
-
-//     // Write data to files
-//     if ( fileWriter_ )
-//       {
-// 	if ( iCurrentDeviceReader_ == 0 ){ // don't start a new event for each device...
-// 	  try{
-// 	    fileWriter_->startNewEvent();
-// 	  }
-// 	  catch(string e){
-// 	    LOG4CPLUS_FATAL( logger_, e );
-// 	    moveToFailedState();
-// 	  }
-// 	}
-// 	fileWriter_->writeData( data, dataLength );
-//       }
-//     if ( badEventsFileWriter_ )
-//       {
-// 	if ( nDevicesWithBadData_ == 1 ) // start a new event for the first faulty device
-// 	  try{
-// 	    badEventsFileWriter_->startNewEvent();
-// 	  }
-// 	  catch(string e){
-// 	    LOG4CPLUS_ERROR( logger_, e );
-// 	    // Don't moveToFailedState, bad events file is not worth stopping the run for.
-// 	  }
-// 	if ( badData ) badEventsFileWriter_->writeData( data, dataLength );
-//       }
-
-//     // Store this data to be sent to clients (if any)
-//     addDataForClients( runNumber_.value_, nEventsRead_.value_, lastChunkOfEvent, 
-// 		       errorFlag, data, dataLength );
-
-//     if ( passDataOnToRUBuilder_ ){
-
-//       // If the EmuRUI to RU memory pool has room for another data block
-//       if(!ruiRuPool_->isHighThresholdExceeded()){
-	
-// 	// fill block and append it to superfragment
-// 	appendNewBlockToSuperFrag( data, dataLength );
-
-// 	if ( lastChunkOfEvent ){ // superfragment ready
-// 	  // Prepare it for sending to the RU
-// 	  setNbBlocksInSuperFragment(superFragBlocks_.size());
-// 	  // Current super-fragment is now ready to be sent to the RU
-// 	  blocksArePendingTransmission_ = true;
-// 	}
-
-//       }
-//       else  LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
-
-//     }
-  
-//   if ( lastChunkOfEvent ) nDevicesWithBadData_ = 0;
-
-//   // Move on to the next device
-//   iCurrentDeviceReader_++;
-//   iCurrentDeviceReader_ %= nInputDevices_;
-
-//   return true;
-// //   return keepRunning;
-
-// }
-
 void EmuRUI::ensureContiguousEventNumber(){
   // If event number is incremented by more than one, 
   // fill the gap with empty events (super fragments) to make the event builder happy.
@@ -3336,86 +3038,6 @@ bool EmuRUI::hasTrailer( char* const data, const int dataLength ){
   return trailerFound;
 }
 
-// int EmuRUI::getDDUDataLengthWithoutPadding(char* const data, const int dataLength){
-//   // Get the data length without the padding that may have been added by Gbit Ethernet
-
-//   const int minEthPacketSize   = 32; // short (2-byte) words --> 64 bytes
-//   const int DDUTrailerLength   = 12; // short (2-byte) words --> 24 bytes
-
-//   if ( !dataLength ) return 0;
-//   if ( dataLength%2 ) LOG4CPLUS_ERROR(logger_, "DDU data is odd number of bytes (" << dataLength << ") long" );
-//   if ( dataLength<DDUTrailerLength*2 ) LOG4CPLUS_ERROR(logger_, 
-// 				      "DDU data is shorter (" << dataLength << " bytes) than trailer" );
-//   //   printData(data,dataLength);
-
-//   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
-//   // Let's go backward looking for trailer signatures:
-//   for ( int iShort=dataLength/2-DDUTrailerLength;
-// 	iShort>=0 && iShort>=dataLength/2-(minEthPacketSize+DDUTrailerLength); 
-// 	--iShort ){
-//     if ( (shortData[iShort+11] & 0xf000) == 0xa000 ) // Probably the trailer.
-//       // Double check:
-//       if ( shortData[iShort  ]             == 0x8000 &&
-// 	   shortData[iShort+1]             == 0x8000 &&
-// 	   shortData[iShort+2]             == 0xFFFF &&
-// 	   shortData[iShort+3]             == 0x8000 &&
-// 	   (shortData[iShort+4] & 0xfff0)  == 0x0000    ){
-// 	// The following bit may be set in the production version,
-// 	// so let's not rely on it being 0
-// 	// (shortData[iShort+5] & 0x8000)  == 0x0000    ){
-// 	return 2 * (iShort + DDUTrailerLength);
-//       }
-//   }
-
-//   stringstream ss;
-//   ss << "No DDU trailer found within " 
-//      << 2*minEthPacketSize
-//      << " bytes of the end of data in "
-//      << deviceReader_->getName()
-//      << ". Event number: "
-//      << deviceReader_->eventNumber();
-//   LOG4CPLUS_ERROR(logger_,ss.str());
-//   return -1; // no trailer found
-
-// }
-
-// int EmuRUI::getDCCDataLengthWithoutPadding(char* const data, const int dataLength){
-//   // Get the data length without the padding that may have been added by Gbit Ethernet
-
-//   const int minEthPacketSize   = 32; // short (2-byte) words --> 64 bytes
-//   const int DCCTrailerLength   =  8; // short (2-byte) words --> 16 bytes
-
-//   if ( !dataLength ) return 0;
-//   if ( dataLength%2 ) LOG4CPLUS_ERROR(logger_, "DCC data is odd number of bytes (" << dataLength << ") long" );
-//   if ( dataLength<DCCTrailerLength*2 ) LOG4CPLUS_ERROR(logger_, 
-// 				      "DCC data is shorter (" << dataLength << " bytes) than trailer" );
-//   //   printData(data,dataLength);
-
-//   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
-//   // Let's go backward looking for trailer signatures:
-//   for ( int iShort=dataLength/2-DCCTrailerLength;
-// 	iShort>=0 && iShort>=dataLength/2-(minEthPacketSize+DCCTrailerLength); 
-// 	--iShort ){
-//     if ( (shortData[iShort+3] & 0xff00) == 0xef00 ) // Probably the trailer.
-//       // Double check:
-//       if ( (shortData[iShort+4] & 0x000f) == 0x0007 &&
-// 	   (shortData[iShort+7] & 0xff00) == 0xaf00    )
-// 	return 2 * (iShort + DCCTrailerLength);
-//   }
-
-//   stringstream ss;
-//   ss << "No DCC trailer found within " 
-//      << 2*minEthPacketSize
-//      << " bytes of the end of data in "
-//      << deviceReader_->getName()
-// //      << deviceReaders_[iCurrentDeviceReader_]->getName()
-//      << ". Event number: "
-//      << deviceReader_->eventNumber();
-// //      << deviceReaders_[iCurrentDeviceReader_]->eventNumber();
-//   LOG4CPLUS_ERROR(logger_,ss.str());
-//   return -1; // no trailer found
-
-// }
 
 bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLength){
   // At this point dataLength should no longer contain Ethernet padding.
@@ -3778,70 +3400,6 @@ void EmuRUI::getTidOfEmuTA()
 
 }
 
-// void EmuRUI::sendEventNumberToTA( unsigned long firstEventNumber )
-//   throw ( xcept::Exception ){
-
-//   const unsigned long frameSize = sizeof(I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME) + sizeof(firstEventNumber);
-
-//   toolbox::mem::Reference *ref = 0;
-//   try 
-//     {
-//       ref = toolbox::mem::getMemoryPoolFactory()->getFrame(ruiTaPool_, frameSize);
-      
-//       PI2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME frame = (PI2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME) ref->getDataLocation();   
-      
-      
-//       frame->PvtMessageFrame.StdMessageFrame.MsgFlags         = 0;
-//       frame->PvtMessageFrame.StdMessageFrame.VersionOffset    = 0;
-//       frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = emuTATid_;
-//       frame->PvtMessageFrame.StdMessageFrame.InitiatorAddress = tid_;
-//       frame->PvtMessageFrame.StdMessageFrame.MessageSize      = (sizeof(I2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME)) >> 2;
-      
-//       frame->PvtMessageFrame.StdMessageFrame.Function = I2O_PRIVATE_MESSAGE;
-//       frame->PvtMessageFrame.XFunctionCode            = I2O_EMU_FIRST_EVENT_NUMBER_CODE;
-//       frame->PvtMessageFrame.OrganizationID           = XDAQ_ORGANIZATION_ID;
-      
-//       frame->firstEventNumber = firstEventNumber;
-      
-//       ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
-//       LOG4CPLUS_INFO(logger_,
-// 		     "Sending first event number " << firstEventNumber <<
-// 		     " to EmuTA of tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress );
-//       appContext_->postFrame(ref, appDescriptor_, taDescriptors_[0]);
-//       LOG4CPLUS_INFO(logger_,
-// 		     "Sent first event number " << firstEventNumber <<
-// 		     " to EmuTA of tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress );
-//     } 
-//   catch (toolbox::mem::exception::Exception & me)
-//     {
-//       XCEPT_RETHROW( xcept::Exception, xcept::stdformat_exception_history(me), me );
-//     }
-//   catch (xdaq::exception::Exception & e)
-//     {
-//       // Retry 3 times
-//       bool retryOK = false;
-//       for (int k = 0; k < 3; k++)
-// 	{
-// 	  try
-// 	    {
-// 	      appContext_->postFrame(ref, appDescriptor_, taDescriptors_[0]);
-// 	      retryOK = true;
-// 	      break;
-// 	    }
-// 	  catch (xdaq::exception::Exception & re)
-// 	    {
-// 	      LOG4CPLUS_WARN(logger_, "Retrying to send first event number to EmuTA" + 
-// 			     xcept::stdformat_exception_history(re));
-// 	    }
-// 	}
-      
-//       if (!retryOK)
-// 	{
-// 	  ref->release();
-// 	  XCEPT_RAISE( xcept::Exception, "Failed to send first event number I2O frame after 3 retries" );
-// 	}
-//     }
-// }
 
 void EmuRUI::sendEventNumberToTA( unsigned long firstEventNumber )
   throw ( xcept::Exception ){
