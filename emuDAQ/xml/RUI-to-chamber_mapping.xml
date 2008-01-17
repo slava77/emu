@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <?xml-stylesheet type="text/xml" href="RUI-to-chamber_mapping_XSLT.xml"?>
 <RUI-to-chamber_mapping date="2007-11-08">
-  <RUI instance="1" host="csc-c2d07-03" alias="csc-daq01" port="40301" schar="2">
+  <RUI instance="1">
     <DDU crate="1" slot="4">
       <input id="0"><FiberCassette crate="1" pos="1" socket="f"/><PeripheralCrate id="2" VMEcrate="2" VMEslot="7"/><Chamber endcap="+" station="1" type="1" number="5"/></input>
       <input id="1"><FiberCassette crate="1" pos="1" socket="d"/><PeripheralCrate id="2" VMEcrate="2" VMEslot="21"/><Chamber endcap="+" station="1" type="3" number="5"/></input>
@@ -22,7 +22,7 @@
     <DCC fifo="00100" slink="750"/>
   </RUI>
 
-  <RUI instance="2" host="csc-c2d07-03" alias="csc-daq01" port="40302" schar="3">
+  <RUI instance="2">
     <DDU crate="1" slot="5">
       <input id="0"><FiberCassette crate="2" pos="1" socket="c"/><PeripheralCrate id="2" VMEcrate="2" VMEslot="5"/><Chamber endcap="+" station="1" type="1" number="4"/></input>
       <input id="1"><FiberCassette crate="2" pos="1" socket="a"/><PeripheralCrate id="2" VMEcrate="2" VMEslot="19"/><Chamber endcap="+" station="1" type="3" number="4"/></input>
@@ -43,7 +43,7 @@
     <DCC fifo="10000" slink="750"/>
   </RUI>
 
-  <RUI instance="3" host="csc-c2d07-03" alias="csc-daq01" port="40303" schar="4">
+  <RUI instance="3">
     <DDU crate="1" slot="6">
       <input id="0"><FiberCassette crate="2" pos="1" socket="f"/><PeripheralCrate id="2" VMEcrate="2" VMEslot="3"/><Chamber endcap="+" station="1" type="1" number="3"/></input>
       <input id="1"><FiberCassette crate="2" pos="1" socket="d"/><PeripheralCrate id="2" VMEcrate="2" VMEslot="17"/><Chamber endcap="+" station="1" type="3" number="3"/></input>
@@ -64,7 +64,7 @@
     <DCC fifo="00010" slink="751"/>
   </RUI>
 
-  <RUI instance="4" host="csc-c2d07-03" alias="csc-daq01" port="40304" schar="5">
+  <RUI instance="4">
     <DDU crate="1" slot="7">
       <input id="0"><FiberCassette crate="1" pos="7" socket="f"/><PeripheralCrate id="4" VMEcrate="4" VMEslot="7"/><Chamber endcap="+" station="1" type="1" number="11"/></input>
       <input id="1"><FiberCassette crate="1" pos="7" socket="d"/><PeripheralCrate id="4" VMEcrate="4" VMEslot="21"/><Chamber endcap="+" station="1" type="3" number="11"/></input>
@@ -85,7 +85,7 @@
     <DCC fifo="01000" slink="751"/>
   </RUI>
 
-  <RUI instance="5" host="csc-c2d07-04" alias="csc-daq02" port="40305" schar="2">
+  <RUI instance="5">
     <DDU crate="1" slot="9">
       <input id="0"><FiberCassette crate="2" pos="7" socket="c"/><PeripheralCrate id="4" VMEcrate="4" VMEslot="5"/><Chamber endcap="+" station="1" type="1" number="10"/></input>
       <input id="1"><FiberCassette crate="2" pos="7" socket="a"/><PeripheralCrate id="4" VMEcrate="4" VMEslot="19"/><Chamber endcap="+" station="1" type="3" number="10"/></input>
@@ -106,7 +106,7 @@
     <DCC fifo="10000" slink="751"/>
   </RUI>
 
-  <RUI instance="6" host="csc-c2d07-04" alias="csc-daq02" port="40306" schar="3">
+  <RUI instance="6">
     <DDU crate="1" slot="10">
       <input id="0"><FiberCassette crate="2" pos="7" socket="f"/><PeripheralCrate id="4" VMEcrate="4" VMEslot="3"/><Chamber endcap="+" station="1" type="1" number="9"/></input>
       <input id="1"><FiberCassette crate="2" pos="7" socket="d"/><PeripheralCrate id="4" VMEcrate="4" VMEslot="17"/><Chamber endcap="+" station="1" type="3" number="9"/></input>
@@ -127,7 +127,7 @@
     <DCC fifo="00100" slink="751"/>
   </RUI>
 
-  <RUI instance="7" host="csc-c2d07-04" alias="csc-daq02" port="40307" schar="4">
+  <RUI instance="7">
     <DDU crate="1" slot="11">
       <input id="0"><FiberCassette crate="3" pos="1" socket="f"/><PeripheralCrate id="6" VMEcrate="6" VMEslot="7"/><Chamber endcap="+" station="1" type="1" number="17"/></input>
       <input id="1"><FiberCassette crate="3" pos="1" socket="d"/><PeripheralCrate id="6" VMEcrate="6" VMEslot="21"/><Chamber endcap="+" station="1" type="3" number="17"/></input>
@@ -148,7 +148,7 @@
     <DCC fifo="00001" slink="751"/>
   </RUI>
 
-  <RUI instance="8" host="csc-c2d07-04" alias="csc-daq02" port="40308" schar="5">
+  <RUI instance="8">
     <DDU crate="1" slot="12">
       <input id="0"><FiberCassette crate="4" pos="1" socket="c"/><PeripheralCrate id="6" VMEcrate="6" VMEslot="5"/><Chamber endcap="+" station="1" type="1" number="16"/></input>
       <input id="1"><FiberCassette crate="4" pos="1" socket="a"/><PeripheralCrate id="6" VMEcrate="6" VMEslot="19"/><Chamber endcap="+" station="1" type="3" number="16"/></input>
@@ -169,7 +169,7 @@
     <DCC fifo="01000" slink="750"/>
   </RUI>
 
-  <RUI instance="9" host="csc-c2d07-05" alias="csc-daq03" port="40309" schar="2">
+  <RUI instance="9">
     <DDU crate="1" slot="13">
       <input id="0"><FiberCassette crate="4" pos="1" socket="f"/><PeripheralCrate id="6" VMEcrate="6" VMEslot="3"/><Chamber endcap="+" station="1" type="1" number="15"/></input>
       <input id="1"><FiberCassette crate="4" pos="1" socket="d"/><PeripheralCrate id="6" VMEcrate="6" VMEslot="17"/><Chamber endcap="+" station="1" type="3" number="15"/></input>
@@ -190,7 +190,7 @@
     <DCC fifo="00010" slink="750"/>
   </RUI>
 
-  <RUI instance="10" host="csc-c2d07-05" alias="csc-daq03" port="40310" schar="3">
+  <RUI instance="10">
     <DDU crate="2" slot="4">
       <input id="0"><FiberCassette crate="7" pos="1" socket="f"/><PeripheralCrate id="8" VMEcrate="8" VMEslot="7"/><Chamber endcap="+" station="1" type="1" number="23"/></input>
       <input id="1"><FiberCassette crate="7" pos="1" socket="d"/><PeripheralCrate id="8" VMEcrate="8" VMEslot="21"/><Chamber endcap="+" station="1" type="3" number="23"/></input>
@@ -211,7 +211,7 @@
     <DCC fifo="00100" slink="752"/>
   </RUI>
 
-  <RUI instance="11" host="csc-c2d07-05" alias="csc-daq03" port="40311" schar="4">
+  <RUI instance="11">
     <DDU crate="2" slot="5">
       <input id="0"><FiberCassette crate="8" pos="1" socket="c"/><PeripheralCrate id="8" VMEcrate="8" VMEslot="5"/><Chamber endcap="+" station="1" type="1" number="22"/></input>
       <input id="1"><FiberCassette crate="8" pos="1" socket="a"/><PeripheralCrate id="8" VMEcrate="8" VMEslot="19"/><Chamber endcap="+" station="1" type="3" number="22"/></input>
@@ -232,7 +232,7 @@
     <DCC fifo="10000" slink="752"/>
   </RUI>
 
-  <RUI instance="12" host="csc-c2d07-05" alias="csc-daq03" port="40312" schar="5">
+  <RUI instance="12">
     <DDU crate="2" slot="6">
       <input id="0"><FiberCassette crate="8" pos="1" socket="f"/><PeripheralCrate id="8" VMEcrate="8" VMEslot="3"/><Chamber endcap="+" station="1" type="1" number="21"/></input>
       <input id="1"><FiberCassette crate="8" pos="1" socket="d"/><PeripheralCrate id="8" VMEcrate="8" VMEslot="17"/><Chamber endcap="+" station="1" type="3" number="21"/></input>
@@ -253,7 +253,7 @@
     <DCC fifo="00010" slink="753"/>
   </RUI>
 
-  <RUI instance="13" host="csc-c2d07-07" alias="csc-daq04" port="40313" schar="2">
+  <RUI instance="13">
     <DDU crate="2" slot="7">
       <input id="0"><FiberCassette crate="7" pos="7" socket="f"/><PeripheralCrate id="10" VMEcrate="10" VMEslot="7"/><Chamber endcap="+" station="1" type="1" number="29"/></input>
       <input id="1"><FiberCassette crate="7" pos="7" socket="d"/><PeripheralCrate id="10" VMEcrate="10" VMEslot="21"/><Chamber endcap="+" station="1" type="3" number="29"/></input>
@@ -274,7 +274,7 @@
     <DCC fifo="01000" slink="753"/>
   </RUI>
 
-  <RUI instance="14" host="csc-c2d07-07" alias="csc-daq04" port="40314" schar="3">
+  <RUI instance="14">
     <DDU crate="2" slot="9">
       <input id="0"><FiberCassette crate="8" pos="7" socket="c"/><PeripheralCrate id="10" VMEcrate="10" VMEslot="5"/><Chamber endcap="+" station="1" type="1" number="28"/></input>
       <input id="1"><FiberCassette crate="8" pos="7" socket="a"/><PeripheralCrate id="10" VMEcrate="10" VMEslot="19"/><Chamber endcap="+" station="1" type="3" number="28"/></input>
@@ -295,7 +295,7 @@
     <DCC fifo="10000" slink="753"/>
   </RUI>
 
-  <RUI instance="15" host="csc-c2d07-07" alias="csc-daq04" port="40315" schar="4">
+  <RUI instance="15">
     <DDU crate="2" slot="10">
       <input id="0"><FiberCassette crate="8" pos="7" socket="f"/><PeripheralCrate id="10" VMEcrate="10" VMEslot="3"/><Chamber endcap="+" station="1" type="1" number="27"/></input>
       <input id="1"><FiberCassette crate="8" pos="7" socket="d"/><PeripheralCrate id="10" VMEcrate="10" VMEslot="17"/><Chamber endcap="+" station="1" type="3" number="27"/></input>
@@ -316,7 +316,7 @@
     <DCC fifo="00100" slink="753"/>
   </RUI>
 
-  <RUI instance="16" host="csc-c2d07-07" alias="csc-daq04" port="40316" schar="5">
+  <RUI instance="16">
     <DDU crate="2" slot="11">
       <input id="0"><FiberCassette crate="9" pos="1" socket="f"/><PeripheralCrate id="12" VMEcrate="12" VMEslot="7"/><Chamber endcap="+" station="1" type="1" number="35"/></input>
       <input id="1"><FiberCassette crate="9" pos="1" socket="d"/><PeripheralCrate id="12" VMEcrate="12" VMEslot="21"/><Chamber endcap="+" station="1" type="3" number="35"/></input>
@@ -337,7 +337,7 @@
     <DCC fifo="00001" slink="753"/>
   </RUI>
 
-  <RUI instance="17" host="csc-c2d07-09" alias="csc-daq05" port="40317" schar="2">
+  <RUI instance="17">
     <DDU crate="2" slot="12">
       <input id="0"><FiberCassette crate="10" pos="1" socket="c"/><PeripheralCrate id="12" VMEcrate="12" VMEslot="5"/><Chamber endcap="+" station="1" type="1" number="34"/></input>
       <input id="1"><FiberCassette crate="10" pos="1" socket="a"/><PeripheralCrate id="12" VMEcrate="12" VMEslot="19"/><Chamber endcap="+" station="1" type="3" number="34"/></input>
@@ -358,7 +358,7 @@
     <DCC fifo="01000" slink="752"/>
   </RUI>
 
-  <RUI instance="18" host="csc-c2d07-09" alias="csc-daq05" port="40318" schar="3">
+  <RUI instance="18">
     <DDU crate="2" slot="13">
       <input id="0"><FiberCassette crate="10" pos="1" socket="f"/><PeripheralCrate id="12" VMEcrate="12" VMEslot="3"/><Chamber endcap="+" station="1" type="1" number="33"/></input>
       <input id="1"><FiberCassette crate="10" pos="1" socket="d"/><PeripheralCrate id="12" VMEcrate="12" VMEslot="17"/><Chamber endcap="+" station="1" type="3" number="33"/></input>
@@ -379,7 +379,7 @@
     <DCC fifo="00010" slink="752"/>
   </RUI>
 
-  <RUI instance="19" host="" alias="" port="40319" schar="">
+  <RUI instance="19">
     <DDU crate="3" slot="4">
       <input id="0"><FiberCassette crate="3" pos="8" socket="f"/><PeripheralCrate id="32" VMEcrate="2" VMEslot="7"/><Chamber endcap="-" station="1" type="1" number="5"/></input>
       <input id="1"><FiberCassette crate="3" pos="8" socket="d"/><PeripheralCrate id="32" VMEcrate="2" VMEslot="21"/><Chamber endcap="-" station="1" type="3" number="5"/></input>
@@ -400,7 +400,7 @@
     <DCC fifo="00100" slink="754"/>
   </RUI>
 
-  <RUI instance="20" host="" alias="" port="40320" schar="">
+  <RUI instance="20">
     <DDU crate="3" slot="5">
       <input id="0"><FiberCassette crate="4" pos="8" socket="c"/><PeripheralCrate id="32" VMEcrate="2" VMEslot="5"/><Chamber endcap="-" station="1" type="1" number="4"/></input>
       <input id="1"><FiberCassette crate="4" pos="8" socket="a"/><PeripheralCrate id="32" VMEcrate="2" VMEslot="19"/><Chamber endcap="-" station="1" type="3" number="4"/></input>
@@ -421,7 +421,7 @@
     <DCC fifo="10000" slink="754"/>
   </RUI>
 
-  <RUI instance="21" host="" alias="" port="40321" schar="">
+  <RUI instance="21">
     <DDU crate="3" slot="6">
       <input id="0"><FiberCassette crate="4" pos="8" socket="f"/><PeripheralCrate id="32" VMEcrate="2" VMEslot="3"/><Chamber endcap="-" station="1" type="1" number="3"/></input>
       <input id="1"><FiberCassette crate="4" pos="8" socket="d"/><PeripheralCrate id="32" VMEcrate="2" VMEslot="17"/><Chamber endcap="-" station="1" type="3" number="3"/></input>
@@ -442,7 +442,7 @@
     <DCC fifo="00010" slink="755"/>
   </RUI>
 
-  <RUI instance="22" host="" alias="" port="40322" schar="">
+  <RUI instance="22">
     <DDU crate="3" slot="7">
       <input id="0"><FiberCassette crate="5" pos="2" socket="f"/><PeripheralCrate id="34" VMEcrate="4" VMEslot="7"/><Chamber endcap="-" station="1" type="1" number="11"/></input>
       <input id="1"><FiberCassette crate="5" pos="2" socket="d"/><PeripheralCrate id="34" VMEcrate="4" VMEslot="21"/><Chamber endcap="-" station="1" type="3" number="11"/></input>
@@ -463,7 +463,7 @@
     <DCC fifo="01000" slink="755"/>
   </RUI>
 
-  <RUI instance="23" host="" alias="" port="40323" schar="">
+  <RUI instance="23">
     <DDU crate="3" slot="9">
       <input id="0"><FiberCassette crate="6" pos="2" socket="c"/><PeripheralCrate id="34" VMEcrate="4" VMEslot="5"/><Chamber endcap="-" station="1" type="1" number="10"/></input>
       <input id="1"><FiberCassette crate="6" pos="2" socket="a"/><PeripheralCrate id="34" VMEcrate="4" VMEslot="19"/><Chamber endcap="-" station="1" type="3" number="10"/></input>
@@ -484,7 +484,7 @@
     <DCC fifo="10000" slink="755"/>
   </RUI>
 
-  <RUI instance="24" host="" alias="" port="40324" schar="">
+  <RUI instance="24">
     <DDU crate="3" slot="10">
       <input id="0"><FiberCassette crate="6" pos="2" socket="f"/><PeripheralCrate id="34" VMEcrate="4" VMEslot="3"/><Chamber endcap="-" station="1" type="1" number="9"/></input>
       <input id="1"><FiberCassette crate="6" pos="2" socket="d"/><PeripheralCrate id="34" VMEcrate="4" VMEslot="17"/><Chamber endcap="-" station="1" type="3" number="9"/></input>
@@ -505,7 +505,7 @@
     <DCC fifo="00100" slink="755"/>
   </RUI>
 
-  <RUI instance="25" host="" alias="" port="40325" schar="">
+  <RUI instance="25">
     <DDU crate="3" slot="11">
       <input id="0"><FiberCassette crate="5" pos="8" socket="f"/><PeripheralCrate id="36" VMEcrate="6" VMEslot="7"/><Chamber endcap="-" station="1" type="1" number="17"/></input>
       <input id="1"><FiberCassette crate="5" pos="8" socket="d"/><PeripheralCrate id="36" VMEcrate="6" VMEslot="21"/><Chamber endcap="-" station="1" type="3" number="17"/></input>
@@ -526,7 +526,7 @@
     <DCC fifo="00001" slink="755"/>
   </RUI>
 
-  <RUI instance="26" host="" alias="" port="40326" schar="">
+  <RUI instance="26">
     <DDU crate="3" slot="12">
       <input id="0"><FiberCassette crate="6" pos="8" socket="c"/><PeripheralCrate id="36" VMEcrate="6" VMEslot="5"/><Chamber endcap="-" station="1" type="1" number="16"/></input>
       <input id="1"><FiberCassette crate="6" pos="8" socket="a"/><PeripheralCrate id="36" VMEcrate="6" VMEslot="19"/><Chamber endcap="-" station="1" type="3" number="16"/></input>
@@ -547,7 +547,7 @@
     <DCC fifo="01000" slink="754"/>
   </RUI>
 
-  <RUI instance="27" host="" alias="" port="40327" schar="">
+  <RUI instance="27">
     <DDU crate="3" slot="13">
       <input id="0"><FiberCassette crate="6" pos="8" socket="f"/><PeripheralCrate id="36" VMEcrate="6" VMEslot="3"/><Chamber endcap="-" station="1" type="1" number="15"/></input>
       <input id="1"><FiberCassette crate="6" pos="8" socket="d"/><PeripheralCrate id="36" VMEcrate="6" VMEslot="17"/><Chamber endcap="-" station="1" type="3" number="15"/></input>
@@ -568,7 +568,7 @@
     <DCC fifo="00010" slink="754"/>
   </RUI>
 
-  <RUI instance="28" host="" alias="" port="40328" schar="">
+  <RUI instance="28">
     <DDU crate="4" slot="4">
       <input id="0"><FiberCassette crate="9" pos="8" socket="f"/><PeripheralCrate id="38" VMEcrate="8" VMEslot="7"/><Chamber endcap="-" station="1" type="1" number="23"/></input>
       <input id="1"><FiberCassette crate="9" pos="8" socket="d"/><PeripheralCrate id="38" VMEcrate="8" VMEslot="21"/><Chamber endcap="-" station="1" type="3" number="23"/></input>
@@ -589,7 +589,7 @@
     <DCC fifo="00100" slink="756"/>
   </RUI>
 
-  <RUI instance="29" host="" alias="" port="40329" schar="">
+  <RUI instance="29">
     <DDU crate="4" slot="5">
       <input id="0"><FiberCassette crate="10" pos="8" socket="c"/><PeripheralCrate id="38" VMEcrate="8" VMEslot="5"/><Chamber endcap="-" station="1" type="1" number="22"/></input>
       <input id="1"><FiberCassette crate="10" pos="8" socket="a"/><PeripheralCrate id="38" VMEcrate="8" VMEslot="19"/><Chamber endcap="-" station="1" type="3" number="22"/></input>
@@ -610,7 +610,7 @@
     <DCC fifo="10000" slink="756"/>
   </RUI>
 
-  <RUI instance="30" host="" alias="" port="40330" schar="">
+  <RUI instance="30">
     <DDU crate="4" slot="6">
       <input id="0"><FiberCassette crate="10" pos="8" socket="f"/><PeripheralCrate id="38" VMEcrate="8" VMEslot="3"/><Chamber endcap="-" station="1" type="1" number="21"/></input>
       <input id="1"><FiberCassette crate="10" pos="8" socket="d"/><PeripheralCrate id="38" VMEcrate="8" VMEslot="17"/><Chamber endcap="-" station="1" type="3" number="21"/></input>
@@ -631,7 +631,7 @@
     <DCC fifo="00010" slink="757"/>
   </RUI>
 
-  <RUI instance="31" host="" alias="" port="40331" schar="">
+  <RUI instance="31">
     <DDU crate="4" slot="7">
       <input id="0"><FiberCassette crate="11" pos="2" socket="f"/><PeripheralCrate id="40" VMEcrate="10" VMEslot="7"/><Chamber endcap="-" station="1" type="1" number="29"/></input>
       <input id="1"><FiberCassette crate="11" pos="2" socket="d"/><PeripheralCrate id="40" VMEcrate="10" VMEslot="21"/><Chamber endcap="-" station="1" type="3" number="29"/></input>
@@ -652,7 +652,7 @@
     <DCC fifo="01000" slink="757"/>
   </RUI>
 
-  <RUI instance="32" host="" alias="" port="40332" schar="">
+  <RUI instance="32">
     <DDU crate="4" slot="9">
       <input id="0"><FiberCassette crate="12" pos="2" socket="c"/><PeripheralCrate id="40" VMEcrate="10" VMEslot="5"/><Chamber endcap="-" station="1" type="1" number="28"/></input>
       <input id="1"><FiberCassette crate="12" pos="2" socket="a"/><PeripheralCrate id="40" VMEcrate="10" VMEslot="19"/><Chamber endcap="-" station="1" type="3" number="28"/></input>
@@ -673,7 +673,7 @@
     <DCC fifo="10000" slink="757"/>
   </RUI>
 
-  <RUI instance="33" host="" alias="" port="40333" schar="">
+  <RUI instance="33">
     <DDU crate="4" slot="10">
       <input id="0"><FiberCassette crate="12" pos="2" socket="f"/><PeripheralCrate id="40" VMEcrate="10" VMEslot="3"/><Chamber endcap="-" station="1" type="1" number="27"/></input>
       <input id="1"><FiberCassette crate="12" pos="2" socket="d"/><PeripheralCrate id="40" VMEcrate="10" VMEslot="17"/><Chamber endcap="-" station="1" type="3" number="27"/></input>
@@ -694,7 +694,7 @@
     <DCC fifo="00100" slink="757"/>
   </RUI>
 
-  <RUI instance="34" host="" alias="" port="40334" schar="">
+  <RUI instance="34">
     <DDU crate="4" slot="11">
       <input id="0"><FiberCassette crate="11" pos="8" socket="f"/><PeripheralCrate id="42" VMEcrate="12" VMEslot="7"/><Chamber endcap="-" station="1" type="1" number="35"/></input>
       <input id="1"><FiberCassette crate="11" pos="8" socket="d"/><PeripheralCrate id="42" VMEcrate="12" VMEslot="21"/><Chamber endcap="-" station="1" type="3" number="35"/></input>
@@ -715,7 +715,7 @@
     <DCC fifo="00001" slink="757"/>
   </RUI>
 
-  <RUI instance="35" host="" alias="" port="40335" schar="">
+  <RUI instance="35">
     <DDU crate="4" slot="12">
       <input id="0"><FiberCassette crate="12" pos="8" socket="c"/><PeripheralCrate id="42" VMEcrate="12" VMEslot="5"/><Chamber endcap="-" station="1" type="1" number="34"/></input>
       <input id="1"><FiberCassette crate="12" pos="8" socket="a"/><PeripheralCrate id="42" VMEcrate="12" VMEslot="19"/><Chamber endcap="-" station="1" type="3" number="34"/></input>
@@ -736,7 +736,7 @@
     <DCC fifo="01000" slink="756"/>
   </RUI>
 
-  <RUI instance="36" host="" alias="" port="40336" schar="">
+  <RUI instance="36">
     <DDU crate="4" slot="13">
       <input id="0"><FiberCassette crate="12" pos="8" socket="f"/><PeripheralCrate id="42" VMEcrate="12" VMEslot="3"/><Chamber endcap="-" station="1" type="1" number="33"/></input>
       <input id="1"><FiberCassette crate="12" pos="8" socket="d"/><PeripheralCrate id="42" VMEcrate="12" VMEslot="17"/><Chamber endcap="-" station="1" type="3" number="33"/></input>

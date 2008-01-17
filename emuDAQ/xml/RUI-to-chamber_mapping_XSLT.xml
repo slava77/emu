@@ -1,10 +1,18 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- URL                                         will show -->
+<!-- RUI-to-chamber_mapping.xml#RUI.2            graphics with all chambers of RUI 2 highlighted -->
+<!-- RUI-to-chamber_mapping.xml#RUI.2.3          graphics with chamber of input 3 of RUI 2 highlighted -->
+<!-- RUI-to-chamber_mapping.xml#VME+1/4          graphics with all chambers of trigger sector / PC VME+1/4 highlighted -->
+<!-- RUI-to-chamber_mapping.xml#ME-1/2/28        graphics with chamber ME-1/2/28 highlighted -->
+<!-- RUI-to-chamber_mapping.xml#row_RUI.2        table at row of RUI 2 -->
+<!-- RUI-to-chamber_mapping.xml#row_RUI.2.3      table at row of input 3 of RUI 2 -->
+<!-- RUI-to-chamber_mapping.xml#row_ME-1/2/28    table at row of chamber ME-1/2/28 -->
 <xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:svg="http://www.w3.org/2000/svg"
   xmlns:xlink="http://www.w3.org/1999/xlink/">
 
-  <xsl:output method="html" indent="no" standalone="no"/>
+  <xsl:output method="html" encoding="UTF-8" indent="no"/>
 
   <xsl:template name="geoContainer">
     <CSC_rings>
@@ -36,17 +44,18 @@
     <xsl:variable name="CHAMBER_CORNERS"><xsl:value-of select="document('RUI-to-chamber_mapping_XSLT.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@chamberCorners"></xsl:value-of></xsl:variable>
     <xsl:variable name="TRANSFORMATIONS">translate(<xsl:value-of select="document('RUI-to-chamber_mapping_XSLT.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@x"/>, <xsl:value-of select="document('RUI-to-chamber_mapping_XSLT.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@y"/>) rotate(<xsl:value-of select="$PHI"/>,0,0)</xsl:variable>
     <xsl:variable name="RUI_INSTANCE"><xsl:value-of select="../../@instance"/></xsl:variable>
+    <xsl:variable name="DDU_INPUT__PC_NAME"><xsl:value-of select="@id"/> VME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="PeripheralCrate/@VMEcrate"/></xsl:variable>
     <xsl:variable name="Y_TEXT"><xsl:value-of select="document('RUI-to-chamber_mapping_XSLT.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@yText"/></xsl:variable>
-    <svg:polygon id="{$CHAMBER_NAME}" name="{$RUI_INSTANCE}" class="{@id}" points="{$CHAMBER_CORNERS}" fill="green" opacity="0.5" transform="{$TRANSFORMATIONS}"/>
+    <svg:polygon id="{$CHAMBER_NAME}" name="{$RUI_INSTANCE}" class="{$DDU_INPUT__PC_NAME}" points="{$CHAMBER_CORNERS}" fill="SteelBlue" opacity="0.5" transform="{$TRANSFORMATIONS}"/>
     <svg:text y="{$Y_TEXT}" text-anchor="middle" transform="{$TRANSFORMATIONS}" font-size="60" fill="#DDDDDD" opacity="1."><xsl:value-of select="Chamber/@number"/></svg:text>
   </xsl:template>
 
 
   <xsl:template name="captions">
     <xsl:for-each select="document('RUI-to-chamber_mapping_XSLT.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[substring(@name,6,1)='2']">
-      <svg:text text-anchor="middle" font-size="200" fill="green" opacity="1.">
+      <svg:text text-anchor="middle" font-size="200" fill="SteelBlue" opacity="1.">
 	<xsl:attribute name="transform">translate(<xsl:value-of select="@x"/>,<xsl:value-of select="number(@y)+900"/>)</xsl:attribute>
-	<xsl:value-of select="substring(@name,1,4)"/>
+	ME<xsl:if test="substring(@name,3,1)='-'">&#8211;</xsl:if><xsl:if test="substring(@name,3,1)='+'">+</xsl:if><xsl:value-of select="substring(@name,4,1)"/>
       </svg:text>
     </xsl:for-each>
   </xsl:template>
@@ -66,13 +75,15 @@
 
 
   <xsl:template name="selectionLabel">
-    <svg:rect id="selectionLabelBox" visibility="hidden" x="1100" y="-50" width="600" height="200" fill="red"/>
-    <svg:text id="selectionLabelText" visibility="hidden" text-anchor="middle" x="1400" y="90" font-size="100" fill="#DDDDDD">RUI n</svg:text>
+    <svg:g id="selectionLabelGroup">
+      <svg:rect id="selectionLabelBox" visibility="hidden" opacity="0.8" x="1100" y="-50" width="600" height="200" fill="OrangeRed"/>
+      <svg:text id="selectionLabelText" visibility="hidden" text-anchor="middle" x="1400" y="90" font-size="100" fill="#DDDDDD">RUI n</svg:text>
+    </svg:g>
   </xsl:template>
 
 
   <xsl:template name="focusedChamberLabel">
-    <svg:rect id="focusedChamberBox" visibility="hidden" x="-1700" y="-50" width="600" height="200" fill="green"/>    
+    <svg:rect id="focusedChamberBox" visibility="hidden" opacity="0.8" x="-1700" y="-50" width="600" height="200" fill="SteelBlue"/>    
     <svg:text id="focusedChamberText" visibility="hidden" text-anchor="middle" x="-1400" y="90" font-size="100" fill="#DDDDDD">MEES/T/Ch</svg:text>
   </xsl:template>
 
@@ -96,7 +107,7 @@
 
   <xsl:template mode="table" match="RUI">
       <tr>
-	<th class="RUI">RUI</th>
+	<th class="RUI">RUI<a><xsl:attribute name="name">row_RUI.<xsl:value-of select="@instance"/></xsl:attribute></a></th>
 	<th class="computer" colspan="4">computer</th>
 	<th class="DCC" colspan="2">DCC</th>
 	<th class="DDU" colspan="3">DDU</th>
@@ -119,11 +130,41 @@
 	<th class="fiber">pos</th>
 	<th class="fiber">socket</th>
 	<th class="PC">id</th>
-	<th class="PC">crate</th>
+	<th class="PC">sector</th>
 	<th class="PC">pos</th>
 	<th class="chamber">name</th>
       </tr>
     <xsl:apply-templates mode="table"/>
+    <xsl:if test="not(following::RUI)">
+      <tr>
+	<th class="RUI">instance</th>
+	<th class="computer">host</th>
+	<th class="computer">alias</th>
+	<th class="computer">port</th>
+	<th class="computer">schar</th>
+	<th class="DCC">fifo</th>
+	<th class="DCC">S-link</th>
+	<th class="DDU">crate</th>
+	<th class="DDU">slot</th>
+	<th class="DDU">input</th>
+	<th class="fiber">crate</th>
+	<th class="fiber">pos</th>
+	<th class="fiber">socket</th>
+	<th class="PC">id</th>
+	<th class="PC">sector</th>
+	<th class="PC">pos</th>
+	<th class="chamber">name</th>
+      </tr>
+      <tr>
+	<th class="RUI">RUI</th>
+	<th class="computer" colspan="4">computer</th>
+	<th class="DCC" colspan="2">DCC</th>
+	<th class="DDU" colspan="3">DDU</th>
+	<th class="fiber" colspan="3">fiber cassette</th>
+	<th class="PC" colspan="3">peripheral crate</th>
+	<th class="chamber">&#160;&#160;chamber&#160;&#160;</th>
+      </tr>
+    </xsl:if>
   </xsl:template>
 
 
@@ -134,21 +175,20 @@
 
   <xsl:template mode="table" match="input">
     <xsl:variable name="CHAMBER_NAME">ME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/>/<xsl:value-of select="Chamber/@number"/></xsl:variable>
+    <xsl:variable name="CHAMBER_NAME_PRETTY">ME<xsl:if test="Chamber/@endcap='-'">&#8211;</xsl:if><xsl:if test="Chamber/@endcap='+'">+</xsl:if><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/>/<xsl:value-of select="Chamber/@number"/></xsl:variable>
+    <xsl:variable name="PC_NAME">VME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="PeripheralCrate/@VMEcrate"/></xsl:variable>
+    <xsl:variable name="RUI_INSTANCE"><xsl:value-of select="../../@instance"/></xsl:variable>
     <tr>
       <td class="RUI">
 	<xsl:attribute name="onmousedown">colorRUI(<xsl:value-of select="../../@instance"/>)</xsl:attribute>
 	<a href="#graphics"><xsl:value-of select="../../@instance"/></a>
-	<a>
-	  <xsl:attribute name="name">row_<xsl:value-of select="$CHAMBER_NAME"/></xsl:attribute>
-	</a>
-	<a>
-	  <xsl:attribute name="name">row_RUI.<xsl:value-of select="../../@instance"/>.<xsl:value-of select="@id"/></xsl:attribute>
-	</a>
+	<a><xsl:attribute name="name">row_<xsl:value-of select="$CHAMBER_NAME"/></xsl:attribute></a>
+	<a><xsl:attribute name="name">row_RUI.<xsl:value-of select="../../@instance"/>.<xsl:value-of select="@id"/></xsl:attribute></a>
       </td>
-      <td class="computer"><xsl:value-of select="../../@host"/></td>
-      <td class="computer"><xsl:value-of select="../../@alias"/></td>
-      <td class="computer"><xsl:value-of select="../../@port"/></td>
-      <td class="computer"><xsl:value-of select="../../@schar"/></td>
+      <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/../@host"/></td>
+      <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/../@alias"/></td>
+      <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/@port"/></td>
+      <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/@schar"/></td>
       <td class="DCC"><xsl:value-of select="../../DCC/@fifo"/></td>
       <td class="DCC"><xsl:value-of select="../../DCC/@slink"/></td>
       <td class="DDU"><xsl:value-of select="../@crate"/></td>
@@ -158,11 +198,14 @@
       <td class="fiber"><xsl:value-of select="FiberCassette/@pos"/></td>
       <td class="fiber"><xsl:value-of select="FiberCassette/@socket"/></td>
       <td class="PC"><xsl:value-of select="PeripheralCrate/@id"/></td>
-      <td class="PC"><xsl:value-of select="PeripheralCrate/@VMEcrate"/></td>
+      <td class="PC">
+	<xsl:attribute name="onmousedown">colorTriggerSector('<xsl:value-of select="$PC_NAME"/>')</xsl:attribute>
+	<a href="#graphics"><xsl:value-of select="PeripheralCrate/@VMEcrate"/></a>
+      </td>
       <td class="PC"><xsl:value-of select="PeripheralCrate/@VMEslot"/></td>
       <td class="chamber">
 	<xsl:attribute name="onmousedown">colorChamber('<xsl:value-of select="$CHAMBER_NAME"/>')</xsl:attribute>
-	<a href="#graphics"><xsl:value-of select="$CHAMBER_NAME"/></a>
+	<a href="#graphics"><xsl:value-of select="$CHAMBER_NAME_PRETTY"/></a>
       </td>
     </tr>
   </xsl:template>
@@ -171,7 +214,7 @@
   <xsl:template match="RUI-to-chamber_mapping">
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
-	<title>CSC RUI-to-chamber mapping of <xsl:value-of select="@date"/></title>
+	<title>CSC RUI-to-chamber mapping of <xsl:value-of select="@date"/> and RUI-to-computer mapping of <xsl:value-of select="document('RUI-to-computer_mapping.xml')/RUI-to-computer_mapping/@date"/></title>
 	<style>
 	  table.mapping td, th { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; color:#99BBFF; }
 	  table.mapping { background-color: #2A3B90; }
@@ -199,6 +242,7 @@
                  chambers.item(i).addEventListener("click"    , goToTableRow,     false);
 	       }
              }
+	     doc.getElementById("selectionLabelGroup").addEventListener("click", goToRUITable, false);
 	     // If an RUI is explicitly requested in the URL, show graphics with its chambers highlighted
 	     if ( window.location.hash.indexOf("#RUI") == 0 ){ // RUI requested
 	       var hs = window.location.hash.split('.');
@@ -211,49 +255,93 @@
 		 window.location = '#graphics'
 	       }
 	     }
-          }
+	     // If a trigger sector / PC name is explicitly requested in the URL, show graphics with its chambers highlighted
+ 	     if ( window.location.hash.indexOf("#VME") == 0 ){ // trigger sector / PC name requested
+	       colorTriggerSector( window.location.hash.substr(1) );
+	       window.location = '#graphics'
+	     }
+	     // If a chamber is explicitly requested in the URL, show graphics with that chamber highlighted
+ 	     if ( window.location.hash.indexOf("#ME") == 0 ){ // chamber
+	       colorChamber( window.location.hash.substr(1) );
+	       window.location = '#graphics'
+	     }
+         }
           
           function colorRUI(instance){
-            //alert('colorRUI' + instance);
             // First clear all chambers
             for (i=0;i&lt;chambers.length;i++){
 	      if ( chambers.item(i).hasAttribute('name') ){
                 chambers.item(i).setAttribute('opacity','0.5');
-                chambers.item(i).setAttribute('fill','green');
+                chambers.item(i).setAttribute('fill','SteelBlue');
 	      }
             }
             // Color chambers read out by this RUI instance
             var c = document.getElementsByName(instance);
-	    //alert(c.length);
             for (i=0;i&lt;c.length;i++){
-              c.item(i).setAttribute('opacity','1.');
-              c.item(i).setAttribute('fill','red');
+              c.item(i).setAttribute('opacity','0.8');
+              c.item(i).setAttribute('fill','OrangeRed');
             }
 	    // Display label
-            document.getElementById('selectionLabelBox').setAttribute('visibility','visible');
+	    var b = document.getElementById('selectionLabelBox');
+            b.setAttribute('visibility','visible');
+	    b.setAttribute('fill','OrangeRed');
             var t = document.getElementById('selectionLabelText')
 	    t.setAttribute('visibility','visible');
+	    t.setAttribute('fill','#DDDDDD');
 	    t.firstChild.nodeValue = 'RUI '+instance;
+          }
+          
+          function colorTriggerSector(pcName){
+            // alert(pcName);
+            // First clear all chambers
+            for (i=0;i&lt;chambers.length;i++){
+	      if ( chambers.item(i).hasAttribute('name') ){
+                chambers.item(i).setAttribute('opacity','0.5');
+                chambers.item(i).setAttribute('fill','SteelBlue');
+	      }
+            }
+            // Color chambers belonging to this trigger sector
+	    var classwords;
+            for (i=0;i&lt;chambers.length;i++){
+	      if ( chambers.item(i).hasAttribute('name') ){
+	        classwords = chambers.item(i).getAttribute('class').split(' ');
+	        if ( classwords[1] == pcName ){
+	          chambers.item(i).setAttribute('opacity','0.8');
+                  chambers.item(i).setAttribute('fill','Gold');
+	        }
+	      }
+            }
+	    // Display label
+	    var b = document.getElementById('selectionLabelBox');
+            b.setAttribute('visibility','visible');
+	    b.setAttribute('fill','Gold');
+            var t = document.getElementById('selectionLabelText')
+	    t.setAttribute('visibility','visible');
+	    t.setAttribute('fill','#222222');
+	    t.firstChild.nodeValue = pcName.replace('-','&#8211;');
           }
           
           function colorChamber(chambername){
             for (i=0;i&lt;chambers.length;i++){
 	      if ( chambers.item(i).hasAttribute('name') ){
                 if ( chambers.item(i).getAttribute('id') == chambername ){
-                  chambers.item(i).setAttribute('opacity','1.');
-                  chambers.item(i).setAttribute('fill','red');
+                  chambers.item(i).setAttribute('opacity','0.8');
+                  chambers.item(i).setAttribute('fill','OrangeRed');
 	        }
                 else{
                   chambers.item(i).setAttribute('opacity','0.5');
-                  chambers.item(i).setAttribute('fill','green');
+                  chambers.item(i).setAttribute('fill','SteelBlue');
                 }
               }
             }
 	    // Display label
-            document.getElementById('selectionLabelBox').setAttribute('visibility','visible');
+	    var b = document.getElementById('selectionLabelBox');
+            b.setAttribute('visibility','visible');
+	    b.setAttribute('fill','OrangeRed');
             var t = document.getElementById('selectionLabelText')
 	    t.setAttribute('visibility','visible');
-	    t.firstChild.nodeValue = chambername;
+	    t.setAttribute('fill','#DDDDDD');
+	    t.firstChild.nodeValue = chambername.replace('-','&#8211;');
           }
           
 	  function colorChamberOfInput(ruiInstance,dduInput){
@@ -261,34 +349,40 @@
             for (i=0;i&lt;chambers.length;i++){
 	      if ( chambers.item(i).hasAttribute('name') ){
                 chambers.item(i).setAttribute('opacity','0.5');
-                chambers.item(i).setAttribute('fill','green');
+                chambers.item(i).setAttribute('fill','SteelBlue');
 	      }
             }
             // Color chamber read out through this input of this RUI instance
 	    var chamberName;
+	    var classwords;
             var c = document.getElementsByName(ruiInstance);
             for (i=0;i&lt;c.length;i++){
-	      if ( c.item(i).getAttribute('class') == dduInput ){
-                c.item(i).setAttribute('opacity','1.');
-                c.item(i).setAttribute('fill','red');
+	      classwords = c.item(i).getAttribute('class').split(' ');
+	      if ( parseInt( classwords[0], 10 ) == dduInput ){
+                c.item(i).setAttribute('opacity','0.8');
+                c.item(i).setAttribute('fill','OrangeRed');
 		chamberName = c.item(i).getAttribute('id');
 	      }
             }
 	    // Display label
-            document.getElementById('selectionLabelBox').setAttribute('visibility','visible');
+	    var b = document.getElementById('selectionLabelBox');
+            b.setAttribute('visibility','visible');
+	    b.setAttribute('fill','OrangeRed');
             var t = document.getElementById('selectionLabelText')
 	    t.setAttribute('visibility','visible');
-	    t.firstChild.nodeValue = chamberName;
+	    t.setAttribute('fill','#DDDDDD');
+	    t.firstChild.nodeValue = chamberName.replace('-','&#8211;');
 	  }
 
           function highlightChamber(evt){
             var chamber = evt.target;
-            chamber.setAttribute('opacity','1.');
+            chamber.setAttribute('opacity','0.8');
 	    // Display label
             document.getElementById('focusedChamberBox').setAttribute('visibility','visible');
             var t = document.getElementById('focusedChamberText')
 	    t.setAttribute('visibility','visible');
-	    t.firstChild.nodeValue = evt.target.getAttribute('id');
+	    var chamber_name = evt.target.getAttribute('id');
+	    t.firstChild.nodeValue = chamber_name.replace('-','&#8211;');
           }
           
           function dullChamber(evt){
@@ -303,6 +397,24 @@
             var chamber = evt.target;
 	    var chamber_name = evt.target.getAttribute('id');
 	    window.location='#row_'+chamber_name;
+	  }
+
+	  function goToRUITable(evt){
+	    // Apparently, even if the listener is attached to svg:g, evt.target will be the child one clicks on.
+            var siblings = evt.target.parentNode.childNodes;
+	    for ( i=0; i&lt;siblings.length; i++ ){
+	      if ( siblings[i].nodeName == 'svg:text' ){
+	        var displayedText = siblings[i].firstChild.nodeValue;
+	        if ( displayedText.indexOf("RUI") == 0 ){
+	          var instance = displayedText.substr(4);
+	          window.location='#row_RUI.'+instance;
+	        }
+	        if ( displayedText.indexOf("ME") == 0 ){
+	          var chamber_name = displayedText;
+	          window.location='#row_'+chamber_name.replace('&#8211;','-');
+	        }
+	      }
+	    }
 	  }
 
 	</script>
