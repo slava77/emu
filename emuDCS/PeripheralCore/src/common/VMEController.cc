@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.20 2008/01/17 11:54:02 rakness Exp $
+// $Id: VMEController.cc,v 3.21 2008/01/17 16:19:15 rakness Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.21  2008/01/17 16:19:15  rakness
+// comment out new VMEController completely
+//
 // Revision 3.20  2008/01/17 11:54:02  rakness
 // comment out added functions
 //
@@ -265,7 +268,8 @@ void VMEController::init() {
   //read_CR();
   //
   // This writes the default VME CR we need and then stores it in the flash memory....
-  write_VME_CR(0x20001d0f);
+  //  write_VME_CR(0x20001d0f);
+  write_VME_CR();
   save_cnfg_num(1);
   set_cnfg_dflt(1);
   //read_CR();
@@ -1195,9 +1199,25 @@ int VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sho
   
   //
 }
+void VMEController::write_VME_CR()
+{
+  int n;
+  int l,lcnt;
+  wbuf[0]=0x00;
+  wbuf[1]=0x12;
+  wbuf[2]=0x20;
+  wbuf[3]=0x00;
+  wbuf[4]=0x1D;
+  wbuf[5]=0x1F;
+  nwbuf=6;
+  n=eth_write();
+  std::cout << "WriteCR" << std::endl;
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
 //
 ///////////////////////////////////////////////////
-// comment out the next block except write_VME_CR
+// comment out the next block 
 ///////////////////////////////////////////////////
 //void VMEController::write_Ethernet_CR(unsigned short int val)
 //{
@@ -1244,25 +1264,25 @@ int VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sho
 //  return;
 //}
 //
-void VMEController::write_VME_CR(unsigned int val)
-{
-  int n;
-  int l,lcnt;
-  printf(" inside val %08x \n",val);
-  wbuf[0]=0x00;
-  wbuf[1]=0x12;
-  wbuf[2]=(val>>24)&0xff;
-  wbuf[3]=(val>>16)&0xff;
-  wbuf[4]=(val>>8)&0xff;
-  wbuf[5]=val&0xff;
-  nwbuf=6;
-  n=eth_write();
-  char buf[10];
-  sprintf(buf," %02x %02x %02x %02x ",wbuf[2]&0xff,wbuf[3]&0xff,wbuf[4]&0xff,wbuf[5]&0xff);
-  std::cout << "Write_VME_CR" << buf << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
+//void VMEController::write_VME_CR(unsigned int val)
+//{
+//  int n;
+//  int l,lcnt;
+//  printf(" inside val %08x \n",val);
+//  wbuf[0]=0x00;
+//  wbuf[1]=0x12;
+//  wbuf[2]=(val>>24)&0xff;
+//  wbuf[3]=(val>>16)&0xff;
+//  wbuf[4]=(val>>8)&0xff;
+//  wbuf[5]=val&0xff;
+//  nwbuf=6;
+//  n=eth_write();
+//  char buf[10];
+//  sprintf(buf," %02x %02x %02x %02x ",wbuf[2]&0xff,wbuf[3]&0xff,wbuf[4]&0xff,wbuf[5]&0xff);
+//  std::cout << "Write_VME_CR" << buf << std::endl;
+//  for(l=0;l<8000;l++)lcnt++;
+//  return;
+//}
 //
 //void VMEController::write_BusTimeOut_CR(unsigned short int val)
 //{
@@ -1294,7 +1314,7 @@ void VMEController::write_VME_CR(unsigned int val)
 //  return;
 //}
 ///////////////////////////////////////////////////
-// end of "comment out the next block except write_VME_CR"
+// end of "comment out the next block 
 ///////////////////////////////////////////////////
 
 
