@@ -60,9 +60,9 @@ void EmuServer::findClientDescriptor()
 void EmuServer::addCredits( const int nCredits, const int prescaling ){
   nEventCreditsHeld_->value_ += nCredits;
   *prescaling_                = prescaling;
-  LOG4CPLUS_INFO(logger_, 
-		 name_    << " server received credits for " << 
-		 nCredits << " events prescaled by 1/" << 
-		 prescaling << ". Now holding " << 
-		 *nEventCreditsHeld_ );
+//   LOG4CPLUS_INFO(logger_, 
+// 		 name_    << " server received credits for " << 
+// 		 nCredits << " events prescaled by 1/" << 
+// 		 prescaling << ". Now holding " << 
+// 		 *nEventCreditsHeld_ );
 }
