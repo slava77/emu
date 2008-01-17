@@ -6095,7 +6095,7 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
       cout << "=== Fatal Error. Exiting with " <<  status << endl;
     }
     //
-    thisCCB->hardReset();
+    //    thisCCB->hardReset();
     //
     this->CCBUtils(in,out);
     //
@@ -6184,7 +6184,7 @@ void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * ou
     cout << "=== Fatal Error. Exiting with " <<  status << endl;
   }
   //
-  thisCCB->hardReset();
+  //thisCCB->hardReset();
   //
   this->MPCUtils(in,out);
   //
