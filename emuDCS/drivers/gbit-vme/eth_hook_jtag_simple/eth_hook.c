@@ -171,7 +171,8 @@ int cleanup_exit2(void)
 int netif_rx_hook(struct sk_buff *skb)
 { 
   int i,icnt;
-// write length to first word if(nbufw+skb->len+16 > MMT_BUF_SIZE)
+// write length to first word 
+  if(nbufw+skb->len+16 > MMT_BUF_SIZE)
   { printk(KERN_INFO "eth_hook: out of memory, incoming packet dropped! \n");
     pack_drop++;
     ERROR=1;
@@ -270,7 +271,7 @@ static int schar_ioctl(struct inode *inode, struct file *file,
 
 	        case SCHAR_READ_TIMEOUT: {
                   rd_tmo=(int)arg;
-		  // printk(KERN_INFO "SCHAR_READ_TIMEOUT %d ",rd_tmo);
+		  //printk(KERN_INFO "SCHAR_READ_TIMEOUT %d ",rd_tmo);
                   return 0;  
 	        }
 
