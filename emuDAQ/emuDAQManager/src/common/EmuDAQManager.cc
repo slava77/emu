@@ -4527,7 +4527,7 @@ bool EmuDAQManager::isSTEPFinished(){
       DOMNodeList* dataNode = doc->getElementsByTagNameNS(xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("LowestCount") );
       DOMNode* n = dataNode->item(0);
       serializer.import( &lowestCount, n );
-      cout << "Lowest count = " << lowestCount.toString() << endl << ss.str() << endl;
+//       cout << "Lowest count = " << lowestCount.toString() << endl << ss.str() << endl;
     } catch( emuDAQManager::exception::Exception e ){
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
 		      << (*pos)->getClassName() << (*pos)->getInstance() 
@@ -4762,7 +4762,13 @@ void EmuDAQManager::bookRunNumber(){
 		   runDbBookingCommand_.toString() << " at " <<
 		   runDbAddress_.toString()  << " for " << sequence );
     
+  
     bool success = runInfo_->bookRunNumber( sequence );
+    
+//     LOG4CPLUS_WARN(logger_, "Booking run number with " << runInfo_ << " " <<
+// 		   runDbBookingCommand_.toString() << " at " <<
+// 		   runDbAddress_.toString()  << " for " << sequence << ": "
+// 		   << runInfo_->errorMessage() );
     
     if ( success ){
       isBookedRunNumber_ = true;
@@ -4771,11 +4777,13 @@ void EmuDAQManager::bookRunNumber(){
       LOG4CPLUS_INFO(logger_, "Booked run rumber " << runNumber_.toString() <<
 		     " (" << sequence << " " << runSequenceNumber_.toString() << ")");
     }
-    else LOG4CPLUS_ERROR(logger_,
-			 "Failed to book run number: " 
-			 <<  runInfo_->errorMessage()
-			 << "| Falling back to run number " << runNumber_.value_ 
-			 << " specified by user." );
+    else {
+      LOG4CPLUS_ERROR(logger_,
+		      "Failed to book run number: " 
+		      <<  runInfo_->errorMessage()
+		      << "| Falling back to run number " << runNumber_.value_ 
+		      << " specified by user." );
+    }
   } // if ( runInfo_ ){
 
 }
