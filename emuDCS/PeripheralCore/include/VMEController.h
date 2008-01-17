@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.17 2008/01/17 11:54:02 rakness Exp $
+// $Id: VMEController.h,v 3.18 2008/01/17 16:19:14 rakness Exp $
 // $Log: VMEController.h,v $
+// Revision 3.18  2008/01/17 16:19:14  rakness
+// comment out new VMEController completely
+//
 // Revision 3.17  2008/01/17 11:54:02  rakness
 // comment out added functions
 //
@@ -207,6 +210,7 @@ public:
   void clear_error();
   void disable_errpkt();
   void enable_Reset();
+  void write_VME_CR();
   void read_CR();
   void disable_Reset();
   void set_Timeout(int to);
@@ -214,14 +218,14 @@ public:
   void Debug(int dbg) { DEBUG=dbg; }
   int  GetDebug() { return DEBUG; }  
   ///////////////////////////////////////////////////
-  // comment out the next block except write_VME_CR
+  // comment out the next block 
   //////////////////////////////////////////////////
   //  unsigned char GetDestMAC(int i){return hw_dest_addr[i];} 
   //  unsigned char GetSrcMAC(int i){return hw_source_addr[i];}  
   //  void write_Ethernet_CR(unsigned short int val);
   //  void write_FIFO_CR(unsigned short int val);
   //  void write_ResetMisc_CR(unsigned short int val);
-  void write_VME_CR(unsigned int val);
+  //  void write_VME_CR(unsigned int val);
   //  void write_BusTimeOut_CR(unsigned short int val);
   //  void write_BusGrantTimeOut_CR(unsigned short int val);
   //  // eth_lib3.c
@@ -265,7 +269,7 @@ public:
   //  enum SET_CLR {CLR=0, SET=1};
   //  int set_clr_bits(enum SET_CLR sc, enum CR_ID crid, unsigned int mask);
   /////////////////////////////
-  // end of "comment out the next block except write_VME_CR"
+  // end of comment out the next block
   /////////////////////////////
 
   void set_ErrorServer();
