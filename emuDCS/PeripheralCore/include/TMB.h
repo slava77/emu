@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.36 2008/01/07 15:08:53 rakness Exp $
+// $Id: TMB.h,v 3.37 2008/01/18 15:42:16 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.37  2008/01/18 15:42:16  rakness
+// get methods for TMB/RAT on-board voltages and currents
+//
 // Revision 3.36  2008/01/07 15:08:53  rakness
 // add xml parameters:  clct_stagger, clct_blanking, clct_pattern_id_thresh, aff_thresh, min_clct_separation.  Remove xml parameter:  clct_distrip_pretrig_thresh
 //
@@ -536,7 +539,27 @@ public:
   //
   //!device = 0 = TMB, = 1 = mezzanine, = 2 = RAT
   std::bitset<64> dsnRead(int device); 
+  //!Read on-board ADCs, then get functions to return values
   void ADCvoltages(float*);
+  //
+  inline float Get5p0v()     {return v5p0_     ;}
+  inline float Get5p0a()     {return a5p0_     ;}
+  //
+  inline float Get3p3v()     {return v3p3_     ;}
+  inline float Get3p3a()     {return a3p3_     ;}
+  //
+  inline float Get1p5vCore() {return v1p5core_ ;}
+  inline float Get1p5aCore() {return a1p5core_ ;}
+  //
+  inline float Get1p5vTT()   {return v1p5tt_   ;}
+  inline float Get1p5aTT()   {return a1p5tt_   ;}
+  //
+  inline float Get1p0vTT()   {return v1p0_     ;}
+  //
+  inline float Get1p8vRAT()  {return v1p8rat_  ;}
+  inline float Get1p8aRAT()  {return a1p8rat_  ;}	        // if SH921 set 1-2, loop backplane sends 1.500vtt
+  //  inline float Get3p3vRAT()  {return v3p3rat_  ;}               // if SH921 set 2-3... otherwise not filled...
+  //
   int tmb_read_delays(int);
   //
   inline int  GetCFEBrxPhase(int CFEB) {
@@ -1333,6 +1356,23 @@ private:
   //
   std::ostream * MyOutput_ ;
   bool debug_;
+  //
+  // on-board voltages and currents
+  float v5p0_     ;	      
+  float v3p3_     ;
+  float v1p5core_ ;
+  float v1p5tt_   ;
+  float v1p0_	;
+  float a5p0_	;	      
+  float a3p3_	;
+  float a1p5core_ ;
+  float a1p5tt_   ;
+  float a1p8rat_  ;	        // if SH921 set 1-2, loop backplane sends 1.500vtt
+  float v3p3rat_  ;               // if SH921 set 2-3... otherwise not filled...
+  float v1p8rat_  ;
+  float vref2_    ;
+  float vzero_    ;
+  float vref_     ;
   //
   std::vector<unsigned long int> InjectedLct0;
   std::vector<unsigned long int> InjectedLct1;
