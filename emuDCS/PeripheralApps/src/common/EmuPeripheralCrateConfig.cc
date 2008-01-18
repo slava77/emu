@@ -21,6 +21,8 @@ const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda102;
 const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
 const unsigned int EXPECTED_DMB_USERID      = 0x48547241;
 const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
+const int EXPECTED_DMB_VME_VERSION       = 1547;
+const int EXPECTED_DMB_FIRMWARE_REVISION =    1;
 const string       VMECC_FIRMWARE_DIR = "vcc"; 
 const string       VMECC_FIRMWARE_VER ="4.28";   
 //const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
@@ -4509,6 +4511,15 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
+  bool isME13 = false;
+  TMB * thisTMB   = tmbVector[dmb];
+  ALCTController * thisALCT;
+  if (thisTMB) 
+    thisALCT = thisTMB->alctController();
+  if (thisALCT) 
+    if ( (thisALCT->GetChamberType()).find("ME13") != string::npos )
+      isME13 = true;
+  //
   Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
@@ -4538,7 +4549,11 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
 	    (int)thisDMB->febpromuser(*cfebItr),
 	    (int)thisDMB->febfpgauser(*cfebItr));
     //
-    if ( thisDMB->febfpgauser(*cfebItr) == EXPECTED_CFEB_USERID ) {
+    if (cfebItr == cfebs.begin() && isME13) {
+      *out << cgicc::span().set("style","color:black");
+      *out << buf;
+      *out << cgicc::span();
+    } else if ( thisDMB->febfpgauser(*cfebItr) == EXPECTED_CFEB_USERID ) {
       *out << cgicc::span().set("style","color:green");
       *out << buf;
       *out << cgicc::span();
@@ -6864,6 +6879,174 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << buf ;
   *out << cgicc::span();
   //
+  //
+  *out << cgicc::pre();
+  *out << "On-board temperatures and voltages:" << std::endl;
+  *out << cgicc::pre();  
+  //
+  const int TMB_MAX_TEMP = 40;
+  //
+  int TMBtempFPGA = thisTMB->ReadTMBtempFPGA();  
+  if ( TMBtempFPGA > TMB_MAX_TEMP) {  
+    *out << cgicc::span().set("style","color:red");
+  } else {
+    *out << cgicc::span().set("style","color:green");
+  }
+  *out << "TMB (FPGA)       =   " << TMBtempFPGA << " deg C" << std::endl;
+  *out << cgicc::span();
+  //
+  int TMBtempPCB = thisTMB->ReadTMBtempPCB();  
+  if ( TMBtempPCB > TMB_MAX_TEMP ) {  
+    *out << cgicc::span().set("style","color:red");
+  } else {
+    *out << cgicc::span().set("style","color:green");
+  }
+  *out << "TMB (PCB)        =   " << TMBtempPCB << " deg C" << std::endl;
+  *out << cgicc::span();
+  //
+  int RATtempHSink = rat->ReadRATtempHSink();  
+  if ( RATtempHSink > TMB_MAX_TEMP ) {  
+    *out << cgicc::span().set("style","color:red");
+  } else {
+    *out << cgicc::span().set("style","color:green");
+  }
+  *out << "RAT (Heat sink)  =   " << RATtempHSink << " deg C" << std::endl;
+  *out << cgicc::span();
+  //
+  int RATtempPCB = rat->ReadRATtempPCB();  
+  if ( RATtempPCB > TMB_MAX_TEMP ) {  
+    *out << cgicc::span().set("style","color:red");
+  } else {
+    *out << cgicc::span().set("style","color:green");
+  }
+  *out << "RAT (PCB)        =   " << RATtempPCB << " deg C" << std::endl;
+  *out << cgicc::span();
+  //
+  *out << cgicc::table().set("border","1");
+  //
+  bool adcOK = tmbTestVector[tmb].testADC();
+  ////////////////////////////////////////
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "Power line";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << "Voltage (V)";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << "Current (A)";
+  *out << cgicc::td();
+  ////////////////////////////////////////
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "TMB 5.0 V";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  if (adcOK) *out << cgicc::span().set("style","color:green");
+  else       *out << cgicc::span().set("style","color:red");
+  *out << std::setprecision(2) << std::fixed << thisTMB->Get5p0v();
+  *out << cgicc::span();
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << std::setprecision(2) << std::fixed << thisTMB->Get5p0a();
+  *out << cgicc::td();
+  ////////////////////////////////////////
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "TMB 3.3 V";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  if (adcOK) *out << cgicc::span().set("style","color:green");
+  else       *out << cgicc::span().set("style","color:red");
+  *out << std::setprecision(2) << thisTMB->Get3p3v();
+  *out << cgicc::span();
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << std::setprecision(2) << thisTMB->Get3p3a();
+  *out << cgicc::td();
+  ////////////////////////////////////////
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "TMB 1.5 V Core";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  if (adcOK) *out << cgicc::span().set("style","color:green");
+  else       *out << cgicc::span().set("style","color:red");
+  *out << std::setprecision(3) << thisTMB->Get1p5vCore();
+  *out << cgicc::span();
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << std::setprecision(2) << thisTMB->Get1p5aCore();
+  *out << cgicc::td();
+  ////////////////////////////////////////
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "TMB 1.5 V TT";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  if (adcOK) *out << cgicc::span().set("style","color:green");
+  else       *out << cgicc::span().set("style","color:red");
+  *out << std::setprecision(2) << thisTMB->Get1p5vTT();
+  *out << cgicc::span();
+  *out << cgicc::td();
+  ////////////////////////////////////////
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "TMB 1.0 V TT";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  if (adcOK) *out << cgicc::span().set("style","color:green");
+  else       *out << cgicc::span().set("style","color:red");
+  *out << std::setprecision(2) << thisTMB->Get1p0vTT();
+  *out << cgicc::span();
+  *out << cgicc::td();
+  ////////////////////////////////////////
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "RAT 1.8 V";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  if (adcOK) *out << cgicc::span().set("style","color:green");
+  else       *out << cgicc::span().set("style","color:red");
+  *out << std::setprecision(2) << thisTMB->Get1p8vRAT();
+  *out << cgicc::span();
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << std::setprecision(2) << thisTMB->Get1p8aRAT();
+  *out << cgicc::td();
+  ////////////////////////////////////////
+  *out << cgicc::table();
+  //
+  //
   *out << cgicc::br();
   //
   *out << cgicc::pre();
@@ -7723,6 +7906,15 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
+  bool isME13 = false;
+  TMB * thisTMB   = tmbVector[dmb];
+  ALCTController * thisALCT;
+  if (thisTMB) 
+    thisALCT = thisTMB->alctController();
+  if (thisALCT) 
+    if ( (thisALCT->GetChamberType()).find("ME13") != string::npos )
+      isME13 = true;
+  //
   Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
@@ -7752,7 +7944,17 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   sprintf(buf,"DMB vme FPGA : Version %d Revision %x Day %d Month %d Year %d",
 	  (int)thisDMB->GetFirmwareVersion(),(int)thisDMB->GetFirmwareRevision(),
 	  (int)thisDMB->GetFirmwareDay(),(int)thisDMB->GetFirmwareMonth(),(int)thisDMB->GetFirmwareYear());
-  *out << buf ;
+  //
+  if ( (int) thisDMB->GetFirmwareVersion() == EXPECTED_DMB_VME_VERSION &&
+       (int) thisDMB->GetFirmwareRevision() == EXPECTED_DMB_FIRMWARE_REVISION ) {
+    *out << cgicc::span().set("style","color:green");
+    *out << buf;
+    *out << cgicc::span();
+  } else {
+    *out << cgicc::span().set("style","color:red");
+    *out << buf;
+    *out << cgicc::span();
+  }
   *out << cgicc::br();
   //
   sprintf(buf,"DMB prom VME->Motherboard          : %08x ",(int)thisDMB->mbpromuser(0));
@@ -7970,8 +8172,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"CFEB5 3.3V = %3.2f ",(value=thisDMB->lowv_adc(4,7))/1000.);
-  if ( value/1000. < 3.3*0.95 ||
-       value/1000. > 3.3*1.05 ) {
+  if (isME13) { 
+    *out << cgicc::span().set("style","color:black");
+  } else if ( value/1000. < 3.3*0.95 ||
+	      value/1000. > 3.3*1.05 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -7982,8 +8186,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"CFEB5 5.0V = %3.2f ",(value=thisDMB->lowv_adc(5,0))/1000.);
-  if ( value/1000. < 5.0*0.95 ||
-       value/1000. > 5.0*1.05 ) {
+  if (isME13) { 
+    *out << cgicc::span().set("style","color:black");
+  } else if ( value/1000. < 5.0*0.95 ||
+	      value/1000. > 5.0*1.05 ) { 
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -7994,8 +8200,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"CFEB5 6.0V = %3.2f ",(value=thisDMB->lowv_adc(5,1))/1000.);
-  if ( value/1000. < 6.0*0.95 ||
-       value/1000. > 6.0*1.05 ) {
+  if (isME13) { 
+    *out << cgicc::span().set("style","color:black");
+  } else if ( value/1000. < 6.0*0.95 ||
+	      value/1000. > 6.0*1.05 ) {
     *out << cgicc::span().set("style","color:red");
   } else {
     *out << cgicc::span().set("style","color:green");  
@@ -8123,7 +8331,9 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"FEB5 temperature = %3.1f ",(value=thisDMB->readthermx(5)));
-  if ( value > 50 && value < 95 ) {
+  if (isME13) { 
+    *out << cgicc::span().set("style","color:black");
+  } else if ( value > 50 && value < 95 ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
