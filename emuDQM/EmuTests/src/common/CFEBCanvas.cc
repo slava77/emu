@@ -471,7 +471,7 @@ int CFEBCanvas::Fill (CFEBData& data, CFEBData& mask) {
 		pFillColor = theColorGreenLight;
 		fQualityTest = 1;
 	}
-	if(fIsYellowSolid && !fIsEmpty) {
+	if(fIsYellowSolid) {
 		pFillColor = theColorYellowLight;
 		fQualityTest = 2;
 	}
