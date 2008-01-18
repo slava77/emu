@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.55 2008/01/07 15:08:55 rakness Exp $
+// $Id: TMB.cc,v 3.56 2008/01/18 15:42:15 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.56  2008/01/18 15:42:15  rakness
+// get methods for TMB/RAT on-board voltages and currents
+//
 // Revision 3.55  2008/01/07 15:08:55  rakness
 // add xml parameters:  clct_stagger, clct_blanking, clct_pattern_id_thresh, aff_thresh, min_clct_separation.  Remove xml parameter:  clct_distrip_pretrig_thresh
 //
@@ -6214,6 +6217,22 @@ void TMB::ADCvoltages(float * voltage){
   voltage[7] /= 0.2;                      // 200mV/Amp
   voltage[8] /= 0.2;                      // 200mV/Amp
   voltage[9] /= 0.2;                      // 200mV/Amp if SH921 set 1-2, else comment out line
+  //
+  v5p0_	    = voltage[0];	      
+  v3p3_	    = voltage[1];
+  v1p5core_ = voltage[2];
+  v1p5tt_   = voltage[3];
+  v1p0_	    = voltage[4];
+  a5p0_	    = voltage[5];	      
+  a3p3_	    = voltage[6];
+  a1p5core_ = voltage[7];
+  a1p5tt_   = voltage[8];
+  a1p8rat_  = voltage[9];	        // if SH921 set 1-2, loop backplane sends 1.500vtt
+  //v3p3rat_= voltage[9];	// if SH921 set 2-3
+  v1p8rat_  = voltage[10];
+  vref2_    = voltage[11];
+  vzero_    = voltage[12];
+  vref_     = voltage[13];
   //
   return;
 }
