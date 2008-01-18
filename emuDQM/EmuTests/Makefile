@@ -25,7 +25,9 @@ Project=emu
 Package=emuDQM/EmuTests
 
 Sources=\
+	CFEBCanvas.cc \
 	Test_CFEB02.cc
+	
 #	EmuTests.cc 
 
 

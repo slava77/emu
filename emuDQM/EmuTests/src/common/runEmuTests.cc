@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
 	std::string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
         std::string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
 	std::string cscMapFile = "/csc_data/results/csc_map.txt";
+	std::string xmlTestCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuTests.xml";
+	std::string masksCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuChanMasks.xml";
 
 	std::string datafile = "";
   	std::string histofile = "dqm_results.root";
@@ -111,6 +113,8 @@ int main(int argc, char **argv) {
 	Test_CFEB02 test_analyzer(datafile);
 	test_analyzer.init();
 	test_analyzer.setCSCMapFile(cscMapFile);
+	test_analyzer.setConfigFile(xmlTestCfg);
+	test_analyzer.setMasksFile(masksCfg);
 	
 	if (datafile.find(".bin") != std::string::npos) {	
 		histofile = datafile;
@@ -119,6 +123,8 @@ int main(int argc, char **argv) {
 		plotsdir = histofile;
                 plotsdir = plotsdir.replace(plotsdir.find(".bin"), 4, ".plots");
 		histofile = histofile.replace(histofile.find(".bin"), 4, ".root");
+		test_analyzer.setOutDir(plotsdir);
+		test_analyzer.setRootFile(histofile);
 	}
         if (datafile.find(".raw") != std::string::npos) {
                 histofile = datafile;
@@ -127,7 +133,11 @@ int main(int argc, char **argv) {
 		plotsdir = histofile;
 		plotsdir = plotsdir.replace(plotsdir.find(".raw"), 4, ".plots");
                 histofile = histofile.replace(histofile.find(".raw"), 4, ".root");
+		test_analyzer.setOutDir(plotsdir);
+		test_analyzer.setRootFile(histofile);
         }
+
+	
 
 	// Try to extract Node ID from data file name (should match pattern EmuRUInn)
 	if (datafile.find("EmuRUI") != std::string::npos) {
