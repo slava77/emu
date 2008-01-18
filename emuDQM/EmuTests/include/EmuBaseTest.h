@@ -4,6 +4,10 @@
 #include <fstream>
 #include <iomanip>
 
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/dom/DOMNodeList.hpp>
+
+
 /* Normal calls to CMSSW source tree */
 #include "EventFilter/CSCRawToDigi/interface/CSCDCCExaminer.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCEventData.h"
