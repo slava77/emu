@@ -351,7 +351,6 @@ static ssize_t schar_read(struct file *file, char *buf, size_t count,
   wait_event_interruptible_timeout(schar_wq,(wakecond!=0),rd_tmo);
   wakestatus=3;
   if (signal_pending(current))return -EINTR;
-  
 
   if(pack_left>0){
         lsend=*(unsigned short int *)bufr;
@@ -368,7 +367,17 @@ static ssize_t schar_read(struct file *file, char *buf, size_t count,
                   nbufw=0;
                   bufr=pnt_ring;
         }
+
 	return count;
+  }else{
+          tbuf[0]=4;
+          tbuf[1]=0;
+          tbuf[2]=0;
+	  tsend=6;
+          count=tsend;
+          if (copy_to_user(buf,tbuf,tsend))
+		return -EFAULT; 
+   	return count; 
   }
   if(endcond==1){
           tbuf[0]=6;
