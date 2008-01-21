@@ -7,7 +7,8 @@
 #include <math.h>
 #include <map>
 #include <sys/stat.h>
-#include "CFEBCanvas.h"
+#include "TestCanvas_1h.h"
+#include "TestCanvas_6gr1h.h"
 #include "EmuBaseTest.h"
 
 #include <TROOT.h>
@@ -15,11 +16,11 @@
 #include <TProfile.h>
 #include <TFile.h>
 
-typedef std::map<std::string, CFEBData> TestData;
+typedef std::map<std::string, TestData2D> TestData;
 typedef std::map<std::string, TestData> cscTestData;
 typedef std::map<std::string, TH1*> MonHistos;
 typedef std::map<std::string, MonHistos> cscMonHistos;
-typedef std::map<std::string, CFEBCanvas*> TestCanvases;
+typedef std::map<std::string, TestCanvas_6gr1h*> TestCanvases;
 typedef std::map<std::string, TestCanvases> cscTestCanvases;
 typedef std::map<std::string, std::string> bookParams;
 typedef std::map<std::string, bookParams> testParamsCfg;
