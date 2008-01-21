@@ -92,10 +92,10 @@ int Test_CFEB02::loadTestCfg()
   return 0;
 }
 
-CFEBData parseMask(std::string s)
+TestData2D parseMask(std::string s)
 {
 
-  CFEBData mask;
+  TestData2D mask;
   mask.Nbins = 80;
   mask.Nlayers = 6;	
   memset(mask.content, 0, sizeof (mask.content));
@@ -250,7 +250,7 @@ TestData Test_CFEB02::initCSC(std::string cscID) {
   sdata[cscID] = scadata;
 
   TestData cscdata;
-  CFEBData cfebdata;
+  TestData2D cfebdata;
   cfebdata.Nbins = 80;
   cfebdata.Nlayers = 6;	
   memset(cfebdata.content, 0, sizeof (cfebdata.content));
@@ -389,12 +389,12 @@ void Test_CFEB02::bookMonHistosCSC(std::string cscID) {
 	  high1limit = atof(params["High1Limit"].c_str());
 	}
 
-	// CFEBCanvas* cnv = new CFEBCanvas((cscID+"_CFEB02_R03").c_str(), (cscID+": CFEB02 R03").c_str(),80, 0.0, 80.0, 60, 0., 6.0);	
-	CFEBCanvas* cnv = new CFEBCanvas(name.c_str(), title.c_str(),xbins, xmin, xmax, ybins, ymin, ymax);
-	cnv->SetXTitle(xtitle.c_str());
-	cnv->SetYTitle(ytitle.c_str());
-	cnv->AddTextTest((testID).c_str());
-	cnv->AddTextResult((params["Title"]).c_str());
+	// TestCanvas_6gr1h* cnv = new TestCanvas_6gr1h((cscID+"_CFEB02_R03").c_str(), (cscID+": CFEB02 R03").c_str(),80, 0.0, 80.0, 60, 0., 6.0);	
+	TestCanvas_6gr1h* cnv = new TestCanvas_6gr1h(name, title,xbins, xmin, xmax, ybins, ymin, ymax);
+	cnv->SetXTitle(xtitle);
+	cnv->SetYTitle(ytitle);
+	cnv->AddTextTest(testID);
+	cnv->AddTextResult(params["Title"]);
 	cnv->SetLimits(low1limit,low0limit, high0limit, high1limit);
 	csccnvs[itr->first]=cnv;
       }
@@ -500,31 +500,31 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
   uint32_t& nEvents=nCSCEvents[cscID];
 
   TestData& cscdata = tdata[cscID];
-  CFEBData& _mv0 = cscdata["_MV0"];
-  CFEBData& _rms0 = cscdata["_RMS0"];
-  CFEBData& _q12 = cscdata["_Q12"];
-  CFEBData& _q345 = cscdata["_Q345"];
-  CFEBData& _q3 = cscdata["_Q3"];
-  CFEBData& _q4 = cscdata["_Q4"];
-  CFEBData& _q5 = cscdata["_Q5"];
+  TestData2D& _mv0 = cscdata["_MV0"];
+  TestData2D& _rms0 = cscdata["_RMS0"];
+  TestData2D& _q12 = cscdata["_Q12"];
+  TestData2D& _q345 = cscdata["_Q345"];
+  TestData2D& _q3 = cscdata["_Q3"];
+  TestData2D& _q4 = cscdata["_Q4"];
+  TestData2D& _q5 = cscdata["_Q5"];
   
-  CFEBData& r01 = cscdata["R01"];
-  CFEBData& r02 = cscdata["R02"];
-  //  CFEBData& r03 = cscdata["R03"];
-  CFEBData& r04 = cscdata["R04"];
-  CFEBData& r05 = cscdata["R05"];
-  CFEBData& r06 = cscdata["R06"];
-  CFEBData& r07 = cscdata["R07"];
-  CFEBData& r08 = cscdata["R08"];
-  CFEBData& r09 = cscdata["R09"];
-  CFEBData& r10 = cscdata["R10"];
-  CFEBData& r11 = cscdata["R11"];
-  CFEBData& r12 = cscdata["R12"];
-  CFEBData& r13 = cscdata["R13"];
-  CFEBData& r14 = cscdata["R14"];
-  CFEBData& r15 = cscdata["R15"];
-  CFEBData& r16 = cscdata["R16"];
-  CFEBData& r17 = cscdata["R17"];
+  TestData2D& r01 = cscdata["R01"];
+  TestData2D& r02 = cscdata["R02"];
+  //  TestData2D& r03 = cscdata["R03"];
+  TestData2D& r04 = cscdata["R04"];
+  TestData2D& r05 = cscdata["R05"];
+  TestData2D& r06 = cscdata["R06"];
+  TestData2D& r07 = cscdata["R07"];
+  TestData2D& r08 = cscdata["R08"];
+  TestData2D& r09 = cscdata["R09"];
+  TestData2D& r10 = cscdata["R10"];
+  TestData2D& r11 = cscdata["R11"];
+  TestData2D& r12 = cscdata["R12"];
+  TestData2D& r13 = cscdata["R13"];
+  TestData2D& r14 = cscdata["R14"];
+  TestData2D& r15 = cscdata["R15"];
+  TestData2D& r16 = cscdata["R16"];
+  TestData2D& r17 = cscdata["R17"];
 
   CFEBSCAData& scadata = sdata[cscID];
   
@@ -747,29 +747,29 @@ void Test_CFEB02::finishCSC(std::string cscID)
   
     TestData& cscdata= td_itr->second;
 
-    // CFEBData& mask = cscdata["_MASK"];
-    CFEBData& _q12 = cscdata["_Q12"];
-    CFEBData& _q3 = cscdata["_Q3"];
-    CFEBData& _q4 = cscdata["_Q4"];
-    CFEBData& _q5 = cscdata["_Q5"];
+    // TestData2D& mask = cscdata["_MASK"];
+    TestData2D& _q12 = cscdata["_Q12"];
+    TestData2D& _q3 = cscdata["_Q3"];
+    TestData2D& _q4 = cscdata["_Q4"];
+    TestData2D& _q5 = cscdata["_Q5"];
   
-    CFEBData& r01 = cscdata["R01"];
-    CFEBData& r02 = cscdata["R02"];
-    CFEBData& r03 = cscdata["R03"];
-    CFEBData& r04 = cscdata["R04"];
-    CFEBData& r05 = cscdata["R05"];
-    CFEBData& r06 = cscdata["R06"];
-    CFEBData& r07 = cscdata["R07"];
-    CFEBData& r08 = cscdata["R08"];
-    CFEBData& r09 = cscdata["R09"];
-    CFEBData& r10 = cscdata["R10"];
-    CFEBData& r11 = cscdata["R11"];
-    CFEBData& r12 = cscdata["R12"];
-    CFEBData& r13 = cscdata["R13"];
-    CFEBData& r14 = cscdata["R14"];
-    CFEBData& r15 = cscdata["R15"];
-    CFEBData& r16 = cscdata["R16"];
-    CFEBData& r17 = cscdata["R17"];
+    TestData2D& r01 = cscdata["R01"];
+    TestData2D& r02 = cscdata["R02"];
+    TestData2D& r03 = cscdata["R03"];
+    TestData2D& r04 = cscdata["R04"];
+    TestData2D& r05 = cscdata["R05"];
+    TestData2D& r06 = cscdata["R06"];
+    TestData2D& r07 = cscdata["R07"];
+    TestData2D& r08 = cscdata["R08"];
+    TestData2D& r09 = cscdata["R09"];
+    TestData2D& r10 = cscdata["R10"];
+    TestData2D& r11 = cscdata["R11"];
+    TestData2D& r12 = cscdata["R12"];
+    TestData2D& r13 = cscdata["R13"];
+    TestData2D& r14 = cscdata["R14"];
+    TestData2D& r15 = cscdata["R15"];
+    TestData2D& r16 = cscdata["R16"];
+    TestData2D& r17 = cscdata["R17"];
 
     CFEBSCAData& scadata = sdata[cscID];
     
@@ -986,19 +986,19 @@ void Test_CFEB02::finish() {
       }
 
       TestData& cscdata= td_itr->second;
-      CFEBData& mask = cscdata["_MASK"];
+      TestData2D& mask = cscdata["_MASK"];
 
       TestCanvases& cnvs = tcnvs[cscID];
       TestCanvases::iterator c_itr;
       for (c_itr=cnvs.begin(); c_itr != cnvs.end(); ++c_itr) {
 	std::string subtestID = c_itr->first;
-	CFEBCanvas* cnv = c_itr->second;
+	TestCanvas_6gr1h* cnv = c_itr->second;
 	TestData::iterator itr = cscdata.find(subtestID);
 	if (itr != cscdata.end()) {
-	  CFEBData& data = itr->second;
-	  cnv->AddTextDatafile((dataFile).c_str());
-	  cnv->AddTextRun((dataTime).c_str());
-	  cnv->AddTextAnalysis((testTime +", version " + ANALYSIS_VER).c_str());
+	  TestData2D& data = itr->second;
+	  cnv->AddTextDatafile(dataFile);
+	  cnv->AddTextRun(dataTime);
+	  cnv->AddTextAnalysis(testTime +", version " + ANALYSIS_VER);
 	  if (fEnoughData) {
 	    res=cnv->Fill(data,mask);
 	    if (res>sum_res) sum_res=res;

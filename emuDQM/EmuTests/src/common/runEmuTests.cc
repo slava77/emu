@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 	std::string plotsdir = "images";	// Output images path
 	std::string imgFormat = "png"; 	// Output image format
 	uint32_t imgWidth = 1200;	// Output image width
-	uint32_t imgHeight = 900;	// Putput image height
+	uint32_t imgHeight = 800;	// Output image height
 
 	uint32_t dduCheckMask=0xFFFFDFFF;
 //        uint32_t binCheckMask=0xF7FB3BF6;
