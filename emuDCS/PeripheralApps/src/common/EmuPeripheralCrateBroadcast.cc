@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.9 2008/01/17 16:19:45 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.10 2008/01/22 11:43:29 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -110,6 +110,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   fsm_.reset();
 
   state_ = fsm_.getStateName(fsm_.getCurrentState());
+  getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateBroadcastXmlFile_);
 }  
 //
 void EmuPeripheralCrateBroadcast::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -238,10 +239,10 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
   //
   if (!broadcastCrate) {
     cout <<" Broadcast crate has not been defined yet"<<endl;
-    cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_ << endl;
+    cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_.toString() << endl;
     //
     MyController = new EmuController();
-    MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_);
+    MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_.toString().c_str());
     MyController->init();
     vector<Crate *> tmpcrate=MyController->GetEmuEndcap()->broadcast_crate();
     broadcastCrate = tmpcrate[0];
