@@ -122,7 +122,7 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
 	theRightTopPad->SetBorderSize(0);
 	theRightTopPad->SetFillColor(theColorWhite);
 	theRightTopPad->SetTextAlign(12);
-	theRightTopPad->SetTextSize(0.03);
+	theRightTopPad->SetTextSize(0.02);
 	theRightTopPad->SetTextFont(fTextFont);
 	theRightTopPad->AddText("Test:");
 	theRightTopPad->AddText("Result:");
@@ -132,7 +132,7 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
 	theRightTopPad->AddText("Number of entries:");
 	theRightTopPad->AddText("Out of limits:");
 	
-	theRightHisto = new TH1F("theRightHistogram", "theRightHistogram", theNbinsy, theYlow, theYup);
+	theRightHisto = new TH1F((name+"_theRightHistogram").c_str(), "theRightHistogram", theNbinsy, theYlow, theYup);
 	theRightHisto->SetFillColor(theColorGray);
 	theRightHisto->GetXaxis()->CenterTitle(true);
 	theRightHisto->GetXaxis()->SetTitleFont(fTextFont);
@@ -148,7 +148,7 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
 	thePtstatsRightHisto->SetOptStat(111110);
 	thePtstatsRightHisto->SetOptFit(0);
 	
-	theLeftHistoBackground = new TH2F("background", "background", theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
+	theLeftHistoBackground = new TH2F((name+"_background").c_str(), "background", theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
 	theLeftHistoBackground->GetXaxis()->SetTitle("Title X");
 	theLeftHistoBackground->GetXaxis()->SetTitleFont(fTextFont);
 	theLeftHistoBackground->GetXaxis()->CenterTitle(true);
@@ -168,7 +168,7 @@ TestCanvas_6gr1h::TestCanvas_6gr1h (std::string name, std::string title, Int_t N
 	std::string fTitleLeftHisto;
 	for(fIndexLeftHisto = 0; fIndexLeftHisto < NLAYERS; fIndexLeftHisto++) {
 		fTitleLeftHisto = Form("Layer_%d", fIndexLeftHisto + 1);
-		theLeftHisto[fIndexLeftHisto] = new TH2F(fTitleLeftHisto.c_str(), fTitleLeftHisto.c_str(), theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
+		theLeftHisto[fIndexLeftHisto] = new TH2F((name+"_"+fTitleLeftHisto).c_str(), fTitleLeftHisto.c_str(), theNbinsx, theXlow, theXup, theNbinsy, theYlow, theYup);
 		
 		theLeftHisto[fIndexLeftHisto]->GetXaxis()->CenterTitle(true);
 		theLeftHisto[fIndexLeftHisto]->GetXaxis()->SetTitle("Title X");
@@ -379,7 +379,7 @@ void TestCanvas_6gr1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_
 	theRightHighHighLine->SetX2(theHighHighLimit);
 }
 
-int TestCanvas_6gr1h::Fill (TestData2D data, TestData2D mask) {
+int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask) {
 	Double_t fX[NBINS], fY[NBINS];
 	int fQualityTest = 1;
 	int fNOutOfLimits = 0;
@@ -483,11 +483,11 @@ int TestCanvas_6gr1h::Fill (TestData2D data, TestData2D mask) {
 		theFillColor = theColorGreenLight;
 		fQualityTest = 1;
 	}
-	if(fIsYellowSolid && !fIsEmpty) {
+	if(fIsYellowSolid) {
 		theFillColor = theColorYellowLight;
 		fQualityTest = 2;
 	}
-	if(!fIsRedSolid && fIsEmpty){
+	if(!fIsRedSolid && !fIsYellowSolid && fIsEmpty){
 		theFillColor = theColorBlueLight;
 		fQualityTest = 3;
 	}
@@ -587,7 +587,7 @@ int TestCanvas_6gr1h::Write (void) {
 	return fNBuffer;
 }
 
-TH1F* TestCanvas_6gr1h::GetHisto (void) {
+TH1* TestCanvas_6gr1h::GetHisto (void) {
 
 	return theRightHisto;
 }
