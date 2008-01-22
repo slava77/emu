@@ -170,7 +170,7 @@ class TestCanvas_6gr1h: public TCanvas {
 	    \n 3 = \b Blue   = some channels are masked, unmasked channels are either "good" or "tolerable"
 	    \n 4 = \b Red    = some of unmasked channels give results in the "fail" zone
 	*/
-	int  Fill (TestData2D, TestData2D);                  ///< Fill and analyze data
+	int  Fill (TestData2D&, TestData2D&);                  ///< Fill and analyze data
 	void Draw (void);                                    ///< Draw canvas
 	void SaveAs (std::string);                           ///< Save as canvas_6gr1h.png and canvas_6gr1h.ps
 	/**  Write this object to the current directory
@@ -179,7 +179,7 @@ class TestCanvas_6gr1h: public TCanvas {
 	*/
 	int Write (void);                                  ///< Write this object to the current directory
 	int Write (std::string);                           ///< Write this object with new name to the current directory
-	TH1F* GetHisto(void);
+	TH1* GetHisto(void);
 };
 
 
