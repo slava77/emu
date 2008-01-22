@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.3 2008/01/16 18:36:50 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.4 2008/01/22 11:43:49 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -76,7 +76,7 @@ public:
   std::string FirmwareDir_;
   //
   void DefineBroadcastCrate();
-  std::string PeripheralCrateBroadcastXmlFile_;
+  xdata::String PeripheralCrateBroadcastXmlFile_;
   std::string DmbControlFPGAFirmwareFile_;
   std::string DmbVmeFPGAFirmwareFile_;
   std::string CfebFPGAFirmwareFile_;
