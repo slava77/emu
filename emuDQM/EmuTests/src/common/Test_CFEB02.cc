@@ -341,6 +341,209 @@ TestData Test_CFEB02::initCSC(std::string cscID) {
   return cscdata;
 }
 
+
+std::map<int, std::string> ParseAxisLabels(std::string s)
+{
+
+  std::map<int, std::string> labels;
+  std::string tmp = s;
+  std::string::size_type pos = tmp.find("|");
+  char* stopstring = NULL;
+
+  while (pos != std::string::npos)
+    {
+      std::string label_pair = tmp.substr(0, pos);
+      tmp.replace(0,pos+1,"");
+      if (label_pair.find("=") != std::string::npos) {
+        int nbin = strtol(label_pair.substr(0,label_pair.find("=")).c_str(),  &stopstring, 10);
+        std::string label = label_pair.substr(label_pair.find("=")+1, label_pair.length());
+        while (label.find("\'") != std::string::npos) {
+          label.erase(label.find("\'"),1);
+        }
+        labels[nbin] = label;
+      }
+      pos = tmp.find("|");
+    }
+  return labels;
+}
+
+
+int applyParameters(TH1* object, bookParams& params)
+{
+  char* stopstring;
+  std::map<std::string, std::string>::iterator itr;
+  // !!! TODO: Add object class check
+  if (object != NULL) {
+    // std::cout << "Booked " << getFullName() << std::endl;
+    if (((itr = params.find("XTitle")) != params.end()) ||
+        ((itr = params.find("XLabel")) != params.end())) {
+      object->SetXTitle(itr->second.c_str());
+    }
+    if (((itr = params.find("YTitle")) != params.end()) ||
+        ((itr = params.find("YLabel")) != params.end())) {
+      object->SetYTitle(itr->second.c_str());
+    }
+    if (((itr = params.find("ZTitle")) != params.end()) ||
+        ((itr = params.find("ZLabel")) != params.end())) {
+      object->SetZTitle(itr->second.c_str());
+    }
+
+    if ((itr = params.find("SetOption")) != params.end()) {
+      object->SetOption(itr->second.c_str());
+      //object->Draw();
+    }
+
+    /*
+      if ((itr = params.find("SetOptStat")) != params.end()) {
+      gStyle->SetOptStat(itr->second.c_str());
+
+      }
+    */
+
+    if ((itr = params.find("SetStats")) != params.end()) {
+      int stats = strtol( itr->second.c_str(), &stopstring, 10 );
+      object->SetStats(bool(stats));
+    }
+
+
+   object->SetFillColor(48);
+
+    if ((itr = params.find("SetFillColor")) != params.end()) {
+      int color = strtol( itr->second.c_str(), &stopstring, 10 );
+      object->SetFillColor(color);
+    }
+
+    if ((itr = params.find("SetXLabels")) != params.end()) {
+      std::map<int, std::string> labels = ParseAxisLabels(itr->second);
+      for (std::map<int, std::string>::iterator l_itr = labels.begin(); l_itr != labels.end(); ++l_itr)
+        {
+          object->GetXaxis()->SetBinLabel(l_itr->first, l_itr->second.c_str());
+        }
+
+
+    }
+
+    if ((itr = params.find("SetYLabels")) != params.end()) {
+      std::map<int, std::string> labels = ParseAxisLabels(itr->second);
+      for (std::map<int, std::string>::iterator l_itr = labels.begin(); l_itr != labels.end(); ++l_itr)
+        {
+          object->GetYaxis()->SetBinLabel(l_itr->first, l_itr->second.c_str());
+        }
+    }
+    if ((itr = params.find("LabelsOption")) != params.end()) {
+      std::string st = itr->second;
+      if (st.find(",") != std::string::npos) {
+        std::string opt = st.substr(0,st.find(",")) ;
+        std::string axis = st.substr(st.find(",")+1,st.length());
+        object->LabelsOption(opt.c_str(),axis.c_str());
+      }
+    }
+
+
+    if ((itr = params.find("SetLabelSize")) != params.end()) {
+      std::string st = itr->second;
+      if (st.find(",") != std::string::npos) {
+        double opt = atof(st.substr(0,st.find(",")).c_str()) ;
+        std::string axis = st.substr(st.find(",")+1,st.length());
+        object->SetLabelSize(opt,axis.c_str());
+      }
+    }
+    if ((itr = params.find("SetTitleOffset")) != params.end()) {
+      std::string st = itr->second;
+      if (st.find(",") != std::string::npos) {
+        double opt = atof(st.substr(0,st.find(",")).c_str()) ;
+        std::string axis = st.substr(st.find(",")+1,st.length());
+        object->SetTitleOffset(opt,axis.c_str());
+      }
+    }
+    if ((itr = params.find("SetMinimum")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      object->SetMinimum(opt);
+    }
+    if ((itr = params.find("SetMaximum")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      object->SetMaximum(opt);
+    }
+
+    if ((itr = params.find("SetNdivisionsX")) != params.end()) {
+      int opt = strtol( itr->second.c_str(), &stopstring, 10 );
+      if (object) {
+        object->SetNdivisions(opt,"X");
+        object->GetXaxis()->CenterLabels(true);
+      }
+
+    }
+
+    if ((itr = params.find("SetNdivisionsY")) != params.end()) {
+      int opt = strtol( itr->second.c_str(), &stopstring, 10 );
+      if (object) {
+        object->SetNdivisions(opt,"Y");
+        object->GetYaxis()->CenterLabels(true);
+      }
+    }
+    if ((itr = params.find("SetTickLengthX")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+        object->SetTickLength(opt,"X");
+      }
+    }
+
+    if ((itr = params.find("SetTickLengthY")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+        object->SetTickLength(opt,"Y");
+      }
+    }
+
+    if ((itr = params.find("SetLabelSizeX")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+        object->SetLabelSize(opt,"X");
+
+      }
+    }
+
+    if ((itr = params.find("SetLabelSizeY")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+	//        object->GetYaxis()->SetLabelSize(opt);
+        object->SetLabelSize(opt,"Y");
+      }
+    }
+    if ((itr = params.find("SetErrorOption")) != params.end()) {
+      std::string st = itr->second;
+      if (object) {
+        reinterpret_cast<TProfile*>(object)->SetErrorOption(st.c_str());
+      }
+    }
+
+
+    if ((itr = params.find("SetLabelSizeZ")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+	//        object->GetZaxis()->SetLabelSize(opt);
+        object->SetLabelSize(opt,"Z");
+	/*
+	  TPaletteAxis *palette = (TPaletteAxis*)object->GetListOfFunctions()->FindObject("palette");
+	  if (palette != NULL) {
+	  palette->SetLabelSize(opt);
+	  }
+	*/
+      }
+    }
+
+  }
+  return 0;
+}
+
+
 void Test_CFEB02::bookMonHistosCSC(std::string cscID) {
   MonHistos cschistos;
   TestCanvases csccnvs;
@@ -349,7 +552,6 @@ void Test_CFEB02::bookMonHistosCSC(std::string cscID) {
     bookParams& params = itr->second;
     if (params.find("Type") != params.end()) {
       std::string cnvtype = params["Type"];
-      if (params["Type"] == "cfeb_cnv") {
 	std::string name = cscID+"_"+testID+"_"+params["Name"];
 	std::string title = cscID+": "+testID+" "+params["Title"];
 	double xmin=0., xmax=0.; int xbins=0;
@@ -376,6 +578,7 @@ void Test_CFEB02::bookMonHistosCSC(std::string cscID) {
 	if (params["YBins"] != "") {
 	  ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
 	}
+      if (cnvtype == "cfeb_cnv") {
 	if (params["Low0Limit"] != "") {
 	  low0limit = atof(params["Low0Limit"].c_str());
 	}
@@ -398,13 +601,31 @@ void Test_CFEB02::bookMonHistosCSC(std::string cscID) {
 	cnv->SetLimits(low1limit,low0limit, high0limit, high1limit);
 	csccnvs[itr->first]=cnv;
       }
+
+      if (cnvtype.find("h") == 0) {
+	if (cnvtype.find("h1") != std::string::npos) {
+	  cschistos[itr->first] = new TH1F((cnvtype+"_"+name).c_str(), title.c_str(), xbins, xmin, xmax);
+	} else
+	  if (cnvtype.find("h2") != std::string::npos) {
+	    cschistos[itr->first] = new TH2F((cnvtype+"_"+name).c_str(), title.c_str(), xbins, xmin, xmax, ybins, ymin, ymax);
+	  } else
+	    if (cnvtype.find("hp") != std::string::npos) {
+	      cschistos[itr->first] = new TProfile((cnvtype+"_"+name).c_str(), title.c_str(), xbins, xmin, xmax);
+	    }
+	applyParameters(cschistos[itr->first], params);
+      }
+
+
     } 
   }
 
   tcnvs[cscID] = csccnvs;
 
-  cschistos["V00"] = new TH2F((cscID+"_"+testID+"_V00").c_str(), "CSC Format Errors", 1, 0, 1, 20, 0, 20);
-  cschistos["V00"]->SetOption("textcolz");
+  cschistos["_V00"] = new TH2F((cscID+"_"+testID+"__V00").c_str(), "CSC Format Errors", 1, 0, 1, 20, 0, 20);
+  cschistos["_V00"]->SetOption("textcolz");
+  /*
+  cschistos["V00"] = new TH1F((cscID+"_"+testID+"_V00").c_str(), "CSC Format Errors Frequency", 20, 0, 20);
+  cschistos["V00"]->SetOption("texthbar1");
   cschistos["V01"] = new TH2F((cscID+"_"+testID+"_V01").c_str(), "Signal line", 16, 0, 16, 80, -20, 20);
   cschistos["V01"]->SetOption("colz");
   cschistos["V02"] = new TH1F((cscID+"_"+testID+"_V02").c_str(), "Q4 with dynamic ped substraction", 40, -20, 20);
@@ -413,6 +634,7 @@ void Test_CFEB02::bookMonHistosCSC(std::string cscID) {
   cschistos["V03"]->SetFillColor(48);
   cschistos["V04"] = new TH1F((cscID+"_"+testID+"_V04").c_str(), "SCA Block Occupancy", 12, 0, 12);
   cschistos["V04"]->SetFillColor(48);
+  */
   mhistos[cscID]=cschistos;
 
   //  return cschistos;
@@ -471,7 +693,7 @@ void Test_CFEB02::doBinCheck() {
 
     
     bool isCSCError = false;
-    TH1* mo = mhistos[cscID]["V00"];
+    TH1* mo = mhistos[cscID]["_V00"];
     if (mo) {
        for(int bit=5; bit<24; bit++)
         if( chamber->second & (1<<bit) ) {
@@ -479,6 +701,7 @@ void Test_CFEB02::doBinCheck() {
           mo->Fill(0.,bit-5);
 	}
     }
+    nCSCBadEvents[cscID]++;
     chamber++;
   }
 }
@@ -932,6 +1155,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
 
 void Test_CFEB02::finish() {
 
+  char* stopstring;
   struct tm* clock;
   struct stat attrib;
   stat(dataFile.c_str(), &attrib);
@@ -969,6 +1193,21 @@ void Test_CFEB02::finish() {
       gSystem->Exec(command.Data());
 
       rdir->cd();
+
+      TH2F* mo = reinterpret_cast<TH2F*>(mhistos[cscID]["_V00"]);
+      TH1F* mof = reinterpret_cast<TH1F*>(mhistos[cscID]["V00"]);
+      double max_freq=0.;
+      if (mo && mof) {
+      	uint32_t nTotalEvents = nCSCEvents[cscID]+nCSCBadEvents[cscID];
+      	for(int bit=1; bit<=20; bit++) {
+          double freq = (100.0*mo->GetBinContent(1,bit))/nTotalEvents;
+	  if (freq>0) mof->SetBinContent(bit, freq);
+	  if (freq>max_freq) max_freq=freq;
+      	}
+      	mof->SetEntries(nTotalEvents);
+	if (max_freq>0) mof->SetMaximum(max_freq);
+	else mof->SetMaximum(1);
+      }
    
       if (nCSCEvents[cscID] >= nExpectedEvents/2) {
 	finishCSC(cscID);
@@ -984,6 +1223,8 @@ void Test_CFEB02::finish() {
 	}	
 	*/
       }
+
+
 
       TestData& cscdata= td_itr->second;
       TestData2D& mask = cscdata["_MASK"];
@@ -1017,17 +1258,69 @@ void Test_CFEB02::finish() {
 	std::string subtestID = m_itr->first;
 	bookParams& params =  xmlCfg[subtestID];
 	std::string descr = params["Title"];
+
+	TStyle defStyle(*gStyle);
 	MonitoringCanvas* cnv= new MonitoringCanvas((cscID+"_"+testID+"_"+subtestID).c_str(), (cscID+"_"+testID+"_"+subtestID).c_str(), 
 						    (cscID + " "+testID+" "+descr).c_str() ,
 						    1, 1, imgW, imgH);
 	cnv->SetCanvasSize(imgW, imgH);
-	cnv->cd(1);	
+	cnv->cd(1);
+	TVirtualPad* cPad = cnv->GetPad(1);	
+
+	std::string leftMargin = params["SetLeftMargin"];
+	if (leftMargin != "" ) {
+	  cPad->SetLeftMargin(atof(leftMargin.c_str()));
+	}
+	std::string rightMargin = params["SetRightMargin"];
+	if (rightMargin != "" ) {
+	  cPad->SetRightMargin(atof(rightMargin.c_str()));
+	}
+
+	std::string logx = params["SetLogx"];
+	if (logx!= "") {
+	  cPad->SetLogx();
+	}
+	std::string logy = params["SetLogy"];
+	if (logy!= "" && (m_itr->second->GetMaximum()>0.)) {
+       	  cPad->SetLogy();
+	}
+
+	std::string logz = params["SetLogz"];
+	if (logz!= "" && (m_itr->second->GetMaximum()>0.) ) {
+       	  cPad->SetLogz();
+	}
+
+	std::string gridx = params["SetGridx"];
+	if (gridx!= "" ) {
+	  cPad->SetGridx();
+	}
+
+	std::string gridy = params["SetGridy"];
+	if (gridy!= "" ) {
+	  cPad->SetGridy();
+	}
+
+	if (params["SetStats"] != "") {
+	  int stats = strtol( params["SetStats"].c_str(), &stopstring, 10 );
+	  m_itr->second->SetStats(bool(stats));
+	}
+
+	std::string statOpt = params["SetOptStat"];
+	//if (statOpt != "" ) {
+            gStyle->SetOptStat(statOpt.c_str());
+	    // } 
+
+
+        gStyle->SetPalette(1,0);
 	m_itr->second->Draw();
 	cnv->Draw();
 	cnv->Print((path+cscID+"_"+testID+"_"+subtestID+".png").c_str());
+	m_itr->second->Write();
 	cnv->Write();
 	delete cnv;
+	defStyle.cd();
       }
+
 
       f->cd();
       fres << "\t['SUMMARY','" << sum_res << "']" << std::endl;

@@ -82,6 +82,7 @@ class Test_CFEB02
 	uint32_t nTotalEvents;
 	uint32_t nBadEvents;
 	std::map<std::string, uint32_t> nCSCEvents;
+	std::map<std::string, uint32_t> nCSCBadEvents;
 	std::string dataFile;
 	std::string outDir;
         uint32_t nExpectedEvents;
