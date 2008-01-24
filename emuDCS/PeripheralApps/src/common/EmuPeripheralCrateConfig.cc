@@ -109,15 +109,10 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::testTMB, "testTMB");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBLoadFirmware, "CCBLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ControllerUtils, "ControllerUtils"); 
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadVMECCRegisters,  "ReadVMECCRegisters"); 
+  xgi::bind(this,&EmuPeripheralCrateConfig::VMECCLoadFirmware,  "VMECCLoadFirmware"); 
   xgi::bind(this,&EmuPeripheralCrateConfig::ControllerUtils, "ControllerUtils");  
-  ////////////////////////////////
-  // comment out following
-  ////////////////////////////////
-  //  xgi::bind(this,&EmuPeripheralCrateConfig::ReadVMECCRegisters,  "ReadVMECCRegisters"); 
-  //  xgi::bind(this,&EmuPeripheralCrateConfig::VMECCLoadFirmware,  "VMECCLoadFirmware"); 
-  ////////////////////////////////
-  // end of comment out following
-  ////////////////////////////////
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateConfiguration, "CrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateTests, "CrateTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
@@ -5912,32 +5907,27 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
   //
   *out << cgicc::form() << std::endl ;
   //
-  ////////////////////////////////
-  // comment out following
-  ////////////////////////////////
-  //    std::string ReadVMECCRegisters =
-  //      toolbox::toString("/%s/ReadVMECCRegisters",getApplicationDescriptor()->getURN().c_str());
-  //    //
-  //    *out << cgicc::form().set("method","GET").set("action",ReadVMECCRegisters)
-  //	 << std::endl ;
-  //    *out << cgicc::input().set("type","submit")
-  //      .set("value","Read Registers") 
-  //	 << std::endl ;
-  //    *out << cgicc::form() << std::endl ;
-  //    //
-  //    std::string VMECCLoadFirmware =
-  //      toolbox::toString("/%s/VMECCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
-  //    //
-  //    *out << cgicc::form().set("method","GET").set("action",VMECCLoadFirmware)
-  //	 << std::endl ;
-  //    *out << cgicc::input().set("type","submit")
-  //      .set("value","Load Firmware") 
-  //	 << std::endl ;
-  //    *out << cgicc::form() << std::endl ;
-  //    //
-  ////////////////////////////////
-  // end of comment out following
-  ////////////////////////////////
+  //
+    std::string ReadVMECCRegisters =
+      toolbox::toString("/%s/ReadVMECCRegisters",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",ReadVMECCRegisters)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Read Registers") 
+	 << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string VMECCLoadFirmware =
+      toolbox::toString("/%s/VMECCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",VMECCLoadFirmware)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Load Firmware") 
+	 << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
   }
 //
 void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output * out ) 
@@ -5952,99 +5942,92 @@ void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output *
   }
   //
   this->ControllerUtils(in,out);
-  //
 }
 //
-////////////////////////////////
-// comment out following
-////////////////////////////////
-//  void EmuPeripheralCrateConfig::ReadVMECCRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-//  {
-//    char buf[50];
-//   
-//    thisCrate->vmeController()->init();
-//
-//    sprintf(buf," entered READVMECCRegisters \n");
-//
-//    char Name[300];
-//    sprintf(Name,"VMECC CrateID \n     Source MAC %02x:%02x:%02x:%02x:%02x:%02x \n     Desination MAC %02x:%02x:%02x:%02x:%02x:%02x",thisCrate->vmeController()->GetSrcMAC(0),thisCrate->vmeController()->GetSrcMAC(1),thisCrate->vmeController()->GetSrcMAC(2),thisCrate->vmeController()->GetSrcMAC(3),thisCrate->vmeController()->GetSrcMAC(4),thisCrate->vmeController()->GetSrcMAC(5),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));       
-//
-//    thisCrate->vmeController()->write_Ethernet_CR(0x0050);
-//    thisCrate->vmeController()->write_ResetMisc_CR(0x031B);
-//
-//    //
-//    MyHeader(in,out,Name);
-//    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-//    *out << std::endl;
-//    //
-//    *out << cgicc::legend("VMECC Registers").set("style","color:blue") << cgicc::p() << std::endl ;
-//    //
-//    *out << cgicc::pre();
-//    //
-//
-//    std::cout<<buf<<std::endl;
-//    sprintf(buf," read_dev_id %08x \n",thisCrate->vmeController()->read_dev_id());
-//    std::cout<<buf<<std::endl;
-//    *out << buf ;
-//    *out << cgicc::br();
-//    sprintf(buf," read_user_code %08x \n",thisCrate->vmeController()->read_user_code());
-//    std::cout<<buf<<std::endl;
-//    *out << buf ;
-//    *out << cgicc::br();
-//    char *tmp_cp = thisCrate->vmeController()->read_customer_code();
-//    if(tmp_cp!=0){
-//    	sprintf(buf,"PROM currently programmed with %s\n",tmp_cp);
-//        std::cout<<buf<<std::endl;
-//        *out << buf ;
-//        *out << cgicc::br();
-//     }
-//      else {
-//    	sprintf(buf,"Did not receive customer code. Proceeding anyway\n");
-//        std::cout<<buf<<std::endl;
-//        *out << buf ;
-//        *out << cgicc::br();
-//     }
-//    *out << std::endl;
-//    *out << cgicc::fieldset();
-//    *out << std::endl;
-//
-//    thisCrate->vmeController()->write_Ethernet_CR(0x0010);
-//    thisCrate->vmeController()->write_ResetMisc_CR(0x001B);
-//
-//    thisCrate->vmeController()->read_CR();
-//    //
-//    //   this->ControllerUtils(in,out);
-//    //
-//  }
-//  //
-//  void EmuPeripheralCrateConfig::VMECCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-//  {
-//    //
-//    thisCrate->vmeController()->init();
-//
-//    thisCrate->vmeController()->write_Ethernet_CR(0x0050);
-//    thisCrate->vmeController()->write_ResetMisc_CR(0x031B);
-//
-//    char buf[50];
-//    sprintf(buf," Entered VMECCLoadFirmware \n");
-//    std::cout<<buf<<std::endl;
-//    std::string VMECCFirmware = FirmwareDir_+VMECC_FIRMWARE_DIR;
-//    VMECCFirmwareDir_=VMECCFirmware;
-//   std::cout << " firmware dir: " << VMECCFirmwareDir_ .toString()<< std::endl;
-//   std::string VMECCFirmwareD=VMECC_FIRMWARE_VER;
-//    VMECCFirmwareVer_=VMECCFirmwareD;
-//    std::cout << " firmware ver: " << VMECCFirmwareVer_ .toString()<< std::endl;
-//    thisCrate->vmeController()->prg_vcc_prom_ver(VMECCFirmwareDir_.toString().c_str(),VMECCFirmwareVer_.toString().c_str());
-//
-//    thisCrate->vmeController()->write_Ethernet_CR(0x0010);
-//    thisCrate->vmeController()->write_ResetMisc_CR(0x001B);
-//
-//    this->ControllerUtils(in,out);
-//    //
-//  }
-////////////////////////////////
-// end of comment out following
-////////////////////////////////
+  void EmuPeripheralCrateConfig::ReadVMECCRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    char buf[50];
+   
+    thisCrate->vmeController()->init();
+
+    sprintf(buf," entered READVMECCRegisters \n");
+
+    char Name[300];
+    sprintf(Name,"VMECC CrateID %s \n     Source MAC %02x:%02x:%02x:%02x:%02x:%02x \n     Desination MAC %02x:%02x:%02x:%02x:%02x:%02x",(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetSrcMAC(0),thisCrate->vmeController()->GetSrcMAC(1),thisCrate->vmeController()->GetSrcMAC(2),thisCrate->vmeController()->GetSrcMAC(3),thisCrate->vmeController()->GetSrcMAC(4),thisCrate->vmeController()->GetSrcMAC(5),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));       
+
+    thisCrate->vmeController()->write_Ethernet_CR(0x0050);
+    thisCrate->vmeController()->write_ResetMisc_CR(0x031B);
+
+    //
+    MyHeader(in,out,Name);
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << std::endl;
+    //
+    *out << cgicc::legend("VMECC Registers").set("style","color:blue") << cgicc::p() << std::endl ;
+    //
+    *out << cgicc::pre();
+    //
+
+    std::cout<<buf<<std::endl;
+    sprintf(buf," read_dev_id %08x \n",thisCrate->vmeController()->read_dev_id());
+    std::cout<<buf<<std::endl;
+    *out << buf ;
+    *out << cgicc::br();
+    sprintf(buf," read_user_code %08x \n",thisCrate->vmeController()->read_user_code());
+    std::cout<<buf<<std::endl;
+    *out << buf ;
+    *out << cgicc::br();
+    char *tmp_cp = thisCrate->vmeController()->read_customer_code();
+    if(tmp_cp!=0){
+    	sprintf(buf,"PROM currently programmed with %s\n",tmp_cp);
+        std::cout<<buf<<std::endl;
+        *out << buf ;
+        *out << cgicc::br();
+     }
+      else {
+    	sprintf(buf,"Did not receive customer code. Proceeding anyway\n");
+        std::cout<<buf<<std::endl;
+        *out << buf ;
+        *out << cgicc::br();
+     }
+    *out << std::endl;
+    *out << cgicc::fieldset();
+    *out << std::endl;
+
+    thisCrate->vmeController()->write_Ethernet_CR(0x0010);
+    thisCrate->vmeController()->write_ResetMisc_CR(0x001B);
+
+    thisCrate->vmeController()->read_CR();
+    //
+    //   this->ControllerUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrateConfig::VMECCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    thisCrate->vmeController()->init();
+
+    thisCrate->vmeController()->write_Ethernet_CR(0x0050);
+    thisCrate->vmeController()->write_ResetMisc_CR(0x031B);
+
+    char buf[50];
+    sprintf(buf," Entered VMECCLoadFirmware \n");
+    std::cout<<buf<<std::endl;
+    std::string VMECCFirmware = FirmwareDir_+VMECC_FIRMWARE_DIR;
+    VMECCFirmwareDir_=VMECCFirmware;
+   std::cout << " firmware dir: " << VMECCFirmwareDir_ .toString()<< std::endl;
+   std::string VMECCFirmwareD=VMECC_FIRMWARE_VER;
+    VMECCFirmwareVer_=VMECCFirmwareD;
+    std::cout << " firmware ver: " << VMECCFirmwareVer_ .toString()<< std::endl;
+    thisCrate->vmeController()->prg_vcc_prom_ver(VMECCFirmwareDir_.toString().c_str(),VMECCFirmwareVer_.toString().c_str());
+
+    thisCrate->vmeController()->write_Ethernet_CR(0x0010);
+    thisCrate->vmeController()->write_ResetMisc_CR(0x001B);
+
+    this->ControllerUtils(in,out);
+    //
+  }
 //
 void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
