@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.11 2008/01/24 13:11:13 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.12 2008/01/24 23:16:55 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -28,7 +28,7 @@ using namespace cgicc;
 using namespace std;
 
 const string       VMECC_FIRMWARE_DIR = "vcc"; 
-const string       VMECC_FIRMWARE_VER ="4.28";   
+const string       VMECC_FIRMWARE_VER ="4.29";   
 
 EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuApplication(s)
 {	
@@ -455,7 +455,17 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   //
   *out << cgicc::pre();
   // Probe for VMECCs
-  broadcastCrate->vmeController()->read_dev_id_broadcast(out);
+  char buf[1000], sbuf[100];
+  int nc=broadcastCrate->vmeController()->read_dev_id_broadcast(buf);
+  *out << nc << " crate controller(s) responded: " << std::endl;
+  for(int i=0; i<nc; i++) {
+     int *device_id=(int *)(buf+i*10+6);
+     sprintf(sbuf, "    Controller MAC address %02X:%02X:%02X:%02X:%02X:%02X, Device ID: %08X\n",
+         buf[i*10]&0xff, buf[i*10+1]&0xff, buf[i*10+2]&0xff,
+         buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
+         *device_id);
+     *out << sbuf;
+  }
 
   *out << cgicc::pre();
   *out << cgicc::fieldset()<<std::endl;
@@ -472,7 +482,16 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
     broadcastDMB0->mbpromuser(0);
-    broadcastCrate->vmeController()->mbpromid_read_broadcast(slott,out);
+    nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+    *out << nc << " DMB's in slot " << slott << " responded: " << std::endl;
+    for(int i=0; i<nc; i++) {
+        int *device_id=(int *)(buf+i*10+6);
+        sprintf(sbuf, "    from MAC address %02X:%02X:%02X:%02X:%02X:%02X, userid: %08X\n",
+            buf[i*10]&0xff, buf[i*10+1]&0xff, buf[i*10+2]&0xff,
+            buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
+            *device_id);
+        *out << sbuf;
+    }
   }
   *out << cgicc::pre();
   *out << cgicc::fieldset()<<std::endl;
