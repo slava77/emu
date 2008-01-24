@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.19 2008/01/24 13:10:20 liu Exp $
+// $Id: VMEController.h,v 3.20 2008/01/24 23:16:11 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.20  2008/01/24 23:16:11  liu
+// update broadcast read
+//
 // Revision 3.19  2008/01/24 13:10:20  liu
 // new controller firmware
 //
@@ -143,9 +146,6 @@
 
 using namespace std;
 
-#include "xgi/Utils.h"
-#include "xgi/Method.h"
-
 #include <vector>
 #include <string>
 #include <iostream>
@@ -262,8 +262,8 @@ public:
   void send_prg_prom_data();
   void send_prg_prom_data_bcast();
   void send_uc_cc_data(char *fn);
-  void read_dev_id_broadcast(xgi::Output *out);
-  void mbpromid_read_broadcast(int slot,xgi::Output *out);
+  int read_dev_id_broadcast(char *crates_info);
+  int vme_read_broadcast(char *dmbs_info);
   //pkt_utils
   char *dcode_msg_pkt(char *buf);
   void *ptr_bin_srch(int code, struct ucw *arr, int n);

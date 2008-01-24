@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.22 2008/01/24 13:10:05 liu Exp $
+// $Id: VMEController.cc,v 3.23 2008/01/24 23:16:12 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.23  2008/01/24 23:16:12  liu
+// update broadcast read
+//
 // Revision 3.22  2008/01/24 13:10:05  liu
 // new controller firmware
 //
@@ -2452,7 +2455,7 @@ void VMEController::prg_vcc_prom_bcast(const char *path, const char *ver)
   char fullname[256];
   int rslt;
   //unsigned int temp_uint;
-  static unsigned int device_id = 0xF5057093;
+//  static unsigned int device_id = 0xF5057093;
   //char *tmp_cp;
 
   strcpy(fname,"D783C.V");
@@ -2488,7 +2491,7 @@ int VMEController::eth_read_timeout(int rd_tmo)
 
 int VMEController::set_clr_bits(enum SET_CLR sc, enum CR_ID crid, unsigned int mask)
 {
-  int i,n,l,lcnt,err;
+  int n,l,lcnt,err;
   err=0;
   wbuf[0]=0x00;
   wbuf[1]=Set_Clr_CRs;
@@ -2521,11 +2524,9 @@ int VMEController::set_clr_bits(enum SET_CLR sc, enum CR_ID crid, unsigned int m
   return(n);
 }
 
-void VMEController::read_dev_id_broadcast(xgi::Output *out)
+int VMEController::read_dev_id_broadcast(char * crates_info)
 {
-  int n=100;
-  char buf[50];
-  unsigned int dev_id;
+  int n=0, cs=0;
   int ptyp;
   std::cout<<"Enter: read_dev_id_broadcast() \n"<<std::endl;
   wbuf[0]=0x00;
@@ -2533,62 +2534,58 @@ void VMEController::read_dev_id_broadcast(xgi::Output *out)
   nwbuf=2;
   n=eth_write();
   eth_read_timeout(RD_TMO_short);
-  while(n>4){
+  while(n>8){
     n=eth_read();
-    sprintf(buf," eth_read returned %d ",n);
-    std::cout<<buf<<std::endl;
+
     ptyp = rbuf[PKT_TYP_OFF]&0xff;
     if(ptyp>=INFO_PKT){
       printf("%s",dcode_msg_pkt(rbuf));
-      return;
+      return cs;
     }
-    char src[6];
-    if(n>4){
-      for(int j=0;j<6;j++)src[j]=rbuf[MAC_SRC_OFF+j];
-      dev_id = ((rbuf[DATA_OFF+2]&0xff)<<24)|((rbuf[DATA_OFF+3]&0xff)<<16)|((rbuf[DATA_OFF]&0xff)<<8)|(rbuf[DATA_OFF+1]&0xff);
-      sprintf(buf," packet src: %02x:%02x:%02x:%02x:%02x:%02x userid: %04x \n",src[0]&0xff,src[1]&0xff,src[2]&0xff,src[3]&0xff,src[4]&0xff,src[5]&0xff,dev_id);
-      *out<<buf<<std::endl;
+    if(n>8){
+      memcpy(crates_info+cs*10, rbuf+MAC_SRC_OFF, 6);
+      crates_info[cs*10+6]=rbuf[DATA_OFF+1];
+      crates_info[cs*10+7]=rbuf[DATA_OFF];
+      crates_info[cs*10+8]=rbuf[DATA_OFF+3];
+      crates_info[cs*10+9]=rbuf[DATA_OFF+2];
+      cs++;
     }
   }
   eth_read_timeout(RD_TMO_short);
-  return;
+  return cs;
 }
 
-
-void VMEController::mbpromid_read_broadcast(int slot,xgi::Output *out)
+int VMEController::vme_read_broadcast(char *dmbs_info)
 { 
-  int n=100;
-  char buf[50];
-  char src[6];
-  unsigned int dev_id;
+  int n=100, ndmbs=0;
   int ptyp;
-  sprintf(buf," Probe for DAQMBs");
-  std::cout<<buf<<std::endl;
-  if(nrbuf>4){
-  for(int j=0;j<6;j++)src[j]=rbuf[MAC_SRC_OFF+j];
-  dev_id = ((rbuf[DATA_OFF+2]&0xff)<<24)|((rbuf[DATA_OFF+3]&0xff)<<16)|((rbuf[DATA_OFF]&0xff)<<8)|(rbuf[DATA_OFF+1]&0xff);
-  sprintf(buf," slot: %d packet src: %02x:%02x:%02x:%02x:%02x:%02x userid: %04x \n",slot,src[0]&0xff,src[1]&0xff,src[2]&0xff,src[3]&0xff,src[4]&0xff,src[5]&0xff,dev_id);
-  *out<<buf<<std::endl;
+  if(nrbuf>8){
+      memcpy(dmbs_info+ndmbs*10, rbuf+MAC_SRC_OFF, 6);
+      dmbs_info[ndmbs*10+6]=rbuf[DATA_OFF+1];
+      dmbs_info[ndmbs*10+7]=rbuf[DATA_OFF];
+      dmbs_info[ndmbs*10+8]=rbuf[DATA_OFF+3];
+      dmbs_info[ndmbs*10+9]=rbuf[DATA_OFF+2];
+      ndmbs++;
   }
   eth_read_timeout(RD_TMO_short);
-  while(n>4){
+  while(n>8){
     n=eth_read();
-    printf(" eth_read n %d \n",n);
+    
     ptyp = rbuf[PKT_TYP_OFF]&0xff;
     if(ptyp>=INFO_PKT){
       printf("%s",dcode_msg_pkt(rbuf));
-      return;
+      return ndmbs;
     }
-    if(n>4){
-      for(int k=0;k<20;k++)sprintf(buf,"%02x",rbuf[k]&0xff);
-      std::cout<<buf<<std::endl;
-      for(int j=0;j<6;j++)src[j]=rbuf[MAC_SRC_OFF+j];
-      dev_id = ((rbuf[DATA_OFF+2]&0xff)<<24)|((rbuf[DATA_OFF+3]&0xff)<<16)|((rbuf[DATA_OFF]&0xff)<<8)|(rbuf[DATA_OFF+1]&0xff);
-      sprintf(buf," slot: %d packet src: %02x:%02x:%02x:%02x:%02x:%02x userid: %04x \n",slot,src[0]&0xff,src[1]&0xff,src[2]&0xff,src[3]&0xff,src[4]&0xff,src[5]&0xff,dev_id);
-      *out<<buf<<std::endl;
-      std::cout << buf <<std::endl;
+    if(n>8){
+      memcpy(dmbs_info+ndmbs*10, rbuf+MAC_SRC_OFF, 6);
+      dmbs_info[ndmbs*10+6]=rbuf[DATA_OFF+1];
+      dmbs_info[ndmbs*10+7]=rbuf[DATA_OFF];
+      dmbs_info[ndmbs*10+8]=rbuf[DATA_OFF+3];
+      dmbs_info[ndmbs*10+9]=rbuf[DATA_OFF+2];
+      ndmbs++;
     }
   }
   eth_read_timeout(RD_TMO_short);
+  return ndmbs;
 }
 
