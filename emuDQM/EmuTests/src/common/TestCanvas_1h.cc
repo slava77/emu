@@ -388,7 +388,7 @@ int TestCanvas_1h::Fill (TestData2D data, TestData2D mask) {
 	theSummaryHighHighLine->SetY1(theSummaryHisto->GetMinimum());
 	theSummaryHighHighLine->SetY2(theSummaryHisto->GetMaximum());
 	
-	int theFillColor = theColorWhite;
+	theFillColor = theColorWhite;
 	if(!fIsYellowSolid && !fIsRedSolid && !fIsEmpty) {
 		theFillColor = theColorGreenLight;
 		fQualityTest = 1;
@@ -409,6 +409,46 @@ int TestCanvas_1h::Fill (TestData2D data, TestData2D mask) {
 	theMainCanvas->SetFillColor(theFillColor);
 
 	return fQualityTest;
+}
+
+void TestCanvas_1h::SetHistoObject(TH1F *histo) {
+	theSummaryHisto = histo;
+	
+// Add information (total number of entries and number of enries out of limits) to TextPad
+	std::string fsEntries = Form("%.0f",theSummaryHisto->GetEntries());
+	AddTextEntries(fsEntries);
+//	std::string fsOutOfLimits = Form("%d",fNOutOfLimits);
+//	AddTextLimits(fsOutOfLimits);
+
+// Add information (Entries, Mean, RMS, Underflow, Overflow) to StatPad of summary histogram
+	fsEntries = Form("Entries = %.0f",theSummaryHisto->GetEntries());
+	thePtstatsSummaryHisto->AddText(fsEntries.c_str());
+	std::string fsMean = Form("Mean = %f",theSummaryHisto->GetMean(1));
+	thePtstatsSummaryHisto->AddText(fsMean.c_str());
+	std::string fsRMS = Form("RMS = %f",theSummaryHisto->GetRMS(1));
+	thePtstatsSummaryHisto->AddText(fsRMS.c_str());
+	std::string fsUnderflow = Form("Underflow = %.0f",theSummaryHisto->GetBinContent(0));
+	thePtstatsSummaryHisto->AddText(fsUnderflow.c_str());
+	std::string fsOverflow = Form("Overflow = %.0f",theSummaryHisto->GetBinContent(theNbinsy+1));
+	thePtstatsSummaryHisto->AddText(fsOverflow.c_str());
+}
+
+void TestCanvas_1h::SetResultCode(int QualityTest) {
+	theFillColor = theColorWhite;
+	if(QualityTest == 1) {
+		theFillColor = theColorGreenLight;
+	}
+	if(QualityTest == 2) {
+		theFillColor = theColorYellowLight;
+	}
+	if(QualityTest == 3){
+		theFillColor = theColorBlueLight;
+	}
+	if(QualityTest == 4){
+		theFillColor = theColorRedLight;
+	}
+	
+	theMainCanvas->SetFillColor(theFillColor);
 }
 
 void TestCanvas_1h::Draw (void) {

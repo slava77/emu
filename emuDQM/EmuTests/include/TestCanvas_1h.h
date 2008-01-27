@@ -161,6 +161,8 @@ class TestCanvas_1h: public TCanvas {
 	*/
 	int  Fill (TestData2D, TestData2D);                  ///< Fill and analyze data
 	int  Fill (TestData1D, TestData1D);                  ///< Fill and analyze data
+	void SetHistoObject(TH1F*);                           ///< Fill in prepared histogram
+	void SetResultCode(int);                             ///< Set result code by hand => color of canvas background
 	void Draw (void);                                    ///< Draw canvas
 	void SaveAs (std::string);                           ///< Save as image file
 	/**  Write this object to the current directory
