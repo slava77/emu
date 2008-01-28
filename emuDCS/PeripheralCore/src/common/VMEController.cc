@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.23 2008/01/24 23:16:12 liu Exp $
+// $Id: VMEController.cc,v 3.24 2008/01/28 09:25:13 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.24  2008/01/28 09:25:13  liu
+// turned on VCC error packets
+//
 // Revision 3.23  2008/01/24 23:16:12  liu
 // update broadcast read
 //
@@ -275,11 +278,12 @@ void VMEController::init() {
   //
   // This writes the default VME CR we need and then stores it in the flash memory....
   write_VME_CR(0x20001d0f);
+  set_ErrorServer();
   save_cnfg_num(1);
   set_cnfg_dflt(1);
   //read_CR();
   //
-  disable_errpkt();
+//  disable_errpkt();
   //
   done_init_=true;
   //
@@ -290,7 +294,7 @@ void VMEController::reset() {
 //  set_VME_mode();   
   reload_FPGA();  
 //  enable_Reset();
-  disable_errpkt();
+//  disable_errpkt();
 }
 
 void VMEController::start(int slot, int boardtype) {
@@ -719,7 +723,7 @@ void VMEController::enable_Reset()
   int l,lcnt;
   wbuf[0]=0x00;
   wbuf[1]=0x11;
-  wbuf[2]=0x00;
+  wbuf[2]=0x03;
   wbuf[3]=0x1B;
   nwbuf=4;
   n=eth_write();
@@ -734,7 +738,7 @@ void VMEController::disable_Reset()
   int l,lcnt;
   wbuf[0]=0x00;
   wbuf[1]=0x11;
-  wbuf[2]=0x00;
+  wbuf[2]=0x03;
   wbuf[3]=0x13;
   nwbuf=4;
   n=eth_write();
