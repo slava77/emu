@@ -121,6 +121,12 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	 */
 	public void init() throws EventHandlerException {
 		fm = (CSCFunctionManager)getUserFunctionManager();
+
+		//Unique id for each configuration 
+		int conf_id = fm.getQualifiedGroup().getGroup().getDirectory().getId();
+
+		fm.getParameterSet().put(new FunctionManagerParameter<IntegerT>(
+				Level1Parameters.CONF_ID, new IntegerT(conf_id)));
 	}
 
 	/*
@@ -147,8 +153,14 @@ public class CSCLeadingActions extends Level1LeadingActions {
 
 			for (QualifiedResource qr: l) {
 				logger.debug("killing processes of " + user);
-				JobControl jc = (JobControl)qr;
-				jc.init();
+				JobControl jc = (JobControl)qr;				
+				try {
+					jc.init(); 
+				} catch (Exception e) {
+					logger.error("JobControl(): failed to run");
+				}
+				
+				//jc.init();
 				jc.killUser(user);
 				logger.debug("killed processes of " + user);
 			}
@@ -169,7 +181,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		XdaqApplicationContainer xdaqApps = new XdaqApplicationContainer(
 				fm.getQualifiedGroup().seekQualifiedResourcesOfType(
 				new XdaqApplication()));
-
+		
 		fm.xdaqSupervisor = new XdaqApplicationContainer(
 				xdaqApps.getApplicationsOfClass("CSCSupervisor"));
 
