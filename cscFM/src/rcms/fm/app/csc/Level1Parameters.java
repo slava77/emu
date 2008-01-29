@@ -18,7 +18,8 @@ public class Level1Parameters {
 	public static final String STATE = "STATE";
 	public static final String ACTION_MSG = "ACTION_MSG";
 	public static final String ERROR_MSG = "ERROR_MSG";
-	public static final String COMPLETION = "COMPLETION";
+	public static final String COMPLETION = "COMPLETION";	
+        public static final String CONF_ID = "CONF_ID";
 
 	// 'Initialize'
 	public static final String SID = "SID";
@@ -58,6 +59,9 @@ public class Level1Parameters {
 				ERROR_MSG, new StringT("")));
 		LEVEL1_PARAMETER_SET.put(new FunctionManagerParameter<DoubleT>(
 				COMPLETION, new DoubleT(0)));
+		LEVEL1_PARAMETER_SET.put(new FunctionManagerParameter<StringT>(
+				CONF_ID, new StringT("")));
+
 	}
 }
 
