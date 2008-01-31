@@ -5953,17 +5953,17 @@ void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output *
     sprintf(buf," entered READVMECCRegisters \n");
 
     char Name[300];
-    sprintf(Name,"VMECC CrateID %s \n     Source MAC %02x:%02x:%02x:%02x:%02x:%02x \n     Desination MAC %02x:%02x:%02x:%02x:%02x:%02x",(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetSrcMAC(0),thisCrate->vmeController()->GetSrcMAC(1),thisCrate->vmeController()->GetSrcMAC(2),thisCrate->vmeController()->GetSrcMAC(3),thisCrate->vmeController()->GetSrcMAC(4),thisCrate->vmeController()->GetSrcMAC(5),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));       
+    sprintf(Name,"VMECC CrateID %s \n ",(thisCrate->GetLabel()).c_str());
 
-    thisCrate->vmeController()->write_Ethernet_CR(0x0050);
-    thisCrate->vmeController()->write_ResetMisc_CR(0x031B);
+//    thisCrate->vmeController()->write_Ethernet_CR(0x0050);
+//    thisCrate->vmeController()->write_ResetMisc_CR(0x031B);
 
     //
     MyHeader(in,out,Name);
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
     //
-    *out << cgicc::legend("VMECC Registers").set("style","color:blue") << cgicc::p() << std::endl ;
+    *out << cgicc::legend("VCC IDs").set("style","color:blue") << cgicc::p() << std::endl ;
     //
     *out << cgicc::pre();
     //
@@ -5994,10 +5994,8 @@ void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output *
     *out << cgicc::fieldset();
     *out << std::endl;
 
-    thisCrate->vmeController()->write_Ethernet_CR(0x0010);
-    thisCrate->vmeController()->write_ResetMisc_CR(0x001B);
-
-    thisCrate->vmeController()->read_CR();
+    // dump VCC config info (into stdout log)
+    thisCrate->vmeController()->vcc_dump_config();
     //
     //   this->ControllerUtils(in,out);
     //
@@ -6022,8 +6020,8 @@ void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output *
     std::cout << " firmware ver: " << VMECCFirmwareVer_ .toString()<< std::endl;
     thisCrate->vmeController()->prg_vcc_prom_ver(VMECCFirmwareDir_.toString().c_str(),VMECCFirmwareVer_.toString().c_str());
 
-    thisCrate->vmeController()->write_Ethernet_CR(0x0010);
-    thisCrate->vmeController()->write_ResetMisc_CR(0x001B);
+    // thisCrate->vmeController()->write_Ethernet_CR(0x0010);
+    // thisCrate->vmeController()->write_ResetMisc_CR(0x001B);
 
     this->ControllerUtils(in,out);
     //
