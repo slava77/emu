@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.2 2008/01/08 08:48:16 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.3 2008/01/31 14:24:08 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -392,36 +392,38 @@ xoap::MessageReference EmuPeripheralCrateManager::QueryPeripheralCrateInfoSpace(
 
 xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-   SendSOAPMessageXRelayBroadcast("ConfigCalCFEB","");
+  std::cout << "Get SOAP message ConfigCalCFEB " << std::endl;
+   PCsendCommand("ConfigCalCFEB","EmuPeripheralCrateBroadcast");
    //
-   ::sleep(1);
+  std::cout << "SOAP message ConfigCalCFEB relayed to Broadcast" << std::endl;
+//   ::sleep(1);
    fireEvent("Configure");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  SendSOAPMessageXRelayBroadcast("EnableCalCFEBCrossTalk","");
+  PCsendCommand("EnableCalCFEBCrossTalk","EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBSCAPed (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  SendSOAPMessageXRelayBroadcast("EnableCalCFEBSCAPed","");
+  PCsendCommand("EnableCalCFEBSCAPed","EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGains (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  SendSOAPMessageXRelayBroadcast("EnableCalCFEBGains","");
+  PCsendCommand("EnableCalCFEBGains","EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  SendSOAPMessageXRelayBroadcast("EnableCalCFEBComparator","");
+  PCsendCommand("EnableCalCFEBComparator","EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   return createReply(message);
@@ -432,12 +434,12 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageRefe
   //
   //  std::cout<< "This is a checking printing"<<std::endl;
   //
-  ostringstream test;
-  message->writeTo(test);
+  // ostringstream test;
+  // message->writeTo(test);
   //cout << test.str() <<endl;
   //cout << " Print check working "<<endl;
   //
-  SendSOAPMessageXRelaySimple("Configure","");
+  PCsendCommand("Configure","EmuPeripheralCrateConfig");
   //
   // really should wait for OK message from EmuPeripheralCrate before change status
   ::sleep(1);
@@ -494,6 +496,8 @@ xoap::MessageReference EmuPeripheralCrateManager::createXRelayMessage(const std:
   // Add the "to" node
   std::string childNode = "to";
   // Send to all the destinations:
+
+#if 0
   //
   std::set<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
     getApplicationContext()->getDefaultZone()->getApplicationGroup("broker")->getApplicationDescriptors("XRelay");
@@ -507,6 +511,8 @@ xoap::MessageReference EmuPeripheralCrateManager::createXRelayMessage(const std:
   //
   std::set<xdaq::ApplicationDescriptor * >::iterator  itDescriptorsXrelays = descriptorsXrelays.begin();
   //
+#endif
+
   std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
   //
   for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) {
@@ -515,6 +521,8 @@ xoap::MessageReference EmuPeripheralCrateManager::createXRelayMessage(const std:
     //
     std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
     std::string urn = (*itDescriptor)->getURN();
+
+#if 0
     //
     std::string urlXRelay = (*itDescriptorsXrelays)->getContextDescriptor()->getURL();
     std::string urnXRelay = (*itDescriptorsXrelays)->getURN();
@@ -522,15 +530,20 @@ xoap::MessageReference EmuPeripheralCrateManager::createXRelayMessage(const std:
     if (itDescriptorsXrelays ==  descriptorsXrelays.end()) 
       itDescriptorsXrelays=descriptorsXrelays.begin();
     //
+#endif
+
     xoap::SOAPName toName = envelope.createName(childNode, prefix, " ");
     xoap::SOAPElement childElement = relayElement.addChildElement(toName);
     xoap::SOAPName urlName = envelope.createName("url");
     xoap::SOAPName urnName = envelope.createName("urn");
-    childElement.addAttribute(urlName,urlXRelay);
-    childElement.addAttribute(urnName,urnXRelay);
+    childElement.addAttribute(urlName,url);
+    childElement.addAttribute(urnName,urn);
+
+#if 0
     xoap::SOAPElement childElement2 = childElement.addChildElement(toName);
     childElement2.addAttribute(urlName,url);
     childElement2.addAttribute(urnName,urn);
+#endif
     //
   }
   //
@@ -562,7 +575,7 @@ void EmuPeripheralCrateManager::relayMessage (xoap::MessageReference msg)
   try {	
     // Get the Xrelay application descriptor and post the message:
     xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->getDefaultZone()->
-      getApplicationGroup("broker")->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
+      getApplicationGroup("default")->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
     //
     reply = getApplicationContext()->postSOAP(msg, xrelay);
     xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
