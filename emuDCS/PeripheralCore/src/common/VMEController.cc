@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.26 2008/01/31 15:08:09 liu Exp $
+// $Id: VMEController.cc,v 3.27 2008/01/31 16:34:38 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.27  2008/01/31 16:34:38  liu
+// disable VCC hard-reset
+//
 // Revision 3.26  2008/01/31 15:08:09  liu
 // fix vcc_dump_config format
 //
@@ -256,7 +259,7 @@ VMEController::VMEController():
 // please note the byte swap with respect to the book values 
   CR_ethernet=0x5000;
   CR_ext_fifo=0x0200;
-  CR_res_misc=0x1B03;
+  CR_res_misc=0x1303;
   CR_VME_low=0x0F1D;
   CR_VME_hi=0xFFED;
   CR_BUS_timeout=0xD430;
