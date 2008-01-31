@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.24 2008/01/28 09:25:13 liu Exp $
+// $Id: VMEController.cc,v 3.25 2008/01/31 14:22:01 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.25  2008/01/31 14:22:01  liu
+// config change for firmware 4.x
+//
 // Revision 3.24  2008/01/28 09:25:13  liu
 // turned on VCC error packets
 //
@@ -206,12 +209,10 @@
 
 #define SCHAR_INQR              _IOR(SCHAR_IOCTL_BASE, 6, 0)
 #define SCHAR_READ_TIMEOUT	_IOW(SCHAR_IOCTL_BASE, 2, unsigned int)
-#define        Set_FF_VME 0x02
-#define       MRst_Ext_FF 0xE6
 
 
 // #define MAX_DATA 8990
-#define MAX_DATA 6000
+#define MAX_DATA 7800
 #define VME_CMDS 0x20
 #define ACNLG 0x20
 #define ACNLG_LOOP 0x60
@@ -219,7 +220,6 @@
 #define ATYPE 2    // VME A24 bit transfer
 #define TSIZE 1    // VME 16 bit data transfer
 #define TTYPE 0    // VME single transfer mode
-#define PACKETOUTDUMP 0   // to print dump set 1
 
 
 #ifndef debugV //silent mode
@@ -249,6 +249,16 @@ VMEController::VMEController():
   usedelay_ = false ;
   //
   done_init_=false;
+
+// please not the byte swap with respect to the values on the manual 
+  CR_ethernet=0x5000;
+  CR_ext_fifo=0x0200;
+  CR_res_misc=0x1B03;
+  CR_VME_low=0x0F1D;
+  CR_VME_hi=0xFFED;
+  CR_BUS_timeout=0xD430;
+  CR_BUS_grant=0x350C;
+
 }
 //
 VMEController::~VMEController(){
@@ -264,37 +274,23 @@ void VMEController::init(string ipAddr, int port) {
   //
 }
 
-void VMEController::init() {
+void VMEController::init() 
+{
+  if(done_init_) return;
   //
-  // SendOutput("VMEController : Init()","INFO");
   cout << "VMEController : Init()" << endl;
   //
   theSocket=do_schar(1); // register a new schar device
   //
   cout << "VMEController opened socket = " << theSocket << endl;
   cout << "VMEController is using eth" << port_ << endl;
-  enable_Reset(); 
-  //read_CR();
-  //
-  // This writes the default VME CR we need and then stores it in the flash memory....
-  write_VME_CR(0x20001d0f);
+
+  vcc_check_config();
+
   set_ErrorServer();
-  save_cnfg_num(1);
-  set_cnfg_dflt(1);
-  //read_CR();
-  //
-//  disable_errpkt();
-  //
+
   done_init_=true;
   //
-}
-
-void VMEController::reset() {
-//  mrst_ff();
-//  set_VME_mode();   
-  reload_FPGA();  
-//  enable_Reset();
-//  disable_errpkt();
 }
 
 void VMEController::start(int slot, int boardtype) {
@@ -506,15 +502,15 @@ void  VMEController::sleep_vme(const char *outbuf)   // time in usec
 
 void  VMEController::sleep_vme(int time) // time in usec
 {
-unsigned long tmp_time;
-char tmp[1]={0x00};
-unsigned short int tmp2[2]={0,0};
-unsigned short int *ptr;
-       tmp_time=time*1000+15; // in nsec
-       tmp_time >>= 4; // in 16 nsec
-       tmp2[0]=tmp_time & 0xffff;
-       tmp2[1]=(tmp_time >> 16) & 0xffff;
-       vme_controller(6,ptr,tmp2,tmp);
+  unsigned long tmp_time;
+  char tmp[1]={0x00};
+  unsigned short int tmp2[2]={0,0};
+  unsigned short int *ptr;
+  tmp_time=time*1000+15; // in nsec
+  tmp_time >>= 4; // in 16 nsec
+  tmp2[0]=tmp_time & 0xffff;
+  tmp2[1]=(tmp_time >> 16) & 0xffff;
+  vme_controller(6,ptr,tmp2,tmp);
 }
 
 void VMEController::handshake_vme()
@@ -568,11 +564,11 @@ int VMEController::eth_read()
    GETMORE: 
    size=read(theSocket,rbuf,nrbuf);
    nrbuf=size;
-   if(size==6){nrbuf=0;return 0;}
+//   if(size==6){nrbuf=0;return 0;}
    if(size<0)return size;
    if(size<7)
-   {   if(rbuf[0]==0x03&&loopcnt<10)
-       {   usleep(1000);
+   {   if(rbuf[0]==0x04&&loopcnt<10)
+       {   usleep(500);
            loopcnt=loopcnt+1;
            goto GETMORE;
        }
@@ -580,101 +576,301 @@ int VMEController::eth_read()
    return size;
 }
 
+int VMEController::eth_write()
+{  char *msg;
+  int msg_size;
+  int nwritten;
+  int i;
+   //Creating the packet
+     ether_header.h_proto = htons(nwbuf);
+     //   ether_header.h_proto = htons(0xfff);
+
+   msg_size = sizeof(ether_header) + nwbuf;
+   if((msg = (char *)malloc(msg_size*sizeof(unsigned char))) == NULL){ 
+          std::cout << "ERROR in eth_write(): malloc(): No memory available" << std::endl;
+           exit(1);
+   }
+   memcpy(msg, &ether_header, sizeof(ether_header));
+   memcpy(msg + sizeof(ether_header), wbuf, nwbuf); 
+   nwritten = write(theSocket, (const void *)msg, msg_size);
+// Jinghua Liu to debug
+  if(DEBUG>10)
+   {
+     printf("ETH_WRITE****");
+     for(i=0;i<msg_size;i++) printf("%02X ",msg[i]&0xff);
+     printf("\n");
+     printf("Packet written : %d\n", nwritten);
+   }
+   free(msg);
+   return nwritten; 
+}
+
+//JHL  Jan. 29, 2008 new functions for VCC firmware 4.x
+//
+// generic function for VCC's "READ" commands 
+//
+int VMEController::vcc_read_command(int code, int n_words, unsigned short *readback)
+{ 
+   int n, l, lcnt;
+   char *radd_to, *radd_from;
+   int ptyp;
+   const char broadcast_addr[6]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+
+   if(code<0 || code > 0xFF || n_words<=0) return -1;
+   wbuf[0]=0x00;
+   wbuf[1]=code & 0xFF;
+   nwbuf=2;
+   n=eth_write();
+   if(n<2)
+   {  if(DEBUG) printf("Error: Error in writing VCC %02X, bytes written %d\n", code&0xFF, n);
+      return -2;
+   }
+   if(DEBUG) printf("write VCC command %02X, to read back %d data words\n", code&0xFF, n_words);
+READ_IT_CR:
+   for(l=0;l<8000;l++) lcnt++;
+   n=eth_read();
+// Jinghua Liu to debug
+   if(DEBUG>10)
+     {
+        printf("Read back size %d \n",n);
+        for(int i=0;i<n;i++) printf("%02X ",rbuf[i]&0xff);
+        printf("\n");
+     }
+   if(n>6)
+   {
+     radd_to=rbuf;
+     radd_from=rbuf+6;
+
+// Check if the packet is from the controller, to reject unwanted broadcast packets.
+
+     if(memcmp(radd_from, hw_dest_addr,6) && memcmp(hw_dest_addr, broadcast_addr, 6)) goto READ_IT_CR;
+     ptyp = rbuf[PKT_TYP_OFF]&0xff;
+     if(ptyp>=INFO_PKT) 
+     {  
+        // discard INFO/WARNING/ERROR packets
+
+        if(DEBUG) printf("%s",dcode_msg_pkt(rbuf));
+        goto READ_IT_CR;
+     }
+     if(readback) memcpy(readback, rbuf+DATA_OFF, n_words*2);
+     if(DEBUG) 
+     {  printf("data read back:");
+        for(int i=0; i<n_words*2; i++) printf("%02X ", rbuf[DATA_OFF+i]&0xFF);
+        printf("\n");
+     }
+   }
+   else 
+   {
+     if(DEBUG) printf("Error: Error in reading VCC %02X\n", code&0xFF);
+     return -3;
+   }
+   return n_words;
+}
+
+//
+// generic function for VCC's "WRITE" and "No-Data" commands 
+//
+int VMEController::vcc_write_command(int code, int n_words, unsigned short *writedata)
+{ 
+   int n,l,lcnt;
+
+   if(code<0 || code > 0xFF || n_words<0) return -1;
+   wbuf[0]=0x00;
+   wbuf[1]=code & 0xFF;
+   if(n_words) memcpy(wbuf+2, writedata, n_words*2);
+   nwbuf=2+n_words*2;
+   n=eth_write();
+   for(l=0;l<8000;l++) lcnt++;
+   if(n<(2+n_words*2)) 
+   {  if(DEBUG) printf("Error: Error in writing VCC %02X, bytes written %d\n", code&0xFF, n);
+      return -2;
+   }
+   if(DEBUG) printf("write VCC command %02X with %d data words\n", code&0xFF, n_words);
+   return n_words;
+}
+
+//
+// generic function for VCC's "No-Data" commands 
+//
+int VMEController::vcc_write_command(int code)
+{ 
+  return vcc_write_command(code, 0, NULL);
+}
+
+void VMEController::vcc_check_config()
+{
+  // check VCC's configuration registers against "correct" values
+  // and reset them if necessary.
+  // in the future, the correct values should come from XML file
+
+  unsigned short regbuf[30], tvalue[4];
+  bool config_change=false;
+  int n;
+
+  n=vcc_read_command(0x0E, 7, regbuf);
+  if(n!=7)
+  {  printf("ERROR in reading VCC's configuration registers. Quit sending new data...\n");
+     return;
+  }
+
+  // Ethernet CR
+  if(regbuf[0]!=CR_ethernet)
+  {   
+     tvalue[0]=CR_ethernet;
+     n=vcc_write_command(0x0F, 1, tvalue);
+     if(n!=1)    printf("ERROR in writing VCC's Ethernet CR\n");
+       else      printf("write VCC's Ethernet CR to %04X\n", CR_ethernet);
+     config_change=true;
+  }
+  // Ext FIFO CR
+  if(regbuf[1]!=CR_ext_fifo)
+  {  return; 
+     tvalue[0]=CR_ext_fifo;
+     n=vcc_write_command(0x10, 1, tvalue);
+     if(n!=1)    printf("ERROR in writing VCC's Ext FIFO CR\n");
+       else      printf("write VCC's Ext FIFO CR to %04X\n", CR_ext_fifo);
+     config_change=true;
+  }
+  // Reset Misc. CR
+  if(regbuf[2]!=CR_res_misc)
+  {  
+     tvalue[0]=CR_res_misc;
+     n=vcc_write_command(0x11, 1, tvalue);
+     if(n!=1)    printf("ERROR in writing VCC's Reset Misc. CR\n");
+       else      printf("write VCC's Reset Misc. CR to %04X\n", CR_res_misc);
+     config_change=true;
+  }
+  // VME CR
+  if(regbuf[4]!=CR_VME_low)
+  {  
+     tvalue[0]=CR_VME_hi;
+     tvalue[1]=CR_VME_low;
+     n=vcc_write_command(0x12, 2, tvalue);
+     if(n!=2)    printf("ERROR in writing VCC's VME CR\n");
+       else      printf("write VCC's VME CR to %04X %04X\n", CR_VME_hi, CR_VME_low);
+     config_change=true;
+  }
+  // VME BUS Timeout
+  if(regbuf[5]!=CR_BUS_timeout)
+  {  
+     tvalue[0]=CR_BUS_timeout;
+     n=vcc_write_command(0x13, 1, tvalue);
+     if(n!=1)    printf("ERROR in writing VCC's BUS timeout\n");
+       else      printf("write VCC's BUS timeout to %04X\n", CR_BUS_timeout);
+     config_change=true;
+  }
+  // VME BUS Grant Timeout
+  if(regbuf[6]!=CR_BUS_grant)
+  {  
+     tvalue[0]=CR_BUS_grant;
+     n=vcc_write_command(0x14, 1, tvalue);
+     if(n!=1)    printf("ERROR in writing VCC's BUS Grant timeout\n");
+       else      printf("write VCC's BUS Grant timeout to %04X\n", CR_BUS_grant);
+     config_change=true;
+  }
+
+  // save current configuration as default
+  if(config_change)
+  {
+     tvalue[0]=0;
+     n=vcc_read_command(0x0A, 1, regbuf);
+     if(n!=1)    printf("ERROR in reading VCC's configuration number\n");
+       else      printf("write VCC's configuration numnber: %04X\n", regbuf[0]);
+     if(n!=1 || regbuf[0]!=0) n=vcc_write_command(0x09, 1, tvalue);
+     n=vcc_write_command(0x05, 1, tvalue);
+     if(n!=1)    printf("ERROR in saving VCC's configuration\n");
+       else      printf("VCC's current configuration saved as default\n");
+  }
+
+}
+
+void VMEController::set_ErrorServer()
+{
+  // Set the controller's "Default Error Server MAC" to the current MAC if it isn't.
+
+  unsigned short regbuf[30], tvalue[4];
+  int n;
+
+  n=vcc_read_command(0x0D, 15, regbuf);
+  if(n!=15)
+  {  printf("ERROR in reading VCC's Deafult Server MAC. Quit sending new data...\n");
+     return;
+  }
+  if(memcmp(regbuf+12, hw_source_addr, 6)==0) return; 
+  tvalue[0]=0x0400;
+  memcpy(tvalue+1, hw_source_addr, 6);
+  n=vcc_write_command(0x0B, 4, tvalue);
+  if(n!=4)
+  {  printf("ERROR in writing VCC's Deafult Server MAC address\n");
+  }
+  if(DEBUG) printf("write VCC's Default Error Server MAC to the current MAC\n");
+
+  return;
+}
+
+void VMEController::vcc_dump_config()
+{
+  unsigned short regbuf[30];
+  char *mmmac;
+  int n, i, j;
+
+  n=vcc_read_command(0x0D, 7, regbuf);
+  if(n!=7)
+  {  printf( "ERROR in reading VCC's configuration registers.\n");
+  }
+  else
+  {  printf("VCC CRs: ");   
+     for(i=0;i<7;i++) printf("%04X ", regbuf[i]);
+     printf("\n");
+  }
+
+  n=vcc_read_command(0x0D, 15, regbuf);
+  mmmac=(char *)regbuf;
+  if(n!=15)
+  {  printf("ERROR in reading VCC's Deafult Server MAC.\n");
+  }
+  else
+  {  printf("VCC MACs: \n");   
+     for(j=0;j<5;j++)     
+     {  printf("   ");
+        for(i=0;i<6;i++) printf("%02X: ", mmmac[j*6+i]);
+        printf( "\n");
+     }
+  }
+
+}
+
 void VMEController::mrst_ff()
 {
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=MRst_Ext_FF;
-  nwbuf=2;
-  n=eth_write();
+  vcc_write_command(MRst_Ext_FF);
   std::cout << "Full reset of FIFO done." << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
   return;
-}
-
-void VMEController::save_cnfg_num(int cnum)
-{
-  int n,l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=Save_Cnfg_Num;
-  wbuf[2]=0x00;
-  wbuf[3]=(cnum&0x1f);  // cnum must be <= 20
-  nwbuf=4;
-  n=eth_write();
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
-
-void VMEController::set_cnfg_dflt(int dflt)
-{
-  int n,l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=Set_Cnfg_Dflt;
-  wbuf[2]=0x00;
-  wbuf[3]=(dflt&0x1f);
-  nwbuf=4;
-  n=eth_write();
-  for(l=0;l<8000;l++)lcnt++;
-  return ;
 }
 
 void VMEController::set_VME_mode()
 {
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=Set_FF_VME;
-  nwbuf=2;
-  n=eth_write();
+  vcc_write_command(Set_FF_VME);
   std::cout << "Controller is in VME mode." << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
   return;
 }
 
-void VMEController::reload_FPGA()
+void VMEController::reset()
 {
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x40;
-  wbuf[1]=0xF9;
-  nwbuf=2;
-  n=eth_write();
+  vcc_write_command(Force_Reload);
   std::cout << "Controller's FPGA reloaded." << std::endl;
-  for(l=0;l<80000;l++)lcnt++;
   return;
 }
 
 bool VMEController::SelfTest()
 { 
-   int size, i, l,lcnt;
-   unsigned char *radd_to, *radd_from;
-
 // To read back controller serial number
-   wbuf[0]=0x20;
-   wbuf[1]=0x1E;
-   nwbuf=2;
-   eth_write();
-   for(l=0;l<8000;l++) lcnt++;
-   do {
-     size=eth_read();
-     if(size<10) return 0;
-// Jinghua Liu to debug
-     if(DEBUG>10)
-     {
-        printf("Read back size %d \n",size);
-        for(i=0;i<size;i++) printf("%02X ",rbuf[i]&0xff);
-        printf("\n");
-     }
-     radd_to=(unsigned char *)rbuf;
-     radd_from=(unsigned char *)rbuf+6;
-
-// Check if the packet is from the controller, to reject unwanted broadcast packets.
-// No check on the content of the return packet (yet).
-
-   } while(memcmp(radd_from, hw_dest_addr,6));
-   clear_error();
-   return 1;
+   int n=vcc_read_command(0x1E, 2, NULL);
+   if(n==2)
+   {
+      clear_error();
+      return true;
+   }
+   else return  false;
 }
 
 bool VMEController::exist(int slot)
@@ -702,67 +898,21 @@ bool VMEController::exist(int slot)
 }
 
 void VMEController::disable_errpkt()
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x0F;
-  wbuf[2]=0x00;
-  wbuf[3]=0x10;
-  nwbuf=4;
-  n=eth_write();
+{ //disabled for now
   std::cout << "Controller error packets disabled." << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
   return;
 }
 
 
 void VMEController::enable_Reset()
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x11;
-  wbuf[2]=0x03;
-  wbuf[3]=0x1B;
-  nwbuf=4;
-  n=eth_write();
+{ //disabled for now
   std::cout << "Controller Hard Reset enabled." << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
   return;
 }
 
 void VMEController::disable_Reset()
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x11;
-  wbuf[2]=0x03;
-  wbuf[3]=0x13;
-  nwbuf=4;
-  n=eth_write();
+{ //disabled for now
   std::cout << "Controller Hard Reset disabled." << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
-
-void VMEController::read_CR()
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x20;
-  wbuf[1]=0x0E;
-  nwbuf=2;
-  n=eth_write();
-  //
-  int size=eth_read();
-  //
-  printf("Read back size %d \n",size);
-  for(int i=0;i<size;i++) printf("%02X ",rbuf[i]&0xff);
-  printf("\n");
-  //
-  for(l=0;l<8000;l++)lcnt++;
   return;
 }
 
@@ -770,52 +920,22 @@ void VMEController::read_CR()
 void VMEController::set_Timeout(int to)
 {
   // "to" is in microsecond
-  int n;
-  int l,lcnt;
   if(to<0) return;
-  n=(to*1000)>>4;
-  wbuf[0]=0x00;
-  wbuf[1]=0x13;
-  wbuf[2]=(n>>8)&0xff;
-  wbuf[3]=n&0xff;
-  nwbuf=4;
-  n=eth_write();
+  unsigned n=(to*1000)>>4;
+  unsigned short tvalue=(n>>8)&0xff +((n&0xff)<<8);
+  vcc_write_command(0x13, 1, &tvalue);
   std::cout << "VME Bus Timeout set to " << to << " microseconds" <<std::endl;
-  for(l=0;l<8000;l++)lcnt++;
-  return;
-}
-
-void VMEController::set_ErrorServer()
-{
-  // Set the controller's "Default Error Server" to the current MAC.
-  // In future firmware, hopefully this will be no longer necessary.
-  int n,l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x0b;
-  wbuf[2]=0x00;
-  wbuf[3]=0x04;
-  memcpy(wbuf+4, hw_source_addr, 6);
-  nwbuf=10;
-  n=eth_write();
-  for(l=0;l<8000;l++)lcnt++;
   return;
 }
 
 void VMEController::set_GrantTimeout(int to)
 {
   // "to" is in microsecond
-  int n;
-  int l,lcnt;
   if(to<0) return;
-  n=(to*1000)>>4;
-  wbuf[0]=0x00;
-  wbuf[1]=0x14;
-  wbuf[2]=(n>>8)&0xff;
-  wbuf[3]=n&0xff;
-  nwbuf=4;
-  n=eth_write();
+  unsigned n=(to*1000)>>4;
+  unsigned short tvalue=(n>>8)&0xff +((n&0xff)<<8);
+  vcc_write_command(0x14, 1, &tvalue);
   std::cout << "VME BusGrant Timeout set to " << to << " microseconds" <<std::endl;
-  for(l=0;l<8000;l++)lcnt++;
   return;
 }
 
@@ -846,35 +966,6 @@ void VMEController::get_macaddr(int realport)
    memcpy(ether_header.h_dest, hw_dest_addr, ETH_ALEN);
 }
 
-int VMEController::eth_write()
-{  char *msg;
-  int msg_size;
-  int nwritten;
-  int i;
-   //Creating the packet
-     ether_header.h_proto = htons(nwbuf);
-     //   ether_header.h_proto = htons(0xfff);
-
-   msg_size = sizeof(ether_header) + nwbuf;
-   if((msg = (char *)malloc(msg_size*sizeof(unsigned char))) == NULL){ 
-          std::cout << "ERROR in eth_write(): malloc(): No memory available" << std::endl;
-           exit(1);
-   }
-   memcpy(msg, &ether_header, sizeof(ether_header));
-   memcpy(msg + sizeof(ether_header), wbuf, nwbuf); 
-   nwritten = write(theSocket, (const void *)msg, msg_size);
-// Jinghua Liu to debug
-  if(DEBUG>10)
-   {
-     printf("ETH_WRITE****");
-     for(i=0;i<msg_size;i++) printf("%02X ",msg[i]&0xff);
-     printf("\n");
-     printf("Packet written : %d\n", nwritten);
-   }
-   free(msg);
-   return nwritten; 
-
-}
 //
 int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
 {
@@ -926,10 +1017,6 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
     istrt=1;
   }
  
-
-  //printf("vme_control: %02x %08x %04x \n",irdwr, (unsigned long int)ptr, data[0]);
-
-
   // Jinghua Liu to debug
   if ( DEBUG ) {
     if(irdwr==6) 
@@ -1141,7 +1228,7 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
              printf("Error: wrong return data type: %d \n", return_type);
           }
 //
-// Need to discard all error packets!
+// Need to discard all error/warning/info packets!
 // In the case of multiple VME commands in one packet, it can be
 // very complicated. Have to deal with that later. Jinghua Liu 5/5/2006.
 //
@@ -1167,6 +1254,7 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
        {  rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];
           rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];
        }
+       if(DEBUG) printf("return data: %02X %02X\n", r_datat[2*i]&0xFF, r_datat[2*i+1]&0xFF);
     }
     nread=0;
   }
@@ -1819,6 +1907,7 @@ int VMEController::erase_prom()
   eth_read_timeout(RD_TMO_short);
   return rslt;
 }
+
 int VMEController::erase_prom_bcast()
 {
   int n;
@@ -2577,7 +2666,7 @@ int VMEController::vme_read_broadcast(char *dmbs_info)
     
     ptyp = rbuf[PKT_TYP_OFF]&0xff;
     if(ptyp>=INFO_PKT){
-      printf("%s",dcode_msg_pkt(rbuf));
+      if(DEBUG) printf("%s",dcode_msg_pkt(rbuf));
       return ndmbs;
     }
     if(n>8){

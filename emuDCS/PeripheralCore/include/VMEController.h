@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.20 2008/01/24 23:16:11 liu Exp $
+// $Id: VMEController.h,v 3.21 2008/01/31 14:21:44 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.21  2008/01/31 14:21:44  liu
+// config change for firmware 4.x
+//
 // Revision 3.20  2008/01/24 23:16:11  liu
 // update broadcast read
 //
@@ -217,7 +220,6 @@ public:
   void clear_error();
   void disable_errpkt();
   void enable_Reset();
-  void read_CR();
   void disable_Reset();
   void set_Timeout(int to);
   void set_GrantTimeout(int to);
@@ -268,6 +270,9 @@ public:
   char *dcode_msg_pkt(char *buf);
   void *ptr_bin_srch(int code, struct ucw *arr, int n);
   struct rspn_t flush_pkts();
+  void vcc_dump_config();
+  void vcc_check_config();
+
   //cnfg_subs
   enum MAC_ID {DEVICE=0, MCAST1=1, MCAST2=2, MCAST3=3, DFLT_SRV=4, ALL_MACS=8};
   enum CR_ID {ETHER=0, EXTFIFO=1, RESET=2, VME=3, BTO=4, BGTO=5, ALL_CRS=8};
@@ -335,6 +340,9 @@ private:
   int DEBUG;
   int JtagBaseAddress_ ;
   int TCK_, TMS_, TDI_, TDO_;
+
+  unsigned short CR_ethernet,CR_ext_fifo,CR_res_misc,CR_VME_low,CR_VME_hi,
+                 CR_BUS_timeout,CR_BUS_grant;
  
  // I like to keep them private. 
   void load_cdac(const char *snd);
@@ -353,11 +361,11 @@ private:
   int eth_write();
   void mrst_ff();
   void set_VME_mode();
-  void set_cnfg_dflt(int);
-  void save_cnfg_num(int);
-  void reload_FPGA();
   void get_macaddr(int port);
   void setuse();
+  int vcc_read_command(int code, int n_words, unsigned short *readback);
+  int vcc_write_command(int code, int n_words, unsigned short *writedata);
+  int vcc_write_command(int code);
   //
   static const int Save_Cnfg_Num = 0x05;
   static const int Set_Cnfg_Dflt = 0x09;
