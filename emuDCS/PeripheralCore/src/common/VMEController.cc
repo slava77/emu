@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.25 2008/01/31 14:22:01 liu Exp $
+// $Id: VMEController.cc,v 3.26 2008/01/31 15:08:09 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.26  2008/01/31 15:08:09  liu
+// fix vcc_dump_config format
+//
 // Revision 3.25  2008/01/31 14:22:01  liu
 // config change for firmware 4.x
 //
@@ -250,7 +253,7 @@ VMEController::VMEController():
   //
   done_init_=false;
 
-// please not the byte swap with respect to the values on the manual 
+// please note the byte swap with respect to the book values 
   CR_ethernet=0x5000;
   CR_ext_fifo=0x0200;
   CR_res_misc=0x1B03;
@@ -814,13 +817,13 @@ void VMEController::vcc_dump_config()
   char *mmmac;
   int n, i, j;
 
-  n=vcc_read_command(0x0D, 7, regbuf);
+  n=vcc_read_command(0x0E, 7, regbuf);
   if(n!=7)
   {  printf( "ERROR in reading VCC's configuration registers.\n");
   }
   else
   {  printf("VCC CRs: ");   
-     for(i=0;i<7;i++) printf("%04X ", regbuf[i]);
+     for(i=0;i<7;i++) printf("%04X ", regbuf[i]&0xFFFF);
      printf("\n");
   }
 
@@ -833,7 +836,7 @@ void VMEController::vcc_dump_config()
   {  printf("VCC MACs: \n");   
      for(j=0;j<5;j++)     
      {  printf("   ");
-        for(i=0;i<6;i++) printf("%02X: ", mmmac[j*6+i]);
+        for(i=0;i<6;i++) printf("%02X:", mmmac[j*6+i]&0xFF);
         printf( "\n");
      }
   }
