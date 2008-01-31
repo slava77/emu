@@ -2056,10 +2056,11 @@ void EmuFCrateHyperDAQ::DDUBrcstFED(xgi::Input *in, xgi::Output *out)
 	*out << " this DDU is FED Crate " << thisCrate->number() << ", slot " <<thisDDU->slot() << " == ";
 
 	*out << cgicc::a()
-		.set("href","http://oraweb03.cern.ch:9000/pls/cms_csc_config/ddumap.web?"+ruiFormGetString)
+		.set("href","http://oraweb03.cern.ch:9000/pls/cms_emu_cern.pro/ddumap.web?"+ruiFormGetString)
 		.set("target","_blank")
 		<< "RUI #" << rui
 		<< cgicc::a() << br() << endl;
+	  //		.set("href","http://oraweb03.cern.ch:9000/pls/cms_csc_config/ddumap.web?"+ruiFormGetString)
 
 	//	*out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
 	*out << cgicc::table().set("align","center").set("width","740").set("cellpadding","5%").set("border","3").set("rules","all").set("frame","border");
