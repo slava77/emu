@@ -1,7 +1,10 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 3.2 2007/07/23 05:03:28 gilmore Exp $
+// $Id: FEDCrateParser.cc,v 3.3 2008/02/01 16:18:15 gilmore Exp $
 // $Log: FEDCrateParser.cc,v $
+// Revision 3.3  2008/02/01 16:18:15  gilmore
+// added fiber-to-CSCid map decode using local XML file as reference
+//
 // Revision 3.2  2007/07/23 05:03:28  gilmore
 // major structural chages to improve multi-crate functionality
 //
@@ -92,7 +95,17 @@ void FEDCrateParser::parseFile(const char* name){
 						<< XMLString::transcode(pNode1->getNodeName())
 						<< ">, should be <EmuSystem>" << endl;
 				}
-			
+				/* PGK I added a new attribute that will link you to the
+				XML file you want to parse for DDU fiber -> chamber mapping. */
+
+				DOMNamedNodeMap *ruiAttributes = pNode1->getAttributes();
+				DOMNode *ruiNode = ruiAttributes->getNamedItem(XMLString::transcode("RUI-to-chamber_map"));
+				RUIXMLFile_ = XMLString::transcode(ruiNode->getNodeValue());
+
+				#ifdef debugV
+				cout << "  RUIXMLFile_ = " << RUIXMLFile_ << endl;
+				#endif
+
 				DOMNode * pNode2 = pNode1->getFirstChild();
 				if (pNode2==0) cout << " Bad element "<< endl;
 				while(pNode2) { // Crate
@@ -138,9 +151,11 @@ void FEDCrateParser::parseFile(const char* name){
 								vmeParser_ = VMEParser(pNode3);
 								crate->setController(vmeParser_.controller());
 							}
-					
-							if (strcmp("DDU",XMLString::transcode(pNode3->getNodeName()))==0) {  
-								dduParser_ = DDUParser(pNode3);
+
+							if (strcmp("DDU",XMLString::transcode(pNode3->getNodeName()))==0) {
+								/* PGK the crateNumber is only because the ChamberParser needs it.
+								The DDU should be ignorant of its crateNumber. */
+								dduParser_ = DDUParser(pNode3, crateNumber, RUIXMLFile_);
 								crate->addModule(dduParser_.ddu());
 							}
 						
@@ -168,24 +183,24 @@ void FEDCrateParser::parseFile(const char* name){
 	
 	} //end of parsing config file
 
-  //
-  //  Clean up the error handler. The parser does not adopt handlers
-  //  since they could be many objects or one object installed for multiple
-  //  handlers.
-  //
+	//
+	//  Clean up the error handler. The parser does not adopt handlers
+	//  since they could be many objects or one object installed for multiple
+	//  handlers.
+	//
 
-  //  Delete the parser itself.  Must be done prior to calling Terminate, below.
-  delete parser;
-  
+	//  Delete the parser itself.  Must be done prior to calling Terminate, below.
+	delete parser;
+	
 
-  // And call the termination method
-  XMLPlatformUtils::Terminate();
-  // DomMemDebug().print();
-    
-  //
-  //  The DOM document and its contents are reference counted, and need
-  //  no explicit deletion.
-  //
+	// And call the termination method
+	XMLPlatformUtils::Terminate();
+	// DomMemDebug().print();
+		
+	//
+	//  The DOM document and its contents are reference counted, and need
+	//  no explicit deletion.
+	//
   
 }
 

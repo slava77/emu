@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.h,v 3.2 2007/07/23 05:02:22 gilmore Exp $
+// $Id: FEDCrateParser.h,v 3.3 2008/02/01 16:18:14 gilmore Exp $
 // $Log: FEDCrateParser.h,v $
+// Revision 3.3  2008/02/01 16:18:14  gilmore
+// added fiber-to-CSCid map decode using local XML file as reference
+//
 // Revision 3.2  2007/07/23 05:02:22  gilmore
 // major structural chages to improve multi-crate functionality
 //
@@ -55,6 +58,7 @@ protected:
 	DDUParser dduParser_;
 	DCCParser dccParser_;
 	VMEParser vmeParser_;
+	char *RUIXMLFile_;
 	int crateNumber;
 	std::vector<Crate*> crateVector_;
 };

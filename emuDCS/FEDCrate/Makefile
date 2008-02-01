@@ -39,7 +39,10 @@ Sources=\
 	EmuFRunControlHyperDAQ.cc \
 	EmuFCrate.cc \
 	EmuFCrateManager.cc \
-	EmuFController.cc
+	EmuFController.cc \
+	Chamber.cc \
+	ChamberParser.cc
+
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/include/ \
