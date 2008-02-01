@@ -18,6 +18,7 @@ using namespace std;
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
+/* PGK Seriously?  Globals in a class definition? */
 char filename[100];
 unsigned int hexval;
 short int intval;
@@ -6301,3 +6302,43 @@ int i;
 void DDU::executeCommand(string command)
 {
 }
+
+
+/** Part of the suite of chamber methods.
+@returns a vector of chambers in fiber-order.
+**/
+vector<Chamber *> DDU::getChambers()
+{
+	return chamberVector_;
+}
+
+
+/** Part of the suite of chamber methods.
+@param fiberNumber runs from 0-14 on (most) DDUs.
+@returns the chamber at the given fiber input number.
+**/
+Chamber *DDU::getChamber(unsigned int fiberNumber)
+{
+	if (fiberNumber >= chamberVector_.size()) {
+		cerr << "chamberVector_ overflow!" << endl;
+		return 0;
+	} else return chamberVector_[fiberNumber];
+}
+
+
+/** Part of the suite of chamber methods.
+@param chamber is the chamber being added.
+@param fiberNumber is the fiber slot of the chamber.
+**/
+void DDU::addChamber(Chamber* chamber, unsigned int fiberNumber) {
+	chamberVector_[fiberNumber] = chamber;
+}
+
+
+/** Part of the suite of chamber methods.
+@param chamberVector is a vector of chambers to overwrite the internal vector.
+**/
+void DDU::setChambers(vector<Chamber *> chamberVector) {
+	chamberVector_ = chamberVector;
+}
+

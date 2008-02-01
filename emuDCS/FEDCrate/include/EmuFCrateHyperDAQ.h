@@ -120,7 +120,7 @@ EmuFCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s)
 	xgi::bind(this,&EmuFCrateHyperDAQ::setCrate,"setCrate");
 	myParameter_ =  0;
 
-	xmlFile_     = 
+	xmlFile_     =
 	"/home/fastdducaen/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml" ;
 	Operator_ = "Name...";
 	for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
@@ -559,7 +559,8 @@ throw (xgi::exception::Exception)
 				} else {
 					/* PGK tables->divs */
 					//*out << td();
-					*out << cgicc::span() << endl;
+					if (j==0) *out << cgicc::span().set("style","margin-right: 50px;") << endl;
+					else *out << cgicc::span() << endl;
 					*out << cgicc::form().set("style","display: inline;")
 						.set("method","GET")
 						.set("action",appString[j])
@@ -576,7 +577,7 @@ throw (xgi::exception::Exception)
 					/* PGK tables->divs */
 					//*out << td() << endl;
 					*out << cgicc::span() << endl;
-					if (j==0)*out << " &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; " << endl;
+					/* PGK Jason likes the space */
 					//if (j==0) *out << tr() << tr() << endl;
 				}
 			}
@@ -2059,21 +2060,23 @@ void EmuFCrateHyperDAQ::DDUBrcstFED(xgi::Input *in, xgi::Output *out)
 		.set("href","http://oraweb03.cern.ch:9000/pls/cms_emu_cern.pro/ddumap.web?"+ruiFormGetString)
 		.set("target","_blank")
 		<< "RUI #" << rui
-		<< cgicc::a() << br() << endl;
-	  //		.set("href","http://oraweb03.cern.ch:9000/pls/cms_csc_config/ddumap.web?"+ruiFormGetString)
+		<< cgicc::a() << " <font size=-1> (linked to the Real DB page)</font>" << br() << endl;
 
-	//	*out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
+	// old oraweb:	.set("href","http://oraweb03.cern.ch:9000/pls/cms_csc_config/ddumap.web?"+ruiFormGetString)
+	//	*out << cgicc::table().set("border","0").set("rules","none").set("frame","void");
+	/* PGK TODO:  Make this slightly more sane. */
 	*out << cgicc::table().set("align","center").set("width","740").set("cellpadding","5%").set("border","3").set("rules","all").set("frame","border");
        	*out << cgicc::colgroup().set("align","center");
        	*out << cgicc::col().set("span","2").set("align","center").set("width","20");
        	*out << cgicc::col().set("span","4").set("align","center");
 	*out << cgicc::thead() << endl;
 	*out << cgicc::tr() << endl;
-	*out << cgicc::th().set("colspan","2") << " DDU " << cgicc::th() << cgicc::th().set("colspan","4") << " Board Occupancy " << cgicc::th() << cgicc::tr();
+	*out << cgicc::th().set("colspan","2") << " DDU " << cgicc::th() << cgicc::th().set("colspan","4") << " CSC Board Occupancy " << cgicc::th() << cgicc::tr();
 	*out << cgicc::tr() << endl;
 	*out << cgicc::th() << "Input" << cgicc::th();
-	*out << cgicc::th() << "Reg.#" << cgicc::th();
-	*out << cgicc::th().set("width","150") << "DMB" << cgicc::th();
+	//	*out << cgicc::th() << "Reg.#" << cgicc::th();
+	*out << cgicc::th() << "CSC_id<sup>*</sup> " << cgicc::th();
+	*out << cgicc::th().set("width","150") << "DMB<sup>**</sup>" << cgicc::th();
 	*out << cgicc::th().set("width","150") << "ALCT" << cgicc::th();
 	*out << cgicc::th().set("width","150") << "TMB" << cgicc::th();
 	*out << cgicc::th().set("width","150") << "CFEB" << cgicc::th() << cgicc::tr() << endl;
@@ -2087,7 +2090,9 @@ void EmuFCrateHyperDAQ::DDUBrcstFED(xgi::Input *in, xgi::Output *out)
 	  nalct=0x0fffffff&thisDDU->fpga_lcode[1];
 	  ntmb=0x0fffffff&thisDDU->fpga_lcode[2];
 	  ncfeb=0x0fffffff&thisDDU->fpga_lcode[3];
-	  sprintf(buf,"%d </td> <td> %ld ",j,0x0000000f&(thisDDU->fpga_lcode[0]>>28));
+	  // sprintf(buf,"%d </td> <td> %ld ",j,0x0000000f&(thisDDU->fpga_lcode[0]>>28));
+	  /* PGK Check this out! */
+	  sprintf(buf,"%d </td> <td> %s ",j,thisDDU->getChamber(j)->name().c_str());
 // For CSCs with data, for each board print #events & percent vs nDMB;
 //   for DMB print percent vs # L1A.  Useful to detect hot/dead CSCs?
 //   Make RED if no DMBs seen from a LiveFiber.  May need %4.2f for ME1/3...
@@ -2112,7 +2117,8 @@ void EmuFCrateHyperDAQ::DDUBrcstFED(xgi::Input *in, xgi::Output *out)
 	}
 	*out << cgicc::tbody() << endl;
 	*out << cgicc::table() << endl;
-	*out << "&nbsp; &nbsp; <font size=-1> DMB percentage is relative to # L1As; other board percentages are relative to # LCTxL1A hits on the CSC.</font>" << endl;
+	*out << "&nbsp; &nbsp; <font size=-1> <sup>*</sup> this is the _assumed_ CSC id, based on a local reference file only.</font>" << br() << endl;
+	*out << "&nbsp; &nbsp; <font size=-1> <sup>**</sup> the DMB percentage is relative to # L1As; other board percentages are relative to # LCTxL1A hits on the CSC.</font>" << br() << endl;
 	if(err>0){
 	  *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
 	  *out << buf3 << cgicc::span();

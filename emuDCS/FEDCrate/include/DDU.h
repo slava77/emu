@@ -11,6 +11,7 @@ using namespace std;
 #include <string>
 #include "VMEModule.h"
 #include "JTAG_constants.h"
+#include "Chamber.h"
 
 
 class DDU: public VMEModule
@@ -216,10 +217,20 @@ public:
   /// sends commands by name
   void executeCommand(string command);
 
-public:
   // unpacks rcvbuf from FPGA operations
   unsigned long int unpack_ibrd() const;
   unsigned int unpack_ival() const;
+
+	/* PGK Chamber routines */
+	vector<Chamber *> getChambers();
+	Chamber *getChamber(unsigned int fiberNumber);
+	void addChamber(Chamber *chamber, unsigned int fiberNumber);
+	void setChambers(vector<Chamber *> chamberVector);
+
+private:
+
+	vector<Chamber *> chamberVector_;
+ 	
 };
 
 
