@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.16 2007/12/27 00:33:52 liu Exp $
+// $Id: CCB.cc,v 3.17 2008/02/03 12:26:56 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.17  2008/02/03 12:26:56  liu
+// change hard_reset sequence
+//
 // Revision 3.16  2007/12/27 00:33:52  liu
 // update
 //
@@ -824,8 +827,8 @@ void CCB::hardReset() {
   ReadRegister(0x0);
 
   HardReset_crate();
-
-  ReadRegister(0x0);
+  ::sleep(2);
+//  ReadRegister(0x0);
 
 
   //
@@ -833,9 +836,9 @@ void CCB::hardReset() {
   //fg sleep(10);
   //
   // sequence of 2nd hard reset with additional delays (Jianhui)
-  ::sleep(2);
-    HardReset_crate();
-    ::sleep(1); // could go down to ~100msec (Jianhui)
+  //::sleep(2);
+  //  HardReset_crate();
+  //  ::sleep(1); // could go down to ~100msec (Jianhui)
   //  std::cout << ReadRegister(0x0) << std::endl;
 
   SoftReset_crate();
