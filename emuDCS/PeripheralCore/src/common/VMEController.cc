@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.27 2008/01/31 16:34:38 liu Exp $
+// $Id: VMEController.cc,v 3.28 2008/02/03 12:27:27 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.28  2008/02/03 12:27:27  liu
+// disable VCC prom read routines
+//
 // Revision 3.27  2008/01/31 16:34:38  liu
 // disable VCC hard-reset
 //
@@ -252,14 +255,14 @@ VMEController::VMEController():
   JtagBaseAddress_ = 0x0;
   add_ucla = 0xffffffff;
   //
-  usedelay_ = false ;
+  usedelay_ = true ;
   //
   done_init_=false;
 
 // please note the byte swap with respect to the book values 
   CR_ethernet=0x5000;
   CR_ext_fifo=0x0200;
-  CR_res_misc=0x1303;
+  CR_res_misc=0x1B03;
   CR_VME_low=0x0F1D;
   CR_VME_hi=0xFFED;
   CR_BUS_timeout=0xD430;
@@ -1147,7 +1150,8 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
     //
     packet_delay=(long int)fpacket_delay+1;
     packet_delay=packet_delay+15; 
-    //if ( usedelay_ ) udelay(packet_delay);
+//JHL delay turned on
+    if ( usedelay_ ) udelay(packet_delay);
     //
     fpacket_delay=0.0;
     packet_delay=0;
@@ -1472,6 +1476,8 @@ int VMEController::chk_jtag_conn()
 
 unsigned int VMEController::read_dev_id()
 {
+// Jinghua & Ben: disabled for now Feb.3, 2008
+  return 0;
   int n;
   unsigned int dev_id;
   int ptyp;
@@ -1491,6 +1497,8 @@ unsigned int VMEController::read_dev_id()
 
 unsigned int VMEController::read_user_code()
 {
+// Jinghua & Ben: disabled for now Feb.3, 2008
+  return 0;
   int n;
   unsigned int user_code;
   int ptyp;
@@ -1510,6 +1518,8 @@ unsigned int VMEController::read_user_code()
 
 char * VMEController::read_customer_code()
 {
+// Jinghua & Ben: disabled for now Feb.3, 2008
+  return 0;
   int n;
   int ptyp;
   wbuf[0]=0x00;
