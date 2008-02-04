@@ -26,6 +26,8 @@ Package=emuDQM/EmuTests
 
 Sources=\
 	TestCanvas_6gr1h.cc \
+	TestCanvas_userHisto.cc \
+	Test_Generic.cc \
 	Test_CFEB02.cc
 	
 #	EmuTests.cc 
@@ -44,6 +46,8 @@ ExternalObjects = \
 IncludeDirs = $(XdaqIncludeDirs) \
 	../CMSSWLibs \
 	../Common/include \
+	../../emuDAQ/emuReadout/include \
+        ../../emuDAQ/emuReadout/ORCA \
 	$(CMSSW) \
 	$(BOOST)
 
