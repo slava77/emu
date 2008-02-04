@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Masks xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <CSCMasks>
+        <!--CSCMasks>
                 <CSC>ME+3.2.07</CSC>
 		<Test>CFEB02</Test>
 		<CFEBChans>(6:17-32)</CFEBChans>
@@ -15,6 +15,6 @@
 	<CSCMasks>
                 <CSC>ME+2.2.05</CSC>
                 <Test>CFEB02</Test>
-                <CFEBChans>(6:12),(6:16)</CFEBChans>
-        </CSCMasks>
+                <CFEBChans>(6:16)</CFEBChans>
+        </CSCMasks-->
 </Masks>

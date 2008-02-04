@@ -96,7 +96,7 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 	theRightTopPad->AddText("Number of entries:");
 	theRightTopPad->AddText("Out of limits:");
 	
-	theSummaryHisto = new TH1F("theSummaryHistogram", "theSummaryHistogram", theNbinsy, theYlow, theYup);
+	theSummaryHisto = new TH1F(theName, theTitle, theNbinsy, theYlow, theYup);
 	theSummaryHisto->SetFillColor(theColorGray);
 	theSummaryHisto->GetXaxis()->CenterTitle(true);
 	theSummaryHisto->GetXaxis()->SetTitleFont(fTextFont);
@@ -411,26 +411,45 @@ int TestCanvas_1h::Fill (TestData2D data, TestData2D mask) {
 	return fQualityTest;
 }
 
-void TestCanvas_1h::SetHistoObject(TH1 *histo) {
-	theSummaryHisto = histo;
-	
+void TestCanvas_1h::UpdateSummary()
+{
+    if (theSummaryHisto != NULL) {
 // Add information (total number of entries and number of enries out of limits) to TextPad
-	std::string fsEntries = Form("%.0f",theSummaryHisto->GetEntries());
-	AddTextEntries(fsEntries);
-//	std::string fsOutOfLimits = Form("%d",fNOutOfLimits);
-//	AddTextLimits(fsOutOfLimits);
+        std::string fsEntries = Form("%.0f",theSummaryHisto->GetEntries());
+        AddTextEntries(fsEntries);
+//      std::string fsOutOfLimits = Form("%d",fNOutOfLimits);
+//      AddTextLimits(fsOutOfLimits);
 
 // Add information (Entries, Mean, RMS, Underflow, Overflow) to StatPad of summary histogram
-	fsEntries = Form("Entries = %.0f",theSummaryHisto->GetEntries());
-	thePtstatsSummaryHisto->AddText(fsEntries.c_str());
-	std::string fsMean = Form("Mean = %f",theSummaryHisto->GetMean(1));
-	thePtstatsSummaryHisto->AddText(fsMean.c_str());
-	std::string fsRMS = Form("RMS = %f",theSummaryHisto->GetRMS(1));
-	thePtstatsSummaryHisto->AddText(fsRMS.c_str());
-	std::string fsUnderflow = Form("Underflow = %.0f",theSummaryHisto->GetBinContent(0));
-	thePtstatsSummaryHisto->AddText(fsUnderflow.c_str());
-	std::string fsOverflow = Form("Overflow = %.0f",theSummaryHisto->GetBinContent(theNbinsy+1));
-	thePtstatsSummaryHisto->AddText(fsOverflow.c_str());
+	thePtstatsSummaryHisto->Clear();
+        fsEntries = Form("Entries = %.0f",theSummaryHisto->GetEntries());
+        thePtstatsSummaryHisto->AddText(fsEntries.c_str());
+        std::string fsMean = Form("Mean = %f",theSummaryHisto->GetMean(1));
+        thePtstatsSummaryHisto->AddText(fsMean.c_str());
+        std::string fsRMS = Form("RMS = %f",theSummaryHisto->GetRMS(1));
+        thePtstatsSummaryHisto->AddText(fsRMS.c_str());
+        std::string fsUnderflow = Form("Underflow = %.0f",theSummaryHisto->GetBinContent(0));
+        thePtstatsSummaryHisto->AddText(fsUnderflow.c_str());
+        std::string fsOverflow = Form("Overflow = %.0f",theSummaryHisto->GetBinContent(theNbinsy+1));
+        thePtstatsSummaryHisto->AddText(fsOverflow.c_str());
+	theSummaryLowLine->SetY1(theSummaryHisto->GetMinimum());
+        theSummaryLowLine->SetY2(theSummaryHisto->GetMaximum());
+        theSummaryLowLowLine->SetY1(theSummaryHisto->GetMinimum());
+        theSummaryLowLowLine->SetY2(theSummaryHisto->GetMaximum());
+        theSummaryHighLine->SetY1(theSummaryHisto->GetMinimum());
+        theSummaryHighLine->SetY2(theSummaryHisto->GetMaximum());
+        theSummaryHighHighLine->SetY1(theSummaryHisto->GetMinimum());
+        theSummaryHighHighLine->SetY2(theSummaryHisto->GetMaximum());	
+    }
+}
+
+void TestCanvas_1h::SetHistoObject(TH1 *histo) {
+	if ((histo != NULL) && (histo != theSummaryHisto)) {
+		delete theSummaryHisto;
+		theSummaryHisto = histo;
+	}
+	UpdateSummary();
+	
 }
 
 void TestCanvas_1h::SetResultCode(int QualityTest) {
@@ -471,6 +490,7 @@ void TestCanvas_1h::Draw (void) {
 	theMainCanvas->cd();
 	theLeftPadBackground->Draw();
 	theLeftPadBackground->cd();
+	UpdateSummary();
 	theSummaryHisto->Draw();
 	theSummaryLowLine->Draw();
 	theSummaryLowLowLine->Draw();

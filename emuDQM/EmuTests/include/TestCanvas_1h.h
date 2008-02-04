@@ -133,6 +133,8 @@ class TestCanvas_1h: public TCanvas {
 	TGraph* theGraphRedEmptyTriangleUp[NLAYERS];
 	TGraph* theGraphRedEmptyTriangleDown[NLAYERS];
 
+	void UpdateSummary();
+
   public:
 	TestCanvas_1h (std::string, std::string, Int_t, Double_t, Double_t);
 	~TestCanvas_1h ();
