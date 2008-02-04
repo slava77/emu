@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.28 2008/02/03 12:27:27 liu Exp $
+// $Id: VMEController.cc,v 3.29 2008/02/04 14:02:36 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.29  2008/02/04 14:02:36  liu
+// further update for VCC issues
+//
 // Revision 3.28  2008/02/03 12:27:27  liu
 // disable VCC prom read routines
 //
@@ -255,14 +258,14 @@ VMEController::VMEController():
   JtagBaseAddress_ = 0x0;
   add_ucla = 0xffffffff;
   //
-  usedelay_ = true ;
+  usedelay_ = false ;
   //
   done_init_=false;
 
 // please note the byte swap with respect to the book values 
   CR_ethernet=0x5000;
   CR_ext_fifo=0x0200;
-  CR_res_misc=0x1B03;
+  CR_res_misc=0x1303;
   CR_VME_low=0x0F1D;
   CR_VME_hi=0xFFED;
   CR_BUS_timeout=0xD430;
@@ -441,11 +444,11 @@ int VMEController::do_schar(int open_or_close)
 
 void udelay(long int itim)
 {
-  usleep(5000);
+//  usleep(5000);
   //std::cout << "Udelay..." << std::endl;
   //std::cout << "Waiting...." << std::endl;
   //std::cout << "udelay..." << itim << std::endl;
-  usleep(itim*10);
+//  usleep(itim*10);
   //
   struct  timeval tp;
   long usec1,usec2;
@@ -576,8 +579,8 @@ int VMEController::eth_read()
 //   if(size==6){nrbuf=0;return 0;}
    if(size<0)return size;
    if(size<7)
-   {   if(rbuf[0]==0x04&&loopcnt<10)
-       {   usleep(500);
+   {   if(rbuf[0]==0x04&&loopcnt<3)
+       {   usleep(50);
            loopcnt=loopcnt+1;
            goto GETMORE;
        }
@@ -2635,8 +2638,11 @@ int VMEController::set_clr_bits(enum SET_CLR sc, enum CR_ID crid, unsigned int m
 
 int VMEController::read_dev_id_broadcast(char * crates_info)
 {
+// JHL & Ben: disabled Feb 4, 2008 
+  return 0;
   int n=0, cs=0;
   int ptyp;
+
   std::cout<<"Enter: read_dev_id_broadcast() \n"<<std::endl;
   wbuf[0]=0x00;
   wbuf[1]=Rd_Dev_ID;
