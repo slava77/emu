@@ -122,7 +122,7 @@ static char *bufr;
 static int endcond={0};
 static int wakecond={0};
 static int ERROR={0};
-int rd_tmo = {1000};
+static int rd_tmo = {1000};
 //Added by Jinghua Liu
 static int wakestatus=0;
 static int pack_drop=0;
@@ -269,10 +269,14 @@ static int schar_ioctl(struct inode *inode, struct file *file,
 	        return 0;
 		}
 
-	        case SCHAR_READ_TIMEOUT: {
-                  rd_tmo=(int)arg;
-		  //printk(KERN_INFO "SCHAR_READ_TIMEOUT %d ",rd_tmo);
+	        case SCHAR_SET_TIMEOUT: {
+                  if((int)arg >0)   rd_tmo=(int)arg;
+		  //printk(KERN_INFO "SCHAR_SET_TIMEOUT %d ",rd_tmo);
                   return 0;  
+	        }
+
+	        case SCHAR_GET_TIMEOUT: {
+                  return rd_tmo;  
 	        }
 
                 case SCHAR_INQR: {
@@ -310,7 +314,7 @@ static int schar_read_proc(ctl_table *ctl, int write, struct file *file,
 		return 0;
 	}
 	v2.6remove */
-	len += sprintf(schar_proc_string, "GIGABIT DRIVER SIMPLE JTAG\n\n");
+	len += sprintf(schar_proc_string, "GIGABIT SIMPLE CHAR DRIVER\n\n");
 	len += sprintf(schar_proc_string+len, " LEFT TO READ: \n");
         len += sprintf(schar_proc_string+len," pack_left\t\t%d packets\n",pack_left);
  	len += sprintf(schar_proc_string+len, " wakestatus\t\t%d\n",wakestatus);
@@ -397,7 +401,7 @@ static int schar_open(struct inode *inode, struct file *file)
 {
 	/* increment usage count */
 	// MOD_INC_USE_COUNT;
-  printk(KERN_INFO " schar open \n");
+//  printk(KERN_INFO " schar open \n");
 	return 0;
 }
 static int schar_release(struct inode *inode, struct file *file)
