@@ -1,5 +1,5 @@
 /********************************************//**
-\class TestCanvas_1h
+\class TestCanvas_userHisto
 \brief A Canvas subdivided into independent graphical areas: 1 histo and 1 textpad
 \details Canvas layout is sketched in the picture below.
 \verbatim 
@@ -23,8 +23,8 @@
 \author Yuriy Pakhotin
 \date Fri Jan 18 20:37:22 CET 2008
 ***********************************************/
-#ifndef TEST_CANVAS_1H_H
-#define TEST_CANVAS_1H_H
+#ifndef TEST_CANVAS_MON_H
+#define TEST_CANVAS_MON_H
 
 #include <iostream>
 #include <string.h>
@@ -52,11 +52,11 @@
 #include <TestData2D.h>
 #include <TestData1D.h>
 
-class TestCanvas_1h: public TCanvas {
+class TestCanvas_userHisto: public TCanvas {
 	
 	const char * theName;
 	const char * theTitle;
-	
+/*	
 	int theNbinsx;   ///< Number of bins along X axis of graphs
 	double theXlow; ///< Low edge of first bin along X axis of graphs
 	double theXup;  ///< Upper edge of last bin along X axis of graphs (not included in last bin)
@@ -64,7 +64,7 @@ class TestCanvas_1h: public TCanvas {
 	int theNbinsy;   ///< Number of bins along Y axis of graphs
 	double theYlow; ///< Low edge of first bin along Y axis of graphs
 	double theYup;  ///< Upper edge of last bin along Y axis of graphs (not included in last bin)
-	
+*/	
 // Color index settings: 
 	int theFillColor;        ///< Canvas fill color
 	int theColorWhite;       ///< White
@@ -86,16 +86,19 @@ class TestCanvas_1h: public TCanvas {
 // *       ---------LowLimit Line      *
 // *       ---------LowLowLimit Line   *
 // *************************************
+/*
 	double theLowLimit;
 	double theLowLowLimit;
 	double theHighLimit;
 	double theHighHighLimit;
-
+*/
 // Lines to show performance range on summary histogram
+/*
 	TLine* theSummaryLowLine;
 	TLine* theSummaryHighLine;
 	TLine* theSummaryLowLowLine;
 	TLine* theSummaryHighHighLine;
+*/
 // Lines settings
 	int theLineWidth;
 	int theLineStyle;
@@ -110,15 +113,17 @@ class TestCanvas_1h: public TCanvas {
 	TPaveText *theTitlePad;
 
 // Pad and summary histogram and statistics box
-	TPad *theLeftPadBackground;
-	TH1 *theSummaryHisto;
+	// TPad *theLeftPadBackground;
+	TPad *theUserPad;
+	TH1 *theUserHisto;
+
 	TPaveStats *thePtstatsSummaryHisto;
 
 // Text box on the right
 	TPaveText *theRightTopPad;
 
 // Blank pad on the right
-	TPad *theRightBottomPad;
+	TPaveText *theRightBottomPad;
 
 // Graphs for different layers with solid markers = unmasked channels
 	TGraph* theGraphGreenSolid[NLAYERS];
@@ -134,8 +139,8 @@ class TestCanvas_1h: public TCanvas {
 	TGraph* theGraphRedEmptyTriangleDown[NLAYERS];
 
   public:
-	TestCanvas_1h (std::string, std::string, Int_t, Double_t, Double_t);
-	~TestCanvas_1h ();
+	TestCanvas_userHisto (std::string, std::string);
+	~TestCanvas_userHisto ();
 	const char* GetName(void);                           ///< Get name of canvas
 	const char* GetTitle(void);                          ///< Get title of canvas
 	void SetCanvasSize(uint32_t, uint32_t);              ///< Set canvas size
@@ -148,8 +153,8 @@ class TestCanvas_1h: public TCanvas {
 	void AddTextDatafile (std::string);                  ///< Add datafile name to text box
 	void AddTextRun (std::string);                       ///< Add time of run collected to text box
 	void AddTextAnalysis (std::string);                  ///< Add time of run analysed to text box
-	void AddTextEntries (std::string);                   ///< Add total number of entries
-	void AddTextLimits (std::string);                    ///< Add total number of entries out of limits
+	void AddTextEvents (std::string);                   ///< Add total number of events
+	void AddTextBadEvents (std::string);                ///< Add total number of bad events
 	/** Fill and analyze data.
 	    \n Second input is mask (0 - no mask on channel, 1 - channel masked)
 	    \n Output is result of quality test:
@@ -172,6 +177,7 @@ class TestCanvas_1h: public TCanvas {
 	int Write (void);                                  ///< Write this object to the current directory
 	int Write (std::string);                           ///< Write this object with new name to the current directory
 	TH1* GetHisto(void);
+	TVirtualPad* GetUserPad();
 };
 
 

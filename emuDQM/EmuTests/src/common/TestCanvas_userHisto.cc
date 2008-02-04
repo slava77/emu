@@ -1,10 +1,11 @@
-#include"TestCanvas_1h.h"
+#include"TestCanvas_userHisto.h"
 
-TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy, Double_t ylow, Double_t yup) {
+TestCanvas_userHisto::TestCanvas_userHisto (std::string name, std::string title) {
 
 	theName  = name.c_str();
 	theTitle = title.c_str();
 
+/*
 // Set graphs ranges
 	theNbinsx = 10;
 	theXlow   = 0;
@@ -13,6 +14,7 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 	theNbinsy = Nbinsy;
 	theYlow   = ylow;
 	theYup    = yup;
+*/
 
 // Color index settings	
 	theColorWhite         = TColor::GetColor("#ffffff"); ///< White
@@ -24,16 +26,18 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 	theColorYellowLight   = TColor::GetColor("#ffff00"); ///< Light yellow
 	theColorYellowDark    = TColor::GetColor("#cccc00"); ///< Dark yellow
 	theColorBlueLight     = TColor::GetColor("#0000ff"); ///< Light blue
-	
+/*	
 // Default values of performance range limits
 	theHighLimit     = (theYup + theYlow)/2.0 + (theYup - theYlow)/6.0;
 	theHighHighLimit = (theYup + theYlow)/2.0 + (theYup - theYlow)/3.0;
 	theLowLimit      = (theYup + theYlow)/2.0 - (theYup - theYlow)/6.0;
 	theLowLowLimit   = (theYup + theYlow)/2.0 - (theYup - theYlow)/3.0;
+*/
 
 // Settings for lines
 	theLineWidth = 1; ///< Line width = 1 pixel
 	theLineStyle = 7; ///< Line style = long dash
+/*
 // Lines to show performance range on right histogram	
 	theSummaryLowLine = new TLine(theLowLimit,0.0,theLowLimit,100.0);
 	theSummaryLowLine->SetLineColor(theColorGreenLight);
@@ -51,8 +55,8 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 	theSummaryHighHighLine->SetLineColor(theColorRedLight);
 	theSummaryHighHighLine->SetLineWidth(theLineWidth);
 	theSummaryHighHighLine->SetLineStyle(theLineStyle);
-	
-	theMainCanvas = new TCanvas(theName, theTitle, 1200,800);
+*/	
+	theMainCanvas = new TCanvas(theName, theTitle, 1200,900);
 	theMainCanvas->SetFillColor(theColorWhite);
 	theMainCanvas->SetBorderSize(0);
 	
@@ -72,30 +76,37 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 	double fYd  = 0.001;
 	double fX0  = 0.01;
 //	double fX1  = 0.03;
-	double fX2  = 0.591;
-	
+	double fX2  = 0.59;
+	/*
 	theLeftPadBackground = new TPad("theLeftPadBackground","theLeftPadBackground",fX0,fY0,fX2,fY2 + fYd);
 	theLeftPadBackground->SetFillColor(theColorWhite);
 	theLeftPadBackground->SetBorderSize(0);
-		
-	theRightBottomPad = new TPad("theRightBottomPad","theRightBottomPad",.59,.01,.99,.611);
+	*/
+	theUserPad = new TPad("theLeftPadBackground","theLeftPadBackground",fX0,fY0,fX2,fY2 + fYd);
+        theUserPad->SetFillColor(theColorWhite);
+        theUserPad->SetBorderSize(0);
+	
+	theRightBottomPad = new TPaveText(fX2,fY0,.99,0.609, "brNDC");
 	theRightBottomPad->SetFillColor(theColorWhite);
 	theRightBottomPad->SetBorderSize(0);
 	
-	theRightTopPad = new TPaveText(.59,.610,.99,fY2+fYd,"brNDC");
+	
+	theRightTopPad = new TPaveText(fX2,0.610,.99,fY2+fYd,"brNDC");
 	theRightTopPad->SetBorderSize(0);
 	theRightTopPad->SetFillColor(theColorWhite);
 	theRightTopPad->SetTextAlign(12);
-	theRightTopPad->SetTextSize(0.03);
+	theRightTopPad->SetTextSize(0.02);
 	theRightTopPad->SetTextFont(fTextFont);
 	theRightTopPad->AddText("Test:");
 	theRightTopPad->AddText("Result:");
 	theRightTopPad->AddText("Datafile:");
 	theRightTopPad->AddText("Run:");
 	theRightTopPad->AddText("Analysis:");
-	theRightTopPad->AddText("Number of entries:");
-	theRightTopPad->AddText("Out of limits:");
-	
+	theRightTopPad->AddText("Number of Accepted events:");
+	theRightTopPad->AddText("Number of Rejected events:");
+
+	theUserHisto=NULL;
+/*	
 	theSummaryHisto = new TH1F("theSummaryHistogram", "theSummaryHistogram", theNbinsy, theYlow, theYup);
 	theSummaryHisto->SetFillColor(theColorGray);
 	theSummaryHisto->GetXaxis()->CenterTitle(true);
@@ -103,7 +114,8 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 	theSummaryHisto->GetXaxis()->SetTitle("Title Y");
 	theSummaryHisto->GetYaxis()->SetTitleFont(fTextFont);
 	theSummaryHisto->GetYaxis()->SetTitle("Entries");
-	
+*/	
+/*
 	thePtstatsSummaryHisto = new TPaveStats(0.7,0.75,0.9,0.9,"brNDC");
 	thePtstatsSummaryHisto->SetName("stats");
 	thePtstatsSummaryHisto->SetBorderSize(2);
@@ -111,14 +123,15 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 	thePtstatsSummaryHisto->SetTextAlign(12);
 	thePtstatsSummaryHisto->SetOptStat(111110);
 	thePtstatsSummaryHisto->SetOptFit(0);
-	
+*/
+/*	
 	double fMarkerSize = 0.5; ///< Marker size
 	int   fSolidCircleMarkerStyle       = 20; ///< Solid circle marker
 	int   fEmptyCircleMarkerStyle       = 4;  ///< Empty circle marker
 	int   fSolidTriangleUpMarkerStyle   = 22; ///< Solid triangle up marker
 	int   fSolidTriangleDownMarkerStyle = 23; ///< Solid triangle down marker
 	int   fEmptyTriangleUpMarkerStyle   = 26; ///< Empty triangle up marker (Empty triangle down not implemented)
-	
+
 	for(int fNlayer = 0; fNlayer < NLAYERS; fNlayer++) {	
 		theGraphGreenSolid[fNlayer] = new TGraph();
  		theGraphGreenSolid[fNlayer]->SetMarkerColor(theColorGreenDark);
@@ -170,9 +183,10 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 		theGraphRedEmptyTriangleDown[fNlayer]->SetMarkerStyle(fEmptyTriangleUpMarkerStyle);
 		theGraphRedEmptyTriangleDown[fNlayer]->SetMarkerSize(fMarkerSize);
 	}
+*/
 }
 
-TestCanvas_1h::~TestCanvas_1h () {
+TestCanvas_userHisto::~TestCanvas_userHisto () {
 	delete theMainCanvas;
  	delete theTitlePad;
 //	delete theLeftPadBackground;
@@ -182,94 +196,96 @@ TestCanvas_1h::~TestCanvas_1h () {
 // 	delete theLeftPad[2];
 // 	delete theLeftPad[1];
 // 	delete theLeftPad[0];
-// 	delete theRightBottomPad;
+ 	//delete theRightBottomPad;
+//	delete thePtstatsSummaryHisto;
 // 	delete theRightTopPad;
-	delete theSummaryHisto;
+	delete theUserHisto;
+	// delete theUserPad;
 }
 
-const char*  TestCanvas_1h::GetTitle (void) {
+const char*  TestCanvas_userHisto::GetTitle (void) {
 	
 	return theTitle;
 
 }
 
-const char*  TestCanvas_1h::GetName (void) {
+const char*  TestCanvas_userHisto::GetName (void) {
 	
 	return theName;
 
 }
 
-void TestCanvas_1h::SetTitle (std::string text) {
+void TestCanvas_userHisto::SetTitle (std::string text) {
 	
 	theTitle = text.c_str();
 	theTitlePad->GetLine(0)->SetText(0.0, 0.0, theTitle);
 
 }
 
-int TestCanvas_1h::SetXTitle (std::string text) {
+int TestCanvas_userHisto::SetXTitle (std::string text) {
 	
 	return 1;
 
 }
 
-int TestCanvas_1h::SetYTitle (std::string text) {
+int TestCanvas_userHisto::SetYTitle (std::string text) {
 	
-	theSummaryHisto->GetXaxis()->SetTitle(text.c_str());
+	theUserHisto->GetXaxis()->SetTitle(text.c_str());
 	return 1;
 
 }
 
-void TestCanvas_1h::AddTextTest(std::string text){
+void TestCanvas_userHisto::AddTextTest(std::string text){
 	
 	std::string fTest ("Test: ");
 	theRightTopPad->GetLine(0)->SetText(0.0, 0.0, (fTest + text).c_str());
 
 }
 
-void TestCanvas_1h::AddTextResult(std::string text){
+void TestCanvas_userHisto::AddTextResult(std::string text){
 	
 	std::string fResult ("Result: ");
 	theRightTopPad->GetLine(1)->SetText(0.0, 0.0, (fResult + text).c_str());
 
 }
 
-void TestCanvas_1h::AddTextDatafile (std::string text) {
+void TestCanvas_userHisto::AddTextDatafile (std::string text) {
 	
 	std::string fDatafile ("Datafile: ");
 	theRightTopPad->GetLine(2)->SetText(0.0, 0.0, (fDatafile + text).c_str());
 
 }
 
-void TestCanvas_1h::AddTextRun (std::string text) {
+void TestCanvas_userHisto::AddTextRun (std::string text) {
 	
 	std::string fRun ("Run: ");
 	theRightTopPad->GetLine(3)->SetText(0.0, 0.0, (fRun + text).c_str());
 
 }
 
-void TestCanvas_1h::AddTextAnalysis (std::string text) {
+void TestCanvas_userHisto::AddTextAnalysis (std::string text) {
 	
 	std::string fAnalysis ("Analysis: ");
 	theRightTopPad->GetLine(4)->SetText(0.0, 0.0,(fAnalysis + text).c_str());
 
 }
 
-void TestCanvas_1h::AddTextEntries (std::string text) {
+void TestCanvas_userHisto::AddTextEvents (std::string text) {
 	
-	std::string fEntries ("Number of entries: ");
+	std::string fEntries ("Number of Accepted events: ");
 	theRightTopPad->GetLine(5)->SetText(0.0, 0.0, (fEntries + text).c_str());
 
 }
 
-void TestCanvas_1h::AddTextLimits (std::string text) {
+void TestCanvas_userHisto::AddTextBadEvents (std::string text) {
 
-	std::string fOutOfLimits ("Out of limits: ");
+	std::string fOutOfLimits ("Number of Rejected events: ");
 	theRightTopPad->GetLine(6)->SetText(0.0, 0.0, (fOutOfLimits + text).c_str());
 
 }
 
-void TestCanvas_1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t highLimit,Double_t highHighLimit) {
-	
+void TestCanvas_userHisto::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t highLimit,Double_t highHighLimit) {
+/*	
 	theLowLimit = lowLimit;
 	theLowLowLimit = lowLowLimit;
 	theHighLimit = highLimit;
@@ -283,13 +299,16 @@ void TestCanvas_1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t h
 	theSummaryHighLine->SetX2(theHighLimit);
 	theSummaryHighHighLine->SetX1(theHighHighLimit);
 	theSummaryHighHighLine->SetX2(theHighHighLimit);
+*/
 }
 
-int TestCanvas_1h::Fill (TestData1D data, TestData1D mask) {
+int TestCanvas_userHisto::Fill (TestData1D data, TestData1D mask) {
 	return 1;
 }
 
-int TestCanvas_1h::Fill (TestData2D data, TestData2D mask) {
+int TestCanvas_userHisto::Fill (TestData2D data, TestData2D mask) {
+	return 1;
+/*
 	Double_t fX[NBINS], fY[NBINS];
 	int fQualityTest = 1;
 	int fNOutOfLimits = 0;
@@ -409,31 +428,34 @@ int TestCanvas_1h::Fill (TestData2D data, TestData2D mask) {
 	theMainCanvas->SetFillColor(theFillColor);
 
 	return fQualityTest;
+*/
 }
 
-void TestCanvas_1h::SetHistoObject(TH1 *histo) {
-	theSummaryHisto = histo;
+void TestCanvas_userHisto::SetHistoObject(TH1 *histo) {
+	theUserHisto = histo;
 	
 // Add information (total number of entries and number of enries out of limits) to TextPad
-	std::string fsEntries = Form("%.0f",theSummaryHisto->GetEntries());
-	AddTextEntries(fsEntries);
+	std::string fsEntries = Form("%.0f",theUserHisto->GetEntries());
+//	AddTextEntries(fsEntries);
 //	std::string fsOutOfLimits = Form("%d",fNOutOfLimits);
 //	AddTextLimits(fsOutOfLimits);
 
 // Add information (Entries, Mean, RMS, Underflow, Overflow) to StatPad of summary histogram
-	fsEntries = Form("Entries = %.0f",theSummaryHisto->GetEntries());
+/*
+	fsEntries = Form("Entries = %.0f",theUserHisto->GetEntries());
 	thePtstatsSummaryHisto->AddText(fsEntries.c_str());
-	std::string fsMean = Form("Mean = %f",theSummaryHisto->GetMean(1));
+	std::string fsMean = Form("Mean = %f",theUserHisto->GetMean(1));
 	thePtstatsSummaryHisto->AddText(fsMean.c_str());
-	std::string fsRMS = Form("RMS = %f",theSummaryHisto->GetRMS(1));
+	std::string fsRMS = Form("RMS = %f",theUserHisto->GetRMS(1));
 	thePtstatsSummaryHisto->AddText(fsRMS.c_str());
-	std::string fsUnderflow = Form("Underflow = %.0f",theSummaryHisto->GetBinContent(0));
+	std::string fsUnderflow = Form("Underflow = %.0f",theUserHisto->GetBinContent(0));
 	thePtstatsSummaryHisto->AddText(fsUnderflow.c_str());
-	std::string fsOverflow = Form("Overflow = %.0f",theSummaryHisto->GetBinContent(theNbinsy+1));
+	std::string fsOverflow = Form("Overflow = %.0f",theUserHisto->GetBinContent(theNbinsy+1));
 	thePtstatsSummaryHisto->AddText(fsOverflow.c_str());
+*/
 }
 
-void TestCanvas_1h::SetResultCode(int QualityTest) {
+void TestCanvas_userHisto::SetResultCode(int QualityTest) {
 	theFillColor = theColorWhite;
 	if(QualityTest == 1) {
 		theFillColor = theColorGreenLight;
@@ -451,12 +473,13 @@ void TestCanvas_1h::SetResultCode(int QualityTest) {
 	theMainCanvas->SetFillColor(theFillColor);
 }
 
-void TestCanvas_1h::Draw (void) {
+void TestCanvas_userHisto::Draw (void) {
 
 // Switch off all default titles and statistics boxes		
 	theStyle = new TStyle("Style", "Style");
  	theStyle->SetOptStat(0);
  	theStyle->SetOptTitle(0);
+	theStyle->SetPalette(1,0);
  	theStyle->cd();
 		
 	theMainCanvas->cd();
@@ -469,14 +492,17 @@ void TestCanvas_1h::Draw (void) {
 	theRightBottomPad->Draw();
 	
 	theMainCanvas->cd();
-	theLeftPadBackground->Draw();
-	theLeftPadBackground->cd();
-	theSummaryHisto->Draw();
-	theSummaryLowLine->Draw();
+	// theLeftPadBackground->Draw();
+	// theLeftPadBackground->cd();
+	theUserPad->Draw();
+	theUserPad->cd();
+	if (theUserHisto) theUserHisto->Draw();
+/*	theSummaryLowLine->Draw();
 	theSummaryLowLowLine->Draw();
 	theSummaryHighLine->Draw();
 	theSummaryHighHighLine->Draw();
-	thePtstatsSummaryHisto->Draw();
+*/
+//	thePtstatsSummaryHisto->Draw();
 	
 	/* int fNlayer;
 	for(fNlayer = NLAYERS - 1; fNlayer >= 0; fNlayer--) {
@@ -504,17 +530,18 @@ void TestCanvas_1h::Draw (void) {
 	} */
 	
 	theMainCanvas->Update();
+	delete theStyle;
 }
 
-void TestCanvas_1h::SetCanvasSize(uint32_t w, uint32_t h) {
+void TestCanvas_userHisto::SetCanvasSize(uint32_t w, uint32_t h) {
 	if (theMainCanvas) theMainCanvas->SetCanvasSize(w,h);
 }
 
-void TestCanvas_1h::SaveAs (std::string file_name) {
+void TestCanvas_userHisto::SaveAs (std::string file_name) {
 	if (theMainCanvas) theMainCanvas->SaveAs(file_name.c_str());
 }
 
-int TestCanvas_1h::Write (std::string newName) {
+int TestCanvas_userHisto::Write (std::string newName) {
 	int fNBuffer = 0;
 	if(theMainCanvas) {
 		fNBuffer = theMainCanvas->Write(newName.c_str(),TObject::kOverwrite);
@@ -523,7 +550,7 @@ int TestCanvas_1h::Write (std::string newName) {
 	return fNBuffer;
 }
 
-int TestCanvas_1h::Write (void) {
+int TestCanvas_userHisto::Write (void) {
 	int fNBuffer = 0;
 	if(theMainCanvas) {
 		fNBuffer = theMainCanvas->Write(theMainCanvas->GetName(),TObject::kOverwrite);
@@ -532,7 +559,11 @@ int TestCanvas_1h::Write (void) {
 	return fNBuffer;
 }
 
-TH1* TestCanvas_1h::GetHisto (void) {
+TH1* TestCanvas_userHisto::GetHisto (void) {
 
-	return theSummaryHisto;
+	return theUserHisto;
+}
+
+TVirtualPad* TestCanvas_userHisto::GetUserPad() {
+	return theUserPad;
 }
