@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.29 2008/02/04 14:02:36 liu Exp $
+// $Id: VMEController.cc,v 3.30 2008/02/04 15:04:32 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.30  2008/02/04 15:04:32  liu
+// update SVFload process
+//
 // Revision 3.29  2008/02/04 14:02:36  liu
 // further update for VCC issues
 //
@@ -444,6 +447,8 @@ int VMEController::do_schar(int open_or_close)
 
 void udelay(long int itim)
 {
+  usleep(itim);
+  return;
 //  usleep(5000);
   //std::cout << "Udelay..." << std::endl;
   //std::cout << "Waiting...." << std::endl;
