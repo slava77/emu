@@ -61,6 +61,8 @@ public class Level1Parameters {
 				COMPLETION, new DoubleT(0)));
 		LEVEL1_PARAMETER_SET.put(new FunctionManagerParameter<StringT>(
 				CONF_ID, new StringT("")));
+		LEVEL1_PARAMETER_SET.put(new FunctionManagerParameter<StringT>(
+				STATE, new StringT("")));
 
 	}
 }
