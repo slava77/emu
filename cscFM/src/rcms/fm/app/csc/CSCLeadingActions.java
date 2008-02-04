@@ -137,6 +137,9 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		logger.debug("CSCLeadingActions.initialize");
 
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.STATE, new StringT("Initialize")));
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Initializing")));
 
 		// get a user name from the first XDAQ executive
@@ -212,6 +215,9 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		logger.debug("CSCLeadingActions.configure");
 
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.STATE, new StringT("Configure")));
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Configuring")));
 
 		// set run type parameter
@@ -269,6 +275,9 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		logger.debug("CSCLeadingActions.start");
 
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.STATE, new StringT("Start")));
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Starting")));
 
 		// set run number parameter
@@ -322,6 +331,9 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	 */
 	public void stop(Object o) throws UserActionException {
 		logger.debug("CSCLeadingActions.stop");
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.STATE, new StringT("Stop")));
 
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Stopping")));
@@ -424,6 +436,9 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	 */
 	public void halt(Object o) throws UserActionException {
 		logger.debug("CSCLeadingActions.halt");
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.STATE, new StringT("Halt")));
 
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Halting")));
