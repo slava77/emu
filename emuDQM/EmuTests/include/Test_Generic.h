@@ -44,6 +44,7 @@ typedef ConsumerCanvas MonitoringCanvas;
 #include "CSCReadoutMappingFromFile.h"
 
 #include "TestCanvas_6gr1h.h"
+#include "TestCanvas_1h.h"
 #include "TestCanvas_userHisto.h"
 
 #include <TROOT.h>
@@ -98,7 +99,7 @@ class Test_Generic
 	void setMasksFile(std::string mfile) {masksFile = mfile;loadMasks();}
 
   protected:
-	std::string getCSCFromMap(int crate, int slot);
+	std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
 	std::string getCSCTypeLabel(int endcap, int station, int ring );
 	int getNumStrips(std::string cscID);
 	void saveCSCList();
@@ -106,6 +107,7 @@ class Test_Generic
 
 	virtual void initCSC(std::string cscID) = 0;
 	virtual void bookTestsForCSC(std::string cscID);
+	virtual void bookCommonHistos();
 	int loadTestCfg();
 	int loadMasks();
 	// virtual void bookTestCanvases(std::string cscID);
@@ -114,6 +116,8 @@ class Test_Generic
 
 	cscTestData tdata;
 	cscMonHistos mhistos;
+	// MonHistos emuhistos;
+	TestCanvases emucnvs;
 
   	cscTestCanvases tcnvs;
 	testParamsCfg xmlCfg;
@@ -138,6 +142,7 @@ class Test_Generic
 	uint32_t imgW, imgH;
 
 	std::map<std::string, TH2F*> hFormatErrors;
+	std::map<std::string, int> tmap; // Map of CSC types for Format Errors histogram
 
 };
 

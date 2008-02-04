@@ -142,7 +142,8 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 
   int conv_blk[16]={0,1,2,3,4,5,6,7,8,8,9,9,10,10,11,11}; // Mapping of SCA blocks 
 
-  std::string cscID = getCSCFromMap(data.dmbHeader().crateID(), data.dmbHeader().dmbID()); 
+  int csctype=0, cscposition=0; 
+  std::string cscID = getCSCFromMap(data.dmbHeader().crateID(), data.dmbHeader().dmbID(), csctype, cscposition); 
   // std::string cscID(Form("CSC_%03d_%02d", data.dmbHeader().crateID(), data.dmbHeader().dmbID()));
   // == Do not process unmapped CSCs
   if (cscID == "") return;

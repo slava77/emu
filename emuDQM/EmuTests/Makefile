@@ -26,6 +26,7 @@ Package=emuDQM/EmuTests
 
 Sources=\
 	TestCanvas_6gr1h.cc \
+	TestCanvas_1h.cc \
 	TestCanvas_userHisto.cc \
 	Test_Generic.cc \
 	Test_CFEB02.cc

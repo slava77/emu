@@ -55,13 +55,23 @@ int main(int argc, char **argv) {
 
 	uint32_t NumberOfEvents = 0xFFFFFFFF;
         uint32_t startEvent = 0;
+	std::string cfgDir="";
+	if (getenv("HOME") && string(getenv("HOME")).size())
+    	cfgDir=getenv("HOME"); //+"/config/";
 
+	cfgDir+="/config/";
+/*
 	std::string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
         std::string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
 	std::string cscMapFile = "/csc_data/results/csc_map.txt";
 	std::string xmlTestCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuTests.xml";
 	std::string masksCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuChanMasks.xml";
-
+*/
+	std::string xmlHistosBookingCfg = "file://" + cfgDir + "emuDQMBooking.xml";
+        std::string xmlCanvasesCfg = "file://" + cfgDir + "emuDQMCanvases.xml";
+        std::string cscMapFile = cfgDir+"csc_map.txt";
+        std::string xmlTestCfg = "file://" + cfgDir +"emuTests.xml";
+        std::string masksCfg = "file://" + cfgDir + "emuChanMasks.xml";
 	std::string datafile = "";
   	std::string histofile = "dqm_results.root";
 
