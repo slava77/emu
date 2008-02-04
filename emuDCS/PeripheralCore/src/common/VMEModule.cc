@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.14 2008/01/17 12:51:48 liu Exp $
+// $Id: VMEModule.cc,v 3.15 2008/02/04 15:04:33 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.15  2008/02/04 15:04:33  liu
+// update SVFload process
+//
 // Revision 3.14  2008/01/17 12:51:48  liu
 // disable VME readback in svfLoad()
 //
@@ -339,7 +342,8 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
   printf("=== Have to send %d DATA packages \n",total_packages) ;
   
   this->start(); 
-  
+// turn on delay, otherwise the VCC's FIFO full
+  theController->SetUseDelay(true);
   count=0; 
   nowrit=1;
   step_mode=0;
@@ -896,6 +900,9 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 	}
     }
   this->endDevice();
+  // turn off delay.
+  theController->SetUseDelay(false);
+
   fclose(dwnfp);
   return errcntr; 
 }
