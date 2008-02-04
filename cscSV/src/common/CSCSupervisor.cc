@@ -523,7 +523,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		LOG4CPLUS_DEBUG(getApplicationLogger(),
 				"calibrationAction: " << step_counter_);
 
-		sendCommand(command, "EmuPeripheralCrateBroadcast");
+		sendCommand(command, "EmuPeripheralCrateManager");
 		sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
 		sleep(delay);
 	}
@@ -579,7 +579,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		if (!isCalibrationMode()) {
 			sendCommand("Configure", "EmuPeripheralCrateManager");
 		} else {
-			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateBroadcast");
+			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
 		}
 
 		try {
@@ -2045,3 +2045,4 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
 
 // End of file
 // vim: set sw=4 ts=4:
+
