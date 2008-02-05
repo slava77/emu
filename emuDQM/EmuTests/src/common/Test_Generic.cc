@@ -812,7 +812,7 @@ void Test_Generic::finish() {
   std::string rpath = "Test_"+testID+"/"+outDir;
   TString command = Form("mkdir -p %s", rpath.c_str());
   gSystem->Exec(command.Data());
-  std::ofstream fres((rpath+"/test_results.js").c_str());
+  // std::ofstream fres((rpath+"/test_results.js").c_str());
   int res=0;
   int sum_res=res;
 
@@ -837,7 +837,7 @@ void Test_Generic::finish() {
       gSystem->Exec(command.Data());
       std::ofstream csc_fres((path+"/test_results.js").c_str());
       
-      fres << "['"+cscID+"',[" << std::endl;
+      // fres << "['"+cscID+"',[" << std::endl;
       csc_fres << "['"+cscID+"',[" << std::endl;
 
       rdir->cd();
@@ -862,7 +862,7 @@ void Test_Generic::finish() {
 	std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
 	// = Set error 
 	sum_res=4;
-	fres << "\t['V00','" << 4 << "']," << std::endl;
+	// fres << "\t['V00','" << 4 << "']," << std::endl;
 	csc_fres << "\t['V00','" << 4 << "']," << std::endl;
 	fEnoughData = false;
 	/*
@@ -891,7 +891,7 @@ void Test_Generic::finish() {
 	  if (fEnoughData) {
 	    res=cnv->Fill(data,mask);
 	    if (res>sum_res) sum_res=res;
-	    fres << "\t['" << itr->first << "','" << res << "']," << std::endl;
+	    // fres << "\t['" << itr->first << "','" << res << "']," << std::endl;
 	    csc_fres << "\t['" << itr->first << "','" << res << "']," << std::endl;
 	  }
 	  cnv->Draw();
@@ -989,8 +989,8 @@ void Test_Generic::finish() {
       f->cd();
 
 
-      fres << "\t['SUMMARY','" << sum_res << "']" << std::endl;
-      fres << "]],"<< std::endl;
+      // fres << "\t['SUMMARY','" << sum_res << "']" << std::endl;
+      // fres << "]],"<< std::endl;
       csc_fres << "\t['SUMMARY','" << sum_res << "']" << std::endl;
       csc_fres << "]],"<< std::endl;
 
@@ -1050,7 +1050,7 @@ void Test_Generic::finish() {
     f->cd();
     root_res.Close();
   }
-  saveCSCList();
+//  saveCSCList();
 
 }
 
