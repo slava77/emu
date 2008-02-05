@@ -876,7 +876,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
 
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
-//    MyController->NotInDCS();
+    MyController->NotInDCS();
     //
     emuEndcap_ = MyController->GetEmuEndcap();
     crateVector = emuEndcap_->crates();
