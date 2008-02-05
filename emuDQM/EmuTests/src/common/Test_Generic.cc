@@ -908,8 +908,10 @@ void Test_Generic::finish() {
 	  std::vector<double> limits = cnv->GetLimits();
 	  std::ofstream text_res((path+cscID+"_"+testID+"_"+subtestID+".results").c_str());
 	  text_res << cscID << " " << testID << " " << subtestID << std::endl;
-	  text_res << "Analysis ver." << ANALYSIS_VER << std::endl;
-	  text_res <<  "Limits: L1=" << limits[0] << ", L0="<< limits[1] << ", H0="<< limits[2]<<", H1=" << limits[3] << std::endl;
+	  text_res << "Datafile: " << dataFile << " (" << dataTime << ")" << std::endl;
+	  text_res << "Analysis ver." << ANALYSIS_VER << " Time: " << testTime <<  std::endl;
+	  text_res << "Total Events: " << nCSCEvents[cscID] << " Rejected: " << nCSCBadEvents[cscID] << std::endl;
+	  text_res << "Limits: L1=" << limits[0] << ", L0="<< limits[1] << ", H0="<< limits[2]<<", H1=" << limits[3] << std::endl;
 	  if (fEnoughData) {
 	  text_res <<  "Layer Strip    Value Status Masked" << std::endl;
 	  for (int i=0; i<data.Nlayers; i++) {
