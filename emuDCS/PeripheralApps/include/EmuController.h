@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.h,v 1.1 2007/12/26 11:22:30 liu Exp $
+// $Id: EmuController.h,v 1.2 2008/02/05 15:13:18 rakness Exp $
 // $Log: EmuController.h,v $
+// Revision 1.2  2008/02/05 15:13:18  rakness
+// add missing method declaration
+//
 // Revision 1.1  2007/12/26 11:22:30  liu
 // new parser and applications
 //
@@ -59,6 +62,8 @@ public:
   inline EmuEndcap * GetEmuEndcap() { return myEndcap; }
 
   inline std::vector<Crate*> crates() { return myCrates; }
+
+  void NotInDCS();
 
 protected:
 
