@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.30 2008/02/04 15:04:32 liu Exp $
+// $Id: VMEController.cc,v 3.31 2008/02/05 09:26:56 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.31  2008/02/05 09:26:56  liu
+// disable changing VCC configuration in DCS
+//
 // Revision 3.30  2008/02/04 15:04:32  liu
 // update SVFload process
 //
@@ -262,6 +265,7 @@ VMEController::VMEController():
   add_ucla = 0xffffffff;
   //
   usedelay_ = false ;
+  useDCS_ = true;
   //
   done_init_=false;
 
@@ -300,9 +304,12 @@ void VMEController::init()
   cout << "VMEController opened socket = " << theSocket << endl;
   cout << "VMEController is using eth" << port_ << endl;
 
-  vcc_check_config();
+  if(!useDCS_)
+  {   
+     vcc_check_config();
 
-  set_ErrorServer();
+     set_ErrorServer();
+  }
 
   done_init_=true;
   //
@@ -578,14 +585,14 @@ int VMEController::eth_read()
 
    loopcnt=0;
    size=0;
-   GETMORE: 
+GETMORE: 
    size=read(theSocket,rbuf,nrbuf);
    nrbuf=size;
 //   if(size==6){nrbuf=0;return 0;}
    if(size<0)return size;
    if(size<7)
-   {   if(rbuf[0]==0x04&&loopcnt<3)
-       {   usleep(50);
+   {   if(rbuf[0]==0x04 && loopcnt<2)
+       {   // usleep(50);
            loopcnt=loopcnt+1;
            goto GETMORE;
        }
@@ -690,6 +697,9 @@ READ_IT_CR:
 int VMEController::vcc_write_command(int code, int n_words, unsigned short *writedata)
 { 
    int n,l,lcnt;
+
+// disabled changing VCC's configuration in DCS
+   if(useDCS_) return -100;
 
    if(code<0 || code > 0xFF || n_words<0) return -1;
    wbuf[0]=0x00;
