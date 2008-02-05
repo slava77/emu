@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.21 2008/01/31 14:21:44 liu Exp $
+// $Id: VMEController.h,v 3.22 2008/02/05 09:27:19 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.22  2008/02/05 09:27:19  liu
+// disable changing VCC configuration in DCS
+//
 // Revision 3.21  2008/01/31 14:21:44  liu
 // config change for firmware 4.x
 //
@@ -178,6 +181,7 @@ public:
   void do_vme(char fcn, char vme,const char *snd,char *rcv, int wrt);
 
   void SetUseDelay(bool state){usedelay_ = state;}
+  void SetUseDCS(bool state){useDCS_ = state;}
 
   string ipAddress() const {return ipAddress_;}
   int port() const {return port_;}
@@ -298,6 +302,7 @@ public:
   //
 private:
   bool usedelay_;
+  bool useDCS_;
   int theSocket;
   std::string ipAddress_;
   int port_;

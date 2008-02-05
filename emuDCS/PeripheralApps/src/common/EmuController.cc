@@ -5,6 +5,7 @@
 #include "EmuEndcap.h"
 #include "Crate.h"
 #include "XMLParser.h"
+#include "VMEController.h"
 
 EmuController::EmuController():myEndcap(0)
 {
@@ -59,5 +60,12 @@ void EmuController::disable()
 {
   for(unsigned i = 0; i < myCrates.size(); ++i) {
     if(myCrates[i]) myCrates[i]->disable();
+  }
+}
+
+void EmuController::NotInDCS()
+{
+  for(unsigned i = 0; i < myCrates.size(); ++i) {
+    if(myCrates[i]) myCrates[i]->vmeController()->SetUseDCS(false);
   }
 }
