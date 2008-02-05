@@ -379,6 +379,16 @@ void TestCanvas_6gr1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_
 	theRightHighHighLine->SetX2(theHighHighLimit);
 }
 
+std::vector<Double_t> TestCanvas_6gr1h::GetLimits() {
+	std::vector<Double_t>limits;
+	limits.push_back(theLowLowLimit);
+        limits.push_back(theLowLimit);
+        limits.push_back(theHighLimit);
+        limits.push_back(theHighHighLimit);
+	return limits;
+}
+
+
 int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask) {
 	Double_t fX[NBINS], fY[NBINS];
 	int fQualityTest = 1;

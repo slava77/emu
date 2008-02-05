@@ -285,6 +285,15 @@ void TestCanvas_1h::SetLimits (Double_t lowLowLimit,Double_t lowLimit,Double_t h
 	theSummaryHighHighLine->SetX2(theHighHighLimit);
 }
 
+std::vector<Double_t> TestCanvas_1h::GetLimits() {
+        std::vector<Double_t>limits;
+	limits.push_back(theLowLowLimit);
+        limits.push_back(theLowLimit);
+        limits.push_back(theHighLimit);
+        limits.push_back(theHighHighLimit);
+        return limits;
+}
+
 int TestCanvas_1h::Fill (TestData1D data, TestData1D mask) {
 	return 1;
 }
