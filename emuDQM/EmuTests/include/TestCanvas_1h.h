@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <vector>
 
 #include <TROOT.h>
 #include <TFile.h>
@@ -145,6 +146,7 @@ class TestCanvas_1h: public TCanvas {
 	int SetXTitle (std::string);                        ///< Set x-title of graphs (see canvas layout above)
 	int SetYTitle (std::string);                        ///< Set y-title of graphs (see canvas layout above)
 	void SetLimits(Double_t,Double_t,Double_t,Double_t); ///< Set performance range limits
+	std::vector<Double_t> GetLimits();
 	void AddTextTest (std::string);                      ///< Add test name to text box
 	void AddTextResult (std::string);                    ///< Add result name to text box
 	void AddTextDatafile (std::string);                  ///< Add datafile name to text box

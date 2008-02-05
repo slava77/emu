@@ -901,7 +901,40 @@ void Test_Generic::finish() {
 	  if (emucnvs[subtestID] != NULL) {
 		TestCanvas_1h* emucnv = dynamic_cast<TestCanvas_1h*>(emucnvs[subtestID]);
 		emucnv->GetHisto()->Add(cnv->GetHisto());
-	  }	
+	  }
+
+	  // == Save results to text file
+	  int l0_cnt=0, l1_cnt=0, h0_cnt=0, h1_cnt=0;
+	  std::vector<double> limits = cnv->GetLimits();
+	  std::ofstream text_res((path+cscID+"_"+testID+"_"+subtestID+".results").c_str());
+	  text_res << cscID << " " << testID << " " << subtestID << std::endl;
+	  text_res << "Analysis ver." << ANALYSIS_VER << std::endl;
+	  text_res <<  "Limits: L1=" << limits[0] << ", L0="<< limits[1] << ", H0="<< limits[2]<<", H1=" << limits[3] << std::endl;
+	  if (fEnoughData) {
+	  text_res <<  "Layer Strip    Value Status Masked" << std::endl;
+	  for (int i=0; i<data.Nlayers; i++) {
+	      for (int j=0; j<data.Nbins; j++) {
+//        	text_res << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
+//			<< std::setw(9) << data.content[i][j] << std::endl;
+		std::string validity="OK";
+		if (data.content[i][j] < limits[0])  { validity="L1"; l0_cnt++;}
+		else if (data.content[i][j] < limits[1])  { validity="L0"; l1_cnt++;}
+		else if (data.content[i][j] > limits[3])  { validity="H1"; h1_cnt++;}
+		else if (data.content[i][j] > limits[2])  { validity="H0"; h0_cnt++;}
+		// if (validity != "OK") failed_cnt++;
+		text_res << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
+                        << std::setw(9) << data.content[i][j] << std::setw(7) << validity << std::setw(7) << (int)(mask.content[i][j]) << std::endl;
+             }
+          }
+	  text_res <<  "Out of range counters: L1=" << l1_cnt << ", L0="<< l0_cnt << ", H0="<< h0_cnt <<", H1=" << h1_cnt << std::endl;
+	  }
+	  text_res << "TEST STATUS: ";
+	  if (!fEnoughData) { text_res << "FAILED NOT ENOUGH DATA";}
+	  else if ((l0_cnt+h0_cnt)>0) { text_res << "FAILED";}
+	  else if ((l1_cnt+h1_cnt)>0) { text_res << "PASSED WITH WARNINGS";}
+	  else { text_res << "PASSED";}
+          text_res << std::endl;
+	  
 	}
       }      
 

@@ -1,7 +1,7 @@
 #ifndef _Test_Generic_h_
 #define _Test_Generic_h_
 
-#define ANALYSIS_VER "0.1"
+#include "version.h"
 
 #include <iostream>
 #include <iomanip>

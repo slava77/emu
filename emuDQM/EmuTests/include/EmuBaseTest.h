@@ -36,6 +36,6 @@ typedef ConsumerCanvas MonitoringCanvas;
 
 #include "CSCReadoutMappingFromFile.h"
 
-#define ANALYSIS_VER "0.1"
+// #define ANALYSIS_VER "0.1"
 
 #endif

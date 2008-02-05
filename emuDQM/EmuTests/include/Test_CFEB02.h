@@ -10,7 +10,6 @@
 #include "TestCanvas_1h.h"
 #include "TestCanvas_6gr1h.h"
 #include "TestCanvas_userHisto.h"
-#include "EmuBaseTest.h"
 #include "Test_Generic.h"
 
 #include <TROOT.h>
