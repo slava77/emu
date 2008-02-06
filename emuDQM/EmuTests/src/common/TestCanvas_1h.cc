@@ -96,7 +96,7 @@ TestCanvas_1h::TestCanvas_1h (std::string name, std::string title, Int_t Nbinsy,
 	theRightTopPad->AddText("Number of entries:");
 	theRightTopPad->AddText("Out of limits:");
 	
-	theSummaryHisto = new TH1F(theName, theTitle, theNbinsy, theYlow, theYup);
+	theSummaryHisto = new TH1F(("h1_"+name).c_str(), theTitle, theNbinsy, theYlow, theYup);
 	theSummaryHisto->SetFillColor(theColorGray);
 	theSummaryHisto->GetXaxis()->CenterTitle(true);
 	theSummaryHisto->GetXaxis()->SetTitleFont(fTextFont);
