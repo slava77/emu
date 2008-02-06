@@ -12,38 +12,51 @@ Project=emu
 ### this will include other packages, like DAQ and DQM
 ifeq ($(Set),framework)
 Packages=\
-        extern/dim \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
-	emuDCS/e2p \
 	emuDCS/FEDCrate \
-	emuDAQ/DDUReadout \
-	emuDAQ/GenericRUI \
-	emuDAQ/EmuRUI \
-	emuDAQ/TriggerAdapter
+	emuDAQ/emuReadout \
+	emuDAQ/emuFU \
+	emuDAQ/emuRUI \
+	emuDAQ/emuTA \
+	emuDAQ/emuDAQManager \
+	emuDAQ/emuClient \
+	emuDAQ/emuUtil \
+	cscSV
 endif
 
 ### specific package target builds
 ifeq ($(Set),emuDCS)
 Packages= \
-        extern/dim \
         emuDCS/PeripheralCore \
         emuDCS/PeripheralApps \
-	emuDCS/e2p \
-	emuDCS/FEDCrate
+	emuDCS/FEDCrate 
 endif
 
 ifeq ($(Set),emuDAQ)
 Packages= \
-	emuDAQ/DDUReadout \
-	emuDAQ/GenericRUI \
-	emuDAQ/EmuRUI \
-	emuDAQ/TriggerAdapter
+	emuDAQ/emuReadout \
+	emuDAQ/emuFU \
+	emuDAQ/emuRUI \
+	emuDAQ/emuTA \
+	emuDAQ/emuDAQManager \
+	emuDAQ/emuClient \
+	emuDAQ/emuUtil \
+	emuDAQ/drivers
 endif
 
 ifeq ($(Set),emuDQM)
 Packages=
 endif
 
+ifeq ($(Set),cscSV) 
+Packages= cscSV
+endif 
+
+ifeq ($(Set),drivers)
+Packages = \
+	emuDAQ/drivers \
+	emuDCS/drivers
+endif
 
 include $(XDAQ_ROOT)/config/Makefile.rules
