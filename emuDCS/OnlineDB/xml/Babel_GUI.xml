@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	      xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+	      xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+
+        <xc:Context url="http://emucom02:40022">
+                <xc:Application class="ConnectionsGUI" id="70" instance="0" network="local">
+                </xc:Application> 
+                <xc:Module>${BUILD_HOME}/x86_slc4/lib/libEmuOnlineDB.so</xc:Module>
+        </xc:Context>
+
+
+</xc:Partition>
+
+<!-- vim: set sw=2 ts=2: -->
