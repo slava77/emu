@@ -120,7 +120,7 @@ void Test_CFEB02::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   }
 
   if(bin_checker.errors() != 0) {
-    // std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
+    std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
     doBinCheck();
     return;
   }

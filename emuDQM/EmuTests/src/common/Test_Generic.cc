@@ -24,6 +24,17 @@ Test_Generic::~Test_Generic()
 	
 }
 
+std::string timestr(time_t* t)
+{
+  char buf[255];
+  // time_t now=time(NULL);
+  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(t));
+  std::string time = std::string(buf);
+  return time.substr(0,time.find("\n",0));
+
+};
+
+
 std::map<std::string, int> getCSCTypeToBinMap()
 {
         std::map<std::string, int> tmap;
@@ -804,13 +815,17 @@ void Test_Generic::finish() {
   struct stat attrib;
   stat(dataFile.c_str(), &attrib);
   clock = localtime(&(attrib.st_mtime));
-  std::string dataTime=asctime(clock);
-  time_t now = time(NULL);  
-  clock = localtime(&now);
-  std::string testTime=asctime(clock);
+  time_t now = mktime(clock);
+  std::string dataTime=timestr(&now); //asctime(clock);
+  now = time(NULL);  
+ //  clock = localtime(&now);
+  std::string testTime=timestr(&now);//  asctime(clock);
 
   std::string rpath = "Test_"+testID+"/"+outDir;
   TString command = Form("mkdir -p %s", rpath.c_str());
+  gSystem->Exec(command.Data());
+  // == Need to clean directory from old chamber data
+  command = Form("rm -rf %s/ME*", rpath.c_str());
   gSystem->Exec(command.Data());
   // std::ofstream fres((rpath+"/test_results.js").c_str());
   int res=0;
