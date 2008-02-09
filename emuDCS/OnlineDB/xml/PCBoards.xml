@@ -1,0 +1,1494 @@
+<emu date="02-07-2008">
+<chamber crate="VME+1/1" slot="00" type=" " board="EMUPC0014" date="2007-07-16" /> 
+<chamber crate="VME+1/1" slot="01" type="F" board="VCC0022" date="2007-07-16" /> 
+<chamber crate="VME+1/1" slot="02" type=" " board="RAT5092" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="02" type="F" board="TMB5218" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="03" type="B" board="CBP0016" date="2007-07-16" /> 
+<chamber crate="VME+1/1" slot="03" type="F" board="DMB0470" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="04" type=" " board="RAT5085" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="04" type="F" board="TMB5363" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="05" type="F" board="DMB0468" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="06" type=" " board="RAT5162" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="06" type="F" board="TMB5216" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="07" type="F" board="DMB0526" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="08" type=" " board="RAT5133" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="08" type="F" board="TMB5197" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="09" type="F" board="DMB0240" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="10" type=" " board="RAT5087" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="10" type="F" board="TMB5062" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="11" type="F" board="DMB0174" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="12" type="F" board="MPC0066" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="13" type="F" board="CCB0017" date="2006-07-27" /> 
+<chamber crate="VME+1/1" slot="14" type=" " board="RAT5097" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="14" type="F" board="TMB5099" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="15" type="B" board="CRB0050" date="2007-07-16" /> 
+<chamber crate="VME+1/1" slot="15" type="F" board="DMB0471" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="16" type=" " board="RAT5103" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="16" type="F" board="TMB5059" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="17" type="F" board="DMB0151" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="18" type=" " board="RAT5160" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="18" type="F" board="TMB5379" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="19" type="F" board="DMB0030" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="20" type=" " board="RAT5163" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="20" type="F" board="TMB5027" date="2006-06-10" /> 
+<chamber crate="VME+1/1" slot="21" type="F" board="DMB0462" date="2006-06-10" /> 
+<chamber crate="VME+1/10" slot="00" type=" " board="EMUPC0008" date="2007-07-16" /> 
+<chamber crate="VME+1/10" slot="01" type="F" board="VCC0015" date="2007-07-16" /> 
+<chamber crate="VME+1/10" slot="02" type=" " board="RAT5019" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="02" type="F" board="TMB5025" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="03" type="B" board="CBP0008" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="03" type="F" board="DMB0294" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="04" type=" " board="RAT5008" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="04" type="F" board="TMB5060" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="05" type="F" board="DMB0530" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="06" type=" " board="RAT5025" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="06" type="F" board="TMB5070" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="07" type="F" board="DMB0513" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="08" type=" " board="RAT5026" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="08" type="F" board="TMB5108" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="09" type="F" board="DMB0279" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="10" type=" " board="RAT5020" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="10" type="F" board="TMB5057" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="11" type="F" board="DMB0450" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="12" type="F" board="MPC0018" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="13" type="F" board="CCB0061" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="14" type=" " board="RAT5014" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="14" type="F" board="TMB5069" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="15" type="B" board="CRB0034" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="15" type="F" board="DMB0466" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="16" type=" " board="RAT5021" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="16" type="F" board="TMB5061" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="17" type="F" board="DMB0294" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="18" type=" " board="RAT5007" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="18" type="F" board="TMB5052" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="19" type="F" board="DMB0541" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="20" type=" " board="RAT5051" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="20" type="F" board="TMB5020" date="2007-01-18" /> 
+<chamber crate="VME+1/10" slot="21" type="F" board="DMB0519" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="00" type=" " board="EMUPC0007" date="2007-07-16" /> 
+<chamber crate="VME+1/11" slot="01" type="F" board="VCC0026" date="2007-07-16" /> 
+<chamber crate="VME+1/11" slot="02" type=" " board="RAT5018" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="02" type="F" board="TMB5078" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="03" type="B" board="CBP0007" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="03" type="F" board="DMB0393" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="04" type=" " board="RAT5013" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="04" type="F" board="TMB5106" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="05" type="F" board="DMB0018" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="06" type=" " board="RAT5022" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="06" type="F" board="TMB5109" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="07" type="F" board="DMB0150" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="08" type=" " board="RAT5016" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="08" type="F" board="TMB5065" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="09" type="F" board="DMB0511" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="10" type=" " board="RAT5030" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="10" type="F" board="TMB5056" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="11" type="F" board="DMB0508" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="12" type="F" board="MPC0010" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="13" type="F" board="CCB0018" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="14" type=" " board="RAT5027" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="14" type="F" board="TMB8107" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="15" type="B" board="CRB0013" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="15" type="F" board="DMB0187" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="16" type=" " board="RAT5012" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="16" type="F" board="TMB5082" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="17" type="F" board="DMB0333" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="18" type=" " board="RAT5015" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="18" type="F" board="TMB5047" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="19" type="F" board="DMB0288" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="20" type=" " board="RAT5009" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="20" type="F" board="TMB5539" date="2007-01-18" /> 
+<chamber crate="VME+1/11" slot="21" type="F" board="DMB0329" date="2007-01-18" /> 
+<chamber crate="VME+1/12" slot="00" type=" " board="EMUPC0033" date="2007-07-16" /> 
+<chamber crate="VME+1/12" slot="01" type="F" board="VCC0009" date="2007-07-16" /> 
+<chamber crate="VME+1/12" slot="02" type=" " board="RAT5100" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="02" type="F" board="TMB5272" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="03" type="B" board="CBP0034" date="2007-07-16" /> 
+<chamber crate="VME+1/12" slot="03" type="F" board="DMB0054" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="04" type=" " board="RAT5109" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="04" type="F" board="TMB5120" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="05" type="F" board="DMB0096" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="06" type=" " board="RAT5238" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="06" type="F" board="TMB5350" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="07" type="F" board="DMB0125" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="08" type=" " board="RAT5229" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="08" type="F" board="TMB5381" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="09" type="F" board="DMB0121" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="10" type=" " board="RAT5240" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="10" type="F" board="TMB5340" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="11" type="F" board="DMB0112" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="12" type="F" board="MPC0064" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="13" type="F" board="CCB0062" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="14" type=" " board="RAT5205" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="14" type="F" board="TMB5349" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="15" type="B" board="CRB0086" date="2007-07-16" /> 
+<chamber crate="VME+1/12" slot="15" type="F" board="DMB0050" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="16" type=" " board="RAT5078" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="16" type="F" board="TMB5348" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="17" type="F" board="DMB0088" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="18" type=" " board="RAT5224" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="18" type="F" board="TMB5318" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="19" type="F" board="DMB0090" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="20" type=" " board="RAT5096" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="20" type="F" board="TMB5343" date="2006-06-09" /> 
+<chamber crate="VME+1/12" slot="21" type="F" board="DMB0055" date="2006-06-09" /> 
+<chamber crate="VME+1/2" slot="00" type=" " board="EMUPC0018" date="2007-07-12" /> 
+<chamber crate="VME+1/2" slot="01" type="F" board="VCC0060" date="2007-07-12" /> 
+<chamber crate="VME+1/2" slot="02" type=" " board="RAT5148" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="02" type="F" board="TMB5292" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="03" type="B" board="CBP0023" date="2007-07-12" /> 
+<chamber crate="VME+1/2" slot="03" type="F" board="DMB0114" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="04" type=" " board="RAT5171" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="04" type="F" board="TMB5299" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="05" type="F" board="DMB0388" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="06" type=" " board="RAT5167" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="06" type="F" board="TMB5285" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="07" type="F" board="DMB0262" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="08" type=" " board="RAT5204" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="08" type="F" board="TMB5303" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="09" type="F" board="DMB0491" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="10" type=" " board="RAT5153" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="10" type="F" board="TMB5301" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="11" type="F" board="DMB0331" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="12" type="F" board="MPC0069" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="13" type="F" board="CCB0048" date="2006-07-27" /> 
+<chamber crate="VME+1/2" slot="14" type=" " board="RAT5174" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="14" type="F" board="TMB5300" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="15" type="B" board="CRB0019" date="2007-07-12" /> 
+<chamber crate="VME+1/2" slot="15" type="F" board="DMB0536" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="16" type=" " board="RAT5188" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="16" type="F" board="TMB5290" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="17" type="F" board="DMB0177" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="18" type=" " board="RAT5175" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="18" type="F" board="TMB5031" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="19" type="F" board="DMB0244" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="20" type=" " board="RAT5135" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="20" type="F" board="TMB5127" date="2006-06-02" /> 
+<chamber crate="VME+1/2" slot="21" type="F" board="DMB0435" date="2006-06-02" /> 
+<chamber crate="VME+1/3" slot="00" type=" " board="EMUPC0019" date="2007-07-12" /> 
+<chamber crate="VME+1/3" slot="01" type="F" board="VCC0044" date="2007-07-12" /> 
+<chamber crate="VME+1/3" slot="02" type=" " board="RAT5208" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="02" type="F" board="TMB5245" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="03" type="B" board="CBP0025" date="2007-07-12" /> 
+<chamber crate="VME+1/3" slot="03" type="F" board="DMB0124" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="04" type=" " board="RAT5156" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="04" type="F" board="TMB5246" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="05" type="F" board="DMB0118" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="06" type=" " board="RAT5157" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="06" type="F" board="TMB5248" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="07" type="F" board="DMB0094" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="08" type=" " board="RAT5158" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="08" type="F" board="TMB5250" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="09" type="F" board="DMB0367" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="10" type=" " board="RAT5043" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="10" type="F" board="TMB5249" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="11" type="F" board="DMB0385" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="12" type="F" board="MPC0068" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="13" type="F" board="CCB0046" date="2006-07-27" /> 
+<chamber crate="VME+1/3" slot="14" type=" " board="RAT5154" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="14" type="F" board="TMB5243" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="15" type="B" board="CRB0066" date="2007-07-12" /> 
+<chamber crate="VME+1/3" slot="15" type="F" board="DMB0345" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="16" type=" " board="RAT5144" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="16" type="F" board="TMB5252" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="17" type="F" board="DMB0089" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="18" type=" " board="RAT5149" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="18" type="F" board="TMB5253" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="19" type="F" board="DMB0127" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="20" type=" " board="RAT5145" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="20" type="F" board="TMB5291" date="2006-05-31" /> 
+<chamber crate="VME+1/3" slot="21" type="F" board="DMB0078" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="00" type=" " board="EMUPC0015" date="2007-07-12" /> 
+<chamber crate="VME+1/4" slot="01" type="F" board="VCC0032" date="2007-07-12" /> 
+<chamber crate="VME+1/4" slot="02" type=" " board="RAT5102" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="02" type="F" board="TMB5022" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="03" type="B" board="CBP0015" date="2007-07-12" /> 
+<chamber crate="VME+1/4" slot="03" type="F" board="DMB0391" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="04" type=" " board="RAT5146" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="04" type="F" board="TMB5055" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="05" type="F" board="DMB0306" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="06" type=" " board="RAT5010" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="06" type="F" board="TMB5073" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="07" type="F" board="DMB0390" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="08" type=" " board="RAT5070" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="08" type="F" board="TMB5024" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="09" type="F" board="DMB0309" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="10" type=" " board="RAT5068" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="10" type="F" board="TMB5036" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="11" type="F" board="DMB0392" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="12" type="F" board="MPC0003" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="13" type="F" board="CCB0020" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="14" type=" " board="RAT5126" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="14" type="F" board="TMB5116" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="15" type="B" board="CRB0067" date="2007-07-12" /> 
+<chamber crate="VME+1/4" slot="15" type="F" board="DMB0280" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="16" type=" " board="RAT5075" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="16" type="F" board="TMB5113" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="17" type="F" board="DMB0396" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="18" type=" " board="RAT5101" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="18" type="F" board="TMB5212" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="19" type="F" board="DMB0254" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="20" type=" " board="RAT5029" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="20" type="F" board="TMB5132" date="2006-05-31" /> 
+<chamber crate="VME+1/4" slot="21" type="F" board="DMB0457" date="2006-05-31" /> 
+<chamber crate="VME+1/5" slot="00" type=" " board="EMUPC0011" date="2007-07-12" /> 
+<chamber crate="VME+1/5" slot="01" type="F" board="VCC0059" date="2007-07-12" /> 
+<chamber crate="VME+1/5" slot="02" type=" " board="RAT5168" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="02" type="F" board="TMB5286" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="03" type="B" board="CBP0012" date="2007-07-12" /> 
+<chamber crate="VME+1/5" slot="03" type="F" board="DMB0503" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="04" type=" " board="RAT5172" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="04" type="F" board="TMB5315" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="05" type="F" board="DMB0102" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="06" type=" " board="RAT5170" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="06" type="F" board="TMB5287" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="07" type="F" board="DMB0170" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="08" type=" " board="RAT5197" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="08" type="F" board="TMB5336" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="09" type="F" board="DMB0523" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="10" type=" " board="RAT5203" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="10" type="F" board="TMB5326" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="11" type="F" board="DMB0403" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="12" type="F" board="MPC0071" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="13" type="F" board="CCB0049" date="2006-07-27" /> 
+<chamber crate="VME+1/5" slot="14" type=" " board="RAT5173" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="14" type="F" board="TMB5317" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="15" type="B" board="CRB0054" date="2007-07-12" /> 
+<chamber crate="VME+1/5" slot="15" type="F" board="DMB0156" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="16" type=" " board="RAT5176" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="16" type="F" board="TMB5316" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="17" type="F" board="DMB0464" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="18" type=" " board="RAT5143" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="18" type="F" board="TMB5255" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="19" type="F" board="DMB0327" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="20" type=" " board="RAT5147" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="20" type="F" board="TMB5282" date="2006-05-30" /> 
+<chamber crate="VME+1/5" slot="21" type="F" board="DMB0307" date="2006-05-30" /> 
+<chamber crate="VME+1/6" slot="00" type=" " board="EMUPC0037" date="2007-07-12" /> 
+<chamber crate="VME+1/6" slot="01" type="F" board="VCC0052" date="2007-07-12" /> 
+<chamber crate="VME+1/6" slot="02" type=" " board="RAT5093" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="02" type="F" board="TMB5231" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="03" type="B" board="CBP0028" date="2007-07-12" /> 
+<chamber crate="VME+1/6" slot="03" type="F" board="DMB0182" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="04" type=" " board="RAT5099" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="04" type="F" board="TMB5180" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="05" type="F" board="DMB0432" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="06" type=" " board="RAT5083" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="06" type="F" board="TMB5238" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="07" type="F" board="DMB0428" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="08" type=" " board="RAT5091" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="08" type="F" board="TMB5233" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="09" type="F" board="DMB0230" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="10" type=" " board="RAT5132" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="10" type="F" board="TMB5345" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="11" type="F" board="DMB0249" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="12" type="F" board="MPC0034" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="13" type="F" board="CCB0063" date="2006-07-27" /> 
+<chamber crate="VME+1/6" slot="14" type=" " board="RAT5089" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="14" type="F" board="TMB5232" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="15" type="B" board="CRB0075" date="2007-07-12" /> 
+<chamber crate="VME+1/6" slot="15" type="F" board="DMB0414" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="16" type=" " board="RAT5128" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="16" type="F" board="TMB5268" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="17" type="F" board="DMB0247" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="18" type=" " board="RAT5125" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="18" type="F" board="TMB5328" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="19" type="F" board="DMB0251" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="20" type=" " board="RAT5090" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="20" type="F" board="TMB5271" date="2006-06-08" /> 
+<chamber crate="VME+1/6" slot="21" type="F" board="DMB0245" date="2006-06-08" /> 
+<chamber crate="VME+1/7" slot="00" type=" " board="EMUPC0030" date="2007-07-12" /> 
+<chamber crate="VME+1/7" slot="01" type="F" board="VCC0053" date="2007-07-12" /> 
+<chamber crate="VME+1/7" slot="02" type=" " board="RAT5127" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="02" type="F" board="TMB5211" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="03" type="B" board="CBP0020" date="2007-07-12" /> 
+<chamber crate="VME+1/7" slot="03" type="F" board="DMB0433" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="04" type=" " board="RAT5124" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="04" type="F" board="TMB5209" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="05" type="F" board="DMB0483" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="06" type=" " board="RAT5116" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="06" type="F" board="TMB5244" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="07" type="F" board="DMB0206" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="08" type=" " board="RAT5086" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="08" type="F" board="TMB5189" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="09" type="F" board="DMB0093" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="10" type=" " board="RAT5129" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="10" type="F" board="TMB5276" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="11" type="F" board="DMB0478" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="12" type="F" board="MPC0067" date="2006-06-07" />
+<chamber crate="VME+1/7" slot="13" type="F" board="CCB0025" date="2008-01-17" /> 
+<chamber crate="VME+1/7" slot="14" type=" " board="RAT5117" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="14" type="F" board="TMB5269" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="15" type="B" board="CRB0079" date="2007-07-12" /> 
+<chamber crate="VME+1/7" slot="15" type="F" board="DMB0542" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="16" type=" " board="RAT5122" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="16" type="F" board="TMB5273" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="17" type="F" board="DMB0037" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="18" type=" " board="RAT5094" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="18" type="F" board="TMB5327" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="19" type="F" board="DMB0045" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="20" type=" " board="RAT5120" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="20" type="F" board="TMB5321" date="2006-06-07" /> 
+<chamber crate="VME+1/7" slot="21" type="F" board="DMB0034" date="2006-06-07" /> 
+<chamber crate="VME+1/8" slot="00" type=" " board="EMUPC0053" date="2007-07-23" /> 
+<chamber crate="VME+1/8" slot="01" type="F" board="VCC0064" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="02" type="B" board="PCM0041" date="2007-07-23" /> 
+<chamber crate="VME+1/8" slot="02" type="F" board="TMB5525" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="03" type="B" board="CBP0068" date="2007-07-23" /> 
+<chamber crate="VME+1/8" slot="03" type="F" board="DMB0482" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="04" type="F" board="TMB5488" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="05" type="F" board="DMB0164" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="06" type="F" board="TMB5430" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="07" type="F" board="DMB0220" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="08" type="F" board="TMB5450" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="09" type="F" board="DMB0224" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="10" type="F" board="TMB5449" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="11" type="F" board="DMB0226" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="12" type="F" board="MPC0055" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="13" type="F" board="CCB0064" date="2008-01-18" />   
+<chamber crate="VME+1/8" slot="14" type="F" board="TMB5387" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="15" type="B" board="CRB0063" date="2007-07-23" /> 
+<chamber crate="VME+1/8" slot="15" type="F" board="DMB0197" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="16" type="F" board="TMB5468" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="17" type="F" board="DMB0204" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="18" type="F" board="TMB5492" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="19" type="F" board="DMB0219" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="20" type="F" board="TMB5361" date="2008-01-17" /> 
+<chamber crate="VME+1/8" slot="21" type="F" board="DMB0175" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="00" type=" " board="EMUPC0047" date="2007-07-23" /> 
+<chamber crate="VME+1/9" slot="01" type="F" board="VCC0065" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="02" type="F" board="TMB5257" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="03" type="B" board="CBP0042" date="2007-07-23" /> 
+<chamber crate="VME+1/9" slot="03" type="F" board="DMB0097" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="04" type="F" board="TMB5408" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="05" type="F" board="DMB0359" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="06" type="F" board="TMB5304" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="07" type="F" board="DMB0167" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="08" type="F" board="TMB5461" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="09" type="F" board="DMB0503" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="10" type="F" board="TMB5454" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="11" type="F" board="DMB0493" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="12" type="F" board="MPC0052" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="13" type="F" board="CCB0043" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="14" type="F" board="TMB5222" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="15" type="B" board="CRB0043" date="2007-07-23" /> 
+<chamber crate="VME+1/9" slot="15" type="F" board="DMB0374" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="16" type="F" board="TMB5495" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="17" type="F" board="DMB0166" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="18" type="F" board="TMB5325" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="19" type="F" board="DMB0025" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="20" type="F" board="TMB5177" date="2008-01-17" /> 
+<chamber crate="VME+1/9" slot="21" type="F" board="DMB0515" date="2008-01-17" /> 
+<chamber crate="VME+2/1" slot="00" type=" " board="EMUPC0040" date="2007-07-12" /> 
+<chamber crate="VME+2/1" slot="01" type="F" board="VCC0018" date="2007-07-12" /> 
+<chamber crate="VME+2/1" slot="02" type=" " board="RAT5233" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="02" type="B" board="PCM0033" date="2007-07-12" /> 
+<chamber crate="VME+2/1" slot="02" type="F" board="TMB5358" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="03" type="B" board="CBP0040" date="2007-07-12" /> 
+<chamber crate="VME+2/1" slot="03" type="F" board="DMB0153" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="04" type=" " board="RAT5241" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="04" type="F" board="TMB5371" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="05" type="F" board="DMB0158" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="06" type=" " board="RAT5235" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="06" type="F" board="TMB5370" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="07" type="F" board="DMB0160" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="08" type=" " board="RAT5255" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="08" type="F" board="TMB5367" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="09" type="F" board="DMB0165" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="10" type=" " board="RAT5244" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="10" type="F" board="TMB5368" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="11" type="F" board="DMB0122" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="12" type="F" board="MPC0062" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="13" type="F" board="CCB0056" date="2006-07-27" /> 
+<chamber crate="VME+2/1" slot="14" type=" " board="RAT5246" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="14" type="F" board="TMB5369" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="15" type="B" board="CRB0062" date="2007-07-12" /> 
+<chamber crate="VME+2/1" slot="15" type="F" board="DMB0142" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="16" type=" " board="RAT5245" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="16" type="F" board="TMB5333" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="17" type="F" board="DMB0123" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="18" type=" " board="RAT5239" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="18" type="F" board="TMB5353" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="19" type="F" board="DMB0140" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="20" type=" " board="RAT5367" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="20" type="F" board="TMB5356" date="2006-06-20" /> 
+<chamber crate="VME+2/1" slot="21" type="F" board="DMB0092" date="2006-06-20" /> 
+<chamber crate="VME+2/2" slot="00" type=" " board="EMUPC0013" date="2007-07-12" /> 
+<chamber crate="VME+2/2" slot="01" type="F" board="VCC0019" date="2007-07-12" /> 
+<chamber crate="VME+2/2" slot="02" type=" " board="RAT5200" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="02" type="B" board="PCM0022" date="2007-07-12" /> 
+<chamber crate="VME+2/2" slot="02" type="F" board="TMB5407" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="03" type="B" board="CBP0013" date="2007-07-12" /> 
+<chamber crate="VME+2/2" slot="03" type="F" board="DMB0421" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="04" type=" " board="RAT5211" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="04" type="F" board="TMB5347" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="05" type="F" board="DMB0518" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="06" type=" " board="RAT5201" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="06" type="F" board="TMB5399" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="07" type="F" board="DMB0326" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="08" type=" " board="RAT5226" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="08" type="F" board="TMB5406" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="09" type="F" board="DMB0458" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="10" type=" " board="RAT5209" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="10" type="F" board="TMB5385" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="11" type="F" board="DMB0454" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="12" type="F" board="MPC0033" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="13" type="F" board="CCB0057" date="2006-07-27" /> 
+<chamber crate="VME+2/2" slot="14" type=" " board="RAT5231" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="14" type="F" board="TMB5386" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="15" type="B" board="CRB0049" date="2007-07-12" /> 
+<chamber crate="VME+2/2" slot="15" type="F" board="DMB0155" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="16" type=" " board="RAT5248" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="16" type="F" board="TMB5389" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="17" type="F" board="DMB0451" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="18" type=" " board="RAT5243" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="18" type="F" board="TMB5393" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="19" type="F" board="DMB0377" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="20" type=" " board="RAT5195" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="20" type="F" board="TMB5377" date="2006-06-15" /> 
+<chamber crate="VME+2/2" slot="21" type="F" board="DMB0431" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="00" type=" " board="EMUPC0028" date="2007-07-12" /> 
+<chamber crate="VME+2/3" slot="01" type="F" board="VCC0023" date="2007-07-12" /> 
+<chamber crate="VME+2/3" slot="02" type=" " board="RAT5376" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="02" type="B" board="PCM0029" date="2007-07-12" /> 
+<chamber crate="VME+2/3" slot="02" type="F" board="TMB5429" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="03" type="B" board="CBP0017" date="2007-07-12" /> 
+<chamber crate="VME+2/3" slot="03" type="F" board="DMB0291" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="04" type=" " board="RAT5390" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="04" type="F" board="TMB5439" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="05" type="F" board="DMB0269" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="06" type=" " board="RAT5368" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="06" type="F" board="TMB5444" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="07" type="F" board="DMB0144" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="08" type=" " board="RAT5374" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="08" type="F" board="TMB5443" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="09" type="F" board="DMB0149" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="10" type=" " board="RAT5363" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="10" type="F" board="TMB5458" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="11" type="F" board="DMB0290" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="12" type="F" board="MPC0029" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="13" type="F" board="CCB0051" date="2006-07-27" /> 
+<chamber crate="VME+2/3" slot="14" type=" " board="RAT5379" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="14" type="F" board="TMB5457" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="15" type="B" board="CRB0038" date="2007-07-12" /> 
+<chamber crate="VME+2/3" slot="15" type="F" board="DMB0287" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="16" type=" " board="RAT5370" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="16" type="F" board="TMB5456" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="17" type="F" board="DMB0534" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="18" type=" " board="RAT5384" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="18" type="F" board="TMB5455" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="19" type="F" board="DMB0227" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="20" type=" " board="RAT5251" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="20" type="F" board="TMB5448" date="2006-06-15" /> 
+<chamber crate="VME+2/3" slot="21" type="F" board="DMB0384" date="2006-06-15" /> 
+<chamber crate="VME+2/4" slot="00" type=" " board="EMUPC0059" date="2007-07-23" /> 
+<chamber crate="VME+2/4" slot="01" type="F" board="VCC0067" date="2007-07-23" /> 
+<chamber crate="VME+2/4" slot="02" type=" " board="RAT5618" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="02" type="F" board="TMB5330" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="03" type=" " board="RAT5575" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="03" type="B" board="CBP0056" date="2007-07-23" /> 
+<chamber crate="VME+2/4" slot="03" type="F" board="DMB0035" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="04" type=" " board="RAT5569" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="04" type="F" board="TMB5308" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="05" type=" " board="RAT5555" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="05" type="F" board="DMB0040" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="06" type=" " board="RAT5036" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="06" type="F" board="TMB5521" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="07" type=" " board="RAT5360" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="07" type="F" board="DMB0029" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="08" type=" " board="RAT5064" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="08" type="F" board="TMB5524" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="09" type=" " board="RAT5131" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="09" type="F" board="DMB0537" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="10" type=" " board="RAT5373" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="10" type="F" board="TMB5534" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="11" type="F" board="DMB0223" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="12" type="F" board="MPC0050" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="13" type="F" board="CCB0085" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="14" type="F" board="TMB5533" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="15" type="B" board="CRB0069" date="2007-07-23" /> 
+<chamber crate="VME+2/4" slot="15" type="F" board="DMB0378" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="16" type="F" board="TMB5505" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="17" type="F" board="DMB0407" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="18" type="F" board="TMB5123" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="19" type="F" board="DMB0448" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="20" type="F" board="TMB5618" date="2007-01-31" /> 
+<chamber crate="VME+2/4" slot="21" type="F" board="DMB0404" date="2007-01-31" /> 
+<chamber crate="VME+2/5" slot="00" type=" " board="EMUPC0001" date="2007-07-16" /> 
+<chamber crate="VME+2/5" slot="01" type="F" board="VCC0005" date="2007-07-16" /> 
+<chamber crate="VME+2/5" slot="02" type=" " board="RAT5044" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="02" type="B" board="PCM0004" date="2007-07-16" /> 
+<chamber crate="VME+2/5" slot="02" type="F" board="TMB5026" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="03" type="B" board="CBP0001" date="2007-07-16" /> 
+<chamber crate="VME+2/5" slot="03" type="F" board="DMB0484" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="04" type=" " board="RAT5050" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="04" type="F" board="TMB5214" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="05" type="F" board="DMB0137" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="06" type=" " board="RAT5060" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="06" type="F" board="TMB5160" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="07" type="F" board="DMB0544" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="08" type=" " board="RAT5045" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="08" type="F" board="TMB5154" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="09" type="F" board="DMB0257" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="10" type=" " board="RAT5057" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="10" type="F" board="TMB5124" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="11" type="F" board="DMB0267" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="12" type="F" board="MPC0004" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="13" type="F" board="CCB0013" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="14" type=" " board="RAT5055" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="14" type="F" board="TMB5064" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="15" type="B" board="CRB0044" date="2007-07-16" /> 
+<chamber crate="VME+2/5" slot="15" type="F" board="DMB0132" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="16" type=" " board="RAT5047" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="16" type="F" board="TMB5217" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="17" type="F" board="DMB0502" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="18" type=" " board="RAT5046" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="18" type="F" board="TMB5112" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="19" type="F" board="DMB0500" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="20" type=" " board="RAT5061" date="2007-01-18" /> 
+<chamber crate="VME+2/5" slot="20" type="F" board="TMB0003" date="2005-11-02" /> 
+<chamber crate="VME+2/5" slot="21" type="F" board="DMB0281" date="2007-01-18" /> 
+<chamber crate="VME+2/6" slot="00" type=" " board="EMUPC0005" date="2007-07-16" /> 
+<chamber crate="VME+2/6" slot="01" type="F" board="VCC0014" date="2007-07-16" /> 
+<chamber crate="VME+2/6" slot="02" type=" " board="RAT5400" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="02" type="B" board="PCM0019" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="02" type="F" board="TMB5262" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="03" type="B" board="CBP0005" date="2007-07-16" /> 
+<chamber crate="VME+2/6" slot="03" type="F" board="DMB0422" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="04" type=" " board="RAT5398" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="04" type="F" board="TMB5425" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="05" type="F" board="DMB0284" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="06" type=" " board="RAT5402" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="06" type="F" board="TMB5196" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="07" type="F" board="DMB0235" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="08" type=" " board="RAT5401" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="08" type="F" board="TMB5427" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="09" type="F" board="DMB0423" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="10" type=" " board="RAT5409" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="10" type="F" board="TMB5434" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="11" type="F" board="DMB0426" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="12" type="F" board="MPC0058" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="13" type="F" board="CCB0073" date="2006-07-27" /> 
+<chamber crate="VME+2/6" slot="14" type=" " board="RAT5182" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="14" type="F" board="TMB5133" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="15" type="B" board="CRB0035" date="2007-07-16" /> 
+<chamber crate="VME+2/6" slot="15" type="F" board="DMB0424" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="16" type=" " board="RAT5408" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="16" type="F" board="TMB5194" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="17" type="F" board="DMB0425" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="18" type=" " board="RAT5399" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="18" type="F" board="TMB5419" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="19" type="F" board="DMB0487" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="20" type=" " board="RAT5071" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="20" type="F" board="TMB5433" date="2006-06-22" /> 
+<chamber crate="VME+2/6" slot="21" type="F" board="DMB0232" date="2006-06-22" /> 
+<chamber crate="VME+3/1" slot="00" type=" " board="EMUPC0022" date="2007-07-12" /> 
+<chamber crate="VME+3/1" slot="01" type="F" board="VCC0012" date="2007-07-12" /> 
+<chamber crate="VME+3/1" slot="02" type=" " board="RAT5080" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="02" type="B" board="PCM0035" date="2007-07-12" /> 
+<chamber crate="VME+3/1" slot="02" type="F" board="TMB5172" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="03" type="B" board="CBP0029" date="2007-07-12" /> 
+<chamber crate="VME+3/1" slot="03" type="F" board="DMB0071" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="04" type=" " board="RAT5219" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="04" type="F" board="TMB5125" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="05" type="F" board="DMB0083" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="06" type=" " board="RAT5198" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="06" type="F" board="TMB5221" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="07" type="F" board="DMB0046" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="08" type=" " board="RAT5225" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="08" type="F" board="TMB5050" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="09" type="F" board="DMB0302" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="10" type=" " board="RAT5210" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="10" type="F" board="TMB5148" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="11" type="F" board="DMB0070" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="12" type="F" board="MPC0063" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="13" type="F" board="CCB0055" date="2007-09-25" /> 
+<chamber crate="VME+3/1" slot="14" type=" " board="RAT5194" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="14" type="F" board="TMB5452" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="15" type="B" board="CRB0061" date="2007-07-12" /> 
+<chamber crate="VME+3/1" slot="15" type="F" board="DMB0312" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="16" type=" " board="RAT5207" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="16" type="F" board="TMB5166" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="17" type="F" board="DMB0510" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="18" type=" " board="RAT5193" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="18" type="F" board="TMB5038" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="19" type="F" board="DMB0084" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="20" type=" " board="RAT5228" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="20" type="F" board="TMB5223" date="2006-06-20" /> 
+<chamber crate="VME+3/1" slot="21" type="F" board="DMB0342" date="2006-06-20" /> 
+<chamber crate="VME+3/2" slot="00" type=" " board="EMUPC0012" date="2007-07-12" /> 
+<chamber crate="VME+3/2" slot="01" type="F" board="VCC0027" date="2007-07-12" /> 
+<chamber crate="VME+3/2" slot="02" type=" " board="RAT5218" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="02" type="B" board="PCM0017" date="2007-07-12" /> 
+<chamber crate="VME+3/2" slot="02" type="F" board="TMB5342" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="03" type="B" board="CBP0012" date="2007-07-12" /> 
+<chamber crate="VME+3/2" slot="03" type="F" board="DMB0143" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="04" type=" " board="RAT5079" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="04" type="F" board="TMB5331" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="05" type="F" board="DMB0064" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="06" type=" " board="RAT5216" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="06" type="F" board="TMB5391" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="07" type="F" board="DMB0117" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="08" type=" " board="RAT5230" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="08" type="F" board="TMB5332" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="09" type="F" board="DMB0039" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="10" type=" " board="RAT5206" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="10" type="F" board="TMB5267" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="11" type="F" board="DMB0505" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="12" type="F" board="MPC0065" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="13" type="F" board="CCB0060" date="2006-07-27" /> 
+<chamber crate="VME+3/2" slot="14" type=" " board="RAT5191" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="14" type="F" board="TMB5265" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="15" type="B" board="CRB0027" date="2007-07-12" /> 
+<chamber crate="VME+3/2" slot="15" type="F" board="DMB0134" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="16" type=" " board="RAT5213" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="16" type="F" board="TMB5359" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="17" type="F" board="DMB0315" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="18" type=" " board="RAT5081" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="18" type="F" board="TMB5263" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="19" type="F" board="DMB0060" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="20" type=" " board="RAT5084" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="20" type="F" board="TMB5330" date="2006-06-16" /> 
+<chamber crate="VME+3/2" slot="21" type="F" board="DMB0215" date="2006-06-16" /> 
+<chamber crate="VME+3/3" slot="00" type=" " board="EMUPC0026" date="2007-07-12" /> 
+<chamber crate="VME+3/3" slot="01" type="F" board="VCC0004" date="2007-07-12" /> 
+<chamber crate="VME+3/3" slot="02" type=" " board="RAT5388" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="02" type="B" board="PCM0031" date="2007-07-12" /> 
+<chamber crate="VME+3/3" slot="02" type="F" board="TMB5445" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="03" type="B" board="CBP0026" date="2007-07-12" /> 
+<chamber crate="VME+3/3" slot="03" type="F" board="DMB0116" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="04" type=" " board="RAT5361" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="04" type="F" board="TMB5156" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="05" type="F" board="DMB0313" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="06" type=" " board="RAT5389" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="06" type="F" board="TMB5228" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="07" type="F" board="DMB0178" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="08" type=" " board="RAT5186" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="08" type="F" board="TMB5091" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="09" type="F" board="DMB0183" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="10" type=" " board="RAT5387" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="10" type="F" board="TMB5146" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="11" type="F" board="DMB0059" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="12" type="F" board="MPC0030" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="13" type="F" board="CCB0052" date="2006-07-27" /> 
+<chamber crate="VME+3/3" slot="14" type=" " board="RAT5185" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="14" type="F" board="TMB5145" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="15" type="B" board="CRB0048" date="2007-07-12" /> 
+<chamber crate="VME+3/3" slot="15" type="F" board="DMB0152" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="16" type=" " board="RAT5377" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="16" type="F" board="TMB5072" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="17" type="F" board="DMB0179" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="18" type=" " board="RAT5375" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="18" type="F" board="TMB5136" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="19" type="F" board="DMB0119" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="20" type=" " board="RAT5222" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="20" type="F" board="TMB5428" date="2006-06-13" /> 
+<chamber crate="VME+3/3" slot="21" type="F" board="DMB0147" date="2006-06-13" /> 
+<chamber crate="VME+3/4" slot="00" type=" " board="EMUPC0067" date="2007-07-23" /> 
+<chamber crate="VME+3/4" slot="01" type="F" board="VCC0066" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="02" type="F" board="TMB5469" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="03" type="B" board="CBP0057" date="2007-07-23" /> 
+<chamber crate="VME+3/4" slot="03" type="F" board="DMB0238" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="04" type="F" board="TMB5441" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="05" type="F" board="DMB0429" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="06" type="F" board="TMB5484" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="07" type="F" board="DMB0357" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="08" type="F" board="TMB5206" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="09" type="F" board="DMB0394" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="10" type="F" board="TMB5513" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="11" type="F" board="DMB0186" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="12" type="F" board="MPC0040" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="13" type="F" board="CCB0034" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="14" type="F" board="TMB5515" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="15" type="B" board="CRB0018" date="2007-07-23" /> 
+<chamber crate="VME+3/4" slot="15" type="F" board="DMB0185" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="16" type="F" board="TMB5508" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="17" type="F" board="DMB0295" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="18" type="F" board="TMB5510" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="19" type="F" board="DMB0298" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="20" type="F" board="TMB5266" date="2008-01-17" /> 
+<chamber crate="VME+3/4" slot="21" type="F" board="DMB0286" date="2008-01-17" /> 
+<chamber crate="VME+3/5" slot="00" type=" " board="EMUPC0035" date="2007-07-16" /> 
+<chamber crate="VME+3/5" slot="01" type="F" board="VCC0003" date="2007-07-16" /> 
+<chamber crate="VME+3/5" slot="02" type=" " board="RAT5034" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="02" type="B" board="PCM0003" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="02" type="F" board="TMB5163" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="03" type="B" board="CBP0066" date="2007-07-16" /> 
+<chamber crate="VME+3/5" slot="03" type="F" board="DMB0480" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="04" type=" " board="RAT5063" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="04" type="F" board="TMB5122" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="05" type="F" board="DMB0501" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="06" type=" " board="RAT5039" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="06" type="F" board="TMB5198" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="07" type="F" board="DMB0474" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="08" type=" " board="RAT5058" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="08" type="F" board="TMB5167" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="09" type="F" board="DMB0532" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="10" type=" " board="RAT5041" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="10" type="F" board="TMB5162" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="11" type="F" board="DMB0048" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="12" type="F" board="MPC0006" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="13" type="F" board="CCB0014" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="14" type=" " board="RAT5067" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="14" type="F" board="TMB5049" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="15" type="B" board="CRB0021" date="2007-07-16" /> 
+<chamber crate="VME+3/5" slot="15" type="F" board="DMB0477" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="16" type=" " board="RAT5062" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="16" type="F" board="TMB5178" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="17" type="F" board="DMB0540" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="18" type=" " board="RAT5065" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="18" type="F" board="TMB5140" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="19" type="F" board="DMB0013" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="20" type=" " board="RAT5069" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="20" type="F" board="TMB5139" date="2007-01-18" /> 
+<chamber crate="VME+3/5" slot="21" type="F" board="DMB0019" date="2007-01-18" /> 
+<chamber crate="VME+3/6" slot="00" type=" " board="EMUPC0023" date="2007-07-16" /> 
+<chamber crate="VME+3/6" slot="01" type="F" board="VCC0051" date="2007-07-16" /> 
+<chamber crate="VME+3/6" slot="02" type=" " board="RAT5283" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="02" type="B" board="PCM0018" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="02" type="F" board="TMB5402" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="03" type="B" board="CBP0024" date="2007-07-16" /> 
+<chamber crate="VME+3/6" slot="03" type="F" board="DMB0234" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="04" type=" " board="RAT5391" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="04" type="F" board="TMB5431" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="05" type="F" board="DMB0488" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="06" type=" " board="RAT5392" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="06" type="F" board="TMB5432" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="07" type="F" board="DMB0495" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="08" type=" " board="RAT5362" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="08" type="F" board="TMB5400" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="09" type="F" board="DMB0504" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="10" type=" " board="RAT5380" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="10" type="F" board="TMB5422" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="11" type="F" board="DMB0498" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="12" type="F" board="MPC0059" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="13" type="F" board="CCB0050" date="2006-07-27" /> 
+<chamber crate="VME+3/6" slot="14" type=" " board="RAT5394" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="14" type="F" board="TMB5420" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="15" type="B" board="CRB0036" date="2007-07-16" /> 
+<chamber crate="VME+3/6" slot="15" type="F" board="DMB0233" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="16" type=" " board="RAT5393" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="16" type="F" board="TMB5440" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="17" type="F" board="DMB0376" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="18" type=" " board="RAT5365" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="18" type="F" board="TMB5404" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="19" type="F" board="DMB0348" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="20" type=" " board="RAT5385" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="20" type="F" board="TMB5410" date="2006-06-23" /> 
+<chamber crate="VME+3/6" slot="21" type="F" board="DMB0318" date="2006-06-23" /> 
+<chamber crate="VME+4/1" slot="00" type=" " board="EMUPC0016" date="2007-07-12" /> 
+<chamber crate="VME+4/1" slot="01" type="F" board="VCC0045" date="2007-07-12" /> 
+<chamber crate="VME+4/1" slot="02" type=" " board="RAT5252" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="02" type="B" board="PCM0028" date="2007-07-12" /> 
+<chamber crate="VME+4/1" slot="02" type="F" board="TMB5459" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="03" type="B" board="CBP0034" date="2007-07-12" /> 
+<chamber crate="VME+4/1" slot="03" type="F" board="DMB0049" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="04" type=" " board="RAT5134" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="04" type="F" board="TMB5460" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="05" type="F" board="DMB0031" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="06" type=" " board="RAT5242" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="06" type="F" board="TMB5472" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="07" type="F" board="DMB0133" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="12" type="F" board="MPC0032" date="2006-06-26" /> 
+<chamber crate="VME+4/1" slot="13" type="F" board="CCB0032" date="2007-12-03" /> 
+<chamber crate="VME+4/1" slot="15" type="B" board="CRB0051" date="2007-07-12" /> 
+<chamber crate="VME+4/2" slot="00" type=" " board="EMUPC0027" date="2007-07-12" /> 
+<chamber crate="VME+4/2" slot="01" type="F" board="VCC0050" date="2007-07-12" /> 
+<chamber crate="VME+4/2" slot="02" type=" " board="RAT5223" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="02" type="B" board="PCM0027" date="2007-07-12" /> 
+<chamber crate="VME+4/2" slot="02" type="F" board="TMB5372" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="03" type="B" board="CBP0030" date="2007-07-12" /> 
+<chamber crate="VME+4/2" slot="03" type="F" board="DMB0172" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="04" type=" " board="RAT5189" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="04" type="F" board="TMB5360" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="05" type="F" board="DMB0113" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="06" type=" " board="RAT5234" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="06" type="F" board="TMB5467" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="07" type="F" board="DMB0131" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="12" type="F" board="MPC0031" date="2006-06-26" /> 
+<chamber crate="VME+4/2" slot="13" type="F" board="CCB0054" date="2006-07-27" /> 
+<chamber crate="VME+4/2" slot="15" type="B" board="CRB0040" date="2007-07-12" /> 
+<chamber crate="VME+4/3" slot="00" type=" " board="EMUPC0020" date="2007-07-12" /> 
+<chamber crate="VME+4/3" slot="01" type="F" board="VCC0049" date="2007-07-12" /> 
+<chamber crate="VME+4/3" slot="02" type=" " board="RAT5232" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="02" type="B" board="PCM0032" date="2007-07-12" /> 
+<chamber crate="VME+4/3" slot="02" type="F" board="TMB5149" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="03" type="B" board="CBP0022" date="2007-07-12" /> 
+<chamber crate="VME+4/3" slot="03" type="F" board="DMB0139" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="04" type=" " board="RAT5221" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="04" type="F" board="TMB5102" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="05" type="F" board="DMB0176" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="06" type=" " board="RAT5259" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="06" type="F" board="TMB5141" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="07" type="F" board="DMB0111" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="12" type="F" board="MPC0061" date="2006-06-27" /> 
+<chamber crate="VME+4/3" slot="13" type="F" board="CCB0058" date="2006-07-27" /> 
+<chamber crate="VME+4/3" slot="15" type="B" board="CRB0064" date="2007-07-12" /> 
+<chamber crate="VME+4/4" slot="00" type=" " board="EMUPC0010" date="2007-07-23" /> 
+<chamber crate="VME+4/4" slot="01" type="F" board="VCC0010" date="2007-07-23" /> 
+<chamber crate="VME+4/4" slot="02" type=" " board="RAT5165" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="02" type="F" board="TMB5323" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="03" type="B" board="CBP0010" date="2007-07-23" /> 
+<chamber crate="VME+4/4" slot="03" type="F" board="DMB0486" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="04" type=" " board="RAT5169" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="04" type="F" board="TMB5319" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="05" type="F" board="DMB0406" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="06" type=" " board="RAT5161" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="06" type="F" board="TMB5280" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="07" type="F" board="DMB0497" date="2006-05-23" /> 
+<chamber crate="VME+4/4" slot="12" type="F" board="MPC0072" date="2006-06-26" /> 
+<chamber crate="VME+4/4" slot="13" type="F" board="CCB0065" date="2006-06-26" /> 
+<chamber crate="VME+4/4" slot="15" type="B" board="CRB0037" date="2007-07-23" /> 
+<chamber crate="VME+4/5" slot="00" type=" " board="EMUPC0006" date="2007-07-16" /> 
+<chamber crate="VME+4/5" slot="01" type="F" board="VCC0054" date="2007-07-16" /> 
+<chamber crate="VME+4/5" slot="02" type=" " board="RAT5113" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="02" type="B" board="PCM0037" date="2007-07-16" /> 
+<chamber crate="VME+4/5" slot="02" type="F" board="TMB5104" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="03" type="B" board="CBP0006" date="2007-07-16" /> 
+<chamber crate="VME+4/5" slot="03" type="F" board="DMB0264" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="04" type=" " board="RAT5111" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="04" type="F" board="TMB5135" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="05" type="F" board="DMB0022" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="06" type=" " board="RAT5105" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="06" type="F" board="TMB5105" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="07" type="F" board="DMB0296" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="12" type="F" board="MPC0014" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="13" type="F" board="CCB0021" date="2006-05-11" /> 
+<chamber crate="VME+4/5" slot="15" type="B" board="CRB0047" date="2007-07-16" /> 
+<chamber crate="VME+4/6" slot="00" type=" " board="EMUPC0051" date="2007-07-16" /> 
+<chamber crate="VME+4/6" slot="01" type="F" board="VCC0068" date="2007-07-16" /> 
+<chamber crate="VME+4/6" slot="02" type=" " board="RAT5257" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="02" type="B" board="PCM0021" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="02" type="F" board="TMB5435" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="03" type="B" board="CBP0027" date="2007-07-16" /> 
+<chamber crate="VME+4/6" slot="03" type="F" board="DMB0323" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="04" type=" " board="RAT5237" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="04" type="F" board="TMB5462" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="05" type="F" board="DMB0346" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="06" type=" " board="RAT5180" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="06" type="F" board="TMB5463" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="07" type="F" board="DMB0316" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="12" type="F" board="MPC0060" date="2006-06-27" /> 
+<chamber crate="VME+4/6" slot="13" type="F" board="CCB0053" date="2006-07-27" /> 
+<chamber crate="VME+4/6" slot="15" type="B" board="CRB0073" date="2007-07-16" /> 
+<chamber crate="VME-1/1" slot="00" type=" " board="EMUPC0056" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="01" type="F" board="VCC0031" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="02" type=" " board="RAT5430" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="02" type="F" board="TMB5550" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="03" type="B" board="CBP0064" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="03" type="F" board="DMB0066" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="04" type=" " board="RAT5571" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="04" type="F" board="TMB5537" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="05" type="F" board="DMB0068" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="06" type=" " board="RAT5587" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="06" type="F" board="TMB5080" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="07" type="F" board="DMB0075" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="08" type=" " board="RAT5547" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="08" type="F" board="TMB5144" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="09" type="F" board="DMB0193" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="10" type=" " board="RAT5088" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="10" type="F" board="TMB5512" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="11" type="F" board="DMB0202" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="12" type="F" board="MPC0026" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="13" type=" " board="CCB0031" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="13" type="F" board="CCB0081" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="14" type=" " board="RAT5611" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="14" type="F" board="TMB5409" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="15" type="B" board="CRB0084" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="15" type="F" board="DMB0099" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="16" type=" " board="RAT5635" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="16" type="F" board="TMB5005" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="17" type=" " board="DMB0476" date="2007-05-31" /> 
+<chamber crate="VME-1/1" slot="18" type=" " board="RAT5184" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="18" type="F" board="TMB5548" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="19" type="F" board="DMB0278" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="20" type=" " board="RAT5177" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="20" type="F" board="TMB5451" date="2007-06-04" /> 
+<chamber crate="VME-1/1" slot="21" type="F" board="DMB0038" date="2007-06-04" /> 
+<chamber crate="VME-1/12" slot="00" type=" " board="EMUPC0003" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="01" type="F" board="VCC0035" date="2007-12-06" /> 
+<chamber crate="VME-1/12" slot="02" type=" " board="RAT5076" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="02" type="F" board="TMB5261" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="03" type="B" board="CBP0003" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="03" type="F" board="DMB0321" date="2007-12-06" /> 
+<chamber crate="VME-1/12" slot="04" type=" " board="RAT5011" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="04" type="F" board="TMB5033" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="05" type="F" board="DMB0449" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="06" type=" " board="RAT5042" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="06" type="F" board="TMB5095" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="07" type="F" board="DMB0321" date="2007-12-06" /> 
+<chamber crate="VME-1/12" slot="08" type=" " board="RAT5052" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="08" type="F" board="TMB5039" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="09" type="F" board="DMB0512" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="10" type=" " board="RAT5038" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="10" type="F" board="TMB5045" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="11" type="F" board="DMB0241" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="12" type="F" board="MPC0011" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="13" type="F" board="CCB0047" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="14" type=" " board="RAT5017" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="14" type="F" board="TMB5040" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="15" type="B" board="CRB0080" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="15" type="F" board="DMB0527" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="16" type=" " board="RAT5033" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="16" type="F" board="TMB5203" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="17" type="F" board="DMB0528" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="18" type=" " board="RAT5074" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="18" type="F" board="TMB5044" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="19" type="F" board="DMB0521" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="20" type=" " board="RAT5024" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="20" type="F" board="TMB5204" date="2007-06-06" /> 
+<chamber crate="VME-1/12" slot="21" type="F" board="DMB0270" date="2007-06-06" /> 
+<chamber crate="VME-1/2" slot="00" type=" " board="EMUPC0045" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="01" type="F" board="VCC0032" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="02" type=" " board="RAT5594" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="02" type="F" board="TMB5096" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="03" type=" " board="DMB0272" date="2007-05-16" /> 
+<chamber crate="VME-1/2" slot="03" type="B" board="CBP0049" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="03" type="F" board="DMB0021" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="04" type=" " board="RAT5592" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="04" type="F" board="TMB5259" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="05" type="F" board="DMB0023" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="06" type=" " board="RAT5586" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="06" type="F" board="TMB5475" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="07" type="F" board="DMB0015" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="08" type=" " board="RAT5600" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="08" type="F" board="TMB5373" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="09" type="F" board="DMB0011" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="10" type=" " board="RAT5545" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="10" type="F" board="TMB5471" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="11" type="F" board="DMB0014" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="12" type=" " board="MPC0038" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="12" type="F" board="MPC0048" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="13" type="F" board="CCB0040" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="14" type=" " board="RAT5565" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="14" type="F" board="TMB5518" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="15" type="B" board="CRB0052" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="15" type="F" board="DMB0434" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="16" type=" " board="RAT5543" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="16" type="F" board="TMB5436" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="17" type="F" board="DMB0447" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="18" type=" " board="RAT5593" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="18" type="F" board="TMB5437" date="2007-05-21" /> 
+<chamber crate="VME-1/2" slot="19" type="F" board="DMB0289" date="2007-05-21" /> 
+<chamber crate="VME-1/3" slot="00" type=" " board="EMUPC0035" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="01" type="F" board="VCC0034" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="02" type=" " board="TMB5202" date="2007-05-22" /> 
+<chamber crate="VME-1/3" slot="02" type="F" board="TMB5002" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="03" type="F" board="DMB0272" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="04" type=" " board="RAT5549" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="04" type="F" board="TMB5011" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="05" type="F" board="DMB0320" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="06" type=" " board="RAT5548" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="06" type="F" board="TMB5003" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="07" type="F" board="DMB0322" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="08" type=" " board="RAT5524" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="08" type="F" board="TMB5006" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="09" type="F" board="DMB0358" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="10" type=" " board="RAT5556" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="10" type="F" board="TMB5010" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="11" type="F" board="DMB0356" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="13" type="F" board="CCB0036" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="14" type=" " board="RAT5561" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="14" type="F" board="TMB5240" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="15" type="B" board="CRB0000" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="15" type="F" board="DMB0352" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="16" type=" " board="RAT5551" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="16" type="F" board="TMB5058" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="17" type="F" board="DMB0351" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="18" type=" " board="RAT5497" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="18" type="F" board="TMB5239" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="19" type="F" board="DMB0347" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="20" type=" " board="RAT5554" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="20" type="F" board="TMB5487" date="2007-05-24" /> 
+<chamber crate="VME-1/3" slot="21" type="F" board="DMB0305" date="2007-05-24" /> 
+<chamber crate="VME-1/4" slot="00" type=" " board="EMUPC0052" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="01" type="F" board="VCC0070" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="02" type=" " board="RAT5462" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="02" type="F" board="TMB5041" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="03" type="B" board="CBP0046" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="03" type="F" board="DMB0130" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="04" type=" " board="RAT5456" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="04" type="F" board="TMB5042" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="05" type="F" board="DMB0242" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="06" type=" " board="RAT5463" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="06" type="F" board="TMB5028" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="07" type="F" board="DMB0387" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="08" type=" " board="RAT5449" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="08" type="F" board="TMB5085" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="09" type="F" board="DMB0028" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="10" type=" " board="RAT5457" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="10" type="F" board="TMB5118" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="11" type="F" board="DMB0106" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="12" type="F" board="MPC0046" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="13" type="F" board="CCB0030" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="14" type=" " board="RAT5411" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="14" type="F" board="TMB5051" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="15" type="B" board="CRB0053" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="15" type="F" board="DMB0026" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="16" type=" " board="RAT5053" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="16" type="F" board="TMB5043" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="17" type="F" board="DMB0256" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="18" type=" " board="RAT5454" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="18" type="F" board="TMB5101" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="19" type="F" board="DMB0236" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="20" type=" " board="RAT5601" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="20" type="F" board="TMB5093" date="2007-05-12" /> 
+<chamber crate="VME-1/4" slot="21" type=" " board="DMB0273" date="2007-05-14" /> 
+<chamber crate="VME-1/4" slot="21" type="F" board="DMB0243" date="2007-05-12" /> 
+<chamber crate="VME-1/5" slot="00" type=" " board="EMUPC0052" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="01" type="F" board="VCC0069" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="02" type=" " board="RAT5462" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="02" type="F" board="TMB5041" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="03" type="B" board="CBP0046" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="03" type="F" board="DMB0130" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="04" type=" " board="RAT5456" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="04" type="F" board="TMB5042" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="05" type="F" board="DMB0242" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="06" type=" " board="RAT5463" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="06" type="F" board="TMB5028" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="07" type="F" board="DMB0387" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="08" type=" " board="RAT5449" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="08" type="F" board="TMB5085" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="09" type="F" board="DMB0028" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="10" type=" " board="RAT5457" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="10" type="F" board="TMB5118" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="11" type="F" board="DMB0106" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="12" type="F" board="MPC0046" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="13" type="F" board="CCB0030" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="14" type=" " board="RAT5411" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="14" type="F" board="TMB5051" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="15" type="B" board="CRB0053" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="15" type="F" board="DMB0026" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="16" type=" " board="RAT5053" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="16" type="F" board="TMB5043" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="17" type="F" board="DMB0256" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="18" type=" " board="RAT5454" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="18" type="F" board="TMB5101" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="19" type="F" board="DMB0236" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="20" type=" " board="RAT5601" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="20" type="F" board="TMB5093" date="2007-05-08" /> 
+<chamber crate="VME-1/5" slot="21" type="F" board="DMB0243" date="2007-05-08" /> 
+<chamber crate="VME-1/6" slot="00" type=" " board="EMUPC0057" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="01" type="F" board="VCC0075" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="02" type=" " board="RAT5529" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="02" type="F" board="TMB5117" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="03" type="B" board="CBP0071" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="03" type="F" board="DMB0253" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="04" type=" " board="RAT5190" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="04" type="F" board="TMB5084" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="05" type="F" board="DMB0107" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="06" type=" " board="RAT5604" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="06" type="F" board="TMB5352" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="07" type="F" board="DMB0086" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="08" type=" " board="RAT5513" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="08" type="F" board="TMB5012" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="09" type="F" board="DMB0146" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="10" type=" " board="RAT5410" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="10" type="F" board="TMB5494" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="11" type="F" board="DMB0159" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="12" type="F" board="MPC0044" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="13" type="F" board="CCB0083" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="14" type=" " board="RAT5525" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="14" type="F" board="TMB5506" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="15" type="B" board="CRB0058" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="15" type="F" board="DMB0168" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="16" type=" " board="RAT5059" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="16" type="F" board="TMB5403" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="17" type="F" board="DMB0292" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="18" type=" " board="RAT5397" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="18" type="F" board="TMB5207" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="19" type="F" board="DMB0401" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="20" type=" " board="RAT5256" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="20" type="F" board="TMB5264" date="2007-05-03" /> 
+<chamber crate="VME-1/6" slot="21" type="F" board="DMB0409" date="2007-05-03" /> 
+<chamber crate="VME-1/7" slot="00" type=" " board="EMUPC0039" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="01" type="F" board="VCC0073" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="02" type=" " board="RAT5138" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="02" type="F" board="TMB5110" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="03" type="B" board="CBP0038" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="03" type="F" board="DMB0063" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="04" type=" " board="RAT5073" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="04" type="F" board="TMB5312" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="05" type="F" board="DMB0304" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="06" type=" " board="RAT5072" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="06" type="F" board="TMB5297" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="07" type="F" board="DMB0056" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="08" type=" " board="RAT5114" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="08" type="F" board="TMB5305" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="09" type="F" board="DMB0237" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="10" type=" " board="RAT5112" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="10" type="F" board="TMB5275" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="11" type="F" board="DMB0299" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="12" type="F" board="MPC0009" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="13" type="F" board="CCB0042" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="14" type=" " board="RAT5104" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="14" type="F" board="TMB5485" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="15" type="B" board="CRB0039" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="15" type="F" board="DMB0161" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="16" type=" " board="RAT5123" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="16" type="F" board="TMB5493" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="17" type="F" board="DMB0317" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="18" type=" " board="RAT5215" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="18" type="F" board="TMB5307" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="19" type="F" board="DMB0050" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="20" type=" " board="RAT5031" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="20" type="F" board="TMB5306" date="2007-04-18" /> 
+<chamber crate="VME-1/7" slot="21" type="F" board="DMB0135" date="2007-04-18" /> 
+<chamber crate="VME-2/1" slot="00" type=" " board="EMUPC0044" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="01" type="F" board="VCC0040" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="02" type=" " board="RAT5574" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="02" type="F" board="TMB5103" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="03" type="B" board="CBP0060" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="03" type="F" board="DMB0499" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="04" type=" " board="RAT5626" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="04" type="F" board="TMB5523" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="05" type=" " board="DMB0545" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="05" type="F" board="DMB0545" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="06" type=" " board="RAT5631" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="06" type="F" board="TMB5522" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="07" type="F" board="DMB0507" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="08" type=" " board="RAT5627" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="08" type="F" board="TMB5147" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="09" type="F" board="DMB0455" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="10" type=" " board="RAT5564" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="10" type="F" board="TMB5158" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="11" type="F" board="DMB0360" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="12" type="F" board="MPC0036" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="13" type="F" board="CCB0038" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="14" type=" " board="RAT5595" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="14" type="F" board="TMB5418" date="2007-07-09" /> 
+<chamber crate="VME-2/1" slot="15" type="B" board="CRB0016" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="15" type="F" board="DMB0417" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="16" type=" " board="RAT5568" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="16" type="F" board="TMB5161" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="17" type="F" board="DMB0430" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="18" type=" " board="RAT5567" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="18" type="F" board="TMB5155" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="19" type="F" board="DMB0489" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="20" type=" " board="RAT5630" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="20" type="F" board="TMB5219" date="2007-02-22" /> 
+<chamber crate="VME-2/1" slot="21" type="F" board="DMB0549" date="2007-02-22" /> 
+<chamber crate="VME-2/2" slot="00" type=" " board="EMUPC0060" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="01" type="F" board="VCC0042" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="02" type=" " board="RAT5459" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="02" type="F" board="TMB5470" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="03" type="B" board="CBP0065" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="03" type="F" board="DMB0389" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="04" type=" " board="RAT5446" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="04" type="F" board="TMB5376" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="05" type="F" board="DMB0446" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="06" type=" " board="RAT5467" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="06" type="F" board="TMB5478" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="07" type="F" board="DMB0416" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="08" type=" " board="RAT5445" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="08" type="F" board="TMB5538" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="09" type="F" board="DMB0452" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="10" type=" " board="RAT5599" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="10" type="F" board="TMB5509" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="11" type="F" board="DMB0228" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="12" type="F" board="MPC0047" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="13" type="F" board="CCB0031" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="14" type=" " board="RAT5447" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="14" type="F" board="TMB5499" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="15" type="B" board="CRB0065" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="15" type="F" board="DMB0415" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="16" type=" " board="RAT5444" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="16" type="F" board="TMB5347" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="17" type="F" board="DMB0210" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="18" type=" " board="RAT5442" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="18" type="F" board="TMB5507" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="19" type="F" board="DMB0266" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="20" type=" " board="RAT5443" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="20" type="F" board="TMB5481" date="2007-02-20" /> 
+<chamber crate="VME-2/2" slot="21" type="F" board="DMB0282" date="2007-02-20" /> 
+<chamber crate="VME-2/3" slot="00" type=" " board="EMUPC0058" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="01" type="F" board="VCC0074" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="02" type=" " board="RAT5505" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="02" type="F" board="TMB5528" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="03" type="B" board="CBP0070" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="03" type="F" board="DMB0300" date="2007-05-02" />  
+<chamber crate="VME-2/3" slot="04" type=" " board="RAT5541" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="04" type="F" board="TMB5394" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="05" type="F" board="DMB0211" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="06" type=" " board="RAT5528" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="06" type="F" board="TMB5220" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="07" type="F" board="DMB0051" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="08" type=" " board="RAT5512" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="08" type="F" board="TMB5087" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="09" type="F" board="DMB0216" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="10" type=" " board="RAT5440" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="10" type="F" board="TMB5152" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="11" type="F" board="DMB0213" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="12" type="F" board="MPC0041" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="13" type="F" board="CCB0035" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="14" type=" " board="RAT5527" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="14" type="F" board="TMB5476" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="15" type="B" board="CRB0074" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="15" type="F" board="DMB0324" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="16" type=" " board="RAT5536" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="16" type="F" board="TMB5479" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="17" type="F" board="DMB0171" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="18" type=" " board="RAT5518" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="18" type="F" board="TMB5344" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="19" type="F" board="DMB0024" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="20" type=" " board="RAT5066" date="2007-03-30" />  
+<chamber crate="VME-2/3" slot="20" type="F" board="TMB5511" date="2007-02-09" /> 
+<chamber crate="VME-2/3" slot="21" type="F" board="DMB0195" date="2007-02-09" /> 
+<chamber crate="VME-2/6" slot="00" type=" " board="EMUPC0000" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="01" type="F" board="VCC0062" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="02" type=" " board="RAT5115" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="02" type="F" board="TMB5213" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="03" type="F" board="DMB0261" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="03" type="B" board="CBP0036" date="2007-07-23" />
+<chamber crate="VME-2/6" slot="04" type=" " board="RAT5137" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="04" type="F" board="TMB5187" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="05" type="F" board="DMB0268" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="06" type=" " board="RAT5107" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="06" type="F" board="TMB5169" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="07" type="F" board="DMB0263" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="08" type=" " board="RAT5139" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="08" type="F" board="TMB5186" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="09" type="F" board="DMB0285" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="10" type=" " board="RAT5121" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="10" type="F" board="TMB5184" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="11" type="F" board="DMB0461" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="12" type="F" board="MPC0057" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="13" type="F" board="CCB0072" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="14" type=" " board="RAT5077" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="14" type="F" board="TMB5234" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="15" type="F" board="DMB0248" date="2007-03-02" />
+<chamber crate="VME-2/6" slot="15" type="B" board="CRB0076" date="2007-07-23" />  
+<chamber crate="VME-2/6" slot="16" type=" " board="RAT5108" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="16" type="F" board="TMB5235" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="17" type="F" board="DMB0336" date="2007-03-02" />
+<chamber crate="VME-2/6" slot="18" type=" " board="RAT5142" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="18" type="F" board="TMB5059" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="19" type="F" board="DMB0334" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="20" type=" " board="RAT5141" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="20" type="F" board="TMB5230" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="21" type="F" board="DMB0475" date="2007-03-02" /> 
+<chamber crate="VME-2/6" slot="00" type=" " board="EMUPC0032" date="2007-07-23" /> 
+<chamber crate="VME-2/6" slot="01" type="F" board="VCC0062" date="2007-07-23" /> 
+<chamber crate="VME-3/1" slot="00" type=" " board="EMUPC0048" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="01" type="F" board="VCC0021" date="2007-07-24" /> 
+<chamber crate="VME-3/1" slot="02" type=" " board="RAT5533" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="02" type="F" board="TMB5236" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="03" type="B" board="CBP0050" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="03" type="F" board="DMB0582" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="04" type=" " board="RAT5563" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="04" type="F" board="TMB5009" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="05" type="F" board="DMB0402" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="06" type=" " board="RAT5491" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="06" type="F" board="TMB5185" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="07" type="F" board="DMB0386" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="08" type=" " board="RAT5510" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="08" type="F" board="TMB5199" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="09" type="F" board="DMB0293" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="10" type=" " board="RAT5544" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="10" type="F" board="TMB5029" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="11" type="F" board="DMB0550" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="12" type="F" board="MPC0037" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="13" type="F" board="CCB0039" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="14" type=" " board="RAT5560" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="14" type="F" board="TMB5098" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="15" type="B" board="CRB0014" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="15" type="F" board="DMB0548" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="16" type=" " board="RAT5632" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="16" type="F" board="TMB5288" date="2007-07-24" /> 
+<chamber crate="VME-3/1" slot="17" type="F" board="DMB0546" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="18" type=" " board="RAT5553" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="18" type="F" board="TMB5019" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="19" type="F" board="DMB0547" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="20" type=" " board="RAT5580" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="20" type="F" board="TMB5100" date="2007-02-20" /> 
+<chamber crate="VME-3/1" slot="21" type="F" board="DMB0397" date="2007-02-20" /> 
+<chamber crate="VME-3/2" slot="00" type=" " board="EMUPC0043" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="01" type="F" board="VCC0046" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="02" type=" " board="RAT5692" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="02" type="F" board="TMB5176" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="03" type="B" board="CBP0059" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="03" type="F" board="DMB0413" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="04" type=" " board="RAT5597" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="04" type="F" board="TMB5092" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="05" type="F" board="DMB0365" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="06" type=" " board="RAT5596" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="06" type="F" board="TMB5046" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="07" type="F" board="DMB0364" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="08" type=" " board="RAT5585" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="08" type="F" board="TMB5097" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="09" type="F" board="DMB0362" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="10" type=" " board="RAT5590" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="10" type="F" board="TMB5517" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="11" type="F" board="DMB0361" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="12" type="F" board="MPC0035" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="13" type="F" board="CCB0041" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="14" type=" " board="RAT5598" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="14" type="F" board="TMB5168" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="15" type="B" board="CRB0082" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="15" type="F" board="DMB0441" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="16" type=" " board="RAT5566" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="16" type="F" board="TMB5017" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="17" type="F" board="DMB0440" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="18" type=" " board="RAT5591" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="18" type="F" board="TMB5016" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="19" type="F" board="DMB0412" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="20" type=" " board="RAT5589" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="20" type="F" board="TMB5171" date="2007-02-16" /> 
+<chamber crate="VME-3/2" slot="21" type="F" board="DMB0453" date="2007-02-16" /> 
+<chamber crate="VME-3/3" slot="00" type=" " board="EMUPC0025" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="01" type="F" board="VCC0071" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="02" type=" " board="RAT5644" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="02" type="F" board="TMB0205" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="03" type="F" board="DMB0205" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="04" type=" " board="RAT5470" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="04" type="F" board="TMB0203" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="05" type="F" board="DMB0203" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="06" type=" " board="RAT5646" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="06" type="F" board="TMB0300" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="07" type=" " board="DMB0180" date="2007-05-02" /> 
+<chamber crate="VME-3/3" slot="07" type="F" board="DMB0300" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="08" type=" " board="RAT5651" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="08" type="F" board="TMB0190" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="09" type="F" board="DMB0190" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="10" type=" " board="RAT5648" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="10" type="F" board="TMB0201" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="11" type="F" board="DMB0201" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="12" type="F" board="MPC0027" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="13" type="F" board="CCB0077" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="14" type=" " board="RAT5572" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="14" type="F" board="TMB0516" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="15" type="B" board="CRB0030" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="15" type="F" board="DMB0516" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="16" type=" " board="RAT5645" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="16" type="F" board="TMB0520" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="17" type="F" board="DMB0520" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="18" type=" " board="RAT5619" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="18" type="F" board="TMB0218" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="19" type="F" board="DMB0218" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="20" type=" " board="RAT5614" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="20" type="F" board="TMB0217" date="2007-02-13" /> 
+<chamber crate="VME-3/3" slot="21" type="F" board="DMB0217" date="2007-02-13" /> 
+<chamber crate="VME-3/6" slot="00" type=" " board="EMUPC0050" date="2007-07-23" /> 
+<chamber crate="VME-3/6" slot="01" type="F" board="VCC0063" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="02" type=" " board="RAT5004" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="02" type="F" board="TMB5311" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="03" type="B" board="CBP0041" date="2007-07-23" /> 
+<chamber crate="VME-3/6" slot="03" type="F" board="DMB0496" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="04" type=" " board="RAT5040" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="04" type="F" board="TMB5137" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="05" type="F" board="DMB0465" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="06" type=" " board="RAT5435" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="06" type="F" board="TMB5126" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="07" type="F" board="DMB0439" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="08" type=" " board="RAT5051" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="08" type="F" board="TMB5121" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="09" type="F" board="DMB0472" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="10" type=" " board="RAT5403" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="10" type="F" board="TMB5054" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="11" type="F" board="DMB0020" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="12" type="F" board="MPC0028" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="13" type="F" board="CCB0069" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="14" type=" " board="RAT5404" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="14" type="F" board="TMB5143" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="15" type="B" board="CRB0029" date="2007-07-23" /> 
+<chamber crate="VME-3/6" slot="15" type="F" board="DMB0033" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="16" type=" " board="RAT5406" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="16" type="F" board="TMB5153" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="17" type="F" board="DMB0173" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="18" type=" " board="RAT5412" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="18" type="F" board="TMB5119" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="19" type="F" board="DMB0275" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="20" type=" " board="RAT5466" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="20" type="F" board="TMB5120" date="2007-09-20" /> 
+<chamber crate="VME-3/6" slot="21" type="F" board="DMB0260" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="01" type="F" board="VCC0039" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="02" type=" " board="RAT5472" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="02" type="F" board="TMB5346" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="03" type="F" board="DMB0418" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="04" type=" " board="RAT5487" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="04" type="F" board="TMB5251" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="05" type="F" board="DMB0485" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="06" type=" " board="RAT5469" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="06" type="F" board="TMB5296" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="07" type="F" board="DMB0110" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="12" type="F" board="MPC0053" date="2007-09-20" /> 
+<chamber crate="VME-4/1" slot="13" type="F" board="CCB0044" date="2007-09-20" /> 
+<chamber crate="VME-4/2" slot="00" type=" " board="EMUPC0036" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="01" type="B" board="ELM0038" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="01" type="F" board="VCC0056" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="02" type=" " board="RAT5420" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="02" type="B" board="PCM0038" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="02" type="F" board="TMB5322" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="03" type="B" board="CBP0039" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="03" type="F" board="DMB0098" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="04" type=" " board="RAT5415" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="04" type="F" board="TMB5390" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="05" type="F" board="DMB0198" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="06" type=" " board="RAT5416" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="06" type="F" board="TMB5008" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="07" type="F" board="DMB0350" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="12" type="F" board="MPC0005" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="13" type="F" board="CCB0066" date="2006-09-27" /> 
+<chamber crate="VME-4/2" slot="15" type="B" board="CRB0072" date="2006-09-27" /> 
+<chamber crate="VME-4/3" slot="00" type=" " board="EMUPC0042" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="01" type="F" board="VCC0055" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="02" type=" " board="RAT5639" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="02" type="F" board="TMB5549" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="03" type="B" board="CBP0058" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="03" type="F" board="DMB0091" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="04" type=" " board="RAT5422" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="04" type="F" board="TMB5304" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="05" type="F" board="DMB0120" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="06" type=" " board="RAT5450" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="06" type="F" board="TMB5355" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="07" type="F" board="DMB0473" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="12" type="F" board="MPC0043" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="13" type="F" board="CCB0062" date="2007-06-21" /> 
+<chamber crate="VME-4/3" slot="15" type="B" board="CRB0068" date="2007-06-21" /> 
+<chamber crate="VME-4/4" slot="00" type=" " board="EMUPC0054" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="01" type="F" board="VCC0058" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="02" type=" " board="RAT5427" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="02" type="F" board="TMB5337" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="03" type="B" board="CBP0071" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="03" type="F" board="DMB0163" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="04" type=" " board="RAT5485" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="04" type="F" board="TMB5274" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="05" type="F" board="DMB0222" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="06" type=" " board="RAT5419" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="06" type="F" board="TMB5351" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="07" type="F" board="DMB0157" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="12" type="F" board="MPC0051" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="13" type="F" board="CCB0008" date="2006-09-26" /> 
+<chamber crate="VME-4/4" slot="15" type="B" board="CRB0057" date="2006-09-26" /> 
+<chamber crate="VME-4/5" slot="00" type=" " board="EMUPC0049" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="01" type="B" board="ELM0819" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="01" type="F" board="VCC0057" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="02" type=" " board="RAT5478" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="02" type="B" board="PCM0040" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="02" type="F" board="TMB5283" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="03" type="B" board="CBP0047" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="03" type="F" board="DMB0411" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="04" type=" " board="RAT5476" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="04" type="F" board="TMB5464" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="05" type="F" board="DMB0375" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="06" type=" " board="RAT5473" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="06" type="F" board="TMB5545" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="07" type="F" board="DMB0115" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="12" type="F" board="MPC0056" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="13" type="F" board="CCB0075" date="2006-09-22" /> 
+<chamber crate="VME-4/5" slot="15" type="B" board="CRB0087" date="2006-09-22" /> 
+<chamber crate="VME-4/6" slot="00" type=" " board="EMUPC0031" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="01" type="F" board="VCC0056" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="02" type=" " board="RAT5608" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="02" type="F" board="TMB5401" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="03" type="B" board="CBP0037" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="03" type="F" board="DMB0188" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="04" type=" " board="RAT5366" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="04" type="F" board="TMB5559" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="05" type="F" board="DMB0442" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="06" type=" " board="RAT5378" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="06" type="F" board="TMB5357" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="07" type="F" board="DMB0129" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="12" type="F" board="MPC0024" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="13" type="F" board="CCB0028" date="2006-06-26" /> 
+<chamber crate="VME-4/6" slot="15" type="B" board="CRB0083" date="2006-06-26" />
+</emu> 
