@@ -14,6 +14,7 @@ Package=emuDCS/OnlineDB
 
 
 Sources=\
+	BoardsDB.cc \
         ConnectionsDB.cc \
         ConnectionsGUI.cc 
 
