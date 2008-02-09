@@ -32,13 +32,14 @@ ConnectionsDB::ConnectionsDB(): pAttributes_(0)
   HOMEDIR_+="/config/db/";
   std::cout << "Home Directory:" << HOMEDIR_ <<std::endl;
 
+  idb=0;
   ConnectionsDBXMLFile_=HOMEDIR_+"RUI-to-chamber_mapping.xml";
   parseFile(ConnectionsDBXMLFile_);
-  idb=0;
 
+  isdb=0;
   sConnectionsDBXMLFile_=HOMEDIR_+"SwitchConnections.xml";
   sparseFile(sConnectionsDBXMLFile_);
-  isdb=0;
+  
 }
 
 ConnectionsDB::~ConnectionsDB()
