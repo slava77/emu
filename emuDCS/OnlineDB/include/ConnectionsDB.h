@@ -8,7 +8,6 @@
 #include <iomanip>
 
 class ConnectionsDB
-
 {
 public:
   ConnectionsDB();
