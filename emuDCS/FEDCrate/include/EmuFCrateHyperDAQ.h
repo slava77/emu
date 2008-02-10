@@ -5687,8 +5687,8 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 {
   float v_val[4]={1500.,2500.,2500.,3300.};
   float v_delt={100.};  
-  float t_val[4]={90.,90.,90.,90.};
-  float t_delt={17.};
+  float t_val[4]={80.,80.,80.,80.};
+  float t_delt={25.};
 
   cgicc::Cgicc cgi(in);
     //
