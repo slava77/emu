@@ -4,7 +4,7 @@ XERCES_CPP_NAMESPACE_USE
 using namespace std;
 
 /** Parses the DDU fiber -> chamber linking using the input XML file.
-@param fileName is the location of the XML file RELATIVE TO ${XDAQ_ROOT}.
+@param fileName is the absolute path location of Karoly's XML file.
 @param crate is the crate number in which the DDU resides.
 @param slot is the slot in which the DDU resides in its given crate.
 **/
@@ -12,17 +12,22 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 {
 	Chamber *fakeChamber = new Chamber();
 	chamberVector_.resize(15,fakeChamber);
-	// Remember that fileName is relative to the path $XDAQ_ROOT
+
 	stringstream fileNameStream;
+/*  JRG old: used to Prepend the path XDAQ_ROOT for the XML file
+	// Remember that fileName is relative to the path $XDAQ_ROOT
+
 	string XDAQ_ROOT(getenv("XDAQ_ROOT"));
 	if (XDAQ_ROOT == "") {
 		cerr << "Error before Xerces-c Initialization." << endl;
 		cerr << "  SET ENVIRONMENT VARIABLE XDAQ_ROOT FIRST!" << endl;
 		return;
 	}
-
-	// Prepend the path XDAQ_ROOT
 	fileNameStream << XDAQ_ROOT << (XDAQ_ROOT[XDAQ_ROOT.size() - 1] == '/' ? "" : "/") << fileName;
+*/
+
+//  JRG, now use absolute path for the XML file specification:
+	fileNameStream << fileName;
 
 	/// Initialize XML4C system
 	try{
@@ -118,20 +123,20 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 }
 
 
-vector<DOMNode *> ChamberParser::parseMaps(DOMNode *pDoc) {
+vector<DOMNode *> ChamberParser::parseMaps(DOMNode * pDoc) {
 	vector<DOMNode *> nodeVector;
-	DOMNode *pNode1 = pDoc->getFirstChild();
+	DOMNode * pNode1 = pDoc->getFirstChild();
 	while (pNode1) { // RUI-to-chamber_mapping
-		if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
-			if ( strcmp("RUI-to-chamber_mapping",XMLString::transcode(pNode1->getNodeName())) ){
-				cout << "ChamberParser: WARNING - Wrong Top Element <"
-					<< XMLString::transcode(pNode1->getNodeName())
-					<< ">, should be <RUI-to-chamber_mapping>" << endl;
-			}
+	  if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
+	    if ( strcmp("RUI-to-chamber_mapping",XMLString::transcode(pNode1->getNodeName())) ){
+	      cout << "ChamberParser: WARNING - Wrong Top Element <"
+		   << XMLString::transcode(pNode1->getNodeName())
+		   << ">, should be <RUI-to-chamber_mapping>" << endl;
+	    }
 
-			nodeVector.push_back(pNode1);
-		}
-		pNode1 = pNode1->getNextSibling();
+	    nodeVector.push_back(pNode1);
+	  }
+	  pNode1 = pNode1->getNextSibling();
 	}
 
 	return nodeVector;

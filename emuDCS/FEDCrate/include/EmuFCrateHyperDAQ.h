@@ -418,17 +418,36 @@ throw (xgi::exception::Exception)
 			int slot = thisDDU->slot();
 			char buf[20];	
 			if(slot<=21){ // DDU/DCC
-				sprintf(buf,"DDU Slot: %d ",slot);
-				printf(" %s \n",buf);
-				*out << buf; 
-				thisCrate->vmeController()->CAEN_err_reset();
-				unsigned short int status=thisDDU->vmepara_CSCstat();
-				unsigned short int DDU_FMM=((thisDDU->vmepara_status()>>8)&0x000F);
-				int brdnum,iblink=0;
+			  sprintf(buf,"DDU Slot: %d ",slot);
+			  printf(" %s \n",buf);
+			  *out << buf; 
+			  thisCrate->vmeController()->CAEN_err_reset();
+			  unsigned short int status=thisDDU->vmepara_CSCstat();
+			  unsigned short int DDU_FMM=((thisDDU->vmepara_status()>>8)&0x000F);
+			  int brdnum,iblink=0;
+
+			  int rui=9*thisCrate->number()+slot-3;
+			  if (slot>8)rui--;  // Correct for the DCC slot.
+			  if (thisCrate->number()>0) rui-=9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
+			  if (thisCrate->number()>4) rui=0; // This is the TF DDU.
+			  stringstream ruiNumberStream;
+			  ruiNumberStream << rui;
+			  string ruiString = ruiNumberStream.str();
+
 				// sleep(1);
 				brdnum=thisDDU->read_page7();
+				//				sprintf(buf,"Board: %d (RUI %d) ",brdnum,rui);
 				sprintf(buf,"Board: %d ",brdnum);
 				*out << buf;
+
+				string ruiFormGetString = "rui1="+ruiString+"&ddu_input1=&ddu1=&fed_crate1=&ddu_slot1=&dcc_fifo1=&slink1=&fiber_crate1=&fiber_pos1=&fiber_socket1=&crateid1=&cratelabel1=&dmb_slot1=&chamberlabel1=&chamberid1=&rui2=&ddu2=&fed_crate2=&ddu_slot2=&ddu_input2=&dcc_fifo2=&slink2=&fiber_crate2=&fiber_pos2=&fiber_socket2=&crateid2=&cratelabel2=&dmb_slot2=&chamberlabel2=&chamberid2=&switch=ddu_chamber&chamber2=";
+				*out << "<font size=-1> (" << cgicc::a()
+				  .set("href","http://oraweb03.cern.ch:9000/pls/cms_emu_cern.pro/ddumap.web?"+ruiFormGetString)
+				  .set("target","_blank")
+				     << "RUI #" << rui
+				     << cgicc::a() << ") </font> ";
+
+
 
 				if(DDU_FMM==4){    // Busy
 				*out << cgicc::span()
