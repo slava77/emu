@@ -1,7 +1,10 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 3.3 2008/02/01 16:18:15 gilmore Exp $
+// $Id: FEDCrateParser.cc,v 3.4 2008/02/10 00:06:06 gilmore Exp $
 // $Log: FEDCrateParser.cc,v $
+// Revision 3.4  2008/02/10 00:06:06  gilmore
+// compatibility fixes for current cscpro/cscdev configuration
+//
 // Revision 3.3  2008/02/01 16:18:15  gilmore
 // added fiber-to-CSCid map decode using local XML file as reference
 //
@@ -102,6 +105,12 @@ void FEDCrateParser::parseFile(const char* name){
 				DOMNode *ruiNode = ruiAttributes->getNamedItem(XMLString::transcode("RUI-to-chamber_map"));
 				RUIXMLFile_ = XMLString::transcode(ruiNode->getNodeValue());
 
+				cout << "JRG  RUIXMLFile_ = " << RUIXMLFile_ << endl;
+				char cmdstring[222];
+				sprintf(cmdstring,"/bin/ls -al %s",RUIXMLFile_);
+				printf("JRG  try system command %s \n",cmdstring);
+				system(cmdstring);
+
 				#ifdef debugV
 				cout << "  RUIXMLFile_ = " << RUIXMLFile_ << endl;
 				#endif
@@ -132,16 +141,16 @@ void FEDCrateParser::parseFile(const char* name){
 						#ifdef debugV
 						cout << "  crateNumber = " << crateNumber << endl;
 						#endif
-						
+
 						/* At this point, the crate has been fully specified.
 							Let us initialize it and later add the appropriate
 							objects.
 						*/
 						Crate* crate = new Crate(crateNumber);
-						
+
 						DOMNode * pNode3 = pNode2->getFirstChild(); 
 						if (pNode3==0) cout << " Bad element "<< endl;
-					
+
 						while(pNode3) { // VMEModules (DDU, DCC, controller?)
 							if (pNode3->getNodeType() == DOMNode::ELEMENT_NODE) {
 								cout <<"  "<< XMLString::transcode(pNode3->getNodeName()) << endl;
