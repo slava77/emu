@@ -122,7 +122,7 @@ static char *bufr;
 static int endcond={0};
 static int wakecond={0};
 static int ERROR={0};
-static int rd_tmo = {1000};
+static int rd_tmo = {100};
 //Added by Jinghua Liu
 static int wakestatus=0;
 static int pack_drop=0;
