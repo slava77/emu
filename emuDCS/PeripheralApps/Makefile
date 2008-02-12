@@ -14,6 +14,7 @@ Package=emuDCS/PeripheralApps
 
 
 Sources=\
+        AppsVersion.cc \
         CalibDAQ.cc \
         ChamberUtilities.cc \
 	CrateUtilities.cc \
