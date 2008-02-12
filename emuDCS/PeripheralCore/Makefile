@@ -14,6 +14,7 @@ Project=emu
 Package=emuDCS/PeripheralCore
 
 Sources=\
+	CoreVersion.cc \
 	ALCTController.cc \
 	CCB.cc \
 	RAT.cc \
