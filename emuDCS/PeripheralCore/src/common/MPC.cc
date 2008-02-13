@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.8 2008/01/08 10:59:32 liu Exp $
+// $Id: MPC.cc,v 3.9 2008/02/13 16:50:42 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.9  2008/02/13 16:50:42  liu
+// fix board ID setting
+//
 // Revision 3.8  2008/01/08 10:59:32  liu
 // remove exit() in functions
 //
@@ -177,8 +180,8 @@ void MPC::configure() {
   ReadRegister(CSR0);
 
   addr = CSR0;
-  data[1]=0x10|((BoardId_&0xf)<<1);
-  data[0]=0x4a|((BoardId_&0x30)>>2);
+  data[1]=0x00|((BoardId_&0xf)<<1);
+  data[0]=0x42|((BoardId_&0x30)>>2);
   do_vme(VME_WRITE, addr, data, NULL, NOW);
 
   ReadRegister(CSR0);
