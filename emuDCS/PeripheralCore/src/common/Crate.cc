@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.19 2008/01/11 07:40:46 geurts Exp $
+// $Id: Crate.cc,v 3.20 2008/02/14 15:06:04 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.20  2008/02/14 15:06:04  liu
+// update
+//
 // Revision 3.19  2008/01/11 07:40:46  geurts
 // removed obsolete include of CrateSetup.h
 //
@@ -122,8 +125,6 @@
 #include <string.h> 
 #include "VMEModule.h"
 #include "VMEController.h"
-//#include "CrateSetup.h"
-//#include "Singleton.h"
 #include "DAQMB.h"
 #include "TMB.h"
 #include "MPC.h"
@@ -245,17 +246,19 @@ void Crate::enable() {
   CCB * ccb = this->ccb();
   //
   if(mpc) mpc->init();
-  ccb->enable();
+  if(ccb) ccb->enable();
 }
 //
 void Crate::disable() {
   //
   CCB * ccb = this->ccb();
-  ccb->disableL1();
-  ccb->disable();
+  if(ccb) {
+    ccb->disableL1();
+    ccb->disable();
   //::sleep(1);
-  std::cout << "data taking disabled " << std::endl;
+    std::cout << "data taking disabled " << std::endl;
   //
+  }
 }
 //
 void Crate::DumpConfiguration() {
@@ -291,6 +294,7 @@ void Crate::configure() {
   //
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
+  if(!ccb) return;
   //
   //theController->init();
   //
@@ -338,6 +342,7 @@ void Crate::init() {
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
   //
+  if(!ccb) return;
   ccb->init();
   //
   std::vector<TMB*> myTmbs = this->tmbs();
