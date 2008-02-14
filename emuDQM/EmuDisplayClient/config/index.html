@@ -1,0 +1,1826 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en" dir="ltr" >
+<head>
+<title>EMU CSC Online DQM Results Browser</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style type="text/css">
+	body {
+		color: #000000; 
+		background-color: #9090FF;
+		margin: 2px;
+		font-family:Arial;
+		overflow: auto;
+	}
+	a, A:link, a:visited, a:active, A:hover	{
+			color: #000000; 
+			text-decoration: none;		
+			outline-style: none;			
+	}
+	
+	fieldset {
+		background-color: #ddd;	
+			
+		border-style: solid;
+		border-width: 1px;
+		border-color: black;
+		margin: 2px;
+		padding: 2px;
+		
+	}
+	legend {
+		border-style: solid;
+		border-width: 1px;		
+		background-color:  #C0C0FF;				
+	}
+	legend:hover {
+		background-color: white;
+	}
+	
+	label {
+		font-weight: bold;
+	}
+	
+	table {
+		border-color: black;
+		border-width: 0px;		
+		border-style: solid;		
+		border-spacing: 0px;
+		background-color: #AFAFAF;
+	}
+	tr, th, td {
+		
+		border: 1px solid black;
+		
+	}
+	td, th {
+		font-size:8pt; ;
+		
+		padding: 0px;
+	}
+	td:hover, td.me:hover, td.me_csc:hover,td.me_type:hover {
+		background-color: #A0A0FF;
+	}
+	
+	div.tabs {
+		float: none;
+	}
+	
+	div.tabs ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		
+	}
+
+	div.tabs li {
+		font-size: 12px;
+		float: left;
+		border: 1px solid;
+		border-bottom-width: 0;
+		margin: 0 0.5em 0 0;
+		background-color: #9F9F9F;
+	}
+
+	div.tabs a {
+		display: block;
+		padding: 0 1em;
+		
+	}
+
+	div.tabs #selected, #selected:active, #selected_runs, #selected_runs:active {
+		font-weight: bold;
+		position: relative;
+		top: 1px;
+		background-color: white;
+		
+	}
+	
+	div.MainWindow {
+		background-color: #FFA000;
+		
+		padding: 2px;
+		border-style: solid;
+		border-width: 1px;
+		border-color: black;
+	}
+	div#l_panel {
+		max-width: 300px; 
+		float: left;	
+	}
+	div#r_panel {
+		position: absolute; left: 310px;
+		
+	}	
+	
+	
+	div.runs_div
+	 {
+		height: 160px;		
+		
+	}
+	
+	div#tests_div {
+		max-height: 500px;
+		overflow: auto;
+	}
+	
+	div#slideshow_div {
+		max-height: 400px;
+		overflow: auto;
+	}
+	
+	div#log {
+		max-height: 200px;
+		overflow: auto;
+	}
+	
+	table.log {
+		border-collapse: collapse;
+		background-color: #ccc;
+		border-width: 1px;
+		border-spacing: 0px;
+		border-style: solid;
+		margin: 2px;
+	}
+	table.log th {background-color: #AFAFFF; text-align: left; padding: 0 2px 0 2px;}
+	table.log tr {border-style: solid; background-color:#E0E0E0;}
+	td.log {font-size:8pt; font-family:Arial; padding: 0 2px 0 2px; border-style: solid;}	
+	span#debug {color: black; font-weight: bold;}
+	span#info  {color: green; font-weight: bold;}
+	span#error {color: orange; font-weight: bold;}
+	span#warn  {color: orange; font-weight: bold;}
+	
+	li.sshow_list { font-size:8pt; font-family:Arial; margin: 0;}
+	
+	a.winTitle {
+		margin: 0;
+		font-size: 12px;
+		font-weight: bold;
+		text-decoration: none;
+		color: #000080;		
+	}
+	
+	a.add_to_list {		
+		font-weight: bold;
+		color: green;
+		background: white;
+	}	
+	a.remove_from_list {		
+		font-weight: bold;
+		color: red;
+		background: white;
+	}
+	
+	table.runs_table, table.tests_table {
+		width: 100%;
+		border-collapse: collapse;
+		background-color: #bbb;
+		border-width: 1px;
+		border-spacing: 0px;
+		border-style: solid;	
+		margin: 1px;
+	}
+	
+	table.runs_table tr, td {text-align: left; white-space: nowrap;}
+	
+	
+	#csctable_div, #hwtable_div, #runs_div, #tests_div, 
+	#local_runs, #global_runs, #online_runs
+	{
+		padding: 1px;
+		border-style: solid;
+		border-width: 1px;
+		border-color: black;
+		background-color: white;
+		clear: left;
+		overflow:auto;
+	}
+	
+	#csctable_div {
+		float: left;
+	}
+	
+	#csc_table {
+		border-collapse: collapse;
+		background-color: #bbb;
+		border-width: 1px;
+		border-spacing: 0px;
+		border-style: solid;
+		margin: 2px;
+	}
+	
+	#csc_table td {
+		text-align: center;
+		
+	}
+	
+	legend.t_hdr, a.test_hdr {
+		font-size: 9pt;
+		font-weight: bold;
+		background-color: #ddd;
+		
+	}
+	a.test_hdr2 {
+		font-size: 8pt;
+		font-weight: bold;
+		background-color: #ddd;
+		
+		
+		
+	}
+	
+	td.hw_tr {font-size: 10pt; font-weight: bold; background-color: #ddd;}
+	td.hw_td {background-color: white; text-align: center;}
+	
+	td.me_csc, td.me_ddu { width: 18px;}
+	td.me_type{ background-color: #ddd; font-weight: bold;  width: 40px;} 
+	td.me, td.me_emu { background-color: #ddd; font-weight: bold; font-size:9pt; width: 50px; }
+	th.RunLink {padding: 0 0 0 4px; text-align: left; font-size:10pt;  font-weight: bold; background-color: #AFAFFF; } 
+	td.node {width: 24px; background-color: white; text-align: center}
+	
+</style>
+<script type="text/javascript">
+
+// var baseURL="http://cms-csc.web.cern.ch/cms-csc/DQM/DAQ/plots/merged/";
+var baseURL="";
+var RunsList="runs_list.js";
+var TestsList="getTestsList";
+var CSCList="getCSCList";
+var CSCMap="getCSCMapping";
+var DDUMap="getDDUMapping";
+var NodesStatus="getNodesStatus";
+
+var imgFormat=".png";
+var RunNumber="";
+var Folder="";
+var RunInfoIdx = -1;
+var Canvas="";
+var Scope="";
+var isFolderValid=false;
+var postfix = ".plots";
+
+var updateImageInterval=10000; 
+
+var minImageHeight=100;
+var maxImageHeight=1200;
+var minImageWidth=100;
+var maxImageWidth=1900;
+var imgHeight=600;
+var imgWidth=800;
+var imgSizeStep=40;
+
+var RUNS=false;	// list of Runs
+var TREE_RUNS=false; //  actually list of Tests/Canvases
+var CSCMAP=false;
+var CSC_LIST=false;
+var DDUMAP=false;
+var NODES_LIST=false;
+
+var Log=new Array();
+var logLevel="all";
+
+var selectedObjectList=new Array();
+
+var testsShowLists = new Array();
+testsShowLists["Custom"] = new Array();
+var runsShowLists = new Array();
+runsShowLists["Custom"] = new Array();
+var foldersShowLists = new Array();
+foldersShowLists["Selected Only"] = new Array();
+foldersShowLists["All CSCs"] = new Array();
+// foldersShowLists["Custom"] = new Array();
+var folderSListIdx=0;
+var fOpenExternal=false;
+var loopFoldersFirst = true;
+var fAutoUpdatePlot = false;
+var selFolder="";
+var selNode="";
+
+var EMUs = new Array();
+var DDUs = new Array();
+var CSCs = new Array();
+
+
+var updateCounters = new Array();
+var NodesHistory = new Array();
+var histDepth=200;
+
+
+var CSC_TYPES = [
+	['ME+',[["ME+4/2", 36],
+		["ME+4/1", 18],
+		["ME+3/2", 36],
+		["ME+3/1", 18],
+		["ME+2/2", 36],
+		["ME+2/1", 18],
+		["ME+1/3", 36],
+		["ME+1/2", 36],
+		["ME+1/1", 36]]
+	],
+	['ME-',[["ME-1/1", 36],
+		["ME-1/2", 36],
+		["ME-1/3", 36],
+		["ME-2/1", 18],
+		["ME-2/2", 36],
+		["ME-3/1", 18],
+		["ME-3/2", 36],
+		["ME-4/1", 18],
+		["ME-4/2", 36]]
+	]
+];
+
+function loadPlot() {
+	// var imgurl = Folder+"/"+Canvas;
+	// var objname = Canvas.substr(Canvas.search("/"), Canvas.length);
+	var objname = Canvas.substr(0, Canvas.search(".png"));
+	if (objname.search("/") >=0) objname = objname.substr(objname.search("/")+1, objname.length);
+	var timestamp=new Date()
+	var imgurl=baseURL+"genImage?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&timestamp="+timestamp.getTime();
+	var zoomimage=baseURL+"genImage?objectName="+objname+"&folder="+Folder+"&imageWidth="+1600+"&imageHeight="+1200+"&timestamp="+timestamp.getTime();
+	var out = "";
+	var title = "Plots";
+	// addlog(Folder +"/"+objname, "info"); 
+			
+	
+	if (!isFolderValid) {
+			
+		// out += RunNumber+": Invalid folder - \""+Folder+"\"<hr>";
+	} else {
+		if ((parent.Folder != "") && (parent.Canvas != "") ) {
+			if ((Folder.search("EMU") >=0 && Scope == "EMU") || 
+				(Folder.search("DDU") >=0 && Scope == "DDU") || 
+				(Folder.search("CSC") >=0 && parent.Scope == "CSC")) {
+				// out += RunNumber+": \""+Folder+"/"+Canvas+"\"<hr>";				
+				title += ": " +RunNumber+"/"+Folder+"/"+Canvas;
+				// addlog(title, "info")
+				// out += "<a target=blank href=\'"+imgurl+"\'><IMAGE height='"+imgHeight+"' NAME='test' SRC='"+imgurl+"'></a>";
+				// dirtypop();				
+				if (fOpenExternal) {
+					try {
+						var generator=window.open('','name','height='+(imgHeight+40)+',width='+(imgWidth+40)+',resizable=no');						
+						if (window.focus) {generator.focus()} 
+						generator.resizeTo(imgWidth+20, imgHeight+50);
+						generator.document.write('<html><head><title>'+title+'</title>');
+						generator.document.write("<style>body {color: #000000; background-color: #9090FF;margin: 2px;font-family:Arial;	overflow: auto;}"+
+						"span.winTitle {	margin: 0;font-size: 12px;font-weight: bold;text-decoration: none;color: #000000;}"+
+						"fieldset {background-color: #ddd;	border-style: solid;border-width: 1px;border-color: black;margin: 2px;padding: 2px;}"+
+						"legend {border-style: solid;border-width: 1px;background-color:  #C0C0FF;}</style>");
+						generator.document.write('</head><body>');
+						generator.document.write("<fieldset><legend><span class='winTitle'>"+title+"</span></legend>");
+						generator.document.write("<IMAGE NAME='test' SRC='"+imgurl+"'>");
+						generator.document.write("</fieldset>");
+						// generator.document.write('<p><a href="javascript:self.close()">Close</a> the popup.</p>');
+						generator.document.write('</body></html>');
+						generator.document.close();
+					  } 
+					  catch (exc){
+					}
+				} else {
+					out += "<a target=blank href=\'"+zoomimage+"\'><IMAGE NAME='test' SRC='"+imgurl+"'></a>";
+				}
+				
+			}else {
+				addlog("Can not display '"+Canvas+"'. Selected canvas scope '"+Scope+"' and folder '"+Folder+"' logical sections mismatch", "warn");
+				// addlog("Invalid canvas: \""+RunNumber+"/"+Folder+"/"+Canvas, "error");
+				// out += "Invalid canvas: \""+Folder+"/"+Canvas+"\"<hr>";
+			} 
+		} 
+	}
+	var o_obj = document.getElementById("plots_div");
+	if (o_obj) o_obj.innerHTML = out;
+	o_obj = document.getElementById("plot_title");
+	if (o_obj) o_obj.innerHTML = title;
+	return false;
+}
+
+function updatePlots() {
+	if (fAutoUpdatePlot) {
+		loadPlot();
+		setTimeout('updatePlots()',updateImageInterval);
+	}
+}
+
+function showHide(id)
+{
+   obj = document.getElementById(id);
+   if (obj) {
+	if (obj.style.display == 'none') obj.style.display = '';
+	else obj.style.display = 'none';
+   }
+   return false;
+}
+
+function getTime()
+{
+	var t = new Date();
+	val = t.getDate()
+	date = (val<10)?'0'+val:val;
+	val = t.getMonth()+1;
+	month = (val<10)?'0'+val:val;
+	year = t.getFullYear();	
+	val = t.getHours();
+	hour = (val<10)?'0'+val:val;
+	val = t.getMinutes();
+	minute = (val<10)?'0'+val:val;
+	val = t.getSeconds();
+	sec = (val<10)?'0'+val:val;
+	time_str = date+"/"+month+"/"+year+" "+hour+":"+minute+":"+sec;
+	return time_str;
+}
+
+function addlog(message, level)
+{
+	if (Log) {
+		var entry = new Array();
+		entry[0] = getTime();
+		entry[1] = level;
+		entry[2] = message;
+		Log.push(entry);
+		showLog();
+	}
+/*	var logd = document.getElementById("log");
+	if (logd) {
+        log_text = logd.innerHTML;
+		
+        msg = '<tr><td class="log">'+getTime()+'</td><td><span class="log" id=\"'+level+'\">'+level.toUpperCase()+ '</span></td><td><span class="log">' +message+'</span></td></tr><br>' + log_text;
+		//msg = '<li class="log" id=\"'+level+'\">'+level.toUpperCase()+ ": " +message+'</li>' + log_text;
+		logd.innerHTML = msg;
+	}
+	return false;
+	*/
+}
+
+function showLog()
+{
+	var logd = document.getElementById("log");
+	if (Log && logd) {
+		logd.style.display = "none";
+		logd.innerHTML = "";
+		var out = "<table class='log'>";
+		if (Log.length >0) 
+			out += "<tr><th>Date/Time</th><th>Level</th><th>Message</th></tr>";
+		
+		for (var i=Log.length-1; i>=0; i--) {
+			if (Log[i] && Log[i].length==3) {
+				level = Log[i][1];
+				if (level == logLevel || logLevel == "all") {
+					out += '<tr><td class="log">'+Log[i][0]+'</td><td class="log"><span class="log" id=\"'+Log[i][1]+'\">'+Log[i][1].toUpperCase()+ '</span></td><td width="100%" class="log">' +Log[i][2]+'</td></tr>';
+				}
+			}
+		}
+		out +="</table>";
+		logd.style.display = "block";
+		logd.innerHTML = out;
+	}
+}
+
+function selectLogLevel()
+{
+	var selObj = document.getElementById("selLogLevel");
+	if (selObj) {
+		var selIdx = selObj.selectedIndex;
+		selList = selObj.options[selIdx].value;
+		logLevel = selList;		
+		// addlog(selList, "info");
+		showLog();
+	}
+}
+
+function clearLog() 
+{
+	Log.length = 0;
+	showLog();
+/*	var logd = document.getElementById("log");
+	if (logd) {
+        logd.innerHTML = "";
+	}
+	return false;
+	*/
+}
+function resetCSCTable(c_table)
+{
+	DDUs.length = 0;
+	clearShowList("Folders", "All CSCs");
+	var ct = document.getElementById(c_table);
+	if (ct) {
+		var tds = ct.getElementsByTagName("td");	
+		for (var i=0; i< tds.length; i++) {
+			// var style=tds[i].style;
+			if (tds[i].getAttribute("class")) {
+				if (tds[i].getAttributeNode("class").value == "me_csc") {
+					id = tds[i].getAttributeNode("id").value;	
+					tds[i].style.background = '#AFAFAF';
+					tds[i].innerHTML = id.substr(id.lastIndexOf("\/")+1,id.length);
+					// tds[i].style = style;
+										
+				}
+				if (tds[i].getAttributeNode("class").value == "me_emu") {
+					id = tds[i].getAttributeNode("id").value;					
+					tds[i].innerHTML = "EMU Summary";					
+				}
+				if (tds[i].getAttributeNode("class").value == "me_ddu") {
+					id = tds[i].getAttributeNode("id").value;
+					tds[i].style.background = '#AFAFAF';
+					tds[i].innerHTML = id.substr(id.lastIndexOf("U")+1,id.length);
+					// tds[i].style = style;
+										
+				}
+			}			
+		}
+	}
+}
+
+function showCSCTable(id)
+{
+	var c_list = CSC_TYPES;
+	obj = document.getElementById(id);
+	if (obj) {
+		if (c_list && c_list.length > 0) {
+			// obj.innerHTML = "";
+			out = "";
+			out += "<table border=1 cellpadding=0 cellspacing=0 id='csc_table'>";
+			out += "<th class='RunLink' id='RunLink' colspan=38 align=left>Run:</th>";
+			
+			// Display Commons
+			out += "<tr class='me'><td id='cscCommon' class='me_emu' colspan='2' >EMU Summary</td><td colspan='36'></td></tr>";
+			
+			// Display DDUs 
+			out += "<tr class='me'><td id='cscDDU' class='me' colspan='2' >DDUs</td>";			
+			for (var i=1; i<= 36; i++) {
+				out += "<td id='cscDDU"+i+"' class='me_ddu' >"+i+"</td>";
+			}
+			out += "</tr>";
+			
+			// Display CSCs
+			for (var i=0; i< c_list.length; i++) 
+			{
+				if (c_list[i] && c_list[i].length > 0) {
+					var side = c_list[i][0];
+			 		out += "<tr class='me'><td rowspan='9' id='"+side+"' class='me' >"+side+"</td>";
+					
+					var types =  c_list[i][1];
+					if (types && types.length > 0) {
+						for (var j=0; j< types.length; j++) {			
+							var csctype = types[j][0];
+							if (j>0) out+= "<tr class='me_type'>";
+							out += "<td id='"+csctype+"' class='me_type' >"+csctype+"</td>";		
+							var num_cscs = types[j][1];
+
+							for (var k=1; k<= num_cscs; k++) {
+								if (num_cscs==18) 
+									out += "<td class='me_csc' id='"+(csctype+"/"+k)+"' colspan='2'>"+k+"</td>";
+								else 
+									out += "<td class='me_csc' id='"+(csctype+"/"+k)+"'>"+k+"</td>";
+							}
+							if (j>0) out += "</tr>";
+						}
+					}
+					out += "</tr>";		
+				}
+			}
+			out += "</table>";
+			obj.innerHTML = out;
+		}
+	}
+}
+
+function makeCSCid(crate, slot)
+{
+	var cscid="CSC_";
+	var crateID=crate.substr(5,crate.length);
+	var slotID=slot.substr(4,slot.length);
+	if (crateID.length==1) crateID='00'+crateID;
+	if (crateID.length==2) crateID='0'+crateID;
+	if (slotID.length==1) slotID='0'+slotID;
+	cscid += crateID+"_"+slotID;
+	return cscid;
+}
+
+function showHWTable() 
+{	
+	r_list = CSC_LIST;
+	csc_map = CSCMAP;
+	ddu_map = DDUMAP;
+	var link = "";
+	var out = "";	
+	
+	out += "<table class='hw_table'>";
+	
+	
+	isFolderValid=false;
+	if (r_list && r_list.length >0) {
+		crates = r_list[0];
+		
+		RunNumber = r_list[0][0];		
+		out += "<th class='RunLink' align=left colspan=0><a class='RLink' target=images href="+link+">"+RunNumber+"</a><br></th>";
+		for (var i=1; i<crates.length; i++) {
+			crate = crates[i][0];
+			if (crate=="crate255") continue;		
+			if (crate=="EMU") { 
+				Tag = crates[i][1];
+				ID = "hw_"+Tag;
+				out += "<tr><td class='hw_td'><a href=''  id=\'"+ID+"\' onClick='Folder=\""+Tag+"\"; selectSystemFolder(\""+Tag+"\");return loadPlot();'>EMU Summary</a></td>";
+				if (Folder.search("EMU") >=0) isFolderValid = true;						
+				//EMUs.push(Tag);
+				continue;
+			}
+			if (crate=="DDU") { 
+				
+				ddu_list = crates[i][1];
+				if (ddu_list.length > 0) {
+					out += "<tr><td class='hw_tr'>DDUs</td>";
+				for(var j=0; j< ddu_list.length; j++) {
+					if (ddu_list[j]) {
+						
+						Tag = ddu_list[j];						
+						idx = getDDUindex(Tag);
+						ID = "hw_"+Tag;						
+						if (Folder.search(Tag) >=0) isFolderValid = true;
+						var name=Tag;
+						for (var k=0; k<ddu_map.length; k++) {
+							map_entry = ddu_map[k];
+							
+							if (map_entry[0] == ddu_list[j]) //{name += "<br>rui"+map_entry[1]+"/c"+map_entry[2]+"/s"+map_entry[3];}
+								{name += "<br>c"+map_entry[2]+"/s"+map_entry[3];}
+						}
+						out += "<td class='hw_td'><a href='' id=\'"+ID+"\' onClick='Folder=\""+Tag+"\"; selectSystemFolder(\""+Tag+"\"); return loadPlot();'>"+name+"</a></td>";
+						// dduLink="<a href='#' id='" + dduID+ "' onClick='Folder=\""+entry+"\"; selectDDUFolder(\""+idx+"\"); return loadPlot();'>"+idx+"</a>";
+						// DDUs.push(Tag);
+						if (j==18) out += "</tr><tr><td></td>";
+					}
+				}						
+					out += "</tr>";
+					
+				}
+				continue;
+			}
+			
+			out += "<tr><td class='hw_tr'><b>"+crate+"</b></td>";
+			slots = crates[i][1];
+			for (var j=0; j<slots.length; j++) {
+				if (slots[j]) {
+					// Tag = crate+"/"+slots[j];
+					Tag=makeCSCid(crate, slots[j]);
+					ID = "hw_"+Tag;
+					if (!isFolderValid && (Folder == Tag)) isFolderValid=true;
+					//CSCs.push(Tag);
+					cscid = "";
+					for (var k=0; k<csc_map.length; k++) {
+						if (!csc_map[k]) continue;
+						map_entry = csc_map[k];
+						if ((map_entry[0] == crate) && (map_entry[1] == slots[j])) {cscid = "<br>"+map_entry[2];}
+					}
+					
+					
+					// csclink="<a href='#' id='" + ID+ "' onClick='Folder=\""+Tag+"\"; return loadFrame(\""+ID+"\",false, 1)'>"+slots[j]+cscid+"</a>";
+					csclink="<a href='' id='" + ID+ "' onClick='Folder=\""+Tag+"\"; selectSystemFolder(\""+Tag+"\"); return loadPlot();'>"+slots[j]+cscid+"</a>";
+					out += "<td class='hw_td'>"+csclink+"</td>";
+				}
+			}
+			out += "</tr>";
+		}
+	
+	}
+	out += "</table>";
+	
+	var o_obj = document.getElementById("hwtable_div");
+	if (o_obj) o_obj.innerHTML = out;
+	// if (parent.isFolderValid) 
+	// select(Folder, false, 1 );
+
+}
+
+// Load Available offline Runs list
+
+function showNodeDetailedStatus(id) {
+	var out="";
+	var nodes=NODES_LIST;
+	obj = document.getElementById("nodestatus_div");
+	if (nodes && nodes.length>1) {
+		var idx=false;
+		for (i=1; i<nodes.length; i++) {
+			if (nodes[i] && nodes[i].length) {
+				node = nodes[i][0].substr(nodes[i][0].lastIndexOf('-')+1,nodes[i][0].length);
+				if (node == id) idx=i;
+			}
+		}
+		if (obj && nodes[idx] && nodes[idx].length && idx) {
+			out +="<table>";
+			// Show Table Header
+			if (nodes.length && nodes[0] && nodes[0].length) {
+				for (i=0; i< nodes[0].length; i++) {
+					out+="<th>"+nodes[0][i]+"</th>";
+				}
+			}
+			// Show Node Status 
+			out+="<tr>";
+			out+="<td class='node'><a target='shownode' href='"+nodes[idx][1]+"'>"+nodes[idx][0]+"</a></td>";
+			state = nodes[idx][2];
+			id = 'node_'+node;
+			var color='white';
+			if (state.search("Enabled") >=0) {color='#90ff90';}
+			else if (state.search("Halted") >=0) {color='#ff9090';}
+			else if (state.search("Ready") >=0) {color='#ffff90';}
+			else if (state.search("Unknown") >=0) {color='909090';}
+			
+			out +="<td class='node' style='background-color: "+color+"'>"+state+"</td>";
+			for (j=3; j<nodes[idx].length; j++) {
+				out+="<td class='node'>"+nodes[idx][j]+"</td>";
+			}
+			out+="</tr>";
+			out +="</table>"		
+			obj.innerHTML=out;
+		} 
+	}
+	return false;
+}
+
+function showNodeInfo(id)
+{
+	obj = document.getElementById("nodestatus_div");
+	if (obj) {
+		if (id == selNode) {
+			if (obj.style.display == 'none') obj.style.display = '';
+			else obj.style.display = 'none';
+		} else {
+			obj.style.display = '';
+		}	
+		/*obj.style.position = "absolute";
+		obj.style.left=300;// window.event.clientX;
+		obj.style.top=100; // window.event.clientY+10;
+		*/
+	}
+   return false;
+	
+}
+
+function addToNodesHistory(nodes)
+{
+		var time = new Date();
+		var tstamp= time.getHours()+":"+time.getMinutes()+":"+time.getSeconds();
+		// entry=nodes;
+		// entry.push(tstamp);
+		idx = NodesHistory.push(nodes);
+		// NodesHistory[idx-1].push(tstamp);
+		if (NodesHistory.length>histDepth) NodesHistory.shift();
+}
+
+function showRateHistory(id) {
+	var title="Rate history for Node:" + id;
+	// addlog(NodesHistory.length, "debug");
+	// return false;
+	/*
+	for (i=0; i<NodesHistory.length; i++)  {
+			// addlog(NodesHistory.length, "debug");
+		
+			entry= NodesHistory[i];
+			if (entry && entry.length) {
+				for (j=0; j<entry.length; j++) {
+					node_entry = entry[j];
+					if (node_entry && node_entry.length) {
+						node = node_entry[0].substr(node_entry[0].lastIndexOf('-')+1,node_entry[0].length);
+						if (node== id) {
+							rate = node_entry[6];							
+							addlog(node+":"+rate, "debug");
+						}
+					}
+				}
+			}
+		}
+	return false;
+	*/
+	try {
+		var generator=window.open('/rates','name','height='+100+',width='+200+',resizable=yes');						
+		if (window.focus) {generator.focus()} 
+		generator.document.write('<html><head><title>'+title+'</title>');
+		generator.document.write("<style>body {color: #000000; background-color: #9090FF;margin: 2px;font-family:Arial;	overflow: auto;}"+
+		"span.winTitle {	margin: 0;font-size: 12px;font-weight: bold;text-decoration: none;color: #000000;}"+
+		"fieldset {background-color: #ddd;	border-style: solid;border-width: 1px;border-color: black;margin: 2px;padding: 2px;}"+
+		"legend {border-style: solid;border-width: 1px;background-color:  #C0C0FF;}</style>");
+		generator.document.write('</head><body>');
+		generator.document.write("<fieldset><legend><span class='winTitle'>"+title+"</span></legend>");
+		
+		
+		for (var i=0; i<NodesHistory.length; i++)  {
+		
+			// generator.document.write(NodesHistory.length+"<br>");
+			
+			entry= NodesHistory[i];
+			if (entry && entry.length) {
+				for (j=0; j<entry.length; j++) {
+					node_entry = entry[j];
+					if (node_entry && node_entry.length) {
+						node = node_entry[0].substr(node_entry[0].lastIndexOf('-')+1,node_entry[0].length);
+						if (node== id) {
+							rate = node_entry[6];	
+							// time = entry[entry.length-1];
+							generator.document.write(rate+"<br>");
+							// addlog(node+":"+rate, "debug");
+						}
+					}
+				}
+			}
+			
+		}
+		
+		generator.document.write("</fieldset>");
+		// generator.document.write('<p><a href="javascript:self.close()">Close</a> the popup.</p>');
+		generator.document.write('</body></html>');
+		generator.document.close();
+	  } 
+	  catch (exc){
+	}
+	return false;
+}
+
+function updateNodesStatus()
+{
+	
+	var out="";
+	var nodes=NODES_LIST;
+	obj = document.getElementById("nodesview_div");
+	if (obj) {
+		if (nodes) {
+			addToNodesHistory(nodes);
+			out +="<table>";
+			
+			if (nodes.length>1) {				
+				nodeclass= nodes[1][0].substr(0,nodes[1][0].lastIndexOf('-'));
+				out +="<tr><td><b>" + nodeclass + "s:</b></td>";
+				for (i=1; i<nodes.length; i++) {
+					
+					if (nodes[i] && nodes[i].length) {
+						node = nodes[i][0].substr(nodes[i][0].lastIndexOf('-')+1,nodes[i][0].length);
+						state = nodes[i][2];
+						id = 'node_'+node;
+						node = "<a href='' id='"+id+"' onClick='showNodeDetailedStatus(\""+node+"\");showNodeInfo(\""+node+"\");selectNode(\""+node+"\");return false;'>"+node+"</a>";
+						var color='white';
+						if (state.search("Enabled") >=0) {color='#90ff90';}
+						else if (state.search("Halted") >=0) {color='#ff9090';}
+						else if (state.search("Ready") >=0) {color='#ffff90';}
+						else if (state.search("Unknown") >=0) {color='909090';}
+						
+						out +="<td class='node' style='background-color: "+color+"'>"+node+"</td>";
+					}
+				}
+				out +="</tr>";
+				out +="<tr><td><b>Rate Evt/s:</b></td>";
+				for (i=1; i<nodes.length; i++) {
+					if (nodes[i] && nodes[i].length) {
+						node = nodes[i][0].substr(nodes[i][0].lastIndexOf('-')+1,nodes[i][0].length);
+						rate = nodes[i][6];
+						// rate = "<a href=nodes'' onClick='showRateHistory(\""+node+"\");return false;'>"+nodes[i][6]+"</a>";
+						out +="<td class='node'>"+rate+"</td>";
+					}
+				}	
+				out +="</tr>";
+		
+			}
+			
+			out +="</table>";
+			
+			/*
+			out +="<table>";
+			// Show Table Header
+			if (nodes.length && nodes[0] && nodes[0].length) {
+				for (i=0; i< nodes[0].length; i++) {
+					out+="<th>"+nodes[0][i]+"</th>";
+				}
+			}
+			// Show Nodes Status 
+			if (nodes.length>1) {
+				for (i=1; i<nodes.length; i++) {
+					if (nodes[i] && nodes[i].length) {
+						out+="<tr>";
+						out+="<td><a target='shownode' href='"+nodes[i][1]+"'>"+nodes[i][0]+"</a></td>";
+						for (j=2; j<nodes[i].length; j++) {
+							out+="<td>"+nodes[i][j]+"</td>";
+						}
+						out+="</tr>";
+					}
+				}
+			}
+		
+			out +="</table>"
+			*/
+			obj.innerHTML=out;
+		}
+	}
+}
+
+function getNodesList()
+{
+	var fullUrl = baseURL + NodesStatus;
+	
+	var req=false;
+	if (window.XMLHttpRequest) { 
+		/*
+		try {
+	    		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead UniversalBrowserWrite");
+	   	} catch (e) {
+	    		alert("Permission UniversalBrowserRead denied.");
+	   	}
+		*/
+	    req = new XMLHttpRequest();    
+	   
+	} else if (window.ActiveXObject) {    
+		//req = new ActiveXObject("Microsoft.XMLDOM");
+	    req = new ActiveXObject((navigator.userAgent.toLowerCase().indexOf('msie 5') != -1) ? "Microsoft.XMLHTTP" : "Msxml2.XMLHTTP");
+		// var req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    req.open("GET",fullUrl,true); // true= asynch, false=wait until loaded    
+	
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+			if (req.status==200) {	        
+				var reply = req.responseText;
+				// Need to strip malformed array string to satisfy IE7
+				reply = reply.replace(/,]/g,"]");
+				reply = reply.replace("var ","");
+	        	window.eval(reply);
+				updateNodesStatus();
+				selectNode(selNode);
+				showNodeDetailedStatus(selNode);
+				req=false;
+				
+	    	} else if (req.status==404) {
+	    	}
+						
+		}
+    }
+	req.send(null);	
+	setTimeout('getNodesList()', 10000);
+	// addlog("Update Nodes List", "info");
+	return false;
+}
+
+// Load Avai;able Tests/Canvases ist
+function loadTestsList(r_list, id) 
+{
+	obj = document.getElementById(id);
+	if (obj) {
+		if (r_list) {
+			out = "";
+			for (var i = 0; i< r_list.length; i++) {
+				// document.write("<tr><td><b>"+r_list[i][0]+"</b></td></tr>");
+				if (!r_list[i]) continue;
+				out += "<fieldset>";
+				
+				th_folder = r_list[i][0];
+				th_id = "folder_"+ th_folder;
+				out += "<legend class='t_hdr'><a class='test_hdr' href='' onClick='showHide(\""+th_id+"\");'>"+th_folder+"</a></legend>";
+				if (r_list[i][0] == "EMU") 
+					{ scope = "EMU";}
+				else if (r_list[i][0] == "DDU") 
+					{ scope = "DDU";}
+				else 
+					{scope = "CSC";}
+				var child = [];				
+				child=r_list[i];
+				out += "<div class='t_div' id='"+th_id+"' style='overflow: hidden;'>";
+				t_map = [];
+				for (var j=2; j<child.length; j++) {
+					if (!child[j]) continue;
+					t_id = child[j][1];
+					t_name = child[j][0];
+					// === Replace with search()
+					if (t_name.lastIndexOf(":") != -1) {
+						t_folder = t_name.substr(0, t_name.lastIndexOf(":"));			
+						t_name = t_name.substr(t_name.lastIndexOf(':')+1, t_name.length);
+					} else {
+						t_folder = th_folder;
+					}
+					if (!t_map[t_folder])
+						t_map[t_folder] = new Array();
+					if (!t_map[t_folder][t_id])
+						t_map[t_folder][t_id] = t_name;
+				}
+				for (var list in t_map) {
+					if ((list != th_folder) || (list == "CSC")) {
+						out += "<fieldset>";
+						out += "<legend class='t_hdr'><a class='test_hdr2' href='' onClick='showHide(\"id_"+list+"\");'>"+list+"</a></legend>";
+						out += "<div class='t_div' id='id_"+list+"' style='overflow: hidden;'>";				
+					}
+					out += "<table class='tests_table'>";
+					folder = t_map[list];			
+					for (var entry in folder) {
+						// <td><input type=checkbox id='cb_"+entry+"'></td>
+						out += "<tr></td><td><a class='add_to_list' href='' onClick='addToTestsShowList(\"Custom\",\""+entry+"\",\""+folder[entry]+"\" ,\""+scope+"\");return false;'>[+]</a>";
+						out += "</a><a class='test_item' href='#' id =\""+entry+"\"  onClick='Canvas=\""+entry+"\";Scope=\""+scope+"\";return updateBrowserPage(\""+entry+"\",false,3)'>"+folder[entry]+"</a></td></tr>";			 				
+						if (scope=="CSC" ) { 
+							addToTestsShowList("All CSC Tests", entry, folder[entry], scope);
+						}
+							
+							
+					}
+					out += "</table>";
+				
+					if ((list != th_folder)|| (list == "CSC")) out += "</div></fieldset>";
+					
+				}
+				
+				out += "</div></fieldset>";
+
+			}
+			obj.innerHTML = out;
+		}		
+	}	
+}	
+
+
+// Load Available CSCs list for selected Run 
+function loadCSCList()
+{
+	var fullUrl = baseURL+CSCList;
+	// var r_link=document.getElementById("RunLink");
+	// if (r_link) r_link.innerHTML = "Run Number: <a class='RLink' href=''>" + RunNumber + "</a>";
+	
+	var req=false;
+	if (window.XMLHttpRequest) { 
+		/*
+		try {
+	    		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead UniversalBrowserWrite");
+	   	} catch (e) {
+	    		alert("Permission UniversalBrowserRead denied.");
+	   	}
+		*/
+	    req = new XMLHttpRequest();    
+	   
+	} else if (window.ActiveXObject) {    
+		//req = new ActiveXObject("Microsoft.XMLDOM");
+	    req = new ActiveXObject((navigator.userAgent.toLowerCase().indexOf('msie 5') != -1) ? "Microsoft.XMLHTTP" : "Msxml2.XMLHTTP");
+		// var req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    req.open("GET",fullUrl,true); // true= asynch, false=wait until loaded    
+	
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+			if (req.status==200) {	        
+				var reply = req.responseText;
+				// Need to strip malformed array string to satisfy IE7
+				reply = reply.replace(/,]/g,"]");
+				reply = reply.replace("var ","");
+	        	window.eval(reply);
+				showHWTable();				
+				updateCSCMappings();
+				selectSystemFolder(selFolder);
+				// selectObject(id, false, 2);				
+				// addlog(document.URL, "info");
+				req=false;
+	    	} else if (req.status==404) {
+	    	}
+						
+		}
+    }
+	req.send(null);	
+	setTimeout('loadCSCList()', 20000);
+	return false;
+}
+
+function updateCSCMappings()
+{
+	c_list = CSC_LIST;
+	showCSCTable("csctable_div");
+	//resetCSCTable('csc_table');
+	
+	if (c_list.length > 0) {
+		c_tree = c_list[0];
+		for ( var j=1; j<c_tree.length; j++) {
+			key = c_tree[j][0];
+			entries = c_tree[j][1];
+			if (entries.length >0) {
+				for (k=0; k<entries.length; k++) {
+					enableCSCTableEntry(key, entries[k]);
+				}
+			}
+		}		
+	}
+	// selectFolder(Folder);
+}
+
+function getDDUindex(id)
+{
+	ddu_map = DDUMAP;
+	if (ddu_map) {
+		for (i=0; i< ddu_map.length; i++) {
+			if (ddu_map[i] && ddu_map[i].length) {
+				if (id == ddu_map[i][0]) return ddu_map[i][1];
+			}
+		}
+	} else {
+		return DDUs.push(id);
+	}
+}
+
+function enableCSCTableEntry(entry_key, entry)
+{
+	obj_sel = selectedObjectList[4];
+	var r_link=document.getElementById("RunLink");
+	if (r_link) r_link.innerHTML = "<a class='RLink' href=''>" + RunNumber + "</a>";
+	if (entry_key.search("EMU") >= 0) {
+		obj = document.getElementById("cscCommon");
+		if (obj) {
+			obj.style.background = 'white';
+			val = obj.innerHTML;
+			emuID = "csc_" + entry;
+			// emuLink="<a href='#' id='" + emuID+ "' onClick='Folder=\""+entry+"\"; return loadFrame(\""+emuID+"\",false, 4)'>Common</a>";
+			emuLink="<a href='' id='" + emuID+ "' onClick='Folder=\""+entry+"\"; selectSystemFolder(\""+entry+"\");return loadPlot();'>EMU Summary</a>";
+			obj.innerHTML = emuLink;
+			if (obj_sel && (obj_sel.id.search(emuID) >= 0 )) {
+				Folder = entry;
+				selectSystemFolder(entry);
+				// select(emuID, false, 4);
+				// addlog(obj_sel.id, "info");				
+			}
+		}
+	}
+	if (entry_key.search("DDU") >= 0) {
+		idx = getDDUindex(entry)// DDUs.push(entry);
+		dduID = "csc_"+entry;
+		obj = document.getElementById("cscDDU"+idx);
+		if (obj) {
+			obj.style.background = 'white';
+			val = obj.innerHTML;
+			// emuLink="<a href='#' id='" + dduID+ "' onClick='Folder=\""+entry+"\"; return loadFrame(\""+dduID+"\",false, 4)'>"+idx+"</a>";
+			dduLink="<a href='' id='" + dduID+ "' onClick='Folder=\""+entry+"\"; selectSystemFolder(\""+entry+"\"); return loadPlot();'>"+idx+"</a>";
+			obj.innerHTML = dduLink;
+			if (obj_sel && (obj_sel.id == dduID)) {
+				Folder = entry;
+				selectSystemFolder(entry);
+				// addlog("Found " + obj_sel.id + ": "+entry_key+"/"+entry, "debug");
+				// select(dduID, false, 4);
+				// addlog(obj_sel.id, "info");				
+			}
+		}
+	}
+	else if (entry_key.search("crate") >=0) {
+		cscName = findCSCFromMap(entry_key, entry);
+		obj = document.getElementById(cscName); 
+		if (obj) {
+			obj.style.background = 'white';
+			val = obj.innerHTML;
+			// csc = entry_key+"/"+entry;
+			csc = makeCSCid(entry_key, entry);
+			cscID = "csc_" + csc;
+			// csclink="<a href='#' id='" + cscID+ "' onClick='Folder=\""+csc+"\"; return loadFrame(\""+cscID+"\",false, 4)'>"+val+"</a>";
+			csclink="<a href='' id='" + cscID+ "' onClick='Folder=\""+csc+"\"; selectSystemFolder(\""+csc+"\"); return loadPlot();'>"+val+"</a>";
+			obj.innerHTML = csclink;
+			addToFoldersShowList("All CSCs", csc, cscName);
+			if (obj_sel && (obj_sel.id == cscID)) {
+				Folder = csc;
+				selectSystemFolder(csc);
+				// addlog("Found " + obj_sel.id + ": "+entry_key+"/"+entry, "debug");
+				// selectFolder(Folder);
+				// select(cscID, false, 4);
+				// addlog(obj_sel.id, "info");				
+			}
+			
+		}	
+	} 
+	//addlog(selected_list[4], "info");
+}
+
+function findCSCFromMap(crate, slot, m_list)
+{
+	csc = "";
+	m_list = CSCMAP;
+	if (m_list.length>0) {
+		for (var i=0; i<m_list.length; i++) {
+			if ( (m_list[i][0].search(crate)==0) && 
+				(m_list[i][1].search(slot)==0) )
+			   return m_list[i][2];		
+		}	
+	}
+	return csc;
+}
+
+
+function selectNode(id)
+{
+	node = "node_"+id;
+	selectObject(node, false, 6);	
+	selNode = id;
+	return false;
+}
+
+function selectSystemFolder(id)
+{
+	isFolderValid=true;	
+	hw_id = "hw_"+id;
+	csc_id = "csc_"+id;
+	selectObject(hw_id, false, 1);
+	selectObject(csc_id, false, 4);
+	selFolder=id;
+	// addlog(selFolder, "debug");
+	return false; 
+}
+
+function selectTest(id, b_select)
+{
+	isFolderValid=true;	
+	
+	selectObject(id, b_select, 3);
+	// addlog(selected_list[idx].id, "debug");
+	// loadPlot();
+	return false; 
+}
+
+function updateBrowserPage(id, f_select, idx)
+{
+	isFolderValid=true;		
+	selectObject(id, f_select, idx);
+	// addlog(selected_list[idx].id, "debug");
+	loadPlot();
+	return false; 
+}
+
+
+function decImageHeight()
+{	
+	imgHeight = imgHeight-imgSizeStep;
+	if (imgHeight<minImageHeight) imgHeight=minImageHeight;
+	obj = document.getElementById("imageHeight");
+	if (obj) obj.value = imgHeight;
+			
+			
+	// loadPlot();
+}
+
+function incImageHeight()
+{
+	imgHeight = imgHeight+imgSizeStep;
+	if (imgHeight>maxImageHeight) imgHeight = maxImageHeight;	
+	obj = document.getElementById("imageHeight");
+	if (obj) obj.value = imgHeight;
+	
+	
+	// loadPlot();
+}
+
+function decImageWidth()
+{	
+			
+	imgWidth = imgWidth-imgSizeStep;
+	if (imgWidth<minImageWidth) imgWidth = minImageWidth;	
+	obj = document.getElementById("imageWidth");
+	if (obj) obj.value = imgWidth;
+			
+	//loadPlot();
+}
+
+function incImageWidth()
+{
+	
+	imgWidth = imgWidth+imgSizeStep;
+	if (imgWidth>maxImageWidth) imgWidth = maxImageWidth;	
+	obj = document.getElementById("imageWidth");
+	if (obj) obj.value = imgWidth;
+	
+	//loadPlot();
+}
+
+function selectPlotMode()
+{
+	var obj = document.getElementById("openExternal");
+	if (obj) {
+		if (obj.checked) {
+			fOpenExternal=true;
+		} else {
+			fOpenExternal=false;
+		}
+	}
+}
+
+function selectUpdateMode()
+{
+	var obj = document.getElementById("autoUpdateMode");
+	if (obj) {
+		if (obj.checked) {
+			fAutoUpdatePlot=true;
+			updatePlots();
+		} else {
+			fAutoUpdatePlot=false;
+		}
+	}
+}
+
+function selectObject (id, f_deselect, idx) {
+	var obj = get_element(id);
+	if (obj) {
+		
+		if(!f_deselect) {
+			var o_olditem = selectedObjectList[idx];
+			selectedObjectList[idx] = obj;
+			if (o_olditem) selectObject(o_olditem.id, true, idx);
+			
+		}
+		if (obj.style) {
+			obj.style.fontWeight = f_deselect ? 'normal' : 'bold';
+			obj.style.color = f_deselect ? '#000000' : '#ff0000';
+		}
+	} 
+}
+
+var timerID = 0;
+var tStart  = null;
+
+var showList = new Array();
+var showIdx = 0;
+var folderIdx = 0;
+var foldersSList = "";
+var updateDelay = 5;
+
+function setSelectedList() {
+	var selObj = document.getElementById("showlist_selection");
+	if (selObj) {
+		var selIdx = selObj.selectedIndex;
+		selList = selObj.options[selIdx].value;
+		showSlideShowList(selList);
+		showList = testsShowLists[selList];
+	}
+}
+
+function setSelectedFoldersList() {
+	var selObj = document.getElementById("folders_selection");
+	if (selObj) {
+		var selIdx = selObj.selectedIndex;
+		selList = selObj.options[selIdx].value;
+		foldersSListIdx = selIdx;
+		foldersSList = selList;
+		// addlog(selList, "info");
+		// folderList = foldersShowLists[selList];
+	}
+}
+
+
+
+
+function showNextSlide()
+{
+	showIdx++;
+	showSlide();
+}
+
+function showPrevSlide()
+{
+	
+	
+	if (showIdx==0) showIdx=showList.length;
+	showIdx--;
+	showSlide();
+}
+function showSlide()
+{
+   if (showIdx >= showList.length || showIdx<0) { showIdx = 0;}
+   if (showList[showIdx]) { 
+	Canvas = showList[showIdx][0];
+	Scope = showList[showIdx][2];
+	}
+   
+   obj = document.getElementById("currentTest");
+   // addlog(Canvas, "debug");
+   loadPlot();
+   selectTest(Canvas, false);
+   selectSystemFolder(Folder);
+   //loadFrame(Canvas, false, 3);
+   selectObject("ssid_"+showIdx, false, 5);
+   if (obj) obj.innerHTML = Canvas;
+   
+}
+
+function updateSlideShowTimer() {
+   if(timerID) {
+      clearTimeout(timerID);
+      clockID  = 0;
+   }
+
+   if(!tStart)
+      tStart   = new Date();
+
+   var   tDate = new Date();
+   var   tDiff = tDate.getTime() - tStart.getTime();
+
+   
+   tDate.setTime(tDiff);
+/*
+   document.theTimer.theTime.value = "" 
+                                   + tDate.getMinutes() + ":" 
+                                   + tDate.getSeconds();
+   */
+   
+   
+   showSlide();
+   
+   if (foldersSListIdx > 0) 
+   {
+	 if (loopFoldersFirst) 
+	 {
+		fList = foldersShowLists[foldersSList];
+		if (folderIdx >= fList.length-1) 
+		{
+			folderIdx = 0;
+			showIdx++;
+		 } else {
+			folderIdx++;
+		 }
+		 Folder =  fList[folderIdx][0];
+		 
+	 };
+	 // addlog(Folder,"debug");
+   } else {
+	showIdx++;
+   }
+   timerID = setTimeout("updateSlideShowTimer()", updateDelay*1000);
+}
+
+function startSlideShow() {
+   tStart   = new Date();
+   obj = document.getElementById("updateInterval");
+   if (obj) {
+	val = parseInt(obj.value);
+	if (!isNaN(val) && val <=30) updateDelay = val;
+   }
+   	
+	
+   showSlideShowList();
+   if (foldersShowLists[foldersSList][0]) {
+		Folder = foldersShowLists[foldersSList][0][0];
+		folderIdx = 0;
+	}
+   
+   
+   timerID  = setTimeout("updateSlideShowTimer()", updateDelay*1000);
+}
+
+function stopSlideShow() {
+   if(timerID) {
+      clearTimeout(timerID);
+      timerID  = 0;
+   }
+   tStart = null;
+}
+
+function resetSlideShow() {
+   tStart = null;
+   showIdx=0;
+   folderIdx = 0;
+
+   // document.theTimer.theTime.value = "00:00";
+}
+
+
+function initSlideShowList()
+{
+	document.write('<label>Tests:</label>');
+	document.write('<select id="showlist_selection" onChange="setSelectedList();">');
+	for (var s_list in testsShowLists) {
+		document.write("<option value='"+s_list+"'>"+s_list);
+	}
+	// document.write("<option value='m1'>Custom");
+	document.write('</select>');
+	setSelectedList();
+	document.write('<label>Folders:</label>');
+	document.write('<select id="folders_selection" onChange="setSelectedFoldersList();">');
+	for (var s_list in foldersShowLists) {
+		document.write("<option value='"+s_list+"'>"+s_list);
+		
+	}
+	// document.write("<option value='m1'>Custom");
+	document.write('</select>');
+	setSelectedFoldersList();
+}
+
+function showSlideShowList(list)
+{
+	s_list = document.getElementById("slideshow_list");
+	if (s_list && testsShowLists && testsShowLists[list]) {
+		s_list.innerHTML = "";
+		s = "";
+		s += '<table width=100%>';
+		if (list == "Custom") {
+			s += "<tr><td><input type=button name=\"clear\" value=\"Clear\" onclick=\"clearShowList('Custom');\"></td></tr>";
+		}		
+		sList = testsShowLists[list];
+		ctrlStr = "";
+		for (var i=0; i< sList.length; i++) {
+			if (list == "Custom") {
+				ctrlStr = "<a class='remove_from_list' href='#' onClick='removeFromTestsShowList(\"Custom\",\""+i+"\");'>[x]</a>"
+			}
+			s += '<tr><td id="ssid_'+i+'">'+ctrlStr+sList[i][1]+'</td></tr>';
+		}
+		s += '</table>';
+		s_list.innerHTML = s;
+		// select("ssid_0", false, 5);
+	}
+}
+
+function removeFromTestsShowList(list, idx)
+{
+	if (testsShowLists && testsShowLists[list]) {
+		testsShowLists[list].splice(idx,1);
+		showSlideShowList(list);
+	}
+}
+
+function addToTestsShowList(list, testID, testName, scope)
+{
+	var inList = false;
+	if (testsShowLists) {
+		var entry = new Array();
+		entry[0]=testID;
+		entry[1]=testName;
+		entry[2]=scope;
+		if (!testsShowLists[list]) testsShowLists[list] = new Array();
+		sList = testsShowLists[list];
+		for (var i=0; i<sList.length; i++) {			
+			if (sList[i][0] == testID) inList = true;
+		}
+		if (!inList) sList.push(entry);
+	}
+	if (list == "Custom") showSlideShowList(list);
+}
+
+function addToFoldersShowList(list, folderID, folderName)
+{
+	var inList = false;
+	if (foldersShowLists) {
+		var entry = new Array();
+		entry[0]=folderID;
+		entry[1]=folderName;
+		
+		if (!foldersShowLists[list]) foldersShowLists[list] = new Array();
+		sList = foldersShowLists[list];
+		for (var i=0; i<sList.length; i++) {			
+			if (sList[i][0] == folderID) inList = true;
+		}
+		if (!inList) sList.push(entry);
+	}
+//	if (list == "Custom") showSlideShowList(list);
+}
+
+function clearShowList(id, list)
+{
+	if (id == "Tests") {
+		if (testsShowLists && testsShowLists[list]) { 
+			testsShowLists[list].length = 0;
+			showSlideShowList(list);
+		}
+	} else if (id == "Folders") {
+		if (foldersShowLists && foldersShowLists[list]) { 
+			foldersShowLists[list].length = 0;
+			// showSlideShowList(list);
+		}
+	}
+	
+}
+
+
+
+function setSelectedTab(obj)
+{
+   o_selected = get_element("selected");
+   if (o_selected) {
+	o_selected.id = '';
+   }
+   obj.id = "selected";
+   if (obj.title == "csc_view") {
+	div_obj = get_element("csctable_div");
+	div_obj.style.display = "";
+	div_obj = get_element("hwtable_div");
+	div_obj.style.display = "none";
+	
+   }
+   else if (obj.title == "hw_view") {
+	div_obj = get_element("csctable_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("hwtable_div");
+	div_obj.style.display = "";
+   }
+   o_selected = obj;
+   return false;
+}
+
+function setSelectedRunsTab(obj)
+{
+   o_selected = get_element("selected_runs");
+   if (o_selected) {
+	o_selected.id = '';
+   }
+   obj.id = "selected_runs";
+   if (obj.title == "local") {
+	div_obj = get_element("local_runs");
+	div_obj.style.display = "";
+	div_obj = get_element("global_runs");
+	div_obj.style.display = "none";
+	div_obj = get_element("online_runs");
+	div_obj.style.display = "none";
+   }
+   else if (obj.title == "global") {
+	div_obj = get_element("local_runs");
+	div_obj.style.display = "none";
+	div_obj = get_element("global_runs");
+	div_obj.style.display = "";
+	div_obj = get_element("online_runs");
+	div_obj.style.display = "none";
+   }else if (obj.title == "online") {
+	div_obj = get_element("local_runs");
+	div_obj.style.display = "none";
+	div_obj = get_element("global_runs");
+	div_obj.style.display = "none";
+	div_obj = get_element("online_runs");
+	div_obj.style.display = "";
+   }
+   o_selected = obj;
+   return false;
+}
+
+get_element = document.all ?
+	function (s_id) { return document.all[s_id] } :
+	function (s_id) { return document.getElementById(s_id) };
+
+</script>
+</head>
+<body>
+
+<script type="text/javascript">
+	baseURL=document.URL;
+	if (document.URL.lastIndexOf('/') != document.URL.length-1) baseURL+="/";
+	document.write('<script src="', baseURL+CSCMap, '" type="text/javascript"><\/script>');
+	// document.write('<script src="', baseURL+RunsList, '" type="text/javascript"><\/script>');
+	document.write('<script src="', baseURL+TestsList, '" type="text/javascript"><\/script>');
+	document.write('<script src="', baseURL+DDUMap, '" type="text/javascript"><\/script>');
+	
+//-->
+</script>
+
+<div class="MainWindow" id="l_panel">
+	
+	<fieldset id="Tests">
+		<legend>
+			<a class='winTitle' href='#' onClick='showHide("tests_div");'>Tests</a>
+		</legend>
+		<div id="tests_div">
+			<script type="text/javascript">
+			<!--//
+				new loadCSCList();
+				new loadTestsList (TREE_ITEMS, "tests_div");
+				
+			//-->
+			</script>
+		</div>
+	</fieldset>
+	
+	<fieldset id="Options">
+		<legend><a class='winTitle' href='#' onClick='showHide("options_div");'>Options</a></legend>
+		<div id="options_div">
+			<table>
+				<tr>
+					<td><label>Plot Width:</label> 
+					<input type=button name="decWidth" value="-" onclick="decImageWidth();">    		     
+					<script type="text/javascript"> 
+						document.write("<input type=text readonly id='imageWidth' align=right value='"+imgWidth+"' size='4'>"); 		 
+					</script>
+					<input type=button name="incWidth" value="+" onclick="incImageWidth()">    
+			      </td>
+				</tr>
+				<tr>
+					<td><label>Plot Height:</label> 
+					<input type=button name="decHeight" value="-" onclick="decImageHeight();">    		     
+					<script type="text/javascript"> 
+						document.write("<input type=text readonly id='imageHeight' align=right value='"+imgHeight+"' size='4'>"); 		 
+					</script>
+					<input type=button name="incHeight" value="+" onclick="incImageHeight()">    
+			      </td>
+				</tr>
+				<tr>
+				  <td>
+					<label>Open in External Window</label></label> <input type=checkbox id="openExternal" onclick="selectPlotMode()">  
+				  </td>
+			   </tr>
+			   <tr>
+				  <td>
+					<label>Auto Update</label></label> <input type=checkbox id="autoUpdateMode" onclick="selectUpdateMode()">  
+				  </td>
+			   </tr>
+			</table>
+		</div>
+	</fieldset>
+	
+	<fieldset id="SlideShow">
+		<legend><a class='winTitle' href='#' onClick='showHide("slideshow_div");'>SlideShow</a></legend>
+		<div id="slideshow_div">
+			<form name="theTimer"><table>
+			<tr>
+				<td colspan=3>
+				
+				<script type="text/javascript"> 
+			<!--//
+				new initSlideShowList();
+				
+			//-->
+				</script>
+				
+				</td>
+			</tr>
+		   <tr>      
+			  <td colspan=3 align=center>
+				<!-- input type=text name="currentTest" -->
+				<li id="currentTest"></li>
+			  </td>
+		   </tr>
+		   <tr>
+		      <td>
+				 <input type=button name="prev" value="<" onclick="showPrevSlide()">    
+		         <input type=button name="start" value="Start" onclick="startSlideShow()">      
+		         <input type=button name="stop" value="Stop" onclick="stopSlideShow()">
+		         <input type=button name="reset" value="Reset" onclick="resetSlideShow()">
+				 <input type=button name="next" value=">" onclick="showNextSlide()">    
+				 <input type=text id="updateInterval" value="5" size="2"> 		 
+		      </td>
+		   </tr>
+			</table></form>
+			
+			<div id="slideshow_list">
+			</div>
+
+		</div>
+	</fieldset>
+	
+</div>
+
+<div class="MainWindow" id="r_panel">
+	<fieldset id="NodesView">
+		<legend>
+			<a class='winTitle' href='#' onClick='showHide("nodes_div");'>Nodes Status</a>						
+		</legend>
+		<div id="nodes_div">
+			<div id="nodesview_div">
+				<script type="text/javascript">
+					<!--//
+						// new showCSCTable("csctable_div");
+						new getNodesList();					
+					//-->
+				</script>
+			</div>
+			<div id='nodestatus_div' style='display:none'></div>
+		</div>
+	</fieldset>
+	<fieldset id="SystemView">
+		<legend>
+			<a class='winTitle' href='#' onClick='showHide("sysview_div");'>System View</a>
+		</legend>		
+		<div id="sysview_div">	
+			<div class="tabs">
+				<ul>
+				<li title="csc_view" id="selected" onClick="return setSelectedTab(this);"><a href="#">CSCs Table</a></li>
+				<li title="hw_view"   onClick="return setSelectedTab(this);"><a href="#">VME/DMB Table</a></li>
+				
+				</ul>
+			</div>
+			
+			<div id="csctable_div" >
+				<script type="text/javascript">
+				<!--//
+					// new showCSCTable("csctable_div");
+					showCSCTable("csctable_div");					
+				//-->
+				</script>
+			</div>
+				
+			<div id="hwtable_div" style="display: none;">
+				Empty HW Table
+			</div>
+			<div id="nodes_div" style="display: none;">
+				Empty
+			</div>
+		</div>
+		
+	</fieldset>
+	<fieldset id="Plots">
+		<legend><a id='plot_title' class='winTitle' href='#' onClick='showHide("plots_div");'>Plots</a></legend>
+		<div id="plots_div">
+		</div>
+	</fieldset>
+	
+	<fieldset>
+		<legend><a class='winTitle' href='#' onClick='showHide("log");'>Log</a>
+			<input type=button value="Clear" onclick="clearLog();"> 
+			<select id="selLogLevel" onChange="selectLogLevel()";>	
+				<option selected value="all">ALL</option>
+				<option value="debug">DEBUG</option>			
+				<option value="info">INFO</option>
+				<option value="warn">WARNING</option>
+				<option value="error">ERROR</option>
+				
+			</select>
+		</legend>
+		<table>
+		<div id="log">
+		</div>
+		</table>
+	</fieldset>
+</div>
+
+</body>
+</html>
