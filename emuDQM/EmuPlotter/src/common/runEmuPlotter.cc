@@ -55,9 +55,13 @@ int main(int argc, char **argv) {
 	uint32_t NumberOfEvents = 0xFFFFFFFF;
         uint32_t startEvent = 0;
 
-	std::string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
-        std::string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
-	std::string cscMapFile = "/csc_data/results/csc_map.txt";
+	std::string cfgDir="";
+        if (getenv("HOME") && string(getenv("HOME")).size())
+        cfgDir=getenv("HOME"); //+"/config/";
+        cfgDir+="/config/";
+        std::string xmlHistosBookingCfg = "file://" + cfgDir + "emuDQMBooking.xml";
+        std::string xmlCanvasesCfg = "file://" + cfgDir + "emuDQMCanvases.xml";
+        std::string cscMapFile = cfgDir+"csc_map.txt";
 
 	std::string datafile = "";
   	std::string histofile = "dqm_results.root";
