@@ -15,6 +15,7 @@ EmuController::EmuController():myEndcap(0)
 void EmuController::init(){
   //
   std::cout << "EmuController Init... " << std::endl ;
+  myCrates.clear();
   //
   //-- parse XML file
   //
