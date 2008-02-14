@@ -39,7 +39,7 @@
 
 
 
-#include <dis.hxx>
+#include "dim/dis.hxx"
 /*
 #include "PeripheralCrateParser.h"
 #include "TestBeamCrateController.h"

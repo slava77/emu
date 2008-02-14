@@ -29,10 +29,6 @@ Rc2DcsMonitorService::Rc2DcsMonitorService(char *name) : DimInfo(name, -1.0){
 Rc2Dcs::Rc2Dcs(){
    monitorService = new Rc2DcsMonitorService("RC2DCS");
    TIME_TO_WAIT_AFTER_GETDATA=5; // in seconds
-   strcpy(dcscontrol_txt,"/home/dcs/bin/dcscontrol_web.txt");
-   fp_web=fopen(dcscontrol_txt, "w+");
-
-
 }
 
 //-----------
@@ -46,9 +42,6 @@ int Rc2Dcs::sendCommand(char *com, char *subcommand){
 int Rc2Dcs::turnHV(int isOn, int voltage, char *chamber){//=0){
     int ret;
     char subcommand[40];
-
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
 
     //------------
     int pos;
@@ -68,8 +61,6 @@ int Rc2Dcs::turnHV(int isOn, int voltage, char *chamber){//=0){
 int Rc2Dcs::turnLV(int isOn, char *chamber){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
     //------------
     int pos;
     string chamber_sm(chamber);
@@ -88,8 +79,6 @@ int Rc2Dcs::turnLV(int isOn, char *chamber){
 int Rc2Dcs::turnMRTN(int isOn, char *maraton){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
     sprintf(subcommand,"MRTN;%d;%s",isOn, maraton);
 
     sendCommand("RC2DCS_COMMAND",subcommand);
@@ -101,8 +90,6 @@ int Rc2Dcs::turnMRTN(int isOn, char *maraton){
 int Rc2Dcs::turnCRB(int isOn, char *crb){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-      fp_web=fopen(dcscontrol_txt, "w+");
     //------------
     int pos;
     string crb_sm(crb);
@@ -123,8 +110,6 @@ int Rc2Dcs::turnCRB(int isOn, char *crb){
 int Rc2Dcs::controlCHIP(int option, char *chamber){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
     //------------
     int pos;
     string chamber_sm(chamber);
@@ -146,8 +131,6 @@ int Rc2Dcs::controlCHIP(int option, char *chamber){
 int Rc2Dcs::readHV(char *chamber){//=0){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
     //------------
     int pos;
     string chamber_sm(chamber);
@@ -172,8 +155,6 @@ int Rc2Dcs::readHV(char *chamber){//=0){
 int Rc2Dcs::readLV(char *chamber){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
     //------------
     int pos;
     string chamber_sm(chamber);
@@ -203,8 +184,7 @@ int Rc2Dcs::readLV(char *chamber){
 int Rc2Dcs::readTEMP(char *chamber){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
+
     //------------
     int pos;
     string chamber_sm(chamber);
@@ -229,8 +209,6 @@ int Rc2Dcs::readTEMP(char *chamber){
 int Rc2Dcs::readMRTN(char *maraton){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
 
     sprintf(subcommand,"MRTNPREREAD;%s",maraton);
     sendCommand("RC2DCS_COMMAND",subcommand);
@@ -250,8 +228,7 @@ int Rc2Dcs::readMRTN(char *maraton){
 int Rc2Dcs::readCRB(char *crb){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
+
     //------------
     int pos;
     string crb_sm(crb);
@@ -277,8 +254,6 @@ int Rc2Dcs::readCRB(char *crb){
 int Rc2Dcs::readWTH(){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
 
     sprintf(subcommand,"WTHPREREAD");
     sendCommand("RC2DCS_COMMAND",subcommand);
@@ -298,8 +273,6 @@ int Rc2Dcs::readWTH(){
 int Rc2Dcs::readPT100(){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
 
     sprintf(subcommand,"PT100PREREAD");
     sendCommand("RC2DCS_COMMAND",subcommand);
@@ -319,8 +292,6 @@ int Rc2Dcs::readPT100(){
 int Rc2Dcs::readGAS(){
     int ret;
     char subcommand[40];
-       fclose(fp_web);
-       fp_web=fopen(dcscontrol_txt, "w+");
 
     sprintf(subcommand,"GASPREREAD");
     sendCommand("RC2DCS_COMMAND",subcommand);
@@ -395,47 +366,29 @@ int Rc2Dcs::errorProcessing(int ret, int isSilent){
     printf("There is no communication to DCS for a few possible reasons\n");
     printf("1) PVSS part of DCS is not running at the moment (maintenance/development)\n");
     printf("2) there is no network connection to PVSS machine\n");
-
-    fprintf(fp_web,"There is no communication to DCS for a few possible reasons\n");
-    fprintf(fp_web,"1) PVSS part of DCS is not running at the moment (maintenance/development)\n");
-    fprintf(fp_web,"2) there is no network connection to PVSS machine\n");
   }
   else if(ret==-1){
     printf("There is a problem to get the device for a few possible reasons\n");
     printf("1) The device exists but it is not in service\n");
     printf("2) server is not running on a control machine\n");
-
-    fprintf(fp_web,"There is a problem to get the device for a few possible reasons\n");
-    fprintf(fp_web,"1) The device exists but it is not in service\n");
-    fprintf(fp_web,"2) server is not running on a control machine\n");
-
   }
   else if(ret==-2){
     printf("A RUN CONTROL ACCESS TO DCS IS TEMPORARILY BLOCKED DUE TO A CRITICAL MAINTENANCE/DEVELOPMENT\n");
-    fprintf(fp_web,"A RUN CONTROL ACCESS TO DCS IS TEMPORARILY BLOCKED DUE TO A CRITICAL MAINTENANCE/DEVELOPMENT\n");
   }
   else if(ret==-3){
     printf("ERROR: There are no such device(s)\n");
-    fprintf(fp_web,"ERROR: There are no such device(s)\n");
   }
 
 
   else if(ret==2){
     printf("The operation is done partly: not all the devices are connected to electronics\n");
     printf("Use a read command to check status of interesting devices\n");
-
-    fprintf(fp_web,"The operation is done partly: not all the devices are connected to electronics\n");
-    fprintf(fp_web,"Use a read command to check status of interesting devices\n");
   }
 
   else{
-    if(!isSilent){
-      printf("The operation is OK\n");
-      fprintf(fp_web,"The operation is OK\n");
-    }   
+    if(!isSilent)printf("The operation is OK\n");   
   }
 
-       fflush(fp_web);
 
   return 1;
  }
@@ -450,7 +403,6 @@ int Rc2Dcs::dataProcessing(){
     int pos=-1;
     int pos_prev=-1;
     string datum;
-    data_vector.clear();
     while(1){
       pos_prev=pos;
       pos=data.find(";",pos_prev+1);
@@ -467,18 +419,11 @@ int Rc2Dcs::dataProcessing(){
       else if(i==1)printf(" item=%s\n",data_vector[i].c_str());
       else if(i==2)printf("data: %s",data_vector[i].c_str());
       */
-      if(i!=data_vector.size()-1){
-        printf(" %s",data_vector[i].c_str());
-        fprintf(fp_web," %s",data_vector[i].c_str());
-      }
-      else {
-        printf(" %s\n",data_vector[i].c_str());
-        fprintf(fp_web," %s\n",data_vector[i].c_str());
-      }
+      if(i!=data_vector.size()-1)printf(" %s",data_vector[i].c_str());
+      else printf(" %s\n",data_vector[i].c_str());
 
     } // for
 
-       fflush(fp_web);
     return 1;
 
 }
@@ -509,7 +454,7 @@ int Rc2Dcs::help(){
       cout << "==============================================" << endl;
       cout << "usage:" << endl;
       cout << "==============================================" << endl;
-      cout << "dcscontrol -s slow_control [-d detector] [-t isOn] [-v value|option] " << endl;
+      cout << "dcsrc -s slow_control [-d detector] [-t isOn] [-v value|option] " << endl;
       cout << "==============================================" << endl;
       cout << "available 'slow_control' parameters:" << endl;
       cout << "'hv'    (High Voltage)"  << endl;
@@ -520,7 +465,6 @@ int Rc2Dcs::help(){
       cout << "'wth'   (Weather station parameters at SX5 (read-only))"  << endl;
       cout << "'gas'   (Monitoring of Gas components at SX5 (read-only))"  << endl;
       cout << "'pt100' (Monitoring of Gas flows via Chambers(read-only))"  << endl;
-      cout << "'chip'  (chip resets for on-csc and Peripheral Crate boards)"  << endl;
       cout << "==============================================" << endl;
       cout << "examples of 'detector' parameters:"  << endl;
       cout << "no parameter  (all relevant detectors for the slow control:"  << endl;
@@ -537,14 +481,14 @@ int Rc2Dcs::help(){
       cout << "               it is applicable for 'chip'"  << endl;
       cout << "==============================================" << endl;
       cout << "examples:" << endl;
-      cout << "dcscontrol -s gas                    -> read GAS at SX5" << endl;
-      cout << "dcscontrol -s wth                    -> read Weather station parameters at SX5" << endl;
-      cout << "dcscontrol -s crb -d sp2p2           -> read LV at StationPlus2PeripheralCrate2" << endl;
-      cout << "dcscontrol -s crb -d sp2p2 -t 1      -> turn on LV at StationPlus2PeripheralCrate2" << endl;
-      cout << "dcscontrol -s hv -d all -t 1 -v 3600 -> turn on HV at all chambers of slice test and set V=3600" << endl;
-      cout << "dcscontrol -s hv -d all -t 0         -> turn off HV at all chambers of slice test" << endl;
-      cout << "dcscontrol -s hv -d sp3c01 -t 1      -> turn on HV at StationPlus3Chamber01" << endl;
-      cout << "dcscontrol -s hv -d sp3c01           -> read HV data at StationPlus3Chamber01" << endl;
+      cout << "dcsrc -s gas                    -> read GAS at SX5" << endl;
+      cout << "dcsrc -s wth                    -> read Weather station parameters at SX5" << endl;
+      cout << "dcsrc -s crb -d sp2p2           -> read LV at StationPlus2PeripheralCrate2" << endl;
+      cout << "dcsrc -s crb -d sp2p2 -t 1      -> turn on LV at StationPlus2PeripheralCrate2" << endl;
+      cout << "dcsrc -s hv -d all -t 1 -v 3600 -> turn on HV at all chambers of slice test and set V=3600" << endl;
+      cout << "dcsrc -s hv -d all -t 0         -> turn off HV at all chambers of slice test" << endl;
+      cout << "dcsrc -s hv -d sp3c01 -t 1      -> turn on HV at StationPlus3Chamber01" << endl;
+      cout << "dcsrc -s hv -d sp3c01           -> read HV data at StationPlus3Chamber01" << endl;
       cout << "" << endl;
       exit(0);
 

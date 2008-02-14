@@ -1,7 +1,7 @@
 #ifndef _RunControlDummy_h_
 #define _RunControlDummy_h_
 
-#include <dic.hxx>
+#include "dim/dic.hxx"
 
 //////#include "xdaq.h"
 

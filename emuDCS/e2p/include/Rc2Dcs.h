@@ -27,8 +27,6 @@ public:
 
 int TIME_TO_WAIT_AFTER_GETDATA;
  vector<string> data_vector;
- FILE *fp_web; 
- char dcscontrol_txt[100];
 
 //-----------
   Rc2Dcs();

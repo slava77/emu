@@ -25,20 +25,22 @@
 int CHAMBER_NUMBER;
 
 bool SIMULATION=false;
+extern bool IS_DMB_ONLY;
 
 // NORMAL MODE:                      CRATE_CONFIGURED_NEEDED = false;
 // ALL BOARDS PROGRAMMING MODE:      CRATE_CONFIGURED_NEEDED = true;
 //bool  CRATE_CONFIGURED_NEEDED = false;
 bool  CRATE_CONFIGURED_NEEDED = false;
 
-
+bool DRAFT_COMM=0;
 
 //========================================
 
 
 
 /////#include <iostream>
-//#include "PeripheralCrateController.h"
+///#include "PeripheralCrateController.h"
+/// emulib4 #include "CrateSelector.h"
 //fg #include "VMEControllerdcs.h"
 #include "VMEController.h"
 ///////////#include "DAQMBdcs.h"
@@ -47,7 +49,7 @@ bool  CRATE_CONFIGURED_NEEDED = false;
 #include "TMB.h"
 ///////////#include "ALCTController.h"
 //#include "TestBeamCrateController.h"
-#include "CrateSetup.h"
+// #include "CrateSetup.h"  emulib4
 
 
 #include <DcsDimStructures.h>
@@ -60,8 +62,18 @@ bool  CRATE_CONFIGURED_NEEDED = false;
 //  void (*was)(int), catchFunction(int);
 int EmuDcs::svc(){
 
+  ///  return 1;
 
    ::sleep(10);
+
+   if(DRAFT_COMM){
+    for(int i=0;i<CHAMBER_NUMBER;i++){     
+
+
+    }
+    DimServer::start("Emu-Dcs Dim Server");
+   }
+
 
    //  printf("=============>>>>>>>>>>>========================================================================\n");
   /*
@@ -73,12 +85,18 @@ int EmuDcs::svc(){
 #ifdef DCS_PRINTING_0 
     printf("LV_1_COMMAND is SENT !!  1\n");
 #endif
-
-    DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local_update");
+    ///::usleep(200000);
+    DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
  
 #ifdef DCS_PRINTING_0
     printf("LV_1_COMMAND is SENT !!  2\n");
 #endif
+
+
+  for(int i=0;i<CHAMBER_NUMBER;i++){
+   ch_counters[i]=READOUT_COUNTER_NUMBER;
+  }
+
   while(1){ // indefinite loop (there are no breaks for it)
 
 
@@ -106,8 +124,11 @@ int EmuDcs::svc(){
   for(int i=0;i<CHAMBER_NUMBER;i++){
     
     ch_counters[i]++;
-    //    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++%d\n",ch_counters[i]);
-    if(ch_counters[i] >= READOUT_COUNTER_NUMBER){
+
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ich=%d %d %d %d\n",
+    i,ch_counters[i],READOUT_COUNTER_NUMBER,READOUT_CYCLE_DELAY );
+
+    if(ch_counters[i] >= READOUT_COUNTER_NUMBER || DcsDimCommand_o->FIRST_UPDATE[i]){
       sprintf(tmp,"%s|get_data_local_update",slots[i].c_str());
       DimClient::sendCommand("LV_1_COMMAND",tmp);
       ch_counters[i]=0;
@@ -151,7 +172,7 @@ EmuDcs::EmuDcs(string *file_to_load_cfeb, string *file_to_load_vme_chip, string 
        string *file_to_load_valct384, string *file_to_load_salct384, 
        string *file_to_load_valct672, string *file_to_load_salct672, 
 string *file_to_load_tmb)
-  : RepeatNumber(1), OPERATION_ACTIVE(false),  Task(""), 
+  : Task(""), OPERATION_ACTIVE(false), RepeatNumber(1),
  file_to_load_cfeb(file_to_load_cfeb),file_to_load_vme_chip(file_to_load_vme_chip), 
   file_to_load_control_chip(file_to_load_control_chip),
   file_to_load_valct288(file_to_load_valct288), file_to_load_salct288(file_to_load_salct288), 
@@ -166,7 +187,9 @@ activate();
 }
 
 //========================================================================  
-EmuDcs::EmuDcs() : RepeatNumber(1), OPERATION_ACTIVE(false), Task(""){
+EmuDcs::EmuDcs(DcsEmuController *theEmuController) : DcsEmuController(*theEmuController), Task(""),OPERATION_ACTIVE(false),  RepeatNumber(1){
+
+  //  theSelectorDcs=&theSelector;  //emulib4
 
 file_to_load_cfeb = new string("/home/fast/data/daqmb_config/feb_prom/fcntl_v9_r1.svf");
 file_to_load_vme_chip=new string("/home/fast/data/daqmb_config/mthb_vprom/vme4_v16_r3.svf");
@@ -175,6 +198,8 @@ file_to_load_valct288=new string("/home/fast/data/daqmb_config/alct_vprom/alct28
 file_to_load_valct384=new string("/home/fast/data/daqmb_config/alct_vprom/alct384_virtex.svf");
 file_to_load_valct672=new string("/home/fast/data/daqmb_config/alct_vprom/alct672_virtex.svf");
 file_to_load_tmb=new string("/home/fast/data/daqmb_config/tmb_eprom/tmb2001a_101802.svf");
+
+ printf("test\n");
 
 EmuDcs_launch();
 activate();
@@ -210,18 +235,24 @@ string *file_to_load_tmb)
 
   db();   
 
+  // exit(0);
   
   string service_name;
   
   ch_all_counter=0;
   
 #ifdef OSUcc
-  ///  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*100000*2*1000; // temp for slow 
-  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*100000*2-CHAMBER_NUMBER/2;
-  READOUT_COUNTER_NUMBER=(5000000/READOUT_CYCLE_DELAY)*100;  // 5sec. * 100 = 500 sec.
+
+  //  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*1000000*2-CHAMBER_NUMBER/2; 
+  READOUT_CYCLE_DELAY=(CHAMBER_NUMBER/3+1)*1000000;
+  if(READOUT_CYCLE_DELAY < (20*1000000))READOUT_CYCLE_DELAY=(20*1000000);
+
+  //READOUT_COUNTER_NUMBER=(5000000*100/READOUT_CYCLE_DELAY)*1;  // 5sec. * 100 = 500 sec.
+  READOUT_COUNTER_NUMBER=1;
+  if((READOUT_COUNTER_NUMBER*READOUT_CYCLE_DELAY/1000000)<180)READOUT_COUNTER_NUMBER=(180.*1000000.)/(((float )READOUT_CYCLE_DELAY)*1.17)-1;
+
 #else
-  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*2*1000;
-  ///  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*2-CHAMBER_NUMBER/2;
+  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*2-CHAMBER_NUMBER/2;
   READOUT_COUNTER_NUMBER=500/READOUT_CYCLE_DELAY;
 #endif
 
@@ -239,13 +270,13 @@ string *file_to_load_tmb)
    LV_1_MonitorService[i]= new DcsDimService((char *)service_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:5;F:9;I:2;C:80",  
    (void *)&(LV_1_DimBroker_lv[i]), sizeof(LV_1_DimBroker));
 
-
+   
     memset(&(TEMPERATURE_1_DimBroker_tm[i]),0,sizeof(TEMPERATURE_1_DimBroker));
     getServiceName(i,"TEMP_1",service_name);
    //  TEMPERATURE_1_MonitorService= new DcsDimService("TEMP_1","F:5;F:5;F:5;F:5;F:5;I:2;C:80",
    TEMPERATURE_1_MonitorService[i]= new DcsDimService((char *)service_name.c_str(),"F:7;I:2;C:80",
    (void *)&(TEMPERATURE_1_DimBroker_tm[i]), sizeof(TEMPERATURE_1_DimBroker));
-
+   
     memset(&(COMMAND_1_DimBroker_cm[i]),0,sizeof(COMMAND_1_DimBroker));
     getServiceName(i,"CHIP_1",service_name);
    COMMAND_1_MonitorService[i]= new DcsDimService((char *)service_name.c_str(),"I:3;C:80",
@@ -255,11 +286,11 @@ string *file_to_load_tmb)
     getServiceName(i,"RF_1",service_name);
    REFERENCE_1_MonitorService[i]= new DcsDimService((char *)service_name.c_str(),"F:9;I:2;C:80",
    (void *)&(REFERENCE_1_DimBroker_rf[i]), sizeof(REFERENCE_1_DimBroker));
-
+   
   }
 
 
-  RunControlService= new DimService("DCS_SERVICE","C:80",
+   RunControlService= new DimService("DCS_SERVICE","C:80",
   (void *)&RunControlAck, sizeof(RunControlStructure));
   
 
@@ -291,10 +322,12 @@ string *file_to_load_tmb)
   */
  //==============================================================
   //--------------
-  DcsDimCommand_o = new DcsDimCommand(LV_1_MonitorService,TEMPERATURE_1_MonitorService,
-					      COMMAND_1_MonitorService,REFERENCE_1_MonitorService, RunControlService, this );
+    DcsDimCommand_o = new DcsDimCommand(LV_1_MonitorService,TEMPERATURE_1_MonitorService,
+  					      COMMAND_1_MonitorService,REFERENCE_1_MonitorService, RunControlService, this );
 
-  DimServer::start("Emu-Dcs Dim Server");
+  if(!DRAFT_COMM)DimServer::start("Emu-Dcs Dim Server");
+
+
   /*
 
   while(1){
@@ -451,10 +484,13 @@ void EmuDcs::catchFunction(int){
 //=======================================================================================
 
 int EmuDcs::safeExit(){
+
+  /*
   // signal(SIGALRM,this->catchFunction);
   //fg  DAQMB *daqmb_loc = dynamic_cast<DAQMB *>(((VMEControllerdcs *) daqmb->getTheController())->getTheCurrentModule()); //
-  //DAQMB *daqmb_loc = dynamic_cast<DAQMB *>(((VMEController *) daqmb->getTheController())->getTheCurrentModule()); //
-  //if(daqmb_loc != 0) daqmb->getTheController()->end();
+  DAQMB *daqmb_loc = dynamic_cast<DAQMB *>(((VMEController *) daqmb->getTheController())->getTheCurrentModule()); //
+  if(daqmb_loc != 0) daqmb->getTheController()->end();
+  */
 
   return 1;
 
@@ -898,6 +934,8 @@ int EmuDcs::lv_on_wrap(bool IS_SIMULATION_LOCAL, int channels){
 
   OPERATION_ACTIVE=true;
 
+  
+
 #ifdef DCS_PRINTING_0
   printf("lv_on_wrap()\n");
 #endif
@@ -905,7 +943,13 @@ int EmuDcs::lv_on_wrap(bool IS_SIMULATION_LOCAL, int channels){
   /////////  osu_start(dp->crate_slt);
   if(!IS_SIMULATION_LOCAL){
    for (int i=0;i< 10;i++){
-     /*if(!lowv_status(IS_SIMULATION_LOCAL))*/daqmb->lowv_onoff(channels);//  0x3f commented out because of wrong work LVMB
+     //     int slot=daqmb->slot();
+     //     printf("slot=%d\n",slot);
+     // daqmb->lowv_onoff4(channels);
+
+     //daqmb->lowv_onoff3(channels);
+     //daqmb->lowv_onoff(channels);//channels);//  0x3f commented out because of wrong work LVMB
+     daqmb->lowv_onoff(channels);//  0x3f commented out because of wrong work LVMB
      if(lowv_status(IS_SIMULATION_LOCAL)) break;
    }
   }
@@ -913,11 +957,12 @@ int EmuDcs::lv_on_wrap(bool IS_SIMULATION_LOCAL, int channels){
 #ifdef DCS_PRINTING_0
       printf("on  SIMULATION\n");
 #endif
-    slot_status[current_set]=1;
+      slot_status[current_set]=1;
   }
 
   ////////  osu_end();
-
+  
+  
   for(int i=0;i<number_of_cfebs ;i++){
     if(channels & (1 << i))
    ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.status[i]=1;
@@ -927,7 +972,7 @@ int EmuDcs::lv_on_wrap(bool IS_SIMULATION_LOCAL, int channels){
            ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.status=1;
     else
             ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.status=0;
-
+  
 	 OPERATION_ACTIVE=false;
 
   return 1;
@@ -1089,7 +1134,9 @@ int EmuDcs::commandParse(string &command){
 int EmuDcs::resetAllBackplaneViaCCB(){
 
   //  ccb->reset_bckpln();
-   ccb->soft_reset_all_csr2();
+  ////////// comment out as not defined in preporocessor in PeripheralCore
+  //ccb->soft_reset_all_csr2();
+
   ////  03/31/2005 ((CCBdcs *)ccb)-> soft_reset_all_csr2();
   return 1;
  
@@ -1160,11 +1207,21 @@ int EmuDcs::readAllTemperatures(){
 #ifdef DCS_PRINTING_1
 	//        printf("alct_temperature>>\n");
 #endif
-        int tmb_slot=tmb->slot();
+
+        int tmb_slot;
+        if(!IS_DMB_ONLY)tmb_slot=tmb->slot();
+
+
 #ifdef DCS_PRINTING_1
 	//        printf("alct_temperature>>\n");
 #endif
-	alct_c->alct_read_temp(&tmb_slot, &readtemp);
+
+	if(!IS_DMB_ONLY){
+	alct_c->ReadAlctTemperatureAndVoltages();
+	readtemp=alct_c->GetAlctTemperatureCelcius();
+	}
+
+	//	alct_c->alct_read_temp(&tmb_slot, &readtemp);
 #ifdef DCS_PRINTING_1
 	//        printf("alct_temperature>>\n");
 #endif
@@ -1588,8 +1645,14 @@ int EmuDcs::controlTMB(TMB *tmb){        /////////////////////
 
     //     ALCTController::CHAMBER ch_type = ALCTController::ME22;
 
+    alct_c = tmb->alctController();
+    /*
+
     if(alct_c == NULL)  alct_c = new ALCTController(tmb,"ME22");//ch_type);
     else {delete alct_c; alct_c = new ALCTController(tmb,"ME22");}//ch_type);}
+    */
+
+
 
     return 1;
 }
@@ -1620,12 +1683,16 @@ int EmuDcs::simulationLVStatusControl(string &ipslot){
 
 int EmuDcs::db(){
   
-  vector<Crate *> v_crates= crates();
+  vector<Crate *> v_crates= /*theSelectorDcs->*/crates();
   vector<DAQMB *> v_daqmbs;
   vector<TMB *>   v_tmbs;
-
+ 
+#ifdef NEW_DIM_SERVICES
+vector<Chamber *>   v_chambers;/////// postponed 
+#endif
+  
   char tmp[100];
-
+   
 #ifdef DCS_PRINTING_1
   ///printf("21 %d %d\n",*i,v_crates.size());
 #endif
@@ -1633,19 +1700,35 @@ int EmuDcs::db(){
   CHAMBER_NUMBER=0;
 
   for(int i=0;i<v_crates.size();i++){
-
-   v_daqmbs=daqmbs(v_crates[i]);
+    
+    v_daqmbs=/*theSelectorDcs->*/v_crates[i]->daqmbs();
+#ifdef NEW_DIM_SERVICES    
+v_chambers=v_crates[i]->chambers();///////// postponed
+#endif
 
       for(int j=0;j<v_daqmbs.size();j++){
-
+	
 	sprintf(tmp,"%s;%d",(v_crates[i]->vmeController()->ipAddress()).c_str(),v_daqmbs[j]->slot()); 
 	slots.push_back(string(tmp));
 	CHAMBER_NUMBER++;
       	printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++slots[%d]=%s\n",j,tmp);
-
+	
       }
+#ifdef NEW_DIM_SERVICES
+      //  postponed
+      
+      for(int j=0;j<v_chambers.size();j++){
+	//	printf("%s %d\n",(v_chambers[j]->GetLabel()).c_str(),(v_chambers[j]->GetLabel()).size() );
+		sprintf(tmp,"%s",v_chambers[j]->GetLabel().c_str()); 
+	chamber_slots.push_back(string(tmp));
+	//////CHAMBER_NUMBER++;
+      	printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++slots[%d]=%s\n",j,tmp);
+	
+      }
+      // end postponed
+#endif    
   }
-
+  
   return 1;
 
 }
@@ -1670,7 +1753,12 @@ int EmuDcs::getServiceName(int index, char *system, string &service_name){
                 pos_prev=pos+1;
 	    } // for j
 	   
-	    //pos_prev=slots[i].find(".",0)+1;
+          
+
+#ifdef NEW_DIM_SERVICES	    
+service_name=string(system)+string("_")+chamber_slots[i];///////// postpone
+#else
+
 
 
             pos_prev=0;
@@ -1695,13 +1783,60 @@ int EmuDcs::getServiceName(int index, char *system, string &service_name){
                 pos_prev=pos+1;
 	    } // for j
 	    //	 } // for i
+#endif
 
-
-	    //	    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++service_name=%s\n",service_name.c_str());
+	  printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++service_name=%s\n",service_name.c_str());
 
   return 1;
 
 }
+
+//===============
+
+int EmuDcs::isError(){
+ 
+  float  data, data_nom;
+  int isErr=0;
+  float delta=0.3;
+
+  if(((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.status == 0)return isErr;
+
+  data=((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v18;
+  data_nom=1.8;
+  if(fabs(data - data_nom)> delta)isErr=1;
+
+  data=((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v33;
+  data_nom=3.3;
+  if(fabs(data - data_nom)> delta)isErr=1;
+
+  data=((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v55;
+  data_nom=5.5;
+  if(fabs(data - data_nom)> delta)isErr=1;
+
+  data=((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v56;
+  data_nom=5.5;
+  if(fabs(data - data_nom)> delta)isErr=1;
+  //--------------------------------------------------
+
+  for(int i=0;i<number_of_cfebs;i++){
+
+  
+    data=((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v33[i];
+    data_nom=3.3;
+    if(fabs(data - data_nom)> delta)isErr=1;
+
+    data=((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v50[i];
+    data_nom=5.0;
+    if(fabs(data - data_nom)> delta)isErr=1;
+
+    data=((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v60[i];
+    data_nom=6.0;
+    if(fabs(data - data_nom)> delta)isErr=1;
+
+  }
+
+}
+
 
 
 //=================== test stuff below ================================
@@ -1738,7 +1873,8 @@ int EmuDcs::test(){
 
 	float readtemp;
         int tmb_slot=tmb->slot();
-	alct_r->alct_read_temp(&tmb_slot, &readtemp);
+	readtemp=alct_r->GetAlctTemperatureCelcius();
+	//alct_r->alct_read_temp(&tmb_slot, &readtemp);
         printf("temperature = %f\n",readtemp);
 
 	//////     alct_r->SVFLoad(&jchan,"/home/fast/data/daqmb_config/alct_vprom/alct384_virtex_erase.svf" , 0 );

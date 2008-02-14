@@ -16,6 +16,8 @@ extern int CHAMBER_NUMBER;
 
 
 bool PUBLISHING_ENABLED=false;
+bool ERROR_PUBLISHING_ENABLED=false;
+bool IS_DMB_ONLY=false;
 
 //===========================================================================================
 
@@ -36,6 +38,8 @@ bool DcsDimCommand::nextSlotsLoading(int *i,int *j){
   vector<Crate *> v_crates= EmuDcs_o->crates();
   vector<DAQMB *> v_daqmbs;
   vector<TMB *>   v_tmbs;
+  Crate *crate1;
+ 
 
 #ifdef DCS_PRINTING_0
 printf("21 %d %d\n",*i,v_crates.size());
@@ -50,9 +54,9 @@ printf("21 %d %d\n",*i,v_crates.size());
   //  if(ip_address == "137.138.102.223")SIMULATION=true;
 
  
-
-  v_daqmbs=EmuDcs_o->daqmbs(v_crates[*i]);
-  v_tmbs=EmuDcs_o->tmbs(v_crates[*i]);
+  crate1=v_crates[*i];
+  v_daqmbs=(v_crates[*i])->daqmbs();
+  if(!IS_DMB_ONLY)v_tmbs=(v_crates[*i])->tmbs();
 
   EmuDcs_o->controlCCB(v_crates[*i]->ccb()); // October 12, 2003
 
@@ -67,8 +71,11 @@ printf("21 %d %d\n",*i,v_crates.size());
   dmb_slot = v_daqmbs[*j]->slot();
 
 
-  EmuDcs_o->controlTMB(v_tmbs[*j]);
-  tmb_slot = v_tmbs[*j]->slot();
+  // printf("==============================================daqmb=\n");
+
+
+ if(!IS_DMB_ONLY)EmuDcs_o->controlTMB(v_tmbs[*j]);
+ if(!IS_DMB_ONLY)tmb_slot = v_tmbs[*j]->slot();
 
   if(dmb_slot == 22 || dmb_slot == 23 )SIMULATION=true;
 
@@ -96,6 +103,7 @@ bool DcsDimCommand::slotsLoading(){
 
 
   vector<Crate *> v_crates= EmuDcs_o->crates();
+  Crate *crate1;
   //  int size_crates=v_crates.size();
   vector<DAQMB *> v_daqmbs;
   vector<TMB *>   v_tmbs;
@@ -108,24 +116,28 @@ bool DcsDimCommand::slotsLoading(){
   ///////  bool mpc_ok   = false; // currently not used
 
   for(int i=0;i< v_crates.size(); i++){
-     
+    crate1= v_crates[i];
     if(ip_address == v_crates[i]->vmeController()->ipAddress() ){
       crate_ok = true;
+      // v_crates[i]->vmeController()->do_schar(2);
+      // for(int j=0;j<100;j++)usleep(1000);
+      // v_crates[i]->vmeController()->do_schar(1);
+      // for(int j=0;j<100;j++)usleep(1000);
     }
     else {
       continue;
     }
 
-   v_daqmbs=EmuDcs_o->daqmbs(v_crates[i]);
-   v_tmbs=EmuDcs_o->tmbs(v_crates[i]);
+   v_daqmbs=(v_crates[i])->daqmbs();
+   if(!IS_DMB_ONLY)v_tmbs=(v_crates[i])->tmbs();
 
    for(int j=0;j<v_daqmbs.size() ;j++){
      if(dmb_slot == v_daqmbs[j]->slot()){
        EmuDcs_o->controlDAQMB(v_daqmbs[j]);
        dmb_ok=true;
 
-       EmuDcs_o->controlTMB(v_tmbs[j]); // j for dmb and tmb should be the same: not checked
-       tmb_slot = v_tmbs[j]->slot();    // take the slot from here
+      if(!IS_DMB_ONLY)EmuDcs_o->controlTMB(v_tmbs[j]); // j for dmb and tmb should be the same: not checked
+      if(!IS_DMB_ONLY)tmb_slot = v_tmbs[j]->slot();    // take the slot from here
 
  // for simulation use
   char tmp[10];
@@ -262,7 +274,8 @@ void DcsDimCommand::commandHandler(){
 
   sQueue.push(sub_command);
 #ifdef DCS_PRINTING_0
-   printf("server24\n");
+   printf("server24 sQueue.size()=%d\n",sQueue.size());
+   if(sQueue.size() > 99)exit(0); // typically happens due to parallel DAQ work: causes the indefinit waiting on: sQueue.pop() below
 #endif
 }
 //===============================================================================================
@@ -276,8 +289,24 @@ int DcsDimCommand::svc(){
 
     sub_command = sQueue.pop();
 
+#ifdef NEW_DIM_SERVICES
+
+
+
+    if(sub_command.find("all",0) == string::npos && sub_command.find(":00:",0) == string::npos ){ // it means the chamber_db comes
+   int pos;
+    pos=sub_command.find("|",0);
+    string extract_operation = sub_command.substr(pos+1);
+
+      int db_index_1=get_db_index_by_chamber(sub_command);
+      sub_command=get_slot_by_db_index(db_index_1)+"|"+extract_operation; // convert to slot_db
+      printf("sub_command.c_str()************************************************************ \n",sub_command.c_str());
+    }
+#endif
+
 //////// ======= II
-    if(EmuDcs::RUN_MODE==0 && sub_command != "DCS_ENABLE")continue; // II
+    ///printf("=== EmuDcs::RUN_MODE=%d %s\n",EmuDcs::RUN_MODE, sub_command.c_str());
+    ///if(EmuDcs::RUN_MODE==0 && sub_command != "DCS_ENABLE")exit(0);//continue; // II
 //////// ======= II
 #ifdef DCS_PRINTING_0
     printf("sub_command = %s\n",sub_command.c_str());
@@ -352,6 +381,12 @@ break;
   ((REFERENCE_1_DimBroker *)REFERENCE_1_DimBroker_o[db_index]->value)->setNumber=dmb_slot;
 
 
+  /*
+  if(!isALL){printf("----------------!isALL\n"); break;} 
+  else  printf("===============isALL\n");
+  continue;
+  */
+
 SUSPEND_UPDATE_SERVICE = false; 
 
 
@@ -364,7 +399,7 @@ SUSPEND_UPDATE_SERVICE = false;
 #endif
       getDataLV(true);
 
-      EmuDcs_o->readAllTemperatures();
+      /*if(!IS_DMB_ONLY)*/EmuDcs_o->readAllTemperatures();
       TEMPERATURE_1_DimBroker_o[db_index]->DcsUpdateService();
 
     }
@@ -376,11 +411,12 @@ SUSPEND_UPDATE_SERVICE = false;
 #endif
 
       PUBLISHING_ENABLED=true;
+      ERROR_PUBLISHING_ENABLED=true;
       // for(int i2=0;i2<100;i2++){
-       getDataLV(true);
+      getDataLV(true);
        //printf("++++++++++++++++++++++++++++++++++++++++++++++++++++>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> i2=%d\n",i2);
        //}
-      EmuDcs_o->readAllTemperatures();
+      /*if(!IS_DMB_ONLY)*/EmuDcs_o->readAllTemperatures();
       TEMPERATURE_1_DimBroker_o[db_index]->DcsUpdateService();
 
       if(FIRST_CHIP){
@@ -395,13 +431,29 @@ SUSPEND_UPDATE_SERVICE = false;
 #ifdef DCS_PRINTING_0
       printf("get_data command local!!!!!========\n");
 #endif
-
+ 
       PUBLISHING_ENABLED=true;
       // for(int i2=0;i2<100;i2++){
-       getDataLV();
+        getDataLV();
+        /*if(!IS_DMB_ONLY)*/EmuDcs_o->readAllTemperatures();
+
+       if(ERROR_PUBLISHING_ENABLED && EmuDcs_o->isError() && previous_error_status[db_index] == 0){
+        LV_1_DimBroker_o[db_index]->DcsUpdateService();
+        TEMPERATURE_1_DimBroker_o[db_index]->DcsUpdateService();
+	previous_error_status[db_index]=1;
+       }
+       else if(ERROR_PUBLISHING_ENABLED &&  !(EmuDcs_o->isError()) && previous_error_status[db_index] == 1){
+        LV_1_DimBroker_o[db_index]->DcsUpdateService();
+        TEMPERATURE_1_DimBroker_o[db_index]->DcsUpdateService();
+	previous_error_status[db_index]=0;
+       }
+
+       if(EmuDcs_o->isError())previous_error_status[db_index]=1;
+       else previous_error_status[db_index]=0;
+
        //printf("++++++++++++++++++++++++++++++++++++++++++++++++++++>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> i2=%d\n",i2);
        //}
-      EmuDcs_o->readAllTemperatures();
+       //    EmuDcs_o->readAllTemperatures();
       ////////      TEMPERATURE_1_DimBroker_o[db_index]->DcsUpdateService();
 
     }
@@ -417,7 +469,7 @@ SUSPEND_UPDATE_SERVICE = false;
 
       getDataLV(true);
       
-      EmuDcs_o->readAllTemperatures();
+      /*if(!IS_DMB_ONLY)*/EmuDcs_o->readAllTemperatures();
       TEMPERATURE_1_DimBroker_o[db_index]->DcsUpdateService();
 
       if(FIRST_CHIP){
@@ -432,7 +484,7 @@ SUSPEND_UPDATE_SERVICE = false;
       //  SUSPEND_UPDATE_SERVICE=true;
 
 #ifdef OSUcc
-      EmuDcs_o->ch_counters[db_index]=EmuDcs_o->READOUT_COUNTER_NUMBER-100;
+      EmuDcs_o->ch_counters[db_index]=EmuDcs_o->READOUT_COUNTER_NUMBER-2;
 #else
       EmuDcs_o->ch_counters[db_index]=EmuDcs_o->READOUT_COUNTER_NUMBER-2;
 #endif
@@ -442,8 +494,8 @@ SUSPEND_UPDATE_SERVICE = false;
            printf("lvmb_channels=%d\n", lvmb_channels);
 #endif
       
-     EmuDcs_o->lv_on_wrap(SIMULATION, lvmb_channels);
-      
+	   EmuDcs_o->lv_on_wrap(SIMULATION, lvmb_channels);
+      previous_error_status[db_index]=0;
 
 
 #ifdef DCS_PRINTING_0
@@ -471,13 +523,15 @@ SUSPEND_UPDATE_SERVICE = false;
 
 
 #ifdef OSUcc
-      EmuDcs_o->ch_counters[db_index]=EmuDcs_o->READOUT_COUNTER_NUMBER-100;
+      EmuDcs_o->ch_counters[db_index]=EmuDcs_o->READOUT_COUNTER_NUMBER-2;
 #else
       EmuDcs_o->ch_counters[db_index]=EmuDcs_o->READOUT_COUNTER_NUMBER-2;
 #endif
 
 
      EmuDcs_o->lv_off_wrap(SIMULATION);
+    previous_error_status[db_index]=0;
+
 #ifdef DCS_PRINTING_0
       printf("off off \n");
 #endif
@@ -889,6 +943,8 @@ SUSPEND_UPDATE_SERVICE = false;
     }   // while(true)
 
   }  // while(1){ indefinite loop (there are no breaks for it)
+  printf("out of loop  !!!\n");
+  exit(0);
 
 }
 
@@ -913,13 +969,20 @@ DimService *RunControlService_o, EmuDcs *EmuDcs_o):DimCommand("LV_1_COMMAND","C"
     if(CONFIRMATION_NEEDED)DcsDimService::CONFIRMATION = false;
     else DcsDimService::CONFIRMATION = true;
 
+    for(int i=0;i<CHAMBER_NUMBER;i++){
+      FIRST_UPDATE[i]=true;
+    }
+    for(int i=0;i<CHAMBER_NUMBER;i++){
+      previous_error_status[i]=0;
+    }
+
 activate();
 
 }
 //=================================================================================================
-int DcsDimCommand::getDataLV(bool isUpdate){
+int DcsDimCommand::getDataLV(bool isUpdate, bool isDRAFT){
 
-  static bool FIRST=true;
+  //  static bool FIRST=true;
 
 
   ////      printf("get_data!!!!!============================== %d\n", EmuDcs_o->current_set);
@@ -944,9 +1007,9 @@ int DcsDimCommand::getDataLV(bool isUpdate){
                                                                                       EmuDcs_o->lowv_status(SIMULATION);
           else ((LV_1_DimBroker *)LV_1_DimBroker_o[db_index]->value)->data.Alct_o.status=0;
 
-	  if(FIRST){
-           ((LV_1_DimBroker *)LV_1_DimBroker_o[db_index]->value)->data.Alct_o.status=-1;
-	   FIRST=false;
+	  if(FIRST_UPDATE[db_index] && isUpdate){
+	    ((LV_1_DimBroker *)LV_1_DimBroker_o[db_index]->value)->data.Alct_o.status=-1; // to tell PVSS that server just started: to adjust the server and PVSS states
+	   FIRST_UPDATE[db_index]=false;
 	  }
 
 	  ////////  osu_end();
@@ -991,5 +1054,31 @@ int DcsDimCommand::get_db_index(string ip_address, int dmb_slot){
       printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ db_index=%d\n",db_index);
 #endif
   return db_index;
+
+}
+//=================================================================================================
+
+int DcsDimCommand::get_db_index_by_chamber(string chamber){
+
+    int db_index=-1;
+      for(int i10=0;i10<EmuDcs_o->chamber_slots.size();i10++){ 
+       if(chamber.find(EmuDcs_o->chamber_slots[i10],0) != string::npos){
+        db_index=i10; break;
+       }
+      }
+#ifdef DCS_PRINTING_1
+      printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ db_index_by_chamber=%d\n",db_index);
+#endif
+  return db_index;
+
+}
+//=================================================================================================
+
+string DcsDimCommand::get_slot_by_db_index(int db_index_1){
+
+
+
+  string db_slot=EmuDcs_o->slots[db_index_1];
+  return db_slot;
 
 }

@@ -1,7 +1,7 @@
 #ifndef DcsDimService_h
 #define DcsDimService_h
 
-#include <dis.hxx>
+#include "dim/dis.hxx"
 #include <string>
 #include <vector>
 
