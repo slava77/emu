@@ -22,7 +22,7 @@ void EmuPlotter::saveToROOTFile(std::string filename)
       TDirectory * rdir = hdir->mkdir((itr->first).c_str());
       rdir->cd();
       for (h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
-//	h_itr->second->Draw();	
+	h_itr->second->Draw();	
 	h_itr->second->Write();
       }
       hdir->cd();

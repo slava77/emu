@@ -2,12 +2,12 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
-int EmuPlotter::loadXMLBookingInfo(std::string xmlFile) 
+int EmuPlotter::loadXMLBookingInfo(string xmlFile) 
 {
   LOG4CPLUS_INFO(logger_, "Loading Booking Info from XML file: "  <<  xmlFile)
 
     if (xmlFile == "") {
-      LOG4CPLUS_ERROR (logger_, "Histo Booking Invalid configuration file: " << xmlFile);
+      LOG4CPLUS_ERROR (logger_, "Invalid configuration file: " << xmlFile);
       return 1;
     }
 
@@ -41,7 +41,7 @@ int EmuPlotter::loadXMLBookingInfo(std::string xmlFile)
 	// EmuMonitoringObject obj(itemList->item(i));
 	obj = new EmuMonitoringObject(itemList->item(i));
 
-	std::string name = obj->getName();
+	string name = obj->getName();
 	if (obj->getPrefix().find("DDU") != std::string::npos) {
 		// dduMEfactory.insert(pair<string,EmuMonitoringObject>(name, obj)); ;
 		dduMEfactory[name] = obj;

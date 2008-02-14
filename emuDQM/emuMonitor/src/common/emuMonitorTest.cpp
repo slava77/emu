@@ -31,10 +31,18 @@ int main(int argc, char **argv) {
         logger.addAppender(appender);
 	logger.setLogLevel(WARN_LOG_LEVEL);
 
+	std::string cfgDir="";
+        if (getenv("HOME") && string(getenv("HOME")).size())
+        cfgDir=getenv("HOME"); //+"/config/";
+
+        cfgDir+="/config/";
+
 //	string xmlcfg = "/home/dqm/TriDAS/emu/emuDQM/emuMonitor/xml/EmuDQMBooking.xml";
-	string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
-        std::string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
-	string cscMapFile = "/csc_data/results/csc_map.txt";
+	std::string xmlHistosBookingCfg = "file://" + cfgDir + "emuDQMBooking.xml";
+        std::string xmlCanvasesCfg = "file://" + cfgDir + "emuDQMCanvases.xml";
+        std::string cscMapFile = cfgDir+"csc_map.txt";
+
+
 	EmuPlotter plotter(logger);
 	plotter.setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
 	plotter.setXMLCanvasesCfgFile(xmlCanvasesCfg);
