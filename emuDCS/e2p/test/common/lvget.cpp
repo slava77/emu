@@ -1,7 +1,7 @@
-// $Id: lvget.cpp,v 3.0 2006/01/18 17:52:28 geurts Exp $
+// $Id: lvget.cpp,v 3.1 2008/02/14 16:53:05 geurts Exp $
 // $Log: lvget.cpp,v $
-// Revision 3.0  2006/01/18 17:52:28  geurts
-// New XDAQv3-based PVSS interface for EMu (by Valeri Sytnik)
+// Revision 3.1  2008/02/14 16:53:05  geurts
+// updates to e2p for the xdaqr4 environment
 //
 // Revision 1.16  2004/10/03 01:55:51  tfcvs
 // various updates at H2a

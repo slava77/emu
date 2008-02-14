@@ -1,9 +1,8 @@
 #ifndef EmuDcs_h
 #define EmuDcs_h
 
-//#include "PeripheralCrateController.h"
-#include "CrateSelector.h"
-
+//////#include "PeripheralCrateController.h"
+///  emulib4 #include "CrateSelector.h"
 //fg #include "VMEControllerdcs.h"
 #include "VMEController.h"
 #include "DAQMB.h" // 03/31/2005
@@ -11,14 +10,16 @@
 ///#include "FakeCCB.h"
 #include "TMB.h"
 #include "MPC.h"
-#include "CrateSetup.h"
+///  emulib4 #include "CrateSetup.h"
 #include "ALCTController.h"
 
 #include <DcsDimStructures.h>
 #include <DcsDimService.h>
 #include <DcsDimCommand.h>
 //#include "xdaqExecutive.h"
-#include "Task.h"
+#include "toolbox/Task.h"
+#include "DcsEmuController.h"
+
 using namespace std;
 
 #define MAX_CHAMBER_NUMBER 108
@@ -26,10 +27,12 @@ using namespace std;
 
 class DcsDimCommand;
 
-class EmuDcs : public CrateSelector, public Task{
+class EmuDcs : public DcsEmuController, public Task{ //emulib4
 
 
 public:
+
+  //CrateSelector *theSelectorDcs; //emulib4
 
 int ch_counters[MAX_CHAMBER_NUMBER];
 int ch_all_counter;
@@ -42,9 +45,10 @@ EmuDcs(string *file_to_load_cfeb, string *file_to_load_vme_chip, string *file_to
        string *file_to_load_valct672, string *file_to_load_salct672, 
        string *file_to_load_tmb);
 
-EmuDcs();
+EmuDcs(DcsEmuController *theEmuController); // emulib4 EmuDcs(CrateSelector &theSelectorDcs); 
 
 
+ int isError();
 
 void EmuDcs_launch();
 
@@ -124,6 +128,7 @@ void EmuDcs_launch();
 //================================================
 
   vector<string> slots;
+  vector<string> chamber_slots;
   int db_index;
 
   int number_of_cfebs; // temporal parameter: should be taken from DAQMB object 
@@ -135,15 +140,25 @@ private:
 
  // ===== xdaq parameters: =========
   int lv_mask_to_set;
+
+  bool OPERATION_ACTIVE; // it is usefull for synchronization of parallel operations 
+
+ int RepeatNumber; // temporary data 
+
   string *file_to_load_cfeb;
   string *file_to_load_vme_chip;
   string *file_to_load_control_chip;
-  string *file_to_load_valct288; 
+
+ string *file_to_load_valct288; 
+ string *file_to_load_salct288; 
+
   string *file_to_load_valct384; 
-  string *file_to_load_valct672; 
-  string *file_to_load_salct288;
-  string *file_to_load_salct384;
+ string *file_to_load_salct384;
+
+
+  string *file_to_load_valct672;  
   string *file_to_load_salct672; 
+
   string *file_to_load_tmb;
 
  //================================
@@ -170,9 +185,9 @@ private:
   //  VMEController *vme; //  to avoid the call like: daqmb->theController->theCurrentModule
   
 
-  int RepeatNumber; // temporary data 
+ 
   char cbrdnum[200]; // 5 // some imported daqmb functions return this parameter
-  bool OPERATION_ACTIVE; // it is usefull for synchronization of parallel operations 
+
 
 //== for simulation: to keep power staus ==========
 

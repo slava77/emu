@@ -1,18 +1,21 @@
 #ifndef DcsDimCommand_h
 #define DcsDimCommand_h
 
-#include <dis.hxx> // for server
-#include <dic.hxx> // for client
+
+
+#include "dim/dis.hxx" // for server
+#include "dim/dic.hxx" // for client
 #include <string>
 #include <vector>
+#include "toolbox/SyncQueue.h"
+#include "toolbox/Task.h"
+using namespace toolbox;
 
 #include <EmuDcs.h>
 #include <DcsCommon.h>
-// XDAQ includes
-///////#include "xdaq.h"
-#include "SyncQueue.h"
-//#include "xdaqExecutive.h"
-#include "Task.h"
+
+
+
 
 #define MAX_CHAMBER_NUMBER 108
 
@@ -40,7 +43,8 @@ class DcsDimCommand: public DimCommand, public Task{//, public ErrorHandler{
 
 public:
 
-
+  int FIRST_UPDATE[MAX_CHAMBER_NUMBER];
+  int previous_error_status[MAX_CHAMBER_NUMBER];
 
   DcsDimService **LV_1_DimBroker_o;
   
@@ -54,9 +58,11 @@ public:
   bool nextSlotsLoading(int *i,int *j);
   int commandParse(string &command);
   void commandHandler();
-  int getDataLV(bool isUpdate=false);
+  int getDataLV(bool isUpdate=false, bool isDRAFT=0);
+  int isError();
   int get_db_index(string ip_address, int dmb_slot);
-
+  int get_db_index_by_chamber(string chamber);
+  string get_slot_by_db_index(int db_index_1);
 DcsDimCommand(DcsDimService **LV_1_DimBroker_o, DcsDimService **TEMPERATURE_1_DimBroker_o,  
               DcsDimService **COMMAND_1_DimBroker_o,DcsDimService **REFERENCE_1_DimBroker_o, DimService *RunControlService_o,
 	      EmuDcs *EmuDcs_o);
