@@ -4,7 +4,7 @@
 ME_List EmuPlotter::bookCommon(int nodeNumber) 
 {
 	// std::string prefix = Form("EMU_%d", nodeNumber);
-	std::string prefix = "EMU";
+	string prefix = "EMU";
 	ME_List commonMEs;
 	ME_List_iterator itr;
 	for (itr = commonMEfactory.begin(); itr != commonMEfactory.end(); ++itr) {
@@ -19,7 +19,7 @@ ME_List EmuPlotter::bookCommon(int nodeNumber)
 
 ME_List EmuPlotter::bookDDU(int dduNumber) 
 {
-	std::string prefix = Form("DDU_%02d", dduNumber);
+	string prefix = Form("DDU_%02d", dduNumber);
  	ME_List dduMEs;
         ME_List_iterator itr;
 
@@ -37,7 +37,7 @@ ME_List EmuPlotter::bookChamber(int chamberID)
 {
 	int crate = (chamberID >> 4) & 0xFF;
 	int slot = chamberID & 0xF;
-	std::string prefix = Form("CSC_%03d_%02d", crate, slot);
+	string prefix = Form("CSC_%03d_%02d", crate, slot);
 	ME_List chamberMEs;
         ME_List_iterator itr;
 

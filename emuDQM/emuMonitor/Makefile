@@ -55,8 +55,8 @@ TestExecutables = xmlExample.cpp
 ExternalObjects = \
 	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuDQMCommon.a \
 	../CMSSWLibs/lib/libCSCRawToDigi.a \
-        ../CMSSWLibs/lib/libCSCDigi.a \
-	../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 
+        ../CMSSWLibs/lib/libCSCDigi.a 
+	#../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
 	../CMSSWLibs \
@@ -86,6 +86,7 @@ UserExecutableLinkFlags += $(ROOTCFLAGS)
 # potentially need conditional processing
 #
 Libraries = $(XdaqLibraries)  EmuReadout 
+# Libraries = xdaq toolbox xoap xerces-c log4cplus EmuReadout
 
 #
 # Compile the source files and create a shared library

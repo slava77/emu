@@ -1,7 +1,7 @@
 #include "EmuPlotter.h"
 #include "TClass.h"
 
-int EmuPlotter::loadFromROOTFile(std::string rootfile, bool fReset) 
+int EmuPlotter::loadFromROOTFile(string rootfile, bool fReset) 
 {
 
   gSystem->Load("libHistPainter");
@@ -24,7 +24,7 @@ int EmuPlotter::loadFromROOTFile(std::string rootfile, bool fReset)
     TObject *obj = key->ReadObj();
     if ( obj->IsA()->InheritsFrom( "TDirectory" ) ) 
       {
-	std::string name=obj->GetName();
+	string name=obj->GetName();
 	//      cout << name << endl;
 	std::map<std::string, ME_List >::iterator itr = MEs.find(name);
 	if (name.find("DDU_") != std::string::npos) {

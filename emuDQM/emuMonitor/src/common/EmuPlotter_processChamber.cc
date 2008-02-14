@@ -9,8 +9,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		    "Zero pointer. DMB data are not available for unpacking"); //KK is->are
     return;
   }
-
-
+  else {
+    LOG4CPLUS_DEBUG(logger_, 
+		    "Nonzero pointer. DMB data are available for unpacking"); //KK is->are
+  }
   int FEBunpacked = 0;
   int alct_unpacked = 0;
   int tmb_unpacked  = 0;
@@ -26,15 +28,19 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   //	Unpacking of DMB Header and trailer
   CSCDMBHeader dmbHeader;
   CSCDMBTrailer dmbTrailer;
-
+  LOG4CPLUS_DEBUG(logger_,
+		  "Unpacking of DMB Header and Trailer ... ");
   dmbHeader  = data.dmbHeader();
   dmbTrailer = data.dmbTrailer();
+  LOG4CPLUS_DEBUG(logger_, "Done.");
 
   //	Unpacking of Chamber Identification number
   int crateID	= 0xFF;
   int dmbID	= 0xF;
   int ChamberID	= 0xFFF;
 	
+  LOG4CPLUS_DEBUG(logger_, 
+		  "Unpacking of Chamber ID ... ");
   crateID	= dmbHeader.crateID();
   dmbID		= dmbHeader.dmbID();
   ChamberID	= (((crateID) << 4) + dmbID) & 0xFFF;
@@ -44,6 +50,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		    "Invalid crate or dmb ID");
   }
 
+  LOG4CPLUS_DEBUG(logger_, "Done");
+  //  LOG4CPLUS_DEBUG(logger_, 
+  //		  "Chamber ID = "<< ChamberID << " Crate ID = "<< crateID << " DMB ID = " << dmbID);
 
   // std::string nodeTag(Form("EMU_%d", nodeID));
   std::string nodeTag = "EMU";
@@ -76,7 +85,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   this->getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
   if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo))
     mo->Fill(CSCposition, CSCtype);
-  
 
   EmuMonitoringObject* mof = NULL;
   if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
@@ -278,7 +286,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       mo->SetEntries(nDMBEvents[cscTag]);
     }
   }
-
 
   //ALCT Found
   if (data.nalct()) {
