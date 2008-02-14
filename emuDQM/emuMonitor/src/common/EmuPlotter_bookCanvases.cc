@@ -4,7 +4,7 @@
 MECanvases_List EmuPlotter::bookCommonCanvases(int nodeNumber) 
 {
 //	string prefix = Form("EMU_%d", nodeNumber);;
-	string prefix = "EMU";
+	std::string prefix = "EMU";
 	MECanvases_List commonCanvases;
 	MECanvases_List_iterator itr;
 	for (itr = commonCanvasesFactory.begin(); itr != commonCanvasesFactory.end(); ++itr) {
@@ -19,14 +19,14 @@ MECanvases_List EmuPlotter::bookCommonCanvases(int nodeNumber)
 
 MECanvases_List EmuPlotter::bookDDUCanvases(int dduNumber) 
 {
-	string prefix = Form("DDU_%02d", dduNumber);
+	std::string prefix = Form("DDU_%02d", dduNumber);
  	MECanvases_List dduCanvases;
         MECanvases_List_iterator itr;
 
 	for (itr = dduCanvasesFactory.begin(); itr != dduCanvasesFactory.end(); ++itr) {
 		EmuMonitoringCanvas* obj = new EmuMonitoringCanvas(*itr->second);
 		obj->setPrefix(prefix);
-		string title = obj->getTitle() + Form(" DDU = %02d", dduNumber);
+		std::string title = obj->getTitle() + Form(" DDU = %02d", dduNumber);
 		obj->setTitle(title);
 		dduCanvases[obj->getName()] = obj;
 		// dduCanvases.insert(pair<string, EmuMonitoringCanvas>(obj.getName(),obj));
@@ -39,14 +39,14 @@ MECanvases_List EmuPlotter::bookChamberCanvases(int chamberID)
 {
 	int crate = (chamberID >> 4) & 0xFF;
 	int slot = chamberID & 0xF;
-	string prefix = Form("CSC_%03d_%02d", crate, slot);
+	std::string prefix = Form("CSC_%03d_%02d", crate, slot);
 	MECanvases_List chamberCanvases;
         MECanvases_List_iterator itr;
 
 	for (itr = chamberCanvasesFactory.begin(); itr != chamberCanvasesFactory.end(); ++itr) {
 		EmuMonitoringCanvas* obj = new EmuMonitoringCanvas(*itr->second);
 		obj->setPrefix(prefix);
-		string title = obj->getTitle() + Form(" Crate ID = %02d. DMB ID = %02d", crate, slot);
+		std::string title = obj->getTitle() + Form(" Crate ID = %02d. DMB ID = %02d", crate, slot);
                 obj->setTitle(title);
 		chamberCanvases[obj->getName()] = obj;
 		// chamberCanvases.insert(pair<string, EmuMonitoringCanvas>(obj.getName(),obj));
