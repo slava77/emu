@@ -2,24 +2,25 @@
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 <!--Generated from RUI-to-chamber_mapping of -->
   <i2o:protocol xmlns:i2o="http://xdaq.web.cern.ch/xdaq/xsd/2004/I2OConfiguration-30">
-    <i2o:target tid="1401" instance="1" class="EmuMonitor"/>
+    <i2o:target tid="1413" instance="13" class="EmuMonitor"/>
     <i2o:target tid="1450" instance="0" class="EmuDisplayClient"/>
   </i2o:protocol>
 <!--EmuDisplayClient-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:40550">
+  <xc:Context url="http://pccmsdqm02.cern.ch:40550">
     <xc:Application class="EmuDisplayClient" id="1450" instance="0" network="local">
       <properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
         <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
         <imageFormat xsi:type="xsd:string">png</imageFormat>
-        <imagePath xsi:type="xsd:string">/tmp/images</imagePath>
+        <!-- imagePath xsi:type="xsd:string">/tmp/images</imagePath-->
+	<baseDir xsi:type="xsd:string">/home/dqm/config/dqm</baseDir>
 	<!-- iconsURL xsi:type="xsd:string">/tmp/</iconsURL-->
       </properties>
     </xc:Application>
-    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemuDisplayClient.so</xc:Module>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuDisplayClient.so</xc:Module>
   </xc:Context>
 <!--EmuMonitor 1 (ME+1/1/5, ...)-->
-  <xc:Context url="http://cms-dqm03.phys.ufl.edu:40501">
-    <xc:Endpoint hostname="128.227.89.201" protocol="tcp" port="40601" service="i2o" network="tcp1"/>
+  <xc:Context url="http://pccmsdqm02.cern.ch:40501">
+    <xc:Endpoint hostname="137.138.54.164" protocol="tcp" port="40601" service="i2o" network="tcp1"/>
     <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="21">
       <properties xmlns="urn:xdaq-application:pt::tcp::PeerTransportTCP" xsi:type="soapenc:Struct">
         <autoSize xsi:type="xsd:boolean">true</autoSize>
@@ -28,11 +29,11 @@
     </xc:Application>
     <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module>
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuReadout.so</xc:Module>
-    <xc:Application instance="1" class="EmuMonitor" id="1401" network="tcp1" group="dqm">
+    <xc:Application instance="13" class="EmuMonitor" id="1413" network="tcp1" group="dqm">
       <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct">
         <readoutMode xsi:type="xsd:string">internal</readoutMode>
         <inputDeviceType xsi:type="xsd:string">file</inputDeviceType>
-        <inputDeviceName xsi:type="xsd:string">/csc_data/csc_00057006_EmuRUI13_Monitor_000_071204_115437_UTC.raw</inputDeviceName>
+        <inputDeviceName xsi:type="xsd:string">/csc_data/csc_00031122_EmuRUI13_Calib_CFEB_SCAPed.raw</inputDeviceName>
         <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
         <nEventCredits xsi:type="xsd:unsignedInt">200</nEventCredits>
         <prescalingFactor xsi:type="xsd:unsignedInt">1</prescalingFactor>
@@ -40,9 +41,9 @@
         <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
           <item xsi:type="xsd:unsignedInt" soapenc:position="[0]">1010</item>
         </serverTIDs>
-        <xmlCfgFile xsi:type="xsd:string">/csc_data/results/emuDQMBooking.xml</xmlCfgFile>
-        <xmlCanvasesCfgFile xsi:type="xsd:string">/csc_data/results/emuDQMCanvases.xml</xmlCanvasesCfgFile>
-        <cscMapFile xsi:type="xsd:string">/csc_data/results/csc_map.txt</cscMapFile>
+        <xmlCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMBooking.xml</xmlCfgFile>
+        <xmlCanvasesCfgFile xsi:type="xsd:string">/home/dqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+        <cscMapFile xsi:type="xsd:string">/home/dqm/config/csc_map.txt</cscMapFile>
         <fSaveROOTFile xsi:type="xsd:boolean">false</fSaveROOTFile>
         <outputROOTFile xsi:type="xsd:string">/csc_data/results/</outputROOTFile>
         <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
@@ -51,6 +52,7 @@
         <binCheckMask xsi:type="xsd:unsignedInt">0xF7FB7BF6</binCheckMask>
       </properties>
     </xc:Application>
+    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPlotter.so</xc:Module>
     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuMonitor.so</xc:Module>
   </xc:Context>
 </xc:Partition>
