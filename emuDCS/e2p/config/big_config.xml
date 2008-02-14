@@ -1,0 +1,880 @@
+
+<EmuSystem>
+
+  <PeripheralCrate crateID="4" VMEaddress="02:00:00:00:00:20" port="2">
+
+    <CCB slot="13" version="2004" CCBmode="2"/>
+    <MPC slot="12" BoardID="4" TransparentMode="0" serializermode="0" />
+
+<!-- ME+1/1/9 chamber -->
+    <CSC label="ME+1/1/9">
+    <TMB slot="2">
+       <ALCT chamber_type="ME11" />
+    </TMB>
+
+    <DAQMB slot="3">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+
+<!-- ME+1/1/10 chamber -->
+    <CSC label="ME+1/1/10">
+    <TMB slot="4">
+       <ALCT chamber_type="ME11" />
+    </TMB>
+
+    <DAQMB slot="5">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+
+<!-- ME+1/1/11 chamber -->
+    <CSC label="ME+1/1/11">
+    <TMB slot="6">
+       <ALCT chamber_type="ME11" />
+    </TMB>
+
+    <DAQMB slot="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+
+<!-- ME+1/2/9 chamber -->
+    <CSC label="ME+1/2/9">
+    <TMB slot="8">
+       <ALCT chamber_type="ME12" />
+    </TMB>
+
+    <DAQMB slot="9">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+
+<!-- ME+1/2/10 chamber -->
+    <CSC label="ME+1/2/10">
+    <TMB slot="10">
+       <ALCT chamber_type="ME12" />
+    </TMB>
+
+    <DAQMB slot="11">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+
+<!-- ME+1/2/11 chamber -->
+    <CSC label="ME+1/2/11">
+    <TMB slot="14">
+       <ALCT chamber_type="ME12" />
+    </TMB>
+
+    <DAQMB slot="15">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+
+<!-- ME+1/3/9 chamber -->
+    <CSC label="ME+1/3/9">
+    <TMB slot="16">
+       <ALCT chamber_type="ME13" />
+    </TMB>
+
+    <DAQMB slot="17">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+
+<!-- ME+1/3/10 chamber -->
+    <CSC label="ME+1/3/10">
+    <TMB slot="18">
+       <ALCT chamber_type="ME13" />
+    </TMB>
+
+    <DAQMB slot="19">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+
+<!-- ME+1/3/11 chamber -->
+    <CSC label="ME+1/3/11">
+    <TMB slot="20">
+       <ALCT chamber_type="ME13" />
+    </TMB>
+
+    <DAQMB slot="21">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+  </PeripheralCrate>
+
+
+  <PeripheralCrate crateID="5" VMEaddress="02:00:00:00:00:24" port="2">
+
+    <CCB slot="13" version="2004" CCBmode="2"/>
+    <MPC slot="12" BoardID="5" TransparentMode="0" serializermode="0" />
+
+<!-- ME+1/1/12 chamber -->
+    <CSC label="ME+1/1/12">
+    <TMB slot="2">
+       <ALCT chamber_type="ME11" />
+    </TMB>
+
+    <DAQMB slot="3">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+<!-- ME+1/1/13 chamber -->
+    <CSC label="ME+1/1/13">
+    <TMB slot="4">
+       <ALCT chamber_type="ME11" />
+    </TMB>
+
+    <DAQMB slot="5">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+<!-- ME+1/1/14 chamber -->
+    <CSC label="ME+1/1/14">
+    <TMB slot="6">
+       <ALCT chamber_type="ME11" />
+    </TMB>
+
+    <DAQMB slot="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+<!-- ME+1/2/12 chamber -->
+    <CSC label="ME+1/2/12">
+    <TMB slot="8">
+       <ALCT chamber_type="ME12" />
+    </TMB>
+
+    <DAQMB slot="9">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+<!-- ME+1/2/13 chamber -->
+    <CSC label="ME+1/2/13">
+     <TMB slot="10">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="11">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/2/14 chamber -->
+    <CSC label="ME+1/2/14">
+     <TMB slot="14">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="15">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/12 chamber -->
+    <CSC label="ME+1/3/12">
+     <TMB slot="16">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="17">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/13 chamber -->
+    <CSC label="ME+1/3/13">
+     <TMB slot="18">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="19">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+
+<!-- ME+1/3/14 chamber -->
+    <CSC label="ME+1/3/14">
+     <TMB slot="20">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="21">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+  </PeripheralCrate>
+
+
+  <PeripheralCrate crateID="6" VMEaddress="02:00:00:00:00:34" port="2">
+
+    <CCB slot="13" version="2004" CCBmode="2"/>
+    <MPC slot="12" BoardID="6" TransparentMode="0" serializermode="0" />
+
+<!-- ME+1/1/15 chamber -->
+    <CSC label="ME+1/1/15">
+     <TMB slot="2">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="3">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+
+<!-- ME+1/1/16 chamber -->
+    <CSC label="ME+1/1/16">
+     <TMB slot="4">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="5">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/1/17 chamber -->
+    <CSC label="ME+1/1/17">
+     <TMB slot="6">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/2/15 chamber -->
+    <CSC label="ME+1/2/15">
+     <TMB slot="8">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="9">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/2/16 chamber -->
+    <CSC label="ME+1/2/16">
+     <TMB slot="10">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="11">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/2/17 chamber -->
+    <CSC label="ME+1/2/17">
+     <TMB slot="14">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="15">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+   </CSC>
+
+<!-- ME+1/3/15 chamber -->
+    <CSC label="ME+1/3/15">
+     <TMB slot="16">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="17">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+<!-- ME+1/3/16 chamber -->
+    <CSC label="ME+1/3/16">
+     <TMB slot="18">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="19">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/17 chamber -->
+    <CSC label="ME+1/3/17">
+     <TMB slot="20">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="21">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+  </PeripheralCrate>
+
+
+  <PeripheralCrate crateID="7" VMEaddress="02:00:00:00:00:35" port="2">
+
+    <CCB slot="13" version="2004" CCBmode="2"/>
+    <MPC slot="12" BoardID="7" TransparentMode="0" serializermode="0" />
+
+<!-- ME+1/1/18 chamber -->
+    <CSC label="ME+1/1/18">
+     <TMB slot="2">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="3">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/1/19 chamber -->
+    <CSC label="ME+1/1/19">
+     <TMB slot="4">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="5">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+<!-- ME+1/1/20 chamber -->
+    <CSC label="ME+1/1/20">
+     <TMB slot="6">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+
+
+<!-- ME+1/2/18 chamber -->
+    <CSC label="ME+1/2/18">
+     <TMB slot="8">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="9">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+
+<!-- ME+1/2/19 chamber -->
+    <CSC label="ME+1/2/19">
+     <TMB slot="10">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="11">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+
+<!-- ME+1/2/20 chamber -->
+    <CSC label="ME+1/2/20">
+     <TMB slot="14">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="15">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/18 chamber -->
+    <CSC label="ME+1/3/18">
+     <TMB slot="16">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="17">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+<!-- ME+1/3/19 chamber -->
+    <CSC label="ME+1/3/19">
+     <TMB slot="18">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="19">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/20 chamber -->
+    <CSC label="ME+1/3/20">
+     <TMB slot="20">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="21">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+  </PeripheralCrate>
+
+
+  <PeripheralCrate crateID="8" VMEaddress="02:00:00:00:00:40" port="2">
+
+    <CCB slot="13" version="2004" CCBmode="2"/>
+    <MPC slot="12" BoardID="8" TransparentMode="0" serializermode="0" />
+
+<!-- ME+1/1/21 chamber -->
+    <CSC label="ME+1/1/21">
+     <TMB slot="2">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="3">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/1/22 chamber -->
+    <CSC label="ME+1/1/22">
+     <TMB slot="4">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="5">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+
+<!-- ME+1/1/23 chamber -->
+    <CSC label="ME+1/1/23">
+     <TMB slot="6">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/2/21 chamber -->
+    <CSC label="ME+1/2/21">
+     <TMB slot="8">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="9">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+
+<!-- ME+1/2/22 chamber -->
+    <CSC label="ME+1/2/22">
+     <TMB slot="10">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="11">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/2/23 chamber -->
+    <CSC label="ME+1/2/23">
+     <TMB slot="14">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="15">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/21 chamber -->
+    <CSC label="ME+1/3/21">
+     <TMB slot="16">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="17">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/22 chamber -->
+    <CSC label="ME+1/3/22">
+     <TMB slot="18">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="19">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/23 chamber -->
+    <CSC label="ME+1/3/23">
+     <TMB slot="20">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="21">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+  </PeripheralCrate>
+
+
+  <PeripheralCrate crateID="9" VMEaddress="02:00:00:00:00:41" port="2">
+
+    <CCB slot="13" version="2004" CCBmode="2"/>
+    <MPC slot="12" BoardID="9" TransparentMode="0" serializermode="0" />
+
+<!-- ME+1/1/24 chamber -->
+    <CSC label="ME+1/1/24">
+     <TMB slot="2">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="3">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/1/25 chamber -->
+    <CSC label="ME+1/1/25">
+     <TMB slot="4">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="5">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/1/26 chamber -->
+    <CSC label="ME+1/1/26">
+     <TMB slot="6">
+       <ALCT chamber_type="ME11" />
+     </TMB>
+
+     <DAQMB slot="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/2/24 chamber -->
+    <CSC label="ME+1/2/24">
+     <TMB slot="8">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="9">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/2/25 chamber -->
+    <CSC label="ME+1/2/25">
+     <TMB slot="10">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="11">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+
+<!-- ME+1/2/26 chamber -->
+    <CSC label="ME+1/2/26">
+     <TMB slot="14">
+       <ALCT chamber_type="ME12" />
+     </TMB>
+
+     <DAQMB slot="15">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/24 chamber -->
+    <CSC label="ME+1/3/24">
+     <TMB slot="16">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="17">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/25 chamber -->
+    <CSC label="ME+1/3/25">
+     <TMB slot="18">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="19">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+<!-- ME+1/3/26 chamber -->
+    <CSC label="ME+1/3/26">
+     <TMB slot="20">
+       <ALCT chamber_type="ME13" />
+     </TMB>
+
+     <DAQMB slot="21">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+     </DAQMB>
+    </CSC>
+
+  </PeripheralCrate>
+
+</EmuSystem>
+
+
