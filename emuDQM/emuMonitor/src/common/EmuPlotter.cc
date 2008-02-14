@@ -1,44 +1,45 @@
 #include "EmuPlotter.h"
 
 EmuPlotter::EmuPlotter():
-	logger_(Logger::getInstance("EmuPlotter")),
-	dduCheckMask(0xFFFFFFFF),
-	binCheckMask(0xFFFFFFFF)
+	logger_(Logger::getInstance("EmuPlotter"))
 {
-	xmlHistosBookingCfgFile = "";
-	xmlCanvasesCfgFile = "";
-	setParameters();
+	init();
 }
 
 
 EmuPlotter::EmuPlotter(Logger logger):
-        logger_(logger),
-	dduCheckMask(0xFFFFFFFF),
-        binCheckMask(0xFFFFFFFF)
+        logger_(logger)
+{
+	init();
+}
+
+void EmuPlotter::init() 
 {
 	xmlHistosBookingCfgFile = "";
         xmlCanvasesCfgFile = "";
-	setParameters();
+	cscMapFile = "";
+        tmap = getCSCTypeToBinMap();
+	dduCheckMask = 0xFFFFFFFF;
+        binCheckMask = 0xFFFFFFFF;
+	reset();
 }
 
-void EmuPlotter::setParameters() 
+void EmuPlotter::reset()
 {
 	fFirstEvent = true;
-	nEvents = 0;
-	nBadEvents = 0;
-	L1ANumber = 0;
-	BXN = 0;
-	// dduCheckMask = 0xFFFFFFFF;
-	// binCheckMask = 0xFFFFFFFF;
-        bin_checker.output1().hide();
+        nEvents = 0;
+        nBadEvents = 0;
+        nGoodEvents = 0;
+        nCSCEvents = 0;
+        L1ANumber = 0;
+        BXN = 0;
+        eTag = "";
+	bin_checker.output1().hide();
         bin_checker.output2().hide();
         bin_checker.crcALCT(true);
         bin_checker.crcTMB (true);
         bin_checker.crcCFEB(true);
-	bin_checker.modeDDU(true);
-	cscMapFile = "";
-        this->setCSCMapFile(cscMapFile);
-        tmap = this->getCSCTypeToBinMap();
+        bin_checker.modeDDU(true);
 	fBusy=false;
 }
 
@@ -112,19 +113,11 @@ void EmuPlotter::book() {
                 MECanvases.clear();
         }
 
-/*
-        clearMECollection(commonMEfactory);
-        clearMECollection(chamberMEfactory);
-        clearMECollection(globalMEfactory);
-*/
-//	LOG4CPLUS_INFO(logger_, "XML Config file: "  <<  xmlCfgFile)
-//	loadXMLBookingInfo(xmlCfgFile);
-//	setParameters();
-        
 
 	if (loadXMLBookingInfo(xmlHistosBookingCfgFile) == 0) 
 	{
-		setParameters();
+		reset();
+		loadXMLCanvasesInfo(xmlCanvasesCfgFile);
 /*
 		string common = Form("EMU_%d",node);
 		MEs[common] = bookCommon(node);
@@ -132,7 +125,6 @@ void EmuPlotter::book() {
 	        printMECollection(MEs[common]);
 */
 	}
-	loadXMLCanvasesInfo(xmlCanvasesCfgFile);
 
 }
 
@@ -231,7 +223,7 @@ bool EmuPlotter::isMEvalid(ME_List& MEs, std::string name, EmuMonitoringObject*&
 		// cout << "Found " << me->getName() << endl;
 		return true;
 	} else {
-		LOG4CPLUS_WARN(logger_, "Can not find ME " << name);
+		LOG4CPLUS_WARN(logger_, "Plotter can not find ME: '" << name << "'");
 		me = 0;
 		return false;
 	}

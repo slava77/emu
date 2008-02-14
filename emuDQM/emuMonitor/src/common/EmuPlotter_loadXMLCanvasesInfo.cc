@@ -2,12 +2,12 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
-int EmuPlotter::loadXMLCanvasesInfo(string xmlFile) 
+int EmuPlotter::loadXMLCanvasesInfo(std::string xmlFile) 
 {
   LOG4CPLUS_INFO(logger_, "Loading Booking Info from XML file: "  <<  xmlFile)
 
     if (xmlFile == "") {
-      LOG4CPLUS_ERROR (logger_, "Invalid configuration file: " << xmlFile);
+      LOG4CPLUS_ERROR (logger_, "Canvases Booking Invalid configuration file: " << xmlFile);
       return 1;
     }
 
@@ -39,7 +39,7 @@ int EmuPlotter::loadXMLCanvasesInfo(string xmlFile)
   for(uint32_t i=0; i<itemList->getLength(); i++){
 	obj = new EmuMonitoringCanvas(itemList->item(i));
 
-	string name = obj->getName();
+	std::string name = obj->getName();
 	if (obj->getPrefix().find("DDU") != std::string::npos) {
 		dduCanvasesFactory[name] = obj;
 	} else

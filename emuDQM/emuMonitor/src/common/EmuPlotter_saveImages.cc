@@ -19,7 +19,7 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
 
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
-        << "    ['Run: " << runNumber << "', ''," << endl;
+        << "    ['Run: " << runNumber << "', ''," << std::endl;
 
 
   std::map<std::string, ME_List >::iterator itr;
@@ -32,26 +32,26 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
     std::string fullpath  = path+"/"+relpath;
     command = Form("mkdir -p %s",fullpath.c_str()); 
     gSystem->Exec(command.Data());
-    tree_items << "            ['"<< itr->first <<"', '"<< itr->first <<"'," << endl;	
+    tree_items << "            ['"<< itr->first <<"', '"<< itr->first <<"'," << std::endl;	
     for (h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
         std::string fullname = h_itr->second->getFullName() + "." + format;
-	string relname = relpath + "/" + fullname;
+	std::string relname = relpath + "/" + fullname;
         imgfile = fullpath + "/"+ fullname;
         TCanvas *cnv = new TCanvas("cnv",fullname.c_str(), width, height);
-	string cnv_param  ="";
+	std::string cnv_param  ="";
 	if ((cnv_param  = h_itr->second->getParameter("SetOptStat")) != "")
 		gStyle->SetOptStat(cnv_param.c_str());
         cnv->cd();
         h_itr->second->Draw();
 	LOG4CPLUS_INFO(logger_, imgfile);
         cnv->Print(imgfile.c_str());
-	tree_items << "                    ['"<< h_itr->second->getTitle() << "','" << relname <<"']," << endl;
+	tree_items << "                    ['"<< h_itr->second->getTitle() << "','" << relname <<"']," << std::endl;
         delete cnv;
     }
-    tree_items << "            ]," << endl;  
+    tree_items << "            ]," << std::endl;  
   }
   tree_items << "    ],\n"
-        << "];" << endl;
+        << "];" << std::endl;
   tree_items.clear();
   tree_items.close();
 
@@ -84,7 +84,7 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   std::string runNumber = runname;
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
-        << "    ['Run: " << runNumber << "', ''," << endl;
+        << "    ['Run: " << runNumber << "', ''," << std::endl;
 
   csc_list.open((path+"/csc_list.js").c_str());
   csc_list << "var CSC_LIST = [\n"
@@ -95,9 +95,9 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   std::map<std::string, MECanvases_List>::iterator itr;
   MECanvases_List_const_iterator h_itr;
 
-  vector<string> EMU_folders;
-  vector<string> DDU_folders;
-  vector<string> CSC_folders;
+  std::vector<std::string> EMU_folders;
+  std::vector<std::string> DDU_folders;
+  std::vector<std::string> CSC_folders;
   for (itr = MECanvases.begin(); itr != MECanvases.end(); ++itr) {
     std::string folder = itr->first;
     if (folder.find("EMU") != std::string::npos) EMU_folders.push_back(folder);
@@ -147,18 +147,18 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
     if (relpath.find("CSC_") != std::string::npos) {
 	int crate=0;
 	int slot=0;
-	string csc_ptrn = "CSC_%d_%d";
+	std::string csc_ptrn = "CSC_%d_%d";
 	if (sscanf(relpath.c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
-	   ostringstream st;
+	   std::ostringstream st;
 	   st << "crate" << crate << "/slot" << slot;
 	   relpath =st.str();
 	}
     }
-    tree_items << "            ['"<< itr->first <<"', '"<< relpath <<"'," << endl;
+    tree_items << "            ['"<< itr->first <<"', '"<< relpath <<"'," << std::endl;
     for (h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
         std::string fullname = h_itr->second->getName() + "." + format;
         std::string relname = relpath + "/" + h_itr->second->getFolder() +"/" + fullname;
-	string fullpath  = path+"/"+relpath + "/" + h_itr->second->getFolder();
+	std::string fullpath  = path+"/"+relpath + "/" + h_itr->second->getFolder();
         imgfile = fullpath + "/"+ fullname;
 	command = Form("mkdir -p %s",fullpath.c_str());
         gSystem->Exec(command.Data());
@@ -168,17 +168,17 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
           h_itr->second->Draw(me_itr->second, width, height);
 	  h_itr->second->Print(imgfile.c_str());
         }
-        tree_items << "                    ['"<< h_itr->second->getTitle() << "','" << relname <<"']," << endl;
+        tree_items << "                    ['"<< h_itr->second->getTitle() << "','" << relname <<"']," << std::endl;
     }
-    tree_items << "            ]," << endl;
+    tree_items << "            ]," << std::endl;
   }
   tree_items << "    ],\n"
-        << "];" << endl;
+        << "];" << std::endl;
   tree_items.clear();
   tree_items.close();
   
   csc_list << "]\n"
-        << "];" << endl;
+        << "];" << std::endl;
   csc_list.clear();
   csc_list.close();
 
@@ -279,7 +279,7 @@ void EmuPlotter::createHTMLNavigation(std::string path)
         << "</frameset>\n"
         << "<body>\n"
         << "</body>\n"
-        << "</html>" << endl;
+        << "</html>" << std::endl;
 
 
 /*	
@@ -344,7 +344,7 @@ void EmuPlotter::createTreePage(std::string path)
         << "</table>\n"
 
         << "</body>\n"
-        << "</html>" << endl;
+        << "</html>" << std::endl;
 	fout.close();
 
 }
@@ -370,7 +370,7 @@ void EmuPlotter::createTreeEngine(std::string path )
         << "function tmT(){var tme=[],tmf=this.tmN;for(var i=this.tm7;i>1;i--)"
         << "{tme[i]='<img src=\"'+this.tm4.tm2[tmf.tmV()?'icon_e':'icon_l']+'\" border=\"0\" align=\"absbottom\">';"
         << "tmf=tmf.tmN}return '<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td nowrap>'+(this.tm7?tme.join('')+(this.tmK.length?'<a href=\"javascript: trees['+this.tm4.tmC+'].tmB('+this.tmC+')\" onmouseover=\"trees['+this.tm4.tmC+'].tmJ('+this.tmC+')\" onmouseout=\"trees['+this.tm4.tmC+'].tmH('+this.tmC+')\">"
-        << "<img src=\"'+this.tmP(true)+'\" border=\"0\" align=\"absbottom\" name=\"j_img'+this.tm4.tmC+'_'+this.tmC+'\"></a>':'<img src=\"'+this.tmP(true)+'\" border=\"0\" align=\"absbottom\">'):'')+'<a href=\"'+this.tm3[1]+'\" target=\"'+this.tm4.tm2['target']+'\" onclick=\"return trees['+this.tm4.tmC+'].tmG('+this.tmC+')\" ondblclick=\"trees['+this.tm4.tmC+'].tmB('+this.tmC+')\" onmouseover=\"trees['+this.tm4.tmC+'].tmJ('+this.tmC+')\" onmouseout=\"trees['+this.tm4.tmC+'].tmH('+this.tmC+')\" class=\"t'+this.tm4.tmC+'i\" id=\"i_txt'+this.tm4.tmC+'_'+this.tmC+'\"><img src=\"'+this.tmP()+'\" border=\"0\" align=\"absbottom\" name=\"i_img'+this.tm4.tmC+'_'+this.tmC+'\" class=\"t'+this.tm4.tmC+'im\">'+this.tm3[0]+'</a></td></tr></table>'+(this.tmK.length?'<div id=\"i_div'+this.tm4.tmC+'_'+this.tmC+'\" style=\"display:none\"></div>':'')}function tmQ(tmg){return this.tm4.tm2['icon_'+((this.tm7?0:32)+(this.tmK.length?16:0)+(this.tmK.length&&this.tmF?8:0)+(!tmg&&this.tm4.tm6==this?4:0)+(tmg?2:0)+(tmg&&this.tmV()?1:0))]}var trees=[];tmY=document.all?function(tmh){return document.all[tmh]}:function(tmh){return document.getElementById(tmh)};" << endl;
+        << "<img src=\"'+this.tmP(true)+'\" border=\"0\" align=\"absbottom\" name=\"j_img'+this.tm4.tmC+'_'+this.tmC+'\"></a>':'<img src=\"'+this.tmP(true)+'\" border=\"0\" align=\"absbottom\">'):'')+'<a href=\"'+this.tm3[1]+'\" target=\"'+this.tm4.tm2['target']+'\" onclick=\"return trees['+this.tm4.tmC+'].tmG('+this.tmC+')\" ondblclick=\"trees['+this.tm4.tmC+'].tmB('+this.tmC+')\" onmouseover=\"trees['+this.tm4.tmC+'].tmJ('+this.tmC+')\" onmouseout=\"trees['+this.tm4.tmC+'].tmH('+this.tmC+')\" class=\"t'+this.tm4.tmC+'i\" id=\"i_txt'+this.tm4.tmC+'_'+this.tmC+'\"><img src=\"'+this.tmP()+'\" border=\"0\" align=\"absbottom\" name=\"i_img'+this.tm4.tmC+'_'+this.tmC+'\" class=\"t'+this.tm4.tmC+'im\">'+this.tm3[0]+'</a></td></tr></table>'+(this.tmK.length?'<div id=\"i_div'+this.tm4.tmC+'_'+this.tmC+'\" style=\"display:none\"></div>':'')}function tmQ(tmg){return this.tm4.tm2['icon_'+((this.tm7?0:32)+(this.tmK.length?16:0)+(this.tmK.length&&this.tmF?8:0)+(!tmg&&this.tm4.tm6==this?4:0)+(tmg?2:0)+(tmg&&this.tmV()?1:0))]}var trees=[];tmY=document.all?function(tmh){return document.all[tmh]}:function(tmh){return document.getElementById(tmh)};" << std::endl;
 
 	fout.close();
 
@@ -414,7 +414,7 @@ void EmuPlotter::createTreeTemplate(std::string path)
         << "'icon_19' : '" << treebase << "icons/plus.gif',\n"       // junctioin for last closed node
         << "'icon_26' : '" << treebase << "icons/minusbottom.gif',\n"// junction for opened node
         << "'icon_27' : '" << treebase << "icons/minus.gif'\n"      // junctioin for last opended node
-        << "};" << endl;
+        << "};" << std::endl;
    fout.close();
 }
 
