@@ -18,7 +18,7 @@ CrateUtilities::CrateUtilities() : MpcTMBTestResult(-1), myCrate_(0)
 {
   //
   debug_ = false;
-  std::cout << "CrateUtilities" << endl ;
+  if(debug_) std::cout << "CrateUtilities" << endl ;
   //
   MyOutput_ = &std::cout ;
   //
@@ -27,7 +27,7 @@ CrateUtilities::CrateUtilities() : MpcTMBTestResult(-1), myCrate_(0)
 //
 CrateUtilities::~CrateUtilities(){
   //
-  std::cout << "Destructor" << std::endl ;
+  if(debug_) std::cout << "Destructor" << std::endl ;
   //
 }
 //
