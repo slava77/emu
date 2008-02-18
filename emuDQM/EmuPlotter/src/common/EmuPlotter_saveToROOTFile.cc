@@ -9,6 +9,7 @@ void EmuPlotter::saveToROOTFile(std::string filename)
 	}
   TFile f(filename.c_str(), "recreate");
   if (!f.IsZombie()) {
+    updateFractionHistos();
     fBusy = true;
     gStyle->SetPalette(1,0);
     f.cd();

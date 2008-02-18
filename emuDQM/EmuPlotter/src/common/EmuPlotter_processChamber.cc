@@ -24,16 +24,17 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   //	DMB Found
   //	Unpacking of DMB Header and trailer
-  CSCDMBHeader dmbHeader;
-  CSCDMBTrailer dmbTrailer;
+  // CSCDMBHeader dmbHeader;
+  // CSCDMBTrailer dmbTrailer;
 
-  dmbHeader  = data.dmbHeader();
-  dmbTrailer = data.dmbTrailer();
+  CSCDMBHeader dmbHeader  = data.dmbHeader();
+  CSCDMBTrailer dmbTrailer = data.dmbTrailer();
 
   //	Unpacking of Chamber Identification number
   int crateID	= 0xFF;
   int dmbID	= 0xF;
   int ChamberID	= 0xFFF;
+
 	
   crateID	= dmbHeader.crateID();
   dmbID		= dmbHeader.dmbID();
@@ -42,8 +43,18 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (crateID==0 || dmbID==0) {
     LOG4CPLUS_ERROR(logger_,
 		    "Invalid crate or dmb ID");
+	return;
   }
 
+
+  int iendcap = -1;
+  int istation = -1;
+  // TODO: Add actual Map conversion
+  int id = cscMapping.chamber(iendcap, istation, crateID, dmbID, -1);
+  if (id==0) {
+        return;
+  }
+  CSCDetId cid( id );
 
   // std::string nodeTag(Form("EMU_%d", nodeID));
   std::string nodeTag = "EMU";
@@ -529,7 +540,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     CSCTMBHeader tmbHeader = tmbData.tmbHeader();
     CSCTMBTrailer tmbTrailer = tmbData.tmbTrailer();
 
-    vector<CSCCLCTDigi> clctsDatasTmp = tmbHeader.CLCTDigis();
+    vector<CSCCLCTDigi> clctsDatasTmp = tmbHeader.CLCTDigis(cid.rawId());
     vector<CSCCLCTDigi> clctsDatas;
 
     for (uint32_t lct=0; lct<clctsDatasTmp.size(); lct++) {
@@ -537,7 +548,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
         clctsDatas.push_back(clctsDatasTmp[lct]);
     }
 
-    CSCCLCTData clctData = data.clctData();
+    CSCCLCTData& clctData = data.clctData();
 
     FEBunpacked = FEBunpacked +1;
     tmb_unpacked = 1;

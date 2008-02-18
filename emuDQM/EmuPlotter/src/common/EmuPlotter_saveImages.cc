@@ -5,6 +5,8 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
 
   LOG4CPLUS_INFO(logger_, "Saving MEs as "<<format<< " images to " << path)
   if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
+  
+  updateFractionHistos();
 
   std::ofstream tree_items;
 
@@ -69,6 +71,8 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
 
    LOG4CPLUS_WARN(logger_, "Saving MEs as "<<format<< " images to to " << path)
   if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
+
+  updateFractionHistos();
 
   std::ofstream tree_items;
   std::ofstream csc_list;

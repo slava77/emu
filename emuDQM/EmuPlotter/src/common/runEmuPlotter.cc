@@ -72,7 +72,8 @@ int main(int argc, char **argv) {
 	uint32_t imgHeight = 900;	// Putput image height
 
 	uint32_t dduCheckMask=0xFFFFDFFF;
-        uint32_t binCheckMask=0xF7FB3BF6;
+        // uint32_t binCheckMask=0xF7FB3BF6;
+	uint32_t binCheckMask=0xF7783BF6; // ignore CFEB DAV error and Sample Count Error
 	uint32_t node=0;
 
 	switch (argc) {
@@ -99,14 +100,14 @@ int main(int argc, char **argv) {
                         << " to " << NumberOfEvents);
 
 
-	EmuPlotter plotter;
-	plotter.setLogLevel(WARN_LOG_LEVEL);
-	plotter.setUnpackingDebug(false);
-	plotter.setUnpackingLogLevel(OFF_LOG_LEVEL);
-	plotter.setCSCMapFile(cscMapFile);
-        plotter.setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
-        plotter.setXMLCanvasesCfgFile(xmlCanvasesCfg);
-        plotter.book();
+	EmuPlotter* plotter = new EmuPlotter();
+	plotter->setLogLevel(WARN_LOG_LEVEL);
+	plotter->setUnpackingDebug(false);
+	plotter->setUnpackingLogLevel(OFF_LOG_LEVEL);
+	plotter->setCSCMapFile(cscMapFile);
+        plotter->setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
+        plotter->setXMLCanvasesCfgFile(xmlCanvasesCfg);
+        plotter->book();
 
 	
 	if (datafile.find(".bin") != std::string::npos) {	
@@ -143,18 +144,22 @@ int main(int argc, char **argv) {
 		std::string runname = histofile; 
 		runname = runname.replace(runname.find(".root"), 5, "");
                 plotsdir = plotsdir.replace(plotsdir.find(".root"), 5, ".plots");
-		plotter.loadFromROOTFile(datafile);
-		plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
-		plotter.generateLayout("csc-layouts.py", "EMU");
+		plotter->loadFromROOTFile(datafile);
+		plotter->saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
+		// plotter->generateLayout("csc-layouts.py", "EMU");
+		
+		// LOG4CPLUS_INFO (logger, "Cleanup before exit");
+		// plotter->cleanup();
+		delete plotter;
 		return 0;
 	}
 
-	plotter.setHistoFile(histofile.c_str());	
+	plotter->setHistoFile(histofile.c_str());	
 	if (dduCheckMask >= 0) {
-        	plotter.setDDUCheckMask(dduCheckMask);
+        	plotter->setDDUCheckMask(dduCheckMask);
 	}
 	if (binCheckMask >= 0) {
-		plotter.setBinCheckMask(binCheckMask);
+		plotter->setBinCheckMask(binCheckMask);
 	}
 
 	long t0, t1;
@@ -174,20 +179,21 @@ int main(int argc, char **argv) {
 
 		if ((cnt>=startEvent) && (cnt<=(startEvent+NumberOfEvents))) { 
 			LOG4CPLUS_DEBUG (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
-			plotter.processEvent(ddu.data(), ddu.dataLength(), status, node);
+			plotter->processEvent(ddu.data(), ddu.dataLength(), status, node);
 			if (cnt%1000 == 0) LOG4CPLUS_INFO (logger, "Processed Events: "<< dec << cnt);
 		}
 		if (cnt+1>(startEvent+NumberOfEvents)) break;  
 	} 
 	t1 = time(0);
 
-	LOG4CPLUS_INFO (logger, "Total Events: " << plotter.getTotalEvents() << ", Readout Rate: " << (plotter.getTotalEvents()/(t1-t0)) << " Events/sec" );
-	LOG4CPLUS_INFO (logger, "Good Events: " << plotter.getGoodEventsCount() <<  ", Bad Events: " << plotter.getBadEventsCount());
-	LOG4CPLUS_INFO (logger, "Unpacked CSCs Events: " << plotter.getTotalUnpackedCSCs() <<  ", Unpacking Rate: " << (plotter.getTotalUnpackedCSCs()/(t1-t0)) << " CSCs/sec");
+	LOG4CPLUS_INFO (logger, "Total Events: " << plotter->getTotalEvents() << ", Readout Rate: " << (plotter->getTotalEvents()/(t1-t0)) << " Events/sec" );
+	LOG4CPLUS_INFO (logger, "Good Events: " << plotter->getGoodEventsCount() <<  ", Bad Events: " << plotter->getBadEventsCount());
+	LOG4CPLUS_INFO (logger, "Unpacked CSCs Events: " << plotter->getTotalUnpackedCSCs() <<  ", Unpacking Rate: " << (plotter->getTotalUnpackedCSCs()/(t1-t0)) << " CSCs/sec");
  	LOG4CPLUS_INFO (logger, "Run time: " << t1-t0 << " seconds");
 
-	plotter.saveToROOTFile(histofile.c_str());
+	plotter->saveToROOTFile(histofile.c_str());
 	ddu.close();
+	delete plotter;
 	
 	return 0;
 };

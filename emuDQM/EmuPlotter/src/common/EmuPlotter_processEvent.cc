@@ -70,12 +70,27 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   BinaryWarningStatus = bin_checker.warnings();
   LOG4CPLUS_DEBUG(logger_,nodeTag <<" Done");
 
-   if (isMEvalid(nodeME, "All_DDUs_Format_Errors", mo)) {
+  if (isMEvalid(nodeME, "All_DDUs_Format_Errors", mo)) {
     std::vector<int> DDUs = bin_checker.listOfDDUs();
-    for (std::vector<int>::iterator itr = DDUs.begin(); itr != DDUs.end(); ++itr) {
-      if (*itr != 0xFFF) {
-        long errs = bin_checker.errorsForDDU(*itr);
-        int dduID = (*itr)&0xFF;
+    for (std::vector<int>::iterator ddu_itr = DDUs.begin(); ddu_itr != DDUs.end(); ++ddu_itr) {
+      if (*ddu_itr != 0xFFF) {
+        long errs = bin_checker.errorsForDDU(*ddu_itr);
+        int dduID = (*ddu_itr)&0xFF;
+
+	std::string dduTag = Form("DDU_%d",dduID);
+
+        if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
+	  LOG4CPLUS_WARN(logger_, "List of MEs for " << dduTag << " not found. Booking...");
+	  fBusy = true;
+	  MEs[dduTag] = bookDDU(dduID);
+	  MECanvases[dduTag] = bookDDUCanvases(dduID);
+	  printMECollection(MEs[dduTag]);
+	  fBusy = false;
+	  L1ANumbers[dduID] = 0;
+	  fFirstEvent = true;
+  	}
+
+
         if (errs != 0) {
           for(int i=0; i<bin_checker.nERRORS; i++) { // run over all errors
             if ((errs>>i) & 0x1 ) mo->Fill(dduID,i+1);
@@ -88,8 +103,20 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
     /* Temporary tweak for cases when there were no DDU errors  */
     if (bin_checker.errors() == 0) {
-        int dduID = bin_checker.dduSourceID() & 0xFF;
-        mo->Fill(dduID,0);
+      int dduID = bin_checker.dduSourceID() & 0xFF;
+      std::string dduTag = Form("DDU_%d",dduID);
+
+      if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
+	LOG4CPLUS_WARN(logger_, "List of MEs for " << dduTag << " not found. Booking...");
+	fBusy = true;
+	MEs[dduTag] = bookDDU(dduID);
+	MECanvases[dduTag] = bookDDUCanvases(dduID);
+	printMECollection(MEs[dduTag]);
+	fBusy = false;
+	L1ANumbers[dduID] = 0;
+	fFirstEvent = true;
+      }
+      mo->Fill(dduID,0);
     }
 
   }
@@ -174,7 +201,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     MECanvases[dduTag] = bookDDUCanvases(dduID);
     printMECollection(MEs[dduTag]);
     fBusy = false;
-    L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
+    L1ANumbers[dduID] = 0;
+    //  L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
     fFirstEvent = true;
   }
 
@@ -208,19 +236,21 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   L1ANumber = L1ANumbers[dduID];
   LOG4CPLUS_DEBUG(logger_,dduTag << " Header L1A Number = " << std::dec << L1ANumber);
   int L1A_inc = L1ANumber - L1ANumber_previous_event;
-  if (!fFirstEvent && isMEvalid(dduME, "L1A_Increment", mo)) mo->Fill(L1A_inc);
+  if (!fFirstEvent) {
+    if (isMEvalid(dduME, "L1A_Increment", mo)) mo->Fill(L1A_inc);
   
-  if (!fFirstEvent && isMEvalid(nodeME, "All_DDUs_L1A_Increment", mo)) {
-    if      (L1A_inc > 100000){ L1A_inc = 19;}
-    else if (L1A_inc > 30000) { L1A_inc = 18;}
-    else if (L1A_inc > 10000) { L1A_inc = 17;}
-    else if (L1A_inc > 3000)  { L1A_inc = 16;}
-    else if (L1A_inc > 1000)  { L1A_inc = 15;}
-    else if (L1A_inc > 300)   { L1A_inc = 14;}
-    else if (L1A_inc > 100)   { L1A_inc = 13;}
-    else if (L1A_inc > 30)    { L1A_inc = 12;}
-    else if (L1A_inc > 10)    { L1A_inc = 11;}
-    mo->Fill(dduID, L1A_inc);
+    if (isMEvalid(nodeME, "All_DDUs_L1A_Increment", mo)) {
+      if      (L1A_inc > 100000){ L1A_inc = 19;}
+      else if (L1A_inc > 30000) { L1A_inc = 18;}
+      else if (L1A_inc > 10000) { L1A_inc = 17;}
+      else if (L1A_inc > 3000)  { L1A_inc = 16;}
+      else if (L1A_inc > 1000)  { L1A_inc = 15;}
+      else if (L1A_inc > 300)   { L1A_inc = 14;}
+      else if (L1A_inc > 100)   { L1A_inc = 13;}
+      else if (L1A_inc > 30)    { L1A_inc = 12;}
+      else if (L1A_inc > 10)    { L1A_inc = 11;}
+      mo->Fill(dduID, L1A_inc);
+    }
   }
 
   // ==     Occupancy and number of DMB (CSC) with Data available (DAV) in header of particular DDU
@@ -325,7 +355,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   if (isMEvalid(dduME, "DMB_DAV_Header_Count_vs_DMB_Active_Header_Count", mo)) mo->Fill(dmb_active_header,dmb_dav_header_cnt);
 
 
- // ==     Check binary Error status at DDU Trailer
+  // ==     Check binary Error status at DDU Trailer
   uint32_t trl_errorstat = dduTrailer.errorstat();
   if (dmb_dav_header_cnt==0) trl_errorstat &= ~0x20000000; // Ignore No Good DMB CRC bit of no DMB is present
   LOG4CPLUS_DEBUG(logger_,dduTag << " Trailer Error Status = 0x" << std::hex << trl_errorstat);
@@ -363,18 +393,21 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
     nCSCEvents++;
     unpackedDMBcount++;
-  //  LOG4CPLUS_DEBUG(logger_,
-//		    "Found DMB " << std::dec << unpackedDMBcount  << ". Run unpacking procedure...");
+    //  LOG4CPLUS_DEBUG(logger_,
+    //		    "Found DMB " << std::dec << unpackedDMBcount  << ". Run unpacking procedure...");
     processChamber(*chamberDataItr, node, dduID);
-  //  LOG4CPLUS_DEBUG(logger_,
-//		    "Unpacking procedure for DMB " << std::dec << unpackedDMBcount << " finished");
+    //  LOG4CPLUS_DEBUG(logger_,
+    //		    "Unpacking procedure for DMB " << std::dec << unpackedDMBcount << " finished");
   }
   // LOG4CPLUS_DEBUG(logger_,
-//		  "Total number of unpacked DMB = " << std::dec << unpackedDMBcount);
+  //		  "Total number of unpacked DMB = " << std::dec << unpackedDMBcount);
 
   
   if (isMEvalid(dduME,"DMB_unpacked_vs_DAV",mo)) mo->Fill(dmb_active_header, unpackedDMBcount);
 
+/*
+  // Calculate ratio histograms every 200 events
+  if (nEvents%200==0) {
 
   EmuMonitoringObject *mo1 = NULL;
   EmuMonitoringObject *mo2 = NULL;
@@ -382,7 +415,13 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
       && isMEvalid(nodeME, "DMB_Format_Errors", mo1) 
       && isMEvalid(nodeME, "DMB_Unpacked", mo2)) 
     {
-      mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+       // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+	
+	MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
+        tmp->Add(mo1->getObject());
+        mo->getObject()->Divide(mo1->getObject(), tmp);
+        delete tmp;
+	
 	
     }
 
@@ -390,7 +429,13 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
       && isMEvalid(nodeME, "CSC_Format_Errors", mo1)
       && isMEvalid(nodeME, "CSC_Unpacked", mo2))
     {
-      mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+       // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+	
+	MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
+        tmp->Add(mo1->getObject());
+        mo->getObject()->Divide(mo1->getObject(), tmp);
+        delete tmp;
+	
 
     }
 
@@ -398,12 +443,20 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
       && isMEvalid(nodeME, "CSC_Format_Warnings", mo1)
       && isMEvalid(nodeME, "CSC_Unpacked", mo2))
     {
-      mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+      // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+	
+	MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
+        tmp->Add(mo1->getObject());
+        mo->getObject()->Divide(mo1->getObject(), tmp);
+        delete tmp;
+	
 
     }
 
+  }
+ */
   //LOG4CPLUS_DEBUG(logger_,
-//		  "END OF EVENT :-(");
+  //		  "END OF EVENT :-(");
   fFirstEvent = false;
 
 }
@@ -525,4 +578,58 @@ void EmuPlotter::fillChamberBinCheck(int32_t node) {
   }
   // }
 }
-		     
+		    
+void EmuPlotter::updateFractionHistos()
+{
+
+  std::string nodeTag = "EMU";
+  ME_List nodeME; // === Global histos
+  nodeME = MEs[nodeTag];
+
+  EmuMonitoringObject *mo = NULL;
+  EmuMonitoringObject *mo1 = NULL;
+  EmuMonitoringObject *mo2 = NULL;
+  if (isMEvalid(nodeME, "DMB_Format_Errors_Fract", mo)
+      && isMEvalid(nodeME, "DMB_Format_Errors", mo1)
+      && isMEvalid(nodeME, "DMB_Unpacked", mo2))
+    {
+       // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+
+        MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
+        tmp->Add(mo1->getObject());
+        mo->getObject()->Divide(mo1->getObject(), tmp);
+        delete tmp;
+
+
+    }
+
+  if (isMEvalid(nodeME, "CSC_Format_Errors_Fract", mo)
+      && isMEvalid(nodeME, "CSC_Format_Errors", mo1)
+      && isMEvalid(nodeME, "CSC_Unpacked", mo2))
+    {
+       // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+
+        MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
+        tmp->Add(mo1->getObject());
+        mo->getObject()->Divide(mo1->getObject(), tmp);
+        delete tmp;
+
+
+    }
+
+  if (isMEvalid(nodeME, "CSC_Format_Warnings_Fract", mo)
+      && isMEvalid(nodeME, "CSC_Format_Warnings", mo1)
+      && isMEvalid(nodeME, "CSC_Unpacked", mo2))
+    {
+      // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+
+        MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
+        tmp->Add(mo1->getObject());
+        mo->getObject()->Divide(mo1->getObject(), tmp);
+        delete tmp;
+
+
+    }
+
+
+} 
