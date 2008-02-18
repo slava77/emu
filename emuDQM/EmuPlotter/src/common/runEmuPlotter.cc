@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	uint32_t imgHeight = 900;	// Putput image height
 
 	uint32_t dduCheckMask=0xFFFFDFFF;
-        // uint32_t binCheckMask=0xF7FB3BF6;
+	// uint32_t binCheckMask=0xF7FB3BF6;
 	uint32_t binCheckMask=0xF7783BF6; // ignore CFEB DAV error and Sample Count Error
 	uint32_t node=0;
 
