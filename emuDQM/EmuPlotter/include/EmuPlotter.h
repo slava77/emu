@@ -141,6 +141,11 @@ public:
   uint32_t getTotalUnpackedCSCs() const {return nCSCEvents;}
   uint32_t getGoodEventsCount() const {return nGoodEvents;}
   uint32_t getBadEventsCount() const {return nBadEvents;}
+  void cleanup();
+  void updateFractionHistos();
+ 
+
+ 
 
 
 protected:

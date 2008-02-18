@@ -85,9 +85,54 @@ void EmuPlotter::printCanvasesCollection(MECanvases_List & collection)
 }
 
 
+void EmuPlotter::cleanup()
+{
+	LOG4CPLUS_WARN(logger_,"=== Cleanup Called" );
+	// Clear Canvases
+        std::map<std::string, MECanvases_List >::iterator citr;
+        for (citr = MECanvases.begin(); citr != MECanvases.end(); ++citr) {
+                LOG4CPLUS_WARN(logger_,"=== Clean Canvases Collection " << citr->first );
+                clearCanvasesCollection(citr->second);
+        }
+
+        MECanvases.clear();
+        clearCanvasesCollection(commonCanvasesFactory);
+        clearCanvasesCollection(chamberCanvasesFactory);
+        clearCanvasesCollection(dduCanvasesFactory);
+
+        // Clear Histograms/MEs
+        std::map<std::string, ME_List >::iterator itr;
+        for (itr = MEs.begin(); itr != MEs.end(); ++itr) {
+                LOG4CPLUS_WARN(logger_,"=== Clean ME Collection " << itr->first );
+                clearMECollection(itr->second);
+        }
+
+        MEs.clear();
+        clearMECollection(commonMEfactory);
+        clearMECollection(chamberMEfactory);
+        clearMECollection(dduMEfactory);
+
+}
+
+
 EmuPlotter::~EmuPlotter() {
+
+	// Clear Canvases
+	std::map<std::string, MECanvases_List >::iterator citr;
+        for (citr = MECanvases.begin(); citr != MECanvases.end(); ++citr) {
+		LOG4CPLUS_INFO(logger_,"=== Clean Canvases Collection " << citr->first );	
+                clearCanvasesCollection(citr->second);
+        }
+
+        MECanvases.clear();
+        clearCanvasesCollection(commonCanvasesFactory);
+        clearCanvasesCollection(chamberCanvasesFactory);
+        clearCanvasesCollection(dduCanvasesFactory);
+
+	// Clear Histograms/MEs
 	std::map<std::string, ME_List >::iterator itr;	
 	for (itr = MEs.begin(); itr != MEs.end(); ++itr) {
+		LOG4CPLUS_INFO(logger_,"=== Clean ME Collection " << itr->first );
 		clearMECollection(itr->second);
 	}
 
@@ -95,6 +140,7 @@ EmuPlotter::~EmuPlotter() {
 	clearMECollection(commonMEfactory);
 	clearMECollection(chamberMEfactory);
 	clearMECollection(dduMEfactory);
+
 }
 
 void EmuPlotter::book() {

@@ -167,7 +167,8 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 		  // == Find object folder in MEs list
 		  std::map<std::string, ME_List >::iterator melist_itr = MEs.find(folder);
 		  if (melist_itr != MEs.end()) 
-		    {	   	      
+		    {
+		      if (folder.find("EMU") == 0) plotter_->updateFractionHistos();	   	      
 		      xoap::SOAPName objectTag ("Object", "", "");
 		      std::vector<xoap::SOAPElement> objectElement = f_itr->getChildElements (objectTag );
 		      for (std::vector<xoap::SOAPElement>::iterator o_itr = objectElement.begin();
@@ -316,7 +317,8 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 		  std::map<std::string, MECanvases_List >::iterator cnvlist_itr = MECanvases.find(folder);
 		  // if (melist_itr != MEs.end()) 
 		  if ((cnvlist_itr != MECanvases.end()) && (melist_itr != MEs.end()))
-		    {	   	      		      
+		    {
+		      if (folder.find("EMU") == 0) plotter_->updateFractionHistos();	   	      		      
 		      xoap::SOAPName objectTag ("Canvas", "", "");
 		      std::vector<xoap::SOAPElement> objectElement = f_itr->getChildElements (objectTag );
 		      for (std::vector<xoap::SOAPElement>::iterator o_itr = objectElement.begin();
