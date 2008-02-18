@@ -7,13 +7,24 @@
 #include "xdaq/ApplicationContext.h"
 #include "xdaq/ApplicationStub.h"
 #include "xdaq/exception/Exception.h"
+#include "xdata/UnsignedInteger32.h"
+#include "xdata/UnsignedShort.h"
+#include "xdata/UnsignedLong.h"
+#include "xdata/String.h"
+#include "xdaq/NamespaceURI.h"
+#include "xdata/InfoSpaceFactory.h"
+#include "xcept/tools.h"
+
+#include "toolbox/Event.h"
+#include "toolbox/string.h"
+#include "toolbox/net/URL.h"
+#include "toolbox/task/TimerTask.h"
+#include "toolbox/task/Timer.h"
+#include "toolbox/task/TimerFactory.h"
+#include "toolbox/TimeInterval.h"
 
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
-#include "xdata/UnsignedLong.h"
-#include "xdata/String.h"
-
-#include "xdaq/NamespaceURI.h"
 #include "xoap/MessageReference.h"
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
@@ -46,22 +57,11 @@
 //
 #include "EmuApplication.h"
 
-//
-//#ifdef STANDALONE
-//class EmuPeripheralCrate: public xdaq::Application 
-//#else
-class EmuPeripheralCrateConfig: public EmuApplication, xdata::ActionListener
-//#endif
+class EmuPeripheralCrateConfig: public EmuApplication, xdata::ActionListener, 
+      public toolbox::task::TimerListener
 {
   //
 protected:
-  //
-  xdata::InfoSpace *appInfoSpace_;
-  vector< pair<string, xdata::Serializable *> > stdConfigParams_;
-  //
-  xdata::UnsignedLong triggerSourceId_;
-  //
-  // EMu-specific stuff
   //
   xdata::UnsignedLong runNumber_;
   xdata::UnsignedLong maxNumTriggers_;
@@ -159,6 +159,10 @@ protected:
   int this_crate_no_;
   std::string ThisCrateID_;
   
+  std::vector<std::string> monitorables_;
+  bool Monitor_On_, Monitor_Ready_;
+  xdata::UnsignedShort fastloop, slowloop, extraloop;
+  toolbox::task::Timer * timer_;
   //
   vector<int> L1aLctCounter_;
   vector<int> CfebDavCounter_;
@@ -174,10 +178,6 @@ protected:
 public:
   //
   XDAQ_INSTANTIATOR();
-  //
-  //#ifdef STANDALONE
-  //EmuPeripheralCrate(xdaq::ApplicationStub * s): xdaq::Application(s) 
-  //#else
   //
   EmuPeripheralCrateConfig(xdaq::ApplicationStub * s);
   void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e);
@@ -201,6 +201,12 @@ public:
 
 private:
 
+  void MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void timeExpired (toolbox::task::TimerEvent& e);
+  void CreateEmuInfospace();
+  void PublishEmuInfospace(int cycle);
+  
   xoap::MessageReference onCalibration(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
