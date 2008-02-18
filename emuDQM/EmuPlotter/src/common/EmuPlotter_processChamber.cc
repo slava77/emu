@@ -541,6 +541,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     CSCTMBTrailer tmbTrailer = tmbData.tmbTrailer();
 
     vector<CSCCLCTDigi> clctsDatasTmp = tmbHeader.CLCTDigis(cid.rawId());
+    // vector<CSCCLCTDigi> clctsDatasTmp = tmbHeader.CLCTDigis();
     vector<CSCCLCTDigi> clctsDatas;
 
     for (uint32_t lct=0; lct<clctsDatasTmp.size(); lct++) {
@@ -548,7 +549,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
         clctsDatas.push_back(clctsDatasTmp[lct]);
     }
 
-    CSCCLCTData& clctData = data.clctData();
+    CSCCLCTData clctData = data.clctData();
 
     FEBunpacked = FEBunpacked +1;
     tmb_unpacked = 1;
@@ -897,6 +898,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       }
       //-------------B
       NmbTimeSamples= (cfebData[nCFEB])->nTimeSamples();
+      if (NmbTimeSamples > 16) {
+	LOG4CPLUS_WARN(logger_, "Number of CFEB timesamples is out of range " <<NmbTimeSamples );
+	continue;
+      }
       //-------------E
       LOG4CPLUS_DEBUG(logger_, "nEvents = " << nEvents);
       LOG4CPLUS_DEBUG(logger_, "Chamber ID = "<< cscTag << " Crate ID = "<< crateID

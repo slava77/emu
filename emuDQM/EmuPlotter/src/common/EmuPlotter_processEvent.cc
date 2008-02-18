@@ -482,7 +482,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node) {
         (chamber->second & 0x80)) { chamber++; continue;} // = Skip chamber detection if DMB header is missing (Error code 6)
     if (h_itr == MEs.end() || (MEs.size()==0)) {
       LOG4CPLUS_WARN(logger_,
-		     "List of Histos for " << cscTag <<  " not found");
+		     "List of Histos for " << cscTag <<  " not found. Booking...");
       LOG4CPLUS_DEBUG(logger_,
 		      "Booking Histos for " << cscTag);
       fBusy = true;
@@ -538,7 +538,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node) {
     std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
     if (h_itr == MEs.end() || (MEs.size()==0)) {
       LOG4CPLUS_WARN(logger_,
-		     "List of Histos for " << cscTag <<  " not found");
+		     "List of Histos for " << cscTag <<  " not found. Booking...");
       LOG4CPLUS_DEBUG(logger_,
 		      "Booking Histos for " << cscTag);
       fBusy = true;
@@ -585,6 +585,8 @@ void EmuPlotter::updateFractionHistos()
   std::string nodeTag = "EMU";
   ME_List nodeME; // === Global histos
   nodeME = MEs[nodeTag];
+
+//  LOG4CPLUS_WARN(logger_, "Update Fraction Histograms");
 
   EmuMonitoringObject *mo = NULL;
   EmuMonitoringObject *mo1 = NULL;
