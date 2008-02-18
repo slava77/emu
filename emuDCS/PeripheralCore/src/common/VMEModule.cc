@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.15 2008/02/04 15:04:33 liu Exp $
+// $Id: VMEModule.cc,v 3.16 2008/02/18 12:09:19 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.16  2008/02/18 12:09:19  liu
+// new functions for monitoring
+//
 // Revision 3.15  2008/02/04 15:04:33  liu
 // update SVFload process
 //
@@ -947,4 +950,38 @@ void VMEModule::SendOutput(std::string Output, std::string MessageType){
               << "ERROR ERROR END" << endl; 
     }
   //
+}
+
+int VMEModule::new_vme(char fcn, unsigned vme, 
+                       unsigned short data, char *rcv, int when) {
+   theController->start( theSlot, boardType() );
+   return theController->new_vme(fcn, vme, data, rcv, when);
+}
+
+// The following functions just demonstrate how to use new_vme().
+//   I prefer to directly call new_vme() to build jumbo packet. Liu
+ 
+void VMEModule::write_later(unsigned  address, unsigned short data) 
+{
+  new_vme(VME_WRITE, address, data, NULL, LATER);
+}
+
+void VMEModule::read_later(unsigned  address) 
+{
+  new_vme(VME_READ, address, 0, NULL, LATER);
+}
+
+int VMEModule::write_now(unsigned  address, unsigned short data, char *rdbuf) 
+{
+  return new_vme(VME_WRITE, address, data, rdbuf, NOW);
+}
+
+int VMEModule::read_now(unsigned  address, char *rdbuf) 
+{
+  return new_vme(VME_READ, address, 0, rdbuf, NOW);
+}
+
+void VMEModule::vme_delay(unsigned short data)
+{
+  new_vme(VME_DELAY, 0, data, NULL, LATER);
 }

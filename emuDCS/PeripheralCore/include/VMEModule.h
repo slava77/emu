@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.6 2007/12/27 00:34:26 liu Exp $
+// $Id: VMEModule.h,v 3.7 2008/02/18 12:08:48 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.7  2008/02/18 12:08:48  liu
+// new functions for monitoring
+//
 // Revision 3.6  2007/12/27 00:34:26  liu
 // update
 //
@@ -128,12 +131,20 @@ public:
   
   inline void SetJtagSource(int source){JtagSource_ = source;}
 
+  int new_vme(char fcn, unsigned vme, 
+                       unsigned short data, char *rcv, int when);
+  void write_later(unsigned  address, unsigned short data); 
+  void  read_later(unsigned  address);
+  int    write_now(unsigned  address, unsigned short data, char *rdbuf);
+  int     read_now(unsigned  address, char *rdbuf);
+  void   vme_delay(unsigned short useconds);
+
 protected:
   //
   int JtagSource_;
   //
   /// used for calls to do_vme
-  enum FCN { VME_READ=1, VME_WRITE=2 };
+  enum FCN { VME_READ=1, VME_WRITE=2, VME_DELAY=3 };
   enum WRT { LATER, NOW };
   /// meant to replace things like rice_vme and tmb_vme
   void do_vme(char fcn, char vme,const char *snd,char *rcv, int wrt);

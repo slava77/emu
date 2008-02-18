@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.20 2008/02/14 15:06:04 liu Exp $
+// $Id: Crate.cc,v 3.21 2008/02/18 12:09:19 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.21  2008/02/18 12:09:19  liu
+// new functions for monitoring
+//
 // Revision 3.20  2008/02/14 15:06:04  liu
 // update
 //
@@ -229,7 +232,6 @@ std::vector<ALCTController *> Crate::alcts() const {
 }
 
 
-
 CCB * Crate::ccb() const {
   return findBoard<CCB>();
 }
@@ -238,7 +240,6 @@ CCB * Crate::ccb() const {
 MPC * Crate::mpc() const {
   return findBoard<MPC>();
 }
-
 
 void Crate::enable() {
   //
@@ -371,3 +372,38 @@ void Crate::init() {
   Chamber * Crate::GetChamber(TMB * tmb)   {  return GetChamber(tmb->slot()); }
 
   Chamber * Crate::GetChamber(DAQMB * dmb)   {  return GetChamber(dmb->slot()); }
+
+void Crate::MonitorCCB(int cycle, char * buf) 
+{
+  buf[0]=0;
+  
+  CCB * ccb = this->ccb();
+  MPC * mpc = this->mpc();
+  //
+  if(!ccb) return;
+  ccb->read_later(0x0);
+  ccb->read_later(0x2);
+  ccb->read_later(0x4);
+  ccb->read_later(0x36);
+  ccb->read_later(0x38);
+  ccb->read_later(0x3a);
+  ccb->read_later(0x3c);
+  ccb->read_later(0x3e);
+  ccb->read_later(0x44);
+  ccb->read_later(0x46);
+  ccb->read_later(0x48);
+  int rb=mpc->read_now(0x0, buf+2);
+  buf[0]=rb;
+}
+
+void Crate::MonitorTMB(int cycle, char * buf) 
+{
+  buf[0]=0;
+  return;
+}
+
+void Crate::MonitorDMB(int cycle, char * buf) 
+{
+  buf[0]=0;
+  return;
+}

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.22 2008/02/05 09:27:19 liu Exp $
+// $Id: VMEController.h,v 3.23 2008/02/18 12:08:48 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.23  2008/02/18 12:08:48  liu
+// new functions for monitoring
+//
 // Revision 3.22  2008/02/05 09:27:19  liu
 // disable changing VCC configuration in DCS
 //
@@ -179,6 +182,7 @@ public:
   void reset();
   int  do_schar(int open_or_close);
   void do_vme(char fcn, char vme,const char *snd,char *rcv, int wrt);
+  int new_vme(char fcn, unsigned vme, unsigned short data, char *rcv, int when);
 
   void SetUseDelay(bool state){usedelay_ = state;}
   void SetUseDCS(bool state){useDCS_ = state;}
