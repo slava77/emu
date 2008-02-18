@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.31 2008/02/05 09:26:56 liu Exp $
+// $Id: VMEController.cc,v 3.32 2008/02/18 12:09:19 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.32  2008/02/18 12:09:19  liu
+// new functions for monitoring
+//
 // Revision 3.31  2008/02/05 09:26:56  liu
 // disable changing VCC configuration in DCS
 //
@@ -336,12 +339,15 @@ void VMEController::send_last() {
 
 void VMEController::do_vme(char fcn, char vme,
                            const char *snd,char *rcv, int when) {
+
+// do_vme() VME READ command never buffered
+
 unsigned short int it[1]; 
 unsigned short int tmp[1]={0x0000};
 unsigned short int *ptr_rice;
 unsigned long add_rice;
-unsigned short int itwr[2]={1,3};
-unsigned short int itrd[2]={2,2};
+int itwr[2]={1,3};
+int itrd[2]={2,2};
 char ttt;
 
 //printf("in VMEController::do_vme. fcn=%d, baseadd=%08X\n",fcn,vmeadd);
@@ -399,6 +405,23 @@ char ttt;
  if(fcn==4) handshake_vme(); // handshake
 }
 
+int VMEController::new_vme(char fcn, unsigned vme, unsigned short data, char *rcv, int when) 
+{
+  // in new_vme: both VME READ and WRITE commands can be buffered
+
+  unsigned short int *ptr_rice;
+  unsigned long add_rice;
+  int itrd[2]={0,2};
+
+  if(fcn<1 || fcn>3) return -1;
+  add_rice=vmeadd | vme;
+  ptr_rice=(unsigned short int *)add_rice;
+  if(fcn==1 || fcn==2)
+     return VME_controller(itrd[when]+fcn-1, ptr_rice, &data, rcv);
+  else if(fcn==3) 
+     sleep_vme((int)data);  
+  return 0;
+}
 
 int VMEController::do_schar(int open_or_close) 
 {
@@ -454,6 +477,8 @@ int VMEController::do_schar(int open_or_close)
 
 void udelay(long int itim)
 {
+  std::cout << "Udelay..." << itim << std::endl;
+
   usleep(itim);
   return;
 //  usleep(5000);
@@ -1017,6 +1042,7 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
 
   int LRG_read_flag;
   static unsigned int LRG_read_pnt=0;
+  int actual_return;
 
   static int nvme;
   static int nread=0;
@@ -1181,10 +1207,11 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
     istrt=0;
 
   /* for normal READ/WRITE, need copy the data out of the spebuff. */
-
+  actual_return=0; 
   if(LRG_read_flag==0 && LRG_read_pnt>0)
-     memcpy(rcv, spebuff, LRG_read_pnt);
-   
+  {   memcpy(rcv, spebuff, LRG_read_pnt);
+      actual_return += LRG_read_pnt/2;
+  } 
   /* read back bytes from vme if needed */
  
   if(nread>0){
@@ -1193,7 +1220,8 @@ READETH:
     nrbuf=nread;
     size=eth_read();
     if(size<10)
-         {  printf(" ERROR: no data read back \n\n");
+        { printf(" ERROR: no data read back \n\n");
+          if(DEBUG) {
             int schar_status=ioctl(theSocket,SCHAR_INQR);
             if(schar_status!=-1) {
               printf("   schar driver status:\n");
@@ -1205,9 +1233,10 @@ READETH:
             } else {
               printf(" failed to inquire schar driver status\n");
             }
-            fflush(NULL);
-            return -100;
-         }
+          }
+          fflush(NULL);
+          return -100;
+        }
 // Jinghua Liu to debug
    
     if(DEBUG>10)
@@ -1281,8 +1310,9 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
        for(i=0;i<r_num;i++)
        {  rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];
           rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];
+          if(DEBUG) printf("return data: %02X %02X\n", r_datat[2*i]&0xFF, r_datat[2*i+1]&0xFF);
        }
-       if(DEBUG) printf("return data: %02X %02X\n", r_datat[2*i]&0xFF, r_datat[2*i+1]&0xFF);
+       actual_return += r_num;
     }
     nread=0;
   }
@@ -1291,7 +1321,7 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
   if(LRG_read_flag==0) LRG_read_pnt=0;   
 
   }
-  return 0;
+  return actual_return;
 }
 
 //

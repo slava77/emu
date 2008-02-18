@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.9 2007/12/27 00:34:25 liu Exp $
+// $Id: Crate.h,v 3.10 2008/02/18 12:08:48 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.10  2008/02/18 12:08:48  liu
+// new functions for monitoring
+//
 // Revision 3.9  2007/12/27 00:34:25  liu
 // update
 //
@@ -102,6 +105,10 @@ public:
   Chamber * GetChamber(int slot);
   Chamber * GetChamber(TMB *tmb);
   Chamber * GetChamber(DAQMB *dmb);
+  void MonitorCCB(int cycle, char * buf);
+  void MonitorTMB(int cycle, char * buf);
+  void MonitorDMB(int cycle, char * buf);
+
 private:
 
   template<class T> T * findBoard() const

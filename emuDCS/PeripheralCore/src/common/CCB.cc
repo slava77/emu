@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.17 2008/02/03 12:26:56 liu Exp $
+// $Id: CCB.cc,v 3.18 2008/02/18 12:09:19 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.18  2008/02/18 12:09:19  liu
+// new functions for monitoring
+//
 // Revision 3.17  2008/02/03 12:26:56  liu
 // change hard_reset sequence
 //
@@ -623,7 +626,7 @@ void CCB::HardResetTTCrx(){
   //
   do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
-  ::sleep(1);
+  ::usleep(200);
   //
   do_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
   //
@@ -635,16 +638,7 @@ void CCB::HardResetTTCrx(){
 
 void CCB::ReadTTCrxID(){
   //
-  // Hardreset TTCrx
-  //
-  sndbuf[0]=0x00; 
-  sndbuf[1]=0x01;
-  //
-  // Reset TTCrx
-  do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
-  //
-  // Wait some time
-  ::sleep(1);
+  // Assume Hardreset TTCrx already done
   //
   // Read TTCrx ID number
   do_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
@@ -662,11 +656,11 @@ int CCB::readI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x04; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0c; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //  
   do_vme(VME_READ,CSRA1, sndbuf,rcvbuf,NOW);
   //
@@ -687,19 +681,19 @@ void CCB::writeI2C(int data){
   //
   sndbuf[0]= 0x00; 
   sndbuf[1]= (i2cBaseData&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cLowInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cHighInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cLowInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]= (i2cBaseData&0xff);
@@ -719,11 +713,11 @@ void CCB::startI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0e ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0a ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02 ;
@@ -735,11 +729,11 @@ void CCB::stopI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0a ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0e;
@@ -818,18 +812,8 @@ void CCB::hardReset() {
     (*MyOutput_) << "CCB: NOTE -- switching from DLOG to FPGA mode for BackPlane HardReset" << std::endl; 
   }
   
-  ReadRegister(0x0);
-
-  HardResetTTCrx();
-
-//  setCCBMode(CCB::VMEFPGA);
-
-  ReadRegister(0x0);
-
   HardReset_crate();
   ::sleep(2);
-//  ReadRegister(0x0);
-
 
   //
   //fg note: these 10seconds are not necessary for new/old TMB
@@ -847,6 +831,10 @@ void CCB::hardReset() {
   syncReset();
   //fg note: *keep* this 1second!
   ::sleep(1);
+
+  HardResetTTCrx();
+
+  ReadRegister(0x0);
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
@@ -1008,7 +996,9 @@ void CCB::configure() {
   //  std::cout << ReadRegister(0x0) << std::endl;
   hardReset();
   //  std::cout << ReadRegister(0x0) << std::endl;
-  
+
+  setCCBMode(CCB::VMEFPGA);  
+
   // this line from the old rice_clk_setup(), not sure if it's needed
   SetL1aDelay(l1aDelay_);
   
