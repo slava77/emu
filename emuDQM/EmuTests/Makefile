@@ -29,7 +29,9 @@ Sources=\
 	TestCanvas_1h.cc \
 	TestCanvas_userHisto.cc \
 	Test_Generic.cc \
-	Test_CFEB02.cc
+	Test_CFEB02.cc \
+	Test_CFEB03.cc \
+	Test_CFEB04.cc
 	
 #	EmuTests.cc 
 

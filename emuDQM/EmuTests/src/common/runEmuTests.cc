@@ -1,6 +1,10 @@
 #include "EmuFileReader.h"
 #include "EmuSpyReader.h"
+#include "Test_Generic.h"
 #include "Test_CFEB02.h"
+#include "Test_CFEB03.h"
+#include "Test_CFEB04.h"
+
 #include <iomanip>
 #include <iostream>
 
@@ -120,11 +124,31 @@ int main(int argc, char **argv) {
 //        test_analyzer.setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
 //        test_analyzer.setXMLCanvasesCfgFile(xmlCanvasesCfg);
 //         test_analyzer.book();
-	Test_CFEB02 test_analyzer(datafile);
-	test_analyzer.init();
-	test_analyzer.setCSCMapFile(cscMapFile);
-	test_analyzer.setConfigFile(xmlTestCfg);
-	test_analyzer.setMasksFile(masksCfg);
+	// Test_CFEB02 test_analyzer(datafile);
+	Test_Generic* test_analyzer = NULL;
+
+	if (datafile.find("CFEB_SCAPed") != std::string::npos) {
+		LOG4CPLUS_INFO(logger, "Detected data for Test CFEB02: Pedestals and Noise");
+		test_analyzer = new Test_CFEB02(datafile);
+		xmlTestCfg = "file://" + cfgDir +"emuTest_CFEB02.xml";
+	} else if (datafile.find("CFEB_CrossTalk") != std::string::npos) {
+                LOG4CPLUS_INFO(logger, "Detected data for Test CFEB03: Pulse Response and Cross Talks");
+                test_analyzer = new Test_CFEB03(datafile);
+		xmlTestCfg = "file://" + cfgDir +"emuTest_CFEB03.xml";
+	} else if (datafile.find("CFEB_Gains") != std::string::npos) {
+		LOG4CPLUS_INFO(logger, "Detected data for Test CFEB04: Amplifier Gain");
+		test_analyzer = new Test_CFEB04(datafile);
+		xmlTestCfg = "file://" + cfgDir +"emuTest_CFEB04.xml";
+	} else {
+		LOG4CPLUS_FATAL (logger, "Unrecognizable Test Type for data file name " << datafile);
+		return -1;
+	}
+
+
+	test_analyzer->init();
+	test_analyzer->setCSCMapFile(cscMapFile);
+	test_analyzer->setConfigFile(xmlTestCfg);
+	test_analyzer->setMasksFile(masksCfg);
 	
 	if (datafile.find(".bin") != std::string::npos) {	
 		histofile = datafile;
@@ -133,8 +157,8 @@ int main(int argc, char **argv) {
 		plotsdir = histofile;
                 plotsdir = plotsdir.replace(plotsdir.find(".bin"), 4, ".plots");
 		histofile = histofile.replace(histofile.find(".bin"), 4, ".root");
-		test_analyzer.setOutDir(plotsdir);
-		test_analyzer.setRootFile(histofile);
+		test_analyzer->setOutDir(plotsdir);
+		test_analyzer->setRootFile(histofile);
 	}
         if (datafile.find(".raw") != std::string::npos) {
                 histofile = datafile;
@@ -143,8 +167,8 @@ int main(int argc, char **argv) {
 		plotsdir = histofile;
 		plotsdir = plotsdir.replace(plotsdir.find(".raw"), 4, ".plots");
                 histofile = histofile.replace(histofile.find(".raw"), 4, ".root");
-		test_analyzer.setOutDir(plotsdir);
-		test_analyzer.setRootFile(histofile);
+		test_analyzer->setOutDir(plotsdir);
+		test_analyzer->setRootFile(histofile);
         }
 
 	
@@ -198,23 +222,24 @@ int main(int argc, char **argv) {
 
 		if ((cnt>=startEvent) && (cnt<=(startEvent+NumberOfEvents))) { 
 			LOG4CPLUS_DEBUG (logger, "Event#"<< dec << cnt << " **** Buffer size: " << ddu.dataLength() << " bytes");
-			test_analyzer.analyze(ddu.data(), ddu.dataLength(), status, node);
+			test_analyzer->analyze(ddu.data(), ddu.dataLength(), status, node);
 			if (cnt%1000 == 0) LOG4CPLUS_INFO (logger, "Processed Events: "<< dec << cnt);
 		}
 		if (cnt+1>(startEvent+NumberOfEvents)) break;  
 	} 
 	t1 = time(0);
 
-	LOG4CPLUS_INFO (logger, "Total Events: " << test_analyzer.getTotalEvents() << ", Readout Rate: " << (test_analyzer.getTotalEvents()/(t1-t0)) << " Events/sec" );
+	LOG4CPLUS_INFO (logger, "Total Events: " << test_analyzer->getTotalEvents() << ", Readout Rate: " << (test_analyzer->getTotalEvents()/(t1-t0)) << " Events/sec" );
 /*
 	LOG4CPLUS_INFO (logger, "Good Events: " << test_analyzer.getGoodEventsCount() <<  ", Bad Events: " << test_analyzer.getBadEventsCount());
 	LOG4CPLUS_INFO (logger, "Unpacked CSCs Events: " << test_analyzer.getTotalUnpackedCSCs() <<  ", Unpacking Rate: " << (test_analyzer.getTotalUnpackedCSCs()/(t1-t0)) << " CSCs/sec");
 */
  	LOG4CPLUS_INFO (logger, "Run time: " << t1-t0 << " seconds");
 
-	test_analyzer.finish();
+	test_analyzer->finish();
 
 //	test_analyzer.saveToROOTFile(histofile.c_str());
+	delete test_analyzer;
 	ddu.close();
 	
 	return 0;
