@@ -286,6 +286,12 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT384Mirror,"EnableALCT384Mirror",XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT576Mirror,"EnableALCT576Mirror",XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT672      ,"EnableALCT672",XDAQ_NS_URI);
+
+  // SOAP for Monitor controll
+//  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStart      ,"MonitorStart",XDAQ_NS_URI);
+//  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStop      ,"MonitorStop",XDAQ_NS_URI);
+    xgi::bind(this,&EmuPeripheralCrateConfig::MonitorStart      ,"MonitorStart");
+    xgi::bind(this,&EmuPeripheralCrateConfig::MonitorStop      ,"MonitorStop");
   //
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
@@ -305,10 +311,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //
   fsm_.setInitialState('H');
   fsm_.reset();    
-  //
-  //
-  getApplicationInfoSpace()->fireItemAvailable("Calibtype", &CalibType_);
-  getApplicationInfoSpace()->fireItemAvailable("Calibnumber", &CalibNumber_);
   //
   // state_ is defined in EmuApplication
   state_ = fsm_.getStateName(fsm_.getCurrentState());
@@ -362,14 +364,22 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
   this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
   this->getApplicationInfoSpace()->fireItemAvailable("CalibrationState", &CalibrationState_);
-  //
-  // Create/Retrieve an infospace
-  xdata::InfoSpace * is =xdata::InfoSpace::get("urn:xdaq-monitorable:EmuPeripheralCrateData");
-  //
-  is->fireItemAvailable("myCounter", &myCounter_);
-  // attach listener to myCounter_ to detect retrieval event
-  is->addItemRetrieveListener ("myCounter", this);
-  //
+  this->getApplicationInfoSpace()->fireItemAvailable("Calibtype", &CalibType_);
+  this->getApplicationInfoSpace()->fireItemAvailable("Calibnumber", &CalibNumber_);
+  
+  // for XMAS minotoring:
+
+  timer_ = toolbox::task::getTimerFactory()->createTimer("EmuMonitorTimer");
+  timer_->stop();
+  Monitor_On_ = false;
+  Monitor_Ready_ = false;
+  fastloop=0;
+  slowloop=0;
+  extraloop=0;
+  this->getApplicationInfoSpace()->fireItemAvailable("FastLoop", &fastloop);
+  this->getApplicationInfoSpace()->fireItemAvailable("SlowLoop", &slowloop);
+  this->getApplicationInfoSpace()->fireItemAvailable("ExtraLoop", &extraloop);
+
   global_config_states[0]="UnConfiged";
   global_config_states[1]="Configuring";
   global_config_states[2]="Configed";
@@ -383,30 +393,194 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   parsed=0;
 }
 
-void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
+void EmuPeripheralCrateConfig::MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+{
+     if(!Monitor_On_)
+     {
+         if(!Monitor_Ready_)
+         {
+             CreateEmuInfospace();
+             Monitor_Ready_=true;
+         }
+         toolbox::TimeInterval interval1, interval2, interval3;
+         toolbox::TimeVal startTime;
+         startTime = toolbox::TimeVal::gettimeofday();
+
+         timer_->start(); // must activate timer before submission, abort otherwise!!!
+         if(fastloop) 
+         {   interval1.sec((time_t)fastloop);
+             timer_->scheduleAtFixedRate(startTime,this, interval1, 0, "EmuPCrateFast" );
+             std::cout << "fast scheduled" << std::endl;
+         }
+         if(slowloop) 
+         {   interval2.sec((time_t)slowloop);
+             timer_->scheduleAtFixedRate(startTime,this, interval2, 0, "EmuPCrateSlow" );
+             std::cout << "slow scheduled" << std::endl;
+         }
+         if(extraloop) 
+         {   interval3.sec((time_t)extraloop);
+             timer_->scheduleAtFixedRate(startTime,this, interval3, 0, "EmuPCrateExtra" );
+             std::cout << "extra scheduled" << std::endl;
+         }
+         Monitor_On_=true;
+         std::cout<< "Monitor Started" << std::endl;
+     }
+     this->Default(in,out);
+}
+
+void EmuPeripheralCrateConfig::MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+{
+     if(Monitor_On_)
+     {
+         if(fastloop) timer_->remove("EmuPCrateFast" );
+         if(slowloop) timer_->remove("EmuPCrateSlow" );
+         if(extraloop) timer_->remove("EmuPCrateExtra" );
+         timer_->stop(); 
+         Monitor_On_=false;
+         std::cout << "Monitor stopped" << std::endl;
+     }
+     this->Default(in,out);
+}
+
+void EmuPeripheralCrateConfig::timeExpired (toolbox::task::TimerEvent& e)
+{
+
+     if(!(Monitor_On_ && Monitor_Ready_)) return;
+     std::string name = e.getTimerTask()->name;
+    // std::cout << "timeExpired: " << name << std::endl;
+     if(strncmp(name.c_str(),"EmuPCrateFast",13)==0) PublishEmuInfospace(1);
+     else if(strncmp(name.c_str(),"EmuPCrateSlow",13)==0) PublishEmuInfospace(2);
+     else if(strncmp(name.c_str(),"EmuPCrateExtra",14)==0) PublishEmuInfospace(3);
+}
+
+void EmuPeripheralCrateConfig::CreateEmuInfospace()
+{
+     if(!parsed) ParsingXML();
+     if(total_crates_<=0) return;
+
+        //Create infospaces for monitoring
+        monitorables_.clear();
+        for ( unsigned int i = 0; i < crateVector.size(); i++ )
+        {
+            //    std::stringstream id;
+            //    id << "EMu-" << crateVector[i]->GetLabel();
+
+                toolbox::net::URN urn = this->createQualifiedInfoSpace("EMu_PCrate_"+(crateVector[i]->GetLabel()));
+                std::cout << "Crate " << i << " " << urn.toString() << std::endl;
+                monitorables_.push_back(urn.toString());
+                xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(urn.toString());
+            // for CCB, MPC, TTC etc.
+                is->fireItemAvailable("TTC_BRSTR",new xdata::UnsignedShort(0));
+                is->fireItemAvailable("TTC_DTSTR",new xdata::UnsignedShort(0));
+                is->fireItemAvailable("QPLL",new xdata::String("uninitialized"));
+                is->fireItemAvailable("CCBstatus",new xdata::String("uninitialized"));
+                is->fireItemAvailable("MPCstatus",new xdata::String("uninitialized"));
+
+            // for TMB fast counters
+
+            // for DMB fast counters
+
+            // for TMB temps, voltages
+
+            // for DMB temps, voltages
+
+         }
+     Monitor_Ready_=true;
+}
+
+void EmuPeripheralCrateConfig::PublishEmuInfospace(int cycle)
+{
+   //   cycle = 1  fast loop (e.g. TMB/DMB counters)
+   //           2  slow loop (e.g. temps/voltages)
+   //           3  extra loop (e.g. CCB MPC TTC status)
+
+      Crate * now_crate;
+      xdata::InfoSpace * is;
+      char buf[8000];
+      // xdata::UnsignedInteger32 *counter32;
+      xdata::UnsignedShort *counter16;
+      xdata::String *status;
+      unsigned long *buf4;
+      unsigned short *buf2;
+
+      buf2=(unsigned short *)buf;
+      buf4=(unsigned long *)buf;
+      if(cycle<1 || cycle>3) return;
+      if(total_crates_<=0) return;
+      //update infospaces
+      for ( unsigned int i = 0; i < crateVector.size(); i++ )
+      {
+          now_crate=crateVector[i];
+          if(now_crate) 
+          {
+             is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+             if(cycle==3)
+             {  
+                now_crate-> MonitorCCB(cycle, buf);
+                if(buf[0])  
+                {   // buf[0]==0 means no good data back
+
+                   // CCB & TTC counters
+                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TTC_BRSTR"));
+                   *counter16 = buf2[10];;
+                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TTC_DTSTR"));
+                   *counter16 = buf2[11];;
+                   std::stringstream id1, id2, id0;
+
+
+                   // add this one to help the TTC group's global clock scan
+                   id0 << ((buf2[3]&0x4000)?"Unlocked":"Locked");
+                   status = dynamic_cast<xdata::String *>(is->find("QPLL"));
+                   *status = id0.str();
+
+                   // CCB status
+                   id1 << "CCB mode: " << ((buf2[1]&0x1)?"DLOG":"FPGA");
+		   id1 << ", TTCrx: " << ((buf2[3]&0x2000)?"Ready":"NotReady");
+                   id1 << ", QPLL: " << ((buf2[3]&0x4000)?"Unlocked":"Locked");
+
+                   status = dynamic_cast<xdata::String *>(is->find("CCBstatus"));
+                   *status = id1.str();
+
+                   // MPC status
+                   id2 << "MPC mode: " << ((buf2[12]&0x1)?"Test":"Trig");
+		   id2 << ", Transimitter: " << ((buf2[12]&0x0200)?"On":"Off");
+                   id2 << ", Serializer: " << ((buf2[12]&0x4000)?"On":"Off");
+                   id2 << ", PRBS: " << ((buf2[12]&0x8000)?"Test":"Norm");
+
+                   status = dynamic_cast<xdata::String *>(is->find("MPCstatus"));
+                   *status = id2.str();
+                }
+             }
+             else if( cycle==1)
+             {
+                now_crate-> MonitorTMB(cycle, buf);
+                if(buf[0])
+                {
+                   std::cout << "TMB counters will be here" << std::endl;
+                }
+                now_crate-> MonitorDMB(cycle, buf);
+                if(buf[0])
+                {
+                   std::cout << "DMB counters will be here" << std::endl;
+                }
+             }
+               // is->fireGroupChanged(names, this);
+          }
+      }
+}
+
+void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) 
+{
   //
   std::string LoggerName = getApplicationLogger().getName() ;
   std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
   //
-  //if (getApplicationLogger().exists(getApplicationLogger().getName())) {
-  //
   LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate ready");
-  //
-  //}
   //
   MyHeader(in,out,"EmuPeripheralCrateConfig");
 
   if(!parsed) ParsingXML();
 
-  //
-  //*out << cgicc::h1("EmuPeripheralCrate");
-  //*out << cgicc::br();
-  //
-  //std::cout << "The xmlfile is " << xmlFile_.toString() << std::endl;
-  //
-  //if (tmbVector.size()==0 && dmbVector.size()==0) {
-  //
-  //
   *out << cgicc::b(cgicc::i("Total Crates : ")) ;
   *out << total_crates_ << cgicc::br() << std::endl ;
 
@@ -415,11 +589,30 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
   *out << cgicc::b(cgicc::i("System Status: ")) ;
   *out << global_config_states[current_config_state_] << "  ";
   *out << global_run_states[current_run_state_]<< cgicc::br() << std::endl ;
+  *out << cgicc::span() << std::endl ;
   //
   std::string CrateConfigureAll = toolbox::toString("/%s/ConfigAllCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CrateConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Config All Crates") << std::endl ;
   *out << cgicc::form() << std::endl ;
+
+  *out << cgicc::br() << std::endl ;
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+     std::string TurnOffMonitor = toolbox::toString("/%s/MonitorStop",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",TurnOffMonitor) << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","Turn Off Monitor") << std::endl ;
+     *out << cgicc::form() << std::endl ;
+  } else
+  {
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << std::endl ;
+     std::string TurnOnMonitor = toolbox::toString("/%s/MonitorStart",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",TurnOnMonitor) << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","Turn On Monitor") << std::endl ;
+     *out << cgicc::form() << std::endl ;
+  }
   //
   *out << cgicc::br() << cgicc::hr() <<std::endl;
 
@@ -427,7 +620,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
   //
   *out << cgicc::span().set("style","color:blue");
   *out << cgicc::b(cgicc::i("Current Crate : ")) ;
-  *out << ThisCrateID_ << std::endl ;
+  *out << ThisCrateID_ << cgicc::span() << std::endl ;
   //
   *out << cgicc::br();
   //
@@ -466,7 +659,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
   //End select crate
  
   *out << cgicc::br()<< std::endl;
-  std::cout << "Number of Crates = " << total_crates_ << std::endl;
+  std::cout << "Main Page: "<< total_crates_ << " Crates" << std::endl;
   //
   if (tmbVector.size()>0 || dmbVector.size()>0) {
     //
@@ -529,7 +722,6 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
     //
     *out << cgicc::td();
     //
-    //
     *out << cgicc::td();
     //
     std::string CrateStatus = toolbox::toString("/%s/CrateStatus",getApplicationDescriptor()->getURN().c_str());
@@ -540,7 +732,6 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
     *out << cgicc::td();
     //
     *out << cgicc::table();
-    //
     //
     std::string Operator = toolbox::toString("/%s/Operator",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",Operator) << std::endl ;
@@ -564,12 +755,6 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
     *out << cgicc::input().set("type","submit").set("value","Log Test Summary").set("name","LogTestSummary") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
-    //std::string PowerUp = toolbox::toString("/%s/PowerUp",getApplicationDescriptor()->getURN().c_str());
-    //*out << cgicc::form().set("method","GET").set("action","http://emuslice03:1973/urn:xdaq-application:lid=30/").set("target","_blank") << std::endl ;
-    //*out << cgicc::input().set("type","submit").set("value","Power Up") << std::endl ;
-    //*out << cgicc::form() << std::endl ;
-    //
-    //
     *out << cgicc::fieldset();
     //
     *out << std::endl;
@@ -579,8 +764,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
   *out << cgicc::br() << cgicc::br() << std::endl; 
   *out << cgicc::span().set("style","color:blue");
   *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
-  //
-  *out << xmlFile_.toString() << std::endl ;
+  *out << xmlFile_.toString()  << cgicc::span() << std::endl ;
   //
   std::string DefineConfiguration = toolbox::toString("/%s/DefineConfiguration",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",DefineConfiguration) << std::endl ;
@@ -588,9 +772,8 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) {
   *out << cgicc::form() << std::endl ;
   *out << cgicc::br();
   //
-
 }
-//
+
 // 
 void EmuPeripheralCrateConfig::MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) 
   throw (xgi::exception::Exception) {
@@ -615,27 +798,10 @@ void EmuPeripheralCrateConfig::Default(xgi::Input * in, xgi::Output * out )
 // SOAP Callback  
 /////////////////////////////////////////////////////////////////////
 //
-//#ifndef STANDALONE
-//
 xoap::MessageReference EmuPeripheralCrateConfig::onCalibration(xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "Calibration");
-  //
-  //ostringstream test;
-  //message->writeTo(test);
-  //
-  //LOG4CPLUS_INFO(getApplicationLogger(), test.str());
-  //LOG4CPLUS_INFO(getApplicationLogger(), "Next");
-  //LOG4CPLUS_INFO(getApplicationLogger(), setting);
-  //LOG4CPLUS_INFO(getApplicationLogger(), "Done");
-  //
-  //
-  //CalibrationState_ = "Busy";
-  //
-  // Do something
-  //
-  //LOG4CPLUS_INFO(getApplicationLogger(), setting);
   //
   ::sleep(1);
   //
@@ -782,7 +948,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
      cgicc::Cgicc cgi(in);
 
      string value = cgi.getElement("runtype")->getValue(); 
-     cout << "We get value " << value << endl;
+     std::cout << "Select Crate " << value << endl;
      if(!value.empty())
      {
         ThisCrateID_=value;
@@ -798,6 +964,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
   void EmuPeripheralCrateConfig::ConfigAllCrates(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
+     std::cout << "Button: ConfigAllCrates" << std::endl;
      ConfigureInit();
 //     fireEvent("Configure");
      this->Default(in,out);
@@ -830,7 +997,8 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
       }
   }
 
-  void EmuPeripheralCrateConfig::ConfigureInit(){
+  void EmuPeripheralCrateConfig::ConfigureInit()
+  {
 
     if(!parsed) ParsingXML();
     
@@ -847,14 +1015,10 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     //
     LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
     //
-    //-- parse XML file
-    //
-    //cout << "---- XML parser ----" << endl;
-    //cout << " Using file " << xmlFile_.toString() << endl ;
-    //
     // Check if filename exists
     //
-    if(xmlFile_.toString().find("http") == string::npos) {
+    if(xmlFile_.toString().find("http") == string::npos) 
+    {
       std::ifstream filename(xmlFile_.toString().c_str());
       if(filename.is_open()) {
 	filename.close();
@@ -879,14 +1043,16 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     MyController->NotInDCS();
     //
     emuEndcap_ = MyController->GetEmuEndcap();
+    if(!emuEndcap_) return false;
     crateVector = emuEndcap_->crates();
     //
     total_crates_=crateVector.size();
+    if(total_crates_<=0) return false;
     this_crate_no_=0;
 
     SetCurrentCrate(this_crate_no_);
 
-    std::cout << "Done" << std::endl ;
+    std::cout << "Parser Done" << std::endl ;
     //
     parsed=1;
     return true;
@@ -894,6 +1060,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
 
   void EmuPeripheralCrateConfig::SetCurrentCrate(int cr)
   {  
+    if(total_crates_<=0) return;
     thisCrate = crateVector[cr];
 
     if ( ! thisCrate ) {
@@ -944,13 +1111,13 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
 	const_file_iterator file;
 	file = cgi.getFile("xmlFileName");
 	//
-	cout << "GetFiles string" << endl ;
+	std::cout << "GetFiles string" << endl ;
 	//
-	if(file != cgi.getFiles().end()) (*file).writeToStream(cout);
+	if(file != cgi.getFiles().end()) (*file).writeToStream(std::cout);
 	//
 	string XMLname = cgi["xmlFileName"]->getValue() ; 
 	//
-	cout << XMLname  << endl ;
+	std::cout << XMLname  << endl ;
 	//
 	xmlFile_ = XMLname ;
 	//
@@ -1160,6 +1327,7 @@ void EmuPeripheralCrateConfig::CalibrationRuns(xgi::Input * in, xgi::Output * ou
 void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  std::cout << "CrateConfiguration: " << ThisCrateID_ << std::endl;
   MyHeader(in,out,"CrateConfiguration");
   //
   *out << cgicc::h3("Current Crate: "+ ThisCrateID_) << cgicc::br()<<endl;
@@ -1200,7 +1368,8 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
     //----------------------------------
     // Display CCB buttons
     //----------------------------------
-    int slot = thisCrate->ccb()->slot();
+    int slot = -1;
+    if(thisCCB) slot=thisCCB->slot();
     if(slot == ii) {
       std::string CCBBoardID = toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
       //
@@ -1235,7 +1404,7 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
     std::string MPCBoardID = toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
     //
     slot = -1;
-    if ( thisMPC ) slot = thisCrate->mpc()->slot() ;
+    if ( thisMPC ) slot = thisMPC->slot() ;
     if(slot == ii) {
       //
       *out << cgicc::td();
@@ -1340,7 +1509,7 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
 	    if ( TMBBoardID_[i].find("-1") == string::npos ) {
 	      //
 	      char Name[50];
-	      sprintf(Name,"Chamber Tests slots=%d/%d",slot,dmbslot);
+	      sprintf(Name,"Chamber Tests: %s",(thisCrate->GetChamber(slot)->GetLabel()).c_str());
 	      //
 	      std::string ChamberTests = toolbox::toString("/%s/ChamberTests?tmb=%d&dmb=%d",getApplicationDescriptor()->getURN().c_str(),i,iii);
 	      *out << cgicc::a(Name).set("href",ChamberTests) << endl;
