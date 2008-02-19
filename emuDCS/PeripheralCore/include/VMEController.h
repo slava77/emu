@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.23 2008/02/18 12:08:48 liu Exp $
+// $Id: VMEController.h,v 3.24 2008/02/19 14:39:32 gujh Exp $
 // $Log: VMEController.h,v $
+// Revision 3.24  2008/02/19 14:39:32  gujh
+// VME Controller fix
+//
 // Revision 3.23  2008/02/18 12:08:48  liu
 // new functions for monitoring
 //
@@ -280,6 +283,7 @@ public:
   struct rspn_t flush_pkts();
   void vcc_dump_config();
   void vcc_check_config();
+  int LeftToRead();
 
   //cnfg_subs
   enum MAC_ID {DEVICE=0, MCAST1=1, MCAST2=2, MCAST3=3, DFLT_SRV=4, ALL_MACS=8};
