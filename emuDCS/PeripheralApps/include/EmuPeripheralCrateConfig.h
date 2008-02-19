@@ -54,6 +54,7 @@
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
 #include "EmuEndcap.h"
+#include "BoardsDB.h"
 //
 #include "EmuApplication.h"
 
@@ -109,6 +110,7 @@ protected:
   ALCTController *alct ;
   RAT * rat;
   MPC * thisMPC;
+  BoardsDB *brddb;
   CrateUtilities myCrateTest;
   ostringstream CrateTestsOutput;
   ChamberUtilities MyTest[10];
