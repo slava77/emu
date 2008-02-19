@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.32 2008/02/18 12:09:19 liu Exp $
+// $Id: VMEController.cc,v 3.33 2008/02/19 14:39:45 gujh Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.33  2008/02/19 14:39:45  gujh
+// VME Controller fix
+//
 // Revision 3.32  2008/02/18 12:09:19  liu
 // new functions for monitoring
 //
@@ -17,7 +20,7 @@
 // disable VCC prom read routines
 //
 // Revision 3.27  2008/01/31 16:34:38  liu
-// disable VCC hard-reset
+// disable VCC hardvme_-reset
 //
 // Revision 3.26  2008/01/31 15:08:09  liu
 // fix vcc_dump_config format
@@ -2726,9 +2729,11 @@ int VMEController::vme_read_broadcast(char *dmbs_info)
       dmbs_info[ndmbs*10+8]=rbuf[DATA_OFF+3];
       dmbs_info[ndmbs*10+9]=rbuf[DATA_OFF+2];
       ndmbs++;
-  }
+  }else{return 0;}
   eth_read_timeout(RD_TMO_short);
-  while(n>8){
+  usleep(3000);
+  int nleft=LeftToRead();
+  for(unsigned int k=0;k<nleft;k++){
     n=eth_read();
     
     ptyp = rbuf[PKT_TYP_OFF]&0xff;
@@ -2749,3 +2754,9 @@ int VMEController::vme_read_broadcast(char *dmbs_info)
   return ndmbs;
 }
 
+
+                                                                                
+int VMEController::LeftToRead()
+{
+ return ioctl(theSocket,SCHAR_INQR)&0xffff;
+}
