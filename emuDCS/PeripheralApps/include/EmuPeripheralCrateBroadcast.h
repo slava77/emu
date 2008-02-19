@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.4 2008/01/22 11:43:49 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.5 2008/02/19 14:37:31 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -58,6 +58,8 @@
 #include "ALCTController.h"
 #include "MPC.h"
 #include "RAT.h"
+#include "ConnectionsDB.h"
+#include "BoardsDB.h"
 
 using namespace cgicc;
 using namespace std;
@@ -96,6 +98,9 @@ public:
   std::string ALCT384MirrorFirmwareFile_ ;
   std::string ALCT576MirrorFirmwareFile_ ;
   std::string ALCT672FirmwareFile_       ;
+  //
+  BoardsDB *brddb;
+  ConnectionsDB *condb;
   //
   EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s);
   //
