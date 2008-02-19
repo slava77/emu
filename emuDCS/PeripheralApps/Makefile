@@ -27,6 +27,7 @@ Sources=\
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
         $(BUILD_HOME)/emu/emuDCS/PeripheralCore/include \
+	$(BUILD_HOME)/emu/emuDCS/OnlineDB/include \
         $(BUILD_HOME)/emu/cscSV/include
 
 TestLibraryDirs = \
