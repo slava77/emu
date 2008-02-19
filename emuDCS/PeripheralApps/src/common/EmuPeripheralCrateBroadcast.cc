@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.12 2008/01/24 23:16:55 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.13 2008/02/19 14:34:48 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -104,6 +104,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
 
   state_ = fsm_.getStateName(fsm_.getCurrentState());
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateBroadcastXmlFile_);
+  brddb= new BoardsDB();
 }  
 //
 void EmuPeripheralCrateBroadcast::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -446,6 +447,8 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
 {
   DefineBroadcastCrate();
   broadcastCrate->vmeController()->init();
+  broadcastCrate->vmeController()->write_ResetMisc_CR(0x001B);
+
   //
   MyHeader(in,out,"EmuPeripheralCrate Broadcast Probe");
   //
@@ -454,9 +457,9 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   *out << cgicc::legend("Probe for Crate Controllers").set("style","color:blue") << cgicc::p() << std::endl ;
   //
   *out << cgicc::pre();
-  // Probe for VMECCs
   char buf[1000], sbuf[100];
-  int nc=broadcastCrate->vmeController()->read_dev_id_broadcast(buf);
+  int nc;
+  /* int nc=broadcastCrate->vmeController->read_dev_id_broadcast(buf);
   *out << nc << " crate controller(s) responded: " << std::endl;
   for(int i=0; i<nc; i++) {
      int *device_id=(int *)(buf+i*10+6);
@@ -465,7 +468,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
          buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
          *device_id);
      *out << sbuf;
-  }
+     } */
 
   *out << cgicc::pre();
   *out << cgicc::fieldset()<<std::endl;
@@ -496,6 +499,137 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   *out << cgicc::pre();
   *out << cgicc::fieldset()<<std::endl;
    
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << cgicc::legend("Probe for DMB mbpromuser(1)s").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::pre();
+  // Probe for DMBs
+  unsigned int limit1=(broadcastCrate->daqmbs()).size()-1;
+  printf(" limit %d \n",limit1);
+  for(unsigned int j=0;j<limit1;j++){
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    int slott=broadcastDMB0->slot();
+    printf(" %d slott %d \n",j,slott);
+    // now globally pole the DMB in slot 1
+    broadcastDMB0->mbpromuser(1);
+    nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+    *out << nc << " DMB's in slot " << slott << " responded: " << std::endl;
+    for(int i=0; i<nc; i++) {
+        int *device_id=(int *)(buf+i*10+6);
+        sprintf(sbuf, "    from MAC address %02X:%02X:%02X:%02X:%02X:%02X, userid: %08X\n",
+            buf[i*10]&0xff, buf[i*10+1]&0xff, buf[i*10+2]&0xff,
+            buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
+            *device_id);
+        *out << sbuf;
+    }
+  }
+  *out << cgicc::pre();
+  *out << cgicc::fieldset()<<std::endl;
+
+
+
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << cgicc::legend("Probe for DMB mbfpgauser s").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::pre();
+  // Probe for DMBs
+  unsigned int limit2=(broadcastCrate->daqmbs()).size()-1;
+  printf(" limit %d \n",limit2);
+  for(unsigned int j=0;j<limit2;j++){
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    int slott=broadcastDMB0->slot();
+    printf(" %d slott %d \n",j,slott);
+    // now globally pole the DMB in slot 1
+    broadcastDMB0->mbfpgauser();
+    nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+    *out << nc << " DMB's in slot " << slott << " responded: " << std::endl;
+    for(int i=0; i<nc; i++) {
+        int *device_id=(int *)(buf+i*10+6);
+        sprintf(sbuf, "    from MAC address %02X:%02X:%02X:%02X:%02X:%02X, userid: %08X\n",
+            buf[i*10]&0xff, buf[i*10+1]&0xff, buf[i*10+2]&0xff,
+            buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
+            *device_id);
+        *out << sbuf;
+    }
+  }
+  *out << cgicc::pre();
+  *out << cgicc::fieldset()<<std::endl;
+
+
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << cgicc::legend("Probe for DMB CFEBs fpgauserid").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::pre();
+  // Probe for DMBs
+  unsigned int limit3=(broadcastCrate->daqmbs()).size()-1;
+  printf(" limit %d \n",limit3);
+  for(unsigned int j=0;j<limit3;j++){
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
+    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+        int slott=broadcastDMB0->slot();
+        broadcastDMB0->febfpgauser(*cfebItr);
+        nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+        sprintf(sbuf,"CFEB%d  ",(*cfebItr).number());
+        *out << nc << sbuf <<" in slot " << slott << " responded: " << std::endl;
+    for(int i=0; i<nc; i++) {
+        int *device_id=(int *)(buf+i*10+6);
+        sprintf(sbuf, "    from MAC address %02X:%02X:%02X:%02X:%02X:%02X, userid: %08X\n",
+            buf[i*10]&0xff, buf[i*10+1]&0xff, buf[i*10+2]&0xff,
+            buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
+            *device_id);
+        *out << sbuf;
+    }
+  }
+  }
+  *out << cgicc::pre();
+  *out << cgicc::fieldset()<<std::endl;
+
+
+
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << cgicc::legend("Probe for DMB CFEBs promuserid").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::pre();
+  // Probe for DMBs
+  unsigned int limit4=(broadcastCrate->daqmbs()).size()-1;
+  printf(" limit %d \n",limit4);
+  for(unsigned int j=0;j<limit4;j++){
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
+    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+        int slott=broadcastDMB0->slot();
+        broadcastDMB0->febpromuser(*cfebItr);
+        nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+        sprintf(sbuf," CFEB%d  ",(*cfebItr).number());
+        *out << nc << sbuf <<" in slot " << slott << " responded: " << std::endl;
+	char rcvbuf[5];
+    for(int i=0; i<nc; i++) {
+        rcvbuf[0]=buf[i*10+6];
+        rcvbuf[1]=buf[i*10+7];
+        rcvbuf[2]=buf[i*10+8];
+        rcvbuf[3]=buf[i*10+9];
+        rcvbuf[4]=buf[i*10+10];
+       	rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
+	rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
+	rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
+	rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
+        rcvbuf[3]=rcvbuf[3]|0x80;
+        unsigned int device=0x00000000;
+        device=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)
+        |((rcvbuf[3]&0xff)<<24)|device;
+        sprintf(sbuf, "    from MAC address %02X:%02X:%02X:%02X:%02X:%02X, userid: %08X\n",
+            buf[i*10]&0xff, buf[i*10+1]&0xff, buf[i*10+2]&0xff,
+            buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
+            device);
+        *out << sbuf;
+    }
+  }
+  }
+  broadcastCrate->vmeController()->init();
+
+  *out << cgicc::pre();
+  *out << cgicc::fieldset()<<std::endl;
+
   //
  }
 
