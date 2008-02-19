@@ -390,6 +390,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   total_crates_=0;
   this_crate_no_=0;
 
+  brddb= new BoardsDB();
+
   parsed=0;
 }
 
@@ -5036,8 +5038,15 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi:
     ::sleep(1);
     //
     unsigned short int dword[2];
+
+    std::string crate=thisCrate->GetLabel();
+    int slot=thisDMB->slot();
+    int dmbID=brddb->CrateToDMBID(crate,slot);
     dword[0]=dmbNumber&0x03ff;
     dword[1]=0xDB00;
+    if (((dmbNumber&0xfff)==0)||((dmbNumber&0xfff)==0xfff)) dword[0]=dmbID&0x03ff;
+
+    cout<<" The DMB number is set to: "<<dword[0]<<" Entered: "<<dmbNumber<<" Database lookup: "<<dmbID<<endl;
     char * outp=(char *)dword;  
     thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
   }
@@ -8067,6 +8076,21 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
       isME13 = true;
   //
   Chamber * thisChamber = chamberVector[dmb];
+      std::string chamber=thisChamber->GetLabel();
+      unsigned long int cfebID[5], cfebIDread[5];
+      vector <CFEB> thisCFEBs=thisDMB->cfebs();
+      //
+      for (unsigned i=0;i<thisCFEBs.size();i++) {
+        cfebIDread[i]=thisDMB->febpromuser(thisCFEBs[i]);
+        cfebID[i]=brddb->ChamberToCFEBID(chamber,i+1);
+        std::cout<<" DB_check CFEB # "<<i<<" ID readback: "<<(cfebIDread[i]&0xfff)<<" Look up from DB: "<<(cfebID[i]&0xfff)<<std::endl;
+      }
+      std::string crate=thisCrate->GetLabel();
+      int slot=thisDMB->slot();
+      int dmbID=brddb->CrateToDMBID(crate,slot);
+      //The readback
+      unsigned long int dmbIDread=thisDMB->mbpromuser(0);
+      std::cout<<" DB_check DMB ID readback: "<<(dmbIDread&0xfff)<<" look up from DB: "<<(dmbID&0xfff)<<std::endl;
   //
   char Name[100];
   sprintf(Name,"%s DMB status, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());	
@@ -9393,18 +9417,31 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
       char prombrdname[4];
       //	if (idmb==0) boardnumber = 0xdb00000c;
       //	if (idmb==1) boardnumber = 0xdb00021b;
+      //Read database for the board number:
+      std::string crate=thisCrate->GetLabel();
+      int slot=thisDMB->slot();
+      int dmbID=brddb->CrateToDMBID(crate,slot);
+
       prombrdname[0]=boardnumber&0xff;
       prombrdname[1]=(boardnumber>>8)&0xff;
-      prombrdname[2]=(boardnumber>>16)&0xff;
-      prombrdname[3]=(boardnumber>>24)&0xff;
-      cout<<" Loading the board number ..."<<endl;
+      prombrdname[2]=0x00;
+      prombrdname[3]=0xdb;
+
+      if (((boardnumber&0xfff)==0)||
+	  ((boardnumber&0xfff)==0xfff)||
+	  ((boardnumber&0xfff)==0xaad)) {
+	prombrdname[0]=dmbID&0xff;
+	prombrdname[1]=(dmbID>>8)&0x0f;
+      }
+
+      cout<<" Loading the board number ..."<<(prombrdname[0]&0xff)+((prombrdname[1]<<8)&0xf00)<<" was set to: "<<(boardnumber&0xffff)<<endl;
       //
       std::string DMBVmeFirmware = FirmwareDir_+DMBVME_FIRMWARE_FILENAME;
       //
       thisDMB->epromload_broadcast(VPROM,DMBVmeFirmware.c_str(),1,prombrdname,2);
       usleep(200);
       cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
-      cout <<" This DMB is programmed to board number: "<<boardnumber<<endl<<endl;
+      //  cout <<" This DMB is programmed to board number: "<<boardnumber<<endl<<endl;
     }
     //
   }
@@ -9467,6 +9504,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
     //
     if ((dmbVector[idmb]->slot())<22) {
       DAQMB * thisDMB=dmbVector[idmb];
+      Chamber * thisChamber=chamberVector[idmb];
       cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
       //loop over the cfebs
       //define CFEBs
@@ -9485,16 +9523,31 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
 	  if (i==4) boardid=0xcfeb063a;
 	  cout <<" This CFEB Board Number should be set to: "<<boardid<<endl;
 	*/
+	std::string chamber=thisChamber->GetLabel();
+	int cfebID=brddb->ChamberToCFEBID(chamber,i+1);
+	//the id readback from CFEB
 	promid[0]=boardid&0xff;
 	promid[1]=(boardid>>8)&0xff;
 	promid[2]=(boardid>>16)&0xff;
 	promid[3]=(boardid>>24)&0xff;
 	//
+	//the ID readback from database
+	if (((boardid&0x00000fff)==0) ||
+	    ((boardid&0x00000fff)==0xfff) ||
+            ((boardid&0x00000fff)==0xaad)) promid[0]=cfebID&0xff;
+	promid[1]=(cfebID>>8)&0x0f;
+	promid[2]=0xeb;
+	promid[3]=0xcf;
+	int newcfebid;
+	newcfebid=(promid[0]&0xff)+((promid[1]<<8)&0xff00);
+        //
 	std::string CFEBFirmware = FirmwareDir_+CFEB_FIRMWARE_FILENAME;
 	//
 	thisDMB->epromload_broadcast(thisCFEBs[i].promDevice(),CFEBFirmware.c_str(),1,promid,2);
 	usleep(200);
-	cout <<" This CFEB Board Number is set to: "<<boardid<<endl;
+	        cout <<" This CFEB Board Number is set to: "<<newcfebid;
+          cout <<"     was set to: "<<(boardid&0xffff)<<endl;
+	cout <<" This CFEB Board Number is set to: CFEB"<<hex<<((promid[1])&0xff)<<((promid[0])&0xff)<<" was set to: "<<hex<<boardid<<endl;
       }
       cout <<endl;
     }
