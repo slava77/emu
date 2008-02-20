@@ -24,6 +24,31 @@
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 	</Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>DMB_Unpacked_with_errors</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>61</XMax>
+                <XBins>60</XBins>
+                <XTitle>Crate ID</XTitle>
+                <YMin>1</YMin>
+                <YMax>11</YMax>
+                <YBins>10</YBins>
+                <YTitle>DMB/TMB Slot ID</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Unpacked DMBs with Format errors</Title>
+                <SetNdivisionsX>60</SetNdivisionsX>
+                <SetNdivisionsY>10</SetNdivisionsY>
+                <SetLabelSizeX>0.015</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+        </Histogram>
+
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>EMU</Prefix>
@@ -119,6 +144,53 @@
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
 	</Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Unpacked_with_errors</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Unpacked CSCs with format errors</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+        </Histogram>
+	
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_Unpacked_with_warnings</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Unpacked CSCs with format warnings</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+        </Histogram>
+
+
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>EMU</Prefix>
@@ -1060,390 +1132,6 @@
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT2_BXN</Name>
-		<SetOption>hist</SetOption>
-		<XMin>0</XMin>
-		<XMax>32</XMax>
-		<XBins>32</XBins>
-		<XTitle>ALCT2 BXN</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>eo</SetOptStat>
-		<Title>ALCT2 BXN</Title>
-		<SetMinimum>0</SetMinimum>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT2_KeyWG</Name>
-		<SetOption>hist</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>em</SetOptStat>
-		<Title>ALCT2 Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT2_Pattern</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>4</YMax>
-		<YBins>4</YBins>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT2 Patterns vs Key Wiregroup</Title>
-		<SetYLabels>1='Collision A'|2='Collision B'|3='Acelerator'|4='N/A'|</SetYLabels>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT2_Quality</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>4</YMax>
-		<YBins>4</YBins>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT2 Quality vs Key Wiregroup</Title>
-		<SetYLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|</SetYLabels>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>hp</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT2_Quality_Profile</Name>
-		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
-		<YTitle>Average Quality</YTitle>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT2 Average Quality</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT2_dTime</Name>
-		<SetOption>texthist</SetOption>
-		<XMin>-16</XMin>
-		<XMax>16</XMax>
-		<XBins>32</XBins>
-		<XTitle>ALCT2 BXN - ALCT_L1A BXN</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>emuo</SetOptStat>
-		<Title>ALCT2 BXN - ALCT_L1A BXN difference</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>hp</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT2_dTime_Profile</Name>
-		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
-		<YTitle>Average (ALCT2 BXN - L1A BXN)</YTitle>
-		<SetOptStat>e</SetOptStat>
-		<Title>Average (ALCT2 BXN - L1A BXN) vs Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT2_dTime_vs_KeyWG</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>-16</YMin>
-		<YMax>16</YMax>
-		<YBins>32</YBins>
-		<YTitle>ALCT2 BXN - ALCT_L1A BXN</YTitle>
-		<SetOptStat>em</SetOptStat>
-		<Title>(ALCT2 BXN - ALCT_L1A BXN) vs Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT3_BXN</Name>
-		<SetOption>hist</SetOption>
-		<XMin>0</XMin>
-		<XMax>32</XMax>
-		<XBins>32</XBins>
-		<XTitle>ALCT3 BXN</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>eo</SetOptStat>
-		<Title>ALCT3 BXN</Title>
-		<SetMinimum>0</SetMinimum>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT3_KeyWG</Name>
-		<SetOption>hist</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>em</SetOptStat>
-		<Title>ALCT3 Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT3_Pattern</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>4</YMax>
-		<YBins>4</YBins>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT3 Patterns vs Key Wiregroup</Title>
-		<SetYLabels>1='Collision A'|2='Collision B'|3='Acelerator'|4='N/A'|</SetYLabels>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT3_Quality</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>4</YMax>
-		<YBins>4</YBins>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT3 Quality vs Key Wiregroup</Title>
-		<SetYLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|</SetYLabels>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>hp</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT3_Quality_Profile</Name>
-		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
-		<YTitle>Average Quality</YTitle>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT3 Average Quality</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT3_dTime</Name>
-		<SetOption>texthist</SetOption>
-		<XMin>-16</XMin>
-		<XMax>16</XMax>
-		<XBins>32</XBins>
-		<XTitle>ALCT3 BXN - ALCT_L1A BXN</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>emuo</SetOptStat>
-		<Title>ALCT3 BXN - ALCT_L1A BXN difference</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>hp</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT3_dTime_Profile</Name>
-		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
-		<YTitle>Average (ALCT2 BXN - L1A BXN)</YTitle>
-		<SetOptStat>e</SetOptStat>
-		<Title>Average (ALCT3 BXN - L1A BXN) vs Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT3_dTime_vs_KeyWG</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>-16</YMin>
-		<YMax>16</YMax>
-		<YBins>32</YBins>
-		<YTitle>ALCT2 BXN - ALCT_L1A BXN</YTitle>
-		<SetOptStat>em</SetOptStat>
-		<Title>(ALCT3 BXN - ALCT_L1A BXN) vs Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT4_BXN</Name>
-		<SetOption>hist</SetOption>
-		<XMin>0</XMin>
-		<XMax>32</XMax>
-		<XBins>32</XBins>
-		<XTitle>ALCT4 BXN</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>eo</SetOptStat>
-		<Title>ALCT4 BXN</Title>
-		<SetMinimum>0</SetMinimum>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT4_KeyWG</Name>
-		<SetOption>hist</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>em</SetOptStat>
-		<Title>ALCT4 Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT4_Pattern</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>4</YMax>
-		<YBins>4</YBins>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT4 Patterns vs Key Wiregroup</Title>
-		<SetYLabels>1='Collision A'|2='Collision B'|3='Acelerator'|4='N/A'|</SetYLabels>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT4_Quality</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>4</YMax>
-		<YBins>4</YBins>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT4 Quality vs Key Wiregroup</Title>
-		<SetYLabels>1='Q=0'|2='Q=1'|3='Q=2'|4='Q=3'|</SetYLabels>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>hp</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT4_Quality_Profile</Name>
-		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
-		<YTitle>Average Quality</YTitle>
-		<SetOptStat>e</SetOptStat>
-		<Title>ALCT4 Average Quality</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h1</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT4_dTime</Name>
-		<SetOption>texthist</SetOption>
-		<XMin>-16</XMin>
-		<XMax>16</XMax>
-		<XBins>32</XBins>
-		<XTitle>ALCT4 BXN - ALCT_L1A BXN</XTitle>
-		<YTitle>Number of events</YTitle>
-		<SetOptStat>emuo</SetOptStat>
-		<Title>ALCT4 BXN - ALCT_L1A BXN difference</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>hp</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT4_dTime_Profile</Name>
-		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>0</YMin>
-		<YMax>1</YMax>
-		<YBins>1</YBins>
-		<YTitle>Average (ALCT2 BXN - L1A BXN)</YTitle>
-		<SetOptStat>e</SetOptStat>
-		<Title>Average (ALCT4 BXN - L1A BXN) vs Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
-		<Type>h2</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT4_dTime_vs_KeyWG</Name>
-		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>112</XMax>
-		<XBins>112</XBins>
-		<XTitle>Key Wiregroup</XTitle>
-		<YMin>-16</YMin>
-		<YMax>16</YMax>
-		<YBins>32</YBins>
-		<YTitle>ALCT2 BXN - ALCT_L1A BXN</YTitle>
-		<SetOptStat>em</SetOptStat>
-		<Title>(ALCT4 BXN - ALCT_L1A BXN) vs Key Wiregroup</Title>
-		<Folder>ALCT</Folder>
-	</Histogram>
-	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
 		<Name>ALCT1_vs_ALCT0_KeyWG</Name>
@@ -1927,8 +1615,8 @@
 		<Name>ALCT_Number_Efficiency</Name>
 		<SetOption>texthist</SetOption>
 		<XMin>0</XMin>
-		<XMax>6</XMax>
-		<XBins>6</XBins>
+		<XMax>3</XMax>
+		<XBins>3</XBins>
 		<XTitle>Number of ALCTs</XTitle>
 		<YTitle>Efficiency (% of total DMB events)</YTitle>
 		<SetOptStat>e</SetOptStat>
@@ -1970,8 +1658,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>ALCT_Number_Rate</Name>
 		<XMin>0</XMin>
-		<XMax>6</XMax>
-		<XBins>6</XBins>
+		<XMax>3</XMax>
+		<XBins>3</XBins>
 		<Title>Number of ALCTs</Title>
 		<Folder>ALCT</Folder>
 	</Histogram>
@@ -3477,7 +3165,7 @@
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
 		<SetMinimum>0</SetMinimum>
-		<Folder>CFEB</Folder>
+		<Folder>CFEB</Folder>	
 		<SetErrorOption>s</SetErrorOption>
 	</Histogram>
 	<Histogram>
