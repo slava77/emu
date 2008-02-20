@@ -26,8 +26,8 @@ parse and use xml board data bases.
 
 BoardsDB::BoardsDB(): pAttributes_(0)
 {
-  HOMEDIR_=getenv("HOME");
-  HOMEDIR_+="/config/db/";
+  HOMEDIR_=getenv("BUILD_HOME");
+  HOMEDIR_+="/emu/emuDCS/OnlineDB/xml/";
   std::cout << "Home Directory:" << HOMEDIR_ <<std::endl;
 
   iPCdb=0;

@@ -28,8 +28,8 @@ not crate and slot in their GUIs
 
 ConnectionsDB::ConnectionsDB(): pAttributes_(0)
 {
-  HOMEDIR_=getenv("HOME");
-  HOMEDIR_+="/config/db/";
+  HOMEDIR_=getenv("BUILD_HOME");
+  HOMEDIR_+="/emu/emuDCS/OnlineDB/xml/";
   std::cout << "Home Directory:" << HOMEDIR_ <<std::endl;
 
   idb=0;
