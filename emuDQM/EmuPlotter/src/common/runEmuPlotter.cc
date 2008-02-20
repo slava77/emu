@@ -73,7 +73,8 @@ int main(int argc, char **argv) {
 
 	uint32_t dduCheckMask=0xFFFFDFFF;
 	// uint32_t binCheckMask=0xF7FB3BF6;
-	uint32_t binCheckMask=0xF7783BF6; // ignore CFEB DAV error and Sample Count Error
+	uint32_t binCheckMask=0xF778FFF6; // ignore CFEB DAV error and Sample Count Error
+	// uint32_t binCheckMask = 1;
 	uint32_t node=0;
 
 	switch (argc) {
@@ -95,10 +96,6 @@ int main(int argc, char **argv) {
 	EmuFileReader ddu(datafile.c_str(), EmuReader::DDU);
         ddu.open(datafile.c_str());
         LOG4CPLUS_INFO (logger, "Opened data file " << datafile);
-
-	LOG4CPLUS_INFO (logger,  "Reading Events from " << startEvent
-                        << " to " << NumberOfEvents);
-
 
 	EmuPlotter* plotter = new EmuPlotter();
 	plotter->setLogLevel(WARN_LOG_LEVEL);
@@ -136,7 +133,7 @@ int main(int argc, char **argv) {
         }
 
 	if (datafile.find(".root") != std::string::npos) {
-		LOG4CPLUS_WARN (logger, "Load MEs from ROOT file " << datafile);
+		LOG4CPLUS_INFO (logger, "Load MEs from ROOT file " << datafile);
 		histofile = datafile;
                 if (histofile.rfind("/") != std::string::npos)
                         histofile.erase(0, histofile.rfind("/")+1);
@@ -144,8 +141,9 @@ int main(int argc, char **argv) {
 		std::string runname = histofile; 
 		runname = runname.replace(runname.find(".root"), 5, "");
                 plotsdir = plotsdir.replace(plotsdir.find(".root"), 5, ".plots");
-		plotter->loadFromROOTFile(datafile);
-		plotter->saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
+		plotter->convertROOTToImages(datafile, plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
+		// plotter->loadFromROOTFile(datafile);
+		// plotter->saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
 		// plotter->generateLayout("csc-layouts.py", "EMU");
 		
 		// LOG4CPLUS_INFO (logger, "Cleanup before exit");
@@ -153,6 +151,8 @@ int main(int argc, char **argv) {
 		delete plotter;
 		return 0;
 	}
+	LOG4CPLUS_INFO (logger,  "Reading Events from " << startEvent
+                        << " to " << NumberOfEvents);
 
 	plotter->setHistoFile(histofile.c_str());	
 	if (dduCheckMask >= 0) {

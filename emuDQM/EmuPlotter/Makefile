@@ -32,6 +32,7 @@ Sources=\
 	EmuPlotter_loadXMLBookingInfo.cc \
 	EmuPlotter_loadXMLCanvasesInfo.cc \
 	EmuPlotter_loadFromROOTFile.cc \
+	EmuPlotter_convertROOTToImages.cc \
 	EmuPlotter_processEvent.cc \
 	EmuPlotter_processChamber.cc \
 	EmuPlotter_saveImages.cc \

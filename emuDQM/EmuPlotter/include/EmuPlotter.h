@@ -90,7 +90,6 @@ public:
   //     data structures and calls the appropriate fill() routine below.
   void processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
   void processChamber(const CSCEventData& data,int32_t nodeID, int32_t dduID);
-  void fillChamberBinCheck(int32_t nodeNumber);
 
   void setHistoFile(std::string hfile) {HistoFile = hfile;};
 
@@ -120,7 +119,12 @@ public:
         int width=DEFAULT_CANVAS_WIDTH, 
         int height=DEFAULT_CANVAS_HEIGHT,
 	std::string runname="");
-
+  int  convertROOTToImages(std::string rootfile, 
+	std::string path="", 
+	std::string format=DEFAULT_IMAGE_FORMAT,
+        int width=DEFAULT_CANVAS_WIDTH,
+        int height=DEFAULT_CANVAS_HEIGHT,
+        std::string runname="");
   void generateCanvasesListFile(std::string filename="canvases_list.js", std::string imgformat="png");
   void generateLayout(std::string filename, std::string rootfolder);
    
@@ -169,6 +173,8 @@ protected:
   void clearCanvasesCollection(MECanvases_List &collection);
   void printCanvasesCollection(MECanvases_List &collection);
   EmuMonitoringObject* createME(DOMNode* MEInfo);  
+
+  void fillChamberBinCheck(int32_t nodeNumber, bool isEventDenied);
 
   void createHTMLNavigation(std::string path);
   void createTreeTemplate(std::string path);
