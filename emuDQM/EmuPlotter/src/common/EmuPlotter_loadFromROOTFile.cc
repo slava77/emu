@@ -86,11 +86,13 @@ int EmuPlotter::loadFromROOTFile(std::string rootfile, bool fReset)
 	//	h_itr->second->getObject()->Add((TH1*)obj);
 		h_itr->second->setObject((MonitorElement*)obj);
 	      }
+	      // delete obj;
 	    } else {
 	      LOG4CPLUS_ERROR(logger_, "Can not find " << hname);
 	    }
 	  }
 	}
+	
       }
   }
 

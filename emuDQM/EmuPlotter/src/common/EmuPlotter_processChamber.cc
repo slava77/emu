@@ -61,8 +61,12 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   std::string dduTag(Form("DDU_%d", dduID));
   std::string cscTag(Form("CSC_%03d_%02d", crateID, dmbID));
   nDMBEvents[cscTag]++;
+
+  //    Efficiency of the chamber
+  double DMBEvents = nDMBEvents[cscTag];
+  
   LOG4CPLUS_INFO(logger_,
-		 "Unpacking " << cscTag << " (Event: " << nDMBEvents[cscTag]<< ")");
+		 "Unpacking " << cscTag << " (Event: " << DMBEvents<< ")");
 
   //	Creating list of histograms for the particular chamber
   map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
@@ -93,29 +97,27 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
       && isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
     for(int bit=5; bit<24; bit++) {
-      double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
+      double freq = (100.0*mo->GetBinContent(1,bit-4))/DMBEvents;
       mof->SetBinContent(bit-4, freq);
     }
-    mo->SetEntries(nDMBEvents[cscTag]);
-    mof->SetEntries(nDMBEvents[cscTag]);
+    mo->SetEntries(DMBEvents);
+    mof->SetEntries(DMBEvents);
   }
 
   if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo)
       && isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
     for(int bit=1; bit<2; bit++) {
-      double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
+      double freq = (100.0*mo->GetBinContent(1,bit))/DMBEvents;
       mof->SetBinContent(bit, freq);
     }
-    mo->SetEntries(nDMBEvents[cscTag]);
-    mof->SetEntries(nDMBEvents[cscTag]);
+    mo->SetEntries(DMBEvents);
+    mof->SetEntries(DMBEvents);
   }
 
 
   //    Efficiency of the chamber
-  float DMBEvent  = 0.0;
-  float DMBEff  = 0.0;
-  DMBEff = float(nDMBEvents[cscTag])/float(nEvents);
-  DMBEvent = nDMBEvents[cscTag];
+  double DMBEff  = 0.0;
+  DMBEff = double(DMBEvents/double(nEvents));
   if(DMBEff > 1.0) {
     LOG4CPLUS_ERROR(logger_,  cscTag  << " has efficiency "
 		    << DMBEff << " which is greater than 1");
@@ -217,7 +219,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       if ((int)((dmbTrailer.cfeb_half>>i)&0x1) == 0) mo->Fill(i+2,1);
       if ((int)((dmbTrailer.cfeb_full>>i)&0x1) == 1) mo->Fill(i+2,2);
     }
-    mo->SetEntries((int)DMBEvent);
+    mo->SetEntries(DMBEvents);
   }
 
   if (isMEvalid(cscME, "DMB_FEB_Timeouts", mo)) {
@@ -232,7 +234,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       if ((dmbTrailer.cfeb_starttimeout>>i) & 0x1) mo->Fill(i+3);
       if ((dmbTrailer.cfeb_endtimeout>>i) & 0x1) mo->Fill(i+10); // KK 8->10
     }
-    mo->SetEntries((int)DMBEvent);
+    mo->SetEntries(DMBEvents);
   }
 
   //      Get FEBs Data Available Info
@@ -247,8 +249,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->Fill(0.0);
     float alct_dav_number   = mo->GetBinContent(1);
     if (isMEvalid(cscME, "DMB_FEB_DAV_Efficiency", mo)) {
-      mo->SetBinContent(1, ((float)alct_dav_number/(float)(nDMBEvents[cscTag])*100.0));
-      mo->SetEntries(nDMBEvents[cscTag]);
+      mo->SetBinContent(1, (100.*alct_dav_number/DMBEvents));
+      mo->SetEntries(DMBEvents);
     }
   }
 
@@ -256,8 +258,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->Fill(1.0);
     float tmb_dav_number    = mo->GetBinContent(2);
     if (isMEvalid(cscME, "DMB_FEB_DAV_Efficiency", mo)) {
-      mo->SetBinContent(2, ((float)tmb_dav_number/(float)(nDMBEvents[cscTag])*100.0));
-      mo->SetEntries(nDMBEvents[cscTag]);
+      mo->SetBinContent(2, (100.*tmb_dav_number/DMBEvents));
+      mo->SetEntries(DMBEvents);
     }
   }
 
@@ -266,8 +268,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->Fill(2.0);
     float cfeb_dav2_number = mo->GetBinContent(3);
     if (isMEvalid(cscME, "DMB_FEB_DAV_Efficiency", mo)) {
-      mo->SetBinContent(3, ((float)cfeb_dav2_number/(float)(nDMBEvents[cscTag])*100.0));
-      mo->SetEntries(nDMBEvents[cscTag]);
+      mo->SetBinContent(3, (100.*cfeb_dav2_number/DMBEvents));
+      mo->SetEntries(DMBEvents);
     }
   }
 
@@ -285,8 +287,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->Fill(feb_combination_dav);
     float feb_combination_dav_number = mo->GetBinContent((int)(feb_combination_dav+1.0));
     if (isMEvalid(cscME, "DMB_FEB_Combinations_DAV_Efficiency",mo)) {
-      mo->SetBinContent((int)(feb_combination_dav+1.0), ((float)feb_combination_dav_number/(float)(nDMBEvents[cscTag])*100.0));
-      mo->SetEntries(nDMBEvents[cscTag]);
+      mo->SetBinContent((int)(feb_combination_dav+1.0), (100.*feb_combination_dav_number/DMBEvents));
+      mo->SetEntries(DMBEvents);
     }
   }
 
@@ -294,7 +296,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   //ALCT Found
   if (data.nalct()) {
     CSCALCTHeader alctHeader = data.alctHeader();
-    CSCALCTTrailer alctTrailer = data.alctTrailer();
+    CSCALCTTrailer alctTrailer;
+    alctTrailer = data.alctTrailer();
     CSCAnodeData alctData = data.alctData();
     vector<CSCALCTDigi> alctsDatasTmp = alctHeader.ALCTDigis();
     vector<CSCALCTDigi> alctsDatas;
@@ -315,9 +318,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	if(nEvents > 0) {
 	  //KK
 	  //h[hname]->SetBinContent(3, ((float)ALCTEvent/(float)(nEvents)*100.0));
-	  mo->SetBinContent(1, ((float)ALCTEvent/(float)(nDMBEvents[cscTag])*100.0));
+	  mo->SetBinContent(1, (100.*ALCTEvent/DMBEvents));
 	  //KKend
-	  mo->SetEntries(nEvents);
+	  mo->SetEntries(DMBEvents);
 	}
       }
     }
@@ -367,7 +370,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       mo->Fill(alctsDatas.size());
       int nALCT = (int)mo->GetBinContent((int)(alctsDatas.size()+1));
       if (isMEvalid(cscME, "ALCT_Number_Efficiency", mo)) 
-	mo->SetBinContent((int)(alctsDatas.size()+1), (float)(nALCT)/(float)(DMBEvent)*100.0);
+	mo->SetBinContent((int)(alctsDatas.size()+1), 100.*nALCT/DMBEvents);
     }
 
     if (isMEvalid(cscME, "ALCT_Word_Count", mo)) mo->Fill((int)(alctTrailer.wordCount()));
@@ -455,12 +458,12 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	      Double_t Number_of_entries_ALCT = mo->getObject()->GetEntries();
 	      if (isMEvalid(cscME, Form("ALCT_Ly%d_Efficiency", nLayer), mo)) {
 		mo->SetBinContent(wg+1,((float)number_wg));
-		if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
-		  mo->getObject()->SetNormFactor(100.0*Number_of_entries_ALCT/(Double_t)(nDMBEvents[cscTag]));
+		if(DMBEvents > 0.0) {
+		  mo->getObject()->SetNormFactor(100.0*Number_of_entries_ALCT/DMBEvents);
 		} else {
 		  mo->getObject()->SetNormFactor(100.0);
 		}
-		mo->SetEntries(nDMBEvents[cscTag]);
+		mo->SetEntries(DMBEvents);
 	      }
 	    }
 	  }
@@ -481,7 +484,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "ALCT_Number_Rate", mo)) { 
       mo->Fill(0);
       int nALCT = (int)mo->GetBinContent(1);
-      if (isMEvalid(cscME, "ALCT_Number_Efficiency", mo)) mo->SetBinContent(1, (float)(nALCT)/(float)(DMBEvent)*100.0);
+      if (isMEvalid(cscME, "ALCT_Number_Efficiency", mo)) mo->SetBinContent(1, 100.*nALCT/DMBEvents);
     }
     if ((alct_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
       mo->Fill(0.0, 1.0);
@@ -576,7 +579,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       float CLCTEvent = mo->GetBinContent(4);
       if (isMEvalid(cscME, "CSC_Efficiency", mo)) {
 	if(nEvents > 0) {
-	  mo->SetBinContent(2,((float)CLCTEvent/(float)(nDMBEvents[cscTag])*100.0));
+	  mo->SetBinContent(2,(100.*CLCTEvent/DMBEvents));
 	  mo->getObject()->SetEntries(nEvents);
 	}
       }
@@ -615,7 +618,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "CLCT_Number_Rate", mo)) {
       mo->Fill(clctsDatas.size());
       int nCLCT = (int)mo->GetBinContent((int)(clctsDatas.size()+1));
-      if (isMEvalid(cscME, "CLCT_Number", mo)) mo->SetBinContent((int)(clctsDatas.size()+1), (float)(nCLCT)/(float)(DMBEvent)*100.0);
+      if (isMEvalid(cscME, "CLCT_Number", mo)) mo->SetBinContent((int)(clctsDatas.size()+1), 100.*nCLCT/DMBEvents);
     }
 
 
@@ -784,15 +787,15 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		  if (isMEvalid(cscME,  Form("CLCT_Ly%d_Efficiency", nLayer), mo)) {
 		    mo->SetBinContent(hstrip,(float)number_hstrip);
 		
-		    if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
-		      double norm = (100.0*Number_of_entries_CLCT)/((Double_t)(nDMBEvents[cscTag]));
+		    if(DMBEvents > 0.0) {
+		      double norm = 100.*Number_of_entries_CLCT/DMBEvents;
 		      // if (norm < 1.0) norm=1;
 		      mo->getObject()->SetNormFactor(norm);
 		    } else {
 		      mo->getObject()->SetNormFactor(100.0);
 		    }
 	
-		    mo->getObject()->SetEntries(nDMBEvents[cscTag]);
+		    mo->getObject()->SetEntries(DMBEvents);
 		  }
 		}
 	      }
@@ -818,7 +821,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "CLCT_Number_Rate", mo)) {
       mo->Fill(0);
       int nCLCT = (int)mo->GetBinContent(1);
-      if (isMEvalid(cscME, "CLCT_Number", mo)) mo->SetBinContent(1, (float)(nCLCT)/(float)(DMBEvent)*100.0);
+      if (isMEvalid(cscME, "CLCT_Number", mo)) mo->SetBinContent(1, 100.*nCLCT/DMBEvents);
     }    
     if ((tmb_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
       mo->Fill(1.0, 1.0);
@@ -885,7 +888,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	  float CFEBEvent = mo->GetBinContent(5);
 	  if (isMEvalid(cscME, "CSC_Efficiency", mo)) {
 	    if(nEvents > 0) {
-	      mo->SetBinContent(3, ((float)CFEBEvent/(float)(nDMBEvents[cscTag])*100.0));
+	      mo->SetBinContent(3, 100.*CFEBEvent/DMBEvents);
 	      mo->getObject()->SetEntries(nEvents);
 	    }
 	  }
@@ -898,10 +901,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       }
       //-------------B
       NmbTimeSamples= (cfebData[nCFEB])->nTimeSamples();
-      if (NmbTimeSamples > 16) {
-	LOG4CPLUS_WARN(logger_, "Number of CFEB timesamples is out of range " <<NmbTimeSamples );
-	continue;
-      }
       //-------------E
       LOG4CPLUS_DEBUG(logger_, "nEvents = " << nEvents);
       LOG4CPLUS_DEBUG(logger_, "Chamber ID = "<< cscTag << " Crate ID = "<< crateID

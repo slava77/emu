@@ -160,15 +160,16 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     EventDenied = true;
   }
 
-  //	Accept or deny event according to Binary Error and binCheckMask
-  if ((BinaryErrorStatus != 0) || (BinaryWarningStatus != 0)) {
-    nBadEvents++;
-    fillChamberBinCheck(node);
-  }    
   if ((BinaryErrorStatus & binCheckMask)>0) {
     LOG4CPLUS_WARN(logger_,eTag << "Skipped because of Binary Error");
     EventDenied = true;
   }
+
+  if ((BinaryErrorStatus != 0) || (BinaryWarningStatus != 0)) {
+    nBadEvents++;
+    fillChamberBinCheck(node, EventDenied);
+  }
+
 
   if(EventDenied) return;
   else LOG4CPLUS_DEBUG(logger_,eTag << "is accepted");
@@ -462,7 +463,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 }
 
 
-void EmuPlotter::fillChamberBinCheck(int32_t node) {
+void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 
   std::string nodeTag = "EMU";
   ME_List nodeME = MEs[nodeTag];
@@ -515,14 +516,21 @@ void EmuPlotter::fillChamberBinCheck(int32_t node) {
       mo->Fill(CrateID, DMBSlot);
     }
 
+    if (!isEventDenied && isCSCError && isMEvalid(nodeME, "DMB_Unpacked_with_Errors", mo)) {
+      mo->Fill(CrateID, DMBSlot);
+    }
+
+
     int CSCtype   = 0;
     int CSCposition = 0;
     getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
     if (isCSCError && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Errors", mo)) {
       mo->Fill(CSCposition, CSCtype);
-      //    mo->SetEntries(nBadEvents);
     }
 
+    if (!isEventDenied && isCSCError && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo)) {
+      mo->Fill(CSCposition, CSCtype);
+    }
 
     chamber++;
   }
@@ -574,6 +582,12 @@ void EmuPlotter::fillChamberBinCheck(int32_t node) {
       //      mo->SetEntries(nBadEvents);
     }
 
+    if (!isEventDenied && isCSCWarning && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo)) {
+      mo->Fill(CSCposition, CSCtype);
+      //      mo->SetEntries(nBadEvents);
+    }
+
+
     chamber++;
   }
   // }
@@ -591,14 +605,19 @@ void EmuPlotter::updateFractionHistos()
   EmuMonitoringObject *mo = NULL;
   EmuMonitoringObject *mo1 = NULL;
   EmuMonitoringObject *mo2 = NULL;
+  EmuMonitoringObject *mo3 = NULL;
   if (isMEvalid(nodeME, "DMB_Format_Errors_Fract", mo)
       && isMEvalid(nodeME, "DMB_Format_Errors", mo1)
       && isMEvalid(nodeME, "DMB_Unpacked", mo2))
     {
        // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-
+        
         MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
         tmp->Add(mo1->getObject());
+        if (isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo3)) {
+		tmp->Add(mo3->getObject(), -1);
+        }
+	
         mo->getObject()->Divide(mo1->getObject(), tmp);
         delete tmp;
 
@@ -613,6 +632,9 @@ void EmuPlotter::updateFractionHistos()
 
         MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
         tmp->Add(mo1->getObject());
+	if (isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo3)) {
+                tmp->Add(mo3->getObject(), -1);
+        }
         mo->getObject()->Divide(mo1->getObject(), tmp);
         delete tmp;
 
@@ -627,6 +649,9 @@ void EmuPlotter::updateFractionHistos()
 
         MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
         tmp->Add(mo1->getObject());
+	if (isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo3)) {
+                tmp->Add(mo3->getObject(), -1);
+        }
         mo->getObject()->Divide(mo1->getObject(), tmp);
         delete tmp;
 
