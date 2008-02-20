@@ -292,10 +292,11 @@ int main(int argc, char **argv)
 		     ((buf0[1]&0xF800)==0xD000) && 
 		     ((buf0[2]&0xF800)==0xD000) && 
 		     ((buf0[3]&0xF000)==0xD000) )   {
+			// for (int i=0; i<4; i++) alctData.push_back(buf0[i]);
 			int crcALCT = buf0[1] & 0x7FF;
 			crcALCT |= (buf0[2] & 0x7FF) << 11;
 		       cout << "  |ALCT> CRC: 0x" << hex << crcALCT << " wordcnt: " << dec << (buf0[3] & 0x7FF) << endl;
-			cout << " ALCT size: " << alctData.size() << " words,  calc CRC: 0x" << hex  << calcALCTcrc(alctData) << endl;
+			cout << " ALCT size: " << alctData.size()+4 << " words,  calc CRC: 0x" << hex  << calcALCTcrc(alctData) << endl;
 		       fALCT=false;
 			
 		       
@@ -311,10 +312,11 @@ int main(int argc, char **argv)
 		     ((buf0[1]&0xF000)==0xD000) && 
 		     ((buf0[2]&0xF000)==0xD000) && 
 		     ((buf0[3]&0xF000)==0xD000) )   {
+			// for (int i=0; i<4; i++) tmbData.push_back(buf0[i]);
 			int crcTMB = buf0[1] & 0x7FF;
                         crcTMB |= (buf0[2] & 0x7FF) << 11;
 		       cout << "  |TMB> CRC: 0x" << hex << crcTMB << " wordcnt: " << dec << (buf0[3] & 0x7FF) << endl;
-			cout << " TMB size " << tmbData.size() << " words,  calc CRC: 0x" << hex  << calcTMBcrc(tmbData) << endl;
+			cout << " TMB size " << tmbData.size()+4 << " words,  calc CRC: 0x" << hex  << calcTMBcrc(tmbData) << endl;
 			fTMB=false;
 		}      
 
