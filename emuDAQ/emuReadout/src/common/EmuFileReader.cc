@@ -35,7 +35,7 @@ void EmuFileReader::open(std::string filename) {
 //   theFile->open( filename.c_str(), std::ifstream::in | std::ifstream::binary );
 //   theFileDescriptor = theFile->rdbuf()->fd();
 
-   theFileDescriptor = ::open(filename.c_str(), O_RDONLY);
+   theFileDescriptor = ::open(filename.c_str(), O_RDONLY | O_LARGEFILE);
 
    // Abort in case of any failure
    if (theFileDescriptor == -1) {
@@ -60,7 +60,7 @@ int EmuFileReader::readDDU(unsigned short*& buf) {
         do {
                 if( (size = read(buf)) == 0 ) break;
         } while( rejectCriteria&eventStatus || !(acceptCriteria&eventStatus) || (selectCriteria?selectCriteria!=eventStatus:0) );
-	usleep(5000);
+	// usleep(5000);
 	theDataLength = size;
         return size;
 }
