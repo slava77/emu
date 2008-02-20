@@ -18,6 +18,9 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
   std::ofstream tree_items;
   std::ofstream csc_list;
 
+  TString command = Form("mkdir -p %s",path.c_str());
+    gSystem->Exec(command.Data());
+
   std::string runNumber = runname;
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
@@ -31,8 +34,6 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
   std::vector<std::string> DDU_folders;
   std::vector<std::string> CSC_folders;
 
-  TString command = Form("mkdir -p %s",path.c_str());
-    gSystem->Exec(command.Data());
 
   TDirectory *sourcedir = gDirectory;
 
