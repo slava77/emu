@@ -185,10 +185,10 @@ int EmuMonitoringObject::applyParameters()
     }
 
     /*		
-    if ((itr = params.find("SetOptStat")) != params.end()) {
-      gStyle->SetOptStat(itr->second.c_str());
+	if ((itr = params.find("SetOptStat")) != params.end()) {
+	gStyle->SetOptStat(itr->second.c_str());
 			
-    }
+	}
     */
 	
     if ((itr = params.find("SetStats")) != params.end()) {
@@ -304,7 +304,7 @@ int EmuMonitoringObject::applyParameters()
       std::string st = itr->second;
       double opt = atof(st.c_str()) ;
       if (object) {
-//        object->GetYaxis()->SetLabelSize(opt);
+	//        object->GetYaxis()->SetLabelSize(opt);
 	object->SetLabelSize(opt,"Y");
       }
     }
@@ -320,14 +320,14 @@ int EmuMonitoringObject::applyParameters()
       std::string st = itr->second;
       double opt = atof(st.c_str()) ;
       if (object) {
-//        object->GetZaxis()->SetLabelSize(opt);
+	//        object->GetZaxis()->SetLabelSize(opt);
 	object->SetLabelSize(opt,"Z");
-/*
-	TPaletteAxis *palette = (TPaletteAxis*)object->GetListOfFunctions()->FindObject("palette");
-         if (palette != NULL) {
-                palette->SetLabelSize(opt);
-         } 
-*/
+	/*
+	  TPaletteAxis *palette = (TPaletteAxis*)object->GetListOfFunctions()->FindObject("palette");
+	  if (palette != NULL) {
+	  palette->SetLabelSize(opt);
+	  } 
+	*/
       }
     }
 
@@ -346,12 +346,17 @@ int EmuMonitoringObject::Book(DOMNode* info)
 
 int EmuMonitoringObject::setObject(MonitorElement* hist)
 {
-  if (object != NULL) {
-    delete object;
-    object = NULL;
-  } 
-  object = reinterpret_cast<MonitorElement*>(hist->Clone());
-  applyParameters();
+
+  if ( hist->IsA()->InheritsFrom( "TH1" ) ) {
+    if (object != NULL) {
+      delete object;
+      object = NULL;
+    } 
+    // object = reinterpret_cast<MonitorElement*>(hist->Clone());
+  
+    object = dynamic_cast<MonitorElement*>(hist);
+    applyParameters();
+  }
   return 0;
 }
 

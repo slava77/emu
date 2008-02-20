@@ -30,7 +30,7 @@ using namespace XERCES_CPP_NAMESPACE;
 #include <TPaveStats.h>
 #include <TColor.h>
 #include <TPaletteAxis.h>
-
+#include <TClass.h>
 
 // class MonitorElement: public TH1 {};
 // typedef EmuMonitorElement MonitorElement;
