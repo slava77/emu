@@ -516,7 +516,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       mo->Fill(CrateID, DMBSlot);
     }
 
-    if (!isEventDenied && isCSCError && isMEvalid(nodeME, "DMB_Unpacked_with_Errors", mo)) {
+    if (!isEventDenied && isCSCError && isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo)) {
       mo->Fill(CrateID, DMBSlot);
     }
 
