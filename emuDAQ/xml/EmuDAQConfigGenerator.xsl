@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- This XSL transformation is used to generate XDAQ config file for EmuDAQ from a RUI-to-computer mapping. -->
 <!-- Usage example:  -->
-<!--     xsltproc [<hyphen><hyphen>stringparam SIDE '+|-'] EmuDAQConfigGenerator.xsl RUI-to-computer_mapping.xml > EmuDAQ.xml -->
+<!--     xsltproc [<hyphen><hyphen>stringparam SIDE 'P|M|B'] <hyphen><hyphen>stringparam WRITE Y <hyphen><hyphen>stringparam BUILD N EmuDAQConfigGenerator.xsl RUI-to-computer_mapping.xml > DAQ.xml -->
 <xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30"
@@ -9,8 +9,14 @@
   xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
 
   <!-- Parameter SIDE is to be optionally set from the command line. -->
-  <!-- If it's set to '-', only the minus side will be generated; if '+', only the plus side; otherwise both sides. -->
+  <!-- If it's set to 'M', only the minus side will be generated; if 'P', only the plus side; if 'B', both sides; otherwise both sides. -->
   <xsl:param name="SIDE"/>
+  <!-- Parameter WRITE is to be set from the command line. -->
+  <!-- If it is set to 'Y', the RUIs will write data to files; if 'N', they will not. -->
+  <xsl:param name="WRITE"/>
+  <!-- Parameter BUILD is to be set from the command line. -->
+  <!-- If it is set to 'Y', events will be built; if 'N', events will not be built. -->
+  <xsl:param name="BUILD"/>
 
   <xsl:output method="xml" indent="yes"/>
 
@@ -48,7 +54,7 @@
       <i2o:target tid="1001" instance="0" class="rubuilder::ru::Application"></i2o:target>
 
       <xsl:for-each select="//RUI[@instance!='0']">      
-	<xsl:if test="($SIDE!='+' and $SIDE!='-') or ($SIDE='+' and number(@instance)&lt;=18) or ($SIDE='-' and number(@instance)&gt;18)">
+	<xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
 
 	  <xsl:comment >RUI <xsl:value-of select="@instance"/></xsl:comment>
 
@@ -74,7 +80,6 @@
     <xsl:comment>EmuDAQManager</xsl:comment>
     <xc:Context url="http://csc-daq00.cms:40200">
       <xc:Endpoint hostname="csc-daq00.cms" protocol="tcp" port="40250" service="i2o" network="tcp1"></xc:Endpoint>
-<!--       <xc:Module>${XDAQ_ROOT}/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module> -->
       <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="21">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:PeerTransportTCP">
 	  <autoSize xsi:type="xsd:boolean">true</autoSize>
@@ -111,11 +116,11 @@
 	    <item xsi:type="xsd:string" soapenc:position="[22]">STEP</item>
 	    <item xsi:type="xsd:string" soapenc:position="[23]">Debug</item>
 	  </runTypes>
-	  <buildEvents xsi:type="xsd:boolean">false</buildEvents>
+	  <buildEvents xsi:type="xsd:boolean"><xsl:if test="$BUILD='N'">false</xsl:if><xsl:if test="$BUILD='Y'">true</xsl:if></buildEvents>
 	  <runType xsi:type="xsd:string">Monitor</runType>
-	  
-	  <runDbBookingCommand xsi:type="xsd:string">/nfshome0/cscdaq/bin/java -jar /nfshome0/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
-	  <runDbWritingCommand xsi:type="xsd:string">/nfshome0/cscdaq/bin/java -jar /nfshome0/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
+	  <globalMode xsi:type="xsd:boolean">true</globalMode>
+	  <runDbBookingCommand xsi:type="xsd:string">/usr/java/jdk/bin/java -jar /nfshome0/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
+	  <runDbWritingCommand xsi:type="xsd:string">/usr/java/jdk/bin/java -jar /nfshome0/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
 	  <runDbAddress xsi:type="xsd:string">dbc:oracle:thin:@oracms.cern.ch:10121:omds</runDbAddress>
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile> -->
@@ -209,7 +214,7 @@
 	  <hardwareMnemonic xsi:type="xsd:string">TF</hardwareMnemonic>
 	  <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	  <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
-	  <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">200</ruiFileSizeInMegaBytes>
+	  <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
 	  <pathToBadEventsFile xsi:type="xsd:string"></pathToBadEventsFile>
 	  <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 	    <item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
@@ -227,7 +232,7 @@
 <!-- Generate contexts for RUIs -->
   <xsl:template name="RUIs">
     <xsl:for-each select="//RUI[@instance!='0']">
-      <xsl:if test="($SIDE!='+' and $SIDE!='-') or ($SIDE='+' and number(@instance)&lt;=18) or ($SIDE='-' and number(@instance)&gt;18)">
+      <xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
 
 	<xsl:variable name="HTTP_HOST"><xsl:value-of select="../@alias"/></xsl:variable>
 	<xsl:variable name="HTTP_PORT"><xsl:value-of select="@port"/></xsl:variable>
@@ -275,7 +280,7 @@
 	      <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	      <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
 	      <pathToBadEventsFile xsi:type="xsd:string"></pathToBadEventsFile>
-	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">200</ruiFileSizeInMegaBytes>
+	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
 	      </clientsClassName>
@@ -313,7 +318,7 @@
 <!-- Generate contexts for EmuMonitors -->
   <xsl:template name="EmuMonitors">
     <xsl:for-each select="//RUI[@instance!='0']">
-      <xsl:if test="($SIDE!='+' and $SIDE!='-') or ($SIDE='+' and number(@instance)&lt;=18) or ($SIDE='-' and number(@instance)&gt;18)">
+      <xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
 
 	<xsl:variable name="HTTP_HOST"><xsl:value-of select="../@alias"/></xsl:variable>
 	<xsl:variable name="HTTP_PORT"><xsl:value-of select="number(@port)+200"/></xsl:variable>
