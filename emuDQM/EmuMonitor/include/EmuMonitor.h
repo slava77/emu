@@ -276,7 +276,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
  
   std::deque<toolbox::mem::Reference*> dataMessages_; // the queue of data messages waiting to be processed
  
-  BSem applicationBSem_;
+  BSem appBSem_;
 
   // == Application state machine
   toolbox::fsm::FiniteStateMachine fsm_; 

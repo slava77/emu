@@ -30,7 +30,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   throw(xdaq::exception::Exception)
     :xdaq::WebApplication(c)
     ,Task("EmuMonitor")
-    ,applicationBSem_(BSem::FULL)
+    ,appBSem_(BSem::FULL)
     ,isReadoutActive(false)
 {
   LOG4CPLUS_INFO(this->getApplicationLogger(),"Constructor called");
@@ -40,6 +40,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
       "/emu/emuDQM/EmuMonitor/images/dqm64x64.gif");
   */
 
+  appBSem_.take();
   plotter_ = NULL;
   deviceReader_ = NULL;
   pool_ = NULL;
@@ -68,6 +69,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   bindCGIcallbacks();
 
   appTid_ = this->getApplicationDescriptor()->getInstance();
+
+  appBSem_.give();
 }
 
 EmuMonitor::~EmuMonitor() 
@@ -296,8 +299,8 @@ void EmuMonitor::setupPlotter()
   }
 
   // plotter_ = new EmuPlotter(getApplicationLogger());
-  plotter_ = new EmuPlotter();
-  plotter_->setLogLevel(WARN_LOG_LEVEL);
+  plotter_ = new EmuPlotter(this->getApplicationLogger());
+//  plotter_->setLogLevel(WARN_LOG_LEVEL);
   plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);
   if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
   if (xmlCanvasesCfgFile_ != "") plotter_->setXMLCanvasesCfgFile(xmlCanvasesCfgFile_.toString());
@@ -718,6 +721,7 @@ void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fs
 
 void EmuMonitor::doStop()
 {
+  appBSem_.take();
   if (plotter_ != NULL && isReadoutActive) { 
     if (timer_ != NULL && timer_->isActive())
       timer_->kill();	
@@ -743,11 +747,13 @@ void EmuMonitor::doStop()
   disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
+  appBSem_.give();
 
 }
 
 void EmuMonitor::doConfigure()
 {
+  appBSem_.take();
   disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
@@ -787,11 +793,13 @@ void EmuMonitor::doConfigure()
     }
   */
   configureReadout();
+  appBSem_.give();
 
 }
 
 void  EmuMonitor::doStart()
 {
+  appBSem_.take();
   sessionEvents_=0;
   creditMsgsSent_ = 0;
   creditsHeld_ = 0;
@@ -812,7 +820,7 @@ void  EmuMonitor::doStart()
         rateMeter->init();
         rateMeter->activate();
   }
-
+  appBSem_.give();
   // bindI2Ocallbacks();
 }
 
@@ -886,7 +894,6 @@ void EmuMonitor::Halt(xgi::Input * in ) throw (xgi::exception::Exception)
 
 void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   // Emu-specific stuff
-
   creditsHeld_ = ((I2O_EMU_DATA_MESSAGE_FRAME*)bufRef->getDataLocation())->nEventCreditsHeld;
   if (fsm_.getCurrentState() != 'E') {
     LOG4CPLUS_WARN(getApplicationLogger(),"Dropping received Data. Not in Enabled state.");
@@ -896,6 +903,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
     return;	
   }
 
+  appBSem_.take();
   dataMessages_.push_back( bufRef );
   eventsReceived_++;
 
@@ -951,6 +959,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   // Free the Emu data message
   bufRef->release();
   dataMessages_.erase( dataMessages_.begin() );
+  appBSem_.give();
   //  eventsReceived_++;
 }
 
@@ -1160,14 +1169,17 @@ int EmuMonitor::svc()
 	      if (plotter_ != NULL) {
 		isReadoutActive = false;
 		if (fSaveROOTFile_== xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)) ) {
+		  appBSem_.take();
 		  plotter_->saveToROOTFile(getROOTFileName());
+		  appBSem_.give();
                 }
 
 	      }
 	    } else {
 	      uint32_t errorFlag = 0;
-	      
+	      appBSem_.take();      
 	      processEvent(deviceReader_->data(), deviceReader_->dataLength(), errorFlag, appTid_);
+	      appBSem_.give();
 	/*
 	      if ((sessionEvents_ % 100) == 1) {
 	       	time_t nowmark=time(NULL);	      	      
