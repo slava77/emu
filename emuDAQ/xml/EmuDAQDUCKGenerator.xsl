@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- This XSL transformation is used for generating DUCK config file for EmuDAQ and EmuDQM from a RUI-to-computer mapping. -->
 <!-- Usage example:  -->
-<!--     xsltproc [<hyphen><hyphen>stringparam SIDE '+|-'] EmuDAQDUCKGenerator.xsl RUI-to-computer_mapping.xml > EmuDAQ_DQM.duck -->
+<!--     xsltproc [<hyphen><hyphen>stringparam SIDE 'P|M|B'] <hyphen><hyphen>stringparam NAME 'DAQ' EmuDAQDUCKGenerator.xsl RUI-to-computer_mapping.xml > DAQ.duck -->
 <xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30"
@@ -9,11 +9,14 @@
   xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
 
   <!-- Parameter SIDE is to be optionally set from the command line. -->
-  <!-- If it's set to '-', only the minus side will be generated; if '+', only the plus side; otherwise both sides. -->
+  <!-- If it's set to 'M', only the minus side will be generated; if 'P', only the plus side; if 'B', both sides; otherwise both sides. -->
   <xsl:param name="SIDE"/>
+  <!-- Parameter NAME is to be set from the command line. -->
+  <!-- It's the name of the configuration (without path or extension) -->
+  <xsl:param name="NAME"/>
 
-  <xsl:param name="CONFIG_FILE">/nfshome0/cscdaq/config/merged/EmuDAQ_DQM<xsl:if test="$SIDE='+'">_PlusSide</xsl:if><xsl:if test="$SIDE='-'">_MinusSide</xsl:if>.xml</xsl:param>
-  <xsl:param name="FM_CONFIG_PATH">Local/DAQ<xsl:if test="$SIDE='+'">_PlusSide</xsl:if><xsl:if test="$SIDE='-'">_MinusSide</xsl:if></xsl:param>
+  <xsl:param name="CONFIG_FILE">/nfshome0/cscdaq/config/merged/<xsl:value-of select="$NAME"/>.xml</xsl:param>
+  <xsl:param name="FM_CONFIG_PATH">Local/<xsl:value-of select="$NAME"/></xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 
@@ -92,7 +95,7 @@
   <!-- RUIs -->
   <xsl:template name="RUIs">
     <xsl:for-each select="//RUI[@instance!='0']">
-      <xsl:if test="($SIDE!='+' and $SIDE!='-') or ($SIDE='+' and number(@instance)&lt;=18) or ($SIDE='-' and number(@instance)&gt;18)">
+      <xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
 	
 	<xsl:comment >RUI <xsl:value-of select="@instance"/></xsl:comment>
 	<XdaqExecutive hostname="{../@alias}" port="{@port}"
@@ -131,7 +134,7 @@
   <!-- DQM Monitors -->
   <xsl:template name="Monitors">
     <xsl:for-each select="//RUI">
-      <xsl:if test="($SIDE!='+' and $SIDE!='-') or ($SIDE='+' and number(@instance)&lt;=18) or ($SIDE='-' and number(@instance)&gt;18)">
+      <xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
 
 	<xsl:variable name="PORT"><xsl:value-of select="40500+number(@instance)"/></xsl:variable>
 	<xsl:comment >DQM Monitor <xsl:value-of select="@instance"/></xsl:comment>
