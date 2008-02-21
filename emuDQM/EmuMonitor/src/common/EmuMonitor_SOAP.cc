@@ -21,6 +21,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } 
 
+  appBSem_.take();
   xoap::MessageReference msg = xoap::createMessage();
   xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
   xoap::SOAPBody body = envelope.getBody();
@@ -36,7 +37,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
   xoap::SOAPName histodirName = envelope.createName("Branch", "", "");
 
   if (plotter_ != NULL) {
-	
+/*	
     int tout=0;
     while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
       usleep(500000); tout++;
@@ -45,8 +46,8 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
       LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
       return msg;
     }
-
-    std::map<std::string, ME_List> MEs = plotter_->GetMEs();
+*/
+    std::map<std::string, ME_List>& MEs = plotter_->GetMEs();
 
     for (std::map<std::string, ME_List >::iterator itr = MEs.begin();
 	 itr != MEs.end(); ++itr) {
@@ -65,6 +66,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
       }
     }
   }
+  appBSem_.give();
   return msg;
 }
 
@@ -80,6 +82,7 @@ xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference nod
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } 
 
+  appBSem_.take();
   xoap::MessageReference msg = xoap::createMessage();
   xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
   xoap::SOAPBody body = envelope.getBody();
@@ -105,7 +108,7 @@ xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference nod
       return msg;
     }
 
-    std::map<std::string, ME_List> MEs = plotter_->GetMEs();
+    std::map<std::string, ME_List>& MEs = plotter_->GetMEs();
 
     for (std::map<std::string, ME_List >::iterator itr = MEs.begin();
 	 itr != MEs.end(); ++itr) {
@@ -114,6 +117,7 @@ xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference nod
       histodirElement.addTextNode(folder);
     }
   }
+  appBSem_.give();
   return msg;
 }
 
@@ -141,6 +145,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } else {
+      appBSem_.take();
       if (plotter_ != NULL) 
 	{
 	  int tout=0;
@@ -152,7 +157,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 	    return msg;
 	  }
 
-	  std::map<std::string, ME_List > MEs = plotter_->GetMEs();
+	  std::map<std::string, ME_List >& MEs = plotter_->GetMEs();
           xoap::SOAPName cmdTag = envelope.createName("requestObjects","xdaq", "urn:xdaq-soap:3.0");
 	  std::vector<xoap::SOAPElement> content = rb.getChildElements (cmdTag);
 	  for (std::vector<xoap::SOAPElement>::iterator n_itr = content.begin();
@@ -201,6 +206,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 		}
 	    }
 	}
+	appBSem_.give();
     }
 
   return msg;
@@ -232,6 +238,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
   xoap::SOAPName histoName = envelope.createName("Obj", "", "");
   xoap::SOAPName histodirName = envelope.createName("Branch", "", "");
 
+  appBSem_.take();
   if (plotter_ != NULL) {
     int tout=0;
     while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
@@ -242,7 +249,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
       return msg;
     }
 
-    std::map<std::string, MECanvases_List> MECanvases = plotter_->GetMECanvases();
+    std::map<std::string, MECanvases_List>& MECanvases = plotter_->GetMECanvases();
 
     for (std::map<std::string, MECanvases_List >::iterator itr = MECanvases.begin();
 	 itr != MECanvases.end(); ++itr) {
@@ -261,6 +268,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
       }
     }
   }
+  appBSem_.give();
   return msg;
 }
 
@@ -290,6 +298,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } else {
+      appBSem_.take();
       if (plotter_ != NULL) 
 	{
 	  int tout=0;
@@ -300,8 +309,8 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 	    LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
 	    return msg;
 	  }
-	  std::map<std::string, ME_List > MEs = plotter_->GetMEs();
-	  std::map<std::string, MECanvases_List > MECanvases = plotter_->GetMECanvases();
+	  std::map<std::string, ME_List >& MEs = plotter_->GetMEs();
+	  std::map<std::string, MECanvases_List >& MECanvases = plotter_->GetMECanvases();
           xoap::SOAPName cmdTag = envelope.createName("requestCanvas","xdaq", "urn:xdaq-soap:3.0");
 	  std::vector<xoap::SOAPElement> content = rb.getChildElements (cmdTag);
 	  for (std::vector<xoap::SOAPElement>::iterator n_itr = content.begin();
@@ -368,6 +377,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 		}
 	    }
 	}
+	appBSem_.give();
     }
 
   return msg;
