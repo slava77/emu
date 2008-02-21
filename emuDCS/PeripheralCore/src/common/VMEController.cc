@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.33 2008/02/19 14:39:45 gujh Exp $
+// $Id: VMEController.cc,v 3.34 2008/02/21 12:24:30 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.34  2008/02/21 12:24:30  liu
+// *** empty log message ***
+//
 // Revision 3.33  2008/02/19 14:39:45  gujh
 // VME Controller fix
 //
@@ -480,7 +483,7 @@ int VMEController::do_schar(int open_or_close)
 
 void udelay(long int itim)
 {
-  std::cout << "Udelay..." << itim << std::endl;
+  // std::cout << "Udelay..." << itim << std::endl;
 
   usleep(itim);
   return;
@@ -2733,7 +2736,7 @@ int VMEController::vme_read_broadcast(char *dmbs_info)
   eth_read_timeout(RD_TMO_short);
   usleep(3000);
   int nleft=LeftToRead();
-  for(unsigned int k=0;k<nleft;k++){
+  for(int k=0; k<nleft;k++){
     n=eth_read();
     
     ptyp = rbuf[PKT_TYP_OFF]&0xff;
