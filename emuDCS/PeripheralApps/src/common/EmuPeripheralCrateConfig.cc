@@ -106,6 +106,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DefineConfiguration, "DefineConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::EnableDisableDebug, "EnableDisableDebug");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadCCBRegister, "ReadCCBRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::testTMB, "testTMB");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBLoadFirmware, "CCBLoadFirmware");
@@ -117,6 +118,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateTests, "CrateTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
   xgi::bind(this, &EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
+  xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
 
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
 
@@ -593,10 +595,25 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << global_run_states[current_run_state_]<< cgicc::br() << std::endl ;
   *out << cgicc::span() << std::endl ;
   //
+  *out << cgicc::table().set("border","0");
+    //
+  *out << cgicc::td();
+    //
   std::string CrateConfigureAll = toolbox::toString("/%s/ConfigAllCrates",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CrateConfigureAll) << std::endl ;
+  *out << cgicc::form().set("method","GET").set("action",CrateConfigureAll).set("target","_blank") << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Config All Crates") << std::endl ;
   *out << cgicc::form() << std::endl ;
+
+  *out << cgicc::td();
+  *out << cgicc::td();
+
+  std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",FastConfigureAll).set("target","_blank") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Fast Config Crates") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+
+  *out << cgicc::td();
+  *out << cgicc::table();
 
   *out << cgicc::br() << std::endl ;
   if(Monitor_On_)
@@ -972,6 +989,15 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
      this->Default(in,out);
   }
 
+  void EmuPeripheralCrateConfig::FastConfigCrates(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     std::cout << "Button: FastConfigCrates" << std::endl;
+     ConfigureInit(2);
+//     fireEvent("Configure");
+     this->Default(in,out);
+  }
+
 ///////////////////////////////////////////////////////////////////////////
   void EmuPeripheralCrateConfig::setRawConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -999,7 +1025,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
       }
   }
 
-  void EmuPeripheralCrateConfig::ConfigureInit()
+  void EmuPeripheralCrateConfig::ConfigureInit(int c)
   {
 
     if(!parsed) ParsingXML();
@@ -1007,7 +1033,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     if( MyController )
       {
         current_config_state_=1;
-	MyController->configure();
+	MyController->configure(c);
         current_config_state_=2;
       }
     //
@@ -6237,9 +6263,16 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br();
+  std::string ReadTTCRegister =
+    toolbox::toString("/%s/ReadTTCRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadTTCRegister) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","ReadTTCRegister");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br();
   *out << cgicc::br();
   //
-  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_030507.svf";
+  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_021508.svf";
   //
   std::string CCBLoadFirmware =
     toolbox::toString("/%s/CCBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -8912,6 +8945,16 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
       CCBRegisterValue_ = thisCCB->ReadRegister(registerValue);
       //
     }
+    //
+    this->CCBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrateConfig::ReadTTCRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+      thisCCB->PrintTTCrxRegs();
     //
     this->CCBUtils(in,out);
     //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.h,v 1.2 2008/02/05 15:13:18 rakness Exp $
+// $Id: EmuController.h,v 1.3 2008/02/21 09:55:37 liu Exp $
 // $Log: EmuController.h,v $
+// Revision 1.3  2008/02/21 09:55:37  liu
+// add fast config button etc.
+//
 // Revision 1.2  2008/02/05 15:13:18  rakness
 // add missing method declaration
 //
@@ -51,19 +54,19 @@ public:
 
   void init();
 
-  void configure();
+  void configure(int c=0);
 
   void enable();
 
   void disable();
+
+  void NotInDCS();
 
   inline void SetConfFile(std::string xmlFile) { xmlFile_ = xmlFile; }
 
   inline EmuEndcap * GetEmuEndcap() { return myEndcap; }
 
   inline std::vector<Crate*> crates() { return myCrates; }
-
-  void NotInDCS();
 
 protected:
 
