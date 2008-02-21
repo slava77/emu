@@ -354,6 +354,7 @@ private:
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadTMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadCCBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ReadTTCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void HardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -366,7 +367,8 @@ private:
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigAllCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void ConfigureInit();
+  void FastConfigCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ConfigureInit(int c=0);
   bool ParsingXML();
   void SetCurrentCrate(int crate);
   void setConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

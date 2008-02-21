@@ -40,10 +40,10 @@ void EmuController::init(){
 }
 
 
-void EmuController::configure() 
+void EmuController::configure(int c) 
 {
   for(unsigned i = 0; i < myCrates.size(); ++i) {
-    if(myCrates[i]) myCrates[i]->configure();
+    if(myCrates[i]) myCrates[i]->configure(c);
   }
 }
 
