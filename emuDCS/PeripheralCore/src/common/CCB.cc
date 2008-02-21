@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.18 2008/02/18 12:09:19 liu Exp $
+// $Id: CCB.cc,v 3.19 2008/02/21 09:37:59 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.19  2008/02/21 09:37:59  liu
+// update TTC reset sequence
+//
 // Revision 3.18  2008/02/18 12:09:19  liu
 // new functions for monitoring
 //
@@ -306,7 +309,7 @@ void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
 
 void CCB::pulse(int Num_pulse,unsigned int pulse_delay)
 {
-  //old pulse(Num_pulse, pulse_delay, 0x48;)
+  //old pulse(Num_pulse, pulse_delay, 0x48)
   pulse(Num_pulse, pulse_delay, DMB_CFEB_CAL0);
 }
 
@@ -626,7 +629,7 @@ void CCB::HardResetTTCrx(){
   //
   do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
-  ::usleep(200);
+  ::sleep(1);
   //
   do_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
   //
@@ -656,11 +659,11 @@ int CCB::readI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x04; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0c; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //  
   do_vme(VME_READ,CSRA1, sndbuf,rcvbuf,NOW);
   //
@@ -681,19 +684,19 @@ void CCB::writeI2C(int data){
   //
   sndbuf[0]= 0x00; 
   sndbuf[1]= (i2cBaseData&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cLowInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cHighInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cLowInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]= (i2cBaseData&0xff);
@@ -713,11 +716,11 @@ void CCB::startI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0e ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0a ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02 ;
@@ -729,11 +732,11 @@ void CCB::stopI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0a ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0e;
@@ -832,7 +835,6 @@ void CCB::hardReset() {
   //fg note: *keep* this 1second!
   ::sleep(1);
 
-  HardResetTTCrx();
 
   ReadRegister(0x0);
 
@@ -946,6 +948,18 @@ void CCB::PrintTTCrxRegs(){
   std::cout << ReadTTCrxReg(11);
   std::cout << std::endl;
   //
+  std::cout << "Register 16 " ;
+  std::cout << ReadTTCrxReg(16);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 17 " ;
+  std::cout << ReadTTCrxReg(17);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 18 " ;
+  std::cout << ReadTTCrxReg(18);
+  std::cout << std::endl;
+  //
   std::cout << "Register 19 " ;
   std::cout << ReadTTCrxReg(19);
   std::cout << std::endl;
@@ -1009,6 +1023,7 @@ void CCB::configure() {
      disableL1();
   //  std::cout << ReadRegister(0x0) << std::endl;
   //
+  HardResetTTCrx();
   // need to read the TTCrxID before TTCrx registers can be touched
   ReadTTCrxID();
   //
@@ -1027,7 +1042,7 @@ void CCB::configure() {
   WriteTTCrxReg(1,delay);
   //
   //
-  //PrintTTCrxRegs();
+  PrintTTCrxRegs();
   setCCBMode(CCB::DLOG);
   //
 }
