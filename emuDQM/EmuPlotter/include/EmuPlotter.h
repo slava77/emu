@@ -137,8 +137,8 @@ public:
   void setUnpackingDebug(bool flag) {/*CSCDDUEventData::setDebug(flag);*/}
 
   bool isMEvalid(ME_List&, std::string, EmuMonitoringObject* & );
-  std::map<std::string, ME_List >  GetMEs() { return MEs;};
-  std::map<std::string, MECanvases_List >  GetMECanvases() { return MECanvases;};
+  std::map<std::string, ME_List >&  GetMEs() { return MEs;};
+  std::map<std::string, MECanvases_List >&  GetMECanvases() { return MECanvases;};
  
   uint32_t getUnpackedDMBCount() const {return unpackedDMBcount;}
   uint32_t getTotalEvents() const {return nEvents;}
