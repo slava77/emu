@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.21 2008/02/18 12:09:19 liu Exp $
+// $Id: Crate.cc,v 3.22 2008/02/21 09:37:24 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.22  2008/02/21 09:37:24  liu
+// fast config option
+//
 // Revision 3.21  2008/02/18 12:09:19  liu
 // new functions for monitoring
 //
@@ -291,7 +294,7 @@ void Crate::DumpConfiguration() {
   //
 }
 //
-void Crate::configure() {
+void Crate::configure(int c) {
   //
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
@@ -303,6 +306,10 @@ void Crate::configure() {
   //
   if(mpc) mpc->configure();
   //
+
+  // c>1: FAST configure, only doing configure for CCB & MPC
+  if(c>1) return; 
+
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     if (myTmbs[i]->slot()<22){

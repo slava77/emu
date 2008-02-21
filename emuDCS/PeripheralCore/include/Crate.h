@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.10 2008/02/18 12:08:48 liu Exp $
+// $Id: Crate.h,v 3.11 2008/02/21 09:37:24 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.11  2008/02/21 09:37:24  liu
+// fast config option
+//
 // Revision 3.10  2008/02/18 12:08:48  liu
 // new functions for monitoring
 //
@@ -81,7 +84,7 @@ public:
   
   void enable();
   void disable();
-  void configure();
+  void configure(int c=0);
   void init();
   void addModule(VMEModule * module);
   void AddChamber(Chamber * chamber);
