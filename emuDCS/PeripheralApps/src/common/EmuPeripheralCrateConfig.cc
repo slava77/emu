@@ -24,7 +24,7 @@ const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
 const int EXPECTED_DMB_VME_VERSION       = 1547;
 const int EXPECTED_DMB_FIRMWARE_REVISION =    1;
 const string       VMECC_FIRMWARE_DIR = "vcc"; 
-const string       VMECC_FIRMWARE_VER ="4.29";   
+const string       VMECC_FIRMWARE_VER ="4.31";   
 //const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
