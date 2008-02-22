@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.19 2008/02/21 09:37:59 liu Exp $
+// $Id: CCB.cc,v 3.20 2008/02/22 13:25:15 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.20  2008/02/22 13:25:15  liu
+// update
+//
 // Revision 3.19  2008/02/21 09:37:59  liu
 // update TTC reset sequence
 //
@@ -436,13 +439,13 @@ void CCB::DumpAddress(int address) {
 //
 std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
-  if (TTCrxID_ == -1) {
-    (*MyOutput_) << "ReadTTCrxReg.No TTCrxID" << std::endl;
+  if (ReadTTCrxID_ == -1) {
+    (*MyOutput_) << "ReadTTCrxReg: No ReadTTCrxID" << std::endl;
     return 0;
   }
   //
-  std::bitset<7> pointerRegAddress(TTCrxID_*2);
-  std::bitset<7> DataRegAddress(TTCrxID_*2+1);
+  std::bitset<7> pointerRegAddress(ReadTTCrxID_*2);
+  std::bitset<7> DataRegAddress(ReadTTCrxID_*2+1);
   std::bitset<8> regAddress(registerAdd);
   //
   //(*MyOutput_) << " " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
@@ -532,13 +535,13 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
 //
 void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
   //
-  if (TTCrxID_ == -1) {
-    (*MyOutput_) << "WriteTTCrxReg.No TTCrxID" << std::endl;
+  if (ReadTTCrxID_ == -1) {
+    (*MyOutput_) << "WriteTTCrxReg: No ReadTTCrxID" << std::endl;
     return;
   }
   //
-  std::bitset<7> pointerRegAddress(TTCrxID_*2);
-  std::bitset<7> DataRegAddress(TTCrxID_*2+1);
+  std::bitset<7> pointerRegAddress(ReadTTCrxID_*2);
+  std::bitset<7> DataRegAddress(ReadTTCrxID_*2+1);
   std::bitset<8> regAddress(registerAdd);
   //
   //(*MyOutput_) << "TTCrxAddresses = " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
@@ -623,6 +626,7 @@ void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
 void CCB::HardResetTTCrx(){
   //
   // Hard reset TTCrx....
+  setCCBMode(CCB::VMEFPGA);
   //
   sndbuf[0]=0x00; 
   sndbuf[1]=0x01;
@@ -649,9 +653,9 @@ void CCB::ReadTTCrxID(){
   //  printf("ReadTTCRxID.%02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
   ReadTTCrxID_ = ( (rcvbuf[0]&0xff) << 8 ) | (rcvbuf[1]&0xff);
-  TTCrxID_ = ReadTTCrxID_;
+  // TTCrxID_ = ReadTTCrxID_;
   //
-  (*MyOutput_) << "TTCrx ID = " << std::dec << TTCrxID_ << std::endl;
+  (*MyOutput_) << "ReadTTCrx ID = " << std::dec << ReadTTCrxID_ << std::endl;
   //
 }
 //
@@ -915,6 +919,7 @@ void CCB::init() {
   //
 }
 void CCB::PrintTTCrxRegs(){
+  std::cout << "PrintTTCrxRegs Using ReadTTCrxID_ "<< ReadTTCrxID_ << std::endl;
   //
   std::cout << "Register 0 " ;
   std::cout << ReadTTCrxReg(0);
@@ -995,6 +1000,9 @@ void CCB::PrintTTCrxRegs(){
   std::cout << "Register 28 " ;
   std::cout << ReadTTCrxReg(28);
   std::cout << std::endl;
+
+  // I2C access could leave the CCB in FPGA mode
+  setCCBMode(CCB::DLOG);
   //
 }
 
@@ -1024,6 +1032,7 @@ void CCB::configure() {
   //  std::cout << ReadRegister(0x0) << std::endl;
   //
   HardResetTTCrx();
+  ::usleep(1000);
   // need to read the TTCrxID before TTCrx registers can be touched
   ReadTTCrxID();
   //
@@ -1032,16 +1041,25 @@ void CCB::configure() {
   //PrintTTCrxRegs();
   //std::cout << "write TTCrxCoarseDelay_ = " << TTCrxCoarseDelay_ << " to register 2" << std::endl;
   //
-  int delay = ((TTCrxCoarseDelay_&0xf)<<4) + (TTCrxCoarseDelay_&0xf);
-  WriteTTCrxReg(2,delay);
+  if(TTCrxCoarseDelay_>0)
+  {
+     int delay = ((TTCrxCoarseDelay_&0xf)<<4) + (TTCrxCoarseDelay_&0xf);
+     WriteTTCrxReg(2,delay);
+  }
   //
   // Download fine delay to TTCrx
   //
-  delay = (TTCrxFineDelay_&0xff);
-  WriteTTCrxReg(0,delay);
-  WriteTTCrxReg(1,delay);
+  if( TTCrxFineDelay_>0)
+  {
+     int delay = (TTCrxFineDelay_&0xff);
+     WriteTTCrxReg(0,delay);
+     WriteTTCrxReg(1,delay);
+  }
   //
+  // Enable TTCrx paralle output bus
   //
+  WriteTTCrxReg(3,0xB3);  
+
   PrintTTCrxRegs();
   setCCBMode(CCB::DLOG);
   //
