@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.22 2008/02/21 09:37:24 liu Exp $
+// $Id: Crate.cc,v 3.23 2008/02/22 13:25:15 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.23  2008/02/22 13:25:15  liu
+// update
+//
 // Revision 3.22  2008/02/21 09:37:24  liu
 // fast config option
 //
@@ -299,6 +302,7 @@ void Crate::configure(int c) {
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
   if(!ccb) return;
+  std::cout << label_ << " Crate Configuring, Mode: " << c << std::endl; 
   //
   //theController->init();
   //

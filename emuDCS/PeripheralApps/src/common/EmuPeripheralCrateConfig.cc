@@ -600,7 +600,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
     //
   std::string CrateConfigureAll = toolbox::toString("/%s/ConfigAllCrates",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CrateConfigureAll).set("target","_blank") << std::endl ;
+  *out << cgicc::form().set("method","GET").set("action",CrateConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Config All Crates") << std::endl ;
   *out << cgicc::form() << std::endl ;
 
@@ -608,7 +608,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
 
   std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",FastConfigureAll).set("target","_blank") << std::endl ;
+  *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Fast Config Crates") << std::endl ;
   *out << cgicc::form() << std::endl ;
 
