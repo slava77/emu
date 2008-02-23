@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.37 2008/01/18 15:42:16 rakness Exp $
+// $Id: TMB.h,v 3.38 2008/02/23 15:25:55 liu Exp $
 // $Log: TMB.h,v $
+// Revision 3.38  2008/02/23 15:25:55  liu
+// TMB online counters
+//
 // Revision 3.37  2008/01/18 15:42:16  rakness
 // get methods for TMB/RAT on-board voltages and currents
 //
@@ -437,7 +440,7 @@ public:
   //
   // TMB counters
   void ResetCounters();                 /// reset TMB counters
-  void GetCounters();                   /// read TMB counters, fill values in software
+  int * GetCounters();                   /// read TMB counters, fill values in software
   int  GetCounter(int counter);         /// return counter value
   void PrintCounters(int counter=-1);   /// print counter value (-1 means print all)
   std::string CounterName(int counter); /// return counter label

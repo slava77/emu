@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.23 2008/02/22 13:25:15 liu Exp $
+// $Id: Crate.cc,v 3.24 2008/02/23 15:25:55 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.24  2008/02/23 15:25:55  liu
+// TMB online counters
+//
 // Revision 3.23  2008/02/22 13:25:15  liu
 // update
 //
@@ -409,7 +412,18 @@ void Crate::MonitorCCB(int cycle, char * buf)
 
 void Crate::MonitorTMB(int cycle, char * buf) 
 {
-  buf[0]=0;
+  int TOTAL_TMB_COUNTERS=33;
+  int * countbuf;
+  short *buf2;
+  
+  buf2=(short *)buf;
+  *buf2 = 0;
+  std::vector<TMB*> myTmbs = this->tmbs();
+  for(unsigned i =0; i < myTmbs.size(); ++i) {
+    countbuf=myTmbs[i]->GetCounters();
+    if(countbuf) memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
+  }
+  *buf2 = TOTAL_TMB_COUNTERS*2*9;
   return;
 }
 
