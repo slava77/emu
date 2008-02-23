@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.56 2008/01/18 15:42:15 rakness Exp $
+// $Id: TMB.cc,v 3.57 2008/02/23 15:25:54 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.57  2008/02/23 15:25:54  liu
+// TMB online counters
+//
 // Revision 3.56  2008/01/18 15:42:15  rakness
 // get methods for TMB/RAT on-board voltages and currents
 //
@@ -1300,6 +1303,8 @@ std::string TMB::CounterName(int counter){
 //
 void TMB::ResetCounters(){
   //
+  for(int i=0;i<MaxCounter;i++) FinalCounter[i]=0;
+
   // Clear counters
   //
   WriteRegister(cnt_ctrl_adr,0x1);
@@ -1313,7 +1318,7 @@ int TMB::GetCounter(int counterID){
   return FinalCounter[counterID];
 }
 //
-void TMB::GetCounters(){
+int * TMB::GetCounters(){
   //
   // Take snapshot of current counter state
   //
@@ -1345,7 +1350,7 @@ void TMB::GetCounters(){
     }
   }   
   //
-  return;
+  return (int *)FinalCounter;
 }
 
 void TMB::old_clk_delays(unsigned short int time,int cfeb_id)

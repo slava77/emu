@@ -560,12 +560,12 @@ void EmuPeripheralCrateConfig::PublishEmuInfospace(int cycle)
                 now_crate-> MonitorTMB(cycle, buf);
                 if(buf[0])
                 {
-                   std::cout << "TMB counters will be here" << std::endl;
+                  // std::cout << "TMB counters will be here" << std::endl;
                 }
                 now_crate-> MonitorDMB(cycle, buf);
                 if(buf[0])
                 {
-                   std::cout << "DMB counters will be here" << std::endl;
+                  // std::cout << "DMB counters will be here" << std::endl;
                 }
              }
                // is->fireGroupChanged(names, this);
@@ -1964,7 +1964,8 @@ void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Outpu
   output <<cgicc::td();
   //
   for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
-    tmbVector[tmb]->GetCounters();
+// TMB counters are read in the monitoring FastLoop
+//    tmbVector[tmb]->GetCounters();
     //
     output <<cgicc::td();
     output << "Slot = " <<tmbVector[tmb]->slot();
@@ -2445,7 +2446,8 @@ void EmuPeripheralCrateConfig::CreateMonitorUnit(xgi::Input * in, xgi::Output * 
   for(unsigned int i=0; i<tmbVector.size(); i++) {
     //
     tmbVector[i]->RedirectOutput(out);
-    tmbVector[i]->GetCounters();
+// TMB counters are read in the monitoring FastLoop
+//    tmbVector[i]->GetCounters();
     //
     //if ( tmbVector[i]->GetCounter(4)>0) {
     ChartData[Counter_].push_back((float)(tmbVector[i]->GetCounter(Counter_)));
