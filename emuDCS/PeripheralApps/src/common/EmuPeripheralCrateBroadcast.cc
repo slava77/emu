@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.13 2008/02/19 14:34:48 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.14 2008/02/24 14:20:45 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1154,12 +1154,16 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   //implement the CFEB_Pedestal setup process:
   std::cout << "DMB setup for CFEB Pedestal, calsetup= " <<calsetup<< std::endl;
   //
-  //Start the setup process: Set all channel to normal, DAC to 0:
+  // Start the setup process: Set all channel to normal, DAC to 0, No_pulse:
   broadcastDMB->buck_shift_ext_bc(-1);
   dac=0.0;
   broadcastDMB->set_cal_dac(dac,dac);
   cout <<" The strip was set to: -1, " <<" DAC was set to: "<<dac <<endl;
   usleep(nsleep);
+  broadcastDMB->toggle_pedestal();
+  cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<end;
+  usleep(nsleep);
+
   //    fireEvent("Enable");
   //
   return createReply(message);
