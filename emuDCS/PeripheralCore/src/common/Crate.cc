@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.24 2008/02/23 15:25:55 liu Exp $
+// $Id: Crate.cc,v 3.25 2008/02/24 12:48:30 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.25  2008/02/24 12:48:30  liu
+// DMB online counters
+//
 // Revision 3.24  2008/02/23 15:25:55  liu
 // TMB online counters
 //
@@ -429,6 +432,17 @@ void Crate::MonitorTMB(int cycle, char * buf)
 
 void Crate::MonitorDMB(int cycle, char * buf) 
 {
-  buf[0]=0;
+  int TOTAL_DMB_COUNTERS=12; // aligned at 4 bytes (integer)
+  char * countbuf;
+  short *buf2;
+  
+  buf2=(short *)buf;
+  *buf2 = 0;
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
+  for(unsigned i =0; i < myDmbs.size(); ++i) {
+    countbuf=myDmbs[i]->GetCounters();
+    if(countbuf) memcpy(buf+4+i*TOTAL_DMB_COUNTERS, countbuf, TOTAL_DMB_COUNTERS);
+  }
+  *buf2 = (TOTAL_DMB_COUNTERS/2)*9;
   return;
 }

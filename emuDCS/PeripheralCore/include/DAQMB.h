@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.19 2007/06/06 14:49:32 gujh Exp $
+// $Id: DAQMB.h,v 3.20 2008/02/24 12:48:29 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.20  2008/02/24 12:48:29  liu
+// DMB online counters
+//
 // Revision 3.19  2007/06/06 14:49:32  gujh
 // Added buck_shift_comp_bc and set_comp_thresh_bc
 //      ---- June 6, 2007.  GU
@@ -425,6 +428,7 @@ public:
   /// Get DAV time
   void readtimingCounter();
   void readtimingScope();
+  char *GetCounters();
 
   /// Set cable delay
   void setcbldly(int );
@@ -578,6 +582,7 @@ public:
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
   int  TestStatus_[20];
+  char FinalCounter[10];
 }; 
 
 #endif

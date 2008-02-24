@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.32 2008/01/16 16:47:46 liu Exp $
+// $Id: DAQMB.cc,v 3.33 2008/02/24 12:48:30 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.33  2008/02/24 12:48:30  liu
+// DMB online counters
+//
 // Revision 3.32  2008/01/16 16:47:46  liu
 // update print out
 //
@@ -4050,6 +4053,7 @@ void DAQMB::readtimingCounter()
   cfeb_dav_counter_ = rcvbuf[1]&0xff ;
   tmb_dav_counter_  = rcvbuf[2]&0xff ;
   alct_dav_counter_ = rcvbuf[3]&0xff ;
+  memcpy(FinalCounter, rcvbuf, 4);
   //
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
@@ -4084,6 +4088,13 @@ void DAQMB::readtimingScope()
   alct_dav_scope_   = (rcvbuf[1]>>2)&0x1f;
   active_dav_scope_ = ((rcvbuf[2]<<1)&0x1e)+((rcvbuf[1]>>7)&0x01);  
   l1a_lct_scope_    = ((rcvbuf[3]<<4)&0x10) + ((rcvbuf[2]>>4)&0x0f);
+
+  FinalCounter[4]=cfeb_dav_scope_ & 0xff;
+  FinalCounter[5]=tmb_dav_scope_ & 0xff;
+  FinalCounter[6]=alct_dav_scope_ & 0xff;
+  FinalCounter[7]=active_dav_scope_ & 0xff;
+  FinalCounter[8]=l1a_lct_scope_ & 0xff;
+
   //
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
@@ -4091,7 +4102,14 @@ void DAQMB::readtimingScope()
   usleep(200);
   //
 }
-//
+
+char * DAQMB::GetCounters()
+{ 
+  readtimingCounter();
+  readtimingScope();
+  return FinalCounter;
+}
+
 void DAQMB::lowv_dump()
 {
   (*MyOutput_) << " CFEB1 OCM 3 = "  << lowv_adc(1,0)/1000 << std::endl;

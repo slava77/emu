@@ -843,6 +843,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::onCalibration(xoap::MessageRefe
 //
 xoap::MessageReference EmuPeripheralCrateConfig::onConfigure (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+  std::cout << "SOAP Configure" << std::endl;
   //
   fireEvent("Configure");
   //
@@ -851,6 +852,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::onConfigure (xoap::MessageRefer
 //
 xoap::MessageReference EmuPeripheralCrateConfig::onEnable (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+  std::cout << "SOAP Enable" << std::endl;
   //
   fireEvent("Enable");
   //
@@ -859,6 +861,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::onEnable (xoap::MessageReferenc
 //
 xoap::MessageReference EmuPeripheralCrateConfig::onDisable (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+  std::cout << "SOAP Disable" << std::endl;
   //
   fireEvent("Disable");
   //
@@ -867,6 +870,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::onDisable (xoap::MessageReferen
 //
 xoap::MessageReference EmuPeripheralCrateConfig::onHalt (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+  std::cout << "SOAP Halt" << std::endl;
   //
   fireEvent("Halt");
   //
@@ -905,7 +909,7 @@ void EmuPeripheralCrateConfig::configureFail(toolbox::Event::Reference e)
 void EmuPeripheralCrateConfig::reConfigureAction(toolbox::Event::Reference e) 
   throw (toolbox::fsm::exception::Exception) {
   //
-  MyController->configure();
+  // MyController->configure();
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "reConfigure");
   std::cout << "reConfigure" << std::endl ;
@@ -1953,7 +1957,7 @@ void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Outpu
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
   if (AutoRefresh_) {
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"1; URL=/"
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/"
 	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
   }
   //
@@ -2016,20 +2020,20 @@ void EmuPeripheralCrateConfig::CrateDMBCounters(xgi::Input * in, xgi::Output * o
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"1; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
   //
   *out << cgicc::table().set("border","1");
   //
   *out <<cgicc::td();
   *out <<cgicc::td();
   //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //for( int iter=0; iter<10; iter++) {
-    dmbVector[dmb]->readtimingCounter();
-    dmbVector[dmb]->readtimingScope();
-    //if( dmbVector[dmb]->GetL1aLctCounter() > 0 ) break;
-    //}
-  }
+
+// DMB counters are read in the monitoring FastLoop
+// 
+//  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
+//    dmbVector[dmb]->readtimingCounter();
+//    dmbVector[dmb]->readtimingScope();
+//  }
   //
   for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
     *out <<cgicc::td();
@@ -2151,6 +2155,15 @@ void EmuPeripheralCrateConfig::CrateDMBCounters(xgi::Input * in, xgi::Output * o
   //
   *out << cgicc::table();
   //
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
 }
 //
 void EmuPeripheralCrateConfig::CrateTMBCounters(xgi::Input * in, xgi::Output * out ) 
@@ -2236,6 +2249,16 @@ void EmuPeripheralCrateConfig::MonitorFrameLeft(xgi::Input * in, xgi::Output * o
   *out << cgicc::input().set("type","submit").set("value","Set/Unset AutoRefresh") << std::endl ;
   *out << cgicc::form() << std::endl ;
   //
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
   this->LaunchMonitor(in,out);
   //
 }
