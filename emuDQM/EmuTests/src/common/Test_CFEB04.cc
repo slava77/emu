@@ -125,6 +125,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
     std::cout << "Found " << cscID << std::endl;
     initCSC(cscID);
+    addCSCtoMap(cscID, data.dmbHeader().crateID(), data.dmbHeader().dmbID());
   }
   nCSCEvents[cscID]++;
 

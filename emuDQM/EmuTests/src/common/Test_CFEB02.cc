@@ -13,14 +13,14 @@ void Test_CFEB02::initCSC(std::string cscID) {
 
   CFEBSCAData scadata;
   scadata.Nbins = getNumStrips(cscID);
-  scadata.Nlayers = 6;
+  scadata.Nlayers = NLAYERS;
   memset(scadata.content, 0, sizeof (scadata.content));
   sdata[cscID] = scadata;
 
   TestData cscdata;
   TestData2D cfebdata;
   cfebdata.Nbins = getNumStrips(cscID);
-  cfebdata.Nlayers = 6;	
+  cfebdata.Nlayers = NLAYERS;	
   memset(cfebdata.content, 0, sizeof (cfebdata.content));
   memset(cfebdata.cnts, 0, sizeof (cfebdata.cnts));
 
@@ -152,6 +152,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
     std::cout << "Found " << cscID << std::endl;
     initCSC(cscID);
+    addCSCtoMap(cscID, data.dmbHeader().crateID(), data.dmbHeader().dmbID());
   }
   nCSCEvents[cscID]++;
 
@@ -198,7 +199,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
       if (!cfebData) continue;
 
-      for (unsigned int layer = 1; layer <= 6; layer++){ // loop over layers in a given chamber
+      for (unsigned int layer = 1; layer <= NLAYERS; layer++){ // loop over layers in a given chamber
 	int nTimeSamples= cfebData->nTimeSamples();
 	for(int strip = 1; strip <= 16; ++strip) { // loop over cfeb strips 
 	  // - Sum of first two ADC samples
@@ -437,161 +438,182 @@ void Test_CFEB02::finishCSC(std::string cscID)
     TestData2D& r16 = cscdata["R16"];
     TestData2D& r17 = cscdata["R17"];
 
-    CFEBSCAData& scadata = sdata[cscID];
+    CFEBSCAData& scadata = sdata[cscID]; 
+ 
+    CSCMapItem::MapItem mapitem;
+    CSCtoHWmap::iterator itr = cscmap.find(cscID);
+
+    if (itr != cscmap.end()) {
+      map->cratedmb(itr->second.first,itr->second.second,&mapitem);
+      int first_strip_index=mapitem.stripIndex;
+      int strips_per_layer=mapitem.strips;
     
-    double rms = 0.;
-    double covar = 0;
+      double rms = 0.;
+      double covar = 0;
 
-    for (int i=0; i<r01.Nlayers; i++) {
-      for (int j=0; j<r01.Nbins; j++) {
+      for (int i=0; i<NLAYERS; i++) {
+	for (int j=0; j<strips_per_layer; j++) {
 	
-	if (_q12.cnts[i][j]) _q12.content[i][j] /= (double)(_q12.cnts[i][j]);
-	if (_q3.cnts[i][j]) _q3.content[i][j] /= (double)(_q3.cnts[i][j]);
-	if (_q4.cnts[i][j]) _q4.content[i][j] /= (double)(_q4.cnts[i][j]);
-	if (_q5.cnts[i][j]) _q5.content[i][j] /= (double)(_q5.cnts[i][j]);
+	  if (_q12.cnts[i][j]) _q12.content[i][j] /= (double)(_q12.cnts[i][j]);
+	  if (_q3.cnts[i][j]) _q3.content[i][j] /= (double)(_q3.cnts[i][j]);
+	  if (_q4.cnts[i][j]) _q4.content[i][j] /= (double)(_q4.cnts[i][j]);
+	  if (_q5.cnts[i][j]) _q5.content[i][j] /= (double)(_q5.cnts[i][j]);
 
-	// == Calculate Overall pedestals and noise
-	if (r01.cnts[i][j]) {
-	  r01.content[i][j] /= (double)(r01.cnts[i][j]);
+	  // == Calculate Overall pedestals and noise
+	  if (r01.cnts[i][j]) {
+	    r01.content[i][j] /= (double)(r01.cnts[i][j]);
 
-	  rms = sqrt( ((r02.content[i][j])/((double)(r02.cnts[i][j]))- pow(r01.content[i][j],2)) );
-	  r02.content[i][j]=rms;
-	}
-
-	// == Calculate RMS of SCA pedestala
-	double sca_mean=0.;
-	double sca_mean_sum=0.;
-	double sca_mean_sq_sum=0;
-	int cells_cnt=0;
-	for (int k=0; k<96;k++) {
-	  if (scadata.content[i][j][k].cnt) {
-	    cells_cnt++;
-	    sca_mean=scadata.content[i][j][k].value / scadata.content[i][j][k].cnt;
-	    sca_mean_sum+=sca_mean;
-	    sca_mean_sq_sum+=pow(sca_mean,2);
+	    rms = sqrt( ((r02.content[i][j])/((double)(r02.cnts[i][j]))- pow(r01.content[i][j],2)) );
+	    r02.content[i][j]=rms;
 	  }
-	}
-	sca_mean = sca_mean_sum/cells_cnt;
-	rms = sqrt(sca_mean_sq_sum/cells_cnt - pow(sca_mean,2));
 
-	// std::cout << Form("%s %d:%d %d %.2f",cscID.c_str(),i,j,cells_cnt, sca_mean) << std::endl;
+	  // == Calculate RMS of SCA pedestala
+	  double sca_mean=0.;
+	  double sca_mean_sum=0.;
+	  double sca_mean_sq_sum=0;
+	  int cells_cnt=0;
+	  for (int k=0; k<96;k++) {
+	    if (scadata.content[i][j][k].cnt) {
+	      cells_cnt++;
+	      sca_mean=scadata.content[i][j][k].value / scadata.content[i][j][k].cnt;
+	      sca_mean_sum+=sca_mean;
+	      sca_mean_sq_sum+=pow(sca_mean,2);
+	    }
+	  }
+	  sca_mean = sca_mean_sum/cells_cnt;
+	  rms = sqrt(sca_mean_sq_sum/cells_cnt - pow(sca_mean,2));
 
-	r03.content[i][j] = rms;
+	  // std::cout << Form("%s %d:%d %d %.2f",cscID.c_str(),i,j,cells_cnt, sca_mean) << std::endl;
 
-	// == Calculate time samples 1,2 pedestals and noise
-	if (r04.cnts[i][j]) {
-	  r04.content[i][j] /= (double)(r04.cnts[i][j]);
+	  r03.content[i][j] = rms;
 
-	  rms = sqrt( ((r05.content[i][j])/((double)(r05.cnts[i][j]))- pow(r04.content[i][j],2)) );
-	  r05.content[i][j]=rms;
-	}
+	  // == Calculate time samples 1,2 pedestals and noise
+	  if (r04.cnts[i][j]) {
+	    r04.content[i][j] /= (double)(r04.cnts[i][j]);
 
-	// == Calculate time samples 3,4,5 pedestals and noise
-	if (r06.cnts[i][j]) {
-	  r06.content[i][j] /= (double)(r06.cnts[i][j]);
-	  rms = sqrt( ((r07.content[i][j])/((double)(r07.cnts[i][j]))- pow(r06.content[i][j],2)) );
+	    rms = sqrt( ((r05.content[i][j])/((double)(r05.cnts[i][j]))- pow(r04.content[i][j],2)) );
+	    r05.content[i][j]=rms;
+	  }
 
-	  r07.content[i][j]=rms;
-	}
+	  // == Calculate time samples 3,4,5 pedestals and noise
+	  if (r06.cnts[i][j]) {
+	    r06.content[i][j] /= (double)(r06.cnts[i][j]);
+	    rms = sqrt( ((r07.content[i][j])/((double)(r07.cnts[i][j]))- pow(r06.content[i][j],2)) );
 
-	// == Calculate covariance matrix elements
+	    r07.content[i][j]=rms;
+	  }
 
-	// = C12|12
-	if (r08.cnts[i][j]) {
-	  covar  =  ((r08.content[i][j]) /(double)(r08.cnts[i][j])) - _q12.content[i][j]*_q12.content[i][j];
-	  r08.content[i][j] = covar;
-	}
+	  // == Calculate covariance matrix elements
 
-	// = C12|3
-	if (r09.cnts[i][j]) {
-	  covar =  ((r09.content[i][j]) /(double)(r09.cnts[i][j])) - _q12.content[i][j]*_q3.content[i][j];
-	  r09.content[i][j] = covar;
-	}
+	  // = C12|12
+	  if (r08.cnts[i][j]) {
+	    covar  =  ((r08.content[i][j]) /(double)(r08.cnts[i][j])) - _q12.content[i][j]*_q12.content[i][j];
+	    r08.content[i][j] = covar;
+	  }
 
-	// = C12|4
-	if (r10.cnts[i][j]) {
-	  covar =  ((r10.content[i][j]) /(double)(r10.cnts[i][j])) - _q12.content[i][j]*_q4.content[i][j];
-	  r10.content[i][j] = covar;
-	}
+	  // = C12|3
+	  if (r09.cnts[i][j]) {
+	    covar =  ((r09.content[i][j]) /(double)(r09.cnts[i][j])) - _q12.content[i][j]*_q3.content[i][j];
+	    r09.content[i][j] = covar;
+	  }
 
-	// = C12|5
-	if (r11.cnts[i][j]) {
-	  covar =  ((r11.content[i][j]) /(double)(r11.cnts[i][j])) - _q12.content[i][j]*_q5.content[i][j];
-	  r11.content[i][j] = covar;
-	}
+	  // = C12|4
+	  if (r10.cnts[i][j]) {
+	    covar =  ((r10.content[i][j]) /(double)(r10.cnts[i][j])) - _q12.content[i][j]*_q4.content[i][j];
+	    r10.content[i][j] = covar;
+	  }
 
-	// = C3|3
-	if (r12.cnts[i][j]) {
-	  covar =  ((r12.content[i][j]) /(double)(r12.cnts[i][j])) - _q3.content[i][j]*_q3.content[i][j];
-	  r12.content[i][j] = covar;
-	}
+	  // = C12|5
+	  if (r11.cnts[i][j]) {
+	    covar =  ((r11.content[i][j]) /(double)(r11.cnts[i][j])) - _q12.content[i][j]*_q5.content[i][j];
+	    r11.content[i][j] = covar;
+	  }
 
-	// = C3|4
-	if (r13.cnts[i][j]) {
-	  covar =  ((r13.content[i][j]) /(double)(r13.cnts[i][j])) - _q3.content[i][j]*_q4.content[i][j];
-	  r13.content[i][j] = covar;
-	}
+	  // = C3|3
+	  if (r12.cnts[i][j]) {
+	    covar =  ((r12.content[i][j]) /(double)(r12.cnts[i][j])) - _q3.content[i][j]*_q3.content[i][j];
+	    r12.content[i][j] = covar;
+	  }
+
+	  // = C3|4
+	  if (r13.cnts[i][j]) {
+	    covar =  ((r13.content[i][j]) /(double)(r13.cnts[i][j])) - _q3.content[i][j]*_q4.content[i][j];
+	    r13.content[i][j] = covar;
+	  }
 	     
-	// = C3|5
-	if (r14.cnts[i][j]) {
-	  covar =  ((r14.content[i][j]) /(double)(r14.cnts[i][j])) - _q3.content[i][j]*_q5.content[i][j];
-	  r14.content[i][j] = covar;
-	}
+	  // = C3|5
+	  if (r14.cnts[i][j]) {
+	    covar =  ((r14.content[i][j]) /(double)(r14.cnts[i][j])) - _q3.content[i][j]*_q5.content[i][j];
+	    r14.content[i][j] = covar;
+	  }
 
-	// = C4|4
-	if (r15.cnts[i][j]) {
-	  covar =  ((r15.content[i][j]) /(double)(r15.cnts[i][j])) - _q4.content[i][j]*_q4.content[i][j];
-	  r15.content[i][j] = covar;
-	}
+	  // = C4|4
+	  if (r15.cnts[i][j]) {
+	    covar =  ((r15.content[i][j]) /(double)(r15.cnts[i][j])) - _q4.content[i][j]*_q4.content[i][j];
+	    r15.content[i][j] = covar;
+	  }
 
-	// = C4|5
-	if (r16.cnts[i][j]) {
-	  covar =  ((r16.content[i][j]) /(double)(r16.cnts[i][j])) - _q4.content[i][j]*_q5.content[i][j];
-	  r16.content[i][j] = covar;
-	}
+	  // = C4|5
+	  if (r16.cnts[i][j]) {
+	    covar =  ((r16.content[i][j]) /(double)(r16.cnts[i][j])) - _q4.content[i][j]*_q5.content[i][j];
+	    r16.content[i][j] = covar;
+	  }
 	  
-	// = C5|5
-	if (r17.cnts[i][j]) {
-	  covar =  ((r17.content[i][j]) /(double)(r17.cnts[i][j])) - _q5.content[i][j]*_q5.content[i][j];
-	  r17.content[i][j] = covar;	
+	  // = C5|5
+	  if (r17.cnts[i][j]) {
+	    covar =  ((r17.content[i][j]) /(double)(r17.cnts[i][j])) - _q5.content[i][j]*_q5.content[i][j];
+	    r17.content[i][j] = covar;	
+	  }
+
 	}
-
       }
+
+      // == Save results to text files
+      std::string rpath = "Test_"+testID+"/"+outDir;
+      std::string path = rpath+"/"+cscID+"/";
+     
+
+      std::ofstream res_out((path+cscID+"_CFEB02_01.results").c_str());
+      res_out << "Layer Strip Pedestal Noise SCA_rms P12_Ped P12_rms P345_Ped P345_rms" << std::endl;
+      for (int i=0; i<NLAYERS; i++) {
+	for (int j=0; j<strips_per_layer; j++) {
+	  res_out << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1) 
+		  << std::setw(9) << r01.content[i][j]  << std::setw(6) << r02.content[i][j]
+		  << std::setw(8) << r03.content[i][j]  << std::setw(8) << r04.content[i][j]
+		  << std::setw(8) << r05.content[i][j]  << std::setw(9) << r06.content[i][j]
+		  << std::setw(9) << r07.content[i][j]
+		  << std::endl;
+	}
+      }
+      res_out.close();
+
+      res_out.open((path+cscID+"_CFEB02_02.results").c_str());
+      res_out << "Layer Strip C12|12 C12|3 C12|4 C12|5  C3|3  C3|4  C3|5  C4|4  C4|5  C5|5" << std::endl;
+      for (int i=0; i<NLAYERS; i++) {
+	for (int j=0; j<strips_per_layer; j++) {
+	  res_out << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1) 
+		  << std::setw(7) << r08.content[i][j] << std::setw(6) << r09.content[i][j]  
+		  << std::setw(6) << r10.content[i][j]
+		  << std::setw(6) << r11.content[i][j]  << std::setw(6) << r12.content[i][j]  
+		  << std::setw(6) << r13.content[i][j]  
+		  << std::setw(6) << r14.content[i][j]  << std::setw(6) << r15.content[i][j] 
+		  << std::setw(6) << r16.content[i][j]
+		  << std::setw(6) << r17.content[i][j]  << std::endl;
+	}
+      }
+      res_out.close();
+
+      // == Save results for database transfer Pedestals and RMS
+      res_out.open((path+cscID+"_CFEB02_DB.dat").c_str());
+      for (int layer=0; layer<NLAYERS; layer++) {
+	for (int strip=0; strip<strips_per_layer; strip++) {
+	  res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+		  << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << std::endl;
+	}
+      }
+      res_out.close();
     }
 
-    // == Save results to text files
-    std::string rpath = "Test_"+testID+"/"+outDir;
-    std::string path = rpath+"/"+cscID+"/";
-
-    std::ofstream res_out((path+cscID+"_CFEB02_01.results").c_str());
-    res_out << "Layer Strip Pedestal Noise SCA_rms P12_Ped P12_rms P345_Ped P345_rms" << std::endl;
-    for (int i=0; i<r03.Nlayers; i++) {
-      for (int j=0; j<r03.Nbins; j++) {
-	res_out << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1) 
-		<< std::setw(9) << r01.content[i][j]  << std::setw(6) << r02.content[i][j]
-		<< std::setw(8) << r03.content[i][j]  << std::setw(8) << r04.content[i][j]
-		<< std::setw(8) << r05.content[i][j]  << std::setw(9) << r06.content[i][j]
-		<< std::setw(9) << r07.content[i][j]
-		<< std::endl;
-      }
-    }
-    res_out.close();
-
-    res_out.open((path+cscID+"_CFEB02_02.results").c_str());
-    res_out << "Layer Strip C12|12 C12|3 C12|4 C12|5  C3|3  C3|4  C3|5  C4|4  C4|5  C5|5" << std::endl;
-    for (int i=0; i<r03.Nlayers; i++) {
-      for (int j=0; j<r03.Nbins; j++) {
-	res_out << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1) 
-		<< std::setw(7) << r08.content[i][j] << std::setw(6) << r09.content[i][j]  
-		<< std::setw(6) << r10.content[i][j]
-		<< std::setw(6) << r11.content[i][j]  << std::setw(6) << r12.content[i][j]  
-		<< std::setw(6) << r13.content[i][j]  
-		<< std::setw(6) << r14.content[i][j]  << std::setw(6) << r15.content[i][j]  << 
-	  std::setw(6) << r16.content[i][j]
-		<< std::setw(6) << r17.content[i][j]  << std::endl;
-      }
-    }
-    res_out.close();
   }
 }
 

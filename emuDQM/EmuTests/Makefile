@@ -69,7 +69,8 @@ UserExecutableLinkFlags += $(ROOTGLIBS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) EmuReadout
+Libraries = $(XdaqLibraries) EmuReadout cscmap1_p5 occi clntsh nnz10
+
 
 #
 # Compile the source files and create a shared library
