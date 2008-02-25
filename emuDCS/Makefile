@@ -16,17 +16,18 @@ Packages=\
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
 	emuDCS/e2p \
+	emuDCS/OnlineDB \
+	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCrate
 endif
 
 ifeq ($(Set),PeripheralApps)
 Packages= \
 	emuDCS/PeripheralCore \
-	emuDCS/PeripheralApps
-endif
-
-ifeq ($(Set),e2p)
-Packages= emuDCS/e2p
+	emuDCS/PeripheralApps \
+	emuDCS/OnlineDB \
+	emuDCS/drivers \
+	emuDCS/e2p
 endif
 
 ifeq ($(Set),FEDCrate)
