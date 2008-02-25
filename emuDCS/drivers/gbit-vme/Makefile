@@ -26,7 +26,7 @@ _cleanall:
 	cd ../eth_hook_jtag_simple; \
 	/bin/rm -rf *.o *.ko *mod.c .*.cmd .tmp_versions
 
-install:
+localinstall:
 	sudo /usr/bin/install -D ./dl2k_driver/dl2k.ko  /usr/local/lib/modules/`/bin/uname -r`/kernel/drivers/pcrate/dl2k.ko; \
 	sudo /usr/bin/install -D ./eth_hook_jtag_simple/eth_hook.ko  /usr/local/lib/modules/`/bin/uname -r`/kernel/drivers/pcrate/eth_hook.ko
 	sudo /usr/bin/install -m 755 ./bin/pcratedriver /etc/rc.d/init.d/pcratedriver ;\
