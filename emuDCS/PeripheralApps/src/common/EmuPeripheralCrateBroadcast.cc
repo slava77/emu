@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.14 2008/02/24 14:20:45 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.15 2008/02/25 11:13:11 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -945,7 +945,7 @@ void EmuPeripheralCrateBroadcast::DmbTurnOnPower(xgi::Input * in, xgi::Output * 
   //
   DefineBroadcastCrate();
   //
-  cout <<" Broadcast to turn ON the On-chamber electronics power ..."<<endl;
+  std::cout <<" Broadcast to turn ON the On-chamber electronics power ..."<<std::endl;
   broadcastDMB->lowv_onoff(0x3f);
   in=NULL;
   this->Default(in, out);
@@ -956,7 +956,7 @@ void EmuPeripheralCrateBroadcast::DmbTurnOffPower(xgi::Input * in, xgi::Output *
   //
   DefineBroadcastCrate();
   //
-  cout <<" Broadcast to turn ON the On-chamber electronics power ..."<<endl;
+  std::cout <<" Broadcast to turn ON the On-chamber electronics power ..."<<std::endl;
   broadcastDMB->lowv_onoff(0x00);
   in=NULL;
   this->Default(in, out);
@@ -988,8 +988,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   std::cout<< "This is a checking printing for OnConfigCal0"<<std::endl;
   ostringstream test;
   message->writeTo(test);
-  cout << test.str() <<endl;
-  cout << " Print check working in OnConfigCal0 "<<endl;
+  std::cout << test.str() <<endl;
+  std::cout << " Print check working in OnConfigCal0 "<<endl;
   //
   //implement the cal0 configure process:
   float dac;
@@ -1026,8 +1026,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
   broadcastDMB->setcaldelay(dword);
   //
-  cout << " The Peripheral Crate configure finished "<<endl;
-  usleep(nsleep);
+  std::cout << " The Peripheral Crate configure finished "<<std::endl;
+  ::usleep(nsleep);
   //
   //    fireEvent("Configure");
   //
@@ -1043,7 +1043,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
   //  std::cout<< "This is a checking printing for OnEnableCalCFEBComparator"<<std::endl;
   ostringstream test;
   message->writeTo(test);
-  cout << test.str() <<endl;
+  std::cout << test.str() <<std::endl;
   //
   calsetup++;
   //
@@ -1076,8 +1076,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
   }
   threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
   broadcastDMB->set_comp_thresh_bc(threshold);
-  cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<endl;
-  usleep(nsleep);
+  std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+  ::usleep(nsleep);
   //    fireEvent("Enable");
   //
   return createReply(message);
@@ -1091,7 +1091,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   //  std::cout<< "This is a checking printing for OnEnableCalCFEBGains"<<std::endl;
   ostringstream test;
   message->writeTo(test);
-  cout << test.str() <<endl;
+  std::cout << test.str() <<std::endl;
   //
   calsetup++;
   //
@@ -1104,8 +1104,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
   dac=0.1+0.25*gainsetting;
   broadcastDMB->set_cal_dac(dac,dac);
-  cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<endl;
-  usleep(nsleep);
+  std::cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<std::endl;
+  ::usleep(nsleep);
   //    fireEvent("Enable");
   //
   return createReply(message);
@@ -1119,7 +1119,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
   std::cout<< "This is a checking printing for OnEnableCalCFEBCrossTalk"<<std::endl;
   ostringstream test;
   message->writeTo(test);
-  cout << test.str() <<endl;
+  std::cout << test.str() <<std::endl;
   //
   calsetup++;
   //
@@ -1131,8 +1131,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
   int nstrip=(calsetup-1)/10;
   if (!timesetting) broadcastDMB->buck_shift_ext_bc(nstrip);
   broadcastDMB->set_cal_tim_pulse(timesetting+5);
-  cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<endl;
-  usleep(nsleep);
+  std::cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<std::endl;
+  ::usleep(nsleep);
   //    fireEvent("Enable");
   //
   return createReply(message);
@@ -1147,7 +1147,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   std::cout<< "This is a checking printing for OnEnableCalCFEBSCAPed"<<std::endl;
   ostringstream test;
   message->writeTo(test);
-  cout << test.str() <<endl;
+  std::cout << test.str() <<std::endl;
   //
   calsetup++;
   //
@@ -1158,11 +1158,11 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   broadcastDMB->buck_shift_ext_bc(-1);
   dac=0.0;
   broadcastDMB->set_cal_dac(dac,dac);
-  cout <<" The strip was set to: -1, " <<" DAC was set to: "<<dac <<endl;
-  usleep(nsleep);
+  std::cout <<" The strip was set to: -1, " <<" DAC was set to: "<<dac <<std::endl;
+  ::usleep(nsleep);
   broadcastDMB->toggle_pedestal();
-  cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<end;
-  usleep(nsleep);
+  std::cout<<" Toggle DMB Pedestal switch, to disable the pulsing."<<std::endl;
+  ::usleep(nsleep);
 
   //    fireEvent("Enable");
   //
