@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.34 2008/02/21 12:24:30 liu Exp $
+// $Id: VMEController.cc,v 3.35 2008/02/25 13:04:34 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.35  2008/02/25 13:04:34  liu
+// bug fixes for VCC firmware downloading
+//
 // Revision 3.34  2008/02/21 12:24:30  liu
 // *** empty log message ***
 //
@@ -1226,7 +1229,7 @@ READETH:
     nrbuf=nread;
     size=eth_read();
     if(size<10)
-        { printf(" ERROR: no data read back \n\n");
+        { printf(" ERROR: no data read back from %08lX\n\n", ptrt);
           if(DEBUG) {
             int schar_status=ioctl(theSocket,SCHAR_INQR);
             if(schar_status!=-1) {
@@ -2516,7 +2519,7 @@ void VMEController::send_uc_cc_data(char *fn)
     
 void VMEController::prg_vcc_prom_ver(const char *path,const char *ver)
 {
-  char fname[36];
+  char fname[136];
   char fullname[256];
   int n,pktnum,rslt;
   unsigned int temp_uint;
@@ -2524,7 +2527,7 @@ void VMEController::prg_vcc_prom_ver(const char *path,const char *ver)
   char *tmp_cp;
   int ptyp;
   int ack;
-  char buf[100];
+  char buf[300];
   strcpy(fname,"D783C.V");
   strcat(fname,ver);
   strcat(fname,".mcs");
@@ -2535,7 +2538,9 @@ void VMEController::prg_vcc_prom_ver(const char *path,const char *ver)
   std::cout << "VMECC PromLoad Filename: "<< buf << "\n" <<std::endl;
   rslt = chk_jtag_conn();
   if(rslt == 1){
-    temp_uint = read_dev_id();
+//    temp_uint = read_dev_id();
+// disabled for f/w v4.28
+    temp_uint = device_id;
     if(temp_uint == device_id){
       temp_uint = read_user_code();
       printf("User Code is %08X\n",temp_uint);
@@ -2614,7 +2619,7 @@ void VMEController::prg_vcc_prom_ver(const char *path,const char *ver)
 
 void VMEController::prg_vcc_prom_bcast(const char *path, const char *ver)
 {
-  char fname[36];
+  char fname[136];
   char fullname[256];
   int rslt;
   //unsigned int temp_uint;
