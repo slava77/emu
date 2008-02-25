@@ -37,20 +37,28 @@
 #include "DataFormats/CSCDigi/interface/CSCALCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCStripDigi.h"
+#include "CondFormats/CSCObjects/interface/CSCMapItem.h"
+
 
 #include "ConsumerCanvas.hh"
 typedef ConsumerCanvas MonitoringCanvas;
 
 #include "CSCReadoutMappingFromFile.h"
+#include "CSCMap.h"
 
 #include "TestCanvas_6gr1h.h"
 #include "TestCanvas_1h.h"
 #include "TestCanvas_userHisto.h"
 
+
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TProfile.h>
 #include <TFile.h>
+
+#define NLAYERS 6
+#define MAX_STRIPS 80
+#define SCA_CELLS 96
 
 typedef std::map<std::string, TestData2D> TestData;
 typedef std::map<std::string, TestData> cscTestData;
@@ -61,6 +69,7 @@ typedef std::map<std::string, TCanvas*> TestCanvases;
 typedef std::map<std::string, TestCanvases> cscTestCanvases;
 typedef std::map<std::string, std::string> bookParams;
 typedef std::map<std::string, bookParams> testParamsCfg;
+typedef std::map<std::string, std::pair<int,int> >CSCtoHWmap;
 
 // == CFEB SCA cell sample pair (value, count)
 typedef struct sca_sample {
@@ -72,7 +81,7 @@ typedef struct sca_sample {
 typedef struct CFEBSCAData{
         int Nbins;
         int Nlayers;
-        sca_sample content[6][80][96];
+        sca_sample content[NLAYERS][MAX_STRIPS][SCA_CELLS];
 } CFEBSCAData;
 
 // == CSC->SCA Data structure
@@ -108,11 +117,14 @@ class Test_Generic
 	virtual void initCSC(std::string cscID) = 0;
 	virtual void bookTestsForCSC(std::string cscID);
 	virtual void bookCommonHistos();
+	void addCSCtoMap(std::string, int, int);
+
 	int loadTestCfg();
 	int loadMasks();
 	// virtual void bookTestCanvases(std::string cscID);
 	virtual void analyzeCSC(const CSCEventData& data) = 0;
 	virtual void finishCSC(std::string cscID) = 0;
+        
 
 	cscTestData tdata;
 	cscMonHistos mhistos;
@@ -143,6 +155,8 @@ class Test_Generic
 
 	std::map<std::string, TH2F*> hFormatErrors;
 	std::map<std::string, int> tmap; // Map of CSC types for Format Errors histogram
+        CSCtoHWmap cscmap;
+  	cscmap1 *map;
 
 };
 

@@ -21,6 +21,8 @@ Test_Generic::~Test_Generic()
       delete c_itr->second;
     }
   }
+
+  if (map) delete map;
 	
 }
 
@@ -74,6 +76,7 @@ void Test_Generic::init() {
   bin_checker.modeDDU(true);
   emucnvs.clear();
   tmap = getCSCTypeToBinMap();
+  map = new cscmap1();
 }
 
 int Test_Generic::loadTestCfg() 
@@ -780,6 +783,7 @@ void Test_Generic::doBinCheck() {
     int CSCposition = 0;
     std::string cscID = getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
     if (cscID == "") continue;
+    addCSCtoMap(cscID, CrateID, DMBSlot);
   
     cscTestData::iterator td_itr = tdata.find(cscID);
     if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
@@ -1071,6 +1075,16 @@ void Test_Generic::finish() {
 
 }
 
+void Test_Generic::addCSCtoMap(std::string cscid, int dmbcrate, int dmbslot)
+{
+	if (cscid != "") {
+		CSCtoHWmap::iterator itr = cscmap.find(cscid);
+		if (itr==cscmap.end() || cscmap.size() == 0) {
+			cscmap[cscid]=std::make_pair(dmbcrate, dmbslot);
+		}
+	}
+	
+}
 
 
 void Test_Generic::saveCSCList()
