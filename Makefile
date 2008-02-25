@@ -12,8 +12,12 @@ Project=emu
 ### this will include other packages, like DAQ and DQM
 ifeq ($(Set),framework)
 Packages=\
+	cscSV \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
+	emuDCS/e2p \
+	emuDCS/OnlineDB \
+	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCrate \
 	emuDAQ/emuReadout \
 	emuDAQ/emuFU \
@@ -22,7 +26,7 @@ Packages=\
 	emuDAQ/emuDAQManager \
 	emuDAQ/emuClient \
 	emuDAQ/emuUtil \
-	cscSV
+	emuDAQ/drivers
 endif
 
 ### specific package target builds
@@ -30,6 +34,9 @@ ifeq ($(Set),emuDCS)
 Packages= \
         emuDCS/PeripheralCore \
         emuDCS/PeripheralApps \
+	emuDCS/e2p \
+	emuDCS/OnlineDB \
+	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCrate 
 endif
 
