@@ -13,7 +13,7 @@ Package=emuDCS/e2p
 
 #DIMDIR=$(XDAQ_ROOT)/$(Project)/extern/dim/$(XDAQ_OS)$(XDAQ_PLATFORM)
 #####DIMDIR=$(HOME)/dim
-DCSDIR=$(BUILD_HOME)/emu/emuDCS/e2p
+#fg DCSDIR=$(BUILD_HOME)/emu/emuDCS/e2p
 #-----
 #DependentLibraryDirs = $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 #DependentLibraries = CSCSupervisor EmuPeripheralCore EmuPeripheralCrate
@@ -29,7 +29,7 @@ Sources =\
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
         $(BUILD_HOME)/emu/emuDCS/PeripheralCore/include \
-	$(BUILD_HOME)/emu/emuDCS/PeripheralCrate/include \
+	$(BUILD_HOME)/emu/emuDCS/PeripheralApps/include \
         $(BUILD_HOME)/emu/cscSV/include \
         $(DCSDIR)/include
 #####        $(DIMDIR)/dim
@@ -59,7 +59,7 @@ TestLibraryDirs = \
         $(BUILD_HOME)/emu/emuDCS/PeripheralCore/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
         $(BUILD_HOME)/emu/emuDCS/PeripheralApps/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
         $(BUILD_HOME)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-        $(DCSDIR)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+        $(BUILD_HOME)/emu/emuDCS/e2p/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 #######        $(DIMDIR)/$(XDAQ_OS)
 
 
