@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.35 2008/02/25 13:04:34 liu Exp $
+// $Id: VMEController.cc,v 3.36 2008/02/26 18:11:33 gujh Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.36  2008/02/26 18:11:33  gujh
+// Enable the VCC usercode, IDcode, customcode read back
+//
 // Revision 3.35  2008/02/25 13:04:34  liu
 // bug fixes for VCC firmware downloading
 //
@@ -1534,7 +1537,7 @@ int VMEController::chk_jtag_conn()
 unsigned int VMEController::read_dev_id()
 {
 // Jinghua & Ben: disabled for now Feb.3, 2008
-  return 0;
+//  return 0;
   int n;
   unsigned int dev_id;
   int ptyp;
@@ -1555,7 +1558,7 @@ unsigned int VMEController::read_dev_id()
 unsigned int VMEController::read_user_code()
 {
 // Jinghua & Ben: disabled for now Feb.3, 2008
-  return 0;
+//  return 0;
   int n;
   unsigned int user_code;
   int ptyp;
@@ -1576,7 +1579,7 @@ unsigned int VMEController::read_user_code()
 char * VMEController::read_customer_code()
 {
 // Jinghua & Ben: disabled for now Feb.3, 2008
-  return 0;
+//  return 0;
   int n;
   int ptyp;
   wbuf[0]=0x00;
