@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.36 2008/02/26 18:11:33 gujh Exp $
+// $Id: VMEController.cc,v 3.37 2008/02/26 18:23:37 gujh Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.37  2008/02/26 18:23:37  gujh
+// Fix the VMEController::prg_vcc readback check
+//
 // Revision 3.36  2008/02/26 18:11:33  gujh
 // Enable the VCC usercode, IDcode, customcode read back
 //
@@ -2541,9 +2544,10 @@ void VMEController::prg_vcc_prom_ver(const char *path,const char *ver)
   std::cout << "VMECC PromLoad Filename: "<< buf << "\n" <<std::endl;
   rslt = chk_jtag_conn();
   if(rslt == 1){
-//    temp_uint = read_dev_id();
+    temp_uint = read_dev_id();
+    std::cout <<" tmp_uinit "<<temp_uint<<" deviceid "<<device_id<<endl;
 // disabled for f/w v4.28
-    temp_uint = device_id;
+//    temp_uint = device_id;
     if(temp_uint == device_id){
       temp_uint = read_user_code();
       printf("User Code is %08X\n",temp_uint);
