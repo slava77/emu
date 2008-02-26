@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.15 2008/02/25 11:13:11 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.16 2008/02/26 18:14:39 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -28,7 +28,7 @@ using namespace cgicc;
 using namespace std;
 
 const string       VMECC_FIRMWARE_DIR = "vcc"; 
-const string       VMECC_FIRMWARE_VER ="4.29";   
+const string       VMECC_FIRMWARE_VER ="4.31";   
 
 EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuApplication(s)
 {	
