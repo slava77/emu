@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.25 2008/02/24 12:48:30 liu Exp $
+// $Id: Crate.cc,v 3.26 2008/02/27 09:55:25 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.26  2008/02/27 09:55:25  liu
+// update
+//
 // Revision 3.25  2008/02/24 12:48:30  liu
 // DMB online counters
 //
@@ -151,6 +154,7 @@
 Crate::Crate(int CrateID, VMEController * controller) : 
   theCrateID(CrateID),  
   label_("label"),
+  alive_(true),
   theModules(28),
   theController(controller)
 {
