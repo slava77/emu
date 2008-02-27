@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.26 2008/02/27 09:55:25 liu Exp $
+// $Id: Crate.cc,v 3.27 2008/02/27 17:02:35 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.27  2008/02/27 17:02:35  liu
+// add Info/Warning packet handling
+//
 // Revision 3.26  2008/02/27 09:55:25  liu
 // update
 //
@@ -414,7 +417,7 @@ void Crate::MonitorCCB(int cycle, char * buf)
   ccb->read_later(0x46);
   ccb->read_later(0x48);
   int rb=mpc->read_now(0x0, buf+2);
-  buf[0]=rb;
+  if(rb>0)  buf[0]=rb;
 }
 
 void Crate::MonitorTMB(int cycle, char * buf) 
