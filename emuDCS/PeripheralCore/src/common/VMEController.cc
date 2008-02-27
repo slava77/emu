@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.37 2008/02/26 18:23:37 gujh Exp $
+// $Id: VMEController.cc,v 3.38 2008/02/27 17:02:35 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.38  2008/02/27 17:02:35  liu
+// add Info/Warning packet handling
+//
 // Revision 3.37  2008/02/26 18:23:37  gujh
 // Fix the VMEController::prg_vcc readback check
 //
@@ -1288,12 +1291,14 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
       return_type=r_head0[1];
       if(return_type!=5)
        {  
-          if(return_type==0xff)
+          if(return_type==0xff || return_type==0xfe || return_type==0xfd)
           {
-             error_type=(r_datat[0]&0xf0)>>4;
-             if(error_type==0) error_type=16;
-             error_count++;
-             if(DEBUG) printf("Error packet: type: %d\n", return_type);
+             printf("Error/Warn/Info packet: %02X %02X \n", r_datat[0]&0xff, r_datat[1]&0xff);
+             error_type=(r_datat[0]&0x3)*256+r_datat[1];
+             int EWI=(r_datat[0]&0x0C)>>2;
+             int Source_ID=(r_datat[0]&0xF0)>>4;
+             if(EWI==2) error_count++;
+             if(DEBUG) printf("packet type: %d, source: %d, code: %d\n", EWI, Source_ID, error_type);
           }
           else
           {
