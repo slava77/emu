@@ -334,6 +334,7 @@ private:
   void BackplaneID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void EnableDisableDebug(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ExcludeIncludeCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ReadVMECCRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void VMECCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

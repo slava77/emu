@@ -105,6 +105,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::SetUnsetAutoRefresh, "SetUnsetAutoRefresh");
   xgi::bind(this,&EmuPeripheralCrateConfig::DefineConfiguration, "DefineConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::EnableDisableDebug, "EnableDisableDebug");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ExcludeIncludeCrate, "ExcludeIncludeCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadCCBRegister, "ReadCCBRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
@@ -513,9 +514,9 @@ void EmuPeripheralCrateConfig::PublishEmuInfospace(int cycle)
       if(total_crates_<=0) return;
       //update infospaces
       for ( unsigned int i = 0; i < crateVector.size(); i++ )
-      {
+      {   
           now_crate=crateVector[i];
-          if(now_crate) 
+          if(now_crate && now_crate->IsAlive()) 
           {
              is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
              if(cycle==3)
@@ -1362,7 +1363,12 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   std::cout << "CrateConfiguration: " << ThisCrateID_ << std::endl;
   MyHeader(in,out,"CrateConfiguration");
   //
-  *out << cgicc::h3("Current Crate: "+ ThisCrateID_) << cgicc::br()<<endl;
+  if(thisCrate->IsAlive()) 
+     *out << cgicc::h2("Current Crate: "+ ThisCrateID_ );
+  else
+     *out << cgicc::span().set("style","color:red") << cgicc::h2("Current Crate: "+ ThisCrateID_ + ",  Excluded") << cgicc::span();
+
+  *out << std::endl;
 
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
   *out << std::endl;
@@ -6123,6 +6129,20 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
   //
   MyHeader(in,out,Name);
   //
+  std::string ExcludeIncludeCrate =
+    toolbox::toString("/%s/ExcludeIncludeCrate",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",ExcludeIncludeCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Exclude/Include Crate") << std::endl ;
+  //
+  if ( thisCrate->IsAlive() ) {
+    *out << "Crate Included";
+  } else {
+    *out << "Crate Excluded";
+  }
+  //
+  *out << cgicc::form() << cgicc::br() << std::endl ;
+  //
   std::string EnableDisableDebug =
     toolbox::toString("/%s/EnableDisableDebug",getApplicationDescriptor()->getURN().c_str());
   //
@@ -6135,7 +6155,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << "Debug enabled";
   }
   //
-  *out << cgicc::form() << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
   //
   //
     std::string ReadVMECCRegisters =
@@ -6146,7 +6166,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << cgicc::input().set("type","submit")
       .set("value","Read Registers") 
 	 << std::endl ;
-    *out << cgicc::form() << std::endl ;
+    *out << cgicc::form() << cgicc::br() << std::endl ;
     //
     std::string VMECCLoadFirmware =
       toolbox::toString("/%s/VMECCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -6159,6 +6179,20 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << cgicc::form() << std::endl ;
     //
   }
+//
+void EmuPeripheralCrateConfig::ExcludeIncludeCrate(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  
+  if ( thisCrate->IsAlive() ) {
+    std::cout << thisCrate->GetLabel() << " Crate excluded out" << std::endl;
+    thisCrate->SetLife(false);
+  } else {
+    std::cout << thisCrate->GetLabel()  << "Crate included back" << std::endl;
+    thisCrate->SetLife(true);
+  }
+  
+  this->ControllerUtils(in,out);
+}
 //
 void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
