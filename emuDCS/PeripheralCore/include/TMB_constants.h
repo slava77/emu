@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.14 2008/01/07 15:08:53 rakness Exp $
+// $Id: TMB_constants.h,v 3.15 2008/02/28 18:36:36 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.15  2008/02/28 18:36:36  rakness
+// make TMB firmware loading robust against all failure modes except power cuts...
+//
 // Revision 3.14  2008/01/07 15:08:53  rakness
 // add xml parameters:  clct_stagger, clct_blanking, clct_pattern_id_thresh, aff_thresh, min_clct_separation.  Remove xml parameter:  clct_distrip_pretrig_thresh
 //
@@ -220,58 +223,58 @@ static const int LARGEST_VME_ADDRESS = clct_separation_ram_adr;
 //-----------------------------------------------------------------
 //0X70000 = ADR_BOOT:  Hardware Bootstrap Register
 //-----------------------------------------------------------------
-const int boot_tdi_vmereg                   =  tmb_adr_boot;
-const int boot_tdi_bitlo                    =  0;
-const int boot_tdi_bithi                    =  0;
+const int boot_tdi_vmereg                     =  tmb_adr_boot;
+const int boot_tdi_bitlo                      =  0;
+const int boot_tdi_bithi                      =  0;
 //
-const int boot_tms_vmereg                   =  tmb_adr_boot;
-const int boot_tms_bitlo                    =  1;
-const int boot_tms_bithi                    =  1;
+const int boot_tms_vmereg                     =  tmb_adr_boot;
+const int boot_tms_bitlo                      =  1;
+const int boot_tms_bithi                      =  1;
 //
-const int boot_tck_vmereg                   =  tmb_adr_boot;
-const int boot_tck_bitlo                    =  2;
-const int boot_tck_bithi                    =  2;
+const int boot_tck_vmereg                     =  tmb_adr_boot;
+const int boot_tck_bitlo                      =  2;
+const int boot_tck_bithi                      =  2;
 //
-const int boot_jtag_chain_select_vmereg     =  tmb_adr_boot;
-const int boot_jtag_chain_select_bitlo      =  3;
-const int boot_jtag_chain_select_bithi      =  6;
+const int boot_jtag_chain_select_vmereg       =  tmb_adr_boot;
+const int boot_jtag_chain_select_bitlo        =  3;
+const int boot_jtag_chain_select_bithi        =  6;
 //
-const int boot_control_jtag_chain_vmereg    =  tmb_adr_boot;
-const int boot_control_jtag_chain_bitlo     =  7;
-const int boot_control_jtag_chain_bithi     =  7;
-const int boot_control_jtag_chain_expected  =  0;           //expect FPGA to control JTAG chain
+const int boot_control_jtag_chain_vmereg      =  tmb_adr_boot;
+const int boot_control_jtag_chain_bitlo       =  7;
+const int boot_control_jtag_chain_bithi       =  7;
+const int boot_control_jtag_chain_expected    =  0;           //expect FPGA to control JTAG chain
 //
-const int boot_hard_reset_alct_vmereg       =  tmb_adr_boot;
-const int boot_hard_reset_alct_bitlo        =  8;
-const int boot_hard_reset_alct_bithi        =  8;
+const int boot_hard_reset_alct_vmereg         =  tmb_adr_boot;
+const int boot_hard_reset_alct_bitlo          =  8;
+const int boot_hard_reset_alct_bithi          =  8;
 //
-const int boot_hard_reset_tmb_vmereg        =  tmb_adr_boot;
-const int boot_hard_reset_tmb_bitlo         =  9;
-const int boot_hard_reset_tmb_bithi         =  9;
+const int boot_hard_reset_tmb_vmereg          =  tmb_adr_boot;
+const int boot_hard_reset_tmb_bitlo           =  9;
+const int boot_hard_reset_tmb_bithi           =  9;
 //
-const int boot_allow_hard_reset_alct_vmereg =  tmb_adr_boot;
-const int boot_allow_hard_reset_alct_bitlo  = 10;
-const int boot_allow_hard_reset_alct_bithi  = 10;
+const int boot_disable_hard_reset_alct_vmereg =  tmb_adr_boot;
+const int boot_disable_hard_reset_alct_bitlo  = 10;
+const int boot_disable_hard_reset_alct_bithi  = 10;
 //
-const int boot_allow_VME_vmereg             =  tmb_adr_boot;
-const int boot_allow_VME_bitlo              = 11;
-const int boot_allow_VME_bithi              = 11;
+const int boot_disable_VME_vmereg             =  tmb_adr_boot;
+const int boot_disable_VME_bitlo              = 11;
+const int boot_disable_VME_bithi              = 11;
 //
-const int boot_enable_mezz_clock_vmereg     =  tmb_adr_boot;
-const int boot_enable_mezz_clock_bitlo      = 12;
-const int boot_enable_mezz_clock_bithi      = 12;
+const int boot_disable_mezz_clock_vmereg      =  tmb_adr_boot;
+const int boot_disable_mezz_clock_bitlo       = 12;
+const int boot_disable_mezz_clock_bithi       = 12;
 //
-const int boot_hard_reset_rat_vmereg        =  tmb_adr_boot;
-const int boot_hard_reset_rat_bitlo         = 13;
-const int boot_hard_reset_rat_bithi         = 13;
+const int boot_hard_reset_rat_vmereg          =  tmb_adr_boot;
+const int boot_hard_reset_rat_bitlo           = 13;
+const int boot_hard_reset_rat_bithi           = 13;
 //
-const int boot_vme_ready_vmereg             =  tmb_adr_boot;
-const int boot_vme_ready_bitlo              = 14;
-const int boot_vme_ready_bithi              = 14;
+const int boot_vme_ready_vmereg               =  tmb_adr_boot;
+const int boot_vme_ready_bitlo                = 14;
+const int boot_vme_ready_bithi                = 14;
 //
-const int boot_tdo_vmereg                   =  tmb_adr_boot;
-const int boot_tdo_bitlo                    = 15;
-const int boot_tdo_bithi                    = 15;
+const int boot_tdo_vmereg                     =  tmb_adr_boot;
+const int boot_tdo_bitlo                      = 15;
+const int boot_tdo_bithi                      = 15;
 //
 //
 //-----------------------------------------------------------------

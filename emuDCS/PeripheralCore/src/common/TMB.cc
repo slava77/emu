@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.57 2008/02/23 15:25:54 liu Exp $
+// $Id: TMB.cc,v 3.58 2008/02/28 18:36:36 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.58  2008/02/28 18:36:36  rakness
+// make TMB firmware loading robust against all failure modes except power cuts...
+//
 // Revision 3.57  2008/02/23 15:25:54  liu
 // TMB online counters
 //
@@ -7538,19 +7541,19 @@ void TMB::DecodeBootRegister_(int data) {
   //------------------------------------------------------------------
   //0X70000 = ADR_BOOT:  Hardware Bootstrap Register
   //------------------------------------------------------------------
-  read_boot_tdi_                   = ExtractValueFromData(data,boot_tdi_bitlo                  ,boot_tdi_bithi                  );
-  read_boot_tms_                   = ExtractValueFromData(data,boot_tms_bitlo                  ,boot_tms_bithi                  );
-  read_boot_tck_                   = ExtractValueFromData(data,boot_tck_bitlo                  ,boot_tck_bithi                  );
-  read_boot_jtag_chain_select_     = ExtractValueFromData(data,boot_jtag_chain_select_bitlo    ,boot_jtag_chain_select_bithi    );
-  read_boot_control_jtag_chain_    = ExtractValueFromData(data,boot_control_jtag_chain_bitlo   ,boot_control_jtag_chain_bithi   );
-  read_boot_hard_reset_alct_       = ExtractValueFromData(data,boot_hard_reset_alct_bitlo      ,boot_hard_reset_alct_bithi      );
-  read_boot_hard_reset_tmb_        = ExtractValueFromData(data,boot_hard_reset_tmb_bitlo       ,boot_hard_reset_tmb_bithi       );
-  read_boot_allow_hard_reset_alct_ = ExtractValueFromData(data,boot_allow_hard_reset_alct_bitlo,boot_allow_hard_reset_alct_bithi);
-  read_boot_allow_VME_             = ExtractValueFromData(data,boot_allow_VME_bitlo            ,boot_allow_VME_bithi            );
-  read_boot_enable_mezz_clock_     = ExtractValueFromData(data,boot_enable_mezz_clock_bitlo    ,boot_enable_mezz_clock_bithi    );
-  read_boot_hard_reset_rat_        = ExtractValueFromData(data,boot_hard_reset_rat_bitlo       ,boot_hard_reset_rat_bithi       );
-  read_boot_vme_ready_             = ExtractValueFromData(data,boot_vme_ready_bitlo            ,boot_vme_ready_bithi            );
-  read_boot_tdo_                   = ExtractValueFromData(data,boot_tdo_bitlo                  ,boot_tdo_bithi                  );
+  read_boot_tdi_                     = ExtractValueFromData(data,boot_tdi_bitlo                    ,boot_tdi_bithi                    );
+  read_boot_tms_                     = ExtractValueFromData(data,boot_tms_bitlo                    ,boot_tms_bithi                    );
+  read_boot_tck_                     = ExtractValueFromData(data,boot_tck_bitlo                    ,boot_tck_bithi                    );
+  read_boot_jtag_chain_select_       = ExtractValueFromData(data,boot_jtag_chain_select_bitlo      ,boot_jtag_chain_select_bithi      );
+  read_boot_control_jtag_chain_      = ExtractValueFromData(data,boot_control_jtag_chain_bitlo     ,boot_control_jtag_chain_bithi     );
+  read_boot_hard_reset_alct_         = ExtractValueFromData(data,boot_hard_reset_alct_bitlo        ,boot_hard_reset_alct_bithi        );
+  read_boot_hard_reset_tmb_          = ExtractValueFromData(data,boot_hard_reset_tmb_bitlo         ,boot_hard_reset_tmb_bithi         );
+  read_boot_disable_hard_reset_alct_ = ExtractValueFromData(data,boot_disable_hard_reset_alct_bitlo,boot_disable_hard_reset_alct_bithi);
+  read_boot_disable_VME_             = ExtractValueFromData(data,boot_disable_VME_bitlo            ,boot_disable_VME_bithi            );
+  read_boot_disable_mezz_clock_      = ExtractValueFromData(data,boot_disable_mezz_clock_bitlo     ,boot_disable_mezz_clock_bithi     );
+  read_boot_hard_reset_rat_          = ExtractValueFromData(data,boot_hard_reset_rat_bitlo         ,boot_hard_reset_rat_bithi         );
+  read_boot_vme_ready_               = ExtractValueFromData(data,boot_vme_ready_bitlo              ,boot_vme_ready_bithi              );
+  read_boot_tdo_                     = ExtractValueFromData(data,boot_tdo_bitlo                    ,boot_tdo_bithi                    );
   //
   return;
 }
@@ -8130,19 +8133,19 @@ void TMB::PrintBootRegister() {
   //-----------------------------------------------------------------
   //0X70000 = ADR_BOOT:  Hardware Bootstrap Register
   //-----------------------------------------------------------------
-  (*MyOutput_) << " boot register tdi                   = "  << std::hex << read_boot_tdi_ << std::endl;
-  (*MyOutput_) << " boot register tms                   = "  << std::hex << read_boot_tms_ << std::endl;
-  (*MyOutput_) << " boot register tck                   = "  << std::hex << read_boot_tck_ << std::endl;
-  (*MyOutput_) << " boot register jtag chain select     = 0x"<< std::hex << read_boot_jtag_chain_select_ << std::endl;
-  (*MyOutput_) << " boot register control jtag chain    = "  << std::hex << read_boot_control_jtag_chain_ << std::endl;
-  (*MyOutput_) << " boot register hard reset ALCT       = "  << std::hex << read_boot_hard_reset_alct_ << std::endl;
-  (*MyOutput_) << " boot register hard reset TMB        = "  << std::hex << read_boot_hard_reset_tmb_ << std::endl;
-  (*MyOutput_) << " boot register allow hard reset ALCT = "  << std::hex << read_boot_allow_hard_reset_alct_ << std::endl;
-  (*MyOutput_) << " boot register allow VME             = "  << std::hex << read_boot_allow_VME_ << std::endl;
-  (*MyOutput_) << " boot register enable TMB mezz clock = "  << std::hex << read_boot_enable_mezz_clock_ << std::endl;
-  (*MyOutput_) << " boot register hard reset RAT        = "  << std::hex << read_boot_hard_reset_rat_ << std::endl;
-  (*MyOutput_) << " boot register VME ready             = "  << std::hex << read_boot_vme_ready_ << std::endl;
-  (*MyOutput_) << " boot register tdo                   = "  << std::hex << read_boot_tdo_ << std::endl;
+  (*MyOutput_) << " boot register tdi                     = "  << std::hex << read_boot_tdi_                     << std::endl;
+  (*MyOutput_) << " boot register tms                     = "  << std::hex << read_boot_tms_                     << std::endl;
+  (*MyOutput_) << " boot register tck                     = "  << std::hex << read_boot_tck_                     << std::endl;
+  (*MyOutput_) << " boot register jtag chain select       = 0x"<< std::hex << read_boot_jtag_chain_select_       << std::endl;
+  (*MyOutput_) << " boot register control JTAG chain      = "  << std::hex << read_boot_control_jtag_chain_      << std::endl;
+  (*MyOutput_) << " boot register hard reset ALCT         = "  << std::hex << read_boot_hard_reset_alct_         << std::endl;
+  (*MyOutput_) << " boot register hard reset TMB          = "  << std::hex << read_boot_hard_reset_tmb_          << std::endl;
+  (*MyOutput_) << " boot register disable hard reset ALCT = "  << std::hex << read_boot_disable_hard_reset_alct_ << std::endl;
+  (*MyOutput_) << " boot register disable VME             = "  << std::hex << read_boot_disable_VME_             << std::endl;
+  (*MyOutput_) << " boot register disable TMB mezz clock  = "  << std::hex << read_boot_disable_mezz_clock_      << std::endl;
+  (*MyOutput_) << " boot register hard reset RAT          = "  << std::hex << read_boot_hard_reset_rat_          << std::endl;
+  (*MyOutput_) << " boot register VME ready               = "  << std::hex << read_boot_vme_ready_               << std::endl;
+  (*MyOutput_) << " boot register tdo                     = "  << std::hex << read_boot_tdo_                     << std::endl;
   //
   return;
 }

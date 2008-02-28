@@ -72,6 +72,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   nTrigger_ = 100;
   MenuMonitor_ = 2;
   //
+  tmb_vme_ready = -1;
+  //
   xgi::bind(this,&EmuPeripheralCrateConfig::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateConfig::MainPage, "MainPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::setConfFile, "setConfFile");
@@ -105,7 +107,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::SetUnsetAutoRefresh, "SetUnsetAutoRefresh");
   xgi::bind(this,&EmuPeripheralCrateConfig::DefineConfiguration, "DefineConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::EnableDisableDebug, "EnableDisableDebug");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ExcludeIncludeCrate, "ExcludeIncludeCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadCCBRegister, "ReadCCBRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
@@ -160,6 +161,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTStatus, "ALCTStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::RATStatus, "RATStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadTMBFirmware, "LoadTMBFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckTMBFirmware, "CheckTMBFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadRATFirmware, "LoadRATFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadTMBRegister, "ReadTMBRegister");
@@ -514,9 +517,9 @@ void EmuPeripheralCrateConfig::PublishEmuInfospace(int cycle)
       if(total_crates_<=0) return;
       //update infospaces
       for ( unsigned int i = 0; i < crateVector.size(); i++ )
-      {   
+      {
           now_crate=crateVector[i];
-          if(now_crate && now_crate->IsAlive()) 
+          if(now_crate) 
           {
              is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
              if(cycle==3)
@@ -534,14 +537,14 @@ void EmuPeripheralCrateConfig::PublishEmuInfospace(int cycle)
 
 
                    // add this one to help the TTC group's global clock scan
-                   id0 << ((buf2[3]&0x4000)?"Unlocked":"Locked");
+                   id0 <<(((buf2[3]&0x4000) || (buf2[3]&0x2000)==0)?"Unlocked":"Locked");
                    status = dynamic_cast<xdata::String *>(is->find("QPLL"));
                    *status = id0.str();
 
                    // CCB status
                    id1 << "CCB mode: " << ((buf2[1]&0x1)?"DLOG":"FPGA");
 		   id1 << ", TTCrx: " << ((buf2[3]&0x2000)?"Ready":"NotReady");
-                   id1 << ", QPLL: " << ((buf2[3]&0x4000)?"Unlocked":"Locked");
+                   id1 << ", QPLL: " << (((buf2[3]&0x4000) || (buf2[3]&0x2000)==0)?"Unlocked":"Locked");
 
                    status = dynamic_cast<xdata::String *>(is->find("CCBstatus"));
                    *status = id1.str();
@@ -1363,12 +1366,7 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   std::cout << "CrateConfiguration: " << ThisCrateID_ << std::endl;
   MyHeader(in,out,"CrateConfiguration");
   //
-  if(thisCrate->IsAlive()) 
-     *out << cgicc::h2("Current Crate: "+ ThisCrateID_ );
-  else
-     *out << cgicc::span().set("style","color:red") << cgicc::h2("Current Crate: "+ ThisCrateID_ + ",  Excluded") << cgicc::span();
-
-  *out << std::endl;
+  *out << cgicc::h3("Current Crate: "+ ThisCrateID_) << cgicc::br()<<endl;
 
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
   *out << std::endl;
@@ -6129,20 +6127,6 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
   //
   MyHeader(in,out,Name);
   //
-  std::string ExcludeIncludeCrate =
-    toolbox::toString("/%s/ExcludeIncludeCrate",getApplicationDescriptor()->getURN().c_str());
-  //
-  *out << cgicc::form().set("method","GET").set("action",ExcludeIncludeCrate) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Exclude/Include Crate") << std::endl ;
-  //
-  if ( thisCrate->IsAlive() ) {
-    *out << "Crate Included";
-  } else {
-    *out << "Crate Excluded";
-  }
-  //
-  *out << cgicc::form() << cgicc::br() << std::endl ;
-  //
   std::string EnableDisableDebug =
     toolbox::toString("/%s/EnableDisableDebug",getApplicationDescriptor()->getURN().c_str());
   //
@@ -6155,7 +6139,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << "Debug enabled";
   }
   //
-  *out << cgicc::form() << cgicc::br() << std::endl ;
+  *out << cgicc::form() << std::endl ;
   //
   //
     std::string ReadVMECCRegisters =
@@ -6166,7 +6150,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << cgicc::input().set("type","submit")
       .set("value","Read Registers") 
 	 << std::endl ;
-    *out << cgicc::form() << cgicc::br() << std::endl ;
+    *out << cgicc::form() << std::endl ;
     //
     std::string VMECCLoadFirmware =
       toolbox::toString("/%s/VMECCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -6179,20 +6163,6 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << cgicc::form() << std::endl ;
     //
   }
-//
-void EmuPeripheralCrateConfig::ExcludeIncludeCrate(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  
-  if ( thisCrate->IsAlive() ) {
-    std::cout << thisCrate->GetLabel() << " Crate excluded out" << std::endl;
-    thisCrate->SetLife(false);
-  } else {
-    std::cout << thisCrate->GetLabel()  << "Crate included back" << std::endl;
-    thisCrate->SetLife(true);
-  }
-  
-  this->ControllerUtils(in,out);
-}
 //
 void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
@@ -7386,6 +7356,32 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << TMBFirmware_.toString() << ".xsvf";
   *out << cgicc::form() << std::endl ;
   //
+  std::string CheckTMBFirmware = toolbox::toString("/%s/CheckTMBFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckTMBFirmware) ;
+  if ( tmb_vme_ready == 1 ) {
+    //
+    *out << cgicc::input().set("type","submit").set("value","Check TMB VME Ready").set("style","color:green");
+    //
+  } else if ( tmb_vme_ready == 0 ) {
+    //
+    *out << cgicc::input().set("type","submit").set("value","Check TMB VME Ready").set("style","color:red");
+    //
+  } else {
+    //
+    *out << cgicc::input().set("type","submit").set("value","Check TMB VME Ready").set("style","color:blue");
+    //
+  }
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string ClearTMBBootReg = toolbox::toString("/%s/ClearTMBBootReg",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ClearTMBBootReg) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Enable VME Access to TMB FPGA") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
   if (alct) {
     std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
@@ -7695,19 +7691,21 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
     tmb = TMB_;
   }
   //
+  tmb_vme_ready = -1;
+  //
   TMB * thisTMB = tmbVector[tmb];
   //
-  // remove CCB hard reset from beginning of prom programming:
-  //    thisCCB->hardReset();
+  // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
+  thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   int mintmb = tmb;
   int maxtmb = tmb+1;
   //
   // To remove the loop, comment out the following if (thisTMB->slot() ...) stuff...
-  if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
-    mintmb = 0;
-    maxtmb = tmbVector.size()-1;
-  }
+  //  if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
+  //    mintmb = 0;
+  //    maxtmb = tmbVector.size()-1;
+  //  }
   // end of stuff to remove...
   //
   std::cout << "Loading TMB firmware from " << mintmb << " to " << maxtmb << std::endl;
@@ -7746,8 +7744,7 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
     cout << "File does not exist, programming did not occur..."<< endl;
     //
   } else if (total_number_of_errors == 0) {
-    cout << "hard Reset to Load Proms"<< endl;
-    thisCCB->hardReset();
+    cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< endl;
     //
   } else {
     cout << "ERROR!!  Total number of verify errors = " << total_number_of_errors << endl;
@@ -7760,6 +7757,81 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
     cout << "!!!! Do not perform hard reset !!!! " << endl;
     cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
   }
+  //
+  // Put CCB back into DLOG mode to listen to TTC commands...
+  thisCCB->setCCBMode(CCB::DLOG);
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::CheckTMBFirmware(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  //const CgiEnvironment& env = cgi.getEnvironment();
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "TMB " << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "Not tmb" << endl ;
+    tmb = TMB_;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  // 
+  int mintmb = tmb;
+  int maxtmb = tmb+1;
+  //
+  if (thisTMB->slot() == 26) {
+    mintmb = 0;
+    maxtmb = tmbVector.size()-1;
+  }
+  //
+  std::cout << "Checking TMB VME Ready from " << mintmb << " to " << maxtmb << std::endl;
+  //
+  tmb_vme_ready = 1;
+  //
+  for (tmb=mintmb; tmb<maxtmb; tmb++) {
+    thisTMB = tmbVector[tmb];
+
+    short unsigned int BootReg;
+    thisTMB->tmb_get_boot_reg(&BootReg);
+    std::cout << "Boot register = 0x" << std::hex << BootReg << std::endl;
+    //
+    if (thisTMB->GetBootVMEReady() != 1) tmb_vme_ready = 0;
+  }
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::ClearTMBBootReg(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  //const CgiEnvironment& env = cgi.getEnvironment();
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "TMB " << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "Not tmb" << endl ;
+    tmb = TMB_;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  //
+  thisTMB->tmb_set_boot_reg(0x0);
   //
   this->TMBUtils(in,out);
   //
@@ -8179,6 +8251,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
       }
       std::string crate=thisCrate->GetLabel();
       int slot=thisDMB->slot();
+      std::cout<<" Crate: "<<crate<<" slot "<<slot<<std::endl;
       int dmbID=brddb->CrateToDMBID(crate,slot);
       //The readback
       unsigned long int dmbIDread=thisDMB->mbpromuser(0);

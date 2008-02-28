@@ -541,48 +541,50 @@ void VMEController::initDevice(int idev) {
     break;
     
   case 2:
-    /* ALCT Fast Programming JTAG Chain */
+    // ALCT Fast Programming JTAG Chain--done through the user JTAG register
     pvme=0x0098;
     break;
     
   case 3:
-    /* TMB Mezzanine FPGA +FPGA PROMS JTAG  */
-    // fprintf(fplog," tmb mezzanine called \n");
-    pvme=0x00b8;
+    // TMB Mezzanine FPGA +FPGA PROMS JTAG--done through the Bootstrap register
+    // During TMB firmware downloads, we want to prevent a known improper 
+    // firmware download from blocking the VME bus.  Therefore, we disable the 
+    // TMB FPGA from controlling the VME bus (boot reg[11]=1)
+    pvme=0x08b8;
     break;
     
   case 4:
-    /* TMB User Proms JTAG CHAIN */
+    // TMB User Proms JTAG CHAIN--done through the user JTAG
     pvme=0x00d8;
     break;
     
   case 5:
-    /* TMB FPGA User JTAG chain */ //Seems crap
+    // TMB FPGA User JTAG chain--relic from old code--keep anyway--do it through the user JTAG register
     pvme=0x00f8;
     break;
     
   case 6:
-    /* ALCT Slow User JTAG Chain */
+    // ALCT Slow User JTAG Chain--done through the user JTAG
     pvme=0x0080;
     break;
     
   case 7:
-    /* ALCT Slow Programming JTAG Chain */
+    // ALCT Slow Programming JTAG Chain--done through the user JTAG
     pvme=0x0088;
     break;
     
   case 8:
-    /* ALCT Fast User JTAG chain */
+    // ALCT Fast User JTAG chain--done through the user JTAG
     pvme=0x0090;
     break;
     
   case 9:
-    /* ALCT Fast Programming JTAG chain */
+    // ALCT Fast Programming JTAG chain--done through the user JTAG
     pvme=0x0098;
     break;
     
   case 10:
-    /* RAT FPGA+PROMS */
+    // RAT FPGA+PROMS--done through the user JTAG
     pvme=0x00e8;
     break;
     //

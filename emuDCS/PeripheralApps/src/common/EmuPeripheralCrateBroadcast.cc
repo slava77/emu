@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.16 2008/02/26 18:14:39 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.17 2008/02/28 18:36:36 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -304,11 +304,14 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
 	  (broadcastTMB->GetExpectedTmbFirmwareDay()     )&0xf);
   TMBFirmwareFile_ = FirmwareDir_+"tmb/"+tmbdate+"/tmb";   // Note:  ".xsvf" is added in SetXsvfFilename
   //
-  std::string LoadTMBFirmware = toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
-  *out << TMBFirmwareFile_ << ".xsvf";
-  *out << cgicc::form()<<std::endl;
+  //  Remove TMB broadcast to minimize damage from unexpected power failures
+  //  This must be in place until a hardware change is made to the TMB...
+  //
+  //  std::string LoadTMBFirmware = toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
+  //  *out << TMBFirmwareFile_ << ".xsvf";
+  //  *out << cgicc::form()<<std::endl;
   //
   //create RAT filename for firmware based on expected dates...
   char ratdate[8];
