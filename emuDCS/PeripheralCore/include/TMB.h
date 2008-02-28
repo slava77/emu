@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.38 2008/02/23 15:25:55 liu Exp $
+// $Id: TMB.h,v 3.39 2008/02/28 18:36:36 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.39  2008/02/28 18:36:36  rakness
+// make TMB firmware loading robust against all failure modes except power cuts...
+//
 // Revision 3.38  2008/02/23 15:25:55  liu
 // TMB online counters
 //
@@ -583,6 +586,11 @@ public:
   ////////////////////////////////////////////////////
   // access to TMB VME registers
   ////////////////////////////////////////////////////
+  //----------------------------------------------------------------
+  //0X70000 = BOOT_REGISTER
+  //----------------------------------------------------------------
+  inline int GetBootVMEReady() { return read_boot_vme_ready_; }
+  //
   //----------------------------------------------------------------
   //0X0E = ADR_LOOPBK:  Loop-Back Control Register:
   //----------------------------------------------------------------
@@ -1487,9 +1495,9 @@ private:
   int read_boot_control_jtag_chain_;
   int read_boot_hard_reset_alct_;
   int read_boot_hard_reset_tmb_;
-  int read_boot_allow_hard_reset_alct_;
-  int read_boot_allow_VME_;
-  int read_boot_enable_mezz_clock_;
+  int read_boot_disable_hard_reset_alct_;
+  int read_boot_disable_VME_;
+  int read_boot_disable_mezz_clock_;
   int read_boot_hard_reset_rat_;
   int read_boot_vme_ready_;
   int read_boot_tdo_;

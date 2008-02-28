@@ -125,6 +125,8 @@ protected:
   int TMBTriggerClct0keyHalfStrip[120][9];
   int TMBTriggerClct1keyHalfStrip[120][9];
   //
+  int tmb_vme_ready;
+  //
   int TMBRegisterValue_;
   int CCBRegisterValue_;
   vector<TMB*>   tmbVector;
@@ -334,7 +336,6 @@ private:
   void BackplaneID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void EnableDisableDebug(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void ExcludeIncludeCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ReadVMECCRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void VMECCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -351,6 +352,8 @@ private:
   void DMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadTMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckTMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ClearTMBBootReg(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadTMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
