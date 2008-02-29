@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.24 2008/02/19 14:39:32 gujh Exp $
+// $Id: VMEController.h,v 3.25 2008/02/29 08:55:11 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.25  2008/02/29 08:55:11  liu
+// updated delays and error message handling
+//
 // Revision 3.24  2008/02/19 14:39:32  gujh
 // VME Controller fix
 //
@@ -347,7 +350,6 @@ private:
   float fpacket_delay;
   int packet_delay_flg;
   float DELAY2;
-  float DELAY3;
   int error_type;
   int error_count;
   int DEBUG;
@@ -358,6 +360,7 @@ private:
                  CR_BUS_timeout,CR_BUS_grant;
  
  // I like to keep them private. 
+  void udelay(long int itim);
   void load_cdac(const char *snd);
   void vme_adc(int ichp,int ichn,char *rcv);
   //void buckflash(const char *cmd,const char *inbuf,char *rcv);

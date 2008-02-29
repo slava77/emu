@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.38 2008/02/27 17:02:35 liu Exp $
+// $Id: VMEController.cc,v 3.39 2008/02/29 08:55:11 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.39  2008/02/29 08:55:11  liu
+// updated delays and error message handling
+//
 // Revision 3.38  2008/02/27 17:02:35  liu
 // add Info/Warning packet handling
 //
@@ -280,7 +283,6 @@ VMEController::VMEController():
   packet_delay_flg = 0;
   //
   DELAY2 = 0.016;
-  DELAY3 = 16.384;
   //
   JtagBaseAddress_ = 0x0;
   add_ucla = 0xffffffff;
@@ -493,12 +495,15 @@ int VMEController::do_schar(int open_or_close)
   else return -100; // wrong call, should not happen
 }
 
-void udelay(long int itim)
+void VMEController::udelay(long int itim)
 {
-  // std::cout << "Udelay..." << itim << std::endl;
-
-  usleep(itim);
+  // std::cout << "Udelay using nanosleep..." << itim << std::endl;
+  struct timespec req= { 0, itim*1000};
+  nanosleep(&req, NULL); 
+  //  usleep(itim);
   return;
+
+#if 0
 //  usleep(5000);
   //std::cout << "Udelay..." << std::endl;
   //std::cout << "Waiting...." << std::endl;
@@ -539,6 +544,7 @@ void udelay(long int itim)
   //for(i=0;i<mdelay;i++);
   //usleep(mdelay);
   //} 
+#endif
 }
 
 void VMEController::sdly()
@@ -1186,7 +1192,6 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
       nwbuf=nwbuf+6;
     }
     fpacket_delay=fpacket_delay+(data[0]+data[1]*65536)*DELAY2;
-    //  if(delay_type==3)fpacket_delay=fpacket_delay+(*data)*DELAY3;
     irdwr=1;  // delay always acts like a buffered WRITE command.
     if (data[1]) irdwr=3;  //send immediately for longer delays  
   } 
@@ -1194,9 +1199,8 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
     /* check for overflow */
     LRG_read_flag=0;
     if(nwbuf>MAX_DATA && (irdwr==1 || irdwr==0)){
-       if(DEBUG){
+       if(DEBUG)
           printf("Jumbo packet limit reached: %d, forced sending\n", nwbuf);
-       }
        LRG_read_flag=1;  // flag for forced sending
        irdwr += 2;
     }
@@ -1213,6 +1217,10 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
     packet_delay=(long int)fpacket_delay+1;
     packet_delay=packet_delay+15; 
 //JHL delay turned on
+    if(LRG_read_flag) 
+      {  udelay(200);  //add extra delay for forced Jumbo packet out
+         if(DEBUG) printf("Forced Jumbo packet delay 200 us\n");
+      }
     if ( usedelay_ ) udelay(packet_delay);
     //
     fpacket_delay=0.0;
@@ -1293,16 +1301,19 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
        {  
           if(return_type==0xff || return_type==0xfe || return_type==0xfd)
           {
-             printf("Error/Warn/Info packet: %02X %02X \n", r_datat[0]&0xff, r_datat[1]&0xff);
              error_type=(r_datat[0]&0x3)*256+r_datat[1];
              int EWI=(r_datat[0]&0x0C)>>2;
              int Source_ID=(r_datat[0]&0xF0)>>4;
              if(EWI==2) error_count++;
-             if(DEBUG) printf("packet type: %d, source: %d, code: %d\n", EWI, Source_ID, error_type);
+             if(DEBUG || return_type==0xff || return_type==0xfe) 
+             {
+               printf("EWI packet %02X, %02X%02X, ", return_type&0xff, r_datat[0]&0xff, r_datat[1]&0xff);
+               printf("type: %d, source: %d, code: %d from %d, %08lX\n", EWI, Source_ID, error_type, irdwr, ptrt);
+             }
           }
           else
-          {
-             printf("Error: wrong return data type: %d \n", return_type);
+          { 
+             printf("Error: wrong return data type: %d from %d %08lX\n", return_type, irdwr, ptrt);
           }
 //
 // Need to discard all error/warning/info packets!
