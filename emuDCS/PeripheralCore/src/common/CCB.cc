@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.20 2008/02/22 13:25:15 liu Exp $
+// $Id: CCB.cc,v 3.21 2008/02/29 10:37:24 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.21  2008/02/29 10:37:24  liu
+// comment out read TTCrx registers in configure
+//
 // Revision 3.20  2008/02/22 13:25:15  liu
 // update
 //
@@ -1060,7 +1063,7 @@ void CCB::configure() {
   //
   WriteTTCrxReg(3,0xB3);  
 
-  PrintTTCrxRegs();
+  // PrintTTCrxRegs();
   setCCBMode(CCB::DLOG);
   //
 }
