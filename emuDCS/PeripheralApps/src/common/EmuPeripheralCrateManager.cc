@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.3 2008/01/31 14:24:08 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.4 2008/02/29 10:57:23 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -703,12 +703,13 @@ void EmuPeripheralCrateManager::PCsendCommand(string command, string klass)
   // prepare a SOAP message
   xoap::MessageReference message = PCcreateCommandSOAP(command);
   xoap::MessageReference reply;
+  xdaq::ApplicationDescriptor *ori=this->getApplicationDescriptor();
   //
   // send the message one-by-one
   std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
   for (; i != apps.end(); ++i) {
     // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *i);
+    reply = getApplicationContext()->postSOAP(message, *ori, *(*i));
     //
     //      PCanalyzeReply(message, reply, *i);
   }
