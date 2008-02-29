@@ -107,6 +107,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::SetUnsetAutoRefresh, "SetUnsetAutoRefresh");
   xgi::bind(this,&EmuPeripheralCrateConfig::DefineConfiguration, "DefineConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::EnableDisableDebug, "EnableDisableDebug");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ExcludeIncludeCrate, "ExcludeIncludeCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadCCBRegister, "ReadCCBRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
@@ -426,7 +427,7 @@ void EmuPeripheralCrateConfig::MonitorStop(xgi::Input * in, xgi::Output * out ) 
 xoap::MessageReference EmuPeripheralCrateConfig::onFastLoop (xoap::MessageReference message) 
   throw (xoap::exception::Exception) 
 {
-  std::cout << "SOAP Fast Loop" << std::endl;
+  // std::cout << "SOAP Fast Loop" << std::endl;
   PublishEmuInfospace(1);
   return createReply(message);
 }
@@ -434,7 +435,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::onFastLoop (xoap::MessageRefere
 xoap::MessageReference EmuPeripheralCrateConfig::onSlowLoop (xoap::MessageReference message) 
   throw (xoap::exception::Exception) 
 {
-  std::cout << "SOAP Slow Loop" << std::endl;
+  // std::cout << "SOAP Slow Loop" << std::endl;
   PublishEmuInfospace(2);
   return createReply(message);
 }
@@ -442,7 +443,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::onSlowLoop (xoap::MessageRefere
 xoap::MessageReference EmuPeripheralCrateConfig::onExtraLoop (xoap::MessageReference message) 
   throw (xoap::exception::Exception) 
 {
-  std::cout << "SOAP Extra Loop" << std::endl;
+  // std::cout << "SOAP Extra Loop" << std::endl;
   PublishEmuInfospace(3);
   return createReply(message);
 }
@@ -505,7 +506,7 @@ void EmuPeripheralCrateConfig::PublishEmuInfospace(int cycle)
       for ( unsigned int i = 0; i < crateVector.size(); i++ )
       {
           now_crate=crateVector[i];
-          if(now_crate) 
+          if(now_crate && now_crate->IsAlive()) 
           {
              is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
              if(cycle==3)
@@ -6125,7 +6126,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << "Debug enabled";
   }
   //
-  *out << cgicc::form() << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
   //
   //
     std::string ReadVMECCRegisters =
@@ -6136,7 +6137,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << cgicc::input().set("type","submit")
       .set("value","Read Registers") 
 	 << std::endl ;
-    *out << cgicc::form() << std::endl ;
+    *out << cgicc::form() << cgicc::br() << std::endl ;
     //
     std::string VMECCLoadFirmware =
       toolbox::toString("/%s/VMECCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -6146,9 +6147,22 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     *out << cgicc::input().set("type","submit")
       .set("value","Load Firmware") 
 	 << std::endl ;
-    *out << cgicc::form() << std::endl ;
+    *out << cgicc::form() << cgicc::br() << std::endl ;
     //
-  }
+  std::string ExcludeIncludeCrate =
+    toolbox::toString("/%s/ExcludeIncludeCrate",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",ExcludeIncludeCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Exclude/Include Crate") << std::endl ;
+  //
+  if ( thisCrate->IsAlive() ) {
+    *out << "Crate Included";
+  } else {
+    *out << "Crate Excluded";
+  }  
+  *out << cgicc::form() << std::endl ;
+  //
+}
 //
 void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
@@ -6163,6 +6177,21 @@ void EmuPeripheralCrateConfig::EnableDisableDebug(xgi::Input * in, xgi::Output *
   //
   this->ControllerUtils(in,out);
 }
+
+void EmuPeripheralCrateConfig::ExcludeIncludeCrate(xgi::Input * in, xgi::Output * out ) 
+ throw (xgi::exception::Exception) {
+  	   
+  if ( thisCrate->IsAlive() ) {
+     std::cout << thisCrate->GetLabel() << " Crate excluded out" << std::endl;
+     thisCrate->SetLife(false);
+  } else {
+     std::cout << thisCrate->GetLabel()  << "Crate included back" << std::endl;
+     thisCrate->SetLife(true);
+  }
+  	   
+  this->ControllerUtils(in,out);
+}
+
 //
   void EmuPeripheralCrateConfig::ReadVMECCRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
@@ -10117,12 +10146,13 @@ void EmuPeripheralCrateConfig::PCsendCommand(string command, string klass)
   // prepare a SOAP message
   xoap::MessageReference message = PCcreateCommandSOAP(command);
   xoap::MessageReference reply;
+  xdaq::ApplicationDescriptor *ori=this->getApplicationDescriptor();
   //
   // send the message one-by-one
   std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
   for (; i != apps.end(); ++i) {
     // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *i);
+    reply = getApplicationContext()->postSOAP(message, *ori, *(*i));
     //
     //      PCanalyzeReply(message, reply, *i);
   }
