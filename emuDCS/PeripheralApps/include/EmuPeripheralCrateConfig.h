@@ -58,8 +58,7 @@
 //
 #include "EmuApplication.h"
 
-class EmuPeripheralCrateConfig: public EmuApplication, xdata::ActionListener, 
-      public toolbox::task::TimerListener
+class EmuPeripheralCrateConfig: public EmuApplication, xdata::ActionListener
 {
   //
 protected:
@@ -207,9 +206,11 @@ private:
 
   void MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void timeExpired (toolbox::task::TimerEvent& e);
   void CreateEmuInfospace();
   void PublishEmuInfospace(int cycle);
+  xoap::MessageReference onFastLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onSlowLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onExtraLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
   
   xoap::MessageReference onCalibration(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
@@ -378,6 +379,9 @@ private:
   void setConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UploadConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   std::vector<TMBTester> InitTMBTests(Crate *);
+  xoap::MessageReference PCcreateCommandSOAP(string command);
+  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
+    
 };
 
 #endif

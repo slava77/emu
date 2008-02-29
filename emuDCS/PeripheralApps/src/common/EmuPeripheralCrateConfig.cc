@@ -298,6 +298,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
 //  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStop      ,"MonitorStop",XDAQ_NS_URI);
     xgi::bind(this,&EmuPeripheralCrateConfig::MonitorStart      ,"MonitorStart");
     xgi::bind(this,&EmuPeripheralCrateConfig::MonitorStop      ,"MonitorStop");
+    xoap::bind(this,&EmuPeripheralCrateConfig::onFastLoop      ,"FastLoop", XDAQ_NS_URI);
+    xoap::bind(this,&EmuPeripheralCrateConfig::onSlowLoop      ,"SlowLoop", XDAQ_NS_URI);
+    xoap::bind(this,&EmuPeripheralCrateConfig::onExtraLoop      ,"ExtraLoop", XDAQ_NS_URI);
   //
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
@@ -375,16 +378,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   
   // for XMAS minotoring:
 
-  timer_ = toolbox::task::getTimerFactory()->createTimer("EmuMonitorTimer");
-  timer_->stop();
   Monitor_On_ = false;
   Monitor_Ready_ = false;
-  fastloop=0;
-  slowloop=0;
-  extraloop=0;
-  this->getApplicationInfoSpace()->fireItemAvailable("FastLoop", &fastloop);
-  this->getApplicationInfoSpace()->fireItemAvailable("SlowLoop", &slowloop);
-  this->getApplicationInfoSpace()->fireItemAvailable("ExtraLoop", &extraloop);
 
   global_config_states[0]="UnConfiged";
   global_config_states[1]="Configuring";
@@ -410,26 +405,7 @@ void EmuPeripheralCrateConfig::MonitorStart(xgi::Input * in, xgi::Output * out )
              CreateEmuInfospace();
              Monitor_Ready_=true;
          }
-         toolbox::TimeInterval interval1, interval2, interval3;
-         toolbox::TimeVal startTime;
-         startTime = toolbox::TimeVal::gettimeofday();
-
-         timer_->start(); // must activate timer before submission, abort otherwise!!!
-         if(fastloop) 
-         {   interval1.sec((time_t)fastloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval1, 0, "EmuPCrateFast" );
-             std::cout << "fast scheduled" << std::endl;
-         }
-         if(slowloop) 
-         {   interval2.sec((time_t)slowloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval2, 0, "EmuPCrateSlow" );
-             std::cout << "slow scheduled" << std::endl;
-         }
-         if(extraloop) 
-         {   interval3.sec((time_t)extraloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval3, 0, "EmuPCrateExtra" );
-             std::cout << "extra scheduled" << std::endl;
-         }
+         PCsendCommand("MonitorStart","EmuPeripheralCrateBroadcast");
          Monitor_On_=true;
          std::cout<< "Monitor Started" << std::endl;
      }
@@ -440,25 +416,35 @@ void EmuPeripheralCrateConfig::MonitorStop(xgi::Input * in, xgi::Output * out ) 
 {
      if(Monitor_On_)
      {
-         if(fastloop) timer_->remove("EmuPCrateFast" );
-         if(slowloop) timer_->remove("EmuPCrateSlow" );
-         if(extraloop) timer_->remove("EmuPCrateExtra" );
-         timer_->stop(); 
+         PCsendCommand("MonitorStop","EmuPeripheralCrateBroadcast");
          Monitor_On_=false;
          std::cout << "Monitor stopped" << std::endl;
      }
      this->Default(in,out);
 }
 
-void EmuPeripheralCrateConfig::timeExpired (toolbox::task::TimerEvent& e)
+xoap::MessageReference EmuPeripheralCrateConfig::onFastLoop (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
 {
+  std::cout << "SOAP Fast Loop" << std::endl;
+  PublishEmuInfospace(1);
+  return createReply(message);
+}
 
-     if(!(Monitor_On_ && Monitor_Ready_)) return;
-     std::string name = e.getTimerTask()->name;
-    // std::cout << "timeExpired: " << name << std::endl;
-     if(strncmp(name.c_str(),"EmuPCrateFast",13)==0) PublishEmuInfospace(1);
-     else if(strncmp(name.c_str(),"EmuPCrateSlow",13)==0) PublishEmuInfospace(2);
-     else if(strncmp(name.c_str(),"EmuPCrateExtra",14)==0) PublishEmuInfospace(3);
+xoap::MessageReference EmuPeripheralCrateConfig::onSlowLoop (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+  std::cout << "SOAP Slow Loop" << std::endl;
+  PublishEmuInfospace(2);
+  return createReply(message);
+}
+
+xoap::MessageReference EmuPeripheralCrateConfig::onExtraLoop (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) 
+{
+  std::cout << "SOAP Extra Loop" << std::endl;
+  PublishEmuInfospace(3);
+  return createReply(message);
 }
 
 void EmuPeripheralCrateConfig::CreateEmuInfospace()
@@ -3227,7 +3213,7 @@ void EmuPeripheralCrateConfig::DMBTest3(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    cout << "Test3 DMB " << dmb << endl;
     DMB_ = dmb;
   }
   //
@@ -3253,7 +3239,7 @@ void EmuPeripheralCrateConfig::DMBTest4(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    cout << "Test4 DMB " << dmb << endl;
     DMB_ = dmb;
   }
   //
@@ -3279,7 +3265,7 @@ void EmuPeripheralCrateConfig::DMBTest5(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    cout << "Test5 DMB " << dmb << endl;
     DMB_ = dmb;
   }
   //
@@ -3305,7 +3291,7 @@ void EmuPeripheralCrateConfig::DMBTest6(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    cout << "Test6 DMB " << dmb << endl;
     DMB_ = dmb;
   }
   //
@@ -3331,7 +3317,7 @@ void EmuPeripheralCrateConfig::DMBTest8(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    cout << "Test8 DMB " << dmb << endl;
     DMB_ = dmb;
   }
   //
@@ -3356,7 +3342,7 @@ void EmuPeripheralCrateConfig::DMBTest9(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    cout << "Test9 DMB " << dmb << endl;
     DMB_ = dmb;
   }
   //
@@ -3381,7 +3367,7 @@ void EmuPeripheralCrateConfig::DMBTest10(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    cout << "Test10 DMB " << dmb << endl;
     DMB_ = dmb;
   }
   //
@@ -3406,7 +3392,7 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    cout << "Test11 DMB " << dmb << endl;
     DMB_ = dmb;
   }
   //
@@ -10106,6 +10092,53 @@ xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT672 (xoap::M
   return createReply(message);
 }
 
+// sending and receiving soap commands
+////////////////////////////////////////////////////////////////////
+void EmuPeripheralCrateConfig::PCsendCommand(string command, string klass)
+  throw (xoap::exception::Exception, xdaq::exception::Exception){
+  //
+  //This is copied from CSCSupervisor::sendcommand;
+  //
+  // Exceptions:
+  // xoap exceptions are thrown by analyzeReply() for SOAP faults.
+  // xdaq exceptions are thrown by postSOAP() for socket level errors.
+  //
+  // find applications
+  std::set<xdaq::ApplicationDescriptor *> apps;
+  //
+  try {
+    apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
+  }
+  // 
+  catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+    return; // Do nothing if the target doesn't exist
+  }
+  //
+  // prepare a SOAP message
+  xoap::MessageReference message = PCcreateCommandSOAP(command);
+  xoap::MessageReference reply;
+  //
+  // send the message one-by-one
+  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+  for (; i != apps.end(); ++i) {
+    // postSOAP() may throw an exception when failed.
+    reply = getApplicationContext()->postSOAP(message, *i);
+    //
+    //      PCanalyzeReply(message, reply, *i);
+  }
+}
+
+xoap::MessageReference EmuPeripheralCrateConfig::PCcreateCommandSOAP(string command) {
+  //
+  //This is copied from CSCSupervisor::createCommandSOAP
+  //
+  xoap::MessageReference message = xoap::createMessage();
+  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+  xoap::SOAPName name = envelope.createName(command, "xdaq", "urn:xdaq-soap:3.0");
+  envelope.getBody().addBodyElement(name);
+  //
+  return message;
+}
 
 // provides factory method for instantion of HellWorld application
 //

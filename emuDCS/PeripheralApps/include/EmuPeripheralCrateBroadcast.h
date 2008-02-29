@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.5 2008/02/19 14:37:31 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.6 2008/02/29 08:51:38 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -45,7 +45,16 @@
 #include <xdata/Integer.h>
 #include <xdata/Boolean.h>
 #include <xdata/UnsignedLong.h>
+#include <xdata/UnsignedShort.h>
 #include <xdata/Table.h>
+
+#include "toolbox/Event.h"
+#include "toolbox/string.h"
+#include "toolbox/net/URL.h"
+#include "toolbox/task/TimerTask.h"
+#include "toolbox/task/Timer.h"
+#include "toolbox/task/TimerFactory.h"
+#include "toolbox/TimeInterval.h"
 
 #include "EmuApplication.h"
 #include "EmuController.h"
@@ -65,7 +74,8 @@ using namespace cgicc;
 using namespace std;
 
 //class EmuPeripheralCrateBroadcast: public xdaq::Application
-class EmuPeripheralCrateBroadcast: public EmuApplication
+class EmuPeripheralCrateBroadcast: public EmuApplication,
+       public toolbox::task::TimerListener
 {
   
 public:
@@ -142,6 +152,11 @@ public:
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
 
+  // for Monitoring
+  xoap::MessageReference  MonitorStart(xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference  MonitorStop(xoap::MessageReference message) throw (xoap::exception::Exception);
+  void timeExpired (toolbox::task::TimerEvent& e);
+
 private:
 
   int calsetup;
@@ -157,6 +172,10 @@ private:
   xdata::String VMECCFirmwareDir_; 
   xdata::String VMECCFirmwareVer_; 
 
+  // for monitoring
+  bool Monitor_On_, In_Monitor_;
+  toolbox::task::Timer * timer_;
+  xdata::UnsignedShort fastloop, slowloop, extraloop;
 };
 
 #endif
