@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.3 2007/10/23 17:50:18 gilmore Exp $
+/// $Id: EmuFCrateManager.cc,v 1.4 2008/03/01 15:14:37 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -529,7 +529,8 @@ xoap::MessageReference EmuFCrateManager::onConfigure (xoap::MessageReference mes
 
     fireEvent("Configure");
     //
-    SendSOAPMessageXRelaySimple("Configure","");
+    PCsendCommand("Configure","EmuFCrate");
+    
     //
     return createReply(message);
     //
@@ -542,7 +543,7 @@ xoap::MessageReference EmuFCrateManager::onEnable (xoap::MessageReference messag
     std::cout << "EmuFcrateManager: inside onEnable" << std::endl;
 
     fireEvent("Enable");
-    SendSOAPMessageXRelaySimple("Enable","");
+    PCsendCommand("Enable","EmuFCrate");
 
     return createReply(message);
 }
@@ -703,7 +704,7 @@ xoap::MessageReference EmuFCrateManager::onEnableCalCFEBPed (xoap::MessageRefere
 xoap::MessageReference EmuFCrateManager::onDisable (xoap::MessageReference message) throw (xoap::exception::Exception)
 {
     fireEvent("Disable");
-    SendSOAPMessageXRelaySimple("Disable","");
+    PCsendCommand("Disable","EmuFCrate");
 
     return createReply(message);
 }
@@ -713,7 +714,7 @@ xoap::MessageReference EmuFCrateManager::onDisable (xoap::MessageReference messa
 xoap::MessageReference EmuFCrateManager::onHalt (xoap::MessageReference message) throw (xoap::exception::Exception)
 {
     fireEvent("Halt");
-    SendSOAPMessageXRelaySimple("Halt","");
+    PCsendCommand("Halt","EmuFCrate");
 
     return createReply(message);
 }
