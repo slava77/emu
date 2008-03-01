@@ -508,6 +508,14 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 	  double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
 	  mof->SetBinContent(bit-4, freq);
 	}
+	// Error in bit 26
+	if( chamber->second & (1<<25) ) {
+          isCSCError = true;
+          mo->Fill(0.,20);
+
+          double freq = (100.0*mo->GetBinContent(1,21))/nDMBEvents[cscTag];
+          mof->SetBinContent(21, freq);
+        }
       mo->SetEntries(nDMBEvents[cscTag]);
       mof->SetEntries(nDMBEvents[cscTag]);
     }
