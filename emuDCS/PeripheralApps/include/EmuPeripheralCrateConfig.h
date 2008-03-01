@@ -337,6 +337,7 @@ private:
   void BackplaneID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void EnableDisableDebug(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ExcludeIncludeCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ReadVMECCRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void VMECCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -369,6 +370,7 @@ private:
   void LogTMBTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogChamberTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogCrateTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigAllCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

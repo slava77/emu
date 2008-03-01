@@ -100,6 +100,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TmbMPCTest, "TmbMPCTest");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCSafeWindowScan, "MPCSafeWindowScan");
   //
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrates, "CheckCrates");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateConfig::setRawConfFile, "setRawConfFile");
   xgi::bind(this,&EmuPeripheralCrateConfig::UploadConfFile, "UploadConfFile");
@@ -589,21 +590,26 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table().set("border","0");
     //
   *out << cgicc::td();
-    //
   std::string CrateConfigureAll = toolbox::toString("/%s/ConfigAllCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CrateConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Config All Crates") << std::endl ;
   *out << cgicc::form() << std::endl ;
-
-  *out << cgicc::td();
   *out << cgicc::td();
 
+  *out << cgicc::td();
   std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Fast Config Crates") << std::endl ;
   *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
 
   *out << cgicc::td();
+  std::string CheckCrates = toolbox::toString("/%s/CheckCrates",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckCrates) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check Crates") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+
   *out << cgicc::table();
 
   *out << cgicc::br() << std::endl ;
@@ -646,17 +652,21 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::select().set("name", "runtype") << endl;
 
 	int selected_index = this_crate_no_;
-
+        std::string CrateName;
 	for (int i = 0; i < n_keys; ++i) {
+                if(crateVector[i]->IsAlive())
+                   CrateName = crateVector[i]->GetLabel();
+                else
+                   CrateName = crateVector[i]->GetLabel() + " NG";
 		if (i == selected_index) {
 			*out << option()
-					.set("value", crateVector[i]->GetLabel())
+					.set("value", CrateName)
 					.set("selected", "");
 		} else {
 			*out << option()
-					.set("value", crateVector[i]->GetLabel());
+					.set("value", CrateName);
 		}
-		*out << crateVector[i]->GetLabel() << option() << endl;
+		*out << CrateName << option() << endl;
 	}
 
 	*out << cgicc::select() << endl;
@@ -1101,6 +1111,22 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     tmbTestVector = InitTMBTests(thisCrate);
   }
 
+  void EmuPeripheralCrateConfig::CheckCrates(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+  {  
+    std::cout << "Button: Check Crates" << std::endl;
+    if(total_crates_<=0) return;
+    bool cr;
+    for(unsigned i=0; i< crateVector.size(); i++)
+    {
+        cr = crateVector[i]->vmeController()->SelfTest();
+        crateVector[i]->SetLife( cr );
+        if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
+    }
+
+    this->Default(in, out);
+  }
+
   // This one came from CrateUtils class which no longer exist. 
   // Better put into another class. Leave it here for now. 
   // Liu Dec.25, 2007
@@ -1353,7 +1379,12 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   std::cout << "CrateConfiguration: " << ThisCrateID_ << std::endl;
   MyHeader(in,out,"CrateConfiguration");
   //
-  *out << cgicc::h3("Current Crate: "+ ThisCrateID_) << cgicc::br()<<endl;
+  if(thisCrate->IsAlive())
+     *out << cgicc::h2("Current Crate: "+ ThisCrateID_ );
+  else
+     *out << cgicc::span().set("style","color:red") << cgicc::h2("Current Crate: "+ ThisCrateID_ + ",  Excluded") << cgicc::span();
+
+  *out << std::endl;
 
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
   *out << std::endl;
