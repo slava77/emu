@@ -489,13 +489,17 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
     std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
  
     
-    if (CrateID>60 || DMBSlot>10) {
-        LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
-        continue;
-    }
 
     if ((CrateID ==255) || 
         (chamber->second & 0x80)) { chamber++; continue;} // = Skip chamber detection if DMB header is missing (Error code 6)
+
+
+    if (CrateID>60 || DMBSlot>10) {
+        LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
+	chamber++;
+        continue;
+    }
+ 
     if (h_itr == MEs.end() || (MEs.size()==0)) {
       LOG4CPLUS_WARN(logger_, eTag << 
 		     "List of Histos for " << cscTag <<  " not found. Booking...");
