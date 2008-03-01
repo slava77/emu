@@ -67,6 +67,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   std::string nodeTag = "EMU";
   std::string dduTag(Form("DDU_%d", dduID));
   std::string cscTag(Form("CSC_%03d_%02d", crateID, dmbID));
+
+  if (crateID>60 || dmbID>10) {
+	LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
+	return;
+  }
   nDMBEvents[cscTag]++;
   float DMBEvents  = 0.0;
   DMBEvents = nDMBEvents[cscTag];  
