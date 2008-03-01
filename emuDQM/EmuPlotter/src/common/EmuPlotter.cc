@@ -40,6 +40,8 @@ void EmuPlotter::reset()
         bin_checker.crcTMB (true);
         bin_checker.crcCFEB(true);
         bin_checker.modeDDU(true);
+	//bin_checker.output1().show();
+        //bin_checker.output2().show();
 	fBusy=false;
 }
 

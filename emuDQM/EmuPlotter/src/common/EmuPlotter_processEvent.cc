@@ -14,11 +14,14 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   ME_List nodeME; // === Global histos specific for this emuMonitor node
   EmuMonitoringObject *mo = NULL;  // == pointer to MonitoringObject
   unpackedDMBcount = 0; 
-  
+ 
+  nEvents++;
+  eTag=Form("Evt# %d: ", nEvents); 
+  evtSize=dataSize;
 
   // == Check and book global node specific histos
   if (MEs.size() == 0 || ((itr = MEs.find(nodeTag)) == MEs.end())) {
-    LOG4CPLUS_WARN(logger_, "List of MEs for " << nodeTag << " not found. Booking...");
+    LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << nodeTag << " not found. Booking...");
     fBusy = true;
     MEs[nodeTag] = bookCommon(node);
     MECanvases[nodeTag] = bookCommonCanvases(node);
@@ -28,8 +31,6 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 	
   nodeME = MEs[nodeTag];
   
-  nEvents++;
-  eTag=Form("Evt# %d: ", nEvents);
 
   if (isMEvalid(nodeME, "Buffer_Size", mo)) mo->Fill(dataSize);
 
@@ -80,7 +81,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 	std::string dduTag = Form("DDU_%d",dduID);
 
         if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
-	  LOG4CPLUS_WARN(logger_, "List of MEs for " << dduTag << " not found. Booking...");
+	  LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
 	  fBusy = true;
 	  MEs[dduTag] = bookDDU(dduID);
 	  MECanvases[dduTag] = bookDDUCanvases(dduID);
@@ -107,7 +108,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
       std::string dduTag = Form("DDU_%d",dduID);
 
       if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
-	LOG4CPLUS_WARN(logger_, "List of MEs for " << dduTag << " not found. Booking...");
+	LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
 	fBusy = true;
 	MEs[dduTag] = bookDDU(dduID);
 	MECanvases[dduTag] = bookDDUCanvases(dduID);
@@ -123,7 +124,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
 
   if(BinaryErrorStatus != 0) {
-    LOG4CPLUS_WARN(logger_,eTag << "Nonzero Binary Errors Status is observed: 0x" << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask);
+    LOG4CPLUS_WARN(logger_,eTag << "Nonzero Binary Errors Status is observed: 0x" << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask << std::dec << " evtSize:"<<  evtSize);
 
     if (isMEvalid(nodeME, "BinaryChecker_Errors", mo)) {
       for(int i=0; i<bin_checker.nERRORS; i++) { // run over all errors
@@ -196,7 +197,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   std::string dduTag = Form("DDU_%d",dduID);
 
   if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
-    LOG4CPLUS_WARN(logger_, "List of MEs for " << dduTag << " not found. Booking...");
+    LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
     fBusy = true;
     MEs[dduTag] = bookDDU(dduID);
     MECanvases[dduTag] = bookDDUCanvases(dduID);
@@ -209,7 +210,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   ME_List& dduME = MEs[dduTag];
 
-  LOG4CPLUS_DEBUG(logger_,"Start unpacking " << dduTag);
+  LOG4CPLUS_DEBUG(logger_,eTag << "Start unpacking " << dduTag);
 
   if (isMEvalid(dduME, "Buffer_Size", mo)) mo->Fill(dataSize);
   // ==     DDU word counter
@@ -391,6 +392,12 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   chamberDatas = dduData.cscData();
 
 
+  if (chamberDatas.size() != dduHeader.ncsc()) {
+	LOG4CPLUS_WARN(logger_,dduTag << eTag << "Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() );
+	
+	return;
+  }
+
   for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
     nCSCEvents++;
     unpackedDMBcount++;
@@ -470,6 +477,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
   EmuMonitoringObject* mo = NULL;
   EmuMonitoringObject* mof = NULL;
 
+
   //  if(check_bin_error){
   std::map<int,long> checkerErrors = bin_checker.errorsDetailed();
   std::map<int,long>::const_iterator chamber = checkerErrors.begin();
@@ -482,7 +490,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
     if ((CrateID ==255) || 
         (chamber->second & 0x80)) { chamber++; continue;} // = Skip chamber detection if DMB header is missing (Error code 6)
     if (h_itr == MEs.end() || (MEs.size()==0)) {
-      LOG4CPLUS_WARN(logger_,
+      LOG4CPLUS_WARN(logger_, eTag << 
 		     "List of Histos for " << cscTag <<  " not found. Booking...");
       LOG4CPLUS_DEBUG(logger_,
 		      "Booking Histos for " << cscTag);
@@ -553,7 +561,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
     if (CrateID ==255) {chamber++; continue;}
     std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
     if (h_itr == MEs.end() || (MEs.size()==0)) {
-      LOG4CPLUS_WARN(logger_,
+      LOG4CPLUS_WARN(logger_, eTag << 
 		     "List of Histos for " << cscTag <<  " not found. Booking...");
       LOG4CPLUS_DEBUG(logger_,
 		      "Booking Histos for " << cscTag);

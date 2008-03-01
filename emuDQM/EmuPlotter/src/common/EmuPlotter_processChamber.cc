@@ -77,8 +77,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   //	Creating list of histograms for the particular chamber
   map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
   if (h_itr == MEs.end() || (MEs.size()==0)) {
-    LOG4CPLUS_WARN(logger_,
-		   "List of Histos for " << cscTag <<  " not found");
+    LOG4CPLUS_WARN(logger_, eTag << 
+		   "List of Histos for " << cscTag <<  " not found. " << evtSize );
     LOG4CPLUS_DEBUG(logger_, 
 		    "Booking Histos for " << cscTag);
     fBusy = true;

@@ -202,6 +202,7 @@ private:
 
   uint32_t L1ANumber;
   uint32_t BXN;
+  uint32_t evtSize;
 
 
   uint32_t unpackedDMBcount;
