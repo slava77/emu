@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.39 2008/02/29 08:55:11 liu Exp $
+// $Id: VMEController.cc,v 3.40 2008/03/01 15:06:06 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.40  2008/03/01 15:06:06  liu
+// update
+//
 // Revision 3.39  2008/02/29 08:55:11  liu
 // updated delays and error message handling
 //
@@ -939,6 +942,8 @@ void VMEController::reset()
 
 bool VMEController::SelfTest()
 { 
+   init();
+
 // To read back controller serial number
    int n=vcc_read_command(0x1E, 2, NULL);
    if(n==2)
