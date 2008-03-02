@@ -22,6 +22,24 @@ std::string now()
 
 };
 
+std::string getDateTime(){
+  time_t t;
+  struct tm *tm;
+
+  time ( &t );
+  tm = gmtime ( &t ); // Unversal Coordinated Time
+
+  std::stringstream ss;
+  ss << std::setfill('0') << std::setw(2) << tm->tm_year%100
+     << std::setfill('0') << std::setw(2) << tm->tm_mon+1
+     << std::setfill('0') << std::setw(2) << tm->tm_mday      << "_"
+     << std::setfill('0') << std::setw(2) << tm->tm_hour
+     << std::setfill('0') << std::setw(2) << tm->tm_min
+     << std::setfill('0') << std::setw(2) << 0       << "_UTC";
+
+  return ss.str();
+}
+
 
 XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
 
@@ -627,11 +645,14 @@ std::string EmuMonitor::getROOTFileName()
     if (serversClassName_.toString() != "") { 
       std::ostringstream st;
       st.clear();
-      st << "OnlineRun_" << runNumber_ << "_" << serversClassName_.toString();
-      std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+      st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << serversClassName_.toString();
+	st << std::setw(2) << std::setfill('0') << appTid_ << "_" << getDateTime();
+      /*
+	std::set<xdaq::ApplicationDescriptor*>::iterator pos;
       for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
 	st << "_" << (*pos)->getInstance();
       }
+	*/
       histofile = st.str();
     }
   }
