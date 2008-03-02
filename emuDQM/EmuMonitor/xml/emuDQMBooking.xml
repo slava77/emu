@@ -405,7 +405,7 @@
 		<SetGridx>1</SetGridx>
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetYLabels>1='No Errors'|2=' Any errors: 00'|3=' DDU Trailer Missing: 01'|4=' DDU Header Missing: 02'|5=' DDU CRC Error: 03'|6=' DDU Word Count Error: 04'|7=' DMB Trailer Missing: 05'|8=' DMB Header Missing: 06'|9=' ALCT Trailer Missing: 07'|10=' ALCT Header Missing: 08'|11=' ALCT Word Count Error: 09'|12='ALCT CRC Error: 10'|13='ALCT Trailer Bit Error: 11'|14='TMB Trailer Missing: 12'|15='TMB Header Missing: 13'|16='TMB Word Count Error: 14'|17='TMB CRC Error: 15'|18='CFEB Word Count Per Sample Error: 16'|19='CFEB Sample Count Error: 17'|20='CFEB CRC Error: 18'|21='DDU Event Size Limit Error: 19'|22='C-Words: 20'|23='ALCT DAV Error: 21'|24='TMB DAV Error: 22'|25='CFEB DAV Error: 23'|26='DMB Active Error: 24'|27='DCC Trailer Missing: 25'|28='DCC Header Missing: 26'|29='DMB DAV vs. DMB Active mismatch Error: 27'|30='Extra words between DDU Header and first DMB header: 28'|</SetYLabels>
+		<SetYLabels>1='No Errors'|2=' Any errors: 00'|3=' DDU Trailer Missing: 01'|4=' DDU Header Missing: 02'|5=' DDU CRC Error: 03'|6=' DDU Word Count Error: 04'|7=' DMB Trailer Missing: 05'|8=' DMB Header Missing: 06'|9=' ALCT Trailer Missing: 07'|10=' ALCT Header Missing: 08'|11=' ALCT Word Count Error: 09'|12='ALCT CRC Error: 10'|13='ALCT Trailer Bit Error: 11'|14='TMB Trailer Missing: 12'|15='TMB Header Missing: 13'|16='TMB Word Count Error: 14'|17='TMB CRC Error: 15'|18='CFEB Word Count Per Sample Error: 16'|19='CFEB Sample Count Error: 17'|20='CFEB CRC Error: 18'|21='DDU Event Size Limit Error: 19'|22='C-Words: 20'|23='ALCT DAV Error: 21'|24='TMB DAV Error: 22'|25='CFEB DAV Error: 23'|26='DMB Active Error: 24'|27='DCC Trailer Missing: 25'|28='DCC Header Missing: 26'|29='DMB DAV vs. DMB Active mismatch Error: 27'|30='Extra words between DDU Hdr and 1st DMB Hdr: 28'|</SetYLabels>
 		<SetLeftMargin>0.3</SetLeftMargin>
 	</Histogram>
 	<Histogram>
@@ -593,7 +593,7 @@
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Data Format Errors</Title>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetYLabels>1=' Any errors: 00'|2=' DDU Trailer Missing: 01'|3=' DDU Header Missing: 02'|4=' DDU CRC Error (not yet implemented): 03'|5=' DDU Word Count Error: 04'|6=' DMB Trailer Missing: 05'|7=' DMB Header Missing: 06'|8=' ALCT Trailer Missing: 07'|9=' ALCT Header Missing: 08'|10=' ALCT Word Count Error: 09'|11='ALCT CRC Error: 10'|12='ALCT Trailer Bit Error: 11'|13='TMB Trailer Missing: 12'|14='TMB Header Missing: 13'|15='TMB Word Count Error: 14'|16='TMB CRC Error: 15'|17='CFEB Word Count Per Sample Error: 16'|18='CFEB Sample Count Error: 17'|19='CFEB CRC Error: 18'|20='DDU Event Size Limit Error: 19'|21='C-Words: 20'|22='ALCT DAV Error: 21'|23='TMB DAV Error: 22'|24='CFEB DAV Error: 23'|25='DMB Active Error: 24'|26='DCC Trailer Missing: 25'|27='DCC Header Missing: 26'|28='DMB DAV vs. DMB Active mismatch Error: 27'|29='Extra words between DDU Header and first DMB header: 28'|</SetYLabels>
+		<SetYLabels>1=' Any errors: 00'|2=' DDU Trailer Missing: 01'|3=' DDU Header Missing: 02'|4=' DDU CRC Error (not yet implemented): 03'|5=' DDU Word Count Error: 04'|6=' DMB Trailer Missing: 05'|7=' DMB Header Missing: 06'|8=' ALCT Trailer Missing: 07'|9=' ALCT Header Missing: 08'|10=' ALCT Word Count Error: 09'|11='ALCT CRC Error: 10'|12='ALCT Trailer Bit Error: 11'|13='TMB Trailer Missing: 12'|14='TMB Header Missing: 13'|15='TMB Word Count Error: 14'|16='TMB CRC Error: 15'|17='CFEB Word Count Per Sample Error: 16'|18='CFEB Sample Count Error: 17'|19='CFEB CRC Error: 18'|20='DDU Event Size Limit Error: 19'|21='C-Words: 20'|22='ALCT DAV Error: 21'|23='TMB DAV Error: 22'|24='CFEB DAV Error: 23'|25='DMB Active Error: 24'|26='DCC Trailer Missing: 25'|27='DCC Header Missing: 26'|28='DMB DAV vs. DMB Active mismatch Error: 27'|29='Extra words between DDU Hdr and 1st DMB Hdr: 28'|</SetYLabels>
 		<SetLeftMargin>0.6</SetLeftMargin>
 		<SetXLabels>1='Number of events'|</SetXLabels>
 	</Histogram>
@@ -1682,8 +1682,8 @@
 		<Name>BinCheck_ErrorStat_Frequency</Name>
 		<SetOption>texthbar1</SetOption>
 		<XMin>0</XMin>
-		<XMax>20</XMax>
-		<XBins>20</XBins>
+		<XMax>21</XMax>
+		<XBins>21</XBins>
 		<YTitle>Frequency (%)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Data Format Errors Frequency</Title>
@@ -1704,7 +1704,7 @@
 		<YBins>21</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>Data Format Errors Table</Title>
-		<SetYLabels>1='DMB Trailer Missing'|2='DMB Header Missing'|3='ALCT Trailer Missing'|4='ALCT Header Missing'|5='ALCT Word Count Error'|6='ALCT CRC Error'|7='ALCT Trailer Bit Error'|8='TMB Trailer Missing'|9='TMB Header Missing'|10='TMB Word Count Error'|11='TMB CRC Error'|12='CFEB Word Count Per Sample Error'|13='CFEB Sample Count Error'|14='CFEB CRC Error'|15='DDU Event Size Limit Error'|16='C-Words'|17='ALCT DAV Error'|18='TMB DAV Error'|19='CFEB DAV Error'|20='DMB Active Error'|21='DMB DAV vs. DMB Active mismatch Error'</SetYLabels>
+		<SetYLabels>1='DMB Trailer Missing'|2='DMB Header Missing'|3='ALCT Trailer Missing'|4='ALCT Header Missing'|5='ALCT Word Count Error'|6='ALCT CRC Error'|7='ALCT Trailer Bit Error'|8='TMB Trailer Missing'|9='TMB Header Missing'|10='TMB Word Count Error'|11='TMB CRC Error'|12='CFEB Word Count Per Sample Error'|13='CFEB Sample Count Error'|14='CFEB CRC Error'|15='DDU Event Size Limit Error'|16='C-Words'|17='ALCT DAV Error'|18='TMB DAV Error'|19='CFEB DAV Error'|20='DMB Active Error'|21='DMB DAV vs. DMB Active mismatch Error'|</SetYLabels>
 		<SetLeftMargin>0.4</SetLeftMargin>
 		<SetXLabels>1=' '|</SetXLabels>
 	</Histogram>
