@@ -124,7 +124,8 @@ public:
 	std::string format=DEFAULT_IMAGE_FORMAT,
         int width=DEFAULT_CANVAS_WIDTH,
         int height=DEFAULT_CANVAS_HEIGHT,
-        std::string runname="");
+        std::string runname="",
+	std::string filter="");
   void generateCanvasesListFile(std::string filename="canvases_list.js", std::string imgformat="png");
   void generateLayout(std::string filename, std::string rootfolder);
    

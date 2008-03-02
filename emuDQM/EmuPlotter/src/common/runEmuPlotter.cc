@@ -65,25 +65,39 @@ int main(int argc, char **argv) {
 
 	std::string datafile = "";
   	std::string histofile = "dqm_results.root";
+	std::string filter = ""; // folder filter
 
 	std::string plotsdir = "images";	// Output images path
 	std::string imgFormat = "png"; 	// Output image format
 	uint32_t imgWidth = 1200;	// Output image width
-	uint32_t imgHeight = 900;	// Putput image height
+	uint32_t imgHeight = 900;	// Putput image height	
+	
 
 	uint32_t dduCheckMask=0xFFFFDFFF;
 	uint32_t binCheckMask=0xFFFB3BF6;
 	// uint32_t binCheckMask=0xF778FFF6; // ignore CFEB DAV error and Sample Count Error
 	uint32_t node=0;
 
-	switch (argc) {
-		case 7: binCheckMask = strtoul(argv[6], NULL, 0);	
-		case 6: dduCheckMask = strtoul(argv[5], NULL, 0);
-		case 5: startEvent = atoi(argv[4]);
-		case 4: histofile = argv[3];
-		case 3: NumberOfEvents = atoi(argv[2]);
-		case 2:	datafile = argv[1];
-		break;
+	if (argc>=2) {
+		datafile = argv[1];
+		if (datafile.find(".root") != std::string::npos) {
+			switch (argc) {
+                                case 3: filter = argv[2];
+                                case 2: datafile = argv[1];
+                                break;
+                       }
+		} else {
+			switch (argc) {	
+				case 7: binCheckMask = strtoul(argv[6], NULL, 0);	
+				case 6: dduCheckMask = strtoul(argv[5], NULL, 0);
+				case 5: startEvent = atoi(argv[4]);
+				case 4: histofile = argv[3];
+				case 3: NumberOfEvents = atoi(argv[2]);
+				case 2:	datafile = argv[1];
+				break;
+			}
+		}
+
 	}
 
 	struct stat stats;
@@ -140,7 +154,7 @@ int main(int argc, char **argv) {
 		std::string runname = histofile; 
 		runname = runname.replace(runname.find(".root"), 5, "");
                 plotsdir = plotsdir.replace(plotsdir.find(".root"), 5, ".plots");
-		plotter->convertROOTToImages(datafile, plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
+		plotter->convertROOTToImages(datafile, plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname, filter);
 		// plotter->loadFromROOTFile(datafile);
 		// plotter->saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
 		// plotter->generateLayout("csc-layouts.py", "EMU");
