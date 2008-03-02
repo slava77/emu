@@ -1,7 +1,7 @@
 #include "EmuPlotter.h"
 #include "TClass.h"
 
-int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std::string format, int width, int height, std::string runname) 
+int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std::string format, int width, int height, std::string runname, std::string filter) 
 {
 
   gSystem->Load("libHistPainter");
@@ -137,14 +137,16 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	    std::string relname = relpath + "/" + c_itr->second->getFolder() +"/" + fullname;
 	    std::string fullpath  = path+"/"+relpath + "/" + c_itr->second->getFolder();
 	    imgfile = fullpath + "/"+ fullname;
-	    TString command = Form("mkdir -p %s",fullpath.c_str());
-	    gSystem->Exec(command.Data());
-	    // me_itr = MEs.find(name);
-	    // if (me_itr != MEs.end()) {
-	      LOG4CPLUS_WARN(logger_, imgfile);
-	      c_itr->second->Draw(MEs[name], width, height);
-	      c_itr->second->Print(imgfile.c_str());
+	    if (filter == "" || ((filter != "") && (name.find(filter) != std::string::npos))) {
+	    	TString command = Form("mkdir -p %s",fullpath.c_str());
+	    	gSystem->Exec(command.Data());
+	    	// me_itr = MEs.find(name);
+	    	// if (me_itr != MEs.end()) {
+	      	LOG4CPLUS_WARN(logger_, imgfile);
+	      	c_itr->second->Draw(MEs[name], width, height);
+	      	c_itr->second->Print(imgfile.c_str());
 	    // }
+	    }
 	      tree_items << "                    ['"<< c_itr->second->getTitle() << "','" << relname <<"']," << std::endl;
 	  }
 	   tree_items << "            ]," << std::endl;
