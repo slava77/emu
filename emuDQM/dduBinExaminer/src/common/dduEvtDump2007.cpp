@@ -176,8 +176,10 @@ int main(int argc, char **argv)
 		       SampleCount=0; 
 		       BSampleCount=0;
 		       cntDMBHeaders++;
+			int crate=(buf1[1]>>4)&0xFF;
+			int slot=buf1[1]&0xF;
 			   DMB_L1A =  ((buf0[0]&0x0FFF) + ((buf0[1]&0x0FFF) << 12));
-		       cout << " " << endl << "<DMB"<<cntDMBHeaders<<"|     L1A= " << DMB_L1A << 
+		       cout << " " << endl << "<DMB"<<cntDMBHeaders<< " crate:" << crate << " slot:" << slot << "|     L1A= " << DMB_L1A << 
 		               "   ( " << ((buf0[2]&0x0400)>>10) << " ALCT, "
 			               << ((buf0[2]&0x0800)>>11) << " TMB, "
 				       << ((buf0[2]&0x0010)>>4) << 
