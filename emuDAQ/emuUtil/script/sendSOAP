@@ -14,7 +14,7 @@
 
 SERVERURL=csc-C2D07-08.cms
 SERVERPORT=39999
-SERVERAPP=JobControl
+SERVERAPP=jobcontrol::Application
 SERVERAPPLID=10
 
 VERBOSITY=0
@@ -50,7 +50,7 @@ while [[ $1 = -* ]]; do
 	    echo '  ------   -------                            -------'
 	    echo '      -p   port                               39999'
 	    echo '      -u   url                                csc-C2D07-08.cms'
-	    echo '      -A   application                        JobControl'
+	    echo '      -A   application                        jobcontrol::Application'
 	    echo '      -I   server application instance        0'
 	    echo '      -L   server application lid             <not used; application instance used instead>'
 	    echo '      -b   SOAP body                          <get stateName>'
