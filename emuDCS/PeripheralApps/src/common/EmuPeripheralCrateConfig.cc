@@ -458,13 +458,11 @@ void EmuPeripheralCrateConfig::CreateEmuInfospace()
         monitorables_.clear();
         for ( unsigned int i = 0; i < crateVector.size(); i++ )
         {
-            //    std::stringstream id;
-            //    id << "EMu-" << crateVector[i]->GetLabel();
-
-                toolbox::net::URN urn = this->createQualifiedInfoSpace("EMu_PCrate_"+(crateVector[i]->GetLabel()));
+                toolbox::net::URN urn = this->createQualifiedInfoSpace("EMu_"+(crateVector[i]->GetLabel())+"_PCrate");
                 std::cout << "Crate " << i << " " << urn.toString() << std::endl;
                 monitorables_.push_back(urn.toString());
                 xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(urn.toString());
+
             // for CCB, MPC, TTC etc.
                 is->fireItemAvailable("TTC_BRSTR",new xdata::UnsignedShort(0));
                 is->fireItemAvailable("TTC_DTSTR",new xdata::UnsignedShort(0));
@@ -473,8 +471,12 @@ void EmuPeripheralCrateConfig::CreateEmuInfospace()
                 is->fireItemAvailable("MPCstatus",new xdata::String("uninitialized"));
 
             // for TMB fast counters
+                is->fireItemAvailable("TMBcounter",new xdata::Vector<xdata::UnsignedInteger32>);
+                is->fireItemAvailable("TMBtime",new xdata::TimeVal);
 
             // for DMB fast counters
+                is->fireItemAvailable("DMBcounter",new xdata::Vector<xdata::UnsignedShort>);
+                is->fireItemAvailable("DMBtime",new xdata::TimeVal);
 
             // for TMB temps, voltages
 
@@ -577,10 +579,15 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 
   if(!parsed) ParsingXML();
 
-  *out << cgicc::b(cgicc::i("Total Crates : ")) ;
+  *out << "Total Crates : ";
   *out << total_crates_ << cgicc::br() << std::endl ;
-
-  // Crate Status
+  unsigned int active_crates=0;
+  for(unsigned i=0; i<crateVector.size(); i++)
+     if(crateVector[i]->IsAlive()) active_crates++;
+  if( active_crates <= total_crates_) 
+     *out << cgicc::b(" Active Crates: ") << active_crates << cgicc::br() << std::endl ;
+ 
+ // Crate Status
   *out << cgicc::span().set("style","color:blue");
   *out << cgicc::b(cgicc::i("System Status: ")) ;
   *out << global_config_states[current_config_state_] << "  ";
@@ -1119,7 +1126,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     bool cr;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-        cr = crateVector[i]->vmeController()->SelfTest();
+        cr = (crateVector[i]->vmeController()->SelfTest()) && (crateVector[i]->vmeController()->exist(13));
         crateVector[i]->SetLife( cr );
         if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
     }
