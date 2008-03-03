@@ -4,6 +4,7 @@
 
 #include <sstream>
 #include <set>
+#include <map>
 #include <cstdlib>  // strtol()
 #include <iomanip>
 #include <sys/time.h>  // gettimeofday()
@@ -17,6 +18,11 @@
 #include "xoap/SOAPSerializer.h"
 #include "xoap/domutils.h"
 #include "toolbox/task/WorkLoopFactory.h" // getWorkLoopFactory()
+
+#include "xoap/DOMParser.h"
+#include "xoap/DOMParserFactory.h"
+#include "xoap/domutils.h"
+#include "xdata/soap/Serializer.h"
 
 #include "cgicc/HTMLClasses.h"
 #include "xgi/Utils.h"
@@ -52,6 +58,7 @@ void CSCSupervisor::CalibParam::registerFields(xdata::Bag<CalibParam> *bag)
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub),
+		logger_(Logger::getInstance("CSCSupervisor")),
 		run_type_(""), run_number_(0), runSequenceNumber_(0),
 		daq_mode_(""), trigger_config_(""), ttc_source_(""),
 		wl_semaphore_(toolbox::BSem::EMPTY), quit_calibration_(false),
@@ -70,6 +77,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 {
 	start_attr.insert(std::map<string, string>::value_type("Param", "Start"));
 	stop_attr.insert(std::map<string, string>::value_type("Param", "Stop"));
+
+	appDescriptor_ = getApplicationDescriptor();
 
 	xdata::InfoSpace *i = getApplicationInfoSpace();
 	i->fireItemAvailable("RunType", &run_type_);
@@ -160,7 +169,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 
 	last_log_.size(N_LOG_MESSAGES);
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "CSCSupervisor");
+	LOG4CPLUS_INFO(logger_, "CSCSupervisor constructed");
 }
 
 xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message)
@@ -504,7 +513,7 @@ bool CSCSupervisor::haltAction(toolbox::task::WorkLoop *wl)
 
 bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction " << "(begin)");
+	LOG4CPLUS_DEBUG(logger_, "calibrationAction " << "(begin)");
 
 	string command, ltc;
 	unsigned int loop, delay;
@@ -515,12 +524,12 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 	delay   = calib_params_[index].bag.delay_;
 	ltc     = calib_params_[index].bag.ltc_;
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "command: " << command
+	LOG4CPLUS_DEBUG(logger_, "command: " << command
 			<< " loop: " << loop << " delay: " << delay << " ltc: " << ltc);
 
 	for (step_counter_ = 0; step_counter_ < loop; ++step_counter_) {
 		if (quit_calibration_) { break; }
-		LOG4CPLUS_DEBUG(getApplicationLogger(),
+		LOG4CPLUS_DEBUG(logger_,
 				"calibrationAction: " << step_counter_);
 
 		sendCommand(command, "EmuPeripheralCrateManager");
@@ -532,7 +541,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		submit(halt_signature_);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction " << "(end)");
+	LOG4CPLUS_DEBUG(logger_, "calibrationAction " << "(end)");
 
 	return false;
 }
@@ -540,8 +549,8 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 void CSCSupervisor::configureAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "runtype: " << run_type_.toString()
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
+	LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
 			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
 
 	step_counter_ = 0;
@@ -603,25 +612,25 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		refreshConfigParameters();
 
 	} catch (xoap::exception::Exception e) {
-		LOG4CPLUS_ERROR(getApplicationLogger(),
+		LOG4CPLUS_ERROR(logger_,
 				"Exception in " << evt->type() << ": " << e.what());
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"SOAP fault was returned", e);
 	} catch (xdaq::exception::Exception e) {
-		LOG4CPLUS_ERROR(getApplicationLogger(),
+		LOG4CPLUS_ERROR(logger_,
 				"Exception in " << evt->type() << ": " << e.what());
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
 }
 
 void CSCSupervisor::enableAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "runtype: " << run_type_.toString()
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
+	LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
 			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
 
 	try {
@@ -668,13 +677,13 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 		submit(calibration_signature_);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
 }
 
 void CSCSupervisor::disableAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
 
 	try {
 		state_table_.refresh();
@@ -703,13 +712,13 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 				"Failed to send a command", e);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
 }
 
 void CSCSupervisor::haltAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
 
 	try {
 		state_table_.refresh();
@@ -735,23 +744,23 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 				"Failed to send a command", e);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
 }
 
 void CSCSupervisor::resetAction() throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(begin)");
+	LOG4CPLUS_DEBUG(logger_, "reset(begin)");
 
 	fsm_.reset();
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(end)");
+	LOG4CPLUS_DEBUG(logger_, "reset(end)");
 }
 
 void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
 
 	const string fed_app = "EmuFCrateManager";
 
@@ -768,7 +777,7 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 				"Failed to send a command", e);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
 }
 
 void CSCSupervisor::submit(toolbox::task::ActionSignature *signature)
@@ -1032,7 +1041,7 @@ void CSCSupervisor::analyzeReply(
 			<< app->getClassName() << "(" << app->getInstance() << ")" << endl
 			<< reply_str;
 	last_log_.add(s.str());
-	LOG4CPLUS_DEBUG(getApplicationLogger(), reply_str);
+	LOG4CPLUS_DEBUG(logger_, reply_str);
 
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 
@@ -1047,7 +1056,7 @@ void CSCSupervisor::analyzeReply(
 	error << "Fault string: " << endl;
 	error << reply_str << endl;
 
-	LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+	LOG4CPLUS_ERROR(logger_, error.str());
 	XCEPT_RAISE(xoap::exception::Exception, "SOAP fault: \n" + reply_str);
 
 	return;
@@ -1367,7 +1376,7 @@ void CSCSupervisor::StateTable::refresh()
 		} catch (xdaq::exception::Exception e) {
 			i->second = STATE_UNKNOWN;
 		} catch (...) {
-			LOG4CPLUS_DEBUG(sv_->getApplicationLogger(), "Exception with " << klass);
+			LOG4CPLUS_DEBUG(sv_->logger_, "Exception with " << klass);
 			i->second = STATE_UNKNOWN;
 		}
 
@@ -1534,6 +1543,47 @@ void CSCSupervisor::LastLog::webOutput(xgi::Output *out)
 	*out << textarea() << endl;
 }
 
+xoap::MessageReference CSCSupervisor::getRunSummary()
+  throw( xcept::Exception ){
+
+  xoap::MessageReference reply;
+
+  // find EmuDAQManager
+  xdaq::ApplicationDescriptor *daqManagerDescriptor;
+  try {
+    daqManagerDescriptor = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("EmuDAQManager", 0);
+  } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+    return reply; // Do nothing if the target doesn't exist
+  }
+
+  // prepare a SOAP message
+  xoap::MessageReference message = createCommandSOAP("QueryRunSummary");
+
+  // send the message
+  try{
+    reply = getApplicationContext()->postSOAP(message, *appDescriptor_, *daqManagerDescriptor);
+
+    // Check if the reply indicates a fault occurred
+    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
+    
+    if(replyBody.hasFault()){
+
+      stringstream oss;
+      string s;
+      
+      oss << "Received fault reply from EmuDAQManager: " << replyBody.getFault().getFaultString();
+      s = oss.str();
+      
+      XCEPT_RAISE(xcept::Exception, s);
+    }
+  } 
+  catch(xcept::Exception e){
+    XCEPT_RETHROW(xcept::Exception, "Failed to get run summary from EmuDAQManager", e);
+  }
+
+  return reply;
+}
+
 string CSCSupervisor::reformatTime( string time ){
   // reformat from YYMMDD_hhmmss_UTC to YYYY-MM-DD hh:mm:ss UTC
   string reformatted("");
@@ -1567,7 +1617,7 @@ vector< vector<string> > CSCSupervisor::getFUEventCounts()
   catch (...){}
   // Zone::getApplicationDescriptors doesn't throw!
   if ( EmuFUs.size() == 0 ){  
-    LOG4CPLUS_WARN(getApplicationLogger(), 
+    LOG4CPLUS_WARN(logger_, 
 		   "Failed to get application descriptors for EmuFUs");
     vector<string> svt;
     svt.push_back( "Total" );
@@ -1599,7 +1649,7 @@ vector< vector<string> > CSCSupervisor::getFUEventCounts()
     catch(xcept::Exception e)
     {
       count = "UNKNOWN";
-      LOG4CPLUS_WARN(getApplicationLogger(),
+      LOG4CPLUS_WARN(logger_,
 			"Failed to get event count of " << name.str()
 			<< " : " << xcept::stdformat_exception_history(e));
     }
@@ -1630,7 +1680,7 @@ vector< vector<string> > CSCSupervisor::getRUIEventCounts()
   catch (...){}
   // Zone::getApplicationDescriptors doesn't throw!
   if ( EmuRUIs.size() == 0 ) {
-    LOG4CPLUS_WARN(getApplicationLogger(), 
+    LOG4CPLUS_WARN(logger_, 
 		    "Failed to get application descriptors for EmuRUIs");
     return ec;
   }
@@ -1655,7 +1705,7 @@ vector< vector<string> > CSCSupervisor::getRUIEventCounts()
     catch(xcept::Exception e)
     {
       count    = "UNKNOWN";
-      LOG4CPLUS_WARN(getApplicationLogger(),
+      LOG4CPLUS_WARN(logger_,
 			"Failed to get event count of "
 			<< "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance()
 			<< " [" << mnemonic << "]"
@@ -1682,7 +1732,7 @@ void CSCSupervisor::postToELog( string subject, string body, vector<string> *att
 			eLogURL_.toString());
     }
   catch( string e ){
-    LOG4CPLUS_ERROR(getApplicationLogger(), e);
+    LOG4CPLUS_ERROR(logger_, e);
     eel = 0;
   }
   if ( eel ) {
@@ -1690,12 +1740,12 @@ void CSCSupervisor::postToELog( string subject, string body, vector<string> *att
     if ( attachments )
       for ( vector<string>::iterator attm = attachments->begin(); attm != attachments->end(); ++attm )
 	attachmentList += *attm + "\n";
-    LOG4CPLUS_INFO(getApplicationLogger(), 
-		   "Posting to eLog address " << eLogURL_.toString() << 
+    LOG4CPLUS_INFO(logger_, 
+		   "<![CDATA[Posting to eLog address " << eLogURL_.toString() << 
 		   " as user " << eel->eLogUser() << " (" << eel->CMSUser() << ") " <<
 		   ":\nSubject: " << subject << 
 		   "\nBody:\n" << body <<
-		   "\nAttachments:\n" << attachmentList );
+		   "\nAttachments:\n" << attachmentList << "]]>");
     eel->postMessage( subject, body, attachments );
   }
   delete eel;
@@ -1723,14 +1773,14 @@ void CSCSupervisor::bookRunNumber(){
     }
   catch( string e )
     {
-      LOG4CPLUS_ERROR(getApplicationLogger(), e);
+      LOG4CPLUS_ERROR(logger_, e);
     }
 
   if ( runInfo_ ){
 
     const string sequence = "CMS.CSC";
     
-    LOG4CPLUS_INFO(getApplicationLogger(), "Booking run number with " <<
+    LOG4CPLUS_INFO(logger_, "Booking run number with " <<
 		   runDbBookingCommand_.toString() << " at " <<
 		   runDbAddress_.toString()  << " for " << sequence );
     
@@ -1740,10 +1790,10 @@ void CSCSupervisor::bookRunNumber(){
       isBookedRunNumber_ = true;
       run_number_        = runInfo_->runNumber();
       runSequenceNumber_ = runInfo_->runSequenceNumber();
-      LOG4CPLUS_INFO(getApplicationLogger(), "Booked run rumber " << run_number_.toString() <<
+      LOG4CPLUS_INFO(logger_, "Booked run rumber " << run_number_.toString() <<
 		     " (" << sequence << " " << runSequenceNumber_.toString() << ")");
     }
-    else LOG4CPLUS_ERROR(getApplicationLogger(),
+    else LOG4CPLUS_ERROR(logger_,
 			 "Failed to book run number: " 
 			 <<  runInfo_->errorMessage()
 			 << " ==> Falling back to run number " << run_number_.toString() 
@@ -1759,7 +1809,7 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
   if ( run_type_.toString() == "Debug" ) return;
 
   // If it's not a debug run, it should normally have been booked. If not, inform the user that it somehow wasn't.
-  if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(getApplicationLogger(), "Nothing written to run database as no run number was booked.");
+  if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
 
     stringstream subjectToELog;
     subjectToELog << "Emu local run " << run_number_.toString()
@@ -1772,7 +1822,6 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     htmlMessageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
     htmlMessageToELog << "<table>";
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run number</td><td>" << run_number_.toString() << "</td></tr>";
-//     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">bad run</td><td>" << ( badRun_? "true" : "false" ) << "</td></tr>";
 
     bool success = false;
     const string nameSpace = "CMS.CSC";
@@ -1786,74 +1835,82 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << run_type_.toString() << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+      else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
 				      " to run database " << runDbAddress_.toString() <<
 				      " : " << runInfo_->errorMessage() ); }
     }
 
-    std::map<string,string> namesAndTypes;
-    xdaq::ApplicationDescriptor* app;
-    std::set<xdaq::ApplicationDescriptor *> apps;
+    //
+    // Deserialize reply to run summary query
+    //
+
+    // Start and end times
+    xdata::String start_time = "UNKNOWN"; // xdata can readily be serialized into SOAP...
+    xdata::String stop_time  = "UNKNOWN";
+    // FU event count
+    xdata::String built_events = "0";
+    // RUI event counts and instances
+    xdata::Vector<xdata::String> rui_counts; // xdata can readily be serialized into SOAP...
+    xdata::Vector<xdata::String> rui_instances; // xdata can readily be serialized into SOAP...
+
+    xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
+    xdata::soap::Serializer serializer;
+
+    try{
+      xoap::MessageReference reply = getRunSummary();
+      std::stringstream ss;
+      reply->writeTo( ss );
+      DOMDocument* doc = parser->parse( ss.str() );
+      
+      DOMNode* n;
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("start_time") )->item(0);
+      serializer.import( &start_time, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("stop_time") )->item(0);
+      serializer.import( &stop_time, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("built_events") )->item(0);
+      serializer.import( &built_events, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("rui_counts") )->item(0);
+      serializer.import( &rui_counts, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("rui_instances") )->item(0);
+      serializer.import( &rui_instances, n );
+    }
+    catch (xoap::exception::Exception& e){
+      LOG4CPLUS_ERROR( logger_, "Failed to parse run summary: " << xcept::stdformat_exception_history(e) );
+    }
+
     
     //
     // start time and stop time
     //
-    namesAndTypes["runStartTime"] = "xsd:string";
-    namesAndTypes["runStopTime" ] = "xsd:string";
-    string runStartTime("UNKNOWN");
-    string runStopTime("UNKNOWN");
-    try{
-      app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("EmuTA",0);
-	  xoap::MessageReference message =
-			createParameterGetSOAP("EmuTA", namesAndTypes);
-	  xoap::MessageReference reply =
-			getApplicationContext()->postSOAP(message, app);
-	  analyzeReply(message, reply, app);
-      runStartTime = reformatTime(extractParameter(reply, "runStartTime"));
-      runStopTime  = reformatTime(extractParameter(reply, "runStopTime"));
-    }
-    catch(xdaq::exception::ApplicationDescriptorNotFound e) {
-      LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get time of run start and stop from EmuTA 0: " << 
-		      xcept::stdformat_exception_history(e) );
-    }
-    catch(xcept::Exception e){
-      LOG4CPLUS_WARN(getApplicationLogger(),"Failed to get time of run start and stop from EmuTA 0: " << 
-		     xcept::stdformat_exception_history(e) );
-    }
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << runStartTime << "</td></tr>";
     name      = "start_time";
-    value     = runStartTime;
+    value     = start_time.toString();
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << value << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+      else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
 				      " to run database " << runDbAddress_.toString()  <<
 				      " : " << runInfo_->errorMessage() ); }
     }
     name      = "stop_time";
-    value     = runStopTime;
+    value     = stop_time.toString();
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+      else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
 				      " to run database " << runDbAddress_.toString()  <<
 				      " : " << runInfo_->errorMessage() ); }
     }
 
-
-//     //
-//     // comments
-//     //
-//     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">comments</td><td>" << textToHtml(comments_) << "</td></tr>";
-
+    xdaq::ApplicationDescriptor *app;
 
     //
     // trigger mode
@@ -1869,11 +1926,11 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
       value = extractParameter(reply, "triggerMode");
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
-      LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get trigger mode from TF_hyperDAQ 0: " << 
+      LOG4CPLUS_ERROR(logger_,"Failed to get trigger mode from TF_hyperDAQ 0: " << 
 		      xcept::stdformat_exception_history(e) );
     }
     catch(xcept::Exception e){
-      LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get trigger mode from TF_hyperDAQ 0: " << 
+      LOG4CPLUS_ERROR(logger_,"Failed to get trigger mode from TF_hyperDAQ 0: " << 
 		      xcept::stdformat_exception_history(e) );
     }
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
@@ -1884,9 +1941,9 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     name  = "trigger_mode";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+      else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
 				      " to run database " << runDbAddress_.toString() <<
 				      " : " << runInfo_->errorMessage() ); }
@@ -1895,6 +1952,7 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     //
     // trigger sources
     //
+    std::map <string,string> namesAndTypes;
     namesAndTypes.clear();
     namesAndTypes["ClockSource"  ] = "xsd:string";
     namesAndTypes["OrbitSource"  ] = "xsd:string";
@@ -1917,11 +1975,11 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
       BGOSource     = extractParameter(reply, "BGOSource");
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
-      LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get trigger sources from TTCciControl 0: " << 
+      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 0: " << 
 		      xcept::stdformat_exception_history(e) );
     }
     catch(xcept::Exception e){
-      LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get trigger sources from TTCciControl 0: " << 
+      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 0: " << 
 		      xcept::stdformat_exception_history(e) );
     }
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci</td>";
@@ -1939,9 +1997,9 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     value = ClockSource;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+      else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
 				      " to run database " << runDbAddress_.toString() <<
 				      " : " << runInfo_->errorMessage() ); }
@@ -1950,9 +2008,9 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     value = OrbitSource;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+      else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
 				      " to run database " << runDbAddress_.toString() <<
 				      " : " << runInfo_->errorMessage() ); }
@@ -1961,9 +2019,9 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     value = TriggerSource;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+      else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
 				      " to run database " << runDbAddress_.toString() ); }
     }
@@ -1971,9 +2029,9 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     value = BGOSource;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+      else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
 				      " to run database " << runDbAddress_.toString() <<
 				      " : " << runInfo_->errorMessage() ); }
@@ -1982,39 +2040,32 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     //
     // EmuFU event count
     //
-    vector< vector<string> > counts = getFUEventCounts();
-    if ( counts.size() > 0 ){
-      int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
-      name      = "EmuFU";
-      value     = counts.at(nFUs).at(1); // the last element is the sum of all FUs' event counts
+      name  = "built_events";
+      value = built_events.toString();
       htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
-	if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				       nameSpace << ":" << name << " = " << value ); }
-	else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+	else          { LOG4CPLUS_ERROR(logger_,
 					"Failed to write " << nameSpace << ":" << name << 
 					" to run database " << runDbAddress_.toString() <<
 				      " : " << runInfo_->errorMessage() ); }
       }
-    }
 
     //
     // EmuRUI event counts
     //
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events read</td><td><table>";
-    counts.clear();
-    counts = getRUIEventCounts();
-    int nRUIs = counts.size();
-    for ( int rui=0; rui<nRUIs; ++rui ){
-      name  = counts.at(rui).at(0);
-      value = counts.at(rui).at(1);
+    for ( unsigned int i = 0; i < rui_counts.elements(); ++i ){
+      name  = "EmuRUI" + (dynamic_cast<xdata::String*>(rui_instances.elementAt(i)))->toString();
+      value = (dynamic_cast<xdata::String*>(rui_counts.elementAt(i)))->toString();
       htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
-	if ( success ){ LOG4CPLUS_INFO(getApplicationLogger(), "Wrote to run database: " << 
+	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				       nameSpace << ":" << name << " = " << value ); }
-	else          { LOG4CPLUS_ERROR(getApplicationLogger(),
+	else          { LOG4CPLUS_ERROR(logger_,
 					"Failed to write " << nameSpace << ":" << name << 
 					" to run database " << runDbAddress_.toString() <<
 				      " : " << runInfo_->errorMessage() ); }
@@ -2041,6 +2092,9 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
 	"\nBody:\n" << htmlMessageToELog.str() <<
 	"\n========================================================================\n";
     }
+
+  // Parser must be explicitly removed, or else it stays in the memory
+  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 }
 
 // End of file

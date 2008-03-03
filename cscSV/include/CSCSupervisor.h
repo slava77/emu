@@ -96,6 +96,9 @@ private: // XDAQ parameters
 		xdata::String ltc_;
 	};
 
+        xdaq::ApplicationDescriptor* appDescriptor_;
+        Logger logger_;
+
 	xdata::String run_type_;
 	xdata::UnsignedLong run_number_;
 	xdata::UnsignedLong runSequenceNumber_;
@@ -201,6 +204,8 @@ private:
 	vector< vector<string> > getFUEventCounts();
 	vector< vector<string> > getRUIEventCounts();
 	string reformatTime( string time );
+        xoap::MessageReference getRunSummary()
+	  throw( xcept::Exception );
 
 	class StateTable
 	{
