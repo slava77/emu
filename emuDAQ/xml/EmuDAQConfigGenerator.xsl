@@ -131,13 +131,13 @@
 	  <eLogUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.eLogUser</eLogUserFile>
 	  <eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/CSC</eLogURL>
 	  <!-- <eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/Test</eLogURL> -->
-	  <peripheralCrateConfigFiles xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[0]">
-	    <!-- 	    <item xsi:type="xsd:string" soapenc:position="[0]"></item> -->
-	    <!-- 	    <item xsi:type="xsd:string" soapenc:position="[1]"></item> -->
-	  </peripheralCrateConfigFiles>
 	  <postToELog xsi:type="xsd:boolean">false</postToELog>
 	  <controlDQM xsi:type="xsd:boolean">true</controlDQM>
 	  <hardwareMapping xsi:type="xsd:string">emu/config/EmuDAQ/RUI-to-chamber_mapping.xml</hardwareMapping>
+	  <TF_FM_URL xsi:type="xsd:string">http://UNKNOWN.cms:12000</TF_FM_URL>
+	  <CSC_FM_URL xsi:type="xsd:string">http://cmsrc-csc.cms:12000</CSC_FM_URL>
+	  <RegexMatchingTFConfigName xsi:type="xsd:string">UNKNOWN</RegexMatchingTFConfigName>
+	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*DAQ/.*</RegexMatchingCSCConfigName>
 	</properties>
       </xc:Application>
       <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuDAQManager.so</xc:Module>
@@ -166,12 +166,7 @@
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderevm.so</xc:Module>
-      <xc:Application instance="0" class="EmuTA" network="tcp1" id="17">
-	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:EmuTA">
-	  <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
-	  <maxNumTriggers xsi:type="xsd:integer">-1</maxNumTriggers>
-	</properties>
-      </xc:Application>
+      <xc:Application instance="0" class="EmuTA" network="tcp1" id="17"/>
       <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuTA.so</xc:Module>
     </xc:Context>
   </xsl:template>
@@ -305,13 +300,13 @@
     <xc:Context url="http://csc-dqm.cms:40550">
       <xc:Application class="EmuDisplayClient" id="1450" instance="0" network="local">
 	<properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
-	  <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
-	  <imageFormat xsi:type="xsd:string">png</imageFormat>
-	  <imagePath xsi:type="xsd:string">/tmp/images</imagePath>
-          <iconsURL xsi:type="xsd:string">/tmp/</iconsURL>
+	<monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
+        <imageFormat xsi:type="xsd:string">png</imageFormat>
+        <baseDir xsi:type="xsd:string">/nfshome0/cscdqm/config/dqm</baseDir>
+        <viewOnly xsi:type="xsd:boolean">true</viewOnly>
 	</properties>
       </xc:Application>
-      <xc:Module>${BUILD_HOME}/emu/emuDQM/emuDisplayClient/lib/linux/x86/libemuDisplayClient.so</xc:Module>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuDisplayClient.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -338,7 +333,7 @@
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuReadout.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="EmuMonitor" id="{$APP_ID}" network="tcp1" group="dqm">
 	    <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct">
 	      <readoutMode xsi:type="xsd:string">external</readoutMode>
@@ -352,16 +347,18 @@
 		<item xsi:type="xsd:unsignedInt" soapenc:position="[0]"><xsl:value-of select="$SERVER_TID"/></item>
 	      </serverTIDs>
 	      <xmlCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMBooking.xml</xmlCfgFile>
-	      <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
-	      <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
-	      <outputROOTFile xsi:type="xsd:string">/nfshome0/cscdqm/results/</outputROOTFile>
-	      <outputImagesPath xsi:type="xsd:string">/tmp/images</outputImagesPath>
-	      <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
-	      <dduCheckMask xsi:type="xsd:unsignedInt">0xFFFFDFFF</dduCheckMask>
-	      <binCheckMask xsi:type="xsd:unsignedInt">0xF7FB7BF6</binCheckMask>
+              <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
+              <cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
+              <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
+              <outputROOTFile xsi:type="xsd:string">/nfshome0/cscdqm/results/</outputROOTFile>
+              <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
+              <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
+              <dduCheckMask xsi:type="xsd:unsignedInt">0xFFFFDFFF</dduCheckMask>
+              <binCheckMask xsi:type="xsd:unsignedInt">0xFFFB7BF6</binCheckMask>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/emu/emuDQM/emuMonitor/lib/linux/x86/libemuMonitor.so</xc:Module>
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPlotter.so</xc:Module>
+          <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuMonitor.so</xc:Module>
 	</xc:Context>
 	
       </xsl:if>
