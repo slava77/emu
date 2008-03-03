@@ -11,6 +11,8 @@
 #include "xdata/UnsignedShort.h"
 #include "xdata/UnsignedLong.h"
 #include "xdata/String.h"
+#include "xdata/Vector.h"
+#include "xdata/TimeVal.h"
 #include "xdaq/NamespaceURI.h"
 #include "xdata/InfoSpaceFactory.h"
 #include "xcept/tools.h"
