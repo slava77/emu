@@ -862,6 +862,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::onEnable (xoap::MessageReferenc
   throw (xoap::exception::Exception) {
   std::cout << "SOAP Enable" << std::endl;
   //
+  current_run_state_ = 1;
   fireEvent("Enable");
   //
   return createReply(message);
@@ -871,6 +872,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::onDisable (xoap::MessageReferen
   throw (xoap::exception::Exception) {
   std::cout << "SOAP Disable" << std::endl;
   //
+  current_run_state_ = 0;
   fireEvent("Disable");
   //
   return createReply(message);
