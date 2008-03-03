@@ -16,7 +16,7 @@
   <xsl:param name="NAME"/>
 
   <xsl:param name="CONFIG_FILE">/nfshome0/cscdaq/config/merged/<xsl:value-of select="$NAME"/>.xml</xsl:param>
-  <xsl:param name="FM_CONFIG_PATH">Local/<xsl:value-of select="$NAME"/></xsl:param>
+  <xsl:param name="FM_CONFIG_PATH">DAQ/<xsl:value-of select="$NAME"/></xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 
