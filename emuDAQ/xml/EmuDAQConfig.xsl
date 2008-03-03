@@ -515,7 +515,7 @@
 	    </xsl:otherwise>
 	  </xsl:choose>
 	  <xsl:choose>
-	    <xsl:when test="starts-with(attribute::xsi:type,'soapenc:Array')">
+	    <xsl:when test="starts-with(attribute::xsi:type,'soapenc:Array') or starts-with(attribute::xsi:type,'soapenc:Struct')">
 	      <td class="prop" colspan="2" align="right"><xsl:call-template name="properties"/></td>
 	    </xsl:when>
 	    <xsl:otherwise>
