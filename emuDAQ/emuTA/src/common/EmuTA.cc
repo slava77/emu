@@ -278,7 +278,9 @@ vector< pair<string, xdata::Serializable*> > EmuTA::initAndGetStdConfigParams()
     // Emu specific
     runStartTime_ = "YYMMDD_hhmmss_UTC";
     runStopTime_  = "YYMMDD_hhmmss_UTC";
+    runNumber_    = 0;
     isBookedRunNumber_ = false;
+    maxNumTriggers_ = -1;
     params.push_back(pair<string,xdata::Serializable *>
         ("runStartTime", &runStartTime_));
     params.push_back(pair<string,xdata::Serializable *>
@@ -883,9 +885,6 @@ throw (toolbox::fsm::exception::Exception)
 void EmuTA::haltAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
-  // Emu: Increment run number
-  runNumber_++;
-
     // Reset the dummy event number
     eventNumber_ = 0;
 
