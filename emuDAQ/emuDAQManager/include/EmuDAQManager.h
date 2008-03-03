@@ -240,8 +240,6 @@ private:
   void postToELog( string subject, string body, vector<string> *attachments=0 );
   bool isBookedRunNumber_;
 
-  xdata::Vector<xdata::String> peripheralCrateConfigFiles_; // files to be attached to elog post
-
   xdata::UnsignedLong runNumber_;
   xdata::UnsignedLong runSequenceNumber_;
   xdata::Integer maxNumberOfEvents_;
@@ -309,6 +307,30 @@ private:
     throw (emuDAQManager::exception::Exception);
   void maskDDUInputs( const bool in, const std::vector<cgicc::FormEntry>& fev );
   void sendDDUInputMask( const bool in, const unsigned int ruiInstance, const std::set<unsigned int>& inputs );
+
+
+  // FM-specific stuff
+  xdata::String TF_FM_URL_; /// (base) URL (http://host:port) of Track Finder Funtion Manager
+  xdata::String CSC_FM_URL_; /// (base) URL (http://host:port) of CSC Funtion Manager
+  xdata::String RegexMatchingTFConfigName_; /// regular expression matching the name of the Track Finder configuration
+  xdata::String RegexMatchingCSCConfigName_; /// regular expression matching the name of the CSC configuration
+  xdata::UnsignedLong TFConfigId_; /// unique id of the Track Finder configuration
+  xdata::UnsignedLong CSCConfigId_; /// unique id of the CSC configuration
+  xoap::MessageReference postSOAP( xoap::MessageReference message,
+				   const string& URL,
+				   const string& SOAPAction )
+    throw (xdaq::exception::Exception);
+  vector<string> parseRunningConfigurationsReplyFromFM( xoap::MessageReference reply );
+  vector<string> getRunningConfigurationsFromFM( const string& URL )
+    throw (emuDAQManager::exception::Exception);
+  string parseConfigParameterReplyFromFM( xoap::MessageReference reply )
+    throw(emuDAQManager::exception::Exception);
+  string getConfigParameterFromFM( const string& configurationURL,
+				   const string& parameterName )
+  throw (emuDAQManager::exception::Exception);
+  void getIdsOfRunningConfigurationsFromFM();
+
+
 
     /**
      * Processes the form sent from the control web page.
@@ -455,7 +477,8 @@ private:
      * Starts the imaginary filter farm, i.e. the FUs.
      */
     void configureFilterFarm()
-    throw (emuDAQManager::exception::Exception);
+      throw (xcept::Exception);
+//     throw (emuDAQManager::exception::Exception);
     void startFilterFarm()
     throw (emuDAQManager::exception::Exception);
 
@@ -630,6 +653,8 @@ public:
   xoap::MessageReference onReset(xoap::MessageReference message)
     throw (xoap::exception::Exception);
   xoap::MessageReference onQueryDAQState(xoap::MessageReference message)
+    throw (xoap::exception::Exception);
+  xoap::MessageReference onQueryRunSummary(xoap::MessageReference message)
     throw (xoap::exception::Exception);
 
   // State transitions

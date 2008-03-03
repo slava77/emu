@@ -22,6 +22,13 @@
 #include "xdata/soap/Serializer.h"
 #include "toolbox/regex.h"
 
+// For EmuDAQManager::postSOAP
+#include "toolbox/net/URL.h"
+#include "pt/PeerTransportAgent.h"
+// #include "pt/PeerTransportReceiver.h"
+#include "pt/PeerTransportSender.h"
+#include "pt/SOAPMessenger.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
@@ -77,7 +84,8 @@ runInfo_(0)
     xoap::bind(this, &EmuDAQManager::onDisable,       "Disable",       XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onHalt,          "Halt",          XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onReset,         "Reset",         XDAQ_NS_URI);
-    xoap::bind(this, &EmuDAQManager::onQueryDAQState, "QueryDAQState", XDAQ_NS_URI);
+//     xoap::bind(this, &EmuDAQManager::onQueryDAQState, "QueryDAQState", XDAQ_NS_URI);
+    xoap::bind(this, &EmuDAQManager::onQueryRunSummary,  "QueryRunSummary",  XDAQ_NS_URI);
 
     fsm_.addState('H', "Halted",     this, &EmuDAQManager::stateChanged);
     fsm_.addState('C', "Configured", this, &EmuDAQManager::stateChanged);
@@ -332,7 +340,7 @@ throw (xgi::exception::Exception)
     *out << "table.params th"                                          << endl;
     *out << "{"                                                        << endl;
     *out << "color: white;"                                            << endl;
-    *out << "background-color: #66F;"                                  << endl;
+    *out << "background-color: #AAAAFF;"                               << endl;
     *out << "}"                                                        << endl;
     *out << "table.params th a"                                        << endl;
     *out << "{"                                                        << endl;
@@ -1108,17 +1116,6 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "<form method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
 
     if ( fsm_.getCurrentState() == 'H' ){
-      *out << "Set run number: "                                     << endl;
-      *out << "<input"                                               << endl;
-      *out << " type=\"text\""                                       << endl;
-      *out << " name=\"runnumber\""                                  << endl;
-      *out << " title=\"Run number.\""                               << endl;
-      *out << " alt=\"run number\""                                  << endl;
-      *out << " value=\"" << runNumber_.toString() << "\""           << endl;
-      *out << " size=\"10\""                                         << endl;
-      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
-      *out << "/>  "                                                 << endl;
-      *out << "<br>"                                                 << endl;
 
       *out << "Select run type: "                                    << endl;
       *out << "<select"                                              ;
@@ -1516,13 +1513,9 @@ throw (xgi::exception::Exception)
 		buildEvents_ = true;
 		break;
 	      }
-	    // Emu: set run number in emuTA to the value given by the user on the control page
-	    cgicc::form_iterator runNumElement = cgi.getElement("runnumber");
-	    if( runNumElement != cgi.getElements().end() ){
-	      string runNumber = (*runNumElement).getValue();
-	      purgeIntNumberString( &runNumber );
-	      runNumber_.fromString( runNumber );
-	    }
+	    // Emu: set run number to 0. If booking is successful, it will be replaced by the booked one.
+	    runNumber_ = 0;
+
 	    cgicc::form_iterator maxEvtElement = cgi.getElement("maxevents");
 	    if( maxEvtElement != cgi.getElements().end() ){
 	      string maxNumEvents  = (*maxEvtElement).getValue();
@@ -2029,7 +2022,8 @@ string EmuDAQManager::getDAQState(){
 
 void EmuDAQManager::printDAQState( xgi::Output *out, string state ){
   map<string, string> bgcolor;
-  bgcolor["Halted" ] = "#ff0000";
+
+  bgcolor["Halted" ] = "#0000ff";
   bgcolor["Ready"  ] = "#ffff00";
   bgcolor["Enabled"] = "#00ff00";
   bgcolor["Mismatch"] = "#008800";
@@ -2079,7 +2073,8 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   throw (xgi::exception::Exception)
 {
   map<string, string> bgcolor;
-  bgcolor["Halted" ] = "#ff0000";
+
+  bgcolor["Halted" ] = "#0000ff";
   bgcolor["Ready"  ] = "#ffff00";
   bgcolor["Enabled"] = "#00ff00";
   bgcolor["Mismatch"] = "#008800";
@@ -2125,7 +2120,7 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   *out << "<tr>"                                                         << endl;
   *out << "  <th colspan=2>"                                             << endl;
   *out << "   <a class=\"with_popup\" style=\"float: left;\" href=\"" << 
-       getHref( appDescriptor_ ) << "\"> Colors:";
+       getHref( appDescriptor_ ) << "\"> Color code";
   map<string, string>::iterator col;
   for ( col=color.begin(); col!=color.end(); ++col ){
     // Don't show color key for "Mismatch" or "TimedOut" if no app is in those states.
@@ -2904,10 +2899,12 @@ throw (emuDAQManager::exception::Exception)
 
 
 void EmuDAQManager::configureFilterFarm()
-throw (emuDAQManager::exception::Exception)
+  //throw (emuDAQManager::exception::Exception)
+throw (xcept::Exception)
 {
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
 
+    getIdsOfRunningConfigurationsFromFM();
 
     ///////////////////
     // Configure FUs //
@@ -2927,6 +2924,38 @@ throw (emuDAQManager::exception::Exception)
 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
 			"Failed to set run type for " + app.str() + " to "  + runType_.toString(), e);
 	}
+
+      try
+	{
+	  setScalarParam(*pos,"CSCConfigId","unsignedLong",CSCConfigId_.toString());
+	  LOG4CPLUS_INFO(logger_,"Set CSC configuration id in " + app.str() + " to " + CSCConfigId_.toString() );
+	}
+      catch(emuDAQManager::exception::Exception e)
+	{
+	  // xdata/src/common/soap/InfoSpaceSerializer.cc puts an XML tag into the exception it throws, 
+	  // causing the logger to drop it ==> put it in CDATA
+	  // TODO: for each postSOAP...
+	  LOG4CPLUS_ERROR(logger_, "Failed to set CSC configuration id in " + app.str() 
+			  + " to " + CSCConfigId_.toString() + 
+			  " : <![CDATA[" + xcept::stdformat_exception_history(e) + "]]>");
+	}
+
+      try
+	{
+	  setScalarParam(*pos,"TFConfigId","unsignedLong",TFConfigId_.toString());
+	  LOG4CPLUS_INFO(logger_,"Set TF configuration id in " + app.str() + " to " + TFConfigId_.toString() );
+	}
+      catch(emuDAQManager::exception::Exception e)
+	{
+	  // xdata/src/common/soap/InfoSpaceSerializer.cc puts an XML tag into the exception it throws, 
+	  // causing the logger to drop it ==> put it in CDATA
+	  // TODO: for each postSOAP...
+	  LOG4CPLUS_ERROR(logger_, "Failed to set TF configuration id in " + app.str() 
+			  + " to " + TFConfigId_.toString() + 
+			  " : <![CDATA[" + xcept::stdformat_exception_history(e) + "]]>");
+	}
+
+
         try
         {
             sendFSMEventToApp("Configure", *pos);
@@ -3576,7 +3605,6 @@ throw (emuDAQManager::exception::Exception)
 {
     string appClass = appDescriptor->getClassName();
 
-
     try
     {
         xoap::MessageReference msg = createParameterSetSOAPMsg(appClass,
@@ -3601,10 +3629,14 @@ throw (emuDAQManager::exception::Exception)
             XCEPT_RAISE(emuDAQManager::exception::Exception, s);
         }
     }
-    catch(xcept::Exception e)
+    catch(xdaq::exception::Exception e)
     {
         string s = "Failed to set scalar parameter";
-
+        XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+    }
+    catch(emuDAQManager::exception::Exception e)
+    {
+        string s = "Failed to set scalar parameter";
         XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
     }
 }
@@ -3910,6 +3942,423 @@ throw (emuDAQManager::exception::Exception)
         "Failed to find node with local name: " + nodeLocalName);
 }
 
+xoap::MessageReference EmuDAQManager::postSOAP( xoap::MessageReference message, 
+						const string& URL,
+						const string& SOAPAction ) 
+  throw (xdaq::exception::Exception)
+// Adapted from xdaq::ApplicationContextImpl::postSOAP.
+// This is necessary for sending SOAP to contexts not defined in this process's config file.
+{
+	
+  bool setSOAPAction = false;
+  if ( message->getMimeHeaders()->getHeader("SOAPAction").size() == 0 )
+    {
+      message->getMimeHeaders()->setHeader("SOAPAction", SOAPAction);		
+      setSOAPAction = true;
+    }
+	
+  xoap::SOAPBody b = message->getSOAPPart().getEnvelope().getBody();
+  DOMNode* node = b.getDOMNode();
+	
+  DOMNodeList* bodyList = node->getChildNodes();
+  DOMNode* command = bodyList->item(0);
+	
+  if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
+    {                
+
+      try{
+	// Check format of URL
+	toolbox::net::URL u( URL );
+      }
+      catch (toolbox::net::exception::MalformedURL& mu){
+	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", mu);
+      }
+
+      try
+	{	
+	  // Local dispatch: if remote and local address are on same host, get local messenger
+			
+	  // Get the address on the fly from the URL
+	  pt::Address::Reference remoteAddress = pt::getPeerTransportAgent()
+	    ->createAddress(URL,"soap");
+				
+	  pt::Address::Reference localAddress = 
+	    pt::getPeerTransportAgent()->createAddress(getApplicationDescriptor()->getContextDescriptor()->getURL(),"soap");
+			
+	  // force here protocol http, service soap, because at this point we know over withc protocol/service to send.
+	  // this allows specifying a host URL without the SOAP service qualifier
+	  //		
+	  std::string protocol = remoteAddress->getProtocol();
+			
+	  pt::PeerTransportSender* s = dynamic_cast<pt::PeerTransportSender*>(pt::getPeerTransportAgent()->getPeerTransport (protocol, "soap", pt::Sender));
+
+	  // These two lines cannot be merges, since a reference that is a temporary object
+	  // would delete the contained object pointer immediately after use.
+	  //
+	  pt::Messenger::Reference mr = s->getMessenger(remoteAddress, localAddress);
+	  pt::SOAPMessenger& m = dynamic_cast<pt::SOAPMessenger&>(*mr);
+	  xoap::MessageReference rep = m.send(message);	 
+			
+	  if (setSOAPAction)
+	    {
+	      message->getMimeHeaders()->removeHeader("SOAPAction");
+	    }
+	  return rep;
+	}
+      catch (xdaq::exception::HostNotFound& hnf)
+	{
+	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", hnf);
+	} 
+      catch (xdaq::exception::ApplicationDescriptorNotFound& acnf)
+	{
+	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", acnf);
+	}
+      catch (pt::exception::Exception& pte)
+	{
+	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", pte);
+	}
+      catch(std::exception& se)
+	{
+	  XCEPT_RAISE (xdaq::exception::Exception, se.what());
+	}
+      catch(...)
+	{
+	  XCEPT_RAISE (xdaq::exception::Exception, "Failed to post SOAP message, unknown exception");
+	}
+    } 
+  else
+    {
+      /*applicationDescriptorFactory_.unlock();
+       */
+      XCEPT_RAISE (xdaq::exception::Exception, "Bad SOAP message. Cannot find command tag");
+    }
+
+}
+
+vector<string> EmuDAQManager::parseRunningConfigurationsReplyFromFM( xoap::MessageReference reply ){
+
+  vector<string> runningConfigs;
+
+  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
+
+  std::stringstream ss;
+  reply->writeTo( ss );
+  DOMDocument* doc = parser->parse( ss.str() );
+  DOMNodeList *URIs = doc->getElementsByTagName( xoap::XStr("URI") );
+  for ( XMLSize_t i=0; i<URIs->getLength(); ++i ){
+    runningConfigs.push_back( xoap::XMLCh2String( URIs->item(i)->getTextContent() ) );
+  }
+
+  // Parser must be explicitly removed, or else it stays in the memory
+  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
+
+  return runningConfigs;
+}
+
+
+vector<string> EmuDAQManager::getRunningConfigurationsFromFM( const string& baseURL )
+  throw (emuDAQManager::exception::Exception){
+
+  vector<string> runningConfigs;
+
+  string serviceURL = baseURL + "/rcms/services/FMLifeCycle";
+
+  // Create SOAP message
+  xoap::MessageReference message;
+  try{
+    message = xoap::createMessage();
+    
+    xoap::SOAPPart     soapPart = message->getSOAPPart();
+    xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
+    
+    envelope.addNamespaceDeclaration("xsi" ,"http://www.w3.org/2001/XMLSchema-instance");
+    envelope.addNamespaceDeclaration("xsd" ,"http://www.w3.org/2001/XMLSchema");
+    envelope.addNamespaceDeclaration("soap","http://schemas.xmlsoap.org/soap/envelope/");
+    
+    xoap::SOAPBody body = envelope.getBody();
+    xoap::SOAPName name = envelope.createName("getRunningConfigurations","ns1","urn:FMLifeCycle");
+    body.addBodyElement( name );
+  }
+  catch(xcept::Exception &e){
+    XCEPT_RETHROW(emuDAQManager::exception::Exception,
+		  "Failed to create message to " + serviceURL + " : ", 
+		  e);
+  }
+  catch(...){
+    XCEPT_RAISE(emuDAQManager::exception::Exception,
+		"Failed to create message to " + serviceURL);
+  }
+
+  // Send SOAP message
+
+  cout << endl << "Sending to " << serviceURL << endl; 
+  message->writeTo( cout );
+  cout.flush();
+  cout << endl;
+
+  xoap::MessageReference reply;
+  try{
+    xoap::MessageReference reply = postSOAP( message, serviceURL, "urn:FMLifeCycle" );
+
+    cout << endl << "Received reply from " << serviceURL << endl; 
+    reply->writeTo( cout );
+    cout.flush();
+    cout << endl;
+
+    // Check if the reply indicates a fault occurred
+    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
+    
+    if(replyBody.hasFault()){ // TODO: find out why hasFault() doesn't work
+      std::stringstream ss;
+      ss << "Received fault reply from " << serviceURL << " : "
+	 << replyBody.getFault().getFaultString();
+      XCEPT_RAISE(emuDAQManager::exception::Exception, ss.str());
+    }
+
+    runningConfigs = parseRunningConfigurationsReplyFromFM( reply );
+
+  }
+  catch(xdaq::exception::Exception &e){
+    XCEPT_RETHROW(emuDAQManager::exception::Exception, 
+		  "Failed to get running configurations from " + serviceURL + " : ",
+		  e);
+  }
+  
+  for ( unsigned int i=0; i<runningConfigs.size(); ++i ) cout << "Config " << i << "  " << runningConfigs[i] << endl;
+
+  return runningConfigs;
+}
+
+string EmuDAQManager::parseConfigParameterReplyFromFM( xoap::MessageReference reply )
+  throw(emuDAQManager::exception::Exception){
+
+  string parameterValue;
+
+  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
+
+  std::stringstream ss;
+  reply->writeTo( ss );
+  DOMDocument* doc = parser->parse( ss.str() );
+  DOMNodeList *values = doc->getElementsByTagName( xoap::XStr("value") );
+  if ( values->getLength() == 1 ){
+    parameterValue = xoap::XMLCh2String( values->item(0)->getTextContent() );
+  }
+  else{
+    stringstream ss;
+    ss << "Got " << (unsigned int) values->getLength() << " values in reply to getParameter SOAP to FM";
+    XCEPT_RAISE(emuDAQManager::exception::Exception, ss.str() );
+  }
+
+  // Parser must be explicitly removed, or else it stays in the memory
+  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
+
+  return parameterValue;
+}
+
+
+string EmuDAQManager::getConfigParameterFromFM( const string& configurationURL,
+						const string& parameterName )
+  throw (emuDAQManager::exception::Exception){
+
+  string parameterValue;
+
+  // Parse URL
+  string baseURL;
+  string configurationURN;
+  vector<string> matches; // matches[1] will be the base URL (http://host:port), matches[2] the configuration URN
+  if ( toolbox::regx_match( configurationURL, "^http://.*:[0-9]{2,5}/.*$") ){ // Make sure there's a match...
+    toolbox::regx_match( configurationURL, "^(http://.*:[0-9]{2,5})/(.*)$", matches ); // ...because this crashes if no match.
+    baseURL          = matches[1];
+    configurationURN = matches[2];
+  }
+  else{
+    return parameterValue;
+  }
+  string serviceURL = baseURL + "/rcms/services/ParameterController";
+
+  // Create SOAP message
+  xoap::MessageReference message;
+  try{
+    message = xoap::createMessage();
+    
+    xoap::SOAPPart     soapPart = message->getSOAPPart();
+    xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
+    
+    envelope.addNamespaceDeclaration("xsi"    ,"http://www.w3.org/2001/XMLSchema-instance");
+    envelope.addNamespaceDeclaration("xsd"    ,"http://www.w3.org/2001/XMLSchema");
+    envelope.addNamespaceDeclaration("soap"   ,"http://schemas.xmlsoap.org/soap/envelope/");
+    envelope.addNamespaceDeclaration("soapenc","http://schemas.xmlsoap.org/soap/encoding/");
+    envelope.addNamespaceDeclaration("napesp1","http://namespaces.soaplite.com/perl");
+    
+    xoap::SOAPBody body = envelope.getBody();
+
+    // <getParameter>
+    xoap::SOAPName name = envelope.createName("getParameter","ns1","http://parameter.ws.fm.rcms");
+    xoap::SOAPBodyElement getParameterElement = body.addBodyElement( name );
+
+    // <uriPath>
+    name = envelope.createName("uriPath","","");
+    xoap::SOAPElement uriPathElement = getParameterElement.addChildElement(name);
+    xoap::SOAPName attName = envelope.createName("xsi:type","","");
+    uriPathElement.addAttribute( attName, "soapenc:string" );
+    uriPathElement.setTextContent( configurationURL );
+
+    // <requested>
+    name = envelope.createName("requested","","");
+    xoap::SOAPElement requestedElement = getParameterElement.addChildElement(name);
+    attName = envelope.createName("xsi:type","","");
+    requestedElement.addAttribute( attName, "namesp1:ParameterBean" );
+
+    // <item>
+    name = envelope.createName("item","","");
+    xoap::SOAPElement itemElement = requestedElement.addChildElement(name);
+
+    // <name>
+    name = envelope.createName("name","","");
+    xoap::SOAPElement nameElement = itemElement.addChildElement(name);
+    attName = envelope.createName("xsi:type","","");
+    nameElement.addAttribute( attName, "soapenc:string" );
+    nameElement.setTextContent( parameterName );
+
+//     // <type> // probably unnecessary for getParameter
+//     name = envelope.createName("type","","");
+//     xoap::SOAPElement typeElement = itemElement.addChildElement(name);
+//     attName = envelope.createName("xsi:type","","");
+//     typeElement.addAttribute( attName, "soapenc:string" );
+//     typeElement.setTextContent("rcms.fm.fw.parameter.type.StringT");
+
+//     // <value> // probably unnecessary for getParameter
+//     name = envelope.createName("value","","");
+//     xoap::SOAPElement valueElement = itemElement.addChildElement(name);
+//     attName = envelope.createName("xsi:type","","");
+//     valueElement.addAttribute( attName, "soapenc:string" );
+  }
+  catch(xcept::Exception &e){
+    XCEPT_RETHROW(emuDAQManager::exception::Exception,"Failed to create getParameter message to FM", e);
+  }
+  catch(...){
+    XCEPT_RAISE(emuDAQManager::exception::Exception, "Failed to create getParameter message to FM");
+  }
+
+  // Send SOAP message
+
+  cout << endl << "Sending to " << serviceURL << endl; 
+  message->writeTo( cout );
+  cout.flush();
+  cout << endl;
+
+  xoap::MessageReference reply;
+  try{
+    xoap::MessageReference reply = postSOAP( message, serviceURL, configurationURN );
+
+    cout << endl << "Received reply from " << serviceURL << endl; 
+    reply->writeTo( cout );
+    cout.flush();
+    cout << endl;
+
+    // Check if the reply indicates a fault occurred
+    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
+    
+    if(replyBody.hasFault()){ // TODO: find out why hasFault() doesn't work
+      std::stringstream ss;
+      ss << "Received fault reply from " << serviceURL << " : "
+	 << replyBody.getFault().getFaultString();
+      cout << endl << ss.str() << endl; cout.flush();
+      XCEPT_RAISE(emuDAQManager::exception::Exception, ss.str());
+    }
+
+    parameterValue = parseConfigParameterReplyFromFM( reply );
+
+  }
+  catch(xdaq::exception::Exception &e){
+    XCEPT_RETHROW(emuDAQManager::exception::Exception, 
+		  "Failed to get parameter " + parameterName 
+		  + " of configuration " + configurationURN 
+		  + " from " + serviceURL + " : ",
+		  e);
+  }
+  catch(emuDAQManager::exception::Exception &e){
+    XCEPT_RETHROW(emuDAQManager::exception::Exception, 
+		  "Failed to get parameter " + parameterName 
+		  + " of configuration " + configurationURN 
+		  + " from " + serviceURL + " : ",
+		  e);
+  }
+
+  cout << parameterName << ": " << parameterValue << endl;
+  
+  return parameterValue;
+}
+
+void EmuDAQManager::getIdsOfRunningConfigurationsFromFM(){
+
+  vector<string> runningConfigs;
+
+  // From CSC Function Manager
+  CSCConfigId_ = 0;
+  try{
+    runningConfigs = getRunningConfigurationsFromFM( CSC_FM_URL_.toString() );
+    for ( vector<string>::iterator rc = runningConfigs.begin(); rc != runningConfigs.end(); ++rc ){
+      cout << *rc << "  matches \"" << CSC_FM_URL_.toString() << "\" : " 
+	   << toolbox::regx_match( *rc, RegexMatchingCSCConfigName_.toString() )
+	   << endl;
+      if ( toolbox::regx_match( *rc, RegexMatchingCSCConfigName_.toString() ) ){
+	string configState = getConfigParameterFromFM( *rc, "STATE" );
+	if ( configState == "Initialize" ||
+	     configState == "Configure"  ||
+	     configState == "Start" ){
+	  CSCConfigId_.fromString( getConfigParameterFromFM( *rc, "CONF_ID" ) );
+	  LOG4CPLUS_INFO(logger_,"Got CSC config id " << CSCConfigId_.toString()
+			 << " from " << *rc << " in state \"" << configState << "\"" );
+	  break;
+	}
+      }
+    }
+    if ( CSCConfigId_.toString() == "0" ){
+      LOG4CPLUS_WARN(logger_, "<![CDATA[ Found in CSC FM no CSC configuration matching \""
+		     << RegexMatchingCSCConfigName_.toString()
+		     << "\" in state \"Initialize\" or \"Configure\" or \"Start\"."
+		     << " ==> CSC configuarion id will be 0. ]]>" );
+    }
+  }
+  catch(emuDAQManager::exception::Exception &e){
+    LOG4CPLUS_ERROR(logger_,
+		    "Failed to get unique id of CSC configuration from CSC FM"
+		    << " : " << xcept::stdformat_exception_history(e));
+  }
+
+  // From Track Finder's Function Manager
+  runningConfigs.clear();
+  TFConfigId_ = 0;
+  try{
+    runningConfigs = getRunningConfigurationsFromFM( TF_FM_URL_.toString() );
+    for ( vector<string>::iterator rc = runningConfigs.begin(); rc != runningConfigs.end(); ++rc ){
+      if ( toolbox::regx_match( *rc, RegexMatchingTFConfigName_.toString() ) ){
+	string configState = getConfigParameterFromFM( *rc, "STATE" );
+	if ( configState == "Initialize" ||
+	     configState == "Configure"  ||
+	     configState == "Start" ){
+	  TFConfigId_.fromString( getConfigParameterFromFM( *rc, "CONF_ID" ) );
+	  LOG4CPLUS_INFO(logger_,"Got TF config id " << TFConfigId_.toString()
+			 << " from " << *rc << " in state \"" << configState << "\"" );
+	  break;
+	}
+      }
+    }
+    if ( TFConfigId_.toString() == "0" ){
+      LOG4CPLUS_WARN(logger_, "<![CDATA[ Found in TF FM no TF configuration matching \""
+		     << RegexMatchingTFConfigName_.toString() 
+		     << "\" in state \"Initialize\" or \"Configure\" or \"Start\"."
+		     << " ==> TF configuarion id will be 0. ]]>" );
+    }
+  }
+  catch(emuDAQManager::exception::Exception &e){
+    LOG4CPLUS_ERROR(logger_,
+		    "Failed to get unique id of TF configuration from TF FM"
+		    << " : " << xcept::stdformat_exception_history(e));
+  }
+}
+
 
 void EmuDAQManager::machineReadableWebPage(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
@@ -3985,7 +4434,7 @@ throw (xgi::exception::Exception)
 
 void EmuDAQManager::exportParams(xdata::InfoSpace *s)
 {
-    // Emu:
+
   globalMode_             = false;
   configuredInGlobalMode_ = false;
   s->fireItemAvailable( "globalMode",  &globalMode_  );
@@ -4004,8 +4453,6 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
   s->fireItemAvailable( "eLogUserFile",	&eLogUserFile_ );
   s->fireItemAvailable( "eLogURL",     	&eLogURL_      );
-
-  s->fireItemAvailable( "peripheralCrateConfigFiles", &peripheralCrateConfigFiles_ );
 
   runDbBookingCommand_ = "java -jar runnumberbooker.jar";
   runDbWritingCommand_ = "java -jar runinfowriter.jar";
@@ -4044,7 +4491,16 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
   TF_triggerMode_ = "UNKNOWN";
   s->fireItemAvailable("TF_triggerMode", &TF_triggerMode_);
 
-
+  // FM-related parameters
+  TFConfigId_  = 0;
+  CSCConfigId_ = 0;
+  s->fireItemAvailable("TF_FM_URL"                 , &TF_FM_URL_                  );
+  s->fireItemAvailable("CSC_FM_URL"		   , &CSC_FM_URL_                 );
+  s->fireItemAvailable("RegexMatchingTFConfigName" , &RegexMatchingTFConfigName_  );
+  s->fireItemAvailable("RegexMatchingCSCConfigName", &RegexMatchingCSCConfigName_ );
+  s->fireItemAvailable("TFConfigId"		   , &TFConfigId_                 );
+  s->fireItemAvailable("CSCConfigId"               , &CSCConfigId_                );
+  
     controlDQM_ = true;
     s->fireItemAvailable("controlDQM",&controlDQM_);
 
@@ -4779,10 +5235,9 @@ void EmuDAQManager::bookRunNumber(){
     }
     else {
       LOG4CPLUS_ERROR(logger_,
-		      "Failed to book run number: " 
+		      "<![CDATA[ Failed to book run number: " 
 		      <<  runInfo_->errorMessage()
-		      << "| Falling back to run number " << runNumber_.value_ 
-		      << " specified by user." );
+		      << " ==> Falling back to run number " << runNumber_.value_ << " ]]>" );
     }
   } // if ( runInfo_ ){
 
@@ -4818,8 +5273,6 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
     //
     // run type
     //
-//     nameSpace = "run";
-//     name      = "type";
     name      = "run_type";
     value     = runType_.value_;
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << runType_.value_ << "</td></tr>";
@@ -4848,8 +5301,6 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 			xcept::stdformat_exception_history(e) );
       }
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << runStartTime << "</td></tr>";
-//     nameSpace = "time";
-//     name      = "start";
     name      = "start_time";
     value     = runStartTime;
     if ( toDatabase && isBookedRunNumber_ ){
@@ -4876,8 +5327,6 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 	LOG4CPLUS_ERROR(logger_,"Failed to get time of stopping the run from TA0: " << 
 			xcept::stdformat_exception_history(e) );
       }
-//     nameSpace = "time";
-//     name      = "stop";
     name      = "stop_time";
     value     = runStopTime;
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
@@ -4984,8 +5433,7 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
     vector< map< string,string > > counts = getFUEventCounts();
     if ( counts.size() > 0 ){
       int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
-//       nameSpace = "events";
-      name      = "EmuFU";
+      name      = "built_events";
       value     = counts.at(nFUs)["count"]; // the last element is the sum of all FUs' event counts
       htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
@@ -5006,7 +5454,6 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
     counts.clear();
     counts = getRUIEventCounts();
     int nRUIs = counts.size();
-//     nameSpace = "events";
     for ( int rui=0; rui<nRUIs; ++rui ){
       name  = "EmuRUI"+counts.at(rui)["appInst"];
       value = counts.at(rui)["count"];
@@ -5028,10 +5475,6 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 
     if ( toELog && postToELog_.value_ ){
       vector<string> attachments;
-      for ( unsigned int i=0; i<peripheralCrateConfigFiles_.elements(); ++i ){
-	xdata::String* f = dynamic_cast<xdata::String*>(peripheralCrateConfigFiles_.elementAt(i));
-	attachments.push_back( f->toString() );
-      }
       postToELog( subjectToELog.str(), htmlMessageToELog.str(), &attachments );
 
       // Just in case submission to e-log failed...
@@ -5141,13 +5584,66 @@ xoap::MessageReference EmuDAQManager::onQueryDAQState(xoap::MessageReference mes
   xoap::SOAPName       daqStateName = envelope.createName( "daqState" );
   xoap::SOAPBody               body = envelope.getBody();
   xoap::SOAPElement daqStateElement = body.addBodyElement( daqStateName );
-//   xoap::SOAPElement daqStateElement = responseNameElement.addChildElement( daqStateName );
   daqStateElement.addAttribute( xsiType, "xsd:string" );
 
   daqState_ = getDAQState();
 
   daqStateElement.addTextNode( daqState_.toString() );
 
+  return reply;
+}
+
+xoap::MessageReference EmuDAQManager::onQueryRunSummary(xoap::MessageReference message)
+  throw (xoap::exception::Exception)
+{
+  // Create reply message
+  xoap::MessageReference reply = xoap::createMessage();
+  xoap::SOAPEnvelope  envelope = reply->getSOAPPart().getEnvelope();
+  xoap::SOAPBody          body = envelope.getBody();
+  xdata::soap::Serializer serializer;
+
+  // Start and end times
+  string runNumber("UNKNOWN");
+  string maxNumEvents("UNKNOWN");
+  string runStartTime("UNKNOWN");
+  string runStopTime("UNKNOWN");
+  getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
+  xdata::String start_time = runStartTime; // xdata can readily be serialized into SOAP...
+  xdata::String stop_time  = runStopTime;
+  xoap::SOAPName name = envelope.createName("start_time", "xdaq", "urn:xdaq-soap:3.0");
+  xoap::SOAPBodyElement bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&start_time, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+  name = envelope.createName("stop_time", "xdaq", "urn:xdaq-soap:3.0");
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&stop_time, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+  
+  // FU event count
+  xdata::String built_events = "0";
+  vector< map< string,string > > counts = getFUEventCounts();
+  if ( counts.size() > 0 ){
+    int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
+    built_events = counts.at(nFUs)["count"]; // the last element is the sum of all FUs' event counts
+  }
+  name = envelope.createName("built_events", "xdaq", "urn:xdaq-soap:3.0");
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&built_events, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+  
+  // RUI event counts and instances
+  counts = getRUIEventCounts();
+  int nRUIs = counts.size();
+  xdata::Vector<xdata::String> rui_counts; // xdata can readily be serialized into SOAP...
+  xdata::Vector<xdata::String> rui_instances; // xdata can readily be serialized into SOAP...
+  for( int iRUI=0; iRUI<nRUIs; ++iRUI ){
+    rui_counts.push_back( counts.at(iRUI)["count"] );
+    rui_instances.push_back( counts.at(iRUI)["appInst"] );
+  }
+  name = envelope.createName("rui_counts", "xdaq", "urn:xdaq-soap:3.0");
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&rui_counts, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+  name = envelope.createName("rui_instances", "xdaq", "urn:xdaq-soap:3.0");
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&rui_instances, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+  
   return reply;
 }
 
@@ -5220,8 +5716,8 @@ void EmuDAQManager::enableAction(toolbox::Event::Reference e)
       catch(...)
 	{
 	  LOG4CPLUS_ERROR(logger_,
-			  "Failed to book run number. Falling back to run number " 
-			  << runNumber_.value_ << " specified by user." );
+			  "<![CDATA[ Failed to book run number. ==> Falling back to run number " 
+			  << runNumber_.value_ << " ]]>" );
 	}
     }
 
@@ -5384,26 +5880,6 @@ void EmuDAQManager::actionPerformed(xdata::Event & received )
   
   if      ( e.itemName() == "daqState"     && e.type() == "ItemRetrieveEvent" ) daqState_ = getDAQState();
   else if ( e.itemName() == "STEPFinished" && e.type() == "ItemRetrieveEvent" ) STEPFinished_ = isSTEPFinished();
-
-//   // TODO: Check if the following setting of run number is necessary. If not, remove the listener.
-//   if ( e.itemName() == "runNumber" && e.type() == "ItemChangedEvent" ){
-//     daqState_ = getDAQState();
-//     if ( daqState_ == "Ready" ){
-//       string runNumber    = runNumber_.toString();
-//       try
-// 	{
-// 	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
-// 	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
-// 	}
-//       catch(xcept::Exception e)
-// 	{
-// 	  // 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
-// 	  // 			"Failed to set run number to "  + runNumber, e);
-// 	  LOG4CPLUS_ERROR(logger_,  "Failed to set run number to " << runNumber << " : "
-// 			  << xcept::stdformat_exception_history(e) );
-// 	}
-//    }
-//   }
 
 //   LOG4CPLUS_INFO(logger_, 
 // 		 "Received an InfoSpace event" <<
