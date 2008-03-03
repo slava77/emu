@@ -6,7 +6,8 @@ Package=emuDAQ/emuFU
 
 Sources= \
 	EmuFU.cc \
-	EmuFUV.cc
+	EmuFUV.cc \
+	EmuEventHeaderTrailer.cc
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/include/ \

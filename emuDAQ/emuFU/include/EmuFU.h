@@ -24,6 +24,7 @@
 #include "emu/emuDAQ/emuClient/include/i2oEmuClientMsg.h"
 #include "emu/emuDAQ/emuUtil/include/EmuServer.h"
 
+#include "emuFU/EmuEventHeaderTrailer.h"
 
 using namespace std;
 
@@ -152,6 +153,9 @@ private:
 
   xoap::MessageReference onReset(xoap::MessageReference msg)
     throw (xoap::exception::Exception);
+
+  /// Emu event header/trailer
+  emuFU::EmuEventHeaderTrailer* emuEventHeaderTrailer_;
 
   /// Pointer to the descriptor of the EmuDAQManager application.
     xdaq::ApplicationDescriptor *rubuilderTesterDescriptor_;
@@ -284,6 +288,8 @@ private:
     xdata::String       runStartTime_;        ///< run start time to be included in the file name, to be obtained from EmuTA
     xdata::String       runType_;             ///< run type to be included in the file name
 
+    xdata::UnsignedLong CSCConfigId_;         ///< unique id of CSC configuration obtained from CSC Function Manager
+    xdata::UnsignedLong TFConfigId_;          ///< unique id of Track Finder configuration obtained from TF Function Manager
 
     /**
      * Exported read/write parameter - The instance number of BU that the EmuFU

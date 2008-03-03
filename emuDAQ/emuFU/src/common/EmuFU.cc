@@ -658,6 +658,12 @@ vector< pair<string, xdata::Serializable*> > EmuFU::initAndGetStdMonitorParams()
     params.push_back(pair<string,xdata::Serializable *> 
 		     ("clientPersists", &clientPersists_));
 
+    CSCConfigId_ = 0;
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("CSCConfigId", &CSCConfigId_ ));
+    TFConfigId_ = 0;
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("TFConfigId", &TFConfigId_ ));
 
     return params;
 }
@@ -1020,7 +1026,6 @@ throw (toolbox::fsm::exception::Exception)
 
     try
     {
-//         buDescriptor_ = zone_->getApplicationDescriptor("BU", buInstNb_);
         buDescriptor_ = zone_->getApplicationDescriptor("rubuilder::bu::Application", buInstNb_);
         buTid_        = i2oAddressMap_->getTid(buDescriptor_);
     }
@@ -1062,9 +1067,6 @@ throw (toolbox::fsm::exception::Exception)
     //
     // EMu-specific stuff
     //
-    // MOVED TO enableAction START
-//     getRunInfo();
-    // MOVED TO enableAction END
 
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
@@ -1083,19 +1085,20 @@ throw (toolbox::fsm::exception::Exception)
       app << instance_;
       fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
     }
-
-
-//     try{ // Do this in processDataBlock when the first event is processed. Then if no events ==> no file opened.
-//       if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
-// 						   isBookedRunNumber_.value_,
-// 						   runStartTime_, 
-// 						   runType_ );
-//     }
-//     catch(string e){
-//       LOG4CPLUS_FATAL( logger_, e );
-//       moveToFailedState();
-//     }
     
+    // Create an Emu event header
+    bool isCalibrationRun = ( runType_.toString().find("Calib") != string::npos );
+    bool ruiZeroExists = false;
+    set<xdaq::ApplicationDescriptor*> ruiDescriptors = zone_->getApplicationDescriptors( "EmuRUI" );
+    for ( set<xdaq::ApplicationDescriptor*>::const_iterator rui=ruiDescriptors.begin(); rui!=ruiDescriptors.end(); ++rui ){
+      if ( (*rui)->getInstance() == 0 ){
+	ruiZeroExists = true;
+	break;
+      }
+    }
+    emuEventHeaderTrailer_ = new emuFU::EmuEventHeaderTrailer( isCalibrationRun, !isCalibrationRun, ruiZeroExists );
+
+    // Recreate servers
     destroyServers();
     createServers();
 
@@ -1105,9 +1108,7 @@ throw (toolbox::fsm::exception::Exception)
 void EmuFU::enableAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
-  // MOVED FROM configureAction START
   getRunInfo();
-  // MOVED FROM configureAction END
 
     // server loops
     for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
@@ -1190,6 +1191,8 @@ throw (toolbox::fsm::exception::Exception)
       delete fileWriter_;
       fileWriter_ = NULL;
     }
+
+  delete emuEventHeaderTrailer_;
 
   for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
     (*c)->workLoopStarted = false;
@@ -1732,15 +1735,18 @@ throw (emuFU::exception::Exception)
 	  }
       }
 
-    // Insert dummy DCC header at the beginning of this event
+    // Insert Emu event header at the beginning of this event
     if( superFragmentIsFirstOfEvent && blockIsFirstOfSuperFragment ){
-      const unsigned short dummyDCCheader[8] = 
-	{ 0x005F, 0x0000, 0x0000, 0x5000,
-	  0x0017, 0x0000, 0x0000, 0xD900 };
       if ( fileWriter_ ){
+	emuEventHeaderTrailer_->setL1ACounter( block->eventNumber );
+	// One superfragment (the first) is the trigger, which must be subtracted
+	emuEventHeaderTrailer_->setDDUCount( block->nbSuperFragmentsInEvent - 1 );
+	emuEventHeaderTrailer_->setCSCConfigId( (xdata::UnsignedLongT) CSCConfigId_ );
+	emuEventHeaderTrailer_->setTFConfigId( (xdata::UnsignedLongT) TFConfigId_ );
 	try{
-	  fileWriter_->writeData( (const char*) dummyDCCheader, sizeof(dummyDCCheader) );
-	} 
+	  fileWriter_->writeData( (const char*) emuEventHeaderTrailer_->header(),
+				  emuEventHeaderTrailer_->headerSize() );
+	}
 	catch(string e){
 	  LOG4CPLUS_FATAL( logger_, e );
 	  moveToFailedState();
@@ -1793,13 +1799,11 @@ throw (emuFU::exception::Exception)
 
     if(blockIsLastOfEvent)
     {
-      // Insert dummy DCC trailer at the end of this event
-	const unsigned short dummyDCCtrailer[8] = 
-	  { 0x0000, 0x0000, 0x0000, 0xEF00,
-	    0x0007, 0x0000, 0x0000, 0xAF00 };
+      // Insert Emu event trailer at the end of this event
 	if ( fileWriter_ ){
 	  try{
-	    fileWriter_->writeData( (const char*) dummyDCCtrailer, sizeof(dummyDCCtrailer) );
+	    fileWriter_->writeData( (const char*) emuEventHeaderTrailer_->trailer(),
+				    emuEventHeaderTrailer_->trailerSize() );
 	  } 
 	  catch(string e){
 	    LOG4CPLUS_FATAL( logger_, e );
@@ -2707,7 +2711,6 @@ throw (emuFU::exception::Exception)
 
 
 void EmuFU::getRunInfo()
-  // EMu-specific stuff
   // Gets the run number and start time from TA
 throw (emuFU::exception::Exception)
 {
