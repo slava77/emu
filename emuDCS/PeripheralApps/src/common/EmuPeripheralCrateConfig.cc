@@ -734,7 +734,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     //
     std::string CrateTMBCounters = toolbox::toString("/%s/CrateTMBCounters",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CrateTMBCounters).set("target","_blank") << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Crate TMB counters").set("name","CrateTMBCounters") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB counters").set("name", thisCrate->GetLabel()) << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
@@ -744,7 +744,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     //
     std::string CrateDMBCounters = toolbox::toString("/%s/CrateDMBCounters",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CrateDMBCounters).set("target","_blank") << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Crate DMB counters").set("name","CrateDMBCounters") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB counters").set("name",thisCrate->GetLabel()) << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
@@ -1988,7 +1988,7 @@ void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Outpu
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
   if (AutoRefresh_) {
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/"
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"3; URL=/"
 	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
   }
   //
@@ -2051,7 +2051,7 @@ void EmuPeripheralCrateConfig::CrateDMBCounters(xgi::Input * in, xgi::Output * o
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
   //
   *out << cgicc::table().set("border","1");
   //
