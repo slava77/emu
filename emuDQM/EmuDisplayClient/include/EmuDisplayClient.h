@@ -4,9 +4,12 @@
 #include <algorithm>
 #include <map>
 #include <list>
+
 #include "xdaq.h"
-#include "toolbox.h"
 #include "xdata.h"
+#include "toolbox.h"
+#include "xoap.h"
+#include "xgi.h"
 
 #include "cgicc.h"
 #include "xgi.h"
@@ -43,6 +46,7 @@ class FoldersMap: public MapType {
 	
 };
 
+using namespace toolbox;
 
 class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
 {
@@ -104,6 +108,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   std::set<std::string> requestFoldersList(xdaq::ApplicationDescriptor* dest);
   void updateFoldersMap();
   
+ protected:
 
  private:
   
@@ -124,6 +129,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   xdata::Boolean viewOnly_;
   xdata::String BaseDir;
   FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
+  BSem appBSem_;
 
 
 };
