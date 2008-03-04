@@ -41,7 +41,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
       imageFormat_("png"),
       imagePath_("images"),
       viewOnly_(true),
-      BaseDir("/csc_data/dqm")
+      BaseDir("/csc_data/dqm"),
+      appBSem_(BSem::FULL)
 {
 
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
@@ -102,6 +103,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   getApplicationInfoSpace()->addItemChangedListener ("viewOnly", this);
   getApplicationInfoSpace()->fireItemAvailable("baseDir",&BaseDir);
 
+  appBSem_.give();
   // === Initialize ROOT system
   if (!gApplication)
     TApplication::CreateApplication();
@@ -499,13 +501,17 @@ void EmuDisplayClient::getTestsList (xgi::Input * in, xgi::Output * out)  throw 
 
 void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
+
+  
   *out << "var NODES_LIST = [" << std::endl;
   *out << "['Node','State','Run Number','DAQ Events','DQM Events','Rate (Evt/s)','Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last event timestamp']," << std::endl;
-  monitors_ = getAppsList(monitorClass_);
-  if (!monitors_.empty()) {
+ 
+  std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
+  if (!monitors.empty()) {
     std::set<xdaq::ApplicationDescriptor*>::iterator pos;
-    for (pos=monitors_.begin(); pos!=monitors_.end(); ++pos) {
+    for (pos=monitors.begin(); pos!=monitors.end(); ++pos) {
       // for (int i=0; i<monitors_.size(); i++) {
+      if ((*pos) == NULL) continue;
 
       std::ostringstream st;
       st << (*pos)->getClassName() << "-" << (*pos)->getInstance();
@@ -562,7 +568,6 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 	}
   }  
   *out << "]" << std::endl;
-
 
 }
 
@@ -1206,11 +1211,12 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
   // Get reply from DQM node and populate TConsumerInfo list
   try
     {
+      if (monitor == NULL) return bmap;
+      // appBSem_.take();
       LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestObjectsList to " << monitor->getClassName() << " ID" << monitor->getLocalId());
-      // xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *monitor);
-
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
+      // appBSem_.give();
       if (rb.hasFault() )
 	{
 	  xoap::SOAPFault fault = rb.getFault();
@@ -1301,11 +1307,12 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
   // Get reply from DQM node and populate TConsumerInfo list
   try
     {
+      if (monitor == NULL) return bmap;
+      // appBSem_.take();
       LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestCanvasesList to " << monitor->getClassName() << " ID" << monitor->getLocalId());
-      // xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *monitor);
-
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
+      // appBSem_.give();
       if (rb.hasFault() )
 	{
 	  xoap::SOAPFault fault = rb.getFault();
@@ -1436,9 +1443,12 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
   try
     {
       xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
+      if (d==NULL) return buf;
+      // appBSem_.take();
       LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestObjects to " << d->getClassName() << " ID" << d->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *d);
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
+      // appBSem_.give();
       if (rb.hasFault() )
 	{
 	  xoap::SOAPFault fault = rb.getFault();
@@ -1510,9 +1520,12 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
   try
     {
       xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
+      if (d==NULL) return buf;
+      // appBSem_.take();
       LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestCanvas: \"" << folder << "/" << objname << "\" to " << d->getClassName() << " ID" << d->getLocalId());
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *d);
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
+      // appBSem_.give();
       /*
 	std::cout << std::endl;
 	reply->writeTo(cout);
@@ -1558,14 +1571,15 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
 void EmuDisplayClient::updateFoldersMap()
 {
   if (time(NULL)- foldersMap.getTimeStamp()>10) {
+    // appBSem_.take();
     foldersMap.clear();
-    monitors_.clear();
-    monitors_ = getAppsList(monitorClass_);
-    if (!monitors_.empty()) {
+    std::set<xdaq::ApplicationDescriptor*> monitors = getAppsList(monitorClass_);
+    if (!monitors.empty()) {
     
       std::set<xdaq::ApplicationDescriptor*>::iterator pos;
    
-      for (pos=monitors_.begin(); pos!=monitors_.end(); ++pos) {
+      for (pos=monitors.begin(); pos!=monitors.end(); ++pos) {
+        if ((*pos) == NULL) continue;
 	int nodeID= (*pos)->getLocalId();
 	std::set<std::string> flist = requestFoldersList(*pos);
 	std::set<std::string>::iterator litr;
@@ -1576,6 +1590,7 @@ void EmuDisplayClient::updateFoldersMap()
       LOG4CPLUS_INFO (getApplicationLogger(), "Monitoring Folders List is updated");
       foldersMap.setTimeStamp(time(NULL));
     }  
+    // appBSem_.give();
   }
 }
 
@@ -1597,10 +1612,11 @@ std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDes
   try
     {
       LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestFoldersList to " << dest->getClassName() << " ID" << dest->getLocalId());
-
+      // appBSem_.take();
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *dest);
 
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
+      //appBSem_.give();
       if (rb.hasFault() )
 	{
 	  xoap::SOAPFault fault = rb.getFault();
@@ -1655,7 +1671,7 @@ std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::Stri
       applist.clear();
 
       xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
-      applist =	g->getApplicationDescriptors(className.toString());
+      if (g) applist =	g->getApplicationDescriptors(className.toString());
       // sort(applist.begin(), applist.end(), Compare_ApplicationDescriptors());
     }
   catch (xdaq::exception::Exception& e)
