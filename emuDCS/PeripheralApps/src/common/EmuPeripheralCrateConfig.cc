@@ -123,6 +123,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
   xgi::bind(this, &EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
   xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
+  xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
 
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
 
@@ -511,6 +512,7 @@ void EmuPeripheralCrateConfig::PublishEmuInfospace(int cycle)
           now_crate=crateVector[i];
           if(now_crate && now_crate->IsAlive()) 
           {
+             if(!(now_crate->vmeController()->SelfTest())) continue;
              is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
              if(cycle==3)
              {  
@@ -686,19 +688,15 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   //End select crate
  
   *out << cgicc::br()<< std::endl;
-  std::cout << "Main Page: "<< total_crates_ << " Crates" << std::endl;
+  std::cout << "Main Page: "<< std::dec << total_crates_ << " Crates" << std::endl;
   //
   if (tmbVector.size()>0 || dmbVector.size()>0) {
     //
-    if ( Operator_.find("NameOld",0) == string::npos ) {
       //
       // Crate Configuration
       //
       std::string CrateConfiguration = toolbox::toString("/%s/CrateConfiguration",getApplicationDescriptor()->getURN().c_str());
       *out << cgicc::a("[Crate Configuration]").set("href",CrateConfiguration) << endl;
-      //
-      std::string CrateDumpConfiguration = toolbox::toString("/%s/CrateDumpConfiguration",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::a("[Dump Crate Info]").set("href",CrateDumpConfiguration) << endl;
       //
       std::string CrateTests = toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
       *out << cgicc::a("[Crate Tests]").set("href",CrateTests) << endl;
@@ -706,25 +704,42 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
       std::string CalibrationRuns = toolbox::toString("/%s/CalibrationRuns",getApplicationDescriptor()->getURN().c_str());
       *out << cgicc::a("[Calibration Runs]").set("href",CalibrationRuns) << endl;
       //
-    }
+    *out << cgicc::br() << cgicc::br() << cgicc::table().set("border","0");
+    //
+    *out << cgicc::td();
+    std::string FastConfigOne = toolbox::toString("/%s/FastConfigOne",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",FastConfigOne) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Fast Config Crate") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    std::string InitSystem = toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Init Crate") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    std::string CrateDumpConfiguration = toolbox::toString("/%s/CrateDumpConfiguration",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CrateDumpConfiguration) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Dump Crate Info") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:yellow");
     *out << std::endl;
-    *out << cgicc::legend((("Initialisation"))).set("style","color:blue") ;
-    //
-    std::string InitSystem = toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
+    *out << cgicc::legend((("Monitoring"))).set("style","color:blue") ;
     //
     *out << cgicc::table().set("border","0");
     //
     *out << cgicc::td();
     //
-    std::string LaunchMonitor = toolbox::toString("/%s/LaunchMonitor",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",LaunchMonitor).set("target","_blank") << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Launch Monitor").set("name","LaunchMonitor") << std::endl ;
+    std::string ResetTMBC = toolbox::toString("/%s/ResetAllCounters",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",ResetTMBC) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Reset TMB Counters").set("name","ResetTMBC") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
@@ -732,7 +747,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::td();
     //
-    std::string CrateTMBCounters = toolbox::toString("/%s/CrateTMBCounters",getApplicationDescriptor()->getURN().c_str());
+    std::string CrateTMBCounters = toolbox::toString("/%s/CrateTMBCountersRight",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CrateTMBCounters).set("target","_blank") << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","TMB counters").set("name", thisCrate->GetLabel()) << std::endl ;
     *out << cgicc::form() << std::endl ;
@@ -789,14 +804,11 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   }
 
   *out << cgicc::br() << cgicc::br() << std::endl; 
-  *out << cgicc::span().set("style","color:blue");
   *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
-  *out << xmlFile_.toString()  << cgicc::span() << std::endl ;
+  *out << xmlFile_.toString() << cgicc::br() << std::endl ;
   //
   std::string DefineConfiguration = toolbox::toString("/%s/DefineConfiguration",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",DefineConfiguration) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Change Configuration File") << std::endl ;
-  *out << cgicc::form() << std::endl ;
+  *out << cgicc::a("[Change Configuration File]").set("href",DefineConfiguration) << endl;
   *out << cgicc::br();
   //
 }
@@ -1009,6 +1021,13 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
      std::cout << "Button: FastConfigCrates" << std::endl;
      ConfigureInit(2);
 //     fireEvent("Configure");
+     this->Default(in,out);
+  }
+
+  void EmuPeripheralCrateConfig::FastConfigOne(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     thisCrate->configure(2);
      this->Default(in,out);
   }
 
@@ -1992,18 +2011,36 @@ void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Outpu
 	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
   }
   //
+  Page=cgiEnvi.getQueryString();
+  std::string crate_name=Page.substr(0,Page.find("=", 0) );
+  *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  vector<TMB*> myVector;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->tmbs();
+  }
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
   output << cgicc::table().set("border","1");
   //
   output <<cgicc::td();
   //
   output <<cgicc::td();
   //
-  for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
+  for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
 // TMB counters are read in the monitoring FastLoop
-//    tmbVector[tmb]->GetCounters();
+//    myVector[tmb]->GetCounters();
     //
     output <<cgicc::td();
-    output << "Slot = " <<tmbVector[tmb]->slot();
+    output << "Slot = " <<myVector[tmb]->slot();
     output <<cgicc::td();
     //
   }
@@ -2012,23 +2049,26 @@ void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Outpu
   //
   for (int count=0; count<25; count++) {
     //
-    for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
+    for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
       //
       output <<cgicc::td();
       //
       if(tmb==0) {
-	output << tmbVector[tmb]->CounterName(count) ;
+	output << myVector[tmb]->CounterName(count) ;
 	output <<cgicc::td();
 	output <<cgicc::td();
       }
       if (DisplayRatio_) {
-	if ( tmbVector[tmb]->GetCounter(16) > 0 ) {
-	  output << ((float)(tmbVector[tmb]->GetCounter(count))/(tmbVector[tmb]->GetCounter(16)));
-	} else {
-	  output << "-1";
-	}	  
-      } else {
-	output << tmbVector[tmb]->GetCounter(count) <<std::endl;
+	 if ( myVector[tmb]->GetCounter(16) > 0 )
+	    output << ((float)(myVector[tmb]->GetCounter(count))/(myVector[tmb]->GetCounter(16)));
+	 else 
+	    output << "-1";
+      } 
+      else {
+        if ( myVector[tmb]->GetCounter(count) == 0x3fffffff )
+           output << "-1";
+        else 
+   	   output << myVector[tmb]->GetCounter(count);
       }
       output <<cgicc::td();
     }
@@ -2053,139 +2093,14 @@ void EmuPeripheralCrateConfig::CrateDMBCounters(xgi::Input * in, xgi::Output * o
   //
   *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
   //
-  *out << cgicc::table().set("border","1");
-  //
-  *out <<cgicc::td();
-  *out <<cgicc::td();
-  //
-
-// DMB counters are read in the monitoring FastLoop
-// 
-//  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-//    dmbVector[dmb]->readtimingCounter();
-//    dmbVector[dmb]->readtimingScope();
-//  }
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    *out <<cgicc::td();
-    *out << "Slot = " <<dmbVector[dmb]->slot();
-    *out <<cgicc::td();
+  Page=cgiEnvi.getQueryString();
+  std::string crate_name=Page.substr(0,Page.find("=", 0) );
+  *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  vector<DAQMB*> myVector;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->daqmbs();
   }
-  //
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << dmbVector[0]->CounterName(0);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( dmbVector[dmb]->GetL1aLctCounter() > 0 ) {
-      L1aLctCounter_[dmb] = dmbVector[dmb]->GetL1aLctCounter();
-    }
-    *out << L1aLctCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << dmbVector[0]->CounterName(1);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( dmbVector[dmb]->GetCfebDavCounter() > 0 ) CfebDavCounter_[dmb] = dmbVector[dmb]->GetCfebDavCounter();
-    *out << CfebDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << dmbVector[0]->CounterName(2);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( dmbVector[dmb]->GetTmbDavCounter() > 0 ) TmbDavCounter_[dmb] = dmbVector[dmb]->GetTmbDavCounter();
-    *out << TmbDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << dmbVector[0]->CounterName(3);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( dmbVector[dmb]->GetAlctDavCounter() > 0 ) AlctDavCounter_[dmb] = dmbVector[dmb]->GetAlctDavCounter();
-    *out << AlctDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << dmbVector[0]->CounterName(4);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetL1aLctScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::tr();
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << dmbVector[0]->CounterName(5);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetCfebDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << dmbVector[0]->CounterName(6);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetTmbDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << dmbVector[0]->CounterName(7);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetAlctDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
-  //
-  *out << cgicc::table();
-  //
   if(Monitor_On_)
   {
      *out << cgicc::span().set("style","color:green");
@@ -2195,6 +2110,138 @@ void EmuPeripheralCrateConfig::CrateDMBCounters(xgi::Input * in, xgi::Output * o
      *out << cgicc::span().set("style","color:red");
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out <<cgicc::td();
+  //
+// DMB counters are read in the monitoring FastLoop
+// 
+//  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+//    myVector[dmb]->readtimingCounter();
+//    myVector[dmb]->readtimingScope();
+//  }
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    *out <<cgicc::td();
+    *out << "Slot = " <<myVector[dmb]->slot();
+    *out <<cgicc::td();
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::td();
+  *out << myVector[0]->CounterName(0);
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    //
+    *out <<cgicc::td();
+    if ( myVector[dmb]->GetL1aLctCounter() > 0 ) {
+      L1aLctCounter_[dmb] = myVector[dmb]->GetL1aLctCounter();
+    }
+    *out << L1aLctCounter_[dmb] <<std::endl;
+    *out <<cgicc::td();
+    //
+  }
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::td();
+  *out << myVector[0]->CounterName(1);
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    //
+    *out <<cgicc::td();
+    if ( myVector[dmb]->GetCfebDavCounter() > 0 ) CfebDavCounter_[dmb] = myVector[dmb]->GetCfebDavCounter();
+    *out << CfebDavCounter_[dmb] <<std::endl;
+    *out <<cgicc::td();
+    //
+  }
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::td();
+  *out << myVector[0]->CounterName(2);
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    //
+    *out <<cgicc::td();
+    if ( myVector[dmb]->GetTmbDavCounter() > 0 ) TmbDavCounter_[dmb] = myVector[dmb]->GetTmbDavCounter();
+    *out << TmbDavCounter_[dmb] <<std::endl;
+    *out <<cgicc::td();
+    //
+  }
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::td();
+  *out << myVector[0]->CounterName(3);
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    //
+    *out <<cgicc::td();
+    if ( myVector[dmb]->GetAlctDavCounter() > 0 ) AlctDavCounter_[dmb] = myVector[dmb]->GetAlctDavCounter();
+    *out << AlctDavCounter_[dmb] <<std::endl;
+    *out <<cgicc::td();
+  }
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::td();
+  *out << myVector[0]->CounterName(4);
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    //
+    *out <<cgicc::td();
+    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetL1aLctScope()>>i)&0x1) ;
+    *out <<cgicc::td();
+  }
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::tr();
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::td();
+  *out << myVector[0]->CounterName(5);
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    //
+    *out <<cgicc::td();
+    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetCfebDavScope()>>i)&0x1) ;
+    *out <<cgicc::td();
+    //
+  }
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::td();
+  *out << myVector[0]->CounterName(6);
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    //
+    *out <<cgicc::td();
+    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetTmbDavScope()>>i)&0x1) ;
+    *out <<cgicc::td();
+    //
+  }
+  *out <<cgicc::tr();
+  //
+  *out <<cgicc::td();
+  *out << myVector[0]->CounterName(7);
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    //
+    *out <<cgicc::td();
+    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetAlctDavScope()>>i)&0x1) ;
+    *out <<cgicc::td();
+  }
+  *out <<cgicc::tr();
+  //
+  *out << cgicc::table();
+  //
 }
 //
 void EmuPeripheralCrateConfig::CrateTMBCounters(xgi::Input * in, xgi::Output * out ) 
@@ -2849,19 +2896,14 @@ void EmuPeripheralCrateConfig::SetUnsetAutoRefresh(xgi::Input * in, xgi::Output 
 void EmuPeripheralCrateConfig::ResetAllCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  for(unsigned int i=0; i<tmbVector.size(); i++) {
-    //
-    //*out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
-    //
+  for(unsigned int i=0; i<tmbVector.size(); i++) 
+  {
     tmbVector[i]->ResetCounters();
-    //
-    //*out << cgicc::fieldset();    
-    //
   }
-  //
-  this->MonitorFrameLeft(in,out);
-  //
+
+  this->Default(in,out);
 }
+
 //
 ////////////////////////////////////////////////////////////////////////////////////
 // Main page methods
