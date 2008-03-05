@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.6 2008/02/29 08:51:38 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.7 2008/03/05 15:05:03 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -173,7 +173,7 @@ private:
   xdata::String VMECCFirmwareVer_; 
 
   // for monitoring
-  bool Monitor_On_, In_Monitor_;
+  bool Monitor_On_, Monitor_Ready_, In_Monitor_;
   toolbox::task::Timer * timer_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
 };

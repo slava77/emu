@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.19 2008/02/29 10:57:23 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.20 2008/03/05 15:05:03 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -110,6 +110,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   timer_ = toolbox::task::getTimerFactory()->createTimer("EmuMonitorTimer");
   timer_->stop();
   Monitor_On_ = false;
+  Monitor_Ready_ = false;
   In_Monitor_ = false;
   fastloop=0;
   slowloop=0;
@@ -125,7 +126,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
 xoap::MessageReference EmuPeripheralCrateBroadcast::MonitorStart (xoap::MessageReference message) 
   throw (xoap::exception::Exception) 
 {
-     if(!Monitor_On_)
+     if(!Monitor_Ready_)
      {
          toolbox::TimeInterval interval1, interval2, interval3;
          toolbox::TimeVal startTime;
@@ -147,9 +148,10 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::MonitorStart (xoap::MessageR
              timer_->scheduleAtFixedRate(startTime,this, interval3, 0, "EmuPCrateExtra" );
              std::cout << "extra scheduled" << std::endl;
          }
-         Monitor_On_=true;
-         std::cout<< "Monitor Started" << std::endl;
+         Monitor_Ready_=true;
      }
+     Monitor_On_=true;
+     std::cout<< "Monitor Started" << std::endl;
      return createReply(message);
 }
 
@@ -158,11 +160,13 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::MonitorStop (xoap::MessageRe
 {
      if(Monitor_On_)
      {
+         Monitor_On_=false;
+#if 0
          if(fastloop) timer_->remove("EmuPCrateFast" );
          if(slowloop) timer_->remove("EmuPCrateSlow" );
          if(extraloop) timer_->remove("EmuPCrateExtra" );
          timer_->stop(); 
-         Monitor_On_=false;
+#endif
          std::cout << "Monitor stopped" << std::endl;
      }
      return createReply(message);
