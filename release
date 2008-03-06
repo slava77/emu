@@ -7,12 +7,3 @@ emuDCS/e2p
 emuDCS/OnlineDB
 emuDCS/drivers/gbit-vme
 emuDCS/FEDCrate
-emuDAQ/Makefile
-emuDAQ/emuReadout
-emuDAQ/emuFU
-emuDAQ/emuRUI
-emuDAQ/emuTA
-emuDAQ/emuDAQManager
-emuDAQ/emuClient
-emuDAQ/emuUtil
-emuDAQ/drivers
