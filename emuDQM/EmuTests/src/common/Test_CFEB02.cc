@@ -5,6 +5,8 @@ using namespace XERCES_CPP_NAMESPACE;
 Test_CFEB02::Test_CFEB02(std::string dfile): Test_Generic(dfile) {
   testID = "CFEB02";
   nExpectedEvents = 10000;
+  binCheckMask=0x16CB73F6;
+//  binCheckMask=0xF7CB3BF6;
 }
 
 
@@ -120,19 +122,35 @@ void Test_CFEB02::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   }
 
   if(bin_checker.errors() != 0) {
-    std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
+    std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() 
+	<< " mask:0x" << std::hex << binCheckMask << std::dec << std::endl;
     doBinCheck();
-    return;
+//    return;
+  }
+
+  if ((bin_checker.errors() & binCheckMask) != 0) { 
+	// std::cout << "skipped" << std::endl;
+	return;
   }
 
   CSCDDUEventData dduData((uint16_t *) data);
 
   std::vector<CSCEventData> chamberDatas;
   chamberDatas = dduData.cscData();
+  CSCDDUHeader dduHeader  = dduData.header();
 
-  for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); 
-      chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
-    analyzeCSC(*chamberDataItr);
+  int nCSCs = chamberDatas.size();
+  if (nCSCs != dduHeader.ncsc()) {
+        std::cout << "Evt#" << std::dec << nTotalEvents << ": Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() << std::endl;
+        // == Current trick to maximize number of unpacked CSCs.
+        // == Unpacker gives up after screwed chamber.
+        // == So we need to exclude it from the list by reducing chamberDatas vector size
+        nCSCs-=1;
+
+  }
+
+  for(unsigned i=0; i < nCSCs; i++) {
+    analyzeCSC(chamberDatas[i]);
   }
 	
 }
@@ -141,21 +159,30 @@ void Test_CFEB02::analyze(const char * data, int32_t dataSize, uint32_t errorSta
 void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 
   int conv_blk[16]={0,1,2,3,4,5,6,7,8,8,9,9,10,10,11,11}; // Mapping of SCA blocks 
+  
+  const CSCDMBHeader* dmbHeader = data.dmbHeader();
+  const CSCDMBTrailer* dmbTrailer = data.dmbTrailer();
+  if (!dmbHeader && !dmbTrailer) {
+        return;
+  }
 
+ 
   int csctype=0, cscposition=0; 
-  std::string cscID = getCSCFromMap(data.dmbHeader().crateID(), data.dmbHeader().dmbID(), csctype, cscposition); 
+  std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition); 
   // std::string cscID(Form("CSC_%03d_%02d", data.dmbHeader().crateID(), data.dmbHeader().dmbID()));
   // == Do not process unmapped CSCs
   if (cscID == "") return;
+
 
   cscTestData::iterator td_itr = tdata.find(cscID);
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
     std::cout << "Found " << cscID << std::endl;
     initCSC(cscID);
-    addCSCtoMap(cscID, data.dmbHeader().crateID(), data.dmbHeader().dmbID());
+    addCSCtoMap(cscID, dmbHeader->crateID(), dmbHeader->dmbID());
   }
   nCSCEvents[cscID]++;
 
+  // std::cout << nCSCEvents[cscID] << " " << cscID << std::endl;
   // == Define aliases to access chamber specific data
   uint32_t& nEvents=nCSCEvents[cscID];
   TestData& cscdata = tdata[cscID];
@@ -194,10 +221,11 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
   TH1F* v04 = reinterpret_cast<TH1F*>(cschistos["V04"]);
 
   // == Check if CFEB Data Available 
-  if (data.dmbHeader().cfebAvailable()){
+  if (dmbHeader->cfebAvailable()){
     for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
       if (!cfebData) continue;
+  //    if (!cfebData->check()) continue;
 
       for (unsigned int layer = 1; layer <= NLAYERS; layer++){ // loop over layers in a given chamber
 	int nTimeSamples= cfebData->nTimeSamples();
@@ -444,10 +472,12 @@ void Test_CFEB02::finishCSC(std::string cscID)
     CSCtoHWmap::iterator itr = cscmap.find(cscID);
 
     if (itr != cscmap.end()) {
+/*
       map->cratedmb(itr->second.first,itr->second.second,&mapitem);
       int first_strip_index=mapitem.stripIndex;
       int strips_per_layer=mapitem.strips;
-    
+  */ 
+      int strips_per_layer = getNumStrips(cscID);
       double rms = 0.;
       double covar = 0;
 
@@ -602,7 +632,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
 	}
       }
       res_out.close();
-
+/*
       // == Save results for database transfer Pedestals and RMS
       res_out.open((path+cscID+"_CFEB02_DB.dat").c_str());
       for (int layer=0; layer<NLAYERS; layer++) {
@@ -612,6 +642,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
 	}
       }
       res_out.close();
+*/
     }
 
   }

@@ -27,6 +27,18 @@ typedef struct test_step {
 	int max_adc;
 } test_step;
 
+typedef struct ddu_stats {
+	long first_l1a;
+	int last_empty;
+	long evt_cntr;
+	long l1a_cntr;
+        int empty_evt_cntr;
+        int csc_evt_cntr;
+        int strip;
+        int dac;
+
+} ddu_stats;
+
 
 class Test_CFEB04: public Test_Generic 
 {
@@ -44,6 +56,10 @@ class Test_CFEB04: public Test_Generic
 	std::map<std::string, uint32_t> l1a_cntrs;
 	std::map<std::string, test_step> test_steps;
 	std::map<int, int> dduL1A;
+        int currL1A;
+        int startL1A;
+	int dduID;
+	std::map<int, ddu_stats> DDUstats;
 
 };
 

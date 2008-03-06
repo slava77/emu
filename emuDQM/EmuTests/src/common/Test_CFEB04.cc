@@ -5,6 +5,8 @@ using namespace XERCES_CPP_NAMESPACE;
 Test_CFEB04::Test_CFEB04(std::string dfile): Test_Generic(dfile) {
   testID = "CFEB04";
   nExpectedEvents = 25;
+  dduID=0;
+  binCheckMask=0xFFFB3BF6;
 }
 
 
@@ -90,23 +92,93 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
     tmp = dduTrailer; bin_checker.check(tmp,uint32_t(4));
   }
 
+  /*if (bin_checker.errors() & 0x4 != 0) {
+	// DDU Header Missing
+	return;
+  }
+*/
+  if (dduID != (bin_checker.dduSourceID()&0xFF)) {
+	// std::cout << "Evt#" << std::dec << nTotalEvents << ": DDU#" << (bin_checker.dduSourceID()&0xFF) << std::endl;
+        std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << (bin_checker.dduSourceID()&0xFF) << " First event"<< std::endl;
+	dduID = bin_checker.dduSourceID()&0xFF;
+	dduL1A[dduID]=0;
+	DDUstats[dduID].evt_cntr=0;
+	DDUstats[dduID].first_l1a=-1;
+	DDUstats[dduID].dac=0;
+        DDUstats[dduID].strip=1;
+  }
 
-  if(bin_checker.errors() != 0) {
+  dduID = bin_checker.dduSourceID()&0xFF;
+  DDUstats[dduID].evt_cntr++;
+  // dduL1A[dduID]++;
+  // currL1A=dduL1A[dduID];
+ 
+  if((bin_checker.errors() & binCheckMask)!= 0) {
     std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
     doBinCheck();
     return;
   }
 
   CSCDDUEventData dduData((uint16_t *) data);
+ 
+  currL1A=(int)(dduData.header().lvl1num());
+  if (DDUstats[dduID].evt_cntr ==1) {
+	DDUstats[dduID].first_l1a = currL1A;
+	std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID << " first l1a:" << DDUstats[dduID].first_l1a << std::endl;
+  } else if (DDUstats[dduID].first_l1a==-1) {
+	DDUstats[dduID].first_l1a = currL1A-DDUstats[dduID].evt_cntr+1;
+	std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID << " first l1a :" << DDUstats[dduID].first_l1a << " after " << currL1A-DDUstats[dduID].evt_cntr << " bad events" << std::endl;
+  }
 
+  DDUstats[dduID].l1a_cntr=currL1A;
+
+  if ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) != (DDUstats[dduID].evt_cntr-1)) {
+	std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID << " desynched l1a: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)) << std::endl;
+  }
+  
+//  std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID << " L1A:" << currL1A <<  " evt cntr:" << DDUstats[dduID].evt_cntr << std::endl;  
+ 
   std::vector<CSCEventData> chamberDatas;
   chamberDatas = dduData.cscData();
 
+  if (chamberDatas.size() >0) {
+        DDUstats[dduID].csc_evt_cntr++;
+        if ((DDUstats[dduID].csc_evt_cntr%500==1))
+  	{
+        DDUstats[dduID].dac=(DDUstats[dduID].csc_evt_cntr/25)%20;
+        DDUstats[dduID].strip=DDUstats[dduID].csc_evt_cntr/500+1;
+        DDUstats[dduID].empty_evt_cntr=0;
+        std::cout << "DDUEvt#" << std::dec << nTotalEvents << " " << DDUstats[dduID].csc_evt_cntr 
+	<< ": DDU#" << dduID << " Switch strip:" << DDUstats[dduID].strip
+        << " dac:" << DDUstats[dduID].dac << std::endl;
+  	}
+
+  } else {
+        DDUstats[dduID].empty_evt_cntr++;
+  }
+
+
   for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); 
       chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
-    analyzeCSC(*chamberDataItr);
+      analyzeCSC(*chamberDataItr);
   }
-  
+/* 
+  if (chamberDatas.size() >0) {
+	DDUstats[dduID].csc_evt_cntr++;
+	if ((DDUstats[dduID].csc_evt_cntr/25>=1) && (DDUstats[dduID].csc_evt_cntr%25==0))
+  {
+        DDUstats[dduID].dac=(DDUstats[dduID].csc_evt_cntr/25)%20;
+        DDUstats[dduID].strip=DDUstats[dduID].csc_evt_cntr/500+1;
+        DDUstats[dduID].empty_evt_cntr=0;
+        std::cout << "DDUEvt#" << std::dec << nTotalEvents << " " << DDUstats[dduID].csc_evt_cntr << ": DDU#" << dduID << " Switch strip:" << DDUstats[dduID].strip
+        << " dac:" << DDUstats[dduID].dac << std::endl;
+  }
+
+  } else {
+	DDUstats[dduID].empty_evt_cntr++;
+  }
+*/
+  DDUstats[dduID].last_empty=chamberDatas.size();
 	
 }
 
@@ -115,8 +187,15 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 
   int conv_blk[16]={0,1,2,3,4,5,6,7,8,8,9,9,10,10,11,11}; // Mapping of SCA blocks 
 
+  const CSCDMBHeader* dmbHeader = data.dmbHeader();
+  const CSCDMBTrailer* dmbTrailer = data.dmbTrailer();
+  if (!dmbHeader && !dmbTrailer) {
+        return;
+  }
+
+
   int csctype=0, cscposition=0; 
-  std::string cscID = getCSCFromMap(data.dmbHeader().crateID(), data.dmbHeader().dmbID(), csctype, cscposition); 
+  std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition); 
   // std::string cscID(Form("CSC_%03d_%02d", data.dmbHeader().crateID(), data.dmbHeader().dmbID()));
   // == Do not process unmapped CSCs
   if (cscID == "") return;
@@ -125,7 +204,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
     std::cout << "Found " << cscID << std::endl;
     initCSC(cscID);
-    addCSCtoMap(cscID, data.dmbHeader().crateID(), data.dmbHeader().dmbID());
+    addCSCtoMap(cscID, dmbHeader->crateID(), dmbHeader->dmbID());
   }
   nCSCEvents[cscID]++;
 
@@ -155,7 +234,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
   TH2F* v02 = reinterpret_cast<TH2F*>(cschistos["V02"]);
   TH1F* v04 = reinterpret_cast<TH1F*>(cschistos["V04"]);
 
-  int l1a_cnt = data.dmbHeader().l1a();
+  int l1a_cnt = dmbHeader->l1a();
 
   if (v04) v04->Fill(l1a_cnt-l1a_cntrs[cscID]);
 
@@ -173,7 +252,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 
   std::vector<int> stripQmax;
 // == Check if CFEB Data Available 
-  if (data.dmbHeader().cfebAvailable()){
+  if (dmbHeader->cfebAvailable()){
     for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
       if (!cfebData) continue;
@@ -219,8 +298,8 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
     }
     // std::cout <<std::dec << nCSCEvents[cscID] << " " << cscID << " " << maxStrip << "(" << maxADC << ")" << std::endl;
     if (maxADC-tstep.max_adc>50) {
-	std::cout << std::dec << nCSCEvents[cscID] << " " << cscID << " DAC step switch from " << tstep.dac_step
-                << " ("<< tstep.evt_cnt << ") "<< nCSCBadEvents[cscID] << std::endl;
+	// std::cout << "DDUEvt#" << std::dec << nTotalEvents << " " << nCSCEvents[cscID] << " " << cscID << " DAC step switch from " << tstep.dac_step
+        //        << " ("<< tstep.evt_cnt << ") "<< nCSCBadEvents[cscID] << std::endl;
 	tstep.dac_step++;
 	tstep.evt_cnt=1;
         tstep.max_adc=maxADC;		
@@ -231,13 +310,17 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 
     if ((maxStrip-1)==tstep.active_strip) {
 	if (maxStrip>1) {
-		std::cout << std::dec << nCSCEvents[cscID] << " " << cscID << " Strip switch from " << tstep.active_strip  
-		<< " ("<< tstep.evt_cnt << ") "<< nCSCBadEvents[cscID] << std::endl;
+		std::cout << "DDUEvt#" << std::dec << nTotalEvents << " " << nCSCEvents[cscID] << " " << cscID << " Strip switch from " << tstep.active_strip  
+		<< " to " << maxStrip << " ("<< tstep.evt_cnt << ") "<< nCSCBadEvents[cscID] << std::endl;
 	}
 	tstep.active_strip=maxStrip;
 	tstep.dac_step=1;
 	tstep.evt_cnt=1;
 	tstep.max_adc=0;
+    } 
+
+    if ((currL1A/50>0) && (currL1A%50==1)) {
+	std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << " " << cscID << " Setting switch" << std::endl;
     } 
 
   } // CFEB data available
