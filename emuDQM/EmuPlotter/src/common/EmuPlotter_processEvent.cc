@@ -392,79 +392,32 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   chamberDatas = dduData.cscData();
 
 
-  if (chamberDatas.size() != dduHeader.ncsc()) {
-	LOG4CPLUS_WARN(logger_,dduTag << eTag << "Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() );
-	
-	return;
+  int nCSCs = chamberDatas.size();
+  if (nCSCs != dduHeader.ncsc()) {
+	LOG4CPLUS_WARN(logger_,eTag << dduTag << " Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() );
+	// == Current trick to maximize number of unpacked CSCs.
+	// == Unpacker gives up after screwed chamber.
+	// == So we need to exclude it from the list by reducing chamberDatas vector size
+	nCSCs-=1;
+        return;
   }
+
+   for(int i=0; i< nCSCs; i++) {
+            nCSCEvents++;
+	    unpackedDMBcount++;
+            processChamber(chamberDatas[i], node, dduID);
+        }
+/*
 
   for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
     nCSCEvents++;
     unpackedDMBcount++;
-    //  LOG4CPLUS_DEBUG(logger_,
-    //		    "Found DMB " << std::dec << unpackedDMBcount  << ". Run unpacking procedure...");
     processChamber(*chamberDataItr, node, dduID);
-    //  LOG4CPLUS_DEBUG(logger_,
-    //		    "Unpacking procedure for DMB " << std::dec << unpackedDMBcount << " finished");
   }
-  // LOG4CPLUS_DEBUG(logger_,
-  //		  "Total number of unpacked DMB = " << std::dec << unpackedDMBcount);
+  */
 
-  
   if (isMEvalid(dduME,"DMB_unpacked_vs_DAV",mo)) mo->Fill(dmb_active_header, unpackedDMBcount);
 
-/*
-  // Calculate ratio histograms every 200 events
-  if (nEvents%200==0) {
-
-  EmuMonitoringObject *mo1 = NULL;
-  EmuMonitoringObject *mo2 = NULL;
-  if (isMEvalid(nodeME, "DMB_Format_Errors_Fract", mo) 
-      && isMEvalid(nodeME, "DMB_Format_Errors", mo1) 
-      && isMEvalid(nodeME, "DMB_Unpacked", mo2)) 
-    {
-       // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-	
-	MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
-        tmp->Add(mo1->getObject());
-        mo->getObject()->Divide(mo1->getObject(), tmp);
-        delete tmp;
-	
-	
-    }
-
-  if (isMEvalid(nodeME, "CSC_Format_Errors_Fract", mo)
-      && isMEvalid(nodeME, "CSC_Format_Errors", mo1)
-      && isMEvalid(nodeME, "CSC_Unpacked", mo2))
-    {
-       // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-	
-	MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
-        tmp->Add(mo1->getObject());
-        mo->getObject()->Divide(mo1->getObject(), tmp);
-        delete tmp;
-	
-
-    }
-
-  if (isMEvalid(nodeME, "CSC_Format_Warnings_Fract", mo)
-      && isMEvalid(nodeME, "CSC_Format_Warnings", mo1)
-      && isMEvalid(nodeME, "CSC_Unpacked", mo2))
-    {
-      // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-	
-	MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
-        tmp->Add(mo1->getObject());
-        mo->getObject()->Divide(mo1->getObject(), tmp);
-        delete tmp;
-	
-
-    }
-
-  }
- */
-  //LOG4CPLUS_DEBUG(logger_,
-  //		  "END OF EVENT :-(");
   fFirstEvent = false;
 
 }
@@ -481,6 +434,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
   //  if(check_bin_error){
   std::map<int,long> checkerErrors = bin_checker.errorsDetailed();
   std::map<int,long>::const_iterator chamber = checkerErrors.begin();
+  // LOG4CPLUS_WARN(logger_, eTag << "chambers: " <<  checkerErrors.size());
   while( chamber != checkerErrors.end() ){
     int ChamberID     = chamber->first;
     int CrateID = (chamber->first>>4) & 0xFF;

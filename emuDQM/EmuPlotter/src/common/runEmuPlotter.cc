@@ -74,7 +74,10 @@ int main(int argc, char **argv) {
 	
 
 	uint32_t dduCheckMask=0xFFFFDFFF;
-	uint32_t binCheckMask=0xFFFB3BF6;
+	// uint32_t binCheckMask=0xFFDB3BF6;
+	// uint32_t binCheckMask=0x16CB73F6;
+	uint32_t binCheckMask=0x16CBF3F6;
+	// uint32_t binCheckMask=0xFFDB3BF6;
 	// uint32_t binCheckMask=0xF778FFF6; // ignore CFEB DAV error and Sample Count Error
 	uint32_t node=0;
 
@@ -113,7 +116,7 @@ int main(int argc, char **argv) {
 	EmuPlotter* plotter = new EmuPlotter();
 	plotter->setLogLevel(WARN_LOG_LEVEL);
 	plotter->setUnpackingDebug(false);
-	plotter->setUnpackingLogLevel(OFF_LOG_LEVEL);
+	// plotter->setUnpackingLogLevel(OFF_LOG_LEVEL);
 	plotter->setCSCMapFile(cscMapFile);
         plotter->setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
         plotter->setXMLCanvasesCfgFile(xmlCanvasesCfg);
