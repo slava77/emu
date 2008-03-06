@@ -91,7 +91,7 @@
 		<Title>CLCT Patter #</Title>
 		<Item>CLCT</Item>
 	</Canvas>
-<!--
+
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_id_id_id_</Prefix>
@@ -100,7 +100,7 @@
 		<Item>strips(Top)</Item>
 		<Item>stripsVSpatterns(Bottom)</Item>
 	</Canvas>
--->
+
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_id_id_id_</Prefix>

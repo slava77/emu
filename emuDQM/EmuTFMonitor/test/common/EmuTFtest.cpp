@@ -29,6 +29,7 @@
 //To compile on slice11:  g++ -o test EmuTFtest.cpp -I/home/slice/DAQKit/v3.6/TriDAS/daq/extern/xerces/linuxx86/include/ -I../../src/common/ -I../../include/ -L/home/slice/DAQKit/v3.6/TriDAS/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/home/slice/kotov/CMSSW_0_8_0_pre2/src/
 //To compile on emudqm: g++ -o test EmuTFtest.cpp -I/home/cscdqm/DAQKit/v4.2.1/TriDAS/daq/extern/xerces/linuxx86/include/ -I../../src/common/ -I../../include/ -L/home/cscdqm/DAQKit/v4.2.1/TriDAS/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/home/cscdqm/CMSSW_1_3_0_pre4/src
 //To compile on csc-C2D07-10: g++ -o test EmuTFtest.cpp -DBASE="\"/nfshome0/cscdqm/TriDAS/emu/emuDQM/\"" -I/nfshome0/cscdqm/DAQKit/TriDAS/daq/extern/xerces/linuxx86/include/ -I../../src/common/ -I../../include/ -L/nfshome0/cscdqm/DAQKit/TriDAS/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/nfshome0/cscdqm/CMSSW/src
+//With central installation of XDAQ: g++ -o test EmuTFtest.cpp -DBASE="\"/nfshome0/cscdqm/TriDAS/emu/emuDQM/\"" -I/opt/xdaq/include/ -I../../src/common/ -I../../include/ -L/opt/xdaq/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/nfshome0/cscdqm/CMSSW/src
 
 int main(int argc, char *argv[]){
 	using namespace std;

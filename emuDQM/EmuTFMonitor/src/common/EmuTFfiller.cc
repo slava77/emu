@@ -14,6 +14,9 @@
 #include <iostream>
 using namespace std;
 
+/// Initializetion of counter-based way to identify different SPs
+///int current_orbit[12] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+
 void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned int flag) throw() {
 	//
 	event_status = CLEAR;
@@ -98,11 +101,34 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 
 	vector<CSCSPEvent> SPs = tfEvent.SPs();
 
+/// If this is first record
+///if( current_orbit[0]==-1 ){
+///   int _sp=0;
+///   for(vector<CSCSPEvent>::const_iterator spPtr=SPs.begin(); spPtr!=SPs.end(); spPtr++)
+///      current_orbit[_sp++] = spPtr->counters().orbit_counter();
+///}
+
 	for(vector<CSCSPEvent>::const_iterator spPtr=SPs.begin(); spPtr!=SPs.end(); spPtr++){
 		// Container for storing all LCTs from SP event 
 		EmuTFtiming shared_hits;
 
 		unsigned short sp = spPtr->header().sector() + ( spPtr->header().endcap() ? 0 : 6 );
+
+if( sp == 0 ){
+///  int closest_sp = 0, delta_orbit = 5000;
+///  int orbit = spPtr->counters().orbit_counter();
+///  for(int _sp=0; _sp<12; _sp++){
+///    if( orbit>=current_orbit[_sp] && orbit-current_orbit[_sp] <= delta_orbit ){
+///       delta_orbit = orbit-current_orbit[_sp];
+///       closest_sp  = _sp;
+///    }
+///  }
+///  current_orbit[closest_sp] = orbit;
+///  sp = closest_sp+1;
+///  cout<<"Error: invalid SP number: "<<sp<<endl;
+  continue;
+}
+
 		if(!tf.isBooked(sp) ){
 			tf.book(sp);
 			std::cout<<"Booking histograms for SP: "<<sp<<" (sector="<<spPtr->header().sector()<<" & endcap="<<spPtr->header().endcap()<<")"<<std::endl;
@@ -297,7 +323,8 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 				if( time_bin ) time_bin->Fill(lct->tbin());
 
 				// Store hits for later timing correlation analysis:
-				shared_hits.fill(tbin,mpc,csc,*lct);
+//cout<<"tbin="<<tbin<<" mpc="<<mpc<<" csc="<<csc<<endl;
+				shared_hits.fill(tbin,mpc-1,csc,*lct);
 			}
 
 			vector<CSCSP_MBblock> dt_stubs = spPtr->record(tbin).mbStubs();
@@ -371,7 +398,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 			map<pair<unsigned int,unsigned int>,int> deltaBX = shared_hits.diffBX();
 			map<pair<unsigned int,unsigned int>,int>::const_iterator iter = deltaBX.begin();
 			while(iter!=deltaBX.end()){
-				unsigned short mpc1 = iter->first.first/10;
+				unsigned short mpc1 = iter->first.first/10+1;
 				unsigned short csc1 = iter->first.first%10;
 				if( !tf.isBooked(sp,mpc1,csc1) ) tf.book(sp,mpc1,csc1);
 				// following mapping is strictly defined by Y labels of the timing histogram
@@ -384,7 +411,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 				};
 				TH2F *csc_timing = (TH2F*)tf.get("csc_timing",sp,mpc1,csc1);
 				if( csc_timing && id2bin[iter->first.second]>0 ) csc_timing->Fill(iter->second,id2bin[iter->first.second]);
-				unsigned short mpc2 = iter->first.second/10;
+				unsigned short mpc2 = iter->first.second/10+1;
 				unsigned short csc2 = iter->first.second%10;
 				if( !tf.isBooked(sp,mpc2,csc2) ) tf.book(sp,mpc2,csc2);
 				csc_timing = (TH2F*)tf.get("csc_timing",sp,mpc2,csc2);
