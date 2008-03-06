@@ -2723,7 +2723,7 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_1</Name>
 		<XMin>80</XMin>
-		<XMax>16000</XMax>
+		<XMax>3000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2736,7 +2736,7 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_2</Name>
 		<XMin>80</XMin>
-		<XMax>16000</XMax>
+		<XMax>3000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2749,7 +2749,7 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_3</Name>
 		<XMin>80</XMin>
-		<XMax>16000</XMax>
+		<XMax>3000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2762,7 +2762,7 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_4</Name>
 		<XMin>80</XMin>
-		<XMax>16000</XMax>
+		<XMax>3000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2775,7 +2775,7 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_5</Name>
 		<XMin>80</XMin>
-		<XMax>16000</XMax>
+		<XMax>3000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2788,7 +2788,7 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_6</Name>
 		<XMin>80</XMin>
-		<XMax>16000</XMax>
+		<XMax>3000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>

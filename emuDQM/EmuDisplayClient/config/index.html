@@ -58,6 +58,9 @@
 		
 		padding: 0px;
 	}
+	
+	
+	
 	td:hover, td.me:hover, td.me_csc:hover,td.me_type:hover {
 		background-color: #A0A0FF;
 	}
@@ -197,7 +200,7 @@
 		overflow:auto;
 	}
 	
-	#csctable_div {
+	#csctable_div, #hwtable_div {
 		float: left;
 	}
 	
@@ -238,7 +241,7 @@
 	td.me, td.me_emu { background-color: #ddd; font-weight: bold; font-size:9pt; width: 50px; }
 	th.RunLink {padding: 0 0 0 4px; text-align: left; font-size:10pt;  font-weight: bold; background-color: #AFAFFF; } 
 	td.node {width: 24px; background-color: white; text-align: center}
-	
+	td.td_status {background-color: white; text-align: center}
 </style>
 <script type="text/javascript">
 
@@ -305,7 +308,10 @@ var CSCs = new Array();
 var updateCounters = new Array();
 var NodesHistory = new Array();
 var histDepth=200;
-
+var numCSCs=0;
+var numDDUs=0;
+var getNodesListDelay=10;
+var getCSCListDelay=20;
 
 var CSC_TYPES = [
 	['ME+',[["ME+4/2", 36],
@@ -641,8 +647,8 @@ function showHWTable()
 						for (var k=0; k<ddu_map.length; k++) {
 							map_entry = ddu_map[k];
 							
-							if (map_entry[0] == ddu_list[j]) //{name += "<br>rui"+map_entry[1]+"/c"+map_entry[2]+"/s"+map_entry[3];}
-								{name += "<br>c"+map_entry[2]+"/s"+map_entry[3];}
+							if (map_entry[0] == ddu_list[j]) //{name += "<br>rui"+map_entry[1]+"/c"+map_entry[2]+"/s"+map_entry[3];}								
+								{name += "<br>("+idx+") c"+map_entry[2]+"/s"+map_entry[3];}
 						}
 						out += "<td class='hw_td'><a href='' id=\'"+ID+"\' onClick='Folder=\""+Tag+"\"; selectSystemFolder(\""+Tag+"\"); return loadPlot();'>"+name+"</a></td>";
 						// dduLink="<a href='#' id='" + dduID+ "' onClick='Folder=\""+entry+"\"; selectDDUFolder(\""+idx+"\"); return loadPlot();'>"+idx+"</a>";
@@ -912,7 +918,7 @@ function updateNodesStatus()
 function getNodesList()
 {
 	var fullUrl = baseURL + NodesStatus;
-	
+	getNodesListDelay=10;
 	var req=false;
 	if (window.XMLHttpRequest) { 
 		/*
@@ -1032,6 +1038,7 @@ function loadTestsList(r_list, id)
 // Load Available CSCs list for selected Run 
 function loadCSCList()
 {
+	getCSCListDelay=20;
 	var fullUrl = baseURL+CSCList;
 	// var r_link=document.getElementById("RunLink");
 	// if (r_link) r_link.innerHTML = "Run Number: <a class='RLink' href=''>" + RunNumber + "</a>";
@@ -1078,12 +1085,26 @@ function loadCSCList()
 	return false;
 }
 
+function updateSysStatus() 
+{
+	var obj=document.getElementById("sysstatus_div");
+	if (obj) {
+		getNodesListDelay-=2;
+		getCSCListDelay-=2;
+		var out="<table><tr><td class='td_status'> #DDUs: "+ numDDUs+" </td><td class='td_status'> #CSCs: "+numCSCs+" </td><td class='td_status'>Updates: Nodes in "+getNodesListDelay+"s; CSC List in "+getCSCListDelay+"s</td></tr></table>";
+		obj.innerHTML=out;
+	}
+	setTimeout('updateSysStatus()', 2000);
+}
+
 function updateCSCMappings()
 {
 	c_list = CSC_LIST;
 	showCSCTable("csctable_div");
 	//resetCSCTable('csc_table');
 	
+	numCSCs=0;
+	numDDUs=0;
 	if (c_list.length > 0) {
 		c_tree = c_list[0];
 		for ( var j=1; j<c_tree.length; j++) {
@@ -1096,6 +1117,7 @@ function updateCSCMappings()
 			}
 		}		
 	}
+	// updateSysStatus();
 	// selectFolder(Folder);
 }
 
@@ -1140,6 +1162,7 @@ function enableCSCTableEntry(entry_key, entry)
 		dduID = "csc_"+entry;
 		obj = document.getElementById("cscDDU"+idx);
 		if (obj) {
+			numDDUs++;
 			obj.style.background = 'white';
 			val = obj.innerHTML;
 			// emuLink="<a href='#' id='" + dduID+ "' onClick='Folder=\""+entry+"\"; return loadFrame(\""+dduID+"\",false, 4)'>"+idx+"</a>";
@@ -1158,6 +1181,7 @@ function enableCSCTableEntry(entry_key, entry)
 		cscName = findCSCFromMap(entry_key, entry);
 		obj = document.getElementById(cscName); 
 		if (obj) {
+			numCSCs++;
 			obj.style.background = 'white';
 			val = obj.innerHTML;
 			// csc = entry_key+"/"+entry;
@@ -1758,12 +1782,18 @@ get_element = document.all ?
 			<div id="nodesview_div">
 				<script type="text/javascript">
 					<!--//
-						// new showCSCTable("csctable_div");
 						new getNodesList();					
 					//-->
 				</script>
 			</div>
 			<div id='nodestatus_div' style='display:none'></div>
+			<div id='sysstatus_div'>
+				<script type="text/javascript">
+					<!--//
+						new updateSysStatus();					
+					//-->
+				</script>
+			</div>
 		</div>
 	</fieldset>
 	<fieldset id="SystemView">
