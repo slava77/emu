@@ -29,8 +29,9 @@ Sources=\
 	TestCanvas_1h.cc \
 	TestCanvas_userHisto.cc \
 	Test_Generic.cc \
-	Test_CFEB02.cc \
-	Test_CFEB03.cc \
+	Test_CFEB04.c \
+	Test_CFEB02.cc 
+#	Test_CFEB03.cc \
 	Test_CFEB04.cc
 	
 #	EmuTests.cc 
@@ -52,7 +53,8 @@ IncludeDirs = $(XdaqIncludeDirs) \
 	../../emuDAQ/emuReadout/include \
         ../../emuDAQ/emuReadout/ORCA \
 	$(CMSSW) \
-	$(BOOST)
+	$(BOOST) \
+	$(ORA_DIR)/include
 
 
 LibraryDirs = $(XdaqLibraryDirs) 
@@ -69,7 +71,7 @@ UserExecutableLinkFlags += $(ROOTGLIBS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) EmuReadout cscmap1_p5 occi clntsh nnz10
+Libraries = $(XdaqLibraries) EmuReadout #cscmap1_p5 occi clntsh nnz10
 
 
 #

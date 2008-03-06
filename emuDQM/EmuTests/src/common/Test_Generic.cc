@@ -9,6 +9,7 @@ int Test_Generic::getNumStrips(std::string cscID)
 }
 
 Test_Generic::Test_Generic(std::string dfile): dataFile(dfile) {
+  binCheckMask=0xFFFFFFFF;
   init();
 }
 
@@ -22,7 +23,7 @@ Test_Generic::~Test_Generic()
     }
   }
 
-  if (map) delete map;
+  // if (map) delete map;
 	
 }
 
@@ -76,7 +77,7 @@ void Test_Generic::init() {
   bin_checker.modeDDU(true);
   emucnvs.clear();
   tmap = getCSCTypeToBinMap();
-  map = new cscmap1();
+//  map = new cscmap1();
 }
 
 int Test_Generic::loadTestCfg() 
@@ -804,9 +805,10 @@ void Test_Generic::doBinCheck() {
     if (isCSCError && CSCtype && CSCposition && mhistos["EMU"]["E00"]) {
       mhistos["EMU"]["E00"]->Fill(CSCposition, CSCtype);
       //    mo->SetEntries(nBadEvents);
+      
     }
 
-    nCSCBadEvents[cscID]++;
+    if (isCSCError) nCSCBadEvents[cscID]++;
     chamber++;
   }
 }

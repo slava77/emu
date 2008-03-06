@@ -126,6 +126,7 @@ class Test_Generic
 	virtual void finishCSC(std::string cscID) = 0;
         
 
+        unsigned long binCheckMask;
 	cscTestData tdata;
 	cscMonHistos mhistos;
 	// MonHistos emuhistos;
@@ -156,7 +157,7 @@ class Test_Generic
 	std::map<std::string, TH2F*> hFormatErrors;
 	std::map<std::string, int> tmap; // Map of CSC types for Format Errors histogram
         CSCtoHWmap cscmap;
-  	cscmap1 *map;
+//  	cscmap1 *map;
 
 };
 
