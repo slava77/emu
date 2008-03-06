@@ -82,8 +82,10 @@ void CSCStripClusterFinder::DoAction(int LayerId,float *Cathodes)
 	  MEStripClusters[i].ClusterPulseMapHeight[k].height_[l];
       }
     }
-    MEStripClusters[i].Mean[0]=sumstrip/sumheight;
-    MEStripClusters[i].Mean[1]=sumtime/sumheight;
+    if (sumheight) {
+    	MEStripClusters[i].Mean[0]=sumstrip/sumheight;
+    	MEStripClusters[i].Mean[1]=sumtime/sumheight;
+    }
   }
 //  printClusters();
   return;
