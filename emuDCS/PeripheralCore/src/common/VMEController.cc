@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.40 2008/03/01 15:06:06 liu Exp $
+// $Id: VMEController.cc,v 3.41 2008/03/07 10:26:25 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.41  2008/03/07 10:26:25  liu
+// changed some comments
+//
 // Revision 3.40  2008/03/01 15:06:06  liu
 // update
 //
@@ -643,7 +646,7 @@ GETMORE:
 //   if(size==6){nrbuf=0;return 0;}
    if(size<0)return size;
    if(size<7)
-   {   if(rbuf[0]==0x04 && loopcnt<2)
+   {   if(rbuf[0]==0x04 && loopcnt<1)
        {   // usleep(50);
            loopcnt=loopcnt+1;
            goto GETMORE;
@@ -854,7 +857,6 @@ void VMEController::vcc_check_config()
      tvalue[0]=0;
      n=vcc_read_command(0x0A, 1, regbuf);
      if(n!=1)    printf("ERROR in reading VCC's configuration number\n");
-       else      printf("write VCC's configuration numnber: %04X\n", regbuf[0]);
      if(n!=1 || regbuf[0]!=0) n=vcc_write_command(0x09, 1, tvalue);
      n=vcc_write_command(0x05, 1, tvalue);
      if(n!=1)    printf("ERROR in saving VCC's configuration\n");
