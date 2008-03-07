@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.21 2008/02/29 10:37:24 liu Exp $
+// $Id: CCB.cc,v 3.22 2008/03/07 10:26:25 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.22  2008/03/07 10:26:25  liu
+// changed some comments
+//
 // Revision 3.21  2008/02/29 10:37:24  liu
 // comment out read TTCrx registers in configure
 //
@@ -254,7 +257,7 @@ CCB::CCB(Crate * theCrate ,int slot)
 
   ReadTTCrxID_ = -1;
     
-  (*MyOutput_) << "CCB: configured for crate=" << this->crate()
+  (*MyOutput_) << "CCB: in crate=" << this->crate()
 	    << " slot=" << this->slot() << std::endl;
  };
 
