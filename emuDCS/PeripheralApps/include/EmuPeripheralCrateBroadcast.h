@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.7 2008/03/05 15:05:03 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.8 2008/03/08 11:19:05 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -136,6 +136,7 @@ public:
   void LoadALCTFirmware(xgi::Input * in, xgi::Output * out );
   void VMECCLoadFirmwareBcast(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCTestBcast(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
+  void VMECCTestSkewClear(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   //
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception);
   //
