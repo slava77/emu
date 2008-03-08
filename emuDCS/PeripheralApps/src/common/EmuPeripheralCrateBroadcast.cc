@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.20 2008/03/05 15:05:03 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.21 2008/03/08 11:19:05 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -92,6 +92,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCLoadFirmwareBcast,  "VMECCLoadFirmwareBcast"); 
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCTestBcast,  "VMECCTestBcast"); 
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCTestSkewClear,  "VMECCTestSkewClear");
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onConfigCalCFEB, "ConfigCalCFEB", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBGains, "EnableCalCFEBGains", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk, "EnableCalCFEBCrossTalk", XDAQ_NS_URI);
@@ -221,6 +222,16 @@ void EmuPeripheralCrateBroadcast::MainPage(xgi::Input * in, xgi::Output * out ) 
      .set("value"," Probe for VMECC/DMB boards") << std::endl ;  
    *out << cgicc::form();
     //
+   std::string VMECCTestSkewClear =
+     toolbox::toString("/%s/VMECCTestSkewClear",getApplicationDescriptor()->getURN().c_str());
+   *out << cgicc::form().set("method","GET").set("action",VMECCTestSkewClear) << std::endl ;
+   *out << cgicc::input().set("type","submit")
+     .set("value"," Test DMB->CFEB SkewClear Connections") << std::endl ;  
+   *out << cgicc::form();
+
+   //
+
+
   std::string LoadCFEBchannel = toolbox::toString("/%s/LoadCFEBcalchannel",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadCFEBchannel) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","-----   Load CFEB Buckeye Patterns for Calibration    -----") << std::endl ;
@@ -717,6 +728,63 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
 
   //
  }
+
+void EmuPeripheralCrateBroadcast::VMECCTestSkewClear(xgi::Input * in,xgi::Output *out) throw(xgi::exception::Exception)
+{
+  DefineBroadcastCrate();
+  broadcastCrate->vmeController()->init();
+  broadcastCrate->vmeController()->write_ResetMisc_CR(0x001B);
+
+  //
+  MyHeader(in,out,"EmuPeripheralCrate Broadcast Probe");
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  //
+  *out << cgicc::legend(" Test Skew Clear Connections").set("style","color:blue") << cgicc::p() << std::endl ;
+
+  *out << cgicc::pre();
+  char buf[1000],sbuf[100];
+  int nc;
+  unsigned int onoff[6]={0x21,0x22,0x24,0x28,0x30,0x3F};
+  int ionoff[6]={0,1,2,3,4,5};
+  for(unsigned int iof=0;iof<6;iof++){
+  broadcastDMB->lowv_onoff(onoff[iof]);
+  if(iof==5)break;
+  // Probe for DMBs
+  unsigned int limit=(broadcastCrate->daqmbs()).size()-1;
+  printf(" limit %d \n",limit);
+  *out << " ****CFEB ON-OFF REGISTER SET " << std::hex << onoff[iof] << std::dec << " Only CFEB" << ionoff[iof] << " will return usercode "<< std::endl;
+  for(unsigned int j=0;j<limit;j++){
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
+    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+        int slott=broadcastDMB0->slot();
+        broadcastDMB0->febfpgauser(*cfebItr);
+        nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+        sprintf(sbuf,"CFEB%d  ",(*cfebItr).number());
+        *out << nc << sbuf <<" in slot " << slott << " responded: " << std::endl;
+    for(int i=0; i<nc; i++) {
+        int *device_id=(int *)(buf+i*10+6);
+        unsigned int dev_id=*device_id;
+
+        sprintf(sbuf, "    from MAC address %02X:%02X:%02X:%02X:%02X:%02X, userid: %08X",
+            buf[i*10]&0xff, buf[i*10+1]&0xff, buf[i*10+2]&0xff,
+            buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
+            *device_id);
+        if((int)(*cfebItr).number()==ionoff[iof]&&dev_id!=0xffffffff)*out << sbuf << " Good " << std::endl;
+        if((int)(*cfebItr).number()==ionoff[iof]&&dev_id==0xffffffff)*out << sbuf << " Bad " << std::endl;
+        if((int)((*cfebItr).number()!=ionoff[iof]&&dev_id!=0xffffffff))*out << sbuf << " Bad " << std::endl;
+        if((int)((*cfebItr).number()!=ionoff[iof]&&dev_id==0xffffffff))*out << sbuf << " Good " << std::endl;
+    }
+  }
+  }
+  }
+  *out << cgicc::pre();
+  *out << cgicc::fieldset()<<std::endl;
+  broadcastCrate->vmeController()->init();
+}
+
 
 void EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out ) {
   //
