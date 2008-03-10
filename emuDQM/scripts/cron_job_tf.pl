@@ -21,16 +21,8 @@ my $DATAHOST= "csc-daq10";
 #my $SU_DQM  = "sudo -H -u cscdqm bash -c";
 my $SU_DQM  = "bash -c";
 my $TFDQM   = "perl /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/bin/linux/x86/EmuTFtest.exe /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
-
-# cscdqm@emudqm:
-#my $WEB     = "~/bin/cadaver https://cms-csc.web.cern.ch:444/cms-csc/";
-#my $SOURCE  = "/data/";
-#my $SCRATCH = "/tmp/TrackFinder/";
-#my $LOGS    = "/net/data/dqm/logs";
-#my $DQMHOST = "localhost";
-#my $DATAHOST= "slice\@emutf";
-#my $SU_DQM  = "bash -c";
-#my $TFDQM   = "perl /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/EmuTFMonitor/test/common/test /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
+my $first_global_run_number = 50000; # Set it high if you don't analyze global runs
+my $local_run_pattern = "csc_00000000*RUI00_Monitor*0803*.raw";
 
 ############################# The code ##################################
 # 0. Find out time difference between local pc and pc with files (important for identifying "new" files):
@@ -73,7 +65,7 @@ foreach my $file ( split(/\n/,$global_runs) ){
 
 	my $number = $run;
 	$number =~ s/\w+\.0*(\d+)/$1/g;
-	if($number<34148){ next; }
+	if($number<$first_global_run_number){ next; }
 
 	$file_collection{$run} .= "$SCRATCH/$file.raw_760\n";
 	$time_collection{$run} .= "$timestamp\n";
@@ -125,8 +117,7 @@ foreach my $run ( keys %file_collection ) {
 
 # 3. Find new local daq files (i.e. local runs and converted global runs) and process them:
 # 3.1 Find all local runs (and provide timestamps for them):
-#my $local_runs = `ssh $DATAHOST 'find $SOURCE -type f -name "*RUI02*.raw" -printf "%C@ %h/%f\n" 2>/dev/null'`;
-my $local_runs = `ssh $DATAHOST 'find $SOURCE -type f -name "csc_00000000*RUI00_Monitor*08030*.raw" -printf "%C@ %h/%f\n" 2>/dev/null'`;
+my $local_runs = `ssh $DATAHOST 'find $SOURCE -type f -name "$local_run_pattern" -printf "%C@ %h/%f\n" 2>/dev/null'`;
 print "Local runs: $local_runs\n";
 # 3.2 Following procedure of combining different parts from the same run should be identical to what we have in TFDQM.pl
 foreach my $file ( split(/\n/,$local_runs) ) {
