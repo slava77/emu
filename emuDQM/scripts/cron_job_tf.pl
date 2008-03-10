@@ -9,16 +9,18 @@ use List::Util qw[min max];
 
 # cscdqm@cmsusr0 :
 my $WEB     = "~/cadaver https://cms-csc.web.cern.ch:444/cms-csc/";
+#my $SOURCE  = "/data1/lookarea/";
+##my $SOURCE  = "/cmssrv0/nfshome0/kkotov/data/";
 my $SOURCE  = "/data/";
-#my $SOURCE  = "/cmssrv0/nfshome0/kkotov/data/";
 my $SCRATCH = "/nfshome0/cscdqm/scratch/";
 my $LOGS    = "$SCRATCH/logs/";
 my $DQMHOST = "csc-c2d07-02";
 #my $DQMHOST = "srv-C2D05-17";
-my $DATAHOST= $DQMHOST;
+##my $DATAHOST= $DQMHOST;
+my $DATAHOST= "csc-daq10";
 #my $SU_DQM  = "sudo -H -u cscdqm bash -c";
 my $SU_DQM  = "bash -c";
-my $TFDQM   = "perl /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/test/common/test /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
+my $TFDQM   = "perl /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/bin/linux/x86/EmuTFtest.exe /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
 
 # cscdqm@emudqm:
 #my $WEB     = "~/bin/cadaver https://cms-csc.web.cern.ch:444/cms-csc/";
@@ -56,7 +58,7 @@ foreach my $entry ( @runs_done ){
 }
 # 2. Find new global runs and convert them to .raw files:
 # 2.1 Find all global runs (and provide timestamps for them):
-my $global_runs= `ssh $DATAHOST 'find $SOURCE -type f -name "*.A.*0000.dat" -printf "%T@ %h/%f\n" 2>/dev/null'`;
+my $global_runs= `ssh $DATAHOST 'find $SOURCE -type f -name "Global*.A.*0000.dat" -printf "%T@ %h/%f\n" 2>/dev/null'`;
 # 2.2 Convert only new global daq files to local daq format
 my %file_collection;
 my %time_collection;
@@ -71,7 +73,7 @@ foreach my $file ( split(/\n/,$global_runs) ){
 
 	my $number = $run;
 	$number =~ s/\w+\.0*(\d+)/$1/g;
-	if($number<500000){ next; }
+	if($number<34148){ next; }
 
 	$file_collection{$run} .= "$SCRATCH/$file.raw_760\n";
 	$time_collection{$run} .= "$timestamp\n";
@@ -88,7 +90,7 @@ foreach my $file ( split(/\n/,$global_runs) ){
 		next;
 	}
 	#	die "Can't connect to srv-C2D05-17" if
-			system("ssh $DQMHOST 'cd ~/CMSSW_1_6_0_DAQ3/src/IORawData/CSCCommissioning/test/ && ./convert.sh $SOURCE/$file.dat $SCRATCH/$file.raw' 1>$LOGS/$file.log 2>&1 && touch $SCRATCH/$file.processing");
+			system("ssh $DQMHOST 'cd ~/CMSSW_1_7_1/src/IORawData/CSCCommissioning/test/ && ./convert.sh $SOURCE/$file.dat $SCRATCH/$file.raw' 1>$LOGS/$file.log 2>&1 && touch $SCRATCH/$file.processing");
 }
 # 2.3 Create list of only runs with new files
 my %runs_todo;
@@ -124,7 +126,7 @@ foreach my $run ( keys %file_collection ) {
 # 3. Find new local daq files (i.e. local runs and converted global runs) and process them:
 # 3.1 Find all local runs (and provide timestamps for them):
 #my $local_runs = `ssh $DATAHOST 'find $SOURCE -type f -name "*RUI02*.raw" -printf "%C@ %h/%f\n" 2>/dev/null'`;
-my $local_runs = `ssh $DATAHOST 'find $SOURCE -type f -name "*RUI00_Monitor*.raw" -printf "%C@ %h/%f\n" 2>/dev/null'`;
+my $local_runs = `ssh $DATAHOST 'find $SOURCE -type f -name "csc_00000000*RUI00_Monitor*08030*.raw" -printf "%C@ %h/%f\n" 2>/dev/null'`;
 print "Local runs: $local_runs\n";
 # 3.2 Following procedure of combining different parts from the same run should be identical to what we have in TFDQM.pl
 foreach my $file ( split(/\n/,$local_runs) ) {
