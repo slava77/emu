@@ -1,6 +1,7 @@
 #include "EmuTFvalidator.h"
 #include "TH1.h"
 #include <stdlib.h>
+#include <math.h>
 #include <set>
 
 using namespace std;
