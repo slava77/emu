@@ -20,19 +20,12 @@ Package=emuDQM/EmuTFMonitor
 
 Sources=\
 	EmuTFbookkeeper.cc \
-	EmuTFMonitor.cc    \
-	EmuTFMonitorV.cc   \
 	EmuTFxmlParsing.cc \
 	EmuTFfiller.cc     \
 	EmuTFvalidator.cc  \
 	RegEx.cc
 
-Executables = 
-
-#EmuMonitorTest.cpp MonitorTest.cpp
-
-#TestLibraries = xerces-c
-#TestExecutables = xmlExample.cpp 
+Executables = EmuTFtest.cc 
 
 ExternalObjects = 
 
@@ -41,16 +34,15 @@ IncludeDirs = $(XdaqIncludeDirs) \
 	/home/slice/kotov/CMSSW_0_8_0_pre2/src \
 	$(XDAQ_ROOT)/$(Project)
 
-
 LibraryDirs = $(XdaqLibraryDirs) 
 
 UserSourcePath = 
 
 UserCFlags = $(ROOTCFLAGS)
-UserCCFlags = $(ROOTCFLAGS)
-UserDynamicLinkFlags = $(ROOTLIBS)
+UserCCFlags = $(ROOTCFLAGS) -DBASE="\"${HOME}/TriDAS/emu/emuDQM/\"" -I${HOME}/CMSSW/src 
+UserDynamicLinkFlags = $(ROOTLIBS) 
 UserStaticLinkFlags =
-UserExecutableLinkFlags += $(ROOTCFLAGS)
+UserExecutableLinkFlags += $(ROOTCFLAGS) -Xlinker -rpath -Xlinker ${HOME}/TriDAS/emu/emuDQM/EmuTFMonitor/lib/linux/x86/ 
 
 # These libraries can be platform specific and
 # potentially need conditional processing
