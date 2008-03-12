@@ -1137,6 +1137,9 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     chamberVector = thisCrate->chambers();
         
     tmbTestVector = InitTMBTests(thisCrate);
+
+    current_crate_ = cr;
+
   }
 
   void EmuPeripheralCrateConfig::CheckCrates(xgi::Input * in, xgi::Output * out )
@@ -1598,10 +1601,10 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
 	      //
 	      //std::cout << "Creating ChamberTests for TMB=" << i << ", DMB=" << iii << std::endl;
 	      //
-	      MyTest[i].SetTMB(tmbVector[i]);
-	      MyTest[i].SetDMB(dmbVector[iii]);
-	      MyTest[i].SetCCB(thisCCB);
-	      MyTest[i].SetMPC(thisMPC);
+	      MyTest[i][current_crate_].SetTMB(tmbVector[i]);
+	      MyTest[i][current_crate_].SetDMB(dmbVector[iii]);
+	      MyTest[i][current_crate_].SetCCB(thisCCB);
+	      MyTest[i][current_crate_].SetMPC(thisMPC);
 	    }
 	    *out << cgicc::td();
 	  }
@@ -2970,7 +2973,7 @@ void EmuPeripheralCrateConfig::InitChamber(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  MyTest[tmb].InitSystem();          // Init chamber
+  MyTest[tmb][current_crate_].InitSystem();          // Init chamber
   //
   // Comment out dangerous next line....
   //  thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
@@ -3592,9 +3595,11 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "alct_rx_clock_phase = " << MyTest[tmb].GetALCTrxPhaseTest() <<  " (" << MyTest[tmb].GetALCTrxPhase() << ") " << std::endl;
+  *out << "alct_rx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTrxPhaseTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetALCTrxPhase() << ") " << std::endl;
   *out << cgicc::br();
-  *out << "alct_tx_clock_phase = " << MyTest[tmb].GetALCTtxPhaseTest() <<  " (" << MyTest[tmb].GetALCTtxPhase() << ") " << std::endl;
+  *out << "alct_tx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTtxPhaseTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetALCTtxPhase() << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -3609,7 +3614,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   for(int i=0;i<5;i++) {
-    *out << "cfeb" << i << "delay = " << MyTest[tmb].GetCFEBrxPhaseTest(i) << " ("  << MyTest[tmb].GetCFEBrxPhase(i) << ") " <<std::endl;
+    *out << "cfeb" << i << "delay = " << MyTest[tmb][current_crate_].GetCFEBrxPhaseTest(i) 
+	 << " ("  << MyTest[tmb][current_crate_].GetCFEBrxPhase(i) << ") " <<std::endl;
     *out << cgicc::br();
   }
   *out << cgicc::br();
@@ -3624,7 +3630,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "rat_tmb_delay = " << MyTest[tmb].GetRatTmbDelayTest() << " ("  << MyTest[tmb].GetRatTmbDelay()     << ") " << std::endl;
+  *out << "rat_tmb_delay = " << MyTest[tmb][current_crate_].GetRatTmbDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetRatTmbDelay()     << ") " << std::endl;
   *out << cgicc::br();
   //
   *out << cgicc::pre();
@@ -3662,10 +3669,10 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   std::string setDataReadValues = toolbox::toString("/%s/setDataReadValues",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",setDataReadValues) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Set DMB/ALCT-CLCT match data read values") << std::endl ;
-  sprintf(buf,"%d",MyTest[tmb].getNumberOfDataReads());
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getNumberOfDataReads());
   *out << "Number of reads" << std::endl;
   *out << cgicc::input().set("type","text").set("value",buf).set("name","number_of_reads") << std::endl ;
-  sprintf(buf,"%d",MyTest[tmb].getPauseBetweenDataReads());
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getPauseBetweenDataReads());
   *out << "Pause between reads (usec)" << std::endl;
   *out << cgicc::input().set("type","text").set("value",buf).set("name","pause_btw_reads") << std::endl ;
   sprintf(buf,"%d",tmb);
@@ -3680,19 +3687,19 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form().set("method","GET").set("action",setTMBCounterReadValues) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Set scan values") << std::endl ;
   *out << "TMB L1A min value (bx)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb].getMinTmbL1aDelayValue());
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMinTmbL1aDelayValue());
   *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_l1a_delay_min") << std::endl ;
   *out << "TMB L1A max value (bx)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb].getMaxTmbL1aDelayValue());
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMaxTmbL1aDelayValue());
   *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_l1a_delay_max") << std::endl ;
   *out << "ALCT L1A min value (bx)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb].getMinAlctL1aDelayValue());
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMinAlctL1aDelayValue());
   *out << cgicc::input().set("type","text").set("value",buf).set("name","alct_l1a_delay_min") << std::endl ;
   *out << "ALCT L1A max value (bx)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb].getMaxAlctL1aDelayValue());
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMaxAlctL1aDelayValue());
   *out << cgicc::input().set("type","text").set("value",buf).set("name","alct_l1a_delay_max") << std::endl ;
   *out << "Pause at each setting (sec)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb].getPauseAtEachSetting());
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getPauseAtEachSetting());
   *out << cgicc::input().set("type","text").set("value",buf).set("name","time_to_pause") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
@@ -3741,9 +3748,11 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "match_trig_alct_delay = " << MyTest[tmb].GetMatchTrigAlctDelayTest() << " ("  << MyTest[tmb].GetALCTvpf_configvalue() << ") " << std::endl;
+  *out << "match_trig_alct_delay = " << MyTest[tmb][current_crate_].GetMatchTrigAlctDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetALCTvpf_configvalue() << ") " << std::endl;
   *out << cgicc::br();
-  *out << "mpc_tx_delay = " << MyTest[tmb].GetMpcTxDelayTest() << " ("  << MyTest[tmb].GetMPCTxDelay_configvalue() << ") " << std::endl;
+  *out << "mpc_tx_delay = " << MyTest[tmb][current_crate_].GetMpcTxDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetMPCTxDelay_configvalue() << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -3761,7 +3770,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "mpc_rx_delay = " << MyTest[tmb].GetMpcRxDelayTest() << " ("  << MyTest[tmb].GetMPCdelay() << ") " << std::endl;
+  *out << "mpc_rx_delay = " << MyTest[tmb][current_crate_].GetMpcRxDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetMPCdelay() << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -3779,7 +3789,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "tmb_lct_cable_delay = " << MyTest[tmb].GetTmbLctCableDelayTest() << " ("  << MyTest[tmb].GetTmbLctCableDelay_configvalue() << ") " << std::endl;
+  *out << "tmb_lct_cable_delay = " << MyTest[tmb][current_crate_].GetTmbLctCableDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetTmbLctCableDelay_configvalue() << ") " << std::endl;
   *out << cgicc::br();
   //
   std::string TMBL1aTiming = toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
@@ -3791,7 +3802,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "tmb_l1a_delay = " << MyTest[tmb].GetTmbL1aDelayTest() << " ("  << MyTest[tmb].GetTMBL1aTiming_configvalue() << ") " << std::endl;
+  *out << "tmb_l1a_delay = " << MyTest[tmb][current_crate_].GetTmbL1aDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetTMBL1aTiming_configvalue() << ") " << std::endl;
   *out << cgicc::br();
   //
   std::string ALCTL1aTiming = toolbox::toString("/%s/ALCTL1aTiming",getApplicationDescriptor()->getURN().c_str());
@@ -3803,7 +3815,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "alct_l1a_delay = " << MyTest[tmb].GetAlctL1aDelayTest() << " ("  << MyTest[tmb].GetALCTL1aDelay_configvalue() << ") " << std::endl;
+  *out << "alct_l1a_delay = " << MyTest[tmb][current_crate_].GetAlctL1aDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetALCTL1aDelay_configvalue() << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -3821,7 +3834,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "alct_dav_cable_delay = " << MyTest[tmb].GetAlctDavCableDelayTest() << " ("  << MyTest[tmb].GetAlctDavCableDelay_configvalue() << ") " << std::endl;
+  *out << "alct_dav_cable_delay = " << MyTest[tmb][current_crate_].GetAlctDavCableDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetAlctDavCableDelay_configvalue() << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -3839,7 +3853,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "cfeb_dav_cable_delay = " << MyTest[tmb].GetCfebDavCableDelayTest() << " ("  << MyTest[tmb].GetCfebDavCableDelay_configvalue() << ") " << std::endl;
+  *out << "cfeb_dav_cable_delay = " << MyTest[tmb][current_crate_].GetCfebDavCableDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetCfebDavCableDelay_configvalue() << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -3877,7 +3892,8 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << "rpc0_rat_delay = " << MyTest[tmb].GetRpcRatDelayTest() << " ("  << MyTest[tmb].GetRpcRatDelay()     << ") " << std::endl;
+  *out << "rpc0_rat_delay = " << MyTest[tmb][current_crate_].GetRpcRatDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetRpcRatDelay()     << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -3907,7 +3923,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   for (int Wire = 0; Wire<(alct->GetNumberOfChannelsInAlct())/6; Wire++) 
-    *out << MyTest[tmb].GetALCTWireScan(Wire) ;
+    *out << MyTest[tmb][current_crate_].GetALCTWireScan(Wire) ;
   *out << std::endl;
   *out << cgicc::br();
   //
@@ -3923,7 +3939,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   for (int CFEBs = 0; CFEBs<5; CFEBs++) {
     *out << "CFEB Id="<<CFEBs<< " " ;
     for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) {
-      *out << MyTest[tmb].GetCFEBStripScan(CFEBs,HalfStrip) ;
+      *out << MyTest[tmb][current_crate_].GetCFEBStripScan(CFEBs,HalfStrip) ;
     }
     *out << std::endl;
     *out << cgicc::br();
@@ -3973,9 +3989,9 @@ void EmuPeripheralCrateConfig::setupCoincidencePulsing(xgi::Input * in, xgi::Out
     tmb = TMB_;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].SetupCoincidencePulsing();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].SetupCoincidencePulsing();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4089,9 +4105,9 @@ void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].ALCTTiming();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].ALCTTiming();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4129,9 +4145,9 @@ void EmuPeripheralCrateConfig::CFEBTiming(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].CFEBTiming();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].CFEBTiming();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4169,10 +4185,10 @@ void EmuPeripheralCrateConfig::Automatic(xgi::Input * in, xgi::Output * out )
     dmb = DMB_;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].PropagateMeasuredValues(true);
-  MyTest[tmb].Automatic();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].PropagateMeasuredValues(true);
+  MyTest[tmb][current_crate_].Automatic();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4229,11 +4245,11 @@ void EmuPeripheralCrateConfig::setTMBCounterReadValues(xgi::Input * in, xgi::Out
     dmb = DMB_;
   }
   //
-  MyTest[tmb].setMinAlctL1aDelayValue(alct_l1a_delay_min);
-  MyTest[tmb].setMaxAlctL1aDelayValue(alct_l1a_delay_max);
-  MyTest[tmb].setMinTmbL1aDelayValue(tmb_l1a_delay_min);
-  MyTest[tmb].setMaxTmbL1aDelayValue(tmb_l1a_delay_max);
-  MyTest[tmb].setPauseAtEachSetting(time_to_pause);
+  MyTest[tmb][current_crate_].setMinAlctL1aDelayValue(alct_l1a_delay_min);
+  MyTest[tmb][current_crate_].setMaxAlctL1aDelayValue(alct_l1a_delay_max);
+  MyTest[tmb][current_crate_].setMinTmbL1aDelayValue(tmb_l1a_delay_min);
+  MyTest[tmb][current_crate_].setMaxTmbL1aDelayValue(tmb_l1a_delay_max);
+  MyTest[tmb][current_crate_].setPauseAtEachSetting(time_to_pause);
   //
   this->ChamberTests(in,out);
   //
@@ -4278,8 +4294,8 @@ void EmuPeripheralCrateConfig::setDataReadValues(xgi::Input * in, xgi::Output * 
     dmb = DMB_;
   }
   //
-  MyTest[tmb].setNumberOfDataReads(number_of_reads);
-  MyTest[tmb].setPauseBetweenDataReads(pause_btw_reads);
+  MyTest[tmb][current_crate_].setNumberOfDataReads(number_of_reads);
+  MyTest[tmb][current_crate_].setPauseBetweenDataReads(pause_btw_reads);
   //
   this->ChamberTests(in,out);
   //
@@ -4311,18 +4327,18 @@ void EmuPeripheralCrateConfig::TMBL1aTiming(xgi::Input * in, xgi::Output * out )
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMBL1aTiming:  TMB " << std::dec << tmb 
-	      << " scan from " << MyTest[tmb].getMinTmbL1aDelayValue()
-	      << " to " << MyTest[tmb].getMaxTmbL1aDelayValue()
-	      << ", pausing " << MyTest[tmb].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
+	      << " scan from " << MyTest[tmb][current_crate_].getMinTmbL1aDelayValue()
+	      << " to " << MyTest[tmb][current_crate_].getMaxTmbL1aDelayValue()
+	      << ", pausing " << MyTest[tmb][current_crate_].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
     TMB_ = tmb;
   } else {
     std::cout << "TMBL1aTiming:  No tmb" << std::endl;
     tmb = TMB_;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].FindTMB_L1A_delay();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].FindTMB_L1A_delay();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4354,18 +4370,18 @@ void EmuPeripheralCrateConfig::ALCTL1aTiming(xgi::Input * in, xgi::Output * out 
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "ALCTL1aTiming:  TMB " << std::dec << tmb 
-	      << " scan from " << MyTest[tmb].getMinAlctL1aDelayValue()
-	      << " to " << MyTest[tmb].getMaxAlctL1aDelayValue()
-	      << ", pausing " << MyTest[tmb].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
+	      << " scan from " << MyTest[tmb][current_crate_].getMinAlctL1aDelayValue()
+	      << " to " << MyTest[tmb][current_crate_].getMaxAlctL1aDelayValue()
+	      << ", pausing " << MyTest[tmb][current_crate_].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
     TMB_ = tmb;
   } else {
     cout << "No tmb" << endl;
     tmb = TMB_;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].FindALCT_L1A_delay();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].FindALCT_L1A_delay();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4385,7 +4401,8 @@ void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "ALCTvpf:  TMB " << tmb << " will read TMB Raw Hits " << MyTest[tmb].getNumberOfDataReads() << " times" << std::endl;
+    cout << "ALCTvpf:  TMB " << tmb << " will read TMB Raw Hits "
+	 << MyTest[tmb][current_crate_].getNumberOfDataReads() << " times" << std::endl;
     TMB_ = tmb;
   } else {
     cout << "ALCTvpf:  No tmb" << endl;
@@ -4402,9 +4419,9 @@ void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out )
     cout << "ALCTvpf:  No dmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].FindALCTinCLCTMatchWindow();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].FindALCTinCLCTMatchWindow();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
 }
@@ -4439,9 +4456,9 @@ void EmuPeripheralCrateConfig::ALCTScan(xgi::Input * in, xgi::Output * out )
     cout << "ALCTScan:  No tmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].ALCTChamberScan();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].ALCTChamberScan();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4477,9 +4494,9 @@ void EmuPeripheralCrateConfig::CFEBScan(xgi::Input * in, xgi::Output * out )
     cout << "CFEBScan:  No tmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].CFEBChamberScan();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].CFEBChamberScan();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4514,9 +4531,9 @@ void EmuPeripheralCrateConfig::FindDistripHotChannel(xgi::Input * in, xgi::Outpu
     cout << "FindDistripHotChannel:  No dmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].FindDistripHotChannels();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].FindDistripHotChannels();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4547,15 +4564,16 @@ void EmuPeripheralCrateConfig::FindWinner(xgi::Input * in, xgi::Output * out )
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     cout << "FindWinner:  TMB " << tmb 
-	 << ", pausing " << MyTest[tmb].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
+	 << ", pausing " << MyTest[tmb][current_crate_].getPauseAtEachSetting() 
+	 << " seconds at each delay value" << std::endl;
     TMB_ = tmb;
   } else {
     cout << "FindWinner:  No tmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].FindWinner();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].FindWinner();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
 }
@@ -4585,17 +4603,18 @@ void EmuPeripheralCrateConfig::AlctDavCableDelay(xgi::Input * in, xgi::Output * 
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     cout << "AlctDavCableDelay:  DMB " << dmb 
-	 << " Read " << MyTest[tmb].getNumberOfDataReads()
-	 << " times, pausing " << MyTest[tmb].getPauseBetweenDataReads() << "usec between each read" << std::endl;
+	 << " Read " << MyTest[tmb][current_crate_].getNumberOfDataReads()
+	 << " times, pausing " << MyTest[tmb][current_crate_].getPauseBetweenDataReads() 
+	 << "usec between each read" << std::endl;
     DMB_ = dmb;
   } else {
     cout << "AlctDavCableDelay:  No dmb" << endl;
   }
   //
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].MeasureAlctDavCableDelay();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].MeasureAlctDavCableDelay();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4626,8 +4645,9 @@ void EmuPeripheralCrateConfig::CfebDavCableDelay(xgi::Input * in, xgi::Output * 
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     cout << "CfebDavCableDelay:  DMB " << dmb 
-	 << " Read " << MyTest[tmb].getNumberOfDataReads()
-	 << " times, pausing " << MyTest[tmb].getPauseBetweenDataReads() << "usec between each read" << std::endl;
+	 << " Read " << MyTest[tmb][current_crate_].getNumberOfDataReads()
+	 << " times, pausing " << MyTest[tmb][current_crate_].getPauseBetweenDataReads() 
+	 << "usec between each read" << std::endl;
     DMB_ = dmb;
   } else {
     cout << "CfebDavCableDelay:  No dmb" << endl;
@@ -4643,9 +4663,9 @@ void EmuPeripheralCrateConfig::CfebDavCableDelay(xgi::Input * in, xgi::Output * 
     cout << "CfebDavCableDelay:  No tmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].MeasureCfebDavCableDelay();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].MeasureCfebDavCableDelay();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4676,16 +4696,17 @@ void EmuPeripheralCrateConfig::TmbLctCableDelay(xgi::Input * in, xgi::Output * o
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "TmbLctCableDelay:  DMB " << dmb << std::dec
-	      << " Read " << MyTest[tmb].getNumberOfDataReads()
-	      << " times, pausing " << MyTest[tmb].getPauseBetweenDataReads() << "usec between each read" << std::endl;
+	      << " Read " << MyTest[tmb][current_crate_].getNumberOfDataReads()
+	      << " times, pausing " << MyTest[tmb][current_crate_].getPauseBetweenDataReads() 
+	      << "usec between each read" << std::endl;
     DMB_ = dmb;
   } else {
     cout << "TmbLctCableDelay:  No dmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].MeasureTmbLctCableDelay();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].MeasureTmbLctCableDelay();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4721,11 +4742,11 @@ void EmuPeripheralCrateConfig::PrintDmbValuesAndScopes(xgi::Input * in, xgi::Out
     cout << "PrintDmbValuesAndScopes:  No tmb" << endl;
   }
   //
-  MyTest[tmb].ReadAllDmbValuesAndScopes();
+  MyTest[tmb][current_crate_].ReadAllDmbValuesAndScopes();
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].PrintAllDmbValuesAndScopes();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].PrintAllDmbValuesAndScopes();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4748,9 +4769,9 @@ void EmuPeripheralCrateConfig::RatTmbTiming(xgi::Input * in, xgi::Output * out )
     cout << "RatTmbTiming:  No tmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].RatTmbDelayScan();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].RatTmbDelayScan();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -4773,9 +4794,9 @@ void EmuPeripheralCrateConfig::RpcRatTiming(xgi::Input * in, xgi::Output * out )
     cout << "RpcRatTiming:  No tmb" << endl;
   }
   //
-  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].RpcRatDelayScan();
-  MyTest[tmb].RedirectOutput(&std::cout);
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb][current_crate_].RpcRatDelayScan();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
   //
@@ -7479,14 +7500,16 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
-  if (alct) {
-    std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-  }
+  // remove the ALCT firmware downloading until it can be made robust
+  //
+  //  if (alct) {
+  //    std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
+  //    *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
+  //    *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
+  //    sprintf(buf,"%d",tmb);
+  //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  //    *out << cgicc::form() << std::endl ;
+  //  }
   //
   if (rat) {
     std::string RATFirmware = FirmwareDir_+RAT_FIRMWARE_FILENAME;
@@ -9295,7 +9318,8 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       //
     }
     //
-    buf = "EmuPeripheralCrateTestSummary_"+RunNumber_+"_"+Operator_+time+".log";
+    //    buf = "EmuPeripheralCrateTestSummary_"+RunNumber_+"_"+Operator_+time+".log";
+    buf = "EmuPeripheralCrateTestSummary_"+RunNumber_+"_"+Operator_+".log";
     //
     ofstream LogFile;
     LogFile.open(buf.c_str());
@@ -9308,160 +9332,186 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     LogFile << "Time     : " << ctime(&rawtime) << std::endl ;
     LogFile << "XML File : " << xmlFile_.toString() << std::endl ;
     //
-    LogFile << std::endl ;
-    LogFile << "Chassis " << std::setw(7) << CrateChassisID_ << std::endl;
-    LogFile << "Backplane " << std::setw(5) << BackplaneID_ << std::endl;
-    LogFile << "CRB " << std::setw(6) << CrateRegulatorBoardID_ << std::endl;
-    LogFile << "PCMB " << std::setw(5) << PeripheralCrateMotherBoardID_ << std::endl;
-    LogFile << "ELMB " << std::setw(5) << ELMBID_ << std::endl;
-    LogFile << std::endl ;
+    //    LogFile << std::endl ;
+    //    LogFile << "Chassis " << std::setw(7) << CrateChassisID_ << std::endl;
+    //    LogFile << "Backplane " << std::setw(5) << BackplaneID_ << std::endl;
+    //    LogFile << "CRB " << std::setw(6) << CrateRegulatorBoardID_ << std::endl;
+    //    LogFile << "PCMB " << std::setw(5) << PeripheralCrateMotherBoardID_ << std::endl;
+    //    LogFile << "ELMB " << std::setw(5) << ELMBID_ << std::endl;
+    //    LogFile << std::endl ;
+    //    //
+    //    LogFile << "VCC    1" << std::setw(5) << ControllerBoardID_ << std::endl;
+    //    //
+    //    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    //      //
+    //      LogFile << "TMB" << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
+    //	TMBBoardID_[i] << std::setw(5) << RATBoardID_[i] <<std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestBootRegister() << std::setw(5) <<
+    //	//	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestFirmwareDate() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestFirmwareType() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestFirmwareVersion() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestFirmwareRevCode() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestMezzId() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestPromId() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestPROMPath() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestDSN() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestADC() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTest3d3444() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestRATtemper() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestRATidCodes() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestRATuserCodes() << std::setw(5) <<
+    //	tmbTestVector[i].GetResultTestU76chip() 
+    //	      << std::endl ;
+    //      //
+    //    }
+    //    //
+    //    for(int i=0; i<20; i++) LogFile << "-";
+    //    LogFile << std::endl ;
+    //    //
+    //    LogFile << "MPC     12 " << std::setw(5)  << MPCBoardID_ << std::endl;
+    //    LogFile << "CCB     13 " << std::setw(5)  << CCBBoardID_ << std::endl;
+    //    //
+    //    for(int i=0; i<20; i++) LogFile << "-";
+    //    LogFile << std::endl ;
     //
-    LogFile << "VCC    1" << std::setw(5) << ControllerBoardID_ << std::endl;
-    //
-    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
       //
-      LogFile << "TMB" << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
-	TMBBoardID_[i] << std::setw(5) << RATBoardID_[i] <<std::setw(5) <<
-	tmbTestVector[i].GetResultTestBootRegister() << std::setw(5) <<
-	//	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestFirmwareDate() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestFirmwareType() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestFirmwareVersion() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestFirmwareRevCode() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestMezzId() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestPromId() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestPROMPath() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestDSN() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestADC() << std::setw(5) <<
-	tmbTestVector[i].GetResultTest3d3444() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestRATtemper() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestRATidCodes() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestRATuserCodes() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestU76chip() 
-	      << std::endl ;
+      SetCurrentCrate(crate_number);
       //
-    }
-    //
-    for(int i=0; i<20; i++) LogFile << "-";
-    LogFile << std::endl ;
-    //
-    LogFile << "MPC     12 " << std::setw(5)  << MPCBoardID_ << std::endl;
-    LogFile << "CCB     13 " << std::setw(5)  << CCBBoardID_ << std::endl;
-    //
-    for(int i=0; i<20; i++) LogFile << "-";
-    LogFile << std::endl ;
-    //
-    for (unsigned int i=0; i<(dmbVector.size()<9?dmbVector.size():9) ; i++) {
+      //      for (unsigned int i=0; i<(dmbVector.size()<9?dmbVector.size():9) ; i++) {
+      //	//
+      //	LogFile << "DMB " << std::setw(5) << dmbVector[i]->slot() << std::setw(5) <<
+      //	  DMBBoardID_[i] ;
+      //	for (int j=0; j<20; j++) LogFile << std::setw(5) << dmbVector[i]->GetTestStatus(j) ;
+      //	LogFile << std::endl ;
+      //	//
+      //      }
+      //      //
+      //      LogFile << std::endl;
       //
-      LogFile << "DMB " << std::setw(5) << dmbVector[i]->slot() << std::setw(5) <<
-	DMBBoardID_[i] ;
-	for (int j=0; j<20; j++) LogFile << std::setw(5) << dmbVector[i]->GetTestStatus(j) ;
+      //      for (unsigned int dmbctr=0; dmbctr<(dmbVector.size()<9?dmbVector.size():9) ; dmbctr++) {
+      //      DAQMB * thisDMB = dmbVector[dmbctr];
+      //      vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      //      for (unsigned int cfebctr=0; cfebctr<thisCFEBs.size(); cfebctr++) {
+      //	LogFile << "CFEBid " << std::setw(5) << dmbctr 
+      //		<< std::setw(5) << cfebctr 
+      //		<< std::setw(10) << CFEBid_[dmbctr][cfebctr] 
+      //		<< std::endl;
+      //      }
+      //    }
+      //    LogFile << std::endl;
+      //    //
+      //    for(int i=0; i<20; i++) LogFile << "+";
+      //    LogFile << std::endl ;
+      //    LogFile << " CrateTest : " << std::endl;
+      //    for(int i=0; i<20; i++) LogFile << "-";
+      //    LogFile << std::endl ;
+      //    //
+      //    LogFile << "MpcTMBTest " << myCrateTest.GetMpcTMBTestResult() << std::endl ;
+      //    //
+      //    LogFile << std::endl ;
+      //
+      for(int i=0; i<20; i++) LogFile << "+";
       LogFile << std::endl ;
-      //
-    }
-    //
-    LogFile << std::endl;
-    //
-    for (unsigned int dmbctr=0; dmbctr<(dmbVector.size()<9?dmbVector.size():9) ; dmbctr++) {
-      DAQMB * thisDMB = dmbVector[dmbctr];
-      vector<CFEB> thisCFEBs = thisDMB->cfebs();
-      for (unsigned int cfebctr=0; cfebctr<thisCFEBs.size(); cfebctr++) {
-	LogFile << "CFEBid " << std::setw(5) << dmbctr 
-		<< std::setw(5) << cfebctr 
-		<< std::setw(10) << CFEBid_[dmbctr][cfebctr] 
-		<< std::endl;
-      }
-    }
-    LogFile << std::endl;
-    //
-    for(int i=0; i<20; i++) LogFile << "+";
-    LogFile << std::endl ;
-    LogFile << " CrateTest : " << std::endl;
-    for(int i=0; i<20; i++) LogFile << "-";
-    LogFile << std::endl ;
-    //
-    LogFile << "MpcTMBTest " << myCrateTest.GetMpcTMBTestResult() << std::endl ;
-    //
-    LogFile << std::endl ;
-    //
-    for(int i=0; i<20; i++) LogFile << "+";
-    LogFile << std::endl ;
-    LogFile << " Timing scans : " << std::endl;
-    for(int i=0; i<20; i++) LogFile << "-";
-    LogFile << std::endl ;
+      LogFile << " Timing scans : " << std::endl;
+      for(int i=0; i<20; i++) LogFile << "-";
+      LogFile << std::endl ;
 
-    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
-      //
-      LogFile << "slot                 " << std::setw(3) << i 
-	      << std::setw(5) << tmbVector[i]->slot()
-	      << std::endl;
-      LogFile << "cfeb0delay           " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(0)
-	      << std::endl;
-      LogFile << "cfeb1delay           " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(1)
-	      << std::endl;
-      LogFile << "cfeb2delay           " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(2)
-	      << std::endl;
-      LogFile << "cfeb3delay           " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(3)
-	      << std::endl;
-      LogFile << "cfeb4delay           " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(4)
-	      << std::endl;
-      LogFile << "alct_tx_clock_delay  " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetALCTtxPhaseTest()
-	      << std::endl;
-      LogFile << "alct_rx_clock_delay  " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetALCTrxPhaseTest()
-	      << std::endl;
-      LogFile << "rat_tmb_delay        " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetRatTmbDelayTest()
-	      << std::endl;
-      LogFile << "match_trig_alct_delay" << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetMatchTrigAlctDelayTest()
-	      << std::endl;
-      LogFile << "mpc_tx_delay         " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetMpcTxDelayTest()
-	      << std::endl;
-      LogFile << "mpc_rx_delay         " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetMpcRxDelayTest()
-	      << std::endl;
-      LogFile << "alct_dav_cable_delay " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetAlctDavCableDelayTest()
-	      << std::endl;
-      LogFile << "tmb_lct_cable_delay  " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetTmbLctCableDelayTest()
-	      << std::endl;
-      LogFile << "cfeb_dav_cable_delay " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetCfebDavCableDelayTest()
-	      << std::endl;
-      LogFile << "tmb_l1a_delay        " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetTmbL1aDelayTest()
-	      << std::endl;
-      LogFile << "alct_l1a_delay       " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetAlctL1aDelayTest()
-	      << std::endl;
-      LogFile << "rpc0_rat_delay       " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetRpcRatDelayTest(0)
-	      << std::endl;
-      LogFile << "TTCrxID              " << std::setw(3) << i 
-	      << std::setw(5) << thisCCB->GetReadTTCrxID() 
-	      << std::endl;
-      for (int CFEBs = 0; CFEBs<5; CFEBs++) {
-	LogFile << "cfeb" << CFEBs << "_scan " << std::setw(3) << i;
-	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
-	  LogFile << std::setw(3) << MyTest[i].GetCFEBStripScan(CFEBs,HalfStrip) ;
+      for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+	//	
+	Chamber * thisChamber = chamberVector[i];
+	//
+	LogFile << "slot                 " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << tmbVector[i]->slot()
+		<< std::endl;
+	LogFile << "cfeb0delay           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(0)
+		<< std::endl;
+	LogFile << "cfeb1delay           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(1)
+		<< std::endl;
+	LogFile << "cfeb2delay           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(2)
+		<< std::endl;
+	LogFile << "cfeb3delay           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(3)
+		<< std::endl;
+	LogFile << "cfeb4delay           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(4)
+		<< std::endl;
+	LogFile << "alct_tx_clock_delay  " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetALCTtxPhaseTest()
+		<< std::endl;
+	LogFile << "alct_rx_clock_delay  " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetALCTrxPhaseTest()
+		<< std::endl;
+	LogFile << "rat_tmb_delay        " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetRatTmbDelayTest()
+		<< std::endl;
+	LogFile << "match_trig_alct_delay" 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetMatchTrigAlctDelayTest()
+		<< std::endl;
+	LogFile << "mpc_tx_delay         " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetMpcTxDelayTest()
+		<< std::endl;
+	LogFile << "mpc_rx_delay         " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetMpcRxDelayTest()
+		<< std::endl;
+	LogFile << "alct_dav_cable_delay " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetAlctDavCableDelayTest()
+		<< std::endl;
+	LogFile << "tmb_lct_cable_delay  " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetTmbLctCableDelayTest()
+		<< std::endl;
+	LogFile << "cfeb_dav_cable_delay " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetCfebDavCableDelayTest()
+		<< std::endl;
+	LogFile << "tmb_l1a_delay        " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetTmbL1aDelayTest()
+		<< std::endl;
+	LogFile << "alct_l1a_delay       " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetAlctL1aDelayTest()
+		<< std::endl;
+	LogFile << "rpc0_rat_delay       " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetRpcRatDelayTest(0)
+		<< std::endl;
+	LogFile << "TTCrxID              " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << thisCCB->GetReadTTCrxID() 
+		<< std::endl;
+	//      for (int CFEBs = 0; CFEBs<5; CFEBs++) {
+	//	LogFile << "cfeb" << CFEBs << "_scan " << std::setw(3) << i;
+	//	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	//	  LogFile << std::setw(3) << MyTest[i][current_crate_].GetCFEBStripScan(CFEBs,HalfStrip) ;
+	//	LogFile << std::endl;
+	//      }
+	//      //
+	//      LogFile << "alct_scan  " << std::setw(3) << i;
+	//      for (int Wire = 0; Wire<(tmbVector[i]->alctController()->GetNumberOfChannelsInAlct())/6; Wire++) 
+	//	LogFile << std::setw(3) << MyTest[i][current_crate_].GetALCTWireScan(Wire) ;
+	//      LogFile << std::endl;
+	//      //
 	LogFile << std::endl;
       }
-      //
-      LogFile << "alct_scan  " << std::setw(3) << i;
-      for (int Wire = 0; Wire<(tmbVector[i]->alctController()->GetNumberOfChannelsInAlct())/6; Wire++) 
-	LogFile << std::setw(3) << MyTest[i].GetALCTWireScan(Wire) ;
-      LogFile << std::endl;
-      //
-      LogFile << std::endl;
     }
     //
     LogFile.close();

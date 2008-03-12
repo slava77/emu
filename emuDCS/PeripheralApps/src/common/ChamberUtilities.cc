@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.2 2008/01/07 15:08:44 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.3 2008/03/12 11:43:33 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.3  2008/03/12 11:43:33  rakness
+// measured sync parameters tagged by chamber; remove ALCT firmware downloading until it can be made robust
+//
 // Revision 1.2  2008/01/07 15:08:44  rakness
 // add xml parameters:  clct_stagger, clct_blanking, clct_pattern_id_thresh, aff_thresh, min_clct_separation.  Remove xml parameter:  clct_distrip_pretrig_thresh
 //
@@ -291,11 +294,11 @@ ChamberUtilities::ChamberUtilities(){
   pause_between_data_reads_ = 100000; // default number of microseconds to wait between data reads
   number_of_data_reads_     = 100;    // default number of data reads
   //
-  pause_at_each_setting_    = 10;     // default number of seconds to wait at each delay value
+  pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
   min_alct_l1a_delay_value_ = 125;
-  max_alct_l1a_delay_value_ = 140;
+  max_alct_l1a_delay_value_ = 145;
   min_tmb_l1a_delay_value_  = 115; 
-  max_tmb_l1a_delay_value_  = 130; 
+  max_tmb_l1a_delay_value_  = 135; 
   //
   MyOutput_ = &std::cout ;
   //
@@ -337,8 +340,8 @@ ChamberUtilities::ChamberUtilities(){
   // ranges over which to analyze DMB histograms
   ScopeMin_        = 0;
   ScopeMax_        = 4;
-  AffToL1aValueMin_= 50;
-  AffToL1aValueMax_= 160;
+  AffToL1aValueMin_= 100;
+  AffToL1aValueMax_= 140;
   CfebDavValueMin_ = 0;
   CfebDavValueMax_ = 10;
   TmbDavValueMin_  = 0;
@@ -1052,25 +1055,25 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
 void ChamberUtilities::Automatic(){
   //
   // First receive the L1A correctly so that the Raw hits readout works:
-  if (FindTMB_L1A_delay(100,200) < 0 ) return;
+  //if (FindTMB_L1A_delay(100,200) < 0 ) return;
   //
   // Center the ALCT in the CLCT match window:
-  if (FindALCTinCLCTMatchWindow() < 0) return;
+  //if (FindALCTinCLCTMatchWindow() < 0) return;
   //
   // Since mpc_tx_delay is set, we can now determine mpc_rx_delay:
-  if (FindWinner() < 0) return;
-  //
-  // Now receive the L1A for the CFEB:
-  if (MeasureTmbLctCableDelay() < 0) return;
-  //
-  // Since we are getting the L1A for the CFEB, we can determine its DAV timing:
-  if (MeasureCfebDavCableDelay() < 0) return;
+  //if (FindWinner() < 0) return;
   //
   // Receive the L1A for the TMB and the ALCT:
   if (FindTmbAndAlctL1aDelay() < 0) return;
   //
   // Since we are getting the L1A for the ALCT, we can determine its DAV timing:
   if (MeasureAlctDavCableDelay() < 0) return;
+  //
+  // Now receive the L1A for the CFEB:
+  if (MeasureTmbLctCableDelay() < 0) return;
+  //
+  // Since we are getting the L1A for the CFEB, we can determine its DAV timing:
+  if (MeasureCfebDavCableDelay() < 0) return;
   //
   std::cout << "Finished successfully" << std::endl;
   //
@@ -1671,7 +1674,7 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   (*MyOutput_) << "*************************" << std::endl;
   //
   const int DelayMin = 0;
-  const int DelayMax = 4;                     //restrict the range to reduce the time for scanning...
+  const int DelayMax = 7;                     //restrict the range to reduce the time for scanning...
   float Average[8];                           //3-bit delay value
   //
   // Range over which to analyze the histogram:
@@ -1680,6 +1683,7 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   int Histo[8][256];                          //Total range available:  counter is 8 bits long
   //
   //  int desired_value = 147;                   // this is the value we want the counter to be...
+  //  int desired_value = 131;                   // value for xLatency = 1
   int desired_value = 115;                   // value for xLatency = 0
   //
   // The CFEB is expecting the L1A back 147bx after the Active FEB flag arrives.
