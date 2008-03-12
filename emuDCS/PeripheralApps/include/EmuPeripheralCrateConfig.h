@@ -114,7 +114,7 @@ protected:
   BoardsDB *brddb;
   CrateUtilities myCrateTest;
   ostringstream CrateTestsOutput;
-  ChamberUtilities MyTest[10];
+  ChamberUtilities MyTest[10][30];
   ostringstream ChamberTestsOutput[10];
   ostringstream OutputStringDMBStatus[10];
   ostringstream OutputStringTMBStatus[10];
@@ -381,6 +381,7 @@ private:
   void ConfigureInit(int c=0);
   bool ParsingXML();
   void SetCurrentCrate(int crate);
+  int current_crate_;
   void setConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UploadConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   std::vector<TMBTester> InitTMBTests(Crate *);
