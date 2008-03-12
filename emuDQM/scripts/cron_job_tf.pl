@@ -9,20 +9,23 @@ use List::Util qw[min max];
 
 # cscdqm@cmsusr0 :
 my $WEB     = "~/cadaver https://cms-csc.web.cern.ch:444/cms-csc/";
-#my $SOURCE  = "/data1/lookarea/";
+my $SOURCE  = "/cms/mon/data/lookarea_SM/";
 ##my $SOURCE  = "/cmssrv0/nfshome0/kkotov/data/";
-my $SOURCE  = "/data/";
+#my $SOURCE  = "/data/";
 my $SCRATCH = "/nfshome0/cscdqm/scratch/";
 my $LOGS    = "$SCRATCH/logs/";
 my $DQMHOST = "csc-c2d07-02";
 #my $DQMHOST = "srv-C2D05-17";
 ##my $DATAHOST= $DQMHOST;
-my $DATAHOST= "csc-daq10";
+#my $DATAHOST= "csc-daq10";
+my $DATAHOST= "cmsmon";
 #my $SU_DQM  = "sudo -H -u cscdqm bash -c";
 my $SU_DQM  = "bash -c";
 my $TFDQM   = "perl /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/bin/linux/x86/EmuTFtest.exe /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
-my $first_global_run_number = 50000; # Set it high if you don't analyze global runs
 my $local_run_pattern = "csc_00000000*RUI00_Monitor*0803*.raw";
+my $global_run_pattern = "emulator*.A.*0000.dat";
+my $first_global_run_number = 37842; # Set it high if you don't analyze global runs
+my $CMSSW = "~kkotov/CMSSW_1_8_0/";
 
 ############################# The code ##################################
 # 0. Find out time difference between local pc and pc with files (important for identifying "new" files):
@@ -50,7 +53,7 @@ foreach my $entry ( @runs_done ){
 }
 # 2. Find new global runs and convert them to .raw files:
 # 2.1 Find all global runs (and provide timestamps for them):
-my $global_runs= `ssh $DATAHOST 'find $SOURCE -type f -name "Global*.A.*0000.dat" -printf "%T@ %h/%f\n" 2>/dev/null'`;
+my $global_runs= `ssh $DATAHOST 'find $SOURCE -type f -name "$global_run_pattern" -printf "%T@ %h/%f\n" 2>/dev/null'`;
 # 2.2 Convert only new global daq files to local daq format
 my %file_collection;
 my %time_collection;
@@ -81,9 +84,10 @@ foreach my $file ( split(/\n/,$global_runs) ){
 		print "Global run file $SOURCE/$file.dat is in progress\n";
 		next;
 	}
-	#	die "Can't connect to srv-C2D05-17" if
-			system("ssh $DQMHOST 'cd ~/CMSSW_1_7_1/src/IORawData/CSCCommissioning/test/ && ./convert.sh $SOURCE/$file.dat $SCRATCH/$file.raw' 1>$LOGS/$file.log 2>&1 && touch $SCRATCH/$file.processing");
+	#	die "Can't connect to $DATAHOST" if
+			system("ssh $DATAHOST 'cd $CMSSW/src/IORawData/CSCCommissioning/test/ && ./convert.sh $SOURCE/$file.dat $SCRATCH/$file.raw' 1>$LOGS/$file.log 2>&1 && touch $SCRATCH/$file.processing");
 }
+
 # 2.3 Create list of only runs with new files
 my %runs_todo;
 foreach my $run ( keys %file_collection ) {
