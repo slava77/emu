@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.3 2008/03/12 11:43:33 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.4 2008/03/13 16:55:11 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.4  2008/03/13 16:55:11  rakness
+// improve test summaries to help offline understanding
+//
 // Revision 1.3  2008/03/12 11:43:33  rakness
 // measured sync parameters tagged by chamber; remove ALCT firmware downloading until it can be made robust
 //
@@ -295,9 +298,9 @@ ChamberUtilities::ChamberUtilities(){
   number_of_data_reads_     = 100;    // default number of data reads
   //
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
-  min_alct_l1a_delay_value_ = 125;
+  min_alct_l1a_delay_value_ = 120;
   max_alct_l1a_delay_value_ = 145;
-  min_tmb_l1a_delay_value_  = 115; 
+  min_tmb_l1a_delay_value_  = 110; 
   max_tmb_l1a_delay_value_  = 135; 
   //
   MyOutput_ = &std::cout ;
@@ -321,6 +324,10 @@ ChamberUtilities::ChamberUtilities(){
   TMBL1aTiming_      = -1;
   ALCTL1aDelay_      = -1;
   //
+  best_average_aff_to_l1a_counter_ = -1.;
+  best_average_alct_dav_scope_ = -1.;
+  best_average_cfeb_dav_scope_ = -1.;
+  //
   // measured values
   AffToL1aAverageValue_ = -1;
   CfebDavAverageValue_  = -1;
@@ -340,8 +347,8 @@ ChamberUtilities::ChamberUtilities(){
   // ranges over which to analyze DMB histograms
   ScopeMin_        = 0;
   ScopeMax_        = 4;
-  AffToL1aValueMin_= 100;
-  AffToL1aValueMax_= 140;
+  AffToL1aValueMin_= 105;
+  AffToL1aValueMax_= 130;
   CfebDavValueMin_ = 0;
   CfebDavValueMax_ = 10;
   TmbDavValueMin_  = 0;
@@ -1643,6 +1650,8 @@ int ChamberUtilities::MeasureAlctDavCableDelay() {
   (*MyOutput_) << "Best value is alct_dav_cable_delay = " << AlctDavCableDelay_ << "..." << std::endl;
   (*MyOutput_) << "-----------------------------------------------------" << std::endl;
   //
+  best_average_alct_dav_scope_ = Average[AlctDavCableDelay_];
+  //
   if (debug_) std::cout << "Best value is alct_dav_cable_delay = " << AlctDavCableDelay_ << "..." << std::endl;
   //  
   // Set the registers back to how they were at beginning...
@@ -1740,7 +1749,9 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   (*MyOutput_) << "Best value is tmb_lct_cable_delay = " << TmbLctCableDelay_ << "..." << std::endl;
   PrintHistogram("Best AFF to L1A Counter"  ,Histo[TmbLctCableDelay_],HistoMin,HistoMax,Average[TmbLctCableDelay_]);  
   (*MyOutput_) << "-----------------------------------------------------" << std::endl;
-  //  
+  //
+  best_average_aff_to_l1a_counter_ = Average[TmbLctCableDelay_];
+  //
   if (debug_) std::cout << "Best value is tmb_lct_cable_delay = " << TmbLctCableDelay_ << "..." << std::endl;
   //
   // Set the registers back to how they were at beginning...
@@ -1829,6 +1840,8 @@ int ChamberUtilities::MeasureCfebDavCableDelay() {
   if (debug_) std::cout << "Best value is cfeb_dav_cable_delay = " << CfebDavCableDelay_ << "..." << std::endl;  
   PrintHistogram("Best CFEB DAV Scope",Histo[CfebDavCableDelay_],HistoMin,HistoMax,Average[CfebDavCableDelay_]);  
   (*MyOutput_) << "-----------------------------------------------------" << std::endl;
+  //
+  best_average_cfeb_dav_scope_ = Average[CfebDavCableDelay_];
   //
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
@@ -3051,7 +3064,7 @@ void ChamberUtilities::PopulateDmbHistograms() {
   //
   for (int i=0; i<getNumberOfDataReads(); i++) {
     //
-    if ( (i%5) == 0 && debug_)  std::cout << "DMB Read " << std::dec << i << " times" << std::endl;
+    if ( ((i+1)%5) == 100 && debug_)  std::cout << "DMB Read " << std::dec << i << " times" << std::endl;
     //
     thisDMB->readtimingCounter();
     thisDMB->readtimingScope();

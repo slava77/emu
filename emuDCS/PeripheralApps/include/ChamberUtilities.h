@@ -197,6 +197,10 @@ public:
   inline float GetCfebDavScopeValue()       { return CfebDavScopeAverageValue_; }
   inline float GetAlctDavScopeValue()       { return AlctDavScopeAverageValue_; }
   //
+  inline float GetBestAverageAFFtoL1A()     { return best_average_aff_to_l1a_counter_; } 
+  inline float GetBestAverageALCTDAVScope() { return best_average_alct_dav_scope_; } 
+  inline float GetBestAverageCFEBDAVScope() { return best_average_cfeb_dav_scope_; } 
+  //
   inline int  GetCFEBStripScan(int CFEB, int Strip) { return CFEBStripScan_[CFEB][Strip]; }
   inline int  GetALCTWireScan(int Wire)             { return ALCTWireScan_[Wire]; }
   //
@@ -287,6 +291,10 @@ private:
   float CfebDavScopeAverageValue_;
   float TmbDavScopeAverageValue_;
   float AlctDavScopeAverageValue_;
+  //
+  float best_average_aff_to_l1a_counter_;
+  float best_average_alct_dav_scope_;
+  float best_average_cfeb_dav_scope_;
   //
   int CFEBStripScan_[5][32];
   int ALCTWireScan_[112];
