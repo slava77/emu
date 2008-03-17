@@ -101,6 +101,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   void getNodesStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getCSCMapping (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getDDUMapping (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void getVMEMapping (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getCSCList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getTestsList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void genImage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
