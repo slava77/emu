@@ -47,6 +47,13 @@ ME_List EmuPlotter::bookChamber(int chamberID)
 		chamberMEs[obj->getName()] = obj;
 		// chamberMEs.insert(pair<string, EmuMonitoringObject>(obj.getName(),obj));
 	}
+
+	CSCCounters& trigCnts = cscCntrs[prefix];
+	trigCnts["ALCT"] = 0;
+	trigCnts["CLCT"] = 0;
+	trigCnts["CFEB"] = 0;
+	trigCnts["DMB"] = 0;
+	trigCnts["BAD"] = 0;
 	
 	return chamberMEs;
 }

@@ -43,6 +43,7 @@ void EmuPlotter::reset()
 	//bin_checker.output1().show();
         //bin_checker.output2().show();
 	fBusy=false;
+	cscCntrs.clear();
 }
 
 void EmuPlotter::clearMECollection(ME_List & collection) 

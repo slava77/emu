@@ -153,7 +153,8 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xoap::MessageReference requestObjects (xoap::MessageReference msg) throw (xoap::exception::Exception); 
   xoap::MessageReference requestCanvasesList (xoap::MessageReference msg) throw (xoap::exception::Exception);
   xoap::MessageReference requestCanvas (xoap::MessageReference msg) throw (xoap::exception::Exception);
-  xoap::MessageReference requestFoldersList (xoap::MessageReference msg) throw (xoap::exception::Exception); 
+  xoap::MessageReference requestFoldersList (xoap::MessageReference msg) throw (xoap::exception::Exception);
+  xoap::MessageReference requestCSCCounters (xoap::MessageReference msg) throw (xoap::exception::Exception);
 
   // Construct ROOT output file name
   std::string getROOTFileName();

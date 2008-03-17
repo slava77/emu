@@ -37,16 +37,16 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
   xoap::SOAPName histodirName = envelope.createName("Branch", "", "");
 
   if (plotter_ != NULL) {
-/*	
-    int tout=0;
-    while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
+    /*	
+      int tout=0;
+      while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
       usleep(500000); tout++;
-    };
-    if (tout==sTimeout*2) {
+      };
+      if (tout==sTimeout*2) {
       LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
       return msg;
-    }
-*/
+      }
+    */
     std::map<std::string, ME_List>& MEs = plotter_->GetMEs();
 
     for (std::map<std::string, ME_List >::iterator itr = MEs.begin();
@@ -173,7 +173,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 		  std::map<std::string, ME_List >::iterator melist_itr = MEs.find(folder);
 		  if (melist_itr != MEs.end()) 
 		    {
-			// LOG4CPLUS_WARN (getApplicationLogger(), "Folder: " << folder);
+		      // LOG4CPLUS_WARN (getApplicationLogger(), "Folder: " << folder);
 		      if (folder.find("EMU") == 0) plotter_->updateFractionHistos();	   	      
 		      xoap::SOAPName objectTag ("Object", "", "");
 		      std::vector<xoap::SOAPElement> objectElement = f_itr->getChildElements (objectTag );
@@ -206,7 +206,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 		}
 	    }
 	}
-	appBSem_.give();
+      appBSem_.give();
     }
 
   return msg;
@@ -377,9 +377,65 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 		}
 	    }
 	}
-	appBSem_.give();
+      appBSem_.give();
     }
 
   return msg;
 }
 
+xoap::MessageReference EmuMonitor::requestCSCCounters(xoap::MessageReference node) throw (xoap::exception::Exception)
+{
+  LOG4CPLUS_INFO (getApplicationLogger(), "Received CSC Counters request");
+  xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
+  xoap::MessageReference msg = xoap::createMessage();
+  xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+  xoap::SOAPBody body = envelope.getBody();
+  xoap::SOAPName commandName = envelope.createName("requestCSCCounters","xdaq", "urn:xdaq-soap:3.0");
+  xoap::SOAPElement command = body.addBodyElement(commandName );
+  xdata::Integer localTid(i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor()));
+
+  xoap::SOAPName monitorName = envelope.createName("DQMNode", "", "");
+  xoap::SOAPElement monitorElement = command.addChildElement(monitorName);
+  monitorElement.addTextNode(localTid.toString());
+
+  if (rb.hasFault() )
+    {
+      xoap::SOAPFault fault = rb.getFault();
+      std::string errmsg = "DQMNode: ";
+      errmsg += fault.getFaultString();
+      XCEPT_RAISE(xoap::exception::Exception, errmsg);
+    } else { 
+
+      appBSem_.take();
+
+      //  xoap::SOAPName cntName = envelope.createName("Obj", "", "");
+      xoap::SOAPName cscName = envelope.createName("CSC", "", "");
+
+      if (plotter_ != NULL) {
+	std::map<std::string, CSCCounters >& cntrs = plotter_->GetCSCCounters();
+	// std::cout << cntrs.size()<< std::endl;
+	for (std::map<std::string, CSCCounters >::iterator itr = cntrs.begin();
+	     itr != cntrs.end(); ++itr) {
+	  xdata::String csc(itr->first);
+	  xoap::SOAPElement cscElement = monitorElement.addChildElement(cscName);
+	  cscElement.addTextNode(csc);
+	  // std::cout << csc.toString() << std::endl;
+	  // std::cout << itr->second.size() << std::endl;
+	    
+	  for (CSCCounters::iterator c_itr = itr->second.begin(); c_itr != itr->second.end(); ++c_itr) {
+	    xdata::String name = c_itr->first;
+	    xdata::UnsignedInteger value = c_itr->second;
+	    // LOG4CPLUS_INFO (getApplicationLogger(), csc.toString() << ": " << name.toString() << "=" << value.toString());	
+	   
+	      xoap::SOAPName cntrName = envelope.createName(name, "", "");
+	      xoap::SOAPElement cntElement = cscElement.addChildElement(cntrName);
+	      cntElement.addTextNode(value.toString());
+	   
+	  }
+      
+	}
+      }
+      appBSem_.give();
+    }
+  return msg;
+}

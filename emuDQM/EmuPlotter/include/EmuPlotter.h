@@ -74,6 +74,15 @@
 #include "EmuMonitoringObject.h"
 #include "EmuMonitoringCanvas.h"
 #include "CSCReadoutMappingFromFile.h"
+/*
+typedef struct CSCCounters {
+	uint32_t ALCTcnt;
+	uint32_t CLCTcnt;
+	uint32_t CFEBcnt;
+	uint32_t DMBcnt;	
+} CSCTrigCounters;
+*/
+typedef std::map<std::string, uint32_t> CSCCounters;
 
 class EmuPlotter {
 public:
@@ -140,6 +149,7 @@ public:
   bool isMEvalid(ME_List&, std::string, EmuMonitoringObject* & );
   std::map<std::string, ME_List >&  GetMEs() { return MEs;};
   std::map<std::string, MECanvases_List >&  GetMECanvases() { return MECanvases;};
+  std::map<std::string, CSCCounters >& GetCSCCounters() { return cscCntrs;}
  
   uint32_t getUnpackedDMBCount() const {return unpackedDMBcount;}
   uint32_t getTotalEvents() const {return nEvents;}
@@ -233,7 +243,8 @@ private:
 
   CSCReadoutMappingFromFile cscMapping;
   std::map<std::string, int> tmap;
-  std::string eTag; 
+  std::string eTag;
+  std::map<std::string, CSCCounters> cscCntrs; 
 
 };
 

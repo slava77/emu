@@ -467,7 +467,10 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
     }
     ME_List& cscME = MEs[cscTag];
     if ( (bin_checker.errors() & binCheckMask) != 0) {
-      nDMBEvents[cscTag]++;      
+      nDMBEvents[cscTag]++;     
+      CSCCounters& trigCnts = cscCntrs[cscTag];
+      trigCnts["DMB"] = nDMBEvents[cscTag];
+      trigCnts["BAD"]++; 
     }
 
     bool isCSCError = false;
