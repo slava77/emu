@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 	EmuPlotter* plotter = new EmuPlotter();
 	plotter->setLogLevel(WARN_LOG_LEVEL);
 	plotter->setUnpackingDebug(false);
-	// plotter->setUnpackingLogLevel(OFF_LOG_LEVEL);
+	plotter->setUnpackingLogLevel(OFF_LOG_LEVEL);
 	plotter->setCSCMapFile(cscMapFile);
         plotter->setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
         plotter->setXMLCanvasesCfgFile(xmlCanvasesCfg);
@@ -201,10 +201,11 @@ int main(int argc, char **argv) {
 		if (cnt+1>(startEvent+NumberOfEvents)) break;  
 	} 
 	t1 = time(0);
-
-	LOG4CPLUS_INFO (logger, "Total Events: " << plotter->getTotalEvents() << ", Readout Rate: " << (plotter->getTotalEvents()/(t1-t0)) << " Events/sec" );
-	LOG4CPLUS_INFO (logger, "Good Events: " << plotter->getGoodEventsCount() <<  ", Bad Events: " << plotter->getBadEventsCount());
-	LOG4CPLUS_INFO (logger, "Unpacked CSCs Events: " << plotter->getTotalUnpackedCSCs() <<  ", Unpacking Rate: " << (plotter->getTotalUnpackedCSCs()/(t1-t0)) << " CSCs/sec");
+	if ((t1-t0) > 0) {
+		LOG4CPLUS_INFO (logger, "Total Events: " << plotter->getTotalEvents() << ", Readout Rate: " << (plotter->getTotalEvents()/(t1-t0)) << " Events/sec" );
+		LOG4CPLUS_INFO (logger, "Good Events: " << plotter->getGoodEventsCount() <<  ", Bad Events: " << plotter->getBadEventsCount());
+		LOG4CPLUS_INFO (logger, "Unpacked CSCs Events: " << plotter->getTotalUnpackedCSCs() <<  ", Unpacking Rate: " << (plotter->getTotalUnpackedCSCs()/(t1-t0)) << " CSCs/sec");
+	}
 	std::map<std::string, ME_List >::iterator itr;
 	LOG4CPLUS_INFO (logger, "List of MEs:");
 	for (itr=plotter->GetMEs().begin(); itr != plotter->GetMEs().end(); ++itr) {

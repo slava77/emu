@@ -100,6 +100,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   // ME_List& dduME = MEs[dduTag];
   ME_List& cscME = MEs[cscTag];
 
+  CSCCounters& trigCnts = cscCntrs[cscTag];
+  trigCnts["DMB"] = nDMBEvents[cscTag];
+
+  
   int CSCtype = 0;
   int CSCposition = 0;
   this->getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
@@ -325,7 +329,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       //          Set number of ALCT-events to third bin
       if (isMEvalid(cscME, "CSC_Rate", mo)) { 
 	mo->Fill(2);
-	float ALCTEvent = mo->GetBinContent(3);
+	// trigCnts.ALCTcnt++;
+	uint32_t ALCTEvent = mo->GetBinContent(3);
+	trigCnts["ALCT"] = ALCTEvent;
 	if (isMEvalid(cscME, "CSC_Efficiency", mo)){
 	  if(nEvents > 0) {
 	    //KK
@@ -616,7 +622,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	//          Set number of CLCT-events to forth bin
 	if (isMEvalid(cscME, "CSC_Rate", mo)) {
 	  mo->Fill(3);
-	  float CLCTEvent = mo->GetBinContent(4);
+	  uint32_t CLCTEvent = mo->GetBinContent(4);
+	  trigCnts["CLCT"] = CLCTEvent;
 	  if (isMEvalid(cscME, "CSC_Efficiency", mo)) {
 	    if(nEvents > 0) {
 	      mo->SetBinContent(2,((float)CLCTEvent/(float)(DMBEvents)*100.0));
@@ -938,7 +945,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       if(CheckCFEB == true){
 	if (isMEvalid(cscME, "CSC_Rate", mo)) {
 	  mo->Fill(4);
-	  float CFEBEvent = mo->GetBinContent(5);
+	  uint32_t CFEBEvent = mo->GetBinContent(5);
+	  trigCnts["CFEB"] = CFEBEvent;
 	  if (isMEvalid(cscME, "CSC_Efficiency", mo)) {
 	    if(nEvents > 0) {
 	      mo->SetBinContent(3, ((float)CFEBEvent/(float)(DMBEvents)*100.0));

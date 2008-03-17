@@ -347,6 +347,7 @@ void EmuMonitor::bindSOAPcallbacks()
   xoap::bind (this, &EmuMonitor::requestCanvasesList, "requestCanvasesList", XDAQ_NS_URI);
   xoap::bind (this, &EmuMonitor::requestCanvas, "requestCanvas", XDAQ_NS_URI);
   xoap::bind (this, &EmuMonitor::requestFoldersList, "requestFoldersList", XDAQ_NS_URI);
+  xoap::bind (this, &EmuMonitor::requestCSCCounters, "requestCSCCounters", XDAQ_NS_URI);
 }
 
 // == Bind CGI Callbacks ==//
@@ -459,14 +460,14 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
       else if ( item == "averageRate")
         {
-		averageRate_ = rateMeter->getRate("averageRate");
-		// LOG4CPLUS_INFO(getApplicationLogger(), "Average Data Rate: " << averageRate_.toString());
+	  averageRate_ = rateMeter->getRate("averageRate");
+	  // LOG4CPLUS_INFO(getApplicationLogger(), "Average Data Rate: " << averageRate_.toString());
         }
       else if ( item == "cscRate")
         {
 
-		cscRate_ = rateMeter->getRate("cscRate");
-  //        cscRate_ = toolbox::toString("%.2f",pmeterCSC_->rate());
+	  cscRate_ = rateMeter->getRate("cscRate");
+	  //        cscRate_ = toolbox::toString("%.2f",pmeterCSC_->rate());
           // LOG4CPLUS_INFO(getApplicationLogger(), "Data Rate: " << dataRate_.toString());
         }
       else if ( item == "stateName")
@@ -480,7 +481,17 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
 	  std::set<xdaq::ApplicationDescriptor*>::iterator pos;
 	  for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
 	    xdata::UnsignedLong count;
-	    count.fromString(emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nEventsRead","unsignedLong"));
+	    try
+	      {
+		count.fromString(emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nEventsRead","unsignedLong"));
+
+	      }
+	    catch(xcept::Exception e)
+	      {
+		count    = 0;
+		LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get event count from EmuRUI" << (*pos)->getInstance()
+			       << " : " << xcept::stdformat_exception_history(e));
+	      }
 	    nDAQEvents_ = nDAQEvents_ + count;	
           }
         }

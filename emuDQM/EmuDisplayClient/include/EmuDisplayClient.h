@@ -34,6 +34,7 @@
 #include "EmuDQM_SOAPCommands.h"
 
 typedef std::map<std::string, std::set<int> > MapType;
+typedef std::map<std::string, std::map<std::string, std::string> >Counters;
 
 class FoldersMap: public MapType {
 	public:
@@ -45,6 +46,18 @@ class FoldersMap: public MapType {
 		time_t timestamp;
 	
 };
+
+class CSCCounters: public Counters {
+	public:
+                CSCCounters(): Counters(), timestamp(0) {};
+                time_t getTimeStamp() const {return timestamp;}
+                void setTimeStamp(time_t t) {timestamp=t;}
+                void clear() {timestamp=0; Counters::clear();}
+        private:
+                time_t timestamp;
+};
+
+
 
 using namespace toolbox;
 
@@ -91,6 +104,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   void getCSCList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getTestsList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void genImage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   
   void Configure(xgi::Input * in ) throw (xgi::exception::Exception);
   void Enable(xgi::Input * in ) throw (xgi::exception::Exception);
@@ -104,9 +118,11 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   std::map<std::string, std::list<std::string> > requestCanvasesList(xdaq::ApplicationDescriptor* monitor);
   TMessage* requestObjects(xdata::Integer nodeaddr,  std::string folder, std::string objname);
   TMessage* requestCanvas(xdata::Integer nodeaddr,  std::string folder, std::string objname, int width, int height);
+  Counters requestCSCCounters(xdaq::ApplicationDescriptor* monitor);
 
   std::set<std::string> requestFoldersList(xdaq::ApplicationDescriptor* dest);
   void updateFoldersMap();
+  void updateCSCCounters();
   
  protected:
 
@@ -129,6 +145,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   xdata::Boolean viewOnly_;
   xdata::String BaseDir;
   FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
+  CSCCounters cscCounters; // == CSC Counters from EmuMonitor nodes
   BSem appBSem_;
 
 
