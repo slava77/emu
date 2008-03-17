@@ -70,6 +70,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   xgi::bind(this, &EmuDisplayClient::getNodesStatus, "getNodesStatus");
   xgi::bind(this, &EmuDisplayClient::getCSCMapping, "getCSCMapping");
   xgi::bind(this, &EmuDisplayClient::getDDUMapping, "getDDUMapping");
+  xgi::bind(this, &EmuDisplayClient::getVMEMapping, "getVMEMapping");
   xgi::bind(this, &EmuDisplayClient::getCSCList, "getCSCList");
   xgi::bind(this, &EmuDisplayClient::getTestsList, "getTestsList");
   xgi::bind(this, &EmuDisplayClient::genImage, "genImage");
@@ -405,6 +406,20 @@ void EmuDisplayClient::getDDUMapping (xgi::Input * in, xgi::Output * out)  throw
   } else {
     // == Empty map
     *out << "var DDUMAP=[]" << std::endl;
+  }
+  map.close();
+
+}
+
+void EmuDisplayClient::getVMEMapping (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
+{
+  ifstream map;
+  map.open( (BaseDir.toString()+"/vme_pc_map.js").c_str());
+  if (map) {
+    *out << map.rdbuf();
+  } else {
+    // == Empty map
+    *out << "var VMEMAP=[]" << std::endl;
   }
   map.close();
 
