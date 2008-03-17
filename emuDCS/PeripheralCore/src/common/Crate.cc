@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.27 2008/02/27 17:02:35 liu Exp $
+// $Id: Crate.cc,v 3.28 2008/03/17 08:35:25 rakness Exp $
 // $Log: Crate.cc,v $
+// Revision 3.28  2008/03/17 08:35:25  rakness
+// DAQMB configuration check; turn on chambers before configuration (committed for S. Durkin)
+//
 // Revision 3.27  2008/02/27 17:02:35  liu
 // add Info/Warning packet handling
 //
@@ -276,7 +279,7 @@ void Crate::disable() {
     ccb->disableL1();
     ccb->disable();
   //::sleep(1);
-    std::cout << "data taking disabled " << std::endl;
+    std::cout<< "data taking disabled " << std::endl;
   //
   }
 }
@@ -316,7 +319,19 @@ void Crate::configure(int c) {
   MPC * mpc = this->mpc();
   if(!ccb) return;
   std::cout << label_ << " Crate Configuring, Mode: " << c << std::endl; 
-  //
+  
+
+
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
+
+  std::cout << " HardReset lowv_onoff HardReset " << std::endl;
+  ccb->HardResetTTCrx();
+  ::sleep(1);
+  myDmbs[myDmbs.size()-1]->lowv_onoff(0x3f);
+  ::sleep(2);
+  ccb->HardResetTTCrx();
+  ::sleep(1);
+//
   //theController->init();
   //
   ccb->configure();
@@ -351,7 +366,7 @@ void Crate::configure(int c) {
     //
   }
   //
-  std::vector<DAQMB*> myDmbs = this->daqmbs();
+  // std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
     if (myDmbs[i]->slot()<22){
       myDmbs[i]->restoreCFEBIdle();
