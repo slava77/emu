@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.21 2008/03/08 11:19:05 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.22 2008/03/17 08:54:29 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -749,6 +749,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestSkewClear(xgi::Input * in,xgi::Output
   int ionoff[6]={0,1,2,3,4,5};
   for(unsigned int iof=0;iof<6;iof++){
   broadcastDMB->lowv_onoff(onoff[iof]);
+  ::sleep(1);
   if(iof==5)break;
   // Probe for DMBs
   unsigned int limit=(broadcastCrate->daqmbs()).size()-1;
