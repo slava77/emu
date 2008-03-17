@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.20 2008/02/24 12:48:29 liu Exp $
+// $Id: DAQMB.h,v 3.21 2008/03/17 08:35:24 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.21  2008/03/17 08:35:24  rakness
+// DAQMB configuration check; turn on chambers before configuration (committed for S. Durkin)
+//
 // Revision 3.20  2008/02/24 12:48:29  liu
 // DMB online counters
 //
@@ -459,6 +462,7 @@ public:
   bool SelfTest() ;
   void init() ;
   void configure() ;
+  bool checkDAQMBXMLValues();
   //
 
 public:

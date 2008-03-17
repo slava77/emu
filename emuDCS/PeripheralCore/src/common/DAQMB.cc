@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.33 2008/02/24 12:48:30 liu Exp $
+// $Id: DAQMB.cc,v 3.34 2008/03/17 08:35:25 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.34  2008/03/17 08:35:25  rakness
+// DAQMB configuration check; turn on chambers before configuration (committed for S. Durkin)
+//
 // Revision 3.33  2008/02/24 12:48:30  liu
 // DMB online counters
 //
@@ -465,10 +468,10 @@ void DAQMB::configure() {
    //
    // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
    // (*MyOutput_) << "DAQMB: switching on LVs on LVMB" << endl; 
-   lowv_onoff(0x3f);
-   ::sleep(2);
-   calctrl_fifomrst();
-   ::sleep(1);
+  // lowv_onoff(0x3f); // these lines were moved to global initializations in EmuPeripheralCrateConfig.cc
+  // ::sleep(2);
+  // calctrl_fifomrst();
+  // ::sleep(1);
    (*MyOutput_) << "Toogle bxn " << crate_id_ << std::endl ;
    if (toogle_bxn_) ToogleBXN();
 
@@ -531,13 +534,19 @@ void DAQMB::configure() {
      //
      if ((((febstat_[lfeb][2])&0x1f)!=comp_mode_bits) ||
 	 ((((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3))!=pre_block_end_)||
-	 (((febstat_[lfeb][3]>>1)&0x03)!=xlatency_)) cfebmatch=false;
-   //}
+       (((febstat_[lfeb][3]>>1)&0x03)!=xlatency_)) {cfebmatch=false;
+       std::cout << "Reprogram DMB flash cfeb" << lfeb << std::endl;
+       std::cout << "comp_mode_bits old " << hex << (febstat_[lfeb][2]&0x1f) << " new " << comp_mode_bits << dec << std::endl;
+       std::cout << " pre_block_end old " << (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3)) << " new " << pre_block_end_ << std::endl;
+       std::cout << " xlatency old " << ((febstat_[lfeb][3]>>1)&0x03) << " new " << xlatency_ << std::endl;
+       }
    }
    //
    enable_cfeb(); //enable..disable CFEBs
    //
    //check the comp_dac setting
+   int secondread=0;
+ SECONDREAD:
    float compthresh[5];
    //
    std::cout << "Match &&&&&&&&&&& " << cfebmatch << std::endl;
@@ -545,15 +554,31 @@ void DAQMB::configure() {
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
    //
    (*MyOutput_) << "doing set_comp_thresh " << set_comp_thresh_ << std::endl;
-   set_comp_thresh(set_comp_thresh_);
-   //(*MyOutput_) << "doing preamp_initx() " << std::endl;
-   preamp_initx();
-     
+     int compbad=0;
+     set_comp_thresh(set_comp_thresh_);
+     //(*MyOutput_) << "doing preamp_initx() " << std::endl;
+     preamp_initx();
+     compbad=0;
+     for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+       if(abs(1000*(3.5-set_comp_thresh_)-compthresh[lfeb]) > 100)compbad=compbad+1;
+    }
    //  If the comparator threshold setting is more than 5mV off, re-program the BuckFlash
    //for (int lfeb=0;lfeb<5;lfeb++)
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
      std::cout << "****************** thresh " << compthresh[lfeb] << " " << adcplus(2,lfeb) << std::endl;
-     if((abs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
+     if(secondread==0&&compbad>1){
+       calctrl_global();
+       secondread=1;
+       goto SECONDREAD;
+     }
+
+     
+     float adcplusval=adcplus(2,lfeb);
+     if((abs(compthresh[lfeb]-adcplusval)>5.)){
+        cfebmatch=false;
+	std::cout << "Reprogram DMB flash cfeb" << lfeb <<std::endl;
+	std::cout << " compthresh cfeb set " << set_comp_thresh_ << " old " << adcplusval << " new " << compthresh[lfeb] << std::endl;
+     }
    }
 
    //   cfebmatch = false;
@@ -595,6 +620,11 @@ void DAQMB::configure() {
        ((CfebClkDelay_)!=cfeb_clk_delay_)||
        ((XLatency_)!=xlatency_) ) {
      //
+	std::cout << "Reprogram DMB SFM flash " << std::endl;
+	std::cout << " CableDelay old " << CableDelay_ << " new " << cable_delay_ <<std::endl;
+	std::cout << " CrateID old " << CrateID_ << " new " << crate_id_ << std::endl;
+	std::cout << " CFEBClkDelay old " << CfebClkDelay_ << " new " << cfeb_clk_delay_ << std::endl;
+	std::cout << " xlatency old " << XLatency_ << " new " << xlatency_ << std::endl;
      (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
      setcrateid(crate_id_);
      //
@@ -612,6 +642,69 @@ void DAQMB::configure() {
    }
 
 }
+//
+bool DAQMB::checkDAQMBXMLValues()
+{ 
+  (*MyOutput_) << "DAQMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+  // *** This part is for Buck_Flash (Parallel Memory) *****
+  int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
+  //
+  cfebs_readstatus();
+  bool cfebmatch=true;
+  //check the comp_timing, comp_mode, Pre_block_end and Extr_l1A latency setting
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+    for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
+    std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
+    if ((((febstat_[lfeb][2])&0x1f)!=comp_mode_bits) ||
+	((((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3))!=pre_block_end_)||
+	(((febstat_[lfeb][3]>>1)&0x03)!=xlatency_)){
+      cfebmatch=false;
+      std::cout << " *** FAILED Buck_Flash check " << std::endl;
+      std::cout << "comp_mode_bits old " << hex << (febstat_[lfeb][2]&0x1f) <<" new " << comp_mode_bits << dec << std::endl;
+      std::cout << " pre_block_end old " << (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3)) << " new " << pre_block_end_ << std::endl;
+      std::cout << " xlatency old " << ((febstat_[lfeb][3]>>1)&0x03) << " new " << xlatency_ << std::endl;
+    }
+  }
+  //check the comp_dac setting
+ 
+  int secondread=0;
+ SECONDREAD:
+  float compthresh[5];
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
+  int ibad=0;
+  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+    std::cout << "****************** thresh " << compthresh[lfeb] << " " << adcplus(2,lfeb) << std::endl;
+    if(abs(compthresh[lfeb]-3500.-set_comp_thresh_*1000.))ibad=ibad+1;
+   }
+   if(ibad>1){
+      std::cout << " *** FAILED Comparator Threshold check " << std::endl; 
+      cfebmatch=false;
+      if(secondread==0){
+        calctrl_global();
+        secondread=1;
+        goto SECONDREAD;
+      }
+    }
+    // ***  This part is related to the SFM (Serial Flash Memory) ****
+    //
+    // Readout the Current setting on DMB
+    char dmbstatus[10];
+    dmb_readstatus(dmbstatus);
+    //check the DMB setting with the current setup
+    if (((CableDelay_)!=cable_delay_)||
+	((CrateID_)!=crate_id_)||
+	((CfebClkDelay_)!=cfeb_clk_delay_)||
+	((XLatency_)!=xlatency_) ){
+      cfebmatch=false;
+      std::cout << "*** FAILED SFM flash check " << std::endl;
+      std::cout << " CableDelay old " << CableDelay_ << " new " << cable_delay_ <<std::endl;
+      std::cout << " CrateID old " << CrateID_ << " new " << crate_id_ << std::endl;
+      std::cout << " CFEBClkDelay old " << CfebClkDelay_ << " new " << cfeb_clk_delay_ << std::endl;
+      std::cout << " xlatency old " << XLatency_ << " new " << xlatency_ << std::endl;
+    }
+    return cfebmatch;
+  }
+
 //
 void DAQMB::enable_cfeb() {
   //
