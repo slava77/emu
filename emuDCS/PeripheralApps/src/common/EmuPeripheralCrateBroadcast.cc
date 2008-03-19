@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.23 2008/03/17 13:47:57 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.24 2008/03/19 15:12:38 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -79,8 +79,8 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::DmbTurnOnPower, "DmbTurnOnPower");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::DmbTurnOffPower, "DmbTurnOffPower");
   //
-  xgi::bind(this,&EmuPeripheralCrateBroadcast::SetRadioactiveTrigger, "SetRadioactiveTrigger");
-  xgi::bind(this,&EmuPeripheralCrateBroadcast::SetOutputToMPCDisable, "SetOutputToMPCDisable");
+  //  xgi::bind(this,&EmuPeripheralCrateBroadcast::SetRadioactiveTrigger, "SetRadioactiveTrigger");
+  //  xgi::bind(this,&EmuPeripheralCrateBroadcast::SetOutputToMPCDisable, "SetOutputToMPCDisable");
   //
   // Bind firmware loading
   //
@@ -250,17 +250,17 @@ void EmuPeripheralCrateBroadcast::MainPage(xgi::Input * in, xgi::Output * out ) 
   *out << cgicc::input().set("type","submit").set("value","-----  Broadcast Turn OFF On-chamber electronics power ----") << std::endl ;
   *out << cgicc::form();
   //
-  *out << cgicc::br();
+  //  *out << cgicc::br();
   //
-  std::string SetRadioactiveTrigger = toolbox::toString("/%s/SetRadioactiveTrigger",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",SetRadioactiveTrigger) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Radioactive trigger on all crates") << std::endl ;
-  *out << cgicc::form();
+  //  std::string SetRadioactiveTrigger = toolbox::toString("/%s/SetRadioactiveTrigger",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",SetRadioactiveTrigger) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Radioactive trigger on all crates") << std::endl ;
+  //  *out << cgicc::form();
   //
-  std::string SetOutputToMPCDisable = toolbox::toString("/%s/SetOutputToMPCDisable",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",SetOutputToMPCDisable) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Disable Output to MPC on all crates") << std::endl ;
-  *out << cgicc::form();
+  //  std::string SetOutputToMPCDisable = toolbox::toString("/%s/SetOutputToMPCDisable",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",SetOutputToMPCDisable) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Disable Output to MPC on all crates") << std::endl ;
+  //  *out << cgicc::form();
   //  
   //
   *out << cgicc::fieldset() ;
@@ -1339,42 +1339,42 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   return createReply(message);
 }
 //
-void EmuPeripheralCrateBroadcast::SetRadioactiveTrigger(xgi::Input * in, xgi::Output * out )  {
-  //
-  DefineBroadcastCrate();
-  //
-  std::cout <<" Broadcast radioactive trigger setting..."<<std::endl;
-  //
-  broadcastTMB->SetHsPretrigThresh(1);
-  broadcastTMB->SetMinHitsPattern(1);
-  broadcastTMB->WriteRegister(0x70);
-  //
-  broadcastALCT->SetFifoPretrig(10);
-  broadcastALCT->SetDriftDelay(2);
-  broadcastALCT->SetPretrigNumberOfLayers(1);
-  broadcastALCT->SetPretrigNumberOfPattern(1);
-  broadcastALCT->WriteConfigurationReg();
-  //
-  in=NULL;
-  this->Default(in, out);
-  //
-}
-//
-void EmuPeripheralCrateBroadcast::SetOutputToMPCDisable(xgi::Input * in, xgi::Output * out )  {
-  //
-  DefineBroadcastCrate();
-  //
-  std::cout <<" Broadcast Disable TMB output to MPC..."<<std::endl;
-  //
-  broadcastTMB->SetMpcOutputEnable(0);
-  broadcastTMB->SetTmbAllowClct(0);
-  broadcastTMB->SetTmbAllowMatch(1);
-  broadcastTMB->WriteRegister(0x86);
-  //
-  in=NULL;
-  this->Default(in, out);
-  //
-}
+//void EmuPeripheralCrateBroadcast::SetRadioactiveTrigger(xgi::Input * in, xgi::Output * out )  {
+//  //
+//  DefineBroadcastCrate();
+//  //
+//  std::cout <<" Broadcast radioactive trigger setting..."<<std::endl;
+//  //
+//  broadcastTMB->SetHsPretrigThresh(1);
+//  broadcastTMB->SetMinHitsPattern(1);
+//  broadcastTMB->WriteRegister(0x70);
+//  //
+//  broadcastALCT->SetFifoPretrig(10);
+//  broadcastALCT->SetDriftDelay(2);
+//  broadcastALCT->SetPretrigNumberOfLayers(1);
+//  broadcastALCT->SetPretrigNumberOfPattern(1);
+//  broadcastALCT->WriteConfigurationReg();
+//  //
+//  in=NULL;
+//  this->Default(in, out);
+//  //
+//}
+////
+//void EmuPeripheralCrateBroadcast::SetOutputToMPCDisable(xgi::Input * in, xgi::Output * out )  {
+//  //
+//  DefineBroadcastCrate();
+//  //
+//  std::cout <<" Broadcast Disable TMB output to MPC..."<<std::endl;
+//  //
+//  broadcastTMB->SetMpcOutputEnable(0);
+//  broadcastTMB->SetTmbAllowClct(0);
+//  broadcastTMB->SetTmbAllowMatch(1);
+//  broadcastTMB->WriteRegister(0x86);
+//  //
+//  in=NULL;
+//  this->Default(in, out);
+//  //
+//}
 //
 ////////////////////////////////////////////////////////////////////
 // sending and receiving soap commands
