@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.9 2008/03/17 13:47:57 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.10 2008/03/19 15:12:37 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -123,8 +123,8 @@ public:
   void DmbTurnOffPower(xgi::Input * in, xgi::Output * out );
   void LoadDACandTrigger(xgi::Input * in, xgi::Output * out );
   //
-  void SetRadioactiveTrigger(xgi::Input * in, xgi::Output * out );
-  void SetOutputToMPCDisable(xgi::Input * in, xgi::Output * out );
+  //  void SetRadioactiveTrigger(xgi::Input * in, xgi::Output * out );
+  //  void SetOutputToMPCDisable(xgi::Input * in, xgi::Output * out );
   //
   // Firmware
   //
