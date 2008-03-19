@@ -347,6 +347,7 @@ private:
   void MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPCUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void testTMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

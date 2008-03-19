@@ -125,6 +125,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
 
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureDAVsForCrate,"MeasureDAVsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
 
 
@@ -598,14 +599,14 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   std::string CrateConfigureAll = toolbox::toString("/%s/ConfigAllCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CrateConfigureAll) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Config All Crates") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Write FLASH All Crates") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
 
   *out << cgicc::td();
   std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Fast Config Crates") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Configure All Crates") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
 
@@ -706,14 +707,14 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::td();
     std::string FastConfigOne = toolbox::toString("/%s/FastConfigOne",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",FastConfigOne) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Fast Config Crate") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Configure Crate") << std::endl ;
     *out << cgicc::form() << std::endl ;
     *out << cgicc::td();
     //
     *out << cgicc::td();
     std::string InitSystem = toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Init Crate") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Write FLASH to Crate") << std::endl ;
     *out << cgicc::form() << std::endl ;
     *out << cgicc::td();
     //
@@ -1730,6 +1731,10 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   //
   *out << cgicc::table();
   //
+  std::string MeasureDAVsForCrate = toolbox::toString("/%s/MeasureDAVsForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureDAVsForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find all DAV cable delays for this crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
   //
   //*out << cgicc::body();
   *out << cgicc::fieldset();
@@ -4207,6 +4212,30 @@ void EmuPeripheralCrateConfig::Automatic(xgi::Input * in, xgi::Output * out )
   //
 }
 //
+void EmuPeripheralCrateConfig::MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cout << "Find DAV cable Delays" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Automatic");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    //
+    
+    std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
+    //
+    MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
+    MyTest[i][current_crate_].PropagateMeasuredValues(true);
+    MyTest[i][current_crate_].MeasureAlctDavCableDelay();
+    MyTest[i][current_crate_].MeasureCfebDavCableDelay();
+    MyTest[i][current_crate_].RedirectOutput(&std::cout);
+  }
+  //
+  this->CrateConfiguration(in,out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::setTMBCounterReadValues(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -6432,7 +6461,9 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   *out << cgicc::br();
   //
-  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_021508.svf";
+  //  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_021508.svf";
+  // we use the 5 march 2007 version for commissioning:
+  CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_030507.svf";
   //
   std::string CCBLoadFirmware =
     toolbox::toString("/%s/CCBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
