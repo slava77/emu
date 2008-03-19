@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.4 2008/03/13 16:55:11 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.5 2008/03/19 15:05:34 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
-// Revision 1.4  2008/03/13 16:55:11  rakness
-// improve test summaries to help offline understanding
+// Revision 1.5  2008/03/19 15:05:34  rakness
+// Measure DAVs for crate; relabel buttons for configuration
 //
 // Revision 1.3  2008/03/12 11:43:33  rakness
 // measured sync parameters tagged by chamber; remove ALCT firmware downloading until it can be made robust
@@ -294,7 +294,7 @@ ChamberUtilities::ChamberUtilities(){
   //
   use_measured_values_ = false;
   //
-  pause_between_data_reads_ = 100000; // default number of microseconds to wait between data reads
+  pause_between_data_reads_ = 10000; // default number of microseconds to wait between data reads
   number_of_data_reads_     = 100;    // default number of data reads
   //
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
