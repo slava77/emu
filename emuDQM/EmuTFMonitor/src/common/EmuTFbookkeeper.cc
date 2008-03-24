@@ -8,6 +8,9 @@
 using namespace EmuTFxmlParsing;
 
 bool EmuTFbookkeeper::book(unsigned short sp, unsigned short mpc, unsigned short csc){
+	// Handle printout stream
+	std::ostream &cerr = ( printout ? *printout : std::cerr );
+
 	if( sp>12 || mpc>60 || csc>9 ) return false;
 	// Iterate over all histogram types
 	for(std::map<std::string,HistAttributes>::const_iterator iter=attributes.begin(); iter!=attributes.end(); iter++){
@@ -41,6 +44,7 @@ bool EmuTFbookkeeper::book(unsigned short sp, unsigned short mpc, unsigned short
 		std::string hFullName = iter->second.type + identifier.str() + iter->second.name;
 		// Create the histogram if it doesn't yet exist
 		if( hists.find(hFullName) == hists.end() ){
+			isModified = true;
 			TH1 *hist = 0;
 			if( iter->second.type == "h1_" )
 				hist = new TH1F(hFullName.c_str(), iter->second.title.c_str(), iter->second.xNbins, iter->second.xMin, iter->second.xMax);
@@ -87,7 +91,7 @@ bool EmuTFbookkeeper::book(unsigned short sp, unsigned short mpc, unsigned short
 			if( sp>0&&sp<=12 && mpc==0 && csc==0 )
 				spAlias[sp-1][iter->second.name] = hist;
 			if( sp==0 ) tfAlias[iter->second.name] = hist;
-			if( sp>12 || mpc>60 || csc>9 ) std::cerr<<"IDs are out or range!"<<std::endl;
+			if( sp>12 || mpc>60 || csc>9 ) cerr<<"IDs are out or range!"<<std::endl;
 //std::cout<<"Booked: "<<hist->GetName()<<std::endl;
 		} else return false;
 	}
@@ -95,21 +99,24 @@ bool EmuTFbookkeeper::book(unsigned short sp, unsigned short mpc, unsigned short
 }
 
 std::map<std::string,TCanvas*> EmuTFbookkeeper::wrapToCanvases(const std::map<std::string,CanvasAttributes>& canvasList){
-	// Created histograms, do not delete anything from this list
+	// Handle printout streams
+	std::ostream &cerr = ( printout ? *printout : std::cerr );
+	// Canvases; do not delete anything from this list other than calling cleenupCanvases():
 	std::map<std::string,TCanvas*> result;
 	// Loop over provided canvases
 	std::map<std::string,CanvasAttributes>::const_iterator iter = canvasList.begin();
 	while( iter != canvasList.end() ){
-		// Create an alias
+		// Create an alias to attributes
 		const CanvasAttributes &canvas_attributes = iter->second;
-		// A template histogram
+		// A template histogram (will be used as a factory to clone specific sp/pc/csc histograms)
 		TCanvas canvas_template("template",canvas_attributes.title.c_str());
 		// Set pads for the template histogram
 		std::map< std::string, std::vector<std::string> >::const_iterator item = canvas_attributes.items.begin();
 		while( item != canvas_attributes.items.end() ){
+			// Parse item to be draw and split it to histogram name and (possibly) its location
 			std::map< std::string, std::vector<std::string> > constructor = RegExSearch("(\\w+)\\s*\\(?(.+)?\\)?",item->first.c_str());
-			if( constructor.size()==1 ){
-				// Create pad for each histogram dynamicaly
+			if( constructor.size()==1 ){ // every item corresponds to one histogram only
+				// Create pad for each histogram dynamicaly (pad's name should match histogram name)
 				// Draw it on a static canvas and it gets automatically deleted on leaving of the scope
 				TPad *pad=0;
 				//std::string padName  = "p_"+canvas_attributes.prefix+constructor.begin()->second[0];
@@ -121,17 +128,20 @@ std::map<std::string,TCanvas*> EmuTFbookkeeper::wrapToCanvases(const std::map<st
 				if( geometry=="Bottom)" ) pad = new TPad(padName.c_str(),padTitle.c_str(),0.01, 0.01, 0.99, 0.495);
 				if( geometry=="Left)"   ) pad = new TPad(padName.c_str(),padTitle.c_str(),0.01, 0.01, 0.495,0.90);
 				if( geometry=="Right)"  ) pad = new TPad(padName.c_str(),padTitle.c_str(),0.495,0.01, 0.99, 0.99);
+				// Non of code words match geometry?
 				if( pad==0 ){
+					// Look for explicit coordinates
 					std::map< std::string, std::vector<std::string> > coordinates = RegExSearch("(\\w*.\\w*)\\s*x\\s*(\\w*.\\w*)\\s*\\+\\s*(\\w*.\\w*)\\s*\\+\\s*(\\w*.\\w*)",geometry.c_str());
-					if( coordinates.size()==1 ){
+					if( coordinates.size()==1 ){ // found a match
 						double width  = atof(coordinates.begin()->second[0].c_str());
 						double height = atof(coordinates.begin()->second[1].c_str());
 						double x      = atof(coordinates.begin()->second[2].c_str());
 						double y      = atof(coordinates.begin()->second[3].c_str());
 //std::cout<<"padName: "<<padName<<" title: "<<padTitle<<" "<<width<<" "<<height<<" "<<x<<" "<<y<<std::endl;
 						pad = new TPad(padName.c_str(),padTitle.c_str(),x,y,x+width,y+height);
-					} else std::cerr<<"Wrong geometry: "<<geometry<<std::endl;
+					} else cerr<<"Wrong geometry: "<<geometry<<std::endl;
 				}
+				// Finally, pad was created?
 				if( pad!=0 ){
 					canvas_template.cd();
 					pad->Draw();
@@ -148,7 +158,7 @@ std::map<std::string,TCanvas*> EmuTFbookkeeper::wrapToCanvases(const std::map<st
 						if( (pos=property->find("Normalize"))  != std::string::npos ) pad->SetTitle("norm");
 					}
 				}
-			} else std::cerr<<"Cannot parse "<<item->first<<std::endl;
+			} else cerr<<"Cannot parse "<<item->first<<std::endl;
 			item++;
 		}
 
@@ -160,7 +170,7 @@ std::map<std::string,TCanvas*> EmuTFbookkeeper::wrapToCanvases(const std::map<st
 			ids.push_back(canvas_attributes.prefix.substr(pos1,pos2-pos1));
 		// Check that type is one of three types (sp/pc/csc)
 		if( ids.size()!=0 && ids.size()!=1 && ids.size()!=2 && ids.size()!=3 ){
-			std::cerr<<"Cannot parse "<<canvas_attributes.prefix<<std::endl;
+			cerr<<"Cannot parse "<<canvas_attributes.prefix<<std::endl;
 			iter++;
 			continue;
 		}
@@ -177,7 +187,7 @@ std::map<std::string,TCanvas*> EmuTFbookkeeper::wrapToCanvases(const std::map<st
 			// This is what remains:
 			std::string hist_name = hist->first.substr(name_start);
 			// Check for consistency
-			if( hist_ids.size() != ids.size() ){ std::cerr<<"It cannot happen ever!!!"<<std::endl; continue; }
+			if( hist_ids.size() != ids.size() ){ cerr<<"It cannot happen ever!!!"<<std::endl; continue; }
 			// If any of canvas ids were explicitly specified, choose only hists that suffice those ids
 			if(	( ids.size()>0 && ids[0]!="id" && ids[0]!=hist_ids[0] ) ||
 				( ids.size()>1 && ids[1]!="id" && ids[1]!=hist_ids[1] ) ||

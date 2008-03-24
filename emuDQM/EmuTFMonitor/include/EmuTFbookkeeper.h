@@ -2,6 +2,7 @@
 #define EmuTFbookkeeper_h
 
 #include <string>
+#include <ostream>
 #include <list>
 #include <map>
 #include "TH1.h"
@@ -15,28 +16,42 @@ private:
 	std::map<std::string,TH1*>           tfAlias, spAlias[12], pcAlias[12][60], cscAlias[12][60][9];
 	std::map<std::string,EmuTFxmlParsing::HistAttributes> attributes;
 	std::list<TObject*>                                   cleenupList;
+	bool isModified;
+	std::ostream *printout; // utilized for error messages only
+
 public:
 	// Create set of histograms for the particular:
 	// Sector Processor  (one arg), Peripheral Crate (two args), chamber (three args)
 	// return false in case of failure
 	bool book(unsigned short sp=0, unsigned short mpc=0, unsigned short csc=0);
-
+	// See if histograms for a specific sp/pc/csc were booked
 	bool isBooked(unsigned short sp=0, unsigned short mpc=0, unsigned short csc=0){
 		if( sp>12 || mpc>60 || csc>9 ) return false;
 		std::map<std::string,TH1*> &hists = ( sp && mpc && csc ? cscAlias[sp-1][mpc-1][csc-1] : ( sp && mpc && !csc ? pcAlias[sp-1][mpc-1] : ( sp && !mpc && !csc ? spAlias[sp-1] : tfAlias ) ) );
 		return hists.size();
 	}
+	// Check if any new histograms were created since last resetModified() call:
+	bool modified(void) const throw() { return  isModified; }
+	// Whoever uses this class, synchronized its knowledge about currently existing hists:
+	void resetModified(void)  throw() { isModified = false; }
 
-	// Obtain final list of canvases with all histograms
+	// Obtain final list of canvases with all histograms (costly, don't abuse this method):
 	std::map<std::string,TCanvas*> wrapToCanvases(const std::map<std::string,EmuTFxmlParsing::CanvasAttributes>& canvasList);
+	// Following function will delete all histograms (if any), created by previous function:
+	void cleenupCanvases(void){
+		for(std::list<TObject*>::iterator iter=cleenupList.begin(); iter!=cleenupList.end(); iter++)
+			delete *iter;
+		cleenupList.resize(0);
+	}
 
+	// Get histogram with specific name hname for a specific sp/pc/csc
 	TH1* get(std::string hname, unsigned short sp=0, unsigned short mpc=0, unsigned short csc=0){
 		if( sp>12 || mpc>60 || csc>9 ) return 0;
 		std::map<std::string,TH1*> &hists = ( sp && mpc && csc ? cscAlias[sp-1][mpc-1][csc-1] : ( sp && mpc && !csc ? pcAlias[sp-1][mpc-1] : ( sp && !mpc && !csc ? spAlias[sp-1] : tfAlias ) ) );
 		std::map<std::string,TH1*>::const_iterator entry = hists.find(hname);
 		return ( entry==hists.end() ? 0 : entry->second );
 	}
-
+	// Get list of histograms with specific name
 	std::list<const TH1*> get(std::string hname) const {
 		std::list<const TH1*> retval;
 		std::map<std::string,EmuTFxmlParsing::HistAttributes>::const_iterator iter = attributes.find(hname);
@@ -70,9 +85,14 @@ public:
 		return retval;
 	}
 
-	// Default constructor
-	EmuTFbookkeeper(const std::map<std::string,EmuTFxmlParsing::HistAttributes>& histList){ attributes=histList; }
+	void setPrintout(std::ostream *str){ printout=str; }
 
+	// Default constructor
+	EmuTFbookkeeper(const std::map<std::string,EmuTFxmlParsing::HistAttributes>& histList){
+		attributes=histList;
+		isModified=true;
+		printout  = 0;
+	}
 	// Cleanup
 	~EmuTFbookkeeper(void){
 		for(std::map<std::string,TH1*>::iterator iter=tfHists.begin(); iter!=tfHists.end(); iter++)
