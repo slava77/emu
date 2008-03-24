@@ -23,6 +23,7 @@ Sources=\
 	EmuTFxmlParsing.cc \
 	EmuTFfiller.cc     \
 	EmuTFvalidator.cc  \
+	EmuTFPlotter.cc  \
 	RegEx.cc
 
 Executables = EmuTFtest.cc 
@@ -31,10 +32,9 @@ ExternalObjects =
 
 IncludeDirs = $(XdaqIncludeDirs) \
         $(XDAQ_ROOT)/$(Project)/$(Package)/../Common/include/ \
-	/home/slice/kotov/CMSSW_0_8_0_pre2/src \
 	$(XDAQ_ROOT)/$(Project)
 
-LibraryDirs = $(XdaqLibraryDirs) 
+LibraryDirs = $(XdaqLibraryDirs) ../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserSourcePath = 
 
@@ -47,7 +47,7 @@ UserExecutableLinkFlags += $(ROOTCFLAGS) -Xlinker -rpath -Xlinker ${HOME}/TriDAS
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries)  
+Libraries = $(XdaqLibraries) EmuDQMCommon  
 
 #
 # Compile the source files and create a shared library
