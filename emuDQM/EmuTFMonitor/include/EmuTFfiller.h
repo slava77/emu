@@ -9,6 +9,7 @@ private:
 	EmuTFbookkeeper tf;
 	int nevents;
 	int event_status;
+	std::ostream *printout; // utilized for info messages only
 	//
 	int prev_l1a[12];
 
@@ -21,8 +22,12 @@ public:
 
 	EmuTFbookkeeper& bookkeeper(void) throw() { return tf; }
 
+	void setOutputStream(std::ostream *str){ printout=str; }
+	void setErrorStream (std::ostream *str){ tf.setPrintout(str); }
+
 	EmuTFfiller(std::map<std::string,EmuTFxmlParsing::HistAttributes> histList):tf(histList),nevents(0){
 		for(int sp=0; sp<12; sp++) prev_l1a[sp] = -1;
+		printout = 0; // by default do not redirect output stream enywhere from std::cout
 	}
 	~EmuTFfiller(void){}
 

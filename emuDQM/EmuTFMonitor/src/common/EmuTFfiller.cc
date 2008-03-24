@@ -18,12 +18,15 @@ using namespace std;
 ///int current_orbit[12] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 
 void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned int flag) throw() {
+	// Handle output stream
+	std::ostream &cout = ( printout ? *printout : std::cout );
+
 	//
 	event_status = CLEAR;
 
 	if(!tf.isBooked() ){
 		tf.book();
-		std::cout<<"Booking of general histograms"<<std::endl;
+		cout<<"Booking of general histograms"<<std::endl;
 	}
 
 	// Basic checks for DDU-level corruptions
@@ -109,7 +112,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 ///}
 
 	for(vector<CSCSPEvent>::const_iterator spPtr=SPs.begin(); spPtr!=SPs.end(); spPtr++){
-		// Container for storing all LCTs from SP event 
+		// Container for storing all LCTs from SP event
 		EmuTFtiming shared_hits;
 
 		unsigned short sp = spPtr->header().sector() + ( spPtr->header().endcap() ? 0 : 6 );
@@ -131,7 +134,7 @@ if( sp == 0 ){
 
 		if(!tf.isBooked(sp) ){
 			tf.book(sp);
-			std::cout<<"Booking histograms for SP: "<<sp<<" (sector="<<spPtr->header().sector()<<" & endcap="<<spPtr->header().endcap()<<")"<<std::endl;
+			cout<<"Booking histograms for SP: "<<sp<<" (sector="<<spPtr->header().sector()<<" & endcap="<<spPtr->header().endcap()<<")"<<std::endl;
 		}
 
 		TH1F *L1A_increment  = (TH1F*)tf.get("L1A_increment",sp);
@@ -160,7 +163,7 @@ if( sp == 0 ){
 
 		TH1F *TrackCounter = (TH1F*)tf.get("TrackCounter",sp);
 		if( TrackCounter ) TrackCounter->Fill(spPtr->counters().track_counter());
-		
+
 		TH1F *OrbitCounter = (TH1F*)tf.get("OrbitCounter",sp);
 		if( OrbitCounter ) OrbitCounter->Fill(spPtr->counters().orbit_counter());
 
@@ -255,7 +258,7 @@ if( sp == 0 ){
 
 				if(!tf.isBooked(sp,mpc) ){
 					tf.book(sp,mpc);
-					std::cout<<"Booking histograms for SP:"<<sp<<" MPC: "<<mpc<<std::endl;
+					cout<<"Booking histograms for SP:"<<sp<<" MPC: "<<mpc<<std::endl;
 				}
 
 				TH1F *csc_ = (TH1F*)tf.get("csc",sp,mpc);
@@ -275,7 +278,7 @@ if( sp == 0 ){
 
 				if(!tf.isBooked(sp,mpc,csc) ){
 					tf.book(sp,mpc,csc);
-					std::cout<<"Booking histograms for SP:"<<sp<<" MPC: "<<mpc<<" CSC: "<<csc<<std::endl;
+					cout<<"Booking histograms for SP:"<<sp<<" MPC: "<<mpc<<" CSC: "<<csc<<std::endl;
 				}
 
 				TH1F *strips = (TH1F*)tf.get("strips",sp,mpc,csc);
@@ -344,7 +347,7 @@ if( sp == 0 ){
 				if( dt_phi_bend ) dt_phi_bend->Fill(dt_stub->phi_bend());
 
 				TH1F *dt_phi = (TH1F*)tf.get("dt_phi",sp);
-                                if( dt_phi ) dt_phi->Fill(dt_stub->phi());
+				if( dt_phi ) dt_phi->Fill(dt_stub->phi());
 
 				TH2F *dt_synch = (TH2F*)tf.get("dt_synch",sp);
 				if( dt_synch ) dt_synch->Fill(spPtr->header().BXN()%(int)dt_synch->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synch->GetYaxis()->GetXmax());
