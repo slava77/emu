@@ -74,11 +74,11 @@ void MainPage(xgi::Input * in, xgi::Output * out ) {
    *out << cgicc::span().set("style","color:green;background-color:white");
    *out << cgicc::pre();
    *out << " Examples of Valid Search Types: " << std::endl << std::endl;
-   *out << "     Crate:    VME+3/3" << std::endl;
-   *out << "     Chamber:  ME+1/1/6" << std::endl;
-   *out << "     DDU:      DDU1/6/1" << std::endl;
+   *out << "     Crate:    VME+3/03" << std::endl;
+   *out << "     Chamber:  ME+1/1/06" << std::endl;
+   *out << "     DDU:      DDU1/06/01" << std::endl;
    *out << "     Cassette: FCTC2/2/f" << std::endl << std::endl;
-   *out << "     Partial Strings: VME+3 ME+1/1 ME+1 DDU1/6 FCTC2/2 " << std::endl << std::endl;
+   *out << "     Partial Strings: VME+3 ME+1/1 ME+1 DDU1/06 FCTC2/2 " << std::endl << std::endl;
    *out << cgicc::pre() << std::endl;
    *out << cgicc::span() << std::endl;
    *out <<  cgicc::h4() << std::endl;

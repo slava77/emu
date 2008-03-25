@@ -425,14 +425,20 @@ std::string ConnectionsDB::PCratetoChamber(std::string endcap,int station,int cr
 std::string ConnectionsDB::chamber_str(int i)
 {
       std::ostringstream dum;
-      dum<<"ME"<<db[i].chamber_endcap<<db[i].chamber_station<<"/"<<db[i].chamber_type<<"/"<<db[i].chamber_number;
+      std::string b1="";
+      if(db[i].chamber_number<10)b1="0";
+      dum<<"ME"<<db[i].chamber_endcap<<db[i].chamber_station<<"/"<<db[i].chamber_type<<"/"<<b1 << db[i].chamber_number;
       return dum.str();    
  }
 
 std::string ConnectionsDB::ddu_str(int i)
 {
       std::ostringstream dum;
-      dum<<"DDU"<<db[i].ddu_crate<<"/" <<db[i].ddu_slot<<"/"<< db[i].ddu_input;     
+      std::string b1="";
+      std::string b2="";
+      if(db[i].ddu_slot<10)b1="0";
+      if(db[i].ddu_input<10)b2="0";
+      dum<<"DDU"<<db[i].ddu_crate<<"/" << b1 << db[i].ddu_slot<<"/"<< b2 << db[i].ddu_input;     
       return dum.str();
 }
 
@@ -454,7 +460,9 @@ std::string ConnectionsDB::pcrate_str(int i)
 std::string ConnectionsDB::pcrate_name_str(int i)
 {
       std::ostringstream dum;
-      dum<<"VME"<<db[i].chamber_endcap << db[i].chamber_station<<"/" << db[i].vme_crate;     
+      std::string b1="";
+      if(db[i].vme_crate<10)b1="0";
+      dum<<"VME"<<db[i].chamber_endcap << db[i].chamber_station<<"/" << b1 << db[i].vme_crate;     
       return dum.str();
 }
 
