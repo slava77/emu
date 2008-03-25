@@ -28,7 +28,7 @@
 #include "xgi/Utils.h"
 
 #include "xcept/tools.h"
-
+#include "xdaq2rc/RcmsStateNotifier.h"
 #include "EmuELog.h"
 
 using namespace std;
@@ -73,7 +73,9 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		runDbAddress_       ( "" ),
 		runDbUserFile_      ( "" ),
 		isBookedRunNumber_  ( false ),
-		state_table_(this)
+		state_table_(this),
+		rcmsStateNotifier_(getApplicationLogger(), getApplicationDescriptor(), getApplicationContext())
+
 {
 	start_attr.insert(std::map<string, string>::value_type("Param", "Start"));
 	stop_attr.insert(std::map<string, string>::value_type("Param", "Stop"));
@@ -110,6 +112,11 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	i->fireItemAvailable( "runDbAddress",        &runDbAddress_        );
 	i->fireItemAvailable( "runDbUserFile",       &runDbUserFile_       );
 
+	//Interface to Run Control
+	i->fireItemAvailable("rcmsStateListener", rcmsStateNotifier_.getRcmsStateListenerParameter());
+        i->fireItemAvailable("foundRcmsStateListener", rcmsStateNotifier_.getFoundRcmsStateListenerParameter());
+	rcmsStateNotifier_.subscribeToChangesInRcmsStateListener(getApplicationInfoSpace());
+	
 	xgi::bind(this, &CSCSupervisor::webDefault,   "Default");
 	xgi::bind(this, &CSCSupervisor::webConfigure, "Configure");
 	xgi::bind(this, &CSCSupervisor::webEnable,    "Enable");
@@ -118,6 +125,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	xgi::bind(this, &CSCSupervisor::webReset,     "Reset");
 	xgi::bind(this, &CSCSupervisor::webSetTTS,    "SetTTS");
 	xgi::bind(this, &CSCSupervisor::webSwitchTTS, "SwitchTTS");
+
+	xoap::bind(this, &CSCSupervisor::StateChangedCallback, "StateChanged",  XDAQ_NS_URI );
 
 	xoap::bind(this, &CSCSupervisor::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onEnable,    "Enable",    XDAQ_NS_URI);
@@ -159,15 +168,17 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	fsm_.setInitialState('H');
 	fsm_.reset();
 
+
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
 	state_table_.addApplication("EmuFCrateManager");
 	state_table_.addApplication("EmuPeripheralCrateManager");
+	state_table_.addApplication("MTCCIIConfiguration");
 	state_table_.addApplication("EmuDAQManager");
 	state_table_.addApplication("TTCciControl");
 	state_table_.addApplication("LTCControl");
 
-	last_log_.size(N_LOG_MESSAGES);
+	//last_log_.size(N_LOG_MESSAGES);
 
 	LOG4CPLUS_INFO(logger_, "CSCSupervisor constructed");
 }
@@ -392,7 +403,7 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 
 	// Message logs
 	*out << hr() << endl;
-	last_log_.webOutput(out);
+	//last_log_.webOutput(out);
 
 	*out << body() << html() << endl;
 }
@@ -553,6 +564,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
 			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
 
+	//	doSoapOpGetState()
+
 	step_counter_ = 0;
 
 	try {
@@ -571,6 +584,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 			sendCommand("Halt", "LTCControl");
 		}
 
+		sendCommand("Configure", "MTCCIIConfiguration");
+
 		string str = trim(getCrateConfig("PC", run_type_.toString()));
 		if (!str.empty()) {
 			setParameter(
@@ -585,6 +600,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		} catch (xcept::Exception ignored) {}
 
 		sendCommand("Configure", "EmuFCrateManager");
+
 		if (!isCalibrationMode()) {
 			sendCommand("Configure", "EmuPeripheralCrateManager");
 		} else {
@@ -622,8 +638,24 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
 	}
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 
+<<<<<<< CSCSupervisor.cc
+	      	rcmsStateNotifier_.findRcmsStateListener();
+		/*try
+{
+	rcmsStateNotifier_. subscribeToChangesInRcmsStateListener(getApplicationInfoSpace());
+}
+catch(xcept::Exception &e)
+{
+	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+		"Failed to find RCMS state listener", e);
+}
+*/
+	rcmsStateNotifier_.stateChanged("Failed"," FOR TEST...");
+=======
 	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
+>>>>>>> 3.58
 }
 
 void CSCSupervisor::enableAction(toolbox::Event::Reference evt) 
@@ -635,7 +667,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 
 	try {
 		state_table_.refresh();
-
+		sendCommand("Enable", "MTCCIIConfiguration");
 		sendCommand("Enable", "EmuFCrateManager");
 		if (!isCalibrationMode()) {
 			sendCommand("Enable", "EmuPeripheralCrateManager");
@@ -700,6 +732,7 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 		} catch (xcept::Exception ignored) {}
 
 		writeRunInfo( true, true );
+		sendCommand("Disable", "MTCCIIConfiguration");
 		sendCommand("Disable", "EmuFCrateManager");
 		sendCommand("Disable", "EmuPeripheralCrateManager");
 		sendCommand("Configure", "TTCciControl");
@@ -729,6 +762,7 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 		if (state_table_.getState("TTCciControl", 0) != "Halted") {
 			sendCommand("Halt", "TTCciControl");
 		}
+		sendCommand("Halt", "MTCCIIConfiguration");
 		sendCommand("Halt", "EmuFCrateManager");
 		sendCommand("Halt", "EmuPeripheralCrateManager");
 
@@ -788,10 +822,49 @@ void CSCSupervisor::submit(toolbox::task::ActionSignature *signature)
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
-	keep_refresh_ = false;
+  keep_refresh_ = false;
 
-    EmuApplication::stateChanged(fsm);
+  std::cout << "Current state is: [" << fsm.getStateName (fsm.getCurrentState()) << "]" << std::endl;
+
+
+  // Send notification to Run Control
+try
+{
+    LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
+	rcmsStateNotifier_.stateChanged((std::string)state_,"");
 }
+catch(xcept::Exception &e)
+{
+	LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control."
+		<< xcept::stdformat_exception_history(e));
+}
+  /*
+    try {
+    LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
+	//rcmsStateNotifier_.stateChanged(stateName_.value_, Reason for state change goes here);
+    rcmsStateNotifier_.stateChanged((std::string)state_,"");
+    } catch(xcept::Exception &e) {
+    LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control : "
+    << xcept::stdformat_exception_history(e));
+    }
+  */
+  
+  EmuApplication::stateChanged(fsm);
+}
+
+xoap::MessageReference CSCSupervisor::StateChangedCallback(xoap::MessageReference msg) throw (xoap::exception::Exception)
+{
+  //	runManager_.collect(msg);
+	
+	xoap::MessageReference reply = xoap::createMessage();
+	xoap::SOAPEnvelope renvelope = reply->getSOAPPart().getEnvelope();
+	//xoap::SOAPName responseName = renvelope.createName( "StateChangedResponse",XDAQ_NS , XDAQ_NS_URI);
+	//renvelope.getBody().addBodyElement ( responseName );
+	
+	return reply;
+}
+
+
 
 void CSCSupervisor::sendCommand(string command, string klass)
 		throw (xoap::exception::Exception, xdaq::exception::Exception)
@@ -1040,13 +1113,22 @@ void CSCSupervisor::analyzeReply(
 	s << "Reply from "
 			<< app->getClassName() << "(" << app->getInstance() << ")" << endl
 			<< reply_str;
+<<<<<<< CSCSupervisor.cc
+	//last_log_.add(s.str());
+	LOG4CPLUS_DEBUG(getApplicationLogger(), reply_str);
+=======
 	last_log_.add(s.str());
 	LOG4CPLUS_DEBUG(logger_, reply_str);
+>>>>>>> 3.58
 
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 
 	// do nothing when no fault
 	if (!body.hasFault()) { return; }
+	//std::cout <<" MY F SATE  =====> " << state_ << std::endl;
+	
+	rcmsStateNotifier_.stateChanged((std::string)fsm_.getStateName(fsm_.getCurrentState())," FOR TEST...");
+
 
 	ostringstream error;
 
@@ -1231,6 +1313,7 @@ string CSCSupervisor::getLocalDAQState()
 
 	return result;
 }
+
 
 string CSCSupervisor::getTFConfig()
 {
@@ -1801,6 +1884,8 @@ void CSCSupervisor::bookRunNumber(){
   } // if ( runInfo_ ){
 
 }
+///////////////////////////////////////////////////////////////////
+
 
 void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
   // Update run info db and post to eLog as well
