@@ -1,4 +1,4 @@
-# $Id: Makefile,v 3.7 2007/10/08 08:55:41 ichiro Exp $
+# $Id: Makefile,v 3.8 2008/03/26 22:28:13 rredjimi Exp $
 
 ##
 #
@@ -21,7 +21,8 @@ Sources = \
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/include \
-	$(XDAQ_ROOT)/include/$(XDAQ_OS)
+	$(XDAQ_ROOT)/include/$(XDAQ_OS)\
+	/nfshome0/cscdev/TriDAS/emu/cscSV/xdaq2rc/include	
 
 LibraryDirs = $(XDAQ_ROOT)/lib
 
