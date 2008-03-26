@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" user="rcms" path="levelOne/template">
+		<FunctionManager name="template" hostname="localhost" port="8080" qualifiedResourceType="rcms.fm.resource.qualifiedresource.FunctionManager" sourceURL="http://localhost:8080/functionmanagers/levelOneTemplateFM.jar" className="rcms.fm.app.level1template.MyFunctionManager">
+		</FunctionManager>
+</Configuration>
