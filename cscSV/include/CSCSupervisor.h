@@ -18,6 +18,7 @@
 #include "xdata/UnsignedInteger.h"
 #include "xgi/Method.h"
 #include "EmuRunInfo.h"
+#include "xdaq2rc/RcmsStateNotifier.h"
 
 class CSCSupervisor : public EmuApplication
 {
@@ -116,7 +117,7 @@ private: // XDAQ parameters
 
 	xdata::UnsignedInteger tts_id_;
 	xdata::UnsignedInteger tts_bits_;
-
+        xdaq2rc::RcmsStateNotifier rcmsStateNotifier_;
 private:
 	toolbox::task::WorkLoop *wl_;
 	toolbox::BSem wl_semaphore_;
