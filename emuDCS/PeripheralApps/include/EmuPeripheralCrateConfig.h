@@ -374,6 +374,8 @@ private:
   void LogChamberTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogCrateTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigAllCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -385,7 +387,15 @@ private:
   int current_crate_;
   void setConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UploadConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  //
   std::vector<TMBTester> InitTMBTests(Crate *);
+  void CheckPeripheralCrateConfiguration();
+  int all_crates_ok;;
+  int crate_check_ok[60];
+  int alct_check_ok[60][9];
+  int tmb_check_ok[60][9];
+  int dmb_check_ok[60][9];
+  //
   xoap::MessageReference PCcreateCommandSOAP(string command);
   void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
     
