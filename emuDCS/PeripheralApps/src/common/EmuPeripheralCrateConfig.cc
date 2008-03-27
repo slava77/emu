@@ -84,8 +84,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
     }
   }
   //
-
-  //
   xgi::bind(this,&EmuPeripheralCrateConfig::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateConfig::MainPage, "MainPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::setConfFile, "setConfFile");
@@ -627,7 +625,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   std::string CheckCrates = toolbox::toString("/%s/CheckCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckCrates) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Check Crates") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check Crate Controllers") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
 
@@ -700,10 +698,14 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 	  *out << cgicc::br() << std::endl ;
 	}
 	//
-      } else  {
+      } else if (crate_check_ok[current_crate_] == 1) {
 	//
 	*out << cgicc::span().set("style","color:green");
 	*out << " OK" << cgicc::br();
+      } else if (crate_check_ok[current_crate_] == -1) {
+	//
+	*out << cgicc::span().set("style","color:blue");
+	*out << " Not checked" << cgicc::br();
       }
       *out << cgicc::span() << std::endl ;
     }
@@ -1978,11 +1980,31 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   //
   *out << cgicc::table();
   //
+  //
+  *out << cgicc::table().set("border","1");
+  //
+  *out << cgicc::td();
+  std::string MeasureL1AsAndDAVsForCrate = toolbox::toString("/%s/MeasureL1AsAndDAVsForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find L1A and DAV delays for crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string MeasureL1AsForCrate = toolbox::toString("/%s/MeasureL1AsForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureL1AsForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find L1A delays for crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
   std::string MeasureDAVsForCrate = toolbox::toString("/%s/MeasureDAVsForCrate",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",MeasureDAVsForCrate) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Find all DAV cable delays for this crate") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find DAV delays for crate") << std::endl ;
   *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
   //
+  *out << cgicc::table();
   //*out << cgicc::body();
   *out << cgicc::fieldset();
   //
@@ -4451,7 +4473,6 @@ void EmuPeripheralCrateConfig::Automatic(xgi::Input * in, xgi::Output * out )
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
-  MyTest[tmb][current_crate_].PropagateMeasuredValues(true);
   MyTest[tmb][current_crate_].Automatic();
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
@@ -4459,11 +4480,11 @@ void EmuPeripheralCrateConfig::Automatic(xgi::Input * in, xgi::Output * out )
   //
 }
 //
-void EmuPeripheralCrateConfig::MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) 
+void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Find DAV cable Delays" << endl;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Automatic");
+  cout << "Find L1A and DAV delays for crate" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find L1A and DAV delays for crate");
   //
   cgicc::Cgicc cgi(in);
   //
@@ -4473,9 +4494,51 @@ void EmuPeripheralCrateConfig::MeasureDAVsForCrate(xgi::Input * in, xgi::Output 
     std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
     //
     MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
-    MyTest[i][current_crate_].PropagateMeasuredValues(true);
-    MyTest[i][current_crate_].MeasureAlctDavCableDelay();
-    MyTest[i][current_crate_].MeasureCfebDavCableDelay();
+    MyTest[i][current_crate_].FindL1AAndDAVDelays();
+    MyTest[i][current_crate_].RedirectOutput(&std::cout);
+  }
+  //
+  this->CrateConfiguration(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureL1AsForCrate(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cout << "Find L1A delays for crate" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find L1A delays for crate");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    //
+    
+    std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
+    //
+    MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
+    MyTest[i][current_crate_].FindL1ADelays();
+    MyTest[i][current_crate_].RedirectOutput(&std::cout);
+  }
+  //
+  this->CrateConfiguration(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cout << "Find DAV cable delays for Crate" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find DAV cable delays");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    //
+    
+    std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
+    //
+    MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
+    MyTest[i][current_crate_].FindDAVDelays();
     MyTest[i][current_crate_].RedirectOutput(&std::cout);
   }
   //
@@ -7757,9 +7820,14 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   std::string TMBFirmware = FirmwareDir_+"tmb/"+date+"/tmb";   // ".xsvf" is added in SetXsvfFilename
   TMBFirmware_ = TMBFirmware;
   //
+  *out << "Load TMB Firmware:  Following the following steps..." << cgicc::br() << std::endl;
+  *out << "Step 1)  BE CAREFUL" << cgicc::br() << std::endl;
+  *out << "Step 2)  DO NOT POWER OFF CRATE" << cgicc::br() << std::endl;
+  *out << "Step 3)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
+  //
   std::string LoadTMBFirmware = toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 4) Load TMB Firmware") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << TMBFirmware_.toString() << ".xsvf";
@@ -7769,15 +7837,15 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form().set("method","GET").set("action",CheckTMBFirmware) ;
   if ( tmb_vme_ready == 1 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","Check TMB VME Ready").set("style","color:green");
+    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:green");
     //
   } else if ( tmb_vme_ready == 0 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","Check TMB VME Ready").set("style","color:red");
+    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:red");
     //
   } else {
     //
-    *out << cgicc::input().set("type","submit").set("value","Check TMB VME Ready").set("style","color:blue");
+    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:blue");
     //
   }
   sprintf(buf,"%d",tmb);
@@ -7786,21 +7854,25 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   std::string ClearTMBBootReg = toolbox::toString("/%s/ClearTMBBootReg",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ClearTMBBootReg) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Enable VME Access to TMB FPGA") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 6) Enable VME Access to TMB FPGA") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::br() << std::endl;
+  *out << cgicc::br() << std::endl;
+  *out << cgicc::br() << std::endl;
+  //
   // remove the ALCT firmware downloading until it can be made robust
   //
-  //  if (alct) {
-  //    std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
-  //    *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
-  //    *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
-  //    sprintf(buf,"%d",tmb);
-  //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  //    *out << cgicc::form() << std::endl ;
-  //  }
+  if (alct) {
+    std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+  }
   //
   if (rat) {
     std::string RATFirmware = FirmwareDir_+RAT_FIRMWARE_FILENAME;
