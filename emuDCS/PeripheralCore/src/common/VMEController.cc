@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.41 2008/03/07 10:26:25 liu Exp $
+// $Id: VMEController.cc,v 3.42 2008/03/27 14:12:48 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.42  2008/03/27 14:12:48  liu
+// increase controller jumbo packet delay
+//
 // Revision 3.41  2008/03/07 10:26:25  liu
 // changed some comments
 //
@@ -301,7 +304,7 @@ VMEController::VMEController():
 // please note the byte swap with respect to the book values 
   CR_ethernet=0x5000;
   CR_ext_fifo=0x0200;
-  CR_res_misc=0x1303;
+  CR_res_misc=0x1302;
   CR_VME_low=0x0F1D;
   CR_VME_hi=0xFFED;
   CR_BUS_timeout=0xD430;
@@ -1225,7 +1228,7 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
     packet_delay=packet_delay+15; 
 //JHL delay turned on
     if(LRG_read_flag) 
-      {  udelay(200);  //add extra delay for forced Jumbo packet out
+      {  udelay(1200);  //add extra delay for forced Jumbo packet out
          if(DEBUG) printf("Forced Jumbo packet delay 200 us\n");
       }
     if ( usedelay_ ) udelay(packet_delay);
