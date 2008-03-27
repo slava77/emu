@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.34 2008/03/17 08:35:25 rakness Exp $
+// $Id: DAQMB.cc,v 3.35 2008/03/27 08:18:07 rakness Exp $
 // $Log: DAQMB.cc,v $
-// Revision 3.34  2008/03/17 08:35:25  rakness
-// DAQMB configuration check; turn on chambers before configuration (committed for S. Durkin)
+// Revision 3.35  2008/03/27 08:18:07  rakness
+// modify comparator threshold checking (together w/J. Gu)
 //
 // Revision 3.33  2008/02/24 12:48:30  liu
 // DMB online counters
@@ -468,10 +468,10 @@ void DAQMB::configure() {
    //
    // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
    // (*MyOutput_) << "DAQMB: switching on LVs on LVMB" << endl; 
-  // lowv_onoff(0x3f); // these lines were moved to global initializations in EmuPeripheralCrateConfig.cc
-  // ::sleep(2);
-  // calctrl_fifomrst();
-  // ::sleep(1);
+   lowv_onoff(0x3f); 
+   ::sleep(2);
+   calctrl_fifomrst();
+   ::sleep(1);
    (*MyOutput_) << "Toogle bxn " << crate_id_ << std::endl ;
    if (toogle_bxn_) ToogleBXN();
 
@@ -645,6 +645,7 @@ void DAQMB::configure() {
 //
 bool DAQMB::checkDAQMBXMLValues()
 { 
+  calctrl_fifomrst();
   (*MyOutput_) << "DAQMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
   // *** This part is for Buck_Flash (Parallel Memory) *****
   int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
@@ -666,17 +667,25 @@ bool DAQMB::checkDAQMBXMLValues()
     }
   }
   //check the comp_dac setting
- 
+
+  // the reference threshold (3.590V) is the most uncertain number.  
+  // Therefore, we set a threshold on this comparison to check for gross errors
+  //
+  const int comparison_threshold = 150;
+  //
   int secondread=0;
  SECONDREAD:
   float compthresh[5];
   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
   int ibad=0;
   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-    std::cout << "****************** thresh " << compthresh[lfeb] << " " << adcplus(2,lfeb) << std::endl;
-    if(abs(compthresh[lfeb]-3500.-set_comp_thresh_*1000.))ibad=ibad+1;
+    int read_threshold_in_mV = (int) (3590. - compthresh[lfeb]);
+    int set_threshold_in_mV  = (int) (set_comp_thresh_ * 1000.);
+    std::cout << "****************** [read,set] thresh (mV) = [" << read_threshold_in_mV << "," << set_threshold_in_mV << "]" 
+	      << std::endl;
+    if( abs(read_threshold_in_mV - set_threshold_in_mV) > comparison_threshold ) ibad=ibad+1;
    }
-   if(ibad>1){
+   if(ibad>0){
       std::cout << " *** FAILED Comparator Threshold check " << std::endl; 
       cfebmatch=false;
       if(secondread==0){
