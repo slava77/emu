@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.42 2008/03/27 14:12:48 liu Exp $
+// $Id: VMEController.cc,v 3.43 2008/03/27 15:20:49 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.43  2008/03/27 15:20:49  liu
+// turn on controller delay in SVFload
+//
 // Revision 3.42  2008/03/27 14:12:48  liu
 // increase controller jumbo packet delay
 //
@@ -1228,8 +1231,8 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
     packet_delay=packet_delay+15; 
 //JHL delay turned on
     if(LRG_read_flag) 
-      {  udelay(1200);  //add extra delay for forced Jumbo packet out
-         if(DEBUG) printf("Forced Jumbo packet delay 200 us\n");
+      {  udelay(400);  //add extra delay for forced Jumbo packet out
+         if(DEBUG) printf("Forced Jumbo packet delay 400 us\n");
       }
     if ( usedelay_ ) udelay(packet_delay);
     //

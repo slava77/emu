@@ -11,6 +11,7 @@
 //
 #include "TMB.h"
 #include "TMB_constants.h"
+#include "VMEController.h"
 //
 //
 //EMUjtag::EMUjtag(){
@@ -2507,6 +2508,9 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db ) {
   //
   tmb_->start(jtag_chain_tmb[jchan-1],jtagSourceFPGA);  
   //
+  // turn on delay, otherwise the VCC's FIFO full
+  tmb_->getTheController()->SetUseDelay(true);
+
   count=0; 
   nowrit=1;
   step_mode=0;
@@ -2983,6 +2987,8 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db ) {
   }
   //
   tmb_->endDevice();
+  // turn off delay.
+  tmb_->getTheController()->SetUseDelay(false);
   fclose(dwnfp);
   return errcntr; 
 }
