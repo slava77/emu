@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.35 2008/03/27 08:18:07 rakness Exp $
+// $Id: DAQMB.cc,v 3.36 2008/03/27 17:21:54 gujh Exp $
 // $Log: DAQMB.cc,v $
-// Revision 3.35  2008/03/27 08:18:07  rakness
-// modify comparator threshold checking (together w/J. Gu)
+// Revision 3.36  2008/03/27 17:21:54  gujh
+//  fix the DAQMB::configure, change the DAV_delay default  ---GU
 //
 // Revision 3.33  2008/02/24 12:48:30  liu
 // DMB online counters
@@ -364,14 +364,14 @@ const int DAQMB::nchips[5] = {6,6,6,6,6};
 DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   VMEModule(theCrate, newslot),
   csc_(theChamber),
-  feb_dav_delay_(24),tmb_dav_delay_(24), 
+  feb_dav_delay_(23),tmb_dav_delay_(22), 
   push_dav_delay_(31), l1acc_dav_delay_(24),
   calibration_LCT_delay_(8), calibration_l1acc_delay_(22),
   pulse_delay_(15), inject_delay_(15),
   pul_dac_set_(1.0), inj_dac_set_(1.0),
   set_comp_thresh_(0.03),
   comp_timing_(1), comp_mode_(2), pre_block_end_(7),
-  cable_delay_(0), crate_id_(0xfe), toogle_bxn_(1), ALCT_dav_delay_(0),
+  cable_delay_(0), crate_id_(0xfe), toogle_bxn_(1), ALCT_dav_delay_(2),
   cfeb_clk_delay_(15), xlatency_(1),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1)
@@ -464,14 +464,13 @@ std::ostream & operator<<(std::ostream & os, DAQMB & daqmb) {
 //
 void DAQMB::configure() {
    //
-  std::cout << std::endl;
+  //  std::cout << std::endl;
    //
-   // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
    // (*MyOutput_) << "DAQMB: switching on LVs on LVMB" << endl; 
-   lowv_onoff(0x3f); 
-   ::sleep(2);
-   calctrl_fifomrst();
-   ::sleep(1);
+  //   lowv_onoff(0x3f); 
+  //   ::sleep(2);
+  //   calctrl_fifomrst();
+  //   ::sleep(1);
    (*MyOutput_) << "Toogle bxn " << crate_id_ << std::endl ;
    if (toogle_bxn_) ToogleBXN();
 
@@ -545,8 +544,6 @@ void DAQMB::configure() {
    enable_cfeb(); //enable..disable CFEBs
    //
    //check the comp_dac setting
-   int secondread=0;
- SECONDREAD:
    float compthresh[5];
    //
    std::cout << "Match &&&&&&&&&&& " << cfebmatch << std::endl;
@@ -554,34 +551,18 @@ void DAQMB::configure() {
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
    //
    (*MyOutput_) << "doing set_comp_thresh " << set_comp_thresh_ << std::endl;
-     int compbad=0;
+
      set_comp_thresh(set_comp_thresh_);
      //(*MyOutput_) << "doing preamp_initx() " << std::endl;
      preamp_initx();
-     compbad=0;
-     for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-       if(abs(1000*(3.5-set_comp_thresh_)-compthresh[lfeb]) > 100)compbad=compbad+1;
-    }
+
    //  If the comparator threshold setting is more than 5mV off, re-program the BuckFlash
    //for (int lfeb=0;lfeb<5;lfeb++)
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
      std::cout << "****************** thresh " << compthresh[lfeb] << " " << adcplus(2,lfeb) << std::endl;
-     if(secondread==0&&compbad>1){
-       calctrl_global();
-       secondread=1;
-       goto SECONDREAD;
-     }
-
-     
-     float adcplusval=adcplus(2,lfeb);
-     if((abs(compthresh[lfeb]-adcplusval)>5.)){
-        cfebmatch=false;
-	std::cout << "Reprogram DMB flash cfeb" << lfeb <<std::endl;
-	std::cout << " compthresh cfeb set " << set_comp_thresh_ << " old " << adcplusval << " new " << compthresh[lfeb] << std::endl;
-     }
+      if((abs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
+    
    }
-
-   //   cfebmatch = false;
 
    if (!cfebmatch) {
      //
@@ -671,7 +652,7 @@ bool DAQMB::checkDAQMBXMLValues()
   // the reference threshold (3.590V) is the most uncertain number.  
   // Therefore, we set a threshold on this comparison to check for gross errors
   //
-  const int comparison_threshold = 150;
+  const int comparison_threshold = 100;
   //
   int secondread=0;
  SECONDREAD:
@@ -679,7 +660,8 @@ bool DAQMB::checkDAQMBXMLValues()
   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
   int ibad=0;
   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-    int read_threshold_in_mV = (int) (3590. - compthresh[lfeb]);
+    //as the monitor show that CFEB +5 is only 4.9V, the 3550 is used instead of 3590
+    int read_threshold_in_mV = (int) (3550. - compthresh[lfeb]);
     int set_threshold_in_mV  = (int) (set_comp_thresh_ * 1000.);
     std::cout << "****************** [read,set] thresh (mV) = [" << read_threshold_in_mV << "," << set_threshold_in_mV << "]" 
 	      << std::endl;
@@ -689,7 +671,7 @@ bool DAQMB::checkDAQMBXMLValues()
       std::cout << " *** FAILED Comparator Threshold check " << std::endl; 
       cfebmatch=false;
       if(secondread==0){
-        calctrl_global();
+	//        calctrl_global();
         secondread=1;
         goto SECONDREAD;
       }
