@@ -38,8 +38,11 @@ public:
   ///When measuring synchronization parameters, choose to propagate the measured values from one step to the next (or not)
   inline void PropagateMeasuredValues(bool true_or_false) { use_measured_values_ = true_or_false; }
   //
-  ///Perform all synchronization steps sequentially except the clock phases
-  void Automatic();
+  ///Perform multiple synchronization steps sequentially:
+  void FindL1ADelays();
+  void FindDAVDelays();
+  void FindL1AAndDAVDelays();
+  void Automatic();    // should be deprecated, since its name is not descriptive at all
   //
   // clock phases
   void CFEBTiming();

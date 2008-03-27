@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.5 2008/03/19 15:05:34 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.6 2008/03/27 14:58:12 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
-// Revision 1.5  2008/03/19 15:05:34  rakness
-// Measure DAVs for crate; relabel buttons for configuration
+// Revision 1.6  2008/03/27 14:58:12  rakness
+// streamline L1A and DAV measurements; modify output for configuration check; add comments to TMB firmware downloading
 //
 // Revision 1.3  2008/03/12 11:43:33  rakness
 // measured sync parameters tagged by chamber; remove ALCT firmware downloading until it can be made robust
@@ -1059,33 +1059,75 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
 //----------------------------------------------
 // Do all synchronization steps at once
 //----------------------------------------------
-void ChamberUtilities::Automatic(){
-  //
-  // First receive the L1A correctly so that the Raw hits readout works:
-  //if (FindTMB_L1A_delay(100,200) < 0 ) return;
-  //
-  // Center the ALCT in the CLCT match window:
-  //if (FindALCTinCLCTMatchWindow() < 0) return;
-  //
-  // Since mpc_tx_delay is set, we can now determine mpc_rx_delay:
-  //if (FindWinner() < 0) return;
+void ChamberUtilities::FindL1ADelays(){
   //
   // Receive the L1A for the TMB and the ALCT:
   if (FindTmbAndAlctL1aDelay() < 0) return;
   //
-  // Since we are getting the L1A for the ALCT, we can determine its DAV timing:
-  if (MeasureAlctDavCableDelay() < 0) return;
-  //
-  // Now receive the L1A for the CFEB:
+  // Receive the L1A for the CFEB:
   if (MeasureTmbLctCableDelay() < 0) return;
   //
-  // Since we are getting the L1A for the CFEB, we can determine its DAV timing:
-  if (MeasureCfebDavCableDelay() < 0) return;
-  //
-  std::cout << "Finished successfully" << std::endl;
+  std::cout << "Found TMB, ALCT, and CFEB L1A Receipt Delay Parameters" << std::endl;
   //
   return;
 }
+//
+void ChamberUtilities::FindDAVDelays(){
+  //
+  // We need to be receiving the L1As correctly at the ALCT and CFEB in order to find the DAV delays
+  //
+  if (MeasureAlctDavCableDelay() < 0) return;
+  //
+  if (MeasureCfebDavCableDelay() < 0) return;
+  //
+  std::cout << "Found ALCT and CFEB Data AVailable Delay Parameters" << std::endl;
+  //
+  return;
+}
+//
+void ChamberUtilities::FindL1AAndDAVDelays(){
+  //
+  bool initial_use_measured_values = use_measured_values_;
+  PropagateMeasuredValues(true);
+  //
+  // Receive the L1A for the TMB and the ALCT:
+  if (FindTmbAndAlctL1aDelay() < 0) {
+    PropagateMeasuredValues(initial_use_measured_values);
+    return;
+  }
+  //
+  // Since we are getting the L1A for the ALCT, we can determine its DAV timing:
+  if (MeasureAlctDavCableDelay() < 0) {
+    PropagateMeasuredValues(initial_use_measured_values);
+    return;
+  }
+  //
+  // Now receive the L1A for the CFEB:
+  if (MeasureTmbLctCableDelay() < 0) {
+    PropagateMeasuredValues(initial_use_measured_values);
+    return;
+  }
+  //
+  // Since we are getting the L1A for the CFEB, we can determine its DAV timing:
+  if (MeasureCfebDavCableDelay() < 0) {
+    PropagateMeasuredValues(initial_use_measured_values);
+    return;
+  }
+  //
+  std::cout << "Successfully found L1A for TMB, ALCT, and CFEB." << std::endl;
+  std::cout << "Successfully found DAVs for ALCT and CFEB." << std::endl;
+  //
+  PropagateMeasuredValues(initial_use_measured_values);
+  return;
+}
+//
+void ChamberUtilities::Automatic(){
+  //
+  FindL1AAndDAVDelays();
+  //
+  return;
+}
+//
 //
 //----------------------------------------------
 // ALCT-CLCT match timing
@@ -1693,15 +1735,18 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   //
   //  int desired_value = 147;                   // this is the value we want the counter to be...
   //  int desired_value = 131;                   // value for xLatency = 1
-  int desired_value = 115;                   // value for xLatency = 0
+  //  int desired_value = 115;                   // value for xLatency = 0
+  int current_xlatency = thisDMB->GetxLatency();
+  int desired_value = 115 + 16*current_xlatency;
   //
-  // The CFEB is expecting the L1A back 147bx after the Active FEB flag arrives.
   // The ADB_SYNC pulse is 500ns long, and can induce another pulse on the strips...
   // Since the counter counts from the *most recent* AFF, we need to expect this value to be:
   if (UsePulsing_) desired_value -= 550/25;    // to agree with cosmics, this value appears better to be 550ns...
   //
-  (*MyOutput_) << "Desired value is " << std::dec << desired_value << std::endl;
-  if (debug_) std::cout << "Desired value is " << std::dec << desired_value << std::endl;
+  (*MyOutput_) << "For xLatency = " << current_xlatency 
+	       << ", desired value is " << std::dec << desired_value << std::endl;
+  if (debug_) std::cout << "For xLatency = " << current_xlatency 
+			<< ", desired value is " << std::dec << desired_value << std::endl;
   //
   // Get initial values
   // Enable this TMB to send LCTs to MPC:  
@@ -1767,7 +1812,17 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   }
   thisDMB->setcbldly(thisDMB->GetCableDelay());
   //
-  return TmbLctCableDelay_;
+  float difference = fabs( ((float) desired_value) - best_average_aff_to_l1a_counter_);
+  //
+  // If our "best" value of tmb_lct_cable_delay gives an average value of the 
+  // Active-FEB Flag <-> L1A difference greater than 1 away from the desired value,
+  // we are not optimally receiving the L1A in the window for the CFEB...
+  //
+  if (difference > 0.5) {
+    return -999;
+  } else {
+    return TmbLctCableDelay_;
+  }
 }
 //
 int ChamberUtilities::MeasureCfebDavCableDelay() {
