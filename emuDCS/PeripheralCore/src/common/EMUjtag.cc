@@ -2821,7 +2821,8 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db ) {
 	if ( send_packages == total_packages ) printf("\n") ;
 	//
 	if (db) printf("SDR Send NOW\n");
-	tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, READ_BACK); 
+	//	tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, READ_BACK); 
+	tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, NO_READ_BACK); 
 	//
 	if (cmpflag==1) {     
 	  //
