@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.28 2008/03/17 08:35:25 rakness Exp $
+// $Id: Crate.cc,v 3.29 2008/03/27 14:12:48 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.29  2008/03/27 14:12:48  liu
+// increase controller jumbo packet delay
+//
 // Revision 3.28  2008/03/17 08:35:25  rakness
 // DAQMB configuration check; turn on chambers before configuration (committed for S. Durkin)
 //
@@ -324,15 +327,10 @@ void Crate::configure(int c) {
 
   std::vector<DAQMB*> myDmbs = this->daqmbs();
 
-  std::cout << " HardReset lowv_onoff HardReset " << std::endl;
-  ccb->HardResetTTCrx();
-  ::sleep(1);
+  std::cout << " lowv_onoff " << std::endl;
   myDmbs[myDmbs.size()-1]->lowv_onoff(0x3f);
   ::sleep(2);
-  ccb->HardResetTTCrx();
-  ::sleep(1);
 //
-  //theController->init();
   //
   ccb->configure();
   //
