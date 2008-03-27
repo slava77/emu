@@ -1,11 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.29 2008/03/27 14:12:48 liu Exp $
+// $Id: Crate.cc,v 3.30 2008/03/27 17:31:21 gujh Exp $
 // $Log: Crate.cc,v $
-// Revision 3.29  2008/03/27 14:12:48  liu
-// increase controller jumbo packet delay
-//
-// Revision 3.28  2008/03/17 08:35:25  rakness
-// DAQMB configuration check; turn on chambers before configuration (committed for S. Durkin)
+// Revision 3.30  2008/03/27 17:31:21  gujh
+// fix the Crate:Configure   --- GU, Rakness
 //
 // Revision 3.27  2008/02/27 17:02:35  liu
 // add Info/Warning packet handling
@@ -327,10 +324,20 @@ void Crate::configure(int c) {
 
   std::vector<DAQMB*> myDmbs = this->daqmbs();
 
-  std::cout << " lowv_onoff " << std::endl;
-  myDmbs[myDmbs.size()-1]->lowv_onoff(0x3f);
-  ::sleep(2);
+  std::cout << " HardReset, then lowv_onoff " << std::endl;
+  ccb->hardReset();
+  ::sleep(1);
+  for (unsigned dmb=0; dmb<myDmbs.size(); dmb++) {
+    std::cout << "DMB slot " << myDmbs[dmb]->slot() 
+	      << " turn ON chamber..." << std::endl;
+    myDmbs[dmb]->lowv_onoff(0x3f);
+    ::sleep(2);
+    std::cout << "DMB slot " << myDmbs[dmb]->slot() 
+	      << " call calctrl_fifomrst " << std::endl;
+    myDmbs[dmb]->calctrl_fifomrst();
+  }
 //
+  //theController->init();
   //
   ccb->configure();
   //
