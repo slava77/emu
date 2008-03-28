@@ -15,7 +15,7 @@ if( parent.type != 0 ){
 
 	document.writeln("<br>");
 
-	if( parent.type=="status.png" || parent.type=="LCTquality.png" || 
+	if( parent.type=="status.png" || parent.type=="LCTquality.png" ||
 	    parent.type=="qualityConsistency.png" || parent.type=="WireGroup.png" ||
 	    parent.type=="Strips.png" || parent.type=="CLCT.png" ||
 	    parent.type=="time_bin.png" || parent.type=="csc_timing.png" ){
@@ -33,8 +33,9 @@ if( parent.type != 0 ){
 	var sp      = parent.sp;
 	var station = parent.station;
 	var type    = parent.type;
+	var scale   = parent.scale;
 
-	if( parent.type=="status.png" || parent.type=="LCTquality.png" || 
+	if( parent.type=="status.png" || parent.type=="LCTquality.png" ||
 	    parent.type=="qualityConsistency.png" || parent.type=="WireGroup.png" ||
 	    parent.type=="Strips.png" || parent.type=="CLCT.png" ||
 	    parent.type=="time_bin.png" || parent.type=="csc_timing.png" ){
@@ -47,7 +48,7 @@ if( parent.type != 0 ){
 		for(var station=0; station<RUNS[run][sp][1].length; station++){
 			layout[folder+'/'+RUNS[run][sp][0]+'/'+RUNS[run][sp][1][station][0]+'/'+type] = '300x250+'+(station%2+1)+'+'+parseInt(station/2+1);
 		}
-	} 
+	}
 
 	if( parent.type=="dt_data{1,2}.png" ){
 		layout[folder+'/'+RUNS[run][sp][0]+'/dt_data1.png'] = '300x250+1+1';
@@ -91,7 +92,64 @@ if( parent.type != 0 ){
 		layout[folder+'/integrity.png'] = '600x500+1+1';
 	}
 
-	view(layout);
+	view(layout,scale);
+
+	// Add some comments to plots
+	if( parent.type=="status.png" ){
+		document.writeln("Top plot: Links' status for 2 frames should always peak at 'Normal data' bin, last 3 'Alignment' bins should always be empty<br>");
+		document.writeln("Bottom left plot: BC0 should always be empty, while BXN0 and L/R should be comparable<br>");
+		document.writeln("Bottom right plot: must be diagonal<br>");
+	}
+	if( parent.type=="LCTquality.png" ){}
+	if( parent.type=="qualityConsistency.png" ){}
+	if( parent.type=="WireGroup.png" ){
+		document.writeln("Wire group distribution should be trapezoidal<br>");
+	}
+	if( parent.type=="Strips.png" ){
+		document.writeln("Strip distribution should be flat<br>");
+	}
+	if( parent.type=="CLCT.png" ){ }
+	if( parent.type=="time_bin.png" ){
+		document.writeln("For CSC self triggering distributions should peak at BX=3 and are allowed to have small tail on the right<br>");
+	}
+	if( parent.type=="csc_timing.png" ){
+		document.writeln("Center of gravity in Y-slices should be aligned along the line BX=0<br>");
+	}
+	if( parent.type=="links.png" ){
+		document.writeln("Top plot: occupancy of LCTs, arriving from MPC (ID on x-axis) to Front FPGA (# on Y-axis)<br>");
+		document.writeln("Bottom left plot: 3-boxes should be aligned diagonally when links from MPC are correctly connected to SP<br>");
+		document.writeln("Bottom right plot: should always be empty<br>");
+	}
+	if( parent.type=="csc.png" ){
+		document.writeln("Occupancy of hits in chambers: it is proportional to chamber size and should clearly show 2 or 3 rings (depending on station)<br>");
+	}
+	if( parent.type=="dt_data{1,2}.png" ){
+		document.writeln("Distributions of various data fields of DT stubs<br>");
+    }
+	if( parent.type=="EventRecordHeader.png" ){
+		document.writeln("Top plot: should be flat in 0-3564 range<br>");
+		document.writeln("Bottom plot: should always be in 'Ready' state<br>");
+	}
+	if( parent.type=="Counters.png" ){ }
+	if( parent.type=="DataBlockHeader{1,2}.png" ){
+		document.writeln("Ideally all histograms should be empty<br>");
+	}
+	if( parent.type=="rate.png" ){ }
+	if( parent.type=="tracks.png" ){
+		document.writeln("Top plot: tells how many tracks were found in SP<br>");
+		document.writeln("Bottom left plot: not informative<br>");
+		document.writeln("Bottom right plot: 2 boxes should be aligned diagonally (if exist)<br>");
+	}
+	if( parent.type=="timing.png" ){
+		document.writeln("Bottom plot: for CSC self triggering tracks should be assigned to BX=3<br>");
+	}
+	if( parent.type=="DDU_status.png" ){
+		document.writeln("Status of the DDU in Track-Finder crate is a 16-bit code word: 1=Warning, 2=Synch Lost, 4=Busy, 8=Ready, 12=Error<br>");
+	}
+	if( parent.type=="integrity.png" ){
+		document.writeln("This histogram should always be empty<br>");
+	}
+
 }
 
 </script>

@@ -9,6 +9,7 @@ parent.folder=RUNS[parent.run][0].replace(/\s+.*$/g, "");
 parent.sp=1;
 parent.station=0;
 parent.type=0;
+parent.scale=1;
 
 document.writeln("Correlated LCTs:");
 //document.writeln("(<a target='viewer' href=view.html onClick='parent.station=0'>F4</a>");
@@ -77,7 +78,17 @@ function setRun(run){
 	document.getElementById('rn').selectedIndex = run;
 }
 
-document.writeln("<- Ctrl -><br>");
+function setScale(scale){
+	parent.scale = scale;
+	if( parent.frames[1].location.href.indexOf("view.html")>0 ){
+		parent.frames[1].location.reload();
+	} else {
+		var expr = new RegExp(prev_folder, "g");
+		parent.frames[1].location.href = parent.frames[1].location.href.replace(expr,parent.folder);
+	}
+}
+
+document.writeln("Ctrl + cursor keys<br>(change run and scale)<br>");
 
 // Modified from http://www.artlebedev.ru/svalka/navigate.js :
 
@@ -98,11 +109,11 @@ function NavigateThrough (event){
 				//link = document.getElementById ('PrevLink');
 				break;
 			case 0x26:
-				if(parent.run>0) setRun(parent.run-1);
+				if(parent.scale>0) setScale(parent.scale+0.5);
 				//link = document.getElementById ('UpLink');
 				break;
 			case 0x28:
-				if(parent.run<RUNS.length-1) setRun(parent.run+1);
+				if(parent.scale<5) setScale(parent.scale-0.5);
 				//link = document.getElementById ('DownLink');
 				break;
 		}
