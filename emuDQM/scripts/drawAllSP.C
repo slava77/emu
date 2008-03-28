@@ -171,15 +171,20 @@ void drawAllSP(const char *filename){
 		if( mean<0 || rms<0 || nhits<0 ){
 			char row[1024];
 			sprintf(row,"<tr><td>%s</td></tr>\n",line.Data());
-			summary_html.Replace(from,to-from,row); 			
+			summary_html.Replace(from,to-from,row);
 		} else {
 			char row[1024];
-			TString _diff = line(0,17);
+			TString _diff = line(0,mean);
 			TString _mean = line(mean+3,5);
 			TString _rms  = line(rms+6,4);
+			int end_pos=0;
+			for(int pos=0; pos<_mean.Length() && (_mean(pos)=='+'||_mean(pos)=='-'||_mean(pos)=='.'||isdigit(_mean(pos))); end_pos=++pos);
+			if( !end_pos ) _mean = "&#151;"; else _mean = _mean(0,end_pos);
+			for(int pos=0; pos<_rms.Length()  && (_rms(pos)=='+'||_rms(pos)=='-'||_rms(pos)=='.'||isdigit(_rms(pos)));  end_pos=++pos);
+			if( !end_pos ) _rms = "&#151;"; else _rms = _rms(0,end_pos);
 			TString _nhits= line.Data()+nhits+8;
 			sprintf(row,"<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n",_diff.Data(),_mean.Data(),_rms.Data(),_nhits.Data());
-			summary_html.Replace(from,to-from,row); 			
+			summary_html.Replace(from,to-from,row);
 		}
 	}
 	summary_html.Append("</table>");
