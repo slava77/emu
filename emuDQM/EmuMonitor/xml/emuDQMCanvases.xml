@@ -57,6 +57,16 @@
 		<Pad1>All_DDUs_Live_Inputs</Pad1>
 		<Pad2>All_DDUs_Average_Live_Inputs</Pad2>
 	</Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test06_DDU_Inpits_in_Error_State</Name>
+                <Title>EMU Test06 - DDU Inputs in ERROR/WARNING State</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>All_DDUs_Inputs_Errors</Pad1>
+                <Pad2>All_DDUs_Inputs_Warnings</Pad2>
+        </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
@@ -67,21 +77,29 @@
 		<Pad1>All_DDUs_Inputs_with_Data</Pad1>
 		<Pad2>All_DDUs_Average_Inputs_with_Data</Pad2>
 	</Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test08a_Reporting_DMBs</Name>
+                <Title>EMU Test08a - DMBs Reporting Data</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_Reporting</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test08b_Reporting_CSCs</Name>
+                <Title>EMU Test08b - CSCs Reporting Data</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_Reporting</Pad1>
+        </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
-		<Name>EMU_Test06_DDU_Inpits_in_Error_State</Name>
-		<Title>EMU Test06 - DDU Inputs in ERROR/WARNING State</Title>
-		<NumPadsX>1</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>All_DDUs_Inputs_Errors</Pad1>
-		<Pad2>All_DDUs_Inputs_Warnings</Pad2>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>EMU</Prefix>
-		<Name>EMU_Test08a_Unpacked_DMBs</Name>
-		<Title>EMU Test08a - Unpacked DMBs</Title>
+		<Name>EMU_Test09a_Unpacked_DMBs</Name>
+		<Title>EMU Test09a - Unpacked DMBs</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>DMB_Unpacked</Pad1>
@@ -89,17 +107,44 @@
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
-		<Name>EMU_Test08b_Unpacked_CSCs</Name>
-		<Title>EMU Test08b - Unpacked CSCs</Title>
+		<Name>EMU_Test09b_Unpacked_CSCs</Name>
+		<Title>EMU Test09b - Unpacked CSCs</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Unpacked</Pad1>
 	</Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test09c_Unpacked_DMBs_Fract</Name>
+                <Title>EMU Test09c - Unpacked DMBs (Fractions)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_Unpacked_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test09d_Unpacked_CSCs_Fract</Name>
+                <Title>EMU Test09d - Unpacked CSCs (Fractions)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_Unpacked_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test10a_DMB_Format_Errors</Name>
+                <Title>EMU Test10a - DMBs with Format Errors</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_Format_Errors</Pad1>
+        </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
-		<Name>EMU_Test09b_CSC_Format_Errors</Name>
-		<Title>EMU Test09b - CSCs with Format Errors</Title>
+		<Name>EMU_Test10b_CSC_Format_Errors</Name>
+		<Title>EMU Test10b - CSCs with Format Errors</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Format_Errors</Pad1>
@@ -107,17 +152,8 @@
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
-		<Name>EMU_Test09a_DMB_Format_Errors</Name>
-		<Title>EMU Test09a - DMBs with Format Errors</Title>
-		<NumPadsX>1</NumPadsX>
-		<NumPadsY>1</NumPadsY>
-		<Pad1>DMB_Format_Errors</Pad1>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>EMU</Prefix>
-		<Name>EMU_Test09c_DMB_Format_Errors_Fract</Name>
-		<Title>EMU Test09c - DMBs with Format Errors (Fractions)</Title>
+		<Name>EMU_Test10c_DMB_Format_Errors_Fract</Name>
+		<Title>EMU Test10c - DMBs with Format Errors (Fractions)</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>DMB_Format_Errors_Fract</Pad1>
@@ -125,26 +161,152 @@
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
-		<Name>EMU_Test09d_CSC_Format_Errors_Fract</Name>
-		<Title>EMU Test09d - CSCs with Format Errors (Fractions)</Title>
+		<Name>EMU_Test10d_CSC_Format_Errors_Fract</Name>
+		<Title>EMU Test10d - CSCs with Format Errors (Fractions)</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Format_Errors_Fract</Pad1>
 	</Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test11a_DMB_wo_ALCT</Name>
+                <Title>EMU Test11a - DMBs without ALCT Data</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_wo_ALCT</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test11b_CSC_wo_ALCT</Name>
+                <Title>EMU Test11b - CSCs without ALCT Data</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_wo_ALCT</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test11c_DMB_wo_ALCT_Fract</Name>
+                <Title>EMU Test11c - DMBs without ALCT Data (Fractions)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_wo_ALCT_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test11d_CSC_wo_ALCT_Fract</Name>
+                <Title>EMU Test11d - CSCs without ALCT Data (Fractions)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_wo_ALCT_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test12a_DMB_wo_CLCT</Name>
+                <Title>EMU Test12a - DMBs without CLCT Data</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_wo_CLCT</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test12b_CSC_wo_CLCT</Name>
+                <Title>EMU Test12b - CSCs without CLCT Data</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_wo_CLCT</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test12c_DMB_wo_CLCT_Fract</Name>
+                <Title>EMU Test12c - DMBs without CLCT Data (Fractions)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_wo_CLCT_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test12d_CSC_wo_CLCT_Fract</Name>
+                <Title>EMU Test12d - CSCs without CLCT Data (Fractions)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_wo_CLCT_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test13a_DMB_wo_CFEB</Name>
+                <Title>EMU Test13a - DMBs without CFEB Data</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_wo_CFEB</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test13b_CSC_wo_CFEB</Name>
+                <Title>EMU Test13b - CSCs without CFEB Data</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_wo_CFEB</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test13c_DMB_wo_CFEB_Fract</Name>
+                <Title>EMU Test13c - DMBs without CFEB Data (Fractions)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_wo_CFEB_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test13d_CSC_wo_CFEB_Fract</Name>
+                <Title>EMU Test13d - CSCs without CFEB Data (Fractions)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_wo_CFEB_Fract</Pad1>
+        </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
-		<Name>EMU_Test10a_DMB_Format_Warnings</Name>
-		<Title>EMU Test10a - DMBs with CFEB B-Words</Title>
+		<Name>EMU_Test14a_DMB_Format_Warnings</Name>
+		<Title>EMU Test14a - DMBs with CFEB B-Words</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>DMB_Format_Warnings</Pad1>
 	</Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test14b_CSC_Format_Warnings</Name>
+                <Title>EMU Test14b - CSCs with CFEB B-Words</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_Format_Warnings</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test14c_DMB_Format_Warnings_Fract</Name>
+                <Title>EMU Test14c - DMBs with CFEB B-Words (Fraction)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_Format_Warnings_Fract</Pad1>
+        </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
-		<Name>EMU_Test10b_CSC_Format_Warnings_Fract</Name>
-		<Title>EMU Test10b - CSCs with CFEB B-Words (Fraction)</Title>
+		<Name>EMU_Test14d_CSC_Format_Warnings_Fract</Name>
+		<Title>EMU Test14d - CSCs with CFEB B-Words (Fraction)</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Format_Warnings_Fract</Pad1>
@@ -265,89 +427,12 @@
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
-		<Name>ALCT_ALCT2_Key_Wiregroups__Patterns_and_Quality</Name>
-		<Title>ALCT: ALCT2 Key Wiregroups, Patterns and Quality</Title>
-		<NumPadsX>2</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>ALCT2_KeyWG</Pad1>
-		<Pad2>ALCT3_Quality</Pad2>
-		<Pad3>ALCT2_Pattern</Pad3>
-		<Folder>ALCT</Folder>
-		<Pad4>ALCT2_Quality_Profile</Pad4>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT_ALCT2_BXN_and_ALCT_L1A_BXN_Synchronization</Name>
-		<Title>ALCT: ALCT2_BXN and ALCT_L1A_BXN Synchronization</Title>
-		<NumPadsX>2</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>ALCT2_BXN</Pad1>
-		<Pad2>ALCT3_dTime_vs_KeyWG</Pad2>
-		<Pad3>ALCT2_dTime</Pad3>
-		<Folder>ALCT</Folder>
-		<Pad4>ALCT2_dTime_Profile</Pad4>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT_ALCT3_Key_Wiregroups__Patterns_and_Quality</Name>
-		<Title>ALCT: ALCT3 Key Wiregroups, Patterns and Quality</Title>
-		<NumPadsX>2</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>ALCT3_KeyWG</Pad1>
-		<Pad2>ALCT3_Quality</Pad2>
-		<Pad3>ALCT3_Pattern</Pad3>
-		<Folder>ALCT</Folder>
-		<Pad4>ALCT3_Quality_Profile</Pad4>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT_ALCT3_BXN_and_ALCT_L1A_BXN_Synchronization</Name>
-		<Title>ALCT: ALCT3_BXN and ALCT_L1A_BXN Synchronization</Title>
-		<NumPadsX>2</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>ALCT3_BXN</Pad1>
-		<Pad2>ALCT3_dTime_vs_KeyWG</Pad2>
-		<Pad3>ALCT3_dTime</Pad3>
-		<Folder>ALCT</Folder>
-		<Pad4>ALCT3_dTime_Profile</Pad4>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT_ALCT4_Key_Wiregroups__Patterns_and_Quality</Name>
-		<Title>ALCT: ALCT4 Key Wiregroups, Patterns and Quality</Title>
-		<NumPadsX>2</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>ALCT4_KeyWG</Pad1>
-		<Pad2>ALCT4_Quality</Pad2>
-		<Pad3>ALCT4_Pattern</Pad3>
-		<Folder>ALCT</Folder>
-		<Pad4>ALCT4_Quality_Profile</Pad4>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>CSC</Prefix>
-		<Name>ALCT_ALCT4_BXN_and_ALCT_L1A_BXN_Synchronization</Name>
-		<Title>ALCT: ALCT4_BXN and ALCT_L1A_BXN Synchronization</Title>
-		<NumPadsX>2</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>ALCT4_BXN</Pad1>
-		<Pad2>ALCT4_dTime_vs_KeyWG</Pad2>
-		<Pad3>ALCT4_dTime</Pad3>
-		<Folder>ALCT</Folder>
-		<Pad4>ALCT4_dTime_Profile</Pad4>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>CSC</Prefix>
 		<Name>ALCT_ALCTs_Found</Name>
 		<Title>ALCT: ALCTs Found</Title>
-		<NumPadsX>1</NumPadsX>
+		<NumPadsX>2</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>ALCT_Number_Efficiency</Pad1>
+		<Pad2>ALCT1_vs_ALCT0_KeyWG</Pad2>
 		<Folder>ALCT</Folder>
 	</Canvas>
 	<Canvas>

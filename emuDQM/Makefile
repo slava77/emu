@@ -15,11 +15,14 @@ Project=emu
 ifeq ($(Set),framework)
 Packages=\
 	emuDQM/CMSSWLibs \
-	emuDQM/dduBinExaminer \
-	emuDQM/EmuROOTDisplayServer \
 	emuDQM/Common \
-	emuDQM/emuMonitor \
-	emuDQM/emuDisplayClient
+	emuDQM/EmuPlotter \
+	emuDQM/EmuMonitor \
+	emuDQM/EmuDisplayClient
+#	emuDQM/emuMonitor \
+	emuDQM/emuDisplayClient \
+	emuDQM/dduBinExaminer \
+	emuDQM/EmuROOTDisplayServer
 endif
 
 ifeq ($(Set),emuMonitor)

@@ -192,6 +192,8 @@ protected:
   void createTreeEngine(std::string path);
   void createTreePage(std::string path);
 
+  void calcFractionHisto(ME_List MEs, std::string resultHistoName, std::string setHistoName, std::string subSetHistoName);
+
   std::map<std::string, int> getCSCTypeToBinMap();
   std::string getCSCTypeLabel(int endcap, int station, int ring );
 

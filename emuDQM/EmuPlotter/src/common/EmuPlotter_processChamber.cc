@@ -75,6 +75,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
     return;
   }
+
   nDMBEvents[cscTag]++;
   float DMBEvents  = 0.0;
   DMBEvents = nDMBEvents[cscTag];  
@@ -107,8 +108,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int CSCtype = 0;
   int CSCposition = 0;
   this->getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
-  if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo))
+  if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo)){
     mo->Fill(CSCposition, CSCtype);
+  }
 
   EmuMonitoringObject* mof = NULL;
   if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
@@ -514,11 +516,20 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       int nALCT = (int)mo->GetBinContent(1);
       if (isMEvalid(cscME, "ALCT_Number_Efficiency", mo)) mo->SetBinContent(1, (float)(nALCT)/(float)(DMBEvents)*100.0);
     }
+
     if ((alct_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
       mo->Fill(0.0, 1.0);
     }
 
-  }
+    if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_ALCT", mo)){
+      mo->Fill(CSCposition, CSCtype);
+    }
+
+    if (isMEvalid(nodeME, "DMB_wo_ALCT", mo)) {
+      mo->Fill(crateID,dmbID);
+    }
+
+ }
 
   //ALCT and CLCT coinsidence
   if(data.nclct() && data.nalct()) {
@@ -885,6 +896,15 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if ((tmb_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
       mo->Fill(1.0, 1.0);
     }
+
+    if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_CLCT", mo)){
+      mo->Fill(CSCposition, CSCtype);
+    }
+
+    if (isMEvalid(nodeME, "DMB_wo_CLCT", mo)) {
+      mo->Fill(crateID,dmbID);
+    }
+
   }
 
   //    CFEB found
@@ -1200,6 +1220,19 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     }
   }
   
+
+  // If no CFEBs found then lets fill-in histo
+  if(NumberOfUnpackedCFEBs == 0){
+
+    if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_CFEB", mo)){
+      mo->Fill(CSCposition, CSCtype);
+    }
+
+    if (isMEvalid(nodeME, "DMB_wo_CFEB", mo)) {
+      mo->Fill(crateID,dmbID);
+    }
+
+  }
  
   //--------------B
   float Cathodes[N_CFEBs*N_Strips*N_Samples*N_Layers];
