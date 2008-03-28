@@ -135,3 +135,6 @@ $(LDIR)/libQualityTests.a: $(OBJS_QLTY)
 
 clean:
 	@rm -f $(LDIR)/*.a $(LDIR)/*.so $(ODIR)/*.o *.o program core*
+
+_installall:
+install:

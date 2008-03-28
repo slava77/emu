@@ -576,7 +576,11 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
   }
   // }
 }
-		    
+
+/*
+  After the histograms have been collected this function
+  updates fraction histograms.
+*/
 void EmuPlotter::updateFractionHistos()
 {
 
@@ -590,47 +594,63 @@ void EmuPlotter::updateFractionHistos()
   EmuMonitoringObject *mo1 = NULL;
   EmuMonitoringObject *mo2 = NULL;
   EmuMonitoringObject *mo3 = NULL;
-  if (isMEvalid(nodeME, "DMB_Format_Errors_Fract", mo)
+
+  // ************************************
+  // Collecting all the reporting DMBs and CSCs
+  // ************************************
+
+  if (isMEvalid(nodeME, "DMB_Reporting", mo)
       && isMEvalid(nodeME, "DMB_Format_Errors", mo1)
       && isMEvalid(nodeME, "DMB_Unpacked", mo2))
     {
-       // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-        
-        MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
-        tmp->Add(mo1->getObject());
+        mo->getObject()->Add(mo1->getObject(), mo2->getObject());
         if (isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo3)) {
-		tmp->Add(mo3->getObject(), -1);
+	  mo->getObject()->Add(mo3->getObject(), -1);
         }
-	
-        mo->getObject()->Divide(mo1->getObject(), tmp);
-        delete tmp;
-
-
     }
 
-  if (isMEvalid(nodeME, "CSC_Format_Errors_Fract", mo)
+  if (isMEvalid(nodeME, "CSC_Reporting", mo)
       && isMEvalid(nodeME, "CSC_Format_Errors", mo1)
       && isMEvalid(nodeME, "CSC_Unpacked", mo2))
     {
-       // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+        mo->getObject()->Add(mo1->getObject(), mo2->getObject());
+	if (isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo3)) {
+          mo->getObject()->Add(mo3->getObject(), -1);
+        }
+    }
 
+  // ************************************
+  // Calculating Fractions
+  // ************************************
+
+  calcFractionHisto(nodeME, "DMB_Format_Errors_Fract", "DMB_Reporting", "DMB_Format_Errors");
+  calcFractionHisto(nodeME, "CSC_Format_Errors_Fract", "CSC_Format_Errors", "CSC_Reporting");
+  calcFractionHisto(nodeME, "DMB_Unpacked_Fract", "DMB_Reporting", "DMB_Unpacked");
+  calcFractionHisto(nodeME, "CSC_Unpacked_Fract", "CSC_Reporting", "CSC_Unpacked");
+  calcFractionHisto(nodeME, "DMB_wo_ALCT_Fract", "DMB_Reporting", "DMB_wo_ALCT");
+  calcFractionHisto(nodeME, "CSC_wo_ALCT_Fract", "CSC_Reporting", "CSC_wo_ALCT");
+  calcFractionHisto(nodeME, "DMB_wo_CLCT_Fract", "DMB_Reporting", "DMB_wo_CLCT");
+  calcFractionHisto(nodeME, "CSC_wo_CLCT_Fract", "CSC_Reporting", "CSC_wo_CLCT");
+  calcFractionHisto(nodeME, "DMB_wo_CFEB_Fract", "DMB_Reporting", "DMB_wo_CFEB");
+  calcFractionHisto(nodeME, "CSC_wo_CFEB_Fract", "CSC_Reporting", "CSC_wo_CFEB");
+
+  if (isMEvalid(nodeME, "DMB_Format_Warnings_Fract", mo)
+      && isMEvalid(nodeME, "DMB_Format_Warnings", mo1)
+      && isMEvalid(nodeME, "DMB_Unpacked", mo2))
+    {
         MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
         tmp->Add(mo1->getObject());
-	if (isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo3)) {
+        if (isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo3)) {
                 tmp->Add(mo3->getObject(), -1);
         }
         mo->getObject()->Divide(mo1->getObject(), tmp);
         delete tmp;
-
-
     }
 
   if (isMEvalid(nodeME, "CSC_Format_Warnings_Fract", mo)
       && isMEvalid(nodeME, "CSC_Format_Warnings", mo1)
       && isMEvalid(nodeME, "CSC_Unpacked", mo2))
     {
-      // mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-
         MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
         tmp->Add(mo1->getObject());
 	if (isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo3)) {
@@ -638,9 +658,36 @@ void EmuPlotter::updateFractionHistos()
         }
         mo->getObject()->Divide(mo1->getObject(), tmp);
         delete tmp;
-
-
     }
 
-
 } 
+
+/*
+  Calculate fractional histogram:
+  MEs - a list where to take histograms from
+  resultHistoName - name of the resulting histogram (to be computed)
+  setHistoName - the whole set histogram (data)
+  subSetHistoName - the subset of the whole set (setHistoName)
+  
+  resultHistoName is being computed by dividing subSetHistoName from setHistoName, i.e.
+    fraction of errors = errors / records
+*/
+void EmuPlotter::calcFractionHisto(
+  ME_List MEs, 
+  std::string resultHistoName, 
+  std::string setHistoName, 
+  std::string subSetHistoName){
+
+  EmuMonitoringObject *mo = NULL;
+  EmuMonitoringObject *mo1 = NULL;
+  EmuMonitoringObject *mo2 = NULL;
+
+  if (isMEvalid(MEs, resultHistoName, mo)
+      && isMEvalid(MEs, setHistoName, mo2)
+      && isMEvalid(MEs, subSetHistoName, mo1))
+    {
+        mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+    }
+
+}
+
