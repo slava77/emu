@@ -1,4 +1,4 @@
-function view (layout){
+function view (layout,scale){
 	var width  = new Object();
 	var height = new Object();
 	var nCols=0, nRows=0;
@@ -13,8 +13,8 @@ function view (layout){
 		var h   = w_h.replace(/^.*x/g, "");
 		var x   = x_y.replace(/\+.*$/g, "");
 		var y   = x_y.replace(/^.+\+/g, "");
-		width [item] = w;
-		height[item] = h;
+		width [item] = w*scale;
+		height[item] = h*scale;
 		if( nCols < x ) nCols = x;
 		if( nRows < y ) nRows = y;
 		location[x][y] = item;
