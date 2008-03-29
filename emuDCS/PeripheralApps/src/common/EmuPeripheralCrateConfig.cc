@@ -10099,9 +10099,9 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllVmePromUserid (xoap::Mes
     if ((dmbVector[idmb]->slot())<22) {
       DAQMB * thisDMB=dmbVector[idmb];
       unsigned long int boardnumber=thisDMB->mbpromuser(0);
-      DMBBoardNumber[idmb]=boardnumber;
+      DMBBoardNumber[cv][idmb]=boardnumber;
       cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
-      cout <<" This DMB Board Number: "<<DMBBoardNumber[idmb]<<endl<<endl;
+      cout <<" This DMB Board Number: "<<DMBBoardNumber[cv][idmb]<<endl<<endl;
     }
     //
   }
@@ -10128,7 +10128,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
     //
     if ((dmbVector[idmb]->slot())<22) {
       DAQMB * thisDMB=dmbVector[idmb];
-      unsigned long int boardnumber=DMBBoardNumber[idmb];
+      unsigned long int boardnumber=DMBBoardNumber[cv][idmb];
       char prombrdname[4];
       //	if (idmb==0) boardnumber = 0xdb00000c;
       //	if (idmb==1) boardnumber = 0xdb00021b;
@@ -10189,8 +10189,8 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllCfebPromUserid (xoap::Me
       vector <CFEB> thisCFEBs=thisDMB->cfebs();
       //
       for (unsigned i=0;i<thisCFEBs.size();i++) {
-	CFEBBoardNumber[idmb][i]=thisDMB->febpromuser(thisCFEBs[i]);
-	cout <<" This CFEB Board Number: "<<CFEBBoardNumber[idmb][i]<<endl;
+	CFEBBoardNumber[cv][idmb][i]=thisDMB->febpromuser(thisCFEBs[i]);
+	cout <<" This CFEB Board Number: "<<CFEBBoardNumber[cv][idmb][i]<<endl;
       }
       //
       cout <<endl;
@@ -10227,7 +10227,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
       //
       for (unsigned i=0;i<thisCFEBs.size();i++) {
 	char promid[4];
-	unsigned long int boardid=CFEBBoardNumber[idmb][i];
+	unsigned long int boardid=CFEBBoardNumber[cv][idmb][i];
 	/*
 	  unsigned long int fpgaid=thisDMB->febfpgaid(thisCFEBs[i]);
 	  cout <<" i= "<<i<<endl;
