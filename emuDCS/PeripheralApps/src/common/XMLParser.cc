@@ -648,6 +648,9 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
       daqmb_->SetxLatency(delay);
       for (int cfeb=0; cfeb<5; cfeb++) daqmb_->SetL1aExtraCfeb(cfeb,delay);
     }
+    if (fillInt("xFineLatency",delay)) {
+      daqmb_->SetxFineLatency(delay);
+    }
     //
     int number=0;   
     int kill_chip[6]={0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
