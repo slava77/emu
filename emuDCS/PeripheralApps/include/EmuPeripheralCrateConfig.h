@@ -174,8 +174,8 @@ protected:
   vector<int> TmbDavCounter_;
   vector<int> AlctDavCounter_;
   //
-  unsigned long int DMBBoardNumber[10];
-  unsigned long int CFEBBoardNumber[10][5];
+  unsigned long int DMBBoardNumber[62][10];
+  unsigned long int CFEBBoardNumber[62][10][7];
   
   //
   EmuEndcap * emuEndcap_;
