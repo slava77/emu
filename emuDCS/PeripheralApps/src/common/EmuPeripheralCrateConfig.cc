@@ -10138,7 +10138,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
       int dmbID=brddb->CrateToDMBID(crate,slot);
 
       prombrdname[0]=boardnumber&0xff;
-      prombrdname[1]=(boardnumber>>8)&0xff;
+      prombrdname[1]=(boardnumber>>8)&0x03;
       prombrdname[2]=0x00;
       prombrdname[3]=0xdb;
 
@@ -10147,9 +10147,14 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
 	  ((boardnumber&0xfff)==0xaad)) {
 	prombrdname[0]=dmbID&0xff;
 	prombrdname[1]=(dmbID>>8)&0x0f;
+	cout<<" DMB board number reprogram from Database ..."<<endl;
       }
+      //temperarily overwrite all board number using database
+      //	prombrdname[0]=dmbID&0xff;
+      //	prombrdname[1]=(dmbID>>8)&0x0f;
 
-      cout<<" Loading the board number ..."<<(prombrdname[0]&0xff)+((prombrdname[1]<<8)&0xf00)<<" was set to: "<<(boardnumber&0xffff)<<endl;
+        cout<<" Loading the board number ..."<<(prombrdname[0]&0xff)+((prombrdname[1]<<8)&0xf00)<<" was set to: "<<(boardnumber&0xffff)<<endl;
+
       //
       std::string DMBVmeFirmware = FirmwareDir_+DMBVME_FIRMWARE_FILENAME;
       //
@@ -10249,7 +10254,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
 	//the ID readback from database
 	if (((boardid&0x00000fff)==0) ||
 	    ((boardid&0x00000fff)==0xfff) ||
-            ((boardid&0x00000fff)==0xaad)) promid[0]=cfebID&0xff;
+            ((boardid&0x00000fff)==0xaad)) {
+	   promid[0]=cfebID&0xff;
+	   cout<<" CFEB board number reprogram from Database ..."<<endl;
+	}
 	promid[1]=(cfebID>>8)&0x0f;
 	promid[2]=0xeb;
 	promid[3]=0xcf;
