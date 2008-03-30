@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.21 2008/03/17 08:35:24 rakness Exp $
+// $Id: DAQMB.h,v 3.22 2008/03/30 08:25:15 gujh Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.22  2008/03/30 08:25:15  gujh
+// Added the corresponding code for DMB/CFEB fine L1A delay adjustment ---GU, Mar. 30, 2008
+//
 // Revision 3.21  2008/03/17 08:35:24  rakness
 // DAQMB configuration check; turn on chambers before configuration (committed for S. Durkin)
 //
@@ -244,6 +247,7 @@ public:
   void dmb_readstatus(char [10]);
   void cfebs_readstatus();
   void setxlatency(int dword);
+  void setxfinelatency(int dword);
   // 
   void SFMWriteProtect();
   void LoadCFEBDelaySFM();
@@ -385,6 +389,9 @@ public:
   //
   void SetxLatency(int latency){xlatency_ = latency;}
   inline int GetxLatency(){return xlatency_;}
+  //
+  void SetxFineLatency(int finelatency){xfinelatency_ = finelatency;}
+  inline int GetxFineLatency(){return xfinelatency_;}
   //
   void SetPulseDac(float value){pul_dac_set_= value;}
   inline float GetPulseDac(){return pul_dac_set_;}
@@ -571,10 +578,10 @@ public:
   int toogle_bxn_;
   int ALCT_dav_delay_;
   //
-  int CableDelay_, CrateID_, CfebClkDelay_, XLatency_;
+  int CableDelay_, CrateID_, CfebClkDelay_, XLatency_, XFineLatency_;
   //
   int cfeb_clk_delay_;
-  int xlatency_;
+  int xlatency_, xfinelatency_;
   int comp_mode_cfeb_[5];
   int comp_timing_cfeb_[5];
   int pre_block_end_cfeb_[5];

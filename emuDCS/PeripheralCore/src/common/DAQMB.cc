@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.36 2008/03/27 17:21:54 gujh Exp $
+// $Id: DAQMB.cc,v 3.37 2008/03/30 08:25:37 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.37  2008/03/30 08:25:37  gujh
+// Added the corresponding code for DMB/CFEB fine L1A delay adjustment ---GU, Mar. 30, 2008
+//
 // Revision 3.36  2008/03/27 17:21:54  gujh
 //  fix the DAQMB::configure, change the DAV_delay default  ---GU
 //
@@ -372,7 +375,7 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   set_comp_thresh_(0.03),
   comp_timing_(1), comp_mode_(2), pre_block_end_(7),
   cable_delay_(0), crate_id_(0xfe), toogle_bxn_(1), ALCT_dav_delay_(2),
-  cfeb_clk_delay_(15), xlatency_(1),
+  cfeb_clk_delay_(15), xlatency_(0), xfinelatency_(5),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1)
 {
@@ -599,17 +602,20 @@ void DAQMB::configure() {
    if (((CableDelay_)!=cable_delay_)||
        ((CrateID_)!=crate_id_)||
        ((CfebClkDelay_)!=cfeb_clk_delay_)||
-       ((XLatency_)!=xlatency_) ) {
+       ((XLatency_)!=xlatency_) ||
+       ((XFineLatency_)!=xfinelatency_) ) {
      //
 	std::cout << "Reprogram DMB SFM flash " << std::endl;
 	std::cout << " CableDelay old " << CableDelay_ << " new " << cable_delay_ <<std::endl;
 	std::cout << " CrateID old " << CrateID_ << " new " << crate_id_ << std::endl;
 	std::cout << " CFEBClkDelay old " << CfebClkDelay_ << " new " << cfeb_clk_delay_ << std::endl;
 	std::cout << " xlatency old " << XLatency_ << " new " << xlatency_ << std::endl;
+	std::cout << " xfinelatency old " << XFineLatency_ << " new " << xfinelatency_ << std::endl;
      (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
      setcrateid(crate_id_);
      //
      setxlatency(xlatency_);
+     setxfinelatency(xfinelatency_);
      //     LctL1aDelay(xlatency_);
      //
      (*MyOutput_) << "Set cfeb clk delay " << cfeb_clk_delay_ << std::endl ;
@@ -685,13 +691,15 @@ bool DAQMB::checkDAQMBXMLValues()
     if (((CableDelay_)!=cable_delay_)||
 	((CrateID_)!=crate_id_)||
 	((CfebClkDelay_)!=cfeb_clk_delay_)||
-	((XLatency_)!=xlatency_) ){
+	((XLatency_)!=xlatency_)||
+        ((XFineLatency_)!=xfinelatency_) ){
       cfebmatch=false;
       std::cout << "*** FAILED SFM flash check " << std::endl;
       std::cout << " CableDelay old " << CableDelay_ << " new " << cable_delay_ <<std::endl;
       std::cout << " CrateID old " << CrateID_ << " new " << crate_id_ << std::endl;
       std::cout << " CFEBClkDelay old " << CfebClkDelay_ << " new " << cfeb_clk_delay_ << std::endl;
       std::cout << " xlatency old " << XLatency_ << " new " << xlatency_ << std::endl;
+      std::cout << " xfinelatency old " << XFineLatency_ << " new " << xfinelatency_ << std::endl;
     }
     return cfebmatch;
   }
@@ -1487,6 +1495,8 @@ void DAQMB::dmb_readstatus(char status[10])
   printf(" FEB_Delay: %02xh \n",CfebClkDelay_);
   XLatency_=((rcvbuf[8]>>6)&0x03); 
   printf(" Extra L1A latency: %02xh \n",XLatency_);
+  XFineLatency_=((rcvbuf[9])&0x0f); 
+  printf(" Extra Fine L1A latency: %02xh \n",XFineLatency_);
 
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
@@ -1672,6 +1682,25 @@ void DAQMB::setxlatency(int dword)
   sndbuf[1]=(dword>>8)&0xFF;
   sndbuf[2]=(dword>>16)&0xFF;
   devdo(MCTRL,6,cmd,2,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+
+void DAQMB::setxfinelatency(int dword)
+{
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=41;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=dword&0X0f; 
+  sndbuf[1]=(dword>>8)&0xFF;
+  sndbuf[2]=(dword>>16)&0xFF;
+  devdo(MCTRL,6,cmd,4,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_USR1;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
