@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.22 2008/03/07 10:26:25 liu Exp $
+// $Id: CCB.cc,v 3.23 2008/03/31 14:41:01 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.23  2008/03/31 14:41:01  liu
+// remove soft_reset from hard_reset sequence
+//
 // Revision 3.22  2008/03/07 10:26:25  liu
 // changed some comments
 //
@@ -828,19 +831,6 @@ void CCB::hardReset() {
   HardReset_crate();
   ::sleep(2);
 
-  //
-  //fg note: these 10seconds are not necessary for new/old TMB
-  //fg sleep(10);
-  //
-  // sequence of 2nd hard reset with additional delays (Jianhui)
-  //::sleep(2);
-  //  HardReset_crate();
-  //  ::sleep(1); // could go down to ~100msec (Jianhui)
-  //  std::cout << ReadRegister(0x0) << std::endl;
-
-  SoftReset_crate();
-  //fg note: this 1second is not necessary
-  ::sleep(1);
   syncReset();
   //fg note: *keep* this 1second!
   ::sleep(1);
