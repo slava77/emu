@@ -550,11 +550,19 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
   *out << "['Node','State','Run Number','DAQ Events','DQM Events','Rate (Evt/s)','Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last event timestamp']," << std::endl;
  
   std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
+  std::set<xdaq::ApplicationDescriptor*>  ruis = getAppsList("EmuRUI");
   if (!monitors.empty()) {
     std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+    std::set<xdaq::ApplicationDescriptor*>::iterator rui=ruis.end();
     for (pos=monitors.begin(); pos!=monitors.end(); ++pos) {
       // for (int i=0; i<monitors_.size(); i++) {
       if ((*pos) == NULL) continue;
+	  if (!ruis.empty()) {
+		for (rui=ruis.begin(); rui != ruis.end(); ++rui) {
+			if ((*pos)->getInstance() == (*rui)->getInstance());
+			break;
+		}
+          }
 
 
 	  std::ostringstream st;
@@ -606,7 +614,10 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 	      nDAQevents = "NA";
 	      if (readoutMode == "external") {
 		dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"serversClassName","string");
-		nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
+		if (rui != ruis.end()) {
+			nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*rui),"nEventsRead","unsignedLong");
+			// nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
+		}
 	      }
 	    }
 	  catch(xcept::Exception e)
