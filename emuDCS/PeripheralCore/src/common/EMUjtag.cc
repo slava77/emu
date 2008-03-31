@@ -2412,9 +2412,11 @@ void EMUjtag::ProgramTMBProms() {
   // Default when programming prom is to write a logfile:
   ReadXsvfFile_(true);
   //
-  short unsigned int BootReg;
-  tmb_->tmb_get_boot_reg(&BootReg);
-  tmb_->tmb_set_boot_reg(BootReg & 0xff7f);     //give the JTAG chain back to the FPGA 
+  if (tmb_->slot() < 22) {
+    short unsigned int BootReg;
+    tmb_->tmb_get_boot_reg(&BootReg);
+    tmb_->tmb_set_boot_reg(BootReg & 0xff7f);     //give the JTAG chain back to the FPGA 
+  }
   //
   time_t endtime = time (NULL);
   //
