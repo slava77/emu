@@ -14,10 +14,10 @@
                 <YMax>50</YMax>
                 <YBins>50</YBins>
                 <YTitle>Gain slope A</YTitle>
-		<Low1Limit>1</Low1Limit>
+		<Low1Limit>2</Low1Limit>
 		<Low0Limit>4</Low0Limit>
-		<High0Limit>10</High0Limit>
-		<High1Limit>35</High1Limit>
+		<High0Limit>12</High0Limit>
+		<High1Limit>20</High1Limit>
         </TestResult>
 
 	<TestResult>
@@ -30,14 +30,14 @@
                 <XMax>80</XMax>
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>2500</YMax>
-                <YBins>250</YBins>
+                <YMin>-60</YMin>
+                <YMax>40</YMax>
+                <YBins>100</YBins>
                 <YTitle>Gain intercept</YTitle>
-                <Low1Limit>10</Low1Limit>
-                <Low0Limit>200</Low0Limit>
-                <High0Limit>1000</High0Limit>
-                <High1Limit>2000</High1Limit>
+                <Low1Limit>-40</Low1Limit>
+                <Low0Limit>-30</Low0Limit>
+                <High0Limit>10</High0Limit>
+                <High1Limit>20</High1Limit>
         </TestResult>
 
 	<TestResult>
@@ -51,13 +51,13 @@
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
                 <YMin>0</YMin>
-                <YMax>1200</YMax>
-                <YBins>120</YBins>
+                <YMax>50</YMax>
+                <YBins>200</YBins>
                 <YTitle>Gain non-linearity</YTitle>
                 <Low1Limit>0</Low1Limit>
                 <Low0Limit>0</Low0Limit>
-                <High0Limit>40</High0Limit>
-                <High1Limit>1000</High1Limit>
+                <High0Limit>30</High0Limit>
+                <High1Limit>60</High1Limit>
         </TestResult>
 
 	<TestResult>
@@ -70,12 +70,12 @@
                 <XMax>80</XMax>
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
-                <YMin>1900</YMin>
+                <YMin>0</YMin>
                 <YMax>4100</YMax>
-                <YBins>220</YBins>
+                <YBins>41</YBins>
                 <YTitle>Saturation (ADC)</YTitle>
-                <Low1Limit>2000</Low1Limit>
-                <Low0Limit>3000</Low0Limit>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0</Low0Limit>
                 <High0Limit>4095</High0Limit>
                 <High1Limit>4095</High1Limit>
         </TestResult>
@@ -145,8 +145,8 @@
                 <XBins>16</XBins>
 		<XTitle>Time sample i</XTitle>
 		<YMin>-20</YMin>
-                <YMax>20</YMax>
-                <YBins>40</YBins>
+                <YMax>1400</YMax>
+                <YBins>71</YBins>
                 <YTitle>Charge Qi-Q12</YTitle>
 		<SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
@@ -163,9 +163,9 @@
                 <XMax>20</XMax>
                 <XBins>20</XBins>
                 <XTitle>PulseDAC(i)</XTitle>
-                <YMin>-20</YMin>
-                <YMax>20</YMax>
-                <YBins>40</YBins>
+                <YMin>0</YMin>
+                <YMax>4000</YMax>
+                <YBins>400</YBins>
                 <YTitle>Charge Qmax-Q12</YTitle>
 		<SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>

@@ -426,6 +426,23 @@
         </TestResult>
 
 	<TestResult>
+                <Test>CFEB02</Test>
+                <Type>h1</Type>
+                <Title>V05 - Maximum SCA charge</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V05</Name>
+                <XMin>0</XMin>
+                <XMax>100</XMax>
+                <XBins>100</XBins>
+                <XTitle>Max SCA charge Qi - Q12 (ADC)</XTitle>
+                <YTitle># Events</YTitle>
+		<SetOptStat>eom</SetOptStat>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+        </TestResult>
+
+
+	<TestResult>
 		<Test>CFEB02</Test>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
