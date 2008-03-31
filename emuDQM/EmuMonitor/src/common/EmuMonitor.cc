@@ -478,6 +478,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
       else if ( item == "nDAQEvents")
         {
 	  nDAQEvents_ = 0;
+	  /*
 	  std::set<xdaq::ApplicationDescriptor*>::iterator pos;
 	  for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
 	    xdata::UnsignedLong count;
@@ -494,6 +495,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
 	      }
 	    nDAQEvents_ = nDAQEvents_ + count;	
           }
+	  */
         }
 
 
