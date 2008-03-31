@@ -553,13 +553,17 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
   std::set<xdaq::ApplicationDescriptor*>  ruis = getAppsList("EmuRUI");
   if (!monitors.empty()) {
     std::set<xdaq::ApplicationDescriptor*>::iterator pos;
-    std::set<xdaq::ApplicationDescriptor*>::iterator rui=ruis.end();
+    std::set<xdaq::ApplicationDescriptor*>::iterator rui_itr;
+    xdaq::ApplicationDescriptor* rui=NULL;
+    
     for (pos=monitors.begin(); pos!=monitors.end(); ++pos) {
       // for (int i=0; i<monitors_.size(); i++) {
       if ((*pos) == NULL) continue;
 	  if (!ruis.empty()) {
-		for (rui=ruis.begin(); rui != ruis.end(); ++rui) {
-			if ((*pos)->getInstance() == (*rui)->getInstance());
+		for (rui_itr=ruis.begin(); rui_itr != ruis.end(); ++rui_itr) {
+			if ((*pos)->getInstance() == (*rui_itr)->getInstance()) {
+				rui=(*rui_itr);
+			}
 			break;
 		}
           }
@@ -581,7 +585,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 	  std::string lastEventTime = "NA";
      
 
-	  std::string nDAQevents = "NA";
+	  std::string nDAQevents = "0";
 	  std::string dataSource = "NA";
 
 	  try
@@ -611,11 +615,11 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 
 	      if (readoutMode == "internal")
 		dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"inputDeviceName","string");
-	      nDAQevents = "NA";
+	      nDAQevents = "0";
 	      if (readoutMode == "external") {
 		dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"serversClassName","string");
-		if (rui != ruis.end()) {
-			nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*rui),"nEventsRead","unsignedLong");
+		if (rui != NULL) {
+			nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), rui,"nEventsRead","unsignedLong");
 			// nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
 		}
 	      }
