@@ -149,7 +149,7 @@ void Test_CFEB02::analyze(const char * data, int32_t dataSize, uint32_t errorSta
 
   }
 
-  for(unsigned i=0; i < nCSCs; i++) {
+  for(int i=0; i < nCSCs; i++) {
     analyzeCSC(chamberDatas[i]);
   }
 	
@@ -219,9 +219,11 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
   TH1F* v02 = reinterpret_cast<TH1F*>(cschistos["V02"]);
   TH1F* v03 = reinterpret_cast<TH1F*>(cschistos["V03"]);
   TH1F* v04 = reinterpret_cast<TH1F*>(cschistos["V04"]);
+  TH1F* v05 = reinterpret_cast<TH1F*>(cschistos["V05"]);
 
   // == Check if CFEB Data Available 
   if (dmbHeader->cfebAvailable()){
+    double Qmax=0;
     for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
       if (!cfebData) continue;
@@ -235,6 +237,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 		      + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
 	  // - Forth sample
 	  double Q4 = (cfebData->timeSlice(3))->timeSample(layer,strip)->adcCounts;
+          // double Qmax=0;
 
 	  if(v02) v02->Fill(Q4-Q12);
 
@@ -246,7 +249,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 	    CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
 	    int Qi = (int) ((timeSample->adcCounts)&0xFFF);
 	    if (v01) v01->Fill(itime, Qi-Q12);
-
+	    if (Qi-Q12>Qmax) Qmax=Qi-Q12;
 	    // - first 1000 events pedestals and rms for initial calculations
 	    if (nEvents <= 1000) {
 	      _mv0.content[layer-1][icfeb*16+strip-1] += Qi;
@@ -256,6 +259,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 	    }
 	  }
           
+	  // if (v05) v05->Fill(Qmax);
           
 	  if (nEvents > 1000) {
 	    bool fEventValid = true;
@@ -395,9 +399,9 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 	    }
 	  }
 	}
-
       } // 1000 events
     }
+    if (v05) v05->Fill(Qmax);
 
     // Calculate mv0 and rms0
     if (nEvents == 1000) {
@@ -468,16 +472,21 @@ void Test_CFEB02::finishCSC(std::string cscID)
 
     CFEBSCAData& scadata = sdata[cscID]; 
  
-    CSCMapItem::MapItem mapitem;
+//    CSCMapItem::MapItem& mapitem;
     CSCtoHWmap::iterator itr = cscmap.find(cscID);
 
     if (itr != cscmap.end()) {
-/*
-      map->cratedmb(itr->second.first,itr->second.second,&mapitem);
+
+      // map->cratedmb(itr->second.first,itr->second.second,&mapitem);
+      int dmbID = itr->second.second;
+      if (dmbID >= 6) --dmbID;
+      int id = 10*itr->second.first+dmbID;
+      
+      CSCMapItem::MapItem mapitem = cratemap->item(id);
       int first_strip_index=mapitem.stripIndex;
       int strips_per_layer=mapitem.strips;
-  */ 
-      int strips_per_layer = getNumStrips(cscID);
+   
+      // int strips_per_layer = getNumStrips(cscID);
       double rms = 0.;
       double covar = 0;
 
@@ -632,7 +641,8 @@ void Test_CFEB02::finishCSC(std::string cscID)
 	}
       }
       res_out.close();
-/*
+
+      if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
       // == Save results for database transfer Pedestals and RMS
       res_out.open((path+cscID+"_CFEB02_DB.dat").c_str());
       for (int layer=0; layer<NLAYERS; layer++) {
@@ -642,9 +652,47 @@ void Test_CFEB02::finishCSC(std::string cscID)
 	}
       }
       res_out.close();
-*/
+      }
+
     }
 
   }
+}
+
+bool Test_CFEB02::checkResults(std::string cscID)
+{
+	bool isValid=true;
+	cscTestData::iterator td_itr =  tdata.find(cscID);
+  	if (td_itr != tdata.end()) {
+    		TestData& cscdata= td_itr->second;
+        	TestData2D& r01 = cscdata["R01"];
+        	TestData2D& r02 = cscdata["R02"];
+
+		int badChannels=0;
+		// Check pedestals
+                for (int i=0; i<r01.Nlayers; i++) {
+                        for (int j=0; j<r01.Nbins; j++) {
+                                if ((r01.content[i][j] > 1000) || (r01.content[i][j] < 300)) badChannels++;
+                        }
+                }
+		if (badChannels/(float(r01.Nlayers*r01.Nbins)) >=0.2) { 
+			isValid=false;
+			std::cout << "20% of channels have bad Pedestals" << std::endl;
+		}
+
+		badChannels=0;
+		// Check noise
+		for (int i=0; i<r02.Nlayers; i++) {
+		        for (int j=0; j<r02.Nbins; j++) {
+				if (r02.content[i][j] > 6.) badChannels++;
+			}
+		}
+		if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
+			isValid=false;
+			std::cout << "20% of channels have bad Noise" << std::endl;
+		}
+	}
+
+	return isValid;
 }
 

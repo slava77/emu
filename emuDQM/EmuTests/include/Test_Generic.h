@@ -38,6 +38,7 @@
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCStripDigi.h"
 #include "CondFormats/CSCObjects/interface/CSCMapItem.h"
+#include "CondFormats/CSCObjects/interface/CSCCrateMap.h"
 
 
 #include "ConsumerCanvas.hh"
@@ -87,6 +88,48 @@ typedef struct CFEBSCAData{
 // == CSC->SCA Data structure
 typedef std::map<std::string, CFEBSCAData> cscCFEBSCAData;
 
+#define DAC_STEPS 20
+#define NSAMPLES 9
+
+// == CFEB SCA cell sample pair (value, count)
+typedef struct test_step {
+        int active_strip;
+        int dac_step;
+        int evt_cnt;
+        int max_adc;
+} test_step;
+
+typedef struct ddu_stats {
+        long first_l1a;
+        int last_empty;
+        long evt_cntr;
+        long l1a_cntr;
+        int empty_evt_cntr;
+        int csc_evt_cntr;
+        int strip;
+        int dac;
+
+} ddu_stats;
+
+// == CFEB SCA cell sample pair (value, count)
+typedef struct dac_step {
+        double s;
+        double mv;
+        double rms;
+        double max;
+//        double max_rms;
+//        int max_cnt;
+        int cnt;
+} dac_step;
+
+// == CFEB SCA data structure
+typedef struct GainData{
+        int Nbins;
+        int Nlayers;
+        dac_step content[DAC_STEPS][NLAYERS][MAX_STRIPS][NSAMPLES];
+} GainData;
+
+typedef std::map<std::string, GainData> cscGainData;
 
 // == Base Class for Emu Tests
 class Test_Generic 
@@ -157,6 +200,7 @@ class Test_Generic
 	std::map<std::string, TH2F*> hFormatErrors;
 	std::map<std::string, int> tmap; // Map of CSC types for Format Errors histogram
         CSCtoHWmap cscmap;
+        CSCCrateMap* cratemap;
 //  	cscmap1 *map;
 
 };

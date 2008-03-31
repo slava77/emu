@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
 		xmlTestCfg = "file://" + cfgDir +"emuTest_CFEB02.xml";
 	} else if (datafile.find("CFEB_CrossTalk") != std::string::npos) {
                 LOG4CPLUS_INFO(logger, "Detected data for Test CFEB03: Pulse Response and Cross Talks");
-//                test_analyzer = new Test_CFEB03(datafile);
+                test_analyzer = new Test_CFEB03(datafile);
 		xmlTestCfg = "file://" + cfgDir +"emuTest_CFEB03.xml";
 	} else if (datafile.find("CFEB_Gains") != std::string::npos) {
 		LOG4CPLUS_INFO(logger, "Detected data for Test CFEB04: Amplifier Gain");
