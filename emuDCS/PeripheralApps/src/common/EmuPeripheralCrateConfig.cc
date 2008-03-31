@@ -177,6 +177,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTStatus, "ALCTStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::RATStatus, "RATStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadTMBFirmware, "LoadTMBFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::LoadCrateTMBFirmware, "LoadCrateTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTMBFirmware, "CheckTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
@@ -7825,41 +7826,54 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "Step 2)  DO NOT POWER OFF CRATE" << cgicc::br() << std::endl;
   *out << "Step 3)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
   //
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td().set("ALIGN","left");
   std::string LoadTMBFirmware = toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Step 4) Load TMB Firmware") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string LoadCrateTMBFirmware = toolbox::toString("/%s/LoadCrateTMBFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LoadCrateTMBFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 4) Load Firmware to all TMBs in this crate") << std::endl ;
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << TMBFirmware_.toString() << ".xsvf";
   *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table();
+  //
+  //
+  *out << "Step 5)  TTC/CCB hard reset" << cgicc::br() << std::endl;
   //
   std::string CheckTMBFirmware = toolbox::toString("/%s/CheckTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckTMBFirmware) ;
   if ( tmb_vme_ready == 1 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:green");
+    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:green");
     //
   } else if ( tmb_vme_ready == 0 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:red");
+    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:red");
     //
   } else {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:blue");
+    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:blue");
     //
   }
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
   std::string ClearTMBBootReg = toolbox::toString("/%s/ClearTMBBootReg",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ClearTMBBootReg) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Step 6) Enable VME Access to TMB FPGA") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::input().set("type","submit").set("value","Step 7) Enable VME Access to TMB FPGA") << std::endl ;
   *out << cgicc::form() << std::endl ;
   //
-  *out << cgicc::br() << std::endl;
   *out << cgicc::br() << std::endl;
   *out << cgicc::br() << std::endl;
   //
@@ -8161,85 +8175,97 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
   //
   cgicc::Cgicc cgi(in);
   //
-  //const CgiEnvironment& env = cgi.getEnvironment();
-  //
   cgicc::form_iterator name = cgi.getElement("tmb");
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    cout << "Load firmware for TMB[" << tmb << "]" << endl;
     TMB_ = tmb;
   } else {
-    cout << "Not tmb" << endl ;
+    cout << "No TMB defined to load... taking default = " << TMB_ << endl ;
     tmb = TMB_;
   }
   //
-  tmb_vme_ready = -1;
-  //
   TMB * thisTMB = tmbVector[tmb];
+  //
+  tmb_vme_ready = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
   thisCCB->setCCBMode(CCB::VMEFPGA);
   //
-  int mintmb = tmb;
-  int maxtmb = tmb+1;
+  int number_of_verify_errors = 0;
   //
-  // To remove the loop, comment out the following if (thisTMB->slot() ...) stuff...
-  //  if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
-  //    mintmb = 0;
-  //    maxtmb = tmbVector.size()-1;
-  //  }
-  // end of stuff to remove...
-  //
-  std::cout << "Loading TMB firmware from " << mintmb << " to " << maxtmb << std::endl;
-  //
-  int number_of_verify_errors[9] = {};
-  //
-  for (tmb=mintmb; tmb<maxtmb; tmb++) {
-    thisTMB = tmbVector[tmb];
+  if (thisTMB->slot() < 22) {
+    std::cout << "Loading TMB firmware to slot " << thisTMB->slot() << " in 5 seconds..." << std::endl;
     //
-    std::cout << "Loading TMB firmware in slot " << thisTMB->slot() << std::endl;
-    //
-    ::sleep(10);
+    ::sleep(5);
     //
     thisTMB->SetXsvfFilename(TMBFirmware_.toString().c_str());
     thisTMB->ProgramTMBProms();
     thisTMB->ClearXsvfFilename();
     //
-    //int debugMode(0);
-    //int jch(5);
+    number_of_verify_errors = thisTMB->GetNumberOfVerifyErrors();
+    cout << "=== Programming TMB firmware finished for slot " << thisTMB->slot() << endl;
+    cout << "=== " << number_of_verify_errors << " Verify Errors occured" << endl;
     //
-    //thisTMB->disableAllClocks();
-    //int status = thisTMB->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
-    //thisTMB->enableAllClocks();
-    //
-    number_of_verify_errors[tmb] = thisTMB->GetNumberOfVerifyErrors();
-    cout << "=== Programming finished on TMB slot " << thisTMB->slot() << endl;
-    cout << "=== " << number_of_verify_errors[tmb] << " Verify Errors occured" << endl;
-    //
-  }
-  //
-  int total_number_of_errors = 0;
-  for (int i=0; i<9; i++) 
-    total_number_of_errors += number_of_verify_errors[i];
-  //
-  if (total_number_of_errors < 0) {
-    cout << "File does not exist, programming did not occur..."<< endl;
-    //
-  } else if (total_number_of_errors == 0) {
-    cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< endl;
-    //
-  } else {
-    cout << "ERROR!!  Total number of verify errors = " << total_number_of_errors << endl;
-    for (int i=0; i<9; i++) {
-      cout << "TMB slot " << tmbVector[i]->slot() 
-	   << " -> Number of errors = " << number_of_verify_errors[i] 
-	   << std::endl;
+    if (number_of_verify_errors < 0) {
+      cout << "File does not exist, programming did not occur..."<< endl;
+      //
+    } else if (number_of_verify_errors == 0) {
+      cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< endl;
+      //
+    } else {
+      cout << "ERROR!! -> Number of errors = " << number_of_verify_errors << " not equal to 0!!" << std::endl;
+      std::cout << std::endl;
+      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
+      cout << "!!!! Do not perform hard reset !!!! " << endl;
+      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
     }
-    cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
-    cout << "!!!! Do not perform hard reset !!!! " << endl;
-    cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
+    //
+  } 
+  //
+  // Put CCB back into DLOG mode to listen to TTC commands...
+  thisCCB->setCCBMode(CCB::DLOG);
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "Load TMB firmware crate, called from TMB[" << tmb << "]" << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "No TMB defined to load... taking default = " << TMB_ << endl ;
+    tmb = TMB_;
   }
+  //
+  // Create a TMB which all TMB's within a crate will listen to....
+  //
+  Chamber * thisChamber = chamberVector[tmb];
+  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26);
+  //
+  tmb_vme_ready = -1;
+  //
+  // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
+  thisCCB->setCCBMode(CCB::VMEFPGA);
+  //
+  std::cout << "Broadcast TMB firmware to slot " << thisTMB->slot() << " in 5 seconds..." << std::endl;
+  //
+  ::sleep(5);
+  //
+  thisTMB->SetXsvfFilename(TMBFirmware_.toString().c_str());
+  thisTMB->ProgramTMBProms();
+  thisTMB->ClearXsvfFilename();
+  //
+  cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< endl;
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
   thisCCB->setCCBMode(CCB::DLOG);
@@ -8251,43 +8277,22 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
 void EmuPeripheralCrateConfig::CheckTMBFirmware(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cgicc::Cgicc cgi(in);
-  //
-  //const CgiEnvironment& env = cgi.getEnvironment();
-  //
-  cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
-  if(name != cgi.getElements().end()) {
-    tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
-    TMB_ = tmb;
-  } else {
-    cout << "Not tmb" << endl ;
-    tmb = TMB_;
-  }
-  //
-  TMB * thisTMB = tmbVector[tmb];
-  // 
-  int mintmb = tmb;
-  int maxtmb = tmb+1;
-  //
-  if (thisTMB->slot() == 26) {
-    mintmb = 0;
-    maxtmb = tmbVector.size()-1;
-  }
-  //
-  std::cout << "Checking TMB VME Ready from " << mintmb << " to " << maxtmb << std::endl;
+  std::cout << "Checking TMB VME Ready for all slots in crate" << std::endl;
   //
   tmb_vme_ready = 1;
   //
-  for (tmb=mintmb; tmb<maxtmb; tmb++) {
-    thisTMB = tmbVector[tmb];
-
-    short unsigned int BootReg;
-    thisTMB->tmb_get_boot_reg(&BootReg);
-    std::cout << "Boot register = 0x" << std::hex << BootReg << std::endl;
+  for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
     //
-    if (thisTMB->GetBootVMEReady() != 1) tmb_vme_ready = 0;
+    TMB * thisTMB = tmbVector[tmb];
+    //
+    if (thisTMB->slot() < 22) {
+      short unsigned int BootReg;
+      thisTMB->tmb_get_boot_reg(&BootReg);
+      std::cout << "Boot register = 0x" << std::hex << BootReg << std::endl;
+      //
+      if (thisTMB->GetBootVMEReady() != 1) tmb_vme_ready = 0;
+    }
+    //
   }
   //
   this->TMBUtils(in,out);
@@ -8297,24 +8302,25 @@ void EmuPeripheralCrateConfig::CheckTMBFirmware(xgi::Input * in, xgi::Output * o
 void EmuPeripheralCrateConfig::ClearTMBBootReg(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cgicc::Cgicc cgi(in);
-  //
-  //const CgiEnvironment& env = cgi.getEnvironment();
-  //
-  cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
-  if(name != cgi.getElements().end()) {
-    tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
-    TMB_ = tmb;
+  if (tmb_vme_ready == 1) {
+    //
+    for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
+      //
+      TMB * thisTMB = tmbVector[tmb];
+      //
+      if (thisTMB->slot() < 22) {
+	short unsigned int BootReg;
+	thisTMB->tmb_get_boot_reg(&BootReg);
+	BootReg &= 0xff7f;                    // Give JTAG chain to the FPGA to configure ALCT on hard reset
+	BootReg &= 0xf7ff;                    // Allow FPGA access to the VME register
+	thisTMB->tmb_set_boot_reg(BootReg);
+	//
+      }
+    }
   } else {
-    cout << "Not tmb" << endl ;
-    tmb = TMB_;
+    //
+    std::cout << "TMB is not ready for VME access" << std::endl;
   }
-  //
-  TMB * thisTMB = tmbVector[tmb];
-  //
-  thisTMB->tmb_set_boot_reg(0x0);
   //
   this->TMBUtils(in,out);
   //
