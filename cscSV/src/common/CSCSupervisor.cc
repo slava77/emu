@@ -119,7 +119,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	
 	xgi::bind(this, &CSCSupervisor::webDefault,   "Default");
 	xgi::bind(this, &CSCSupervisor::webConfigure, "Configure");
-	xgi::bind(this, &CSCSupervisor::webEnable,    "Enable");
+	xgi::bind(this, &CSCSupervisor::webStart,    "Start");
 	xgi::bind(this, &CSCSupervisor::webDisable,   "Disable");
 	xgi::bind(this, &CSCSupervisor::webHalt,      "Halt");
 	xgi::bind(this, &CSCSupervisor::webReset,     "Reset");
@@ -127,7 +127,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	xgi::bind(this, &CSCSupervisor::webSwitchTTS, "SwitchTTS");
 
 	xoap::bind(this, &CSCSupervisor::onConfigure, "Configure", XDAQ_NS_URI);
-	xoap::bind(this, &CSCSupervisor::onEnable,    "Enable",    XDAQ_NS_URI);
+	xoap::bind(this, &CSCSupervisor::onStart,    "Start",    XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onHalt,      "Halt",      XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onReset,     "Reset",     XDAQ_NS_URI);
@@ -144,14 +144,13 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 
 	fsm_.addState('H', "Halted",     this, &CSCSupervisor::stateChanged);
 	fsm_.addState('C', "Configured", this, &CSCSupervisor::stateChanged);
-	fsm_.addState('E', "Enabled",    this, &CSCSupervisor::stateChanged);
+	fsm_.addState('E', "Running",    this, &CSCSupervisor::stateChanged);
+	fsm_.addState('c', "Configuring", this, &CSCSupervisor::stateChanged);
 
 	fsm_.addStateTransition(
 			'H', 'C', "Configure", this, &CSCSupervisor::configureAction);
 	fsm_.addStateTransition(
-			'C', 'C', "Configure", this, &CSCSupervisor::configureAction);
-	fsm_.addStateTransition(
-			'C', 'E', "Enable",    this, &CSCSupervisor::enableAction);
+			'C', 'E', "Start",    this, &CSCSupervisor::startAction);
 	fsm_.addStateTransition(
 			'E', 'C', "Disable",   this, &CSCSupervisor::disableAction);
 	fsm_.addStateTransition(
@@ -190,10 +189,10 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 	return createReply(message);
 }
 
-xoap::MessageReference CSCSupervisor::onEnable(xoap::MessageReference message)
+xoap::MessageReference CSCSupervisor::onStart(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	fireEvent("Enable");
+	fireEvent("Start");
 
 	return createReply(message);
 }
@@ -303,10 +302,10 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << table() << tbody() << tr();
 
 	*out << td() << form().set("action",
-			"/" + getApplicationDescriptor()->getURN() + "/Enable") << endl;
+			"/" + getApplicationDescriptor()->getURN() + "/Start") << endl;
 	*out << input().set("type", "submit")
 			.set("name", "command")
-			.set("value", "Enable") << endl;
+			.set("value", "Start") << endl;
 	*out << form() << td() << endl;
 
 	*out << td() << form().set("action",
@@ -424,7 +423,7 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 	webRedirect(in, out);
 }
 
-void CSCSupervisor::webEnable(xgi::Input *in, xgi::Output *out)
+void CSCSupervisor::webStart(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
 	// Book run number here to make sure it's done 
@@ -432,7 +431,7 @@ void CSCSupervisor::webEnable(xgi::Input *in, xgi::Output *out)
 	// and not by the FunctionManager via SOAP.
 	bookRunNumber();
 
-	fireEvent("Enable");
+	fireEvent("Start");
 
 	keep_refresh_ = true;
 	webRedirect(in, out);
@@ -559,8 +558,6 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
 	LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
 			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
-	      	
-	rcmsStateNotifier_.findRcmsStateListener();
 	
 	step_counter_ = 0;
 
@@ -617,7 +614,6 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 			XCEPT_RAISE(xdaq::exception::Exception,
 					"Applications got to unexpected states.");
 		}
-
 		refreshConfigParameters();
 
 	} catch (xoap::exception::Exception e) {
@@ -631,11 +627,13 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
 	}
-
-	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
+	
+	state_table_.refresh();
+	LOG4CPLUS_DEBUG(logger_,  "Current state is: [" << fsm_.getStateName (fsm_.getCurrentState()) << "]");
+	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end of this function)");
 }
 
-void CSCSupervisor::enableAction(toolbox::Event::Reference evt) 
+void CSCSupervisor::startAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
@@ -645,9 +643,9 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 	try {
 		state_table_.refresh();
 
-		sendCommand("Enable", "EmuFCrateManager");
+		sendCommand("Start", "EmuFCrateManager");
 		if (!isCalibrationMode()) {
-			sendCommand("Enable", "EmuPeripheralCrateManager");
+			sendCommand("Start", "EmuPeripheralCrateManager");
 		}
 
 		try {
@@ -658,16 +656,16 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 			}
 			setParameter("EmuDAQManager",
 					"runNumber", "xsd:unsignedLong", run_number_.toString());
-			sendCommand("Enable", "EmuDAQManager");
+			sendCommand("Start", "EmuDAQManager");
 		} catch (xcept::Exception ignored) {}
 
 		state_table_.refresh();
 
-		if (state_table_.getState("TTCciControl", 0) != "Enabled") {
-			sendCommand("Enable", "TTCciControl");
+		if (state_table_.getState("TTCciControl", 0) != "Running") {
+			sendCommand("Start", "TTCciControl");
 		}
-		if (state_table_.getState("TTCciControl", 0) != "Enabled") {
-			sendCommand("Enable", "LTCControl");
+		if (state_table_.getState("TTCciControl", 0) != "Running") {
+			sendCommand("Start", "LTCControl");
 		}
 		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
 
@@ -797,21 +795,24 @@ void CSCSupervisor::submit(toolbox::task::ActionSignature *signature)
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
-	keep_refresh_ = false;
-  std::cout << "Current state is: [" << fsm.getStateName (fsm.getCurrentState()) << "]" << std::endl;
+  keep_refresh_ = false;
+  rcmsStateNotifier_.findRcmsStateListener();
+  LOG4CPLUS_DEBUG(getApplicationLogger(),"Current state is: [" << fsm.getStateName (fsm.getCurrentState()) << "]");
   // Send notification to Run Control
-try
-{
-    LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
-	rcmsStateNotifier_.stateChanged((std::string)state_,"");
-}
-catch(xcept::Exception &e)
-{
+  state_=fsm.getStateName (fsm.getCurrentState());
+  try
+    {
+      LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
+      rcmsStateNotifier_.stateChanged((std::string)state_,"");
+    }
+  catch(xcept::Exception &e)
+      {
 	LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control."
-		<< xcept::stdformat_exception_history(e));
-}
-
-    EmuApplication::stateChanged(fsm);
+			<< xcept::stdformat_exception_history(e));
+	std::cout << "rcmsFailed to notify state change to Run Control:" << std::endl;
+      }
+  
+  EmuApplication::stateChanged(fsm);
 }
 
 void CSCSupervisor::sendCommand(string command, string klass)
@@ -2122,4 +2123,5 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
 // vim: set sw=4 ts=4:
 // End of file
 // vim: set sw=4 ts=4:
+
 

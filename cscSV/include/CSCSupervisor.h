@@ -33,7 +33,7 @@ public:
 	// SOAP interface
 	xoap::MessageReference onConfigure(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
-	xoap::MessageReference onEnable(xoap::MessageReference message)
+	xoap::MessageReference onStart(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
 	xoap::MessageReference onDisable(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
@@ -49,7 +49,7 @@ public:
 			throw (xgi::exception::Exception);
 	void webConfigure(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
-	void webEnable(xgi::Input *in, xgi::Output *out)
+	void webStart(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 	void webDisable(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
@@ -74,7 +74,9 @@ public:
 	// State transitions
 	void configureAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
-	void enableAction(toolbox::Event::Reference e) 
+  //void configuredAction(toolbox::Event::Reference e) 
+  //	throw (toolbox::fsm::exception::Exception);
+	void startAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
 	void disableAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
