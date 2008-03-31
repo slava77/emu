@@ -33,6 +33,7 @@ SRCS_DIGI      = $(SRCDIGI_PATH)/CSCALCTDigi.cc $(SRCDIGI_PATH)/CSCCLCTDigi.cc\
 	$(SRCDIGI_PATH)/CSCDCCFormatStatusDigi.cc $(SRCDIGI_PATH)/CSCDCCStatusDigi.cc \
 	$(SRCDETID_PATH)/DetId.cc $(SRCMUONID_PATH)/CSCDetId.cc \
 	$(SRCCOND_PATH)/CSCReadoutMapping.cc $(SRCCOND_PATH)/CSCReadoutMappingForSliceTest.cc \
+	$(SRCCOND_PATH)/CSCCrateMap.cc \
 	$(SRCFWUTIL_PATH)/Exception.cc
 
 #SRCS_DIGI      = $(SRCDIGI_PATH)/CSCALCTDigi.cc $(SRCDIGI_PATH)/CSCCLCTDigi.cc\
