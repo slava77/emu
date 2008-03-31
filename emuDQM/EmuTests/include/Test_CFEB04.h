@@ -19,6 +19,8 @@
 
 // typedef std::map<std::string, bookParams> testParamsCfg;
 
+#define DAC_STEPS 20
+/*
 // == CFEB SCA cell sample pair (value, count)
 typedef struct test_step {
 	int active_strip;
@@ -39,18 +41,41 @@ typedef struct ddu_stats {
 
 } ddu_stats;
 
+// == CFEB SCA cell sample pair (value, count)
+typedef struct dac_step {
+        double s;
+	double mv;
+	double rms;
+	double max;
+	double max_rms;
+	int max_cnt;
+        int cnt;
+} dac_step;
+
+// == CFEB SCA data structure
+typedef struct GainData{
+        int Nbins;
+        int Nlayers;
+        dac_step content[DAC_STEPS][NLAYERS][MAX_STRIPS];
+} GainData;
+
+// == CSC->SCA Data structure
+typedef std::map<std::string, GainData> cscGainData;
+*/
 
 class Test_CFEB04: public Test_Generic 
 {
   public:
 	Test_CFEB04(std::string datafile);
 	void analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
+//	void finish();
 
   protected:
 
 	void initCSC(std::string cscID);
 	void analyzeCSC(const CSCEventData& data);
 	void finishCSC(std::string cscID);
+	bool checkResults(std::string cscID);
 
 	cscCFEBSCAData sdata;
 	std::map<std::string, uint32_t> l1a_cntrs;
@@ -60,6 +85,9 @@ class Test_CFEB04: public Test_Generic
         int startL1A;
 	int dduID;
 	std::map<int, ddu_stats> DDUstats;
+        std::map<int, std::map<std::string, test_step> > htree;
+	bool fSwitch;
+	cscGainData gdata;
 
 };
 

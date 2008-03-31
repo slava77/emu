@@ -2,6 +2,8 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
+void fillCrateMap(CSCCrateMap* mapobj);
+
 int Test_Generic::getNumStrips(std::string cscID)
 {
 	if ((cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0 )) return 64;
@@ -10,6 +12,8 @@ int Test_Generic::getNumStrips(std::string cscID)
 
 Test_Generic::Test_Generic(std::string dfile): dataFile(dfile) {
   binCheckMask=0xFFFFFFFF;
+  cratemap = new CSCCrateMap();
+  fillCrateMap(cratemap);
   init();
 }
 
@@ -23,6 +27,7 @@ Test_Generic::~Test_Generic()
     }
   }
 
+  if (cratemap) delete cratemap;
   // if (map) delete map;
 	
 }
@@ -64,6 +69,44 @@ std::map<std::string, int> getCSCTypeToBinMap()
 }
 
 
+void fillCrateMap(CSCCrateMap* mapobj)
+{
+  std::cout << "Filling CSCCrateMap" << std::endl;
+  cscmap1 *map = new cscmap1 ();
+  CSCMapItem::MapItem item;
+
+  int i,j,k,l; //i - endcap, j - station, k - ring, l - chamber.
+  int r,c;     //r - number of rings, c - number of chambers.
+  int count=0;
+  int chamberid;
+  int crate_cscid;
+
+  /* This is version for 540 chambers. */
+  for(i=1;i<=2;++i){
+    for(j=1;j<=4;++j){
+      if(j==1) r=3;
+      //else if(j==4) r=1;
+      else r=2;
+      for(k=1;k<=r;++k){
+       if(j>1 && k==1) c=18;
+       else c=36;
+        for(l=1;l<=c;++l){
+         chamberid=i*100000+j*10000+k*1000+l*10;
+         map->chamber(chamberid,&item);
+         crate_cscid=item.crateid*10+item.cscid;
+         if (mapobj) {
+         	mapobj->crate_map[crate_cscid]=item;
+	 }
+         count=count+1;
+        }
+      }
+    }
+  }
+  delete map;
+}
+
+
+
 void Test_Generic::init() {
   nTotalEvents = 0;
   nBadEvents = 0;
@@ -78,7 +121,11 @@ void Test_Generic::init() {
   emucnvs.clear();
   tmap = getCSCTypeToBinMap();
 //  map = new cscmap1();
+//  cratemap = new CSCCrateMap();
+//  fillCrateMap(cratemap);
 }
+
+
 
 int Test_Generic::loadTestCfg() 
 {

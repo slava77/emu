@@ -28,6 +28,7 @@ class Test_CFEB02: public Test_Generic
 	void initCSC(std::string cscID);
 	void analyzeCSC(const CSCEventData& data);
 	void finishCSC(std::string cscID);
+        bool checkResults(std::string cscID);
 
 	cscCFEBSCAData sdata;
 
