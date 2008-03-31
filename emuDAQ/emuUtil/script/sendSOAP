@@ -31,6 +31,7 @@ while [[ $1 = -* ]]; do
 	-T ) TYPE=$2
 	    shift ;;
 	-I ) SERVERAPPINSTANCE=$2
+	    SERVERAPPLID=
 	    shift ;;
 	-L ) SERVERAPPLID=$2
 	    shift ;;
@@ -43,7 +44,7 @@ while [[ $1 = -* ]]; do
 	    echo 'Usage: '
 	    echo '------'
 	    echo '    sendSOAP [-u url] [-p port]'
-	    echo '             [-A application] [-I app_instance] [-b SOAP_body]'
+	    echo '             [-A application] [-I app_instance | -L app_lid] [-b SOAP_body]'
 	    echo '             [-v]'
 	    echo
 	    echo '  option   meaning                            default'
@@ -51,8 +52,8 @@ while [[ $1 = -* ]]; do
 	    echo '      -p   port                               39999'
 	    echo '      -u   url                                csc-C2D07-08.cms'
 	    echo '      -A   application                        jobcontrol::Application'
-	    echo '      -I   server application instance        0'
-	    echo '      -L   server application lid             <not used; application instance used instead>'
+	    echo '      -I   server application instance        <not used; application local id used instead>'
+	    echo '      -L   server application local id        10'
 	    echo '      -b   SOAP body                          <get stateName>'
 	    echo '      -h   print help                         do not print help'
 	    echo '      -v   verbose                            not verbose'
