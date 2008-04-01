@@ -1,5 +1,6 @@
 package rcms.fm.app.cscLevelOne;
 
+
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.Date;
@@ -16,6 +17,7 @@ import rcms.fm.fw.EventHandlerException;
 import rcms.fm.fw.StateEnteredEvent;
 import rcms.fm.fw.parameter.CommandParameter;
 import rcms.fm.fw.parameter.FunctionManagerParameter;
+import rcms.fm.fw.parameter.ParameterException;
 import rcms.fm.fw.parameter.ParameterSet;
 import rcms.fm.fw.parameter.type.IntegerT;
 import rcms.fm.fw.parameter.type.StringT;
@@ -32,6 +34,10 @@ import rcms.stateFormat.StateNotification;
 import rcms.statemachine.definition.Input;
 import rcms.util.logger.RCMSLogger;
 import rcms.xdaqctl.XDAQParameter;
+
+
+
+
 
 /**
  * 
@@ -56,6 +62,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 	private TTSSetter ttsSetter = null;
 	private ScheduledFuture ttsSetterFuture = null;
 	private final ScheduledExecutorService scheduler;
+
 	
 	public MyEventHandler() throws rcms.fm.fw.EventHandlerException {
 		// this handler inherits UserStateNotificationHandler
@@ -79,6 +86,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 		scheduler = Executors.newScheduledThreadPool(1);
 	}
 
+
 	public void init() throws rcms.fm.fw.EventHandlerException {
 		functionManager = (MyFunctionManager) getUserFunctionManager();
 		qualifiedGroup  = functionManager.getQualifiedGroup();
@@ -91,6 +99,8 @@ public class MyEventHandler extends UserStateNotificationHandler {
 		logger.debug("init() called: functionManager=" + functionManager );
 	}
 
+
+
 	public void initAction(Object obj) throws UserActionException {
 
 		if (obj instanceof StateNotification) {
@@ -100,6 +110,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			/************************************************
 			 * PUT HERE YOUR CODE							
 			 ***********************************************/
+
 			return;
 		}
 
@@ -245,120 +256,100 @@ public class MyEventHandler extends UserStateNotificationHandler {
 
 	public void configureAction(Object obj) throws UserActionException {
 
-	    if (obj instanceof StateNotification) {
-		
-		// triggered by State Notification from child resource
-		
-		// leave intermediate state
-		// check that the csc supervisor is in configured state
-		for ( XdaqApplication xdaqApp : functionManager.xdaqSupervisor.getApplications()) {
-		    if (xdaqApp.getCacheState().equals(MyStates.ERROR)) {
-			functionManager.fireEvent(MyInputs.SETERROR);
-		    }
-		    else if (!xdaqApp.getCacheState().equals(MyStates.CONFIGURED)) return;
-		}
-		functionManager.fireEvent( MyInputs.SETCONFIGURE );
+		if (obj instanceof StateNotification) {
 
-		return;
-	    } else if (obj instanceof StateEnteredEvent) {
-		System.out.println("Executing configureAction");
-		logger.info("Executing configureAction");
-		System.out.println("The number of applications: "+functionManager.xdaqSupervisor.getApplications().size());
-		// check that we have a csc supervisor to control
-		if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
-		    // nothing to control, go to configured immediately
-		    functionManager.fireEvent( MyInputs.SETCONFIGURE );
-		    return;
-		}
-		System.out.println("passed the zero app");
-		// set action
-		functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("configuring")));
-		System.out.println("here configuring");
-		
-		// set run type parameter			
-		try {
-		    XDAQParameter xdaqParam = ((XdaqApplication)
-					       functionManager.xdaqSupervisor.getApplications().get(0))
-			.getXDAQParameter();
-		    System.out.println("xdaqparam");
-		    // select RunType of csc supervisor.
-		    // this parameter is used to differentiate between 
-		    // 1) calibration run
-		    // 2) global run
-		    // since level one is only used in global runs we hardwire
-		    // for the time being to global run = "Default".
-		    // the parameter is set to the supervisor xdaq application.
-		    xdaqParam.select("RunType");
-		    System.out.println("RunType:" +xdaqParam.select("RunType"));
-		    xdaqParam.setValue("RunType", "Default");
-		    System.out.println("RunDefault" +xdaqParam.setValue("RunType", "Default"));
-		    xdaqParam.send();
-		    System.out.println("end:" +xdaqParam.send());
-		    
-		    //			get the parameters of the command
-		    ParameterSet<CommandParameter> parameterSet = getUserFunctionManager().getLastInput().getParameterSet();
+			// triggered by State Notification from child resource
 
-		    // check parameter set
-		    System.out.println("The number of parameters: "+parameterSet.size());
-		    System.out.println("run type: "+parameterSet.get(MyParameters.RUN_TYPE).getValue()); 
-		    System.out.println("value run type: "+(StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue());
-		    
-		    String runType = ((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).getString();
-		    //runType="Test";
-		    
-		    if (parameterSet.size()==0 
-			//||  parameterSet.get(MyParameters.RUN_TYPE) == null
-			//|| ((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).equals("") 
-			)  {
-			
-			// go to error, we require parameters
-			String errMsg = "configureAction: no parameters given with configure command.";
-			// log error
-			logger.error(errMsg);
-			
-			// notify error
-			sendCMSError(errMsg);
-			System.out.println("CMSerror");
-			//go to error state
-			System.out.println("Error 1");
-			
-			functionManager.fireEvent( MyInputs.SETERROR );
-		    }
-		    // get the run number from the configure command
-		    
-		    
-		    // Set the runType in the Function Manager parameters
-		    functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.RUN_TYPE,new StringT(runType)));
-		    
-		} catch (Exception e) {
-		    logger.error(getClass().toString() +
-				 "Failed to set run type Default to csc supervisor xdaq application. (Value is hardwired in the code) ", e);
-		    System.out.println("Error 2");
-		    
-		    functionManager.fireEvent(MyInputs.SETERROR);
-		}
-		// send Configure
-		try {
-		    functionManager.xdaqSupervisor.execute(MyInputs.CONFIGURE);
-		    
-		} catch (Exception e) {
-		    logger.error(getClass().toString() +
-				 "Failed to Configure csc supervisor xdaq application.", e);
-		    System.out.println("Error 3");
-		    
-		    functionManager.fireEvent(MyInputs.SETERROR);
-		}
-		System.out.println("configured");
-		// set action
-	      	functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
-		System.out.println("functionManager.getState().toString() ===> " + functionManager.getState().toString());
-		//while(functionManager.getState().toString() != "Configure"){}
-		
-		//functionManager.fireEvent( MyInputs.SETCONFIGURE ); // set configured...
-		logger.info("configureAction Executed");
+			// leave intermediate state
+			// check that the csc supervisor is in configured state
+			for ( XdaqApplication xdaqApp : functionManager.xdaqSupervisor.getApplications()) {
+				if (xdaqApp.getCacheState().equals(MyStates.ERROR)) {
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+				else if (!xdaqApp.getCacheState().equals(MyStates.CONFIGURED)) return;
+			}
+			functionManager.fireEvent( MyInputs.SETCONFIGURE );
 
-		System.out.println("configureAction Executed");
-	    }
+			return;
+		}
+
+		else if (obj instanceof StateEnteredEvent) {
+			System.out.println("Executing configureAction");
+			logger.info("Executing configureAction");
+
+			// check that we have a csc supervisor to control
+			if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
+				// nothing to control, go to configured immediately
+				functionManager.fireEvent( MyInputs.SETCONFIGURE );
+				return;
+			}
+
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("configuring")));
+
+//			get the parameters of the command
+			ParameterSet<CommandParameter> parameterSet = getUserFunctionManager().getLastInput().getParameterSet();
+
+			// check parameter set
+			if (parameterSet.size()==0 || parameterSet.get(MyParameters.RUN_TYPE) == null ||
+					((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).equals("") )  {
+
+				// Set default
+				try {
+					parameterSet.add( new CommandParameter<StringT>(MyParameters.RUN_TYPE, new StringT("Default")));
+				} catch (ParameterException e) {
+					logger.error("Could not default the run type to Default",e);
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+			}
+
+			// get the run number from the configure command
+			String runType = ((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).getString();
+
+			// Set the runType in the Function Manager parameters
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.RUN_TYPE,new StringT(runType)));
+
+
+			// set run type parameter			
+			try {
+				XDAQParameter xdaqParam = ((XdaqApplication)
+						functionManager.xdaqSupervisor.getApplications().get(0))
+						.getXDAQParameter();
+
+				// select RunType of csc supervisor.
+				// this parameter is used to differentiate between 
+				// 1) calibration run
+				// 2) global run
+				// since level one is only used in global runs we hardwire
+				// for the time being to global run = "Default".
+				// the parameter is set to the supervisor xdaq application.
+				xdaqParam.select("RunType");
+				xdaqParam.setValue("RunType", "Default");
+				xdaqParam.send();
+
+			} catch (Exception e) {
+				logger.error(getClass().toString() +
+						"Failed to set run type Default to csc supervisor xdaq application. (Value is hardwired in the code) ", e);
+
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
+
+			// send Configure
+			try {
+				functionManager.xdaqSupervisor.execute(MyInputs.CONFIGURE);
+
+			} catch (Exception e) {
+				logger.error(getClass().toString() +
+						"Failed to Configure csc supervisor xdaq application.", e);
+
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
+
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
+
+			logger.info("configureAction Executed");
+		}
 	}
 
 	public void startAction(Object obj) throws UserActionException {
@@ -371,6 +362,9 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			// check that the csc supervisor is in configured state
 			for ( XdaqApplication xdaqApp : functionManager.xdaqSupervisor.getApplications()) {
 				if (xdaqApp.getCacheState().equals(MyStates.ERROR)) {
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+				else if (xdaqApp.getCacheState().equals(MyStates.ERROR)) {
 					functionManager.fireEvent(MyInputs.SETERROR);
 				}
 				else if (!xdaqApp.getCacheState().equals(MyStates.RUNNING)) return;
@@ -400,17 +394,16 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			// check parameter set
 			if (parameterSet.size()==0 || parameterSet.get(MyParameters.RUN_NUMBER) == null )  {
 
-				// go to error, we require parameters
-				String errMsg = "startAction: no parameters given with start command.";
-
-				// log error
-				logger.error(errMsg);
-
-				// notify error
-				sendCMSError(errMsg);
-
-				// go to error state
-				functionManager.fireEvent( MyInputs.SETERROR );
+				// default to -1
+				try {
+					parameterSet.add( new CommandParameter<IntegerT>(MyParameters.RUN_NUMBER, new IntegerT(-1)));
+				} catch (ParameterException e) {
+					logger.error("Could not default the run number to -1",e);
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+				
+				// log this
+				logger.warn("No run number given, defaulting to -1.");
 
 			}
 
