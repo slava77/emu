@@ -132,6 +132,8 @@ private:
 
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
+        void CSCSupervisor::transitionFailed(toolbox::Event::Reference event)
+                        throw (toolbox::fsm::exception::Exception);
 
 	void sendCommand(string command, string klass)
 			throw (xoap::exception::Exception, xdaq::exception::Exception);
