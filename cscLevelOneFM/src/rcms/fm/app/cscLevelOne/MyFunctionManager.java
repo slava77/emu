@@ -1,12 +1,18 @@
 package rcms.fm.app.cscLevelOne;
 
 
+import java.util.List;
+
 import rcms.fm.fw.parameter.CommandParameter;
 import rcms.fm.fw.parameter.ParameterSet;
 import rcms.fm.fw.user.UserActionException;
 import rcms.fm.fw.user.UserFunctionManager;
+import rcms.fm.resource.QualifiedGroup;
+import rcms.fm.resource.QualifiedResource;
 import rcms.fm.resource.QualifiedResourceContainer;
+import rcms.fm.resource.qualifiedresource.FunctionManager;
 import rcms.fm.resource.qualifiedresource.XdaqApplicationContainer;
+import rcms.fm.resource.qualifiedresource.XdaqExecutive;
 import rcms.statemachine.definition.State;
 import rcms.statemachine.definition.StateMachineDefinitionException;
 import rcms.util.logger.RCMSLogger;
@@ -104,8 +110,42 @@ public class MyFunctionManager extends UserFunctionManager {
 		System.out.println("destroyAction called");
 		logger.debug("destroyAction called");
 
-		// do nothing
+		logger.debug("cscFM destroyAction");
 
+		QualifiedGroup group = getQualifiedGroup();
+
+		List<QualifiedResource> list;
+
+		// destroy XDAQ executives
+		list = group.seekQualifiedResourcesOfType(new XdaqExecutive());
+
+		for (QualifiedResource r: list) {
+			logger.debug("==== killing " + r.getURI());
+			try {
+				((XdaqExecutive)r).killMe();
+			} catch (Exception e) {
+				logger.error(
+						"Could not destroy a XDAQ executive " + r.getURI(), e);
+			}
+		}
+
+		// destroy function managers
+		list = group.seekQualifiedResourcesOfType(new FunctionManager());
+
+		for (QualifiedResource r: list) {
+			logger.debug("==== killing " + r.getURI());
+
+			FunctionManager fm = (FunctionManager)r;
+
+			if (fm.isInitialized()) {
+				try {
+					fm.destroy();
+				} catch (Exception e) {
+					logger.error("Could not destroy a FM " + r.getURI(), e);
+				}
+			}
+		}
+		
 		System.out.println("destroyAction executed");
 		logger.debug("destroyAction executed");
 	}

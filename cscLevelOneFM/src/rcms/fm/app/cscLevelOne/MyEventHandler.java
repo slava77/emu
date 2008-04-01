@@ -1,11 +1,18 @@
 package rcms.fm.app.cscLevelOne;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 import rcms.errorFormat.CMS.CMSError;
+import rcms.fm.fw.EventHandlerException;
 import rcms.fm.fw.StateEnteredEvent;
 import rcms.fm.fw.parameter.CommandParameter;
 import rcms.fm.fw.parameter.FunctionManagerParameter;
@@ -16,14 +23,15 @@ import rcms.fm.fw.user.UserActionException;
 import rcms.fm.fw.user.UserStateNotificationHandler;
 import rcms.fm.resource.QualifiedGroup;
 import rcms.fm.resource.QualifiedResource;
+import rcms.fm.resource.QualifiedResourceContainerException;
+import rcms.fm.resource.qualifiedresource.JobControl;
 import rcms.fm.resource.qualifiedresource.XdaqApplication;
 import rcms.fm.resource.qualifiedresource.XdaqApplicationContainer;
+import rcms.fm.resource.qualifiedresource.XdaqExecutive;
 import rcms.stateFormat.StateNotification;
 import rcms.statemachine.definition.Input;
 import rcms.util.logger.RCMSLogger;
 import rcms.xdaqctl.XDAQParameter;
-//import src.rcms.fm.app.csc.MyInputs;
-//import src.rcms.fm.app.csc.MyParameters;
 
 /**
  * 
@@ -33,23 +41,29 @@ import rcms.xdaqctl.XDAQParameter;
  *
  */
 public class MyEventHandler extends UserStateNotificationHandler {
-	
+
 	/**
 	 * <code>RCMSLogger</code>: RCMS log4j logger.
 	 */
 	static RCMSLogger logger = new RCMSLogger(MyEventHandler.class);
-	
+
 	MyFunctionManager functionManager = null;
-	
+
 	private QualifiedGroup qualifiedGroup = null;
+
+	// parameters for tts test
+	private XDAQParameter svTTSParameter = null;
+	private TTSSetter ttsSetter = null;
+	private ScheduledFuture ttsSetterFuture = null;
+	private final ScheduledExecutorService scheduler;
 	
 	public MyEventHandler() throws rcms.fm.fw.EventHandlerException {
 		// this handler inherits UserStateNotificationHandler
 		// so it is already registered for StateNotification events
-		
+
 		// Let's register also the StateEnteredEvent triggered when the FSM enters in a new state.
 		subscribeForEvents(StateEnteredEvent.class);
-		
+
 		addAction(MyStates.INITIALIZING,			"initAction");		
 		addAction(MyStates.CONFIGURING, 			"configureAction");
 		addAction(MyStates.HALTING,     			"haltAction");
@@ -61,165 +75,440 @@ public class MyEventHandler extends UserStateNotificationHandler {
 		addAction(MyStates.RESUMING,    			"resumeAction");
 		addAction(MyStates.STARTING,    			"startAction");
 		addAction(MyStates.STOPPING,    			"stopAction");
-		
+
+		scheduler = Executors.newScheduledThreadPool(1);
 	}
-	
-	
+
 	public void init() throws rcms.fm.fw.EventHandlerException {
 		functionManager = (MyFunctionManager) getUserFunctionManager();
 		qualifiedGroup  = functionManager.getQualifiedGroup();
 		
+		
+		ttsSetter = new TTSSetter();
+		ttsSetterFuture = null;
+		
 		// debug
 		logger.debug("init() called: functionManager=" + functionManager );
 	}
-	
-	
 
 	public void initAction(Object obj) throws UserActionException {
-		
+
 		if (obj instanceof StateNotification) {
-			
+
 			// triggered by State Notification from child resource
-			
+
 			/************************************************
 			 * PUT HERE YOUR CODE							
 			 ***********************************************/
-			
 			return;
 		}
-		
+
 		else if (obj instanceof StateEnteredEvent) {
-			
+
 			// triggered by entered state action
 			// let's command the child resources
-			
+
 			// debug
 			logger.debug("initAction called.");
-			
+
 			// set action
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(
-                                        MyParameters.ACTION_MSG,new StringT("Initializing")));
-			
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("Initializing")));
+
 			// 
 			// initialize qualified group
+
 
 			try {
 				qualifiedGroup.init();
 			} catch (Exception e) {
 				// failed to init
 				String errMsg = this.getClass().toString() + " failed to initialize resources";
-			
+
 				// send error notification
 				sendCMSError(errMsg);
-		
+
 				//log error
 				logger.error(errMsg,e);
-			
+
 				// go to error state
 				functionManager.fireEvent(MyInputs.SETERROR);
 			}
+
 
 			// find xdaq applications
 			List<QualifiedResource> xdaqList = qualifiedGroup.seekQualifiedResourcesOfType(new XdaqApplication());
 			functionManager.containerXdaqApplication = new XdaqApplicationContainer(xdaqList);
 			logger.debug("Application list : " + xdaqList.size() );
-			
+
+
 			functionManager.xdaqSupervisor = new XdaqApplicationContainer(
 					functionManager.containerXdaqApplication.getApplicationsOfClass("CSCSupervisor"));
-			
-			 // go to HALT
+
+			// go to HALT
 			functionManager.fireEvent( MyInputs.SETHALT );
-			
+
+
 			// set action
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(
-                                        MyParameters.ACTION_MSG,new StringT("")));
-			
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
+
 			logger.info("initAction Executed");
 		}
 	}
 
+
 	public void resetAction(Object obj) throws UserActionException {
-		
-		if (obj instanceof StateNotification) {
-			
-			// triggered by State Notification from child resource
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-					
-			return;
-		}
-		
-		else if (obj instanceof StateEnteredEvent) {
-			
-						
-				// triggered by entered state action
-				// let's command the child resources
-				
-				// debug
-				logger.debug("resetAction called.");
-				
-				// set action
-				functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(
-                                                MyParameters.ACTION_MSG,new StringT("Resetting")));
-				
-				/************************************************
-				 * PUT HERE YOUR CODE							
-				 ***********************************************/
-				
-				// go to Initital
-				functionManager.fireEvent( MyInputs.SETHALT );
-				
-				// Clean-up of the Function Manager parameters
-				cleanUpFMParameters();
-				
-				logger.info("resetAction Executed");
-		}	
-	}
-	
-	public void recoverAction(Object obj) throws UserActionException {
-		
-		if (obj instanceof StateNotification) {
-			
-			// triggered by State Notification from child resource
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-					
-			return;
-		}
-		
-		else if (obj instanceof StateEnteredEvent) {
-			
-				System.out.println("Executing recoverAction");
-				logger.info("Executing recoverAction");
-				
-				// set action
-				functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(
-						MyParameters.ACTION_MSG,new StringT("recovering")));
-				
-				/************************************************
-				 * PUT HERE YOUR CODE							
-				 ***********************************************/
-				
-				// leave intermediate state
-				functionManager.fireEvent( MyInputs.SETINITIAL );
-				
-				// Clean-up of the Function Manager parameters
-				cleanUpFMParameters();
-				
-				logger.info("recoverAction Executed");
-				}
-	}
-	
-	public void configureAction(Object obj) throws UserActionException {
-		
+
 		if (obj instanceof StateNotification) {
 
 			// triggered by State Notification from child resource
+
+			/************************************************
+			 * PUT HERE YOUR CODE							
+			 ***********************************************/
+
+			return;
+		}
+
+		else if (obj instanceof StateEnteredEvent) {
+
+
+			// triggered by entered state action
+			// let's command the child resources
+
+			// debug
+			logger.debug("resetAction called.");
+
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("Resetting")));
+
+			// destroy xdaq
+			destroyXDAQ();
+
+			// reset qualified group
+			QualifiedGroup qualifiedGroup = functionManager.getQualifiedGroup();
+			qualifiedGroup.reset();
+
+			// reinitialize qualified group
+			try {
+				qualifiedGroup.init();
+			}
+			catch (Exception e) {
+				String errorMess = e.getMessage();
+				logger.error(errorMess);
+				throw new UserActionException(errorMess);
+			}
+
+			// go to Initital
+			functionManager.fireEvent( MyInputs.SETHALT );
+
+			// Clean-up of the Function Manager parameters
+			cleanUpFMParameters();
+
+			logger.info("resetAction Executed");
+		}	
+	}
+
+	public void recoverAction(Object obj) throws UserActionException {
+
+		if (obj instanceof StateNotification) {
+
+			// triggered by State Notification from child resource
+
+			/************************************************
+			 * PUT HERE YOUR CODE							
+			 ***********************************************/
+
+			return;
+		}
+
+		else if (obj instanceof StateEnteredEvent) {
+
+			System.out.println("Executing recoverAction");
+			logger.info("Executing recoverAction");
+
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("recovering")));
+
+			/************************************************
+			 * PUT HERE YOUR CODE							
+			 ***********************************************/
+
+			// leave intermediate state
+			functionManager.fireEvent( MyInputs.SETINITIAL );
+
+			// Clean-up of the Function Manager parameters
+			cleanUpFMParameters();
+
+			logger.info("recoverAction Executed");
+		}
+	}
+
+	public void configureAction(Object obj) throws UserActionException {
+
+	    if (obj instanceof StateNotification) {
 		
+		// triggered by State Notification from child resource
+		
+		// leave intermediate state
+		// check that the csc supervisor is in configured state
+		for ( XdaqApplication xdaqApp : functionManager.xdaqSupervisor.getApplications()) {
+		    if (xdaqApp.getCacheState().equals(MyStates.ERROR)) {
+			functionManager.fireEvent(MyInputs.SETERROR);
+		    }
+		    else if (!xdaqApp.getCacheState().equals(MyStates.CONFIGURED)) return;
+		}
+		functionManager.fireEvent( MyInputs.SETCONFIGURE );
+
+		return;
+	    } else if (obj instanceof StateEnteredEvent) {
+		System.out.println("Executing configureAction");
+		logger.info("Executing configureAction");
+		System.out.println("The number of applications: "+functionManager.xdaqSupervisor.getApplications().size());
+		// check that we have a csc supervisor to control
+		if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
+		    // nothing to control, go to configured immediately
+		    functionManager.fireEvent( MyInputs.SETCONFIGURE );
+		    return;
+		}
+		System.out.println("passed the zero app");
+		// set action
+		functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("configuring")));
+		System.out.println("here configuring");
+		
+		// set run type parameter			
+		try {
+		    XDAQParameter xdaqParam = ((XdaqApplication)
+					       functionManager.xdaqSupervisor.getApplications().get(0))
+			.getXDAQParameter();
+		    System.out.println("xdaqparam");
+		    // select RunType of csc supervisor.
+		    // this parameter is used to differentiate between 
+		    // 1) calibration run
+		    // 2) global run
+		    // since level one is only used in global runs we hardwire
+		    // for the time being to global run = "Default".
+		    // the parameter is set to the supervisor xdaq application.
+		    xdaqParam.select("RunType");
+		    System.out.println("RunType:" +xdaqParam.select("RunType"));
+		    xdaqParam.setValue("RunType", "Default");
+		    System.out.println("RunDefault" +xdaqParam.setValue("RunType", "Default"));
+		    xdaqParam.send();
+		    System.out.println("end:" +xdaqParam.send());
+		    
+		    //			get the parameters of the command
+		    ParameterSet<CommandParameter> parameterSet = getUserFunctionManager().getLastInput().getParameterSet();
+
+		    // check parameter set
+		    System.out.println("The number of parameters: "+parameterSet.size());
+		    System.out.println("run type: "+parameterSet.get(MyParameters.RUN_TYPE).getValue()); 
+		    System.out.println("value run type: "+(StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue());
+		    
+		    String runType = ((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).getString();
+		    //runType="Test";
+		    
+		    if (parameterSet.size()==0 
+			//||  parameterSet.get(MyParameters.RUN_TYPE) == null
+			//|| ((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).equals("") 
+			)  {
+			
+			// go to error, we require parameters
+			String errMsg = "configureAction: no parameters given with configure command.";
+			// log error
+			logger.error(errMsg);
+			
+			// notify error
+			sendCMSError(errMsg);
+			System.out.println("CMSerror");
+			//go to error state
+			System.out.println("Error 1");
+			
+			functionManager.fireEvent( MyInputs.SETERROR );
+		    }
+		    // get the run number from the configure command
+		    
+		    
+		    // Set the runType in the Function Manager parameters
+		    functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.RUN_TYPE,new StringT(runType)));
+		    
+		} catch (Exception e) {
+		    logger.error(getClass().toString() +
+				 "Failed to set run type Default to csc supervisor xdaq application. (Value is hardwired in the code) ", e);
+		    System.out.println("Error 2");
+		    
+		    functionManager.fireEvent(MyInputs.SETERROR);
+		}
+		// send Configure
+		try {
+		    functionManager.xdaqSupervisor.execute(MyInputs.CONFIGURE);
+		    
+		} catch (Exception e) {
+		    logger.error(getClass().toString() +
+				 "Failed to Configure csc supervisor xdaq application.", e);
+		    System.out.println("Error 3");
+		    
+		    functionManager.fireEvent(MyInputs.SETERROR);
+		}
+		System.out.println("configured");
+		// set action
+	      	functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
+		System.out.println("functionManager.getState().toString() ===> " + functionManager.getState().toString());
+		//while(functionManager.getState().toString() != "Configure"){}
+		
+		//functionManager.fireEvent( MyInputs.SETCONFIGURE ); // set configured...
+		logger.info("configureAction Executed");
+
+		System.out.println("configureAction Executed");
+	    }
+	}
+
+	public void startAction(Object obj) throws UserActionException {
+
+		if (obj instanceof StateNotification) {
+
+			// triggered by State Notification from child resource
+
+			// leave intermediate state
+			// check that the csc supervisor is in configured state
+			for ( XdaqApplication xdaqApp : functionManager.xdaqSupervisor.getApplications()) {
+				if (xdaqApp.getCacheState().equals(MyStates.ERROR)) {
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+				else if (!xdaqApp.getCacheState().equals(MyStates.RUNNING)) return;
+			}
+			functionManager.fireEvent( MyInputs.SETSTART );
+
+			return;
+		}
+
+		else if (obj instanceof StateEnteredEvent) {
+			System.out.println("Executing startAction");
+			logger.info("Executing startAction");
+
+			// check that we have a csc supervisor to control
+			if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
+				// nothing to control, go to configured immediately
+				functionManager.fireEvent( MyInputs.SETSTART );
+				return;
+			}
+
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("starting")));
+
+			// get the parameters of the command
+			ParameterSet<CommandParameter> parameterSet = getUserFunctionManager().getLastInput().getParameterSet();
+
+			// check parameter set
+			if (parameterSet.size()==0 || parameterSet.get(MyParameters.RUN_NUMBER) == null )  {
+
+				// go to error, we require parameters
+				String errMsg = "startAction: no parameters given with start command.";
+
+				// log error
+				logger.error(errMsg);
+
+				// notify error
+				sendCMSError(errMsg);
+
+				// go to error state
+				functionManager.fireEvent( MyInputs.SETERROR );
+
+			}
+
+			// get the run number from the start command
+			Integer runNumber = ((IntegerT)parameterSet.get(MyParameters.RUN_NUMBER).getValue()).getInteger();
+
+			// Set the run number in the Function Manager parameters
+			functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.RUN_NUMBER,new IntegerT(runNumber)));
+
+//			set run number parameter
+			try {
+				XDAQParameter xdaqParam = ((XdaqApplication)
+						functionManager.xdaqSupervisor.getApplications().get(0))
+						.getXDAQParameter();
+
+				xdaqParam.select("RunNumber");
+
+				ParameterSet<CommandParameter> commandParam =
+					getUserFunctionManager().getLastInput().getParameterSet();
+				if (commandParam == null) {
+					logger.error(getClass().toString() +
+					"Failded to Enable XDAQ, no run # specified.");
+
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+				logger.debug(getClass().toString() + "Run #: " + runNumber);
+
+				xdaqParam.setValue("RunNumber", runNumber.toString());
+				xdaqParam.send();
+
+			} catch (Exception e) {
+				logger.error(getClass().toString() + "Failed to Enable csc supervisor XDAQ application.", e);
+
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
+
+			// send Enable
+			try {
+				functionManager.xdaqSupervisor.execute(new Input("Start"));
+
+			} catch (Exception e) {
+				logger.error(getClass().toString() + "Failed to Enable csc supervisor XDAQ application.", e);
+
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
+
+			logger.debug("CSCLeadingActions.start ... done.");
+
+
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
+
+			logger.debug("startAction Executed");
+
+		}
+	}
+
+	public void pauseAction(Object obj) throws UserActionException {
+
+		if (obj instanceof StateNotification) {
+
+			// triggered by State Notification from child resource
+
+			/************************************************
+			 * PUT HERE YOUR CODE							
+			 ***********************************************/
+
+			return;
+		}
+
+		else if (obj instanceof StateEnteredEvent) {	
+			System.out.println("Executing pauseAction");
+			logger.info("Executing pauseAction");
+
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("pausing")));
+
+			/************************************************
+			 * PUT HERE YOUR CODE							
+			 ***********************************************/
+
+			// leave intermediate state
+			functionManager.fireEvent( MyInputs.SETPAUSE );
+
+			// set action
+			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
+
+			logger.debug("pausingAction Executed");
+
+		}
+	}
+
+	public void stopAction(Object obj) throws UserActionException {
+
+		if (obj instanceof StateNotification) {
+
+			// triggered by State Notification from child resource
+
 			// leave intermediate state
 			// check that the csc supervisor is in configured state
 			for ( XdaqApplication xdaqApp : functionManager.xdaqSupervisor.getApplications()) {
@@ -232,307 +521,164 @@ public class MyEventHandler extends UserStateNotificationHandler {
 
 			return;
 		}
-		
-		else if (obj instanceof StateEnteredEvent) {
-			System.out.println("Executing configureAction");
-			logger.info("Executing configureAction");
-			
+
+		else if (obj instanceof StateEnteredEvent) {	
+			System.out.println("Executing stopAction");
+			logger.info("Executing stopAction");
+
 			// check that we have a csc supervisor to control
 			if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
 				// nothing to control, go to configured immediately
 				functionManager.fireEvent( MyInputs.SETCONFIGURE );
 				return;
 			}
-			
-			// set action
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("configuring")));
-			
-//			 get the parameters of the command
-			ParameterSet<CommandParameter> parameterSet = getUserFunctionManager().getLastInput().getParameterSet();
 
-			// check parameter set
-			if (parameterSet.size()==0 || parameterSet.get(MyParameters.RUN_TYPE) == null ||
-					((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).equals("") )  {
-
-				// go to error, we require parameters
-				String errMsg = "configureAction: no parameters given with configure command.";
-				
-				// log error
-				logger.error(errMsg);
-				
-				// notify error
-				sendCMSError(errMsg);
-				
-				//go to error state
-				functionManager.fireEvent( MyInputs.SETERROR );
-
-			}
-			
-			// get the run number from the configure command
-			String runType = ((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).getString();
-			
-			// Set the runType in the Function Manager parameters
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.RUN_TYPE,new StringT(runType)));
-			
-
-			// set run type parameter			
-			try {
-				XDAQParameter xdaqParam = ((XdaqApplication)
-						functionManager.xdaqSupervisor.getApplications().get(0))
-						.getXDAQParameter();
-
-				// select RunType of csc supervisor.
-				// this parameter is used to differentiate between 
-				// 1) calibration run
-				// 2) global run
-				// since level one is only used in global runs we hardwire
-				// for the time being to global run = "Default".
-				// the parameter is set to the supervisor xdaq application.
-				xdaqParam.select("RunType");
-				xdaqParam.setValue("RunType", "Default");
-				xdaqParam.send();
-
-			} catch (Exception e) {
-				logger.error(getClass().toString() +
-						"Failed to set run type Default to csc supervisor xdaq application. (Value is hardwired in the code) ", e);
-
-				functionManager.fireEvent(MyInputs.SETERROR);
-			}
-
-			// send Configure
-			try {
-				functionManager.xdaqSupervisor.execute(MyInputs.CONFIGURE);
-
-			} catch (Exception e) {
-				logger.error(getClass().toString() +
-						"Failed to Configure csc supervisor xdaq application.", e);
-
-				functionManager.fireEvent(MyInputs.SETERROR);
-			}
-			
-			// set action
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
-			
-			logger.info("configureAction Executed");
-		}
-	}
-	
-	public void startAction(Object obj) throws UserActionException {
-		
-		if (obj instanceof StateNotification) {
-			
-			// triggered by State Notification from child resource
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-
-			return;
-		}
-		
-		else if (obj instanceof StateEnteredEvent) {
-			System.out.println("Executing startAction");
-			logger.info("Executing startAction");
-			
-			// set action
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("starting")));
-
-			// get the parameters of the command
-			ParameterSet<CommandParameter> parameterSet = getUserFunctionManager().getLastInput().getParameterSet();
-
-			// check parameter set
-			if (parameterSet.size()==0 || parameterSet.get(MyParameters.RUN_NUMBER) == null )  {
-
-				// go to error, we require parameters
-				String errMsg = "startAction: no parameters given with start command.";
-				
-				// log error
-				logger.error(errMsg);
-				
-				// notify error
-				sendCMSError(errMsg);
-				
-				// go to error state
-				functionManager.fireEvent( MyInputs.SETERROR );
-
-			}
-			
-			// get the run number from the start command
-			Integer runNumber = ((IntegerT)parameterSet.get(MyParameters.RUN_NUMBER).getValue()).getInteger();
-			
-			// Set the run number in the Function Manager parameters
-			functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.RUN_NUMBER,new IntegerT(runNumber)));
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-			
-			// leave intermediate state
-			functionManager.fireEvent( MyInputs.SETSTART );
-			
-			// set action
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
-			
-			logger.debug("startAction Executed");
-			
-		}
-	}
-	
-	public void pauseAction(Object obj) throws UserActionException {
-		
-		if (obj instanceof StateNotification) {
-			
-			// triggered by State Notification from child resource
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-
-			return;
-		}
-		
-		else if (obj instanceof StateEnteredEvent) {	
-			System.out.println("Executing pauseAction");
-			logger.info("Executing pauseAction");
-			
-			// set action
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("pausing")));
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-			
-			// leave intermediate state
-			functionManager.fireEvent( MyInputs.SETPAUSE );
-			
-			// set action
-			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
-			
-			logger.debug("pausingAction Executed");
-			
-		}
-	}
-	
-	public void stopAction(Object obj) throws UserActionException {
-		
-		if (obj instanceof StateNotification) {
-			
-			// triggered by State Notification from child resource
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-
-			return;
-		}
-		
-		else if (obj instanceof StateEnteredEvent) {	
-			System.out.println("Executing stopAction");
-			logger.info("Executing stopAction");
-			
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("stopping")));
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-			
-			// leave intermediate state
-			functionManager.fireEvent( MyInputs.SETCONFIGURE );
-			
+
+			// send Disable
+			try {
+				functionManager.xdaqSupervisor.execute(new Input("Disable"));
+
+			} catch (Exception e) {
+				logger.error(getClass().toString() + "Failed to Disable XDAQ.", e);
+
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
+
+
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
-			
+
 			logger.debug("stopAction Executed");
-			
+
 		}
 	}
 	public void resumeAction(Object obj) throws UserActionException {
-		
+
 		if (obj instanceof StateNotification) {
-			
+
 			// triggered by State Notification from child resource
-			
+
 			/************************************************
 			 * PUT HERE YOUR CODE							
 			 ***********************************************/
 
 			return;
 		}
-		
+
 		else if (obj instanceof StateEnteredEvent) {	
 			System.out.println("Executing resumeAction");
 			logger.info("Executing resumeAction");
-			
+
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("resuming")));
-			
+
 			/************************************************
 			 * PUT HERE YOUR CODE							
 			 ***********************************************/
-			
+
 			// leave intermediate state
 			functionManager.fireEvent( MyInputs.SETRESUME );
-			
+
 			// Clean-up of the Function Manager parameters
 			cleanUpFMParameters();
-		
+
 			logger.debug("resumeAction Executed");
-			
+
 		}
 	}
-	
+
 	public void haltAction(Object obj) throws UserActionException {
-		
+
 		if (obj instanceof StateNotification) {
-			
-			// triggered by State Notification from child resource
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-			
+
+//			triggered by State Notification from child resource
+
+			// leave intermediate state
+			// check that the csc supervisor is in configured state
+			for ( XdaqApplication xdaqApp : functionManager.xdaqSupervisor.getApplications()) {
+				if (xdaqApp.getCacheState().equals(MyStates.ERROR)) {
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+				else if (!xdaqApp.getCacheState().equals(MyStates.HALTED)) return;
+			}
+			functionManager.fireEvent( MyInputs.SETHALT );
+
 			return;
 		}
-		
+
 		else if (obj instanceof StateEnteredEvent) {
 			System.out.println("Executing haltAction");
 			logger.info("Executing haltAction");
-			
+
+			// check that we have a csc supervisor to control
+			if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
+				// nothing to control, go to configured immediately
+				functionManager.fireEvent( MyInputs.SETHALT );
+				return;
+			}
+
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("halting")));
-			
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
+
+			// send Halt
+			try {
+				functionManager.xdaqSupervisor.execute(new Input("Halt"));
+
+			} catch (Exception e) {
+				logger.error(getClass().toString() + "Failed to Halt XDAQ.", e);
+
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
+
 
 			// check from which state we came.
 			if (functionManager.getPreviousState().equals(MyStates.TTSTEST_MODE)) {
 				// when we came from TTSTestMode we need to
 				// 1. give back control of sTTS to HW
 			}
-			
-			
-			// leave intermediate state
-			functionManager.fireEvent( MyInputs.SETHALT );
-			
+
+
 			// Clean-up of the Function Manager parameters
 			cleanUpFMParameters();
-			
+
 			logger.debug("haltAction Executed");
 		}
 	}	
-	
+
 	public void preparingTTSTestModeAction(Object obj) throws UserActionException {
 
 		if (obj instanceof StateNotification) {
 
 			// triggered by State Notification from child resource
 
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-
+			StateNotification sn = (StateNotification)obj;
+			
+			if (sn.getToState().equals(MyStates.CONFIGURED.getStateString())) {
+				// configure is send in state entered part (below)
+				// here we receive "Configured" from supervisor.
+				// send a enable now.
+				try {                                                                                           
+					functionManager.xdaqSupervisor.execute(new Input("Enable"));
+				} catch (QualifiedResourceContainerException e) {
+					logger.error("Could not enable csc supervisor.",e);
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+			}
+			else if ( sn.getToState().equals(MyStates.RUNNING.getStateString()) ) {
+				// recveived runnning state. now we can
+				// leave intermediate state
+				functionManager.fireEvent( MyInputs.SETTTSTEST_MODE );
+			}
+			else {
+				// don't understand state, go to error.
+				logger.error("Unexpected state notification in state " 
+						+ functionManager.getState().toString() 
+						+ ", received state :" 
+						+ sn.getToState());
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
 			return;
 		}
 
@@ -540,18 +686,43 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			System.out.println("Executing preparingTestModeAction");
 			logger.info("Executing preparingTestModeAction");
 
+			// check that we have a csc supervisor to control
+			if (functionManager.xdaqSupervisor.getApplications().size() == 0) {
+				// nothing to control, go to configured immediately
+				functionManager.fireEvent( MyInputs.SETTTSTEST_MODE );
+				return;
+			}
+
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("preparingTestMode")));
 
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-			// to prepare test we need to 
-			// 1. configure & enable fed application
-			// 2. take control of fed
+			// set run type parameter
+			try {
+				XDAQParameter xdaqParam = ((XdaqApplication)
+						functionManager.xdaqSupervisor.getApplications().get(0))
+						.getXDAQParameter();
 
-			// leave intermediate state
-			functionManager.fireEvent( MyInputs.SETTTSTEST_MODE );
+				xdaqParam.select("RunType");
+				xdaqParam.setValue("RunType", "sTTS_Test");
+				xdaqParam.send();
+
+			} catch (Exception e) {
+				logger.error(getClass().toString() +
+						"Failed to set run type: " + "sTTS_Test", e);
+
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
+
+			try {
+				functionManager.xdaqSupervisor.execute(new Input("Configure"));
+
+
+			} catch (Exception e) {
+				logger.error(getClass().toString() +
+						"Failed to TTSPrepare XDAQ.", e);
+
+				functionManager.fireEvent(MyInputs.SETERROR);
+			}
 
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
@@ -559,12 +730,8 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			logger.debug("preparingTestModeAction Executed");
 		}
 	}	
-	
+
 	public void testingTTSAction(Object obj) throws UserActionException {
-
-
-		XdaqApplication fmm = null;
-		Map attributeMap = new HashMap();
 
 		if (obj instanceof StateNotification) {
 
@@ -594,27 +761,27 @@ public class MyEventHandler extends UserStateNotificationHandler {
 					parameterSet.get(MyParameters.TTS_TEST_PATTERN) == null ||
 					((StringT)parameterSet.get(MyParameters.TTS_TEST_PATTERN).getValue()).equals("") ||
 					parameterSet.get(MyParameters.TTS_TEST_SEQUENCE_REPEAT) == null)
-					{
+			{
 
 				// go to error, we require parameters
 				String errMsg = "testingTTSAction: no parameters given with TestTTS command.";
-				
+
 				// log error
 				logger.error(errMsg);
-				
+
 				// notify error
 				sendCMSError(errMsg);
-				
+
 				//go to error state
 				functionManager.fireEvent( MyInputs.SETERROR );
-				
+
 			}
-			
+
 			Integer fedId = ((IntegerT)parameterSet.get(MyParameters.TTS_TEST_FED_ID).getValue()).getInteger();
 			String mode = ((StringT)parameterSet.get(MyParameters.TTS_TEST_MODE).getValue()).getString();
 			String pattern = ((StringT)parameterSet.get(MyParameters.TTS_TEST_PATTERN).getValue()).getString();
 			Integer cycles = ((IntegerT)parameterSet.get(MyParameters.TTS_TEST_SEQUENCE_REPEAT).getValue()).getInteger();
-			
+
 
 			// Set last parameters in the Function Manager parameters
 			functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.TTS_TEST_FED_ID,new IntegerT(fedId)));
@@ -627,17 +794,33 @@ public class MyEventHandler extends UserStateNotificationHandler {
 
 			// find out which application controls the fedId.
 
+			int crate, slot, bits, repeat;
+		
+			int fedID = ((IntegerT)parameterSet.get(
+					MyParameters.TTS_TEST_FED_ID).getValue())
+					.getInteger();
+			crate = getCrateNumber(fedID);
+			slot = getSlotNumber(fedID);
+			bits = Integer.parseInt(
+					((StringT)parameterSet.get(
+							MyParameters.TTS_TEST_PATTERN)
+					.getValue()).getString());
+			if (((StringT)parameterSet.get(MyParameters.TTS_TEST_PATTERN)
+					.getValue()).getString().equals("PATTERN")) {
+				repeat = 0;
+			} else {  // CYCLE
+				repeat = ((IntegerT)parameterSet.get(
+						MyParameters.TTS_TEST_SEQUENCE_REPEAT)
+						.getValue()).getInteger();
+			}
 
-			// found the correct application
-			// to test we need to 
-			// 1. issue the test command
+			ttsSetter.config(crate, slot, bits, repeat);
+			if (ttsSetterFuture == null) {
+				ttsSetterFuture = scheduler.scheduleWithFixedDelay(
+						ttsSetter, 0, 10, MILLISECONDS);
+			}
 
 
-			/************************************************
-			 * PUT HERE YOUR CODE							
-			 ***********************************************/
-
-			
 			// leave intermediate state
 			functionManager.fireEvent( MyInputs.SETTTSTEST_MODE );
 
@@ -650,7 +833,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 
 	@SuppressWarnings("unchecked")
 	private void sendCMSError(String errMessage){
-		
+
 		// create a new error notification msg
 		CMSError error = functionManager.getErrorFactory().getCMSError();
 		error.setDateTime(new Date().toString());
@@ -658,7 +841,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 
 		// update error msg parameter for GUI
 		functionManager.getParameterSet().get(MyParameters.ERROR_MSG).setValue(new StringT(errMessage));
-		
+
 		// send error
 		try {
 			functionManager.getParentErrorNotifier().sendError(error);
@@ -666,7 +849,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			logger.warn(functionManager.getClass().toString() + ": Failed to send error mesage " + errMessage);
 		}
 	}
-	
+
 	private void cleanUpFMParameters() {
 		// Clean-up of the Function Manager parameters
 		functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("")));
@@ -678,4 +861,122 @@ public class MyEventHandler extends UserStateNotificationHandler {
 		functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.TTS_TEST_PATTERN,new StringT("")));
 		functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.TTS_TEST_SEQUENCE_REPEAT,new IntegerT(-1)));
 	}
+
+	private void destroyXDAQ() throws UserActionException {
+
+		// get executives and their job controls 
+		List<QualifiedResource> listExecutive = qualifiedGroup
+		.seekQualifiedResourcesOfType(new XdaqExecutive());
+
+
+		for (QualifiedResource ex : listExecutive) {
+			((XdaqExecutive)ex).killMe();
+			logger.debug("killMe() called on " + ex.getResource().getURL());
+		}
+	}
+
+	private void killAllXDAQ() throws UserActionException {
+
+		// get executives and their job controls 
+		List<QualifiedResource> listJC = qualifiedGroup
+		.seekQualifiedResourcesOfType(new JobControl());
+
+		for (QualifiedResource jc : listJC) {
+			((JobControl)jc).killAll();
+			logger.debug("killAll() called on " + jc.getResource().getURL());
+		}
+	}
+	
+	/* */
+	private int getCrateNumber(int fed) {
+		int crate = 1;
+
+		if (fed == 760) {
+			crate = 3; // TF-FED
+		} else if (fed == 752 || (fed / 10) == 83) {
+			crate = 2;
+		}
+
+		return crate;
+	}
+
+	/* */
+	private int getSlotNumber(int fed) {
+		int slot = 0;
+
+		switch (fed) {
+			case 760: slot = 2; break; // TF
+
+			case 750: slot = 8; break; // plus 1
+			case 841: slot = 4; break;
+			case 842: slot = 5; break;
+			case 843: slot = 6; break;
+			case 844: slot = 7; break;
+			case 845: slot = 9; break;
+			case 846: slot = 10; break;
+			case 847: slot = 11; break;
+			case 848: slot = 12; break;
+			case 849: slot = 13; break;
+
+			case 752: slot = 8; break; // plus 2
+			case 831: slot = 4; break;
+			case 832: slot = 5; break;
+			case 833: slot = 6; break;
+			case 834: slot = 7; break;
+			case 835: slot = 9; break;
+			case 836: slot = 10; break;
+			case 837: slot = 11; break;
+			case 838: slot = 12; break;
+			case 839: slot = 13; break;
+		}
+
+		return slot;
+	}
+
+	private class TTSSetter implements Runnable {
+		private int crate, slot, bits;
+		private int repeat = 0;
+
+		public synchronized void config(
+				int crate, int slot, int bits, int repeat) {
+			this.crate = crate;
+			this.slot = slot;
+			this.bits = bits;
+			this.repeat = repeat * 16;
+
+			if (this.repeat == 0) {
+				this.repeat = 1;
+			}
+		}
+
+		public void run() {
+			if (repeat > 0) {
+				try {
+					logger.debug("TTSSetter: " +
+							crate + " " + slot + " " + bits + " " + repeat);
+
+					svTTSParameter.setValue("TTSCrate", "" + crate);
+					svTTSParameter.setValue("TTSSlot", "" + slot);
+					svTTSParameter.setValue("TTSBits", "" + bits);
+					svTTSParameter.send();
+					functionManager.xdaqSupervisor.execute(new Input("SetTTS"));
+
+					bits = (bits + 1) % 16;  // prepare for the next shot.
+					repeat--;
+
+					if (repeat == 0) {
+						functionManager.fireEvent(MyInputs.SETTTSTEST_MODE);
+					}
+				} catch (Exception e) {
+					logger.error("TTSSetter", e);
+					functionManager.fireEvent(MyInputs.SETERROR);
+				}
+			}
+		}
+	}
+
+
 }
+
+// End of file
+// vim: set sw=4 ts=4:
