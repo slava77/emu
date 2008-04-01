@@ -30,6 +30,7 @@
 #include "xcept/tools.h"
 #include "EmuELog.h"
 #include "xdaq2rc/RcmsStateNotifier.h"
+#include "toolbox/fsm/FailedEvent.h"
 
 using namespace std;
 using namespace cgicc;
@@ -145,7 +146,9 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	fsm_.addState('H', "Halted",     this, &CSCSupervisor::stateChanged);
 	fsm_.addState('C', "Configured", this, &CSCSupervisor::stateChanged);
 	fsm_.addState('E', "Running",    this, &CSCSupervisor::stateChanged);
-	fsm_.addState('c', "Configuring", this, &CSCSupervisor::stateChanged);
+	fsm_.setStateName('F',"Error");
+
+	//	fsm_.addState('c', "Configuring", this, &CSCSupervisor::stateChanged);
 
 	fsm_.addStateTransition(
 			'H', 'C', "Configure", this, &CSCSupervisor::configureAction);
@@ -558,7 +561,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
 	LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
 			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
-	
+
+	rcmsStateNotifier_.findRcmsStateListener();      	
 	step_counter_ = 0;
 
 	try {
@@ -636,55 +640,60 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 void CSCSupervisor::startAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
-	LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
-			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
+  LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
+  LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
+		  << " runnumber: " << run_number_ << " nevents: " << nevents_);
+LOG4CPLUS_DEBUG(logger_, "(Hello)");
+std::cout << "Here1" << std::endl;
+  try {
+    state_table_.refresh();
+    sendCommand("Start", "EmuFCrateManager");
 
-	try {
-		state_table_.refresh();
+    if (!isCalibrationMode()) {
+      sendCommand("Start", "EmuPeripheralCrateManager");
+    }
+    try {
+      if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
+	setParameter("EmuDAQManager",
+		     "maxNumberOfEvents", "xsd:integer", toString(nevents_));
+	sendCommand("Configure", "EmuDAQManager");
+      }
 
-		sendCommand("Start", "EmuFCrateManager");
-		if (!isCalibrationMode()) {
-			sendCommand("Start", "EmuPeripheralCrateManager");
-		}
+      setParameter("EmuDAQManager",
+		   "runNumber", "xsd:unsignedLong", run_number_.toString());
 
-		try {
-			if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
-				setParameter("EmuDAQManager",
-						"maxNumberOfEvents", "xsd:integer", toString(nevents_));
-				sendCommand("Configure", "EmuDAQManager");
-			}
-			setParameter("EmuDAQManager",
-					"runNumber", "xsd:unsignedLong", run_number_.toString());
-			sendCommand("Start", "EmuDAQManager");
-		} catch (xcept::Exception ignored) {}
+      sendCommand("Start", "EmuDAQManager");
+    } catch (xcept::Exception ignored) {}
 
-		state_table_.refresh();
+    
+    state_table_.refresh();
+    
+    if (state_table_.getState("TTCciControl", 0) != "Enabled") {
+      sendCommand("Enable", "TTCciControl");
+    }
+    if (state_table_.getState("TTCciControl", 0) != "Enabled") {
+      sendCommand("Enable", "LTCControl");
+    }
+    sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
+    
+    refreshConfigParameters();
+    
+  } catch (xoap::exception::Exception e) {
+    XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+		  "SOAP fault was returned", e);
 
-		if (state_table_.getState("TTCciControl", 0) != "Running") {
-			sendCommand("Start", "TTCciControl");
-		}
-		if (state_table_.getState("TTCciControl", 0) != "Running") {
-			sendCommand("Start", "LTCControl");
-		}
-		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
+  } catch (xdaq::exception::Exception e) {
+    XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+		  "Failed to send a command", e);
 
-		refreshConfigParameters();
-
-	} catch (xoap::exception::Exception e) {
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-				"SOAP fault was returned", e);
-	} catch (xdaq::exception::Exception e) {
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-				"Failed to send a command", e);
-	}
-
-	if (isCalibrationMode()) {
-		quit_calibration_ = false;
-		submit(calibration_signature_);
-	}
-
-	LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
+  }
+  
+  if (isCalibrationMode()) {
+    quit_calibration_ = false;
+    submit(calibration_signature_);
+  }
+  
+  LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
 }
 
 void CSCSupervisor::disableAction(toolbox::Event::Reference evt) 
@@ -796,7 +805,7 @@ void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
   keep_refresh_ = false;
-  rcmsStateNotifier_.findRcmsStateListener();
+  
   LOG4CPLUS_DEBUG(getApplicationLogger(),"Current state is: [" << fsm.getStateName (fsm.getCurrentState()) << "]");
   // Send notification to Run Control
   state_=fsm.getStateName (fsm.getCurrentState());
@@ -815,38 +824,62 @@ void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   EmuApplication::stateChanged(fsm);
 }
 
-void CSCSupervisor::sendCommand(string command, string klass)
-		throw (xoap::exception::Exception, xdaq::exception::Exception)
+
+void CSCSupervisor::transitionFailed(toolbox::Event::Reference event)
+  throw (toolbox::fsm::exception::Exception)
 {
-	// Exceptions:
-	// xoap exceptions are thrown by analyzeReply() for SOAP faults.
-	// xdaq exceptions are thrown by postSOAP() for socket level errors.
+  keep_refresh_ = false;
+  toolbox::fsm::FailedEvent &failed = dynamic_cast<toolbox::fsm::FailedEvent&>(*event);
+ 
+	// Send notification to Run Control
+  try {
+		LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending state changed notification to Run Control.");
+		rcmsStateNotifier_.stateChanged("Error",xcept::stdformat_exception_history(failed.getException()));
 
-	// find applications
-	std::set<xdaq::ApplicationDescriptor *> apps;
-	try {
-		apps = getApplicationContext()->getDefaultZone()
-				->getApplicationDescriptors(klass);
-	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-		return; // Do nothing if the target doesn't exist
+	} catch(xcept::Exception &e) {
+		LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control : "
+				<< xcept::stdformat_exception_history(e));
 	}
+  
+  LOG4CPLUS_INFO(getApplicationLogger(),
+		 "Failure occurred when performing transition"
+		 << " from: " << failed.getFromState()
+		 << " to: " << failed.getToState()
+		 << " exception: " << failed.getException().what());
+}
 
-	if (klass == "EmuDAQManager" && !isDAQManagerControlled(command)) {
-		return;  // Do nothing if EmuDAQManager is not under control.
-	}
-
-	// prepare a SOAP message
-	xoap::MessageReference message = createCommandSOAP(command);
-	xoap::MessageReference reply;
-
-	// send the message one-by-one
-	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-	for (; i != apps.end(); ++i) {
-		// postSOAP() may throw an exception when failed.
-		reply = getApplicationContext()->postSOAP(message, *i);
-
-		analyzeReply(message, reply, *i);
-	}
+void CSCSupervisor::sendCommand(string command, string klass)
+  throw (xoap::exception::Exception, xdaq::exception::Exception)
+{
+  // Exceptions:
+  // xoap exceptions are thrown by analyzeReply() for SOAP faults.
+  // xdaq exceptions are thrown by postSOAP() for socket level errors.
+  
+  // find applications
+  std::set<xdaq::ApplicationDescriptor *> apps;
+  try {
+    apps = getApplicationContext()->getDefaultZone()
+      ->getApplicationDescriptors(klass);
+  } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+    return; // Do nothing if the target doesn't exist
+  }
+  
+  if (klass == "EmuDAQManager" && !isDAQManagerControlled(command)) {
+    return;  // Do nothing if EmuDAQManager is not under control.
+  }
+  
+  // prepare a SOAP message
+  xoap::MessageReference message = createCommandSOAP(command);
+  xoap::MessageReference reply;
+  
+  // send the message one-by-one
+  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+  for (; i != apps.end(); ++i) {
+    // postSOAP() may throw an exception when failed.
+    reply = getApplicationContext()->postSOAP(message, *i);
+    
+    analyzeReply(message, reply, *i);
+  }
 }
 
 void CSCSupervisor::sendCommand(string command, string klass, int instance)
