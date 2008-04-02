@@ -211,12 +211,14 @@ int main(int argc, char **argv) {
     }else{
       if(!histofile.size()){
         histofile = datafile;
+        REREPLACE("^.*/", histofile, "");
         REREPLACE("\\.[a-zA-Z0-9]*$", histofile, ".root");
       }
       if(forwardRoot) isRoot = true;
     }
     if(!plotsdir.size()) {
       plotsdir = histofile;
+      REREPLACE("^.*/", plotsdir, "");
       REREPLACE("\\.[a-zA-Z0-9]*$", plotsdir, ".plots");
     }
     
