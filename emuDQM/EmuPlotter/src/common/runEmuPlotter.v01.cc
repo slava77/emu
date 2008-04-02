@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 	uint32_t dduCheckMask=0xFFFFDFFF;
 	// uint32_t binCheckMask=0xFFDB3BF6;
 	// uint32_t binCheckMask=0x16CB73F6;
-	uint32_t binCheckMask=0x16CBF3F6;
+	uint32_t binCheckMask=0x16EBF3F6;
 	// uint32_t binCheckMask=0xFFDB3BF6;
 	// uint32_t binCheckMask=0xF778FFF6; // ignore CFEB DAV error and Sample Count Error
 	uint32_t node=0;
