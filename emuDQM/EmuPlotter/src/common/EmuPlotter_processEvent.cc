@@ -624,7 +624,7 @@ void EmuPlotter::updateFractionHistos()
   // ************************************
 
   calcFractionHisto(nodeME, "DMB_Format_Errors_Fract", "DMB_Reporting", "DMB_Format_Errors");
-  calcFractionHisto(nodeME, "CSC_Format_Errors_Fract", "CSC_Format_Errors", "CSC_Reporting");
+  calcFractionHisto(nodeME, "CSC_Format_Errors_Fract", "CSC_Reporting", "CSC_Format_Errors");
   calcFractionHisto(nodeME, "DMB_Unpacked_Fract", "DMB_Reporting", "DMB_Unpacked");
   calcFractionHisto(nodeME, "CSC_Unpacked_Fract", "CSC_Reporting", "CSC_Unpacked");
   calcFractionHisto(nodeME, "DMB_wo_ALCT_Fract", "DMB_Reporting", "DMB_wo_ALCT");
