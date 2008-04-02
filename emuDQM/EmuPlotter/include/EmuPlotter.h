@@ -79,7 +79,7 @@ typedef struct CSCCounters {
 typedef std::map<std::string, uint32_t> CSCCounters;
 
 ///
-/// @class EMUPLOTTER
+/// @class EmuPlotter
 /// @brief EmuPlotter class
 /// 
 ///
@@ -106,13 +106,12 @@ public:
   uint32_t getDDUCheckMask() const { return dduCheckMask;}
   void setBinCheckMask(uint32_t mask) { binCheckMask = mask;}
   uint32_t getBinCheckMask() const { return binCheckMask;}
-   void setXMLHistosBookingCfgFile(std::string filename) {xmlHistosBookingCfgFile = filename;}
+  void setXMLHistosBookingCfgFile(std::string filename) {xmlHistosBookingCfgFile = filename;}
   std::string GetXMLHistosBookingCfgFile() const {return xmlHistosBookingCfgFile;}
   void setXMLCanvasesCfgFile(std::string filename) {xmlCanvasesCfgFile = filename;}
   std::string GetXMLCanvasesCfgFile() const {return xmlCanvasesCfgFile;}
   void setCSCMapFile(std::string filename);
   std::string getCSCMapFile() const {return cscMapFile;}
-
 
   void saveHistos() {};
 
@@ -158,10 +157,6 @@ public:
   uint32_t getBadEventsCount() const {return nBadEvents;}
   void cleanup();
   void updateFractionHistos();
- 
-
- 
-
 
 protected:
 
@@ -172,7 +167,6 @@ protected:
   MECanvases_List bookChamberCanvases(int chamberID);
   MECanvases_List bookCommonCanvases(int nodeNumber);
   MECanvases_List bookDDUCanvases(int dduNumber);
-
 
   void init(); 
   void reset();
@@ -216,7 +210,6 @@ private:
   uint32_t L1ANumber;
   uint32_t BXN;
   uint32_t evtSize;
-
 
   uint32_t unpackedDMBcount;
   uint32_t nEvents;

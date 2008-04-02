@@ -160,6 +160,11 @@ int main(int argc, char **argv) {
     // Parse the argv array.
     cmd.parse(argc, argv);
 
+    // *******************************************************
+    // Done with Command line. Now getting 'em out and
+    // making initial initializations, i.e. defining values
+    // *******************************************************
+
     // Getting Command Line arguments
     cfgDir = cfgDirArg.getValue();
     if(!REMATCH("\\/$", cfgDir)) cfgDir += "/";
@@ -214,6 +219,19 @@ int main(int argc, char **argv) {
       plotsdir = histofile;
       REREPLACE("\\.[a-zA-Z0-9]*$", plotsdir, ".plots");
     }
+    
+    // Declaring and creating a name of the run (out of histofile)
+    // Applicable only to ROOT mode
+    std::string runname = histofile;
+    REREPLACE("\\.[a-zA-Z0-9]*$", runname, "");
+
+    // Try to extract Node ID from data file name (should match pattern EmuRUInn)
+    uint32_t node = 0;
+    if (REMATCH("EmuRUI[0-9]+[^/]*", datafile)) {
+      std::string nodestr = datafile;
+      REREPLACE(".+EmuRUI([0-9]+)[^/]*", nodestr, "$1");
+      node = atoi(nodestr.c_str());
+    }
 
     // FYI: Printing information about parameters to be used
     LOG4CPLUS_INFO(logger, "[GLOBAL] cfgDir = " << cfgDir);
@@ -229,13 +247,19 @@ int main(int argc, char **argv) {
     LOG4CPLUS_INFO(logger, "[DATA] forwardRoot = " << boolalpha << forwardRoot);
     LOG4CPLUS_INFO(logger, "[DATA] cscMapFile = " << cscMapFile);
     LOG4CPLUS_INFO(logger, "[DATA] xmlHistosBookingCfg = " << xmlHistosBookingCfg);
+    LOG4CPLUS_INFO(logger, "[DATA] node ID = " << node);
     LOG4CPLUS_INFO(logger, "[ROOT] xmlCanvasesCfg = " << xmlCanvasesCfg);
     LOG4CPLUS_INFO(logger, "[ROOT] filter = " << filter);
     LOG4CPLUS_INFO(logger, "[ROOT] plotsDir = " << plotsdir);
+    LOG4CPLUS_INFO(logger, "[ROOT] runName = " << runname);
 
     // If -C was set - exit after configuration arguments 
     // where printed on the screen...
     if(configOnly) return 0;
+
+    // *******************************************************
+    // Doing the acctual work from here
+    // *******************************************************
 
     // Determining if the source file size is larger than 0
     // and if this file exists and is accessible as well :)
@@ -263,15 +287,6 @@ int main(int argc, char **argv) {
       ddu.open(datafile.c_str());
       LOG4CPLUS_INFO (logger, "Opened data file " << datafile);
     
-      // Try to extract Node ID from data file name (should match pattern EmuRUInn)
-      uint32_t node = 0;
-      if (REMATCH("EmuRUI[0-9]+", datafile)) {
-        std::string nodestr = datafile;
-        REREPLACE("EmuRUI([0-9]+)", nodestr, "$1");
-        node = atoi(nodestr.c_str());
-        LOG4CPLUS_INFO (logger, "Found Node ID " << node);
-      }
-
       // Data specific plotter things to set
       plotter->setHistoFile(histofile.c_str());  
       if (dduCheckMask >= 0) plotter->setDDUCheckMask(dduCheckMask);
@@ -330,10 +345,6 @@ int main(int argc, char **argv) {
     if (isRoot) {
       
       LOG4CPLUS_INFO (logger, "Load MEs from ROOT file " << histofile);
-
-      // Declaring and creating a name of the run (out of histofile)
-      std::string runname = histofile;
-      REREPLACE("\\.[a-zA-Z0-9]*$", runname, "");
       
       // Go go go
       plotter->convertROOTToImages(histofile, plotsdir.c_str(), IMG_FORMAT, IMG_WIDTH, IMG_HEIGHT, runname, filter);
