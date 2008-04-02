@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
     if(!xmlCanvasesCfg.size()) xmlCanvasesCfg = FILE_PROTOCOL + cfgDir + DEFAULT_CANVAS_FILE;
 
     std::string cscMapFile = cfgCSCMapArg.getValue();
-    if(!cscMapFile.size()) cscMapFile = FILE_PROTOCOL + cfgDir + DEFAULT_CSCMAP_FILE;
+    if(!cscMapFile.size()) cscMapFile = cfgDir + DEFAULT_CSCMAP_FILE;
     
     uint32_t startEvent = startEventArg.getValue();
     uint32_t NumberOfEvents = numberOfEventsArg.getValue();
