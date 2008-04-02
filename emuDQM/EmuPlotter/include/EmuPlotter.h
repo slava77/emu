@@ -1,7 +1,6 @@
 #ifndef EmuPlotter_h
 #define EmuPlotter_h
 
-
 #include <iostream>
 #include <string>
 #include <signal.h>
@@ -44,9 +43,6 @@
 #include "DataFormats/CSCDigi/interface/CSCALCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 
-
-
-
 // ==  ROOT Section
 #include <TROOT.h>
 #include <TApplication.h>
@@ -61,11 +57,9 @@
 // == DDU Bin Examiner
 // #include "dduBinExaminer.hh"
 
-
 #define DEFAULT_IMAGE_FORMAT "png"
 #define DEFAULT_CANVAS_WIDTH  800
 #define DEFAULT_CANVAS_HEIGHT 600
-
 
 // using namespace std;
 
@@ -83,6 +77,12 @@ typedef struct CSCCounters {
 } CSCTrigCounters;
 */
 typedef std::map<std::string, uint32_t> CSCCounters;
+
+///
+/// @class EMUPLOTTER
+/// @brief EmuPlotter class
+/// 
+///
 
 class EmuPlotter {
 public:
