@@ -6795,8 +6795,9 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
     //
     int debugMode(0);
     int jch(6);
+    int verify(1);
     printf("Programming CCB using %s\n", CCBFirmware_.toString().c_str());
-    int status = thisCCB->svfLoad(&jch,CCBFirmware_.toString().c_str(),debugMode);
+    int status = thisCCB->svfLoad(&jch,CCBFirmware_.toString().c_str(),debugMode, verify);
     if (status >= 0){
       cout << "=== Programming finished"<< endl;
       cout << "=== " << status << " Verify Errors  occured" << endl;
@@ -6884,8 +6885,9 @@ void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * ou
   //
   int debugMode(0);
   int jch(6);
+  int verify(1);
   printf("Programming MPC using %s\n", MPCFirmware_.toString().c_str());
-  int status = thisMPC->svfLoad(&jch,MPCFirmware_.toString().c_str(),debugMode);
+  int status = thisMPC->svfLoad(&jch,MPCFirmware_.toString().c_str(),debugMode, verify);
   if (status >= 0){
     cout << "=== Programming finished"<< endl;
     cout << "=== " << status << " Verify Errors  occured" << endl;
