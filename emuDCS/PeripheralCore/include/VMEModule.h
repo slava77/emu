@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.7 2008/02/18 12:08:48 liu Exp $
+// $Id: VMEModule.h,v 3.8 2008/04/02 13:42:50 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.8  2008/04/02 13:42:50  liu
+// add f/w downloading verify for CCB & MPC
+//
 // Revision 3.7  2008/02/18 12:08:48  liu
 // new functions for monitoring
 //
@@ -125,7 +128,7 @@ public:
   virtual void configure() = 0;
   
   void Parse(char *buf,int *Count,char **Word);
-  int  svfLoad(int*, const char *, int);
+  int  svfLoad(int*, const char *, int, int verify=0);
   
   VMEController* getTheController();
   

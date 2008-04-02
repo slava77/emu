@@ -1222,7 +1222,7 @@ void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ir
   if(ird)
   {
     // combine bits in mytmp[] into bytes in rcv[].
-    //  for(i=0; i<cnt*2; i++) printf("%02x ", mytmp[i]&0xff);
+    // for(i=0; i<cnt*2; i++) printf("%02x ", mytmp[i]&0xff);
     //  printf("\n");
      bit=0; 
      bdata=0; 
@@ -1231,13 +1231,14 @@ void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ir
      cnt8 = 8*((cnt+7)/8);
      for(i=0;i<cnt8;i++)
      {
-       if(i<cnt) bdata |= mytmp[2*i+1] & (1<<TDO_);
+       if(i<cnt) bdata |= ((mytmp[2*i+1] & (1<<TDO_))<<(7-TDO_));
+  
        if(bit==7)
 	 { rcv2[j++]=bdata;  bit=0;  bdata=0; }
        else
 	 { bdata >>= 1;     bit++; }
      }
-     if (DEBUG>1) {
+     if (DEBUG) {
        printf("scan_jtag output: ");
        for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
        printf("\n");
