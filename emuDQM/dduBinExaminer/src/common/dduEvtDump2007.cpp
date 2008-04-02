@@ -244,7 +244,12 @@ int main(int argc, char **argv)
 		      ((buf_1[0]&0xFFFF)==0xDE0D) && 
 		      ((buf_1[1]&0xF800)==0xD000) && 
 		      ((buf_1[2]&0xF800)==0xD000) && 
-		      ((buf_1[3]&0xF000)==0xD000) )   )   {
+		      ((buf_1[3]&0xF000)==0xD000) ) 
+			      || 
+		    (  ((buf0[0]&0xFFFF) ==0xDB0C) &&
+		       ((buf0[1]&0xF000) ==0xD000) &&
+		       ((buf0[2]&0xF000) ==0xD000) &&
+		       ((buf0[3]&0xF000) ==0xD000)) )   {
 		      TMB_L1A = (buf0[2]&0x000F);
 		       cout << " " << endl << "<TMB|      L1A= " << TMB_L1A <<  endl;
                       fTMB=true;
