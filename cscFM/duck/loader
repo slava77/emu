@@ -12,11 +12,11 @@ if [[ $1 = --* ]]
 then
     if [[ $1 = --usc55 ]]
     then
-	host=oracms.cern.ch
-	port=10121
-	name=omds
-	user=rs_csc
-	type=ORACLE
+        host=cmsonr1-v
+        port=10121
+        name=cms_rcms.cern.ch
+        user=cms_csc_rs
+        type=ORACLE
     fi
     shift
 fi
@@ -25,4 +25,3 @@ pass=$1
 xml=$2
 
 java -jar $duck_jar $xml $host $port $name $user $pass $type
-
