@@ -550,7 +550,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
   *out << "['Node','State','Run Number','DAQ Events','DQM Events','Rate (Evt/s)','Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last event timestamp']," << std::endl;
  
   std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
-  std::set<xdaq::ApplicationDescriptor*>  ruis = getAppsList("EmuRUI");
+  std::set<xdaq::ApplicationDescriptor*>  ruis = getAppsList("EmuRUI","default");
   if (!monitors.empty()) {
     std::set<xdaq::ApplicationDescriptor*>::iterator pos;
     std::set<xdaq::ApplicationDescriptor*>::iterator rui_itr;
@@ -1839,7 +1839,7 @@ std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDes
 }
 
 // == Get Application Descriptors for specified Data Server class name == //
-std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::String className)
+std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::String className, xdata::String group)
 {
 
   std::set<xdaq::ApplicationDescriptor*> applist;
@@ -1847,7 +1847,7 @@ std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::Stri
     {
       applist.clear();
 
-      xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
+      xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup(group);
       if (g) applist =	g->getApplicationDescriptors(className.toString());
       // sort(applist.begin(), applist.end(), Compare_ApplicationDescriptors());
     }

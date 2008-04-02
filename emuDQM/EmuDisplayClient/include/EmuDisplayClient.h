@@ -134,7 +134,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
 
   toolbox::exception::HandlerSignature  * errorHandler_;
   
-  std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::String className);
+  std::set<xdaq::ApplicationDescriptor*> getAppsList(xdata::String className, xdata::String group="dqm");
 
   // == Vector of all external data servers tids
   std::set<xdaq::ApplicationDescriptor*> monitors_;
