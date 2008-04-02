@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.16 2008/02/18 12:09:19 liu Exp $
+// $Id: VMEModule.cc,v 3.17 2008/04/02 13:41:54 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.17  2008/04/02 13:41:54  liu
+// add f/w downloading verify for CCB & MPC
+//
 // Revision 3.16  2008/02/18 12:09:19  liu
 // new functions for monitoring
 //
@@ -281,14 +284,13 @@ bool VMEModule::exist(){
   return theController->exist( theSlot );
 }
 
-int VMEModule::svfLoad(int *jch, const char *fn, int db )
+int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 {
   int MAXBUFSIZE=8200;
   unsigned char snd[MAXBUFSIZE], rcv[MAXBUFSIZE], expect[MAXBUFSIZE],rmask[MAXBUFSIZE],smask[MAXBUFSIZE],cmpbuf[MAXBUFSIZE];
   unsigned char sndbuf[MAXBUFSIZE],rcvbuf[MAXBUFSIZE], realsnd[MAXBUFSIZE];
   unsigned char sndhdr[MAXBUFSIZE],sndtdr[MAXBUFSIZE], sndhir[MAXBUFSIZE], sndtir[MAXBUFSIZE];
   unsigned char hdrsmask[MAXBUFSIZE],tdrsmask[MAXBUFSIZE], hirsmask[MAXBUFSIZE], tirsmask[MAXBUFSIZE];
-  int rcvword;
   FILE *dwnfp;
   char buf[MAXBUFSIZE], buf2[256];
   //  char buf[8192],buf2[256];
@@ -668,19 +670,6 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 		realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
 	    }	    
 	    //
-	    if (db)
-	    {	
-	      printf("SDR Sent Data:\n");
-	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
-		printf("%02X",realsnd[i]);
-	      printf("\n");
-	      //
-	      printf("SDR Readback Data:\n");
-	      for (i=0; i< ((hdrbits+nbits+tdrbits)); i++) 
-		printf("%02X",rcv[i]);
-	      printf("\n");
-	    }		    
-	    //
 	    send_packages++ ;
 	    printf("%c[0m", '\033');
 	    printf("%c[1m", '\033');
@@ -694,9 +683,22 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 	    printf("%c[0m", '\033');
 	    if ( send_packages == total_packages ) printf("\n") ;
 	  //
-	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 0); 
+	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, verify); 
 	  //
-	  if (cmpflag==1)
+	    if (db)
+	    {	
+	      printf("SDR Sent Data: ");
+	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
+		printf("%02X",realsnd[i]);
+	      printf("\n");
+	      //
+	      printf("SDR Readback Data: ");
+	      for (i=0; i< nbytes; i++) 
+		printf("%02X",rcv[i]);
+	      printf("\n");
+	    }		    
+	    //
+	  if (verify && cmpflag==1)
 	    {     
 	      /*
 		for(i=0;i<nbytes;i++)
@@ -716,13 +718,9 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 	      */
 	      for(i=0;i<nbytes;i++)
 		{
-		  rcvword = rcv[i+(hdrbits/8)]+(((int)rcv[i+1+(hdrbits/8)])<<8);
-		  rcvword = rcvword>>(hdrbits%8);
-		  rcvword = rcv[i];
-		  // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-		  if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
+		  if (((rcv[i]^expect[i]) & rmask[i])!=0)
 		    {
-		      //printf("1.read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
+		      if(db) printf("SDR read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
 		      errcntr++;
 		    }
 		}	
@@ -806,20 +804,20 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 		realsnd[(i+hirbits+nbits)/8] |= (sndtir[i/8] >> (i%8)) << ((i+hirbits+nbits)%8);
 	    }
 	    //
-	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 0); 
+	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, verify); 
 	    //	   
 	    if (db)
-	    { 	printf("SIR Send Data:\n");
+	    { 	printf("SIR Send Data: ");
 	    for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
 	      printf("%02X",realsnd[i]);
 	    printf("\n");
-	    printf("Readback: \n");
-	    for (i=0; i< ((hirbits+nbits+tirbits));  i++)
-	      printf("%02X ",rcv[i]);
+	    printf("SIR Readback Data: ");
+	    for (i=0; i< nbytes;  i++)
+	      printf("%02X",rcv[i]);
 	    printf("\n");
 	    }
 	    //
-	    if (cmpflag==1)
+	    if (verify && cmpflag==1)
 	      {
 		/*               for(i=0;i<nbytes;i++)
 				 {
@@ -844,14 +842,9 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 		
                 for(i=0;i<nbytes;i++)
 		  {
-		    rcvword = rcv[i+(hirbits/8)<<3]+(((int)rcv[i+1+(hirbits/8)])<<2)+(((int)rcv[i+2+(hirbits/8)])<<1)+(((int)rcv[i+3+(hirbits/8)]));
-		    printf("%02x %02x\n",rcv[i+(hirbits/8)],(((int)rcv[i+1+(hirbits/8)])<<8));
-		    if (db) printf("hirbits=%d %02x\n",hirbits,rcvword);
-		    //rcvword = rcv[i];
-		    // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-		    if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
+		    if (((rcv[i]^expect[i]) & rmask[i])!=0)
 		      {
-			printf("2.read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
+			if(db) printf("SIR read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
                 	errcntr++;
 		      }
 		  }
@@ -869,7 +862,8 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 	    {
 	      sscanf(Word[1],"%d",&pause);
 	      //printf("RUNTEST:  %d\n",pause);
-	      usleep(pause+100);
+              theController->sleep_vme(pause);
+	      //usleep(pause+100);
 	      // InsertDelayJTAG(pause,MYMICROSECONDS);
 	    }
 	  // === Handling STATE ===
