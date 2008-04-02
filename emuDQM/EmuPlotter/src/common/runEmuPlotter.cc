@@ -74,7 +74,7 @@ using namespace log4cplus::spi;
 #define IMG_WIDTH                 1200
 #define IMG_HEIGHT                900
 #define DEFAULT_DDU_MASK          0xFFFFDFFF
-#define DEFAULT_BIN_MASK          0x16CBF3F6
+#define DEFAULT_BIN_MASK          0x16EBF3F6
 
 // Function shortcuts
 #define REMATCH(pat, str)         (TPRegexp(pat).MatchB(str))
