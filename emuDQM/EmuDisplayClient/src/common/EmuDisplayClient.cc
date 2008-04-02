@@ -563,8 +563,8 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 		for (rui_itr=ruis.begin(); rui_itr != ruis.end(); ++rui_itr) {
 			if ((*pos)->getInstance() == (*rui_itr)->getInstance()) {
 				rui=(*rui_itr);
+				break;
 			}
-			break;
 		}
           }
 
