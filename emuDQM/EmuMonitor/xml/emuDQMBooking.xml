@@ -123,6 +123,54 @@
         <Histogram>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
+                <Name>DMB_input_fifo_full</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>61</XMax>
+                <XBins>60</XBins>
+                <XTitle>Crate ID</XTitle>
+                <YMin>1</YMin>
+                <YMax>11</YMax>
+                <YBins>10</YBins>
+                <YTitle>DMB/TMB Slot ID</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>DMBs with DMB-INPUT-FIFO FULL State</Title>
+                <SetNdivisionsX>60</SetNdivisionsX>
+                <SetNdivisionsY>10</SetNdivisionsY>
+                <SetLabelSizeX>0.015</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+        </Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>DMB_input_timeout</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>61</XMax>
+                <XBins>60</XBins>
+                <XTitle>Crate ID</XTitle>
+                <YMin>1</YMin>
+                <YMax>11</YMax>
+                <YBins>10</YBins>
+                <YTitle>DMB/TMB Slot ID</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>DMBs with DMB-INPUT TIMEOUT State</Title>
+                <SetNdivisionsX>60</SetNdivisionsX>
+                <SetNdivisionsY>10</SetNdivisionsY>
+                <SetLabelSizeX>0.015</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+        </Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
                 <Name>DMB_Unpacked_with_errors</Name>
                 <SetOption>colz</SetOption>
                 <XMin>1</XMin>
@@ -342,6 +390,56 @@
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <SetLogz>1</SetLogz>
         </Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>DMB_input_fifo_full_Fract</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>61</XMax>
+                <XBins>60</XBins>
+                <XTitle>Crate ID</XTitle>
+                <YMin>1</YMin>
+                <YMax>11</YMax>
+                <YBins>10</YBins>
+                <YTitle>DMB/TMB Slot ID</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Fraction of DMB Records with DMB-INPUT-FIFO FULL State</Title>
+                <SetNdivisionsX>60</SetNdivisionsX>
+                <SetNdivisionsY>10</SetNdivisionsY>
+                <SetLabelSizeX>0.015</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetLogz>1</SetLogz>
+        </Histogram>
+        <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>DMB_input_timeout_Fract</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>61</XMax>
+                <XBins>60</XBins>
+                <XTitle>Crate ID</XTitle>
+                <YMin>1</YMin>
+                <YMax>11</YMax>
+                <YBins>10</YBins>
+                <YTitle>DMB/TMB Slot ID</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Fraction of DMB Records with DMB-INPUT TIMEOUT State</Title>
+                <SetNdivisionsX>60</SetNdivisionsX>
+                <SetNdivisionsY>10</SetNdivisionsY>
+                <SetLabelSizeX>0.015</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetLogz>1</SetLogz>
+        </Histogram>
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>EMU</Prefix>
@@ -356,6 +454,50 @@
 		<YBins>18</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>Unpacked CSCs</Title>
+		<SetNdivisionsX>36</SetNdivisionsX>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+		<SetStats>0</SetStats>
+		<SetGridx>1</SetGridx>
+		<SetGridy>1</SetGridy>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+	</Histogram>
+	<Histogram>
+		<Type>h2</Type>
+		<Prefix>EMU</Prefix>
+		<Name>CSC_DMB_input_fifo_full</Name>
+		<SetOption>colz</SetOption>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
+		<XBins>36</XBins>
+		<XTitle>Chamber</XTitle>
+		<YMin>0</YMin>
+		<YMax>18</YMax>
+		<YBins>18</YBins>
+		<SetOptStat>e</SetOptStat>
+		<Title>CSCs with DMB-INPUT-FIFO FULL State</Title>
+		<SetNdivisionsX>36</SetNdivisionsX>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+		<SetStats>0</SetStats>
+		<SetGridx>1</SetGridx>
+		<SetGridy>1</SetGridy>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+	</Histogram>
+	<Histogram>
+		<Type>h2</Type>
+		<Prefix>EMU</Prefix>
+		<Name>CSC_DMB_input_timeout</Name>
+		<SetOption>colz</SetOption>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
+		<XBins>36</XBins>
+		<XTitle>Chamber</XTitle>
+		<YMin>0</YMin>
+		<YMax>18</YMax>
+		<YBins>18</YBins>
+		<SetOptStat>e</SetOptStat>
+		<Title>CSCs with DMB-INPUT TIMEOUT State</Title>
 		<SetNdivisionsX>36</SetNdivisionsX>
 		<SetLabelSizeX>0.02</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -533,6 +675,52 @@
 		<YBins>18</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>Fraction of CSC Records with Format Errors</Title>
+		<SetNdivisionsX>36</SetNdivisionsX>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+		<SetStats>0</SetStats>
+		<SetGridx>1</SetGridx>
+		<SetGridy>1</SetGridy>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetLogz>1</SetLogz>
+		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+	</Histogram>
+	<Histogram>
+		<Type>h2</Type>
+		<Prefix>EMU</Prefix>
+		<Name>CSC_DMB_input_fifo_full_Fract</Name>
+		<SetOption>colz</SetOption>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
+		<XBins>36</XBins>
+		<XTitle>Chamber</XTitle>
+		<YMin>0</YMin>
+		<YMax>18</YMax>
+		<YBins>18</YBins>
+		<SetOptStat>e</SetOptStat>
+		<Title>Fraction of CSC with DMB-INPUT-FIFO FULL State</Title>
+		<SetNdivisionsX>36</SetNdivisionsX>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+		<SetStats>0</SetStats>
+		<SetGridx>1</SetGridx>
+		<SetGridy>1</SetGridy>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetLogz>1</SetLogz>
+		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+	</Histogram>
+	<Histogram>
+		<Type>h2</Type>
+		<Prefix>EMU</Prefix>
+		<Name>CSC_DMB_input_timeout_Fract</Name>
+		<SetOption>colz</SetOption>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
+		<XBins>36</XBins>
+		<XTitle>Chamber</XTitle>
+		<YMin>0</YMin>
+		<YMax>18</YMax>
+		<YBins>18</YBins>
+		<SetOptStat>e</SetOptStat>
+		<Title>Fraction of CSC with DMB-INPUT TIMEOUT State</Title>
 		<SetNdivisionsX>36</SetNdivisionsX>
 		<SetLabelSizeX>0.02</SetLabelSizeX>
 		<SetStats>0</SetStats>
