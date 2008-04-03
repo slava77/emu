@@ -311,6 +311,78 @@
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Format_Warnings_Fract</Pad1>
 	</Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test15a_DMB_input_fifo_full</Name>
+                <Title>EMU Test15a - DMBs with DMB-INPUT-FIFO FULL Status</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_input_fifo_full</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test15b_CSC_input_fifo_full</Name>
+                <Title>EMU Test15b - CSCs with DMB-INPUT-FIFO FULL Status</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_DMB_input_fifo_full</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test15c_DMB_input_fifo_full_Fract</Name>
+                <Title>EMU Test15c - DMBs with DMB-INPUT-FIFO FULL Status (Fraction)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_input_fifo_full_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test15d_CSC_input_fifo_full_Fract</Name>
+                <Title>EMU Test15d - CSCs with DMB-INPUT-FIFO FULL Status (Fraction)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_DMB_input_fifo_full_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test16a_DMB_input_timeout</Name>
+                <Title>EMU Test16a - DMBs with DMB-INPUT TIMEOUT Status</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_input_timeout</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test16b_CSC_input_timeout</Name>
+                <Title>EMU Test16b - CSCs with DMB-INPUT TIMEOUT Status</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_DMB_input_timeout</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test16c_DMB_input_timeout_Fract</Name>
+                <Title>EMU Test16c - DMBs with DMB-INPUT TIMEOUT Status (Fraction)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_input_timeout_Fract</Pad1>
+        </Canvas>
+        <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test16d_CSC_input_timeout_Fract</Name>
+                <Title>EMU Test16d - CSCs with DMB-INPUT TIMEOUT Status (Fraction)</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>CSC_DMB_input_timeout_Fract</Pad1>
+        </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>DDU</Prefix>
