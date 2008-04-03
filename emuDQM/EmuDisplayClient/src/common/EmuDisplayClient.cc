@@ -431,7 +431,7 @@ void EmuDisplayClient::getCSCList (xgi::Input * in, xgi::Output * out)  throw (x
   // == Temporary
   // == TODO: Request or load CSC list
 
-  *out << "var CSC_LIST=[" << std::endl;
+  *out << "var CSC_LIST=[";
   *out << "['Online Run'";
   updateFoldersMap();
   if (!foldersMap.empty()) {
@@ -546,7 +546,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 {
 
   
-  *out << "var NODES_LIST = [" << std::endl;
+  *out << "var NODES_LIST=[" << std::endl;
   *out << "['Node','State','Run Number','DAQ Events','DQM Events','Rate (Evt/s)','Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last event timestamp']," << std::endl;
  
   std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
