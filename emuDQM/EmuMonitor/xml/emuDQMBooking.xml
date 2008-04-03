@@ -413,7 +413,7 @@
                 <SetGridx>1</SetGridx>
                 <SetGridy>1</SetGridy>
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
-                <SetLogz>1</SetLogz>
+		<SetMaximum>1.0</SetMaximum>
         </Histogram>
         <Histogram>
                 <Type>h2</Type>
@@ -438,7 +438,7 @@
                 <SetGridx>1</SetGridx>
                 <SetGridy>1</SetGridy>
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
-                <SetLogz>1</SetLogz>
+		<SetMaximum>1.0</SetMaximum>
         </Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -704,8 +704,8 @@
 		<SetGridx>1</SetGridx>
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetLogz>1</SetLogz>
 		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+		<SetMaximum>1.0</SetMaximum>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -727,8 +727,8 @@
 		<SetGridx>1</SetGridx>
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetLogz>1</SetLogz>
 		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+		<SetMaximum>1.0</SetMaximum>
 	</Histogram>
         <Histogram>
                 <Type>h2</Type>
@@ -2275,6 +2275,7 @@
 		<Title>Data Format Errors Frequency</Title>
 		<SetNdivisionsX>20</SetNdivisionsX>
 		<SetLeftMargin>0</SetLeftMargin>
+		<SetMaximum>100</SetMaximum>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -2307,6 +2308,7 @@
 		<Title>Data Format Warnings Frequency</Title>
 		<SetNdivisionsX>1</SetNdivisionsX>
 		<SetLeftMargin>0</SetLeftMargin>
+		<SetMaximum>100</SetMaximum>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
