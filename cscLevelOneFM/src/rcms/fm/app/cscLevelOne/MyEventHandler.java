@@ -36,9 +36,6 @@ import rcms.util.logger.RCMSLogger;
 import rcms.xdaqctl.XDAQParameter;
 
 
-
-
-
 /**
  * 
  * Main Event Handler class for Level 1 Function Manager.
@@ -529,12 +526,12 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("stopping")));
 
-			// send Disable
+			// send Stop
 			try {
-				functionManager.xdaqSupervisor.execute(new Input("Disable"));
+				functionManager.xdaqSupervisor.execute(new Input("Stop"));
 
 			} catch (Exception e) {
-				logger.error(getClass().toString() + "Failed to Disable XDAQ.", e);
+				logger.error(getClass().toString() + "Failed to Stop XDAQ.", e);
 
 				functionManager.fireEvent(MyInputs.SETERROR);
 			}
