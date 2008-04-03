@@ -571,6 +571,12 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       //      mo->SetEntries(nBadEvents);
     }
 
+/*
+    if (!isEventDenied && isCSCWarning  && isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo)) {
+      mo->Fill(CrateID, DMBSlot);
+      //      mo->SetEntries(nBadEvents);
+    }
+*/
 
     chamber++;
   }
@@ -689,6 +695,7 @@ void EmuPlotter::calcFractionHisto(
       && isMEvalid(MEs, subSetHistoName, mo1))
     {
         mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+	mo->getObject()->SetMaximum(1.0);
     }
 
 }
