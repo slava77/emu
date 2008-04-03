@@ -265,7 +265,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if ((dmbTrailer->tmb_timeout==0) && (dmbTrailer->alct_timeout==0) && (dmbTrailer->cfeb_starttimeout==0) && (dmbTrailer->cfeb_endtimeout==0)) {
       mo->Fill(0.0);
     }else{
-      anyInputTO = true;
       if (dmbTrailer->alct_timeout) mo->Fill(1);
       if (dmbTrailer->tmb_timeout) mo->Fill(2);
       if (dmbTrailer->alct_endtimeout) mo->Fill(8); // KK
@@ -274,11 +273,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     for (int i=0; i<5; i++) {
       if ((dmbTrailer->cfeb_starttimeout>>i) & 0x1) {
         mo->Fill(i+3);
-        anyInputTO = true;
       }
       if ((dmbTrailer->cfeb_endtimeout>>i) & 0x1) {
         mo->Fill(i+10); // KK 8->10
-        anyInputTO = true;
       }
     }
     mo->SetEntries((int)DMBEvents);
