@@ -226,6 +226,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   if (isMEvalid(cscME, "DMB_L1_Pipe", mo)) mo->Fill(dmbTrailer->dmb_l1pipe);
 
+  // DMB input (7 in total) FIFO stuff goes here
   if (isMEvalid(cscME, "DMB_FIFO_stats", mo)) {
     if (dmbTrailer->tmb_empty == 1) mo->Fill(1.0, 0.0); //KK
     if (dmbTrailer->tmb_half == 0) mo->Fill(1.0, 1.0);
@@ -236,24 +237,65 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     for (int i=0; i<5; i++) {
       if ((int)((dmbTrailer->cfeb_empty>>i)&0x1) == 1) mo->Fill(i+2,0.0);
       if ((int)((dmbTrailer->cfeb_half>>i)&0x1) == 0) mo->Fill(i+2,1);
-      if ((int)((dmbTrailer->cfeb_full>>i)&0x1) == 1) mo->Fill(i+2,2);
+      if ((int)((dmbTrailer->cfeb_full>>i)&0x1) == 1) {
+        mo->Fill(i+2,2);
+      }
     }
     mo->SetEntries((int)DMBEvents);
   }
 
+  // Check if any of input FIFO's are full
+  bool anyInputFull = dmbTrailer->tmb_full || dmbTrailer->alct_full;
+  for (int i=0; i<5; i++) {
+    anyInputFull = anyInputFull || (int)((dmbTrailer->cfeb_full>>i)&0x1);
+  }
+
+  // Filling global FIFO-Full histograms
+  if(anyInputFull){
+    if(CSCtype && CSCposition && isMEvalid(nodeME, "CSC_DMB_input_fifo_full", mo)){
+      mo->Fill(CSCposition, CSCtype);
+    }
+    if (isMEvalid(nodeME, "DMB_input_fifo_full", mo)) {
+      mo->Fill(crateID, dmbID);
+    }
+  }
+
+  // DMB input timeout (total 15 bits) goes here
   if (isMEvalid(cscME, "DMB_FEB_Timeouts", mo)) {
     if ((dmbTrailer->tmb_timeout==0) && (dmbTrailer->alct_timeout==0) && (dmbTrailer->cfeb_starttimeout==0) && (dmbTrailer->cfeb_endtimeout==0)) {
       mo->Fill(0.0);
+    }else{
+      anyInputTO = true;
+      if (dmbTrailer->alct_timeout) mo->Fill(1);
+      if (dmbTrailer->tmb_timeout) mo->Fill(2);
+      if (dmbTrailer->alct_endtimeout) mo->Fill(8); // KK
+      if (dmbTrailer->tmb_endtimeout) mo->Fill(9);  // KK
     }
-    if (dmbTrailer->alct_timeout) mo->Fill(1);
-    if (dmbTrailer->tmb_timeout) mo->Fill(2);
-    if (dmbTrailer->alct_endtimeout) mo->Fill(8); // KK
-    if (dmbTrailer->tmb_endtimeout) mo->Fill(9);  // KK
     for (int i=0; i<5; i++) {
-      if ((dmbTrailer->cfeb_starttimeout>>i) & 0x1) mo->Fill(i+3);
-      if ((dmbTrailer->cfeb_endtimeout>>i) & 0x1) mo->Fill(i+10); // KK 8->10
+      if ((dmbTrailer->cfeb_starttimeout>>i) & 0x1) {
+        mo->Fill(i+3);
+        anyInputTO = true;
+      }
+      if ((dmbTrailer->cfeb_endtimeout>>i) & 0x1) {
+        mo->Fill(i+10); // KK 8->10
+        anyInputTO = true;
+      }
     }
     mo->SetEntries((int)DMBEvents);
+  }
+
+  bool anyInputTO = dmbTrailer->tmb_timeout || dmbTrailer->alct_timeout || dmbTrailer->cfeb_starttimeout || dmbTrailer->cfeb_endtimeout;
+  for (int i=0; i<5; i++) {
+    anyInputTO = ((dmbTrailer->cfeb_starttimeout>>i) & 0x1) || ((dmbTrailer->cfeb_endtimeout>>i) & 0x1);
+  }
+
+  if(anyInputTO){
+    if(CSCtype && CSCposition && isMEvalid(nodeME, "CSC_DMB_input_timeout", mo)){
+      mo->Fill(CSCposition, CSCtype);
+    }
+    if (isMEvalid(nodeME, "DMB_input_timeout", mo)) {
+      mo->Fill(crateID, dmbID);
+    }
   }
 
   //      Get FEBs Data Available Info
