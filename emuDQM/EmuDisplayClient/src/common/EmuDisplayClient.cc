@@ -667,6 +667,9 @@ TCanvas* getMergedCanvas(std::vector<TObject*>& canvases)
 		   && obj->InheritsFrom(TH1::Class())
 		   && obj2->InheritsFrom(TH1::Class())) {
 		(reinterpret_cast<TH1*>(obj))->Add(reinterpret_cast<TH1*>(obj2));
+		if (reinterpret_cast<TH1*>(obj)->GetMaximum() == reinterpret_cast<TH1*>(obj)->GetMinimum()) {
+			reinterpret_cast<TH1*>(obj)->SetMaximum(reinterpret_cast<TH1*>(obj)->GetMinimum()+0.01);
+		}
 	      }
 	    }				    	      
 	  }
@@ -1715,6 +1718,7 @@ Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
           std::string errmsg = "DQMNode: ";
           errmsg += fault.getFaultString();
           XCEPT_RAISE(xoap::exception::Exception, errmsg);
+	  return clist;
         } else {
           LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestFoldersList reply from " << dest->getClassName() << " ID" << dest->getLocalId());
 
