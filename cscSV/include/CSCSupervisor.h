@@ -35,7 +35,7 @@ public:
 			throw (xoap::exception::Exception);
 	xoap::MessageReference onStart(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
-	xoap::MessageReference onDisable(xoap::MessageReference message)
+	xoap::MessageReference onStop(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
 	xoap::MessageReference onHalt(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
@@ -51,7 +51,7 @@ public:
 			throw (xgi::exception::Exception);
 	void webStart(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
-	void webDisable(xgi::Input *in, xgi::Output *out)
+	void webStop(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 	void webHalt(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
@@ -78,7 +78,7 @@ public:
   //	throw (toolbox::fsm::exception::Exception);
 	void startAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
-	void disableAction(toolbox::Event::Reference e) 
+	void stopAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
 	void haltAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);

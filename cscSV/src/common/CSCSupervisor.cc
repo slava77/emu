@@ -121,7 +121,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	xgi::bind(this, &CSCSupervisor::webDefault,   "Default");
 	xgi::bind(this, &CSCSupervisor::webConfigure, "Configure");
 	xgi::bind(this, &CSCSupervisor::webStart,    "Start");
-	xgi::bind(this, &CSCSupervisor::webDisable,   "Disable");
+	xgi::bind(this, &CSCSupervisor::webStop,   "Stop");
 	xgi::bind(this, &CSCSupervisor::webHalt,      "Halt");
 	xgi::bind(this, &CSCSupervisor::webReset,     "Reset");
 	xgi::bind(this, &CSCSupervisor::webSetTTS,    "SetTTS");
@@ -129,7 +129,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 
 	xoap::bind(this, &CSCSupervisor::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onStart,    "Start",    XDAQ_NS_URI);
-	xoap::bind(this, &CSCSupervisor::onDisable,   "Disable",   XDAQ_NS_URI);
+	xoap::bind(this, &CSCSupervisor::onStop,   "Stop",   XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onHalt,      "Halt",      XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onReset,     "Reset",     XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onSetTTS,    "SetTTS",    XDAQ_NS_URI);
@@ -146,7 +146,11 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	fsm_.addState('H', "Halted",     this, &CSCSupervisor::stateChanged);
 	fsm_.addState('C', "Configured", this, &CSCSupervisor::stateChanged);
 	fsm_.addState('E', "Running",    this, &CSCSupervisor::stateChanged);
-	fsm_.setStateName('F',"Error");
+
+	fsm_.setStateName('F', "Error");
+	fsm_.setFailedStateTransitionAction(this, &CSCSupervisor::transitionFailed);
+	
+	//fsm_.setStateName('F',"Error", this, &CSCSupervisor::transitionFailed);
 
 	//	fsm_.addState('c', "Configuring", this, &CSCSupervisor::stateChanged);
 
@@ -155,7 +159,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	fsm_.addStateTransition(
 			'C', 'E', "Start",    this, &CSCSupervisor::startAction);
 	fsm_.addStateTransition(
-			'E', 'C', "Disable",   this, &CSCSupervisor::disableAction);
+			'E', 'C', "Stop",   this, &CSCSupervisor::stopAction);
 	fsm_.addStateTransition(
 			'C', 'H', "Halt",      this, &CSCSupervisor::haltAction);
 	fsm_.addStateTransition(
@@ -200,10 +204,10 @@ xoap::MessageReference CSCSupervisor::onStart(xoap::MessageReference message)
 	return createReply(message);
 }
 
-xoap::MessageReference CSCSupervisor::onDisable(xoap::MessageReference message)
+xoap::MessageReference CSCSupervisor::onStop(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	fireEvent("Disable");
+	fireEvent("Stop");
 
 	return createReply(message);
 }
@@ -312,10 +316,10 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << form() << td() << endl;
 
 	*out << td() << form().set("action",
-			"/" + getApplicationDescriptor()->getURN() + "/Disable") << endl;
+			"/" + getApplicationDescriptor()->getURN() + "/Stop") << endl;
 	*out << input().set("type", "submit")
 			.set("name", "command")
-			.set("value", "Disable") << endl;
+			.set("value", "Stop") << endl;
 	*out << form() << td() << endl;
 
 	*out << td() << form().set("action",
@@ -444,10 +448,10 @@ void CSCSupervisor::webStart(xgi::Input *in, xgi::Output *out)
 	}
 }
 
-void CSCSupervisor::webDisable(xgi::Input *in, xgi::Output *out)
+void CSCSupervisor::webStop(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	fireEvent("Disable");
+	fireEvent("Stop");
 
 	keep_refresh_ = true;
 	webRedirect(in, out);
@@ -643,8 +647,7 @@ void CSCSupervisor::startAction(toolbox::Event::Reference evt)
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
 		  << " runnumber: " << run_number_ << " nevents: " << nevents_);
-LOG4CPLUS_DEBUG(logger_, "(Hello)");
-std::cout << "Here1" << std::endl;
+
   try {
     state_table_.refresh();
     sendCommand("Start", "EmuFCrateManager");
@@ -696,7 +699,7 @@ std::cout << "Here1" << std::endl;
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(end)");
 }
 
-void CSCSupervisor::disableAction(toolbox::Event::Reference evt) 
+void CSCSupervisor::stopAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
@@ -823,7 +826,6 @@ void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   
   EmuApplication::stateChanged(fsm);
 }
-
 
 void CSCSupervisor::transitionFailed(toolbox::Event::Reference event)
   throw (toolbox::fsm::exception::Exception)
