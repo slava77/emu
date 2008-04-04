@@ -91,6 +91,7 @@ class EmuMonitoringCanvas
 	void setCanvasWidth(int width) {if (width>0) cnv_width = width;}
 	int getCanvasHeight() const {return cnv_height;}
 	void setCanvasHeight(int height) {if (height>0) cnv_height = height;}
+        bool getDisplayInWeb(){ return displayInWeb; }
 	
 
 	void Write() {if (canvas!=NULL) canvas->Write();}
@@ -110,6 +111,7 @@ class EmuMonitoringCanvas
 	std::string folder;
 	std::string name;
 	std::string title;
+        bool displayInWeb;
 	int cnv_width;
 	int cnv_height;
 };

@@ -29,7 +29,7 @@ Sources=\
 	EmuMonitoringCanvas.cc \
 	CSCReadoutMappingFromFile.cc
 
-Executables = 
+Executables =
 ExternalObjects =
 # ../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a
 
