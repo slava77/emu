@@ -103,6 +103,7 @@
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>DMB_Unpacked</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -112,6 +113,7 @@
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Unpacked</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
 	</Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -139,6 +141,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>DMB_Format_Errors</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -148,6 +151,7 @@
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Format_Errors</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -175,6 +179,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>DMB_wo_ALCT</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -184,6 +189,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>CSC_wo_ALCT</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -211,6 +217,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>DMB_wo_CLCT</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -220,6 +227,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>CSC_wo_CLCT</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -247,6 +255,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>DMB_wo_CFEB</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -256,6 +265,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>CSC_wo_CFEB</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -283,6 +293,7 @@
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>DMB_Format_Warnings</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
 	</Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -292,6 +303,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>CSC_Format_Warnings</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -319,6 +331,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>DMB_input_fifo_full</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -328,6 +341,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>CSC_DMB_input_fifo_full</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -355,6 +369,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>DMB_input_timeout</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -364,6 +379,7 @@
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
                 <Pad1>CSC_DMB_input_timeout</Pad1>
+                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
