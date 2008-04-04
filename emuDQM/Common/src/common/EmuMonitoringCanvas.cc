@@ -13,6 +13,7 @@ EmuMonitoringCanvas::EmuMonitoringCanvas(const EmuMonitoringCanvas& mo)
   params = mo.params;
   cnv_width = mo.cnv_width;
   cnv_height = mo.cnv_height;
+  displayInWeb = mo.displayInWeb;
 }
 
 EmuMonitoringCanvas& EmuMonitoringCanvas::operator=(const EmuMonitoringCanvas& mo) 
@@ -27,6 +28,7 @@ EmuMonitoringCanvas& EmuMonitoringCanvas::operator=(const EmuMonitoringCanvas& m
   params = mo.params;
   cnv_width = mo.cnv_width;
   cnv_height = mo.cnv_height;
+  displayInWeb = mo.displayInWeb;
   return *this;
 }
 
@@ -41,12 +43,14 @@ EmuMonitoringCanvas::EmuMonitoringCanvas() :
 	
 {
   canvas = NULL;
+  displayInWeb = true;
   params.clear();
 }
 
 EmuMonitoringCanvas::EmuMonitoringCanvas(DOMNode* info) 
 {
   canvas = NULL;
+  displayInWeb = true;
   parseDOMNode(info);
   Book();
 }
@@ -260,7 +264,6 @@ int EmuMonitoringCanvas::setParameter(std::string parname, std::string parvalue)
 	
 }
 
-
 int EmuMonitoringCanvas::setParameters(std::map<std::string, std::string> newparams, bool resetParams)
 {
   std::map<std::string, std::string>::iterator itr;
@@ -322,6 +325,11 @@ int EmuMonitoringCanvas::parseDOMNode(DOMNode* info)
       objname += itr->second;
       name = itr->second;
       obj_info.erase("Name");
+    }
+    if ((itr = obj_info.find("DisplayInWeb")) != obj_info.end()) {
+      objname += itr->second;
+      displayInWeb = (bool) atoi(itr->second.c_str());
+      obj_info.erase("DisplayInWeb");
     }
     if ((itr = obj_info.find("Folder")) != obj_info.end()) {
       objname += itr->second;
