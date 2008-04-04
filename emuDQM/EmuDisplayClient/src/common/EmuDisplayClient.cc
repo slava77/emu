@@ -1359,7 +1359,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
       // handle exception
     }
 
-  LOG4CPLUS_INFO (getApplicationLogger(), "Monitoring Objects List is updated");
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Objects List is updated");
   return bmap;
 }
 
@@ -1479,7 +1479,7 @@ xoap::MessageReference EmuDisplayClient::updateObjects(xoap::MessageReference no
     userServer->addStorage(storage);    //writes info to stdout
     }  
   */                            
-  LOG4CPLUS_INFO (getApplicationLogger(), "+++ Objects are updated");
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "+++ Objects are updated");
   xoap::MessageReference reply = xoap::createMessage();
   xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
   xoap::SOAPBody b = envelope.getBody();
@@ -1660,7 +1660,7 @@ void EmuDisplayClient::updateFoldersMap()
 	  foldersMap[*litr].insert(nodeID);	
 	}      
       }
-      LOG4CPLUS_INFO (getApplicationLogger(), "Monitoring Folders List is updated");
+      LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Folders List is updated");
       foldersMap.setTimeStamp(time(NULL));
     }  
     // appBSem_.give();
@@ -1685,7 +1685,7 @@ void EmuDisplayClient::updateCSCCounters()
           cscCounters[citr->first] = citr->second;
         }
       }
-      LOG4CPLUS_INFO (getApplicationLogger(), "CSC Counters are updated");
+      LOG4CPLUS_DEBUG (getApplicationLogger(), "CSC Counters are updated");
       cscCounters.setTimeStamp(time(NULL));
     }
     // appBSem_.give();
