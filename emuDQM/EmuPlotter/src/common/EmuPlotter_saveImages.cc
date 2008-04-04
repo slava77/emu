@@ -433,6 +433,7 @@ void EmuPlotter::generateCanvasesListFile(std::string filename, std::string imgf
   cnv_list << "	['EMU', ' '," << std::endl;
   for (itr = commonCanvasesFactory.begin(); itr != commonCanvasesFactory.end(); ++itr) {
         EmuMonitoringCanvas * obj = itr->second;
+        if(!obj->getDisplayInWeb()) continue;
 	std::string plot = obj->getFolder();
 	if (plot != "") plot += "/";
 	plot += obj->getName() + "." +imgformat;
@@ -443,6 +444,7 @@ void EmuPlotter::generateCanvasesListFile(std::string filename, std::string imgf
   cnv_list << "	['DDU', ' '," << std::endl;
   for (itr = dduCanvasesFactory.begin(); itr != dduCanvasesFactory.end(); ++itr) {
         EmuMonitoringCanvas * obj = itr->second;
+        if(!obj->getDisplayInWeb()) continue;
 	std::string plot = obj->getFolder();
         if (plot != "") plot += "/";
         plot += obj->getName() + "." +imgformat;
@@ -453,6 +455,7 @@ void EmuPlotter::generateCanvasesListFile(std::string filename, std::string imgf
   cnv_list << "	['CSC', ' '," << std::endl;
   for (itr = chamberCanvasesFactory.begin(); itr != chamberCanvasesFactory.end(); ++itr) {
         EmuMonitoringCanvas * obj = itr->second;
+        if(!obj->getDisplayInWeb()) continue;
 	std::string plot = obj->getFolder();
         if (plot != "") plot += "/";
         plot += obj->getName() + "." +imgformat;
