@@ -1229,7 +1229,7 @@ int EmuMonitor::svc()
       uint32_t waittime = 0;
       if (readoutMode_.toString() == "external") { 
 	if (creditsHeld_ > nEventCredits_) {
-	  LOG4CPLUS_WARN (getApplicationLogger(), "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
+	  LOG4CPLUS_DEBUG (getApplicationLogger(), "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
         }
 	while (creditsHeld_ > nEventCredits_) {
 	  usleep(wait);
@@ -1240,8 +1240,8 @@ int EmuMonitor::svc()
 	  waittime += wait;
 	} 
 	if (waittime >= timeout) {
-	  LOG4CPLUS_WARN (getApplicationLogger(), toolbox::toString("Timeout waiting for events from server."));
-	  LOG4CPLUS_WARN (getApplicationLogger(), "Missed " << (eventsRequested_ - eventsReceived_) << " events");
+	  LOG4CPLUS_DEBUG (getApplicationLogger(), toolbox::toString("Timeout waiting for events from server."));
+	  LOG4CPLUS_DEBUG (getApplicationLogger(), "Missed " << (eventsRequested_ - eventsReceived_) << " events");
 	  
 	  /*
           time_t nowmark=time(NULL);
