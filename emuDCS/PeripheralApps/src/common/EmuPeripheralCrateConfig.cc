@@ -48,9 +48,6 @@ const string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";//
 const string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";//
 const string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror.svf";//
 //
-// N.B. not yet able to load automatically from xml for RAT...
-const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
-
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
 /////////////////////////////////////////////////////////////////////
@@ -182,7 +179,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadRATFirmware, "LoadRATFirmware");
-  xgi::bind(this,&EmuPeripheralCrateConfig::ReadTMBRegister, "ReadTMBRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBPrintCounters, "TMBPrintCounters");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBResetCounters, "TMBResetCounters");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBCounterForFixedTime, "TMBCounterForFixedTime");
@@ -300,16 +296,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xoap::bind(this,&EmuPeripheralCrateConfig::ReadAllCfebPromUserid,"ReadCfebPromUserid",XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::LoadAllCfebPromUserid,"LoadCfebPromUserid",XDAQ_NS_URI);
   //
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT192      ,"EnableALCT192",XDAQ_NS_URI);
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT288      ,"EnableALCT288",XDAQ_NS_URI);
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT288bn    ,"EnableALCT288bn",XDAQ_NS_URI);
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT288bp    ,"EnableALCT288bp",XDAQ_NS_URI);
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT288fp    ,"EnableALCT288fp",XDAQ_NS_URI);
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT384      ,"EnableALCT384",XDAQ_NS_URI);
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT384Mirror,"EnableALCT384Mirror",XDAQ_NS_URI);
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT576Mirror,"EnableALCT576Mirror",XDAQ_NS_URI);
-  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT672      ,"EnableALCT672",XDAQ_NS_URI);
-
   // SOAP for Monitor controll
 //  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStart      ,"MonitorStart",XDAQ_NS_URI);
 //  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStop      ,"MonitorStop",XDAQ_NS_URI);
@@ -355,7 +341,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
     AlctDavCounter_.push_back(0);
   }
   //
-  TMBRegisterValue_ = -1;
   CCBRegisterValue_ = -1;
   Operator_ = "Operator";
   RunNumber_= "-1";
@@ -1302,7 +1287,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     }
     //
     SetCurrentCrate(this_crate_no_);
-
+    //
     std::cout << "Parser Done" << std::endl ;
     //
     parsed=1;
@@ -1325,11 +1310,12 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     tmbVector = thisCrate->tmbs();
     dmbVector = thisCrate->daqmbs();
     chamberVector = thisCrate->chambers();
-        
+    //  
     tmbTestVector = InitTMBTests(thisCrate);
-
+    //
+    DefineFirmwareFilenames();
+    //
     current_crate_ = cr;
-
   }
 
   void EmuPeripheralCrateConfig::CheckCrates(xgi::Input * in, xgi::Output * out )
@@ -5311,11 +5297,6 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::legend("DMB/CFEB Load PROM").set("style","color:red") ;
   //
-  std::string DMBFirmware = FirmwareDir_+DMB_FIRMWARE_FILENAME;
-  DMBFirmware_ = DMBFirmware;
-  std::string DMBVmeFirmware = FirmwareDir_+DMBVME_FIRMWARE_FILENAME;
-  DMBVmeFirmware_ = DMBVmeFirmware;
-  //
   std::string DMBLoadFirmware = toolbox::toString("/%s/DMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",DMBLoadFirmware) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","DMB CONTROL Load Firmware") << std::endl ;
@@ -5344,9 +5325,6 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br();
-  //
-  std::string CFEBFirmware = FirmwareDir_+CFEB_FIRMWARE_FILENAME;
-  CFEBFirmware_ = CFEBFirmware;
   //
   std::string CFEBLoadFirmware = toolbox::toString("/%s/CFEBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CFEBLoadFirmware) << std::endl ;
@@ -7810,108 +7788,108 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << endl ;
   //
-  *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
+  *out << cgicc::legend("Load Firmware through TMB").set("style","color:blue") ;
   //
-  //create filename for firmware based on expected dates...
-  char date[8];
-  sprintf(date,"%4x%1x%1x%1x%1x",
-	  thisTMB->GetExpectedTmbFirmwareYear()&0xffff,
-	  (thisTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
-	  (thisTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
-	  (thisTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
-	  (thisTMB->GetExpectedTmbFirmwareDay()     )&0xf);
-  std::string TMBFirmware = FirmwareDir_+"tmb/"+date+"/tmb";   // ".xsvf" is added in SetXsvfFilename
-  TMBFirmware_ = TMBFirmware;
   //
-  *out << "Load TMB Firmware:  Following the following steps..." << cgicc::br() << std::endl;
-  *out << "Step 1)  BE CAREFUL" << cgicc::br() << std::endl;
-  *out << "Step 2)  DO NOT POWER OFF CRATE" << cgicc::br() << std::endl;
-  *out << "Step 3)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
+  *out << cgicc::table().set("border","2");
   //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << "-->  BE CAREFUL <--";
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << "-->  Do NOT power off crate <--";
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << "-->  Disable DCS monitoring to crates <--" << cgicc::br() << std::endl;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table();
+  //
+  *out << cgicc::br();
+  //
+  *out << "TMB: " << cgicc::br() << std::endl;
+  *out << "--> firmware version = " << TMBFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
   //
   *out << cgicc::table().set("border","0");
   //
   *out << cgicc::td().set("ALIGN","left");
   std::string LoadTMBFirmware = toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Step 4) Load TMB Firmware") << std::endl ;
+  sprintf(buf,"Step 1) Load Firmware for TMB in slot %d",tmbVector[tmb]->slot());
+  *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
+  *out << cgicc::td().set("ALIGN","center");
+  *out << "... or ...";
+  *out << cgicc::td();
+  //
   *out << cgicc::td().set("ALIGN","left");
   std::string LoadCrateTMBFirmware = toolbox::toString("/%s/LoadCrateTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadCrateTMBFirmware) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Step 4) Load Firmware to all TMBs in this crate") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 1) Load firmware to all TMBs in this crate") << std::endl ;
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  *out << TMBFirmware_.toString() << ".xsvf";
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
   *out << cgicc::table();
   //
   //
-  *out << "Step 5)  TTC/CCB hard reset" << cgicc::br() << std::endl;
+  *out << "Step 2)  TTC/CCB hard reset" << cgicc::br() << std::endl;
   //
   std::string CheckTMBFirmware = toolbox::toString("/%s/CheckTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckTMBFirmware) ;
   if ( tmb_vme_ready == 1 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:green");
+    *out << cgicc::input().set("type","submit").set("value","Step 3) Check TMB VME Ready").set("style","color:green");
     //
   } else if ( tmb_vme_ready == 0 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:red");
+    *out << cgicc::input().set("type","submit").set("value","Step 3) Check TMB VME Ready").set("style","color:red");
     //
   } else {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:blue");
+    *out << cgicc::input().set("type","submit").set("value","Step 3) Check TMB VME Ready").set("style","color:blue");
     //
   }
   *out << cgicc::form() << std::endl ;
   //
   std::string ClearTMBBootReg = toolbox::toString("/%s/ClearTMBBootReg",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ClearTMBBootReg) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Step 7) Enable VME Access to TMB FPGA") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 4) Enable VME Access to TMB FPGA") << std::endl ;
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br() << std::endl;
-  *out << cgicc::br() << std::endl;
-  //
-  // remove the ALCT firmware downloading until it can be made robust
   //
   if (alct) {
+    *out << "ALCT: " << cgicc::br() << std::endl;
+    for (unsigned i=0; i<tmbVector.size(); i++) 
+      *out << "slot " << tmbVector[i]->slot() << " --> " << ALCTFirmware_[i].toString() << cgicc::br() << std::endl;
+    //
     std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
+    sprintf(buf,"Load Firmware for ALCT in slot %d",tmbVector[tmb]->slot());
+    *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
   }
   //
+  *out << cgicc::br() << std::endl;
+  //
   if (rat) {
-    std::string RATFirmware = FirmwareDir_+RAT_FIRMWARE_FILENAME;
-    RATFirmware_ = RATFirmware;
-    //
     std::string LoadRATFirmware = toolbox::toString("/%s/LoadRATFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadRATFirmware) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Load RAT Firmware") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << RATFirmware_.toString() ;
+    *out << RATFirmware_[tmb].toString() ;
     *out << cgicc::form() << std::endl ;
   }
-  //
-  std::string ReadTMBRegister = toolbox::toString("/%s/ReadTMBRegister",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",ReadTMBRegister) << std::endl ;
-  *out << "Read Register (int)..." << std:: endl;
-  *out << cgicc::input().set("type","text").set("value","0")
-    .set("name","TMBRegister") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  *out << "Register value : (hex) " << std::hex << TMBRegisterValue_ << std::endl;
-  *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::fieldset();
   //
@@ -8172,6 +8150,112 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
 }
 //
+void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
+  //
+  std::string DMBFirmware = FirmwareDir_+DMB_FIRMWARE_FILENAME;
+  DMBFirmware_ = DMBFirmware;
+  //
+  std::string DMBVmeFirmware = FirmwareDir_+DMBVME_FIRMWARE_FILENAME;
+  DMBVmeFirmware_ = DMBVmeFirmware;
+  //
+  std::string CFEBFirmware = FirmwareDir_+CFEB_FIRMWARE_FILENAME;
+  CFEBFirmware_ = CFEBFirmware;
+  //
+  //create filename for TMB, ALCT, and RAT firmware based on expected dates...
+  for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    ALCTController * thisALCT = tmbVector[tmb]->alctController();
+    //
+    char date[8];
+    sprintf(date,"%4x%1x%1x%1x%1x",
+	    thisTMB->GetExpectedTmbFirmwareYear()&0xffff,
+	    (thisTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
+	    (thisTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
+	    (thisTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
+	    (thisTMB->GetExpectedTmbFirmwareDay()     )&0xf);
+    //
+    std::ostringstream TMBFirmware;
+    TMBFirmware << FirmwareDir_ << "tmb/" << date << "/tmb";   // ".xsvf" is added in SetXsvfFilename
+    //
+    TMBFirmware_[tmb] = TMBFirmware.str();
+    //    std::cout << "TMB " << tmb << " load " << TMBFirmware_[tmb].toString() << std::endl;
+    //
+    int alct_expected_year  = thisALCT->GetExpectedFastControlYear() ;
+    int alct_expected_month = thisALCT->GetExpectedFastControlMonth();
+    int alct_expected_day   = thisALCT->GetExpectedFastControlDay()  ;
+    //
+    sprintf(date,"%4u%02u%02u",
+	    alct_expected_year,
+	    alct_expected_month,
+	    alct_expected_day);
+    //
+    // pre-DAQ06 format
+    //  int expected_year       = thisALCT->GetExpectedFastControlYear() & 0xffff;
+    //  int expected_month_tens = (thisALCT->GetExpectedFastControlMonth()>>4) & 0xf;
+    //  int expected_month_ones = (thisALCT->GetExpectedFastControlMonth()>>0) & 0xf;
+    //  int expected_day_tens   = (thisALCT->GetExpectedFastControlDay()  >>4) & 0xf;
+    //  int expected_day_ones   = (thisALCT->GetExpectedFastControlDay()  >>0) & 0xf;
+    //  sprintf(date,"%4x%1x%1x%1x%1x",
+    //	  expected_year,
+    //	  expected_month_tens,
+    //	  expected_month_ones,
+    //	  expected_day_tens,
+    //	  expected_day_ones);
+    //
+    std::ostringstream ALCTFirmware;
+    ALCTFirmware << FirmwareDir_ << "alct/" << date << "/";
+    //
+    if ( (thisALCT->GetChamberType()).find("ME11") != string::npos ) {
+      //
+      if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
+	  thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
+	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE;
+      } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
+		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE;
+      } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE &&
+		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE;
+      } else {
+	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11;
+      }
+    } else if ( (thisALCT->GetChamberType()).find("ME12") != string::npos ) {
+      ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME12;
+    } else if ( (thisALCT->GetChamberType()).find("ME13") != string::npos ) {
+      ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME13;
+    } else if ( (thisALCT->GetChamberType()).find("ME21") != string::npos ) {
+      ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME21;
+    } else if ( (thisALCT->GetChamberType()).find("ME22") != string::npos ) {
+      ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME22;
+    } else if ( (thisALCT->GetChamberType()).find("ME31") != string::npos ) {
+      ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME31;
+    } else if ( (thisALCT->GetChamberType()).find("ME32") != string::npos ) {
+      ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME32;
+    } else if ( (thisALCT->GetChamberType()).find("ME41") != string::npos ) {
+      ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME41;
+    } 
+    //
+    ALCTFirmware_[tmb] = ALCTFirmware.str();
+    //    std::cout << "ALCT " << tmb << " load " << ALCTFirmware_[tmb].toString() << std::endl;
+    //
+    sprintf(date,"%4x%1x%1x%1x%1x",
+	    thisTMB->GetExpectedRatFirmwareYear()&0xffff,
+	    (thisTMB->GetExpectedRatFirmwareMonth()>>4)&0xf,
+	    (thisTMB->GetExpectedRatFirmwareMonth()   )&0xf,
+	    (thisTMB->GetExpectedRatFirmwareDay()  >>4)&0xf,
+	    (thisTMB->GetExpectedRatFirmwareDay()     )&0xf);
+    //
+    std::ostringstream RATFirmware; 
+    RATFirmware << FirmwareDir_ << "rat/" << date << "/rat.svf";
+    //
+    RATFirmware_[tmb] = RATFirmware.str();
+    //    std::cout << "RAT " << tmb << " load " << RATFirmware_[tmb].toString() << std::endl;
+  }
+  //
+  return;
+}
+//
 void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -8198,11 +8282,13 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
   int number_of_verify_errors = 0;
   //
   if (thisTMB->slot() < 22) {
-    std::cout << "Loading TMB firmware to slot " << thisTMB->slot() << " in 5 seconds..." << std::endl;
+    std::cout << "Loading TMB firmware to slot " << thisTMB->slot() 
+	      << " with " << TMBFirmware_[tmb].toString()
+	      << " in 5 seconds..." << std::endl;
     //
     ::sleep(5);
     //
-    thisTMB->SetXsvfFilename(TMBFirmware_.toString().c_str());
+    thisTMB->SetXsvfFilename(TMBFirmware_[tmb].toString().c_str());
     thisTMB->ProgramTMBProms();
     thisTMB->ClearXsvfFilename();
     //
@@ -8263,7 +8349,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   //
   ::sleep(5);
   //
-  thisTMB->SetXsvfFilename(TMBFirmware_.toString().c_str());
+  thisTMB->SetXsvfFilename(TMBFirmware_[tmb].toString().c_str());
   thisTMB->ProgramTMBProms();
   thisTMB->ClearXsvfFilename();
   //
@@ -8328,6 +8414,7 @@ void EmuPeripheralCrateConfig::ClearTMBBootReg(xgi::Input * in, xgi::Output * ou
   //
 }
 //
+//
 void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -8337,106 +8424,33 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    std::cout << "LoadALCTFirmware:  TMB " << tmb << std::endl;
+    std::cout << "Load Firmware for ALCT[" << tmb << "]" << std::endl;
     TMB_ = tmb;
   } else {
-    std::cout << "LoadALCTFirmware:  No tmb" << std::endl ;
+    std::cout << "No ALCT defined to load taking default = " << TMB_ << std::endl ;
     tmb = TMB_;
   }
   //
-  TMB * thisTMB;
-  thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
+  ALCTController * thisALCT = thisTMB->alctController();
   //
-  ALCTController * thisALCT;
-  thisALCT = thisTMB->alctController();
-  //
-  char date[8];
-  //create filename for firmware based on expected date...
-  //If broadcast slot 26 is picked, this will pick slot 26's date tag for ALL the firmware which is downloaded
-  int expected_year  = thisALCT->GetExpectedFastControlYear() ;
-  int expected_month = thisALCT->GetExpectedFastControlMonth();
-  int expected_day   = thisALCT->GetExpectedFastControlDay()  ;
-  //
-  sprintf(date,"%04u%02u%02u",
-  	  expected_year,
-  	  expected_month,
-  	  expected_day);
-  //
-  // pre-DAQ06 format
-  //  int expected_year       = thisALCT->GetExpectedFastControlYear() & 0xffff;
-  //  int expected_month_tens = (thisALCT->GetExpectedFastControlMonth()>>4) & 0xf;
-  //  int expected_month_ones = (thisALCT->GetExpectedFastControlMonth()>>0) & 0xf;
-  //  int expected_day_tens   = (thisALCT->GetExpectedFastControlDay()  >>4) & 0xf;
-  //  int expected_day_ones   = (thisALCT->GetExpectedFastControlDay()  >>0) & 0xf;
-  //  sprintf(date,"%4x%1x%1x%1x%1x",
-  //	  expected_year,
-  //	  expected_month_tens,
-  //	  expected_month_ones,
-  //	  expected_day_tens,
-  //	  expected_day_ones);
-  //
-  int mintmb = tmb;
-  int maxtmb = tmb+1;
-  if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
-    mintmb = 0;
-    maxtmb = tmbVector.size()-1;
+  if (!thisALCT) {
+    std::cout << "This ALCT not defined" << std::endl;
+    return;
   }
   //
-  //  thisCCB->hardReset();
+  // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
+  thisCCB->setCCBMode(CCB::VMEFPGA);
   //
-  std::cout << "Loading ALCT firmware in the TMB vector from index " << mintmb << " to " << maxtmb << std::endl;
-  //
-  for (tmb=mintmb; tmb<maxtmb; tmb++) {
+  if (thisTMB->slot() < 22) {   // do NOT broadcast ALCT firmware
     //
-    thisTMB = tmbVector[tmb];
-    thisALCT = thisTMB->alctController();
+    LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
     //
-    if (!thisALCT) {
-      std::cout << "No ALCT present" << std::endl;
-      return;
-    }
+    std::cout <<  "Loading ALCT firmware to slot " << thisTMB->slot() 
+	      << " with " << ALCTFirmware_[tmb].toString() 
+	      << " in 5 seconds... " << std::endl;
     //
-    std::string ALCTFirmware = FirmwareDir_+"alct/"+date+"/";
-    //
-    if ( (thisALCT->GetChamberType()).find("ME11") != string::npos ) {
-      //
-      if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
-	  thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
-	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE;
-      } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
-		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
-	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE;
-      } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE &&
-		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
-	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE;
-      } else {
-	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11;
-      }
-    } else if ( (thisALCT->GetChamberType()).find("ME12") != string::npos ) {
-      ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME12;
-    } else if ( (thisALCT->GetChamberType()).find("ME13") != string::npos ) {
-      ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME13;
-    } else if ( (thisALCT->GetChamberType()).find("ME21") != string::npos ) {
-      ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME21;
-    } else if ( (thisALCT->GetChamberType()).find("ME22") != string::npos ) {
-      ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME22;
-    } else if ( (thisALCT->GetChamberType()).find("ME31") != string::npos ) {
-      ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME31;
-    } else if ( (thisALCT->GetChamberType()).find("ME32") != string::npos ) {
-      ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME32;
-    } else if ( (thisALCT->GetChamberType()).find("ME41") != string::npos ) {
-      ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME41;
-    } 
-    //
-    ALCTFirmware_ = ALCTFirmware;
-    std::cout <<  "Programming ALCT firmware - slot " << thisTMB->slot() 
-	      << " with " << ALCTFirmware_.toString() 
-	      << std::endl;
-    //
-    int debugMode(0);
-    int jch(3);
-    //
-    printf("Reading IDs...") ;
+    ::sleep(5);
     //
     thisALCT->ReadSlowControlId();
     thisALCT->PrintSlowControlId();
@@ -8444,23 +8458,25 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
     thisALCT->ReadFastControlId();
     thisALCT->PrintFastControlId();
     //
-
     thisTMB->disableAllClocks();
-    LOG4CPLUS_INFO(getApplicationLogger(), "Programming ALCT");
     //
-    int status = thisALCT->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
+    int debugMode(0);
+    int jch(3);
+    int status = thisALCT->SVFLoad(&jch,ALCTFirmware_[tmb].toString().c_str(),debugMode);
+    //
     thisTMB->enableAllClocks();
     //
     if (status >= 0){
-      LOG4CPLUS_INFO(getApplicationLogger(), "Programming ALCT finished");
+      LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
       cout << "=== Programming finished"<< endl;
       //	cout << "=== " << status << " Verify Errors  occured" << endl;
     } else {
-      cout << "=== Fatal Error. Exiting with " <<  status << endl;
+      cout << "=== Fatal Error. Exiting with " << status << endl;
     }
   }
   //
-  //  thisCCB->hardReset();
+  // Put CCB back into DLOG mode to listen to TTC commands...
+  thisCCB->setCCBMode(CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -8491,14 +8507,13 @@ void EmuPeripheralCrateConfig::LoadRATFirmware(xgi::Input * in, xgi::Output * ou
     std::cout << "No RAT present" << std::endl;
     return;
   }
-  thisCCB->hardReset();
+  //
+  thisTMB->disableAllClocks();
   //
   int debugMode(0);
   int jch(7);
+  int status = rat->SVFLoad(&jch,RATFirmware_[tmb].toString().c_str(),debugMode);
   //
-  thisTMB->disableAllClocks();
-  printf("Programming...");
-  int status = rat->SVFLoad(&jch,RATFirmware_.toString().c_str(),debugMode);
   thisTMB->enableAllClocks();
   //
   if (status >= 0){
@@ -8509,45 +8524,10 @@ void EmuPeripheralCrateConfig::LoadRATFirmware(xgi::Input * in, xgi::Output * ou
     cout << "=== Fatal Error. Exiting with " <<  status << endl;
   }
   //
-  thisCCB->hardReset();
-  //
   this->TMBUtils(in,out);
   //
 }
 //
-void EmuPeripheralCrateConfig::ReadTMBRegister(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::Cgicc cgi(in);
-  //
-  //const CgiEnvironment& env = cgi.getEnvironment();
-  //
-  cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
-  if(name != cgi.getElements().end()) {
-    tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
-    TMB_ = tmb;
-  } else {
-    cout << "Not tmb" << endl ;
-    tmb = TMB_;
-  }
-  //
-  TMB * thisTMB = tmbVector[tmb];
-  //
-  cgicc::form_iterator name2 = cgi.getElement("TMBRegister");
-  int registerValue = -1;
-  if(name2 != cgi.getElements().end()) {
-    registerValue = cgi["TMBregister"]->getIntegerValue();
-    cout << "Register " << registerValue << endl;
-    //
-    TMBRegisterValue_ = thisTMB->ReadRegister(registerValue);
-    //
-  }
-  //
-  this->TMBUtils(in,out);
-  //
-}
 //////////////////////////////////////////////////////////////////
 // Logging information
 ///////////////////////////////////////////////////////////////////
@@ -10290,378 +10270,6 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
 
   return createReply(message);
 }
-
-
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT192 (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT192
-  //
-  std::cout << "EnableJtagWriteALCT192 to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME13") != string::npos ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288 (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT288
-  //
-  std::cout << "EnableJtagWriteALCT288 Forward Negative to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME11") != string::npos                          &&
-	 (thisALCT->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE)   &&
-	 (thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE) ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288bn (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT288bn
-  //
-  std::cout << "EnableJtagWriteALCT288 Backwards Negative to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME11") != string::npos                          &&
-	 (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE)  &&
-	 (thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE) ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288bp (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT288bp
-  //
-  std::cout << "EnableJtagWriteALCT288 Backwards Positive to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME11") != string::npos                          &&
-	 (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE)  &&
-	 (thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE) ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT288fp (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT288fp
-  //
-  std::cout << "EnableJtagWriteALCT288 Forward Positive to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME11") != string::npos                          &&
-	 (thisALCT->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE)  &&
-	 (thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE) ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT384 (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT384
-  //
-  std::cout << "EnableJtagWriteALCT384 to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME12") != string::npos ||
-	 (thisALCT->GetChamberType()).find("ME22") != string::npos ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT384Mirror (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT384Mirror
-  //
-  std::cout << "EnableJtagWriteALCT384Mirror to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME32") != string::npos ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT576Mirror (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT576Mirror
-  //
-  std::cout << "EnableJtagWriteALCT576Mirror to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME31") != string::npos ||
-	 (thisALCT->GetChamberType()).find("ME41") != string::npos ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::EnableJtagWriteALCT672 (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT672
-  //
-  std::cout << "EnableJtagWriteALCT672 to TMBs in slots..." << std::endl;
-  //
-
-  for(unsigned cv=0; cv<crateVector.size(); cv++) {
-    SetCurrentCrate(cv);
-    std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
-
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME21") != string::npos ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-
-  }
-  SetCurrentCrate(this_crate_no_);
-
-  //
-  return createReply(message);
-}
-
 // sending and receiving soap commands
 ////////////////////////////////////////////////////////////////////
 void EmuPeripheralCrateConfig::PCsendCommand(string command, string klass)
