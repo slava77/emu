@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.10 2008/03/19 15:12:37 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.11 2008/04/07 16:58:07 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -92,22 +92,9 @@ public:
   std::string DmbControlFPGAFirmwareFile_;
   std::string DmbVmeFPGAFirmwareFile_;
   std::string CfebFPGAFirmwareFile_;
-  std::string TMBFirmwareFile_;
   std::string RATFirmwareFile_;
   std::string CCBFirmwareFile_;
   std::string MPCFirmwareFile_;
-  //
-  std::string ALCTFirmwareDirectory_     ;
-  //
-  std::string ALCT192FirmwareFile_       ;
-  std::string ALCT288FirmwareFile_       ;
-  std::string ALCT288bnFirmwareFile_     ;
-  std::string ALCT288bpFirmwareFile_     ;
-  std::string ALCT288fpFirmwareFile_     ;
-  std::string ALCT384FirmwareFile_       ;
-  std::string ALCT384MirrorFirmwareFile_ ;
-  std::string ALCT576MirrorFirmwareFile_ ;
-  std::string ALCT672FirmwareFile_       ;
   //
   BoardsDB *brddb;
   ConnectionsDB *condb;
@@ -123,20 +110,15 @@ public:
   void DmbTurnOffPower(xgi::Input * in, xgi::Output * out );
   void LoadDACandTrigger(xgi::Input * in, xgi::Output * out );
   //
-  //  void SetRadioactiveTrigger(xgi::Input * in, xgi::Output * out );
-  //  void SetOutputToMPCDisable(xgi::Input * in, xgi::Output * out );
-  //
   // Firmware
   //
   void LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw(xgi::exception::Exception);
   void LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
-  void LoadTMBFirmware(xgi::Input * in, xgi::Output * out );
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out );
   void LoadCCBFirmware(xgi::Input * in, xgi::Output * out );
   void LoadMPCFirmware(xgi::Input * in, xgi::Output * out );
-  void LoadALCTFirmware(xgi::Input * in, xgi::Output * out );
   void VMECCLoadFirmwareBcast(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCTestBcast(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   void VMECCTestSkewClear(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);

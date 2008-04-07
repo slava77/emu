@@ -73,11 +73,11 @@ protected:
   //
   xdata::String CCBFirmware_;
   xdata::String MPCFirmware_;
-  xdata::String TMBFirmware_;
+  xdata::String TMBFirmware_[10];
   xdata::String DMBFirmware_;
   xdata::String DMBVmeFirmware_;
-  xdata::String RATFirmware_;
-  xdata::String ALCTFirmware_;
+  xdata::String RATFirmware_[10];
+  xdata::String ALCTFirmware_[10];
   xdata::String CFEBFirmware_;
   xdata::String VMECCFirmwareDir_; 
   xdata::String VMECCFirmwareVer_; 
@@ -128,7 +128,6 @@ protected:
   //
   int tmb_vme_ready;
   //
-  int TMBRegisterValue_;
   int CCBRegisterValue_;
   vector<TMB*>   tmbVector;
   vector<TMBTester>   tmbTestVector;
@@ -194,15 +193,6 @@ public:
   xoap::MessageReference ReadAllCfebPromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference LoadAllCfebPromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
   //
-  xoap::MessageReference EnableJtagWriteALCT192 (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT288 (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT288bn (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT288bp (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT288fp (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT384 (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT384Mirror (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT576Mirror (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT672 (xoap::MessageReference message) throw (xoap::exception::Exception);
 
 private:
 
@@ -364,7 +354,6 @@ private:
   void ClearTMBBootReg(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void ReadTMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadCCBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadTTCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void HardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -390,6 +379,8 @@ private:
   int current_crate_;
   void setConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UploadConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  //
+  void DefineFirmwareFilenames();
   //
   std::vector<TMBTester> InitTMBTests(Crate *);
   void CheckPeripheralCrateConfiguration();

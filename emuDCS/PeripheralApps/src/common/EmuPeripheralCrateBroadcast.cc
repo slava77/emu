@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.25 2008/04/02 13:49:48 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.26 2008/04/07 16:58:07 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -44,25 +44,6 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
   MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_102706.svf";
   //
-  //In order to load firmware automatically from the firmware values in the xml files, 
-  //the firmware needs to reside in directories in the form:
-  //    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/tmb.xsvf   <-- N.B. xsvf format for TMB
-  //    RAT  ->  $HOME/firmware/rat/YEARMONTHDAY/rat.svf
-  //    ALCT ->  $HOME/firmware/alct/YEARMONTHDAY/alctXXX/alctXXX.svf
-  // with the zero-values filled in with 0's.  
-  // In other words:  9 April 2007 firmware should reside in YEARMONTHDAY=20070409
-  //
-  // The XXX in the ALCT firmware specification corresponds to the following structure:
-  //  ALCT192FirmwareFile_       = ALCTFirmwareDirectory_+"alct192/alct192.svf";
-  //  ALCT288FirmwareFile_       = ALCTFirmwareDirectory_+"alct288/alct288.svf";
-  //  ALCT288bnFirmwareFile_     = ALCTFirmwareDirectory_+"alct288bn/alct288bn.svf";
-  //  ALCT288bpFirmwareFile_     = ALCTFirmwareDirectory_+"alct288bp/alct288bp.svf";
-  //  ALCT288fpFirmwareFile_     = ALCTFirmwareDirectory_+"alct288fp/alct288fp.svf";
-  //  ALCT384FirmwareFile_       = ALCTFirmwareDirectory_+"alct384/alct384.svf";
-  //  ALCT384MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct384mirror/alct384mirror.svf";
-  //  ALCT576MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct576mirror/alct576mirror.svf";
-  //  ALCT672FirmwareFile_       = ALCTFirmwareDirectory_+"alct672/alct672.svf";  
-  //
   //    std::cout << "PeripheralCrateBroadcastXmlFile_ = " << PeripheralCrateBroadcastXmlFile_ << std::endl;
   //    std::cout << "DmbControlFPGAFirmwareFile_      = " << DmbControlFPGAFirmwareFile_      << std::endl;
   //    std::cout << "DmbVmeFPGAFirmwareFile_          = " << DmbVmeFPGAFirmwareFile_          << std::endl;
@@ -79,20 +60,15 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::DmbTurnOnPower, "DmbTurnOnPower");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::DmbTurnOffPower, "DmbTurnOffPower");
   //
-  //  xgi::bind(this,&EmuPeripheralCrateBroadcast::SetRadioactiveTrigger, "SetRadioactiveTrigger");
-  //  xgi::bind(this,&EmuPeripheralCrateBroadcast::SetOutputToMPCDisable, "SetOutputToMPCDisable");
-  //
   // Bind firmware loading
   //
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware, "LoadDMBCFEBFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDMBControlFPGAFirmware, "LoadDMBControlFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware, "LoadCFEBFPGAFirmware");
-  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadTMBFirmware, "LoadTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadRATFirmware , "LoadRATFirmware" );
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCCBFirmware , "LoadCCBFirmware" );
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadMPCFirmware , "LoadMPCFirmware" );
-  xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCLoadFirmwareBcast,  "VMECCLoadFirmwareBcast"); 
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCTestBcast,  "VMECCTestBcast"); 
   xgi::bind(this,&EmuPeripheralCrateBroadcast::VMECCTestSkewClear,  "VMECCTestSkewClear");
@@ -402,26 +378,6 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << CfebFPGAFirmwareFile_;
   *out << cgicc::form()<<std::endl;
   //
-  //
-  //create TMB filename for firmware based on expected dates...
-  char tmbdate[8];
-  sprintf(tmbdate,"%4x%1x%1x%1x%1x",
-	  broadcastTMB->GetExpectedTmbFirmwareYear()&0xffff,
-	  (broadcastTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
-	  (broadcastTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
-	  (broadcastTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
-	  (broadcastTMB->GetExpectedTmbFirmwareDay()     )&0xf);
-  TMBFirmwareFile_ = FirmwareDir_+"tmb/"+tmbdate+"/tmb";   // Note:  ".xsvf" is added in SetXsvfFilename
-  //
-  //  Remove TMB broadcast to minimize damage from unexpected power failures
-  //  This must be in place until a hardware change is made to the TMB...
-  //
-  //  std::string LoadTMBFirmware = toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
-  //  *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
-  //  *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
-  //  *out << TMBFirmwareFile_ << ".xsvf";
-  //  *out << cgicc::form()<<std::endl;
-  //
   //create RAT filename for firmware based on expected dates...
   char ratdate[8];
   sprintf(ratdate,"%4x%1x%1x%1x%1x",
@@ -436,49 +392,6 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << cgicc::form().set("method","GET").set("action",LoadRATFirmware) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Load RAT Firmware") << std::endl ;
   *out << RATFirmwareFile_ << std::endl;
-  *out << cgicc::form()<<std::endl;
-  //
-  char alctdate[8];
-  //create ALCT filename for firmware based on expected dates...
-  int expected_year  = broadcastALCT->GetExpectedFastControlYear() ;
-  int expected_month = broadcastALCT->GetExpectedFastControlMonth();
-  int expected_day   = broadcastALCT->GetExpectedFastControlDay()  ;
-  //
-  sprintf(alctdate,"%04u%02u%02u",
-  	  expected_year,
-  	  expected_month,
-  	  expected_day);
-  //
-  // pre-DAQ06 format
-  //  int expected_year       = broadcastALCT->GetExpectedFastControlYear() & 0xffff;
-  //  int expected_month_tens = (broadcastALCT->GetExpectedFastControlMonth()>>4) & 0xf;
-  //  int expected_month_ones = (broadcastALCT->GetExpectedFastControlMonth()>>0) & 0xf;
-  //  int expected_day_tens   = (broadcastALCT->GetExpectedFastControlDay()  >>4) & 0xf;
-  //  int expected_day_ones   = (broadcastALCT->GetExpectedFastControlDay()  >>0) & 0xf;
-  //
-  //  sprintf(alctdate,"%4x%1x%1x%1x%1x",
-  //	  expected_year,
-  //	  expected_month_tens,
-  //	  expected_month_ones,
-  //	  expected_day_tens,
-  //	  expected_day_ones);
-  //
-  ALCTFirmwareDirectory_     = FirmwareDir_+"alct/"+alctdate+"/";
-  //
-  ALCT192FirmwareFile_       = ALCTFirmwareDirectory_+"alct192/alct192.svf";
-  ALCT288FirmwareFile_       = ALCTFirmwareDirectory_+"alct288/alct288.svf";
-  ALCT288bnFirmwareFile_     = ALCTFirmwareDirectory_+"alct288bn/alct288bn.svf";
-  ALCT288bpFirmwareFile_     = ALCTFirmwareDirectory_+"alct288bp/alct288bp.svf";
-  ALCT288fpFirmwareFile_     = ALCTFirmwareDirectory_+"alct288fp/alct288fp.svf";
-  ALCT384FirmwareFile_       = ALCTFirmwareDirectory_+"alct384/alct384.svf";
-  ALCT384MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct384mirror/alct384mirror.svf";
-  ALCT576MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct576mirror/alct576mirror.svf";
-  ALCT672FirmwareFile_       = ALCTFirmwareDirectory_+"alct672/alct672.svf";  
-  //
-  std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
-  *out << ALCTFirmwareDirectory_ << "...";
   *out << cgicc::form()<<std::endl;
   //
   std::string LoadMPCFirmware = toolbox::toString("/%s/LoadMPCFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -826,229 +739,6 @@ void EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Out
   cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
   broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,3);
   //
-  this->LoadDMBCFEBFPGAFirmware(in, out);
-  //
-}
-//
-void EmuPeripheralCrateBroadcast::LoadTMBFirmware(xgi::Input * in, xgi::Output * out )  {
-  //
-  // load the TMB firmware
-  //
-  std::cout <<" Loading all TMBs with firmware from " << TMBFirmwareFile_ << ".xsvf" << std::endl;
-  //
-  broadcastTMB->SetXsvfFilename(TMBFirmwareFile_);
-  broadcastTMB->ProgramTMBProms();
-  broadcastTMB->ClearXsvfFilename();
-  //
-  in=NULL;
-  this->LoadDMBCFEBFPGAFirmware(in, out);
-}
-//
-void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output * out ) {
-  //
-  // load the ALCT firmware
-  //
-  const bool program192       = true;  // ME1/3
-  const bool program384       = true;  // ME1/2, ME2/2
-  const bool program288       = true;  // ME1/1 -endcap forward
-  const bool program288bn     = true;  // ME1/1 -endcap backward
-  const bool program288bp     = true;  // ME1/1 +endcap backward
-  const bool program288fp     = true;  // ME1/1 +endcap forward
-  const bool program672       = true;  // ME2/1
-  const bool program576Mirror = true;  // ME3/1, ME4/1
-  const bool program384Mirror = true;  // ME3/2
-  //
-  int debugMode(0);
-  int jch(3);
-  int status;
-  //
-  std::cout << "Loading ALCT firmware to all boards from the base directory:  " << ALCTFirmwareDirectory_ << std::endl;
-  //
-  if (program192) {
-    //---------------------
-    // ALCT192 boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT192 firmware");
-    //
-    std::cout << "ALCT192: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT192: Enable JTAG write for TMBs connected to ALCT192..." << std::endl;
-    PCsendCommand("EnableALCT192","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT192: Broadcast ALCT192 firmware from " << ALCT192FirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT192FirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program384) {
-    //---------------------
-    // ALCT384 boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT384 firmware");
-    //
-    std::cout << "ALCT384: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT384: Enable JTAG write for TMBs connected to ALCT384..." << std::endl;
-    PCsendCommand("EnableALCT384","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT384: Broadcast ALCT384 firmware from " << ALCT384FirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT384FirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program288) {
-    //---------------------
-    // ALCT288 boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT288 firmware");
-    //
-    std::cout << "ALCT288: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT288: Enable JTAG write for TMBs connected to ALCT288..." << std::endl;
-    PCsendCommand("EnableALCT288","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT288: Broadcast ALCT288 firmware from " << ALCT288FirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT288FirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program288bn) {
-    //---------------------
-    // ALCT288bn boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT288bn firmware");
-    //
-    std::cout << "ALCT288bn: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT288bn: Enable JTAG write for TMBs connected to ALCT288bn..." << std::endl;
-    PCsendCommand("EnableALCT288bn","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT288bn: Broadcast ALCT288bn firmware from " << ALCT288bnFirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT288bnFirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program288bp) {
-    //---------------------
-    // ALCT288bp boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT288bp firmware");
-    //
-    std::cout << "ALCT288bp: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT288bp: Enable JTAG write for TMBs connected to ALCT288bp..." << std::endl;
-    PCsendCommand("EnableALCT288bp","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT288bp: Broadcast ALCT288bp firmware from " << ALCT288bpFirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT288bpFirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program288fp) {
-    //---------------------
-    // ALCT288fp boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT288fp firmware");
-    //
-    std::cout << "ALCT288fp: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT288fp: Enable JTAG write for TMBs connected to ALCT288fp..." << std::endl;
-    PCsendCommand("EnableALCT288fp","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT288fp: Broadcast ALCT288fp firmware from " << ALCT288fpFirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT288fpFirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program672) {
-    //---------------------
-    // ALCT672 boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT672 firmware");
-    //
-    std::cout << "ALCT672: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT672: Enable JTAG write for TMBs connected to ALCT672..." << std::endl;
-    PCsendCommand("EnableALCT672","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT672: Broadcast ALCT672 firmware from " << ALCT672FirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT672FirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program576Mirror) {
-    //---------------------
-    // ALCT576Mirror boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT576Mirror firmware");
-    //
-    std::cout << "ALCT576Mirror: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT576Mirror: Enable JTAG write for TMBs connected to ALCT576Mirror..." << std::endl;
-    PCsendCommand("EnableALCT576Mirror","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT576Mirror: Broadcast ALCT576Mirror firmware from " << ALCT576MirrorFirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT576MirrorFirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program384Mirror) {
-    //---------------------
-    // ALCT384Mirror boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT384Mirror firmware");
-    //
-    std::cout << "ALCT384Mirror: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT384Mirror: Enable JTAG write for TMBs connected to ALCT384Mirror..." << std::endl;
-    PCsendCommand("EnableALCT384Mirror","EmuPeripheralCrateConfig");
-    //
-    std::cout << "ALCT384Mirror: Broadcast ALCT384Mirror firmware from " << ALCT384MirrorFirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT384MirrorFirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  // Allow the user JTAG register to work again on all TMBs..
-  std::cout << "Broadcast enable JTAG write to all TMBs..." << std::endl;
-  broadcastTMB->SetJtagDisableWriteToAdr10(0);
-  broadcastTMB->WriteRegister(0xD4);
-  //  
   this->LoadDMBCFEBFPGAFirmware(in, out);
   //
 }
