@@ -185,7 +185,6 @@
              tmb_lct_cable_delay="2"
              cfeb_dav_cable_delay="1"
              alct_dav_cable_delay="2"
-             crate_id="2"
              xLatency="1"
              xFineLatency="15"
              pre_block_end="7">
