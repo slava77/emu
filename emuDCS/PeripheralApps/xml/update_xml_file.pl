@@ -60,6 +60,13 @@ foreach $parameter (@parameters) {
 #
 	$parameter =~ s/ALCT_input/enable_alct_rx/;
 #
+	$parameter =~ s/layer0_distrip_hot_channel_mask/layer0_distrip_hot_chann_mask/;
+	$parameter =~ s/layer1_distrip_hot_channel_mask/layer1_distrip_hot_chann_mask/;
+	$parameter =~ s/layer2_distrip_hot_channel_mask/layer2_distrip_hot_chann_mask/;
+	$parameter =~ s/layer3_distrip_hot_channel_mask/layer3_distrip_hot_chann_mask/;
+	$parameter =~ s/layer4_distrip_hot_channel_mask/layer4_distrip_hot_chann_mask/;
+	$parameter =~ s/layer5_distrip_hot_channel_mask/layer5_distrip_hot_chann_mask/;
+#
 	if (($parameter =~ m/bxn_offset/) && 
 	    !($parameter =~ m/rpc_bxn_offset/) && 
 	    !($parameter =~ m/tmb_bxn_offset/) ) {
@@ -175,6 +182,8 @@ foreach $parameter (@parameters) {
 	    !($parameter =~ m/afeb_threshold/) ) { 
 	    $parameter =~ s/threshold/afeb_threshold/;
 	}
+#
+	$parameter =~ s/alct_firmware_negative_positive/alct_firmware_negat_posit/;
     }
 #
 # DMB parameters...

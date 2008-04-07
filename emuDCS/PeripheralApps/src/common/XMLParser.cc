@@ -364,22 +364,22 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     // distrip hot channel mask
     ///////////////////////////////////
     long long int hot_channel_mask;
-    if (fillLongLongIntX("layer0_distrip_hot_channel_mask", hot_channel_mask) ) 
+    if (fillLongLongIntX("layer0_distrip_hot_chann_mask", hot_channel_mask) ) 
       tmb_->SetDistripHotChannelMask(0,hot_channel_mask);
     //
-    if (fillLongLongIntX("layer1_distrip_hot_channel_mask", hot_channel_mask) ) 
+    if (fillLongLongIntX("layer1_distrip_hot_chann_mask", hot_channel_mask) ) 
       tmb_->SetDistripHotChannelMask(1,hot_channel_mask);
     //
-    if (fillLongLongIntX("layer2_distrip_hot_channel_mask", hot_channel_mask) ) 
+    if (fillLongLongIntX("layer2_distrip_hot_chann_mask", hot_channel_mask) ) 
       tmb_->SetDistripHotChannelMask(2,hot_channel_mask);
     //
-    if (fillLongLongIntX("layer3_distrip_hot_channel_mask", hot_channel_mask) ) 
+    if (fillLongLongIntX("layer3_distrip_hot_chann_mask", hot_channel_mask) ) 
       tmb_->SetDistripHotChannelMask(3,hot_channel_mask);
     //
-    if (fillLongLongIntX("layer4_distrip_hot_channel_mask", hot_channel_mask) ) 
+    if (fillLongLongIntX("layer4_distrip_hot_chann_mask", hot_channel_mask) ) 
       tmb_->SetDistripHotChannelMask(4,hot_channel_mask);
     //
-    if (fillLongLongIntX("layer5_distrip_hot_channel_mask", hot_channel_mask) ) 
+    if (fillLongLongIntX("layer5_distrip_hot_chann_mask", hot_channel_mask) ) 
       tmb_->SetDistripHotChannelMask(5,hot_channel_mask);
     //
     ///////////////////////////////////
@@ -485,7 +485,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
 	  alct_->Set_fastcontrol_backward_forward_type(alct_firmware_backwardForward);
 	}
 	std::string alct_firmware_negativePositive;
-        if (fillString("alct_firmware_negative_positive", alct_firmware_negativePositive) ){
+        if (fillString("alct_firmware_negat_posit", alct_firmware_negativePositive) ){
 	  alct_->Set_fastcontrol_negative_positive_type(alct_firmware_negativePositive);
 	}
 	//
