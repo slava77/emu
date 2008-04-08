@@ -26,6 +26,7 @@
 #include <unistd.h>
 // EMu-specific stuff
 #include "toolbox/mem/CommittedHeapAllocator.h"
+#include "toolbox/net/URL.h"
 #include "emu/emuDAQ/emuReadout/include/EmuFileReader.h"
 #include "emu/emuDAQ/emuReadout/include/EmuSpyReader.h"
 #include "emu/emuDAQ/emuUtil/include/EmuI2OServer.h"
@@ -2301,12 +2302,15 @@ void EmuRUI::createFileWriters(){
 	  if ( pathToDataOutFile_ != string("") && 
 	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
+	      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
 	      stringstream app;
 	      app << "EmuRUI";
 	      app.fill('0');
 	      app.width(2);
 	      app << instance_;
-	      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
+	      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, 
+					       pathToDataOutFile_.toString(), 
+					       u.getHost(), app.str(), EmuRUIV::versions, &logger_ );
 	    }
 	  else if ( runType_.toString() != "Monitor" &&
 		    runType_.toString() != "Debug"      ) // must be a calibration or STEP run...
@@ -2329,12 +2333,16 @@ void EmuRUI::createFileWriters(){
 	  if ( pathToBadEventsFile_ != string("") && 
 	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
+	      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
 	      stringstream app;
 	      app << "EmuRUI";
 	      app.fill('0');
 	      app.width(2);
 	      app << instance_;
-	      badEventsFileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
+// 	      badEventsFileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
+	      badEventsFileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, 
+							pathToDataOutFile_.toString(), 
+							u.getHost(), app.str(), EmuRUIV::versions, &logger_ );
 	    }
 	  if ( badEventsFileWriter_ ){
 	    try{
