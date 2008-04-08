@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.30 2008/03/27 17:31:21 gujh Exp $
+// $Id: Crate.cc,v 3.31 2008/04/08 08:44:59 rakness Exp $
 // $Log: Crate.cc,v $
+// Revision 3.31  2008/04/08 08:44:59  rakness
+// remove FIFO clear for DMB fast configure
+//
 // Revision 3.30  2008/03/27 17:31:21  gujh
 // fix the Crate:Configure   --- GU, Rakness
 //
@@ -331,12 +334,14 @@ void Crate::configure(int c) {
     std::cout << "DMB slot " << myDmbs[dmb]->slot() 
 	      << " turn ON chamber..." << std::endl;
     myDmbs[dmb]->lowv_onoff(0x3f);
-    ::sleep(2);
-    std::cout << "DMB slot " << myDmbs[dmb]->slot() 
-	      << " call calctrl_fifomrst " << std::endl;
-    myDmbs[dmb]->calctrl_fifomrst();
+    //
+    // The following is not needed, since DMB includes FIFO clear in hard reset
+    //    std::cout << "DMB slot " << myDmbs[dmb]->slot() 
+    //	      << " call calctrl_fifomrst " << std::endl;
+    //    myDmbs[dmb]->calctrl_fifomrst();
   }
-//
+  ::sleep(2);
+  //
   //theController->init();
   //
   ccb->configure();
