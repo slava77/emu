@@ -47,7 +47,9 @@ class EmuFileWriter{
 private:
   unsigned int  maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened
   string        pathToFile_;	///< direcory where the file is to be written
+  string        host_;          ///< host name
   string        application_;	///< name of application producing the data
+  string        appVersion_;    ///< version of application producing the data
   Logger        logger_;	///< logger
   string        runStartTime_;	///< date and time of start of run
   string        runType_;	///< run type
@@ -60,7 +62,8 @@ private:
   unsigned int  eventsInRunCounter_; ///< number of events written in this run so far
   string        fileName_;	///< file name
   string        markerFileName_; ///< name of marker file [ <em>file_name_base</em>.<tt>is_closed</tt> ]
-  std::fstream *fs_;		///< output file stream
+  string        metaFileName_; ///< name of metadata file [ <em>file_name_base</em>.<tt>meta</tt> ]
+  fstream      *fs_;		///< output file stream
 
   /// Names the file to be written.
   void nameFile(){
@@ -77,6 +80,7 @@ private:
     if ( !isBookedRunNumber_ || runType_ == "Debug" ) fileNameStream << "_" << runStartTime_;
     fileName_       = fileNameStream.str() + ".raw";
     markerFileName_ = fileNameStream.str() + ".is_closed";
+    metaFileName_   = fileNameStream.str() + ".meta";
   }
 
   /// Opens a binary file for output.
@@ -102,7 +106,7 @@ private:
     LOG4CPLUS_INFO( logger_, "Wrote "                           << 
 		    eventsInFileCounter_ << " events ("         << 
 		    bytesInFileCounter_  << " bytes) to "       << 
-		    fileName_ 	   << "; so far "               << 
+		    fileName_ 	         << "; so far "         << 
 		    eventsInRunCounter_  << " events ("         << 
 		    bytesInRunCounter_   << " bytes) in run "   << 
 		    runNumber_ );
@@ -111,11 +115,48 @@ private:
       LOG4CPLUS_ERROR( logger_, fileName_ << " could not be closed.");
     }
     else{
-      fs_->open( markerFileName_.c_str(), ios::out );
-      fs_->close();
+      writeMarkerFile();
+      writeMetaFile();
     }
   }
 
+  /// Writes an empty <em>file_name_base</em>.<tt>is_closed</tt> marker file.
+  void writeMarkerFile(){
+    if ( fs_->is_open() ) fs_->close(); // just in case...
+    fs_->open( markerFileName_.c_str(), ios::out );
+    fs_->close();
+  }
+
+  /// Writes a <em>file_name_base</em>.<tt>meta</tt> metadata file to make CASTOR happy.
+  void writeMetaFile(){
+    if ( fs_->is_open() ) fs_->close(); // just in case...
+    fs_->open( metaFileName_.c_str(), ios::out );
+
+    *fs_ << "RUNNUMBER"   << " " << runNumber_           << endl;
+    *fs_ << "LUMISECTION" << " " << "0"                  << endl;
+    *fs_ << "NEVENTS"     << " " << eventsInFileCounter_ << endl;
+    *fs_ << "APP_NAME"    << " " << application_         << endl;
+    *fs_ << "APP_VERSION" << " " << appVersion_          << endl;
+    *fs_ << "START_TIME"  << " " << runStartTime_        << endl; // may be 0
+    *fs_ << "STOP_TIME"   << " " << "0"                  << endl; // may be 0
+    *fs_ << "CHECKSUM"    << " " << "0"                  << endl; // may be 0
+    *fs_ << "SAFETY"      << " " << "0"                  << endl; // must be 0
+    *fs_ << "DATASET"     << " " << runType_             << endl;
+    *fs_ << "STREAM"      << " " << "EDM"                << endl;
+    *fs_ << "FILENAME"    << " " << fileName_            << endl;
+    *fs_ << "PATHNAME"    << " " << pathToFile_          << endl;
+    *fs_ << "HOSTNAME"    << " " << host_                << endl;
+    *fs_ << "FILESIZE"    << " " << bytesInFileCounter_  << endl;
+
+    fs_->close();
+  }
+
+  /// Converts an unsigned integer to std:string
+  string toString( unsigned int i ){
+    ostringstream oss;
+    oss << i;
+    return oss.str();
+  }
 
 public:
 
@@ -127,10 +168,12 @@ public:
   /// @param app name of application producing the data
   /// @param logger logger
   ///
-  EmuFileWriter(const unsigned int maxFileSize, const string pathToFile, const string app, const Logger* logger)
+  EmuFileWriter(const unsigned int maxFileSize, const string pathToFile, const string host, const string app, const string version, const Logger* logger)
     :maxFileSize_         (maxFileSize)
     ,pathToFile_          (pathToFile)
+    ,host_                (host)
     ,application_         (app)
+    ,appVersion_          (version)
     ,logger_              (*logger)
     ,runStartTime_        ("")
     ,runType_             ("")

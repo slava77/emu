@@ -25,6 +25,7 @@
 
 // EMu-specific stuff
 #include "toolbox/mem/CommittedHeapAllocator.h"
+#include "toolbox/net/URL.h"
 #include "emu/emuDAQ/emuReadout/include/EmuFileReader.h"
 #include "emu/emuDAQ/emuReadout/include/EmuSpyReader.h"
 #include "emu/emuDAQ/emuUtil/include/EmuI2OServer.h"
@@ -1078,12 +1079,15 @@ throw (toolbox::fsm::exception::Exception)
       }
     // create new writer if path is not empty
     if ( pathToDataOutFile_ != string("") && (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 ){
+      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
       stringstream app;
       app << "EmuFU";
       app.fill('0');
       app.width(2);
       app << instance_;
-      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
+      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, 
+				       pathToDataOutFile_.toString(), 
+				       u.getHost(), app.str(), EmuFUV::versions, &logger_ );
     }
     
     // Create an Emu event header
