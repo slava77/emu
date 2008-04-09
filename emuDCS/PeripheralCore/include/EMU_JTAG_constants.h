@@ -146,25 +146,27 @@ const int RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN=  1;
 const int RegSizeAlctSlowFpga_RD_TESTPULSE_POWERDOWN =  1;
 const int RegSizeAlctSlowFpga_BYPASS                 =  1;
 //
-////////////////////////////////////////////////////
-// ALCT "slow-control" PROM chain characteristics            
-////////////////////////////////////////////////////
-const int ChainAlctSlowProm        = 0x1;
-const int NumberChipsAlctSlowProm  =   3;
+///////////////////////////////////////////////////////
+// ALCT "slow-control" Mezzanine chain characteristics            
+///////////////////////////////////////////////////////
+const int ChainAlctSlowMezz       = 0x1;
+const int NumberChipsAlctSlowMezz =   3;
 //
-const int ChipLocationAlctSlowProm0=   0;
-const int ChipLocationAlctSlowProm1=   1;
-const int ChipLocationAlctSlowProm2=   2;
-const int OpcodeSizeAlctSlowProm   =   8;
+const int ChipLocationAlctSlowMezzFpga  =   0;
+const int OpcodeSizeAlctSlowMezzFpga    =   8;
+//
+const int ChipLocationAlctSlowMezzProm0 =   1;
+const int ChipLocationAlctSlowMezzProm1 =   2;
+const int OpcodeSizeAlctSlowMezzProm    =   8;
 //
 ////////////////////////////////////////////////////
 // ALCT "fast-control" FPGA chain characteristics
 ////////////////////////////////////////////////////
-const int ChainAlctFastFpga       = 0x2;
-const int NumberChipsAlctFastFpga =   1;
+const int ChainAlctFastFpga        = 0x2;
+const int NumberChipsAlctFastFpga  =   1;
 //
-const int ChipLocationAlctFastFpga=   0;
-const int OpcodeSizeAlctFastFpga  =   5;
+const int ChipLocationAlctFastFpga =   0;
+const int OpcodeSizeAlctFastFpga   =   5;
 //
 const int RegSizeAlctFastFpga_RD_ID_REG                 =   40;
 const int RegSizeAlctFastFpga_RD_HOTCHAN_MASK_192       =  192;
@@ -205,11 +207,20 @@ const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_576=    9;
 const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672=    9;
 const int RegSizeAlctFastFpga_BYPASS                    =    1;
 //
-////////////////////////////////////////////////////
-// ALCT "fast-control" PROM chain characteristics            
-////////////////////////////////////////////////////
-const int ChainAlctFastProm             = 0x3;      //ALCT Mezzanine PROM
-const int NumberChipsAlctFastProm       =   1;
+////////////////////////////////////////////////////////
+// ALCT "fast-control" Mezzanine chain characteristics            
+////////////////////////////////////////////////////////
+const int ChainAlctFastMezz                  = 0x3;      //ALCT Mezzanine FPGA + PROM(s)
+const int NumberChipsAlctFastMezz            =   3;
+//
+const int ChipLocationAlctFastMezzFpga       =   0;
+const int OpcodeSizeAlctFastMezzFpga         =   5;
+//
+const int ChipLocationAlctFastMezzProm0      =   1;
+const int ChipLocationAlctFastMezzProm1      =   2;
+const int OpcodeSizeAlctFastMezzProm         =   5;
+//
+const int RegSizeAlctFastMezzFpga_FPGAidCode =   32;
 //
 ////////////////////////////////////////////////////
 // TMB mezzanine chain characteristics            
@@ -441,38 +452,47 @@ const int write_rw_rpc_future_bithi              = 31;
 const int NUMBER_OF_WIRE_GROUPS_ME11   = 288;
 const int FAST_CONTROL_ALCT_TYPE_ME11  = 288;
 const int SLOW_CONTROL_ALCT_TYPE_ME11  = 288;
+const int FAST_FPGA_ID_ME11            = 0x0a30093;
 //   
 const int NUMBER_OF_WIRE_GROUPS_ME12   = 384;
 const int FAST_CONTROL_ALCT_TYPE_ME12  = 384;
 const int SLOW_CONTROL_ALCT_TYPE_ME12  = 384;
+const int FAST_FPGA_ID_ME12            = 0x0a30093;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME13   = 192; 
 const int FAST_CONTROL_ALCT_TYPE_ME13  = 192; 
 const int SLOW_CONTROL_ALCT_TYPE_ME13  = 288;
+const int FAST_FPGA_ID_ME13            = 0x0a30093;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME21   = 672;
 const int FAST_CONTROL_ALCT_TYPE_ME21  = 672;
 const int SLOW_CONTROL_ALCT_TYPE_ME21  = 672;
+const int FAST_FPGA_ID_ME21            = 0x0a40093;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME22   = 384;
 const int FAST_CONTROL_ALCT_TYPE_ME22  = 384;
 const int SLOW_CONTROL_ALCT_TYPE_ME22  = 384;
+const int FAST_FPGA_ID_ME22            = 0x0a30093;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME31   = 576;
 const int FAST_CONTROL_ALCT_TYPE_ME31  = 576; 
 const int SLOW_CONTROL_ALCT_TYPE_ME31  = 672;
+const int FAST_FPGA_ID_ME31            = 0x0a40093;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME32   = 384;
 const int FAST_CONTROL_ALCT_TYPE_ME32  = 384;
 const int SLOW_CONTROL_ALCT_TYPE_ME32  = 384;
+const int FAST_FPGA_ID_ME32            = 0x0a30093;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME41   = 576; 
 const int FAST_CONTROL_ALCT_TYPE_ME41  = 576; 
 const int SLOW_CONTROL_ALCT_TYPE_ME41  = 672;
+const int FAST_FPGA_ID_ME41            = 0x0a40093;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME42   = 384;
 const int FAST_CONTROL_ALCT_TYPE_ME42  = 384;
 const int SLOW_CONTROL_ALCT_TYPE_ME42  = 384;
+const int FAST_FPGA_ID_ME42            = 0x0a30093;
 //
 const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_192   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_192 - 2; 
 const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_288   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_288 - 2; 

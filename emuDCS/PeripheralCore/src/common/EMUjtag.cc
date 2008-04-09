@@ -18,7 +18,7 @@
 //}
 //
 EMUjtag::EMUjtag(TMB * tmb) :
-  tmb_(tmb),debug_(false)
+  tmb_(tmb),debug_(0)
 {
   //
   std::cout << "Creating EMUjtag" << std::endl ;
@@ -81,12 +81,12 @@ void EMUjtag::setup_jtag(int chain) {
     bits_in_opcode_[0] = OpcodeSizeAlctSlowFpga;
     if (GetWriteToDevice_()) tmb_->start(6,jtagSourceFPGA);
     //
-  } else if (jtag_chain_ == ChainAlctSlowProm) {
+  } else if (jtag_chain_ == ChainAlctSlowMezz) {
     //
-    devices_in_chain_ = NumberChipsAlctSlowProm;
-    bits_in_opcode_[0] = OpcodeSizeAlctSlowProm;
-    bits_in_opcode_[1] = OpcodeSizeAlctSlowProm;
-    bits_in_opcode_[2] = OpcodeSizeAlctSlowProm;
+    devices_in_chain_ = NumberChipsAlctSlowMezz;
+    bits_in_opcode_[0] = OpcodeSizeAlctSlowMezzFpga;
+    bits_in_opcode_[1] = OpcodeSizeAlctSlowMezzProm;
+    bits_in_opcode_[2] = OpcodeSizeAlctSlowMezzProm;
     if (GetWriteToDevice_()) tmb_->start(7,jtagSourceFPGA);
     //
   } else if (jtag_chain_ == ChainAlctFastFpga) {
@@ -94,6 +94,14 @@ void EMUjtag::setup_jtag(int chain) {
     devices_in_chain_ = NumberChipsAlctFastFpga; 
     bits_in_opcode_[0] = OpcodeSizeAlctFastFpga;
     if (GetWriteToDevice_()) tmb_->start(8,jtagSourceFPGA);
+    //
+  } else if (jtag_chain_ == ChainAlctFastMezz) {
+    //
+    devices_in_chain_ = NumberChipsAlctFastMezz; 
+    bits_in_opcode_[0] = OpcodeSizeAlctFastMezzFpga;
+    bits_in_opcode_[1] = OpcodeSizeAlctFastMezzProm;
+    bits_in_opcode_[2] = OpcodeSizeAlctFastMezzProm;
+    if (GetWriteToDevice_()) tmb_->start(2,jtagSourceFPGA);
     //
   } else if (jtag_chain_ == ChainTmbMezz) { 
     //
@@ -246,10 +254,12 @@ void EMUjtag::ShfIR_(const int selected_chip,
   //pack tdi into an array of char so scan can handle it:
   packCharBuffer(tdi_in_bits_,iframe,tdi_in_bytes_);
   //
-  //  (*MyOutput_) << "tdi bytes to ShfIR=";
-  //  for (int i=iframe/8; i>=0; i--) 
-  //    (*MyOutput_) << " " << std::hex << (tdi_in_bytes_[i]&0xff); 
-  //  (*MyOutput_) << std::endl;
+  if (debug_ >= 10) {
+    (*MyOutput_) << "tdi bytes to ShfIR=";
+    for (int i=iframe/8; i>=0; i--) 
+      (*MyOutput_) << " " << std::hex << (tdi_in_bytes_[i]&0xff); 
+    (*MyOutput_) << std::endl;
+  }
   //
   if (GetWriteToDevice_()) tmb_->scan(INSTR_REGISTER, tdi_in_bytes_, iframe, tdo_in_bytes_, NO_READ_BACK);
   //
@@ -321,20 +331,22 @@ void EMUjtag::ShfDR_(const int selected_chip,
   //pack tdi into an array of char so scan can handle it:
   packCharBuffer(tdi_in_bits_,iframe,tdi_in_bytes_);
   //
-  //  (*MyOutput_) << "write_data  = ";
-  //  for (int i=register_length_-1; i>=0; i--)
-  //    (*MyOutput_) << write_data[i];
-  //  (*MyOutput_) << std::endl;
-  //
-  //  (*MyOutput_) << "TDI in bits into DR = ";
-  //  for (int i=iframe-1; i>=0; i--)
-  //    (*MyOutput_) << tdi_in_bits_[i];
-  //  (*MyOutput_) << std::endl;
-  //
-  //  (*MyOutput_) << "TDI in bytes into DR=";
-  //  for (int i=iframe/8; i>=0; i--) 
-  //    (*MyOutput_) << ((tdi_in_bytes_[i] >> 4) & 0xf) << (tdi_in_bytes_[i] & 0xf);  
-  //  (*MyOutput_) << std::endl;
+  if (debug_ >= 10) {
+    (*MyOutput_) << "write_data  = ";
+    for (int i=register_length_-1; i>=0; i--)
+      (*MyOutput_) << write_data[i];
+    (*MyOutput_) << std::endl;
+    //
+    (*MyOutput_) << "TDI in bits into DR = ";
+    for (int i=iframe-1; i>=0; i--)
+      (*MyOutput_) << tdi_in_bits_[i];
+    (*MyOutput_) << std::endl;
+    //
+    (*MyOutput_) << "TDI in bytes into DR=";
+    for (int i=iframe/8; i>=0; i--) 
+      (*MyOutput_) << ((tdi_in_bytes_[i] >> 4) & 0xf) << (tdi_in_bytes_[i] & 0xf);  
+    (*MyOutput_) << std::endl;
+  }
   //
   if (GetWriteToDevice_()) tmb_->scan(DATA_REGISTER, tdi_in_bytes_, iframe, tdo_in_bytes_, READ_BACK);
   //
@@ -343,16 +355,19 @@ void EMUjtag::ShfDR_(const int selected_chip,
   //     => tdo_in_bytes_ = tdo for full chain (including bypass bits)
   unpackCharBuffer(tdo_in_bytes_,register_length_,offset,chip_tdo_in_bits_);
   //
-  //  (*MyOutput_) << "TDO from DR = ";
-  //  for (int i=register_length_-1; i>=0; i--)
-  //    (*MyOutput_) << chip_tdo_in_bits_[i];
-  //  (*MyOutput_) << std::endl;
-  //
-  //  char tempBuffer[MAX_BUFFER_SIZE];
-  //  packCharBuffer(chip_tdo_in_bits_,register_length_,tempBuffer);
-  //  for (int i=(register_length_/8)-1; i>=0; i--) 
-  //    (*MyOutput_) << ((tempBuffer[i] >> 4) & 0xf) << (tempBuffer[i] & 0xf);  
-  //  (*MyOutput_) << std::endl;
+  if (debug_ >= 10) {
+    (*MyOutput_) << "TDO in bits from DR = ";
+    for (int i=register_length_-1; i>=0; i--)
+      (*MyOutput_) << chip_tdo_in_bits_[i];
+    (*MyOutput_) << std::endl;
+    //
+    (*MyOutput_) << "TDO in bytes from DR = ";
+    char tempBuffer[MAX_BUFFER_SIZE];
+    packCharBuffer(chip_tdo_in_bits_,register_length_,tempBuffer);
+    for (int i=(register_length_/8)-1; i>=0; i--) 
+      (*MyOutput_) << ((tempBuffer[i] >> 4) & 0xf) << (tempBuffer[i] & 0xf);  
+    (*MyOutput_) << std::endl;
+  }
   //
   return;
 }
@@ -509,7 +524,8 @@ int EMUjtag::bits_to_int(int * bits,
       value |= ((bits[length-ibit-1]&0x1) << ibit);
   }
   //
-  //    (*MyOutput_) << "value = " << std::hex << value << std::endl;
+  if (debug_ >= 5)
+    (*MyOutput_) << "bits_to_int output value = " << std::hex << value << std::endl;
   //
   return value;
 }
