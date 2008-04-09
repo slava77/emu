@@ -1203,6 +1203,14 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     }
 
 
+
+    //
+    // Control buttons
+    //
+    *out << "<table border=\"0\" width=\"100%\">"                      << endl;
+    *out << "<tr>"                                                     << endl;
+
+    *out << "<td>"                                                     << endl;
       *out << "<input"                                               << endl;
       *out << " class=\"button\""                                    << endl;
       *out << " type=\"submit\""                                     << endl;
@@ -1255,6 +1263,25 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       if ( globalMode_.value_ ) *out << " disabled=\"true\""             << endl;
       *out << "/>  "                                                     << endl;
       *out << " DQM too"                                                 << endl;
+    *out << "</td>"                                                     << endl;
+
+    // Direct DQM control buttons (useful after DQM crash and restart).
+    *out << "<td>"                                                     << endl;
+      *out << "<fieldset style=\"float:right\">"                         << endl;
+      *out << "	 <legend>DQM direct control</legend>"                    << endl;
+      *out << "<input class=\"button\" type=\"submit\" name=\"command\"" << endl;
+      *out << " value=\"configure DQM\""                                 << endl;
+      *out << "/>"                                                       << endl;
+      *out << "<input class=\"button\" type=\"submit\" name=\"command\"" << endl;
+      *out << " value=\"start DQM\""                                     << endl;
+      *out << "/>"                                                       << endl;
+      *out << "<input class=\"button\" type=\"submit\" name=\"command\"" << endl;
+      *out << " value=\"stop DQM\""                                      << endl;
+      *out << "/>"                                                       << endl;
+      *out << "</fieldset>"                                              << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "</table>"                                                   << endl;
+       
 
     *out << "<br>"                                                       << endl;
     *out << "<br>"                                                       << endl;
@@ -1548,6 +1575,18 @@ throw (xgi::exception::Exception)
 			      xcept::stdformat_exception_history(e) );
 	    }
 	    fireEvent("Halt");
+	  }
+        else if( cmdName == "configure DQM" )
+	  {
+	    controlDQM( "Configure" );
+	  }
+        else if( cmdName == "start DQM" )
+	  {
+	    controlDQM( "Enable" );
+	  }
+        else if( cmdName == "stop DQM" )
+	  {
+	    controlDQM( "Halt" );
 	  }
     }
 
