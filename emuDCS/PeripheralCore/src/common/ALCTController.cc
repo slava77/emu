@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.41 2008/01/14 18:17:26 rakness Exp $
+// $Id: ALCTController.cc,v 3.42 2008/04/09 15:37:24 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.42  2008/04/09 15:37:24  rakness
+// read ALCT fast control FPGA ID
+//
 // Revision 3.41  2008/01/14 18:17:26  rakness
 // correct read of +5.5V_B ADC values on ALCT288
 //
@@ -841,7 +844,7 @@ void ALCTController::ReadSlowControlId() {
 //
 void ALCTController::PrintSlowControlId() {
   //
-  (*MyOutput_) << "ALCT: " << chamber_type_string_ 
+  (*MyOutput_) << chamber_type_string_ 
 		<< " Slow Control chip ID = " << std::hex << GetSlowControlChipId()
 	       << " version " << GetSlowControlVersionId()
 		<< ": day = " << GetSlowControlDay()
@@ -1641,56 +1644,68 @@ void ALCTController::ReadFastControlId() {
   //
   DecodeFastControlId_();
   //
+  //
+  tmb_->setup_jtag(ChainAlctFastMezz);
+  //
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastMezzFpga,
+		    FPGAidCode,
+		    RegSizeAlctFastMezzFpga_FPGAidCode);  
+  //
+  alct_fpga_idcode_ = (tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0) ) & 0xfffffff;
+  //
   return;
 }
 //
 void ALCTController::PrintFastControlId() {
   //
-  (*MyOutput_) << "ALCT: " << chamber_type_string_ << " Fast Control firmware type: ";
-  // 
+  (*MyOutput_) << chamber_type_string_  
+	       << " Fast Control (FPGA ID 0x" << std::hex << GetFastControlFPGAIdCode() << "): " << std::endl;
+  //
+  (*MyOutput_) << "type "; 
   if ( GetFastControlAlctType() == FIRMWARE_TYPE_192 ) {
-    (*MyOutput_) << "192, ";
+    (*MyOutput_) << "192";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
-    (*MyOutput_) << "288, ";
+    (*MyOutput_) << "288";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_384 ) {
-    (*MyOutput_) << "384, ";
+    (*MyOutput_) << "384";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_576 ) {
-    (*MyOutput_) << "576, ";
+    (*MyOutput_) << "576";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_672 ) {
-    (*MyOutput_) << "672, ";
+    (*MyOutput_) << "672";
   } else {
-    (*MyOutput_) << "unknown, ";
+    (*MyOutput_) << "unknown";
   }
   // 
   if ( GetFastControlRegularMirrorType() == REGULAR_FIRMWARE_TYPE ) {
-    (*MyOutput_) << "non-mirrored, ";
+    (*MyOutput_) << " [non-mirrored] ";
   } else  if ( GetFastControlRegularMirrorType() == MIRROR_FIRMWARE_TYPE ) {
-    (*MyOutput_) << "mirrored, ";
+    (*MyOutput_) << " [mirrored] ";
   } else {
-    (*MyOutput_) << "unknown, ";
+    (*MyOutput_) << " [unknown] ";
   }
   //
   if (chamber_type_string_ == "ME11") {
     if ( GetFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE ) {
-      (*MyOutput_) << "backward, ";
+      (*MyOutput_) << "backward/";
     } else if ( GetFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE ) {
-      (*MyOutput_) << "forward, ";
+      (*MyOutput_) << "forward/";
     }
     if ( GetFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
-      (*MyOutput_) << "negative, ";
+      (*MyOutput_) << "negative ";
     } else if ( GetFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
-      (*MyOutput_) << "positive, ";
+      (*MyOutput_) << "positive ";
     }
   }
   //
-  (*MyOutput_) << "day = " << std::dec << GetFastControlDay();
-  (*MyOutput_) << ", month = " << std::dec << GetFastControlMonth();
-  (*MyOutput_) << ", year = " << std::dec << GetFastControlYear() << std::dec << std::endl; 
+  (*MyOutput_) << " --> version (day month year) = (";
+  (*MyOutput_) << std::dec << GetFastControlDay() << " ";
+  (*MyOutput_) << std::dec << GetFastControlMonth() << " ";
+  (*MyOutput_) << std::dec << GetFastControlYear() << ")";
   //
   // pre-DAQ06 format:
-  //(*MyOutput_) << "day = " << std::hex << GetFastControlDay();
-  //(*MyOutput_) << ", month = " << std::hex << GetFastControlMonth();
-  //(*MyOutput_) << ", year = " << std::hex << GetFastControlYear() << std::dec << std::endl; 
+  //(*MyOutput_) << std::hex << GetFastControlDay();
+  //(*MyOutput_) << std::hex << GetFastControlMonth();
+  //(*MyOutput_) << std::hex << GetFastControlYear() << ")" << std::dec << std::endl; 
   //
   return;
 }
@@ -3658,6 +3673,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME11;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME11);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME11);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME11);
     //
   } else if (chamber_type_string_ == "ME12") {
     //
@@ -3665,6 +3681,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME12;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME12);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME12);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME12);
     //
   } else if (chamber_type_string_ == "ME13") {
     //
@@ -3672,6 +3689,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME13;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME13);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME13);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME13);
     //
   } else if (chamber_type_string_ == "ME21") {
     //
@@ -3679,6 +3697,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME21;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME21);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME21);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME21);
     //
   } else if (chamber_type_string_ == "ME22") {
     //
@@ -3686,6 +3705,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME22;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME22);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME22);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME22);
     //
   } else if (chamber_type_string_ == "ME31") {
     //
@@ -3693,6 +3713,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME31;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME31);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME31);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME31);
     //
   } else if (chamber_type_string_ == "ME32") {
     //
@@ -3700,6 +3721,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME32;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME32);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME32);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME32);
     //
   } else if (chamber_type_string_ == "ME41") {
     //
@@ -3707,12 +3729,14 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME41;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME41);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME41);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME41);
     //
   } else if (chamber_type_string_ == "ME42") {
     //
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME42;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME42);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME42);
+    SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME42);
     //
   }
   //

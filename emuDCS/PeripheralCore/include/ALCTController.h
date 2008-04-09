@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.25 2008/01/14 18:17:26 rakness Exp $
+// $Id: ALCTController.h,v 3.26 2008/04/09 15:37:23 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.26  2008/04/09 15:37:23  rakness
+// read ALCT fast control FPGA ID
+//
 // Revision 3.25  2008/01/14 18:17:26  rakness
 // correct read of +5.5V_B ADC values on ALCT288
 //
@@ -266,6 +269,10 @@ class ALCTController {
   int  GetFastControlMonth();                          // get Read values
   inline int GetExpectedFastControlMonth() { return expected_fastcontrol_firmware_month_; } 
   void SetExpectedFastControlMonth(int firmware_month); 
+  //
+  int GetFastControlFPGAIdCode() { return alct_fpga_idcode_; } // get Read values
+  inline int GetExpectedFastControlFPGAIdCode() { return expected_alct_fpga_idcode_; } 
+  void SetExpectedFastControlFPGAIdCode(int code) { expected_alct_fpga_idcode_ = code; } 
   //
   void PrintFastControlId();                   // print out Read values				 
   //
@@ -735,6 +742,9 @@ private:
   int expected_fastcontrol_firmware_year_;
   int expected_fastcontrol_firmware_day_;
   int expected_fastcontrol_firmware_month_;
+  //
+  int alct_fpga_idcode_;
+  int expected_alct_fpga_idcode_;
   //
   //
   int write_asic_delays_and_patterns_[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES]; 

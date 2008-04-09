@@ -153,7 +153,7 @@ private:
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   //
-  bool debug_;
+  int debug_;
   bool check_write_;
   /////////////////////////////////
   // setup private values:
