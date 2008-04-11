@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.7 2008/01/08 10:58:56 liu Exp $
+// $Id: MPC.h,v 3.8 2008/04/11 14:48:47 liu Exp $
 // $Log: MPC.h,v $
+// Revision 3.8  2008/04/11 14:48:47  liu
+// add CheckConfig() function
+//
 // Revision 3.7  2008/01/08 10:58:56  liu
 // remove exit() in functions
 //
@@ -120,6 +123,7 @@ class MPC : public VMEModule {
   bool SelfTest();
   void configure();  
   void init();
+  int CheckConfig();
 
   /// address is usually one of the above enums.  theBaseAddress
   /// defined in the constructor automatically added

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.10 2007/08/27 22:50:24 liu Exp $
+// $Id: CCB.h,v 3.11 2008/04/11 14:48:47 liu Exp $
 // $Log: CCB.h,v $
+// Revision 3.11  2008/04/11 14:48:47  liu
+// add CheckConfig() function
+//
 // Revision 3.10  2007/08/27 22:50:24  liu
 // update
 //
@@ -220,6 +223,7 @@ public:
   void startI2C();
   void stopI2C();
   void writeI2C(int);
+  int CheckConfig();
   //
   /// mostly for GUIs
   void executeCommand(std::string command);

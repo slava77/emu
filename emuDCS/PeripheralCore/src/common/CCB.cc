@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.23 2008/03/31 14:41:01 liu Exp $
+// $Id: CCB.cc,v 3.24 2008/04/11 14:48:48 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.24  2008/04/11 14:48:48  liu
+// add CheckConfig() function
+//
 // Revision 3.23  2008/03/31 14:41:01  liu
 // remove soft_reset from hard_reset sequence
 //
@@ -449,8 +452,8 @@ void CCB::DumpAddress(int address) {
 std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   if (ReadTTCrxID_ == -1) {
-    (*MyOutput_) << "ReadTTCrxReg: No ReadTTCrxID" << std::endl;
-    return 0;
+    (*MyOutput_) << "ReadTTCrxReg: No ReadTTCrxID, using TTCrxID from XML: "<< TTCrxID_ << std::endl;
+    ReadTTCrxID_ = TTCrxID_;
   }
   //
   std::bitset<7> pointerRegAddress(ReadTTCrxID_*2);
@@ -1056,9 +1059,43 @@ void CCB::configure() {
   //
   WriteTTCrxReg(3,0xB3);  
 
+  // check TTCrx registers
+  int rx;
+  rx=(int) (ReadTTCrxReg(2).to_ulong());
+  if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
+     std::cout << "ERROR: TTCrx Coarse Delay register readback " << std::hex << (rx&0xff) << std::endl; 
+
+  rx=(int)(ReadTTCrxReg(3).to_ulong());
+  if((rx&0xff) != 0xB3) 
+     std::cout << "ERROR: TTCrx Control register readback " << std::hex << (rx&0xff) << std::endl; 
+
   // PrintTTCrxRegs();
   setCCBMode(CCB::DLOG);
   //
+}
+
+int CCB::CheckConfig()
+{
+  int rx;
+
+  // check CCB in DLOG mode
+  rx=ReadRegister(CSRA1);
+  if(rx & 1 == 0) return 0;
+ 
+ // check TTTrx ready and QPLL locked
+  rx=ReadRegister(CSRA3);
+  if(rx & 0x6000 != 0x2000) return 0;
+
+  // check TTCrx Coarse delay
+  rx=(int) (ReadTTCrxReg(2).to_ulong());
+  if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
+     return 0;
+
+  // check TTCrx Control register
+  rx=(int)(ReadTTCrxReg(3).to_ulong());
+  if((rx&0xff) != 0xB3) return 0;
+
+  return 1;
 }
 
 void CCB::SetL1aDelay(int l1adelay){
