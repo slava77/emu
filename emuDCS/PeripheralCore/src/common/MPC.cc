@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.9 2008/02/13 16:50:42 liu Exp $
+// $Id: MPC.cc,v 3.10 2008/04/11 14:48:48 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.10  2008/04/11 14:48:48  liu
+// add CheckConfig() function
+//
 // Revision 3.9  2008/02/13 16:50:42  liu
 // fix board ID setting
 //
@@ -198,6 +201,14 @@ void MPC::configure() {
 
   // report firmware version
   firmwareVersion();
+}
+
+int MPC::CheckConfig()
+{
+   int rx;
+   rx=ReadRegister(0);
+   if(rx & 0x8201 != 0x0200) return 0;
+   return 1;
 }
 
 void MPC::read_fifo(char address, char * data) {
@@ -646,12 +657,12 @@ int MPC::ReadRegister(int reg){
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
-  printf(" MPC.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  // printf(" MPC.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
   return value;
   //
 }
-//
+
 void MPC::firmwareVersion(){
   /// report the firmware version
   //
