@@ -157,6 +157,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	fsm_.addStateTransition(
 			'H', 'C', "Configure", this, &CSCSupervisor::configureAction);
 	fsm_.addStateTransition(
+			'C', 'C', "Configure", this, &CSCSupervisor::configureAction);
+	fsm_.addStateTransition(
 			'C', 'E', "Start",    this, &CSCSupervisor::startAction);
 	fsm_.addStateTransition(
 			'E', 'C', "Stop",   this, &CSCSupervisor::stopAction);
@@ -598,16 +600,6 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 					run_type_.toString());
 		} catch (xcept::Exception ignored) {}
 
-		sendCommand("Configure", "EmuFCrateManager");
-		if (!isCalibrationMode()) {
-			sendCommand("Configure", "EmuPeripheralCrateManager");
-		} else {
-			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
-		}
-
-		try {
-			sendCommand("Configure", "EmuDAQManager");
-		} catch (xcept::Exception ignored) {}
 		sendCommand("Configure", "TTCciControl");
 
 		int index = getCalibParamIndex(run_type_);
@@ -617,6 +609,17 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		}
 		sendCommand("Configure", "LTCControl");
 
+		if (!isCalibrationMode()) {
+			sendCommand("Configure", "EmuPeripheralCrateManager");
+		} else {
+			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
+		}
+
+		try {
+			sendCommand("Configure", "EmuDAQManager");
+		} catch (xcept::Exception ignored) {}
+
+		sendCommand("Configure", "EmuFCrateManager");
 		state_table_.refresh();
 		if (!state_table_.isValidState("Configured")) {
 			XCEPT_RAISE(xdaq::exception::Exception,
@@ -650,10 +653,10 @@ void CSCSupervisor::startAction(toolbox::Event::Reference evt)
 
   try {
     state_table_.refresh();
-    sendCommand("Start", "EmuFCrateManager");
+    sendCommand("Enable", "EmuFCrateManager");
 
     if (!isCalibrationMode()) {
-      sendCommand("Start", "EmuPeripheralCrateManager");
+      sendCommand("Enable", "EmuPeripheralCrateManager");
     }
     try {
       if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
@@ -665,7 +668,7 @@ void CSCSupervisor::startAction(toolbox::Event::Reference evt)
       setParameter("EmuDAQManager",
 		   "runNumber", "xsd:unsignedLong", run_number_.toString());
 
-      sendCommand("Start", "EmuDAQManager");
+      sendCommand("Enable", "EmuDAQManager");
     } catch (xcept::Exception ignored) {}
 
     
