@@ -179,6 +179,7 @@
     <xsl:variable name="PC_NAME">VME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="PeripheralCrate/@VMEcrate"/></xsl:variable>
     <xsl:variable name="RUI_INSTANCE"><xsl:value-of select="../../@instance"/></xsl:variable>
     <tr>
+      <xsl:attribute name="id">row_<xsl:value-of select="$CHAMBER_NAME"/></xsl:attribute>
       <td class="RUI">
 	<xsl:attribute name="onmousedown">colorRUI(<xsl:value-of select="../../@instance"/>)</xsl:attribute>
 	<a href="#graphics"><xsl:value-of select="../../@instance"/></a>
@@ -210,6 +211,39 @@
     </tr>
   </xsl:template>
 
+  <xsl:template name="table_for_highlighted_chamber">
+    <table class="mapping" id="table_for_highlighted_chamber" style="visibility: hidden;">
+      <tr>
+	<th class="RUI">RUI</th>
+	<th class="computer" colspan="4">computer</th>
+	<th class="DCC" colspan="2">DCC</th>
+	<th class="DDU" colspan="3">DDU</th>
+	<th class="fiber" colspan="3">fiber cassette</th>
+	<th class="PC" colspan="3">peripheral crate</th>
+	<th class="chamber">&#160;&#160;chamber&#160;&#160;</th>
+      </tr>
+      <tr>
+	<th class="RUI">instance</th>
+	<th class="computer">host</th>
+	<th class="computer">alias</th>
+	<th class="computer">port</th>
+	<th class="computer">schar</th>
+	<th class="DCC">fifo</th>
+	<th class="DCC">S-link</th>
+	<th class="DDU">crate</th>
+	<th class="DDU">slot</th>
+	<th class="DDU">input</th>
+	<th class="fiber">crate</th>
+	<th class="fiber">pos</th>
+	<th class="fiber">socket</th>
+	<th class="PC">id</th>
+	<th class="PC">sector</th>
+	<th class="PC">pos</th>
+	<th class="chamber">name</th>
+      </tr>
+      <tr><td>nothing highlighted</td></tr>
+    </table>
+  </xsl:template>
 
   <xsl:template match="RUI-to-chamber_mapping">
     <html xmlns="http://www.w3.org/1999/xhtml">
@@ -383,6 +417,10 @@
 	    t.setAttribute('visibility','visible');
 	    var chamber_name = evt.target.getAttribute('id');
 	    t.firstChild.nodeValue = chamber_name.replace('-','&#8211;');
+            // Display single table raw for this chamber at bottom
+	    var table_for_highlighted_chamber = document.getElementById('table_for_highlighted_chamber')
+	    table_for_highlighted_chamber.rows[2].innerHTML = document.getElementById('row_'+chamber_name).innerHTML;
+	    table_for_highlighted_chamber.setAttribute('style','visibility: visible;');
           }
           
           function dullChamber(evt){
@@ -391,6 +429,8 @@
 	    // Hide label
             document.getElementById('focusedChamberBox' ).setAttribute('visibility','hidden');
             document.getElementById('focusedChamberText').setAttribute('visibility','hidden');
+            // Hide single table raw for this chamber at bottom
+	    document.getElementById('table_for_highlighted_chamber').setAttribute('style','visibility: hidden;');
           }
             
 	  function goToTableRow(evt){
@@ -427,15 +467,12 @@
 	    <xsl:call-template name="mapping_table"/>
 	  
 	  </td></tr>
-	  <!-- 	  <tr><td style="border:thick outset white;"> -->
+<!-- 	  <tr><td style="height: 300px; border:thin outset yellow; padding: 0px 0px 0px 0px;"> -->
 	  <tr><td>
 	  
-	    <a name="graphics"/>
-<!-- 	    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" -->
-<!-- 		 viewBox="0 0 5600 3600" preserveAspectRatio="xMidYMid meet"> -->
 	    <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
-		 viewBox="0 0 5600 3600" preserveAspectRatio="*YMin meet">
-	      <rect x="0" y="0" width="100%" height="100%" fill="#222222"/>
+		 width="960" height="600" preserveAspectRatio="*YMin meet">
+<!-- 	      <rect x="0" y="0" width="100%" height="100%" fill="#000022"/> -->
 	      <g transform="scale(0.17, 0.17) translate(2800,1700)" id="group">
 		<xsl:apply-templates mode="graphics"/>
 		<xsl:call-template name="captions"/>
@@ -446,6 +483,12 @@
 	    </svg>
 	    
 	  </td></tr>
+	  <tr><td>
+
+	    <a name="graphics"/>
+	    <xsl:call-template name="table_for_highlighted_chamber"/>
+
+	  </td></tr>
 	</table>
 	
       </body>
@@ -453,3 +496,4 @@
   </xsl:template>
 
 </xsl:transform>
+
