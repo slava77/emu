@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.43 2008/03/27 15:20:49 liu Exp $
+// $Id: VMEController.cc,v 3.44 2008/04/15 14:29:49 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.44  2008/04/15 14:29:49  liu
+// enable VCC hard reset
+//
 // Revision 3.43  2008/03/27 15:20:49  liu
 // turn on controller delay in SVFload
 //
@@ -307,7 +310,7 @@ VMEController::VMEController():
 // please note the byte swap with respect to the book values 
   CR_ethernet=0x5000;
   CR_ext_fifo=0x0200;
-  CR_res_misc=0x1302;
+  CR_res_misc=0x1B02;
   CR_VME_low=0x0F1D;
   CR_VME_hi=0xFFED;
   CR_BUS_timeout=0xD430;
@@ -734,7 +737,7 @@ READ_IT_CR:
      {  
         // discard INFO/WARNING/ERROR packets
 
-        if(DEBUG) printf("%s",dcode_msg_pkt(rbuf));
+        if(DEBUG) printf("EWI packet: %d\n", ptyp);
         goto READ_IT_CR;
      }
      if(readback) memcpy(readback, rbuf+DATA_OFF, n_words*2);
