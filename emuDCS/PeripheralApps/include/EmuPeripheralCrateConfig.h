@@ -386,6 +386,8 @@ private:
   void CheckPeripheralCrateConfiguration();
   int all_crates_ok;;
   int crate_check_ok[60];
+  int ccb_check_ok[60];
+  int mpc_check_ok[60];
   int alct_check_ok[60][9];
   int tmb_check_ok[60][9];
   int dmb_check_ok[60][9];
