@@ -606,7 +606,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Configure All Crates") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Crates Power-up Init") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
 
