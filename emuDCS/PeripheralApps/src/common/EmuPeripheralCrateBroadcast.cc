@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.26 2008/04/07 16:58:07 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.27 2008/04/16 21:59:01 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -160,9 +160,9 @@ void EmuPeripheralCrateBroadcast::timeExpired (toolbox::task::TimerEvent& e)
      In_Monitor_ = true;
      std::string name = e.getTimerTask()->name;
      // std::cout << "timeExpired: " << name << std::endl;
-     if(strncmp(name.c_str(),"EmuPCrateFast",13)==0)  PCsendCommand("FastLoop","EmuPeripheralCrateConfig");
-     else if(strncmp(name.c_str(),"EmuPCrateSlow",13)==0) PCsendCommand("SlowLoop","EmuPeripheralCrateConfig");
-     else if(strncmp(name.c_str(),"EmuPCrateExtra",14)==0) PCsendCommand("ExtraLoop","EmuPeripheralCrateConfig");
+     if(strncmp(name.c_str(),"EmuPCrateFast",13)==0)  PCsendCommand("FastLoop","EmuPeripheralCrateMonitor");
+     else if(strncmp(name.c_str(),"EmuPCrateSlow",13)==0) PCsendCommand("SlowLoop","EmuPeripheralCrateMonitor");
+     else if(strncmp(name.c_str(),"EmuPCrateExtra",14)==0) PCsendCommand("ExtraLoop","EmuPeripheralCrateMonitor");
      In_Monitor_ = false;
 }
 //

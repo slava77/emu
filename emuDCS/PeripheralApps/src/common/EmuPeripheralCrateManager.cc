@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.4 2008/02/29 10:57:23 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.5 2008/04/16 21:59:01 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -91,7 +91,7 @@ void EmuPeripheralCrateManager::MainPage(xgi::Input * in, xgi::Output * out ) th
   LOG4CPLUS_INFO(getApplicationLogger(), "Main Page");
   //
   std::set<xdaq::ApplicationDescriptor * >  descriptor =
-    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
+    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateCommand");
   //
   std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
   for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) {
@@ -137,7 +137,7 @@ void EmuPeripheralCrateManager::MainPage(xgi::Input * in, xgi::Output * out ) th
   //
   *out << cgicc::fieldset() ;
   //
-  LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrateConfig");
+  LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrateManager");
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
@@ -373,9 +373,9 @@ xoap::MessageReference EmuPeripheralCrateManager::QueryPeripheralCrateInfoSpace(
   envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
   //
   xoap::SOAPName command    = envelope.createName("ParameterGet"    , "xdaq"              , "urn:xdaq-soap:3.0"                        );
-  xoap::SOAPName properties = envelope.createName("properties"      , "EmuPeripheralCrateConfig", "urn:xdaq-application:EmuPeripheralCrateConfig"  );
-  xoap::SOAPName parameter  = envelope.createName("stateName"       , "EmuPeripheralCrateConfig", "urn:xdaq-application:EmuPeripheralCrateConfig"  );
-  xoap::SOAPName parameter2 = envelope.createName("CalibrationState", "EmuPeripheralCrateConfig", "urn:xdaq-application:EmuPeripheralCrateConfig"  );
+  xoap::SOAPName properties = envelope.createName("properties"      , "EmuPeripheralCrateCommand", "urn:xdaq-application:EmuPeripheralCrateCommand"  );
+  xoap::SOAPName parameter  = envelope.createName("stateName"       , "EmuPeripheralCrateCommand", "urn:xdaq-application:EmuPeripheralCrateCommand"  );
+  xoap::SOAPName parameter2 = envelope.createName("CalibrationState", "EmuPeripheralCrateCommand", "urn:xdaq-application:EmuPeripheralCrateCommand"  );
   xoap::SOAPName xsitype    = envelope.createName("type"            , "xsi"               , "http://www.w3.org/2001/XMLSchema-instance");
   //    
   xoap::SOAPElement properties_e = envelope.getBody().addBodyElement(command).addChildElement(properties);
@@ -432,17 +432,10 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoa
 xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
-  //  std::cout<< "This is a checking printing"<<std::endl;
+  std::cout << "SOAP message Configure" << std::endl;
   //
-  // ostringstream test;
-  // message->writeTo(test);
-  //cout << test.str() <<endl;
-  //cout << " Print check working "<<endl;
+  PCsendCommand("Configure","EmuPeripheralCrateCommand");
   //
-  PCsendCommand("Configure","EmuPeripheralCrateConfig");
-  //
-  // really should wait for OK message from EmuPeripheralCrate before change status
-  ::sleep(1);
   fireEvent("Configure");
   //
   return createReply(message);
@@ -452,6 +445,10 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageRefe
 xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
+  std::cout << "SOAP message Enable" << std::endl;
+  //
+  PCsendCommand("Enable","EmuPeripheralCrateCommand");
+  //
   fireEvent("Enable");
   //
   return createReply(message);
@@ -460,6 +457,10 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReferen
 xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
+  std::cout << "SOAP message Disable" << std::endl;
+  //
+  PCsendCommand("Disable","EmuPeripheralCrateCommand");
+  //
   fireEvent("Disable");
   //
   return createReply(message);
@@ -467,6 +468,10 @@ xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageRefere
 //
 xoap::MessageReference EmuPeripheralCrateManager::onHalt (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
+  //
+  std::cout << "SOAP message Halt" << std::endl;
+  //
+  PCsendCommand("Halt","EmuPeripheralCrateCommand");
   //
   fireEvent("Halt");
   //
@@ -599,7 +604,7 @@ void EmuPeripheralCrateManager::relayMessage (xoap::MessageReference msg)
 void EmuPeripheralCrateManager::SendSOAPMessageXRelaySimple(std::string command,std::string setting) {
   //
   std::set<xdaq::ApplicationDescriptor * >  descriptors =
-    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
+    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateCommand");
   //
   xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
   //
@@ -632,7 +637,7 @@ void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay(xgi::Input * in, 
     compare = CompareEmuPeripheralCrateState("Configured");
     //
     std::set<xdaq::ApplicationDescriptor * >  descriptor =
-      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
+      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateCommand");
     //
     if ( compare == (int) descriptor.size() ) {
       ConfigureState_ = "Configured";
@@ -660,7 +665,7 @@ void EmuPeripheralCrateManager::SendSOAPMessageConfigure(xgi::Input * in, xgi::O
   //
   try {	
     std::set<xdaq::ApplicationDescriptor * >  descriptors =
-      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
+      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateCommand");
     //
     std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptors.begin(); itDescriptor != descriptors.end(); itDescriptor++ ) {

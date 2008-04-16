@@ -22,6 +22,8 @@ Sources=\
         EmuController.cc \
 	EmuPeripheralCrateBroadcast.cc \
         EmuPeripheralCrateConfig.cc \
+        EmuPeripheralCrateCommand.cc \
+        EmuPeripheralCrateMonitor.cc \
         EmuPeripheralCrateManager.cc
 
 IncludeDirs = \
