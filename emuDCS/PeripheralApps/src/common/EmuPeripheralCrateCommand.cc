@@ -33,6 +33,18 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   //
   tmb_vme_ready = -1;
   //
+  all_crates_ok = -1;
+  for (int i=0; i<60; i++) {
+    crate_check_ok[i] = -1;
+    ccb_check_ok[i] = -1;
+    mpc_check_ok[i] = -1;
+    for (int j=0; j<9; j++) {
+      alct_check_ok[i][j] = -1;
+      tmb_check_ok[i][j] = -1;
+      dmb_check_ok[i][j] = -1;
+    }
+  }
+  //
   xgi::bind(this,&EmuPeripheralCrateCommand::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateCommand::MainPage, "MainPage");
   //
@@ -190,6 +202,9 @@ void EmuPeripheralCrateCommand::MainPage(xgi::Input * in, xgi::Output * out )
 	//
 	*out << cgicc::br() << cgicc::span().set("style","color:red");
 	//
+	if (ccb_check_ok[current_crate_] == 0) *out << "Config problem for CCB/TTC " << cgicc::br() << std::endl ;
+	if (mpc_check_ok[current_crate_] == 0) *out << "Config problem for MPC " << cgicc::br() << std::endl ;
+        //
 	bool alct_ok = true;
 	bool tmb_ok = true;
 	bool dmb_ok = true;
@@ -547,6 +562,12 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
   std::cout << " seconds ago" << std::endl;
   //
   crate_check_ok[current_crate_] = 1;
+  //
+  ccb_check_ok[current_crate_] = thisCrate->ccb()->CheckConfig();
+  crate_check_ok[current_crate_] &=  ccb_check_ok[current_crate_];  
+  //
+  mpc_check_ok[current_crate_] = thisCrate->mpc()->CheckConfig();
+  crate_check_ok[current_crate_] &=  mpc_check_ok[current_crate_];  
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     //	
