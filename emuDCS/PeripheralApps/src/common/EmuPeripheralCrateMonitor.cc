@@ -401,16 +401,16 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::td();
     //
-/*
+
     *out << cgicc::td();
     //
     std::string CrateStatus = toolbox::toString("/%s/CrateStatus",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CrateStatus).set("target","_blank") << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Crate Status").set("name","CrateStatus") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Crate Status").set("name",thisCrate->GetLabel()) << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
-*/
+
     //
     *out << cgicc::table();
     //
@@ -820,17 +820,49 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   //
   MyHeader(in,out,"Crate Status");
   //
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  //
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+  //
+  Page=cgiEnvi.getQueryString();
+  std::string crate_name=Page.substr(0,Page.find("=", 0) );
+  *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  int mycrate;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(crate_name==crateVector[i]->GetLabel()) mycrate = i;
+  }
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+  //
   *out << cgicc::h3("Configuration done for Crate  ");
   *out << cgicc::br();
   //
-  xdata::UnsignedShort ccbv;
-  this->getApplicationInfoSpace()->fireItemAvailable("CCB_CSRA1", &ccbv);
-  unsigned short read = (unsigned short) ccbv;
+  xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
+
+  xdata::UnsignedShort *counter16;
+  unsigned short csra1,csra2,csra3;
+  counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA1"));
+  csra1=(unsigned short)  *counter16;
+  counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA2"));
+  csra2=(unsigned short)  *counter16;
+  counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA3"));
+  csra3=(unsigned short)  *counter16;
+
  //  int ccbmode = (thisCCB->ReadRegister(0x0))&0x1;
   //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
   *out << "CCB Mode : ";
-  if((read&0x1) == 1) {
+  if((csra1&0x1) == 1) {
     *out << cgicc::span().set("style","color:green");
     *out << " DLOG";
     *out << cgicc::span();
@@ -842,15 +874,13 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   *out << cgicc::fieldset();
   //
-  this->getApplicationInfoSpace()->fireItemAvailable("CCB_CSRA3", &ccbv);
-  read = (unsigned short) ccbv;
   // int read = (thisCCB->ReadRegister(0x4))&0xffff;
   //
   //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "CCB  slot = 13 FPGA cfg       " << ((read>>12)&0x1);
+  *out << "CCB  slot = 13 FPGA cfg       " << ((csra3>>12)&0x1);
   //
-  if(((read>>12)&0x1) == 1) {
+  if(((csra3>>12)&0x1) == 1) {
     *out << cgicc::span().set("style","color:green");
     *out << " (Done)";
     *out << cgicc::span();
@@ -862,8 +892,8 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
-  *out << "TTCrx ready                   " << ((read>>13)&0x1);
-  if(((read>>13)&0x1) == 1) {
+  *out << "TTCrx csra3y                   " << ((csra3>>13)&0x1);
+  if(((csra3>>13)&0x1) == 1) {
     *out << cgicc::span().set("style","color:green");
     *out << " (Ready)";
     *out << cgicc::span();
@@ -874,8 +904,8 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   }
   *out << cgicc::br();
   //
-  *out << "QPLL ready                    " << ((read>>14)&0x1);
-  if(((read>>14)&0x1) == 0) {
+  *out << "QPLL ready                    " << ((csra3>>14)&0x1);
+  if(((csra3>>14)&0x1) == 0) {
     *out << cgicc::span().set("style","color:green");
     *out << " (Locked)";
     *out << cgicc::span();
@@ -886,86 +916,82 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   }
   *out << cgicc::br();
   //
-  *out << "All cfg                       " << ((read>>15)&0x1);
+  *out << "All cfg                       " << ((csra3>>15)&0x1);
   *out << cgicc::br();
   *out << cgicc::fieldset() ;
   //
-  this->getApplicationInfoSpace()->fireItemAvailable("CCB_CSRA2", &ccbv);
-  read = (unsigned short) ccbv;
   // read = (thisCCB->ReadRegister(0x2))&0xffff;
   //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
   *out << cgicc::span().set("style","color:blue");
-  *out << "MPC slot = 12 cfg             " << (read&0x1);
+  *out << "MPC slot = 12 cfg             " << (csra2&0x1);
   *out << cgicc::span();
   *out << cgicc::br();
   *out << cgicc::fieldset() ;
   //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "ALCT slot = 02 cfg            " << ((read>>1)&0x1);
+  *out << "ALCT slot = 02 cfg            " << ((csra2>>1)&0x1);
   *out << cgicc::br();
-  *out << "ALCT slot = 04 cfg            " << ((read>>2)&0x1);
+  *out << "ALCT slot = 04 cfg            " << ((csra2>>2)&0x1);
   *out << cgicc::br();
-  *out << "ALCT slot = 06 cfg            " << ((read>>3)&0x1);
+  *out << "ALCT slot = 06 cfg            " << ((csra2>>3)&0x1);
   *out << cgicc::br();
-  *out << "ALCT slot = 08 cfg            " << ((read>>4)&0x1);
+  *out << "ALCT slot = 08 cfg            " << ((csra2>>4)&0x1);
   *out << cgicc::br();
-  *out << "ALCT slot = 10 cfg            " << ((read>>5)&0x1);
+  *out << "ALCT slot = 10 cfg            " << ((csra2>>5)&0x1);
   *out << cgicc::br();
-  *out << "ALCT slot = 14 cfg            " << ((read>>6)&0x1);
+  *out << "ALCT slot = 14 cfg            " << ((csra2>>6)&0x1);
   *out << cgicc::br();
-  *out << "ALCT slot = 16 cfg            " << ((read>>7)&0x1);
+  *out << "ALCT slot = 16 cfg            " << ((csra2>>7)&0x1);
   *out << cgicc::br();
-  *out << "ALCT slot = 18 cfg            " << ((read>>8)&0x1);
+  *out << "ALCT slot = 18 cfg            " << ((csra2>>8)&0x1);
   *out << cgicc::br();
-  *out << "ALCT slot = 20 cfg            " << ((read>>9)&0x1);
+  *out << "ALCT slot = 20 cfg            " << ((csra2>>9)&0x1);
   *out << cgicc::br();
   *out << cgicc::fieldset() ;
   //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "TMB  slot = 02 cfg            " << ((read>>10)&0x1);
+  *out << "TMB  slot = 02 cfg            " << ((csra2>>10)&0x1);
   *out << cgicc::br();
-  *out << "TMB  slot = 04 cfg            " << ((read>>11)&0x1);
+  *out << "TMB  slot = 04 cfg            " << ((csra2>>11)&0x1);
   *out << cgicc::br();
-  *out << "TMB  slot = 06 cfg            " << ((read>>12)&0x1);
+  *out << "TMB  slot = 06 cfg            " << ((csra2>>12)&0x1);
   *out << cgicc::br();
-  *out << "TMB  slot = 08 cfg            " << ((read>>13)&0x1);
+  *out << "TMB  slot = 08 cfg            " << ((csra2>>13)&0x1);
   *out << cgicc::br();
-  *out << "TMB  slot = 10 cfg            " << ((read>>14)&0x1);
+  *out << "TMB  slot = 10 cfg            " << ((csra2>>14)&0x1);
   *out << cgicc::br();
-  *out << "TMB  slot = 14 cfg            " << ((read>>15)&0x1);
+  *out << "TMB  slot = 14 cfg            " << ((csra2>>15)&0x1);
   *out << cgicc::br();
   //
-  this->getApplicationInfoSpace()->fireItemAvailable("CCB_CSRA3", &ccbv);
-  read = (unsigned short) ccbv;
   // read = (thisCCB->ReadRegister(0x4))&0xffff;
   //
-  *out << "TMB  slot = 16 cfg            " << ((read)&0x1);
+  *out << "TMB  slot = 16 cfg            " << ((csra3)&0x1);
   *out << cgicc::br();
-  *out << "TMB  slot = 18 cfg            " << ((read>>1)&0x1);
+  *out << "TMB  slot = 18 cfg            " << ((csra3>>1)&0x1);
   *out << cgicc::br();
-  *out << "TMB  slot = 20 cfg            " << ((read>>2)&0x1);
+  *out << "TMB  slot = 20 cfg            " << ((csra3>>2)&0x1);
   *out << cgicc::br();
   *out << cgicc::fieldset() ;
   //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "DMB  slot = 03 cfg            " << ((read>>3)&0x1);
+  *out << "DMB  slot = 03 cfg            " << ((csra3>>3)&0x1);
   *out << cgicc::br();
-  *out << "DMB  slot = 05 cfg            " << ((read>>4)&0x1);
+  *out << "DMB  slot = 05 cfg            " << ((csra3>>4)&0x1);
   *out << cgicc::br();
-  *out << "DMB  slot = 07 cfg            " << ((read>>5)&0x1);
+  *out << "DMB  slot = 07 cfg            " << ((csra3>>5)&0x1);
   *out << cgicc::br();
-  *out << "DMB  slot = 09 cfg            " << ((read>>6)&0x1);
+  *out << "DMB  slot = 09 cfg            " << ((csra3>>6)&0x1);
   *out << cgicc::br();
-  *out << "DMB  slot = 11 cfg            " << ((read>>7)&0x1);
+  *out << "DMB  slot = 11 cfg            " << ((csra3>>7)&0x1);
   *out << cgicc::br();
-  *out << "DMB  slot = 15 cfg            " << ((read>>8)&0x1);
+  *out << "DMB  slot = 15 cfg            " << ((csra3>>8)&0x1);
   *out << cgicc::br();
-  *out << "DMB  slot = 17 cfg            " << ((read>>9)&0x1);
+  *out << "DMB  slot = 17 cfg            " << ((csra3>>9)&0x1);
   *out << cgicc::br();
-  *out << "DMB  slot = 19 cfg            " << ((read>>10)&0x1);
+  *out << "DMB  slot = 19 cfg            " << ((csra3>>10)&0x1);
   *out << cgicc::br();
-  *out << "DMB  slot = 21 cfg            " << ((read>>11)&0x1);
+  *out << "DMB  slot = 21 cfg            " << ((csra3>>11)&0x1);
   *out << cgicc::br();
   *out << cgicc::fieldset() ;
   //
