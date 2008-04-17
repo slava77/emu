@@ -44,6 +44,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateDMBCounters, "CrateDMBCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateTMBCountersRight, "CrateTMBCountersRight");
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStart      ,"MonitorStart");
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStop      ,"MonitorStop");
   //
@@ -295,14 +296,6 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   if( active_crates <= total_crates_) 
      *out << cgicc::b(" Active Crates: ") << active_crates << cgicc::br() << std::endl ;
  
- // Crate Status
-  *out << cgicc::span().set("style","color:blue");
-  *out << cgicc::b(cgicc::i("System Status: ")) ;
-  *out << global_config_states[current_config_state_] << "  ";
-  *out << global_run_states[current_run_state_]<< cgicc::br() << std::endl ;
-  *out << cgicc::span() << std::endl ;
-  //
-
   *out << cgicc::br() << std::endl ;
   if(Monitor_On_)
   {
@@ -323,7 +316,7 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br() << cgicc::hr() <<std::endl;
 
-  *out << cgicc::h2("Crate Utilities")<< std::endl;
+  *out << cgicc::h2("Crate View")<< std::endl;
   //
   *out << cgicc::span().set("style","color:blue");
   *out << cgicc::b(cgicc::i("Current Crate : ")) ;
@@ -408,6 +401,7 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::td();
     //
+/*
     *out << cgicc::td();
     //
     std::string CrateStatus = toolbox::toString("/%s/CrateStatus",getApplicationDescriptor()->getURN().c_str());
@@ -416,6 +410,7 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
+*/
     //
     *out << cgicc::table();
     //
@@ -423,6 +418,10 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     //
     *out << std::endl;
     //
+  *out << cgicc::br() << cgicc::hr() <<std::endl;
+
+  *out << cgicc::h2("Counter View")<< std::endl;
+  //
 
   *out << cgicc::br() << cgicc::br() << std::endl; 
   *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
@@ -518,7 +517,7 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageRe
 
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
-    MyController->NotInDCS();
+    // MyController->NotInDCS();
     //
     emuEndcap_ = MyController->GetEmuEndcap();
     if(!emuEndcap_) return false;
