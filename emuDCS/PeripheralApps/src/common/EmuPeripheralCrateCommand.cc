@@ -118,8 +118,8 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   Monitor_Ready_ = false;
 
   global_config_states[0]="UnConfiged";
-  global_config_states[1]="Configuring";
-  global_config_states[2]="Configed";
+  global_config_states[2]="Configuring";
+  global_config_states[1]="Configed";
   global_run_states[0]="Halted";
   global_run_states[1]="Enabled";
   current_config_state_=0;
@@ -296,9 +296,10 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigure (xoap::MessageRefe
   throw (xoap::exception::Exception) {
   std::cout << "SOAP Configure" << std::endl;
   //
+  current_config_state_=2;
   fireEvent("Configure");
   //
-  VerifyCratesConfiguration();
+  current_config_state_=VerifyCratesConfiguration();
   //
   return createReply(message);
 }
@@ -327,6 +328,7 @@ xoap::MessageReference EmuPeripheralCrateCommand::onHalt (xoap::MessageReference
   throw (xoap::exception::Exception) {
   std::cout << "SOAP Halt" << std::endl;
   //
+  current_run_state_ = 0;
   fireEvent("Halt");
   //
   return createReply(message);
