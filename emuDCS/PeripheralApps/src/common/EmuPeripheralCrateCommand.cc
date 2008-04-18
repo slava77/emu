@@ -53,7 +53,6 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   //------------------------------------------------------
   xgi::bind(this,&EmuPeripheralCrateCommand::CheckCrates, "CheckCrates");
   xgi::bind(this,&EmuPeripheralCrateCommand::CheckCratesConfiguration, "CheckCratesConfiguration");
-  xgi::bind(this, &EmuPeripheralCrateCommand::FastConfigCrates, "FastConfigCrates");
 
   // SOAP call-back functions, which relays to *Action method.
   //-----------------------------------------------------------
@@ -159,13 +158,6 @@ void EmuPeripheralCrateCommand::MainPage(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::table().set("border","0");
     //
-  *out << cgicc::td();
-  std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Crates Power-up Init") << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-
   *out << cgicc::td();
   std::string CheckCrates = toolbox::toString("/%s/CheckCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckCrates) << std::endl ;
@@ -397,29 +389,6 @@ void EmuPeripheralCrateCommand::actionPerformed (xdata::Event& e) {
   //
 }
 
-  void EmuPeripheralCrateCommand::FastConfigCrates(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-     std::cout << "Button: FastConfigCrates" << std::endl;
-     ConfigureInit(2);
-     this->Default(in,out);
-  }
-
-
-  void EmuPeripheralCrateCommand::ConfigureInit(int c)
-  {
-
-    if(!parsed) ParsingXML();
-    
-    if( MyController )
-      {
-        current_config_state_=1;
-	MyController->configure(c);
-        current_config_state_=2;
-      }
-    //
-  }
-
   bool EmuPeripheralCrateCommand::ParsingXML(){
     //
     LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
@@ -459,22 +428,6 @@ void EmuPeripheralCrateCommand::actionPerformed (xdata::Event& e) {
     if(total_crates_<=0) return false;
     this_crate_no_=0;
 
-    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
-      //
-      SetCurrentCrate(crate_number);
-      for(int i=0; i<9;i++) {
-	OutputDMBTests[i][current_crate_] << "DMB-CFEB Tests " 
-					  << thisCrate->GetChamber(dmbVector[i]->slot())->GetLabel().c_str() 
-					  << " output:" << std::endl;
-	OutputTMBTests[i][current_crate_] << "TMB-RAT Tests " 
-					  << thisCrate->GetChamber(tmbVector[i]->slot())->GetLabel().c_str() 
-					  << " output:" << std::endl;
-	ChamberTestsOutput[i][current_crate_] << "Chamber-Crate Phases " 
-					      << thisCrate->GetChamber(tmbVector[i]->slot())->GetLabel().c_str() 
-					      << " output:" << std::endl;
-      }
-    }
-    //
     SetCurrentCrate(this_crate_no_);
     //
     std::cout << "Parser Done" << std::endl ;
