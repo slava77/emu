@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.24 2008/04/11 14:48:48 liu Exp $
+// $Id: CCB.cc,v 3.25 2008/04/18 12:13:46 geurts Exp $
 // $Log: CCB.cc,v $
+// Revision 3.25  2008/04/18 12:13:46  geurts
+// fix CCB mode after checkconfig
+//
 // Revision 3.24  2008/04/11 14:48:48  liu
 // add CheckConfig() function
 //
@@ -1094,7 +1097,8 @@ int CCB::CheckConfig()
   // check TTCrx Control register
   rx=(int)(ReadTTCrxReg(3).to_ulong());
   if((rx&0xff) != 0xB3) return 0;
-
+  // I2C access could leave the CCB in FPGA mode
+  setCCBMode(CCB::DLOG);
   return 1;
 }
 
