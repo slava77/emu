@@ -1,5 +1,8 @@
 #include "EmuMonitoringCanvas.h"
-#include <sstream>
+
+/** Initializing static varianbles */
+FunctionLauncher EmuMonitoringCanvas::flauncher;
+
 
 EmuMonitoringCanvas::EmuMonitoringCanvas(const EmuMonitoringCanvas& mo)
 {
@@ -68,7 +71,7 @@ int EmuMonitoringCanvas::Book()
     canvas = NULL;
     }
 
-    std::map<std::string, std::string> other_params;
+std::map<std::string, std::string> other_params;
     std::map<std::string, std::string>::iterator itr;
     if ((itr = params.find("NumPadsX")) != params.end()) {
     nbinsx = strtol( itr->second.c_str(), &stopstring, 10 );
@@ -106,12 +109,7 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
 
   setCanvasWidth(width);
   setCanvasHeight(height);
-/*
-  if (canvas != NULL) {
-    delete canvas;
-    canvas = NULL;
-  }
-*/
+
   gStyle->SetPalette(1,0);
 
   std::map<std::string, std::string> other_params;
@@ -131,88 +129,18 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
       std::stringstream st;
       st << "Pad" << i+1;
       std::string objname = "";
+
       if ((itr = params.find(st.str())) != params.end()) {
 	objname = itr->second;
       }
-      if (!objname.empty() && !MEs.empty()) {
-	ME_List_iterator obj = MEs.find(objname);
-	if (obj != MEs.end()) {
-	  // obj->second->Draw();
-	  std::string leftMargin = obj->second->getParameter("SetLeftMargin");
-	  if (leftMargin != "" ) {
-	    gPad->SetLeftMargin(atof(leftMargin.c_str()));
-	  }
-	  std::string rightMargin = obj->second->getParameter("SetRightMargin");
-	  if (rightMargin != "" ) {
-	    gPad->SetRightMargin(atof(rightMargin.c_str()));
-	  }
 
-	  std::string logx = obj->second->getParameter("SetLogx");
-	  if (logx!= "") {
-	  //  std::cout << "Logx " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
-	    gPad->SetLogx();
-	  }
-	  std::string logy = obj->second->getParameter("SetLogy");
-	  if (logy!= "" && (obj->second->getObject()->GetMaximum()>0.)) {
-	  // if (logy!= "") {
-	  //  std::cout << "Logy " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
-	    gPad->SetLogy();
-	  }
+      flauncher.execute(objname, MEs);
 
- 	  std::string logz = obj->second->getParameter("SetLogz");
-          if (logz!= "" && (obj->second->getObject()->GetMaximum()>0.) ) {
-          // if (logz!= "") {
-	  //  std::cout << "Logz " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
-            gPad->SetLogz();
-          }
-
-	  std::string gridx = obj->second->getParameter("SetGridx");
-          if (gridx!= "" ) {
-            gPad->SetGridx();
-          }
-
-          std::string gridy = obj->second->getParameter("SetGridy");
-          if (gridy!= "" ) {
-            gPad->SetGridy();
-          }
-
-
-	  if (obj->second->getParameter("SetStats") != "") {
-	    int stats = strtol( obj->second->getParameter("SetStats").c_str(), &stopstring, 10 );
-	    obj->second->getObject()->SetStats(bool(stats));
-	  }
-
-	  obj->second->Draw();
-/*
-	  if (obj->second->getParameter("SetLabelSizeZ") != "") {
-	      std::string st = obj->second->getParameter("SetlabelSizeZ");
-	      double opt = atof(st.c_str()) ;
-	      if (obj->second->getObject()) {
-        		TPaletteAxis *palette = (TPaletteAxis*)(obj->second->getObject()->GetListOfFunctions()->FindObject("palette"));
-		         if (palette != NULL) {
-                		palette->SetLabelSize(opt);
-		         } else {
-		              std::cout << "Unable to find palette" << std::endl;
-		         }
-
-      		}
-    	  }
-*/
-	  std::string statOpt = obj->second->getParameter("SetOptStat");
-	  if (statOpt != "" ) {
-	    gStyle->SetOptStat(statOpt.c_str());
-	  } else {
-          //   gStyle->SetOptStat("e");
-	  }
-
-        }
-      }      
     }
-  }//  else {
-  // canvas->SetCanvasSize(width, height);
+  }
+
   canvas->Draw();
   canvas->SetCanvasSize(width, height);
-  //}
 
 }
 
@@ -354,3 +282,4 @@ int EmuMonitoringCanvas::parseDOMNode(DOMNode* info)
   }
   return 0;
 }
+

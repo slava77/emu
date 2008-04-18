@@ -137,22 +137,22 @@ int EmuMonitoringObject::Book()
 
   if (type.find("h1") != std::string::npos) {
     //	std::cout << getFullName() <<"("<< nbinsx<<","<<xlow<<","<<xup<<")"<<std::endl;
-    object = new TH1F(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup);
+    object = (MonitorElement*) new TH1F(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup);
   } else
     if (type.find("h2") != std::string::npos) {
       // std::cout << getFullName() <<"("<< nbinsx<<","<<xlow<<","<<xup<<","<<nbinsy<<","<<ylow<<","<<yup<<")"<<std::endl;
-      object = new TH2F(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup, nbinsy, ylow, yup);
+      object = (MonitorElement*) new TH2F(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup, nbinsy, ylow, yup);
     } else
       if (type.find("h3") != std::string::npos) {
-	object = new TH3F(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup, 
+	object = (MonitorElement*) new TH3F(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup, 
 			  nbinsy, ylow, yup, nbinsz, zlow, zup);
       }else
 	if (type.find("hp2") != std::string::npos) {
-	  object = new TProfile2D(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup, 
+	  object = (MonitorElement*) new TProfile2D(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup, 
 				  nbinsy, ylow, yup);
 	} else
 	  if (type.find("hp") != std::string::npos) {
-	    object = new TProfile(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup);
+	    object = (MonitorElement*) new TProfile(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup);
 	  }
 
   applyParameters();
@@ -583,3 +583,54 @@ int EmuMonitoringObject::parseDOMNode(DOMNode* info)
   }
   return 0;
 }
+
+/**
+ * @brief  Apply Monitoring Element Parameters. Those are mostly visual properties that format monitoring element.
+ * @param  
+ * @return void
+ */
+void EmuMonitoringObject::applyPadProperties(){
+  char *stopstring;
+
+  std::string leftMargin = getParameter("SetLeftMargin");
+  if (leftMargin != "" ) {
+    gPad->SetLeftMargin(atof(leftMargin.c_str()));
+  }
+
+  std::string rightMargin = getParameter("SetRightMargin");
+  if (rightMargin != "" ) {
+    gPad->SetRightMargin(atof(rightMargin.c_str()));
+  }
+
+  std::string logx = getParameter("SetLogx");
+  if (logx!= "") {
+    gPad->SetLogx();
+  }
+
+  std::string logy = getParameter("SetLogy");
+  if (logy!= "" && (getObject()->GetMaximum()>0.)) {
+    gPad->SetLogy();
+  }
+
+  std::string logz = getParameter("SetLogz");
+  if (logz!= "" && (getObject()->GetMaximum()>0.) ) {
+    gPad->SetLogz();
+  }
+
+  std::string gridx = getParameter("SetGridx");
+  if (gridx!= "" ) {
+    gPad->SetGridx();
+  }
+
+  std::string gridy = getParameter("SetGridy");
+  if (gridy!= "" ) {
+    gPad->SetGridy();
+  }
+
+  if (getParameter("SetStats") != "") {
+    int stats = strtol( getParameter("SetStats").c_str(), &stopstring, 10 );
+    getObject()->SetStats(bool(stats));
+  }
+
+}
+

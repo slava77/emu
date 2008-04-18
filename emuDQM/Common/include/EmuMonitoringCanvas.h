@@ -1,7 +1,6 @@
 #ifndef EmuMonitoringCanvas_h
 #define EmuMonitoringCanvas_h
 
-
 #include <iostream>
 #include <string>
 #include <map>
@@ -30,9 +29,12 @@ using namespace XERCES_CPP_NAMESPACE;
 #include <TPaveStats.h>
 #include <TColor.h>
 #include <TPaletteAxis.h>
+#include <TPRegexp.h>
 
 #include "ConsumerCanvas.hh"
 #include "EmuMonitoringObject.h"
+
+#include "functions/FunctionLauncher.h"
 
 #define DEF_WIDTH 1024
 #define DEF_HEIGHT 768
@@ -44,8 +46,6 @@ class EmuMonitoringCanvas;
 typedef std::map<std::string, EmuMonitoringCanvas*> MECanvases_List;
 typedef MECanvases_List::iterator MECanvases_List_iterator;
 typedef MECanvases_List::const_iterator MECanvases_List_const_iterator;
-
-
 
 class EmuMonitoringCanvas
 {
@@ -92,7 +92,6 @@ class EmuMonitoringCanvas
 	int getCanvasHeight() const {return cnv_height;}
 	void setCanvasHeight(int height) {if (height>0) cnv_height = height;}
         bool getDisplayInWeb(){ return displayInWeb; }
-	
 
 	void Write() {if (canvas!=NULL) canvas->Write();}
 	void Draw(ME_List& MEs);
@@ -103,6 +102,8 @@ class EmuMonitoringCanvas
 // 	void setDOMInfo(DOMNode *info);
 
   private:
+
+        static FunctionLauncher flauncher;
 	int parseDOMNode(DOMNode* info);
 	MonitoringCanvas* canvas;
 	std::map<std::string, std::string>params;
@@ -115,6 +116,7 @@ class EmuMonitoringCanvas
 	int cnv_width;
 	int cnv_height;
 };
+
 /*
 bool operator<(const EmuMonitoringCanvas& s1, const EmuMonitoringCanvas& s2) 
 		{return (s1.getFullName()<s2.getFullName());};
@@ -126,3 +128,4 @@ bool operator==(const EmuMonitoringCanvas& s1, const EmuMonitoringCanvas& s2)
 
 
 #endif
+
