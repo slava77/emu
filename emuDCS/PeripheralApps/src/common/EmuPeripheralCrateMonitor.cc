@@ -45,6 +45,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateTMBCountersRight, "CrateTMBCountersRight");
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::CrateSelection, "CrateSelection");
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStart      ,"MonitorStart");
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStop      ,"MonitorStop");
   //
