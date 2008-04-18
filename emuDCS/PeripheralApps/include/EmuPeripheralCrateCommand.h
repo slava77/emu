@@ -166,8 +166,6 @@ public:
 
 private:
 
-  void MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   xoap::MessageReference onFastLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onSlowLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onExtraLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
@@ -191,9 +189,6 @@ private:
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
 
-  void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void FastConfigCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void ConfigureInit(int c=0);
   int VerifyCratesConfiguration();
   bool ParsingXML();
   void SetCurrentCrate(int crate);
