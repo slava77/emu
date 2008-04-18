@@ -80,6 +80,7 @@ using namespace log4cplus::spi;
 #define REMATCH(pat, str)         (TPRegexp(pat).MatchB(str))
 #define REREPLACE(pat, str, rep)  { TString s(str); TPRegexp(pat).Substitute(s, rep); str = s; }
 
+
 // *******************************************************
 // Function Section
 // *******************************************************

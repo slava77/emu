@@ -32,7 +32,7 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
   for (itr = MEs.begin(); itr != MEs.end(); ++itr) {
     std::string relpath = itr->first;
     std::string fullpath  = path+"/"+relpath;
-    command = Form("mkdir -p %s",fullpath.c_str()); 
+    command = Form("mkdir -p %s", fullpath.c_str()); 
     gSystem->Exec(command.Data());
     tree_items << "            ['"<< itr->first <<"', '"<< itr->first <<"'," << std::endl;	
     for (h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {

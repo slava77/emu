@@ -1,6 +1,5 @@
 #include "EmuPlotter.h"
 
-
 void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber)
 {
   //	LOG4CPLUS_INFO(logger_ , "processing event data");
@@ -643,12 +642,12 @@ void EmuPlotter::updateFractionHistos()
   calcFractionHisto(nodeME, "DMB_input_fifo_full_Fract", "DMB_Reporting", "DMB_input_fifo_full");
   calcFractionHisto(nodeME, "CSC_DMB_input_timeout_Fract", "CSC_Reporting", "CSC_DMB_input_timeout");
   calcFractionHisto(nodeME, "DMB_input_timeout_Fract", "DMB_Reporting", "DMB_input_timeout");
-
+  
   if (isMEvalid(nodeME, "DMB_Format_Warnings_Fract", mo)
       && isMEvalid(nodeME, "DMB_Format_Warnings", mo1)
       && isMEvalid(nodeME, "DMB_Unpacked", mo2))
     {
-        MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
+        TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
         tmp->Add(mo1->getObject());
 
         /*if (isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo3)) {
@@ -663,7 +662,7 @@ void EmuPlotter::updateFractionHistos()
       && isMEvalid(nodeME, "CSC_Format_Warnings", mo1)
       && isMEvalid(nodeME, "CSC_Unpacked", mo2))
     {
-        MonitorElement* tmp=dynamic_cast<MonitorElement*>(mo2->getObject()->Clone());
+        TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
         tmp->Add(mo1->getObject());
 	if (isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo3)) {
                 tmp->Add(mo3->getObject(), -1);
