@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Booking xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<Histogram>
+
+<!-- ========================================================================================
+# EMU Level histograms
+============================================================================================= -->
+
+          <Histogram>
 		<Type>h2</Type>
 		<Prefix>EMU</Prefix>
 		<Name>DMB_Unpacked</Name>
@@ -1214,6 +1219,11 @@
 		<SetOptStat>emro</SetOptStat>
 		<Title>DDU Buffer Size</Title>
 	</Histogram>
+
+<!-- ========================================================================================
+# DDU Level histograms
+============================================================================================= -->
+
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>DDU</Prefix>
@@ -1461,6 +1471,11 @@
 		<SetOptStat>emuo</SetOptStat>
 		<Title>DDU Word (64 bits) Count</Title>
 	</Histogram>
+
+<!-- ========================================================================================
+# CSC Level histograms
+============================================================================================= -->
+
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
