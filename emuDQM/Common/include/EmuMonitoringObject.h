@@ -32,8 +32,10 @@ using namespace XERCES_CPP_NAMESPACE;
 #include <TPaletteAxis.h>
 #include <TClass.h>
 
-// class MonitorElement: public TH1 {};
-// typedef EmuMonitorElement MonitorElement;
+//#include "EmuMonitorElement.h"
+//class MonitorElement: public TH1 {};
+//typedef EmuMonitorElement MonitorElement;
+
 typedef TH1 MonitorElement;
 class EmuMonitoringObject;
 
@@ -42,7 +44,9 @@ typedef ME_List::iterator ME_List_iterator;
 typedef ME_List::const_iterator ME_List_const_iterator;
 
 #define DEF_HISTO_COLOR 48
-
+#define REMATCH(pat, str)              (TPRegexp(pat).MatchB(str))
+#define REREPLACE(pat, str, rep)       { TString s(str); TPRegexp(pat).Substitute(s, rep); str = s; }
+#define REREPLACEM(pat, str, rep, mod) { TString s(str); TPRegexp(pat).Substitute(s, rep, mod); str = s; }
 
 class EmuMonitoringObject
 {
@@ -63,7 +67,6 @@ class EmuMonitoringObject
 	bool operator==(const EmuMonitoringObject& s1)
                 {return (getFullName()==s1.getFullName());};
 
-
 	int Book();
 	int Book(DOMNode *info);
 	int Fill(double);
@@ -73,7 +76,6 @@ class EmuMonitoringObject
 	int Fill(double, double, double);
 	  // can be used with 3D (x, y, z, w) histograms
 	int Fill(double, double, double, double);
-
 
 	void Reset();
 
@@ -98,7 +100,14 @@ class EmuMonitoringObject
 	double GetBinContent(int);
 	double GetBinContent(int, int);
 	void SetAxisRange(double, double, std::string);
-	void Write() {if (object!=NULL) object->Write();}
+
+	void Write() { 
+          if (object!=NULL){
+            object->Write(); 
+          }
+        }
+
+        void applyPadProperties();
         void Draw() {if (object!=NULL) object->Draw();}
 
 	int setObject(MonitorElement* hist);
@@ -109,9 +118,11 @@ class EmuMonitoringObject
 // 	void setDOMInfo(DOMNode *info);
 
   private:
-
+        
 	int parseDOMNode(DOMNode* info);
+
   protected:
+
 	MonitorElement* object;
 	std::map<std::string, std::string>params;
 	std::string type;
@@ -120,6 +131,7 @@ class EmuMonitoringObject
 	std::string title;
 	std::string folder;
 };
+
 /*
 bool operator<(const EmuMonitoringObject& s1, const EmuMonitoringObject& s2) 
 		{return (s1.getFullName()<s2.getFullName());};
