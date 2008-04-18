@@ -705,22 +705,6 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   SetCurrentCrate(initial_crate);
   //
   *out << cgicc::br() << std::endl ;
-  if(Monitor_On_)
-  {
-     *out << cgicc::span().set("style","color:green");
-     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
-     std::string TurnOffMonitor = toolbox::toString("/%s/MonitorStop",getApplicationDescriptor()->getURN().c_str());
-     *out << cgicc::form().set("method","GET").set("action",TurnOffMonitor) << std::endl ;
-     *out << cgicc::input().set("type","submit").set("value","Turn Off Monitor") << std::endl ;
-     *out << cgicc::form() << std::endl ;
-  } else
-  {
-     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << std::endl ;
-     std::string TurnOnMonitor = toolbox::toString("/%s/MonitorStart",getApplicationDescriptor()->getURN().c_str());
-     *out << cgicc::form().set("method","GET").set("action",TurnOnMonitor) << std::endl ;
-     *out << cgicc::input().set("type","submit").set("value","Turn On Monitor") << std::endl ;
-     *out << cgicc::form() << std::endl ;
-  }
   //
   *out << cgicc::br() << cgicc::hr() <<std::endl;
 

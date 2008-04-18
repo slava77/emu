@@ -365,7 +365,8 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br()<< std::endl;
   std::cout << "Main Page: "<< std::dec << total_crates_ << " Crates" << std::endl;
   //
-    //
+  if(Monitor_Ready_)
+  {
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:yellow");
     *out << std::endl;
     *out << cgicc::legend((("Monitoring"))).set("style","color:blue") ;
@@ -418,6 +419,7 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     //
     *out << std::endl;
     //
+  }
   *out << cgicc::br() << cgicc::hr() <<std::endl;
 
   *out << cgicc::h2("Counter View")<< std::endl;
@@ -892,7 +894,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
-  *out << "TTCrx csra3y                   " << ((csra3>>13)&0x1);
+  *out << "TTCrx ready                   " << ((csra3>>13)&0x1);
   if(((csra3>>13)&0x1) == 1) {
     *out << cgicc::span().set("style","color:green");
     *out << " (Ready)";
