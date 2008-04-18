@@ -19,7 +19,7 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
   std::ofstream csc_list;
 
   TString command = Form("mkdir -p %s",path.c_str());
-    gSystem->Exec(command.Data());
+  gSystem->Exec(command.Data());
 
   std::string runNumber = runname;
   tree_items.open((path+"/tree_items.js").c_str());
@@ -33,7 +33,6 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
   std::vector<std::string> EMU_folders;
   std::vector<std::string> DDU_folders;
   std::vector<std::string> CSC_folders;
-
 
   TDirectory *sourcedir = gDirectory;
 
@@ -49,7 +48,10 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	if (name.find("EMU") != std::string::npos) EMU_folders.push_back(name);
     	else if (name.find("DDU") != std::string::npos) DDU_folders.push_back(name);
     	else if (name.find("CSC") != std::string::npos) CSC_folders.push_back(name);
+
 	std::map<std::string, ME_List >::iterator itr = MEs.find(name);
+
+        /*  */      
 	if (name.find("DDU_") != std::string::npos) {
 	  int dduID = -1;
 	  if (sscanf(name.c_str(), "DDU_%d", &dduID) == 1) {
@@ -61,23 +63,26 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	    MECanvases[name] = bookDDUCanvases(dduID);
 	    printMECollection(MEs[name]);
 	  }
+
 	} else if (name.find("CSC_") != std::string::npos) {
 	  int crate = -1;
 	  int slot = -1;
 	  if (sscanf(name.c_str(), "CSC_%d_%d", &crate, &slot) == 2) {
 	    LOG4CPLUS_WARN(logger_,"Found CSC crate" << crate << "/slot" << slot);
 	  }
-          
 	  int ChamberID     = (((crate) << 4) + slot) & 0xFFF;
 	  // std::cout << ChamberID << std::endl;
 	  if (itr == MEs.end() || (MEs.size()==0)) {
 	    LOG4CPLUS_WARN(logger_, "List of Histos for " << name <<  " not found. Booking...");
 	    MEs[name] = bookChamber(ChamberID);
-	    MECanvases[name] = bookChamberCanvases(ChamberID);
-	    
+	    MECanvases[name] = bookChamberCanvases(ChamberID); 
 	    printMECollection(MEs[name]);
 	  }
-	} else if (name.find("EMU") != std::string::npos) {
+
+	} else 
+        /* */
+
+        if (name.find("EMU") != std::string::npos) {
 	  int nodeID=0;
 	  /*
 	    int nodeID = -1;
@@ -130,8 +135,10 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	      relpath =st.str();
 	    }
 	  }
+
 	  tree_items << "            ['"<< name <<"', '"<< relpath <<"'," << std::endl;
 	  MECanvases_List_const_iterator c_itr;
+
 	  for (c_itr = MECanvases[name].begin(); c_itr != MECanvases[name].end(); ++c_itr) {
 	    std::string fullname = c_itr->second->getName() + "." + format;
 	    std::string relname = relpath + "/" + c_itr->second->getFolder() +"/" + fullname;
@@ -142,7 +149,7 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	    	gSystem->Exec(command.Data());
 	    	// me_itr = MEs.find(name);
 	    	// if (me_itr != MEs.end()) {
-	      	LOG4CPLUS_WARN(logger_, imgfile);
+	      	//LOG4CPLUS_WARN(logger_, imgfile);
 	      	c_itr->second->Draw(MEs[name], width, height);
 	      	c_itr->second->Print(imgfile.c_str());
 	    // }
