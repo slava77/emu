@@ -587,6 +587,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 			sendCommand("Halt", "LTCControl");
 		}
 
+		::sleep(2);
 		string str = trim(getCrateConfig("PC", run_type_.toString()));
 		if (!str.empty()) {
 			setParameter(
