@@ -96,7 +96,7 @@ const int PROMprogram            = 0xEA;
 const int PROMwriteData0         = 0xED;
 const int PROMverifyData0        = 0xEF;
 const int PROMwriteData3         = 0xF3;
-const int PROMverifyData3            = 0xE2;
+const int PROMverifyData3        = 0xE2;
 const int PROMbypass             = 0xFF;
 //
 ////////////////////////////////////////////////////
@@ -150,14 +150,13 @@ const int RegSizeAlctSlowFpga_BYPASS                 =  1;
 // ALCT "slow-control" Mezzanine chain characteristics            
 ///////////////////////////////////////////////////////
 const int ChainAlctSlowMezz       = 0x1;
-const int NumberChipsAlctSlowMezz =   3;
+const int NumberChipsAlctSlowMezz =   1;
 //
-const int ChipLocationAlctSlowMezzFpga  =   0;
-const int OpcodeSizeAlctSlowMezzFpga    =   8;
+const int ChipLocationAlctSlowMezzProm       =   0;
+const int OpcodeSizeAlctSlowMezzProm         =   8;
 //
-const int ChipLocationAlctSlowMezzProm0 =   1;
-const int ChipLocationAlctSlowMezzProm1 =   2;
-const int OpcodeSizeAlctSlowMezzProm    =   8;
+//
+const int RegSizeAlctSlowMezzFpga_PROMidCode =   32;
 //
 ////////////////////////////////////////////////////
 // ALCT "fast-control" FPGA chain characteristics
@@ -218,9 +217,10 @@ const int OpcodeSizeAlctFastMezzFpga         =   5;
 //
 const int ChipLocationAlctFastMezzProm0      =   1;
 const int ChipLocationAlctFastMezzProm1      =   2;
-const int OpcodeSizeAlctFastMezzProm         =   5;
+const int OpcodeSizeAlctFastMezzProm         =   8;
 //
 const int RegSizeAlctFastMezzFpga_FPGAidCode =   32;
+const int RegSizeAlctFastMezzFpga_PROMidCode =   32;
 //
 ////////////////////////////////////////////////////
 // TMB mezzanine chain characteristics            
@@ -801,6 +801,8 @@ const int FORWARD_FIRMWARE_TYPE                  = 1;
 const int NEGATIVE_FIRMWARE_TYPE                 = 0;
 const int POSITIVE_FIRMWARE_TYPE                 = 1;
 //
+const int DO_NOT_CARE                            = -999;
+//
 const int FIRMWARE_TYPE_192                      = 1;
 const int FIRMWARE_TYPE_288                      = 2;
 const int FIRMWARE_TYPE_384                      = 3;
@@ -903,7 +905,827 @@ const int RTI                              = 1;
 const int PROM_ID_256k                     = 0x05022093;
 const int MASK_TO_TREAT_512k_LIKE_256k     = 0xfffeefff;
 //
+// FPGA ID values:
+const int ID_288384 = 0x0a30093;
+const int ID_672    = 0x0a40093;
+//
 const int jtagSourceBoot = 0;
 const int jtagSourceFPGA = 1;
+//
+//
+///////////////////////////////////////////////////////
+// "database" of allowed ALCT firmware configurations:
+///////////////////////////////////////////////////////
+struct allowedFirmwareConfiguration {
+  // Defines the hardware access to the ALCT
+  std::string VCCIpAddress;
+  int         tmb_slot    ;
+  int         fpga_id     ;
+  //
+  // Defines configuration as it should be specified in the configuration database
+  std::string crateLabel  ;
+  std::string chamberLabel;
+  //
+  // Defines ALCT firmware type to be loaded
+  std::string chambertype          ;
+  int         regular_mirror_type   ;
+  int         negative_positive_type;
+  int         backward_forward_type ;
+};
+//
+// crate controller MAC addresses for each peripheral crate
+// See http://www.physics.ohio-state.edu/~cms/Netgear_Switch/VME_Crate2Switch_Port.pdf
+//
+const std::string VCCipAddr_VMEp1_1  = "02:00:00:00:00:16";
+const std::string VCCipAddr_VMEp1_2  = "02:00:00:00:00:3C";
+const std::string VCCipAddr_VMEp1_3  = "02:00:00:00:00:2C";
+const std::string VCCipAddr_VMEp1_4  = "02:00:00:00:00:20";
+const std::string VCCipAddr_VMEp1_5  = "02:00:00:00:00:24";
+const std::string VCCipAddr_VMEp1_6  = "02:00:00:00:00:34";
+const std::string VCCipAddr_VMEp1_7  = "02:00:00:00:00:35";
+const std::string VCCipAddr_VMEp1_8  = "02:00:00:00:00:40";
+const std::string VCCipAddr_VMEp1_9  = "02:00:00:00:00:41";
+const std::string VCCipAddr_VMEp1_10 = "02:00:00:00:00:0F";
+const std::string VCCipAddr_VMEp1_11 = "02:00:00:00:00:0C";
+const std::string VCCipAddr_VMEp1_12 = "02:00:00:00:00:09";
+const std::string VCCipAddr_VMEp2_1  = "02:00:00:00:00:3D";
+const std::string VCCipAddr_VMEp2_2  = "02:00:00:00:00:13";
+const std::string VCCipAddr_VMEp2_3  = "02:00:00:00:00:17";
+const std::string VCCipAddr_VMEp2_4  = "02:00:00:00:00:43";
+const std::string VCCipAddr_VMEp2_5  = "02:00:00:00:00:18";
+const std::string VCCipAddr_VMEp2_6  = "02:00:00:00:00:0E";
+const std::string VCCipAddr_VMEp3_1  = "02:00:00:00:00:0D";
+const std::string VCCipAddr_VMEp3_2  = "02:00:00:00:00:1B";
+const std::string VCCipAddr_VMEp3_3  = "02:00:00:00:00:04";
+const std::string VCCipAddr_VMEp3_4  = "02:00:00:00:00:1A";
+const std::string VCCipAddr_VMEp3_5  = "02:00:00:00:00:03";
+const std::string VCCipAddr_VMEp3_6  = "02:00:00:00:00:33";
+const std::string VCCipAddr_VMEp4_1  = "02:00:00:00:00:2D";
+const std::string VCCipAddr_VMEp4_2  = "02:00:00:00:00:32";
+const std::string VCCipAddr_VMEp4_3  = "02:00:00:00:00:31";
+const std::string VCCipAddr_VMEp4_4  = "02:00:00:00:00:0A";
+const std::string VCCipAddr_VMEp4_5  = "02:00:00:00:00:36";
+const std::string VCCipAddr_VMEp4_6  = "02:00:00:00:00:44";
+//
+const std::string VCCipAddr_VMEm1_1  = "02:00:00:00:00:1F";
+const std::string VCCipAddr_VMEm1_2  = "02:00:00:00:00:21";
+const std::string VCCipAddr_VMEm1_3  = "02:00:00:00:00:22";
+const std::string VCCipAddr_VMEm1_4  = "02:00:00:00:00:46";
+const std::string VCCipAddr_VMEm1_5  = "02:00:00:00:00:45";
+const std::string VCCipAddr_VMEm1_6  = "02:00:00:00:00:4B";
+const std::string VCCipAddr_VMEm1_7  = "02:00:00:00:00:49";
+const std::string VCCipAddr_VMEm1_8  = "02:00:00:00:00:11";
+const std::string VCCipAddr_VMEm1_9  = "02:00:00:00:00:42";
+const std::string VCCipAddr_VMEm1_10 = "02:00:00:00:00:14";
+const std::string VCCipAddr_VMEm1_11 = "02:00:00:00:00:12";
+const std::string VCCipAddr_VMEm1_12 = "02:00:00:00:00:23";
+const std::string VCCipAddr_VMEm2_1  = "02:00:00:00:00:28";
+const std::string VCCipAddr_VMEm2_2  = "02:00:00:00:00:2A";
+const std::string VCCipAddr_VMEm2_3  = "02:00:00:00:00:4A";
+const std::string VCCipAddr_VMEm2_4  = "02:00:00:00:00:0B";
+const std::string VCCipAddr_VMEm2_5  = "02:00:00:00:00:08";
+const std::string VCCipAddr_VMEm2_6  = "02:00:00:00:00:3E";
+const std::string VCCipAddr_VMEm3_1  = "02:00:00:00:00:15";
+const std::string VCCipAddr_VMEm3_2  = "02:00:00:00:00:2E";
+const std::string VCCipAddr_VMEm3_3  = "02:00:00:00:00:47";
+const std::string VCCipAddr_VMEm3_4  = "02:00:00:00:00:05";
+const std::string VCCipAddr_VMEm3_5  = "02:00:00:00:00:10";
+const std::string VCCipAddr_VMEm3_6  = "02:00:00:00:00:3F";
+const std::string VCCipAddr_VMEm4_1  = "02:00:00:00:00:27";
+const std::string VCCipAddr_VMEm4_2  = "02:00:00:00:00:2B";
+const std::string VCCipAddr_VMEm4_3  = "02:00:00:00:00:37";
+const std::string VCCipAddr_VMEm4_4  = "02:00:00:00:00:3A";
+const std::string VCCipAddr_VMEm4_5  = "02:00:00:00:00:39";
+const std::string VCCipAddr_VMEm4_6  = "02:00:00:00:00:38";
+//
+//----------------------------------------------------------------------
+// Hardware/Configuration names/ALCT firmware combinations that must be 
+// satisfied in order to allow loading of firmware to ALCT:
+//
+const unsigned int number_of_allowed_firmware_configurations = 540;
+//
+const allowedFirmwareConfiguration allowed_firmware_config[number_of_allowed_firmware_configurations] = {
+  //
+  //ME11 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp1_1 ,2 ,ID_288384,"VMEp1_1" ,"ME+1/1/36","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_1 ,4 ,ID_288384,"VMEp1_1" ,"ME+1/1/1" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_1 ,6 ,ID_288384,"VMEp1_1" ,"ME+1/1/2" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEp1_2 ,2 ,ID_288384,"VMEp1_2" ,"ME+1/1/3" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_2 ,4 ,ID_288384,"VMEp1_2" ,"ME+1/1/4" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_2 ,6 ,ID_288384,"VMEp1_2" ,"ME+1/1/5" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEp1_3 ,2 ,ID_288384,"VMEp1_3" ,"ME+1/1/6" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_3 ,4 ,ID_288384,"VMEp1_3" ,"ME+1/1/7" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_3 ,6 ,ID_288384,"VMEp1_3" ,"ME+1/1/8" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEp1_4 ,2 ,ID_288384,"VMEp1_4" ,"ME+1/1/9" ,"ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_4 ,4 ,ID_288384,"VMEp1_4" ,"ME+1/1/10","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_4 ,6 ,ID_288384,"VMEp1_4" ,"ME+1/1/11","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEp1_5 ,2 ,ID_288384,"VMEp1_5" ,"ME+1/1/12","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_5 ,4 ,ID_288384,"VMEp1_5" ,"ME+1/1/13","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_5 ,6 ,ID_288384,"VMEp1_5" ,"ME+1/1/14","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEp1_6 ,2 ,ID_288384,"VMEp1_6" ,"ME+1/1/15","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_6 ,4 ,ID_288384,"VMEp1_6" ,"ME+1/1/16","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_6 ,6 ,ID_288384,"VMEp1_6" ,"ME+1/1/17","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEp1_7 ,2 ,ID_288384,"VMEp1_7" ,"ME+1/1/18","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_7 ,4 ,ID_288384,"VMEp1_7" ,"ME+1/1/19","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_7 ,6 ,ID_288384,"VMEp1_7" ,"ME+1/1/20","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEp1_8 ,2 ,ID_288384,"VMEp1_8" ,"ME+1/1/21","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_8 ,4 ,ID_288384,"VMEp1_8" ,"ME+1/1/22","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_8 ,6 ,ID_288384,"VMEp1_8" ,"ME+1/1/23","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEp1_9 ,2 ,ID_288384,"VMEp1_9" ,"ME+1/1/24","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_9 ,4 ,ID_288384,"VMEp1_9" ,"ME+1/1/25","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_9 ,6 ,ID_288384,"VMEp1_9" ,"ME+1/1/26","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEp1_10,2 ,ID_288384,"VMEp1_10","ME+1/1/27","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_10,4 ,ID_288384,"VMEp1_10","ME+1/1/28","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_10,6 ,ID_288384,"VMEp1_10","ME+1/1/29","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEp1_11,2 ,ID_288384,"VMEp1_11","ME+1/1/30","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_11,4 ,ID_288384,"VMEp1_11","ME+1/1/31","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_11,6 ,ID_288384,"VMEp1_11","ME+1/1/32","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEp1_12,2 ,ID_288384,"VMEp1_12","ME+1/1/33","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEp1_12,4 ,ID_288384,"VMEp1_12","ME+1/1/34","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEp1_12,6 ,ID_288384,"VMEp1_12","ME+1/1/35","ME11",REGULAR_FIRMWARE_TYPE,POSITIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  //
+  //ME12 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp1_1 ,8 ,ID_288384,"VMEp1_1" ,"ME+1/2/36","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_1 ,10,ID_288384,"VMEp1_1" ,"ME+1/2/1" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_1 ,14,ID_288384,"VMEp1_1" ,"ME+1/2/2" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_2 ,8 ,ID_288384,"VMEp1_2" ,"ME+1/2/3" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_2 ,10,ID_288384,"VMEp1_2" ,"ME+1/2/4" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_2 ,14,ID_288384,"VMEp1_2" ,"ME+1/2/5" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_3 ,8 ,ID_288384,"VMEp1_3" ,"ME+1/2/6" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_3 ,10,ID_288384,"VMEp1_3" ,"ME+1/2/7" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_3 ,14,ID_288384,"VMEp1_3" ,"ME+1/2/8" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_4 ,8 ,ID_288384,"VMEp1_4" ,"ME+1/2/9" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_4 ,10,ID_288384,"VMEp1_4" ,"ME+1/2/10","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_4 ,14,ID_288384,"VMEp1_4" ,"ME+1/2/11","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_5 ,8 ,ID_288384,"VMEp1_5" ,"ME+1/2/12","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_5 ,10,ID_288384,"VMEp1_5" ,"ME+1/2/13","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_5 ,14,ID_288384,"VMEp1_5" ,"ME+1/2/14","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_6 ,8 ,ID_288384,"VMEp1_6" ,"ME+1/2/15","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_6 ,10,ID_288384,"VMEp1_6" ,"ME+1/2/16","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_6 ,14,ID_288384,"VMEp1_6" ,"ME+1/2/17","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_7 ,8 ,ID_288384,"VMEp1_7" ,"ME+1/2/18","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_7 ,10,ID_288384,"VMEp1_7" ,"ME+1/2/19","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_7 ,14,ID_288384,"VMEp1_7" ,"ME+1/2/20","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_8 ,8 ,ID_288384,"VMEp1_8" ,"ME+1/2/21","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_8 ,10,ID_288384,"VMEp1_8" ,"ME+1/2/22","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_8 ,14,ID_288384,"VMEp1_8" ,"ME+1/2/23","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_9 ,8 ,ID_288384,"VMEp1_9" ,"ME+1/2/24","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_9 ,10,ID_288384,"VMEp1_9" ,"ME+1/2/25","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_9 ,14,ID_288384,"VMEp1_9" ,"ME+1/2/26","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_10,8 ,ID_288384,"VMEp1_10","ME+1/2/27","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_10,10,ID_288384,"VMEp1_10","ME+1/2/28","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_10,14,ID_288384,"VMEp1_10","ME+1/2/29","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_11,8 ,ID_288384,"VMEp1_11","ME+1/2/30","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_11,10,ID_288384,"VMEp1_11","ME+1/2/31","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_11,14,ID_288384,"VMEp1_11","ME+1/2/32","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_12,8 ,ID_288384,"VMEp1_12","ME+1/2/33","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_12,10,ID_288384,"VMEp1_12","ME+1/2/34","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_12,14,ID_288384,"VMEp1_12","ME+1/2/35","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME13 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp1_1 ,16,ID_288384,"VMEp1_1" ,"ME+1/3/36","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_1 ,18,ID_288384,"VMEp1_1" ,"ME+1/3/1" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_1 ,20,ID_288384,"VMEp1_1" ,"ME+1/3/2" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_2 ,16,ID_288384,"VMEp1_2" ,"ME+1/3/3" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_2 ,18,ID_288384,"VMEp1_2" ,"ME+1/3/4" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_2 ,20,ID_288384,"VMEp1_2" ,"ME+1/3/5" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_3 ,16,ID_288384,"VMEp1_3" ,"ME+1/3/6" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_3 ,18,ID_288384,"VMEp1_3" ,"ME+1/3/7" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_3 ,20,ID_288384,"VMEp1_3" ,"ME+1/3/8" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_4 ,16,ID_288384,"VMEp1_4" ,"ME+1/3/9" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_4 ,18,ID_288384,"VMEp1_4" ,"ME+1/3/10","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_4 ,20,ID_288384,"VMEp1_4" ,"ME+1/3/11","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_5 ,16,ID_288384,"VMEp1_5" ,"ME+1/3/12","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_5 ,18,ID_288384,"VMEp1_5" ,"ME+1/3/13","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_5 ,20,ID_288384,"VMEp1_5" ,"ME+1/3/14","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_6 ,16,ID_288384,"VMEp1_6" ,"ME+1/3/15","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_6 ,18,ID_288384,"VMEp1_6" ,"ME+1/3/16","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_6 ,20,ID_288384,"VMEp1_6" ,"ME+1/3/17","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_7 ,16,ID_288384,"VMEp1_7" ,"ME+1/3/18","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_7 ,18,ID_288384,"VMEp1_7" ,"ME+1/3/19","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_7 ,20,ID_288384,"VMEp1_7" ,"ME+1/3/20","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_8 ,16,ID_288384,"VMEp1_8" ,"ME+1/3/21","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_8 ,18,ID_288384,"VMEp1_8" ,"ME+1/3/22","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_8 ,20,ID_288384,"VMEp1_8" ,"ME+1/3/23","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_9 ,16,ID_288384,"VMEp1_9" ,"ME+1/3/24","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_9 ,18,ID_288384,"VMEp1_9" ,"ME+1/3/25","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_9 ,20,ID_288384,"VMEp1_9" ,"ME+1/3/26","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_10,16,ID_288384,"VMEp1_10","ME+1/3/27","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_10,18,ID_288384,"VMEp1_10","ME+1/3/28","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_10,20,ID_288384,"VMEp1_10","ME+1/3/29","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_11,16,ID_288384,"VMEp1_11","ME+1/3/30","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_11,18,ID_288384,"VMEp1_11","ME+1/3/31","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_11,20,ID_288384,"VMEp1_11","ME+1/3/32","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp1_12,16,ID_288384,"VMEp1_12","ME+1/3/33","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_12,18,ID_288384,"VMEp1_12","ME+1/3/34","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp1_12,20,ID_288384,"VMEp1_12","ME+1/3/35","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME21 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp2_1 ,2 ,ID_672   ,"VMEp2_1" ,"ME+2/1/2" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_1 ,4 ,ID_672   ,"VMEp2_1" ,"ME+2/1/3" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_1 ,6 ,ID_672   ,"VMEp2_1" ,"ME+2/1/4" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_2 ,2 ,ID_672   ,"VMEp2_2" ,"ME+2/1/5" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_2 ,4 ,ID_672   ,"VMEp2_2" ,"ME+2/1/6" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_2 ,6 ,ID_672   ,"VMEp2_2" ,"ME+2/1/7" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_3 ,2 ,ID_672   ,"VMEp2_3" ,"ME+2/1/8" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_3 ,4 ,ID_672   ,"VMEp2_3" ,"ME+2/1/9" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_3 ,6 ,ID_672   ,"VMEp2_3" ,"ME+2/1/10","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_4 ,2 ,ID_672   ,"VMEp2_4" ,"ME+2/1/11","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_4 ,4 ,ID_672   ,"VMEp2_4" ,"ME+2/1/12","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_4 ,6 ,ID_672   ,"VMEp2_4" ,"ME+2/1/13","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_5 ,2 ,ID_672   ,"VMEp2_5" ,"ME+2/1/14","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_5 ,4 ,ID_672   ,"VMEp2_5" ,"ME+2/1/15","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_5 ,6 ,ID_672   ,"VMEp2_5" ,"ME+2/1/16","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_6 ,2 ,ID_672   ,"VMEp2_6" ,"ME+2/1/17","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_6 ,4 ,ID_672   ,"VMEp2_6" ,"ME+2/1/18","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_6 ,6 ,ID_672   ,"VMEp2_6" ,"ME+2/1/1" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME22 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp2_1 ,8 ,ID_288384,"VMEp2_1" ,"ME+2/2/3" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_1 ,10,ID_288384,"VMEp2_1" ,"ME+2/2/4" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_1 ,14,ID_288384,"VMEp2_1" ,"ME+2/2/5" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_1 ,16,ID_288384,"VMEp2_1" ,"ME+2/2/6" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_1 ,18,ID_288384,"VMEp2_1" ,"ME+2/2/7" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_1 ,20,ID_288384,"VMEp2_1" ,"ME+2/2/8" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_2 ,8 ,ID_288384,"VMEp2_2" ,"ME+2/2/9" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_2 ,10,ID_288384,"VMEp2_2" ,"ME+2/2/10","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_2 ,14,ID_288384,"VMEp2_2" ,"ME+2/2/11","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_2 ,16,ID_288384,"VMEp2_2" ,"ME+2/2/12","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_2 ,18,ID_288384,"VMEp2_2" ,"ME+2/2/13","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_2 ,20,ID_288384,"VMEp2_2" ,"ME+2/2/14","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_3 ,8 ,ID_288384,"VMEp2_3" ,"ME+2/2/15","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_3 ,10,ID_288384,"VMEp2_3" ,"ME+2/2/16","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_3 ,14,ID_288384,"VMEp2_3" ,"ME+2/2/17","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_3 ,16,ID_288384,"VMEp2_3" ,"ME+2/2/18","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_3 ,18,ID_288384,"VMEp2_3" ,"ME+2/2/19","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_3 ,20,ID_288384,"VMEp2_3" ,"ME+2/2/20","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_4 ,8 ,ID_288384,"VMEp2_4" ,"ME+2/2/21","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_4 ,10,ID_288384,"VMEp2_4" ,"ME+2/2/22","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_4 ,14,ID_288384,"VMEp2_4" ,"ME+2/2/23","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_4 ,16,ID_288384,"VMEp2_4" ,"ME+2/2/24","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_4 ,18,ID_288384,"VMEp2_4" ,"ME+2/2/25","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_4 ,20,ID_288384,"VMEp2_4" ,"ME+2/2/26","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_5 ,8 ,ID_288384,"VMEp2_5" ,"ME+2/2/27","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_5 ,10,ID_288384,"VMEp2_5" ,"ME+2/2/28","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_5 ,14,ID_288384,"VMEp2_5" ,"ME+2/2/29","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_5 ,16,ID_288384,"VMEp2_5" ,"ME+2/2/30","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_5 ,18,ID_288384,"VMEp2_5" ,"ME+2/2/31","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_5 ,20,ID_288384,"VMEp2_5" ,"ME+2/2/32","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp2_6 ,8 ,ID_288384,"VMEp2_6" ,"ME+2/2/33","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_6 ,10,ID_288384,"VMEp2_6" ,"ME+2/2/34","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_6 ,14,ID_288384,"VMEp2_6" ,"ME+2/2/35","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_6 ,16,ID_288384,"VMEp2_6" ,"ME+2/2/36","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_6 ,18,ID_288384,"VMEp2_6" ,"ME+2/2/1" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp2_6 ,20,ID_288384,"VMEp2_6" ,"ME+2/2/2" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME31 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp3_1 ,2 ,ID_672   ,"VMEp3_1" ,"ME+3/1/2" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_1 ,4 ,ID_672   ,"VMEp3_1" ,"ME+3/1/3" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_1 ,6 ,ID_672   ,"VMEp3_1" ,"ME+3/1/4" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_2 ,2 ,ID_672   ,"VMEp3_2" ,"ME+3/1/5" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_2 ,4 ,ID_672   ,"VMEp3_2" ,"ME+3/1/6" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_2 ,6 ,ID_672   ,"VMEp3_2" ,"ME+3/1/7" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_3 ,2 ,ID_672   ,"VMEp3_3" ,"ME+3/1/8" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_3 ,4 ,ID_672   ,"VMEp3_3" ,"ME+3/1/9" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_3 ,6 ,ID_672   ,"VMEp3_3" ,"ME+3/1/10","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_4 ,2 ,ID_672   ,"VMEp3_4" ,"ME+3/1/11","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_4 ,4 ,ID_672   ,"VMEp3_4" ,"ME+3/1/12","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_4 ,6 ,ID_672   ,"VMEp3_4" ,"ME+3/1/13","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_5 ,2 ,ID_672   ,"VMEp3_5" ,"ME+3/1/14","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_5 ,4 ,ID_672   ,"VMEp3_5" ,"ME+3/1/15","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_5 ,6 ,ID_672   ,"VMEp3_5" ,"ME+3/1/16","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_6 ,2 ,ID_672   ,"VMEp3_6" ,"ME+3/1/17","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_6 ,4 ,ID_672   ,"VMEp3_6" ,"ME+3/1/18","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_6 ,6 ,ID_672   ,"VMEp3_6" ,"ME+3/1/1" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME32 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp3_1 ,8 ,ID_288384,"VMEp3_1" ,"ME+3/2/3" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_1 ,10,ID_288384,"VMEp3_1" ,"ME+3/2/4" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_1 ,14,ID_288384,"VMEp3_1" ,"ME+3/2/5" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_1 ,16,ID_288384,"VMEp3_1" ,"ME+3/2/6" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_1 ,18,ID_288384,"VMEp3_1" ,"ME+3/2/7" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_1 ,20,ID_288384,"VMEp3_1" ,"ME+3/2/8" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_2 ,8 ,ID_288384,"VMEp3_2" ,"ME+3/2/9" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_2 ,10,ID_288384,"VMEp3_2" ,"ME+3/2/10","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_2 ,14,ID_288384,"VMEp3_2" ,"ME+3/2/11","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_2 ,16,ID_288384,"VMEp3_2" ,"ME+3/2/12","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_2 ,18,ID_288384,"VMEp3_2" ,"ME+3/2/13","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_2 ,20,ID_288384,"VMEp3_2" ,"ME+3/2/14","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_3 ,8 ,ID_288384,"VMEp3_3" ,"ME+3/2/15","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_3 ,10,ID_288384,"VMEp3_3" ,"ME+3/2/16","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_3 ,14,ID_288384,"VMEp3_3" ,"ME+3/2/17","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_3 ,16,ID_288384,"VMEp3_3" ,"ME+3/2/18","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_3 ,18,ID_288384,"VMEp3_3" ,"ME+3/2/19","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_3 ,20,ID_288384,"VMEp3_3" ,"ME+3/2/20","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_4 ,8 ,ID_288384,"VMEp3_4" ,"ME+3/2/21","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_4 ,10,ID_288384,"VMEp3_4" ,"ME+3/2/22","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_4 ,14,ID_288384,"VMEp3_4" ,"ME+3/2/23","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_4 ,16,ID_288384,"VMEp3_4" ,"ME+3/2/24","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_4 ,18,ID_288384,"VMEp3_4" ,"ME+3/2/25","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_4 ,20,ID_288384,"VMEp3_4" ,"ME+3/2/26","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_5 ,8 ,ID_288384,"VMEp3_5" ,"ME+3/2/27","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_5 ,10,ID_288384,"VMEp3_5" ,"ME+3/2/28","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_5 ,14,ID_288384,"VMEp3_5" ,"ME+3/2/29","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_5 ,16,ID_288384,"VMEp3_5" ,"ME+3/2/30","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_5 ,18,ID_288384,"VMEp3_5" ,"ME+3/2/31","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_5 ,20,ID_288384,"VMEp3_5" ,"ME+3/2/32","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp3_6 ,8 ,ID_288384,"VMEp3_6" ,"ME+3/2/33","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_6 ,10,ID_288384,"VMEp3_6" ,"ME+3/2/34","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_6 ,14,ID_288384,"VMEp3_6" ,"ME+3/2/35","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_6 ,16,ID_288384,"VMEp3_6" ,"ME+3/2/36","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_6 ,18,ID_288384,"VMEp3_6" ,"ME+3/2/1" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp3_6 ,20,ID_288384,"VMEp3_6" ,"ME+3/2/2" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME41 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp4_1 ,2 ,ID_672   ,"VMEp4_1" ,"ME+4/1/2" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_1 ,4 ,ID_672   ,"VMEp4_1" ,"ME+4/1/3" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_1 ,6 ,ID_672   ,"VMEp4_1" ,"ME+4/1/4" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_2 ,2 ,ID_672   ,"VMEp4_2" ,"ME+4/1/5" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_2 ,4 ,ID_672   ,"VMEp4_2" ,"ME+4/1/6" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_2 ,6 ,ID_672   ,"VMEp4_2" ,"ME+4/1/7" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_3 ,2 ,ID_672   ,"VMEp4_3" ,"ME+4/1/8" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_3 ,4 ,ID_672   ,"VMEp4_3" ,"ME+4/1/9" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_3 ,6 ,ID_672   ,"VMEp4_3" ,"ME+4/1/10","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_4 ,2 ,ID_672   ,"VMEp4_4" ,"ME+4/1/11","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_4 ,4 ,ID_672   ,"VMEp4_4" ,"ME+4/1/12","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_4 ,6 ,ID_672   ,"VMEp4_4" ,"ME+4/1/13","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_5 ,2 ,ID_672   ,"VMEp4_5" ,"ME+4/1/14","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_5 ,4 ,ID_672   ,"VMEp4_5" ,"ME+4/1/15","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_5 ,6 ,ID_672   ,"VMEp4_5" ,"ME+4/1/16","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_6 ,2 ,ID_672   ,"VMEp4_6" ,"ME+4/1/17","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_6 ,4 ,ID_672   ,"VMEp4_6" ,"ME+4/1/18","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_6 ,6 ,ID_672   ,"VMEp4_6" ,"ME+4/1/1" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME42 configurations on plus endcap
+  //
+  {VCCipAddr_VMEp4_1 ,8 ,ID_288384,"VMEp4_1" ,"ME+4/2/3" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_1 ,10,ID_288384,"VMEp4_1" ,"ME+4/2/4" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_1 ,14,ID_288384,"VMEp4_1" ,"ME+4/2/5" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_1 ,16,ID_288384,"VMEp4_1" ,"ME+4/2/6" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_1 ,18,ID_288384,"VMEp4_1" ,"ME+4/2/7" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_1 ,20,ID_288384,"VMEp4_1" ,"ME+4/2/8" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_2 ,8 ,ID_288384,"VMEp4_2" ,"ME+4/2/9" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_2 ,10,ID_288384,"VMEp4_2" ,"ME+4/2/10","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_2 ,14,ID_288384,"VMEp4_2" ,"ME+4/2/11","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_2 ,16,ID_288384,"VMEp4_2" ,"ME+4/2/12","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_2 ,18,ID_288384,"VMEp4_2" ,"ME+4/2/13","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_2 ,20,ID_288384,"VMEp4_2" ,"ME+4/2/14","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_3 ,8 ,ID_288384,"VMEp4_3" ,"ME+4/2/15","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_3 ,10,ID_288384,"VMEp4_3" ,"ME+4/2/16","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_3 ,14,ID_288384,"VMEp4_3" ,"ME+4/2/17","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_3 ,16,ID_288384,"VMEp4_3" ,"ME+4/2/18","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_3 ,18,ID_288384,"VMEp4_3" ,"ME+4/2/19","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_3 ,20,ID_288384,"VMEp4_3" ,"ME+4/2/20","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_4 ,8 ,ID_288384,"VMEp4_4" ,"ME+4/2/21","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_4 ,10,ID_288384,"VMEp4_4" ,"ME+4/2/22","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_4 ,14,ID_288384,"VMEp4_4" ,"ME+4/2/23","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_4 ,16,ID_288384,"VMEp4_4" ,"ME+4/2/24","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_4 ,18,ID_288384,"VMEp4_4" ,"ME+4/2/25","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_4 ,20,ID_288384,"VMEp4_4" ,"ME+4/2/26","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_5 ,8 ,ID_288384,"VMEp4_5" ,"ME+4/2/27","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_5 ,10,ID_288384,"VMEp4_5" ,"ME+4/2/28","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_5 ,14,ID_288384,"VMEp4_5" ,"ME+4/2/29","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_5 ,16,ID_288384,"VMEp4_5" ,"ME+4/2/30","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_5 ,18,ID_288384,"VMEp4_5" ,"ME+4/2/31","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_5 ,20,ID_288384,"VMEp4_5" ,"ME+4/2/32","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEp4_6 ,8 ,ID_288384,"VMEp4_6" ,"ME+4/2/33","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_6 ,10,ID_288384,"VMEp4_6" ,"ME+4/2/34","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_6 ,14,ID_288384,"VMEp4_6" ,"ME+4/2/35","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_6 ,16,ID_288384,"VMEp4_6" ,"ME+4/2/36","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_6 ,18,ID_288384,"VMEp4_6" ,"ME+4/2/1" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEp4_6 ,20,ID_288384,"VMEp4_6" ,"ME+4/2/2" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME11 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm1_1 ,2 ,ID_288384,"VMEm1_1" ,"ME-1/1/36","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_1 ,4 ,ID_288384,"VMEm1_1" ,"ME-1/1/1" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_1 ,6 ,ID_288384,"VMEm1_1" ,"ME-1/1/2" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEm1_2 ,2 ,ID_288384,"VMEm1_2" ,"ME-1/1/3" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_2 ,4 ,ID_288384,"VMEm1_2" ,"ME-1/1/4" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_2 ,6 ,ID_288384,"VMEm1_2" ,"ME-1/1/5" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEm1_3 ,2 ,ID_288384,"VMEm1_3" ,"ME-1/1/6" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_3 ,4 ,ID_288384,"VMEm1_3" ,"ME-1/1/7" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_3 ,6 ,ID_288384,"VMEm1_3" ,"ME-1/1/8" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEm1_4 ,2 ,ID_288384,"VMEm1_4" ,"ME-1/1/9" ,"ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_4 ,4 ,ID_288384,"VMEm1_4" ,"ME-1/1/10","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_4 ,6 ,ID_288384,"VMEm1_4" ,"ME-1/1/11","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEm1_5 ,2 ,ID_288384,"VMEm1_5" ,"ME-1/1/12","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_5 ,4 ,ID_288384,"VMEm1_5" ,"ME-1/1/13","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_5 ,6 ,ID_288384,"VMEm1_5" ,"ME-1/1/14","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEm1_6 ,2 ,ID_288384,"VMEm1_6" ,"ME-1/1/15","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_6 ,4 ,ID_288384,"VMEm1_6" ,"ME-1/1/16","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_6 ,6 ,ID_288384,"VMEm1_6" ,"ME-1/1/17","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEm1_7 ,2 ,ID_288384,"VMEm1_7" ,"ME-1/1/18","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_7 ,4 ,ID_288384,"VMEm1_7" ,"ME-1/1/19","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_7 ,6 ,ID_288384,"VMEm1_7" ,"ME-1/1/20","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEm1_8 ,2 ,ID_288384,"VMEm1_8" ,"ME-1/1/21","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_8 ,4 ,ID_288384,"VMEm1_8" ,"ME-1/1/22","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_8 ,6 ,ID_288384,"VMEm1_8" ,"ME-1/1/23","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEm1_9 ,2 ,ID_288384,"VMEm1_9" ,"ME-1/1/24","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_9 ,4 ,ID_288384,"VMEm1_9" ,"ME-1/1/25","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_9 ,6 ,ID_288384,"VMEm1_9" ,"ME-1/1/26","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEm1_10,2 ,ID_288384,"VMEm1_10","ME-1/1/27","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_10,4 ,ID_288384,"VMEm1_10","ME-1/1/28","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_10,6 ,ID_288384,"VMEm1_10","ME-1/1/29","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+
+  {VCCipAddr_VMEm1_11,2 ,ID_288384,"VMEm1_11","ME-1/1/30","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_11,4 ,ID_288384,"VMEm1_11","ME-1/1/31","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_11,6 ,ID_288384,"VMEm1_11","ME-1/1/32","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+
+  {VCCipAddr_VMEm1_12,2 ,ID_288384,"VMEm1_12","ME-1/1/33","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  {VCCipAddr_VMEm1_12,4 ,ID_288384,"VMEm1_12","ME-1/1/34","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,FORWARD_FIRMWARE_TYPE },
+  {VCCipAddr_VMEm1_12,6 ,ID_288384,"VMEm1_12","ME-1/1/35","ME11",REGULAR_FIRMWARE_TYPE,NEGATIVE_FIRMWARE_TYPE,BACKWARD_FIRMWARE_TYPE},
+  //
+  //ME12 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm1_1 ,8 ,ID_288384,"VMEm1_1" ,"ME-1/2/36","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_1 ,10,ID_288384,"VMEm1_1" ,"ME-1/2/1" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_1 ,14,ID_288384,"VMEm1_1" ,"ME-1/2/2" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_2 ,8 ,ID_288384,"VMEm1_2" ,"ME-1/2/3" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_2 ,10,ID_288384,"VMEm1_2" ,"ME-1/2/4" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_2 ,14,ID_288384,"VMEm1_2" ,"ME-1/2/5" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_3 ,8 ,ID_288384,"VMEm1_3" ,"ME-1/2/6" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_3 ,10,ID_288384,"VMEm1_3" ,"ME-1/2/7" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_3 ,14,ID_288384,"VMEm1_3" ,"ME-1/2/8" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_4 ,8 ,ID_288384,"VMEm1_4" ,"ME-1/2/9" ,"ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_4 ,10,ID_288384,"VMEm1_4" ,"ME-1/2/10","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_4 ,14,ID_288384,"VMEm1_4" ,"ME-1/2/11","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_5 ,8 ,ID_288384,"VMEm1_5" ,"ME-1/2/12","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_5 ,10,ID_288384,"VMEm1_5" ,"ME-1/2/13","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_5 ,14,ID_288384,"VMEm1_5" ,"ME-1/2/14","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_6 ,8 ,ID_288384,"VMEm1_6" ,"ME-1/2/15","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_6 ,10,ID_288384,"VMEm1_6" ,"ME-1/2/16","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_6 ,14,ID_288384,"VMEm1_6" ,"ME-1/2/17","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_7 ,8 ,ID_288384,"VMEm1_7" ,"ME-1/2/18","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_7 ,10,ID_288384,"VMEm1_7" ,"ME-1/2/19","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_7 ,14,ID_288384,"VMEm1_7" ,"ME-1/2/20","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_8 ,8 ,ID_288384,"VMEm1_8" ,"ME-1/2/21","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_8 ,10,ID_288384,"VMEm1_8" ,"ME-1/2/22","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_8 ,14,ID_288384,"VMEm1_8" ,"ME-1/2/23","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_9 ,8 ,ID_288384,"VMEm1_9" ,"ME-1/2/24","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_9 ,10,ID_288384,"VMEm1_9" ,"ME-1/2/25","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_9 ,14,ID_288384,"VMEm1_9" ,"ME-1/2/26","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_10,8 ,ID_288384,"VMEm1_10","ME-1/2/27","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_10,10,ID_288384,"VMEm1_10","ME-1/2/28","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_10,14,ID_288384,"VMEm1_10","ME-1/2/29","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_11,8 ,ID_288384,"VMEm1_11","ME-1/2/30","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_11,10,ID_288384,"VMEm1_11","ME-1/2/31","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_11,14,ID_288384,"VMEm1_11","ME-1/2/32","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_12,8 ,ID_288384,"VMEm1_12","ME-1/2/33","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_12,10,ID_288384,"VMEm1_12","ME-1/2/34","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_12,14,ID_288384,"VMEm1_12","ME-1/2/35","ME12",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME13 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm1_1 ,16,ID_288384,"VMEm1_1" ,"ME-1/3/36","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_1 ,18,ID_288384,"VMEm1_1" ,"ME-1/3/1" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_1 ,20,ID_288384,"VMEm1_1" ,"ME-1/3/2" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_2 ,16,ID_288384,"VMEm1_2" ,"ME-1/3/3" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_2 ,18,ID_288384,"VMEm1_2" ,"ME-1/3/4" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_2 ,20,ID_288384,"VMEm1_2" ,"ME-1/3/5" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_3 ,16,ID_288384,"VMEm1_3" ,"ME-1/3/6" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_3 ,18,ID_288384,"VMEm1_3" ,"ME-1/3/7" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_3 ,20,ID_288384,"VMEm1_3" ,"ME-1/3/8" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_4 ,16,ID_288384,"VMEm1_4" ,"ME-1/3/9" ,"ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_4 ,18,ID_288384,"VMEm1_4" ,"ME-1/3/10","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_4 ,20,ID_288384,"VMEm1_4" ,"ME-1/3/11","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_5 ,16,ID_288384,"VMEm1_5" ,"ME-1/3/12","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_5 ,18,ID_288384,"VMEm1_5" ,"ME-1/3/13","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_5 ,20,ID_288384,"VMEm1_5" ,"ME-1/3/14","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_6 ,16,ID_288384,"VMEm1_6" ,"ME-1/3/15","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_6 ,18,ID_288384,"VMEm1_6" ,"ME-1/3/16","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_6 ,20,ID_288384,"VMEm1_6" ,"ME-1/3/17","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_7 ,16,ID_288384,"VMEm1_7" ,"ME-1/3/18","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_7 ,18,ID_288384,"VMEm1_7" ,"ME-1/3/19","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_7 ,20,ID_288384,"VMEm1_7" ,"ME-1/3/20","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_8 ,16,ID_288384,"VMEm1_8" ,"ME-1/3/21","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_8 ,18,ID_288384,"VMEm1_8" ,"ME-1/3/22","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_8 ,20,ID_288384,"VMEm1_8" ,"ME-1/3/23","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_9 ,16,ID_288384,"VMEm1_9" ,"ME-1/3/24","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_9 ,18,ID_288384,"VMEm1_9" ,"ME-1/3/25","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_9 ,20,ID_288384,"VMEm1_9" ,"ME-1/3/26","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_10,16,ID_288384,"VMEm1_10","ME-1/3/27","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_10,18,ID_288384,"VMEm1_10","ME-1/3/28","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_10,20,ID_288384,"VMEm1_10","ME-1/3/29","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_11,16,ID_288384,"VMEm1_11","ME-1/3/30","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_11,18,ID_288384,"VMEm1_11","ME-1/3/31","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_11,20,ID_288384,"VMEm1_11","ME-1/3/32","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm1_12,16,ID_288384,"VMEm1_12","ME-1/3/33","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_12,18,ID_288384,"VMEm1_12","ME-1/3/34","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm1_12,20,ID_288384,"VMEm1_12","ME-1/3/35","ME13",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME21 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm2_1 ,2 ,ID_672   ,"VMEm2_1" ,"ME-2/1/2" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_1 ,4 ,ID_672   ,"VMEm2_1" ,"ME-2/1/3" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_1 ,6 ,ID_672   ,"VMEm2_1" ,"ME-2/1/4" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_2 ,2 ,ID_672   ,"VMEm2_2" ,"ME-2/1/5" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_2 ,4 ,ID_672   ,"VMEm2_2" ,"ME-2/1/6" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_2 ,6 ,ID_672   ,"VMEm2_2" ,"ME-2/1/7" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_3 ,2 ,ID_672   ,"VMEm2_3" ,"ME-2/1/8" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_3 ,4 ,ID_672   ,"VMEm2_3" ,"ME-2/1/9" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_3 ,6 ,ID_672   ,"VMEm2_3" ,"ME-2/1/10","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_4 ,2 ,ID_672   ,"VMEm2_4" ,"ME-2/1/11","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_4 ,4 ,ID_672   ,"VMEm2_4" ,"ME-2/1/12","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_4 ,6 ,ID_672   ,"VMEm2_4" ,"ME-2/1/13","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_5 ,2 ,ID_672   ,"VMEm2_5" ,"ME-2/1/14","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_5 ,4 ,ID_672   ,"VMEm2_5" ,"ME-2/1/15","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_5 ,6 ,ID_672   ,"VMEm2_5" ,"ME-2/1/16","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_6 ,2 ,ID_672   ,"VMEm2_6" ,"ME-2/1/17","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_6 ,4 ,ID_672   ,"VMEm2_6" ,"ME-2/1/18","ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_6 ,6 ,ID_672   ,"VMEm2_6" ,"ME-2/1/1" ,"ME21",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME22 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm2_1 ,8 ,ID_288384,"VMEm2_1" ,"ME-2/2/3" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_1 ,10,ID_288384,"VMEm2_1" ,"ME-2/2/4" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_1 ,14,ID_288384,"VMEm2_1" ,"ME-2/2/5" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_1 ,16,ID_288384,"VMEm2_1" ,"ME-2/2/6" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_1 ,18,ID_288384,"VMEm2_1" ,"ME-2/2/7" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_1 ,20,ID_288384,"VMEm2_1" ,"ME-2/2/8" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_2 ,8 ,ID_288384,"VMEm2_2" ,"ME-2/2/9" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_2 ,10,ID_288384,"VMEm2_2" ,"ME-2/2/10","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_2 ,14,ID_288384,"VMEm2_2" ,"ME-2/2/11","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_2 ,16,ID_288384,"VMEm2_2" ,"ME-2/2/12","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_2 ,18,ID_288384,"VMEm2_2" ,"ME-2/2/13","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_2 ,20,ID_288384,"VMEm2_2" ,"ME-2/2/14","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_3 ,8 ,ID_288384,"VMEm2_3" ,"ME-2/2/15","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_3 ,10,ID_288384,"VMEm2_3" ,"ME-2/2/16","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_3 ,14,ID_288384,"VMEm2_3" ,"ME-2/2/17","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_3 ,16,ID_288384,"VMEm2_3" ,"ME-2/2/18","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_3 ,18,ID_288384,"VMEm2_3" ,"ME-2/2/19","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_3 ,20,ID_288384,"VMEm2_3" ,"ME-2/2/20","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_4 ,8 ,ID_288384,"VMEm2_4" ,"ME-2/2/21","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_4 ,10,ID_288384,"VMEm2_4" ,"ME-2/2/22","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_4 ,14,ID_288384,"VMEm2_4" ,"ME-2/2/23","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_4 ,16,ID_288384,"VMEm2_4" ,"ME-2/2/24","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_4 ,18,ID_288384,"VMEm2_4" ,"ME-2/2/25","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_4 ,20,ID_288384,"VMEm2_4" ,"ME-2/2/26","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_5 ,8 ,ID_288384,"VMEm2_5" ,"ME-2/2/27","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_5 ,10,ID_288384,"VMEm2_5" ,"ME-2/2/28","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_5 ,14,ID_288384,"VMEm2_5" ,"ME-2/2/29","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_5 ,16,ID_288384,"VMEm2_5" ,"ME-2/2/30","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_5 ,18,ID_288384,"VMEm2_5" ,"ME-2/2/31","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_5 ,20,ID_288384,"VMEm2_5" ,"ME-2/2/32","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm2_6 ,8 ,ID_288384,"VMEm2_6" ,"ME-2/2/33","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_6 ,10,ID_288384,"VMEm2_6" ,"ME-2/2/34","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_6 ,14,ID_288384,"VMEm2_6" ,"ME-2/2/35","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_6 ,16,ID_288384,"VMEm2_6" ,"ME-2/2/36","ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_6 ,18,ID_288384,"VMEm2_6" ,"ME-2/2/1" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm2_6 ,20,ID_288384,"VMEm2_6" ,"ME-2/2/2" ,"ME22",REGULAR_FIRMWARE_TYPE,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME31 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm3_1 ,2 ,ID_672   ,"VMEm3_1" ,"ME-3/1/2" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_1 ,4 ,ID_672   ,"VMEm3_1" ,"ME-3/1/3" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_1 ,6 ,ID_672   ,"VMEm3_1" ,"ME-3/1/4" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_2 ,2 ,ID_672   ,"VMEm3_2" ,"ME-3/1/5" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_2 ,4 ,ID_672   ,"VMEm3_2" ,"ME-3/1/6" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_2 ,6 ,ID_672   ,"VMEm3_2" ,"ME-3/1/7" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_3 ,2 ,ID_672   ,"VMEm3_3" ,"ME-3/1/8" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_3 ,4 ,ID_672   ,"VMEm3_3" ,"ME-3/1/9" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_3 ,6 ,ID_672   ,"VMEm3_3" ,"ME-3/1/10","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_4 ,2 ,ID_672   ,"VMEm3_4" ,"ME-3/1/11","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_4 ,4 ,ID_672   ,"VMEm3_4" ,"ME-3/1/12","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_4 ,6 ,ID_672   ,"VMEm3_4" ,"ME-3/1/13","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_5 ,2 ,ID_672   ,"VMEm3_5" ,"ME-3/1/14","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_5 ,4 ,ID_672   ,"VMEm3_5" ,"ME-3/1/15","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_5 ,6 ,ID_672   ,"VMEm3_5" ,"ME-3/1/16","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_6 ,2 ,ID_672   ,"VMEm3_6" ,"ME-3/1/17","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_6 ,4 ,ID_672   ,"VMEm3_6" ,"ME-3/1/18","ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_6 ,6 ,ID_672   ,"VMEm3_6" ,"ME-3/1/1" ,"ME31",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME32 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm3_1 ,8 ,ID_288384,"VMEm3_1" ,"ME-3/2/3" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_1 ,10,ID_288384,"VMEm3_1" ,"ME-3/2/4" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_1 ,14,ID_288384,"VMEm3_1" ,"ME-3/2/5" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_1 ,16,ID_288384,"VMEm3_1" ,"ME-3/2/6" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_1 ,18,ID_288384,"VMEm3_1" ,"ME-3/2/7" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_1 ,20,ID_288384,"VMEm3_1" ,"ME-3/2/8" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_2 ,8 ,ID_288384,"VMEm3_2" ,"ME-3/2/9" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_2 ,10,ID_288384,"VMEm3_2" ,"ME-3/2/10","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_2 ,14,ID_288384,"VMEm3_2" ,"ME-3/2/11","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_2 ,16,ID_288384,"VMEm3_2" ,"ME-3/2/12","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_2 ,18,ID_288384,"VMEm3_2" ,"ME-3/2/13","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_2 ,20,ID_288384,"VMEm3_2" ,"ME-3/2/14","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_3 ,8 ,ID_288384,"VMEm3_3" ,"ME-3/2/15","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_3 ,10,ID_288384,"VMEm3_3" ,"ME-3/2/16","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_3 ,14,ID_288384,"VMEm3_3" ,"ME-3/2/17","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_3 ,16,ID_288384,"VMEm3_3" ,"ME-3/2/18","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_3 ,18,ID_288384,"VMEm3_3" ,"ME-3/2/19","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_3 ,20,ID_288384,"VMEm3_3" ,"ME-3/2/20","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_4 ,8 ,ID_288384,"VMEm3_4" ,"ME-3/2/21","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_4 ,10,ID_288384,"VMEm3_4" ,"ME-3/2/22","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_4 ,14,ID_288384,"VMEm3_4" ,"ME-3/2/23","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_4 ,16,ID_288384,"VMEm3_4" ,"ME-3/2/24","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_4 ,18,ID_288384,"VMEm3_4" ,"ME-3/2/25","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_4 ,20,ID_288384,"VMEm3_4" ,"ME-3/2/26","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_5 ,8 ,ID_288384,"VMEm3_5" ,"ME-3/2/27","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_5 ,10,ID_288384,"VMEm3_5" ,"ME-3/2/28","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_5 ,14,ID_288384,"VMEm3_5" ,"ME-3/2/29","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_5 ,16,ID_288384,"VMEm3_5" ,"ME-3/2/30","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_5 ,18,ID_288384,"VMEm3_5" ,"ME-3/2/31","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_5 ,20,ID_288384,"VMEm3_5" ,"ME-3/2/32","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm3_6 ,8 ,ID_288384,"VMEm3_6" ,"ME-3/2/33","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_6 ,10,ID_288384,"VMEm3_6" ,"ME-3/2/34","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_6 ,14,ID_288384,"VMEm3_6" ,"ME-3/2/35","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_6 ,16,ID_288384,"VMEm3_6" ,"ME-3/2/36","ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_6 ,18,ID_288384,"VMEm3_6" ,"ME-3/2/1" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm3_6 ,20,ID_288384,"VMEm3_6" ,"ME-3/2/2" ,"ME32",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME41 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm4_1 ,2 ,ID_672   ,"VMEm4_1" ,"ME-4/1/2" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_1 ,4 ,ID_672   ,"VMEm4_1" ,"ME-4/1/3" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_1 ,6 ,ID_672   ,"VMEm4_1" ,"ME-4/1/4" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_2 ,2 ,ID_672   ,"VMEm4_2" ,"ME-4/1/5" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_2 ,4 ,ID_672   ,"VMEm4_2" ,"ME-4/1/6" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_2 ,6 ,ID_672   ,"VMEm4_2" ,"ME-4/1/7" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_3 ,2 ,ID_672   ,"VMEm4_3" ,"ME-4/1/8" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_3 ,4 ,ID_672   ,"VMEm4_3" ,"ME-4/1/9" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_3 ,6 ,ID_672   ,"VMEm4_3" ,"ME-4/1/10","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_4 ,2 ,ID_672   ,"VMEm4_4" ,"ME-4/1/11","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_4 ,4 ,ID_672   ,"VMEm4_4" ,"ME-4/1/12","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_4 ,6 ,ID_672   ,"VMEm4_4" ,"ME-4/1/13","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_5 ,2 ,ID_672   ,"VMEm4_5" ,"ME-4/1/14","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_5 ,4 ,ID_672   ,"VMEm4_5" ,"ME-4/1/15","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_5 ,6 ,ID_672   ,"VMEm4_5" ,"ME-4/1/16","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_6 ,2 ,ID_672   ,"VMEm4_6" ,"ME-4/1/17","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_6 ,4 ,ID_672   ,"VMEm4_6" ,"ME-4/1/18","ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_6 ,6 ,ID_672   ,"VMEm4_6" ,"ME-4/1/1" ,"ME41",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_1 ,8 ,ID_288384,"VMEm4_1" ,"ME-4/2/3" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_1 ,10,ID_288384,"VMEm4_1" ,"ME-4/2/4" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_1 ,14,ID_288384,"VMEm4_1" ,"ME-4/2/5" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_1 ,16,ID_288384,"VMEm4_1" ,"ME-4/2/6" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_1 ,18,ID_288384,"VMEm4_1" ,"ME-4/2/7" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_1 ,20,ID_288384,"VMEm4_1" ,"ME-4/2/8" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  //
+  //ME42 configurations on minus endcap
+  //
+  {VCCipAddr_VMEm4_2 ,8 ,ID_288384,"VMEm4_2" ,"ME-4/2/9" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_2 ,10,ID_288384,"VMEm4_2" ,"ME-4/2/10","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_2 ,14,ID_288384,"VMEm4_2" ,"ME-4/2/11","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_2 ,16,ID_288384,"VMEm4_2" ,"ME-4/2/12","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_2 ,18,ID_288384,"VMEm4_2" ,"ME-4/2/13","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_2 ,20,ID_288384,"VMEm4_2" ,"ME-4/2/14","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_3 ,8 ,ID_288384,"VMEm4_3" ,"ME-4/2/15","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_3 ,10,ID_288384,"VMEm4_3" ,"ME-4/2/16","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_3 ,14,ID_288384,"VMEm4_3" ,"ME-4/2/17","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_3 ,16,ID_288384,"VMEm4_3" ,"ME-4/2/18","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_3 ,18,ID_288384,"VMEm4_3" ,"ME-4/2/19","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_3 ,20,ID_288384,"VMEm4_3" ,"ME-4/2/20","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_4 ,8 ,ID_288384,"VMEm4_4" ,"ME-4/2/21","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_4 ,10,ID_288384,"VMEm4_4" ,"ME-4/2/22","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_4 ,14,ID_288384,"VMEm4_4" ,"ME-4/2/23","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_4 ,16,ID_288384,"VMEm4_4" ,"ME-4/2/24","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_4 ,18,ID_288384,"VMEm4_4" ,"ME-4/2/25","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_4 ,20,ID_288384,"VMEm4_4" ,"ME-4/2/26","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_5 ,8 ,ID_288384,"VMEm4_5" ,"ME-4/2/27","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_5 ,10,ID_288384,"VMEm4_5" ,"ME-4/2/28","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_5 ,14,ID_288384,"VMEm4_5" ,"ME-4/2/29","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_5 ,16,ID_288384,"VMEm4_5" ,"ME-4/2/30","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_5 ,18,ID_288384,"VMEm4_5" ,"ME-4/2/31","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_5 ,20,ID_288384,"VMEm4_5" ,"ME-4/2/32","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+
+  {VCCipAddr_VMEm4_6 ,8 ,ID_288384,"VMEm4_6" ,"ME-4/2/33","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_6 ,10,ID_288384,"VMEm4_6" ,"ME-4/2/34","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_6 ,14,ID_288384,"VMEm4_6" ,"ME-4/2/35","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_6 ,16,ID_288384,"VMEm4_6" ,"ME-4/2/36","ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_6 ,18,ID_288384,"VMEm4_6" ,"ME-4/2/1" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           },
+  {VCCipAddr_VMEm4_6 ,20,ID_288384,"VMEm4_6" ,"ME-4/2/2" ,"ME42",MIRROR_FIRMWARE_TYPE ,DO_NOT_CARE           ,DO_NOT_CARE           }
+  //
+};
 //
 #endif

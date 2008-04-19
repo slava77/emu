@@ -84,9 +84,7 @@ void EMUjtag::setup_jtag(int chain) {
   } else if (jtag_chain_ == ChainAlctSlowMezz) {
     //
     devices_in_chain_ = NumberChipsAlctSlowMezz;
-    bits_in_opcode_[0] = OpcodeSizeAlctSlowMezzFpga;
-    bits_in_opcode_[1] = OpcodeSizeAlctSlowMezzProm;
-    bits_in_opcode_[2] = OpcodeSizeAlctSlowMezzProm;
+    bits_in_opcode_[0] = OpcodeSizeAlctSlowMezzProm;
     if (GetWriteToDevice_()) tmb_->start(7,jtagSourceFPGA);
     //
   } else if (jtag_chain_ == ChainAlctFastFpga) {
