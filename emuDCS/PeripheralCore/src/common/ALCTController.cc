@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.42 2008/04/09 15:37:24 rakness Exp $
+// $Id: ALCTController.cc,v 3.43 2008/04/19 14:56:55 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.43  2008/04/19 14:56:55  rakness
+// ALCT database check before loading ALCT firmware
+//
 // Revision 3.42  2008/04/09 15:37:24  rakness
 // read ALCT fast control FPGA ID
 //
@@ -290,6 +293,9 @@
 #include <string>
 #include <cstdlib>
 //
+#include "Crate.h"
+#include "Chamber.h"
+#include "VMEController.h"
 #include "ALCTController.h"
 #include "TMB.h"
 //
@@ -305,6 +311,9 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) {
   tmb_ = tmb;
   //
   alct_configuration_status_ = -1;
+  //
+  expected_fastcontrol_backward_forward_  = DO_NOT_CARE;
+  expected_fastcontrol_negative_positive_ = DO_NOT_CARE;
   //
   SetChamberCharacteristics_(chamberType);
   //
@@ -839,18 +848,32 @@ void ALCTController::ReadSlowControlId() {
   tmb_->packCharBuffer(tmb_->GetDRtdo(),
 		       tmb_->GetRegLength(),
 		       read_slowcontrol_id_);
+  //
+  //
+  tmb_->setup_jtag(ChainAlctSlowMezz);
+  //
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowMezzProm,
+		    PROMidCode,
+		    RegSizeAlctSlowMezzFpga_PROMidCode);
+  //
+  alct_slow_prom_idcode_ = tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0);
+  //
   return;
 }
 //
 void ALCTController::PrintSlowControlId() {
   //
   (*MyOutput_) << chamber_type_string_ 
-		<< " Slow Control chip ID = " << std::hex << GetSlowControlChipId()
+	       << " Slow Control chip ID = " << std::hex << GetSlowControlChipId()
 	       << " version " << GetSlowControlVersionId()
-		<< ": day = " << GetSlowControlDay()
-	       << ", month = " << GetSlowControlMonth()
-	       << ", year = " << GetSlowControlYear()
+	       << " (day month year) = (" 
+	       << GetSlowControlDay()   << " "
+	       << GetSlowControlMonth() << " "
+	       << GetSlowControlYear()  << ")"
 	       << std::dec << std::endl; 
+  //
+  (*MyOutput_) << " PROM ID code = 0x" << std::hex << alct_slow_prom_idcode_ << std::endl;
+  //
   return;
 }
 //
@@ -1644,24 +1667,16 @@ void ALCTController::ReadFastControlId() {
   //
   DecodeFastControlId_();
   //
-  //
-  tmb_->setup_jtag(ChainAlctFastMezz);
-  //
-  tmb_->ShfIR_ShfDR(ChipLocationAlctFastMezzFpga,
-		    FPGAidCode,
-		    RegSizeAlctFastMezzFpga_FPGAidCode);  
-  //
-  alct_fpga_idcode_ = (tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0) ) & 0xfffffff;
+  ReadFastControlMezzIDCodes();
   //
   return;
 }
 //
 void ALCTController::PrintFastControlId() {
   //
-  (*MyOutput_) << chamber_type_string_  
-	       << " Fast Control (FPGA ID 0x" << std::hex << GetFastControlFPGAIdCode() << "): " << std::endl;
+  (*MyOutput_) << chamber_type_string_;
   //
-  (*MyOutput_) << "type "; 
+  (*MyOutput_) << ", type "; 
   if ( GetFastControlAlctType() == FIRMWARE_TYPE_192 ) {
     (*MyOutput_) << "192";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
@@ -1700,12 +1715,17 @@ void ALCTController::PrintFastControlId() {
   (*MyOutput_) << " --> version (day month year) = (";
   (*MyOutput_) << std::dec << GetFastControlDay() << " ";
   (*MyOutput_) << std::dec << GetFastControlMonth() << " ";
-  (*MyOutput_) << std::dec << GetFastControlYear() << ")";
+  (*MyOutput_) << std::dec << GetFastControlYear() << ")" << std::endl;
   //
   // pre-DAQ06 format:
   //(*MyOutput_) << std::hex << GetFastControlDay();
   //(*MyOutput_) << std::hex << GetFastControlMonth();
   //(*MyOutput_) << std::hex << GetFastControlYear() << ")" << std::dec << std::endl; 
+  //
+  //  (*MyOutput_) << " FPGA, PROM0, PROM1 ID = 0x" 
+  //	       << std::hex << GetFastControlFPGAIdCode() << ", "
+  //	       << std::hex << alct_prom0_idcode_ << ", "
+  //	       << std::hex << alct_prom1_idcode_ << std::endl;
   //
   return;
 }
@@ -1878,7 +1898,31 @@ void ALCTController::SetExpectedFastControlMonth(int firmware_month) {
   //
   return;
 } 
-
+//
+void ALCTController::ReadFastControlMezzIDCodes() {
+  //
+  tmb_->setup_jtag(ChainAlctFastMezz);
+  //
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastMezzFpga,
+		    FPGAidCode,
+		    RegSizeAlctFastMezzFpga_FPGAidCode);  
+  //
+  alct_fpga_idcode_ = (tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0) ) & 0xfffffff;
+  //
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastMezzProm0,
+		    PROMidCode,
+		    RegSizeAlctFastMezzFpga_PROMidCode);  
+  //
+  alct_prom0_idcode_ = (tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0) ) & 0xfffffff;
+  //
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastMezzProm1,
+		    PROMidCode,
+		    RegSizeAlctFastMezzFpga_PROMidCode);  
+  //
+  alct_prom1_idcode_ = (tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0) ) & 0xfffffff;
+  //
+  return;
+}
 //
 ////////////////////////////////
 // TESTPULSE TRIGGER REGISTER
@@ -3960,5 +4004,129 @@ int ALCTController::UserIndexToHardwareIndex_(int index) {
 //
 int ALCTController::SVFLoad(int * arg1, const char * arg2, int arg3) { 
   //
-  return tmb_->SVFLoad(arg1,arg2,arg3); 
+  // in concert with the return codes for CheckFirmwareConfiguration():
+  // ALCTController::SVFLoad return codes:
+  //  >= 0 = number of errors detected from EMUjtag::SVFLoad during the loading of ALCT firmware
+  //    -1 = ALCT firmware NOT loaded due to database check failure
+  //  < -1 = Number of database errors - 1.  Yell at expert.
+  //
+  int check_value = CheckFirmwareConfiguration();
+  //
+  if ( check_value ==  1 ||
+       check_value == -1 ) {
+    //
+    return tmb_->SVFLoad(arg1,arg2,arg3); 
+    //
+  } 
+  //
+  check_value = -check_value - 1;
+  //
+  return check_value;
+  //
+}
+//
+int ALCTController::CheckFirmwareConfiguration() {
+  //
+  // return codes:
+  //  -1 = user has entered the keywords in the xml file to eschew the database check.  Caveat emptor.
+  //   0 = database check fail.  DO NOT LOAD FIRMWARE, CALL EXPERT.
+  //   1 = database check pass.  Load Firmware.
+  //  >1 = database failure.  Yell at expert.
+  //
+  // First get the configuration parameters set in the xml file...
+  //
+  // These two control VME access to the ALCT:
+  std::string xml_VCCIpAddress = tmb_->getCrate()->vmeController()->ipAddress();
+  int         xml_tmb_slot     = tmb_->slot();
+  //
+  // The next 6 are a sanity check on the configuration parameters:
+  std::string xml_crateLabel             = tmb_->getCrate()->GetLabel();
+  std::string xml_chamberLabel           = tmb_->getChamber()->GetLabel();
+  std::string xml_chambertype            = GetChamberType();
+  int         xml_backward_forward_type  = GetExpectedFastControlBackwardForwardType();
+  int         xml_negative_positive_type = GetExpectedFastControlNegativePositiveType();
+  int         xml_regular_mirror_type    = GetExpectedFastControlRegularMirrorType();
+  //
+  // The following is to enforce that the above firmware is appropriate for the intended FPGA:
+  ReadFastControlMezzIDCodes();
+  int read_fpga_id = GetFastControlMezzFPGAID();
+  //
+  // Has the user eschewed the database check?
+  if ( xml_crateLabel   == "test_crate"   && 
+       xml_chamberLabel == "test_chamber" ) {
+    return -1;
+  }
+  //
+  int return_value = 0;
+  //
+  for (unsigned int config_index=0; config_index<number_of_allowed_firmware_configurations; config_index++) {
+    //
+    if ( xml_VCCIpAddress           == allowed_firmware_config[config_index].VCCIpAddress           && 
+	 xml_tmb_slot               == allowed_firmware_config[config_index].tmb_slot               && 
+	 xml_crateLabel             == allowed_firmware_config[config_index].crateLabel             && 
+	 xml_chamberLabel           == allowed_firmware_config[config_index].chamberLabel           && 
+	 xml_chambertype            == allowed_firmware_config[config_index].chambertype            &&
+	 xml_backward_forward_type  == allowed_firmware_config[config_index].backward_forward_type  &&
+	 xml_negative_positive_type == allowed_firmware_config[config_index].negative_positive_type &&
+	 xml_regular_mirror_type    == allowed_firmware_config[config_index].regular_mirror_type    &&
+	 read_fpga_id               == allowed_firmware_config[config_index].fpga_id                ) {
+      //
+      return_value++;
+    }
+  }
+  //
+  if (return_value == 0) {
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
+    std::cout << "!!! ERROR:  Not loading firmware to ALCT with following configuration !!!" << std::endl;
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
+  } else if (return_value == 1) {
+    //
+    std::cout << "If requested, will load the following firmware to ALCT" << std::endl;
+    //
+  } else if (return_value > 1) {
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
+    std::cout << "!!! DATABASE ERROR:  Not loading firmware to ALCT  !!!" << std::endl;
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
+  }
+  //
+  std::cout << "VCC IP address    = " << xml_VCCIpAddress << std::endl;
+  std::cout << "TMB slot number   = " << std::dec << xml_tmb_slot     << std::endl;
+  std::cout << "Crate label       = " << xml_crateLabel   << std::endl;
+  std::cout << "Chamber label     = " << xml_chamberLabel << std::endl;
+  std::cout << "Chamber type      = " << xml_chambertype  << std::endl;
+  std::cout << "Backward/forward  = ";
+  if ( xml_backward_forward_type == BACKWARD_FIRMWARE_TYPE ) {
+    std::cout << "backward";
+  } else if ( xml_backward_forward_type == FORWARD_FIRMWARE_TYPE ) {
+    std::cout << "forward";
+  } else if ( xml_backward_forward_type == DO_NOT_CARE ) {
+    std::cout << "do not care";
+  }
+  std::cout << std::endl;
+  //
+  std::cout << "Negative/positive = ";
+  if ( xml_negative_positive_type  == NEGATIVE_FIRMWARE_TYPE ) {
+    std::cout << "negative ";
+  } else if ( xml_negative_positive_type == POSITIVE_FIRMWARE_TYPE ) {
+    std::cout << "positive ";
+  } else if ( xml_negative_positive_type == DO_NOT_CARE ) {
+    std::cout << "do not care";
+  }
+  std::cout << std::endl;
+  //
+  std::cout << "Regular/mirror   = ";
+  if ( xml_regular_mirror_type == REGULAR_FIRMWARE_TYPE ) {
+    std::cout << "non-mirrored";
+  } else  if ( xml_regular_mirror_type == MIRROR_FIRMWARE_TYPE ) {
+    std::cout << "mirrored";
+  } else {
+    std::cout << "unknown";
+  }
+  std::cout << std::endl;
+  //
+  std::cout << "read FPGA ID   = 0x" << std::hex << read_fpga_id << std::endl;
+  //
+  //
+  return return_value;
+  //
 }

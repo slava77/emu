@@ -19,7 +19,7 @@ const string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
 const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda102;
 //
 const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
-const unsigned int EXPECTED_DMB_USERID      = 0x48547241;
+const unsigned int EXPECTED_DMB_USERID      = 0x48549011;
 const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
 const int EXPECTED_DMB_VME_VERSION       = 1547;
 const int EXPECTED_DMB_FIRMWARE_REVISION =    1;
@@ -177,6 +177,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::RATStatus, "RATStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadTMBFirmware, "LoadTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadCrateTMBFirmware, "LoadCrateTMBFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CCBHardResetFromTMBPage, "CCBHardResetFromTMBPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTMBFirmware, "CheckTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
@@ -1262,7 +1263,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
       //
       SetCurrentCrate(crate_number);
-      for(int i=0; i<9;i++) {
+      for(unsigned i=0; i<tmbVector.size();i++) {
 	OutputDMBTests[i][current_crate_] << "DMB-CFEB Tests " 
 					  << thisCrate->GetChamber(dmbVector[i]->slot())->GetLabel().c_str() 
 					  << " output:" << std::endl;
@@ -1352,7 +1353,9 @@ void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Out
   //  
   std::cout << "Button: Check Crate Configuration" << std::endl;
   //
-  CheckPeripheralCrateConfiguration();
+  std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
+  //
+  //  CheckPeripheralCrateConfiguration();
   //
   this->Default(in, out);
 }
@@ -7834,7 +7837,10 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table();
   //
   //
-  *out << "Step 2)  TTC/CCB hard reset" << cgicc::br() << std::endl;
+  std::string CCBHardResetFromTMBPage = toolbox::toString("/%s/CCBHardResetFromTMBPage",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 2) CCB hard reset") << std::endl ;
+  *out << cgicc::form() << std::endl ;
   //
   std::string CheckTMBFirmware = toolbox::toString("/%s/CheckTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckTMBFirmware) ;
@@ -7862,8 +7868,22 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   if (alct) {
     *out << "ALCT: " << cgicc::br() << std::endl;
-    for (unsigned i=0; i<tmbVector.size(); i++) 
+    for (unsigned i=0; i<tmbVector.size(); i++) {
+      //
+      int check_value = tmbVector[i]->alctController()->CheckFirmwareConfiguration();
+      //
+      if (check_value == 1) {
+	*out << cgicc::span().set("style","color:black");
+      } else if (check_value == 0) {
+	*out << cgicc::span().set("style","color:red");
+      } else if (check_value == -1) {
+	*out << cgicc::span().set("style","color:blue");
+      } else {
+	*out << cgicc::span().set("style","color:green");
+      }
       *out << "slot " << tmbVector[i]->slot() << " --> " << ALCTFirmware_[i].toString() << cgicc::br() << std::endl;
+      *out << cgicc::span() << std::endl ;
+    }
     //
     std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
@@ -8357,6 +8377,15 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   //
 }
 //
+void EmuPeripheralCrateConfig::CCBHardResetFromTMBPage(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  thisCCB->hardReset();
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::CheckTMBFirmware(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -8434,40 +8463,37 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
     return;
   }
   //
-  // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
+  // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
   thisCCB->setCCBMode(CCB::VMEFPGA);
   //
-  if (thisTMB->slot() < 22) {   // do NOT broadcast ALCT firmware
-    //
-    LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
-    //
-    std::cout <<  "Loading ALCT firmware to slot " << thisTMB->slot() 
-	      << " with " << ALCTFirmware_[tmb].toString() 
-	      << " in 5 seconds... " << std::endl;
-    //
-    ::sleep(5);
-    //
-    thisALCT->ReadSlowControlId();
-    thisALCT->PrintSlowControlId();
-    //
-    thisALCT->ReadFastControlId();
-    thisALCT->PrintFastControlId();
-    //
-    thisTMB->disableAllClocks();
-    //
-    int debugMode(0);
-    int jch(3);
-    int status = thisALCT->SVFLoad(&jch,ALCTFirmware_[tmb].toString().c_str(),debugMode);
-    //
-    thisTMB->enableAllClocks();
-    //
-    if (status >= 0){
-      LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
-      cout << "=== Programming finished"<< endl;
-      //	cout << "=== " << status << " Verify Errors  occured" << endl;
-    } else {
-      cout << "=== Fatal Error. Exiting with " << status << endl;
-    }
+  LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
+  //
+  std::cout <<  "Loading ALCT firmware to slot " << thisTMB->slot() 
+	    << " with " << ALCTFirmware_[tmb].toString() 
+	    << " in 5 seconds...  Current firmware types are:" << std::endl;
+  //
+  thisALCT->ReadSlowControlId();
+  thisALCT->PrintSlowControlId();
+  //
+  thisALCT->ReadFastControlId();
+  thisALCT->PrintFastControlId();
+  //
+  ::sleep(5);
+  //
+  thisTMB->disableAllClocks();
+  //
+  int debugMode(0);
+  int jch(3);
+  int status = thisALCT->SVFLoad(&jch,ALCTFirmware_[tmb].toString().c_str(),debugMode);
+  //
+  thisTMB->enableAllClocks();
+  //
+  if (status >= 0){
+    LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
+    cout << "=== Programming finished"<< endl;
+    //	cout << "=== " << status << " Verify Errors  occured" << endl;
+  } else {
+    cout << "=== Fatal Error. Exiting with " << status << endl;
   }
   //
   // Put CCB back into DLOG mode to listen to TTC commands...

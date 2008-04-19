@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.26 2008/04/09 15:37:23 rakness Exp $
+// $Id: ALCTController.h,v 3.27 2008/04/19 14:56:55 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.27  2008/04/19 14:56:55  rakness
+// ALCT database check before loading ALCT firmware
+//
 // Revision 3.26  2008/04/09 15:37:23  rakness
 // read ALCT fast control FPGA ID
 //
@@ -277,7 +280,12 @@ class ALCTController {
   void PrintFastControlId();                   // print out Read values				 
   //
   //
-  void ReadFastControlId();   	                  //fills Read values with values read from ALCT	 
+  void ReadFastControlId();   	                  //fills Read values with values read from ALCT	
+  void ReadFastControlMezzIDCodes();              //fills Read values with values read from ALCT	
+  //
+  inline int GetFastControlMezzFPGAID() { return alct_fpga_idcode_; }
+  inline int GetFastControlMezzPROM0ID() { return alct_prom0_idcode_; }
+  inline int GetFastControlMezzPROM1ID() { return alct_prom1_idcode_; }
   //
   //
   //////////////////
@@ -582,6 +590,7 @@ class ALCTController {
   inline TMB * GetTMB(){ return tmb_;}
   //
   // Methods used to program ALCT prom:
+  int CheckFirmwareConfiguration();
   int SVFLoad(int *, const char *, int);
   //
 protected:
@@ -632,6 +641,7 @@ private:
   // Slow-control registers private variables:        //
   //////////////////////////////////////////////////////
   char read_slowcontrol_id_[RegSizeAlctSlowFpga_RD_ID_REG/8+1];
+  int  alct_slow_prom_idcode_;
   //
   int write_afeb_threshold_[MAX_NUM_AFEBS];
   int read_afeb_threshold_[MAX_NUM_AFEBS];
@@ -744,6 +754,9 @@ private:
   int expected_fastcontrol_firmware_month_;
   //
   int alct_fpga_idcode_;
+  int alct_prom0_idcode_;
+  int alct_prom1_idcode_;
+  //
   int expected_alct_fpga_idcode_;
   //
   //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.39 2008/02/28 18:36:36 rakness Exp $
+// $Id: TMB.h,v 3.40 2008/04/19 14:56:55 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.40  2008/04/19 14:56:55  rakness
+// ALCT database check before loading ALCT firmware
+//
 // Revision 3.39  2008/02/28 18:36:36  rakness
 // make TMB firmware loading robust against all failure modes except power cuts...
 //
@@ -312,6 +315,9 @@ public:
   int  GetWordCount();
   void StartTTC();
   void DumpRegister(int);
+  //
+  Crate * getCrate();
+  Chamber * getChamber();
   //
   //! Write "data" into VME "address"
   void WriteRegister(int address, int data);

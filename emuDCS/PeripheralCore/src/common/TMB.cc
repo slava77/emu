@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.58 2008/02/28 18:36:36 rakness Exp $
+// $Id: TMB.cc,v 3.59 2008/04/19 14:56:55 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.59  2008/04/19 14:56:55  rakness
+// ALCT database check before loading ALCT firmware
+//
 // Revision 3.58  2008/02/28 18:36:36  rakness
 // make TMB firmware loading robust against all failure modes except power cuts...
 //
@@ -454,8 +457,17 @@ TMB::~TMB() {
   delete rat_;
   (*MyOutput_) << "destructing TMB" << std::endl;
 }
-
-
+//
+Crate * TMB::getCrate() {
+  //
+  return theCrate_;
+}
+//
+Chamber * TMB::getChamber() {
+  //
+  return csc_;
+}
+//
 int TMB::MPC0Accept(){
   //
   tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW);
@@ -463,7 +475,7 @@ int TMB::MPC0Accept(){
   return (rcvbuf[0]&0x2)>>1; 
   //
 }
-
+//
 int TMB::MPC1Accept(){
   //
   tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW);
