@@ -226,6 +226,25 @@ void EmuDAQManager::getAllAppDescriptors()
             "Failed to get application descriptors for class EmuMonitor"
             << " : " << xcept::stdformat_exception_history(e));
     }
+
+    vector< xdaq::ApplicationDescriptor* > dqmTFMonitorDescriptors_; // There's only one, but anyway
+    try
+    {
+        dqmTFMonitorDescriptors_ = getAppDescriptors(zone_, "EmuTFMonitor");
+    }
+    catch(emuDAQManager::exception::Exception e)
+    {
+        dqmTFMonitorDescriptors_.clear();
+
+        // Log only a warning as EmuMonitorss may not exist
+        LOG4CPLUS_WARN(logger_,
+            "Failed to get application descriptors for class EmuTFMonitor"
+            << " : " << xcept::stdformat_exception_history(e));
+    }
+
+    // Append EmuTFMonitor's descriptor to EmuTFMonitors'
+    dqmMonitorDescriptors_.insert(dqmMonitorDescriptors_.end(),
+				  dqmTFMonitorDescriptors_.begin(), dqmTFMonitorDescriptors_.end());
 }
 
 
