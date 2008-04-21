@@ -269,8 +269,8 @@ void CallBack2(xgi::Input * in, xgi::Output * out )
   cgicc::Cgicc cgi(in);
   std::cout << " CallBack2 call" << std::endl;
   // std::string DDUXMLDir = getenv("$BUILD_HOME");
-  // std::string DDUXMLDir = "/nfshome0/cscpro";
-  std::string DDUXMLDir = "/home/cscpcnew";
+  std::string DDUXMLDir = "/nfshome0/cscpro";
+  //  std::string DDUXMLDir = "/home/cscpcnew";
   DDUXMLDir += "/config/fed/";
   std::string DDUXMLFile=""; 
   std::string DDUXMLNewFile="";
@@ -343,14 +343,15 @@ void CallBack2(xgi::Input * in, xgi::Output * out )
   Readfile.close();
   Writefile.close();
   }
-  // system("cd /nfshome0/cscpro/config/fed;rm -f config_c1.xml;ln -s config_c1_SetKillFibersGUI.xml config_c1.xml");
-  // system("cd /nfshome0/cscpro/config/fed;rm -f config_c2.xml;ln -s config_c2_SetKillFibersGUI.xml config_c2.xml");
-  // system("cd /nfshome0/cscpro/config/fed;rm -f config_c3.xml;ln -s config_c3_SetKillFibersGUI.xml config_c3.xml");
-  // system("cd /nfshome0/cscpro/config/fed;rm -f config_c4.xml;ln -s config_c4_SetKillFibersGUI.xml config_c4.xml"); 
-  system("cd /home/cscpcnew/config/fed;rm -f config_c1.xml;ln -s config_c1_SetKillFibersGUI.xml config_c1.xml");
-  system("cd /home/cscpcnew/config/fed;rm -f config_c2.xml;ln -s config_c2_SetKillFibersGUI.xml config_c2.xml");
-  system("cd /home/cscpcnew/config/fed;rm -f config_c3.xml;ln -s config_c3_SetKillFibersGUI.xml config_c3.xml");
-  system("cd /home/cscpcnew/config/fed;rm -f config_c4.xml;ln -s config_c4_SetKillFibersGUI.xml config_c4.xml");
+  system("cd /nfshome0/cscpro/config/fed;rm -f config_c1.xml;ln -s config_c1_SetKillFibersGUI.xml config_c1.xml");
+  system("cd /nfshome0/cscpro/config/fed;rm -f config_c2.xml;ln -s config_c2_SetKillFibersGUI.xml config_c2.xml");
+  system("cd /nfshome0/cscpro/config/fed;rm -f config_c3.xml;ln -s config_c3_SetKillFibersGUI.xml config_c3.xml");
+  system("cd /nfshome0/cscpro/config/fed;rm -f config_c4.xml;ln -s config_c4_SetKillFibersGUI.xml config_c4.xml"); 
+  //  system("cd /home/cscpcnew/config/fed;rm -f config_c1.xml;ln -s config_c1_SetKillFibersGUI.xml config_c1.xml");
+  // system("cd /home/cscpcnew/config/fed;rm -f config_c2.xml;ln -s config_c2_SetKillFibersGUI.xml config_c2.xml");
+  //  system("cd /home/cscpcnew/config/fed;rm -f config_c3.xml;ln -s config_c3_SetKillFibersGUI.xml config_c3.xml");
+  //  system("cd /home/cscpcnew/config/fed;rm -f config_c4.xml;ln -s config_c4_SetKillFibersGUI.xml config_c4.xml");
+  system("cd /nfshome0/cscpro/config/fed;Make_c12;Make_c34");
   this->Default(in,out);
 }
 
