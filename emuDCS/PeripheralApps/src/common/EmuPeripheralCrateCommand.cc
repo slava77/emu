@@ -489,6 +489,8 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
 
   if(MyController==NULL || total_crates_<=0) return 0;
   //
+  int initialcrate=current_crate_;
+  //
   all_crates_ok = 1;
   //
   for(unsigned i=0; i< crateVector.size(); i++) {
@@ -502,6 +504,8 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
       all_crates_ok &= crate_check_ok[i];
     }
   }
+  SetCurrentCrate(initialcrate);
+  //
   return all_crates_ok;
 }
 
