@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.17 2008/04/02 13:41:54 liu Exp $
+// $Id: VMEModule.cc,v 3.18 2008/04/22 08:32:35 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.18  2008/04/22 08:32:35  liu
+// Ben's Crate controller utilities
+//
 // Revision 3.17  2008/04/02 13:41:54  liu
 // add f/w downloading verify for CCB & MPC
 //
@@ -273,6 +276,38 @@ void VMEModule::CloseJTAG() {
   theController->start( theSlot, boardType() );
   theController->CloseJTAG();
   theController->end();
+}
+
+int VMEModule::eth_write(){
+  theController->nwbuf=nwbuf;
+  int lim=nwbuf;
+  if(lim<0||lim>9000)lim=9000;
+  for(int i=0;i<lim;i++)theController->wbuf[i]=wbuf[i];
+  int n=theController->eth_write();
+  return n;
+}
+
+int VMEModule::eth_read(){
+   theController->nrbuf=0;
+  int n=theController->eth_read();
+  int lim=theController->nrbuf;
+  for(int i=0;i<lim;i++)rbuf[i]=theController->rbuf[i];
+  return n;
+}
+
+int VMEModule::eth_read_previous(){
+  nrbuf=theController->nrbuf;
+  for(int i=0;i<nrbuf;i++)rbuf[i]=theController->rbuf[i];
+  return nrbuf;
+}
+
+int VMEModule::eth_read_timeout(int rd_tmo){
+  int n=theController->eth_read_timeout(rd_tmo);
+  return n;
+}
+
+int VMEModule::LeftToRead(){
+  return theController->LeftToRead();
 }
 
 

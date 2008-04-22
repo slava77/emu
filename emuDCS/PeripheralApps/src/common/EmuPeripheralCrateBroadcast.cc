@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.27 2008/04/16 21:59:01 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.28 2008/04/22 08:34:10 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -453,6 +453,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
   {
     char buf[50];
     DefineBroadcastCrate();
+    vmecc=new VMECC(broadcastCrate,0);
     broadcastCrate->vmeController()->init();
 
     sprintf(buf," Entered VMECCLoadFirmwareBcast \n");
@@ -463,7 +464,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
    std::string VMECCFirmwareD=VMECC_FIRMWARE_VER;
     VMECCFirmwareVer_=VMECCFirmwareD;
     std::cout << " firmware ver: " << VMECCFirmwareVer_ .toString()<< std::endl;
-    broadcastCrate->vmeController()->prg_vcc_prom_bcast(VMECCFirmwareDir_.toString().c_str(),VMECCFirmwareVer_.toString().c_str());
+    vmecc->prg_vcc_prom_bcast(VMECCFirmwareDir_.toString().c_str(),VMECCFirmwareVer_.toString().c_str());
     this->LoadDMBCFEBFPGAFirmware(in,out);
     //
   }
@@ -471,6 +472,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
 void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception)
 {
   DefineBroadcastCrate();
+  vmecc=new VMECC(broadcastCrate,0);
   broadcastCrate->vmeController()->init();
   broadcastCrate->vmeController()->write_ResetMisc_CR(0x001B);
 
@@ -510,7 +512,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
     broadcastDMB0->mbpromuser(0);
-    nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+    nc=vmecc->vme_read_broadcast(buf);
     *out << nc << " DMB's in slot " << slott << " responded: " << std::endl;
     for(int i=0; i<nc; i++) {
         int *device_id=(int *)(buf+i*10+6);
@@ -537,7 +539,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
     broadcastDMB0->mbpromuser(1);
-    nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+    nc=vmecc->vme_read_broadcast(buf);
     *out << nc << " DMB's in slot " << slott << " responded: " << std::endl;
     for(int i=0; i<nc; i++) {
         int *device_id=(int *)(buf+i*10+6);
@@ -565,7 +567,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
     broadcastDMB0->mbfpgauser();
-    nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+    nc=vmecc->vme_read_broadcast(buf);
     *out << nc << " DMB's in slot " << slott << " responded: " << std::endl;
     for(int i=0; i<nc; i++) {
         int *device_id=(int *)(buf+i*10+6);
@@ -593,7 +595,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febfpgauser(*cfebItr);
-        nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+        nc=vmecc->vme_read_broadcast(buf);
         sprintf(sbuf,"CFEB%d  ",(*cfebItr).number());
         *out << nc << sbuf <<" in slot " << slott << " responded: " << std::endl;
     for(int i=0; i<nc; i++) {
@@ -624,7 +626,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febpromuser(*cfebItr);
-        nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+        nc=vmecc->vme_read_broadcast(buf);
         sprintf(sbuf," CFEB%d  ",(*cfebItr).number());
         *out << nc << sbuf <<" in slot " << slott << " responded: " << std::endl;
 	char rcvbuf[5];
@@ -691,7 +693,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestSkewClear(xgi::Input * in,xgi::Output
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febfpgauser(*cfebItr);
-        nc=broadcastCrate->vmeController()->vme_read_broadcast(buf);
+        nc=vmecc->vme_read_broadcast(buf);
         sprintf(sbuf,"CFEB%d  ",(*cfebItr).number());
         *out << nc << sbuf <<" in slot " << slott << " responded: " << std::endl;
     for(int i=0; i<nc; i++) {

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.11 2008/04/07 16:58:07 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.12 2008/04/22 08:34:09 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -67,6 +67,7 @@
 #include "ALCTController.h"
 #include "MPC.h"
 #include "RAT.h"
+#include "VMECC.h"
 #include "ConnectionsDB.h"
 #include "BoardsDB.h"
 
@@ -147,6 +148,7 @@ private:
 
   int calsetup;
   EmuController * MyController;
+  VMECC* vmecc;
   Crate * broadcastCrate;
   DAQMB * broadcastDMB;
   TMB * broadcastTMB;

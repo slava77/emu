@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.8 2008/04/02 13:42:50 liu Exp $
+// $Id: VMEModule.h,v 3.9 2008/04/22 08:32:35 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.9  2008/04/22 08:32:35  liu
+// Ben's Crate controller utilities
+//
 // Revision 3.8  2008/04/02 13:42:50  liu
 // add f/w downloading verify for CCB & MPC
 //
@@ -121,7 +124,7 @@ public:
   /// you want to end() by hand
   void endDevice();
   
-  enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM };
+  enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM, VMECC_ENUM };
   virtual unsigned int boardType() const = 0;
   virtual bool SelfTest() = 0;
   virtual void init() = 0;
@@ -141,6 +144,16 @@ public:
   int    write_now(unsigned  address, unsigned short data, char *rdbuf);
   int     read_now(unsigned  address, char *rdbuf);
   void   vme_delay(unsigned short useconds);
+
+  char wbuf[9000];
+  int nwbuf;
+  char rbuf[9000];
+  int nrbuf;
+  int eth_write();
+  int eth_read();
+  int eth_read_previous();
+  int eth_read_timeout(int rd_tmo);
+  int LeftToRead();
 
 protected:
   //

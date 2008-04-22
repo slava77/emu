@@ -24,6 +24,7 @@ Sources=\
 	MPC.cc \
 	TMBTester.cc \
 	TMB.cc \
+	VMECC.cc \
 	VMEController.cc \
 	VMEController_jtag.cc \
 	VMEModule.cc \

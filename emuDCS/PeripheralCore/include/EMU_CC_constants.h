@@ -44,7 +44,7 @@ union hdr_stat {
     unsigned int ackn : 4; //Acknowledge/Status field
     unsigned int spnt : 1; //Spontaneous packet flag
     unsigned int frag : 1; //Packet fragment flag
-    unsigned int newp  : 1; //New packet flag (1st of a series of fragments)
+    unsigned int newp : 1; //New packet flag (1st of a series of fragments)
     unsigned int prio : 1; //Priority packet flag
   } tg; // tag
 };
@@ -94,6 +94,9 @@ enum src_id {MISC = 0, VME_CTRL, VME_MSTR, VME_RDBK, VME_IH, VME_SLV,
              VME_ARB, EXFIFO_MOD, ETH_RCV, ETH_TRNS, JTAG_MOD, FLASH_MOD,
              CNFG_MOD, CP_MOD, RST_HNDLR, STRTUP_SHTDWN};
 enum typ_id {HDR_INFO = 0, HDR_WARN, HDR_ERROR, HDR_NT_ALLWD};
+enum MAC_ID {DEVICE=0, MCAST1=1, MCAST2=2, MCAST3=3, DFLT_SRV=4, ALL_MACS=8};
+enum CR_ID {ETHER=0, EXTFIFO=1, RST_MISC=2, VME=3, BTO=4, BGTO=5, ALL_CRS=8};
+enum SET_CLR {CLR=0, SET=1};
 
 
 /*
@@ -290,6 +293,11 @@ struct ucw ucwtab[] = {
   {0x208, "ERR", "EF_Mltp_Err",     "Multiple FIFO errors."},
   {0x209, "WRN", "EF_Wrt_Wrn",      "Write command received while in VME mode\n\t\t\t\t"
                                     "(data written to FIFO)."},
+  {0x20A, "WRN", "EF_MHAF_Wrn",     "MAC/Header FIFO is almost full \n\t\t\t\t"
+                                    "(stop sending Commands)."},
+  {0x20B, "ERR", "EF_Drp_Err",      "Packet dropped due to MAC/Header FIFO being full."},
+  {0x20C, "INF", "EF_MHAMT_Inf",    "MAC/Header FIFO is almost empty."},
+  {0x20D, "INF", "EF_AMT_Inf",      "External FIFO is almost empty."},
   {0x210, "ERR", "ER_Rcv_Err",      "Ethernet receive FIFO went empty before\n\t\t\t\t"
                                     "all packet data was read."},
   {0x230, "WRN", "JT_Buf_AF",       "JTAG buffer is almost full\n\t\t\t\t"
@@ -471,6 +479,10 @@ int npktcodes = NPKTCODES;
 #define EF_Rd_V_Err     0x207
 #define EF_Mltp_Err     0x208
 #define EF_Wrt_Wrn      0x209
+#define EF_MHAF_Wrn     0x20A
+#define EF_Drp_Err      0x20B
+#define EF_MHAMT_Inf    0x20C
+#define EF_AMT_Inf      0x20D
 #define ER_Rcv_Err      0x210
 #define JT_Buf_AF       0x230
 #define JT_Buf_Ovfl     0x231
@@ -687,6 +699,7 @@ JINSTR_t erase[] = {
                    {JC_ShDZ,            0x0008, 0x0000},
                    {JC_TstatLp_Imd,     0x0000, 0x0002},
                    {JC_ShI_Imd,         0x0010, prm_conld},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
@@ -803,6 +816,7 @@ JINSTR_t program[] = {
                    {JC_TstatLp_Imd,     0x0000, 0x0002},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_TDone,           0x0000, prm_null_wrd},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
@@ -834,6 +848,7 @@ JINSTR_t verify[] = {
                    {JC_Wait2Poll,       0x0000, prm_null_wrd},
                    {JC_ShDZ,            0x0008, 0x0000},
                    {JC_TstatLp_Imd,     0x0000, 0x0002},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
@@ -860,6 +875,7 @@ JINSTR_t reload[] = {
                    {JC_Wait2Poll,       0x0000, prm_null_wrd},
                    {JC_ShDZ,            0x0008, 0x0000},
                    {JC_TstatLp_Imd,     0x0000, 0x0002},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
@@ -878,31 +894,11 @@ JINSTR_t rd_devid[] = {
                    {JC_ShD_Imd,         0x0008, 0x0003},
                    {JC_ShI_Imd,         0x0010, prm_idcode},
                    {JC_ShDZrbk,         0x0020, 0x0000},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
-/*
-JINSTR_t rd_devid[] = {
-                   {0x0010,      0x0020, 0x0030},
-                   {0x0011,      0x0021, 0x0031},
-                   {0x0012,      0x0022, 0x0032},
-                   {0x0013,      0x0023, 0x0033},
-                   {0x0014,      0x0024, 0x0034},
-                   {0x0015,      0x0025, 0x0035},
-                   {0x0016,      0x0026, 0x0036},
-                   {0x0017,      0x0027, 0x0037},
-                   {0x0018,      0x0028, 0x0038},
-                   {0x0019,      0x0029, 0x0039},
-                   {0x001A,      0x002A, 0x003A},
-                   {0x001B,      0x002B, 0x003B},
-                   {0x001C,      0x002C, 0x003C},
-                   {JC_End_Prg,  0x002D, 0x003D},
-                   {0x001E,      0x002E, 0x003E},
-                   {0x001F,      0x002F, 0x003F},
-                   {JC_End_Prg,JC_End_Prg,JC_End_Prg},
-                   {JC_End_Prg,JC_End_Prg,JC_End_Prg},
-                   {JC_End_Prg,JC_End_Prg,JC_End_Prg}};
-*/
+
 #define N_rd_devid (sizeof rd_devid / sizeof(JINSTR_t))
 
 //
@@ -917,24 +913,11 @@ JINSTR_t rd_uc[] = {
                    {JC_ShD_Imd,         0x0008, 0x0003},
                    {JC_ShI_Imd,         0x0010, XSC_DATA_UC},
                    {JC_ShDZrbk,         0x0020, 0x0000},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
-/*
-JINSTR_t rd_uc[] = {
-                   {0x0040,      0x0050, 0x0060},
-                   {0x0041,      0x0051, 0x0061},
-                   {0x0042,      0x0052, 0x0062},
-                   {0x0043,      0x0053, 0x0063},
-                   {0x0044,      0x0054, 0x0064},
-                   {0x0045,      0x0055, 0x0065},
-                   {0x0046,      0x0056, 0x0066},
-                   {0x0047,      0x0057, 0x0067},
-                   {0x0048,      0x0058, 0x0068},
-                   {JC_End_Prg,JC_End_Prg,JC_End_Prg},
-                   {JC_End_Prg,JC_End_Prg,JC_End_Prg},
-                   {JC_End_Prg,JC_End_Prg,JC_End_Prg}};
-*/
+
 #define N_rd_uc (sizeof rd_uc / sizeof(JINSTR_t))
 
 //
@@ -953,6 +936,7 @@ JINSTR_t rd_cc[] = {
                    {JC_ShI_Imd,         0x0010, XSC_DATA_CC},
                    {JC_Wait2Poll,       0x0000, prm_null_wrd},
                    {JC_ShDZrbk,         0x0100, 0x0000},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
@@ -984,6 +968,7 @@ JINSTR_t rd_prom[] = {
                    {JC_Wait2Poll,       0x0000, prm_null_wrd},
                    {JC_ShDZ,            0x0008, 0x0000},
                    {JC_TstatLp_Imd,     0x0000, 0x0002},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
@@ -1004,6 +989,7 @@ JINSTR_t chk_conn[] = {
                    {JC_Cont_Data,       0x0000, prm_bypass},
                    {JC_Cont_Data,       0x0000, 0xFACE},
                    {JC_Cont_Data,       0x0000, 0xFFFF},
+                   {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
 
 #define N_chk_conn (sizeof chk_conn / sizeof(JINSTR_t))
@@ -1014,106 +1000,16 @@ JINSTR_t chk_conn[] = {
 //                   Instuction       Bit Count   Data
 //                 ----------------------------------------
 JINSTR_t user[] = {
-                   {JC_SetPollInt,      0x0000, Poll_Shrt},
                    {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x00d0},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
                    {JC_ShD_Imd,         0x0008, 0x0003},
-                   {JC_ShI_Imd,         0x0010, XSC_DATA_BTC},
-                   {JC_ShD_Imd,         0x0020, 0xffe0},
-                   {JC_Cont_Data,       0x0000, 0xffff},
-                   {JC_ShI_Imd,         0x0010, ISC_PROGRAM},
-                   {JC_ShI_Imd,         0x0010, prm_poll},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShDZ,            0x0008, 0x0000},
-                   {JC_TstatLp_Imd,     0x0000, 0x0002},
+                   {JC_ShI_Imd,         0x0010, prm_idcode},
+                   {JC_ShDZrbk,         0x0020, 0x0000},
                    {JC_RstIdl_TAP,      0x0000, prm_null_wrd},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x00d0},
-                   {JC_ShI_Imd,         0x0010, ISC_DATA_SHIFT},
-                   {JC_ShDff,           0x0100, prm_null_wrd},
-                   {JC_ShI_Imd,         0x0010, ISC_ADDR_SHIFT},
-                   {JC_ShD_Imd,         0x0018, 0x0000},
-                   {JC_Cont_Data,       0x0000, 0x0000},
-                   {JC_ShI_Imd,         0x0010, ISC_PROGRAM},
-                   {JC_ShI_Imd,         0x0010, prm_poll},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShDZ,            0x0008, 0x0000},
-                   {JC_TstatLp_Imd,     0x0000, 0x0002},
-                   {JC_LdLpCntr_Imd,    0x0000, 0x0001},
-                   {JC_ShI_Imd,         0x0010, ISC_DATA_SHIFT},
-                   {JC_ShDff,           0x0100, prm_null_wrd},
-                   {JC_ShI_Imd,         0x0010, ISC_PROGRAM},
-                   {JC_ShI_Imd,         0x0010, prm_poll},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShDZ,            0x0008, 0x0000},
-                   {JC_TstatLp_Imd,     0x0000, 0x0002},
-                   {JC_TcntrLp_Imd,     0x0000, 0x0007},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x0003},
-                   {JC_ShI_Imd,         0x0010, XSC_DATA_SUCR},
-                   {JC_ShD_Imd,         0x0010, 0xfffc},
-                   {JC_ShI_Imd,         0x0010, ISC_PROGRAM},
-                   {JC_ShI_Imd,         0x0010, prm_poll},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShDZ,            0x0008, 0x0000},
-                   {JC_TstatLp_Imd,     0x0000, 0x0002},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x0003},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x0003},
-                   {JC_ShI_Imd,         0x0010, XSC_DATA_UC},
-                   {JC_ShDff,           0x0020, prm_null_wrd},
-                   {JC_ShI_Imd,         0x0010, ISC_PROGRAM},
-                   {JC_ShI_Imd,         0x0010, prm_poll},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShDZ,            0x0008, 0x0000},
-                   {JC_TstatLp_Imd,     0x0000, 0x0002},
-                   {JC_ShI_Imd,         0x0010, XSC_DATA_UC},
-                   {JC_ShDZverff,       0x0020, prm_null_wrd},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x0003},
-                   {JC_ShI_Imd,         0x0010, ISC_ADDR_SHIFT},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShD_Imd,         0x0018, 0x0000},
-                   {JC_Cont_Data,       0x0000, 0x0088},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShI_Imd,         0x0010, XSC_DATA_CC},
-                   {JC_ShDff,           0x0100, prm_null_wrd},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShI_Imd,         0x0010, ISC_PROGRAM},
-                   {JC_ShI_Imd,         0x0010, prm_poll},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShDZ,            0x0008, 0x0000},
-                   {JC_TstatLp_Imd,     0x0000, 0x0002},
-                   {JC_ShI_Imd,         0x0010, prm_conld},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x0003},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x0003},
-                   {JC_ShI_Imd,         0x0010, XSC_DATA_CCB},
-                   {JC_ShD_Imd,         0x0010, 0xFFF9},
-                   {JC_ShI_Imd,         0x0010, ISC_PROGRAM},
-                   {JC_ShI_Imd,         0x0010, prm_poll},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShDZ,            0x0008, 0x0000},
-                   {JC_TstatLp_Imd,     0x0000, 0x0002},
-                   {JC_ShI_Imd,         0x0010, prm_conld},
-                   {JC_ShI_Imd,         0x0010, prm_ispen},
-                   {JC_ShD_Imd,         0x0008, 0x0003},
-                   {JC_ShI_Imd,         0x0010, XSC_DATA_DONE},
-                   {JC_ShD_Imd,         0x0008, 0x00ce},
-                   {JC_ShI_Imd,         0x0010, ISC_PROGRAM},
-                   {JC_ShI_Imd,         0x0010, prm_poll},
-                   {JC_Wait2Poll,       0x0000, prm_null_wrd},
-                   {JC_ShDZ,            0x0008, 0x0000},
-                   {JC_TstatLp_Imd,     0x0000, 0x0002},
-                   {JC_ShI_Imd,         0x0010, prm_bypass},
-                   {JC_TDone,           0x0000, prm_null_wrd},
                    {JC_ShI_Imd,         0x0010, prm_bypass},
                    {JC_ShDZ,            0x0001, 0x0000},
                    {JC_End_Prg,         0x0000, prm_null_wrd}};
+
 
 #define N_user (sizeof user / sizeof(JINSTR_t))
 
@@ -1132,38 +1028,10 @@ JRTN_t jtr[] = {
 
 unsigned short int prm_dat[0x80000];
 
- #define MAX_MSG_SIZE 1024 
+#define MAX_MSG_SIZE 1024 
 
  JINSTR_t rbk_prg[512];
 
-//
-// from cnfg_defs.h
-//
-typedef struct mac_t {  /* MAC addresses */
-        unsigned char device[6];
-        unsigned char mcast1[6];
-        unsigned char mcast2[6];
-        unsigned char mcast3[6];
-        unsigned char dflt_srv[6];
-} MAC_t;
-
-typedef struct cnfg_t {  /* Configuration elements */
-        MAC_t mac;
-        unsigned short int ether;
-        unsigned short int ext_fifo;
-        unsigned short int reset;
-        unsigned int vme;
-        unsigned short int vme_bto;
-        unsigned short int vme_bgto;
-} CNFG_t;
-
-typedef CNFG_t *CNFG_ptr;
-
-typedef struct sn_t {  /* Serial Number type structure */
-        int status;
-        int err_typ;
-        int sn;
-} SN_t;
 
 #define CNFG_MAXLINE 256
 
@@ -1215,7 +1083,7 @@ typedef struct sn_t {  /* Serial Number type structure */
 #define VME_CR_SYSCLK   0x00000002  //Enable SYSCLK
 #define VME_CR_BTO      0x00000004  //Enable BUS TimeOut
 #define VME_CR_ARB      0x00000008  //Enable Arbiter
-#define VME_CR_SLV      0x00000010  //Enable Slave (on controller for testing)
+#define VME_CR_MSK_BERR 0x00000010  //Mask BERR backplane signal
 #define VME_CR_LOC      0x00000020  //Enable Location Monitor (not impl. yet)
 #define VME_CR_IH       0x00000040  //Enable Interrupt Handler
 #define VME_CR_USR      0x00000080  //Enable User Defined I/O
