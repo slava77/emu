@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.45 2008/04/22 08:32:35 liu Exp $
+// $Id: VMEController.cc,v 3.46 2008/04/22 11:02:16 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.46  2008/04/22 11:02:16  liu
+// update error messages
+//
 // Revision 3.45  2008/04/22 08:32:35  liu
 // Ben's Crate controller utilities
 //
@@ -1280,7 +1283,8 @@ READETH:
     nrbuf=nread;
     size=eth_read();
     if(size<10)
-        { printf(" ERROR: no data read back from %08lX\n\n", ptrt);
+        { printf(" ERROR: no data read back from crate %02X, address %08lX\n", hw_dest_addr[5]&0xff, ptrt);
+          error_count++;
           if(DEBUG) {
             int schar_status=ioctl(theSocket,SCHAR_INQR);
             if(schar_status!=-1) {
@@ -1342,7 +1346,7 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
              if(DEBUG || return_type==0xff || return_type==0xfe) 
              {
                printf("EWI packet %02X, %02X%02X, ", return_type&0xff, r_datat[0]&0xff, r_datat[1]&0xff);
-               printf("type: %d, source: %d, code: %d from %d, %08lX\n", EWI, Source_ID, error_type, irdwr, ptrt);
+               printf("type: %d, source: %d, code: %d from %d, crate %02X, address %08lX\n", EWI, Source_ID, error_type, irdwr, hw_dest_addr[5]&0xff, ptrt);
              }
           }
           else
