@@ -56,6 +56,8 @@
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
 #include "EmuEndcap.h"
+#include "VMECC.h"
+#include "EMU_CC_constants.h"
 #include "BoardsDB.h"
 //
 #include "EmuApplication.h"
@@ -107,6 +109,7 @@ protected:
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
   //
+  VMECC* vmecc;
   CCB* thisCCB ;
   ALCTController *alct ;
   RAT * rat;
@@ -175,6 +178,90 @@ protected:
   //
   unsigned long int DMBBoardNumber[62][10];
   unsigned long int CFEBBoardNumber[62][10][7];
+
+  //VCC Utilities
+  std::string VCC_UTIL_cmn_tsk_dbg;
+  std::string VCC_UTIL_cmn_tsk_sn;
+  std::string VCC_UTIL_cmn_tsk_cc;
+  std::string VCC_UTIL_cmn_tsk_lpbk;
+  std::string VCC_UTIL_cmn_tsk_lpbk_color;
+  std::string VCC_UTIL_Frmw_rbk_[8]; 
+  std::string VCC_UTIL_base_addr_inp; 
+  std::string VCC_UTIL_prom_file_inp; 
+  std::string VCC_UTIL_proj;
+  std::string VCC_UTIL_maj_ver;
+  std::string VCC_UTIL_min_ver;
+  std::string VCC_UTIL_PROM_ver;
+  bool VCC_UTIL_PROM_file_init;
+  std::string VCC_UTIL_Prnt_Rtns;
+  std::string VCC_UTIL_CR_cur_[6];
+  std::string VCC_UTIL_CR_dflt_[6];
+  std::string VCC_UTIL_CR_flashA_[6];
+  std::string VCC_UTIL_CR_flashB_[6];
+  std::string VCC_UTIL_CR_wrt_[7];
+  std::string VCC_UTIL_CR_cnumA;
+  std::string VCC_UTIL_CR_cnumB;
+  std::string VCC_UTIL_CR_sav_cnum;
+  std::string VCC_UTIL_CR_rstr_cnum;
+  std::string VCC_UTIL_CR_dflt_cnum;
+  std::string VCC_UTIL_CR_curr_dflt;
+  std::string VCC_UTIL_CR_ser_num;
+  CNFG_t VCC_UTIL_CR_to;
+  CNFG_t VCC_UTIL_CR_from;
+  std::string VCC_UTIL_MAC_ena_dis;
+  std::string VCC_UTIL_MAC_wrt_dev;
+  std::string VCC_UTIL_MAC_wrt_mcast1;
+  std::string VCC_UTIL_MAC_wrt_mcast2;
+  std::string VCC_UTIL_MAC_wrt_mcast3;
+  std::string VCC_UTIL_MAC_wrt_dflt;
+  std::string VCC_UTIL_MAC_rbk_dev;
+  std::string VCC_UTIL_MAC_rbk_mcast1;
+  std::string VCC_UTIL_MAC_rbk_mcast2;
+  std::string VCC_UTIL_MAC_rbk_mcast3;
+  std::string VCC_UTIL_MAC_rbk_dflt;
+  std::string VCC_UTIL_FIFO_mode;
+  std::string VCC_UTIL_FIFO_ecc;
+  std::string VCC_UTIL_FIFO_inj;
+  std::string VCC_UTIL_FIFO_wrt_pae;
+  std::string VCC_UTIL_FIFO_wrt_paf;
+  std::string VCC_UTIL_FIFO_rbk_pae;
+  std::string VCC_UTIL_FIFO_rbk_paf;
+  std::string VCC_UTIL_FIFO_cor_errs;
+  std::string VCC_UTIL_FIFO_uncor_errs;
+  std::string VCC_UTIL_FIFO_wrt_data;
+  std::string VCC_UTIL_FIFO_rbk_data;
+  std::string VCC_UTIL_FIFO_msg_data;
+  std::string VCC_UTIL_FIFO_rd_num;
+  std::string VCC_UTIL_misc_warn;
+  std::string VCC_UTIL_misc_strtup;
+  std::string VCC_UTIL_misc_int;
+  std::string VCC_UTIL_misc_fp;
+  std::string VCC_UTIL_misc_srst;
+  std::string VCC_UTIL_misc_hr;
+  std::string VCC_UTIL_misc_jtag;
+  std::string VCC_UTIL_misc_spont;
+  std::string VCC_UTIL_misc_rd_msglvl;
+  std::string VCC_UTIL_misc_wrt_msglvl;
+  std::string VCC_UTIL_PKTSND_prcs_tag;
+  std::string VCC_UTIL_PKTSND_cmnd;
+  std::string VCC_UTIL_PKTSND_data;
+  std::string VCC_UTIL_PKTRCV_num_pkt;
+  std::string VCC_UTIL_PKTRCV_pkts_inbuf;
+  std::string VCC_UTIL_PKTRCV_wrd_cnt;
+  std::string VCC_UTIL_PKTRCV_raw_pkt;
+  std::string VCC_UTIL_PKTRCV_pkt_len;
+  std::string VCC_UTIL_PKTRCV_dstn_addr;
+  std::string VCC_UTIL_PKTRCV_src_addr;
+  std::string VCC_UTIL_PKTRCV_pkt_flags;
+  std::string VCC_UTIL_PKTRCV_frg_seq;
+  std::string VCC_UTIL_PKTRCV_frg_seq_num;
+  std::string VCC_UTIL_PKTRCV_ack_num;
+  std::string VCC_UTIL_PKTRCV_ack_stat;
+  std::string VCC_UTIL_PKTRCV_prc_tag;
+  std::string VCC_UTIL_PKTRCV_pkt_typ_num;
+  std::string VCC_UTIL_PKTRCV_pkt_type;
+  std::string VCC_UTIL_PKTRCV_pkt_cmnd;
+  std::string VCC_UTIL_PKTRCV_rbk_data;
   
   //
   EmuEndcap * emuEndcap_;
@@ -218,6 +305,7 @@ private:
   void haltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception); 
+  void VCCHeader(xgi::Input * in, xgi::Output * out, std::string title, std::string heading ) throw (xgi::exception::Exception); 
   void CrateTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DefineConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CalibrationRuns(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -328,10 +416,23 @@ private:
   void ELMBID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void BackplaneID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void EnableDisableDebug(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void ExcludeIncludeCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void ReadVMECCRegisters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void VMECCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_GoTo(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_firmware_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_misc_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_CNFG_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_MAC_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_FIFO_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_PKTSND_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_MISC_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

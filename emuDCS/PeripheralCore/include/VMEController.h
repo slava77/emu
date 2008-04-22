@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.25 2008/02/29 08:55:11 liu Exp $
+// $Id: VMEController.h,v 3.26 2008/04/22 08:32:35 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.26  2008/04/22 08:32:35  liu
+// Ben's Crate controller utilities
+//
 // Revision 3.25  2008/02/29 08:55:11  liu
 // updated delays and error message handling
 //
@@ -248,51 +251,9 @@ public:
   void write_VME_CR(unsigned int val);
   void write_BusTimeOut_CR(unsigned short int val);
   void write_BusGrantTimeOut_CR(unsigned short int val);
-  // eth_lib3.c
-  int eth_read_timeout(int rd_tmo);
-  //jtag_subs
-  void prg_vcc_prom_ver(const char *path,const char *ver);
-  void prg_vcc_prom_bcast(const char *path,const char *ver);
-  void jtag_init();
-  int chk_jtag_conn();
-  unsigned int read_dev_id();
-  unsigned int read_user_code();
-  char *read_customer_code();
-  int erase_prom();
-  int erase_prom_bcast();
-  void program_prom_cmd();
-  void program_prom_cmd_no_ack();
-  void reload_fpga();
-  void verify_prom_cmd();
-  void ld_rtn_base_addr(unsigned short base);
-  void exec_routine(int rtn);
-  unsigned int get_jtag_status();
-  void abort_jtag_cmnds();
-  void write_jtag_fifo_words(unsigned short *buf, int nw);
-  void write_jtag_fifo_bytes(unsigned char *buf, int nb);
-  int read_prg_space(unsigned short base);
-  void print_routines();
-  void  rd_back_prom();
-  void read_mcs(char *fn);
-  void send_ver_prom_data();
-  void send_prg_prom_data();
-  void send_prg_prom_data_bcast();
-  void send_uc_cc_data(char *fn);
-  int read_dev_id_broadcast(char *crates_info);
-  int vme_read_broadcast(char *dmbs_info);
-  //pkt_utils
-  char *dcode_msg_pkt(char *buf);
-  void *ptr_bin_srch(int code, struct ucw *arr, int n);
-  struct rspn_t flush_pkts();
   void vcc_dump_config();
   void vcc_check_config();
-  int LeftToRead();
 
-  //cnfg_subs
-  enum MAC_ID {DEVICE=0, MCAST1=1, MCAST2=2, MCAST3=3, DFLT_SRV=4, ALL_MACS=8};
-  enum CR_ID {ETHER=0, EXTFIFO=1, RESET=2, VME=3, BTO=4, BGTO=5, ALL_CRS=8};
-  enum SET_CLR {CLR=0, SET=1};
-  int set_clr_bits(enum SET_CLR sc, enum CR_ID crid, unsigned int mask);
 
   void set_ErrorServer();
   inline void SetPort(int port) {port_=port;}
@@ -310,7 +271,17 @@ public:
   inline std::vector<int> Get_VecVmeAddress() { return write_vme_address_; }
   inline std::vector<int> Get_VecDataLsb() { return write_data_lsb_; }
   inline std::vector<int> Get_VecDataMsb() { return write_data_msb_; }
-  //
+ 
+  char wbuf[9000];
+  int nwbuf;
+  char rbuf[9000];
+  int nrbuf;
+  int eth_read();
+  int eth_write();
+  int eth_read_timeout(int rd_tmo);
+  int LeftToRead();
+  int NoWriteToEther;
+   //
 private:
   bool usedelay_;
   bool useDCS_;
@@ -323,10 +294,6 @@ private:
   unsigned char hw_dest_addr[6];
   struct ethhdr ether_header; 
 
-  char wbuf[9000];
-  int nwbuf;
-  char rbuf[9000];
-  int nrbuf;
   char spebuff[MAXLINE];
   bool done_init_;
   
@@ -373,8 +340,6 @@ private:
   int VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
   void dump_outpacket(int nvme);
   int eth_reset(int ethsocket);
-  int eth_read();
-  int eth_write();
   void mrst_ff();
   void set_VME_mode();
   void get_macaddr(int port);
@@ -383,8 +348,6 @@ private:
   int vcc_write_command(int code, int n_words, unsigned short *writedata);
   int vcc_write_command(int code);
   //
-  static const int Save_Cnfg_Num = 0x05;
-  static const int Set_Cnfg_Dflt = 0x09;
   //
   bool ok_vme_write_;
   //
