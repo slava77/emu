@@ -80,6 +80,7 @@ public:
   void ddu_rdempty();
   void ddu_rdstuckbuf();
   void ddu_rdscaler();
+  unsigned long int ddu_int_rdscaler();
   void ddu_rdalcterr();
   void ddu_loadbxorbit(int regval);
   void ddu_rdbxorbit();
@@ -101,6 +102,7 @@ public:
   void infpga_histat(enum DEVTYPE dv);
   void infpgastat(enum DEVTYPE dv);
   void infpga_CheckFiber(enum DEVTYPE dv);
+  long int infpga_int_CheckFiber(enum DEVTYPE dv);
   void infpga_DMBsync(enum DEVTYPE dv);
   void infpga_FIFOstatus(enum DEVTYPE dv);
   void infpga_FIFOfull(enum DEVTYPE dv);
@@ -182,8 +184,11 @@ public:
 
   // DDU serial 
   void read_status();
+  int read_int_page1();
   void read_page1();
   void write_page1();
+  int read_page3();
+  void write_page3();
   void read_page4();
   void write_page4();
   void read_page5();

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.6 2007/07/23 05:03:30 gilmore Exp $
+// $Id: VMEController.cc,v 3.7 2008/04/22 09:31:11 geurts Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.7  2008/04/22 09:31:11  geurts
+// New FEDCrate Control software by Jason and Phillip.
+//
 // Revision 3.6  2007/07/23 05:03:30  gilmore
 // major structural chages to improve multi-crate functionality
 //
@@ -45,7 +48,7 @@ long OpenBHandle[4][4] = {{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1
 
 
 VMEController::VMEController(int Device, int Link): 
-	theBHandle(-1), Device_(Device), Link_(Link), theCurrentModule(0), indian(SWAP), start_thread_on_init(0),is_thread_started(false)
+	theBHandle(-1), Device_(Device), Link_(Link), theCurrentModule(0), indian(SWAP)
 {
 	CVBoardTypes VMEBoard;
 	short Lin;
@@ -76,7 +79,7 @@ VMEController::~VMEController(){
 	cout << "destructing VMEController .. closing socket " << endl;
 	CAEN_close();
 }
-
+/*
 void VMEController::start_thread(long unsigned int runnumber) {
 	if (is_thread_started) {
 		cout << " VMEController: thread alread started, killing previous thread (unsafe)" << endl;
@@ -84,7 +87,7 @@ void VMEController::start_thread(long unsigned int runnumber) {
 	}
 	IRQData data;
 	data.crate_number=crateNumber;
-	data.Handle=theBHandle;
+	data.Handles.push(theBHandle);
 	data.exit=0;
 	data.count=0;
 	data.count_fmm=0;
@@ -126,7 +129,7 @@ void VMEController::kill_thread() {
 	myThread->kill();
 	delete myThread;
 }
-
+*/
 void VMEController::setCrate(int number) {
 	crateNumber = number;
 }
@@ -247,8 +250,8 @@ long unsigned int pttr;
  }else if(irdwr==3){
    CAEN_write(pttr,data);
  }else if(irdwr==6){
-   if(delay_type==2)packet_delay=((*data)*DELAY2);
-   if(delay_type==3)packet_delay=((*data)*DELAY3);
+   if(delay_type==2)packet_delay= (long int) ((*data)*DELAY2);
+   if(delay_type==3)packet_delay= (long int) ((*data)*DELAY3);
    // printf(" packet_delay %d %ld \n",*data,packet_delay);
    udelay(packet_delay);
  }

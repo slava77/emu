@@ -827,7 +827,7 @@ void VMEController::vmeser(const char *cmd,const char *snd,char *rcv)
 {
  int i;
  int nt;
- short int seri[16]={2,2,0,0,4,6,0,2,0,2,0,0,4,6,0,2};
+ short int seri[16]={2,2,0,2,4,6,0,2,0,2,0,0,4,6,0,2};
  unsigned short int icmd;
  unsigned short int iadr;
  

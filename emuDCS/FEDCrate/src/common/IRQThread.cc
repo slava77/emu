@@ -28,6 +28,7 @@ void IRQThread::start(long unsigned int runnumber)
 	cout << "**about to launch pthread" << endl;
 	status = 0;
 	time(&(data.start_time));
+
 	int error = pthread_create(&threadID, NULL, IRQ_Interrupt_Handler, &data);
 	cout << "**pthread launched with status " << error << endl;
 	if (error) {
@@ -167,7 +168,9 @@ void IRQThread::info()
 void *IRQThread::IRQ_Interrupt_Handler(void *data)
 {
 	IRQData *locdata = (IRQData *)data;
-	long BHandle;
+	locdata->Handle = locdata->Handles.front();
+	locdata->Handles.pop();
+	long BHandle = locdata->Handle;
 	unsigned long Address;
 	unsigned char Data[2];
 	CVAddressModifier AM=cvA24_U_DATA;
@@ -186,7 +189,6 @@ void *IRQThread::IRQ_Interrupt_Handler(void *data)
 	while (1) {
 		if(locdata->exit==1) break;
 		
-		BHandle=locdata->Handle;
 		CAENVME_IRQEnable(BHandle,mask);
 		noerr=CAENVME_IRQWait(BHandle,mask,5000);
 

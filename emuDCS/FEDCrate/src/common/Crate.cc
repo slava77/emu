@@ -38,7 +38,7 @@ void Crate::setController(VMEController *controller) {
 	cout << "Setting controller in crate " << theNumber << endl;
 	theController = controller;
 	theController->setCrate(theNumber);
-	for (int i=0; i<theModules.size(); i++) {
+	for (unsigned int i=0; i<theModules.size(); i++) {
 		if (theModules[i] == NULL) continue;
 		theModules[i]->setController(theController);
 	}
@@ -76,7 +76,7 @@ void Crate::disable() {
 //
 void Crate::configure(long unsigned int runnumber = 0) {
 // JRG, downloads to all boards, then starts the IRQ handler.
-	printf(" ********   Crate::configure is called with run number %d \n",runnumber);
+	printf(" ********   Crate::configure is called with run number %u \n",(unsigned int) runnumber);
 	std::vector<DDU*> myDdus = this->ddus();
 	for(unsigned i =0; i < myDdus.size(); ++i) {
 		myDdus[i]->configure();
@@ -96,11 +96,13 @@ void Crate::configure(long unsigned int runnumber = 0) {
 
 void Crate::init(long unsigned int runnumber = 0) {
 // PGK, new objects (IRQThread) in town.  Use these instead.
+/*
 	cout << " Crate::init: theController->start_thread_on_init="<<theController->start_thread_on_init<<".  Calling thread end" << endl;
-	theController->end_thread();
+	//theController->end_thread();
 	if(theController->start_thread_on_init){
 		cout << " Crate::init: theController->start_thread_on_init="<<theController->start_thread_on_init<<".  Calling thread start" << endl;
-		theController->start_thread(runnumber);
+		//theController->start_thread(runnumber);
 	}
+*/
 }
 

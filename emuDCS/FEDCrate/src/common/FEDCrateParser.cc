@@ -1,7 +1,10 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 3.4 2008/02/10 00:06:06 gilmore Exp $
+// $Id: FEDCrateParser.cc,v 3.5 2008/04/22 09:31:11 geurts Exp $
 // $Log: FEDCrateParser.cc,v $
+// Revision 3.5  2008/04/22 09:31:11  geurts
+// New FEDCrate Control software by Jason and Phillip.
+//
 // Revision 3.4  2008/02/10 00:06:06  gilmore
 // compatibility fixes for current cscpro/cscdev configuration
 //
@@ -33,6 +36,7 @@ using namespace std;
 
 void FEDCrateParser::parseFile(const char* name){ 
 	//PGK: clear the crateVector
+  std::cout << " durkin: entered parser " << std::endl;
 	crateVector_.clear();
 	/// Initialize XML4C system
 	try{
