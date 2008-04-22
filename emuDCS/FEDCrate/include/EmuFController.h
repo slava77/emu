@@ -30,6 +30,8 @@ public:
   unsigned int readTTSBits(unsigned int crate, unsigned int slot);
 
   CrateSelector & selector() {return theSelector;}
+  
+  vector<Crate *> getCrates() { return theCrates; }
 
 private:
   DCC *getDCC(int crate, int slot);

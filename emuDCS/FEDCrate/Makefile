@@ -33,7 +33,7 @@ Sources=\
 	VMEController.cc \
 	VMEController_jtag.cc \
 	VMEModule.cc \
-	IRQThread.cc \
+	IRQThreadManager.cc \
 	VMEParser.cc \
 	EmuFCrateHyperDAQ.cc \
 	EmuFRunControlHyperDAQ.cc \
@@ -45,8 +45,9 @@ Sources=\
 
 
 IncludeDirs = \
-	$(XDAQ_ROOT)/include/ \
-	$(BUILD_HOME)/emu/cscSV/include/ \
+	$(XDAQ_ROOT)/include \
+	$(XDAQ_ROOT)/include/xdaq \
+	$(BUILD_HOME)/emu/cscSV/include \
 	./include
 
 LibraryDirs = \

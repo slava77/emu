@@ -2028,6 +2028,54 @@ long int code;
 }
 
 
+unsigned long int DDU::ddu_int_rdscaler()
+{
+int i,shft2in;
+ 
+long int code;
+//  printf(" ddu_int_rdscaler \n");
+  cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
+  sndbuf[0]=2;
+  devdo(DDUFPGA,10,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P_BYPASS_L;cmd[1]=VTX2P_BYPASS_H;
+  devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P_USR2_L;cmd[1]=VTX2P_USR2_H;
+  sndbuf[0]=0xCE;
+  sndbuf[1]=0xFA;
+  sndbuf[2]=0x04;
+  sndbuf[3]=0x04;
+  sndbuf[4]=0x00;
+  sndbuf[5]=0x00;
+  devdo(DDUFPGA,10,cmd,49,sndbuf,rcvbuf,1);
+  //  printf(" DDU L1 Event Scaler, bits [23-0]:  ");
+  code=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8)|((0x00ff&rcvbuf[2])<<16))&0x00ffffff;
+  //  printf("    Hex code %06lx\n",code);
+  //  printf("    Decimal count =  %8ld\n",code);
+  shft2in=(((0xff&rcvbuf[4])<<8)|((0xff&rcvbuf[3])));
+  ddu_code1=(0x00ff&rcvbuf[2]);
+  ddu_code0=(0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8);
+  ddu_shift0=shft2in;
+  //  printf("   ----> 49-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
+  for(i=0;i<7;i=i+4){
+    //    printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
+    //    printf("      no right-shift needed\n");
+  }
+  cmd[0]=VTX2P_BYPASS_L;cmd[1]=VTX2P_BYPASS_H;
+  sndbuf[0]=0;
+  sndbuf[1]=0;
+  sndbuf[2]=0;
+  sndbuf[3]=0;
+  devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
+  sndbuf[0]=NORM_MODE;
+  devdo(DDUFPGA,10,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P_BYPASS_L;cmd[1]=VTX2P_BYPASS_H;
+  sndbuf[0]=0;
+  devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,2);
+  return (((ddu_code1)<<16)+ddu_code0);
+}
+
+
 void DDU::ddu_rdalcterr()
 {
 int i,j,shft2in;
@@ -2261,10 +2309,10 @@ int i,shft0in,shft1in,shft2in;
 
 void DDU::ddu_fpgastat()
 {
-int i,shft0in,shft1in,shft2in;
+int shft2in;
 long int errcode;
  
-  printf(" ddu_fpgastat \n");
+//  printf(" ddu_fpgastat \n");
 
   cmd[0]=VTX2P_USR1_L;
   cmd[1]=VTX2P_USR1_H;
@@ -2294,7 +2342,7 @@ long int errcode;
   sndbuf[15]=0x00;
   sndbuf[16]=0x00;
   devdo(DDUFPGA,10,cmd,70,sndbuf,rcvbuf,1);
-  printf(" 32-bit DDU Control DFPGA Status:  %02x%02x/%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+  //  printf(" 32-bit DDU Control DFPGA Status:  %02x%02x/%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
   errcode=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8)|((0x00ff&rcvbuf[2])<<16)|((0x00ff&rcvbuf[3])<<24));
   shft2in=(((0x01&rcvbuf[6])<<15)|((0xff&rcvbuf[5])<<7)|(0xfe&rcvbuf[4])>>1);
   //  shft2in=(((0xff&rcvbuf[5])<<8)|(0xff&rcvbuf[4]));
@@ -2302,6 +2350,7 @@ long int errcode;
   ddu_code1=((0x00ff&rcvbuf[2])|((0x00ff&rcvbuf[3])<<8));
   ddu_code0=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8));
   ddu_shift0=shft2in;
+/*
   printf("   ----> 70-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
   for(i=0;i<11;i=i+4){
     shft0in=(((0x01&rcvbuf[i+2])<<15)|((0xff&rcvbuf[i+1])<<7)|(0xfe&rcvbuf[i])>>1);
@@ -2309,6 +2358,7 @@ long int errcode;
     printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
     printf("      right-shifted one: %04x/%04x\n",shft1in,shft0in);
   }
+*/
   //  ddu5status_decode(errcode);
   cmd[0]=VTX2P_BYPASS_L;
   cmd[1]=VTX2P_BYPASS_H;
@@ -3746,10 +3796,10 @@ long int code;
 void DDU::infpgastat(enum DEVTYPE dv)
      //void DDU::infpga_dfpgastat(enum DEVTYPE dv)
 {
-int i,shft0in,shft1in,shft2in;
+int shft2in;
 long int errcode;
  
-  printf(" infpgastat \n");
+//  printf(" infpgastat \n");
 
   cmd[0]=VTX2P20_USR1_L;
   cmd[1]=VTX2P20_USR1_H;
@@ -3779,14 +3829,14 @@ long int errcode;
   sndbuf[15]=0x00;
   sndbuf[16]=0x00;
   devdo(dv,14,cmd,70,sndbuf,rcvbuf,1);
-  printf(" 32-bit INFPGA Status:  %02x%02x/%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+  //  printf(" 32-bit INFPGA Status:  %02x%02x/%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
   errcode=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8)|((0x00ff&rcvbuf[2])<<16)|((0x00ff&rcvbuf[3])<<24));
   infpga_code1=(0x00ff&rcvbuf[2])|((0x00ff&rcvbuf[3])<<8);
   infpga_code0=(0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8);
   shft2in=(((0x01&rcvbuf[6])<<15)|((0xff&rcvbuf[5])<<7)|(0xfe&rcvbuf[4])>>1);
-  //  shft2in=(((0xff&rcvbuf[5])<<8)|(0xff&rcvbuf[4]));
   shft2in=(((0xff&rcvbuf[5])<<8)|(0xff&rcvbuf[4]));
   infpga_shift0=shft2in;
+/*
   printf("   ----> 70-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
   for(i=0;i<11;i=i+4){
     shft0in=(((0x01&rcvbuf[i+2])<<15)|((0xff&rcvbuf[i+1])<<7)|(0xfe&rcvbuf[i])>>1);
@@ -3794,6 +3844,7 @@ long int errcode;
     printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
     printf("      right-shifted one: %04x/%04x\n",shft1in,shft0in);
   }
+*/
   //  in_stat_decode(errcode);
   cmd[0]=VTX2P20_BYPASS_L;
   cmd[1]=VTX2P20_BYPASS_H;
@@ -3812,6 +3863,7 @@ long int errcode;
   sndbuf[0]=0;
   devdo(dv,14,cmd,0,sndbuf,rcvbuf,2);
 }
+
 
 void DDU::infpga_CheckFiber(enum DEVTYPE dv)
 {
@@ -3861,6 +3913,62 @@ long int code;
   cmd[0]=VTX2P20_BYPASS_L;cmd[1]=VTX2P20_BYPASS_H;
   sndbuf[0]=0;
   devdo(dv,14,cmd,0,sndbuf,rcvbuf,2);
+}
+
+
+long int DDU::infpga_int_CheckFiber(enum DEVTYPE dv)
+{
+int shft2in;
+long int code;  
+//  printf(" infpga_int_CheckFiber (DDU In_Ctrl FPGA) \n");
+  cmd[0]=VTX2P20_USR1_L;
+  cmd[1]=VTX2P20_USR1_H;
+  sndbuf[0]=6;
+  devdo(dv,14,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P20_BYPASS_L;
+  cmd[1]=VTX2P20_BYPASS_H;
+  devdo(dv,14,cmd,0,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P20_USR2_L;cmd[1]=VTX2P20_USR2_H;
+  sndbuf[0]=0xCE;
+  sndbuf[1]=0xFA;
+  sndbuf[2]=0x04;
+  sndbuf[3]=0x04;
+  sndbuf[4]=0x00;
+  sndbuf[5]=0x00;
+  devdo(dv,14,cmd,40,sndbuf,rcvbuf,1);
+  //  printf(" Check Fiber Status [15-0]:  ");
+  code=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8))&0x0000ffff;
+  /*
+  for(j=15;j>=0;j--){
+    printf("%1ld",(code>>j)&0x00000001);
+    if((j/8)*8==j&&j>0)printf(".");
+  }
+  */
+  infpga_code0=code;
+  //  printf(",  Hex code %04lx\n",code);
+  //  printf("                             FiberErr.FiberOK\n");
+  shft2in=(((0xff&rcvbuf[3])<<8)|(0xfe&rcvbuf[2]));
+  infpga_shift0=shft2in;
+  //  printf("   ----> 40-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
+  /*
+  for(i=0;i<7;i=i+4){
+    printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
+    printf("      no right-shift needed\n");
+  }
+  */
+  cmd[0]=VTX2P20_BYPASS_L;cmd[1]=VTX2P20_BYPASS_H;
+  sndbuf[0]=0;
+  sndbuf[1]=0;
+  sndbuf[2]=0;
+  sndbuf[3]=0;
+  devdo(dv,14,cmd,0,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P20_USR1_L;cmd[1]=VTX2P20_USR2_H;
+  sndbuf[0]=NORM_MODE;
+  devdo(dv,14,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P20_BYPASS_L;cmd[1]=VTX2P20_BYPASS_H;
+  sndbuf[0]=0;
+  devdo(dv,14,cmd,0,sndbuf,rcvbuf,2);
+  return code;
 }
 
 
@@ -5214,7 +5322,7 @@ unsigned short int DDU::vmepara_CSCstat()
   rcvbuf[2]=0;
   rcvbuf[3]=0;
   devdo(VMEPARA,1,cmd,0,sndbuf,rcvbuf,2);
-  printf("Read CSC status summary for FMM: %02x%02x\n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+  //  printf("Read CSC status summary for FMM: %02x%02x\n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
   return((rcvbuf[1]&0xff)<<8)|(rcvbuf[0]&0xff);
 }
 
@@ -5353,8 +5461,19 @@ void  DDU::vmepara_wr_fmmreg(unsigned short int par_val)
   sndbuf[4]=0x79;
   sndbuf[3]=0x24;
   sndbuf[2]=0x68;
-//  sndbuf[1]=0xF0;  // Reg. must contain F0Ex to override free-run state!
-//  sndbuf[0]=0xE0;  //             Then "x" will be the new state.
+//  sndbuf[1]=0xF0;  // Reg. must contain 0xF0EX to override free-run state!
+//  sndbuf[0]=0xE0;  //             Then "X" will be the new state.
+
+// Note: set to 0xFEDX to set the "FMM Error Disable" feature
+//         -- BUSY and WARNING are Not Affected by this, just Error and LostSync.
+//         -- X<8  fully Disables FMM Error & LostSync reporting
+//         -- X>=8 will either
+//              1) Disable FMM Error & LostSync reporting
+//              2) If already Disabled, toggle to ENABLED for ~200ns, then Disable again.
+//         -- This feature is designed to be Broadcast to all DDUs in the Crate.
+//         -- Remove the 0xFEDX to Enable Free-running FMM reporting (e.g. 0x0000)
+//              1) the default on HardReset is 0x0000 (Fully Enabled FMM reporting).
+
   rcvbuf[0]=0;
   rcvbuf[1]=0;
   rcvbuf[2]=0;
@@ -5653,8 +5772,6 @@ unsigned short int DDU::vmepara_busyhist()
 // all serial DEVDOs were ...,0) for Reads, ...,1) for Writes
 void DDU::read_status()
 {
-
-
   cmd[0]=0x04; //dev 0x04 is flash sram
   cmd[1]=0x00; // cmd 0x00 is read flash status, 8 bits
   sndbuf[0]=0xf1; // low data byte
@@ -5665,11 +5782,30 @@ void DDU::read_status()
 }
 
 
+int DDU::read_int_page1()
+{
+
+  cmd[0]=0x04; //dev 0x04 is flash sram
+  cmd[1]=0x01; //read 16 bits from page 1
+  sndbuf[0]=0xff; // low data byte
+  sndbuf[1]=0xaa; // high data byte 
+  devdo(VMESERI,2,cmd,0,sndbuf,(char *)rcv_serial,0);
+/*
+  printf("Read from Flash Memory Page1 (Kill Channel Mask): ");
+  for(i=0;i<2;i++)printf("%02x",rcv_serial[i]&0xff);
+  printf("\n");
+*/
+  return (((rcv_serial[0]&0x00ff)<<8)|(rcv_serial[1]&0x00ff));
+
+
+}
+
+
 void DDU::read_page1()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
-  cmd[1]=0x01; //read 16 bits
+  cmd[1]=0x01; //read 16 bits from page 1
   sndbuf[0]=0xff; // low data byte
   sndbuf[1]=0xaa; // high data byte 
   devdo(VMESERI,2,cmd,0,sndbuf,(char *)rcv_serial,0);
@@ -5695,13 +5831,44 @@ int i;
 }
 
 
+int DDU::read_page3()
+{
+int i;
+  cmd[0]=0x04; //dev 0x04 is flash sram
+  cmd[1]=0x03; //read 16 bits from page 3
+  sndbuf[0]=0xee; // low data byte
+  sndbuf[1]=0xaa; // high data byte 
+  devdo(VMESERI,2,cmd,0,sndbuf,rcv_serial,0);
+  printf("Read from Flash Memory Page3 (DDU Board ID): ");
+  for(i=0;i<2;i++)printf("%02x",rcv_serial[i]&0xff);
+  printf("\n");
+  int brdnum=((rcv_serial[0]<<8)&0xff00)|(rcv_serial[1]&0x00ff);
+  printf(" brdnum %d \n",brdnum);
+  return brdnum;
+}
+
+
+void DDU::write_page3()
+{
+int i;
+  cmd[0]=0x04; //dev 0x04 is flash sram
+  cmd[1]=0x0b; // cmd 0x0b is program page 3, 16 bits
+  sndbuf[0]=0xde; // low data byte
+  sndbuf[1]=0xfa; // high data byte 
+  printf("Programming Flash Memory Page3 (DDU Board ID):  0x");
+  for(i=0;i<2;i++)printf("%02x",snd_serial[i]&0xff);
+  printf("\n");
+// JG, sndbuf is ignored here, uses InReg0 instead:
+  devdo(VMESERI,2,cmd,0,sndbuf,rcv_serial,1);
+  usleep(20000);
+}
+
+
 void DDU::read_page4()
 {
-
-
 unsigned int code[3];
   cmd[0]=0x04; //dev 0x04 is flash sram
-  cmd[1]=0x04; //read 32 bits
+  cmd[1]=0x04; //read 32 bits from page 4
   sndbuf[0]=0xee; // low data byte
   sndbuf[1]=0x66;
   sndbuf[2]=0xff;
@@ -5737,11 +5904,9 @@ int i;
 
 void DDU::read_page5()
 {
-  
-
-unsigned int code[3];
+  unsigned int code[3];
   cmd[0]=0x04; //dev 0x04 is flash sram
-  cmd[1]=0x05; //read 34 bits
+  cmd[1]=0x05; //read 34 bits from page 5
   sndbuf[0]=0xee; // low data byte
   sndbuf[1]=0x66;
   sndbuf[2]=0xff;
@@ -5762,7 +5927,6 @@ void DDU::write_page5()
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
   cmd[1]=0x0d; // cmd 0x0d is program page 5, 34 bits
-
   sndbuf[0]=0xff; // low data byte
   sndbuf[1]=0x00; //  PAE: m=255, 17 bits
   sndbuf[2]=0x00; //  PAF: n=32768 (01000h), 17 bits
@@ -5787,16 +5951,16 @@ int DDU::read_page7()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
-  cmd[1]=0x07; //read 16 bits
+  cmd[1]=0x07; //read 16 bits from page 7
   sndbuf[0]=0xee; // low data byte
   sndbuf[1]=0xaa; // high data byte 
   devdo(VMESERI,2,cmd,0,sndbuf,rcv_serial,0);
-  printf("Read from Flash Memory Page7 (DDU Board ID): ");
+  printf("Read from Flash Memory Page7 (DDU Source ID): ");
   for(i=0;i<2;i++)printf("%02x",rcv_serial[i]&0xff);
   printf("\n");
-  int brdnum=((rcv_serial[0]<<8)&0xff00)|(rcv_serial[1]&0x00ff);
-  printf(" brdnum %d \n",brdnum);
-  return brdnum;
+  int sourceID=((rcv_serial[0]<<8)&0xff00)|(rcv_serial[1]&0x00ff);
+  printf(" sourceID %d \n",sourceID);
+  return sourceID;
 }
 
 
@@ -5805,10 +5969,9 @@ void DDU::write_page7()
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
   cmd[1]=0x0f; // cmd 0x0f is program page 7, 16 bits
-
   sndbuf[0]=0xde; // low data byte
   sndbuf[1]=0xfa; // high data byte 
-  printf("Programming Flash Memory Page7 (DDU Board ID):  0x");
+  printf("Programming Flash Memory Page7 (DDU Source ID):  0x");
   for(i=0;i<2;i++)printf("%02x",snd_serial[i]&0xff);
   printf("\n");
 // JG, sndbuf is ignored here, uses InReg0 instead:

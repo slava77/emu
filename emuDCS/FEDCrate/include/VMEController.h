@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.1 2007/07/23 05:02:23 gilmore Exp $
+// $Id: VMEController.h,v 3.2 2008/04/22 09:31:11 geurts Exp $
 // $Log: VMEController.h,v $
+// Revision 3.2  2008/04/22 09:31:11  geurts
+// New FEDCrate Control software by Jason and Phillip.
+//
 // Revision 3.1  2007/07/23 05:02:23  gilmore
 // major structural chages to improve multi-crate functionality
 //
@@ -40,8 +43,8 @@ using namespace std;
 #include <pthread.h>
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
-#include "vmeIRQ.h"
-#include "IRQThread.h"
+//#include "vmeIRQ.h"
+//#include "IRQThread.h"
 #include <log4cplus/logger.h>
 #include <xdaq/Application.h>
 
@@ -92,12 +95,14 @@ public:
 	int CAEN_write(unsigned long Address,unsigned short int *data);
 	
 	/// IRQ VME Interrupts
-	IRQThread* thread() { return myThread; }
-	int start_thread_on_init;
-	void start_thread(long unsigned int runnumber);
-	void end_thread();
-	void kill_thread();
-	bool thread_started() { return is_thread_started; }
+	
+	//IRQThread* thread() { return myThread; }
+	//int start_thread_on_init;
+	//void start_thread(long unsigned int runnumber);
+	//void end_thread();
+	//void kill_thread();
+	//bool thread_started() { return is_thread_started; }
+	
 	
 	int udelay(long int itim);
 	void sdly();
@@ -121,7 +126,7 @@ private:
 	int plev;
 	int crateNumber;
 	int caen_err;
-	IRQThread* myThread;
+	//IRQThread* myThread;
 	bool is_thread_started;
 };
 

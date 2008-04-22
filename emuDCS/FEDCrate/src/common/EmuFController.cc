@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 3.6 2007/10/23 17:50:17 gilmore Exp $
+// $Id: EmuFController.cc,v 3.7 2008/04/22 09:31:11 geurts Exp $
 // $Log: EmuFController.cc,v $
+// Revision 3.7  2008/04/22 09:31:11  geurts
+// New FEDCrate Control software by Jason and Phillip.
+//
 // Revision 3.6  2007/10/23 17:50:17  gilmore
 // EmuFCrateManager fixes for real USC operation
 //
@@ -65,10 +68,11 @@ void EmuFController::init(){
   FEDCrateParser parser;
   std::cout << " Using file " << xmlFile_ << std::endl ;
   parser.parseFile(xmlFile_.c_str());
+  std::cout << " Done parsing " << std::endl;
 
   theCrates = parser.crateVector();
   //
-
+  std::cout << "leaving init() " << std::endl;
 /*  Need to add for Soap Init?
   printf(" EmuFController::init:  theController->vmeirq_start_ %d, now irq+pthread_end \n", theController->vmeirq_start_);
   theController->irq_pthread_end(crate);
@@ -117,9 +121,10 @@ void EmuFController::disable() {
 int EmuFController::irqtest(){
 // JRG, not used?
   std::vector<Crate*> myCrates = theSelector.crates();
-  int ret,ret2;
+  int ret;
   ret=0;
   for(unsigned i = 0; i < myCrates.size(); ++i) {
+  /*
     ret2=myCrates[i]->vmeController()->thread()->test(0);
     if(ret2!=0&&ret2!=irqlast[i]){
        ret=ret2;
@@ -128,6 +133,7 @@ int EmuFController::irqtest(){
        irqstatus=myCrates[i]->vmeController()->thread()->test(3);
     }
     irqlast[i]=ret2;
+    */
   }
   return ret;
 }

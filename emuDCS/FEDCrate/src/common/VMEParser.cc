@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.1 2007/07/23 05:03:31 gilmore Exp $
+// $Id: VMEParser.cc,v 3.2 2008/04/22 09:31:11 geurts Exp $
 // $Log: VMEParser.cc,v $
+// Revision 3.2  2008/04/22 09:31:11  geurts
+// New FEDCrate Control software by Jason and Phillip.
+//
 // Revision 3.1  2007/07/23 05:03:31  gilmore
 // major structural chages to improve multi-crate functionality
 //
@@ -27,7 +30,7 @@ VMEParser::VMEParser(DOMNode * pNode, int crate)
 	fillInt("Device",Device); 
 	fillInt("Link",Link);
 	controller_ = new VMEController(Device, Link);
-	fillInt("vmeirq_start", controller_->start_thread_on_init); 
+	//fillInt("vmeirq_start", controller_->start_thread_on_init); 
 }
 
 
