@@ -8,15 +8,15 @@ else
 fi
 # kill all currently running xdaq processes
 #killproc xdaq.exe
-killall -q $XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.exe
+killall -q $XDAQ_ROOT/bin/xdaq.exe
 
 # cd to proper home directory
-cd $XDAQ_ROOT/emu/emuDCS/FEDCrate/
+cd $BUILD_HOME/emu/emuDCS/FEDCrate/
 
 # link images
-ln -fs $XDAQ_ROOT/emu/emuDCS/FEDCrate/*.jpg $XDAQ_ROOT/daq/examples/images/
-ln -fs $XDAQ_ROOT/emu/emuDCS/FEDCrate/*.gif $XDAQ_ROOT/daq/examples/images/
+ln -fs $BUILD_HOME/emu/emuDCS/FEDCrate/*.jpg $BUILD_HOME/daq/examples/images/
+ln -fs $BUILD_HOME/emu/emuDCS/FEDCrate/*.gif $BUILD_HOME/daq/examples/images/
 
 # start xdaq
 # old config location:  nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40100 -c xml/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
-nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40100 -c $HOME/config/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
+nohup $XDAQ_ROOT/bin/xdaq.exe -p 40100 -c $BUILD_HOME/emu/emuDCS/FEDCrate/xml/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
