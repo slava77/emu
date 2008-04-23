@@ -43,7 +43,7 @@ void EmuController::init(){
 void EmuController::configure(int c) 
 {
   for(unsigned i = 0; i < myCrates.size(); ++i) {
-    if(myCrates[i]) myCrates[i]->configure(c);
+    if(myCrates[i] && myCrates[i]->IsAlive()) myCrates[i]->configure(c);
   }
 }
 
