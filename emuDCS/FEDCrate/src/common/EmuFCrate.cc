@@ -323,9 +323,15 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		std::vector<DDU*> myDdus = myCrates[i]->ddus();
 		vector<DCC *> myDccs = myCrates[i]->dccs();
 		for(unsigned j =0; j < myDdus.size(); ++j){
-		  if(myDdus[j]->slot()==28){
-		    cout <<"   Setting FMM Error Disable for Crate " << myCrates[i]->number() << endl;
-		    myDdus[j]->vmepara_wr_fmmreg(0xFED0+(count&0x000f));
+		  if(myDdus[j]->slot()==28){  // if there is slot28 in config, disable CSC FMM Errors,
+		    if(myCrates[i]->number()>4){  // but DON'T disable the TF-DDU FMM!
+		      cout <<"   Setting FMM Error Enable for Crate " << myCrates[i]->number() << endl;
+		      myDdus[j]->vmepara_wr_fmmreg(0x0000);
+		    }
+		    else{
+		      cout <<"   Setting FMM Error Disable for Crate " << myCrates[i]->number() << endl;
+		      myDdus[j]->vmepara_wr_fmmreg(0xFED0+(count&0x000f));
+		    }
 		  }
 		}
 
@@ -469,6 +475,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	TM = new IRQThreadManager();
 	vector<Crate *> myCrates = getCrates();
 	for (unsigned int i=0; i<myCrates.size(); i++) {
+		if (myCrates[i]->number() > 4) continue;
 		TM->attachCrate(myCrates[i]);
 	}
 	TM->startThreads();
