@@ -554,18 +554,6 @@ private:
     )
     throw (xgi::exception::Exception);
 
-    string serializableScalarToString(xdata::Serializable *s);
-
-    string serializableUnsignedLongToString(xdata::Serializable *s);
-
-    string serializableIntegerToString(xdata::Serializable *s);
-
-    string serializableDoubleToString(xdata::Serializable *s);
-
-    string serializableStringToString(xdata::Serializable *s);
-
-    string serializableBooleanToString(xdata::Serializable *s);
-
     /**
      * SOAP Callback used to process an Fsm SOAP command.
      */

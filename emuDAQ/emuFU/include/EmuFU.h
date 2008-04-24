@@ -468,21 +468,6 @@ private:
     )
     throw (xgi::exception::Exception);
 
-  /// Serializes xdata scalar into std::string.
-    string serializableScalarToString(xdata::Serializable *s);
-
-  /// Serializes xdata unsigned long into std::string.
-    string serializableUnsignedLongToString(xdata::Serializable *s);
-
-  /// Serializes xdata double into std::string.
-    string serializableDoubleToString(xdata::Serializable *s);
-
-  /// Serializes xdata string into std::string.
-    string serializableStringToString(xdata::Serializable *s);
-
-  /// Serializes xdata boolean into std::string.
-    string serializableBooleanToString(xdata::Serializable *s);
-
     /**
      * SOAP Callback used to process an Fsm SOAP command.
      */

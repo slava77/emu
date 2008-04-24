@@ -1921,49 +1921,6 @@ throw (xgi::exception::Exception)
     for(pos = params.begin(); pos != params.end(); ++pos)
     {
 
-      if ( pos->second->type() == "vector" ){
-
-	// Q: How do I determine the type of a xdata::Vector's elements 
-	// when it's only known as a xdata::Serializable?
-
-// 	xdata::Vector<xdata::String> *ulv = 
-// 	  dynamic_cast<xdata::Vector<xdata::String>* > (pos->second); // this works, but begs the question...
-// 	cout << "vector    " << ulv->elementAt(0)->type() << endl;
-
-//  	xdata::Vector<xdata::Serializable> *xsv = 
-// 	  dynamic_cast<xdata::Vector<xdata::Serializable> * > (pos->second); // this yields xsv=NULL...
-
-//  	xdata::Vector<xdata::Serializable> *xsv = 
-// 	  reinterpret_cast<xdata::Vector<xdata::Serializable> * > (pos->second); // this doesn't work
-
- 	xdata::Vector<xdata::Serializable> *xsv = 
-	  static_cast<xdata::Vector<xdata::Serializable> * > (pos->second); // that's it!
-
-// 	    xdata::Vector<xdata::Serializable>::iterator xsv_it;
-// 	    for ( xsv_it=xsv->begin(); xsv_it != xsv->end(); ++xsv_it )
-// 	      cout << "   type " << xsv_it->type() << endl; // crashes on second iteration...
-
-	for ( unsigned int i=0; i<xsv->elements(); ++i ){
-	  
-	  *out << "  <tr>"                                               << endl;
-	  
-	  // Name
-	  *out << "    <td>"                                             << endl;
-	  *out << "      " << pos->first << "[" << i << "]"              << endl;
-	  *out << "    </td>"                                            << endl;
-	  
-	  // Value
-	  *out << "    <td>"                                             << endl;
-	  *out << "      " << serializableScalarToString(xsv->elementAt(i))    << endl;
-	  *out << "    </td>"                                            << endl;
-	  
-	  *out << "  </tr>"                                              << endl;
-
-	}
-
-      }
-      else{
-
         *out << "  <tr>"                                               << endl;
 
         // Name
@@ -1973,74 +1930,16 @@ throw (xgi::exception::Exception)
 
         // Value
         *out << "    <td>"                                             << endl;
-        *out << "      " << serializableScalarToString(pos->second)    << endl;
+        *out << "      " << pos->second->toString()                    << endl;
         *out << "    </td>"                                            << endl;
 
         *out << "  </tr>"                                              << endl;
-      }
+
     }
 
     *out << "</table>"                                                 << endl;
+
 }
-
-
-string EmuRUI::serializableScalarToString(xdata::Serializable *s)
-{
-    if(s->type() == "unsigned long") return serializableUnsignedLongToString(s);
-    if(s->type() == "int"          ) return serializableIntegerToString(s);
-    if(s->type() == "double"       ) return serializableDoubleToString(s);
-    if(s->type() == "string"       ) return serializableStringToString(s);
-    if(s->type() == "bool"         ) return serializableBooleanToString(s);
-
-    return "Unsupported type";
-}
-
-
-string EmuRUI::serializableUnsignedLongToString(xdata::Serializable *s)
-{
-    xdata::UnsignedLong *v = dynamic_cast<xdata::UnsignedLong*>(s);
-
-    return v->toString();
-}
-
-string EmuRUI::serializableIntegerToString(xdata::Serializable *s)
-{
-    xdata::Integer *v = dynamic_cast<xdata::Integer*>(s);
-
-    return v->toString();
-}
-
-
-string EmuRUI::serializableDoubleToString(xdata::Serializable *s)
-{
-    xdata::Double *v = dynamic_cast<xdata::Double*>(s);
-
-    return v->toString();
-}
-
-
-string EmuRUI::serializableStringToString(xdata::Serializable *s)
-{
-    xdata::String *v  = dynamic_cast<xdata::String*>(s);
-    string        str = v->toString();
-
-
-    if(str == "")
-    {
-        str = "\"\"";
-    }
-
-    return str;
-}
-
-
-string EmuRUI::serializableBooleanToString(xdata::Serializable *s)
-{
-    xdata::Boolean *v = dynamic_cast<xdata::Boolean*>(s);
-
-    return v->toString();
-}
-
 
 bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
 {
