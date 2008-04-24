@@ -1521,103 +1521,24 @@ throw (xgi::exception::Exception)
     for(pos = params.begin(); pos != params.end(); ++pos)
     {
 
-      //
-      // EMu-specific stuff
-      //
-      if ( pos->second->type() == "vector" ){
-
- 	xdata::Vector<xdata::Serializable> *xsv = 
-	  static_cast<xdata::Vector<xdata::Serializable> * > (pos->second); // that's it!
-
-	for ( unsigned int i=0; i<xsv->elements(); ++i ){
-	  
 	  *out << "  <tr>"                                               << endl;
 	  
 	  // Name
 	  *out << "    <td>"                                             << endl;
-	  *out << "      " << pos->first << "[" << i << "]"              << endl;
+	  *out << "      " << pos->first                                 << endl;
 	  *out << "    </td>"                                            << endl;
 	  
 	  // Value
 	  *out << "    <td>"                                             << endl;
-	  *out << "      " << serializableScalarToString(xsv->elementAt(i))    << endl;
+	  *out << "      " << pos->second->toString()                    << endl;
 	  *out << "    </td>"                                            << endl;
 	  
 	  *out << "  </tr>"                                              << endl;
 
-	}
-
-      }
-      else{
-        *out << "  <tr>"                                               << endl;
-
-        // Name
-        *out << "    <td>"                                             << endl;
-        *out << "      " << pos->first                                 << endl;
-        *out << "    </td>"                                            << endl;
-
-        // Value
-        *out << "    <td>"                                             << endl;
-        *out << "      " << serializableScalarToString(pos->second)    << endl;
-        *out << "    </td>"                                            << endl;
-
-        *out << "  </tr>"                                              << endl;
-      }
     }
 
     *out << "</table>"                                                 << endl;
 }
-
-
-string EmuFU::serializableScalarToString(xdata::Serializable *s)
-{
-    if(s->type() == "unsigned long") return serializableUnsignedLongToString(s);
-    if(s->type() == "double"       ) return serializableDoubleToString(s);
-    if(s->type() == "string"       ) return serializableStringToString(s);
-    if(s->type() == "bool"         ) return serializableBooleanToString(s);
-
-    return "Unsupported type";
-}
-
-
-string EmuFU::serializableUnsignedLongToString(xdata::Serializable *s)
-{
-    xdata::UnsignedLong *v = dynamic_cast<xdata::UnsignedLong*>(s);
-
-    return v->toString();
-}
-
-
-string EmuFU::serializableDoubleToString(xdata::Serializable *s)
-{
-    xdata::Double *v = dynamic_cast<xdata::Double*>(s);
-
-    return v->toString();
-}
-
-
-string EmuFU::serializableStringToString(xdata::Serializable *s)
-{
-    xdata::String *v  = dynamic_cast<xdata::String*>(s);
-    string        str = v->toString();
-
-
-    if(str == "")
-    {
-        str = "\"\"";
-    }
-
-    return str;
-}
-
-
-string EmuFU::serializableBooleanToString(xdata::Serializable *s)
-{
-    xdata::Boolean *v = dynamic_cast<xdata::Boolean*>(s);
-
-    return v->toString();
-}
-
 
 void EmuFU::I2O_FU_TAKE_Callback(toolbox::mem::Reference *bufRef)
 {
