@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.31 2008/04/08 08:44:59 rakness Exp $
+// $Id: Crate.cc,v 3.32 2008/04/25 15:35:32 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.32  2008/04/25 15:35:32  liu
+// updates on VMECC
+//
 // Revision 3.31  2008/04/08 08:44:59  rakness
 // remove FIFO clear for DMB fast configure
 //
@@ -159,6 +162,7 @@
 #include "RAT.h"
 #include "ALCTController.h"
 #include "Chamber.h"
+#include "VMECC.h"
 
 Crate::Crate(int CrateID, VMEController * controller) : 
   theCrateID(CrateID),  
@@ -257,10 +261,13 @@ std::vector<ALCTController *> Crate::alcts() const {
 }
 
 
+VMECC * Crate::vmecc() const {
+  return findBoard<VMECC>();
+}
+
 CCB * Crate::ccb() const {
   return findBoard<CCB>();
 }
-
 
 MPC * Crate::mpc() const {
   return findBoard<MPC>();

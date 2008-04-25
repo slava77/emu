@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.11 2008/02/21 09:37:24 liu Exp $
+// $Id: Crate.h,v 3.12 2008/04/25 15:35:31 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.12  2008/04/25 15:35:31  liu
+// updates on VMECC
+//
 // Revision 3.11  2008/02/21 09:37:24  liu
 // fast config option
 //
@@ -74,6 +77,7 @@ class DAQMB;
 class CCB;
 class MPC;
 class Chamber;
+class VMECC;
 
 class Crate {
 public:
@@ -103,6 +107,7 @@ public:
   std::vector<ALCTController *> alcts() const;
   std::vector<Chamber*> chambers() const;
   //
+  VMECC * vmecc() const;
   CCB * ccb() const;
   MPC * mpc() const;
   Chamber * GetChamber(int slot);

@@ -316,11 +316,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   // SOAP for Monitor controll
 //  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStart      ,"MonitorStart",XDAQ_NS_URI);
 //  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStop      ,"MonitorStop",XDAQ_NS_URI);
-    xgi::bind(this,&EmuPeripheralCrateConfig::MonitorStart      ,"MonitorStart");
-    xgi::bind(this,&EmuPeripheralCrateConfig::MonitorStop      ,"MonitorStop");
-    xoap::bind(this,&EmuPeripheralCrateConfig::onFastLoop      ,"FastLoop", XDAQ_NS_URI);
-    xoap::bind(this,&EmuPeripheralCrateConfig::onSlowLoop      ,"SlowLoop", XDAQ_NS_URI);
-    xoap::bind(this,&EmuPeripheralCrateConfig::onExtraLoop      ,"ExtraLoop", XDAQ_NS_URI);
   //
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
@@ -410,176 +405,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   brddb= new BoardsDB();
 
   parsed=0;
-}
-
-void EmuPeripheralCrateConfig::MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-{
-     if(!Monitor_On_)
-     {
-         if(!Monitor_Ready_)
-         {
-             CreateEmuInfospace();
-             Monitor_Ready_=true;
-         }
-         PCsendCommand("MonitorStart","EmuPeripheralCrateBroadcast");
-         Monitor_On_=true;
-         std::cout<< "Monitor Started" << std::endl;
-     }
-     this->Default(in,out);
-}
-
-void EmuPeripheralCrateConfig::MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-{
-     if(Monitor_On_)
-     {
-         PCsendCommand("MonitorStop","EmuPeripheralCrateBroadcast");
-         Monitor_On_=false;
-         std::cout << "Monitor stopped" << std::endl;
-     }
-     this->Default(in,out);
-}
-
-xoap::MessageReference EmuPeripheralCrateConfig::onFastLoop (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) 
-{
-  // std::cout << "SOAP Fast Loop" << std::endl;
-  PublishEmuInfospace(1);
-  return createReply(message);
-}
-
-xoap::MessageReference EmuPeripheralCrateConfig::onSlowLoop (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) 
-{
-  // std::cout << "SOAP Slow Loop" << std::endl;
-  PublishEmuInfospace(2);
-  return createReply(message);
-}
-
-xoap::MessageReference EmuPeripheralCrateConfig::onExtraLoop (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) 
-{
-  // std::cout << "SOAP Extra Loop" << std::endl;
-  PublishEmuInfospace(3);
-  return createReply(message);
-}
-
-void EmuPeripheralCrateConfig::CreateEmuInfospace()
-{
-     if(!parsed) ParsingXML();
-     if(total_crates_<=0) return;
-
-        //Create infospaces for monitoring
-        monitorables_.clear();
-        for ( unsigned int i = 0; i < crateVector.size(); i++ )
-        {
-                toolbox::net::URN urn = this->createQualifiedInfoSpace("EMu_"+(crateVector[i]->GetLabel())+"_PCrate");
-                std::cout << "Crate " << i << " " << urn.toString() << std::endl;
-                monitorables_.push_back(urn.toString());
-                xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(urn.toString());
-
-            // for CCB, MPC, TTC etc.
-                is->fireItemAvailable("TTC_BRSTR",new xdata::UnsignedShort(0));
-                is->fireItemAvailable("TTC_DTSTR",new xdata::UnsignedShort(0));
-                is->fireItemAvailable("QPLL",new xdata::String("uninitialized"));
-                is->fireItemAvailable("CCBstatus",new xdata::String("uninitialized"));
-                is->fireItemAvailable("MPCstatus",new xdata::String("uninitialized"));
-
-            // for TMB fast counters
-                is->fireItemAvailable("TMBcounter",new xdata::Vector<xdata::UnsignedInteger32>);
-                is->fireItemAvailable("TMBtime",new xdata::TimeVal);
-
-            // for DMB fast counters
-                is->fireItemAvailable("DMBcounter",new xdata::Vector<xdata::UnsignedShort>);
-                is->fireItemAvailable("DMBtime",new xdata::TimeVal);
-
-            // for TMB temps, voltages
-
-            // for DMB temps, voltages
-
-         }
-     Monitor_Ready_=true;
-}
-
-void EmuPeripheralCrateConfig::PublishEmuInfospace(int cycle)
-{
-   //   cycle = 1  fast loop (e.g. TMB/DMB counters)
-   //           2  slow loop (e.g. temps/voltages)
-   //           3  extra loop (e.g. CCB MPC TTC status)
-
-      Crate * now_crate;
-      xdata::InfoSpace * is;
-      char buf[8000];
-      // xdata::UnsignedInteger32 *counter32;
-      xdata::UnsignedShort *counter16;
-      xdata::String *status;
-      unsigned long *buf4;
-      unsigned short *buf2;
-
-      buf2=(unsigned short *)buf;
-      buf4=(unsigned long *)buf;
-      if(cycle<1 || cycle>3) return;
-      if(total_crates_<=0) return;
-      //update infospaces
-      for ( unsigned int i = 0; i < crateVector.size(); i++ )
-      {
-          now_crate=crateVector[i];
-          if(now_crate && now_crate->IsAlive()) 
-          {
-             if(!(now_crate->vmeController()->SelfTest())) continue;
-             is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
-             if(cycle==3)
-             {  
-                now_crate-> MonitorCCB(cycle, buf);
-                if(buf[0])  
-                {   // buf[0]==0 means no good data back
-
-                   // CCB & TTC counters
-                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TTC_BRSTR"));
-                   *counter16 = buf2[10];;
-                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TTC_DTSTR"));
-                   *counter16 = buf2[11];;
-                   std::stringstream id1, id2, id0;
-
-
-                   // add this one to help the TTC group's global clock scan
-                   id0 <<(((buf2[3]&0x4000) || (buf2[3]&0x2000)==0)?"Unlocked":"Locked");
-                   status = dynamic_cast<xdata::String *>(is->find("QPLL"));
-                   *status = id0.str();
-
-                   // CCB status
-                   id1 << "CCB mode: " << ((buf2[1]&0x1)?"DLOG":"FPGA");
-		   id1 << ", TTCrx: " << ((buf2[3]&0x2000)?"Ready":"NotReady");
-                   id1 << ", QPLL: " << (((buf2[3]&0x4000) || (buf2[3]&0x2000)==0)?"Unlocked":"Locked");
-
-                   status = dynamic_cast<xdata::String *>(is->find("CCBstatus"));
-                   *status = id1.str();
-
-                   // MPC status
-                   id2 << "MPC mode: " << ((buf2[12]&0x1)?"Test":"Trig");
-		   id2 << ", Transimitter: " << ((buf2[12]&0x0200)?"On":"Off");
-                   id2 << ", Serializer: " << ((buf2[12]&0x4000)?"On":"Off");
-                   id2 << ", PRBS: " << ((buf2[12]&0x8000)?"Test":"Norm");
-
-                   status = dynamic_cast<xdata::String *>(is->find("MPCstatus"));
-                   *status = id2.str();
-                }
-             }
-             else if( cycle==1)
-             {
-                now_crate-> MonitorTMB(cycle, buf);
-                if(buf[0])
-                {
-                  // std::cout << "TMB counters will be here" << std::endl;
-                }
-                now_crate-> MonitorDMB(cycle, buf);
-                if(buf[0])
-                {
-                  // std::cout << "DMB counters will be here" << std::endl;
-                }
-             }
-               // is->fireGroupChanged(names, this);
-          }
-      }
 }
 
 void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out ) 
@@ -6562,7 +6387,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     VCC_UTIL_cmn_tsk_lpbk_color = "#000000";
   }
 
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   char title[] = "VCC Utilities: Main Page";
   char pbuf[300];
   sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
@@ -6704,7 +6529,7 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
   int n,i;
   char *cc;
 
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   std::cout<<" entered VCC_CMNTSK_DO"<<std::endl;
   cgicc::Cgicc cgi(in);
   const CgiEnvironment& env = cgi.getEnvironment();
@@ -6802,7 +6627,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Out
     VCC_UTIL_prom_file_inp = "D783C.V4.29.mcs"; 
   }
 
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   char title[] = "VCC Utilities: Firmware";
   char pbuf[300];
   sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
@@ -6896,7 +6721,7 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
   char *cptemp;
   int i,ptyp,ack;
   CNFG_ptr rbk_cp;
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
     std::cout<<" entered VCC_FRMUTIL_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
     const CgiEnvironment& env = cgi.getEnvironment();
@@ -7180,7 +7005,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output 
     VCC_UTIL_CR_ser_num="-";
   }
 
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   char title[] = "VCC Utilities: Config Regs";
   char pbuf[300];
   sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
@@ -7299,7 +7124,7 @@ void EmuPeripheralCrateConfig::VCC_CNFG_DO(xgi::Input * in, xgi::Output * out )
   CNFG_ptr rbk_cp;
   unsigned int temp;
   char *pch =(char *) &VCC_UTIL_CR_wrt_[0];
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
     std::cout<<" entered VCC_CNFG_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
     const CgiEnvironment& env = cgi.getEnvironment();
@@ -7512,7 +7337,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
     VCC_UTIL_MAC_ena_dis="disabled";
   }
 
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   char title[] = "VCC Utilities: MAC Addresses";
   char pbuf[300];
   sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
@@ -7594,7 +7419,7 @@ void EmuPeripheralCrateConfig::VCC_MAC_DO(xgi::Input * in, xgi::Output * out )
   std::string stemp;
   unsigned int temp[6];
 
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
 
     std::cout<<" entered VCC_MAC_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -7692,7 +7517,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output 
 {
   CNFG_ptr rbk_cp;
   static bool first = true;
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   if(first){
     first = false;
     rbk_cp = vmecc->read_crs();
@@ -7848,7 +7673,7 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
   char *pch = (char *) &VCC_UTIL_FIFO_wrt_data;
   std::string stemp;
 
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
 
     std::cout<<" entered VCC_FIFO_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -8030,7 +7855,7 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   if(first){
     first = false;
     VCC_UTIL_PKTSND_prcs_tag = "0";
@@ -8110,7 +7935,7 @@ void EmuPeripheralCrateConfig::VCC_PKTSND_DO(xgi::Input * in, xgi::Output * out 
   char *pch1 = (char *) &VCC_UTIL_PKTSND_cmnd;
   char *pch2 = (char *) &VCC_UTIL_PKTSND_data;
 
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
 
     std::cout<<" entered VCC_PKTSND_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -8169,7 +7994,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
 {
   char ctemp[256];
   static bool first = true;
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   if(first){
     first = false;
 
@@ -8306,7 +8131,7 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
   std::string save1,save2;
   union hdr_stat hdr;
   bool new_pkt;
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
 
     std::cout<<" entered VCC_PKTRCV_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -8536,7 +8361,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
   int msglvl;
   char ctemp[256];
   static bool first = true;
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
   if(first){
     first = false;
     rbk_cp = vmecc->read_crs();
@@ -8707,7 +8532,7 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
 {
   CNFG_ptr rbk_cp;
   char ctemp[256];
-  vmecc=new VMECC(thisCrate,0);
+  vmecc=thisCrate->vmecc();
 
     std::cout<<" entered VCC_MISC_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
