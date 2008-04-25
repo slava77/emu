@@ -18,6 +18,7 @@
 #include "Chamber.h"
 #include "Crate.h"
 #include "EmuEndcap.h"
+#include "VMECC.h"
 
 XMLParser::XMLParser(): pAttributes_(0), emuEndcap_(0) {}
 
@@ -776,6 +777,10 @@ Crate * XMLParser::VMEParser(xercesc::DOMNode * pNode)
 
   crate->SetLabel(label);
   std::cout << "Crate ID=" << crateid << " Label=" << label << std::endl;
+  
+  // add VMECC(VMEModule in slot 1) to crate
+  VMECC * vcc = new VMECC(crate, 1);
+  std::cout << "VMECC in slot " << vcc->slot() << std::endl;
   return crate;
 }
 
