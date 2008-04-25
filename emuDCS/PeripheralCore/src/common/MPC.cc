@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.10 2008/04/11 14:48:48 liu Exp $
+// $Id: MPC.cc,v 3.11 2008/04/25 12:21:59 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.11  2008/04/25 12:21:59  liu
+// fix bug in CheckConfig
+//
 // Revision 3.10  2008/04/11 14:48:48  liu
 // add CheckConfig() function
 //
@@ -207,7 +210,7 @@ int MPC::CheckConfig()
 {
    int rx;
    rx=ReadRegister(0);
-   if(rx & 0x8201 != 0x0200) return 0;
+   if((rx & 0x8201) != 0x0200) return 0;
    return 1;
 }
 
