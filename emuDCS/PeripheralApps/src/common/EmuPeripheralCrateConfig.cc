@@ -1156,9 +1156,9 @@ void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Out
   //  
   std::cout << "Button: Check Crate Configuration" << std::endl;
   //
-  std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
+  //std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
   //
-  //  CheckPeripheralCrateConfiguration();
+  CheckPeripheralCrateConfiguration();
   //
   this->Default(in, out);
 }
