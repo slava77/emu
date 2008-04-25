@@ -3,7 +3,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
   xmlns:fn="http://www.w3.org/2005/02/xpath-functions">
 
-<xsl:output method="txt" omit-xml-declaration="yes"/>
+<xsl:output method="text" omit-xml-declaration="yes"/>
 
 <xsl:template match="/">
 def csclayout(i, p, *rows): i["Layouts/CSC Layouts/" + p] = DQMItem(layout=rows)
