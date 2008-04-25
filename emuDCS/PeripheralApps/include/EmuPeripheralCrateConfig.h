@@ -283,14 +283,6 @@ public:
 
 private:
 
-  void MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void CreateEmuInfospace();
-  void PublishEmuInfospace(int cycle);
-  xoap::MessageReference onFastLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onSlowLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onExtraLoop(xoap::MessageReference message) throw (xoap::exception::Exception);
-  
   xoap::MessageReference onCalibration(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
