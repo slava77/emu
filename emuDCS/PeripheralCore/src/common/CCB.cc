@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.25 2008/04/18 12:13:46 geurts Exp $
+// $Id: CCB.cc,v 3.26 2008/04/25 10:48:54 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.26  2008/04/25 10:48:54  liu
+// bug fix in CheckConfig
+//
 // Revision 3.25  2008/04/18 12:13:46  geurts
 // fix CCB mode after checkconfig
 //
@@ -1083,11 +1086,11 @@ int CCB::CheckConfig()
 
   // check CCB in DLOG mode
   rx=ReadRegister(CSRA1);
-  if(rx & 1 == 0) return 0;
+  if((rx & 1) == 0) return 0;
  
  // check TTTrx ready and QPLL locked
   rx=ReadRegister(CSRA3);
-  if(rx & 0x6000 != 0x2000) return 0;
+  if((rx & 0x6000) != 0x2000) return 0;
 
   // check TTCrx Coarse delay
   rx=(int) (ReadTTCrxReg(2).to_ulong());
