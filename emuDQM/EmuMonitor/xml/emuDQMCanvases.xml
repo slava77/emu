@@ -55,12 +55,12 @@
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
-		<Name>EMU_Test05_DDU_Live_Inputs</Name>
-		<Title>EMU Test05 - DDU Live Inputs</Title>
+		<Name>EMU_Test05_DDU_Inputs_Status</Name>
+		<Title>EMU Test05 - DDU Inputs Status</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>2</NumPadsY>
 		<Pad1>All_DDUs_Live_Inputs</Pad1>
-		<Pad2>All_DDUs_Average_Live_Inputs</Pad2>
+		<Pad2>All_DDUs_Inputs_with_Data</Pad2>
 	</Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -72,7 +72,7 @@
                 <Pad1>All_DDUs_Inputs_Errors</Pad1>
                 <Pad2>All_DDUs_Inputs_Warnings</Pad2>
         </Canvas>
-	<Canvas>
+	<!-- Canvas>
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
 		<Name>EMU_Test07_DDU_Inputs_with_Data</Name>
@@ -81,8 +81,19 @@
 		<NumPadsY>2</NumPadsY>
 		<Pad1>All_DDUs_Inputs_with_Data</Pad1>
 		<Pad2>All_DDUs_Average_Inputs_with_Data</Pad2>
-	</Canvas>
-        <Canvas>
+	</Canvas-->
+	 <Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test08_Reporting_Unpacked_CSCs</Name>
+                <Title>EMU Test08 - CSCs Reporting Data and Unpacked</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CSC_Reporting</Pad1>
+		<Pad2>CSC_Unpacked_Fract</Pad2>
+        </Canvas>
+
+        <!--Canvas>
                 <Type>cnv</Type>
                 <Prefix>EMU</Prefix>
                 <Name>EMU_Test08a_Reporting_DMBs</Name>
@@ -98,7 +109,7 @@
                 <Title>EMU Test08b - CSCs Reporting Data</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_Reporting)</Pad1>
+                <Pad1>CSC_Reporting</Pad1>
         </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -117,7 +128,7 @@
 		<Title>EMU Test09b - Unpacked CSCs</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
-		<Pad1>DrawChamberMap(CSC_Unpacked)</Pad1>
+		<Pad1>CSC_Unpacked</Pad1>
                 <DisplayInWeb>0</DisplayInWeb>
 	</Canvas>
         <Canvas>
@@ -136,9 +147,23 @@
                 <Title>EMU Test09d - Unpacked CSCs (Fractions)</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-		<Pad1>DrawChamberMap(CSC_Unpacked_Fract)</Pad1>
+		<Pad1>CSC_Unpacked_Fract</Pad1>
+        </Canvas -->
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test10_CSC_Errors_Warnings_Fract</Name>
+                <Title>EMU Test10 - CSCs with Errors and Warnings (Fractions)</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CSC_Format_Errors_Fract</Pad1>
+		<Pad2>CSC_Format_Warnings_Fract</Pad2>
+		<Pad3>CSC_DMB_input_fifo_full_Fract</Pad3>
+                <Pad4>CSC_DMB_input_timeout_Fract</Pad4>
+
         </Canvas>
-        <Canvas>
+
+        <!-- Canvas>
                 <Type>cnv</Type>
                 <Prefix>EMU</Prefix>
                 <Name>EMU_Test10a_DMB_Format_Errors</Name>
@@ -155,7 +180,7 @@
 		<Title>EMU Test10b - CSCs with Format Errors</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
-		<Pad1>DrawChamberMap(CSC_Format_Errors)</Pad1>
+		<Pad1>CSC_Format_Errors</Pad1>
                 <DisplayInWeb>0</DisplayInWeb>
 	</Canvas>
 	<Canvas>
@@ -174,9 +199,21 @@
 		<Title>EMU Test10d - CSCs with Format Errors (Fractions)</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_Format_Errors_Fract)</Pad1>
-	</Canvas>
-        <Canvas>
+                <Pad1>CSC_Format_Errors_Fract</Pad1>
+	</Canvas -->
+	<Canvas> 
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix> 
+                <Name>EMU_Test11_CSC_wo_Data_Blocks</Name>
+                <Title>EMU Test11 - CSCs without Data Blocks</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+		<Pad1>CSC_wo_ALCT_Fract</Pad1>
+		<Pad2>CSC_wo_CLCT_Fract</Pad2>
+		<Pad3>CSC_wo_CFEB_Fract</Pad3>
+                <DisplayInWeb>0</DisplayInWeb>
+        </Canvas>
+        <!--Canvas>
                 <Type>cnv</Type>
                 <Prefix>EMU</Prefix>
                 <Name>EMU_Test11a_DMB_wo_ALCT</Name>
@@ -193,7 +230,7 @@
                 <Title>EMU Test11b - CSCs without ALCT Data</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_wo_ALCT)</Pad1>
+                <Pad1>CSC_wo_ALCT</Pad1>
                 <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
@@ -212,7 +249,7 @@
                 <Title>EMU Test11d - CSCs without ALCT Data (Fractions)</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_wo_ALCT_Fract)</Pad1>
+                <Pad1>CSC_wo_ALCT_Fract</Pad1>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -231,7 +268,7 @@
                 <Title>EMU Test12b - CSCs without CLCT Data</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_wo_CLCT)</Pad1>
+                <Pad1>CSC_wo_CLCT</Pad1>
                 <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
@@ -250,7 +287,7 @@
                 <Title>EMU Test12d - CSCs without CLCT Data (Fractions)</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_wo_CLCT_Fract)</Pad1>
+                <Pad1>CSC_wo_CLCT_Fract</Pad1>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -269,7 +306,7 @@
                 <Title>EMU Test13b - CSCs without CFEB Data</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_wo_CFEB)</Pad1>
+                <Pad1>CSC_wo_CFEB</Pad1>
                 <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
@@ -288,7 +325,7 @@
                 <Title>EMU Test13d - CSCs without CFEB Data (Fractions)</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_wo_CFEB_Fract)</Pad1>
+                <Pad1>CSC_wo_CFEB_Fract</Pad1>
         </Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -307,7 +344,7 @@
                 <Title>EMU Test14b - CSCs with CFEB B-Words</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_Format_Warnings)</Pad1>
+                <Pad1>CSC_Format_Warnings</Pad1>
                 <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
@@ -326,9 +363,21 @@
 		<Title>EMU Test14d - CSCs with CFEB B-Words (Fraction)</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
-		<Pad1>DrawChamberMap(CSC_Format_Warnings_Fract)</Pad1>
+		<Pad1>CSC_Format_Warnings_Fract</Pad1>
 	</Canvas>
-        <Canvas>
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Test15_CSC_inputs</Name>
+                <Title>EMU Test15 - CSCs with DMB-INPUT FIFO FULL and TIMEOUT Status</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+		<Pad1>CSC_DMB_input_fifo_full_Fract</Pad1>
+		<Pad2>CSC_DMB_input_timeout_Fract</Pad2>
+                <DisplayInWeb>0</DisplayInWeb>
+        </Canvas -->
+
+        <!--Canvas>
                 <Type>cnv</Type>
                 <Prefix>EMU</Prefix>
                 <Name>EMU_Test15a_DMB_input_fifo_full</Name>
@@ -345,7 +394,7 @@
                 <Title>EMU Test15b - CSCs with DMB-INPUT-FIFO FULL Status</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_DMB_input_fifo_full)</Pad1>
+                <Pad1>CSC_DMB_input_fifo_full</Pad1>
                 <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
@@ -364,7 +413,7 @@
                 <Title>EMU Test15d - CSCs with DMB-INPUT-FIFO FULL Status (Fraction)</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_DMB_input_fifo_full_Fract)</Pad1>
+                <Pad1>CSC_DMB_input_fifo_full_Fract</Pad1>
         </Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -383,7 +432,7 @@
                 <Title>EMU Test16b - CSCs with DMB-INPUT TIMEOUT Status</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_DMB_input_timeout)</Pad1>
+                <Pad1>CSC_DMB_input_timeout</Pad1>
                 <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <Canvas>
@@ -402,8 +451,8 @@
                 <Title>EMU Test16d - CSCs with DMB-INPUT TIMEOUT Status (Fraction)</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>DrawChamberMap(CSC_DMB_input_timeout_Fract)</Pad1>
-        </Canvas>
+                <Pad1>CSC_DMB_input_timeout_Fract</Pad1>
+        </Canvas-->
 
 <!-- ========================================================================================
 # DDU Level histograms
