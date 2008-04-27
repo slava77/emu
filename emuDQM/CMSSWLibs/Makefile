@@ -105,7 +105,8 @@ $(ODIR)/%.o: $(QLTY)/src/%.cc
 all: libs 
 _all: all
 
-libs: $(LDIR)/libCSCDigi.a $(LDIR)/libCSCDigi.so $(LDIR)/libCSCRawToDigi.a $(LDIR)/libCSCRawToDigi.so $(LDIR)/libQualityTests.a $(LDIR)/libQualityTests.so
+libs: $(LDIR)/libCSCDigi.a $(LDIR)/libCSCDigi.so $(LDIR)/libCSCRawToDigi.a $(LDIR)/libCSCRawToDigi.so 
+# $(LDIR)/libQualityTests.a $(LDIR)/libQualityTests.so
 
 
 $(LDIR)/libCSCDigi.so: $(OBJS_DIGI)
