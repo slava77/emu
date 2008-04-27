@@ -110,6 +110,11 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
   setCanvasWidth(width);
   setCanvasHeight(height);
 
+  if (canvas != NULL) {
+    delete canvas;
+    canvas = NULL;
+  }
+
   gStyle->SetPalette(1,0);
 
   std::map<std::string, std::string> other_params;
