@@ -54,7 +54,7 @@
 		
 	}
 	td, th {
-		font-size:8pt; ;
+		font-size:8pt;
 		
 		padding: 0px;
 	}
@@ -188,7 +188,7 @@
 	table.runs_table tr, td {text-align: left; white-space: nowrap;}
 	
 	
-	#csctable_div, #hwtable_div, #runs_div, #tests_div, 
+	#csctable_div, #hwtable_div, #runs_div, #tests_div, #csccounters_div,
 	#local_runs, #global_runs, #online_runs
 	{
 		padding: 1px;
@@ -200,8 +200,12 @@
 		overflow:auto;
 	}
 	
-	#csctable_div, #hwtable_div {
+	#csctable_div, #hwtable_div, #csccounters_div {
 		float: left;
+	}
+	
+	#hwtable_div, #csccounters_div {
+		max-height: 350px;
 	}
 	
 	#csc_table {
@@ -253,6 +257,8 @@ var CSCList="getCSCList";
 var CSCMap="getCSCMapping";
 var DDUMap="getDDUMapping";
 var NodesStatus="getNodesStatus";
+var CSCCounters="getCSCCounters";
+var VMEMap="getVMEMapping";
 
 var imgFormat=".png";
 var RunNumber="";
@@ -279,6 +285,7 @@ var CSCMAP=false;
 var CSC_LIST=false;
 var DDUMAP=false;
 var NODES_LIST=false;
+var CSC_COUNTERS=false;
 
 var Log=new Array();
 var logLevel="all";
@@ -312,6 +319,11 @@ var numCSCs=0;
 var numDDUs=0;
 var getNodesListDelay=10;
 var getCSCListDelay=20;
+var totalDAQevents=0;
+var totalDQMevents=0;
+var totalCSCblocks=0;
+var totalDQMrate=0;
+var totalCSCrate=0;
 
 var CSC_TYPES = [
 	['ME+',[["ME+4/2", 36],
@@ -662,7 +674,9 @@ function showHWTable()
 				continue;
 			}
 			
-			out += "<tr><td class='hw_tr'><b>"+crate+"</b></td>";
+			crate_str=getVMECrateName(crate) + ": "+crate;
+			out += "<tr><td class='hw_tr'><b>"+crate_str+"</b></td>";
+			// out += "<tr><td class='hw_tr'><b>"+crate+"</b></td>";
 			slots = crates[i][1];
 			for (var j=0; j<slots.length; j++) {
 				if (slots[j]) {
@@ -881,7 +895,32 @@ function updateNodesStatus()
 					}
 				}	
 				out +="</tr>";
-		
+				out +="</tr>";
+				out +="<tr><td><b>Rate CSC/s:</b></td>";
+				for (i=1; i<nodes.length; i++) {
+					if (nodes[i] && nodes[i].length) {
+						node = nodes[i][0].substr(nodes[i][0].lastIndexOf('-')+1,nodes[i][0].length);
+						rate = nodes[i][8];
+						// rate = "<a href=nodes'' onClick='showRateHistory(\""+node+"\");return false;'>"+nodes[i][6]+"</a>";
+						out +="<td class='node'>"+rate+"</td>";
+					}
+				}	
+				out +="</tr>";
+				totalDAQevents=0;
+				totalDQMevents=0;
+				totalCSCblocks=0;
+				totalDQMrate=0;
+				totalCSCrate=0;
+				for (i=1; i<nodes.length; i++) {
+					if (nodes[i] && nodes[i].length) {
+						totalDAQevents += parseInt(nodes[i][4]);
+						totalDQMevents += parseInt(nodes[i][5]);
+						totalDQMrate += parseInt(nodes[i][6]);
+						totalCSCblocks += parseInt(nodes[i][7]);
+						totalCSCrate += parseInt(nodes[i][8]);
+					}
+				}
+			
 			}
 			
 			out +="</table>";
@@ -1085,13 +1124,181 @@ function loadCSCList()
 	return false;
 }
 
+function getCSCCounters()
+{
+	// getCSCListDelay=20;
+	var fullUrl = baseURL+CSCCounters;
+	// var r_link=document.getElementById("RunLink");
+	// if (r_link) r_link.innerHTML = "Run Number: <a class='RLink' href=''>" + RunNumber + "</a>";
+	
+	var req=false;
+	if (window.XMLHttpRequest) { 
+		/*
+		try {
+	    		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead UniversalBrowserWrite");
+	   	} catch (e) {
+	    		alert("Permission UniversalBrowserRead denied.");
+	   	}
+		*/
+	    req = new XMLHttpRequest();    
+	   
+	} else if (window.ActiveXObject) {    
+		//req = new ActiveXObject("Microsoft.XMLDOM");
+	    req = new ActiveXObject((navigator.userAgent.toLowerCase().indexOf('msie 5') != -1) ? "Microsoft.XMLHTTP" : "Msxml2.XMLHTTP");
+		// var req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    req.open("GET",fullUrl,true); // true= asynch, false=wait until loaded    
+	
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+			if (req.status==200) {	        
+				var reply = req.responseText;
+				// Need to strip malformed array string to satisfy IE7
+				reply = reply.replace(/,]/g,"]");
+				reply = reply.replace("var ","");
+	        	window.eval(reply);
+				showCSCCounters();
+				req=false;
+	    	} else if (req.status==404) {
+	    	}
+						
+		}
+    }
+	req.send(null);	
+	setTimeout('getCSCCounters()', 20000);
+	return false;
+}
+
+function getVMECrateName(crate)
+{
+	if (VMEMAP && VMEMAP.length) {
+		for (var i=0; i<VMEMAP.length; i++) {
+			if (crate == "crate"+VMEMAP[i][1]) {
+				return VMEMAP[i][0];
+			}			
+		}
+	}
+}
+
+function showCSCCounters()  
+{
+	cntrs=CSC_COUNTERS;
+	csc_map = CSCMAP;
+	var obj=document.getElementById("csccounters_div");
+	if (obj) {
+		var out="<table>";
+			if (cntrs && cntrs.length >0) {
+			cscs = cntrs[0];								
+			var crate=0;
+			var slot=0;
+			cnt_bad_alct=0;
+			cnt_bad_clct=0;
+			cnt_bad_cfeb=0;
+			cnt_bad_events=0;
+			for (var i=1; i<cscs.length; i++) {
+				csc = cscs[i][0];	
+				stats = cscs[i][1];
+				n_crate = parseFloat(csc.substring(4,7));
+				if (n_crate != crate ) { 
+					crate_str=getVMECrateName("crate"+n_crate) + ": crate"+n_crate;
+					out+="</tr><tr><td class='node'><b>"+crate_str+"</b></td>";
+					crate=n_crate;
+				}
+				slot = parseFloat(csc.substring(8,10));
+				cscid = "";
+				for (var k=0; k<csc_map.length; k++) {
+						if (!csc_map[k]) continue;
+						map_entry = csc_map[k];
+						if ((map_entry[0] == "crate"+crate) && (map_entry[1] == "slot"+slot)) {cscid = map_entry[2];}
+				}
+				
+				stats_out="";
+				alct=0;
+				clct=0;
+				cfeb=0;
+				bad=0;
+				dmb=0;
+				
+				
+				
+				if (stats && stats.length)
+				{
+					for (var j=0; j<stats.length; j++) {
+						// stats_out+= stats[j][1]+",";
+						tag = stats[j][0];
+						if (tag=='ALCT') alct=parseInt(stats[j][1]);
+						if (tag=='CLCT') clct=parseInt(stats[j][1]);
+						if (tag=='CFEB') cfeb=parseInt(stats[j][1]);
+						if (tag=='BAD') bad=parseInt(stats[j][1]);
+						if (tag=='DMB') dmb=parseFloat(stats[j][1]);
+					}
+				}
+				if (dmb) {
+					bcolor='white';
+					color="black";
+					badclr='#FFD0D0';
+					if ((100*alct/(dmb-bad))<50) { color="red"; bcolor=badclr; cnt_bad_alct++;}
+					stats_out+="A:<font color='"+color+"'>"+(100*(alct/(dmb-bad))).toFixed(1)+"</font>;";
+					color="black";
+					if ((100*clct/(dmb-bad))<50) { color="red"; bcolor=badclr; cnt_bad_clct++;}
+					stats_out+="T:<font color='"+color+"'>"+(100*(clct/(dmb-bad))).toFixed(1)+"</font>;";
+					color="black";
+					if ((100*cfeb/(dmb-bad))<50) { color="red"; bcolor=badclr; cnt_bad_cfeb++;}
+					stats_out+="C:<font color='"+color+"'>"+(100*(cfeb/(dmb-bad))).toFixed(1)+"</font>";// ;Bad:"+bad;
+				
+					color="black";
+					if ((100*bad/dmb)>10) { color="red"; bcolor=badclr; cnt_bad_events++;}
+					out += "<td style='background-color: "+bcolor+"'><b>(dmb"+slot+") "+cscid+"</b><br>#E:"+dmb+";"					
+					out +=" #B:<font color='"+color+"'>"+bad+"("+(100*(bad/(dmb))).toFixed(1)+")</font><br>"+stats_out+"</td>";
+				}
+				// slots = crates[i][1];			
+				out += "";
+				// addlog(csc, "debug");
+			}		
+		}		
+		out+= "</table>";	
+		out= "<table><tr><td class='node'>Summary (#CSCs with failed efficiencies)</td><td class='node'>Bad events: <b>"+cnt_bad_events+"</b></td><td class='node'>ALCT: <b>"+cnt_bad_alct+"</b></td><td  class='node'>TMB/CLCT: <b>"+cnt_bad_clct+"</b></td><td  class='node'>CFEB: <b>"+cnt_bad_cfeb+"</b></td></tr></table>"+out;
+		out+= "<table><tr><td class='node'>Legend: #E - #of Events; #B - #of Bad Events; A - ALCT; T - TMB/CLCT; C - CFEB Efficiencies in %</td></tr></table>";
+		obj.innerHTML=out;
+		return;
+		try {
+						title="CSC Counters Stats";
+						var generator=window.open('','counters','height='+800+',width='+1000+',resizable=no');						
+						if (window.focus) {generator.focus()} 
+						generator.resizeTo(1000, 800);
+						generator.document.write('<html><head><title>'+title+'</title>');
+						generator.document.write("<style>body {color: #000000; background-color: #9090FF;margin: 2px;font-family:Arial;	overflow: auto;}"+
+						"span.winTitle {	margin: 0;font-size: 12px;font-weight: bold;text-decoration: none;color: #000000;}"+
+						"fieldset {background-color: #ddd;	border-style: solid;border-width: 1px;border-color: black;margin: 2px;padding: 2px;}"+
+						"legend {border-style: solid;border-width: 1px;background-color:  #C0C0FF;}td.node {background-color: white; text-align: left; font-size: 8pt;"+
+						"padding: 0px;}</style>");
+						generator.document.write('</head><body>');
+						generator.document.write("<fieldset><legend><span class='winTitle'>"+title+"</span></legend>");
+						generator.document.write(out);
+						generator.document.write("</fieldset>");
+						// generator.document.write('<p><a href="javascript:self.close()">Close</a> the popup.</p>');
+						generator.document.write('</body></html>');
+						generator.document.close();
+					  } 
+					  catch (exc){
+					}
+	}
+}
+
 function updateSysStatus() 
 {
 	var obj=document.getElementById("sysstatus_div");
 	if (obj) {
 		getNodesListDelay-=2;
 		getCSCListDelay-=2;
-		var out="<table><tr><td class='td_status'> #DDUs: "+ numDDUs+" </td><td class='td_status'> #CSCs: "+numCSCs+" </td><td class='td_status'>Updates: Nodes in "+getNodesListDelay+"s; CSC List in "+getCSCListDelay+"s</td></tr></table>";
+		var out="<table><tr>";
+		
+		out+= "<table><tr><td><b>Total:</b></td><td class='td_status'> #DDUs: <b>"+ numDDUs+"</b></td><td class='td_status'> #CSCs: <b>"+numCSCs+"</b></td>";
+		out+= "<td class='td_status'>DAQ Evts: <b>"+totalDAQevents+"</b></td><td class='td_status'>DQM Evts: <b>"+totalDQMevents+"</b></td>"
+		out+= "<td class='td_status'>CSC blocks: <b>"+totalCSCblocks+"</b></td><td class='td_status'>DQM Rate: <b>"+totalDQMrate+"</b></td>";
+		out+= "<td class='td_status'>CSC Rate: <b>"+totalCSCrate+"</b></td>";
+		out+= "<td class='td_status'>Upd Nodes in <b>"+getNodesListDelay+"</b>s</td><td class='td_status'>Upd CSC List in <b>"+getCSCListDelay+"</b>s</td></tr></table>";
+		
 		obj.innerHTML=out;
 	}
 	setTimeout('updateSysStatus()', 2000);
@@ -1211,8 +1418,8 @@ function findCSCFromMap(crate, slot, m_list)
 	m_list = CSCMAP;
 	if (m_list.length>0) {
 		for (var i=0; i<m_list.length; i++) {
-			if ( (m_list[i][0].search(crate)==0) && 
-				(m_list[i][1].search(slot)==0) )
+			if ( (m_list[i][0] == crate) && 
+				(m_list[i][1] == slot) )
 			   return m_list[i][2];		
 		}	
 	}
@@ -1613,13 +1820,25 @@ function setSelectedTab(obj)
 	div_obj.style.display = "";
 	div_obj = get_element("hwtable_div");
 	div_obj.style.display = "none";
-	
+	div_obj = get_element("csccounters_div");
+	div_obj.style.display = "none";
    }
    else if (obj.title == "hw_view") {
 	div_obj = get_element("csctable_div");
 	div_obj.style.display = "none";
 	div_obj = get_element("hwtable_div");
 	div_obj.style.display = "";
+	div_obj = get_element("csccounters_div");
+	div_obj.style.display = "none";
+   }
+   else if (obj.title == "csccounters_view") {
+	div_obj = get_element("csctable_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("hwtable_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("csccounters_div");
+	div_obj.style.display = "";
+	// getCSCCounters();
    }
    o_selected = obj;
    return false;
@@ -1674,6 +1893,7 @@ get_element = document.all ?
 	// document.write('<script src="', baseURL+RunsList, '" type="text/javascript"><\/script>');
 	document.write('<script src="', baseURL+TestsList, '" type="text/javascript"><\/script>');
 	document.write('<script src="', baseURL+DDUMap, '" type="text/javascript"><\/script>');
+	document.write('<script src="', baseURL+VMEMap, '" type="text/javascript"><\/script>');
 	
 //-->
 </script>
@@ -1786,7 +2006,6 @@ get_element = document.all ?
 					//-->
 				</script>
 			</div>
-			<div id='nodestatus_div' style='display:none'></div>
 			<div id='sysstatus_div'>
 				<script type="text/javascript">
 					<!--//
@@ -1794,6 +2013,8 @@ get_element = document.all ?
 					//-->
 				</script>
 			</div>
+			<div id='nodestatus_div' style='display:none'></div>
+			
 		</div>
 	</fieldset>
 	<fieldset id="SystemView">
@@ -1805,7 +2026,7 @@ get_element = document.all ?
 				<ul>
 				<li title="csc_view" id="selected" onClick="return setSelectedTab(this);"><a href="#">CSCs Table</a></li>
 				<li title="hw_view"   onClick="return setSelectedTab(this);"><a href="#">VME/DMB Table</a></li>
-				
+				<li title="csccounters_view"   onClick="return setSelectedTab(this);"><a href="#">CSC Efficiencies</a></li>
 				</ul>
 			</div>
 			
@@ -1820,6 +2041,13 @@ get_element = document.all ?
 				
 			<div id="hwtable_div" style="display: none;">
 				Empty HW Table
+			</div>			
+			<div id="csccounters_div" style="display: none;">
+				<script type="text/javascript">
+				<!--//
+					getCSCCounters();
+				//-->
+				</script>
 			</div>
 			<div id="nodes_div" style="display: none;">
 				Empty
