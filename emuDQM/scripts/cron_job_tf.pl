@@ -9,27 +9,30 @@ use List::Util qw[min max];
 
 # cscdqm@cmsusr0 :
 my $WEB     = "~/cadaver https://cms-csc.web.cern.ch:444/cms-csc/";
-my $SOURCE  = "/cms/mon/data/lookarea_SM/";
+my $REPORT  = "repeat=0 && while [ \\\"`cat plots/*/summary.html | ~/data/client lxplus201.cern.ch:20000 | grep 'Connect'`\\\" != \\\"Connect\\\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done";
+#my $SOURCE  = "/cms/mon/data/lookarea_SM/";
 ##my $SOURCE  = "/cmssrv0/nfshome0/kkotov/data/";
-#my $SOURCE  = "/data/";
+my $SOURCE  = "/data/";
 my $SCRATCH = "/nfshome0/cscdqm/scratch/";
 my $LOGS    = "$SCRATCH/logs/";
-my $DQMHOST = "csc-c2d07-02";
+#my $DQMHOST = "csc-dqm";
+my $DQMHOST = "csc-daq10";
 #my $DQMHOST = "srv-C2D05-17";
 ##my $DATAHOST= $DQMHOST;
-#my $DATAHOST= "csc-daq10";
-my $DATAHOST= "cmsmon";
+my $DATAHOST= "csc-daq10";
+#my $DATAHOST= "cmsmon";
 #my $SU_DQM  = "sudo -H -u cscdqm bash -c";
 my $SU_DQM  = "bash -c";
 my $TFDQM   = "perl /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/bin/linux/x86/EmuTFtest.exe /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
-my $local_run_pattern = "csc_00000000*RUI00_Monitor*0803*.raw";
-my $global_run_pattern = "emulator*.A.*0000.dat";
-my $first_global_run_number = 37842; # Set it high if you don't analyze global runs
+my $local_run_pattern = "csc_000*RUI00*.raw";
+my $global_run_pattern = "GlobalMar08.00039940.0001.A.storageManager.*.0000.dat";
+my $first_run_to_process = 41439; 
+my $first_timestamp_to_process = "080422_110038_UTC";
 my $CMSSW = "~kkotov/CMSSW_1_8_0/";
 
 ############################# The code ##################################
 # 0. Find out time difference between local pc and pc with files (important for identifying "new" files):
-my $delta_time = `ssh $DATAHOST 'date +\%s' 2>/dev/null` - `date +\%s`;
+my $delta_time = `ssh -2 $DATAHOST 'date +\%s' 2>/dev/null` - `date +\%s`;
 
 # 1. Create list of processed runs:
 # 1.1 Get list of processed runs from the web
@@ -53,7 +56,7 @@ foreach my $entry ( @runs_done ){
 }
 # 2. Find new global runs and convert them to .raw files:
 # 2.1 Find all global runs (and provide timestamps for them):
-my $global_runs= `ssh $DATAHOST 'find $SOURCE -type f -name "$global_run_pattern" -printf "%T@ %h/%f\n" 2>/dev/null'`;
+my $global_runs= `ssh -2 $DATAHOST 'find $SOURCE -type f -name "$global_run_pattern" -printf "%T@ %h/%f\n" 2>/dev/null'`;
 # 2.2 Convert only new global daq files to local daq format
 my %file_collection;
 my %time_collection;
@@ -68,7 +71,7 @@ foreach my $file ( split(/\n/,$global_runs) ){
 
 	my $number = $run;
 	$number =~ s/\w+\.0*(\d+)/$1/g;
-	if($number<$first_global_run_number){ next; }
+	if($number<$first_run_to_process){ next; }
 
 	$file_collection{$run} .= "$SCRATCH/$file.raw_760\n";
 	$time_collection{$run} .= "$timestamp\n";
@@ -85,7 +88,7 @@ foreach my $file ( split(/\n/,$global_runs) ){
 		next;
 	}
 	#	die "Can't connect to $DATAHOST" if
-			system("ssh $DATAHOST 'cd $CMSSW/src/IORawData/CSCCommissioning/test/ && ./convert.sh $SOURCE/$file.dat $SCRATCH/$file.raw' 1>$LOGS/$file.log 2>&1 && touch $SCRATCH/$file.processing");
+			system("ssh -2 $DATAHOST 'cd $CMSSW/src/IORawData/CSCCommissioning/test/ && ./convert.sh $SOURCE/$file.dat $SCRATCH/$file.raw' 1>$LOGS/$file.log 2>&1 && touch $SCRATCH/$file.processing");
 }
 
 # 2.3 Create list of only runs with new files
@@ -121,8 +124,8 @@ foreach my $run ( keys %file_collection ) {
 
 # 3. Find new local daq files (i.e. local runs and converted global runs) and process them:
 # 3.1 Find all local runs (and provide timestamps for them):
-my $local_runs = `ssh $DATAHOST 'find $SOURCE -type f -name "$local_run_pattern" -printf "%C@ %h/%f\n" 2>/dev/null'`;
-print "Local runs: $local_runs\n";
+my $local_runs = `ssh -2 $DATAHOST 'find $SOURCE -type f -name "$local_run_pattern" -printf "%C@ %h/%f\n" 2>/dev/null'`;
+##print "Local runs: $local_runs\n";
 # 3.2 Following procedure of combining different parts from the same run should be identical to what we have in TFDQM.pl
 foreach my $file ( split(/\n/,$local_runs) ) {
 	my $run = $file;
@@ -136,9 +139,30 @@ foreach my $file ( split(/\n/,$local_runs) ) {
 }
 
 foreach my $run ( sort keys %runs_todo ) {
+	if( $run =~ /_UTC/ ){
+		my $first_date_to_process = $first_timestamp_to_process;
+		$first_date_to_process =~ s/(\d+)_\d+\_UTC/$1/g;
+		my $first_time_to_process = $first_timestamp_to_process;
+		$first_time_to_process =~ s/\d+_(\d+)_UTC/$1/g;
+		my $timestamp_date = $run;
+		$timestamp_date =~ s/.+?(\d+)_\d+_UTC/$1/g;
+		my $timestamp_time = $run;
+		$timestamp_time =~ s/.+?\d+_(\d+)_UTC/$1/g;
+		#print "run: $run, timestamp_date: $timestamp_date, first_date_to_process: $first_date_to_process, timestamp_time: $timestamp_time, first_time_to_proces: $first_time_to_process\n";
+		if( ($timestamp_date<$first_date_to_process)
+		 || ($timestamp_date==$first_date_to_process && $timestamp_time<$first_time_to_process) ){
+			next;
+		}
+	} else {
+		my $number = $run;
+		$number =~ s/\w*?.0+(\d+).*/$1/g;
+		if($number<$first_run_to_process){ next; }
+	}
+	print "Local run: $run; ";
+
 	my $windows_name = $run;
 	$windows_name =~ s/_/-/g;
-	die "Another unfinished process" if ( -d "./tf_scratch/" );
+	die "\nAnother unfinished process" if ( -d "./tf_scratch/" );
 	my $process = 1;
 	foreach my $entry ( @runs_done ){
 		if( $entry =~ $windows_name ){
@@ -155,6 +179,7 @@ foreach my $run ( sort keys %runs_todo ) {
 		}
 	}
 	if( $process ){
+		print "updating the web ...\n";
 		open(RUNS,"> tree_runs.js") or die "Can't write to tree_runs.js";
 		foreach my $entry ( @runs_done ){
 			next if( $entry =~ $windows_name );
@@ -173,20 +198,21 @@ foreach my $run ( sort keys %runs_todo ) {
 		my @files = split(/\s*\d+\s+/, $runs_todo{$run});
 		shift @files;
 		foreach my $file ( @files ) {
-			$PREPARE .= " && if [ -e $file ] ; then ln -s $file $SCRATCH/tf_scratch/$dirname 2>/dev/null; else scp -r '$DATAHOST:$file' $SCRATCH/tf_scratch/$dirname/ 2>/dev/null; fi";
+			$PREPARE .= " && if [ -e $file ] ; then ln -s $file $SCRATCH/tf_scratch/$dirname 2>/dev/null; else scp -2 -r '$DATAHOST:$file' $SCRATCH/tf_scratch/$dirname/ 2>/dev/null; fi";
 		}
 		$PREPARE .= " && cp tree_runs.js $SCRATCH/tf_scratch/'";
 		die "Can't setup scratch folder" if system("$PREPARE");
 
-#		die "Can't process $run" if system("ssh $DQMHOST \"$SU_DQM 'export HOME=/nfshome0/cscdqm/ && source /nfshome0/cscdqm/.bash_profile && cd $SCRATCH/tf_scratch/ && nice -19 $TFDQM'\"");
-		while( system("ssh $DQMHOST \"$SU_DQM 'export HOME=/nfshome0/cscdqm/ && source /nfshome0/cscdqm/.bash_profile && cd $SCRATCH/tf_scratch/ && nice -19 $TFDQM'\"") ){
+#		die "Can't process $run" if system("ssh -2 $DQMHOST \"$SU_DQM 'export HOME=/nfshome0/cscdqm/ && source /nfshome0/cscdqm/.bash_profile && cd $SCRATCH/tf_scratch/ && nice -19 $TFDQM'\"");
+		while( system("ssh -2 $DQMHOST \"$SU_DQM 'export HOME=/nfshome0/cscdqm/ && source /nfshome0/cscdqm/.bash_profile && cd $SCRATCH/tf_scratch/ && nice -19 $TFDQM'\"") ){
 #print "Can't process $run. Trying again\n";
 		}
 		die "Can't run cadaver"  if system("cat $SCRATCH/tf_scratch/$dirname/*.cadaver | awk 'BEGIN{print \"lcd $SCRATCH/tf_scratch/\\n\"} {print \$0}' | $WEB >> cron_job_tf.log && echo -e \"lcd $SCRATCH/tf_scratch/\ncd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $WEB >> cron_job_tf.log");
-		die "Can't clean up"     if system("$SU_DQM \"cp $SCRATCH/tf_scratch/tree_runs.js ./ && cd $SCRATCH/tf_scratch/ && find . -name '*.log' -exec gzip {} \\; && find . -name '*.log.gz' -exec cp {} $LOGS \\; && find . -name '*.root' -exec cp {} $LOGS/ \\; && cd ../ && rm -rf ./tf_scratch\"");
+		die "Can't clean up"     if system("$SU_DQM \"cp $SCRATCH/tf_scratch/tree_runs.js ./ && cd $SCRATCH/tf_scratch/ && find . -name '*.log' -exec gzip {} \\; && find . -name '*.log.gz' -exec cp {} $LOGS \\; && find . -name '*.root' -exec cp {} $LOGS/ \\; && $REPORT && cd ../ && rm -rf ./tf_scratch\"");
 
 		open(RUNS,"< tree_runs.js") or die "Can't read tree_runs.js";
 		@runs_done = <RUNS>;
 		close RUNS;
 	}
+	print "  the web is up to date\n";
 }
