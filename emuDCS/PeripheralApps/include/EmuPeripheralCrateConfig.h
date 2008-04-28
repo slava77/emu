@@ -130,6 +130,7 @@ protected:
   int TMBTriggerClct1keyHalfStrip[120][9];
   //
   int tmb_vme_ready;
+  int crate_controller_status;
   //
   int CCBRegisterValue_;
   vector<TMB*>   tmbVector;
@@ -441,6 +442,7 @@ private:
   void RATBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCrateControllerFromTMBPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void LoadTMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadCrateTMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBHardResetFromTMBPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  

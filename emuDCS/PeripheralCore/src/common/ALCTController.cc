@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.44 2008/04/28 12:08:39 rakness Exp $
+// $Id: ALCTController.cc,v 3.45 2008/04/28 14:29:31 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.45  2008/04/28 14:29:31  rakness
+// Clean up firmware downloading output and synchronization parameter pages
+//
 // Revision 3.44  2008/04/28 12:08:39  rakness
 // different number of PROMs on JTAG chain for ALCT672 compared to ALCT288 and ALCT384
 //
@@ -4091,52 +4094,54 @@ int ALCTController::CheckFirmwareConfiguration() {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
     std::cout << "!!! ERROR:  Not loading firmware to ALCT with following configuration !!!" << std::endl;
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
+    std::cout << "VCC IP address    = " << xml_VCCIpAddress << std::endl;
+    std::cout << "TMB slot number   = " << std::dec << xml_tmb_slot     << std::endl;
+    std::cout << "Crate label       = " << xml_crateLabel   << std::endl;
+    std::cout << "Chamber label     = " << xml_chamberLabel << std::endl;
+    std::cout << "Chamber type      = " << xml_chambertype  << std::endl;
+    std::cout << "Backward/forward  = ";
+    if ( xml_backward_forward_type == BACKWARD_FIRMWARE_TYPE ) {
+      std::cout << "backward";
+    } else if ( xml_backward_forward_type == FORWARD_FIRMWARE_TYPE ) {
+      std::cout << "forward";
+    } else if ( xml_backward_forward_type == DO_NOT_CARE ) {
+      std::cout << "do not care";
+    }
+    std::cout << std::endl;
+    //
+    std::cout << "Negative/positive = ";
+    if ( xml_negative_positive_type  == NEGATIVE_FIRMWARE_TYPE ) {
+      std::cout << "negative ";
+    } else if ( xml_negative_positive_type == POSITIVE_FIRMWARE_TYPE ) {
+      std::cout << "positive ";
+    } else if ( xml_negative_positive_type == DO_NOT_CARE ) {
+      std::cout << "do not care";
+    }
+    std::cout << std::endl;
+    //
+    std::cout << "Regular/mirror   = ";
+    if ( xml_regular_mirror_type == REGULAR_FIRMWARE_TYPE ) {
+      std::cout << "non-mirrored";
+    } else  if ( xml_regular_mirror_type == MIRROR_FIRMWARE_TYPE ) {
+      std::cout << "mirrored";
+    } else {
+      std::cout << "unknown";
+    }
+    std::cout << std::endl;
+    //
+    std::cout << "read FPGA ID   = 0x" << std::hex << read_fpga_id << std::endl;
+    //
   } else if (return_value == 1) {
     //
-    std::cout << "If requested, will load the following firmware to ALCT" << std::endl;
+    std::cout << "ALCT firmware database check OK. Will load firmware to ALCT..." << std::endl;
     //
   } else if (return_value > 1) {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
     std::cout << "!!! DATABASE ERROR:  Not loading firmware to ALCT  !!!" << std::endl;
+    std::cout << "!!!                                                !!!" << std::endl;
+    std::cout << "!!!                CONTACT EXPERT                  !!!" << std::endl;
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;    
   }
-  //
-  std::cout << "VCC IP address    = " << xml_VCCIpAddress << std::endl;
-  std::cout << "TMB slot number   = " << std::dec << xml_tmb_slot     << std::endl;
-  std::cout << "Crate label       = " << xml_crateLabel   << std::endl;
-  std::cout << "Chamber label     = " << xml_chamberLabel << std::endl;
-  std::cout << "Chamber type      = " << xml_chambertype  << std::endl;
-  std::cout << "Backward/forward  = ";
-  if ( xml_backward_forward_type == BACKWARD_FIRMWARE_TYPE ) {
-    std::cout << "backward";
-  } else if ( xml_backward_forward_type == FORWARD_FIRMWARE_TYPE ) {
-    std::cout << "forward";
-  } else if ( xml_backward_forward_type == DO_NOT_CARE ) {
-    std::cout << "do not care";
-  }
-  std::cout << std::endl;
-  //
-  std::cout << "Negative/positive = ";
-  if ( xml_negative_positive_type  == NEGATIVE_FIRMWARE_TYPE ) {
-    std::cout << "negative ";
-  } else if ( xml_negative_positive_type == POSITIVE_FIRMWARE_TYPE ) {
-    std::cout << "positive ";
-  } else if ( xml_negative_positive_type == DO_NOT_CARE ) {
-    std::cout << "do not care";
-  }
-  std::cout << std::endl;
-  //
-  std::cout << "Regular/mirror   = ";
-  if ( xml_regular_mirror_type == REGULAR_FIRMWARE_TYPE ) {
-    std::cout << "non-mirrored";
-  } else  if ( xml_regular_mirror_type == MIRROR_FIRMWARE_TYPE ) {
-    std::cout << "mirrored";
-  } else {
-    std::cout << "unknown";
-  }
-  std::cout << std::endl;
-  //
-  std::cout << "read FPGA ID   = 0x" << std::hex << read_fpga_id << std::endl;
   //
   //
   return return_value;
