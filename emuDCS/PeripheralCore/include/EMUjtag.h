@@ -147,6 +147,7 @@ public:
   //
 protected:
   //
+  inline void SetNumberOfChipsAlctFastMezz(int number_of_chips) { NumberChipsAlctFastMezz = number_of_chips; }
   //
 private:
   //
@@ -165,6 +166,8 @@ private:
   int jtag_chain_;
   int devices_in_chain_;
   int max_xsvf_image_number_;
+  //
+  int NumberChipsAlctFastMezz;
   //
   //
   /////////////////////////////////

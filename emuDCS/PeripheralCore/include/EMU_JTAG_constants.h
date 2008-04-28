@@ -210,7 +210,8 @@ const int RegSizeAlctFastFpga_BYPASS                    =    1;
 // ALCT "fast-control" Mezzanine chain characteristics            
 ////////////////////////////////////////////////////////
 const int ChainAlctFastMezz                  = 0x3;      //ALCT Mezzanine FPGA + PROM(s)
-const int NumberChipsAlctFastMezz            =   3;
+const int NumberChipsAlctFastMezz672         =   3;
+const int NumberChipsAlctFastMezz288_384     =   2;
 //
 const int ChipLocationAlctFastMezzFpga       =   0;
 const int OpcodeSizeAlctFastMezzFpga         =   5;
