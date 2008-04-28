@@ -211,7 +211,6 @@
 		<Pad1>CSC_wo_ALCT_Fract</Pad1>
 		<Pad2>CSC_wo_CLCT_Fract</Pad2>
 		<Pad3>CSC_wo_CFEB_Fract</Pad3>
-                <DisplayInWeb>0</DisplayInWeb>
         </Canvas>
         <!--Canvas>
                 <Type>cnv</Type>
