@@ -5,7 +5,7 @@ using namespace XERCES_CPP_NAMESPACE;
 Test_CFEB02::Test_CFEB02(std::string dfile): Test_Generic(dfile) {
   testID = "CFEB02";
   nExpectedEvents = 10000;
-  binCheckMask=0x16CB73F6;
+  binCheckMask=0x16CFF3F6;
 //  binCheckMask=0xF7CB3BF6;
 }
 

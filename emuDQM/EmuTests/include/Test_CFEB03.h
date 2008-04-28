@@ -69,6 +69,8 @@ class Test_CFEB03: public Test_Generic
 	Test_CFEB03(std::string datafile);
 	void analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
 //	void finish();
+	bool checkResults(std::string cscID);
+
 
   protected:
 
