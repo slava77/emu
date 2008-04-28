@@ -70,6 +70,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MenuMonitor_ = 2;
   //
   tmb_vme_ready = -1;
+  crate_controller_status = -1;
   //
   all_crates_ok = -1;
   for (int i=0; i<60; i++) {
@@ -189,6 +190,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //-----------------------------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTStatus, "ALCTStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::RATStatus, "RATStatus");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateControllerFromTMBPage, "CheckCrateControllerFromTMBPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadTMBFirmware, "LoadTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadCrateTMBFirmware, "LoadCrateTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBHardResetFromTMBPage, "CCBHardResetFromTMBPage");
@@ -3615,7 +3617,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  *out << cgicc::legend("CSC trigger primitive synchronization and tests").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::legend("Team A tests").set("style","color:blue") << cgicc::p() << std::endl ;
   //
   char buf[20];
   //
@@ -3644,22 +3646,22 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //    *out << cgicc::form() << std::endl ;
   //
   //
-  *out << cgicc::pre();
-  *out << "-------------------------------------------------------------------------" << std::endl;
-  *out << " Synchronize the Chamber Trigger and DAQ paths" << std::endl;
-  *out << "-------------------------------------------------------------------------" << std::endl;
-  *out << "0) Prepare to synchronize system" << std::endl;
-  *out << "   a) LV:  on" << std::endl;
-  *out << "   b) Restart Peripheral Crate XDAQ" << std::endl;
-  *out << "   c) Init System" << std::endl;
-  *out << cgicc::pre();
+  //  *out << cgicc::pre();
+  //  *out << "-------------------------------------------------------------------------" << std::endl;
+  //  *out << " Synchronize the Chamber Trigger and DAQ paths" << std::endl;
+  //  *out << "-------------------------------------------------------------------------" << std::endl;
+  //  *out << "0) Prepare to synchronize system" << std::endl;
+  //  *out << "   a) LV:  on" << std::endl;
+  //  *out << "   b) Restart Peripheral Crate XDAQ" << std::endl;
+  //  *out << "   c) Init System" << std::endl;
+  //  *out << cgicc::pre();
   //
   //
-  *out << cgicc::pre();
-  *out << "1) Measure relative clock phases with pulsing" << std::endl;
-  *out << "   a) LTC:  Stop L1A triggers" << std::endl;
-  *out << "   b) Push the following buttons:" << std::endl;
-  *out << cgicc::pre();
+  //  *out << cgicc::pre();
+  //  *out << "1) Measure relative clock phases with pulsing" << std::endl;
+  //  *out << "   a) LTC:  Stop L1A triggers" << std::endl;
+  //  *out << "   b) Push the following buttons:" << std::endl;
+  //  *out << cgicc::pre();
   //
   std::string ALCTTiming = toolbox::toString("/%s/ALCTTiming",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ALCTTiming) << std::endl ;
@@ -3709,36 +3711,33 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
        << " ("  << MyTest[tmb][current_crate_].GetRatTmbDelay()     << ") " << std::endl;
   *out << cgicc::br();
   //
-  *out << cgicc::pre();
-  *out << "   c) Enter above values into xml" << std::endl;
-  *out << "   d) Set up the xml file with the desired ALCT and CLCT trigger configuration" << std::endl;
-  *out << "   e) Restart Peripheral Crate XDAQ" << std::endl;
-  *out << "   f) Init System" << std::endl;
-  *out << cgicc::pre();
+  *out << cgicc::fieldset();
   //
   //
-  *out << cgicc::pre();
-  *out << "2) Set up to perform synchronization" << std::endl;
-  *out << "   a) LTC Hard Reset" << std::endl;
-  *out << "   b) For muons from LHC beam or cosmic rays:" << std::endl;
-  *out << "      i ) HV:  on" << std::endl;
-  *out << "      ii) skip to step d)" << std::endl;
-  *out << "   c) For pulsing from the TTC:" << std::endl;
-  *out << "      i ) push the following button" << std::endl;
-  *out << cgicc::pre();
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  std::string setupCoincidencePulsing = toolbox::toString("/%s/setupCoincidencePulsing",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",setupCoincidencePulsing) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Setup Coincidence Pulsing") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  *out << cgicc::form() << std::endl ;
+  *out << cgicc::legend("Expert tools").set("style","color:blue") << cgicc::p() << std::endl ;
   //
+  //  *out << cgicc::pre();
+  //  *out << "   c) Enter above values into xml" << std::endl;
+  //  *out << "   d) Set up the xml file with the desired ALCT and CLCT trigger configuration" << std::endl;
+  //  *out << "   e) Restart Peripheral Crate XDAQ" << std::endl;
+  //  *out << "   f) Init System" << std::endl;
+  //  *out << cgicc::pre();
+  //
+  //
+  //  *out << cgicc::pre();
+  //  *out << "2) Set up to perform synchronization" << std::endl;
+  //  *out << "   a) LTC Hard Reset" << std::endl;
+  //  *out << "   b) For muons from LHC beam or cosmic rays:" << std::endl;
+  //  *out << "      i ) HV:  on" << std::endl;
+  //  *out << "      ii) skip to step d)" << std::endl;
+  //  *out << "   c) For pulsing from the TTC:" << std::endl;
+  //  *out << "      i ) push the following button" << std::endl;
+  //  *out << cgicc::pre();
+  //  //
   *out << cgicc::pre();
-  *out << "   d) LTC:  Resync" << std::endl;
-  *out << "   e) LTC Enable L1A's" << std::endl;
-  *out << "   f) LTC Begin cyclic BGo to fire ADB Sync pulse on CCB" << std::endl;
-  *out << "   g) Set the parameters for performing the synchronization scans" << std::endl;
+  *out << "Snapshot of the DMB timing parameters..." << std::endl;
   *out << cgicc::pre();
   //
   std::string setDataReadValues = toolbox::toString("/%s/setDataReadValues",getApplicationDescriptor()->getURN().c_str());
@@ -3758,45 +3757,30 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
-  std::string setTMBCounterReadValues = toolbox::toString("/%s/setTMBCounterReadValues",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",setTMBCounterReadValues) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Set scan values") << std::endl ;
-  *out << "TMB L1A min value (bx)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMinTmbL1aDelayValue());
-  *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_l1a_delay_min") << std::endl ;
-  *out << "TMB L1A max value (bx)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMaxTmbL1aDelayValue());
-  *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_l1a_delay_max") << std::endl ;
-  *out << "ALCT L1A min value (bx)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMinAlctL1aDelayValue());
-  *out << cgicc::input().set("type","text").set("value",buf).set("name","alct_l1a_delay_min") << std::endl ;
-  *out << "ALCT L1A max value (bx)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMaxAlctL1aDelayValue());
-  *out << cgicc::input().set("type","text").set("value",buf).set("name","alct_l1a_delay_max") << std::endl ;
-  *out << "Pause at each setting (sec)" << std::endl;
-  sprintf(buf,"%d",MyTest[tmb][current_crate_].getPauseAtEachSetting());
-  *out << cgicc::input().set("type","text").set("value",buf).set("name","time_to_pause") << std::endl ;
+  std::string PrintDmbValuesAndScopes = toolbox::toString("/%s/PrintDmbValuesAndScopes",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",PrintDmbValuesAndScopes) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Read DMB Values/Scopes") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   sprintf(buf,"%d",dmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << cgicc::pre();
-  *out << "3) Perform all synchronization steps by pushing the following button" << std::endl;
-  *out << "   -> This button performs the synchronization steps detailed below " << std::endl;
-  *out << "      in order, propagating the measured values from one step to the" << std::endl;
-  *out << "      next step" << std::endl;
-  *out << cgicc::pre();
-  //
-  std::string Automatic = toolbox::toString("/%s/Automatic",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",Automatic) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Automatic") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  *out << cgicc::form() << std::endl ;
+  //  *out << cgicc::pre();
+  //  *out << "3) Perform all synchronization steps by pushing the following button" << std::endl;
+  //  *out << "   -> This button performs the synchronization steps detailed below " << std::endl;
+  //  *out << "      in order, propagating the measured values from one step to the" << std::endl;
+  //  *out << "      next step" << std::endl;
+  //  *out << cgicc::pre();
+  //  //
+  //  std::string Automatic = toolbox::toString("/%s/Automatic",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",Automatic) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Automatic") << std::endl ;
+  //  sprintf(buf,"%d",tmb);
+  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  //  sprintf(buf,"%d",dmb);
+  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  //  *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br();
   *out << cgicc::br();
@@ -3806,12 +3790,12 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << "--------------------------------------------------------------------------" << std::endl;
   *out << " Synchronization step-by-step" << std::endl;
   *out << "--------------------------------------------------------------------------" << std::endl;
-  *out << "A) Measure CLCT-ALCT match timing with cosmic rays" << std::endl;
-  *out << "   -> Measured values are based on current values of:" << std::endl;
-  *out << "        * match_trig_window_size" << std::endl;
-  *out << "        * match_trig_alct_delay" << std::endl;
-  *out << "        * mpc_tx_delay" << std::endl;
-  *out << "(assuming that the trigger primitives have already been synchronized at the MPC)" << std::endl;
+  *out << "A) Measure CLCT-ALCT match timing" << std::endl;
+  //  *out << "   -> Measured values are based on current values of:" << std::endl;
+  //  *out << "        * match_trig_window_size" << std::endl;
+  //  *out << "        * match_trig_alct_delay" << std::endl;
+  //  *out << "        * mpc_tx_delay" << std::endl;
+  //  *out << "(assuming that the trigger primitives have already been synchronized at the MPC)" << std::endl;
   *out << cgicc::pre();
   //
   std::string ALCTvpf = toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
@@ -3852,21 +3836,32 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   //
   *out << cgicc::pre();
-  *out << "C) Align the L1A at the CFEB, TMB, and ALCT" << std::endl;
+  *out << "C) Find the L1A at the TMB and ALCT" << std::endl;
   *out << cgicc::pre();
   //
-  std::string TmbLctCableDelay = toolbox::toString("/%s/TmbLctCableDelay",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",TmbLctCableDelay) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Determine Active FEB flag (CFEB-TMB) cable delay") << std::endl ;
+  std::string setTMBCounterReadValues = toolbox::toString("/%s/setTMBCounterReadValues",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",setTMBCounterReadValues) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Set scan values") << std::endl ;
+  *out << "TMB L1A min value (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMinTmbL1aDelayValue());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_l1a_delay_min") << std::endl ;
+  *out << "TMB L1A max value (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMaxTmbL1aDelayValue());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_l1a_delay_max") << std::endl ;
+  *out << "ALCT L1A min value (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMinAlctL1aDelayValue());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","alct_l1a_delay_min") << std::endl ;
+  *out << "ALCT L1A max value (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getMaxAlctL1aDelayValue());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","alct_l1a_delay_max") << std::endl ;
+  *out << "Pause at each setting (sec)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb][current_crate_].getPauseAtEachSetting());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","time_to_pause") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   sprintf(buf,"%d",dmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
-  //
-  *out << "tmb_lct_cable_delay = " << MyTest[tmb][current_crate_].GetTmbLctCableDelayTest() 
-       << " ("  << MyTest[tmb][current_crate_].GetTmbLctCableDelay_configvalue() << ") " << std::endl;
-  *out << cgicc::br();
   //
   std::string TMBL1aTiming = toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",TMBL1aTiming) << std::endl ;
@@ -3897,7 +3892,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   //
   *out << cgicc::pre();
-  *out << "D) Align the Data AVailable (DAV) bits at the DMB" << std::endl;
+  *out << "D) Align the Data AVailable (DAV) bits for the ALCT" << std::endl;
   *out << cgicc::pre();
   //
   std::string AlctDavCableDelay = toolbox::toString("/%s/AlctDavCableDelay",getApplicationDescriptor()->getURN().c_str());
@@ -3914,9 +3909,31 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   *out << cgicc::br();
   //
+  //  *out << cgicc::pre();
+  //  *out << "-> The following parameter, cfeb_dav_cable_delay, depends on cfeb_cable_delay," << std::endl;
+  //  *out << "   who should be set strictly according to its cable length" << std::endl;
+  //  *out << cgicc::pre();
+  //
   *out << cgicc::pre();
-  *out << "-> The following parameter, cfeb_dav_cable_delay, depends on cfeb_cable_delay," << std::endl;
-  *out << "   who should be set strictly according to its cable length" << std::endl;
+  *out << "E) Find the L1A at the CFEB" << std::endl;
+  *out << cgicc::pre();
+  //
+  std::string TmbLctCableDelay = toolbox::toString("/%s/TmbLctCableDelay",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TmbLctCableDelay) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Determine Active FEB flag (CFEB-TMB) cable delay") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << "tmb_lct_cable_delay = " << MyTest[tmb][current_crate_].GetTmbLctCableDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetTmbLctCableDelay_configvalue() << ") " << std::endl;
+  *out << cgicc::br();
+  *out << cgicc::br();
+  //
+  *out << cgicc::pre();
+  *out << "F) Align the Data AVailable (DAV) bits for the CFEB" << std::endl;
   *out << cgicc::pre();
   //
   std::string CfebDavCableDelay = toolbox::toString("/%s/CfebDavCableDelay",getApplicationDescriptor()->getURN().c_str());
@@ -3933,44 +3950,45 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   *out << cgicc::br();
   //
-  *out << cgicc::pre();
-  *out << "E) Check the overall state of the DMB readout" << std::endl;
-  *out << "   -> Is the Active FEB Flag to L1A where it should be for this xLatency?" << std::endl;
-  *out << "   -> Is the ALCT DAV scope centered at 2?" << std::endl;
-  *out << "   -> Is the CFEB DAV scope centered at 2?" << std::endl;
-  *out << cgicc::pre();
-  //
-  std::string PrintDmbValuesAndScopes = toolbox::toString("/%s/PrintDmbValuesAndScopes",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",PrintDmbValuesAndScopes) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Read DMB Values/Scopes") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  *out << cgicc::form() << std::endl ;
-  //
-  *out << cgicc::br();
+  //  *out << cgicc::pre();
+  //  *out << "E) Check the overall state of the DMB readout" << std::endl;
+  //  *out << "   -> Is the Active FEB Flag to L1A where it should be for this xLatency?" << std::endl;
+  //  *out << "   -> Is the ALCT DAV scope centered at 2?" << std::endl;
+  //  *out << "   -> Is the CFEB DAV scope centered at 2?" << std::endl;
+  //  *out << cgicc::pre();
   //
   //
-  *out << cgicc::pre();
-  *out << "F) Measure the communication phase of the RPC link board to the RAT" << std::endl;
-  *out << "   -> For the future, when RPC Link Boards are connected to the RAT" << std::endl;
-  *out << "   -> Make sure the RPC parity-bit is enabled for the following scan" << std::endl;
-  *out << cgicc::pre();
   //
-  std::string RpcRatTiming = toolbox::toString("/%s/RpcRatTiming",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",RpcRatTiming) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Determine RPC-RAT phase") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  *out << cgicc::form() << std::endl ;
+  //  *out << cgicc::pre();
+  //  *out << "F) Measure the communication phase of the RPC link board to the RAT" << std::endl;
+  //  *out << "   -> For the future, when RPC Link Boards are connected to the RAT" << std::endl;
+  //  *out << "   -> Make sure the RPC parity-bit is enabled for the following scan" << std::endl;
+  //  *out << cgicc::pre();
   //
-  *out << "rpc0_rat_delay = " << MyTest[tmb][current_crate_].GetRpcRatDelayTest() 
-       << " ("  << MyTest[tmb][current_crate_].GetRpcRatDelay()     << ") " << std::endl;
-  *out << cgicc::br();
-  *out << cgicc::br();
+  // The following buttons are not being used at the moment...
+  //  std::string RpcRatTiming = toolbox::toString("/%s/RpcRatTiming",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",RpcRatTiming) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Determine RPC-RAT phase") << std::endl ;
+  //  sprintf(buf,"%d",tmb);
+  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  //  sprintf(buf,"%d",dmb);
+  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  //  *out << cgicc::form() << std::endl ;
+  //  //
+  //  *out << "rpc0_rat_delay = " << MyTest[tmb][current_crate_].GetRpcRatDelayTest() 
+  //       << " ("  << MyTest[tmb][current_crate_].GetRpcRatDelay()     << ") " << std::endl;
+  //  *out << cgicc::br();
+  //  *out << cgicc::br();
+  //  //
+  //  //
+  //  std::string setupCoincidencePulsing = toolbox::toString("/%s/setupCoincidencePulsing",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",setupCoincidencePulsing) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Setup Coincidence Pulsing") << std::endl ;
+  //  sprintf(buf,"%d",tmb);
+  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  //  *out << cgicc::form() << std::endl ;
+  //  *out << cgicc::br();
+  //  *out << cgicc::br();
   //
   //
   *out << cgicc::pre();
@@ -9761,6 +9779,24 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "TMB: " << cgicc::br() << std::endl;
   *out << "--> firmware version = " << TMBFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
   //
+  std::string CheckCrateControllerFromTMBPage = toolbox::toString("/%s/CheckCrateControllerFromTMBPage",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckCrateControllerFromTMBPage) << std::endl ;
+  if ( crate_controller_status == 1 ) {
+    //
+    *out << cgicc::input().set("type","submit").set("value","Step 0) Check VME Crate Controller").set("style","color:green");
+    //
+  } else if ( crate_controller_status == 0 ) {
+    //
+    *out << cgicc::input().set("type","submit").set("value","Step 0) Check VME Crate Controller").set("style","color:red");
+    //
+  } else {
+    //
+    *out << cgicc::input().set("type","submit").set("value","Step 0) Check VME Crate Controller").set("style","color:blue");
+    //
+  }
+  *out << cgicc::form() << std::endl ;
+  //
+  //
   *out << cgicc::table().set("border","0");
   //
   *out << cgicc::td().set("ALIGN","left");
@@ -9819,22 +9855,23 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   if (alct) {
     *out << "ALCT: " << cgicc::br() << std::endl;
-    for (unsigned i=0; i<tmbVector.size(); i++) {
-      //
-      int check_value = tmbVector[i]->alctController()->CheckFirmwareConfiguration();
-      //
-      if (check_value == 1) {
-	*out << cgicc::span().set("style","color:black");
-      } else if (check_value == 0) {
-	*out << cgicc::span().set("style","color:red");
-      } else if (check_value == -1) {
-	*out << cgicc::span().set("style","color:blue");
-      } else {
-	*out << cgicc::span().set("style","color:green");
-      }
-      *out << "slot " << tmbVector[i]->slot() << " --> " << ALCTFirmware_[i].toString() << cgicc::br() << std::endl;
-      *out << cgicc::span() << std::endl ;
+    int i = tmb;
+    //    for (unsigned i=0; i<tmbVector.size(); i++) {
+    //
+    int check_value = tmbVector[i]->alctController()->CheckFirmwareConfiguration();
+    //
+    if (check_value == 1) {
+      *out << cgicc::span().set("style","color:black");
+    } else if (check_value == 0) {
+      *out << cgicc::span().set("style","color:red");
+    } else if (check_value == -1) {
+      *out << cgicc::span().set("style","color:blue");
+    } else {
+      *out << cgicc::span().set("style","color:green");
     }
+    *out << "slot " << tmbVector[i]->slot() << " --> " << ALCTFirmware_[i].toString() << cgicc::br() << std::endl;
+    *out << cgicc::span() << std::endl ;
+    //    }
     //
     std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
@@ -10222,6 +10259,16 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
   return;
 }
 //
+void EmuPeripheralCrateConfig::CheckCrateControllerFromTMBPage(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {  
+  //
+  crate_controller_status = (int) 
+    (crateVector[current_crate_]->vmeController()->SelfTest()) && 
+    (crateVector[current_crate_]->vmeController()->exist(13));
+  //
+  this->TMBUtils(in,out);
+}
+//
 void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -10271,9 +10318,11 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
     } else {
       cout << "ERROR!! -> Number of errors = " << number_of_verify_errors << " not equal to 0!!" << std::endl;
       std::cout << std::endl;
-      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
-      cout << "!!!! Do not perform hard reset !!!! " << endl;
-      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
+      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
+      cout << "!!!!     IF you are BROADCASTING TO CRATE, this is OK     !!!! " << endl;
+      cout << "!!!!                                                      !!!! " << endl;
+      cout << "!!!! IF you are NOT, this is a PROBLEM, DO NOT HARD RESET !!!! " << endl;
+      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
     }
     //
   } 
