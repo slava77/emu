@@ -11,6 +11,8 @@ def csclayout(i, p, *rows): i["Layouts/CSC Layouts/" + p] = DQMItem(layout=rows)
 </xsl:template>
 
 <xsl:template match="Canvas">
+<xsl:variable name="display"><xsl:choose><xsl:when test="DisplayInWeb=0">0</xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
+<xsl:if test="$display=1">
 csclayout(dqmitems,"<xsl:value-of select="Title"/>",
 <xsl:variable name="prefix"><xsl:if test="string-length(Prefix) > 0"><xsl:value-of select="Prefix"/>/</xsl:if></xsl:variable>
 <xsl:for-each select="./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))][position() = 1]">
@@ -20,6 +22,7 @@ csclayout(dqmitems,"<xsl:value-of select="Title"/>",
  ,["<xsl:value-of select="$prefix"/><xsl:value-of select="."/>"]
 </xsl:for-each>
 )
+</xsl:if>
 </xsl:template>
 
 </xsl:stylesheet>
