@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.28 2008/04/22 08:34:10 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.29 2008/04/28 20:59:39 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -92,6 +92,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   Monitor_On_ = false;
   Monitor_Ready_ = false;
   In_Monitor_ = false;
+  In_Broadcast_ = false;
   fastloop=0;
   slowloop=0;
   extraloop=0;
@@ -156,7 +157,7 @@ void EmuPeripheralCrateBroadcast::timeExpired (toolbox::task::TimerEvent& e)
 {
 
      if(! Monitor_On_ ) return;
-     if( In_Monitor_ ) return;
+     if( In_Monitor_  || In_Broadcast_) return;
      In_Monitor_ = true;
      std::string name = e.getTimerTask()->name;
      // std::cout << "timeExpired: " << name << std::endl;
@@ -849,6 +850,7 @@ void EmuPeripheralCrateBroadcast::MyHeader(xgi::Input * in, xgi::Output * out, s
 xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
+  In_Broadcast_ = true;
   std::cout<< "This is a checking printing for OnConfigCal0"<<std::endl;
   ostringstream test;
   message->writeTo(test);
@@ -895,6 +897,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   //
   //    fireEvent("Configure");
   //
+  In_Broadcast_ = false;
   return createReply(message);
   //
 }
@@ -904,7 +907,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
   //
   float dac, threshold;
   int nsleep = 100, highthreshold;  
-  //  std::cout<< "This is a checking printing for OnEnableCalCFEBComparator"<<std::endl;
+  In_Broadcast_ = true;
   ostringstream test;
   message->writeTo(test);
   std::cout << test.str() <<std::endl;
@@ -944,6 +947,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
   ::usleep(nsleep);
   //    fireEvent("Enable");
   //
+  In_Broadcast_ = false;
   return createReply(message);
 }
 //
@@ -952,7 +956,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   //
   float dac;
   int nsleep = 100;  
-  //  std::cout<< "This is a checking printing for OnEnableCalCFEBGains"<<std::endl;
+  In_Broadcast_ = true;
   ostringstream test;
   message->writeTo(test);
   std::cout << test.str() <<std::endl;
@@ -972,6 +976,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   ::usleep(nsleep);
   //    fireEvent("Enable");
   //
+  In_Broadcast_ = false;
   return createReply(message);
 }
 //
@@ -981,6 +986,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
   int nsleep = 100;  
   //
   std::cout<< "This is a checking printing for OnEnableCalCFEBCrossTalk"<<std::endl;
+  In_Broadcast_ = true;
   ostringstream test;
   message->writeTo(test);
   std::cout << test.str() <<std::endl;
@@ -999,6 +1005,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
   ::usleep(nsleep);
   //    fireEvent("Enable");
   //
+  In_Broadcast_ = false;
   return createReply(message);
 }
 //
@@ -1008,7 +1015,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   float dac;
   int nsleep = 100;  
   //
-  std::cout<< "This is a checking printing for OnEnableCalCFEBSCAPed"<<std::endl;
+  In_Broadcast_ = true;
   ostringstream test;
   message->writeTo(test);
   std::cout << test.str() <<std::endl;
@@ -1030,6 +1037,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
 
   //    fireEvent("Enable");
   //
+  In_Broadcast_ = false;
   return createReply(message);
 }
 //
