@@ -130,8 +130,11 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this, &EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
   xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
-
+  //
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate,"MeasureL1AsAndDAVsForCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsForCrate,"MeasureL1AsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureDAVsForCrate,"MeasureDAVsForCrate");
+  //
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
 
   //-----------------------------------------------
