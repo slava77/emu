@@ -16,10 +16,8 @@ void Test_CFEB03::initCSC(std::string cscID) {
   gaindata.Nbins = getNumStrips(cscID);
   gaindata.Nlayers = 6;
   memset(gaindata.content, 0, sizeof (gaindata.content));
-  std::cout << "here " << sizeof (gaindata.content) << std::endl;
   
   gdata[cscID] = gaindata;
-  std::cout << "here" << std::endl;
 
   TestData cscdata;
   TestData2D cfebdata;
@@ -170,7 +168,7 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
       */
     }
   if (currL1A%50==1) {
-    DDUstats[dduID].dac=(currL1A/50)%10;
+    DDUstats[dduID].dac=(currL1A/50)%20;
     DDUstats[dduID].strip=currL1A/1000+1;
     DDUstats[dduID].empty_evt_cntr=0;
     std::cout << "DDUEvt#" << std::dec << currL1A << " " << DDUstats[dduID].csc_evt_cntr << " " << DDUstats[dduID].empty_evt_cntr
@@ -304,7 +302,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data) {
       
       for (unsigned int layer = 1; layer <= 6; layer++){ // loop over layers in a given chamber
 	int nTimeSamples= cfebData->nTimeSamples();
-	double Qmax=0;// gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].max;
+	double Qmax=gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
 	double Qmv=0;
         double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
 		    + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
@@ -313,57 +311,58 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data) {
           CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
 
           int Qi = (int) ((timeSample->adcCounts)&0xFFF);
-	  if (Qi>Qmax) {
-                Qmax=Qi;
-                if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
+	  if (Qi-Q12>Qmax) {
+	    Qmax=Qi-Q12;
+	    if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
+	    gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
           }
-	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].mv += Qi;
-          gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].rms += pow(Qi,2);
+	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].mv += Qi-Q12;
+          gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].rms += pow(Qi-Q12,2);
           gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].cnt++;
         }
 
-        if (v03) {v03->Fill(curr_dac, Qmax-Q12);}
+        if (v03) {v03->Fill(curr_dac, Qmax);}
 
         /*
-	for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
+	  for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
 	  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
 	  
 	  int Qi = (int) ((timeSample->adcCounts)&0xFFF);
 	  Qmv+=Qi;
 
 	  if (Qi>Qmax) { 
-		Qmax=Qi;	    
-	  	if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
+	  Qmax=Qi;	    
+	  if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
 	  }
 
-	}
-	Qmv /=nTimeSamples;
-	if (v03) {v03->Fill(curr_dac, Qmax-Q12);}
-	gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].mv += Qmv;
-	gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].rms += pow(Qmv,2);
-        gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].cnt++;
-	gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].max += Qmax;
-	gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].max_rms += pow(Qmax,2);
-	gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].max_cnt++;
+	  }
+	  Qmv /=nTimeSamples;
+	  if (v03) {v03->Fill(curr_dac, Qmax-Q12);}
+	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].mv += Qmv;
+	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].rms += pow(Qmv,2);
+	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].cnt++;
+	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].max += Qmax;
+	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].max_rms += pow(Qmax,2);
+	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1].max_cnt++;
         */
 
 
 	if (curr_dac==5) {
 	  //for(int strip = 1; strip <= 16; ++strip) { // loop over cfeb strips 
-	    double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
-			+ (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
-	    int Qmax=0;
-	    for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
-	      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
-	      int Qi = (int) ((timeSample->adcCounts)&0xFFF);
-	      if (v02) { v02->Fill(itime, Qi-Q12);}
-/*
+	  double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
+		      + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
+	  int Qmax=0;
+	  for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
+	    CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+	    int Qi = (int) ((timeSample->adcCounts)&0xFFF);
+	    if (v02) { v02->Fill(itime, Qi-Q12);}
+	    /*
 	      if ((Qi)>QmaxArr[icfeb][layer-1][strip-1]) {
-		QmaxArr[icfeb][layer-1][strip-1]=Qi;
-		QmaxStrip[icfeb][layer-1]=strip;
+	      QmaxArr[icfeb][layer-1][strip-1]=Qi;
+	      QmaxStrip[icfeb][layer-1]=strip;
 	      }
-*/
-	    }
+	    */
+	  }
 	  // }
 	}
 	
@@ -418,12 +417,12 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data) {
   
 }
 /*
-void Test_CFEB03::finish() {
+  void Test_CFEB03::finish() {
   for (cscTestData::iterator td_itr = tdata.begin(); td_itr != tdata.end(); ++td_itr) {
-    std::string cscID = td_itr->first;
-    finishCSC(cscID);
+  std::string cscID = td_itr->first;
+  finishCSC(cscID);
   }
-}
+  }
 */
 void Test_CFEB03::finishCSC(std::string cscID) 
 {
@@ -455,175 +454,186 @@ void Test_CFEB03::finishCSC(std::string cscID)
     GainData& gaindata = gdata[cscID];
     MonHistos& cschistos = mhistos[cscID];
     TH1F* v01 = reinterpret_cast<TH1F*>(cschistos["V01"]);
-//    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
-    return;
-    bool fValid=true;
-    //    for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
-    for (unsigned int layer = 1; layer <= 6; layer++){
-      for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
-	for(int strip = 1; strip <=16  ; ++strip) { // loop over cfeb strip	
-	  for (int dac=0; dac<7; dac++) {
-	    dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
-	    double max=0;
-	    double max_rms=0;
-	    int cnt=0;
-	    for (int itime=0; itime < NSAMPLES; itime++) {
-		dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][itime];
-		if (cval.cnt==0) {
-			std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", Error counter=0" << std::endl;
-	        	fValid=false;
-		} else {
-		   cval.mv /=cval.cnt;
-	           double rms= sqrt((cval.rms/cval.cnt)-pow(cval.mv,2));
-	           cval.rms = rms;
-		   if (cval.mv > max) {
-			max=cval.mv;
-			max_rms=cval.rms;
-			cnt=cval.cnt;
-		   }
-		}
-            }
-	
-	    val.mv = max;
-	    val.rms = max_rms;
-	    val.cnt = cnt;
-//	    dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
-/*	    
-	      std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", mv=" << val.mv 
-	      << ", rms="  << val.rms << ", cnt="<< val.cnt << ", max=" 
-	      << val.max << ", max_rms=" <<  val.max_rms << ", cnt=" << val.max_cnt << std::endl; 
-*/	    
-	    if (v01) { v01->Fill(cnt);}
-	    if (cnt==0) {
-	      std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", Error counter=0" << std::endl;
-	      fValid=false;
-	      // break;
-		
-            } else {
-	      /*
-	      val.mv /= val.cnt;
-	      double rms= sqrt((val.rms/val.cnt)-pow(val.mv,2));
-	      val.rms = rms;
-	      val.max /= val.cnt;
-	      double max_rms = sqrt((val.max_rms/val.cnt)-pow(val.max,2));
-	      val.max_rms = max_rms;
-	      */
-	      val.s = pow(max_rms,2) + pow((0.01*max), 2);
-	      
-	    
-	      	    std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", mv=" << val.mv << ", rms=" << val.rms << ", y=" 
-	      		 << max << ", r=" <<  max_rms << ", s=" << val.s << " , x=" << (0.1+0.25*dac) << std::endl; 
-	    }
-	  }
-	}
-      }
-    }
-    if (fValid) {
+    //    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
+    //    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
+    //    return;
+
+    CSCtoHWmap::iterator itr = cscmap.find(cscID);
+
+    if (itr != cscmap.end()) {
+
+      // map->cratedmb(itr->second.first,itr->second.second,&mapitem);
+      int dmbID = itr->second.second;
+      if (dmbID >= 6) --dmbID;
+      int id = 10*itr->second.first+dmbID;
+
+      CSCMapItem::MapItem mapitem = cratemap->item(id);
+      int first_strip_index=mapitem.stripIndex;
+      int strips_per_layer=mapitem.strips;
+
+
+      bool fValid=true;
       //    for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
-      double avg_gain=0;
-      int avg_gain_cnt=0;
       for (unsigned int layer = 1; layer <= 6; layer++){
 	for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
-
-	  for(int strip = 1; strip <= 16; ++strip) { // loop over cfeb strip
-	    double X=0, XX=0, Y=0, YY=0, XY=0, S=0, x=0, y=0, s=0; 
-	    double a=0, b=0, ksi=0;
-	    for (int dac=0; dac<9; dac++) {
+	  for(int strip = 1; strip <=16  ; ++strip) { // loop over cfeb strip	
+	    // for (int dac=0; dac<DAC_STEPS; dac++) {
+	    for (int dac=0; dac<DAC_STEPS; dac++) { // Crappy data. process only 15 steps
 	      dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
-	      // x=(0.1+0.25*dac);
-	      x=11.2 +(28.0*dac);
-	      y=val.mv;
-	      s=val.s;
-	      X+=x/s;
-	      XX+=(x*x)/s;
-	      Y+=y/s;
-	      YY+=(y*y)/s;
-	      XY+=(y*x)/s;
-	      S+=1/s;
+	      double max=0;
+	      double max_rms=0;
+	      int cnt=0;
+	      int sample=0;
+	      for (int itime=0; itime < NSAMPLES-1; itime++) {
+		dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][itime];
+		cnt = cval.cnt;
+		if (cval.cnt<13) {
+		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", Error counter="<< cval.cnt << std::endl;
+		  if (dac<15)  fValid=false; // === Fix for recent bad data (only 15 dac steps)
+		} else {
+		  cval.mv /=cval.cnt;
+		  double rms= sqrt((cval.rms/cval.cnt)-pow(cval.mv,2));
+		  cval.rms = rms;
+		  if (cval.mv > max) {
+		    sample = itime;
+		    max=cval.mv;
+		    max_rms=cval.rms;
+		    cnt=cval.cnt;
+		  }
+		}
+	      }
+	      //    if (v03) {v03->Fill(dac, max);}
+	      val.mv = max;
+	      val.rms = max_rms;
+	      val.cnt = cnt;
+	      //	    dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+	      /*	    
+			   std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", mv=" << val.mv 
+			   << ", rms="  << val.rms << ", cnt="<< val.cnt << ", max=" 
+			   << val.max << ", max_rms=" <<  val.max_rms << ", cnt=" << val.max_cnt << std::endl; 
+	      */	    
+	      if (v01) { v01->Fill(cnt);}
+
+	      if (cnt>0 && fValid) {
+		val.s = pow(max_rms,2) + pow((0.01*max), 2);
+		std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " sample=" << sample << ", dac=" << dac << ", mv=" << val.mv << ", rms=" << val.rms << ", max=" << val.max <<", s=" << val.s << " , x=" << (11.2+28.0*dac) << std::endl; 
+	      }
+
 	    }
-	    a=(XY*S-X*Y)/(XX*S-X*X);
-	    b=(Y-a*X)/S;
-	    avg_gain+=1/a;
-	    avg_gain_cnt++;
+	  }
+	}
+      }
+
+      if (fValid) {
+	//    for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
+	double avg_gain=0;
+	int avg_gain_cnt=0;
+	for (unsigned int layer = 1; layer <= 6; layer++){
+	  for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
+
+	    for(int strip = 1; strip <= 16; ++strip) { // loop over cfeb strip
+	      double X=0, XX=0, Y=0, YY=0, XY=0, S=0, x=0, y=0, s=0; 
+	      double a=0, b=0, ksi=0;
+	      for (int dac=0; dac<9; dac++) {
+		dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+		// x=(0.1+0.25*dac);
+		x=11.2 +(28.0*dac);
+		y=val.mv;
+		s=val.s;
+		X+=x/s;
+		XX+=(x*x)/s;
+		Y+=y/s;
+		YY+=(y*y)/s;
+		XY+=(y*x)/s;
+		S+=1/s;
+	      }
+	      a=(XY*S-X*Y)/(XX*S-X*X);
+	      b=(Y-a*X)/S;
+	      avg_gain+=1/a;
+	      avg_gain_cnt++;
 	    
-	    ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X;
-	    std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
-	    r01.content[layer-1][icfeb*16+strip-1] = a;
-	    r02.content[layer-1][icfeb*16+strip-1] = b;
-	    r03.content[layer-1][icfeb*16+strip-1] = ksi;
-//            r04.content[layer-1][icfeb*16+strip-1] = gaindata.content[14][layer-1][icfeb*16+strip-1].max;	    	    
+	      ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X;
+	      std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
+	      r01.content[layer-1][icfeb*16+strip-1] = a;
+	      r02.content[layer-1][icfeb*16+strip-1] = b;
+	      r03.content[layer-1][icfeb*16+strip-1] = ksi;
+	      //            r04.content[layer-1][icfeb*16+strip-1] = gaindata.content[14][layer-1][icfeb*16+strip-1].max;	    	    
+	    }
 	  }
 	}
-      }
 
-      avg_gain/=avg_gain_cnt;
-      for (unsigned int layer = 1; layer <= 6; layer++){
-        for (int strip=0; strip<getNumStrips(cscID);strip++) { // loop over cfebs in a given chamber
-		r05.content[layer-1][strip]=1/(r01.content[layer-1][strip]*avg_gain);
-        }
-      }
+	avg_gain/=avg_gain_cnt;
+	for (unsigned int layer = 1; layer <= 6; layer++){
+	  for (int strip=0; strip<getNumStrips(cscID);strip++) { // loop over cfebs in a given chamber
+	    r05.content[layer-1][strip]=1/(r01.content[layer-1][strip]*avg_gain);
+	  }
+	}
 
-    } else {
-      std::cout << cscID << ": Invalid" << std::endl;
-    }
+	// == Save results to text files
+	std::string rpath = "Test_"+testID+"/"+outDir;
+	std::string path = rpath+"/"+cscID+"/";
+
+
+	if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
+	  // == Save results for database transfer Pedestals and RMS
+	  std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
+
+	  for (int layer=0; layer<NLAYERS; layer++) {
+	    for (int strip=0; strip<strips_per_layer; strip++) {
+	      res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+		      << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << "  " << r03.content[layer][strip] << std::endl;
+	    }
+	  }
+	  res_out.close();
+	}
+
+
+      } else {
+	std::cout << cscID << ": Invalid" << std::endl;
+      }
 	
-    return;
-    
-    double rms = 0.;
-    double covar = 0;
 
-    for (int i=0; i<r01.Nlayers; i++) {
-      for (int j=0; j<r01.Nbins; j++) {
-	
-	if (_q12.cnts[i][j]) _q12.content[i][j] /= (double)(_q12.cnts[i][j]);
-	if (_q3.cnts[i][j]) _q3.content[i][j] /= (double)(_q3.cnts[i][j]);
-	if (_q4.cnts[i][j]) _q4.content[i][j] /= (double)(_q4.cnts[i][j]);
-	if (_q5.cnts[i][j]) _q5.content[i][j] /= (double)(_q5.cnts[i][j]);
-
-	// == Calculate Overall pedestals and noise
-	if (r01.cnts[i][j]) {
-	  r01.content[i][j] /= (double)(r01.cnts[i][j]);
-
-	  rms = sqrt( ((r02.content[i][j])/((double)(r02.cnts[i][j]))- pow(r01.content[i][j],2)) );
-	  r02.content[i][j]=rms;
-	}
-
-	// == Calculate RMS of SCA pedestala
-	/*
-	  double sca_mean=0.;
-	  double sca_mean_sum=0.;
-	  double sca_mean_sq_sum=0;
-	  int cells_cnt=0;
-	  for (int k=0; k<96;k++) {
-	  if (scadata.content[i][j][k].cnt) {
-	  cells_cnt++;
-	  sca_mean=scadata.content[i][j][k].value / scadata.content[i][j][k].cnt;
-	  sca_mean_sum+=sca_mean;
-	  sca_mean_sq_sum+=pow(sca_mean,2);
-	  }
-	  }
-	  sca_mean = sca_mean_sum/cells_cnt;
-	  rms = sqrt(sca_mean_sq_sum/cells_cnt - pow(sca_mean,2));
-	*/
-	// std::cout << Form("%s %d:%d %d %.2f",cscID.c_str(),i,j,cells_cnt, sca_mean) << std::endl;
-
-	r03.content[i][j] = rms;
-
-	// == Calculate time samples 1,2 pedestals and noise
-	if (r04.cnts[i][j]) {
-	  r04.content[i][j] /= (double)(r04.cnts[i][j]);
-
-	  rms = sqrt( ((r05.content[i][j])/((double)(r05.cnts[i][j]))- pow(r04.content[i][j],2)) );
-	  r05.content[i][j]=rms;
-	}
-
-      }
     }
-
-    // == Save results to text files
-    std::string rpath = "Test_"+testID+"/"+outDir;
-    std::string path = rpath+"/"+cscID+"/";
 
   }
 }
+
+bool Test_CFEB03::checkResults(std::string cscID)
+{
+  bool isValid=true;
+  cscTestData::iterator td_itr =  tdata.find(cscID);
+  if (td_itr != tdata.end()) {
+    TestData& cscdata= td_itr->second;
+    TestData2D& r01 = cscdata["R01"];
+    TestData2D& r02 = cscdata["R02"];
+
+    int badChannels=0;
+    // Check pedestals
+    for (int i=0; i<r01.Nlayers; i++) {
+      for (int j=0; j<r01.Nbins; j++) {
+	if ((r01.content[i][j] > 10) || (r01.content[i][j] < 3)) badChannels++;
+      }
+    }
+    if (badChannels/(float(r01.Nlayers*r01.Nbins)) >=0.2) {
+      isValid=false;
+      std::cout << "20% of channels have bad Gain" << std::endl;
+    }
+
+    badChannels=0;
+    // Check noise
+    for (int i=0; i<r02.Nlayers; i++) {
+      for (int j=0; j<r02.Nbins; j++) {
+	if ((r02.content[i][j] > 50) || (r02.content[i][j] < -50)) badChannels++;
+      }
+    }
+    if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
+      isValid=false;
+      std::cout << "20% of channels have bad Intercept" << std::endl;
+    }
+  }
+
+  return isValid;
+}
+
+
 
