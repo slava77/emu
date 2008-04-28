@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.43 2008/04/19 14:56:55 rakness Exp $
+// $Id: ALCTController.cc,v 3.44 2008/04/28 12:08:39 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.44  2008/04/28 12:08:39  rakness
+// different number of PROMs on JTAG chain for ALCT672 compared to ALCT288 and ALCT384
+//
 // Revision 3.43  2008/04/19 14:56:55  rakness
 // ALCT database check before loading ALCT firmware
 //
@@ -3718,6 +3721,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME11);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME11);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME11);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz288_384);
     //
   } else if (chamber_type_string_ == "ME12") {
     //
@@ -3726,6 +3730,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME12);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME12);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME12);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz288_384);
     //
   } else if (chamber_type_string_ == "ME13") {
     //
@@ -3734,6 +3739,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME13);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME13);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME13);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz288_384);
     //
   } else if (chamber_type_string_ == "ME21") {
     //
@@ -3742,6 +3748,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME21);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME21);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME21);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz672);
     //
   } else if (chamber_type_string_ == "ME22") {
     //
@@ -3750,6 +3757,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME22);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME22);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME22);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz288_384);
     //
   } else if (chamber_type_string_ == "ME31") {
     //
@@ -3758,6 +3766,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME31);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME31);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME31);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz672);
     //
   } else if (chamber_type_string_ == "ME32") {
     //
@@ -3766,6 +3775,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME32);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME32);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME32);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz288_384);
     //
   } else if (chamber_type_string_ == "ME41") {
     //
@@ -3774,6 +3784,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME41);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME41);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME41);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz672);
     //
   } else if (chamber_type_string_ == "ME42") {
     //
@@ -3781,6 +3792,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME42);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME42);
     SetExpectedFastControlFPGAIdCode(FAST_FPGA_ID_ME42);
+    tmb_->SetNumberOfChipsAlctFastMezz(NumberChipsAlctFastMezz288_384);
     //
   }
   //
