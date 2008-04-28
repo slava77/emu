@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.6 2008/03/27 14:58:12 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.7 2008/04/28 15:42:24 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.7  2008/04/28 15:42:24  rakness
+// bind L1A and DAV buttons to methods
+//
 // Revision 1.6  2008/03/27 14:58:12  rakness
 // streamline L1A and DAV measurements; modify output for configuration check; add comments to TMB firmware downloading
 //
@@ -1086,6 +1089,8 @@ void ChamberUtilities::FindDAVDelays(){
 }
 //
 void ChamberUtilities::FindL1AAndDAVDelays(){
+  //
+  std::cout << "Measure L1A return and DAV for TMB, ALCT, and CFEB." << std::endl;
   //
   bool initial_use_measured_values = use_measured_values_;
   PropagateMeasuredValues(true);
