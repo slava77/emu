@@ -6,7 +6,13 @@
 #include "toolbox.h"
 #include "xoap.h"
 #include "xgi.h"
-#include "Task.h"
+
+#include "i2o/Method.h"
+#include "i2o/utils/AddressMap.h"
+
+#include "i2oEmuMonitorMsg.h"
+
+using namespace toolbox;
 
 class EmuTFMonitor: public xdaq::WebApplication, xdata::ActionListener, Task {
 private:
@@ -46,8 +52,9 @@ public:
 	// Task's function
 	int svc(void);
 
-	//EmuTFMonitor(xdaq::ApplicationStub *stub) throw (xdaq::exception::Exception);
-	EmuTFMonitor(xdaq::ApplicationStub *stub);
+	xoap::MessageReference fireEvent(xoap::MessageReference msg) throw (xoap::exception::Exception);
+
+	EmuTFMonitor(xdaq::ApplicationStub *stub) throw (xdaq::exception::Exception);
 
 	XDAQ_INSTANTIATOR();
 };

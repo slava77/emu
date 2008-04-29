@@ -6,18 +6,25 @@
 
 XDAQ_INSTANTIATOR_IMPL(EmuTFMonitor)
 
-EmuTFMonitor::EmuTFMonitor(xdaq::ApplicationStub *stub):xdaq::WebApplication(stub),Task("EmuTFMonitor"){
-	// Needed by Web State Machine (?)
+using namespace std;
+
+EmuTFMonitor::EmuTFMonitor(xdaq::ApplicationStub *stub) throw (xdaq::exception::Exception) :xdaq::WebApplication(stub),Task("EmuTFMonitor"){
+	// == Bin CGI Callbacks ==
 	xgi::bind(this, &EmuTFMonitor::Default,  "Default");
 	xgi::bind(this, &EmuTFMonitor::dispatch, "dispatch");
+	// == Bind SOAP Callbacks ==
+	xoap::bind(this, &EmuTFMonitor::fireEvent, "Configure", XDAQ_NS_URI);
+	xoap::bind(this, &EmuTFMonitor::fireEvent, "Enable",    XDAQ_NS_URI);
+	xoap::bind(this, &EmuTFMonitor::fireEvent, "Halt",     XDAQ_NS_URI);
+	xoap::bind(this, &EmuTFMonitor::fireEvent, "Reset",    XDAQ_NS_URI);
 	// Define Finite State Machine
 	fsm_.addState('H',"Halted");
 	fsm_.addState('R',"Ready");
 	fsm_.addState('E',"Enabled");
-	fsm_.addStateTransition('H','R',"Configuring", this, &EmuTFMonitor::Configuring);
-	fsm_.addStateTransition('R','E',"Enabling",    this, &EmuTFMonitor::Enabling);
-	fsm_.addStateTransition('E','H',"Halting",     this, &EmuTFMonitor::Halting);
-	fsm_.addStateTransition('R','H',"Halting",     this, &EmuTFMonitor::Halting);
+	fsm_.addStateTransition('H','R',"Configure", this, &EmuTFMonitor::Configuring);
+	fsm_.addStateTransition('R','E',"Enable",    this, &EmuTFMonitor::Enabling);
+	fsm_.addStateTransition('E','H',"Halt",     this, &EmuTFMonitor::Halting);
+	fsm_.addStateTransition('R','H',"Halt",     this, &EmuTFMonitor::Halting);
 	fsm_.setInitialState('H');
 	fsm_.reset();
 	// Define Web State Machine
@@ -47,6 +54,45 @@ EmuTFMonitor::EmuTFMonitor(xdaq::ApplicationStub *stub):xdaq::WebApplication(stu
 	}
 
 }
+
+// == SOAP Callback trigger state change == //
+xoap::MessageReference EmuTFMonitor::fireEvent (xoap::MessageReference msg) throw (xoap::exception::Exception){
+  xoap::SOAPPart part = msg->getSOAPPart();
+  xoap::SOAPEnvelope env = part.getEnvelope();
+  xoap::SOAPBody body = env.getBody();
+  DOMNode* node = body.getDOMNode();
+  DOMNodeList* bodyList = node->getChildNodes();
+  for (unsigned int i = 0; i < bodyList->getLength(); i++)
+    {
+      DOMNode* command = bodyList->item(i);
+
+      if (command->getNodeType() == DOMNode::ELEMENT_NODE)
+        {
+          std::string commandName = xoap::XMLCh2String (command->getLocalName());
+
+          try
+            {
+              toolbox::Event::Reference e(new toolbox::Event(commandName, this));
+              fsm_.fireEvent(e);
+              // Synchronize Web state machine
+              wsm_.setInitialState(fsm_.getCurrentState());
+            }
+          catch (toolbox::fsm::exception::Exception & e)
+            {
+              XCEPT_RETHROW(xcept::Exception, "invalid command", e);
+            }
+  
+          xoap::MessageReference reply = xoap::createMessage();
+          xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+          xoap::SOAPName responseName = envelope.createName( commandName +"Response", "xdaq", XDAQ_NS_URI);
+          envelope.getBody().addBodyElement ( responseName );
+          return reply;
+        }
+    }
+
+  XCEPT_RAISE(xoap::exception::Exception,"command not found");
+}
+
 
 void EmuTFMonitor::actionPerformed(xdata::Event& e){
 /*  // update measurements monitors
@@ -152,7 +198,7 @@ void EmuTFMonitor::failurePage(xgi::Output *out, xgi::exception::Exception& e) t
 
 void EmuTFMonitor::Configure(xgi::Input *in) throw (xgi::exception::Exception){
 	try {
-		toolbox::Event::Reference e(new toolbox::Event("Configuring", this));
+		toolbox::Event::Reference e(new toolbox::Event("Configure", this));
 		fsm_.fireEvent(e);
 	} catch (toolbox::fsm::exception::Exception& e){
 		XCEPT_RETHROW(xgi::exception::Exception, "invalid command", e);
@@ -161,8 +207,10 @@ void EmuTFMonitor::Configure(xgi::Input *in) throw (xgi::exception::Exception){
 
 void EmuTFMonitor::Enable(xgi::Input *in) throw (xgi::exception::Exception){
 	try {
-		toolbox::Event::Reference e(new toolbox::Event("Enabling", this));
+		toolbox::Event::Reference e(new toolbox::Event("Enable", this));
 		fsm_.fireEvent(e);
+		// System is enabled => check run DQM on new files regularly
+		///system("");
 	} catch (toolbox::fsm::exception::Exception& e) {
 		XCEPT_RETHROW(xgi::exception::Exception, "invalid command", e);
 	}
@@ -170,8 +218,10 @@ void EmuTFMonitor::Enable(xgi::Input *in) throw (xgi::exception::Exception){
 
 void EmuTFMonitor::Halt(xgi::Input *in) throw (xgi::exception::Exception){
 	try {
-		toolbox::Event::Reference e(new toolbox::Event("Halting", this));
+		toolbox::Event::Reference e(new toolbox::Event("Halt", this));
 		fsm_.fireEvent(e);
+		// System is halted => check for a complete run
+		///system("");
 	} catch (toolbox::fsm::exception::Exception& e) {
 		XCEPT_RETHROW(xgi::exception::Exception, "invalid command", e);
 	}
@@ -195,22 +245,22 @@ int EmuTFMonitor::sendDataRequest(unsigned long last){
 		frame->PvtMessageFrame.StdMessageFrame.MsgFlags         = 0;
 		frame->PvtMessageFrame.StdMessageFrame.VersionOffset    = 0;
 
-		std::vector<xdaq::ApplicationDescriptor*> dataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuRUI");
+		std::set<xdaq::ApplicationDescriptor*> dataservers_ = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuRUI");
 		if( dataservers_.size()!=1 ) LOG4CPLUS_ERROR(getApplicationLogger(),"Number of EmuRUIs is not exactly one"); 
 
-		frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = i2o::utils::getAddressMap()->getTid(dataservers_[0]);
-		frame->PvtMessageFrame.StdMessageFrame.InitiatorAddress = i2o::utils::getAddressMap()->getTid(getApplicationDescriptor());
-		frame->PvtMessageFrame.StdMessageFrame.MessageSize      = (sizeof(I2O_EMUTFMONITOR_CREDIT_MESSAGE_FRAME)) >> 2;
-
-		frame->PvtMessageFrame.StdMessageFrame.Function = I2O_PRIVATE_MESSAGE;
-		frame->PvtMessageFrame.XFunctionCode            = I2O_EMUTFMONITOR_CODE;
-		frame->PvtMessageFrame.OrganizationID           = XDAQ_ORGANIZATION_ID;
-
-		frame->nEventCredits    = 1;//nEventCredits_;
-		frame->prescalingFactor = 1;//prescalingFactor_;
-
-		ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
-		getApplicationContext()->postFrame(ref,getApplicationDescriptor(),dataservers_[0]);
+///		frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = i2o::utils::getAddressMap()->getTid(dataservers_[0]);
+///		frame->PvtMessageFrame.StdMessageFrame.InitiatorAddress = i2o::utils::getAddressMap()->getTid(getApplicationDescriptor());
+///		frame->PvtMessageFrame.StdMessageFrame.MessageSize      = (sizeof(I2O_EMUTFMONITOR_CREDIT_MESSAGE_FRAME)) >> 2;
+///
+///		frame->PvtMessageFrame.StdMessageFrame.Function = I2O_PRIVATE_MESSAGE;
+///		frame->PvtMessageFrame.XFunctionCode            = I2O_EMUTFMONITOR_CODE;
+///		frame->PvtMessageFrame.OrganizationID           = XDAQ_ORGANIZATION_ID;
+///
+///		frame->nEventCredits    = 1;//nEventCredits_;
+///		frame->prescalingFactor = 1;//prescalingFactor_;
+///
+///		ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
+///		getApplicationContext()->postFrame(ref,getApplicationDescriptor(),dataservers_[0]);
 
 	} catch (toolbox::mem::exception::Exception & me) {
 		//LOG4CPLUS_FATAL (getApplicationLogger(), xcept::stdformat_exception_history(me));
@@ -246,7 +296,6 @@ void EmuTFMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 
 	unsigned long sizeOfPayload = oldestMessage->getDataSize()-sizeof(I2O_EMUTF_DATA_MESSAGE_FRAME);
 	unsigned long errorFlag = msg->errorFlag;
-
 
 std::cout<<"Received a buffer"<<std::endl;
 

@@ -133,6 +133,7 @@ for(int spNum=1; spNum<=12; spNum++){
 		case 11:sp+="11/";break;
 		case 12:sp+="12/";break;
 	}
+	str<<sp<<endl;
 
 	map<string,string> neighbour;
 	neighbour[sp+"F2/CSC4"] = sp+"F3/CSC7";
