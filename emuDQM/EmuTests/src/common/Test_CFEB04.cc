@@ -489,7 +489,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		cnt = cval.cnt;
 		if (cval.cnt<13) {
 		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", Error counter="<< cval.cnt << std::endl;
-		  if (dac<15)  fValid=false; // === Fix for recent bad data (only 15 dac steps)
+		  // if (dac<15)  fValid=false; // === Fix for recent bad data (only 15 dac steps)
 		} else {
 		  cval.mv /=cval.cnt;
 		  double rms= sqrt((cval.rms/cval.cnt)-pow(cval.mv,2));
