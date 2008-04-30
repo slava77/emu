@@ -294,9 +294,15 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 // JRG: note that the HardReset & Resynch should already be done by this point!
 
+	// PGK This simply sets the configuration file correctly in the
+	//  EmuFController object.
 	SetConfFile(xmlFile_);  // set it here automatically now, rather than
 							// manual selection later with HyperDAQ
 	cout << " EmuFCrate Configure from Soap: using file " << xmlFile_.toString() << endl;
+
+	// PGK This calls the XML parser, builds the crate objects, and sets them
+	//  in the EmuFController object.  Access the crates via this->getCrates()
+	//  or selector().crates().
 	init();  // in real CMS running there will not be downloading of registers,
 			// so this will just define the Crates/DDUs/DCCs for FED Apps.
 
@@ -315,6 +321,13 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 //              use  DDU::infpgastat(enum DEVTYPE dv)&0xf7eedfff   <<- note the mask
 //	 -->> definitely need to ignore some bits though!  see the masks
 
+
+	// PGK EmuFCrate inherits from EmuFController, so this is
+	//  EmuFController::configure.  It loads the constants defined in the
+	//  configuration XML to the DDUs and the DCC.
+	configure();  //JRG Moved to configureAction, 4/29/08
+
+// Now verify that all FEDs are Configured:
 	int Fail=0;
 	unsigned short int count=0;
 	std::vector<Crate*> myCrates = selector().crates();
@@ -468,7 +481,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Enable");
 	soapLocal_ = false;
 
-	configure();
+	//	configure();  //Move to configureAction, 4/29/08 JRG
 	cout << "Received Message Enable" << endl ;
 	
 	// You have to wipe the thread manager and start over.
