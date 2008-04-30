@@ -31,21 +31,23 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   nodeME = MEs[nodeTag];
   
 
-  if (isMEvalid(nodeME, "Buffer_Size", mo)) mo->Fill(dataSize);
+  // if (isMEvalid(nodeME, "Buffer_Size", mo)) mo->Fill(dataSize);
 
   // ==     Check DDU Readout Error Status
-  if (isMEvalid(nodeME, "Readout_Errors", mo)) { 
+  /*
+    if (isMEvalid(nodeME, "Readout_Errors", mo)) { 
     if(errorStat != 0) {
-      LOG4CPLUS_WARN(logger_,eTag << "Non-zero Readout Error Status is observed: 0x" << std::hex << errorStat << " mask 0x" << dduCheckMask);
-      for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(0.,i);
+    LOG4CPLUS_WARN(logger_,eTag << "Non-zero Readout Error Status is observed: 0x" << std::hex << errorStat << " mask 0x" << dduCheckMask);
+    for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(0.,i);
     }
     else {
-      LOG4CPLUS_DEBUG(logger_,eTag << "Readout Error Status is OK: 0x" << std::hex << errorStat);
+    LOG4CPLUS_DEBUG(logger_,eTag << "Readout Error Status is OK: 0x" << std::hex << errorStat);
     }
-  }
-
+    }
+  */
   if (isMEvalid(nodeME, "All_Readout_Errors", mo)) {
     if(errorStat != 0) {      
+      LOG4CPLUS_WARN(logger_,eTag << "Readout Errors: 0x" << std::hex << errorStat << " mask 0x" << dduCheckMask);
       mo->Fill(nodeNumber,1);
       for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(nodeNumber,i+2);
     } else {
@@ -123,32 +125,35 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
 
   if(BinaryErrorStatus != 0) {
-    LOG4CPLUS_WARN(logger_,eTag << "Nonzero Binary Errors Status is observed: 0x" << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask << std::dec << " evtSize:"<<  evtSize);
-
-    if (isMEvalid(nodeME, "BinaryChecker_Errors", mo)) {
+    LOG4CPLUS_WARN(logger_,eTag << "Format Errors DDU level: 0x" << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask << std::dec << " evtSize:"<<  evtSize);
+    /*
+      if (isMEvalid(nodeME, "BinaryChecker_Errors", mo)) {
       for(int i=0; i<bin_checker.nERRORS; i++) { // run over all errors
-	if( bin_checker.error(i) ) mo->Fill(0.,i);
+      if( bin_checker.error(i) ) mo->Fill(0.,i);
       }
-    }
+      }
+    */
 
   }
   else {
-    LOG4CPLUS_DEBUG(logger_,eTag << "Binary Error Status is OK: 0x" << std::hex << BinaryErrorStatus);
+    LOG4CPLUS_DEBUG(logger_,eTag << "Format Errors Status is OK: 0x" << std::hex << BinaryErrorStatus);
   }
 
 
   if(BinaryWarningStatus != 0) {
-    LOG4CPLUS_WARN(logger_,eTag << "Nonzero Binary Warnings Status is observed: 0x" 
+    LOG4CPLUS_WARN(logger_,eTag << "Format Warnings DDU level: 0x" 
 		   << std::hex << BinaryWarningStatus)
-      if (isMEvalid(nodeME, "BinaryChecker_Warnings", mo)) {
+      /*
+	if (isMEvalid(nodeME, "BinaryChecker_Warnings", mo)) {
 	for(int i=0; i<bin_checker.nWARNINGS; i++) { // run over all warnings
-	  if( bin_checker.warning(i) ) mo->Fill(0.,i);
+	if( bin_checker.warning(i) ) mo->Fill(0.,i);
 	}
-      }
+	}
+      */
 
-  }
+      }
   else {
-    LOG4CPLUS_DEBUG(logger_,eTag << "Binary Warnings Status is OK: 0x" << std::hex << BinaryWarningStatus);
+    LOG4CPLUS_DEBUG(logger_,eTag << "Format Warnings Status is OK: 0x" << std::hex << BinaryWarningStatus);
 
   }
 
@@ -161,7 +166,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   }
 
   if ((BinaryErrorStatus & binCheckMask)>0) {
-    LOG4CPLUS_WARN(logger_,eTag << "Skipped because of Binary Error");
+    LOG4CPLUS_WARN(logger_,eTag << "Skipped because of Format Error");
     EventDenied = true;
   }
 
@@ -393,25 +398,25 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   int nCSCs = chamberDatas.size();
   if (nCSCs != dduHeader.ncsc()) {
-	LOG4CPLUS_WARN(logger_,eTag << dduTag << " Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() );
-	// == Current trick to maximize number of unpacked CSCs.
-	// == Unpacker gives up after screwed chamber.
-	// == So we need to exclude it from the list by reducing chamberDatas vector size
-	nCSCs-=1;
-        return;
+    LOG4CPLUS_WARN(logger_,eTag << dduTag << " Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() );
+    // == Current trick to maximize number of unpacked CSCs.
+    // == Unpacker gives up after screwed chamber.
+    // == So we need to exclude it from the list by reducing chamberDatas vector size
+    nCSCs-=1;
+    return;
   }
 
-   for(int i=0; i< nCSCs; i++) {
-            nCSCEvents++;
-	    unpackedDMBcount++;
-            processChamber(chamberDatas[i], node, dduID);
-        }
-/*
-
-  for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
+  for(int i=0; i< nCSCs; i++) {
     nCSCEvents++;
     unpackedDMBcount++;
-    processChamber(*chamberDataItr, node, dduID);
+    processChamber(chamberDatas[i], node, dduID);
+  }
+  /*
+
+  for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
+  nCSCEvents++;
+  unpackedDMBcount++;
+  processChamber(*chamberDataItr, node, dduID);
   }
   */
 
@@ -448,9 +453,9 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 
 
     if (CrateID>60 || DMBSlot>10) {
-        LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
-	chamber++;
-        continue;
+      LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
+      chamber++;
+      continue;
     }
  
     if (h_itr == MEs.end() || (MEs.size()==0)) {
@@ -473,6 +478,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
     }
 
     bool isCSCError = false;
+
     if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
 	&& isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
       for(int bit=5; bit<24; bit++)
@@ -483,36 +489,41 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 	  double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
 	  mof->SetBinContent(bit-4, freq);
 	}
-	// Error in bit 26
-	if( chamber->second & (1<<25) ) {
-          isCSCError = true;
-          mo->Fill(0.,20);
 
-          double freq = (100.0*mo->GetBinContent(1,21))/nDMBEvents[cscTag];
-          mof->SetBinContent(21, freq);
-        }
+      // Check Error in bit 26
+      if( chamber->second & (1<<25) ) {
+	isCSCError = true;
+	mo->Fill(0.,20);
+
+	double freq = (100.0*mo->GetBinContent(1,21))/nDMBEvents[cscTag];
+	mof->SetBinContent(21, freq);
+      }
       mo->SetEntries(nDMBEvents[cscTag]);
       mof->SetEntries(nDMBEvents[cscTag]);
     }
 
-    if (isCSCError && isMEvalid(nodeME, "DMB_Format_Errors", mo)) {
-      mo->Fill(CrateID, DMBSlot);
-    }
+    if (isCSCError) {
 
-    if (!isEventDenied && isCSCError && isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo)) {
-      mo->Fill(CrateID, DMBSlot);
-    }
+      LOG4CPLUS_WARN(logger_,eTag << "Format Errors "<< cscTag << ": 0x" << std::hex << chamber->second);
 
+      if (isMEvalid(nodeME, "DMB_Format_Errors", mo)) {
+	mo->Fill(CrateID, DMBSlot);
+      }
 
-    int CSCtype   = 0;
-    int CSCposition = 0;
-    getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
-    if (isCSCError && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Errors", mo)) {
-      mo->Fill(CSCposition, CSCtype);
-    }
+      if (!isEventDenied  && isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo)) {
+	mo->Fill(CrateID, DMBSlot);
+      }
 
-    if (!isEventDenied && isCSCError && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo)) {
-      mo->Fill(CSCposition, CSCtype);
+      int CSCtype   = 0;
+      int CSCposition = 0;
+      getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
+      if ( CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Errors", mo)) {
+	mo->Fill(CSCposition, CSCtype);
+      }
+
+      if (!isEventDenied  && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo)) {
+	mo->Fill(CSCposition, CSCtype);
+      }
     }
 
     chamber++;
@@ -539,7 +550,9 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       fBusy = false;
     }
     ME_List& cscME = MEs[cscTag];
+
     bool isCSCWarning = false;
+
     if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo)
 	&& isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
       for(int bit=1; bit<2; bit++)
@@ -553,29 +566,33 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       mof->SetEntries(nDMBEvents[cscTag]);
     }
 
-    if (isCSCWarning && isMEvalid(nodeME, "DMB_Format_Warnings", mo)) {
-      mo->Fill(CrateID, DMBSlot);
-    }
+    if (isCSCWarning) {
+      LOG4CPLUS_WARN(logger_,eTag << "Format Warnings "<< cscTag << ": 0x" << std::hex << chamber->second);
+
+      if (isMEvalid(nodeME, "DMB_Format_Warnings", mo)) {
+	mo->Fill(CrateID, DMBSlot);
+      }
   
-    int CSCtype   = 0;
-    int CSCposition = 0;
-    getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
-    if (isCSCWarning && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Warnings", mo)) {
-      mo->Fill(CSCposition, CSCtype);
-      //      mo->SetEntries(nBadEvents);
+      int CSCtype   = 0;
+      int CSCposition = 0;
+      getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
+      if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Warnings", mo)) {
+	mo->Fill(CSCposition, CSCtype);
+	//      mo->SetEntries(nBadEvents);
+      }
+
+      if (!isEventDenied && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo)) {
+	mo->Fill(CSCposition, CSCtype);
+	//      mo->SetEntries(nBadEvents);
+      }
     }
 
-    if (!isEventDenied && isCSCWarning && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo)) {
-      mo->Fill(CSCposition, CSCtype);
-      //      mo->SetEntries(nBadEvents);
-    }
-
-/*
-    if (!isEventDenied && isCSCWarning  && isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo)) {
+    /*
+      if (!isEventDenied && isCSCWarning  && isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo)) {
       mo->Fill(CrateID, DMBSlot);
       //      mo->SetEntries(nBadEvents);
-    }
-*/
+      }
+    */
 
     chamber++;
   }
@@ -593,7 +610,7 @@ void EmuPlotter::updateFractionHistos()
   ME_List nodeME; // === Global histos
   nodeME = MEs[nodeTag];
 
-//  LOG4CPLUS_WARN(logger_, "Update Fraction Histograms");
+  //  LOG4CPLUS_WARN(logger_, "Update Fraction Histograms");
 
   EmuMonitoringObject *mo = NULL;
   EmuMonitoringObject *mo1 = NULL;
@@ -608,20 +625,20 @@ void EmuPlotter::updateFractionHistos()
       && isMEvalid(nodeME, "DMB_Format_Errors", mo1)
       && isMEvalid(nodeME, "DMB_Unpacked", mo2))
     {
-        mo->getObject()->Add(mo1->getObject(), mo2->getObject());
-        if (isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo3)) {
-	  mo->getObject()->Add(mo3->getObject(), -1);
-        }
+      mo->getObject()->Add(mo1->getObject(), mo2->getObject());
+      if (isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo3)) {
+	mo->getObject()->Add(mo3->getObject(), -1);
+      }
     }
 
   if (isMEvalid(nodeME, "CSC_Reporting", mo)
       && isMEvalid(nodeME, "CSC_Format_Errors", mo1)
       && isMEvalid(nodeME, "CSC_Unpacked", mo2))
     {
-        mo->getObject()->Add(mo1->getObject(), mo2->getObject());
-	if (isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo3)) {
-          mo->getObject()->Add(mo3->getObject(), -1);
-        }
+      mo->getObject()->Add(mo1->getObject(), mo2->getObject());
+      if (isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo3)) {
+	mo->getObject()->Add(mo3->getObject(), -1);
+      }
     }
 
   // ************************************
@@ -647,28 +664,28 @@ void EmuPlotter::updateFractionHistos()
       && isMEvalid(nodeME, "DMB_Format_Warnings", mo1)
       && isMEvalid(nodeME, "DMB_Unpacked", mo2))
     {
-        TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
-        tmp->Add(mo1->getObject());
+      TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
+      tmp->Add(mo1->getObject());
 
-        /*if (isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo3)) {
-                tmp->Add(mo3->getObject(), -1);
+      /*if (isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo3)) {
+	tmp->Add(mo3->getObject(), -1);
         }*/
 
-        mo->getObject()->Divide(mo1->getObject(), tmp);
-        delete tmp;
+      mo->getObject()->Divide(mo1->getObject(), tmp);
+      delete tmp;
     }
 
   if (isMEvalid(nodeME, "CSC_Format_Warnings_Fract", mo)
       && isMEvalid(nodeME, "CSC_Format_Warnings", mo1)
       && isMEvalid(nodeME, "CSC_Unpacked", mo2))
     {
-        TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
-        tmp->Add(mo1->getObject());
-	if (isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo3)) {
-                tmp->Add(mo3->getObject(), -1);
-        }
-        mo->getObject()->Divide(mo1->getObject(), tmp);
-        delete tmp;
+      TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
+      tmp->Add(mo1->getObject());
+      if (isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo3)) {
+	tmp->Add(mo3->getObject(), -1);
+      }
+      mo->getObject()->Divide(mo1->getObject(), tmp);
+      delete tmp;
     }
 
 } 
@@ -681,13 +698,13 @@ void EmuPlotter::updateFractionHistos()
   subSetHistoName - the subset of the whole set (setHistoName)
   
   resultHistoName is being computed by dividing subSetHistoName from setHistoName, i.e.
-    fraction of errors = errors / records
+  fraction of errors = errors / records
 */
 void EmuPlotter::calcFractionHisto(
-  ME_List MEs, 
-  std::string resultHistoName, 
-  std::string setHistoName, 
-  std::string subSetHistoName){
+				   ME_List MEs, 
+				   std::string resultHistoName, 
+				   std::string setHistoName, 
+				   std::string subSetHistoName){
 
   EmuMonitoringObject *mo = NULL;
   EmuMonitoringObject *mo1 = NULL;
@@ -697,8 +714,8 @@ void EmuPlotter::calcFractionHisto(
       && isMEvalid(MEs, setHistoName, mo2)
       && isMEvalid(MEs, subSetHistoName, mo1))
     {
-        mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-	mo->getObject()->SetMaximum(1.0);
+      mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
+      mo->getObject()->SetMaximum(1.0);
     }
 
 }
