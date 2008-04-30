@@ -116,7 +116,7 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   // currL1A=dduL1A[dduID];
  
   if((bin_checker.errors() & binCheckMask)!= 0) {
-    //  std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
+    std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
     doBinCheck();
     return;
   }
@@ -171,13 +171,15 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
     DDUstats[dduID].dac=(currL1A/50)%20;
     DDUstats[dduID].strip=currL1A/1000+1;
     DDUstats[dduID].empty_evt_cntr=0;
+    /*
     std::cout << "DDUEvt#" << std::dec << currL1A << " " << DDUstats[dduID].csc_evt_cntr << " " << DDUstats[dduID].empty_evt_cntr
 	      << ": DDU#" << dduID << " Switch strip:" << DDUstats[dduID].strip
 	      << " dac:" << DDUstats[dduID].dac << std::endl;
+    */
     fSwitch=true;
     std::map<std::string, test_step> & cscs = htree[dduID];
     for (std::map<std::string, test_step>::iterator itr = cscs.begin(); itr != cscs.end(); ++itr) {
-      std::cout << itr->first << " " << itr->second.evt_cnt << " " << nCSCEvents[itr->first]<< std::endl;
+      // std::cout << itr->first << " " << itr->second.evt_cnt << " " << nCSCEvents[itr->first]<< std::endl;
       itr->second.evt_cnt = 0;
     }
   }
@@ -278,10 +280,11 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
   TH1F* v04 = reinterpret_cast<TH1F*>(cschistos["V04"]);
 
   int l1a_cnt = dmbHeader->l1a();
+  if (l1a_cnt < l1a_cntrs[cscID]) l1a_cnt+=256;
 
   if (v04) v04->Fill(l1a_cnt-l1a_cntrs[cscID]);
 
-  l1a_cntrs[cscID]=l1a_cnt; 
+  l1a_cntrs[cscID]=dmbHeader->l1a(); 
 
   //  return;
 
@@ -298,7 +301,10 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
   if (dmbHeader->cfebAvailable()){
     for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
-      if (!cfebData) continue;
+      if (!cfebData) {
+	 
+	 continue;
+      }
       
       for (unsigned int layer = 1; layer <= 6; layer++){ // loop over layers in a given chamber
 	int nTimeSamples= cfebData->nTimeSamples();
@@ -306,21 +312,47 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 	double Qmv=0;
         double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
 		    + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
+/* 
+	double Q12_prev;
+	if (curr_strip>1) {
+		Q12_prev=((cfebData->timeSlice(0))->timeSample(layer,curr_strip-1)->adcCounts
+                    + (cfebData->timeSlice(1))->timeSample(layer,curr_strip-1)->adcCounts)/2.;
+	}
 
+	if ((curr_dac == 3 || curr_dac ==4) && cscID == "ME+1.3.08" && icfeb==0 && curr_strip==8 && layer==1)
+	std::cout << cscID << ": ";
+*/
 	for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
           CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
-
+	  
           int Qi = (int) ((timeSample->adcCounts)&0xFFF);
+/*
+	  if (curr_strip>1) {
+		CSCCFEBDataWord* timeSample_prev=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip-1);
+		int Qi_prev=(int) ((timeSample_prev->adcCounts)&0xFFF);
+		if ((Qi_prev-Q12_prev>200) && curr_dac<10) {
+			std::cout << cscID << " ERROR: Crosstalk " << (Qi_prev-Q12_prev) <<  " detected in strip " 
+			<< icfeb << ":" << layer << ":" << (curr_strip-1) << " dac=" << curr_dac << std::endl;
+		}
+	  }
+*/
 	  if (Qi-Q12>Qmax) {
 	    Qmax=Qi-Q12;
 	    if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
 	    gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
           }
+/*
+	  if ((curr_dac == 3 || curr_dac ==4) && cscID == "ME+1.3.08" && icfeb==0 && curr_strip==8 && layer==1) 
+		std::cout << (Qi) << " ";
+*/
 	  gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].mv += Qi-Q12;
           gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].rms += pow(Qi-Q12,2);
           gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].cnt++;
         }
-
+/*
+	if ((curr_dac == 3 || curr_dac ==4) && cscID == "ME+1.3.08" && icfeb==0 && curr_strip==8 && layer==1)
+		std::cout << std::endl;
+*/
         if (v03) {v03->Fill(curr_dac, Qmax);}
 
         /*
@@ -453,7 +485,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
     //    CFEBSCAData& scadata = sdata[cscID];
     GainData& gaindata = gdata[cscID];
     MonHistos& cschistos = mhistos[cscID];
-    TH1F* v01 = reinterpret_cast<TH1F*>(cschistos["V01"]);
+    TH2F* v01 = reinterpret_cast<TH2F*>(cschistos["V01"]);
     //    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
     //    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
     //    return;
@@ -477,8 +509,8 @@ void Test_CFEB04::finishCSC(std::string cscID)
       for (unsigned int layer = 1; layer <= 6; layer++){
 	for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
 	  for(int strip = 1; strip <=16  ; ++strip) { // loop over cfeb strip	
-	    // for (int dac=0; dac<DAC_STEPS; dac++) {
-	    for (int dac=0; dac<DAC_STEPS; dac++) { // Crappy data. process only 15 steps
+	    for (int dac=0; dac<DAC_STEPS; dac++) {
+	    // for (int dac=0; dac<DAC_STEPS; dac++) { // Crappy data. process only 15 steps
 	      dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
 	      double max=0;
 	      double max_rms=0;
@@ -488,7 +520,8 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][itime];
 		cnt = cval.cnt;
 		if (cval.cnt<13) {
-		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", Error counter="<< cval.cnt << std::endl;
+		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", Error: Event counter="<< cval.cnt << std::endl;
+		  fValid=false;
 		  // if (dac<15)  fValid=false; // === Fix for recent bad data (only 15 dac steps)
 		} else {
 		  cval.mv /=cval.cnt;
@@ -512,7 +545,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 			   << ", rms="  << val.rms << ", cnt="<< val.cnt << ", max=" 
 			   << val.max << ", max_rms=" <<  val.max_rms << ", cnt=" << val.max_cnt << std::endl; 
 	      */	    
-	      if (v01) { v01->Fill(cnt);}
+	      if (v01) { v01->Fill(dac,cnt);}
 
 	      if (cnt>0 && fValid) {
 		val.s = pow(max_rms,2) + pow((0.01*max), 2);
@@ -539,6 +572,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		// x=(0.1+0.25*dac);
 		x=11.2 +(28.0*dac);
 		y=val.mv;
+	//	y=val.max;
 		s=val.s;
 		X+=x/s;
 		XX+=(x*x)/s;
