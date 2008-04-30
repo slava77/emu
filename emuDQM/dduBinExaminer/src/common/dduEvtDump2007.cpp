@@ -63,6 +63,14 @@ int calcTMBcrc(vector<unsigned short> &vec)
 
 }
 
+int calcCFEBcrc(vector<unsigned short> &vec)
+{
+        int CFEB_CRC=0;
+	for(uint16_t pos=vec.size()-96; pos<vec.size(); ++pos)
+        CFEB_CRC=(vec[pos]&0x1fff)^((vec[pos]&0x1fff)<<1)^(((CFEB_CRC&0x7ffc)>>2)|((0x0003&CFEB_CRC)<<13))^((CFEB_CRC&0x7ffc)>>1);
+	return CFEB_CRC;
+
+}
 
 // == Main =======================================================================================
 
@@ -81,7 +89,8 @@ int main(int argc, char **argv)
 	unsigned short buf_2[4], buf_1[4], buf0[4], buf1[4], buf2[4];
 
         vector<unsigned short> alctData;
-        vector<unsigned short> tmbData; 
+        vector<unsigned short> tmbData;
+        vector<unsigned short> cfebData; 
 
 	// == Set buffer to 0's
 	bzero(buf_2, sizeof(buf_2));
@@ -257,11 +266,16 @@ int main(int argc, char **argv)
 		}      
 
 
+		
+		// for (int i=0; i<4; i++) cfebData.push_back(buf0[i]);
 
 		// == CFEB Sample Trailer found
-		if ( ((buf0[1]&0xF000)==0x7000) && 
+		if ( ((buf0[1]&0xF000)==0x7000) &&  
 		     ((buf0[2]&0xF000)==0x7000) && 
-		     ((buf0[3]|buf0[0])==0x7FFF))   {
+		     ((buf0[1] != 0x7FFF) || (buf0[2] != 0x7FFF)) &&
+		     ((buf0[3] == 0x7FFF) ||   
+		     ((buf0[3]&buf0[0]) == 0x0 && (buf0[3] + buf0[0] == 0x7FFF ))) )
+		{
 			       SampleCount++;
 			       SampleTag=true;
 		}      
@@ -290,7 +304,16 @@ int main(int argc, char **argv)
 		}
 		printb(buf0);
 		
-		if ( SampleTag ) { cout << "  |CFEB sample "<<SampleCount<<">" << endl; SampleTag=false; }
+		if ( SampleTag ) { 
+			int calc_crc = calcCFEBcrc(cfebData);
+			cout << "  |CFEB sample "<<SampleCount<<"> CRC: 0x" << hex << buf0[0] <<", calc CRC: 0x" << hex << calc_crc;
+			if (calc_crc != buf0[0]) cout << " !CRC Missmatch!";
+			cout << endl; 
+			SampleTag=false; 
+			cfebData.clear();
+		}
+
+		for (int i=0; i<4; i++) cfebData.push_back(buf0[i]);
 
 
 
@@ -305,6 +328,7 @@ int main(int argc, char **argv)
 		       cout << "  |ALCT> CRC: 0x" << hex << crcALCT << " wordcnt: " << dec << (buf0[3] & 0x7FF) << endl;
 			cout << " ALCT size: " << alctData.size()+4 << " words,  calc CRC: 0x" << hex  << calcALCTcrc(alctData) << endl;
 		       fALCT=false;
+		       cfebData.clear();
 			
 		       
 		}      
@@ -325,6 +349,7 @@ int main(int argc, char **argv)
 		       cout << "  |TMB> CRC: 0x" << hex << crcTMB << " wordcnt: " << dec << (buf0[3] & 0x7FF) << endl;
 			cout << " TMB size " << tmbData.size()+4 << " words,  calc CRC: 0x" << hex  << calcTMBcrc(tmbData) << endl;
 			fTMB=false;
+			cfebData.clear();
 		}      
 
 		if (fTMB) {
@@ -343,7 +368,8 @@ int main(int argc, char **argv)
 		     ((buf0[3]&0xF000)==0xE000) )   {
 		          cout << "  |DMB"<<cntDMBHeaders<<">;" << endl;
 		          SampleCount=0;
-		          BSampleCount=0; 
+		          BSampleCount=0;
+			 cfebData.clear(); 
 		}
 
 		
