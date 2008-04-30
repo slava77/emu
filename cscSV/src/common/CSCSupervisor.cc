@@ -1613,7 +1613,7 @@ xoap::MessageReference CSCSupervisor::getRunSummary()
   try {
     daqManagerDescriptor = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("EmuDAQManager", 0);
   } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    return reply; // Do nothing if the target doesn't exist
+    XCEPT_RETHROW(xcept::Exception, "Failed to get run summary from EmuDAQManager", e);
   }
 
   // prepare a SOAP message
@@ -1940,7 +1940,9 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     catch (xoap::exception::Exception& e){
       LOG4CPLUS_ERROR( logger_, "Failed to parse run summary: " << xcept::stdformat_exception_history(e) );
     }
-
+    catch( xcept::Exception e ){
+      LOG4CPLUS_ERROR( logger_, "Run summary unknown: " << xcept::stdformat_exception_history(e) );
+    }
     
     //
     // start time and stop time
