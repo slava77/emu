@@ -31,13 +31,13 @@
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
                 <YMin>-60</YMin>
-                <YMax>40</YMax>
-                <YBins>100</YBins>
+                <YMax>60</YMax>
+                <YBins>120</YBins>
                 <YTitle>Gain intercept</YTitle>
                 <Low1Limit>-40</Low1Limit>
                 <Low0Limit>-30</Low0Limit>
-                <High0Limit>10</High0Limit>
-                <High1Limit>20</High1Limit>
+                <High0Limit>30</High0Limit>
+                <High1Limit>40</High1Limit>
         </TestResult>
 
 	<TestResult>
@@ -74,8 +74,8 @@
                 <YMax>4100</YMax>
                 <YBins>41</YBins>
                 <YTitle>Saturation (ADC)</YTitle>
-                <Low1Limit>0</Low1Limit>
-                <Low0Limit>0</Low0Limit>
+                <Low1Limit>3000</Low1Limit>
+                <Low0Limit>4000</Low0Limit>
                 <High0Limit>4095</High0Limit>
                 <High1Limit>4095</High1Limit>
         </TestResult>
@@ -122,16 +122,21 @@
 
 	<TestResult>
                 <Test>CFEB04</Test>
-                <Type>h1</Type>
+                <Type>h2</Type>
                 <Title>V01 - Number of Events per one setting</Title>
                 <Prefix>CSC</Prefix>
                 <Name>V01</Name>
                 <XMin>0</XMin>
-                <XMax>30</XMax>
-                <XBins>30</XBins>
-                <XTitle>Number of events per setting</XTitle>
+                <XMax>20</XMax>
+                <XBins>20</XBins>
+                <XTitle>Setting #</XTitle>
+		<YMin>0</YMin>
+                <YMax>30</YMax>
+                <YBins>30</YBins>
+                <YTitle>Number of events per setting</YTitle>
 		<SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOption>textcolz</SetOption>
         </TestResult>
 
 	<TestResult>
