@@ -62,6 +62,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		logger_(Logger::getInstance("CSCSupervisor")),
 		run_type_(""), run_number_(0), runSequenceNumber_(0),
 		daq_mode_(""), trigger_config_(""), ttc_source_(""),
+		rcmsStateNotifier_(getApplicationLogger(), getApplicationDescriptor(), getApplicationContext()),
 		wl_semaphore_(toolbox::BSem::EMPTY), quit_calibration_(false),
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
 		daq_notavailable_(false),
@@ -74,9 +75,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		runDbAddress_       ( "" ),
 		runDbUserFile_      ( "" ),
 		isBookedRunNumber_  ( false ),
-		state_table_(this),
-		rcmsStateNotifier_(getApplicationLogger(), getApplicationDescriptor(), getApplicationContext())
-
+		state_table_(this)
 {
 	start_attr.insert(std::map<string, string>::value_type("Param", "Start"));
 	stop_attr.insert(std::map<string, string>::value_type("Param", "Stop"));
@@ -182,7 +181,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	state_table_.addApplication("TTCciControl");
 	state_table_.addApplication("LTCControl");
 
-	last_log_.size(N_LOG_MESSAGES);
+	// last_log_.size(N_LOG_MESSAGES);
 
 	LOG4CPLUS_INFO(logger_, "CSCSupervisor constructed");
 }
@@ -407,7 +406,7 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 
 	// Message logs
 	*out << hr() << endl;
-	last_log_.webOutput(out);
+	// last_log_.webOutput(out);
 
 	*out << body() << html() << endl;
 }
@@ -1101,7 +1100,7 @@ void CSCSupervisor::analyzeReply(
 	s << "Reply from "
 			<< app->getClassName() << "(" << app->getInstance() << ")" << endl
 			<< reply_str;
-	last_log_.add(s.str());
+	// last_log_.add(s.str());
 	LOG4CPLUS_DEBUG(logger_, reply_str);
 
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
