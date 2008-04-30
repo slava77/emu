@@ -9,7 +9,7 @@ use List::Util qw[min max];
 
 # cscdqm@cmsusr0 :
 my $WEB     = "~/cadaver https://cms-csc.web.cern.ch:444/cms-csc/";
-my $REPORT  = "repeat=0 && while [ \\\"`cat plots/*/summary.html | ~/data/client lxplus201.cern.ch:20000 | grep 'Connect'`\\\" != \\\"Connect\\\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done";
+my $REPORT  = "repeat=0 && while [ \\\"`find . -name summary.html -exec cat {} \\\\; | ~/data/client uflpc04.cern.ch:20000 | grep 'Connect'`\\\" != \\\"Connect\\\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done";
 #my $SOURCE  = "/cms/mon/data/lookarea_SM/";
 ##my $SOURCE  = "/cmssrv0/nfshome0/kkotov/data/";
 my $SOURCE  = "/data/";
