@@ -89,7 +89,8 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   myParameter_ =  0;
   //
   xmlFile_ = "config.xml" ;
-  //
+  GlobalRun_=0; 
+ //
   for(unsigned int dmb=0; dmb<9; dmb++) {
     L1aLctCounter_.push_back(0);
     CfebDavCounter_.push_back(0);
@@ -110,6 +111,7 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   //
   this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
   this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
+  this->getApplicationInfoSpace()->fireItemAvailable("InGlobalRun", &GlobalRun_);
   
   // for XMAS minotoring:
 
@@ -291,7 +293,7 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigure (xoap::MessageRefe
   current_config_state_=2;
   fireEvent("Configure");
   //
-  current_config_state_=VerifyCratesConfiguration();
+  if(!GlobalRun_)current_config_state_=VerifyCratesConfiguration();
   //
   return createReply(message);
 }

@@ -67,6 +67,7 @@ protected:
   //
   xdata::UnsignedLong runNumber_;
   xdata::UnsignedLong maxNumTriggers_;
+  xdata::UnsignedLong GlobalRun_;
   //
   xdata::String xmlFile_;
   xdata::String CalibrationState_;
