@@ -3,26 +3,106 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
   xmlns:fn="http://www.w3.org/2005/02/xpath-functions">
 
-<xsl:output method="text" omit-xml-declaration="yes"/>
+<xsl:output method="text" omit-xml-declaration="yes" indent="no"/>
+<!-- xsl:strip-space elements="*"/-->
 
 <xsl:template match="/">
-def csclayout(i, p, *rows): i["Layouts/CSC Layouts/" + p] = DQMItem(layout=rows)
-<xsl:apply-templates select="Canvases/Canvas"/>
+  <xsl:text>def csclayout(i, p, *rows): i["Layouts/CSC Layouts/" + p] = DQMItem(layout=rows)
+  
+  </xsl:text>
+  <xsl:apply-templates select="Canvases/Canvas[Prefix='EMU']" mode="default"/>
+  <xsl:apply-templates select="Canvases/Canvas[Prefix='DDU']" mode="default"/>
+  <!--xsl:apply-templates select="Canvases/Canvas[Prefix='CSC']" mode="default"/-->
 </xsl:template>
 
-<xsl:template match="Canvas">
-<xsl:variable name="display"><xsl:choose><xsl:when test="DisplayInWeb=0">0</xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
-<xsl:if test="$display=1">
-csclayout(dqmitems,"<xsl:value-of select="Title"/>",
-<xsl:variable name="prefix"><xsl:if test="string-length(Prefix) > 0"><xsl:value-of select="Prefix"/>/</xsl:if></xsl:variable>
-<xsl:for-each select="./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))][position() = 1]">
-  ["<xsl:value-of select="$prefix"/><xsl:value-of select="."/>"]
-</xsl:for-each>
-<xsl:for-each select="./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))][position() > 1]">
- ,["<xsl:value-of select="$prefix"/><xsl:value-of select="."/>"]
-</xsl:for-each>
-)
-</xsl:if>
+<xsl:template match="Canvas[Prefix='EMU']" mode="default">
+  <xsl:apply-templates select="." mode="printme">
+    <xsl:with-param name="hprefix" select="'CSC/'"/>
+    <xsl:with-param name="tprefix" select="'00-Summary/'"/>
+  </xsl:apply-templates>
+</xsl:template>
+
+<xsl:template match="Canvas[Prefix='DDU']" mode="default">
+  <xsl:param name="id" select="36"/>
+
+  <xsl:if test="$id > 0">
+    <xsl:apply-templates select="." mode="printme">
+      <xsl:with-param name="hprefix"><xsl:text>DDU_</xsl:text><xsl:number format="01" value="$id"/><xsl:text>/</xsl:text></xsl:with-param>
+      <xsl:with-param name="tprefix"><xsl:text>01-DDUs/DDU_</xsl:text><xsl:number format="01" value="$id"/><xsl:text>/</xsl:text></xsl:with-param>
+    </xsl:apply-templates>
+    <xsl:apply-templates select="." mode="default">
+      <xsl:with-param name="id" select="$id - 1"/>
+    </xsl:apply-templates>
+  </xsl:if>
+
+</xsl:template>
+
+<xsl:template match="Canvas[Prefix='CSC']" mode="default">
+  <xsl:param name="uid" select="24"/>
+  <xsl:param name="lid" select="10"/>
+
+  <xsl:variable name="label">
+    <xsl:number format="001" value="$uid"/>
+    <xsl:text>_</xsl:text>
+    <xsl:number format="01" value="$lid"/>
+  </xsl:variable>
+
+  <xsl:if test="$uid > 0">
+    <xsl:apply-templates select="." mode="printme">
+      <xsl:with-param name="hprefix">
+        <xsl:text>Chamber_</xsl:text>
+        <xsl:value-of select="$label"/>
+        <xsl:text>/</xsl:text>
+      </xsl:with-param>
+      <xsl:with-param name="tprefix">
+        <xsl:text>02-Chambers/Chamber_</xsl:text>
+        <xsl:value-of select="$label"/>
+        <xsl:text>/</xsl:text>
+      </xsl:with-param>
+    </xsl:apply-templates>
+    <xsl:apply-templates select="." mode="default">
+      <xsl:with-param name="uid">
+        <xsl:choose>
+          <xsl:when test="$lid = 1"><xsl:value-of select="$uid - 1"/></xsl:when>
+          <xsl:otherwise><xsl:value-of select="$uid"/></xsl:otherwise>
+        </xsl:choose>
+      </xsl:with-param>
+      <xsl:with-param name="lid">
+        <xsl:choose>
+          <xsl:when test="$lid = 1"><xsl:value-of select="10"/></xsl:when>
+          <xsl:otherwise><xsl:value-of select="$lid - 1"/></xsl:otherwise>
+        </xsl:choose>
+      </xsl:with-param>
+    </xsl:apply-templates>
+  </xsl:if>
+</xsl:template>
+
+<xsl:template match="Canvas" mode="printme">
+  <xsl:param name="hprefix"/>
+  <xsl:param name="tprefix"/>
+
+  <xsl:variable name="display"><xsl:choose><xsl:when test="DisplayInWeb=0">0</xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
+
+  <xsl:if test="$display=1">
+    <xsl:text>csclayout(dqmitems,"</xsl:text>
+    <xsl:value-of select="$tprefix"/><xsl:value-of select="Title"/>
+    <xsl:text>",
+    </xsl:text>
+    <xsl:variable name="count"><xsl:value-of select="count(./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))])"/></xsl:variable>
+    <xsl:for-each select="./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))]">
+      <xsl:text>  ["</xsl:text>
+      <xsl:value-of select="$hprefix"/><xsl:value-of select="."/>
+      <xsl:text>"]</xsl:text>
+      <xsl:if test="$count > position()">
+        <xsl:text>,</xsl:text>
+      </xsl:if>
+      <xsl:text>
+    </xsl:text>
+    </xsl:for-each>
+    <xsl:text>)
+    </xsl:text>
+  </xsl:if>
+
 </xsl:template>
 
 </xsl:stylesheet>
