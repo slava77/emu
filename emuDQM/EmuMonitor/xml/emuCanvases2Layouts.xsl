@@ -9,7 +9,7 @@
 <xsl:template match="/">
   <xsl:text>def csclayout(i, p, *rows): i["CSC/Layouts/" + p] = DQMItem(layout=rows)
   
-  </xsl:text>
+</xsl:text>
   <xsl:apply-templates select="Canvases/Canvas[Prefix='EMU']" mode="default"/>
   <!--xsl:apply-templates select="Canvases/Canvas[Prefix='DDU']" mode="default"/-->
   <!--xsl:apply-templates select="Canvases/Canvas[Prefix='CSC']" mode="default"/-->
@@ -96,12 +96,13 @@
   </xsl:text>
     <xsl:variable name="count"><xsl:value-of select="count(./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))])"/></xsl:variable>
     <xsl:for-each select="./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))]">
+      <xsl:text>	</xsl:text>
       <xsl:choose>
         <xsl:when test="((position() - 1) mod $padsx) = 0">
-          <xsl:text>  [</xsl:text>
+          <xsl:text>[</xsl:text>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:text>   </xsl:text>
+          <xsl:text> </xsl:text>
         </xsl:otherwise>
       </xsl:choose>
       <xsl:text>"</xsl:text>
@@ -113,11 +114,14 @@
       <xsl:if test="$count > position()">
         <xsl:text>,</xsl:text>
       </xsl:if>
-      <xsl:text>
-  </xsl:text>
+      <xsl:if test="$count = position()">
+        <xsl:text>)</xsl:text>
+      </xsl:if>
+<xsl:text>
+</xsl:text>
     </xsl:for-each>
-    <xsl:text>)
-  </xsl:text>
+    <xsl:text>
+</xsl:text>
   </xsl:if>
 
 </xsl:template>
