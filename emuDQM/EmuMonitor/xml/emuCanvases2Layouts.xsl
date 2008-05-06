@@ -7,11 +7,11 @@
 <!-- xsl:strip-space elements="*"/-->
 
 <xsl:template match="/">
-  <xsl:text>def csclayout(i, p, *rows): i["Layouts/CSC Layouts/" + p] = DQMItem(layout=rows)
+  <xsl:text>def csclayout(i, p, *rows): i["CSC/Layouts/" + p] = DQMItem(layout=rows)
   
   </xsl:text>
   <xsl:apply-templates select="Canvases/Canvas[Prefix='EMU']" mode="default"/>
-  <xsl:apply-templates select="Canvases/Canvas[Prefix='DDU']" mode="default"/>
+  <!--xsl:apply-templates select="Canvases/Canvas[Prefix='DDU']" mode="default"/-->
   <!--xsl:apply-templates select="Canvases/Canvas[Prefix='CSC']" mode="default"/-->
 </xsl:template>
 
@@ -82,25 +82,42 @@
   <xsl:param name="tprefix"/>
 
   <xsl:variable name="display"><xsl:choose><xsl:when test="DisplayInWeb=0">0</xsl:when><xsl:otherwise>1</xsl:otherwise></xsl:choose></xsl:variable>
+  <xsl:variable name="padsx" select="NumPadsX"/>
+  <xsl:variable name="padsy" select="NumPadsY"/>
+
+  <!--xsl:value-of select="$padsx"/><xsl:text>, </xsl:text> 
+  <xsl:value-of select="$padsy"/><xsl:text>
+  </xsl:text-->
 
   <xsl:if test="$display=1">
     <xsl:text>csclayout(dqmitems,"</xsl:text>
     <xsl:value-of select="$tprefix"/><xsl:value-of select="Title"/>
     <xsl:text>",
-    </xsl:text>
+  </xsl:text>
     <xsl:variable name="count"><xsl:value-of select="count(./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))])"/></xsl:variable>
     <xsl:for-each select="./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))]">
-      <xsl:text>  ["</xsl:text>
+      <xsl:choose>
+        <xsl:when test="((position() - 1) mod $padsx) = 0">
+          <xsl:text>  [</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>   </xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:text>"</xsl:text>
       <xsl:value-of select="$hprefix"/><xsl:value-of select="."/>
-      <xsl:text>"]</xsl:text>
+      <xsl:text>"</xsl:text>
+      <xsl:if test="((position()) mod $padsx) = 0 or position() = $count">
+        <xsl:text>]</xsl:text>
+      </xsl:if>
       <xsl:if test="$count > position()">
         <xsl:text>,</xsl:text>
       </xsl:if>
       <xsl:text>
-    </xsl:text>
+  </xsl:text>
     </xsl:for-each>
     <xsl:text>)
-    </xsl:text>
+  </xsl:text>
   </xsl:if>
 
 </xsl:template>
