@@ -118,9 +118,10 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   Monitor_On_ = false;
   Monitor_Ready_ = false;
 
-  global_config_states[0]="UnConfiged";
+  controller_checked_ = false;
+  global_config_states[0]="UnConfigured";
   global_config_states[2]="Configuring";
-  global_config_states[1]="Configed";
+  global_config_states[1]="Configured";
   global_run_states[0]="Halted";
   global_run_states[1]="Enabled";
   current_config_state_=0;
@@ -158,29 +159,32 @@ void EmuPeripheralCrateCommand::MainPage(xgi::Input * in, xgi::Output * out )
   *out << global_run_states[current_run_state_]<< cgicc::br() << std::endl ;
   *out << cgicc::span() << std::endl ;
   //
-  *out << cgicc::table().set("border","0");
-    //
-  *out << cgicc::td();
-  std::string CheckCrates = toolbox::toString("/%s/CheckCrates",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CheckCrates) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Check Crate Controllers") << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
+  if(current_run_state_==0)
+  {
+     *out << cgicc::table().set("border","0");
+     //
+     *out << cgicc::td();
+     std::string CheckCrates = toolbox::toString("/%s/CheckCrates",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",CheckCrates) << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","Check Crate Controllers") << std::endl ;
+     *out << cgicc::form() << std::endl ;
+     *out << cgicc::td();
 
-  *out << cgicc::td();
-  std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfiguration",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
-  if (all_crates_ok == 1) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:green") << std::endl ;
-  } else if (all_crates_ok == 0) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:red") << std::endl ;
-  } else if (all_crates_ok == -1) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:blue") << std::endl ;
+     *out << cgicc::td();
+     std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfiguration",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
+     if (all_crates_ok == 1) {
+        *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:green") << std::endl ;
+     } else if (all_crates_ok == 0) {
+        *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:red") << std::endl ;
+     } else if (all_crates_ok == -1) {
+        *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:blue") << std::endl ;
+     }
+     *out << cgicc::form() << std::endl ;
+     *out << cgicc::td();
+
+     *out << cgicc::table();
   }
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-
-  *out << cgicc::table();
   //
   int initial_crate = current_crate_;
   //
@@ -293,7 +297,7 @@ xoap::MessageReference EmuPeripheralCrateCommand::onConfigure (xoap::MessageRefe
   current_config_state_=2;
   fireEvent("Configure");
   //
-  if(!GlobalRun_)current_config_state_=VerifyCratesConfiguration();
+  current_config_state_=(GlobalRun_?1:VerifyCratesConfiguration());
   //
   return createReply(message);
 }
@@ -420,7 +424,7 @@ void EmuPeripheralCrateCommand::actionPerformed (xdata::Event& e) {
 
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
-    MyController->NotInDCS();
+    // MyController->NotInDCS();
     //
     emuEndcap_ = MyController->GetEmuEndcap();
     if(!emuEndcap_) return false;
@@ -462,6 +466,12 @@ void EmuPeripheralCrateCommand::actionPerformed (xdata::Event& e) {
     throw (xgi::exception::Exception)
   {  
     std::cout << "Button: Check Crate Controllers" << std::endl;
+    CheckControllers();
+    this->Default(in, out);
+  }
+
+void EmuPeripheralCrateCommand::CheckControllers()
+{
     if(total_crates_<=0) return;
     bool cr;
     for(unsigned i=0; i< crateVector.size(); i++)
@@ -470,9 +480,8 @@ void EmuPeripheralCrateCommand::actionPerformed (xdata::Event& e) {
         crateVector[i]->SetLife( cr );
         if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
     }
-
-    this->Default(in, out);
-  }
+    controller_checked_ = true;
+}
 
 void EmuPeripheralCrateCommand::CheckCratesConfiguration(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
@@ -490,6 +499,7 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
   if(!parsed) ParsingXML();
 
   if(MyController==NULL || total_crates_<=0) return 0;
+  if(!controller_checked_) CheckControllers();
   //
   int initialcrate=current_crate_;
   //
