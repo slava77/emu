@@ -140,6 +140,7 @@ protected:
   
   bool Monitor_On_, Monitor_Ready_;
   //
+  bool controller_checked_;
   int current_crate_;
   int all_crates_ok;;
   int crate_check_ok[60];
@@ -194,6 +195,7 @@ private:
   bool ParsingXML();
   void SetCurrentCrate(int crate);
   void CheckPeripheralCrateConfiguration();
+  void CheckControllers();
   //
   xoap::MessageReference PCcreateCommandSOAP(string command);
   void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
