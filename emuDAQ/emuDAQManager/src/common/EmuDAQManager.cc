@@ -477,14 +477,12 @@ throw (xgi::exception::Exception)
     string runStopTime("UNKNOWN");
     getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
 
-//     if ( daqState_.toString() != "Halted" && daqState_.toString() != "Ready" )
-//       *out << " (Started at " << runStartTime << ")"                   << endl;
-//     if ( daqState_.toString() != "Enabled" && daqState_.toString() != "Ready"  )
-//       *out << " (Stopped at " << runStopTime << ")"                   << endl;
     if ( daqState_.toString() == "Enabled" )
       *out << " (Started at " << runStartTime << ")"                   << endl;
-    if ( daqState_.toString() == "Halted" )
-      *out << " (Stopped at " << runStopTime << ")"                   << endl;
+    if ( daqState_.toString() == "Halted" ){
+      *out << " (Started at " << runStartTime 
+	   << ", stopped at " << runStopTime << ")"                    << endl;
+    }
     *out << "<br/>"                                                    << endl;
 
     stringstream STEPCountsTable;
@@ -1112,12 +1110,10 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 
     if ( daqState_.toString() == "Enabled" )
       *out << " (Started at " << runStartTime << ")"                   << endl;
-    if ( daqState_.toString() == "Halted" )
-      *out << " (Stopped at " << runStopTime << ")"                   << endl;
-//     if ( daqState_.toString() != "Halted" && daqState_.toString() != "Ready" )
-//       *out << " (Started at " << runStartTime << ")"                   << endl;
-//     if ( daqState_.toString() != "Enabled" && daqState_.toString() != "Ready"  )
-//       *out << " (Stopped at " << runStopTime << ")"                   << endl;
+    if ( daqState_.toString() == "Halted" ){
+      *out << " (Started at " << runStartTime 
+	   << ", stopped at " << runStopTime << ")"                    << endl;
+    }
     *out << "<br/>"                                                    << endl;
 
     stringstream STEPCountsTable;
@@ -1524,10 +1520,11 @@ throw (xgi::exception::Exception)
 
     // Check if DQM needs controlling
     // Apparently the query string does not even include the checkbox element if it's not checked...
-    controlDQM_ = false;
+    // Set controlDQM_ later, if and only if a DAQ control button was pressed.
+    bool controlDQM_checked = false;
     for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
       if ( fe->getName() == "controldqm" && fe->getValue() == "on" ){
-	controlDQM_ = true;
+	controlDQM_checked = true;
 	break;
       }
 
@@ -1571,18 +1568,30 @@ throw (xgi::exception::Exception)
 // 	    LOG4CPLUS_INFO(logger_, "maxNumEvents: " + maxNumEvents );
 // 	    LOG4CPLUS_INFO(logger_, "maxNumberOfEvents_: " + maxNumberOfEvents_.toString() );
 
+            // Set controlDQM_ if and only if a DAQ control button was pressed.
+	    controlDQM_ = controlDQM_checked;
+
 	    fireEvent("Configure");
 	  }
 	else if ( (cmdName == "start") && fsm_.getCurrentState() == 'C' )
 	  {
+            // Set controlDQM_ if and only if a DAQ control button was pressed.
+	    controlDQM_ = controlDQM_checked;
+
 	    fireEvent("Enable");
 	  }
         else if( cmdName == "stop" )
 	  {
+            // Set controlDQM_ if and only if a DAQ control button was pressed.
+	    controlDQM_ = controlDQM_checked;
+
 	    fireEvent("Halt");
 	  }
         else if( cmdName == "reset" )
 	  {
+            // Set controlDQM_ if and only if a DAQ control button was pressed.
+	    controlDQM_ = controlDQM_checked;
+
 	    resetAction();
 	    try{
 	      fsm_.reset();
