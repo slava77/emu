@@ -77,7 +77,8 @@ void EmuPlotter::saveCanvasesToROOTFile(std::string filename)
 	  subdir->cd();
 	} else rdir->cd(folder.c_str());
 	if (me_itr != MEs.end()) {
-	  h_itr->second->Draw(me_itr->second);
+	  h_itr->second->setRunNumber(runNumber);
+	  h_itr->second->Draw(me_itr->second);          
 	  h_itr->second->Write();
 	}
       }
