@@ -32,11 +32,14 @@
   <xsl:apply-templates select="SetOptStat"/>
   <xsl:apply-templates select="SetGridx[1]"/>
   <xsl:apply-templates select="SetGridy[1]"/>
+  <xsl:text>  if(obj->GetEntries() > 0) {
+  </xsl:text>
   <xsl:apply-templates select="SetLogx[1]"/>
   <xsl:apply-templates select="SetLogy[1]"/>
   <xsl:apply-templates select="SetLogz[1]"/>
 
-  <xsl:text>  return;
+  <xsl:text>  }
+    return;
   </xsl:text>
   <xsl:text>}
 
