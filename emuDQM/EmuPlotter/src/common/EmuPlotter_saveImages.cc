@@ -17,11 +17,11 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
   TString command = Form("mkdir -p %s",path.c_str());
     gSystem->Exec(command.Data());
 
-  std::string runNumber = runname;
+  std::string runNum= runname;
 
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
-        << "    ['Run: " << runNumber << "', ''," << std::endl;
+        << "    ['Run: " << runNum << "', ''," << std::endl;
 
 
   std::map<std::string, ME_List >::iterator itr;
@@ -85,14 +85,14 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   TString command = Form("mkdir -p %s",path.c_str());
     gSystem->Exec(command.Data());
 
-  std::string runNumber = runname;
+  std::string runNum = runname;
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
-        << "    ['Run: " << runNumber << "', ''," << std::endl;
+        << "    ['Run: " << runNum << "', ''," << std::endl;
 
   csc_list.open((path+"/csc_list.js").c_str());
   csc_list << "var CSC_LIST = [\n"
-        << "    ['Run: " << runNumber << "'";
+        << "    ['Run: " << runNum << "'";
 
  
   std::map<std::string, ME_List>::iterator me_itr; 
@@ -169,6 +169,7 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
 	me_itr = MEs.find(itr->first);
         if (me_itr != MEs.end()) {
 	  LOG4CPLUS_WARN(logger_, imgfile);
+	  h_itr->second->setRunNumber(runNum);
           h_itr->second->Draw(me_itr->second, width, height);
 	  h_itr->second->Print(imgfile.c_str());
         }

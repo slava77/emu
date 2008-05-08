@@ -113,6 +113,7 @@ public:
   std::string GetXMLCanvasesCfgFile() const {return xmlCanvasesCfgFile;}
   void setCSCMapFile(std::string filename);
   std::string getCSCMapFile() const {return cscMapFile;}
+  void setRunNumber(std::string num) {runNumber=num;}
 
   void saveHistos() {};
 
@@ -225,6 +226,7 @@ private:
 
   uint32_t dduCheckMask;
   uint32_t binCheckMask;
+  std::string runNumber;
 
   bool fListModified;
   std::string HistoFile;

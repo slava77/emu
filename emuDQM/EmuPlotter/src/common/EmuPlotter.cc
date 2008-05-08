@@ -33,6 +33,7 @@ void EmuPlotter::reset()
         L1ANumber = 0;
         BXN = 0;
         eTag = "";
+  	runNumber="";
   bin_checker.output1().hide();
         bin_checker.output2().hide();
         bin_checker.crcALCT(true);
