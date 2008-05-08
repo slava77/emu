@@ -11,8 +11,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/Common/include/ConsumerCanvas.hh,v $
-// $Revision: 1.1 $
-// $Date: 2007/12/10 19:47:04 $
+// $Revision: 1.2 $
+// $Date: 2008/05/08 11:07:58 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -45,6 +45,7 @@ public:
   int GetNumPads() const { return _n;}
   int GetNumPadsX() const { return _nx;}
   int GetNumPadsY() const { return _ny;}
+  void SetRunNumber(const char* num) {runNumber=num;}
 private:
 
   TPad** _pads;
@@ -52,6 +53,7 @@ private:
   int _n;
   int _nx;
   int _ny;
+  TString runNumber;
 };
 
 #endif
