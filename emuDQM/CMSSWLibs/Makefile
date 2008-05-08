@@ -134,7 +134,7 @@ $(LDIR)/libQualityTests.a: $(OBJS_QLTY)
 	ar crs $@ $(OBJS_QLTY)
 	@echo "Done."
 
-
+_cleanall:
 clean:
 	@rm -f $(LDIR)/*.a $(LDIR)/*.so $(ODIR)/*.o *.o program core*
 
