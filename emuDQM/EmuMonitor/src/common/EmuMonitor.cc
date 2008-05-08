@@ -430,6 +430,7 @@ xoap::MessageReference EmuMonitor::onReset(xoap::MessageReference msg)
 // == Run Control requests current parameter values == //
 void EmuMonitor::actionPerformed (xdata::Event& e)
 {
+  appBSem_.take();
   // update measurements monitors
   if (e.type() == "ItemRetrieveEvent")
     {
@@ -635,6 +636,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
 
     }
+   appBSem_.give();
 }
 
 std::string EmuMonitor::getROOTFileName() 
@@ -988,7 +990,8 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 */
   }
 
-  if (status == 0) processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, serverTID);
+//  if (status == 0) 
+	processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, appTid_);
 
   // Free the Emu data message
   bufRef->release();
@@ -1210,9 +1213,15 @@ int EmuMonitor::svc()
 
 	      }
 	    } else {
-	      uint32_t errorFlag = 0;
+	      uint32_t errorFlag = deviceReader_->getErrorFlag();
+	      uint32_t status=0;
+	      if( errorFlag==EmuFileReader::Type2 ) status |= 0x8000;
+	      if( errorFlag==EmuFileReader::Type3 ) status |= 0x4000;
+              if( errorFlag==EmuFileReader::Type4 ) status |= 0x2000;
+              if( errorFlag==EmuFileReader::Type5 ) status |= 0x1000;
+              if( errorFlag==EmuFileReader::Type6 ) status |= 0x0800;
 	      appBSem_.take();      
-	      processEvent(deviceReader_->data(), deviceReader_->dataLength(), errorFlag, appTid_);
+	      processEvent(deviceReader_->data(), deviceReader_->dataLength(), status, appTid_);
 	      appBSem_.give();
 	/*
 	      if ((sessionEvents_ % 100) == 1) {

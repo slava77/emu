@@ -354,7 +354,10 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 			    xoap::SOAPName heightTag ("Height", "", "");
 			    if (o_itr->getAttributeValue (heightTag ) != "")
 			      cnv->setCanvasHeight(atoi((o_itr->getAttributeValue (heightTag )).c_str()));
-
+			
+			    std::string runNum = runNumber_.toString();
+			    if (runNumber_ == xdata::UnsignedInteger(0)) runNum="N/A";
+			    cnv->setRunNumber(runNum);
 			    cnv->Draw(melist_itr->second);
 			    // buf.WriteObjectAny(meobj_itr->second->getObject(), meobj_itr->second->getObject()->Class());
 			    buf.WriteObjectAny(cnv->getCanvasObject(), cnv->getCanvasObject()->Class());
