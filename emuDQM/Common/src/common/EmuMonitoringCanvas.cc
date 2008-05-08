@@ -16,6 +16,7 @@ EmuMonitoringCanvas::EmuMonitoringCanvas(const EmuMonitoringCanvas& mo)
   params = mo.params;
   cnv_width = mo.cnv_width;
   cnv_height = mo.cnv_height;
+  runNumber=mo.runNumber;
   displayInWeb = mo.displayInWeb;
 }
 
@@ -31,6 +32,7 @@ EmuMonitoringCanvas& EmuMonitoringCanvas::operator=(const EmuMonitoringCanvas& m
   params = mo.params;
   cnv_width = mo.cnv_width;
   cnv_height = mo.cnv_height;
+  runNumber=mo.runNumber;
   displayInWeb = mo.displayInWeb;
   return *this;
 }
@@ -46,6 +48,7 @@ EmuMonitoringCanvas::EmuMonitoringCanvas() :
 	
 {
   canvas = NULL;
+  runNumber="";
   displayInWeb = true;
   params.clear();
 }
@@ -53,6 +56,7 @@ EmuMonitoringCanvas::EmuMonitoringCanvas() :
 EmuMonitoringCanvas::EmuMonitoringCanvas(DOMNode* info) 
 {
   canvas = NULL;
+  runNumber="";
   displayInWeb = true;
   parseDOMNode(info);
   Book();
@@ -129,6 +133,7 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
     canvas = new MonitoringCanvas(getFullName().c_str(), getFullName().c_str(), getTitle().c_str(), 
 				  npadsx, npadsy, getCanvasWidth(), getCanvasHeight());
     canvas->SetCanvasSize(width, height);
+    canvas->SetRunNumber(runNumber.c_str());
     for (int i=0; i< npadsx*npadsy; i++) {
       canvas->cd(i+1);
       std::stringstream st;

@@ -11,8 +11,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/Common/src/common/ConsumerCanvas.cc,v $
-// $Revision: 1.1 $
-// $Date: 2007/12/10 19:47:09 $
+// $Revision: 1.2 $
+// $Date: 2008/05/08 11:07:58 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -28,18 +28,18 @@
 
 ConsumerCanvas::ConsumerCanvas(const char* name, const char* title, 
 			       const char* title2,int nx, int ny, int width, int height)
-  :TCanvas(name,title, width, height), _pads(NULL), _n(0)
+  :TCanvas(name,title, width, height), _pads(NULL), _n(0), runNumber("")
 {
   SetFillColor(0);
   _title = new TPaveLabel(0.005, 0.95, 0.995, 0.995,title2);
   _title->SetFillColor(0);
   
-  _counter = new TPaveLabel(0.005,0.91,0.995,0.945,"Run:       Events:");
+  _counter = new TPaveLabel(0.005,0.92,0.995,0.945,"Run:       Time:");
   _counter->SetFillColor(0);
   
   TCanvas::cd();
   _title->Draw();
-//  _counter->Draw();
+  _counter->Draw();
   
   Divide(nx,ny); 
 }
@@ -77,7 +77,7 @@ void ConsumerCanvas::Divide(Int_t nx, Int_t ny, Float_t xmargin, Float_t ymargin
  
   for( iy=0 ; iy < ny ; ++iy) 
     {
-      y2 = 0.95 - iy*dy - ymargin;
+      y2 = 0.92 - iy*dy - ymargin;
       y1 = y2 - dy + 2*ymargin;
       if (y1 < 0) y1 = 0;
       if (y1 > y2) continue;
@@ -130,8 +130,7 @@ void ConsumerCanvas::Streamer(TBuffer& b)
   //taken from Greg's CQIEMon
   time_t t2 = time(0);
   tm* t22 = localtime(&t2);
-  label << "Run:" << -1 << " Event:  " << 42
-	<< "  # of Events:" << 11 << "  Time: " 
+  label << "Run#: " << runNumber << "  Time: " 
 	<< asctime(t22)  << std::ends;
   bool batch = gROOT->IsBatch();
   gROOT->SetBatch(kTRUE);

@@ -81,6 +81,7 @@ class EmuMonitoringCanvas
 	void setTitle(std::string);
 	std::string getFolder() const {return folder;}
 	void setFolder(std::string);
+	void setRunNumber(std::string num) { runNumber=num;}
 	
 	int setParameter(std::string, std::string);	
 	std::string getParameter(std::string);
@@ -115,6 +116,7 @@ class EmuMonitoringCanvas
         bool displayInWeb;
 	int cnv_width;
 	int cnv_height;
+	std::string runNumber;
 };
 
 /*
