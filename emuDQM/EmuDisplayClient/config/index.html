@@ -630,8 +630,8 @@ function showHWTable()
 	if (r_list && r_list.length >0) {
 		crates = r_list[0];
 		
-		RunNumber = r_list[0][0];		
-		out += "<th class='RunLink' align=left colspan=0><a class='RLink' target=images href="+link+">"+RunNumber+"</a><br></th>";
+		// RunNumber = r_list[0][0];		
+		out += "<th class='RunLink' align=left colspan=0><a class='RLink' target=images href="+link+">Run: "+RunNumber+"</a><br></th>";
 		for (var i=1; i<crates.length; i++) {
 			crate = crates[i][0];
 			if (crate=="crate255") continue;		
@@ -751,7 +751,11 @@ function showNodeDetailedStatus(id) {
 			out+="</tr>";
 			out +="</table>"		
 			obj.innerHTML=out;
-		} 
+		} else {
+			if (selNode != "") addlog("Selected Monitor node "+selNode+" is down", "warn");
+			selNode="";
+			obj.innerHTML="";
+		}
 	}
 	return false;
 }
@@ -861,9 +865,88 @@ function updateNodesStatus()
 	var nodes=NODES_LIST;
 	obj = document.getElementById("nodesview_div");
 	if (obj) {
+		out +="<table>";
+		
+		out +="<tr>";
+		nodeclass="EmuMonitor"
+		out +="<tr><td><b>" + nodeclass + "s:</b></td>";
+		for (var i=1; i<=36; i++) {
+			color="#C0C0C0";
+			node=i;
+			out +="<td class='node' style='background-color: "+color+"' id='node_"+i+"'>"+node+"</td>";
+		}
+		out +="</tr>";
+		out +="<tr>";
+		out +="<tr><td><b>Rate Evt/s:</b></td>";
+		for (var i=1; i<=36; i++) {
+			rate="-";
+			out +="<td class='node' id='rate_node_"+i+"'>"+rate+"</td>";
+		}
+		out +="</tr>";
+		out +="<tr>";
+		out +="<tr><td><b>Rate CSC/s:</b></td>";
+		for (var i=1; i<=36; i++) {
+			rate="-";
+			out +="<td class='node' id='csc_rate_node_"+i+"'>"+rate+"</td>";
+			
+		}
+		out +="</tr>";
+		out +="</table>";
+		obj.innerHTML=out;
+		
 		if (nodes) {
 			addToNodesHistory(nodes);
-			out +="<table>";
+			if (nodes.length>1) {		
+				totalDAQevents=0;
+				totalDQMevents=0;
+				totalCSCblocks=0;
+				totalDQMrate=0;
+				totalCSCrate=0;
+				for (i=1; i<nodes.length; i++) {
+					node = nodes[i][0].substr(nodes[i][0].lastIndexOf('-')+1,nodes[i][0].length);
+					state = nodes[i][2];
+					rate = nodes[i][6];
+					csc_rate = nodes[i][8];
+					RunNumber=nodes[i][3];
+					// id = 'node_'+node;
+					id=node;
+					node = "<a href='' onClick='showNodeDetailedStatus(\""+node+"\");showNodeInfo(\""+node+"\");selectNode(\""+node+"\");return false;'>"+node+"</a>";
+					var color='white';
+					if (state.search("Enabled") >=0) {color='#90ff90';}
+					else if (state.search("Halted") >=0) {color='#ff9090';}
+					else if (state.search("Ready") >=0) {color='#ffff90';}
+					else if (state.search("Unknown") >=0) {color='909090';}
+					cell = document.getElementById('node_'+id); 
+					if (cell){
+						cell.innerHTML=node;
+						cell.style.background = color;
+					}
+					cell = document.getElementById('rate_node_'+id); 
+					if (cell){
+						cell.innerHTML=rate;					
+					}
+					cell = document.getElementById('csc_rate_node_'+id); 
+					if (cell){
+						cell.innerHTML=csc_rate;
+					
+					}
+					
+					
+					totalDAQevents += parseInt(nodes[i][4]);
+					totalDQMevents += parseInt(nodes[i][5]);
+					totalDQMrate += parseInt(nodes[i][6]);
+					totalCSCblocks += parseInt(nodes[i][7]);
+					totalCSCrate += parseInt(nodes[i][8]);
+					
+				}
+			}
+		}
+		
+		return;
+		
+		if (nodes) {
+			addToNodesHistory(nodes);
+			
 			
 			if (nodes.length>1) {				
 				nodeclass= nodes[1][0].substr(0,nodes[1][0].lastIndexOf('-'));
@@ -923,7 +1006,7 @@ function updateNodesStatus()
 			
 			}
 			
-			out +="</table>";
+			
 			
 			/*
 			out +="<table>";
@@ -949,7 +1032,7 @@ function updateNodesStatus()
 		
 			out +="</table>"
 			*/
-			obj.innerHTML=out;
+			//obj.innerHTML=out;
 		}
 	}
 }
@@ -1346,7 +1429,7 @@ function enableCSCTableEntry(entry_key, entry)
 {
 	obj_sel = selectedObjectList[4];
 	var r_link=document.getElementById("RunLink");
-	if (r_link) r_link.innerHTML = "<a class='RLink' href=''>" + RunNumber + "</a>";
+	if (r_link) r_link.innerHTML = "<a class='RLink' href=''>Run: " + RunNumber + "</a>";
 	if (entry_key.search("EMU") >= 0) {
 		obj = document.getElementById("cscCommon");
 		if (obj) {
