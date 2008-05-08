@@ -24,13 +24,15 @@ template <typename T> class RateMeter: public Task
 
  public:
 
-  RateMeter(): Task("RateMeter") {
+  RateMeter(): Task("RateMeter"),
+	Sem_(BSem::FULL) {
     samplers.clear();
     init();
   }
   ~RateMeter() { }
 
   void init() {
+    Sem_.take();
     timerDelay=10;
     fActive= false;
     typename std::map< std::string, Sampler >::iterator itr;
@@ -41,11 +43,14 @@ template <typename T> class RateMeter: public Task
       gettimeofday(&(samp.last_stamp), NULL);
 		
     }
+    Sem_.give();
 	
   }
 
   void clear() {
+    Sem_.take();
     samplers.clear();
+    Sem_.give();
   }
 
   void setTimer(int delay) { timerDelay = delay;}
@@ -61,12 +66,17 @@ template <typename T> class RateMeter: public Task
 
   bool isActive() const {return fActive;};
 
-  T getRate(std::string id) const { 
+  T getRate(std::string id)  {     
+    Sem_.take();
+    T rate=T(0);
     typename std::map<std::string, Sampler >::const_iterator itr = samplers.find(id);
     if (itr != samplers.end()) {
       //      std::cout << itr->first << ": Read" <<  std::endl;
-      return itr->second.rate;
-    } else return T(0);
+      // return itr->second.rate;
+      rate = itr->second.rate;
+    } 
+    Sem_.give();
+    return rate;
   }
 
   int svc() {
@@ -74,6 +84,7 @@ template <typename T> class RateMeter: public Task
     fActive=true;
 
     while (fActive) {
+      Sem_.take();
       typename std::map<std::string, Sampler >::iterator itr;
       for (itr = samplers.begin(); itr != samplers.end(); ++itr) {
 	Sampler& samp = itr->second;
@@ -88,6 +99,7 @@ template <typename T> class RateMeter: public Task
 	} 
 	
       }
+      Sem_.give();
       usleep(timerDelay*1000*1000);
     }
     fActive=false;
@@ -100,6 +112,7 @@ template <typename T> class RateMeter: public Task
   bool fActive;
   int timerDelay;
   std::map<std::string, Sampler > samplers;
+  BSem Sem_;
 	
 
 };
