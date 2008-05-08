@@ -26,7 +26,9 @@ template <typename T> class RateMeter: public Task
 
   RateMeter(): Task("RateMeter"),
 	Sem_(BSem::FULL) {
+    Sem_.take();
     samplers.clear();
+    Sem_.give();
     init();
   }
   ~RateMeter() { }
@@ -56,12 +58,14 @@ template <typename T> class RateMeter: public Task
   void setTimer(int delay) { timerDelay = delay;}
 
   void addSampler(std::string id, T* s) {
+    Sem_.take();
     Sampler samp;
     samp.ref = s;
     samp.old_val=T(0);
     gettimeofday(&(samp.last_stamp), NULL);
     samp.rate = T(0);
     samplers[id] = samp;
+    Sem_.give();
   }
 
   bool isActive() const {return fActive;};
