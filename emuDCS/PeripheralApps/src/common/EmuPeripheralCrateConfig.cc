@@ -10213,6 +10213,10 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
   //
   //create filename for TMB, ALCT, and RAT firmware based on expected dates...
   for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
+
+    // must skip those broadcast slots. added by Liu, May 09 2008 
+    if((tmbVector[tmb]->slot())>21) continue;   
+
     //
     TMB * thisTMB = tmbVector[tmb];
     ALCTController * thisALCT = tmbVector[tmb]->alctController();
