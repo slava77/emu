@@ -9819,7 +9819,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td().set("ALIGN","left");
   std::string LoadCrateTMBFirmware = toolbox::toString("/%s/LoadCrateTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadCrateTMBFirmware) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Step 4) Load firmware (broadcast) to all TMBs in this crate") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 3) Load firmware (broadcast) to all TMBs in this crate") << std::endl ;
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
@@ -9829,29 +9829,29 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   std::string CCBHardResetFromTMBPage = toolbox::toString("/%s/CCBHardResetFromTMBPage",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Step 5) CCB hard reset") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 4) CCB hard reset") << std::endl ;
   *out << cgicc::form() << std::endl ;
   //
   std::string CheckTMBFirmware = toolbox::toString("/%s/CheckTMBFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckTMBFirmware) ;
   if ( tmb_vme_ready == 1 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:green");
+    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:green");
     //
   } else if ( tmb_vme_ready == 0 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:red");
+    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:red");
     //
   } else {
     //
-    *out << cgicc::input().set("type","submit").set("value","Step 6) Check TMB VME Ready").set("style","color:blue");
+    *out << cgicc::input().set("type","submit").set("value","Step 5) Check TMB VME Ready").set("style","color:blue");
     //
   }
   *out << cgicc::form() << std::endl ;
   //
   std::string ClearTMBBootReg = toolbox::toString("/%s/ClearTMBBootReg",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ClearTMBBootReg) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Step 7) Enable VME Access to TMB FPGA") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Step 6) Enable VME Access to TMB FPGA") << std::endl ;
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br() << std::endl;
