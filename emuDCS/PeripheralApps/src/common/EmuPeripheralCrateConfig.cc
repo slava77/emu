@@ -12217,6 +12217,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllVmePromUserid (xoap::Mes
   std::cout << "DMB VME PROM USER_CODE Readback " << std::endl;
 
   for(unsigned cv=0; cv<crateVector.size(); cv++) {
+    if(!(crateVector[cv]->IsAlive())) continue;
     SetCurrentCrate(cv);
     std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
 
@@ -12246,6 +12247,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
   std::cout << "DMB VME PROM USER_CODE Programming " << std::endl;
 
   for(unsigned cv=0; cv<crateVector.size(); cv++) {
+  if(!(crateVector[cv]->IsAlive())) continue;
     SetCurrentCrate(cv);
     std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
 
@@ -12306,6 +12308,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllCfebPromUserid (xoap::Me
   std::cout << "CFEB PROM USER_CODE Readback " << std::endl;
 
   for(unsigned cv=0; cv<crateVector.size(); cv++) {
+  if(!(crateVector[cv]->IsAlive())) continue;
     SetCurrentCrate(cv);
     std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
 
@@ -12343,6 +12346,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
   std::cout << "CFEB PROM USER_CODE Programming " << std::endl;
 
   for(unsigned cv=0; cv<crateVector.size(); cv++) {
+    if(!(crateVector[cv]->IsAlive())) continue;
     SetCurrentCrate(cv);
     std::cout << "For Crate " << ThisCrateID_ << " : " << std::endl;
 
