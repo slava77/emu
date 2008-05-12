@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.59 2008/04/19 14:56:55 rakness Exp $
+// $Id: TMB.cc,v 3.60 2008/05/12 10:23:16 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.60  2008/05/12 10:23:16  rakness
+// return control to VME bus after checking TMB PROM/FPGA IDs
+//
 // Revision 3.59  2008/04/19 14:56:55  rakness
 // ALCT database check before loading ALCT firmware
 //
@@ -539,6 +542,12 @@ void TMB::ReadTmbIdCodes() {
     //
     tmb_idcode_[device++] = bits_to_int(GetDRtdo(),GetRegLength(),0);
   }
+  //
+  short unsigned int BootReg;
+  tmb_get_boot_reg(&BootReg);
+  BootReg &= 0xff7f;                    // Give JTAG chain to the FPGA to configure ALCT on hard reset
+  BootReg &= 0xf7ff;                    // Allow FPGA access to the VME register
+  tmb_set_boot_reg(BootReg);
   //
   //
   setup_jtag(ChainTmbUser);
