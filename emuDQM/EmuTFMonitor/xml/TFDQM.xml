@@ -5,14 +5,14 @@
   <i2o:target class="EmuTFMonitor" instance="0" tid="29"/>
 </i2o:protocol>
 
-<xc:Context url="http://emuslice11.cern.ch:44000">
+<xc:Context url="http://csc-c2d07-06.cms:44000">
 
-  <xc:Application class="EmuTFMonitor" id="19" instance="0" network="local">
+  <xc:Application class="EmuTFMonitor" id="19" instance="0" network="tcp1">
     <properties xmlns="urn:xdaq-application:EmuTFMonitor" xsi:type="soapenc:Struct">
       <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum1008Evs0to49999.bin</inputDeviceName>
     </properties>
   </xc:Application>
-  <xc:Module>/home/slice/DAQKit/v3.6/TriDAS/emu/emuDQM/EmuTFMonitor/lib/linux/x86/libEmuTFMonitor.so</xc:Module>
+  <xc:Module>/nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/lib/linux/x86/libEmuTFMonitor.so</xc:Module>
 </xc:Context>
 
 </xc:Partition>

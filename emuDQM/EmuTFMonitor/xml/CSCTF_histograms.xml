@@ -268,7 +268,7 @@
 		<XRange>(0:256)</XRange>
 		<XBins>256</XBins>
 		<XLabel>strip</XLabel>
-		<YLabel>Number of Events</YLabel>
+		<YLabel>Pattern # * sign(bend)</YLabel>
 		<YRange>(0:32)</YRange>
 		<YBins>32</YBins>
 		<YBinLabels>-0,-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,+0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15</YBinLabels>
@@ -413,9 +413,9 @@
 		<XBins>14</XBins>
 		<XLabel>Relative BX of the first LCT form other CSCs</XLabel>
 		<YRange>(1:37)</YRange>
-		<YBins>36</YBins>
+		<YBins>39</YBins>
 		<YLabel></YLabel>
-		<YBinLabels>F1/CSC1,F1/CSC2,F1/CSC3,F1/CSC4,F1/CSC5,F1/CSC6,F1/CSC7,F1/CSC8,F1/CSC9,F2/CSC1,F2/CSC2,F2/CSC3,F2/CSC4,F2/CSC5,F2/CSC6,F2/CSC7,F2/CSC8,F2/CSC9,F3/CSC1,F3/CSC2,F3/CSC3,F3/CSC4,F3/CSC5,F3/CSC6,F3/CSC7,F3/CSC8,F3/CSC9,F4/CSC1,F4/CSC2,F4/CSC3,F4/CSC4,F4/CSC5,F4/CSC6,F4/CSC7,F4/CSC8,F4/CSC9</YBinLabels>
+		<YBinLabels>F1/CSC1,F1/CSC2,F1/CSC3,F1/CSC4,F1/CSC5,F1/CSC6,F1/CSC7,F1/CSC8,F1/CSC9,F2/CSC1,F2/CSC2,F2/CSC3,F2/CSC4,F2/CSC5,F2/CSC6,F2/CSC7,F2/CSC8,F2/CSC9,F3/CSC1,F3/CSC2,F3/CSC3,F3/CSC4,F3/CSC5,F3/CSC6,F3/CSC7,F3/CSC8,F3/CSC9,F4/CSC1,F4/CSC2,F4/CSC3,F4/CSC4,F4/CSC5,F4/CSC6,F4/CSC7,F4/CSC8,F4/CSC9,F5/CSC1,F5/CSC2,F5/CSC3</YBinLabels>
 	</Histogram>
 
 	<Histogram Options="LineColor=4">
