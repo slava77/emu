@@ -11,7 +11,7 @@
 	<jsp-version>2.0</jsp-version>
 	<uri>rcms.globalParameter</uri>
 	<description>
-Tag Library useful to dinamically display global parameter
+Tag Library useful to dynamically display global parameter
 <![CDATA[<br>]]>
 section in Control Page.
 <![CDATA[<br>]]>
@@ -144,6 +144,13 @@ The name for the current parameter as defined in the statemachine.
 			</description>
 		</attribute>
 		<attribute>
+			<name>alias</name>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+The alias to be displayed for this parameter.
+			</description>
+		</attribute>
+		<attribute>
 			<name>index</name>
 			<rtexprvalue>true</rtexprvalue>
 			<required>true</required>
@@ -170,6 +177,13 @@ The number of "tabs" to be prefixed to the generated HTML code.
 The CSS class to be used for the name of current parameter.
 			</description>
 		</attribute>
+		<attribute>
+			<name>valueClass</name>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+The CSS class to be used for the value of current parameter when it is not disabled.
+			</description>
+		</attribute>		
 		<attribute>
 			<name>valueMaxLenght</name>
 			<rtexprvalue>true</rtexprvalue>
@@ -214,7 +228,7 @@ and "visible" parameter is set to true.
 True if the global parameter section should be visible.
 			</description>
 		</attribute>
-	</tag>
+	</tag>	
 	<tag>
 		<description>
 			Populates the page context with parameter data of the Function Manager
@@ -228,5 +242,4 @@ True if the global parameter section should be visible.
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
-	
 </taglib>

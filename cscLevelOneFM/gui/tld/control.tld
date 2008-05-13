@@ -725,15 +725,8 @@ The resource path: /js/xyz.js or /css/xyz.css.
 The number of "tabs" to be prefixed to the generated HTML code.
 			</description>
 		</attribute>
-		<attribute>
-			<name>htmlId</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>
-			The HTML id to reference the customPath object
-			</description>
-		</attribute>
-		
 	</tag>	
 </taglib>
+
+
 

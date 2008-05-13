@@ -34,26 +34,6 @@
 <rcms.control:customResourceRenderer indentation="1" type="js"
 	path="/js/ajaxRequest.js" />
 
-<rcms.control:customResourceRenderer indentation="1" type="customPath"
-	path="/jsp/tree.jsp?groupID=" htmlId="treeJsp" />
-
-<rcms.control:customResourceRenderer indentation="1" type="customPath"
-	path="/jsp/fedTtsConfig.jsp?groupID=" htmlId="fedTtsConfigJsp" />
-
-<rcms.control:customResourceRenderer indentation="1" type="customPath" 	path="/html/sounds/error.wav" htmlId="errorSound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" 	path="/html/sounds/stateChanged.wav" htmlId="defaultSound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" 	path="/html/sounds/onload.wav" htmlId="onloadSound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" 	path="/html/sounds/destroy.wav" htmlId="destroySound" />
-
-<!--  State sounds -->
-<rcms.control:customResourceRenderer indentation="1" type="customPath" path="/html/sounds/destroy.wav" htmlId="InitializedSound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" path="/html/sounds/stateChanged.wav" htmlId="HaltedSound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" path="/html/sounds/stateChanged.wav" htmlId="ConfiguredSound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" path="/html/sounds/stateChanged.wav" htmlId="ReadySound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" path="/html/sounds/running.wav" htmlId="RunningSound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" path="/html/sounds/error.wav" htmlId="ErrorSound" />
-<rcms.control:customResourceRenderer indentation="1" type="customPath" path="/html/sounds/stateChanged.wav" htmlId="PausedSound" />
-
 <script type="text/javascript" src="../js/stateNotification.js"></script>
 <script type="text/javascript" src="../js/common.js"></script>
 <script type="text/javascript" src="../js/globalParameters.js"></script>
@@ -63,19 +43,18 @@
 
 <!-- Custom javascript section begin -->
 <script type="text/javascript">
-		<rcms.control:onLoadJSRenderer reloadOnStateChange="false" 
-		commandButtonCssClass="MyControlButton" 
-		commandParameterCheckBoxTitle="&nbsp;Show Command Parameter Section"	
-		commandParameterCssClass="label_left_black" indentation="2"/>
+<rcms.control:onLoadJSRenderer reloadOnStateChange="false" 
+commandButtonCssClass="MyControlButton" 
+commandParameterCheckBoxTitle="&nbsp;Show Command Parameter Section"	
+commandParameterCssClass="label_left_black" indentation="2"/>
 
-		<rcms.control:buttonsJSRenderer indentation="2"/>
-		<rcms.notification:jSRenderer indentation="2"/>
-		<rcms.globalParameter:jSRenderer indentation="2"/>
+<rcms.control:buttonsJSRenderer indentation="2"/>
+<rcms.notification:jSRenderer indentation="2"/>
+<rcms.globalParameter:jSRenderer indentation="2"/>
 
 </script>
 </head>
 <!-- Custom javascript section end -->
-
 <!-- BODY -->
 <body onLoad="myInit();" class="body">
 <!--  switch back to a bigger font size -->
@@ -102,18 +81,39 @@
 <table class="HeaderTable" border="0" cellpadding="3" cellspacing="3" width="100%">
 
 	<tr>
-	
+<!--	
 	<td><button id="showStatusTableButton" class="MenuButton"
 			value="Status Table" name="Status Table"
 			onClick="onShowStatusTableButton()">Status Table </button>
 	</td>
-	
-	<td class="Legend"><button value="FedTtsConfig"
-			id="fedTtsConfig" class="MenuButton" name="FED TTS Configurator"
-			onClick="openFedTtsConfig()">FED & TTS</button>
-	</td>
-
+-->	
+            <td><a class="MenuLinkEnabled" href="./DiagnosticServlet">Diagnostic Page</a></td>
+            <td><a class="MenuLinkEnabled" href="../../../Collector/Collector">Logging Collector</a></td>
+            <td><a class="MenuLinkEnabled" href="./MonitoringToolsServlet">Monitoring Tools</a></td>
+            <td><a class="MenuLinkEnabled" href="./RunInfoServlet">Run Info</a></td>
+            <td><a class="MenuLinkEnabled" href="./RunningConfigurationServlet">Running Configurations</a></td>
+            <td><a class="MenuLinkEnabled" href="./LogoutServlet">Logout</a></td>
 	<!--table-->
+
+<body onLoad="onLoad()">
+
+<!-- Table T1 begin -->
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+
+	<!-- Header fragment -->
+	<jsp:include page="./header.jsp"/>
+	
+<p>"Calibration Type"<p>
+ 
+<select class="RunDataInputTable" name="CALIB_TYPE_KEY" onChange="setRunDataParameterSelect('CALIB_TYPE_KEY','rcms.fm.fw.parameter.type.StringT' ,this)">
+<option value="Monitor">Monitor
+<option value="Calib_CFEB_Gains">Calib_CFEB_Gains
+<option value="Calib_CFEB_CrossTalk">Calib_CFEB_CrossTalk
+<option value="Calib_CFEB_SCAPed">Calib_CFEB_SCAPed
+<option value="Calib_CFEB_Comparator">Calib_CFEB_Comparator
+<option value="Debug">Debug
+</select> 
+
 	<td>
 	<div> 	
 	<input type="hidden" id="globalParameterName3 "name="globalParameterName3" value="" />
@@ -121,13 +121,18 @@
 	<input type="hidden" id="globalParameterType3 "name="globalParameterType3" value="" />
 	</td>
 
-<!--
+
 	<tr>
 	<td colspan="4">	
 	<hr size="4"> 
 	</td>
 	</tr>
--->
+
+	</td>
+		<td><button id="showStatusTableButton" class="MenuButton"
+			value="Status Table" name="Status Table"
+			onClick="onShowStatusTableButton()">Status Table </button>
+		</td>
 		<td>
 		<rcms.control:refreshButtonRenderer cssClass="button1"
 				onClickFunction="onUpdatedRefreshButton()" name="Refresh"
@@ -136,17 +141,14 @@
 		<div id="HEARTBEAT">
 		<SPACER TYPE=BLOCK HEIGHT=30 WIDTH=30>
 		</div>
-	</td>
-<td>
+
+                <td>
 		<rcms.control:createButtonRenderer cssClass="button1"
 						onClickFunction="onCreateButton()" name="Create" indentation="10" />
-                
-		<rcms.control:attachButtonRenderer cssClass="button1"
+                		<rcms.control:attachButtonRenderer cssClass="button1"
 						onClickFunction="onAttachButton()" name="Attach" indentation="10" />
-		
 		<rcms.control:detachButtonRenderer cssClass="button1"
 						onClickFunction="onDetachButton()" name="Detach" indentation="10" />
-		
 		<rcms.control:destroyButtonRenderer cssClass="button1"
 						onClickFunction="onDestroyButton()" name="Destroy" indentation="10" />
 		</td>
@@ -171,20 +173,19 @@ ${pars.GUI_STATE_PANEL_HTML}
 
 <!--  INFO TABLE -->
 	<table  style="width: 800px;">
-
-		<td colspan="2" class="paraTableName">
-		<rcms.control:configurationPathRenderer titleClass="control_label1" label="Configuration:&nbsp;" contentClass="control_label2" indentation="10"/>
-				
-		<rcms.control:configurationKeyRenderer titleClass="control_label1" label="Configuration Keys:&nbsp;" contentClass="control_label2" indentation="10"/>
-
-		<!--rcms.control:configurationNameRenderer titleClass="control_label1" label="Group Name:&nbsp;" contentClass="control_label2" indentation="10"/-->
-		<br><br>
-		<rcms.control:stateRenderer titleClass="control_label1" label="State:&nbsp;" contentClass="control_label3" indentation="10"/>
-		</td>
-		<td>
-		<!--rcms.control:showStatusTableButtonRenderer cssClass="button1" onClickFunction="onShowStatusTableButton()" name="Status Table" indentation="10"/-->
-		</td>
-	</tr>
+<td colspan="2" class="paraTableName">
+<rcms.control:configurationPathRenderer titleClass="control_label1" label="Configuration:&nbsp;" contentClass="control_label2" indentation="10"/>
+<rcms.control:configurationKeyRenderer titleClass="control_label1" label="Configuration Keys:&nbsp;" contentClass="control_label2" indentation="10"/>
+<!--rcms.control:configurationNameRenderer titleClass="control_label1" label="Group Name:&nbsp;" contentClass="control_label2" indentation="10"/-->
+		
+<br><br>
+<rcms.control:stateRenderer titleClass="control_label1" label="State:&nbsp;" contentClass="control_label3" indentation="10"/>
+</td>
+		
+<td>
+<!--rcms.control:showStatusTableButtonRenderer cssClass="button1" onClickFunction="onShowStatusTableButton()" name="Status Table" indentation="10"/-->
+</td>
+</tr>
 
 	<tr>
 		<td align="center" bgcolor="#cccccc">
@@ -193,7 +194,7 @@ ${pars.GUI_STATE_PANEL_HTML}
 			</div>
 			<br>
 			<div id="commandParameterCheckBoxSection" class="control_label1">
-				<!--rcms.control:commandParameterCheckboxRenderer title="&nbsp;Show Command Parameter Section" indentation="11"/-->
+				<rcms.control:commandParameterCheckboxRenderer title="&nbsp;Show Command Parameter Section" indentation="11"/>
 			</div>
 		</td>
 	</tr>
@@ -208,15 +209,14 @@ ${pars.GUI_STATE_PANEL_HTML}
 	
 	</tr>
 	
-	
+<!--
 	<tr>
 	<td colspan="3">	
 	<hr size="3"> 
 	</td>
 	</tr>
-					
+-->					
 	</table>
-
 		
 		<tr>
 			<td style="width: 120px;" class="paraTableName">SID</td>
@@ -245,6 +245,7 @@ ${pars.GUI_STATE_PANEL_HTML}
 		</tr>
 </table>
 
+<!--
 <table  style="width: 800px;">
 
             <td><a class="MenuLinkEnabled" href="./DiagnosticServlet">Diagnostic Page</a></td>
@@ -261,9 +262,10 @@ ${pars.GUI_STATE_PANEL_HTML}
 
 	
 	</table>
+-->
 	</td>
 	</tr>
-</table>
+
 
 
 	<!-- Control Console end -->
