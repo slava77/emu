@@ -181,6 +181,14 @@ protected:
   unsigned long int CFEBBoardNumber[62][10][7];
 
   //VCC Utilities
+
+  enum VCC_PAGES {VCC_CMNTSK, VCC_FRMUTIL, VCC_CNFG, VCC_MAC,
+   VCC_FIFO, VCC_PKTSND, VCC_PKTRCV, VCC_MISC} VCC_UTIL_curr_page;
+  Crate *VCC_UTIL_curr_crate;
+  std::string VCC_UTIL_curr_crate_name;
+  std::string VCC_UTIL_curr_color;
+  std::string VCC_UTIL_acc_cntrl;
+  std::string VCC_UTIL_expert_pswd;
   std::string VCC_UTIL_cmn_tsk_dbg;
   std::string VCC_UTIL_cmn_tsk_sn;
   std::string VCC_UTIL_cmn_tsk_cc;
@@ -410,7 +418,11 @@ private:
   void BackplaneID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void VMECCGUI_GoTo(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECC_UTIL_Crate_Selection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_GoTo_User(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_GoTo_Expert(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_PSWD_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_CRSEL_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCGUI_firmware_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

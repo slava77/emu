@@ -141,7 +141,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   // VME Controller routines
   //-----------------------------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::ControllerUtils, "ControllerUtils");  
-  xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo,  "VMECCGUI_GoTo");
+  xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo_User,  "VMECCGUI_GoTo_User");
+  xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo_Expert,  "VMECCGUI_GoTo_Expert");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_firmware_utils,  "VMECCGUI_firmware_utils");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils,  "VMECCGUI_cnfg_utils");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_MAC_utils,  "VMECCGUI_MAC_utils");
@@ -149,6 +150,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_pkt_send,  "VMECCGUI_pkt_send");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv,  "VMECCGUI_pkt_rcv");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_misc_utils,  "VMECCGUI_misc_utils");
+  xgi::bind(this,&EmuPeripheralCrateConfig::VCC_CRSEL_DO,  "VCC_CRSEL_DO");
+  xgi::bind(this,&EmuPeripheralCrateConfig::VCC_PSWD_DO,  "VCC_PSWD_DO");
   xgi::bind(this,&EmuPeripheralCrateConfig::VCC_CMNTSK_DO,  "VCC_CMNTSK_DO");
   xgi::bind(this,&EmuPeripheralCrateConfig::VCC_FRMUTIL_DO,  "VCC_FRMUTIL_DO");
   xgi::bind(this,&EmuPeripheralCrateConfig::VCC_CNFG_DO,  "VCC_CNFG_DO");
@@ -1501,6 +1504,7 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
       *out << cgicc::td();
       //
       *out << cgicc::td();
+      VCC_UTIL_curr_color = "\"#88CCCC\"";
       std::string ControllerUtils = toolbox::toString("/%s/ControllerUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
       *out << cgicc::a("Controller Utils").set("href",ControllerUtils) << endl;
       *out << cgicc::td();
@@ -6394,10 +6398,16 @@ void EmuPeripheralCrateConfig::VCCHeader(xgi::Input * in, xgi::Output * out, std
 void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
+  int i;
+  Crate *lccc;
   static bool first = true;
   if(first){
     first = false;
-    thisCrate->vmeController()->init();
+    for(i=0; i<(int)crateVector.size(); i++){
+      crateVector[i]->vmeController()->SetUseDCS(true);
+      crateVector[i]->vmeController()->init();
+    }
+    VCC_UTIL_curr_crate = thisCrate;
     if ( thisCrate->vmeController()->GetDebug() == 0 ) {
       VCC_UTIL_cmn_tsk_dbg = "Disabled";
     } else {
@@ -6407,28 +6417,27 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
     VCC_UTIL_cmn_tsk_cc="Not yet read back";
     VCC_UTIL_cmn_tsk_lpbk = "---";
     VCC_UTIL_cmn_tsk_lpbk_color = "#000000";
+    VCC_UTIL_acc_cntrl = "disabled";
+    VCC_UTIL_expert_pswd = "give me control now!";
   }
 
-  vmecc=thisCrate->vmecc();
   char title[] = "VCC Utilities: Main Page";
   char pbuf[300];
-  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
+  lccc = VCC_UTIL_curr_crate;
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
 
   VCCHeader(in,out,title,pbuf);
 
-  std::string VMECCGUI_GoTo =
-    toolbox::toString("/%s/VMECCGUI_GoTo",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",VMECCGUI_GoTo) << std::endl ;
   this->VMECC_UTIL_Menu_Buttons(in,out);
-  *out << cgicc::form() << std::endl;
 
    std::string VCC_CMNTSK_DO =
      toolbox::toString("/%s/VCC_CMNTSK_DO",getApplicationDescriptor()->getURN().c_str());
 
+
   *out << "<form action=\"" << VCC_CMNTSK_DO << "\" method=\"GET\">" << std::endl;
-  *out << "<font size=\"5\"><fieldset><legend align=\"center\">Common Tasks</legend></font>" << std::endl;
+  *out << "<fieldset><legend style=\"font-size: 18pt;\" align=\"center\">Common Tasks</legend>" << std::endl;
   *out << "<div align=\"center\">" << std::endl;
-  *out << "  <table border=\"3\"  cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#88CCCC\" rules=\"none\" style=\"border-collapse: collapse\">" << std::endl;
+  *out << "  <table border=\"3\"  cellspacing=\"2\" cellpadding=\"2\" bgcolor=" << VCC_UTIL_curr_color << " rules=\"none\" style=\"border-collapse: collapse\">" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "	 <td align=\"right\"><input type=\"submit\" value=\"Toggle Debug\" name=\"cmntsk_tog_dbg\"></td>" << std::endl;
   *out << "      <td align=\"left\">" << VCC_UTIL_cmn_tsk_dbg << "</td>" << std::endl;
@@ -6451,57 +6460,137 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
   *out << "</fieldset>" << std::endl;
   *out << "</form>" << std::endl;
 
+  VCC_UTIL_curr_page = VCC_CMNTSK;
 }
 
 void EmuPeripheralCrateConfig::VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-    *out << "<div align=\"center\">" << std::endl;
-    *out << "  <table width=\"100%\" cellpadding=\"4\">" << std::endl;
-    *out << "    <tr>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","Home").set("name","gt_cut").set("style","background-color: #88CCCC;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","Firmware").set("name","gt_frmw").set("style","background-color: #CCFFFF;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","Cnfg. Regs").set("name","gt_crs").set("style","background-color: #FFCCFF;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","MAC Addr's").set("name","gt_mac").set("style","background-color: #FFFFCC;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","Ext. FIFO").set("name","gt_fifo").set("style","background-color: #CCCCFF;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","Pkt Send").set("name","gt_pktsnd").set("style","background-color: #FFCCCC;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","Pkt Rcv").set("name","gt_pktrcv").set("style","background-color: #CCFFCC;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","Misc. Cmds.").set("name","gt_misc").set("style","background-color: #FFCC88;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "      <td align=\"center\">" << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","CrateConfig").set("name","gt_crc").set("style","background-color: #00FF00;") << std::endl ;
-    *out << "      </td>" << std::endl;
-    *out << "    </tr>" << std::endl;
-    *out << "  </table>" << std::endl;
-    *out << "</div>" << std::endl;
+  std::string VMECCGUI_GoTo_User =
+    toolbox::toString("/%s/VMECCGUI_GoTo_User",getApplicationDescriptor()->getURN().c_str());
+   std::string VMECCGUI_GoTo_Expert =
+     toolbox::toString("/%s/VMECCGUI_GoTo_Expert",getApplicationDescriptor()->getURN().c_str());
+   std::string VCC_CRSEL_DO =
+     toolbox::toString("/%s/VCC_CRSEL_DO",getApplicationDescriptor()->getURN().c_str());
+
+  *out << "<div align=\"left\">" << std::endl;
+  *out << "  <table width=\"100%\" cellpadding=\"4\">" << std::endl;
+  *out << "    <tr>" << std::endl;
+  *out << "      <td align=\"left\" valign=\"top\">" << std::endl;
+  *out << "        <form action=\"" << VMECCGUI_GoTo_User << "\" method=\"GET\">" << std::endl;
+  *out << "          <fieldset><legend style=\"font-size: 18pt;\" align=\"left\">General Users</legend>" << std::endl;
+  *out << "            <table cellpadding=\"4\">" << std::endl;
+  *out << "              <tr>" << std::endl;
+  *out << "                <td align=\"left\">" << std::endl;
+  *out << "          	   <input type=\"submit\" value=\"Common Tasks\" name=\"gt_cut\" style=\"background-color: #88CCCC;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "              <tr>" << std::endl;
+  *out << "                <td align=\"left\">" << std::endl;
+  *out << "          	   <input type=\"submit\" value=\"Yellow Page\" name=\"gt_ypg\" style=\"background-color: #FFFF00;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "              <tr>" << std::endl;
+  *out << "                <td align=\"left\">" << std::endl;
+  *out << "          	   <input type=\"submit\" value=\"CrateConfig\" name=\"gt_crc\" style=\"background-color: #00FF00;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "            </table>" << std::endl;
+  *out << "          </fieldset>" << std::endl;
+  *out << "        </form>" << std::endl;
+  *out << "      </td>" << std::endl;
+  *out << "      <td align=\"center\" valign=\"top\">" << std::endl;
+  *out << "        <form action=\"" << VMECCGUI_GoTo_Expert << "\" method=\"GET\">" << std::endl;
+  *out << "          <fieldset><legend style=\"font-size: 18pt;\" align=\"center\">Expert Users</legend>" << std::endl;
+  *out << "            <table cellpadding=\"4\">" << std::endl;
+  *out << "              <tr>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "          	   <input type=\"submit\" value=\"Expert Mode\" name=\"gt_pswd\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "	             <input type=\"submit\" value=\"User Mode\" name=\"st_usrmd\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "          	   <input type=\"submit\" value=\"Misc. Commands.\" name=\"gt_misc\" style=\"background-color: #FFCC88;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "              <tr>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "                  <input type=\"submit\" value=\"External FIFO\" name=\"gt_fifo\" style=\"background-color: #CCCCFF;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "                  <input type=\"submit\" value=\"Config Regs\" name=\"gt_crs\" style=\"background-color: #FFCCFF;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "                  <input type=\"submit\" value=\"MAC Addr's\" name=\"gt_mac\" style=\"background-color: #FFFFCC;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "              <tr>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "                  <input type=\"submit\" value=\"Send Packets\" name=\"gt_pktsnd\" style=\"background-color: #FFCCCC;\" " << VCC_UTIL_acc_cntrl << ">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "                  <input type=\"submit\" value=\"Receive Packets\" name=\"gt_pktrcv\" style=\"background-color: #CCFFCC;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "                <td align=\"center\">" << std::endl;
+  *out << "                  <input type=\"submit\" value=\"Firmware\" name=\"gt_frmw\" style=\"background-color: #CCFFFF;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "            </table>" << std::endl;
+  *out << "          </fieldset>" << std::endl;
+  *out << "        </form>" << std::endl;
+  *out << "      </td>" << std::endl;
+  *out << "      <td align=\"right\" valign=\"top\">" << std::endl;
+  *out << "        <form action=\"" << VCC_CRSEL_DO << "\" method=\"GET\">" << std::endl;
+                     this->VMECC_UTIL_Crate_Selection(in,out);
+  *out << "        </form>" << std::endl;
+  *out << "      </td>" << std::endl;
+  *out << "    </tr>" << std::endl;
+  *out << "  </table>" << std::endl;
+  *out << "</div>" << std::endl;
+
 }
 
-
-void EmuPeripheralCrateConfig::VMECCGUI_GoTo(xgi::Input * in, xgi::Output * out )
+void EmuPeripheralCrateConfig::VMECCGUI_GoTo_User(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
-    std::cout<<" entered VMECCGUI_GoTo"<<std::endl;
+    std::cout<<" entered VMECCGUI_GoTo_User"<<std::endl;
     cgicc::Cgicc cgi(in);
     const CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
     cout << guiStr << endl ;
 
     cgicc::form_iterator gt_cut_name = cgi.getElement("gt_cut");
+    cgicc::form_iterator gt_ypg_name = cgi.getElement("gt_ypg");
+    cgicc::form_iterator gt_crc_name = cgi.getElement("gt_crc");
+
+    if(gt_cut_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#88CCCC\"";
+      this->ControllerUtils(in,out);
+    }
+    else if(gt_ypg_name != cgi.getElements().end()) {
+      this->MainPage(in,out);
+    }
+    else if(gt_crc_name != cgi.getElements().end()) {
+      this->CrateConfiguration(in,out);
+    }
+    else {
+      VCC_UTIL_curr_color = "\"#88CCCC\"";
+      this->ControllerUtils(in,out);
+    }
+}
+
+void EmuPeripheralCrateConfig::VMECCGUI_GoTo_Expert(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+{
+    std::cout<<" entered VMECCGUI_GoTo_Expert"<<std::endl;
+    cgicc::Cgicc cgi(in);
+    const CgiEnvironment& env = cgi.getEnvironment();
+    std::string guiStr = env.getQueryString() ;
+    cout << guiStr << endl ;
+
+    cgicc::form_iterator gt_pswd_name = cgi.getElement("gt_pswd");
+    cgicc::form_iterator st_usrmd_name = cgi.getElement("st_usrmd");
     cgicc::form_iterator gt_frmw_name = cgi.getElement("gt_frmw");
     cgicc::form_iterator gt_crs_name = cgi.getElement("gt_crs");
     cgicc::form_iterator gt_mac_name = cgi.getElement("gt_mac");
@@ -6509,39 +6598,255 @@ void EmuPeripheralCrateConfig::VMECCGUI_GoTo(xgi::Input * in, xgi::Output * out 
     cgicc::form_iterator gt_pktsnd_name = cgi.getElement("gt_pktsnd");
     cgicc::form_iterator gt_pktrcv_name = cgi.getElement("gt_pktrcv");
     cgicc::form_iterator gt_misc_name = cgi.getElement("gt_misc");
-    cgicc::form_iterator gt_crc_name = cgi.getElement("gt_crc");
 
-    if(gt_cut_name != cgi.getElements().end()) {
-      this->ControllerUtils(in,out);
+    if(gt_pswd_name != cgi.getElements().end()) {
+      std::string VCC_PSWD_DO =
+        toolbox::toString("/%s/VCC_PSWD_DO",getApplicationDescriptor()->getURN().c_str());
+
+      *out << "<form action=\"" << VCC_PSWD_DO << "\" method=\"GET\">" << std::endl;
+      *out << "<div align=\"center\">" << std::endl;
+      *out << "<fieldset><legend style=\"font-size: 18pt;\" align=\"center\">Access Control</legend>" << std::endl;
+      *out << "  <table border=\"3\"  cellspacing=\"2\" cellpadding=\"2\" style=\"border-collapse: collapse\" rules=\"none\">" << std::endl;
+      *out << "    <tr>" << std::endl;
+      *out << "      <td colspan=\"2\">" << std::endl;
+      *out << "        <p>Expert Mode requires<br>that your name be logged.</p>" << std::endl;
+      *out << "      </td>" << std::endl;
+      *out << "    </tr>" << std::endl;
+      *out << "    <tr>" << std::endl;
+      *out << "      <td align=\"right\">Name: " << std::endl;
+      *out << "      </td>" << std::endl;
+      *out << "      <td>" << std::endl;
+      *out << "        <input type=\"text\" align=\"left\" maxwidth=\"90\" size=\"9\" value=\"\" name=\"expert_name\" >";
+      *out << "      </td>" << std::endl;
+      *out << "    </tr>" << std::endl;
+      *out << "    <tr>" << std::endl;
+      *out << "      <td align=\"right\">Password: " << std::endl;
+      *out << "      </td>" << std::endl;
+      *out << "      <td>" << std::endl;
+      *out << "        <input type=\"password\" align=\"left\" maxwidth=\"90\" size=\"9\" value=\"\" name=\"expert_pswd\">";
+      *out << "      </td>" << std::endl;
+      *out << "    </tr>" << std::endl;
+      *out << "    <tr>" << std::endl;
+      *out << "      <td colspan=\"2\" align=\"center\">" << std::endl;
+      *out << "        <input type=\"submit\" value=\"Enter\" name=\"expert_mode\">" << std::endl;
+      *out << "      </td>" << std::endl;
+      *out << "    </tr>" << std::endl;
+      *out << "  </table>" << std::endl;
+      *out << "</fieldset>" << std::endl;
+      *out << "</div>" << std::endl;
+      *out << "</form>" << std::endl;
+    }
+    else if(st_usrmd_name != cgi.getElements().end()) {
+      VCC_UTIL_acc_cntrl = "disabled";
+      switch(VCC_UTIL_curr_page){
+      case VCC_CMNTSK:
+        this->ControllerUtils(in,out);
+	break;
+      case VCC_FRMUTIL:
+        this->VMECCGUI_firmware_utils(in,out);
+	break;
+      case VCC_CNFG:
+	this->VMECCGUI_cnfg_utils(in,out);
+	break;
+      case VCC_MAC:
+	this->VMECCGUI_MAC_utils(in,out);
+	break;
+      case VCC_FIFO:
+	this->VMECCGUI_FIFO_utils(in,out);
+	break;
+      case VCC_PKTSND:
+	this->VMECCGUI_pkt_send(in,out);
+	break;
+      case VCC_PKTRCV:
+	this->VMECCGUI_pkt_rcv(in,out);
+	break;
+      case VCC_MISC:
+	this->VMECCGUI_misc_utils(in,out);
+      default:
+        VCC_UTIL_curr_color = "\"#88CCCC\"";
+        this->ControllerUtils(in,out);
+	break;
+      }
     }
     else if(gt_frmw_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#CCFFFF\"";
       this->VMECCGUI_firmware_utils(in,out);
     }
     else if(gt_crs_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#FFCCFF\"";
       this->VMECCGUI_cnfg_utils(in,out);
     }
     else if(gt_mac_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#FFFFCC\"";
       this->VMECCGUI_MAC_utils(in,out);
     }
     else if(gt_fifo_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#CCCCFF\"";
       this->VMECCGUI_FIFO_utils(in,out);
     }
     else if(gt_pktsnd_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#FFCCCC\"";
       this->VMECCGUI_pkt_send(in,out);
     }
     else if(gt_pktrcv_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#CCFFCC\"";
       this->VMECCGUI_pkt_rcv(in,out);
     }
     else if(gt_misc_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#FFCC88\"";
       this->VMECCGUI_misc_utils(in,out);
     }
-    else if(gt_crc_name != cgi.getElements().end()) {
-      this->CrateConfiguration(in,out);
-    }
     else {
+      VCC_UTIL_curr_color = "\"#88CCCC\"";
       this->ControllerUtils(in,out);
     }
 }
+
+void EmuPeripheralCrateConfig::VMECC_UTIL_Crate_Selection(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  std::string optgroup = "INIT";
+  std::string cr_label;
+  bool first;
+  //
+  *out << "<fieldset><legend style=\"font-size: 18pt;\" align=\"right\">Crate Selection</legend>" << std::endl;
+  *out << "<div align=\"right\">" << std::endl;
+  *out << "<select name=\"crate_sel\">" << std::endl;
+  first = true;
+  for(int i=0; i< (int)crateVector.size(); i++){
+    cr_label = crateVector[i]->GetLabel();
+    if(cr_label.compare(0,5,optgroup)!= 0){
+      if(!first){
+        *out << "  </optgroup>" << std::endl;
+      }
+      optgroup = cr_label.substr(0,5);
+      *out << "  <optgroup label=\"" << optgroup << "\">" << std::endl;
+    }
+    if(VCC_UTIL_curr_crate == crateVector[i]){
+      *out << "    <option selected value=\"" << cr_label << "\">" << cr_label << "</option>" << std::endl;
+    }
+    else {
+      *out << "    <option value=\"" << crateVector[i]->GetLabel() << "\">" << crateVector[i]->GetLabel() << "</option>" << std::endl;
+    }
+  }
+  *out << "  </optgroup>" << std::endl;
+  *out << "</select>" << std::endl;
+  *out << "<input type=\"submit\" value=\"Set Crate\" name=\"set_crate\">" << std::endl;
+  *out << "</div>" << std::endl;
+  *out << "</fieldset>" << std::endl;
+
+}
+
+void EmuPeripheralCrateConfig::VCC_CRSEL_DO(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+{
+  int i;
+  bool found;
+  vmecc=thisCrate->vmecc();
+  std::cout<<" entered VCC_CRSEL_DO"<<std::endl;
+  cgicc::Cgicc cgi(in);
+  const CgiEnvironment& env = cgi.getEnvironment();
+  std::string guiStr = env.getQueryString() ;
+  cout << guiStr << endl ;
+  cgicc::form_iterator crate_sel = cgi.getElement("crate_sel");
+
+  if(crate_sel != cgi.getElements().end()) {
+    VCC_UTIL_curr_crate_name = cgi["crate_sel"]->getValue();
+    std::cout << "selected " << VCC_UTIL_curr_crate_name << endl;
+    found = false;
+    for(i=0; i<(int)crateVector.size() && !found; i++){
+      if(VCC_UTIL_curr_crate_name==crateVector[i]->GetLabel()){
+        VCC_UTIL_curr_crate = crateVector[i];
+        found = true;
+      }
+    }
+    if(!found){
+      std::cout << "Crate " << VCC_UTIL_curr_crate_name << " was not found in crate vector" << std::endl;
+      VCC_UTIL_curr_crate_name = VCC_UTIL_curr_crate->GetLabel();
+    }
+  }
+  switch(VCC_UTIL_curr_page){
+  case VCC_CMNTSK:
+    this->ControllerUtils(in,out);
+    break;
+  case VCC_FRMUTIL:
+    this->VMECCGUI_firmware_utils(in,out);
+    break;
+  case VCC_CNFG:
+    this->VMECCGUI_cnfg_utils(in,out);
+    break;
+  case VCC_MAC:
+    this->VMECCGUI_MAC_utils(in,out);
+    break;
+  case VCC_FIFO:
+    this->VMECCGUI_FIFO_utils(in,out);
+    break;
+  case VCC_PKTSND:
+    this->VMECCGUI_pkt_send(in,out);
+    break;
+  case VCC_PKTRCV:
+    this->VMECCGUI_pkt_rcv(in,out);
+    break;
+  case VCC_MISC:
+    this->VMECCGUI_misc_utils(in,out);
+  default:
+    VCC_UTIL_curr_color = "\"#88CCCC\"";
+    this->ControllerUtils(in,out);
+    break;
+  }
+}
+
+void EmuPeripheralCrateConfig::VCC_PSWD_DO(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+{
+  std::cout<<" entered VCC_PSWD_DO"<<std::endl;
+  cgicc::Cgicc cgi(in);
+  const CgiEnvironment& env = cgi.getEnvironment();
+  std::string guiStr = env.getQueryString() ;
+  cgicc::form_iterator expert_mode = cgi.getElement("expert_mode");
+
+  if(expert_mode != cgi.getElements().end()) {
+    std::string pswd_entered = cgi["expert_pswd"]->getValue();
+    std::string name_entered = cgi["expert_name"]->getValue();
+    if(pswd_entered == VCC_UTIL_expert_pswd){
+      std::cout << "VCC expert access granted to " << name_entered << endl;
+      VCC_UTIL_acc_cntrl = "enabled";
+    }
+    else {
+      std::cout << "VCC expert access denied to " << name_entered << endl;
+      VCC_UTIL_acc_cntrl = "disabled";
+    }
+  }
+  switch(VCC_UTIL_curr_page){
+  case VCC_CMNTSK:
+    this->ControllerUtils(in,out);
+    break;
+  case VCC_FRMUTIL:
+    this->VMECCGUI_firmware_utils(in,out);
+    break;
+  case VCC_CNFG:
+    this->VMECCGUI_cnfg_utils(in,out);
+    break;
+  case VCC_MAC:
+    this->VMECCGUI_MAC_utils(in,out);
+    break;
+  case VCC_FIFO:
+    this->VMECCGUI_FIFO_utils(in,out);
+    break;
+  case VCC_PKTSND:
+    this->VMECCGUI_pkt_send(in,out);
+    break;
+  case VCC_PKTRCV:
+    this->VMECCGUI_pkt_rcv(in,out);
+    break;
+  case VCC_MISC:
+    this->VMECCGUI_misc_utils(in,out);
+  default:
+    VCC_UTIL_curr_color = "\"#88CCCC\"";
+    this->ControllerUtils(in,out);
+    break;
+  }
+}
+
 
 void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
@@ -6635,6 +6940,7 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
   this->ControllerUtils(in,out);
 }
 
+
 void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
@@ -6649,7 +6955,6 @@ void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Out
     VCC_UTIL_prom_file_inp = "D783C.V4.29.mcs"; 
   }
 
-  vmecc=thisCrate->vmecc();
   char title[] = "VCC Utilities: Firmware";
   char pbuf[300];
   sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
@@ -6657,22 +6962,18 @@ void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Out
   VCCHeader(in,out,title,pbuf);
   //
 
-  std::string VMECCGUI_GoTo =
-    toolbox::toString("/%s/VMECCGUI_GoTo",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",VMECCGUI_GoTo) << std::endl ;
   this->VMECC_UTIL_Menu_Buttons(in,out);
-  *out << cgicc::form() << std::endl;
 
    std::string VCC_FRMUTIL_DO =
      toolbox::toString("/%s/VCC_FRMUTIL_DO",getApplicationDescriptor()->getURN().c_str());
 
   *out << "<form action=\"" << VCC_FRMUTIL_DO << "\" method=\"GET\">" << std::endl;
-  *out << "<font size=\"5\"><fieldset><legend align=\"center\">Firmware Utilities</legend></font>" << std::endl;
+  *out << "<fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Firmware Utilities</legend>" << std::endl;
   *out << "<div align=\"center\">" << std::endl;
-  *out << "  <table border=\"3\"  cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#CCFFFF\" style=\"border-collapse: collapse\" id=\"table9\">" << std::endl;
+  *out << "  <table border=\"3\"  cellspacing=\"2\" cellpadding=\"2\" bgcolor=" << VCC_UTIL_curr_color << " style=\"border-collapse: collapse\" id=\"table9\">" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "      <td valign=\"top\">" << std::endl;
-  *out << "        <font size=\"4\"><fieldset ><legend align=\"center\" >Read Backs</legend></font>" << std::endl;
+  *out << "        <fieldset ><legend style=\"font-size: 16pt;\" align=\"center\" >Read Backs</legend>" << std::endl;
   *out << "          <div><table cellpadding=\"2\">" << std::endl;
   *out << "	       <tr><td align=\"right\"><input type=\"submit\" value=\"Device ID\" name=\"dvid\"></td><td align=\"left\">" << VCC_UTIL_Frmw_rbk_[0] << "</td></tr>" << std::endl;
   *out << "	       <tr><td align=\"right\"><input type=\"submit\" value=\"User Code\" name=\"rd_uc\"></td><td align=\"left\">" << VCC_UTIL_Frmw_rbk_[1] << "</td></tr>"  << std::endl;
@@ -6684,11 +6985,11 @@ void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Out
   *out << "	   </fieldset>" << std::endl;
   *out << "	 </td>" << std::endl;
   *out << "    <td valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset align=top><legend align=\"center\">Inputs</legend></font>" << std::endl;
+  *out << "      <fieldset align=top><legend style=\"font-size: 16pt;\" align=\"center\">Inputs</legend>" << std::endl;
   *out << "        <div><table cellpadding=\"2\">" << std::endl;
   *out << "            <tr><td align = \"right\">Base Address:</td>\n";
   *out << "                <td><input align=\"right\" maxwidth=\"30\" size=\"3\" value=\"" << VCC_UTIL_base_addr_inp << "\" name=\"base_addr\" type=\"text\"></td>\n";
-  *out << "                <td><input type=\"submit\" value=\"Set\" name=\"set_base\"></td>\n";
+  *out << "                <td><input type=\"submit\" value=\"Set\" name=\"set_base\" " << VCC_UTIL_acc_cntrl << "></td>\n";
   *out << "                <td></td></tr>" << std::endl;
   *out << "            <tr><td align = \"right\">Current Value:</td>\n";
   *out << "                <td>" << VCC_UTIL_Frmw_rbk_[6] << "</td>\n";
@@ -6708,18 +7009,18 @@ void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Out
   *out << "    </tr>" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "      <td colspan=\"2\" valign=\"top\">" << std::endl;
-  *out << "        <font size=\"4\"><fieldset align=top><legend align=\"center\">Configure</legend></font>" << std::endl;
+  *out << "        <fieldset align=top><legend style=\"font-size: 16pt;\" align=\"center\">Configure</legend>" << std::endl;
   *out << "          <div><table cellpadding=\"2\"><tr>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Load Routines\" name=\"ld_rtn\"></td>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Erase PROM\" name=\"erase\"></td>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Program PROM\" name=\"program\"></td>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Program with Verify\" name=\"prgver\"></td>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Execute Custom Routine\" name=\"custom\"></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Load Routines\" name=\"ld_rtn\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Erase PROM\" name=\"erase\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Program PROM\" name=\"program\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Program with Verify\" name=\"prgver\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Execute Custom Routine\" name=\"custom\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "          </tr><tr>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Write Mem to file\" name=\"wrtdat\"></td>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Read Back PROM\" name=\"rdbk\"></td>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Verify Cmd\" name=\"verify\"></td>" << std::endl;
-  *out << "            <td><input type=\"submit\" value=\"Program FPGA\" name=\"jreload\"></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Write Mem to file\" name=\"wrtdat\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Read Back PROM\" name=\"rdbk\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Verify Cmd\" name=\"verify\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "            <td><input type=\"submit\" value=\"Program FPGA\" name=\"jreload\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "            <td><input type=\"submit\" value=\"Abort JTAG Commands\" name=\"abort\"></td>" << std::endl;
   *out << "          </tr></table></div>" << std::endl;
   *out << "        </fieldset>" << std::endl;
@@ -6732,6 +7033,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Out
   *out << "</fieldset>" << std::endl;
   *out << "</form>" << std::endl;
 
+  VCC_UTIL_curr_page = VCC_FRMUTIL;
 }
 
    // call back action from GUI
@@ -7027,7 +7329,6 @@ void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output 
     VCC_UTIL_CR_ser_num="-";
   }
 
-  vmecc=thisCrate->vmecc();
   char title[] = "VCC Utilities: Config Regs";
   char pbuf[300];
   sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
@@ -7035,19 +7336,15 @@ void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output 
   VCCHeader(in,out,title,pbuf);
   //
 
-  std::string VMECCGUI_GoTo =
-    toolbox::toString("/%s/VMECCGUI_GoTo",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",VMECCGUI_GoTo) << std::endl ;
   this->VMECC_UTIL_Menu_Buttons(in,out);
-  *out << cgicc::form() << std::endl;
 
    std::string VCC_CNFG_DO =
      toolbox::toString("/%s/VCC_CNFG_DO",getApplicationDescriptor()->getURN().c_str());
 
   *out << "<form action=\"" << VCC_CNFG_DO << "\" method=\"GET\">" << std::endl;
-  *out << "<font size=\"5\"><fieldset><legend align=\"center\">Configuration Registers</legend></font>" << std::endl;
+  *out << "<fieldset><legend style=\"font-size: 18pt;\" align=\"center\">Configuration Registers</legend>" << std::endl;
   *out << "<div align=\"center\">" << std::endl;
-  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#FFCCFF\" rules=\"groups\">" << std::endl;
+  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << " rules=\"groups\">" << std::endl;
   *out << "    <colgroup span=\"3\"><colgroup span=\"4\">" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "      <th colspan=\"3\" style=\"font-size: 14pt; color: blue\">Inputs</th>" << std::endl;
@@ -7061,7 +7358,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output 
   *out << "    </tr><tr>" << std::endl;
   *out << "      <td align=\"center\">Register</td>" << std::endl;
   *out << "      <td>Sel</td>" << std::endl;
-  *out << "      <td align=\"center\"><input name=\"wrt_sel_crs\" type=\"submit\" value=\"Write Sel.\"></td>" << std::endl;
+  *out << "      <td align=\"center\"><input name=\"wrt_sel_crs\" type=\"submit\" value=\"Write Sel.\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "      <td><input name=\"rbk_cur_crs\" type=\"submit\" value=\"Current\"></td>" << std::endl;
   *out << "      <td><input name=\"rbk_dflt_cnfg\" type=\"submit\" value=\"Default\"></td>" << std::endl;
   *out << "      <td><input name=\"rbk_cnumA\" type=\"submit\" value=\"Cnfg #\"><input maxwidth=\"20\" size=\"2\" value=\"" << VCC_UTIL_CR_cnumA << "\" name=\"cnumA\" type=\"text\"></td>" << std::endl;
@@ -7117,16 +7414,16 @@ void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output 
   *out << "    </tr><tr>" << std::endl;
   *out << "      <td><input name=\"rst_crs\" type=\"reset\" value=\"Reset\"></td>" << std::endl;
   *out << "      <td></td>" << std::endl;
-  *out << "      <td align=\"center\"><input name=\"wrt_all_crs\" type=\"submit\" value=\"Write All.\"></td>" << std::endl;
-  *out << "      <td align=\"center\" colspan=\"2\"><input type=\"submit\" value=\"Save Curr as Cnfg#\" name=\"sav_crs\">" << std::endl;
-  *out << "          <input align=\"right\" maxwidth=\"20\" size=\"2\" value=\"" << VCC_UTIL_CR_sav_cnum << "\" name=\"sav_cnum\" type=\"text\"></td>" << std::endl;
-  *out << "      <td align=\"center\" colspan=\"2\"><input type=\"submit\" value=\"Restore Cnfg#\" name=\"rstr_crs\">" << std::endl;
+  *out << "      <td align=\"center\"><input name=\"wrt_all_crs\" type=\"submit\" value=\"Write All.\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "      <td align=\"center\" colspan=\"2\"><input type=\"submit\" value=\"Save Curr as Cnfg#\" name=\"sav_crs\" " << VCC_UTIL_acc_cntrl << ">" << std::endl;
+  *out << "          <input align=\"right\" maxwidth=\"20\" size=\"2\" value=\"" << VCC_UTIL_CR_sav_cnum << "\" name=\"sav_cnum\" type=\"text\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "      <td align=\"center\" colspan=\"2\"><input type=\"submit\" value=\"Restore Cnfg#\" name=\"rstr_crs\" " << VCC_UTIL_acc_cntrl << ">" << std::endl;
   *out << "          <input align=\"right\" maxwidth=\"20\" size=\"2\" value=\"" << VCC_UTIL_CR_rstr_cnum << "\" name=\"rstr_cnum\" type=\"text\"> &nbsp to Current </td>" << std::endl;
   *out << "    </tr><tr>" << std::endl;
-  *out << "      <td align=\"right\" colspan=\"2\"><input name=\"wrt_ser\" type=\"submit\" value=\"Write Serial Num.\"></td>" << std::endl;
+  *out << "      <td align=\"right\" colspan=\"2\"><input name=\"wrt_ser\" type=\"submit\" value=\"Write Serial Num.\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "      <td align=\"center\"><input align=\"right\" value=\"" << VCC_UTIL_CR_wrt_[6] << "\" size=\"6\" maxwidth=\"30\" name=\"wrt_ser_val\" type=\"text\"></td>" << std::endl;
-  *out << "      <td align=\"center\" colspan=\"2\"><input type=\"submit\" value=\"Set Default Cnfg#\" name=\"set_dflt\">" << std::endl;
-  *out << "            <input align=\"right\" maxwidth=\"20\" size=\"2\" value=\"" << VCC_UTIL_CR_dflt_cnum << "\" name=\"dflt_cnum\" type=\"text\"></td>" << std::endl;
+  *out << "      <td align=\"center\" colspan=\"2\"><input type=\"submit\" value=\"Set Default Cnfg#\" name=\"set_dflt\" " << VCC_UTIL_acc_cntrl << ">" << std::endl;
+  *out << "        <input align=\"right\" maxwidth=\"20\" size=\"2\" value=\"" << VCC_UTIL_CR_dflt_cnum << "\" name=\"dflt_cnum\" type=\"text\"></td>" << std::endl;
   *out << "      <td align=\"center\" colspan=\"2\"><input type=\"submit\" value=\"Read Curr Dflt\" name=\"rd_dflt\"> &nbsp : &nbsp " << VCC_UTIL_CR_curr_dflt << "</td>" << std::endl;
   *out << "    </tr><tr>" << std::endl;
   *out << "      <td colspan=\"3\"></td>" << std::endl;
@@ -7137,6 +7434,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output 
   *out << "</fieldset>" << std::endl;
   *out << "</form>" << std::endl;
 
+  VCC_UTIL_curr_page = VCC_CNFG;
 }
 
 void EmuPeripheralCrateConfig::VCC_CNFG_DO(xgi::Input * in, xgi::Output * out )
@@ -7359,7 +7657,6 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
     VCC_UTIL_MAC_ena_dis="disabled";
   }
 
-  vmecc=thisCrate->vmecc();
   char title[] = "VCC Utilities: MAC Addresses";
   char pbuf[300];
   sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
@@ -7367,11 +7664,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
   VCCHeader(in,out,title,pbuf);
   //
 
-  std::string VMECCGUI_GoTo =
-    toolbox::toString("/%s/VMECCGUI_GoTo",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",VMECCGUI_GoTo) << std::endl ;
   this->VMECC_UTIL_Menu_Buttons(in,out);
-  *out << cgicc::form() << std::endl;
 
    std::string VCC_MAC_DO =
      toolbox::toString("/%s/VCC_MAC_DO",getApplicationDescriptor()->getURN().c_str());
@@ -7383,9 +7676,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
    }
 
   *out << "<form action=\"" << VCC_MAC_DO << "\" method=\"GET\">" << std::endl;
-  *out << "<font size=\"5\"><fieldset><legend align=\"center\">MAC Addresses</legend></font>" << std::endl;
+  *out << "<fieldset><legend style=\"font-size: 18pt;\" align=\"center\">MAC Addresses</legend>" << std::endl;
   *out << "<div align=\"center\">" << std::endl;
-  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#FFFFCC\" rules=\"groups\">" << std::endl;
+  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << " rules=\"groups\">" << std::endl;
   *out << "    <colgroup span=\"3\"><colgroup span=\"1\">" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "      <th colspan=\"3\" style=\"font-size: 14pt; color: blue\">Inputs</th>" << std::endl;
@@ -7422,14 +7715,16 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
   *out << "      <td></td>" << std::endl;
   *out << "    </tr><tr>" << std::endl;
   *out << "      <td></td>" << std::endl;
-  *out << "      <td><input name=\"rst_macs\" type=\"reset\" value=\"Reset\"> &nbsp &nbsp <input name=\"ena_dev_mac\" type=\"submit\" value=\"" << ena_dis << "\"></td>" << std::endl;
-  *out << "      <td><input name=\"wrt_macs\" type=\"submit\" value=\"Write\"></td>" << std::endl;
+  *out << "      <td><input name=\"rst_macs\" type=\"reset\" value=\"Reset\"> &nbsp &nbsp <input name=\"ena_dev_mac\" type=\"submit\" value=\"" << ena_dis << "\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "      <td><input name=\"wrt_macs\" type=\"submit\" value=\"Write\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "      <td align=\"center\"><input type=\"submit\" value=\"Read\" name=\"rd_MAC_dcd\"></td>" << std::endl;
   *out << "    </tr>" << std::endl;
   *out << "  </table>" << std::endl;
   *out << "</div>" << std::endl;
   *out << "</fieldset>" << std::endl;
   *out << "</form>" << std::endl;
+
+  VCC_UTIL_curr_page = VCC_MAC;
 }
 
 void EmuPeripheralCrateConfig::VCC_MAC_DO(xgi::Input * in, xgi::Output * out )
@@ -7581,44 +7876,40 @@ void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output 
   VCCHeader(in,out,title,pbuf);
   //
 
-  std::string VMECCGUI_GoTo =
-    toolbox::toString("/%s/VMECCGUI_GoTo",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",VMECCGUI_GoTo) << std::endl ;
   this->VMECC_UTIL_Menu_Buttons(in,out);
-  *out << cgicc::form() << std::endl;
 
    std::string VCC_FIFO_DO =
      toolbox::toString("/%s/VCC_FIFO_DO",getApplicationDescriptor()->getURN().c_str());
 
   *out << "<form action=\"" << VCC_FIFO_DO << "\" method=\"GET\">" << std::endl;
-  *out << "<font size=\"5\"><fieldset><legend align=\"center\">External FIFO</legend></font>" << std::endl;
+  *out << "<fieldset><legend style=\"font-size: 18pt;\" align=\"center\">External FIFO</legend>" << std::endl;
   *out << "<div align=\"center\">" << std::endl;
-  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=\"#CCCCFF\" style=\"border-collapse: collapse\">" << std::endl;
+  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=" << VCC_UTIL_curr_color << " style=\"border-collapse: collapse\">" << std::endl;
   //  *out << "    <tr><td rowspan=\"2\" valign=\"top\">" << std::endl;
   *out << "    <tr><td valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Modes and Resets</legend></font>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#CCCCFF\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Modes and Resets</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
-  *out << "             <td><input name=\"fifo_mode\" type=\"submit\" value=\"FIFO Mode\"></td>" << std::endl;
+  *out << "             <td><input name=\"fifo_mode\" type=\"submit\" value=\"FIFO Mode\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>" << VCC_UTIL_FIFO_mode << "</td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
-  *out << "             <td><input name=\"err_inj\" type=\"submit\" value=\"Error Inject\"></td>" << std::endl;
+  *out << "             <td><input name=\"err_inj\" type=\"submit\" value=\"Error Inject\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>" << VCC_UTIL_FIFO_inj << "</td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
-  *out << "             <td><input name=\"ecc_state\" type=\"submit\" value=\"ECC\"></td>" << std::endl;
+  *out << "             <td><input name=\"ecc_state\" type=\"submit\" value=\"ECC\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>" << VCC_UTIL_FIFO_ecc << "</td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
-  *out << "             <td><input name=\"prst\" type=\"submit\" value=\"Partial RST\"></td>" << std::endl;
-  *out << "             <td><input name=\"mrst\" type=\"submit\" value=\"Master RST\"></td>" << std::endl;
+  *out << "             <td><input name=\"prst\" type=\"submit\" value=\"Partial RST\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "             <td><input name=\"mrst\" type=\"submit\" value=\"Master RST\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
-  *out << "             <td><input name=\"set_mrk\" type=\"submit\" value=\"Set Mark\"></td>" << std::endl;
-  *out << "             <td><input name=\"rst_mark\" type=\"submit\" value=\"Reset Mark\"></td>" << std::endl;
+  *out << "             <td><input name=\"set_mrk\" type=\"submit\" value=\"Set Mark\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
+  *out << "             <td><input name=\"rst_mark\" type=\"submit\" value=\"Reset Mark\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "           </tr>" << std::endl;
   *out << "         </table>" << std::endl;
   *out << "      </fieldset>" << std::endl;
   *out << "    </td><td valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Programmable Offsets</legend></font>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#CCCCFF\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Programmable Offsets</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
   *out << "             <td align=\"center\">PAE</td>" << std::endl;
   *out << "             <td align=\"center\">PAF</td>" << std::endl;
@@ -7630,27 +7921,27 @@ void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output 
   *out << "             <td align=\"center\">" << VCC_UTIL_FIFO_rbk_paf << "</td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
   *out << "             <td><input name=\"rd_offs\" type=\"submit\" value=\"Read Offsets\"></td>" << std::endl;
-  *out << "             <td><input name=\"wrt_offs\" type=\"submit\" value=\"Write Offsets\"></td>" << std::endl;
+  *out << "             <td><input name=\"wrt_offs\" type=\"submit\" value=\"Write Offsets\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "           </tr>" << std::endl;
   *out << "         </table>" << std::endl;
   *out << "      </fieldset>" << std::endl;
   *out << "    </td></tr>" << std::endl;
   //  *out << "    <tr><td rowspan=\"2\" valign=\"top\">" << std::endl;
   *out << "    <tr><td valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Data to/from FIFO</legend></font>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#CCCCFF\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Data to/from FIFO</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
   *out << "             <td rowspan=\"2\"><textarea name=\"fifo_data\" rows=\"3\" cols=\"12\">" << VCC_UTIL_FIFO_wrt_data << "</textarea></td>" << std::endl;
-  *out << "             <td><input name=\"wrt_dat_fifo\" type=\"submit\" value=\"Write FIFO\"></td>" << std::endl;
+  *out << "             <td><input name=\"wrt_dat_fifo\" type=\"submit\" value=\"Write FIFO\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
-  *out << "             <td><input name=\"rd_dat_fifo\" type=\"submit\" value=\"Read\">" << std::endl;
+  *out << "             <td><input name=\"rd_dat_fifo\" type=\"submit\" value=\"Read\" " << VCC_UTIL_acc_cntrl << ">" << std::endl;
   *out << "                 <input align=\"right\" value=\"" << VCC_UTIL_FIFO_rd_num << "\" size=\"3\" maxwidth=\"30\" name=\"rd_num\" type=\"text\"> Words</td>" << std::endl;
   *out << "           </tr>" << std::endl;
   *out << "         </table>" << std::endl;
   *out << "      </fieldset>" << std::endl;
   *out << "    </td><td valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Error Counts</legend></font>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#CCCCFF\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Error Counts</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
   *out << "             <td align=\"center\">Corrected</td>" << std::endl;
   *out << "             <td align=\"center\">UnCorrected</td>" << std::endl;
@@ -7666,12 +7957,12 @@ void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output 
   *out << "    </td></tr>" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "      <td valign=\"top\" align = \"center\">" << std::endl;
-  *out << "        <font size=\"4\"><fieldset><legend align=\"center\">Readback Data</legend></font>" << std::endl;
+  *out << "        <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Readback Data</legend>" << std::endl;
   *out << "          <pre><p>" << VCC_UTIL_FIFO_rbk_data << "</p></pre>" << std::endl;
   *out << "        </fieldset>" << std::endl;
   *out << "      </td>" << std::endl;
   *out << "      <td valign=\"top\" align = \"center\">" << std::endl;
-  *out << "        <font size=\"4\"><fieldset><legend align=\"center\">Messages</legend></font>" << std::endl;
+  *out << "        <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Messages</legend>" << std::endl;
   *out << "          <pre><p>" << VCC_UTIL_FIFO_msg_data << "</p></pre></td>" << std::endl;
   *out << "        </fieldset>" << std::endl;
   *out << "      </td>" << std::endl;
@@ -7681,6 +7972,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output 
   *out << "</fieldset>" << std::endl;
   *out << "</form>" << std::endl;
 
+  VCC_UTIL_curr_page = VCC_FIFO;
 }
 
 void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
@@ -7877,7 +8169,6 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
-  vmecc=thisCrate->vmecc();
   if(first){
     first = false;
     VCC_UTIL_PKTSND_prcs_tag = "0";
@@ -7892,22 +8183,18 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * 
   VCCHeader(in,out,title,pbuf);
   //
 
-  std::string VMECCGUI_GoTo =
-    toolbox::toString("/%s/VMECCGUI_GoTo",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",VMECCGUI_GoTo) << std::endl ;
   this->VMECC_UTIL_Menu_Buttons(in,out);
-  *out << cgicc::form() << std::endl;
 
    std::string VCC_PKTSND_DO =
      toolbox::toString("/%s/VCC_PKTSND_DO",getApplicationDescriptor()->getURN().c_str());
 
   *out << "<form action=\"" << VCC_PKTSND_DO << "\" method=\"GET\">" << std::endl;
-  *out << "<font size=\"5\"><fieldset><legend align=\"center\">Packet Send</legend></font>" << std::endl;
+  *out << "<fieldset><legend  style=\"font-size: 18pt;\"align=\"center\">Packet Send</legend>" << std::endl;
   *out << "<div align=\"center\">" << std::endl;
-  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=\"#FFCCCC\" style=\"border-collapse: collapse\">" << std::endl;
+  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=" << VCC_UTIL_curr_color << " style=\"border-collapse: collapse\">" << std::endl;
   *out << "    <tr><td valign=\"top\" colspan=\"2\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Packet Header</legend></font>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#FFCCCC\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Packet Header</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
   *out << "             <td><input name=\"prio_pkt_chk\" type=\"checkbox\" value=\"prio_ck\"></td>" << std::endl;
   *out << "             <td align=\"left\">Priority Packet</td>" << std::endl;
@@ -7929,12 +8216,12 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * 
   *out << "    </td></tr>" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "    <td rowspan=\"2\" valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Data</legend></font>" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Data</legend>" << std::endl;
   *out << "        <textarea name=\"pkt_data\" rows=\"5\" cols=\"12\">" << VCC_UTIL_PKTSND_data << "</textarea></td>" << std::endl;
   *out << "      </fieldset>" << std::endl;
   *out << "    </td>" << std::endl;
   *out << "    <td>" << std::endl;
-  *out << "      <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#FFCCCC\">" << std::endl;
+  *out << "      <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "        <tr>" << std::endl;
   *out << "          <td><input name=\"rst_seq_id\" type=\"submit\" value=\"Reset Sequential ID\"></td>" << std::endl;
   *out << "        </tr><tr>" << std::endl;
@@ -7946,6 +8233,8 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * 
   *out << "</div>" << std::endl;
   *out << "</fieldset>" << std::endl;
   *out << "</form>" << std::endl;
+
+  VCC_UTIL_curr_page = VCC_PKTSND;
 }
 
 void EmuPeripheralCrateConfig::VCC_PKTSND_DO(xgi::Input * in, xgi::Output * out )
@@ -8049,22 +8338,18 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
   VCCHeader(in,out,title,pbuf);
   //
 
-  std::string VMECCGUI_GoTo =
-    toolbox::toString("/%s/VMECCGUI_GoTo",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",VMECCGUI_GoTo) << std::endl ;
   this->VMECC_UTIL_Menu_Buttons(in,out);
-  *out << cgicc::form() << std::endl;
 
    std::string VCC_PKTRCV_DO =
      toolbox::toString("/%s/VCC_PKTRCV_DO",getApplicationDescriptor()->getURN().c_str());
 
   *out << "<form action=\"" << VCC_PKTRCV_DO << "\" method=\"GET\">" << std::endl;
-  *out << "<font size=\"5\"><fieldset><legend align=\"center\">Packet Receive</legend></font>" << std::endl;
+  *out << "<fieldset><legend style=\"font-size: 18pt;\" align=\"center\">Packet Receive</legend>" << std::endl;
   *out << "<div align=\"center\">" << std::endl;
-  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=\"#CCFFCC\" style=\"border-collapse: collapse\">" << std::endl;
+  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=" << VCC_UTIL_curr_color << " style=\"border-collapse: collapse\">" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "      <td valign=\"top\">" << std::endl;
-  *out << "        <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#CCFFCC\">" << std::endl;
+  *out << "        <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "          <tr>" << std::endl;
   *out << "            <td align=\"right\">" << VCC_UTIL_PKTRCV_pkts_inbuf << "</td>" << std::endl;
   *out << "            <td colspan=\"2\" align=\"left\">Packets Remain in Buffer</td>" << std::endl;
@@ -8080,8 +8365,8 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
   *out << "      </td>" << std::endl;
   *out << "    </tr><tr>" << std::endl;
   *out << "      <td>" << std::endl;
-  *out << "        <font size=\"4\"><fieldset><legend align=\"center\">Raw Packet</legend></font>" << std::endl;
-  *out << "          <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#CCFFCC\">" << std::endl;
+  *out << "        <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Raw Packet</legend>" << std::endl;
+  *out << "          <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "            <tr>" << std::endl;
   *out << "              <td>" << VCC_UTIL_PKTRCV_raw_pkt << "</td>" << std::endl;
   *out << "            </tr>" << std::endl;
@@ -8090,8 +8375,8 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
   *out << "      </td>" << std::endl;
   *out << "    </tr><tr>" << std::endl;
   *out << "      <td>" << std::endl;
-  *out << "        <font size=\"4\"><fieldset><legend align=\"center\">Decoded Header</legend></font>" << std::endl;
-  *out << "          <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#CCFFCC\">" << std::endl;
+  *out << "        <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Decoded Header</legend>" << std::endl;
+  *out << "          <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "            <tr>" << std::endl;
   *out << "              <td align=\"right\">Dest:</td>" << std::endl;
   *out << "              <td colspan=\"2\">" << VCC_UTIL_PKTRCV_dstn_addr << "</td>" << std::endl;
@@ -8125,8 +8410,8 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
   *out << "      </td>" << std::endl;
   *out << "    </tr><tr>" << std::endl;
   *out << "      <td>" << std::endl;
-  *out << "        <font size=\"4\"><fieldset><legend align=\"center\">Data</legend></font>" << std::endl;
-  *out << "          <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#CCFFCC\">" << std::endl;
+  *out << "        <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Data</legend>" << std::endl;
+  *out << "          <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "            <tr>" << std::endl;
   *out << "              <td align=\"left\">" << std::endl;
   *out << "                <pre><p>" << VCC_UTIL_PKTRCV_rbk_data << "</p></pre>" << std::endl;
@@ -8141,6 +8426,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
   *out << "</fieldset>" << std::endl;
   *out << "</form>" << std::endl;
 
+  VCC_UTIL_curr_page = VCC_PKTRCV;
 }
 
 void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out )
@@ -8449,41 +8735,37 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
   VCCHeader(in,out,title,pbuf);
   //
 
-  std::string VMECCGUI_GoTo =
-    toolbox::toString("/%s/VMECCGUI_GoTo",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",VMECCGUI_GoTo) << std::endl ;
   this->VMECC_UTIL_Menu_Buttons(in,out);
-  *out << cgicc::form() << std::endl;
 
    std::string VCC_MISC_DO =
      toolbox::toString("/%s/VCC_MISC_DO",getApplicationDescriptor()->getURN().c_str());
 
   *out << "<form action=\"" << VCC_MISC_DO << "\" method=\"GET\">" << std::endl;
-  *out << "<font size=\"5\"><fieldset><legend align=\"center\">Misc. Commands</legend></font>" << std::endl;
+  *out << "<fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Misc. Commands</legend>" << std::endl;
   *out << "<div align=\"center\">" << std::endl;
-  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=\"#FFCC88\" style=\"border-collapse: collapse\">" << std::endl;
+  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=" << VCC_UTIL_curr_color << " style=\"border-collapse: collapse\">" << std::endl;
   *out << "    <tr><td valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Startup/Shutdown Packets</legend></font>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#FFCC88\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Startup/Shutdown Packets</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
   *out << "             <td>Warn on shutdown:</td>" << std::endl;
-  *out << "             <td><input name=\"misc_warn_ena\" type=\"submit\" value=\"Ena\"></td>" << std::endl;
+  *out << "             <td><input name=\"misc_warn_ena\" type=\"submit\" value=\"Ena\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>/</td>" << std::endl;
-  *out << "             <td><input name=\"misc_warn_dis\" type=\"submit\" value=\"Dis\"></td>" << std::endl;
+  *out << "             <td><input name=\"misc_warn_dis\" type=\"submit\" value=\"Dis\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>" << VCC_UTIL_misc_warn << "</td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
   *out << "             <td>Send pkt. on startup:</td>" << std::endl;
-  *out << "             <td><input name=\"misc_strt_ena\" type=\"submit\" value=\"Ena\"></td>" << std::endl;
+  *out << "             <td><input name=\"misc_strt_ena\" type=\"submit\" value=\"Ena\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>/</td>" << std::endl;
-  *out << "             <td><input name=\"misc_strt_dis\" type=\"submit\" value=\"Dis\"></td>" << std::endl;
+  *out << "             <td><input name=\"misc_strt_dis\" type=\"submit\" value=\"Dis\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>" << VCC_UTIL_misc_strtup << "</td>" << std::endl;
   *out << "           </tr>" << std::endl;
   *out << "         </table>" << std::endl;
   *out << "      </fieldset>" << std::endl;
   *out << "    </td>" << std::endl;
   *out << "    <td rowspan=\"2\" valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Reload/Reset Options</legend></font>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#FFCC88\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Reload/Reset Options</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
   *out << "             <td></td>" << std::endl;
   *out << "             <td>Source</td>" << std::endl;
@@ -8510,11 +8792,11 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
   *out << "             <td align=\"right\">" << VCC_UTIL_misc_jtag << "</td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
   *out << "             <td></td>" << std::endl;
-  *out << "             <td><input name=\"misc_rst_src_wrt\" type=\"submit\" value=\"Write\"></td>" << std::endl;
+  *out << "             <td><input name=\"misc_rst_src_wrt\" type=\"submit\" value=\"Write\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td><input name=\"misc_rst_src_rd\" type=\"submit\" value=\"Read\"></td>" << std::endl;
   *out << "           </tr>" << std::endl;
   *out << "         </table>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#FFCC88\">" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
   *out << "             <td><input name=\"misc_int_rst\" type=\"submit\" value=\"Int. Reload Cmnd.\"></td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
@@ -8526,17 +8808,17 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
   *out << "      </fieldset>" << std::endl;
   *out << "    </td></tr>" << std::endl;
   *out << "    <tr><td valign=\"top\">" << std::endl;
-  *out << "      <font size=\"4\"><fieldset><legend align=\"center\">Errors, Warnings and Info Packets</legend></font>" << std::endl;
-  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=\"#FFCC88\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Errors, Warnings and Info Packets</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
   *out << "             <td>Spontaneous Packets:</td>" << std::endl;
-  *out << "             <td><input name=\"misc_spont_ena\" type=\"submit\" value=\"Ena\"></td>" << std::endl;
+  *out << "             <td><input name=\"misc_spont_ena\" type=\"submit\" value=\"Ena\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>/</td>" << std::endl;
-  *out << "             <td><input name=\"misc_spont_dis\" type=\"submit\" value=\"Dis\"></td>" << std::endl;
+  *out << "             <td><input name=\"misc_spont_dis\" type=\"submit\" value=\"Dis\" " << VCC_UTIL_acc_cntrl << "></td>" << std::endl;
   *out << "             <td>" << VCC_UTIL_misc_spont << "</td>" << std::endl;
   *out << "           </tr><tr>" << std::endl;
   *out << "             <td>Message Level:</td>" << std::endl;
-  *out << "             <td colspan=\"3\"><input name=\"misc_msglvl\" type=\"submit\" value=\"Set\">" << std::endl;
+  *out << "             <td colspan=\"3\"><input name=\"misc_msglvl\" type=\"submit\" value=\"Set\" " << VCC_UTIL_acc_cntrl << ">" << std::endl;
   *out << "                 <input align=\"right\" maxwidth=\"20\" size=\"2\" value=\"" << VCC_UTIL_misc_wrt_msglvl << "\" name=\"rd_msglvl\" type=\"text\"></td>" << std::endl;
   *out << "             <td>" << VCC_UTIL_misc_rd_msglvl << "</td>" << std::endl;
   *out << "           </tr>" << std::endl;
@@ -8547,6 +8829,8 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
   *out << "</div>" << std::endl;
   *out << "</fieldset>" << std::endl;
   *out << "</form>" << std::endl;
+
+  VCC_UTIL_curr_page = VCC_MISC;
 }
 
 void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
