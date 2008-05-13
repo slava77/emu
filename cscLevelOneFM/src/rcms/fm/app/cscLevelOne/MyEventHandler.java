@@ -35,7 +35,7 @@ import rcms.statemachine.definition.Input;
 import rcms.util.logger.RCMSLogger;
 import rcms.xdaqctl.XDAQParameter;
 
-
+import rcms.fm.app.cscLevelOne.util.MyUtil;
 /**
  * 
  * Main Event Handler class for Level 1 Function Manager.
@@ -60,6 +60,10 @@ public class MyEventHandler extends UserStateNotificationHandler {
 	private ScheduledFuture ttsSetterFuture = null;
 	private final ScheduledExecutorService scheduler;
 
+	/**
+	 * Handle to utility class
+	 */
+	private MyUtil _myUtil;
 	
 	public MyEventHandler() throws rcms.fm.fw.EventHandlerException {
 		// this handler inherits UserStateNotificationHandler
@@ -88,15 +92,17 @@ public class MyEventHandler extends UserStateNotificationHandler {
 		functionManager = (MyFunctionManager) getUserFunctionManager();
 		qualifiedGroup  = functionManager.getQualifiedGroup();
 		
-		
+		 // instantiate utility
+		_myUtil = new MyUtil(functionManager);
+
 		ttsSetter = new TTSSetter();
 		ttsSetterFuture = null;
 		
 		// debug
 		logger.debug("init() called: functionManager=" + functionManager );
+		// call renderers
+		//_myUtil.renderMainGui();
 	}
-
-
 
 	public void initAction(Object obj) throws UserActionException {
 
@@ -115,6 +121,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 
 			// triggered by entered state action
 			// let's command the child resources
+		    //_myUtil.setParameter(action ,"Initializing" );
 
 			// debug
 			logger.debug("initAction called.");

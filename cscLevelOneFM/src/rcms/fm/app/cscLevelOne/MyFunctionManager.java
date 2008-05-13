@@ -1,21 +1,70 @@
 package rcms.fm.app.cscLevelOne;
 
-
+import java.math.BigInteger;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
 
+import rcms.fm.context.RCMSConstants;
 import rcms.fm.fw.parameter.CommandParameter;
+import rcms.fm.fw.parameter.FunctionManagerParameter;
+import rcms.fm.fw.parameter.Parameter;
+import rcms.fm.fw.parameter.ParameterException;
 import rcms.fm.fw.parameter.ParameterSet;
+import rcms.fm.fw.parameter.type.DateT;
+import rcms.fm.fw.parameter.type.IntegerT;
+import rcms.fm.fw.parameter.type.StringT;
 import rcms.fm.fw.user.UserActionException;
 import rcms.fm.fw.user.UserFunctionManager;
+import rcms.fm.app.cscLevelOne.util.MyUtil;
+import rcms.fm.resource.CommandException;
 import rcms.fm.resource.QualifiedGroup;
 import rcms.fm.resource.QualifiedResource;
 import rcms.fm.resource.QualifiedResourceContainer;
+import rcms.fm.resource.StateVector;
+import rcms.fm.resource.StateVectorCalculation;
 import rcms.fm.resource.qualifiedresource.FunctionManager;
+import rcms.fm.resource.qualifiedresource.JobControl;
+import rcms.fm.resource.qualifiedresource.Subsystem;
 import rcms.fm.resource.qualifiedresource.XdaqApplicationContainer;
 import rcms.fm.resource.qualifiedresource.XdaqExecutive;
+
+import rcms.ns.event.NotificationEvent;
+import rcms.ns.utils.NotificationHelper;
+import rcms.ns.utils.NotificationParameterContainer;
+
+import rcms.statemachine.definition.Input;
 import rcms.statemachine.definition.State;
 import rcms.statemachine.definition.StateMachineDefinitionException;
+
 import rcms.util.logger.RCMSLogger;
+import rcms.util.logsession.LogSessionConnector;
+import rcms.util.logsession.LogSessionException;
+
+import rcms.utilities.elogPublisher.ElogPublisher;
+import rcms.utilities.hwcfg.HWCFGInterface;
+import rcms.utilities.hwcfg.HardwareConfigurationException;
+import rcms.utilities.hwcfg.InvalidNodeTypeException;
+import rcms.utilities.hwcfg.PathNotFoundException;
+import rcms.utilities.hwcfg.dp.DAQSlice;
+import rcms.utilities.hwcfg.dp.DAQSliceGenericHost;
+import rcms.utilities.hwcfg.dp.FEDWithConnectivity;
+import rcms.utilities.hwcfg.dp.RU;
+import rcms.utilities.hwcfg.eq.EquipmentSet;
+import rcms.utilities.hwcfg.eq.FMMFMMLink;
+import rcms.utilities.hwcfg.eq.FMMTriggerLink;
+import rcms.utilities.runinfo.RunInfo;
+import rcms.utilities.runinfo.RunNumberData;
+
+
 
 /**
  * Example of Function Machine for controlling an Level 1 Function Manager.
@@ -63,6 +112,22 @@ public class MyFunctionManager extends UserFunctionManager {
 	public State calcState = null;
 
 	public XdaqApplicationContainer xdaqSupervisor = null;
+
+
+	private String[] sendToGUI = { 
+			MyParameters.ACTION_MSG,
+			MyParameters.ERROR_MSG,
+			MyParameters.RUN_NUMBER,
+			MyParameters.GLOBAL_CONF_KEY,
+			MyParameters.RUN_KEY,
+			MyParameters.HEARTBEAT,
+			MyParameters.STATE,
+			MyParameters.TTS_TEST_SUMMARY
+	};
+
+
+	// utlitity functions handle
+	public MyUtil _myUtil;
 
 	/**
 	 * Instantiates an MyFunctionManager.
@@ -163,6 +228,9 @@ public class MyFunctionManager extends UserFunctionManager {
 	public void init() throws StateMachineDefinitionException,
 			rcms.fm.fw.EventHandlerException {
 
+		//instantiate utility
+		_myUtil = new MyUtil(this);
+
 		//
 		// Set first of all the State Machine Definition
 		//
@@ -177,6 +245,10 @@ public class MyFunctionManager extends UserFunctionManager {
 		// Add error handler
 		//
 		addEventHandler(new MyErrorHandler());
+		// call renderers
+	       	_myUtil.renderMainGui();
+
+
 
 	}
 }
