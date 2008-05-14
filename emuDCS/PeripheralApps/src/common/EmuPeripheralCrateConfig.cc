@@ -10868,7 +10868,7 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     //
     LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
     //
-    std::cout <<  "Loading ALCT firmware to slot " << thisTMB->slot() 
+    std::cout <<  "Loading ALCT firmware to slot " << std::dec << thisTMB->slot() 
 	      << " with " << ALCTFirmware_[i].toString() 
 	      << " in 5 seconds...  Current firmware types are:" << std::endl;
     //
