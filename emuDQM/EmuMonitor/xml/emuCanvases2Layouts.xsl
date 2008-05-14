@@ -17,7 +17,7 @@
 
 <xsl:template match="Canvas[Prefix='EMU']" mode="default">
   <xsl:apply-templates select="." mode="printme">
-    <xsl:with-param name="hprefix" select="'CSC/'"/>
+    <xsl:with-param name="hprefix" select="'CSC/Summary/'"/>
     <xsl:with-param name="tprefix" select="'EMU Summary/'"/>
   </xsl:apply-templates>
 </xsl:template>
@@ -27,7 +27,7 @@
 
   <xsl:if test="$id > 0">
     <xsl:apply-templates select="." mode="printme">
-      <xsl:with-param name="hprefix"><xsl:text>CSC/DDU_</xsl:text><xsl:number format="01" value="$id"/><xsl:text>/</xsl:text></xsl:with-param>
+      <xsl:with-param name="hprefix"><xsl:text>CSC/DDUs/DDU_</xsl:text><xsl:number format="01" value="$id"/><xsl:text>/</xsl:text></xsl:with-param>
       <xsl:with-param name="tprefix"><xsl:text>EMU DDUs/DDU_</xsl:text><xsl:number format="01" value="$id"/><xsl:text>/</xsl:text></xsl:with-param>
     </xsl:apply-templates>
     <xsl:apply-templates select="." mode="default">
@@ -50,7 +50,7 @@
   <xsl:if test="$uid > 0">
     <xsl:apply-templates select="." mode="printme">
       <xsl:with-param name="hprefix">
-        <xsl:text>CSC/CSC_</xsl:text>
+        <xsl:text>CSC/CSCs/CSC_</xsl:text>
         <xsl:value-of select="$label"/>
         <xsl:text>/</xsl:text>
       </xsl:with-param>

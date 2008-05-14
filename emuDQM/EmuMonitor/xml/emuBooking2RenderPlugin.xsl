@@ -21,7 +21,7 @@
 </xsl:template>
 
 <xsl:template match="Histogram">
-  <xsl:text>if(REMATCH(".*\/</xsl:text>
+  <xsl:text>if(REMATCH(".*/</xsl:text>
   <xsl:value-of select="Name"/>
   <xsl:text>$", o.name)) {
   </xsl:text>
@@ -32,13 +32,17 @@
   <xsl:apply-templates select="SetOptStat"/>
   <xsl:apply-templates select="SetGridx[1]"/>
   <xsl:apply-templates select="SetGridy[1]"/>
-  <xsl:text>  if(obj->GetEntries() > 0) {
+  <xsl:if test="SetLogx = 1 or SetLogy = 1 or SetLogz = 1">
+  <xsl:text>  if(obj->GetMinimum() == obj->GetMaximum()) {
+      obj->SetMaximum(obj->GetMinimum() + 0.01);
+    }
   </xsl:text>
+  </xsl:if>
   <xsl:apply-templates select="SetLogx[1]"/>
   <xsl:apply-templates select="SetLogy[1]"/>
   <xsl:apply-templates select="SetLogz[1]"/>
 
-  <xsl:text>  }
+  <xsl:text>
     return;
   </xsl:text>
   <xsl:text>}
