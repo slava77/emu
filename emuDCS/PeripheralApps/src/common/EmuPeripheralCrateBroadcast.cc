@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.29 2008/04/28 20:59:39 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.30 2008/05/14 13:22:48 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -51,6 +51,11 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   //
   // Bind SOAP callback
   //
+  xoap::bind(this, &EmuPeripheralCrateBroadcast::onConfigure, "Configure", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnable,    "Enable",    XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateBroadcast::onDisable,   "Disable",   XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateBroadcast::onHalt,      "Halt",      XDAQ_NS_URI);
+
   xgi::bind(this,&EmuPeripheralCrateBroadcast::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::MainPage, "MainPage");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCFEBcalchannel, "LoadCFEBcalchannel");
@@ -79,10 +84,24 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xoap::bind(this, &EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator, "EnableCalCFEBComparator", XDAQ_NS_URI);
   //
   fsm_.addState('H', "Halted", this, &EmuPeripheralCrateBroadcast::stateChanged);
+  fsm_.addState('C', "Configured", this, &EmuPeripheralCrateBroadcast::stateChanged);
+  fsm_.addState('E', "Enabled",    this, &EmuPeripheralCrateBroadcast::stateChanged);
+  //
+  fsm_.addStateTransition('H', 'C', "Configure", this, &EmuPeripheralCrateBroadcast::dummyAction);
+  fsm_.addStateTransition('C', 'C', "Configure", this, &EmuPeripheralCrateBroadcast::dummyAction);
+  fsm_.addStateTransition('C', 'E', "Enable",    this, &EmuPeripheralCrateBroadcast::dummyAction);
+  fsm_.addStateTransition('E', 'E', "Enable",    this, &EmuPeripheralCrateBroadcast::dummyAction);
+  fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuPeripheralCrateBroadcast::dummyAction);
+  fsm_.addStateTransition('C', 'H', "Halt",      this, &EmuPeripheralCrateBroadcast::dummyAction);
+  fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuPeripheralCrateBroadcast::dummyAction);
+  fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuPeripheralCrateBroadcast::dummyAction);
+  //
   fsm_.setInitialState('H');
   fsm_.reset();
 
   state_ = fsm_.getStateName(fsm_.getCurrentState());
+
+  current_state_ = 0;
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateBroadcastXmlFile_);
   brddb= new BoardsDB();
 
@@ -132,7 +151,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::MonitorStart (xoap::MessageR
          Monitor_Ready_=true;
      }
      Monitor_On_=true;
-     std::cout<< "Monitor Started" << std::endl;
+     time_t thistime = ::time(NULL);
+     std::cout<< "Monitor Started " << ::ctime(&thistime) << std::endl;
      return createReply(message);
 }
 
@@ -148,7 +168,8 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::MonitorStop (xoap::MessageRe
          if(extraloop) timer_->remove("EmuPCrateExtra" );
          timer_->stop(); 
 #endif
-         std::cout << "Monitor stopped" << std::endl;
+         time_t thistime = ::time(NULL);
+         std::cout << "Monitor stopped " << ::ctime(&thistime) << std::endl;
      }
      return createReply(message);
 }
@@ -454,7 +475,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
   {
     char buf[50];
     DefineBroadcastCrate();
-    vmecc=new VMECC(broadcastCrate,0);
+    vmecc=broadcastCrate->vmecc();
     broadcastCrate->vmeController()->init();
 
     sprintf(buf," Entered VMECCLoadFirmwareBcast \n");
@@ -473,7 +494,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
 void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception)
 {
   DefineBroadcastCrate();
-  vmecc=new VMECC(broadcastCrate,0);
+  vmecc=broadcastCrate->vmecc();
   broadcastCrate->vmeController()->init();
   broadcastCrate->vmeController()->write_ResetMisc_CR(0x001B);
 
@@ -486,8 +507,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   //
   *out << cgicc::pre();
   char buf[1000], sbuf[100];
-  int nc;
-  /* int nc=broadcastCrate->vmeController->read_dev_id_broadcast(buf);
+  int nc=vmecc->read_dev_id_broadcast(buf);
   *out << nc << " crate controller(s) responded: " << std::endl;
   for(int i=0; i<nc; i++) {
      int *device_id=(int *)(buf+i*10+6);
@@ -496,7 +516,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
          buf[i*10+3]&0xff, buf[i*10+4]&0xff, buf[i*10+5]&0xff, 
          *device_id);
      *out << sbuf;
-     } */
+     }
 
   *out << cgicc::pre();
   *out << cgicc::fieldset()<<std::endl;
@@ -1127,11 +1147,60 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::PCcreateCommandSOAP(string c
   //
   return message;
 }
-//
+
 void EmuPeripheralCrateBroadcast::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
   EmuApplication::stateChanged(fsm);
 }
+
+void EmuPeripheralCrateBroadcast::dummyAction(toolbox::Event::Reference e)
+    throw (toolbox::fsm::exception::Exception) {
+  // currently do nothing
+}
+//
+xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigure (xoap::MessageReference message)
+  throw (xoap::exception::Exception) {
+  std::cout << "SOAP Configure" << std::endl;
+  //
+  current_state_ = 1;
+  fireEvent("Configure");
+  //
+  return createReply(message);
+}
+
+//
+xoap::MessageReference EmuPeripheralCrateBroadcast::onEnable (xoap::MessageReference message)
+  throw (xoap::exception::Exception) {
+  std::cout << "SOAP Enable" << std::endl;
+  //
+  current_state_ = 2;
+  fireEvent("Enable");
+  //
+  return createReply(message);
+}
+
+//
+xoap::MessageReference EmuPeripheralCrateBroadcast::onDisable (xoap::MessageReference message)
+  throw (xoap::exception::Exception) {
+  std::cout << "SOAP Disable" << std::endl;
+  //
+  current_state_ = 1;
+  fireEvent("Disable");
+  //
+  return createReply(message);
+}
+
+//
+xoap::MessageReference EmuPeripheralCrateBroadcast::onHalt (xoap::MessageReference message)
+  throw (xoap::exception::Exception) {
+  std::cout << "SOAP Halt" << std::endl;
+  //
+  current_state_ = 0;
+  fireEvent("Halt");
+  //
+  return createReply(message);
+}
+
 //
 // provides factory method for instantion of SimpleSOAPSender application
 //

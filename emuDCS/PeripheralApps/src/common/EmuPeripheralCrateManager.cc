@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.5 2008/04/16 21:59:01 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.6 2008/05/14 13:22:48 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -83,6 +83,7 @@ void EmuPeripheralCrateManager::Default(xgi::Input * in, xgi::Output * out ) thr
 void EmuPeripheralCrateManager::MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
   //
   MyHeader(in,out,"EmuPeripheralCrateManager");
+#if 0
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
@@ -191,6 +192,7 @@ void EmuPeripheralCrateManager::MainPage(xgi::Input * in, xgi::Output * out ) th
   //
   *out << cgicc::fieldset();
   //
+#endif
 }
 //
 //
@@ -432,9 +434,11 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoa
 xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
-  std::cout << "SOAP message Configure" << std::endl;
+  time_t thistime = ::time(NULL);
+  std::cout << "SOAP message Configure: " << ::ctime(&thistime) << std::endl;
   //
   PCsendCommand("Configure","EmuPeripheralCrateCommand");
+  PCsendCommand("Configure","EmuPeripheralCrateBroadcast");
   //
   fireEvent("Configure");
   //
@@ -445,9 +449,11 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageRefe
 xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
-  std::cout << "SOAP message Enable" << std::endl;
+  time_t thistime = ::time(NULL);
+  std::cout << "SOAP message Enable: " << ::ctime(&thistime) << std::endl;
   //
   PCsendCommand("Enable","EmuPeripheralCrateCommand");
+  PCsendCommand("Enable","EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   //
@@ -457,9 +463,11 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReferen
 xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
-  std::cout << "SOAP message Disable" << std::endl;
+  time_t thistime = ::time(NULL);
+  std::cout << "SOAP message Disable: " << ::ctime(&thistime) << std::endl;
   //
   PCsendCommand("Disable","EmuPeripheralCrateCommand");
+  PCsendCommand("Disable","EmuPeripheralCrateBroadcast");
   //
   fireEvent("Disable");
   //
@@ -469,9 +477,11 @@ xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageRefere
 xoap::MessageReference EmuPeripheralCrateManager::onHalt (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
-  std::cout << "SOAP message Halt" << std::endl;
+  time_t thistime = ::time(NULL);
+  std::cout << "SOAP message Halt: " << ::ctime(&thistime) << std::endl;
   //
   PCsendCommand("Halt","EmuPeripheralCrateCommand");
+  PCsendCommand("Halt","EmuPeripheralCrateBroadcast");
   //
   fireEvent("Halt");
   //

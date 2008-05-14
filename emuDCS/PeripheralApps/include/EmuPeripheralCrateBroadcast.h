@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.13 2008/04/28 20:59:38 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.14 2008/05/14 13:22:49 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -126,6 +126,10 @@ public:
   //
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception);
   //
+  xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBGains (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBCrossTalk (xoap::MessageReference message) throw (xoap::exception::Exception);
@@ -138,7 +142,7 @@ public:
   //
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
-
+  void dummyAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   // for Monitoring
   xoap::MessageReference  MonitorStart(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference  MonitorStop(xoap::MessageReference message) throw (xoap::exception::Exception);
@@ -164,6 +168,7 @@ private:
   bool Monitor_On_, Monitor_Ready_, In_Monitor_, In_Broadcast_;
   toolbox::task::Timer * timer_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
+  int current_state_;
 };
 
 #endif
