@@ -488,11 +488,17 @@ private:
   int current_crate_;
   void setConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void UploadConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void StartPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void StopPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void SetHighRateTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void SetNormRateTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+
   //
   void DefineFirmwareFilenames();
   //
   std::vector<TMBTester> InitTMBTests(Crate *);
   void CheckPeripheralCrateConfiguration();
+  bool prbs_test_;
   int all_crates_ok;;
   int crate_check_ok[60];
   int ccb_check_ok[60];
