@@ -136,6 +136,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureDAVsForCrate,"MeasureDAVsForCrate");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
+  xgi::bind(this,&EmuPeripheralCrateConfig::StopPRBS, "StopPRBS");
 
   //-----------------------------------------------
   // VME Controller routines
@@ -411,6 +413,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   total_crates_=0;
   this_crate_no_=0;
 
+  prbs_test_ = false;
   brddb= new BoardsDB();
 
   parsed=0;
@@ -475,10 +478,32 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::table();
 
   *out << cgicc::br() << std::endl;
+
+  *out << cgicc::table().set("border","0");
+  *out << cgicc::td();
   std::string CrateConfigureAll = toolbox::toString("/%s/ConfigAllCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CrateConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Write FLASH All Crates") << std::endl ;
   *out << cgicc::form() << cgicc::br() << std::endl ;;
+  *out << cgicc::td();
+
+  *out << cgicc::td();
+  if(prbs_test_)
+  {
+    std::string StopPRBS = toolbox::toString("/%s/StopPRBS",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",StopPRBS) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Stop PRBS test").set("style","color:red") << std::endl ;
+    *out << cgicc::form() << cgicc::br() << std::endl ;;
+  } else
+  {
+    std::string StartPRBS = toolbox::toString("/%s/StartPRBS",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",StartPRBS) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Start PRBS test").set("style","color:blue") << std::endl ;
+    *out << cgicc::form() << cgicc::br() << std::endl ;;
+  }
+  *out << cgicc::td();
+
+  *out << cgicc::table();
 
   //
   int initial_crate = current_crate_;
@@ -1310,6 +1335,36 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
       }
   }
 
+
+void EmuPeripheralCrateConfig::StartPRBS(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Start PRBS Test" << std::endl;
+  //
+  if(total_crates_>0)
+  {
+     for(unsigned i=0; i< crateVector.size(); i++) {
+        if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->enablePRBS();
+     }
+     prbs_test_=true;
+  }
+  this->Default(in, out);
+}
+
+void EmuPeripheralCrateConfig::StopPRBS(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Start PRBS Test" << std::endl;
+  //
+  if(total_crates_>0)
+  {
+     for(unsigned i=0; i< crateVector.size(); i++) {
+        if ( crateVector[i]->IsAlive() ) crateVector[i]->mpc()->disablePRBS();
+     }
+     prbs_test_=false;
+  }
+  this->Default(in, out);
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Layouts of html pages
