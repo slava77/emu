@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.7 2008/04/28 15:42:24 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.8 2008/05/14 13:46:58 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.8  2008/05/14 13:46:58  rakness
+// change default ranges to better match current latency
+//
 // Revision 1.7  2008/04/28 15:42:24  rakness
 // bind L1A and DAV buttons to methods
 //
@@ -301,10 +304,10 @@ ChamberUtilities::ChamberUtilities(){
   number_of_data_reads_     = 100;    // default number of data reads
   //
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
-  min_alct_l1a_delay_value_ = 120;
-  max_alct_l1a_delay_value_ = 145;
-  min_tmb_l1a_delay_value_  = 110; 
-  max_tmb_l1a_delay_value_  = 135; 
+  min_alct_l1a_delay_value_ = 140;
+  max_alct_l1a_delay_value_ = 160;
+  min_tmb_l1a_delay_value_  = 125; 
+  max_tmb_l1a_delay_value_  = 145; 
   //
   MyOutput_ = &std::cout ;
   //
@@ -350,8 +353,8 @@ ChamberUtilities::ChamberUtilities(){
   // ranges over which to analyze DMB histograms
   ScopeMin_        = 0;
   ScopeMax_        = 4;
-  AffToL1aValueMin_= 105;
-  AffToL1aValueMax_= 130;
+  AffToL1aValueMin_= 110;
+  AffToL1aValueMax_= 140;
   CfebDavValueMin_ = 0;
   CfebDavValueMax_ = 10;
   TmbDavValueMin_  = 0;
