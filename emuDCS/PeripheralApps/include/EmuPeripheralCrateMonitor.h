@@ -136,6 +136,7 @@ protected:
   unsigned int total_crates_;
   int this_crate_no_;
   std::string ThisCrateID_;
+  bool controller_checked_;
   
   std::vector<std::string> monitorables_;
   bool Monitor_On_, Monitor_Ready_;
@@ -178,7 +179,9 @@ private:
   void ResetAllCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
 
+  void CheckControllers();
   bool ParsingXML();
   void SetCurrentCrate(int crate);
   int current_crate_;

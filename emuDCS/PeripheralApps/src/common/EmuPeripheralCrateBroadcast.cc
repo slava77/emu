@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.30 2008/05/14 13:22:48 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.31 2008/05/15 12:06:44 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -204,12 +204,13 @@ void EmuPeripheralCrateBroadcast::MainPage(xgi::Input * in, xgi::Output * out ) 
   //
   MyHeader(in,out,"EmuPeripheralCrateBroadcast");
   //
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-  //
-  *out << cgicc::legend("Crates in Configuration file").set("style","color:blue") << cgicc::p() << std::endl ;
-  //
   LOG4CPLUS_INFO(getApplicationLogger(), "Main Page");
   //
+  if(current_state_==2) return;
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  //
+  *out << cgicc::legend("Broadcast to All Crates").set("style","color:blue") << cgicc::p() << std::endl ;
   //
   std::string LoadDMBCFEBFPGA = toolbox::toString("/%s/LoadDMBCFEBFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadDMBCFEBFPGA) << std::endl ;
