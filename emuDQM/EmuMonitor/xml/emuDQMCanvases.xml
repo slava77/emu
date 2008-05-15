@@ -23,6 +23,9 @@
 		<NumPadsY>2</NumPadsY>
 		<Pad1>All_DDUs_in_Readout</Pad1>
 		<Pad2>All_DDUs_L1A_Increment</Pad2>
+                <Descr>
+                  For each L1A, DDU must send back its Header/Trailer and DMB data, if present, sandwiched in between. 
+                </Descr>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -61,6 +64,9 @@
 		<NumPadsY>2</NumPadsY>
 		<Pad1>All_DDUs_Live_Inputs</Pad1>
 		<Pad2>All_DDUs_Inputs_with_Data</Pad2>
+                <Descr>
+                  Histograms that report DDU Header information for each L1A.
+                </Descr>
 	</Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -71,6 +77,9 @@
                 <NumPadsY>2</NumPadsY>
                 <Pad1>All_DDUs_Inputs_Errors</Pad1>
                 <Pad2>All_DDUs_Inputs_Warnings</Pad2>
+                <Descr>
+                  DDU flags offensive inputs and reports this information in its trailer. 
+                </Descr>
         </Canvas>
 	<!-- Canvas>
 		<Type>cnv</Type>
@@ -160,7 +169,6 @@
 		<Pad2>CSC_Format_Warnings_Fract</Pad2>
 		<Pad3>CSC_DMB_input_fifo_full_Fract</Pad3>
                 <Pad4>CSC_DMB_input_timeout_Fract</Pad4>
-
         </Canvas>
 
         <!-- Canvas>
@@ -211,6 +219,13 @@
 		<Pad1>CSC_wo_ALCT_Fract</Pad1>
 		<Pad2>CSC_wo_CLCT_Fract</Pad2>
 		<Pad3>CSC_wo_CFEB_Fract</Pad3>
+                <Descr>
+                These histograms show how often CSC events come without ALCT, CLCT, CFEB data. 
+                In conditions of cosmic ray runs, probabilities can go quite high, especially for ME1/1 CLCTs, 
+                which is not really a problem of chambers/electronics. What one really wants to single out is a 
+                list of chambers with =100% probability not to report some of data blocks. For the chambers in 
+                questions, one should look up “Data Block Finding Efficiency” histogram in the CSC folder. 
+                </Descr>
         </Canvas>
         <!--Canvas>
                 <Type>cnv</Type>
