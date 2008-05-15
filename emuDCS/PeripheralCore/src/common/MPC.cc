@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.11 2008/04/25 12:21:59 liu Exp $
+// $Id: MPC.cc,v 3.12 2008/05/15 09:55:10 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.12  2008/05/15 09:55:10  liu
+// error messages for Check_Config
+//
 // Revision 3.11  2008/04/25 12:21:59  liu
 // fix bug in CheckConfig
 //
@@ -210,7 +213,11 @@ int MPC::CheckConfig()
 {
    int rx;
    rx=ReadRegister(0);
-   if((rx & 0x8201) != 0x0200) return 0;
+   if((rx & 0x8201) != 0x0200) 
+   {  std::cout << "MPC_Check_Config: Register CSR0 wrong " 
+                << std::hex << (rx&0xffff) << std::dec << std::endl;
+      return 0;
+   }
    return 1;
 }
 
