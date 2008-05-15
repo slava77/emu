@@ -6,6 +6,8 @@
 <xsl:output method="text" omit-xml-declaration="yes" indent="no"/>
 <xsl:strip-space elements="*"/>
 
+<xsl:variable name="imgurl" select="'%ATTACHURL%/'"/>
+
 <xsl:template match="/">
   <xsl:apply-templates select="/DocLayout/Canvases/Canvas[Prefix='EMU']"/>
 </xsl:template>
@@ -13,9 +15,7 @@
 <xsl:template match="Canvas">
 
 <xsl:text>
-&lt;a name=""/&gt;
-</xsl:text>
-<xsl:text>---+++++ </xsl:text><xsl:value-of select="Title"/>
+---+++++ </xsl:text><xsl:value-of select="Title"/>
 <xsl:text>
 </xsl:text>
 <xsl:value-of select="normalize-space(Descr)"/>
@@ -29,6 +29,7 @@
       <xsl:variable name="histo" select="."/>
       <xsl:apply-templates select="//Histogram[Name=$histo]">
         <xsl:with-param name="position" select="position()"/>
+        <xsl:with-param name="canvas_name" select="../Name"/>
       </xsl:apply-templates>
     </xsl:for-each>
 
@@ -36,13 +37,28 @@
 
 <xsl:template match="Histogram">
  <xsl:param name="position" value="2"/>
+ <xsl:param name="canvas_name" value="canv"/>
 
 <xsl:text>| *</xsl:text>
+
+<xsl:text>&lt;a name="</xsl:text>
+<xsl:value-of select="Name"/>
+<xsl:text>"&gt;&lt;/a&gt;</xsl:text>
+
 <xsl:value-of select="Title"/>
 
 <xsl:choose>
 <xsl:when test="$position = 1">
-<xsl:text>*  | &lt;img src="https://twiki.cern.ch/twiki/bin/viewfile/CMS/DQMShiftCSC?rev=1;filename=t01rr.png" onclick="this.src='https://twiki.cern.ch/twiki/bin/viewfile/CMS/DQMShiftCSC?rev=1;filename=t01r.png'" ondblclick="this.src='https://twiki.cern.ch/twiki/bin/viewfile/CMS/DQMShiftCSC?rev=1;filename=t01rr.png'" /&gt;&lt;br/&gt;(click - enlarge; dblclick - back) |
+<xsl:text>*  | &lt;img src="</xsl:text>
+<xsl:value-of select="$imgurl"/>
+<xsl:value-of select="$canvas_name"/>
+<xsl:text>_ref.png" onclick="this.src='</xsl:text>
+<xsl:value-of select="$imgurl"/>
+<xsl:value-of select="$canvas_name"/>
+<xsl:text>.png'" ondblclick="this.src='</xsl:text>
+<xsl:value-of select="$imgurl"/>
+<xsl:value-of select="$canvas_name"/>
+<xsl:text>_ref.png'" /&gt;&lt;br/&gt;(click - enlarge; dblclick - back) |
 </xsl:text>
 </xsl:when>
 <xsl:otherwise>

@@ -10,7 +10,7 @@
   <xsl:text>def csclayout(i, p, *rows): i["CSC/Layouts/" + p] = DQMItem(layout=rows)
   
 </xsl:text>
-  <xsl:apply-templates select="Canvases/Canvas[Prefix='EMU']" mode="default"/>
+  <xsl:apply-templates select="//Canvas[Prefix='EMU']" mode="default"/>
   <!--xsl:apply-templates select="Canvases/Canvas[Prefix='DDU']" mode="default"/-->
   <!--xsl:apply-templates select="Canvases/Canvas[Prefix='CSC']" mode="default"/-->
 </xsl:template>
@@ -85,10 +85,6 @@
   <xsl:variable name="padsx" select="NumPadsX"/>
   <xsl:variable name="padsy" select="NumPadsY"/>
 
-  <!--xsl:value-of select="$padsx"/><xsl:text>, </xsl:text> 
-  <xsl:value-of select="$padsy"/><xsl:text>
-  </xsl:text-->
-
   <xsl:if test="$display=1">
     <xsl:text>csclayout(dqmitems,"</xsl:text>
     <xsl:value-of select="$tprefix"/><xsl:value-of select="Title"/>
@@ -96,6 +92,7 @@
   </xsl:text>
     <xsl:variable name="count"><xsl:value-of select="count(./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))])"/></xsl:variable>
     <xsl:for-each select="./*[substring(name(),1,3) = 'Pad' and number(substring(name(),4))]">
+      <xsl:variable name="name" select="."/>
       <xsl:text>	</xsl:text>
       <xsl:choose>
         <xsl:when test="((position() - 1) mod $padsx) = 0">
@@ -105,9 +102,16 @@
           <xsl:text> </xsl:text>
         </xsl:otherwise>
       </xsl:choose>
-      <xsl:text>"</xsl:text>
+      <xsl:text>{'path': "</xsl:text>
       <xsl:value-of select="$hprefix"/><xsl:value-of select="."/>
-      <xsl:text>"</xsl:text>
+      <xsl:text>", 'description': "</xsl:text>
+      <xsl:if test="string-length(normalize-space(//Histogram[Name=$name]/Descr)) > 0">
+        <xsl:value-of select="normalize-space(//Histogram[Name=$name]/Descr)"/>
+      </xsl:if>
+      <xsl:text> For more information please click &lt;a href=\"https://twiki.cern.ch/twiki/bin/view/CMS/DQMShiftCSC#</xsl:text>
+      <xsl:value-of select="$name"/>
+      <xsl:text>\"&gt;here&lt;/a&gt;.</xsl:text>
+      <xsl:text>"}</xsl:text>
       <xsl:if test="((position()) mod $padsx) = 0 or position() = $count">
         <xsl:text>]</xsl:text>
       </xsl:if>
