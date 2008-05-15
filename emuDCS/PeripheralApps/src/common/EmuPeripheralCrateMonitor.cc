@@ -56,6 +56,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
     xoap::bind(this,&EmuPeripheralCrateMonitor::onSlowLoop      ,"SlowLoop", XDAQ_NS_URI);
     xoap::bind(this,&EmuPeripheralCrateMonitor::onExtraLoop      ,"ExtraLoop", XDAQ_NS_URI);
   //
+  xgi::bind(this,&EmuPeripheralCrateMonitor::CheckCrates, "CheckCrates");
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
   //-------------------------------------------------------------
@@ -94,6 +95,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   current_run_state_=0;
   total_crates_=0;
   this_crate_no_=0;
+  controller_checked_=false;
 
   parsed=0;
 }
@@ -297,6 +299,11 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   if( active_crates <= total_crates_) 
      *out << cgicc::b(" Active Crates: ") << active_crates << cgicc::br() << std::endl ;
  
+     std::string CheckCrates = toolbox::toString("/%s/CheckCrates",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",CheckCrates) << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","Check Crate Controllers") << std::endl ;
+     *out << cgicc::form() << std::endl ;
+
   *out << cgicc::br() << std::endl ;
   if(Monitor_On_)
   {
@@ -1002,6 +1009,27 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
 
 void EmuPeripheralCrateMonitor::actionPerformed (xdata::Event& e) {
   //
+}
+
+  void EmuPeripheralCrateMonitor::CheckCrates(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+  {  
+    std::cout << "Button: Check Crate Controllers" << std::endl;
+    CheckControllers();
+    this->Default(in, out);
+  }
+
+void EmuPeripheralCrateMonitor::CheckControllers()
+{
+    if(total_crates_<=0) return;
+    bool cr;
+    for(unsigned i=0; i< crateVector.size(); i++)
+    {
+        cr = (crateVector[i]->vmeController()->SelfTest()) && (crateVector[i]->vmeController()->exist(13));
+        crateVector[i]->SetLife( cr );
+        if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
+    }
+    controller_checked_ = true;
 }
 
 // sending and receiving soap commands
