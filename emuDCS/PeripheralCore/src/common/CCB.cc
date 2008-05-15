@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.26 2008/04/25 10:48:54 liu Exp $
+// $Id: CCB.cc,v 3.27 2008/05/15 09:55:10 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.27  2008/05/15 09:55:10  liu
+// error messages for Check_Config
+//
 // Revision 3.26  2008/04/25 10:48:54  liu
 // bug fix in CheckConfig
 //
@@ -1084,24 +1087,35 @@ int CCB::CheckConfig()
 {
   int rx;
 
-  // check CCB in DLOG mode
-  rx=ReadRegister(CSRA1);
-  if((rx & 1) == 0) return 0;
- 
- // check TTTrx ready and QPLL locked
+ // check TTCrx ready and QPLL locked
   rx=ReadRegister(CSRA3);
-  if((rx & 0x6000) != 0x2000) return 0;
-
+  if((rx & 0x6000) != 0x2000) 
+  {  std::cout << "CCB_Check_Config: TTCrx or QPLL in wrong state " 
+               << std::hex << (rx&0xffff) << std::dec << std::endl;
+     return 0;
+  }
   // check TTCrx Coarse delay
   rx=(int) (ReadTTCrxReg(2).to_ulong());
   if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
+  {  std::cout << "CCB_Check_Config: TTCrx Coarse delay inconsistent "
+               << std::hex << (rx&0xff) << std::dec << std::endl;
      return 0;
-
+  }
   // check TTCrx Control register
   rx=(int)(ReadTTCrxReg(3).to_ulong());
-  if((rx&0xff) != 0xB3) return 0;
+  if((rx&0xff) != 0xB3) 
+  {  std::cout << "CCB_Check_Config: TTCrx Control register wrong "
+               << std::hex << (rx&0xff) << std::dec << std::endl;
+     return 0;
+  }
   // I2C access could leave the CCB in FPGA mode
   setCCBMode(CCB::DLOG);
+  // check CCB in DLOG mode
+  rx=ReadRegister(CSRA1);
+  if((rx & 1) == 0) 
+  {  std::cout << "CCB_Check_Config: CCB not in DLOG mode" << std::endl;
+     return 0;
+  }
   return 1;
 }
 
