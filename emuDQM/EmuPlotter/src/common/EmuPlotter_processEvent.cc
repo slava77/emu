@@ -61,6 +61,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   uint32_t BinaryErrorStatus = 0, BinaryWarningStatus = 0;
   LOG4CPLUS_DEBUG(logger_,eTag << "Start binary checking of buffer...");
   const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
+  bin_checker.setMask(binCheckMask);
   if( bin_checker.check(tmp,dataSize/sizeof(short)) < 0 ){
     //   No ddu trailer found - force checker to summarize errors by adding artificial trailer
     const uint16_t dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
@@ -165,8 +166,9 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     EventDenied = true;
   }
 
-  if ((BinaryErrorStatus & binCheckMask)>0) {
-    LOG4CPLUS_WARN(logger_,eTag << "Skipped because of Format Error");
+  // if ((BinaryErrorStatus & binCheckMask)>0) {
+  if ((BinaryErrorStatus & dduBinCheckMask)>0) {
+    LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Format Error");
     EventDenied = true;
   }
 
@@ -184,7 +186,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   // CSCDDUEventData::setDebug(true);
   int dduID = 0;
-  CSCDDUEventData dduData((uint16_t *) data);
+  CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
+  // CSCDDUEventData dduData((uint16_t *) data);
 
 
   CSCDDUHeader dduHeader  = dduData.header();
@@ -393,24 +396,57 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   //      Unpack all founded CSC
   std::vector<CSCEventData> chamberDatas;
+  chamberDatas.clear();
   chamberDatas = dduData.cscData();
 
 
+/*
+  std::map<short,std::map<short,unsigned long> > ddus =  bin_checker.DMB_ptrOffsets();
+  std::map<short,std::map<short,unsigned long> >::iterator ddu_itr;
+
+  for ( ddu_itr=ddus.begin(); ddu_itr != ddus.end(); ++ddu_itr) {
+//	int dduID=(ddu_itr->first&0xFF);
+	std::string dduTag = Form("DDU_%d",(ddu_itr->first&0xFF));
+	std::map<short,unsigned long> & cscs = ddu_itr->second;
+	std::map<short,unsigned long>::iterator csc_itr;
+	for (csc_itr=cscs.begin(); csc_itr != cscs.end(); ++csc_itr) {
+		short cscid = csc_itr->first;
+                std::string cscTag(Form("CSC_%03d_%02d", (cscid>>4) & 0xFF , cscid & 0xF));
+		unsigned long offset = csc_itr->second; 
+		long errors = bin_checker.errorsForChamber(cscid);
+		if ((errors & binCheckMask) > 0 ) {
+			LOG4CPLUS_WARN(logger_,eTag  // << " offset: " << offset
+                << "Format Errors " << cscTag << ": 0x" << hex << errors << " Skipped CSC Unpacking");
+			continue;
+		} else {
+		// LOG4CPLUS_WARN(logger_,eTag << cscTag << " offset: " << offset);
+		}
+		unsigned short* pos = (uint16_t *)(data)+offset;
+		chamberDatas.push_back(CSCEventData(pos));
+		
+	}
+	
+  }
+*/
   int nCSCs = chamberDatas.size();
+
   if (nCSCs != dduHeader.ncsc()) {
     LOG4CPLUS_WARN(logger_,eTag << dduTag << " Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() );
     // == Current trick to maximize number of unpacked CSCs.
     // == Unpacker gives up after screwed chamber.
     // == So we need to exclude it from the list by reducing chamberDatas vector size
-    nCSCs-=1;
-    return;
+//    nCSCs-=1;
+//    return;
   }
+
+  // return;
 
   for(int i=0; i< nCSCs; i++) {
     nCSCEvents++;
     unpackedDMBcount++;
     processChamber(chamberDatas[i], node, dduID);
   }
+
   /*
 
   for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
@@ -470,7 +506,8 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       fBusy = false;
     }
     ME_List& cscME = MEs[cscTag];
-    if ( (bin_checker.errors() & binCheckMask) != 0) {
+//    if ( (bin_checker.errors() & binCheckMask) != 0) {
+    if ((chamber->second & binCheckMask) != 0) {
       nDMBEvents[cscTag]++;     
       CSCCounters& trigCnts = cscCntrs[cscTag];
       trigCnts["DMB"] = nDMBEvents[cscTag];

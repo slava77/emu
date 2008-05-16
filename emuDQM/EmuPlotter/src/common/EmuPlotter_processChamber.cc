@@ -48,6 +48,17 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   dmbID		= dmbHeader->dmbID();
   ChamberID	= (((crateID) << 4) + dmbID) & 0xFFF;
 
+  std::string nodeTag = "EMU";
+  std::string dduTag(Form("DDU_%d", dduID));
+  std::string cscTag(Form("CSC_%03d_%02d", crateID, dmbID));
+
+  unsigned long errors = bin_checker.errorsForChamber(ChamberID);
+  if ((errors & binCheckMask) > 0 ) {
+                        LOG4CPLUS_WARN(logger_,eTag  // << " offset: " << offset
+                << "Format Errors " << cscTag << ": 0x" << hex << errors << " Skipped CSC Unpacking");
+                        return;
+  }
+
   if (crateID==0 || dmbID==0) {
     LOG4CPLUS_ERROR(logger_,
 		    "Invalid crate or dmb ID");
@@ -66,10 +77,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   //  LOG4CPLUS_DEBUG(logger_, 
   //		  "Chamber ID = "<< ChamberID << " Crate ID = "<< crateID << " DMB ID = " << dmbID);
 
-  // std::string nodeTag(Form("EMU_%d", nodeID));
-  std::string nodeTag = "EMU";
-  std::string dduTag(Form("DDU_%d", dduID));
-  std::string cscTag(Form("CSC_%03d_%02d", crateID, dmbID));
 
   if (crateID>60 || dmbID>10) {
     LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");

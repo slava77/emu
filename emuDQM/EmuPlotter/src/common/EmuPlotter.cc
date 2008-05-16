@@ -20,6 +20,7 @@ void EmuPlotter::init()
         tmap = getCSCTypeToBinMap();
   dduCheckMask = 0xFFFFFFFF;
         binCheckMask = 0xFFFFFFFF;
+  dduBinCheckMask = 0x02080016;
   reset();
 }
 

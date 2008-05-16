@@ -226,6 +226,7 @@ private:
 
   uint32_t dduCheckMask;
   uint32_t binCheckMask;
+  uint32_t dduBinCheckMask; // Set this as constant 
   std::string runNumber;
 
   bool fListModified;
