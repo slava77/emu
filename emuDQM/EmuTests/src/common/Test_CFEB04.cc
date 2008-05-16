@@ -6,6 +6,7 @@ Test_CFEB04::Test_CFEB04(std::string dfile): Test_Generic(dfile) {
   testID = "CFEB04";
   nExpectedEvents = 8000;
   dduID=0;
+//   binCheckMask=0xFFFB3BF6;
   binCheckMask=0xFFFB3BF6;
 }
 
@@ -88,6 +89,7 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
 
   //   uint32_t BinaryErrorStatus = 0, BinaryWarningStatus = 0;
   const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
+  bin_checker.setMask( binCheckMask);
   if( bin_checker.check(tmp,dataSize/sizeof(short)) < 0 ){
     //   No ddu trailer found - force checker to summarize errors by adding artificial trailer
     const uint16_t dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
@@ -118,10 +120,10 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   if((bin_checker.errors() & binCheckMask)!= 0) {
     std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
     doBinCheck();
-    return;
+  //  return;
   }
 
-  CSCDDUEventData dduData((uint16_t *) data);
+  CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
  
   currL1A=(int)(dduData.header().lvl1num());
   if (DDUstats[dduID].evt_cntr ==1) {
@@ -301,7 +303,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
   if (dmbHeader->cfebAvailable()){
     for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
-      if (!cfebData) {
+      if (!cfebData || !cfebData->check()) {
 	 
 	 continue;
       }
@@ -310,6 +312,9 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 	int nTimeSamples= cfebData->nTimeSamples();
 	double Qmax=gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
 	double Qmv=0;
+	if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC()) {
+		continue;
+	}
         double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
 		    + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
 /* 
@@ -323,7 +328,11 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 	std::cout << cscID << ": ";
 */
 	for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
-          CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+//          CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+	  if (!(cfebData->timeSlice(itime)->checkCRC())) {
+		continue; 
+	  }
+	  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
 	  
           int Qi = (int) ((timeSample->adcCounts)&0xFFF);
 /*
@@ -458,13 +467,13 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 */
 void Test_CFEB04::finishCSC(std::string cscID) 
 {
-  
+ /* 
   if (nCSCEvents[cscID] < nExpectedEvents/2) {
     std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
     // = Set error 
     return;
   }
-
+ */
   cscTestData::iterator td_itr =  tdata.find(cscID);
   if (td_itr != tdata.end()) {
   
@@ -520,7 +529,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][itime];
 		cnt = cval.cnt;
 		if (cval.cnt<13) {
-		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", Error: Event counter="<< cval.cnt << std::endl;
+		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " Error> dac=" << dac << ", cnt="<< cval.cnt << std::endl;
 		  fValid=false;
 		  // if (dac<15)  fValid=false; // === Fix for recent bad data (only 15 dac steps)
 		} else {
@@ -549,7 +558,10 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 	      if (cnt>0 && fValid) {
 		val.s = pow(max_rms,2) + pow((0.01*max), 2);
-		std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " sample=" << sample << ", dac=" << dac << ", mv=" << val.mv << ", rms=" << val.rms << ", max=" << val.max <<", s=" << val.s << " , x=" << (11.2+28.0*dac) << std::endl; 
+		std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
+		<< ", mv=" << val.mv << ", rms=" << val.rms 
+		<< ", max=" << val.max << ", max_tbin=" << sample 
+		<< ", s=" << val.s << " , x=" << (11.2+28.0*dac) << std::endl; 
 	      }
 
 	    }

@@ -923,9 +923,10 @@ void Test_Generic::finish() {
 	if (max_freq>0) mo->SetMaximum(max_freq);
 	else mo->SetMaximum(1);
       }
-   
+  
+      finishCSC(cscID); 
       if (nCSCEvents[cscID] >= nExpectedEvents/2) {
-	finishCSC(cscID);
+//	finishCSC(cscID);
       } else {
 	std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
 	// = Set error 
