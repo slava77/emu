@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.46 2008/04/22 11:02:16 liu Exp $
+// $Id: VMEController.cc,v 3.47 2008/05/16 13:41:03 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.47  2008/05/16 13:41:03  liu
+// fix a bug in vme delay
+//
 // Revision 3.46  2008/04/22 11:02:16  liu
 // update error messages
 //
@@ -524,10 +527,14 @@ int VMEController::do_schar(int open_or_close)
 
 void VMEController::udelay(long int itim)
 {
-  // std::cout << "Udelay using nanosleep..." << itim << std::endl;
-  struct timespec req= { 0, itim*1000};
-  nanosleep(&req, NULL); 
-  //  usleep(itim);
+  if(itim>1000000)
+  {
+     ::usleep(itim);
+  } else {
+     // std::cout << "Udelay using nanosleep..." << itim << std::endl;
+     struct timespec req= { 0, itim*1000};
+     ::nanosleep(&req, NULL); 
+  }
   return;
 
 #if 0
@@ -606,8 +613,7 @@ void  VMEController::sleep_vme(int time) // time in usec
   char tmp[1]={0x00};
   unsigned short int tmp2[2]={0,0};
   unsigned short int *ptr;
-  tmp_time=time*1000+15; // in nsec
-  tmp_time >>= 4; // in 16 nsec
+  tmp_time=((time+1)/2)*125;   // in 16ns
   tmp2[0]=tmp_time & 0xffff;
   tmp2[1]=(tmp_time >> 16) & 0xffff;
   vme_controller(6,ptr,tmp2,tmp);
