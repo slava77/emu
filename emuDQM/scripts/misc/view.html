@@ -33,6 +33,7 @@ if( parent.type != 0 ){
 	var sp      = parent.sp;
 	var station = parent.station;
 	var type    = parent.type;
+	var scale   = parent.scale;
 
 	if( parent.type=="status.png" || parent.type=="LCTquality.png" ||
 	    parent.type=="qualityConsistency.png" || parent.type=="WireGroup.png" ||
@@ -65,6 +66,8 @@ if( parent.type != 0 ){
 	if( parent.type=="DataBlockHeader{1,2}.png" ){
 		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader1.png'] = '300x250+1+1';
 		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader2.png'] = '300x250+1+2';
+                layout[folder+'/'+RUNS[run][sp][0]+'/DBH1timeline.png'] = '300x250+2+1';
+                layout[folder+'/'+RUNS[run][sp][0]+'/DBH2timeline.png'] = '300x250+2+2';
 	}
 
 	if( parent.type=="rate.png" ){
@@ -79,6 +82,10 @@ if( parent.type != 0 ){
 		layout[folder+'/'+RUNS[run][sp][0]+'/timing.png'] = '600x500+1+1';
 	}
 
+        if( parent.type=="occupancy.png" ){
+                layout[folder+'/occupancy.png'] = '600x500+1+1';
+        }
+
 	if( parent.type=="summary.html" ){
 		parent.frames[1].location = folder+'/summary.html';
 	}
@@ -91,13 +98,13 @@ if( parent.type != 0 ){
 		layout[folder+'/integrity.png'] = '600x500+1+1';
 	}
 
-	view(layout);
+	view(layout,scale);
 
 	// Add some comments to plots
 	if( parent.type=="status.png" ){
 		document.writeln("Top plot: Links' status for 2 frames should always peak at 'Normal data' bin, last 3 'Alignment' bins should always be empty<br>");
 		document.writeln("Bottom left plot: BC0 should always be empty, while BXN0 and L/R should be comparable<br>");
-		document.writeln("Bottom right plot: must be diogonal<br>");
+		document.writeln("Bottom right plot: must be diagonal<br>");
 	}
 	if( parent.type=="LCTquality.png" ){}
 	if( parent.type=="qualityConsistency.png" ){}
@@ -112,7 +119,7 @@ if( parent.type != 0 ){
 		document.writeln("For CSC self triggering distributions should peak at BX=3 and are allowed to have small tail on the right<br>");
 	}
 	if( parent.type=="csc_timing.png" ){
-		document.writeln("Center of gravity in Y-slices should be alligned along the line BX=0<br>");
+		document.writeln("Center of gravity in Y-slices should be aligned along the line BX=0<br>");
 	}
 	if( parent.type=="links.png" ){
 		document.writeln("Top plot: occupancy of LCTs, arriving from MPC (ID on x-axis) to Front FPGA (# on Y-axis)<br>");
@@ -137,7 +144,7 @@ if( parent.type != 0 ){
 	if( parent.type=="tracks.png" ){
 		document.writeln("Top plot: tells how many tracks were found in SP<br>");
 		document.writeln("Bottom left plot: not informative<br>");
-		document.writeln("Bottom right plot: 2 boxes should be alligned diagonally (if exist)<br>");
+		document.writeln("Bottom right plot: 2 boxes should be aligned diagonally (if exist)<br>");
 	}
 	if( parent.type=="timing.png" ){
 		document.writeln("Bottom plot: for CSC self triggering tracks should be assigned to BX=3<br>");
@@ -145,9 +152,15 @@ if( parent.type != 0 ){
 	if( parent.type=="DDU_status.png" ){
 		document.writeln("Status of the DDU in Track-Finder crate is a 16-bit code word: 1=Warning, 2=Synch Lost, 4=Busy, 8=Ready, 12=Error<br>");
 	}
+        if( parent.type=="occupancy.png" ){
+		document.writeln("Occupancy plot:<br>");
+                document.writeln("&nbsp; Y-axis &#151; effective phi [0-24] (1-12 input LCTs for 12 SPs, 13-24 output tracks for 12 SPs),<br>");
+                document.writeln("&nbsp; X-axis &#151; effective eta [0-6]<br>");
+        }
 	if( parent.type=="integrity.png" ){
 		document.writeln("This histogram should always be empty<br>");
 	}
+
 
 }
 

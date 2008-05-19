@@ -29,6 +29,8 @@ sub combine_parts {
 		$run =~ s/Evs.*//g;
 		$run =~ s/Monitor_\d+/Monitor/g;
 		$run =~ s/Monitor-\d+/Monitor/g;
+		$run =~ s/Default_\d+/Default/g;
+		$run =~ s/Default-\d+/Default/g;
 		$runs{$run} .= " ".$file;
 	}
 	return %runs;
