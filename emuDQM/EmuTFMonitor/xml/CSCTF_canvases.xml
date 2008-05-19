@@ -44,6 +44,14 @@
 		<Item>SE(Top)</Item>
 		<Item>SM(Bottom)</Item>
 	</Canvas>
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>DBH1timeline</Name>
+		<Title>Synchronization Errors</Title>
+		<Item>SEtimeline(Top)</Item>
+		<Item>SMtimeline(Bottom)</Item>
+	</Canvas>
 
 	<Canvas>
 		<Type>c_</Type>
@@ -52,6 +60,14 @@
 		<Title>Internal Timing Errors</Title>
 		<Item>AF(Top)</Item>
 		<Item>BX(Bottom)</Item>
+	</Canvas>
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>DBH2timeline</Name>
+		<Title>Internal Timing Errors</Title>
+		<Item>AFtimeline(Top)</Item>
+		<Item>BXtimeline(Bottom)</Item>
 	</Canvas>
 
 	<Canvas>
@@ -173,6 +189,14 @@
 		<Item Options="LogY">nTracks(Top)</Item>
 		<Item Options="LeftMargin=0.2">mode_vs_station(0.485x0.485+0.01+0.01)</Item>
 		<Item>stations_vs_lcts(0.485x0.485+0.505+0.01)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_</Prefix>
+		<Name>occupancies</Name>
+		<Title>Occupancies</Title>
+		<Item>occupancies</Item>
 	</Canvas>
 
 	<Canvas>
