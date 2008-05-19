@@ -9,7 +9,6 @@ use List::Util qw[min max];
 
 # cscdqm@cmsusr0 :
 my $WEB     = "~/cadaver https://cms-csc.web.cern.ch:444/cms-csc/";
-my $REPORT  = "repeat=0 && while [ \\\"`find . -name summary.html -exec cat {} \\\\; | ~/data/client uflpc04.cern.ch:20000 | grep 'Connect'`\\\" != \\\"Connect\\\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done";
 #my $SOURCE  = "/cms/mon/data/lookarea_SM/";
 ##my $SOURCE  = "/cmssrv0/nfshome0/kkotov/data/";
 my $SOURCE  = "/data/";
@@ -25,14 +24,15 @@ my $DATAHOST= "csc-daq10";
 my $SU_DQM  = "bash -c";
 my $TFDQM   = "perl /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/bin/linux/x86/EmuTFtest.exe /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
 my $local_run_pattern = "csc_000*RUI00*.raw";
-my $global_run_pattern = "GlobalMar08.00039940.0001.A.storageManager.*.0000.dat";
-my $first_run_to_process = 41439; 
-my $first_timestamp_to_process = "080422_110038_UTC";
-my $CMSSW = "~kkotov/CMSSW_1_8_0/";
+my $global_run_pattern = "GlobalCruzet1*.A.storageManager.*.0000.dat";
+my $first_run_to_process = 43410; 
+my $first_timestamp_to_process = "080510_204122_UTC"; # if part of file name -> higher priority than previous
+my $CMSSW = "~kkotov/CMSSW_2_0_5/";
 
 ############################# The code ##################################
 # 0. Find out time difference between local pc and pc with files (important for identifying "new" files):
 my $delta_time = `ssh -2 $DATAHOST 'date +\%s' 2>/dev/null` - `date +\%s`;
+if( $delta_time<=-`date +\%s` ){ die "Connection to $DATAHOST lost ($delta_time)"; }
 
 # 1. Create list of processed runs:
 # 1.1 Get list of processed runs from the web
@@ -133,6 +133,8 @@ foreach my $file ( split(/\n/,$local_runs) ) {
 	$run =~ s/Evs.*//g;
 	$run =~ s/Monitor_\d+/Monitor/g;
 	$run =~ s/Monitor-\d+/Monitor/g;
+	$run =~ s/Default_\d+/Default/g;
+	$run =~ s/Default-\d+/Default/g;
 	$run =~ s/^\d+\s*//g;
 	$run =~ s/$SOURCE\/*//g;
 	$runs_todo{$run} .= " $file";
@@ -153,6 +155,7 @@ foreach my $run ( sort keys %runs_todo ) {
 		 || ($timestamp_date==$first_date_to_process && $timestamp_time<$first_time_to_process) ){
 			next;
 		}
+		if( $run=~ /CFEB/ ){ next; }
 	} else {
 		my $number = $run;
 		$number =~ s/\w*?.0+(\d+).*/$1/g;
@@ -198,7 +201,7 @@ foreach my $run ( sort keys %runs_todo ) {
 		my @files = split(/\s*\d+\s+/, $runs_todo{$run});
 		shift @files;
 		foreach my $file ( @files ) {
-			$PREPARE .= " && if [ -e $file ] ; then ln -s $file $SCRATCH/tf_scratch/$dirname 2>/dev/null; else scp -2 -r '$DATAHOST:$file' $SCRATCH/tf_scratch/$dirname/ 2>/dev/null; fi";
+			$PREPARE .= " && ssh -2 $DQMHOST \"if [ -e $file ] ; then ln -s $file $SCRATCH/tf_scratch/$dirname 2>/dev/null; else scp -2 -r $DATAHOST:$file $SCRATCH/tf_scratch/$dirname/ 2>/dev/null; fi\"";
 		}
 		$PREPARE .= " && cp tree_runs.js $SCRATCH/tf_scratch/'";
 		die "Can't setup scratch folder" if system("$PREPARE");
@@ -208,7 +211,7 @@ foreach my $run ( sort keys %runs_todo ) {
 #print "Can't process $run. Trying again\n";
 		}
 		die "Can't run cadaver"  if system("cat $SCRATCH/tf_scratch/$dirname/*.cadaver | awk 'BEGIN{print \"lcd $SCRATCH/tf_scratch/\\n\"} {print \$0}' | $WEB >> cron_job_tf.log && echo -e \"lcd $SCRATCH/tf_scratch/\ncd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $WEB >> cron_job_tf.log");
-		die "Can't clean up"     if system("$SU_DQM \"cp $SCRATCH/tf_scratch/tree_runs.js ./ && cd $SCRATCH/tf_scratch/ && find . -name '*.log' -exec gzip {} \\; && find . -name '*.log.gz' -exec cp {} $LOGS \\; && find . -name '*.root' -exec cp {} $LOGS/ \\; && $REPORT && cd ../ && rm -rf ./tf_scratch\"");
+		die "Can't clean up"     if system("$SU_DQM \"cp $SCRATCH/tf_scratch/tree_runs.js ./ && cd $SCRATCH/tf_scratch/ && find . -name '*.log' -exec gzip {} \\; && find . -name '*.log.gz' -exec cp {} $LOGS \\; && find . -name '*.root' -exec cp {} $LOGS/ \\; && repeat=0 && while [ \"`cat $SCRATCH/tf_scratch/report.txt | awk -f $SCRATCH/mask.awk | ~/data/client lxplus201.cern.ch:20000 | grep 'Connect'`\" != \"Connect\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done && cd ../ && rm -rf ./tf_scratch\"");
 
 		open(RUNS,"< tree_runs.js") or die "Can't read tree_runs.js";
 		@runs_done = <RUNS>;
