@@ -46,7 +46,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 	}
 
 	// All-in-one plot to identify problems/gaps at one glance
-	TH2F *occupancies = (TH2F*)tf.get("occupancies");
+	TH2F *occupancy = (TH2F*)tf.get("occupancy");
 
 	// DDU Status word (FMM)
 	TH2F *DDU_status = (TH2F*)tf.get("DDU_status");
@@ -369,8 +369,8 @@ if( sp == 0 ){
 					{-1, 158, 158, 158, 158, 158, 158, 158, 158, 158}
 				};
 
-				if(occupancies && mpc<6 && csc<10)
-					occupancies->Fill( lct->wireGroup()/normEta[mpc][csc] + offsetEta[mpc][csc], lct->strip()/normPhi[mpc][csc] + offsetPhi[mpc][csc] + sp);
+				if(occupancy && mpc<6 && csc<10)
+					occupancy->Fill( lct->wireGroup()/normEta[mpc][csc] + offsetEta[mpc][csc], lct->strip()/normPhi[mpc][csc] + offsetPhi[mpc][csc] + sp);
 //cout<<"lct->wireGroup()="<<lct->wireGroup()<<" norm[mpc][csc]="<<norm[mpc][csc]<<" offset[mpc][csc]="<<offset[mpc][csc]<<" total="<<(lct->wireGroup()/norm[mpc][csc] + offset[mpc][csc])<<endl;
 				if(!tf.isBooked(sp,mpc) ){
 					tf.book(sp,mpc);
@@ -476,7 +476,7 @@ if( sp == 0 ){
 			if( nTracks ) nTracks->Fill(tracks.size());
 
 			for(vector<CSCSP_SPblock>::const_iterator track=tracks.begin(); track!=tracks.end(); track++){
-				if(occupancies) occupancies->Fill( track->eta()/32.*6, track->phi()/32. + sp+12 ); 
+				if(occupancy) occupancy->Fill( track->eta()/32.*6, track->phi()/32. + sp+12 ); 
 
 				TH2F *mode_vs_station = (TH2F*)tf.get("mode_vs_station",sp);
 				if( mode_vs_station ){
