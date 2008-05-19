@@ -115,6 +115,20 @@
 		<XBinLabels>SE1a,SE1b,SE1c,SE1d,SE1e,SE1f,SE2a,SE2b,SE2c,SE3a,SE3b,SE3c,SE4a,SE4b,SE4c</XBinLabels>
 		<YLabel>Number of Errors</YLabel>
 	</Histogram>
+	<Histogram Options="textcolz:LineColor=4">
+		<Type>h2_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>SEtimeline</Name>
+		<Title>Timeline for Synchronization Errors</Title>
+		<XRange>(0:10000000)</XRange>
+		<XBins>50000</XBins>
+		<XLabel>Sequential event number as received by DQM</XLabel>
+		<YRange>(0:15)</YRange>
+		<YBins>15</YBins>
+		<YLabel></YLabel>
+		<YBinLabels>SE1a,SE1b,SE1c,SE1d,SE1e,SE1f,SE2a,SE2b,SE2c,SE3a,SE3b,SE3c,SE4a,SE4b,SE4c</YBinLabels>
+	</Histogram>
+
 
 	<Histogram Options="LineColor=2">
 		<Type>h1_</Type>
@@ -126,6 +140,19 @@
 		<XLabel>SP Input</XLabel>
 		<XBinLabels>SM1a,SM1b,SM1c,SM1d,SM1e,SM1f,SM2a,SM2b,SM2c,SM3a,SM3b,SM3c,SM4a,SM4b,SM4c</XBinLabels>
 		<YLabel>Number of Errors</YLabel>
+	</Histogram>
+	<Histogram Options="textcolz:LineColor=4">
+		<Type>h2_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>SMtimeline</Name>
+		<Title>Timeline for Synchronization Errors</Title>
+		<XRange>(0:10000000)</XRange>
+		<XBins>50000</XBins>
+		<XLabel>Sequential event number as received by DQM</XLabel>
+		<YRange>(0:15)</YRange>
+		<YBins>15</YBins>
+		<YLabel></YLabel>
+		<YBinLabels>SM1a,SM1b,SM1c,SM1d,SM1e,SM1f,SM2a,SM2b,SM2c,SM3a,SM3b,SM3c,SM4a,SM4b,SM4c</YBinLabels>
 	</Histogram>
 
 
@@ -140,6 +167,20 @@
 		<XBinLabels>AF1a,AF1b,AF1c,AF1d,AF1e,AF1f,AF2a,AF2b,AF2c,AF3a,AF3b,AF3c,AF4a,AF4b,AF4c,AFBa,AFBb</XBinLabels>
 		<YLabel>Number of Errors</YLabel>
 	</Histogram>
+	<Histogram Options="textcolz:LineColor=4">
+		<Type>h2_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>AFtimeline</Name>
+		<Title>Timeline for Alignment FIFO status</Title>
+		<XRange>(0:10000000)</XRange>
+		<XBins>50000</XBins>
+		<XLabel>Sequential event number as received by DQM</XLabel>
+		<YRange>(0:17)</YRange>
+		<YBins>17</YBins>
+		<YLabel></YLabel>
+		<YBinLabels>AF1a,AF1b,AF1c,AF1d,AF1e,AF1f,AF2a,AF2b,AF2c,AF3a,AF3b,AF3c,AF4a,AF4b,AF4c,AFBa,AFBb</YBinLabels>
+	</Histogram>
+
 
 	<Histogram Options="LineColor=2">
 		<Type>h1_</Type>
@@ -151,6 +192,19 @@
 		<XLabel>SP Input</XLabel>
 		<XBinLabels>BX1a,BX1b,BX1c,BX1d,BX1e,BX1f,BX2a,BX2b,BX2c,BX3a,BX3b,BX3c,BX4a,BX4b,BX4c,BXBa,BXBb</XBinLabels>
 		<YLabel>Number of Errors</YLabel>
+	</Histogram>
+	<Histogram Options="textcolz:LineColor=4">
+		<Type>h2_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>BXtimeline</Name>
+		<Title>Timeline for BX counter status with respect to BC0 mark</Title>
+		<XRange>(0:10000000)</XRange>
+		<XBins>50000</XBins>
+		<XLabel>Sequential event number as received by DQM</XLabel>
+		<YRange>(0:17)</YRange>
+		<YBins>17</YBins>
+		<YLabel></YLabel>
+		<YBinLabels>BX1a,BX1b,BX1c,BX1d,BX1e,BX1f,BX2a,BX2b,BX2c,BX3a,BX3b,BX3c,BX4a,BX4b,BX4c,BXBa,BXBb</YBinLabels>
 	</Histogram>
 
 
@@ -468,6 +522,19 @@
 		<XBins>21</XBins>
 		<XLabel>Number of Tracks</XLabel>
 		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="colz:YTitleOffset=2.5">
+		<Type>h2_</Type>
+		<Prefix>TF_</Prefix>
+		<Name>occupancy</Name>
+		<Title>Occupancy</Title>
+		<XRange>(0:6)</XRange>
+		<XBins>300</XBins>
+		<YRange>(0:24)</YRange>
+		<YBins>300</YBins>
+		<XLabel>Effective "#eta" coordinate</XLabel>
+		<YLabel>#phi x station x endcap + tracks (>1)</YLabel>
 	</Histogram>
 
 	<Histogram Options="textcolz:YTitleOffset=2.5">

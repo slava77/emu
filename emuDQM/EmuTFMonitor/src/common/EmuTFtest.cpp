@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <fstream>
 
 //#define BASE "/nfshome0/cscdqm/TriDAS/emu/emuDQM/"
 
@@ -117,6 +118,11 @@ int main(int argc, char *argv[]){
 //	map<string,string> alias;
 //	alias[""] = "";
 
+	ofstream report("report.txt");
+	report<<str.str()<<ends;
+	report.close();
+
+std::ostringstream str2;
 for(int spNum=1; spNum<=12; spNum++){
 	string sp="SP";
 	switch ( spNum ){
@@ -133,7 +139,7 @@ for(int spNum=1; spNum<=12; spNum++){
 		case 11:sp+="11/";break;
 		case 12:sp+="12/";break;
 	}
-	str<<sp<<endl;
+	str2<<sp<<endl;
 
 	map<string,string> neighbour;
 	neighbour[sp+"F2/CSC4"] = sp+"F3/CSC7";
@@ -161,6 +167,10 @@ for(int spNum=1; spNum<=12; spNum++){
 	neighbour[sp+"F4/CSC2"] = sp+"F3/CSC2";
 	neighbour[sp+"F4/CSC3"] = sp+"F3/CSC3";
 
+	neighbour[sp+"F5/CSC1"] = sp+"F4/CSC1";
+	neighbour[sp+"F5/CSC2"] = sp+"F4/CSC2";
+	neighbour[sp+"F5/CSC3"] = sp+"F4/CSC3";
+
 	neighbour[sp+"F1/CSC4"] = sp+"F3/CSC4";
 	neighbour[sp+"F1/CSC5"] = sp+"F3/CSC5";
 	neighbour[sp+"F1/CSC6"] = sp+"F3/CSC6";
@@ -185,13 +195,14 @@ for(int spNum=1; spNum<=12; spNum++){
 	neighbour[sp+"F2/CSC2"] = sp+"F3/CSC2";
 	neighbour[sp+"F2/CSC3"] = sp+"F3/CSC3";
 
-	str<<endl<<"Timing for neighbour chambers (SP"<<spNum<<"): "<<endl<<endl;
-	for(int mpc=1; mpc<5; mpc++){
+	str2<<endl<<"Timing for neighbour chambers (SP"<<spNum<<"): "<<endl<<endl;
+	for(int mpc=1; mpc<=5; mpc++){
 		for(int csc=1; csc<10; csc++){
+			if(mpc==5 && csc>3) continue;
 			ostringstream label;
 			label<<(sp+"F")<<mpc<<"/CSC"<<csc;
 			TH2F *timing = (TH2F*)filler.bookkeeper().get("csc_timing",spNum,mpc,csc);
-			if( !timing ){ std::cout<<label<<"/"<<"csc_timing not booked"<<std::endl; continue; }
+			if( !timing ){ std::cout<<label.str()<<"/"<<"csc_timing not booked"<<std::endl; continue; }
 			for(int yBin=1; yBin<timing->GetNbinsY(); yBin++){
 				if( neighbour[label.str()] != (sp+timing->GetYaxis()->GetBinLabel(yBin)) ) continue;
 				double m0=0, m1=0, m2=0;
@@ -200,7 +211,7 @@ for(int spNum=1; spNum<=12; spNum++){
 					m1 += timing->GetBinContent(xBin,yBin)*(xBin-8);
 					m2 += timing->GetBinContent(xBin,yBin)*(xBin-8)*(xBin-8);
 				}
-				str<<label.str()<<" - "<<neighbour[label.str()]<<(m1>0?" = +":" = ")<<m1/m0<<" RMS = "<<sqrt(m2/m0-m1*m1/m0/m0)<<" nHits = "<<m0<<endl;
+				str2<<label.str()<<" - "<<neighbour[label.str()]<<(m1>0?" = +":" = ")<<m1/m0<<" RMS = "<<sqrt(m2/m0-m1*m1/m0/m0)<<" nHits = "<<m0<<endl;
 			}
 		}
 	}
@@ -217,6 +228,9 @@ for(int spNum=1; spNum<=12; spNum++){
 	overlap[sp+"F3/CSC6"] = sp+"F3/CSC7";
 	overlap[sp+"F3/CSC7"] = sp+"F3/CSC8";
 	overlap[sp+"F3/CSC8"] = sp+"F3/CSC9";
+
+	overlap[sp+"F5/CSC1"] = sp+"F5/CSC2";
+	overlap[sp+"F5/CSC2"] = sp+"F5/CSC3";
 
 	overlap[sp+"F4/CSC1"] = sp+"F4/CSC2";
 	overlap[sp+"F4/CSC2"] = sp+"F4/CSC3";
@@ -240,13 +254,14 @@ for(int spNum=1; spNum<=12; spNum++){
 	overlap[sp+"F2/CSC7"] = sp+"F2/CSC8";
 	overlap[sp+"F2/CSC8"] = sp+"F2/CSC9";
 
-	str<<endl<<"Timing for overlapping chambers (SP"<<spNum<<"): "<<endl<<endl;
-	for(int mpc=1; mpc<5; mpc++){
+	str2<<endl<<"Timing for overlapping chambers (SP"<<spNum<<"): "<<endl<<endl;
+	for(int mpc=1; mpc<=5; mpc++){
 		for(int csc=1; csc<10; csc++){
+			if(mpc==5 && csc>3) continue;
 			ostringstream label;
 			label<<(sp+"F")<<mpc<<"/CSC"<<csc;
 			TH2F *timing = (TH2F*)filler.bookkeeper().get("csc_timing",spNum,mpc,csc);
-			if( !timing ){ std::cout<<label<<"/"<<"csc_timing not booked"<<std::endl; continue; }
+			if( !timing ){ std::cout<<label.str()<<"/"<<"csc_timing not booked"<<std::endl; continue; }
 			for(int yBin=1; yBin<=timing->GetNbinsY(); yBin++){
 				if( overlap[label.str()] != (sp+timing->GetYaxis()->GetBinLabel(yBin)) ) continue;
 				double m0=0, m1=0, m2=0;
@@ -256,13 +271,17 @@ for(int spNum=1; spNum<=12; spNum++){
 					m2 += timing->GetBinContent(xBin,yBin)*(xBin-8)*(xBin-8);
 
 				}
-				str<<label.str()<<" - "<<overlap[label.str()]<<(m1>0?" = +":" = ")<<m1/m0<<" RMS = "<<sqrt(m2/m0-m1*m1/m0/m0)<<" nHits = "<<m0<<endl;
+				str2<<label.str()<<" - "<<overlap[label.str()]<<(m1>0?" = +":" = ")<<m1/m0<<" RMS = "<<sqrt(m2/m0-m1*m1/m0/m0)<<" nHits = "<<m0<<endl;
 			}
 
 		}
 	}
-	str<<endl;
+	str2<<endl;
 }
+
+	ofstream report2("timing.txt");
+	report2<<str2.str()<<ends;
+	report2.close();
 
 	std::map<std::string,TCanvas*> rootCanvases = filler.bookkeeper().wrapToCanvases(canvasList);
 	std::map<std::string,TCanvas*>::iterator iter = rootCanvases.begin();
@@ -272,8 +291,8 @@ for(int spNum=1; spNum<=12; spNum++){
 		iter->second->Write();
 		iter++;
 	}
-	// Dump summary information
-	string sum = str.str();
+	// Write summary information
+	string sum = str.str() + str2.str();
 	TH1C summary("summary","Summary",sum.length(),0,1);
 	for(unsigned int i=0;i<sum.length();i++) summary.SetBinContent(i+1,sum[i]);
 	cout<<"Summary ["<<summary.GetNbinsX()<<"="<<sum.length()<<"]:"<<endl<<(summary.GetArray()+1)<<endl;

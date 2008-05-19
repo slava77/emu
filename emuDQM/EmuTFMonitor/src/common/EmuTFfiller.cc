@@ -45,11 +45,14 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 		return;
 	}
 
+	// All-in-one plot to identify problems/gaps at one glance
+	TH2F *occupancies = (TH2F*)tf.get("occupancies");
+
 	// DDU Status word (FMM)
 	TH2F *DDU_status = (TH2F*)tf.get("DDU_status");
 	if( DDU_status ){
 		DDU_status->Fill(nevents,(buffer[size-4]&0x00F0)>>4);
-		if( nevents%100==0 ) DDU_status->SetAxisRange(0, nevents);
+		if( nevents%100==0 ) DDU_status->SetAxisRange(0, nevents+100);
 	}
 
 	// Swep out C-words
@@ -186,7 +189,6 @@ if( sp == 0 ){
 				if( spPtr->record(tbin).SEs()&0x1000) SE->Fill(12);
 				if( spPtr->record(tbin).SEs()&0x2000) SE->Fill(13);
 				if( spPtr->record(tbin).SEs()&0x4000) SE->Fill(14);
-				if( spPtr->record(tbin).SEs()&0x8000) SE->Fill(15);
 			}
 			TH2F *SM = (TH2F*)tf.get("SM",sp);
 			if( SM ){
@@ -205,7 +207,6 @@ if( sp == 0 ){
 				if( spPtr->record(tbin).SMs()&0x1000) SM->Fill(12);
 				if( spPtr->record(tbin).SMs()&0x2000) SM->Fill(13);
 				if( spPtr->record(tbin).SMs()&0x4000) SM->Fill(14);
-				if( spPtr->record(tbin).SMs()&0x8000) SM->Fill(15);
 			}
 			TH2F *AF = (TH2F*)tf.get("AF",sp);
 			if( AF ){
@@ -226,7 +227,6 @@ if( sp == 0 ){
 				if( spPtr->record(tbin).AFs()&0x4000) AF->Fill(14);
 				if( spPtr->record(tbin).AFs()&0x8000) AF->Fill(15);
 				if( spPtr->record(tbin).AFs()&0x10000) AF->Fill(16);
-				if( spPtr->record(tbin).AFs()&0x20000) AF->Fill(17);
 			}
 			TH2F *BX = (TH2F*)tf.get("BX",sp);
 			if( BX ){
@@ -247,8 +247,88 @@ if( sp == 0 ){
 				if( spPtr->record(tbin).BXs()&0x4000) BX->Fill(14);
 				if( spPtr->record(tbin).BXs()&0x8000) BX->Fill(15);
 				if( spPtr->record(tbin).BXs()&0x10000) BX->Fill(16);
-				if( spPtr->record(tbin).BXs()&0x20000) BX->Fill(17);
 			}
+			TH2F *SEtimeline = (TH2F*)tf.get("SEtimeline",sp);
+			if( SEtimeline ){
+				if( spPtr->record(tbin).SEs()&0x1   ) SEtimeline->Fill(nevents,0);
+				if( spPtr->record(tbin).SEs()&0x2   ) SEtimeline->Fill(nevents,1); 
+				if( spPtr->record(tbin).SEs()&0x4   ) SEtimeline->Fill(nevents,2);
+				if( spPtr->record(tbin).SEs()&0x8   ) SEtimeline->Fill(nevents,3);
+				if( spPtr->record(tbin).SEs()&0x10  ) SEtimeline->Fill(nevents,4);
+				if( spPtr->record(tbin).SEs()&0x20  ) SEtimeline->Fill(nevents,5);
+				if( spPtr->record(tbin).SEs()&0x40  ) SEtimeline->Fill(nevents,6);
+				if( spPtr->record(tbin).SEs()&0x80  ) SEtimeline->Fill(nevents,7);
+				if( spPtr->record(tbin).SEs()&0x100 ) SEtimeline->Fill(nevents,8);
+				if( spPtr->record(tbin).SEs()&0x200 ) SEtimeline->Fill(nevents,9);
+				if( spPtr->record(tbin).SEs()&0x400 ) SEtimeline->Fill(nevents,10);
+				if( spPtr->record(tbin).SEs()&0x800 ) SEtimeline->Fill(nevents,11);
+				if( spPtr->record(tbin).SEs()&0x1000) SEtimeline->Fill(nevents,12);
+				if( spPtr->record(tbin).SEs()&0x2000) SEtimeline->Fill(nevents,13);
+				if( spPtr->record(tbin).SEs()&0x4000) SEtimeline->Fill(nevents,14);
+				if( nevents%100==0 ) SEtimeline->SetAxisRange(0, nevents+100);
+			}
+			TH2F *SMtimeline = (TH2F*)tf.get("SMtimeline",sp);
+			if( SMtimeline ){
+				if( spPtr->record(tbin).SMs()&0x1   ) SMtimeline->Fill(nevents,0);
+				if( spPtr->record(tbin).SMs()&0x2   ) SMtimeline->Fill(nevents,1); 
+				if( spPtr->record(tbin).SMs()&0x4   ) SMtimeline->Fill(nevents,2);
+				if( spPtr->record(tbin).SMs()&0x8   ) SMtimeline->Fill(nevents,3);
+				if( spPtr->record(tbin).SMs()&0x10  ) SMtimeline->Fill(nevents,4);
+				if( spPtr->record(tbin).SMs()&0x20  ) SMtimeline->Fill(nevents,5);
+				if( spPtr->record(tbin).SMs()&0x40  ) SMtimeline->Fill(nevents,6);
+				if( spPtr->record(tbin).SMs()&0x80  ) SMtimeline->Fill(nevents,7);
+				if( spPtr->record(tbin).SMs()&0x100 ) SMtimeline->Fill(nevents,8);
+				if( spPtr->record(tbin).SMs()&0x200 ) SMtimeline->Fill(nevents,9);
+				if( spPtr->record(tbin).SMs()&0x400 ) SMtimeline->Fill(nevents,10);
+				if( spPtr->record(tbin).SMs()&0x800 ) SMtimeline->Fill(nevents,11);
+				if( spPtr->record(tbin).SMs()&0x1000) SMtimeline->Fill(nevents,12);
+				if( spPtr->record(tbin).SMs()&0x2000) SMtimeline->Fill(nevents,13);
+				if( spPtr->record(tbin).SMs()&0x4000) SMtimeline->Fill(nevents,14);
+				if( nevents%100==0 ) SMtimeline->SetAxisRange(0, nevents+100);
+			}
+			TH2F *AFtimeline = (TH2F*)tf.get("AFtimeline",sp);
+			if( AFtimeline ){
+				if( spPtr->record(tbin).AFs()&0x1   ) AFtimeline->Fill(nevents,0);
+				if( spPtr->record(tbin).AFs()&0x2   ) AFtimeline->Fill(nevents,1); 
+				if( spPtr->record(tbin).AFs()&0x4   ) AFtimeline->Fill(nevents,2);
+				if( spPtr->record(tbin).AFs()&0x8   ) AFtimeline->Fill(nevents,3);
+				if( spPtr->record(tbin).AFs()&0x10  ) AFtimeline->Fill(nevents,4);
+				if( spPtr->record(tbin).AFs()&0x20  ) AFtimeline->Fill(nevents,5);
+				if( spPtr->record(tbin).AFs()&0x40  ) AFtimeline->Fill(nevents,6);
+				if( spPtr->record(tbin).AFs()&0x80  ) AFtimeline->Fill(nevents,7);
+				if( spPtr->record(tbin).AFs()&0x100 ) AFtimeline->Fill(nevents,8);
+				if( spPtr->record(tbin).AFs()&0x200 ) AFtimeline->Fill(nevents,9);
+				if( spPtr->record(tbin).AFs()&0x400 ) AFtimeline->Fill(nevents,10);
+				if( spPtr->record(tbin).AFs()&0x800 ) AFtimeline->Fill(nevents,11);
+				if( spPtr->record(tbin).AFs()&0x1000) AFtimeline->Fill(nevents,12);
+				if( spPtr->record(tbin).AFs()&0x2000) AFtimeline->Fill(nevents,13);
+				if( spPtr->record(tbin).AFs()&0x4000) AFtimeline->Fill(nevents,14);
+				if( spPtr->record(tbin).SEs()&0x8000) AFtimeline->Fill(nevents,15);
+				if( spPtr->record(tbin).SEs()&0x10000) AFtimeline->Fill(nevents,16);
+				if( nevents%100==0 ) AFtimeline->SetAxisRange(0, nevents+100);
+			}
+			TH2F *BXtimeline = (TH2F*)tf.get("BXtimeline",sp);
+			if( BXtimeline ){
+				if( spPtr->record(tbin).BXs()&0x1   ) BXtimeline->Fill(nevents,0);
+				if( spPtr->record(tbin).BXs()&0x2   ) BXtimeline->Fill(nevents,1); 
+				if( spPtr->record(tbin).BXs()&0x4   ) BXtimeline->Fill(nevents,2);
+				if( spPtr->record(tbin).BXs()&0x8   ) BXtimeline->Fill(nevents,3);
+				if( spPtr->record(tbin).BXs()&0x10  ) BXtimeline->Fill(nevents,4);
+				if( spPtr->record(tbin).BXs()&0x20  ) BXtimeline->Fill(nevents,5);
+				if( spPtr->record(tbin).BXs()&0x40  ) BXtimeline->Fill(nevents,6);
+				if( spPtr->record(tbin).BXs()&0x80  ) BXtimeline->Fill(nevents,7);
+				if( spPtr->record(tbin).BXs()&0x100 ) BXtimeline->Fill(nevents,8);
+				if( spPtr->record(tbin).BXs()&0x200 ) BXtimeline->Fill(nevents,9);
+				if( spPtr->record(tbin).BXs()&0x400 ) BXtimeline->Fill(nevents,10);
+				if( spPtr->record(tbin).BXs()&0x800 ) BXtimeline->Fill(nevents,11);
+				if( spPtr->record(tbin).BXs()&0x1000) BXtimeline->Fill(nevents,12);
+				if( spPtr->record(tbin).BXs()&0x2000) BXtimeline->Fill(nevents,13);
+				if( spPtr->record(tbin).BXs()&0x4000) BXtimeline->Fill(nevents,14);
+				if( spPtr->record(tbin).BXs()&0x8000) BXtimeline->Fill(nevents,15);
+				if( spPtr->record(tbin).BXs()&0x10000) BXtimeline->Fill(nevents,16);
+				if( nevents%100==0 ) BXtimeline->SetAxisRange(0, nevents+100);
+			}
+
 
 			vector<CSCSP_MEblock> LCTs = spPtr->record(tbin).LCTs();
 			for(vector<CSCSP_MEblock>::const_iterator lct=LCTs.begin(); lct!=LCTs.end(); lct++){
@@ -256,6 +336,42 @@ if( sp == 0 ){
 				unsigned short mpc =(lct->spInput()-1)/3+1; // 1-5
 				unsigned short csc = lct->csc();            // 1-9
 
+				const double offsetEta[6][10] = { 
+					{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+					{-1,  0,  0,  0,  2,  2,  2,  4,  4,  4},
+					{-1,  0,  0,  0,  2,  2,  2,  4,  4,  4},
+					{-1,  0,  0,  0,  3,  3,  3,  3,  3,  3},
+					{-1,  0,  0,  0,  3,  3,  3,  3,  3,  3},
+					{-1,  0,  0,  0,  3,  3,  3,  3,  3,  3}
+				};
+				const double normEta[6][10] = {
+					{-1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1},
+					{-1, 48/2., 48/2., 48/2., 64/2., 64/2., 64/2., 32/2., 32/2., 32/2.},
+					{-1, 48/2., 48/2., 48/2., 64/2., 64/2., 64/2., 32/2., 32/2., 32/2.},
+					{-1,112/3.,112/3.,112/3., 64/3., 64/3., 64/3., 64/3., 64/3., 64/3.},
+					{-1,112/3.,112/3.,112/3., 64/3., 64/3., 64/3., 64/3., 64/3., 64/3.},
+					{-1,112/3.,112/3.,112/3., 64/3., 64/3., 64/3., 64/3., 64/3., 64/3.}
+				};
+				const double offsetPhi[6][10] = { 
+					{-1,   -1,   -1,   -1,   -1,  -1,    -1,   -1,   -1,   -1},
+					{-1,    0, 1/6., 2/6.,    0, 1/6., 2/6.,    0, 1/6., 2/6.},
+					{-1, 3/6., 4/6., 5/6., 3/6., 4/6., 5/6., 3/6., 4/6., 5/6.},
+					{-1,    0, 1/3., 2/3.,    0, 1/6., 2/6., 3/6., 4/6., 5/6.},
+					{-1,    0, 1/3., 2/3.,    0, 1/6., 2/6., 3/6., 4/6., 5/6.},
+					{-1,    0, 1/3., 2/3.,    0, 1/6., 2/6., 3/6., 4/6., 5/6.}
+				};
+				const double normPhi[6][10] = {
+					{-1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1},
+					{-1, 158, 158, 158, 158, 158, 158, 126, 126, 126},
+					{-1, 158, 158, 158, 158, 158, 158, 126, 126, 126},
+					{-1, 158, 158, 158, 158, 158, 158, 158, 158, 158},
+					{-1, 158, 158, 158, 158, 158, 158, 158, 158, 158},
+					{-1, 158, 158, 158, 158, 158, 158, 158, 158, 158}
+				};
+
+				if(occupancies && mpc<6 && csc<10)
+					occupancies->Fill( lct->wireGroup()/normEta[mpc][csc] + offsetEta[mpc][csc], lct->strip()/normPhi[mpc][csc] + offsetPhi[mpc][csc] + sp);
+//cout<<"lct->wireGroup()="<<lct->wireGroup()<<" norm[mpc][csc]="<<norm[mpc][csc]<<" offset[mpc][csc]="<<offset[mpc][csc]<<" total="<<(lct->wireGroup()/norm[mpc][csc] + offset[mpc][csc])<<endl;
 				if(!tf.isBooked(sp,mpc) ){
 					tf.book(sp,mpc);
 					cout<<"Booking histograms for SP:"<<sp<<" MPC: "<<mpc<<std::endl;
@@ -360,6 +476,7 @@ if( sp == 0 ){
 			if( nTracks ) nTracks->Fill(tracks.size());
 
 			for(vector<CSCSP_SPblock>::const_iterator track=tracks.begin(); track!=tracks.end(); track++){
+				if(occupancies) occupancies->Fill( track->eta()/32.*6, track->phi()/32. + sp+12 ); 
 
 				TH2F *mode_vs_station = (TH2F*)tf.get("mode_vs_station",sp);
 				if( mode_vs_station ){

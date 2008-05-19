@@ -24,11 +24,14 @@ Sources=\
 	EmuTFfiller.cc     \
 	EmuTFvalidator.cc  \
 	EmuTFPlotter.cc  \
+        EmuTFMonitor.cc  \
 	RegEx.cc
+
+#        EmuTFMonitorV.cc  \
 
 Executables = EmuTFtest.cc 
 
-ExternalObjects = 
+ExternalObjects = ../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuDQMCommon.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
         $(XDAQ_ROOT)/$(Project)/$(Package)/../Common/include/ \
