@@ -194,9 +194,9 @@
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_</Prefix>
-		<Name>occupancies</Name>
-		<Title>Occupancies</Title>
-		<Item>occupancies</Item>
+		<Name>occupancy</Name>
+		<Title>Occupancy</Title>
+		<Item>occupancy</Item>
 	</Canvas>
 
 	<Canvas>
