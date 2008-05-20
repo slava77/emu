@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.34 2008/05/20 11:30:20 liu Exp $
+// $Id: Crate.cc,v 3.35 2008/05/20 12:04:00 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.35  2008/05/20 12:04:00  liu
+// skip dead crate in monitoring
+//
 // Revision 3.34  2008/05/20 11:30:20  liu
 // TMB counters in jumbo packet
 //
@@ -340,8 +343,6 @@ void Crate::configure(int c) {
   if(!ccb) return;
   std::cout << label_ << " Crate Configuring, Mode: " << c << std::endl; 
   
-
-
   std::vector<DAQMB*> myDmbs = this->daqmbs();
 
   std::cout << " HardReset, then lowv_onoff " << std::endl;
@@ -446,7 +447,7 @@ void Crate::MonitorCCB(int cycle, char * buf)
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
   //
-  if(!ccb) return;
+  if(ccb==NULL || mpc==NULL || !IsAlive()) return;
   ccb->read_later(0x0);
   ccb->read_later(0x2);
   ccb->read_later(0x4);
@@ -472,8 +473,10 @@ void Crate::MonitorTMB(int cycle, char * buf)
   *buf2 = 0;
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
-    countbuf=myTmbs[i]->NewCounters();
-    if(countbuf) memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
+    if(IsAlive())
+    {  countbuf=myTmbs[i]->NewCounters();
+       if(countbuf) memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
+    }
   }
   *buf2 = TOTAL_TMB_COUNTERS*2*9;
   return;
@@ -489,8 +492,10 @@ void Crate::MonitorDMB(int cycle, char * buf)
   *buf2 = 0;
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
-    countbuf=myDmbs[i]->GetCounters();
-    if(countbuf) memcpy(buf+4+i*TOTAL_DMB_COUNTERS, countbuf, TOTAL_DMB_COUNTERS);
+    if(IsAlive())
+    {  countbuf=myDmbs[i]->GetCounters();
+       if(countbuf) memcpy(buf+4+i*TOTAL_DMB_COUNTERS, countbuf, TOTAL_DMB_COUNTERS);
+    }
   }
   *buf2 = (TOTAL_DMB_COUNTERS/2)*9;
   return;
