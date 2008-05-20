@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.33 2008/05/20 10:46:01 liu Exp $
+// $Id: Crate.cc,v 3.34 2008/05/20 11:30:20 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.34  2008/05/20 11:30:20  liu
+// TMB counters in jumbo packet
+//
 // Revision 3.33  2008/05/20 10:46:01  liu
 // error handling update
 //
@@ -469,7 +472,7 @@ void Crate::MonitorTMB(int cycle, char * buf)
   *buf2 = 0;
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
-    countbuf=myTmbs[i]->GetCounters();
+    countbuf=myTmbs[i]->NewCounters();
     if(countbuf) memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
   }
   *buf2 = TOTAL_TMB_COUNTERS*2*9;
@@ -481,7 +484,7 @@ void Crate::MonitorDMB(int cycle, char * buf)
   int TOTAL_DMB_COUNTERS=12; // aligned at 4 bytes (integer)
   char * countbuf;
   short *buf2;
-  
+
   buf2=(short *)buf;
   *buf2 = 0;
   std::vector<DAQMB*> myDmbs = this->daqmbs();
