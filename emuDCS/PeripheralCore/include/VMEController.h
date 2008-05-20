@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.26 2008/04/22 08:32:35 liu Exp $
+// $Id: VMEController.h,v 3.27 2008/05/20 10:46:01 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.27  2008/05/20 10:46:01  liu
+// error handling update
+//
 // Revision 3.26  2008/04/22 08:32:35  liu
 // Ben's Crate controller utilities
 //
@@ -207,6 +210,8 @@ public:
 
   void start(int slot, int boardtype);
   void end();
+  inline void SetLife(bool life) { alive_=life; }
+  inline bool IsAlive() { return alive_; }
 
  
   /// JTAG stuff
@@ -296,7 +301,9 @@ private:
 
   char spebuff[MAXLINE];
   bool done_init_;
-  
+  bool alive_;
+  int slot_error[22];
+ 
   int max_buff;
   int tot_buff;
   /// previous fe used
