@@ -558,7 +558,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 	      if (cnt>0 && fValid) {
 		val.s = pow(max_rms,2) + pow((0.01*max), 2);
-		std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
+			std::cout << cscID << ":" << dec << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
 		<< ", mv=" << val.mv << ", rms=" << val.rms 
 		<< ", max=" << val.max << ", max_tbin=" << sample 
 		<< ", s=" << val.s << " , x=" << (11.2+28.0*dac) << std::endl; 
@@ -579,6 +579,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	    for(int strip = 1; strip <= 16; ++strip) { // loop over cfeb strip
 	      double X=0, XX=0, Y=0, YY=0, XY=0, S=0, x=0, y=0, s=0; 
 	      double a=0, b=0, ksi=0;
+	      bool fValidStrip=true;
 	      for (int dac=0; dac<9; dac++) {
 		dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
 		// x=(0.1+0.25*dac);
@@ -586,6 +587,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		y=val.mv;
 	//	y=val.max;
 		s=val.s;
+		if (s==0) { fValidStrip = false; break; }
 		X+=x/s;
 		XX+=(x*x)/s;
 		Y+=y/s;
@@ -593,13 +595,19 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		XY+=(y*x)/s;
 		S+=1/s;
 	      }
-	      a=(XY*S-X*Y)/(XX*S-X*X);
-	      b=(Y-a*X)/S;
-	      avg_gain+=1/a;
-	      avg_gain_cnt++;
+	      if (fValidStrip) {
+	      	a=(XY*S-X*Y)/(XX*S-X*X);
+	      	b=(Y-a*X)/S;
+	      	avg_gain+=1/a;
+	      	avg_gain_cnt++;
 	    
-	      ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X;
-	      std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
+	      	ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X;
+	      } else {
+		a = -999;
+		b = -999;
+		ksi = -999;
+	      }
+	      std::cout << cscID << ":" << dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
 	      r01.content[layer-1][icfeb*16+strip-1] = a;
 	      r02.content[layer-1][icfeb*16+strip-1] = b;
 	      r03.content[layer-1][icfeb*16+strip-1] = ksi;
