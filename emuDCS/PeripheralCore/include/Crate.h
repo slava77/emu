@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.12 2008/04/25 15:35:31 liu Exp $
+// $Id: Crate.h,v 3.13 2008/05/20 10:46:01 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.13  2008/05/20 10:46:01  liu
+// error handling update
+//
 // Revision 3.12  2008/04/25 15:35:31  liu
 // updates on VMECC
 //
@@ -97,7 +100,7 @@ public:
   std::string GetLabel() {return label_;}
   inline void SetLabel(std::string label ) {label_ = label;}
   inline void SetLife(bool life) { alive_=life; }
-  inline bool IsAlive() { return alive_; }
+  bool IsAlive();
   //
   VMEController * vmeController() const {return theController;}
 

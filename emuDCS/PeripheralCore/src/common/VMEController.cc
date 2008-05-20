@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.47 2008/05/16 13:41:03 liu Exp $
+// $Id: VMEController.cc,v 3.48 2008/05/20 10:46:01 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.48  2008/05/20 10:46:01  liu
+// error handling update
+//
 // Revision 3.47  2008/05/16 13:41:03  liu
 // fix a bug in vme delay
 //
@@ -319,6 +322,7 @@ VMEController::VMEController():
   //
   usedelay_ = false ;
   useDCS_ = true;
+  alive_=true;
   //
   done_init_=false;
 
@@ -828,6 +832,7 @@ void VMEController::vcc_check_config()
   n=vcc_read_command(0x0E, 7, regbuf);
   if(n!=7)
   {  printf("ERROR in reading VCC's configuration registers. Quit sending new data...\n");
+     SetLife(false);
      return;
   }
 
@@ -911,6 +916,7 @@ void VMEController::set_ErrorServer()
   n=vcc_read_command(0x0D, 15, regbuf);
   if(n!=15)
   {  printf("ERROR in reading VCC's Deafult Server MAC. Quit sending new data...\n");
+     SetLife(false);
      return;
   }
   if(memcmp(regbuf+12, hw_source_addr, 6)==0) return; 
@@ -987,9 +993,13 @@ bool VMEController::SelfTest()
    if(n==2)
    {
       clear_error();
+      SetLife(true);
       return true;
    }
-   else return  false;
+   else 
+   {  SetLife(false);
+      return  false;
+   }
 }
 
 bool VMEController::exist(int slot)
@@ -1305,6 +1315,7 @@ READETH:
             }
           }
           fflush(NULL);
+          SetLife(false);
           return -100;
         }
 // Jinghua Liu to debug
@@ -1332,6 +1343,8 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
 
  goto READETH; //disable for broadcast MvdM
         }
+      // if we can reach here, the controller still alive
+      SetLife(true);
       nbytet=(unsigned char *)rbuf+12;
       r_nbyte=((nbytet[0]<<8)&0xff00)|(nbytet[1]&0xff);
       r_head0=(unsigned char *)rbuf+14;
@@ -1438,101 +1451,54 @@ int VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sho
 
 void VMEController::write_Ethernet_CR(unsigned short int val)
 {
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x0F;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_Ethernet_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
+  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  vcc_write_command(0x0F, 1, &tvalue);
+  std::cout << "Write_Ethernet_CR to " << std::hex << val << std::dec << std::endl;
   return;
 }
 
 void VMEController::write_FIFO_CR(unsigned short int val)
 {
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x10;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_FIFO_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
+  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  vcc_write_command(0x10, 1, &tvalue);
+  std::cout << "Write_FIFO_CR to " << std::hex << val << std::dec << std::endl;
   return;
 }
 
 void VMEController::write_ResetMisc_CR(unsigned short int val)
 {
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x11;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_ResetMisc_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
+  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  vcc_write_command(0x11, 1, &tvalue);
+  std::cout << "Write_ResetMisc_CR to " << std::hex << val << std::dec << std::endl;
   return;
 }
 
 void VMEController::write_VME_CR(unsigned int val)
 {
-  int n;
-  int l,lcnt;
-  printf(" inside val %08x \n",val);
-  wbuf[0]=0x00;
-  wbuf[1]=0x12;
-  wbuf[2]=(val>>24)&0xff;
-  wbuf[3]=(val>>16)&0xff;
-  wbuf[4]=(val>>8)&0xff;
-  wbuf[5]=val&0xff;
-  nwbuf=6;
-  n=eth_write();
-  char buf[10];
-  sprintf(buf," %02x %02x %02x %02x ",wbuf[2]&0xff,wbuf[3]&0xff,wbuf[4]&0xff,wbuf[5]&0xff);
-  std::cout << "Write_VME_CR" << buf << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
+  unsigned short tvalue[2];
+  tvalue[1]=(val>>8)&0xff +((val&0xff)<<8); 
+  tvalue[0]=(val>>24)&0xff +(((val>>16)&0xff)<<8); 
+  vcc_write_command(0x12, 2, tvalue);
+  std::cout << "Write_VME_CR to " << std::hex << val << std::dec << std::endl;
   return;
 }
 
 void VMEController::write_BusTimeOut_CR(unsigned short int val)
 {
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x13;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_BusTimeOut_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
+  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  vcc_write_command(0x13, 1, &tvalue);
+  std::cout << "Write_BusTimeOut_CR to " << std::hex << val << std::dec << std::endl;
   return;
 }
 
 void VMEController::write_BusGrantTimeOut_CR(unsigned short int val)
 {
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x00;
-  wbuf[1]=0x14;
-  wbuf[2]=(val>>8)&0xff;
-  wbuf[3]=val&0xff;
-  nwbuf=4;
-  n=eth_write();
-  std::cout << "Write_BusGrantTimeOut_CR" << std::endl;
-  for(l=0;l<8000;l++)lcnt++;
+
+  unsigned short tvalue=(val>>8)&0xff +((val&0xff)<<8);
+  vcc_write_command(0x14, 1, &tvalue);
+  std::cout << "Write_BusGrantTimeOut_CR to " << std::hex << val << std::dec << std::endl;
   return;
 }
-
-
-
                                                                                 
 int VMEController::LeftToRead()
 {

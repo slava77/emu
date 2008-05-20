@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.32 2008/04/25 15:35:32 liu Exp $
+// $Id: Crate.cc,v 3.33 2008/05/20 10:46:01 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.33  2008/05/20 10:46:01  liu
+// error handling update
+//
 // Revision 3.32  2008/04/25 15:35:32  liu
 // updates on VMECC
 //
@@ -271,6 +274,10 @@ CCB * Crate::ccb() const {
 
 MPC * Crate::mpc() const {
   return findBoard<MPC>();
+}
+
+bool Crate::IsAlive() {
+  return alive_ && (vmeController()->IsAlive()); 
 }
 
 void Crate::enable() {
