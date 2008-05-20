@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.60 2008/05/12 10:23:16 rakness Exp $
+// $Id: TMB.cc,v 3.61 2008/05/20 11:30:20 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.61  2008/05/20 11:30:20  liu
+// TMB counters in jumbo packet
+//
 // Revision 3.60  2008/05/12 10:23:16  rakness
 // return control to VME bus after checking TMB PROM/FPGA IDs
 //
@@ -1372,6 +1375,30 @@ int * TMB::GetCounters(){
       cnt_full = cnt_lsb | (cnt_msb<<16) ;
       FinalCounter[counter/2] = cnt_full ;     //assembled counter MSB,LSB	 
     }
+  }   
+  //
+  return (int *)FinalCounter;
+}
+//
+int * TMB::NewCounters(){
+  //
+  // Take snapshot of current counter state
+  //
+  write_later(cnt_ctrl_adr,0x2); //snap
+  vme_delay(0x20);
+  write_later(cnt_ctrl_adr,0x0); //unsnap
+  //
+  // Extract counter data whose picture has been taken
+  //
+  for (int counter=0; counter <= MaxCounter; counter++){
+    //
+    int counter_address = counter << 8 ;
+    write_later(cnt_ctrl_adr,counter_address);
+    //
+    if (counter==MaxCounter)
+      read_now(cnt_rdata_adr, (char *)FinalCounter);
+    else
+      read_later(cnt_rdata_adr);
   }   
   //
   return (int *)FinalCounter;

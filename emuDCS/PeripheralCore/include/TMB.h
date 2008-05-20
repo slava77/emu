@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.40 2008/04/19 14:56:55 rakness Exp $
+// $Id: TMB.h,v 3.41 2008/05/20 11:30:21 liu Exp $
 // $Log: TMB.h,v $
+// Revision 3.41  2008/05/20 11:30:21  liu
+// TMB counters in jumbo packet
+//
 // Revision 3.40  2008/04/19 14:56:55  rakness
 // ALCT database check before loading ALCT firmware
 //
@@ -450,6 +453,7 @@ public:
   // TMB counters
   void ResetCounters();                 /// reset TMB counters
   int * GetCounters();                   /// read TMB counters, fill values in software
+  int * NewCounters();                   /// read TMB counters in jumbo packet
   int  GetCounter(int counter);         /// return counter value
   void PrintCounters(int counter=-1);   /// print counter value (-1 means print all)
   std::string CounterName(int counter); /// return counter label
