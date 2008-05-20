@@ -558,7 +558,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 	      if (cnt>0 && fValid) {
 		val.s = pow(max_rms,2) + pow((0.01*max), 2);
-			std::cout << cscID << ":" << dec << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
+			std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
 		<< ", mv=" << val.mv << ", rms=" << val.rms 
 		<< ", max=" << val.max << ", max_tbin=" << sample 
 		<< ", s=" << val.s << " , x=" << (11.2+28.0*dac) << std::endl; 
@@ -607,7 +607,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		b = -999;
 		ksi = -999;
 	      }
-	      std::cout << cscID << ":" << dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
+	      std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
 	      r01.content[layer-1][icfeb*16+strip-1] = a;
 	      r02.content[layer-1][icfeb*16+strip-1] = b;
 	      r03.content[layer-1][icfeb*16+strip-1] = ksi;
