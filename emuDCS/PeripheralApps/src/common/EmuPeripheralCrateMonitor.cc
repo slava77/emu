@@ -216,7 +216,6 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           now_crate=crateVector[i];
           if(now_crate && now_crate->IsAlive()) 
           {
-             if(!(now_crate->vmeController()->SelfTest())) continue;
              is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
              if(cycle==3)
              {  
