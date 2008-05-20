@@ -75,7 +75,7 @@
                 <YBins>41</YBins>
                 <YTitle>Saturation (ADC)</YTitle>
                 <Low1Limit>3500</Low1Limit>
-                <Low0Limit>4000</Low0Limit>
+                <Low0Limit>3900</Low0Limit>
                 <High0Limit>4095</High0Limit>
                 <High1Limit>4095</High1Limit>
         </TestResult>
