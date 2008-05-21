@@ -4371,9 +4371,7 @@ void EmuDAQManager::getIdsOfRunningConfigurationsFromFM(){
 	   << endl;
       if ( toolbox::regx_match( *rc, RegexMatchingCSCConfigName_.toString() ) ){
 	string configState = getConfigParameterFromFM( *rc, "STATE" );
-	if ( configState == "Initialize" ||
-	     configState == "Configure"  ||
-	     configState == "Start" ){
+	if ( configState.find("Configur") != string::npos ){
 	  CSCConfigId_.fromString( getConfigParameterFromFM( *rc, "CONF_ID" ) );
 	  LOG4CPLUS_INFO(logger_,"Got CSC config id " << CSCConfigId_.toString()
 			 << " from " << *rc << " in state \"" << configState << "\"" );
@@ -4384,7 +4382,7 @@ void EmuDAQManager::getIdsOfRunningConfigurationsFromFM(){
     if ( CSCConfigId_.toString() == "0" ){
       LOG4CPLUS_WARN(logger_, "<![CDATA[ Found in CSC FM no CSC configuration matching \""
 		     << RegexMatchingCSCConfigName_.toString()
-		     << "\" in state \"Initialize\" or \"Configure\" or \"Start\"."
+		     << "\" in state \"Configur*\"."
 		     << " ==> CSC configuarion id will be 0. ]]>" );
     }
   }
@@ -4394,36 +4392,8 @@ void EmuDAQManager::getIdsOfRunningConfigurationsFromFM(){
 		    << " : " << xcept::stdformat_exception_history(e));
   }
 
-  // From Track Finder's Function Manager
-  runningConfigs.clear();
+  // From Track Finder Cell: TODO
   TFConfigId_ = 0;
-  try{
-    runningConfigs = getRunningConfigurationsFromFM( TF_FM_URL_.toString() );
-    for ( vector<string>::iterator rc = runningConfigs.begin(); rc != runningConfigs.end(); ++rc ){
-      if ( toolbox::regx_match( *rc, RegexMatchingTFConfigName_.toString() ) ){
-	string configState = getConfigParameterFromFM( *rc, "STATE" );
-	if ( configState == "Initialize" ||
-	     configState == "Configure"  ||
-	     configState == "Start" ){
-	  TFConfigId_.fromString( getConfigParameterFromFM( *rc, "CONF_ID" ) );
-	  LOG4CPLUS_INFO(logger_,"Got TF config id " << TFConfigId_.toString()
-			 << " from " << *rc << " in state \"" << configState << "\"" );
-	  break;
-	}
-      }
-    }
-    if ( TFConfigId_.toString() == "0" ){
-      LOG4CPLUS_WARN(logger_, "<![CDATA[ Found in TF FM no TF configuration matching \""
-		     << RegexMatchingTFConfigName_.toString() 
-		     << "\" in state \"Initialize\" or \"Configure\" or \"Start\"."
-		     << " ==> TF configuarion id will be 0. ]]>" );
-    }
-  }
-  catch(emuDAQManager::exception::Exception &e){
-    LOG4CPLUS_ERROR(logger_,
-		    "Failed to get unique id of TF configuration from TF FM"
-		    << " : " << xcept::stdformat_exception_history(e));
-  }
 }
 
 
