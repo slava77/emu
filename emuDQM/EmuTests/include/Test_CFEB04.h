@@ -84,6 +84,7 @@ class Test_CFEB04: public Test_Generic
         int currL1A;
         int startL1A;
 	int dduID;
+	int ltc_bug;
 	std::map<int, ddu_stats> DDUstats;
         std::map<int, std::map<std::string, test_step> > htree;
 	bool fSwitch;
