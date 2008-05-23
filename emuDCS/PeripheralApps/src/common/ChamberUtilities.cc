@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.8 2008/05/14 13:46:58 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.9 2008/05/23 13:00:23 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.9  2008/05/23 13:00:23  rakness
+// set extra latency values in order to properly scan tmb_lct_cable_delay
+//
 // Revision 1.8  2008/05/14 13:46:58  rakness
 // change default ranges to better match current latency
 //
@@ -304,10 +307,10 @@ ChamberUtilities::ChamberUtilities(){
   number_of_data_reads_     = 100;    // default number of data reads
   //
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
-  min_alct_l1a_delay_value_ = 140;
+  min_alct_l1a_delay_value_ = 130;
   max_alct_l1a_delay_value_ = 160;
-  min_tmb_l1a_delay_value_  = 125; 
-  max_tmb_l1a_delay_value_  = 145; 
+  min_tmb_l1a_delay_value_  = 120; 
+  max_tmb_l1a_delay_value_  = 150; 
   //
   MyOutput_ = &std::cout ;
   //
@@ -1773,6 +1776,12 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   //
   for (int delay=DelayMin; delay<=DelayMax; delay++) {
     //
+    // Need to set extra latency values into the VME register before you push in
+    // the cable_delay into this serial chain
+    //
+    thisDMB->setxfinelatency(thisDMB->GetxFineLatency());
+    thisDMB->setxlatency(thisDMB->GetxLatency());
+    //
     // Set the delay value:
     thisDMB->SetTmbLctCableDelay(delay);        //insert the delay value into the DMB cable_delay_ parameter
     int cable_delay = thisDMB->GetCableDelay(); //get DMB::cable_delay_
@@ -1810,6 +1819,9 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
   thisTMB->WriteRegister(tmb_trig_adr);
+  //
+  thisDMB->setxfinelatency(thisDMB->GetxFineLatency());
+  thisDMB->setxlatency(thisDMB->GetxLatency());
   //
   if (use_measured_values_) {
     (*MyOutput_) << "Setting measured values of tmb_lct_cable_delay..." << std::endl;
