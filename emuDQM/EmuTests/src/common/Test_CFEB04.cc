@@ -8,6 +8,7 @@ Test_CFEB04::Test_CFEB04(std::string dfile): Test_Generic(dfile) {
   dduID=0;
 //   binCheckMask=0xFFFB3BF6;
   binCheckMask=0xFFFB3BF6;
+  ltc_bug=2;
 }
 
 
@@ -159,19 +160,30 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
     DDUstats[dduID].empty_evt_cntr++;
   }
 
-  if (currL1A%1000==1)
+  // === set ltc_bug=2 in case of LTC double L1A bug
+  // TODO: automatic detection of LTC L1A bug
+  //  int ltc_bug=1;
+  if ((DDUstats[dduID].evt_cntr == 8) && (DDUstats[dduID].empty_evt_cntr==0)) {
+	std::cout << "No LTC/TTC double L1A bug in data" << std::endl;
+	ltc_bug=1;
+  }
+  int dacSwitch=25*ltc_bug;
+  int stripSwitch=500*ltc_bug;
+
+
+  if (currL1A % stripSwitch==1)
     {
       // DDUstats[dduID].dac=(currL1A/50)%20;
-      DDUstats[dduID].strip=currL1A/1000+1;
+      DDUstats[dduID].strip=currL1A/ stripSwitch + 1;
       // DDUstats[dduID].empty_evt_cntr=0;
       /*std::cout << "DDUEvt#" << std::dec << nTotalEvents << " " << DDUstats[dduID].csc_evt_cntr 
 	<< ": DDU#" << dduID << " Switch strip:" << DDUstats[dduID].strip
         << " dac:" << DDUstats[dduID].dac << std::endl;
       */
     }
-  if (currL1A%50==1) {
-    DDUstats[dduID].dac=(currL1A/50)%20;
-    DDUstats[dduID].strip=currL1A/1000+1;
+  if (currL1A% dacSwitch ==1) {
+    DDUstats[dduID].dac=(currL1A / dacSwitch) % 20;
+    DDUstats[dduID].strip=currL1A / stripSwitch + 1;
     DDUstats[dduID].empty_evt_cntr=0;
     /*
     std::cout << "DDUEvt#" << std::dec << currL1A << " " << DDUstats[dduID].csc_evt_cntr << " " << DDUstats[dduID].empty_evt_cntr
