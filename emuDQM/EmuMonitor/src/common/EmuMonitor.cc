@@ -16,11 +16,19 @@ std::string now()
 {
   char buf[255];
   time_t now=time(NULL);
-  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", localtime(&now));
+  const struct tm * timeptr = localtime(&now);
+  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", timeptr);
   std::string time = std::string(buf);
-  return time.substr(0,time.find("\n",0));
+  if (time.find("\n",0) != std::string::npos) 
+        time = time.substr(0,time.find("\n",0));
+  else { 
+	if (time.length() == 0)
+	        time = "---";
+  }
+  return time;
 
 };
+
 
 std::string getDateTime(){
   time_t t;
@@ -168,6 +176,7 @@ void EmuMonitor::initProperties()
   stateName_		= "";
   fSaveROOTFile_	= false;
   keepRunning           = false;
+  loopFileReadout_	= false;
 
   getApplicationInfoSpace()->fireItemAvailable("totalEvents",&totalEvents_);
   getApplicationInfoSpace()->fireItemAvailable("sessionEvents",&sessionEvents_);
@@ -205,6 +214,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("cscMapFile",&cscMapFile_);
 
   getApplicationInfoSpace()->fireItemAvailable("useAltFileReader",&useAltFileReader_);
+  getApplicationInfoSpace()->fireItemAvailable("loopFileReadout",&loopFileReadout_);
   getApplicationInfoSpace()->fireItemAvailable("stateName",&stateName_);
   getApplicationInfoSpace()->fireItemAvailable("stateChangeTime",&stateChangeTime_);
   getApplicationInfoSpace()->fireItemAvailable("lastEventTime",&lastEventTime_);
@@ -235,6 +245,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemChangedListener ("daqGroup", this);
 
   getApplicationInfoSpace()->addItemChangedListener ("useAltFileReader", this);
+  getApplicationInfoSpace()->addItemChangedListener ("loopFileReadout", this);
 
   getApplicationInfoSpace()->addItemRetrieveListener ("totalEvents", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("sessionEvents", this);
@@ -245,6 +256,10 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemRetrieveListener ("stateName", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("cscRate", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("nDAQEvents", this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("serversClassName", this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("stateChangeTime", this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("lastEventTime", this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("readoutMode", this);
 
 };
 
@@ -1231,7 +1246,14 @@ int EmuMonitor::svc()
 	*/
 	    }
 
+        } else {
+	   if (!readValid && loopFileReadout_) {
+		destroyDeviceReader();
+	 	createDeviceReader();	
+		readValid=true;
+	   }
         }
+        
       
       uint32_t timeout = 3*1000000; // 5sec
       uint32_t wait = 10000; // 10ms

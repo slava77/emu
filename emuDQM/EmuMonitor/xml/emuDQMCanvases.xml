@@ -23,9 +23,6 @@
 		<NumPadsY>2</NumPadsY>
 		<Pad1>All_DDUs_in_Readout</Pad1>
 		<Pad2>All_DDUs_L1A_Increment</Pad2>
-                <Descr>
-                  For each L1A, DDU must send back its Header/Trailer and DMB data, if present, sandwiched in between. 
-                </Descr>
 	</Canvas>
 	<Canvas>
 		<Type>cnv</Type>
@@ -64,9 +61,6 @@
 		<NumPadsY>2</NumPadsY>
 		<Pad1>All_DDUs_Live_Inputs</Pad1>
 		<Pad2>All_DDUs_Inputs_with_Data</Pad2>
-                <Descr>
-                  Histograms that report DDU Header information for each L1A.
-                </Descr>
 	</Canvas>
         <Canvas>
                 <Type>cnv</Type>
@@ -77,9 +71,6 @@
                 <NumPadsY>2</NumPadsY>
                 <Pad1>All_DDUs_Inputs_Errors</Pad1>
                 <Pad2>All_DDUs_Inputs_Warnings</Pad2>
-                <Descr>
-                  DDU flags offensive inputs and reports this information in its trailer. 
-                </Descr>
         </Canvas>
 	<!-- Canvas>
 		<Type>cnv</Type>
@@ -166,9 +157,10 @@
                 <NumPadsX>2</NumPadsX>
                 <NumPadsY>2</NumPadsY>
                 <Pad1>CSC_Format_Errors_Fract</Pad1>
-		<Pad2>CSC_Format_Warnings_Fract</Pad2>
+		<Pad2>CSC_L1A_out_of_sync</Pad2>
 		<Pad3>CSC_DMB_input_fifo_full_Fract</Pad3>
                 <Pad4>CSC_DMB_input_timeout_Fract</Pad4>
+
         </Canvas>
 
         <!-- Canvas>
@@ -219,13 +211,7 @@
 		<Pad1>CSC_wo_ALCT_Fract</Pad1>
 		<Pad2>CSC_wo_CLCT_Fract</Pad2>
 		<Pad3>CSC_wo_CFEB_Fract</Pad3>
-                <Descr>
-                These histograms show how often CSC events come without ALCT, CLCT, CFEB data. 
-                In conditions of cosmic ray runs, probabilities can go quite high, especially for ME1/1 CLCTs, 
-                which is not really a problem of chambers/electronics. What one really wants to single out is a 
-                list of chambers with =100% probability not to report some of data blocks. For the chambers in 
-                questions, one should look up “Data Block Finding Efficiency” histogram in the CSC folder. 
-                </Descr>
+		<Pad4>CSC_Format_Warnings_Fract</Pad4>
         </Canvas>
         <!--Canvas>
                 <Type>cnv</Type>
@@ -888,7 +874,7 @@
 		<Pad5>CFEB_SCA_Cell_Peak_Ly_5</Pad5>
 		<Pad6>CFEB_SCA_Cell_Peak_Ly_6</Pad6>
 	</Canvas>
-	<Canvas>
+	<!--Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CSC_Data_Block_Finding_Efficiency</Name>
@@ -897,30 +883,84 @@
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Efficiency</Pad1>
 		<Folder>CSC</Folder>
-	</Canvas>
+	</Canvas-->
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
-		<Name>CSC_Data_Format_Errors_and_Warnings</Name>
-		<Title>CSC: Data Format Errors and Warnings</Title>
+		<Name>DMB_Test01_Binary_Examiner_Report</Name>
+		<Title>DMB: Test01 - Binary Examiner Report</Title>
 		<NumPadsX>2</NumPadsX>
-		<NumPadsY>2</NumPadsY>
-		<Pad1>BinCheck_ErrorStat_Table</Pad1>
-		<Pad2>BinCheck_ErrorStat_Frequency</Pad2>
-		<Pad3>BinCheck_WarningStat_Table</Pad3>
-		<Folder>CSC</Folder>
-		<Pad4>BinCheck_WarningStat_Frequency</Pad4>
-	</Canvas>
-	<Canvas>
-		<Type>cnv</Type>
-		<Prefix>CSC</Prefix>
-		<Name>DMB_CFEB_Multiple_Overlaps</Name>
-		<Title>DMB: CFEB Multiple Overlaps</Title>
-		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
-		<Pad1>DMB_CFEB_MOVLP</Pad1>
+		<Pad1>BinCheck_Errors_Frequency</Pad1>
+		<Pad2>BinCheck_DataFlow_Problems_Frequency</Pad2>
+		<!--Pad3>BinCheck_ErrorStat_Table</Pad3-->
+                <!--Pad4>BinCheck_WarningStat_Table</Pad4-->
 		<Folder>DMB</Folder>
 	</Canvas>
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_Test02_ALCT_TMB_CFEB_Data_Blocks</Name>
+                <Title>DMB: Test02 - ALCT/TMB/CFEB Data Blocks</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>Actual_DMB_FEB_DAV_Frequency</Pad1>
+                <Pad2>Actual_DMB_FEB_Combinations_DAV_Frequency</Pad2>
+                <Pad3>DMB_FEB_DAV_Unpacking_Inefficiency</Pad3>
+                <Pad4>DMB_FEB_Combinations_DAV_Unpacking_Inefficiency</Pad4>
+                <Folder>DMB</Folder>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_Test03_Individual_CFEB_Data_Blocks</Name>
+                <Title>DMB: Test03 - Individual CFEB Data Blocks</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>Actual_DMB_CFEB_DAV_Frequency</Pad1>
+                <Pad2>Actual_DMB_CFEB_DAV_multiplicity_Frequency</Pad2>
+		<Pad3>DMB_CFEB_DAV_Unpacking_Inefficiency</Pad3>
+                <Pad4>DMB_CFEB_DAV_multiplicity_Unpacking_Inefficiency</Pad4>
+                <Folder>DMB</Folder>
+        </Canvas>
+
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_Test04_CFEBs_DAV_and_Active</Name>
+                <Title>DMB: Test04 - CFEBs DAV and Active self consistency</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_CFEB_Active_vs_DAV</Pad1>
+                <Folder>DMB</Folder>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_Test05_L1A_High_Rate_Indicators</Name>
+                <Title>DMB: Test05 - L1A High Rate Indicators</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+		<Pad1>DMB_L1_Pipe</Pad1>
+                <Pad2>DMB_CFEB_MOVLP</Pad2>
+                <Folder>DMB</Folder>
+        </Canvas>
+
+
+	<!--Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_CFEB_Multiple_Overlaps</Name>
+                <Title>DMB: CFEB Multiple Overlaps</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>DMB_CFEB_MOVLP</Pad1>
+                <Folder>DMB</Folder>
+        </Canvas>
+
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
@@ -934,6 +974,7 @@
 		<Folder>DMB</Folder>
 		<Pad4>DMB_CFEB_DAV_multiplicity</Pad4>
 	</Canvas>
+
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
@@ -968,8 +1009,45 @@
 		<Pad3>DMB_FEB_Unpacked_vs_DAV</Pad3>
 		<Folder>DMB</Folder>
 		<Pad4>DMB_FEB_Combinations_Unpacked_vs_DAV</Pad4>
-	</Canvas>
+	</Canvas-->
 	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>SYNC_Test01_L1A_Differences</Name>
+                <Title>SYNC Test01 - L1A Differences</Title>
+                <NumPadsX>4</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+		<Pad1>CFEB0_DMB_L1A_diff</Pad1>
+		<Pad2>CFEB1_DMB_L1A_diff</Pad2>
+		<Pad3>CFEB2_DMB_L1A_diff</Pad3>
+		<Pad4>CFEB3_DMB_L1A_diff</Pad4>
+		<Pad5>CFEB4_DMB_L1A_diff</Pad5>
+                <Pad6>ALCT_DMB_L1A_diff</Pad6>
+		<Pad7>CLCT_DMB_L1A_diff</Pad7>
+		<Pad8>DMB_DDU_L1A_diff</Pad8>
+		<Folder>SYNC</Folder>
+        </Canvas>
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>CSC</Prefix>
+                <Name>SYNC_Test02_BXN_Differences</Name>
+                <Title>SYNC Test02 - BXN Differences</Title>
+                <NumPadsX>4</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>CFEB0_L1A_Sync_Time_DMB_diff</Pad1>
+                <Pad2>CFEB1_L1A_Sync_Time_DMB_diff</Pad2>
+                <Pad3>CFEB2_L1A_Sync_Time_DMB_diff</Pad3>
+                <Pad4>CFEB3_L1A_Sync_Time_DMB_diff</Pad4>
+                <Pad5>CFEB4_L1A_Sync_Time_DMB_diff</Pad5>
+                <Pad6>ALCT_DMB_BXN_diff</Pad6>
+                <Pad7>CLCT_DMB_BXN_diff</Pad7>
+                <Pad8>DMB_DDU_BXN_diff</Pad8>
+                <Folder>SYNC</Folder>
+        </Canvas>
+
+
+	<!-- Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
 		<Name>SYNC_ALCT_-_DMB_Synchronization</Name>
@@ -1050,7 +1128,7 @@
 		<Pad4>CLCT_BXN</Pad4>
 		<Pad5>CLCT_DMB_BXN_diff</Pad5>
 		<Pad6>CLCT_BXN_vs_DMB_BXN</Pad6>
-	</Canvas>
+	</Canvas-->
 	<Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>

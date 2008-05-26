@@ -229,6 +229,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
 
 
   xdata::Boolean 	useAltFileReader_;
+  xdata::Boolean	loopFileReadout_;
 
 
   EmuReader*         	deviceReader_;         // device reader
