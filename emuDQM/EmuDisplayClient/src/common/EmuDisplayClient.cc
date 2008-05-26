@@ -613,9 +613,11 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 	      readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"readoutMode","string");
 	      lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"lastEventTime","string");
 
-	      if (readoutMode == "internal")
-		dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"inputDeviceName","string");
 	      nDAQevents = "0";
+	      if (readoutMode == "internal") {
+		dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"inputDeviceName","string");
+		nDAQevents = events;
+	      }
 	      if (readoutMode == "external") {
 		dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"serversClassName","string");
 		if (rui != NULL) {
