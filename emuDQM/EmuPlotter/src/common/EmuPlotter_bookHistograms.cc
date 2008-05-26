@@ -3,7 +3,7 @@
 ME_List EmuPlotter::bookCommon(int nodeNumber) 
 {
 	// std::string prefix = Form("EMU_%d", nodeNumber);
-	std::string prefix = "EMU";
+	std::string prefix = "EMU_Summary";
 	ME_List commonMEs;
 	ME_List_iterator itr;
 	for (itr = commonMEfactory.begin(); itr != commonMEfactory.end(); ++itr) {
