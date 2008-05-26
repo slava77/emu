@@ -1853,10 +1853,12 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
     //
   }
   //
-  (*MyOutput_) << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
-  //
   Logfile_ << std::endl;
-  Logfile_ << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
+  //
+  if (tmb_->slot() < 22) {
+    (*MyOutput_) << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
+    Logfile_ << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
+  }
   //
   Logfile_ << std::endl;
   Logfile_ << "Summary statistics: " << std::endl;
@@ -1925,7 +1927,9 @@ void EMUjtag::DecodeXsvfImage_() {
 	(*MyOutput_) << "Slot " << (int) tmb_->slot() 
 		     << ":  Programmed " << std::setprecision(1) << std::fixed << percent_programmed 
 		     << "% of " << std::dec << number_of_read_bytes_ 
-		     << " bytes with " << verify_error_ <<" verify errors" << std::endl;
+		     << " bytes";
+	if (tmb_->slot() < 22) (*MyOutput_) << " with " << verify_error_ <<" verify errors";
+	(*MyOutput_) << std::endl;
       }
     //
     if (command > NUMBER_OF_DIFFERENT_XSVF_COMMANDS) {
