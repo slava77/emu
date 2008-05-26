@@ -7,7 +7,7 @@ Test_CFEB04::Test_CFEB04(std::string dfile): Test_Generic(dfile) {
   nExpectedEvents = 8000;
   dduID=0;
 //   binCheckMask=0xFFFB3BF6;
-  binCheckMask=0xFFFB3BF6;
+  binCheckMask=0xFFFB7BF6;
   ltc_bug=2;
 }
 
@@ -325,6 +325,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 	double Qmax=gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
 	double Qmv=0;
 	if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC()) {
+		std::cout << cscID << " CRC check failed for time sample 1 and 2" << std::endl;
 		continue;
 	}
         double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
@@ -342,7 +343,8 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 	for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
 //          CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
 	  if (!(cfebData->timeSlice(itime)->checkCRC())) {
-		continue; 
+		std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " CRC failed, cfeb" << icfeb << ", layer" << layer << ", strip" << curr_strip << ", dac" << curr_dac << ", time sample " << itime << std::endl;
+		// continue; 
 	  }
 	  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
 	  
@@ -507,6 +509,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
     GainData& gaindata = gdata[cscID];
     MonHistos& cschistos = mhistos[cscID];
     TH2F* v01 = reinterpret_cast<TH2F*>(cschistos["V01"]);
+    TH2F* v05 = reinterpret_cast<TH2F*>(cschistos["V05"]);
     //    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
     //    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
     //    return;
@@ -541,7 +544,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][itime];
 		cnt = cval.cnt;
 		if (cval.cnt<13) {
-		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " Error> dac=" << dac << ", cnt="<< cval.cnt << std::endl;
+		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) << " Error> dac=" << dac << " , sample=" << itime << ", cnt="<< cval.cnt << std::endl;
 		  fValid=false;
 		  // if (dac<15)  fValid=false; // === Fix for recent bad data (only 15 dac steps)
 		} else {
@@ -592,7 +595,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	      double X=0, XX=0, Y=0, YY=0, XY=0, S=0, x=0, y=0, s=0; 
 	      double a=0, b=0, ksi=0;
 	      bool fValidStrip=true;
-	      for (int dac=0; dac<9; dac++) {
+	      for (int dac=0; dac<10; dac++) {
 		dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
 		// x=(0.1+0.25*dac);
 		x=11.2 +(28.0*dac);
@@ -619,6 +622,15 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		b = -999;
 		ksi = -999;
 	      }
+	      for (int dac=0; dac<10; dac++) {
+                dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+                // x=(0.1+0.25*dac);
+                x=11.2 +(28.0*dac);
+                y=val.mv;
+		double residual = y-a*x-b;
+		if (v05) v05->Fill(dac, residual);
+              }
+
 	      std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
 	      r01.content[layer-1][icfeb*16+strip-1] = a;
 	      r02.content[layer-1][icfeb*16+strip-1] = b;
