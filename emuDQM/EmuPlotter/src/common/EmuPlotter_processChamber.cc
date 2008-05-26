@@ -20,6 +20,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   int alct_keywg = -1;
   int clct_kewdistrip = -1;
+
+  bool L1A_out_of_sync = false;
 	  
 
   EmuMonitoringObject* mo = NULL;
@@ -83,7 +85,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     return;
   }
 
-  nDMBEvents[cscTag]++;
+  // nDMBEvents[cscTag]++;
   float DMBEvents  = 0.0;
   DMBEvents = nDMBEvents[cscTag];  
 
@@ -119,6 +121,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->Fill(CSCposition, CSCtype);
   }
 
+/*
   EmuMonitoringObject* mof = NULL;
   if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
       && isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
@@ -139,7 +142,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->SetEntries((int)DMBEvents);
     mof->SetEntries((int)DMBEvents);
   }
-
+*/
 
   //    Efficiency of the chamber
   float DMBEff  = 0.0;
@@ -154,20 +157,22 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   // == DDU L1A: 24bits
   int dmbHeaderL1A      = 0;
   int dmb_ddu_l1a_diff  = 0;
-  dmbHeaderL1A = dmbHeader->l1a();
+  // === Use 6-bit L1A
+  dmbHeaderL1A = dmbHeader->l1a()%64;
   //          Calculate difference between L1A numbers from DDU and DMB
-  dmb_ddu_l1a_diff = (int)(dmbHeaderL1A-(int)(L1ANumber&0xFF));
+  dmb_ddu_l1a_diff = (int)(dmbHeaderL1A-(int)(L1ANumber%64));
+  if (dmb_ddu_l1a_diff != 0) L1A_out_of_sync = true;
   LOG4CPLUS_DEBUG(logger_, "DMB(ID=" << ChamberID  << ") L1A = " << dmbHeaderL1A
 		  << " : DMB L1A - DDU L1A = " << dmb_ddu_l1a_diff);
 
   if (isMEvalid(cscME, "DMB_L1A_Distrib", mo)) mo->Fill(dmbHeaderL1A);
 
   if (isMEvalid(cscME, "DMB_DDU_L1A_diff", mo)) {
-    if(dmb_ddu_l1a_diff < -128) 
-      mo->Fill(dmb_ddu_l1a_diff + 256);
+    if(dmb_ddu_l1a_diff < -32) 
+      mo->Fill(dmb_ddu_l1a_diff + 64);
     else {
-      if(dmb_ddu_l1a_diff > 128)  
-	mo->Fill(dmb_ddu_l1a_diff - 256);
+      if(dmb_ddu_l1a_diff > 32)  
+	mo->Fill(dmb_ddu_l1a_diff - 64);
       else 
 	mo->Fill(dmb_ddu_l1a_diff);
     }
@@ -183,19 +188,21 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   // == DMB BXN: 12bits (4096) call bxn12(), bxn() return 7bits value
   // == DDU BXN: 12bits (4096) 
+
+  // == Use 6-bit BXN
   dmbHeaderBXN = dmbHeader->bxn12();
   //          Calculation difference between BXN numbers from DDU and DMB
 
   //  dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN&0x7F)); // For older DMB
-  dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN));
+  dmb_ddu_bxn_diff = dmbHeaderBXN%64-BXN%64;
   LOG4CPLUS_DEBUG(logger_, "DMB(ID=" << ChamberID  << ") BXN = " << dmbHeaderBXN
 		  << " : DMB BXN - DDU BXN = " << dmb_ddu_bxn_diff);
   if (isMEvalid(cscME,"DMB_BXN_Distrib", mo)) mo->Fill((int)(dmbHeader->bxn12()));
 
   if (isMEvalid(cscME, "DMB_DDU_BXN_diff", mo)) {
-    if(dmb_ddu_bxn_diff < -2048) mo->Fill(dmb_ddu_bxn_diff + 4096);
+    if(dmb_ddu_bxn_diff < -32) mo->Fill(dmb_ddu_bxn_diff + 64);
     else {
-      if(dmb_ddu_bxn_diff > 2048)  mo->Fill(dmb_ddu_bxn_diff - 4096);
+      if(dmb_ddu_bxn_diff > 32)  mo->Fill(dmb_ddu_bxn_diff - 64);
       else mo->Fill(dmb_ddu_bxn_diff);
     }  
     mo->SetAxisRange(0.1, 1.1*(1.0+ mo->getObject()->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -211,11 +218,18 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int dmb_cfeb_sync = 0;
 
   cfeb_dav = (int)dmbHeader->cfebAvailable();
-  for (int i=0; i<5; i++) cfeb_dav_num = cfeb_dav_num + (int)((cfeb_dav>>i) & 0x1);
+  for (int i=0; i<5; i++) cfeb_dav_num += (cfeb_dav>>i) & 0x1;
   cfeb_movlp    = (int)dmbHeader->cfebMovlp();
   dmb_cfeb_sync = (int)dmbHeader->dmbCfebSync();
 
-  if (isMEvalid(cscME, "DMB_CFEB_DAV", mo)) mo->Fill(cfeb_dav);
+  if (isMEvalid(cscME, "DMB_CFEB_DAV", mo)) {
+	for (int i=0; i<5;i++) {
+	  int cfeb_present = (cfeb_dav>>i) & 0x1;
+	  if (cfeb_present) {
+	    mo->Fill(i);
+	  }
+	}
+  }
   if (isMEvalid(cscME, "DMB_CFEB_DAV_multiplicity", mo)) mo->Fill(cfeb_dav_num);
   if (isMEvalid(cscME, "DMB_CFEB_MOVLP", mo)) mo->Fill(cfeb_movlp);
   if (isMEvalid(cscME, "DMB_CFEB_Sync", mo)) mo->Fill(dmb_cfeb_sync);
@@ -251,6 +265,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->SetEntries((int)DMBEvents);
   }
 
+/*
   // Check if any of input FIFO's are full
   bool anyInputFull = dmbTrailer->tmb_full || dmbTrailer->alct_full;
   for (int i=0; i<5; i++) {
@@ -266,6 +281,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       mo->Fill(crateID, dmbID);
     }
   }
+*/
 
   // DMB input timeout (total 15 bits) goes here
   if (isMEvalid(cscME, "DMB_FEB_Timeouts", mo)) {
@@ -288,6 +304,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->SetEntries((int)DMBEvents);
   }
 
+/*
   bool anyInputTO = dmbTrailer->tmb_timeout || dmbTrailer->alct_timeout || dmbTrailer->cfeb_starttimeout || dmbTrailer->cfeb_endtimeout;
   for (int i=0; i<5; i++) {
     anyInputTO = ((dmbTrailer->cfeb_starttimeout>>i) & 0x1) || ((dmbTrailer->cfeb_endtimeout>>i) & 0x1);
@@ -301,7 +318,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       mo->Fill(crateID, dmbID);
     }
   }
-
+*/
   //      Get FEBs Data Available Info
   int alct_dav  = dmbHeader->nalct();
   int tmb_dav   = dmbHeader->nclct();
@@ -341,14 +358,14 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   float feb_combination_dav = -1.0;
   //      Fill Hisogram for Different Combinations of FEB DAV Efficiency
   if (isMEvalid(cscME, "DMB_FEB_Combinations_DAV_Rate", mo)) {
-    if(alct_dav == 0 && tmb_dav == 0 && cfeb_dav2 == 0) feb_combination_dav = 0.0;
-    if(alct_dav >  0 && tmb_dav == 0 && cfeb_dav2 == 0) feb_combination_dav = 1.0;
-    if(alct_dav == 0 && tmb_dav >  0 && cfeb_dav2 == 0) feb_combination_dav = 2.0;
-    if(alct_dav == 0 && tmb_dav == 0 && cfeb_dav2 >  0) feb_combination_dav = 3.0;
-    if(alct_dav >  0 && tmb_dav >  0 && cfeb_dav2 == 0) feb_combination_dav = 4.0;
-    if(alct_dav >  0 && tmb_dav == 0 && cfeb_dav2 >  0) feb_combination_dav = 5.0;
-    if(alct_dav == 0 && tmb_dav >  0 && cfeb_dav2 >  0) feb_combination_dav = 6.0;
-    if(alct_dav >  0 && tmb_dav >  0 && cfeb_dav2 >  0) feb_combination_dav = 7.0;
+   	if(alct_dav == 0 && tmb_dav == 0 && cfeb_dav2 == 0) feb_combination_dav = 0.0; // Nothing
+	if(alct_dav >  0 && tmb_dav == 0 && cfeb_dav2 == 0) feb_combination_dav = 1.0; // ALCT Only
+	if(alct_dav == 0 && tmb_dav >  0 && cfeb_dav2 == 0) feb_combination_dav = 2.0; // TMB Only
+	if(alct_dav == 0 && tmb_dav == 0 && cfeb_dav2 >  0) feb_combination_dav = 3.0; // CFEB Only
+	if(alct_dav == 0 && tmb_dav >  0 && cfeb_dav2 >  0) feb_combination_dav = 4.0; // TMB+CFEB
+	if(alct_dav >  0 && tmb_dav >  0 && cfeb_dav2 == 0) feb_combination_dav = 5.0; // ALCT+TMB
+	if(alct_dav >  0 && tmb_dav == 0 && cfeb_dav2 >  0) feb_combination_dav = 6.0; // ALCT+CFEB
+	if(alct_dav >  0 && tmb_dav >  0 && cfeb_dav2 >  0) feb_combination_dav = 7.0; // ALCT+TMB+CFEB
     mo->Fill(feb_combination_dav);
     float feb_combination_dav_number = mo->GetBinContent((int)(feb_combination_dav+1.0));
     if (isMEvalid(cscME, "DMB_FEB_Combinations_DAV_Efficiency",mo)) {
@@ -400,12 +417,15 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       // == ALCT2006 L1A: 4bits (16)
       if (isMEvalid(cscME, "ALCT_L1A", mo)) mo->Fill((int)(alctHeader->L1Acc()));
 
+
+      // == Use 6-bit L1A      
       if (isMEvalid(cscME, "ALCT_DMB_L1A_diff", mo)) {
 	//      int alct_dmb_l1a_diff = (int)((dmbHeader->l1a()&0xF)-alctHeader->L1Acc());
-	int alct_dmb_l1a_diff = (int)(dmbHeader->l1a()-(alctHeader->L1Acc()&0xFF));
-	if(alct_dmb_l1a_diff < -128) mo->Fill(alct_dmb_l1a_diff + 256);
+	int alct_dmb_l1a_diff = (int)(alctHeader->L1Acc()%64-dmbHeader->l1a()%64);
+	if (alct_dmb_l1a_diff != 0) L1A_out_of_sync = true;
+	if(alct_dmb_l1a_diff < -32) mo->Fill(alct_dmb_l1a_diff + 64);
 	else {
-	  if(alct_dmb_l1a_diff > 128) mo->Fill(alct_dmb_l1a_diff - 256);
+	  if(alct_dmb_l1a_diff > 32) mo->Fill(alct_dmb_l1a_diff - 64);
 	  else mo->Fill(alct_dmb_l1a_diff);
 	}
 	mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -417,11 +437,12 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
 
       // === ALCT BXN: 12bits (4096)
+      // === Use 6-bit BXN
       if (isMEvalid(cscME, "ALCT_DMB_BXN_diff", mo)) {
-	int alct_dmb_bxn_diff = (int)(dmbHeader->bxn12()-alctHeader->BXNCount());
-	if(alct_dmb_bxn_diff < -2048) mo->Fill(alct_dmb_bxn_diff + 4096);
+	int alct_dmb_bxn_diff = (int)(alctHeader->BXNCount()%64-dmbHeader->bxn12()%64);
+	if(alct_dmb_bxn_diff < -32) mo->Fill(alct_dmb_bxn_diff + 64);
 	else {
-	  if(alct_dmb_bxn_diff > 2048)  mo->Fill(alct_dmb_bxn_diff - 4096);
+	  if(alct_dmb_bxn_diff > 32)  mo->Fill(alct_dmb_bxn_diff - 64);
 	  else mo->Fill(alct_dmb_bxn_diff);
 	}
 	mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -566,7 +587,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if ((alct_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
       mo->Fill(0.0, 1.0);
     }
-
+/*
     if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_ALCT", mo)){
       mo->Fill(CSCposition, CSCtype);
     }
@@ -574,7 +595,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(nodeME, "DMB_wo_ALCT", mo)) {
       mo->Fill(crateID,dmbID);
     }
-
+*/
  }
 
   //ALCT and CLCT coinsidence
@@ -692,11 +713,13 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
 	if (isMEvalid(cscME, "CLCT_L1A", mo)) mo->Fill(tmbHeader->L1ANumber());
 
+	// === Use 6-bit L1A
 	if (isMEvalid(cscME, "CLCT_DMB_L1A_diff", mo)) {
-	  int clct_dmb_l1a_diff = (int)(dmbHeader->l1a()-(tmbHeader->L1ANumber()&0xFF));
-	  if(clct_dmb_l1a_diff < -128) mo->Fill(clct_dmb_l1a_diff + 256);
+	  int clct_dmb_l1a_diff = (int)((tmbHeader->L1ANumber()%64)-dmbHeader->l1a()%64);
+	  if (clct_dmb_l1a_diff != 0) L1A_out_of_sync = true;
+	  if(clct_dmb_l1a_diff < -32) mo->Fill(clct_dmb_l1a_diff + 64);
 	  else {
-	    if(clct_dmb_l1a_diff > 128)  mo->Fill(clct_dmb_l1a_diff - 256);
+	    if(clct_dmb_l1a_diff > 32)  mo->Fill(clct_dmb_l1a_diff - 64);
 	    else mo->Fill(clct_dmb_l1a_diff);
 	  }
 	  mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -706,10 +729,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader->L1ANumber()%256,dmbHeader->l1a());
 
 	if (isMEvalid(cscME, "CLCT_DMB_BXN_diff", mo)) {
-	  int clct_dmb_bxn_diff = (int)(dmbHeader->bxn12()-tmbHeader->BXNCount());
-	  if(clct_dmb_bxn_diff < -2048) mo->Fill(clct_dmb_bxn_diff + 4096);
+	  int clct_dmb_bxn_diff = (int)(tmbHeader->BXNCount()%64-dmbHeader->bxn12()%64);
+	  if(clct_dmb_bxn_diff < -32) mo->Fill(clct_dmb_bxn_diff + 64);
 	  else {
-	    if(clct_dmb_bxn_diff > 2048)  mo->Fill(clct_dmb_bxn_diff - 4096);
+	    if(clct_dmb_bxn_diff > 32)  mo->Fill(clct_dmb_bxn_diff - 64);
 	    else mo->Fill(clct_dmb_bxn_diff);
 	  }
 	  mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -943,7 +966,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if ((tmb_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
       mo->Fill(1.0, 1.0);
     }
-
+/*
     if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_CLCT", mo)){
       mo->Fill(CSCposition, CSCtype);
     }
@@ -951,7 +974,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(nodeME, "DMB_wo_CLCT", mo)) {
       mo->Fill(crateID,dmbID);
     }
-
+*/
   }
 
   //    CFEB found
@@ -1044,6 +1067,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       isMEvalid(cscME, Form("CFEB%d_SCA_Blocks_Locked_by_LCTs", nCFEB), mo_CFEB_SCA_Blocks_Locked_by_LCTs);
       EmuMonitoringObject* mo_CFEB_SCA_Blocks_Locked_by_LCTxL1;
       isMEvalid(cscME, Form("CFEB%d_SCA_Blocks_Locked_by_LCTxL1", nCFEB), mo_CFEB_SCA_Blocks_Locked_by_LCTxL1);
+      EmuMonitoringObject* mo_CFEB_DMB_L1A_diff = 0;
+      isMEvalid(cscME, Form("CFEB%d_DMB_L1A_diff", nCFEB), mo_CFEB_DMB_L1A_diff);
       
       // LOG4CPLUS_DEBUG(logger_, " nSample = " << nSample);
 
@@ -1070,9 +1095,21 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	for(int nSample = 0; nSample < NmbTimeSamples; ++nSample) {
 	  timeSlice[nCFEB][nSample] = (CSCCFEBTimeSlice * )((cfebData[nCFEB])->timeSlice(nSample));
 	  if (timeSlice[nCFEB][nSample] == 0) {
-	    LOG4CPLUS_WARN(logger_, "+++debug> nCFEB" << nCFEB << " nSample: " << nSample << " - B-Word");
+	    LOG4CPLUS_WARN(logger_, "CFEB" << nCFEB << " nSample: " << nSample << " - B-Word");
 	    continue;
 	  }
+
+	  if (mo_CFEB_DMB_L1A_diff) {
+        	int cfeb_dmb_l1a_diff = (int)((timeSlice[nCFEB][nSample]->get_L1A_number())-dmbHeader->l1a()%64);
+		if (cfeb_dmb_l1a_diff != 0) L1A_out_of_sync = true;
+	        if(cfeb_dmb_l1a_diff < -32) mo->Fill(cfeb_dmb_l1a_diff + 64);
+        	else {
+	          if(cfeb_dmb_l1a_diff > 32) mo->Fill(cfeb_dmb_l1a_diff - 64);
+        	  else mo_CFEB_DMB_L1A_diff->Fill(cfeb_dmb_l1a_diff);
+	        }
+	        mo_CFEB_DMB_L1A_diff->SetAxisRange(0.1, 1.1*(1.0+mo_CFEB_DMB_L1A_diff->GetBinContent(mo_CFEB_DMB_L1A_diff->getObject()->GetMaximumBin())), "Y");
+	      }
+
 
 	
 	  //        LOG4CPLUS_DEBUG(logger_, " nSample = " << nSample);
@@ -1267,7 +1304,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     }
   }
   
-
+/*
   // If no CFEBs found then lets fill-in histo
   if(NumberOfUnpackedCFEBs == 0){
 
@@ -1280,7 +1317,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     }
 
   }
- 
+ */
+
   //--------------B
   float Cathodes[N_CFEBs*N_Strips*N_Samples*N_Layers];
   for(int i=0; i<N_Layers; ++i) {
@@ -1369,6 +1407,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if((clct_kewdistrip > -1 && alct_keywg > -1) && (isMEvalid(cscME, "CLCT0_KeyDiStrip_vs_ALCT0_KeyWiregroup", mo))) {
     mo->Fill(alct_keywg, clct_kewdistrip);
   }
+
+  if (L1A_out_of_sync && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_L1A_out_of_sync", mo)){
+    mo->Fill(CSCposition, CSCtype);
+  }
+
 
 
   /*

@@ -174,9 +174,10 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   if ((BinaryErrorStatus != 0) || (BinaryWarningStatus != 0)) {
     nBadEvents++;
-    fillChamberBinCheck(node, EventDenied);
+//    fillChamberBinCheck(node, EventDenied);
   }
 
+  fillChamberBinCheck(node, EventDenied);
 
   if(EventDenied) return;
   else LOG4CPLUS_DEBUG(logger_,eTag << "is accepted");
@@ -468,172 +469,460 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
   std::string nodeTag = "EMU";
   ME_List nodeME = MEs[nodeTag];
   EmuMonitoringObject* mo = NULL;
+  EmuMonitoringObject* mo1 = NULL;
+  EmuMonitoringObject* mo2 = NULL;
   EmuMonitoringObject* mof = NULL;
+  
+  // === Check and fill CSC Data Flow 
+  std::map<int,long> payloads = bin_checker.payloadDetailed();
+  for(std::map<int,long>::const_iterator chamber=payloads.begin(); chamber!=payloads.end(); chamber++)
+    {
+      int ChamberID = chamber->first;
 
+      int CrateID = (chamber->first>>4) & 0xFF;
+      int DMBSlot = chamber->first & 0xF;
+      std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
 
-  //  if(check_bin_error){
-  std::map<int,long> checkerErrors = bin_checker.errorsDetailed();
-  std::map<int,long>::const_iterator chamber = checkerErrors.begin();
-  // LOG4CPLUS_WARN(logger_, eTag << "chambers: " <<  checkerErrors.size());
-  while( chamber != checkerErrors.end() ){
-    int ChamberID     = chamber->first;
-    int CrateID = (chamber->first>>4) & 0xFF;
-    int DMBSlot = chamber->first & 0xF;
-    std::string cscTag(Form("CSC_%03d_%02d", CrateID , DMBSlot));
-    std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
- 
-    
+      if (CrateID ==255) {continue;}
 
-    if ((CrateID ==255) || 
-        (chamber->second & 0x80)) { chamber++; continue;} // = Skip chamber detection if DMB header is missing (Error code 6)
+      std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
+      if (h_itr == MEs.end() || (MEs.size()==0)) {
+	LOG4CPLUS_WARN(logger_, eTag << 
+		       "List of Histos for " << cscTag <<  " not found. Booking...");
+	LOG4CPLUS_DEBUG(logger_,
+			"Booking Histos for " << cscTag);
+	fBusy = true;
+	MEs[cscTag] = bookChamber(ChamberID);
+	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
+	printMECollection(MEs[cscTag]);
+	fBusy = false;
+      }
+      ME_List& cscME = MEs[cscTag];
 
-
-    if (CrateID>60 || DMBSlot>10) {
-      LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
-      chamber++;
-      continue;
-    }
- 
-    if (h_itr == MEs.end() || (MEs.size()==0)) {
-      LOG4CPLUS_WARN(logger_, eTag << 
-		     "List of Histos for " << cscTag <<  " not found. Booking...");
-      LOG4CPLUS_DEBUG(logger_,
-		      "Booking Histos for " << cscTag);
-      fBusy = true;
-      MEs[cscTag] = bookChamber(ChamberID);
-      MECanvases[cscTag] = bookChamberCanvases(ChamberID);
-      printMECollection(MEs[cscTag]);
-      fBusy = false;
-    }
-    ME_List& cscME = MEs[cscTag];
-//    if ( (bin_checker.errors() & binCheckMask) != 0) {
-    if ((chamber->second & binCheckMask) != 0) {
-      nDMBEvents[cscTag]++;     
+      // === Update counters
+      nDMBEvents[cscTag]++;
       CSCCounters& trigCnts = cscCntrs[cscTag];
       trigCnts["DMB"] = nDMBEvents[cscTag];
-      trigCnts["BAD"]++; 
-    }
 
-    bool isCSCError = false;
 
-    if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
-	&& isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
-      for(int bit=5; bit<24; bit++)
-	if( chamber->second & (1<<bit) ) {
-	  isCSCError = true;
-	  mo->Fill(0.,bit-5);
-	   
-	  double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
-	  mof->SetBinContent(bit-4, freq);
-	}
+      long DMBEvents= nDMBEvents[cscTag];
 
-      // Check Error in bit 26
-      if( chamber->second & (1<<25) ) {
-	isCSCError = true;
-	mo->Fill(0.,20);
-
-	double freq = (100.0*mo->GetBinContent(1,21))/nDMBEvents[cscTag];
-	mof->SetBinContent(21, freq);
-      }
-      mo->SetEntries(nDMBEvents[cscTag]);
-      mof->SetEntries(nDMBEvents[cscTag]);
-    }
-
-    if (isCSCError) {
-
-      LOG4CPLUS_WARN(logger_,eTag << "Format Errors "<< cscTag << ": 0x" << std::hex << chamber->second);
-
-      if (isMEvalid(nodeME, "DMB_Format_Errors", mo)) {
-	mo->Fill(CrateID, DMBSlot);
-      }
-
-      if (!isEventDenied  && isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo)) {
+      if (isMEvalid(nodeME, "DMB_Reporting", mo)) {
 	mo->Fill(CrateID, DMBSlot);
       }
 
       int CSCtype   = 0;
       int CSCposition = 0;
       getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
-      if ( CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Errors", mo)) {
+      if ( CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Reporting", mo)) {
 	mo->Fill(CSCposition, CSCtype);
       }
 
-      if (!isEventDenied  && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo)) {
-	mo->Fill(CSCposition, CSCtype);
-      }
-    }
 
-    chamber++;
-  }
-
-  std::map<int,long> checkerWarnings  = bin_checker.warningsDetailed();
-  chamber = checkerWarnings.begin();
-  while( chamber != checkerWarnings.end() ){
-    int ChamberID     = chamber->first;
-    int CrateID = (chamber->first>>4) & 0xFF;
-    int DMBSlot = chamber->first & 0xF;
-    std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
-    if (CrateID ==255) {chamber++; continue;}
-    std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
-    if (h_itr == MEs.end() || (MEs.size()==0)) {
-      LOG4CPLUS_WARN(logger_, eTag << 
-		     "List of Histos for " << cscTag <<  " not found. Booking...");
-      LOG4CPLUS_DEBUG(logger_,
-		      "Booking Histos for " << cscTag);
-      fBusy = true;
-      MEs[cscTag] = bookChamber(ChamberID);
-      MECanvases[cscTag] = bookChamberCanvases(ChamberID);
-      printMECollection(MEs[cscTag]);
-      fBusy = false;
-    }
-    ME_List& cscME = MEs[cscTag];
-
-    bool isCSCWarning = false;
-
-    if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo)
-	&& isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
-      for(int bit=1; bit<2; bit++)
-	if( chamber->second & (1<<bit) ) {
-	  isCSCWarning = true;
-	  mo->Fill(0.,bit-1);
-	  double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
-	  mof->SetBinContent(bit, freq);
+      //      Get FEBs Data Available Info
+      long payload = chamber->second;
+      int cfeb_dav = (payload>>7) & 0x1F;
+      int cfeb_active = payload & 0x1F;
+      int alct_dav = (payload>>5) & 0x1;
+      int tmb_dav = (payload>>6) & 0x1; 
+      int cfeb_dav_num=0;
+      
+      if (alct_dav==0) {
+	if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_ALCT", mo)){
+	  mo->Fill(CSCposition, CSCtype);
 	}
-      mo->SetEntries(nDMBEvents[cscTag]);
-      mof->SetEntries(nDMBEvents[cscTag]);
+
+	if (isMEvalid(nodeME, "DMB_wo_ALCT", mo)) {
+	  mo->Fill(CrateID,DMBSlot);
+	}
+      }
+     
+      if (tmb_dav==0) {
+	if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_CLCT", mo)){
+	  mo->Fill(CSCposition, CSCtype);
+	}
+
+	if (isMEvalid(nodeME, "DMB_wo_CLCT", mo)) {
+	  mo->Fill(CrateID,DMBSlot);
+	}
+      }
+
+      if (cfeb_dav==0) {
+	if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_wo_CFEB", mo)){
+	  mo->Fill(CSCposition, CSCtype);
+	}
+
+	if (isMEvalid(nodeME, "DMB_wo_CFEB", mo)) {
+	  mo->Fill(CrateID,DMBSlot);
+	}
+      }
+      
+      if (isMEvalid(cscME, "Actual_DMB_CFEB_DAV_Rate", mo)
+	  && isMEvalid(cscME, "Actual_DMB_CFEB_DAV_Frequency", mof)) {
+	for (int i=0; i<5;i++) {
+	  int cfeb_present = (cfeb_dav>>i) & 0x1;
+	  cfeb_dav_num += cfeb_present;
+	  if (cfeb_present) {
+	    mo->Fill(i);
+	  }
+	  float cfeb_entries = mo->GetBinContent(i+1);
+	  mof->SetBinContent(i+1, ((float)cfeb_entries/(float)(DMBEvents)*100.0));
+	}
+	mof->SetEntries((int)DMBEvents);
+	if (isMEvalid(cscME, "DMB_CFEB_DAV_Unpacking_Inefficiency", mo1)
+	    && isMEvalid(cscME, "DMB_CFEB_DAV", mo2)) {	   
+	  for (int i=1; i<5; i++) {
+	    float actual_dav_num = mo->GetBinContent(i);
+	    float unpacked_dav_num = mo2->GetBinContent(i);
+	    if (actual_dav_num){
+	      mo1->SetBinContent(i,1, 100.*(1-unpacked_dav_num/actual_dav_num));
+	    }				   
+	    mo1->SetEntries((int)DMBEvents);
+	    mo1->getObject()->SetMaximum(100.0);
+	  }
+	}	
+      }
+      
+      if (isMEvalid(cscME, "Actual_DMB_CFEB_DAV_multiplicity_Rate", mo)
+	  && isMEvalid(cscME, "Actual_DMB_CFEB_DAV_multiplicity_Frequency", mof)) {
+	// mo->Fill(cfeb_dav_num);
+	for (int i=1; i<7; i++) {
+	  float cfeb_entries =  mo->GetBinContent(i);
+	  mof->SetBinContent(i, ((float)cfeb_entries/(float)(DMBEvents)*100.0));
+	}
+	mof->SetEntries((int)DMBEvents);
+
+	if (isMEvalid(cscME, "DMB_CFEB_DAV_multiplicity_Unpacking_Inefficiency", mo1)
+	    && isMEvalid(cscME, "DMB_CFEB_DAV_multiplicity", mo2)) {	   
+	  for (int i=1; i<7; i++) {
+	    float actual_dav_num = mo->GetBinContent(i);
+	    float unpacked_dav_num = mo2->GetBinContent(i);
+	    if (actual_dav_num){
+	      mo1->SetBinContent(i,1, 100.*(1-unpacked_dav_num/actual_dav_num));
+	    }				   
+	    mo1->SetEntries((int)DMBEvents);
+	    mo1->getObject()->SetMaximum(100.0);
+	  }
+	}	
+	mo->Fill(cfeb_dav_num);
+      }
+
+	  
+	
+      
+
+      if (isMEvalid(cscME, "DMB_CFEB_Active_vs_DAV", mo)) mo->Fill(cfeb_dav,cfeb_active);
+
+      //      Fill Histogram for FEB DAV Efficiency
+      if (isMEvalid(cscME, "Actual_DMB_FEB_DAV_Rate", mo)) {
+	if (isMEvalid(cscME, "Actual_DMB_FEB_DAV_Frequency", mo1)) {
+	  for (int i=1; i<4; i++) {
+	    float dav_num = mo->GetBinContent(i);
+	    mo1->SetBinContent(i, ((float)dav_num/(float)(DMBEvents)*100.0));
+	  }
+	  mo1->SetEntries((int)DMBEvents);
+
+	  if (isMEvalid(cscME, "DMB_FEB_DAV_Unpacking_Inefficiency", mof)
+     	      && isMEvalid(cscME, "DMB_FEB_DAV_Rate", mo2)) {	   
+	    for (int i=1; i<4; i++) {
+	      float actual_dav_num = mo->GetBinContent(i);
+	      float unpacked_dav_num = mo2->GetBinContent(i);
+	      if (actual_dav_num){
+		mof->SetBinContent(i,1, 100.*(1-unpacked_dav_num/actual_dav_num));
+	      }				   
+	      mof->SetEntries((int)DMBEvents);
+	      mof->getObject()->SetMaximum(100.0);
+	    }
+	  }	  
+	}
+
+	if (alct_dav  > 0) {
+	  mo->Fill(0.0);
+	}
+	if (tmb_dav  > 0) {
+	  mo->Fill(1.0);
+	}
+	if (cfeb_dav > 0) {
+	  mo->Fill(2.0);
+	}
+      }
+      
+
+      float feb_combination_dav = -1.0;
+      //      Fill Histogram for Different Combinations of FEB DAV Efficiency
+      if (isMEvalid(cscME, "Actual_DMB_FEB_Combinations_DAV_Rate", mo)) {
+	if(alct_dav == 0 && tmb_dav == 0 && cfeb_dav == 0) feb_combination_dav = 0.0; // Nothing
+	if(alct_dav >  0 && tmb_dav == 0 && cfeb_dav == 0) feb_combination_dav = 1.0; // ALCT Only
+	if(alct_dav == 0 && tmb_dav >  0 && cfeb_dav == 0) feb_combination_dav = 2.0; // TMB Only
+	if(alct_dav == 0 && tmb_dav == 0 && cfeb_dav >  0) feb_combination_dav = 3.0; // CFEB Only
+	if(alct_dav == 0 && tmb_dav >  0 && cfeb_dav >  0) feb_combination_dav = 4.0; // TMB+CFEB
+	if(alct_dav >  0 && tmb_dav >  0 && cfeb_dav == 0) feb_combination_dav = 5.0; // ALCT+TMB
+	if(alct_dav >  0 && tmb_dav == 0 && cfeb_dav >  0) feb_combination_dav = 6.0; // ALCT+CFEB
+	if(alct_dav >  0 && tmb_dav >  0 && cfeb_dav >  0) feb_combination_dav = 7.0; // ALCT+TMB+CFEB
+	//	mo->Fill(feb_combination_dav);
+	if (isMEvalid(cscME, "Actual_DMB_FEB_Combinations_DAV_Frequency",mo1)) {
+	  for (int i=1; i<9; i++) {
+	    float feb_combination_dav_number = mo->GetBinContent(i);
+	    mo1->SetBinContent(i, ((float)feb_combination_dav_number/(float)(DMBEvents)*100.0));
+	  }
+	  mo1->SetEntries(DMBEvents);
+	  
+	  if (isMEvalid(cscME, "DMB_FEB_Combinations_DAV_Unpacking_Inefficiency", mof)
+     	      && isMEvalid(cscME, "DMB_FEB_Combinations_DAV_Rate", mo2)) {	   
+	    for (int i=1; i<9; i++) {
+	      float actual_dav_num = mo->GetBinContent(i);
+	      float unpacked_dav_num = mo2->GetBinContent(i);
+	      if (actual_dav_num){
+		mof->SetBinContent(i,1, 100.*(1-unpacked_dav_num/actual_dav_num));
+	      }				   
+	      mof->SetEntries((int)DMBEvents);
+	      mof->getObject()->SetMaximum(100.0);
+	    }
+	  }
+	  
+	}
+	mo->Fill(feb_combination_dav);
+      }
+
+      
     }
 
-    if (isCSCWarning) {
-      LOG4CPLUS_WARN(logger_,eTag << "Format Warnings "<< cscTag << ": 0x" << std::hex << chamber->second);
 
-      if (isMEvalid(nodeME, "DMB_Format_Warnings", mo)) {
-	mo->Fill(CrateID, DMBSlot);
+  // === Check and fill CSC Data Flow Problems
+  std::map<int,long> statuses = bin_checker.statusDetailed();
+  for(std::map<int,long>::const_iterator chamber=statuses.begin(); chamber!=statuses.end(); chamber++)
+    {
+      int ChamberID = chamber->first;
+
+      int CrateID = (chamber->first>>4) & 0xFF;
+      int DMBSlot = chamber->first & 0xF;
+      std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
+
+      if (CrateID ==255) {continue;}
+
+      std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
+      if (h_itr == MEs.end() || (MEs.size()==0)) {
+	LOG4CPLUS_WARN(logger_, eTag << 
+		       "List of Histos for " << cscTag <<  " not found. Booking...");
+	LOG4CPLUS_DEBUG(logger_,
+			"Booking Histos for " << cscTag);
+	fBusy = true;
+	MEs[cscTag] = bookChamber(ChamberID);
+	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
+	printMECollection(MEs[cscTag]);
+	fBusy = false;
       }
+      ME_List& cscME = MEs[cscTag];
   
       int CSCtype   = 0;
       int CSCposition = 0;
       getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
-      if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Warnings", mo)) {
-	mo->Fill(CSCposition, CSCtype);
-	//      mo->SetEntries(nBadEvents);
+
+      if (isMEvalid(cscME, "BinCheck_DataFlow_Problems_Table", mo)
+	  && isMEvalid(cscME, "BinCheck_DataFlow_Problems_Frequency", mof)) {
+	for(int bit=0; bit<bin_checker.nSTATUSES; bit++)
+	  if( chamber->second & (1<<bit) ) {
+	    mo->Fill(0.,bit);
+	    float freq = (mo->GetBinContent(1,bit+1))/nDMBEvents[cscTag];
+	    mof->SetBinContent(1,bit+1, freq);
+	  }
+	mo->SetEntries(nDMBEvents[cscTag]);
+	mof->SetEntries(nDMBEvents[cscTag]);
       }
 
-      if (!isEventDenied && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo)) {
-	mo->Fill(CSCposition, CSCtype);
-	//      mo->SetEntries(nBadEvents);
+      
+      int anyInputFull = chamber->second & 0x3F;
+      if(anyInputFull){
+	if(CSCtype && CSCposition && isMEvalid(nodeME, "CSC_DMB_input_fifo_full", mo)){
+	  mo->Fill(CSCposition, CSCtype);
+	}
+	if (isMEvalid(nodeME, "DMB_input_fifo_full", mo)) {
+	  mo->Fill(CrateID, DMBSlot);
+	}
+      }
+
+
+      int anyInputTO = (chamber->second >> 6) & 0x3FFF;
+      if(anyInputTO){
+	if(CSCtype && CSCposition && isMEvalid(nodeME, "CSC_DMB_input_timeout", mo)){
+	  mo->Fill(CSCposition, CSCtype);
+	}
+	if (isMEvalid(nodeME, "DMB_input_timeout", mo)) {
+	  mo->Fill(CrateID, DMBSlot);
+	}
+      }
+
+      
+      // === CFEB B-Word
+      if (chamber->second & (1<<22)) {
+	// LOG4CPLUS_WARN(logger_,eTag << cscTag << " CFEB B-Words found ");
+
+	if (isMEvalid(nodeME, "DMB_Format_Warnings", mo)) {
+	  mo->Fill(CrateID, DMBSlot);
+	}
+  
+	if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Warnings", mo)) {
+	  mo->Fill(CSCposition, CSCtype);
+	}
+	
       }
     }
 
-    /*
-      if (!isEventDenied && isCSCWarning  && isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo)) {
-      mo->Fill(CrateID, DMBSlot);
-      //      mo->SetEntries(nBadEvents);
-      }
-    */
 
-    chamber++;
+  // === Check and fill CSC Format Errors 
+  std::map<int,long> checkerErrors = bin_checker.errorsDetailed();
+  for(std::map<int,long>::const_iterator chamber=checkerErrors.begin(); chamber!=checkerErrors.end(); chamber++)
+    {
+      int ChamberID     = chamber->first;
+      int CrateID = (chamber->first>>4) & 0xFF;
+      int DMBSlot = chamber->first & 0xF;
+
+      std::string cscTag(Form("CSC_%03d_%02d", CrateID , DMBSlot));
+      std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
+
+      if ((CrateID ==255) || 
+	  (chamber->second & 0x80)) {continue;} // = Skip chamber detection if DMB header is missing (Error code 6)
+
+      if (CrateID>60 || DMBSlot>10) {
+	LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
+	continue;
+      }
+ 
+      if (h_itr == MEs.end() || (MEs.size()==0)) {
+	LOG4CPLUS_WARN(logger_, eTag << 
+		       "List of Histos for " << cscTag <<  " not found. Booking...");
+	LOG4CPLUS_DEBUG(logger_,
+			"Booking Histos for " << cscTag);
+	fBusy = true;
+	MEs[cscTag] = bookChamber(ChamberID);
+	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
+	printMECollection(MEs[cscTag]);
+	fBusy = false;
+      }
+      ME_List& cscME = MEs[cscTag];
+
+      if ((chamber->second & binCheckMask) != 0) {
+	//	nDMBEvents[cscTag]++;	
+	CSCCounters& trigCnts = cscCntrs[cscTag];
+	trigCnts["BAD"]++; 
+      }
+
+      bool isCSCError = false;
+
+      if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
+	  && isMEvalid(cscME, "BinCheck_Errors_Frequency", mof)) {
+	for(int bit=5; bit<24; bit++)
+	  if( chamber->second & (1<<bit) ) {
+	    isCSCError = true;
+	    mo->Fill(0.,bit-5);
+	   
+	    double freq = mo->GetBinContent(1,bit-4)/nDMBEvents[cscTag];
+	    mof->SetBinContent(1,bit-4, freq);
+	    // mof->SetBinContent(bit-4, freq);
+	  }
+	/*
+	// Check Error in bit 26
+	if( chamber->second & (1<<25) ) {
+	isCSCError = true;
+	mo->Fill(0.,20);
+
+	float freq = (mo->GetBinContent(1,21))/nDMBEvents[cscTag];
+	mof->SetBinContent(1, 21, freq);
+	}
+	*/
+	mo->SetEntries(nDMBEvents[cscTag]);
+	mof->SetEntries(nDMBEvents[cscTag]);
+      }
+
+      if (isCSCError) {
+
+	LOG4CPLUS_WARN(logger_,eTag << "Format Errors "<< cscTag << ": 0x" << std::hex << chamber->second);
+
+	if (isMEvalid(nodeME, "DMB_Format_Errors", mo)) {
+	  mo->Fill(CrateID, DMBSlot);
+	}
+
+	if (!isEventDenied  && isMEvalid(nodeME, "DMB_Unpacked_with_errors", mo)) {
+	  mo->Fill(CrateID, DMBSlot);
+	}
+
+	int CSCtype   = 0;
+	int CSCposition = 0;
+	getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
+	if ( CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Errors", mo)) {
+	  mo->Fill(CSCposition, CSCtype);
+	}
+
+	if (!isEventDenied  && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_errors", mo)) {
+	  mo->Fill(CSCposition, CSCtype);
+	}
+      }
+
+    }
+
+  /*
+  // === Check and fill CSC Format Warnings
+  std::map<int,long> checkerWarnings  = bin_checker.warningsDetailed();
+  for(std::map<int,long>::const_iterator chamber=checkerWarnings.begin(); chamber!=checkerWarnings.end(); chamber++)
+  {
+  int ChamberID     = chamber->first;
+  int CrateID = (chamber->first>>4) & 0xFF;
+  int DMBSlot = chamber->first & 0xF;
+
+  std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
+
+  if (CrateID ==255) {continue;}
+
+  std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
+  if (h_itr == MEs.end() || (MEs.size()==0)) {
+  LOG4CPLUS_WARN(logger_, eTag << 
+  "List of Histos for " << cscTag <<  " not found. Booking...");
+  LOG4CPLUS_DEBUG(logger_,
+  "Booking Histos for " << cscTag);
+  fBusy = true;
+  MEs[cscTag] = bookChamber(ChamberID);
+  MECanvases[cscTag] = bookChamberCanvases(ChamberID);
+  printMECollection(MEs[cscTag]);
+  fBusy = false;
   }
-  // }
+  ME_List& cscME = MEs[cscTag];
+
+  bool isCSCWarning = false;
+
+  if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo)
+  && isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
+  for(int bit=1; bit<2; bit++)
+  if( chamber->second & (1<<bit) ) {
+  isCSCWarning = true;
+  mo->Fill(0.,bit-1);
+  float freq = (mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
+  mof->SetBinContent(1,bit, freq);
+  }
+  mo->SetEntries(nDMBEvents[cscTag]);
+  mof->SetEntries(nDMBEvents[cscTag]);
+  }
+
+  if (isCSCWarning) {
+  LOG4CPLUS_WARN(logger_,eTag << "Format Warnings "<< cscTag << ": 0x" << std::hex << chamber->second);
+
+  if (isMEvalid(nodeME, "DMB_Format_Warnings", mo)) {
+  mo->Fill(CrateID, DMBSlot);
+  }
+  
+  int CSCtype   = 0;
+  int CSCposition = 0;
+  getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
+  if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Warnings", mo)) {
+  mo->Fill(CSCposition, CSCtype);
+  }
+	
+  if (!isEventDenied && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked_with_warnings", mo)) {
+  mo->Fill(CSCposition, CSCtype);
+  }
+	
+  }
+  }
+  */
 }
 
 /*
@@ -648,16 +937,17 @@ void EmuPlotter::updateFractionHistos()
   nodeME = MEs[nodeTag];
 
   //  LOG4CPLUS_WARN(logger_, "Update Fraction Histograms");
-
+  /*
   EmuMonitoringObject *mo = NULL;
   EmuMonitoringObject *mo1 = NULL;
   EmuMonitoringObject *mo2 = NULL;
   EmuMonitoringObject *mo3 = NULL;
+  */
 
   // ************************************
   // Collecting all the reporting DMBs and CSCs
   // ************************************
-
+/*
   if (isMEvalid(nodeME, "DMB_Reporting", mo)
       && isMEvalid(nodeME, "DMB_Format_Errors", mo1)
       && isMEvalid(nodeME, "DMB_Unpacked", mo2))
@@ -677,13 +967,15 @@ void EmuPlotter::updateFractionHistos()
 	mo->getObject()->Add(mo3->getObject(), -1);
       }
     }
-
+*/
   // ************************************
   // Calculating Fractions
   // ************************************
 
   calcFractionHisto(nodeME, "DMB_Format_Errors_Fract", "DMB_Reporting", "DMB_Format_Errors");
   calcFractionHisto(nodeME, "CSC_Format_Errors_Fract", "CSC_Reporting", "CSC_Format_Errors");
+  calcFractionHisto(nodeME, "DMB_Format_Warnings_Fract", "DMB_Reporting", "DMB_Format_Warnings");
+  calcFractionHisto(nodeME, "CSC_Format_Warnings_Fract", "CSC_Reporting", "CSC_Format_Warnings");
   calcFractionHisto(nodeME, "DMB_Unpacked_Fract", "DMB_Reporting", "DMB_Unpacked");
   calcFractionHisto(nodeME, "CSC_Unpacked_Fract", "CSC_Reporting", "CSC_Unpacked");
   calcFractionHisto(nodeME, "DMB_wo_ALCT_Fract", "DMB_Reporting", "DMB_wo_ALCT");
@@ -697,6 +989,7 @@ void EmuPlotter::updateFractionHistos()
   calcFractionHisto(nodeME, "CSC_DMB_input_timeout_Fract", "CSC_Reporting", "CSC_DMB_input_timeout");
   calcFractionHisto(nodeME, "DMB_input_timeout_Fract", "DMB_Reporting", "DMB_input_timeout");
   
+/*
   if (isMEvalid(nodeME, "DMB_Format_Warnings_Fract", mo)
       && isMEvalid(nodeME, "DMB_Format_Warnings", mo1)
       && isMEvalid(nodeME, "DMB_Unpacked", mo2))
@@ -704,9 +997,6 @@ void EmuPlotter::updateFractionHistos()
       TH1* tmp=dynamic_cast<TH1*>(mo2->getObject()->Clone());
       tmp->Add(mo1->getObject());
 
-      /*if (isMEvalid(nodeME, "DMB_Unpacked_with_warnings", mo3)) {
-	tmp->Add(mo3->getObject(), -1);
-        }*/
 
       mo->getObject()->Divide(mo1->getObject(), tmp);
       delete tmp;
@@ -724,6 +1014,7 @@ void EmuPlotter::updateFractionHistos()
       mo->getObject()->Divide(mo1->getObject(), tmp);
       delete tmp;
     }
+*/
 
 } 
 
@@ -751,8 +1042,9 @@ void EmuPlotter::calcFractionHisto(
       && isMEvalid(MEs, setHistoName, mo2)
       && isMEvalid(MEs, subSetHistoName, mo1))
     {
+      mo->getObject()->Reset();
       mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-      mo->getObject()->SetMaximum(1.0);
+      mo->getObject()->SetMaximum(1);
     }
 
 }
