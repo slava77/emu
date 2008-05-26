@@ -28,11 +28,6 @@
 		<SetGridx>1</SetGridx>
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-                <Descr>
-                This histogram shows whether data buffers passed to DQM have DDU Headers/Trailers in the right places and in the right order. 
-                %BR%
-                %ICON{"warning"}% The histogram should not have anything outside the bottom row of bins labeled “No Error”. Appearance and persistence of errors indicates that DQM does not receive proper event buffers.
-                </Descr>
 	</Histogram>
         <Histogram>
                 <Type>h2</Type>
@@ -537,14 +532,6 @@
                 <SetGridy>1</SetGridy>
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
-                <Descr>
-                The occupancy histogram shows CSCs reporting data, regardless of whether data format was intact or broken. 
-                Chambers within one raw belong to one 360- ring of chamber. The rainbow pattern of color within one row is due to directionality of cosmic rays. 
-                %BR%
-                %ICON{"warning"}% At LHC, all chambers within one row should have equal occupancy. 
-                %BR%
-                %ICON{"tip"}% One should check that there are no new empty cells (check for the list of currently disabled CSCs) and there are no hot CSCs.
-                </Descr>
         </Histogram>
         <Histogram>
                 <Type>h2</Type>
@@ -612,6 +599,32 @@
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
         </Histogram>
+
+         <Histogram>
+                <Type>h2</Type>
+                <Prefix>EMU</Prefix>
+                <Name>CSC_L1A_out_of_sync</Name>
+                <SetOption>colz</SetOption>
+                <XMin>1</XMin>
+                <XMax>37</XMax>
+                <XBins>36</XBins>
+                <XTitle>Chamber</XTitle>
+                <YMin>0</YMin>
+                <YMax>18</YMax>
+                <YBins>18</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>CSCs with L1A out of sync</Title>
+                <SetNdivisionsX>36</SetNdivisionsX>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetStats>0</SetStats>
+                <SetGridx>1</SetGridx>
+                <SetGridy>1</SetGridy>
+                <SetLabelSizeZ>0.02</SetLabelSizeZ>
+                <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
+		<SetLogz>1</SetLogz>
+		<SetMaximum>1</SetMaximum>
+        </Histogram>
+
         <Histogram>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
@@ -701,13 +714,7 @@
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetLogz>1</SetLogz>
 		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
-                <Descr>
-                  Histogram shows frequency of format errors per CSC record. 
-                  %BR%
-                  %ICON{"tip"}% CSCs reporting format errors in more than 1% of events should be flagged.
-                  %BR%
-                  %ICON{"tip"}% Pay attention to the temperature scale (it changes from run to run and during a run according to the histogram content). 
-                </Descr>
+		<SetMaximum>1</SetMaximum>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -730,14 +737,7 @@
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
-		<SetMaximum>1.0</SetMaximum>
-                <Descr>
-                 Shows a frequency of FIFO-FULL condition on DMB inputs (“OR” of 7 FIFOs: 5 CFEBs, ALCT, TMB). 
-                 %BR%
-                 %ICON{"warning"}% Appearance of entries in this histogram is very bad and would typically imply a loss of synchronization, even if FIFO-FULL condition clears away. 
-                 %BR%
-                 %ICON{"tip"}% To dig out which of the 7 boards is actually responsible for the trouble, one needs to refer the “FEB Status (Timeouts, FIFO, L1 pipe)” canvas for the offensive chamber (this canvas can be found in the DMB group)
-                </Descr>
+		<SetMaximum>1</SetMaximum>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -760,14 +760,7 @@
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
-		<SetMaximum>1.0</SetMaximum>
-                <Descr>
-                  Shows a frequency of a TIMEOUT condition on DMB inputs (“OR” start/stop timeouts for 5 CFEBs, ALCT, TMB). 
-                  %BR%
-                  %ICON{"warning"}% Appearance of entries in this histogram is very bad and typically implies badly timed-in CSCs. 
-                  %BR%
-                  %ICON{"tip"}% To dig out which of the 7 boards is actually responsible for the trouble, one needs to refer the “FEB Status (Timeouts, FIFO, L1 pipe)” canvas for the offensive chamber (this canvas can be found in the DMB group)
-                </Descr>
+		<SetMaximum>1</SetMaximum>
 	</Histogram>
         <Histogram>
                 <Type>h2</Type>
@@ -791,9 +784,6 @@
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
 		<SetMaximum>1</SetMaximum>
-                <Descr>
-                Histogram shows how often CSC events come without ALCT data.
-                </Descr>
         </Histogram>
         <Histogram>
                 <Type>h2</Type>
@@ -817,9 +807,6 @@
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
 		<SetMaximum>1</SetMaximum>
-                <Descr>
-                Histogram shows how often CSC events come without CLCT data.
-                </Descr>
         </Histogram>
         <Histogram>
                 <Type>h2</Type>
@@ -843,9 +830,6 @@
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
 		<SetMaximum>1</SetMaximum>
-                <Descr>
-                Histogram shows how often CSC events come without CFEB data.
-                </Descr>
         </Histogram>
         <Histogram>
                 <Type>h2</Type>
@@ -869,13 +853,7 @@
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <!--SetLogz>1</SetLogz-->
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
-                <Descr> 
-                Histogram shows unpacking efficiency. 
-                %BR%
-                %ICON{"warning"}% Gross problems at a scale of &gt;10% inefficiency can be easily seen as deviations from the flat red color corresponding to 100% efficiency. 
-                %BR%
-                %ICON{"tip"}% Smaller scale problems can be chased using the EMU Test10 canvas.
-                </Descr>
+		<SetMaximum>1</SetMaximum>
         </Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -921,13 +899,7 @@
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetLogz>1</SetLogz>
 		<SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
-                <Descr>
-                  Histogram shows occurrences when SCA cells were filled due to too-high rate of LCTs and/or LCT×L1A coincidences. 
-                  %BR%
-                  %ICON{"warning"}% In conditions of cosmic ray runs, appearance of entries is indicative of hardware problems, or more specifically hot CFEBs. 
-                  %BR%
-                  %ICON{"tip"}% This typically happens due to a loose CFEB-TMB cable generating a flood of CLCT pre-triggers (CBEBs are the only board that are readout on coincidence between pre-CLCT and L1A).
-                </Descr>
+		<SetMaximum>1</SetMaximum>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -987,11 +959,6 @@
 		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
-                <Descr>
-                Number of Events in DDU. 
-                %BR%
-                %ICON{"warning"}% All DDUs should give exactly the same number of events.
-                </Descr>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -1012,21 +979,6 @@
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 		<SetYLabels>1='0'|2='1'|3='2'|4='3'|5='4'|6='5'|7='6'|8='7'|9='8'|10='9'|11='10'|12='11-30'|13='31-100'|14='101-300'|15='301-1000'|16='1k-3k'|17='3k-10k'|18='10k-30k'|19='30k-100k'|20='&gt;100k'|</SetYLabels>
-                <Descr>
-                L1A increment from event for each DDU. 
-                Ideally, if all events are being processed by the DQM then L1A increment from event to event must be 1. 
-                %BR%%BR%
-                *Local DQM*: However, when the rate goes up, DAQ-DQM may not be able to keep up with the data and are designed to skip events. 
-                Occasional skips (L1A&gt;1) will inevitably happen at low rates due to Poisson nature of cosmic ray rates. 
-                %BR%
-                %ICON{"tip"}% One may also want to flag runs with extremely non-uniform response DDUs. 
-                %BR%%BR%
-                *Global DQM*: dL1A need not be 1 (in fact, it will be very large as Global DQM gets only a very small fraction of events, ~10 Hz 
-                to DQM from the eventual 100,000 Hz of L1 rate. 
-                %BR%%BR%
-                %ICON{"warning"}% Under no circumstances, the incremental L1A can be zero (there should be no entries in the bottom row of bins
-                of the bottom histogram).
-                </Descr>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -1051,14 +1003,6 @@
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='No Errors'|2='Any Error'|3='DMB or CFEB CRC error: 01'|4='DMB or CFEB L1A Match error: 02'|5='Fiber Connection changed: 03'|6='Sync Lost was detected by DDU: 04'|7='Two Single Bit-Vote Errors: 05'|8='TMB or ALCT CRC error: 06'|9='Timeout Error: 07'|10='Lost CSC End of Data occurred: 08'|11='Lost Control word in event: 09'|12='CSC Error detected: 10'|13='DDU Clock-DLL error: 11'|14='64-bit alignment error: 12'|15='DAQ FIFO Near Full: 13'|16='DDU Single Event Warning: 14'|17='DDU Single Event Error: 15'|18='DDU Critical Error: 16'|19='TMB/ALCT-DDU L1A Mismatch: 17'|20='TMB/ALCT Word Count Error: 18'|21='ALCT Error: 19'|22='TMB Error: 20'|23='S-Link Not Ready: 21'|24='S-Link Full Bit Present: 22'|25='DDU Input Detected error: 23'|26='One Single Bit-Vote Error: 24'|27='No Live Fibers: 25'|28='Data Stuck in FIFO: 26'|29='L1A-FIFO Full: 27'|30='Wrong First Word: 28'|31='CFEB Count Error occurred: 29'|32='No Good DMB CRC: 30'|33='DDU-CFEB L1 Number Mismatch occurred: 31'|34='CSC LCT/DAV Mismatch occurred: 32'|</SetYLabels>
 		<SetLeftMargin>0.3</SetLeftMargin>
-                <Descr>
-                This histogram shows errors identified by DDU firmware and reported in the DDU trailer. 
-                Ideally, all entries should be in the bottom row of bins “No Errors”. However, this is not likely 
-                what one would typically see. Note that some of the errors are rather benign (e.g. #13 DAQ FIFO Near Full), 
-                while others are certainly very bad and may even require re-synchronization. 
-                %BR%
-                %ICON{"tip"}% The “OR” of all particularly bad errors in collected in bit #16 “DDU Critical Error”.
-                </Descr>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -1083,9 +1027,6 @@
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='No Errors'|2=' Any errors: 00'|3=' DDU Trailer Missing: 01'|4=' DDU Header Missing: 02'|5=' DDU CRC Error: 03'|6=' DDU Word Count Error: 04'|7=' DMB Trailer Missing: 05'|8=' DMB Header Missing: 06'|9=' ALCT Trailer Missing: 07'|10=' ALCT Header Missing: 08'|11=' ALCT Word Count Error: 09'|12='ALCT CRC Error: 10'|13='ALCT Trailer Bit Error: 11'|14='TMB Trailer Missing: 12'|15='TMB Header Missing: 13'|16='TMB Word Count Error: 14'|17='TMB CRC Error: 15'|18='CFEB Word Count Per Sample Error: 16'|19='CFEB Sample Count Error: 17'|20='CFEB CRC Error: 18'|21='DDU Event Size Limit Error: 19'|22='C-Words: 20'|23='ALCT DAV Error: 21'|24='TMB DAV Error: 22'|25='CFEB DAV Error: 23'|26='DMB Active Error: 24'|27='DCC Trailer Missing: 25'|28='DCC Header Missing: 26'|29='DMB DAV vs. DMB Active mismatch Error: 27'|30='Extra words between DDU Hdr and 1st DMB Hdr: 28'|</SetYLabels>
 		<SetLeftMargin>0.3</SetLeftMargin>
-                <Descr>
-
-                </Descr>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -1146,13 +1087,6 @@
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='1'|2='2'|3='3'|4='4'|5='5'|6='6'|7='7'|8='8'|9='9'|10='10'|11='11'|12='12'|13='13'|14='14'|15='15'|</SetYLabels>
-                <Descr>
-                  Inputs receiving a handshake from DMB (the handshake is obligatory, regardless of whether DMB has any data to report).
-                  %BR%
-                  %ICON{"tip"}% The histogram should be absolutely flat for all DDUs and their enabled inputs. 
-                  %BR%
-                  %ICON{"warning"}% Under no circumstances, DDU inputs within one DDU may have different number of entries. 
-                </Descr>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -1197,13 +1131,6 @@
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='1'|2='2'|3='3'|4='4'|5='5'|6='6'|7='7'|8='8'|9='9'|10='10'|11='11'|12='12'|13='13'|14='14'|15='15</SetYLabels>
-                <Descr>
-                   Inputs receiving DMB data.
-                   Is typically very uneven due to varying event rates from different chambers. 
-                   %BR%
-                   %ICON{"tip"}% Particularly bad cases of hot chamber (chambers reporting data too frequently) can be easily spotted here. 
-                   However, Test08 is much more suited for this.
-                </Descr>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -1247,11 +1174,6 @@
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='No Errors'|2='Any Input'|3='1'|4='2'|5='3'|6='4'|7='5'|8='6'|9='7'|10='8'|11='9'|12='10'|13='11'|14='12'|15='13'|16='14'|17='15'|</SetYLabels>
-                <Descr>
-                  Inputs in ERROR State. 
-                  %BR%
-                  %ICON{"tip"}% Normally all entries should appear in the bottom raw.
-                </Descr>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -1276,13 +1198,6 @@
 		<SetGridy>1</SetGridy>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 		<SetYLabels>1='No Warnings'|2='Any Input'|3='1'|4='2'|5='3'|6='4'|7='5'|8='6'|9='7'|10='8'|11='9'|12='10'|13='11'|14='12'|15='13'|16='14'|17='15'|</SetYLabels>
-                <Descr>
-                  Inputs in WARNING State. 
-                  %BR%
-                  %ICON{"tip"}% Normally all entries should appear in the bottom raw. 
-                  %BR%
-                  %ICON{"tip"}% This histogram can be ignored by a shifter.
-                </Descr>
 	</Histogram>
 	<!-- Histogram>
 		<Type>h2</Type>
@@ -2103,28 +2018,30 @@
 		<Prefix>CSC</Prefix>
 		<Name>ALCT_DMB_BXN_diff</Name>
 		<SetOption>hist</SetOption>
-		<XMin>-2048</XMin>
-		<XMax>2048</XMax>
-		<XBins>4096</XBins>
-		<XTitle>DMB BXN - ALCT BXN</XTitle>
+		<XMin>-32</XMin>
+		<XMax>32</XMax>
+		<XBins>64</XBins>
+		<XTitle>ALCT BXN - DMB BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
 		<Title>Difference between ALCT and DMB BXN numbers</Title>
 		<Folder>ALCT</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>ALCT_DMB_L1A_diff</Name>
 		<SetOption>hist</SetOption>
-		<XMin>-128</XMin>
-		<XMax>128</XMax>
-		<XBins>256</XBins>
-		<XTitle>DMB L1A - ALCT L1A</XTitle>
+		<XMin>-32</XMin>
+		<XMax>32</XMax>
+		<XBins>64</XBins>
+		<XTitle>ALCT L1A - DMB L1A</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
 		<Title>Difference between ALCT and DMB L1A numbers</Title>
 		<Folder>ALCT</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -2392,20 +2309,44 @@
 		<Folder>ALCT</Folder>
 	</Histogram>
 	<Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>BinCheck_Errors_Frequency</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>1</XMax>
+                <XBins>1</XBins>
+                <XTitle>Number of events</XTitle>
+                <YMin>0</YMin>
+                <YMax>19</YMax>
+                <YBins>19</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Data Format Errors</Title>
+		<SetYLabels>1='DMB Trailer Missing'|2='DMB Header Missing'|3='ALCT Trailer Missing'|4='ALCT Header Missing'|5='ALCT Word Count Error'|6='ALCT CRC Error'|7='ALCT Trailer Bit Error'|8='TMB Trailer Missing'|9='TMB Header Missing'|10='TMB Word Count Error'|11='TMB CRC Error'|12='CFEB Word Count Per Sample Error'|13='CFEB Sample Count Error'|14='CFEB CRC Error'|15='DDU Event Size Limit Error'|16='C-Words'|17='ALCT DAV Error'|18='TMB DAV Error'|19='CFEB DAV Error'|</SetYLabels>
+                <SetLeftMargin>0.5</SetLeftMargin>
+		<SetRightMargin>0.1</SetRightMargin>
+                <SetXLabels>1=' '|</SetXLabels>
+		<SetLogz>1</SetLogz>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetMaximum>1</SetMaximum>
+        </Histogram>
+
+
+	<!--Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>BinCheck_ErrorStat_Frequency</Name>
 		<SetOption>texthbar1</SetOption>
 		<XMin>0</XMin>
-		<XMax>21</XMax>
-		<XBins>21</XBins>
+		<XMax>19</XMax>
+		<XBins>19</XBins>
 		<YTitle>Frequency (%)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Data Format Errors Frequency</Title>
 		<SetNdivisionsX>20</SetNdivisionsX>
 		<SetLeftMargin>0</SetLeftMargin>
 		<SetMaximum>100</SetMaximum>
-	</Histogram>
+	</Histogram-->
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
@@ -2416,15 +2357,82 @@
 		<XBins>1</XBins>
 		<XTitle>Number of events</XTitle>
 		<YMin>0</YMin>
-		<YMax>21</YMax>
-		<YBins>21</YBins>
+		<YMax>19</YMax>
+		<YBins>19</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>Data Format Errors Table</Title>
-		<SetYLabels>1='DMB Trailer Missing'|2='DMB Header Missing'|3='ALCT Trailer Missing'|4='ALCT Header Missing'|5='ALCT Word Count Error'|6='ALCT CRC Error'|7='ALCT Trailer Bit Error'|8='TMB Trailer Missing'|9='TMB Header Missing'|10='TMB Word Count Error'|11='TMB CRC Error'|12='CFEB Word Count Per Sample Error'|13='CFEB Sample Count Error'|14='CFEB CRC Error'|15='DDU Event Size Limit Error'|16='C-Words'|17='ALCT DAV Error'|18='TMB DAV Error'|19='CFEB DAV Error'|20='DMB Active Error'|21='DMB DAV vs. DMB Active mismatch Error'|</SetYLabels>
-		<SetLeftMargin>0.4</SetLeftMargin>
+		<SetYLabels>1='DMB Trailer Missing'|2='DMB Header Missing'|3='ALCT Trailer Missing'|4='ALCT Header Missing'|5='ALCT Word Count Error'|6='ALCT CRC Error'|7='ALCT Trailer Bit Error'|8='TMB Trailer Missing'|9='TMB Header Missing'|10='TMB Word Count Error'|11='TMB CRC Error'|12='CFEB Word Count Per Sample Error'|13='CFEB Sample Count Error'|14='CFEB CRC Error'|15='DDU Event Size Limit Error'|16='C-Words'|17='ALCT DAV Error'|18='TMB DAV Error'|19='CFEB DAV Error'|</SetYLabels>
+		<SetLeftMargin>0.5</SetLeftMargin>
+		<SetRightMargin>0.1</SetRightMargin>
 		<SetXLabels>1=' '|</SetXLabels>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 	</Histogram>
 	<Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>BinCheck_DataFlow_Problems_Table</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>1</XMax>
+                <XBins>1</XBins>
+                <XTitle>Number of events</XTitle>
+                <YMin>0</YMin>
+                <YMax>23</YMax>
+                <YBins>23</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Data Flow Problems Table</Title>
+		<SetYLabels>1='ALCT_FIFO_FULL'|2='TMB_FIFO_FULL'|3='CFEB1_FIFO_FULL'|4='CFEB2_FIFO_FULL'|5='CFEB3_FIFO_FULL'|6='CFEB4_FIFO_FULL'|7='CFEB5_FIFO_FULL'|8='ALCT_START_TIMEOUT'|9='TMB_START_TIMEOUT|10='CFEB1_START_TIMEOUT'|11='CFEB2_START_TIMEOUT'|12='CFEB3_START_TIMEOUT'|13='CFEB4_START_TIMEOUT'|14='CFEB5_START_TIMEOUT'|15='ALCT_END_TIMEOUT'|16='TMB_END_TIMEOUT'|17='CFEB1_END_TIMEOUT'|18='CFEB2_END_TIMEOUT'|19='CFEB3_END_TIMEOUT'|20='CFEB4_END_TIMEOUT'|21='CFEB5_END_TIMEOUT'|22='CFEB Active-DAV mismatch'|23='B-words found'|</SetYLabels>
+                <SetLeftMargin>0.5</SetLeftMargin>
+                <SetRightMargin>0.1</SetRightMargin>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+        </Histogram>
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>BinCheck_DataFlow_Problems_Frequency</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>1</XMax>
+                <XBins>1</XBins>
+                <XTitle>Number of events</XTitle>
+                <YMin>0</YMin>
+                <YMax>23</YMax>
+                <YBins>23</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>Data Flow Problems</Title>
+                <SetYLabels>1='ALCT_FIFO_FULL'|2='TMB_FIFO_FULL'|3='CFEB1_FIFO_FULL'|4='CFEB2_FIFO_FULL'|5='CFEB3_FIFO_FULL'|6='CFEB4_FIFO_FULL'|7='CFEB5_FIFO_FULL'|8='ALCT_START_TIMEOUT'|9='TMB_START_TIMEOUT|10='CFEB1_START_TIMEOUT'|11='CFEB2_START_TIMEOUT'|12='CFEB3_START_TIMEOUT'|13='CFEB4_START_TIMEOUT'|14='CFEB5_START_TIMEOUT'|15='ALCT_END_TIMEOUT'|16='TMB_END_TIMEOUT'|17='CFEB1_END_TIMEOUT'|18='CFEB2_END_TIMEOUT'|19='CFEB3_END_TIMEOUT'|20='CFEB4_END_TIMEOUT'|21='CFEB5_END_TIMEOUT'|22='CFEB Active-DAV mismatch'|23='B-words found'|</SetYLabels>
+                <SetLeftMargin>0.5</SetLeftMargin>
+		<SetRightMargin>0.1</SetRightMargin>
+                <SetXLabels>1=' '|</SetXLabels>
+                <SetLogz>1</SetLogz>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetMaximum>1</SetMaximum>
+        </Histogram>
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>BinCheck_WarningStat_Frequency</Name>
+                <SetOption>coltext</SetOption>
+                <XMin>0</XMin>
+                <XMax>1</XMax>
+                <XBins>1</XBins>
+                <XTitle>Number of events</XTitle>
+                <YMin>0</YMin>
+                <YMax>31</YMax>
+                <YBins>31</YBins>
+                <SetOptStat>e</SetOptStat>
+                <Title>DDU Data Format Warnings Table</Title>
+                <SetYLabels>1='CFEB B-Words'|</SetYLabels>
+                <SetLeftMargin>0.5</SetLeftMargin>
+		<SetRightMargin>0.1</SetRightMargin>
+                <SetXLabels>1=' '|</SetXLabels>
+                <SetLogz>1</SetLogz>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+        </Histogram>
+
+	<!--Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>BinCheck_WarningStat_Frequency</Name>
@@ -2438,7 +2446,7 @@
 		<SetNdivisionsX>1</SetNdivisionsX>
 		<SetLeftMargin>0</SetLeftMargin>
 		<SetMaximum>100</SetMaximum>
-	</Histogram>
+	</Histogram-->
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
@@ -2454,8 +2462,10 @@
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Data Format Warnings Table</Title>
 		<SetYLabels>1='CFEB B-Words'|</SetYLabels>
-		<SetLeftMargin>0.4</SetLeftMargin>
+		<SetLeftMargin>0.5</SetLeftMargin>
+		<SetRightMargin>0.1</SetRightMargin>
 		<SetRightMargin>0</SetRightMargin>
+		<SetLabelSizeZ>0.02</SetLabelSizeZ>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -2487,6 +2497,177 @@
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB0_DMB_L1A_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>CFEB1 L1A - DMB L1A</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB1 L1A numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB1_DMB_L1A_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>CFEB2 L1A - DMB L1A</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB2 L1A numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB2_DMB_L1A_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>CFEB3 L1A - DMB L1A</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB3 L1A numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB3_DMB_L1A_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>CFEB4 L1A - DMB L1A</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB4 L1A numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB4_DMB_L1A_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>CFEB5 L1A - DMB L1A</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB5 L1A numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<!--Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB0_DMB_BXN_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>DMB BXN - CFEB0 BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB0 BXN numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB1_DMB_BXN_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>DMB BXN - CFEB1 BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB1 BXN numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB2_DMB_BXN_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>DMB BXN - CFEB2 BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB2 BXN numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB3_DMB_BXN_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>DMB BXN - CFEB3 BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB3 BXN numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>CFEB4_DMB_BXN_diff</Name>
+                <SetOption>hist</SetOption>
+                <XMin>-32</XMin>
+                <XMax>32</XMax>
+                <XBins>64</XBins>
+                <XTitle>DMB BXN - CFEB4 BXN</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>emuo</SetOptStat>
+                <Title>Difference between DMB and CFEB4 BXN numbers</Title>
+                <SetMinimum>0</SetMinimum>
+                <Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
+        </Histogram-->
+
+
+	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB0_L1A_Sync_Time_DMB_diff</Name>
@@ -2494,11 +2675,12 @@
 		<XMin>-8</XMin>
 		<XMax>8</XMax>
 		<XBins>16</XBins>
-		<XTitle>CFEB - DMB L1A_Sync_BXN</XTitle>
+		<XTitle>CFEB 1 - DMB BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
-		<Title>CFEB0 L1A Sync Time - DMB CFEB Sync Time</Title>
+		<Title>CFEB1 BXN - DMB CFEB Sync Time</Title>
 		<Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -2614,11 +2796,12 @@
 		<XMin>-8</XMin>
 		<XMax>8</XMax>
 		<XBins>16</XBins>
-		<XTitle>CFEB - DMB L1A_Sync_BXN</XTitle>
+		<XTitle>CFEB2 - DMB L1A_Sync_BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
-		<Title>CFEB1 L1A Sync Time - DMB CFEB Sync Time</Title>
+		<Title>CFEB2 L1A Sync Time - DMB CFEB Sync Time</Title>
 		<Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -2734,11 +2917,12 @@
 		<XMin>-8</XMin>
 		<XMax>8</XMax>
 		<XBins>16</XBins>
-		<XTitle>CFEB - DMB L1A_Sync_BXN</XTitle>
+		<XTitle>CFEB3 - DMB L1A_Sync_BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
-		<Title>CFEB2 L1A Sync Time - DMB CFEB Sync Time</Title>
+		<Title>CFEB3 L1A Sync Time - DMB CFEB Sync Time</Title>
 		<Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -2854,11 +3038,12 @@
 		<XMin>-8</XMin>
 		<XMax>8</XMax>
 		<XBins>16</XBins>
-		<XTitle>CFEB - DMB L1A_Sync_BXN</XTitle>
+		<XTitle>CFEB4 - DMB L1A_Sync_BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
-		<Title>CFEB3 L1A Sync Time - DMB CFEB Sync Time</Title>
+		<Title>CFEB4 L1A Sync Time - DMB CFEB Sync Time</Title>
 		<Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -2974,11 +3159,12 @@
 		<XMin>-8</XMin>
 		<XMax>8</XMax>
 		<XBins>16</XBins>
-		<XTitle>CFEB - DMB L1A_Sync_BXN</XTitle>
+		<XTitle>CFEB5 - DMB L1A_Sync_BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
-		<Title>CFEB4 L1A Sync Time - DMB CFEB Sync Time</Title>
+		<Title>CFEB5 L1A Sync Time - DMB CFEB Sync Time</Title>
 		<Folder>CFEB</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
@@ -4841,28 +5027,30 @@
 		<Prefix>CSC</Prefix>
 		<Name>CLCT_DMB_BXN_diff</Name>
 		<SetOption>hist</SetOption>
-		<XMin>-2048</XMin>
-		<XMax>2048</XMax>
-		<XBins>4096</XBins>
-		<XTitle>DMB BXN - TMB BXN</XTitle>
+		<XMin>-32</XMin>
+		<XMax>32</XMax>
+		<XBins>64</XBins>
+		<XTitle>TMB BXN - DMB BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
 		<Title>Difference between TMB and DMB BXN numbers</Title>
-		<Folder>CLCT</Folder>
+		<Folder>CLCT</Folder>	
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CLCT_DMB_L1A_diff</Name>
 		<SetOption>hist</SetOption>
-		<XMin>-128</XMin>
-		<XMax>128</XMax>
-		<XBins>256</XBins>
-		<XTitle>DMB_L1A-TMB_L1A</XTitle>
+		<XMin>-32</XMin>
+		<XMax>32</XMax>
+		<XBins>64</XBins>
+		<XTitle>TMB L1A - DMB L1A</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
 		<Title>Difference between TMB and DMB L1A numbers</Title>
 		<Folder>CLCT</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -5190,12 +5378,13 @@
 		<SetOptStat>e</SetOptStat>
 		<Title>CFEB_Active vs CFEB_DAV combinations</Title>
 		<SetLabelSizeX>0.02</SetLabelSizeX>
+		<SetLabelSizeY>0.02</SetLabelSizeY>
 		<SetYLabels>1='00000'|2='00001'|3='00010'|4='00011'|5='00100'|6='00101'|7='00110'|8='00111'|9='01000'|10='01001'|11='01010'|12='01011'|13='01100'|14='01101'|15='01110'|16='01111'|17='10000'|18='10001'|19='10010'|20='10011'|21='10100'|22='10101'|23='10110'|24='10111'|25='11000'|26='11001'|27='11010'|28='11011'|29='11100'|30='11101'|31='11110'|32='11111'|</SetYLabels>
 		<SetXLabels>1='00000'|2='00001'|3='00010'|4='00011'|5='00100'|6='00101'|7='00110'|8='00111'|9='01000'|10='01001'|11='01010'|12='01011'|13='01100'|14='01101'|15='01110'|16='01111'|17='10000'|18='10001'|19='10010'|20='10011'|21='10100'|22='10101'|23='10110'|24='10111'|25='11000'|26='11001'|27='11010'|28='11011'|29='11100'|30='11101'|31='11110'|32='11111'|</SetXLabels>
 		<Folder>DMB</Folder>
 		<LabelsOption>v,X</LabelsOption>
 	</Histogram>
-	<Histogram>
+	<!--Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>DMB_CFEB_DAV</Name>
@@ -5211,7 +5400,140 @@
 		<SetXLabels>1='00000'|2='00001'|3='00010'|4='00011'|5='00100'|6='00101'|7='00110'|8='00111'|9='01000'|10='01001'|11='01010'|12='01011'|13='01100'|14='01101'|15='01110'|16='01111'|17='10000'|18='10001'|19='10010'|20='10011'|21='10100'|22='10101'|23='10110'|24='10111'|25='11000'|26='11001'|27='11010'|28='11011'|29='11100'|30='11101'|31='11110'|32='11111'|</SetXLabels>
 		<Folder>DMB</Folder>
 		<LabelsOption>v,X</LabelsOption>
-	</Histogram>
+	</Histogram-->
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_CFEB_DAV</Name>
+                <SetOption>hist</SetOption>
+                <XMin>0</XMin>
+                <XMax>5</XMax>
+                <XBins>5</XBins>
+                <XTitle>Number of CFEBs Reporting DAV</XTitle>
+                <YTitle>Number of Events</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Number of CFEBs reporting DAV</Title>
+                <SetXLabels>1='CFEB1'|2='CFEB2'|3='CFEB3'|4='CFEB4'|5='CFEB5'|</SetXLabels>
+                <Folder>DMB</Folder>
+                <LabelsOption>v,X</LabelsOption>
+        </Histogram>
+
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>Actual_DMB_CFEB_DAV_Rate</Name>
+                <SetOption>hist</SetOption>
+                <XMin>0</XMin>
+                <XMax>5</XMax>
+                <XBins>5</XBins>
+                <XTitle>Number of CFEBs Reporting DAV</XTitle>
+                <YTitle>Number of Events</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>CFEB DAV bits</Title>
+                <SetXLabels>1='CFEB1'|2='CFEB2'|3='CFEB3'|4='CFEB4'|5='CFEB5'|</SetXLabels>
+                <Folder>DMB</Folder>
+		<LabelsOption>v,X</LabelsOption>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>Actual_DMB_CFEB_DAV_Frequency</Name>
+                <SetOption>histtext</SetOption>
+                <XMin>0</XMin>
+                <XMax>5</XMax>
+                <XBins>5</XBins>
+                <YTitle>Frequency (% of DMB records)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>CFEB DAV Bit Frequency</Title>
+                <SetXLabels>1='CFEB1'|2='CFEB2'|3='CFEB3'|4='CFEB4'|5='CFEB5'|</SetXLabels>
+                <Folder>DMB</Folder>
+		<SetMaximum>110</SetMaximum>
+                <SetMinimum>0</SetMinimum>
+        </Histogram>
+
+	  <Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_CFEB_DAV_Unpacking_Inefficiency</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>5</XMax>
+                <XBins>5</XBins>
+                <YMin>0</YMin>
+                <YMax>1</YMax>
+                <YBins>1</YBins>
+                <YTitle>Inefficiency (%)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Unpacking Inefficiency per CFEB</Title>
+		<SetXLabels>1='CFEB1'|2='CFEB2'|3='CFEB3'|4='CFEB4'|5='CFEB5'|</SetXLabels>
+                <SetYLabels>1=' '|</SetYLabels>
+                <Folder>DMB</Folder>
+                <SetLogz>1</SetLogz>
+        </Histogram>
+
+
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>Actual_DMB_CFEB_DAV_multiplicity_Rate</Name>
+                <SetOption>hist</SetOption>
+                <XMin>0</XMin>
+                <XMax>6</XMax>
+                <XBins>6</XBins>
+                <XTitle>Number of CFEBs Reporting DAV</XTitle>
+                <YTitle>Number of Events</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Number of CFEBs reporting DAV</Title>
+                <SetXLabels>1='0'|2='1'|3='2'|4='3'|5='4'|6='5'|</SetXLabels>
+                <Folder>DMB</Folder>
+        </Histogram>
+
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>Actual_DMB_CFEB_DAV_multiplicity_Frequency</Name>
+                <SetOption>histtext</SetOption>
+                <XMin>0</XMin>
+                <XMax>6</XMax>
+                <XBins>6</XBins>
+                <XTitle>Number of CFEBs Reporting DAV</XTitle>
+                <YTitle>Frequency (% of DMB records)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Number of CFEBs reporting DAV</Title>
+                <SetXLabels>1='0'|2='1'|3='2'|4='3'|5='4'|6='5'|</SetXLabels>
+                <Folder>DMB</Folder>
+		<SetMaximum>110</SetMaximum>
+		<SetMinimum>0</SetMinimum>
+        </Histogram>
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_CFEB_DAV_multiplicity_Unpacking_Inefficiency</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>6</XMax>
+                <XBins>6</XBins>
+                <YMin>0</YMin>
+                <YMax>1</YMax>
+                <YBins>1</YBins>
+
+                <XTitle>Number of CFEBs Reporting DAV</XTitle>
+                <YTitle>Inefficiency (%)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Unpacking Inefficiency per event with N CFEBs</Title>
+		<SetXLabels>1='0'|2='1'|3='2'|4='3'|5='4'|6='5'|</SetXLabels>
+                <SetYLabels>1=' '|</SetYLabels>
+                <Folder>DMB</Folder>
+                <SetLogz>1</SetLogz>
+        </Histogram>
+
+
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
@@ -5237,8 +5559,9 @@
 		<XBins>32</XBins>
 		<XTitle>CFEBs</XTitle>
 		<YTitle>Number of Events</YTitle>
+		<Title>CFEB Multiple Overlaps</Title>
 		<SetOptStat>e</SetOptStat>
-		<SetLabelSizeX>0.02</SetLabelSizeX>
+		<!-- SetLabelSizeX>0.04</SetLabelSizeX-->
 		<SetXLabels>1='00000'|2='00001'|3='00010'|4='00011'|5='00100'|6='00101'|7='00110'|8='00111'|9='01000'|10='01001'|11='01010'|12='01011'|13='01100'|14='01101'|15='01110'|16='01111'|17='10000'|18='10001'|19='10010'|20='10011'|21='10100'|22='10101'|23='10110'|24='10111'|25='11000'|26='11001'|27='11010'|28='11011'|29='11100'|30='11101'|31='11110'|32='11111'|</SetXLabels>
 		<Folder>DMB</Folder>
 		<LabelsOption>v,X</LabelsOption>
@@ -5262,28 +5585,30 @@
 		<Prefix>CSC</Prefix>
 		<Name>DMB_DDU_BXN_diff</Name>
 		<SetOption>hist</SetOption>
-		<XMin>-2048</XMin>
-		<XMax>2048</XMax>
-		<XBins>4096</XBins>
+		<XMin>-32</XMin>
+		<XMax>32</XMax>
+		<XBins>64</XBins>
 		<XTitle>DMB BXN - DDU BXN</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emou</SetOptStat>
 		<Title>Difference between DMB and DDU BXN numbers</Title>
 		<Folder>DMB</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>DMB_DDU_L1A_diff</Name>
 		<SetOption>hist</SetOption>
-		<XMin>-128</XMin>
-		<XMax>128</XMax>
-		<XBins>256</XBins>
+		<XMin>-32</XMin>
+		<XMax>32</XMax>
+		<XBins>64</XBins>
 		<XTitle>DMB L1A - DDU L1A</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>emou</SetOptStat>
 		<Title>Difference between DMB and DDU L1A numbers</Title>
 		<Folder>DMB</Folder>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -5297,7 +5622,7 @@
 		<YTitle>Efficiency (% of total number of events)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>FEBs Data Available (DAV) Efficiency</Title>
-		<SetXLabels>1='ALCT'|2='TMB'|3='CFEB'</SetXLabels>
+		<SetXLabels>1='ALCT'|2='TMB'|3='CFEB'|</SetXLabels>
 		<Folder>DMB</Folder>
 	</Histogram>
 	<Histogram>
@@ -5314,6 +5639,90 @@
 		<Folder>DMB</Folder>
 	</Histogram>
 	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>Actual_DMB_FEB_DAV_Frequency</Name>
+                <SetOption>histtext</SetOption>
+                <XMin>0</XMin>
+                <XMax>3</XMax>
+                <XBins>3</XBins>
+                <XTitle>Data Available Bits</XTitle>
+                <YTitle>Frequency (% of DMB records)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>FEB DAV bits Frequency</Title>
+                <SetXLabels>1='ALCT'|2='TMB'|3='CFEB'|</SetXLabels>
+		<SetMaximum>110</SetMaximum>
+		<SetMinimum>0</SetMinimum>
+                <Folder>DMB</Folder>
+        </Histogram>
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_FEB_DAV_Unpacking_Inefficiency</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>3</XMax>
+                <XBins>3</XBins>
+		<YMin>0</YMin>
+                <YMax>1</YMax>
+                <YBins>1</YBins>
+                <XTitle>Data Available Bits</XTitle>
+                <YTitle>Inefficiency (%)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Unpacking Inefficiency per FEB</Title>
+                <SetXLabels>1='ALCT'|2='TMB'|3='CFEB'|</SetXLabels>
+		<SetYLabels>1=' '|</SetYLabels>
+                <Folder>DMB</Folder>
+		<SetLogz>1</SetLogz>
+        </Histogram>
+
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>Actual_DMB_FEB_DAV_Rate</Name>
+                <SetOption>histtext</SetOption>
+                <XMin>0</XMin>
+                <XMax>3</XMax>
+                <XBins>3</XBins>
+                <XTitle>Data available in FEB</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Folder>DMB</Folder>
+        </Histogram>
+
+	<Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>Actual_DMB_FEB_Combinations_DAV_Frequency</Name>
+                <SetOption>histtext</SetOption>
+                <XMin>0</XMin>
+                <XMax>8</XMax>
+                <XBins>8</XBins>
+                <XTitle>Data Available Bits</XTitle>
+                <YTitle>Frequency (% of DMB records)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Frequency of FEB DAV Bit Combinations</Title>
+                <SetXLabels>1='nothing'|2='ALCT only'|3='TMB only'|4='CFEB only'|5='TMB+CFEB'|6='ALCT+TMB'|7='ALCT+CFEB'|8='ALCT+TMB+CFEB'|</SetXLabels>
+                <Folder>DMB</Folder>
+		<SetMaximum>110</SetMaximum>
+                <SetMinimum>0</SetMinimum>
+        </Histogram>
+        <Histogram>
+                <Type>h1</Type>
+                <Prefix>CSC</Prefix>
+                <Name>Actual_DMB_FEB_Combinations_DAV_Rate</Name>
+                <SetOption>hist</SetOption>
+                <XMin>0</XMin>
+                <XMax>8</XMax>
+                <XBins>8</XBins>
+                <XTitle>Data available in FEBs Combinations</XTitle>
+                <YTitle>Number of events</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Folder>DMB</Folder>
+        </Histogram>
+
+	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>DMB_FEB_Combinations_DAV_Efficiency</Name>
@@ -5325,7 +5734,7 @@
 		<YTitle>Efficiency (% of total number of events)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>FEBs Combinations DAV Efficiency</Title>
-		<SetXLabels>1='nothing'|2='ALCT only'|3='TMB only'|4='CFEB only'|5='ALCT+TMB'|6='ALCT+CFEB'|7='TMB+CFEB'|8='ALCT+TMB+CFEB'|</SetXLabels>
+		<SetXLabels>1='nothing'|2='ALCT only'|3='TMB only'|4='CFEB only'|5='TMB+CFEB'|6='ALCT+TMB'|7='ALCT+CFEB'|8='ALCT+TMB+CFEB'|</SetXLabels>
 		<Folder>DMB</Folder>
 	</Histogram>
 	<Histogram>
@@ -5341,6 +5750,30 @@
 		<SetOptStat>e</SetOptStat>
 		<Folder>DMB</Folder>
 	</Histogram>
+
+	<Histogram>
+                <Type>h2</Type>
+                <Prefix>CSC</Prefix>
+                <Name>DMB_FEB_Combinations_DAV_Unpacking_Inefficiency</Name>
+                <SetOption>textcolz</SetOption>
+                <XMin>0</XMin>
+                <XMax>8</XMax>
+                <XBins>8</XBins>
+                <YMin>0</YMin>
+                <YMax>1</YMax>
+                <YBins>1</YBins>
+
+                <XTitle>Data Available Bits</XTitle>
+                <YTitle>Inefficiency (%)</YTitle>
+                <SetOptStat>e</SetOptStat>
+                <Title>Unpacking Inefficiency per FEB-Combination</Title>
+		<SetXLabels>1='nothing'|2='ALCT only'|3='TMB only'|4='CFEB only'|5='TMB+CFEB'|6='ALCT+TMB'|7='ALCT+CFEB'|8='ALCT+TMB+CFEB'|</SetXLabels>
+                <SetYLabels>1=' '|</SetYLabels>
+                <Folder>DMB</Folder>
+                <SetLogz>1</SetLogz>
+        </Histogram>
+
+
 	<Histogram>
 		<Type>h2</Type>
 		<Prefix>CSC</Prefix>
