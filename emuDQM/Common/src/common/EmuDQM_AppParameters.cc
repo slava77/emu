@@ -254,6 +254,7 @@ namespace emu {
      )
 //      throw (xcept::Exception)
     {
+      std::string paramValue="";
       try
 	{
 	  xoap::SOAPPart part = msg->getSOAPPart();
@@ -268,7 +269,7 @@ namespace emu {
 	  DOMNode *paramNode = findNode(propertiesList, paramName);
 	  DOMNodeList *paramList = paramNode->getChildNodes();
 	  DOMNode *valueNode = paramList->item(0);
-	  std::string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
+	  paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
 
 	  return paramValue;
 	}
@@ -283,6 +284,7 @@ namespace emu {
 	{
 	  XCEPT_RAISE(xcept::Exception,
 		      "Parameter " + paramName + " not found");
+	  return paramValue;
 	}
     }
   }
