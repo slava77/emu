@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.27 2008/04/19 14:56:55 rakness Exp $
+// $Id: ALCTController.h,v 3.28 2008/05/26 08:24:41 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.28  2008/05/26 08:24:41  rakness
+// for AFEB calibrations:  argument for TMB and ALCT::configure(2) to not write userPROMs; correctly respond to configuration written to broadcast slot
+//
 // Revision 3.27  2008/04/19 14:56:55  rakness
 // ALCT database check before loading ALCT firmware
 //
@@ -187,6 +190,9 @@ class ALCTController {
   //  Useful methods to use ALCTController:
   ///////////////////////////////////////////////////////////////////////////
   void configure();                                  //writes software values to all registers on ALCT
+  //!c = 2 = do not write configuration to userPROM
+  void configure(int c);
+  //
   void ReadALCTConfiguration();                      //Read current configuration and fill software read values
   void PrintALCTConfiguration();                     //Print software configuration values
   void CheckALCTConfiguration();                     //Check the read values against the write values

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.61 2008/05/20 11:30:20 liu Exp $
+// $Id: TMB.cc,v 3.62 2008/05/26 08:24:43 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.62  2008/05/26 08:24:43  rakness
+// for AFEB calibrations:  argument for TMB and ALCT::configure(2) to not write userPROMs; correctly respond to configuration written to broadcast slot
+//
 // Revision 3.61  2008/05/20 11:30:20  liu
 // TMB counters in jumbo packet
 //
@@ -754,7 +757,20 @@ void TMB::init() {
 //
 void TMB::configure() {
   //
-  SetFillVmeWriteVecs(true);     //set this to false to disable writing to user PROM
+  this->configure(0); //no argument means write configuration to user PROM
+  //
+  return;
+}
+//
+void TMB::configure(int c) {
+  //
+  // c = 2 = do not write configuration to userPROM
+  //
+  if (c == 2) { 
+    SetFillVmeWriteVecs(false);     //do not write configuration to user PROM
+  } else {
+    SetFillVmeWriteVecs(true);     //write configuration to user PROM
+  }
   ClearVmeWriteVecs();
   //
   ostringstream dump;
@@ -764,15 +780,6 @@ void TMB::configure() {
   dump2 << theSlot;
   (*MyOutput_) << dump.str()+dump2.str() << std::endl;
   SendOutput(dump.str()+dump2.str(),"INFO");
-  //
-  //  trgmode(trgmode_);
-  //  //(*MyOutput_) << "Set TMB CSC ID to Slot_ID/2 = " << theSlot/2 << std::endl;
-  //  load_cscid();
-  //  //(*MyOutput_) << "Resetting counters" << std::endl;
-  //  ResetCounters();
-  //
-  //
-  //  SetTrgmode_();  //set the TMB configuration values corresponding to the trgmode_ setting
   //
   for (unsigned int index=0; index<TMBConfigurationRegister.size(); index++) {
     //
@@ -792,23 +799,16 @@ void TMB::configure() {
     WriteRegister(vme_dddsm_adr,0x20);
     WriteRegister(vme_dddsm_adr,0x21);
     WriteRegister(vme_dddsm_adr,0x20);
-    //sndbuf[0]=0x00;
-    //sndbuf[1]=0x20;
-    //tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
-    //sndbuf[0]=0x00;
-    //sndbuf[1]=0x21;
-    //tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
-    //sndbuf[0]=0x00;
-    //sndbuf[1]=0x20;
-    //tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
   }
   //
+  // The flag to fill the VME register vector is set => program the user PROM:
   if ( GetFillVmeWriteVecs() )      
     CheckAndProgramProm(ChipLocationTmbUserPromTMB);
   //
-  SetFillVmeWriteVecs(false);        //give VME back to the user (default)
+  SetFillVmeWriteVecs(false);    //give VME back to the user (default)
   //
-  CheckTMBConfiguration();
+  if (this->slot()<22)           //broadcast read will not work, so only check configuration if it is a normal VME slot
+    CheckTMBConfiguration();  
   //
 }
 //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.41 2008/05/20 11:30:21 liu Exp $
+// $Id: TMB.h,v 3.42 2008/05/26 08:24:41 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.42  2008/05/26 08:24:41  rakness
+// for AFEB calibrations:  argument for TMB and ALCT::configure(2) to not write userPROMs; correctly respond to configuration written to broadcast slot
+//
 // Revision 3.41  2008/05/20 11:30:21  liu
 // TMB counters in jumbo packet
 //
@@ -551,6 +554,9 @@ public:
   //
   bool SelfTest() ;
   void init() ;
+  //
+  //!c = 2 = do not write configuration to userPROM
+  void configure(int c);
   void configure() ;
   //
   //!device = 0 = TMB, = 1 = mezzanine, = 2 = RAT

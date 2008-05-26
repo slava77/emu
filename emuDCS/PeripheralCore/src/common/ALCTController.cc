@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.45 2008/04/28 14:29:31 rakness Exp $
+// $Id: ALCTController.cc,v 3.46 2008/05/26 08:24:42 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.46  2008/05/26 08:24:42  rakness
+// for AFEB calibrations:  argument for TMB and ALCT::configure(2) to not write userPROMs; correctly respond to configuration written to broadcast slot
+//
 // Revision 3.45  2008/04/28 14:29:31  rakness
 // Clean up firmware downloading output and synchronization parameter pages
 //
@@ -542,9 +545,23 @@ void ALCTController::SetUpRandomALCT(){
 //
 void ALCTController::configure() {
   //
+  this->configure(0); //no argument means write configuration to user PROM
+  //
+  return;
+}
+//
+void ALCTController::configure(int c) {
+  //
+  // c = 2 = do not write configuration to userPROM
+  //
   tmb_->SetCheckJtagWrite(false);          //in this method we only want to write data...
-  //                                 //the settings will be verified with CheckALCTConfiguration()
-  SetFillVmeWriteVecs(true);     //set this to false to disable writing to user PROM
+  //                                       //... the settings will be verified with CheckALCTConfiguration()
+  //
+  if (c == 2) { 
+    SetFillVmeWriteVecs(false);     //do not write configuration to user PROM
+  } else {
+    SetFillVmeWriteVecs(true);     //write configuration to user PROM
+  }
   ClearVmeWriteVecs();
   //
   std::ostringstream dump;
@@ -601,12 +618,14 @@ void ALCTController::configure() {
   //
   tmb_->SetCheckJtagWrite(true);                //re-enable the checking of JTAG writes (default)
   //
+  // The flag to fill the VME register vector is set => program the user PROM:
   if ( GetFillVmeWriteVecs() ) 
     tmb_->CheckAndProgramProm(ChipLocationTmbUserPromALCT);
   //
   SetFillVmeWriteVecs(false);        //give VME back to the user (default)
   //
-  this->CheckALCTConfiguration();
+  if (tmb_->slot()<22)           //broadcast read will not work, so only check configuration if it is a normal VME slot
+    this->CheckALCTConfiguration();
   //
   return;
 }

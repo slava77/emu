@@ -571,7 +571,8 @@ void EMUjtag::CheckAndProgramProm(int which_prom) {
   while ( GetNumberOfVerifyErrors() != 0 ) { 
     CreateXsvfFile();
     ProgramUserProm();
-    CheckUserProm();
+    verify_error_ = 0;
+    if ( tmb_->slot()<22 ) CheckUserProm();
   }
   //
   delete read_ascii_prom_image_;
