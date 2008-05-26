@@ -192,6 +192,27 @@
 		<SetOptStat>eoum</SetOptStat>
         </TestResult>
 
+     <TestResult>
+                <Test>CFEB04</Test>
+                <Type>h2</Type>
+                <Title>V05 - Fit Residuals</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V05</Name>
+                <XMin>0</XMin>
+                <XMax>10</XMax>
+                <XBins>10</XBins>
+                <XTitle>Test Pulse DAC i</XTitle>
+		<YMin>-100</YMin>
+                <YMax>100</YMax>
+                <YBins>200</YBins>
+                <YTitle>Fit Residuals, ADC Counts</YTitle>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOption>colz</SetOption>
+                <SetOptStat>em</SetOptStat>
+        </TestResult>
+
+
 
 	<TestResult>
                 <Test>CFEB04</Test>
