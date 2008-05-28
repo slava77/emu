@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<xmas:flash xmlns:xmas="http://xdaq.web.cern.ch/xdaq/xsd/2006/xmas-10" id="urn:xdaq-flashlist:JobControl" version="1.0.0">
+	<xmas:item name="context" function="context()" type="string" />
+	<xmas:item name="class" infospace="urn:jobcontrol" source="$class" type="string" />
+	<xmas:item name="lid" infospace="urn:jobcontrol" source="$id" type="string" />
+	<xmas:item name="timestamp" function="systime()" type="time"/>
+	<xmas:item name="home" function="$XDAQ_ROOT" type="string"/>
+	<!-- xmas:item name="user" function="$USER" type="string"/ -->
+	<xmas:item name="machtype" function="$MACHTYPE" type="string"/>
+	<xmas:item name="ostype" function="$OSTYPE" type="string"/>
+	<xmas:item name="hostname" function="$HOSTNAME" type="string"/>
+	<xmas:item name="jobTable" infospace="urn:jobcontrol" type="table"/>
+	<xmas:item name="stateName" infospace="urn:jobcontrol" type="string" />
+</xmas:flash>	
+

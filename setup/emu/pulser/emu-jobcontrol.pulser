@@ -1,0 +1,7 @@
+<?xml version='1.0'?>
+<xmas:pulser xmlns:xmas="http://xdaq.web.cern.ch/xdaq/xsd/2006/xmas-10">
+	<xmas:event delay="PT1S" period="PT10S" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" tag="instant" xlink:href="#urn:xdaq-flashlist:JobControl"/>
+	</xmas:event>
+</xmas:pulser>
+
