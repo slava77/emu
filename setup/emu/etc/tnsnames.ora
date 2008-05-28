@@ -1,0 +1,29 @@
+OMDS =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oracms.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = OMDS)
+    )
+  )
+
+ORCON =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oracms.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = ORCON)
+    )
+  )
+
+ORCON_SHARED =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oracms.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+     (SERVER = SHARED)
+     (SERVICE_NAME = ORCON_SHARED.cern.ch)
+    )
+  )
+
+
+
