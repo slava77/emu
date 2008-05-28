@@ -243,7 +243,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (isMEvalid(cscME, "DMB_CFEB_Active", mo)) mo->Fill(dmbHeader->cfebActive()); //KK
 
   //if (isMEvalid(cscME, "DMB_CFEB_Active_vs_DAV", mo)) mo->Fill(dmbHeader->cfebAvailable(),(int)((dmbTrailer->header_1a>>5)&0x1F)); //KK
-  if (isMEvalid(cscME, "DMB_CFEB_Active_vs_DAV", mo)) mo->Fill(dmbHeader->cfebAvailable(),dmbHeader->cfebActive()); //KK
+  // if (isMEvalid(cscME, "DMB_CFEB_Active_vs_DAV", mo)) mo->Fill(dmbHeader->cfebAvailable(),dmbHeader->cfebActive()); //KK
 
   if (isMEvalid(cscME, "DMB_L1_Pipe", mo)) mo->Fill(dmbTrailer->dmb_l1pipe);
 
