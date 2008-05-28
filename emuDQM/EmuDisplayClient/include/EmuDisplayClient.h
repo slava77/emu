@@ -126,6 +126,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   void updateCSCCounters();
   
  protected:
+  TCanvas* getMergedCanvas(std::vector<TObject*>& canvases);
 
  private:
   

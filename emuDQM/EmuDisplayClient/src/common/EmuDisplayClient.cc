@@ -645,7 +645,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 
 
 
-TCanvas* getMergedCanvas(std::vector<TObject*>& canvases)
+TCanvas* EmuDisplayClient::getMergedCanvas(std::vector<TObject*>& canvases)
 {
   TCanvas* cnv = NULL;
   if (canvases.size()) {
@@ -668,10 +668,20 @@ TCanvas* getMergedCanvas(std::vector<TObject*>& canvases)
 	      if ( obj && obj2 
 		   && obj->InheritsFrom(TH1::Class())
 		   && obj2->InheritsFrom(TH1::Class())) {
+		// double max1=reinterpret_cast<TH1*>(obj)->GetMaximum();
+		double max2=reinterpret_cast<TH1*>(obj2)->GetMaximum();
+		//double min1=reinterpret_cast<TH1*>(obj)->GetMinimum();
+		double min2=reinterpret_cast<TH1*>(obj2)->GetMinimum();
 		(reinterpret_cast<TH1*>(obj))->Add(reinterpret_cast<TH1*>(obj2));
-		if (reinterpret_cast<TH1*>(obj)->GetMaximum() == reinterpret_cast<TH1*>(obj)->GetMinimum()) {
+		double max1=reinterpret_cast<TH1*>(obj)->GetMaximum();
+		double min1=reinterpret_cast<TH1*>(obj)->GetMinimum();
+		// LOG4CPLUS_INFO(getApplicationLogger(), obj->GetName() << " " << max1 << " " << min1 << " " << max2 << " " << min2);	
+		if ((max1 == min1) && (max1 == 0)) {
 			reinterpret_cast<TH1*>(obj)->SetMaximum(reinterpret_cast<TH1*>(obj)->GetMinimum()+0.01);
-		}
+		} 		
+		if (max2>max1) reinterpret_cast<TH1*>(obj)->SetMaximum(max2);
+		if (min2<min1) reinterpret_cast<TH1*>(obj)->SetMinimum(min2);	
+	
 	      }
 	    }				    	      
 	  }
