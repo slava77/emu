@@ -247,14 +247,14 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
 /**********  end initialize ***********************/
 /**********  send the JTAG data ************************/ 
 if(idev<=4||idev==11){
-if(ncmd>0){
-/* stan jtag kludge kludge for serial devices */
+ if(ncmd>0){
+ /* stan jtag kludge kludge for serial devices */
    if(geo[dev].nser!=0){
-      ppnt=0;
-      cmd2[0]=0x00;
-      cmd2[1]=0x00;
-      m=geo[dev].nser;
-      for(i=0;i<geo[dev].nser;i++){
+     ppnt=0;
+     cmd2[0]=0x00;
+     cmd2[1]=0x00;
+     m=geo[dev].nser;
+     for(i=0;i<geo[dev].nser;i++){
        if(geo[dev].seri[m-i-1]<0)
          {tmp[0]=cmd[0];pcmd=geo[-1*geo[dev].seri[m-i-1]].kbit;}
        else
@@ -262,26 +262,26 @@ if(ncmd>0){
        /*       printf(" i %d tmp[0] %04x pcmd %d  \n",i,tmp[0],pcmd);
 		printf(" cmd[0] %02x \n",cmd[0]); */
        for(k=0;k<pcmd;k++){
-       ppnt=ppnt+1;
-       if(((tmp[0]>>k)&0x01)!=0){
-         if(ppnt<9){pow2=1<<(ppnt-1);cmd2[0]=cmd2[0]+pow2;
-	 /*printf(" k cmd %d %02x %d %d \n",k,cmd2[0],ppnt,pow2); */}
-         if(ppnt>8){pow2=1<<(ppnt-9);cmd2[1]=cmd2[1]+pow2;} 
+         ppnt=ppnt+1;
+         if(((tmp[0]>>k)&0x01)!=0){
+           if(ppnt<9){pow2=1<<(ppnt-1);cmd2[0]=cmd2[0]+pow2;
+	   /*printf(" k cmd %d %02x %d %d \n",k,cmd2[0],ppnt,pow2); */}
+           if(ppnt>8){pow2=1<<(ppnt-9);cmd2[1]=cmd2[1]+pow2;} 
+         }
        }
      }
-   }
-   ncmd2=ppnt;
-   nbcmd2=ncmd2/8+1;
-   nbuf2=geo[dev].sxtrbits;
-   if(nbuf>0){  
-     nbuf2=nbuf2+nbuf;}
-   else{
-     nbuf2=0;}
-  kbit=geo[dev].kbit;
-  kbybit=geo[dev].kbybit;
-  kbypass=geo[dev].kbypass;
-  /*   printf(" final ncmd %d cmd %04x %04x \n",ncmd,cmd[1],cmd[0]);
-       printf(" final nbuf %d nbuf %d \n",nbuf2,nbuf); */
+     ncmd2=ppnt;
+     nbcmd2=ncmd2/8+1;
+     nbuf2=geo[dev].sxtrbits;
+     if(nbuf>0){  
+       nbuf2=nbuf2+nbuf;}
+     else{
+       nbuf2=0;}
+     kbit=geo[dev].kbit;
+     kbybit=geo[dev].kbybit;
+     kbypass=geo[dev].kbypass;
+     /*   printf(" final ncmd %d cmd %04x %04x \n",ncmd,cmd[1],cmd[0]);
+          printf(" final nbuf %d nbuf %d \n",nbuf2,nbuf); */
    }
    else
    {
@@ -294,8 +294,8 @@ if(ncmd>0){
      }
    }
    // printf(" ********** %s dev prev_dev %d %d \n",geo[dev].nam,dev,prev_dev);
-/* end stan kludge */
-}
+ /* end stan kludge */
+ }
 }
 
  switch(idev){
@@ -387,7 +387,7 @@ if(ncmd>0){
    if(nbuf>0)scan_reset(DATA_REG,inbuf,nbuf,outbuf,irdsnd);
    break;
    
-}
+ }
 }
 
 void VMEController::scan(int reg,const char *snd,int cnt,char *rcv,int ird)
@@ -1319,5 +1319,444 @@ void VMEController::goToScanLevel(){
 }
 
 void VMEController::release_plev(){
+}
+
+/* register 1-7 special commands 0x10-rs 0x11-w feb power 0x12-r febpower */
+
+void VMEController::new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
+{
+  char cmd2[9000];
+  char tmp[4];
+  int kbit,kbybit;
+  char kbypass;
+  int ppnt,pcmd,pow2;
+  int idev,i,k,m;
+  int ncmd2,nbcmd2,nbuf2;
+  int init;
+  int ififo;
+  int nbyte;
+  unsigned short int ishft,temp;
+
+  //std::cout << "devdo.vmeadd="<<std::hex<<vmeadd<<std::endl;
+
+  /* irdsnd for jtag
+          irdsnd = 0 no read, later
+          irdsnd = 1 no read, now
+          irdsnd = 2    read, later
+          irdsnd = 3    read, now
+  */
+  if (DEBUG) {
+      printf("devdo: dev=%d, ncmd=%d, nbuf=%d, irdsnd=%d, Cmd %02x %02x\n", 
+       dev, ncmd, nbuf, irdsnd, cmd[0]&0xff, cmd[1]&0xff);
+   }
+  if(dev!=99){
+  idev=geo[dev].jchan;
+  }else{
+    idev=idevo;
+    if(idev>4&idev!=11)return;
+  }
+  // printf(" enter devdo %d %d \n",dev,idev);
+
+  //printf(" ENTERING devdo, idev idevo dev %d %d %d \n",idev,idevo,dev);
+  /****** check we have same old device otherwise we need to initialize */
+  init=0;
+  //
+  if(idev!=idevo or vmeadd != vmeaddo ){
+    init=1;
+  }
+  //
+  if(idev==1){
+    if(dev==1||dev==7)feuse=0x01;
+    if(dev==2||dev==8)feuse=0x02;
+    if(dev==3||dev==9)feuse=0x04;
+    if(dev==4||dev==10)feuse=0x08;
+    if(dev==5||dev==11)feuse=0x10;
+    if(dev==6||dev==12)feuse=0x1F;
+    if(feuseo!=feuse)init=1;
+    feuseo=feuse;
+  }
+  //
+  idevo=idev;
+  vmeaddo = vmeadd;
+  //
+  //  printf(" about to initialize plev idve devo init %d %d %d %d \n",plev,idev,idevo,init);
+/************  JTAG initialize ******************/
+/************  immediate instruction nonJTAG ****/
+
+  //std::cout << "init=" << init << " idev=" << idev << std::endl;
+
+  switch(idev){
+
+   case 1:  /* JTAG feboard */
+     /* send down 1 level */
+     ife=1;
+     add_i=vmeadd|msk01|msk_i;
+     add_d=vmeadd|msk01|msk_d;
+     add_dh=vmeadd|msk01|msk_dh;
+     add_ds=vmeadd|msk01|msk_ds;
+     add_dt=vmeadd|msk01|msk_dt;
+     add_rst=vmeadd|msk01|msk_rst;
+     add_sw=vmeadd|msk01|msk_sw;
+     add_sr=vmeadd|msk01|msk_sr;
+     add_r=vmeadd|msk01|msk_r;
+     if(init==1){        
+       setuse();
+     }
+     break;
+     
+   case 2:   /* JTAG motherboard control */ 
+     //if(init==1){
+     feuse=0xff;
+     ife=0; 
+      //  fprintf(fplog," init daqmb controller \n");
+     add_i=vmeadd|msk02|msk_i;
+     add_d=vmeadd|msk02|msk_d;
+     add_dh=vmeadd|msk02|msk_dh;
+     add_ds=vmeadd|msk02|msk_ds;
+     add_dt=vmeadd|msk02|msk_dt;
+     add_rst=vmeadd|msk02|msk_rst;
+     add_sw=vmeadd|msk02|msk_sw;
+     add_sr=vmeadd|msk02|msk_sr;
+     add_r=vmeadd|msk02|msk_r;
+      //}
+   break;
+
+   case 3:   /* JTAG motherboard prom */ 
+     //if(init==1){
+      ife=0;
+      // printf(" init daqmb prom \n");
+      add_i=vmeadd|msk03|msk_i;
+      add_d=vmeadd|msk03|msk_d;
+      add_dh=vmeadd|msk03|msk_dh;
+      add_ds=vmeadd|msk03|msk_ds;
+      add_dt=vmeadd|msk03|msk_dt;
+      add_rst=vmeadd|msk03|msk_rst;
+      add_sw=vmeadd|msk03|msk_sw;
+      add_sr=vmeadd|msk03|msk_sr;
+      add_r=vmeadd|msk03|msk_r;    
+      //}
+   break;
+
+  case 4:   /* JTAG vme-motherboard prom */
+    //if(init==1){
+     feuse=0xff;
+     ife=0;
+     // printf(" init daqmb vme prom \n");
+     add_i=vmeadd|msk04|msk_i;
+     add_d=vmeadd|msk04|msk_d;
+     add_dh=vmeadd|msk04|msk_dh;
+     add_ds=vmeadd|msk04|msk_ds;
+     add_dt=vmeadd|msk04|msk_dt;
+     add_rst=vmeadd|msk04|msk_rst;
+     add_sw=vmeadd|msk04|msk_sw;
+     add_sr=vmeadd|msk04|msk_sr;
+     add_r=vmeadd|msk04|msk_r;    
+     //}
+   break;
+
+  case 5: /* DAC calibration CDAC */
+      //  fprintf(fplog," load cdac \n");
+      add_cdac=vmeadd|msk05;
+      load_cdac(cmd);
+      return;
+   break;
+   
+  case 6: /* TEMP Monitor write/read */       /* motherboard adc */
+      add_adcw=vmeadd|msk07|msk_adcw;
+      add_adcr=vmeadd|msk07|msk_adcr; 
+      add_adcrbb=vmeadd|msk07|msk_adcrbb;
+      add_adcrs=vmeadd|msk07|msk_adcrs; 
+      add_adcws=vmeadd|msk07|msk_adcws; 
+      vme_adc(cmd[0],cmd[1],outbuf);
+     return;
+   break;
+
+ 
+ case 7: /* write fifo */     /* set fifo commands */
+      ififo=dev-FIFO1+1;
+      add_fifo_w00=vmeadd|msk06|msk_fifo_w00; 
+      add_fifo_w01=vmeadd|msk06|msk_fifo_w01;
+      add_fifo_w10=vmeadd|msk06|msk_fifo_w10; 
+      add_fifo_w11=vmeadd|msk06|msk_fifo_w01;
+      add_fifo_rln=vmeadd|msk06|msk_fifo_rln; 
+      add_fifo_rli=vmeadd|msk06|msk_fifo_rli;
+      add_fifo_rhn=vmeadd|msk06|msk_fifo_rhn; 
+      add_fifo_rhi=vmeadd|msk06|msk_fifo_rhi;
+      add_fifo_ws=vmeadd|msk06|msk_fifo_ws; 
+      add_fifo_rs=vmeadd|msk06|msk_fifo_rs;
+      add_fifo_i=vmeadd|msk06|msk_fifo_i;
+      nbyte=nbuf;
+      // printf(" irdsnd %d \n",irdsnd);
+      daqmb_fifo(irdsnd,ififo,nbyte,(unsigned short int *)inbuf,(unsigned char *)outbuf);
+      break;
+
+  case 8: /* LOW VOLTAGE  Monitor write/read */
+    add_loww=vmeadd|msk08|msk_loww;
+    add_lowr=vmeadd|msk08|msk_lowr; 
+    add_lowwpr=vmeadd|msk08|msk_lowwpr;
+    add_lowrpr=vmeadd|msk08|msk_lowrpr;
+    add_lowrs=vmeadd|msk08|msk_lowrs; 
+    add_lowws=vmeadd|msk08|msk_lowws; 
+    lowvolt(cmd[0],cmd[1],outbuf);
+    break;
+
+  case 9:  // DAQMB VME FPGA register access
+    add_vmefpga=vmeadd|msk00;
+    if (cmd[0]==0x01) {  //read
+      add_vmefpga=add_vmefpga+((cmd[1]<<2)&0xfc);
+      unsigned long int testadd=add_vmefpga;
+      unsigned short int * ptr=(unsigned short int *)testadd;
+      unsigned short int testdata[2]; 
+      testdata[0]=0; testdata[1]=0;
+      vme_controller(2,ptr,testdata,outbuf);
+    }
+    break;
+  
+  case 10: /* buckeye shift flash memory */
+    /* cmd 00 initalize program process 
+       cmd 01 load in Buckeye pathern
+       cmd 02 program flash memory
+       cmd 03 read back flash memory
+       cmd 04 initialize buckeye */
+    
+    add_bucip=vmeadd|msk09|msk_bucip;
+    add_bucl=vmeadd|msk09|msk_bucl;
+    add_bucf=vmeadd|msk09|msk_bucf;
+    add_bucr=vmeadd|msk09|msk_bucr;
+    add_buci=vmeadd|msk09|msk_buci;
+    add_buce=vmeadd|msk09|msk_buce;
+    buckflash(cmd,nbuf,inbuf,outbuf);
+    return;
+    break;
+    
+  case 11:   /* RESET emergency VME PROM loading */ 
+    if(init==1){
+      feuse=0x99;
+      ife=99;
+      add_reset=vmeadd|msk0f;
+    }
+    break;
+
+  }
+
+  //std::cout << "devdo.add_r="<<std::hex<<add_r<<std::endl;
+  //std::cout << "devdo.add_i="<<std::hex<<add_i<<std::endl;
+
+/**********  end initialize ***********************/
+/**********  send the JTAG data ************************/ 
+if(idev<=4||idev==11){
+ if(ncmd>0){
+ /* stan jtag kludge kludge for serial devices */
+   if(geo[dev].nser!=0){
+     ppnt=0;
+     cmd2[0]=0x00;
+     cmd2[1]=0x00;
+     m=geo[dev].nser;
+     for(i=0;i<geo[dev].nser;i++){
+       if(geo[dev].seri[m-i-1]<0)
+         {tmp[0]=cmd[0];pcmd=geo[-1*geo[dev].seri[m-i-1]].kbit;}
+       else
+	 {tmp[0]=geo[geo[dev].seri[m-i-1]].kbypass;pcmd=geo[geo[dev].seri[m-i-1]].kbit;}
+       /*       printf(" i %d tmp[0] %04x pcmd %d  \n",i,tmp[0],pcmd);
+		printf(" cmd[0] %02x \n",cmd[0]); */
+       for(k=0;k<pcmd;k++){
+         ppnt=ppnt+1;
+         if(((tmp[0]>>k)&0x01)!=0){
+           if(ppnt<9){pow2=1<<(ppnt-1);cmd2[0]=cmd2[0]+pow2;
+	   /*printf(" k cmd %d %02x %d %d \n",k,cmd2[0],ppnt,pow2); */}
+           if(ppnt>8){pow2=1<<(ppnt-9);cmd2[1]=cmd2[1]+pow2;} 
+         }
+       }
+     }
+     ncmd2=ppnt;
+     nbcmd2=ncmd2/8+1;
+     nbuf2=geo[dev].sxtrbits;
+     if(nbuf>0){  
+       nbuf2=nbuf2+nbuf;}
+     else{
+       nbuf2=0;}
+     kbit=geo[dev].kbit;
+     kbybit=geo[dev].kbybit;
+     kbypass=geo[dev].kbypass;
+     /*   printf(" final ncmd %d cmd %04x %04x \n",ncmd,cmd[1],cmd[0]);
+          printf(" final nbuf %d nbuf %d \n",nbuf2,nbuf); */
+   }
+   else
+   {
+     nbuf2=nbuf;
+     ncmd2=ncmd;
+     k=ncmd2/8+1;
+     if(k>100)printf(" ****************CATASTROPY STOP STOP ");
+     for(i=0;i<k;i++){
+      cmd2[i]=cmd[i];
+     }
+   }
+   // printf(" ********** %s dev prev_dev %d %d \n",geo[dev].nam,dev,prev_dev);
+ /* end stan kludge */
+ }
+
+ if(ncmd<0) RestoreIdle();
+ if(idev!=11)
+ { 
+   if(ncmd>0) scan_dmb(INSTR_REG,cmd2,ncmd2,outbuf,0,(nbuf>0)?0:(irdsnd&1));
+//   if(ncmd>0) scan_dmb(INSTR_REG,cmd2,ncmd2,outbuf,0,(irdsnd&1));
+//   if(ncmd>0 && nbuf>0) sleep_vme(200); 
+   if(nbuf>0) scan_dmb(DATA_REG,inbuf,nbuf2,outbuf,(irdsnd>>1)&1,irdsnd&1);
+   if((irdsnd&1)==1 && nbuf2%16!=0)
+   {
+     ishft=16-nbuf2%16;
+     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=(temp>>ishft);
+     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
+     outbuf[nbuf2/8]=temp&0x00ff;
+   }
+ }
+ else  /* reset vme  prom */
+ { 
+   // printf(" reset vme prom ncmd2 %d %d nbuf2 %d \n",ncmd2,ncmd,nbuf2);     
+   if(ncmd>0) scan_reset(INSTR_REG,cmd,ncmd,outbuf,irdsnd);
+   if(nbuf>0) scan_reset(DATA_REG,inbuf,nbuf,outbuf,irdsnd);
+ }
+}
+}
+
+void VMEController::scan_dmb(int reg,const char *snd,int cnt,char *rcv,int ird, int when)
+{
+int i;
+int cnt2;
+int byte,bit;
+int tird[2]={0, 2};
+int tiwt[2]={1, 3};
+unsigned short int tmp[2]={0x0000};
+unsigned short int *data;
+unsigned short int *ptr_i;
+unsigned short int *ptr_d;
+unsigned short int *ptr_dh;
+unsigned short int *ptr_ds;
+unsigned short int *ptr_dt;
+unsigned short int *ptr_r;
+ 
+ if(cnt==0)return;
+ if(when!=0) when=1;
+ if(ird==1 && reg==1) tiwt[1]=1;  // if READ is needed, then WRITEs are all buffered 
+
+   if (DEBUG) {
+      printf("scan: reg=%d, cnt=%d, ird=%d, when=%d, Send %02x %02x\n", reg, cnt, ird, when, snd[0]&0xff, snd[1]&0xff);
+   }
+
+ cnt2=cnt-1;
+ data=(unsigned short int *) snd;
+
+ /* instr */
+
+ //std::cout << "scan.vmeadd="<<std::hex<<vmeadd<<std::endl;
+ //std::cout << "scan.add_r="<<std::hex<<add_r<<std::endl;
+ //std::cout << "scan.add_i="<<std::hex<<add_i<<std::endl;
+
+ if(reg==0){
+   add_i=add_i&msk_clr;
+   add_i=add_i|(cnt2<<8);
+   ptr_i=(unsigned short int*)add_i;
+   bit=cnt; 
+   // xif(bit>8)*ptr_i=*data;
+   // xif(bit<=8)*ptr_i=((*data)>>8);
+   // if(bit<=8)*data=((*data)>>8);
+   // printf(" 1 VME W: %08x %04x \n",ptr_i,*data);
+   vme_controller(tiwt[when],ptr_i,data,rcv);
+   return;
+ }
+
+ /* data */
+
+  if(reg==1){
+   byte=cnt/16;
+   bit=cnt-byte*16;
+   // printf(" bit byte %d %d \n",bit,byte);
+   if(byte==0||(byte==1&&bit==0)){
+     add_d=add_d&msk_clr;
+     add_d=add_d|(cnt2<<8);
+     ptr_d=(unsigned short int *)add_d; 
+     // printf(" 2 VME W: %08x %04x \n",ptr_d,*data);
+     // xif(bit>8|byte==1)*ptr_d=*data;
+     // xif(bit<=8&byte!=1)*ptr_d=((*data)>>8);
+     // if(bit<=8&byte!=1)*data=((*data)>>8);
+     vme_controller(tiwt[when],ptr_d,data,rcv);
+     //  printf("2 VME W: %08x %04x \n",ptr_dh,*data);
+     if(ird==1){
+       ptr_r=(unsigned short int *)add_r;
+       // x*data2=*ptr_r;
+       // printf(" R %08x \n",ptr_r);
+       vme_controller(tird[when],ptr_r,tmp,rcv);
+     }
+     return;
+   }
+   add_dh=add_dh&msk_clr;
+   add_dh=add_dh|0x0f00;
+   ptr_dh=(unsigned short int *)add_dh;
+   // printf(" 3 VME W: %08x %04x \n",ptr_dh,*data);
+  vme_controller(1,ptr_dh,data,rcv);
+  // x*ptr_dh=*data;
+  data=data+1;
+  if(ird==1){       
+     ptr_r=(unsigned short int *)add_r;
+     // printf("3 R %08x \n",ptr_r);
+     vme_controller(0,ptr_r,tmp,rcv);
+     // x*data2=*ptr_r; 
+     // printf(" rddata %04x \n",*data2);
+  }
+  add_ds=add_ds&msk_clr;
+  ptr_ds=(unsigned short int *)add_ds;
+  for(i=0;i<byte-1;i++){
+    if(i==(byte-2)&&bit==0){
+      add_dt=add_dt&msk_clr;
+      add_dt=add_dt|0x0f00;
+      ptr_dt=(unsigned short int *)add_dt;
+      // printf("4 VME W: %08x %04x \n",ptr_dt,*data);
+      vme_controller(tiwt[when],ptr_dt,data,rcv);
+      // x*ptr_dt=*data;
+      if(ird==1){
+        ptr_r=(unsigned short int *)add_r;
+	//  printf("4 R %08x \n",ptr_r);
+        vme_controller(tird[when],ptr_r,data,rcv);
+        // x*data2=*ptr_r;  
+        // printf(" rddata %04x \n",*data2);
+      }
+      return;
+    }else{
+      add_ds=add_ds&msk_clr;
+      add_ds=add_ds|0x0f00;
+      ptr_ds=(unsigned short *)add_ds;
+      // printf("5 VME W: %08x %04x \n",ptr_ds,*data);
+      vme_controller(1,ptr_ds,data,rcv);
+      // x*ptr_ds=*data;
+      data=data+1;
+      if(ird==1){
+        ptr_r=(unsigned short int *)add_r;
+        // printf(" R %08x \n",ptr_r);
+        vme_controller(0,ptr_r,tmp,rcv);
+        // x*data2=*ptr_r; 
+	// printf(" rddata %04x \n",*data2);
+      }
+    }
+  }
+  cnt2=bit-1;
+  add_dt=add_dt&msk_clr;
+  add_dt=add_dt|(cnt2<<8);
+  ptr_dt=(unsigned short int *)add_dt; 
+  // printf("6 VME W: %08x %04x \n",ptr_dt,*data);
+  // xif(bit>8)*ptr_dt=*data;
+  // xif(bit<=8)*ptr_dt=*data>>8;
+  // if(bit<=8)*data=*data>>8;
+  vme_controller(tiwt[when],ptr_dt,data,rcv);
+  if(ird==1){
+     ptr_r=(unsigned short int *)add_r;
+     // printf(" R %08x \n",ptr_r);
+     vme_controller(tird[when],ptr_r,tmp,rcv);
+     // x*data2=*ptr_r; 
+     // printf(" rddata %04x \n",*data2);
+  }
+
+  return;
+ }
 }
 

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.9 2008/04/22 08:32:35 liu Exp $
+// $Id: VMEModule.h,v 3.10 2008/05/28 10:35:30 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.10  2008/05/28 10:35:30  liu
+// DMB counters in jumbo packet
+//
 // Revision 3.9  2008/04/22 08:32:35  liu
 // Ben's Crate controller utilities
 //
@@ -169,6 +172,8 @@ protected:
   /// appropriate start() and end() routines are called
   /// maybe change these to HAL interface someday?
   void devdo(DEVTYPE dev,int ncmd,const  char *cmd,int nbuf,
+	     const char *inbuf,char *outbuf,int irdsnd);
+  void new_devdo(DEVTYPE dev,int ncmd,const  char *cmd,int nbuf,
 	     const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
   void scan_reset(int reg,const char *snd,int cnt2,char *rcv,int ird);
