@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.37 2008/03/30 08:25:37 gujh Exp $
+// $Id: DAQMB.cc,v 3.38 2008/05/28 10:35:31 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.38  2008/05/28 10:35:31  liu
+// DMB counters in jumbo packet
+//
 // Revision 3.37  2008/03/30 08:25:37  gujh
 // Added the corresponding code for DMB/CFEB fine L1A delay adjustment ---GU, Mar. 30, 2008
 //
@@ -4218,8 +4221,74 @@ void DAQMB::readtimingScope()
 
 char * DAQMB::GetCounters()
 { 
-  readtimingCounter();
-  readtimingScope();
+  //
+  //printf(" Entered READ_TIMING \n");
+  //
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=CAL_STATUS;
+  sndbuf[0]=36;      //F36 in DMB6cntl, July 5, 2005
+  new_devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  //
+  cmd[0]=VTX2_BYPASS;
+  new_devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+//  vme_delay(200);
+//  usleep(200);
+  //
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=0;
+  sndbuf[1]=0;
+  sndbuf[2]=0;
+  sndbuf[3]=0;
+  new_devdo(MCTRL,6,cmd,32,sndbuf,rcvbuf,2);
+  //
+  cmd[0]=VTX2_BYPASS;
+  new_devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+//  vme_delay(200);
+//  usleep(200);
+  //
+  //printf(" Entered READ_TIMING \n");
+  //
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=CAL_STATUS;
+  sndbuf[0]=38;      //F38
+  new_devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  //
+  cmd[0]=VTX2_BYPASS;
+  new_devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+//  vme_delay(200);
+//  usleep(200);
+  //
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=0;
+  sndbuf[1]=0;
+  sndbuf[2]=0;
+  sndbuf[3]=0;
+  new_devdo(MCTRL,6,cmd,32,sndbuf,rcvbuf,2);
+
+  cmd[0]=VTX2_BYPASS;
+  new_devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
+  //
+  l1a_lct_counter_  = rcvbuf[0]&0xff ;
+  cfeb_dav_counter_ = rcvbuf[1]&0xff ;
+  tmb_dav_counter_  = rcvbuf[2]&0xff ;
+  alct_dav_counter_ = rcvbuf[3]&0xff ;
+  memcpy(FinalCounter, rcvbuf, 4);
+  //
+  cfeb_dav_scope_   = rcvbuf[4]&0x1f ;
+  tmb_dav_scope_    = ((rcvbuf[5]<<3)&0x18) + ((rcvbuf[4]>>5)&0x07);
+  alct_dav_scope_   = (rcvbuf[5]>>2)&0x1f;
+  active_dav_scope_ = ((rcvbuf[6]<<1)&0x1e)+((rcvbuf[5]>>7)&0x01);  
+  l1a_lct_scope_    = ((rcvbuf[7]<<4)&0x10) + ((rcvbuf[6]>>4)&0x0f);
+
+  FinalCounter[4]=cfeb_dav_scope_ & 0xff;
+  FinalCounter[5]=tmb_dav_scope_ & 0xff;
+  FinalCounter[6]=alct_dav_scope_ & 0xff;
+  FinalCounter[7]=active_dav_scope_ & 0xff;
+  FinalCounter[8]=l1a_lct_scope_ & 0xff;
+
   return FinalCounter;
 }
 

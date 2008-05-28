@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.18 2008/04/22 08:32:35 liu Exp $
+// $Id: VMEModule.cc,v 3.19 2008/05/28 10:35:31 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.19  2008/05/28 10:35:31  liu
+// DMB counters in jumbo packet
+//
 // Revision 3.18  2008/04/22 08:32:35  liu
 // Ben's Crate controller utilities
 //
@@ -203,6 +206,14 @@ void VMEModule::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
   //std::cout << "VMEModule. Setting slot=" << theSlot << std::endl;
   theController->start( theSlot, boardType() );
   theController->devdo(dev, ncmd, cmd, nbuf, inbuf, outbuf, irdsnd);
+}
+
+void VMEModule::new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
+                     const char *inbuf,char *outbuf,int irdsnd) {
+  //printf("VMEModule::devdo\n");
+  //std::cout << "VMEModule. Setting slot=" << theSlot << std::endl;
+  theController->start( theSlot, boardType() );
+  theController->new_devdo(dev, ncmd, cmd, nbuf, inbuf, outbuf, irdsnd);
 }
 
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {

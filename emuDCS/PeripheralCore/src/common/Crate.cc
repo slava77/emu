@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.35 2008/05/20 12:04:00 liu Exp $
+// $Id: Crate.cc,v 3.36 2008/05/28 10:35:31 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.36  2008/05/28 10:35:31  liu
+// DMB counters in jumbo packet
+//
 // Revision 3.35  2008/05/20 12:04:00  liu
 // skip dead crate in monitoring
 //
@@ -471,13 +474,14 @@ void Crate::MonitorTMB(int cycle, char * buf)
   
   buf2=(short *)buf;
   *buf2 = 0;
+  vmeController()->SetUseDelay(true);
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     if(IsAlive())
     {  countbuf=myTmbs[i]->NewCounters();
        if(countbuf) memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
     }
-  }
+  }  
   *buf2 = TOTAL_TMB_COUNTERS*2*9;
   return;
 }
@@ -490,6 +494,7 @@ void Crate::MonitorDMB(int cycle, char * buf)
 
   buf2=(short *)buf;
   *buf2 = 0;
+  vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
     if(IsAlive())

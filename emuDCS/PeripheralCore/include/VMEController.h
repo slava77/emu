@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.27 2008/05/20 10:46:01 liu Exp $
+// $Id: VMEController.h,v 3.28 2008/05/28 10:35:30 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.28  2008/05/28 10:35:30  liu
+// DMB counters in jumbo packet
+//
 // Revision 3.27  2008/05/20 10:46:01  liu
 // error handling update
 //
@@ -217,6 +220,8 @@ public:
   /// JTAG stuff
   void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
+  void new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
+  void scan_dmb(int reg,const char *snd,int cnt2,char *rcv,int ird, int when);
   void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
   //
   void initDevice(int idev);
