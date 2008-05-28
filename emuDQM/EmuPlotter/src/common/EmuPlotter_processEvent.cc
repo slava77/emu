@@ -559,6 +559,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       
       if (isMEvalid(cscME, "Actual_DMB_CFEB_DAV_Rate", mo)
 	  && isMEvalid(cscME, "Actual_DMB_CFEB_DAV_Frequency", mof)) {
+	/*
 	for (int i=0; i<5;i++) {
 	  int cfeb_present = (cfeb_dav>>i) & 0x1;
 	  cfeb_dav_num += cfeb_present;
@@ -569,18 +570,31 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 	  mof->SetBinContent(i+1, ((float)cfeb_entries/(float)(DMBEvents)*100.0));
 	}
 	mof->SetEntries((int)DMBEvents);
+	*/
 	if (isMEvalid(cscME, "DMB_CFEB_DAV_Unpacking_Inefficiency", mo1)
 	    && isMEvalid(cscME, "DMB_CFEB_DAV", mo2)) {	   
-	  for (int i=1; i<5; i++) {
-	    float actual_dav_num = mo->GetBinContent(i);
-	    float unpacked_dav_num = mo2->GetBinContent(i);
+	  for (int i=1; i<=5; i++) {
+	    double actual_dav_num = mo->GetBinContent(i);
+	    double unpacked_dav_num = mo2->GetBinContent(i);
 	    if (actual_dav_num){
 	      mo1->SetBinContent(i,1, 100.*(1-unpacked_dav_num/actual_dav_num));
 	    }				   
 	    mo1->SetEntries((int)DMBEvents);
-	    mo1->getObject()->SetMaximum(100.0);
+	    //	    mo1->getObject()->SetMinimum(0);
+	    //mo1->getObject()->SetMaximum(100.0);
 	  }
 	}	
+	for (int i=0; i<5;i++) {
+	  int cfeb_present = (cfeb_dav>>i) & 0x1;
+	  cfeb_dav_num += cfeb_present;
+	  if (cfeb_present) {
+	    mo->Fill(i);
+	  }
+	  float cfeb_entries = mo->GetBinContent(i+1);
+	  mof->SetBinContent(i+1, ((float)cfeb_entries/(float)(DMBEvents)*100.0));
+	}
+	mof->SetEntries((int)DMBEvents);
+
       }
       
       if (isMEvalid(cscME, "Actual_DMB_CFEB_DAV_multiplicity_Rate", mo)
@@ -601,7 +615,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 	      mo1->SetBinContent(i,1, 100.*(1-unpacked_dav_num/actual_dav_num));
 	    }				   
 	    mo1->SetEntries((int)DMBEvents);
-	    mo1->getObject()->SetMaximum(100.0);
+	    // mo1->getObject()->SetMaximum(100.0);
 	  }
 	}	
 	mo->Fill(cfeb_dav_num);
@@ -1044,7 +1058,7 @@ void EmuPlotter::calcFractionHisto(
     {
       mo->getObject()->Reset();
       mo->getObject()->Divide(mo1->getObject(), mo2->getObject());
-      mo->getObject()->SetMaximum(1);
+      mo->getObject()->SetMaximum(1.);
     }
 
 }
