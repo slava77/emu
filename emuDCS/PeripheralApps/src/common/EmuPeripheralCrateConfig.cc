@@ -629,7 +629,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   //End select crate
  
   *out << cgicc::br()<< std::endl;
-  std::cout << "Main Page: "<< std::dec << total_crates_ << " Crates" << std::endl;
+  std::cout << "Main Page: "<< std::dec << active_crates << "/" <<total_crates_ << " Crates" << std::endl;
   //
   if (tmbVector.size()>0 || dmbVector.size()>0) {
     //
@@ -972,10 +972,12 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
   {
      cgicc::Cgicc cgi(in);
 
-     string value = cgi.getElement("runtype")->getValue(); 
-     std::cout << "Select Crate " << value << endl;
-     if(!value.empty())
+     std::string in_value = cgi.getElement("runtype")->getValue(); 
+     std::cout << "Select Crate " << in_value << endl;
+     if(!in_value.empty())
      {
+        int k=in_value.find(" ",0);
+        std::string value = (k) ? in_value.substr(0,k):in_value;
         ThisCrateID_=value;
         for(unsigned i=0; i< crateVector.size(); i++)
         {
