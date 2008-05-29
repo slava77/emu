@@ -201,6 +201,10 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   CSCDDUHeader dduHeader  = dduData.header();
   CSCDDUTrailer dduTrailer = dduData.trailer();
+  if (!dduTrailer.check()) {
+	 LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Trailer check failed.");
+	 return;
+  }
 
   // printb(dduTrailer.data());  
   // printb(dduTrailer.data()+4);  
