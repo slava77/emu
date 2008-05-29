@@ -1,5 +1,13 @@
 #include "EmuPlotter.h"
 
+// == Prints four 16-bits words in Hex 
+void printb(unsigned short* buf)
+{
+        for (int i=0; i<4; i++)
+        cout << " " << setw(4)<< setfill('0') << hex << buf[i];
+        cout << dec << std::endl;
+};
+
 void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber)
 {
   //	LOG4CPLUS_INFO(logger_ , "processing event data");
@@ -187,13 +195,15 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   // CSCDDUEventData::setDebug(true);
   int dduID = 0;
-  CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
-  // CSCDDUEventData dduData((uint16_t *) data);
+  // CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
+  CSCDDUEventData dduData((uint16_t *) data);
 
 
   CSCDDUHeader dduHeader  = dduData.header();
   CSCDDUTrailer dduTrailer = dduData.trailer();
-  
+
+  // printb(dduTrailer.data());  
+  // printb(dduTrailer.data()+4);  
   dduID = dduHeader.source_id()&0xFF; // Only 8bits are significant; format of DDU id is Dxx
   
   if (isMEvalid(nodeME, "All_DDUs_in_Readout", mo)) {
