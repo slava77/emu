@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.36 2008/05/28 10:35:31 liu Exp $
+// $Id: Crate.cc,v 3.37 2008/05/29 11:44:07 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.37  2008/05/29 11:44:07  liu
+// add time-since-last-hard_reset in TMB counters
+//
 // Revision 3.36  2008/05/28 10:35:31  liu
 // DMB counters in jumbo packet
 //
@@ -468,7 +471,7 @@ void Crate::MonitorCCB(int cycle, char * buf)
 
 void Crate::MonitorTMB(int cycle, char * buf) 
 {
-  int TOTAL_TMB_COUNTERS=33;
+  int TOTAL_TMB_COUNTERS=34;
   int * countbuf;
   short *buf2;
   
