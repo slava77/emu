@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.62 2008/05/26 08:24:43 rakness Exp $
+// $Id: TMB.cc,v 3.63 2008/05/29 11:36:06 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.63  2008/05/29 11:36:06  liu
+// add time-since-last-hard_reset in TMB counters
+//
 // Revision 3.62  2008/05/26 08:24:43  rakness
 // for AFEB calibrations:  argument for TMB and ALCT::configure(2) to not write userPROMs; correctly respond to configuration written to broadcast slot
 //
@@ -1395,11 +1398,10 @@ int * TMB::NewCounters(){
     int counter_address = counter << 8 ;
     write_later(cnt_ctrl_adr,counter_address);
     //
-    if (counter==MaxCounter)
-      read_now(cnt_rdata_adr, (char *)FinalCounter);
-    else
-      read_later(cnt_rdata_adr);
+    read_later(cnt_rdata_adr);
   }   
+  // time since last hard_reset (in seconds)
+  read_now(0xE8, (char *)FinalCounter);
   //
   return (int *)FinalCounter;
 }
