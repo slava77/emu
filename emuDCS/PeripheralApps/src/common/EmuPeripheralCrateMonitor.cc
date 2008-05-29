@@ -374,9 +374,9 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   //
   if(Monitor_Ready_)
   {
-    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:yellow");
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:cyan");
     *out << std::endl;
-    *out << cgicc::legend((("Monitoring"))).set("style","color:blue") ;
+    *out << cgicc::legend((("Monitoring"))) ;
     //
     *out << cgicc::table().set("border","0");
     //
@@ -384,7 +384,7 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     //
     std::string ResetTMBC = toolbox::toString("/%s/ResetAllCounters",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",ResetTMBC) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Reset TMB Counters").set("name","ResetTMBC") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Reset TMB Counters").set("name",thisCrate->GetLabel()) << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
@@ -483,10 +483,12 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageRe
   {
      cgicc::Cgicc cgi(in);
 
-     string value = cgi.getElement("runtype")->getValue(); 
-     std::cout << "Select Crate " << value << endl;
-     if(!value.empty())
+     std::string in_value = cgi.getElement("runtype")->getValue(); 
+     std::cout << "Select Crate " << in_value << endl;
+     if(!in_value.empty())
      {
+        int k=in_value.find(" ",0);
+        std::string value = (k) ? in_value.substr(0,k):in_value;
         ThisCrateID_=value;
         for(unsigned i=0; i< crateVector.size(); i++)
         {
@@ -570,6 +572,9 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageRe
 void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  int counter_idx[30]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                       10,11,12,13,14,15,16,17,18,19,
+                       20,21,22,23,24,33};
   ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
   output << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -609,21 +614,26 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
 //    myVector[tmb]->GetCounters();
     //
     output <<cgicc::td();
-    output << "Slot = " <<myVector[tmb]->slot();
+    output << "Slot " <<myVector[tmb]->slot();
     output <<cgicc::td();
     //
   }
   //
   output <<cgicc::tr();
   //
-  for (int count=0; count<25; count++) {
+  int count;
+  for (int idx=0; idx<26; idx++) {
+    count=counter_idx[idx];
     //
     for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
       //
       output <<cgicc::td();
       //
       if(tmb==0) {
-	output << myVector[tmb]->CounterName(count) ;
+	if(count==33)
+           output << "Time since last Hard Reset" ;
+        else
+           output << myVector[tmb]->CounterName(count) ;
 	output <<cgicc::td();
 	output <<cgicc::td();
       }
@@ -693,7 +703,7 @@ void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * 
   //
   for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
     *out <<cgicc::td();
-    *out << "Slot = " <<myVector[dmb]->slot();
+    *out << "Slot " <<myVector[dmb]->slot();
     *out <<cgicc::td();
   }
   //
@@ -816,9 +826,18 @@ void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * 
 void EmuPeripheralCrateMonitor::ResetAllCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  for(unsigned int i=0; i<tmbVector.size(); i++) 
+  cgicc::CgiEnvironment cgiEnvi(in);
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  Page=cgiEnvi.getQueryString();
+  std::string crate_name=Page.substr(0,Page.find("=", 0) );
+  vector<TMB*> myVector;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-    tmbVector[i]->ResetCounters();
+     if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->tmbs();
+  }
+  for(unsigned int i=0; i<myVector.size(); i++) 
+  {
+    myVector[i]->ResetCounters();
   }
 
   this->Default(in,out);
