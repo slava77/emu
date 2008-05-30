@@ -12050,8 +12050,8 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
     //
     std::cout << "hardReset" << std::endl;
     //
-    //thisCCB->hardReset();
-    thisCCB->HardReset_crate();
+    thisCCB->hardReset();
+    // thisCCB->HardReset_crate();
     //
     this->CCBUtils(in,out);
     //
