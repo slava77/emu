@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.27 2008/05/15 09:55:10 liu Exp $
+// $Id: CCB.cc,v 3.28 2008/05/30 11:53:19 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.28  2008/05/30 11:53:19  liu
+// update hardreset and I2C
+//
 // Revision 3.27  2008/05/15 09:55:10  liu
 // error messages for Check_Config
 //
@@ -356,12 +359,12 @@ void CCB::HardReset_crate()
   /// through a dedicated VME register (not FastControl)
   //
   (*MyOutput_) << "CCB: hard reset" << std::endl;
-  setCCBMode(CCB::VMEFPGA);
+  //  setCCBMode(CCB::VMEFPGA);
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
   do_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
-  ::sleep(2);
-  setCCBMode(CCB::DLOG);
+  // ::sleep(2);
+  // setCCBMode(CCB::DLOG);
 
 }
 //
@@ -371,13 +374,13 @@ void CCB::SoftReset_crate()
   /// through a FastControl soft-reset.
   //
   (*MyOutput_) << "CCB: soft reset" << std::endl;
-  setCCBMode(CCB::VMEFPGA);
+  // setCCBMode(CCB::VMEFPGA);
   int i_ccb=0x1c;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc;
   do_vme(VME_WRITE, CSRB2, sndbuf,rcvbuf,NOW);
   ::sleep(1);
-  setCCBMode(CCB::DLOG);
+  // setCCBMode(CCB::DLOG);
   
 }
 //
@@ -460,6 +463,11 @@ void CCB::DumpAddress(int address) {
 //
 std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
+  std::bitset<8> dummyReturn(0xFF);
+  if(!(theController->IsAlive()))
+  {  std::cout << "ERROR: Crate dead, no TTCrx read access!!" << std::endl;
+     return dummyReturn;
+  }
   if (ReadTTCrxID_ == -1) {
     (*MyOutput_) << "ReadTTCrxReg: No ReadTTCrxID, using TTCrxID from XML: "<< TTCrxID_ << std::endl;
     ReadTTCrxID_ = TTCrxID_;
@@ -556,6 +564,10 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
 //
 void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
   //
+  if(!(theController->IsAlive()))
+  {  std::cout << "ERROR: Crate dead, no TTCrx write access!!" << std::endl;
+     return;
+  }
   if (ReadTTCrxID_ == -1) {
     (*MyOutput_) << "WriteTTCrxReg: No ReadTTCrxID" << std::endl;
     return;
@@ -684,11 +696,11 @@ int CCB::readI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x04; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0c; 
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //  
   do_vme(VME_READ,CSRA1, sndbuf,rcvbuf,NOW);
   //
@@ -709,19 +721,19 @@ void CCB::writeI2C(int data){
   //
   sndbuf[0]= 0x00; 
   sndbuf[1]= (i2cBaseData&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cLowInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cHighInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cLowInput&0xff);
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]= (i2cBaseData&0xff);
@@ -741,11 +753,11 @@ void CCB::startI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0e ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0a ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02 ;
@@ -757,11 +769,11 @@ void CCB::stopI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0a ;
-  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0e;
@@ -848,14 +860,12 @@ void CCB::hardReset() {
   ::sleep(1);
 
 
-  ReadRegister(0x0);
+  // ReadRegister(0x0);
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
     (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
-  };
-
-  
+  }  
 }
 
 
@@ -1131,7 +1141,7 @@ void CCB::SetL1aDelay(int l1adelay){
 
 void CCB::setCCBMode(CCB2004Mode_t mode){
   /// Set the mode of operation for the CCB2004 model
-
+  if(mCCBMode==mode) return;
   char tmpb1[2];
 
   do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
