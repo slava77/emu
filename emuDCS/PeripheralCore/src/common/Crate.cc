@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.37 2008/05/29 11:44:07 liu Exp $
+// $Id: Crate.cc,v 3.38 2008/05/30 11:52:04 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.38  2008/05/30 11:52:04  liu
+// skip dead crate during configuring
+//
 // Revision 3.37  2008/05/29 11:44:07  liu
 // add time-since-last-hard_reset in TMB counters
 //
@@ -357,6 +360,10 @@ void Crate::configure(int c) {
   for (unsigned dmb=0; dmb<myDmbs.size(); dmb++) {
     std::cout << "DMB slot " << myDmbs[dmb]->slot() 
 	      << " turn ON chamber..." << std::endl;
+    if(!IsAlive())
+    {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
+       return;
+    }
     myDmbs[dmb]->lowv_onoff(0x3f);
     //
     // The following is not needed, since DMB includes FIFO clear in hard reset
@@ -368,8 +375,16 @@ void Crate::configure(int c) {
   //
   //theController->init();
   //
+  if(!IsAlive())
+  {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
+     return;
+  }
   ccb->configure();
   //
+  if(!IsAlive())
+  {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
+     return;
+  }
   if(mpc) mpc->configure();
   //
 
@@ -380,6 +395,11 @@ void Crate::configure(int c) {
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     if (myTmbs[i]->slot()<22){
       //
+      if(!IsAlive())
+      {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
+         return;
+      }
+
       myTmbs[i]->configure();
       //
       ALCTController * alct = myTmbs[i]->alctController();
@@ -403,6 +423,10 @@ void Crate::configure(int c) {
   // std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
     if (myDmbs[i]->slot()<22){
+      if(!IsAlive())
+      {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
+         return;
+      }
       myDmbs[i]->restoreCFEBIdle();
       myDmbs[i]->restoreMotherboardIdle();
       myDmbs[i]->configure();
