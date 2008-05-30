@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.28 2008/05/30 11:53:19 liu Exp $
+// $Id: CCB.cc,v 3.29 2008/05/30 14:54:06 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.29  2008/05/30 14:54:06  liu
+// Change setCCBMode
+//
 // Revision 3.28  2008/05/30 11:53:19  liu
 // update hardreset and I2C
 //
@@ -1141,18 +1144,19 @@ void CCB::SetL1aDelay(int l1adelay){
 
 void CCB::setCCBMode(CCB2004Mode_t mode){
   /// Set the mode of operation for the CCB2004 model
-  if(mCCBMode==mode) return;
+  //  Note: Because I2C access can change the real CCB mode, 
+  //        the flag mCCBMode isn't already reliable.
+  //        So we have to set the required mode each time.
   char tmpb1[2];
 
-  do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
-  tmpb1[0]=rcvbuf[0];
-  tmpb1[1]=rcvbuf[1];
-  
   switch (mode) {
   case TTCrqFPGA:
     sndbuf[0]=0x00;
     sndbuf[1]=0x0E;
-    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);
+    do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+    tmpb1[0]=rcvbuf[0];
+    tmpb1[1]=rcvbuf[1];
     if((tmpb1[1]&0x01)==1) {
        sndbuf[0]=tmpb1[0];
        sndbuf[1]=tmpb1[1] & 0xFE;
@@ -1162,7 +1166,10 @@ void CCB::setCCBMode(CCB2004Mode_t mode){
   case VMEFPGA:
     sndbuf[0]=0x00;
     sndbuf[1]=0x0E;
-    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,LATER);
+    do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+    tmpb1[0]=rcvbuf[0];
+    tmpb1[1]=rcvbuf[1];
     if((tmpb1[1]&0x01)==0) {
        sndbuf[0]=tmpb1[0];
        sndbuf[1]=tmpb1[1] | 0x01;
