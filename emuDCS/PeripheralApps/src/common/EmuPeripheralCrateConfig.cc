@@ -142,6 +142,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //-----------------------------------------------
   // VME Controller routines
   //-----------------------------------------------
+  xgi::bind(this,&EmuPeripheralCrateConfig::ControllerUtils_Xfer, "ControllerUtils_Xfer");  
   xgi::bind(this,&EmuPeripheralCrateConfig::ControllerUtils, "ControllerUtils");  
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo_User,  "VMECCGUI_GoTo_User");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo_Expert,  "VMECCGUI_GoTo_Expert");
@@ -1561,9 +1562,8 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
       *out << cgicc::td();
       //
       *out << cgicc::td();
-      VCC_UTIL_curr_color = "\"#88CCCC\"";
-      std::string ControllerUtils = toolbox::toString("/%s/ControllerUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-      *out << cgicc::a("Controller Utils").set("href",ControllerUtils) << endl;
+      std::string ControllerUtils_Xfer = toolbox::toString("/%s/ControllerUtils_Xfer?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+      *out << cgicc::a("Controller Utils").set("href",ControllerUtils_Xfer) << endl;
       *out << cgicc::td();
       //
     }
@@ -6452,20 +6452,27 @@ void EmuPeripheralCrateConfig::VCCHeader(xgi::Input * in, xgi::Output * out, std
   *out << "<hr style=\"width: 100%; height: 1px;\"><br>" << std::endl;
 
 }
+void EmuPeripheralCrateConfig::ControllerUtils_Xfer(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+    VCC_UTIL_curr_crate = thisCrate;
+    VCC_UTIL_curr_color = "\"#88CCCC\"";
+    this->ControllerUtils(in,out);
+}
+
 void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
   int i;
   Crate *lccc;
   static bool first = true;
+  lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
     for(i=0; i<(int)crateVector.size(); i++){
       crateVector[i]->vmeController()->SetUseDCS(true);
       crateVector[i]->vmeController()->init();
     }
-    VCC_UTIL_curr_crate = thisCrate;
-    if ( thisCrate->vmeController()->GetDebug() == 0 ) {
+    if ( lccc->vmeController()->GetDebug() == 0 ) {
       VCC_UTIL_cmn_tsk_dbg = "Disabled";
     } else {
       VCC_UTIL_cmn_tsk_dbg = "Enabled";
@@ -6480,7 +6487,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
 
   char title[] = "VCC Utilities: Main Page";
   char pbuf[300];
-  lccc = VCC_UTIL_curr_crate;
+
   sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
 
   VCCHeader(in,out,title,pbuf);
@@ -7256,8 +7263,6 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
         rbk_cp = vmecc->read_crs();
         vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
         vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
-	//        vmecc->set_clr_bits(1, 2, RST_CR_MSGLVL);
-	//        vmecc->set_clr_bits(1, 0, ETH_CR_SPONT);
 	vmecc->program_prom_cmd();
 	vmecc->send_prg_prom_data();
 	vmecc->send_uc_cc_data(VCC_UTIL_Frmw_rbk_[7].c_str());
@@ -7304,8 +7309,6 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     if(prgver_name != cgi.getElements().end()) {
       vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
       vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
-      //      vmecc->set_clr_bits(1, 0, ETH_CR_SPONT);
-      //      vmecc->set_clr_bits(1, 2, RST_CR_MSGLVL);
       CNFG_ptr cp=vmecc->read_crs();
       vmecc->print_crs(cp);
       free(cp);
@@ -7343,8 +7346,13 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     }
     if(verify_name != cgi.getElements().end()) {
       if(VCC_UTIL_PROM_file_init){
+        rbk_cp = vmecc->read_crs();
+        vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
+        vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
         vmecc->verify_prom_cmd();
         vmecc->send_ver_prom_data();
+        vmecc->wrt_crs(RST_MISC, rbk_cp);
+        free(rbk_cp);
       }
       else {
         printf("You must read in the mcs file first\n");
@@ -8820,7 +8828,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
   *out << "         </table>" << std::endl;
   *out << "      </fieldset>" << std::endl;
   *out << "    </td>" << std::endl;
-  *out << "    <td rowspan=\"2\" valign=\"top\">" << std::endl;
+  *out << "    <td rowspan=\"3\" valign=\"top\">" << std::endl;
   *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Reload/Reset Options</legend>" << std::endl;
   *out << "         <table cellspacing=\"2\" cellpadding=\"2\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
   *out << "           <tr>" << std::endl;
@@ -8882,6 +8890,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
   *out << "         </table>" << std::endl;
   *out << "      </fieldset>" << std::endl;
   *out << "    </td></tr>" << std::endl;
+  *out << "    <tr><td valign=\"top\">" << std::endl;
+  *out << "      <input name=\"misc_refresh\" type=\"submit\" value=\"Refresh\">" << std::endl;
+  *out << "    </td></tr>" << std::endl;
   *out << "  </table>" << std::endl;
   *out << "</div>" << std::endl;
   *out << "</fieldset>" << std::endl;
@@ -8895,6 +8906,7 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
 {
   CNFG_ptr rbk_cp;
   char ctemp[256];
+  int msglvl;
   vmecc=thisCrate->vmecc();
 
     std::cout<<" entered VCC_MISC_DO"<<std::endl;
@@ -8920,6 +8932,7 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
     cgicc::form_iterator misc_int_rst = cgi.getElement("misc_int_rst");
     cgicc::form_iterator misc_jtag_rst = cgi.getElement("misc_jtag_rst");
     cgicc::form_iterator misc_sysrst = cgi.getElement("misc_sysrst");
+    cgicc::form_iterator misc_refresh = cgi.getElement("misc_refresh");
 
     if(misc_warn_ena != cgi.getElements().end()) {
       vmecc->enable_warn_on_shutdown();
@@ -8946,7 +8959,7 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
       VCC_UTIL_misc_spont = "Disabled";
     }
     if(misc_msglvl != cgi.getElements().end()) {
-      int msglvl = cgi["rd_msglvl"]->getIntegerValue();
+      msglvl = cgi["rd_msglvl"]->getIntegerValue();
       vmecc->set_clr_bits(CLR, RST_MISC, ~RST_CR_MSGLVL);
       vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL & (msglvl<<8));
       sprintf(ctemp,"%d",msglvl);
@@ -8977,7 +8990,7 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
       vmecc->set_clr_bits(CLR, RST_MISC, ~(0x1F));
       vmecc->set_clr_bits(SET, RST_MISC, val);
     }
-    if(misc_rst_src_rd != cgi.getElements().end()) {
+    if(misc_rst_src_rd != cgi.getElements().end() || misc_refresh != cgi.getElements().end()) {
       rbk_cp = vmecc->read_crs();
       if((rbk_cp->rst_misc & RST_CR_INT)!=0){
         VCC_UTIL_misc_int = "Enabled";
@@ -9003,6 +9016,29 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
         VCC_UTIL_misc_jtag = "Enabled";
       }else{
         VCC_UTIL_misc_jtag = "Disabled";
+      }
+      if(misc_refresh != cgi.getElements().end()){
+	if((rbk_cp->rst_misc & RST_CR_WARN)== RST_CR_WARN){
+	  VCC_UTIL_misc_warn="Enabled";
+	}
+	else {
+	  VCC_UTIL_misc_warn="Disabled";
+	}
+	if((rbk_cp->rst_misc & RST_CR_STRTUP)== RST_CR_STRTUP){
+	  VCC_UTIL_misc_strtup="Enabled";
+	}
+	else {
+	  VCC_UTIL_misc_strtup="Disabled";
+	}
+	if((rbk_cp->ether & ETH_CR_SPONT)== ETH_CR_SPONT){
+	  VCC_UTIL_misc_spont="Enabled";
+	}
+	else {
+	  VCC_UTIL_misc_spont="Disabled";
+	}
+	msglvl = (rbk_cp->rst_misc & RST_CR_MSGLVL)>>8;
+	sprintf(ctemp,"%d",msglvl);
+	VCC_UTIL_misc_rd_msglvl = ctemp;
       }
       free(rbk_cp);
     }

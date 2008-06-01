@@ -416,6 +416,7 @@ private:
   void PeripheralCrateMotherBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ELMBID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void BackplaneID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ControllerUtils_Xfer(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECC_UTIL_Crate_Selection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
