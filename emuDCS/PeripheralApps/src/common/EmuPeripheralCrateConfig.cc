@@ -6726,6 +6726,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_GoTo_Expert(xgi::Input * in, xgi::Output
 	break;
       case VCC_MISC:
 	this->VMECCGUI_misc_utils(in,out);
+        break;
       default:
         VCC_UTIL_curr_color = "\"#88CCCC\"";
         this->ControllerUtils(in,out);
@@ -6805,7 +6806,7 @@ void EmuPeripheralCrateConfig::VCC_CRSEL_DO(xgi::Input * in, xgi::Output * out )
 {
   int i;
   bool found;
-  vmecc=thisCrate->vmecc();
+
   std::cout<<" entered VCC_CRSEL_DO"<<std::endl;
   cgicc::Cgicc cgi(in);
   const CgiEnvironment& env = cgi.getEnvironment();
@@ -6852,6 +6853,7 @@ void EmuPeripheralCrateConfig::VCC_CRSEL_DO(xgi::Input * in, xgi::Output * out )
     break;
   case VCC_MISC:
     this->VMECCGUI_misc_utils(in,out);
+    break;
   default:
     VCC_UTIL_curr_color = "\"#88CCCC\"";
     this->ControllerUtils(in,out);
@@ -6904,6 +6906,7 @@ void EmuPeripheralCrateConfig::VCC_PSWD_DO(xgi::Input * in, xgi::Output * out )
     break;
   case VCC_MISC:
     this->VMECCGUI_misc_utils(in,out);
+    break;
   default:
     VCC_UTIL_curr_color = "\"#88CCCC\"";
     this->ControllerUtils(in,out);
@@ -6920,7 +6923,9 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
   int n,i;
   char *cc;
 
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
   std::cout<<" entered VCC_CMNTSK_DO"<<std::endl;
   cgicc::Cgicc cgi(in);
   const CgiEnvironment& env = cgi.getEnvironment();
@@ -6934,13 +6939,13 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
   cgicc::form_iterator cmntsk_lpbk = cgi.getElement("cmntsk_lpbk");
 
   if(cmntsk_tog_dbg != cgi.getElements().end()) {
-    if ( thisCrate->vmeController()->GetDebug() == 0 ) {
+    if ( lccc->vmeController()->GetDebug() == 0 ) {
       std::cout << "debug 1 " << std::endl;
-      thisCrate->vmeController()->Debug(1);
+      lccc->vmeController()->Debug(1);
       VCC_UTIL_cmn_tsk_dbg = "Enabled";
     } else {
       std::cout << "debug 0 " << std::endl;
-      thisCrate->vmeController()->Debug(0);
+      lccc->vmeController()->Debug(0);
       VCC_UTIL_cmn_tsk_dbg = "Disabled";
     }
   }
@@ -7008,6 +7013,8 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
 void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
     for(int i=0;i<7;i++){
@@ -7021,7 +7028,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Out
 
   char title[] = "VCC Utilities: Firmware";
   char pbuf[300];
-  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
   //
   VCCHeader(in,out,title,pbuf);
   //
@@ -7108,8 +7115,10 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
   char ctemp[256];
   char *cptemp;
   int i,ptyp,ack;
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
   CNFG_ptr rbk_cp;
-  vmecc=thisCrate->vmecc();
+  vmecc=lccc->vmecc();
     std::cout<<" entered VCC_FRMUTIL_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
     const CgiEnvironment& env = cgi.getEnvironment();
@@ -7370,6 +7379,8 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
 void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
     for(int i=0;i<6;i++){
@@ -7396,7 +7407,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output 
 
   char title[] = "VCC Utilities: Config Regs";
   char pbuf[300];
-  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
   //
   VCCHeader(in,out,title,pbuf);
   //
@@ -7509,7 +7520,9 @@ void EmuPeripheralCrateConfig::VCC_CNFG_DO(xgi::Input * in, xgi::Output * out )
   CNFG_ptr rbk_cp;
   unsigned int temp;
   char *pch =(char *) &VCC_UTIL_CR_wrt_[0];
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
     std::cout<<" entered VCC_CNFG_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
     const CgiEnvironment& env = cgi.getEnvironment();
@@ -7707,6 +7720,8 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
 {
   static bool first = true;
   std::string ena_dis;
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
     VCC_UTIL_MAC_wrt_dev="02-00-00-00-00-3B";
@@ -7724,7 +7739,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
 
   char title[] = "VCC Utilities: MAC Addresses";
   char pbuf[300];
-  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
   //
   VCCHeader(in,out,title,pbuf);
   //
@@ -7801,7 +7816,9 @@ void EmuPeripheralCrateConfig::VCC_MAC_DO(xgi::Input * in, xgi::Output * out )
   std::string stemp;
   unsigned int temp[6];
 
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_MAC_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -7899,7 +7916,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output 
 {
   CNFG_ptr rbk_cp;
   static bool first = true;
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
   if(first){
     first = false;
     rbk_cp = vmecc->read_crs();
@@ -7936,7 +7955,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output 
 
   char title[] = "VCC Utilities: External FIFO";
   char pbuf[300];
-  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
   //
   VCCHeader(in,out,title,pbuf);
   //
@@ -8052,7 +8071,9 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
   char *pch = (char *) &VCC_UTIL_FIFO_wrt_data;
   std::string stemp;
 
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_FIFO_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -8234,6 +8255,8 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
     VCC_UTIL_PKTSND_prcs_tag = "0";
@@ -8243,7 +8266,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * 
 
   char title[] = "VCC Utilities: Packet Send Commands";
   char pbuf[300];
-  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
   //
   VCCHeader(in,out,title,pbuf);
   //
@@ -8311,7 +8334,9 @@ void EmuPeripheralCrateConfig::VCC_PKTSND_DO(xgi::Input * in, xgi::Output * out 
   char *pch1 = (char *) &VCC_UTIL_PKTSND_cmnd;
   char *pch2 = (char *) &VCC_UTIL_PKTSND_data;
 
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_PKTSND_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -8370,7 +8395,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
 {
   char ctemp[256];
   static bool first = true;
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
   if(first){
     first = false;
 
@@ -8398,7 +8425,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
 
   char title[] = "VCC Utilities: Packet Receive Commands";
   char pbuf[300];
-  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
   //
   VCCHeader(in,out,title,pbuf);
   //
@@ -8504,7 +8531,9 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
   std::string save1,save2;
   union hdr_stat hdr;
   bool new_pkt;
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_PKTRCV_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -8734,7 +8763,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
   int msglvl;
   char ctemp[256];
   static bool first = true;
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
   if(first){
     first = false;
     rbk_cp = vmecc->read_crs();
@@ -8795,7 +8826,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
 
   char title[] = "VCC Utilities: Misc. Commands";
   char pbuf[300];
-  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(thisCrate->GetLabel()).c_str(),thisCrate->vmeController()->GetDestMAC(0),thisCrate->vmeController()->GetDestMAC(1),thisCrate->vmeController()->GetDestMAC(2),thisCrate->vmeController()->GetDestMAC(3),thisCrate->vmeController()->GetDestMAC(4),thisCrate->vmeController()->GetDestMAC(5));
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
   //
   VCCHeader(in,out,title,pbuf);
   //
@@ -8907,7 +8938,9 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
   CNFG_ptr rbk_cp;
   char ctemp[256];
   int msglvl;
-  vmecc=thisCrate->vmecc();
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_MISC_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
