@@ -395,7 +395,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       if (isMEvalid(cscME, "CSC_Rate", mo)) { 
 	mo->Fill(2);
 	// trigCnts.ALCTcnt++;
-	uint32_t ALCTEvent = mo->GetBinContent(3);
+	uint32_t ALCTEvent = (uint32_t)mo->GetBinContent(3);
 	trigCnts["ALCT"] = ALCTEvent;
 	if (isMEvalid(cscME, "CSC_Efficiency", mo)){
 	  if(nEvents > 0) {
@@ -701,7 +701,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	//          Set number of CLCT-events to forth bin
 	if (isMEvalid(cscME, "CSC_Rate", mo)) {
 	  mo->Fill(3);
-	  uint32_t CLCTEvent = mo->GetBinContent(4);
+	  uint32_t CLCTEvent = (uint32_t)mo->GetBinContent(4);
 	  trigCnts["CLCT"] = CLCTEvent;
 	  if (isMEvalid(cscME, "CSC_Efficiency", mo)) {
 	    if(nEvents > 0) {
@@ -910,21 +910,20 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		    if (isMEvalid(cscME,  Form("CLCT_Ly%d_Rate", nLayer), mo)) { 
 		      mo->Fill(hstrip);
 
-		      int number_hstrip = (int)(mo->GetBinContent(hstrip));
-		      Double_t Number_of_entries_CLCT = mo->getObject()->GetEntries();
+		      double number_hstrip = mo->GetBinContent(hstrip+1);
+		      double Number_of_entries_CLCT = mo->getObject()->GetEntries();
 	   
 		      if (isMEvalid(cscME,  Form("CLCT_Ly%d_Efficiency", nLayer), mo)) {
-			mo->SetBinContent(hstrip,(float)number_hstrip);
-		
-			if((Double_t)(DMBEvents) > 0.0) {
-			  double norm = (100.0*Number_of_entries_CLCT)/((Double_t)(DMBEvents));
+			mo->SetBinContent(hstrip+1,number_hstrip);
+			if(DMBEvents > 0) {
+			  double norm = (100.0*Number_of_entries_CLCT)/((double)(DMBEvents));
 			  // if (norm < 1.0) norm=1;
 			  mo->getObject()->SetNormFactor(norm);
 			} else {
 			  mo->getObject()->SetNormFactor(100.0);
 			}
 	
-			mo->getObject()->SetEntries((int)DMBEvents);
+			mo->getObject()->SetEntries(DMBEvents);
 		      }
 		    }
 		  }
@@ -1035,7 +1034,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       if(CheckCFEB == true){
 	if (isMEvalid(cscME, "CSC_Rate", mo)) {
 	  mo->Fill(4);
-	  uint32_t CFEBEvent = mo->GetBinContent(5);
+	  uint32_t CFEBEvent = (uint32_t)mo->GetBinContent(5);
 	  trigCnts["CFEB"] = CFEBEvent;
 	  if (isMEvalid(cscME, "CSC_Efficiency", mo)) {
 	    if(nEvents > 0) {
