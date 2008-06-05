@@ -195,21 +195,31 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   // CSCDDUEventData::setDebug(true);
   int dduID = 0;
-  // CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
-  CSCDDUEventData dduData((uint16_t *) data);
-
-
+  CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
+  // CSCDDUEventData dduData((uint16_t *) data);
+  
+  
   CSCDDUHeader dduHeader  = dduData.header();
+/*
+  if (!dduHeader.check()) {
+         LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Header check failed.");
+         return;
+  }
+*/
+  // printb(dduHeader.data());
+  // printb(dduHeader.data()+4);
+
   CSCDDUTrailer dduTrailer = dduData.trailer();
   if (!dduTrailer.check()) {
 	 LOG4CPLUS_WARN(logger_,eTag << "Skipped because of DDU Trailer check failed.");
 	 return;
   }
 
-  // printb(dduTrailer.data());  
-  // printb(dduTrailer.data()+4);  
+
   dduID = dduHeader.source_id()&0xFF; // Only 8bits are significant; format of DDU id is Dxx
-  
+
+
+
   if (isMEvalid(nodeME, "All_DDUs_in_Readout", mo)) {
     mo->Fill(dduID);
   }
