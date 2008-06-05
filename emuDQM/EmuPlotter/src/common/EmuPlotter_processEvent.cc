@@ -780,7 +780,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       }
 
 
-      int anyInputTO = (chamber->second >> 6) & 0x3FFF;
+      int anyInputTO = (chamber->second >> 7) & 0x3FFF;
       if(anyInputTO){
 	if(CSCtype && CSCposition && isMEvalid(nodeME, "CSC_DMB_input_timeout", mo)){
 	  mo->Fill(CSCposition, CSCtype);
