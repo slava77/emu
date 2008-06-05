@@ -2516,8 +2516,6 @@
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB1 L1A numbers</Title>
-                <SetMinimum>0</SetMinimum>
-		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
@@ -2534,8 +2532,6 @@
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB2 L1A numbers</Title>
-                <SetMinimum>0</SetMinimum>
-		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
@@ -2552,8 +2548,6 @@
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB3 L1A numbers</Title>
-                <SetMinimum>0</SetMinimum>
-		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
@@ -2570,8 +2564,6 @@
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB4 L1A numbers</Title>
-                <SetMinimum>0</SetMinimum>
-		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
@@ -2588,8 +2580,6 @@
                 <YTitle>Number of events</YTitle>
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB5 L1A numbers</Title>
-                <SetMinimum>0</SetMinimum>
-		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
