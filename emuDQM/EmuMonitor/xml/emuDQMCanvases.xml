@@ -1014,7 +1014,7 @@
                 <Type>cnv</Type>
                 <Prefix>CSC</Prefix>
                 <Name>SYNC_Test01_L1A_Differences</Name>
-                <Title>SYNC Test01 - L1A Differences</Title>
+                <Title>SYNC: Test01 - L1A Differences</Title>
                 <NumPadsX>4</NumPadsX>
                 <NumPadsY>2</NumPadsY>
 		<Pad1>CFEB0_DMB_L1A_diff</Pad1>
@@ -1032,7 +1032,7 @@
                 <Type>cnv</Type>
                 <Prefix>CSC</Prefix>
                 <Name>SYNC_Test02_BXN_Differences</Name>
-                <Title>SYNC Test02 - BXN Differences</Title>
+                <Title>SYNC: Test02 - BXN Differences</Title>
                 <NumPadsX>4</NumPadsX>
                 <NumPadsY>2</NumPadsY>
                 <Pad1>CFEB0_L1A_Sync_Time_DMB_diff</Pad1>
