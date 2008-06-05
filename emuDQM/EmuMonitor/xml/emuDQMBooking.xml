@@ -958,13 +958,13 @@
 		<Name>All_DDUs_in_Readout</Name>
 		<SetOption>bar1text</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YTitle>DDU Events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>DDUs in Readout</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 	</Histogram>
@@ -974,15 +974,15 @@
 		<Name>All_DDUs_L1A_Increment</Name>
 		<SetOption>textcolz</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>20</YMax>
 		<YBins>20</YBins>
 		<YTitle>L1A Increment</YTitle>
 		<Title>L1A Increment</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetNdivisionsY>20</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -994,15 +994,15 @@
 		<Name>All_DDUs_Trailer_Errors</Name>
 		<SetOption>colz</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>34</YMax>
 		<YBins>34</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Trailer Status Errors</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetLabelSizeX>0.015</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetStats>0</SetStats>
@@ -1018,15 +1018,15 @@
 		<Name>All_DDUs_Format_Errors</Name>
 		<SetOption>colz</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>30</YMax>
 		<YBins>30</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Data Format Errors</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetLabelSizeX>0.015</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetStats>0</SetStats>
@@ -1042,12 +1042,12 @@
 		<Name>All_DDUs_Event_Size</Name>
 		<SetOption>colz</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>4</YMax>
-		<YBins>40</YBins>
+		<YBins>44</YBins>
 		<YTitle>log(DDU Words)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Event Size (from DDU Trailer)</Title>
@@ -1062,13 +1062,13 @@
 		<Name>All_DDUs_Average_Event_Size</Name>
 		<SetOption>E1</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YTitle>DDU Words</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Average Number of DDU 64-bit words</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 	</Histogram>
@@ -1078,8 +1078,8 @@
 		<Name>All_DDUs_Live_Inputs</Name>
 		<SetOption>textcolz</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>15</YMax>
@@ -1087,7 +1087,7 @@
 		<YTitle>Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Live Inputs</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetNdivisionsY>15</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -1102,8 +1102,8 @@
 		<Name>All_DDUs_Average_Live_Inputs</Name>
 		<SetOption>E1</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>15</YMax>
@@ -1111,7 +1111,7 @@
 		<YTitle># of Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Average Number of DDU Live Inputs</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 		<SetMaximum>16</SetMaximum>
@@ -1122,8 +1122,8 @@
 		<Name>All_DDUs_Inputs_with_Data</Name>
 		<SetOption>textcolz</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>15</YMax>
@@ -1131,7 +1131,7 @@
 		<YTitle>Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Inputs with data (DAV)</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetNdivisionsY>15</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -1146,8 +1146,8 @@
 		<Name>All_DDUs_Average_Inputs_with_Data</Name>
 		<SetOption>E1</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>15</YMax>
@@ -1155,7 +1155,7 @@
 		<YTitle># of Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Average Number of DDU Inputs with Data (DAV)</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 	</Histogram>
@@ -1165,8 +1165,8 @@
 		<Name>All_DDUs_Inputs_Errors</Name>
 		<SetOption>textcolz</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>17</YMax>
@@ -1174,7 +1174,7 @@
 		<YTitle>Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Inputs in ERROR State</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetNdivisionsY>17</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -1189,8 +1189,8 @@
 		<Name>All_DDUs_Inputs_Warnings</Name>
 		<SetOption>textcolz</SetOption>
 		<XMin>1</XMin>
-		<XMax>41</XMax>
-		<XBins>40</XBins>
+		<XMax>45</XMax>
+		<XBins>44</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>17</YMax>
@@ -1198,7 +1198,7 @@
 		<YTitle>Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Inputs in WARNING State</Title>
-		<SetNdivisionsX>40</SetNdivisionsX>
+		<SetNdivisionsX>44</SetNdivisionsX>
 		<SetNdivisionsY>17</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -2517,6 +2517,7 @@
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB1 L1A numbers</Title>
                 <SetMinimum>0</SetMinimum>
+		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
@@ -2534,6 +2535,7 @@
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB2 L1A numbers</Title>
                 <SetMinimum>0</SetMinimum>
+		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
@@ -2551,6 +2553,7 @@
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB3 L1A numbers</Title>
                 <SetMinimum>0</SetMinimum>
+		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
@@ -2568,6 +2571,7 @@
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB4 L1A numbers</Title>
                 <SetMinimum>0</SetMinimum>
+		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
@@ -2585,6 +2589,7 @@
                 <SetOptStat>emuo</SetOptStat>
                 <Title>Difference between DMB and CFEB5 L1A numbers</Title>
                 <SetMinimum>0</SetMinimum>
+		<SetMaximum>1</SetMaximum>
                 <Folder>CFEB</Folder>
 		<SetLogy>1</SetLogy>
         </Histogram>
