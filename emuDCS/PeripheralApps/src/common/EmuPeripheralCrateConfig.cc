@@ -24,7 +24,6 @@ const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
 const int EXPECTED_DMB_VME_VERSION       = 1547;
 const int EXPECTED_DMB_FIRMWARE_REVISION =    1;
 const string       VMECC_FIRMWARE_DIR = "vcc"; 
-const string       VMECC_FIRMWARE_VER ="4.31";   
 //const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
@@ -6456,22 +6455,22 @@ void EmuPeripheralCrateConfig::ControllerUtils_Xfer(xgi::Input * in, xgi::Output
   throw (xgi::exception::Exception) {
     VCC_UTIL_curr_crate = thisCrate;
     VCC_UTIL_curr_color = "\"#88CCCC\"";
+    for(int i=0; i<(int)crateVector.size(); i++){
+      crateVector[i]->vmeController()->SetUseDCS(true);
+      crateVector[i]->vmeController()->init();
+    }
     this->ControllerUtils(in,out);
 }
 
 void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
-  int i;
   Crate *lccc;
   static bool first = true;
   lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
   if(first){
     first = false;
-    for(i=0; i<(int)crateVector.size(); i++){
-      crateVector[i]->vmeController()->SetUseDCS(true);
-      crateVector[i]->vmeController()->init();
-    }
     if ( lccc->vmeController()->GetDebug() == 0 ) {
       VCC_UTIL_cmn_tsk_dbg = "Disabled";
     } else {
@@ -6512,7 +6511,7 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
   *out << "      <td colspan=\"3\" align=\"left\">" << VCC_UTIL_cmn_tsk_cc << "</td>" << std::endl;
   *out << "    </tr><tr>" << std::endl;
   *out << "	 <td align=\"right\"><input type=\"submit\" value=\"Load PROM\" name=\"cmntsk_ldfrmw\"></td>" << std::endl;
-  *out << "      <td colspan=\"3\" align=\"left\"> With firmware version " << VMECC_FIRMWARE_VER << "</td>" << std::endl;
+  *out << "      <td colspan=\"3\" align=\"left\"> With firmware version " << vmecc->VCC_frmw_ver << "</td>" << std::endl;
   *out << "    </tr><tr>" << std::endl;
   *out << "	 <td align=\"right\"><input type=\"submit\" value=\"Reload FPGA\" name=\"cmntsk_reload\"></td>" << std::endl;
   *out << "	 <td align=\"right\"><input type=\"submit\" value=\"Loopback Test\" name=\"cmntsk_lpbk\"></td>" << std::endl;
@@ -6974,8 +6973,8 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
     vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
     vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
     std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
-    std::cout << "Path = " << PROM_Path << "\nVer = " << VMECC_FIRMWARE_VER << std::endl;
-    vmecc->prg_vcc_prom_ver(PROM_Path.c_str(),VMECC_FIRMWARE_VER.c_str());
+    std::cout << "Path = " << PROM_Path << "\nVer = " << vmecc->VCC_frmw_ver << std::endl;
+    vmecc->prg_vcc_prom_ver(PROM_Path.c_str(),vmecc->VCC_frmw_ver.c_str());
   }
   if(cmntsk_reload != cgi.getElements().end()) {
     vmecc->force_reload();
@@ -7316,14 +7315,19 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
       }
     }
     if(prgver_name != cgi.getElements().end()) {
-      vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
-      vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
-      CNFG_ptr cp=vmecc->read_crs();
-      vmecc->print_crs(cp);
-      free(cp);
-      std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
-      std::cout << "Path = " << PROM_Path << "\nVer = " << VCC_UTIL_PROM_ver << std::endl;
-      vmecc->prg_vcc_prom_ver(PROM_Path.c_str(),VCC_UTIL_PROM_ver.c_str());
+      if(VCC_UTIL_PROM_file_init){
+        vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
+        vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
+        CNFG_ptr cp=vmecc->read_crs();
+        vmecc->print_crs(cp);
+        free(cp);
+        std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
+        std::cout << "Path = " << PROM_Path << "\nVer = " << VCC_UTIL_PROM_ver << std::endl;
+        vmecc->prg_vcc_prom_ver(PROM_Path.c_str(),VCC_UTIL_PROM_ver.c_str());
+      }
+      else {
+        std::cout << "You must set the version number by reading in the mcs file first\n" << std::endl;
+      }
     }
     if(custom_name != cgi.getElements().end()) {
       vmecc->ld_rtn_base_addr(0x180);

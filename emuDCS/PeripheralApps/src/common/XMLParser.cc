@@ -122,6 +122,69 @@ bool XMLParser::fillFloat(std::string item, float & target)
   return found;
 }
 
+bool XMLParser::VCCParser(xercesc::DOMNode *pNode, Crate * theCrate)
+{
+  int         Value;
+  std::string StrgValue;
+  bool found_MAC_and_port;
+
+  parseNode(pNode);
+
+  std::cout << "Found VCC" << std::endl;
+  found_MAC_and_port = true;
+
+  // add VMECC(VMEModule in slot 1) to crate
+  VMECC * vcc = new VMECC(theCrate, 1);
+  std::cout << "VMECC in slot " << vcc->slot() << std::endl;
+
+  if(fillString("MAC_addr", StrgValue)){
+    theCrate->vmeController()->SetMAC(0,StrgValue);
+    size_t pos=StrgValue.find('-');
+    while(pos!=string::npos){
+      StrgValue.replace(pos,1,1,':');
+      pos=StrgValue.find('-');
+    }
+    theCrate->vmeController()->SetVMEAddress(StrgValue);
+  }
+  else {
+    found_MAC_and_port = false;
+  }
+  if(fillInt("eth_port",Value)){
+    theCrate->vmeController()->SetPort(Value);
+  }
+  else {
+    found_MAC_and_port = false;
+  }
+  if(fillString("MCAST_1", StrgValue))theCrate->vmeController()->SetMAC(1,StrgValue);
+  if(fillString("MCAST_2", StrgValue))theCrate->vmeController()->SetMAC(2,StrgValue);
+  if(fillString("MCAST_3", StrgValue))theCrate->vmeController()->SetMAC(3,StrgValue);
+  if(fillString("Dflt_Srv_MAC", StrgValue))theCrate->vmeController()->SetMAC(4,StrgValue);
+  if(fillString("VCC_frmw_ver", StrgValue));vcc->SetVCC_frmw_ver(StrgValue);
+  if(fillString("Ethernet_CR", StrgValue))theCrate->vmeController()->SetCR(0,StrgValue);
+  if(fillString("Ext_FIFO_CR", StrgValue))theCrate->vmeController()->SetCR(1,StrgValue);
+  if(fillString("Rst_Misc_CR", StrgValue))theCrate->vmeController()->SetCR(2,StrgValue);
+  if(fillString("VME_CR", StrgValue))theCrate->vmeController()->SetCR(3,StrgValue);
+  if(fillString("BTO", StrgValue))theCrate->vmeController()->SetCR(4,StrgValue);
+  if(fillString("BGTO", StrgValue))theCrate->vmeController()->SetCR(5,StrgValue);
+  if(fillInt("Msg_Lvl", Value))theCrate->vmeController()->SetMsg_Lvl(Value);
+  if(fillString("Warn_On_Shtdwn", StrgValue)){
+    if(StrgValue == "true"){
+      theCrate->vmeController()->SetWarn_On_Shtdwn(true);
+    }else{
+      theCrate->vmeController()->SetWarn_On_Shtdwn(false);
+    }
+  }
+  if(fillString("Pkt_On_Startup", StrgValue)){
+    if(StrgValue == "true"){
+      theCrate->vmeController()->SetPkt_On_Startup(true);
+    }else{
+      theCrate->vmeController()->SetPkt_On_Startup(false);
+    }
+  }
+
+  return found_MAC_and_port;
+}
+
 void XMLParser::CCBParser(xercesc::DOMNode *pNode, Crate * theCrate)
 {
   int slot, mode, BxOrbit, SPS25ns, delay, ID;
@@ -751,25 +814,66 @@ void XMLParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate, xercesc::D
   //
 }
 
-Crate * XMLParser::VMEParser(xercesc::DOMNode * pNode)
-{
-  int crateid=0, port; 
-  std::string  label, VMEaddress;
+  /******************************************************************************/
+  /*                                                                            */
+  /*  BGB 5-Jun-2008 moving crate controller parameters to a separate VCC tag   */
+  /*  Attempting to maintain backward compatability with original xml elements  */
+  /*  But old parameters will be depricated.                                    */
+  /******************************************************************************/
+// Crate * XMLParser::VMEParser(xercesc::DOMNode * pNode)
+// {
+//   int crateid=0, port; 
+//   std::string  label, VMEaddress;
+
+//   parseNode(pNode);
+  
+//   fillInt("crateID",crateid);
+//   if(!fillString("VMEaddress",VMEaddress) )
+//   {
+//      std::cerr << "No valid VMEaddress" << std::endl;
+//      return (Crate *) 0x0;
+//   }
+
+//   VMEController * controller = new VMEController(); 
+
+//   controller->SetVMEAddress(VMEaddress);
+//   if(fillInt("port",port)) controller->SetPort(port);
+  
+//   Crate * crate = new Crate(crateid,controller);
+
+//   // if crate "label" missing, use "crateID" instead
+//   if(!fillString("label",label)) fillString("crateID",label);  
+
+//   crate->SetLabel(label);
+//   std::cout << "Crate ID=" << crateid << " Label=" << label << std::endl;
+  
+//   // add VMECC(VMEModule in slot 1) to crate
+//   VMECC * vcc = new VMECC(crate, 1);
+//   std::cout << "VMECC in slot " << vcc->slot() << std::endl;
+//   return crate;
+// }
+
+void XMLParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuEndcap * endcap,xercesc::DOMNode *pNodeGlobal)
+{ 
+  int crateid=0, dep_port; 
+  std::string  label, dep_VMEaddress;
+  bool  found_dep_VMEaddress = false;
+  bool  found_dep_port = false;
+  bool  found_MAC_and_port = false;
 
   parseNode(pNode);
   
-  fillInt("crateID",crateid);
-  if(!fillString("VMEaddress",VMEaddress) )
+  if(!fillInt("crateID",crateid))
   {
-     std::cerr << "No valid VMEaddress" << std::endl;
-     return (Crate *) 0x0;
+     std::cerr << "No valid crateID" << std::endl;
+     std::cerr<< "Failed to instantiate the crate, crate info discarded!" << std::endl;
+     return;
   }
 
-  VMEController * controller = new VMEController(); 
+  if(fillString("VMEaddress",dep_VMEaddress) ) found_dep_VMEaddress = true;
+  if(fillInt("port",dep_port))  found_dep_port = true;
 
-  controller->SetVMEAddress(VMEaddress);
-  if(fillInt("port",port)) controller->SetPort(port);
-  
+  VMEController * controller = new VMEController(); 
   Crate * crate = new Crate(crateid,controller);
 
   // if crate "label" missing, use "crateID" instead
@@ -778,21 +882,14 @@ Crate * XMLParser::VMEParser(xercesc::DOMNode * pNode)
   crate->SetLabel(label);
   std::cout << "Crate ID=" << crateid << " Label=" << label << std::endl;
   
-  // add VMECC(VMEModule in slot 1) to crate
-  VMECC * vcc = new VMECC(crate, 1);
-  std::cout << "VMECC in slot " << vcc->slot() << std::endl;
-  return crate;
-}
-
-void XMLParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuEndcap * endcap,xercesc::DOMNode *pNodeGlobal)
-{ 
-  Crate * crate = VMEParser(pNode);
+//  Crate * crate = VMEParser(pNode);
   
-  if(crate==NULL) 
-  {
-     std::cerr<< "Failed to instantiate the crate, crate info discarded!" << std::endl;
-     return;
-  }
+//   if(crate==NULL) 
+//   {
+//      std::cerr<< "Failed to instantiate the crate, crate info discarded!" << std::endl;
+//      return;
+//   }
+
   endcap->addCrate(crate);
   
   xercesc::DOMNode * pNode3 = pNode->getFirstChild(); 
@@ -807,6 +904,10 @@ void XMLParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuEndcap * endcap
 #endif
     }
     
+    if (strcmp("VCC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+       found_MAC_and_port = VCCParser(pNode3, crate);
+    }
+
     if (strcmp("CSC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
        CSCParser(pNode3, crate,pNodeGlobal);
     }
@@ -822,6 +923,25 @@ void XMLParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuEndcap * endcap
     pNode3 = pNode3->getNextSibling();
     
   } // end of looping over boards (pNode3)
+  if(!found_MAC_and_port){
+    /* The new VCC parameters for MAC address and ethernet port were not found */
+    /* so using deprecated values from PeripheralCrate element */
+  // add VMECC(VMEModule in slot 1) to crate
+
+    std::cout << "\nNo valid VCC MAC address information found" << std::endl;
+    std::cout << "  Using depricated VMEaddress and port" << std::endl;
+    VMECC * vcc = new VMECC(crate, 1);
+    std::cout << "VMECC in slot " << vcc->slot() << std::endl;
+
+    crate->vmeController()->SetVMEAddress(dep_VMEaddress);
+    size_t pos=dep_VMEaddress.find(':');
+    while(pos!=string::npos){
+      dep_VMEaddress.replace(pos,1,1,'-');
+      pos=dep_VMEaddress.find(':');
+    }
+    crate->vmeController()->SetMAC(0,dep_VMEaddress);
+    crate->vmeController()->SetPort(dep_port);
+  }
   std::cout <<"PeripheralCrateParser: finished looping over boards for crateID "<< crate->CrateID() << std::endl; 
 }
 
