@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.48 2008/05/20 10:46:01 liu Exp $
+// $Id: VMEController.cc,v 3.49 2008/06/09 09:38:02 bylsma Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.49  2008/06/09 09:38:02  bylsma
+// Added Set... routines for new VCC xml parameters, and initialized parameter variables
+//
 // Revision 3.48  2008/05/20 10:46:01  liu
 // error handling update
 //
@@ -323,6 +326,8 @@ VMEController::VMEController():
   usedelay_ = false ;
   useDCS_ = true;
   alive_=true;
+  Warn_On_Shtdwn=false;
+  Pkt_On_Startup=false;
   //
   done_init_=false;
 
@@ -334,7 +339,22 @@ VMEController::VMEController():
   CR_VME_hi=0xFFED;
   CR_BUS_timeout=0xD430;
   CR_BUS_grant=0x350C;
-
+  //other default values
+  Msg_Lvl=2;
+  for(int i=0;i<5;i++){
+    MCAST_1[i]=0xFF;
+    MCAST_2[i]=0xFF;
+    MCAST_3[i]=0xFF;
+  }
+  MCAST_1[5]=0xFE;
+  MCAST_2[5]=0xFD;
+  MCAST_3[5]=0xFC;
+  Dflt_Srv_MAC[0]=0x00;
+  Dflt_Srv_MAC[1]=0x11;
+  Dflt_Srv_MAC[2]=0x95;
+  Dflt_Srv_MAC[3]=0x8B;
+  Dflt_Srv_MAC[4]=0x48;
+  Dflt_Srv_MAC[5]=0x89;
 }
 //
 VMEController::~VMEController(){
@@ -360,6 +380,23 @@ void VMEController::init()
   //
   cout << "VMEController opened socket = " << theSocket << endl;
   cout << "VMEController is using eth" << port_ << endl;
+//   cout << "VCC Config Parameters are:" << endl;
+//   cout << "  ipAddress : " << ipAddress_ << endl;
+//   cout << "  MAC_addr  : " << std::hex << (int) MAC_addr[0] << "-" << (int) MAC_addr[1] << "-" << (int) MAC_addr[2] << "-" << (int) MAC_addr[3] << "-" << (int) MAC_addr[4] << "-" << (int) MAC_addr[5] <<  endl;
+//   cout << "  MCAST_1  : " << std::hex << (int) MCAST_1[0] << "-" << (int) MCAST_1[1] << "-" << (int) MCAST_1[2] << "-" << (int) MCAST_1[3] << "-" << (int) MCAST_1[4] << "-" << (int) MCAST_1[5] <<  endl;
+//   cout << "  MCAST_2  : " << std::hex << (int) MCAST_2[0] << "-" << (int) MCAST_2[1] << "-" << (int) MCAST_2[2] << "-" << (int) MCAST_2[3] << "-" << (int) MCAST_2[4] << "-" << (int) MCAST_2[5] <<  endl;
+//   cout << "  MCAST_3  : " << std::hex << (int) MCAST_3[0] << "-" << (int) MCAST_3[1] << "-" << (int) MCAST_3[2] << "-" << (int) MCAST_3[3] << "-" << (int) MCAST_3[4] << "-" << (int) MCAST_3[5] <<  endl;
+//   cout << "  Dflt_Srv_MAC  : " << std::hex << (int) Dflt_Srv_MAC[0] << "-" << (int) Dflt_Srv_MAC[1] << "-" << (int) Dflt_Srv_MAC[2] << "-" << (int) Dflt_Srv_MAC[3] << "-" << (int) Dflt_Srv_MAC[4] << "-" << (int) Dflt_Srv_MAC[5] <<  endl;
+//   cout << "  Ethernet CR  : " << std::hex <<(int) CR_ethernet <<  endl;
+//   cout << "  Ext_FIFO CR  : " << std::hex << (int) CR_ext_fifo <<  endl;
+//   cout << "  Rst_Misc CR  : " << std::hex << CR_res_misc <<  endl;
+//   cout << "  VME(low) CR  : " << std::hex << CR_VME_low <<  endl;
+//   cout << "  VME(high) CR : " << std::hex << CR_VME_hi <<  endl;
+//   cout << "  BTO          : " << std::hex << CR_BUS_timeout <<  endl;
+//   cout << "  BGTO         : " << std::hex << CR_BUS_grant <<  endl;
+//   cout << "  Msg_Lvl      : " << std::dec << Msg_Lvl <<  endl;
+//   cout << "  Warn_On_Shtdwn : " << boolalpha << Warn_On_Shtdwn <<  endl;
+//   cout << "  Pkt_On_Startup : " << boolalpha << Pkt_On_Startup <<  endl;
 
   if(!useDCS_)
   {   
@@ -370,6 +407,66 @@ void VMEController::init()
 
   done_init_=true;
   //
+}
+
+void VMEController::SetMAC(int type, std::string MAC) {
+  unsigned char tmp[6];
+  sscanf(MAC.c_str(), "%02hhx-%02hhx-%02hhx-%02hhx-%02hhx-%02hhx",
+       tmp, tmp+1, tmp+2, tmp+3, tmp+4, tmp+5);
+  switch(type){
+  case 0:
+    memcpy(MAC_addr, tmp, 6);
+    break;
+  case 1:
+    memcpy(MCAST_1, tmp, 6);
+    break;
+  case 2:
+    memcpy(MCAST_2, tmp, 6);
+    break;
+  case 3:
+    memcpy(MCAST_3, tmp, 6);
+    break;
+  case 4:
+    memcpy(Dflt_Srv_MAC, tmp, 6);
+    break;
+  default:
+    break;
+  }
+}
+void VMEController::SetCR(int type, std::string CR) {
+  union Tmp_U {
+    unsigned char tc[4];
+    unsigned short ts[2];
+  } tu;
+
+  if(CR.length() == 8){
+    sscanf(CR.c_str(),"%02hhx%02hhx%02hhx%02hhx",tu.tc+2,tu.tc+3,tu.tc,tu.tc+1);
+  }else{
+    sscanf(CR.c_str(),"%02hhx%02hhx",tu.tc,tu.tc+1);
+  }
+  switch(type){
+  case 0://Ethernet CR
+    CR_ethernet=tu.ts[0];
+    break;
+  case 1://External FIFO CR
+    CR_ext_fifo=tu.ts[0];
+    break;
+  case 2://Reset/Misc. CR
+    CR_res_misc=tu.ts[0];
+    break;
+  case 3://VME CR
+    CR_VME_low=tu.ts[0];
+    CR_VME_hi=tu.ts[1];
+    break;
+  case 4://Bus Time Out CR
+    CR_BUS_timeout=tu.ts[0];
+    break;
+  case 5://Bus Grant Time Out CR
+    CR_BUS_grant=tu.ts[0];
+    break;
+  default:
+    break;
+  }
 }
 
 void VMEController::start(int slot, int boardtype) {
