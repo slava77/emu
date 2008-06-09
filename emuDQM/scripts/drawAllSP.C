@@ -96,7 +96,7 @@ void drawAllSP(const char *filename){
 					char hist_name[1024], link_name[1024];
 					sprintf(hist_name,"%d_%d_%s",SP,FN,pad->GetName());
 					TNamed *full_hist_name = new TNamed(hist_name,gifFile);
-					sprintf(link_name,"%d_%d_%s",SP,FN,pad->GetName());
+					sprintf(link_name,"SP%d/F%d/%s",SP,FN,pad->GetName());
 					TNamed *full_link_name = new TNamed(link_name,gifFile);
 					hist_ref.Add((TObject*)full_hist_name,(TObject*)full_link_name);
 				}
@@ -114,7 +114,7 @@ void drawAllSP(const char *filename){
 					char hist_name[1024], link_name[1024];
 					sprintf(hist_name,"%d_%s",SP,pad->GetName());
 					TNamed *full_hist_name = new TNamed(hist_name,gifFile);
-					sprintf(link_name,"%d_%s",SP,pad->GetName());
+					sprintf(link_name,"SP%d/%s",SP,pad->GetName());
 					TNamed *full_link_name = new TNamed(link_name,gifFile);
 					hist_ref.Add((TObject*)full_hist_name,(TObject*)full_link_name);
 				}
