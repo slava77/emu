@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.28 2008/05/28 10:35:30 liu Exp $
+// $Id: VMEController.h,v 3.29 2008/06/09 09:38:01 bylsma Exp $
 // $Log: VMEController.h,v $
+// Revision 3.29  2008/06/09 09:38:01  bylsma
+// Added Set... routines for new VCC xml parameters, and initialized parameter variables
+//
 // Revision 3.28  2008/05/28 10:35:30  liu
 // DMB counters in jumbo packet
 //
@@ -201,6 +204,11 @@ public:
 
   void SetUseDelay(bool state){usedelay_ = state;}
   void SetUseDCS(bool state){useDCS_ = state;}
+  void SetWarn_On_Shtdwn(bool state){Warn_On_Shtdwn = state;}
+  void SetPkt_On_Startup(bool state){Pkt_On_Startup = state;}
+
+  void SetMAC(int type, std::string MAC);
+  void SetCR(int type, std::string CR);
 
   string ipAddress() const {return ipAddress_;}
   int port() const {return port_;}
@@ -266,6 +274,7 @@ public:
 
 
   void set_ErrorServer();
+  inline void SetMsg_Lvl(int val) {Msg_Lvl=val;}
   inline void SetPort(int port) {port_=port;}
   inline void SetVMEAddress(std::string address) {ipAddress_=address;}
   inline std::string GetVMEAddress(){return ipAddress_;}
@@ -295,14 +304,23 @@ public:
 private:
   bool usedelay_;
   bool useDCS_;
+  bool Warn_On_Shtdwn;
+  bool Pkt_On_Startup;
   int theSocket;
   std::string ipAddress_;
   int port_;
+  int Msg_Lvl;
   const ENDIAN indian;
 
   unsigned char hw_source_addr[6];
   unsigned char hw_dest_addr[6];
-  struct ethhdr ether_header; 
+  struct ethhdr ether_header;
+ 
+  unsigned char MAC_addr[6];
+  unsigned char MCAST_1[6];
+  unsigned char MCAST_2[6];
+  unsigned char MCAST_3[6];
+  unsigned char Dflt_Srv_MAC[6];
 
   char spebuff[MAXLINE];
   bool done_init_;

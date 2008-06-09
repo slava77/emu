@@ -47,6 +47,7 @@ class VMECC: public VMEModule
 
 
   FILE *fplog;
+  std::string VCC_frmw_ver;
 
   unsigned int boardType() const {return VMECC_ENUM;}
   bool SelfTest();
@@ -56,8 +57,8 @@ class VMECC: public VMEModule
   void end(){};
 
 
-
   //prom programming routines
+  inline void SetVCC_frmw_ver(std::string Ver) {VCC_frmw_ver=Ver;}
   void prg_vcc_prom_ver(const char *path,const char *ver);
   void prg_vcc_prom_bcast(const char *path,const char *ver);
   // old jtag_subs.c

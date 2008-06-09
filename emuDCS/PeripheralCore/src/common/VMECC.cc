@@ -15,6 +15,7 @@ VMECC::VMECC(Crate * theCrate,int slot)
 :VMEModule(theCrate,slot)
 {
   fplog=NULL;
+  VCC_frmw_ver="4.31";
   std::cout << "Instantiate VMECC" << std::endl;
 }
 
