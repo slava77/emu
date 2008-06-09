@@ -21,6 +21,7 @@ public:
   bool fillLongLongIntX(std::string item, long long int & target);
   bool fillFloat(std::string item, float & target);
   bool fillString(std::string item, std::string & target);
+  bool VCCParser(xercesc::DOMNode * pNode, Crate * crate);
   void CCBParser(xercesc::DOMNode * pNode, Crate * crate);
   void MPCParser(xercesc::DOMNode * pNode, Crate * crate);
   void TMBParser(xercesc::DOMNode * pNode, Crate * crate, Chamber * chamber, xercesc::DOMNode * pNodeGlobal);
