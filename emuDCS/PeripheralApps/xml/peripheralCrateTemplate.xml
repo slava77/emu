@@ -33,73 +33,73 @@
          rat_firmware_month="8"
          rat_firmware_day="28"
          rat_firmware_year="2006"         
-         triad_persistence="6"
-         alct_tx_clock_delay="9"
-         alct_rx_clock_delay="0"
-         cfeb0delay="11"
-         cfeb1delay="10"
-         cfeb2delay="11"
-         cfeb3delay="11"
-         cfeb4delay="10"
-         layer_trig_enable="0"
-         layer_trig_thresh="2"
-         clct_pretrig_enable="1"
-         alct_pretrig_enable="0"
-         match_pretrig_enable="0"
-         clct_trig_enable="0"
-         alct_trig_enable="0"
-         match_trig_enable="1"
+         enable_alct_rx="1"
+         alct_clear="0"
+         enableCLCTInputs_reg42="31"
+         rpc_exists="0"
+         rpc_bxn_offset="0"
+         tmb_l1a_delay="137"
+         tmb_l1a_window_size="7"
+         tmb_l1a_offset="0"
+         tmb_bxn_offset="0"
          match_trig_alct_delay="8"
          match_trig_window_size="7"
          mpc_tx_delay="2"
-         mpc_rx_delay="7"
-         tmb_l1a_delay="137"
-         tmb_l1a_window_size="7"
+         clct_pretrig_enable="1"
+         alct_pretrig_enable="0"
+         match_pretrig_enable="0"
+         triad_persistence="6"
          clct_halfstrip_pretrig_thresh="2"
          clct_pattern_thresh="4"
          clct_drift_delay="2"
-         tmb_l1a_offset="0"
-         tmb_fifo_pretrig="7"
-         tmb_fifo_tbins="12"
-         tmb_bxn_offset="0"
-         rpc_bxn_offset="0"
-         request_l1a="0"
-         rat_tmb_delay="10"
-         enable_alct_rx="1"
-         rpc_exists="0"
          tmb_fifo_mode="1"
-         alct_clear="0"
-         enableCLCTInputs_reg42="31"
-         rpc0_rat_delay="3"
-         ignore_ccb_startstop="1"
-         clct_stagger="1"
+         tmb_fifo_tbins="12"
+         tmb_fifo_pretrig="7"
+         alct_trig_enable="0"
+         clct_trig_enable="0"
+         match_trig_enable="1"
+         mpc_rx_delay="7"
          mpc_output_enable="1"
+         layer_trig_enable="0"
+         layer_trig_thresh="2"
+         clct_stagger="1"
          layer0_distrip_hot_chann_mask="ffffffffff"
          layer1_distrip_hot_chann_mask="ffffffffff"
          layer2_distrip_hot_chann_mask="ffffffffff"
          layer3_distrip_hot_chann_mask="ffffffffff"
          layer4_distrip_hot_chann_mask="ffffffffff"
-         layer5_distrip_hot_chann_mask="ffffffffff">
+         layer5_distrip_hot_chann_mask="ffffffffff"
+         request_l1a="0"
+         ignore_ccb_startstop="1"
+         alct_tx_clock_delay="9"
+         alct_rx_clock_delay="0"
+         rat_tmb_delay="10"
+         cfeb0delay="11"
+         cfeb1delay="10"
+         cfeb2delay="11"
+         cfeb3delay="11"
+         cfeb4delay="10"
+         rpc0_rat_delay="3">
        <ALCT chamber_type="ME21"
-             alct_firmware_month="5"
              alct_firmware_day="5"
+             alct_firmware_month="5"
              alct_firmware_year="2008"
+             alct_trig_mode="2"
+             alct_ext_trig_enable="0"
+             alct_send_empty="0"
+             alct_bxn_offset="1"
              alct_pretrig_thresh="2"
              alct_pattern_thresh="4"
-             alct_trig_mode="2"
              alct_drift_delay="2"
+             alct_fifo_tbins="16"
+             alct_fifo_pretrig="10"
              alct_l1a_delay="146"
              alct_l1a_window_size="7"
              alct_l1a_offset="1"
-             alct_fifo_pretrig="10"
-             alct_fifo_tbins="16"
-             alct_ext_trig_enable="0"
-             alct_trig_info_en="0"
              alct_l1a_internal="0"
              alct_ccb_enable="1"
              alct_accel_mode="0"
-             alct_send_empty="0"
-             alct_bxn_offset="1">
+             alct_trig_info_en="0">
           <AnodeChannel Number="1"  afeb_fine_delay="4"  afeb_threshold="10"> </AnodeChannel>
           <AnodeChannel Number="2"  afeb_fine_delay="3"  afeb_threshold="12"> </AnodeChannel>
           <AnodeChannel Number="3"  afeb_fine_delay="4"  afeb_threshold="10"> </AnodeChannel>
@@ -146,29 +146,63 @@
     </TMB>
 
     <DAQMB slot="7"
-           set_comp_thresh="0.030" 
-           cfeb_cable_delay="0"
-           tmb_lct_cable_delay="3"
-           cfeb_dav_cable_delay="0"
-           alct_dav_cable_delay="2"
-           xLatency="1"
-           xFineLatency="3"
-           comp_timing="2"
-           feb_clock_delay="31" 
            calibration_LCT_delay="6" 
            calibration_l1acc_delay="20" 
            pulse_delay="15" 
            inject_delay="15" 
            pul_dac_set="1.0" 
            inj_dac_set="1.0" 
+           set_comp_thresh="0.030" 
            comp_mode="2" 
-           crate_id="17"
-           pre_block_end="8">
-       <CFEB Number="4"> </CFEB>
-       <CFEB Number="3"> </CFEB>
-       <CFEB Number="2"> </CFEB>
-       <CFEB Number="1"> </CFEB>
-       <CFEB Number="0"> </CFEB>
+           comp_timing="2"
+           pre_block_end="8"
+           cfeb_cable_delay="0"
+           tmb_lct_cable_delay="3"
+           cfeb_dav_cable_delay="0"
+           alct_dav_cable_delay="2"
+           feb_clock_delay="31" 
+           xLatency="1"
+           xFineLatency="3">
+       <CFEB Number="4"
+             kill_chip0="8052"
+             kill_chip1="1400"
+             kill_chip2="0020"
+             kill_chip3="0800"
+             kill_chip4="0000"
+             kill_chip5="0000">
+       </CFEB>
+       <CFEB Number="3">
+             kill_chip0="0000"
+             kill_chip1="0000"
+             kill_chip2="0000"
+             kill_chip3="0000"
+             kill_chip4="0000"
+             kill_chip5="0000">
+       </CFEB>
+       <CFEB Number="2">
+             kill_chip0="0000"
+             kill_chip1="0000"
+             kill_chip2="0000"
+             kill_chip3="0000"
+             kill_chip4="0000"
+             kill_chip5="0000">
+       </CFEB>
+       <CFEB Number="1">
+             kill_chip0="0000"
+             kill_chip1="0000"
+             kill_chip2="0000"
+             kill_chip3="0000"
+             kill_chip4="0000"
+             kill_chip5="0000">
+       </CFEB>
+       <CFEB Number="0">
+             kill_chip0="0000"
+             kill_chip1="0000"
+             kill_chip2="0000"
+             kill_chip3="0000"
+             kill_chip4="0000"
+             kill_chip5="0000">
+       </CFEB>
     </DAQMB>
    </CSC>
 
@@ -200,20 +234,20 @@
 -->
 
     <CCB slot="13" 
-         TTCrxID="269"
-         TTCrxCoarseDelay="10"
-         version="2004" 
-         CCBmode="2"
          TTCmode="2" 
+         CCBmode="2"
          BX_Orbit="924" 
          SPS25ns="98" 
-         l1aDelay="98">
+         l1aDelay="98"
+         TTCrxID="269"
+         TTCrxCoarseDelay="10"
+         TTCrxFineDelay="10">
     </CCB>
 
     <MPC slot="12"
-         BoardID="17"
+         serializermode="0"
          TransparentMode="0"
-         serializermode="0">
+         TMBdelays="0">
     </MPC>
 
   </PeripheralCrate>
