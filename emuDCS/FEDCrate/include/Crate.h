@@ -52,18 +52,23 @@ class Crate {
 public:
 	Crate(int number, VMEController* theController = NULL);
 	~Crate();
-	
+
 	int number() const {return theNumber;}
-	
+
 	void addModule(VMEModule* module);
 	void setController(VMEController* controller);
-	
+
 	VMEController * vmeController() const {return theController;}
-	
+
 	/// uses RTTI to find types
 	vector<DDU *> ddus() const;
 	vector<DCC *> dccs() const;
-	
+	inline vector<VMEModule *> modules() { return theModules; }
+
+	// Return the rui of the DDU in the given slot.  The crate number is
+	//  needed to figure this out.
+	int getRUI(int slot);
+
 	void enable();
 	void disable();
 	void configure(long unsigned int runnumber);
@@ -81,9 +86,9 @@ private:
 		}
 		return 0;
 	}
-	
+
 	int theNumber;
-	/// indexed by slot 
+	/// indexed by slot
 	vector<VMEModule *> theModules;
 	VMEController * theController;
 };

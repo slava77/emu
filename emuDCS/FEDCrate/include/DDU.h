@@ -1,4 +1,4 @@
-/* 
+/*
      S. Durkin      1/25/05
 
  */
@@ -12,6 +12,7 @@ using namespace std;
 #include "VMEModule.h"
 #include "JTAG_constants.h"
 #include "Chamber.h"
+#include "FEDException.h"
 
 
 class DDU: public VMEModule
@@ -38,33 +39,33 @@ public:
   void ddu_reset();
   void ddu_l1calonoff();
   void ddu_vmel1a();
-// DDU register control 
+// DDU register control
   void ddu_shfttst(int tst);
   void ddu_lowfpgastat();
   void ddu_hifpgastat();
-  void ddu_checkFIFOa();
-  void ddu_checkFIFOb();
-  void ddu_checkFIFOc();
+  unsigned int ddu_checkFIFOa();
+  unsigned int ddu_checkFIFOb();
+  unsigned int ddu_checkFIFOc();
   void ddu_rdfibererr();
   void ddu_rdfiberok();
-  void ddu_rdkillfiber();
+  long unsigned int ddu_rdkillfiber();
   void ddu_loadkillfiber(long int regval);
-  void ddu_rdcrcerr();
+  int ddu_rdcrcerr();
   void ddu_rdl1aerr();
-  void ddu_rdxmiterr();
+  int ddu_rdxmiterr();
   void ddu_rdtimesterr();
   void ddu_rdtimeewerr();
   void ddu_rdtimeeaerr();
-  void ddu_rddmberr();
-  void ddu_rdtmberr();
-  void ddu_rdlieerr();
+  int ddu_rddmberr();
+  int ddu_rdtmberr();
+  int ddu_rdlieerr();
   void ddu_rdliderr();
   void ddu_rdpaferr();
-  void ddu_rdfferr();
-  void ddu_rderareg();
-  void ddu_rderbreg();
-  void ddu_rdercreg();
-  int  ddu_InRDstat();
+  int ddu_rdfferr();
+  unsigned int ddu_rderareg();
+  unsigned int ddu_rderbreg();
+  unsigned int ddu_rdercreg();
+  unsigned int ddu_InRDstat();
   int  ddu_InC_Hist();
   int  ddu_dmblive();
   int  ddu_pdmblive();
@@ -76,22 +77,105 @@ public:
   void ddu_earlyVerr_cnt();
   void ddu_verr23cnt();
   void ddu_verr55cnt();
-  void ddu_rdostat();
+  unsigned int ddu_rdostat();
   void ddu_rdempty();
   void ddu_rdstuckbuf();
-  void ddu_rdscaler();
+  unsigned long int ddu_rdscaler();
   unsigned long int ddu_int_rdscaler();
-  void ddu_rdalcterr();
+  int ddu_rdalcterr();
   void ddu_loadbxorbit(int regval);
-  void ddu_rdbxorbit();
+  int ddu_rdbxorbit();
   void ddu_lvl1onoff();
-  void ddu_rd_boardID();
-  void ddu_fpgastat();
+  unsigned int ddu_rd_boardID();
+  unsigned long int ddu_fpgastat();
   void ddu_occmon();
   void ddu_fpgatrap();
   //  void ddu_trap_decode();
   void ddu_maxTimeCount();
   unsigned short int ddu_code0,ddu_code1,ddu_shift0;
+
+	// PGK Failed attempt at simplified commands
+// 	void init()
+// 		throw (FEDException);
+// 	void reset(enum DEVTYPE dt)
+// 		throw (FEDException);
+	void setNormal(enum DEVTYPE dt)
+		throw (FEDException);
+
+	unsigned long int readReg(enum DEVTYPE dt, char reg, const unsigned int nbits)
+		throw (FEDException);
+// 	unsigned long int writeReg(enum DEVTYPE dt, char reg, unsigned long int value, const unsigned int nbits)
+// 		throw (FEDException);
+
+	// PGK Failed attempt at simplified universal commands
+	long int readL1Scaler(enum DEVTYPE dt)
+		throw (FEDException);
+	unsigned long int readFPGAStat(enum DEVTYPE dt)
+		throw (FEDException);
+
+	// PGK Failed attempt at simplified DDUFPGA commands
+// 	void toggleL1Cal()
+// 		throw (FEDException);
+// 	void vmeL1A()
+// 		throw (FEDException);
+	int checkFIFO(int fifo)
+		throw (FEDException);
+	long int readKillFiber()
+		throw (FEDException);
+// 	long int writeKillFiber(long int killFiber)
+// 		throw (FEDException);
+	int readCRCError()
+		throw (FEDException);
+	int readXmitError()
+		throw (FEDException);
+	int readDMBError()
+		throw (FEDException);
+	int readTMBError()
+		throw (FEDException);
+	int readLIEError()
+		throw (FEDException);
+	int readFFError()
+		throw (FEDException);
+	int readEBReg(int reg)
+		throw (FEDException);
+	int readInRDStat()
+		throw (FEDException);
+	int readInCHistory()
+		throw (FEDException);
+	int readDMBLive()
+		throw (FEDException);
+	int readPermDMBLive()
+		throw (FEDException);
+	int readWarnMon()
+		throw (FEDException);
+// 	int readVoteErrorCount()
+// 		throw (FEDException);
+// 	int readConsVoteErrorCount()
+// 		throw (FEDException);
+// 	int readFIFOVoteErrorCount(int fifo)
+// 		throw (FEDException);
+// 	int readEarlyVoteErrorCount()
+// 		throw (FEDException);
+// 	int readVoteError23Count()
+// 		throw (FEDException);
+// 	int readVoteError55Count()
+// 		throw (FEDException);
+	int readOutputStat()
+		throw (FEDException);
+	int readALCTError()
+		throw (FEDException);
+// 	int writeBXOrbit(int BXOrbit)
+// 		throw (FEDException);
+	int readBXOrbit()
+		throw (FEDException);
+	int readBoardID()
+		throw (FEDException);
+// 	unsigned long int readFPGALongStat()
+// 		throw (FEDException);
+// 	unsigned long int readOccupancyMon()
+// 		throw (FEDException);
+	int readMaxTimeoutCount()
+		throw (FEDException);
 
   // INFPGA register control
   void infpga_shfttst(enum DEVTYPE dv,int tst);
@@ -100,19 +184,19 @@ public:
   int  infpga_rd1scaler(enum DEVTYPE dv);
   void infpga_lowstat(enum DEVTYPE dv);
   void infpga_histat(enum DEVTYPE dv);
-  void infpgastat(enum DEVTYPE dv);
-  void infpga_CheckFiber(enum DEVTYPE dv);
-  long int infpga_int_CheckFiber(enum DEVTYPE dv);
+  unsigned long int infpgastat(enum DEVTYPE dv);
+  int infpga_CheckFiber(enum DEVTYPE dv);
+  int infpga_int_CheckFiber(enum DEVTYPE dv);
   void infpga_DMBsync(enum DEVTYPE dv);
   void infpga_FIFOstatus(enum DEVTYPE dv);
   void infpga_FIFOfull(enum DEVTYPE dv);
   void infpga_RxErr(enum DEVTYPE dv);
   void infpga_Timeout(enum DEVTYPE dv);
   void infpga_XmitErr(enum DEVTYPE dv);
-  void infpga_WrMemActive(enum DEVTYPE dv,int ifiber);
+  int infpga_WrMemActive(enum DEVTYPE dv,int ifiber);
   int infpga_DMBwarn(enum DEVTYPE dv);
-  void infpga_MemAvail(enum DEVTYPE dv);
-  void infpga_Min_Mem(enum DEVTYPE dv);
+  int infpga_MemAvail(enum DEVTYPE dv);
+  int infpga_Min_Mem(enum DEVTYPE dv);
   void infpga_LostErr(enum DEVTYPE dv);
   int  infpga_CcodeStat(enum DEVTYPE dv);
   void infpga_StatA(enum DEVTYPE dv);
@@ -123,6 +207,40 @@ public:
   void infpga_trap(enum DEVTYPE dv);
   unsigned short int infpga_code0,infpga_code1,infpga_shift0;
   unsigned long int fpga_lcode[10];
+
+	// PGK Failed attempt at simplified INFPGA commands
+	long int readL1Scaler1(enum DEVTYPE dv)
+		throw (FEDException);
+	int checkFiber(enum DEVTYPE dv)
+		throw (FEDException);
+	int readDMBSync(enum DEVTYPE dv)
+		throw (FEDException);
+	int readFIFOStat(enum DEVTYPE dv)
+		throw (FEDException);
+	int readFIFOFull(enum DEVTYPE dv)
+		throw (FEDException);
+	int readRxError(enum DEVTYPE dv)
+		throw (FEDException);
+	int readTimeout(enum DEVTYPE dv)
+		throw (FEDException);
+	int readTxError(enum DEVTYPE dv)
+		throw (FEDException);
+	int readWriteMemoryActive(enum DEVTYPE dv,int iFiber)
+		throw (FEDException);
+	int readDMBWarning(enum DEVTYPE dv)
+		throw (FEDException);
+	int readMemoryAvailable(enum DEVTYPE dv)
+		throw (FEDException);
+	int readMinMemory(enum DEVTYPE dv)
+		throw (FEDException);
+	int readLostError(enum DEVTYPE dv)
+		throw (FEDException);
+	int  readCCodeStat(enum DEVTYPE dv)
+		throw (FEDException);
+// 	int readINFPGAStatusReg(enum DEVTYPE dv, int i)
+// 		throw (FEDException);
+	long unsigned int readFiberDiagnostics(enum DEVTYPE dv, int i)
+		throw (FEDException);
 
   // DDU Status Decode
   void ddu_status_decode(int long code);
@@ -139,8 +257,8 @@ public:
 
   // DDU FPGA id/user codes
   unsigned long int ddufpga_idcode();
-  unsigned long int infpga_idcode0(); 
-  unsigned long int infpga_idcode1(); 
+  unsigned long int infpga_idcode0();
+  unsigned long int infpga_idcode1();
   unsigned long int ddufpga_usercode();
   unsigned long int infpga_usercode0();
   unsigned long int infpga_usercode1();
@@ -156,7 +274,13 @@ public:
   unsigned long int dduprom_usercode1();
   void all_chip_info();
 
-  // DDU parallel 
+	// PGK Failed attempt at simplified ID/user codes
+// 	unsigned long int readIDCode(enum DEVTYPE dt)
+// 		throw (FEDException);
+// 	unsigned long int readUserCode(enum DEVTYPE dt)
+// 		throw (FEDException);
+
+  // DDU parallel
   unsigned short int vmepara_busy();
   unsigned short int vmepara_fullwarn();
   unsigned short int vmepara_CSCstat();
@@ -182,10 +306,53 @@ public:
   unsigned short int vmepara_busyhist();
   unsigned short int vmepara_warnhist();
 
-  // DDU serial 
-  void read_status();
+	// PGK Failed attempt at simplified VME parallel
+	int readParallel(int command)
+		throw (FEDException);
+// 	void writeParallel(int command, int var)
+// 		throw (FEDException);
+
+	int readFMMBusy()
+		throw (FEDException);
+	int readFMMFullWarning()
+		throw (FEDException);
+	int readFMMLostSync()
+		throw (FEDException);
+	int readFMMError()
+		throw (FEDException);
+	int readFMMReg()
+		throw (FEDException);
+// 	void writeFMMReg(int val)
+// 		throw (FEDException);
+	int readCSCStat()
+		throw (FEDException);
+	int readSwitches()
+		throw (FEDException);
+	int readParallelStat()
+		throw (FEDException);
+	int readInputReg(int iReg)
+		throw (FEDException);
+// 	void writeInputReg(int val)
+// 		throw (FEDException);
+	int readFakeL1Reg()
+		throw (FEDException);
+// 	void writeFakeL1Reg(int val)
+// 		throw (FEDException);
+	int readGbEPrescale()
+		throw (FEDException);
+// 	void writeGbEPrescale(int val)
+// 		throw (FEDException);
+	int readTestReg(int iReg)
+		throw (FEDException);
+	int readBusyHistory()
+		throw (FEDException);
+	int readWarningHistory()
+		throw (FEDException);
+
+  // DDU serial
+  int read_status();
   int read_int_page1();
-  void read_page1();
+  int read_page1();
   void write_page1();
   int read_page3();
   void write_page3();
@@ -203,6 +370,39 @@ public:
   char snd_serial[6];
   char rcv_serial[6];
 
+	// PGK Failed attempt at simplified VME serial
+	unsigned long int readSerial(int command, const unsigned int nbits)
+		throw (FEDException);
+// 	void writeSerial(int command, int val1, int val2, int val3, int val4)
+// 		throw (FEDException);
+
+	char readSerialStat()
+		throw (FEDException);
+	int readFlashKillFiber()
+		throw (FEDException);
+// 	void writeFlashKillFiber(int val)
+// 		throw (FEDException);
+	int readFlashBoardID()
+		throw (FEDException);
+// 	void writeFlashBoardID(int val)
+// 		throw (FEDException);
+// 	unsigned long int readFlashInFIFOThresholds()
+// 		throw (FEDException);
+// 	void writeFlashInFIFOThresholds(unsigned long int val)
+// 		throw (FEDException);
+	unsigned long int readFlashGbEFIFOThresholds()
+		throw (FEDException);
+// 	void writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
+// 		throw (FEDException);
+	int readFlashSourceID()
+		throw (FEDException);
+// 	void writeFlashSourceID(int val)
+// 		throw (FEDException);
+// 	unsigned long int readInFIFOThreshold(int iFifo)
+// 		throw (FEDException);
+// 	void forceLoadFIFOsFromFlash()
+// 		throw (FEDException);
+
   // Voltages and Thermometers
   float adcplus(int ichp,int ichn);
   float adcminus(int ichp,int ichn);
@@ -212,7 +412,7 @@ public:
   void read_voltages();
 
   // Unpack characters to integers
-  unsigned int DDU::unpack_ival();
+  unsigned int unpack_ival();
 
   // EPROM reprogramming (EXPERTS ONLY !)
   void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
@@ -235,7 +435,7 @@ public:
 private:
 
 	vector<Chamber *> chamberVector_;
- 	
+
 };
 
 
