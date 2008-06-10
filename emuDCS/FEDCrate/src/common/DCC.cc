@@ -10,11 +10,11 @@
 using namespace std;
 
 #ifndef debugV //silent mode
-#define PRINT(x) 
-#define PRINTSTRING(x)  
+#define PRINT(x)
+#define PRINTSTRING(x)
 #else //verbose mode
-#define PRINT(x) cout << #x << ":\t" << x << endl; 
-#define PRINTSTRING(x) cout << #x << endl; 
+#define PRINT(x) cout << #x << ":\t" << x << endl;
+#define PRINTSTRING(x) cout << #x << endl;
 #endif
 
 extern char filename[100];
@@ -98,9 +98,9 @@ enum DEVTYPE dv;;
       sndbuf[2]=0xFF;
       sndbuf[3]=0xFF;
       sndbuf[4]=0xFF;
-      devdo(dv,16,cmd,32,sndbuf,rcvbuf,1); 
+      devdo(dv,16,cmd,32,sndbuf,rcvbuf,1);
       printf(" The MPROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      unsigned long int ibrd=0x00000000; 
+      unsigned long int ibrd=0x00000000;
       ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       cmd[0]=MPROM_BYPASS_L;
       cmd[1]=MPROM_BYPASS_H;
@@ -124,7 +124,7 @@ enum DEVTYPE dv;
       cmd[0]=PROM_BYPASS;
       sndbuf[0]=0;
       devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000; 
+      unsigned long int ibrd=0x00000000;
       ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       return ibrd;
 
@@ -146,8 +146,8 @@ enum DEVTYPE dv;
       cmd[0]=MPROM_BYPASS_L;
       cmd[1]=MPROM_BYPASS_H;
       sndbuf[0]=0;
-      devdo(dv,16,cmd,0,sndbuf,rcvbuf,0); 
-      unsigned long int ibrd=0x00000000; 
+      devdo(dv,16,cmd,0,sndbuf,rcvbuf,0);
+      unsigned long int ibrd=0x00000000;
       ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       return ibrd;
 }
@@ -265,7 +265,7 @@ unsigned short int  DCC::mctrl_stath()
      cmd[2]=0xff;  // data h
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
-     printf(" status high %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     //printf(" status high %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
      rcvr=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
      return rcvr;
 }
@@ -279,7 +279,7 @@ unsigned short int rcvr=0;
      cmd[2]=0xff;  // data h
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
-     printf(" status low %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     //printf(" status low %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
      rcvr=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
      return rcvr;
 }
@@ -317,8 +317,8 @@ unsigned short int  DCC::mctrl_rd_fifoinuse()
      cmd[2]=0xff;  // data h
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
-     printf(" FIFO_in_use register %02x%02x\n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
-     printf(" FIFO_in_Use %02x%02x \n",rcvbuf[1]&0x03,rcvbuf[0]&0xff);
+     //printf(" FIFO_in_use register %02x%02x\n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     //printf(" FIFO_in_Use %02x%02x \n",rcvbuf[1]&0x03,rcvbuf[0]&0xff);
      rcvr=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
      return rcvr;
 }
@@ -403,7 +403,7 @@ int nowrit;
 char snd[5000],expect[5000],rmask[5000],smask[5000],cmpbuf[5000];
 extern struct GEOM geo[];
 // printf(" epromload %d \n",devnum);
- 
+
  /*  if(devnum==ALL){
     devnum=F1PROM;
     devstp=F5PROM;
@@ -465,7 +465,7 @@ extern struct GEOM geo[];
                 tstusr=0;
                 snd[0]=cbrdnum[0];
                 snd[1]=cbrdnum[1];
-                snd[2]=cbrdnum[2]; 
+                snd[2]=cbrdnum[2];
                 snd[3]=cbrdnum[3];
 		//        printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
               }
@@ -504,17 +504,17 @@ extern struct GEOM geo[];
 
                 if((geo[dv].jchan==12)){
                    scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
-                }else{ 
+                }else{
                    scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
                 }
              }
-          } 
-      
+          }
+
 	  //  Data readback comparison here:
           for (i=0;i<nbytes;i++) {
             tmp=(rcvbuf[i]>>3)&0x1F;
             rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
-	    /*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1) 
+	    /*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); */
           }
           if (cmpflag==1) {
@@ -534,7 +534,7 @@ extern struct GEOM geo[];
               for(j=0;j<nbytes;j++){
                 sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
               }
-              if(nbytes==1){if(0xfd==(snd[0]&0xff))nowrit=1;} // nowrit=1  
+              if(nbytes==1){if(0xfd==(snd[0]&0xff))nowrit=1;} // nowrit=1
             }
             else if(strcmp(Word[i],"SMASK")==0){
               for(j=0;j<nbytes;j++){
@@ -566,7 +566,7 @@ extern struct GEOM geo[];
             if(writ==1)devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
             if(writ==0)printf(" ***************** nowrit %02x \n",sndbuf[0]);
           }
-         
+
 	  /*
           printf("send %2d instr bits %02X %02X %02X %02X %02X\n",nbits,sndbuf[4]&0xFF,sndbuf[3]&0xFF,sndbuf[2]&0xFF,sndbuf[1]&0xFF,sndbuf[0]&0xFF);
           printf("expect %2d instr bits %02X %02X %02X %02X %02X\n",nbits,expect[4]&0xFF,expect[3]&0xFF,expect[2]&0xFF,expect[1]&0xFF,expect[0]&0xFF);
@@ -596,13 +596,13 @@ extern struct GEOM geo[];
 	  //	  printf(" sndbuf %02x %02x %d \n",sndbuf[1],sndbuf[0],pause);
           devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
           //fpause=fpause*1.5+100;
-          //pause=fpause; 
+          //pause=fpause;
           flush_vme();
           //usleep(pause);
-          // printf(" send sleep \n");  
+          // printf(" send sleep \n");
         }
         else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
-	   printf("goto reset idle state\n"); 
+	   printf("goto reset idle state\n");
 	   devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
         }
         else if(strcmp(Word[0],"TRST")==0){

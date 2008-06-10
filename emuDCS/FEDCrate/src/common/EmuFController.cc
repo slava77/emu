@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 3.7 2008/04/22 09:31:11 geurts Exp $
+// $Id: EmuFController.cc,v 3.8 2008/06/10 13:52:12 gilmore Exp $
 // $Log: EmuFController.cc,v $
-// Revision 3.7  2008/04/22 09:31:11  geurts
-// New FEDCrate Control software by Jason and Phillip.
+// Revision 3.8  2008/06/10 13:52:12  gilmore
+// improved FED Crate HyperDAQ operability
 //
 // Revision 3.6  2007/10/23 17:50:17  gilmore
 // EmuFCrateManager fixes for real USC operation

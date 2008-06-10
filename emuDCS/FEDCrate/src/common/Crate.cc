@@ -10,7 +10,7 @@ int irqprob;
 long int timer,xtimer;
 
 Crate::Crate(int number, VMEController *theController):
-	theNumber(number),  
+	theNumber(number),
 	theModules(31),
 	theController(NULL)
 {
@@ -62,6 +62,15 @@ vector<DCC *> Crate::dccs() const {
   return result;
 }
 
+int Crate::getRUI(int slot) {
+	unsigned int rui = 9 * theNumber + slot - 3;
+	if (slot > 8) rui--;  // Correct for the DCC slot.
+	if (theNumber > 0) rui -= 9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
+	if (theNumber>4) rui = 0; // This is the TF DDU.
+
+	return rui;
+}
+
 void Crate::enable() {
   //
   std::cout << "Crate::enable called " << std::endl;
@@ -83,7 +92,7 @@ void Crate::configure(long unsigned int runnumber = 0) {
 	}
 	std::vector<DCC*> myDccs = this->dccs();
 	for(unsigned i =0; i < myDccs.size(); ++i) {
-		myDccs[i]->configure(); 
+		myDccs[i]->configure();
 	}
 
 // LSD, move IRQ start to Init phase:
