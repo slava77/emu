@@ -3124,7 +3124,10 @@ throw (emuDAQManager::exception::Exception)
 void EmuDAQManager::stopDAQ()
 throw (emuDAQManager::exception::Exception)
 {
-    // If imaginary FED builder was started
+
+  // Instruct TA to generate stop time now, otherwise it'll be too late for EmuRUIs.
+  makeTAGenerateRunStopTime();
+
     if(ruiDescriptors_.size() > 0)
     {
         try
@@ -4102,6 +4105,36 @@ xoap::MessageReference EmuDAQManager::postSOAP( xoap::MessageReference message,
 
 }
 
+xoap::MessageReference EmuDAQManager::makeTAGenerateRunStopTime(){
+
+  xoap::MessageReference reply;
+
+  try{
+    
+    // Create query message
+    xoap::MessageReference message = createSimpleSOAPCmdMsg("generateRunStopTime");
+
+    // Post it
+    reply = appContext_->postSOAP(message, *appDescriptor_, *taDescriptors_[0]);
+    
+    // Check if the reply indicates a fault occurred
+    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
+    
+    if(replyBody.hasFault())
+      {
+	LOG4CPLUS_WARN(logger_, "Failed to make EmuTA generate run stop time: Received fault reply: " 
+		       << replyBody.getFault().getFaultString() );
+      }
+  } catch(xcept::Exception e){
+    LOG4CPLUS_WARN(logger_, "Failed to make EmuTA generate run stop time: " 
+		   << xcept::stdformat_exception_history(e));
+
+  }
+
+  return reply;
+}
+
+
 vector<string> EmuDAQManager::parseRunningConfigurationsReplyFromFM( xoap::MessageReference reply ){
 
   vector<string> runningConfigs;
@@ -4366,13 +4399,13 @@ void EmuDAQManager::getIdsOfRunningConfigurationsFromFM(){
   try{
     runningConfigs = getRunningConfigurationsFromFM( CSC_FM_URL_.toString() );
     for ( vector<string>::iterator rc = runningConfigs.begin(); rc != runningConfigs.end(); ++rc ){
-      cout << *rc << "  matches \"" << CSC_FM_URL_.toString() << "\" : " 
+      cout << *rc << "  matches \"" << RegexMatchingCSCConfigName_.toString() << "\" ? : " 
 	   << toolbox::regx_match( *rc, RegexMatchingCSCConfigName_.toString() )
 	   << endl;
       if ( toolbox::regx_match( *rc, RegexMatchingCSCConfigName_.toString() ) ){
 	string configState = getConfigParameterFromFM( *rc, "STATE" );
 	if ( configState.find("Configur") != string::npos ){
-	  CSCConfigId_.fromString( getConfigParameterFromFM( *rc, "CONF_ID" ) );
+	  CSCConfigId_.fromString( getConfigParameterFromFM( *rc, "SID" ) );
 	  LOG4CPLUS_INFO(logger_,"Got CSC config id " << CSCConfigId_.toString()
 			 << " from " << *rc << " in state \"" << configState << "\"" );
 	  break;
@@ -4387,9 +4420,9 @@ void EmuDAQManager::getIdsOfRunningConfigurationsFromFM(){
     }
   }
   catch(emuDAQManager::exception::Exception &e){
-    LOG4CPLUS_ERROR(logger_,
-		    "Failed to get unique id of CSC configuration from CSC FM"
-		    << " : " << xcept::stdformat_exception_history(e));
+    LOG4CPLUS_WARN(logger_,
+		   "Failed to get unique id of CSC configuration from CSC FM"
+		   << " : " << xcept::stdformat_exception_history(e));
   }
 
   // From Track Finder Cell: TODO

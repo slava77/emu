@@ -275,6 +275,7 @@ private:
   map<int,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]
   void printDAQState( xgi::Output *out, string state );
 
+  xoap::MessageReference makeTAGenerateRunStopTime();
 
   vector< xdaq::ApplicationDescriptor* > dqmMonitorDescriptors_;
   set<string> dqmContexts_; // all different DQM contexts with apps controlled by EmuDAQManager
