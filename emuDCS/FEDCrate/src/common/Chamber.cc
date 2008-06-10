@@ -33,7 +33,8 @@ Chamber::~Chamber()
 string Chamber::name()
 {
 	stringstream nameStream;
-	nameStream << "ME" << endcap << station << "/" << type << "/" << number;
+	//nameStream << "ME" << endcap << station << "/" << type << "/" << number;
+	nameStream << endcap << station << "/" << type << "/" << number;
 	return nameStream.str();
 }
 

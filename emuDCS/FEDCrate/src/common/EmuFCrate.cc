@@ -7,6 +7,7 @@
 #include "IRQData.h"
 // end addition for STEP
 
+#include <iomanip>
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"  // xoap::bind()
@@ -20,8 +21,6 @@
 #include "xoap/domutils.h"  // XMLCh2String()
 
 #include "cgicc/HTMLClasses.h"
-
-//#include "IRQThread.h"
 
 using namespace cgicc;
 using namespace std;
@@ -37,8 +36,7 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	ttsSlot_(0),
 	ttsBits_(0),
 	soapConfigured_(false),
-	soapLocal_(false),
-	runNumber_(0)
+	soapLocal_(false)
 {
 	//
 	// State machine definition
@@ -50,7 +48,8 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	xoap::bind(this, &EmuFCrate::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &EmuFCrate::onHalt,      "Halt",      XDAQ_NS_URI);
 	xoap::bind(this, &EmuFCrate::onSetTTSBits, "SetTTSBits", XDAQ_NS_URI);
-	//xoap::bind(this, &EmuFCrate::onGetParameters, "GetParameters", XDAQ_NS_URI);
+	xoap::bind(this, &EmuFCrate::onUpdateFlash, "UpdateFlash", XDAQ_NS_URI);
+	xoap::bind(this, &EmuFCrate::onGetParameters, "GetParameters", XDAQ_NS_URI);
 
 	// 'fsm_' is defined in EmuApplication
 	fsm_.addState('H', "Halted",     this, &EmuFCrate::stateChanged);
@@ -73,12 +72,17 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 		'H', 'H', "Halt",      this, &EmuFCrate::haltAction);
 	fsm_.addStateTransition(
 		'F', 'H', "Halt",      this, &EmuFCrate::haltAction);
+	// PGK We don't need these to be state transitions.
+	//fsm_.addStateTransition(
+	//	'H', 'H', "SetTTSBits", this, &EmuFCrate::setTTSBitsAction);
+	//fsm_.addStateTransition(
+	//	'C', 'C', "SetTTSBits", this, &EmuFCrate::setTTSBitsAction);
+	//fsm_.addStateTransition(
+	//	'E', 'E', "SetTTSBits", this, &EmuFCrate::setTTSBitsAction);
 	fsm_.addStateTransition(
-		'H', 'H', "SetTTSBits", this, &EmuFCrate::setTTSBitsAction);
+		'C', 'C', "UpdateFlash", this, &EmuFCrate::updateFlashAction);
 	fsm_.addStateTransition(
-		'C', 'C', "SetTTSBits", this, &EmuFCrate::setTTSBitsAction);
-	fsm_.addStateTransition(
-		'E', 'E', "SetTTSBits", this, &EmuFCrate::setTTSBitsAction);
+		'F', 'H', "UpdateFlash", this, &EmuFCrate::updateFlashAction);
 
 	fsm_.setInitialState('H');
 	fsm_.reset();
@@ -93,27 +97,28 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	getApplicationInfoSpace()->fireItemAvailable("ttsSlot",  &ttsSlot_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsBits",  &ttsBits_);
 	getApplicationInfoSpace()->fireItemAvailable("dccInOut", &dccInOut_);
-	getApplicationInfoSpace()->fireItemAvailable("RunNumber", &runNumber_);
+	getApplicationInfoSpace()->fireItemAvailable("errorChambers", &errorChambers_);
 
 	// HyperDAQ pages
 	xgi::bind(this, &EmuFCrate::webDefault, "Default");
 	xgi::bind(this, &EmuFCrate::webFire, "Fire");
 	xgi::bind(this, &EmuFCrate::webConfigure, "Configure");
-	xgi::bind(this, &EmuFCrate::webSetTTSBits, "SetTTSBits");
+	// PGK We can let the CSCSV do all the TTS business.
+	//xgi::bind(this, &EmuFCrate::webSetTTSBits, "SetTTSBits");
 
 	// addition for STEP
 	getApplicationInfoSpace()->fireItemAvailable ("step_killfiber", &step_killfiber_);
 	xoap::bind(this, &EmuFCrate::onPassthru,  "Passthru", XDAQ_NS_URI);
 	// end addition for STEP
-	
+
 	// Logger/Appender
 	// log file format: EmuFEDYYYY-DOY-HHMMSS_rRUNNUMBER.log
 	char datebuf[55];
 	char filebuf[255];
 	time_t theTime = time(NULL);
-	
+
 	strftime(datebuf, sizeof(datebuf), "%Y-%j-%H%M%S", localtime(&theTime));
-	sprintf(filebuf,"EmuFCrate%d-%s.log",getApplicationDescriptor()->getInstance(),datebuf);
+	sprintf(filebuf,"EmuFCrate%d-%s.log",getApplicationDescriptor()->getLocalId(),datebuf);
 
 	log4cplus::SharedAppenderPtr myAppend = new FileAppender(filebuf);
 	myAppend->setName("EmuFCrateAppender");
@@ -125,7 +130,7 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	myAppend->setLayout( myLayout );
 
 	getApplicationLogger().addAppender(myAppend);
-	
+
 	// PGK is an idiot.  Forgetting this leads to disasters.
 	TM = new IRQThreadManager();
 
@@ -134,26 +139,35 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 
 
 xoap::MessageReference EmuFCrate::onConfigure(xoap::MessageReference message)
-		throw (xoap::exception::Exception)
+	throw (xoap::exception::Exception)
 {
 
-	cout << "    EmuFCrate::onConfigure: Fireevent Configure \n " << endl;
-	
 	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Configure");
 	
+	// PGK I avoid errors at all cost.
+	if (state_.toString() == "Enabled" || state_.toString() == "Failed") {
+		LOG4CPLUS_WARN(getApplicationLogger(), state_.toString() <<"->Configured is not a valid transition.  Fixing by going to Halted first.");
+		fireEvent("Halt");
+	}
+
 	fireEvent("Configure");
-	cout <<"    EmuFCrate::onConfigure: return from fireevent configure " << endl;
-	
+
 	return createReply(message);
 }
 
 
 
 xoap::MessageReference EmuFCrate::onEnable(xoap::MessageReference message)
-		throw (xoap::exception::Exception)
+	throw (xoap::exception::Exception)
 {
 
 	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Enable");
+	// PGK I avoid errors at all cost.
+	if (state_.toString() == "Halted" || state_.toString() == "Failed") {
+		LOG4CPLUS_WARN(getApplicationLogger(), state_.toString() <<"->Enabled is not a valid transition.  Fixing by going to Halted->Configured first.");
+		fireEvent("Halt");
+		fireEvent("Configure");
+	}
 
 	fireEvent("Enable");
 
@@ -163,11 +177,18 @@ xoap::MessageReference EmuFCrate::onEnable(xoap::MessageReference message)
 
 
 xoap::MessageReference EmuFCrate::onDisable(xoap::MessageReference message)
-		throw (xoap::exception::Exception)
+	throw (xoap::exception::Exception)
 {
 	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Disable");
 
-	fireEvent("Disable");
+	// PGK I avoid errors at all cost.
+	if (state_.toString() != "Enabled") {
+		LOG4CPLUS_WARN(getApplicationLogger(), state_.toString() <<"->Configured via \"Disable\" is not a valid transition.  Fixing by doing Halted->Configured instead.");
+		fireEvent("Halt");
+		fireEvent("Configure");
+	} else {
+		fireEvent("Disable");
+	}
 
 	return createReply(message);
 }
@@ -175,10 +196,10 @@ xoap::MessageReference EmuFCrate::onDisable(xoap::MessageReference message)
 
 
 xoap::MessageReference EmuFCrate::onHalt(xoap::MessageReference message)
-		throw (xoap::exception::Exception)
+	throw (xoap::exception::Exception)
 {
 	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Halt");
-	
+
 	fireEvent("Halt");
 
 	return createReply(message);
@@ -189,23 +210,32 @@ xoap::MessageReference EmuFCrate::onHalt(xoap::MessageReference message)
 xoap::MessageReference EmuFCrate::onSetTTSBits(xoap::MessageReference message)
 	throw (xoap::exception::Exception)
 {
-	cout << "EmuFCrate: inside onSetTTSBits" << endl;
-	fireEvent("SetTTSBits");
+	//cout << "EmuFCrate: inside onSetTTSBits" << endl;
+	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP command: SetTTSBits");
+	// PGK We don't need a state transition here.  This is a simple routine.
+	//fireEvent("SetTTSBits");
 
-	// seems to occur last...but it gives the correct readback!
-	cout << "EmuFCrate: onSetTTSBits, ttsBits_=" << ttsBits_.toString() << endl;
-	string strmess;
-	message->writeTo(strmess);
-	cout << " Message:  "<< strmess << endl;
+	// set sTTS bits
+	writeTTSBits(ttsCrate_, ttsSlot_, ttsBits_);
+	// read back sTTS bits
+	ttsBits_ = readTTSBits(ttsCrate_, ttsSlot_);
 
+	//cout << "EmuFCrate: onSetTTSBits, ttsBits_=" << ttsBits_.toString() << endl;
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "ttsBits_=" << ttsBits_.toString());
+	
+	//string strmess;
+	//message->writeTo(strmess);
+	//cout << " Message:  "<< strmess << endl;
 
+	//return createReply(message); // copy and modify this function here:
 
-//	return createReply(message); // copy and modify this function here:
+	// PGK Technically, nothing is expecting anything in particular from this
+	//  routine.  As long as we don't send a SOAP message with a fault in it,
+	//  the message is ignored.  So let's just send a dummy response.
+/*
 	string command = "";
 
-	DOMNodeList *elements =
-			message->getSOAPPart().getEnvelope().getBody()
-			.getDOMNode()->getChildNodes();
+	DOMNodeList *elements = message->getSOAPPart().getEnvelope().getBody().getDOMNode()->getChildNodes();
 
 	for (unsigned int i = 0; i < elements->getLength(); i++) {
 		DOMNode *e = elements->item(i);
@@ -217,8 +247,7 @@ xoap::MessageReference EmuFCrate::onSetTTSBits(xoap::MessageReference message)
 
 	xoap::MessageReference reply = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
-	xoap::SOAPName responseName = envelope.createName(
-			command + "Response", "xdaq", XDAQ_NS_URI);
+	xoap::SOAPName responseName = envelope.createName(command + "Response", "xdaq", XDAQ_NS_URI);
 	envelope.getBody().addBodyElement(responseName);
 
 // JRG, return the ttsBits readback value too:
@@ -234,55 +263,51 @@ xoap::MessageReference EmuFCrate::onSetTTSBits(xoap::MessageReference message)
 // JRG, try postSOAP:
 	string klass="EmuFCrateManager";
 	int instance = 0;
-  cout << "  * EmuFCrate: trying postSOAP" << endl;
-  xdaq::ApplicationDescriptor *app;
-  try {
-    app = getApplicationContext()->getDefaultZone()
-      ->getApplicationDescriptor(klass, instance);
-    cout << "  * EmuFCrate: postSOAP, got application instance=" << instance << klass << endl;
-  } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    cout << "  * EmuFCrate: postSOAP, application not found! " << instance << klass << endl;
-    return reply; // Do nothing if the target doesn't exist
-  }
+	cout << "  * EmuFCrate: trying postSOAP" << endl;
+	xdaq::ApplicationDescriptor *app;
+	try {
+		app = getApplicationContext()->getDefaultZone()
+		->getApplicationDescriptor(klass, instance);
+		cout << "  * EmuFCrate: postSOAP, got application instance=" << instance << klass << endl;
+	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+		cout << "  * EmuFCrate: postSOAP, application not found! " << instance << klass << endl;
+		return reply; // Do nothing if the target doesn't exist
+	}
 
-  xoap::MessageReference rereply;
+	xoap::MessageReference rereply;
 
 	// send the message
-  cout << "  * EmuFCrate: onSetTTSBitsResponse, sending Soap Response" << endl;
-  rereply = getApplicationContext()->postSOAP(reply, app);
-  cout << "  * EmuFCrate: onSetTTSBitsResponse, got Soap rereply " << endl;
+	cout << "  * EmuFCrate: onSetTTSBitsResponse, sending Soap Response" << endl;
+	rereply = getApplicationContext()->postSOAP(reply, app);
+	cout << "  * EmuFCrate: onSetTTSBitsResponse, got Soap rereply " << endl;
+*/
 
-	return reply;
+	// PGK Remember:  you can always steal the TTSBits status via SOAP if you
+	//  really, really want it.
+	return createReply(message);
 }
 
 
-/*
-xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message)
+
+xoap::MessageReference EmuFCrate::onUpdateFlash(xoap::MessageReference message)
 	throw (xoap::exception::Exception)
 {
 
-	xoap::MessageReference reply = createReply(message);
-	xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
-	xoap::SOAPBody body = envelope.getBody();
+	fireEvent("UpdateFlash");
 
-	xdata::soap::Serializer serializer;
-	serializer.exportAll(getApplicationInfoSpace(), dynamic_cast<DOMElement*>(body.getDOMNode()), true);
-	
-	reply->writeTo(cout);
-	cout << endl;
-	return reply;
+	return createReply(message);
 
 }
-*/
 
 
-void EmuFCrate::configureAction(toolbox::Event::Reference e) 
+
+
+void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-	// calls only EmuFController::init().
-	// configure() is called in the nexe 'Enable' step.
+
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Configure");
-	cout << "    enter EmuFCrate::configureAction " << endl;
+	//cout << "    enter EmuFCrate::configureAction " << endl;
 
 	if (soapLocal_) {
 		soapLocal_ = false;
@@ -292,19 +317,47 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	}
 
 
-// JRG: note that the HardReset & Resynch should already be done by this point!
+	// PGK Get the run number and type via magic SOAP!
+	xoap::MessageReference reply = getParameters("EmuFCrateManager",0);
+	runType_ = readParameter<xdata::String>(reply,"runType");
+	LOG4CPLUS_INFO(getApplicationLogger(), "Run type is " << runType_.toString());
+	if (runType_.toString() == "Debug") {
+		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
+	} else {
+		getApplicationLogger().setLogLevel(INFO_LOG_LEVEL);
+	}
 
+	// JRG: note that the HardReset & Resynch should already be done by this point!
+
+<<<<<<< EmuFCrate.cc
+	// PGK This simply sets the configuration file correctly in the
+	//  EmuFController object.
+	// set it here automatically now,
+	// rather the manual selection later with HyperDAQ
+	SetConfFile(xmlFile_);
+=======
 	// PGK This simply sets the configuration file correctly in the
 	//  EmuFController object.
 	SetConfFile(xmlFile_);  // set it here automatically now, rather than
 							// manual selection later with HyperDAQ
+>>>>>>> 3.10
 	cout << " EmuFCrate Configure from Soap: using file " << xmlFile_.toString() << endl;
+<<<<<<< EmuFCrate.cc
+
+	// PGK This calls the XML parser, builds the crate objects, and sets them
+	//  in the EmuFController object.  Access the crates via this->getCrates()
+	//  or selector().crates().
+	init();
+	// in real CMS running there will not be downloading of registers,
+	// so this will just define the Crates/DDUs/DCCs for FED Apps.
+=======
 
 	// PGK This calls the XML parser, builds the crate objects, and sets them
 	//  in the EmuFController object.  Access the crates via this->getCrates()
 	//  or selector().crates().
 	init();  // in real CMS running there will not be downloading of registers,
 			// so this will just define the Crates/DDUs/DCCs for FED Apps.
+>>>>>>> 3.10
 
 
 // JRG, add loop over all DDUs in the FED Crates
@@ -321,6 +374,14 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 //              use  DDU::infpgastat(enum DEVTYPE dv)&0xf7eedfff   <<- note the mask
 //	 -->> definitely need to ignore some bits though!  see the masks
 
+<<<<<<< EmuFCrate.cc
+	// PGK EmuFCrate inherits from EmuFController, so this is
+	//  EmuFController::configure.  It loads the constants defined in the
+	//  configuration XML to the DDUs and the DCC.
+	configure();  //JRG Moved to configureAction, 4/29/08
+
+
+=======
 
 	// PGK EmuFCrate inherits from EmuFController, so this is
 	//  EmuFController::configure.  It loads the constants defined in the
@@ -328,6 +389,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	configure();  //JRG Moved to configureAction, 4/29/08
 
 // Now verify that all FEDs are Configured:
+>>>>>>> 3.10
 	int Fail=0;
 	unsigned short int count=0;
 	std::vector<Crate*> myCrates = selector().crates();
@@ -336,85 +398,110 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		std::vector<DDU*> myDdus = myCrates[i]->ddus();
 		vector<DCC *> myDccs = myCrates[i]->dccs();
 		for(unsigned j =0; j < myDdus.size(); ++j){
-		  if(myDdus[j]->slot()==28){  // if there is slot28 in config, disable CSC FMM Errors,
-		    if(myCrates[i]->number()>4){  // but DON'T disable the TF-DDU FMM!
-		      cout <<"   Setting FMM Error Enable for Crate " << myCrates[i]->number() << endl;
-		      myDdus[j]->vmepara_wr_fmmreg(0x0000);
-		    }
-		    else{
-		      cout <<"   Setting FMM Error Disable for Crate " << myCrates[i]->number() << endl;
-		      myDdus[j]->vmepara_wr_fmmreg(0xFED0+(count&0x000f));
-		    }
-		  }
+			if(myDdus[j]->slot()==28){
+				if (myCrates[i]->number() > 4) {
+					LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Enable to Crate " << myCrates[i]->number());
+					myDdus[j]->vmepara_wr_fmmreg(0x0000);
+				} else {
+					LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Disable to Crate " << myCrates[i]->number());
+					//cout <<"   Setting FMM Error Disable for Crate " << myCrates[i]->number() << endl;
+					myDdus[j]->vmepara_wr_fmmreg(0xFED0+(count&0x000f));
+				}
+			}
 		}
 
 		for(unsigned j =0; j < myDdus.size(); ++j){
-			cout << " EmuFCrate: Checking DDU configure status for Crate " << myCrates[i]->number() << " slot " << myDdus[j]->slot() << endl;
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "checking DDU configure status, Crate " << myCrates[i]->number() << " slot " << myDdus[j]->slot());
+			//cout << " EmuFCrate: Checking DDU configure status for Crate " << myCrates[i]->number() << " slot " << myDdus[j]->slot() << endl;
 
 			if (myDdus[j]->slot() < 21){
-				unsigned short int RegRead=myDdus[j]->vmepara_rd_fmmreg();
-				if(RegRead!=(0xFED0+(count&0x000f)))cout << "    fmmreg broadcast check is wrong, got " << hex << RegRead << " should be FED0+" << count << dec << endl;
+				int FMMReg = myDdus[j]->vmepara_rd_fmmreg();
+				//int FMMReg = myDdus[j]->readFMMReg();
+				//if(RegRead!=(0xFED0+(count&0x000f)))cout << "    fmmreg broadcast check is wrong, got " << hex << RegRead << " should be FED0+" << count << dec << endl;
+				if (FMMReg!=(0xFED0+(count&0x000f))) {
+					LOG4CPLUS_WARN(getApplicationLogger(), "fmmreg broadcast check is wrong, got " << hex << FMMReg << ", should be 0xFED" << count);
+				}
 
 
 				int mySlot=myDdus[j]->slot();
 				//  myDdus[j]->ddu_reset(); // sync reset via VME
 				//  unsigned long int thisL1A=myDdus[j]->ddu_rdscaler();
 
-				unsigned short int CSCstat = myDdus[j]->vmepara_CSCstat();
-				myDdus[j]->ddu_fpgastat(); //  & 0xdecfffff  <<- note the mask
-				unsigned long int DDUfpgaStat=(((myDdus[j]->ddu_code1&0x0000ffff)<<16)|(myDdus[j]->ddu_code0&0x0000ffff))&0xdecfffff;  // <<- note the mask
-				myDdus[j]->infpgastat(INFPGA0); // & 0xf7eedfff  <<- note the mask
-				unsigned long int INfpga0Stat=(((myDdus[j]->infpga_code1&0x0000ffff)<<16)|(myDdus[j]->infpga_code0&0x0000ffff))&0xf7eedfff;  // <<- note the mask
-				myDdus[j]->infpgastat(INFPGA1); // & 0xf7eedfff  <<- note the mask
-				unsigned long int INfpga1Stat=(((myDdus[j]->infpga_code1&0x0000ffff)<<16)|(myDdus[j]->infpga_code0&0x0000ffff))&0xf7eedfff;  // <<- note the mask
-				//	      cout << "   DDU Status for slot " << mySlot << " (hex) " << hex << CSCstat << " " << DDUfpgaStat << " " << INfpga0Stat << " " << INfpga1Stat << dec << endl;
-				printf("   DDU Status for slot %2d: 0x%04x  0x%08x  0x%08x  0x%08x\n",mySlot,(unsigned int) CSCstat,(unsigned int) DDUfpgaStat,(unsigned int) INfpga0Stat,(unsigned int) INfpga1Stat);
+				int CSCStat = myDdus[j]->vmepara_CSCstat();
+				//int CSCStat = myDdus[j]->readCSCStat();
+				//myDdus[j]->ddu_fpgastat(); //  & 0xdecfffff  <<- note the mask
+				unsigned long int dduFPGAStat = myDdus[j]->ddu_fpgastat()&0xdecfffff;  // <<- note the mask
+				//unsigned long int dduFPGAStat = myDdus[j]->readFPGAStat(DDUFPGA) & 0xdecfffff;
+				//myDdus[j]->infpgastat(INFPGA0); // & 0xf7eedfff  <<- note the mask
+				unsigned long int inFPGA0Stat = myDdus[j]->infpgastat(INFPGA0) & 0xf7eedfff;  // <<- note the mask
+				//unsigned long int inFPGA0Stat = myDdus[j]->readFPGAStat(INFPGA0) & 0xf7eedfff;
+				//myDdus[j]->infpgastat(INFPGA1); // & 0xf7eedfff  <<- note the mask
+				unsigned long int inFPGA1Stat = myDdus[j]->infpgastat(INFPGA1) & 0xf7eedfff;  // <<- note the mask
+				//unsigned long int inFPGA1Stat = myDdus[j]->readFPGAStat(INFPGA0) & 0xf7eedfff;
 
-				long int LiveFibers = (myDdus[j]->infpga_int_CheckFiber(INFPGA0)&0x000000ff);
-				LiveFibers |= ((myDdus[j]->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
-				int killFiber = (myDdus[j]->read_int_page1()&0xffff);
+				//	      cout << "   DDU Status for slot " << mySlot << " (hex) " << hex << CSCstat << " " << DDUfpgaStat << " " << INfpga0Stat << " " << INfpga1Stat << dec << endl;
+				LOG4CPLUS_DEBUG(getApplicationLogger(), "DDU Status for slot " << dec << mySlot << ": 0x" << hex << CSCStat << " 0x" << dduFPGAStat << " 0x" << inFPGA0Stat << " 0x" << inFPGA1Stat << dec);
+				//printf("   DDU Status for slot %2d: 0x%04x  0x%08x  0x%08x  0x%08x\n",mySlot,(unsigned int) CSCstat,(unsigned int) DDUfpgaStat,(unsigned int) INfpga0Stat,(unsigned int) INfpga1Stat);
+
+				long int liveFibers = (myDdus[j]->infpga_CheckFiber(INFPGA0)&0x000000ff) | ((myDdus[j]->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
+				int killFiber = (myDdus[j]->read_page1()&0xffff);
+				//int liveFibers = (myDdus[j]->checkFiber(INFPGA0) | (myDdus[j]->checkFiber(INFPGA0) << 8));
+				//int killFiber = myDdus[j]->readKillFiber()&0x7fff;
 				// cout << "   LiveFibers for slot " << mySlot << ": 0x" << hex << LiveFibers << dec << endl;
 				// cout << "   killFiber for slot " << mySlot << ": 0x" << hex << killFiber << dec << endl;
-				printf("   LiveFibers for slot %2d: 0x%04x     killFiber=%04x\n",mySlot,(unsigned int) LiveFibers,(unsigned int) killFiber);
-				unsigned long int thisL1A = myDdus[j]->ddu_int_rdscaler();
-				cout << "   L1A Scaler = " << thisL1A << endl;
-				if(INfpga0Stat>0){
+				//printf("   LiveFibers for slot %2d: 0x%04x     killFiber=%04x\n",mySlot,(unsigned int) LiveFibers,(unsigned int) killFiber);
+				LOG4CPLUS_INFO(getApplicationLogger(), "liveFibers/killFibers for slot " << dec << mySlot << ": 0x" << hex << liveFibers << " 0x" << killFiber << dec);
+
+				unsigned long int thisL1A = myDdus[j]->ddu_rdscaler();
+				//long unsigned int thisL1A = myDdus[j]->readL1Scalar(DDUFPGA);
+				//cout << "   L1A Scaler = " << thisL1A << endl;
+				LOG4CPLUS_DEBUG(getApplicationLogger(), "L1A Scalar for slot " << dec << mySlot << ": " << thisL1A);
+
+				if(inFPGA0Stat>0){
 					Fail++;
-					cout<<"     * DDU configure failure due to INFPGA0 error *" <<endl;
+					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to INFPGA0 error");
+					//cout<<"     * DDU configure failure due to INFPGA0 error *" <<endl;
 				}
-				if(INfpga1Stat>0){
+				if(inFPGA1Stat>0){
 					Fail++;
-					cout<<"     * DDU configure failure due to INFPGA1 error *" <<endl;
+					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to INFPGA1 error");
+					//cout<<"     * DDU configure failure due to INFPGA1 error *" <<endl;
 				}
-				if(DDUfpgaStat>0){
+				if(dduFPGAStat>0){
 					Fail++;
-					cout<<"     * DDU configure failure due to DDUFPGA error *" <<endl;
+					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to DDUFPGA error");
+					//cout<<"     * DDU configure failure due to DDUFPGA error *" <<endl;
 				}
-				if(CSCstat>0){
+				if(CSCStat>0){
 					Fail++;
-					cout<<"     * DDU configure failure due to CSCstat error *" <<endl;
+					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to CSCStat error");
+					//cout<<"     * DDU configure failure due to CSCstat error *" <<endl;
 				}
-				if(killFiber != (LiveFibers&0x0000ffff)){
+				if(killFiber != (0x7fff - (liveFibers&0x7fff))) {
 					Fail++;
-					cout<<"     * DDU configure failure due to Live Fiber mismatch *" <<endl;
+					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to liveFiber/killFiber mismatch.  liveFiber 0x" << hex << (liveFibers&0x0000ffff) << ", killfiber 0x" << killFiber);
+					//cout<<"     * DDU configure failure due to Live Fiber mismatch *" <<endl; 76ff 77ff 79ff 7aff 7bff
 				}
 				if(thisL1A>0){
 					Fail++;
-					cout<<"     * DDU configure failure due to L1A scaler not Reset *" <<endl;
+					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to L1A Scalar not reset");
+					//cout<<"     * DDU configure failure due to L1A scaler not Reset *" <<endl;
 				}
-				if(Fail>0){
-					cout<<"   **** DDU configure has failed, setting EXCEPTION.  Fail=" << Fail <<endl;
-				}
+				//if(Fail>0){
+					//LOG4CPLUS_ERROR(getApplicationLogger(), Fail << " total DDU failures, throwing exception");
+					//cout<<"   **** DDU configure has failed, setting EXCEPTION.  Fail=" << Fail <<endl;
+				//}
 			}
 		}
-		
+
 		// Now check the fifoinuse parameter from the DCC
 		vector<DCC *>::iterator idcc;
 		for (idcc = myDccs.begin(); idcc != myDccs.end(); idcc++) {
 			int fifoinuse = (*idcc)->mctrl_rd_fifoinuse() & 0x3FF;
 			if (fifoinuse != (*idcc)->fifoinuse_) {
-				cout << "     * DCC configure failure due to FifoInUse mismatch *" << endl;
-				cout << "     * saw 0x" << hex << fifoinuse << dec << ", expected 0x" << hex << (*idcc)->fifoinuse_ << dec << " *" << endl;
+				LOG4CPLUS_ERROR(getApplicationLogger(), "DCC configure failure due to FIFOInUse mismatch");
+				//cout << "     * DCC configure failure due to FifoInUse mismatch *" << endl;
+				//cout << "     * saw 0x" << hex << fifoinuse << dec << ", expected 0x" << hex << (*idcc)->fifoinuse_ << dec << " *" << endl;
 				Fail++;
 			}
 		}
@@ -423,93 +510,64 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 	//cout << "Now trying to fill dccInOut_" << endl;
 	// At this point, we have crates, so we can set up the dccInOut_ vector.
-	dccInOut_.clear();
-	vector<Crate *>::iterator iCrate;
-	for (iCrate = myCrates.begin(); iCrate != myCrates.end(); iCrate++) {
-		vector<DCC *> myDccs = (*iCrate)->dccs();
-		xdata::Vector<xdata::UnsignedInteger> crateV;
-		//cout << "Crate Number " << (*iCrate)->number() << endl;
-		crateV.push_back((*iCrate)->number());
-		vector<DCC *>::iterator idcc;
-		for (idcc = myDccs.begin(); idcc != myDccs.end(); idcc++) {
-			unsigned short int status[6];
-			int dr[6];
-			for (int igu=0;igu<6;igu++) {
-				status[igu]=(*idcc)->mctrl_ratemon(igu);
-				dr[igu]=((status[igu]&0x3fff)<<(((status[igu]>>14)&0x3)*4));
-			}
-			crateV.push_back(dr[0]);
-			crateV.push_back(dr[1]);
-			crateV.push_back(dr[2]);
-			crateV.push_back(dr[3]);
-			crateV.push_back(dr[4]);
-			crateV.push_back(dr[5]);
-			
-			//cout << "Slink0: " << dr[0] << endl;
-			
-			for (int igu=6;igu<12;igu++) {
-				status[igu-6]=(*idcc)->mctrl_ratemon(igu);
-				dr[igu-6]=((status[igu-6]&0x3fff)<<(((status[igu-6]>>14)&0x3)*4));
-			}
-			crateV.push_back(dr[0]);
-			crateV.push_back(dr[1]);
-			crateV.push_back(dr[2]);
-			crateV.push_back(dr[3]);
-			crateV.push_back(dr[4]);
-			crateV.push_back(dr[5]);
-			
-			//cout << "Slink1: " << dr[0] << endl;
-		}
-		//cout << "Pushing back." << endl;
-		dccInOut_.push_back(crateV);
+
+	// On Failure of above, set this:	XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrate::configureAction");
+	if(Fail>0) {
+		//XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrate::configureAction");
+		LOG4CPLUS_WARN(getApplicationLogger(), "number of failures: " << Fail << ".   Continuing in a possibly bad state (failure is not an option!)");
 	}
+	// JRG, finally we need to Broadcast the "FMM Error Disable" signal to both FED Crates.
 
-// On Failure of above, set this:	XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrate::configureAction");
-//	if(Fail>0) XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrate::configureAction");
-// JRG, finally we need to Broadcast the "FMM Error Disable" signal to both FED Crates.
-
-	cout << " EmuFCrate:  Received Message Configure" << endl ;
-	cout << "    leave EmuFCrate::configureAction " << std:: endl;
+	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Configure");
+	//cout << " EmuFCrate:  Received Message Configure" << endl;
+	//cout << "    leave EmuFCrate::configureAction " << std:: endl;
 
 }
 
 
 
-void EmuFCrate::enableAction(toolbox::Event::Reference e) 
+void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Enable");
 	soapLocal_ = false;
 
+<<<<<<< EmuFCrate.cc
+=======
 	//	configure();  //Move to configureAction, 4/29/08 JRG
+>>>>>>> 3.10
 	cout << "Received Message Enable" << endl ;
-	
-	// You have to wipe the thread manager and start over.
+
+	xoap::MessageReference reply = getParameters("EmuFCrateManager",0);
+	runNumber_ = readParameter<xdata::UnsignedLong>(reply,"runNumber");
+
+	// PGK You have to wipe the thread manager and start over.
 	TM = new IRQThreadManager();
 	vector<Crate *> myCrates = getCrates();
 	for (unsigned int i=0; i<myCrates.size(); i++) {
 		if (myCrates[i]->number() > 4) continue;
 		TM->attachCrate(myCrates[i]);
 	}
-	TM->startThreads();
+	// PGK We now have the run number from CSCSV
+	TM->startThreads(runNumber_);
 }
 
 
 
-void EmuFCrate::disableAction(toolbox::Event::Reference e) 
+void EmuFCrate::disableAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Disable");
 	cout << "Received Message Disable" << endl ;
 	soapLocal_ = false;
-	
+
 	TM->endThreads();
 	//TM->killThreads();
 }
 
 
 
-void EmuFCrate::haltAction(toolbox::Event::Reference e) 
+void EmuFCrate::haltAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Halt");
@@ -522,8 +580,10 @@ void EmuFCrate::haltAction(toolbox::Event::Reference e)
 }
 
 
-
-void EmuFCrate::setTTSBitsAction(toolbox::Event::Reference e) 
+// PGK We don't need this to be a transition.  We just perform this action
+//  on reception of the SOAP command.
+/*
+void EmuFCrate::setTTSBitsAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
 	// set sTTS bits
@@ -533,74 +593,88 @@ void EmuFCrate::setTTSBitsAction(toolbox::Event::Reference e)
 	ttsBits_ = readTTSBits(ttsCrate_, ttsSlot_);
 
 	// seems to occur next-to-last...
-	cout << "EmuFCrate:  Received Message SetTTSBits" << endl ;
+	cout << "EmuFCrate:  Received Message SetTTSBits" << endl;
 }
+*/
 
+
+void EmuFCrate::updateFlashAction(toolbox::Event::Reference e)
+	throw (toolbox::fsm::exception::Exception)
+{
+
+	cout << "EmuFCrate:  Received Message UpdateFlash" << endl;
+
+	vector<Crate *>::iterator iCrate;
+	vector<Crate *> crates = getCrates();
+
+	for (iCrate = crates.begin(); iCrate != crates.end(); iCrate++) {
+		if ((*iCrate)->number() > 4) continue;
+		cout << "Checking crate " << (*iCrate)->number() << endl;
+		vector<DDU *>::iterator iDDU;
+		vector<DDU *> ddus = (*iCrate)->ddus();
+		for (iDDU = ddus.begin(); iDDU != ddus.end(); iDDU++) {
+
+			if ((*iDDU)->slot() > 21) continue;
+
+			//int flashKillFiber = (*iDDU)->readFlashKillFiber();
+			int flashKillFiber = (*iDDU)->read_page1();
+			//long int fpgaKillFiber = (*iDDU)->readKillFiber();
+			long int fpgaKillFiber = (*iDDU)->ddu_rdkillfiber();
+			long int xmlKillFiber = (*iDDU)->killfiber_;
+			//unsigned short int DDUGbEPrescale = (*iDDU)->readGbEPrescale() & 0xf;
+			//unsigned short int dduGbEPrescale = (*iDDU)->vmepara_rd_GbEprescale() & 0xf;
+			//unsigned short int xmlGbEPrescale = (*iDDU)->gbe_prescale_ & 0xf;
+
+			cout << "Slot " << setw(2) << (*iDDU)->slot() << " killFiber: XML(" << hex << xmlKillFiber << dec << ") fpga(" << hex << fpgaKillFiber << dec << ") flash(" << hex << flashKillFiber << dec << ")" << endl;
+			//cout << "        GbEPrescale: XML(" << hex << (*iDDU)->gbe_prescale_ << dec << ") DDU(" << hex << dduGbEPrescale << dec << ")" << endl;
+
+
+			if (flashKillFiber != (xmlKillFiber & 0xffff)) {
+				cout << "... reflashing killFiber register ..." << endl;
+				//(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0xffff);
+				(*iDDU)->vmepara_wr_inreg(xmlKillFiber & 0xffff);
+				(*iDDU)->write_page1();
+			}
+			if (fpgaKillFiber != xmlKillFiber) {
+				cout << "... reloading FPGA killFiber register ..." << endl;
+				//(*iDDU)->writeKillFiber(xmlKillFiber);
+				(*iDDU)->ddu_loadkillfiber(xmlKillFiber);
+			}
+			/*
+			if ((*iDDU)->gbe_prescale_ != DDUgbePrescale) {
+				cout << "... reloading GbEPrescale register ..." << endl;
+				(*iDDU)->vmepara_wr_GbEprescale((*iDDU)->gbe_prescale_);
+			}
+			*/
+		}
+	}
+
+	cout << "UpdateFlash done!" << endl;
+
+}
 
 
 // HyperDAQ pages
-void EmuFCrate::Title(xgi::Output *out, string myTitle = "EmuFCrate") {
-	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << endl;
-	*out << cgicc::html() << endl;
-	*out << cgicc::head() << endl;
-	CSS(out);
-	*out << cgicc::title(myTitle) << endl;
-	
-	// Auto-refreshing
-	*out << meta()
-		.set("http-equiv","refresh")
-		.set("content","30;/" + getApplicationDescriptor()->getURN() ) << endl;
-	
-	*out << cgicc::head() << endl;
-
-	*out << cgicc::br();
-}
-
-
-
-void EmuFCrate::CSS(xgi::Output *out) {
-	*out << cgicc::style() << endl;
-	*out << cgicc::comment() << endl;
-	*out << "div.title { width: 80%; margin: 20px auto 20px auto; text-align: center; color: #000000; font-size: 16pt; font-weight: bold; }" << endl;
-	*out << "fieldset.fieldset { width: 90%; margin: 10px auto 10px auto; padding: 2px 2px 2px 2px; border: 2px solid #555555; background-color: #EEEEEE; }" << endl;
-	*out << "div.legend { width: 100%; padding-left: 20px; margin-bottom: 10px; color: #0000DD; font-size: 12pt; font-weight: bold; }" << endl;
-	*out << ".Halted, .Enabled, .Disabled, .Configured, .Failed, .unknown { padding: 2px; background-color: #000; font-family: monospace;}" << endl;
-	*out << ".Halted {color: #F99;}" << endl;
-	*out << ".Enabled {color: #9F9;}" << endl;
-	*out << ".Disabled {color: #FF9;}" << endl;
-	*out << ".Configured {color: #99F;}" << endl;
-	*out << ".Failed, .unknown {color: #F99; font-weight: bold; text-decoration: blink;}" << endl;
-	*out << cgicc::comment() << endl;
-	*out << cgicc::style() << endl;
-}
-
-
-
 void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 	throw (xgi::exception::Exception)
 {
 
 	ostringstream sTitle;
 	sTitle << "EmuFCrate(" << getApplicationDescriptor()->getInstance() << ")";
-	Title(out,sTitle.str());
-	
-	*out << cgicc::div(sTitle.str())
-		.set("class","title") << endl;
-
-	*out << br() << endl;
+	*out << Header(sTitle.str());
 
 	// Manual state changing
 	*out << fieldset()
 		.set("class","fieldset") << endl;
 	*out << cgicc::div("Manual state changes")
 		.set("class","legend") << endl;
-	
+
 	*out << cgicc::div();
-	*out << "Present state: "; 
+	*out << "Present state: ";
 	*out << cgicc::span(state_.toString())
 		.set("class",state_.toString()) << endl;
 	*out << cgicc::div();
-	
+
 	*out << cgicc::div() << endl;
 	if (!soapConfigured_) {
 		*out << cgicc::form()
@@ -631,8 +705,18 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 				.set("type","submit")
 				.set("value","Halt") << endl;
 		}
+		// PGK Command to update the Flashes on the DDUs
+		if (state_.toString() == "Failed" || state_.toString() == "Configured") {
+			*out << cgicc::br() << endl;
+			*out << cgicc::input()
+				.set("name","action")
+				.set("type","submit")
+				.set("value","UpdateFlash") << endl;
+		} else {
+			*out << cgicc::br() << "Crate-wide flash updates can only be performed from the Configured or Failed states." << endl;
+		}
 		*out << cgicc::form() << endl;
-	
+
 	} else {
 		*out << "EmuFCrate has been configured through SOAP." << endl;
 		*out << cgicc::br() << "Send the Halt signal to manually change states." << endl;
@@ -640,16 +724,15 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << endl;
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
-	*out << cgicc::br() << endl;
-	
+
 	*out << cgicc::fieldset() << endl;
 
 	// HyperDAQ?
 	std::set<xdaq::ApplicationDescriptor * > hddescriptors =
 		getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuFCrateHyperDAQ");
-	
+
 	if (hddescriptors.size()) {
-	
+
 		*out << fieldset()
 			.set("class","fieldset") << endl;
 		*out << cgicc::div("EmuFCrateHyperDAQ")
@@ -673,11 +756,13 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 	}
 
 	// sTTS control
+	// PGK Let the CSCSV handle all these controls.
+	/*
 	*out << cgicc::fieldset()
 		.set("class","fieldset") << endl;
 	*out << cgicc::div("sTTS Control")
 		.set("class","legend") << endl;
-		
+
 	if (!soapConfigured_) {
 		*out << cgicc::form()
 			.set("style","display: inline;")
@@ -714,50 +799,54 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 			.set("type", "submit")
 			.set("name", "command")
 			.set("value", "SetTTSBits") << endl;
-	
+
 		*out << cgicc::form() << endl;
 	} else {
 		*out << "EmuFCrate has been configured through SOAP." << endl;
 		*out << cgicc::br() << "Send the Halt signal to manually set TTS bits." << endl;
 	}
-	
+
 	*out << cgicc::fieldset() << endl;
-	
-	
+	*/
+
+	// IRQ Monitoring
 	*out << cgicc::fieldset()
 		.set("class","fieldset") << endl;
-	
+
 	if (state_.toString() == "Enabled") {
 		*out << cgicc::div("IRQ Monitoring Enabled")
 			.set("class","legend") << endl;
 
-		for (unsigned int i=0; i<getCrates().size(); i++) {
-		
-			int crateNumber = getCrates()[i]->number();
-			
+		vector<Crate *> crateVector = getCrates();
+		vector<Crate *>::iterator iCrate;
+		for (iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+
+			int crateNumber = (*iCrate)->number();
+			if (crateNumber > 4) continue; // Skip TF
+
 			// Status table
 			*out << cgicc::table()
-				.set("style","width: 90%; margin: 10px auto 10px auto; border: solid 2px #900; border-collapse: collapse;") << endl;
-				
+				.set("style","width: 90%; margin: 10px auto 10px auto; border: solid 2px #009; border-collapse: collapse;") << endl;
+
 			*out << cgicc::tr()
-				.set("style","background-color: #900; color: #FFF; text-align: center; font-size: 12pt; font-weight: bold;") << endl;
-				
+				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 12pt; font-weight: bold;") << endl;
+
 			*out << cgicc::td()
-				.set("colspan","5") << endl;
+				.set("colspan","8") << endl;
 			*out << "Crate " << crateNumber << endl;
 			*out << cgicc::td() << endl;
-			
+
 			*out << cgicc::tr() << endl;
-			
+
 			*out << cgicc::tr()
-				.set("style","background-color: #900; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold;") << endl;
-				
+				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold;") << endl;
+
 			*out << cgicc::td()
-				.set("colspan","5") << endl;
-			
+				.set("colspan","8") << endl;
+
 			time_t startTime = TM->data()->startTime[crateNumber];
 			time_t tickTime = TM->data()->tickTime[crateNumber];
-			
+
 			tm *startTimeInfo = localtime(&startTime);
 			*out << "[ Began " << asctime(startTimeInfo) << "-- ";
 			*out << TM->data()->ticks[crateNumber] << " ticks -- ";
@@ -765,53 +854,124 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 			*out << "last tick " << asctime(tickTimeInfo) << "]" << endl;
 			*out << cgicc::td() << endl;
 			*out << cgicc::tr() << endl;
-			
+
 			*out << cgicc::tr()
-				.set("style","background-color: #900; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold; border: solid 1px #000") << endl;
+				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold; border: solid 1px #000") << endl;
 			*out << cgicc::td("Slot") << endl;
+			*out << cgicc::td("RUI") << endl;
 			*out << cgicc::td("nIRQ") << endl;
-			*out << cgicc::td("Last Time") << endl;
-			*out << cgicc::td("Last Error") << endl;
-			*out << cgicc::td("Accumulated Error") << endl;
+			*out << cgicc::td("Last Error Time") << endl;
+			*out << cgicc::td("Last Fiber") << endl;
+			*out << cgicc::td("Last Chamber") << endl;
+			*out << cgicc::td("Accumulated Fibers") << endl;
+			*out << cgicc::td("Accumulated Chambers") << endl;
 			*out << cgicc::tr() << endl;
 
-			for (int i=0; i<21; i++) {
-				if (TM->data()->lastError[crateNumber][i] == 0) continue;
-				
+			for (int iSlot=0; iSlot<21; iSlot++) {
+				if (TM->data()->lastError[crateNumber][iSlot] == 0) continue;
+
 				*out << cgicc::tr() << endl;
-				
+
 				*out << cgicc::td()
 					.set("style","border: 1px solid #000;") << endl;
-				*out << i;
+				*out << iSlot;
 				*out << cgicc::td() << endl;
-				
+
+				int rui=9*crateNumber+iSlot-3;
+				if (iSlot>8) rui--;  // Correct for the DCC slot.
+				if (crateNumber>0) rui-=9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
+
 				*out << cgicc::td()
 					.set("style","border: 1px solid #000;") << endl;
-				*out << TM->data()->dduCount[crateNumber][i];
+				*out << rui;
 				*out << cgicc::td() << endl;
-				
+
 				*out << cgicc::td()
 					.set("style","border: 1px solid #000;") << endl;
-				time_t interruptTime = TM->data()->lastErrorTime[crateNumber][i];
+				*out << TM->data()->dduCount[crateNumber][iSlot];
+				*out << cgicc::td() << endl;
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				time_t interruptTime = TM->data()->lastErrorTime[crateNumber][iSlot];
 				struct tm* interruptTimeInfo = localtime(&interruptTime);
 				*out << asctime(interruptTimeInfo);
 				*out << cgicc::td() << endl;
 
+				// Find the DDU from the slot...
+				DDU *myDDU;
+				vector<DDU *> dduVector = (*iCrate)->ddus();
+				vector<DDU *>::iterator iDDU;
+				for (iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+					if (iSlot == (*iDDU)->slot()) {
+						myDDU = (*iDDU);
+						break;
+					}
+				}
+
+				unsigned int lastFiberError = TM->data()->lastError[crateNumber][iSlot];
+				int printLastFiberError = -2;
+				// Find the chamber from the last error fiber...
+				string lastChamber;
+				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+					if (lastFiberError & (1<<iFiber)) {
+						//if (iFiber == 15) {
+						//	lastChamber = "DDU";
+						//	printLastFiberError = -1;
+						//} else {
+						lastChamber = myDDU->getChamber(iFiber)->name();
+						printLastFiberError = iFiber;
+						break;
+						//}
+					}
+				}
+
 				*out << cgicc::td()
 					.set("style","border: 1px solid #000;") << endl;
-				*out << hex << TM->data()->lastError[crateNumber][i] << dec << "h";
+				//if (printLastFiberError == -1) *out << "DDU";
+				//else if (printLastFiberError >= 0)
+				*out << printLastFiberError;
+				*out << endl;
 				*out << cgicc::td() << endl;
 
 				*out << cgicc::td()
 					.set("style","border: 1px solid #000;") << endl;
-				*out << hex << TM->data()->accError[crateNumber][i] << dec << "h";
+				*out << lastChamber;
 				*out << cgicc::td() << endl;
 
-				*out << tr() << endl;
-				
+				unsigned int accFiberError = TM->data()->accError[crateNumber][iSlot];
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+					if (accFiberError & (1 << iFiber)) {
+						//if (iFiber == 15) *out << "DDU ";
+						//else
+						*out << iFiber << " ";
+					}
+				}
+				*out << cgicc::td() << endl;
+
+				// Build a string of chambers that sent an IRQ...
+				string accChambers;
+				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+					if (accFiberError & (1 << iFiber)) {
+						//if (iFiber == 15) accChambers += "DDU ";
+						//else
+						accChambers += myDDU->getChamber(iFiber)->name() + " ";
+					}
+				}
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;")
+					.set("class","error") << endl;
+				*out << accChambers;
+				*out << cgicc::td() << endl;
+
+				*out << cgicc::tr() << endl;
+
 			}
 
-			*out << table() << endl;
+			*out << cgicc::table() << endl;
 
 		}
 
@@ -821,11 +981,10 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::span("Set state to \"Enabled\" to begin IRQ monitoring threads.")
 			.set("style","color: #A00; font-size: 11pt;") << endl;
 	}
-	
+
 	*out << cgicc::fieldset() << endl;
-	
-	*out << cgicc::body() << endl;
-	*out << cgicc::html() << endl;
+
+	*out << Footer() << endl;
 }
 
 
@@ -846,7 +1005,7 @@ void EmuFCrate::webFire(xgi::Input *in, xgi::Output *out)
 		LOG4CPLUS_INFO(getApplicationLogger(), log.str());
 		fireEvent(action);
 	}
-	
+
 	webRedirect(in, out);
 }
 
@@ -863,15 +1022,10 @@ void EmuFCrate::webConfigure(xgi::Input *in, xgi::Output *out)
 }
 
 
-
+/*
 void EmuFCrate::webSetTTSBits(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	/*
-	ttsCrateStr_ = getCGIParameter(in, "ttscrate");
-	ttsSlotStr_  = getCGIParameter(in, "ttsslot");
-	ttsBitsStr_  = getCGIParameter(in, "ttsbits");
-	*/
 
 	ttsCrate_.fromString(getCGIParameter(in, "ttscrate"));
 	ttsSlot_.fromString(getCGIParameter(in, "ttsslot"));
@@ -879,17 +1033,11 @@ void EmuFCrate::webSetTTSBits(xgi::Input *in, xgi::Output *out)
 
 	fireEvent("SetTTSBits");
 
-	/*
-	ttsCrateStr_ = ttsCrate_.toString();
-	ttsSlotStr_  = ttsSlot_.toString();
-	ttsBitsStr_  = ttsBits_.toString();
-	*/
-
 	cout << "EmuFCrate:  inside webSetTTSBits" << endl ;
 
 	webRedirect(in, out);
 }
-
+*/
 
 
 void EmuFCrate::webRedirect(xgi::Input *in, xgi::Output *out)
@@ -921,13 +1069,13 @@ string EmuFCrate::getCGIParameter(xgi::Input *in, string name)
 
 
 
-//
+
 void EmuFCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 		throw (toolbox::fsm::exception::Exception)
 {
 	cout << " stateChanged called " << endl;
 	EmuApplication::stateChanged(fsm);
-	
+
 	ostringstream log;
 	log << "FSM state changed to " << state_.toString();
 	LOG4CPLUS_INFO(getApplicationLogger(), log.str());
@@ -941,21 +1089,21 @@ void EmuFCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 // if used on multy-ddu setup, will program them all with the same killfiber.
 // user must program step_killfiber_ before calling this routine.
 xoap::MessageReference EmuFCrate::onPassthru(xoap::MessageReference message)
-		throw (xoap::exception::Exception)
+	throw (xoap::exception::Exception)
 {
 	// find crates
 	std::vector<Crate*> myCrates = selector().crates();
 
-	for(unsigned i = 0; i < myCrates.size(); ++i) 
+	for(unsigned i = 0; i < myCrates.size(); ++i)
 	{
 		// find DDUs in each crate
 		std::vector<DDU*> myDdus = myCrates[i]->ddus();
-		for(unsigned j =0; j < myDdus.size(); ++j) 
+		for(unsigned j =0; j < myDdus.size(); ++j)
 		{
 			cout << "Setting passthru mode for crate: " << i << " DDU: " << j << " slot: " << myDdus[j]->slot()
 				 << " fiber mask: 0x" << hex << step_killfiber_.toString() << dec << endl;
 
-			if (myDdus[j]->slot() < 21) 
+			if (myDdus[j]->slot() < 21)
 			{
 				myDdus[j]->vmepara_wr_GbEprescale (0xf0f0); // no prescaling
 				myDdus[j]->vmepara_wr_fakel1reg   (0x8787); // fake L1A for each event
@@ -968,6 +1116,114 @@ xoap::MessageReference EmuFCrate::onPassthru(xoap::MessageReference message)
 }
 
 // end addition for STEP
+
+
+// PGK Ugly, but it must be done.  We have to update the parameters that the
+//  EmuFCrateManager asks for or else they won't be updated!
+xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message)
+	throw (xoap::exception::Exception)
+{
+
+	if (state_.toString() == "Enabled") {
+		// dccInOut update
+		dccInOut_.clear();
+		errorChambers_.clear();
+
+		vector<Crate *> myCrates = getCrates();
+		vector<Crate *>::iterator iCrate;
+
+		// PGK Update the DCC rate info.  This is confusing as all get-out.
+		for (iCrate = myCrates.begin(); iCrate != myCrates.end(); iCrate++) {
+			int crateNumber = (*iCrate)->number();
+			if (crateNumber > 4) continue; // Skip TF
+			vector<DCC *> myDccs = (*iCrate)->dccs();
+			xdata::Vector<xdata::UnsignedInteger> crateV;
+			//cout << "Updating getParameters Crate Number " << (*iCrate)->number() << endl;
+			crateV.push_back((*iCrate)->number());
+			vector<DCC *>::iterator idcc;
+			for (idcc = myDccs.begin(); idcc != myDccs.end(); idcc++) {
+				unsigned short int status[6];
+				int dr[6];
+				for (int igu=0;igu<6;igu++) {
+					status[igu]=(*idcc)->mctrl_ratemon(igu);
+					dr[igu]=((status[igu]&0x3fff)<<(((status[igu]>>14)&0x3)*4));
+				}
+				crateV.push_back(dr[0]);
+				crateV.push_back(dr[1]);
+				crateV.push_back(dr[2]);
+				crateV.push_back(dr[3]);
+				crateV.push_back(dr[4]);
+				crateV.push_back(dr[5]);
+
+				//cout << "Slink0: " << dr[0] << endl;
+
+				for (int igu=6;igu<12;igu++) {
+					status[igu-6]=(*idcc)->mctrl_ratemon(igu);
+					dr[igu-6]=((status[igu-6]&0x3fff)<<(((status[igu-6]>>14)&0x3)*4));
+				}
+				crateV.push_back(dr[0]);
+				crateV.push_back(dr[1]);
+				crateV.push_back(dr[2]);
+				crateV.push_back(dr[3]);
+				crateV.push_back(dr[4]);
+				crateV.push_back(dr[5]);
+
+				//cout << "Slink1: " << dr[0] << endl;
+			}
+			//cout << "Pushing back." << endl;
+			dccInOut_.push_back(crateV);
+
+			// errorChambers update
+			for (int iSlot=0; iSlot<21; iSlot++) {
+				//cout << "Updating getParameters DDU in slot " << iSlot << endl;
+				if (TM->data()->lastError[crateNumber][iSlot] == 0) continue;
+				DDU *myDDU;
+				vector<DDU *> dduVector = (*iCrate)->ddus();
+				vector<DDU *>::iterator iDDU;
+				for (iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+					if (iSlot == (*iDDU)->slot()) {
+						myDDU = (*iDDU);
+						break;
+					}
+				}
+				unsigned int accFiberError = TM->data()->accError[crateNumber][iSlot];
+				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+					if (accFiberError & (1 << iFiber)) {
+						// Finally!
+						errorChambers_.push_back(myDDU->getChamber(iFiber)->name());
+					}
+				}
+			}
+		}
+	}
+	// PGK Following is just what LocalEmuApplication does.
+
+	xdata::soap::Serializer serializer;
+
+	xoap::MessageReference reply = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+	xoap::SOAPBody body = envelope.getBody();
+
+	xoap::SOAPName bodyElementName = envelope.createName("data", "xdaq", XDAQ_NS_URI);
+	xoap::SOAPBodyElement bodyElement = body.addBodyElement ( bodyElementName );
+
+	//bool first = true;
+
+	std::map<string, xdata::Serializable *>::iterator iParam;
+	for (iParam = getApplicationInfoSpace()->begin(); iParam != getApplicationInfoSpace()->end(); iParam++) {
+		string name = (*iParam).first;
+		xoap::SOAPName elementName = envelope.createName(name, "xdaq", XDAQ_NS_URI);
+		xoap::SOAPElement element = bodyElement.addChildElement(elementName);
+		serializer.exportAll((*iParam).second, dynamic_cast<DOMElement*>(element.getDOMNode()), true);
+		//first = false;
+	}
+
+	//reply->writeTo(cout);
+	//cout << endl;
+	return reply;
+
+}
+
 
 
 // End of file
