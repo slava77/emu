@@ -1,9 +1,9 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 3.5 2008/04/22 09:31:11 geurts Exp $
+// $Id: FEDCrateParser.cc,v 3.6 2008/06/10 13:52:12 gilmore Exp $
 // $Log: FEDCrateParser.cc,v $
-// Revision 3.5  2008/04/22 09:31:11  geurts
-// New FEDCrate Control software by Jason and Phillip.
+// Revision 3.6  2008/06/10 13:52:12  gilmore
+// improved FED Crate HyperDAQ operability
 //
 // Revision 3.4  2008/02/10 00:06:06  gilmore
 // compatibility fixes for current cscpro/cscdev configuration

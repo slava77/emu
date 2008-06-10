@@ -23,6 +23,7 @@ Sources=\
 	CrateSetup.cc \
 	DDU.cc \
 	DDUParser.cc \
+	DDUDebugger.cc \
 	DCC.cc \
 	DCCParser.cc \
 	elong.cc \
