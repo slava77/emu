@@ -107,6 +107,9 @@ bSem_(toolbox::BSem::FULL)
     bindFsmSoapCallbacks();
     bindI2oCallbacks();
 
+    // Bind other SOAP callbacks
+    xoap::bind(this, &EmuTA::onGenerateRunStopTime, "generateRunStopTime", XDAQ_NS_URI);
+
     // Bind web interface
     xgi::bind(this, &EmuTA::css           , "styles.css");
     xgi::bind(this, &EmuTA::defaultWebPage, "Default"   );
@@ -387,6 +390,12 @@ void EmuTA::bindI2oCallbacks()
     );
 }
 
+xoap::MessageReference EmuTA::onGenerateRunStopTime( xoap::MessageReference msg ){
+  runStopTime_ = getDateTime();
+
+  // Create reply message
+  return xoap::createMessage();
+}
 
 void EmuTA::css
 (
@@ -890,8 +899,6 @@ throw (toolbox::fsm::exception::Exception)
 
     // Reset the number of credits held
     nbCreditsHeld_ = 0;
-
-    runStopTime_ = getDateTime();
 }
 
 void EmuTA::haltActionComingFromReady(toolbox::Event::Reference e)

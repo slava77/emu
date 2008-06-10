@@ -294,6 +294,17 @@ private:
      */
     void bindI2oCallbacks();
 
+  /// Callback on "generateRunStopTime" SOAP command.
+
+  /// "generateRunStopTime" SOAP command must be received before any FSM halt command is sent out
+  /// to any application, otherwise EmuRUIs, which are stopped before EmuTA, will not know it.
+  ///
+  /// @param msg Incoming message.
+  ///
+  /// @return An empty reply.
+  ///
+  xoap::MessageReference onGenerateRunStopTime( xoap::MessageReference msg );
+
     /**
      * Creates the CSS file for this application.
      */
