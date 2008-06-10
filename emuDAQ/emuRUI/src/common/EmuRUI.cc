@@ -982,6 +982,14 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdMonitorParams(
     params.push_back(pair<string,xdata::Serializable *> 
 		     ("clientPersists", &clientPersists_));
 
+    runStartTime_ = "YYMMDD_hhmmss_UTC";
+    runStopTime_  = "YYMMDD_hhmmss_UTC";
+    params.push_back(pair<string,xdata::Serializable *>
+        ("runStartTime", &runStartTime_));
+    params.push_back(pair<string,xdata::Serializable *>
+        ("runStopTime", &runStopTime_));
+
+
     return params;
 }
 
@@ -1490,27 +1498,13 @@ throw (toolbox::fsm::exception::Exception)
     destroyDeviceReader();
     createDeviceReader();
 
-    // Just in case there's a writer, terminate it in an orderly fashion
-    if ( fileWriter_ )
-      {
-	LOG4CPLUS_INFO( logger_, "Terminating leftover file writer." );
-	fileWriter_->endRun();
-	delete fileWriter_;
-	fileWriter_ = NULL;
-      }
-    if ( badEventsFileWriter_ )
-      {
-	LOG4CPLUS_INFO( logger_, "Terminating leftover bad event file writer." );
-	badEventsFileWriter_->endRun();
-	if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
-	delete badEventsFileWriter_;
-	badEventsFileWriter_ = NULL;
-      }
-
     workLoopStarted_ = false; // make sure work loop action will be (re)submitted in case it's no longer rescheduled
 
     destroyServers();
     createServers();
+
+    runStartTime_ = "YYMMDD_hhmmss_UTC";
+    runStopTime_  = "YYMMDD_hhmmss_UTC";
 
     // Find out if this is going to be a STEP run
     isSTEPRun_ = ( runType_.toString().find("STEP",0) != string::npos );
@@ -1692,13 +1686,23 @@ throw (toolbox::fsm::exception::Exception)
     // Reset previous event number
     previousEventNumber_ = 0;
 
+    // Get time of end of run
+    try{
+      runStopTime_ = getScalarParam(taDescriptors_[0],"runStopTime","string");
+      LOG4CPLUS_INFO(logger_, "Got run stop time from EmuTA: " << runStopTime_.toString() );
+    }
+    catch( emuRUI::exception::Exception e ){
+      LOG4CPLUS_WARN(logger_, "Run stop time will be unknown: " << xcept::stdformat_exception_history(e) );
+    }
+
+    // Close data file
     if ( fileWriter_ ){
-      fileWriter_->endRun();
+      fileWriter_->endRun( runStopTime_.toString() );
       delete fileWriter_;
       fileWriter_ = NULL;
     }
     if ( badEventsFileWriter_ ){
-      badEventsFileWriter_->endRun();
+      badEventsFileWriter_->endRun( runStopTime_.toString() );
       if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
       delete badEventsFileWriter_;
       badEventsFileWriter_ = NULL;
@@ -2183,20 +2187,22 @@ throw (emuRUI::exception::Exception)
 }
 
 void EmuRUI::createFileWriters(){
-	  // terminate old writers, if any
-	  if ( fileWriter_ )
-	    {
-	      fileWriter_->endRun();
-	      delete fileWriter_;
-	      fileWriter_ = NULL;
-	    }
-	  if ( badEventsFileWriter_ )
-	    {
-	      badEventsFileWriter_->endRun();
-	      if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
-	      delete badEventsFileWriter_;
-	      badEventsFileWriter_ = NULL;
-	    }
+    // Just in case there's a writer, terminate it in an orderly fashion
+    if ( fileWriter_ )
+      {
+	LOG4CPLUS_WARN( logger_, "Terminating leftover file writer." );
+	fileWriter_->endRun();
+	delete fileWriter_;
+	fileWriter_ = NULL;
+      }
+    if ( badEventsFileWriter_ )
+      {
+	LOG4CPLUS_WARN( logger_, "Terminating leftover bad event file writer." );
+	badEventsFileWriter_->endRun();
+	if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
+	delete badEventsFileWriter_;
+	badEventsFileWriter_ = NULL;
+      }
 	  // create new writers if path is not empty
 	  if ( pathToDataOutFile_ != string("") && 
 	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )

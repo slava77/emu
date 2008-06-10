@@ -160,6 +160,9 @@ private:
   /// Pointer to the descriptor of the EmuDAQManager application.
     xdaq::ApplicationDescriptor *rubuilderTesterDescriptor_;
 
+  /// Set of pointers to the descriptors of the TA application.
+  set< xdaq::ApplicationDescriptor* > taDescriptors_;
+
     /**
      * I2o exception handler.
      */
@@ -286,6 +289,7 @@ private:
     xdata::UnsignedLong runNumber_;           ///< run number to be obtained from EmuTA
     xdata::Boolean      isBookedRunNumber_;   ///< whether or not this run number was booked in the database, to be obtained from EmuTA
     xdata::String       runStartTime_;        ///< run start time to be included in the file name, to be obtained from EmuTA
+    xdata::String       runStopTime_;         ///< run stop time to be included in the metafile, to be obtained from EmuTA
     xdata::String       runType_;             ///< run type to be included in the file name
 
     xdata::UnsignedLong CSCConfigId_;         ///< unique id of CSC configuration obtained from CSC Function Manager

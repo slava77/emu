@@ -666,6 +666,13 @@ vector< pair<string, xdata::Serializable*> > EmuFU::initAndGetStdMonitorParams()
     params.push_back(pair<string,xdata::Serializable *>
 		     ("TFConfigId", &TFConfigId_ ));
 
+    runStartTime_ = "YYMMDD_hhmmss_UTC";
+    runStopTime_  = "YYMMDD_hhmmss_UTC";
+    params.push_back(pair<string,xdata::Serializable *>
+        ("runStartTime", &runStartTime_));
+    params.push_back(pair<string,xdata::Serializable *>
+        ("runStopTime", &runStopTime_));
+
     return params;
 }
 
@@ -1072,7 +1079,7 @@ throw (toolbox::fsm::exception::Exception)
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
       {
-	LOG4CPLUS_INFO( logger_, "Terminating leftover file writer." );
+	LOG4CPLUS_WARN( logger_, "Terminating leftover file writer." );
 	fileWriter_->endRun();
 	delete fileWriter_;
 	fileWriter_ = NULL;
@@ -1106,6 +1113,8 @@ throw (toolbox::fsm::exception::Exception)
     destroyServers();
     createServers();
 
+    runStartTime_ = "YYMMDD_hhmmss_UTC";
+    runStopTime_  = "YYMMDD_hhmmss_UTC";
 }
 
 
@@ -1186,12 +1195,20 @@ throw (toolbox::fsm::exception::Exception)
 void EmuFU::haltAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
-    // Do nothing
 
-  // EMu-specific stuff
+  // Get time of end of run
+  try{
+    runStopTime_ = getScalarParam(*taDescriptors_.begin(),"runStopTime","string");
+    LOG4CPLUS_INFO(logger_, "Got run stop time from EmuTA: " << runStopTime_.toString() );
+  }
+  catch( emuFU::exception::Exception e ){
+    LOG4CPLUS_WARN(logger_, "Run stop time will be unknown: " << xcept::stdformat_exception_history(e) );
+  }
+
+  // Close data file
   if ( fileWriter_ )
     {
-      fileWriter_->endRun();
+      fileWriter_->endRun( runStopTime_.toString() );
       delete fileWriter_;
       fileWriter_ = NULL;
     }
@@ -2643,15 +2660,14 @@ throw (emuFU::exception::Exception)
   isBookedRunNumber_ = false;
   runStartTime_ = "YYMMDD_hhmmss_UTC";
 
-  set< xdaq::ApplicationDescriptor* > taDescriptors;
 
   try
     {
-      taDescriptors = zone_->getApplicationDescriptors( "EmuTA" );
+      taDescriptors_ = zone_->getApplicationDescriptors( "EmuTA" );
     }
   catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
-      taDescriptors.clear();
+      taDescriptors_.clear();
       XCEPT_RETHROW(emuFU::exception::Exception, 
 		    "Failed to get application descriptors for class EmuTA",
 		    e);
@@ -2660,15 +2676,15 @@ throw (emuFU::exception::Exception)
   string rn="";
   string mn="";
   string br="";
-  if ( taDescriptors.size() >= 1 ){
-    if ( taDescriptors.size() > 1 )
+  if ( taDescriptors_.size() >= 1 ){
+    if ( taDescriptors_.size() > 1 )
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
-		      taDescriptors.size() << " emuTA instances found. Trying first one.");
-    rn = getScalarParam(*taDescriptors.begin(),"runNumber","unsignedLong");
+		      taDescriptors_.size() << " emuTA instances found. Trying first one.");
+    rn = getScalarParam(*taDescriptors_.begin(),"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
-    br = getScalarParam(*taDescriptors.begin(),"isBookedRunNumber","boolean");
+    br = getScalarParam(*taDescriptors_.begin(),"isBookedRunNumber","boolean");
     LOG4CPLUS_INFO(logger_, "Got info on run booking from emuTA: " + br );
-    runStartTime_ = getScalarParam(*taDescriptors.begin(),"runStartTime","string");
+    runStartTime_ = getScalarParam(*taDescriptors_.begin(),"runStartTime","string");
     LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
   }
   else{
@@ -2681,8 +2697,6 @@ throw (emuFU::exception::Exception)
   runNumber_ = irn;
 
   isBookedRunNumber_ = ( br == "true" );
-
-  taDescriptors.clear();
 
 }
 
