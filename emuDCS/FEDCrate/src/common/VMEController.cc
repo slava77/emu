@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.7 2008/04/22 09:31:11 geurts Exp $
+// $Id: VMEController.cc,v 3.8 2008/06/10 13:52:12 gilmore Exp $
 // $Log: VMEController.cc,v $
-// Revision 3.7  2008/04/22 09:31:11  geurts
-// New FEDCrate Control software by Jason and Phillip.
+// Revision 3.8  2008/06/10 13:52:12  gilmore
+// improved FED Crate HyperDAQ operability
 //
 // Revision 3.6  2007/07/23 05:03:30  gilmore
 // major structural chages to improve multi-crate functionality
@@ -35,6 +35,8 @@
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
+
+extern unsigned long vmeadd;
 //
 // the following variables must be kept global to assure
 // no conflict when running EmuFRunControlHyperDAQ and
@@ -48,7 +50,11 @@ long OpenBHandle[4][4] = {{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1
 
 
 VMEController::VMEController(int Device, int Link): 
-	theBHandle(-1), Device_(Device), Link_(Link), theCurrentModule(0), indian(SWAP)
+	theBHandle(-1),
+	Device_(Device),
+	Link_(Link),
+	theCurrentModule(0),
+	indian(SWAP)
 {
 	CVBoardTypes VMEBoard;
 	short Lin;
@@ -134,7 +140,7 @@ void VMEController::setCrate(int number) {
 	crateNumber = number;
 }
 
-void VMEController::start(VMEModule * module) {
+/* void VMEController::start(VMEModule * module) {
 	if(theCurrentModule != module) {
 		PRINTSTRING(OVAL: start method defined in VMEController.cc is starting )
 		end();
@@ -143,6 +149,10 @@ void VMEController::start(VMEModule * module) {
 		PRINTSTRING(OVAL: current module was started);
 		theCurrentModule = module;
 	}
+} */
+
+void VMEController::start(int slot){
+  vmeadd=slot<<19;
 }
 
 
@@ -174,19 +184,19 @@ void VMEController::CAEN_err_reset(void) {
 }
 
 int VMEController::CAEN_read(unsigned long Address,unsigned short int *data)
-{  
-int err;
-CVAddressModifier AM=cvA24_U_DATA;
-CVDataWidth DW=cvD16;
+{
+	int err;
+	CVAddressModifier AM=cvA24_U_DATA;
+	CVDataWidth DW=cvD16;
 // printf("theBHandle %08x \n",theBHandle);
 // printf(" +++++ CAENVME read sent +++++\n");
-   err=CAENVME_ReadCycle(theBHandle,Address,data,AM,DW);
-   if(err!=0){
-     caen_err=err;
-     printf(" CAENVME read err %d \n",caen_err);
-   //printf(" read: address %08x data %04x \n",Address,*data);
-   }
-   return err;
+	err=CAENVME_ReadCycle(theBHandle,Address,data,AM,DW);
+	if(err!=0){
+		caen_err=err;
+		printf(" CAENVME read err %d \n",caen_err);
+	//printf(" read: address %08x data %04x \n",Address,*data);
+	}
+	return err;
 }
 
 
@@ -195,9 +205,9 @@ int VMEController::CAEN_write(unsigned long Address,unsigned short int *data)
 	int err;
 	CVAddressModifier AM=cvA24_U_DATA;
 	CVDataWidth DW=cvD16;
-	
+
 	//printf(" write: handle %d address %08x data %04x AM %d DW %d \n",theBHandle,Address,*data,AM,DW);
-	err=CAENVME_WriteCycle(theBHandle,Address,(char *)data,AM,DW); 
+	err=CAENVME_WriteCycle(theBHandle,Address,(char *)data,AM,DW);
 	if(err!=0){
 		caen_err=err;
 		printf(" CAENVME write err %d \n",caen_err);

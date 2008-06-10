@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.1 2007/07/23 05:03:31 gilmore Exp $
+// $Id: VMEModule.cc,v 3.2 2008/06/10 13:52:12 gilmore Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.2  2008/06/10 13:52:12  gilmore
+// improved FED Crate HyperDAQ operability
+//
 // Revision 3.1  2007/07/23 05:03:31  gilmore
 // major structural chages to improve multi-crate functionality
 //
@@ -26,7 +29,6 @@
 #include <iostream>
 #include <unistd.h> // read and write
 
-extern unsigned long vmeadd;
 extern int delay_type;
 
 #ifndef debugV //silent mode
@@ -38,7 +40,8 @@ extern int delay_type;
 #endif
 
 VMEModule::VMEModule(int crate,int slot):
-	theSlot(slot),theController(NULL)
+	theSlot(slot),
+	theController(NULL)
 {
 	#ifdef debugV
 	cout << "creating VMEModule" << endl;
@@ -47,7 +50,8 @@ VMEModule::VMEModule(int crate,int slot):
 }
 
 VMEModule::VMEModule(int slot):
-	theSlot(slot),theController(NULL)
+	theSlot(slot),
+	theController(NULL)
 {
 	#ifdef debugV
 	cout << "creating VMEModule" << endl;
@@ -64,10 +68,11 @@ void VMEModule::setController(VMEController *controller) {
 
 void VMEModule::start() {
 	PRINTSTRING(OVAL: start() from VMEModule have been called...);
-	#ifdef debugV
-	cout << "starting VMEModule for slot " << dec << theSlot << " boardType " << boardType() << " line " << (int) c << endl;
-	#endif  
-	vmeadd=0x00000000|(theSlot<<19);
+	//  #ifdef debugV
+	// cout << "starting VMEModule for slot " << dec << theSlot << " boardType " << boardType() << " line " << (int) c << endl;
+	// #endif  
+	// vmeadd=0x00000000|(theSlot<<19);
+        theController->start(theSlot);
 }
 
 
@@ -81,102 +86,102 @@ void VMEModule::endDevice() {
 
  
 int VMEModule::CAEN_read(unsigned long Address,unsigned short int *data){
-  theController->start(this);
+  theController->start(theSlot);
   return theController->CAEN_read(Address,data);
 }
 
 int VMEModule::CAEN_write(unsigned long Address,unsigned short int *data){
-  theController->start(this);
+  theController->start(theSlot);
   return theController->CAEN_write(Address,data);
 }
 
 void VMEModule::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
                      const char *inbuf,char *outbuf,int irdsnd) {
-  theController->start(this);
+  theController->start(theSlot);
   theController->devdo(dev, ncmd, cmd, nbuf, inbuf, outbuf, irdsnd);
 }
 
 
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
-  theController->start(this);
+  theController->start(theSlot);
   theController->scan(reg, snd, cnt, rcv, ird);
 }
 
 
 void VMEModule::scan_reset(int reg,const char *snd,int cnt,char *rcv,int ird) {
-  theController->start(this);
+  theController->start(theSlot);
   theController->scan_reset(reg, snd, cnt, rcv, ird);
 }
 
 void VMEModule::InitJTAG(int port) {
-  theController->start(this);
+  theController->start(theSlot);
   theController->InitJTAG(port);
 }
 
 
 void VMEModule::CloseJTAG() {
-  theController->start(this);
+  theController->start(theSlot);
   theController->CloseJTAG();
   theController->end();
 }
 
 void VMEModule::flush_vme()
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->flush_vme();
 }
 
 void VMEModule::handshake_vme()
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->handshake_vme();
 }
 
 void VMEModule::sleep_vme(const char *outbuf)
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->sleep_vme(outbuf);
 }
 void VMEModule::sleep_vme2(unsigned short int time)
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->sleep_vme2(time);
 }
 
 void VMEModule::long_sleep_vme2(float time)
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->long_sleep_vme2(time);
 }
 
 void VMEModule::send_last()
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->send_last();
 }
 
 
 void VMEModule::vmepara(const char *cmd,const char *snd,char *rcv)
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->vmepara(cmd,snd,rcv);
 }
 
 void VMEModule::vmeser(const char *cmd,const char *snd,char *rcv)
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->vmeser(cmd,snd,rcv);
 }
 
 void VMEModule::dcc(const char *cmd,char *rcv)
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->dcc(cmd,rcv);
 }
 
 void VMEModule::vme_adc(int ichp,int ichn,char *rcv)
 {
-  theController->start(this);
+  theController->start(theSlot);
   theController->vme_adc(ichp,ichn,rcv);
 }
 

@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.2 2008/04/22 09:31:11 geurts Exp $
+// $Id: VMEParser.cc,v 3.3 2008/06/10 13:52:12 gilmore Exp $
 // $Log: VMEParser.cc,v $
-// Revision 3.2  2008/04/22 09:31:11  geurts
-// New FEDCrate Control software by Jason and Phillip.
+// Revision 3.3  2008/06/10 13:52:12  gilmore
+// improved FED Crate HyperDAQ operability
 //
 // Revision 3.1  2007/07/23 05:03:31  gilmore
 // major structural chages to improve multi-crate functionality
