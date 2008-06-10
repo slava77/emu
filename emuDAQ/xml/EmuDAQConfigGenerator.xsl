@@ -32,7 +32,9 @@
       <xsl:call-template name="i2o_protocol"/>
       <xsl:call-template name="DAQManager"/>
       <xsl:call-template name="EVM_and_TA"/>
-      <xsl:call-template name="TF"/>
+      <xsl:if test="$SIDE!='M'">
+	<xsl:call-template name="TF"/>
+      </xsl:if>
       <xsl:call-template name="RUIs"/>
       <xsl:call-template name="EmuDisplayClient"/>
       <xsl:call-template name="EmuMonitors"/>
@@ -49,9 +51,11 @@
 
       <i2o:target tid="1450" instance="0" class="EmuDisplayClient"></i2o:target>
 
-      <xsl:comment>RUI 0 (TF)</xsl:comment>
-      <i2o:target tid="1000" instance="0" class="EmuRUI"></i2o:target>
-      <i2o:target tid="1001" instance="0" class="rubuilder::ru::Application"></i2o:target>
+      <xsl:if test="$SIDE!='M'">
+	<xsl:comment>RUI 0 (TF)</xsl:comment>
+	<i2o:target tid="1000" instance="0" class="EmuRUI"></i2o:target>
+	<i2o:target tid="1001" instance="0" class="rubuilder::ru::Application"></i2o:target>
+      </xsl:if>
 
       <xsl:for-each select="//RUI[@instance!='0']">      
 	<xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
@@ -78,8 +82,10 @@
 <!-- Generate contexts for EmuDAQManager -->
   <xsl:template name="DAQManager">
     <xsl:comment>EmuDAQManager</xsl:comment>
-    <xc:Context url="http://csc-daq00.cms:40200">
-      <xc:Endpoint hostname="csc-daq00.cms" protocol="tcp" port="40250" service="i2o" network="tcp1"></xc:Endpoint>
+    <xsl:variable name="HTTP_PORT"><xsl:if test="$SIDE='B' or $SIDE=''">20200</xsl:if><xsl:if test="$SIDE='P'">20210</xsl:if><xsl:if test="$SIDE='M'">20220</xsl:if></xsl:variable>
+    <xsl:variable name="I2O_PORT"><xsl:value-of select="number($HTTP_PORT)+50"/></xsl:variable>
+    <xc:Context url="http://csc-daq00.cms:{$HTTP_PORT}">
+	<xc:Endpoint hostname="csc-daq00.cms" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="tcp1"></xc:Endpoint>
       <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="21">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:PeerTransportTCP">
 	  <autoSize xsi:type="xsd:boolean">true</autoSize>
@@ -87,6 +93,7 @@
 	</properties>
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module>
+      <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
       <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libCSCSupervisor.so</xc:Module>
       <xc:Application instance="0" class="EmuDAQManager" network="tcp1" id="12">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:EmuDAQManager">
@@ -121,7 +128,7 @@
 	  <globalMode xsi:type="xsd:boolean">true</globalMode>
 	  <runDbBookingCommand xsi:type="xsd:string">/usr/java/jdk/bin/java -jar /nfshome0/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
 	  <runDbWritingCommand xsi:type="xsd:string">/usr/java/jdk/bin/java -jar /nfshome0/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
-	  <runDbAddress xsi:type="xsd:string">dbc:oracle:thin:@oracms.cern.ch:10121:omds</runDbAddress>
+	  <runDbAddress xsi:type="xsd:string">jdbc:oracle:thin:@cmsonr1-v.cms:10121/cms_rcms.cern.ch</runDbAddress>
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile> -->
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
@@ -137,7 +144,7 @@
 	  <TF_FM_URL xsi:type="xsd:string">http://UNKNOWN.cms:12000</TF_FM_URL>
 	  <CSC_FM_URL xsi:type="xsd:string">http://cmsrc-csc.cms:12000</CSC_FM_URL>
 	  <RegexMatchingTFConfigName xsi:type="xsd:string">UNKNOWN</RegexMatchingTFConfigName>
-	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*DAQ/.*</RegexMatchingCSCConfigName>
+	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*/Local/.*|.*/Global/.*</RegexMatchingCSCConfigName>
 	</properties>
       </xc:Application>
       <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuDAQManager.so</xc:Module>
@@ -149,8 +156,10 @@
 <!-- Generate contexts for EVM and EmuTA -->
   <xsl:template name="EVM_and_TA">
     <xsl:comment >EVM and EmuTA</xsl:comment>
-    <xc:Context url="http://csc-daq00.cms:40201">
-      <xc:Endpoint hostname="csc-daq00.cms" protocol="tcp" port="40251" service="i2o" network="tcp1"></xc:Endpoint>
+    <xsl:variable name="HTTP_PORT"><xsl:if test="$SIDE='B' or $SIDE=''">20201</xsl:if><xsl:if test="$SIDE='P'">20211</xsl:if><xsl:if test="$SIDE='M'">20221</xsl:if></xsl:variable>
+    <xsl:variable name="I2O_PORT"><xsl:value-of select="number($HTTP_PORT)+50"/></xsl:variable>
+    <xc:Context url="http://csc-daq00.cms:{$HTTP_PORT}">
+      <xc:Endpoint hostname="csc-daq00.cms" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="tcp1"></xc:Endpoint>
       <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
       <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="21">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:PeerTransportTCP">
@@ -297,7 +306,7 @@
 <!-- Generate context for EmuDisplayClient -->
   <xsl:template name="EmuDisplayClient">
     <xsl:comment >EmuDisplayClient</xsl:comment>
-    <xc:Context url="http://csc-dqm.cms:40550">
+    <xc:Context url="http://csc-dqm.cms:20550">
       <xc:Application class="EmuDisplayClient" id="1450" instance="0" network="local">
 	<properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
 	<monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
