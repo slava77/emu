@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.3 2008/06/10 13:40:24 gilmore Exp $
+// $Id: VMEController.h,v 3.4 2008/06/10 13:44:41 gilmore Exp $
 // $Log: VMEController.h,v $
-// Revision 3.3  2008/06/10 13:40:24  gilmore
+// Revision 3.4  2008/06/10 13:44:41  gilmore
 // improved FED Crate HyperDAQ operability
 //
 // Revision 3.1  2007/07/23 05:02:23  gilmore

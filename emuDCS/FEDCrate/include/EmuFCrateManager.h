@@ -1,4 +1,4 @@
-// $Id: EmuFCrateManager.h,v 1.4 2008/06/10 13:40:24 gilmore Exp $
+// $Id: EmuFCrateManager.h,v 1.5 2008/06/10 13:44:41 gilmore Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
