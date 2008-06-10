@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <time.h>
 #include <stdio.h>
+#include <map>
 
 #include "xdaq/Application.h"
 #include "xgi/Utils.h"
@@ -85,6 +86,7 @@ protected:
 	ostringstream OutputStringDCCStatus[9];
 	vector<DDU*> dduVector;
 	vector<DCC*> dccVector;
+	vector<VMEModule *> moduleVector;
 	vector<Crate*> crateVector;
 	Crate *thisCrate;
 	std::string Operator_;
@@ -104,27 +106,6 @@ public:
 	/** Default Constructor **/
 	EmuFCrateHyperDAQ(xdaq::ApplicationStub * s);
 
-	/** Outputs the HTML head tags and all that jazz.
-	*
-	*	@param out is the html output stream.
-	*	@param includeImages tells the method to display the big title banner
-	*	and background image.
-	*	@param myTitle is the title of the page.
-	**/
-	void Title(xgi::Output *out, string myTitle, bool includeImages);
-
-	/** Outputs the CSS style for simpler styling code.  Hopefully.
-	*
-	*	@param out is the html output stream.
-	**/
-	void CSS(xgi::Output *out);
-
-	/** oldDefault 
-	*	
-	*	@deprecated Use Default instead.  This is kept for reference only.
-	**/
-	void oldDefault(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
 
 	/** Default page when XDAQ loads.  Sets configuration if required and
 	*	bounces the user to the main page.
@@ -230,23 +211,23 @@ public:
 		throw (xgi::exception::Exception);
 
 	/** Traps and displays DDU debugging information (?) **/
-	void DDUtrapDecode(xgi::Input * in, xgi::Output * out);
+	//void DDUtrapDecode(xgi::Input * in, xgi::Output * out);
 		// throw (xgi::exception::Exception)
 
-	/** Shows the DDU InFPGA0 status page and various communication options. **/
-	void INFpga0(xgi::Input * in, xgi::Output * out )
+	/** Shows the DDU InFPGA 0 and 1 status page and various communication options. **/
+	void InFpga(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
 	/** Shows the DDU InFPGA1 status page and various communication options. **/
-	void INFpga1(xgi::Input * in, xgi::Output * out )
-		throw (xgi::exception::Exception);
+	//void INFpga1(xgi::Input * in, xgi::Output * out )
+		//throw (xgi::exception::Exception);
 
 	/** Traps and displays INFPGA debugging information (?)
 	*
 	*	@param lcode An array corresponding to the status of the INFPGAs (?)
 	**/
-	void DDUinTrapDecode(xgi::Input * in, xgi::Output * out,  unsigned long int lcode[10])
-		throw (xgi::exception::Exception);
+	//void DDUinTrapDecode(xgi::Input * in, xgi::Output * out,  unsigned long int lcode[10])
+		//throw (xgi::exception::Exception);
 
 	/** Page for VME parallel register reading/writing. **/
 	void VMEPARA(xgi::Input * in, xgi::Output * out )
@@ -323,6 +304,24 @@ public:
 	**/
 	void queryFCrate()
 		throw (xoap::exception::Exception, xoap::exception::Exception);
+
+// 	class DataTable {
+// 	public:
+// 		DataTable(string id, unsigned int cols);
+// 		~DataTable();
+// 
+// 		/// Access the value at that row/column
+// 		ostringstream &operator() (unsigned int row, unsigned int col);
+// 		ostringstream operator() (unsigned int row, unsigned int col) const;
+// 
+// 		/// Print the matrix in a pretty format
+// 		string toHTML() const;
+// 		
+// 	private:
+// 		vector< vector< ostringstream > > rows_;
+// 		vector< string > rowClasses_;
+// 		
+// 	};
 
 };
 

@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.2 2008/04/22 09:31:11 geurts Exp $
+// $Id: VMEController.h,v 3.3 2008/06/10 13:40:24 gilmore Exp $
 // $Log: VMEController.h,v $
-// Revision 3.2  2008/04/22 09:31:11  geurts
-// New FEDCrate Control software by Jason and Phillip.
+// Revision 3.3  2008/06/10 13:40:24  gilmore
+// improved FED Crate HyperDAQ operability
 //
 // Revision 3.1  2007/07/23 05:02:23  gilmore
 // major structural chages to improve multi-crate functionality
@@ -65,7 +65,8 @@ public:
 	/// if not current modules, it stops current and starts new
 	/// this base routine sends a signal consisting of the
 	/// university and slot
-	void start(VMEModule * module);
+	// void start(VMEModule * module);
+        void start(int slot);
 	/// ends whatever module is current
 	void end();
 	
@@ -94,16 +95,6 @@ public:
 	int CAEN_read(unsigned long Address,unsigned short int *data);
 	int CAEN_write(unsigned long Address,unsigned short int *data);
 	
-	/// IRQ VME Interrupts
-	
-	//IRQThread* thread() { return myThread; }
-	//int start_thread_on_init;
-	//void start_thread(long unsigned int runnumber);
-	//void end_thread();
-	//void kill_thread();
-	//bool thread_started() { return is_thread_started; }
-	
-	
 	int udelay(long int itim);
 	void sdly();
 	void initDevice(int a);
@@ -126,8 +117,7 @@ private:
 	int plev;
 	int crateNumber;
 	int caen_err;
-	//IRQThread* myThread;
-	bool is_thread_started;
+
 };
 
 #endif

@@ -1,4 +1,4 @@
-// $Id: EmuFCrateManager.h,v 1.3 2008/04/22 09:31:11 geurts Exp $
+// $Id: EmuFCrateManager.h,v 1.4 2008/06/10 13:40:24 gilmore Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -13,6 +13,8 @@
 #ifndef _EmuFCrateManager_h_
 #define _EmuFCrateManager_h_
 
+#include <ostream>
+
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
 
@@ -21,7 +23,6 @@
 #include "xdaq/ApplicationContext.h"
 #include "xdaq/ApplicationStub.h"
 #include "xdaq/exception/Exception.h"
-
 
 #include "xdaq/NamespaceURI.h"
 
@@ -47,9 +48,6 @@
 #include <xdata/UnsignedLong.h>
 #include <xdata/Table.h>
 
-#include <log4cplus/logger.h>
-#include <log4cplus/fileappender.h>
-
 #include "LocalEmuApplication.h"
 // #include "EmuController.h"
 // #include "Crate.h"
@@ -73,22 +71,19 @@ public:
 
 	XDAQ_INSTANTIATOR();
 
-	xdata::UnsignedLong runNumber_;
 	xdata::String ConfigureState_;
 	xdata::Table table_;
 
 	EmuFCrateManager(xdaq::ApplicationStub * s);
 
-	void Title(xgi::Output * out, std::string title);
-	void CSS(xgi::Output * out);
-
 	void webDefault(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 	void webFire(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
+	
 	//void MainPage(xgi::Input * in, xgi::Output * out )
 	//	throw (xgi::exception::Exception);
-	//  void CheckEmuFCrateState(xgi::Input * in, xgi::Output * out );
+	//void CheckEmuFCrateState(xgi::Input * in, xgi::Output * out );
 	
 	void configureAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception);
@@ -98,10 +93,11 @@ public:
 		throw (toolbox::fsm::exception::Exception);
 	void haltAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception);
-	void setTTSBitsAction(toolbox::Event::Reference e) 
-		throw (toolbox::fsm::exception::Exception);
-	void setTTSBitsResponseAction(toolbox::Event::Reference e) 
-		throw (toolbox::fsm::exception::Exception);
+	// PGK These don't need to be state transitions.
+	//void setTTSBitsAction(toolbox::Event::Reference e) 
+	//	throw (toolbox::fsm::exception::Exception);
+	//void setTTSBitsResponseAction(toolbox::Event::Reference e)
+	//	throw (toolbox::fsm::exception::Exception);
 
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 		throw (toolbox::fsm::exception::Exception);
@@ -119,10 +115,12 @@ public:
 		throw (xoap::exception::Exception);
 	xoap::MessageReference onHalt (xoap::MessageReference message) 
 		throw (xoap::exception::Exception);
+	
 	xoap::MessageReference onSetTTSBits(xoap::MessageReference message) 
 		throw (xoap::exception::Exception);
-	xoap::MessageReference onSetTTSBitsResponse(xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
+	// PGK We don't acutally need to handle a response, either.
+	//xoap::MessageReference onSetTTSBitsResponse(xoap::MessageReference message) 
+	//	throw (xoap::exception::Exception);
 
 	void relayMessage (xoap::MessageReference msg) 
 		throw (xgi::exception::Exception);
@@ -134,6 +132,7 @@ public:
 		throw (xgi::exception::Exception);
 	void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) 
 		throw (xgi::exception::Exception);
+	
 	void PCsendCommand(string command, string klass) 
 		throw (xoap::exception::Exception, xdaq::exception::Exception);
 	xoap::MessageReference PCcreateCommandSOAP(string command);
@@ -171,6 +170,7 @@ private:
 	void webRedirect(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
 
+/*
 	class StateTable
 	{
 	public:
@@ -189,7 +189,8 @@ private:
 		EmuFCrateManager *fedmgr_;
 		vector<pair<xdaq::ApplicationDescriptor *, string> > table_;
 	} state_table_;
-	
+*/
+
 	bool soapConfigured_;
 	bool soapLocal_;
 
