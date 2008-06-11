@@ -622,7 +622,6 @@
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
 		<SetLogz>1</SetLogz>
-		<SetMaximum>1</SetMaximum>
         </Histogram>
 
         <Histogram>
