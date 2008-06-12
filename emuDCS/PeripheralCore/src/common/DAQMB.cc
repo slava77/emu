@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.38 2008/05/28 10:35:31 liu Exp $
+// $Id: DAQMB.cc,v 3.39 2008/06/12 21:08:55 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.39  2008/06/12 21:08:55  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.38  2008/05/28 10:35:31  liu
 // DMB counters in jumbo packet
 //
@@ -383,7 +386,12 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   tmb_dav_counter_(-1), alct_dav_counter_(-1)
 {
   //
+  expected_control_firmware_tag_ = 9999;
+  expected_vme_firmware_tag_     = 9999;
+  expected_firmware_revision_    = 9999;
+  //
   for (int cfeb=0; cfeb<5; cfeb++) {
+    expected_cfeb_firmware_tag_[cfeb] = 9999;
     comp_mode_cfeb_[cfeb]   = comp_mode_;
     comp_timing_cfeb_[cfeb] = comp_timing_;
     comp_thresh_cfeb_[cfeb] = set_comp_thresh_;
@@ -1772,9 +1780,42 @@ unsigned int DAQMB::lowv_rdpwrreg()
  devdo(LOWVOLT,16,cmd,0,sndbuf,rcvbuf,2);
  return unpack_ival();
 }
-
+//
 /* FPGA and PROM codes  */
-
+//
+bool DAQMB::CheckVMEFirmwareVersion() {
+  //
+  // read the value from the DMB:
+  vmefpgaid();
+  //
+  bool check_ok = false;
+  //
+  //  std::cout << "expected DMB VME =" << std::dec << GetExpectedVMEFirmwareTag() << std::endl;
+  //  std::cout << "read     DMB VME =" << std::dec << GetFirmwareVersion() << std::endl;
+  //
+  if ( GetFirmwareVersion() == GetExpectedVMEFirmwareTag() )
+    check_ok = true;
+  //
+  return check_ok;
+}
+//
+bool DAQMB::CheckControlFirmwareVersion() {
+  //
+  return ( mbfpgauser() == (unsigned long int) GetExpectedControlFirmwareTag() );
+  //
+}
+//
+bool DAQMB::CheckCFEBFirmwareVersion(const CFEB & cfeb) {
+  //
+  int cfeb_index = cfeb.number();
+  //
+  //  std::cout << "expected CFEB[" << cfeb_index << "] = 0x" << std::hex << GetExpectedCFEBFirmwareTag(cfeb_index) << std::endl;
+  //  std::cout << "read     CFEB[" << cfeb_index << "] = 0x" << std::hex << febfpgauser(cfeb) << std::endl;
+  //
+  return ( febfpgauser(cfeb) == (unsigned long int) GetExpectedCFEBFirmwareTag(cfeb_index) );
+}
+//
+//
 unsigned long int DAQMB::febpromuser(const CFEB & cfeb)
 { unsigned long int ibrd;
   DEVTYPE dv = cfeb.promDevice();

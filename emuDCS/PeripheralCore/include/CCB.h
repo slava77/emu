@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.11 2008/04/11 14:48:47 liu Exp $
+// $Id: CCB.h,v 3.12 2008/06/12 21:08:54 rakness Exp $
 // $Log: CCB.h,v $
+// Revision 3.12  2008/06/12 21:08:54  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.11  2008/04/11 14:48:47  liu
 // add CheckConfig() function
 //
@@ -133,6 +136,7 @@ public:
   int  ReadRegister(int);
   void WriteRegister(int,int);
   void firmwareVersion();
+  void printFirmwareVersion();
   void HardResetTTCrx();
   CCB(Crate * ,int slot);
   virtual ~CCB();
@@ -159,6 +163,8 @@ public:
   bool SelfTest() ;
   void init() ;
   void configure() ;
+  //
+  bool CheckFirmwareDate();
   //
   void FireCCBMpcInjector();
   //
@@ -187,6 +193,15 @@ public:
   inline int  GetTTCrxCoarseDelay(){return TTCrxCoarseDelay_;}
   //
   inline void SetTTCrxFineDelay(int delay)     {TTCrxFineDelay_  = delay;}
+  //
+  inline void SetExpectedFirmwareDay(int day) {expected_firmware_day_ = day;}
+  inline int  GetExpectedFirmwareDay() { return expected_firmware_day_;}
+  //
+  inline void SetExpectedFirmwareMonth(int month) {expected_firmware_month_ = month;}
+  inline int  GetExpectedFirmwareMonth() { return expected_firmware_month_;}
+  //
+  inline void SetExpectedFirmwareYear(int year) {expected_firmware_year_ = year;}
+  inline int  GetExpectedFirmwareYear() { return expected_firmware_year_;}
   //
   void PrintTTCrxRegs();
   bool l1Enabled() const {return l1enabled_;}
@@ -331,7 +346,14 @@ private:
   bool l1enabled_;
   int mVersion; // CCB version number (2001,2004)
   bool mDebug;
-
+  //
+  int read_firmware_day_;
+  int read_firmware_month_; 
+  int read_firmware_year_;
+  //
+  int expected_firmware_day_;
+  int expected_firmware_month_; 
+  int expected_firmware_year_;
 };
 
 #endif

@@ -67,6 +67,24 @@ bool XMLParser::fillIntX(std::string item, int & target)
   return found;  
 }
 
+bool XMLParser::fillLongIntX(std::string item, long int & target) 
+{
+  bool found=false;
+  long int value; 
+  XMLCh * name = xercesc::XMLString::transcode(item.c_str());
+  xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
+  if(pAttributeNode) {
+    int err = sscanf(xercesc::XMLString::transcode(pAttributeNode->getNodeValue()), "%lx", &value);
+    if (err==0) std::cerr << "ERRORS in parsing!!!" << item << " code " << err << std::endl;
+    target = value;
+    found = true;
+#ifdef debugV
+    std::cout << "fillLongIntX: " << item << " = 0x" << std::hex << target << std::endl;
+#endif
+  }
+  return found;  
+}
+
 bool XMLParser::fillLongLongIntX(std::string item, long long int & target) 
 {
   bool found=false;
@@ -217,6 +235,15 @@ void XMLParser::CCBParser(xercesc::DOMNode *pNode, Crate * theCrate)
   if (fillInt("TTCrxFineDelay", delay)){
     ccb_->SetTTCrxFineDelay(delay);
   }
+  if ( fillInt("ccb_firmware_year",delay) ) {
+    ccb_->SetExpectedFirmwareYear(delay);
+  }
+  if ( fillInt("ccb_firmware_month",delay) ) {
+    ccb_->SetExpectedFirmwareMonth(delay);
+  }
+  if ( fillInt("ccb_firmware_day",delay) ) {
+    ccb_->SetExpectedFirmwareDay(delay);
+  }
 }
 
 void XMLParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
@@ -238,6 +265,16 @@ void XMLParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
 
   if(fillInt("TMBdelays",value)){
     mpc_->SetTMBDelays(value);
+  }
+
+  if ( fillInt("mpc_firmware_year",value) ) {
+    mpc_->SetExpectedFirmwareYear(value);
+  }
+  if ( fillInt("mpc_firmware_month",value) ) {
+    mpc_->SetExpectedFirmwareMonth(value);
+  }
+  if ( fillInt("mpc_firmware_day",value) ) {
+    mpc_->SetExpectedFirmwareDay(value);
   }
 
 //  if(fillInt("BoardID",value)){
@@ -716,6 +753,13 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
       daqmb_->SetxFineLatency(delay);
     }
     //
+    long int long_value;
+    if (fillLongIntX("dmb_cntl_firmware_tag", long_value) ) 
+      daqmb_->SetExpectedControlFirmwareTag(long_value);
+    //
+    if (fillInt("dmb_vme_firmware_tag", delay) ) 
+      daqmb_->SetExpectedVMEFirmwareTag(delay);
+    //
     int number=0;   
     int kill_chip[6]={0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
     
@@ -754,6 +798,9 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 	      fillIntX("kill_chip3",kill_chip[3]);
 	      fillIntX("kill_chip4",kill_chip[4]);
 	      fillIntX("kill_chip5",kill_chip[5]);
+	      //
+	      if (fillLongIntX("cfeb_firmware_tag", long_value) ) 
+		daqmb_->SetExpectedCFEBFirmwareTag(number,long_value);
 	      //
 	      for(int chip=0;chip<6;chip++){
 		for(int chan=0;chan<16;chan++){

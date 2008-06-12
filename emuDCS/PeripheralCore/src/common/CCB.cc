@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.29 2008/05/30 14:54:06 liu Exp $
+// $Id: CCB.cc,v 3.30 2008/06/12 21:08:55 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.30  2008/06/12 21:08:55  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.29  2008/05/30 14:54:06  liu
 // Change setCCBMode
 //
@@ -275,9 +278,16 @@ CCB::CCB(Crate * theCrate ,int slot)
   mDebug(false)
 {
   MyOutput_ = &std::cout ;
-
+  //
   ReadTTCrxID_ = -1;
-    
+  read_firmware_day_   = 9999;
+  read_firmware_month_ = 9999;
+  read_firmware_year_  = 9999;
+  //
+  expected_firmware_day_   = 999;
+  expected_firmware_month_ = 999;
+  expected_firmware_year_  = 999;
+  //
   (*MyOutput_) << "CCB: in crate=" << this->crate()
 	    << " slot=" << this->slot() << std::endl;
  };
@@ -1035,7 +1045,8 @@ void CCB::configure() {
   setCCBMode((CCB2004Mode_t)mCCBMode);
   // report firmware version
   firmwareVersion();
-  
+  printFirmwareVersion();
+  //  
   //  std::cout << ReadRegister(0x0) << std::endl;
   hardReset();
   //  std::cout << ReadRegister(0x0) << std::endl;
@@ -1360,16 +1371,47 @@ void CCB::FireCCBMpcInjector(){
   //
 }
 //
+bool CCB::CheckFirmwareDate() {
+  //
+  bool check_ok;
+  //
+  // read the firmware version:
+  firmwareVersion();
+  //
+  if ( read_firmware_day_   == GetExpectedFirmwareDay()   &&
+       read_firmware_month_ == GetExpectedFirmwareMonth() &&
+       read_firmware_year_  == GetExpectedFirmwareYear()  ) {
+    check_ok = true;
+  } else {
+    check_ok = false;
+  }
+  //
+  return check_ok;
+}
+//
+void CCB::printFirmwareVersion() {
+  //
+  (*MyOutput_) << "CCB: firmware day-month-year: "  
+	       << std::dec << read_firmware_day_ 
+	       << "-"      << read_firmware_month_ 
+	       << "-"      << read_firmware_year_
+	       << std::endl;
+  //
+  return;
+}
+//
 void CCB::firmwareVersion(){
   /// report the firmware version
   do_vme(VME_READ,CSRB17,sndbuf,rcvbuf,NOW);  
   int versionWord = (rcvbuf[0]<<8) + (rcvbuf[1]&0xFF);
   //  std::cout << std::hex << "Word=" << versionWord << std::endl;
-  int day   =  versionWord & 0x1F;
-  int month = (versionWord >> 5   ) & 0xF;
-  int year  = (versionWord >>(5+4)) + 2000;
-  (*MyOutput_) << "CCB: firmware day-month-year: " 
-	       << std::dec << day << "-" << month << "-" << year << std::endl;
+  read_firmware_day_   =  versionWord & 0x1F;
+  read_firmware_month_ = (versionWord >> 5   ) & 0xF;
+  read_firmware_year_  = (versionWord >>(5+4)) + 2000;
+  //
+  //printFirmwareVersion();
+  //
+  return;
 }
 //
 //fg NOTE: CSR1 (2001) vs CSRB1(2004) bit  incompatibilities ...

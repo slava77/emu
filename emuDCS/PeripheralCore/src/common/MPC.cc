@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.12 2008/05/15 09:55:10 liu Exp $
+// $Id: MPC.cc,v 3.13 2008/06/12 21:08:55 rakness Exp $
 // $Log: MPC.cc,v $
+// Revision 3.13  2008/06/12 21:08:55  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.12  2008/05/15 09:55:10  liu
 // error messages for Check_Config
 //
@@ -151,6 +154,15 @@ MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),
 {
   std::cout << "MPC: module created in crate=" << this->crate() 
 	    << " slot=" << this->slot() << std::endl;
+  //
+  read_firmware_day_   = 9999;
+  read_firmware_month_ = 9999;
+  read_firmware_year_  = 9999;
+  //
+  expected_firmware_day_   = 999;
+  expected_firmware_month_ = 999;
+  expected_firmware_year_  = 999;
+  //
   MyOutput_ = &std::cout ;
 }
 
@@ -207,6 +219,7 @@ void MPC::configure() {
 
   // report firmware version
   firmwareVersion();
+  printFirmwareVersion();
 }
 
 int MPC::CheckConfig()
@@ -672,7 +685,36 @@ int MPC::ReadRegister(int reg){
   return value;
   //
 }
+//
+bool MPC::CheckFirmwareDate() {
+  //
+  bool check_ok;
+  //
+  // read the firmware version:
+  firmwareVersion();
+  //
+  if ( read_firmware_day_   == GetExpectedFirmwareDay()   &&
+       read_firmware_month_ == GetExpectedFirmwareMonth() &&
+       read_firmware_year_  == GetExpectedFirmwareYear()  ) {
+    check_ok = true;
+  } else {
+    check_ok = false;
+  }
+  //
+  return check_ok;
+}
+//
+void MPC::printFirmwareVersion() {
+  //
+  (*MyOutput_) << "MPC: firmware version (day-month-year): (" 
+	       << std::dec << read_firmware_day_ 
+	       << "-"      << read_firmware_month_
+	       << "-"      << read_firmware_year_
+	       << ")"      << std::endl;
 
+  return;
+}
+//
 void MPC::firmwareVersion(){
   /// report the firmware version
   //
@@ -681,11 +723,12 @@ void MPC::firmwareVersion(){
   
   int versionWord = (data[0]<<8) + (data[1]&0xFF);
   //  std::cout << std::hex << versionWord << std::endl;
-  int day   =  versionWord & 0x1F;
-  int month = (versionWord >> 5   ) & 0xF;
-  int year  = (versionWord >>(5+4)) + 2000;
-  (*MyOutput_) << "MPC: firmware version: " << std::dec
-       << day << "-" << month << "-" << year << std::endl;
+  read_firmware_day_   =  versionWord & 0x1F;
+  read_firmware_month_ = (versionWord >> 5   ) & 0xF;
+  read_firmware_year_  = (versionWord >>(5+4)) + 2000;
+  //
+  // printFirmwareVersion();
+  return;
 }
 
 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.63 2008/05/29 11:36:06 liu Exp $
+// $Id: TMB.cc,v 3.64 2008/06/12 21:08:55 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.64  2008/06/12 21:08:55  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.63  2008/05/29 11:36:06  liu
 // add time-since-last-hard_reset in TMB counters
 //
@@ -626,8 +629,22 @@ int TMB::FirmwareYear(){
   return data;
   //
 }
-
-
+bool TMB::CheckFirmwareDate() {
+  //
+  // read the registers:
+  FirmwareDate();
+  FirmwareYear();
+  //
+  bool date_ok = true;
+  //
+  // check the values
+  date_ok &= ( GetReadTmbFirmwareDay()   == GetExpectedTmbFirmwareDay()   );
+  date_ok &= ( GetReadTmbFirmwareMonth() == GetExpectedTmbFirmwareMonth() );
+  date_ok &= ( GetReadTmbFirmwareYear()  == GetExpectedTmbFirmwareYear()  );
+  //
+  return date_ok;
+}
+//
 int TMB::FirmwareVersion(){
   //
   tmb_vme(VME_READ,vme_idreg0_adr,sndbuf,rcvbuf,NOW);

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.22 2008/03/30 08:25:15 gujh Exp $
+// $Id: DAQMB.h,v 3.23 2008/06/12 21:08:54 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.23  2008/06/12 21:08:54  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.22  2008/03/30 08:25:15  gujh
 // Added the corresponding code for DMB/CFEB fine L1A delay adjustment ---GU, Mar. 30, 2008
 //
@@ -332,6 +335,20 @@ public:
   void set_cal_tim_pulse(int ntim);
   void set_cal_tim_inject(int ntim);
   //
+  // firmware version tags:
+  inline void SetExpectedControlFirmwareTag(long int tag) { expected_control_firmware_tag_ = (unsigned long int) tag; }
+  inline unsigned long int GetExpectedControlFirmwareTag()  { return expected_control_firmware_tag_; }
+  bool CheckControlFirmwareVersion();
+  //
+  inline void SetExpectedVMEFirmwareTag(int tag) { expected_vme_firmware_tag_ = (unsigned long int) tag; }
+  inline int  GetExpectedVMEFirmwareTag() { return expected_vme_firmware_tag_; }
+  bool CheckVMEFirmwareVersion();
+  //
+  inline void SetExpectedCFEBFirmwareTag(int cfeb_index, long int tag) { expected_cfeb_firmware_tag_[cfeb_index] = tag; }
+  inline unsigned long int GetExpectedCFEBFirmwareTag(int cfeb_index)  { return expected_cfeb_firmware_tag_[cfeb_index]; }
+  bool CheckCFEBFirmwareVersion(const CFEB & cfeb_to_check);
+  //
+  //
   void SetFebDavDelay(int delay){feb_dav_delay_ = delay;}
   inline int GetFebDavDelay(){return feb_dav_delay_;}
   //
@@ -594,6 +611,12 @@ public:
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
   int  TestStatus_[20];
   char FinalCounter[10];
+  //
+  unsigned long int expected_control_firmware_tag_;
+  int       expected_vme_firmware_tag_;
+  int       expected_firmware_revision_;
+  unsigned long int expected_cfeb_firmware_tag_[5];
+  //
 }; 
 
 #endif

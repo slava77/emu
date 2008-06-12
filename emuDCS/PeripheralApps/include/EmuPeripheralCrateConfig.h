@@ -478,6 +478,8 @@ private:
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCratesFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCrateFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigAllCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -499,6 +501,7 @@ private:
   //
   std::vector<TMBTester> InitTMBTests(Crate *);
   void CheckPeripheralCrateConfiguration();
+  void CheckPeripheralCrateFirmware();
   bool prbs_test_;
   int all_crates_ok;;
   int crate_check_ok[60];
@@ -507,6 +510,16 @@ private:
   int alct_check_ok[60][9];
   int tmb_check_ok[60][9];
   int dmb_check_ok[60][9];
+  //
+  int crates_firmware_ok;;
+  int crate_firmware_ok[60];
+  int ccb_firmware_ok[60];
+  int mpc_firmware_ok[60];
+  int alct_firmware_ok[60][9];
+  int tmb_firmware_ok[60][9];
+  int dmb_vme_firmware_ok[60][9];
+  int dmb_control_firmware_ok[60][9];
+  int cfeb_firmware_ok[60][9][5];
   //
   xoap::MessageReference PCcreateCommandSOAP(string command);
   void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);

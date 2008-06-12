@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.42 2008/05/26 08:24:41 rakness Exp $
+// $Id: TMB.h,v 3.43 2008/06/12 21:08:54 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.43  2008/06/12 21:08:54  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.42  2008/05/26 08:24:41  rakness
 // for AFEB calibrations:  argument for TMB and ALCT::configure(2) to not write userPROMs; correctly respond to configuration written to broadcast slot
 //
@@ -376,7 +379,7 @@ public:
   void SetALCTPatternTrigger();
   void SetCLCTPatternTrigger();
   //
-  //
+  //!read the Firmware date from the TMB
   int  FirmwareDate();
   inline int  GetReadTmbFirmwareDay() { return read_tmb_firmware_day_; }
   inline void SetExpectedTmbFirmwareDay(int day) { tmb_firmware_day_ = ConvertToHexAscii(day); }
@@ -386,12 +389,14 @@ public:
   inline void SetExpectedTmbFirmwareMonth(int month) { tmb_firmware_month_ = ConvertToHexAscii(month); }
   inline int  GetExpectedTmbFirmwareMonth() { return tmb_firmware_month_; }
   //
-  //
+  //!read the Firmware date from the TMB
   int  FirmwareYear();
   inline int  GetReadTmbFirmwareYear() { return read_tmb_firmware_year_; }
   inline void SetExpectedTmbFirmwareYear(int year) { tmb_firmware_year_ = ConvertToHexAscii(year); }
   inline int  GetExpectedTmbFirmwareYear() { return tmb_firmware_year_; }
   //
+  //!check that the read values are the values expected in the xml file
+  bool CheckFirmwareDate();
   //
   int  FirmwareVersion();
   inline int  GetReadTmbFirmwareType() { return read_tmb_firmware_type_; }
@@ -416,6 +421,7 @@ public:
   inline int  GetExpectedRatFirmwareYear() { return rat_firmware_year_; }
   //
   int  PowerComparator();
+  //
   // called by TRGMODE, depending on version_
   void setupNewDelayChips();
   void setupOldDelayChips();
