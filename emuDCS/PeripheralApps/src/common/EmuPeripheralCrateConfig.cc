@@ -16,13 +16,9 @@ using namespace cgicc;
 using namespace std;
 
 const string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
-const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda102;
 //
 const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
-const unsigned int EXPECTED_DMB_USERID      = 0x48549011;
 const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
-const int EXPECTED_DMB_VME_VERSION       = 1547;
-const int EXPECTED_DMB_FIRMWARE_REVISION =    1;
 const string       VMECC_FIRMWARE_DIR = "vcc"; 
 //const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
 //
@@ -83,6 +79,21 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
     }
   }
   //
+  crates_firmware_ok = -1;
+  for (int i=0; i<60; i++) {
+    crate_firmware_ok[i] = -1;
+    ccb_firmware_ok[i] = -1;
+    mpc_firmware_ok[i] = -1;
+    for (int j=0; j<9; j++) {
+      alct_firmware_ok[i][j] = -1;
+      tmb_firmware_ok[i][j] = -1;
+      dmb_vme_firmware_ok[i][j] = -1;
+      dmb_control_firmware_ok[i][j] = -1;
+      for (int k=0; k<5; k++) 
+	cfeb_firmware_ok[i][j][k] = -1;
+    }
+  }
+  //
   xgi::bind(this,&EmuPeripheralCrateConfig::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateConfig::MainPage, "MainPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::setConfFile, "setConfFile");
@@ -112,6 +123,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrates, "CheckCrates");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesConfiguration, "CheckCratesConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesFirmware, "CheckCratesFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateConfig::setRawConfFile, "setRawConfFile");
   xgi::bind(this,&EmuPeripheralCrateConfig::UploadConfFile, "UploadConfFile");
@@ -474,7 +487,20 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   }
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
-
+  //
+  *out << cgicc::td();
+  std::string CheckCratesFirmware = toolbox::toString("/%s/CheckCratesFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckCratesFirmware) << std::endl ;
+  if (crates_firmware_ok == 1) {
+    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:green") << std::endl ;
+  } else if (crates_firmware_ok == 0) {
+    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:red") << std::endl ;
+  } else if (crates_firmware_ok == -1) {
+    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:blue") << std::endl ;
+  }
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
   *out << cgicc::table();
 
   *out << cgicc::br() << std::endl;
@@ -508,7 +534,112 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   //
   int initial_crate = current_crate_;
   //
-  if (all_crates_ok == 0) {
+  if (crates_firmware_ok >= 0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      *out << crateVector[crate_number]->GetLabel() << std::endl;
+      //
+      if (crate_firmware_ok[current_crate_] == 0) {
+	//
+	*out << cgicc::br() << cgicc::span().set("style","color:red");
+	//
+        if (ccb_firmware_ok[current_crate_] == 0) *out << "CCB firmware incorrect " << cgicc::br() << std::endl ;
+        if (mpc_firmware_ok[current_crate_] == 0) *out << "MPC firmware incorrect " << cgicc::br() << std::endl ;
+        //
+	bool alct_ok = true;
+	bool tmb_ok = true;
+	bool dmb_vme_ok = true;
+	bool dmb_control_ok = true;
+	bool cfeb_ok = true;
+	//
+	for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	  if (alct_firmware_ok[current_crate_][chamber_index] == 0) alct_ok = false;
+	  if (tmb_firmware_ok[current_crate_][chamber_index] == 0)  tmb_ok = false;
+	  if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0)  dmb_vme_ok = false;
+	  if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0)  dmb_control_ok = false;
+	  //
+	  std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	  typedef std::vector<CFEB>::iterator CFEBItr;
+	  for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+	      int cfeb_index = (*cfebItr).number();
+	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0)  cfeb_ok = false;
+	  }
+	}
+	//
+	if (!alct_ok) {
+	  //
+	  *out << "ALCT firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (alct_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!tmb_ok) {
+	  //
+	  *out << "TMB firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (tmb_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!dmb_vme_ok) {
+	  //
+	  *out << "DMB VME firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!dmb_control_ok) {
+	  //
+	  *out << "DMB Control FPGA firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!cfeb_ok) {
+	  //
+	  *out << "CFEB firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	    //
+	    std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	    typedef std::vector<CFEB>::iterator CFEBItr;
+	    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+	      int cfeb_index = (*cfebItr).number();
+	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0) 
+		*out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << " CFEB " << cfeb_index << ", ";
+	    }
+	  }
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+      } else if (crate_firmware_ok[current_crate_] == 1) {
+	//
+	*out << cgicc::span().set("style","color:green");
+	*out << " firmware OK" << cgicc::br();
+      } else if (crate_firmware_ok[current_crate_] == -1) {
+	//
+	*out << cgicc::span().set("style","color:blue");
+	*out << " firmware not checked" << cgicc::br();
+      }
+      *out << cgicc::span() << std::endl ;
+    }
+  }
+  //
+  if (all_crates_ok >= 0) {
     //
     for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
       //
@@ -1186,7 +1317,7 @@ void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Ou
   //
   this->Default(in, out);
 }
-
+//
 void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //  
@@ -1198,6 +1329,47 @@ void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Out
   //
   this->Default(in, out);
 }
+//
+void EmuPeripheralCrateConfig::CheckCratesFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Button:  Check CSC Firmware of All Active Crates" << std::endl;
+  //
+  if(total_crates_<=0) return;
+  //
+  int initialcrate=current_crate_;
+  //
+  crates_firmware_ok = 1;
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      CheckPeripheralCrateFirmware();
+      //
+      crates_firmware_ok &= crate_firmware_ok[i];
+    }
+  }
+  //
+  SetCurrentCrate(initialcrate);
+  //
+  this->Default(in, out);
+}
+//
+void EmuPeripheralCrateConfig::CheckCrateFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Check CSC firmware in one crate" << std::endl;
+  //
+  std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
+  //
+  CheckPeripheralCrateFirmware();
+  //
+  this->Default(in, out);
+}
+//
 
   // This one came from CrateUtils class which no longer exist. 
   // Better put into another class. Leave it here for now. 
@@ -1266,7 +1438,58 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
   return;
 }
 //
-
+//
+// Another method which would be better in another class... let's make it work, first....
+void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
+  //
+  std::cout << "Firmware check for " << thisCrate->GetLabel() << std::endl;
+  //
+  crate_firmware_ok[current_crate_] = 1;
+  //
+  ccb_firmware_ok[current_crate_] = thisCrate->ccb()->CheckFirmwareDate();
+  crate_firmware_ok[current_crate_] &= ccb_firmware_ok[current_crate_];  
+  //
+  mpc_firmware_ok[current_crate_] = thisCrate->mpc()->CheckFirmwareDate();
+  crate_firmware_ok[current_crate_] &= mpc_firmware_ok[current_crate_];  
+  //
+  for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+    //	
+    Chamber * thisChamber     = chamberVector[chamber_index];
+    TMB * thisTMB             = tmbVector[chamber_index];
+    ALCTController * thisALCT = thisTMB->alctController();
+    DAQMB * thisDMB           = dmbVector[chamber_index];
+    //
+    std::cout << "Firmware check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
+    //
+    tmb_firmware_ok[current_crate_][chamber_index]      = (int) thisTMB->CheckFirmwareDate();
+    crate_firmware_ok[current_crate_] &= tmb_firmware_ok[current_crate_][chamber_index];
+    //
+    alct_firmware_ok[current_crate_][chamber_index]     = (int) thisALCT->CheckFirmwareDate();
+    crate_firmware_ok[current_crate_] &= alct_firmware_ok[current_crate_][chamber_index];
+    //
+    dmb_vme_firmware_ok[current_crate_][chamber_index]  = (int) thisDMB->CheckVMEFirmwareVersion();
+    crate_firmware_ok[current_crate_] &= dmb_vme_firmware_ok[current_crate_][chamber_index];
+    //
+    dmb_control_firmware_ok[current_crate_][chamber_index] = (int) thisDMB->CheckControlFirmwareVersion();
+    crate_firmware_ok[current_crate_] &= dmb_control_firmware_ok[current_crate_][chamber_index];
+    //
+    std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
+    //
+    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+      //
+      int cfeb_index = (*cfebItr).number();
+      //
+      cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] = (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
+      crate_firmware_ok[current_crate_] &= cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index];
+    }
+    //
+  }
+  //
+  return;
+}
+//
+//
   void EmuPeripheralCrateConfig::setConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -5044,16 +5267,6 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   }
   //
   DAQMB * thisDMB = dmbVector[dmb];
-  //
-  bool isME13 = false;
-  TMB * thisTMB   = tmbVector[dmb];
-  ALCTController * thisALCT;
-  if (thisTMB) 
-    thisALCT = thisTMB->alctController();
-  if (thisALCT) 
-    if ( (thisALCT->GetChamberType()).find("ME13") != string::npos )
-      isME13 = true;
-  //
   Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
@@ -5074,7 +5287,10 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   typedef std::vector<CFEB>::iterator CFEBItr;
   //
   for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-    sprintf(buf,"CFEB %d : ",(*cfebItr).number());
+    //
+    int cfeb_index = (*cfebItr).number();
+    //
+    sprintf(buf,"CFEB %d : ",cfeb_index);
     *out << buf;
     //
     //*out << cgicc::br();
@@ -5083,18 +5299,14 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
 	    (int)thisDMB->febpromuser(*cfebItr),
 	    (int)thisDMB->febfpgauser(*cfebItr));
     //
-    if (cfebItr == cfebs.begin() && isME13) {
-      *out << cgicc::span().set("style","color:black");
-      *out << buf;
-      *out << cgicc::span();
-    } else if ( thisDMB->febfpgauser(*cfebItr) == EXPECTED_CFEB_USERID ) {
+    if ( thisDMB->CheckCFEBFirmwareVersion(*cfebItr) ) {
       *out << cgicc::span().set("style","color:green");
       *out << buf;
       *out << cgicc::span();
     } else {
       *out << cgicc::span().set("style","color:red");
       *out << buf;
-      *out << " (Should be 0x" << std::hex << EXPECTED_CFEB_USERID << ") ";
+      *out << " (Should be 0x" << std::hex << thisDMB->GetExpectedCFEBFirmwareTag(cfeb_index) << ") ";
       *out << cgicc::span();
     }
     //
@@ -6088,31 +6300,22 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   //
   alct->ReadFastControlId();
   //
-  if (alct->GetFastControlRegularMirrorType() == alct->GetExpectedFastControlRegularMirrorType() &&
-      alct->GetFastControlAlctType()          == alct->GetExpectedFastControlAlctType()          &&
-      alct->GetFastControlYear()              == alct->GetExpectedFastControlYear()              &&
-      alct->GetFastControlMonth()             == alct->GetExpectedFastControlMonth()             &&
-      alct->GetFastControlDay()               == alct->GetExpectedFastControlDay()               ) {
-    //
-    // OK to this point... further checks for ME11...
-    if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
-      //
-      if (alct->GetFastControlBackwardForwardType()  == alct->GetExpectedFastControlBackwardForwardType() &&
-	  alct->GetFastControlNegativePositiveType() == alct->GetExpectedFastControlNegativePositiveType() ) {
-	*out << cgicc::span().set("style","color:green");  //OK if in here and ME11
-      } else {
-	*out << cgicc::span().set("style","color:red");    //not OK if didn't pass this check and ME11
-      }
-    } else {
-      *out << cgicc::span().set("style","color:green");    //OK if in here and not ME11
-      }
-  } else { 
-    //
-    *out << cgicc::span().set("style","color:red");      //didn't pass first checks
+  alct->RedirectOutput(out);
+  //
+  if ( alct->CheckFirmwareDate() ) {
+    *out << cgicc::span().set("style","color:green");  
+    alct->PrintFastControlId();
+    *out << "...OK...";
+  } else {
+    *out << cgicc::span().set("style","color:red");    
+    alct->PrintFastControlId();
+    *out << " --->>  BAD  <<--- Should be (" 
+	 << std::dec << alct->GetExpectedFastControlDay() 
+	 << " "      << alct->GetExpectedFastControlMonth()
+	 << " "      << alct->GetExpectedFastControlYear()
+	 << ")";
   }
   //
-  alct->RedirectOutput(out);
-  alct->PrintFastControlId();
   alct->RedirectOutput(&std::cout);
   //
   *out << cgicc::span();
@@ -6373,7 +6576,25 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   //
   thisCCB->RedirectOutput(out);
   //
-  thisCCB->firmwareVersion();
+  if ( thisCCB->CheckFirmwareDate() ) {
+    //
+    *out << cgicc::span().set("style","color:green");
+    thisCCB->printFirmwareVersion();
+    *out << "...OK...";
+    *out << cgicc::span();
+    //
+  } else {
+    //
+    *out << cgicc::span().set("style","color:red");
+    thisCCB->printFirmwareVersion();
+    *out << " --->>  BAD  <<--- Should be (" 
+	 << std::dec << thisCCB->GetExpectedFirmwareDay() 
+	 << "-"      << thisCCB->GetExpectedFirmwareMonth()
+	 << "-"      << thisCCB->GetExpectedFirmwareYear()
+	 << ")";
+
+    *out << cgicc::span();
+  }
   *out << cgicc::br();
   //
   thisCCB->ReadTTCrxID();
@@ -9206,7 +9427,28 @@ void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::legend("MPC Info").set("style","color:blue") << cgicc::p() << std::endl ;
   //
   thisMPC->RedirectOutput(out);
-  thisMPC->firmwareVersion();
+  //
+  if ( thisMPC->CheckFirmwareDate() ) {
+    //
+    *out << cgicc::span().set("style","color:green");
+    thisMPC->printFirmwareVersion();
+    *out << "...OK...";
+    *out << cgicc::span();
+    //
+  } else {
+    //
+    *out << cgicc::span().set("style","color:red");
+    thisMPC->printFirmwareVersion();
+    *out << " --->>  BAD  <<--- Should be (" 
+	 << std::dec << thisMPC->GetExpectedFirmwareDay() 
+	 << "-"      << thisMPC->GetExpectedFirmwareMonth()
+	 << "-"      << thisMPC->GetExpectedFirmwareYear()
+	 << ")";
+
+    *out << cgicc::span();
+  }
+  *out << cgicc::br();
+  //
   thisMPC->RedirectOutput(&std::cout);
   //
   *out << cgicc::br() << "CSR0 = " << std::hex << thisMPC->ReadRegister(0) << endl;
@@ -9534,15 +9776,15 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form().set("method","GET").set("action",testADC) << std::endl ;
   if ( tmbTestVector[tmb].GetResultTestADC() == -1 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","TMB test ADC").set("style","color:blue" ) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB Voltages and temps").set("style","color:blue" ) << std::endl ;
     //
   } else if ( tmbTestVector[tmb].GetResultTestADC() > 0 ) {
     //
-    *out << cgicc::input().set("type","submit").set("value","TMB test ADC").set("style","color:green") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB Voltages and temps").set("style","color:green") << std::endl ;
     //
   } else {
     //
-    *out << cgicc::input().set("type","submit").set("value","TMB test ADC").set("style","color:red"  ) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB Voltages and temps").set("style","color:red"  ) << std::endl ;
     //
   }
   sprintf(buf,"%d",tmb);
@@ -9848,68 +10090,56 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   // read the registers:
   thisTMB->FirmwareDate();
   thisTMB->FirmwareYear();
+  thisTMB->FirmwareVersion();
+  thisTMB->FirmwareRevCode();
   //
-  // get the read values:
-  int day   = thisTMB->GetReadTmbFirmwareDay();
-  int month = thisTMB->GetReadTmbFirmwareMonth();
-  int year  = thisTMB->GetReadTmbFirmwareYear();
+  // output the register information to the screen in a nice way:
   //
-  // get the expected values:
-  int expected_day   = thisTMB->GetExpectedTmbFirmwareDay();
-  int expected_month = thisTMB->GetExpectedTmbFirmwareMonth();
-  int expected_year  = thisTMB->GetExpectedTmbFirmwareYear();
+  sprintf(buf,"TMB Firmware date (month/day/year) : (%02x/%02x/%04x)",
+	  thisTMB->GetReadTmbFirmwareMonth(),
+	  thisTMB->GetReadTmbFirmwareDay(),
+	  thisTMB->GetReadTmbFirmwareYear());
   //
-  if ( month == expected_month &&
-       day   == expected_day   &&
-       year  == expected_year ) {
+  if ( thisTMB->CheckFirmwareDate() ) {
     *out << cgicc::span().set("style","color:green");
+    *out << buf;
+    *out << "...OK...";
+    *out << cgicc::span();
   } else {
     *out << cgicc::span().set("style","color:red");
+    *out << buf;
+    *out << "--->> BAD <<---, should be ("
+	 << std::hex << thisTMB->GetExpectedTmbFirmwareMonth()
+	 << "/"      << thisTMB->GetExpectedTmbFirmwareDay()
+	 << "/"      << thisTMB->GetExpectedTmbFirmwareYear()
+	 << ")";
+
+    *out << cgicc::span();
   }
-  sprintf(buf,"TMB Firmware date         : %02x/%02x/%04x ",month,day,year);
-  *out << buf;
-  *out << cgicc::span();
-  //
   *out << cgicc::br();
   //
-  // read the registers:
-  thisTMB->FirmwareVersion();
   //
-  // get the read values:
-  int type = thisTMB->GetReadTmbFirmwareType();
-  //
-  // get the expected values:
-  int expected_type = thisTMB->GetExpectedTmbFirmwareType();
-  
-  if ( type == expected_type ) {
+  if ( thisTMB->GetReadTmbFirmwareType() == thisTMB->GetExpectedTmbFirmwareType() ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
   }
-  sprintf(buf,"Firmware Type             : %01x ",type);       
+  sprintf(buf,"Firmware Type             : %01x ",
+	  thisTMB->GetReadTmbFirmwareType());       
   *out << buf;
   *out << cgicc::span();
-  //
-  //
   *out << cgicc::br();
   //
-  // read the registers:
-  thisTMB->FirmwareVersion();
   //
-  // get the read values:
-  int version = thisTMB->GetReadTmbFirmwareVersion();
-  //
-  int expected_version = thisTMB->GetExpectedTmbFirmwareVersion();
-  //
-  if ( version == expected_version ){
+  if ( thisTMB->GetReadTmbFirmwareVersion() == thisTMB->GetExpectedTmbFirmwareVersion() ){
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
   }
-  sprintf(buf,"Firmware Version Code     : %01x ",version);       
+  sprintf(buf,"Firmware Version Code     : %01x ",
+	  thisTMB->GetReadTmbFirmwareVersion());       
   *out << buf ;
   *out << cgicc::span();
-  //
   *out << cgicc::br();
   //
   //
@@ -9924,8 +10154,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::br();
   //
-  //
-  sprintf(buf,"Firmware Revision Code    : %04x ",((thisTMB->FirmwareRevCode())&0xffff));       
+  sprintf(buf,"Firmware Revision Code    : %04x ",thisTMB->GetReadTmbFirmwareRevcode());       
   *out << buf ;
   *out << cgicc::br();
   //
@@ -11308,14 +11537,16 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
 	  (int)thisDMB->GetFirmwareVersion(),(int)thisDMB->GetFirmwareRevision(),
 	  (int)thisDMB->GetFirmwareDay(),(int)thisDMB->GetFirmwareMonth(),(int)thisDMB->GetFirmwareYear());
   //
-  if ( (int) thisDMB->GetFirmwareVersion() == EXPECTED_DMB_VME_VERSION &&
-       (int) thisDMB->GetFirmwareRevision() == EXPECTED_DMB_FIRMWARE_REVISION ) {
+  if ( thisDMB->CheckVMEFirmwareVersion() ) {
     *out << cgicc::span().set("style","color:green");
     *out << buf;
+    *out << "...OK...";
     *out << cgicc::span();
   } else {
     *out << cgicc::span().set("style","color:red");
     *out << buf;
+    *out << "--->> BAD <<--- should be "
+	 << std::dec << thisDMB->GetExpectedVMEFirmwareTag();
     *out << cgicc::span();
   }
   *out << cgicc::br();
@@ -11342,16 +11573,18 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   sprintf(buf,"DMB fpga user id                   : %x ", (int) thisDMB->mbfpgauser());
   
-  if ( thisDMB->mbfpgauser() == EXPECTED_DMB_USERID ) {
+  if ( thisDMB->CheckControlFirmwareVersion() ) {
     *out << cgicc::span().set("style","color:green");
     *out << buf;
+    *out << "...OK...";
     *out << cgicc::span();
   } else {
     *out << cgicc::span().set("style","color:red");
     *out << buf;
+    *out << "--->> BAD <<--- should be "
+	 << std::hex << thisDMB->GetExpectedControlFirmwareTag();
     *out << cgicc::span();
   }
-  
   //
   *out << cgicc::pre();
   //

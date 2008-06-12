@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.46 2008/05/26 08:24:42 rakness Exp $
+// $Id: ALCTController.cc,v 3.47 2008/06/12 21:08:55 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.47  2008/06/12 21:08:55  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.46  2008/05/26 08:24:42  rakness
 // for AFEB calibrations:  argument for TMB and ALCT::configure(2) to not write userPROMs; correctly respond to configuration written to broadcast slot
 //
@@ -700,6 +703,38 @@ void ALCTController::ReadALCTConfiguration() {
   return;
 }
 //
+bool ALCTController::CheckFirmwareDate() {
+  //
+  bool date_ok = false;
+  //
+  ReadFastControlId();
+  //
+  if (GetFastControlRegularMirrorType() == GetExpectedFastControlRegularMirrorType() &&
+      GetFastControlAlctType()          == GetExpectedFastControlAlctType()          &&
+      GetFastControlYear()              == GetExpectedFastControlYear()              &&
+      GetFastControlMonth()             == GetExpectedFastControlMonth()             &&
+      GetFastControlDay()               == GetExpectedFastControlDay()               ) {
+    //
+    // OK to this point... further checks for ME11...
+    if ( GetChamberType().find("ME11") != string::npos ) {
+      //
+      if (GetFastControlBackwardForwardType()  == GetExpectedFastControlBackwardForwardType() &&
+	  GetFastControlNegativePositiveType() == GetExpectedFastControlNegativePositiveType() ) {
+	date_ok = true;  //OK if in here and ME11
+      } else {
+	date_ok = false; //not OK if didn't pass this check and ME11
+      }
+    } else {
+      //
+      date_ok = true;    //OK if in here and not ME11
+    }
+    //
+  } else { 
+    date_ok = false;      //didn't pass first checks
+  }
+  return date_ok;
+}
+//
 void ALCTController::CheckALCTConfiguration() {
   //
   bool config_ok = true;
@@ -897,7 +932,7 @@ void ALCTController::PrintSlowControlId() {
 	       << GetSlowControlYear()  << ")"
 	       << std::dec << std::endl; 
   //
-  (*MyOutput_) << " PROM ID code = 0x" << std::hex << alct_slow_prom_idcode_ << std::endl;
+  //  (*MyOutput_) << " PROM ID code = 0x" << std::hex << alct_slow_prom_idcode_ << std::endl;
   //
   return;
 }

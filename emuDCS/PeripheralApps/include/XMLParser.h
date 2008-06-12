@@ -18,6 +18,7 @@ public:
   void parseNode(xercesc::DOMNode * pNode);
   bool fillInt(std::string item, int & target);
   bool fillIntX(std::string item, int & target);
+  bool fillLongIntX(std::string item, long int & target);
   bool fillLongLongIntX(std::string item, long long int & target);
   bool fillFloat(std::string item, float & target);
   bool fillString(std::string item, std::string & target);

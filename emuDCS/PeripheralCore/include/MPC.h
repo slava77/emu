@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.8 2008/04/11 14:48:47 liu Exp $
+// $Id: MPC.h,v 3.9 2008/06/12 21:08:54 rakness Exp $
 // $Log: MPC.h,v $
+// Revision 3.9  2008/06/12 21:08:54  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.8  2008/04/11 14:48:47  liu
 // add CheckConfig() function
 //
@@ -102,6 +105,7 @@ class MPC : public VMEModule {
   MPC(Crate * , int slot);
   ~MPC();
   void firmwareVersion();
+  void printFirmwareVersion();
 
   /// from the BOARDTYPE enum
   inline std::vector<unsigned long int> GetFIFOBLct0() { return FIFOBLct0 ; }
@@ -124,7 +128,9 @@ class MPC : public VMEModule {
   void configure();  
   void init();
   int CheckConfig();
-
+  //
+  bool CheckFirmwareDate();
+  //
   /// address is usually one of the above enums.  theBaseAddress
   /// defined in the constructor automatically added
   void read_fifo(char address, char * data);
@@ -156,6 +162,15 @@ class MPC : public VMEModule {
   //
   inline void SetTLK2501TxMode(int value){TLK2501TxMode_ = value;}
   inline int  GetSerializerMode(){return TLK2501TxMode_;}
+  //
+  inline void SetExpectedFirmwareDay(int day) {expected_firmware_day_ = day;}
+  inline int  GetExpectedFirmwareDay() { return expected_firmware_day_;}
+  //
+  inline void SetExpectedFirmwareMonth(int month) {expected_firmware_month_ = month;}
+  inline int  GetExpectedFirmwareMonth() { return expected_firmware_month_;}
+  //
+  inline void SetExpectedFirmwareYear(int year) {expected_firmware_year_ = year;}
+  inline int  GetExpectedFirmwareYear() { return expected_firmware_year_;}
   //
   /// used by GUIs
   void executeCommand(std::string command);
@@ -215,7 +230,15 @@ class MPC : public VMEModule {
   int TLK2501TxMode_;
   int TransparentModeSources_;
   int TMBDelayPattern_;
-
+  //
+  int read_firmware_day_;
+  int read_firmware_month_; 
+  int read_firmware_year_;
+  //
+  int expected_firmware_day_;
+  int expected_firmware_month_; 
+  int expected_firmware_year_;
+  //
 };
 
 #endif

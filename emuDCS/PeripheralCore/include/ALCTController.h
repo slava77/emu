@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.28 2008/05/26 08:24:41 rakness Exp $
+// $Id: ALCTController.h,v 3.29 2008/06/12 21:08:54 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.29  2008/06/12 21:08:54  rakness
+// add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
+//
 // Revision 3.28  2008/05/26 08:24:41  rakness
 // for AFEB calibrations:  argument for TMB and ALCT::configure(2) to not write userPROMs; correctly respond to configuration written to broadcast slot
 //
@@ -197,6 +200,8 @@ class ALCTController {
   void PrintALCTConfiguration();                     //Print software configuration values
   void CheckALCTConfiguration();                     //Check the read values against the write values
   inline int GetALCTConfigurationStatus() { return alct_configuration_status_; }
+  //
+  bool CheckFirmwareDate();
   //
   void SetFillVmeWriteVecs(bool fill_vectors_or_not);//writes software values to user prom
   bool GetFillVmeWriteVecs();
