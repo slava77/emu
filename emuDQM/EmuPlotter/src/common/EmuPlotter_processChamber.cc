@@ -5,13 +5,9 @@
 //	Filling of chamber's histogram
 void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduID = 0) {
   if (&data==0) {
-    LOG4CPLUS_DEBUG(logger_, 
+    LOG4CPLUS_ERROR(logger_,eTag << 
 		    "Zero pointer. DMB data are not available for unpacking"); //KK is->are
     return;
-  }
-  else {
-    LOG4CPLUS_DEBUG(logger_, 
-		    "Nonzero pointer. DMB data are available for unpacking"); //KK is->are
   }
   int FEBunpacked = 0;
   int alct_unpacked = 0;
@@ -28,8 +24,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   //	DMB Found
   //	Unpacking of DMB Header and trailer
-  LOG4CPLUS_DEBUG(logger_,
-                  "Unpacking of DMB Header and Trailer ... ");
   const CSCDMBHeader* dmbHeader = data.dmbHeader();
   const CSCDMBTrailer* dmbTrailer = data.dmbTrailer();
   if (!dmbHeader && !dmbTrailer) {
@@ -44,8 +38,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int dmbID	= 0xF;
   int ChamberID	= 0xFFF;
 	
-  LOG4CPLUS_DEBUG(logger_, 
-		  "Unpacking of Chamber ID ... ");
   crateID	= dmbHeader->crateID();
   dmbID		= dmbHeader->dmbID();
   ChamberID	= (((crateID) << 4) + dmbID) & 0xFFF;
@@ -61,9 +53,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
                         return;
   }
 
-  if (crateID==0 || dmbID==0) {
-    LOG4CPLUS_ERROR(logger_,
-		    "Invalid crate or dmb ID");
+  if (crateID==0 || dmbID==0 || crateID>60 || dmbID>10) {
+    LOG4CPLUS_ERROR(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
+    return;
   }
 
   int iendcap = -1;
@@ -71,38 +63,30 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   // TODO: Add actual Map conversion
   int id = cscMapping.chamber(iendcap, istation, crateID, dmbID, -1);
   if (id==0) {
+    LOG4CPLUS_ERROR(logger_, eTag << "Can not find map entry for CSC: " << cscTag << ". Skipping");
     return;
   }
   CSCDetId cid( id );
 
-  LOG4CPLUS_DEBUG(logger_, "Done");
-  //  LOG4CPLUS_DEBUG(logger_, 
-  //		  "Chamber ID = "<< ChamberID << " Crate ID = "<< crateID << " DMB ID = " << dmbID);
-
-
-  if (crateID>60 || dmbID>10) {
-    LOG4CPLUS_WARN(logger_, eTag << "Invalid CSC: " << cscTag << ". Skipping");
-    return;
-  }
 
   // nDMBEvents[cscTag]++;
-  float DMBEvents  = 0.0;
+  double DMBEvents  = 0.0;
   DMBEvents = nDMBEvents[cscTag];  
 
-  LOG4CPLUS_INFO(logger_,
+  LOG4CPLUS_DEBUG(logger_,
 		 "Unpacking " << cscTag << " (Event: " << nDMBEvents[cscTag]<< ")");
 
   //	Creating list of histograms for the particular chamber
   map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
   if (h_itr == MEs.end() || (MEs.size()==0)) {
     LOG4CPLUS_WARN(logger_, eTag << 
-		   "List of Histos for " << cscTag <<  " not found. " << evtSize );
+		   "List of MEs for " << cscTag <<  " not found. " << evtSize );
     LOG4CPLUS_DEBUG(logger_, 
 		    "Booking Histos for " << cscTag);
     fBusy = true;
     MEs[cscTag] = bookChamber(ChamberID);
     MECanvases[cscTag] = bookChamberCanvases(ChamberID);
-    printMECollection(MEs[cscTag]);
+    // printMECollection(MEs[cscTag]);
     fBusy = false;
   }
 
@@ -120,29 +104,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo)){
     mo->Fill(CSCposition, CSCtype);
   }
-
-/*
-  EmuMonitoringObject* mof = NULL;
-  if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
-      && isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
-    for(int bit=5; bit<24; bit++) {
-      double freq = (100.0*mo->GetBinContent(1,bit-4))/DMBEvents;
-      mof->SetBinContent(bit-4, freq);
-    }
-    mo->SetEntries((int)DMBEvents);
-    mof->SetEntries((int)DMBEvents);
-  }
-
-  if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo)
-      && isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
-    for(int bit=1; bit<2; bit++) {
-      double freq = (100.0*mo->GetBinContent(1,bit))/DMBEvents;
-      mof->SetBinContent(bit, freq);
-    }
-    mo->SetEntries((int)DMBEvents);
-    mof->SetEntries((int)DMBEvents);
-  }
-*/
 
   //    Efficiency of the chamber
   float DMBEff  = 0.0;
@@ -470,6 +431,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       }
 
       for (uint32_t lct=0; lct<alctsDatas.size(); lct++) {
+	// TODO: Add support for more than 2 ALCTs
+	if (lct>=2) continue;	
+
+
 	if (isMEvalid(cscME, Form("ALCT%d_KeyWG", lct), mo)) mo->Fill(alctsDatas[lct].getKeyWG());
 	if(lct == 0) alct_keywg  = alctsDatas[lct].getKeyWG();
 
