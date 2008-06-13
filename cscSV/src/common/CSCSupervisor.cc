@@ -66,6 +66,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		wl_semaphore_(toolbox::BSem::EMPTY), quit_calibration_(false),
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
 		daq_notavailable_(false),
+		isCommandFromWeb_(false),
 		nevents_(-1),
 		step_counter_(0),
 		error_message_(""), keep_refresh_(false), hide_tts_control_(true),
@@ -192,6 +193,8 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 	run_number_ = 0;
 	nevents_ = -1;
 
+	isCommandFromWeb_ = false;
+
 	submit(configure_signature_);
 
 	return createReply(message);
@@ -200,6 +203,8 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 xoap::MessageReference CSCSupervisor::onStart(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	isCommandFromWeb_ = false;
+
 	fireEvent("Start");
 
 	return createReply(message);
@@ -208,6 +213,8 @@ xoap::MessageReference CSCSupervisor::onStart(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onStop(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	isCommandFromWeb_ = false;
+
 	fireEvent("Stop");
 
 	return createReply(message);
@@ -218,6 +225,8 @@ xoap::MessageReference CSCSupervisor::onHalt(xoap::MessageReference message)
 {
 	quit_calibration_ = true;
 
+	isCommandFromWeb_ = false;
+
 	submit(halt_signature_);
 
 	return createReply(message);
@@ -226,6 +235,8 @@ xoap::MessageReference CSCSupervisor::onHalt(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onReset(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	isCommandFromWeb_ = false;
+
 	resetAction();
 
 	return onHalt(message);
@@ -234,6 +245,8 @@ xoap::MessageReference CSCSupervisor::onReset(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onSetTTS(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	isCommandFromWeb_ = false;
+
 	fireEvent("SetTTS");
 
 	return createReply(message);
@@ -416,6 +429,8 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 {
 	string value;
 
+	isCommandFromWeb_ = true;
+
 	value = getCGIParameter(in, "runtype");
 	if (value.empty()) { error_message_ += "Please select run type.\n"; }
 	run_type_ = value;
@@ -434,6 +449,8 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webStart(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
+	isCommandFromWeb_ = true;
+
 	// Book run number here to make sure it's done 
 	// only when requested by the user from the web page,
 	// and not by the FunctionManager via SOAP.
@@ -452,6 +469,8 @@ void CSCSupervisor::webStart(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webStop(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
+	isCommandFromWeb_ = true;
+
 	fireEvent("Stop");
 
 	keep_refresh_ = true;
@@ -461,6 +480,8 @@ void CSCSupervisor::webStop(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
+	isCommandFromWeb_ = true;
+
 	quit_calibration_ = true;
 
 	submit(halt_signature_);
@@ -472,6 +493,8 @@ void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webReset(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
+	isCommandFromWeb_ = true;
+
 	resetAction();
 
 	webHalt(in, out);
@@ -480,6 +503,8 @@ void CSCSupervisor::webReset(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webSetTTS(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
+	isCommandFromWeb_ = true;
+
 	tts_id_.fromString(getCGIParameter(in, "tts_id"));
 	tts_bits_.fromString(getCGIParameter(in, "tts_bits"));
 
@@ -1377,6 +1402,14 @@ bool CSCSupervisor::isDAQConfiguredInGlobal()
 
 bool CSCSupervisor::isDAQManagerControlled(string command)
 {
+	// No point in sending any command when DAQ is in an irregular state (failed, indefinite, ...)
+        string localDAQState = getLocalDAQState();
+	if ( localDAQState != "Halted" && localDAQState != "Ready" && localDAQState != "Enabled" ){
+	  LOG4CPLUS_ERROR( logger_, "No command sent to EmuDAQManager because local DAQ is in " 
+			   << localDAQState << " state. Please destroy and recreate local DAQ." );
+	  return false;
+	}
+
 	// Enforce "Halt" irrespective of DAQ mode.
 	if (command == "Halt") { return true; }
 
@@ -1472,6 +1505,10 @@ bool CSCSupervisor::StateTable::isValidState(string expected)
 	for (; i != table_.end(); ++i) {
 		string checked = expected;
 		string klass = i->first->getClassName();
+
+		// Ignore EmuDAQManager if command didn't come from the web page.
+		// In that case it's probably a global run, which local DAQ must not disrupt.
+		if ( !sv_->isCommandFromWeb_ && klass == "EmuDAQManager" ) continue;
 
 		if (klass == "TTCciControl" || klass == "LTCControl") {
 			if (expected == "Configured") { checked = "Ready"; }
