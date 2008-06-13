@@ -174,6 +174,8 @@ private:
 	xoap::MessageReference daq_param_, tf_param_, ttc_param_;
 	bool daq_notavailable_;
 
+        bool isCommandFromWeb_;
+
 	string getDAQMode();
 	string getTFConfig();
 	string getTTCciSource();
