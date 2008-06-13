@@ -95,6 +95,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   bindCGIcallbacks();
 
   appTid_ = this->getApplicationDescriptor()->getInstance();
+  if (!gApplication)
+    TApplication::CreateApplication();
 
   appBSem_.give();
 }
@@ -115,6 +117,7 @@ EmuMonitor::~EmuMonitor()
 		delete rateMeter;
 	}
 */
+
 }
 
 // == Application Error Handler == //
@@ -147,6 +150,14 @@ void EmuMonitor::initProperties()
   cscRate_		= 0;
   cscUnpacked_		= 0;
   runNumber_		= 0;
+
+  creditMsgsSent_ = 0;
+  creditsHeld_ = 0;
+  eventsRequested_ = 0;
+  eventsReceived_ = 0;
+  cscUnpacked_ = 0;
+  runNumber_ = 0;
+  nEventCredits_ = defEventCredits_;
 
 
   totalEvents_ 		= 0;
@@ -331,8 +342,8 @@ void EmuMonitor::setupPlotter()
     plotter_ = NULL;
   }
 
-  // plotter_ = new EmuPlotter(getApplicationLogger());
-  plotter_ = new EmuPlotter(this->getApplicationLogger());
+   plotter_ = new EmuPlotter(this->getApplicationLogger());
+//   plotter_ = new EmuPlotter();
 //  plotter_->setLogLevel(WARN_LOG_LEVEL);
   plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);
   if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
@@ -453,10 +464,6 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
       if ( item == "totalEvents")
 	{
 	  // LOG4CPLUS_INFO(getApplicationLogger(), "Total Events : " << totalEvents_.toString());
-	} 
-      else if ( item == "sessionEvents")
-	{
-	  // LOG4CPLUS_INFO(getApplicationLogger(), "Session Events: " << sessionEvents_.toString());
 	} 
       else if ( item == "dataBw")
 	{
@@ -764,9 +771,10 @@ void EmuMonitor::getCollectors(xdata::String className)
 
 void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception)
 {
+  if (fsm_.getCurrentState() == 'E') doStop();
   //  doStop();
   doConfigure();
-  LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from "
+  LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
@@ -778,6 +786,7 @@ void EmuMonitor::doStop()
       timer_->kill();	
     if (rateMeter != NULL && rateMeter->isActive()) {
 	rateMeter->kill();
+	// rateMeter->stop();
 	}
     if (fSaveROOTFile_ == xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0))) {
 	
@@ -822,17 +831,17 @@ void EmuMonitor::doConfigure()
     // timer_->setPlotter(plotter_);
     if (outputROOTFile_.toString().length()) {
       LOG4CPLUS_INFO (getApplicationLogger(),
-                      "plotter::outputROOTFile: 0x" << outputROOTFile_.toString());
+                      "plotter::outputROOTFile: " << outputROOTFile_.toString());
       plotter_->setHistoFile(outputROOTFile_);
     }
     if (dduCheckMask_ >= xdata::UnsignedInteger(0)) {
       LOG4CPLUS_INFO (getApplicationLogger(),
-                      "plotter::dduCheckMask: 0x" << std::hex << strtoul((dduCheckMask_.toString()).c_str(),NULL,0));
+                      "plotter::dduCheckMask: 0x" << std::hex << std::uppercase << strtoul((dduCheckMask_.toString()).c_str(),NULL,0));
       plotter_->setDDUCheckMask(dduCheckMask_);
     }
     if (binCheckMask_ >= xdata::UnsignedInteger(0)) {
       LOG4CPLUS_INFO (getApplicationLogger(),
-                      "plotter::binCheckMask: 0x" << std::hex << strtoul((binCheckMask_.toString()).c_str(),NULL,0));
+                      "plotter::binCheckMask: 0x" << std::hex << std::uppercase << strtoul((binCheckMask_.toString()).c_str(),NULL,0));
       plotter_->setBinCheckMask(binCheckMask_);
     }
 
@@ -878,15 +887,17 @@ void  EmuMonitor::doStart()
 void EmuMonitor::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
 {
   doStop();
-  LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from "
+  LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
 void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
 {
+  if (fsm_.getCurrentState() == 'E') return;
   if (fsm_.getCurrentState() == 'H') doConfigure();
   doStart();
-  LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from " 
+//  doStart();
+  LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from " 
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
@@ -1320,8 +1331,10 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
   if (plotter_ != NULL) {
     totalEvents_++;
     sessionEvents_++;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Event #" << sessionEvents_.toString() 
-		   << " (Total processed: " << totalEvents_.toString() << ")"); 
+    if (sessionEvents_ % 5000 == 0) {
+    LOG4CPLUS_INFO(getApplicationLogger(), "Evt# " << sessionEvents_.toString() << ": Readout rate: " << rateMeter->getRate("averageRate") << " Evts/sec;  Unpack rate: "<< rateMeter->getRate("cscRate") << " CSCs/sec" ) ; 
+//		   << " (Total processed: " << totalEvents_.toString() << ")"); 
+    }
     plotter_->processEvent(data, dataSize, errorFlag, node);
     pmeter_->addSample(dataSize);
     cscUnpacked_ = cscUnpacked_ + plotter_->getUnpackedDMBCount();

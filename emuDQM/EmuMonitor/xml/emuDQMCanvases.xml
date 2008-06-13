@@ -157,7 +157,7 @@
                 <NumPadsX>2</NumPadsX>
                 <NumPadsY>2</NumPadsY>
                 <Pad1>CSC_Format_Errors_Fract</Pad1>
-		<Pad2>CSC_L1A_out_of_sync</Pad2>
+		<Pad2>CSC_L1A_out_of_sync_Fract</Pad2>
 		<Pad3>CSC_DMB_input_fifo_full_Fract</Pad3>
                 <Pad4>CSC_DMB_input_timeout_Fract</Pad4>
 
