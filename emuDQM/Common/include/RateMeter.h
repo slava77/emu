@@ -55,6 +55,11 @@ template <typename T> class RateMeter: public Task
     Sem_.give();
   }
 
+
+  void stop() {
+    fActive = false;
+  }
+ 
   void setTimer(int delay) { timerDelay = delay;}
 
   void addSampler(std::string id, T* s) {
@@ -97,6 +102,7 @@ template <typename T> class RateMeter: public Task
 	  T val=*(samp.ref);
 	  T tdiff = stamp.tv_sec-samp.last_stamp.tv_sec;
 	  if (tdiff>T(0)) samp.rate = (val-samp.old_val)/tdiff;
+	  if (val<samp.old_val) samp.rate=T(0);
 	  samp.last_stamp = stamp;
 	  samp.old_val=val;
 	  //  std::cout << itr->first << ": Set" <<  std::endl;
