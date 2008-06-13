@@ -236,6 +236,7 @@ private:
   int fStopTimer;
   bool fBusy;
   bool fFirstEvent;
+  bool fCloseL1As; // Close L1A bit from DDU Trailer
   
   std::string xmlHistosBookingCfgFile;
   std::string xmlCanvasesCfgFile;

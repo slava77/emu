@@ -1098,9 +1098,13 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	    continue;
 	  }
 
-	  if (mo_CFEB_DMB_L1A_diff) {
+	  if (mo_CFEB_DMB_L1A_diff && !fCloseL1As ) {
+	  // if (mo_CFEB_DMB_L1A_diff) {
         	int cfeb_dmb_l1a_diff = (int)((timeSlice[nCFEB][nSample]->get_L1A_number())-dmbHeader->l1a()%64);
-		if (cfeb_dmb_l1a_diff != 0) L1A_out_of_sync = true;
+		if (cfeb_dmb_l1a_diff != 0) { 
+			L1A_out_of_sync = true;
+			//LOG4CPLUS_WARN(logger_,eTag << cscTag << " CFEB" << nCFEB << " nSample: " << nSample << " L1As out of sync");
+		}
 	        if(cfeb_dmb_l1a_diff < -32) mo->Fill(cfeb_dmb_l1a_diff + 64);
         	else {
 	          if(cfeb_dmb_l1a_diff > 32) mo->Fill(cfeb_dmb_l1a_diff - 64);
