@@ -32,7 +32,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     fBusy = true;
     MEs[nodeTag] = bookCommon(node);
     MECanvases[nodeTag] = bookCommonCanvases(node);
-    printMECollection(MEs[nodeTag]);
+    // printMECollection(MEs[nodeTag]);
     fBusy = false;
   }
 	
@@ -95,7 +95,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 	  fBusy = true;
 	  MEs[dduTag] = bookDDU(dduID);
 	  MECanvases[dduTag] = bookDDUCanvases(dduID);
-	  printMECollection(MEs[dduTag]);
+	  // printMECollection(MEs[dduTag]);
 	  fBusy = false;
 	  L1ANumbers[dduID] = 0;
 	  fFirstEvent = true;
@@ -122,7 +122,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 	fBusy = true;
 	MEs[dduTag] = bookDDU(dduID);
 	MECanvases[dduTag] = bookDDUCanvases(dduID);
-	printMECollection(MEs[dduTag]);
+	// printMECollection(MEs[dduTag]);
 	fBusy = false;
 	L1ANumbers[dduID] = 0;
 	fFirstEvent = true;
@@ -233,7 +233,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     fBusy = true;
     MEs[dduTag] = bookDDU(dduID);
     MECanvases[dduTag] = bookDDUCanvases(dduID);
-    printMECollection(MEs[dduTag]);
+    // printMECollection(MEs[dduTag]);
     fBusy = false;
     L1ANumbers[dduID] = 0;
     //  L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
@@ -260,7 +260,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   }
 
   fCloseL1As = dduTrailer.reserved() & 0x1; // Get status if Close L1As bit
-  if (fCloseL1As) LOG4CPLUS_WARN(logger_,eTag << " Close L1As bit is set");
+  if (fCloseL1As) LOG4CPLUS_DEBUG(logger_,eTag << " Close L1As bit is set");
 
   // ==     DDU Header banch crossing number (BXN)
   BXN=dduHeader.bxnum();
@@ -515,13 +515,13 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
       if (h_itr == MEs.end() || (MEs.size()==0)) {
 	LOG4CPLUS_WARN(logger_, eTag << 
-		       "List of Histos for " << cscTag <<  " not found. Booking...");
+		       "List of MEs for " << cscTag <<  " not found. Booking...");
 	LOG4CPLUS_DEBUG(logger_,
 			"Booking Histos for " << cscTag);
 	fBusy = true;
 	MEs[cscTag] = bookChamber(ChamberID);
 	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
-	printMECollection(MEs[cscTag]);
+	// printMECollection(MEs[cscTag]);
 	fBusy = false;
       }
       ME_List& cscME = MEs[cscTag];
@@ -744,13 +744,13 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       std::map<std::string, ME_List >::iterator h_itr = MEs.find(cscTag);
       if (h_itr == MEs.end() || (MEs.size()==0)) {
 	LOG4CPLUS_WARN(logger_, eTag << 
-		       "List of Histos for " << cscTag <<  " not found. Booking...");
+		       "List of MEs for " << cscTag <<  " not found. Booking...");
 	LOG4CPLUS_DEBUG(logger_,
 			"Booking Histos for " << cscTag);
 	fBusy = true;
 	MEs[cscTag] = bookChamber(ChamberID);
 	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
-	printMECollection(MEs[cscTag]);
+	// printMECollection(MEs[cscTag]);
 	fBusy = false;
       }
       ME_List& cscME = MEs[cscTag];
@@ -831,13 +831,13 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
  
       if (h_itr == MEs.end() || (MEs.size()==0)) {
 	LOG4CPLUS_WARN(logger_, eTag << 
-		       "List of Histos for " << cscTag <<  " not found. Booking...");
+		       "List of MEs for " << cscTag <<  " not found. Booking...");
 	LOG4CPLUS_DEBUG(logger_,
 			"Booking Histos for " << cscTag);
 	fBusy = true;
 	MEs[cscTag] = bookChamber(ChamberID);
 	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
-	printMECollection(MEs[cscTag]);
+	// printMECollection(MEs[cscTag]);
 	fBusy = false;
       }
       ME_List& cscME = MEs[cscTag];
