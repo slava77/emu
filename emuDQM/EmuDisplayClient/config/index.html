@@ -186,10 +186,11 @@
 	}
 	
 	table.runs_table tr, td {text-align: left; white-space: nowrap;}
-	
+	table.nodes_table tr, td {white-space: nowrap; }
+	td.node_info {background-color: white; text-align: center; }
 	
 	#csctable_div, #hwtable_div, #runs_div, #tests_div, #csccounters_div,
-	#local_runs, #global_runs, #online_runs
+	#local_runs, #global_runs, #online_runs, #ddutable_div
 	{
 		padding: 1px;
 		border-style: solid;
@@ -200,11 +201,11 @@
 		overflow:auto;
 	}
 	
-	#csctable_div, #hwtable_div, #csccounters_div {
+	#csctable_div, #hwtable_div, #csccounters_div,#ddutable_div {
 		float: left;
 	}
 	
-	#hwtable_div, #csccounters_div {
+	#hwtable_div, #csccounters_div, #ddutable_div {
 		max-height: 350px;
 	}
 	
@@ -244,7 +245,7 @@
 	td.me_type{ background-color: #ddd; font-weight: bold;  width: 40px;} 
 	td.me, td.me_emu { background-color: #ddd; font-weight: bold; font-size:9pt; width: 50px; }
 	th.RunLink {padding: 0 0 0 4px; text-align: left; font-size:10pt;  font-weight: bold; background-color: #AFAFFF; } 
-	td.node {width: 24px; background-color: white; text-align: center}
+	td.node {width: 24px; background-color: white; text-align: center; }
 	td.td_status {background-color: white; text-align: center}
 </style>
 <script type="text/javascript">
@@ -290,6 +291,8 @@ var CSC_COUNTERS=false;
 var Log=new Array();
 var logLevel="all";
 
+var isIE = false;
+
 var selectedObjectList=new Array();
 
 var testsShowLists = new Array();
@@ -326,7 +329,7 @@ var totalDQMrate=0;
 var totalCSCrate=0;
 
 var CSC_TYPES = [
-	['ME+',[["ME+4/2", 36],
+	['ME+',[
 		["ME+4/1", 18],
 		["ME+3/2", 36],
 		["ME+3/1", 18],
@@ -343,8 +346,7 @@ var CSC_TYPES = [
 		["ME-2/2", 36],
 		["ME-3/1", 18],
 		["ME-3/2", 36],
-		["ME-4/1", 18],
-		["ME-4/2", 36]]
+		["ME-4/1", 18]]
 	]
 ];
 
@@ -472,7 +474,7 @@ function addlog(message, level)
 function showLog()
 {
 	var logd = document.getElementById("log");
-	if (Log && logd) {
+	if (Log && logd && !isIE) {
 		logd.style.display = "none";
 		logd.innerHTML = "";
 		var out = "<table class='log'>";
@@ -575,7 +577,7 @@ function showCSCTable(id)
 			{
 				if (c_list[i] && c_list[i].length > 0) {
 					var side = c_list[i][0];
-			 		out += "<tr class='me'><td rowspan='9' id='"+side+"' class='me' >"+side+"</td>";
+			 		out += "<tr class='me'><td rowspan='8' id='"+side+"' class='me' >"+side+"</td>";
 					
 					var types =  c_list[i][1];
 					if (types && types.length > 0) {
@@ -602,6 +604,104 @@ function showCSCTable(id)
 		}
 	}
 }
+
+function showDDUTable(id)
+{
+	// DDUs.length = 0;
+	// clearShowList("Folders", "All CSCs");
+	var c_list = DDUMAP;
+	
+	
+	obj = document.getElementById(id);
+	if (obj) {
+		if (c_list && c_list.length > 0) {
+			// obj.innerHTML = "";
+			out = "";
+			out += "<table border=1 cellpadding=0 cellspacing=0 id='ddumap_table'>";
+			// out += "<th class='RunLink' id='RunLink' colspan=38 align=left>Run Number: </th>";
+			// out += "<th class='RunLink' align=left colspan=38>Run Number: <a class='RLink' target=images href="+link+">"+RunNumber+"</a><br></th>";
+			// Display Commons
+			
+			
+			// Display DDUs 
+			//out += "<tr class='me'><td id='cscDDU' class='me' colspan='2' >DDUs</td>";	
+			out += "<tr><td class='me_type'>RUI#</td><td class='me_type'>DDU ID</td>";
+			for (var i=0; i<15; i++) {
+				out += "<td class='me_type'>Inp "+i+"</td>";
+			};
+			out += "</tr>";
+			for (var i=0; i<= c_list.length; i++) {
+				out += "<tr class='me'>";
+				rui = c_list[i];
+				if (rui && rui.length) {
+					out += "<td class='me_type' id='cscRUI"+i+"' class='me_ddu' >"+rui[1]+"</td>";
+					out += "<td class='me_type' >"+rui[0]+"</td>";
+					for (var j=4; j<19; j++) {
+						out += "<td id='csc"+rui[j]+"'>"+rui[j]+"</td>";
+					}
+				}
+				out += "</tr>";
+			}
+			
+			
+			
+			out += "</table>";
+			obj.innerHTML = out;
+		}
+	}
+}
+
+function findLinkedDDU(id)
+{
+	if (DDUMAP && DDUMAP.length) {
+		for (var i=0; i<DDUMAP.length; i++) {
+			rui = DDUMAP[i];
+			for (var j=4; j<19; j++){
+				if (rui[j]==id) {
+					showConnectedCSCs(i+1);
+					return false;
+				}
+			}
+		}
+	}
+}
+
+function showConnectedCSCs(id)
+{
+	updateCSCMappings();
+	// addlog("DDU"+id, "info");
+	if (DDUMAP && DDUMAP.length) {
+		rui=DDUMAP[id-1];
+		if (rui && rui.length) {
+			/*
+			obj = document.getElementById("cscDDU"+id);
+			if (obj) {
+				obj.style.borderColor = "red";
+				obj.style.borderWidth = "2px";
+			}
+			*/
+			for (var i=4; i<19; i++) {
+				cscid="csc"+rui[i];
+				if (rui[i] != "") {
+					obj = document.getElementById(cscid);
+					if (obj) {
+						obj.style.borderColor = "red";
+						//obj.style.borderWidth = "2px";
+					}
+					/*
+					obj = document.getElementById(rui[i]);
+					if (obj) {
+						obj.style.borderColor = "red";
+						obj.style.borderWidth = "2px";
+						
+					}
+					*/
+				}
+			}
+		}
+	}
+}
+
 
 function makeCSCid(crate, slot)
 {
@@ -658,8 +758,8 @@ function showHWTable()
 						var name=Tag;
 						for (var k=0; k<ddu_map.length; k++) {
 							map_entry = ddu_map[k];
-							
-							if (map_entry[0] == ddu_list[j]) //{name += "<br>rui"+map_entry[1]+"/c"+map_entry[2]+"/s"+map_entry[3];}								
+							if (!map_entry) continue;
+							if (map_entry[0] && map_entry[0] == ddu_list[j]) //{name += "<br>rui"+map_entry[1]+"/c"+map_entry[2]+"/s"+map_entry[3];}								
 								{name += "<br>("+idx+") c"+map_entry[2]+"/s"+map_entry[3];}
 						}
 						out += "<td class='hw_td'><a href='' id=\'"+ID+"\' onClick='Folder=\""+Tag+"\"; selectSystemFolder(\""+Tag+"\"); return loadPlot();'>"+name+"</a></td>";
@@ -726,7 +826,7 @@ function showNodeDetailedStatus(id) {
 			}
 		}
 		if (obj && nodes[idx] && nodes[idx].length && idx) {
-			out +="<table>";
+			out +="<table class='nodes_table'>";
 			// Show Table Header
 			if (nodes.length && nodes[0] && nodes[0].length) {
 				for (i=0; i< nodes[0].length; i++) {
@@ -735,7 +835,7 @@ function showNodeDetailedStatus(id) {
 			}
 			// Show Node Status 
 			out+="<tr>";
-			out+="<td class='node'><a target='shownode' href='"+nodes[idx][1]+"'>"+nodes[idx][0]+"</a></td>";
+			out+="<td class='node_info'><a target='shownode' href='"+nodes[idx][1]+"'>"+nodes[idx][0]+"</a></td>";
 			state = nodes[idx][2];
 			id = 'node_'+node;
 			var color='white';
@@ -744,9 +844,9 @@ function showNodeDetailedStatus(id) {
 			else if (state.search("Ready") >=0) {color='#ffff90';}
 			else if (state.search("Unknown") >=0) {color='909090';}
 			
-			out +="<td class='node' style='background-color: "+color+"'>"+state+"</td>";
+			out +="<td class='node_info' style='background-color: "+color+"'>"+state+"</td>";
 			for (j=3; j<nodes[idx].length; j++) {
-				out+="<td class='node'>"+nodes[idx][j]+"</td>";
+				out+="<td class='node_info'>"+nodes[idx][j]+"</td>";
 			}
 			out+="</tr>";
 			out +="</table>"		
@@ -903,6 +1003,7 @@ function updateNodesStatus()
 				totalDQMrate=0;
 				totalCSCrate=0;
 				for (i=1; i<nodes.length; i++) {
+					if (!nodes[i]) continue;
 					node = nodes[i][0].substr(nodes[i][0].lastIndexOf('-')+1,nodes[i][0].length);
 					state = nodes[i][2];
 					rate = nodes[i][6];
@@ -1097,7 +1198,7 @@ function loadTestsList(r_list, id)
 				
 				th_folder = r_list[i][0];
 				th_id = "folder_"+ th_folder;
-				out += "<legend class='t_hdr'><a class='test_hdr' href='' onClick='showHide(\""+th_id+"\");'>"+th_folder+"</a></legend>";
+				out += "<legend class='t_hdr'><a class='test_hdr' href='' onClick='return showHide(\""+th_id+"\");'>"+th_folder+"</a></legend>";
 				if (r_list[i][0] == "EMU") 
 					{ scope = "EMU";}
 				else if (r_list[i][0] == "DDU") 
@@ -1127,7 +1228,7 @@ function loadTestsList(r_list, id)
 				for (var list in t_map) {
 					if ((list != th_folder) || (list == "CSC")) {
 						out += "<fieldset>";
-						out += "<legend class='t_hdr'><a class='test_hdr2' href='' onClick='showHide(\"id_"+list+"\");'>"+list+"</a></legend>";
+						out += "<legend class='t_hdr'><a class='test_hdr2' href='' onClick='return showHide(\"id_"+list+"\"); return false;'>"+list+"</a></legend>";
 						out += "<div class='t_div' id='id_"+list+"' style='overflow: hidden;'>";				
 					}
 					out += "<table class='tests_table'>";
@@ -1135,7 +1236,7 @@ function loadTestsList(r_list, id)
 					for (var entry in folder) {
 						// <td><input type=checkbox id='cb_"+entry+"'></td>
 						out += "<tr></td><td><a class='add_to_list' href='' onClick='addToTestsShowList(\"Custom\",\""+entry+"\",\""+folder[entry]+"\" ,\""+scope+"\");return false;'>[+]</a>";
-						out += "</a><a class='test_item' href='#' id =\""+entry+"\"  onClick='Canvas=\""+entry+"\";Scope=\""+scope+"\";return updateBrowserPage(\""+entry+"\",false,3)'>"+folder[entry]+"</a></td></tr>";			 				
+						out += "</a><a class='test_item' href='' id =\""+entry+"\"  onClick='Canvas=\""+entry+"\";Scope=\""+scope+"\";return updateBrowserPage(\""+entry+"\",false,3)'>"+folder[entry]+"</a></td></tr>";			 				
 						if (scope=="CSC" ) { 
 							addToTestsShowList("All CSC Tests", entry, folder[entry], scope);
 						}
@@ -1279,12 +1380,13 @@ function showCSCCounters()
 			cnt_bad_cfeb=0;
 			cnt_bad_events=0;
 			for (var i=1; i<cscs.length; i++) {
-				csc = cscs[i][0];	
+				if (!cscs[i]) continue;
+				var csc = cscs[i][0];	
 				stats = cscs[i][1];
 				n_crate = parseFloat(csc.substring(4,7));
 				if (n_crate != crate ) { 
 					crate_str=getVMECrateName("crate"+n_crate) + ": crate"+n_crate;
-					out+="</tr><tr><td class='node'><b>"+crate_str+"</b></td>";
+					out+="</tr><tr><td class='node_info'><b>"+crate_str+"</b></td>";
 					crate=n_crate;
 				}
 				slot = parseFloat(csc.substring(8,10));
@@ -1340,8 +1442,8 @@ function showCSCCounters()
 			}		
 		}		
 		out+= "</table>";	
-		out= "<table><tr><td class='node'>Summary (#CSCs with failed efficiencies)</td><td class='node'>Bad events: <b>"+cnt_bad_events+"</b></td><td class='node'>ALCT: <b>"+cnt_bad_alct+"</b></td><td  class='node'>TMB/CLCT: <b>"+cnt_bad_clct+"</b></td><td  class='node'>CFEB: <b>"+cnt_bad_cfeb+"</b></td></tr></table>"+out;
-		out+= "<table><tr><td class='node'>Legend: #E - #of Events; #B - #of Bad Events; A - ALCT; T - TMB/CLCT; C - CFEB Efficiencies in %</td></tr></table>";
+		out= "<table><tr><td class='node_info'>Summary (#CSCs with failed efficiencies)</td><td class='node_info'>Bad events: <b>"+cnt_bad_events+"</b></td><td class='node_info'>ALCT: <b>"+cnt_bad_alct+"</b></td><td  class='node_info'>TMB/CLCT: <b>"+cnt_bad_clct+"</b></td><td  class='node_info'>CFEB: <b>"+cnt_bad_cfeb+"</b></td></tr></table>"+out;
+		out+= "<table><tr><td class='node_info'>Legend: #E - #of Events; #B - #of Bad Events; A - ALCT; T - TMB/CLCT; C - CFEB Efficiencies in %</td></tr></table>";
 		obj.innerHTML=out;
 		return;
 		try {
@@ -1391,6 +1493,7 @@ function updateCSCMappings()
 {
 	c_list = CSC_LIST;
 	showCSCTable("csctable_div");
+	showDDUTable("ddutable_div");
 	//resetCSCTable('csc_table');
 	
 	numCSCs=0;
@@ -1456,7 +1559,7 @@ function enableCSCTableEntry(entry_key, entry)
 			obj.style.background = 'white';
 			val = obj.innerHTML;
 			// emuLink="<a href='#' id='" + dduID+ "' onClick='Folder=\""+entry+"\"; return loadFrame(\""+dduID+"\",false, 4)'>"+idx+"</a>";
-			dduLink="<a href='' id='" + dduID+ "' onClick='Folder=\""+entry+"\"; selectSystemFolder(\""+entry+"\"); return loadPlot();'>"+idx+"</a>";
+			dduLink="<a href='' id='" + dduID+ "' onClick='Folder=\""+entry+"\"; selectSystemFolder(\""+entry+"\"); showConnectedCSCs(\""+idx+"\"); return loadPlot();'>"+idx+"</a>";
 			obj.innerHTML = dduLink;
 			if (obj_sel && (obj_sel.id == dduID)) {
 				Folder = entry;
@@ -1475,10 +1578,10 @@ function enableCSCTableEntry(entry_key, entry)
 			obj.style.background = 'white';
 			val = obj.innerHTML;
 			// csc = entry_key+"/"+entry;
-			csc = makeCSCid(entry_key, entry);
+			var csc = makeCSCid(entry_key, entry);
 			cscID = "csc_" + csc;
 			// csclink="<a href='#' id='" + cscID+ "' onClick='Folder=\""+csc+"\"; return loadFrame(\""+cscID+"\",false, 4)'>"+val+"</a>";
-			csclink="<a href='' id='" + cscID+ "' onClick='Folder=\""+csc+"\"; selectSystemFolder(\""+csc+"\"); return loadPlot();'>"+val+"</a>";
+			csclink="<a href='' id='" + cscID+ "' onClick='Folder=\""+csc+"\"; selectSystemFolder(\""+csc+"\"); findLinkedDDU(\""+cscName+"\"); return loadPlot();'>"+val+"</a>";
 			obj.innerHTML = csclink;
 			addToFoldersShowList("All CSCs", csc, cscName);
 			if (obj_sel && (obj_sel.id == cscID)) {
@@ -1497,7 +1600,7 @@ function enableCSCTableEntry(entry_key, entry)
 
 function findCSCFromMap(crate, slot, m_list)
 {
-	csc = "";
+	
 	m_list = CSCMAP;
 	if (m_list.length>0) {
 		for (var i=0; i<m_list.length; i++) {
@@ -1506,7 +1609,7 @@ function findCSCFromMap(crate, slot, m_list)
 			   return m_list[i][2];		
 		}	
 	}
-	return csc;
+	return "";
 }
 
 
@@ -1819,7 +1922,7 @@ function showSlideShowList(list)
 		ctrlStr = "";
 		for (var i=0; i< sList.length; i++) {
 			if (list == "Custom") {
-				ctrlStr = "<a class='remove_from_list' href='#' onClick='removeFromTestsShowList(\"Custom\",\""+i+"\");'>[x]</a>"
+				ctrlStr = "<a class='remove_from_list' href='' onClick='removeFromTestsShowList(\"Custom\",\""+i+"\");'>[x]</a>"
 			}
 			s += '<tr><td id="ssid_'+i+'">'+ctrlStr+sList[i][1]+'</td></tr>';
 		}
@@ -1903,6 +2006,8 @@ function setSelectedTab(obj)
 	div_obj.style.display = "";
 	div_obj = get_element("hwtable_div");
 	div_obj.style.display = "none";
+	div_obj = get_element("ddutable_div");
+	div_obj.style.display = "none";	
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "none";
    }
@@ -1911,6 +2016,9 @@ function setSelectedTab(obj)
 	div_obj.style.display = "none";
 	div_obj = get_element("hwtable_div");
 	div_obj.style.display = "";
+	div_obj = get_element("ddutable_div");
+	div_obj.style.display = "none";
+	
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "none";
    }
@@ -1919,9 +2027,20 @@ function setSelectedTab(obj)
 	div_obj.style.display = "none";
 	div_obj = get_element("hwtable_div");
 	div_obj.style.display = "none";
+	div_obj = get_element("ddutable_div");
+	div_obj.style.display = "none";
 	div_obj = get_element("csccounters_div");
 	div_obj.style.display = "";
 	// getCSCCounters();
+   } else if (obj.title == "ddu_view") {
+	div_obj = get_element("csctable_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("hwtable_div");
+	div_obj.style.display = "none";
+	div_obj = get_element("ddutable_div");
+	div_obj.style.display = "";
+	div_obj = get_element("csccounters_div");
+	div_obj.style.display = "none";
    }
    o_selected = obj;
    return false;
@@ -1970,6 +2089,7 @@ get_element = document.all ?
 <body>
 
 <script type="text/javascript">
+	if (navigator.userAgent.toLowerCase().indexOf('msie') != -1) isIE=true;
 	baseURL=document.URL;
 	if (document.URL.lastIndexOf('/') != document.URL.length-1) baseURL+="/";
 	document.write('<script src="', baseURL+CSCMap, '" type="text/javascript"><\/script>');
@@ -1985,7 +2105,7 @@ get_element = document.all ?
 	
 	<fieldset id="Tests">
 		<legend>
-			<a class='winTitle' href='#' onClick='showHide("tests_div");'>Tests</a>
+			<a class='winTitle' href='' onClick='return showHide("tests_div");'>Tests</a>
 		</legend>
 		<div id="tests_div">
 			<script type="text/javascript">
@@ -1999,7 +2119,7 @@ get_element = document.all ?
 	</fieldset>
 	
 	<fieldset id="Options">
-		<legend><a class='winTitle' href='#' onClick='showHide("options_div");'>Options</a></legend>
+		<legend><a class='winTitle' href='' onClick='return showHide("options_div");'>Options</a></legend>
 		<div id="options_div">
 			<table>
 				<tr>
@@ -2035,7 +2155,7 @@ get_element = document.all ?
 	</fieldset>
 	
 	<fieldset id="SlideShow">
-		<legend><a class='winTitle' href='#' onClick='showHide("slideshow_div");'>SlideShow</a></legend>
+		<legend><a class='winTitle' href='' onClick='return showHide("slideshow_div");'>SlideShow</a></legend>
 		<div id="slideshow_div">
 			<form name="theTimer"><table>
 			<tr>
@@ -2053,7 +2173,7 @@ get_element = document.all ?
 		   <tr>      
 			  <td colspan=3 align=center>
 				<!-- input type=text name="currentTest" -->
-				<li id="currentTest"></li>
+				<span id="currentTest"></span>
 			  </td>
 		   </tr>
 		   <tr>
@@ -2079,7 +2199,7 @@ get_element = document.all ?
 <div class="MainWindow" id="r_panel">
 	<fieldset id="NodesView">
 		<legend>
-			<a class='winTitle' href='#' onClick='showHide("nodes_div");'>Nodes Status</a>						
+			<a class='winTitle' href='' onClick='return showHide("nodes_div");'>Nodes Status</a>						
 		</legend>
 		<div id="nodes_div">
 			<div id="nodesview_div">
@@ -2102,14 +2222,15 @@ get_element = document.all ?
 	</fieldset>
 	<fieldset id="SystemView">
 		<legend>
-			<a class='winTitle' href='#' onClick='showHide("sysview_div");'>System View</a>
+			<a class='winTitle' href='' onClick='return showHide("sysview_div");'>System View</a>
 		</legend>		
 		<div id="sysview_div">	
 			<div class="tabs">
 				<ul>
-				<li title="csc_view" id="selected" onClick="return setSelectedTab(this);"><a href="#">CSCs Table</a></li>
-				<li title="hw_view"   onClick="return setSelectedTab(this);"><a href="#">VME/DMB Table</a></li>
-				<li title="csccounters_view"   onClick="return setSelectedTab(this);"><a href="#">CSC Efficiencies</a></li>
+				<li title="csc_view" id="selected" onClick="return setSelectedTab(this);"><a href="">CSCs Table</a></li>
+				<li title="hw_view"   onClick="return setSelectedTab(this);"><a href="">VME/DMB Table</a></li>
+				<li title="ddu_view"  onClick="return setSelectedTab(this);"><a href="">DDU/CSC Map</a></li>
+				<li title="csccounters_view"   onClick="return setSelectedTab(this);"><a href="">CSC Efficiencies</a></li>
 				</ul>
 			</div>
 			
@@ -2125,6 +2246,14 @@ get_element = document.all ?
 			<div id="hwtable_div" style="display: none;">
 				Empty HW Table
 			</div>			
+			<div id="ddutable_div" style="display: none;">
+				<script type="text/javascript">
+				<!--//
+					// new showCSCTable("csctable_div");
+					showDDUTable("ddutable_div");
+				//-->
+				</script>
+			</div>
 			<div id="csccounters_div" style="display: none;">
 				<script type="text/javascript">
 				<!--//
@@ -2139,13 +2268,13 @@ get_element = document.all ?
 		
 	</fieldset>
 	<fieldset id="Plots">
-		<legend><a id='plot_title' class='winTitle' href='#' onClick='showHide("plots_div");'>Plots</a></legend>
+		<legend><a id='plot_title' class='winTitle' href='' onClick='return showHide("plots_div");'>Plots</a></legend>
 		<div id="plots_div">
 		</div>
 	</fieldset>
 	
 	<fieldset>
-		<legend><a class='winTitle' href='#' onClick='showHide("log");'>Log</a>
+		<legend><a class='winTitle' href='' onClick='return showHide("log");'>Log</a>
 			<input type=button value="Clear" onclick="clearLog();"> 
 			<select id="selLogLevel" onChange="selectLogLevel()";>	
 				<option selected value="all">ALL</option>
