@@ -774,10 +774,10 @@ void EmuDisplayClient::genImage (xgi::Input * in, xgi::Output * out)  throw (xgi
       char   *data = 0;
       int    size = 0;
 
-      // img->FromPad(cnv);
+      img->FromPad(cnv);
       std::string imgname=BaseDir.toString()+"/"+imagePath_.toString()+"/"+folder+"_"+objname+"."+imageFormat_.toString();
-      cnv->Print(imgname.c_str());
-      img->ReadImage(imgname.c_str());
+      //cnv->Print(imgname.c_str());
+      //img->ReadImage(imgname.c_str());
       img->Gray(false);
       img->GetImageBuffer(&data, &size, TImage::kPng);
 
@@ -1308,6 +1308,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
 	  std::string errmsg = "DQMNode: ";
 	  errmsg += fault.getFaultString();
 	  XCEPT_RAISE(xoap::exception::Exception, errmsg);
+	  return bmap;
 	} else {       
 	  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestObjectsList reply from " << monitor->getClassName() << " ID" << monitor->getLocalId());
 	  //	  std::map<std::string, std::list<std::string> > bmap;
@@ -1404,6 +1405,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
 	  std::string errmsg = "DQMNode: ";
 	  errmsg += fault.getFaultString();
 	  XCEPT_RAISE(xoap::exception::Exception, errmsg);
+	  return bmap;
 	} else {       
 	  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestCanvasesList reply from " << monitor->getClassName() << " ID" << monitor->getLocalId());
 	  //	  std::map<std::string, std::list<std::string> > bmap;
@@ -1540,6 +1542,7 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
 	  std::string errmsg = "DQMNode: ";
 	  errmsg += fault.getFaultString();
 	  XCEPT_RAISE(xoap::exception::Exception, errmsg);
+	  return buf;
 	} else { 
           LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestObjects reply from " << d->getClassName() << " ID" << d->getLocalId());	  
 	  std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
@@ -1623,6 +1626,7 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
 	  std::string errmsg = "DQMNode: ";
 	  errmsg += fault.getFaultString();
 	  XCEPT_RAISE(xoap::exception::Exception, errmsg);
+	  return buf;
 	} else { 
           LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestCanvas: \"" << folder << "/" << objname << "\" reply from " << d->getClassName() << " ID" << d->getLocalId());
 	  std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
@@ -1660,16 +1664,18 @@ void EmuDisplayClient::updateFoldersMap()
     foldersMap.clear();
     std::set<xdaq::ApplicationDescriptor*> monitors = getAppsList(monitorClass_);
     if (!monitors.empty()) {
-    
+  
+
+      // LOG4CPLUS_INFO (getApplicationLogger(), "Start Monitoring Folders List updating");  
       std::set<xdaq::ApplicationDescriptor*>::iterator pos;
-   
+
       for (pos=monitors.begin(); pos!=monitors.end(); ++pos) {
         if ((*pos) == NULL) continue;
 	int nodeID= (*pos)->getLocalId();
 	std::set<std::string> flist = requestFoldersList(*pos);
 	std::set<std::string>::iterator litr;
 	for(litr=flist.begin(); litr != flist.end(); ++litr) {
-	  foldersMap[*litr].insert(nodeID);	
+	  if (*litr != "") foldersMap[*litr].insert(nodeID);	
 	}      
       }
       LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Folders List is updated");
@@ -1816,6 +1822,7 @@ std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDes
 	  std::string errmsg = "DQMNode: ";
 	  errmsg += fault.getFaultString();
 	  XCEPT_RAISE(xoap::exception::Exception, errmsg);
+	  return flist;
 	} else {       
 	  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received requestFoldersList reply from " << dest->getClassName() << " ID" << dest->getLocalId());
 

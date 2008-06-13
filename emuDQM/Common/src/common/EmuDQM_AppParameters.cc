@@ -39,6 +39,7 @@ namespace emu {
 	      s = oss.str();
 	      
 	      XCEPT_RAISE(xoap::exception::Exception, s);
+	      return value;
 	    } else {
 	      value = extractScalarParameterValueFromSoapMsg(reply, paramName);
 	    }
