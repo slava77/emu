@@ -259,6 +259,9 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     mo->Fill(dduID, trl_word_count );
   }
 
+  fCloseL1As = dduTrailer.reserved() & 0x1; // Get status if Close L1As bit
+  if (fCloseL1As) LOG4CPLUS_WARN(logger_,eTag << " Close L1As bit is set");
+
   // ==     DDU Header banch crossing number (BXN)
   BXN=dduHeader.bxnum();
   LOG4CPLUS_DEBUG(logger_,dduTag << " DDU Header BXN Number = " << std::dec << BXN);
@@ -1026,6 +1029,7 @@ void EmuPlotter::updateFractionHistos()
   calcFractionHisto(nodeME, "DMB_input_fifo_full_Fract", "DMB_Reporting", "DMB_input_fifo_full");
   calcFractionHisto(nodeME, "CSC_DMB_input_timeout_Fract", "CSC_Reporting", "CSC_DMB_input_timeout");
   calcFractionHisto(nodeME, "DMB_input_timeout_Fract", "DMB_Reporting", "DMB_input_timeout");
+  calcFractionHisto(nodeME, "CSC_L1A_out_of_sync_Fract", "CSC_Reporting", "CSC_L1A_out_of_sync");
   
 /*
   if (isMEvalid(nodeME, "DMB_Format_Warnings_Fract", mo)
