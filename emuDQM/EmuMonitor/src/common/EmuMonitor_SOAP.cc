@@ -11,7 +11,7 @@
 
 xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
-  LOG4CPLUS_INFO (getApplicationLogger(), "Received Monitoring Objects List request");
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Monitoring Objects List request");
   xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
   if (rb.hasFault() )
     {
@@ -72,7 +72,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
 
 xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
-  LOG4CPLUS_INFO (getApplicationLogger(), "Received Folders List request");
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Folders List request");
   xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
   if (rb.hasFault() )
     {
@@ -123,7 +123,7 @@ xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference nod
 
 xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
-  LOG4CPLUS_INFO (getApplicationLogger(), "Received Monitoring Objects request");
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Monitoring Objects request");
   xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
   std::string folder = "";
   std::string objname = "";
@@ -198,7 +198,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 			    attachment->setContentLocation(folder+"/"+objname);
 			    attachment->setContentEncoding("binary");
 			    msg->addAttachmentPart(attachment);
-			    LOG4CPLUS_INFO (getApplicationLogger(), "Sending "<<  meobj_itr->second->getFullName());
+			    LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending "<<  meobj_itr->second->getFullName());
 			    delete []attch_buf;
 			  }
 			}
@@ -214,7 +214,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 
 xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
-  LOG4CPLUS_INFO (getApplicationLogger(), "Received Monitoring Canvases List request");
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Monitoring Canvases List request");
   xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
   if (rb.hasFault() )
     {
@@ -275,7 +275,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
 
 xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
-  LOG4CPLUS_INFO (getApplicationLogger(), "Received Monitoring Canvas request");
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received Monitoring Canvas request");
   xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
   std::string folder = "";
   std::string objname = "";
@@ -371,7 +371,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 			    attachment->setContentLocation(folder+"/"+objname);
 			    attachment->setContentEncoding("binary");
 			    msg->addAttachmentPart(attachment);
-			    LOG4CPLUS_INFO (getApplicationLogger(), "Sending "<<  cnv->getFullName());
+			    LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending "<<  cnv->getFullName());
 			    delete []attch_buf;
 			    // delete cnv;
 			  }
@@ -388,7 +388,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 
 xoap::MessageReference EmuMonitor::requestCSCCounters(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
-  LOG4CPLUS_INFO (getApplicationLogger(), "Received CSC Counters request");
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Received CSC Counters request");
   xoap::SOAPBody rb = node->getSOAPPart().getEnvelope().getBody();
   xoap::MessageReference msg = xoap::createMessage();
   xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
