@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2008/05/28 21:23:07 rredjimi Exp $
+# $Id: Makefile,v 1.2 2008/06/16 22:03:06 rredjimi Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -28,7 +28,7 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 Project = emu
 Package=setup/emu
-PackageName = jc
+PackageName = emu
 
 PACKAGE_VER_MAJOR=1
 PACKAGE_VER_MINOR=0
