@@ -60,6 +60,20 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
   //-------------------------------------------------------------
+  fsm_.addState('H', "Halted",     this, &EmuPeripheralCrateMonitor::stateChanged);
+  fsm_.addState('E', "Enabled",    this, &EmuPeripheralCrateMonitor::stateChanged);
+  //
+  fsm_.addStateTransition('E', 'E', "Enable",    this, &EmuPeripheralCrateMonitor::dummyAction);
+  fsm_.addStateTransition('H', 'E', "Enable",    this, &EmuPeripheralCrateMonitor::dummyAction);
+  fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuPeripheralCrateMonitor::dummyAction);
+  fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuPeripheralCrateMonitor::dummyAction);
+  //
+  fsm_.setInitialState('H');
+  fsm_.reset();    
+  //
+  // state_ is defined in EmuApplication
+  state_ = fsm_.getStateName(fsm_.getCurrentState());
+  //-------------------------------------------------------------
   //----------------------------
   // initialize variables
   //----------------------------
@@ -100,6 +114,17 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   parsed=0;
 }
 
+void EmuPeripheralCrateMonitor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+    throw (toolbox::fsm::exception::Exception) {
+  EmuApplication::stateChanged(fsm);
+}
+
+void EmuPeripheralCrateMonitor::dummyAction(toolbox::Event::Reference e)
+    throw (toolbox::fsm::exception::Exception) {
+  // currently do nothing
+}
+//
+
 void EmuPeripheralCrateMonitor::MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
      if(!Monitor_On_)
@@ -113,6 +138,7 @@ void EmuPeripheralCrateMonitor::MonitorStart(xgi::Input * in, xgi::Output * out 
          Monitor_On_=true;
          std::cout<< "Monitor Started" << std::endl;
      }
+     fireEvent("Enable");
      this->Default(in,out);
 }
 
@@ -124,6 +150,7 @@ void EmuPeripheralCrateMonitor::MonitorStop(xgi::Input * in, xgi::Output * out )
          Monitor_On_=false;
          std::cout << "Monitor stopped" << std::endl;
      }
+     fireEvent("Halt");
      this->Default(in,out);
 }
 

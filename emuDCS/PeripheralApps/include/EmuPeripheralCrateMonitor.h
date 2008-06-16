@@ -180,7 +180,10 @@ private:
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-
+  // define states
+  void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
+  void dummyAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
+      
   void CheckControllers();
   bool ParsingXML();
   void SetCurrentCrate(int crate);
