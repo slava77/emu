@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.12 2008/06/12 21:08:54 rakness Exp $
+// $Id: CCB.h,v 3.13 2008/06/17 09:07:10 liu Exp $
 // $Log: CCB.h,v $
+// Revision 3.13  2008/06/17 09:07:10  liu
+// add TTCrxFineDelay
+//
 // Revision 3.12  2008/06/12 21:08:54  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -193,6 +196,7 @@ public:
   inline int  GetTTCrxCoarseDelay(){return TTCrxCoarseDelay_;}
   //
   inline void SetTTCrxFineDelay(int delay)     {TTCrxFineDelay_  = delay;}
+  inline int  GetTTCrxFineDelay(){return TTCrxFineDelay_;}
   //
   inline void SetExpectedFirmwareDay(int day) {expected_firmware_day_ = day;}
   inline int  GetExpectedFirmwareDay() { return expected_firmware_day_;}
