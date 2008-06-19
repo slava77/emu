@@ -60,16 +60,15 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub),
 		logger_(Logger::getInstance("CSCSupervisor")),
-		run_type_(""), run_number_(0), runSequenceNumber_(0),
+		run_type_("Monitor"), run_number_(0), runSequenceNumber_(0),
 		daq_mode_(""), trigger_config_(""), ttc_source_(""),
 		rcmsStateNotifier_(getApplicationLogger(), getApplicationDescriptor(), getApplicationContext()),
 		wl_semaphore_(toolbox::BSem::EMPTY), quit_calibration_(false),
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
-		daq_notavailable_(false),
-		isCommandFromWeb_(false),
 		nevents_(-1),
 		step_counter_(0),
 		error_message_(""), keep_refresh_(false), hide_tts_control_(true),
+		curlHost_("cmsusr3.cms"),
 		runInfo_(NULL),
 		runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
 		runDbWritingCommand_( "java -jar runinfowriter.jar" ),
@@ -101,6 +100,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	i->fireItemAvailable("ttsID", &tts_id_);
 	i->fireItemAvailable("ttsBits", &tts_bits_);
 
+	i->fireItemAvailable( "curlHost",       &curlHost_     );
 	i->fireItemAvailable( "curlCommand",    &curlCommand_  );
 	i->fireItemAvailable( "curlCookies", 	&curlCookies_  );
 	i->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
@@ -138,6 +138,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	wl_->activate();
 	configure_signature_ = toolbox::task::bind(
 			this, &CSCSupervisor::configureAction,  "configureAction");
+	start_signature_ = toolbox::task::bind(
+			this, &CSCSupervisor::startAction,  "startAction");
 	halt_signature_ = toolbox::task::bind(
 			this, &CSCSupervisor::haltAction,       "haltAction");
 	calibration_signature_ = toolbox::task::bind(
@@ -193,8 +195,6 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 	run_number_ = 0;
 	nevents_ = -1;
 
-	isCommandFromWeb_ = false;
-
 	submit(configure_signature_);
 
 	return createReply(message);
@@ -203,9 +203,8 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 xoap::MessageReference CSCSupervisor::onStart(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	isCommandFromWeb_ = false;
-
-	fireEvent("Start");
+  //fireEvent("Start");
+	submit(start_signature_);
 
 	return createReply(message);
 }
@@ -213,8 +212,6 @@ xoap::MessageReference CSCSupervisor::onStart(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onStop(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	isCommandFromWeb_ = false;
-
 	fireEvent("Stop");
 
 	return createReply(message);
@@ -225,8 +222,6 @@ xoap::MessageReference CSCSupervisor::onHalt(xoap::MessageReference message)
 {
 	quit_calibration_ = true;
 
-	isCommandFromWeb_ = false;
-
 	submit(halt_signature_);
 
 	return createReply(message);
@@ -235,8 +230,6 @@ xoap::MessageReference CSCSupervisor::onHalt(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onReset(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	isCommandFromWeb_ = false;
-
 	resetAction();
 
 	return onHalt(message);
@@ -245,8 +238,6 @@ xoap::MessageReference CSCSupervisor::onReset(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onSetTTS(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	isCommandFromWeb_ = false;
-
 	fireEvent("SetTTS");
 
 	return createReply(message);
@@ -267,7 +258,7 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << head() << endl;
 	*out << title("CSCSupervisor") << endl;
 	*out << cgicc::link().set("rel", "stylesheet")
-			.set("href", "/cscsv.css")
+			.set("href", "/emu/cscSV/html/cscsv.css")
 			.set("type", "text/css") << endl;
 	*out << head() << endl;
 
@@ -429,8 +420,6 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 {
 	string value;
 
-	isCommandFromWeb_ = true;
-
 	value = getCGIParameter(in, "runtype");
 	if (value.empty()) { error_message_ += "Please select run type.\n"; }
 	run_type_ = value;
@@ -449,8 +438,6 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webStart(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	isCommandFromWeb_ = true;
-
 	// Book run number here to make sure it's done 
 	// only when requested by the user from the web page,
 	// and not by the FunctionManager via SOAP.
@@ -469,8 +456,6 @@ void CSCSupervisor::webStart(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webStop(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	isCommandFromWeb_ = true;
-
 	fireEvent("Stop");
 
 	keep_refresh_ = true;
@@ -480,8 +465,6 @@ void CSCSupervisor::webStop(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	isCommandFromWeb_ = true;
-
 	quit_calibration_ = true;
 
 	submit(halt_signature_);
@@ -493,8 +476,6 @@ void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webReset(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	isCommandFromWeb_ = true;
-
 	resetAction();
 
 	webHalt(in, out);
@@ -503,8 +484,6 @@ void CSCSupervisor::webReset(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webSetTTS(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	isCommandFromWeb_ = true;
-
 	tts_id_.fromString(getCGIParameter(in, "tts_id"));
 	tts_bits_.fromString(getCGIParameter(in, "tts_bits"));
 
@@ -539,6 +518,13 @@ void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
 bool CSCSupervisor::configureAction(toolbox::task::WorkLoop *wl)
 {
 	fireEvent("Configure");
+
+	return false;
+}
+
+bool CSCSupervisor::startAction(toolbox::task::WorkLoop *wl)
+{
+	fireEvent("Start");
 
 	return false;
 }
@@ -601,6 +587,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		try {
 			if (state_table_.getState("EmuDAQManager", 0) != "Halted") {
 				sendCommand("Halt", "EmuDAQManager");
+				waitForDAQToExecute("Halt", 10, true);
 			}
 		} catch (xcept::Exception ignored) {}
 
@@ -611,19 +598,20 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 			sendCommand("Halt", "LTCControl");
 		}
 
+		// Configure local DAQ first as its FSM is driven asynchronously,
+		// and it will probably finish the transition by the time the others do.
+		try {
+			sendCommand("Configure", "EmuDAQManager");
+		} catch (xcept::Exception ignored) {}
+
+		// Allow LTCControl some time to halt:
 		::sleep(2);
+
 		string str = trim(getCrateConfig("PC", run_type_.toString()));
 		if (!str.empty()) {
 			setParameter(
 					"EmuPeripheralCrateManager", "xmlFileName", "xsd:string", str);
 		}
-
-		try {
-			setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
-					toString(nevents_));
-			setParameter("EmuDAQManager", "runType", "xsd:string",
-					run_type_.toString());
-		} catch (xcept::Exception ignored) {}
 
 		sendCommand("Configure", "TTCciControl");
 
@@ -640,15 +628,22 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
 		}
 
+		sendCommand("Configure", "EmuFCrateManager");
+
+		waitForDAQToExecute("Configure", 10, true);
 		try {
-			sendCommand("Configure", "EmuDAQManager");
+			setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
+					toString(nevents_));
+			setParameter("EmuDAQManager", "runType", "xsd:string",
+					run_type_.toString());
 		} catch (xcept::Exception ignored) {}
 
-		sendCommand("Configure", "EmuFCrateManager");
 		state_table_.refresh();
 		if (!state_table_.isValidState("Configured")) {
+		  stringstream ss;
+		  ss << state_table_;
 			XCEPT_RAISE(xdaq::exception::Exception,
-					"Applications got to unexpected states.");
+				    "Applications got to unexpected states: "+ss.str() );
 		}
 		refreshConfigParameters();
 
@@ -683,20 +678,23 @@ void CSCSupervisor::startAction(toolbox::Event::Reference evt)
     if (!isCalibrationMode()) {
       sendCommand("Enable", "EmuPeripheralCrateManager");
     }
+
     try {
       if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
 	setParameter("EmuDAQManager",
 		     "maxNumberOfEvents", "xsd:integer", toString(nevents_));
 	sendCommand("Configure", "EmuDAQManager");
+	waitForDAQToExecute("Configure", 10, true);
       }
 
       setParameter("EmuDAQManager",
 		   "runNumber", "xsd:unsignedLong", run_number_.toString());
 
       sendCommand("Enable", "EmuDAQManager");
+      waitForDAQToExecute("Enable", 10, true);
+
     } catch (xcept::Exception ignored) {}
 
-    
     state_table_.refresh();
     
     if (state_table_.getState("TTCciControl", 0) != "Enabled") {
@@ -906,7 +904,7 @@ void CSCSupervisor::sendCommand(string command, string klass)
   std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
   for (; i != apps.end(); ++i) {
     // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *i);
+    reply = getApplicationContext()->postSOAP(message, *appDescriptor_, **i);
     
     analyzeReply(message, reply, *i);
   }
@@ -938,7 +936,7 @@ void CSCSupervisor::sendCommand(string command, string klass, int instance)
 
 	// send the message
 	// postSOAP() may throw an exception when failed.
-	reply = getApplicationContext()->postSOAP(message, app);
+	reply = getApplicationContext()->postSOAP(message, *appDescriptor_, *app);
 
 	analyzeReply(message, reply, app);
 }
@@ -972,7 +970,7 @@ void CSCSupervisor::sendCommandWithAttr(
 	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
 		// postSOAP() may throw an exception when failed.
-		reply = getApplicationContext()->postSOAP(message, *i);
+		reply = getApplicationContext()->postSOAP(message, *appDescriptor_, **i);
 
 		analyzeReply(message, reply, *i);
 	}
@@ -1025,7 +1023,7 @@ void CSCSupervisor::setParameter(
 	// send the message one-by-one
 	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
-		reply = getApplicationContext()->postSOAP(message, *i);
+		reply = getApplicationContext()->postSOAP(message, *appDescriptor_, **i);
 		analyzeReply(message, reply, *i);
 	}
 }
@@ -1262,34 +1260,39 @@ string CSCSupervisor::getDAQMode()
 {
 	string result = "";
 
-	if (daq_notavailable_) { return result; }
-
 	if (daq_descr_ == NULL) {
 		try {
 			daq_descr_ = getApplicationContext()->getDefaultZone()
 					->getApplicationDescriptor("EmuDAQManager", 0);
 		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-			daq_notavailable_ = true;
+			LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ mode. "
+					<< xcept::stdformat_exception_history(e));
 			return result; // Do nothing if the target doesn't exist
 		}
 
-		std::map<string, string> m;
-		m["globalMode"] = "xsd:boolean";
-		m["configuredInGlobalMode"] = "xsd:boolean";
-		m["daqState"] = "xsd:string";
-		daq_param_ = createParameterGetSOAP("EmuDAQManager", m);
 	}
 
-	xoap::MessageReference reply;
-	try {
-		reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
-		analyzeReply(daq_param_, reply, daq_descr_);
+	if (daq_descr_ != NULL) {
 
-		result = extractParameter(reply, "globalMode");
-		result = (result == "true") ? "global" : "local";
-	} catch (xdaq::exception::Exception e) {
-		daq_notavailable_ = true;
-		result = "Unknown";
+	  std::map<string, string> m;
+	  m["globalMode"] = "xsd:boolean";
+	  m["configuredInGlobalMode"] = "xsd:boolean";
+	  m["daqState"] = "xsd:string";
+	  xoap::MessageReference daq_param = createParameterGetSOAP("EmuDAQManager", m);
+
+	  xoap::MessageReference reply;
+	  try {
+	    reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
+	    analyzeReply(daq_param, reply, daq_descr_);
+	    
+	    result = extractParameter(reply, "globalMode");
+	    result = (result == "true") ? "global" : "local";
+	  } catch (xdaq::exception::Exception e) {
+	    LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ mode. "
+			    << xcept::stdformat_exception_history(e));
+	    result = "Unknown";
+	  }
+
 	}
 
 	return result;
@@ -1299,17 +1302,34 @@ string CSCSupervisor::getLocalDAQState()
 {
 	string result = "";
 
-	if (daq_notavailable_) { return result; }
+	if (daq_descr_ == NULL) {
+		try {
+			daq_descr_ = getApplicationContext()->getDefaultZone()
+					->getApplicationDescriptor("EmuDAQManager", 0);
+		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+			LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ state. "
+					<< xcept::stdformat_exception_history(e));
+			result = "Unknown";
+		}
+	}
 
 	if (daq_descr_ != NULL) {
+
+        	std::map<string, string> m;
+		m["globalMode"] = "xsd:boolean";
+		m["configuredInGlobalMode"] = "xsd:boolean";
+		m["daqState"] = "xsd:string";
+		xoap::MessageReference daq_param = createParameterGetSOAP("EmuDAQManager", m);
+
 		xoap::MessageReference reply;
 		try {
-			reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
-			analyzeReply(daq_param_, reply, daq_descr_);
+			reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
+			analyzeReply(daq_param, reply, daq_descr_);
 
 			result = extractParameter(reply, "daqState");
 		} catch (xdaq::exception::Exception e) {
-			daq_notavailable_ = true;
+			LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ state. "
+					<< xcept::stdformat_exception_history(e));
 			result = "Unknown";
 		}
 	}
@@ -1328,14 +1348,15 @@ string CSCSupervisor::getTFConfig()
 		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 			return result; // Do nothing if the target doesn't exist
 		}
-		tf_param_ = createParameterGetSOAP(
-				"TF_hyperDAQ", "triggerMode", "xsd:string");
 	}
+
+	xoap::MessageReference tf_param = createParameterGetSOAP(
+				"TF_hyperDAQ", "triggerMode", "xsd:string");
 
 	xoap::MessageReference reply;
 	try {
-		reply = getApplicationContext()->postSOAP(tf_param_, tf_descr_);
-		analyzeReply(tf_param_, reply, tf_descr_);
+		reply = getApplicationContext()->postSOAP(tf_param, *appDescriptor_, *tf_descr_);
+		analyzeReply(tf_param, reply, tf_descr_);
 
 		result = extractParameter(reply, "triggerMode");
 	} catch (xdaq::exception::Exception e) {
@@ -1356,19 +1377,20 @@ string CSCSupervisor::getTTCciSource()
 		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 			return result; // Do nothing if the target doesn't exist
 		}
-
-		std::map<string, string> m;
-		m["ClockSource"] = "xsd:string";
-		m["OrbitSource"] = "xsd:string";
-		m["TriggerSource"] = "xsd:string";
-		m["BGOSource"] = "xsd:string";
-		ttc_param_ = createParameterGetSOAP("TTCciControl", m);
+		
 	}
+
+	std::map<string, string> m;
+	m["ClockSource"] = "xsd:string";
+	m["OrbitSource"] = "xsd:string";
+	m["TriggerSource"] = "xsd:string";
+	m["BGOSource"] = "xsd:string";
+	xoap::MessageReference ttc_param = createParameterGetSOAP("TTCciControl", m);
 
 	xoap::MessageReference reply;
 	try {
-		reply = getApplicationContext()->postSOAP(ttc_param_, ttc_descr_);
-		analyzeReply(ttc_param_, reply, ttc_descr_);
+		reply = getApplicationContext()->postSOAP(ttc_param, *appDescriptor_, *ttc_descr_);
+		analyzeReply(ttc_param, reply, ttc_descr_);
 
 		result = extractParameter(reply, "ClockSource");
 		result += ":" + extractParameter(reply, "OrbitSource");
@@ -1385,14 +1407,34 @@ bool CSCSupervisor::isDAQConfiguredInGlobal()
 {
 	string result = "";
 
+	if (daq_descr_ == NULL) {
+		try {
+			daq_descr_ = getApplicationContext()->getDefaultZone()
+					->getApplicationDescriptor("EmuDAQManager", 0);
+		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInGlobalMode\" from EmuDAQManager. "
+					<< xcept::stdformat_exception_history(e));
+			result = "Unknown";
+		}
+	}
+
 	if (daq_descr_ != NULL) {
+
+ 	        std::map<string, string> m;
+		m["globalMode"] = "xsd:boolean";
+		m["configuredInGlobalMode"] = "xsd:boolean";
+		m["daqState"] = "xsd:string";
+		xoap::MessageReference daq_param = createParameterGetSOAP("EmuDAQManager", m);
+
 		xoap::MessageReference reply;
 		try {
-			reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
-			analyzeReply(daq_param_, reply, daq_descr_);
+			reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
+			analyzeReply(daq_param, reply, daq_descr_);
 
 			result = extractParameter(reply, "configuredInGlobalMode");
 		} catch (xdaq::exception::Exception e) {
+			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInGlobalMode\" from EmuDAQManager. "
+					<< xcept::stdformat_exception_history(e));
 			result = "Unknown";
 		}
 	}
@@ -1400,18 +1442,51 @@ bool CSCSupervisor::isDAQConfiguredInGlobal()
 	return result == "true";
 }
 
+bool CSCSupervisor::waitForDAQToExecute( const string command, const unsigned int seconds, const bool poll ){
+  string expectedState;
+  if      ( command == "Configure" ){ expectedState = "Ready";   }
+  else if ( command == "Enable"    ){ expectedState = "Enabled"; }
+  else if ( command == "Halt"      ){ expectedState = "Halted";  }
+  else                              { return true; }
+
+  // If not polling (default), just wait and return TRUE:
+  if ( !poll ){
+    ::sleep( seconds );
+    return true;
+  }
+
+  // Poll, and return TRUE if and only if DAQ gets into the expected state before timeout.
+  string localDAQState;
+  for ( unsigned int i=0; i<=seconds; ++i ){
+    localDAQState = getLocalDAQState();
+    if ( localDAQState != "Halted"  && localDAQState != "Ready" && 
+	 localDAQState != "Enabled" && localDAQState != "INDEFINITE" ){
+      LOG4CPLUS_ERROR( logger_, "Local DAQ is in " << localDAQState << " state. Please destroy and recreate local DAQ." );
+      return false;
+    }
+    if ( localDAQState == expectedState ){ return true; }
+    LOG4CPLUS_INFO( logger_, "Waited " << i << " sec so far for local DAQ to get " 
+		    << expectedState << ". It is still in " << localDAQState << " state." );
+    ::sleep(1);
+  }
+
+  LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
+		   << ". It is in " << localDAQState << " state." );
+  return false;
+}
+
 bool CSCSupervisor::isDAQManagerControlled(string command)
 {
 	// No point in sending any command when DAQ is in an irregular state (failed, indefinite, ...)
         string localDAQState = getLocalDAQState();
 	if ( localDAQState != "Halted" && localDAQState != "Ready" && localDAQState != "Enabled" ){
-	  LOG4CPLUS_ERROR( logger_, "No command sent to EmuDAQManager because local DAQ is in " 
+	  LOG4CPLUS_ERROR( logger_, "No command \"" << command << "\" sent to EmuDAQManager because local DAQ is in " 
 			   << localDAQState << " state. Please destroy and recreate local DAQ." );
 	  return false;
 	}
 
 	// Enforce "Halt" irrespective of DAQ mode.
-	if (command == "Halt") { return true; }
+	// if (command == "Halt") { return true; }
 
 	// Don't send any other command when DAQ is in local mode.
 	if (getDAQMode() != "global") { return false; }
@@ -1456,25 +1531,22 @@ void CSCSupervisor::StateTable::refresh()
 			message = createStateSOAP(klass);
 		}
 
-		if (klass == "EmuDAQManager" && sv_->daq_notavailable_) {
-			i->second = STATE_UNKNOWN;
-			continue;
-		}
-
 		try {
-			reply = sv_->getApplicationContext()->postSOAP(message, i->first);
+			reply = sv_->getApplicationContext()->postSOAP(message, *sv_->appDescriptor_, *i->first);
 			sv_->analyzeReply(message, reply, i->first);
 
 			i->second = extractState(reply, klass);
 		} catch (xdaq::exception::Exception e) {
 			i->second = STATE_UNKNOWN;
+			LOG4CPLUS_ERROR(sv_->logger_, "Exception when trying to get state of "
+					<< klass << ": " << xcept::stdformat_exception_history(e));
 		} catch (...) {
-			LOG4CPLUS_DEBUG(sv_->logger_, "Exception with " << klass);
+			LOG4CPLUS_ERROR(sv_->logger_, "Unknown exception when trying to get state of " << klass);
 			i->second = STATE_UNKNOWN;
 		}
 
 		if (klass == "EmuDAQManager" && i->second == STATE_UNKNOWN) {
-			sv_->daq_notavailable_ = true;
+			LOG4CPLUS_WARN(sv_->logger_, "State of EmuDAQManager will be unknown.");
 		}
 	}
 }
@@ -1506,9 +1578,8 @@ bool CSCSupervisor::StateTable::isValidState(string expected)
 		string checked = expected;
 		string klass = i->first->getClassName();
 
-		// Ignore EmuDAQManager if command didn't come from the web page.
-		// In that case it's probably a global run, which local DAQ must not disrupt.
-		if ( !sv_->isCommandFromWeb_ && klass == "EmuDAQManager" ) continue;
+		// Ignore EmuDAQManager. 
+		if ( klass == "EmuDAQManager" ) continue;
 
 		if (klass == "TTCciControl" || klass == "LTCControl") {
 			if (expected == "Configured") { checked = "Ready"; }
@@ -1589,6 +1660,16 @@ string CSCSupervisor::StateTable::extractState(xoap::MessageReference message, s
 			*(new xoap::SOAPName("stateName", "", "")))[0];
 
 	return state.getValue();
+}
+
+ostream& operator <<( ostream& os, CSCSupervisor::StateTable& st ){
+  os << "CSCSupervisor(0) " << st.sv_->fsm_.getStateName( st.sv_->fsm_.getCurrentState() );
+
+  for (vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i = st.table_.begin(); i != st.table_.end(); ++i) {
+    os << ", " << i->first->getClassName() << "(" << i->first->getInstance() << ")" << i->second << endl;
+  }
+  
+  return os;
 }
 
 void CSCSupervisor::LastLog::size(unsigned int size)
@@ -1736,7 +1817,7 @@ vector< vector<string> > CSCSupervisor::getFUEventCounts()
     {
 	  name << "EmuFU" << setfill('0') << setw(2) << (*fu)->getInstance();
 	  xoap::MessageReference reply =
-			getApplicationContext()->postSOAP(message, *fu);
+			getApplicationContext()->postSOAP(message, *appDescriptor_, **fu);
 	  analyzeReply(message, reply, *fu);
 	  count = extractParameter(reply, "nbEventsProcessed");
       ss << count;
@@ -1794,7 +1875,7 @@ vector< vector<string> > CSCSupervisor::getRUIEventCounts()
     stringstream name;
 	try {
 	  xoap::MessageReference reply =
-			getApplicationContext()->postSOAP(message, *rui);
+			getApplicationContext()->postSOAP(message, *appDescriptor_, **rui);
 	  analyzeReply(message, reply, *rui);
 	  count = extractParameter(reply, "nEventsRead");
 	  mnemonic = extractParameter(reply, "hardwareMnemonic");
@@ -1822,7 +1903,8 @@ void CSCSupervisor::postToELog( string subject, string body, vector<string> *att
   EmuELog *eel;
   try
     {
-      eel = new EmuELog(curlCommand_.toString(),
+      eel = new EmuELog(curlHost_.toString(),
+			curlCommand_.toString(),
 			curlCookies_.toString(),
 			CMSUserFile_.toString(),
 			eLogUserFile_.toString(),
@@ -1904,6 +1986,12 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
 
   // Don't write about debug runs:
   if ( run_type_.toString() == "Debug" ) return;
+
+  // EmuDAQManager's FSM is asynchronous. Wait for it.
+  if ( ! waitForDAQToExecute("Halt", 10, true ) ){
+    LOG4CPLUS_WARN(logger_, "Nothing written to run database as local DAQ has not stopped.");
+    return;
+  }
 
   // If it's not a debug run, it should normally have been booked. If not, inform the user that it somehow wasn't.
   if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
@@ -2011,42 +2099,42 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
 
     xdaq::ApplicationDescriptor *app;
 
-    //
-    // trigger mode
-    //
-    value = "UNKNOWN";
-    try{
-      app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TF_hyperDAQ",0);
-	  xoap::MessageReference message =
-			createParameterGetSOAP("TF_hyperDAQ", "triggerMode", "xsd:string");
-	  xoap::MessageReference reply =
-			getApplicationContext()->postSOAP(message, app);
-	  analyzeReply(message, reply, app);
-      value = extractParameter(reply, "triggerMode");
-    }
-    catch(xdaq::exception::ApplicationDescriptorNotFound e) {
-      LOG4CPLUS_ERROR(logger_,"Failed to get trigger mode from TF_hyperDAQ 0: " << 
-		      xcept::stdformat_exception_history(e) );
-    }
-    catch(xcept::Exception e){
-      LOG4CPLUS_ERROR(logger_,"Failed to get trigger mode from TF_hyperDAQ 0: " << 
-		      xcept::stdformat_exception_history(e) );
-    }
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
-    htmlMessageToELog << "<td><table>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger mode" << "</td><td align=\"right\">" 
-		      << value << "</td></tr>";
-    htmlMessageToELog << "</table></td></tr>";
-    name  = "trigger_mode";
-    if ( toDatabase && isBookedRunNumber_ ){
-      success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
-    }
+//     //
+//     // trigger mode
+//     //
+//     value = "UNKNOWN";
+//     try{
+//       app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TF_hyperDAQ",0);
+// 	  xoap::MessageReference message =
+// 			createParameterGetSOAP("TF_hyperDAQ", "triggerMode", "xsd:string");
+// 	  xoap::MessageReference reply =
+// 			getApplicationContext()->postSOAP(message, *appDescriptor_, *app);
+// 	  analyzeReply(message, reply, app);
+//       value = extractParameter(reply, "triggerMode");
+//     }
+//     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
+//       LOG4CPLUS_ERROR(logger_,"Failed to get trigger mode from TF_hyperDAQ 0: " << 
+// 		      xcept::stdformat_exception_history(e) );
+//     }
+//     catch(xcept::Exception e){
+//       LOG4CPLUS_ERROR(logger_,"Failed to get trigger mode from TF_hyperDAQ 0: " << 
+// 		      xcept::stdformat_exception_history(e) );
+//     }
+//     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
+//     htmlMessageToELog << "<td><table>";
+//     htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger mode" << "</td><td align=\"right\">" 
+// 		      << value << "</td></tr>";
+//     htmlMessageToELog << "</table></td></tr>";
+//     name  = "trigger_mode";
+//     if ( toDatabase && isBookedRunNumber_ ){
+//       success = runInfo_->writeRunInfo( name, value, nameSpace );
+//       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+// 				     nameSpace << ":" << name << " = " << value ); }
+//       else          { LOG4CPLUS_ERROR(logger_,
+// 				      "Failed to write " << nameSpace << ":" << name << 
+// 				      " to run database " << runDbAddress_.toString() <<
+// 				      " : " << runInfo_->errorMessage() ); }
+//     }
 
     //
     // trigger sources
@@ -2066,7 +2154,7 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
 	  xoap::MessageReference message =
 			createParameterGetSOAP("TTCciControl", namesAndTypes);
 	  xoap::MessageReference reply =
-			getApplicationContext()->postSOAP(message, app);
+			getApplicationContext()->postSOAP(message, *appDescriptor_, *app);
 	  analyzeReply(message, reply, app);
       ClockSource   = extractParameter(reply, "ClockSource");
       OrbitSource   = extractParameter(reply, "OrbitSource");
@@ -2200,5 +2288,3 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
 // vim: set sw=4 ts=4:
 // End of file
 // vim: set sw=4 ts=4:
-
-
