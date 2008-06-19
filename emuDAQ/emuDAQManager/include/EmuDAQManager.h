@@ -18,6 +18,9 @@
 #include "emu/cscSV/include/EmuApplication.h"
 #include "xdata/ItemEvent.h"
 
+#include "toolbox/task/WorkLoop.h"
+#include "toolbox/BSem.h"
+
 #include <string>
 
 
@@ -223,6 +226,7 @@ private:
   bool   badRun_;          // User's judgement on the run.
 
   xdata::Boolean postToELog_;         // whether or not to post to e-log
+  xdata::String curlHost_;            // host on which to execute the curl command
   xdata::String curlCommand_;         // the curl command's full path
   xdata::String curlCookies_;         // file for cookies
   xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
@@ -285,6 +289,13 @@ private:
     throw (emuDAQManager::exception::Exception);
 
   virtual void actionPerformed(xdata::Event & received ); // inherited from xdata::ActionListener
+
+  // For driving the FSM by asynchronous SOAP.
+  toolbox::task::WorkLoop *workLoop_;
+//   toolbox::BSem bsem_;
+  toolbox::task::ActionSignature *configureSignature_;
+  toolbox::task::ActionSignature *enableSignature_;
+  toolbox::task::ActionSignature *haltSignature_;
 
   // Parameters to obtain from TTCciControl
   xdata::String TTCci_ClockSource_;
@@ -674,6 +685,10 @@ public:
     throw (toolbox::fsm::exception::Exception);
   void resetAction()
     throw (toolbox::fsm::exception::Exception);
+
+  bool configureActionInWorkLoop(toolbox::task::WorkLoop *wl);
+  bool enableActionInWorkLoop(toolbox::task::WorkLoop *wl);
+  bool haltActionInWorkLoop(toolbox::task::WorkLoop *wl);
 
 private:
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)

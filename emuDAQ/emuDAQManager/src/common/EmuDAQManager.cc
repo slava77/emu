@@ -21,13 +21,14 @@
 #include "xoap/domutils.h"
 #include "xdata/soap/Serializer.h"
 #include "toolbox/regex.h"
+#include "toolbox/task/WorkLoopFactory.h" // getWorkLoopFactory()
 
 // For EmuDAQManager::postSOAP
 #include "toolbox/net/URL.h"
 #include "pt/PeerTransportAgent.h"
-// #include "pt/PeerTransportReceiver.h"
 #include "pt/PeerTransportSender.h"
 #include "pt/SOAPMessenger.h"
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -84,8 +85,15 @@ runInfo_(0)
     xoap::bind(this, &EmuDAQManager::onDisable,       "Disable",       XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onHalt,          "Halt",          XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onReset,         "Reset",         XDAQ_NS_URI);
-//     xoap::bind(this, &EmuDAQManager::onQueryDAQState, "QueryDAQState", XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onQueryRunSummary,  "QueryRunSummary",  XDAQ_NS_URI);
+
+    // Try driving FSM by asynchronous SOAP in order for DQM hang-ups not to block us (and, eventually, the global run).
+    // Execute FSM transitions in a separate thread.
+    workLoop_ = toolbox::task::getWorkLoopFactory()->getWorkLoop("EmuDAQManager", "waiting");
+    workLoop_->activate();
+    configureSignature_ = toolbox::task::bind(this, &EmuDAQManager::configureActionInWorkLoop, "configureActionInWorkLoop");
+    enableSignature_    = toolbox::task::bind(this, &EmuDAQManager::enableActionInWorkLoop,    "enableActionInWorkLoop");
+    haltSignature_      = toolbox::task::bind(this, &EmuDAQManager::haltActionInWorkLoop,      "haltActionInWorkLoop");
 
     fsm_.addState('H', "Halted",     this, &EmuDAQManager::stateChanged);
     fsm_.addState('C', "Configured", this, &EmuDAQManager::stateChanged);
@@ -94,7 +102,6 @@ runInfo_(0)
     fsm_.addStateTransition('H', 'C', "Configure", this, &EmuDAQManager::configureAction);
     fsm_.addStateTransition('C', 'C', "Configure", this, &EmuDAQManager::reConfigureAction);
     fsm_.addStateTransition('C', 'E', "Enable",    this, &EmuDAQManager::enableAction);
-//     fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuDAQManager::disableAction);
     fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuDAQManager::noAction);
     fsm_.addStateTransition('C', 'H', "Halt",      this, &EmuDAQManager::haltAction);
     fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuDAQManager::haltAction);
@@ -4511,6 +4518,7 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable( "configuredInGlobalMode",  &configuredInGlobalMode_  );
 
   postToELog_   = true;
+  curlHost_     = "cmsusr3.cms";
   curlCommand_  = "curl";
   curlCookies_  = ".curlCookies";
   CMSUserFile_  = "";
@@ -4518,6 +4526,7 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
   eLogURL_      = "";
 
   s->fireItemAvailable( "postToELog",   &postToELog_   );
+  s->fireItemAvailable( "curlHost",     &curlHost_     );
   s->fireItemAvailable( "curlCommand",  &curlCommand_  );
   s->fireItemAvailable( "curlCookies", 	&curlCookies_  );
   s->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
@@ -5563,7 +5572,8 @@ void EmuDAQManager::postToELog( string subject, string body, vector<string> *att
   EmuELog *eel;
   try
     {
-      eel = new EmuELog(curlCommand_.toString(),
+      eel = new EmuELog("TODOspecifyCurlHost",
+			curlCommand_.toString(),
 			curlCookies_.toString(),
 			CMSUserFile_.toString(),
 			eLogUserFile_.toString(),
@@ -5594,7 +5604,10 @@ void EmuDAQManager::postToELog( string subject, string body, vector<string> *att
 xoap::MessageReference EmuDAQManager::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	fireEvent("Configure");
+  // fireEvent("Configure");
+  // Execute it in another thread:
+  
+  workLoop_->submit(configureSignature_);
 
 	return createReply(message);
 }
@@ -5602,7 +5615,10 @@ xoap::MessageReference EmuDAQManager::onConfigure(xoap::MessageReference message
 xoap::MessageReference EmuDAQManager::onEnable(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	fireEvent("Enable");
+  // fireEvent("Enable");
+  // Execute it in another thread:
+  
+  workLoop_->submit(enableSignature_);
 
 	return createReply(message);
 }
@@ -5618,7 +5634,10 @@ xoap::MessageReference EmuDAQManager::onDisable(xoap::MessageReference message)
 xoap::MessageReference EmuDAQManager::onHalt(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	fireEvent("Halt");
+  // fireEvent("Halt");
+  // Execute it in another thread:
+  
+  workLoop_->submit(haltSignature_);
 
 	return createReply(message);
 }
@@ -5719,7 +5738,11 @@ xoap::MessageReference EmuDAQManager::onQueryRunSummary(xoap::MessageReference m
 
 void EmuDAQManager::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
-{   
+{
+  // Simulate slow transition
+  //::sleep(15);
+  // Simulate crash
+  //exit(1);
 
     createAllAppStatesVector();
 
@@ -5934,6 +5957,30 @@ void EmuDAQManager::resetAction()
 	}
     }
 
+}
+
+bool EmuDAQManager::configureActionInWorkLoop(toolbox::task::WorkLoop *wl){
+  // Let's wait a sec to allow the async FSM SOAP command to safely return
+  ::sleep(1);
+
+  fireEvent("Configure");
+  return false;
+}
+
+bool EmuDAQManager::enableActionInWorkLoop(toolbox::task::WorkLoop *wl){
+  // Let's wait a sec to allow the async FSM SOAP command to safely return
+  ::sleep(1);
+
+  fireEvent("Enable");
+  return false;
+}
+
+bool EmuDAQManager::haltActionInWorkLoop(toolbox::task::WorkLoop *wl){
+  // Let's wait a sec to allow the async FSM SOAP command to safely return
+  ::sleep(1);
+
+  fireEvent("Halt");
+  return false;
 }
 
 void EmuDAQManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
