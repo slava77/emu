@@ -1,13 +1,18 @@
 td.Halted {
-	color: #22c;
+	background-color: #9999FF;
 }
 td.Configured {
-	color: #2c2;
+	background-color: #FFFF44;
 }
 td.Enabled {
-	color: #ca2;
+	background-color: #99FF99;
+}
+td.Running {
+	background-color: #99FF99;
 }
 td.Failed {
-	color: #c22;
+	color: #FFFFFF;
+	background-color: #000000;
+	text-decoration: blink;
 }
 /* vim: set sw=4 ts=4: */
