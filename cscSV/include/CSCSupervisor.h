@@ -25,6 +25,8 @@ class CSCSupervisor : public EmuApplication
 	class StateTable;
 	friend class StateTable;
 
+  friend ostream& operator <<( ostream& os, CSCSupervisor::StateTable& table );
+
 public:
 	XDAQ_INSTANTIATOR();
 
@@ -69,6 +71,7 @@ public:
 	// work loop call-back functions
 	bool configureAction(toolbox::task::WorkLoop *wl);
 	bool haltAction(toolbox::task::WorkLoop *wl);
+	bool startAction(toolbox::task::WorkLoop *wl);
 	bool calibrationAction(toolbox::task::WorkLoop *wl);
 
 	// State transitions
@@ -120,10 +123,11 @@ private: // XDAQ parameters
 	xdata::UnsignedInteger tts_id_;
 	xdata::UnsignedInteger tts_bits_;
         xdaq2rc::RcmsStateNotifier rcmsStateNotifier_;
+
 private:
 	toolbox::task::WorkLoop *wl_;
 	toolbox::BSem wl_semaphore_;
-	toolbox::task::ActionSignature *configure_signature_, *halt_signature_;
+	toolbox::task::ActionSignature *configure_signature_, *halt_signature_, *start_signature_;
 	toolbox::task::ActionSignature *calibration_signature_;
 	bool quit_calibration_;
 	std::map<string, string> start_attr, stop_attr;
@@ -171,10 +175,6 @@ private:
 	string toString(const long int i) const;
 
 	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
-	xoap::MessageReference daq_param_, tf_param_, ttc_param_;
-	bool daq_notavailable_;
-
-        bool isCommandFromWeb_;
 
 	string getDAQMode();
 	string getTFConfig();
@@ -184,6 +184,8 @@ private:
 
 	bool isDAQManagerControlled(string command);
 
+        bool waitForDAQToExecute( const string command, const unsigned int seconds, const bool poll = false );
+
 	int nevents_;
 	unsigned int step_counter_;
 
@@ -192,6 +194,7 @@ private:
 	bool keep_refresh_;
 	bool hide_tts_control_;
 
+	xdata::String curlHost_;            // host on which to execute the curl command
 	xdata::String curlCommand_;         // the curl command's full path
 	xdata::String curlCookies_;         // file for cookies
 	xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
@@ -216,6 +219,7 @@ private:
 
 	class StateTable
 	{
+	  friend ostream& operator <<( ostream& os, CSCSupervisor::StateTable& table );
 	public:
 		StateTable(CSCSupervisor *sv);
 		void addApplication(string klass);
