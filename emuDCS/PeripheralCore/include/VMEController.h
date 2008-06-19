@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.29 2008/06/09 09:38:01 bylsma Exp $
+// $Id: VMEController.h,v 3.30 2008/06/19 18:54:40 bylsma Exp $
 // $Log: VMEController.h,v $
+// Revision 3.30  2008/06/19 18:54:40  bylsma
+// Added accessor functions for VCC xml parameters
+//
 // Revision 3.29  2008/06/09 09:38:01  bylsma
 // Added Set... routines for new VCC xml parameters, and initialized parameter variables
 //
@@ -206,9 +209,13 @@ public:
   void SetUseDCS(bool state){useDCS_ = state;}
   void SetWarn_On_Shtdwn(bool state){Warn_On_Shtdwn = state;}
   void SetPkt_On_Startup(bool state){Pkt_On_Startup = state;}
+  std::string GetWarn_On_Shtdwn();
+  std::string GetPkt_On_Startup();
 
   void SetMAC(int type, std::string MAC);
   void SetCR(int type, std::string CR);
+  std::string GetMAC(int type);
+  std::string GetCR(int type);
 
   string ipAddress() const {return ipAddress_;}
   int port() const {return port_;}
@@ -275,6 +282,7 @@ public:
 
   void set_ErrorServer();
   inline void SetMsg_Lvl(int val) {Msg_Lvl=val;}
+  inline int  GetMsg_Lvl() {return Msg_Lvl;}
   inline void SetPort(int port) {port_=port;}
   inline void SetVMEAddress(std::string address) {ipAddress_=address;}
   inline std::string GetVMEAddress(){return ipAddress_;}
