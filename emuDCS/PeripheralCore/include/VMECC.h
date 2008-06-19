@@ -59,6 +59,7 @@ class VMECC: public VMEModule
 
   //prom programming routines
   inline void SetVCC_frmw_ver(std::string Ver) {VCC_frmw_ver=Ver;}
+  inline std::string GetVCC_frmw_ver() {return VCC_frmw_ver;}
   void prg_vcc_prom_ver(const char *path,const char *ver);
   void prg_vcc_prom_bcast(const char *path,const char *ver);
   // old jtag_subs.c

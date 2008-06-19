@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.49 2008/06/09 09:38:02 bylsma Exp $
+// $Id: VMEController.cc,v 3.50 2008/06/19 18:54:40 bylsma Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.50  2008/06/19 18:54:40  bylsma
+// Added accessor functions for VCC xml parameters
+//
 // Revision 3.49  2008/06/09 09:38:02  bylsma
 // Added Set... routines for new VCC xml parameters, and initialized parameter variables
 //
@@ -433,6 +436,35 @@ void VMEController::SetMAC(int type, std::string MAC) {
     break;
   }
 }
+
+std::string VMEController::GetMAC(int type) {
+  char s[32];
+  std::string stmp;
+  char sfmt[]="%02hhX-%02hhX-%02hhX-%02hhX-%02hhX-%02hhX";
+  switch(type){
+  case 0:
+    sprintf(s,sfmt,MAC_addr[0],MAC_addr[1],MAC_addr[2],MAC_addr[3],MAC_addr[4],MAC_addr[5]);
+    break;
+  case 1:
+    sprintf(s,sfmt,MCAST_1[0],MCAST_1[1],MCAST_1[2],MCAST_1[3],MCAST_1[4],MCAST_1[5]);
+    break;
+  case 2:
+    sprintf(s,sfmt,MCAST_2[0],MCAST_2[1],MCAST_2[2],MCAST_2[3],MCAST_2[4],MCAST_2[5]);
+    break;
+  case 3:
+    sprintf(s,sfmt,MCAST_3[0],MCAST_3[1],MCAST_3[2],MCAST_3[3],MCAST_3[4],MCAST_3[5]);
+    break;
+  case 4:
+    sprintf(s,sfmt,Dflt_Srv_MAC[0],Dflt_Srv_MAC[1],Dflt_Srv_MAC[2],Dflt_Srv_MAC[3],Dflt_Srv_MAC[4],Dflt_Srv_MAC[5]);
+    break;
+  default:
+    sprintf(s,"Invalid MAC type");
+    break;
+  }
+  stmp=s;
+  return stmp;
+}
+
 void VMEController::SetCR(int type, std::string CR) {
   union Tmp_U {
     unsigned char tc[4];
@@ -467,6 +499,51 @@ void VMEController::SetCR(int type, std::string CR) {
   default:
     break;
   }
+}
+
+std::string VMEController::GetCR(int type) {
+  char s[32];
+  std::string stmp;
+
+  switch(type){
+  case 0://Ethernet CR
+    sprintf(s,"%02X%02X",CR_ethernet&0xFF,(CR_ethernet>>8)&0xFF);
+    break;
+  case 1://External FIFO CR
+    sprintf(s,"%02X%02X",CR_ext_fifo&0xFF,(CR_ext_fifo>>8)&0xFF);
+    break;
+  case 2://Reset/Misc. CR
+    sprintf(s,"%02X%02X",CR_res_misc&0xFF,(CR_res_misc>>8)&0xFF);
+    break;
+  case 3://VME CR
+    sprintf(s,"%02X%02X%02X%02X",CR_VME_hi&0xFF,(CR_VME_hi>>8)&0xFF,CR_VME_low&0xFF,(CR_VME_low>>8)&0xFF);
+    break;
+  case 4://Bus Time Out CR
+    sprintf(s,"%02X%02X",CR_BUS_timeout&0xFF,(CR_BUS_timeout>>8)&0xFF);
+    break;
+  case 5://Bus Grant Time Out CR
+    sprintf(s,"%02X%02X",CR_BUS_grant&0xFF,(CR_BUS_grant>>8)&0xFF);
+    break;
+  default:
+    sprintf(s,"Invalid CR type");
+    break;
+  }
+  stmp=s;
+  return stmp;
+}
+
+std::string VMEController::GetWarn_On_Shtdwn() {
+  std::string stmp;
+  stmp="false";
+  if(Warn_On_Shtdwn) stmp="true";
+  return stmp;
+}
+
+std::string VMEController::GetPkt_On_Startup() {
+  std::string stmp;
+  stmp="false";
+  if(Pkt_On_Startup) stmp="true";
+  return stmp;
 }
 
 void VMEController::start(int slot, int boardtype) {
