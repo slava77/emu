@@ -20,6 +20,7 @@ class EmuELog{
 
 private:
 
+  string curlHost_;		///< host on which to execute curl command
   string curlCommand_;		///< curl command to be executed by the shell
   string curlCookies_;		///< name of cookies file created by curl
 
@@ -46,11 +47,13 @@ public:
   /// @param eLogUserFile name of file containing e-log user's id and password
   /// @param eLogURL URL of electronic log book
   ///
-  EmuELog( string curlCommand, 
+  EmuELog( string curlHost,
+	   string curlCommand, 
 	   string curlCookies, 
 	   string CMSUserFile, 
 	   string eLogUserFile, 
 	   string eLogURL       ):
+    curlHost_    (curlHost    ),
     curlCommand_ (curlCommand ),
     curlCookies_ (curlCookies ),
     CMSUserFile_ (CMSUserFile ),
@@ -135,10 +138,14 @@ public:
     errorMessage_ = "";
     bool success  = false;
 
+    string command = "ssh -2 ";
+    command += curlHost_;
+    command += " '";
+
     //
     // Login:
     //
-    string command = curlCommand_;
+    command += curlCommand_;
     command += " -u ";
     command += CMSUser_;
     command += ":";
@@ -151,22 +158,11 @@ public:
     command += curlCookies_;
     command += " ";
     command += eLogURL_;
-
-//     cout << command << endl;
-
-    vector<string> replyLines;
-    string reply;
-    ipstream login( command.c_str() );
-    while ( std::getline(login, reply) ) {
-      replyLines.push_back(reply);
-    }
-    copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
-
-
+    command += " && ";
     //
     // Post:
     //
-    command = curlCommand_;
+    command += curlCommand_;
     command += " -u ";
     command += CMSUser_;
     command += ":";
@@ -185,21 +181,11 @@ public:
     command += curlCookies_;
     command += " ";
     command += eLogURL_;
-
-//     cout << command << endl;
-
-    replyLines.clear();
-    ipstream post( command.c_str() );
-    while ( std::getline(post, reply) ) {
-      replyLines.push_back(reply);
-    }
-    copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
-
-
+    command += " ; ";
     //
     // Logout:
     //
-    command = curlCommand_;
+    command += curlCommand_;
     command += " -u ";
     command += CMSUser_;
     command += ":";
@@ -211,8 +197,12 @@ public:
     command += " ";
     command += eLogURL_;
 
+    command += "'";
+
 //     cout << command << endl;
 
+    vector<string> replyLines;
+    string reply;
     replyLines.clear();
     ipstream logout( command.c_str() );
     while ( std::getline(logout, reply) ) {
