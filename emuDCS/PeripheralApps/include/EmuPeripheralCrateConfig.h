@@ -445,6 +445,7 @@ private:
   void MPCUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MPCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureL1AsAndDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureL1AsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);

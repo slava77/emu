@@ -144,6 +144,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate,"MeasureL1AsAndDAVsForCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber,"MeasureL1AsAndDAVsForChamber");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsForCrate,"MeasureL1AsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureDAVsForCrate,"MeasureDAVsForCrate");
   //
@@ -4070,6 +4071,15 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //  *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br();
+  //
+  std::string MeasureL1AsAndDAVsForChamber = toolbox::toString("/%s/MeasureL1AsAndDAVsForChamber",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureL1AsAndDAVsForChamber) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Measure L1As and DAVs") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br();
   *out << cgicc::br();
   //
   //
@@ -4570,6 +4580,34 @@ void EmuPeripheralCrateConfig::Automatic(xgi::Input * in, xgi::Output * out )
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cout << "Find L1A and DAV delays for chamber" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find L1A and DAV delays for chamber");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb;
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Automatic:  TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "Automatic:  No tmb" << std::endl;
+    tmb = TMB_;
+  }
+  //
+  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].FindL1AAndDAVDelays();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+  //
+  this->CrateConfiguration(in,out);
   //
 }
 //
