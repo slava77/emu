@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.13 2008/05/20 10:46:01 liu Exp $
+// $Id: Crate.h,v 3.14 2008/06/22 14:57:52 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.14  2008/06/22 14:57:52  liu
+// new functions for monitoring
+//
 // Revision 3.13  2008/05/20 10:46:01  liu
 // error handling update
 //
@@ -116,6 +119,8 @@ public:
   Chamber * GetChamber(int slot);
   Chamber * GetChamber(TMB *tmb);
   Chamber * GetChamber(DAQMB *dmb);
+  TMB * GetTMB(unsigned int slot);
+  DAQMB * GetDAQMB(unsigned int slot);
   void MonitorCCB(int cycle, char * buf);
   void MonitorTMB(int cycle, char * buf);
   void MonitorDMB(int cycle, char * buf);

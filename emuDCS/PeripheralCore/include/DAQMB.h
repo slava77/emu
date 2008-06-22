@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.23 2008/06/12 21:08:54 rakness Exp $
+// $Id: DAQMB.h,v 3.24 2008/06/22 14:57:52 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.24  2008/06/22 14:57:52  liu
+// new functions for monitoring
+//
 // Revision 3.23  2008/06/12 21:08:54  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -456,6 +459,7 @@ public:
   void readtimingCounter();
   void readtimingScope();
   char *GetCounters();
+  unsigned GetCounter(int );
 
   /// Set cable delay
   void setcbldly(int );
@@ -610,7 +614,7 @@ public:
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
   int  TestStatus_[20];
-  char FinalCounter[10];
+  unsigned char FinalCounter[10];
   //
   unsigned long int expected_control_firmware_tag_;
   int       expected_vme_firmware_tag_;
