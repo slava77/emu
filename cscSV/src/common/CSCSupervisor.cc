@@ -1997,36 +1997,11 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
   if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
 
     stringstream subjectToELog;
-    subjectToELog << "Emu local run " << run_number_.toString()
-		  << " (" << run_type_.toString() << ")"// << ( badRun_? " is bad" : "" );
-		  << " ---CSCSupervisor";
-    //
-    // run number; bad run; global run number
-    //
     stringstream htmlMessageToELog;
-    htmlMessageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
-    htmlMessageToELog << "<table>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run number</td><td>" << run_number_.toString() << "</td></tr>";
 
     bool success = false;
     const string nameSpace = "CMS.CSC";
     string name, value;
-
-    //
-    // run type
-    //
-    name      = "run_type";
-    value     = run_type_.toString();
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << run_type_.toString() << "</td></tr>";
-    if ( toDatabase && isBookedRunNumber_ ){
-      success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
-    }
 
     //
     // Deserialize reply to run summary query
@@ -2069,6 +2044,42 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
       LOG4CPLUS_ERROR( logger_, "Run summary unknown: " << xcept::stdformat_exception_history(e) );
     }
     
+    string runNumber;
+    if ( run_number_.toString().size() < 2 || run_number_.toString().size() > 8 ){
+      // Something fishy with this run number. Use start time instead.
+      runNumber = start_time.toString();
+    }
+    else{
+      runNumber = run_number_.toString();
+    }
+
+    subjectToELog << "Emu local run " << runNumber
+		  << " (" << run_type_.toString() << ")"// << ( badRun_? " is bad" : "" );
+		  << " ---CSCSupervisor";
+
+    //
+    // run number; bad run; global run number
+    //
+    htmlMessageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
+    htmlMessageToELog << "<table>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run number</td><td>" << run_number_.toString() << "</td></tr>";
+
+    //
+    // run type
+    //
+    name      = "run_type";
+    value     = run_type_.toString();
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << run_type_.toString() << "</td></tr>";
+    if ( toDatabase && isBookedRunNumber_ ){
+      success = runInfo_->writeRunInfo( name, value, nameSpace );
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value ); }
+      else          { LOG4CPLUS_ERROR(logger_,
+				      "Failed to write " << nameSpace << ":" << name << 
+				      " to run database " << runDbAddress_.toString() <<
+				      " : " << runInfo_->errorMessage() ); }
+    }
+
     //
     // start time and stop time
     //
@@ -2098,43 +2109,6 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     }
 
     xdaq::ApplicationDescriptor *app;
-
-//     //
-//     // trigger mode
-//     //
-//     value = "UNKNOWN";
-//     try{
-//       app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TF_hyperDAQ",0);
-// 	  xoap::MessageReference message =
-// 			createParameterGetSOAP("TF_hyperDAQ", "triggerMode", "xsd:string");
-// 	  xoap::MessageReference reply =
-// 			getApplicationContext()->postSOAP(message, *appDescriptor_, *app);
-// 	  analyzeReply(message, reply, app);
-//       value = extractParameter(reply, "triggerMode");
-//     }
-//     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
-//       LOG4CPLUS_ERROR(logger_,"Failed to get trigger mode from TF_hyperDAQ 0: " << 
-// 		      xcept::stdformat_exception_history(e) );
-//     }
-//     catch(xcept::Exception e){
-//       LOG4CPLUS_ERROR(logger_,"Failed to get trigger mode from TF_hyperDAQ 0: " << 
-// 		      xcept::stdformat_exception_history(e) );
-//     }
-//     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
-//     htmlMessageToELog << "<td><table>";
-//     htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger mode" << "</td><td align=\"right\">" 
-// 		      << value << "</td></tr>";
-//     htmlMessageToELog << "</table></td></tr>";
-//     name  = "trigger_mode";
-//     if ( toDatabase && isBookedRunNumber_ ){
-//       success = runInfo_->writeRunInfo( name, value, nameSpace );
-//       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-// 				     nameSpace << ":" << name << " = " << value ); }
-//       else          { LOG4CPLUS_ERROR(logger_,
-// 				      "Failed to write " << nameSpace << ":" << name << 
-// 				      " to run database " << runDbAddress_.toString() <<
-// 				      " : " << runInfo_->errorMessage() ); }
-//     }
 
     //
     // trigger sources
