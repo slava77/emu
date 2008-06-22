@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.39 2008/06/12 21:08:55 rakness Exp $
+// $Id: DAQMB.cc,v 3.40 2008/06/22 14:57:52 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.40  2008/06/22 14:57:52  liu
+// new functions for monitoring
+//
 // Revision 3.39  2008/06/12 21:08:55  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -4330,7 +4333,13 @@ char * DAQMB::GetCounters()
   FinalCounter[7]=active_dav_scope_ & 0xff;
   FinalCounter[8]=l1a_lct_scope_ & 0xff;
 
-  return FinalCounter;
+  return (char *)FinalCounter;
+}
+
+unsigned DAQMB::GetCounter(int counter)
+{
+  if(counter>=0 && counter<=8) return FinalCounter[counter];
+  else return 0;
 }
 
 void DAQMB::lowv_dump()

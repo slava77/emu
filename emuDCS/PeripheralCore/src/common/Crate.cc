@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.38 2008/05/30 11:52:04 liu Exp $
+// $Id: Crate.cc,v 3.39 2008/06/22 14:57:52 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.39  2008/06/22 14:57:52  liu
+// new functions for monitoring
+//
 // Revision 3.38  2008/05/30 11:52:04  liu
 // skip dead crate during configuring
 //
@@ -469,6 +472,18 @@ void Crate::init() {
   Chamber * Crate::GetChamber(TMB * tmb)   {  return GetChamber(tmb->slot()); }
 
   Chamber * Crate::GetChamber(DAQMB * dmb)   {  return GetChamber(dmb->slot()); }
+
+  TMB * Crate::GetTMB(unsigned int slot)
+  {
+    if(slot < theModules.size() && (slot%2)==0) return dynamic_cast<TMB *>(theModules[slot]);
+    else return NULL;
+  }
+
+  DAQMB * Crate::GetDAQMB(unsigned int slot)
+  {
+    if(slot < theModules.size() && (slot%2)==1) return dynamic_cast<DAQMB *>(theModules[slot]);
+    else return NULL;
+  }
 
 void Crate::MonitorCCB(int cycle, char * buf) 
 {
