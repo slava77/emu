@@ -97,7 +97,10 @@ foreach my $run ( keys %runs ) {
 	if(defined $CADAVER){
 		die "Can't upload plots" if system("echo -e \"$cadaver_script\" | $CADAVER $WEB >> $run.log");
 	} else {
-		die "Can't create cadaver script" if system("echo -e \"$cadaver_script\" > $run.cadaver");
+		#die "Can't create cadaver script" if system("echo -e \"$cadaver_script\" > $run.cadaver");
+                open(CSFILE, ">>$run.cadaver");
+                print CSFILE "$cadaver_script";
+                close (CSFILE);
 	}
 
 	# Generate navigation
