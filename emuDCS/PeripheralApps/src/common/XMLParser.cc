@@ -642,7 +642,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
 	    std::string  nodeName = xercesc::XMLString::transcode(grandDaughterNode->getNodeName());
 	    //
 	    parseNode(grandDaughterNode);
-	    if(fillInt("Number", number)){
+	    if(fillInt("afeb_number", number)){
 	      fillInt("afeb_fine_delay", delay);
 	      fillInt("afeb_threshold", threshold);
 	      //
@@ -769,7 +769,7 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
       if (daughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
 	if (strcmp("CFEB",xercesc::XMLString::transcode(daughterNode->getNodeName()))==0){
 	  parseNode(daughterNode);
-	  if(fillInt("Number", number)){
+	  if(fillInt("cfeb_number", number)){
 	    //daqmb_->SendOutput("CFEB");
 	    if ( number <5 ){
 	      CFEB cfeb(number);

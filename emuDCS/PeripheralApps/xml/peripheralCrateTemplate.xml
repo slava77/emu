@@ -137,48 +137,48 @@
                 alct_testpulse_amplitude="255"
                 alct_testpulse_invert="on"
                 alct_testpulse_direction="strips">
-          <AnodeChannel Number="1"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="2"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="3"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="4"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="5"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="6"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="7"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="8"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="9"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="10" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="11" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="12" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="13" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="14" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="15" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="16" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="17" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="18" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="19" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="20" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="21" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="22" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="23" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="24" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="25" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="26" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="27" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="28" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="29" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="30" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="31" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="32" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="33" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="34" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="35" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="36" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="37" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="38" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="39" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="40" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="41" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
-          <AnodeChannel Number="42" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="1"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="2"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="3"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="4"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="5"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="6"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="7"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="8"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="9"  afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="10" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="11" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="12" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="13" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="14" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="15" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="16" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="17" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="18" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="19" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="20" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="21" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="22" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="23" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="24" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="25" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="26" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="27" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="28" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="29" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="30" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="31" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="32" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="33" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="34" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="35" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="36" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="37" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="38" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="39" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="40" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="41" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
+          <AnodeChannel afeb_number="42" afeb_fine_delay="0"  afeb_threshold="118"> </AnodeChannel>
         </ALCT>      
       </TMB>
 
@@ -202,7 +202,7 @@
              pre_block_end="8"
              dmb_cntl_firmware_tag="4854903a"
              dmb_vme_firmware_tag="1547">
-        <CFEB Number="4"
+        <CFEB cfeb_number="4"
               cfeb_firmware_tag="cfeb7b11" 
               kill_chip0="8052"
               kill_chip1="1400"
@@ -211,7 +211,7 @@
               kill_chip4="0000"
               kill_chip5="0000">
         </CFEB>
-        <CFEB Number="3"
+        <CFEB cfeb_number="3"
               cfeb_firmware_tag="cfeb7b11" 
               kill_chip0="0000"
               kill_chip1="0000"
@@ -220,7 +220,7 @@
               kill_chip4="0000"
               kill_chip5="0000">
         </CFEB>
-        <CFEB Number="2"
+        <CFEB cfeb_number="2"
               cfeb_firmware_tag="cfeb7b11" 
               kill_chip0="0000"
               kill_chip1="0000"
@@ -229,7 +229,7 @@
               kill_chip4="0000"
               kill_chip5="0000">
         </CFEB>
-        <CFEB Number="1"
+        <CFEB cfeb_number="1"
               cfeb_firmware_tag="cfeb7b11" 
               kill_chip0="0000"
               kill_chip1="0000"
@@ -238,7 +238,7 @@
               kill_chip4="0000"
               kill_chip5="0000">
         </CFEB>
-        <CFEB Number="0"
+        <CFEB cfeb_number="0"
               cfeb_firmware_tag="cfeb7b11" 
               kill_chip0="0000"
               kill_chip1="0000"
