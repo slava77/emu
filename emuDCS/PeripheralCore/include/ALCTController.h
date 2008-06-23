@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.29 2008/06/12 21:08:54 rakness Exp $
+// $Id: ALCTController.h,v 3.30 2008/06/23 14:26:09 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.30  2008/06/23 14:26:09  rakness
+// add getter functions
+//
 // Revision 3.29  2008/06/12 21:08:54  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -382,6 +385,7 @@ class ALCTController {
   //                     inject = [0-1] -> 0 = input data enabled
   //                                       1 = input data enabled if ext_inject input == 1
   int  GetInjectMode();           // get Read values
+  inline int GetWriteInjectMode(){ return write_inject_;}
   //
   //
   void SetBxcOffset(int bxc_offset); // set Write values...
@@ -400,24 +404,27 @@ class ALCTController {
   //                                 nph_pattern = [0-6] -> number of layers needed after drift delay
   //                                                        (starting from pretrigger) to generate ALCT trigger
   int  GetPretrigNumberOfPattern();                 // get Read values
-  inline int  GetWritePretrigNumberOfPattern(){ return write_nph_pattern_ ;}
+  inline int GetWritePretrigNumberOfPattern(){ return write_nph_pattern_ ;}
   //
   //
   void SetAcceleratorPretrigThresh(int accelerator_pretrig_thresh); // set Write values...
   //                                   accelerator_pretrig_thresh = [0-6] -> number of layers needed to generate pretrigger 
   //                                                                         for accelerator tracks
   int  GetAcceleratorPretrigThresh();                               // get Read values
+  inline int GetWriteAcceleratorPretrigThresh() { return write_accelerator_pretrig_thresh_; }
   //
   //
   void SetAcceleratorPatternThresh(int accelerator_pattern_thresh); // set Write values...
   //                                   accelerator_pattern_thresh = [0-6] -> number of layers needed to generate trigger 
   //                                                                         (after drift_delay) for accelerator tracks
   int  GetAcceleratorPatternThresh();                               // get Read values
+  inline int GetWriteAcceleratorPatternThresh() { return write_accelerator_pattern_thresh_; }
   //
   //
   void SetDriftDelay(int drift_delay); // set Write values...
   //                     drift_delay = [0-3] -> number of bunch crossings between pretrigger and LCT
   int  GetDriftDelay();                // get Read values
+  inline int GetWriteDriftDelay() { return write_drift_delay_; }
   //
   //
   void SetFifoTbins(int fifo_tbins); // set Write values...
@@ -468,6 +475,7 @@ class ALCTController {
   void SetBoardId(int board_id); // set Write values...
   //                  board_id = [0-7] -> ALCT2001 circuit board ID (defunct)
   int  GetBoardId();             // get Read values
+  inline int  GetWriteBoardId() { return write_board_id_; }
   //
   //
   void SetCcbEnable(int ccb_enable); // set Write values...
@@ -483,6 +491,7 @@ class ALCTController {
   //                                                       0 = do not report
   //                                                       1 = report
   int  GetConfigInReadout();               // get Read values
+  inline int GetWriteConfigInReadout() { return write_config_in_readout_; }
   //
   //
   void SetAlctAmode(int alct_amode); // set Write values...
@@ -504,6 +513,7 @@ class ALCTController {
   //                   sn_select = [0-1] -> 0 = read ALCT serial number via JTAG (defunct)
   //                                        1 = read Mezzanine card serial number via JTAG (defunct)
   int  GetSnSelect();              // get Read values
+  inline int GetWriteSnSelect() { return write_sn_select_; }
   //
   //
   void SetPowerUpConfigurationReg();                // sets Write values to data-taking defaults
