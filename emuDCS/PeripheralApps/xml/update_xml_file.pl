@@ -184,6 +184,8 @@ foreach $parameter (@parameters) {
 	    $parameter =~ s/threshold/afeb_threshold/;
 	}
 #
+	$parameter =~ s/Number/afeb_number/;
+#
 	$parameter =~ s/alct_firmware_negative_positive/alct_firmware_negat_posit/;
     }
 #
@@ -196,6 +198,7 @@ foreach $parameter (@parameters) {
 	    !($parameter =~ m/alct_dav_cable_delay/) ) { 
 	    $parameter =~ s/cable_delay=..[0-9]{1,}\"/cfeb_cable_delay=\"0\"\n            tmb_lct_cable_delay=\"2\"\n            cfeb_dav_cable_delay=\"1\"\n            alct_dav_cable_delay=\"2\"/;     
 	}
+	$parameter =~ s/Number/cfeb_number/;
     }
 #
     $parameter="$parameter\n";
