@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.39 2008/06/22 14:57:52 liu Exp $
+// $Id: Crate.cc,v 3.40 2008/06/23 22:28:54 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.40  2008/06/23 22:28:54  liu
+// monitoring update
+//
 // Revision 3.39  2008/06/22 14:57:52  liu
 // new functions for monitoring
 //
@@ -504,7 +507,10 @@ void Crate::MonitorCCB(int cycle, char * buf)
   ccb->read_later(0x44);
   ccb->read_later(0x46);
   ccb->read_later(0x48);
-  int rb=mpc->read_now(0x0, buf+2);
+  mpc->read_later(0x0);
+  mpc->read_later(0xB8);
+  mpc->read_later(0xCA);
+  int rb=mpc->read_now(0xCC, buf+2);
   if(rb>0)  buf[0]=rb;
 }
 
