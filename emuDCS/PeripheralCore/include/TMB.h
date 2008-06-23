@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.43 2008/06/12 21:08:54 rakness Exp $
+// $Id: TMB.h,v 3.44 2008/06/23 14:26:09 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.44  2008/06/23 14:26:09  rakness
+// add getter functions
+//
 // Revision 3.43  2008/06/12 21:08:54  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -629,10 +632,12 @@ public:
   //------------------------------------------------------------------
   //!alct_tx_clock_delay = [0-15] (2ns)
   inline void SetAlctTXclockDelay(int alct_tx_clock_delay) { alct_tx_clock_delay_ = alct_tx_clock_delay; }
+  inline int  GetAlctTXclockDelay() { return alct_tx_clock_delay_; }
   inline int  GetALCTtxPhase() { return alct_tx_clock_delay_; }
   //
   //!alct_rx_clock_delay = [0-15] (2ns)
   inline void SetAlctRXclockDelay(int alct_rx_clock_delay) {alct_rx_clock_delay_ = alct_rx_clock_delay;}
+  inline int  GetAlctRXclockDelay() { return alct_rx_clock_delay_; }
   inline int  GetALCTrxPhase() { return alct_rx_clock_delay_; }
   //
   //!dmb_tx_delay = [0-15] (2ns)
