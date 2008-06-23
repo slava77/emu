@@ -137,6 +137,9 @@ protected:
   int this_crate_no_;
   std::string ThisCrateID_;
   bool controller_checked_;
+  int this_tcounter_;
+  int this_dcounter_;
+  int this_ocounter_;
   
   std::vector<std::string> monitorables_;
   bool Monitor_On_, Monitor_Ready_;
@@ -148,6 +151,9 @@ protected:
   vector<int> TmbDavCounter_;
   vector<int> AlctDavCounter_;
   //
+  std::vector<std::string> TCounterName;
+  std::vector<std::string> DCounterName;
+  std::vector<std::string> OCounterName;
   //
   EmuEndcap * emuEndcap_;
   //
@@ -183,6 +189,12 @@ private:
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void dummyAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
+  void TCounterSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DCounterSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void OCounterSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ChamberView(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CrateView(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void InitCounterNames();
       
   void CheckControllers();
   bool ParsingXML();

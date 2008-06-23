@@ -46,6 +46,12 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateSelection, "CrateSelection");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::TCounterSelection, "TCounterSelection");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCounterSelection, "DCounterSelection");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::OCounterSelection, "OCounterSelection");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::ChamberView, "ChamberView");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::CrateView, "CrateView");
+
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStart      ,"MonitorStart");
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStop      ,"MonitorStop");
   //
@@ -110,6 +116,9 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   total_crates_=0;
   this_crate_no_=0;
   controller_checked_=false;
+  this_tcounter_=0;
+  this_dcounter_=0;
+  this_ocounter_=0;
 
   parsed=0;
 }
@@ -183,6 +192,8 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
      if(!parsed) ParsingXML();
      if(total_crates_<=0) return;
 
+        // Initialize TMB,DMB and Other Counter Names
+        InitCounterNames();
         //Create infospaces for monitoring
         monitorables_.clear();
         for ( unsigned int i = 0; i < crateVector.size(); i++ )
@@ -201,13 +212,15 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 is->fireItemAvailable("QPLL",new xdata::String("uninitialized"));
                 is->fireItemAvailable("CCBstatus",new xdata::String("uninitialized"));
                 is->fireItemAvailable("MPCstatus",new xdata::String("uninitialized"));
+                is->fireItemAvailable("CCBcounter",new xdata::Vector<xdata::UnsignedShort>());
+                is->fireItemAvailable("CCBtime",new xdata::TimeVal);
 
             // for TMB fast counters
-                is->fireItemAvailable("TMBcounter",new xdata::Vector<xdata::UnsignedInteger32>);
+                is->fireItemAvailable("TMBcounter",new xdata::Vector<xdata::UnsignedInteger32>());
                 is->fireItemAvailable("TMBtime",new xdata::TimeVal);
 
             // for DMB fast counters
-                is->fireItemAvailable("DMBcounter",new xdata::Vector<xdata::UnsignedShort>);
+                is->fireItemAvailable("DMBcounter",new xdata::Vector<xdata::UnsignedShort>());
                 is->fireItemAvailable("DMBtime",new xdata::TimeVal);
 
             // for TMB temps, voltages
@@ -247,8 +260,12 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              if(cycle==3)
              {  
                 now_crate-> MonitorCCB(cycle, buf);
-                if(buf[0])  
-                {   // buf[0]==0 means no good data back
+                if(buf2[0])  
+                {   // buf2[0]==0 means no good data back
+                   xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
+                   if(ccbdata->size()==0) 
+                      for(unsigned ii=0; ii<buf2[0]; ii++) ccbdata->push_back(0);
+                   for(unsigned ii=0; ii<buf2[0]; ii++) (*ccbdata)[ii] = buf2[ii+1];
 
                    // CCB & TTC counters
                    counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA1"));
@@ -290,14 +307,22 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              else if( cycle==1)
              {
                 now_crate-> MonitorTMB(cycle, buf);
-                if(buf[0])
+                if(buf2[0])
                 {
-                  // std::cout << "TMB counters will be here" << std::endl;
+                   // std::cout << "TMB counters " << (buf2[0]/2) << std::endl;
+                   xdata::Vector<xdata::UnsignedInteger32> *tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
+                   if(tmbdata->size()==0)
+                      for(unsigned ii=0; ii<(buf2[0]/2); ii++) tmbdata->push_back(0);
+                   for(unsigned ii=0; ii<(buf2[0]/2); ii++) (*tmbdata)[ii] = buf4[ii+1];
                 }
                 now_crate-> MonitorDMB(cycle, buf);
-                if(buf[0])
+                if(buf2[0])
                 {
-                  // std::cout << "DMB counters will be here" << std::endl;
+                   // std::cout << "DMB counters " << buf2[0] << std::endl;
+                   xdata::Vector<xdata::UnsignedShort> *dmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("DMBcounter"));
+                   if(dmbdata->size()==0)
+                      for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0);
+                   for(unsigned ii=0; ii<buf2[0]; ii++) (*dmbdata)[ii] = buf2[ii+1];
                 }
              }
                // is->fireGroupChanged(names, this);
@@ -348,28 +373,149 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
      *out << cgicc::form() << std::endl ;
   }
   //
-  *out << cgicc::br() << cgicc::hr() <<std::endl;
+  *out << cgicc::hr() <<std::endl;
+  if(Monitor_Ready_)
+  {
 
-  *out << cgicc::h2("Crate View")<< std::endl;
-  //
-  *out << cgicc::span().set("style","color:blue");
-  *out << cgicc::b(cgicc::i("Current Crate : ")) ;
-  *out << ThisCrateID_ << cgicc::span() << std::endl ;
-  //
-  *out << cgicc::br();
-  //
+    *out << cgicc::h3("Endcap View")<< std::endl;
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:cyan");
+    *out << std::endl;
+    *out << cgicc::legend((("Monitoring"))) ;
+    //
+    *out << cgicc::table().set("border","0");
+    //
+    *out << cgicc::td();
+    std::string EndcapView = toolbox::toString("/%s/ChamberView",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",EndcapView).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","All Chambers").set("name", "EndcapView") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+
+    *out << cgicc::td();
+    std::string EndcapView2 = toolbox::toString("/%s/CrateView",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",EndcapView2).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","All Crates").set("name", "EndcapView") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    *out << cgicc::fieldset();
+    //
+    *out << std::endl;
+    //
+
+
+    *out << cgicc::hr() <<std::endl;
+
+    *out << cgicc::h3("Counter View")<< std::endl;
+
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:cyan");
+    *out << std::endl;
+    *out << cgicc::legend((("Monitoring"))) ;
+    //
+  // Begin select TCounter
+        // Config listbox
+	*out << form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/TCounterSelection").set("target","_blank") << endl;
+	int n_keys = TCounterName.size();
+
+	// *out << "Choose TMB Counter: " << endl;
+	*out << cgicc::select().set("name", "selected") << endl;
+
+	int selected_index = this_tcounter_;
+        std::string CounterName;
+	for (int i = 0; i < n_keys; ++i) {
+                CounterName = TCounterName[i];
+		if (i == selected_index) {
+			*out << option()
+					.set("value", CounterName)
+					.set("selected", "");
+		} else {
+			*out << option()
+					.set("value", CounterName);
+		}
+		*out << CounterName << option() << endl;
+	}
+
+	*out << cgicc::select() << endl;
+
+	*out << input().set("type", "submit")
+			.set("name", "command")
+			.set("value", "TMB Counter View") << endl;
+	*out << form() << endl;
+     
+  //End select TCounter
+    //
+    //
+  // Begin select DCounter
+        // Config listbox
+	*out << form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/DCounterSelection").set("target","_blank") << endl;
+	n_keys = DCounterName.size();
+
+	// *out << "Choose DMB Counter: " << endl;
+	*out << cgicc::select().set("name", "selected") << endl;
+
+	selected_index = this_tcounter_;
+	for (int i = 0; i < n_keys; ++i) {
+                CounterName = DCounterName[i];
+		if (i == selected_index) {
+			*out << option()
+					.set("value", CounterName)
+					.set("selected", "");
+		} else {
+			*out << option()
+					.set("value", CounterName);
+		}
+		*out << CounterName << option() << endl;
+	}
+
+	*out << cgicc::select() << endl;
+
+	*out << input().set("type", "submit")
+			.set("name", "command")
+			.set("value", "DMB Counter View") << endl;
+	*out << form() << endl;
+     
+  //End select DCounter
+    //
+    //
+//    std::string CrateDMBCounters = toolbox::toString("/%s/CrateDMBCounters",getApplicationDescriptor()->getURN().c_str());
+//    *out << cgicc::form().set("method","GET").set("action",CrateDMBCounters).set("target","_blank") << std::endl ;
+//    *out << cgicc::input().set("type","submit").set("value","DMB counters").set("name","DMBCounters") << std::endl ;
+//    *out << cgicc::form() << std::endl ;
+    //
+    //
+    *out << cgicc::fieldset();
+    //
+    *out << std::endl;
+    //
+
+    *out << cgicc::hr() <<std::endl;
+    *out << cgicc::h3("Crate View")<< std::endl;
+  
+    *out << cgicc::span().set("style","color:blue");
+    *out << cgicc::b(cgicc::i("Current Crate : ")) ;
+    *out << ThisCrateID_ << cgicc::span() << std::endl ;
+ 
+    *out << cgicc::br();
+ 
 
   // Begin select crate
         // Config listbox
 	*out << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/CrateSelection") << endl;
 
-	int n_keys = crateVector.size();
+	n_keys = crateVector.size();
 
 	*out << "Choose Crate: " << endl;
 	*out << cgicc::select().set("name", "runtype") << endl;
 
-	int selected_index = this_crate_no_;
+	selected_index = this_crate_no_;
         std::string CrateName;
 	for (int i = 0; i < n_keys; ++i) {
                 if(crateVector[i]->IsAlive())
@@ -396,11 +542,9 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
      
   //End select crate
  
-  *out << cgicc::br()<< std::endl;
-  std::cout << "Main Page: "<< std::dec << total_crates_ << " Crates" << std::endl;
+    *out << cgicc::br()<< std::endl;
+    std::cout << "Main Page: "<< std::dec << total_crates_ << " Crates" << std::endl;
   //
-  if(Monitor_Ready_)
-  {
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:cyan");
     *out << std::endl;
     *out << cgicc::legend((("Monitoring"))) ;
@@ -454,10 +598,6 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     *out << std::endl;
     //
   }
-  *out << cgicc::br() << cgicc::hr() <<std::endl;
-
-  *out << cgicc::h2("Counter View")<< std::endl;
-  //
 
   *out << cgicc::br() << cgicc::br() << std::endl; 
   *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
@@ -593,6 +733,421 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageRe
     current_crate_ = cr;
   }
 
+void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+     unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
+
+     cgicc::Cgicc cgi(in);
+
+    // std::cout << "Select Over View " << std::endl;
+// now produce the counter view page
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << cgicc::b("All Chambers") << std::endl;
+
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out << "crate";
+
+  *out <<cgicc::td();
+  //
+  for(unsigned int tmb=0; tmb<9; tmb++) {
+    if(tmb==0)
+    {
+       *out <<cgicc::td();
+       *out << "VCC";
+       *out <<cgicc::td();
+    }
+    *out <<cgicc::td();
+    *out << "Slot " << tmbslots[tmb] << "/" << tmbslots[tmb]+1;  
+    *out <<cgicc::td();
+    //
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  vector<TMB*> myVector;
+  for (unsigned int idx=0; idx<crateVector.size(); idx++) {
+    myVector = crateVector[idx]->tmbs();
+    //
+    for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(tmb==0) {
+        *out << crateVector[idx]->GetLabel() ;
+	*out <<cgicc::td();
+	*out <<cgicc::td();
+
+        if(crateVector[idx]->IsAlive()) *out << "On ";
+        else * out << "Off";
+        *out <<cgicc::td();
+        *out <<cgicc::td();
+      }
+      // chamber name
+      *out << crateVector[idx]->GetChamber(myVector[tmb])->GetLabel() << cgicc::br();
+      // trig allowed, xmit to MPC
+      int dc=myVector[tmb]->GetCounter(9);
+      if (dc == 0x3fffffff ) dc = -1;
+      *out << "Trigger  " << dc << cgicc::br();
+      // L1A received
+      dc=myVector[tmb]->GetCounter(18);
+      if (dc == 0x3fffffff ) dc = -1;
+      *out << "L1A rcv  " << dc << cgicc::br();
+      // TMB readout
+      dc=myVector[tmb]->GetCounter(22);
+      if (dc == 0x3fffffff ) dc = -1;
+      *out << "TMB read " << dc;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+  }
+  //
+  *out << cgicc::table() << std::endl;
+  //
+  }
+
+void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+//     unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
+     unsigned TOTAL_COUNTS=9;
+
+     cgicc::Cgicc cgi(in);
+
+     // std::cout << "Select Crate View " << std::endl;
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"120; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << cgicc::b("All Crates") << std::endl;
+
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out << "crate";
+  *out <<cgicc::td();
+  //
+  for(unsigned int count=0; count<TOTAL_COUNTS; count++) {
+    if(count==0)
+    {
+       *out <<cgicc::td();
+       *out << "VCC";
+       *out <<cgicc::td();
+    }
+    *out <<cgicc::td();
+    *out << OCounterName[count];
+    *out <<cgicc::td();
+    //
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  for (unsigned int idx=0; idx<crateVector.size(); idx++) {
+
+    // retrieve data from inforspace
+    xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[idx]);
+    xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
+    unsigned short csra1,csra2,csra3,csrm0,brstr,dtstr;
+    if(ccbdata->size()>12)
+    {
+      csra1=(*ccbdata)[0];
+      csra2=(*ccbdata)[1];
+      csra3=(*ccbdata)[2];
+      brstr=(*ccbdata)[9];
+      dtstr=(*ccbdata)[10];
+      csrm0=(*ccbdata)[11];
+    }
+    //
+    for(unsigned int count=0; count<TOTAL_COUNTS; count++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(count==0) {
+        *out << crateVector[idx]->GetLabel() ;
+	*out <<cgicc::td();
+	*out <<cgicc::td();
+
+        if(crateVector[idx]->IsAlive()) *out << "On ";
+        else * out << "Off";
+        *out <<cgicc::td();
+        *out <<cgicc::td();
+      }
+      switch(count)
+      {
+         case 0:
+   	   *out << ((csra1 & 0x1)?"DLOG":"FPGA");
+           break;
+         case 1:
+   	   *out << ((csra3 & 0x2000)?"Ready":"No");
+           break;
+         case 2:
+   	   *out << (((csra3 & 0x2000)==0 || (csra3 & 0x4000)!=0 )?"Ready":"No");
+           break;
+         case 3:
+   	   *out << (((csrm0 & 0x8201)==0x0200)?"Ready":"No");
+           break;
+         case 4:
+   	   *out << std::hex << csra1 << std::dec;
+           break;
+         case 5:
+   	   *out << std::hex << csra2 << std::dec;
+           break;
+         case 6:
+   	   *out << std::hex << csra3 << std::dec;
+           break;
+         case 7:
+   	   *out << brstr;
+           break;
+         case 8:
+   	   *out << dtstr;
+           break;
+         default:
+           *out << "Unknown";
+      }
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+  }
+  //
+  *out << cgicc::table() << std::endl;
+  //
+  }
+
+void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+     unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
+
+     cgicc::Cgicc cgi(in);
+
+     std::string in_value = cgi.getElement("selected")->getValue(); 
+     // std::cout << "Select Counter " << in_value << endl;
+     if(!in_value.empty())
+     {
+//        int k=in_value.find(" ",0);
+//        std::string value = (k) ? in_value.substr(0,k):in_value;
+        for(unsigned i=0; i< TCounterName.size(); i++)
+        {
+           if(in_value==TCounterName[i]) this_tcounter_=i;
+        }
+     }
+// now produce the counter view page
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << cgicc::b(TCounterName[this_tcounter_]) << std::endl;
+
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out << "crate";
+  *out <<cgicc::td();
+  //
+  for(unsigned int tmb=0; tmb<9; tmb++) {
+    if(tmb==0)
+    {
+       *out <<cgicc::td();
+       *out << "VCC";
+       *out <<cgicc::td();
+    }
+    *out <<cgicc::td();
+    *out << "Slot " << tmbslots[tmb];
+    *out <<cgicc::td();
+    //
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  vector<TMB*> myVector;
+  for (unsigned int idx=0; idx<crateVector.size(); idx++) {
+    myVector = crateVector[idx]->tmbs();
+    //
+    for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(tmb==0) {
+        *out << crateVector[idx]->GetLabel() ;
+	*out <<cgicc::td();
+	*out <<cgicc::td();
+
+        if(crateVector[idx]->IsAlive()) *out << "On ";
+        else * out << "Off";
+        *out <<cgicc::td();
+        *out <<cgicc::td();
+      }
+      if ( myVector[tmb]->GetCounter(this_tcounter_) == 0x3fffffff )
+         *out << "-1";
+      else 
+   	 *out << myVector[tmb]->GetCounter(this_tcounter_);
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+  }
+  //
+  *out << cgicc::table() << std::endl;
+  //
+  }
+
+  void EmuPeripheralCrateMonitor::DCounterSelection(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     unsigned int dmbslots[9]={3,5,7,9,11,15,17,19,21};
+
+     cgicc::Cgicc cgi(in);
+
+     std::string in_value = cgi.getElement("selected")->getValue(); 
+     // std::cout << "Select Counter " << in_value << endl;
+     if(!in_value.empty())
+     {
+//        int k=in_value.find(" ",0);
+//        std::string value = (k) ? in_value.substr(0,k):in_value;
+        for(unsigned i=0; i< DCounterName.size(); i++)
+        {
+           if(in_value==DCounterName[i]) this_dcounter_=i;
+        }
+     }
+// now produce the counter view page
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << cgicc::b(DCounterName[this_dcounter_]) << std::endl;
+
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out << "crate";
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<9; dmb++) {
+    if(dmb==0)
+    {
+       *out <<cgicc::td();
+       *out << "VCC";
+       *out <<cgicc::td();
+    }
+    *out <<cgicc::td();
+    *out << "Slot " << dmbslots[dmb];
+    *out <<cgicc::td();
+    //
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  vector<DAQMB*> myVector;
+  for (unsigned int idx=0; idx<crateVector.size(); idx++) {
+    myVector = crateVector[idx]->daqmbs();
+    //
+    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(dmb==0) {
+        *out << crateVector[idx]->GetLabel() ;
+	*out <<cgicc::td();
+	*out <<cgicc::td();
+
+        if(crateVector[idx]->IsAlive()) *out << "On ";
+        else * out << "Off";
+        *out <<cgicc::td();
+        *out <<cgicc::td();
+      }
+      unsigned dc=myVector[dmb]->GetCounter(this_dcounter_);
+      if ( this_dcounter_<4 )
+   	 *out << dc;
+      else 
+         for( int ii=4; ii>-1; ii--) *out << ((dc>>ii)&0x1);
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+  }
+  //
+  *out << cgicc::table() << std::endl;
+  //
+  }
+
+  void EmuPeripheralCrateMonitor::OCounterSelection(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     cgicc::Cgicc cgi(in);
+
+     std::string in_value = cgi.getElement("runtype")->getValue(); 
+     // std::cout << "Select Crate " << in_value << endl;
+     if(!in_value.empty())
+     {
+//        int k=in_value.find(" ",0);
+//        std::string value = (k) ? in_value.substr(0,k):in_value;
+        for(unsigned i=0; i< crateVector.size(); i++)
+        {
+           if(in_value==TCounterName[i]) this_tcounter_=i;
+        }
+     }
+// now produce the counter view page
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << cgicc::b(TCounterName[this_tcounter_]) << std::endl;
+
+  }
+
 ///////////////////////////////////////////////////////
 // Counters displays
 ///////////////////////////////////////////////////////
@@ -600,8 +1155,8 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
   throw (xgi::exception::Exception) {
   //
   int counter_idx[30]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                       10,11,12,13,14,15,16,17,18,19,
-                       20,21,22,23,24,33};
+                       10,11,12,16,17,18,19, 20,21,22,
+                       23,24,33};
   ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
   output << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -615,10 +1170,14 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  Crate *myCrate;
   vector<TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->tmbs();
+     if(crate_name==crateVector[i]->GetLabel())
+     {   myVector = crateVector[i]->tmbs();
+         myCrate = crateVector[i];
+     }
   }
   if(Monitor_On_)
   {
@@ -641,7 +1200,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
 //    myVector[tmb]->GetCounters();
     //
     output <<cgicc::td();
-    output << "Slot " <<myVector[tmb]->slot();
+    output << "Slot " <<myVector[tmb]->slot() << " " << myCrate->GetChamber(myVector[tmb])->GetLabel();
     output <<cgicc::td();
     //
   }
@@ -649,7 +1208,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
   output <<cgicc::tr();
   //
   int count;
-  for (int idx=0; idx<26; idx++) {
+  for (int idx=0; idx<23; idx++) {
     count=counter_idx[idx];
     //
     for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
@@ -657,25 +1216,14 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
       output <<cgicc::td();
       //
       if(tmb==0) {
-	if(count==33)
-           output << "Time since last Hard Reset" ;
-        else
-           output << myVector[tmb]->CounterName(count) ;
+        output << TCounterName[count] ;
 	output <<cgicc::td();
 	output <<cgicc::td();
       }
-      if (DisplayRatio_) {
-	 if ( myVector[tmb]->GetCounter(16) > 0 )
-	    output << ((float)(myVector[tmb]->GetCounter(count))/(myVector[tmb]->GetCounter(16)));
-	 else 
-	    output << "-1";
-      } 
-      else {
-        if ( myVector[tmb]->GetCounter(count) == 0x3fffffff )
-           output << "-1";
-        else 
-   	   output << myVector[tmb]->GetCounter(count);
-      }
+      if ( myVector[tmb]->GetCounter(count) == 0x3fffffff )
+         output << "-1";
+      else 
+   	 output << myVector[tmb]->GetCounter(count);
       output <<cgicc::td();
     }
     output <<cgicc::tr();
@@ -702,10 +1250,14 @@ void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * 
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  Crate *myCrate;
   vector<DAQMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->daqmbs();
+     if(crate_name==crateVector[i]->GetLabel())
+     {  myVector = crateVector[i]->daqmbs();
+        myCrate = crateVector[i];
+     }
   }
   if(Monitor_On_)
   {
@@ -730,121 +1282,32 @@ void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * 
   //
   for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
     *out <<cgicc::td();
-    *out << "Slot " <<myVector[dmb]->slot();
+    *out << "Slot " <<myVector[dmb]->slot() << " " << myCrate->GetChamber(myVector[dmb])->GetLabel();
     *out <<cgicc::td();
   }
   //
   *out <<cgicc::tr();
   //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(0);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+  for (int count=0; count<9; count++) {
     //
-    *out <<cgicc::td();
-    if ( myVector[dmb]->GetL1aLctCounter() > 0 ) {
-      L1aLctCounter_[dmb] = myVector[dmb]->GetL1aLctCounter();
+    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(dmb==0) {
+        *out << DCounterName[count] ;
+	*out <<cgicc::td();
+	*out <<cgicc::td();
+      }
+      unsigned dc=myVector[dmb]->GetCounter(count);
+      if ( count<4 )
+         *out << dc;
+      else
+         for( int ii=4; ii>-1; ii--) *out << ((dc>>ii)&0x1);
+      *out <<cgicc::td();
     }
-    *out << L1aLctCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
+    *out <<cgicc::tr();
   }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(1);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( myVector[dmb]->GetCfebDavCounter() > 0 ) CfebDavCounter_[dmb] = myVector[dmb]->GetCfebDavCounter();
-    *out << CfebDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(2);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( myVector[dmb]->GetTmbDavCounter() > 0 ) TmbDavCounter_[dmb] = myVector[dmb]->GetTmbDavCounter();
-    *out << TmbDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(3);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( myVector[dmb]->GetAlctDavCounter() > 0 ) AlctDavCounter_[dmb] = myVector[dmb]->GetAlctDavCounter();
-    *out << AlctDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(4);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetL1aLctScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::tr();
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(5);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetCfebDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(6);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetTmbDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(7);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetAlctDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
   //
   *out << cgicc::table();
   //
@@ -1075,6 +1538,72 @@ void EmuPeripheralCrateMonitor::CheckControllers()
         if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
     }
     controller_checked_ = true;
+}
+
+void EmuPeripheralCrateMonitor::InitCounterNames()
+{
+    TCounterName.clear();
+    DCounterName.clear();
+    OCounterName.clear();    
+
+    TCounterName.push_back( "ALCT: CRC error                                        "); // 0
+    TCounterName.push_back( "ALCT: LCT sent to TMB                                  ");
+    TCounterName.push_back( "ALCT: LCT received data error                          ");
+    TCounterName.push_back( "ALCT: L1A readout                                      ");
+    TCounterName.push_back( "CLCT: Pretrigger                                       ");
+    TCounterName.push_back( "CLCT: Pretrig but no wbuf available                    ");
+    TCounterName.push_back( "CLCT: Invalid pattern after drift                      ");
+    TCounterName.push_back( "CLCT: TMB matching rejected event                      ");
+    TCounterName.push_back( "TMB: CLCT,ALCT,or both trigger                         ");
+    TCounterName.push_back( "TMB: CLCT,ALCT,or both trigger, trig allowed, xmit MPC ");
+    TCounterName.push_back( "TMB: CLCT and ALCT matched in time                     "); // 10
+    TCounterName.push_back( "TMB: ALCT-only trigger                                 ");
+    TCounterName.push_back( "TMB: CLCT-only trigger                                 ");
+    TCounterName.push_back( "TMB: No trig pulse response (TMB internal logic check) ");
+    TCounterName.push_back( "TMB: No MPC transmission (TMB internal logic check)    ");
+    TCounterName.push_back( "TMB: No MPC response FF pulse (TMB internal logic ck)  ");
+    TCounterName.push_back( "TMB: MPC accepted LCT0                                 ");
+    TCounterName.push_back( "TMB: MPC accepted LCT1                                 ");
+    TCounterName.push_back( "L1A: L1A received                                      ");
+    TCounterName.push_back( "L1A: TMB triggered, TMB in L1A window                  ");
+    TCounterName.push_back( "L1A: L1A received, no TMB in window                    "); // 20
+    TCounterName.push_back( "L1A: TMB triggered, no L1A received                    ");
+    TCounterName.push_back( "L1A: TMB readout                                       ");
+    TCounterName.push_back( "CLCT: Triad skipped                                    ");
+    TCounterName.push_back( "TMB: Raw Hits Buffer Reset due to overflow             ");
+    TCounterName.push_back( "TMB: No ALCT in trigger                                ");
+    TCounterName.push_back( "TMB: One ALCT in trigger                               ");
+    TCounterName.push_back( "TMB: One CLCT in trigger                               ");
+    TCounterName.push_back( "TMB: Two ALCTs in trigger                              ");
+    TCounterName.push_back( "TMB: Two CLCTs in trigger                              ");
+    TCounterName.push_back( "TMB: ALCT0 copied to ALCT1 to make 2nd LCT             "); // 30
+    TCounterName.push_back( "TMB: CLCT0 copied to CLCT1 to make 2nd LCT             ");
+    TCounterName.push_back( "TMB: LCT1 has higher quality than LCT0 (ranking error) ");
+    TCounterName.push_back( "TMB: Time since last Hard Reset                        "); // 33
+
+    DCounterName.push_back( "L1A to LCT delay");  // 0
+    DCounterName.push_back( "CFEB DAV delay  ");
+    DCounterName.push_back( "TMB DAV delay   ");
+    DCounterName.push_back( "ALCT DAV delay  ");
+    DCounterName.push_back( "CFEB DAV Scope  ");  // 4
+    DCounterName.push_back( "TMB DAV Scope   ");
+    DCounterName.push_back( "ALCT DAV Scope  ");
+    DCounterName.push_back( "ACTIVE DAV Scope");
+    DCounterName.push_back( "L1A to LCT Scope");  // 8
+
+    OCounterName.push_back( "CCB mode  "); // 0
+    OCounterName.push_back( "TTCrx     ");
+    OCounterName.push_back( "QPLL      ");
+    OCounterName.push_back( "MPC       ");
+    OCounterName.push_back( "CCB CSRA1 ");
+    OCounterName.push_back( "CCB CSRA2 ");
+    OCounterName.push_back( "CCB CSRA3 ");
+    OCounterName.push_back( "TTC BRSTR ");
+    OCounterName.push_back( "TTC DTSTR ");
+    OCounterName.push_back( "MPC CSR0  ");
+    OCounterName.push_back( "MPC CSR4  "); // 10
+    OCounterName.push_back( "MPC CSR7  ");
+    OCounterName.push_back( "MPC CSR8  "); // 12
 }
 
 // sending and receiving soap commands
