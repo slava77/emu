@@ -760,6 +760,11 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
 
+  *out << cgicc::br() << cgicc::span().set("style","color:blue");
+  *out << cgicc::b("A: ") << cgicc::i(" ALCT pattern; ") << cgicc::b("C: ") << cgicc::i(" CLCT pretrig; ");
+  *out << cgicc::b("T: ") << cgicc::i(" TMB triggers; ") << cgicc::b("L: ") << cgicc::i(" L1A * TMB");
+  *out << cgicc::span() << std::endl ;
+  
   *out << cgicc::table().set("border","1");
   //
   *out <<cgicc::td();
@@ -802,18 +807,22 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
       }
       // chamber name
       *out << crateVector[idx]->GetChamber(myVector[tmb])->GetLabel() << cgicc::br();
+      // ALCT: LCT sent to TMB
+      int dc=myVector[tmb]->GetCounter(1);
+      if (dc == 0x3fffffff ) dc = -1;
+      *out << "A: " << dc <<"; ";
+      // CLCT pretrigger 
+      dc=myVector[tmb]->GetCounter(4);
+      if (dc == 0x3fffffff ) dc = -1;
+      *out << "C: " << dc << cgicc::br();
       // trig allowed, xmit to MPC
-      int dc=myVector[tmb]->GetCounter(9);
+      dc=myVector[tmb]->GetCounter(9);
       if (dc == 0x3fffffff ) dc = -1;
-      *out << "Trigger  " << dc << cgicc::br();
-      // L1A received
-      dc=myVector[tmb]->GetCounter(18);
+      *out << "T: " << dc << "; ";
+      // L1A: TMB triggered, TMB in L1A window
+      dc=myVector[tmb]->GetCounter(19);
       if (dc == 0x3fffffff ) dc = -1;
-      *out << "L1A rcv  " << dc << cgicc::br();
-      // TMB readout
-      dc=myVector[tmb]->GetCounter(22);
-      if (dc == 0x3fffffff ) dc = -1;
-      *out << "TMB read " << dc;
+      *out << "L: " << dc << cgicc::br();
       *out <<cgicc::td();
     }
     *out <<cgicc::tr();
