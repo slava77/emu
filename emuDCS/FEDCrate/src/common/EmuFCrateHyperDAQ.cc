@@ -1,5 +1,4 @@
 
-<<<<<<< EmuFCrateHyperDAQ.cc
 #include "EmuFCrateHyperDAQ.h"
 
 #include "DDUDebugger.h"
