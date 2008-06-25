@@ -78,9 +78,9 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 
 	// Move the pictures to tmp for display
 	std::vector< std::string > picNames;
-	picNames.push_back("osu_fed_background.png");
-	picNames.push_back("osu_crate.png");
-	picNames.push_back("osu_emu.png");
+	picNames.push_back("osu_fed_background2.png");
+	picNames.push_back("osu_crate2.png");
+	picNames.push_back("osu_emu2.png");
 	for (std::vector< std::string >::iterator iName = picNames.begin(); iName != picNames.end(); iName++) {
 		std::ifstream picIn;
 		picIn.open((*iName).c_str(),std::ios_base::binary);
