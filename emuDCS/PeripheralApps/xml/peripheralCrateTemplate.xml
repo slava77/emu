@@ -1,7 +1,7 @@
 <!-- Possible xml parameters for the user-->
 <EmuSystem>
 
-  <PeripheralCrate crateID="2" label="default_values" VMEaddress="02:00:00:00:00:06" port="1">
+  <PeripheralCrate crateID="2" label="default_values">
 
     <VCC eth_port="1"
          MAC_addr="02-00-00-00-00-06"
@@ -14,7 +14,7 @@
          Ext_FIFO_CR="0002"
          Rst_Misc_CR="021B"
          VME_CR="EDFF1D0F"
-         BTO="03D4"
+         BTO="30D4"
          BGTO="0C35"
          Msg_Lvl="2"
          Warn_On_Shtdwn="false"
