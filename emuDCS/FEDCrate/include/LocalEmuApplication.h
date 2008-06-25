@@ -48,7 +48,9 @@ public:
 		throw (xdaq::exception::Exception):
 		EmuApplication(stub),
 		runNumber_(0),
-		autoRefresh_(20)
+		autoRefresh_(20),
+		NS_XSI("http://www.w3.org/2001/XMLSchema-instance"),
+		STATE_UNKNOWN("unknown")
 	{
 		xoap::bind(this, &LocalEmuApplication::onGetParameters, "GetParameters", XDAQ_NS_URI);
 
@@ -131,6 +133,68 @@ public:
 		return reply;
 
 	}
+
+	/** Sets a parameter in a remote application.  I don't know where the
+	*       binding to this command is set, but it seems to affect all
+	*       of the applications we are concerned with.
+	*
+	*       @param klass is the target application class name (this
+	*       function sends to all of the instances of that class.)
+	*       @param name is the name of the variable you want to set.
+	*       @param type is the type of the varialbe you want to set.  Use
+	*       strings like "xsd:string" and "xsd:unsignedLong".
+	*       @param value is a string representation of the value to be set.
+	*
+	*       @note Because I don't know where this call is handled, I do not
+	*       know anything about error handling.  Just try to make sure
+	*       the variable exists in the exported InfoSpace of the target
+	*       application, and that the types match.
+	*
+	*       @author Phillip Killewald (stolen from Laria's CSCSupervisor.cc)
+	**/
+	void setParameter(string klass, string name, string type, string value)
+	{
+
+		// find applications
+		std::set<xdaq::ApplicationDescriptor *> apps;
+		try {
+			apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
+		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+			LOG4CPLUS_WARN(getApplicationLogger(), "There are no applications with the class name " << klass << " in this context.");
+			return; // Do nothing if the target doesn't exist
+		}
+
+		// prepare a SOAP message
+		xoap::MessageReference message = xoap::createMessage();
+		xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+		envelope.addNamespaceDeclaration("xsi", NS_XSI);
+
+		xoap::SOAPName command = envelope.createName("ParameterSet", "xdaq", XDAQ_NS_URI);
+		xoap::SOAPName properties = envelope.createName("properties", klass, "urn:xdaq-application:" + klass);
+		xoap::SOAPName parameter = envelope.createName(name, klass, "urn:xdaq-application:" + klass);
+		xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
+
+		xoap::SOAPElement properties_e = envelope.getBody()
+			.addBodyElement(command)
+			.addChildElement(properties);
+		properties_e.addAttribute(xsitype, "soapenc:Struct");
+
+		xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+		parameter_e.addAttribute(xsitype, type);
+		parameter_e.addTextNode(value);
+
+		xoap::MessageReference reply;
+
+		// send the message one-by-one
+		std::set<xdaq::ApplicationDescriptor *>::iterator i;
+		for (i = apps.begin(); i != apps.end(); ++i) {
+			reply = getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), **i);
+			// Analysis here, if debugging needed.
+		}
+
+		return;
+	}
+
 
 	/** Reads a reply from onGetParameters and returns a named parameter from
 	*	a target ApplicationInfoSpace.
@@ -236,6 +300,11 @@ public:
 		*out << "function toggle(id) {var elem = document.getElementById(id);	elem.style.display = (elem.style.display != 'none' ? 'none' : '' );}" << endl;
 		*out << "</script>" << endl;
 
+		// Javascript bit-flipper
+		*out << "<script type='text/javascript'>" << endl;
+		*out << "function toggleBit(id,bit) { var elem = document.getElementById(id); oldValue = parseInt(elem.value); newValue = (oldValue ^ (1 << bit)); elem.value = \"0x\" + newValue.toString(16); }" << endl;
+		*out << "</script>" << endl;
+
 		*out << cgicc::head() << endl;
 
 		*out << "<body background=\"/tmp/osu_fed_background2.png\">" << endl;
@@ -295,7 +364,8 @@ public:
 		*out << "fieldset.footer {width: 95%; margin: 20px auto 5px auto; padding: 2px 2px 2px 2px; font-size: 9pt; font-style: italic; border: 0px solid #555; text-align: center;}" << endl;
 		*out << "fieldset.fieldset, fieldset.normal, fieldset.expert {width: 90%; margin: 10px auto 10px auto; padding: 2px 2px 2px 2px; border: 2px solid #555; background-color: #FFF;}" << endl;
 		*out << "fieldset.expert {background-color: #CCC; border: dashed 2px #C00; clear: both;}" << endl;
-		*out << "div.legend {width: 100%; padding-left: 20px; margin-bottom: 10px; color: #00D; font-size: 12pt; font-weight: bold; cursor: pointer;}" << endl;
+		*out << "div.legend {width: 100%; padding-left: 20px; margin-bottom: 10px; color: #00D; font-size: 12pt; font-weight: bold;}" << endl;
+		*out << ".openclose {border: 1px solid #000; padding: 0px; cursor: pointer; font-family: monospace; color: #000; background-color: #FFF;}" << endl;
 		*out << "table.data {border-width: 0px; border-collapse: collapse; margin: 5px auto 5px auto; font-size: 9pt;} " << endl;
 		*out << "table.data td {padding: 1px 8px 1px 8px;}" << endl;
 		*out << ".Halted, .Enabled, .Disabled, .Configured, .Failed, .unknown {padding: 2px; background-color: #000; font-family: monospace;}" << endl;
@@ -349,6 +419,10 @@ public:
 
 protected:
 
+	// "Globals"
+	string NS_XSI;
+	string STATE_UNKNOWN;
+	
 	/** Serializes this application's ApplicationInfoSpace and returns it.
 	*	As things stand, is bound to the "GetParameters" SOAP command.
 	*
