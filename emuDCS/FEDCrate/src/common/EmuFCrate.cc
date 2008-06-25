@@ -305,6 +305,33 @@ xoap::MessageReference EmuFCrate::onUpdateFlash(xoap::MessageReference message)
 void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
+<<<<<<< EmuFCrate.cc
+
+	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Configure");
+	//cout << "    enter EmuFCrate::configureAction " << endl;
+
+	if (soapLocal_) {
+		soapLocal_ = false;
+		soapConfigured_ = false;
+	} else {
+		soapConfigured_ = true;
+	}
+
+	// The run type is given to us via SOAP.
+	LOG4CPLUS_INFO(getApplicationLogger(), "Run type is " << runType_.toString());
+	if (runType_.toString() == "Debug") {
+		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
+	} else {
+		getApplicationLogger().setLogLevel(INFO_LOG_LEVEL);
+	}
+
+	// JRG: note that the HardReset & Resynch should already be done by this point!
+
+	// PGK This simply sets the configuration file correctly in the
+	//  EmuFController object.
+	// set it here automatically now,
+	// rather the manual selection later with HyperDAQ
+=======
 
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Configure");
 	//cout << "    enter EmuFCrate::configureAction " << endl;
@@ -333,6 +360,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	//  EmuFController object.
 	// set it here automatically now,
 	// rather the manual selection later with HyperDAQ
+>>>>>>> 3.12
 	SetConfFile(xmlFile_);
 	cout << " EmuFCrate Configure from Soap: using file " << xmlFile_.toString() << endl;
 
@@ -503,6 +531,26 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
+<<<<<<< EmuFCrate.cc
+	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Enable");
+	soapLocal_ = false;
+
+	// PGK If the run number is not set, this is a debug run.
+	LOG4CPLUS_INFO(getApplicationLogger(), "The run number is " << runNumber_.toString());
+	if (runNumber_.toString() == "" || runNumber_.toString() == "0") {
+		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
+	}
+
+	// PGK You have to wipe the thread manager and start over.
+	TM = new IRQThreadManager();
+	vector<Crate *> myCrates = getCrates();
+	for (unsigned int i=0; i<myCrates.size(); i++) {
+		if (myCrates[i]->number() > 4) continue;
+		TM->attachCrate(myCrates[i]);
+	}
+	// PGK We now have the run number from CSCSV
+	TM->startThreads(runNumber_);
+=======
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Enable");
 	soapLocal_ = false;
 
@@ -520,6 +568,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	}
 	// PGK We now have the run number from CSCSV
 	TM->startThreads(runNumber_);
+>>>>>>> 3.12
 }
 
 
@@ -769,6 +818,7 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 			.set("type", "submit")
 			.set("name", "command")
 			.set("value", "SetTTSBits") << endl;
+<<<<<<< EmuFCrate.cc
 
 		*out << cgicc::form() << endl;
 	} else {
@@ -977,10 +1027,225 @@ void EmuFCrate::webFire(xgi::Input *in, xgi::Output *out)
 	}
 
 	webRedirect(in, out);
+=======
+
+		*out << cgicc::form() << endl;
+	} else {
+		*out << "EmuFCrate has been configured through SOAP." << endl;
+		*out << cgicc::br() << "Send the Halt signal to manually set TTS bits." << endl;
+	}
+
+	*out << cgicc::fieldset() << endl;
+	*/
+
+	// IRQ Monitoring
+	*out << cgicc::fieldset()
+		.set("class","fieldset") << endl;
+
+	if (state_.toString() == "Enabled") {
+		*out << cgicc::div("IRQ Monitoring Enabled")
+			.set("class","legend") << endl;
+
+		vector<Crate *> crateVector = getCrates();
+		vector<Crate *>::iterator iCrate;
+		for (iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+
+			int crateNumber = (*iCrate)->number();
+			if (crateNumber > 4) continue; // Skip TF
+
+			// Status table
+			*out << cgicc::table()
+				.set("style","width: 90%; margin: 10px auto 10px auto; border: solid 2px #009; border-collapse: collapse;") << endl;
+
+			*out << cgicc::tr()
+				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 12pt; font-weight: bold;") << endl;
+
+			*out << cgicc::td()
+				.set("colspan","8") << endl;
+			*out << "Crate " << crateNumber << endl;
+			*out << cgicc::td() << endl;
+
+			*out << cgicc::tr() << endl;
+
+			*out << cgicc::tr()
+				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold;") << endl;
+
+			*out << cgicc::td()
+				.set("colspan","8") << endl;
+
+			time_t startTime = TM->data()->startTime[crateNumber];
+			time_t tickTime = TM->data()->tickTime[crateNumber];
+
+			tm *startTimeInfo = localtime(&startTime);
+			*out << "[ Began " << asctime(startTimeInfo) << "-- ";
+			*out << TM->data()->ticks[crateNumber] << " ticks -- ";
+			tm *tickTimeInfo = localtime(&tickTime);
+			*out << "last tick " << asctime(tickTimeInfo) << "]" << endl;
+			*out << cgicc::td() << endl;
+			*out << cgicc::tr() << endl;
+
+			*out << cgicc::tr()
+				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold; border: solid 1px #000") << endl;
+			*out << cgicc::td("Slot") << endl;
+			*out << cgicc::td("RUI") << endl;
+			*out << cgicc::td("nIRQ") << endl;
+			*out << cgicc::td("Last Error Time") << endl;
+			*out << cgicc::td("Last Fiber") << endl;
+			*out << cgicc::td("Last Chamber") << endl;
+			*out << cgicc::td("Accumulated Fibers") << endl;
+			*out << cgicc::td("Accumulated Chambers") << endl;
+			*out << cgicc::tr() << endl;
+
+			for (int iSlot=0; iSlot<21; iSlot++) {
+				if (TM->data()->lastError[crateNumber][iSlot] == 0) continue;
+
+				*out << cgicc::tr() << endl;
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				*out << iSlot;
+				*out << cgicc::td() << endl;
+
+				int rui=9*crateNumber+iSlot-3;
+				if (iSlot>8) rui--;  // Correct for the DCC slot.
+				if (crateNumber>0) rui-=9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				*out << rui;
+				*out << cgicc::td() << endl;
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				*out << TM->data()->dduCount[crateNumber][iSlot];
+				*out << cgicc::td() << endl;
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				time_t interruptTime = TM->data()->lastErrorTime[crateNumber][iSlot];
+				struct tm* interruptTimeInfo = localtime(&interruptTime);
+				*out << asctime(interruptTimeInfo);
+				*out << cgicc::td() << endl;
+
+				// Find the DDU from the slot...
+				DDU *myDDU;
+				vector<DDU *> dduVector = (*iCrate)->ddus();
+				vector<DDU *>::iterator iDDU;
+				for (iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+					if (iSlot == (*iDDU)->slot()) {
+						myDDU = (*iDDU);
+						break;
+					}
+				}
+
+				unsigned int lastFiberError = TM->data()->lastError[crateNumber][iSlot];
+				int printLastFiberError = -2;
+				// Find the chamber from the last error fiber...
+				string lastChamber;
+				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+					if (lastFiberError & (1<<iFiber)) {
+						//if (iFiber == 15) {
+						//	lastChamber = "DDU";
+						//	printLastFiberError = -1;
+						//} else {
+						lastChamber = myDDU->getChamber(iFiber)->name();
+						printLastFiberError = iFiber;
+						break;
+						//}
+					}
+				}
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				//if (printLastFiberError == -1) *out << "DDU";
+				//else if (printLastFiberError >= 0)
+				*out << printLastFiberError;
+				*out << endl;
+				*out << cgicc::td() << endl;
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				*out << lastChamber;
+				*out << cgicc::td() << endl;
+
+				unsigned int accFiberError = TM->data()->accError[crateNumber][iSlot];
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;") << endl;
+				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+					if (accFiberError & (1 << iFiber)) {
+						//if (iFiber == 15) *out << "DDU ";
+						//else
+						*out << iFiber << " ";
+					}
+				}
+				*out << cgicc::td() << endl;
+
+				// Build a string of chambers that sent an IRQ...
+				string accChambers;
+				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+					if (accFiberError & (1 << iFiber)) {
+						//if (iFiber == 15) accChambers += "DDU ";
+						//else
+						accChambers += myDDU->getChamber(iFiber)->name() + " ";
+					}
+				}
+
+				*out << cgicc::td()
+					.set("style","border: 1px solid #000;")
+					.set("class","error") << endl;
+				*out << accChambers;
+				*out << cgicc::td() << endl;
+
+				*out << cgicc::tr() << endl;
+
+			}
+
+			*out << cgicc::table() << endl;
+
+		}
+
+	} else {
+		*out << cgicc::div("IRQ Monitoring Disabled")
+			.set("class","legend") << endl;
+		*out << cgicc::span("Set state to \"Enabled\" to begin IRQ monitoring threads.")
+			.set("style","color: #A00; font-size: 11pt;") << endl;
+	}
+
+	*out << cgicc::fieldset() << endl;
+
+	*out << Footer() << endl;
+>>>>>>> 3.12
+}
+
+<<<<<<< EmuFCrate.cc
+
+
+=======
+
+
+void EmuFCrate::webFire(xgi::Input *in, xgi::Output *out)
+	throw (xgi::exception::Exception)
+{
+	cgicc::Cgicc cgi(in);
+	soapLocal_ = true;
+
+	string action = "";
+	cgicc::form_iterator name = cgi.getElement("action");
+	if(name != cgi.getElements().end()) {
+		action = cgi["action"]->getValue();
+		cout << "webFire action: " << action << endl;
+		ostringstream log;
+		log << "Local FSM state change requested: " << action;
+		LOG4CPLUS_INFO(getApplicationLogger(), log.str());
+		fireEvent(action);
+	}
+
+	webRedirect(in, out);
 }
 
 
 
+>>>>>>> 3.12
 void EmuFCrate::webConfigure(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
