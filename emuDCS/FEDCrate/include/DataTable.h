@@ -12,6 +12,84 @@
 using namespace std;
 
 
+class DataElement
+{
+	friend class DataRow;
+public:
+	/** Standard constructor.
+	*
+	*	@param value is the value of the pacticular element.
+	*	@param class is the class of the particular element.
+	**/
+	DataElement(ostringstream myValue, string className = "none"):
+		class_(className)
+	{
+		*value << myValue;
+	}
+
+	/** Standard constructor with strings.
+	*
+	*	@param value is the value of the pacticular element.
+	*	@param class is the class of the particular element.
+	**/
+	DataElement(string myValue = "", string klass = "none"):
+		class_(klass)
+	{
+		value = new stringstream();
+		*value << myValue;
+	}
+
+	/** Standard destructor **/
+	~DataElement() {}
+
+	/** Set the value straight away. **/
+	void operator= (string myValue)
+	{
+		value->clear();
+		*value << value;
+	}
+
+	/** Also set the value straight away **/
+	inline void setValue(stringstream myValue)
+	{
+		value->clear();
+		*value << value;
+	}
+
+	/** Also set the value straight away **/
+	inline void setValue(string myValue)
+	{
+		value->clear();
+		*value << value;
+	}
+
+	/** Set the CSS class **/
+	inline void setClass(string className) { class_ = className; }
+
+	/** Get the CSS class **/
+	inline string getClass() { return class_; }
+
+	/** Display as an HTML table element **/
+	string toHTML(bool breaks = false)
+	{
+		ostringstream *out = new ostringstream();
+		if (breaks) {
+			*out << cgicc::td(value->str())
+				.set("class",class_)
+				.set("style","border-right: 3px double #000;")<< endl;
+		} else {
+			*out << cgicc::td(value->str())
+				.set("class",class_) << endl;
+		}
+		return out->str();
+	}
+
+	stringstream *value;
+
+private:
+	string class_;
+};
+
 class DataRow
 {
 	friend class DataTable;
@@ -20,57 +98,82 @@ public:
 	*
 	*	@param cols is the number of columns in the row.
 	**/
-	DataRow(ostringstream myName, unsigned int cols = 3)
+	DataRow(ostringstream myName, unsigned int cols = 3, unsigned long int breaks = 0)
 		throw (FEDException):
-		cols_(cols),
-		class_("ok")
+		breaks_(breaks)
 	{
-		if (cols < 2) XCEPT_RAISE(FEDException, "DataRow requires 2 or more columns.");
-		if (cols > 3) other.resize(cols - 3,"");
-		name = new stringstream();
-		value = new stringstream();
-		comments = new stringstream();
-		*name << myName;
+		if (cols < 1) XCEPT_RAISE(FEDException, "DataRow requires 1 or more column.");
+		for (unsigned int iele = 0; iele < cols; iele++) {
+			DataElement *newEle = new DataElement();
+			elements_.push_back(newEle);
+		}
+		*(elements_[0]->value) << myName;
 	}
 
 	/** Standard constructor with strings. **/
-	DataRow(string myName, unsigned int cols = 3)
+	DataRow(string myName, unsigned int cols = 3, unsigned long int breaks = 0)
 		throw (FEDException):
-		cols_(cols),
-		class_("ok")
+		breaks_(breaks)
 	{
-		if (cols < 2) XCEPT_RAISE(FEDException, "DataRow requires 2 or more columns.");
-		if (cols > 3) other.resize(cols - 3);
-		name = new stringstream();
-		value = new stringstream();
-		comments = new stringstream();
-		*name << myName;
+		if (cols < 1) XCEPT_RAISE(FEDException, "DataRow requires 1 or more column.");
+		for (unsigned int iele = 0; iele < cols; iele++) {
+			DataElement *newEle = new DataElement();
+			elements_.push_back(newEle);
+		}
+		*(elements_[0]->value) << myName;
 	}
 
 	/** Standard destructor **/
 	~DataRow() {}
 
-	inline string className() { return class_; }
-	inline void setClassName(string className) { class_ = className; }
+	/** Access a given element. **/
+	DataElement *operator[] (unsigned int element)
+		throw (FEDException)
+	{
+		if (element < elements_.size()) return elements_[element];
+		else {
+			for (unsigned int ielement = elements_.size(); ielement <= element; ielement++) {
+				DataElement *newElement = new DataElement("");
+				elements_.push_back(newElement);
+			}
+			return elements_[element];
+		}
+	}
+
+	/** Set which elements to draw a line after (using borders). **/
+	inline void setBreaks(unsigned long int breaks) { breaks_ = breaks; }
+
+	/** Get the class of the second element.  This is assumed to be the data
+	*	element.
+	**/
+/*
+	std::string getClass()
+		throw (FEDException)
+	{
+		for (std::vector< DataElement * >::iterator iElem = elements_.begin(); iElem != elements_.end(); iElem++) {
+			if ((*iElem)->getClass() != "none" && (*iElem)->getClass() != "") return (*iElem)->getClass();
+		}
+		return "none";
+	}
+*/
+
+	/** Set the class of the second element. **/
+	void setClass(string className)
+		throw (FEDException)
+	{
+		if (elements_.size() < 2) XCEPT_RAISE(FEDException, "DataRow::getClass assumes that the second element is the data element.  You need at least two elements in the DataRow to call this method.");
+		elements_[1]->setClass(className);
+	}
 
 	string toHTML()
 	{
 		ostringstream *out = new ostringstream();
 		*out << cgicc::tr()
 			.set("style","border-top: solid 1px #000;") << endl;
-		for (unsigned int icol = 0; icol < cols_; icol++) {
-			if (icol == 1) *out << cgicc::td().set("class",class_);
-			else *out << cgicc::td();
-			if (icol == 0) *out << name->str();
-			else if (icol == 1) {
-				*out << value->str() << dec;
-			}
-			else if (icol == 2) *out << comments->str();
-			else *out << other[icol - 3];
-			*out << cgicc::td() << endl;
+		for (unsigned int icol = 0; icol < elements_.size(); icol++) {
+			*out << elements_[icol]->toHTML( (breaks_ & (1 << icol)) );
 		}
-		*out << cgicc::tr();
-
+		*out << cgicc::tr() << endl;
 		return out->str();
 	}
 
@@ -82,7 +185,11 @@ public:
 	*	@param buttonText is the text you want to appear in the submit button.
 	**/
 	string makeForm(string target, unsigned int ddu, unsigned int val, string buttonText = "Load")
+		throw (FEDException)
 	{
+
+		if (elements_.size() < 2) XCEPT_RAISE(FEDException, "DataRow::makeForm assumes the second element is the value of the data, so at least 2 elements are required in the DataRow instance before this method can be called.");
+
 		ostringstream *out = new ostringstream();
 
 		*out << cgicc::form()
@@ -108,7 +215,7 @@ public:
 			.set("name","textdata")
 			.set("size","10")
 			.set("ENCTYPE","multipart/form-data")
-			.set("value",value->str()) << endl;
+			.set("value",elements_[1]->value->str()) << endl;
 		// Submit
 		*out << cgicc::input()
 			.set("type","submit")
@@ -118,14 +225,9 @@ public:
 		return out->str();
 	}
 
-	stringstream *name;
-	stringstream *value;
-	stringstream *comments;
-	vector< string > other;
-
 private:
-	unsigned int cols_;
-	string class_;
+	vector< DataElement * > elements_;
+	unsigned long int breaks_;
 };
 
 
@@ -136,29 +238,37 @@ public:
 	*
 	*	@param id is the HTML id tag of the table.  Should be unique.
 	**/
-	DataTable(string id)
-		throw (FEDException):
+	DataTable(string id):
 		cols_(0),
 		id_(id),
-		hidden_(false)
+		hidden_(false),
+		breaks_(0)
 	{
+		//cout << "Making a new DataTable at " << this << " with id " << id << endl;
 		// Everything is done dynamically later.
 	}
+
 	/** Standard destructor. **/
 	~DataTable() {};
 
 	/** Access a given row. **/
-	DataRow *operator[] (unsigned int irow)
-		throw (FEDException)
+	DataRow *operator[] (unsigned int row)
 	{
-		if (irow < rows_.size()) return rows_[irow];
+		if (row < rows_.size()) return rows_[row];
 		else {
-			for (unsigned int row = rows_.size(); row <= irow; row++) {
-				DataRow *newRow = new DataRow("",cols_);
+			for (unsigned int irow = rows_.size(); irow <= row; irow++) {
+				DataRow *newRow = new DataRow("",cols_,breaks_);
 				rows_.push_back(newRow);
 			}
-			return rows_[irow];
+			return rows_[row];
 		}
+	}
+
+	/** Access a given element. **/
+	DataElement *operator() (unsigned int row, unsigned int col)
+	{
+		DataRow *thisRow = (*this)[row];
+		return (*thisRow)[col];
 	}
 
 	void addColumn(string title) {
@@ -167,21 +277,33 @@ public:
 		rows_.clear();
 	}
 
+	/** Put a border-defined break to the right of the last defined column. **/
+	void addBreak()
+		throw (FEDException)
+	{
+		if (cols_ == 0) XCEPT_RAISE(FEDException, "DataTable::addBreak requires at least one column.");
+		breaks_ |= (1 << (cols_ - 1));
+		for (std::vector< DataRow * >::iterator iRow = rows_.begin(); iRow != rows_.end(); iRow++) {
+			(*iRow)->setBreaks(breaks_);
+		}
+	}
+
 	void addRow(DataRow *row) {
+		row->setBreaks(breaks_);
 		rows_.push_back(row);
 	}
 	
 	inline unsigned int countRows() { return rows_.size(); }
 
-	string toHTML() {
+	string toHTML(bool tableTags = true) {
 		ostringstream *out = new ostringstream();
 
-		if (hidden_) {
+		if (hidden_ && tableTags) {
 			*out << cgicc::table()
 				.set("id",id_)
 				.set("class","data")
 				.set("style","display: none;") << endl;
-		} else {
+		} else if (tableTags) {
 			*out << cgicc::table()
 				.set("id",id_)
 				.set("class","data") << endl;
@@ -189,42 +311,54 @@ public:
 		*out << cgicc::tr()
 			.set("style","font-weight: bold;") << endl;
 		vector< string >::iterator iCol;
-		for (iCol = headers_.begin(); iCol != headers_.end(); iCol++) {
-			*out << cgicc::td(*iCol) << endl;
+		for (unsigned int icol = 0; icol != headers_.size(); icol++) {
+			if (breaks_ & (1 << icol)) {
+				*out << cgicc::td(headers_[icol])
+					.set("style","border-right: 3px double #000;") << endl;
+			} else {
+				*out << cgicc::td(headers_[icol]) << endl;
+			}
 		}
 		*out << cgicc::tr() << endl;
 		vector< DataRow *>::iterator iRow;
 		for (iRow = rows_.begin(); iRow != rows_.end(); iRow++) {
 			*out << (*iRow)->toHTML() << endl;
 		}
-		*out << cgicc::table();
+		if (tableTags) *out << cgicc::table();
 		return out->str();
 	}
 
 	unsigned int countClass(string className) {
 		unsigned int returnVal = 0;
-		vector<DataRow *>::iterator iRow;
-		for (iRow = rows_.begin(); iRow != rows_.end(); iRow++) {
-			if ((*iRow)->className() == className) returnVal++;
+		for (vector<DataRow *>::iterator iRow = rows_.begin(); iRow != rows_.end(); iRow++) {
+			for (unsigned int icol = 0; icol < headers_.size(); icol++) {
+				if (headers_[icol] == "Value" && (*(*iRow))[icol]->getClass() == className) returnVal++;
+			}
 		}
 		return returnVal;
 	}
 
 	string printSummary() {
 		ostringstream *out = new ostringstream();
-		
+
+		unsigned int nTotal = 0;
+
+		// Grab the classes.  Ignore "none".
 		std::map<string,unsigned int> classes;
-		vector<DataRow *>::iterator iRow;
-		for (iRow = rows_.begin(); iRow != rows_.end(); iRow++) {
-			classes[(*iRow)->className()]++;
+		for (unsigned int irow = 0; irow != rows_.size(); irow++) {
+			for (unsigned int icol = 0; icol != cols_; icol++) {
+				if (headers_[icol] != "Value" || (*this)(irow,icol)->getClass() == "none") continue;
+				classes[(*this)(irow,icol)->getClass()]++;
+				nTotal++;
+			}
 		}
-		
+
 		// Print "OK" first:
 		std::map<string,unsigned int>::iterator iFound = classes.find("ok");
 		if (iFound != classes.end()) {
 			*out << cgicc::span()
 				.set("class",iFound->first);
-			*out << iFound->second << " " << iFound->first;
+			*out << iFound->second << "/" << nTotal << " " << iFound->first;
 			*out << cgicc::span() << endl;
 		}
 		
@@ -233,7 +367,7 @@ public:
 			if (iClass->first == "ok") continue;
 			*out << cgicc::span()
 				.set("class",iClass->first);
-			*out << iClass->second << " " << iClass->first;
+			*out << iClass->second << "/" << nTotal << " " << iClass->first;
 			*out << cgicc::span() << endl;
 		}
 		
@@ -244,12 +378,14 @@ public:
 	inline void setHidden(bool hidden) { hidden_ = hidden; }
 
 private:
-	vector< DataRow *> rows_;
-	vector< string > headers_;
+	std::vector< DataRow *> rows_;
+	std::vector< std::string > headers_;
 	unsigned int cols_;
-	string id_;
+	std::string id_;
 	bool hidden_;
+	unsigned long int breaks_;
 };
+
 
 
 
