@@ -6873,6 +6873,1340 @@ void DDU::setChambers(vector<Chamber *> chamberVector) {
 	chamberVector_ = chamberVector;
 }
 
+<<<<<<< DDU.cc
+
+
+// void DDU::init()
+// 	throw (FEDException)
+// {
+// 	devdo(DDUFPGA,-1,cmd,0,sndbuf,rcvbuf,2);
+// }
+
+
+
+unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbits = 16)
+	throw (FEDException)
+{
+
+	if (nbits > 32) {
+		XCEPT_RAISE(FEDException, "cannot read more than 32 bits at a time");
+	}
+
+	if (dt == DDUFPGA) {
+		cmd[0]=VTX2P_USR1_L;
+		cmd[1]=VTX2P_USR1_H;
+		sndbuf[0]=reg;
+		// Open USR1 pathway and write the command
+		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
+
+		cmd[0]=VTX2P_BYPASS_L;
+		cmd[1]=VTX2P_BYPASS_H;
+		// Close USR1 pathway to execute the read.
+		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+	} else if (dt == INFPGA0 || dt == INFPGA1) {
+		cmd[0]=VTX2P20_USR1_L;
+		cmd[1]=VTX2P20_USR1_H;
+		sndbuf[0]=reg;
+		// Open USR1 pathway and write the command
+		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
+
+		cmd[0]=VTX2P20_BYPASS_L;
+		cmd[1]=VTX2P20_BYPASS_H;
+		// Close USR1 pathway to execute the read.
+		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+	}else {
+		XCEPT_RAISE(FEDException,"Can't read from that device");
+	}
+
+	// Now we shove through the number of bits we need with a shift test.
+	//srand( time(NULL) );
+	unsigned long int testVal = rand();
+	sndbuf[0]=testVal & 0xff;
+	sndbuf[1]=(testVal >> 8) & 0xff;
+	//sndbuf[2]=(testVal >> 16) & 0xff;
+	//sndbuf[3]=(testVal >> 24) & 0xff;
+
+	bitset<16> test(testVal);
+
+	//cout << "Reading register " << (int) reg << endl;
+	//cout << "Shift test is       " << test << endl;
+
+	if (dt == DDUFPGA) {
+		cmd[0]=VTX2P_USR2_L;
+		cmd[1]=VTX2P_USR2_H;
+		// Open USR2 pathway and shove the bits through
+		devdo(dt,10,cmd,nbits*2,sndbuf,rcvbuf,1);
+	} else if (dt == INFPGA0 || dt == INFPGA1) {
+		cmd[0]=VTX2P20_USR2_L;
+		cmd[1]=VTX2P20_USR2_H;
+		// Open USR2 pathway and shove the bits through
+		devdo(dt,14,cmd,nbits*2,sndbuf,rcvbuf,1);
+	}
+
+	// The very first nbits bits are what we want to return.
+	// Crawl through the buffers and give us what we want using bitsets.
+	bitset<32> ret( rcvbuf[0]|(rcvbuf[1]<<8)|(rcvbuf[2]<<16)|(rcvbuf[3]<<24) );
+	if (nbits < 32) ret &= ((1 << nbits) - 1);
+
+	//cout << "The read returned   " << ret << endl;
+
+	bitset<16> shiftTest;
+	// Now crawl through the buffers for the shift-test.
+	for (unsigned int ibit=nbits; ibit<(nbits+16); ibit++) {
+		unsigned int ibuf = ibit/8;
+		if (rcvbuf[ibuf] & (1 << (ibit%8))) shiftTest.set(ibit - nbits);
+	}
+
+	//cout << "Shift test returned " << shiftTest << endl << endl;
+
+	// For some reason, the shift test only makes sense with reads of integer
+	//  multiples of 16.  Go figure.
+	if (shiftTest != test && nbits%16 == 0) {
+		ostringstream xceptString;
+		xceptString << "shiftTest returned "<< shiftTest << ", should have been " << test;
+		//XCEPT_RAISE(FEDException,xceptString.str());
+	}
+
+	// Close the read paths.
+	if (dt == DDUFPGA) {
+		cmd[0]=VTX2P_BYPASS_L;
+		cmd[1]=VTX2P_BYPASS_H;
+		// Close USR2 pathway to end the read
+		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+	} else if (dt == INFPGA0 || dt == INFPGA1) {
+		cmd[0]=VTX2P20_BYPASS_L;
+		cmd[1]=VTX2P20_BYPASS_H;
+		// Close USR2 pathway to end the read
+		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+	}
+	// Finally, set normal on the FPGA.
+	setNormal(dt);
+
+	return ret.to_ulong();
+
+}
+
+
+
+/** Same thing as the readReg routine, but we have to be a bit smarter about
+*	where we place the shift test and where we put the data.
+**/
+// unsigned long int DDU::writeReg(enum DEVTYPE dt, char reg, unsigned long int value, const unsigned int nbits = 16)
+// 	throw (FEDException)
+// {
+//
+// 	if (nbits > 32) {
+// 		XCEPT_RAISE(FEDException, "cannot write more than 32 bits at a time");
+// 	}
+//
+// 	if (dt == DDUFPGA) {
+// 		cmd[0]=VTX2P_USR1_L;
+// 		cmd[1]=VTX2P_USR1_H;
+// 		sndbuf[0]=reg;
+// 		// Open USR1 pathway and write the command
+// 		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
+//
+// 		cmd[0]=VTX2P_BYPASS_L;
+// 		cmd[1]=VTX2P_BYPASS_H;
+// 		// Close USR1 pathway to execute the read and begin the write
+// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
+// 		cmd[0]=VTX2P20_USR1_L;
+// 		cmd[1]=VTX2P20_USR1_H;
+// 		sndbuf[0]=reg;
+// 		// Open USR1 pathway and write the command
+// 		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
+//
+// 		cmd[0]=VTX2P20_BYPASS_L;
+// 		cmd[1]=VTX2P20_BYPASS_H;
+// 		// Close USR1 pathway to execute the read and begin the write
+// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+// 	} else {
+// 		XCEPT_RAISE(FEDException,"Can't write to that device");
+// 	}
+//
+// 	// Now we shove through the number of bits we need with a shift test
+// 	// AND the data we want to write.
+// 	//srand( time(NULL) );
+// 	unsigned long int testVal = rand();
+// 	sndbuf[0]=testVal & 0xff;
+// 	sndbuf[1]=(testVal >> 8) & 0xff;
+// 	//sndbuf[2]=(testVal >> 16) & 0xff;
+// 	//sndbuf[3]=(testVal >> 24) & 0xff;
+//
+// 	bitset<16> test(testVal);
+//
+// 	bitset<32> writeVal(value & ((1 << nbits) - 1));
+//
+// 	for (unsigned int ibit=0; ibit<nbits; ibit++) {
+// 		unsigned int ibuf = ibit/8 + 2;
+// 		if (writeVal.test(ibit)) {
+// 			sndbuf[ibuf] |= (1 << (ibit%8));
+// 		} else {
+// 			sndbuf[ibuf] &= (255 - (1 << (ibit%8)));
+// 		}
+// 	}
+// 	cout << "Attempting to write " << writeVal << " to register " << (int) reg << endl;
+//
+// 	cout << "Shift test is       " << test << endl;
+//
+// 	if (dt == DDUFPGA) {
+// 		cmd[0]=VTX2P_USR2_L;
+// 		cmd[1]=VTX2P_USR2_H;
+// 		// Open USR2 pathway and shove the bits through
+// 		devdo(dt,10,cmd,nbits + 16,sndbuf,rcvbuf,1);
+//
+// 		cmd[0]=VTX2P_BYPASS_L;
+// 		cmd[1]=VTX2P_BYPASS_H;
+// 		// Close USR2 pathway to commit the write
+// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
+// 		cmd[0]=VTX2P20_USR2_L;
+// 		cmd[1]=VTX2P20_USR2_H;
+// 		// Open USR2 pathway and shove the bits through
+// 		devdo(dt,14,cmd,nbits + 16,sndbuf,rcvbuf,1);
+//
+// 		cmd[0]=VTX2P20_BYPASS_L;
+// 		cmd[1]=VTX2P20_BYPASS_H;
+// 		// Close USR2 pathway to commit the write
+// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+// 	}
+// 	setNormal(dt);
+//
+// 	// The old value is the first nbits bits.
+// 	// The shift test is the next 32 bits.
+//
+// 	// Return is easy
+// 	bitset<32> ret((rcvbuf[0] | (rcvbuf[1] << 8) | (rcvbuf[2] <<16) | (rcvbuf[3] << 24)) & ((1 << nbits) - 1));
+//
+// 	cout << "The old value was   " << ret << endl;
+//
+// 	bitset<16> shiftTest;
+//
+// 	// Crawl through the buffers and give us the shift test.
+// 	for (unsigned int ibit=nbits; ibit<nbits+16; ibit++) {
+// 		unsigned int ibuf = ibit/8;
+// 		if (rcvbuf[ibuf] & (1 << (ibit%8))) shiftTest.set(ibit - nbits);
+// 	}
+//
+// 	cout << "Shift test returned " << shiftTest << endl << endl;
+//
+// 	if (shiftTest != test) {
+// 		ostringstream xceptString;
+// 		//xceptString << "shiftTest returned 0x" << hex << shiftTest << dec << ", should have been 0x" << hex << testBS << dec;
+// 		xceptString << "shiftTest returned "<< shiftTest << ", should have been " << test;
+// 		XCEPT_RAISE(FEDException,xceptString.str());
+// 	}
+//
+// 	return ret.to_ulong(); // The previous value of the register.
+//
+// }
+
+
+
+// void DDU::reset(enum DEVTYPE dt = DDUFPGA)
+// 	throw (FEDException)
+// {
+//
+// 	if (dt == DDUFPGA) {
+// 		cmd[0]=VTX2P_USR1_L;
+// 		cmd[1]=VTX2P_USR1_H;
+// 		sndbuf[0]=DDUFPGA_RST;
+// 		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
+// 		cmd[0]=VTX2P_BYPASS_L;
+// 		cmd[1]=VTX2P_BYPASS_H;
+// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+//
+// 		cmd[0]=VTX2P_USR1_L;
+// 		cmd[1]=VTX2P_USR1_H;
+// 		sndbuf[0]=NORM_MODE;
+// 		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
+// 		cmd[0]=VTX2P_BYPASS_L;
+// 		cmd[1]=VTX2P_BYPASS_H;
+// 		sndbuf[0]=0;
+// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
+// 		cmd[0]=VTX2P20_USR1_L;
+// 		cmd[1]=VTX2P20_USR1_H;
+// 		sndbuf[0]=DDUFPGA_RST;
+// 		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
+// 		cmd[0]=VTX2P20_BYPASS_L;
+// 		cmd[1]=VTX2P20_BYPASS_H;
+// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+//
+// 		cmd[0]=VTX2P20_USR1_L;
+// 		cmd[1]=VTX2P20_USR1_H;
+// 		sndbuf[0]=NORM_MODE;
+// 		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
+// 		cmd[0]=VTX2P20_BYPASS_L;
+// 		cmd[1]=VTX2P20_BYPASS_H;
+// 		sndbuf[0]=0;
+// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+// 	}
+//
+// }
+
+
+
+void DDU::setNormal(enum DEVTYPE dt = DDUFPGA)
+	throw (FEDException)
+{
+
+	if (dt == DDUFPGA) {
+
+		cmd[0]=VTX2P_USR1_L;
+		cmd[1]=VTX2P_USR1_H;
+		sndbuf[0]=NORM_MODE;
+		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
+
+		cmd[0]=VTX2P_BYPASS_L;
+		cmd[1]=VTX2P_BYPASS_H;
+		sndbuf[0]=0;
+		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+	} else {
+		cmd[0]=VTX2P20_USR1_L;
+		cmd[1]=VTX2P20_USR1_H;
+		sndbuf[0]=NORM_MODE;
+		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
+
+		cmd[0]=VTX2P20_BYPASS_L;
+		cmd[1]=VTX2P20_BYPASS_H;
+		sndbuf[0]=0;
+		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+	}
+}
+
+
+
+unsigned long int DDU::readFPGAStat(enum DEVTYPE dt)
+	throw (FEDException)
+{
+	try { return readReg(dt,3,32); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::checkFIFO(int fifo)
+	throw (FEDException)
+{
+	if (fifo < 1 || fifo > 3) {
+		XCEPT_RAISE(FEDException, "argument must be between 1 and 3 (inclusive)");
+	}
+
+	int command;
+	if (fifo == 1)
+		command=7;
+	else if (fifo == 2)
+		command=8;
+	else if (fifo == 3)
+		command=11;
+
+	try { return readReg(DDUFPGA,command,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+long int DDU::readKillFiber()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,13,20); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// long int DDU::writeKillFiber(long int killFiber = 0xf7fff)
+// 	throw (FEDException)
+// {
+// 	try { return writeReg(DDUFPGA,14,killFiber,20); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+int DDU::readCRCError()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,10,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readXmitError()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,12,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readDMBError()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,15,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readTMBError()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,16,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readLIEError()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,18,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readFFError()
+	throw(FEDException)
+{
+	try { return readReg(DDUFPGA,9,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readEBReg(int reg = 1)
+	throw(FEDException)
+{
+	if (reg < 1 || reg > 3) {
+		XCEPT_RAISE(FEDException, "argument must be 1, 2, or 3");
+	}
+
+	try { return readReg(DDUFPGA,21 + reg,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readInRDStat()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,19,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readInCHistory()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,20,16); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// int DDU::readVoteErrorCount()
+// 	throw (FEDException)
+// {
+// 	try { return readReg(DDUFPGA,25,16); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// int DDU::readConsVoteErrorCount()
+// 	throw (FEDException)
+// {
+// 	try { return readReg(DDUFPGA,26,16); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// int DDU::readFIFOVoteErrorCount(int fifo = 0)
+// 	throw (FEDException)
+// {
+// 	if (fifo < 0 || fifo > 1) {
+// 		XCEPT_RAISE(FEDException, "argument must be 0 or 1");
+// 	}
+//
+// 	try { return readReg(DDUFPGA,27+fifo,16); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// int DDU::readEarlyVoteErrorCount()
+// 	throw (FEDException)
+// {
+// 	try { return readReg(DDUFPGA,19,16); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// int DDU::readVoteError23Count()
+// 	throw (FEDException)
+// {
+// 	try { return readReg(DDUFPGA,20,16); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// int DDU::readVoteError55Count()
+// 	throw (FEDException)
+// {
+// 	try { return readReg(DDUFPGA,21,16); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+int DDU::readOutputStat()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,6,16); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+long int DDU::readL1Scaler(enum DEVTYPE dt = DDUFPGA)
+	throw (FEDException)
+{
+	try { return readReg(dt,2,24); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+int DDU::readALCTError()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,17,15); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// int DDU::writeBXOrbit(int BXOrbit)
+// 	throw (FEDException)
+// {
+// 	try { return writeReg(DDUFPGA,29,BXOrbit,12); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+int DDU::readBXOrbit()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,30,12); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readBoardID()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,32,16); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// unsigned long int DDU::readOccupancyMon()
+// 	throw (FEDException)
+// {
+// 	try { return readReg(DDUFPGA,34,32); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// void DDU::toggleL1Cal()
+// 	throw (FEDException)
+// {
+// 	try { readReg(DDUFPGA,31); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// void DDU::vmeL1A()
+// 	throw (FEDException)
+// {
+// 	try { readReg(DDUFPGA,33); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+int DDU::readDMBLive()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,25,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readPermDMBLive()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,26,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readWarnMon()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,27,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readMaxTimeoutCount()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,28,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+long int DDU::readL1Scaler1(enum DEVTYPE dt)
+	throw (FEDException)
+{
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,26,24); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::checkFiber(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,6,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readDMBSync(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,7,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readFIFOStat(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,8,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readFIFOFull(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,9,12); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readRxError(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,10,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readTimeout(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,11,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readTxError(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,12,16); }
+	catch (FEDException &e) { throw; }
+
+}
+
+
+
+int DDU::readWriteMemoryActive(enum DEVTYPE dt, int iFiber)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	if (iFiber > 3 || iFiber < 0) {
+		XCEPT_RAISE(FEDException,"second argument must be between 0 and 3 (inclusive)");
+	}
+
+	try { return readReg(dt,13 + iFiber,10); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readDMBWarning(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,21,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readMemoryAvailable(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,17,10); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readMinMemory(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,18,10); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readLostError(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,19,16); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readCCodeStat(enum DEVTYPE dt)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	try { return readReg(dt,20,16); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// int DDU::readINFPGAStatusReg(enum DEVTYPE dt, int i)
+// 	throw (FEDException)
+// {
+//
+// 	if (dt != INFPGA0 && dt != INFPGA1) {
+// 		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+// 	}
+//
+// 	if (i < 1 || i > 3) {
+// 		XCEPT_RAISE(FEDException,"second argument must be between 1 and 3 (inclusive)");
+// 	}
+//
+// 	try { return readReg(dt,21+i,16); }
+// 	catch (FEDException &e) { throw; }
+//
+// }
+
+
+
+long unsigned int DDU::readFiberDiagnostics(enum DEVTYPE dt, int i)
+	throw (FEDException)
+{
+
+	if (dt != INFPGA0 && dt != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+
+	if (i < 0 || i > 1) {
+		XCEPT_RAISE(FEDException,"second argument must be 0 or 1");
+	}
+
+	try { return readReg(dt,30+i,32); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// unsigned long int DDU::readIDCode(enum DEVTYPE dt)
+// 	throw (FEDException)
+// {
+//
+// 	sndbuf[0]=0xFF;
+// 	sndbuf[1]=0xFF;
+// 	sndbuf[2]=0xFF;
+// 	sndbuf[3]=0xFF;
+// 	sndbuf[4]=0xFF;
+//
+// 	if (dt == DDUFPGA) {
+// 		cmd[0]=VTX2P_IDCODE_L;
+// 		cmd[1]=VTX2P_IDCODE_H;
+// 		devdo(dt,10,cmd,32,sndbuf,rcvbuf,1);
+// 		cmd[0]=VTX2P_BYPASS_L;
+// 		cmd[1]=VTX2P_BYPASS_H;
+// 		sndbuf[0]=0;
+// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
+// 		cmd[0]=VTX2P20_IDCODE_L;
+// 		cmd[1]=VTX2P20_IDCODE_H;
+// 		devdo(dt,14,cmd,32,sndbuf,rcvbuf,1);
+// 		cmd[0]=VTX2P20_BYPASS_L;
+// 		cmd[1]=VTX2P20_BYPASS_H;
+// 		sndbuf[0]=0;
+// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+// 	} else {
+// 		cmd[0]=PROM_IDCODE;
+// 		if (dt == DDUPROM1 || dt == INPROM1) {
+// 			devdo(dt,8,cmd,33,sndbuf,rcvbuf,1);
+// 		} else {
+// 			devdo(dt,8,cmd,32,sndbuf,rcvbuf,1);
+// 		}
+// 		cmd[0]=PROM_BYPASS;
+// 		sndbuf[0]=0;
+// 		devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
+// 	}
+//
+// 	unsigned long int ibrd=0x00000000;
+// 	ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
+// 	return ibrd;
+// }
+//
+//
+//
+// unsigned long int DDU::readUserCode(enum DEVTYPE dt)
+// 	throw (FEDException)
+// {
+//
+// 	sndbuf[0]=0xFF;
+// 	sndbuf[1]=0xFF;
+// 	sndbuf[2]=0xFF;
+// 	sndbuf[3]=0xFF;
+// 	sndbuf[4]=0xFF;
+//
+// 	if (dt == DDUFPGA) {
+// 		cmd[0]=VTX2P_USERCODE_L;
+// 		cmd[1]=VTX2P_USERCODE_H;
+// 		devdo(dt,10,cmd,32,sndbuf,rcvbuf,1);
+// 		cmd[0]=VTX2P_BYPASS_L;
+// 		cmd[1]=VTX2P_BYPASS_H;
+// 		sndbuf[0]=0;
+// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
+// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
+// 		cmd[0]=VTX2P20_USERCODE_L;
+// 		cmd[1]=VTX2P20_USERCODE_H;
+// 		devdo(dt,14,cmd,32,sndbuf,rcvbuf,1);
+// 		cmd[0]=VTX2P20_BYPASS_L;
+// 		cmd[1]=VTX2P20_BYPASS_H;
+// 		sndbuf[0]=0;
+// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
+// 	} else {
+// 		cmd[0]=PROM_USERCODE;
+// 		if (dt == DDUPROM1 || dt == INPROM1) {
+// 			devdo(dt,8,cmd,33,sndbuf,rcvbuf,1);
+// 		} else {
+// 			devdo(dt,8,cmd,32,sndbuf,rcvbuf,1);
+// 		}
+// 		cmd[0]=PROM_BYPASS;
+// 		sndbuf[0]=0;
+// 		devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
+// 	}
+//
+// 	unsigned long int ibrd=0x00000000;
+// 	ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
+// 	return ibrd;
+// }
+//
+//
+// Always 16 bits.
+int DDU::readParallel(int command)
+	throw (FEDException)
+{
+	cmd[0] = command&0x00ff;
+	cmd[1] = (command&0xff00) >> 8;
+	sndbuf[0]=0;
+	sndbuf[1]=0;
+	sndbuf[2]=0;
+	sndbuf[3]=0;
+	rcvbuf[0]=0;
+	rcvbuf[1]=0;
+	rcvbuf[2]=0;
+	rcvbuf[3]=0;
+	devdo(VMEPARA,1,cmd,0,sndbuf,rcvbuf,2);
+
+	return ((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0xff);
+}
+//
+//
+//
+// void DDU::writeParallel(int command, int val)
+// 	throw (FEDException)
+// {
+// 	cmd[0]=(command&0x00ff);
+// 	cmd[1]=(command&0xff00) >> 8;
+//
+// 	sndbuf[0]=(val&0x00ff);
+// 	sndbuf[1]=(val&0xff00) >> 8;
+//
+// 	// Parallel writes are all 16-bit, so garbage the rest
+// 	//srand( time(NULL) );
+// 	for (int i = 2; i <= 7; i++) {
+// 		//sndbuf[i]=rand() % 256;
+// 		sndbuf[i] = 0;
+// 	}
+// 	rcvbuf[0]=0;
+// 	rcvbuf[1]=0;
+// 	rcvbuf[2]=0;
+// 	rcvbuf[3]=0;
+//
+// 	devdo(VMEPARA,1,cmd,0,sndbuf,rcvbuf,2);
+// }
+
+
+
+int DDU::readFMMBusy()
+	throw (FEDException)
+{
+	try { return readParallel(0x0000); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readFMMFullWarning()
+	throw (FEDException)
+{
+	try { return readParallel(0x0001); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readFMMLostSync()
+	throw (FEDException)
+{
+	try { return readParallel(0x0002); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readFMMError()
+	throw (FEDException)
+{
+	try { return readParallel(0x0003); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readCSCStat()
+	throw (FEDException)
+{
+	try { return readParallel(0x0004); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readFMMReg()
+	throw (FEDException)
+{
+	try { return readParallel(0x0F09); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readSwitches()
+	throw (FEDException)
+{
+	try { return readParallel(0x000e); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readParallelStat()
+	throw (FEDException)
+{
+	try { return readParallel(0x000f); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readInputReg(int iReg)
+	throw (FEDException)
+{
+	if (iReg < 0 || iReg > 2) {
+		XCEPT_RAISE(FEDException,"argument must be between 0 and 2 (inclusive)");
+	}
+	try { return readParallel(0x0008 | (iReg << 8)); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// void DDU::writeInputReg(int val)
+// 	throw (FEDException)
+// {
+// 	try { writeParallel(0x8008, val); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// void DDU::writeFMMReg(int val)
+// 	throw (FEDException)
+// {
+// 	try { writeParallel(0x8f09, val); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// void DDU::writeFakeL1Reg(int val)
+// 	throw (FEDException)
+// {
+// 	try { writeParallel(0x8509, val); }
+// 	catch (FEDException &e) { throw; }
+// }
+
+
+
+int DDU::readFakeL1Reg()
+	throw (FEDException)
+{
+	try { return readParallel(0x0509); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// void DDU::writeGbEPrescale(int val)
+// 	throw (FEDException)
+// {
+// 	try { writeParallel(0x8009, val); }
+// 	catch (FEDException &e) { throw; }
+// }
+
+
+
+int DDU::readGbEPrescale()
+	throw (FEDException)
+{
+	try { return readParallel(0x0009); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readTestReg(int iReg)
+	throw (FEDException)
+{
+	if (iReg < 0 || iReg > 4) {
+		XCEPT_RAISE(FEDException,"argument must be between 0 and 4 (inclusive)");
+	}
+	try { return readParallel(0x0008 | ((iReg + 3) << 8)); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readWarningHistory()
+	throw (FEDException)
+{
+	try { return readParallel(0x0005); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readBusyHistory()
+	throw (FEDException)
+{
+	try { return readParallel(0x0006); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+unsigned long int DDU::readSerial(int command, const unsigned int nbits = 16)
+	throw (FEDException)
+{
+	cmd[0] = command&0x00ff;
+	cmd[1] = (command&0xff00) >> 8;
+
+	devdo(VMESERI,2,cmd,0,sndbuf,(char *)rcv_serial,0);
+
+	// Serial reads give rcv_serial[0] as the MSB
+	bitset<32> ret;
+	for (unsigned int ibit = 0; ibit < nbits; ibit++) {
+		unsigned int ibuf = nbits/8 - ibit/8 - 1;
+		if (rcv_serial[ibuf] & (1 << (ibit%8))) ret.set(ibit);
+	}
+
+	return ret.to_ulong();
+}
+
+
+
+// void DDU::writeSerial(int command, int val1, int val2 = 0, int val3 = 0, int val4 = 0)
+// 	throw (FEDException)
+// {
+// 	cmd[0] = command&0x00ff;
+// 	cmd[1] = (command&0xff00) >> 8;
+// 	sndbuf[0] = val1&0x00ff;
+// 	sndbuf[1] = (val1&0xff00) >> 8;
+// 	sndbuf[2] = val2&0x00ff;
+// 	sndbuf[3] = (val2&0xff00) >> 8;
+// 	sndbuf[4] = val3&0x00ff;
+// 	sndbuf[5] = (val3&0xff00) >> 8;
+// 	sndbuf[6] = val4&0x00ff;
+// 	sndbuf[7] = (val4&0xff00) >> 8;
+//
+// 	devdo(VMESERI,2,cmd,0,sndbuf,rcvbuf,0);
+// 	usleep(20000);
+// }
+
+
+
+char DDU::readSerialStat()
+	throw (FEDException)
+{
+	try { return readSerial(0x0004,8); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
+int DDU::readFlashKillFiber()
+	throw (FEDException)
+{
+	try { return readSerial(0x0104,16); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// void DDU::writeFlashKillFiber(int val)
+// 	throw (FEDException)
+// {
+// 	try {
+// 		writeInputReg(val);
+// 		writeSerial(0x0904,val);
+// 	}
+// 	catch (FEDException &e) { throw; }
+// }
+
+
+
+int DDU::readFlashBoardID()
+	throw (FEDException)
+{
+	try { return readSerial(0x0304,16); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// void DDU::writeFlashBoardID(int val)
+// 	throw (FEDException)
+// {
+// 	try {
+// 		writeInputReg(val);
+// 		writeSerial(0x0b04,val);
+// 	}
+// 	catch (FEDException &e) { throw; }
+// 	return;
+// }
+//
+//
+//
+// unsigned long int DDU::readFlashInFIFOThresholds()
+// 	throw (FEDException)
+// {
+// 	try { return readSerial(0x0404,32); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// void DDU::writeFlashInFIFOThresholds(unsigned long int val)
+// 	throw (FEDException)
+// {
+// 	int val1 = val&0x0000ffff;
+// 	int val2 = (val&0xffff0000) >> 16;
+// 	try {
+// 		writeInputReg(val2);
+// 		writeInputReg(val1);
+// 		writeSerial(0x0c04,val1, val2);
+// 	}
+// 	catch (FEDException &e) { throw; }
+// 	return;
+// }
+
+
+
+unsigned long int DDU::readFlashGbEFIFOThresholds()
+	throw (FEDException)
+{
+	try { return readSerial(0x0504,32); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// void DDU::writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
+// 	throw (FEDException)
+// {
+// 	try {
+// 		writeInputReg(val3);
+// 		writeInputReg(val2);
+// 		writeInputReg(val1);
+// 		writeSerial(0x0d04,val1, val2, val3);
+// 	}
+// 	catch (FEDException &e) { throw; }
+// }
+
+
+
+int DDU::readFlashSourceID()
+	throw (FEDException)
+{
+	try { return readSerial(0x0704,16); }
+	catch (FEDException &e) { throw; }
+}
+//
+//
+//
+// void DDU::writeFlashSourceID(int val)
+// 	throw (FEDException)
+// {
+// 	try {
+// 		writeInputReg(val);
+// 		writeSerial(0x0f04,val);
+// 	}
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// unsigned long int DDU::readInFIFOThreshold(int iFifo)
+// 	throw (FEDException)
+// {
+// 	if (iFifo > 3 || iFifo < 0) {
+// 		XCEPT_RAISE(FEDException,"argument must be between 0 and 3 (inclusive)");
+// 	}
+//
+// 	try { return readSerial(0x0000 + iFifo,32); }
+// 	catch (FEDException &e) { throw; }
+// }
+//
+//
+//
+// void DDU::forceLoadFIFOsFromFlash()
+// 	throw (FEDException)
+// {
+// 	try { readSerial(0x000f); }
+// 	catch (FEDException &e) { throw; }
+// }
+=======
 
 
 // void DDU::init()
@@ -8206,3 +9540,4 @@ int DDU::readFlashSourceID()
 // 	catch (FEDException &e) { throw; }
 // }
 
+>>>>>>> 3.10

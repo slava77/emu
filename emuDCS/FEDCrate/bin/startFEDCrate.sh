@@ -19,4 +19,8 @@ ln -fs $BUILD_HOME/emu/emuDCS/FEDCrate/*.gif $BUILD_HOME/daq/examples/images/
 
 # start xdaq
 # old config location:  nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40100 -c xml/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
+<<<<<<< startFEDCrate.sh
+nohup $XDAQ_ROOT/bin/xdaq.exe -p 40100 -c /home/cscdev/TriDAS/emu/emuDCS/FEDCrate/xml/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
+=======
 nohup $XDAQ_ROOT/bin/xdaq.exe -p 40100 -c $BUILD_HOME/emu/emuDCS/FEDCrate/xml/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
+>>>>>>> 3.7
