@@ -1,21 +1,36 @@
 <?xml version='1.0'?>
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
-
-<xc:Context url="http://csc-fed1:40100">		
+<xc:Context url="http://cmspc00:40100">		
 	<xc:Application class="EmuFCrateHyperDAQ" id="31" instance="0" service="emufcratehyperdaq" network="local">                 
 		<properties xmlns="urn:xdaq-application:EmuFCrateHyperDAQ" xsi:type="soapenc:Struct">
-			<xmlFileName xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/FEDCrate/xml/config_c1.xml</xmlFileName>
+		    <xmlFileName xsi:type="xsd:string">/home/cscdev/TriDAS/emu/emuDCS/FEDCrate/xml/config_c0.xml</xmlFileName>
 		</properties>
 	</xc:Application>	
 	<xc:Application class="EmuFCrate" id="33" instance="0" service="emufcrate" network="local"> 
 		<properties xmlns="urn:xdaq-application:EmuFCrate" xsi:type="soapenc:Struct">
-			<xmlFileName xsi:type="xsd:string">/home/uscfed/v4.1/TriDAS/emu/emuDCS/FEDCrate/xml/config_c2.xml</xmlFileName>
+		    <xmlFileName xsi:type="xsd:string">/home/cscdev/TriDAS/emu/emuDCS/FEDCrate/xml/config_c0.xml</xmlFileName>
+		</properties>
+	</xc:Application>
+	<xc:Application class="GraysonSOAPReceiver" id="44" instance="0" service="GraysonSOAPReceiver" network="local"> 
+		<properties xmlns="urn:xdaq-application:GraysonSOAPReceiver" xsi:type="soapenc:Struct">
+		    <!--		    <xmlFileName xsi:type="xsd:string">/home/cscdev/TriDAS/emu/emuDCS/FEDCrate/xml/config_c0.xml</xmlFileName> -->
+		</properties>
+	</xc:Application>
+
+	<xc:Application class="GraysonSOAP" id="45" instance="0" service="GraysonSOAP" network="local">                 
+		<properties xmlns="urn:xdaq-application:GraysonSOAP" xsi:type="soapenc:Struct">
+		    <!--		    <xmlFileName xsi:type="xsd:string">/home/cscdev/TriDAS/emu/emuDCS/FEDCrate/xml/config_c0.xml</xmlFileName> -->
 		</properties>
 	</xc:Application>	
-	<xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
-	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/FEDCrate/lib/linux/x86/libEmuFEDCrate.so</xc:Module>        
-</xc:Context>
 
+	<xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libCSCSupervisor.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuFEDCrate.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libGraysonSOAP.so</xc:Module>
+	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libGraysonSOAPReceiver.so</xc:Module>
+
+	<xc:Module>/opt/xdaq/lib/libCAENVME.so</xc:Module>
+</xc:Context>
 
 </xc:Partition>

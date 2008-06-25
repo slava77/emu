@@ -1,4 +1,4 @@
-// $Id: EmuFCrateManager.h,v 1.5 2008/06/10 13:44:41 gilmore Exp $
+// $Id: EmuFCrateManager.h,v 1.6 2008/06/25 17:20:40 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -64,13 +64,25 @@ using namespace std;
 
 class EmuFCrateManager: public LocalEmuApplication
 {
+<<<<<<< EmuFCrateManager.h
+	class StateTable;
+	friend class StateTable;
+=======
 	class StateTable;
 	friend class StateTable;
 
 public:
+>>>>>>> 1.5
 
+<<<<<<< EmuFCrateManager.h
+public:
+=======
 	XDAQ_INSTANTIATOR();
+>>>>>>> 1.5
 
+<<<<<<< EmuFCrateManager.h
+	XDAQ_INSTANTIATOR();
+=======
 	xdata::String ConfigureState_;
 	xdata::Table table_;
 
@@ -144,13 +156,101 @@ public:
 	xoap::MessageReference QueryJobControlInfoSpace();
 	xoap::MessageReference ExecuteCommandMessage(std::string port);
 	xoap::MessageReference createXRelayMessage(const std::string & command, const std::string & setting, std::set<xdaq::ApplicationDescriptor * > descriptor );
+>>>>>>> 1.5
 
+<<<<<<< EmuFCrateManager.h
+	xdata::String ConfigureState_;
+	xdata::Table table_;
+
+	EmuFCrateManager(xdaq::ApplicationStub * s);
+
+	void webDefault(xgi::Input * in, xgi::Output * out )
+		throw (xgi::exception::Exception);
+	void webFire(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception);
+	
+	//void MainPage(xgi::Input * in, xgi::Output * out )
+	//	throw (xgi::exception::Exception);
+	//void CheckEmuFCrateState(xgi::Input * in, xgi::Output * out );
+	
+	void configureAction(toolbox::Event::Reference e)
+		throw (toolbox::fsm::exception::Exception);
+	void enableAction(toolbox::Event::Reference e) 
+		throw (toolbox::fsm::exception::Exception);
+	void disableAction(toolbox::Event::Reference e) 
+		throw (toolbox::fsm::exception::Exception);
+	void haltAction(toolbox::Event::Reference e) 
+		throw (toolbox::fsm::exception::Exception);
+	// PGK These don't need to be state transitions.
+	//void setTTSBitsAction(toolbox::Event::Reference e) 
+	//	throw (toolbox::fsm::exception::Exception);
+	//void setTTSBitsResponseAction(toolbox::Event::Reference e)
+	//	throw (toolbox::fsm::exception::Exception);
+
+	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+		throw (toolbox::fsm::exception::Exception);
+		
+	string extractState(xoap::MessageReference message);
+	string extractRunNumber(xoap::MessageReference message);
+
+	xoap::MessageReference onConfigure (xoap::MessageReference message) 
+		throw (xoap::exception::Exception);
+	xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) 
+		throw (xoap::exception::Exception);
+	xoap::MessageReference onEnable (xoap::MessageReference message) 
+		throw (xoap::exception::Exception);
+	xoap::MessageReference onDisable (xoap::MessageReference message) 
+		throw (xoap::exception::Exception);
+	xoap::MessageReference onHalt (xoap::MessageReference message) 
+		throw (xoap::exception::Exception);
+	
+	xoap::MessageReference onSetTTSBits(xoap::MessageReference message) 
+		throw (xoap::exception::Exception);
+	// PGK We don't acutally need to handle a response, either.
+	//xoap::MessageReference onSetTTSBitsResponse(xoap::MessageReference message) 
+	//	throw (xoap::exception::Exception);
+
+	void relayMessage (xoap::MessageReference msg) 
+		throw (xgi::exception::Exception);
+	void SendSOAPMessageXRelaySimple(std::string command,std::string setting);
+	void SendSOAPMessageXRelayReturn(std::string command,std::string setting);
+	void SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
+		throw (xgi::exception::Exception);
+	void SendSOAPMessageCalibrationXRelay(xgi::Input * in, xgi::Output * out ) 
+		throw (xgi::exception::Exception);
+	void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) 
+		throw (xgi::exception::Exception);
+	
+	void PCsendCommand(string command, string klass) 
+		throw (xoap::exception::Exception, xdaq::exception::Exception);
+	xoap::MessageReference PCcreateCommandSOAP(string command);
+	//  void PCanalyzeReply(xoap::MessageReference message, xoap::MessageReference reply,xdaq::ApplicationDescriptor *app);
+
+	xoap::MessageReference killAllMessage();
+	xoap::MessageReference QueryFCrateInfoSpace();
+	xoap::MessageReference QueryLTCInfoSpace();
+	xoap::MessageReference QueryJobControlInfoSpace();
+	xoap::MessageReference ExecuteCommandMessage(std::string port);
+	xoap::MessageReference createXRelayMessage(const std::string & command, const std::string & setting, std::set<xdaq::ApplicationDescriptor * > descriptor );
+=======
 	//xdata::Table getDCCTable(xdaq::ApplicationDescriptor *descriptor);
 	
+>>>>>>> 1.5
 
+<<<<<<< EmuFCrateManager.h
+	//xdata::Table getDCCTable(xdaq::ApplicationDescriptor *descriptor);
+	
+=======
+	void CheckEmuFCrateState();
+>>>>>>> 1.5
+
+<<<<<<< EmuFCrateManager.h
 	void CheckEmuFCrateState();
 
 private:
+=======
+private:
+>>>>>>> 1.5
 	xdata::UnsignedInteger tts_id_;
 	xdata::UnsignedInteger tts_crate_;
 	xdata::UnsignedInteger tts_slot_;
@@ -162,6 +262,39 @@ private:
 	void sendCommand(string command, string klass, int instance)
 		throw (xoap::exception::Exception, xdaq::exception::Exception);
 	xoap::MessageReference createCommandSOAP(string command);
+<<<<<<< EmuFCrateManager.h
+	//void setParameter(string klass, string name, string type,string value);
+	//void setParameter(string klass, string name, string type,unsigned int value);
+	//xoap::MessageReference createParameterSetSOAP(string klass, string name, string type, string value);
+	//void analyzeReply(xoap::MessageReference message, xoap::MessageReference reply, xdaq::ApplicationDescriptor *app);
+
+	void webRedirect(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception);
+
+/*
+	class StateTable
+	{
+	public:
+		StateTable(EmuFCrateManager *fedmgr);
+		void addApplication(string klass);
+		void refresh();
+		string getState(string klass, unsigned int instance);
+		bool isValidState(string expected);
+		void webOutput(xgi::Output *out, string sv_state)
+			throw (xgi::exception::Exception);
+
+	private:
+		xoap::MessageReference createStateSOAP(string klass);
+		string extractState(xoap::MessageReference message, string klass);
+
+		EmuFCrateManager *fedmgr_;
+		vector<pair<xdaq::ApplicationDescriptor *, string> > table_;
+	} state_table_;
+*/
+
+	bool soapConfigured_;
+	bool soapLocal_;
+=======
 	//void setParameter(string klass, string name, string type,string value);
 	void setParameter(string klass, string name, string type,unsigned int value);
 	xoap::MessageReference createParameterSetSOAP(string klass, string name, string type, string value);
@@ -193,6 +326,7 @@ private:
 
 	bool soapConfigured_;
 	bool soapLocal_;
+>>>>>>> 1.5
 
 };
 

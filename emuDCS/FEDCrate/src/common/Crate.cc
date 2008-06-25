@@ -92,18 +92,34 @@ void Crate::configure(long unsigned int runnumber = 0) {
 	}
 	std::vector<DCC*> myDccs = this->dccs();
 	for(unsigned i =0; i < myDccs.size(); ++i) {
+<<<<<<< Crate.cc
 		myDccs[i]->configure();
+	}
+
+	// PGK Once configured, we need to hard-reset through the DCC.
+	//  Contact Stan Durkin for questions.
+	if (myDccs.size()) {
+		myDccs[0]->mctrl_swset(0x1000);
+		myDccs[0]->mctrl_ttccmd(0x34);
+		myDccs[0]->mctrl_ttccmd(0x3);
+		myDccs[0]->mctrl_swset(0x0000);
+=======
+		myDccs[i]->configure();
+>>>>>>> 3.5
 	}
 
 // LSD, move IRQ start to Init phase:
 // JRG, we probably want to keep IRQ clear/reset here (End, then Start):
 // PGK, new objects (IRQThread) in town.  Use these instead.
 // PGK, better yet, just call init.
-	cout << " ********   Crate::configure complete, running init..." << endl;
-	this->init(runnumber);
+//	cout << " ********   Crate::configure complete, running init..." << endl;
+//	this->init(runnumber);
 }
 
 void Crate::init(long unsigned int runnumber = 0) {
+<<<<<<< Crate.cc
+	// Does nothing.
+=======
 // PGK, new objects (IRQThread) in town.  Use these instead.
 /*
 	cout << " Crate::init: theController->start_thread_on_init="<<theController->start_thread_on_init<<".  Calling thread end" << endl;
@@ -113,5 +129,6 @@ void Crate::init(long unsigned int runnumber = 0) {
 		//theController->start_thread(runnumber);
 	}
 */
+>>>>>>> 3.5
 }
 
