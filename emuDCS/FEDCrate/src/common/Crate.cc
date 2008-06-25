@@ -92,7 +92,6 @@ void Crate::configure(long unsigned int runnumber = 0) {
 	}
 	std::vector<DCC*> myDccs = this->dccs();
 	for(unsigned i =0; i < myDccs.size(); ++i) {
-<<<<<<< Crate.cc
 		myDccs[i]->configure();
 	}
 
@@ -103,9 +102,6 @@ void Crate::configure(long unsigned int runnumber = 0) {
 		myDccs[0]->mctrl_ttccmd(0x34);
 		myDccs[0]->mctrl_ttccmd(0x3);
 		myDccs[0]->mctrl_swset(0x0000);
-=======
-		myDccs[i]->configure();
->>>>>>> 3.5
 	}
 
 // LSD, move IRQ start to Init phase:
@@ -117,18 +113,6 @@ void Crate::configure(long unsigned int runnumber = 0) {
 }
 
 void Crate::init(long unsigned int runnumber = 0) {
-<<<<<<< Crate.cc
 	// Does nothing.
-=======
-// PGK, new objects (IRQThread) in town.  Use these instead.
-/*
-	cout << " Crate::init: theController->start_thread_on_init="<<theController->start_thread_on_init<<".  Calling thread end" << endl;
-	//theController->end_thread();
-	if(theController->start_thread_on_init){
-		cout << " Crate::init: theController->start_thread_on_init="<<theController->start_thread_on_init<<".  Calling thread start" << endl;
-		//theController->start_thread(runnumber);
-	}
-*/
->>>>>>> 3.5
 }
 
