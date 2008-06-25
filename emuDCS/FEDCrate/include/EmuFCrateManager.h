@@ -1,4 +1,4 @@
-// $Id: EmuFCrateManager.h,v 1.8 2008/06/25 18:09:53 paste Exp $
+// $Id: EmuFCrateManager.h,v 1.9 2008/06/25 18:13:12 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -71,81 +71,6 @@ public:
 
 	XDAQ_INSTANTIATOR();
 
-<<<<<<< EmuFCrateManager.h
-	xdata::String ConfigureState_;
-	xdata::Table table_;
-
-	EmuFCrateManager(xdaq::ApplicationStub * s);
-
-	void webDefault(xgi::Input * in, xgi::Output * out )
-		throw (xgi::exception::Exception);
-	void webFire(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
-	
-	//void MainPage(xgi::Input * in, xgi::Output * out )
-	//	throw (xgi::exception::Exception);
-	//void CheckEmuFCrateState(xgi::Input * in, xgi::Output * out );
-	
-	void configureAction(toolbox::Event::Reference e)
-		throw (toolbox::fsm::exception::Exception);
-	void enableAction(toolbox::Event::Reference e) 
-		throw (toolbox::fsm::exception::Exception);
-	void disableAction(toolbox::Event::Reference e) 
-		throw (toolbox::fsm::exception::Exception);
-	void haltAction(toolbox::Event::Reference e) 
-		throw (toolbox::fsm::exception::Exception);
-	// PGK These don't need to be state transitions.
-	//void setTTSBitsAction(toolbox::Event::Reference e) 
-	//	throw (toolbox::fsm::exception::Exception);
-	//void setTTSBitsResponseAction(toolbox::Event::Reference e)
-	//	throw (toolbox::fsm::exception::Exception);
-
-	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-		throw (toolbox::fsm::exception::Exception);
-		
-	string extractState(xoap::MessageReference message);
-	string extractRunNumber(xoap::MessageReference message);
-
-	xoap::MessageReference onConfigure (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onEnable (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onDisable (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onHalt (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	
-	xoap::MessageReference onSetTTSBits(xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	// PGK We don't acutally need to handle a response, either.
-	//xoap::MessageReference onSetTTSBitsResponse(xoap::MessageReference message) 
-	//	throw (xoap::exception::Exception);
-
-	void relayMessage (xoap::MessageReference msg) 
-		throw (xgi::exception::Exception);
-	void SendSOAPMessageXRelaySimple(std::string command,std::string setting);
-	void SendSOAPMessageXRelayReturn(std::string command,std::string setting);
-	void SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
-		throw (xgi::exception::Exception);
-	void SendSOAPMessageCalibrationXRelay(xgi::Input * in, xgi::Output * out ) 
-		throw (xgi::exception::Exception);
-	void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) 
-		throw (xgi::exception::Exception);
-	
-	void PCsendCommand(string command, string klass) 
-		throw (xoap::exception::Exception, xdaq::exception::Exception);
-	xoap::MessageReference PCcreateCommandSOAP(string command);
-	//  void PCanalyzeReply(xoap::MessageReference message, xoap::MessageReference reply,xdaq::ApplicationDescriptor *app);
-
-	xoap::MessageReference killAllMessage();
-	xoap::MessageReference QueryFCrateInfoSpace();
-	xoap::MessageReference QueryLTCInfoSpace();
-	xoap::MessageReference QueryJobControlInfoSpace();
-	xoap::MessageReference ExecuteCommandMessage(std::string port);
-	xoap::MessageReference createXRelayMessage(const std::string & command, const std::string & setting, std::set<xdaq::ApplicationDescriptor * > descriptor );
-=======
 	xdata::String ConfigureState_;
 	xdata::Table table_;
 
@@ -222,19 +147,10 @@ public:
 
 	//xdata::Table getDCCTable(xdaq::ApplicationDescriptor *descriptor);
 	
-	void CheckEmuFCrateState();
->>>>>>> 1.7
-
-<<<<<<< EmuFCrateManager.h
-	//xdata::Table getDCCTable(xdaq::ApplicationDescriptor *descriptor);
-	
 
 	void CheckEmuFCrateState();
 
 private:
-=======
-private:
->>>>>>> 1.7
 	xdata::UnsignedInteger tts_id_;
 	xdata::UnsignedInteger tts_crate_;
 	xdata::UnsignedInteger tts_slot_;
