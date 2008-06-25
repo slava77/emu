@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.7 2008/06/25 17:20:40 paste Exp $
+/// $Id: EmuFCrateManager.cc,v 1.8 2008/06/25 17:43:32 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -30,14 +30,7 @@
 using namespace cgicc;
 using namespace std;
 
-<<<<<<< EmuFCrateManager.cc
 XDAQ_INSTANTIATOR_IMPL(EmuFCrateManager);
-=======
-XDAQ_INSTANTIATOR_IMPL(EmuFCrateManager);
-
-static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
-static const string STATE_UNKNOWN = "unknown";
->>>>>>> 1.6
 
 EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
     //    throw (xdaq::exception::Exception) :
@@ -383,18 +376,10 @@ void EmuFCrateManager::webRedirect(xgi::Input *in, xgi::Output *out)
 	header.getReasonPhrase("See Other");
 	header.addHeader("Location",url.substr(0, url.find("/" + in->getenv("PATH_INFO"))));
 }
-<<<<<<< EmuFCrateManager.cc
-
-=======
->>>>>>> 1.6
 
 
-<<<<<<< EmuFCrateManager.cc
-// PGK this is removed in favor of not having state transitions
-=======
 
 // PGK this is removed in favor of not having state transitions
->>>>>>> 1.6
 /*
 void EmuFCrateManager::setTTSBitsResponseAction(toolbox::Event::Reference e)
   throw (toolbox::fsm::exception::Exception)
@@ -424,7 +409,6 @@ void EmuFCrateManager::setTTSBitsResponseAction(toolbox::Event::Reference e)
 }
 */
 
-<<<<<<< EmuFCrateManager.cc
 void EmuFCrateManager::configureAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
@@ -449,50 +433,18 @@ void EmuFCrateManager::configureAction(toolbox::Event::Reference e)
 
 	// PGK Now send it to the EmuFCrates.
 	setParameter("EmuFCrate","runType","xsd:string",runType_.toString());
-=======
-void EmuFCrateManager::configureAction(toolbox::Event::Reference e)
-	throw (toolbox::fsm::exception::Exception)
-{
-	cout << "  inside EmuFCrateManager::configureAction " << endl;
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Configure");
-
-	if (soapLocal_) {
-		soapLocal_ = false;
-		soapConfigured_ = false;
-	} else {
-		soapConfigured_ = true;
-	}
->>>>>>> 1.6
-
-<<<<<<< EmuFCrateManager.cc
-	try{
-		PCsendCommand("Configure","EmuFCrate");
-	} catch (xdaq::exception::Exception e) {
-		XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrateManager::configureAction");
-	}
-=======
-	// PGK This is given to us from the CSCSV.  This will determine our logging
-	//  preferences.
-	LOG4CPLUS_INFO(getApplicationLogger(), "Run type is " << runType_.toString());
-	if (runType_.toString() == "Debug") {
-		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
-	} else {
-		getApplicationLogger().setLogLevel(INFO_LOG_LEVEL);
-	}
 
 	try{
 		PCsendCommand("Configure","EmuFCrate");
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrateManager::configureAction");
 	}
->>>>>>> 1.6
 }
 
 
 void EmuFCrateManager::enableAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-<<<<<<< EmuFCrateManager.cc
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Enable");
 	soapLocal_ = false;
 
@@ -509,16 +461,6 @@ void EmuFCrateManager::enableAction(toolbox::Event::Reference e)
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrateManager::enableAction");
 	}
-=======
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Enable");
-	soapLocal_ = false;
-
-	try{
-		PCsendCommand("Enable","EmuFCrate");
-	} catch (xdaq::exception::Exception e) {
-		XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrateManager::enableAction");
-	}
->>>>>>> 1.6
 }
 
 
@@ -700,84 +642,6 @@ xoap::MessageReference EmuFCrateManager::onEnable (xoap::MessageReference messag
 
 xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference message) throw (xoap::exception::Exception)
 {
-<<<<<<< EmuFCrateManager.cc
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP command received: SetTTSBits");
-
-	// PGK This doesn't need to be a state transition.
-	//fireEvent("SetTTSBits");
-
-	const string fed_app = "EmuFCrate";
-
-	// JRG, decode the Source ID into Crate/Slot locations
-	// PGK The tts_id_ is given to us by the CSCSV, so we don't have to do
-	//  anything to get it.
-	unsigned int srcID = tts_id_;
-	if (srcID<748) srcID = 748;
-	printf(", srcID=%d\n",srcID);
-
-	if (srcID>830&&srcID<840) {       // crate 2 DDUs, S1-G06g, ME+
-		tts_crate_ = 2;
-		unsigned int islot = srcID-827; // srcID-831+4
-		if (islot>7) islot++;
-		tts_slot_ = islot;
-	}
-	else if (srcID>840&&srcID<850) {  // crate 1 DDUs, S1-G06i, ME+
-		tts_crate_ = 1;
-		unsigned int islot = srcID-837; // srcID-841+4
-		if (islot>7) islot++;
-		tts_slot_ = islot;
-	}
-/*
-	else if(srcID>850&&srcID<860){  // crate 4 DDUs, S1-G08g, ME-
-	  tts_crate_=4;
-	  unsigned int islot=srcID-847; // srcID-851+4
-	  if(islot>7)islot++;
-	  tts_slot_=islot;
-	}
-	else if(srcID>860&&srcID<870){  // crate 3 DDUs, S1-G08i, ME-
-	  tts_crate_=3;
-	  unsigned int islot=srcID-857; // srcID-861+4
-	  if(islot>7)islot++;
-	  tts_slot_=islot;
-	}
-*/
-	else if (srcID==760) { //crate ? TF-DDU, S1-?
-		tts_crate_ = 3;  // JRG temp!  Later should be 5!  After ME- installed.
-		tts_slot_ = 2;   // check...!
-	}
-
-	else { // set crates/slot for DCCs,
-		unsigned int icrate = (srcID-748)/2; // will work for both S-Link IDs
-		if (icrate>0&&icrate<5) {
-			tts_crate_ = icrate;
-			tts_slot_ = 8;
-		}
-	}
-/*  better way used above ^^^^
-	if(srcID==752){  //crate 2 DCC, S1-G06g
-	  tts_crate_=2;
-	  tts_slot_=8;
-	}
-	if(srcID==750){  //crate 1 DCC, S1-G06i
-	  tts_crate_=1;
-	  tts_slot_=8;
-	}
-	if(srcID==756){  //crate 4 DCC, S1-G08g
-	  tts_crate_=4;
-	  tts_slot_=8;
-	}
-	if(srcID==754){  //crate 3 DCC, S1-G08i
-	  tts_crate_=3;
-	  tts_slot_=8;
-	}
-*/
-
-	try {
-// JRG: this is the instance for the FED application, NOT really the CrateID
-//		int instance = (tts_crate_ == "1") ? 0 : 1;
-		int instance = 0;
-		xdata::UnsignedInteger ui_diff = 1;
-=======
 	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP command received: SetTTSBits");
 
 	// PGK This doesn't need to be a state transition.
@@ -855,26 +719,6 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 		int instance = 0;
 		xdata::UnsignedInteger ui_diff = 1;
 
-// JRG 9/29/07: need to have unique instance for each crate fed_app process
-//		if(tts_crate_>0)instance=tts_crate_ - ui_diff;
-		instance=tts_crate_;
-		if(instance>0)instance--;
-		if(srcID==760)tts_crate_=5;
-/* JRG, for case of 2 FED crates in a single config (2 crates per EmuFCrate):
-		if(instance>2)instance=1;
-		else instance=0;
-*/
-		setParameter(fed_app,"ttsCrate","xsd:unsignedInt",tts_crate_);
-		setParameter(fed_app,"ttsSlot", "xsd:unsignedInt",tts_slot_);
-		setParameter(fed_app,"ttsBits", "xsd:unsignedInt",tts_bits_);
-//		cout << "inside setTTSAction" << tts_crate_.str() << tts_slot_.str() << tts_bits_.str() << endl;
-
-		LOG4CPLUS_DEBUG(getApplicationLogger(), "TTSBits being sent to " << fed_app << "(" << instance << ")");
-		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << tts_crate_.toString() << " Slot " << tts_slot_.toString() << " Bits " << tts_bits_.toString());
-		//cout << " ** EmuFCrateManager: inside setTTSBitsAction, setParameter tried, now sendCommand instance=" << instance << fed_app << endl;
->>>>>>> 1.6
-
-<<<<<<< EmuFCrateManager.cc
 // JRG 9/29/07: need to have unique instance for each crate fed_app process
 //		if(tts_crate_>0)instance=tts_crate_ - ui_diff;
 		instance=tts_crate_;
@@ -888,28 +732,11 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 		setParameter(fed_app,"ttsSlot", "xsd:unsignedInt",tts_slot_.toString());
 		setParameter(fed_app,"ttsBits", "xsd:unsignedInt",tts_bits_.toString());
 //		cout << "inside setTTSAction" << tts_crate_.str() << tts_slot_.str() << tts_bits_.str() << endl;
-=======
-		sendCommand("SetTTSBits", fed_app, instance);
->>>>>>> 1.6
 
-<<<<<<< EmuFCrateManager.cc
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "TTSBits being sent to " << fed_app << "(" << instance << ")");
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << tts_crate_.toString() << " Slot " << tts_slot_.toString() << " Bits " << tts_bits_.toString());
 		//cout << " ** EmuFCrateManager: inside setTTSBitsAction, setParameter tried, now sendCommand instance=" << instance << fed_app << endl;
-=======
-	} catch (xoap::exception::Exception e) {
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception,"SOAP fault was returned", e);
-		LOG4CPLUS_ERROR(getApplicationLogger(), "setParameter fault");
-		//cout << "*!* EmuFCrateManager: inside setTTSBitsAction, setParameter fault" << endl;
-	} catch (xdaq::exception::Exception e) {
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception,"Failed to send a command", e);
-		LOG4CPLUS_ERROR(getApplicationLogger(), "setParameter failed");
-		//cout << "*!* EmuFCrateManager: inside setTTSBitsAction, setParameter failed" << endl;
-	}
-	//cout << "*** EmuFCrateManager: end of setTTSBitsAction" << endl;
->>>>>>> 1.6
 
-<<<<<<< EmuFCrateManager.cc
 		sendCommand("SetTTSBits", fed_app, instance);
 
 	} catch (xoap::exception::Exception e) {
@@ -926,11 +753,6 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 	//SendSOAPMessageXRelaySimple("SetTTSBits","");
 
 	//cout << "*** EmuFCrateManager: end of onSetTTSBits, so return" << endl;
-=======
-	//SendSOAPMessageXRelaySimple("SetTTSBits","");
-
-	//cout << "*** EmuFCrateManager: end of onSetTTSBits, so return" << endl;
->>>>>>> 1.6
 	return createReply(message);
 
 }
