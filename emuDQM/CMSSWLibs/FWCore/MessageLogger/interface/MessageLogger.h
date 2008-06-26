@@ -19,8 +19,6 @@
 #include "log4cplus/helpers/pointer.h"
 #include "log4cplus/spi/loggingevent.h"
 
-namespace edm  {
-
 using namespace log4cplus;
 using namespace log4cplus::helpers;
 using namespace log4cplus::spi;
@@ -28,6 +26,15 @@ using namespace log4cplus::spi;
 
 static Logger logger = Logger::getInstance("CSCRawUnpacking");
 
+namespace edm  {
+
+/*using namespace log4cplus;
+using namespace log4cplus::helpers;
+using namespace log4cplus::spi;
+
+
+static Logger logger = Logger::getInstance("CSCRawUnpacking");
+*/
 class LogWarning
 {
 public:
@@ -102,6 +109,32 @@ private:
 
 };  // LogInfo
 
+/*
+class LogTrace
+{
+public:
+  explicit LogTrace( std::string const & id )
+    : ap( new std::ostringstream() )
+  { (*ap) << "<" << id <<"> ";}
+  ~LogTrace() { LOG4CPLUS_DEBUG(logger, ap->str());}
+
+  template< class T >
+    LogTrace &
+    operator<< (T const & t)  { (*ap) << t; return *this; }
+  LogTrace &
+  operator<< ( std::ostream&(*f)(std::ostream&))
+                                      { (*ap) << f; return *this; }
+  LogTrace &
+  operator<< ( std::ios_base&(*f)(std::ios_base&) )
+                                      { (*ap) << f; return *this; }
+
+private:
+  std::auto_ptr<std::ostringstream> ap;
+
+};  // LogTrace
+*/
+
+
 class LogDebug
 {
 public:
@@ -140,6 +173,28 @@ public:
 
 }  // namespace edm
 
+class LogTrace
+{
+public:
+  explicit LogTrace( std::string const & id )
+    : ap( new std::ostringstream() )
+  { (*ap) << "<" << id <<"> ";}
+  ~LogTrace() { LOG4CPLUS_TRACE(logger, ap->str());}
+
+  template< class T >
+    LogTrace &
+    operator<< (T const & t)  { (*ap) << t; return *this; }
+  LogTrace &
+  operator<< ( std::ostream&(*f)(std::ostream&))
+                                      { (*ap) << f; return *this; }
+  LogTrace &
+  operator<< ( std::ios_base&(*f)(std::ios_base&) )
+                                      { (*ap) << f; return *this; }
+
+private:
+  std::auto_ptr<std::ostringstream> ap;
+
+};  // LogTrace
 
 // #endif
 

@@ -48,11 +48,11 @@ CSCRAW   = $(CMSSW)/EventFilter/CSCRawToDigi
 SRCRAW_PATH    = $(CSCRAW)/src
 SRCS_RAW      = \
 	$(SRCRAW_PATH)/CSCDCCExaminer.cc \
-	$(SRCRAW_PATH)/CSCCFEBData.cc $(SRCRAW_PATH)/CSCDCCHeader.cc\
+	$(SRCRAW_PATH)/CSCDCCHeader.cc\
 	$(SRCRAW_PATH)/CSCDDUEventData.cc $(SRCRAW_PATH)/CSCDCCEventData.cc\
 	$(SRCRAW_PATH)/CSCDDUHeader.cc $(SRCRAW_PATH)/bitset_append.cc \
 	$(SRCRAW_PATH)/CSCDMBHeader.cc $(SRCRAW_PATH)/CSCEventData.cc\
-	$(SRCRAW_PATH)/CSCCFEBTimeSlice.cc \
+	$(SRCRAW_PATH)/CSCCFEBData.cc $(SRCRAW_PATH)/CSCCFEBTimeSlice.cc \
 	$(SRCRAW_PATH)/CSCTMBHeader.cc $(SRCRAW_PATH)/CSCALCTHeader.cc \
 	$(SRCRAW_PATH)/CSCALCTTrailer.cc \
 	$(SRCRAW_PATH)/CSCCLCTData.cc $(SRCRAW_PATH)/CSCAnodeData.cc \
@@ -79,6 +79,14 @@ SRCS_QLTY     = $(SRCQLTY_PATH)/Comp2RefChi2ROOT.cc \
 OBJS_QLTY      = $(addprefix $(ODIR)/, $(notdir $(SRCS_QLTY:%.cc=%.o)))
 
 
+# CMSSW DQM/CSCMonitorModule
+DQM   = $(CMSSW)/DQM/CSCMonitorModule
+SRCDQM_PATH    = $(QLTY)/src
+SRCS_DQM     = $(SRCDQM_PATH)/CSCDetector.cc \
+        $(SRCDQM_PATH)/CSCSummary.cc
+OBJS_DQM      = $(addprefix $(ODIR)/, $(notdir $(SRCS_DQM:%.cc=%.o)))
+
+
 $(ODIR)/%.o: $(CSCDIGI)/src/%.cc 
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(INCLUDES) $< -o $@
 
@@ -102,10 +110,14 @@ $(ODIR)/%.o: $(CSCRAW)/src/%.cc
 $(ODIR)/%.o: $(QLTY)/src/%.cc 
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(ROOTCFLAGS) $(INCLUDES) $< -o $@
 
+$(ODIR)/%.o: $(DQM)/src/%.cc
+	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(ROOTCFLAGS) $(INCLUDES) $< -o $@
+
+
 all: libs 
 _all: all
 
-libs: $(LDIR)/libCSCDigi.a $(LDIR)/libCSCDigi.so $(LDIR)/libCSCRawToDigi.a $(LDIR)/libCSCRawToDigi.so 
+libs: $(LDIR)/libCSCDigi.a $(LDIR)/libCSCDigi.so $(LDIR)/libCSCRawToDigi.a $(LDIR)/libCSCRawToDigi.so $(LDIR)/libCSCDQMCommon.a
 # $(LDIR)/libQualityTests.a $(LDIR)/libQualityTests.so
 
 
@@ -125,6 +137,15 @@ $(LDIR)/libCSCRawToDigi.so: $(OBJS_RAW)
 $(LDIR)/libCSCRawToDigi.a: $(OBJS_RAW)
 	ar crs $@ $(OBJS_RAW)
 	@echo "Done."
+
+#$(LDIR)/libCSCDQMCommon.so: $(OBJS_DQM)
+#	@echo "===> Linking CMSSW DQM/CSCMonitorModule libraries..."
+#	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -shared $(OBJS_DQM)  -o $@
+
+$(LDIR)/libCSCDQMCommon.a: $(OBJS_DQM)
+	ar crs $@ $(OBJS_DQM)
+	@echo "Done."
+
 
 $(LDIR)/libQualityTests.so: $(OBJS_QLTY)
 	@echo "===> Linking CMSSW DQMServices/QualityTests libraries..."
