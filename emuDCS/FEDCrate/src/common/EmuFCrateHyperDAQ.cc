@@ -2113,10 +2113,6 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 	*out << br() << endl;
 
 	// PGK Let us now print some tables with information from the DDUFPGA.
-	// This guy will be used later to show which chambers have errors in the big
-	//  table.  Unfortunately, we can only see the fibers on the active DDU.
-	//  I should make a note of that on the table.
-	unsigned int fibersWithErrors = 0;
 
 	// This is used to check if the debug trap is valid.
 	bool debugTrapValid = false;
@@ -2293,7 +2289,6 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(2,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
-			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2306,7 +2301,6 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(3,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
-			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2319,7 +2313,6 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(4,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
-			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2332,7 +2325,6 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(5,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
-			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2345,7 +2337,6 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(6,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
-			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2358,7 +2349,6 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(7,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
-			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2722,6 +2712,9 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		.set("style","font-size: 8pt; color: #900;") << endl;
 
 	// A table for the first half of the form.
+	// Useful to know what fibers are reporting problems.
+	unsigned short int fibersWithErrors = thisDDU->readCSCStat();
+
 	*out << cgicc::table()
 		.set("style","width: 100%; margin: 5px auto 5px auto; font-size: 8pt;") << endl;
 	*out << cgicc::tr() << endl;
