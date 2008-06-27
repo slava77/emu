@@ -443,7 +443,7 @@ if( sp == 0 ){
 
 				// Store hits for later timing correlation analysis:
 //cout<<"tbin="<<tbin<<" mpc="<<mpc<<" csc="<<csc<<endl;
-				shared_hits.fill(tbin,mpc-1,csc,*lct);
+				if(mpc>0&&mpc<=5&&csc>0&&csc<=9) shared_hits.fill(tbin,mpc-1,csc,*lct);
 			}
 
 			vector<CSCSP_MBblock> dt_stubs = spPtr->record(tbin).mbStubs();
@@ -518,6 +518,10 @@ if( sp == 0 ){
 			map<pair<unsigned int,unsigned int>,int> deltaBX = shared_hits.diffBX();
 			map<pair<unsigned int,unsigned int>,int>::const_iterator iter = deltaBX.begin();
 			while(iter!=deltaBX.end()){
+                                if(iter->first.second<0 || iter->first.second>=50 || iter->first.first<0 || iter->first.second>=50){
+                                   cout<<"iter->first.first="<<iter->first.first<<" iter->first.second="<<iter->first.second<<endl;
+                                   continue;
+                                }
 				unsigned short mpc1 = iter->first.first/10+1;
 				unsigned short csc1 = iter->first.first%10;
 				if( !tf.isBooked(sp,mpc1,csc1) ) tf.book(sp,mpc1,csc1);

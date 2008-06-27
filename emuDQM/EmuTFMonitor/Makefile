@@ -29,9 +29,9 @@ Sources=\
 
 #        EmuTFMonitorV.cc  \
 
-Executables = EmuTFtest.cc 
+Executables = EmuTFtest.cc
 
-ExternalObjects = ../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuDQMCommon.a 
+ExternalObjects = ../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuDQMCommon.a
 
 IncludeDirs = $(XdaqIncludeDirs) \
         $(XDAQ_ROOT)/$(Project)/$(Package)/../Common/include/ \
@@ -39,18 +39,18 @@ IncludeDirs = $(XdaqIncludeDirs) \
 
 LibraryDirs = $(XdaqLibraryDirs) ../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
-UserSourcePath = 
+UserSourcePath =
 
 UserCFlags = $(ROOTCFLAGS)
-UserCCFlags = $(ROOTCFLAGS) -DBASE="\"${HOME}/TriDAS/emu/emuDQM/\"" -I${HOME}/CMSSW/src 
-UserDynamicLinkFlags = $(ROOTLIBS) 
+UserCCFlags = $(ROOTCFLAGS) -DBASE="\"${HOME}/TriDAS/emu/emuDQM/\"" -I${HOME}/CMSSW/src
+UserDynamicLinkFlags = $(ROOTLIBS)
 UserStaticLinkFlags =
-UserExecutableLinkFlags += $(ROOTCFLAGS) -Xlinker -rpath -Xlinker ${HOME}/TriDAS/emu/emuDQM/EmuTFMonitor/lib/linux/x86/ 
+UserExecutableLinkFlags += $(ROOTCFLAGS) -Xlinker -rpath -Xlinker ${HOME}/TriDAS/emu/emuDQM/EmuTFMonitor/lib/linux/x86/
 
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) EmuDQMCommon  
+Libraries = $(XdaqLibraries) EmuDQMCommon
 
 #
 # Compile the source files and create a shared library
