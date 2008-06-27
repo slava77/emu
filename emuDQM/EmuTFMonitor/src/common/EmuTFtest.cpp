@@ -42,7 +42,6 @@ int main(int argc, char *argv[]){
 	int a=2;
 	char *v[]={"qwe","-b"};
 	TApplication app("qwe", &a, v);
-
 	// Histograms/Canvases description
 	std::map<std::string,HistAttributes>   histList   = parseHistXML  (BASE "EmuTFMonitor/xml/CSCTF_histograms.xml");
 	std::map<std::string,CanvasAttributes> canvasList = parseCanvasXML(BASE "EmuTFMonitor/xml/CSCTF_canvases.xml");
@@ -298,7 +297,6 @@ for(int spNum=1; spNum<=12; spNum++){
 	cout<<"Summary ["<<summary.GetNbinsX()<<"="<<sum.length()<<"]:"<<endl<<(summary.GetArray()+1)<<endl;
 	summary.Write();
 	file.Close();
-
 	app.Terminate();
 	return 0;
 }
