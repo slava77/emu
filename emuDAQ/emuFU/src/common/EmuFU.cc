@@ -611,6 +611,7 @@ vector< pair<string, xdata::Serializable*> > EmuFU::initAndGetStdConfigParams()
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
       clientName_.push_back("");
+      clientInstance_.push_back(0);
       clientProtocol_.push_back("I2O");
       clientPoolSize_.push_back(0x100000); // 1MB
       prescaling_.push_back(0);
@@ -618,6 +619,8 @@ vector< pair<string, xdata::Serializable*> > EmuFU::initAndGetStdConfigParams()
     }
     params.push_back(pair<string,xdata::Serializable *> 
 		     ("clientsClassName", &clientName_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("clientsInstance", &clientInstance_));
     params.push_back(pair<string,xdata::Serializable *> 
 		     ("clientsProtocol", &clientProtocol_));
     params.push_back(pair<string,xdata::Serializable *> 
@@ -911,8 +914,7 @@ void EmuFU::destroyServers(){
   for ( c=clients_.begin(); c!=clients_.end(); ++c ){
     LOG4CPLUS_INFO(logger_, string("Destroying server for ") + (*c)->server->getClientName() );
     delete (*c)->server;
-//     delete (*c)->workLoopActionSignature;
-//     delete (*c)->workLoop;
+    *(*c)->creditsHeld = 0;
   }
   clients_.clear();
 }
@@ -1215,9 +1217,6 @@ throw (toolbox::fsm::exception::Exception)
 
   delete emuEventHeaderTrailer_;
 
-  for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
-    (*c)->workLoopStarted = false;
-  }
 }
 
 
