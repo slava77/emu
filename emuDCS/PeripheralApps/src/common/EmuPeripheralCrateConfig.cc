@@ -4604,7 +4604,9 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].SetupRadioactiveTriggerConditions();
   MyTest[tmb][current_crate_].FindL1AAndDAVDelays();
+  MyTest[tmb][current_crate_].ReturnToInitialTriggerConditions();
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
   this->CrateConfiguration(in,out);
@@ -4625,7 +4627,9 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate(xgi::Input * in, xgi::
     std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
     //
     MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
+    MyTest[i][current_crate_].SetupRadioactiveTriggerConditions();
     MyTest[i][current_crate_].FindL1AAndDAVDelays();
+    MyTest[i][current_crate_].ReturnToInitialTriggerConditions();
     MyTest[i][current_crate_].RedirectOutput(&std::cout);
   }
   //
@@ -4647,7 +4651,9 @@ void EmuPeripheralCrateConfig::MeasureL1AsForCrate(xgi::Input * in, xgi::Output 
     std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
     //
     MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
+    MyTest[i][current_crate_].SetupRadioactiveTriggerConditions();
     MyTest[i][current_crate_].FindL1ADelays();
+    MyTest[i][current_crate_].ReturnToInitialTriggerConditions();
     MyTest[i][current_crate_].RedirectOutput(&std::cout);
   }
   //
@@ -4669,7 +4675,9 @@ void EmuPeripheralCrateConfig::MeasureDAVsForCrate(xgi::Input * in, xgi::Output 
     std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
     //
     MyTest[i][current_crate_].RedirectOutput(&ChamberTestsOutput[i][current_crate_]);
+    MyTest[i][current_crate_].SetupRadioactiveTriggerConditions();
     MyTest[i][current_crate_].FindDAVDelays();
+    MyTest[i][current_crate_].ReturnToInitialTriggerConditions();
     MyTest[i][current_crate_].RedirectOutput(&std::cout);
   }
   //
