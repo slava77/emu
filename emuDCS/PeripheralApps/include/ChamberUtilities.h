@@ -105,6 +105,9 @@ public:
   void FindDistripHotChannels();
   //
   // useful peripheral crate functions
+  void SetupRadioactiveTriggerConditions();
+  void ReturnToInitialTriggerConditions();
+  //
   void InitSystem();
   void InitStartSystem();
   //
@@ -313,6 +316,10 @@ private:
   int TmbDavValueHisto_[255];
   int AlctDavValueHisto_[255];
   //
+  int initial_clct_pretrig_thresh_;
+  int initial_clct_pattern_thresh_;
+  int initial_alct_pretrig_thresh_;
+  int initial_alct_pattern_thresh_;
 };
 
 #endif

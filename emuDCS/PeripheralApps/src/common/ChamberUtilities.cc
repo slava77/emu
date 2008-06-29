@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.9 2008/05/23 13:00:23 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.10 2008/06/29 17:42:25 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.10  2008/06/29 17:42:25  rakness
+// add radioactive trigger mode for scans
+//
 // Revision 1.9  2008/05/23 13:00:23  rakness
 // set extra latency values in order to properly scan tmb_lct_cable_delay
 //
@@ -1996,6 +1999,36 @@ void ChamberUtilities::PrintAllDmbValuesAndScopes() {
   return;
 }
 //
+void ChamberUtilities::SetupRadioactiveTriggerConditions() {
+  //
+  initial_clct_pretrig_thresh_ = thisTMB->GetHsPretrigThresh();
+  initial_clct_pattern_thresh_ = thisTMB->GetMinHitsPattern();
+  initial_alct_pretrig_thresh_ = alct->GetPretrigNumberOfLayers();
+  initial_alct_pattern_thresh_ = alct->GetPretrigNumberOfPattern();
+  //
+  thisTMB->SetHsPretrigThresh(1);
+  thisTMB->SetMinHitsPattern(1);
+  thisTMB->WriteRegister(seq_clct_adr);
+  //
+  alct->SetPretrigNumberOfLayers(1);
+  alct->SetPretrigNumberOfPattern(1);
+  alct->WriteConfigurationReg();
+  //
+  return;
+}
+//
+void ChamberUtilities::ReturnToInitialTriggerConditions() {
+
+  thisTMB->SetHsPretrigThresh(initial_clct_pretrig_thresh_);
+  thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh_);
+  thisTMB->WriteRegister(seq_clct_adr);
+  //
+  alct->SetPretrigNumberOfLayers(initial_alct_pretrig_thresh_);
+  alct->SetPretrigNumberOfPattern(initial_alct_pattern_thresh_);
+  alct->WriteConfigurationReg();
+  //
+  return;
+}
 //----------------------------------------------
 // L1A accept windows
 //----------------------------------------------
