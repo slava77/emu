@@ -1338,8 +1338,7 @@ void EmuRUI::destroyServers(){
   for ( c=clients_.begin(); c!=clients_.end(); ++c ){
     LOG4CPLUS_INFO(logger_, string("Destroying server for ") + (*c)->server->getClientName() );
     delete (*c)->server;
-//     delete (*c)->workLoopActionSignature;
-//     delete (*c)->workLoop;
+    *(*c)->creditsHeld = 0;
   }
   clients_.clear();
 }
@@ -2994,11 +2993,11 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
 	 << " (after " << nEventsRead_+1 << " read)";
       persistentDDUError_ = ss.str();
     }
-    LOG4CPLUS_ERROR(logger_, "Critical DDU error in "
-       << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
-       << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
-       << deviceReader_->eventNumber()
-       << " (" << nEventsRead_+1 << " read)");
+//     LOG4CPLUS_ERROR(logger_, "Critical DDU error in "
+//        << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
+//        << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
+//        << deviceReader_->eventNumber()
+//        << " (" << nEventsRead_+1 << " read)");
     // << " FED_OutOfSync: " << short(trailerShortWord[8] & FED_OutOfSync)
     // << " FED_Error: " << short(trailerShortWord[8] & FED_Error) 
     // << " DDU Trailer-1 bit 47: " << short(trailerShortWord[6] & 0x8000) );
@@ -3017,22 +3016,22 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
   // 3)
   if ( trailerShortWord[8] & FED_Overflow ||
        trailerShortWord[5] & 0x8000          ) {  // DDU Trailer-1 bit 31
-    LOG4CPLUS_WARN(logger_,
-		   "DDU buffer near Full in "
-		   << deviceReader_->getName() 
-		   << ". (bit T:4|T-1:31) Event "
-		   << deviceReader_->eventNumber()
-		   << " (" << nEventsRead_ << " read)");
+//     LOG4CPLUS_WARN(logger_,
+// 		   "DDU buffer near Full in "
+// 		   << deviceReader_->getName() 
+// 		   << ". (bit T:4|T-1:31) Event "
+// 		   << deviceReader_->eventNumber()
+// 		   << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
   // 4)
   if ( trailerShortWord[6] & 0x2000 ) {      // DDU Trailer-1 bit 45
-    LOG4CPLUS_WARN(logger_,
-		   "DDU special warning in "
-		   << deviceReader_->getName() 
-		   << ". (bit T-1:45) Event "
-		   << deviceReader_->eventNumber()
-		   << " (" << nEventsRead_ << " read)");
+//     LOG4CPLUS_WARN(logger_,
+// 		   "DDU special warning in "
+// 		   << deviceReader_->getName() 
+// 		   << ". (bit T-1:45) Event "
+// 		   << deviceReader_->eventNumber()
+// 		   << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
 
