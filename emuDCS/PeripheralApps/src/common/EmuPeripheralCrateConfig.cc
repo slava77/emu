@@ -541,14 +541,14 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
       //
       SetCurrentCrate(crate_number);
       //
-      *out << crateVector[crate_number]->GetLabel() << std::endl;
+      *out << crateVector[crate_number]->GetLabel() << std::endl ;
       //
       if (crate_firmware_ok[current_crate_] == 0) {
 	//
 	*out << cgicc::br() << cgicc::span().set("style","color:red");
 	//
-        if (ccb_firmware_ok[current_crate_] == 0) *out << "CCB firmware incorrect " << cgicc::br() << std::endl ;
-        if (mpc_firmware_ok[current_crate_] == 0) *out << "MPC firmware incorrect " << cgicc::br() << std::endl ;
+        if (ccb_firmware_ok[current_crate_] == 0) *out << " CCB firmware incorrect " << cgicc::br() << std::endl ;
+        if (mpc_firmware_ok[current_crate_] == 0) *out << " MPC firmware incorrect " << cgicc::br() << std::endl ;
         //
 	bool alct_ok = true;
 	bool tmb_ok = true;
@@ -572,7 +572,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 	//
 	if (!alct_ok) {
 	  //
-	  *out << "ALCT firmware incorrect: " ;
+	  *out << " ALCT firmware incorrect: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (alct_firmware_ok[current_crate_][chamber_index] == 0) 
 	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
@@ -582,7 +582,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 	//
 	if (!tmb_ok) {
 	  //
-	  *out << "TMB firmware incorrect: " ;
+	  *out << " TMB firmware incorrect: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (tmb_firmware_ok[current_crate_][chamber_index] == 0) 
 	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
@@ -592,7 +592,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 	//
 	if (!dmb_vme_ok) {
 	  //
-	  *out << "DMB VME firmware incorrect: " ;
+	  *out << " DMB VME firmware incorrect: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0) 
 	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
@@ -602,7 +602,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 	//
 	if (!dmb_control_ok) {
 	  //
-	  *out << "DMB Control FPGA firmware incorrect: " ;
+	  *out << " DMB Control FPGA firmware incorrect: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0) 
 	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
@@ -612,7 +612,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 	//
 	if (!cfeb_ok) {
 	  //
-	  *out << "CFEB firmware incorrect: " ;
+	  *out << " CFEB firmware incorrect: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
 	    //
 	    std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
@@ -1311,6 +1311,10 @@ void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Ou
       CheckPeripheralCrateConfiguration();
       //
       all_crates_ok &= crate_check_ok[i];
+      //
+    } else {
+      //
+      crate_check_ok[i] = -1;
     }
   }
   //
@@ -1351,6 +1355,9 @@ void EmuPeripheralCrateConfig::CheckCratesFirmware(xgi::Input * in, xgi::Output 
       CheckPeripheralCrateFirmware();
       //
       crates_firmware_ok &= crate_firmware_ok[i];
+    } else {
+      //
+      crate_firmware_ok[i] = -1;
     }
   }
   //
@@ -4609,7 +4616,7 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi
   MyTest[tmb][current_crate_].ReturnToInitialTriggerConditions();
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
-  this->CrateConfiguration(in,out);
+  this->ChamberTests(in,out);
   //
 }
 //
