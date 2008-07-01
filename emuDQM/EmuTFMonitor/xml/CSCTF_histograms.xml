@@ -7,7 +7,7 @@
 		<Name>integrity</Name>
 		<Title>Data Integrity Timeline</Title>
 		<XRange>(0:10000000)</XRange>
-		<XBins>50000</XBins>
+		<XBins>5000</XBins>
 		<XLabel>Sequential event number as received by DQM</XLabel>
 		<YRange>(0:10)</YRange>
 		<YBins>10</YBins>
@@ -22,7 +22,7 @@
 		<Name>DDU_status</Name>
 		<Title>DDU FMM/TTS</Title>
 		<XRange>(0:10000000)</XRange>
-		<XBins>50000</XBins>
+		<XBins>5000</XBins>
 		<XLabel>Sequential event number as received by DQM</XLabel>
 		<YRange>(0:16)</YRange>
 		<YBins>16</YBins>
@@ -47,7 +47,7 @@
 		<Name>L1A_queue_size</Name>
 		<Title>L1A Queue Size</Title>
 		<XRange>(0:10000000)</XRange>
-		<XBins>50000</XBins>
+		<XBins>5000</XBins>
 		<XLabel>Sequential event number as received by DQM</XLabel>
 		<YRange>(0:512)</YRange>
 		<YBins>512</YBins>
@@ -95,7 +95,7 @@
 		<Name>FMM_status</Name>
 		<Title>FMM Status (rate dependent)</Title>
 		<XRange>(0:10000000)</XRange>
-		<XBins>50000</XBins>
+		<XBins>5000</XBins>
 		<XLabel>Sequential event number as received by DQM</XLabel>
 		<YRange>(0:7)</YRange>
 		<YBins>7</YBins>
@@ -121,7 +121,7 @@
 		<Name>SEtimeline</Name>
 		<Title>Timeline for Synchronization Errors</Title>
 		<XRange>(0:10000000)</XRange>
-		<XBins>50000</XBins>
+		<XBins>5000</XBins>
 		<XLabel>Sequential event number as received by DQM</XLabel>
 		<YRange>(0:15)</YRange>
 		<YBins>15</YBins>
@@ -147,7 +147,7 @@
 		<Name>SMtimeline</Name>
 		<Title>Timeline for Synchronization Errors</Title>
 		<XRange>(0:10000000)</XRange>
-		<XBins>50000</XBins>
+		<XBins>5000</XBins>
 		<XLabel>Sequential event number as received by DQM</XLabel>
 		<YRange>(0:15)</YRange>
 		<YBins>15</YBins>
@@ -173,7 +173,7 @@
 		<Name>AFtimeline</Name>
 		<Title>Timeline for Alignment FIFO status</Title>
 		<XRange>(0:10000000)</XRange>
-		<XBins>50000</XBins>
+		<XBins>5000</XBins>
 		<XLabel>Sequential event number as received by DQM</XLabel>
 		<YRange>(0:17)</YRange>
 		<YBins>17</YBins>
@@ -199,7 +199,7 @@
 		<Name>BXtimeline</Name>
 		<Title>Timeline for BX counter status with respect to BC0 mark</Title>
 		<XRange>(0:10000000)</XRange>
-		<XBins>50000</XBins>
+		<XBins>5000</XBins>
 		<XLabel>Sequential event number as received by DQM</XLabel>
 		<YRange>(0:17)</YRange>
 		<YBins>17</YBins>
@@ -530,9 +530,9 @@
 		<Name>occupancy</Name>
 		<Title>Occupancy</Title>
 		<XRange>(0:6)</XRange>
-		<XBins>300</XBins>
+		<XBins>100</XBins>
 		<YRange>(0:24)</YRange>
-		<YBins>300</YBins>
+		<YBins>100</YBins>
 		<XLabel>Effective "#eta" coordinate</XLabel>
 		<YLabel>#phi x station x endcap + tracks (>1)</YLabel>
 	</Histogram>
