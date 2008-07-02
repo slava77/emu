@@ -180,7 +180,7 @@ public:
   // INFPGA register control
   void infpga_shfttst(enum DEVTYPE dv,int tst);
   void infpga_reset(enum DEVTYPE dv);
-  void infpga_rdscaler(enum DEVTYPE dv);
+  unsigned long int infpga_rdscaler(enum DEVTYPE dv);
   int  infpga_rd1scaler(enum DEVTYPE dv);
   void infpga_lowstat(enum DEVTYPE dv);
   void infpga_histat(enum DEVTYPE dv);

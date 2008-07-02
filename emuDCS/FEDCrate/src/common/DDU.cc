@@ -2140,7 +2140,7 @@ unsigned long int DDU::ddu_rdscaler()
 int i,shft2in;
 
 long int code;
-  printf(" ddu_rdscaler \n");
+  //printf(" ddu_rdscaler \n");
   cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
   sndbuf[0]=2;
   devdo(DDUFPGA,10,cmd,8,sndbuf,rcvbuf,0);
@@ -2154,18 +2154,18 @@ long int code;
   sndbuf[4]=0x00;
   sndbuf[5]=0x00;
   devdo(DDUFPGA,10,cmd,49,sndbuf,rcvbuf,1);
-  printf(" DDU L1 Event Scaler, bits [23-0]:  ");
+  //printf(" DDU L1 Event Scaler, bits [23-0]:  ");
   code=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8)|((0x00ff&rcvbuf[2])<<16))&0x00ffffff;
-  printf("    Hex code %06lx\n",code);
-  printf("    Decimal count =  %8ld\n",code);
+  //printf("    Hex code %06lx\n",code);
+  //printf("    Decimal count =  %8ld\n",code);
   shft2in=(((0xff&rcvbuf[4])<<8)|((0xff&rcvbuf[3])));
   ddu_code1=(0x00ff&rcvbuf[2]);
   ddu_code0=(0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8);
   ddu_shift0=shft2in;
-  printf("   ----> 49-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
+  //printf("   ----> 49-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
   for(i=0;i<7;i=i+4){
-    printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
-    printf("      no right-shift needed\n");
+    //printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
+    //printf("      no right-shift needed\n");
   }
   cmd[0]=VTX2P_BYPASS_L;cmd[1]=VTX2P_BYPASS_H;
   sndbuf[0]=0;
@@ -3505,11 +3505,11 @@ void DDU::infpga_reset(enum DEVTYPE dv)
 }
 
 
-void DDU::infpga_rdscaler(enum DEVTYPE dv)
+unsigned long int DDU::infpga_rdscaler(enum DEVTYPE dv)
 {
 int i,shft2in;
 long int code;
-  printf(" infpga_rdscaler \n");
+  //printf(" infpga_rdscaler \n");
   cmd[0]=VTX2P20_USR1_L;cmd[1]=VTX2P20_USR2_H;
   sndbuf[0]=2;
   devdo(dv,14,cmd,8,sndbuf,rcvbuf,0);
@@ -3523,19 +3523,19 @@ long int code;
   sndbuf[4]=0x00;
   sndbuf[5]=0x00;
   devdo(dv,14,cmd,49,sndbuf,rcvbuf,1);
-  printf(" DDU-InFPGA L1 Event Scaler, bits [23-0]:  ");
+  //printf(" DDU-InFPGA L1 Event Scaler, bits [23-0]:  ");
   code=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8)|((0x00ff&rcvbuf[2])<<16))&0x00ffffff;
-  printf("    Hex code %06lx\n",code);
-  printf("    Decimal count =  %8ld\n",code);
+  //printf("    Hex code %06lx\n",code);
+  //printf("    Decimal count =  %8ld\n",code);
   infpga_code1=(0x00ff&rcvbuf[2]);
   infpga_code0=code&0xffff;
   shft2in=(((0xff&rcvbuf[4])<<8)|((0xff&rcvbuf[3])));
   infpga_shift0=shft2in;
-  printf("   ----> 49-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
-  for(i=0;i<7;i=i+4){
-    printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
-    printf("      no right-shift needed\n");
-  }
+  //printf("   ----> 49-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
+  //for(i=0;i<7;i=i+4){
+    //printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
+    //printf("      no right-shift needed\n");
+  //}
   cmd[0]=VTX2P20_BYPASS_L;cmd[1]=VTX2P20_BYPASS_H;
   sndbuf[0]=0;
   sndbuf[1]=0;
@@ -3548,6 +3548,8 @@ long int code;
   cmd[0]=VTX2P20_BYPASS_L;cmd[1]=VTX2P20_BYPASS_H;
   sndbuf[0]=0;
   devdo(dv,14,cmd,0,sndbuf,rcvbuf,2);
+
+  return code;
 }
 
 int DDU::ddu_dmblive()
