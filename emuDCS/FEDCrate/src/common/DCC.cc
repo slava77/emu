@@ -625,3 +625,20 @@ extern struct GEOM geo[];
 void DCC::executeCommand(string command)
 {
 }
+
+
+void DCC::crateHardReset()
+{
+	mctrl_swset(0x1000);
+	mctrl_ttccmd(0x34);
+	sleep((unsigned int) 3);
+	mctrl_swset(0x0000);
+}
+
+void DCC::crateSyncReset()
+{
+	mctrl_swset(0x1000);
+	mctrl_ttccmd(0x3);
+	sleep((unsigned int) 1);
+	mctrl_swset(0x0000);
+}
