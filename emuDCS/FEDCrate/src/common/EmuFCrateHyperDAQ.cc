@@ -2185,7 +2185,9 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(3,0)->value) << "DDU L1 scaler";
-	dduValue = thisDDU->readL1Scaler(DDUFPGA);
+	// PGK gives flakey values.
+	//dduValue = thisDDU->readL1Scaler(DDUFPGA);
+	dduValue = thisDDU->ddu_rd_scaler();
 	*(generalTable(3,1)->value) << dduValue;
 	generalTable(3,1)->setClass("none");
 
@@ -4021,10 +4023,14 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 				.set("class",iComment->second);
 		}
 
-		unsigned long int L1Scaler = thisDDU->readL1Scaler(dt);
+		// PGK Flaking out
+		//unsigned long int L1Scaler = thisDDU->readL1Scaler(dt);
+		unsigned long int L1Scaler = thisDDU->infpga_rdscaler(dt);
 		*(generalTable(1,iDevType*2+1)->value) << L1Scaler;
 
-		unsigned long int L1Scaler1 = thisDDU->readL1Scaler1(dt);
+		// PGK Flaking out
+		//unsigned long int L1Scaler1 = thisDDU->readL1Scaler1(dt);
+		unsigned long int L1Scaler1 = thisDDU->infpga_rd1scaler(dt);
 		*(generalTable(2,iDevType*2+1)->value) << L1Scaler1;
 
 	}
