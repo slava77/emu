@@ -62,6 +62,12 @@ public:
   /// sends commands by name
   void executeCommand(string command);
 
+	// PGK Simplified DCC commands
+	/** Reset the crate through a TTC-override command.	**/
+	void crateHardReset();
+	/** Sync reset the crate through a TTC-override command. **/
+	void crateSyncReset();
+
 public:
   // unpacks rcvbuf from FPGA operations
   unsigned long int unpack_ibrd() const;

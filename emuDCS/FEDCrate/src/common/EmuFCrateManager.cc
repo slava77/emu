@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.8 2008/06/25 17:43:32 paste Exp $
+/// $Id: EmuFCrateManager.cc,v 1.9 2008/07/02 12:02:16 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -203,9 +203,11 @@ void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xg
 		// PGK ping the EmuFCrates for their informations.
 		//  This will be used from here on out instead of the status table.
 		xoap::MessageReference reply = getParameters((*itDescriptor));
+
+		xdata::String endcap = readParameter<xdata::String>(reply,"endcap");
 		
 		ostringstream className;
-		className << (*itDescriptor)->getClassName() << "(" << (*itDescriptor)->getInstance() << ")";
+		className << (*itDescriptor)->getClassName() << "(" << (*itDescriptor)->getInstance() << ") " << endcap.toString();
 		ostringstream url;
 		url << (*itDescriptor)->getContextDescriptor()->getURL() << "/" << (*itDescriptor)->getURN();
 

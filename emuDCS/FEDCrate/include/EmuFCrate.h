@@ -32,8 +32,8 @@ public:
 
 	xoap::MessageReference onSetTTSBits(xoap::MessageReference message)
 		throw (xoap::exception::Exception);
-	xoap::MessageReference onUpdateFlash(xoap::MessageReference message)
-		throw (xoap::exception::Exception);
+	//xoap::MessageReference onUpdateFlash(xoap::MessageReference message)
+	//	throw (xoap::exception::Exception);
 	//xoap::MessageReference onGetParameters(xoap::MessageReference message)
 	//	throw (xoap::exception::Exception);
 
@@ -53,8 +53,8 @@ public:
 
 	//void setTTSBitsAction(toolbox::Event::Reference e)
 	//	throw (toolbox::fsm::exception::Exception);
-	void updateFlashAction(toolbox::Event::Reference e)
-		throw (toolbox::fsm::exception::Exception);
+	//void updateFlashAction(toolbox::Event::Reference e)
+	//	throw (toolbox::fsm::exception::Exception);
 
 	// HyperDAQ pages
 
@@ -107,6 +107,7 @@ private:
 	xdata::soap::Serializer serializer; // This makes SOAP so much easier!
 
 	//string ttsIDStr_, ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
+	xdata::String endcap_; // Will say something like "plus" or "minus"
 
 };
 

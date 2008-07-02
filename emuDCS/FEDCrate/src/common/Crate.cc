@@ -95,15 +95,6 @@ void Crate::configure(long unsigned int runnumber = 0) {
 		myDccs[i]->configure();
 	}
 
-	// PGK Once configured, we need to hard-reset through the DCC.
-	//  Contact Stan Durkin for questions.
-	if (myDccs.size()) {
-		myDccs[0]->mctrl_swset(0x1000);
-		myDccs[0]->mctrl_ttccmd(0x34);
-		myDccs[0]->mctrl_ttccmd(0x3);
-		myDccs[0]->mctrl_swset(0x0000);
-	}
-
 // LSD, move IRQ start to Init phase:
 // JRG, we probably want to keep IRQ clear/reset here (End, then Start):
 // PGK, new objects (IRQThread) in town.  Use these instead.

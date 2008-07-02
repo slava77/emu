@@ -78,9 +78,9 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 
 	// Move the pictures to tmp for display
 	std::vector< std::string > picNames;
-	picNames.push_back("osu_fed_background2.png");
-	picNames.push_back("osu_crate2.png");
-	picNames.push_back("osu_emu2.png");
+	picNames.push_back("osu_fed_background.png");
+	picNames.push_back("osu_crate.png");
+	picNames.push_back("osu_emu.png");
 	for (std::vector< std::string >::iterator iName = picNames.begin(); iName != picNames.end(); iName++) {
 		std::ifstream picIn;
 		picIn.open((*iName).c_str(),std::ios_base::binary);
@@ -360,21 +360,26 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			*out << "Slot " << thisDDU->slot();
 			*out << cgicc::td() << endl;
 
+			// Knowing which chambers are actually alive is a good thing.
+			long int liveFibers = (thisDDU->infpga_CheckFiber(INFPGA0)&0x000000ff) | ((thisDDU->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
+			long int killFiber = thisDDU->ddu_rdkillfiber();
+
 			// Loop through the chambers.  They should be in fiber-order.
 			for (unsigned int iFiber=0; iFiber<15; iFiber++) {
 				Chamber *thisChamber = thisDDU->getChamber(iFiber);
 				// DDU::getChamber will return a null pointer if there is
 				//  no chamber at that fiber position.
-				// Note:  there are no 4/2 chambers yet...
-				if (thisChamber != 0 && (thisChamber->station < 4 || thisChamber->type < 2)) {
-					// Highlight chambers with problems.
-					string chamberClass = "ok";
-					if (status & (1<<iFiber)) chamberClass = "bad";
+				std::string chamberClass = "ok";
+				if (thisChamber != NULL) {
+					if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
+					else if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+					else if (status & (1<<iFiber)) chamberClass = "bad";
+
 					*out << cgicc::td(thisChamber->name())
 						.set("class",chamberClass)
 						.set("style","border: 1px solid #000; font-size: 8pt; width: 6%;") << endl;
 				} else {
-					*out << cgicc::td(thisChamber->name())
+					*out << cgicc::td("???")
 						.set("class","undefined")
 						.set("style","border: 1px solid #000; font-size: 8pt; width: 6%;") << endl;
 				}
@@ -587,20 +592,24 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::fieldset() << endl;
 
 		// Broadcast table...
-		*out << cgicc::fieldset()
-			.set("class","fieldset") << endl;
-		*out << cgicc::div("Crate Broadcast")
-			.set("class","legend");
+		DDU *broadcastDDU = NULL;
+		for (vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+			if ((*iDDU)->slot() > 21) broadcastDDU = (*iDDU);
+		}
+		DCC *broadcastDCC = NULL;
+		for (vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
+			if ((*iDCC)->slot() > 21) broadcastDCC = (*iDCC);
+		}
 
-		// DDU buttons.
-		// Skip if there is only 1 ddu
-		if (dduVector.size() > 1) {
-			// Skip if you can't find a broadcast DDU in the XML...
-			vector<DDU *>::iterator iDDU;
-			for (iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-				if ((*iDDU)->slot() <= 21) continue;
+		if (broadcastDDU || broadcastDCC) {
+			*out << cgicc::fieldset()
+				.set("class","fieldset") << endl;
+			*out << cgicc::div("Crate Broadcast")
+				.set("class","legend");
 
-				thisDDU = (*iDDU);
+			// DDU buttons.
+			// Skip if there is only 1 ddu
+			if (broadcastDDU) {
 
 				// Broadcast Firmware
 				*out << cgicc::span() << endl;
@@ -627,18 +636,11 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				*out << cgicc::span() << endl;
 
 			}
-		}
 
-		// DCC button.
-		// Skip if there is only 1 dcc
-		if (dccVector.size() > 1) {
-			*out << cgicc::br() << endl;
-			// Skip if you can't find a broadcast DCC in the XML...
-			vector<DCC *>::iterator iDCC;
-			for (iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
-				if ((*iDCC)->slot() <= 21) continue;
-
-				thisDCC = (*iDCC);
+			// DCC button.
+			// Skip if there is only 1 dcc
+			if (broadcastDDU) {
+				*out << cgicc::br() << endl;
 
 				// Broadcast Firmware
 				*out << cgicc::span() << endl;
@@ -652,11 +654,10 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 					.set("style","background-color: #FDD; border-color: #F00;") << endl;
 				*out << cgicc::form() << endl;
 				*out << cgicc::span() << endl;
-
 			}
-		}
 
-		*out << cgicc::fieldset() << endl;
+			*out << cgicc::fieldset() << endl;
+		}
 
 		*out << cgicc::br() << endl;
 
@@ -2113,6 +2114,10 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 	*out << br() << endl;
 
 	// PGK Let us now print some tables with information from the DDUFPGA.
+	// This guy will be used later to show which chambers have errors in the big
+	//  table.  Unfortunately, we can only see the fibers on the active DDU.
+	//  I should make a note of that on the table.
+	unsigned int fibersWithErrors = 0;
 
 	// This is used to check if the debug trap is valid.
 	bool debugTrapValid = false;
@@ -2289,6 +2294,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(2,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
+			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2301,6 +2307,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(3,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
+			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2313,6 +2320,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(4,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
+			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2325,6 +2333,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(5,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
+			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2337,6 +2346,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(6,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
+			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2349,6 +2359,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		if (dduValue & (1<<iFiber)) {
 			*(fiberTable(7,2)->value) << cgicc::div(thisDDU->getChamber(iFiber)->name())
 				.set("class","red");
+			fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
@@ -2712,29 +2723,32 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		.set("style","font-size: 8pt; color: #900;") << endl;
 
 	// A table for the first half of the form.
-	// Useful to know what fibers are reporting problems.
-	unsigned short int fibersWithErrors = thisDDU->readCSCStat();
-
 	*out << cgicc::table()
 		.set("style","width: 100%; margin: 5px auto 5px auto; font-size: 8pt;") << endl;
 	*out << cgicc::tr() << endl;
-	for (unsigned int ifiber = 0; ifiber < 15; ifiber++) {
-		Chamber *thisChamber = thisDDU->getChamber(ifiber);
-		// Note:  there are no 4/2 chambers yet...
-		if (thisChamber != 0 && (thisChamber->station < 4 || thisChamber->type < 2)) {
-			if (fibersWithErrors & 1<<ifiber) {
-				*out << cgicc::td(thisChamber->name())
-					.set("class","bad")
-					.set("style","border: 1px solid #000; width: 6%; font-weight: bold;") << endl;
-			} else {
-				*out << cgicc::td(thisChamber->name())
-					.set("class","ok")
-					.set("style","border: 1px solid #000; width: 6%; font-weight: bold;") << endl;
-			}
-		} else {
+
+	// Knowing which chambers are actually alive is a good thing.
+	long int liveFibers = (thisDDU->infpga_CheckFiber(INFPGA0)&0x000000ff) | ((thisDDU->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
+	long int killFiber = thisDDU->ddu_rdkillfiber();
+
+	// Loop through the chambers.  They should be in fiber-order.
+	for (unsigned int iFiber=0; iFiber<15; iFiber++) {
+		Chamber *thisChamber = thisDDU->getChamber(iFiber);
+		// DDU::getChamber will return a null pointer if there is
+		//  no chamber at that fiber position.
+		std::string chamberClass = "ok";
+		if (thisChamber != NULL) {
+			if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
+			else if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+			else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
+
 			*out << cgicc::td(thisChamber->name())
+				.set("class",chamberClass)
+				.set("style","border: 1px solid #000; width: 6%; font-weight: bold;") << endl;
+		} else {
+			*out << cgicc::td("???")
 				.set("class","undefined")
-				.set("style","border: 1px solid #000; width: 6%;") << endl;
+				.set("style","border: 1px solid #000; width: 6%; font-weight: bold;") << endl;
 		}
 	}
 	*out << cgicc::tr();
@@ -2889,39 +2903,45 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 	//  If you read from it 60 times, you get 15 sets of 4 values, all
 	//  different.
 	//  This means I need to do this 15 times per board.
-	for (unsigned int ifiber = 0; ifiber < 15; ifiber++) {
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		thisDDU->ddu_occmon();
 		unsigned long int DMBval = thisDDU->fpga_lcode[0] & 0x0fffffff;
 		unsigned long int ALCTval = thisDDU->fpga_lcode[1] & 0x0fffffff;
 		unsigned long int TMBval = thisDDU->fpga_lcode[2] & 0x0fffffff;
 		unsigned long int CFEBval = thisDDU->fpga_lcode[3] & 0x0fffffff;
 
-		(*occuTable(ifiber,0)->value) << ifiber;
-		Chamber *thisChamber = thisDDU->getChamber(ifiber);
-		(*occuTable(ifiber,1)->value) << thisChamber->name();
+		(*occuTable(iFiber,0)->value) << iFiber;
+		Chamber *thisChamber = thisDDU->getChamber(iFiber);
 
-		if (thisChamber != 0 && (thisChamber->station < 4 || thisChamber->type < 2)) {
-			if (fibersWithErrors & (1 << ifiber)) occuTable(ifiber,1)->setClass("bad");
-			else occuTable(ifiber,1)->setClass("ok");
+		std::string chamberClass = "ok";
 
-			(*occuTable(ifiber,2)->value) << DMBval;
-			(*occuTable(ifiber,2)->value) << "<br />" << setprecision(3) << (scalar ? DMBval*100./scalar : 0) << "%";
+		if (thisChamber != NULL) {
+			(*occuTable(iFiber,1)->value) << thisChamber->name();
+			if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
+			else if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+			else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
 
-			(*occuTable(ifiber,3)->value) << ALCTval;
-			(*occuTable(ifiber,3)->value) << "<br />" << setprecision(3) << (DMBval ? ALCTval*100./DMBval : 0) << "%";
+			occuTable(iFiber,1)->setClass(chamberClass);
 
-			(*occuTable(ifiber,4)->value) << TMBval;
-			(*occuTable(ifiber,4)->value) << "<br />" << setprecision(3) << (DMBval ? TMBval*100./DMBval : 0) << "%";
+			(*occuTable(iFiber,2)->value) << DMBval;
+			(*occuTable(iFiber,2)->value) << "<br />" << setprecision(3) << (scalar ? DMBval*100./scalar : 0) << "%";
 
-			(*occuTable(ifiber,5)->value) << CFEBval;
-			(*occuTable(ifiber,5)->value) << "<br />" << setprecision(3) << (DMBval ? CFEBval*100./DMBval : 0) << "%";
+			(*occuTable(iFiber,3)->value) << ALCTval;
+			(*occuTable(iFiber,3)->value) << "<br />" << setprecision(3) << (DMBval ? ALCTval*100./DMBval : 0) << "%";
+
+			(*occuTable(iFiber,4)->value) << TMBval;
+			(*occuTable(iFiber,4)->value) << "<br />" << setprecision(3) << (DMBval ? TMBval*100./DMBval : 0) << "%";
+
+			(*occuTable(iFiber,5)->value) << CFEBval;
+			(*occuTable(iFiber,5)->value) << "<br />" << setprecision(3) << (DMBval ? CFEBval*100./DMBval : 0) << "%";
 
 		} else {
-			occuTable(ifiber,1)->setClass("undefined");
-			(*occuTable(ifiber,2)->value) << "N/A";
-			(*occuTable(ifiber,3)->value) << "N/A";
-			(*occuTable(ifiber,4)->value) << "N/A";
-			(*occuTable(ifiber,5)->value) << "N/A";
+			(*occuTable(iFiber,1)->value) << "???";
+			occuTable(iFiber,1)->setClass("undefined");
+			(*occuTable(iFiber,2)->value) << "N/A";
+			(*occuTable(iFiber,3)->value) << "N/A";
+			(*occuTable(iFiber,4)->value) << "N/A";
+			(*occuTable(iFiber,5)->value) << "N/A";
 		}
 	}
 
@@ -5799,7 +5819,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << statusTable.printSummary() << endl;
 
 	// Display only if there are errors.
-	if (statusTable.countClass("ok") == statusTable.countRows()) statusTable.setHidden(true);
+	if (statusTable.countClass("ok") + statusTable.countClass("none") == statusTable.countRows()) statusTable.setHidden(true);
 	*out << statusTable.toHTML() << endl;
 
 	*out << cgicc::fieldset() << endl;
@@ -5907,7 +5927,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << fmmTable.printSummary() << endl;
 
 	// Print table only if there are errors.
-	if (fmmTable.countClass("ok") == fmmTable.countRows()) fmmTable.setHidden(true);
+	if (fmmTable.countClass("ok") + fmmTable.countClass("none") == fmmTable.countRows()) fmmTable.setHidden(true);
 	*out << fmmTable.toHTML() << endl;
 
 	*out << cgicc::fieldset() << endl;
@@ -6729,7 +6749,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << voltTable.printSummary() << endl;
 
 	// Print actual table.  Maybe.
-	if (voltTable.countClass("ok") == voltTable.countRows()) voltTable.setHidden(true);
+	if (voltTable.countClass("ok") + voltTable.countClass("none") == voltTable.countRows()) voltTable.setHidden(true);
 	*out << voltTable.toHTML() << endl;
 
 	*out << cgicc::fieldset() << endl;
@@ -6767,7 +6787,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << tempTable.printSummary() << endl;
 
 	// Print actual table.  Maybe.
-	if (tempTable.countClass("ok") == tempTable.countRows()) tempTable.setHidden(true);
+	if (tempTable.countClass("ok") + tempTable.countClass("none") == tempTable.countRows()) tempTable.setHidden(true);
 	*out << tempTable.toHTML() << endl;
 
 	*out << cgicc::fieldset() << endl;
@@ -6802,7 +6822,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << ramStatusTable.printSummary() << endl;
 
 	// Print actual table.  Maybe.
-	if (ramStatusTable.countClass("ok") == ramStatusTable.countRows()) ramStatusTable.setHidden(true);
+	if (ramStatusTable.countClass("ok") + ramStatusTable.countClass("none") == ramStatusTable.countRows()) ramStatusTable.setHidden(true);
 	*out << ramStatusTable.toHTML() << endl;
 
 	*out << cgicc::fieldset() << endl;
