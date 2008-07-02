@@ -367,7 +367,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	//  configuration XML to the DDUs and the DCC.
 	configure();  //JRG Moved to configureAction, 4/29/08
 
-	std::vector<Crate*> myCrates = selector().crates();
+	std::vector<Crate*> myCrates = getCrates();
 	// Now is a good time to set what endcap we are.
 	if (myCrates.size() == 1) {
 		if (myCrates[0]->number() == 5) endcap_ = "TrackFinder";
@@ -710,7 +710,6 @@ void EmuFCrate::updateFlashAction(toolbox::Event::Reference e)
 
 }
 */
-
 
 // HyperDAQ pages
 void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
