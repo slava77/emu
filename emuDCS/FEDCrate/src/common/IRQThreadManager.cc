@@ -4,7 +4,7 @@
 IRQThreadManager::IRQThreadManager() {
 	threadVector_.clear();
 	data_ = new IRQData();
-	cout << "I have constructed an IRQData object, and this is what exit is: " << data_->exit << endl;
+	//cout << "I have constructed an IRQData object, and this is what exit is: " << data_->exit << endl;
 }
 
 
@@ -20,7 +20,7 @@ IRQThreadManager::~IRQThreadManager() {
 void IRQThreadManager::attachCrate(Crate *crate) {
 
 	pthread_t threadID;
-	cout << "IRQThreadManager::attachCrate Attaching crate with number " << crate->number() << endl;
+	//cout << "IRQThreadManager::attachCrate Attaching crate with number " << crate->number() << endl;
 	threadVector_.push_back(pair<Crate *, pthread_t>(crate, threadID));
 
 }
@@ -30,7 +30,7 @@ void IRQThreadManager::attachCrate(Crate *crate) {
 
 void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
-	cout << "IRQThreadManager::startThreads Create unique Logger for EmuFEDVME" << endl;
+	//cout << "IRQThreadManager::startThreads Create unique Logger for EmuFEDVME" << endl;
 
 	char datebuf[55];
 	char filebuf[255];
@@ -52,13 +52,13 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFEDVME");
 	logger.addAppender(myAppend);
 
-	cout << "IRQThreadManager::startThreads Clearing shared data" << endl;
+	//cout << "IRQThreadManager::startThreads Clearing shared data" << endl;
 	
 	data_->runNumber = runNumber;
 	data_->exit = 0;
 	
 	for (unsigned int i=0; i<threadVector_.size(); i++) {
-		cout << "IRQThreadManager::startThread Adding and clearing data for crate number " << threadVector_[i].first->number() << endl;
+		//cout << "IRQThreadManager::startThread Adding and clearing data for crate number " << threadVector_[i].first->number() << endl;
 
 		int crateNumber = threadVector_[i].first->number();
 		data_->crateNumbers.push(crateNumber);
@@ -90,11 +90,11 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 	}
 
 	for (unsigned int i=0; i<threadVector_.size(); i++) {
-		cout << "IRQThreadManager::startThread Starting thread for crate number " << threadVector_[i].first->number() << endl;
+		//cout << "IRQThreadManager::startThread Starting thread for crate number " << threadVector_[i].first->number() << endl;
 
 		// Start the thread (as a static function)
 		int error = pthread_create(&(threadVector_[i].second), NULL, IRQThread, data_);
-		cout << "IRQThreadManager::startThread pthread launched with status " << error << endl;
+		//cout << "IRQThreadManager::startThread pthread launched with status " << error << endl;
 	}
 }
 
@@ -102,9 +102,9 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 void IRQThreadManager::endThreads() {
 	if (data_->exit == 1) {
-		cout << "IRQThreadManager::endThreads Threads already stopped." << endl << flush;
+		//cout << "IRQThreadManager::endThreads Threads already stopped." << endl << flush;
 	} else {
-		cout << "IRQThreadManager::endThreads Gracefully killing off all threads." << endl << flush;
+		//cout << "IRQThreadManager::endThreads Gracefully killing off all threads." << endl << flush;
 		//cout << "<PGK> Before exit=1" << endl << flush;
 		data_->exit = 1;
 		//cout << "<PGK> After exit=1" << endl << flush;
@@ -118,14 +118,14 @@ void IRQThreadManager::endThreads() {
 void IRQThreadManager::killThreads() {
 
 	if (data_->exit == 1) {
-		cout << "IRQThreadManager::killThreads Threads already stopped." << endl;
+		//cout << "IRQThreadManager::killThreads Threads already stopped." << endl;
 	} else {
-		cout << "IRQThreadManager::killThreads Brutally killing off all threads." << endl;
+		//cout << "IRQThreadManager::killThreads Brutally killing off all threads." << endl;
 		for (unsigned int i=0; i<threadVector_.size(); i++) {
 			pthread_t threadID = threadVector_[i].second;
 			int error = pthread_cancel(threadID);
 			if (error) {
-				cout << " Incountered error " << error << " when attempting to cancel thread." << endl;
+				//cout << " Incountered error " << error << " when attempting to cancel thread." << endl;
 				exit(error);
 			}
 		}
@@ -298,9 +298,9 @@ void *IRQThreadManager::IRQThread(void *data)
 				}
 			}
 		}
-		cout << "--> Total Resets requested: " << statusCount << endl;
+		//cout << "--> Total Resets requested: " << statusCount << endl;
 		if (statusCount > 1 ) {
-			cout << "    Requesting resets via FMM" << endl;
+			//cout << "    Requesting resets via FMM" << endl;
 			// Send a reset to everybody who needs a reset
 			int broadcastSlot = 28;
 			for (unsigned int iCrate = 0; iCrate < resetCrates.size(); iCrate++) {
@@ -309,19 +309,19 @@ void *IRQThreadManager::IRQThread(void *data)
 				for (unsigned int iDDU=0; iDDU<myDDUVector.size(); iDDU++) {
 					if (myDDUVector[iDDU]->slot() == broadcastSlot) {
 						broadcastDDU = myDDUVector[iDDU];
-						cout << "--> Requesting reset on crate " << resetCrates[iCrate]->number() << " broadcast slot " << broadcastDDU->slot() << endl;
+						//cout << "--> Requesting reset on crate " << resetCrates[iCrate]->number() << " broadcast slot " << broadcastDDU->slot() << endl;
 						break;
 					}
 				}
 				broadcastDDU->vmepara_wr_fmmreg(0xFED8);
-				cout << "<-- Done!" << endl;
+				//cout << "<-- Done!" << endl;
 			}
 			
 		}
 		
 	}
 
-	cout << " IRQ_Int call pthread_exit" << endl;
+	//cout << " IRQ_Int call pthread_exit" << endl;
 	pthread_exit(NULL);
 }
 

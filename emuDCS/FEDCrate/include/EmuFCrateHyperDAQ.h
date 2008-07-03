@@ -297,14 +297,6 @@ public:
 	void getDataDCCRate1(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
-	/** For communication with the FCrate process to know if it has been configured
-	*	yet.
-	*
-	*	@author Phillip Killewald
-	**/
-	void queryFCrate()
-		throw (xoap::exception::Exception, xoap::exception::Exception);
-
 	/** Redirect the user so that the form information is cleared from the URL.
 	*
 	*	@author Phillip Killewald

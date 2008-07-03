@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.10 2008/07/03 10:48:42 paste Exp $
+/// $Id: EmuFCrateManager.cc,v 1.11 2008/07/03 12:21:59 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -262,7 +262,7 @@ void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xg
 			xdata::Vector<xdata::Vector<xdata::UnsignedInteger> >::iterator iCrate;
 			for (iCrate = dccInOut.begin(); iCrate != dccInOut.end(); iCrate++) {
 				stringstream style;
-				style << "margin: 10px auto 10px auto; width: 45%; float: " << ((*iCrate)[0] % 2 ? "right;" : "left;");
+				style << "margin: 10px auto 10px auto; width: 45%; float: " << ((*iCrate)[0] % 2 ? "left;" : "right;");
 				*out << cgicc::div()
 					.set("style", style.str()) << endl;
 				*out << cgicc::table()
