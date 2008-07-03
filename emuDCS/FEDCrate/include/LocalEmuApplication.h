@@ -164,6 +164,8 @@ public:
 			return; // Do nothing if the target doesn't exist
 		}
 
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "setParameter " << klass << " " << name << " " << type << " " << value);
+
 		// prepare a SOAP message
 		xoap::MessageReference message = xoap::createMessage();
 		xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -191,6 +193,8 @@ public:
 			reply = getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), **i);
 			// Analysis here, if debugging needed.
 		}
+
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "setParameter successfully returning");
 
 		return;
 	}

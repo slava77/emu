@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.9 2008/07/02 12:02:16 paste Exp $
+/// $Id: EmuFCrateManager.cc,v 1.10 2008/07/03 10:48:42 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -414,7 +414,7 @@ void EmuFCrateManager::setTTSBitsResponseAction(toolbox::Event::Reference e)
 void EmuFCrateManager::configureAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-	cout << "  inside EmuFCrateManager::configureAction " << endl;
+	//cout << "  inside EmuFCrateManager::configureAction " << endl;
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Configure");
 
 	if (soapLocal_) {

@@ -2187,7 +2187,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 	*(generalTable(3,0)->value) << "DDU L1 scaler";
 	// PGK gives flakey values.
 	//dduValue = thisDDU->readL1Scaler(DDUFPGA);
-	dduValue = thisDDU->ddu_rd_scaler();
+	dduValue = thisDDU->ddu_rdscaler();
 	*(generalTable(3,1)->value) << dduValue;
 	generalTable(3,1)->setClass("none");
 
