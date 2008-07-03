@@ -380,8 +380,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				//  no chamber at that fiber position.
 				std::string chamberClass = "ok";
 				if (thisChamber != NULL) {
-					if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
-					else if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+					if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+					else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
 					else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
 
 					*out << cgicc::td(thisChamber->name())
@@ -2764,8 +2764,8 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		//  no chamber at that fiber position.
 		std::string chamberClass = "ok";
 		if (thisChamber != NULL) {
-			if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
-			else if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+			if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+			else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
 			else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
 
 			*out << cgicc::td(thisChamber->name())
@@ -2943,8 +2943,8 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 
 		if (thisChamber != NULL) {
 			(*occuTable(iFiber,1)->value) << thisChamber->name();
-			if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
-			else if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+			if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+			else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
 			else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
 
 			occuTable(iFiber,1)->setClass(chamberClass);
