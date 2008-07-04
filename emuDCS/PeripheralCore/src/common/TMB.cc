@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.64 2008/06/12 21:08:55 rakness Exp $
+// $Id: TMB.cc,v 3.65 2008/07/04 13:22:14 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.65  2008/07/04 13:22:14  rakness
+// add getter for distrip hot channel mask
+//
 // Revision 3.64  2008/06/12 21:08:55  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -6029,11 +6032,11 @@ void TMB::SetDistripHotChannelMask(int layer,long long int mask) {
   // mask=10-hex characters for the 40 distrips right->left LSB->MSB.  
   // So, to mask off channel 0, mask= 0xfffffffffe
   //
+  mask &= 0x000000ffffffffffLL;  //clean mask before processing
+  //
   if (debug_) 
     std::cout << "TMB: Setting Distrip hot channel mask for Layer " << std::dec << layer 
 	      << " (LSB->MSB right->left): " << std::hex << mask << std::endl;
-  //
-  mask &= 0xffffffffffLL;  //clean mask before processing
   //
   for (int channel=39; channel>=0; channel--) {
     int on_or_off = (mask >> channel) & 0x1;
@@ -6045,9 +6048,48 @@ void TMB::SetDistripHotChannelMask(int layer,long long int mask) {
     //
     SetDistripHotChannelMask(layer,channel,on_or_off);
   }
-  if (debug_) std::cout << std::endl;
+  if (debug_) 
+    std::cout << std::endl;
   //
   return;
+}
+//
+long long int TMB::GetDistripHotChannelMask(int layer) {
+  //
+  // return value = 10-hex characters for the 40 distrips right->left LSB->MSB.  
+  // If channel 0 is off: return = 0xfffffffffe
+  //
+  // There must be a cleaner way to do this... but it is working so I leave it alone...
+  //
+  // split it into upper and lower bits because going to ulong will result in an exception, below...
+  bitset<20> msb_mask;  
+  bitset<20> lsb_mask;  
+  //
+  if (debug_)
+    std::cout << "TMB: Getting Distrip hot channel mask for Layer " << std::dec << layer 
+	      << " (LSB->MSB right->left): ";
+  //
+  for (int channel=39; channel>=20; channel--) {
+    int msb_index = channel - 20;
+    msb_mask.set(msb_index, (GetDistripHotChannelMask(layer,channel)==1) );
+  }
+  //
+  for (int channel=19; channel>=0; channel--) 
+    lsb_mask.set(channel, (GetDistripHotChannelMask(layer,channel)==1) );
+  //
+  int highest = (msb_mask.to_ulong() & 0x000fffff);
+  int lowest =  (lsb_mask.to_ulong() & 0x000fffff);
+  //
+  // have to cast both parts of this mask in order to make it work...
+  long long int mask;
+  mask = ((long long) lowest | ((long long) highest << 20));
+  //
+  if (debug_) {
+    std::cout << msb_mask << " " << lsb_mask << std::endl;
+    std::cout << " = 0x" << std::hex << highest << lowest << " = 0x" << mask << std::endl;
+  }
+  //
+  return mask;
 }
 //
 void TMB::WriteDistripHotChannelMasks(){
