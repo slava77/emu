@@ -93,7 +93,8 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 		//cout << "IRQThreadManager::startThread Starting thread for crate number " << threadVector_[i].first->number() << endl;
 
 		// Start the thread (as a static function)
-		int error = pthread_create(&(threadVector_[i].second), NULL, IRQThread, data_);
+		//int error = pthread_create(&(threadVector_[i].second), NULL, IRQThread, data_);
+		pthread_create(&(threadVector_[i].second), NULL, IRQThread, data_);
 		//cout << "IRQThreadManager::startThread pthread launched with status " << error << endl;
 	}
 }

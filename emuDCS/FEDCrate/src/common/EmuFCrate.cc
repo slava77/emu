@@ -379,17 +379,6 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 			|| myCrates[0]->number() == 4 && myCrates[1]->number() == 3) endcap_ = "Minus-Side";
 	}
 
-	// PGK No hard reset or sync reset is coming any time soon, so we should
-	//  do it ourselves.
-	for (std::vector< Crate * >::iterator iCrate = myCrates.begin(); iCrate != myCrates.end(); iCrate++) {
-		std::vector< DCC * > dccs = (*iCrate)->dccs();
-		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
-			LOG4CPLUS_WARN(getApplicationLogger(), "HARD RESET THROUGH DCC!  THIS SHOULD BE THROUGH TTC!");
-			dccs[0]->crateHardReset();
-			LOG4CPLUS_WARN(getApplicationLogger(), "SYNC RESET THROUGH DCC!  THIS SHOULD BE THROUGH TTC!");
-			dccs[0]->crateSyncReset();
-		}
-	}
 
 	// PGK At this point, we need to check to see if the constants from the
 	//  XML file have been properly loaded into the DDUs.  This will call
@@ -588,12 +577,25 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	// PGK If the run number is not set, this is a debug run.
 	LOG4CPLUS_INFO(getApplicationLogger(), "The run number is " << runNumber_.toString());
 	if (runNumber_.toString() == "" || runNumber_.toString() == "0") {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Run number not set, assuming run type \"Debug\"");
 		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
+	}
+
+	// PGK No hard reset or sync reset is coming any time soon, so we should
+	//  do it ourselves.
+	std::vector< Crate * > myCrates = getCrates();
+	for (std::vector< Crate * >::iterator iCrate = myCrates.begin(); iCrate != myCrates.end(); iCrate++) {
+		std::vector< DCC * > dccs = (*iCrate)->dccs();
+		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
+			LOG4CPLUS_WARN(getApplicationLogger(), "HARD RESET THROUGH DCC!  THIS SHOULD BE THROUGH TTC!");
+			dccs[0]->crateHardReset();
+			LOG4CPLUS_WARN(getApplicationLogger(), "SYNC RESET THROUGH DCC!  THIS SHOULD BE THROUGH TTC!");
+			dccs[0]->crateSyncReset();
+		}
 	}
 
 	// PGK You have to wipe the thread manager and start over.
 	TM = new IRQThreadManager();
-	vector<Crate *> myCrates = getCrates();
 	for (unsigned int i=0; i<myCrates.size(); i++) {
 		if (myCrates[i]->number() > 4) continue;
 		TM->attachCrate(myCrates[i]);

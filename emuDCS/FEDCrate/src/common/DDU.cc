@@ -3507,7 +3507,7 @@ void DDU::infpga_reset(enum DEVTYPE dv)
 
 unsigned long int DDU::infpga_rdscaler(enum DEVTYPE dv)
 {
-int i,shft2in;
+int shft2in;
 long int code;
   //printf(" infpga_rdscaler \n");
   cmd[0]=VTX2P20_USR1_L;cmd[1]=VTX2P20_USR2_H;
