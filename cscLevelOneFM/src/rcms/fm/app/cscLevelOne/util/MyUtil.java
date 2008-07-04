@@ -40,14 +40,8 @@ import rcms.fm.fw.service.parameter.ParameterServiceException;
 import rcms.fm.app.cscLevelOne.MyFunctionManager;
 import rcms.fm.app.cscLevelOne.MyParameters;
 import rcms.fm.app.cscLevelOne.MyStates;
-//import rcms.fm.app.cscLevelOne.common.FileIO;
-//import rcms.fm.app.cscLevelOne.common.FileIOException;
-import rcms.fm.app.cscLevelOne.gui.GuiCommandPanel;
-//import rcms.fm.app.cscLevelOne.gui.GuiFedTtsPanel;
 import rcms.fm.app.cscLevelOne.gui.GuiStatePanel;
-import rcms.fm.app.cscLevelOne.gui.GuiSubdetMsgPanel;
 import rcms.fm.app.cscLevelOne.gui.GuiSubdetPanel;
-//import rcms.fm.app.cscLevelOne.GuiTtsTestPanel;
 import rcms.fm.resource.QualifiedResource;
 import rcms.fm.resource.qualifiedresource.FunctionManager;
 import rcms.resourceservice.db.resource.config.ConfigProperty;
@@ -59,8 +53,6 @@ import rcms.utilities.runinfo.RunInfo;
 import rcms.utilities.runinfo.RunInfoException;
 
 public class MyUtil {
-
-
 
 	/**
 	 * <code>logger</code>: log4j logger.
@@ -80,9 +72,9 @@ public class MyUtil {
 		this.functionManager = functionManager;
 
 		// start publisher thread
-		_publisher = new PublishConsumer(publisherQueue);
-		_pubThread  = new Thread(_publisher);
-		_pubThread.start();
+		//_publisher = new PublishConsumer(publisherQueue);
+		//_pubThread  = new Thread(_publisher);
+		//_pubThread.start();
 
 	}
 
@@ -100,66 +92,6 @@ public class MyUtil {
 	protected void finalize() throws Throwable {
 		super.finalize();
 		destroy();
-	}
-	/**
-	 * Put a shutdown event on the queue to close the publisher thread.
-	 */
-	public void destroy() throws InterruptedException {
-		Vector v = new Vector();
-		v.add(new ShutDownPublisher());
-		publisherQueue.add(v);
-	}
-	/**
-	 * @return Returns the xml string of element "ElementName".
-	 * If not found return empty string.
-	 */
-	static public String getXmlRscConf(String xmlRscConf, String elementName) {
-
-		// response string
-		String response = "";
-
-		// check the _xmlRscConf and _documentConf are filled
-		if (xmlRscConf == null || xmlRscConf.equals("") ) 
-			return response;
-
-		// check for a valid argument
-		if (elementName == null || elementName.equals("") ) 
-			return response;
-		int beginIndex = xmlRscConf.indexOf("<"+elementName+">") + elementName.length() + 2;
-		int endIndex   = xmlRscConf.indexOf("</"+elementName+">");
-		if (beginIndex<0 || endIndex<0) return response;
-		response = xmlRscConf.substring(beginIndex, endIndex);
-
-		return response;
-	}
-
-	/**
-	 * @param ms
-	 *       wait before resuming the thread.
-	 */
-	static public void wait(int ms) {
-
-		try {
-			Thread.sleep(ms);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-
-	public String myGetRscConfElement(String elementName) {
-
-		// get the FM's resource configuration
-		String myConfig = ((FunctionManagerResource) (
-				functionManager.getGroup().getThisResource()
-		)).getUserXml();
-
-
-		// get element value		
-		String elementValue = MyUtil.getXmlRscConf(myConfig, elementName);
-
-		return elementValue;
 	}
 
 	public void prepareGlobalConfigurationKey() {
@@ -195,206 +127,117 @@ public class MyUtil {
 		  // 9 SLINK backpressure status OFF
 		  //10 SLINK backpressure status ON
 	
+
+	/**
+	 * Put a shutdown event on the queue to close the publisher thread.
+	 */
+	public void destroy() throws InterruptedException {
+	    
+		Vector v = new Vector();
+		//v.add(new ShutDownPublisher());
+		//publisherQueue.add(v);
+	}
+
+
+	static public String getXmlRscConf(String xmlRscConf, String elementName) {
+
+		// response string
+		String response = "";
+
+		// check the _xmlRscConf and _documentConf are filled
+		if (xmlRscConf == null || xmlRscConf.equals("") ) 
+			return response;
+
+		// check for a valid argument
+		if (elementName == null || elementName.equals("") ) 
+			return response;
+		int beginIndex = xmlRscConf.indexOf("<"+elementName+">") + elementName.length() + 2;
+		int endIndex   = xmlRscConf.indexOf("</"+elementName+">");
+		if (beginIndex<0 || endIndex<0) return response;
+		response = xmlRscConf.substring(beginIndex, endIndex);
+
+		return response;
+	}
+
+	public String myGetRscConfElement(String elementName) {
+
+		// get the FM's resource configuration
+		String elementValue = null;
+
+		// try first properties field
+		List<ConfigProperty> l = functionManager.getGroup().getThisResource().getProperties();
+
+		if (l!=null) {
+			for (ConfigProperty p : l) {
+				if (p.getName().equals(elementName)) {
+					elementValue = p.getValue();
+					break;
+				}
+			}
+		}
+
+		return elementValue;
+
+	}
+
 	
 	/**
 	 * Set HWCFG_KEY and HWCFG_TRG_NAME parameters
 	 */
 	public void prepareHwcfgKey() {
 		// get hwcfg element
+	    /*
+		String hwcfgKey = myGetRscConfElement( "hwcfgKey" );
+		if (hwcfgKey.equals("")) {
+			// set to default to limp on...
+			hwcfgKey="hwcfg_cessy_default";
+		}
+		// debug
+		logger.info("prepareHwcfgKey() hwcfgKey = " + hwcfgKey);
+		// put it into the corresponding parameter
+		functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.HWCFG_KEY,new StringT(hwcfgKey)) );
 
-	}
+		// overwrite with HWCFG_KEY from DAQ
+		//setHwcfgKeyFromDaq();
 
-	private void setHwcfgKeyFromDaq() {
+		// HWCFG_TRG_NAME parameter ------------------
+		// this is used with the hwcfg DB to identify the trigger
+		// and find ttc partitions. not used for role name and alike.
+		
+		// debug
+		logger.info("prepareHwcfgKey() from DAQ hwcfgKey = " + functionManager.getParameterSet().get(MyParameters.HWCFG_KEY).getValue().toString());
 
-		// check daq
-	}
+		// get hwcfg element
+		String hwcfgCSCName = myGetRscConfElement( "hwcfgCSCName" );
 
-	public void elogPublishStart() {
-
-	}
-
-	public void elogPublishStop() {
-
-	}
-
-	public void publishMyRunInfo(Parameter parameter) {
-	
-	}
-
-	public void publishMyRunInfoWithHistory(FunctionManagerParameter parameter) {
-	
-	}
-
-	public void publishMyRunInfoWithHistory(String name, String value) {
-	
-	}
-
-	public void publishMyRunInfo(String name, String value) {
-	
-	}
-
-	public void publishDynamicFlashList() {
-	
-	}
-	public void publishStaticFlashList() {
-
-	}
-	private void addParameterToFlashlist(String name, FlashList l) {
-
-	}
-	private void addParameterToFlashlist(String name, String value, FlashList l) {
-
-	}
-	private void addTimestampToFlashlist(FlashList l) {
-
-	}
-	private void addTimestampToFlashlist(String name, Date value, FlashList l) {
-
-	}
-	private void sendFlashList(XMASMessage message) {
-
-
-	}
-
-	class ShutDownPublisher {	
-	}
-
-	/**
-	 * @author alexanderoh
-	 *
-	 * Helper to publish runinfo and wse asynchronously.
-	 * Request to publish are put on a queue and
-	 * a worker thread publishes.
-	 */
-	class PublishConsumer implements Runnable {
-
-		BlockingQueue<Vector> queue;
-
-		boolean _shutdown = false;
-
-		PublishConsumer(BlockingQueue q) { queue = q; }
-
-		public void run() {
+		if (hwcfgCSCName.equals("")) {
+			// set to default to limp on...
+			hwcfgCSCName="CSCP";
 		}
 
-		void consume(Object x) { 
+		// debug
+		logger.info("prepareHwcfgKey() hwcfgCSCName = " + hwcfgCSCName );
 
-	}
-
-	public synchronized void publishMyRunInfoImplQueued(Parameter parameter, boolean withHistory) {
-
-	}
-
-	public synchronized void publishMyRunInfoImpl(Parameter parameter, boolean withHistory) {
-
-
-	}
-
-	public void setParameter(FunctionManagerParameter<StringT> parameter , String value ) {
-		if (value==null) value="";
-		parameter.setValue( new StringT(value));
-		functionManager.
-		getParameterSet().
-		put(parameter);
-
-	}
-
-	public void setParameter(FunctionManagerParameter<DoubleT> parameter , double value ) {
-		parameter.setValue( new DoubleT(value));
-		functionManager.
-		getParameterSet().
-		put(parameter);
-	}
-
-	public void setParameter(FunctionManagerParameter<IntegerT> parameter , Integer value ) {
-		if (value==null) value = new Integer(0);
-		parameter.setValue( new IntegerT(value));
-		functionManager.
-		getParameterSet().
-		put(parameter);
-	}
-
+		// put it into the corresponding parameter
+		functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.HWCFG_CSC_NAME, new StringT(hwcfgCSCName)) );
+		*/	
+}
 
 	/**
-	 * @param url
-	 * @return
-	 * @throws Exception
+	 * @param ms
+	 *       wait before resuming the thread.
 	 */
-	protected String getWebPage(String url) throws Exception {
-		URL theUrl = new URL(url);
-		URLConnection theUrlConnection = theUrl.openConnection();
-		BufferedReader in = new BufferedReader(new InputStreamReader(
-				theUrlConnection.getInputStream()));
-
-		String inputLine="";
-		String result = "";
-
-		while ((inputLine = in.readLine()) != null) {
-			result += inputLine;
-			result += "\n";
+	static public void wait(int ms) {
+	    
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-
-		in.close();
-
-		return result;
+	    
 	}
 
-
-	private void pollXdaqMonitorFMM() {
-
-
-
-	}
-
-	private void pollXdaqMonitorFRL() {
-
-
-
-	}
-
-	public void writeLastRunInfo() {
-
-	}
-
-	public void writeRunInfo(){
-
-	}
-
-
-
-	public boolean stateMatch(List<QualifiedResource> lqr, String targetStateString) {
-
-		for ( QualifiedResource qr : lqr ) {
-			if (!(qr.getCacheState().getStateString().equals(targetStateString))) {
-				return false;
-			}
-		}
-
-		return true;
-
-	}
-
-	/**
-	 * find participating ttc partitions and return a
-	 * function manager parameter TTC_PARTITIONS
-	 * @param fedString
-	 */
-
-	
-
-	    public void setDaqParameters() {
-
-		// check that the containers are correctly populated 
-
-
-	}
-
-	    public void renderMainGui() {
-		GuiCommandPanel guiCommand = new GuiCommandPanel(functionManager);
-		functionManager
-		.getParameterSet()
-		.get(MyParameters.GUI_COMMAND_PANEL_HTML)
-		.setValue(new StringT( guiCommand.generateHtml() ));
+	public void renderMainGui() {
 
 		GuiStatePanel guiState = new GuiStatePanel(functionManager);
 		functionManager
@@ -408,15 +251,7 @@ public class MyUtil {
 		.get(MyParameters.GUI_SUBDET_PANEL_HTML)
 		.setValue(new StringT( guiSubdet.generateHtml() ));
 
-	    /*	
-		GuiSubdetMsgPanel guiMsgSubdet = new GuiSubdetMsgPanel(functionManager);
-		functionManager
-		.getParameterSet()
-		.get(MyParameters.GUI_SUBDET_MSG_PANEL_HTML)
-		.setValue(new StringT( guiMsgSubdet.generateHtml() ));
-	    */			
-}
-
+	}
 	public void renderSubdetPanel() {
 		GuiSubdetPanel guiSubdet = new GuiSubdetPanel(functionManager);
 		functionManager
@@ -425,24 +260,6 @@ public class MyUtil {
 		.setValue(new StringT( guiSubdet.generateHtml() ));
 
 	}
-	public void renderFedTtsGui() {
-	    /*
-		GuiFedTtsPanel guiFedTtsPanel = new GuiFedTtsPanel(functionManager);
-		functionManager
-		.getParameterSet()
-		.get(MyParameters.GUI_FED_TTS_PANEL_HTML)
-		.setValue(new StringT( guiFedTtsPanel.generateHtml() ));
-	    */
-	}
-	public void renderTtsTesterGui() {
-	    /*
-		GuiTtsTestPanel guiTtsTestPanel = new GuiTtsTestPanel(functionManager);
-		functionManager
-		.getParameterSet()
-		.get(MyParameters.GUI_TTSTEST_PANEL_HTML)
-		.setValue(new StringT( guiTtsTestPanel.generateHtml() ));
-	    */	
-	}
-	}
+
 }
 

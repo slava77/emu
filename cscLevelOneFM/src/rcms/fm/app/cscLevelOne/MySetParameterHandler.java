@@ -1,7 +1,5 @@
 package rcms.fm.app.cscLevelOne;
 
-
-
 import rcms.fm.fw.EventHandlerException;
 import rcms.fm.fw.parameter.FunctionManagerParameter;
 import rcms.fm.fw.parameter.Parameter;
@@ -81,7 +79,7 @@ public class MySetParameterHandler extends UserEventHandler {
 
 
         private void processGuiCommands(ParameterSet parameters) {
-
+	    /*
                 // copy gui command
                 Parameter p = parameters.get(MyParameters.GUI_COMMAND);
                 if (p==null) {
@@ -101,6 +99,7 @@ public class MySetParameterHandler extends UserEventHandler {
 
                         if (guiCommand.equals("restoreSetup")) { }
 		}
+	    */
 	}
 
 }

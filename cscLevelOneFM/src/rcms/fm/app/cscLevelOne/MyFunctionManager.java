@@ -113,19 +113,6 @@ public class MyFunctionManager extends UserFunctionManager {
 
 	public XdaqApplicationContainer xdaqSupervisor = null;
 
-
-	private String[] sendToGUI = { 
-			MyParameters.ACTION_MSG,
-			MyParameters.ERROR_MSG,
-			MyParameters.RUN_NUMBER,
-			MyParameters.GLOBAL_CONF_KEY,
-			MyParameters.RUN_KEY,
-			MyParameters.HEARTBEAT,
-			MyParameters.STATE,
-			MyParameters.TTS_TEST_SUMMARY
-	};
-
-
 	// utlitity functions handle
 	public MyUtil _myUtil;
 
