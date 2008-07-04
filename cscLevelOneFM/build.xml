@@ -61,7 +61,7 @@
 	 <mkdir dir="${lib.dir}" />
 	 <jar file="${lib.dir}/${package.name}.jar">
 	   <fileset dir="${fm.classes}" />
-	   <!--fileset dir="${fm.gui}" /-->
+	   <fileset dir="${fm.gui}" />
 	 </jar>
        </target>
 

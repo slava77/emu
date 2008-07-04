@@ -3,13 +3,13 @@
 <%@ page import="rcms.gui.servlet.pilot.FMPilotConstants"%>
 <%@ page isELIgnored="false"%>
 
-<%@ taglib prefix="rcms.menu" 				uri="../tld/menu.tld"%>
-<%@ taglib prefix="rcms.control" 			uri="../tld/control.tld"%>
-<%@ taglib prefix="rcms.globalParameter" 	uri="../tld/globalParameter.tld"%>
-<%@ taglib prefix="rcms.notification" 		uri="../tld/notification.tld"%>
+<%@ taglib prefix="rcms.menu" uri="../tld/menu.tld"%>
+<%@ taglib prefix="rcms.control" uri="../tld/control.tld"%>
+<%@ taglib prefix="rcms.globalParameter" uri="../tld/globalParameter.tld"%>
+<%@ taglib prefix="rcms.notification" uri="../tld/notification.tld"%>
 
 <!-- Optional Section to set the visibility of available commands at a given state begin -->
-<rcms.control:menuCreator/>
+<rcms.control:menuCreator />
 <html>
 
 <head>
@@ -17,22 +17,13 @@
 <meta Http-Equiv="Pragma" Content="no-cache">
 <meta Http-Equiv="Expires" Content="0">
 
-<title>CSC</title>
+<TITLE>"CSC Function Manager"</TITLE>
 
 <link rel="StyleSheet" href="../css/common.css" type="text/css" />
 <link rel="StyleSheet" href="../css/control.css" type="text/css" />
 
 <rcms.control:customResourceRenderer indentation="1" type="css" path="/css/myControlPanel.css" />
 <rcms.control:customResourceRenderer indentation="1" type="js" path="/js/myControl.js" />
-
-<rcms.control:customResourceRenderer indentation="1" type="css"
-	path="/css/myControlPanel.css" />
-
-<rcms.control:customResourceRenderer indentation="1" type="js"
-	path="/js/myControl.js" />
-
-<rcms.control:customResourceRenderer indentation="1" type="js"
-	path="/js/ajaxRequest.js" />
 
 <script type="text/javascript" src="../js/stateNotification.js"></script>
 <script type="text/javascript" src="../js/common.js"></script>
@@ -43,19 +34,20 @@
 
 <!-- Custom javascript section begin -->
 <script type="text/javascript">
-<rcms.control:onLoadJSRenderer reloadOnStateChange="false" 
-commandButtonCssClass="MyControlButton" 
-commandParameterCheckBoxTitle="&nbsp;Show Command Parameter Section"	
-commandParameterCssClass="label_left_black" indentation="2"/>
-
-<rcms.control:buttonsJSRenderer indentation="2"/>
-<rcms.notification:jSRenderer indentation="2"/>
-<rcms.globalParameter:jSRenderer indentation="2"/>
-
+		<rcms.control:onLoadJSRenderer 
+		reloadOnStateChange="false" 
+		commandButtonCssClass="MyControlButton" 
+		commandParameterCheckBoxTitle="&nbsp;Show Command Parameter Section"
+		commandParameterCssClass="label_left_black" 
+		indentation="2"/>
+		
+		<rcms.control:buttonsJSRenderer indentation="2"/>
+		<rcms.notification:jSRenderer indentation="2"/>
+		<rcms.globalParameter:jSRenderer indentation="2"/>
 </script>
-</head>
+
 <!-- Custom javascript section end -->
-<!-- BODY -->
+</head>
 <body onLoad="myInit();" class="body">
 <!--  switch back to a bigger font size -->
 <font size=3> <!-- Table T1 begin -->
@@ -64,218 +56,137 @@ commandParameterCssClass="label_left_black" indentation="2"/>
 <rcms.globalParameter:getParameterMap fmParameterContainer="pars" />
 </p>
 
- <!--conditional dummy span for sound support--> 
-	<script type="text/javascript">
-	</script>
+<!--  conditional dummy span for sound support -->
+<script type="text/javascript"></script>
 
-<h2>CSC "Function Manager" Run Control</h2>
-
-<div class="ParaTableName"> </div>
-
-<form name="FMPilotForm" id="FMPilotForm" method="POST" action="FMPilotServlet?PAGE=/gui/jsp/controlPanel.jsp">
-
-	<rcms.control:actionHiddenInputRenderer indentation="4" /> 
-	<rcms.control:commandHiddenInputRenderer indentation="4" />
- 	<rcms.notification:hiddenInputRenderer indentation="4" /> 
-
-<table class="HeaderTable" border="0" cellpadding="3" cellspacing="3" width="100%">
-
-	<tr>
-<!--	
-	<td><button id="showStatusTableButton" class="MenuButton"
-			value="Status Table" name="Status Table"
-			onClick="onShowStatusTableButton()">Status Table </button>
-	</td>
--->	
-            <td><a class="MenuLinkEnabled" href="./DiagnosticServlet">Diagnostic Page</a></td>
-            <td><a class="MenuLinkEnabled" href="../../../Collector/Collector">Logging Collector</a></td>
-            <td><a class="MenuLinkEnabled" href="./MonitoringToolsServlet">Monitoring Tools</a></td>
-            <td><a class="MenuLinkEnabled" href="./RunInfoServlet">Run Info</a></td>
-            <td><a class="MenuLinkEnabled" href="./RunningConfigurationServlet">Running Configurations</a></td>
-            <td><a class="MenuLinkEnabled" href="./LogoutServlet">Logout</a></td>
-	<!--table-->
-
-<body onLoad="onLoad()">
-
-<!-- Table T1 begin -->
-<table width="100%" border="0" cellpadding="0" cellspacing="0">
-
-	<!-- Header fragment -->
-	<jsp:include page="./header.jsp"/>
+<div class="ParaTableName"> </div>	
+<form name="FMPilotForm" id="FMPilotForm" method="POST" action="../../gui/servlet/FMPilotServlet?PAGE=/gui/jsp/controlPanel.jsp">
 	
-<p>"Calibration Type"<p>
- 
-<select class="RunDataInputTable" name="CALIB_TYPE_KEY" onChange="setRunDataParameterSelect('CALIB_TYPE_KEY','rcms.fm.fw.parameter.type.StringT' ,this)">
-<option value="Monitor">Monitor
-<option value="Calib_CFEB_Gains">Calib_CFEB_Gains
-<option value="Calib_CFEB_CrossTalk">Calib_CFEB_CrossTalk
-<option value="Calib_CFEB_SCAPed">Calib_CFEB_SCAPed
-<option value="Calib_CFEB_Comparator">Calib_CFEB_Comparator
-<option value="Debug">Debug
-</select> 
+<rcms.control:actionHiddenInputRenderer indentation="4" /> 
+<rcms.control:commandHiddenInputRenderer indentation="4" /> 
+<rcms.notification:hiddenInputRenderer indentation="4" /> 
 
-	<td>
-	<div> 	
-	<input type="hidden" id="globalParameterName3 "name="globalParameterName3" value="" />
-	<input type="hidden" id="globalParameterValue3 "name="globalParameterValue3" value="" />
-	<input type="hidden" id="globalParameterType3 "name="globalParameterType3" value="" />
-	</td>
-
-
+<!--TABLE class="HeaderTable" BORDER="2" BORDERCOLOR="#660000" CELLPADDING="2" CELLSPACING="2" WIDTH="100%"-->
+<TABLE class="HeaderTable" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="100%">
 	<tr>
-	<td colspan="4">	
-	<hr size="4"> 
-	</td>
-	</tr>
-
-	</td>
-		<td><button id="showStatusTableButton" class="MenuButton"
+	<TD><button id="showStatusTableButton" class="MenuButton"
 			value="Status Table" name="Status Table"
 			onClick="onShowStatusTableButton()">Status Table </button>
-		</td>
-		<td>
-		<rcms.control:refreshButtonRenderer cssClass="button1"
-				onClickFunction="onUpdatedRefreshButton()" name="Refresh"
-				indentation="10" /></td>
-				<td>
-		<div id="HEARTBEAT">
-		<SPACER TYPE=BLOCK HEIGHT=30 WIDTH=30>
-		</div>
+	</TD>
 
-                <td>
-		<rcms.control:createButtonRenderer cssClass="button1"
-						onClickFunction="onCreateButton()" name="Create" indentation="10" />
-                		<rcms.control:attachButtonRenderer cssClass="button1"
-						onClickFunction="onAttachButton()" name="Attach" indentation="10" />
-		<rcms.control:detachButtonRenderer cssClass="button1"
-						onClickFunction="onDetachButton()" name="Detach" indentation="10" />
-		<rcms.control:destroyButtonRenderer cssClass="button1"
-						onClickFunction="onDestroyButton()" name="Destroy" indentation="10" />
-		</td>
-
+<td><a class="MenuLinkEnabled" href="./DiagnosticServlet"><B>Diagnostic Page</B></a></td>
+        <td><a class="MenuLinkEnabled" href="../../../Collector/Collector"><B>Logging Collector</B></a></td>
+        <td><a class="MenuLinkEnabled" href="./MonitoringToolsServlet"><B>Monitoring Tools</B></a></td>
+        <td><a class="MenuLinkEnabled" href="./RunInfoServlet"><B>Run Info</B></a></td>
+        <td><a class="MenuLinkEnabled" href="./RunningConfigurationServlet"><B>Running Configurations</B></a></td>
+        <td><a class="MenuLinkEnabled" href="./LogoutServlet"><B>Logout</B></a></td>
+	
+	<!--  REFRESH BUTTON --> 
+	<TD>
+	<rcms.control:refreshButtonRenderer
+			cssClass="button1" onClickFunction="onUpdatedRefreshButton()"
+			name="Refresh" indentation="10" />
+	</TD>
+	
+	<TD>
+	<rcms.control:createButtonRenderer cssClass="button1"
+	onClickFunction="onCreateButton()" name="Create" indentation="10" /> 
+	<rcms.control:attachButtonRenderer cssClass="button1" 
+	onClickFunction="onAttachButton()" name="Attach"indentation="10" /> 
+	<rcms.control:detachButtonRenderer cssClass="button1" 
+	onClickFunction="onDetachButton()" name="Detach" indentation="10" /> 
+	<rcms.control:destroyButtonRenderer cssClass="button1" 
+	onClickFunction="onMyDestroyButton()" name="Destroy" indentation="10" />
+	</TD>
 	</tr>
-</table>
+</TABLE>
+
 <p></p>
-${pars.GUI_STATE_PANEL_HTML}
+<DIV align="center">
+<div style="align:center;height:50px;"><B>${pars.GUI_STATE_PANEL_HTML}<B></div>
+</DIV>
 <p></p>
 
-<table style="width: 850px;">
+<tr>
+<TABLE style="width: 1190px;">
+<TD rowspan="2" class="paraTableName">
+<!--rcms.control:configurationPathRenderer titleClass="control_label1" 
+	label="Configuration:&nbsp;" contentClass="control_label2" indentation="10"/-->
 
+<rcms.control:configurationKeyRenderer titleClass="control_label1" 
+	label="Configuration Keys:&nbsp;" contentClass="control_label2" indentation="10"/>
 
-	<tr>
-	<td>
-		<!--  COMMAND PANEL -->
-		<div style="border: 1px solid white; width: 430px;" id="GUI_COMMAND_PANEL_HTML">
-		${pars.GUI_COMMAND_PANEL_HTML}
-		</div>
-	</td>
-	<td>
-
-<!--  INFO TABLE -->
-	<table  style="width: 800px;">
-<td colspan="2" class="paraTableName">
-<rcms.control:configurationPathRenderer titleClass="control_label1" label="Configuration:&nbsp;" contentClass="control_label2" indentation="10"/>
-<rcms.control:configurationKeyRenderer titleClass="control_label1" label="Configuration Keys:&nbsp;" contentClass="control_label2" indentation="10"/>
-<!--rcms.control:configurationNameRenderer titleClass="control_label1" label="Group Name:&nbsp;" contentClass="control_label2" indentation="10"/-->
+<!--rcms.control:configurationNameRenderer titleClass="control_label1" 
+	label="Group Name:&nbsp;" contentClass="control_label2" indentation="10"/-->
 		
-<br><br>
-<rcms.control:stateRenderer titleClass="control_label1" label="State:&nbsp;" contentClass="control_label3" indentation="10"/>
-</td>
-		
-<td>
-<!--rcms.control:showStatusTableButtonRenderer cssClass="button1" onClickFunction="onShowStatusTableButton()" name="Status Table" indentation="10"/-->
-</td>
+<!--rcms.control:stateRenderer titleClass="control_label1" label="State:&nbsp;" contentClass="control_label3" indentation="10"/-->
+</TD>
 </tr>
-
 	<tr>
-		<td align="center" bgcolor="#cccccc">
-			<div id="commandSection">
-				<rcms.control:commandButtonsRenderer cssClass="button1" indentation="11"/>
-			</div>
-			<br>
-			<div id="commandParameterCheckBoxSection" class="control_label1">
-				<rcms.control:commandParameterCheckboxRenderer title="&nbsp;Show Command Parameter Section" indentation="11"/>
-			</div>
-		</td>
-	</tr>
-
-	<tr>
-	   <td colspan="3">
-		<div id="HEARTBEAT" > <SPACER TYPE=BLOCK HEIGHT=10 WIDTH=10> </div> 
-	   </td>
-	</tr>
-
-	<tr>
-	
-	</tr>
-	
-<!--
-	<tr>
-	<td colspan="3">	
-	<hr size="3"> 
+	<td align="center" bgcolor="CCFFFF">
+		<div id="commandSection">
+			<rcms.control:commandButtonsRenderer cssClass="button1" indentation="11"/>
+		</div>
+		<br>
+		<div id="commandParameterCheckBoxSection" class="control_label1">
+			<rcms.control:commandParameterCheckboxRenderer title="&nbsp;Show Command Parameter Section" indentation="11"/>
+		</div>
 	</td>
 	</tr>
--->					
-	</table>
+</TABLE>
+<br>	
+	<!--  INFO TABLE -->
+
+	<table style="width: 600px;">
+	<tr>
+		<TD colspan="2" class="paraTableName">
+			<rcms.control:configurationPathRenderer
+				titleClass="control_label1" label="Configuration : &nbsp;"
+				contentClass="control_label2" indentation="10" />
+	
+			<rcms.control:configurationKeyRenderer titleClass="control_label1"
+				hidden="true" label="Configuration Keys:&nbsp;"
+				contentClass="control_label2" indentation="10" />
+		</TD>
+		</tr>
 		
 		<tr>
 			<td style="width: 120px;" class="paraTableName">SID</td>
-			<td style="width: 400px;" class="paraTableValue" id="SID" colspan="5">${pars.SID}</td>
+			<td style="width: 400px;" class="paraTableValue" id="SID">${pars.SID}</td>
 		</tr>
 
 		<tr>
 			<td style="width: 120px;" class="paraTableName">Run Number</td>
-			<td style="width: 400px;" class="paraTableValue" id="RUN_NUMBER" colspan="2">${pars.RUN_NUMBER}</td>
-
+			<td style="width: 400px;" class="paraTableValue" id="RUN_NUMBER">${pars.RUN_NUMBER}</td>
 		</tr>
 	
 		<tr>
 			<td style="width: 110px;"  class="paraTableName">Global Key</td>
-			<td style="width: 400px;" class="paraTableValue" id="GLOBAL_CONF_KEY" colspan="5">${pars.GLOBAL_CONF_KEY}</td>
+			<td style="width: 400px;" class="paraTableValue" id="GLOBAL_CONF_KEY">${pars.GLOBAL_CONF_KEY}</td>
 		</tr>
-			
+
+		<tr>
+			<td style="width: 110px;"  class="paraTableName">HWCFG Key</td>
+			<td style="width: 400px;" class="paraTableValue" id="HWCFG_KEY">${pars.HWCFG_KEY}</td>
+		</tr>
+	
 		<tr>
 			<td style="width: 110px;"  class="paraTableName">Action</td>
-			<td style="width: 400px;" class="paraTableValue" id="ACTION_MSG" colspan="5">${pars.ACTION_MSG}</td>
-		</tr>
-	
+			<td style="width: 400px;" class="paraTableValue" id="ACTION_MSG">${pars.ACTION_MSG}</td>
+		</tr>	
 		<tr>
 			<td style="width: 110px;"  class="paraTableName">Error</td>
-			<td style="width: 400px;" class="paraTableValue" id="ERROR_MSG" colspan="5">${pars.ERROR_MSG}</td>
+			<td style="width: 400px;" class="paraTableValue" id="ERROR_MSG">${pars.ERROR_MSG}</td>
 		</tr>
-</table>
-
-<!--
-<table  style="width: 800px;">
-
-            <td><a class="MenuLinkEnabled" href="./DiagnosticServlet">Diagnostic Page</a></td>
-
-            <td><a class="MenuLinkEnabled" href="../../../Collector/Collector">Logging Collector</a></td>
-
-            <td><a class="MenuLinkEnabled" href="./MonitoringToolsServlet">Monitoring Tools</a></td>
-
-            <td><a class="MenuLinkEnabled" href="./RunInfoServlet">Run Info</a></td>
-
-            <td><a class="MenuLinkEnabled" href="./RunningConfigurationServlet">Running Configurations</a></td>
-
-            <td><a class="MenuLinkEnabled" href="./LogoutServlet">Logout</a></td>
-
-	
-	</table>
--->
-	</td>
+		</td>
 	</tr>
+</table>
+<br>
 
-
-
-	<!-- Control Console end -->
-		
-
-<!--  my private stuff goes here --> <!--  embedded css -->
-
-
- <!-- MY HIDDEN PARAMETERS -->
+	<!--  SUBDET PANEL -->
+	<div style="border: 1px solid white;">${pars.GUI_SUBDET_PANEL_HTML}</div>
 </form>
+	
 	<div style="color: black; font-family: monospace;">
 	
 	<script type="text/javascript">
@@ -283,7 +194,7 @@ ${pars.GUI_STATE_PANEL_HTML}
 	document.write(' ' + BrowserDetect.browser + ' ' + BrowserDetect.version + ' ' + BrowserDetect.OS );
 	// -->
 	</script>
-
+	
 </body>
 </html>
 
