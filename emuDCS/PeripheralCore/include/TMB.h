@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.44 2008/06/23 14:26:09 rakness Exp $
+// $Id: TMB.h,v 3.45 2008/07/04 13:22:14 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.45  2008/07/04 13:22:14  rakness
+// add getter for distrip hot channel mask
+//
 // Revision 3.44  2008/06/23 14:26:09  rakness
 // add getter functions
 //
@@ -821,8 +824,9 @@ public:
   //
   //!layer=[0-5], mask=10 hex-characters for the 40 distrips right->left LSB->MSB.  So, to mask off channel 0, mask= fffffffffe
   void SetDistripHotChannelMask(int layer,long long int mask);
+  long long int GetDistripHotChannelMask(int layer);
   //
-  //!Write registers whose values have been set by SetDistripHotChannelMask(layer,channel,on_or_off)
+  //!Write registers whose values have been set by SetDistripHotChannelMask(...)
   void WriteDistripHotChannelMasks();
   void ReadDistripHotChannelMasks();
   //
