@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.30 2008/06/23 14:26:09 rakness Exp $
+// $Id: ALCTController.h,v 3.31 2008/07/04 14:24:29 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.31  2008/07/04 14:24:29  rakness
+// add getters for string values
+//
 // Revision 3.30  2008/06/23 14:26:09  rakness
 // add getter functions
 //
@@ -262,14 +265,20 @@ class ALCTController {
   int  GetFastControlBackwardForwardType();            // get Read values for ALCT firmware type (ME11)
   inline  int GetExpectedFastControlBackwardForwardType() { return expected_fastcontrol_backward_forward_; } 
   inline void SetExpectedFastControlBackwardForwardType(int backward_forward) { expected_fastcontrol_backward_forward_ = backward_forward; } 
+  //
   // here is the xml/database/user-friendly interface to prior method...
-  void  Set_fastcontrol_backward_forward_type(std::string alct_firmware_backwardForward); //alct_firmware_backwardForward = [b,f]
+  void Set_fastcontrol_backward_forward_type(std::string alct_firmware_backwardForward); //alct_firmware_backwardForward = [b,f]
+  std::string Get_fastcontrol_backward_forward_type();
+  //
   //
   int  GetFastControlNegativePositiveType();           // get Read values for ALCT firmware type (ME11)
   inline  int GetExpectedFastControlNegativePositiveType() { return expected_fastcontrol_negative_positive_; } 
   inline void SetExpectedFastControlNegativePositiveType(int negative_positive) { expected_fastcontrol_negative_positive_ = negative_positive; } 
+  //
   // here is the xml/database/user-friendly interface to prior method:
-  void  Set_fastcontrol_negative_positive_type(std::string alct_firmware_negativePositive); //alct_firmware_negativePositive = [n,p]
+  void Set_fastcontrol_negative_positive_type(std::string alct_firmware_negativePositive); //alct_firmware_negativePositive = [n,p]
+  std::string Get_fastcontrol_negative_positive_type();
+  //
   //
   int  GetFastControlAlctType();                       // get Read values for ALCT firmware type
   inline  int GetExpectedFastControlAlctType() { return expected_fastcontrol_alct_type_; } 
@@ -592,8 +601,10 @@ class ALCTController {
   void SetInvertPulse_(int mask);               //set Write value -> mask = [ON, OFF] 
   int  GetInvertPulse_();                       //get Read value -> return value -> 0 = not inverted
   //                                                                                1 = inverted 
-  // user-friendly version to above method:
+  // here is the xml/database/user-friendly version to above method:
   void Set_InvertPulse(std::string invert_pulse); //invert_pulse = [on,off]
+  std::string Get_InvertPulse();
+  //
   //
   void SetPowerUpTriggerRegister_();	       // sets Write values to data-taking defaults
   void PrintTriggerRegister_();                // print out Read values				 
@@ -605,8 +616,11 @@ class ALCTController {
   // meant to be called from SetUpPulsing, or written into from xml file via method below
   inline void SetPulseDirection(int afebs_or_layers) { pulse_direction_ = afebs_or_layers; } //afebs_or_layers = [PULSE_LAYERS,PULSE_AFEBS]
   inline int  GetPulseDirection() { return pulse_direction_; }                      
-  // user-friendly way to write into above method...
+  //
+  // here is the xml/database/user-friendly way to write into above method...
   void Set_PulseDirection(std::string afebs_or_strips); //afebs_or_strips = [afebs,strips]
+  std::string Get_PulseDirection(); 
+  //
   //
   inline TMB * GetTMB(){ return tmb_;}
   //

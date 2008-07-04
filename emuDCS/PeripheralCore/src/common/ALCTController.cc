@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.47 2008/06/12 21:08:55 rakness Exp $
+// $Id: ALCTController.cc,v 3.48 2008/07/04 14:24:29 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.48  2008/07/04 14:24:29  rakness
+// add getters for string values
+//
 // Revision 3.47  2008/06/12 21:08:55  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -1282,6 +1285,20 @@ void ALCTController::Set_PulseDirection(std::string afebs_or_strips) {
   }
   return;
 }
+//
+std::string ALCTController::Get_PulseDirection() {
+  //
+  std::string return_value = "NoSetting";
+  //
+  if ( GetPulseDirection() == PULSE_AFEBS ) 
+    return_value = "afebs";
+  //
+  if ( GetPulseDirection() == PULSE_LAYERS )
+    return_value = "strips";
+  //
+  return return_value;
+}
+//
 //////////////////
 //AFEB THRESHOLDS
 //////////////////
@@ -1889,6 +1906,20 @@ void ALCTController::Set_fastcontrol_backward_forward_type(std::string alct_firm
   return;
 }
 //
+std::string ALCTController::Get_fastcontrol_backward_forward_type() {
+  //
+  std::string return_value = "NoSetting";
+  //
+  if ( GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE )
+    return_value = "b";
+  //
+  if ( GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE )
+    return_value = "f"; 
+  //
+  return return_value;
+}
+//
+//
 int ALCTController::GetFastControlBackwardForwardType() { 
   return fastcontrol_backward_forward_; 
 }
@@ -1900,6 +1931,19 @@ void ALCTController::Set_fastcontrol_negative_positive_type(std::string alct_fir
     SetExpectedFastControlNegativePositiveType(POSITIVE_FIRMWARE_TYPE);
   //
   return;
+}
+//
+std::string ALCTController::Get_fastcontrol_negative_positive_type() {
+  //
+  std::string return_value = "NoSetting";
+  //
+  if ( GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE )
+    return_value = "n";
+  //
+  if ( GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE )
+    return_value = "p"; 
+  //
+  return return_value;
 }
 //
 int ALCTController::GetFastControlNegativePositiveType() { 
@@ -2068,6 +2112,19 @@ void ALCTController::Set_InvertPulse(std::string invert_pulse) {
     SetInvertPulse_(OFF);
   }
   return;
+}
+//
+std::string ALCTController::Get_InvertPulse() {
+  //
+  std::string return_value = "NoSetting";
+  //
+  if ( GetInvertPulse_() == ON )
+    return_value = "on";
+  //
+  if ( GetInvertPulse_() == OFF )
+    return_value = "off";
+  //
+  return return_value;
 }
 //
 int ALCTController::GetPulseTriggerSource_() {
