@@ -838,6 +838,11 @@ void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 {
 	cout << "--Entering setCrate" << endl;
 
+	if (dduVector.size()==0 && dccVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
+	
 	Cgicc cgi(in);
 
 	cout << "Switching crate..." << endl;
