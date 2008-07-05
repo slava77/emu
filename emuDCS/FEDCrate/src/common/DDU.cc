@@ -6569,6 +6569,7 @@ void DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,cha
 	int tstusr;
 	int nowrit;
 	char snd[5000],expect[5000],rmask[5000],smask[5000],cmpbuf[5000];
+	int intCache;
 
 /* ipass acts as a hiccup.
 ipass == 1 - load up to the part where you have to load the board number
@@ -6579,16 +6580,18 @@ ipass == 4 - do everything always
 	int pass = 1;
 
 	extern struct GEOM geo[];
-	// printf(" epromload %d \n",devnum);
+	//printf(" epromload %d \n",devnum);
 
 	devstp=devnum;
 	for(id=devnum;id<=devstp;id++){
+		//cout << "id " << id << endl;
 		dv=(DEVTYPE)id;
 		xtrbits=geo[dv].sxtrbits;
 		devstr=geo[dv].nam;
 		dwnfp    = fopen(downfile,"r");
 		fpout=fopen("eprom.bit","w");
 		while (fgets(buf,256,dwnfp) != NULL)  {
+			//cout << "buf " << buf << endl;
 			if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
 			} else {
 				if(strrchr(buf,';')==0){
@@ -6603,10 +6606,12 @@ ipass == 4 - do everything always
 					} while (strrchr(buf,';')==0);
 				}
 				for(i=0;i<1024;i++){
+					//cout << "i " << i << endl;
 					cmpbuf[i]=0;
 					sndbuf[i]=0;
 					rcvbuf[i]=0;
 				}
+				//cout << "Parse! " << buf << endl;
 				Parse(buf, &Count, &(Word[0]));
 				// count=count+1;
 				// printf(" count %d \n",count);
@@ -6615,13 +6620,16 @@ ipass == 4 - do everything always
 					sscanf(Word[1],"%d",&nbits);
 					nbytes=(nbits-1)/8+1;
 					for(i=2;i<Count;i+=2){
+						//cout << "Count " << Count << endl;
 
 		/* PGK Here is where we load up the board number.
 		I have to stop here and only send this stuff if pass==1 */
 
 						if(strcmp(Word[i],"TDI")==0){
 							for(j=0;j<nbytes;j++){
-								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
+								//cout << "j " << j << endl;
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
+								snd[j] = intCache;
 							}
 		/*JRG, new selective way to download UNALTERED PromUserCode from SVF to
 			ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
@@ -6644,22 +6652,26 @@ ipass == 4 - do everything always
 						}
 						if(strcmp(Word[i],"SMASK")==0){
 							for(j=0;j<nbytes;j++){
-								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
+								smask[j] = intCache;
 							}
 						}
 						if(strcmp(Word[i],"TDO")==0){
 							cmpflag=1;
 							for(j=0;j<nbytes;j++){
-								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
+								expect[j] = intCache;
 							}
 						}
 						if(strcmp(Word[i],"MASK")==0){
 							for(j=0;j<nbytes;j++){
-								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
+								rmask[j] = intCache;
 							}
 						}
 					}
 					for(i=0;i<nbytes;i++){
+						//cout << "i " << i << endl;
 	// 					sndbuf[i]=snd[i]&smask[i];
 						sndbuf[i]=snd[i]&0xff;
 					}
@@ -6688,6 +6700,7 @@ ipass == 4 - do everything always
 
 			//  Data readback comparison here:
 					for (i=0;i<nbytes;i++) {
+						//cout << "i " << i << endl;
 						tmp=(rcvbuf[i]>>3)&0x1F;
 						rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
 				/*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
@@ -6695,6 +6708,7 @@ ipass == 4 - do everything always
 					}
 					if (cmpflag==1) {
 						for (i=0;i<nbytes;i++) {
+							//cout << "i " << i << endl;
 							fprintf(fpout," %02X",rcvbuf[i]&0xFF);
 							if (i%4==3) fprintf(fpout,"\n");
 						}
@@ -6708,27 +6722,36 @@ ipass == 4 - do everything always
 					for(i=2;i<Count;i+=2){
 						if(strcmp(Word[i],"TDI")==0){
 							for(j=0;j<nbytes;j++){
-								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
+								//cout << "j " << j << endl;
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
+								snd[j] = intCache;
 							}
 							if(nbytes==1){if(0xfd==(snd[0]&0xff))nowrit=1;} // nowrit=1
 						}
 						else if(strcmp(Word[i],"SMASK")==0){
 							for(j=0;j<nbytes;j++){
-								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
+								//cout << "j " << j << endl;
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
+								smask[j] = intCache;
 							}
 						}
 						if(strcmp(Word[i],"TDO")==0){
 							for(j=0;j<nbytes;j++){
-								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
+								//cout << "j " << j << endl;
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
+								expect[j] = intCache;
 							}
 						}
 						else if(strcmp(Word[i],"MASK")==0){
 							for(j=0;j<nbytes;j++){
-								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
+								//cout << "j " << j << endl;
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
+								rmask[j] = intCache;
 							}
 						}
 					}
 					for(i=0;i<nbytes;i++){
+						//cout << "i " << i << endl;
 	// 				sndbuf[i]=snd[i]&smask[i];
 						sndbuf[i]=snd[i];
 					}
@@ -6736,6 +6759,13 @@ ipass == 4 - do everything always
 					// for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
 		/*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
 			DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
+					//cout << "nowrit " << nowrit << endl;
+					//cout << "pass " << pass << endl;
+					//cout << "ipass " << ipass << endl;
+					//cout << "dv " << dv << endl;
+					//cout << "nbits " << nbits << endl;
+					//cout << "sndbuf[0] " << sndbuf[0] << endl;
+					//cout << "devdo now..." << endl;
 					if(nowrit==0){
 						if (pass == ipass || ipass == 4) devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
 					} else {
@@ -6789,6 +6819,7 @@ ipass == 4 - do everything always
 				else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
 					printf("goto reset idle state\n");
 					//	   usleep(1000);
+					// DEBUG There is an error here vvv
 					devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
 					//	   usleep(1000);
 				}
@@ -7721,6 +7752,80 @@ long unsigned int DDU::readFiberDiagnostics(enum DEVTYPE dt, int i)
 	try { return readReg(dt,30+i,32); }
 	catch (FEDException &e) { throw; }
 }
+
+
+
+unsigned long int DDU::readFPGAUserCode(enum DEVTYPE dt)
+	throw (FEDException)
+{
+	int address = 0;
+	if (dt == DDUFPGA) {
+		cmd[0]=VTX2P_USERCODE_L;
+		cmd[1]=VTX2P_USERCODE_H;
+		address = 10;
+	} else if (dt == INFPGA0 || dt == INFPGA1) {
+		cmd[0]=VTX2P20_USERCODE_L;
+		cmd[1]=VTX2P20_USERCODE_H;
+		address = 14;
+	} else {
+		XCEPT_RAISE(FEDException,"DEVTYPE not understood as an FPGA");
+	}
+
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+
+	devdo(dt,address,cmd,32,sndbuf,rcvbuf,1);
+	if (dt == DDUFPGA) {
+		cmd[0]=VTX2P_BYPASS_L;
+		cmd[1]=VTX2P_BYPASS_H;
+	} else if (dt == INFPGA0 || dt == INFPGA1) {
+		cmd[0]=VTX2P20_BYPASS_L;
+		cmd[1]=VTX2P20_BYPASS_H;
+	}
+      
+	sndbuf[0]=0;
+	devdo(dt,address,cmd,0,sndbuf,rcvbuf,0);
+	return (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+}
+
+
+
+unsigned long int DDU::readPROMUserCode(enum DEVTYPE dt)
+	throw (FEDException)
+{
+	if (dt != DDUPROM0 && dt != DDUPROM1 && dt != INPROM0 && dt != INPROM1 && dt != VMEPROM) {
+		XCEPT_RAISE(FEDException,"DEVTYPE not understood as a PROM");
+	}
+
+	cmd[0] = PROM_USERCODE;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+
+	if (dt == INPROM1 || dt == DDUPROM1) {
+		devdo(dt,8,cmd,33,sndbuf,rcvbuf,1);
+		rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
+		rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
+		rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
+		rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
+	} else {
+		devdo(dt,8,cmd,32,sndbuf,rcvbuf,1);
+	}
+	cmd[0] = PROM_BYPASS;  
+	sndbuf[0]=0;
+	devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
+
+	return (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+}
+
+
+
+
 //
 //
 //
