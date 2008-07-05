@@ -1479,16 +1479,26 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	}
 	
 	ostringstream sTitle;
-	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Firmware Tools";
+	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Firmware Manager";
 	*out << Header(sTitle.str(),false);
 
-/*
-	*out << HTMLDoctype(HTMLDoctype::eStrict) << endl;
-	*out << html().set("lang", "en").set("dir","ltr") << endl;
-	*out << title("DDU Broadcast Firmware") << endl;
-	*out << body().set("background","/tmp/bgndcms.jpg") << endl;
-	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
-*/
+
+	// PGK Display-a-Crate
+	*out << cgicc::fieldset()
+		.set("class","fieldset") << endl;
+	*out << cgicc::div("Crate Selection")
+		.set("class","legend") << endl;
+
+	*out << cgicc::div()
+		.set("style","background-color: #FF0; color: #00A; font-size: 16pt; font-weight: bold; width: 50%; text-align: center; padding: 3px; border: 2px solid #00A; margin: 5px auto 5px auto;");
+	*out << "Crate " << thisCrate->number() << " Selected";
+	*out << cgicc::div() << endl;
+
+	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
+		.set("style","color: #A00; font-size: 10pt;") << endl;
+
+	*out << cgicc::fieldset() << endl;
+	*out << br() << endl;
 
 	// The names of the PROMs
 	std::vector< std::string > dduPROMNames;
@@ -1758,242 +1768,6 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 
 	*out << Footer() << endl;
 
-/*
-	string title[5] = {"VMEPROM","DDUPROM0","DDUPROM1","INPROM0","INPROM1"};
-
-	// Green, Red, Yellow, Blue
-	string error[5] = {"background-color: #CFC;","background-color: #FCC;","background-color: #FF9;","background-color: #CCF;"};
-
-
-	string dduloadbroadcast = toolbox::toString("/%s/DDULoadBroadcast",getApplicationDescriptor()->getURN().c_str());
-	string ddusendbroadcast = toolbox::toString("/%s/DDUSendBroadcast",getApplicationDescriptor()->getURN().c_str());
-	string ddureset = toolbox::toString("/%s/DDUReset",getApplicationDescriptor()->getURN().c_str());
-
-	*out << fieldset().set("style","font-size: 13pt; font-family: arial;");
-	*out << endl;
-	*out << legend("Step 1: DDU firmware, UPLOAD SVF file to server").set("style","color:blue") << endl;
-
-	string vheader[5] = {"b0","c0","c1","d0","d1"};
-	string version[5] = {"0","0","0","0","0"};
-
-	// UPLOAD
-	for (int i=0; i<=4; i++) {
-
-		*out << cgicc::div().set("style","background-color: #FFF; border-color: #000; border-width: 1px; border-style: solid; margin: 2px 2px 2px 2px; padding: 3px 3px 3px 3px;") << endl;
-		*out << a(title[i]).set("style","font-size: 14pt; font-weight: bold;") << br() << endl;
-
-		// Get the version number from the on-disk file
-		// Best mashup of perl EVER!
-		ostringstream systemcall;
-		string printversion;
-
-		// My perl-fu is 1337, indeed!
-		systemcall << "perl -e 'while ($line = <>) { if ($line =~ /SIR 8 TDI \\(fd\\) TDO \\(00\\) ;/) { $line = <>; if ($line =~ /TDI \\((........)\\)/) { print $1; } } }' <Current" << title[i] << ".svf >check_ver 2>&1";
-		if (!system(systemcall.str().c_str())) {
-			ifstream pipein("check_ver",ios::in);
-			getline(pipein,printversion);
-			pipein.close();
-		}
-
-		int verr = 0;
-
-		// Check header on disk
-		string checkstring( printversion, 0, 2 );
-		if ( checkstring != vheader[i] ) {
-			verr = 1;
-			printversion = "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
-		}
-		else version[i] = printversion;
-
-		// Compare to hard-coded version
-		ostringstream checkstream;
-		checkstream << hex << tuscode[i+3];
-		if ( checkstream.str() != printversion ) {
-			verr = 1;
-			printversion += " (should be " + checkstream.str() + ")";
-		}
-
-		*out << "Registered version on-disk: " << a().set("style","font-weight: bold;" + error[verr]) << printversion << a() << br() << endl;
-
-		*out << form().set("method","POST")
-			.set("enctype","multipart/form-data")
-			.set("id","Form" + title[i])
-			.set("action",dduloadbroadcast) << endl;
-		*out << input().set("type","file")
-			.set("name","File")
-			.set("id","File" + title[i])
-			.set("size","50") << endl;
-		*out << input().set("type","button")
-			.set("value","Upload SVF")
-			.set("onClick","javascript:clickCheck('" + title[i] + "')") << endl;
-		*out << input().set("type","hidden")
-			.set("name","svftype")
-			.set("value",title[i]) << endl;
-		*out << form() << endl;
-
-		*out << cgicc::div() << endl;
-	}
-
-	*out << fieldset() << endl;
-	*out << br() << endl;
-
-	// Tricky: javascript check!
-	*out << "<script type=\"text/javascript\">function clickCheck(id) {" << endl;
-	*out << "var element = document.getElementById('File' + id);" << endl;
-	*out << "if (element.value == '') element.style.backgroundColor = '#FFCCCC';" << endl;
-	*out << "else {" << endl;
-	*out << "var form = document.getElementById('Form' + id);" << endl;
-	*out << "form.submit();" << endl;
-	*out << "}" << endl;
-	*out << "}</script>" << endl;
-
-	*out << fieldset().set("style","font-size: 13pt; font-family: arial;");
-	*out << endl;
-	*out << legend("Step 2: DDU firmware, BROADCAST firmware to whole crate").set("style","color:blue") << endl;
-
-	*out << cgicc::div().set("style","background-color: #FFF; border-color: #000; border-width: 1px; border-style: solid; margin: 2px 2px 2px 2px; padding: 3px 3px 3px 3px;") << endl;
-	*out << a("Click a button to perform broadcast firmware updates").set("style","font-size: 14pt; font-weight: bold;") << br() << endl;
-
-
-	string prom[4] = {"VMEPROM","DDUPROM","INPROM","ALL"};
-
-	// BROADCAST/RESET
-	for (int i=0; i<=3; i++) {
-
-		if (i == 3) *out << "<!-- ";
-
-		string button = "Broadcast " + prom[i];
-		ostringstream number;
-		number << i;
-
-		*out << form().set("method","POST")
-		  .set("action",ddusendbroadcast) << endl; // calls DDUSendBroadcast
-		*out << input().set("type","submit")
-			.set("value",button) << endl;
-		*out << input().set("type","hidden")
-			.set("name","svftype")
-			.set("value", number.str().c_str()) << endl;
-		for (int j=0; j<=4; j++) {
-			*out << input().set("type","hidden")
-				.set("name",title[j])
-				.set("value",version[j]) << endl;
-		}
-
-		*out << form() << endl;
-
-		if (i == 3) *out << " -->";
-
-	}
-
-	*out << form().set("method","POST")
-		.set("action",ddureset) << endl;
-	*out << input().set("type","submit")
-		.set("value","Reset Crate");
-	*out << "<input type=\"checkbox\" name=\"useTTC\" CHECKED /> Use DCC Command Bus";
-	*out << form() << endl;
-
-	*out << cgicc::div() << endl;
-	*out << fieldset() << endl;
-	*out << br() << endl;
-
-	// STATUS
-	*out << table().set("style","border-width: 2px; border-color: #000; border-style: solid; background-color: #FFF; width: 90%; margin-right: auto; margin-left: auto;");
-	*out << tr() << endl;
-
-	*out << td().set("style","font-weight: bold; font-size: 12pt; color: #FFF; background-color: #000;") << "Slot (BN)" << td() << endl;
-	for (int i=0; i<=4; i++) {
-		*out << td().set("style","font-weight: bold; font-size: 12pt; color: #FFF; background-color: #000;") << title[i] << td() << endl;
-	}
-	*out << tr() << endl;
-
-	for (unsigned int i=0; i<dduVector.size(); i++) {
-		if (dduVector[i]->slot() <= 21) {
-			int slot = dduVector[i]->slot();
-
-			ostringstream firmware_version[5];
-			ostringstream fpga_version[3];
-			firmware_version[0] << hex << dduVector[i]->vmeprom_usercode();
-			firmware_version[1] << hex << dduVector[i]->dduprom_usercode0();
-			firmware_version[2] << hex << dduVector[i]->dduprom_usercode1();
-			firmware_version[3] << hex << dduVector[i]->inprom_usercode0();
-			firmware_version[4] << hex << dduVector[i]->inprom_usercode1();
-
-			fpga_version[0] << hex << dduVector[i]->ddufpga_usercode();
-			fpga_version[1] << hex << dduVector[i]->infpga_usercode0();
-			fpga_version[2] << hex << dduVector[i]->infpga_usercode1();
-
-			string boardnumber0 = firmware_version[1].str().substr(6,2);
-			string boardnumber1 = firmware_version[2].str().substr(6,2);
-
-			int err[5] = {0,0,0,0,0};
-
-			int ibn = dduVector[i]->dduprom_usercode0() & 0xff;
-			ostringstream bn;
-			if (boardnumber0 == boardnumber1)
-				bn << dec << ibn;
-			else {
-				bn << "MISMATCH";
-				err[1] = 2;
-				err[2] = 2;
-			}
-
-			for (int j=0; j<=4; j++) {
-				if (j==1 || j==2) {
-					if (firmware_version[j].str().substr(0,6) != version[j].substr(0,6)) {
-						err[j] = 1;
-					} else if (fpga_version[0].str().substr(3,2) != firmware_version[j].str().substr(2,2)) {
-						err[j] = 3;
-					}
-				}
-				else if (version[j] != firmware_version[j].str()) {
-					err[j] = 1;
-				}
-				else if (j==3 || j==4) {
-					if (fpga_version[j-2].str().substr(2,6) != firmware_version[j].str().substr(2,6)) {
-						err[j] = 3;
-					}
-				}
-			}
-
-			*out << tr() << endl;
-
-			string err2 = "";
-			if (((dduVector[i]->vmepara_status()>>8)&0x000F)!= 8) {
-				err2 = "background-color: #AAA;";
-			}
-
-			*out << td().set("style","font-weight: bold; font-size: 12pt; border-color: #000; border-style: solid; border-width: 1px;" + err2) << slot << " (" << bn.str() << ")" << td() << endl;
-
-			for (int j=0; j<=4; j++) {
-				*out << td().set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 1px;" + error[err[j]]) << firmware_version[j].str() << td() << endl;
-			}
-
-			*out << tr() << endl;
-		}
-	}
-
-	*out << tr() << endl;
-	*out << td().set("style","font-weight: bold; font-size: 12pt; color: #FFF; background-color: #000;") << "Legend" << td() << endl;
-	*out << td("all good").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px;" + error[0]) << endl;
-	*out << td("prom/disk mismatch").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px;" + error[1]) << endl;
-	*out << td("board number mismatch").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px;" + error[2]) << endl;
-	*out << td("prom/fpga mismatch").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px;" + error[3]) << endl;
-	*out << td("bad board status").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px; background-color: #AAA") << endl;
-	*out << tr() << endl;
-
-	*out << table() << br() << endl;
-
-	ostringstream debug;
-	debug << "Debug information: <br />"
-		<< "ddu: " << ddu << "<br />"
-		<< "slot: " << thisDDU->slot() << "<br />";
-	*out << cgicc::div(debug.str().c_str()).set("style","font-size: 11pt") << endl;
-
-//	} // if password was correct.
-
-	*out << body() << endl;
-	*out << html() << endl;
-*/
 }
 
 
