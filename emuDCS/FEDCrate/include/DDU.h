@@ -275,10 +275,10 @@ public:
   void all_chip_info();
 
 	// PGK Failed attempt at simplified ID/user codes
-// 	unsigned long int readIDCode(enum DEVTYPE dt)
-// 		throw (FEDException);
-// 	unsigned long int readUserCode(enum DEVTYPE dt)
-// 		throw (FEDException);
+	unsigned long int readFPGAUserCode(enum DEVTYPE dt)
+		throw (FEDException);
+	unsigned long int readPROMUserCode(enum DEVTYPE dt)
+		throw (FEDException);
 
   // DDU parallel
   unsigned short int vmepara_busy();

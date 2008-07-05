@@ -628,7 +628,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 					.set("target","_blank") << endl;
 				*out << cgicc::input()
 					.set("type","submit")
-					.set("value","Broadcast DDU Firmware")
+					.set("value","DDU Firmware Manager")
 					.set("style","background-color: #FDD; border-color: #F00;") << endl;
 				*out << cgicc::form() << endl;
 				*out << cgicc::span() << endl;
@@ -1477,34 +1477,288 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
 		return Default(in,out);
 	}
+	
+	ostringstream sTitle;
+	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Firmware Tools";
+	*out << Header(sTitle.str(),false);
 
-	Cgicc cgi(in);
-
-	printf(" entered DDUBroadcast \n");
-
+/*
 	*out << HTMLDoctype(HTMLDoctype::eStrict) << endl;
 	*out << html().set("lang", "en").set("dir","ltr") << endl;
 	*out << title("DDU Broadcast Firmware") << endl;
 	*out << body().set("background","/tmp/bgndcms.jpg") << endl;
 	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
-/*
-	cout << "begin password" << endl;
-	string password = "";
-	int password_needed = 0;
-	if (!(cgi["password"]->isEmpty())) password = cgi["password"]->getValue();
-	cout << "password #1 " << password << endl;
-	if (!(cgi["needed"]->isEmpty())) password_needed = cgi["needed"]->getIntegerValue();
-	cout << "checking password " << password_needed << endl;
-	if (password != "abc123" && password_needed == 1) {
-		*out << "Error:  Get the password from an expert before attempting this operation." << endl;
-	} else {
 */
-	*out << "Use the UPLOAD section to hand off local firmware copies to the server" << br() << "Use the BROADCAST section to actually load the firmware onto the boards" << br() << a().set("style","color: #D00; font-weight: bold;") << endl;
 
-	*out << "!!! DO NOT BROADCAST UNLESS HYPERDAQ KNOWS ABOUT ALL THE DDUS IN THE CRATE !!!" << a() << endl;
-	*out << br() << endl;
-	*out << br() << endl;
+	// The names of the PROMs
+	std::vector< std::string > dduPROMNames;
+	dduPROMNames.push_back("VMEPROM");
+	dduPROMNames.push_back("DDUPROM0");
+	dduPROMNames.push_back("DDUPROM1");
+	dduPROMNames.push_back("INPROM0");
+	dduPROMNames.push_back("INPROM1");
 
+	// The device types of the PROMs
+	std::map< std::string, enum DEVTYPE > dduPROMTypes;
+	dduPROMTypes["VMEPROM"] = VMEPROM;
+	dduPROMTypes["DDUPROM0"] = DDUPROM0;
+	dduPROMTypes["DDUPROM1"] = DDUPROM1;
+	dduPROMTypes["INPROM0"] = INPROM0;
+	dduPROMTypes["INPROM1"] = INPROM1;
+
+	// The device types of the FPGA corresponding to the PROMS
+	std::map< std::string, enum DEVTYPE > dduFPGATypes;
+	dduFPGATypes["DDUPROM0"] = DDUFPGA;
+	dduFPGATypes["DDUPROM1"] = DDUFPGA;
+	dduFPGATypes["INPROM0"] = INFPGA0;
+	dduFPGATypes["INPROM1"] = INFPGA1;
+
+	// A map of PROM name to the first two identifying digits in the version
+	//  number.
+	std::map< std::string, std::string > dduPROMHeaders;
+	dduPROMHeaders["VMEPROM"] = "b0";
+	dduPROMHeaders["DDUPROM0"] = "c0";
+	dduPROMHeaders["DDUPROM1"] = "c1";
+	dduPROMHeaders["INPROM0"] = "d0";
+	dduPROMHeaders["INPROM1"] = "d1";
+
+	// Store the codes to compare them to the FPGAs
+	std::map< std::string, std::string > diskPROMCodes;
+
+	*out << cgicc::fieldset()
+		.set("class","normal") << endl;
+	*out << cgicc::div("Step 1:  Upload DDU firmware to disk")
+		.set("class","legend") << endl;
+	
+	DataTable diskTable("diskTable");
+
+	diskTable.addColumn("DDU PROM Name");
+	diskTable.addColumn("On-Disk Firmware Version");
+	diskTable.addColumn("Upload New Firmware");
+
+	// Loop over the prom types and give us a pretty table
+	for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
+	
+		*(diskTable(iprom,0)->value) << dduPROMNames[iprom];
+
+		// Get the version number from the on-disk file
+		// Best mashup of perl EVER!
+		std::ostringstream systemCall;
+		std::string diskVersion;
+
+		// My perl-fu is 1337, indeed!
+		systemCall << "perl -e 'while ($line = <>) { if ($line =~ /SIR 8 TDI \\(fd\\) TDO \\(00\\) ;/) { $line = <>; if ($line =~ /TDI \\((........)\\)/) { print $1; } } }' <Current" << dduPROMNames[iprom] << ".svf >check_ver 2>&1";
+		if (!system(systemCall.str().c_str())) {
+			std::ifstream pipein("check_ver",ios::in);
+			getline(pipein,diskVersion);
+			pipein.close();
+		}
+
+		// Now the string diskVersion is exactly what is sounds like.
+		diskPROMCodes[dduPROMNames[iprom]] = diskVersion;
+
+		// Check to make sure the on-disk header looks like it should for that
+		//  particular PROM
+		std::string diskHeader( diskVersion, 0, 2 );
+		if ( diskHeader != dduPROMHeaders[dduPROMNames[iprom]] ) {
+			*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+			diskTable(iprom,1)->setClass("bad");
+		} else {
+			*(diskTable(iprom,1)->value) << diskVersion;
+			diskTable(iprom,1)->setClass("ok");
+		}
+
+		// Compare the version on-disk with the magic number given above.
+		/*
+		ostringstream checkstream;
+		checkstream << hex << tuscode[i+3];
+		if ( checkstream.str() != printversion ) {
+			verr = 1;
+			printversion += " (should be " + checkstream.str() + ")";
+		}
+		*/
+
+		// Make the last part of the table a form for uploading a file.
+		*(diskTable(iprom,2)->value) << form().set("method","POST")
+			.set("enctype","multipart/form-data")
+			.set("id","Form" + dduPROMNames[iprom])
+			.set("action","/" + getApplicationDescriptor()->getURN() + "/DDULoadBroadcast") << endl;
+		*(diskTable(iprom,2)->value) << input().set("type","file")
+			.set("name","File")
+			.set("id","File" + dduPROMNames[iprom])
+			.set("size","50") << endl;
+		*(diskTable(iprom,2)->value) << input().set("type","button")
+			.set("value","Upload SVF")
+			.set("onClick","javascript:clickCheck('" + dduPROMNames[iprom] + "')") << endl;
+		*(diskTable(iprom,2)->value) << input().set("type","hidden")
+			.set("name","svftype")
+			.set("value",dduPROMNames[iprom]) << endl;
+		*(diskTable(iprom,2)->value) << form() << endl;
+	}	
+	// Tricky: javascript check!
+	*out << "<script type=\"text/javascript\">function clickCheck(id) {" << endl;
+	*out << "var element = document.getElementById('File' + id);" << endl;
+	*out << "if (element.value == '') element.style.backgroundColor = '#FFCCCC';" << endl;
+	*out << "else {" << endl;
+	*out << "var form = document.getElementById('Form' + id);" << endl;
+	*out << "form.submit();" << endl;
+	*out << "}" << endl;
+	*out << "}</script>" << endl;
+
+	// Print the table to screen.
+	*out << diskTable.toHTML() << endl;
+
+	*out << cgicc::fieldset() << endl;
+
+
+	// This is the key:  a form that is outside of everything, and bitwise
+	//  selectors of the slots to upgrade.
+	*out << cgicc::form()
+		.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUSendBroadcast")
+		.set("method","GET");
+	*out << cgicc::input()
+		.set("type","hidden")
+		.set("name","slots")
+		.set("id","slots")
+		.set("value","0x0");
+	*out << cgicc::input()
+		.set("type","hidden")
+		.set("name","broadcast")
+		.set("id","broadcast")
+		.set("value","0");
+
+	for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name",dduPROMNames[iprom])
+			.set("value",diskPROMCodes[dduPROMNames[iprom]]) << endl;
+	}
+
+	*out << cgicc::fieldset()
+		.set("class","normal") << endl;
+	*out << cgicc::div("Step 2:  Select the slots you to which you intend to load firmware")
+		.set("class","legend") << endl;
+	
+	DataTable slotTable("slotTable");
+
+	slotTable.addColumn("Slot number");
+	slotTable.addColumn("RUI");
+	slotTable.addColumn("DDU board ID");
+	for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
+		slotTable.addColumn(dduPROMNames[iprom]);
+	}
+
+
+	int iddu = -1;
+	for (std::vector< DDU * >::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+		if ((*iDDU)->slot() >= 21) continue;
+		iddu++;
+		std::ostringstream bitFlipCommand;
+		bitFlipCommand << "Javascript:toggleBit('slots'," << (*iDDU)->slot() << ");";
+
+		*(slotTable(iddu,0)->value) << cgicc::input()
+			.set("type","checkbox")
+			.set("class","slotBox")
+			.set("onChange",bitFlipCommand.str()) << " " << (*iDDU)->slot();
+		
+		*(slotTable(iddu,1)->value) << thisCrate->getRUI((*iDDU)->slot());
+
+		*(slotTable(iddu,2)->value) << (*iDDU)->readFlashBoardID();
+
+		for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
+			std::ostringstream promCode, fpgaCode;
+
+			promCode << hex << (*iDDU)->readPROMUserCode(dduPROMTypes[dduPROMNames[iprom]]);
+			*(slotTable(iddu,3 + iprom)->value) << promCode.str();
+
+			if (dduPROMNames[iprom] != "VMEPROM") {
+				fpgaCode << hex << (*iDDU)->readFPGAUserCode(dduFPGATypes[dduPROMNames[iprom]]);
+			}
+
+			// Check for consistency
+			slotTable(iddu,3 + iprom)->setClass("ok");
+			if (iprom == 1 || iprom == 2) {
+				if (diskPROMCodes[dduPROMNames[iprom]].substr(0,6) != promCode.str().substr(0,6)) {
+					slotTable(iddu,3 + iprom)->setClass("bad");
+				} else if (fpgaCode.str().substr(3,2) != promCode.str().substr(2,2)) {
+					slotTable(iddu,3 + iprom)->setClass("questionable");
+				}
+			} else if (diskPROMCodes[dduPROMNames[iprom]] != promCode.str()) {
+				slotTable(iddu,3 + iprom)->setClass("bad");
+			} else if (iprom == 3 || iprom == 4) {
+				if (fpgaCode.str().substr(2,6) != promCode.str().substr(2,6)) {
+					slotTable(iddu,3 + iprom)->setClass("bad");
+				}
+			}
+		}
+	}
+
+	*out << slotTable.toHTML() << endl;
+
+	*out << cgicc::input()
+		.set("type","button")
+		.set("value","Toggle Broadcast")
+		.set("onClick","javascript:toggleBoxes('slotBox');")
+		.set("style","margin-left: 20%; margin-right: auto;");
+
+	// Tricky:  javascript toggle of check boxes
+	*out << "<script type=\"text/javascript\">" << endl;
+	*out << "function toggleBoxes(id){var x = getElementsByClassName(id); var f = document.getElementById('broadcast'); if(f.value == 0){f.value = 1; for (i=0,j=x.length;i<j;i++) {x[i].disabled=true;}} else {f.value = 0; for (i=0,j=x.length;i<j;i++) {x[i].disabled=false;}}}" << endl;
+	*out << "</script>" << endl;
+
+	*out << cgicc::div()
+		.set("style","font-size: 8pt;") << endl;
+	*out << "Legend: " << cgicc::span("All OK").set("class","ok") << " " << endl;
+	*out << cgicc::span("Disk/PROM mismatch").set("class","bad") << " " << endl;
+	*out << cgicc::span("PROM/FPGA mismatch").set("class","questionable") << cgicc::div() << endl;
+
+	*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!")
+		.set("style","font-size: 8pt;") << endl;
+
+	*out << cgicc::fieldset() << endl;
+
+
+	*out << cgicc::fieldset()
+		.set("class","normal") << endl;
+	*out << cgicc::div("Step 3:  Press a button to upload that particular firmware to the selected boards")
+		.set("class","legend") << endl;
+
+	*out << cgicc::input()
+		.set("type","submit")
+		.set("name","submit")
+		.set("value","Send VMEPROM") << endl;
+	*out << cgicc::input()
+		.set("type","submit")
+		.set("name","submit")
+		.set("value","Send DDUPROM") << endl;
+	*out << cgicc::input()
+		.set("type","submit")
+		.set("name","submit")
+		.set("value","Send INPROM") << endl;
+
+	*out << cgicc::fieldset() << endl;
+	
+	*out << cgicc::form() << endl;
+
+
+	*out << cgicc::fieldset()
+		.set("class","normal") << endl;
+	*out << cgicc::div("Step 4:  Hard-reset the crate")
+		.set("class","legend") << endl;
+
+	*out << cgicc::form()
+		.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUReset")
+		.set("method","post") << endl;
+	*out << cgicc::input()
+		.set("type","submit")
+		.set("value","Reset crate via DCC") << endl;
+	*out << cgicc::form() << endl;
+
+	*out << cgicc::fieldset() << endl;
+
+	*out << Footer() << endl;
+
+/*
 	string title[5] = {"VMEPROM","DDUPROM0","DDUPROM1","INPROM0","INPROM1"};
 
 	// Green, Red, Yellow, Blue
@@ -1729,16 +1983,17 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 
 	*out << table() << br() << endl;
 
-/*	ostringstream debug;
+	ostringstream debug;
 	debug << "Debug information: <br />"
 		<< "ddu: " << ddu << "<br />"
 		<< "slot: " << thisDDU->slot() << "<br />";
-	*out << cgicc::div(debug.str().c_str()).set("style","font-size: 11pt") << endl; */
+	*out << cgicc::div(debug.str().c_str()).set("style","font-size: 11pt") << endl;
 
 //	} // if password was correct.
 
 	*out << body() << endl;
 	*out << html() << endl;
+*/
 }
 
 
@@ -1802,7 +2057,18 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 
 	printf(" entered DDUSendBroadcast \n");
 
-	int type = cgi["svftype"]->getIntegerValue();
+	int type = -1;
+	string submitCommand = cgi["submit"]->getValue();
+	if (submitCommand.substr(5) == "VMEPROM") type = 0;
+	if (submitCommand.substr(5) == "DDUPROM") type = 1;
+	if (submitCommand.substr(5) == "INPROM") type = 2;
+	if (submitCommand.substr(5) == "ALL") type = 3;
+
+	int broadcast = cgi["broadcast"]->getIntegerValue();
+	string slotsText = cgi["slots"]->getValue();
+	if (slotsText.substr(0,2) == "0x") slotsText = slotsText.substr(2);
+	unsigned int slots = 0;
+	sscanf(slotsText.data(),"%4x",&slots);
 
 	if (type != 0 && type != 1 && type != 2 && type != 3) {
 		cout << "I don't understand that PROM type (" << type << ")." << endl;
@@ -1835,49 +2101,55 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	cout << endl;
 
 	int bnstore[dduVector.size()];
-	int broadcastddu;
 	for (unsigned int i=0; i<dduVector.size(); i++) {
-		if (dduVector[i]->slot() > 21) broadcastddu = i;
-	}
+		if (!broadcast && !(slots & (1 << dduVector[i]->slot()))) continue;
+		else if (broadcast && dduVector[i]->slot() <= 21) continue;
 
-	for (int i=from; i<=to; i++) {
-		string filename = "Current" + name[i] + ".svf";
-		cout << " broadcasting " << filename << " version " << version[i] << endl;
+		thisDDU = dduVector[i];
+		cout << "Sending to slot " << thisDDU->slot() << endl; 
 
-		char *boardnumber = (char *) malloc(5);
-		boardnumber[0]=0x00;boardnumber[1]=0x00;boardnumber[2]=0x00;boardnumber[3]=0x00;
+		for (int i=from; i<=to; i++) {
+			string filename = "Current" + name[i] + ".svf";
+			cout << " broadcasting " << filename << " version " << version[i] << endl;
 
-		if (i == 1 || i == 2) {
-			thisDDU = dduVector[broadcastddu];
-			boardnumber[0] = 1;
+			char *boardnumber = (char *) malloc(5);
+			boardnumber[0]=0x00;boardnumber[1]=0x00;boardnumber[2]=0x00;boardnumber[3]=0x00;
 
+			if (i == 1 || i == 2) {
+				boardnumber[0] = 1;
 
-			thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,1);
+				thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,1);
 
-			for (unsigned int ddu=0; ddu<dduVector.size(); ddu++) {
-				thisDDU = dduVector[ddu];
-				if (thisDDU->slot() > 21) continue;
-				int ibn = thisDDU->read_page7();
-				bnstore[ddu] = ibn;
-				boardnumber[0] = ibn;
-				cout << " pause to upload boardnumber " << ibn << endl;
-				thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,2);
+				if (broadcast) {
+					for (unsigned int ddu=0; ddu<dduVector.size(); ddu++) {
+						DDU *secondaryDDU = dduVector[ddu];
+						if (secondaryDDU->slot() > 21) continue;
+						int ibn = secondaryDDU->readFlashBoardID();
+						bnstore[ddu] = ibn;
+						boardnumber[0] = ibn;
+						cout << " pause to upload boardnumber " << ibn << endl;
+						secondaryDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,2);
+					}
+				} else {
+					int ibn = thisDDU->readFlashBoardID();
+					boardnumber[0] = ibn;
+					cout << " pause to upload boardnumber " << ibn << endl;
+					thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,2);
+				}
+
+				cout << " resuming... " << endl;
+				boardnumber[0] = 1;
+				thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,3);
+
+			} else {
+				thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber);
 			}
+			free(boardnumber);
+			cout << " broadcast of " << filename << " complete!" << endl;
 
-			cout << " resuming... " << endl;
-			boardnumber[0] = 1;
-			thisDDU = dduVector[broadcastddu];
-			thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,3);
-
-		} else {
-			thisDDU = dduVector[broadcastddu];
-			thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber);
 		}
-		free(boardnumber);
-		cout << " broadcast of " << filename << " complete!" << endl;
 
 	}
-
 	cout << " broadcast operations complete... " << endl;
 	cout << " checking firmware versions on PROMs to see if broadcast worked." << endl;
 //	cout << "resetting crate via DCC TTC 34 and checking firmware versions..." << endl;
@@ -1888,8 +2160,9 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 
 	for (int i=from; i<=to; i++) { // loop over PROMS
 		for (unsigned int ddu=0; ddu<dduVector.size(); ddu++) { // loop over boards
+			if (!broadcast && !(slots & (1 << dduVector[ddu]->slot()))) continue;
+			else if (broadcast && dduVector[ddu]->slot() > 21) continue;
 			thisDDU = dduVector[ddu];
-			if (thisDDU->slot() > 21) continue;
 
 			cout << "slot: " << thisDDU->slot() << endl;
 
@@ -1934,20 +2207,20 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
 {
 
 	Cgicc cgi(in);
-
+/*
 	string useTTC = cgi["useTTC"]->getValue();
 	if (useTTC != "on") useTTC = "off";
 	cout << "Entering DDUReset with useTTC " << useTTC << endl;
-
-	if (useTTC == "on") {
-		cout << " resetting via TTC 0x34" <<endl;
+*/
+//	if (useTTC == "on") {
+//		cout << " resetting via TTC 0x34" <<endl;
 		dccVector[0]->crateHardReset();
-	} else {
-		cout << " don't know how to do global reset requests." << endl;
-	}
+//	} else {
+//		cout << " don't know how to do global reset requests." << endl;
+//	}
 
-	cout << " reset complete." << endl;
-	in = NULL;
+//	cout << " reset complete." << endl;
+//	in = NULL;
 	webRedirect(out,"DDUBroadcast");
 	//this->DDUBroadcast(in,out);
 }
@@ -2043,7 +2316,9 @@ void EmuFCrateHyperDAQ::DDULoadFirmware(xgi::Input * in, xgi::Output * out )
 	cbrdnum[0]=0x00;cbrdnum[1]=0x00;cbrdnum[2]=0x00;cbrdnum[3]=0x00;
 	if(prom==6)thisDDU->epromload("INPROM0",INPROM0,"MySVFFile.svf",1,cbrdnum);
 	if(prom==7)thisDDU->epromload("INPROM1",INPROM1,"MySVFFile.svf",1,cbrdnum);
-	if(prom==3)thisDDU->epromload("RESET",RESET,"MySVFFile.svf",1,cbrdnum);
+	//if(prom==3)thisDDU->epromload("RESET",RESET,"MySVFFile.svf",1,cbrdnum);
+	// DEBUG What happens here?
+	if(prom==3)thisDDU->epromload("VMEPROM",VMEPROM,"MySVFFile.svf",1,cbrdnum);
 	if(prom==9)thisDDU->epromload("VMEPROM",VMEPROM,"MySVFFile.svf",1,cbrdnum);
 	if(prom==4||prom==5){
 		int brdnum=thisDDU->read_page7();
@@ -2080,7 +2355,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		//cout << "DDU inside " << cgiDDU << endl;
 	}
 	thisDDU = dduVector[cgiDDU];
-	cout << "My slot is " << thisDDU->slot() << endl;
+	//cout << "My slot is " << thisDDU->slot() << endl;
 
 	ostringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDUFPGA Controls (RUI #" << thisCrate->getRUI(thisDDU->slot()) << ")";
