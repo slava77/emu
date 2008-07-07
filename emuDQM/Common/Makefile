@@ -27,10 +27,13 @@ Sources=\
 	EmuDQM_SOAPCommands.cc \
 	EmuMonitoringObject.cc \
 	EmuMonitoringCanvas.cc \
-	CSCReadoutMappingFromFile.cc
+	CSCReadoutMappingFromFile.cc \
+	CSCDrawChamberMap.cc \
+	CSCDrawSummaryMap.cc
+
 
 Executables =
-ExternalObjects =
+ExternalObjects = ../CMSSWLibs/lib/libCSCDQMCommon.a
 # ../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a
 
 IncludeDirs = $(XdaqIncludeDirs) \

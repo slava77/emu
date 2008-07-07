@@ -1,8 +1,5 @@
 #include "EmuMonitoringCanvas.h"
-
-/** Initializing static varianbles */
-FunctionLauncher EmuMonitoringCanvas::flauncher;
-
+#include <sstream>
 
 EmuMonitoringCanvas::EmuMonitoringCanvas(const EmuMonitoringCanvas& mo)
 {
@@ -16,8 +13,9 @@ EmuMonitoringCanvas::EmuMonitoringCanvas(const EmuMonitoringCanvas& mo)
   params = mo.params;
   cnv_width = mo.cnv_width;
   cnv_height = mo.cnv_height;
-  runNumber=mo.runNumber;
   displayInWeb = mo.displayInWeb;
+  summaryMap=mo.summaryMap;
+  chamberMap=mo.chamberMap;
 }
 
 EmuMonitoringCanvas& EmuMonitoringCanvas::operator=(const EmuMonitoringCanvas& mo) 
@@ -32,8 +30,10 @@ EmuMonitoringCanvas& EmuMonitoringCanvas::operator=(const EmuMonitoringCanvas& m
   params = mo.params;
   cnv_width = mo.cnv_width;
   cnv_height = mo.cnv_height;
-  runNumber=mo.runNumber;
   displayInWeb = mo.displayInWeb;
+  summaryMap=mo.summaryMap;
+  chamberMap=mo.chamberMap;
+
   return *this;
 }
 
@@ -48,17 +48,21 @@ EmuMonitoringCanvas::EmuMonitoringCanvas() :
 	
 {
   canvas = NULL;
-  runNumber="";
   displayInWeb = true;
+  summaryMap=NULL;
+  chamberMap=NULL;
+
   params.clear();
 }
 
 EmuMonitoringCanvas::EmuMonitoringCanvas(DOMNode* info) 
 {
   canvas = NULL;
-  runNumber="";
   displayInWeb = true;
   parseDOMNode(info);
+  summaryMap=NULL;
+  chamberMap=NULL;
+
   Book();
 }
 
@@ -75,7 +79,7 @@ int EmuMonitoringCanvas::Book()
     canvas = NULL;
     }
 
-std::map<std::string, std::string> other_params;
+    std::map<std::string, std::string> other_params;
     std::map<std::string, std::string>::iterator itr;
     if ((itr = params.find("NumPadsX")) != params.end()) {
     nbinsx = strtol( itr->second.c_str(), &stopstring, 10 );
@@ -101,24 +105,24 @@ int EmuMonitoringCanvas::Book(DOMNode* info)
   return 0;
 }
 
-void EmuMonitoringCanvas::Draw(ME_List& MEs) 
+void EmuMonitoringCanvas::Draw(ME_List& MEs, bool useDrawType) 
 {
-  Draw(MEs, cnv_width, cnv_height);
+  Draw(MEs, cnv_width, cnv_height, useDrawType);
 }
 
-void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
+void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height, bool useDrawType)
 {
   int npadsx = 1, npadsy = 1;;
   char *stopstring;
 
   setCanvasWidth(width);
   setCanvasHeight(height);
-
-  if (canvas != NULL) {
+  /*
+    if (canvas != NULL) {
     delete canvas;
     canvas = NULL;
-  }
-
+    }
+  */
   gStyle->SetPalette(1,0);
 
   std::map<std::string, std::string> other_params;
@@ -133,24 +137,114 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
     canvas = new MonitoringCanvas(getFullName().c_str(), getFullName().c_str(), getTitle().c_str(), 
 				  npadsx, npadsy, getCanvasWidth(), getCanvasHeight());
     canvas->SetCanvasSize(width, height);
-    canvas->SetRunNumber(runNumber.c_str());
     for (int i=0; i< npadsx*npadsy; i++) {
       canvas->cd(i+1);
       std::stringstream st;
       st << "Pad" << i+1;
       std::string objname = "";
-
       if ((itr = params.find(st.str())) != params.end()) {
 	objname = itr->second;
       }
+      if (!objname.empty() && !MEs.empty()) {
+	ME_List_iterator obj = MEs.find(objname);
+	if (obj != MEs.end()) {
+	  // obj->second->Draw();
+	  std::string leftMargin = obj->second->getParameter("SetLeftMargin");
+	  if (leftMargin != "" ) {
+	    gPad->SetLeftMargin(atof(leftMargin.c_str()));
+	  }
+	  std::string rightMargin = obj->second->getParameter("SetRightMargin");
+	  if (rightMargin != "" ) {
+	    gPad->SetRightMargin(atof(rightMargin.c_str()));
+	  }
 
-      flauncher.execute(objname, MEs);
+	  std::string logx = obj->second->getParameter("SetLogx");
+	  if (logx!= "") {
+	    //  std::cout << "Logx " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
+	    gPad->SetLogx();
+	  }
+	  std::string logy = obj->second->getParameter("SetLogy");
+	  if (logy!= "" && (obj->second->getObject()->GetMaximum()>0.)) {
+	    // if (logy!= "") {
+	    //  std::cout << "Logy " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
+	    gPad->SetLogy();
+	  }
 
+ 	  std::string logz = obj->second->getParameter("SetLogz");
+          if (logz!= "" && (obj->second->getObject()->GetMaximum()>0.) ) {
+	    // if (logz!= "") {
+	    //  std::cout << "Logz " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
+            gPad->SetLogz();
+          }
+
+	  std::string gridx = obj->second->getParameter("SetGridx");
+          if (gridx!= "" ) {
+            gPad->SetGridx();
+          }
+
+          std::string gridy = obj->second->getParameter("SetGridy");
+          if (gridy!= "" ) {
+            gPad->SetGridy();
+          }
+
+
+	  if (obj->second->getParameter("SetStats") != "") {
+	    int stats = strtol( obj->second->getParameter("SetStats").c_str(), &stopstring, 10 );
+	    obj->second->getObject()->SetStats(bool(stats));
+	  }
+
+
+	  if (useDrawType) {
+	    std::string drawtype=obj->second->getParameter("DrawType");
+
+	    if ((drawtype.find("ChamberMap") != std::string::npos) && (chamberMap!=NULL)) {
+	      TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
+	      chamberMap->draw(tmp);
+	    } else if ((drawtype.find("SummaryDetectorMap") != std::string::npos) && (summaryMap!=NULL)) {
+	      	TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
+	      	summaryMap->drawDetector(tmp);
+	    } else if ((drawtype.find("SummaryStationMap") != std::string::npos) && (summaryMap!=NULL)) {
+	      std::string station_str = obj->second->getName();
+	      REREPLACE(".*Summary_ME([1234])$", station_str, "$1");
+	      TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
+	      summaryMap->drawStation(tmp, atoi(station_str.c_str()));
+	    } else {
+	      obj->second->Draw();
+	    }
+	  } else obj->second->Draw();
+
+
+	  //	  obj->second->Draw();
+	  /*
+	    if (obj->second->getParameter("SetLabelSizeZ") != "") {
+	    std::string st = obj->second->getParameter("SetlabelSizeZ");
+	    double opt = atof(st.c_str()) ;
+	    if (obj->second->getObject()) {
+	    TPaletteAxis *palette = (TPaletteAxis*)(obj->second->getObject()->GetListOfFunctions()->FindObject("palette"));
+	    if (palette != NULL) {
+	    palette->SetLabelSize(opt);
+	    } else {
+	    std::cout << "Unable to find palette" << std::endl;
+	    }
+
+	    }
+	    }
+	  */
+	  std::string statOpt = obj->second->getParameter("SetOptStat");
+	  if (statOpt != "" ) {
+	    gStyle->SetOptStat(statOpt.c_str());
+	  } else {
+	    //   gStyle->SetOptStat("e");
+	  }
+
+        }
+      }      
     }
-  }
-
+  }//  else {
+  // canvas->SetCanvasSize(width, height);
   canvas->Draw();
   canvas->SetCanvasSize(width, height);
+  //}
 
 }
 
@@ -161,6 +255,7 @@ EmuMonitoringCanvas::~EmuMonitoringCanvas()
     delete canvas;
     canvas = NULL;
   }
+
 }
 
 void EmuMonitoringCanvas::setName(std::string newname)
@@ -292,4 +387,3 @@ int EmuMonitoringCanvas::parseDOMNode(DOMNode* info)
   }
   return 0;
 }
-

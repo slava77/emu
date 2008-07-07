@@ -95,9 +95,12 @@ class EmuMonitoringCanvas
         bool getDisplayInWeb(){ return displayInWeb; }
 
 	void Write() {if (canvas!=NULL) canvas->Write();}
-	void Draw(ME_List& MEs);
-        void Draw(ME_List& MEs, int width, int height);
+	void Draw(ME_List& MEs, bool useDrawType=false);
+        void Draw(ME_List& MEs, int width, int height, bool useDrawType=false);
 	void Print(const char* imgfile) {if (canvas!=NULL) canvas->Print(imgfile);}
+
+	void setChamberMap(ChamberMap *map) {chamberMap=map;}
+	void setSummaryMap(SummaryMap *map) {summaryMap=map;} 
 
 //	DOMNode * getDOMInfo();
 // 	void setDOMInfo(DOMNode *info);
@@ -117,6 +120,9 @@ class EmuMonitoringCanvas
 	int cnv_width;
 	int cnv_height;
 	std::string runNumber;
+	ChamberMap* chamberMap;
+	SummaryMap* summaryMap;
+
 };
 
 /*

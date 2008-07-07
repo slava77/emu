@@ -31,6 +31,9 @@ using namespace XERCES_CPP_NAMESPACE;
 #include <TColor.h>
 #include <TPaletteAxis.h>
 #include <TClass.h>
+#include <TPRegexp.h>
+
+#include "CSCDrawMaps.h"
 
 //#include "EmuMonitorElement.h"
 //class MonitorElement: public TH1 {};
@@ -108,7 +111,7 @@ class EmuMonitoringObject
         }
 
         void applyPadProperties();
-        void Draw() {if (object!=NULL) object->Draw();}
+        void Draw();// {if (object!=NULL) object->Draw();}
 
 	int setObject(MonitorElement* hist);
 	int applyParameters();
