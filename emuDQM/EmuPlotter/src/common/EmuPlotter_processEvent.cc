@@ -759,16 +759,12 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
       int CSCposition = 0;
       getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
 
-      if (isMEvalid(cscME, "BinCheck_DataFlow_Problems_Table", mo)
-	  && isMEvalid(cscME, "BinCheck_DataFlow_Problems_Frequency", mof)) {
+      if (isMEvalid(cscME, "BinCheck_DataFlow_Problems_Table", mo)) {
 	for(int bit=0; bit<bin_checker.nSTATUSES; bit++)
 	  if( chamber->second & (1<<bit) ) {
 	    mo->Fill(0.,bit);
-	    float freq = (mo->GetBinContent(1,bit+1))/nDMBEvents[cscTag];
-	    mof->SetBinContent(1,bit+1, freq);
 	  }
 	mo->SetEntries(nDMBEvents[cscTag]);
-	mof->SetEntries(nDMBEvents[cscTag]);
       }
 
       
@@ -850,29 +846,14 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 
       bool isCSCError = false;
 
-      if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
-	  && isMEvalid(cscME, "BinCheck_Errors_Frequency", mof)) {
+      if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)) {
 	for(int bit=5; bit<24; bit++)
 	  if( chamber->second & (1<<bit) ) {
 	    isCSCError = true;
 	    mo->Fill(0.,bit-5);
 	   
-	    double freq = mo->GetBinContent(1,bit-4)/nDMBEvents[cscTag];
-	    mof->SetBinContent(1,bit-4, freq);
-	    // mof->SetBinContent(bit-4, freq);
 	  }
-	/*
-	// Check Error in bit 26
-	if( chamber->second & (1<<25) ) {
-	isCSCError = true;
-	mo->Fill(0.,20);
-
-	float freq = (mo->GetBinContent(1,21))/nDMBEvents[cscTag];
-	mof->SetBinContent(1, 21, freq);
-	}
-	*/
 	mo->SetEntries(nDMBEvents[cscTag]);
-	mof->SetEntries(nDMBEvents[cscTag]);
       }
 
       if (isCSCError) {
@@ -966,7 +947,47 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
   */
 }
 
-/*
+void EmuPlotter::updateCSCHistos()
+{
+   std::map<std::string, ME_List>::iterator itr;
+   for (itr = MEs.begin(); itr != MEs.end(); ++itr) {
+     if (itr->first.find("CSC_") != std::string::npos) {
+       updateCSCFractionHistos(itr->first);
+     }
+   }
+
+}
+
+void EmuPlotter::updateCSCFractionHistos(std::string cscTag)
+{
+
+  EmuMonitoringObject *mo = NULL;
+  EmuMonitoringObject *mof = NULL;
+  ME_List& cscME = MEs[cscTag];
+
+  if (isMEvalid(cscME, "BinCheck_DataFlow_Problems_Table", mo)
+      && isMEvalid(cscME, "BinCheck_DataFlow_Problems_Frequency", mof)) {
+    mof->getObject()->Reset();
+    mof->getObject()->Add(mo->getObject());
+    mof->getObject()->Scale(1./(nDMBEvents[cscTag]));
+    mof->getObject()->SetMaximum(1.);
+    mof->SetEntries(nDMBEvents[cscTag]);
+    mo->SetEntries(nDMBEvents[cscTag]);
+
+  }
+
+  if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
+      && isMEvalid(cscME, "BinCheck_Errors_Frequency", mof)) {
+    mof->getObject()->Reset();
+    mof->getObject()->Add(mo->getObject());
+    mof->getObject()->Scale(1./(nDMBEvents[cscTag]));
+    mof->getObject()->SetMaximum(1.);
+    mof->SetEntries(nDMBEvents[cscTag]);
+    mo->SetEntries(nDMBEvents[cscTag]);
+  }
+}
+
+    /*
   After the histograms have been collected this function
   updates fraction histograms.
 */
@@ -978,6 +999,7 @@ void EmuPlotter::updateFractionHistos()
   nodeME = MEs[nodeTag];
 
   //  LOG4CPLUS_WARN(logger_, "Update Fraction Histograms");
+
   /*
   EmuMonitoringObject *mo = NULL;
   EmuMonitoringObject *mo1 = NULL;
@@ -1030,6 +1052,7 @@ void EmuPlotter::updateFractionHistos()
   calcFractionHisto(nodeME, "CSC_DMB_input_timeout_Fract", "CSC_Reporting", "CSC_DMB_input_timeout");
   calcFractionHisto(nodeME, "DMB_input_timeout_Fract", "DMB_Reporting", "DMB_input_timeout");
   calcFractionHisto(nodeME, "CSC_L1A_out_of_sync_Fract", "CSC_Reporting", "CSC_L1A_out_of_sync");
+  calcFractionHisto(nodeME, "DMB_L1A_out_of_sync_Fract", "DMB_Reporting", "DMB_L1A_out_of_sync");
   
 /*
   if (isMEvalid(nodeME, "DMB_Format_Warnings_Fract", mo)
@@ -1057,6 +1080,90 @@ void EmuPlotter::updateFractionHistos()
       delete tmp;
     }
 */
+
+}
+
+/*
+  After the histograms have been collected this function
+  updates detector summary efficiency histograms.
+*/
+void EmuPlotter::updateEfficiencyHistos()
+{
+
+  std::string nodeTag = "EMU";
+  ME_List nodeME; // === Global histos
+  nodeME = MEs[nodeTag];
+
+  EmuMonitoringObject *mo = NULL;
+  EmuMonitoringObject *mo1 = NULL;
+  //
+  // Set detector information
+  //
+
+  summary.Reset();
+
+  if (isMEvalid(nodeME, "CSC_Reporting", mo)) {
+
+    TH2* rep = dynamic_cast<TH2*>(mo->getObject());
+    summary.ReadReportingChambers(rep, 1.0);
+
+    if (isMEvalid(nodeME, "CSC_Format_Errors", mo1)) {
+      TH2* err = dynamic_cast<TH2*>(mo1->getObject());
+      summary.ReadErrorChambers(rep, err, 0.1, 5.0);
+    }
+
+    if (isMEvalid(nodeME, "CSC_L1A_out_of_sync", mo1)) {
+      TH2* err = dynamic_cast<TH2*>(mo1->getObject());
+      summary.ReadErrorChambers(rep, err, 0.1, 5.0);
+    }
+
+    if (isMEvalid(nodeME, "CSC_DMB_input_fifo_full", mo1)) {
+      TH2* err = dynamic_cast<TH2*>(mo1->getObject());
+      summary.ReadErrorChambers(rep, err, 0.1, 5.0);
+    }
+
+    if (isMEvalid(nodeME, "CSC_DMB_input_timeout", mo1)) {
+      TH2* err = dynamic_cast<TH2*>(mo1->getObject());
+      summary.ReadErrorChambers(rep, err, 0.1, 5.0);
+    }
+
+  }
+
+  //
+  // Write summary information
+  //
+
+
+  if (isMEvalid(nodeME, "Summary_ME1", mo)) {
+    TH2* tmp = dynamic_cast<TH2*>(mo->getObject());
+    summary.Write(tmp, 1);
+  }
+
+  if (isMEvalid(nodeME, "Summary_ME2", mo)) {
+    TH2* tmp = dynamic_cast<TH2*>(mo->getObject());
+    summary.Write(tmp, 2);
+  }
+
+  if (isMEvalid(nodeME, "Summary_ME3", mo)) {
+    TH2* tmp = dynamic_cast<TH2*>(mo->getObject());
+    summary.Write(tmp, 3);
+  }
+
+  if (isMEvalid(nodeME, "Summary_ME4", mo)) {
+    TH2* tmp = dynamic_cast<TH2*>(mo->getObject());
+    summary.Write(tmp, 4);
+  }
+
+
+  if (isMEvalid(nodeME, "reportSummaryMap", mo)) {
+
+    TH2* tmp=dynamic_cast<TH2*>(mo->getObject());
+    float rs = summary.WriteMap(tmp);
+    float he = summary.GetEfficiencyHW();
+    TString title = Form("EMU Status: Physics Efficiency %.2f", rs);
+    tmp->SetTitle(title);
+
+  }
 
 } 
 

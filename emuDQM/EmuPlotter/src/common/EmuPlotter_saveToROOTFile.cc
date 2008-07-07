@@ -10,6 +10,8 @@ void EmuPlotter::saveToROOTFile(std::string filename)
   TFile f(filename.c_str(), "recreate");
   if (!f.IsZombie()) {
     updateFractionHistos();
+    updateCSCHistos();
+    updateEfficiencyHistos();
     fBusy = true;
     gStyle->SetPalette(1,0);
     f.cd();
@@ -78,7 +80,7 @@ void EmuPlotter::saveCanvasesToROOTFile(std::string filename)
 	} else rdir->cd(folder.c_str());
 	if (me_itr != MEs.end()) {
 	  h_itr->second->setRunNumber(runNumber);
-	  h_itr->second->Draw(me_itr->second);          
+	  h_itr->second->Draw(me_itr->second, true);          
 	  h_itr->second->Write();
 	}
       }

@@ -46,6 +46,8 @@ int EmuPlotter::loadXMLCanvasesInfo(std::string xmlFile)
 	if (obj->getPrefix().find("CSC") != std::string::npos) {
                 chamberCanvasesFactory[name] = obj;
         } else {
+		obj->setSummaryMap(&summaryMap);
+		obj->setChamberMap(&chamberMap);
 		commonCanvasesFactory[name] = obj;
 	}
   }

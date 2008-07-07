@@ -231,7 +231,8 @@ std::string EmuPlotter::getCSCTypeLabel(int endcap, int station, int ring )
         return label;
 }
 
-void EmuPlotter::getCSCFromMap(int crate, int slot, int& csctype, int& cscposition)
+
+std::string EmuPlotter::getCSCFromMap(int crate, int slot, int& csctype, int& cscposition)
 {
 //  LOG4CPLUS_INFO(logger_, "========== get CSC from Map crate" << crate << " slot" << slot);
   int iendcap = -1;
@@ -239,8 +240,9 @@ void EmuPlotter::getCSCFromMap(int crate, int slot, int& csctype, int& cscpositi
   int iring = -1;
   // TODO: Add actual Map conversion
   int id = cscMapping.chamber(iendcap, istation, crate, slot, -1);
+  std::string cscname="";
   if (id==0) {
-        return;
+        return cscname;
   }
   CSCDetId cid( id );
   iendcap = cid.endcap();
@@ -254,13 +256,14 @@ void EmuPlotter::getCSCFromMap(int crate, int slot, int& csctype, int& cscpositi
   if (it != tmap.end()) {
         csctype = it->second;
 //      LOG4CPLUS_INFO(logger_, "========== get CSC from Map label:" << tlabel << "/" << cscposition);
+	cscname=std::string(Form("%s/%02d",tlabel.c_str(),cscposition));
   } else {
 //      LOG4CPLUS_INFO(logger_, "========== can not find map");
         csctype = 0;
   }
 
   // return bin number which corresponds for CSC Type (ex. ME+4/2 -> bin 18)
-
+  return cscname;
 
 }
 
