@@ -4,6 +4,29 @@
 <!-- ========================================================================================
 # EMU Level histograms
 ============================================================================================= -->
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Status00</Name>
+                <Title>EMU Status00 - Overall EMU Physics Efficiency</Title>
+                <NumPadsX>1</NumPadsX>
+                <NumPadsY>1</NumPadsY>
+                <Pad1>reportSummaryMap</Pad1>
+        </Canvas>
+
+
+	<Canvas>
+                <Type>cnv</Type>
+                <Prefix>EMU</Prefix>
+                <Name>EMU_Status01</Name>
+                <Title>EMU Status01 - EMU Stations Physics Efficiency</Title>
+                <NumPadsX>2</NumPadsX>
+                <NumPadsY>2</NumPadsY>
+                <Pad1>Summary_ME1</Pad1>
+		<Pad2>Summary_ME2</Pad2>
+                <Pad3>Summary_ME3</Pad3>
+                <Pad4>Summary_ME4</Pad4>
+        </Canvas>
 
 	<Canvas>
 		<Type>cnv</Type>
@@ -65,7 +88,7 @@
         <Canvas>
                 <Type>cnv</Type>
                 <Prefix>EMU</Prefix>
-                <Name>EMU_Test06_DDU_Inpits_in_Error_State</Name>
+                <Name>EMU_Test06_DDU_Inputs_in_Error_State</Name>
                 <Title>EMU Test06 - DDU Inputs in ERROR/WARNING State</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>2</NumPadsY>
@@ -1269,7 +1292,7 @@
 		<Pad1>TMB_Word_Count</Pad1>
 		<Folder>TMB</Folder>
 	</Canvas>
-	<Canvas>
+	<!--Canvas>
 		<Type>cnv</Type>
 		<Prefix>CSC</Prefix>
 		<Name>TMB_ALCT0_KeyWiregroup_vs_CLCT0_Key_DiStrip</Name>
@@ -1278,5 +1301,5 @@
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CLCT0_KeyDiStrip_vs_ALCT0_KeyWiregroup</Pad1>
 		<Folder>TMB</Folder>
-	</Canvas>
+	</Canvas-->
 </Canvases>

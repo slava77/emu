@@ -174,7 +174,8 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 		  if (melist_itr != MEs.end()) 
 		    {
 		      // LOG4CPLUS_WARN (getApplicationLogger(), "Folder: " << folder);
-		      if (folder.find("EMU") == 0) plotter_->updateFractionHistos();	   	      
+		      if (folder.find("EMU") == 0) plotter_->updateFractionHistos();	   	     
+		      if (folder.find("CSC_") == 0) plotter_->updateCSCFractionHistos(folder); 
 		      xoap::SOAPName objectTag ("Object", "", "");
 		      std::vector<xoap::SOAPElement> objectElement = f_itr->getChildElements (objectTag );
 		      for (std::vector<xoap::SOAPElement>::iterator o_itr = objectElement.begin();
@@ -182,8 +183,10 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 			{
 			  objname = o_itr->getValue();
 			  // == Find object in MEs list
-			  ME_List_const_iterator meobj_itr = melist_itr->second.find(objname);
+			  ME_List_const_iterator meobj_itr = melist_itr->second.find(objname);			  
 			  if (meobj_itr != melist_itr->second.end()) {
+			    // Check and Update detector efficiency histograms
+			    if (objname.find("EMU_Status") != std::string::npos) plotter_->updateEfficiencyHistos();
 			    TMessage buf(kMESS_OBJECT);
 			    buf.Reset();
 			    buf.SetWriteMode();
@@ -329,7 +332,8 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 		  if ((cnvlist_itr != MECanvases.end()) && (melist_itr != MEs.end()))
 		    {
 		      // LOG4CPLUS_WARN (getApplicationLogger(), "Folder: " << folder);
-		      if (folder.find("EMU") == 0) plotter_->updateFractionHistos();	   	      		      
+		      if (folder.find("EMU") == 0) plotter_->updateFractionHistos();	   	      		     
+          	      if (folder.find("CSC_") == 0) plotter_->updateCSCFractionHistos(folder); 
 		      xoap::SOAPName objectTag ("Canvas", "", "");
 		      std::vector<xoap::SOAPElement> objectElement = f_itr->getChildElements (objectTag );
 		      for (std::vector<xoap::SOAPElement>::iterator o_itr = objectElement.begin();
@@ -341,6 +345,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 			  // ME_List_const_iterator meobj_itr = melist_itr->second.find(objname);
 			  MECanvases_List_const_iterator cnvobj_itr = cnvlist_itr->second.find(objname);
 			  if (cnvobj_itr != cnvlist_itr->second.end()) {
+			    if (objname.find("EMU_Status") != std::string::npos) plotter_->updateEfficiencyHistos();
 			    TMessage buf(kMESS_OBJECT);
 			    buf.Reset();
 			    buf.SetWriteMode();
