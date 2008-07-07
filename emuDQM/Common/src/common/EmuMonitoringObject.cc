@@ -145,11 +145,11 @@ int EmuMonitoringObject::Book()
     } else
       if (type.find("h3") != std::string::npos) {
 	object = (MonitorElement*) new TH3F(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup, 
-			  nbinsy, ylow, yup, nbinsz, zlow, zup);
+					    nbinsy, ylow, yup, nbinsz, zlow, zup);
       }else
 	if (type.find("hp2") != std::string::npos) {
 	  object = (MonitorElement*) new TProfile2D(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup, 
-				  nbinsy, ylow, yup);
+						    nbinsy, ylow, yup);
 	} else
 	  if (type.find("hp") != std::string::npos) {
 	    object = (MonitorElement*) new TProfile(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup);
@@ -335,6 +335,13 @@ int EmuMonitoringObject::applyParameters()
   return 0;
 }
 
+
+void  EmuMonitoringObject::Draw()
+{
+  if (object!=NULL) {
+	object->Draw();
+  }
+}
 
 int EmuMonitoringObject::Book(DOMNode* info)
 {
