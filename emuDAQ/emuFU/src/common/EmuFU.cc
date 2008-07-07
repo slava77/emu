@@ -1200,8 +1200,10 @@ throw (toolbox::fsm::exception::Exception)
 
   // Get time of end of run
   try{
-    runStopTime_ = getScalarParam(*taDescriptors_.begin(),"runStopTime","string");
-    LOG4CPLUS_INFO(logger_, "Got run stop time from EmuTA: " << runStopTime_.toString() );
+    if ( *taDescriptors_.begin() != NULL ){
+      runStopTime_ = getScalarParam(*taDescriptors_.begin(),"runStopTime","string");
+      LOG4CPLUS_INFO(logger_, "Got run stop time from EmuTA: " << runStopTime_.toString() );
+    }
   }
   catch( emuFU::exception::Exception e ){
     LOG4CPLUS_WARN(logger_, "Run stop time will be unknown: " << xcept::stdformat_exception_history(e) );
