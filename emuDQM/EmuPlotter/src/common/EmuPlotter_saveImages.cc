@@ -7,6 +7,7 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
   if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
   
   updateFractionHistos();
+  updateEfficiencyHistos();
 
   std::ofstream tree_items;
 
@@ -170,7 +171,7 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
         if (me_itr != MEs.end()) {
 	  LOG4CPLUS_WARN(logger_, imgfile);
 	  h_itr->second->setRunNumber(runNum);
-          h_itr->second->Draw(me_itr->second, width, height);
+          h_itr->second->Draw(me_itr->second, width, height, true);
 	  h_itr->second->Print(imgfile.c_str());
         }
         tree_items << "                    ['"<< h_itr->second->getTitle() << "','" << relname <<"']," << std::endl;

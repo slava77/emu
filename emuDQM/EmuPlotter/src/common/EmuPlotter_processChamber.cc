@@ -69,6 +69,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   CSCDetId cid( id );
 
 
+  int CSCtype = 0;
+  int CSCposition = 0;
+  std::string cscName = getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
+
+//  if (cscName != "") cscTag+=" ["+cscName+"]";
   // nDMBEvents[cscTag]++;
   double DMBEvents  = 0.0;
   DMBEvents = nDMBEvents[cscTag];  
@@ -80,7 +85,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
   if (h_itr == MEs.end() || (MEs.size()==0)) {
     LOG4CPLUS_WARN(logger_, eTag << 
-		   "List of MEs for " << cscTag <<  " not found. " << evtSize );
+		   "List of MEs for " << cscTag << "[" << cscName << "] not found. " << evtSize );
     LOG4CPLUS_DEBUG(logger_, 
 		    "Booking Histos for " << cscTag);
     fBusy = true;
@@ -97,10 +102,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   CSCCounters& trigCnts = cscCntrs[cscTag];
   trigCnts["DMB"] = nDMBEvents[cscTag];
 
-  
+ /* 
   int CSCtype = 0;
   int CSCposition = 0;
   this->getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
+*/
   if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo)){
     mo->Fill(CSCposition, CSCtype);
   }
@@ -1379,6 +1385,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (L1A_out_of_sync && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_L1A_out_of_sync", mo)){
     mo->Fill(CSCposition, CSCtype);
   }
+
+  if (L1A_out_of_sync && isMEvalid(nodeME, "DMB_L1A_out_of_sync", mo)){
+    mo->Fill(crateID, dmbID);
+  }
+
 
 
 

@@ -43,6 +43,9 @@
 #include "DataFormats/CSCDigi/interface/CSCALCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 
+#include "DQM/CSCMonitorModule/interface/CSCSummary.h"
+
+
 // ==  ROOT Section
 #include <TROOT.h>
 #include <TApplication.h>
@@ -138,6 +141,8 @@ public:
 	std::string filter="");
   void generateCanvasesListFile(std::string filename="canvases_list.js", std::string imgformat="png");
   void generateLayout(std::string filename, std::string rootfolder);
+  int generateReport(std::string rootfile,std::string path,std::string runname="");
+  void showReport();
    
   bool isListModified() { return fListModified;}
   bool isBusy() { return fBusy;};
@@ -159,6 +164,10 @@ public:
   uint32_t getBadEventsCount() const {return nBadEvents;}
   void cleanup();
   void updateFractionHistos();
+  void updateEfficiencyHistos();
+  void updateCSCHistos();
+  void updateCSCFractionHistos(std::string cscTag);
+
 
 protected:
 
@@ -172,7 +181,7 @@ protected:
 
   void init(); 
   void reset();
-  void getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
+  std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
   int loadXMLBookingInfo(std::string xmlFile);
   int loadXMLCanvasesInfo(std::string xmlFile);
   void clearMECollection(ME_List &collection);
@@ -245,7 +254,16 @@ private:
   CSCReadoutMappingFromFile cscMapping;
   std::map<std::string, int> tmap;
   std::string eTag;
-  std::map<std::string, CSCCounters> cscCntrs; 
+  std::map<std::string, CSCCounters> cscCntrs;
+ 
+  /** CSC summary map */
+  CSCSummary summary;
+  ChamberMap chamberMap;
+  SummaryMap summaryMap;
+
+
+  std::map<std::string, std::vector<std::string> > report;
+ 
 
 };
 

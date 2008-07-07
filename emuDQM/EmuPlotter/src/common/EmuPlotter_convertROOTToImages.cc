@@ -24,11 +24,11 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
   std::string runNumber = runname;
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
-        << "    ['Run: " << runNumber << "', ''," << std::endl;
+	     << "    ['Run: " << runNumber << "', ''," << std::endl;
 
   csc_list.open((path+"/csc_list.js").c_str());
   csc_list << "var CSC_LIST = [\n"
-        << "    ['Run: " << runNumber << "'";
+	   << "    ['Run: " << runNumber << "'";
 
   std::vector<std::string> EMU_folders;
   std::vector<std::string> DDU_folders;
@@ -41,7 +41,7 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
  
   while ( (key = (TKey*)nextkey())) {
     TObject *obj = key->ReadObj();
-    if ( obj->IsA()->InheritsFrom( "TDirectory" ) ) 
+    if ( obj->IsA()->InheritsFrom( "TDirectory" ) ) // --- Found Directory
       {
 	std::string name=obj->GetName();
 	//      cout << name << endl;
@@ -79,10 +79,7 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	    printMECollection(MEs[name]);
 	  }
 
-	} else 
-        /* */
-
-        if (name.find("EMU") != std::string::npos) {
+	} else if (name.find("EMU") != std::string::npos) {
 	  int nodeID=0;
 	  /*
 	    int nodeID = -1;
@@ -114,12 +111,18 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 		// if (fReset) 	h_itr->second->getObject()->Reset();
 		//	h_itr->second->getObject()->Add((TH1*)obj);
 		h_itr->second->setObject((MonitorElement*)obj);
+		h_itr->second->applyParameters();
 	      }
 	      // delete obj;
 		
 	    } else {
 	      LOG4CPLUS_ERROR(logger_, "Can not find " << hname);
 	    }
+	  }
+	  
+	  if (name.find("EMU") != std::string::npos) {
+	    updateFractionHistos();
+	    updateEfficiencyHistos();
 	  }
 
 	  std::string imgfile = "";
@@ -145,18 +148,18 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	    std::string fullpath  = path+"/"+relpath + "/" + c_itr->second->getFolder();
 	    imgfile = fullpath + "/"+ fullname;
 	    if (filter == "" || ((filter != "") && (name.find(filter) != std::string::npos))) {
-	    	TString command = Form("mkdir -p %s",fullpath.c_str());
-	    	gSystem->Exec(command.Data());
-	    	// me_itr = MEs.find(name);
-	    	// if (me_itr != MEs.end()) {
-	      	//LOG4CPLUS_WARN(logger_, imgfile);
-	      	c_itr->second->Draw(MEs[name], width, height);
-	      	c_itr->second->Print(imgfile.c_str());
-	    // }
+	      TString command = Form("mkdir -p %s",fullpath.c_str());
+	      gSystem->Exec(command.Data());
+	      // me_itr = MEs.find(name);
+	      // if (me_itr != MEs.end()) {
+	      //LOG4CPLUS_WARN(logger_, imgfile);
+	      c_itr->second->Draw(MEs[name], width, height,true);
+	      c_itr->second->Print(imgfile.c_str());
+	      // }
 	    }
-	      tree_items << "                    ['"<< c_itr->second->getTitle() << "','" << relname <<"']," << std::endl;
+	    tree_items << "                    ['"<< c_itr->second->getTitle() << "','" << relname <<"']," << std::endl;
 	  }
-	   tree_items << "            ]," << std::endl;
+	  tree_items << "            ]," << std::endl;
 	  // }
 
 
@@ -170,12 +173,12 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
       }
   }
   tree_items << "    ],\n"
-        << "];" << std::endl;
+	     << "];" << std::endl;
   tree_items.clear();
   tree_items.close();
 
 
- if (EMU_folders.size()) {
+  if (EMU_folders.size()) {
     std::sort(EMU_folders.begin(), EMU_folders.end());
     csc_list << ",\n['EMU',[";
     for (uint32_t i=0; i<EMU_folders.size(); i++ ) {
@@ -199,22 +202,22 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
     int slot=0;
     int cur_crate=-1;
     for (uint32_t i=0; i<CSC_folders.size(); i++ ) {
-        std::string csc_ptrn = "CSC_%d_%d";
-        if (sscanf(CSC_folders.at(i).c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
-                if (crate != cur_crate) {
-                        if (cur_crate>=0) csc_list << "]]";
-                        csc_list << ",\n['crate"<< crate << "', [";
-                }
-                csc_list << "'slot" << slot << "',";
-        }
-        cur_crate = crate;
+      std::string csc_ptrn = "CSC_%d_%d";
+      if (sscanf(CSC_folders.at(i).c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
+	if (crate != cur_crate) {
+	  if (cur_crate>=0) csc_list << "]]";
+	  csc_list << ",\n['crate"<< crate << "', [";
+	}
+	csc_list << "'slot" << slot << "',";
+      }
+      cur_crate = crate;
 
     }
     csc_list << "]]";
   }
   
   csc_list << "]\n"
-        << "];" << std::endl;
+	   << "];" << std::endl;
   csc_list.clear();
   csc_list.close();
 

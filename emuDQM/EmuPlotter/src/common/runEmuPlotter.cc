@@ -133,6 +133,7 @@ int main(int argc, char **argv) {
     TCLAP::ValueArg<std::string> cfgBookArg("", "hbookfile", "[DATA] Histogram booking XML file", false, "", "path to file");
     TCLAP::ValueArg<std::string> cfgCSCMapArg("", "cscmapfile", "[DATA] CSC Map TXT file", false, "", "path to file");
     TCLAP::SwitchArg forwardRootArg("f","forwardroot", "[DATA] If set then forwards newly created ROOT file for image processing.", false);
+    TCLAP::SwitchArg generateReportArg("g","genrep", "[DATA] If set then generate DQM report from ROOT file.", false);
     
     // for Root histograms processing
     TCLAP::ValueArg<std::string> filterArg("","filter","[ROOT] ROOT file folder filter", false, "", "string");
@@ -157,6 +158,7 @@ int main(int argc, char **argv) {
     cmd.add(dduMaskArg);
     cmd.add(binMaskArg);
     cmd.add(forwardRootArg);
+    cmd.add(generateReportArg);
 
     // Parse the argv array.
     cmd.parse(argc, argv);
@@ -191,6 +193,7 @@ int main(int argc, char **argv) {
     bool isRoot = rootSwitchArg.getValue();
     bool forwardRoot = forwardRootArg.getValue();
     bool configOnly = cfgOnlyArg.getValue();
+    bool generateReport = generateReportArg.getValue();
 
     uint32_t dduCheckMask = dduMaskArg.getValue();
     uint32_t binCheckMask = binMaskArg.getValue();
@@ -348,9 +351,11 @@ int main(int argc, char **argv) {
     if (isRoot) {
       
       LOG4CPLUS_INFO (logger, "Load MEs from ROOT file " << histofile);
-      
+      if (generateReport)
+      	plotter->generateReport(histofile, plotsdir.c_str(), runname);
+      else 
       // Go go go
-      plotter->convertROOTToImages(histofile, plotsdir.c_str(), IMG_FORMAT, IMG_WIDTH, IMG_HEIGHT, runname, filter);
+        plotter->convertROOTToImages(histofile, plotsdir.c_str(), IMG_FORMAT, IMG_WIDTH, IMG_HEIGHT, runname, filter);
 
     }
 

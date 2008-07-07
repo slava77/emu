@@ -37,6 +37,7 @@ Sources=\
 	EmuPlotter_processChamber.cc \
 	EmuPlotter_saveImages.cc \
 	EmuPlotter_saveToROOTFile.cc \
+	EmuPlotter_generateReport.cc \
 	CSCStripClusterFinder.cc \
 	CSCStripClusterFitData.cc \
 	CSCStripCluster.cc \
@@ -51,7 +52,8 @@ TestExecutables =
 ExternalObjects = \
 	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuDQMCommon.a \
 	../CMSSWLibs/lib/libCSCRawToDigi.a \
-        ../CMSSWLibs/lib/libCSCDigi.a 
+        ../CMSSWLibs/lib/libCSCDigi.a \
+	../CMSSWLibs/lib/libCSCDQMCommon.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
 	../CMSSWLibs \
