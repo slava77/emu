@@ -340,13 +340,26 @@ void EmuMonitor::setMemoryPool()
 void EmuMonitor::setupPlotter() 
 {
   if (plotter_ != NULL) {
+
+    if (timer_ != NULL && timer_->isActive()) {
+      int timeout=0;
+      while (timer_->isActive() && timeout < 10) {
+        usleep(1000000);
+        timeout++;
+        LOG4CPLUS_WARN (getApplicationLogger(),
+			"Waiting to finish saving of results... " << timeout);
+      }
+      timer_->kill();
+    }
+
+
     delete plotter_;
     plotter_ = NULL;
   }
 
-   plotter_ = new EmuPlotter(this->getApplicationLogger());
-//   plotter_ = new EmuPlotter();
-//  plotter_->setLogLevel(WARN_LOG_LEVEL);
+  plotter_ = new EmuPlotter(this->getApplicationLogger());
+  //   plotter_ = new EmuPlotter();
+  //  plotter_->setLogLevel(WARN_LOG_LEVEL);
   plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);
   if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
   if (xmlCanvasesCfgFile_ != "") plotter_->setXMLCanvasesCfgFile(xmlCanvasesCfgFile_.toString());
@@ -774,7 +787,7 @@ void EmuMonitor::getCollectors(xdata::String className)
 void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception)
 {
   if (fsm_.getCurrentState() == 'E') doStop();
-  //  doStop();
+
   doConfigure();
   LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
@@ -793,7 +806,9 @@ void EmuMonitor::doStop()
 	// rateMeter->stop();
 	}
     if (fSaveROOTFile_ == xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0))) {
-/*	
+    disableReadout();
+//    usleep(500000);
+	
       if (timer_ != NULL) {
 	timer_->setPlotter(plotter_);
 	timer_->setROOTFileName(getROOTFileName());
@@ -801,15 +816,21 @@ void EmuMonitor::doStop()
 	  timer_->setTimer(plotterSaveTimer_);
 	}
 	timer_->activate();
-
+	int timeout=0;
+        while (!timer_->isActive() && timeout < 3) {
+          usleep(1000000);
+          timeout++;
+          LOG4CPLUS_WARN (getApplicationLogger(),
+                        "Waiting to start saving of results... " << timeout);
+        }
       }
-*/
-      disableReadout();	      
-      plotter_->saveToROOTFile(getROOTFileName());
+
+//    disableReadout();	      
+//      plotter_->saveToROOTFile(getROOTFileName());
     }
    
   }
-  disableReadout();
+//  disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
   appBSem_.give();
@@ -828,9 +849,18 @@ void EmuMonitor::doConfigure()
     if (xmlCfgFile_ != "" && plotter_ != NULL) plotter_->setXMLCfgFile(xmlCfgFile_.toString());
     if (plotter_ != NULL) plotter_->book(appTid_);
   */
-  if (timer_ != NULL && timer_->isActive())
+/*
+  if (timer_ != NULL && timer_->isActive()) {
+    int timeout=0;
+    while (timer_->isActive() && timeout < 10) {
+	usleep(1000000);
+	timeout++;
+	LOG4CPLUS_WARN (getApplicationLogger(),
+                      "Waiting to finish saving of results... " << timeout);
+    } 
     timer_->kill();
-
+  }
+*/
   setupPlotter();
   if (plotter_ != NULL) {
     // timer_->setPlotter(plotter_);
@@ -964,10 +994,10 @@ void EmuMonitor::Halt(xgi::Input * in ) throw (xgi::exception::Exception)
 void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   // Emu-specific stuff
   creditsHeld_ = ((I2O_EMU_DATA_MESSAGE_FRAME*)bufRef->getDataLocation())->nEventCreditsHeld;
-  if (fsm_.getCurrentState() != 'E') {
-    LOG4CPLUS_WARN(getApplicationLogger(),"Dropping received Data. Not in Enabled state.");
+  if (fsm_.getCurrentState() != 'E' || !isReadoutActive) {
+    // LOG4CPLUS_WARN(getApplicationLogger(),"Dropping received Data. Not in Enabled state.");
 	
-    LOG4CPLUS_WARN(getApplicationLogger(),"EmuRUI holding " << creditsHeld_ << " event credits");
+    // LOG4CPLUS_WARN(getApplicationLogger(),"EmuRUI holding " << creditsHeld_ << " event credits");
     bufRef->release();
     return;	
   }
@@ -1085,6 +1115,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
           return 1; // error
         }
       catch (xdaq::exception::Exception & e)
+//      catch (pt::tcp::exception::Exception & e)
         {
           // Retry 3 times
           bool retryOK = false;
@@ -1307,14 +1338,22 @@ int EmuMonitor::svc()
 	}
 	waittime = 0;
 	//usleep(200000);
+        
 	if (!pool_->isHighThresholdExceeded())
 	  {
+	    try {
 	    // Stop if there is an error in sending
 	    if (this->sendDataRequest(0) == 1)
 	      {
 		LOG4CPLUS_FATAL (getApplicationLogger(), toolbox::toString("Error in frameSend. Stopping client."));
-		return 1;
-	      }
+		// return 1;
+	      };
+	    } 
+           catch (pt::tcp::exception::Exception & e)
+        {
+              LOG4CPLUS_FATAL (getApplicationLogger(), xcept::stdformat_exception_history(e));
+        }
+
 	  } else
 	    {
 	      LOG4CPLUS_DEBUG (getApplicationLogger(), "high threshold is exceeded");
