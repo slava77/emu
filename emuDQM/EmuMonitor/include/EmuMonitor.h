@@ -28,6 +28,8 @@
 #include "i2o/Method.h"
 #include "i2o/utils/AddressMap.h"
 
+#include "pt/tcp/exception/Exception.h"
+
 #include "i2oEmuMonitorMsg.h"
 
 #include "EmuFileReader.h"
