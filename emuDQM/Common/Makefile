@@ -24,7 +24,6 @@ Package=emuDQM/Common
 Sources=\
 	ConsumerCanvas.cc \
 	EmuDQM_AppParameters.cc \
-	EmuDQM_SOAPCommands.cc \
 	EmuMonitoringObject.cc \
 	EmuMonitoringCanvas.cc \
 	CSCReadoutMappingFromFile.cc \

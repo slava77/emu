@@ -12,4 +12,6 @@
 #include "xcept/Exception.h"
 #include "xcept/tools.h"
 
+#include "pt/exception/Exception.h"
+
 #endif
