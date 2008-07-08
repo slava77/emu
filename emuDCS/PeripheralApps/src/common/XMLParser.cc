@@ -792,6 +792,9 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 //		daqmb_->SetL1aExtraCfeb(number,ivalue);
 //	      }
 //fg
+	      if (fillLongIntX("cfeb_firmware_tag", long_value) ) 
+		daqmb_->SetExpectedCFEBFirmwareTag(number,long_value);
+	      //
 	      fillIntX("kill_chip0",kill_chip[0]);
 	      fillIntX("kill_chip1",kill_chip[1]);
 	      fillIntX("kill_chip2",kill_chip[2]);
@@ -799,10 +802,10 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
 	      fillIntX("kill_chip4",kill_chip[4]);
 	      fillIntX("kill_chip5",kill_chip[5]);
 	      //
-	      if (fillLongIntX("cfeb_firmware_tag", long_value) ) 
-		daqmb_->SetExpectedCFEBFirmwareTag(number,long_value);
-	      //
 	      for(int chip=0;chip<6;chip++){
+		//
+		daqmb_->SetKillChip(number,chip,kill_chip[chip]);
+		//
 		for(int chan=0;chan<16;chan++){
 		  unsigned short int mask=(1<<chan);
 		  if((mask&kill_chip[chip])==0x0000){

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.24 2008/06/22 14:57:52 liu Exp $
+// $Id: DAQMB.h,v 3.25 2008/07/08 10:41:22 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.25  2008/07/08 10:41:22  rakness
+// add getter/setter for kill_chip
+//
 // Revision 3.24  2008/06/22 14:57:52  liu
 // new functions for monitoring
 //
@@ -545,7 +548,10 @@ public:
   inline void SetShiftArray(int cfeb, int chip, int chan, int value){
     shift_array_[cfeb][chip][chan] = value;
   }
-
+  //
+  inline void SetKillChip(int cfeb, int chip, int value) { kill_chip_[cfeb][chip] = value; }
+  inline int  GetKillChip(int cfeb, int chip) { return kill_chip_[cfeb][chip]; }
+  //
   inline int GetFirmwareYear(){ return fwyear_; }
   inline int GetFirmwareMonth(){ return fwmonth_; }
   inline int GetFirmwareDay(){ return fwday_; }
@@ -560,7 +566,8 @@ public:
   static const int layers[6];
   char febstat_[5][4];
   //
-  
+  int kill_chip_[5][6];
+  //
   int fwyear_, fwmonth_, fwday_, fwvers_, fwrv_;
 
   Chamber * csc_;
