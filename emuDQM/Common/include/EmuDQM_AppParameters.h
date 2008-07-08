@@ -20,6 +20,8 @@
 #include "xoap/domutils.h"
 #include "xcept/tools.h"
 
+#include "EmuDQM/exception/Exception.h"
+
 
 namespace emu {
   namespace dqm {
@@ -28,7 +30,7 @@ namespace emu {
        DOMNodeList *nodeList,
        const std::string nodeLocalName
        )
-       throw (xcept::Exception);
+       throw (emu::dqm::exception::Exception);
 
     /**
      * Gets and returns the value of the specified parameter from the specified
@@ -42,8 +44,9 @@ namespace emu {
        xdaq::ApplicationDescriptor* appDescriptor,
        const std::string                 paramName,
        const std::string                 paramType
-       );
-      // throw (xcept::Exception);
+       )
+        throw (emu::dqm::exception::Exception);
+
     /**
      * Sets the specified parameter of the specified application to the
      * specified value.
@@ -56,8 +59,8 @@ namespace emu {
        const std::string                 paramName,
        const std::string                 paramType,
        const std::string                 paramValue
-       );
-      // throw (xcept::Exception);
+       )
+      throw (emu::dqm::exception::Exception);
 
     /**
      * Creates a ParameterGet SOAP message.
@@ -68,7 +71,7 @@ namespace emu {
        const std::string paramName,
        const std::string paramType
        )
-      throw (xcept::Exception);
+      throw (emu::dqm::exception::Exception);
 
     /**
      * Creates a ParameterSet SOAP message.
@@ -80,7 +83,7 @@ namespace emu {
        const std::string paramType,
        const std::string paramValue
        )
-      throw (xcept::Exception);
+      throw (emu::dqm::exception::Exception);
 
     /**
      * Returns the value of the specified parameter from the specified SOAP
@@ -90,8 +93,32 @@ namespace emu {
       (
        xoap::MessageReference msg,
        const std::string           paramName
-       );
-      // throw (xcept::Exception);
+       )
+      throw (emu::dqm::exception::Exception);
+
+   /**
+     * Sends the specified FSM event as a SOAP message to the specified
+     * application.  An exception is raised if the application does not reply
+     * successfully with a SOAP response.
+     */
+
+   void sendFSMEventToApp
+    (
+        const std::string                 eventName,
+	xdaq::ApplicationContext *appContext_,
+        xdaq::ApplicationDescriptor* appSrcDescriptor,
+        xdaq::ApplicationDescriptor* appDescriptor
+    )
+    throw (emu::dqm::exception::Exception);
+
+      /**
+     * Creates a simple SOAP message representing a command with no
+     * parameters.
+     */
+    xoap::MessageReference createSimpleSOAPCmdMsg(const std::string cmdName)
+    throw (emu::dqm::exception::Exception);
+
+
   }
 }
 

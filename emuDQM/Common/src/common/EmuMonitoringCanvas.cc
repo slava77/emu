@@ -327,12 +327,26 @@ int EmuMonitoringCanvas::parseDOMNode(DOMNode* info)
   std::map<std::string, std::string>::iterator itr;
   DOMNodeList *children = info->getChildNodes();
   for(unsigned int i=0; i<children->getLength(); i++){
+    char * pChar = XMLString::transcode(children->item(i)->getNodeName());
+    std::string paramname = std::string(pChar);
+    delete[] pChar;
+    if ( children->item(i)->hasChildNodes() ) {
+      char * pChar = XMLString::transcode(children->item(i)->getFirstChild()->getNodeValue());
+      std::string param = std::string(pChar);
+      obj_info[paramname] = param;
+      delete[] pChar;
+    }
+  }
+
+/*
+  for(unsigned int i=0; i<children->getLength(); i++){
     std::string paramname = std::string(XMLString::transcode(children->item(i)->getNodeName()));
     if ( children->item(i)->hasChildNodes() ) {
       std::string param = std::string(XMLString::transcode(children->item(i)->getFirstChild()->getNodeValue()));
       obj_info[paramname] = param;
     }
   }
+*/
   /*
     for  (itr = obj_info.begin(); itr != obj_info.end(); ++itr) {
     std::cout << itr->first << ":" << itr->second << std::endl;
