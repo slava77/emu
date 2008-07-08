@@ -31,7 +31,6 @@
 #include "ConsumerCanvas.hh"
 
 #include "EmuDQM_AppParameters.h"
-#include "EmuDQM_SOAPCommands.h"
 
 typedef std::map<std::string, std::set<int> > MapType;
 typedef std::map<std::string, std::map<std::string, std::string> >Counters;
@@ -98,6 +97,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   void headerPage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void dispatch (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
 
+
   void getNodesStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getCSCMapping (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getDDUMapping (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
@@ -106,6 +106,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   void getTestsList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void genImage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void controlDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   
   void Configure(xgi::Input * in ) throw (xgi::exception::Exception);
   void Enable(xgi::Input * in ) throw (xgi::exception::Exception);
@@ -145,6 +146,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   xdata::String imageFormat_;
   xdata::String imagePath_;
   xdata::Boolean viewOnly_;
+  xdata::Boolean debug;
   xdata::String BaseDir;
   FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
   CSCCounters cscCounters; // == CSC Counters from EmuMonitor nodes

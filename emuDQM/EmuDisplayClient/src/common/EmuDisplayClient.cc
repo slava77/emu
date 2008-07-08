@@ -41,6 +41,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
       imageFormat_("png"),
       imagePath_("images"),
       viewOnly_(true),
+      debug(false),
       BaseDir("/csc_data/dqm"),
       appBSem_(BSem::FULL)
 {
@@ -75,6 +76,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   xgi::bind(this, &EmuDisplayClient::getTestsList, "getTestsList");
   xgi::bind(this, &EmuDisplayClient::genImage, "genImage");
   xgi::bind(this, &EmuDisplayClient::getCSCCounters, "getCSCCounters");
+  xgi::bind(this, &EmuDisplayClient::controlDQM, "controlDQM");
 
   xgi::bind(this, &EmuDisplayClient::createTreePage, "tree.html");
   xgi::bind(this, &EmuDisplayClient::createTreeEngine, "tree.js");
@@ -104,6 +106,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   getApplicationInfoSpace()->fireItemAvailable("viewOnly",&viewOnly_);
   getApplicationInfoSpace()->addItemChangedListener ("viewOnly", this);
   getApplicationInfoSpace()->fireItemAvailable("baseDir",&BaseDir);
+  getApplicationInfoSpace()->fireItemAvailable("debug",&debug);
+  getApplicationInfoSpace()->addItemChangedListener ("debug", this);
 
   appBSem_.give();
   // === Initialize ROOT system
@@ -500,9 +504,6 @@ void EmuDisplayClient::getCSCList (xgi::Input * in, xgi::Output * out)  throw (x
 
 void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
-  // == Temporary
-  // == TODO: Request or load CSC list
-
   *out << "var CSC_COUNTERS=[" << std::endl;
   *out << "['Online Run'," << std::endl;
   updateCSCCounters();
@@ -520,6 +521,60 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
 
   *out << "]]" << std::endl;
 
+
+}
+
+
+void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
+{
+
+  cgicc::Cgicc cgi(in);
+  std::string user_host = in->getenv("REMOTE_HOST");
+
+  std::string action = "";
+  std::string node="ALL";
+
+  cgicc::const_form_iterator actionInputElement = cgi.getElement("action");
+  if (actionInputElement != cgi.getElements().end()) {
+    action = (*actionInputElement).getValue();
+    LOG4CPLUS_INFO(getApplicationLogger(), "Action request: " << action << " from " << user_host);
+  }
+
+  cgicc::const_form_iterator nodeInputElement = cgi.getElement("node");
+  if (nodeInputElement != cgi.getElements().end()) {
+    node = (*nodeInputElement).getValue();
+  }
+
+
+  std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
+  if (!monitors.empty()) {
+    std::set<xdaq::ApplicationDescriptor*>::iterator mon;
+
+    for (mon=monitors.begin(); mon!=monitors.end(); ++mon) {
+      if (node == "ALL") {
+	try
+	  {
+	    emu::dqm::sendFSMEventToApp(action, getApplicationContext(), getApplicationDescriptor(),*mon);
+	  }
+	catch(xcept::Exception e)
+	  {
+	    //      stringstream oss;
+
+	    //      oss << "Failed to " << action << " ";
+	    //      oss << (*mon)->getClassName() << (*mon)->getInstance();
+
+	    //      XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
+
+	    // Don't raise exception here. Go on to try to deal with the others.
+	    LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to " << action << " "
+			    << (*mon)->getClassName() << (*mon)->getInstance() << " "
+			    << xcept::stdformat_exception_history(e));
+	  }
+
+      }
+    }
+
+  }
 
 }
 
@@ -577,10 +632,10 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 	  std::string state =  "NA";
 	  std::string stateChangeTime = "NA";
 	  std::string runNumber   = "NA";
-	  std::string events = "NA";
-	  std::string dataRate   = "NA";
-	  std::string cscUnpacked   = "NA";
-	  std::string cscRate   = "NA";
+	  std::string events = "0";
+	  std::string dataRate   = "0";
+	  std::string cscUnpacked   = "0";
+	  std::string cscRate   = "0";
 	  std::string readoutMode   = "NA";
 	  std::string lastEventTime = "NA";
      
@@ -628,8 +683,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
 	    }
 	  catch(xcept::Exception e)
 	    {
-	      LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get event count from EmuRUI" << (*pos)->getInstance()
-			     << " : " << xcept::stdformat_exception_history(e));
+	     if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
 	    }
 	  *out << "['"<< nodename << "','"<< applink << "','" << state
 	       << "','" << runNumber << "','" << nDAQevents << "','" << events 
@@ -1371,6 +1425,11 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
       return bmap;
       // handle exception
     }
+   catch (pt::exception::Exception& e)
+    {
+        return bmap;
+    }
+
 
   LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Objects List is updated");
   return bmap;
@@ -1457,6 +1516,11 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
       return bmap;
       // handle exception
     }
+   catch (pt::exception::Exception& e)
+    {
+        return bmap;
+    }
+
 
   LOG4CPLUS_DEBUG (getApplicationLogger(), "Monitoring Canvases List is updated");
   return bmap;
@@ -1651,7 +1715,12 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
     {
       return buf;
       // handle exception
-    }	
+    }
+   catch (pt::exception::Exception& e)
+    {
+        return buf;
+    }
+	
   
   // LOG4CPLUS_INFO (getApplicationLogger(), "Monitoring Canvas is updated");
   return buf;
@@ -1786,6 +1855,11 @@ Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
       return clist;
       // handle exception
     }
+   catch (pt::exception::Exception& e) 
+    {
+	clist.clear();
+	return clist;
+    }
 
     // LOG4CPLUS_INFO (getApplicationLogger(), "CSC Counters are updated");
 
@@ -1856,6 +1930,12 @@ std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDes
       return flist;
       // handle exception
     }
+   catch (pt::exception::Exception& e)
+    {
+        flist.clear();
+        return flist;
+    }
+
 
   //  LOG4CPLUS_INFO (getApplicationLogger(), "Monitoring Folders List is updated");
   return flist;
@@ -1879,7 +1959,14 @@ std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::Stri
       LOG4CPLUS_ERROR (getApplicationLogger(),
 		       "No Applications with class name " << className.toString() <<
 		       "found." << xcept::stdformat_exception_history(e));
+	return applist;
     }
+   catch (pt::exception::Exception& e)
+    {
+        applist.clear();
+        return applist;
+    }
+
   return applist;
 }
 
