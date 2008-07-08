@@ -260,6 +260,7 @@ var DDUMap="getDDUMapping";
 var NodesStatus="getNodesStatus";
 var CSCCounters="getCSCCounters";
 var VMEMap="getVMEMapping";
+var controlDQM="controlDQM";
 
 var imgFormat=".png";
 var RunNumber="";
@@ -958,6 +959,46 @@ function showRateHistory(id) {
 	return false;
 }
 
+function sendDQMAction(action) 
+{
+  var fullUrl = baseURL + controlDQM;
+	params = "?action="+action;
+	fullUrl+=params;
+	var req=false;
+	if (window.XMLHttpRequest) { 
+		/*
+		try {
+	    		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead UniversalBrowserWrite");
+	   	} catch (e) {
+	    		alert("Permission UniversalBrowserRead denied.");
+	   	}
+		*/
+	    req = new XMLHttpRequest();    
+	   
+	} else if (window.ActiveXObject) {    
+		//req = new ActiveXObject("Microsoft.XMLDOM");
+	    req = new ActiveXObject((navigator.userAgent.toLowerCase().indexOf('msie 5') != -1) ? "Microsoft.XMLHTTP" : "Msxml2.XMLHTTP");
+		// var req = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    req.open("GET",fullUrl,true); // true= asynch, false=wait until loaded    
+	
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+			if (req.status==200) {	        
+				var reply = req.responseText;
+				addlog("Sent DQM command "+action, "info");
+				req=false;				
+	    	} else if (req.status==404) {
+				addlog("Unable to send DQM command "+action, "error");
+	    	}
+						
+		}
+    }
+	req.send(null);	
+	// addlog("Update Nodes List", "info");
+	return false;
+}
+
 function updateNodesStatus()
 {
 	
@@ -965,6 +1006,14 @@ function updateNodesStatus()
 	var nodes=NODES_LIST;
 	obj = document.getElementById("nodesview_div");
 	if (obj) {
+
+		out +="<table><tr>";
+		out +="<td><b>DQM Control</b>";
+		
+		out += '<input class="button" type="button" name="action" value="Init" onClick="return sendDQMAction(\'Configure\');">';
+		out += '<input class="button" type="button" name="action" value="Start" onClick="return sendDQMAction(\'Enable\');">';
+        out += '<input class="button" type="button" name="action" value="Stop" onClick="return sendDQMAction(\'Halt\');"></td>';
+		out +="</tr></table>"
 		out +="<table>";
 		
 		out +="<tr>";
