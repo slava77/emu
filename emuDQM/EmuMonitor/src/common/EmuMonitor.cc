@@ -159,6 +159,8 @@ void EmuMonitor::initProperties()
   runNumber_ = 0;
   nEventCredits_ = defEventCredits_;
 
+  bsem_tout.tv_sec=10;
+  bsem_tout.tv_usec=0;
 
   totalEvents_ 		= 0;
   sessionEvents_ 	= 0;
@@ -456,7 +458,7 @@ xoap::MessageReference EmuMonitor::onReset(xoap::MessageReference msg)
 // == Run Control requests current parameter values == //
 void EmuMonitor::actionPerformed (xdata::Event& e)
 {
-  appBSem_.take();
+  appBSem_.take(&bsem_tout);
   // update measurements monitors
   if (e.type() == "ItemRetrieveEvent")
     {
@@ -780,16 +782,18 @@ void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fs
 
 void EmuMonitor::doStop()
 {
-  appBSem_.take();
-  if (plotter_ != NULL && isReadoutActive) { 
+  appBSem_.take(&bsem_tout);
+  if (plotter_ != NULL && isReadoutActive) {
+/* 
     if (timer_ != NULL && timer_->isActive())
       timer_->kill();	
+*/
     if (rateMeter != NULL && rateMeter->isActive()) {
 	rateMeter->kill();
 	// rateMeter->stop();
 	}
     if (fSaveROOTFile_ == xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0))) {
-	
+/*	
       if (timer_ != NULL) {
 	timer_->setPlotter(plotter_);
 	timer_->setROOTFileName(getROOTFileName());
@@ -799,8 +803,9 @@ void EmuMonitor::doStop()
 	timer_->activate();
 
       }
-	      
-//      plotter_->saveToROOTFile(getROOTFileName());
+*/
+      disableReadout();	      
+      plotter_->saveToROOTFile(getROOTFileName());
     }
    
   }
@@ -813,7 +818,7 @@ void EmuMonitor::doStop()
 
 void EmuMonitor::doConfigure()
 {
-  appBSem_.take();
+  appBSem_.take(&bsem_tout);
   disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
@@ -859,7 +864,7 @@ void EmuMonitor::doConfigure()
 
 void  EmuMonitor::doStart()
 {
-  appBSem_.take();
+  appBSem_.take(&bsem_tout);
   sessionEvents_=0;
   creditMsgsSent_ = 0;
   creditsHeld_ = 0;
@@ -871,8 +876,10 @@ void  EmuMonitor::doStart()
   
   //    configureReadout();
   // if (plotter_ != NULL) timer_->activate();
+  /*
   if (timer_ != NULL && timer_->isActive())
     timer_->kill();
+  */
   enableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
@@ -965,7 +972,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
     return;	
   }
 
-  appBSem_.take();
+  appBSem_.take(&bsem_tout);
   dataMessages_.push_back( bufRef );
   eventsReceived_++;
 
@@ -1232,7 +1239,7 @@ int EmuMonitor::svc()
 	      if (plotter_ != NULL) {
 		isReadoutActive = false;
 		if (fSaveROOTFile_== xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)) ) {
-		  appBSem_.take();
+		  appBSem_.take(&bsem_tout);
 		  plotter_->saveToROOTFile(getROOTFileName());
 		  appBSem_.give();
                 }
@@ -1246,7 +1253,7 @@ int EmuMonitor::svc()
               if( errorFlag==EmuFileReader::Type4 ) status |= 0x2000;
               if( errorFlag==EmuFileReader::Type5 ) status |= 0x1000;
               if( errorFlag==EmuFileReader::Type6 ) status |= 0x0800;
-	      appBSem_.take();      
+	      appBSem_.take(&bsem_tout);      
 	      processEvent(deviceReader_->data(), deviceReader_->dataLength(), status, appTid_);
 	      appBSem_.give();
 	/*
