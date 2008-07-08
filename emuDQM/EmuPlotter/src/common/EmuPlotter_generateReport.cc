@@ -80,15 +80,17 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	    }
 	  if (csc_cntr) {
 	    avg_events=evt_cntr/csc_cntr;
-	    for (int i=0; i<stats.size(); i++) {
-	      double fract=((double)stats[i].second)/avg_events;
-	      std::string cscName=stats[i].first;
-	      if (fract >= 5.) {
-		std::string diag=Form("Hot chamber with %.0f times more than average events counter (avg events=%d)",fract, avg_events);
-		report[cscName].push_back(diag);
-	      } else if (fract < 0.05) {
-		std::string diag=Form("Low efficiency chamber with %.1f fraction of average events counter (avg events=%d)",fract, avg_events);
-		report[cscName].push_back(diag);
+	    if (avg_events >= 500) { // Detect Hot/Low eff chambers if average number of events is reasonable (>500)
+	      for (int i=0; i<stats.size(); i++) {
+		double fract=((double)stats[i].second)/avg_events;
+		std::string cscName=stats[i].first;
+		if (fract >= 5.) {
+		  std::string diag=Form("Hot chamber with %.0f times more than average events counter (avg events=%d)",fract, avg_events);
+		  report[cscName].push_back(diag);
+		} else if (fract < 0.05) {
+		  std::string diag=Form("Low efficiency chamber with %.2f fraction of average events counter (avg events=%d)",fract, avg_events);
+		  report[cscName].push_back(diag);
+		}
 	      }
 	    }
 	  }
