@@ -291,6 +291,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   bool isReadoutActive;
   bool keepRunning;
   RateMeter<xdata::UnsignedInteger> * rateMeter;
+  struct timeval bsem_tout;
 };
 
 #endif

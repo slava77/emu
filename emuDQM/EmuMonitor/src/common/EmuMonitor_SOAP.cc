@@ -21,7 +21,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } 
 
-  appBSem_.take();
+  appBSem_.take(&bsem_tout);
   xoap::MessageReference msg = xoap::createMessage();
   xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
   xoap::SOAPBody body = envelope.getBody();
@@ -82,7 +82,7 @@ xoap::MessageReference EmuMonitor::requestFoldersList(xoap::MessageReference nod
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } 
 
-  appBSem_.take();
+  appBSem_.take(&bsem_tout);
   xoap::MessageReference msg = xoap::createMessage();
   xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
   xoap::SOAPBody body = envelope.getBody();
@@ -145,7 +145,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } else {
-      appBSem_.take();
+      appBSem_.take(&bsem_tout);
       if (plotter_ != NULL) 
 	{
 	  int tout=0;
@@ -241,7 +241,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
   xoap::SOAPName histoName = envelope.createName("Obj", "", "");
   xoap::SOAPName histodirName = envelope.createName("Branch", "", "");
 
-  appBSem_.take();
+  appBSem_.take(&bsem_tout);
   if (plotter_ != NULL) {
     int tout=0;
     while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
@@ -301,7 +301,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } else {
-      appBSem_.take();
+      appBSem_.take(&bsem_tout);
       if (plotter_ != NULL) 
 	{
 	  int tout=0;
@@ -414,7 +414,7 @@ xoap::MessageReference EmuMonitor::requestCSCCounters(xoap::MessageReference nod
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } else { 
 
-      appBSem_.take();
+      appBSem_.take(&bsem_tout);
 
       //  xoap::SOAPName cntName = envelope.createName("Obj", "", "");
       xoap::SOAPName cscName = envelope.createName("CSC", "", "");
