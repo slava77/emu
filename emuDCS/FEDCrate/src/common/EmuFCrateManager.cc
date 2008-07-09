@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.11 2008/07/03 12:21:59 paste Exp $
+/// $Id: EmuFCrateManager.cc,v 1.12 2008/07/09 11:33:09 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -215,8 +215,7 @@ void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xg
 			.set("style","clear: both");
 
 		*out << cgicc::a(className.str())
-			.set("href",url.str())
-			.set("target","_blank") << endl;
+			.set("href",url.str()) << endl;
 
 		*out << " Present state: " << endl;
 		xdata::String currentState = readParameter<xdata::String>(reply,"State");

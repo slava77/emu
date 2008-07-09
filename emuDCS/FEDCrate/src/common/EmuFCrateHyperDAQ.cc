@@ -238,8 +238,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		string dduvoltmon = "/" + getApplicationDescriptor()->getURN() + "/DDUVoltMon";
 		*out << cgicc::form()
 			.set("method","GET")
-			.set("action",dduvoltmon)
-			.set("target","_blank") << endl;
+			.set("action",dduvoltmon) << endl;
 		*out << cgicc::input()
 			.set("type","submit")
 			.set("value","Start Volt/Temp Monitor") << endl;
@@ -248,8 +247,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		string dccratemon = "/" + getApplicationDescriptor()->getURN() + "/DCCRateMon";
 		*out << cgicc::form()
 			.set("method","GET")
-			.set("action",dccratemon)
-			.set("target","_blank") << endl;
+			.set("action",dccratemon) << endl;
 		*out << cgicc::input()
 			.set("type","submit")
 			.set("value","Start DCC Rate Monitor") << endl;
@@ -359,7 +357,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			*out << cgicc::td() << endl;
 			*out << cgicc::tr() << endl;
 
-			// Second row:  chambers
+			// Second row:  fiber input numbers
 			*out << cgicc::tr()
 				.set("style","") << endl;
 			// The first element is special:  slot
@@ -373,6 +371,35 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			long int liveFibers = (thisDDU->infpga_CheckFiber(INFPGA0)&0x000000ff) | ((thisDDU->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
 			long int killFiber = thisDDU->ddu_rdkillfiber();
 
+			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+				std::string chamberClass = "ok";
+				if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+				else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
+				else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
+
+				*out << cgicc::td()
+					.set("class",chamberClass)
+					.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 6%;") << iFiber << cgicc::td() << endl;
+			}
+
+			cgicc::tr() << endl;
+			
+			// Third row:  chamber names and statuses
+			*out << cgicc::tr()
+					.set("style","") << endl;
+			// The first element is special:  RUI
+			stringstream ruiNumberStream;
+			ruiNumberStream << thisCrate->getRUI(thisDDU->slot());
+			string ruiString = ruiNumberStream.str();
+			// This part is terrible.
+			string ruiFormGetString = "rui1="+ruiString+"&ddu_input1=&ddu1=&fed_crate1=&ddu_slot1=&dcc_fifo1=&slink1=&fiber_crate1=&fiber_pos1=&fiber_socket1=&crateid1=&cratelabel1=&dmb_slot1=&chamberlabel1=&chamberid1=&rui2=&ddu2=&fed_crate2=&ddu_slot2=&ddu_input2=&dcc_fifo2=&slink2=&fiber_crate2=&fiber_pos2=&fiber_socket2=&crateid2=&cratelabel2=&dmb_slot2=&chamberlabel2=&chamberid2=&switch=ddu_chamber&chamber2=";
+			*out << cgicc::td()
+					.set("class",statusClass)
+					.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
+			*out << cgicc::a("RUI #"+ruiString)
+					.set("href","http://oraweb03.cern.ch:9000/pls/cms_emu_cern.pro/ddumap.web?"+ruiFormGetString);
+			*out << cgicc::td() << endl;
+			
 			// Loop through the chambers.  They should be in fiber-order.
 			for (unsigned int iFiber=0; iFiber<15; iFiber++) {
 				Chamber *thisChamber = thisDDU->getChamber(iFiber);
@@ -386,30 +413,23 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 					*out << cgicc::td(thisChamber->name())
 						.set("class",chamberClass)
-						.set("style","border: 1px solid #000; font-size: 8pt; width: 6%;") << endl;
+						.set("style","border: 1px solid #000; border-top-width: 0px; font-size: 8pt; width: 6%;") << endl;
 				} else {
 					*out << cgicc::td("???")
 						.set("class","undefined")
-						.set("style","border: 1px solid #000; font-size: 8pt; width: 6%;") << endl;
+						.set("style","border: 1px solid #000; border-top-width: 0px; font-size: 8pt; width: 6%;") << endl;
 				}
 			}
 
 			*out << cgicc::tr() << endl;
 
-			// Third row:  commands
+			// Fourth row:  commands
 			*out << cgicc::tr()
 				.set("style","") << endl;
-			// The first element is special:  RUI
-			stringstream ruiNumberStream;
-			ruiNumberStream << thisCrate->getRUI(thisDDU->slot());
-			string ruiString = ruiNumberStream.str();
-			// This part is terrible.
-			string ruiFormGetString = "rui1="+ruiString+"&ddu_input1=&ddu1=&fed_crate1=&ddu_slot1=&dcc_fifo1=&slink1=&fiber_crate1=&fiber_pos1=&fiber_socket1=&crateid1=&cratelabel1=&dmb_slot1=&chamberlabel1=&chamberid1=&rui2=&ddu2=&fed_crate2=&ddu_slot2=&ddu_input2=&dcc_fifo2=&slink2=&fiber_crate2=&fiber_pos2=&fiber_socket2=&crateid2=&cratelabel2=&dmb_slot2=&chamberlabel2=&chamberid2=&switch=ddu_chamber&chamber2=";
+			// The first element is blank
 			*out << cgicc::td()
 				.set("class",statusClass)
 				.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
-			*out << cgicc::a("RUI #"+ruiString)
-				.set("href","http://oraweb03.cern.ch:9000/pls/cms_emu_cern.pro/ddumap.web?"+ruiFormGetString);
 			*out << cgicc::td() << endl;
 
 			// Everything else is one big row.
@@ -417,43 +437,36 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				.set("colspan","15") << endl;
 
 			// Create the buttons with a big loop.
-			string appString[5] = {
-				"/" + getApplicationDescriptor()->getURN() + "/DDUFirmware",
+			string appString[4] = {
 				"/" + getApplicationDescriptor()->getURN() + "/DDUFpga",
 				"/" + getApplicationDescriptor()->getURN() + "/InFpga",
 				"/" + getApplicationDescriptor()->getURN() + "/VMEPARA",
 				"/" + getApplicationDescriptor()->getURN() + "/VMESERI",
 			};
 
-			string appName[5] = {
-				"Firmware",
-				"dduFPGA",
+			string appName[4] = {
+				"Debug DDU Status",
 				"inFPGA 0 and 1",
 				"VME Parallel",
 				"VME Serial"
 			};
 
-			for (unsigned int iButton = 0; iButton < 5; iButton++) {
+			for (unsigned int iButton = 0; iButton < 4; iButton++) {
 				// Jason likes a space after the first button.
-				if (iButton==0) *out << cgicc::span().set("style","margin-right: 50px;") << endl;
-				else *out << cgicc::span() << endl;
-				*out << cgicc::form().set("style","display: inline;")
-					.set("method","GET")
-					.set("action",appString[iButton])
-					.set("target","_blank") << endl;
-				*out << cgicc::input()
-					.set("type","submit")
-					.set("value",appName[iButton]) << endl;
-				ostringstream dduNumber;
-				dduNumber << iddu;
-				*out << cgicc::input()
-					.set("type","hidden")
-					.set("value",dduNumber.str())
-					.set("name","ddu") << endl;
-				*out << cgicc::form() << endl;
-
-				*out << cgicc::span() << endl;
+				ostringstream location;
+				location << "javascript:document.location.href='" << appString[iButton] << "?ddu=" << iddu;
+				if (iButton==0) *out << cgicc::div(appName[iButton])
+					.set("class","button")
+					.set("style","float: left;") 
+					.set("onClick",location.str()) << endl;
+				else *out << cgicc::div(appName[iButton])
+					.set("class","button")
+					.set("style","float: right;")
+					.set("onClick",location.str()) << endl;
 			}
+
+			*out << cgicc::br()
+				.set("style","clear:both") << endl;
 
 			*out << cgicc::td() << endl;
 			*out << cgicc::tr() << endl;
@@ -531,7 +544,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			*out << cgicc::td()
 				.set("class",dccStatus)
 				.set("style","border-bottom: 1px solid #000; width: 18%;");
-			*out << "L1As: " << uppercase << setw(4) << hex << (statusl&0xffff) << dec << "h";
+			*out << "L1As: " << dec << (statusl&0xffff);
 			*out << cgicc::td() << endl;
 			*out << cgicc::td()
 				.set("class",dccStatus)
@@ -572,8 +585,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				else *out << cgicc::span() << endl;
 				*out << cgicc::form().set("style","display: inline;")
 					.set("method","GET")
-					.set("action",appString[iButton])
-					.set("target","_blank") << endl;
+					.set("action",appString[iButton]) << endl;
 				*out << cgicc::input()
 					.set("type","submit")
 					.set("value",appName[iButton]) << endl;
@@ -624,8 +636,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				*out << cgicc::span() << endl;
 				*out << cgicc::form()
 					.set("method","GET")
-					.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUBroadcast")
-					.set("target","_blank") << endl;
+					.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUBroadcast") << endl;
 				*out << cgicc::input()
 					.set("type","submit")
 					.set("value","DDU Firmware Manager")
@@ -655,8 +666,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				*out << cgicc::span() << endl;
 				*out << cgicc::form().set("style","display: inline;")
 					.set("method","GET")
-					.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCFirmware")
-					.set("target","_blank") << endl;
+					.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCFirmware") << endl;
 				*out << cgicc::input()
 					.set("type","submit")
 					.set("value","Broadcast DCC Firmware")
@@ -2811,6 +2821,17 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 	long int liveFibers = (thisDDU->infpga_CheckFiber(INFPGA0)&0x000000ff) | ((thisDDU->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
 	long int killFiber = thisDDU->ddu_rdkillfiber();
 
+	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+		std::string chamberClass = "ok";
+		if (!(killFiber & (1<<iFiber))) chamberClass = "killed";
+		else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
+		else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
+		
+		*out << cgicc::td()
+			.set("class",chamberClass)
+			.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 6%;") << iFiber << cgicc::td() << endl;
+	}
+	
 	// Loop through the chambers.  They should be in fiber-order.
 	for (unsigned int iFiber=0; iFiber<15; iFiber++) {
 		Chamber *thisChamber = thisDDU->getChamber(iFiber);
@@ -2824,11 +2845,11 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 
 			*out << cgicc::td(thisChamber->name())
 				.set("class",chamberClass)
-				.set("style","border: 1px solid #000; width: 6%; font-weight: bold;") << endl;
+				.set("style","border: 1px solid #000; border-top-width: 0px; width: 6%; font-weight: bold;") << endl;
 		} else {
 			*out << cgicc::td("???")
 				.set("class","undefined")
-				.set("style","border: 1px solid #000; width: 6%; font-weight: bold;") << endl;
+				.set("style","border: 1px solid #000; border-top-width: 0px; width: 6%; font-weight: bold;") << endl;
 		}
 	}
 	*out << cgicc::tr();

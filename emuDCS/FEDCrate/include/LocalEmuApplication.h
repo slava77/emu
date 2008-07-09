@@ -135,22 +135,22 @@ public:
 	}
 
 	/** Sets a parameter in a remote application.  I don't know where the
-	*       binding to this command is set, but it seems to affect all
-	*       of the applications we are concerned with.
+	*	binding to this command is set, but it seems to affect all
+	*	of the applications we are concerned with.
 	*
-	*       @param klass is the target application class name (this
-	*       function sends to all of the instances of that class.)
-	*       @param name is the name of the variable you want to set.
-	*       @param type is the type of the varialbe you want to set.  Use
-	*       strings like "xsd:string" and "xsd:unsignedLong".
-	*       @param value is a string representation of the value to be set.
+	*	@param klass is the target application class name (this
+	*	function sends to all of the instances of that class.)
+	*	@param name is the name of the variable you want to set.
+	*	@param type is the type of the varialbe you want to set.  Use
+	*	strings like "xsd:string" and "xsd:unsignedLong".
+	*	@param value is a string representation of the value to be set.
 	*
-	*       @note Because I don't know where this call is handled, I do not
-	*       know anything about error handling.  Just try to make sure
-	*       the variable exists in the exported InfoSpace of the target
-	*       application, and that the types match.
+	*	@note Because I don't know where this call is handled, I do not
+	*	know anything about error handling.  Just try to make sure
+	*	the variable exists in the exported InfoSpace of the target
+	*	application, and that the types match.
 	*
-	*       @author Phillip Killewald (stolen from Laria's CSCSupervisor.cc)
+	*	@author Phillip Killewald (stolen from Laria's CSCSupervisor.cc)
 	**/
 	void setParameter(string klass, string name, string type, string value)
 	{
@@ -391,6 +391,8 @@ public:
 		*out << ".blue {padding: 2px; color: #009; font-family: monospace;}" << endl;
 		*out << ".none {padding: 2px; font-family: monospace;}" << endl;
 		*out << ".undefined {padding: 2px; background-color: #CCC; color: #333; font-family: monospace;}" << endl;
+
+		*out << ".button {padding: 2px; -moz-border-radius: 3px; -webkit-border-radius: 3px; border: 1px solid #000; cursor: pointer;}" << endl;
 		//*out << "body {background-image: url('/tmp/osu_fed_background2.png'); background-repeat: repeat;}" << endl;
 		*out << cgicc::comment() << endl;
 		*out << cgicc::style() << endl;
