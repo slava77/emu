@@ -34,18 +34,17 @@ string Chamber::name()
 {
 	stringstream nameStream;
 	//nameStream << "ME" << endcap << station << "/" << type << "/" << number;
-	nameStream << endcap << station << "/" << type << "/" << number;
+	nameStream << endcap << station << "/" << type << "/" << setw(2) << setfill('0') << number;
 	return nameStream.str();
 }
 
 /**
-@returns a human-readable peripheral crate name, like VME+1/02
+@returns a human-readable peripheral crate/slot name, like +1/03 slot 2
 **/
 string Chamber::peripheralCrate()
 {
 	stringstream nameStream;
-	nameStream << "VME" << endcap << peripheralCrateVMECrate_ << "/"
-		<< (peripheralCrateVMESlot_ < 10 ? "0" : "") << peripheralCrateVMESlot_;
+	nameStream << endcap << station << "/" << setw(2) << setfill('0') << peripheralCrateVMECrate_ << " slot " << peripheralCrateVMESlot_;
 	return nameStream.str();
 }
 
