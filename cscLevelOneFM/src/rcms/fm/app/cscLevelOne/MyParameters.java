@@ -64,6 +64,7 @@ public class MyParameters {
     public static final String GUI_STATE_PANEL_HTML="GUI_STATE_PANEL_HTML";
     //CONFIGURE PARAMETERS
     public static final String CSC_CALIB_KEYS_AVAILABLE="CSC_CALIB_KEYS_AVAILABLE";
+    public static final String CSC_CALIB_KEY="CSC_CALIB_KEY";
     public static final String LOCAL_CONF_KEY="LOCAL_CONF_KEY";
     
     // standard level 1 parameter set
@@ -95,6 +96,7 @@ public class MyParameters {
 	 * the run number
 	 */
 	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT>(CSC_CALIB_KEYS_AVAILABLE,new StringT("")));
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT>(CSC_CALIB_KEY,new StringT("")));
 	
 	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<IntegerT>(RUN_NUMBER, new IntegerT(-1)));//, Exported.READONLY));
 	LVL_ONE_PARAMETER_SET.put( new FunctionManagerParameter<StringT>(GUI_SUBDET_PANEL_HTML,new StringT(" ")));
