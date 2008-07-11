@@ -64,6 +64,8 @@ import rcms.utilities.hwcfg.eq.FMMTriggerLink;
 import rcms.utilities.runinfo.RunInfo;
 import rcms.utilities.runinfo.RunNumberData;
 
+import rcms.fm.fw.parameter.*;
+import rcms.fm.fw.parameter.type.VectorT;
 
 
 /**
@@ -110,6 +112,10 @@ public class MyFunctionManager extends UserFunctionManager {
 	 * <code>calcState</code>: Calculated State.
 	 */
 	public State calcState = null;
+
+        // RunInfo stuff:
+	public RunInfo _myRunInfo = null;
+	public RunInfo _myRunInfoDESTROY = null;
 
 	public XdaqApplicationContainer xdaqSupervisor = null;
 
@@ -232,8 +238,9 @@ public class MyFunctionManager extends UserFunctionManager {
 		// Add error handler
 		//
 		addEventHandler(new MyErrorHandler());
+
 		// call renderers
-	       	_myUtil.renderMainGui();
+	    _myUtil.renderMainGui();
 
 
 

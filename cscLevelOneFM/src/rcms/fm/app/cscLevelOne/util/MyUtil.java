@@ -237,6 +237,20 @@ public class MyUtil {
 	    
 	}
 
+	public void setParameterFromProperties() {
+		
+		List<ConfigProperty> lp = functionManager.getGroup().getThisResource().getProperties();
+		
+		for (ConfigProperty p : lp) {
+			if (p.getName().equals("Calibration_Keys")) {
+				functionManager
+				.getParameterSet()
+				.get(MyParameters.CSC_CALIB_KEYS_AVAILABLE)
+				.setValue(new StringT( p.getValue() ));
+			}
+		}
+	}
+	
 	public void renderMainGui() {
 
 		GuiStatePanel guiState = new GuiStatePanel(functionManager);
@@ -245,14 +259,6 @@ public class MyUtil {
 		.get(MyParameters.GUI_STATE_PANEL_HTML)
 		.setValue(new StringT( guiState.generateHtml() ));
 
-		GuiSubdetPanel guiSubdet = new GuiSubdetPanel(functionManager);
-		functionManager
-		.getParameterSet()
-		.get(MyParameters.GUI_SUBDET_PANEL_HTML)
-		.setValue(new StringT( guiSubdet.generateHtml() ));
-
-	}
-	public void renderSubdetPanel() {
 		GuiSubdetPanel guiSubdet = new GuiSubdetPanel(functionManager);
 		functionManager
 		.getParameterSet()
