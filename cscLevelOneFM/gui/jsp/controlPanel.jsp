@@ -74,7 +74,8 @@
 <TABLE class="HeaderTable" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="100%">
 
 	<tr>
-	<TD><button id="showStatusTableButton" class="MenuButton"
+	<TD bgcolor="#000000">
+	<button id="showStatusTableButton" class="MenuButton"
 			value="Status Table" name="Status Table"
 			onClick="onShowStatusTableButton()">Status Table </button>
 	</TD>
@@ -87,13 +88,13 @@
         <td><a class="MenuLinkEnabled" href="./LogoutServlet"><B>Logout</B></a></td>
 	
 	<!--  REFRESH BUTTON --> 
-	<TD>
+	<TD bgcolor="#696969">
 	<rcms.control:refreshButtonRenderer
 		cssClass="button1" onClickFunction="onUpdatedRefreshButton()"
 		name="Refresh" indentation="10" />
 	</TD>
 	
-	<TD>
+	<TD bgcolor="#4682B4">
 	<rcms.control:createButtonRenderer cssClass="button1"
 	onClickFunction="onCreateButton()" name="Create" indentation="10" /> 
 	<rcms.control:attachButtonRenderer cssClass="button1" 
@@ -106,26 +107,16 @@
 	</tr>
 
 </TABLE>
-
-<p></p>
-<DIV align="center">
-<!--div style="align:center;height:50px;"--><!--<B>${pars.GUI_STATE_PANEL_HTML}<B></div>-->
-</DIV>
-<p></p>
-
-<!--TABLE BORDER="0" BORDERCOLOR="green" WIDTH="100%"-->
-<!--TABLE style="background-color: green; width: 100%; border: 4; cellpadding: 2; cellspacing: 2;"-->
-<TABLE class="paraTableName" BORDERCOLOR="black" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="100%">
+<br>
+<TABLE class="paraTableName" BORDERCOLOR="black" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="70%" align="center">
 <tr>
-<TD  align="center" class="paraTableName" BGCOLOR="black">
-<rcms.control:stateRenderer titleClass="control_label1" label="<B>State<B>:&nbsp;" contentClass="control_labe13" indentation="10"/>	
-</TD>
+<TD align="center" bgcolor="#000000" class="paraTableName" >
+<rcms.control:stateRenderer titleClass="control_label1" label="<B>State<B>:&nbsp;" contentClass="control_labe13" indentation="10"/></TD>
 </tr>
 </TABLE>
-<br>
-<TABLE style="width: 100%;">
+<TABLE style="width: 70%;" align="center">
 	<tr>
-	<td align="center" bgcolor="#B0C4DE">
+		<td  bgcolor="#B0C4DE" align="center">
 		<div id="commandSection">
 			<rcms.control:commandButtonsRenderer cssClass="button1" indentation="11"/>
 		</div>
@@ -142,7 +133,7 @@
 <tr>
 	
 	<!--  INFO TABLE -->
-	<td>
+	<td bgcolor="#DCDCDC">
 	<table style="color: #FFFFFF; width: 700px; background-color: #87CEFA;">
 
 	        <tr>
