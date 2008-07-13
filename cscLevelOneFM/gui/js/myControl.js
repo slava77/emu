@@ -113,9 +113,7 @@ function myUpdateParameters(message) {
 						}
 					
 						// special case for fed status
-						else if ( 
-						pName.indexOf("_FEDS")  != -1 
-						)
+						else if (pName.indexOf("_FEDS")  != -1)
 						{
 							processFedStatus( pName, pValue ); 
 						}
@@ -128,29 +126,19 @@ function myUpdateParameters(message) {
 							// special case for SUBDET/DCS state
 							// set also the class
 							
-							if (
-								pName == "HEARTBEAT"
-							)
-							{
+							if (pName == "HEARTBEAT"){
 								doAnim();
 							} 
 							
-							else if ( 
-								pName == "currentState"
-							) { 
+							else if (pName == "currentState") { 
 								pObject.className = pValue; 
 								pObject.innerHTML = pValue;
 							}
-							else if ( 
-								pName.indexOf("_STATE")  != -1 
-							) { 
+							else if (pName.indexOf("_STATE")  != -1) { 
 								pObject.className = pValue; 
 								pObject.innerHTML = pValue;
 							}
-							else if ( 
-								pName == "TTS_TEST_SUMMARY" &&
-								pValue != ""
-							) {
+							else if (pName == "TTS_TEST_SUMMARY" && pValue != "") {
 								processTtsTestSummary(pValue);
 							}
 							else {
@@ -507,7 +495,7 @@ function enableAllButtons(buttons) {
 
 
 function initAnim() {
-	myAnim = new YAHOO.util.ColorAnim('HEARTBEAT', {backgroundColor: { from: '#11aa00' , to: '#ffffff' } }); 
+	myAnim = new YAHOO.util.ColorAnim('HEARTBEAT', {backgroundColor: { from: '#00FF00' , to: '#008000' } }); 
 }
  
 function doAnim() { 
