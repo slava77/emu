@@ -2751,7 +2751,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::div()
 			.set("style","width: 80%; white-space: pre; font-size: 10pt; margin: 10px auto 10px auto; border: 2px solid #666; padding: 2px; font-family: monospace;") << endl;
 
-		for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComments != bigComments.end(); iComments++) {
+		for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComment != bigComments.end(); iComment++) {
 			*out << (*iComment) << cgicc::br();
 		}
 
