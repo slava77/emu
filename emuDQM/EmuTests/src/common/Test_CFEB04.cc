@@ -120,7 +120,7 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   DDUstats[dduID].evt_cntr++;
  
   if((bin_checker.errors() & binCheckMask)!= 0) {
-    std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
+    // std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
     doBinCheck();
 
   }

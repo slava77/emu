@@ -6,8 +6,8 @@ void fillCrateMap(CSCCrateMap* mapobj);
 
 int Test_Generic::getNumStrips(std::string cscID)
 {
-	if ((cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0 )) return 64;
-	else return 80;
+  if ((cscID.find("ME+1.3") == 0) || (cscID.find("ME-1.3") ==0 )) return 64;
+  else return 80;
 }
 
 Test_Generic::Test_Generic(std::string dfile): dataFile(dfile) {
@@ -45,26 +45,26 @@ std::string timestr(time_t* t)
 
 std::map<std::string, int> getCSCTypeToBinMap()
 {
-        std::map<std::string, int> tmap;
-        tmap["ME-4.2"] = 0;
-        tmap["ME-4.1"] = 1;
-        tmap["ME-3.2"] = 2;
-        tmap["ME-3.1"] = 3;
-        tmap["ME-2.2"] = 4;
-        tmap["ME-2.1"] = 5;
-        tmap["ME-1.3"] = 6;
-        tmap["ME-1.2"] = 7;
-        tmap["ME-1.1"] = 8;
-        tmap["ME+1.1"] = 9;
-        tmap["ME+1.2"] = 10;
-        tmap["ME+1.3"] = 11;
-        tmap["ME+2.1"] = 12;
-        tmap["ME+2.2"] = 13;
-        tmap["ME+3.1"] = 14;
-        tmap["ME+3.2"] = 15;
-        tmap["ME+4.1"] = 16;
-        tmap["ME+4.2"] = 17;
-        return tmap;
+  std::map<std::string, int> tmap;
+  tmap["ME-4.2"] = 0;
+  tmap["ME-4.1"] = 1;
+  tmap["ME-3.2"] = 2;
+  tmap["ME-3.1"] = 3;
+  tmap["ME-2.2"] = 4;
+  tmap["ME-2.1"] = 5;
+  tmap["ME-1.3"] = 6;
+  tmap["ME-1.2"] = 7;
+  tmap["ME-1.1"] = 8;
+  tmap["ME+1.1"] = 9;
+  tmap["ME+1.2"] = 10;
+  tmap["ME+1.3"] = 11;
+  tmap["ME+2.1"] = 12;
+  tmap["ME+2.2"] = 13;
+  tmap["ME+3.1"] = 14;
+  tmap["ME+3.2"] = 15;
+  tmap["ME+4.1"] = 16;
+  tmap["ME+4.2"] = 17;
+  return tmap;
 
 }
 
@@ -88,16 +88,16 @@ void fillCrateMap(CSCCrateMap* mapobj)
       //else if(j==4) r=1;
       else r=2;
       for(k=1;k<=r;++k){
-       if(j>1 && k==1) c=18;
-       else c=36;
+	if(j>1 && k==1) c=18;
+	else c=36;
         for(l=1;l<=c;++l){
-         chamberid=i*100000+j*10000+k*1000+l*10;
-         map->chamber(chamberid,&item);
-         crate_cscid=item.crateid*10+item.cscid;
-         if (mapobj) {
-         	mapobj->crate_map[crate_cscid]=item;
-	 }
-         count=count+1;
+	  chamberid=i*100000+j*10000+k*1000+l*10;
+	  map->chamber(chamberid,&item);
+	  crate_cscid=item.crateid*10+item.cscid;
+	  if (mapobj) {
+	    mapobj->crate_map[crate_cscid]=item;
+	  }
+	  count=count+1;
         }
       }
     }
@@ -120,9 +120,9 @@ void Test_Generic::init() {
   bin_checker.modeDDU(true);
   emucnvs.clear();
   tmap = getCSCTypeToBinMap();
-//  map = new cscmap1();
-//  cratemap = new CSCCrateMap();
-//  fillCrateMap(cratemap);
+  //  map = new cscmap1();
+  //  cratemap = new CSCCrateMap();
+  //  fillCrateMap(cratemap);
 }
 
 
@@ -168,7 +168,7 @@ int Test_Generic::loadTestCfg()
    
     itr = obj_info.find("Test"); 
     if ((itr != obj_info.end()) && (itr->second == testID)) {
-	itr = obj_info.find("Name");
+      itr = obj_info.find("Name");
       if ((itr != obj_info.end()) && (itr->second != "")) {
 	std::cout << "Found info for " << itr->second << std::endl;
 	xmlCfg[itr->second] = obj_info;
@@ -176,11 +176,11 @@ int Test_Generic::loadTestCfg()
     }
 
     /*    if (obj_info.size() > 0) {
-      params.clear();
-      for (itr = obj_info.begin(); itr != obj_info.end(); ++itr) {
-	params[itr->first] = itr->second;
-      }
-    }
+	  params.clear();
+	  for (itr = obj_info.begin(); itr != obj_info.end(); ++itr) {
+	  params[itr->first] = itr->second;
+	  }
+	  }
     */
   }
   delete parser;
@@ -336,9 +336,9 @@ std::string Test_Generic::getCSCFromMap(int crate, int slot, int& csctype, int& 
   std::string tlabel = getCSCTypeLabel(iendcap, istation, iring );
   std::map<std::string,int>::const_iterator it = tmap.find( tlabel );
   if (it != tmap.end()) {
-        csctype = it->second;
+    csctype = it->second;
   } else {
-        csctype = 0;
+    csctype = 0;
   }
 
 
@@ -373,55 +373,55 @@ std::map<int, std::string> ParseAxisLabels(std::string s)
 
 int applyCanvasParameters(TVirtualPad* cPad, TH1* h, bookParams& params)
 {
-    char* stopstring;	
-    if (cPad != NULL) {
-	// TVirtualPad* cPad = cnv->GetUserPad();
+  char* stopstring;	
+  if (cPad != NULL) {
+    // TVirtualPad* cPad = cnv->GetUserPad();
 
-        std::string leftMargin = params["SetLeftMargin"];
-        if (leftMargin != "" ) {
-          cPad->SetLeftMargin(atof(leftMargin.c_str()));
-        }
-        std::string rightMargin = params["SetRightMargin"];
-        if (rightMargin != "" ) {
-          cPad->SetRightMargin(atof(rightMargin.c_str()));
-        }
-
-        std::string logx = params["SetLogx"];
-        if (logx!= "") {
-          cPad->SetLogx();
-        }
-        std::string logy = params["SetLogy"];
-        if (logy!= "" && (h->GetMaximum()>0.)) {
-          cPad->SetLogy();
-        }
-
-        std::string logz = params["SetLogz"];
-        if (logz!= "" && (h->GetMaximum()>0.) ) {
-          cPad->SetLogz();
-        }
-
-        std::string gridx = params["SetGridx"];
-        if (gridx!= "" ) {
-          cPad->SetGridx();
-        }
-
-        std::string gridy = params["SetGridy"];
-        if (gridy!= "" ) {
-          cPad->SetGridy();
-        }
-
-        if (params["SetStats"] != "") {
-          int stats = strtol( params["SetStats"].c_str(), &stopstring, 10 );
-          h->SetStats(bool(stats));
-        }
-
-        std::string statOpt = params["SetOptStat"];
-        //if (statOpt != "" ) {
-            gStyle->SetOptStat(statOpt.c_str());
-            // }
-	return 0;
+    std::string leftMargin = params["SetLeftMargin"];
+    if (leftMargin != "" ) {
+      cPad->SetLeftMargin(atof(leftMargin.c_str()));
     }
-    return -1;
+    std::string rightMargin = params["SetRightMargin"];
+    if (rightMargin != "" ) {
+      cPad->SetRightMargin(atof(rightMargin.c_str()));
+    }
+
+    std::string logx = params["SetLogx"];
+    if (logx!= "") {
+      cPad->SetLogx();
+    }
+    std::string logy = params["SetLogy"];
+    if (logy!= "" && (h->GetMaximum()>0.)) {
+      cPad->SetLogy();
+    }
+
+    std::string logz = params["SetLogz"];
+    if (logz!= "" && (h->GetMaximum()>0.) ) {
+      cPad->SetLogz();
+    }
+
+    std::string gridx = params["SetGridx"];
+    if (gridx!= "" ) {
+      cPad->SetGridx();
+    }
+
+    std::string gridy = params["SetGridy"];
+    if (gridy!= "" ) {
+      cPad->SetGridy();
+    }
+
+    if (params["SetStats"] != "") {
+      int stats = strtol( params["SetStats"].c_str(), &stopstring, 10 );
+      h->SetStats(bool(stats));
+    }
+
+    std::string statOpt = params["SetOptStat"];
+    //if (statOpt != "" ) {
+    gStyle->SetOptStat(statOpt.c_str());
+    // }
+    return 0;
+  }
+  return -1;
 
 }
 
@@ -463,7 +463,7 @@ int applyParameters(TH1* object, bookParams& params)
     }
 
 
-   object->SetFillColor(48);
+    object->SetFillColor(48);
 
     if ((itr = params.find("SetFillColor")) != params.end()) {
       int color = strtol( itr->second.c_str(), &stopstring, 10 );
@@ -608,33 +608,33 @@ void Test_Generic::bookCommonHistos() {
     bookParams& params = itr->second;
     if (params.find("Type") != params.end()) {
       std::string cnvtype = params["Type"];
-	std::string scope = params["Prefix"];
-        std::string name = "sum_"+testID+"_"+params["Name"];
-        std::string title = "Summary: "+testID+" "+params["Title"];
-        double xmin=0., xmax=0.; int xbins=0;
-        double ymin=0., ymax=0.; int ybins=0;
-        std::string xtitle = params["XTitle"];
-        std::string ytitle = params["YTitle"];
-        double low0limit=0., low1limit=0.;
-        double high0limit=0., high1limit=0.;
-        if (params["XMin"] != "") {
-          xmin = atof(params["XMin"].c_str());
-        }
-        if (params["XMax"] != "") {
-          xmax = atof(params["XMax"].c_str());
-        }
-        if (params["YMin"] != "") {
-          ymin = atof(params["YMin"].c_str());
-        }
-        if (params["YMax"] != "") {
-          ymax = atof(params["YMax"].c_str());
-        }
-        if (params["XBins"] != "") {
-          xbins = strtol(params["XBins"].c_str(), &stopstring, 10);
-        }
-        if (params["YBins"] != "") {
-          ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
-        }
+      std::string scope = params["Prefix"];
+      std::string name = "sum_"+testID+"_"+params["Name"];
+      std::string title = "Summary: "+testID+" "+params["Title"];
+      double xmin=0., xmax=0.; int xbins=0;
+      double ymin=0., ymax=0.; int ybins=0;
+      std::string xtitle = params["XTitle"];
+      std::string ytitle = params["YTitle"];
+      double low0limit=0., low1limit=0.;
+      double high0limit=0., high1limit=0.;
+      if (params["XMin"] != "") {
+	xmin = atof(params["XMin"].c_str());
+      }
+      if (params["XMax"] != "") {
+	xmax = atof(params["XMax"].c_str());
+      }
+      if (params["YMin"] != "") {
+	ymin = atof(params["YMin"].c_str());
+      }
+      if (params["YMax"] != "") {
+	ymax = atof(params["YMax"].c_str());
+      }
+      if (params["XBins"] != "") {
+	xbins = strtol(params["XBins"].c_str(), &stopstring, 10);
+      }
+      if (params["YBins"] != "") {
+	ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
+      }
       if (cnvtype == "cfeb_cnv") {
 	/*
         // = Set actual number of strips depending on Chamber type
@@ -683,13 +683,13 @@ void Test_Generic::bookCommonHistos() {
 
     }
   }
-/*
-  hSummaryFormatErrors = new TH2F(("sum_"+testID+"_FormatErrors").c_str(), "CSCs with Format Errors", 36, 1, 37, 18, 0, 16);
-  hSummaryFormatErrors->SetOption("colz");
-  hSummaryFormatErrors->SetNdivisionsX(36);
-  hSummaryFormatErrors->SetLabelSizeX(0.02);
-  hSummaryFormatErrors->SetLabelSizeZ(0.02);
-*/  
+  /*
+    hSummaryFormatErrors = new TH2F(("sum_"+testID+"_FormatErrors").c_str(), "CSCs with Format Errors", 36, 1, 37, 18, 0, 16);
+    hSummaryFormatErrors->SetOption("colz");
+    hSummaryFormatErrors->SetNdivisionsX(36);
+    hSummaryFormatErrors->SetLabelSizeX(0.02);
+    hSummaryFormatErrors->SetLabelSizeZ(0.02);
+  */  
   
   mhistos["EMU"] = emuhistos;
 	
@@ -703,33 +703,33 @@ void Test_Generic::bookTestsForCSC(std::string cscID) {
     bookParams& params = itr->second;
     if (params.find("Type") != params.end()) {
       std::string cnvtype = params["Type"];
-	std::string scope = params["Prefix"];
-	std::string name = cscID+"_"+testID+"_"+params["Name"];
-	std::string title = cscID+": "+testID+" "+params["Title"];
-	double xmin=0., xmax=0.; int xbins=0;
-	double ymin=0., ymax=0.; int ybins=0;
-	std::string xtitle = params["XTitle"];
-	std::string ytitle = params["YTitle"];
-	double low0limit=0., low1limit=0.;
-	double high0limit=0., high1limit=0.;
-	if (params["XMin"] != "") {
-	  xmin = atof(params["XMin"].c_str());
-	}
-	if (params["XMax"] != "") {
-	  xmax = atof(params["XMax"].c_str());
-	}
-	if (params["YMin"] != "") {
-	  ymin = atof(params["YMin"].c_str());
-	}
-	if (params["YMax"] != "") {
-	  ymax = atof(params["YMax"].c_str());
-	}
-	if (params["XBins"] != "") {
-	  xbins = strtol(params["XBins"].c_str(), &stopstring, 10);
-	}
-	if (params["YBins"] != "") {
-	  ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
-	}
+      std::string scope = params["Prefix"];
+      std::string name = cscID+"_"+testID+"_"+params["Name"];
+      std::string title = cscID+": "+testID+" "+params["Title"];
+      double xmin=0., xmax=0.; int xbins=0;
+      double ymin=0., ymax=0.; int ybins=0;
+      std::string xtitle = params["XTitle"];
+      std::string ytitle = params["YTitle"];
+      double low0limit=0., low1limit=0.;
+      double high0limit=0., high1limit=0.;
+      if (params["XMin"] != "") {
+	xmin = atof(params["XMin"].c_str());
+      }
+      if (params["XMax"] != "") {
+	xmax = atof(params["XMax"].c_str());
+      }
+      if (params["YMin"] != "") {
+	ymin = atof(params["YMin"].c_str());
+      }
+      if (params["YMax"] != "") {
+	ymax = atof(params["YMax"].c_str());
+      }
+      if (params["XBins"] != "") {
+	xbins = strtol(params["XBins"].c_str(), &stopstring, 10);
+      }
+      if (params["YBins"] != "") {
+	ybins = strtol(params["YBins"].c_str(), &stopstring, 10);
+      }
       if (cnvtype == "cfeb_cnv") {
 	// = Set actual number of strips depending on Chamber type
 	xbins = getNumStrips(cscID);
@@ -842,7 +842,7 @@ void Test_Generic::doBinCheck() {
     
     bool isCSCError = false;
     if (hFormatErrors[cscID]) {
-       for(int bit=5; bit<24; bit++)
+      for(int bit=5; bit<24; bit++)
         if( chamber->second & (1<<bit) ) {
           isCSCError = true;
           hFormatErrors[cscID]->Fill(0.,bit-5);
@@ -857,8 +857,8 @@ void Test_Generic::doBinCheck() {
     }
 
     if (isCSCError) { 
-	 std::cout << "Evt#" << std::dec << nTotalEvents << "> " << cscID << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << chamber->second << std::dec << std::endl;
-	nCSCBadEvents[cscID]++;
+      std::cout << "Evt#" << std::dec << nTotalEvents << "> " << cscID << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << chamber->second << std::dec << std::endl;
+      nCSCBadEvents[cscID]++;
     }
     chamber++;
   }
@@ -875,7 +875,7 @@ void Test_Generic::finish() {
   time_t now = mktime(clock);
   std::string dataTime=timestr(&now); //asctime(clock);
   now = time(NULL);  
- //  clock = localtime(&now);
+  //  clock = localtime(&now);
   std::string testTime=timestr(&now);//  asctime(clock);
 
   std::string rpath = "Test_"+testID+"/"+outDir;
@@ -930,18 +930,18 @@ void Test_Generic::finish() {
   
       finishCSC(cscID); 
       if (nCSCEvents[cscID] >= nExpectedEvents/2) {
-//	finishCSC(cscID);
+	//	finishCSC(cscID);
       } else {
-//	std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
+	//	std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
 	// = Set error 
 	sum_res=4;
 	// fres << "\t['V00','" << 4 << "']," << std::endl;
 	csc_fres << "\t['V00','" << 4 << "']," << std::endl;
 	fEnoughData = false;
 	/*
-	if (mhistos[cscID]["V00"]) {
+	  if (mhistos[cscID]["V00"]) {
 
-	}	
+	  }	
 	*/
       }
 
@@ -972,8 +972,8 @@ void Test_Generic::finish() {
 	  cnv->SaveAs(path+cscID+"_"+testID+"_"+subtestID+".png");
 	  cnv->Write();	
 	  if (emucnvs[subtestID] != NULL) {
-		TestCanvas_1h* emucnv = dynamic_cast<TestCanvas_1h*>(emucnvs[subtestID]);
-		emucnv->GetHisto()->Add(cnv->GetHisto());
+	    TestCanvas_1h* emucnv = dynamic_cast<TestCanvas_1h*>(emucnvs[subtestID]);
+	    emucnv->GetHisto()->Add(cnv->GetHisto());
 	  }
 
 	  // == Save results to text file
@@ -986,11 +986,11 @@ void Test_Generic::finish() {
 	  text_res << "Total Events: " << nCSCEvents[cscID] << " Rejected: " << nCSCBadEvents[cscID] << std::endl;
 	  text_res << "Limits: L1=" << limits[0] << ", L0="<< limits[1] << ", H0="<< limits[2]<<", H1=" << limits[3] << std::endl;
 	  if (fEnoughData) {
-	  text_res <<  "Layer Strip    Value Status Masked" << std::endl;
-	  for (int i=0; i<data.Nlayers; i++) {
+	    text_res <<  "Layer Strip    Value Status Masked" << std::endl;
+	    for (int i=0; i<data.Nlayers; i++) {
 	      for (int j=0; j<data.Nbins; j++) {
-//        	text_res << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
-//			<< std::setw(9) << data.content[i][j] << std::endl;
+		//        	text_res << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
+		//			<< std::setw(9) << data.content[i][j] << std::endl;
 		std::string validity="OK";
 		if (data.content[i][j] < limits[0])  { validity="L1"; l0_cnt++;}
 		else if (data.content[i][j] < limits[1])  { validity="L0"; l1_cnt++;}
@@ -998,10 +998,10 @@ void Test_Generic::finish() {
 		else if (data.content[i][j] > limits[2])  { validity="H0"; h0_cnt++;}
 		// if (validity != "OK") failed_cnt++;
 		text_res << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
-                        << std::setw(9) << data.content[i][j] << std::setw(7) << validity << std::setw(7) << (int)(mask.content[i][j]) << std::endl;
-             }
-          }
-	  text_res <<  "Out of range counters: L1=" << l1_cnt << ", L0="<< l0_cnt << ", H0="<< h0_cnt <<", H1=" << h1_cnt << std::endl;
+			 << std::setw(9) << data.content[i][j] << std::setw(7) << validity << std::setw(7) << (int)(mask.content[i][j]) << std::endl;
+	      }
+	    }
+	    text_res <<  "Out of range counters: L1=" << l1_cnt << ", L0="<< l0_cnt << ", H0="<< h0_cnt <<", H1=" << h1_cnt << std::endl;
 	  }
 	  text_res << "TEST STATUS: ";
 	  if (!fEnoughData) { text_res << "FAILED NOT ENOUGH DATA";}
@@ -1021,17 +1021,17 @@ void Test_Generic::finish() {
 	std::string descr = params["Title"];
 
 	TStyle defStyle(*gStyle);
-/*	MonitoringCanvas* cnv= new MonitoringCanvas((cscID+"_"+testID+"_"+subtestID).c_str(), (cscID+"_"+testID+"_"+subtestID).c_str(), 
-						    (cscID + " "+testID+" "+descr).c_str() ,
-						    1, 1, imgW, imgH);
+	/*	MonitoringCanvas* cnv= new MonitoringCanvas((cscID+"_"+testID+"_"+subtestID).c_str(), (cscID+"_"+testID+"_"+subtestID).c_str(), 
+		(cscID + " "+testID+" "+descr).c_str() ,
+		1, 1, imgW, imgH);
 
-*/
+	*/
 	TestCanvas_userHisto* cnv = new TestCanvas_userHisto((cscID+"_"+testID+"_"+subtestID).c_str(), 
-                                                    (cscID + " "+testID+" "+descr).c_str());	
-/*
-	TestCanvas_1h* cnv = new TestCanvas_1h((cscID+"_"+testID+"_"+subtestID).c_str(),
-                                                    (cscID + " "+testID+" "+descr).c_str(), 70, 300.0, 1000.0);
-*/
+							     (cscID + " "+testID+" "+descr).c_str());	
+	/*
+	  TestCanvas_1h* cnv = new TestCanvas_1h((cscID+"_"+testID+"_"+subtestID).c_str(),
+	  (cscID + " "+testID+" "+descr).c_str(), 70, 300.0, 1000.0);
+	*/
 	cnv->SetCanvasSize(imgW, imgH);
 	cnv->AddTextTest(testID);
         cnv->AddTextResult(params["Title"]);
@@ -1045,13 +1045,13 @@ void Test_Generic::finish() {
 	applyCanvasParameters(cPad, m_itr->second, params);
 
         gStyle->SetPalette(1,0);
-//	m_itr->second->Draw();
+	//	m_itr->second->Draw();
 
 	cnv->SetHistoObject(m_itr->second);
-//	cnv->SetResultCode(1);
+	//	cnv->SetResultCode(1);
 	cnv->Draw();
 	cnv->SaveAs((path+cscID+"_"+testID+"_"+subtestID+".png").c_str());
-//	cnv->Print((path+cscID+"_"+testID+"_"+subtestID+".png").c_str());
+	//	cnv->Print((path+cscID+"_"+testID+"_"+subtestID+".png").c_str());
 	m_itr->second->Write();
 	cnv->Write();
 	delete cnv;
@@ -1079,64 +1079,64 @@ void Test_Generic::finish() {
     gSystem->Exec(command.Data());
     rdir->cd();
     for (TestCanvases::iterator c_itr=emucnvs.begin(); c_itr != emucnvs.end(); ++c_itr) {
-        std::string subtestID = c_itr->first;
-        TestCanvas_1h* cnv = dynamic_cast<TestCanvas_1h*>(c_itr->second);
-	  cnv->SetHistoObject(cnv->GetHisto());
-          cnv->AddTextDatafile(dataFile);
-          cnv->AddTextRun(dataTime);
-          cnv->AddTextAnalysis(testTime +", version " + ANALYSIS_VER);
-          cnv->Draw();
-          cnv->SetCanvasSize(imgW, imgH);
-          cnv->SaveAs(path+"sum_"+testID+"_"+subtestID+".png");
-          cnv->Write();
-	  cnv->GetHisto()->Write();
+      std::string subtestID = c_itr->first;
+      TestCanvas_1h* cnv = dynamic_cast<TestCanvas_1h*>(c_itr->second);
+      cnv->SetHistoObject(cnv->GetHisto());
+      cnv->AddTextDatafile(dataFile);
+      cnv->AddTextRun(dataTime);
+      cnv->AddTextAnalysis(testTime +", version " + ANALYSIS_VER);
+      cnv->Draw();
+      cnv->SetCanvasSize(imgW, imgH);
+      cnv->SaveAs(path+"sum_"+testID+"_"+subtestID+".png");
+      cnv->Write();
+      cnv->GetHisto()->Write();
 	  
-      }
+    }
 
     MonHistos& emuhistos = mhistos["EMU"];
     for (MonHistos::iterator h_itr=emuhistos.begin(); h_itr!=emuhistos.end(); ++h_itr) {
-	std::string subtestID = h_itr->first;
-        bookParams& params =  xmlCfg[subtestID];
-        std::string descr = params["Title"];
+      std::string subtestID = h_itr->first;
+      bookParams& params =  xmlCfg[subtestID];
+      std::string descr = params["Title"];
 
-        TStyle defStyle(*gStyle);
-        TestCanvas_userHisto* cnv = new TestCanvas_userHisto(("Sum_"+testID+"_"+subtestID).c_str(),
-                                                    ("Summary "+testID+" "+descr).c_str());
-        cnv->SetCanvasSize(imgW, imgH);
-        cnv->AddTextTest(testID);
-        cnv->AddTextResult(params["Title"]);
-        cnv->AddTextDatafile(dataFile);
-        cnv->AddTextRun(dataTime);
-        cnv->AddTextAnalysis(testTime +", version " + ANALYSIS_VER);
-        cnv->AddTextEvents(Form("%d",nCSCEvents["EMU"]));
-        cnv->AddTextBadEvents(Form("%d",nCSCBadEvents["EMU"]));
-        TVirtualPad* cPad = cnv->GetUserPad();
-	applyCanvasParameters(cPad, h_itr->second, params);
-	gStyle->SetPalette(1,0);
+      TStyle defStyle(*gStyle);
+      TestCanvas_userHisto* cnv = new TestCanvas_userHisto(("Sum_"+testID+"_"+subtestID).c_str(),
+							   ("Summary "+testID+" "+descr).c_str());
+      cnv->SetCanvasSize(imgW, imgH);
+      cnv->AddTextTest(testID);
+      cnv->AddTextResult(params["Title"]);
+      cnv->AddTextDatafile(dataFile);
+      cnv->AddTextRun(dataTime);
+      cnv->AddTextAnalysis(testTime +", version " + ANALYSIS_VER);
+      cnv->AddTextEvents(Form("%d",nCSCEvents["EMU"]));
+      cnv->AddTextBadEvents(Form("%d",nCSCBadEvents["EMU"]));
+      TVirtualPad* cPad = cnv->GetUserPad();
+      applyCanvasParameters(cPad, h_itr->second, params);
+      gStyle->SetPalette(1,0);
 
-        cnv->SetHistoObject(h_itr->second);
-        cnv->Draw();
-        cnv->SaveAs((path+"sum_"+testID+"_"+subtestID+".png").c_str());
-        h_itr->second->Write();
-        cnv->Write();
-        delete cnv;
+      cnv->SetHistoObject(h_itr->second);
+      cnv->Draw();
+      cnv->SaveAs((path+"sum_"+testID+"_"+subtestID+".png").c_str());
+      h_itr->second->Write();
+      cnv->Write();
+      delete cnv;
 
     }
     f->cd();
     root_res.Close();
   }
-//  saveCSCList();
+  //  saveCSCList();
 
 }
 
 void Test_Generic::addCSCtoMap(std::string cscid, int dmbcrate, int dmbslot)
 {
-	if (cscid != "") {
-		CSCtoHWmap::iterator itr = cscmap.find(cscid);
-		if (itr==cscmap.end() || cscmap.size() == 0) {
-			cscmap[cscid]=std::make_pair(dmbcrate, dmbslot);
-		}
-	}
+  if (cscid != "") {
+    CSCtoHWmap::iterator itr = cscmap.find(cscid);
+    if (itr==cscmap.end() || cscmap.size() == 0) {
+      cscmap[cscid]=std::make_pair(dmbcrate, dmbslot);
+    }
+  }
 	
 }
 
