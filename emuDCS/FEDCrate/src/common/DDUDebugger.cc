@@ -400,8 +400,8 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 	// Pop out the decoded register.
 	for (unsigned int iBits = 0; iBits < 12; iBits++) {
 		int lcodeBits = 5 - (iBits/2);
-		outStream << debugNames[iBits] << ": " << setw(4) << setfill('0') << hex << (iBits % 2 ? ((0xffff0000&lcode[iBits]) >> 16) : (0xffff&lcode[iBits]));
-		out.push_back(outString.str());
+		outStream << debugNames[iBits] << ": " << setw(4) << setfill('0') << hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
+		out.push_back(outStream.str());
 		outString.str("");
 	}
 
@@ -522,6 +522,17 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		outStream.str("");
 	}
 	
+	unsigned int XmitError = thisDDU->readXmitError();
+	if (XmitError & 0x7fff) {
+		outStream << "Transmit errors detected on fiber(s) ";
+		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+			if (XmitError & (1<<iFiber)) {
+				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+			}
+		}
+		out.push_back(outStream.str());
+		outStream.str("");
+	}
 
 	unsigned long int inTrap[2][6];
 	bool inTrapSet[2] = {
@@ -689,7 +700,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 				out.push_back(outStream.str());
 				outStream.str("");
 
-				if (inStat[idev]&0x00000130) out.push_back(devName[iDev] + ": [Also associated with SpecialWord errors]");
+				if (inStat[iDev]&0x00000130) out.push_back(devName[iDev] + ": [Also associated with SpecialWord errors]");
 			}
 
 			// If InCtrlErr and not solved, get InTrap registers (each 32 bytes)
@@ -780,7 +791,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 					
 						if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev] + ")");
 						solved = true;
-					} else if (inTrap[iDev][0]&0x00000080)) {  // StuckData
+					} else if (inTrap[iDev][0]&0x00000080) {  // StuckData
 						outStream << devName[iDev] << ": stuck data for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
@@ -906,7 +917,6 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		}
 
 		if (lcode[0]&0x00000010) {  // DDUctrl Multi-Xmit-Err
-			unsigned int checkFiber = thisDDU->readTxError();
 			out.push_back("[Multiple SpecialWord bit errors detected]");
 			
 			if (lcode[0]&0x0000800) out.push_back("(DDUctrl FPGA saw 64-bit-misalign flag, reported at InFPGA level?)");
@@ -1001,13 +1011,12 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			if (lcode[2]&0x00000010) out.push_back("[L1A mismatch]");
 			if (lcode[2]&0x00000004) out.push_back("[WordCountErr]");
 			if (!(lcode[2]&0x0000001c)) out.push_back("[TMB problem on DMB, Timeout or Full FIFO]");
-
+		}
 
 		if (lcode[1]&0x00004000 || lcode[0]&0x00000008) {  // Mult-L1A error:
 			//        confirmed CFEB L1err; DMB(hdr/tr), TMB or ALCT combined & accumulated
 			out.push_back("Multiple L1A errors detected");
 			bool multiSolve = false;
-			unsigned int checkFiber = thisDDU->readDMBError();
 			
 			if ((lcode[0]&0x90400fff) == 0x0000000a && lcode[4]&0x00008000) {
 				outStream << "[DDU C-code L1A error detected for external FIFO(s) ";
@@ -1077,7 +1086,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 	}
 
 	if (!solved) {
-		out.push_back["Cause of error not clearly determined"];
+		out.push_back("Cause of error not clearly determined");
 	}
 
 	/*
