@@ -2726,7 +2726,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 	if (debugTrapValid) {
 
 		// Here it is.
-		string bigComments = debugger->ddu_fpgatrap(thisDDU);
+		std::vector<std::string> bigComments = debugger->ddu_fpgatrap(thisDDU);
 
 		ostringstream diagCode;
 		diagCode << setfill('0');
@@ -2748,10 +2748,16 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::div(diagCode.str())
 			.set("style","display: inline;") << endl;
 
-		*out << cgicc::div(bigComments)
+		*out << cgicc::div()
 			.set("style","width: 80%; white-space: pre; font-size: 10pt; margin: 10px auto 10px auto; border: 2px solid #666; padding: 2px; font-family: monospace;") << endl;
 
-		*out << cgicc::div("The status registers are frozen in the trap only after an error occurs.  The values in the trap remain valid until a reset.")
+		for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComments != bigComments.end(); iComments++) {
+			*out << (*iComment) << cgicc::br();
+		}
+
+		*out << cgicc::div();
+
+		*out << cgicc::div("The status registers are frozen in the trap only after an error occurs.  The values in the trap remain valid until a sync reset.")
 			.set("style","font-size: 8pt;") << endl;
 
 	} else {

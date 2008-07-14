@@ -1,4 +1,4 @@
-/* 
+/*
      S. Durkin      1/25/05
 
  */
@@ -19,7 +19,7 @@ public:
 
 	// standard routines
 	/// construct with all the standard CFEBs and BuckeyeChips
-	DCC(int,int);
+	DCC(int, int);
 	DCC(int slot);
 	virtual ~DCC();
 	/// from the BOARDTYPE enum
@@ -36,10 +36,10 @@ public:
 	unsigned long int mprom_userid();
 	unsigned long int inprom_chipid();
 	unsigned long int mprom_chipid();
-	void inpromuser(enum DEVTYPE devnum,char *c);
+	void inpromuser(enum DEVTYPE devnum, char *c);
 	void mctrl_bxr();
 	void mctrl_evnr();
-	void mctrl_fakeL1A(char rate,char num);
+	void mctrl_fakeL1A(char rate, char num);
 	void mctrl_fifoinuse(unsigned short int fifo);
 	void mctrl_reg(char *c);
 	void mctrl_swset(unsigned short int swset);
@@ -56,8 +56,8 @@ public:
 	// EPROM reprogramming (EXPERTS ONLY !)
 	void hdrst_main(void);
 	void hdrst_in(void);
-	void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
-	void Parse(char *buf,int *Count,char **Word);
+	void epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ, char *cbrdnum);
+	void Parse(char *buf, int *Count, char **Word);
 
 	/// sends commands by name
 	void executeCommand(string command);
