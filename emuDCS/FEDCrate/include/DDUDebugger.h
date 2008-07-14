@@ -16,7 +16,8 @@ using namespace std;
 *	@author Phillip Killewald
 *	@author Jason Gilmore
 **/
-class DDUDebugger {
+class DDUDebugger
+{
 public:
 	/** Does nothing **/
 	DDUDebugger();
@@ -51,31 +52,31 @@ public:
 	std::map<string, string> WarnMon(int stat);
 
 	/** Reads from method @sa DDU::ddu_fpgatrap() **/
-	string ddu_fpgatrap(DDU *thisDDU);
+	std::vector<std::string> ddu_fpgatrap(DDU *thisDDU);
 
 	/** Reads from method @sa DDU::readKillFiber() **/
 	std::map<string, string> KillFiber(long int stat);
-	
+
 	/** Reads from method @sa DDU::readFPGAStat(INFPGAX) **/
-	std::map<string, string> InFPGAStat(enum DEVTYPE dt,unsigned long int stat);
+	std::map<string, string> InFPGAStat(enum DEVTYPE dt, unsigned long int stat);
 
 	/** Reads from method @sa DDU::readFIFOStat(INFPGAX) **/
-	std::map<string, string> FIFOStat(enum DEVTYPE dt,int stat);
+	std::map<string, string> FIFOStat(enum DEVTYPE dt, int stat);
 
 	/** Reads from method @sa DDU::readFIFOFull(INFPGAX) **/
-	std::map<string, string> FIFOFull(enum DEVTYPE dt,int stat);
+	std::map<string, string> FIFOFull(enum DEVTYPE dt, int stat);
 
 	/** Reads from method @sa DDU::readCCodeStat(INFPGAX) **/
-	std::map<string, string> CCodeStat(enum DEVTYPE dt,int stat);
-	
+	std::map<string, string> CCodeStat(enum DEVTYPE dt, int stat);
+
 	/** Reads from method @sa DDU::readFiberDiagnostics(INFPGAX,Y) **/
-	std::map<string, string> FiberDiagnostics(enum DEVTYPE dt,int reg,unsigned long int stat);
+	std::map<string, string> FiberDiagnostics(enum DEVTYPE dt, int reg, unsigned long int stat);
 
 	/** Reads from method @sa DDU::readWriteMemoryActive(INFPGAX) **/
-	std::map<string, string> WriteMemoryActive(enum DEVTYPE dt,int iFiber,int stat);
-	
+	std::map<string, string> WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat);
+
 	/** Reads from method @sa DDU::infpga_trap() **/
-	string infpga_trap(DDU *thisDDU,enum DEVTYPE dt);
+	string infpga_trap(DDU *thisDDU, enum DEVTYPE dt);
 
 	/** Reads from method @sa DDU::readParallelStat() **/
 	std::map<string, string> ParallelStat(int stat);

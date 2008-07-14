@@ -37,7 +37,7 @@ std::map<string, string> DDUDebugger::DDUFPGAStat(unsigned long int stat)
 			if (0x00400000&stat) returnValues["InRDctrl Error"] = "red";
 			if (0x00200000&stat) returnValues["DAQ Stop bit set"] = "blue";
 			if (0x00100000&stat) returnValues["DAQ says Not Ready"] = "blue";
-			if (0x00300000&stat==0x00200000) returnValues["DAQ Applied Backpressure"] = "blue";
+			if (0x00300000&stat == 0x00200000) returnValues["DAQ Applied Backpressure"] = "blue";
 		}
 		if (stat&0x000F0000) {
 			if (0x00080000&stat) returnValues["TMB Error"] = "orange";
@@ -71,7 +71,7 @@ std::map<string, string> DDUDebugger::DDUFPGAStat(unsigned long int stat)
 			if (0x00000001&stat) returnValues["DMB or CFEB CRC Error"] = "orange";
 		}
 	} else {
-  //returnValues["OK"] = "none";
+		//returnValues["OK"] = "none";
 	}
 
 	return returnValues;
@@ -97,8 +97,8 @@ std::map<string, string> DDUDebugger::OutputStat(int stat)
 			}
 			if (stat&0x00000E00) {
 				//if (stat&0x00000900)==0x0800||(stat&0x00000500)==0x0400) *out << br();
-				if (0x00000800&stat && (0x00000100&stat)==0) returnValues["DDU GbE Overflow occurred"] = "blue";
-				if (0x00000400&stat && (0x00000100&stat)==0) returnValues["GbE Transmit Limit occurred"] = "none";
+				if (0x00000800&stat && (0x00000100&stat) == 0) returnValues["DDU GbE Overflow occurred"] = "blue";
+				if (0x00000400&stat && (0x00000100&stat) == 0) returnValues["GbE Transmit Limit occurred"] = "none";
 				//if (0x00000200&stat&&(0x00000100&stat)==0) returnValues["GbE FIFO Always Empty &nbsp ";
 				//if (0x00000100&stat) returnValues["<font color=blue>SPY/GbE Fiber Disconnect occurred</font>";
 				//if (0x000000ef&stat) *out << br();
@@ -107,19 +107,19 @@ std::map<string, string> DDUDebugger::OutputStat(int stat)
 				if (0x00000080&stat) returnValues["DDU DAQ-Limited Overflow occurred (DCC/S-Link Wait)"] = "red";
 				if (0x00000040&stat) returnValues["DAQ (DCC/S-Link) Wait"] = "blue";
 				if (0x00000020&stat) returnValues["DDU S-Link Full/Stop"] = "none";
-				if (0x00000010&stat&&(0x00001000&stat)==0) returnValues["DDU S-Link Not Ready"] = "red";
+				if (0x00000010&stat && (0x00001000&stat) == 0) returnValues["DDU S-Link Not Ready"] = "red";
 			}
 			if (stat&0x0000000F) {
 				//if (0x0000000e&stat&&(0x00000001&stat)==0) *out << br();
-				if (0x00000008&stat&&(0x00000100&stat)==0) returnValues["GbE FIFO Full"] = "none";
-				if (0x00000004&stat&&(0x00000100&stat)==0) returnValues["DDU Skipped SPY Event (GbE data not sent)"] = "none";
-				if (0x00000002&stat&&(0x00000100&stat)==0) returnValues["GbE FIFO Not Empty"] = "none";
+				if (0x00000008&stat && (0x00000100&stat) == 0) returnValues["GbE FIFO Full"] = "none";
+				if (0x00000004&stat && (0x00000100&stat) == 0) returnValues["DDU Skipped SPY Event (GbE data not sent)"] = "none";
+				if (0x00000002&stat && (0x00000100&stat) == 0) returnValues["GbE FIFO Not Empty"] = "none";
 				if (0x00000001&stat) returnValues["DCC Link Not Ready"] = "blue";
 			}
 			//*out << "</font></blockquote>";
 		}
 	} else {
-  //returnValues["OK"] = "none";
+		//returnValues["OK"] = "none";
 	}
 
 	return returnValues;
@@ -163,7 +163,7 @@ std::map<string, string> DDUDebugger::EBReg1(int stat)
 			if (0x00000001&stat) returnValues["SP/TF data detected in last event"] = "orange";
 		}
 	} else {
-  //returnValues["OK"] = "none";
+		//returnValues["OK"] = "none";
 	}
 
 	return returnValues;
@@ -175,7 +175,7 @@ std::map<string, string> DDUDebugger::EBReg2(int stat)
 {
 	std::map<string, string> returnValues;
 
-	if(stat&0x0000ffff) {
+	if (stat&0x0000ffff) {
 		if (0x00000020&stat) returnValues["Empty CSC in Event flag"] = "green";
 		//if (0x0000FFDF&stat) *out << "<blockquote><font size=-1 color=orange face=arial>";
 		if (stat&0x0000F000) {
@@ -207,7 +207,7 @@ std::map<string, string> DDUDebugger::EBReg2(int stat)
 			// if (0x00000001&stat) returnValues["Lost In Data occured"] = "red";
 		}
 	} else {
-  //returnValues["OK"] = "none";
+		//returnValues["OK"] = "none";
 	}
 
 	return returnValues;
@@ -219,7 +219,7 @@ std::map<string, string> DDUDebugger::EBReg3(int stat)
 {
 	std::map<string, string> returnValues;
 
-	if(stat&0x0000ffff) {
+	if (stat&0x0000ffff) {
 		//*out << "<blockquote><font size=-1 color=black face=arial>";
 		if (stat&0x0000F000) {
 			if (0x00008000&stat) returnValues["Trigger Readout Error"] = "orange";
@@ -253,7 +253,7 @@ std::map<string, string> DDUDebugger::EBReg3(int stat)
 		}
 
 	} else {
-  //returnValues["OK"] = "none";
+		//returnValues["OK"] = "none";
 	}
 
 
@@ -275,7 +275,7 @@ std::map<string, string> DDUDebugger::FIFO2(int stat)
 		if (0x00000001&stat) returnValues["L1A FIFO Almost-Full occurred"] = "blue";
 
 	} else {
-  //returnValues["OK"] = "none";
+		//returnValues["OK"] = "none";
 	}
 
 
@@ -288,7 +288,7 @@ std::map<string, string> DDUDebugger::FFError(int stat)
 {
 	std::map<string, string> returnValues;
 
-	if(stat&0x000000ff) {
+	if (stat&0x000000ff) {
 
 		if (0x00000040&stat) returnValues["L1A FIFO Empty"] = "none";
 		if (0x00000040&stat == 0) returnValues["L1A FIFO Not Empty"] = "none";
@@ -296,7 +296,7 @@ std::map<string, string> DDUDebugger::FFError(int stat)
 		if (0x00000001&stat) returnValues["L1A FIFO Full occurred"] = "red";
 
 	} else {
-  //returnValues["OK"] = "none";
+		//returnValues["OK"] = "none";
 	}
 
 
@@ -309,7 +309,7 @@ std::map<string, string> DDUDebugger::InCHistory(int stat)
 {
 	std::map<string, string> returnValues;
 
-	if(stat&0x00000fff) {
+	if (stat&0x00000fff) {
 		//*out << "<blockquote><font size=-1 color=red face=arial>";
 		if (stat&0x00000F00) {
 			if (0x00000800&stat) returnValues["InRD End C-Code Error occurred"] = "red";
@@ -330,7 +330,7 @@ std::map<string, string> DDUDebugger::InCHistory(int stat)
 			if (0x00000001&stat) returnValues["InRD Timeout Error occurred"] = "red";
 		}
 	} else {
-  //returnValues["OK"] = "none";
+		//returnValues["OK"] = "none";
 	}
 
 
@@ -362,648 +362,722 @@ std::map<string, string> DDUDebugger::WarnMon(int stat)
 }
 
 
-
-string DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
+std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 {
-	ostringstream *out = new ostringstream();
+
+	std::vector<std::string> out;
+	ostringstream outStream;
 
 	thisDDU->ddu_fpgatrap();
 
 	//printf(" enter DDUtrapDecode \n");
-	unsigned long int lcode[10];
-	int i;
-	char buf[100],buf1[100],buf2[100],buf3[100],buf4[100];
-	char cbuf1[20],cbuf2[20],cbuf3[20],cbuf4[20];
-	char sred[20]="<font color=red>";
-	char syel[20]="<font color=orange>";
-	char sblu[20]="<font color=blue>";
-	char sgrn[20]="<font color=green>";
-	char snul[20]="</font>";
-	sprintf(buf1," ");
-	sprintf(buf2," ");
-	sprintf(buf3," ");
-	sprintf(buf4," ");
-	sprintf(cbuf1," ");
-	sprintf(cbuf2," ");
-	sprintf(cbuf3," ");
-	sprintf(cbuf4," ");
-	lcode[0]=thisDDU->fpga_lcode[0];
-	lcode[1]=thisDDU->fpga_lcode[1];
-	lcode[2]=thisDDU->fpga_lcode[2];
-	lcode[3]=thisDDU->fpga_lcode[3];
-	lcode[4]=thisDDU->fpga_lcode[4];
-	lcode[5]=thisDDU->fpga_lcode[5];
-	sprintf(buf,"  192-bit DDU Control Diagnostic Trap (24 bytes)");
-	*out << buf << endl;
-	i=23;
-	sprintf(buf,"                        o-stat  fful  fifo-c fifo-b");
-	*out << buf << endl;
-	sprintf(buf,"      rcv bytes %2d-%2d:",i,i-7);
-	sprintf(cbuf1,"%s",sgrn);
-	if(0x09010000&lcode[5])sprintf(cbuf1,"%s",sblu);
-	if(0x40000000&lcode[5])sprintf(cbuf1,"%s",syel);
-	if(0x80800000&lcode[5])sprintf(cbuf1,"%s",sred);
-	sprintf(buf1,"%s   %04lx%s",cbuf1,(0xffff0000&lcode[5])>>16,snul);
-	sprintf(cbuf2,"%s",sgrn);
-	if(0x01ff&lcode[5])sprintf(cbuf2,"%s",sred);
-	sprintf(buf2,"%s   %04lx%s",cbuf2,0xffff&lcode[5],snul);
-	sprintf(cbuf3,"%s",sgrn);
-	if(0xffff0000&lcode[4])sprintf(cbuf3,"%s",sred);
-	sprintf(buf3,"%s   %04lx%s",cbuf3,(0xffff0000&lcode[4])>>16,snul);
-	sprintf(cbuf4,"%s",sgrn);
-	if(0x01ff&lcode[4])sprintf(cbuf4,"%s",sblu);
-	sprintf(buf4,"%s   %04lx%s",cbuf4,0xffff&lcode[4],snul);
-	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+	unsigned long int lcode[6];
 
-	i=15;
-	sprintf(buf,"                        fifo-a instat c-code  erc");
-	*out << buf << endl;
-	sprintf(buf,"      rcv bytes %2d-%2d:",i,i-7);
-	sprintf(cbuf1,"%s",sgrn);
-	if(0xfff00000&lcode[3])sprintf(cbuf1,"%s",sred);
-	sprintf(buf1,"%s   %04lx%s",cbuf1,(0xffff0000&lcode[3])>>16,snul);
-	sprintf(cbuf2,"%s",sgrn);
-	if(0x00f0&lcode[3])sprintf(cbuf2,"%s",syel);
-	if(0xff0f&lcode[3])sprintf(cbuf2,"%s",sred);
-	sprintf(buf2,"%s   %04lx%s",cbuf2,0xffff&lcode[3],snul);
-	sprintf(cbuf3,"%s",sgrn);
-	if(0x00200000&lcode[2])sprintf(cbuf3,"%s",syel);
-	if(0xffdf0000&lcode[2])sprintf(cbuf3,"%s",sred);
-	sprintf(buf3,"%s   %04lx%s",cbuf3,(0xffff0000&lcode[2])>>16,snul);
-	sprintf(cbuf4,"%s",sgrn);
-	if(0x9f1f&lcode[2])sprintf(cbuf4,"%s",syel);
-	sprintf(buf4,"%s   %04lx%s",cbuf4,0xffff&lcode[2],snul);
-	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+	lcode[0] = thisDDU->fpga_lcode[0];
+	lcode[1] = thisDDU->fpga_lcode[1];
+	lcode[2] = thisDDU->fpga_lcode[2];
+	lcode[3] = thisDDU->fpga_lcode[3];
+	lcode[4] = thisDDU->fpga_lcode[4];
+	lcode[5] = thisDDU->fpga_lcode[5];
 
-	i=7;
-	sprintf(buf,"                         erb    era   32-bit status");
-	*out << buf << endl;
-	sprintf(buf,"      rcv bytes %2d-%2d:",i,i-7);
-	sprintf(cbuf1,"%s",sgrn);
-	if(0x00110000&lcode[1])sprintf(cbuf1,"%s",syel);
-	if(0xd08e0000&lcode[1])sprintf(cbuf1,"%s",sred);
-	sprintf(buf1,"%s   %04lx%s",cbuf1,(0xffff0000&lcode[1])>>16,snul);
-	sprintf(cbuf2,"%s",sgrn);
-	if(0x2c00&lcode[1])sprintf(cbuf2,"%s",sblu);
-	if(0x01e0&lcode[1])sprintf(cbuf2,"%s",syel);
-	if(0xc00c&lcode[1])sprintf(cbuf2,"%s",sred);
-	sprintf(buf2,"%s   %04lx%s",cbuf2,0xffff&lcode[1],snul);
-	sprintf(cbuf3,"%s",sgrn);
-	if(0x21800000&lcode[0])sprintf(cbuf3,"%s",sblu);
-	if(0xd00f0000&lcode[0])sprintf(cbuf3,"%s",syel);
-	if(0x0e400000&lcode[0])sprintf(cbuf3,"%s",sred);
-	sprintf(buf3,"%s   %04lx%s",cbuf3,(0xffff0000&lcode[0])>>16,snul);
-	sprintf(cbuf4,"%s",sgrn);
-	if(0x3400&lcode[0])sprintf(cbuf4,"%s",sblu);
-	if(0x4b23&lcode[0])sprintf(cbuf4,"%s",syel);
-	if(0x80dc&lcode[0])sprintf(cbuf4,"%s",sred);
-	sprintf(buf4,"%s   %04lx%s",cbuf4,0xffff&lcode[0],snul);
-	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+	// First, spit out the full status.
 
+	string debugNames[12] = {
+		"o-stat",
+		"fifo-full",
+		"fifo-c",
+		"fifo-b",
+		"fifo-a",
+		"in-stat",
+		"c-code",
+		"er-c",
+		"er-b",
+		"er-a",
+		"32-bit stat high",
+		"32-bit stat low"
+	};
 
-
-	unsigned int CSCstat=0;
-	unsigned long int i0trap[8];
-	unsigned long int i1trap[8];
-	unsigned long int i0stat,i1stat,ddustat,erastat;
-	short int igot_i0,igot_i1,solved,iFill,iTimeout;
-	igot_i0=0;  igot_i1=0;  solved=0;  iFill=0;  iTimeout=0;
-	*out << "DDU Diagnosis results:" << endl;
-	CSCstat=thisDDU->vmepara_CSCstat();  // which inputs report a problem
-/*
-  // Begin Global DDUstatus check: already have this from the Diagnostic trap!
-	thisDDU->ddu_fpgastat();
-	ddustat=((0xffff&thisDDU->ddu_code1)<<16)|(0xffff&thisDDU->ddu_code0);
-*/
-	ddustat=(0xffffffff&lcode[0]);
-
-/*
- // already have this from the Diagnostic trap!
-	thisDDU->ddu_rderareg();
-	erastat=0x0000ffff&thisDDU->ddu_code0;
-*/
-	erastat=(0x0000ffff&lcode[1]);
-
-	thisDDU->infpgastat(INFPGA0);  // Begin Global InFPGA0 check
-	i0stat=((0xffff&thisDDU->infpga_code1)<<16)|(0xffff&thisDDU->infpga_code0);
-	//  sprintf(buf,"infpga0 32-bit Status: %08lXh ",i0stat);
-	//  *out << buf << endl;
-	if(i0stat&0x04000000){            // DLL Error
-		*out << "**DLLerror detected on InFPGA0** " << endl;
-		if((i0stat&0x00000800)>0)*out << "  ^^^probable cause of Gt-Rx errors " << endl;
-		solved=1;
-	} else if(i0stat&0x00000004){       // Fiber Change
-		thisDDU->infpga_CheckFiber(INFPGA0);
-		sprintf(buf,"**Fiber Connection error detected for DDUinput[7:0]=0x%02x** ",(thisDDU->infpga_code0&0xff00)>>8);
-		*out << buf << endl;
-		if((i0stat&0x00000800)>0)*out << "  ^^^probable cause of Gt-Rx errors " << endl;
-		else if((i0stat&0x00000130)>0)*out << "  ^^^probable cause of SpecialWord/Xmit errors " << endl;
-		solved=1;
-	} else if((i0stat&0x00000800)>0){   // GT-Rx Error
-		thisDDU->infpga_RxErr(INFPGA0);
-		sprintf(buf," *GT-Rx Error for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0xff00)>>8);
-		*out << buf << endl;
-		if((i0stat&0x00000130)>0)*out << "  ^^^probable cause of SpecialWord/Xmit errors " << endl;
-		solved=1;
-	} else if((lcode[1]&0x00010000)>0&&(i0stat&0x00880000)>0){  // DMB-Full
-		thisDDU->infpga_DMBwarn(INFPGA0);
-		sprintf(buf," *confirmed DMB Full for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0xff00)>>8);
-		*out << buf << endl;
-		if((lcode[0]&0x00040000)>0&&(lcode[2]&0x00001c00)==0)*out << " ^^^DMB Full FIFO for ALCT " << endl;
-		else if((lcode[0]&0x00080000)>0&&(lcode[2]&0x0000001c)==0)*out << " ^^^DMB Full FIFO for TMB " << endl;
-		else *out << " ^^^DMB Full FIFO, probably for CFEB " << endl;
-		if((i0stat&0x00000130)>0)*out << "       --probable cause of SpecialWord/Xmit errors  " << endl;
-		solved=1;
+	// Pop out the decoded register.
+	for (unsigned int iBits = 0; iBits < 12; iBits++) {
+		int lcodeBits = 5 - (iBits/2);
+		outStream << debugNames[iBits] << ": " << setw(4) << setfill('0') << hex << (iBits % 2 ? ((0xffff0000&lcode[iBits]) >> 16) : (0xffff&lcode[iBits]));
+		out.push_back(outString.str());
+		outString.str("");
 	}
 
+// 	i = 23;
+// 	sprintf(buf, "                        o-stat  fful  fifo-c fifo-b");
+// 	*out << buf << endl;
+// 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
+// 	sprintf(cbuf1, "%s", sgrn);
+// 	if (0x09010000&lcode[5])sprintf(cbuf1, "%s", sblu);
+// 	if (0x40000000&lcode[5])sprintf(cbuf1, "%s", syel);
+// 	if (0x80800000&lcode[5])sprintf(cbuf1, "%s", sred);
+// 	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[5]) >> 16, snul);
+// 	sprintf(cbuf2, "%s", sgrn);
+// 	if (0x01ff&lcode[5])sprintf(cbuf2, "%s", sred);
+// 	sprintf(buf2, "%s   %04lx%s", cbuf2, 0xffff&lcode[5], snul);
+// 	sprintf(cbuf3, "%s", sgrn);
+// 	if (0xffff0000&lcode[4])sprintf(cbuf3, "%s", sred);
+// 	sprintf(buf3, "%s   %04lx%s", cbuf3, (0xffff0000&lcode[4]) >> 16, snul);
+// 	sprintf(cbuf4, "%s", sgrn);
+// 	if (0x01ff&lcode[4])sprintf(cbuf4, "%s", sblu);
+// 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[4], snul);
+// 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+// 
+// 	i = 15;
+// 	sprintf(buf, "                        fifo-a instat c-code  erc");
+// 	*out << buf << endl;
+// 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
+// 	sprintf(cbuf1, "%s", sgrn);
+// 	if (0xfff00000&lcode[3])sprintf(cbuf1, "%s", sred);
+// 	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[3]) >> 16, snul);
+// 	sprintf(cbuf2, "%s", sgrn);
+// 	if (0x00f0&lcode[3])sprintf(cbuf2, "%s", syel);
+// 	if (0xff0f&lcode[3])sprintf(cbuf2, "%s", sred);
+// 	sprintf(buf2, "%s   %04lx%s", cbuf2, 0xffff&lcode[3], snul);
+// 	sprintf(cbuf3, "%s", sgrn);
+// 	if (0x00200000&lcode[2])sprintf(cbuf3, "%s", syel);
+// 	if (0xffdf0000&lcode[2])sprintf(cbuf3, "%s", sred);
+// 	sprintf(buf3, "%s   %04lx%s", cbuf3, (0xffff0000&lcode[2]) >> 16, snul);
+// 	sprintf(cbuf4, "%s", sgrn);
+// 	if (0x9f1f&lcode[2])sprintf(cbuf4, "%s", syel);
+// 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[2], snul);
+// 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+// 
+// 	i = 7;
+// 	sprintf(buf, "                         erb    era   32-bit status");
+// 	*out << buf << endl;
+// 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
+// 	sprintf(cbuf1, "%s", sgrn);
+// 	if (0x00110000&lcode[1])sprintf(cbuf1, "%s", syel);
+// 	if (0xd08e0000&lcode[1])sprintf(cbuf1, "%s", sred);
+// 	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[1]) >> 16, snul);
+// 	sprintf(cbuf2, "%s", sgrn);
+// 	if (0x2c00&lcode[1])sprintf(cbuf2, "%s", sblu);
+// 	if (0x01e0&lcode[1])sprintf(cbuf2, "%s", syel);
+// 	if (0xc00c&lcode[1])sprintf(cbuf2, "%s", sred);
+// 	sprintf(buf2, "%s   %04lx%s", cbuf2, 0xffff&lcode[1], snul);
+// 	sprintf(cbuf3, "%s", sgrn);
+// 	if (0x21800000&lcode[0])sprintf(cbuf3, "%s", sblu);
+// 	if (0xd00f0000&lcode[0])sprintf(cbuf3, "%s", syel);
+// 	if (0x0e400000&lcode[0])sprintf(cbuf3, "%s", sred);
+// 	sprintf(buf3, "%s   %04lx%s", cbuf3, (0xffff0000&lcode[0]) >> 16, snul);
+// 	sprintf(cbuf4, "%s", sgrn);
+// 	if (0x3400&lcode[0])sprintf(cbuf4, "%s", sblu);
+// 	if (0x4b23&lcode[0])sprintf(cbuf4, "%s", syel);
+// 	if (0x80dc&lcode[0])sprintf(cbuf4, "%s", sred);
+// 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[0], snul);
+// 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
 
-	thisDDU->infpgastat(INFPGA1);  // Begin InFPGA1 check, repeat from InFPGA0^^
-	i1stat=((0xffff&thisDDU->infpga_code1)<<16)|(0xffff&thisDDU->infpga_code0);
-	//  sprintf(buf2,"infpga1 32-bit Status: %08lXh ",i1stat);
-	//  *out << buf << endl;
-	if(i1stat&0x04000000){
-		*out << "**DLLerror detected on InFPGA1** " << endl;
-		if((i1stat&0x00000800)>0)*out << "  ^^^probable cause of Gt-Rx errors " << endl;
-		solved=1;
-	} else if(i1stat&0x00000004){
-		thisDDU->infpga_CheckFiber(INFPGA1);
-		sprintf(buf,"**Fiber Connection error detected for DDUinput[14:8]=0x%02x** ",(thisDDU->infpga_code0&0x7f00)>>8);
-		*out << buf << endl;
-		if((i1stat&0x00000800)>0)*out << "  ^^^probable cause of Gt-Rx errors " << endl;
-		else if((i1stat&0x00000130)>0)*out << "  ^^^probable cause of SpecialWord/Xmit errors " << endl;
-		solved=1;
-	} else if((i1stat&0x00000800)>0){
-		thisDDU->infpga_RxErr(INFPGA1);
-		sprintf(buf," *GT-Rx Error for DDUinput[14:8]=0x%02x* ",(thisDDU->infpga_code0&0x7f00)>>8);
-		*out << buf << endl;
-		if((i1stat&0x00000130)>0)*out << "  ^^^probable cause of SpecialWord/Xmit errors " << endl;
-		solved=1;
-	} else if((lcode[1]&0x00010000)>0&&(i1stat&0x00880000)>0){
-		thisDDU->infpga_DMBwarn(INFPGA1);
-		sprintf(buf," *confirmed DMB Full for DDUinput[14:8]=0x%02x* ",(thisDDU->infpga_code0&0x7f00)>>8);
-		*out << buf << endl;
-		if((lcode[0]&0x00040000)>0&&(lcode[2]&0x00001c00)==0)*out << " ^^^DMB Full FIFO for ALCT " << endl;
-		else if((lcode[0]&0x00080000)>0&&(lcode[2]&0x0000001c)==0)*out << " ^^^DMB Full FIFO for TMB " << endl;
-		else *out << " ^^^DMB Full FIFO, probably for CFEB " << endl;
-		if((i1stat&0x00000130)>0)*out << "       --probable cause of SpecialWord/Xmit errors " << endl;
-		solved=1;
-	}
-	//  ^^^^ InFPGA big-problem analysis solved it? ^^^^
-
-	if(lcode[0]&0x00000400){
-		*out << "**DLLerror detected on DDUctrl FPGA** " << endl;
-		solved=1;
-	}
-	if((lcode[5]&0x00800000)>0&&(lcode[2]&0x0c000000)==0){  // DAQ-induced Buffer overflow, FullFIFO
-		*out << "**DAQ-induced Buffer Overflow** " << endl;
-		solved=1;
-	}
-	if((lcode[0]&0x4000000A)==8&&(lcode[1]&0x00004000)==0&&(lcode[2]&0x0c000000)==0){ // DDU Buff ovfl
-		*out << "**DDU FIFO Full** " << endl;
-		if(lcode[5]&0x0000000f){	// Ext.FIFO
-			sprintf(buf," ^^^Memory error for DDU Ext.FIFO[3:0]=0x%01lx ",lcode[5]&0x0000000f);
-			*out << buf;
+	// Next, spit out the funky fiber information.
+	unsigned long int CSCStat = thisDDU->readCSCStat();
+	if (CSCStat & 0x7fff) {
+		outStream << "FMM errors detected on fiber(s) ";
+		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+			if (CSCStat & (1<<iFiber)) {
+				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+			}
 		}
-		if(lcode[5]&0x00000100)*out << "  ^^^L1A FIFO Full ";
-		*out << " " << endl;
-		solved=1;
+		out.push_back(outStream.str());
+		outStream.str("");
+	}
+	if (CSCStat & 0x8000) {
+		out.push_back("DDU is in an FMM error condition");
 	}
 
-	if(solved<1&&(((erastat|lcode[1])&0x00008000)>0)){  // DMB-Timeout?  check at and after Critical error point, get DMB Error Reg
-		*out << "**DMB Timeout signal detected** " << endl;
-		thisDDU->ddu_rddmberr();
-		sprintf(buf,"    ^^^Error on DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-		*out << buf << endl;
-
-	// Note: if ALCT Timeout on DMB then LIE, CRC & WC errors are likely from
-	//       overrun to TMB trail; look for lcode-LIE caused by bad/missTrigTrail.
-	//    If DMB end-timeout causes 64-bit misalignment then maybe check that too.
-		solved=1;
-		iTimeout=1;
-		if((lcode[0]&0x00040000)>0&&(lcode[1]&0x00080000)>0)*out << " ^^^DMB Timeout for ALCT " << endl;
-		else if((lcode[0]&0x00080000)>0&&(lcode[1]&0x00080000)>0)*out << " ^^^DMB Timeout for TMB " << endl;
-		else if((lcode[0]&0x00000800)==0)*out << " ^^^DMB Timeout, probably for CFEB " << endl;
-		else{
-			*out << " ^^^DMB Timeout w/64-bit misalignment, possibly from CFEB " << endl;
-			solved=0;
+	unsigned int DMBError = thisDDU->readDMBError();
+	if (DMBError & 0x7fff) {
+		outStream << "DMB errors detected on fiber(s) ";
+		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+			if (DMBError & (1<<iFiber)) {
+				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+			}
 		}
-		if((i0stat&0x0000e000)>0)*out << "       --probable cause of problems on InFPGA0 " << endl;
-		if((i1stat&0x0000e000)>0)*out << "       --probable cause of problems on InFPGA1 " << endl;
-	} else if((lcode[2]&0x0C000000)>0||(lcode[1]&0x00020000)>0){  // DDU FIFO Transfer/C-code Error
-		*out << "**DDU FIFO Transfer error detected** " << endl;
-		if(lcode[2]&0x04000000)*out << "  ^^^Begin C-code error " << endl;
-		if(lcode[2]&0x08000000)*out << "  ^^^End C-code error " << endl;
-		sprintf(buf,"  ^^^probably occurred on Ext.FIFO[3:0]=0x%01lx  (from InMxmit Reg) ",(lcode[2]>>28)&0x0000000f);
-		*out << buf << endl;
-		solved=1;
+		out.push_back(outStream.str());
+		outStream.str("");
+	}
+	
+	unsigned int TMBError = thisDDU->readTMBError();
+	if (TMBError & 0x7fff) {
+		outStream << "TMB errors detected on fiber(s) ";
+		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+			if (TMBError & (1<<iFiber)) {
+				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+			}
+		}
+		out.push_back(outStream.str());
+		outStream.str("");
+	}
+	
+	unsigned int ALCTError = thisDDU->readALCTError();
+	if (ALCTError & 0x7fff) {
+		outStream << "ALCT errors detected on fiber(s) ";
+		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+			if (ALCTError & (1<<iFiber)) {
+				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+			}
+		}
+		out.push_back(outStream.str());
+		outStream.str("");
+	}
+	
+
+	unsigned long int inTrap[2][6];
+	bool inTrapSet[2] = {
+		false,
+		false
+	};
+	unsigned long int inStat[2];
+	short int iFill = 0;
+	bool iTimeout = false;
+	bool solved = false;
+	
+	unsigned long int ddustat = (0xffffffff & lcode[0]);
+
+	unsigned long int erastat = (0x0000ffff & lcode[1]);
+
+	// INFPGAs in order.
+	enum DEVTYPE devType[2] = {
+		INFPGA0,
+		INFPGA1
+	};
+	string devName[2] = {
+		"INFPGA0",
+		"INFPGA1"
+	};
+
+	for (int iDev = 0; iDev < 2; iDev++) {
+		
+		inStat[iDev] = thisDDU->readFPGAStat(devType[iDev]);
+		
+		if (inStat[iDev]&0x04000000) {          // DLL Error
+			out.push_back(devName[iDev] + ": DLL error detected");
+			if (inStat[iDev]&0x00000800) out.push_back(devName[iDev] + ": (Probable cause of Gt-Rx errors)");
+			solved = true;
+			
+		} else if (inStat[iDev]&0x00000004) {     // Fiber Change
+			unsigned int fiberCheck = thisDDU->checkFiber(devType[iDev]);
+			outStream << devName[iDev] << ": Fiber connection error detected on fiber(s) ";
+			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+				unsigned int realFiber = iFiber + iDev*8;
+				if ((fiberCheck >> 8) & (1<<iFiber)) {
+					outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+				}
+			}
+			out.push_back(outStream.str());
+			outStream.str("");
+
+			if (inStat[iDev]&0x00000800) out.push_back(devName[iDev] + ": (Probable cause of Gt-Rx errors)");
+			else if (inStat[iDev]&0x00000130) out.push_back( devName[iDev] + ": (Probable cause of SpecialWord/Xmit errors)");
+			solved = true;
+			
+		} else if (inStat[iDev]&0x00000800) {   // GT-Rx Error
+			unsigned int fiberCheck = thisDDU->readRxError(devType[iDev]);
+			outStream << devName[iDev] << ": GT-Rx error detected on fiber(s) ";
+			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+				unsigned int realFiber = iFiber + iDev*8;
+				if ((fiberCheck >> 8) & (1<<iFiber)) {
+					outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+				}
+			}
+			out.push_back(outStream.str());
+			outStream.str("");
+			
+			if (inStat[iDev]&0x00000130) out.push_back(devName[iDev] + ": (Probable cause of SpecialWord/Xmit errors)");
+			solved = true;
+
+		} else if (lcode[1]&0x00010000 && inStat[iDev]&0x00880000) {  // DMB-Full
+			unsigned int fiberCheck = thisDDU->readDMBWarning(devType[iDev]);
+			out.push_back(devName[iDev] + ": ");
+			outStream << devName[iDev] << ": Confirmed DMB full on fiber(s) ";
+			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+				unsigned int realFiber = iFiber + iDev*8;
+				if ((fiberCheck >> 8) & (1<<iFiber)) {
+					outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+				}
+			}
+			out.push_back(outStream.str());
+			outStream.str("");
+			
+			if (lcode[0]&0x00040000 && (lcode[2]&0x00001c00) == 0) out.push_back(devName[iDev] + ": [DMB full fifo for ALCT]");
+			else if (lcode[0]&0x00080000 && (lcode[2]&0x0000001c) == 0) out.push_back(devName[iDev] + ": [DMB full fifo for TMB]");
+			else out.push_back(devName[iDev] + ": [DMB full fifo, probably for CFEB]");
+			if (inStat[iDev]&0x00000130) out.push_back(devName[iDev] + ": (Probable cause of SpecialWord/Xmit errors)");
+			solved = true;
+		}
 	}
 
+
+
+	if (lcode[0]&0x00000400) {
+		out.push_back("DDUFPGA: DLL error detected");
+		solved = true;
+	}
+	if (lcode[5]&0x00800000 && (lcode[2]&0x0c000000) == 0) {  // DAQ-induced Buffer overflow, FullFIFO
+		out.push_back("DDUFPGA: DAQ-induced buffer overflow detected");
+		solved = true;
+	}
+	if ((lcode[0]&0x4000000A) == 8 && (lcode[1]&0x00004000) == 0 && (lcode[2]&0x0c000000) == 0) { // DDU Buff ovfl
+		out.push_back("DDUFPGA: DDU FIFO full");
+		if (lcode[5]&0x0000000f) {	// Ext.FIFO
+			outStream << "DDUFPGA: [Memory error for DDU external fifo(s) ";
+			for (int iFIFO=0; iFIFO < 4; iFIFO++) {
+				if (lcode[5] & (1<<iFIFO)) outStream << dec << iFIFO;
+			}
+			out.push_back(outStream.str() + "]");
+			outStream.str("");
+		}
+		
+		if (lcode[5]&0x00000100) out.push_back("DDUFPGA: [L1A FIFO Full]");
+		solved = true;
+	}
+	
+	// That was the easy stuff.  Now it's time to debug further.
+	if ((erastat | lcode[1])&0x00008000) {  // DMB-Timeout?  check at and after Critical error point, get DMB Error Reg
+		out.push_back("DDUFPGA: DMB timeout signal detected on above fibers");
+
+		// Note: if ALCT Timeout on DMB then LIE, CRC & WC errors are likely from
+		//       overrun to TMB trail; look for lcode-LIE caused by bad/missTrigTrail.
+		//    If DMB end-timeout causes 64-bit misalignment then maybe check that too.
+		solved = true;
+		iTimeout = true;
+
+		if (lcode[0]&0x00040000 && lcode[1]&0x00080000) out.push_back("DDUFPGA: [DMB timeout for ALCT]");
+		else if (lcode[0]&0x00080000 && lcode[1]&0x00080000) out.push_back("DDUFPGA: [DMB timeout for TMB]");
+		else if (!(lcode[0]&0x00000800)) out.push_back("DDUFPGA: [DMB timeout, probably for CFEB]");
+		else {
+			out.push_back("DDUFPGA: [DMB timeout with 64-bit misalignment, possibly from CFEB]");
+			solved = false;
+		}
+		
+		if (inStat[0]&0x0000e000) out.push_back("DDUFPGA: (probable cause of problems on InFPGA0)");
+		if (inStat[1]&0x0000e000) out.push_back("DDUFPGA: (probable cause of problems on InFPGA1)");
+	
+	} else if (lcode[2]&0x0C000000 || lcode[1]&0x00020000) {  // DDU FIFO Transfer/C-code Error
+		out.push_back("DDUFPGA: DDU FIFO transfer error detected");
+		if (lcode[2]&0x04000000) out.push_back("DDUFPGA: [Begin C-code error]");
+		if (lcode[2]&0x08000000) out.push_back("DDUFPGA: [End C-code error]");
+		outStream << "DDUFPGA: (probably occurred on external FIFO(s) ";
+		for (int iFIFO = 0; iFIFO < 4; iFIFO++) {
+			if ((lcode[2] >> 28) & (1<<iFIFO)) outStream << dec << iFIFO << " ";
+		}
+		outStream << "(from InMxmit Reg))";
+		out.push_back(outStream.str());
+		outStream.str("");
+		solved = true;
+	}
+	
 	// InCtrlErr at CritErr point:
-	if(solved<1&&((lcode[0]&0x00400000)>0)){ // InCtrlErr & NotDDUfullFIFO
+	if (lcode[0]&0x00400000) { // InCtrlErr & NotDDUfullFIFO
 		//    *out << "-debug> inside 3>" << endl;
-		if((i0stat|i1stat)&0x40000000){    // Filler=64bit-misalign
-			if((i0stat&0x40000000)>0){       //   for InFPGA0
-				iFill=1;
-				thisDDU->infpga_XmitErr(INFPGA0);
-				sprintf(buf," *64-bit Align Error for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0x00ff));
-				*out << buf << endl;
-				if((i0stat&0x00000130)>0)*out << "  ^^^also associated with SpecialWord errors  " << endl;
+		for (unsigned int iDev = 0; iDev < 2; iDev++) {
+			if (inStat[iDev] & 0x40000000) { // Filler=64bit-misalign
+				iFill |= (1 << iDev);
+				unsigned int fiberCheck = thisDDU->readTxError(devType[iDev]);
+				outStream << devName[iDev] << ": 64-bit align error detected on fiber(s) ";
+				for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+					unsigned int realFiber = iFiber + iDev*8;
+					if ((fiberCheck >> 8) & (1<<iFiber)) {
+						outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+					}
+				}
+				out.push_back(outStream.str());
+				outStream.str("");
+
+				if (inStat[idev]&0x00000130) out.push_back(devName[iDev] + ": [Also associated with SpecialWord errors]");
 			}
-			if((i1stat&0x40000000)>0){       //   for InFPGA1
-				iFill+=2;
-				thisDDU->infpga_XmitErr(INFPGA1);
-				sprintf(buf," *64-bit Align Error for DDUinput[14:8]=0x%02x* ",(thisDDU->infpga_code0&0x007f));
-				*out << buf << endl;
-				if((i1stat&0x00000130)>0)*out << "  ^^^also associated with SpecialWord errors  " << endl;
+
+			// If InCtrlErr and not solved, get InTrap registers (each 32 bytes)
+			if (inStat[iDev]&0x00008000) {
+				//      *out << "-debug> inside 4>" << endl;
+				thisDDU->infpga_trap(devType[iDev]);
+				inTrap[iDev][5] = thisDDU->fpga_lcode[5];
+				inTrap[iDev][4] = thisDDU->fpga_lcode[4];
+				inTrap[iDev][3] = thisDDU->fpga_lcode[3];
+				inTrap[iDev][2] = thisDDU->fpga_lcode[2];
+				inTrap[iDev][1] = thisDDU->fpga_lcode[1];
+				inTrap[iDev][0] = thisDDU->fpga_lcode[0];
+				inTrapSet[iDev] = true;
 			}
-		//      solved=1;
-		}
-	// If InCtrlErr and not solved, get InTrap registers (each 32 bytes)
-		if(i0stat&0x00008000){
-			//      *out << "-debug> inside 4>" << endl;
-			thisDDU->infpga_trap(INFPGA0);
-			i0trap[5]=thisDDU->fpga_lcode[5];
-			i0trap[4]=thisDDU->fpga_lcode[4];
-			i0trap[3]=thisDDU->fpga_lcode[3];
-			i0trap[2]=thisDDU->fpga_lcode[2];
-			i0trap[1]=thisDDU->fpga_lcode[1];
-			i0trap[0]=thisDDU->fpga_lcode[0];
-			igot_i0=1;
-		}
-		if(i1stat&0x00008000){
-			thisDDU->infpga_trap(INFPGA1);
-			i1trap[5]=thisDDU->fpga_lcode[5];
-			i1trap[4]=thisDDU->fpga_lcode[4];
-			i1trap[3]=thisDDU->fpga_lcode[3];
-			i1trap[2]=thisDDU->fpga_lcode[2];
-			i1trap[1]=thisDDU->fpga_lcode[1];
-			i1trap[0]=thisDDU->fpga_lcode[0];
-			igot_i1=1;
 		}
 	}
 
 
-	if(solved<1&&iFill>0){  //  check for cause of misalignment early
-		if(lcode[0]&0x80000002)*out << "  ^^^possible that DMB may have caused 64-bit Align Error" << endl;  // LCT/DAV(lcode[0]31), DMBL1A(lcode[0]1)
-		else if((lcode[2]&0x00000c00)>0||(lcode[0]&0x00040000)>0){  // ALCTerr
-			thisDDU->ddu_rdalcterr();
-			*out << "  ^^^possible that ALCT may have caused 64-bit Align Error" << endl;
-			if((lcode[1]&0x00080000)>0&&(lcode[0]&0x00040000)>0)*out << "    ^^probable ALCT Trail word problem" << endl;
-			else if(lcode[0]&0x00000020)*out << "    ^^probable ALCT CRC mismatch" << endl;
-			else if(lcode[0]&0x00020000)*out << "    ^^probable ALCT Wordcount mismatch" << endl;
-			if((thisDDU->ddu_code0)&0x7fff){
-				sprintf(buf,"      ^^ALCT Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-				*out << buf << endl;
-			}
-		} else if((lcode[2]&0x0000000c)>0||(lcode[0]&0x00080000)>0){  // TMBerr
-			thisDDU->ddu_rdtmberr();
-			*out << "  ^^^possible that TMB may have caused 64-bit Align Error" << endl;
-			if((lcode[1]&0x00080000)>0&&(lcode[0]&0x00080000)>0)*out << "    ^^probable TMB Trail word problem" << endl;
-			else if(lcode[0]&0x00000020)*out << "    ^^probable TMB CRC mismatch" << endl;
-			else if(lcode[0]&0x00020000)*out << "    ^^probable TMB Wordcount mismatch" << endl;
-			if((thisDDU->ddu_code0)&0x7fff){
-				sprintf(buf,"      ^^TMB Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-				*out << buf << endl;
-			}
-		} else if(lcode[1]&0x00080000) {  // TrgTrail error, maybe never get this one
-			thisDDU->ddu_rdalcterr();
-			*out << "  ^^^probable that ALCT or TMB caused 64-bit Align Error" << endl;
-			*out << "    ^^Trigger Trail word problem" << endl;
-			if((thisDDU->ddu_code0)&0x7fff){
-				sprintf(buf,"      ^^ALCT Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-				*out << buf << endl;
-			}
-			thisDDU->ddu_rdtmberr();
-			if((thisDDU->ddu_code0)&0x7fff){
-				sprintf(buf,"      ^^TMB Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-				*out << buf << endl;
-			}
-		} else if(lcode[0]&0x50000001){  // CFEBerr
-			*out << "  ^^^CFEB may have caused 64-bit Align Error" << endl;
-			if(lcode[0]&0x10000000)*out << "    ^^CFEB count mismatch" << endl;
-			if(lcode[0]&0x40000000)*out << "    ^^CFEB L1A mismatch" << endl;
-			if(lcode[0]&0x00000001)*out << "    ^^CFEB or DMB CRC mismatch" << endl;
-			if(lcode[1]&0x00000380){
-				*out << "      ^confirmed CFEB CRC error" << endl;
-				if(lcode[1]&0x00000080)*out << "        ^CFEB CRC-count error" << endl;
-				if(lcode[1]&0x00000100)*out << "        ^CFEB CRC-end error" << endl;
-				if(lcode[1]&0x00000200)*out << "        ^CFEB CRC mismatch" << endl;
-			}
-			else if(lcode[0]&0x00000201)*out << "      ^confirmed DMB CRC mismatch at least" << endl;
+	if (!solved && iFill) {  //  check for cause of misalignment early
+		if (lcode[0]&0x80000002) out.push_back("(possible that DMB may have caused 64-bit align error)"); // LCT/DAV(lcode[0]31), DMBL1A(lcode[0]1)
+		else if (lcode[2]&0x00000c00 || lcode[0]&0x00040000) {  // ALCTerr
+			out.push_back("(possible that ALCT may have caused 64-bit align error)");
+			
+			if (lcode[1]&0x00080000 && lcode[0]&0x00040000) out.push_back("(probable ALCT trail word problem)");
+			else if (lcode[0]&0x00000020) out.push_back("(probable ALCT CRC mismatch)");
+			else if (lcode[0]&0x00020000) out.push_back("(probable ALCT wordcount mismatch)");
+			
+		} else if (lcode[2]&0x0000000c || lcode[0]&0x00080000) {  // TMBerr
+			out.push_back("(possible that TMB may have caused 64-bit align error)");
+			
+			if (lcode[1]&0x00080000 && lcode[0]&0x00080000) out.push_back("(probable TMB trail word problem)");
+			else if (lcode[0]&0x00000020) out.push_back("(probable TMB CRC mismatch)");
+			else if (lcode[0]&0x00020000) out.push_back("(probable TMB wordcount mismatch)");
+			
+		} else if (lcode[1]&0x00080000) { // TrgTrail error, maybe never get this one
+			out.push_back("(probable that ALCT or TMB caused 64-bit align error)");
+			out.push_back("Trigger trail word problem detected");
+			
+		} else if (lcode[0]&0x50000001) {  // CFEBerr
+			out.push_back("(CFEB may have caused 64-bit align error)");
+			if (lcode[0]&0x10000000) out.push_back("CFEB count mismatch detected");
+			if (lcode[0]&0x40000000) out.push_back("CFEB L1A mismatch detected");
+			if (lcode[0]&0x00000001) out.push_back("CFEB or DMB CRC mismatch detected");
+			if (lcode[1]&0x00000380) {
+				out.push_back("[confirmed CFEB CRC error]");
+				if (lcode[1]&0x00000080) out.push_back("(CFEB CRC-count error)");
+				if (lcode[1]&0x00000100) out.push_back("CFEB CRC-end error");
+				if (lcode[1]&0x00000200) out.push_back("CFEB CRC mismatch");
+			} else if (lcode[0]&0x00000201) out.push_back("[confirmed DMB CRC mismatch at least]");
 		}
-		thisDDU->ddu_rddmberr();
-		if((thisDDU->ddu_code0)&0x7fff){
-			sprintf(buf,"      ^^CSC Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-			*out << buf << endl;
-		}
-		if(iTimeout>0){
-			if(lcode[1]&0x00008000)*out << "  ^^^Timeout at DMB caused 64-bit Align Error" << endl;
-			solved=1;
+		
+		if (iTimeout) {
+			if (lcode[1]&0x00008000) out.push_back("[Timeout at DMB caused 64-bit align error]");
+			solved = true;
 		}
 	}
 
 	// If InCtrlErr, determine what happened at CritErr point:
 	//        Timeout/StuckDat/MultXmit/MemErr/MultL1A
-	if(solved<1&&((lcode[0]&0x00400000)>0)){
+	if (!solved && lcode[0]&0x00400000) {
 		//    *out << "-debug> inside 5>" << endl;
-		if(igot_i0>0){  // got_i0trap;
-			//      *out << "-debug> inside 6>" << endl;
-			if((i0trap[0]&0x00000040)>0){
-				if((i0trap[3]&0x00ff0000)>0)sprintf(buf," *Start Timeout for DDUinput[7:0] = 0x%02lx* ",((i0trap[3]>>16)&0x000000ff));
-				else if((i0trap[4]&0x0000ffff)>0)sprintf(buf," *End Timeout for DDUinput[7:0] = 0x%02lx* ",((i0trap[4]>>8)|i0trap[4])&0x000000ff);
-				*out << buf << endl;
-				if(iFill==1||iFill==3)*out << "  ^^^may have caused 64-bit Align Error for InFPGA0" << endl;
-				solved=1;
-			} else if((i0trap[0]&0x00000080)>0){  // StuckData
-				sprintf(buf," *StuckData error for DDUinput[7:0] = 0x%02lx* ",((i0trap[2]>>24)&0x000000ff));
-				*out << buf << endl;
-				if(iFill==1||iFill==3)*out << "  ^^^may have caused 64-bit Align Error for InFPGA0" << endl;
-				solved=1;
-			} else if((i0trap[0]&0x00000010)>0){  // Multi-Xmit error
-				thisDDU->infpga_XmitErr(INFPGA0);
-				sprintf(buf," *Multiple SpecialWord bit-errors for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0x00ff));
-				if(iFill==1||iFill==3)sprintf(buf," *Extra or Missing 16-bit words for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0x00ff));
-				*out << buf << endl;
-				if(((i0trap[0]&0x00000020)>0))*out << "  ^^^multiple bit-errors in the same word " << endl;  // typical for offset in DMBhdr1+2, maybe TMBtr/DMBtr
-				else *out << "  ^^^single bit-errors in different words " << endl;
-				if(iFill==1||iFill==3)*out << "  ^^^probably related to 64-bit Align Error for InFPGA0" << endl;
-				solved=1;
-			} else if((i0trap[0]&0x00000008)>0){  // InFPGA0 Memory Full
-				if((i0trap[0]&0x00040000)>0){
-					sprintf(buf," *Memory error for DDU InRD0* ");
-					*out << buf << endl;
-					if(((i0trap[5]&0x0000001f)>0)){
-						sprintf(buf,"  ^^^L1A buffer overflow (%ld memories available) ",i0trap[5]&0x0000001f);
-						*out << buf << endl;
-					} else{
-						*out << "  ^^^all InMem units used " << endl;
-						if(iFill==1||iFill==3)*out << "  ^^^may have caused 64-bit Align Error for InFPGA0" << endl;
-					}
-				} else if((i0trap[0]&0x00400000)>0){
-					sprintf(buf," *Memory error for DDU InRD1* ");
-					*out << buf << endl;
-					if(((i0trap[5]&0x000003e0)>0)){
-						sprintf(buf,"  ^^^L1A buffer overflow (%ld memories available) ",(i0trap[5]>>5)&0x0000001f);
-						*out << buf << endl;
-					} else{
-						*out << "  ^^^all InMem units used " << endl;
-						if(iFill==1||iFill==3)*out << "  ^^^may have caused 64-bit Align Error for InFPGA0" << endl;
+		for (int iDev = 0; iDev < 2; iDev++) {
+			if (inTrapSet[iDev]) {  // got_i0trap;
+				//      *out << "-debug> inside 6>" << endl;
+				if (inTrap[iDev][0]&0x00000040) {
+					if (inTrap[iDev][3]&0x00ff0000) {
+						outStream << devName[iDev] << ": Start timeout for fiber(s) ";
+						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+							unsigned int realFiber = iFiber + iDev*8;
+							if ((inTrap[iDev][3] >> 16) & (1<<iFiber)) {
+								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+							}
+						}
+						out.push_back(outStream.str());
+						outStream.str("");
+					} else if (inTrap[iDev][4]&0x0000ffff) {
+						outStream << devName[iDev] << ": End timeout for fiber(s) ";
+						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+							unsigned int realFiber = iFiber + iDev*8;
+							if (((inTrap[iDev][4] >> 8) | inTrap[iDev][4]) & (1<<iFiber)) {
+								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+							}
+						}
+						out.push_back(outStream.str());
+						outStream.str("");
+					
+						if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev] + ")");
+						solved = true;
+					} else if (inTrap[iDev][0]&0x00000080)) {  // StuckData
+						outStream << devName[iDev] << ": stuck data for fiber(s) ";
+						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+							unsigned int realFiber = iFiber + iDev*8;
+							if ((inTrap[iDev][2] >> 24) & (1<<iFiber)) {
+								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+							}
+						}
+						out.push_back(outStream.str());
+						outStream.str("");
+						
+						if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev] + ")");
+						solved = true;
+					} else if (inTrap[iDev][0]&0x00000010) {  // Multi-Xmit error
+						unsigned int fiberCheck = thisDDU->readTxError(devType[iDev]);
+						outStream << devName[iDev] << ": Multiple SpecialWord bit errors for fiber(s) ";
+						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+							unsigned int realFiber = iFiber + iDev*8;
+							if (fiberCheck & (1<<iFiber)) {
+								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+							}
+						}
+						out.push_back(outStream.str());
+						outStream.str("");
+						
+						if (iFill & (1 << iDev)) out.push_back(devName[iDev] + ": [Extra or missing 16-bit words, too]");
+
+						if (inTrap[iDev][0]&0x00000020) out.push_back(devName[iDev] + "[multiple bit-errors in the same word]");  // typical for offset in DMBhdr1+2, maybe TMBtr/DMBtr
+						else out.push_back(devName[iDev] + ": [single bit-errors in different words]");
+					
+						if (iFill & (1 << iDev)) out.push_back("(probably related to 64-bit align error for " + devName[iDev] + ")");
+						solved = true;
+
+					} else if (inTrap[iDev][0]&0x00000008) {  // InFPGA0 Memory Full
+						if ((inTrap[iDev][0]&0x00040000) > 0) {
+							outStream << devName[iDev] << ": Memory error for InRD" << dec << (0 + iDev*2);
+							out.push_back(outStream.str());
+							outStream.str("");
+							
+							if (inTrap[iDev][5]&0x0000001f) {
+								outStream << devName[iDev] << ": [L1A buffer overflow (" << dec << (inTrap[iDev][5]&0x0000001f) << " memories available)]";
+								out.push_back(outStream.str());
+								outStream.str("");
+							} else {
+								out.push_back(devName[iDev] + ": [all InMem units used]");
+								if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev]);
+							}
+						} else if (inTrap[iDev][0]&0x00400000) {
+							outStream << devName[iDev] << ": Memory error for InRD" << dec << (1 + iDev*2);
+							out.push_back(outStream.str());
+							outStream.str("");
+							
+							if (inTrap[iDev][5]&0x000003e0) {
+								outStream << devName[iDev] << ": [L1A buffer overflow (" << dec << (inTrap[iDev][5]&0x000003e0) << " memories available)]";
+								out.push_back(outStream.str());
+								outStream.str("");
+							} else {
+								out.push_back(devName[iDev] + ": [all InMem units used]");
+								if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev]);
+							}
+						}
+						solved = true;
+					} else if ((inTrap[iDev][0]&0x002001fc) == 0x00200000) {
+						outStream << devName[iDev] << ": Multiple L1A errors for fiber(s) ";
+						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
+							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+							unsigned int realFiber = iFiber + iDev*8;
+							if ((inTrap[iDev][2] >> 16) & (1<<iFiber)) {
+								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+							}
+						}
+						out.push_back(outStream.str());
+						outStream.str("");
+
+						solved = true;
 					}
 				}
-				solved=1;
-			} else if((i0trap[0]&0x002001fc)==0x00200000){
-				sprintf(buf," *Multiple L1A errors for DDUinput[7:0] = 0x%02lx* ",((i0trap[2]>>16)&0x000000ff));
-				*out << buf << endl;
-				solved=1;
 			}
 		}
-		if(igot_i1>0){  // got_i1trap;
-			//      *out << "-debug> inside 7>" << endl;
-			if((i1trap[0]&0x00000040)>0){
-				if((i1trap[3]&0x007f0000)>0)sprintf(buf," *Start Timeout for DDUinput[14:8] = 0x%02lx* ",((i1trap[3]>>16)&0x0000007f));
-				else if((i1trap[4]&0x00007f7f)>0)sprintf(buf," *End Timeout for DDUinput[14:8] = 0x%02lx* ",((i1trap[4]>>8)|i1trap[4])&0x0000007f);
-				*out << buf << endl;
-				if(iFill>1)*out << "  ^^^may have caused 64-bit Align Error for InFPGA1" << endl;
-				solved=1;
-			} else if((i1trap[0]&0x00000080)>0){  // StuckData
-				sprintf(buf," *StuckData error for DDUinput[14:8] = 0x%02lx* ",((i1trap[2]>>24)&0x0000007f));
-				*out << buf << endl;
-				if(iFill>1)*out << "  ^^^may have caused 64-bit Align Error for InFPGA1" << endl;
-				solved=1;
-			} else if((i1trap[0]&0x00000010)>0){  // Multi-Xmit error
-				thisDDU->infpga_XmitErr(INFPGA1);
-				sprintf(buf," *Multiple SpecialWord bit-errors for DDUinput[14:8]=0x%02x* ",(thisDDU->infpga_code0&0x007f));
-				if(iFill>1)sprintf(buf," *Extra or Missing 16-bit words for DDUinput[14:8]=0x%02x* ",(thisDDU->infpga_code0&0x007f));
-				*out << buf << endl;
-				if(((i1trap[0]&0x00000020)>0))*out << "  ^^^multiple bits in the same word " << endl;
-				else *out << "  ^^^single bits in different words " << endl;
-				if(iFill>1)*out << "  ^^^probably related to 64-bit Align Error for InFPGA1" << endl;
-				solved=1;
-			} else if((i1trap[0]&0x00000008)>0){  // InFPGA1 Memory Full
-				if((i1trap[0]&0x00040000)>0){
-					sprintf(buf," *Memory error for DDU InRD2* ");
-					*out << buf << endl;
-					if(((i1trap[5]&0x0000001f)>0)){
-						sprintf(buf,"  ^^^L1A buffer overflow (%ld memories available) ",i1trap[5]&0x0000001f);
-						*out << buf << endl;
-					} else{
-						*out << "  ^^^all InMem units used " << endl;
-						if(iFill>1)*out << "  ^^^may have caused 64-bit Align Error for InFPGA1" << endl;
-					}
-				} else if((i1trap[0]&0x00400000)>0){
-					sprintf(buf," *Memory error for DDU InRD3* ");
-					*out << buf << endl;
-					if(((i1trap[5]&0x000003e0)>0)){
-						sprintf(buf,"  ^^^L1A buffer overflow (%ld memories available) ",(i1trap[5]>>5)&0x0000001f);
-						*out << buf << endl;
-					} else{
-						*out << "  ^^^all InMem units used " << endl;
-						if(iFill>1)*out << "  ^^^may have caused 64-bit Align Error for InFPGA1" << endl;
-					}
-				}
-				solved=1;
-			} else if((i1trap[0]&0x002001fc)==0x00200000){
-				sprintf(buf," *Multiple L1A errors for DDUinput[14:8] = 0x%02lx* ",((i1trap[2]>>16)&0x0000007f));
-				*out << buf << endl;
-				solved=1;
-			}
-		}
-		if(solved<1&&iFill<1)*out << "  InFPGAs are not related to the cause of the problem" << endl;
+		
+		if (!solved && !iFill) out.push_back("(InFPGAs are not related to the cause of the problem)");
 	}
 
 	// if it's not InFPGA related:
-	if(solved<1){
-		if((lcode[0]&0x4000000A)==8 && (lcode[1]&0x00004000)==0){  // DDU Buff ovfl
-			*out << "**DDU FIFO Full** " << endl;
-			if(lcode[5]&0x000000f0){  // InRd Mem
-				sprintf(buf," ^^^Memory error for DDU InRd[3:0]=0x%01lx ",(lcode[5]>>4)&0x0000000f);
-				*out << buf;
+	if (!solved) {
+		if ((lcode[0]&0x4000000A) == 8 && !(lcode[1]&0x00004000)) {  // DDU Buff ovfl
+			out.push_back("DDU FIFO full detected");
+			if (lcode[5]&0x000000f0) {  // InRd Mem
+				outStream << "[Memory error for DDU detected in ";
+				for (int iReg = 0; iReg < 4; iReg++) {
+					if ((lcode[5] >> 4) & (1<<iReg)) outStream << "InRd" << dec << iReg << " ";
+				}
+				out.push_back(outStream.str() + "]");
+				outStream.str("");
 			}
-			*out << "  ^^^Should've been detected at InFPGA level... ";
-			*out << " " << endl;
-			solved=1;
+			out.push_back("(Should have been detected at InFPGA level...)");
+			solved = true;
 		}
 
-		if((lcode[2]&0x00000080)>0&&(lcode[1]&0x00080000)==0&&(lcode[0]&0x90000000)==0x80000000){  //  LCT-DAV error == DMBcrit + !BadTrgTrail + !CFEBcntErr
-			thisDDU->ddu_rddmberr();
-			*out << " *DDUctrl saw mismatch for DMB-CFEB LCT/DAV/Movlp* " << endl;
-			sprintf(buf,"    ^^^Detected Error from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-			*out << buf << endl;
-			solved=1;
+		if (lcode[2]&0x00000080 && !(lcode[1]&0x00080000) && (lcode[0]&0x90000000) == 0x80000000) {  //  LCT-DAV error == DMBcrit + !BadTrgTrail + !CFEBcntErr
+			out.push_back("[Mismatch for DMB-CFEB LCT/DAV/Movlp detected]");
+
+			solved = true;
 		}
 
-		if((lcode[2]&0x00000080)>0&&(lcode[1]&0x00080000)>0){  //  DMBcrit + BadTrgTrail
-			thisDDU->ddu_rddmberr();
-			*out << " *DDUctrl saw Trigger Trailer Error* " << endl;
-			sprintf(buf,"    ^^^Detected Error from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-			*out << buf << endl;
-			if(lcode[2]&0x00000008){    // HALCTerr
-				thisDDU->ddu_rdalcterr();
-				sprintf(buf,"    ^^^ALCT Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-				*out << buf << endl;
+		if (lcode[2]&0x00000080 && lcode[1]&0x00080000) {  //  DMBcrit + BadTrgTrail
+			out.push_back("[Trigger trailer error detected]");
+			
+			if (lcode[2]&0x00000008) {  // HALCTerr
+				out.push_back("[ALCT errors detected]");
 			}
-			if(lcode[2]&0x00000001){    // HTMBerr
-				thisDDU->ddu_rdtmberr();
-				sprintf(buf,"    ^^^TMB Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-				*out << buf << endl;
+			
+			if (lcode[2]&0x00000001) {  // HTMBerr
+				out.push_back("[TMB errors detected]");
 			}
-			if(lcode[0]&0x00000010)*out << "    ^^^Probably caused Multi-SpecialWord errors" << endl;
-			solved=1;
-		} else if((lcode[2]&0x00000080)>0&&(lcode[0]&0x10000000)>0){  //  DMBcrit + CFEBcntErr
-			thisDDU->ddu_rddmberr();
-			*out << " *DDUctrl saw wrong CFEB count in data* " << endl;
-			sprintf(buf,"    ^^^Detected Error from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-			*out << buf << endl;
+			
+			if (lcode[0]&0x00000010) out.push_back("(Probably caused multi-SpecialWord errors)");
+			solved = true;
+			
+		} else if (lcode[2]&0x00000080 && lcode[0]&0x10000000) {  //  DMBcrit + CFEBcntErr
+			out.push_back("[Wrong CFEB count in data detected]");
 		}
 
-		if(lcode[0]&0x00000010){  // DDUctrl Multi-Xmit-Err
-			thisDDU->ddu_rdxmiterr();
-			sprintf(buf," *DDUctrl Multiple SpecialWord bit-errors for DDUinput[14:0]=0x%04x* ",thisDDU->ddu_code0);
-			*out << buf << endl;
-			if(lcode[0]&0x0000800)*out << "  ^^^DDUctrl FPGA saw 64-bit-misalign flag, reported at InFPGA level? "  << endl;
-			solved=1;
+		if (lcode[0]&0x00000010) {  // DDUctrl Multi-Xmit-Err
+			unsigned int checkFiber = thisDDU->readTxError();
+			out.push_back("[Multiple SpecialWord bit errors detected]");
+			
+			if (lcode[0]&0x0000800) out.push_back("(DDUctrl FPGA saw 64-bit-misalign flag, reported at InFPGA level?)");
+			solved = true;
 		}
-		if(lcode[0]&0x00000004){  // DDUctrl Fiber/FIFO Connect error
-			sprintf(buf," *DDUctrl Fiber/FIFO error for Ext.FIFO[3:0]=0x%01x* ",(unsigned int) (lcode[3]>>24)&0x0000000f);
-			*out << buf << endl;
-			if((CSCstat&0x7fff)>0){
-				sprintf(buf,"  ^^^possibly for DDUinput[14:0]=0x%04x ",(CSCstat&0x7fff));
-				*out << buf << endl;
+
+		if (lcode[0]&0x00000004) {  // DDUctrl Fiber/FIFO Connect error
+			outStream << "[Fiber/FIFO error detected in external FIFO(s) ";
+			for (int iReg = 0; iReg < 4; iReg++) {
+				if ((lcode[3] >> 24) & (1<<iReg)) outStream << dec << iReg << " ";
 			}
-			*out << "  ^^^Fiber error not reported at InFPGA level "  << endl;
-			solved=1;
+			out.push_back(outStream.str() + "]");
+			outStream.str("");
+			
+			out.push_back("(Fiber error not reported at InFPGA level)");
+			solved = true;
 		}
-		if(lcode[0]&0x00000040){  // DDUctrl Timeout error
-			sprintf(buf," *DDUctrl Timeout error, ");
-			if(lcode[4]&0x00f00000)sprintf(buf2,"Start Timeout for Ext.FIFO[3:0]=0x%1lx* ",(lcode[3]>>20)&0x0000000f);
-			if(lcode[4]&0x0f000000)sprintf(buf2,"End-Wait Timeout for Ext.FIFO[3:0]=0x%1lx* ",(lcode[3]>>24)&0x0000000f);
-			if(lcode[4]&0xf0000000)sprintf(buf2,"End-Busy Timeout for Ext.FIFO[3:0]=0x%1lx* ",(lcode[3]>>28)&0x0000000f);
-			*out << buf << buf2 << endl;
-			if((CSCstat&0x7fff)>0){
-				sprintf(buf,"  ^^^probably for DDUinput[14:0]=0x%04x ",(CSCstat&0x7fff));
-				*out << buf << endl;
+		
+		if (lcode[0]&0x00000040) {  // DDUctrl Timeout error
+			
+			out.push_back("[Timeout error detected]");
+			if (lcode[4]&0x00f00000) {
+				outStream << "(Start timeout for external FIFO(s) ";
+				for (int iReg = 0; iReg < 4; iReg++) {
+					if ((lcode[3] >> 20) & (1<<iReg)) outStream << dec << iReg << " ";
+				}
+				out.push_back(outStream.str() + ")");
+				outStream.str("");
 			}
-			solved=1;
+			if (lcode[4]&0x0f000000) {
+				outStream << "(End-wait timeout for external FIFO(s) ";
+				for (int iReg = 0; iReg < 4; iReg++) {
+					if ((lcode[3] >> 24) & (1<<iReg)) outStream << dec << iReg << " ";
+				}
+				out.push_back(outStream.str() + ")");
+				outStream.str("");
+			}
+			if (lcode[4]&0xf0000000) {
+				outStream << "(End-busy timeout for external FIFO(s) ";
+				for (int iReg = 0; iReg < 4; iReg++) {
+					if ((lcode[3] >> 28) & (1<<iReg)) outStream << dec << iReg << " ";
+				}
+				out.push_back(outStream.str() + ")");
+				outStream.str("");
+			}
+			
+			solved = true;
 		}
-			if(lcode[0]&0x02000000){  // DDUctrl StuckDat error
-			sprintf(buf," *DDUctrl StuckData error, Ext.FIFO[3:0]=0x%01lx* ",(lcode[3]>>28)&0x0000000f);
-			*out << buf << endl;
-			if((CSCstat&0x7fff)>0){
-				sprintf(buf,"  ^^^probably for DDUinput[14:0]=0x%04x ",(CSCstat&0x7fff));
-				*out << buf << endl;
+		if (lcode[0]&0x02000000) {  // DDUctrl StuckDat error
+			outStream << "[Stuck data error detected for external FIFO(s) ";
+			for (int iReg = 0; iReg < 4; iReg++) {
+				if ((lcode[3] >> 28) & (1<<iReg)) outStream << dec << iReg << " ";
 			}
-			solved=1;
+			out.push_back(outStream.str() + "]");
+			outStream.str("");
+
+			solved = true;
 		}
 	}
 
-	if(solved<1){ // Stopgap measures if not solved:
-	//                check for LID+cause, else LIE+cause, related errors...
-		if(lcode[0]&0x00000080){  // LID error, critical error
-			*out << " **Big data corruption problem detected, DDU Lost in Data** " << endl;
-			if(lcode[1]&0x08000000)*out << "   Bad 2nd DMBtr";
-			if(lcode[1]&0x04000000)*out << "   Extra 1st DMBtr";
-			if(lcode[1]&0x02000000)*out << "   Extra 1st DMBhdr";
-			if(lcode[1]&0x01000000)*out << "   Extra 2nd DMBhdr";
-			if(lcode[1]&0x00200000)*out << "   invalid Lone Word signal";
-			if(lcode[1]&0x00080000)*out << "   Bad Trig Trail";
-			*out << " " << endl;
-		} else if(lcode[0]&0x00000100){  // LIE error, not critical
-			*out << " *Small data corruption problem detected, DDU Lost in Event*" << endl;
-			if(lcode[1]&0x00080000)*out << "   Missed Trig Trail";
-			if(lcode[1]&0x00040000)*out << "   Bad 1st DMBhdr";
-			if(lcode[1]&0x10000000)*out << "   2nd DMBhdr 1st";
-		// Should have been detected and solved above:
-			if(lcode[1]&0x00020000)*out << "   DDU FIFO Transfer error (bad C-code)";
-			*out << " " << endl;
+	if (!solved) { // Stopgap measures if not solved:
+		//                check for LID+cause, else LIE+cause, related errors...
+		if (lcode[0]&0x00000080) {  // LID error, critical error
+			out.push_back("Big data corruption problem detected, DDU Lost in Data");
+			if (lcode[1]&0x08000000) out.push_back("[Bad 2nd DMBtr]");
+			if (lcode[1]&0x04000000) out.push_back("[Extra 1st DMBtr]");
+			if (lcode[1]&0x02000000) out.push_back("[Extra 1st DMBhdr]");
+			if (lcode[1]&0x01000000) out.push_back("[Extra 2nd DMBhdr]");
+			if (lcode[1]&0x00200000) out.push_back("[Invalid Lone Word signal]");
+			if (lcode[1]&0x00080000) out.push_back("[Bad Trig Trail]");
+			
+		} else if (lcode[0]&0x00000100) {  // LIE error, not critical
+			out.push_back("Small data corruption problem detected, DDU Lost in Event");
+			if (lcode[1]&0x00080000) out.push_back("[Missed Trig Trail]");
+			if (lcode[1]&0x00040000) out.push_back("[Bad 1st DMBhdr]");
+			if (lcode[1]&0x10000000) out.push_back("[2nd DMBhdr 1st]");
+			// Should have been detected and solved above:
+			if (lcode[1]&0x00020000) out.push_back("[DDU FIFO Transfer error (bad C-code)]");
 		}
-		if(lcode[0]&0x00040000){  // ALCT error, not critical
-			thisDDU->ddu_rdalcterr();
-			*out << " *ALCT data problem detected:";
-			if(lcode[2]&0x00000800)*out << "   CRCerr";
-			if(lcode[2]&0x00001000)*out << "   L1A mismatch";
-			if(lcode[2]&0x00000400)*out << "   WordCountErr";
-			if((lcode[2]&0x00001c00)==0)*out << "   ALCT problem on DMB, likely Full FIFO, maybe Timeout";
-			*out << "* " << endl;
-			sprintf(buf,"    ^^^Detected Error from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-			*out << buf << endl;
-			//      solved=1;
-		}
-		if(lcode[0]&0x00080000){  // TMB error, not critical
-			thisDDU->ddu_rdtmberr();
-			*out << " *TMB data problem detected:";
-			if(lcode[2]&0x00000008)*out << "   CRCerr";
-			if(lcode[2]&0x00000010)*out << "   L1A mismatch";
-			if(lcode[2]&0x00000004)*out << "   WordCountErr";
-			if((lcode[2]&0x0000001c)==0)*out << "   TMB problem on DMB, Timeout or Full FIFO";
-			*out << "* " << endl;
-			sprintf(buf,"    ^^^Detected Error from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-			*out << buf << endl;
-			//      solved=1;
-		}
+		if (lcode[0]&0x00040000) {  // ALCT error, not critical
 
-		if((lcode[1]&0x00004000)>0||(lcode[0]&0x00000008)>0){  // Mult-L1A error:
-		//        confirmed CFEB L1err; DMB(hdr/tr), TMB or ALCT combined & accumulated
-			thisDDU->ddu_rddmberr();
-			*out << " *Cause was Multiple L1A errors* " << endl;
-			if((lcode[0]&0x90400fff)==0x0000000a&&(lcode[4]&0x00008000)>0){
-				sprintf(buf,"  ^^^DDU C-code L1A error, Ext.FIFO[3:0]=0x%01lx* ",(lcode[3]>>20)&0x0000000f);  // TrgL1 & DMBtrL1 not involved
-				*out << buf << endl;
-				solved=1;
-			} else if((lcode[0]&0x9fc00fff)==0x0000020a){
-				sprintf(buf,"  ^^^DMB L1A Mismatch (not from InFPGA) for DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-				*out << buf << endl;
-				solved=1;
-			} else if((lcode[0]&0x9fc00dff)==0x0040000a){
-				*out << "  ^^^DMB L1A Mismatch error (from InFPGA) " << endl;
-				if(lcode[3]&0x00f00000){
-					sprintf(buf,"   ^^errors found for Ext.FIFO[3:0]=0x%01lx* ",(lcode[3]>>20)&0x0000000f);
-					*out << buf << endl;
+			out.push_back("ALCT data problem detected");
+			if (lcode[2]&0x00000800) out.push_back("[CRCerr]");
+			if (lcode[2]&0x00001000) out.push_back("[L1A mismatch]");
+			if (lcode[2]&0x00000400) out.push_back("[WordCountErr]");
+			if (!(lcode[2]&0x00001c00)) out.push_back("[ALCT problem on DMB, likely Full FIFO, maybe Timeout]");
+			
+		}
+		if (lcode[0]&0x00080000) {  // TMB error, not critical
+			out.push_back("TMB data problem detected");
+			if (lcode[2]&0x00000008) out.push_back("[CRCerr]");
+			if (lcode[2]&0x00000010) out.push_back("[L1A mismatch]");
+			if (lcode[2]&0x00000004) out.push_back("[WordCountErr]");
+			if (!(lcode[2]&0x0000001c)) out.push_back("[TMB problem on DMB, Timeout or Full FIFO]");
+
+
+		if (lcode[1]&0x00004000 || lcode[0]&0x00000008) {  // Mult-L1A error:
+			//        confirmed CFEB L1err; DMB(hdr/tr), TMB or ALCT combined & accumulated
+			out.push_back("Multiple L1A errors detected");
+			bool multiSolve = false;
+			unsigned int checkFiber = thisDDU->readDMBError();
+			
+			if ((lcode[0]&0x90400fff) == 0x0000000a && lcode[4]&0x00008000) {
+				outStream << "[DDU C-code L1A error detected for external FIFO(s) ";
+				for (int iReg = 0; iReg < 4; iReg++) {
+					if ((lcode[3] >> 20) & (1<<iReg)) outStream << dec << iReg << " ";
 				}
-				solved=2;
-			} else if((lcode[0]&0x00000002)>0){
-				*out << "  ^^^Likely caused by DMB L1A Mismatch, other errors too " << endl;  // other things wrong too
-				if(lcode[3]&0x00f00000){
-					sprintf(buf,"   ^^errors found for Ext.FIFO[3:0]=0x%01lx* ",(lcode[3]>>20)&0x0000000f);
-					*out << buf << endl;
+				out.push_back(outStream.str() + "]");
+				outStream.str("");
+
+				solved = true;
+				
+			} else if ((lcode[0]&0x9fc00fff) == 0x0000020a) {
+				out.push_back("[DMB L1A mismatch (not from InFPGA)]");
+				
+				solved = true; // 2
+				multiSolve = true;
+				
+			} else if ((lcode[0]&0x9fc00dff) == 0x0040000a) {
+				outStream << "[DMB L1A mismatch error (from InFPGA) detected for external FIFO(s) ";
+				for (int iReg = 0; iReg < 4; iReg++) {
+					if ((lcode[3] >> 20) & (1<<iReg)) outStream << dec << iReg << " ";
 				}
-				solved=2;
+				out.push_back(outStream.str() + "]");
+				outStream.str("");
+				
+				solved = true; // 2
+				multiSolve = true;
+				
+			} else if (lcode[0]&0x00000002) {
+				outStream << "[Likely caused by DMB L1A mismatch, other errors too for external FIFO(s) ";
+				for (int iReg = 0; iReg < 4; iReg++) {
+					if ((lcode[3] >> 20) & (1<<iReg)) outStream << dec << iReg << " ";
+				}
+				out.push_back(outStream.str() + "]");
+				outStream.str("");
+				
+				solved = true; // 2
+				multiSolve = true;
 			}
-			if((lcode[0]&0xdf800dfd)==0x40000008)*out << "  ^^^CFEB L1A Mismatch " << endl;
-			else if((lcode[0]&0x40000008)>0)*out << "  ^^^CFEB L1A Mismatch, other errors too " << endl;  // other things wrong too
-			if((lcode[0]&0x40000008)>0)solved=2;
-			if(((thisDDU->ddu_code0)&0x7fff)>0&&solved==2){
-				sprintf(buf,"   ^^errors found for DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-				*out << buf << endl;
-				solved=1;
+			
+			if ((lcode[0]&0xdf800dfd) == 0x40000008) out.push_back("[CFEB L1A mismatch]");
+			else if (lcode[0]&0x40000008) out.push_back("[CFEB L1A Mismatch, other errors too]");  // other things wrong too
+			if (lcode[0]&0x40000008) {
+				solved = true; // 2
+				multiSolve = true;
+			}
+			
+			if ((checkFiber&0x7fff) && multiSolve == 2) {
+				out.push_back("[Other errors]");
+				solved = true;
 			}
 
-			if((lcode[0]&0x9f810df5)==0x00010000)*out << "  ^^^Trigger L1A Mismatch " << endl;
-			else if((lcode[0]&0x00010000)>0)*out << "  ^^^Trigger L1A Mismatch, other errors too " << endl;
-			if((lcode[0]&0x00010000)>0){
-				solved=1;
-				thisDDU->ddu_rdalcterr();
-				if(lcode[2]&0x00001000)*out << "   ^^ALCT L1A Mismatch " << endl;
-				else if(lcode[0]&0x00040000)*out << "   ^^ALCT errors present " << endl;
-				if((thisDDU->ddu_code0)&0x7fff){
-					sprintf(buf,"    ^ALCT errors found for DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-					*out << buf << endl;
-				}
+			if ((lcode[0]&0x9f810df5) == 0x00010000) out.push_back("[Trigger L1A mismatch]");
+			else if (lcode[0]&0x00010000) out.push_back("[Trigger L1A mismatch, other errors too]");
+			if (lcode[0]&0x00010000) {
+				solved = true;
+				
+				if (lcode[2]&0x00001000) out.push_back("(ALCT L1A Mismatch)");
+				else if (lcode[0]&0x00040000) out.push_back("(ALCT errors present)");
+				
 
-				thisDDU->ddu_rdtmberr();
-				if(lcode[2]&0x00000010)*out << "   ^^TMB L1A Mismatch " << endl;
-				else if(lcode[0]&0x00080000)*out << "   ^^TMB errors present " << endl;
-				if((thisDDU->ddu_code0)&0x7fff){
-					sprintf(buf,"    ^TMB errors found for DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
-					*out << buf << endl;
-				}
+				if (lcode[2]&0x00000010) out.push_back("(TMB L1A Mismatch)");
+				else if (lcode[0]&0x00080000) out.push_back("(TMB errors present)");
+				
 			}
 		}
 	}
 
-	if(solved<1){
-		*out << " *Error cause not clearly determined*" << endl;
-		sprintf(buf,"    ^^^likely came from DDUinput[14:0]=0x%04x ",CSCstat&0x7fff);
-		*out << buf << endl;
+	if (!solved) {
+		out.push_back["Cause of error not clearly determined"];
 	}
 
 	/*
@@ -1027,7 +1101,7 @@ string DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 	// JRGhere, End Error Decode ^^^^^
 
 
-	return out->str();
+	return out;
 }
 
 
@@ -1036,12 +1110,12 @@ std::map<string, string> DDUDebugger::KillFiber(long int stat)
 {
 	std::map<string, string> returnValues;
 
-	if ((stat&0x00018000)==0x8000) returnValues["ALCT checking is disabled"] = "blue";
-	if ((stat&0x00028000)==0x8000) returnValues["TMB checking is disabled"] = "blue";
+	if ((stat&0x00018000) == 0x8000) returnValues["ALCT checking is disabled"] = "blue";
+	if ((stat&0x00028000) == 0x8000) returnValues["TMB checking is disabled"] = "blue";
 	//if ((stat&0x00008000)>0&&(stat&0x00030000)<0x00030000) *out << br() ;
-	if ((stat&0x00048000)==0x8000) returnValues["CFEB DAV/LCT/MOVLP/L1A checks disabled"] = "blue";
-	if ((stat&0x00088000)==0x8000) returnValues["Some DMB checks disabled for SP/TF compatibility"] = "blue";
-	if ((stat&0x00008000)==0) returnValues["All checks are Enabled"] = "green";
+	if ((stat&0x00048000) == 0x8000) returnValues["CFEB DAV/LCT/MOVLP/L1A checks disabled"] = "blue";
+	if ((stat&0x00088000) == 0x8000) returnValues["Some DMB checks disabled for SP/TF compatibility"] = "blue";
+	if ((stat&0x00008000) == 0) returnValues["All checks are Enabled"] = "green";
 
 	return returnValues;
 }
@@ -1054,7 +1128,7 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 
 	unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//*out << "<blockquote><font size=-1 color=red face=arial>";
-	if (stat&0xF0000000){
+	if (stat&0xF0000000) {
 		if (0x80000000&stat) returnValues["DLL2 Lock Error"] = "red";
 		// if (0x80000000&stat) returnValues["DLL-2 Not Locked"] = "red";
 		// if (0x40000000&stat) returnValues["DLL-1 Not Locked"] = "red";
@@ -1070,7 +1144,7 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 			returnValues["RdCtrl-"+fibers.str()+" Not Ready"] = "red";
 		}
 	}
-	if (stat&0x0F000000){
+	if (stat&0x0F000000) {
 		if (0x08000000&stat) returnValues["NoLiveFiber 0 or 1"] = "blue";
 		if (0x04000000&stat) returnValues["DLL Error occurred"] = "blue";
 		if (0x02000000&stat) {
@@ -1084,14 +1158,14 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 			returnValues["InRD"+fibers.str()+" DMB Warn"] = "none";
 		}
 	}
-	if (stat&0x00F00000){
+	if (stat&0x00F00000) {
 		ostringstream registers;
 		registers << (1 + fiberOffset * 2 / 8);
 		if (0x00800000&stat) {
 			returnValues["InRD"+registers.str()+" DMB Full"] = "blue";
 		}
 		if (0x00400000&stat) {
-		
+
 			returnValues["Mem/FIFO-InRD"+registers.str()+" Error"] = "red";
 		}
 		if (0x00200000&stat) {
@@ -1099,11 +1173,11 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 		}
 		if (0x00100000&stat) {
 			ostringstream fibers;
-			fibers << (4+fiberOffset) << "-" << (7+fiberOffset);
+			fibers << (4 + fiberOffset) << "-" << (7 + fiberOffset);
 			returnValues["NoLiveFiber"+fibers.str()] = "none";
 		}
 	}
-	if (stat&0x000F0000){
+	if (stat&0x000F0000) {
 		ostringstream registers;
 		registers << (0 + fiberOffset * 2 / 8);
 		if (0x00080000&stat) returnValues["InRD"+registers.str()+" DMB Full"] = "blue";
@@ -1111,30 +1185,30 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 		if (0x00020000&stat) returnValues["MultL1A Error-InRD"+registers.str()] = "red";
 		if (0x00010000&stat) {
 			ostringstream fibers;
-			fibers << (0+fiberOffset) << "-" << (3+fiberOffset);
+			fibers << (0 + fiberOffset) << "-" << (3 + fiberOffset);
 			returnValues["NoLiveFiber"+fibers.str()] = "none";
 		}
 	}
 	// JRG, low-order 16-bit status (most serious errors):
-	if (stat&0x0000F000){
+	if (stat&0x0000F000) {
 		if (0x00008000&stat) returnValues["Critical Error ** needs reset **"] = "error";
 		if (0x00004000&stat) returnValues["Single Error, bad event"] = "orange";
 		if (0x00002000&stat) returnValues["Single warning, possible data problem"] = "blue";
 		if (0x00001000&stat) returnValues["Near Full Warning"] = "blue";
 	}
-	if (stat&0x00000F00){
+	if (stat&0x00000F00) {
 		if (0x00000800&stat) returnValues["RX Error occurred"] = "blue";
 		if (0x00000400&stat) returnValues["DLL Error (recent)"] = "blue";
 		if (0x00000200&stat) returnValues["SCA Full detected"] = "orange";
 		if (0x00000100&stat) returnValues["Special Word voted-bit warning"] = "blue";
 	}
-	if (stat&0x000000F0){
+	if (stat&0x000000F0) {
 		if (0x00000080&stat) returnValues["Stuck Data occurred"] = "red";
 		if (0x00000040&stat) returnValues["Timeout occurred"] = "red";
 		if (0x00000020&stat) returnValues["Multiple voted-bit Errors"] = "red";
 		if (0x00000010&stat) returnValues["Multiple Transmit Errors"] = "red";
 	}
-	if (stat&0x0000000F){
+	if (stat&0x0000000F) {
 		if (0x00000008&stat) returnValues["Mem/FIFO Full Error"] = "red";
 		if (0x00000004&stat) returnValues["Fiber Error"] = "red";
 		if (0x00000002&stat) returnValues["L1A Match Error"] = "orange";
@@ -1152,23 +1226,23 @@ std::map<string, string> DDUDebugger::FIFOStat(enum DEVTYPE dt, int stat)
 
 	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//*out << "<blockquote><font size=-1 color=black face=arial>";
-	if (stat&0x00000055){
+	if (stat&0x00000055) {
 		//returnValues["&nbsp InRD0 Status: &nbsp <font color=blue>";
 		if (0x00000040&stat) returnValues["Ext.FIFO 3/4 Full"] = "blue";
 		if (0x00000010&stat) returnValues["L1A FIFO Almost Full"] = "blue";
 		if (0x00000004&stat) returnValues["MemCtrl Almost Full"] = "blue";
 		//*out << "</font>";
 		if (0x00000001&stat) returnValues["L1A FIFO Empty"] = "none";
-		if (0x00000001&stat==0) returnValues["L1A FIFO Not Empty"] = "none";
+		if (0x00000001&stat == 0) returnValues["L1A FIFO Not Empty"] = "none";
 	}
-	if (stat&0x000000AA){
+	if (stat&0x000000AA) {
 		//returnValues["&nbsp InRD1 Status: &nbsp <font color=blue>";
 		if (0x00000080&stat) returnValues["Ext.FIFO 3/4 Full"] = "blue";
 		if (0x00000020&stat) returnValues["L1A FIFO Almost Full"] = "blue";
 		if (0x00000008&stat) returnValues["MemCtrl Almost Full"] = "blue";
 		//*out << "</font>";
 		if (0x000002&stat) returnValues["L1A FIFO Empty"] = "none";
-		if (0x000002&stat==0) returnValues["L1A FIFO Not Empty"] = "none";
+		if (0x000002&stat == 0) returnValues["L1A FIFO Not Empty"] = "none";
 	}
 
 	return returnValues;
@@ -1182,13 +1256,13 @@ std::map<string, string> DDUDebugger::FIFOFull(enum DEVTYPE dt, int stat)
 
 	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//*out << "<blockquote><font size=-1 color=black face=arial>";
-	if (stat&0x00000005){
+	if (stat&0x00000005) {
 		//returnValues["&nbsp InRD0 Status: &nbsp <font color=red>";
 		if (0x00000004&stat) returnValues["Ext.FIFO Full Occurred"] = "red";
 		if (0x00000001&stat) returnValues["L1A FIFO Full Occurred"] = "red";
 		//*out << "</font>" << br();
 	}
-	if (stat&0x0000000A){
+	if (stat&0x0000000A) {
 		//returnValues["&nbsp InRD1 Status: &nbsp <font color=red>";
 		if (0x00000008&stat) returnValues["Ext.FIFO Full Occurred"] = "red";
 		if (0x00000002&stat) returnValues["L1A FIFO Full Occurred"] = "red";
@@ -1206,7 +1280,7 @@ std::map<string, string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
 
 	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//out << "<blockquote><font size=-1 color=black face=arial>";
-	if (stat&0x000000ff){
+	if (stat&0x000000ff) {
 		//*out << " &nbsp InRD0: &nbsp <font color=red>";
 		if (0x000080&stat) returnValues["Critical Error ** needs reset **"] = "error";
 		if (0x000040&stat) returnValues["Sync Error ** needs reset **"] = "error";
@@ -1218,7 +1292,7 @@ std::map<string, string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
 		if (0x000001&stat) returnValues["Timeout"] = "red";
 		//*out  << "</font>" << br();
 	}
-	if (stat&0x0000ff00){
+	if (stat&0x0000ff00) {
 		//*out << " &nbsp InRD1 &nbsp <font color=red>";
 		if (0x0008000&stat) returnValues["Critical Error ** needs reset **"] = "error";
 		if (0x00004000&stat) returnValues["Sync Error ** needs reset **"] = "error";
@@ -1309,100 +1383,100 @@ string DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 
 	unsigned long int lcode[10];
 	int i;
-	char buf[100],buf1[100],buf2[100],buf3[100],buf4[100];
-	char cbuf1[20],cbuf2[20],cbuf3[20],cbuf4[20];
-	char sred[20]="<font color=red>";
-	char syel[20]="<font color=orange>";
-	char sblu[20]="<font color=blue>";
-	char sgrn[20]="<font color=green>";
-	char snul[20]="</font>";
-	sprintf(buf1," ");
-	sprintf(buf2," ");
-	sprintf(buf3," ");
-	sprintf(buf4," ");
-	sprintf(cbuf1," ");
-	sprintf(cbuf2," ");
-	sprintf(cbuf3," ");
-	sprintf(cbuf4," ");
-	lcode[0]=thisDDU->fpga_lcode[0];
-	lcode[1]=thisDDU->fpga_lcode[1];
-	lcode[2]=thisDDU->fpga_lcode[2];
-	lcode[3]=thisDDU->fpga_lcode[3];
-	lcode[4]=thisDDU->fpga_lcode[4];
-	lcode[5]=thisDDU->fpga_lcode[5];
+	char buf[100], buf1[100], buf2[100], buf3[100], buf4[100];
+	char cbuf1[20], cbuf2[20], cbuf3[20], cbuf4[20];
+	char sred[20] = "<font color=red>";
+	char syel[20] = "<font color=orange>";
+	char sblu[20] = "<font color=blue>";
+	char sgrn[20] = "<font color=green>";
+	char snul[20] = "</font>";
+	sprintf(buf1, " ");
+	sprintf(buf2, " ");
+	sprintf(buf3, " ");
+	sprintf(buf4, " ");
+	sprintf(cbuf1, " ");
+	sprintf(cbuf2, " ");
+	sprintf(cbuf3, " ");
+	sprintf(cbuf4, " ");
+	lcode[0] = thisDDU->fpga_lcode[0];
+	lcode[1] = thisDDU->fpga_lcode[1];
+	lcode[2] = thisDDU->fpga_lcode[2];
+	lcode[3] = thisDDU->fpga_lcode[3];
+	lcode[4] = thisDDU->fpga_lcode[4];
+	lcode[5] = thisDDU->fpga_lcode[5];
 
-	sprintf(buf,"  192-bit DDU InFPGA Diagnostic Trap (24 bytes) \n");
+	sprintf(buf, "  192-bit DDU InFPGA Diagnostic Trap (24 bytes) \n");
 	*out << buf << endl;
 
-	i=23;
-	sprintf(buf,"                        LFfull MemAvail C-code End-TO");
+	i = 23;
+	sprintf(buf, "                        LFfull MemAvail C-code End-TO");
 	*out << buf << endl;
-	sprintf(buf,"      rcv bytes %2d-%2d:",i,i-7);
-	sprintf(cbuf1,"%s",sgrn);
-	if(0x000f8000&lcode[5]<3)sprintf(cbuf1,"%s",sblu);
-	if(0x000f8000&lcode[5]<2)sprintf(cbuf1,"%s",syel);
-	if((0x000f8000&lcode[5]<1)||(0xfff00000&lcode[5]))sprintf(cbuf1,"%s",sred);
-	sprintf(buf1,"%s   %04lx%s",cbuf1,(0xffff0000&lcode[5])>>16,snul);
-	sprintf(cbuf2,"%s",sgrn);
-	if((0x001f&lcode[5]<3)||(0x03e0&lcode[5]<3)||(0x7c00&lcode[5]<3)||(0x000f8000&lcode[5]<3))sprintf(cbuf2,"%s",sblu);
-	if((0x001f&lcode[5]<2)||(0x03e0&lcode[5]<2)||(0x7c00&lcode[5]<2)||(0x000f8000&lcode[5]<2))sprintf(cbuf2,"%s",syel);
-	if((0x001f&lcode[5]<1)||(0x03e0&lcode[5]<1)||(0x7c00&lcode[5]<1)||(0x000f8000&lcode[5]<1))sprintf(cbuf2,"%s",sred);
-	if(0x000f8000&lcode[5]<3){
-		sprintf(buf2,"%s    <blink>%04lx</blink>%s",cbuf2,0xffff&lcode[5],snul);
-	}else{
-		sprintf(buf2,"%s    %04lx%s",cbuf2,0xffff&lcode[5],snul);
+	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
+	sprintf(cbuf1, "%s", sgrn);
+	if (0x000f8000&lcode[5] < 3)sprintf(cbuf1, "%s", sblu);
+	if (0x000f8000&lcode[5] < 2)sprintf(cbuf1, "%s", syel);
+	if ((0x000f8000&lcode[5] < 1) || (0xfff00000&lcode[5]))sprintf(cbuf1, "%s", sred);
+	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[5]) >> 16, snul);
+	sprintf(cbuf2, "%s", sgrn);
+	if ((0x001f&lcode[5] < 3) || (0x03e0&lcode[5] < 3) || (0x7c00&lcode[5] < 3) || (0x000f8000&lcode[5] < 3))sprintf(cbuf2, "%s", sblu);
+	if ((0x001f&lcode[5] < 2) || (0x03e0&lcode[5] < 2) || (0x7c00&lcode[5] < 2) || (0x000f8000&lcode[5] < 2))sprintf(cbuf2, "%s", syel);
+	if ((0x001f&lcode[5] < 1) || (0x03e0&lcode[5] < 1) || (0x7c00&lcode[5] < 1) || (0x000f8000&lcode[5] < 1))sprintf(cbuf2, "%s", sred);
+	if (0x000f8000&lcode[5] < 3) {
+		sprintf(buf2, "%s    <blink>%04lx</blink>%s", cbuf2, 0xffff&lcode[5], snul);
+	} else {
+		sprintf(buf2, "%s    %04lx%s", cbuf2, 0xffff&lcode[5], snul);
 	}
-	sprintf(cbuf3,"%s",sgrn);
-	if(0x20200000&lcode[4])sprintf(cbuf3,"%s",syel);
-	if(0xdfdf0000&lcode[4])sprintf(cbuf3,"%s",sred);
-	sprintf(buf3,"%s    %04lx%s",cbuf3,(0xffff0000&lcode[4])>>16,snul);
-	sprintf(cbuf4,"%s",sgrn);
-	if(0xffff&lcode[4])sprintf(cbuf4,"%s",sred);
-	sprintf(buf4,"%s   %04lx%s",cbuf4,0xffff&lcode[4],snul);
+	sprintf(cbuf3, "%s", sgrn);
+	if (0x20200000&lcode[4])sprintf(cbuf3, "%s", syel);
+	if (0xdfdf0000&lcode[4])sprintf(cbuf3, "%s", sred);
+	sprintf(buf3, "%s    %04lx%s", cbuf3, (0xffff0000&lcode[4]) >> 16, snul);
+	sprintf(cbuf4, "%s", sgrn);
+	if (0xffff&lcode[4])sprintf(cbuf4, "%s", sred);
+	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[4], snul);
 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
 
-	i=15;
-	sprintf(buf,"                      Start-TO FAF/Nrdy L1err  DMBwarn");
+	i = 15;
+	sprintf(buf, "                      Start-TO FAF/Nrdy L1err  DMBwarn");
 	*out << buf << endl;
-	sprintf(buf,"      rcv bytes %2d-%2d:",i,i-7);
-	sprintf(cbuf1,"%s",sgrn);
-	if(0xff000000&lcode[3])sprintf(cbuf1,"%s",sblu);
-	if(0x00ff0000&lcode[3])sprintf(cbuf1,"%s",sred);
-	sprintf(buf1,"%s   %04lx%s",cbuf1,(0xffff0000&lcode[3])>>16,snul);
-	sprintf(cbuf2,"%s",sgrn);
-	if(0xfc00&lcode[3])sprintf(cbuf2,"%s",sblu);
-	sprintf(buf2,"%s    %04lx%s",cbuf2,0xffff&lcode[3],snul);
-	sprintf(cbuf3,"%s",sgrn);
-	if(0x00ff0000&lcode[2])sprintf(cbuf3,"%s",syel);
-	if(0xff000000&lcode[2])sprintf(cbuf3,"%s",sred);
-	sprintf(buf3,"%s    %04lx%s",cbuf3,(0xffff0000&lcode[2])>>16,snul);
-	sprintf(cbuf4,"%s",sgrn);
-	if(0x00ff&lcode[2])sprintf(cbuf4,"%s",sblu);
-	if(0xff00&lcode[2])sprintf(cbuf4,"%s",sred);
-	sprintf(buf4,"%s   %04lx%s",cbuf4,0xffff&lcode[2],snul);
+	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
+	sprintf(cbuf1, "%s", sgrn);
+	if (0xff000000&lcode[3])sprintf(cbuf1, "%s", sblu);
+	if (0x00ff0000&lcode[3])sprintf(cbuf1, "%s", sred);
+	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[3]) >> 16, snul);
+	sprintf(cbuf2, "%s", sgrn);
+	if (0xfc00&lcode[3])sprintf(cbuf2, "%s", sblu);
+	sprintf(buf2, "%s    %04lx%s", cbuf2, 0xffff&lcode[3], snul);
+	sprintf(cbuf3, "%s", sgrn);
+	if (0x00ff0000&lcode[2])sprintf(cbuf3, "%s", syel);
+	if (0xff000000&lcode[2])sprintf(cbuf3, "%s", sred);
+	sprintf(buf3, "%s    %04lx%s", cbuf3, (0xffff0000&lcode[2]) >> 16, snul);
+	sprintf(cbuf4, "%s", sgrn);
+	if (0x00ff&lcode[2])sprintf(cbuf4, "%s", sblu);
+	if (0xff00&lcode[2])sprintf(cbuf4, "%s", sred);
+	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[2], snul);
 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
 
-	i=7;
-	sprintf(buf,"                        32-bit-Empty0M  32-bit-status");
+	i = 7;
+	sprintf(buf, "                        32-bit-Empty0M  32-bit-status");
 	*out << buf << endl;
-	sprintf(buf,"      rcv bytes %2d-%2d:",i,i-7);
-	sprintf(cbuf1,"%s",sgrn);
-	if(0xffff0000&lcode[1]==0xf8000000)sprintf(cbuf1,"%s",sred);
-	sprintf(buf1,"%s   %04lx%s",cbuf1,(0xffff0000&lcode[1])>>16,snul);
-	sprintf(cbuf2,"%s",sgrn);
-	if(0xffff&lcode[1]==0xf800)sprintf(cbuf2,"%s",sred);
-	sprintf(buf2,"%s    %04lx%s",cbuf2,0xffff&lcode[1],snul);
-	sprintf(cbuf3,"%s",sgrn);
-	if(0x0c080000&lcode[0])sprintf(cbuf3,"%s",sblu);
-	if(0xf0660000&lcode[0])sprintf(cbuf3,"%s",sred);
-	sprintf(buf3,"%s    %04lx%s",cbuf3,(0xffff0000&lcode[0])>>16,snul);
-	sprintf(cbuf4,"%s",sgrn);
-	if(0x2d00&lcode[0])sprintf(cbuf4,"%s",sblu);
-	if(0x4202&lcode[0])sprintf(cbuf4,"%s",syel);
-	if(0x80fd&lcode[0])sprintf(cbuf4,"%s",sred);
-	sprintf(buf4,"%s   %04lx%s",cbuf4,0xffff&lcode[0],snul);
+	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
+	sprintf(cbuf1, "%s", sgrn);
+	if (0xffff0000&lcode[1] == 0xf8000000)sprintf(cbuf1, "%s", sred);
+	sprintf(buf1, "%s   %04lx%s", cbuf1, (0xffff0000&lcode[1]) >> 16, snul);
+	sprintf(cbuf2, "%s", sgrn);
+	if (0xffff&lcode[1] == 0xf800)sprintf(cbuf2, "%s", sred);
+	sprintf(buf2, "%s    %04lx%s", cbuf2, 0xffff&lcode[1], snul);
+	sprintf(cbuf3, "%s", sgrn);
+	if (0x0c080000&lcode[0])sprintf(cbuf3, "%s", sblu);
+	if (0xf0660000&lcode[0])sprintf(cbuf3, "%s", sred);
+	sprintf(buf3, "%s    %04lx%s", cbuf3, (0xffff0000&lcode[0]) >> 16, snul);
+	sprintf(cbuf4, "%s", sgrn);
+	if (0x2d00&lcode[0])sprintf(cbuf4, "%s", sblu);
+	if (0x4202&lcode[0])sprintf(cbuf4, "%s", syel);
+	if (0x80fd&lcode[0])sprintf(cbuf4, "%s", sred);
+	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[0], snul);
 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
-	
+
 	return out->str();
 }
 
@@ -1428,11 +1502,11 @@ std::map<string, string> DDUDebugger::FMMReg(int stat)
 {
 	std::map<string, string> returnValues;
 
-	if (stat==4) returnValues["BUSY"] = "orange";
-	else if (stat==1) returnValues["WARNING, Near Full"] = "blue";
-	else if (stat==8) returnValues["READY"] = "green";
-	else if (stat==2) returnValues["Lost Sync"] = "red";
-	else if (stat==0xC) returnValues["ERROR"] = "error";
+	if (stat == 4) returnValues["BUSY"] = "orange";
+	else if (stat == 1) returnValues["WARNING, Near Full"] = "blue";
+	else if (stat == 8) returnValues["READY"] = "green";
+	else if (stat == 2) returnValues["Lost Sync"] = "red";
+	else if (stat == 0xC) returnValues["ERROR"] = "error";
 	else returnValues["UNDEFINED"] = "error";
 
 	return returnValues;
@@ -1448,7 +1522,7 @@ std::map<string, string> DDUDebugger::GbEPrescale(int stat)
 	int reg1 = (stat & 0xF0) >> 4;
 	int reg2 = (stat & 0xF00) >> 8;
 	int reg3 = (stat & 0xF000) >> 12;
-	
+
 	if (reg0 == reg2 && reg1 == reg3 && reg0 + reg1 == 0xF) {
 		if ((0x7&stat) == 0x7) returnValues["Transmitting never"] = "none";
 		else {
@@ -1475,7 +1549,7 @@ std::map<string, string> DDUDebugger::FakeL1Reg(int stat)
 	int reg1 = (stat & 0xF0) >> 4;
 	int reg2 = (stat & 0xF00) >> 8;
 	int reg3 = (stat & 0xF000) >> 12;
-	
+
 	if (reg0 == reg2 && reg1 == reg3 && reg0 + reg1 == 0xF) {
 		if (reg0 & 0x1) returnValues["InFPGA0 passthrough"] = "orange";
 		if (reg0 & 0x2) returnValues["InFPGA1 passthrough"] = "orange";
