@@ -5,8 +5,9 @@ using namespace XERCES_CPP_NAMESPACE;
 Test_CFEB02::Test_CFEB02(std::string dfile): Test_Generic(dfile) {
   testID = "CFEB02";
   nExpectedEvents = 10000;
-  binCheckMask=0x16CFF3F6;
-//  binCheckMask=0xF7CB3BF6;
+  //  binCheckMask=0x16CFF3F6;
+  binCheckMask=0x1FEBF3F6;
+  //  binCheckMask=0xF7CB3BF6;
 }
 
 
@@ -113,8 +114,8 @@ void Test_CFEB02::initCSC(std::string cscID) {
 void Test_CFEB02::analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber) {
   nTotalEvents++;
 
-  //   uint32_t BinaryErrorStatus = 0, BinaryWarningStatus = 0;
   const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
+  bin_checker.setMask( binCheckMask);
   if( bin_checker.check(tmp,dataSize/sizeof(short)) < 0 ){
     //   No ddu trailer found - force checker to summarize errors by adding artificial trailer
     const uint16_t dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
@@ -122,32 +123,19 @@ void Test_CFEB02::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   }
 
   if(bin_checker.errors() != 0) {
-    std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() 
-	<< " mask:0x" << std::hex << binCheckMask << std::dec << std::endl;
+    // std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() 
+    //	<< " mask:0x" << std::hex << binCheckMask << std::dec << std::endl;
     doBinCheck();
-//    return;
+    //    return;
   }
 
-  if ((bin_checker.errors() & binCheckMask) != 0) { 
-	// std::cout << "skipped" << std::endl;
-	return;
-  }
-
-  CSCDDUEventData dduData((uint16_t *) data);
+  CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
 
   std::vector<CSCEventData> chamberDatas;
   chamberDatas = dduData.cscData();
   CSCDDUHeader dduHeader  = dduData.header();
 
   int nCSCs = chamberDatas.size();
-  if (nCSCs != dduHeader.ncsc()) {
-        std::cout << "Evt#" << std::dec << nTotalEvents << ": Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() << std::endl;
-        // == Current trick to maximize number of unpacked CSCs.
-        // == Unpacker gives up after screwed chamber.
-        // == So we need to exclude it from the list by reducing chamberDatas vector size
-        nCSCs-=1;
-
-  }
 
   for(int i=0; i < nCSCs; i++) {
     analyzeCSC(chamberDatas[i]);
@@ -163,7 +151,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
   const CSCDMBHeader* dmbHeader = data.dmbHeader();
   const CSCDMBTrailer* dmbTrailer = data.dmbTrailer();
   if (!dmbHeader && !dmbTrailer) {
-        return;
+    return;
   }
 
  
@@ -227,7 +215,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
     for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
       if (!cfebData) continue;
-  //    if (!cfebData->check()) continue;
+      //    if (!cfebData->check()) continue;
 
       for (unsigned int layer = 1; layer <= NLAYERS; layer++){ // loop over layers in a given chamber
 	int nTimeSamples= cfebData->nTimeSamples();
@@ -259,7 +247,6 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 	    }
 	  }
           
-	  // if (v05) v05->Fill(Qmax);
           
 	  if (nEvents > 1000) {
 	    bool fEventValid = true;
@@ -472,7 +459,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
 
     CFEBSCAData& scadata = sdata[cscID]; 
  
-//    CSCMapItem::MapItem& mapitem;
+    //    CSCMapItem::MapItem& mapitem;
     CSCtoHWmap::iterator itr = cscmap.find(cscID);
 
     if (itr != cscmap.end()) {
@@ -643,15 +630,15 @@ void Test_CFEB02::finishCSC(std::string cscID)
       res_out.close();
 
       if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
-      // == Save results for database transfer Pedestals and RMS
-      res_out.open((path+cscID+"_CFEB02_DB.dat").c_str());
-      for (int layer=0; layer<NLAYERS; layer++) {
-	for (int strip=0; strip<strips_per_layer; strip++) {
-	  res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-		  << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << std::endl;
+	// == Save results for database transfer Pedestals and RMS
+	res_out.open((path+cscID+"_CFEB02_DB.dat").c_str());
+	for (int layer=0; layer<NLAYERS; layer++) {
+	  for (int strip=0; strip<strips_per_layer; strip++) {
+	    res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+		    << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << std::endl;
+	  }
 	}
-      }
-      res_out.close();
+	res_out.close();
       }
 
     }
@@ -661,38 +648,38 @@ void Test_CFEB02::finishCSC(std::string cscID)
 
 bool Test_CFEB02::checkResults(std::string cscID)
 {
-	bool isValid=true;
-	cscTestData::iterator td_itr =  tdata.find(cscID);
-  	if (td_itr != tdata.end()) {
-    		TestData& cscdata= td_itr->second;
-        	TestData2D& r01 = cscdata["R01"];
-        	TestData2D& r02 = cscdata["R02"];
+  bool isValid=true;
+  cscTestData::iterator td_itr =  tdata.find(cscID);
+  if (td_itr != tdata.end()) {
+    TestData& cscdata= td_itr->second;
+    TestData2D& r01 = cscdata["R01"];
+    TestData2D& r02 = cscdata["R02"];
 
-		int badChannels=0;
-		// Check pedestals
-                for (int i=0; i<r01.Nlayers; i++) {
-                        for (int j=0; j<r01.Nbins; j++) {
-                                if ((r01.content[i][j] > 1000) || (r01.content[i][j] < 300)) badChannels++;
-                        }
-                }
-		if (badChannels/(float(r01.Nlayers*r01.Nbins)) >=0.2) { 
-			isValid=false;
-			std::cout << "20% of channels have bad Pedestals" << std::endl;
-		}
+    int badChannels=0;
+    // Check pedestals
+    for (int i=0; i<r01.Nlayers; i++) {
+      for (int j=0; j<r01.Nbins; j++) {
+	if ((r01.content[i][j] > 1000) || (r01.content[i][j] < 300)) badChannels++;
+      }
+    }
+    if (badChannels/(float(r01.Nlayers*r01.Nbins)) >=0.2) { 
+      isValid=false;
+      std::cout << cscID << ": 20% of channels have bad Pedestals" << std::endl;
+    }
 
-		badChannels=0;
-		// Check noise
-		for (int i=0; i<r02.Nlayers; i++) {
-		        for (int j=0; j<r02.Nbins; j++) {
-				if (r02.content[i][j] > 6.) badChannels++;
-			}
-		}
-		if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
-			isValid=false;
-			std::cout << "20% of channels have bad Noise" << std::endl;
-		}
-	}
+    badChannels=0;
+    // Check noise
+    for (int i=0; i<r02.Nlayers; i++) {
+      for (int j=0; j<r02.Nbins; j++) {
+	if (r02.content[i][j] > 6.) badChannels++;
+      }
+    }
+    if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
+      isValid=false;
+      std::cout << "20% of channels have bad Noise" << std::endl;
+    }
+  }
 
-	return isValid;
+  return isValid;
 }
 
