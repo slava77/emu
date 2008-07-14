@@ -402,7 +402,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		int lcodeBits = 5 - (iBits/2);
 		outStream << debugNames[iBits] << ": " << setw(4) << setfill('0') << hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
 		out.push_back(outStream.str());
-		outString.str("");
+		outStream.str("");
 	}
 
 // 	i = 23;
@@ -544,7 +544,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 	bool iTimeout = false;
 	bool solved = false;
 	
-	unsigned long int ddustat = (0xffffffff & lcode[0]);
+	//unsigned long int ddustat = (0xffffffff & lcode[0]);
 
 	unsigned long int erastat = (0x0000ffff & lcode[1]);
 
@@ -1064,7 +1064,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 				multiSolve = true;
 			}
 			
-			if ((checkFiber&0x7fff) && multiSolve == 2) {
+			if ((DMBError&0x7fff) && multiSolve) {
 				out.push_back("[Other errors]");
 				solved = true;
 			}
