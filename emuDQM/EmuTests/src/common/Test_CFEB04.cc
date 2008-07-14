@@ -2,6 +2,37 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
+time_sample CalculateCorrectedPulseAmplitude(pulse_fit& fit)
+{
+	time_sample peak_time;
+
+	double pulse_width=25.; // 25ns
+
+	double x1 = fit.left.tbin*pulse_width;
+	double x2 = fit.max.tbin*pulse_width;
+	double x3 = fit.right.tbin*pulse_width;
+	double y1 = fit.left.value;
+	double y2 = fit.max.value;
+	double y3 = fit.right.value;
+	
+	double d21 = (y2-y1)/(x2-x1);
+	double d32 = (y3-y2)/(x3-x2);
+	double c = (d21-d32)/(x3-x2);
+	double x0 = (x1 + 2*x2 + x3)/4 + (d21+d32)/(4*c);
+	double A = y2 + c*pow(x2-x0,2);
+	double dX=x0-x2;
+	
+	double kp[4] = {1.022, -0.027, 7.6, 63.};
+	double taup[4] = {-1.5, -2.5, -5, 50};
+
+	double k=kp[0] + kp[1]*cos(2*M_PI*((dX-kp[2])/kp[3]));
+	double tau=taup[0] = taup[1]*cos(2*M_PI*((dX-taup[2])/taup[3]));
+
+	peak_time.tbin = x0+tau;
+	peak_time.value = A*k;
+	return peak_time;
+}
+
 Test_CFEB04::Test_CFEB04(std::string dfile): Test_Generic(dfile) {
   testID = "CFEB04";
   nExpectedEvents = 8000;
@@ -363,6 +394,28 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data) {
 	    Qmax=Qi-Q12;
 	    if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
 	    gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
+	    gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].max.tbin = itime;
+	    gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].max.value = Qmax;
+	    if (itime>0) {
+		CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime-1))->timeSample(layer,curr_strip);
+	        int Qi = (int) ((timeSample->adcCounts)&0xFFF);
+		gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].left.tbin = itime-1;
+                gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].left.value = Qi-Q12;
+	    } else {
+		gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].left.tbin = 0;
+	        gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].left.value = 0;	
+	    }
+	    if (itime<nTimeSamples-1) {
+      	 	CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime+1))->timeSample(layer,curr_strip);
+                int Qi = (int) ((timeSample->adcCounts)&0xFFF);
+		gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].left.tbin = itime+1;
+                gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].left.value = Qi-Q12;
+
+            } else {
+		gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].right.tbin = 0;
+                gaindata.fit[curr_dac][layer-1][icfeb*16+curr_strip-1].right.value = 0;
+            }
+
           }
 /*
 	  if ((curr_dac == 3 || curr_dac ==4) && cscID == "ME+1.3.08" && icfeb==0 && curr_strip==8 && layer==1) 
@@ -510,6 +563,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
     MonHistos& cschistos = mhistos[cscID];
     TH2F* v01 = reinterpret_cast<TH2F*>(cschistos["V01"]);
     TH2F* v05 = reinterpret_cast<TH2F*>(cschistos["V05"]);
+    TH2F* v06 = reinterpret_cast<TH2F*>(cschistos["V06"]);
     //    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
     //    TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
     //    return;
@@ -597,12 +651,16 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	      bool fValidStrip=true;
 	      for (int dac=0; dac<10; dac++) {
 		dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+		
 		// x=(0.1+0.25*dac);
 		x=11.2 +(28.0*dac);
-		y=val.mv;
+	//	y=val.mv;
 	//	y=val.max;
 		s=val.s;
 		if (s==0) { fValidStrip = false; break; }
+		time_sample fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]); 
+	        y = fit.value;	
+	 	if (v06) {v06->Fill(fit.tbin);}	
 		X+=x/s;
 		XX+=(x*x)/s;
 		Y+=y/s;

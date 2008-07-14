@@ -122,11 +122,23 @@ typedef struct dac_step {
         int cnt;
 } dac_step;
 
+typedef struct time_sample {
+	int tbin;
+	int value;
+} time_sample;
+
+typedef struct pulse_fit {
+	time_sample left;
+	time_sample max;
+	time_sample right;
+} pulse_fit;
+
 // == CFEB SCA data structure
 typedef struct GainData{
         int Nbins;
         int Nlayers;
         dac_step content[DAC_STEPS][NLAYERS][MAX_STRIPS][NSAMPLES];
+        pulse_fit fit[DAC_STEPS][NLAYERS][MAX_STRIPS];
 } GainData;
 
 typedef std::map<std::string, GainData> cscGainData;

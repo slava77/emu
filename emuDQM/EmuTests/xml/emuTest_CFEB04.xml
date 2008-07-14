@@ -75,7 +75,7 @@
                 <YBins>41</YBins>
                 <YTitle>Saturation (ADC)</YTitle>
                 <Low1Limit>3500</Low1Limit>
-                <Low0Limit>3900</Low0Limit>
+                <Low0Limit>4000</Low0Limit>
                 <High0Limit>4095</High0Limit>
                 <High1Limit>4095</High1Limit>
         </TestResult>
@@ -192,7 +192,7 @@
 		<SetOptStat>eoum</SetOptStat>
         </TestResult>
 
-     <TestResult>
+	 <TestResult>
                 <Test>CFEB04</Test>
                 <Type>h2</Type>
                 <Title>V05 - Fit Residuals</Title>
@@ -202,17 +202,31 @@
                 <XMax>10</XMax>
                 <XBins>10</XBins>
                 <XTitle>Test Pulse DAC i</XTitle>
-		<YMin>-100</YMin>
+                <YMin>-100</YMin>
                 <YMax>100</YMax>
                 <YBins>200</YBins>
                 <YTitle>Fit Residuals, ADC Counts</YTitle>
                 <SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
-		<SetOption>colz</SetOption>
+                <SetOption>colz</SetOption>
                 <SetOptStat>em</SetOptStat>
         </TestResult>
 
 
+	<TestResult>
+                <Test>CFEB04</Test>
+                <Type>h1</Type>
+                <Title>V06 - Corrected Peak Time</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V06</Name>
+                <XMin>0</XMin>
+                <XMax>400</XMax>
+                <XBins>800</XBins>
+                <XTitle>Peak Time</XTitle>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+                <SetOptStat>eoum</SetOptStat>
+        </TestResult>
 
 	<TestResult>
                 <Test>CFEB04</Test>
