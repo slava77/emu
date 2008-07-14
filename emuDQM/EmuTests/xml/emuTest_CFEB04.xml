@@ -12,7 +12,7 @@
                 <XTitle>Strip Number</XTitle>
                 <YMin>0</YMin>
                 <YMax>50</YMax>
-                <YBins>50</YBins>
+                <YBins>250</YBins>
                 <YTitle>Gain slope A</YTitle>
 		<Low1Limit>2</Low1Limit>
 		<Low0Limit>4</Low0Limit>
@@ -92,7 +92,7 @@
                 <XTitle>Strip Number</XTitle>
                 <YMin>0</YMin>
                 <YMax>6</YMax>
-                <YBins>60</YBins>
+                <YBins>300</YBins>
                 <YTitle>Normalized gains</YTitle>
                 <Low1Limit>0.2</Low1Limit>
                 <Low0Limit>0.8</Low0Limit>
@@ -221,8 +221,8 @@
                 <Name>V06</Name>
                 <XMin>0</XMin>
                 <XMax>400</XMax>
-                <XBins>800</XBins>
-                <XTitle>Peak Time</XTitle>
+                <XBins>400</XBins>
+                <XTitle>Corrected Peak Time, ns</XTitle>
                 <SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
                 <SetOptStat>eoum</SetOptStat>
