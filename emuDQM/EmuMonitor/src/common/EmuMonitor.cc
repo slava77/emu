@@ -820,7 +820,7 @@ void EmuMonitor::doStop()
         while (!timer_->isActive() && timeout < 3) {
           usleep(1000000);
           timeout++;
-          LOG4CPLUS_WARN (getApplicationLogger(),
+          LOG4CPLUS_INFO (getApplicationLogger(),
                         "Waiting to start saving of results... " << timeout);
         }
       }
@@ -1036,7 +1036,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 */
  
   if (eventsReceived_%1000 == 0) { 
-    LOG4CPLUS_WARN(getApplicationLogger(),
+    LOG4CPLUS_DEBUG(getApplicationLogger(),
 		   // "Received " << bufRef->getDataSize() <<
 		   "Received evt#" << eventsReceived_ << " (req: " << eventsRequested_ << ")" <<
 		   sizeOfPayload << " bytes, run " << msg->runNumber <<
@@ -1074,7 +1074,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
 	uint32_t newRate = averageRate_;
 	if (newRate>10) newRate=(newRate/10)*10;
 	if ((newRate>=defEventCredits_) && (newRate <=500)) {
-	  LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
+	  LOG4CPLUS_DEBUG (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
 	  nEventCredits_ = newRate;
 	}
       }
@@ -1103,7 +1103,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
           frame->prescalingFactor = prescalingFactor_;
 
           ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
-          LOG4CPLUS_WARN(getApplicationLogger(),
+          LOG4CPLUS_DEBUG(getApplicationLogger(),
 			 "Sending credit #" << creditMsgsSent_ << " to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
 			 //                                   << ". maxFrameSize=" << maxFrameSize_
 			 );
@@ -1305,15 +1305,21 @@ int EmuMonitor::svc()
         
       
       uint32_t timeout = 3*1000000; // 5sec
-      uint32_t wait = 10000; // 10ms
+      uint32_t wait = 20000; // 10ms
       uint32_t waittime = 0;
       if (readoutMode_.toString() == "external") { 
 	if (creditsHeld_ > nEventCredits_) {
 	  LOG4CPLUS_DEBUG (getApplicationLogger(), "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
         }
-	while (creditsHeld_ > nEventCredits_) {
+	while ((creditsHeld_ > nEventCredits_) && ( waittime <= timeout )) {
 	  usleep(wait);
+	  waittime += wait;
         }
+	if (waittime >= timeout) {
+	  LOG4CPLUS_DEBUG (getApplicationLogger(), toolbox::toString("Timeout waiting for clearing credits."));
+	  creditsHeld_ = nEventCredits_;
+	}
+        waittime=0;
 	if (eventsReceived_ > eventsRequested_) eventsRequested_=eventsReceived_;
 	while ((eventsReceived_ < eventsRequested_) && ( waittime <= timeout )) {
 	  usleep(wait);
@@ -1327,12 +1333,12 @@ int EmuMonitor::svc()
           time_t nowmark=time(NULL);
           averageRate_ = sessionEvents_/(nowmark-startmark);
 	  */
-
+/*
           if ((eventsRequested_ - eventsReceived_) >= nEventCredits_) {
             // nEventCredits_ = ((nEventCredits_-10)>1)? nEventCredits_-10: 1;
             continue;
           }
-
+*/
 	  eventsRequested_ = eventsReceived_;
 	  
 	}
