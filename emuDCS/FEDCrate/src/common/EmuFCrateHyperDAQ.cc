@@ -382,7 +382,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 					.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 6%;") << iFiber << cgicc::td() << endl;
 			}
 
-			cgicc::tr() << endl;
+			*out << cgicc::tr() << endl;
 			
 			// Third row:  chamber names and statuses
 			*out << cgicc::tr()
