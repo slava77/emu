@@ -850,12 +850,16 @@ void Test_Generic::doBinCheck() {
     }
 
     if (isCSCError && CSCtype && CSCposition && mhistos["EMU"]["E00"]) {
+  
       mhistos["EMU"]["E00"]->Fill(CSCposition, CSCtype);
       //    mo->SetEntries(nBadEvents);
       
     }
 
-    if (isCSCError) nCSCBadEvents[cscID]++;
+    if (isCSCError) { 
+	 std::cout << "Evt#" << std::dec << nTotalEvents << "> " << cscID << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << chamber->second << std::dec << std::endl;
+	nCSCBadEvents[cscID]++;
+    }
     chamber++;
   }
 }
@@ -928,7 +932,7 @@ void Test_Generic::finish() {
       if (nCSCEvents[cscID] >= nExpectedEvents/2) {
 //	finishCSC(cscID);
       } else {
-	std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
+//	std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
 	// = Set error 
 	sum_res=4;
 	// fres << "\t['V00','" << 4 << "']," << std::endl;
