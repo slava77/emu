@@ -279,7 +279,7 @@ void *IRQThreadManager::IRQThread(void *data)
 
 		// Problem if there is no matching DDU...
 		if (myDDU == NULL) {
-			LOG4CPLUS_FATAL(logger, "IRQ error from an unrecognized slot!  Slot " << dec << (errorData[1] & 0x1f));
+			LOG4CPLUS_FATAL(logger, "IRQ set from an unrecognized slot!  Crate " << myCrate->number() << " slot " << dec << (errorData[1] & 0x1f) << " error data " << hex << setw(2) << setfill('0') << errorData[1] << setw(2) << setfill('0') << errorData[0]);
 			continue;
 		}
 
@@ -333,7 +333,7 @@ void *IRQThreadManager::IRQThread(void *data)
 			<< "Chambers   : " << chamberErrors.str() << endl
 			<< "Hard Error : " << hardError << endl
 			<< "Sync Error : " << syncError << endl
-			<< "Wants Reset: " << resetWanted << endl);
+			<< "Wants Reset: " << resetWanted);
 		
 		LOG4CPLUS_INFO(logger, cscsWithHardError << " CSCs on this DDU have hard errors");
 		LOG4CPLUS_INFO(logger, cscsWithSyncError << " CSCs on this DDU have sync errors");
