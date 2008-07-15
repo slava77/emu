@@ -280,7 +280,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                 CSCCFEBData *  cfebData = data.cfebData(cfeb);
 		CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
 	        Qi_left = (int) ((timeSample->adcCounts)&0xFFF);
-		if (v03) { v03->Fill(itime, Qi_left-Q12_left);}
+		if (v03) { v03->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi_left-Q12_left);}
 
           }
 
@@ -291,7 +291,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
                 CSCCFEBData * cfebData =  data.cfebData(cfeb);
                 CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
                 Qi_right = (int) ((timeSample->adcCounts)&0xFFF);
-		if (v03) { v03->Fill(itime, Qi_right-Q12_right);}
+		if (v03) { v03->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi_right-Q12_right);}
 
           }
 
@@ -305,7 +305,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
             if (curr_dac==TIME_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
             xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
           }
-	  if (v02) { v02->Fill(itime, Qi-Q12);}
+	  if (v02) { v02->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi-Q12);}
 
 
         }
@@ -386,9 +386,10 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	    double max_left=0;
 	    double max_right=0;
 	    //	    time_step& val= xtalkdata.content[0][layer-1][icfeb*16+strip-1][NSAMPLES-1];
-	    int cnt=0;	    
-	    for (int itime=0; itime < NSAMPLES-1; itime++) {
-	      for (int dac=0; dac<10; dac++) {
+	    int cnt=0;	   
+	    for (int dac=0; dac<10; dac++) { 
+  	      for (int itime=0; itime < NSAMPLES-1; itime++) {
+	      // for (int dac=0; dac<10; dac++) {
 
 		time_step& cval = xtalkdata.content[dac][layer-1][icfeb*16+strip-1][itime];
 		cnt = cval.cnt;
@@ -404,7 +405,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		  //		  double rms= sqrt((cval.rms/cval.cnt)-pow(cval.mv,2));
 		  //cval.rms = rms;
 		  if ((cval.mv > max) && (dac<7)) {
-		    peak_time = itime*50. + dac*6.25;
+		    peak_time = itime*50. + (TIME_STEPS-dac)*6.25;
 		    max=cval.mv;
 		    cnt=cval.cnt;
 		  }
@@ -419,9 +420,9 @@ void Test_CFEB03::finishCSC(std::string cscID)
                   }
 
 		}
-		if (v01) { v01->Fill(dac,cnt);}
-
 	      }
+              if (v01) { v01->Fill(dac,cnt);}
+
 	    }
 	    //val.mv = max;
 	    // val.rms = max_rms;
@@ -437,20 +438,20 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      r04.content[layer-1][icfeb*16+strip-1] = max_left/max;
 	      r05.content[layer-1][icfeb*16+strip-1] = max_right/max;
 
-	      int fhwm_left=max/2;
-	      int fhwm_right=max/2;
-	      double fhwm_left_time=0;
-	      double fhwm_right_time=400;;
-	      double fhwm=0;
+	      int fwhm_left=max/2;
+	      int fwhm_right=max/2;
+	      double fwhm_left_time=0;
+	      double fwhm_right_time=400;;
+	      double fwhm=0;
 
 	      for (int dac=0; dac<7; dac++) {
 	        for (int itime=0; itime < NSAMPLES-1; itime++) {
                   time_step& cval = xtalkdata.content[dac][layer-1][icfeb*16+strip-1][itime];
-                  double fhwm_time = itime*50. + dac*6.25;
-                  if (fhwm_time < peak_time) {
-                    if (abs(max/2-cval.mv) < fhwm_left) { 
-                      fhwm_left = abs(max/2-cval.mv);
-                      fhwm_left_time=fhwm_time;
+                  double fwhm_time = itime*50. + (TIME_STEPS-dac)*6.25;
+                  if (fwhm_time < peak_time) {
+                    if (abs(max/2-cval.mv) < fwhm_left) { 
+                      fwhm_left = abs(max/2-cval.mv);
+                      fwhm_left_time=fwhm_time;
                     }
                   } 
                 }
@@ -460,11 +461,11 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      for (int dac=6; dac>=0; dac--) {
                 for (int itime=NSAMPLES-2; itime>=0; itime--) {
                   time_step& cval = xtalkdata.content[dac][layer-1][icfeb*16+strip-1][itime];
-                  double fhwm_time = itime*50. + dac*6.25;
-		  if (fhwm_time > peak_time) {
-                    if (abs(max/2-cval.mv) < fhwm_right) {
-                      fhwm_right = abs(max/2-cval.mv);
-                      fhwm_right_time=fhwm_time;
+                  double fwhm_time = itime*50. + (TIME_STEPS-dac)*6.25;
+		  if (fwhm_time > peak_time) {
+                    if (abs(max/2-cval.mv) < fwhm_right) {
+                      fwhm_right = abs(max/2-cval.mv);
+                      fwhm_right_time=fwhm_time;
                     }
                   }
                 }
@@ -474,16 +475,16 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      for (int itime=0; itime < NSAMPLES-1; itime++) {
 		for (int dac=0; dac<7; dac++) {
 		  time_step& cval = xtalkdata.content[dac][layer-1][icfeb*16+strip-1][itime];
-		  double fhwm_time = itime*50. + dac*6.25;
-		  if (fhwm_time < peak_time) {
-		    if (abs(max/2-cval.mv) < fhwm_left) { 
-		      fhwm_left = abs(max/2-cval.mv);
-		      fhwm_left_time=fhwm_time;
+		  double fwhm_time = itime*50. + dac*6.25;
+		  if (fwhm_time < peak_time) {
+		    if (abs(max/2-cval.mv) < fwhm_left) { 
+		      fwhm_left = abs(max/2-cval.mv);
+		      fwhm_left_time=fwhm_time;
 		    }
 		  } else {
-		    if (abs(max/2-cval.mv) < fhwm_right) { 
-		      fhwm_right = abs(max/2-cval.mv);
-		      fhwm_right_time=fhwm_time;
+		    if (abs(max/2-cval.mv) < fwhm_right) { 
+		      fwhm_right = abs(max/2-cval.mv);
+		      fwhm_right_time=fwhm_time;
 		    }
 		  }
 		}
@@ -491,13 +492,13 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      */
 
 
-	      if (fhwm_right_time > fhwm_left_time) fhwm = fhwm_right_time-fhwm_left_time;
-	      r03.content[layer-1][icfeb*16+strip-1] = fhwm;
+	      if (fwhm_right_time > fwhm_left_time) fwhm = fwhm_right_time-fwhm_left_time;
+	      r03.content[layer-1][icfeb*16+strip-1] = fwhm;
 	
 	      std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) 
 			<< " peak_amp=" << max << ", peak_time=" <<  peak_time << ", cnt=" << cnt 
-			<< ", fhwm=" << fhwm << " l:" << fhwm_left_time << ":" << fhwm_left
-			<< " r:" << fhwm_right_time <<":" << fhwm_right  
+			<< ", fwhm=" << fwhm << " l:" << fwhm_left_time << ":" << fwhm_left
+			<< " r:" << fwhm_right_time <<":" << fwhm_right  
 			<< ", leftXtalk=" << max_left/max << ", rightXtalk=" << max_right/max << std::endl;
 	    }
 

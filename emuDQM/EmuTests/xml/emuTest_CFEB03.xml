@@ -43,7 +43,7 @@
 	<TestResult>
                 <Test>CFEB03</Test>
                 <Type>cfeb_cnv</Type>
-                <Title>R03 - Pulse FHWM</Title>
+                <Title>R03 - Pulse FWHM</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R03</Name>
                 <XMin>0</XMin>
@@ -53,11 +53,11 @@
                 <YMin>0</YMin>
                 <YMax>200</YMax>
                 <YBins>200</YBins>
-                <YTitle>Pulse FHWM, ns</YTitle>
-                <Low1Limit>40</Low1Limit>
-                <Low0Limit>50</Low0Limit>
-                <High0Limit>100</High0Limit>
-                <High1Limit>120</High1Limit>
+                <YTitle>Pulse FWHM, ns</YTitle>
+                <Low1Limit>50</Low1Limit>
+                <Low0Limit>80</Low0Limit>
+                <High0Limit>150</High0Limit>
+                <High1Limit>180</High1Limit>
         </TestResult>
 
 	<TestResult>
@@ -146,8 +146,8 @@
                 <Prefix>CSC</Prefix>
                 <Name>V02</Name>
                 <XMin>0</XMin>
-                <XMax>16</XMax>
-                <XBins>16</XBins>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
 		<XTitle>Time sample i</XTitle>
 		<YMin>-20</YMin>
                 <YMax>1400</YMax>
@@ -165,8 +165,8 @@
                 <Prefix>CSC</Prefix>
                 <Name>V03</Name>
 		<XMin>0</XMin>
-                <XMax>16</XMax>
-                <XBins>16</XBins>
+                <XMax>400</XMax>
+                <XBins>64</XBins>
                 <XTitle>PulseDAC(i)</XTitle>
                 <YMin>-100</YMin>
                 <YMax>200</YMax>
