@@ -3,47 +3,47 @@
         <TestResult>
 		<Test>CFEB03</Test>
                 <Type>cfeb_cnv</Type>
-		<Title>R01 - overall pedestals</Title>
+		<Title>R01 - Pulse Maximum Amplitude</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R01</Name>
                 <XMin>0</XMin>
                 <XMax>80</XMax>
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
+                <YMin>600</YMin>
                 <YMax>1200</YMax>
-                <YBins>240</YBins>
-                <YTitle>Pedestal Mean, ADC counts</YTitle>
-		<Low1Limit>200</Low1Limit>
-		<Low0Limit>400</Low0Limit>
-		<High0Limit>800</High0Limit>
-		<High1Limit>1000</High1Limit>
+                <YBins>600</YBins>
+                <YTitle>Maximum Amplitude</YTitle>
+		<Low1Limit>650</Low1Limit>
+		<Low0Limit>700</Low0Limit>
+		<High0Limit>1100</High0Limit>
+		<High1Limit>1150</High1Limit>
         </TestResult>
 
 	<TestResult>
                 <Test>CFEB03</Test>
                 <Type>cfeb_cnv</Type>
-                <Title>R02 - overall noise</Title>
+                <Title>R02 - Pulse Peak Position in Time</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R02</Name>
                 <XMin>0</XMin>
                 <XMax>80</XMax>
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>12</YMax>
-                <YBins>60</YBins>
-                <YTitle>Pedestal RMS, ADC counts</YTitle>
-                <Low1Limit>0.5</Low1Limit>
-                <Low0Limit>1</Low0Limit>
-                <High0Limit>6</High0Limit>
-                <High1Limit>10</High1Limit>
+                <YMin>175</YMin>
+                <YMax>325</YMax>
+                <YBins>600</YBins>
+                <YTitle>Time, ns</YTitle>
+                <Low1Limit>180</Low1Limit>
+                <Low0Limit>190</Low0Limit>
+                <High0Limit>310</High0Limit>
+                <High1Limit>320</High1Limit>
         </TestResult>
 
 	<TestResult>
                 <Test>CFEB03</Test>
                 <Type>cfeb_cnv</Type>
-                <Title>R03 - RMS of SCA pedestals</Title>
+                <Title>R03 - Pulse FHWM</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R03</Name>
                 <XMin>0</XMin>
@@ -51,296 +51,55 @@
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
                 <YMin>0</YMin>
-                <YMax>6</YMax>
-                <YBins>60</YBins>
-                <YTitle>Pedestal RMS, ADC counts</YTitle>
-                <Low1Limit>0</Low1Limit>
-                <Low0Limit>0</Low0Limit>
-                <High0Limit>3</High0Limit>
-                <High1Limit>5</High1Limit>
+                <YMax>200</YMax>
+                <YBins>200</YBins>
+                <YTitle>Pulse FHWM, ns</YTitle>
+                <Low1Limit>40</Low1Limit>
+                <Low0Limit>50</Low0Limit>
+                <High0Limit>100</High0Limit>
+                <High1Limit>120</High1Limit>
         </TestResult>
 
 	<TestResult>
                 <Test>CFEB03</Test>
                 <Type>cfeb_cnv</Type>
-                <Title>R04 - P12 pedestal</Title>
+                <Title>R04 - Left Crosstalk</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R04</Name>
                 <XMin>0</XMin>
                 <XMax>80</XMax>
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>1200</YMax>
-                <YBins>240</YBins>
-                <YTitle>Pedestal Mean, ADC counts</YTitle>
-                <Low1Limit>200</Low1Limit>
-                <Low0Limit>400</Low0Limit>
-                <High0Limit>800</High0Limit>
-                <High1Limit>1000</High1Limit>
+                <YMin>-0.1</YMin>
+                <YMax>0.2</YMax>
+                <YBins>90</YBins>
+                <YTitle>Left Crosstalk</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0.0</Low0Limit>
+                <High0Limit>0.15</High0Limit>
+                <High1Limit>0.18</High1Limit>
         </TestResult>
 
 	<TestResult>
                 <Test>CFEB03</Test>
                 <Type>cfeb_cnv</Type>
-                <Title>R05 - P12 noise</Title>
+                <Title>R05 - Right Crosstalk</Title>
                 <Prefix>CSC</Prefix>
                 <Name>R05</Name>
                 <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
+                <XMax>79</XMax>
+                <XBins>79</XBins>
                 <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>12</YMax>
-                <YBins>60</YBins>
-                <YTitle>Pedestal RMS, ADC counts</YTitle>
-                <Low1Limit>0.5</Low1Limit>
-                <Low0Limit>1</Low0Limit>
-                <High0Limit>6</High0Limit>
-                <High1Limit>10</High1Limit>
+                <YMin>-0.1</YMin>
+                <YMax>0.2</YMax>
+                <YBins>90</YBins>
+                <YTitle>Right Crosstalk</YTitle>
+                <Low1Limit>0</Low1Limit>
+                <Low0Limit>0.0</Low0Limit>
+                <High0Limit>0.15</High0Limit>
+                <High1Limit>0.18</High1Limit>
         </TestResult>
 
-	 <TestResult>
-                <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R06 - P345 pedestal</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R06</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>1200</YMax>
-                <YBins>240</YBins>
-                <YTitle>Pedestal Mean, ADC counts</YTitle>
-                <Low1Limit>200</Low1Limit>
-                <Low0Limit>400</Low0Limit>
-                <High0Limit>800</High0Limit>
-                <High1Limit>1000</High1Limit>
-        </TestResult>
-
-        <TestResult>
-                <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R07 - P345 noise</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R07</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>12</YMax>
-                <YBins>60</YBins>
-                <YTitle>Pedestal RMS, ADC counts</YTitle>
-                <Low1Limit>0.5</Low1Limit>
-                <Low0Limit>1</Low0Limit>
-                <High0Limit>6</High0Limit>
-                <High1Limit>10</High1Limit>
-        </TestResult>
-
-	<TestResult>
-                <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R08 - C(12)(12) covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R08</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>60</YMax>
-                <YBins>60</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>0.25</Low1Limit>
-                <Low0Limit>1</Low0Limit>
-                <High0Limit>16</High0Limit>
-                <High1Limit>50</High1Limit>
-        </TestResult>
-
-
-	<TestResult>
-		<Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R09 - C(12)3 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R09</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>-20</YMin>
-                <YMax>40</YMax>
-                <YBins>60</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>-10</Low1Limit>
-                <Low0Limit>-5</Low0Limit>
-                <High0Limit>10</High0Limit>
-                <High1Limit>30</High1Limit>
-        </TestResult>
-
-	<TestResult>
-        	<Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R10 - C(12)4 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R10</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>-20</YMin>
-                <YMax>40</YMax>
-                <YBins>60</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>-10</Low1Limit>
-                <Low0Limit>-5</Low0Limit>
-                <High0Limit>10</High0Limit>
-                <High1Limit>30</High1Limit>
-        </TestResult>
-
-	<TestResult>
-	        <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R11 - C(12)5 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R11</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>-20</YMin>
-                <YMax>40</YMax>
-                <YBins>60</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>-10</Low1Limit>
-                <Low0Limit>-5</Low0Limit>
-                <High0Limit>10</High0Limit>
-                <High1Limit>30</High1Limit>
-        </TestResult>
-
-	<TestResult>
-	        <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R12 - C33 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R12</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>100</YMax>
-                <YBins>100</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>0.25</Low1Limit>
-                <Low0Limit>1</Low0Limit>
-                <High0Limit>20</High0Limit>
-                <High1Limit>80</High1Limit>
-        </TestResult>
-
-	<TestResult>
-		<Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R13 - C34 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R13</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>-20</YMin>
-                <YMax>40</YMax>
-                <YBins>60</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>-10</Low1Limit>
-                <Low0Limit>-5</Low0Limit>
-                <High0Limit>10</High0Limit>
-                <High1Limit>30</High1Limit>
-        </TestResult>
-
-	<TestResult>
-		 <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R14 - C35 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R14</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>-20</YMin>
-                <YMax>40</YMax>
-                <YBins>60</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>-10</Low1Limit>
-                <Low0Limit>-5</Low0Limit>
-                <High0Limit>10</High0Limit>
-                <High1Limit>30</High1Limit>
-        </TestResult>
-
-	<TestResult>
-                 <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R15 - C44 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R15</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>100</YMax>
-                <YBins>100</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>0.25</Low1Limit>
-                <Low0Limit>1</Low0Limit>
-                <High0Limit>20</High0Limit>
-                <High1Limit>80</High1Limit>
-        </TestResult>
-
-
-	<TestResult>
-                 <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R16 - C45 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R16</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>-20</YMin>
-                <YMax>40</YMax>
-                <YBins>60</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>-10</Low1Limit>
-                <Low0Limit>-5</Low0Limit>
-                <High0Limit>10</High0Limit>
-                <High1Limit>30</High1Limit>
-        </TestResult>
-
-	<TestResult>
-                <Test>CFEB03</Test>
-                <Type>cfeb_cnv</Type>
-                <Title>R17 - C55 covariance matrix element</Title>
-                <Prefix>CSC</Prefix>
-                <Name>R17</Name>
-                <XMin>0</XMin>
-                <XMax>80</XMax>
-                <XBins>80</XBins>
-                <XTitle>Strip Number</XTitle>
-                <YMin>0</YMin>
-                <YMax>100</YMax>
-                <YBins>100</YBins>
-                <YTitle>sq(ADC counts)</YTitle>
-                <Low1Limit>0.25</Low1Limit>
-                <Low0Limit>1</Low0Limit>
-                <High0Limit>20</High0Limit>
-                <High1Limit>80</High1Limit>
-        </TestResult>
 
 	<TestResult>
                 <Test>CFEB03</Test>
@@ -364,16 +123,54 @@
 	<TestResult>
                 <Test>CFEB03</Test>
                 <Type>h2</Type>
-                <Title>V01 - Signal Line</Title>
+                <Title>V01 - Number of Events per one setting</Title>
                 <Prefix>CSC</Prefix>
                 <Name>V01</Name>
                 <XMin>0</XMin>
+                <XMax>10</XMax>
+                <XBins>10</XBins>
+                <XTitle>Setting #</XTitle>
+		<YMin>0</YMin>
+                <YMax>30</YMax>
+                <YBins>30</YBins>
+                <YTitle>Number of events per setting</YTitle>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOption>textcolz</SetOption>
+        </TestResult>
+
+	<TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V02 - Signal line shape</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V02</Name>
+                <XMin>0</XMin>
                 <XMax>16</XMax>
                 <XBins>16</XBins>
-                <XTitle>Time samples</XTitle>
-                <YMin>-20</YMin>
-                <YMax>20</YMax>
-                <YBins>80</YBins>
+		<XTitle>Time sample i</XTitle>
+		<YMin>-20</YMin>
+                <YMax>1400</YMax>
+                <YBins>71</YBins>
+                <YTitle>Charge Qi-Q12</YTitle>
+		<SetLabelSizeX>0.02</SetLabelSizeX>
+                <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOption>colz</SetOption>
+        </TestResult>
+
+	 <TestResult>
+                <Test>CFEB03</Test>
+                <Type>h2</Type>
+                <Title>V03 - Crosstalk signal line (left/right strips from the pulsed strips)</Title>
+                <Prefix>CSC</Prefix>
+                <Name>V03</Name>
+		<XMin>0</XMin>
+                <XMax>16</XMax>
+                <XBins>16</XBins>
+                <XTitle>PulseDAC(i)</XTitle>
+                <YMin>-100</YMin>
+                <YMax>200</YMax>
+                <YBins>300</YBins>
                 <YTitle>Charge Qi-Q12</YTitle>
 		<SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
@@ -383,50 +180,21 @@
 	<TestResult>
                 <Test>CFEB03</Test>
                 <Type>h1</Type>
-                <Title>V02 - Q4 with dynamic pedestal subtraction</Title>
-                <Prefix>CSC</Prefix>
-                <Name>V02</Name>
-                <XMin>-20</XMin>
-                <XMax>20</XMax>
-                <XBins>40</XBins>
-                <XTitle>Q4-Q12</XTitle>
-		<YTitle># Events</YTitle>
-		<SetLabelSizeX>0.02</SetLabelSizeX>
-                <SetLabelSizeY>0.03</SetLabelSizeY>
-        </TestResult>
-
-	 <TestResult>
-                <Test>CFEB03</Test>
-                <Type>h1</Type>
-                <Title>V03 - SCA Cells Occupancy</Title>
-                <Prefix>CSC</Prefix>
-                <Name>V03</Name>
-                <XMin>0</XMin>
-                <XMax>96</XMax>
-                <XBins>96</XBins>
-                <XTitle>SCA Cell</XTitle>
-		<YTitle># Events</YTitle>
-		<SetLabelSizeX>0.02</SetLabelSizeX>
-                <SetLabelSizeY>0.03</SetLabelSizeY>
-        </TestResult>
-
-	<TestResult>
-                <Test>CFEB03</Test>
-                <Type>h1</Type>
-                <Title>V04 - SCA Blocks Occupancy</Title>
+                <Title>V04 - L1A increment</Title>
                 <Prefix>CSC</Prefix>
                 <Name>V04</Name>
                 <XMin>0</XMin>
-                <XMax>12</XMax>
-                <XBins>12</XBins>
-                <XTitle>SCA Block</XTitle>
-                <YTitle># Events</YTitle>
-		<SetLabelSizeX>0.02</SetLabelSizeX>
+                <XMax>25</XMax>
+                <XBins>25</XBins>
+                <XTitle>L1A increment</XTitle>
+                <SetLabelSizeX>0.02</SetLabelSizeX>
                 <SetLabelSizeY>0.03</SetLabelSizeY>
+		<SetOptStat>eoum</SetOptStat>
         </TestResult>
 
+
 	<TestResult>
-		<Test>CFEB03</Test>
+                <Test>CFEB03</Test>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
                 <Name>E00</Name>
@@ -448,6 +216,9 @@
                 <SetLabelSizeZ>0.02</SetLabelSizeZ>
                 <SetYLabels>1='ME-4/2'|2='ME-4/1'|3='ME-3/2'|4='ME-3/1'|5='ME-2/2'|6='ME-2/1'|7='ME-1/3'|8='ME-1/2'|9='ME-1/1'|10='ME+1/1'|11=ME+1/2'|12='ME+1/3'|13='ME+2/1'|14='ME+2/2'|15='ME+3/1'|16='ME+3/2'|17='ME+4/1'|18='ME+4/2'|</SetYLabels>
         </TestResult>
+
+
+	
 
 
 </Booking>
