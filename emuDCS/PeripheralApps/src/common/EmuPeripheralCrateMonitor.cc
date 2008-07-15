@@ -905,24 +905,38 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
 	*out <<cgicc::td();
 	*out <<cgicc::td();
 
-        if(crateVector[idx]->IsAlive()) *out << "On ";
-        else * out << "Off";
+        if(crateVector[idx]->IsAlive()) 
+           *out << cgicc::span().set("style","color:green") << "On " << cgicc::span();
+        else 
+           *out << cgicc::span().set("style","color:red") << "Off" << cgicc::span();
         *out <<cgicc::td();
         *out <<cgicc::td();
       }
       switch(count)
       {
          case 0:
-   	   *out << ((csra1 & 0x1)?"DLOG":"FPGA");
+           if (csra1 & 0x1)
+     	     *out << cgicc::span().set("style","color:green") << "DLOG" << cgicc::span();
+           else 
+             *out << cgicc::span().set("style","color:red") << "FPGA" << cgicc::span();
            break;
          case 1:
-   	   *out << ((csra3 & 0x2000)?"Ready":"No");
+   	   if (csra3 & 0x2000)
+     	     *out << cgicc::span().set("style","color:green") << "Ready" << cgicc::span();
+           else 
+             *out << cgicc::span().set("style","color:red") << "No" << cgicc::span();
            break;
          case 2:
-   	   *out << (((csra3 & 0x2000)==0 || (csra3 & 0x4000)!=0 )?"Ready":"No");
+   	   if ((csra3 & 0x2000)!=0 && (csra3 & 0x4000)==0 )
+     	     *out << cgicc::span().set("style","color:green") << "Locked" << cgicc::span();
+           else 
+             *out << cgicc::span().set("style","color:red") << "No" << cgicc::span();
            break;
          case 3:
-   	   *out << (((csrm0 & 0x8201)==0x0200)?"Ready":"No");
+   	   if ((csrm0 & 0x8201)==0x0200)
+     	     *out << cgicc::span().set("style","color:green") << "OK" << cgicc::span();
+           else 
+             *out << cgicc::span().set("style","color:red") << "No" << cgicc::span();
            break;
          case 4:
    	   *out << std::hex << csra1 << std::dec;
