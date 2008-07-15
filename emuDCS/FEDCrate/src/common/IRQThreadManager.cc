@@ -174,7 +174,7 @@ void *IRQThreadManager::IRQThread(void *data)
 	// Knowing what DDUs we are talking to is useful as well.
 	vector<DDU *> dduVector = myCrate->ddus();
 
-	// This is when we started.
+	// This is when we started.  Don't know why this screws up sometimes...
 	time(&(locdata->startTime[myCrate]));
 
 	// A local tally of what the last error on a given DDU was.
@@ -270,7 +270,7 @@ void *IRQThreadManager::IRQThread(void *data)
 		// In which slot did the error occur?  Get the DDU that matches.
 		DDU *myDDU = NULL;
 		for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-			if ((*iDDU)->slot() == errorData[1] & 0x1f) {
+			if ((*iDDU)->slot() == (errorData[1] & 0x1f)) {
 				locdata->lastDDU[myCrate] = (*iDDU);
 				myDDU = (*iDDU);
 				break;
