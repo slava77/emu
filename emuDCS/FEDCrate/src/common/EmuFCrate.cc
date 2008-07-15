@@ -418,14 +418,14 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 			if ((flashKillFiber & 0x7fff) != (xmlKillFiber & 0x7fff)) {
 				//cout << "... reflashing killFiber register ..." << endl;
-				LOG4CPLUS_INFO(getApplicationLogger(),"Flash and XML disagree:  reloading flash");
+				LOG4CPLUS_INFO(getApplicationLogger(),"Flash and XML killFiber disagree:  reloading flash");
 				//(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0x7fff);
 				(*iDDU)->vmepara_wr_inreg(xmlKillFiber & 0x7fff);
 				(*iDDU)->write_page1();
 			}
 			if (fpgaKillFiber != xmlKillFiber) {
 				//cout << "... reloading FPGA killFiber register ..." << endl;
-				LOG4CPLUS_INFO(getApplicationLogger(),"fpga and XML disagree:  reloading fpga");
+				LOG4CPLUS_INFO(getApplicationLogger(),"fpga and XML killFiber disagree:  reloading fpga");
 				//(*iDDU)->writeKillFiber(xmlKillFiber);
 				(*iDDU)->ddu_loadkillfiber(xmlKillFiber);
 			}
@@ -436,6 +436,19 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				(*iDDU)->vmepara_wr_GbEprescale((*iDDU)->gbe_prescale_);
 			}
 			*/
+
+			// Now we should check if the RUI matches the flash value and
+			//  update it as needed.
+			int flashRUI = (*iDDU)->read_page7();
+			int targetRUI = (*iCrate)->getRUI((*iDDU)->slot());
+
+			LOG4CPLUS_DEBUG(getApplicationLogger(),"RUI: flash(" << flashRUI << ") calculated(" << targetRUI << ")");
+			
+			if (flashRUI != targetRUI) {
+				LOG4CPLUS_INFO(getApplicationLogger(),"Flash and calculated RUI disagree:  reloading flash");
+				(*iDDU)->vmepara_wr_inreg(targetRUI);
+				(*iDDU)->write_page7();
+			}
 		}
 	}
 
@@ -816,7 +829,8 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 			url << (*itDescriptor)->getContextDescriptor()->getURL() << "/" << (*itDescriptor)->getURN();
 
 			*out << cgicc::a(className.str())
-				.set("href",url.str()) << endl;
+				.set("href",url.str())
+				.set("target","_blank") << endl;
 
 		}
 

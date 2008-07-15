@@ -454,7 +454,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iButton = 0; iButton < 4; iButton++) {
 				// Jason likes a space after the first button.
 				ostringstream location;
-				location << "javascript:document.location.href='" << appString[iButton] << "?ddu=" << iddu;
+				location << "javascript:document.location.href='" << appString[iButton] << "?ddu=" << iddu << "'";
 				if (iButton==0) *out << cgicc::div(appName[iButton])
 					.set("class","button")
 					.set("style","float: left;") 
