@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.40 2008/06/22 14:57:52 liu Exp $
+// $Id: DAQMB.cc,v 3.41 2008/07/15 08:05:57 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.41  2008/07/15 08:05:57  gujh
+// Fixed the bug for CFEB_kill channels
+//          ---- GU, July 15, 2008
+//
 // Revision 3.40  2008/06/22 14:57:52  liu
 // new functions for monitoring
 //
@@ -2554,7 +2558,7 @@ int DAQMB::Fill_BUCK_FLASH_contents(char * flash_content)
         flash_content[flash_bytsiz]=tms;
         for(int cfeb=0;cfeb<5;cfeb++){
           tdo[cfeb]=0x00;
-          if(shift_array[cfeb][chip][16-chan-1]&(1<<bit))tdo[cfeb]=tbits[cfeb+1];; 
+          if(shift_array_[cfeb][chip][16-chan-1]&(1<<bit))tdo[cfeb]=tbits[cfeb+1];; 
           flash_content[flash_bytsiz]=flash_content[flash_bytsiz]|tdo[cfeb];
         }
         buckflash_dump(flash_bytsiz,flash_content);
