@@ -1233,6 +1233,9 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 			
 			std::vector<IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
 			for (std::vector<IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
+				// Skip things that have already been reset (we think)
+				if ((*iError)->reset) continue;
+				// Report the chamber names and RUI names that are in an error state.
 				for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
 					if ((*iError)->fibers & (1<<iFiber)) {
 						if (iFiber == 15) {
