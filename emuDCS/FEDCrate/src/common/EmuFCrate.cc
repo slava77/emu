@@ -829,8 +829,7 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 			url << (*itDescriptor)->getContextDescriptor()->getURL() << "/" << (*itDescriptor)->getURN();
 
 			*out << cgicc::a(className.str())
-				.set("href",url.str())
-				.set("target","_blank") << endl;
+				.set("href",url.str()) << endl;
 
 		}
 
