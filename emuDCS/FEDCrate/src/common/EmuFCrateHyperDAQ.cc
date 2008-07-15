@@ -434,7 +434,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			// Everything else is one big row.
 			*out << cgicc::td()
-				.set("colspan","15") << endl;
+				.set("colspan","15")
+				.set("style","font-size: 10pt;") << endl;
 
 			// Create the buttons with a big loop.
 			string appString[4] = {
@@ -458,7 +459,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				if (iButton==0) *out << cgicc::a(appName[iButton])
 					.set("href",location.str())
 					.set("style","float: left; padding: 3px;") << endl;
-				else *out << cgicc::div(appName[iButton])
+				else *out << cgicc::a(appName[iButton])
 					.set("href",location.str())
 					.set("style","float: right; padding: 3px;") << endl;
 			}
