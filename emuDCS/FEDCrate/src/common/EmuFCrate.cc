@@ -347,6 +347,16 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	// in real CMS running there will not be downloading of registers,
 	// so this will just define the Crates/DDUs/DCCs for FED Apps.
 
+	// PGK No hard reset or sync reset is coming any time soon, so we should
+	//  do it ourselves.
+	std::vector< Crate * > myCrates = getCrates();
+	for (std::vector< Crate * >::iterator iCrate = myCrates.begin(); iCrate != myCrates.end(); iCrate++) {
+		std::vector< DCC * > dccs = (*iCrate)->dccs();
+		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
+			LOG4CPLUS_INFO(getApplicationLogger(), "HARD RESET THROUGH DCC!");
+			dccs[0]->crateHardReset();
+		}
+	}
 
 // JRG, add loop over all DDUs in the FED Crates
 //   1) verify the L1A scalers at the DDU FPGA == 0, use  DDU::ddu_rdscaler()
@@ -367,7 +377,6 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	//  configuration XML to the DDUs and the DCC.
 	configure();  //JRG Moved to configureAction, 4/29/08
 
-	std::vector<Crate*> myCrates = getCrates();
 	// Now is a good time to set what endcap we are.
 	if (myCrates.size() == 1) {
 		if (myCrates[0]->number() == 5) endcap_ = "TrackFinder";
@@ -587,9 +596,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	for (std::vector< Crate * >::iterator iCrate = myCrates.begin(); iCrate != myCrates.end(); iCrate++) {
 		std::vector< DCC * > dccs = (*iCrate)->dccs();
 		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
-			LOG4CPLUS_WARN(getApplicationLogger(), "HARD RESET THROUGH DCC!  THIS SHOULD BE THROUGH TTC!");
-			dccs[0]->crateHardReset();
-			LOG4CPLUS_WARN(getApplicationLogger(), "SYNC RESET THROUGH DCC!  THIS SHOULD BE THROUGH TTC!");
+			LOG4CPLUS_INFO(getApplicationLogger(), "SYNC RESET THROUGH DCC!");
 			dccs[0]->crateSyncReset();
 		}
 	}
@@ -871,179 +878,155 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 	*/
 
 	// IRQ Monitoring
-	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+	// Hide the TrackFinder...
+	if (endcap_.toString() != "TrackFinder") {
+		*out << cgicc::fieldset()
+			.set("class","fieldset") << endl;
 
-	if (state_.toString() == "Enabled") {
-		*out << cgicc::div("IRQ Monitoring Enabled")
-			.set("class","legend") << endl;
+		if (state_.toString() == "Enabled") {
+			*out << cgicc::div("IRQ Monitoring Enabled")
+				.set("class","legend") << endl;
 
-		vector<Crate *> crateVector = getCrates();
-		vector<Crate *>::iterator iCrate;
-		for (iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+			vector<Crate *> crateVector = getCrates();
+			vector<Crate *>::iterator iCrate;
+			for (iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
 
-			int crateNumber = (*iCrate)->number();
-			if (crateNumber > 4) continue; // Skip TF
+				int crateNumber = (*iCrate)->number();
 
-			// Status table
-			*out << cgicc::table()
-				.set("style","width: 90%; margin: 10px auto 10px auto; border: solid 2px #009; border-collapse: collapse;") << endl;
+				// Status table
+				*out << cgicc::table()
+					.set("style","width: 90%; margin: 10px auto 10px auto; border: solid 2px #009; border-collapse: collapse;") << endl;
 
-			*out << cgicc::tr()
-				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 12pt; font-weight: bold;") << endl;
-
-			*out << cgicc::td()
-				.set("colspan","8") << endl;
-			*out << "Crate " << crateNumber << endl;
-			*out << cgicc::td() << endl;
-
-			*out << cgicc::tr() << endl;
-
-			*out << cgicc::tr()
-				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold;") << endl;
-
-			*out << cgicc::td()
-				.set("colspan","8") << endl;
-
-			time_t startTime = TM->data()->startTime[crateNumber];
-			time_t tickTime = TM->data()->tickTime[crateNumber];
-
-			tm *startTimeInfo = localtime(&startTime);
-			*out << "[ Began " << asctime(startTimeInfo) << "-- ";
-			*out << TM->data()->ticks[crateNumber] << " ticks -- ";
-			tm *tickTimeInfo = localtime(&tickTime);
-			*out << "last tick " << asctime(tickTimeInfo) << "]" << endl;
-			*out << cgicc::td() << endl;
-			*out << cgicc::tr() << endl;
-
-			*out << cgicc::tr()
-				.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold; border: solid 1px #000") << endl;
-			*out << cgicc::td("Slot") << endl;
-			*out << cgicc::td("RUI") << endl;
-			*out << cgicc::td("nIRQ") << endl;
-			*out << cgicc::td("Last Error Time") << endl;
-			*out << cgicc::td("Last Fiber") << endl;
-			*out << cgicc::td("Last Chamber") << endl;
-			*out << cgicc::td("Accumulated Fibers") << endl;
-			*out << cgicc::td("Accumulated Chambers") << endl;
-			*out << cgicc::tr() << endl;
-
-			for (int iSlot=0; iSlot<21; iSlot++) {
-				if (TM->data()->lastError[crateNumber][iSlot] == 0) continue;
-
-				*out << cgicc::tr() << endl;
+				*out << cgicc::tr()
+					.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 12pt; font-weight: bold;") << endl;
 
 				*out << cgicc::td()
-					.set("style","border: 1px solid #000;") << endl;
-				*out << iSlot;
-				*out << cgicc::td() << endl;
-
-				int rui=9*crateNumber+iSlot-3;
-				if (iSlot>8) rui--;  // Correct for the DCC slot.
-				if (crateNumber>0) rui-=9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
-
-				*out << cgicc::td()
-					.set("style","border: 1px solid #000;") << endl;
-				*out << rui;
-				*out << cgicc::td() << endl;
-
-				*out << cgicc::td()
-					.set("style","border: 1px solid #000;") << endl;
-				*out << TM->data()->dduCount[crateNumber][iSlot];
-				*out << cgicc::td() << endl;
-
-				*out << cgicc::td()
-					.set("style","border: 1px solid #000;") << endl;
-				time_t interruptTime = TM->data()->lastErrorTime[crateNumber][iSlot];
-				struct tm* interruptTimeInfo = localtime(&interruptTime);
-				*out << asctime(interruptTimeInfo);
-				*out << cgicc::td() << endl;
-
-				// Find the DDU from the slot...
-				DDU *myDDU;
-				vector<DDU *> dduVector = (*iCrate)->ddus();
-				vector<DDU *>::iterator iDDU;
-				for (iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-					if (iSlot == (*iDDU)->slot()) {
-						myDDU = (*iDDU);
-						break;
-					}
-				}
-
-				unsigned int lastFiberError = TM->data()->lastError[crateNumber][iSlot];
-				int printLastFiberError = -2;
-				// Find the chamber from the last error fiber...
-				string lastChamber;
-				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-					if (lastFiberError & (1<<iFiber)) {
-						//if (iFiber == 15) {
-						//	lastChamber = "DDU";
-						//	printLastFiberError = -1;
-						//} else {
-						lastChamber = myDDU->getChamber(iFiber)->name();
-						printLastFiberError = iFiber;
-						break;
-						//}
-					}
-				}
-
-				*out << cgicc::td()
-					.set("style","border: 1px solid #000;") << endl;
-				//if (printLastFiberError == -1) *out << "DDU";
-				//else if (printLastFiberError >= 0)
-				*out << printLastFiberError;
-				*out << endl;
-				*out << cgicc::td() << endl;
-
-				*out << cgicc::td()
-					.set("style","border: 1px solid #000;") << endl;
-				*out << lastChamber;
-				*out << cgicc::td() << endl;
-
-				unsigned int accFiberError = TM->data()->accError[crateNumber][iSlot];
-				*out << cgicc::td()
-					.set("style","border: 1px solid #000;") << endl;
-				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-					if (accFiberError & (1 << iFiber)) {
-						//if (iFiber == 15) *out << "DDU ";
-						//else
-						*out << iFiber << " ";
-					}
-				}
-				*out << cgicc::td() << endl;
-
-				// Build a string of chambers that sent an IRQ...
-				string accChambers;
-				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-					if (accFiberError & (1 << iFiber)) {
-						//if (iFiber == 15) accChambers += "DDU ";
-						//else
-						accChambers += myDDU->getChamber(iFiber)->name() + " ";
-					}
-				}
-
-				*out << cgicc::td()
-					.set("style","border: 1px solid #000;")
-					.set("class","error") << endl;
-				*out << accChambers;
+					.set("colspan","6") << endl;
+				*out << "Crate " << crateNumber << endl;
 				*out << cgicc::td() << endl;
 
 				*out << cgicc::tr() << endl;
+
+				*out << cgicc::tr()
+					.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold;") << endl;
+
+				*out << cgicc::td()
+					.set("colspan","6") << endl;
+
+				time_t startTime = TM->data()->startTime[(*iCrate)];
+				time_t tickTime = TM->data()->tickTime[(*iCrate)];
+
+				tm *startTimeInfo = localtime(&startTime);
+				*out << "Thread started " << asctime(startTimeInfo) << cgicc::br();
+				*out << TM->data()->ticks[(*iCrate)] << " ticks, ";
+				tm *tickTimeInfo = localtime(&tickTime);
+				*out << "last tick " << asctime(tickTimeInfo) << endl;
+				*out << cgicc::td() << endl;
+				*out << cgicc::tr() << endl;
+
+				*out << cgicc::tr()
+					.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold; border: solid 1px #000") << endl;
+				*out << cgicc::td("Time of error") << endl;
+				*out << cgicc::td("Slot") << endl;
+				*out << cgicc::td("RUI") << endl;
+				*out << cgicc::td("Fiber(s)") << endl;
+				*out << cgicc::td("Chamber(s)") << endl;
+				*out << cgicc::td("Action taken") << endl;
+				*out << cgicc::tr() << endl;
+
+				std::vector<IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
+				// Print something pretty if there is no error
+				if (errorVector.size() == 0) {
+					*out << cgicc::tr() << endl;
+					*out << cgicc::td()
+						.set("colspan","6")
+						.set("style","border: 1px solid #000;")
+						.set("class","undefined") << endl;
+					*out << "No errors detected (yet)" << endl;
+					*out << cgicc::td() << endl;
+					*out << cgicc::tr() << endl;
+				} else {
+
+					for (std::vector<IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
+						// Mark the error as grey if there has been a reset.
+						std::string errorClass = "";
+						std::string chamberClass = "error";
+						if ((*iError)->reset) {
+							errorClass = "undefined";
+							chamberClass = "undefined";
+						}
+
+						*out << cgicc::tr() << endl;
+						
+						// Time
+						*out << cgicc::td()
+							.set("class",errorClass)
+							.set("style","border: 1px solid #000;") << endl;
+						time_t interruptTime = (*iError)->errorTime;
+						struct tm* interruptTimeInfo = localtime(&interruptTime);
+						*out << asctime(interruptTimeInfo) << endl;
+						*out << cgicc::td() << endl;
+
+						// Slot
+						*out << cgicc::td()
+							.set("class",errorClass)
+							.set("style","border: 1px solid #000;") << endl;
+						*out << (*iError)->ddu->slot() << endl;
+						*out << cgicc::td() << endl;
+
+						// RUI
+						*out << cgicc::td()
+							.set("class",errorClass)
+							.set("style","border: 1px solid #000;") << endl;
+						*out << (*iCrate)->getRUI((*iError)->ddu->slot()) << endl;
+						*out << cgicc::td() << endl;
+
+						// Fibers
+						*out << cgicc::td()
+							.set("class",errorClass)
+							.set("style","border: 1px solid #000;") << endl;
+						for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+							if ((*iError)->fibers & (1<<iFiber)) *out << iFiber << " ";
+						}
+						*out << cgicc::td() << endl;
+
+						// Chambers
+						*out << cgicc::td()
+							.set("class",chamberClass)
+							.set("style","border: 1px solid #000;") << endl;
+						for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
+							if ((*iError)->fibers & (1<<iFiber)) {
+								if (iFiber == 15) *out << "DDU ";
+								else *out << (*iError)->ddu->getChamber(iFiber)->name() << " ";
+								// Pointer-foo!
+							}
+						}
+						*out << cgicc::td() << endl;
+
+						// Action performed
+						*out << cgicc::td()
+							.set("class",errorClass)
+							.set("style","border: 1px solid #000;") << endl;
+						*out << (*iError)->action << endl;
+						*out << cgicc::td() << endl;
+						
+						*out << cgicc::tr() << endl;
+					}
+				}
+
+				*out << cgicc::table() << endl;
 
 			}
 
-			*out << cgicc::table() << endl;
-
+		} else {
+			*out << cgicc::div("IRQ Monitoring Disabled")
+				.set("class","legend") << endl;
+			*out << cgicc::span("Set state to \"Enabled\" to begin IRQ monitoring threads.")
+				.set("style","color: #A00; font-size: 11pt;") << endl;
 		}
 
-	} else {
-		*out << cgicc::div("IRQ Monitoring Disabled")
-			.set("class","legend") << endl;
-		*out << cgicc::span("Set state to \"Enabled\" to begin IRQ monitoring threads.")
-			.set("style","color: #A00; font-size: 11pt;") << endl;
-	}
-
-	*out << cgicc::fieldset() << endl;
+		*out << cgicc::fieldset() << endl;
+	} // End hiding from TrackFinder.
 
 	*out << Footer() << endl;
 }
@@ -1233,23 +1216,17 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 			dccInOut_.push_back(crateV);
 
 			// errorChambers update
-			for (int iSlot=0; iSlot<21; iSlot++) {
-				//cout << "Updating getParameters DDU in slot " << iSlot << endl;
-				if (TM->data()->lastError[crateNumber][iSlot] == 0) continue;
-				DDU *myDDU;
-				vector<DDU *> dduVector = (*iCrate)->ddus();
-				vector<DDU *>::iterator iDDU;
-				for (iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-					if (iSlot == (*iDDU)->slot()) {
-						myDDU = (*iDDU);
-						break;
-					}
-				}
-				unsigned int accFiberError = TM->data()->accError[crateNumber][iSlot];
-				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-					if (accFiberError & (1 << iFiber)) {
-						// Finally!
-						errorChambers_.push_back(myDDU->getChamber(iFiber)->name());
+			errorChambers_.clear();
+			
+			std::vector<IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
+			for (std::vector<IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
+				for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
+					if ((*iError)->fibers & (1<<iFiber)) {
+						if (iFiber == 15) {
+							ostringstream ruiStream;
+							ruiStream << "RUI#" << (*iCrate)->getRUI((*iError)->ddu->slot());
+							errorChambers_.push_back(ruiStream.str());
+						} else errorChambers_.push_back((*iError)->ddu->getChamber(iFiber)->name());
 					}
 				}
 			}
