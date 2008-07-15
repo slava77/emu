@@ -89,6 +89,7 @@ typedef struct CFEBSCAData{
 typedef std::map<std::string, CFEBSCAData> cscCFEBSCAData;
 
 #define DAC_STEPS 20
+#define TIME_STEPS 10
 #define NSAMPLES 9
 
 // == CFEB SCA cell sample pair (value, count)
@@ -122,9 +123,11 @@ typedef struct dac_step {
         int cnt;
 } dac_step;
 
+
+
 typedef struct time_sample {
 	int tbin;
-	int value;
+	unsigned long value;
 } time_sample;
 
 typedef struct pulse_fit {
@@ -141,7 +144,27 @@ typedef struct GainData{
         pulse_fit fit[DAC_STEPS][NLAYERS][MAX_STRIPS];
 } GainData;
 
+typedef struct time_step {
+        double left;
+        double mv;
+        double max;
+	double right;
+//        double max_rms;
+//        int max_cnt;
+        int cnt;
+} time_step;
+
+
+typedef struct XtalkData {
+	int Nbins;
+        int Nlayers;
+        time_step content[TIME_STEPS][NLAYERS][MAX_STRIPS][NSAMPLES];
+//        pulse_fit fit[TIME_STEPS][NLAYERS][MAX_STRIPS];
+} XtalkData;
+
 typedef std::map<std::string, GainData> cscGainData;
+typedef std::map<std::string, XtalkData> cscXtalkData;
+
 
 // == Base Class for Emu Tests
 class Test_Generic 
@@ -161,6 +184,8 @@ class Test_Generic
 	void setRootFile(std::string rootfn) {rootFile=rootfn;}
 	void setConfigFile(std::string cfgfile) {configFile=cfgfile; loadTestCfg();}
 	void setMasksFile(std::string mfile) {masksFile = mfile;loadMasks();}
+
+	time_sample CalculateCorrectedPulseAmplitude(pulse_fit& fit);
 
   protected:
 	std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
