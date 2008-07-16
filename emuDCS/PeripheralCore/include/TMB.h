@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.45 2008/07/04 13:22:14 rakness Exp $
+// $Id: TMB.h,v 3.46 2008/07/16 17:28:36 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.46  2008/07/16 17:28:36  rakness
+// (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
+//
 // Revision 3.45  2008/07/04 13:22:14  rakness
 // add getter for distrip hot channel mask
 //
@@ -377,7 +380,6 @@ public:
   void lvl1_delay(unsigned short int time);
   void alct_vpf_delay(unsigned short int time);
   void mpc_delay(unsigned short int time);
-  void optimize();
   void read_delays();
   void reset();
   //void scan_rx_clock();
@@ -472,6 +474,7 @@ public:
   int  GetCounter(int counter);         /// return counter value
   void PrintCounters(int counter=-1);   /// print counter value (-1 means print all)
   std::string CounterName(int counter); /// return counter label
+  inline int GetMaxCounter() { return MaxCounter; }
   //
   void FireALCTInjector();
   void FireCLCTInjector();
@@ -496,37 +499,21 @@ public:
   int tmb_set_reg(unsigned int vmereg, unsigned short int value );
   int tmb_get_reg(unsigned int vmereg, unsigned short int* value );
   int tmb_vme_reg(unsigned int vmereg, unsigned short int* value);
-  int tmb_jtag_io(unsigned char tms, unsigned char tdi, unsigned char* tdo);
   int tmb_get_boot_reg(unsigned short int* value);
   int tmb_set_boot_reg(unsigned short int value);
   int tmb_hard_reset_alct_fpga();
   int tmb_hard_reset_tmb_fpga();
   int tmb_enable_alct_hard_reset(int flag_enable);
   int tmb_enable_vme_commands(int flag_enable);      
+  //
   /// mostly for GUI
   void executeCommand(std::string command);      
   friend std::ostream & operator<<(std::ostream & os, TMB & tmb);
-      //
-  int GetCLCT0Cfeb() { return CLCT0_cfeb_; }
-  int GetCLCT1Cfeb() { return CLCT1_cfeb_; }
-  int GetCLCT0Nhit() { return CLCT0_nhit_; }
-  int GetCLCT1Nhit() { return CLCT1_nhit_; }
-  int GetCLCT0keyHalfStrip() { return CLCT0_keyHalfStrip_; }
-  int GetCLCT1keyHalfStrip() { return CLCT1_keyHalfStrip_; }
+  //
+  //  int GetCLCT0Cfeb() { return -999; }  //does not exist in TMB firmware anymore
+  //  int GetCLCT1Cfeb() { return -999; }  //does not exist in TMB firmware anymore
   //
   int FmState();
-  //
-  int GetAlct0Valid()    { return alct0_valid_; }
-  int GetAlct0Quality()  { return alct0_quality_; }
-  int GetAlct0Amu()      { return alct0_amu_; }
-  int GetAlct0FirstKey() { return alct0_first_key_; }
-  int GetAlct0FirstBxn() { return alct0_first_bxn_; }
-  //
-  int GetAlct1Valid()     { return alct1_valid_; }
-  int GetAlct1Quality()   { return alct1_quality_; }
-  int GetAlct1Amu()       { return alct1_amu_; }
-  int GetAlct1SecondKey() { return alct1_second_key_; }
-  int GetAlct1SecondBxn() { return alct1_second_bxn_; }
   //
   void enableAllClocks();
   void disableAllClocks();
@@ -569,7 +556,10 @@ public:
   //
   //!c = 2 = do not write configuration to userPROM
   void configure(int c);
-  void configure() ;
+  //
+  //!default configure is to write PROMs
+  void configure();
+  //
   //
   //!device = 0 = TMB, = 1 = mezzanine, = 2 = RAT
   std::bitset<64> dsnRead(int device); 
@@ -622,9 +612,9 @@ public:
   //----------------------------------------------------------------
   //0X0E = ADR_LOOPBK:  Loop-Back Control Register:
   //----------------------------------------------------------------
-  //!ALCT_input = [0,1] -> ALCT rx [off,on]
-  inline void SetAlctInput(int ALCT_input) { ALCT_input_ = ALCT_input; }        
-  inline int  GetAlctInput() { return ALCT_input_;}
+  //!enable_alct_rx = [0,1] -> ALCT rx [off,on]
+  inline void SetAlctInput(int enable_alct_rx) { enable_alct_rx_ = enable_alct_rx; }        
+  inline int  GetAlctInput() { return enable_alct_rx_;}
   //
   //!enable_alct_tx = [0,1] -> ALCT tx [off,on]
   inline void SetEnableAlctTx(int enable_alct_tx) { enable_alct_tx_ = enable_alct_tx; } 
@@ -777,6 +767,54 @@ public:
   inline void SetAlctInjectorDelay(int alct_inj_delay) { alct_inj_delay_ = alct_inj_delay; }
   inline int  GetAlctInjectorDelay() { return alct_inj_delay_; }
   //
+  //------------------------------------------------------------------
+  //0X3A = ADR_ALCT0_RCD:  ALCT 1st Muon received by TMB
+  //------------------------------------------------------------------
+  //! valid pattern flag
+  inline int GetAlct0Valid()   { return read_alct0_valid_; }
+  //
+  //! pattern quality
+  inline int GetAlct0Quality() { return read_alct0_quality_; }
+  //
+  //! accelerator muon flag
+  inline int GetAlct0Amu()     { return read_alct0_amu_; }
+  //
+  //! key wire group
+  inline int GetAlct0KeyWg()   { return read_alct0_key_wg_; }
+  //
+  //! OLD WAY of getting key wire group
+  inline int GetAlct0FirstKey()   { return GetAlct0KeyWg(); }
+  //
+  //! bunch crossing number
+  inline int GetAlct0Bxn()     { return read_alct0_bxn_; }
+  //
+  //! OLD WAY of getting bunch crossing number
+  inline int GetAlct0FirstBxn()     { return GetAlct0Bxn(); }
+  //
+  //------------------------------------------------------------------
+  //0X3C = ADR_ALCT1_RCD:  ALCT 2nd Muon received by TMB
+  //------------------------------------------------------------------
+  //! valid pattern flag
+  inline int GetAlct1Valid()   { return read_alct1_valid_; }
+  //
+  //! pattern quality
+  inline int GetAlct1Quality() { return read_alct1_quality_; }
+  //
+  //! accelerator muon flag
+  inline int GetAlct1Amu()     { return read_alct1_amu_; }
+  //
+  //! key wire group
+  inline int GetAlct1KeyWg()   { return read_alct1_key_wg_; }
+  //
+  //! OLD WAY of getting key wire group
+  inline int GetAlct1SecondKey()   { return GetAlct1KeyWg(); }
+  //
+  //! bunch crossing number
+  inline int GetAlct1Bxn()     { return read_alct1_bxn_; }
+  //
+  //! OLD WAY of getting bunch crossing number
+  inline int GetAlct1SecondBxn()     { return GetAlct1Bxn(); }
+  //
   //----------------------------------------------------------------
   //0X3E = ADR_ALCT_FIFO:  ALCT FIFO RAM Status
   //----------------------------------------------------------------
@@ -917,10 +955,6 @@ public:
   inline void SetAlctExternalTrigDelay(int alct_ext_trig_delay) { alct_ext_trig_delay_ = alct_ext_trig_delay; }
   inline int  GetAlctExternalTrigDelay() { return alct_ext_trig_delay_; }
   //
-  //!layer_trig_delay = [0-15] = delay layer trigger (bx)
-  inline void SetLayerTrigDelay(int layer_trig_delay) { layer_trig_delay_ = layer_trig_delay; }
-  inline int  GetLayerTrigDelay() { return layer_trig_delay_; }
-  //
   //------------------------------------------------------------------
   //0X6E = ADR_SEQ_ID:  Sequencer Board + CSC Ids
   //------------------------------------------------------------------
@@ -942,13 +976,9 @@ public:
   inline void SetTriadPersistence(int triad_persist) { triad_persist_ = triad_persist; }
   inline int  GetTriadPersistence() { return triad_persist_; }
   //
-  //!hs_pretrig_thresh = [0-6] = 1/2-strip pretrigger threshold
-  inline void SetHsPretrigThresh(int hs_pretrig_thresh) { hs_pretrig_thresh_ = hs_pretrig_thresh; }
-  inline int  GetHsPretrigThresh() { return hs_pretrig_thresh_; }
-  //
-  //!ds_pretrig_thresh = [0-6] = di-strip pretrigger threshold...  N.B. di-strip patterns are deprecated from TMB version 08/2007
-  inline void SetDsPretrigThresh(int ds_pretrig_thresh) { ds_pretrig_thresh_ = ds_pretrig_thresh; }
-  inline int  GetDsPretrigThresh() { return ds_pretrig_thresh_; }
+  //!hit_thresh = [0-6] = 1/2-strip pretrigger threshold
+  inline void SetHsPretrigThresh(int hit_thresh) { hit_thresh_ = hit_thresh; }
+  inline int  GetHsPretrigThresh() { return hit_thresh_; }
   //
   //!min_hits_pattern = minimum number of layers needed to match for pattern trigger
   inline void SetMinHitsPattern(int min_hits_pattern){ min_hits_pattern_ = min_hits_pattern; }
@@ -982,6 +1012,10 @@ public:
   inline void SetFifoPreTrig(int fifo_pretrig) { fifo_pretrig_ = fifo_pretrig; }
   inline int  GetFifoPreTrig() { return fifo_pretrig_; }
   //
+  //!fifo_no_raw_hits = [0-31] -> number of time bins before TMB pretrigger to begin data readout window (bx)
+  inline void SetFifoNoRawHits(int fifo_no_raw_hits) { fifo_no_raw_hits_ = fifo_no_raw_hits; }
+  inline int  GetFifoNoRawHits() { return fifo_no_raw_hits_; }
+  //
   //------------------------------------------------------------------
   //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
   //------------------------------------------------------------------
@@ -1009,6 +1043,38 @@ public:
   inline int  GetBxnOffset() { return bxn_offset_; }
   //
   //------------------------------------------------------------------
+  //0X78 = ADR_SEQ_CLCT0:  Sequencer Latched CLCT0
+  //------------------------------------------------------------------
+  //! CLCT0 valid pattern flag
+  inline int GetCLCT0Valid() { return read_CLCT0_valid_; }
+  //
+  //! CLCT0 number of hits on pattern = [0-6]
+  inline int GetCLCT0Nhit() { return read_CLCT0_nhit_; }
+  //
+  //! CLCT0 pattern ID = [0-10]
+  inline int GetCLCT0PatternId() { return read_CLCT0_pattern_; }
+  //
+  //! CLCT0 key 1/2-strip = [0-159]
+  inline int GetCLCT0keyHalfStrip() { return read_CLCT0_keyHalfStrip_; }
+  //
+  //
+  //------------------------------------------------------------------
+  //0X7A = ADR_SEQ_CLCT1:  Sequencer Latched CLCT1
+  //------------------------------------------------------------------
+  //! CLCT1 valid pattern flag
+  inline int GetCLCT1Valid() { return read_CLCT1_valid_; }
+  //
+  //! CLCT1 number of hits on pattern = [0-6]
+  inline int GetCLCT1Nhit() { return read_CLCT1_nhit_; }
+  //
+  //! CLCT1 pattern ID = [0-10]
+  inline int GetCLCT1PatternId() { return read_CLCT1_pattern_; }
+  //
+  //! CLCT1 key 1/2-strip = [0-159]
+  inline int GetCLCT1keyHalfStrip() { return read_CLCT1_keyHalfStrip_; }
+  //
+  //
+  //------------------------------------------------------------------
   //0X86 = ADR_TMB_TRIG:  TMB Trigger configuration/MPC accept
   //------------------------------------------------------------------
   //!tmb_sync_err_enable = [0-3]... 2 bit mask, 1 bit per LCT -> each bit [0,1] = [disable,enable] sync_err to MPC
@@ -1027,9 +1093,9 @@ public:
   inline void SetTmbAllowMatch(int tmb_allow_match) { tmb_allow_match_ = tmb_allow_match; }
   inline int  GetTmbAllowMatch() { return tmb_allow_match_; }
   //
-  //!mpc_delay = [0-15] -> MPC accept bit delay
-  inline void SetMpcRxDelay(int mpc_delay) {mpc_delay_= mpc_delay;}
-  inline int  GetMpcRxDelay() { return mpc_delay_; }
+  //!mpc_rx_delay = [0-15] -> MPC accept bit delay
+  inline void SetMpcRxDelay(int mpc_rx_delay) {mpc_rx_delay_= mpc_rx_delay;}
+  inline int  GetMpcRxDelay() { return mpc_rx_delay_; }
   //
   //!mpc_sel_ttc_bx0 = [0,1] -> BX0 for MPC comes from [local,TTC]
   inline void SetSelectMpcTtcBx0(int mpc_sel_ttc_bx0) { mpc_sel_ttc_bx0_ = mpc_sel_ttc_bx0; }
@@ -1044,7 +1110,7 @@ public:
   inline int  GetMpcOutputEnable() { return mpc_output_enable_; }
   //
   //------------------------------------------------------------------
-  //0XA2 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control
+  //0XA8 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control
   //------------------------------------------------------------------
   //!alct_raw_reset_ = 1 = Reset ALCT raw hits FIFO controller  
   inline void SetAlctRawReset(int alct_raw_reset) { alct_raw_reset_ = alct_raw_reset; }
@@ -1054,16 +1120,12 @@ public:
   inline void SetAlctRawReadAddress(int alct_raw_read_address) { alct_raw_read_address_ = alct_raw_read_address; }
   inline int  GetAlctRawReadAddress() { return alct_raw_read_address_; }
   //
-  //!alct_raw_sync_ = 1 = Sync ALCT FIFO write to TMB readout
-  inline void SetAlctRawSync(int alct_raw_sync) { alct_raw_sync_ = alct_raw_sync; }
-  inline int  GetAlctRawSync() { return alct_raw_sync_; }
-  //
   //!alct_demux_mode_ = [0,1] = ADR_ALCTFIFO2 has [RAM,demux] data
   inline void SetAlctDemuxMode(int alct_demux_mode) { alct_demux_mode_ = alct_demux_mode; }
   inline int  GetAlctDemuxMode() { return alct_demux_mode_; }
   //
   //------------------------------------------------------------------
-  //0XA4 = ADR_ALCTFIFO2:  ALCT Raw Hits RAM control
+  //0XAA = ADR_ALCTFIFO2:  ALCT Raw Hits RAM control
   //------------------------------------------------------------------
   //!If alct_demux_mode = 0, read_alct_raw_lsbs = ALCT raw hits data least significant bits
   //!If alct_demux_mode = 1, read_alct_raw_lsbs = alct_1st_vme[14:1],alct_1st_vme[28:15],alct_2nd_vme[14:1],alct_2nd_vme[28:15]
@@ -1077,13 +1139,13 @@ public:
   inline void SetClctFlushDelay(int clct_flush_delay) { clct_flush_delay_ = clct_flush_delay; }
   inline int  GetClctFlushDelay() { return clct_flush_delay_; }
   //
-  //!clct_turbo = 1 = trigger sequencer turbo mode (no raw hits)
-  inline void SetClctTurbo(int clct_turbo) { clct_turbo_ = clct_turbo; }
-  inline int  GetClctTurbo() { return clct_turbo_; }
+  //!wr_buffer_autoclear_ = 1 = enable frozen buffer auto clear
+  inline void SetWriteBufferAutoclear(int wr_buffer_autoclear) { wr_buffer_autoclear_ = wr_buffer_autoclear; }
+  inline int  GetWriteBufferAutoclear() { return wr_buffer_autoclear_; }
   //
-  //!ranlct_enable_ = 1 = enable OSU random LCT generator (see TMB documentation)
-  inline void SetRandomLctEnable(int ranlct_enable) { ranlct_enable_ = ranlct_enable; }
-  inline int  GetRandomLctEnable() { return ranlct_enable_; }
+  //!clct_write_continuous_enable = 1 = allow continuous header buffer writing for invalid triggers
+  inline void SetClctWriteContinuousEnable(int clct_write_continuous_enable) { clct_write_continuous_enable_ = clct_write_continuous_enable; }
+  inline int  GetClctWriteContinuousEnable() { return clct_write_continuous_enable_; }
   //
   //!wrt_buf_required_ = 1 = require wr_buffer available to pretrigger
   inline void SetWriteBufferRequired(int wrt_buf_required) { wrt_buf_required_ = wrt_buf_required; }
@@ -1119,23 +1181,23 @@ public:
   //!clct_state_machine_ = [0-7] = CLCT Trigger Machine state
   inline int  GetReadClctMachineState() { return read_clct_state_machine_; }
   //
-  //!tmb_match_state_machine_ = [0-7] = TMB Match Machine state
-  inline int  GetReadTmbMatchMachineState() { return read_tmb_match_state_machine_; }
+  //!tmb_match_state_machine_ = [0-7] = TMB Match Machine state -- deprecated
+  //inline int  GetReadTmbMatchMachineState() { return read_tmb_match_state_machine_; }
   //
   //!readout_state_machine_ = [0-31] = Readout Machine state
   inline int  GetReadReadoutMachineState() { return read_readout_state_machine_; }
   //
-  //!readout_stack_full_ = 1 = Readout stack full
-  inline int  GetReadReadoutStackFull() { return read_readout_stack_full_; }
+  //!buffer_queue_full_ = 1 = Buffer queue full
+  inline int  GetReadBufferQueueFull() { return read_buffer_queue_full_; }
   //
-  //!readout_stack_empty_ = 1 = Readout stack empty
-  inline int  GetReadReadoutStackEmpty() { return read_readout_stack_empty_; }
+  //!buffer_queue_empty_ = 1 = Buffer queue empty
+  inline int  GetReadBufferQueueEmpty() { return read_buffer_queue_empty_; }
   //
-  //!readout_stack_overflow_ = 1 = Readout stack overflow
-  inline int  GetReadReadoutStackOverflow() { return read_readout_stack_overflow_; }
+  //!buffer_queue_overflow_ = 1 = Buffer queue overflow
+  inline int  GetReadBufferQueueOverflow() { return read_buffer_queue_overflow_; }
   //
-  //!readout_stack_underflow_ = 1 = Readout stack underflow
-  inline int  GetReadReadoutStackUnderflow() { return read_readout_stack_underflow_; }
+  //!buffer_queue_underflow_ = 1 = Buffer queue underflow
+  inline int  GetReadBufferQueueUnderflow() { return read_buffer_queue_underflow_; }
   //
   //------------------------------------------------------------------
   //0XB2 = ADR_TMBTIM:  TMB Timing for ALCT*CLCT Coincidence
@@ -1215,9 +1277,39 @@ public:
   inline void SetRpcInjector(int rpc_inj_sel) {rpc_inj_sel_ = rpc_inj_sel; }
   inline int  GetRpcInjector() {return rpc_inj_sel_; }
   //
-  //rpc_inj_wdata = [0-7] -> RPC injector write data MSBs
+  //!rpc_inj_wdata = [0-7] -> RPC injector write data MSBs
   inline void SetRpcInjectorWriteDataMSBs(int rpc_inj_wdata) { rpc_inj_wdata_ = rpc_inj_wdata; }
   inline int  GetRpcInjectorWriteDataMSBs() { return rpc_inj_wdata_; }
+  //
+  //------------------------------------------------------------------
+  //0XC4 = ADR_RPC_TBINS:  RPC FIFO Time Bins
+  //------------------------------------------------------------------
+  //!fifo_tbins_rpc = Number of RPC FIFO time bins to read out
+  inline void SetFifoTbinsRpc(int fifo_tbins_rpc) { fifo_tbins_rpc_ = fifo_tbins_rpc; }
+  inline int  GetFifoTbinsRpc() { return fifo_tbins_rpc_; }
+  //
+  //!fifo_pretrig_rpc = Number of RPC FIFO time bins before pretrigger
+  inline void SetFifoPretrigRpc(int fifo_pretrig_rpc) { fifo_pretrig_rpc_ = fifo_pretrig_rpc; }
+  inline int  GetFifoPretrigRpc() { return fifo_pretrig_rpc_; }
+  //
+  //!rpc_decouple = 1/0 = independent RPC tbins/copy CFEB tbins
+  inline void SetRpcDecoupleTbins(int rpc_decouple) { rpc_decouple_ = rpc_decouple; }
+  inline int  GetRpcDecoupleTbins() { return rpc_decouple_; }
+  //
+  //------------------------------------------------------------------
+  //0XCA = ADR_BX0_DELAY:  BX0 to MPC delays
+  //------------------------------------------------------------------
+  //!alct_bx0_delay = ALCT bx0 delay to MPC transmitter
+  inline void SetAlctBx0Delay(int alct_bx0_delay) { alct_bx0_delay_ = alct_bx0_delay; }
+  inline int  GetAlctBx0Delay() { return alct_bx0_delay_; }
+  //
+  //!clct_bx0_delay = CLCT bx0 delay to MPC transmitter
+  inline void SetClctBx0Delay(int clct_bx0_delay) { clct_bx0_delay_ = clct_bx0_delay; }
+  inline int  GetClctBx0Delay() { return clct_bx0_delay_; }
+  //
+  //!alct_bx0_enable = 1/0 = enable ALCT BX0/use CLCT BX0 for ALCT 
+  inline void SetAlctBx0Enable(int alct_bx0_enable) { alct_bx0_enable_ = alct_bx0_enable; }
+  inline int  GetAlctBx0Enable() { return alct_bx0_enable_; }
   //
   //------------------------------------------------------------------
   //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
@@ -1247,6 +1339,10 @@ public:
   inline void SetLayerTriggerThreshold(int layer_trig_thresh) { layer_trig_thresh_ = layer_trig_thresh; }
   inline int  GetLayerTriggerThreshold() { return layer_trig_thresh_; }
   //
+  //!clct_throttle = [0-255] = CLCT pretrigger rate throttle
+  inline void SetClctThrottle(int clct_throttle) { clct_throttle_ = clct_throttle; }
+  inline int  GetClctThrottle() { return clct_throttle_; }
+  //
   //---------------------------------------------------------------------
   //0XF4 = ADR_TEMP0:  Pattern finder Pretrigger
   //---------------------------------------------------------------------
@@ -1269,6 +1365,12 @@ public:
   inline void SetActiveFebFlagThresh(int aff_thresh) { aff_thresh_ = aff_thresh; } 
   inline int  GetActiveFebFlagThresh() { return aff_thresh_; } 
   inline int  GetReadActiveFebFlagThresh() { return read_aff_thresh_; } 
+  //
+  //!adjacent_cfeb_distance = [0-31] = Distance from key on CFEBn to CFEBn+1 to set Active FEB Flag on CFEBn+1 for DMB
+  //... setting to 5 enables hs0,1,2,3,4 and hs31,30,29,28,27
+  inline void SetAdjacentCfebDistance(int adjacent_cfeb_distance) { adjacent_cfeb_distance_ = adjacent_cfeb_distance; } 
+  inline int  GetAdjacentCfebDistance() { return adjacent_cfeb_distance_; } 
+  inline int  GetReadAdjacentCfebDistance() { return read_adjacent_cfeb_distance_; } 
   //
   //---------------------------------------------------------------------
   //0XF6 = ADR_TEMP1:  CLCT separation
@@ -1380,9 +1482,6 @@ public:
   //std::string version_;
   //
 protected:
-  /// for PHOS4 chips, v2001
-  void old_clk_delays(unsigned short int time, int cfeb_id);
-  /// for DDD chips, v2004
   void new_clk_delays(unsigned short int time, int cfeb_id);
   void new_clk_delays_preGreg(unsigned short int time, int cfeb_id);
   //
@@ -1420,44 +1519,15 @@ private:
   std::vector<unsigned long int> InjectedLct1;
   unsigned long lct0_, lct1_;
   //
-  int CLCT0_data_        ;
-  int CLCT0_valid_       ;
-  int CLCT0_nhit_        ;
-  int CLCT0_pattern_     ;
-  int CLCT0_bend_        ;
-  int CLCT0_keyHalfStrip_;
-  int CLCT0_cfeb_        ;
-  int CLCT0_BXN_         ;
-  int CLCT0_sync_err_    ;
-  int CLCT0_bx0_local_   ;  
+  int CLCT0_data_;
+  int CLCT1_data_;
   //
-  int CLCT1_data_        ;
-  int CLCT1_valid_       ;
-  int CLCT1_nhit_        ;
-  int CLCT1_pattern_     ;
-  int CLCT1_bend_        ;
-  int CLCT1_keyHalfStrip_;
-  int CLCT1_cfeb_        ;
-  int CLCT1_BXN_         ;
-  int CLCT1_sync_err_    ;
-  int CLCT1_bx0_local_   ;  
+  int ALCT0_data_;
+  int ALCT1_data_;
   //
-  static const int MaxCounter = 0x41;
+  // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
+  static const int MaxCounter = 48;
   long int FinalCounter[MaxCounter];
-  //
-  int alct0_data_     ;
-  int alct0_valid_    ;
-  int alct0_quality_  ;
-  int alct0_amu_      ;
-  int alct0_first_key_;
-  int alct0_first_bxn_;
-  //
-  int alct1_data_      ;
-  int alct1_valid_     ;
-  int alct1_quality_   ;
-  int alct1_amu_       ;
-  int alct1_second_key_;
-  int alct1_second_bxn_;
   //
   //-- TMB and ALCT data in raw hits VME readout --//
   std::vector< std::bitset<16> > tmb_data_;
@@ -1553,12 +1623,12 @@ private:
   //-----------------------------------------------------------------
   //0X0E = ADR_LOOPBK:  Loop-Back Control Register
   //-----------------------------------------------------------------
-  int ALCT_input_;
+  int enable_alct_rx_;
   int enable_alct_tx_;
   //
   int read_cfeb_oe_;
   int read_alct_loop_;
-  int read_ALCT_input_;
+  int read_enable_alct_rx_;
   int read_enable_alct_tx_;
   int read_rpc_loop_rat_;
   int read_rpc_loop_tmb_;
@@ -1700,6 +1770,24 @@ private:
   int read_alct_inj_delay_;
   //
   //------------------------------------------------------------------
+  //0X3A = ADR_ALCT0_RCD:  ALCT 1st Muon received by TMB
+  //------------------------------------------------------------------
+  int read_alct0_valid_  ;
+  int read_alct0_quality_;
+  int read_alct0_amu_    ;
+  int read_alct0_key_wg_ ;
+  int read_alct0_bxn_    ;
+  //
+  //------------------------------------------------------------------
+  //0X3C = ADR_ALCT1_RCD:  ALCT 2nd Muon received by TMB
+  //------------------------------------------------------------------
+  int read_alct1_valid_  ;
+  int read_alct1_quality_;
+  int read_alct1_amu_    ;
+  int read_alct1_key_wg_ ;
+  int read_alct1_bxn_    ;
+  //
+  //------------------------------------------------------------------
   //0X3E = ADR_ALCT_INJ:  ALCT FIFO RAM Status
   //------------------------------------------------------------------
   int read_alct_raw_busy_;
@@ -1788,12 +1876,10 @@ private:
   int dmb_ext_trig_delay_ ;
   int clct_ext_trig_delay_;
   int alct_ext_trig_delay_;
-  int layer_trig_delay_   ;
   //
   int read_dmb_ext_trig_delay_ ;
   int read_clct_ext_trig_delay_;
   int read_alct_ext_trig_delay_;
-  int read_layer_trig_delay_   ;
   //
   //------------------------------------------------------------------
   //0X6E = ADR_SEQ_ID:  Sequencer Board + CSC Ids
@@ -1810,14 +1896,13 @@ private:
   //0X70 = ADR_SEQ_CLCT:  Sequencer CLCT configuration
   //------------------------------------------------------------------
   int triad_persist_;
-  int hs_pretrig_thresh_;
-  int ds_pretrig_thresh_;  //N.B. this is deprecated from TMB version 08/2007
+  int hit_thresh_;
   int min_hits_pattern_;
   int drift_delay_;
   int pretrigger_halt_;
   //
   int read_triad_persist_;
-  int read_hs_pretrig_thresh_;
+  int read_hit_thresh_;
   int read_min_hits_pattern_;
   int read_drift_delay_;
   int read_pretrigger_halt_;
@@ -1828,10 +1913,12 @@ private:
   int fifo_mode_;
   int fifo_tbins_;
   int fifo_pretrig_;
+  int fifo_no_raw_hits_;
   //
   int read_fifo_mode_;
   int read_fifo_tbins_;
   int read_fifo_pretrig_;
+  int read_fifo_no_raw_hits_;
   //
   //------------------------------------------------------------------
   //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
@@ -1854,13 +1941,29 @@ private:
   int read_bxn_offset_;
   //
   //------------------------------------------------------------------
+  //0X78 = ADR_SEQ_CLCT0:  Sequencer Latched CLCT0
+  //------------------------------------------------------------------
+  int read_CLCT0_valid_       ;
+  int read_CLCT0_nhit_        ;
+  int read_CLCT0_pattern_     ;
+  int read_CLCT0_keyHalfStrip_;
+  //
+  //------------------------------------------------------------------
+  //0X7A = ADR_SEQ_CLCT1:  Sequencer Latched CLCT1
+  //------------------------------------------------------------------
+  int read_CLCT1_valid_       ;
+  int read_CLCT1_nhit_        ;
+  int read_CLCT1_pattern_     ;
+  int read_CLCT1_keyHalfStrip_;
+  //
+  //------------------------------------------------------------------
   //0X86 = ADR_TMB_TRIG:  TMB Trigger configuration/MPC accept
   //------------------------------------------------------------------
   int tmb_sync_err_enable_;
   int tmb_allow_alct_;
   int tmb_allow_clct_;
   int tmb_allow_match_;
-  int mpc_delay_;
+  int mpc_rx_delay_;
   int mpc_sel_ttc_bx0_;
   int mpc_idle_blank_;
   int mpc_output_enable_;
@@ -1869,7 +1972,7 @@ private:
   int read_tmb_allow_alct_;
   int read_tmb_allow_clct_;
   int read_tmb_allow_match_;
-  int read_mpc_delay_;
+  int read_mpc_rx_delay_;
   int read_mpc_accept_;
   int read_mpc_reserved_;
   int read_mpc_sel_ttc_bx0_;
@@ -1877,20 +1980,18 @@ private:
   int read_mpc_output_enable_;
   //
   //------------------------------------------------------------------
-  //0XA2 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM Control
+  //0XA8 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM Control
   //------------------------------------------------------------------
   int alct_raw_reset_;
   int alct_raw_read_address_;
-  int alct_raw_sync_;
   int alct_demux_mode_;
   //
   int read_alct_raw_reset_;
   int read_alct_raw_read_address_;
-  int read_alct_raw_sync_;
   int read_alct_demux_mode_;
   //
   //------------------------------------------------------------------
-  //0XA4 = ADR_ALCTFIFO2:  ALCT Raw Hits RAM Control
+  //0XAA = ADR_ALCTFIFO2:  ALCT Raw Hits RAM Control
   //------------------------------------------------------------------
   int read_alct_raw_lsbs_;
   //
@@ -1898,8 +1999,8 @@ private:
   //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
   //------------------------------------------------------------------
   int clct_flush_delay_;
-  int clct_turbo_;
-  int ranlct_enable_;
+  int wr_buffer_autoclear_;
+  int clct_write_continuous_enable_;
   int wrt_buf_required_;
   int valid_clct_required_;
   int l1a_allow_match_;
@@ -1909,8 +2010,8 @@ private:
   int scint_veto_clr_;
   //
   int read_clct_flush_delay_;
-  int read_clct_turbo_;
-  int read_ranlct_enable_;
+  int read_wr_buffer_autoclear_;
+  int read_clct_write_continuous_enable_;
   int read_wrt_buf_required_;
   int read_valid_clct_required_;
   int read_l1a_allow_match_;
@@ -1924,12 +2025,17 @@ private:
   //0XAE = ADR_SEQSM:  Sequencer Machine State
   //------------------------------------------------------------------
   int read_clct_state_machine_;      
-  int read_tmb_match_state_machine_; 
   int read_readout_state_machine_;   
-  int read_readout_stack_full_;      
-  int read_readout_stack_empty_;    
-  int read_readout_stack_overflow_;  
-  int read_readout_stack_underflow_; 
+  int read_buffer_queue_full_;      
+  int read_buffer_queue_empty_;    
+  int read_buffer_queue_overflow_;  
+  int read_buffer_queue_underflow_; 
+  //
+  //------------------------------------------------------------------
+  //0XB0 = ADR_SEQCLCTM:  Sequencer CLCT (Most significant bits)
+  //------------------------------------------------------------------
+  int read_CLCT_BXN_;
+  int read_CLCT_sync_err_;
   //
   //------------------------------------------------------------------
   //0XB2 = ADR_TMBTIM:  TMB Timing for ALCT*CLCT Coincidence
@@ -1983,6 +2089,28 @@ private:
   int read_rpc_inj_sel_  ;
   int read_rpc_inj_wdata_;
   int read_rpc_inj_rdata_;
+  //
+  //------------------------------------------------------------------
+  //0XC4 = ADR_RPC_TBINS:  RPC FIFO Time Bins
+  //------------------------------------------------------------------
+  int fifo_tbins_rpc_    ;
+  int fifo_pretrig_rpc_  ;
+  int rpc_decouple_;
+  //
+  int read_fifo_tbins_rpc_    ;
+  int read_fifo_pretrig_rpc_  ;
+  int read_rpc_decouple_;
+  //
+  //------------------------------------------------------------------
+  //0XCA = ADR_BX0_DELAY:  BX0 to MPC delays
+  //------------------------------------------------------------------
+  int alct_bx0_delay_ ;
+  int clct_bx0_delay_ ;
+  int alct_bx0_enable_;
+  //
+  int read_alct_bx0_delay_ ;
+  int read_clct_bx0_delay_ ;
+  int read_alct_bx0_enable_;
   //
   //------------------------------------------------------------------
   //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
@@ -2091,10 +2219,12 @@ private:
   //---------------------------------------------------------------------
   int layer_trigger_en_ ;
   int layer_trig_thresh_;
+  int clct_throttle_;
   //
   int read_layer_trigger_en_ ;
   int read_layer_trig_thresh_;
   int read_number_layers_hit_;
+  int read_clct_throttle_;
   //
   //---------------------------------------------------------------------
   //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
@@ -2103,11 +2233,13 @@ private:
   int clct_stagger_;
   int clct_pattern_id_thresh_;
   int aff_thresh_;
+  int adjacent_cfeb_distance_;
   //
   int read_clct_blanking_;
   int read_clct_stagger_;
   int read_clct_pattern_id_thresh_;
   int read_aff_thresh_;
+  int read_adjacent_cfeb_distance_;
   //
   //---------------------------------------------------------------------
   //0XF6 = ADR_TEMP1:  CLCT separation

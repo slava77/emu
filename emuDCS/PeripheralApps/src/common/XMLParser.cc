@@ -321,173 +321,36 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("tmb_firmware_version",value)) { tmb_->SetExpectedTmbFirmwareVersion(value); }
     if (fillInt("tmb_firmware_revcode",value)) { tmb_->SetExpectedTmbFirmwareRevcode(value); }
     if (fillInt("tmb_firmware_type"   ,value)) { tmb_->SetExpectedTmbFirmwareType(value);    }
-    //
+    ///
     if (fillInt("rat_firmware_month"  ,value)) { tmb_->SetExpectedRatFirmwareMonth(value); }
     if (fillInt("rat_firmware_day"    ,value)) { tmb_->SetExpectedRatFirmwareDay(value);   }
     if (fillInt("rat_firmware_year"   ,value)) { tmb_->SetExpectedRatFirmwareYear(value);  }
     //
-    //////////////////////////////
-    // Enable inputs
-    //////////////////////////////
     //0x0E:
     if (fillInt("enable_alct_tx",value)) { tmb_->SetEnableAlctTx(value); }
     if (fillInt("enable_alct_rx",value)) { tmb_->SetAlctInput(value);    }
     //    
-    //0X32:
-    if (fillInt("alct_clear"     ,value)) { tmb_->SetAlctClear(value);                  }
-    //if (fillInt("alct_inject_mux",value)) { tmb_->SetAlctInject(value);                 }
-    //if (fillInt("alct_sync_clct" ,value)) { tmb_->SetSyncAlctInjectToClctInject(value); }
-    //if (fillInt("alct_inj_delay" ,value)) { tmb_->SetAlctInjectorDelay(value);          }
+    //0X16
+    if (fillInt("alct_tx_clock_delay",value)) { tmb_->SetAlctTXclockDelay(value); }
+    if (fillInt("alct_rx_clock_delay",value)) { tmb_->SetAlctRXclockDelay(value); }
+    if (fillInt("dmb_tx_delay"       ,value)) { tmb_->SetDmbTxDelay(value);       }
+    if (fillInt("rat_tmb_delay"      ,value)) { tmb_->SetRatTmbDelay(value);      }
     //
-    //0X42:
-    if (fillInt("enableCLCTInputs_reg42",value)) { tmb_->SetEnableCLCTInputs(value);     }
-    //if (fillInt("cfeb_ram_sel"          ,value)) { tmb_->SetSelectCLCTRAM(value);        }
-    //if (fillInt("cfeb_inj_en_sel"       ,value)) { tmb_->SetEnableCLCTInject(value);     }
-    //if (fillInt("start_pattern_inj"     ,value)) { tmb_->SetStartPatternInjector(value); }
+    //0X18
+    //if (fillInt("tmb1_phase",value)) { tmb_->SetTmb1Phase(value);  }
+    //if (fillInt("mpc_phase" ,value)) { tmb_->SetMpcPhase(value);   }
+    //if (fillInt("dcc_phase" ,value)) { tmb_->SetDccPhase(value);   }
+    if (fillInt("cfeb0delay",value)) { tmb_->SetCFEB0delay(value); }
     //
-    //0XB6:
-    if (fillInt("rpc_exists"     ,value)) { tmb_->SetRpcExist(value);           }
-    if (fillInt("rpc_read_enable",value)) { tmb_->SetRpcReadEnable(value);      }
-    if (fillInt("rpc_bxn_offset" ,value)) { tmb_->SetRpcBxnOffset(value);       }    
-    //if (fillInt("rpc_bank_addr"  ,value)) { tmb_->SetRpcSyncBankAddress(value); }
+    //0X1A
+    if (fillInt("cfeb1delay",value)) { tmb_->SetCFEB1delay(value); }
+    if (fillInt("cfeb2delay",value)) { tmb_->SetCFEB2delay(value); }
+    if (fillInt("cfeb3delay",value)) { tmb_->SetCFEB3delay(value); }
+    if (fillInt("cfeb4delay",value)) { tmb_->SetCFEB4delay(value); }
     //
-    //0xBC:
-    if (fillInt("rpc_mask_all" ,value)) { tmb_->SetEnableRpcInput(value);           }
-    //if (fillInt("inj_mask_rat" ,value)) { tmb_->SetInjectorMaskRat(value);          }
-    //if (fillInt("inj_mask_rpc" ,value)) { tmb_->SetInjectorMaskRpc(value);          }
-    //if (fillInt("inj_delay_rat",value)) { tmb_->SetInjectorDelayRat(value);         }
-    //if (fillInt("rpc_inj_sel"  ,value)) { tmb_->SetRpcInjector(value);              }
-    //if (fillInt("rpc_inj_wdata",value)) { tmb_->SetRpcInjectorWriteDataMSBs(value); }
-    //
-    //////////////////////////////
-    // trigger and signal delays
-    //////////////////////////////
-    //0X6A:
-    if (fillInt("match_pretrig_window_size",value)) { tmb_->SetAlctClctPretrigWidth(value); }
-    if (fillInt("match_pretrig_alct_delay" ,value)) { tmb_->SetAlctPretrigDelay(value);     }
-    //if (fillInt("alct_pat_trig_delay"      ,value)) { tmb_->SetAlctPatternDelay(value);     }
-    //if (fillInt("adb_ext_trig_delay"       ,value)) { tmb_->SetAdbExternalTrigDelay(value); }
-    //
-    //0X6C:
-    //if (fillInt("dmb_ext_trig_delay" ,value)) { tmb_->SetDmbExternalTrigDelay(value);  }
-    //if (fillInt("clct_ext_trig_delay",value)) { tmb_->SetClctExternalTrigDelay(value); }
-    //if (fillInt("alct_ext_trig_delay",value)) { tmb_->SetAlctExternalTrigDelay(value); }
-    if (fillInt("layer_trig_delay"   ,value)) { tmb_->SetLayerTrigDelay(value);        }
-    //
-    //0X74:
-    if (fillInt("tmb_l1a_delay"       ,value)) { tmb_->SetL1aDelay(value);      }
-    if (fillInt("tmb_l1a_window_size" ,value)) { tmb_->SetL1aWindowSize(value); }
-    //if (fillInt("tmb_l1a_internal"    ,value)) { tmb_->SetInternalL1a(value);   }
-    //
-    //0X76:
-    if (fillInt("tmb_l1a_offset",value)) { tmb_->SetL1aOffset(value); }
-    if (fillInt("tmb_bxn_offset",value)) { tmb_->SetBxnOffset(value); }
-    //
-    //0XB2:
-    if (fillInt("match_trig_alct_delay" ,value)) { tmb_->SetAlctVpfDelay(value);        }
-    if (fillInt("match_trig_window_size",value)) { tmb_->SetAlctMatchWindowSize(value); }
-    if (fillInt("mpc_tx_delay"          ,value)) { tmb_->SetMpcTxDelay(value);          }
-    //
-    //0XBA:
-    if (fillInt("rpc0_raw_delay",value)) { tmb_->SetRpc0RawDelay(value); }
-    if (fillInt("rpc1_raw_delay",value)) { tmb_->SetRpc1RawDelay(value); }
-    //if (fillInt("rpc2_raw_delay",value)) { tmb_->SetRpc2RawDelay(value); }
-    //if (fillInt("rpc3_raw_delay",value)) { tmb_->SetRpc3RawDelay(value); }
-    //
-    //
-    //////////////////////////////
-    // trigger configuration
-    //////////////////////////////
-    //if (fillInt("trgmode",value)) { tmb_->SetTrgMode(value); }
-    //
-    //0X68:
-    if (fillInt("clct_pretrig_enable"    ,value)) { tmb_->SetClctPatternTrigEnable(value);  }
-    if (fillInt("alct_pretrig_enable"    ,value)) { tmb_->SetAlctPatternTrigEnable(value);  }
-    if (fillInt("match_pretrig_enable"   ,value)) { tmb_->SetMatchPatternTrigEnable(value); }
-    //if (fillInt("adb_ext_pretrig_enable" ,value)) { tmb_->SetAdbExtTrigEnable(value);       }
-    //if (fillInt("dmb_ext_pretrig_enable" ,value)) { tmb_->SetDmbExtTrigEnable(value);       }
-    if (fillInt("clct_ext_pretrig_enable",value)) { tmb_->SetClctExtTrigEnable(value);      }
-    //if (fillInt("alct_ext_pretrig_enable",value)) { tmb_->SetAlctExtTrigEnable(value);      }
-    //if (fillInt("ext_trig_inject"        ,value)) { tmb_->SetExtTrigInject(value);          }
-    if (fillInt("all_cfeb_active"        ,value)) { tmb_->SetEnableAllCfebsActive(value);   }
-    if (fillInt("enableCLCTInputs_reg68" ,value)) { tmb_->SetCfebEnable(value);             }
-    if (fillInt("cfeb_enable_source"     ,value)) { tmb_->Set_cfeb_enable_source(value);    }
-    //
-    //0X70:
-    if (fillInt("triad_persistence"            ,value)) { tmb_->SetTriadPersistence(value); }
-    if (fillInt("clct_halfstrip_pretrig_thresh",value)) { tmb_->SetHsPretrigThresh(value);  }
-    //if (fillInt("clct_distrip_pretrig_thresh"  ,value)) { tmb_->SetDsPretrigThresh(value);  } //deprecated from TMB version 08/2007 on
-    if (fillInt("clct_pattern_thresh"          ,value)) { tmb_->SetMinHitsPattern(value);   }
-    if (fillInt("clct_drift_delay"             ,value)) { tmb_->SetDriftDelay(value);       }
-    //if (fillInt("pretrigger_halt"              ,value)) { tmb_->SetPretriggerHalt(value);   }
-    //
-    //0X72
-    if (fillInt("tmb_fifo_mode"   ,value)) { tmb_->SetFifoMode(value);    }
-    if (fillInt("tmb_fifo_tbins"  ,value)) { tmb_->SetFifoTbins(value);   }
-    if (fillInt("tmb_fifo_pretrig",value)) { tmb_->SetFifoPreTrig(value); }
-    //
-    //0X86
-    if (fillInt("mpc_sync_err_enable",value)) { tmb_->SetTmbSyncErrEnable(value); }
-    if (fillInt("alct_trig_enable"   ,value)) { tmb_->SetTmbAllowAlct(value);     }
-    if (fillInt("clct_trig_enable"   ,value)) { tmb_->SetTmbAllowClct(value);     }
-    if (fillInt("match_trig_enable"  ,value)) { tmb_->SetTmbAllowMatch(value);    }
-    if (fillInt("mpc_rx_delay"       ,value)) { tmb_->SetMpcRxDelay(value);       }
-    //if (fillInt("mpc_sel_ttc_bx0"    ,value)) { tmb_->SetSelectMpcTtcBx0(value);  }
-    if (fillInt("mpc_idle_blank"     ,value)) { tmb_->SetMpcIdleBlank(value);     }
-    if (fillInt("mpc_output_enable"  ,value)) { tmb_->SetMpcOutputEnable(value);  }
-    //
-    //0XAC
-    //if (fillInt("clct_flush_delay"   ,value)) { tmb_->SetClctFlushDelay(value);        }
-    //if (fillInt("clct_turbo"         ,value)) { tmb_->SetClctTurbo(value);             }
-    //if (fillInt("ranlct_enable"      ,value)) { tmb_->SetRandomLctEnable(value);       }
-    if (fillInt("write_buffer_required",value)) { tmb_->SetWriteBufferRequired(value);   }
-    if (fillInt("valid_clct_required"  ,value)) { tmb_->SetRequireValidClct(value);      }
-    if (fillInt("l1a_allow_match"      ,value)) { tmb_->SetL1aAllowMatch(value);         }
-    if (fillInt("l1a_allow_notmb"      ,value)) { tmb_->SetL1aAllowNoTmb(value);         }
-    if (fillInt("l1a_allow_nol1a"      ,value)) { tmb_->SetL1aAllowNoL1a(value);         }
-    if (fillInt("l1a_allow_alct_only"  ,value)) { tmb_->SetL1aAllowAlctOnly(value);      }
-    //if (fillInt("scint_veto_clr"     ,value)) { tmb_->SetScintillatorVetoClear(value); }
-    //
-    //0XF0
-    if (fillInt("layer_trig_enable",value)) { tmb_->SetEnableLayerTrigger(value);    }
-    if (fillInt("layer_trig_thresh",value)) { tmb_->SetLayerTriggerThreshold(value); }
-    //
-    //0XF4
-    if (fillInt("clct_blanking"         ,value)) { tmb_->SetClctBlanking(value);        }
-    if (fillInt("clct_stagger"          ,value)) { tmb_->SetClctStagger(value);         }
-    if (fillInt("clct_pattern_id_thresh",value)) { tmb_->SetClctPatternIdThresh(value); }
-    if (fillInt("aff_thresh"            ,value)) { tmb_->SetActiveFebFlagThresh(value); }
-    //
-    //0XF6
-    if (fillInt("min_clct_separation",value)) { tmb_->SetMinClctSeparation(value); }
-    //
-    ///////////////////////////////////
-    // distrip hot channel mask
-    ///////////////////////////////////
-    long long int hot_channel_mask;
-    if (fillLongLongIntX("layer0_distrip_hot_chann_mask", hot_channel_mask) ) 
-      tmb_->SetDistripHotChannelMask(0,hot_channel_mask);
-    //
-    if (fillLongLongIntX("layer1_distrip_hot_chann_mask", hot_channel_mask) ) 
-      tmb_->SetDistripHotChannelMask(1,hot_channel_mask);
-    //
-    if (fillLongLongIntX("layer2_distrip_hot_chann_mask", hot_channel_mask) ) 
-      tmb_->SetDistripHotChannelMask(2,hot_channel_mask);
-    //
-    if (fillLongLongIntX("layer3_distrip_hot_chann_mask", hot_channel_mask) ) 
-      tmb_->SetDistripHotChannelMask(3,hot_channel_mask);
-    //
-    if (fillLongLongIntX("layer4_distrip_hot_chann_mask", hot_channel_mask) ) 
-      tmb_->SetDistripHotChannelMask(4,hot_channel_mask);
-    //
-    if (fillLongLongIntX("layer5_distrip_hot_chann_mask", hot_channel_mask) ) 
-      tmb_->SetDistripHotChannelMask(5,hot_channel_mask);
-    //
-    ///////////////////////////////////
-    // special configuration registers
-    ///////////////////////////////////
     //0X1C
     // put int ddd_oe...
+    //
     //0X2C
     //if (fillInt("alct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnAlctExtTrig(value); }
     //if (fillInt("clct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnClctExtTrig(value); }
@@ -508,34 +371,151 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("alct_clock_en_use_ccb" ,value)) { tmb_->SetEnableAlctUseCcbClock(value); }
     //if (fillInt("alct_clock_en_use_vme" ,value)) { tmb_->SetAlctClockVme(value);          }
     //
+    //0X32:
+    if (fillInt("alct_clear"     ,value)) { tmb_->SetAlctClear(value);                  }
+    //if (fillInt("alct_inject_mux",value)) { tmb_->SetAlctInject(value);                 }
+    //if (fillInt("alct_sync_clct" ,value)) { tmb_->SetSyncAlctInjectToClctInject(value); }
+    //if (fillInt("alct_inj_delay" ,value)) { tmb_->SetAlctInjectorDelay(value);          }
+    //
+    //0X42:
+    if (fillInt("enableCLCTInputs_reg42",value)) { tmb_->SetEnableCLCTInputs(value);     }
+    //if (fillInt("cfeb_ram_sel"          ,value)) { tmb_->SetSelectCLCTRAM(value);        }
+    //if (fillInt("cfeb_inj_en_sel"       ,value)) { tmb_->SetEnableCLCTInject(value);     }
+    //if (fillInt("start_pattern_inj"     ,value)) { tmb_->SetStartPatternInjector(value); }
+    //
+    ///////////////////////////////////
+    //0X4A,4C,4E = ADR_HCM001,HCM023,HCM045 = CFEB0 Hot Channel Masks
+    //0X50,52,54 = ADR_HCM101,HCM123,HCM145 = CFEB1 Hot Channel Masks
+    //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
+    //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
+    //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+    ///////////////////////////////////
+    long long int hot_channel_mask;
+    if (fillLongLongIntX("layer0_distrip_hot_chann_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(0,hot_channel_mask);
+    //
+    if (fillLongLongIntX("layer1_distrip_hot_chann_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(1,hot_channel_mask);
+    //
+    if (fillLongLongIntX("layer2_distrip_hot_chann_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(2,hot_channel_mask);
+    //
+    if (fillLongLongIntX("layer3_distrip_hot_chann_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(3,hot_channel_mask);
+    //
+    if (fillLongLongIntX("layer4_distrip_hot_chann_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(4,hot_channel_mask);
+    //
+    if (fillLongLongIntX("layer5_distrip_hot_chann_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(5,hot_channel_mask);
+    //
+    //0X68:
+    if (fillInt("clct_pretrig_enable"    ,value)) { tmb_->SetClctPatternTrigEnable(value);  }
+    if (fillInt("alct_pretrig_enable"    ,value)) { tmb_->SetAlctPatternTrigEnable(value);  }
+    if (fillInt("match_pretrig_enable"   ,value)) { tmb_->SetMatchPatternTrigEnable(value); }
+    //if (fillInt("adb_ext_pretrig_enable" ,value)) { tmb_->SetAdbExtTrigEnable(value);       }
+    //if (fillInt("dmb_ext_pretrig_enable" ,value)) { tmb_->SetDmbExtTrigEnable(value);       }
+    if (fillInt("clct_ext_pretrig_enable",value)) { tmb_->SetClctExtTrigEnable(value);      }
+    //if (fillInt("alct_ext_pretrig_enable",value)) { tmb_->SetAlctExtTrigEnable(value);      }
+    //if (fillInt("ext_trig_inject"        ,value)) { tmb_->SetExtTrigInject(value);          }
+    if (fillInt("all_cfeb_active"        ,value)) { tmb_->SetEnableAllCfebsActive(value);   }
+    if (fillInt("enableCLCTInputs_reg68" ,value)) { tmb_->SetCfebEnable(value);             }
+    if (fillInt("cfeb_enable_source"     ,value)) { tmb_->Set_cfeb_enable_source(value);    }
+    //
+    //0X6A:
+    if (fillInt("match_pretrig_window_size",value)) { tmb_->SetAlctClctPretrigWidth(value); }
+    if (fillInt("match_pretrig_alct_delay" ,value)) { tmb_->SetAlctPretrigDelay(value);     }
+    //if (fillInt("alct_pat_trig_delay"      ,value)) { tmb_->SetAlctPatternDelay(value);     }
+    //if (fillInt("adb_ext_trig_delay"       ,value)) { tmb_->SetAdbExternalTrigDelay(value); }
+    //
+    //0X6C:
+    //if (fillInt("dmb_ext_trig_delay" ,value)) { tmb_->SetDmbExternalTrigDelay(value);  }
+    //if (fillInt("clct_ext_trig_delay",value)) { tmb_->SetClctExternalTrigDelay(value); }
+    //if (fillInt("alct_ext_trig_delay",value)) { tmb_->SetAlctExternalTrigDelay(value); }
+    //
     //0X6E
     //if (fillInt("slot"  ,value)) { tmb_->SetTmbSlot(value); }
     //if (fillInt("csc_id",value)) { tmb_->SetCscId(value);   }
     //if (fillInt("run_id",value)) { tmb_->SetRunId(value);   }
     //
-    //if (fillInt("disableCLCTInputs",value)) { tmb_->SetDisableCLCTInputs(value); }
-    //if (fillInt("shift_rpc",value)) { tmb_->SetShiftRpc(value); }
+    //0X70:
+    if (fillInt("triad_persistence"            ,value)) { tmb_->SetTriadPersistence(value); }
+    if (fillInt("clct_halfstrip_pretrig_thresh",value)) { tmb_->SetHsPretrigThresh(value);  }
+    if (fillInt("clct_pattern_thresh"          ,value)) { tmb_->SetMinHitsPattern(value);   }
+    if (fillInt("clct_drift_delay"             ,value)) { tmb_->SetDriftDelay(value);       }
+    //if (fillInt("pretrigger_halt"              ,value)) { tmb_->SetPretriggerHalt(value);   }
     //
-    ///////////////////////////////////
-    // clock phases
-    ///////////////////////////////////
-    //0X16
-    if (fillInt("alct_tx_clock_delay",value)) { tmb_->SetAlctTXclockDelay(value); }
-    if (fillInt("alct_rx_clock_delay",value)) { tmb_->SetAlctRXclockDelay(value); }
-    if (fillInt("dmb_tx_delay"       ,value)) { tmb_->SetDmbTxDelay(value);       }
-    if (fillInt("rat_tmb_delay"      ,value)) { tmb_->SetRatTmbDelay(value);      }
+    //0X72
+    if (fillInt("tmb_fifo_mode"       ,value)) { tmb_->SetFifoMode(value);      }
+    if (fillInt("tmb_fifo_tbins"      ,value)) { tmb_->SetFifoTbins(value);     }
+    if (fillInt("tmb_fifo_pretrig"    ,value)) { tmb_->SetFifoPreTrig(value);   }
+    if (fillInt("tmb_fifo_no_raw_hits",value)) { tmb_->SetFifoNoRawHits(value); }
     //
-    //0X18
-    //if (fillInt("tmb1_phase",value)) { tmb_->SetTmb1Phase(value);  }
-    //if (fillInt("mpc_phase" ,value)) { tmb_->SetMpcPhase(value);   }
-    //if (fillInt("dcc_phase" ,value)) { tmb_->SetDccPhase(value);   }
-    if (fillInt("cfeb0delay",value)) { tmb_->SetCFEB0delay(value); }
+    //0X74:
+    if (fillInt("tmb_l1a_delay"       ,value)) { tmb_->SetL1aDelay(value);      }
+    if (fillInt("tmb_l1a_window_size" ,value)) { tmb_->SetL1aWindowSize(value); }
+    //if (fillInt("tmb_l1a_internal"    ,value)) { tmb_->SetInternalL1a(value);   }
     //
-    //0X1A
-    if (fillInt("cfeb1delay",value)) { tmb_->SetCFEB1delay(value); }
-    if (fillInt("cfeb2delay",value)) { tmb_->SetCFEB2delay(value); }
-    if (fillInt("cfeb3delay",value)) { tmb_->SetCFEB3delay(value); }
-    if (fillInt("cfeb4delay",value)) { tmb_->SetCFEB4delay(value); }
+    //0X76:
+    if (fillInt("tmb_l1a_offset",value)) { tmb_->SetL1aOffset(value); }
+    if (fillInt("tmb_bxn_offset",value)) { tmb_->SetBxnOffset(value); }
+    //
+    //0X86
+    if (fillInt("mpc_sync_err_enable",value)) { tmb_->SetTmbSyncErrEnable(value); }
+    if (fillInt("alct_trig_enable"   ,value)) { tmb_->SetTmbAllowAlct(value);     }
+    if (fillInt("clct_trig_enable"   ,value)) { tmb_->SetTmbAllowClct(value);     }
+    if (fillInt("match_trig_enable"  ,value)) { tmb_->SetTmbAllowMatch(value);    }
+    if (fillInt("mpc_rx_delay"       ,value)) { tmb_->SetMpcRxDelay(value);       }
+    //if (fillInt("mpc_sel_ttc_bx0"    ,value)) { tmb_->SetSelectMpcTtcBx0(value);  }
+    if (fillInt("mpc_idle_blank"     ,value)) { tmb_->SetMpcIdleBlank(value);     }
+    if (fillInt("mpc_output_enable"  ,value)) { tmb_->SetMpcOutputEnable(value);  }
+    //
+    //0XAC
+    //if (fillInt("clct_flush_delay"       ,value)) { tmb_->SetClctFlushDelay(value);            }
+    if (fillInt("write_buffer_autoclear" ,value)) { tmb_->SetWriteBufferAutoclear(value);      }
+    if (fillInt("write_continuous_enable",value)) { tmb_->SetClctWriteContinuousEnable(value); }
+    if (fillInt("write_buffer_required"  ,value)) { tmb_->SetWriteBufferRequired(value);       }
+    if (fillInt("valid_clct_required"    ,value)) { tmb_->SetRequireValidClct(value);          }
+    if (fillInt("l1a_allow_match"        ,value)) { tmb_->SetL1aAllowMatch(value);             }
+    if (fillInt("l1a_allow_notmb"        ,value)) { tmb_->SetL1aAllowNoTmb(value);             }
+    if (fillInt("l1a_allow_nol1a"        ,value)) { tmb_->SetL1aAllowNoL1a(value);             }
+    if (fillInt("l1a_allow_alct_only"    ,value)) { tmb_->SetL1aAllowAlctOnly(value);          }
+    //if (fillInt("scint_veto_clr"         ,value)) { tmb_->SetScintillatorVetoClear(value);     }
+    //
+    //0XB2:
+    if (fillInt("match_trig_alct_delay" ,value)) { tmb_->SetAlctVpfDelay(value);        }
+    if (fillInt("match_trig_window_size",value)) { tmb_->SetAlctMatchWindowSize(value); }
+    if (fillInt("mpc_tx_delay"          ,value)) { tmb_->SetMpcTxDelay(value);          }
+    //
+    //0XB6:
+    if (fillInt("rpc_exists"     ,value)) { tmb_->SetRpcExist(value);           }
+    if (fillInt("rpc_read_enable",value)) { tmb_->SetRpcReadEnable(value);      }
+    if (fillInt("rpc_bxn_offset" ,value)) { tmb_->SetRpcBxnOffset(value);       }    
+    //if (fillInt("rpc_bank_addr"  ,value)) { tmb_->SetRpcSyncBankAddress(value); }
+    //
+    //0XBA:
+    if (fillInt("rpc0_raw_delay",value)) { tmb_->SetRpc0RawDelay(value); }
+    if (fillInt("rpc1_raw_delay",value)) { tmb_->SetRpc1RawDelay(value); }
+    //if (fillInt("rpc2_raw_delay",value)) { tmb_->SetRpc2RawDelay(value); }
+    //if (fillInt("rpc3_raw_delay",value)) { tmb_->SetRpc3RawDelay(value); }
+    //
+    //0xBC:
+    if (fillInt("rpc_mask_all" ,value)) { tmb_->SetEnableRpcInput(value);           }
+    //if (fillInt("inj_mask_rat" ,value)) { tmb_->SetInjectorMaskRat(value);          }
+    //if (fillInt("inj_mask_rpc" ,value)) { tmb_->SetInjectorMaskRpc(value);          }
+    //if (fillInt("inj_delay_rat",value)) { tmb_->SetInjectorDelayRat(value);         }
+    //if (fillInt("rpc_inj_sel"  ,value)) { tmb_->SetRpcInjector(value);              }
+    //if (fillInt("rpc_inj_wdata",value)) { tmb_->SetRpcInjectorWriteDataMSBs(value); }
+    //
+    //0XC4
+    if (fillInt("rpc_fifo_tbins"   ,value)) { tmb_->SetFifoTbinsRpc(value);     }
+    if (fillInt("rpc_fifo_pretrig" ,value)) { tmb_->SetFifoPretrigRpc(value);   }
+    if (fillInt("rpc_fifo_decouple",value)) { tmb_->SetRpcDecoupleTbins(value); }
+    //
+    //0XCA
+    if (fillInt("alct_bx0_delay" ,value)) { tmb_->SetAlctBx0Delay(value);  }
+    if (fillInt("clct_bx0_delay" ,value)) { tmb_->SetClctBx0Delay(value);  }
+    if (fillInt("alct_bx0_enable",value)) { tmb_->SetAlctBx0Enable(value); }
     //
     //0XE6
     if (fillInt("rpc0_rat_delay",value)) { tmb_->SetRpc0RatDelay(value); }
@@ -543,8 +523,21 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //if (fillInt("rpc2_rat_delay",value)) { tmb_->SetRpc2RatDelay(value); }
     //if (fillInt("rpc3_rat_delay",value)) { tmb_->SetRpc3RatDelay(value); }
     //
+    //0XF0
+    if (fillInt("layer_trig_enable",value)) { tmb_->SetEnableLayerTrigger(value);    }
+    if (fillInt("layer_trig_thresh",value)) { tmb_->SetLayerTriggerThreshold(value); }
+    if (fillInt("clct_throttle"    ,value)) { tmb_->SetClctThrottle(value);          }
     //
-    ////////
+    //0XF4
+    if (fillInt("clct_blanking"         ,value)) { tmb_->SetClctBlanking(value);        }
+    if (fillInt("clct_stagger"          ,value)) { tmb_->SetClctStagger(value);         }
+    if (fillInt("clct_pattern_id_thresh",value)) { tmb_->SetClctPatternIdThresh(value); }
+    if (fillInt("aff_thresh"            ,value)) { tmb_->SetActiveFebFlagThresh(value); }
+    if (fillInt("adjacent_cfeb_distance",value)) { tmb_->SetAdjacentCfebDistance(value);}
+    //
+    //0XF6
+    if (fillInt("min_clct_separation",value)) { tmb_->SetMinClctSeparation(value); }
+    //
     //
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
     while(daughterNode) {
@@ -751,6 +744,10 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
     }
     if (fillInt("xFineLatency",delay)) {
       daqmb_->SetxFineLatency(delay);
+    }
+    // just use the variable 'delay' for killinput
+    if (fillInt("killinput",delay)) {
+      daqmb_->SetKillInput(delay);
     }
     //
     long int long_value;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.15 2008/02/28 18:36:36 rakness Exp $
+// $Id: TMB_constants.h,v 3.16 2008/07/16 17:28:36 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.16  2008/07/16 17:28:36  rakness
+// (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
+//
 // Revision 3.15  2008/02/28 18:36:36  rakness
 // make TMB firmware loading robust against all failure modes except power cuts...
 //
@@ -159,14 +162,14 @@ static const unsigned long int	mpc_ram_rdata_adr       = 0x000096;
 static const unsigned long int	scp_ctrl_adr	        = 0x000098;
 static const unsigned long int	scp_rdata_adr	        = 0x00009A;
 static const unsigned long int	ccb_cmd_adr	        = 0x00009C;
-static const unsigned long int	buf_stat_adr	        = 0x00009E;
+static const unsigned long int	buf_stat0_adr           = 0x00009E;
 //
-static const unsigned long int	srlpgm_adr	        = 0x0000A0;
-static const unsigned long int	alctfifo1_adr	        = 0x0000A2;
-static const unsigned long int	alctfifo2_adr	        = 0x0000A4;
-static const unsigned long int	adjcfeb0_adr	        = 0x0000A6;
-static const unsigned long int	adjcfeb1_adr	        = 0x0000A8;
-static const unsigned long int	adjcfeb2_adr	        = 0x0000AA;
+static const unsigned long int	buf_stat1_adr	        = 0x0000A0;
+static const unsigned long int	buf_stat2_adr	        = 0x0000A2;
+static const unsigned long int	buf_stat3_adr	        = 0x0000A4;
+static const unsigned long int	buf_stat4_adr	        = 0x0000A6;
+static const unsigned long int	alctfifo1_adr	        = 0x0000A8;
+static const unsigned long int	alctfifo2_adr	        = 0x0000AA;
 static const unsigned long int	seqmod_adr	        = 0x0000AC;
 static const unsigned long int	seqsm_adr	        = 0x0000AE;
 //
@@ -181,10 +184,10 @@ static const unsigned long int  adr_rpc_inj_adr         = 0x0000BE;
 //
 static const unsigned long int  rpc_inj_wdata_adr       = 0x0000C0;
 static const unsigned long int  rpc_inj_rdata_adr       = 0x0000C2;
-static const unsigned long int  rpc_bxn_diff_adr        = 0x0000C4;
+static const unsigned long int  rpc_tbins_adr           = 0x0000C4;
 static const unsigned long int  rpc0_hcm_adr            = 0x0000C6;
 static const unsigned long int  rpc1_hcm_adr            = 0x0000C8;
-static const unsigned long int  rpc2_hcm_adr            = 0x0000CA;
+static const unsigned long int  bx0_delay_adr           = 0x0000CA;
 static const unsigned long int  rpc3_hcm_adr            = 0x0000CC;
 static const unsigned long int  scp_trig_adr            = 0x0000CE;
 //
@@ -288,10 +291,10 @@ const int alct_loop_vmereg       =  vme_loopbk_adr;
 const int alct_loop_bitlo        =  1;
 const int alct_loop_bithi        =  1;
 //
-const int ALCT_input_vmereg      =  vme_loopbk_adr;
-const int ALCT_input_bitlo       =  2;
-const int ALCT_input_bithi       =  2;
-const int ALCT_input_default     =  1;
+const int enable_alct_rx_vmereg  =  vme_loopbk_adr;
+const int enable_alct_rx_bitlo   =  2;
+const int enable_alct_rx_bithi   =  2;
+const int enable_alct_rx_default =  1;
 //
 const int enable_alct_tx_vmereg  =  vme_loopbk_adr;
 const int enable_alct_tx_bitlo   =  3;
@@ -606,6 +609,54 @@ const int alct_inj_delay_default  =0xd;                  //TMB documentation say
 //
 //
 //------------------------------------------------------------------
+//0X3A = ADR_ALCT0_RCD:  ALCT 1st Muon received by TMB
+//------------------------------------------------------------------
+const int alct0_valid_vmereg   =  alct_alct0_adr;
+const int alct0_valid_bitlo    =  0;
+const int alct0_valid_bithi    =  0;
+//
+const int alct0_quality_vmereg =  alct_alct0_adr;
+const int alct0_quality_bitlo  =  1;
+const int alct0_quality_bithi  =  2;
+//
+const int alct0_amu_vmereg     =  alct_alct0_adr;
+const int alct0_amu_bitlo      =  3;
+const int alct0_amu_bithi      =  3;
+//
+const int alct0_key_wg_vmereg  =  alct_alct0_adr;
+const int alct0_key_wg_bitlo   =  4;
+const int alct0_key_wg_bithi   = 10;
+//
+const int alct0_bxn_vmereg     =  alct_alct0_adr;
+const int alct0_bxn_bitlo      = 11;
+const int alct0_bxn_bithi      = 12;
+//
+//
+//------------------------------------------------------------------
+//0X3C = ADR_ALCT1_RCD:  ALCT 2nd Muon received by TMB
+//------------------------------------------------------------------
+const int alct1_valid_vmereg   =  alct_alct1_adr;
+const int alct1_valid_bitlo    =  0;
+const int alct1_valid_bithi    =  0;
+//
+const int alct1_quality_vmereg =  alct_alct1_adr;
+const int alct1_quality_bitlo  =  1;
+const int alct1_quality_bithi  =  2;
+//
+const int alct1_amu_vmereg     =  alct_alct1_adr;
+const int alct1_amu_bitlo      =  3;
+const int alct1_amu_bithi      =  3;
+//
+const int alct1_key_wg_vmereg  =  alct_alct1_adr;
+const int alct1_key_wg_bitlo   =  4;
+const int alct1_key_wg_bithi   = 10;
+//
+const int alct1_bxn_vmereg     =  alct_alct1_adr;
+const int alct1_bxn_bitlo      = 11;
+const int alct1_bxn_bithi      = 12;
+//
+//
+//------------------------------------------------------------------
 //0X3E = ADR_ALCT_FIFO:  ALCT FIFO RAM Status
 //------------------------------------------------------------------
 const int alct_raw_busy_vmereg       =  alct_fifo_adr;
@@ -864,15 +915,10 @@ const int triad_persist_bitlo       =  0;
 const int triad_persist_bithi       =  3;
 const int triad_persist_default     =  6;
 //
-const int hs_pretrig_thresh_vmereg  =  seq_clct_adr;
-const int hs_pretrig_thresh_bitlo   =  4;
-const int hs_pretrig_thresh_bithi   =  6;
-const int hs_pretrig_thresh_default =  4;
-//
-//const int ds_pretrig_thresh_vmereg  =  seq_clct_adr;
-//const int ds_pretrig_thresh_bitlo   =  7;
-//const int ds_pretrig_thresh_bithi   =  9;
-//const int ds_pretrig_thresh_default =  4;
+const int hit_thresh_vmereg         =  seq_clct_adr;
+const int hit_thresh_bitlo          =  4;
+const int hit_thresh_bithi          =  6;
+const int hit_thresh_default        =  4;
 //
 const int min_hits_pattern_vmereg   =  seq_clct_adr;
 const int min_hits_pattern_bitlo    = 10;
@@ -899,20 +945,25 @@ const int FIFOMODE_LocalCfebRaw_FullHeader  = 2;
 const int FIFOMODE_NoCfebRaw_ShortHeader    = 3;
 const int FIFOMODE_NoCfebRaw_NoHeader       = 4;
 //
-const int fifo_mode_vmereg     =  seq_fifo_adr;
-const int fifo_mode_bitlo      =  0;
-const int fifo_mode_bithi      =  2;
-const int fifo_mode_default    =  FIFOMODE_AllCfebRaw_FullHeader;
+const int fifo_mode_vmereg         =  seq_fifo_adr;
+const int fifo_mode_bitlo          =  0;
+const int fifo_mode_bithi          =  2;
+const int fifo_mode_default        =  FIFOMODE_AllCfebRaw_FullHeader;
 //
-const int fifo_tbins_vmereg    =  seq_fifo_adr;
-const int fifo_tbins_bitlo     =  3;
-const int fifo_tbins_bithi     =  7;
-const int fifo_tbins_default   =  7;
+const int fifo_tbins_vmereg        =  seq_fifo_adr;
+const int fifo_tbins_bitlo         =  3;
+const int fifo_tbins_bithi         =  7;
+const int fifo_tbins_default       =  7;
 //
-const int fifo_pretrig_vmereg  =  seq_fifo_adr;
-const int fifo_pretrig_bitlo   =  8;
-const int fifo_pretrig_bithi   = 12;
-const int fifo_pretrig_default =  2;
+const int fifo_pretrig_vmereg      =  seq_fifo_adr;
+const int fifo_pretrig_bitlo       =  8;
+const int fifo_pretrig_bithi       = 12;
+const int fifo_pretrig_default     =  2;
+//
+const int fifo_no_raw_hits_vmereg  =  seq_fifo_adr;
+const int fifo_no_raw_hits_bitlo   = 13;
+const int fifo_no_raw_hits_bithi   = 13;
+const int fifo_no_raw_hits_default =  0;
 //
 //
 //------------------------------------------------------------------
@@ -949,6 +1000,46 @@ const int bxn_offset_default =  0;
 //
 //
 //------------------------------------------------------------------
+//0X78 = ADR_SEQ_CLCT0:  Sequencer Latched CLCT0
+//------------------------------------------------------------------
+const int CLCT0_valid_vmereg        =  seq_clct0_adr;
+const int CLCT0_valid_bitlo         =  0;
+const int CLCT0_valid_bithi         =  0;
+//
+const int CLCT0_nhit_vmereg         =  seq_clct0_adr;
+const int CLCT0_nhit_bitlo          =  1;
+const int CLCT0_nhit_bithi          =  3;
+//
+const int CLCT0_pattern_vmereg      =  seq_clct0_adr;
+const int CLCT0_pattern_bitlo       =  4;
+const int CLCT0_pattern_bithi       =  7;
+//
+const int CLCT0_keyHalfStrip_vmereg =  seq_clct0_adr;
+const int CLCT0_keyHalfStrip_bitlo  =  8;
+const int CLCT0_keyHalfStrip_bithi  = 15;
+//
+//
+//------------------------------------------------------------------
+//0X7A = ADR_SEQ_CLCT1:  Sequencer Latched CLCT1
+//------------------------------------------------------------------
+const int CLCT1_valid_vmereg        =  seq_clct1_adr;
+const int CLCT1_valid_bitlo         =  0;
+const int CLCT1_valid_bithi         =  0;
+//
+const int CLCT1_nhit_vmereg         =  seq_clct1_adr;
+const int CLCT1_nhit_bitlo          =  1;
+const int CLCT1_nhit_bithi          =  3;
+//
+const int CLCT1_pattern_vmereg      =  seq_clct1_adr;
+const int CLCT1_pattern_bitlo       =  4;
+const int CLCT1_pattern_bithi       =  7;
+//
+const int CLCT1_keyHalfStrip_vmereg =  seq_clct1_adr;
+const int CLCT1_keyHalfStrip_bitlo  =  8;
+const int CLCT1_keyHalfStrip_bithi  = 15;
+//
+//
+//------------------------------------------------------------------
 //0X86 = ADR_TMB_TRIG:  TMB Trigger configuration/MPC accept
 //------------------------------------------------------------------
 const int tmb_sync_err_enable_vmereg  =  tmb_trig_adr;
@@ -971,10 +1062,10 @@ const int tmb_allow_match_bitlo       =  4;
 const int tmb_allow_match_bithi       =  4;
 const int tmb_allow_match_default     =  1;
 //
-const int mpc_delay_vmereg            =  tmb_trig_adr;
-const int mpc_delay_bitlo             =  5;
-const int mpc_delay_bithi             =  8;
-const int mpc_delay_default           =  7;
+const int mpc_rx_delay_vmereg         =  tmb_trig_adr;
+const int mpc_rx_delay_bitlo          =  5;
+const int mpc_rx_delay_bithi          =  8;
+const int mpc_rx_delay_default        =  7;
 //
 const int mpc_accept_vmereg           =  tmb_trig_adr;
 const int mpc_accept_bitlo            =  9;
@@ -1002,7 +1093,7 @@ const int mpc_output_enable_default   =  1;
 //
 //
 //------------------------------------------------------------------
-//0XA2 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control
+//0XA8 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control
 //------------------------------------------------------------------
 const int alct_raw_reset_vmereg         =  alctfifo1_adr;
 const int alct_raw_reset_bitlo          =  0;
@@ -1026,7 +1117,7 @@ const int alct_demux_mode_default       =  0;
 //
 //
 //------------------------------------------------------------------
-//0XA4 = ADR_ALCTFIFO2:  ALCT Raw Hits RAM data LSBs
+//0XAA = ADR_ALCTFIFO2:  ALCT Raw Hits RAM data LSBs
 //------------------------------------------------------------------
 const int alct_raw_lsbs_vmereg =  alctfifo2_adr;
 const int alct_raw_lsbs_bitlo  =  0;
@@ -1035,60 +1126,61 @@ const int alct_raw_lsbs_bithi  = 15;
 //
 //------------------------------------------------------------------
 //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
+// updated for 1 May 2008 firmware
 //------------------------------------------------------------------
-const int clct_flush_delay_vmereg     =  seqmod_adr;
-const int clct_flush_delay_bitlo      =  0;
-const int clct_flush_delay_bithi      =  3;
-const int clct_flush_delay_default    =  1;
+const int clct_flush_delay_vmereg              =  seqmod_adr;
+const int clct_flush_delay_bitlo               =  0;
+const int clct_flush_delay_bithi               =  3;
+const int clct_flush_delay_default             =  1;
 //
-const int clct_turbo_vmereg           =  seqmod_adr;
-const int clct_turbo_bitlo            =  4;
-const int clct_turbo_bithi            =  4;
-const int clct_turbo_default          =  0;
+const int wr_buffer_autoclear_vmereg           =  seqmod_adr;
+const int wr_buffer_autoclear_bitlo            =  4;
+const int wr_buffer_autoclear_bithi            =  4;
+const int wr_buffer_autoclear_default          =  1;
 //
-const int ranlct_enable_vmereg        =  seqmod_adr;
-const int ranlct_enable_bitlo         =  5;
-const int ranlct_enable_bithi         =  5;
-const int ranlct_enable_default       =  0;
+const int clct_write_continuous_enable_vmereg  =  seqmod_adr;
+const int clct_write_continuous_enable_bitlo   =  5;
+const int clct_write_continuous_enable_bithi   =  5;
+const int clct_write_continuous_enable_default =  0;
 //
-const int wrt_buf_required_vmereg     =  seqmod_adr;
-const int wrt_buf_required_bitlo      =  6;
-const int wrt_buf_required_bithi      =  6;
-const int wrt_buf_required_default    =  1;
+const int wrt_buf_required_vmereg              =  seqmod_adr;
+const int wrt_buf_required_bitlo               =  6;
+const int wrt_buf_required_bithi               =  6;
+const int wrt_buf_required_default             =  1;
 //
-const int valid_clct_required_vmereg  =  seqmod_adr;
-const int valid_clct_required_bitlo   =  7;
-const int valid_clct_required_bithi   =  7;
-const int valid_clct_required_default =  1;
+const int valid_clct_required_vmereg           =  seqmod_adr;
+const int valid_clct_required_bitlo            =  7;
+const int valid_clct_required_bithi            =  7;
+const int valid_clct_required_default          =  1;
 //
-const int l1a_allow_match_vmereg      =  seqmod_adr;
-const int l1a_allow_match_bitlo       =  8;
-const int l1a_allow_match_bithi       =  8;
-const int l1a_allow_match_default     =  1;
+const int l1a_allow_match_vmereg               =  seqmod_adr;
+const int l1a_allow_match_bitlo                =  8;
+const int l1a_allow_match_bithi                =  8;
+const int l1a_allow_match_default              =  1;
 //
-const int l1a_allow_notmb_vmereg      =  seqmod_adr;
-const int l1a_allow_notmb_bitlo       =  9;
-const int l1a_allow_notmb_bithi       =  9;
-const int l1a_allow_notmb_default     =  0;
+const int l1a_allow_notmb_vmereg               =  seqmod_adr;
+const int l1a_allow_notmb_bitlo                =  9;
+const int l1a_allow_notmb_bithi                =  9;
+const int l1a_allow_notmb_default              =  0;
 //
-const int l1a_allow_nol1a_vmereg      =  seqmod_adr;
-const int l1a_allow_nol1a_bitlo       = 10;
-const int l1a_allow_nol1a_bithi       = 10;
-const int l1a_allow_nol1a_default     =  0;
+const int l1a_allow_nol1a_vmereg               =  seqmod_adr;
+const int l1a_allow_nol1a_bitlo                = 10;
+const int l1a_allow_nol1a_bithi                = 10;
+const int l1a_allow_nol1a_default              =  0;
 //
-const int l1a_allow_alct_only_vmereg  =  seqmod_adr;
-const int l1a_allow_alct_only_bitlo   = 11;
-const int l1a_allow_alct_only_bithi   = 11;
-const int l1a_allow_alct_only_default =  0;
+const int l1a_allow_alct_only_vmereg           =  seqmod_adr;
+const int l1a_allow_alct_only_bitlo            = 11;
+const int l1a_allow_alct_only_bithi            = 11;
+const int l1a_allow_alct_only_default          =  0;
 //
-const int scint_veto_clr_vmereg       =  seqmod_adr;
-const int scint_veto_clr_bitlo        = 12;
-const int scint_veto_clr_bithi        = 12;
-const int scint_veto_clr_default      =  0;
+const int scint_veto_clr_vmereg                =  seqmod_adr;
+const int scint_veto_clr_bitlo                 = 12;
+const int scint_veto_clr_bithi                 = 12;
+const int scint_veto_clr_default               =  0;
 //
-const int scint_veto_vme_vmereg       =  seqmod_adr;
-const int scint_veto_vme_bitlo        = 13;
-const int scint_veto_vme_bithi        = 13;
+const int scint_veto_vme_vmereg                =  seqmod_adr;
+const int scint_veto_vme_bitlo                 = 13;
+const int scint_veto_vme_bithi                 = 13;
 //
 //
 //------------------------------------------------------------------
@@ -1098,29 +1190,37 @@ const int clct_state_machine_vmereg      =  seqsm_adr;
 const int clct_state_machine_bitlo       =  0;
 const int clct_state_machine_bithi       =  2;
 //
-const int tmb_match_state_machine_vmereg =  seqsm_adr;
-const int tmb_match_state_machine_bitlo  =  3;
-const int tmb_match_state_machine_bithi  =  5;
-//
 const int readout_state_machine_vmereg   =  seqsm_adr;
-const int readout_state_machine_bitlo    =  6;
-const int readout_state_machine_bithi    = 10;
+const int readout_state_machine_bitlo    =  3;
+const int readout_state_machine_bithi    =  7;
 //
-const int readout_stack_full_vmereg      =  seqsm_adr;
-const int readout_stack_full_bitlo       = 11;
-const int readout_stack_full_bithi       = 11;
+const int buffer_queue_full_vmereg       =  seqsm_adr;
+const int buffer_queue_full_bitlo        =  8;
+const int buffer_queue_full_bithi        =  8;
 //
-const int readout_stack_empty_vmereg     =  seqsm_adr;
-const int readout_stack_empty_bitlo      = 12;
-const int readout_stack_empty_bithi      = 12;
+const int buffer_queue_empty_vmereg      =  seqsm_adr;
+const int buffer_queue_empty_bitlo       =  9;
+const int buffer_queue_empty_bithi       =  9;
 //
-const int readout_stack_overflow_vmereg  =  seqsm_adr;
-const int readout_stack_overflow_bitlo   = 13;
-const int readout_stack_overflow_bithi   = 13;
+const int buffer_queue_overflow_vmereg   =  seqsm_adr;
+const int buffer_queue_overflow_bitlo    = 10;
+const int buffer_queue_overflow_bithi    = 10;
 //
-const int readout_stack_underflow_vmereg =  seqsm_adr;
-const int readout_stack_underflow_bitlo  = 14;
-const int readout_stack_underflow_bithi  = 14;
+const int buffer_queue_underflow_vmereg  =  seqsm_adr;
+const int buffer_queue_underflow_bitlo   = 11;
+const int buffer_queue_underflow_bithi   = 11;
+//
+//
+//------------------------------------------------------------------
+//0XB0 = ADR_SEQCLCTM:  Sequencer CLCT (Most Significant Bits)
+//------------------------------------------------------------------
+const int CLCT_BXN_vmereg      =  seq_clctm_adr;
+const int CLCT_BXN_bitlo       =  0;
+const int CLCT_BXN_bithi       =  1;
+//
+const int CLCT_sync_err_vmereg =  seq_clctm_adr;
+const int CLCT_sync_err_bitlo  =  2;
+const int CLCT_sync_err_bithi  =  2;
 //
 //
 //------------------------------------------------------------------
@@ -1129,7 +1229,7 @@ const int readout_stack_underflow_bithi  = 14;
 const int alct_vpf_delay_vmereg          =  tmbtim_adr;
 const int alct_vpf_delay_bitlo           =  0;
 const int alct_vpf_delay_bithi           =  3;
-const int alct_vpf_delay_default         =  3;
+const int alct_vpf_delay_default         =  4;
 //
 const int alct_match_window_size_vmereg  =  tmbtim_adr;
 const int alct_match_window_size_bitlo   =  4;
@@ -1187,6 +1287,14 @@ const int rpc1_raw_delay_bitlo   =  4;
 const int rpc1_raw_delay_bithi   =  7;
 const int rpc1_raw_delay_default =  0;
 //
+const int rpc0_bxn_diff_vmereg   =  rpc_raw_delay_adr;
+const int rpc0_bxn_diff_bitlo    =  8;
+const int rpc0_bxn_diff_bithi    = 11;
+//
+const int rpc1_bxn_diff_vmereg   =  rpc_raw_delay_adr;
+const int rpc1_bxn_diff_bitlo    = 12;
+const int rpc1_bxn_diff_bithi    = 15;
+//
 //
 //------------------------------------------------------------------
 //0XBC = ADR_RPC_INJ:  RPC Injector Control
@@ -1224,6 +1332,44 @@ const int rpc_inj_wdata_default =  0;
 const int rpc_inj_rdata_vmereg  =  rpc_inj_adr;
 const int rpc_inj_rdata_bitlo   = 11;
 const int rpc_inj_rdata_bithi   = 13;
+//
+//
+//------------------------------------------------------------------
+//0XC4 = ADR_RPC_TBINS:  RPC FIFO Time Bins
+//------------------------------------------------------------------
+const int fifo_tbins_rpc_vmereg    = rpc_tbins_adr;
+const int fifo_tbins_rpc_bitlo     =  0;
+const int fifo_tbins_rpc_bithi     =  4;
+const int fifo_tbins_rpc_default   =  7;
+//
+const int fifo_pretrig_rpc_vmereg  = rpc_tbins_adr;
+const int fifo_pretrig_rpc_bitlo   =  5;
+const int fifo_pretrig_rpc_bithi   =  9;
+const int fifo_pretrig_rpc_default =  2;
+//
+const int rpc_decouple_vmereg      = rpc_tbins_adr;
+const int rpc_decouple_bitlo       = 10;
+const int rpc_decouple_bithi       = 10;
+const int rpc_decouple_default     =  0;
+//
+//
+//------------------------------------------------------------------
+//0XCA = ADR_BX0_DELAY:  BX0 to MPC delays
+//------------------------------------------------------------------
+const int alct_bx0_delay_vmereg   = bx0_delay_adr ;
+const int alct_bx0_delay_bitlo    =  0;
+const int alct_bx0_delay_bithi    =  3;
+const int alct_bx0_delay_default  =  0;
+//
+const int clct_bx0_delay_vmereg   = bx0_delay_adr ;
+const int clct_bx0_delay_bitlo    =  4;
+const int clct_bx0_delay_bithi    =  7;
+const int clct_bx0_delay_default  =  0;
+//
+const int alct_bx0_enable_vmereg  = bx0_delay_adr;
+const int alct_bx0_enable_bitlo   =  8;
+const int alct_bx0_enable_bithi   =  8;
+const int alct_bx0_enable_default =  1;
 //
 //
 //------------------------------------------------------------------
@@ -1542,6 +1688,11 @@ const int number_layers_hit_vmereg  =  layer_trg_mode_adr;
 const int number_layers_hit_bitlo   =  4;
 const int number_layers_hit_bithi   =  6;
 //
+const int clct_throttle_vmereg      =  layer_trg_mode_adr;
+const int clct_throttle_bitlo       =  8;
+const int clct_throttle_bithi       = 15;
+const int clct_throttle_default     =  0; 
+//
 //
 //---------------------------------------------------------------------
 //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
@@ -1549,7 +1700,7 @@ const int number_layers_hit_bithi   =  6;
 const int clct_blanking_vmereg           =  pattern_find_pretrg_adr;
 const int clct_blanking_bitlo            =  0;
 const int clct_blanking_bithi            =  0;
-const int clct_blanking_default          =  0; 
+const int clct_blanking_default          =  1; 
 //
 const int clct_stagger_vmereg            =  pattern_find_pretrg_adr;
 const int clct_stagger_bitlo             =  1;
@@ -1565,6 +1716,12 @@ const int aff_thresh_vmereg              =  pattern_find_pretrg_adr;
 const int aff_thresh_bitlo               =  6;
 const int aff_thresh_bithi               =  8;
 const int aff_thresh_default             =  4; 
+//
+const int adjacent_cfeb_distance_vmereg  =  pattern_find_pretrg_adr;
+const int adjacent_cfeb_distance_bitlo   =  9;
+const int adjacent_cfeb_distance_bithi   = 14;
+const int adjacent_cfeb_distance_default =  5; 
+//
 //
 //---------------------------------------------------------------------
 //0XF6 = ADR_TEMP1:  CLCT separation
@@ -2139,16 +2296,6 @@ const int ALCT_CLCT_coincidence_trigger =  5;
 #define TMB_JTAG_SRC    0x08    // Hardware Bootstrap Register JTAG Source Bit
 #define JTAG_SOFT_SRC   0x0     // JTAG Sourced by FPGA (TMB_ADR_USR_JTAG VME Register)
 #define JTAG_HARD_SRC   0x1     // JTAG Sourced by Bootstrap Register
-//
-#define SOFT_TDO        0x01    // Software VME Register JTAG TDO Bit
-#define SOFT_TDI        0x02    // Software VME Register JTAG TDI Bit
-#define SOFT_TMS        0x03    // Software VME Register JTAG TMS Bit
-#define SOFT_TCK        0x08    // Software VME Register JTAG TCK Bit
-//
-#define HARD_TDO        0x80    // Hardware Bootstrap Register JTAG TDO Bit
-#define HARD_TDI        0x01    // Hardware Bootstrap Register JTAG TDI Bit
-#define HARD_TMS        0x02    // Hardware Bootstrap Register JTAG TMS Bit
-#define HARD_TCK        0x04    // Hardware Bootstrap Register JTAG TCK Bit
 //
 #define ALCT_HARD_RESET 0x0100  // Hardware ALCT FPGA Hard Reset
 #define TMB_HARD_RESET  0x0200  // Hardware TMB FPGA Hard Reset

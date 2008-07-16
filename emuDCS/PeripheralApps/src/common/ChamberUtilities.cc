@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.10 2008/06/29 17:42:25 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.11 2008/07/16 17:28:35 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.11  2008/07/16 17:28:35  rakness
+// (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
+//
 // Revision 1.10  2008/06/29 17:42:25  rakness
 // add radioactive trigger mode for scans
 //
@@ -481,39 +484,36 @@ void ChamberUtilities::CFEBTiming(){
 	  random_halfstrip[List] += 2;                                 // translate to between 2 and 30
 	}
 	//
-	// Di-strips do not exist anymore in TMB firmware since 05/25/2007
-	//thisTMB->DiStripHCMask(random_halfstrip/4-1); // counting from 0;
-	//thisTMB->DiStripHCMask(16/4-1); // counting from 0;
-	//
 	PulseCFEB(random_halfstrip[List],CLCTInputList[List]);	
-	//PulseCFEB( 16,CLCTInputList[List]);
+	//
+	int pulsed_halfstrip = List*32 + random_halfstrip[List];
 	//
 	usleep(50);
 	//
 	if (debug_) {
 	  std::cout << "TimeDelay=" << TimeDelay << std::endl;
 	  std::cout << "CLCTInput=" << List      
-		    << ", halfstrip=" << random_halfstrip[List] 
+		    << ", halfstrip in CFEB =" << random_halfstrip[List]
+		    << ", halfstrip in chamber =" << pulsed_halfstrip
 		    << ", Nmuons=" << Nmuons 
 		    << std::endl;
 	}
 	//
-	int clct0cfeb = thisTMB->GetCLCT0Cfeb();
-	int clct0nhit = thisTMB->GetCLCT0Nhit();
+	int clct0patternId    = thisTMB->GetCLCT0PatternId();
+	int clct0nhit         = thisTMB->GetCLCT0Nhit();
 	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
 	if (debug_) {
-	  std::cout << "clct0cfeb=" << clct0cfeb 
+	  std::cout << "clct0patternId=" << clct0patternId
 		    << ", clct0hstp=" << clct0keyHalfStrip      
 		    << ", nHits =" << clct0nhit;
 	}
 	//
-	//	int clct1cfeb = thisTMB->GetCLCT1Cfeb();
-	//	int clct1nhit = thisTMB->GetCLCT1Nhit();
+	//	int clct1patternId    = thisTMB->GetCLCT1PatternId();
+	//	int clct1nhit         = thisTMB->GetCLCT1Nhit();
 	//	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
 	//
-	//if ( clct0nhit == 6 && clct0keyHalfStrip == 16 && clct0cfeb == List ) {
-	if ( clct0cfeb == List && clct0keyHalfStrip == random_halfstrip[List] && clct0nhit == 6 ) {
-	  Muons[clct0cfeb][TimeDelay]++;
+	if ( clct0patternId == 10 && clct0keyHalfStrip == pulsed_halfstrip && clct0nhit == 6 ) {
+	  Muons[List][TimeDelay]++;
 	  if (debug_) std::cout << " found" << std::endl;
 	  last_pulsed_halfstrip[List] = random_halfstrip[List];
 	} else {
@@ -827,16 +827,16 @@ void ChamberUtilities::ALCTTiming(){
   }
   //
   (*MyOutput_) << "Result (tx vs. rx)   tx ----> " << endl;
-  (*MyOutput_) << "        00 01 02 03 04 05 06 07 08 09 10 11 12" << endl;
-  (*MyOutput_) << "        == == == == == == == == == == == == ==" << endl; 
+  (*MyOutput_) << "         00   01   02   03   04   05   06   07   08   09   10   11   12" << endl;
+  (*MyOutput_) << "        ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ====" << endl; 
   for (int j=0;j<maxTimeBins;j++){
     (*MyOutput_) << " rx =" << dec << setw(2) << j << " " ; 
     for (int k=0;k<maxTimeBins;k++) {
       if ( ALCTConfDone[j][k] > 0 ) {
-	(*MyOutput_) << hex << setw(2) << (ALCTWordCount[j][k]&0xffff) << " ";
+	(*MyOutput_) << hex << setw(4) << (ALCTWordCount[j][k]&0xffff) << " ";
 	rxtx_timing[j][k] = ALCTWordCount[j][k];
       } else {
-	(*MyOutput_) << hex << setw(2) << 0x00 << " ";
+	(*MyOutput_) << hex << setw(4) << 0x00 << " ";
 	rxtx_timing[j][k] = 0;
       }
     }
@@ -924,7 +924,7 @@ int ChamberUtilities::RatTmbDelayScan() {
   int rpc_bad[16] = {};
   int rpc_data_array[4][nbits];
   //
-  for (int pass=0; pass<=1000; pass++) { //collect statistics
+  for (int pass=0; pass<=100; pass++) { //collect statistics
     //
     if (debug_) {
       if ( (pass % 100) == 0 ) 
@@ -1423,7 +1423,7 @@ int ChamberUtilities::FindWinner(){
     ::sleep(getPauseAtEachSetting());
     //
     thisTMB->GetCounters();
-    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter(16);
+    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter(30);
     //
     if (debug_) {
       std::cout << ", number of MPC winner bits accepted = " 
@@ -1782,8 +1782,8 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
     // Need to set extra latency values into the VME register before you push in
     // the cable_delay into this serial chain
     //
-    thisDMB->setxfinelatency(thisDMB->GetxFineLatency());
-    thisDMB->setxlatency(thisDMB->GetxLatency());
+    //    thisDMB->setxfinelatency(thisDMB->GetxFineLatency());
+    //    thisDMB->setxlatency(thisDMB->GetxLatency());
     //
     // Set the delay value:
     thisDMB->SetTmbLctCableDelay(delay);        //insert the delay value into the DMB cable_delay_ parameter
@@ -1823,8 +1823,11 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
-  thisDMB->setxfinelatency(thisDMB->GetxFineLatency());
-  thisDMB->setxlatency(thisDMB->GetxLatency());
+  // Need to set extra latency values into the VME register before you push in 
+  // the cable_delay into this serial chain
+  //
+  //  thisDMB->setxfinelatency(thisDMB->GetxFineLatency());
+  //  thisDMB->setxlatency(thisDMB->GetxLatency());
   //
   if (use_measured_values_) {
     (*MyOutput_) << "Setting measured values of tmb_lct_cable_delay..." << std::endl;
@@ -2094,7 +2097,7 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
     //
     thisTMB->GetCounters();      // read counter values
     //
-    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter(19);
+    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter(34);
     alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter(3);
     //
     if (debug_) {
@@ -2215,7 +2218,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max){
     //
     thisTMB->GetCounters();      // read counter values
     //
-    tmb_in_l1a_window[delay] = thisTMB->GetCounter(19);
+    tmb_in_l1a_window[delay] = thisTMB->GetCounter(34);
     //
     if (debug_) std::cout << ", TMB in L1A window =  " << std::dec << tmb_in_l1a_window[delay] << std::endl;
     //
@@ -2540,15 +2543,16 @@ void ChamberUtilities::CFEBChamberScan(){
   thisTMB->StartTTC();
   ::sleep(1);
   //
-  int MaxStrip = 32;
-  int Muons[5][MaxStrip];
-  int MuonsMaxHits[5][MaxStrip];
+  int MaxStrip = 160;
+  int MaxStripWithinCFEB = 32;
   //
-  for (int i=0;i<5;i++) 
-    for (int j=0; j<MaxStrip; j++) {
-      Muons[i][j] = 0;
-      MuonsMaxHits[i][j] = 0;
-    }
+  int Muons[MaxStrip];
+  int MuonsMaxHits[MaxStrip];
+  //
+  for (int j=0; j<MaxStrip; j++) {
+    Muons[j] = 0;
+    MuonsMaxHits[j] = 0;
+  }
   //
   int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
   //
@@ -2556,49 +2560,49 @@ void ChamberUtilities::CFEBChamberScan(){
     //
     for (int Nmuons=0; Nmuons < Npulses_; Nmuons++){
       //
-      for (int HalfStrip=0; HalfStrip<MaxStrip; HalfStrip++) {
+      for (int HalfStrip=0; HalfStrip<MaxStripWithinCFEB; HalfStrip++) {
 	//
 	if (debug_) 
 	  std::cout << "Enabling TMB comparator inputs 0x" << std::hex << CLCTInputList[List] << std::endl;
 	//
 	PulseCFEB( HalfStrip,CLCTInputList[List]);
 	//
-	int clct0cfeb = thisTMB->GetCLCT0Cfeb();
-	int clct1cfeb = thisTMB->GetCLCT1Cfeb();
+	int pulsed_halfstrip = List*MaxStripWithinCFEB + HalfStrip;
+	//
+	int clct0patternId = thisTMB->GetCLCT0PatternId();
 	int clct0nhit = thisTMB->GetCLCT0Nhit();
-	int clct1nhit = thisTMB->GetCLCT1Nhit();
 	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
-	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
 	//
 	if (debug_) {
-	  cout << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
-	  cout << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
-	  cout << " clct0keyHalfStrip " << clct0keyHalfStrip << " clct1keyHalfStrip " << clct1keyHalfStrip << endl;
+	  cout << " clct0cfeb " << List << endl;
+	  cout << " clct0nhit " << clct0nhit << endl;
+	  cout << " clct0keyHalfStrip " << clct0keyHalfStrip << endl;
 	  cout << endl;
 	}
 	//
-	if ( clct0keyHalfStrip == HalfStrip && MuonsMaxHits[clct0cfeb][HalfStrip] < clct0nhit ) 
-	  MuonsMaxHits[clct0cfeb][HalfStrip] = clct0nhit ;
-	if ( clct1keyHalfStrip == HalfStrip && MuonsMaxHits[clct1cfeb][HalfStrip] < clct1nhit ) 
-	  MuonsMaxHits[clct1cfeb][HalfStrip] = clct1nhit ;
-	//
-	if ( clct0nhit == 6 && clct0keyHalfStrip == HalfStrip ) Muons[clct0cfeb][HalfStrip]++;
-	if ( clct1nhit == 6 && clct1keyHalfStrip == HalfStrip ) Muons[clct1cfeb][HalfStrip]++;
+	if ( clct0patternId == 10 && clct0keyHalfStrip == pulsed_halfstrip && 
+	     clct0nhit == 6       && MuonsMaxHits[pulsed_halfstrip] < clct0nhit   ) 
+	  MuonsMaxHits[HalfStrip] = clct0nhit ;
+
+	if ( clct0nhit == 6 && clct0patternId == 10 ) Muons[pulsed_halfstrip]++;
       }
     }      
   }
   //
   // preserve the results:
   for (int i=0;i<5;i++) 
-    for (int j=0; j<MaxStrip; j++) 
-      CFEBStripScan_[i][j] = Muons[i][j];
+    for (int j=0; j<MaxStripWithinCFEB; j++) {
+      int pulsed_halfstrip = i*MaxStripWithinCFEB + j;
+      CFEBStripScan_[i][j] = Muons[pulsed_halfstrip];
+    }
   //
   // print out the results
   (*MyOutput_) << " Number of Muons seen " << endl;
   for (int CFEBs = 0; CFEBs<5; CFEBs++) {
     (*MyOutput_) << "CFEB Id="<<CFEBs<< " " ;
-    for (int HalfStrip = 0; HalfStrip<MaxStrip; HalfStrip++) {
-      (*MyOutput_) << setw(3) << Muons[CFEBs][HalfStrip] ;
+    for (int HalfStrip = 0; HalfStrip<MaxStripWithinCFEB; HalfStrip++) {
+      int pulsed_halfstrip = CFEBs*MaxStripWithinCFEB + HalfStrip;
+      (*MyOutput_) << setw(3) << Muons[pulsed_halfstrip] ;
     }
     (*MyOutput_) << endl;
   }
@@ -2607,8 +2611,9 @@ void ChamberUtilities::CFEBChamberScan(){
   (*MyOutput_) << " Maximum number of hits " << endl;
   for (int CFEBs = 0; CFEBs<5; CFEBs++) {
     (*MyOutput_) << "CFEB Id="<<CFEBs<< " " ;
-    for (int HalfStrip = 0; HalfStrip<MaxStrip; HalfStrip++) {
-      (*MyOutput_) << setw(3) << MuonsMaxHits[CFEBs][HalfStrip] ;
+    for (int HalfStrip = 0; HalfStrip<MaxStripWithinCFEB; HalfStrip++) {
+      int pulsed_halfstrip = CFEBs*MaxStripWithinCFEB + HalfStrip;
+      (*MyOutput_) << setw(3) << MuonsMaxHits[pulsed_halfstrip] ;
     }
     (*MyOutput_) << endl;
   }

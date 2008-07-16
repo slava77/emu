@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.41 2008/07/15 08:05:57 gujh Exp $
+// $Id: DAQMB.cc,v 3.42 2008/07/16 17:28:37 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.42  2008/07/16 17:28:37  rakness
+// (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
+//
 // Revision 3.41  2008/07/15 08:05:57  gujh
 // Fixed the bug for CFEB_kill channels
 //          ---- GU, July 15, 2008
@@ -388,11 +391,17 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   set_comp_thresh_(0.03),
   comp_timing_(1), comp_mode_(2), pre_block_end_(7),
   cable_delay_(0), crate_id_(0xfe), toogle_bxn_(1), ALCT_dav_delay_(2),
-  cfeb_clk_delay_(15), xlatency_(0), xfinelatency_(5),
+  killflatclk_(5183),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1)
 {
   //
+   //get the initial value first:
+   killinput_=GetKillInput();
+   cfeb_clk_delay_=GetCfebClkDelay();
+   xfinelatency_=GetxFineLatency();
+   xlatency_=GetxLatency();
+
   expected_control_firmware_tag_ = 9999;
   expected_vme_firmware_tag_     = 9999;
   expected_firmware_revision_    = 9999;
@@ -478,8 +487,7 @@ std::ostream & operator<<(std::ostream & os, DAQMB & daqmb) {
      << "cable_delay_ "<<daqmb.cable_delay_ << std::endl
      << "crate_id_ " << daqmb.crate_id_ << std::endl
      << "toogle_bxn_ " << daqmb.toogle_bxn_ << std::endl
-     << "cfeb_clk_delay_ " << daqmb.cfeb_clk_delay_ << std::endl
-     << "xlatency_ " << daqmb.xlatency_ << std::endl;
+     << "xlatency, cfebclk etc " << daqmb.killflatclk_ << std::endl;
   return os;
 }
 //
@@ -510,7 +518,13 @@ void DAQMB::configure() {
   (*MyOutput_) << "DAQMB: configure() for crate " << this->crate() << " slot " << this->slot() << std::endl;
   //
 
-  //***Do this setting only for calibration ****
+   //get the initial value first:
+   killinput_=GetKillInput();
+   cfeb_clk_delay_=GetCfebClkDelay();
+   xfinelatency_=GetxFineLatency();
+   xlatency_=GetxLatency();
+
+   //***Do this setting only for calibration ****
   int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
      | (calibration_l1acc_delay_ & 0x1F) << 4
       | (pulse_delay_ & 0x1F) << 9
@@ -610,17 +624,17 @@ void DAQMB::configure() {
 
    }
 
-
-   // ***  This part is related to the SFM (Serial Flash Memory) ****
+  // ***  This part is related to the SFM (Serial Flash Memory) ****
    //
    // Readout the Current setting on DMB
-   char dmbstatus[10];
+   char dmbstatus[11];
    dmb_readstatus(dmbstatus);
    //check the DMB setting with the current setup
    if (((CableDelay_)!=cable_delay_)||
        ((CrateID_)!=crate_id_)||
        ((CfebClkDelay_)!=cfeb_clk_delay_)||
        ((XLatency_)!=xlatency_) ||
+       ((KillInput_)!=killinput_)||
        ((XFineLatency_)!=xfinelatency_) ) {
      //
 	std::cout << "Reprogram DMB SFM flash " << std::endl;
@@ -629,15 +643,14 @@ void DAQMB::configure() {
 	std::cout << " CFEBClkDelay old " << CfebClkDelay_ << " new " << cfeb_clk_delay_ << std::endl;
 	std::cout << " xlatency old " << XLatency_ << " new " << xlatency_ << std::endl;
 	std::cout << " xfinelatency old " << XFineLatency_ << " new " << xfinelatency_ << std::endl;
+	std::cout << " killinput old " << KillInput_ << " new " << killinput_ << std::endl;
      (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
      setcrateid(crate_id_);
-     //
-     setxlatency(xlatency_);
-     setxfinelatency(xfinelatency_);
-     //     LctL1aDelay(xlatency_);
-     //
-     (*MyOutput_) << "Set cfeb clk delay " << cfeb_clk_delay_ << std::endl ;
-     setfebdelay(cfeb_clk_delay_);
+     (*MyOutput_) << "Set fine_latency, kill_input, xL1A, cfeb clk delay " <<hex<< killflatclk_ <<" in hex"<< std::endl ;
+     //     comdelay=((xfinelatency_<<10)&0x3c00)+((killinput_<<7)&0x380)+((xlatency_<<5)&0x60)+(cfeb_clk_delay_&0x1f);
+     //     cout<<" GUJH program comdelay: "<<hex <<killflatclk_ <<dec<<endl;
+     //     cout<<" xfinedelay: "<<xfinelatency_<<" killinput: "<<killinput_<<" xlatency "<<xlatency_<<" cfeb_clk_dly: "<<cfeb_clk_delay_<<endl;
+     setfebdelay(killflatclk_);
      //
      (*MyOutput_) << "Set cable delay " << cable_delay_ << std::endl ;
      setcbldly(cable_delay_);
@@ -658,7 +671,13 @@ bool DAQMB::checkDAQMBXMLValues()
   cfebs_readstatus();
   bool cfebmatch=true;
   //check the comp_timing, comp_mode, Pre_block_end and Extr_l1A latency setting
-  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+   //get the initial value first:
+   killinput_=GetKillInput();
+   cfeb_clk_delay_=GetCfebClkDelay();
+   xfinelatency_=GetxFineLatency();
+   xlatency_=GetxLatency();
+
+   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
     for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
     std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
     if ((((febstat_[lfeb][2])&0x1f)!=comp_mode_bits) ||
@@ -703,14 +722,27 @@ bool DAQMB::checkDAQMBXMLValues()
     // ***  This part is related to the SFM (Serial Flash Memory) ****
     //
     // Readout the Current setting on DMB
-    char dmbstatus[10];
+   
+
+   /*temperary: GUJH
+
+     comdelay=((xfinelatency_<<10)&0x3c00)+((killinput_<<7)&0x380)+((xlatency_<<5)&0x60)+(cfeb_clk_delay_&0x1f);
+     cout<<" GUJH program comdelay: "<<comdelay<<endl;
+     cout<<" xfinedelay: "<<xfinelatency_<<" killinput: "<<killinput_<<" xlatency "<<xlatency_<<" cfeb_clk_dly: "<<cfeb_clk_delay_<<endl;
+    setfebdelay(comdelay);
+*/
+
+     cout<<"****killflatclk: "<<hex<<killflatclk_<<" cfebclk: "<<cfeb_clk_delay_<<endl;
+
+    char dmbstatus[11];
     dmb_readstatus(dmbstatus);
     //check the DMB setting with the current setup
-    if (((CableDelay_)!=cable_delay_)||
-	((CrateID_)!=crate_id_)||
-	((CfebClkDelay_)!=cfeb_clk_delay_)||
-	((XLatency_)!=xlatency_)||
-        ((XFineLatency_)!=xfinelatency_) ){
+    if ((CableDelay_!=cable_delay_)||
+	(CrateID_!=crate_id_)||
+	(CfebClkDelay_!=cfeb_clk_delay_)||
+	(XLatency_!=xlatency_)||
+	(KillInput_!=killinput_)||
+        (XFineLatency_!=xfinelatency_) ){
       cfebmatch=false;
       std::cout << "*** FAILED SFM flash check " << std::endl;
       std::cout << " CableDelay old " << CableDelay_ << " new " << cable_delay_ <<std::endl;
@@ -718,6 +750,7 @@ bool DAQMB::checkDAQMBXMLValues()
       std::cout << " CFEBClkDelay old " << CfebClkDelay_ << " new " << cfeb_clk_delay_ << std::endl;
       std::cout << " xlatency old " << XLatency_ << " new " << xlatency_ << std::endl;
       std::cout << " xfinelatency old " << XFineLatency_ << " new " << xfinelatency_ << std::endl;
+      std::cout << " killinput old " << KillInput_ << " new " << killinput_ << std::endl;
     }
     return cfebmatch;
   }
@@ -761,10 +794,10 @@ void DAQMB::setcrateid(int dword)
   //
   // Update
   //
-  cmd[0]=VTX_USR1;
+  cmd[0]=VTX2_USR1;
   sndbuf[0]=22;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_USR1;
+  cmd[0]=VTX2_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
 }
@@ -775,8 +808,9 @@ void DAQMB::setfebdelay(int dword)
   sndbuf[0]=FEB_DELAY;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_USR2;
-  sndbuf[0]=dword&0XFF; 
-  devdo(MCTRL,6,cmd,5,sndbuf,rcvbuf,0);
+  sndbuf[0]=dword&0XFF;
+  sndbuf[1]=(dword>>8)&0x3f; 
+  devdo(MCTRL,6,cmd,14,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_USR1;
   sndbuf[0]=FEB_DELAY;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -787,14 +821,15 @@ void DAQMB::setfebdelay(int dword)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-  (*MyOutput_) << "setfebdelay to " << dword << std::endl;
+  (*MyOutput_) << " GUJH setfebdelay to " << dword << std::endl;
+  cout<< " GUJH setfebdelay to " << dword << std::endl;
   //
   // Update
   //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=23;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_USR1;
+  cmd[0]=VTX2_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
 }
@@ -1467,11 +1502,14 @@ float DAQMB::adc16(int ichp,int ichn){
 }
 
 
-void DAQMB::dmb_readstatus(char status[10])
+void DAQMB::dmb_readstatus(char status[11])
 {
   //
   int i;
   //
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+
   cmd[0]=VTX2_USR1;
   sndbuf[0]=10;    //F10 read DMB6CNTL status
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -1479,10 +1517,13 @@ void DAQMB::dmb_readstatus(char status[10])
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
   //
   cmd[0]=VTX2_USR2;
-  for (i=0;i<10;i++)  sndbuf[i]=0;
+  for (i=0;i<11;i++)  {rcvbuf[i]=0;sndbuf[i]=0;}
   //
-  devdo(MCTRL,6,cmd,80,sndbuf,rcvbuf,1);
+  devdo(MCTRL,6,cmd,88,sndbuf,rcvbuf,1);
   status = rcvbuf;
+  for (i=0;i<11;i++)
+    {printf(" i= %d, rcvbuf[i]= %02x, status[i]= %02x \n",i,rcvbuf[i],status[i]);}
+
   //
   /* DMB6CNTL status: bit[14:7]: L1A buffer length
                       bit[19:15]: CFEB_DAV_ERROR
@@ -1513,8 +1554,10 @@ void DAQMB::dmb_readstatus(char status[10])
   printf(" FEB_Delay: %02xh \n",CfebClkDelay_);
   XLatency_=((rcvbuf[8]>>6)&0x03); 
   printf(" Extra L1A latency: %02xh \n",XLatency_);
-  XFineLatency_=((rcvbuf[9])&0x0f); 
+  XFineLatency_=((rcvbuf[9])&0x0f);
   printf(" Extra Fine L1A latency: %02xh \n",XFineLatency_);
+  KillInput_=((rcvbuf[9]>>4)&0x07); 
+  printf(" KillInput: %02xh \n",KillInput_);
 
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
@@ -1690,44 +1733,6 @@ void DAQMB::cfebs_readstatus()
   printf("\n");
 }
 
-void DAQMB::setxlatency(int dword)
-{
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=40;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_USR2;
-  sndbuf[0]=dword&0X03; 
-  sndbuf[1]=(dword>>8)&0xFF;
-  sndbuf[2]=(dword>>16)&0xFF;
-  devdo(MCTRL,6,cmd,2,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_BYPASS;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-}
-
-
-void DAQMB::setxfinelatency(int dword)
-{
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=41;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_USR2;
-  sndbuf[0]=dword&0X0f; 
-  sndbuf[1]=(dword>>8)&0xFF;
-  sndbuf[2]=(dword>>16)&0xFF;
-  devdo(MCTRL,6,cmd,4,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_BYPASS;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-}
-
-
 /* Thermometers */
 
 float DAQMB::readthermx(int feb)
@@ -1787,7 +1792,7 @@ unsigned int DAQMB::lowv_rdpwrreg()
  devdo(LOWVOLT,16,cmd,0,sndbuf,rcvbuf,2);
  return unpack_ival();
 }
-//
+
 /* FPGA and PROM codes  */
 //
 bool DAQMB::CheckVMEFirmwareVersion() {
@@ -3972,7 +3977,7 @@ void DAQMB::cbldly_init(){
          cmd[0]=VTX_USR1;
          sndbuf[0]=NOOP;
          devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
+         cmd[0]=VTX2_BYPASS;
          devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
@@ -4050,7 +4055,7 @@ void DAQMB::cbldly_trig(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
@@ -4063,7 +4068,7 @@ void DAQMB::cbldly_loadfinedelay(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
 }
@@ -4076,7 +4081,7 @@ void DAQMB::cbldly_programSFM(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
@@ -4088,7 +4093,7 @@ void DAQMB::cbldly_wrtprotectSFM(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
@@ -4100,7 +4105,7 @@ void DAQMB::cbldly_loadmbidSFM(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
@@ -4112,7 +4117,7 @@ void DAQMB::cbldly_loadcfebdlySFM(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
@@ -4124,7 +4129,7 @@ void DAQMB::cbldly_refreshcfebdly(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
@@ -4452,7 +4457,7 @@ void DAQMB::ProgramSFM(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
 }
@@ -4460,13 +4465,13 @@ void DAQMB::ProgramSFM(){
 void DAQMB::LoadCFEBDelaySFM(){
   //
   printf(" Load CFEB clock delay to SFM \n"); 
-  cmd[0]=VTX_USR1; 
+  cmd[0]=VTX2_USR1; 
   sndbuf[0]=0x17;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_USR1;
+  cmd[0]=VTX2_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
 }
@@ -4474,13 +4479,13 @@ void DAQMB::LoadCFEBDelaySFM(){
 void DAQMB::LoadDMBIdSFM(){
   //
   printf(" Load DAQMB ID to SFM  \n");
-  cmd[0]=VTX_USR1; 
+  cmd[0]=VTX2_USR1; 
   sndbuf[0]=0x16;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_USR1;
+  cmd[0]=VTX2_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
 }
@@ -4494,7 +4499,7 @@ void DAQMB::SFMWriteProtect(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
 }
@@ -4507,7 +4512,7 @@ void DAQMB::ToogleBXN(){
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
 }
@@ -4515,13 +4520,13 @@ void DAQMB::ToogleBXN(){
 void DAQMB::LoadCableDelaySFM()
 {
   printf(" Load Cable delay \n");
-  cmd[0]=VTX_USR1; 
+  cmd[0]=VTX2_USR1; 
   sndbuf[0]=0x15;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_USR1;
+  cmd[0]=VTX2_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
+  cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);  
 }
 //
@@ -4546,10 +4551,10 @@ void DAQMB::setcbldly(int dword)
   //
   // Update
   //
-  cmd[0]=VTX_USR1;
+  cmd[0]=VTX2_USR1;
   sndbuf[0]=21;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_USR1;
+  cmd[0]=VTX2_USR1;
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   //
