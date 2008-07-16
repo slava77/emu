@@ -759,7 +759,7 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
 	  std::cout << std::endl;
 	}
 	//
-	if ( InjectedLCT[0] == MPCLct0 ) {
+	if ( (InjectedLCT[0]|0x800) == (MPCLct0|0x800) ) {
 	  NFound[delay] ++;
 	  N_LCTs_found_this_pass++;
 	} else {
@@ -770,7 +770,7 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
 	  std::cout << "FAIL on LCT 0" << std::endl;
 	}
 	//
-	if ( InjectedLCT[1] == MPCLct1 ) {
+	if ( (InjectedLCT[1]|0x800) == (MPCLct1|0x800) ) {
 	  NFound[delay] ++;
 	  N_LCTs_found_this_pass++;
 	} else {
@@ -781,7 +781,7 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
 	  std::cout << "FAIL on LCT 1" << std::endl;
 	}
 	//
-	if ( InjectedLCT[2] == MPCLct2 ) {
+	if ( (InjectedLCT[2]|0x800) == (MPCLct2|0x800) ) {
 	  NFound[delay] ++;
 	  N_LCTs_found_this_pass++;
 	} else {
