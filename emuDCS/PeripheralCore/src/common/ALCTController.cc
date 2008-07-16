@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.48 2008/07/04 14:24:29 rakness Exp $
+// $Id: ALCTController.cc,v 3.49 2008/07/16 17:28:37 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.49  2008/07/16 17:28:37  rakness
+// (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
+//
 // Revision 3.48  2008/07/04 14:24:29  rakness
 // add getters for string values
 //
@@ -816,32 +819,32 @@ void ALCTController::CheckALCTConfiguration() {
     config_ok &= tmb_->compareValues(tested_value.str(),GetAsicDelay(afeb),GetWriteAsicDelay(afeb) );
   }
   //
-  config_ok &= tmb_->compareValues("ALCT Trigger Mode"   ,read_trigger_mode_   ,write_trigger_mode_   );
-  config_ok &= tmb_->compareValues("ALCT Ext trig enable",read_ext_trig_enable_,write_ext_trig_enable_);
-  config_ok &= tmb_->compareValues("ALCT Send Empty"     ,read_send_empty_     ,write_send_empty_     );
-  config_ok &= tmb_->compareValues("ALCT Inject Mode"    ,read_inject_         ,write_inject_         );
-  config_ok &= tmb_->compareValues("ALCT BXC offset"     ,read_bxc_offset_     ,write_bxc_offset_     );
-  config_ok &= tmb_->compareValues("ALCT Pretrig thresh" ,read_nph_thresh_     ,write_nph_thresh_     );
-  config_ok &= tmb_->compareValues("ALCT Pattern thresh" ,read_nph_pattern_    ,write_nph_pattern_    );
-  config_ok &= tmb_->compareValues("ALCT drift delay"    ,read_drift_delay_    ,write_drift_delay_    );
-  config_ok &= tmb_->compareValues("ALCT FIFO tbins"     ,read_fifo_tbins_     ,write_fifo_tbins_     );
-  config_ok &= tmb_->compareValues("ALCT FIFO pretrig"   ,read_fifo_pretrig_   ,write_fifo_pretrig_   );
-  config_ok &= tmb_->compareValues("ALCT FIFO mode"      ,read_fifo_mode_      ,write_fifo_mode_      );
-  config_ok &= tmb_->compareValues("ALCT L1a delay"      ,read_l1a_delay_      ,write_l1a_delay_      );
-  config_ok &= tmb_->compareValues("ALCT L1a window size",read_l1a_window_     ,write_l1a_window_     );
-  config_ok &= tmb_->compareValues("ALCT L1a offset"     ,read_l1a_offset_     ,write_l1a_offset_     );
-  config_ok &= tmb_->compareValues("ALCT internal L1A"   ,read_l1a_internal_   ,write_l1a_internal_   );
-  config_ok &= tmb_->compareValues("ALCT Board ID"       ,read_board_id_       ,write_board_id_       );
-  config_ok &= tmb_->compareValues("ALCT CCB enable"     ,read_ccb_enable_     ,write_ccb_enable_     );
-  config_ok &= tmb_->compareValues("ALCT Amode"          ,read_alct_amode_     ,write_alct_amode_     );
-  config_ok &= tmb_->compareValues("ALCT trg info enable",read_trigger_info_en_,write_trigger_info_en_);
-  config_ok &= tmb_->compareValues("ALCT Config in DAQ readout",
+  config_ok &= tmb_->compareValues("alct_trig_mode"            ,read_trigger_mode_   ,write_trigger_mode_   );
+  config_ok &= tmb_->compareValues("alct_ext_trig_enable"      ,read_ext_trig_enable_,write_ext_trig_enable_);
+  config_ok &= tmb_->compareValues("alct_send_empty"           ,read_send_empty_     ,write_send_empty_     );
+  config_ok &= tmb_->compareValues("alct_inject_mode"          ,read_inject_         ,write_inject_         );
+  config_ok &= tmb_->compareValues("alct_bxn_offset"           ,read_bxc_offset_     ,write_bxc_offset_     );
+  config_ok &= tmb_->compareValues("alct_pretrig_thresh"       ,read_nph_thresh_     ,write_nph_thresh_     );
+  config_ok &= tmb_->compareValues("alct_pattern_thresh"       ,read_nph_pattern_    ,write_nph_pattern_    );
+  config_ok &= tmb_->compareValues("alct_drift_delay"          ,read_drift_delay_    ,write_drift_delay_    );
+  config_ok &= tmb_->compareValues("alct_fifo_tbins"           ,read_fifo_tbins_     ,write_fifo_tbins_     );
+  config_ok &= tmb_->compareValues("alct_fifo_pretrig"         ,read_fifo_pretrig_   ,write_fifo_pretrig_   );
+  config_ok &= tmb_->compareValues("alct_fifo_mode"            ,read_fifo_mode_      ,write_fifo_mode_      );
+  config_ok &= tmb_->compareValues("alct_l1a_delay"            ,read_l1a_delay_      ,write_l1a_delay_      );
+  config_ok &= tmb_->compareValues("alct_l1a_window_size"      ,read_l1a_window_     ,write_l1a_window_     );
+  config_ok &= tmb_->compareValues("alct_L1a_offset"           ,read_l1a_offset_     ,write_l1a_offset_     );
+  config_ok &= tmb_->compareValues("alct_l1a_internal"         ,read_l1a_internal_   ,write_l1a_internal_   );
+  config_ok &= tmb_->compareValues("alct_Board ID (not in xml)",read_board_id_       ,write_board_id_       );
+  config_ok &= tmb_->compareValues("alct_ccb_enable"           ,read_ccb_enable_     ,write_ccb_enable_     );
+  config_ok &= tmb_->compareValues("alct_accel_mode"           ,read_alct_amode_     ,write_alct_amode_     );
+  config_ok &= tmb_->compareValues("alct_trig_info_enable"     ,read_trigger_info_en_,write_trigger_info_en_);
+  config_ok &= tmb_->compareValues("alct_config_in_readout",
 				   read_config_in_readout_,write_config_in_readout_);
-  config_ok &= tmb_->compareValues("ALCT Serial Number Select",
+  config_ok &= tmb_->compareValues("alct_sn_select",
 				   read_sn_select_,write_sn_select_);
-  config_ok &= tmb_->compareValues("ALCT Accelerator Pretrig thresh",
+  config_ok &= tmb_->compareValues("alct_accel_pretrig_thresh",
 				   read_accelerator_pretrig_thresh_,write_accelerator_pretrig_thresh_);
-  config_ok &= tmb_->compareValues("ALCT Accelerator Pattern thresh",
+  config_ok &= tmb_->compareValues("alct_accel_pattern_thresh",
 				   read_accelerator_pattern_thresh_,write_accelerator_pattern_thresh_);
   //
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 

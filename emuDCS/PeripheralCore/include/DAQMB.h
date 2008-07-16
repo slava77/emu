@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.25 2008/07/08 10:41:22 rakness Exp $
+// $Id: DAQMB.h,v 3.26 2008/07/16 17:28:36 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.26  2008/07/16 17:28:36  rakness
+// (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
+//
 // Revision 3.25  2008/07/08 10:41:22  rakness
 // add getter/setter for kill_chip
 //
@@ -253,10 +256,8 @@ public:
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
-  void dmb_readstatus(char [10]);
+  void dmb_readstatus(char [11]);
   void cfebs_readstatus();
-  void setxlatency(int dword);
-  void setxfinelatency(int dword);
   // 
   void SFMWriteProtect();
   void LoadCFEBDelaySFM();
@@ -407,14 +408,17 @@ public:
   //
   void SetCrateId(int id){crate_id_ = id;}
   //
-  void SetCfebClkDelay(int delay){cfeb_clk_delay_ = delay;}
-  inline int GetCfebClkDelay(){return cfeb_clk_delay_;}
+  void SetCfebClkDelay(int delay){killflatclk_ = (killflatclk_&0x3fe0)+(delay&0x1f);}
+  inline int GetCfebClkDelay(){return (killflatclk_&0x1f);}
   //
-  void SetxLatency(int latency){xlatency_ = latency;}
-  inline int GetxLatency(){return xlatency_;}
+  void SetxLatency(int latency){killflatclk_= (killflatclk_&0x3f9f)+(( latency<<5)&0x60);}
+  inline int GetxLatency(){return ((killflatclk_>>5)&0x03);}
   //
-  void SetxFineLatency(int finelatency){xfinelatency_ = finelatency;}
-  inline int GetxFineLatency(){return xfinelatency_;}
+  void SetxFineLatency(int finelatency){killflatclk_ = (killflatclk_&0x3ff)+((finelatency<<10)&0x3c00);}
+  inline int GetxFineLatency(){return ((killflatclk_>>10)&0x0f);}
+  //
+  void SetKillInput(int killinput){killflatclk_ = (killflatclk_&0x3c7f)+((killinput<<7)&0x380);}
+  inline int GetKillInput(){return ((killflatclk_>>7)&0x07);}
   //
   void SetPulseDac(float value){pul_dac_set_= value;}
   inline float GetPulseDac(){return pul_dac_set_;}
@@ -606,10 +610,10 @@ public:
   int toogle_bxn_;
   int ALCT_dav_delay_;
   //
-  int CableDelay_, CrateID_, CfebClkDelay_, XLatency_, XFineLatency_;
+  int CableDelay_, CrateID_, CfebClkDelay_, XLatency_, XFineLatency_,KillInput_,killflatclk_;
   //
   int cfeb_clk_delay_;
-  int xlatency_, xfinelatency_;
+  int xlatency_, xfinelatency_,killinput_;
   int comp_mode_cfeb_[5];
   int comp_timing_cfeb_[5];
   int pre_block_end_cfeb_[5];
