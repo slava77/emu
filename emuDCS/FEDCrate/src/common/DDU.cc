@@ -8205,7 +8205,7 @@ int DDU::readFlashKillFiber()
 int DDU::readFlashBoardID()
 	throw (FEDException)
 {
-	try { return readSerial(0x0704,16); }
+	try { return readSerial(0x0304,16); }
 	catch (FEDException &e) { throw; }
 }
 //
@@ -8275,7 +8275,7 @@ unsigned long int DDU::readFlashGbEFIFOThresholds()
 int DDU::readFlashRUI()
 	throw (FEDException)
 {
-	try { return readSerial(0x0304,16); }
+	try { return readSerial(0x0704,16); }
 	catch (FEDException &e) { throw; }
 }
 //

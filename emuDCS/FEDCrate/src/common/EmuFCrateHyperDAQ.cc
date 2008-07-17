@@ -4709,14 +4709,14 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	// New Value...
 	*(writableTable(1,2)->value) << writableTable[1]->makeForm("/" + getApplicationDescriptor()->getURN() + "/DDUTextLoad",cgiDDU,604) << endl;
 
-	*(writableTable(2,0)->value) << "Flash RUI Code";
-	*(writableTable(2,1)->value) << thisDDU->readFlashRUI();
+	*(writableTable(2,0)->value) << "Flash Board ID";
+	*(writableTable(2,1)->value) << thisDDU->readFlashBoardID();
 	writableTable[2]->setClass("none");
 	// New Value...
 	*(writableTable(2,2)->value) << writableTable[2]->makeForm("/" + getApplicationDescriptor()->getURN() + "/DDUTextLoad",cgiDDU,605) << endl;
 
-	*(writableTable(3,0)->value) << "Flash DDU Board ID";
-	*(writableTable(3,1)->value) << thisDDU->readFlashBoardID();
+	*(writableTable(3,0)->value) << "Flash DDU RUI";
+	*(writableTable(3,1)->value) << thisDDU->readFlashRUI();
 	writableTable[3]->setClass("none");
 	// New Value...
 	*(writableTable(3,2)->value) << writableTable[3]->makeForm("/" + getApplicationDescriptor()->getURN() + "/DDUTextLoad",cgiDDU,606) << endl;
