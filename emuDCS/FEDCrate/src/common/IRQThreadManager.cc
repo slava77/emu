@@ -281,7 +281,8 @@ void *IRQThreadManager::IRQThread(void *data)
 
 		// Problem if there is no matching DDU...
 		if (myDDU == NULL) {
-			LOG4CPLUS_FATAL(logger, "IRQ set from an unrecognized slot!  Crate " << myCrate->number() << " slot " << dec << (errorData[1] & 0x1f) << " error data " << hex << setw(2) << setfill('0') << (int) errorData[1] << setw(2) << setfill('0') << (int) errorData[0]);
+			// Looks like this happens all the time.  Squelch errors.
+			//LOG4CPLUS_FATAL(logger, "IRQ set from an unrecognized slot!  Crate " << myCrate->number() << " slot " << dec << (errorData[1] & 0x1f) << " error data " << hex << setw(2) << setfill('0') << (int) errorData[1] << setw(2) << setfill('0') << (int) errorData[0]);
 			continue;
 		}
 
@@ -384,13 +385,13 @@ void *IRQThreadManager::IRQThread(void *data)
 
 		// Check to see if any of the fibers are troublesome and mask them out
 		std::vector<IRQError *> errorVector = locdata->errorVectors[myCrate];
-		unsigned int killedFibers = myDDU->ddu_rdkillfiber();
-		LOG4CPLUS_DEBUG(logger, "Checking for problem fibers in crate " << myCrate->number() << " slot " << myDDU->slot());
+		unsigned int liveFibers = myDDU->ddu_rdkillfiber();
+		//LOG4CPLUS_DEBUG(logger, "Checking for problem fibers in crate " << myCrate->number() << " slot " << myDDU->slot());
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			LOG4CPLUS_DEBUG(logger, "Fiber " << iFiber);
 			// Skip it if it is already killed or if it didn't cause a problem
-			if (killedFibers & (1<<iFiber) || !(xorStatus & (1<<iFiber))) {
-				LOG4CPLUS_DEBUG(logger, "Fiber is either killed (killFiber " << killedFibers << ") or did not cause a problem (xorStatus " << xorStatus << ")");
+			if (!(liveFibers & (1<<iFiber)) || !(xorStatus & (1<<iFiber))) {
+				//LOG4CPLUS_DEBUG(logger, "Fiber is either killed (killFiber " << hex << liveFibers << ") or did not cause a problem (xorStatus " << hex << xorStatus << ")");
 				continue;
 			}
 			// Look through the history of problem fibers and count them
@@ -398,18 +399,20 @@ void *IRQThreadManager::IRQThread(void *data)
 			for (std::vector<IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
 				// Make sure it's the correct DDU
 				if ((*iError)->ddu != myDDU) {
-					LOG4CPLUS_DEBUG(logger, "This error had DDU " << (*iError)->ddu << " and mine is " << myDDU);
+					//LOG4CPLUS_DEBUG(logger, "This error had DDU " << (*iError)->ddu << " and mine is " << myDDU);
 					continue;
 				}
 				if ((*iError)->fibers & (1<<iFiber)) {
-					LOG4CPLUS_DEBUG(logger, "Problem detected, error fibers were " << (*iError)->fibers);
+					//LOG4CPLUS_DEBUG(logger, "Problem detected, error fibers were " << (*iError)->fibers);
 					problemCount++;
 				}
 			}
 			// If the threshold has been reached, DEATH!
 			if (problemCount >= 3) {
 				LOG4CPLUS_INFO(logger, "Fiber " << iFiber << " in crate " << myCrate->number() << " slot " << myDDU->slot() << " (RUI " << myCrate->getRUI(myDDU->slot()) << ", chamber " << myDDU->getChamber(iFiber)->name() << ") has set an error " << problemCount << " times, so it is being killed.");
-				myDDU->ddu_loadkillfiber(killedFibers & (1<<iFiber));
+				myDDU->ddu_loadkillfiber(liveFibers | (1<<iFiber));
+				// Forgot this last time...  oops.
+				liveFibers |= (1<<iFiber);
 				// Record the action taken.
 				ostringstream actionTaken;
 				actionTaken << "Fiber " << iFiber << " (" << myDDU->getChamber(iFiber)->name() << ") has been killed due to " << problemCount << " errors being set. ";
