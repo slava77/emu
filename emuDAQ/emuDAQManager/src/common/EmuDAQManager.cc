@@ -636,8 +636,8 @@ throw (xgi::exception::Exception)
     *out << "</td>"                                                   << endl;
     *out << "<td width=\"16\"/>"                                      << endl;
     *out << "<td>"                                                   << endl;
-    queryAppStates( dqmAppStates_ );
-    printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
+//     queryAppStates( dqmAppStates_ );
+//     printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
     *out << "</td>"                                                   << endl;
     *out << "</tr>"                                                   << endl;
     *out << "</table>"                                               << endl;
@@ -1330,8 +1330,8 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "</td>"                                                      << endl;
     *out << "<td width=\"16\"/>"                                         << endl;
     *out << "<td>"                                                       << endl;
-    queryAppStates( dqmAppStates_ );
-    printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
+//     queryAppStates( dqmAppStates_ );
+//     printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
     *out << "</td>"                                                      << endl;
     *out << "</tr>"                                                      << endl;
     *out << "</table>"                                                   << endl;
@@ -1346,7 +1346,7 @@ void EmuDAQManager::setParametersForGlobalMode(){
 //   runType_                = "Monitor";
 //   maxNumberOfEvents_      = -1;
 //   buildEvents_            = false;
-  controlDQM_             = true;
+  controlDQM_             = false;
   globalRunNumber_        = runNumber_.toString();
   isBookedRunNumber_      = true;
 }
@@ -4580,7 +4580,7 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable("TFConfigId"		   , &TFConfigId_                 );
   s->fireItemAvailable("CSCConfigId"               , &CSCConfigId_                );
   
-    controlDQM_ = true;
+    controlDQM_ = false;
     s->fireItemAvailable("controlDQM",&controlDQM_);
 
     daqState_ = "UNKNOWN";
