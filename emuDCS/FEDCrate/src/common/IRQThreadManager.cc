@@ -216,7 +216,8 @@ void *IRQThreadManager::IRQThread(void *data)
 				locdata->lastDDU[myCrate] = NULL;
 				lastError.clear();
 
-				// We don't know what status the SDSU register is in, so
+				/*
+				// We don't know what status the STFU register is in, so
 				//  broadcast STFU to everybody.
 				LOG4CPLUS_INFO(logger, "Broadcasting STFU to all DDUs in crate " << myCrate->number());
 				
@@ -226,6 +227,7 @@ void *IRQThreadManager::IRQThread(void *data)
 						(*iDDU)->vmepara_wr_fmmreg(0xFED0);
 					}
 				}
+				*/
 				
 				/*
 				locdata->countFMM[crateNumber] = 0;
@@ -344,7 +346,8 @@ void *IRQThreadManager::IRQThread(void *data)
 		myError->fibers = xorStatus;
 		
 		// Log all errors in persisting array...
-		for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
+		// PGK I am not so worried about DDU-only errors...
+		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (xorStatus & (1<<iFiber)) {
 				locdata->errorCount[myCrate]++;
 			}
@@ -404,17 +407,17 @@ void *IRQThreadManager::IRQThread(void *data)
 		}
 		
 		// Discover the error counts of the other crates.
-		unsigned long int totalErrors = 0;
+		unsigned long int totalChamberErrors = 0;
 		for (std::map<Crate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
 			if (iCount->first != myCrate) {
 				LOG4CPLUS_INFO(logger,"Crate " << iCount->first->number() << " reports " << iCount->second << " CSCs/DDUs in an error state.");
 			}
-			totalErrors += iCount->second;
+			totalChamberErrors += iCount->second;
 		}
 		
 		// Check if we have sufficient error conditions to reset.
-		if (totalErrors >= 2) {
-			LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this endcap is " << totalErrors);
+		if (totalChamberErrors > 2) {
+			LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this endcap is " << totalChamberErrors);
 			// Make a note of it in the error log.
 			ostringstream actionTaken;
 			actionTaken << "A resync has been requested for this endcap. ";
