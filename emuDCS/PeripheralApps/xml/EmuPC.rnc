@@ -9,8 +9,21 @@
 #    If nxml-mode doesn't exists, install it. Get it from
 #    http://www.thaiopensource.com/download/nxml-mode-20041004.tar.gz
 # 3) In nXML mode, go to the menu bar XML-->Set Schema-->File..., and select this file.
+#    Alternatively, create a ./schemas.xml file and write this into it (replace /path/to/EmuPC.rnc):
+#        <?xml version="1.0"?>
+#        <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+#          <default uri="/path/to/EmuPC.rnc"/>
+#        </locatingRules>
+#    All xml files will then be validated against this file by default.
 # 4) Toggle validation with C-c C-v
-# 5) When validation is on, errors are underlined. Move the cursor onto the underlined text to see the reason.
+# 5) When validation is on, errors are underlined. Move the cursor onto the underlined text to see the reason,
+#    or type C-c C-n to go to the next error.
+#
+#
+# It can also be used to validate on the command line. Do
+# $ validate yourPCconfig.xml
+#
+
 
 namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
 datatypes xsd = "http://www.w3.org/2001/XMLSchema-datatypes"
@@ -21,30 +34,48 @@ attlist.EmuSystem &=
    attribute date { text }?,
    attribute version { text }?
 PeripheralCrate =
-   element PeripheralCrate { attlist.PeripheralCrate, (CCB & MPC & CSC+) }
+   element PeripheralCrate { attlist.PeripheralCrate, (VCC & CCB & MPC & CSC+) }
 attlist.PeripheralCrate &=
    attribute crateID { xsd:unsignedInt },
-   attribute label { text },
-   attribute VMEaddress { xsd:string { pattern="[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}" } },
-   attribute port { xsd:unsignedInt }
+   attribute label { text }
+VCC = element VCC { attlist.VCC }
+attlist.VCC &= 
+    attribute eth_port { xsd:unsignedInt }, # TODO: types
+    attribute MAC_addr { xsd:string { pattern="[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}" } },
+    attribute MCAST_1 { xsd:string { pattern="[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}" } },
+    attribute MCAST_2 { xsd:string { pattern="[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}" } },
+    attribute MCAST_3 { xsd:string { pattern="[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}" } },
+    attribute Dflt_Srv_MAC { xsd:string { pattern="[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}" } },
+    attribute VCC_frmw_ver { text },
+    attribute Ethernet_CR { xsd:hexBinary },
+    attribute Ext_FIFO_CR { xsd:hexBinary },
+    attribute Rst_Misc_CR { xsd:hexBinary },
+    attribute VME_CR { xsd:hexBinary },
+    attribute BTO { xsd:hexBinary },
+    attribute BGTO { xsd:hexBinary },
+    attribute Msg_Lvl { xsd:unsignedInt },
+    attribute Warn_On_Shtdwn { xsd:boolean },
+    attribute Pkt_On_Startup { xsd:boolean }
 CCB = element CCB { attlist.CCB, empty }
 attlist.CCB &=
-  [ a:defaultValue = "13" ] attribute slot { string "13" }?,
-  attribute TTCrxID { xsd:unsignedInt }?,
-  attribute TTCrxCoarseDelay { xsd:unsignedInt },
-  attribute CCBmode { xsd:unsignedInt }?,
-  attribute TTCmode { xsd:unsignedInt }?
+   attribute ccb_firmware_month { xsd:unsignedByte { minInclusive="1" maxInclusive="12" } },
+   attribute ccb_firmware_day { xsd:unsignedByte { minInclusive="1" maxInclusive="31" } },
+   attribute ccb_firmware_year { xsd:gYear },
+   attribute TTCrxID { xsd:unsignedInt },
+   attribute TTCrxCoarseDelay { xsd:unsignedInt },
+   attribute TTCrxFineDelay { xsd:unsignedInt },
+   attribute CCBmode { xsd:unsignedInt },
+   attribute l1aDelay { xsd:unsignedInt }
 MPC = element MPC { attlist.MPC, empty }
 attlist.MPC &=
-   [ a:defaultValue = "12" ] attribute slot { xsd:unsignedInt "12" }?,
-   attribute BoardID { xsd:unsignedInt }?,
-   attribute TransparentMode { xsd:unsignedInt }?,
-   attribute serializermode { xsd:unsignedInt }?
+   attribute mpc_firmware_month { xsd:unsignedByte { minInclusive="1" maxInclusive="12" } },
+   attribute mpc_firmware_day { xsd:unsignedByte { minInclusive="1" maxInclusive="31" } },
+   attribute mpc_firmware_year { xsd:gYear },
+   attribute TransparentMode { xsd:unsignedInt },
+   attribute serializermode { xsd:unsignedInt }
 CSC = element CSC { attlist.CSC, TMB, DAQMB }
 attlist.CSC &=
-   attribute cscID { text }?,
-   attribute label { text },
-   attribute productionID { text }?
+   attribute label { text }
 TMB = element TMB { attlist.TMB, ALCT }
 attlist.TMB &=
    attribute slot { xsd:unsignedInt },
@@ -57,7 +88,7 @@ attlist.TMB &=
    attribute rat_firmware_month { xsd:unsignedByte { minInclusive="1" maxInclusive="12" } },
    attribute rat_firmware_day { xsd:unsignedByte { minInclusive="1" maxInclusive="31" } },
    attribute rat_firmware_year { xsd:gYear },
-   attribute triad_persistence { xsd:unsignedInt },
+   attribute clct_hit_persist { xsd:unsignedInt },
    attribute alct_tx_clock_delay { xsd:unsignedInt },
    attribute alct_rx_clock_delay { xsd:unsignedInt },
    attribute cfeb0delay { xsd:unsignedInt },
@@ -65,7 +96,6 @@ attlist.TMB &=
    attribute cfeb2delay { xsd:unsignedInt },
    attribute cfeb3delay { xsd:unsignedInt },
    attribute cfeb4delay { xsd:unsignedInt },
-   attribute dmb_tx_delay { xsd:unsignedInt }?,
    attribute layer_trig_enable { xsd:unsignedInt },
    attribute layer_trig_thresh { xsd:unsignedInt },
    attribute clct_pretrig_enable { xsd:unsignedInt },
@@ -80,16 +110,14 @@ attlist.TMB &=
    attribute mpc_rx_delay { xsd:unsignedInt },
    attribute tmb_l1a_delay { xsd:unsignedInt },
    attribute tmb_l1a_window_size { xsd:unsignedInt },
-   attribute clct_halfstrip_pretrig_thresh { xsd:unsignedInt },
-   attribute clct_distrip_pretrig_thresh { xsd:unsignedInt }?,
-   attribute clct_pattern_thresh { xsd:unsignedInt },
+   attribute clct_nplanes_hit_pretrig { xsd:unsignedInt },
+   attribute clct_nplanes_hit_pattern { xsd:unsignedInt },
    attribute clct_drift_delay { xsd:unsignedInt },
    attribute tmb_l1a_offset { xsd:unsignedInt },
-   attribute tmb_fifo_pretrig { xsd:unsignedInt },
-   attribute tmb_fifo_tbins { xsd:unsignedInt },
+   attribute clct_fifo_pretrig { xsd:unsignedInt },
+   attribute clct_fifo_tbins { xsd:unsignedInt },
    attribute tmb_bxn_offset { xsd:unsignedInt },
    attribute rpc_bxn_offset { xsd:unsignedInt },
-   attribute shift_rpc { xsd:unsignedInt }?,
    attribute request_l1a { xsd:unsignedInt },
    attribute rat_tmb_delay { xsd:unsignedInt },
    attribute enable_alct_rx { xsd:unsignedInt },
@@ -98,20 +126,57 @@ attlist.TMB &=
    attribute alct_clear { xsd:unsignedInt },
    attribute enableCLCTInputs_reg42 { xsd:unsignedInt },
    attribute rpc0_rat_delay { xsd:unsignedInt },
-   attribute rpc1_rat_delay { xsd:unsignedInt },
    attribute ignore_ccb_startstop { xsd:unsignedInt },
    attribute clct_stagger { xsd:unsignedInt },
    attribute mpc_output_enable { xsd:unsignedInt },
-   attribute layer0_distrip_hot_channel_mask { xsd:hexBinary { length = "5" } },
-   attribute layer1_distrip_hot_channel_mask { xsd:hexBinary { length = "5" } },
-   attribute layer2_distrip_hot_channel_mask { xsd:hexBinary { length = "5" } },
-   attribute layer3_distrip_hot_channel_mask { xsd:hexBinary { length = "5" } },
-   attribute layer4_distrip_hot_channel_mask { xsd:hexBinary { length = "5" } },
-   attribute layer5_distrip_hot_channel_mask { xsd:hexBinary { length = "5" } }
-ALCT = element ALCT { attlist.ALCT, AnodeChannel+ }
+   attribute layer0_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
+   attribute layer1_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
+   attribute layer2_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
+   attribute layer3_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
+   attribute layer4_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
+   attribute layer5_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
+   attribute enable_alct_tx { xsd:unsignedInt }, # TODO: check types below
+   attribute cfeb_enable_source { xsd:unsignedInt },
+   attribute enableCLCTInputs_reg68 { xsd:unsignedInt },
+   attribute rpc_mask_all { xsd:unsignedInt },
+   attribute clct_ext_pretrig_enable { xsd:unsignedInt },
+   attribute match_pretrig_window_size { xsd:unsignedInt },
+   attribute match_pretrig_alct_delay { xsd:unsignedInt },
+   attribute write_buffer_required { xsd:unsignedInt },
+   attribute valid_clct_required { xsd:unsignedInt },
+   attribute l1a_allow_match { xsd:unsignedInt },
+   attribute l1a_allow_notmb { xsd:unsignedInt },
+   attribute l1a_allow_nol1a { xsd:unsignedInt },
+   attribute l1a_allow_alct_only { xsd:unsignedInt },
+   attribute rpc0_raw_delay { xsd:unsignedInt },
+   attribute rpc1_raw_delay { xsd:unsignedInt },
+   attribute rpc1_rat_delay { xsd:unsignedInt },
+   attribute dmb_tx_delay { xsd:unsignedInt },
+   attribute rpc_read_enable { xsd:unsignedInt },
+   attribute mpc_idle_blank { xsd:unsignedInt },
+   attribute mpc_sync_err_enable { xsd:unsignedInt },
+   attribute alct_clock_en_use_ccb { xsd:unsignedInt },
+   attribute all_cfeb_active { xsd:unsignedInt },
+   attribute clct_blanking { xsd:unsignedInt },
+   attribute clct_pid_thresh_pretrig { xsd:unsignedInt },
+   attribute aff_thresh { xsd:unsignedInt },
+   attribute clct_min_separation { xsd:unsignedInt },
+   attribute adjacent_cfeb_distance { xsd:unsignedInt },
+   attribute clct_throttle { xsd:unsignedInt },
+   attribute alct_bx0_delay { xsd:unsignedInt },
+   attribute clct_bx0_delay { xsd:unsignedInt },
+   attribute alct_bx0_enable { xsd:unsignedInt },
+   attribute rpc_fifo_tbins { xsd:unsignedInt },
+   attribute rpc_fifo_pretrig { xsd:unsignedInt },
+   attribute rpc_fifo_decouple { xsd:unsignedInt },
+   attribute write_buffer_autoclear { xsd:unsignedInt },
+   attribute write_buffer_continous_enable { xsd:unsignedInt },
+   attribute tmb_fifo_no_raw_hits { xsd:unsignedInt }
+
+ALCT = element ALCT { attlist.ALCT, AnodeChannel* }
 attlist.ALCT &=
    (( attribute chamber_type { "ME11" },
-      attribute alct_firmware_negative_positive { "n" | "p" },
+      attribute alct_firmware_negat_posit { "n" | "p" },
       attribute alct_firmware_backward_forward { "b" | "f" } ) 
     | 
       attribute chamber_type {
@@ -128,12 +193,12 @@ attlist.ALCT &=
    attribute alct_firmware_month { xsd:unsignedByte { minInclusive="1" maxInclusive="12" } },
    attribute alct_firmware_day { xsd:unsignedByte { minInclusive="1" maxInclusive="31" } },
    attribute alct_firmware_year { xsd:gYear },
-   attribute alct_pretrig_thresh { xsd:unsignedInt },
-   attribute alct_pattern_thresh { xsd:unsignedInt },
+   attribute alct_nplanes_hit_pretrig { xsd:unsignedInt },
+   attribute alct_nplanes_hit_pattern { xsd:unsignedInt },
    attribute alct_trig_mode { "0" | "1" | "2" | "3" },
    attribute alct_drift_delay { xsd:unsignedInt },
    attribute alct_l1a_delay { xsd:unsignedInt },
-   attribute alct_l1a_window_size { xsd:unsignedInt },
+   attribute alct_l1a_window_width { xsd:unsignedInt },
    attribute alct_l1a_offset { xsd:unsignedInt },
    attribute alct_fifo_pretrig { xsd:unsignedInt },
    attribute alct_fifo_tbins { xsd:unsignedInt },
@@ -142,26 +207,34 @@ attlist.ALCT &=
    attribute alct_l1a_internal { xsd:unsignedInt },
    attribute alct_ccb_enable { xsd:unsignedInt },
    attribute alct_accel_mode { xsd:unsignedInt },
-   attribute alct_bxn_offset { xsd:unsignedInt }
+   attribute alct_bxn_offset { xsd:unsignedInt },
+   attribute alct_send_empty { xsd:unsignedInt }, # TODO: check types below
+   attribute alct_nplanes_hit_accel_pretrig { xsd:unsignedInt },
+   attribute alct_nplanes_hit_accel_pattern { xsd:unsignedInt },
+   attribute alct_fifo_mode { xsd:unsignedInt },
+   attribute alct_inject_mode { xsd:unsignedInt },
+   attribute alct_config_in_readout { xsd:unsignedInt },
+   attribute alct_sn_select { xsd:unsignedInt },
+   attribute alct_testpulse_amplitude { xsd:unsignedInt },
+   attribute alct_testpulse_invert { "on" | "off" },
+   attribute alct_testpulse_direction { "strips" | "afebs" }
 AnodeChannel = element AnodeChannel { attlist.AnodeChannel, empty }
 attlist.AnodeChannel &=
-   attribute Number { xsd:unsignedInt },
+   attribute afeb_number { xsd:unsignedInt },
    attribute afeb_fine_delay { xsd:unsignedInt },
    attribute afeb_threshold { xsd:unsignedInt }
 DAQMB = element DAQMB { attlist.DAQMB, CFEB+ }
-attlist.DAQMB &= # TODO: ask Jianhui
+attlist.DAQMB &=
+   attribute dmb_cntl_firmware_tag { xsd:hexBinary },
+   attribute dmb_vme_firmware_tag { xsd:unsignedInt },
    attribute slot { xsd:unsignedInt },
    attribute set_comp_thresh { xsd:decimal },
-   attribute ALCT_dav_delay { xsd:unsignedInt }?,
-   attribute feb_dav_delay { xsd:unsignedInt }?,
-   attribute tmb_dav_delay { xsd:unsignedInt }?,
-   attribute l1acc_dav_delay { xsd:unsignedInt }?,
-   attribute push_dav_delay { xsd:unsignedInt }?,
    attribute cfeb_cable_delay { xsd:unsignedInt },
    attribute tmb_lct_cable_delay { xsd:unsignedInt },
    attribute cfeb_dav_cable_delay { xsd:unsignedInt },
    attribute alct_dav_cable_delay { xsd:unsignedInt },
    attribute xLatency { xsd:unsignedInt },
+   attribute xFineLatency { xsd:unsignedInt },
    attribute comp_timing { xsd:unsignedInt },
    attribute feb_clock_delay { xsd:unsignedInt },
    attribute calibration_LCT_delay { xsd:unsignedInt },
@@ -171,8 +244,16 @@ attlist.DAQMB &= # TODO: ask Jianhui
    attribute pul_dac_set { xsd:decimal },
    attribute inj_dac_set { xsd:decimal },
    attribute comp_mode { xsd:unsignedInt },
-   attribute crate_id { xsd:unsignedInt }?,
-   attribute pre_block_end { xsd:unsignedInt }
+   attribute pre_block_end { xsd:unsignedInt },
+   attribute kill_input { xsd:unsignedInt }
 CFEB = element CFEB { attlist.CFEB, empty }
-attlist.CFEB &= attribute Number { "0" | "1" | "2" | "3" | "4" }
+attlist.CFEB &= 
+   attribute cfeb_number { "0" | "1" | "2" | "3" | "4" },
+   attribute cfeb_firmware_tag { xsd:hexBinary }, # TODO: check types below
+   attribute kill_chip0 { xsd:hexBinary },
+   attribute kill_chip1 { xsd:hexBinary },
+   attribute kill_chip2 { xsd:hexBinary },
+   attribute kill_chip3 { xsd:hexBinary },
+   attribute kill_chip4 { xsd:hexBinary },
+   attribute kill_chip5 { xsd:hexBinary }
 start = EmuSystem
