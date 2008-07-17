@@ -647,9 +647,9 @@ void EmuFCrate::haltAction(toolbox::Event::Reference e)
 	soapConfigured_ = false;
 	soapLocal_ = false;
 
-	cout << "Is this were I die?" << endl;
+	//cout << "Is this were I die?" << endl;
 	TM->endThreads();
-	cout << "No" << endl;
+	//cout << "No" << endl;
 
 }
 
