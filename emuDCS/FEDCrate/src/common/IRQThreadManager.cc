@@ -410,9 +410,9 @@ void *IRQThreadManager::IRQThread(void *data)
 			// If the threshold has been reached, DEATH!
 			if (problemCount >= 3) {
 				LOG4CPLUS_INFO(logger, "Fiber " << iFiber << " in crate " << myCrate->number() << " slot " << myDDU->slot() << " (RUI " << myCrate->getRUI(myDDU->slot()) << ", chamber " << myDDU->getChamber(iFiber)->name() << ") has set an error " << problemCount << " times, so it is being killed.");
-				myDDU->ddu_loadkillfiber(liveFibers | (1<<iFiber));
 				// Forgot this last time...  oops.
-				liveFibers |= (1<<iFiber);
+				liveFibers &= ~(1<<iFiber); // Bit-foo!
+				myDDU->ddu_loadkillfiber(liveFibers);
 				// Record the action taken.
 				ostringstream actionTaken;
 				actionTaken << "Fiber " << iFiber << " (" << myDDU->getChamber(iFiber)->name() << ") has been killed due to " << problemCount << " errors being set. ";
