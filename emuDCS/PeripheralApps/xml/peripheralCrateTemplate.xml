@@ -211,7 +211,8 @@
              comp_mode="2" 
              pre_block_end="8"
              dmb_cntl_firmware_tag="4854903a"
-             dmb_vme_firmware_tag="1547">
+             dmb_vme_firmware_tag="1547"
+             kill_input="0">
         <CFEB cfeb_number="4"
               cfeb_firmware_tag="cfeb7b11" 
               kill_chip0="8052"
