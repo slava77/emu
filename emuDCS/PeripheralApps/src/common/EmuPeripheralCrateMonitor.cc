@@ -1177,9 +1177,13 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
 void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  int counter_idx[30]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                       10,11,12,16,17,18,19, 20,21,22,
-                       23,24,33};
+  //  int counter_idx[30]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+  //                       10,11,12,16,17,18,19, 20,21,22,
+  //                       23,24,33};
+  int counter_idx[23]={ 0 ,  2,  3,  4,  5,  8,  9, 10, 12, 13,
+			16, 25, 26, 27, 28, 30, 33, 34, 36, 39,
+			40, 47, 48};
+
   ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
   output << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -1568,41 +1572,102 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.clear();
     DCounterName.clear();
     OCounterName.clear();    
-
-    TCounterName.push_back( "ALCT: CRC error                                        "); // 0
-    TCounterName.push_back( "ALCT: LCT sent to TMB                                  ");
-    TCounterName.push_back( "ALCT: LCT received data error                          ");
-    TCounterName.push_back( "ALCT: L1A readout                                      ");
-    TCounterName.push_back( "CLCT: Pretrigger                                       ");
-    TCounterName.push_back( "CLCT: Pretrig but no wbuf available                    ");
-    TCounterName.push_back( "CLCT: Invalid pattern after drift                      ");
-    TCounterName.push_back( "CLCT: TMB matching rejected event                      ");
-    TCounterName.push_back( "TMB: CLCT,ALCT,or both trigger                         ");
-    TCounterName.push_back( "TMB: CLCT,ALCT,or both trigger, trig allowed, xmit MPC ");
-    TCounterName.push_back( "TMB: CLCT and ALCT matched in time                     "); // 10
-    TCounterName.push_back( "TMB: ALCT-only trigger                                 ");
-    TCounterName.push_back( "TMB: CLCT-only trigger                                 ");
-    TCounterName.push_back( "TMB: No trig pulse response (TMB internal logic check) ");
-    TCounterName.push_back( "TMB: No MPC transmission (TMB internal logic check)    ");
-    TCounterName.push_back( "TMB: No MPC response FF pulse (TMB internal logic ck)  ");
-    TCounterName.push_back( "TMB: MPC accepted LCT0                                 ");
-    TCounterName.push_back( "TMB: MPC accepted LCT1                                 ");
-    TCounterName.push_back( "L1A: L1A received                                      ");
-    TCounterName.push_back( "L1A: TMB triggered, TMB in L1A window                  ");
-    TCounterName.push_back( "L1A: L1A received, no TMB in window                    "); // 20
-    TCounterName.push_back( "L1A: TMB triggered, no L1A received                    ");
-    TCounterName.push_back( "L1A: TMB readout                                       ");
-    TCounterName.push_back( "CLCT: Triad skipped                                    ");
-    TCounterName.push_back( "TMB: Raw Hits Buffer Reset due to overflow             ");
-    TCounterName.push_back( "TMB: No ALCT in trigger                                ");
-    TCounterName.push_back( "TMB: One ALCT in trigger                               ");
-    TCounterName.push_back( "TMB: One CLCT in trigger                               ");
-    TCounterName.push_back( "TMB: Two ALCTs in trigger                              ");
-    TCounterName.push_back( "TMB: Two CLCTs in trigger                              ");
-    TCounterName.push_back( "TMB: ALCT0 copied to ALCT1 to make 2nd LCT             "); // 30
-    TCounterName.push_back( "TMB: CLCT0 copied to CLCT1 to make 2nd LCT             ");
-    TCounterName.push_back( "TMB: LCT1 has higher quality than LCT0 (ranking error) ");
-    TCounterName.push_back( "TMB: Time since last Hard Reset                        "); // 33
+    //
+    //
+    TCounterName.push_back( "ALCT: alct0 valid pattern flag received                 "); //0
+    //
+    TCounterName.push_back( "ALCT: alct1 valid pattern flag received                 ");
+    TCounterName.push_back( "ALCT: alct data structure error                         "); //2
+    TCounterName.push_back( "ALCT: raw hits readout                                  "); //3
+    TCounterName.push_back( "ALCT: raw hits readout - CRC error                      "); //4
+    TCounterName.push_back( "CLCT: Pretrigger                                        "); //5
+    //
+    TCounterName.push_back( "CLCT: Pretrigger discarded - no write buffer available  ");
+    TCounterName.push_back( "CLCT: Pretrigger discarded - no alct in window          ");
+    TCounterName.push_back( "CLCT: CLCT discarded, clct0 invalid pattern             "); //8
+    TCounterName.push_back( "CLCT: Bx pretrigger machine waited for triads           "); //9
+    TCounterName.push_back( "CLCT: clct0 sent to TMB matching section                "); //10
+    //
+    TCounterName.push_back( "CLCT: clct1 sent to TMB matching section                ");
+    TCounterName.push_back( "TMB:  TMB accepted alct*clct, alct-only, or clct-only   "); //12
+    TCounterName.push_back( "TMB:  TMB clct*alct matched trigger                     "); //13
+    TCounterName.push_back( "TMB:  TMB alct-only trigger                             ");
+    TCounterName.push_back( "TMB:  TMB clct-only trigger                             ");
+    //
+    TCounterName.push_back( "TMB:  TMB matching rejected event                       "); //16
+    TCounterName.push_back( "TMB:  TMB matching discarded an ALCT                    ");
+    TCounterName.push_back( "TMB:  TMB matching discarded a CLCT                     ");
+    TCounterName.push_back( "TMB:  Matching found no ALCT                            ");
+    TCounterName.push_back( "TMB:  Matching found no CLCT                            ");
+    //
+    TCounterName.push_back( "TMB:  Matching found one ALCT                           ");
+    TCounterName.push_back( "TMB:  Matching found one CLCT                           ");
+    TCounterName.push_back( "TMB:  Matching found two ALCTs                          ");
+    TCounterName.push_back( "TMB:  Matching found two CLCTs                          ");
+    TCounterName.push_back( "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           "); //25
+    //
+    TCounterName.push_back( "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           "); //26
+    TCounterName.push_back( "TMB:  LCT1 has higher quality than LCT0 (ranking error) "); //27
+    TCounterName.push_back( "TMB:  Transmitted LCT0 to MPC                           "); //28
+    TCounterName.push_back( "TMB:  Transmitted LCT1 to MPC                           ");
+    TCounterName.push_back( "TMB:  MPC accepted LCT0                                 "); //30
+    //
+    TCounterName.push_back( "TMB:  MPC accepted LCT1                                 ");
+    TCounterName.push_back( "TMB:  MPC rejected both LCT0 and LCT1                   ");
+    TCounterName.push_back( "L1A:  L1A received                                      "); //33
+    TCounterName.push_back( "L1A:  L1A received, TMB in L1A window                   "); //34
+    TCounterName.push_back( "L1A:  L1A received, no TMB in window                    ");
+    //
+    TCounterName.push_back( "L1A:  TMB triggered, no L1A in window                   "); //36
+    TCounterName.push_back( "L1A:  TMB readouts completed                            ");  
+    TCounterName.push_back( "STAT: CLCT Triads skipped                               "); 
+    TCounterName.push_back( "STAT: Raw hits buffer had to be reset                   "); //39
+    TCounterName.push_back( "STAT: TTC Resyncs received                              "); //40
+    //
+    TCounterName.push_back( "HDR:  Pretrigger counter                                ");
+    TCounterName.push_back( "HDR:  CLCT counter                                      ");
+    TCounterName.push_back( "HDR:  TMB trigger counter                               ");
+    TCounterName.push_back( "HDR:  ALCTs received counter                            ");
+    TCounterName.push_back( "HDR:  L1As received counter (12 bits)                   ");
+    //
+    TCounterName.push_back( "HDR:  Readout counter (12 bits)                         ");
+    TCounterName.push_back( "HDR:  Orbit counter                                     "); //47
+    TCounterName.push_back( "TMB: Time since last Hard Reset                         "); //48
+    //
+    //    TCounterName.push_back( "ALCT: CRC error                                        "); // 0
+    //    TCounterName.push_back( "ALCT: LCT sent to TMB                                  ");
+    //    TCounterName.push_back( "ALCT: LCT received data error                          ");
+    //    TCounterName.push_back( "ALCT: L1A readout                                      ");
+    //    TCounterName.push_back( "CLCT: Pretrigger                                       ");
+    //    TCounterName.push_back( "CLCT: Pretrig but no wbuf available                    ");
+    //    TCounterName.push_back( "CLCT: Invalid pattern after drift                      ");
+    //    TCounterName.push_back( "CLCT: TMB matching rejected event                      ");
+    //    TCounterName.push_back( "TMB: CLCT,ALCT,or both trigger                         ");
+    //    TCounterName.push_back( "TMB: CLCT,ALCT,or both trigger, trig allowed, xmit MPC ");
+    //    TCounterName.push_back( "TMB: CLCT and ALCT matched in time                     "); // 10
+    //    TCounterName.push_back( "TMB: ALCT-only trigger                                 ");
+    //    TCounterName.push_back( "TMB: CLCT-only trigger                                 ");
+    //    TCounterName.push_back( "TMB: No trig pulse response (TMB internal logic check) ");
+    //    TCounterName.push_back( "TMB: No MPC transmission (TMB internal logic check)    ");
+    //    TCounterName.push_back( "TMB: No MPC response FF pulse (TMB internal logic ck)  ");
+    //    TCounterName.push_back( "TMB: MPC accepted LCT0                                 ");
+    //    TCounterName.push_back( "TMB: MPC accepted LCT1                                 ");
+    //    TCounterName.push_back( "L1A: L1A received                                      ");
+    //    TCounterName.push_back( "L1A: TMB triggered, TMB in L1A window                  ");
+    //    TCounterName.push_back( "L1A: L1A received, no TMB in window                    "); // 20
+    //    TCounterName.push_back( "L1A: TMB triggered, no L1A received                    ");
+    //    TCounterName.push_back( "L1A: TMB readout                                       ");
+    //    TCounterName.push_back( "CLCT: Triad skipped                                    ");
+    //    TCounterName.push_back( "TMB: Raw Hits Buffer Reset due to overflow             ");
+    //    TCounterName.push_back( "TMB: No ALCT in trigger                                ");
+    //    TCounterName.push_back( "TMB: One ALCT in trigger                               ");
+    //    TCounterName.push_back( "TMB: One CLCT in trigger                               ");
+    //    TCounterName.push_back( "TMB: Two ALCTs in trigger                              ");
+    //    TCounterName.push_back( "TMB: Two CLCTs in trigger                              ");
+    //    TCounterName.push_back( "TMB: ALCT0 copied to ALCT1 to make 2nd LCT             "); // 30
+    //    TCounterName.push_back( "TMB: CLCT0 copied to CLCT1 to make 2nd LCT             ");
+    //    TCounterName.push_back( "TMB: LCT1 has higher quality than LCT0 (ranking error) ");
+    //    TCounterName.push_back( "TMB: Time since last Hard Reset                        "); // 33
 
     DCounterName.push_back( "L1A to LCT delay");  // 0
     DCounterName.push_back( "CFEB DAV delay  ");
