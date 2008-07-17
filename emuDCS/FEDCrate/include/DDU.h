@@ -394,7 +394,7 @@ public:
 		throw (FEDException);
 // 	void writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
 // 		throw (FEDException);
-	int readFlashSourceID()
+	int readFlashRUI()
 		throw (FEDException);
 // 	void writeFlashSourceID(int val)
 // 		throw (FEDException);

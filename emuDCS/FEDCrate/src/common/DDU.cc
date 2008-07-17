@@ -6159,7 +6159,7 @@ int i;
   sndbuf[0]=0xee; // low data byte
   sndbuf[1]=0xaa; // high data byte
   devdo(VMESERI,2,cmd,0,sndbuf,rcv_serial,0);
-  printf("Read from Flash Memory Page3 (DDU Board ID): ");
+  printf("Read from Flash Memory Page3 (DDU RUI): ");
   for(i=0;i<2;i++)printf("%02x",rcv_serial[i]&0xff);
   printf("\n");
   int brdnum=((rcv_serial[0]<<8)&0xff00)|(rcv_serial[1]&0x00ff);
@@ -6180,7 +6180,7 @@ int i;
   cmd[1]=0x0b; // cmd 0x0b is program page 3, 16 bits
   sndbuf[0]=0xde; // low data byte
   sndbuf[1]=0xfa; // high data byte
-  printf("Programming Flash Memory Page3 (DDU Board ID):  0x");
+  printf("Programming Flash Memory Page3 (DDU RUI):  0x");
   for(i=0;i<2;i++)printf("%02x",snd_serial[i]&0xff);
   printf("\n");
 // JG, sndbuf is ignored here, uses InReg0 instead:
@@ -6306,7 +6306,7 @@ int i;
   sndbuf[0]=0xee; // low data byte
   sndbuf[1]=0xaa; // high data byte
   devdo(VMESERI,2,cmd,0,sndbuf,rcv_serial,0);
-  printf("Read from Flash Memory Page7 (DDU Source ID): ");
+  printf("Read from Flash Memory Page7 (DDU Board ID): ");
   for(i=0;i<2;i++)printf("%02x",rcv_serial[i]&0xff);
   printf("\n");
   int sourceID=((rcv_serial[0]<<8)&0xff00)|(rcv_serial[1]&0x00ff);
@@ -6327,7 +6327,7 @@ int i;
   cmd[1]=0x0f; // cmd 0x0f is program page 7, 16 bits
   sndbuf[0]=0xde; // low data byte
   sndbuf[1]=0xfa; // high data byte
-  printf("Programming Flash Memory Page7 (DDU Source ID):  0x");
+  printf("Programming Flash Memory Page7 (DDU Board ID):  0x");
   for(i=0;i<2;i++)printf("%02x",snd_serial[i]&0xff);
   printf("\n");
 // JG, sndbuf is ignored here, uses InReg0 instead:
@@ -8205,7 +8205,7 @@ int DDU::readFlashKillFiber()
 int DDU::readFlashBoardID()
 	throw (FEDException)
 {
-	try { return readSerial(0x0304,16); }
+	try { return readSerial(0x0704,16); }
 	catch (FEDException &e) { throw; }
 }
 //
@@ -8272,10 +8272,10 @@ unsigned long int DDU::readFlashGbEFIFOThresholds()
 
 
 
-int DDU::readFlashSourceID()
+int DDU::readFlashRUI()
 	throw (FEDException)
 {
-	try { return readSerial(0x0704,16); }
+	try { return readSerial(0x0304,16); }
 	catch (FEDException &e) { throw; }
 }
 //

@@ -2109,7 +2109,7 @@ void EmuFCrateHyperDAQ::DDULoadFirmware(xgi::Input * in, xgi::Output * out )
 	if(prom==3)thisDDU->epromload("VMEPROM",VMEPROM,"MySVFFile.svf",1,cbrdnum);
 	if(prom==9)thisDDU->epromload("VMEPROM",VMEPROM,"MySVFFile.svf",1,cbrdnum);
 	if(prom==4||prom==5){
-		int brdnum=thisDDU->read_page7();
+		int brdnum=thisDDU->read_page3();
 		cbrdnum[0]=brdnum;
 	}
 	if(prom==4)thisDDU->epromload("DDUPROM0",DDUPROM0,"MySVFFile.svf",1,cbrdnum);
@@ -4710,7 +4710,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*(writableTable(1,2)->value) << writableTable[1]->makeForm("/" + getApplicationDescriptor()->getURN() + "/DDUTextLoad",cgiDDU,604) << endl;
 
 	*(writableTable(2,0)->value) << "Flash RUI Code";
-	*(writableTable(2,1)->value) << thisDDU->readFlashSourceID();
+	*(writableTable(2,1)->value) << thisDDU->readFlashRUI();
 	writableTable[2]->setClass("none");
 	// New Value...
 	*(writableTable(2,2)->value) << writableTable[2]->makeForm("/" + getApplicationDescriptor()->getURN() + "/DDUTextLoad",cgiDDU,605) << endl;
@@ -4901,7 +4901,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 			printf(" para_val 0x%04x \n",para_val);
 			thisDDU->vmepara_wr_inreg(para_val);
 			thisDDU->vmepara_rd_inreg0();
-			thisDDU->write_page7();
+			thisDDU->write_page3();
 			//      sleep(1);
 		}
 		if(val==606){
@@ -4915,7 +4915,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 			printf(" para_val %5d \n",para_val);
 			thisDDU->vmepara_wr_inreg(para_val);
 			thisDDU->vmepara_rd_inreg0();
-			thisDDU->write_page3();
+			thisDDU->write_page7();
 			//      sleep(1);
 		}
 
