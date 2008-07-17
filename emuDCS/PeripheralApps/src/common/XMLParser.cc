@@ -439,16 +439,16 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //if (fillInt("run_id",value)) { tmb_->SetRunId(value);   }
     //
     //0X70:
-    if (fillInt("triad_persistence"            ,value)) { tmb_->SetTriadPersistence(value); }
-    if (fillInt("clct_halfstrip_pretrig_thresh",value)) { tmb_->SetHsPretrigThresh(value);  }
-    if (fillInt("clct_pattern_thresh"          ,value)) { tmb_->SetMinHitsPattern(value);   }
-    if (fillInt("clct_drift_delay"             ,value)) { tmb_->SetDriftDelay(value);       }
+    if (fillInt("clct_hit_persist"        ,value)) { tmb_->SetTriadPersistence(value); }
+    if (fillInt("clct_nplanes_hit_pretrig",value)) { tmb_->SetHsPretrigThresh(value);  }
+    if (fillInt("clct_nplanes_hit_pattern",value)) { tmb_->SetMinHitsPattern(value);   }
+    if (fillInt("clct_drift_delay"        ,value)) { tmb_->SetDriftDelay(value);       }
     //if (fillInt("pretrigger_halt"              ,value)) { tmb_->SetPretriggerHalt(value);   }
     //
     //0X72
     if (fillInt("tmb_fifo_mode"       ,value)) { tmb_->SetFifoMode(value);      }
-    if (fillInt("tmb_fifo_tbins"      ,value)) { tmb_->SetFifoTbins(value);     }
-    if (fillInt("tmb_fifo_pretrig"    ,value)) { tmb_->SetFifoPreTrig(value);   }
+    if (fillInt("clct_fifo_tbins"     ,value)) { tmb_->SetFifoTbins(value);     }
+    if (fillInt("clct_fifo_pretrig"   ,value)) { tmb_->SetFifoPreTrig(value);   }
     if (fillInt("tmb_fifo_no_raw_hits",value)) { tmb_->SetFifoNoRawHits(value); }
     //
     //0X74:
@@ -529,14 +529,14 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("clct_throttle"    ,value)) { tmb_->SetClctThrottle(value);          }
     //
     //0XF4
-    if (fillInt("clct_blanking"         ,value)) { tmb_->SetClctBlanking(value);        }
-    if (fillInt("clct_stagger"          ,value)) { tmb_->SetClctStagger(value);         }
-    if (fillInt("clct_pattern_id_thresh",value)) { tmb_->SetClctPatternIdThresh(value); }
-    if (fillInt("aff_thresh"            ,value)) { tmb_->SetActiveFebFlagThresh(value); }
-    if (fillInt("adjacent_cfeb_distance",value)) { tmb_->SetAdjacentCfebDistance(value);}
+    if (fillInt("clct_blanking"          ,value)) { tmb_->SetClctBlanking(value);        }
+    if (fillInt("clct_stagger"           ,value)) { tmb_->SetClctStagger(value);         }
+    if (fillInt("clct_pid_thresh_pretrig",value)) { tmb_->SetClctPatternIdThresh(value); }
+    if (fillInt("aff_thresh"             ,value)) { tmb_->SetActiveFebFlagThresh(value); }
+    if (fillInt("adjacent_cfeb_distance" ,value)) { tmb_->SetAdjacentCfebDistance(value);}
     //
     //0XF6
-    if (fillInt("min_clct_separation",value)) { tmb_->SetMinClctSeparation(value); }
+    if (fillInt("clct_min_separation",value)) { tmb_->SetMinClctSeparation(value); }
     //
     //
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
@@ -591,19 +591,19 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
 	if (fillInt("alct_send_empty"     ,value)) { alct_->SetSendEmpty(value);              }
 	if (fillInt("alct_inject_mode"    ,value)) { alct_->SetInjectMode(value);             }
 	if (fillInt("alct_bxn_offset"     ,value)) { alct_->SetBxcOffset(value);              }
-	if (fillInt("alct_pretrig_thresh" ,value)) { alct_->SetPretrigNumberOfLayers(value);  }
+	if (fillInt("alct_nplanes_hit_pretrig" ,value)) { alct_->SetPretrigNumberOfLayers(value);  }
 	if (pNodeGlobal){
 	   if(got_alct_pretrig_thresh) alct_->SetPretrigNumberOfLayers(Global_alct_pretrig_thresh);
 	}
-	if (fillInt("alct_pattern_thresh"      ,value)) { alct_->SetPretrigNumberOfPattern(value);   }
-	if (fillInt("alct_accel_pretrig_thresh",value)) { alct_->SetAcceleratorPretrigThresh(value); }
-	if (fillInt("alct_accel_pattern_thresh",value)) { alct_->SetAcceleratorPatternThresh(value); }
+	if (fillInt("alct_nplanes_hit_pattern"      ,value)) { alct_->SetPretrigNumberOfPattern(value);   }
+	if (fillInt("alct_nplanes_hit_accel_pretrig",value)) { alct_->SetAcceleratorPretrigThresh(value); }
+	if (fillInt("alct_nplanes_hit_accel_pattern",value)) { alct_->SetAcceleratorPatternThresh(value); }
 	if (fillInt("alct_drift_delay"         ,value)) { alct_->SetDriftDelay(value);               }
 	if (fillInt("alct_fifo_tbins"          ,value)) { alct_->SetFifoTbins(value);                }
 	if (fillInt("alct_fifo_pretrig"        ,value)) { alct_->SetFifoPretrig(value);              }
 	if (fillInt("alct_fifo_mode"           ,value)) { alct_->SetFifoMode(value);                 }
 	if (fillInt("alct_l1a_delay"           ,value)) { alct_->SetL1aDelay(value);                 }
-	if (fillInt("alct_l1a_window_size"     ,value)) { alct_->SetL1aWindowSize(value);            }
+	if (fillInt("alct_l1a_window_width"     ,value)) { alct_->SetL1aWindowSize(value);            }
 	if (fillInt("alct_l1a_offset"          ,value)) { alct_->SetL1aOffset(value);                }
 	if (fillInt("alct_l1a_internal"        ,value)) { alct_->SetL1aInternal(value);	         }
 	if (fillInt("alct_ccb_enable"          ,value)) { alct_->SetCcbEnable(value);                }

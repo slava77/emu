@@ -37,14 +37,11 @@ foreach $parameter (@parameters) {
 #	print "in $section section....\n";
     }
 #
+#
 # TMB parameters...
     if ($section eq "tmb") {
-	$parameter =~ s/l1adelay/tmb_l1a_delay/;     #replace "l1adelay" with "tmb_l1a_delay"
 #
-	if (($parameter =~ m/l1a_window_size/) && 
-	    !($parameter =~ m/tmb_l1a_window_size/) ) {  # so we don't double replace something 
-	    $parameter =~ s/l1a_window_size/tmb_l1a_window_size/;
-	}
+	$parameter =~ s/l1adelay/tmb_l1a_delay/;     #replace "l1adelay" with "tmb_l1a_delay"
 #
 	$parameter =~ s/mpc_delay/mpc_rx_delay/;
 #
@@ -52,54 +49,68 @@ foreach $parameter (@parameters) {
 #
 	$parameter =~ s/alct_vpf_delay/match_trig_alct_delay/;
 #
-	$parameter =~ s/hs_pretrig_thresh/clct_halfstrip_pretrig_thresh/;
-#
-	$parameter =~ s/ds_pretrig_thresh/clct_distrip_pretrig_thresh/;
-#
-	$parameter =~ s/min_hits_pattern/clct_pattern_thresh/;
-#
 	$parameter =~ s/ALCT_input/enable_alct_rx/;
 #
+	$parameter =~ s/clct_pattern_id_thresh/clct_pid_thresh_pretrig/;
+#
+	$parameter =~ s/min_clct_separation/clct_min_separation/;
+#
+	$parameter =~ s/triad_persistence/clct_hit_persist/;
+#
 	$parameter =~ s/layer0_distrip_hot_channel_mask/layer0_distrip_hot_chann_mask/;
+#
 	$parameter =~ s/layer1_distrip_hot_channel_mask/layer1_distrip_hot_chann_mask/;
+#
 	$parameter =~ s/layer2_distrip_hot_channel_mask/layer2_distrip_hot_chann_mask/;
+#
 	$parameter =~ s/layer3_distrip_hot_channel_mask/layer3_distrip_hot_chann_mask/;
+#
 	$parameter =~ s/layer4_distrip_hot_channel_mask/layer4_distrip_hot_chann_mask/;
+#
 	$parameter =~ s/layer5_distrip_hot_channel_mask/layer5_distrip_hot_chann_mask/;
 #
-	if (($parameter =~ m/bxn_offset/) && 
-	    !($parameter =~ m/rpc_bxn_offset/) && 
-	    !($parameter =~ m/tmb_bxn_offset/) ) {
+# The following will replace either A (old) or B (recent update) with C (final update):
+	$parameter =~ s/hs_pretrig_thresh/clct_halfstrip_pretrig_thresh/;
+	$parameter =~ s/clct_halfstrip_pretrig_thresh/clct_nplanes_hit_pretrig/;
+#
+	$parameter =~ s/min_hits_pattern/clct_pattern_thresh/;
+	$parameter =~ s/clct_pattern_thresh/clct_nplanes_hit_pattern/;
+#
+# The following have the old name embedded in the new name.
+# Do it like this so that if we run the perl script twice over the same file, 
+# it will not replace the old name twice...
+	if (($parameter =~ m/l1a_window_size/) && !($parameter =~ m/tmb_l1a_window_size/) ) {  
+	    $parameter =~ s/l1a_window_size/tmb_l1a_window_size/;
+	}
+#
+	if (($parameter =~ m/bxn_offset/) && !($parameter =~ m/rpc_bxn_offset/) && !($parameter =~ m/tmb_bxn_offset/) ) {
 	    $parameter =~ s/bxn_offset/tmb_bxn_offset/;
 	}
 #
-	if (($parameter =~ m/enableCLCTInputs/) && 
-	    !($parameter =~ m/enableCLCTInputs_reg42/) &&
-	    !($parameter =~ m/enableCLCTInputs_reg68/) ) { 
+	if (($parameter =~ m/enableCLCTInputs/) && !($parameter =~ m/enableCLCTInputs_reg42/) && !($parameter =~ m/enableCLCTInputs_reg68/) ) { 
 	    $parameter =~ s/enableCLCTInputs/enableCLCTInputs_reg42/;
 	}
 #
-	if (($parameter =~ m/fifo_mode/) && 
-	    !($parameter =~ m/tmb_fifo_mode/) ) { 
+	if (($parameter =~ m/fifo_mode/) && !($parameter =~ m/tmb_fifo_mode/) ) { 
 	    $parameter =~ s/fifo_mode/tmb_fifo_mode/;
 	}
 #
-	if (($parameter =~ m/fifo_pretrig/) && 
-	    !($parameter =~ m/tmb_fifo_pretrig/) ) { 
-	    $parameter =~ s/fifo_pretrig/tmb_fifo_pretrig/;
-	}
-#
-	if (($parameter =~ m/fifo_tbins/) && 
-	    !($parameter =~ m/tmb_fifo_tbins/) ) { 
-	    $parameter =~ s/fifo_tbins/tmb_fifo_tbins/;
-	}
-#
-	if (($parameter =~ m/l1a_offset/) && 
-	    !($parameter =~ m/tmb_l1a_offset/) ) { 
+	if (($parameter =~ m/l1a_offset/) && !($parameter =~ m/tmb_l1a_offset/) ) { 
 	    $parameter =~ s/l1a_offset/tmb_l1a_offset/;
 	}
 #
-# buried TMB bits in xml "trgmode" parameter...
+# The following have A or B replaced with C, where A is embedded into B and C
+	if (($parameter =~ m/fifo_pretrig/) && !($parameter =~ m/tmb_fifo_pretrig/) && !($parameter =~ m/clct_fifo_pretrig/) && !($parameter =~ m/rpc_fifo_pretrig/) ) { 
+	    $parameter =~ s/fifo_pretrig/tmb_fifo_pretrig/;
+	}
+	$parameter =~ s/tmb_fifo_pretrig/clct_fifo_pretrig/;
+#
+	if (($parameter =~ m/fifo_tbins/) && !($parameter =~ m/tmb_fifo_tbins/) && !($parameter =~ m/clct_fifo_tbins/) && !($parameter =~ m/rpc_fifo_tbins/)) { 
+	    $parameter =~ s/fifo_tbins/tmb_fifo_tbins/;
+	}
+	$parameter =~ s/tmb_fifo_tbins/clct_fifo_tbins/;
+#
+# The following is exploding trgmode into its component bits...
 	$parameter =~ s/trgmode=\"5\"/clct_pretrig_enable=\"0\"\n          alct_pretrig_enable=\"0\"\n          match_pretrig_enable=\"1\"\n          clct_trig_enable=\"0\"\n          alct_trig_enable=\"0\"\n          match_trig_enable=\"1\"/;
 #
 	$parameter =~ s/trgmode=\"1\"/clct_pretrig_enable=\"1\"\n          alct_pretrig_enable=\"0\"\n          match_pretrig_enable=\"0\"\n          clct_trig_enable=\"1\"\n          alct_trig_enable=\"0\"\n          match_trig_enable=\"1\"/;
@@ -108,86 +119,82 @@ foreach $parameter (@parameters) {
 #
     }
 #
+#
 # ALCT parameters...
 # doing it in an if statement prevents names which have just been replaced in the
 # TMB section from being replaced again in the ALCT section...
     if ($section eq "alct") {
 #
-	if (($parameter =~ m/trig_mode/) && 
-	    !($parameter =~ m/alct_trig_mode/) ) { 
-	    $parameter =~ s/trig_mode/alct_trig_mode/;
-	}
-#
-	if (($parameter =~ m/ext_trig_en/) && 
-	    !($parameter =~ m/alct_ext_trig_enable/) ) { 
-	    $parameter =~ s/ext_trig_en/alct_ext_trig_enable/;
-	}
-#
-	if (($parameter =~ m/trig_info_en/) && 
-	    !($parameter =~ m/alct_trig_info_en/) ) { 
-	    $parameter =~ s/trig_info_en/alct_trig_info_en/;
-	}
-#
-	if (($parameter =~ m/l1a_internal/) && 
-	    !($parameter =~ m/alct_l1a_internal/) ) { 
-	    $parameter =~ s/l1a_internal/alct_l1a_internal/;
-	}
-#
-	if (($parameter =~ m/l1a_window/) && 
-	    !($parameter =~ m/alct_l1a_window_size/) ) { 
-	    $parameter =~ s/l1a_window/alct_l1a_window_size/;
-	}
-#
-	$parameter =~ s/nph_thresh/alct_pretrig_thresh/;
-#
-	$parameter =~ s/nph_pattern/alct_pattern_thresh/;
-#
-	if (($parameter =~ m/ccb_enable/) && 
-	    !($parameter =~ m/alct_ccb_enable/) ) { 
-	    $parameter =~ s/ccb_enable/alct_ccb_enable/;
-	}
-#
 	$parameter =~ s/amode/alct_accel_mode/;
 #
 	$parameter =~ s/bxc_offset/alct_bxn_offset/;
 #
-	if (($parameter =~ m/l1a_delay/) && 
-	    !($parameter =~ m/alct_l1a_delay/) ) { 
+	$parameter =~ s/Number/afeb_number/;
+#
+	$parameter =~ s/alct_firmware_negative_positive/alct_firmware_negat_posit/;
+#
+	$parameter =~ s/alct_accel_pretrig_thresh/alct_nplanes_hit_accel_pretrig/;
+#
+	$parameter =~ s/alct_accel_pattern_thresh/alct_nplanes_hit_accel_pattern/;
+#
+	$parameter =~ s/nph_thresh/alct_pretrig_thresh/;
+	$parameter =~ s/alct_pretrig_thresh/alct_nplanes_hit_pretrig/;
+#
+	$parameter =~ s/nph_pattern/alct_pattern_thresh/;
+	$parameter =~ s/alct_pattern_thresh/alct_nplanes_hit_pattern/;
+#
+	if (($parameter =~ m/trig_mode/) && !($parameter =~ m/alct_trig_mode/) ) { 
+	    $parameter =~ s/trig_mode/alct_trig_mode/;
+	}
+#
+	if (($parameter =~ m/ext_trig_en/) && !($parameter =~ m/alct_ext_trig_enable/) ) { 
+	    $parameter =~ s/ext_trig_en/alct_ext_trig_enable/;
+	}
+#
+	if (($parameter =~ m/trig_info_en/) && !($parameter =~ m/alct_trig_info_en/) ) { 
+	    $parameter =~ s/trig_info_en/alct_trig_info_en/;
+	}
+#
+	if (($parameter =~ m/l1a_internal/) && !($parameter =~ m/alct_l1a_internal/) ) { 
+	    $parameter =~ s/l1a_internal/alct_l1a_internal/;
+	}
+#
+	if (($parameter =~ m/l1a_window/) && !($parameter =~ m/alct_l1a_window_size/) && !($parameter =~ m/alct_l1a_window_width/) ) { 
+	    $parameter =~ s/l1a_window/alct_l1a_window_size/;
+	}
+	$parameter =~ s/alct_l1a_window_size/alct_l1a_window_width/;
+#
+	if (($parameter =~ m/ccb_enable/) && !($parameter =~ m/alct_ccb_enable/) ) { 
+	    $parameter =~ s/ccb_enable/alct_ccb_enable/;
+	}
+#
+	if (($parameter =~ m/l1a_delay/) && !($parameter =~ m/alct_l1a_delay/) ) { 
 	    $parameter =~ s/l1a_delay/alct_l1a_delay/;
 	}
 #
-	if (($parameter =~ m/fifo_pretrig/) && 
-	    !($parameter =~ m/alct_fifo_pretrig/) ) { 
+	if (($parameter =~ m/fifo_pretrig/) && !($parameter =~ m/alct_fifo_pretrig/) ) { 
 	    $parameter =~ s/fifo_pretrig/alct_fifo_pretrig/;
 	}
 #
-	if (($parameter =~ m/fifo_tbins/) && 
-	    !($parameter =~ m/alct_fifo_tbins/) ) { 
+	if (($parameter =~ m/fifo_tbins/) && !($parameter =~ m/alct_fifo_tbins/) ) { 
 	    $parameter =~ s/fifo_tbins/alct_fifo_tbins/;
 	}
 #
-	if (($parameter =~ m/l1a_offset/) && 
-	    !($parameter =~ m/alct_l1a_offset/) ) { 
+	if (($parameter =~ m/l1a_offset/) && !($parameter =~ m/alct_l1a_offset/) ) { 
 	    $parameter =~ s/l1a_offset/alct_l1a_offset/;
 	}
 #
-	if (($parameter =~ m/delay/) && 
-	    !($parameter =~ m/rpc0_rat_delay/) && 
-	    !($parameter =~ m/alct_drift_delay/) && 
-	    !($parameter =~ m/afeb_fine_delay/) && 
+	if (($parameter =~ m/delay/) && !($parameter =~ m/rpc0_rat_delay/) && 
+	    !($parameter =~ m/alct_drift_delay/) && !($parameter =~ m/afeb_fine_delay/) && 
 	    !($parameter =~ m/alct_l1a_delay/) ) { 
 	    $parameter =~ s/delay/afeb_fine_delay/;
 	}
 #
-	if (($parameter =~ m/threshold/) && 
-	    !($parameter =~ m/afeb_threshold/) ) { 
+	if (($parameter =~ m/threshold/) && !($parameter =~ m/afeb_threshold/) ) { 
 	    $parameter =~ s/threshold/afeb_threshold/;
 	}
-#
-	$parameter =~ s/Number/afeb_number/;
-#
-	$parameter =~ s/alct_firmware_negative_positive/alct_firmware_negat_posit/;
     }
+#
 #
 # DMB parameters...
     if ($section eq "dmb") {
