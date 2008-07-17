@@ -643,11 +643,13 @@ void EmuFCrate::haltAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Halt");
-	cout << "Received Message Halt" << endl ;
+	cout << "Received Message Halt" << endl;
 	soapConfigured_ = false;
 	soapLocal_ = false;
 
+	cout << "Is this were I die?" << endl;
 	TM->endThreads();
+	cout << "No" << endl;
 
 }
 
