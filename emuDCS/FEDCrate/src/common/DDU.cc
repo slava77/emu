@@ -7936,31 +7936,31 @@ int DDU::readParallel(int command)
 
 	return ((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0xff);
 }
-//
-//
-//
-// void DDU::writeParallel(int command, int val)
-// 	throw (FEDException)
-// {
-// 	cmd[0]=(command&0x00ff);
-// 	cmd[1]=(command&0xff00) >> 8;
-//
-// 	sndbuf[0]=(val&0x00ff);
-// 	sndbuf[1]=(val&0xff00) >> 8;
-//
-// 	// Parallel writes are all 16-bit, so garbage the rest
-// 	//srand( time(NULL) );
-// 	for (int i = 2; i <= 7; i++) {
-// 		//sndbuf[i]=rand() % 256;
-// 		sndbuf[i] = 0;
-// 	}
-// 	rcvbuf[0]=0;
-// 	rcvbuf[1]=0;
-// 	rcvbuf[2]=0;
-// 	rcvbuf[3]=0;
-//
-// 	devdo(VMEPARA,1,cmd,0,sndbuf,rcvbuf,2);
-// }
+
+
+
+void DDU::writeParallel(int command, int val)
+	throw (FEDException)
+{
+	cmd[0]=(command&0x00ff);
+	cmd[1]=(command&0xff00) >> 8;
+
+	sndbuf[0]=(val&0x00ff);
+	sndbuf[1]=(val&0xff00) >> 8;
+
+	// Parallel writes are all 16-bit, so garbage the rest
+	//srand( time(NULL) );
+	for (int i = 2; i <= 7; i++) {
+		//sndbuf[i]=rand() % 256;
+		sndbuf[i] = 0;
+	}
+	rcvbuf[0]=0;
+	rcvbuf[1]=0;
+	rcvbuf[2]=0;
+	rcvbuf[3]=0;
+
+	devdo(VMEPARA,1,cmd,0,sndbuf,rcvbuf,2);
+}
 
 
 
@@ -8045,15 +8045,15 @@ int DDU::readInputReg(int iReg)
 	try { return readParallel(0x0008 | (iReg << 8)); }
 	catch (FEDException &e) { throw; }
 }
-//
-//
-//
-// void DDU::writeInputReg(int val)
-// 	throw (FEDException)
-// {
-// 	try { writeParallel(0x8008, val); }
-// 	catch (FEDException &e) { throw; }
-// }
+
+
+
+void DDU::writeInputReg(int val)
+	throw (FEDException)
+{
+	try { writeParallel(0x8008, val); }
+	catch (FEDException &e) { throw; }
+}
 //
 //
 //
@@ -8152,23 +8152,17 @@ unsigned long int DDU::readSerial(int command, const unsigned int nbits = 16)
 
 
 
-// void DDU::writeSerial(int command, int val1, int val2 = 0, int val3 = 0, int val4 = 0)
-// 	throw (FEDException)
-// {
-// 	cmd[0] = command&0x00ff;
-// 	cmd[1] = (command&0xff00) >> 8;
-// 	sndbuf[0] = val1&0x00ff;
-// 	sndbuf[1] = (val1&0xff00) >> 8;
-// 	sndbuf[2] = val2&0x00ff;
-// 	sndbuf[3] = (val2&0xff00) >> 8;
-// 	sndbuf[4] = val3&0x00ff;
-// 	sndbuf[5] = (val3&0xff00) >> 8;
-// 	sndbuf[6] = val4&0x00ff;
-// 	sndbuf[7] = (val4&0xff00) >> 8;
-//
-// 	devdo(VMESERI,2,cmd,0,sndbuf,rcvbuf,0);
-// 	usleep(20000);
-// }
+void DDU::writeSerial(int command)
+	throw (FEDException)
+{
+	// load writes into the inreg before calling this...
+
+	cmd[0] = command&0x00ff;
+	cmd[1] = (command&0xff00) >> 8;
+
+	devdo(VMESERI,2,cmd,0,sndbuf,rcvbuf,0);
+	usleep(20000);
+}
 
 
 
@@ -8187,40 +8181,40 @@ int DDU::readFlashKillFiber()
 	try { return readSerial(0x0104,16); }
 	catch (FEDException &e) { throw; }
 }
-//
-//
-//
-// void DDU::writeFlashKillFiber(int val)
-// 	throw (FEDException)
-// {
-// 	try {
-// 		writeInputReg(val);
-// 		writeSerial(0x0904,val);
-// 	}
-// 	catch (FEDException &e) { throw; }
-// }
+
+
+
+void DDU::writeFlashKillFiber(int val)
+	throw (FEDException)
+{
+	try {
+		writeInputReg(val);
+		writeSerial(0x0904);
+	}
+	catch (FEDException &e) { throw; }
+}
 
 
 
 int DDU::readFlashBoardID()
 	throw (FEDException)
 {
-	try { return readSerial(0x0304,16); }
+	try { return readSerial(0x0704,16); }
 	catch (FEDException &e) { throw; }
 }
-//
-//
-//
-// void DDU::writeFlashBoardID(int val)
-// 	throw (FEDException)
-// {
-// 	try {
-// 		writeInputReg(val);
-// 		writeSerial(0x0b04,val);
-// 	}
-// 	catch (FEDException &e) { throw; }
-// 	return;
-// }
+
+
+
+void DDU::writeFlashBoardID(int val)
+	throw (FEDException)
+{
+	try {
+		writeInputReg(val);
+		writeSerial(0x0f04);
+	}
+	catch (FEDException &e) { throw; }
+	return;
+}
 //
 //
 //
@@ -8255,41 +8249,41 @@ unsigned long int DDU::readFlashGbEFIFOThresholds()
 	try { return readSerial(0x0504,32); }
 	catch (FEDException &e) { throw; }
 }
-//
-//
-//
-// void DDU::writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
-// 	throw (FEDException)
-// {
-// 	try {
-// 		writeInputReg(val3);
-// 		writeInputReg(val2);
-// 		writeInputReg(val1);
-// 		writeSerial(0x0d04,val1, val2, val3);
-// 	}
-// 	catch (FEDException &e) { throw; }
-// }
+
+
+
+void DDU::writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
+	throw (FEDException)
+{
+	try {
+		writeInputReg(val3);
+		writeInputReg(val2);
+		writeInputReg(val1);
+		writeSerial(0x0d04);
+	}
+	catch (FEDException &e) { throw; }
+}
 
 
 
 int DDU::readFlashRUI()
 	throw (FEDException)
 {
-	try { return readSerial(0x0704,16); }
+	try { return readSerial(0x0304,16); }
 	catch (FEDException &e) { throw; }
 }
-//
-//
-//
-// void DDU::writeFlashSourceID(int val)
-// 	throw (FEDException)
-// {
-// 	try {
-// 		writeInputReg(val);
-// 		writeSerial(0x0f04,val);
-// 	}
-// 	catch (FEDException &e) { throw; }
-// }
+
+
+
+void DDU::writeFlashRUI(int val)
+	throw (FEDException)
+{
+	try {
+		writeInputReg(val);
+		writeSerial(0x0b04);
+	}
+	catch (FEDException &e) { throw; }
+}
 //
 //
 //

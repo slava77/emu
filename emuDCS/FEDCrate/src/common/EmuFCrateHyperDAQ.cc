@@ -4866,9 +4866,11 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 			para_val=thisDDU->snd_serial[0]&0xff;
 			if(thisDDU->snd_serial[1]&0xff)para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
 			printf(" para_val %04x \n",para_val);
-			thisDDU->vmepara_wr_inreg(para_val);
-			thisDDU->vmepara_rd_inreg0();
-			thisDDU->write_page1();
+			//thisDDU->vmepara_wr_inreg(para_val);
+			//thisDDU->vmepara_rd_inreg0();
+			//thisDDU->write_page1();
+			//thisDDU->writeInputReg(para_val);
+			thisDDU->writeFlashKillFiber(para_val);
 			// sleep(1);
 		}
 		if(val==604){
@@ -4899,9 +4901,10 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 			para_val=pdec&0x00000fff;
 			// if(thisDDU->snd_serial[1]&0xff)para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
 			printf(" para_val 0x%04x \n",para_val);
-			thisDDU->vmepara_wr_inreg(para_val);
-			thisDDU->vmepara_rd_inreg0();
-			thisDDU->write_page3();
+			//thisDDU->vmepara_wr_inreg(para_val);
+			//thisDDU->vmepara_rd_inreg0();
+			//thisDDU->write_page7();
+			thisDDU->writeFlashBoardID(para_val);
 			//      sleep(1);
 		}
 		if(val==606){
@@ -4913,9 +4916,10 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 			para_val=pdec&0x00007fff;
 			// if(thisDDU->snd_serial[1]&0xff)para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
 			printf(" para_val %5d \n",para_val);
-			thisDDU->vmepara_wr_inreg(para_val);
-			thisDDU->vmepara_rd_inreg0();
-			thisDDU->write_page7();
+			//thisDDU->vmepara_wr_inreg(para_val);
+			//thisDDU->vmepara_rd_inreg0();
+			//thisDDU->write_page7();
+			thisDDU->writeFlashRUI(para_val);
 			//      sleep(1);
 		}
 

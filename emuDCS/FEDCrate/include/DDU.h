@@ -309,8 +309,8 @@ public:
 	// PGK Failed attempt at simplified VME parallel
 	int readParallel(int command)
 		throw (FEDException);
-// 	void writeParallel(int command, int var)
-// 		throw (FEDException);
+	void writeParallel(int command, int var)
+		throw (FEDException);
 
 	int readFMMBusy()
 		throw (FEDException);
@@ -332,8 +332,8 @@ public:
 		throw (FEDException);
 	int readInputReg(int iReg)
 		throw (FEDException);
-// 	void writeInputReg(int val)
-// 		throw (FEDException);
+	void writeInputReg(int val)
+		throw (FEDException);
 	int readFakeL1Reg()
 		throw (FEDException);
 // 	void writeFakeL1Reg(int val)
@@ -373,31 +373,31 @@ public:
 	// PGK Failed attempt at simplified VME serial
 	unsigned long int readSerial(int command, const unsigned int nbits)
 		throw (FEDException);
-// 	void writeSerial(int command, int val1, int val2, int val3, int val4)
-// 		throw (FEDException);
+	void writeSerial(int command)
+		throw (FEDException);
 
 	char readSerialStat()
 		throw (FEDException);
 	int readFlashKillFiber()
 		throw (FEDException);
-// 	void writeFlashKillFiber(int val)
-// 		throw (FEDException);
+	void writeFlashKillFiber(int val)
+		throw (FEDException);
 	int readFlashBoardID()
 		throw (FEDException);
-// 	void writeFlashBoardID(int val)
-// 		throw (FEDException);
+	void writeFlashBoardID(int val)
+		throw (FEDException);
 // 	unsigned long int readFlashInFIFOThresholds()
 // 		throw (FEDException);
 // 	void writeFlashInFIFOThresholds(unsigned long int val)
 // 		throw (FEDException);
 	unsigned long int readFlashGbEFIFOThresholds()
 		throw (FEDException);
-// 	void writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
-// 		throw (FEDException);
+	void writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
+		throw (FEDException);
 	int readFlashRUI()
 		throw (FEDException);
-// 	void writeFlashSourceID(int val)
-// 		throw (FEDException);
+	void writeFlashRUI(int val)
+		throw (FEDException);
 // 	unsigned long int readInFIFOThreshold(int iFifo)
 // 		throw (FEDException);
 // 	void forceLoadFIFOsFromFlash()

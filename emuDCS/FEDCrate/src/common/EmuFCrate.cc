@@ -420,8 +420,8 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				//cout << "... reflashing killFiber register ..." << endl;
 				LOG4CPLUS_INFO(getApplicationLogger(),"Flash and XML killFiber disagree:  reloading flash");
 				//(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0x7fff);
-				(*iDDU)->vmepara_wr_inreg(xmlKillFiber & 0x7fff);
-				(*iDDU)->write_page1();
+				//(*iDDU)->writeInputReg(xmlKillFiber & 0x7fff);
+				(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0x7fff);
 			}
 			if (fpgaKillFiber != xmlKillFiber) {
 				//cout << "... reloading FPGA killFiber register ..." << endl;
@@ -439,15 +439,15 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 			// Now we should check if the RUI matches the flash value and
 			//  update it as needed.
-			int flashRUI = (*iDDU)->read_page7();
+			int flashRUI = (*iDDU)->readFlashRUI();
 			int targetRUI = (*iCrate)->getRUI((*iDDU)->slot());
 
 			LOG4CPLUS_DEBUG(getApplicationLogger(),"RUI: flash(" << flashRUI << ") calculated(" << targetRUI << ")");
 			
 			if (flashRUI != targetRUI) {
 				LOG4CPLUS_INFO(getApplicationLogger(),"Flash and calculated RUI disagree:  reloading flash");
-				(*iDDU)->vmepara_wr_inreg(targetRUI);
-				(*iDDU)->write_page7();
+				//(*iDDU)->writeInputReg(targetRUI);
+				(*iDDU)->writeFlashRUI(targetRUI);
 			}
 		}
 	}
