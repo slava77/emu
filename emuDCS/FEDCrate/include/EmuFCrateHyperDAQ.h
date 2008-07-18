@@ -302,6 +302,13 @@ public:
 	*	@author Phillip Killewald
 	**/
 	void webRedirect(xgi::Output *out, string location = "");
+
+	/** My patented Select-a-crate/board
+	*
+	*	@author Phillip Killewald
+	**/
+	std::string selectACrate(std::string location, std::string what, unsigned int index);
+
 };
 
 #endif
