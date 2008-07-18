@@ -8199,7 +8199,7 @@ void DDU::writeFlashKillFiber(int val)
 int DDU::readFlashBoardID()
 	throw (FEDException)
 {
-	try { return readSerial(0x0704,16); }
+	try { return readSerial(0x0304,16); }
 	catch (FEDException &e) { throw; }
 }
 
@@ -8210,7 +8210,7 @@ void DDU::writeFlashBoardID(int val)
 {
 	try {
 		writeInputReg(val);
-		writeSerial(0x0f04);
+		writeSerial(0x0b04);
 	}
 	catch (FEDException &e) { throw; }
 	return;
@@ -8269,7 +8269,7 @@ void DDU::writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
 int DDU::readFlashRUI()
 	throw (FEDException)
 {
-	try { return readSerial(0x0304,16); }
+	try { return readSerial(0x0704,16); }
 	catch (FEDException &e) { throw; }
 }
 
@@ -8280,7 +8280,7 @@ void DDU::writeFlashRUI(int val)
 {
 	try {
 		writeInputReg(val);
-		writeSerial(0x0b04);
+		writeSerial(0x0f04);
 	}
 	catch (FEDException &e) { throw; }
 }

@@ -621,6 +621,136 @@ void DCC::executeCommand(string command)
 }
 
 
+unsigned long int DCC::readReg(enum DEVTYPE dt, char reg)
+	throw (FEDException)
+{
+	// reads are always 16 bits from the DCC
+
+	if (dt != INPROM && dt != MCTRL) {
+		XCEPT_RAISE(FEDException,"Can't read from that device");
+	}
+
+	char cmd[4];
+	cmd[0] = 0x01; // For read function
+	cmd[1] = reg; // vme address
+	cmd[2] = 0xff; // data h
+	cmd[3] = 0xff; // data l
+
+	// This is it.
+	devdo(dt, 4, cmd, 0, sndbuf, rcvbuf, 1);
+
+	return ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
+}
+
+
+void DCC::writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
+	throw (FEDException)
+{
+	// reads are always 16 bits from the DCC
+
+	if (dt != INPROM && dt != MCTRL) {
+		XCEPT_RAISE(FEDException,"Can't read from that device");
+	}
+
+	char cmd[4];
+	cmd[0] = 0x00; // For write function
+	cmd[1] = reg; // vme address
+	cmd[2] = (value >> 8) & 0xff; // data h
+	cmd[3] = value & 0xff; // data l
+
+	// This is it.
+	devdo(dt, 4, cmd, 0, sndbuf, rcvbuf, 1);
+}
+
+
+
+unsigned int DCC::readStatusHigh()
+	throw (FEDException)
+{
+	try {
+		return readReg(MCTRL, 0x02);
+	} catch (FEDException &e) { throw; }
+}
+
+
+
+unsigned int DCC::readStatusLow()
+	throw (FEDException)
+{
+	try {
+		return readReg(MCTRL, 0x01);
+	} catch (FEDException &e) { throw; }
+}
+
+
+
+unsigned int DCC::readFIFOInUse()
+	throw (FEDException)
+{
+	try {
+		return readReg(MCTRL, 0x06);
+	} catch (FEDException &e) { throw; }
+}
+
+
+
+void DCC::setFIFOInUse(unsigned int value)
+	throw (FEDException)
+{
+	try {
+		writeReg(MCTRL, 0x03, value);
+	} catch (FEDException &e) { throw; }
+}
+
+
+unsigned int DCC::readRate(unsigned int fifo)
+	throw (FEDException)
+{
+	if (fifo > 11) XCEPT_RAISE(FEDException, "there are only 12 FIFOs to check [0-11]");
+	try {
+		return readReg(MCTRL, 0x10 + fifo);
+	} catch (FEDException &e) { throw; }
+}
+
+
+unsigned int DCC::readSoftwareSwitch()
+	throw (FEDException)
+{
+	try {
+		return readReg(MCTRL, 0x1f);
+	} catch (FEDException &e) { throw; }
+}
+
+
+unsigned int DCC::readFMM()
+	throw (FEDException)
+{
+	try {
+		return readReg(MCTRL, 0x1e);
+	} catch (FEDException &e) { throw; }
+}
+
+
+unsigned int DCC::readTTCCommand()
+	throw (FEDException)
+{
+	try {
+		return readReg(MCTRL, 0x05);
+	} catch (FEDException &e) { throw; }
+}
+
+
+unsigned int DCC::getDDUSlotFromFIFO(unsigned int fifo) {
+	if (slot() == 8 && fifo < 10) {
+		return (fifo % 2) ? 13 - fifo/2 : fifo/2 + 3;
+	} else if (slot() == 17 && fifo < 8 && fifo >= 2) {
+		return (fifo % 2) ? 20 - fifo/2 : fifo/2 + 14;
+	} else {
+		return 0;
+	}
+}
+
+
 void DCC::crateHardReset()
 {
 	mctrl_swset(0x1000);
