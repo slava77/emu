@@ -206,7 +206,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::div("View this page for a different crate/board")
 			.set("class","legend") << endl;
 
-		*out << selectACrate("mainPage","crate",cgiCrate) << endl;
+		*out << selectACrate("mainPage","crate",cgiCrate,cgiCrate) << endl;
 		
 		*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 			.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -611,11 +611,17 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 				// Broadcast Firmware
 				*out << cgicc::span() << endl;
+				std::ostringstream crateVal;
+				crateVal << cgiCrate;
 				location.str("");
-				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBroadcast?crate=" << cgiCrate;
+				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBroadcast";
 				*out << cgicc::form()
 					.set("method","GET")
 					.set("action",location.str()) << endl;
+				*out << cgicc::input()
+					.set("type","hidden")
+					.set("name","crate")
+					.set("value",crateVal.str());
 				*out << cgicc::input()
 					.set("type","submit")
 					.set("value","DDU Firmware Management") << endl;
@@ -625,10 +631,14 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				// JRG, add DDU Broadcast for FMM Error-report Disable function.
 				*out << cgicc::span() << endl;
 				location.str("");
-				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBrcstFED?crate=" << cgiCrate;
+				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBrcstFED";
 				*out << cgicc::form()
 					.set("method","GET")
 					.set("action",location.str()) << endl;
+				*out << cgicc::input()
+					.set("type","hidden")
+					.set("name","crate")
+					.set("value",crateVal.str());
 				*out << cgicc::input()
 					.set("type","submit")
 					.set("value","DDU FMM Error-report Disable") << endl;
@@ -1506,7 +1516,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("DDUBroadcast","crate",cgiCrate) << endl;
+	*out << selectACrate("DDUBroadcast","crate",cgiCrate,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -2225,7 +2235,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("DDUFpga","ddu",cgiDDU) << endl;
+	*out << selectACrate("DDUFpga","ddu",cgiDDU,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -3237,7 +3247,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("InFpga","ddu",cgiDDU) << endl;
+	*out << selectACrate("InFpga","ddu",cgiDDU,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -4048,7 +4058,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("VMEPARA","ddu",cgiDDU) << endl;
+	*out << selectACrate("VMEPARA","ddu",cgiDDU,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -4476,7 +4486,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("VMESERI","ddu",cgiDDU) << endl;
+	*out << selectACrate("VMESERI","ddu",cgiDDU,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -5210,7 +5220,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("DCCDebug","dcc",cgiDCC) << endl;
+	*out << selectACrate("DCCDebug","dcc",cgiDCC,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -5609,7 +5619,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("DCCExpert","dcc",cgiDCC) << endl;
+	*out << selectACrate("DCCExpert","dcc",cgiDCC,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -6441,7 +6451,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("DDUVoltMon","crate",cgiCrate) << endl;
+	*out << selectACrate("DDUVoltMon","crate",cgiCrate,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -6778,7 +6788,7 @@ void EmuFCrateHyperDAQ::webRedirect(xgi::Output *out ,string location)
 
 
 
-std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string what, unsigned int index) {
+std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string what, unsigned int index, unsigned int crateIndex) {
 	std::ostringstream *out = new std::ostringstream();
 	
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
@@ -6797,8 +6807,7 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 		// For crate-specific pages, link the crates.
 		*out << cgicc::tr() << endl;
 		*out << cgicc::td()
-			.set("style",selectedCrate)
-			.set("style","border: 1px solid #000")
+			.set("style",selectedCrate+" border: 1px solid #000;")
 			.set("colspan",columns.str()) << endl;
 
 		std::ostringstream locationCrate;
@@ -6818,14 +6827,13 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 
 			std::string selectedBoard = "";
-			if (what == "ddu" && index == iDDU) selectedBoard = "background-color: #FF9;";
+			if (what == "ddu" && index == iDDU && crateIndex == iCrate) selectedBoard = "background-color: #FF9;";
 			
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 			
 			*out << cgicc::td()
-				.set("style",selectedBoard)
-				.set("style","border: 1px solid #000") << endl;
+				.set("style",selectedBoard+" border: 1px solid #000;") << endl;
 
 			std::ostringstream locationBoard;
 			if (what == "ddu") {
@@ -6841,14 +6849,13 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 
 			std::string selectedBoard = "";
-			if (what == "dcc" && index == iDCC) selectedBoard = "background-color: #FF9;";
+			if (what == "dcc" && index == iDCC && crateIndex == iCrate) selectedBoard = "background-color: #FF9;";
 			
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 			
 			*out << cgicc::td()
-				.set("style",selectedBoard)
-				.set("style","border: 1px solid #000") << endl;
+				.set("style",selectedBoard+" border: 1px solid #000;") << endl;
 
 			std::ostringstream locationBoard;
 			if (what == "dcc") {

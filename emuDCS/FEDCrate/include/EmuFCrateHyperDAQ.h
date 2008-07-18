@@ -307,7 +307,7 @@ public:
 	*
 	*	@author Phillip Killewald
 	**/
-	std::string selectACrate(std::string location, std::string what, unsigned int index);
+	std::string selectACrate(std::string location, std::string what, unsigned int index, unsigned int crateIndex = 0);
 
 };
 
