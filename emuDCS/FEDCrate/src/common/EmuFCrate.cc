@@ -393,13 +393,26 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	//  XML file have been properly loaded into the DDUs.  This will call
 	//  updateFlashAction, which will automatically load everything as needed.
 	for (std::vector< Crate * >::iterator iCrate = myCrates.begin(); iCrate != myCrates.end(); iCrate++) {
-		if ((*iCrate)->number() > 4) continue;
 		//cout << "Checking crate " << (*iCrate)->number() << endl;
 		vector<DDU *>::iterator iDDU;
 		vector<DDU *> ddus = (*iCrate)->ddus();
 		for (iDDU = ddus.begin(); iDDU != ddus.end(); iDDU++) {
 
 			if ((*iDDU)->slot() > 21) continue;
+
+			if ((*iCrate)->number() > 4) {
+				// TrackFinder is a bit funny...
+				int flashRUI = (*iDDU)->readFlashRUI();
+				int targetRUI = 192;
+
+				LOG4CPLUS_DEBUG(getApplicationLogger(),"RUI: flash(" << flashRUI << ") calculated(" << targetRUI << ")");
+				
+				if (flashRUI != targetRUI) {
+					LOG4CPLUS_INFO(getApplicationLogger(),"Flash and calculated RUI disagree:  reloading flash");
+					(*iDDU)->writeFlashRUI(targetRUI);
+				}
+				continue;
+			}
 
 			LOG4CPLUS_INFO(getApplicationLogger(), "Reading flash values for crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot());
 
