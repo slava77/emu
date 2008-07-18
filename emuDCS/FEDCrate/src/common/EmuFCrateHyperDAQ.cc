@@ -208,7 +208,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 		for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 			*out << cgicc::table()
-				.set("style","width: 95%; border-width: 0px; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+				.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
 			
 			std::string selectedCol = "";
 			std::ostringstream columns;
@@ -223,6 +223,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			crateName << "Crate " << crateVector[iCrate]->number();
 			std::ostringstream location;
 			location << "/" << getApplicationDescriptor()->getURN() << "/mainPage?crate=" << iCrate;
+			if (iCrate == cgiCrate) selectedCol = "background-color: #FF9";
 			*out << cgicc::a(crateName.str())
 				.set("href",location.str()) << endl;
 			*out << cgicc::td() << endl;
@@ -231,6 +232,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			// For board-specific pages, link the board.
 			*out << cgicc::tr() << endl;
 			for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+				if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 				std::ostringstream boardName;
 				boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 				*out << cgicc::td() << endl;
@@ -238,6 +240,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				*out << cgicc::td() << endl;
 			}
 			for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+				if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 				std::ostringstream boardName;
 				boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 				*out << cgicc::td() << endl;
@@ -271,7 +274,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		location.str("");
 		location << "/" + getApplicationDescriptor()->getURN() << "/DCCRateMon?crate=" << cgiCrate;
 		*out << span("Start DCC Rate Monitor")
-			.set("class","unknown");
+			.set("class","undefined");
 		//*out << cgicc::a("Start DDU Volt/Temp Monitor")
 		//	.set("href",location.str());
 		*out << cgicc::br() << endl;
@@ -590,7 +593,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			// Everything else is one big row.
 			*out << cgicc::td()
-				.set("colspan","5") << endl;
+				.set("colspan","5")
+				.set("style","font-size: 10pt;") << endl;
 
 			// Create the buttons with a big loop.
 			string appString[3] = {
@@ -650,22 +654,18 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			if (broadcastDDU) {
 
 				// Broadcast Firmware
-				*out << cgicc::span() << endl;
-				*out << cgicc::form()
-					.set("method","GET")
-					.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUBroadcast") << endl;
-				*out << cgicc::input()
-					.set("type","submit")
-					.set("value","DDU Firmware Manager")
-					.set("style","background-color: #FDD; border-color: #F00;") << endl;
-				*out << cgicc::form() << endl;
-				*out << cgicc::span() << endl;
+				std::ostringstream location;
+				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBroadcast?crate=" << cgiCrate;
+				*out << cgicc::a()
+					.set("href",location.str())<< endl;
+				*out << cgicc::br() << endl;
 
 				// JRG, add DDU Broadcast for FMM Error-report Disable function.
 				*out << cgicc::span() << endl;
+				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBrcstFED?crate=" << cgiCrate;
 				*out << cgicc::form()
 					.set("method","GET")
-					.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUBrcstFED") << endl;
+					.set("action",location.str()) << endl;
 				*out << cgicc::input()
 					.set("type","submit")
 					.set("value","DDU FMM Error-report Disable") << endl;
@@ -1537,16 +1537,56 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << Header(sTitle.str(),false);
 
 
-	// PGK Display-a-Crate
+	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
 		.set("class","fieldset") << endl;
-	*out << cgicc::div("Crate Selection")
+	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << cgicc::div()
-		.set("style","background-color: #FF0; color: #00A; font-size: 16pt; font-weight: bold; width: 50%; text-align: center; padding: 3px; border: 2px solid #00A; margin: 5px auto 5px auto;");
-	*out << "Crate " << myCrate->number() << " Selected";
-	*out << cgicc::div() << endl;
+	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
+		*out << cgicc::table()
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+
+		std::string selectedCol = "";
+		std::ostringstream columns;
+		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
+
+		// For crate-specific pages, link the crates.
+		*out << cgicc::tr() << endl;
+		*out << cgicc::td()
+			.set("style",selectedCol)
+			.set("colspan",columns.str()) << endl;
+		std::ostringstream crateName;
+		crateName << "Crate " << crateVector[iCrate]->number();
+		std::ostringstream location;
+		location << "/" << getApplicationDescriptor()->getURN() << "/DDUBroadcast?crate=" << iCrate;
+		if (iCrate == cgiCrate) selectedCol = "background-color: #FF9";
+		*out << cgicc::a(crateName.str())
+			.set("href",location.str()) << endl;
+		*out << cgicc::td() << endl;
+		*out << cgicc::tr() << endl;
+
+		// For board-specific pages, link the board.
+		*out << cgicc::tr() << endl;
+		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
+			std::ostringstream boardName;
+			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
+			*out << cgicc::td() << endl;
+			*out << boardName.str() << endl;
+			*out << cgicc::td() << endl;
+		}
+		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
+			std::ostringstream boardName;
+			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
+			*out << cgicc::td() << endl;
+			*out << boardName.str() << endl;
+			*out << cgicc::td() << endl;
+		}
+		*out << cgicc::tr() << endl;
+		*out << cgicc::table() << endl;
+	}
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -1805,6 +1845,14 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		.set("name","submit")
 		.set("value","Send INPROM") << endl;
 
+	// The crate is a must.
+	std::ostringstream crateVal;
+	crateVal << cgiCrate;
+	*out << cgicc::input()
+		.set("type","hidden")
+		.set("name","crate")
+		.set("value",crateVal.str()) << endl;
+	
 	*out << cgicc::fieldset() << endl;
 	
 	*out << cgicc::form() << endl;
@@ -1816,7 +1864,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		.set("class","legend") << endl;
 
 	*out << cgicc::form()
-		.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUReset")
+		.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUReset?crate=" + crateVal.str())
 		.set("method","post") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
@@ -1922,7 +1970,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	}
 	Crate *myCrate = crateVector[cgiCrate];
 
-	printf(" entered DDUSendBroadcast \n");
+	//printf(" entered DDUSendBroadcast \n");
 
 	int type = -1;
 	string submitCommand = cgi["submit"]->getValue();
@@ -2074,28 +2122,33 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 }
 
 
-/// @Deprecated
+
 void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
 	throw (xgi::exception::Exception)
 {
 
-	Cgicc cgi(in);
-/*
-	string useTTC = cgi["useTTC"]->getValue();
-	if (useTTC != "on") useTTC = "off";
-	cout << "Entering DDUReset with useTTC " << useTTC << endl;
-*/
-//	if (useTTC == "on") {
-//		cout << " resetting via TTC 0x34" <<endl;
-		dccVector[0]->crateHardReset();
-//	} else {
-//		cout << " don't know how to do global reset requests." << endl;
-//	}
+	// PGK Patented check-for-initialization
+	if (crateVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
 
-//	cout << " reset complete." << endl;
-//	in = NULL;
-	webRedirect(out,"DDUBroadcast");
-	//this->DDUBroadcast(in,out);
+	cgicc::Cgicc cgi(in);
+	
+	// First, I need a crate.
+	cgicc::form_iterator name = cgi.getElement("crate");
+	unsigned int cgiCrate = 0;
+	if(name != cgi.getElements().end()) {
+		cgiCrate = cgi["crate"]->getIntegerValue();
+	}
+	Crate *myCrate = crateVector[cgiCrate];
+
+	myCrate->dccs()[0]->crateHardReset();
+
+	std::ostringstream backLocation;
+	backLocation << "DDUBroadcast?crate=" << cgiCrate;
+	webRedirect(out,backLocation.str());
+
 }
 
 
@@ -2254,7 +2307,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 		*out << cgicc::table()
-			.set("style","width: 95%; border-width: 0px; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
 
 		std::ostringstream columns;
 		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
@@ -2272,8 +2325,9 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 		// For board-specific pages, link the board.
 		*out << cgicc::tr() << endl;
 		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 			std::string selectedCol = "";
-			if (iDDU == cgiDDU) selectedCol = "background-color: #FF9; font-weight: bold;";
+			if (iDDU == cgiDDU && iCrate == cgiCrate) selectedCol = "background-color: #FF9; font-weight: bold;";
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 			std::ostringstream location;
@@ -2285,6 +2339,7 @@ void EmuFCrateHyperDAQ::DDUFpga(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td() << endl;
 		}
 		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 			*out << cgicc::td() << endl;
@@ -3307,7 +3362,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 		*out << cgicc::table()
-			.set("style","width: 95%; border-width: 0px; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
 
 		std::ostringstream columns;
 		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
@@ -3325,8 +3380,9 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		// For board-specific pages, link the board.
 		*out << cgicc::tr() << endl;
 		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 			std::string selectedCol = "";
-			if (iDDU == cgiDDU) selectedCol = "background-color: #FF9; font-weight: bold;";
+			if (iDDU == cgiDDU && iCrate == cgiCrate) selectedCol = "background-color: #FF9; font-weight: bold;";
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 			std::ostringstream location;
@@ -3338,6 +3394,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td() << endl;
 		}
 		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 			*out << cgicc::td() << endl;
@@ -4159,7 +4216,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 		*out << cgicc::table()
-			.set("style","width: 95%; border-width: 0px; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
 
 		std::ostringstream columns;
 		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
@@ -4177,8 +4234,9 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 		// For board-specific pages, link the board.
 		*out << cgicc::tr() << endl;
 		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 			std::string selectedCol = "";
-			if (iDDU == cgiDDU) selectedCol = "background-color: #FF9; font-weight: bold;";
+			if (iDDU == cgiDDU && iCrate == cgiCrate) selectedCol = "background-color: #FF9; font-weight: bold;";
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 			std::ostringstream location;
@@ -4190,6 +4248,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td() << endl;
 		}
 		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 			*out << cgicc::td() << endl;
@@ -4628,7 +4687,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 		*out << cgicc::table()
-			.set("style","width: 95%; border-width: 0px; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
 
 		std::ostringstream columns;
 		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
@@ -4646,8 +4705,9 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 		// For board-specific pages, link the board.
 		*out << cgicc::tr() << endl;
 		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 			std::string selectedCol = "";
-			if (iDDU == cgiDDU) selectedCol = "background-color: #FF9; font-weight: bold;";
+			if (iDDU == cgiDDU && iCrate == cgiCrate) selectedCol = "background-color: #FF9; font-weight: bold;";
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 			std::ostringstream location;
@@ -4659,6 +4719,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td() << endl;
 		}
 		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 			*out << cgicc::td() << endl;
@@ -4698,32 +4759,32 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*(voltTable(0,0)->value) << "Voltage V15";
 	*(voltTable(0,1)->value) << setprecision(4) << V15 << " mV";
 	voltTable[0]->setClass("ok");
-	if (V15 > 1550 || V15 < 1450) voltTable[0]->setClass("warning");
-	if (V15 > 1600 || V15 < 1400) voltTable[0]->setClass("bad");
+	if (V15 > 1500*1.025 || V15 < 1500*0.975) voltTable[0]->setClass("warning");
+	if (V15 > 1500*1.05 || V15 < 1500*0.95) voltTable[0]->setClass("bad");
 	if (V15 > 3500 || V15 < 0) voltTable[0]->setClass("questionable");
 
 	float V25 = myDDU->adcplus(1,5);
 	*(voltTable(1,0)->value) << "Voltage V25";
 	*(voltTable(1,1)->value) << setprecision(4) << V25 << " mV";
 	voltTable[1]->setClass("ok");
-	if (V25 > 2550 || V25 < 2450) voltTable[1]->setClass("warning");
-	if (V25 > 2600 || V25 < 2400) voltTable[1]->setClass("bad");
+	if (V25 > 2500*1.025 || V25 < 2500*0.975) voltTable[1]->setClass("warning");
+	if (V25 > 2500*1.05 || V25 < 2500*0.95) voltTable[1]->setClass("bad");
 	if (V25 > 3500 || V25 < 0) voltTable[1]->setClass("questionable");
 	
 	float V25a = myDDU->adcplus(1,6);
 	*(voltTable(2,0)->value) << "Voltage V25A";
 	*(voltTable(2,1)->value) << setprecision(4) << V25a << " mV";
 	voltTable[2]->setClass("ok");
-	if (V25a > 2550 || V25a < 2450) voltTable[2]->setClass("warning");
-	if (V25a > 2600 || V25a < 2400) voltTable[2]->setClass("bad");
+	if (V25a > 2500*1.025 || V25a < 2500*0.975) voltTable[2]->setClass("warning");
+	if (V25a > 2500*1.05 || V25a < 2500*0.95) voltTable[2]->setClass("bad");
 	if (V25a > 3500 || V25a < 0) voltTable[2]->setClass("questionable");
 	
 	float V33 = myDDU->adcplus(1,7);
 	*(voltTable(3,0)->value) << "Voltage V33";
 	*(voltTable(3,1)->value) << setprecision(4) << V33 << " mV";
 	voltTable[3]->setClass("ok");
-	if (V33 > 3350 || V33 < 3250) voltTable[3]->setClass("warning");
-	if (V33 > 3400 || V33 < 3200) voltTable[3]->setClass("bad");
+	if (V33 > 3300*1.025 || V33 < 3300*0.975) voltTable[3]->setClass("warning");
+	if (V33 > 3300*1.05 || V33 < 3300*0.95) voltTable[3]->setClass("bad");
 	if (V33 > 3500 || V33 < 0) voltTable[3]->setClass("questionable");
 
 	// Print the table summary
@@ -4759,8 +4820,8 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 		*(tempTable(iTemp,0)->value) << "Temperature " << iTemp;
 		*(tempTable(iTemp,1)->value) << setprecision(4) << T0 << "&deg;F";
 		tempTable[iTemp]->setClass("ok");
-		if (T0 > 100 || T0 < 60) tempTable[iTemp]->setClass("warning");
-		if (T0 > 130 || T0 < 30) tempTable[iTemp]->setClass("bad");
+		if (T0 > 80*1.2 || T0 < 80*0.8) tempTable[iTemp]->setClass("warning");
+		if (T0 > 80*1.4 || T0 < 80*0.6) tempTable[iTemp]->setClass("bad");
 		if (T0 > 170 || T0 < 0) tempTable[iTemp]->setClass("questionable");
 	}
 
@@ -5403,7 +5464,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 		*out << cgicc::table()
-			.set("style","width: 95%; border-width: 0px; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
 
 		std::ostringstream columns;
 		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
@@ -5421,6 +5482,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 		// For board-specific pages, link the board.
 		*out << cgicc::tr() << endl;
 		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 			*out << cgicc::td() << endl;
@@ -5428,8 +5490,9 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td() << endl;
 		}
 		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 			std::string selectedCol = "";
-			if (iDCC == cgiDCC) selectedCol = "background-color: #FF9; font-weight: bold;";
+			if (iDCC == cgiDCC && iCrate == cgiCrate) selectedCol = "background-color: #FF9; font-weight: bold;";
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 			std::ostringstream location;
@@ -5493,12 +5556,15 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	*(generalTable(1,1)->value) << showbase << hex << ((dccValue & 0x0ff0) >> 4);
 	for (int iFifo = 0; iFifo < 8; iFifo++) {
 		if (!(((dccValue & 0x0ff0) >> 4) & (1<<iFifo))) {
-			if (iFifo < 5) {
+			if (iFifo < 4) {
 				*(generalTable(1,2)->value) << cgicc::div()
-					.set("class","red") << "FIFO " << (iFifo*2+1) << " or " << (iFifo*2+2) << " (Slot " << myDCC->getDDUSlotFromFIFO(iFifo*2) << " or " << myDCC->getDDUSlotFromFIFO(iFifo*2+1) << ")";
+					.set("class","red") << "FIFO " << (iFifo*2+1) << " or " << (iFifo*2+2) << " (Slot " << myDCC->getDDUSlotFromFIFO(iFifo*2) << " or " << myDCC->getDDUSlotFromFIFO(iFifo*2+1) << ")" << cgicc::div();
+			} else if (iFifo == 7) {
+				*(generalTable(1,2)->value) << cgicc::div()
+					.set("class","red") << "FIFO 9 or 10 (Slot " << myDCC->getDDUSlotFromFIFO(8) << " or " << myDCC->getDDUSlotFromFIFO(9) << ")" << cgicc::div();
 			} else {
 				*(generalTable(1,2)->value) << cgicc::div()
-					.set("class","red") << "Output FIFO to S-Link " << (iFifo/7 + 1);
+					.set("class","red") << "Output FIFO to S-Link " << (iFifo/5 + 1) << cgicc::div();
 			}
 		}
 	}
@@ -5512,7 +5578,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	*(generalTable(2,1)->value) << showbase << hex << (dccValue & 0xf);
 	debugMap = debugger->SLinkStat(dccValue & 0xf);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
-		*(generalTable(0,2)->value) << cgicc::div(iDebug->first)
+		*(generalTable(2,2)->value) << cgicc::div(iDebug->first)
 			.set("class",iDebug->second);
 	}
 	if (!(dccValue & 0x8) || !(dccValue & 0x2)) {
@@ -5558,10 +5624,10 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	*(ratesTable(0,0)->value) << "Input FIFOs Used";
 	dccValue = myDCC->readFIFOInUse();
 	*(ratesTable(0,1)->value) << showbase << hex << dccValue;
-	for (int iFifo = 0; iFifo < 8; iFifo++) {
+	for (int iFifo = 0; iFifo < 10; iFifo++) {
 		if (dccValue & (1<<iFifo)) {
 			*(ratesTable(0,2)->value) << cgicc::div()
-				.set("class","red") << "FIFO " << (iFifo+1) << " (Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
+				.set("class","none") << "FIFO " << (iFifo+1) << " (Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
 		}
 	}
 	ratesTable(0,1)->setClass("none");
@@ -5840,7 +5906,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 		*out << cgicc::table()
-			.set("style","width: 95%; border-width: 0px; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
 
 		std::ostringstream columns;
 		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
@@ -5858,6 +5924,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		// For board-specific pages, link the board.
 		*out << cgicc::tr() << endl;
 		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 			*out << cgicc::td() << endl;
@@ -5865,8 +5932,9 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td() << endl;
 		}
 		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 			std::string selectedCol = "";
-			if (iDCC == cgiDCC) selectedCol = "background-color: #FF9; font-weight: bold;";
+			if (iDCC == cgiDCC && iCrate == cgiCrate) selectedCol = "background-color: #FF9; font-weight: bold;";
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 			std::ostringstream location;
@@ -5930,7 +5998,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","textdata")
 		.set("value",kfValue.str())
 		.set("size","8")
-		.set("id","fifos") << endl;
+		.set("id","fifo") << endl;
 
 	*out << cgicc::input()
 		.set("type","submit")
@@ -5947,7 +6015,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 	for (unsigned int iFifo = 0; iFifo < 10; iFifo++) {
 		*out << cgicc::td()
 			.set("class","none")
-			.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 10%;") << "FIFO " << dec << (iFifo+1) << cgicc::td() << endl;
+			.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 10%; background-color: #FFF;") << "FIFO " << dec << (iFifo+1) << cgicc::td() << endl;
 	}
 
 	*out << cgicc::tr() << endl;
@@ -5961,7 +6029,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 			slotName << "DDU Slot " << slot;
 			*out << cgicc::td(slotName.str())
 				.set("class","none")
-				.set("style","border: 1px solid #000; border-top-width: 0px; width: 10%; font-weight: bold;") << endl;
+				.set("style","border: 1px solid #000; border-top-width: 0px; width: 10%; font-weight: bold; background-color: #FFF;") << endl;
 		} else {
 			*out << cgicc::td("???")
 				.set("class","undefined")
@@ -6008,7 +6076,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::table() << endl;
 
 	*out << cgicc::form() << endl;
-	*out << cgicc::frameset() << endl;
+	*out << cgicc::fieldset() << endl;
 	*out << cgicc::br()
 		.set("style","display: none") << endl;
 
@@ -6122,6 +6190,38 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 			.set("onChange","javascript:toggleBit('switch',14);clearBit('switch',13);") << endl;
 	}
 	*out << "Ignore S-Link full and S-Link not present" << cgicc::div() << endl;
+
+	*out << cgicc::div()
+		.set("style","font-size: 8pt;") << endl;
+	if (currentSwitch & (1<<4)) {
+		*out << cgicc::input()
+			.set("type","checkbox")
+			.set("name","boxsw4")
+			.set("onChange","javascript:toggleBit('switch',4);")
+			.set("checked","checked") << endl;
+	} else {
+		*out << cgicc::input()
+			.set("type","checkbox")
+			.set("name","boxsw4")
+			.set("onChange","javascript:toggleBit('switch',4);") << endl;
+	}
+	*out << "Set \"SW4\"" << cgicc::div() << endl;
+
+	*out << cgicc::div()
+		.set("style","font-size: 8pt;") << endl;
+	if (currentSwitch & (1<<5)) {
+		*out << cgicc::input()
+			.set("type","checkbox")
+			.set("name","boxsw5")
+			.set("onChange","javascript:toggleBit('switch',5);")
+			.set("checked","checked") << endl;
+	} else {
+		*out << cgicc::input()
+			.set("type","checkbox")
+			.set("name","boxsw5")
+			.set("onChange","javascript:toggleBit('switch',5);") << endl;
+	}
+	*out << "Set \"SW5\"" << cgicc::div() << endl;
 	
 	*out << cgicc::form() << endl;
 	*out << cgicc::fieldset() << endl;
@@ -6665,9 +6765,9 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 	Crate *myCrate = crateVector[cgiCrate];
 
 	float v_val[4] = {1500,2500,2500,3300};
-	float v_delt = .025;
+	float v_delt = 0.05;
 	float t_val[4] = {80,80,80,80};
-	float t_delt = 0.025;
+	float t_delt = 0.20;
 
 	ostringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Voltage/Temperature Monitoring";
@@ -6681,7 +6781,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 		*out << cgicc::table()
-			.set("style","width: 95%; border-width: 0px; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt;") << endl;
 
 		std::string selectedCol = "";
 		std::ostringstream columns;
@@ -6696,6 +6796,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		crateName << "Crate " << crateVector[iCrate]->number();
 		std::ostringstream location;
 		location << "/" << getApplicationDescriptor()->getURN() << "/DDUVoltMon?crate=" << iCrate;
+		if (iCrate == cgiCrate) selectedCol = "background-color: #FF9";
 		*out << cgicc::a(crateName.str())
 			.set("href",location.str()) << endl;
 		*out << cgicc::td() << endl;
@@ -6704,6 +6805,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		// For board-specific pages, link the board.
 		*out << cgicc::tr() << endl;
 		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+			if (crateVector[iCrate]->ddus()[iDDU]->slot() > 21) continue;
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
 			*out << cgicc::td() << endl;
@@ -6711,6 +6813,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td() << endl;
 		}
 		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+			if (crateVector[iCrate]->dccs()[iDCC]->slot() > 21) continue;
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
 			*out << cgicc::td() << endl;
