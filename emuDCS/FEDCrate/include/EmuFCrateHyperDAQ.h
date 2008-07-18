@@ -257,16 +257,16 @@ public:
 	void LoadXMLconf(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
-	/** Page for sending commands to the DCC. **/
-	void DCCCommands(xgi::Input * in, xgi::Output * out )
+	/** Page for reading general debug information from the DCC. **/
+	void DCCDebug(xgi::Input * in, xgi::Output * out )
+		throw (xgi::exception::Exception);
+
+	/** Page for reading and setting expert registers on the DCC. **/
+	void DCCExpert(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
 	/** Load data into the DCC from text (?) **/
 	void DCCTextLoad(xgi::Input * in, xgi::Output * out )
-		throw (xgi::exception::Exception);
-
-	/** Short pause in the IRQ testing sequence (?) **/
-	void IRQTester(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
 	/** Hard-reset the DCC to reset and load firmware. **/

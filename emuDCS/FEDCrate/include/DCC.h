@@ -12,6 +12,8 @@ using namespace std;
 #include "VMEModule.h"
 #include "JTAG_constants.h"
 
+#include "FEDException.h"
+
 class DCC: public VMEModule
 {
 public:
@@ -53,6 +55,35 @@ public:
 	unsigned short int  mctrl_rd_ttccmd();
 	void mctrl_ttccmd(unsigned short int ctcc);
 
+	// PGK Attempt at simplified DCC commands
+	unsigned long int readReg(enum DEVTYPE dt, char reg)
+		throw (FEDException);
+	void writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
+		throw (FEDException);
+
+	unsigned int readStatusHigh()
+		throw (FEDException);
+	unsigned int readStatusLow()
+		throw (FEDException);
+	unsigned int readFIFOInUse()
+		throw (FEDException);
+	void setFIFOInUse(unsigned int value)
+		throw (FEDException);
+	unsigned int readRate(unsigned int fifo)
+		throw (FEDException);
+	unsigned int readSoftwareSwitch()
+		throw (FEDException);
+	//void setSoftwareSwitch(unsigned int value)
+	//	throw (FEDException);
+	unsigned int readFMM()
+		throw (FEDException);
+	//void setFMM(unsigned int value)
+	//	throw (FEDException);
+	unsigned int readTTCCommand()
+		throw (FEDException);
+	//void setTTCCommand(unsigned int value)
+	//	throw (FEDException);
+
 	// EPROM reprogramming (EXPERTS ONLY !)
 	void hdrst_main(void);
 	void hdrst_in(void);
@@ -67,6 +98,10 @@ public:
 	void crateHardReset();
 	/** Sync reset the crate through a TTC-override command. **/
 	void crateSyncReset();
+	/** Return the slot number of the DDU corresponding to the given input
+	*	fifo
+	**/
+	unsigned int getDDUSlotFromFIFO(unsigned int fifo);
 
 	// unpacks rcvbuf from FPGA operations
 	unsigned long int unpack_ibrd() const;

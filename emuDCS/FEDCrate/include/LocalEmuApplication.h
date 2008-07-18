@@ -309,6 +309,16 @@ public:
 		*out << "function toggleBit(id,bit) { var elem = document.getElementById(id); oldValue = parseInt(elem.value); newValue = (oldValue ^ (1 << bit)); elem.value = \"0x\" + newValue.toString(16); }" << endl;
 		*out << "</script>" << endl;
 
+		// Javascript bit-setter
+		*out << "<script type='text/javascript'>" << endl;
+		*out << "function setBit(id,bit) { var elem = document.getElementById(id); oldValue = parseInt(elem.value); newValue = (oldValue | (1 << bit)); elem.value = \"0x\" + newValue.toString(16); }" << endl;
+		*out << "</script>" << endl;
+
+		// Javascript bit-clearer
+		*out << "<script type='text/javascript'>" << endl;
+		*out << "function clearBit(id,bit) { var elem = document.getElementById(id); oldValue = parseInt(elem.value); newValue = (oldValue & ~(1 << bit)); elem.value = \"0x\" + newValue.toString(16); }" << endl;
+		*out << "</script>" << endl;
+
 		*out << cgicc::head() << endl;
 
 		*out << "<body background=\"/tmp/osu_fed_background2.png\">" << endl;

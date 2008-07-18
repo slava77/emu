@@ -26,6 +26,7 @@ Sources=\
 	DDUDebugger.cc \
 	DCC.cc \
 	DCCParser.cc \
+	DCCDebugger.cc \
 	elong.cc \
 	EmuParser.cc \
 	TestBeamCrateController.cc \
