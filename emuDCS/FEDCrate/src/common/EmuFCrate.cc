@@ -459,7 +459,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 			
 			if (flashRUI != targetRUI) {
 				LOG4CPLUS_INFO(getApplicationLogger(),"Flash and calculated RUI disagree:  reloading flash");
-				//(*iDDU)->writeFlashRUI(targetRUI);
+				(*iDDU)->writeFlashRUI(targetRUI);
 			}
 		}
 	}
