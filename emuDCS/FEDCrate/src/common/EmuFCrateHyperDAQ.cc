@@ -611,6 +611,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 				// Broadcast Firmware
 				*out << cgicc::span() << endl;
+				location.str("");
 				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBroadcast?crate=" << cgiCrate;
 				*out << cgicc::form()
 					.set("method","GET")
@@ -623,6 +624,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 				// JRG, add DDU Broadcast for FMM Error-report Disable function.
 				*out << cgicc::span() << endl;
+				location.str("");
 				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBrcstFED?crate=" << cgiCrate;
 				*out << cgicc::form()
 					.set("method","GET")
