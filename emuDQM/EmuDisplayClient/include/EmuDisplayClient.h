@@ -151,6 +151,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
   CSCCounters cscCounters; // == CSC Counters from EmuMonitor nodes
   BSem appBSem_;
+  struct timeval bsem_tout;
 
 
 };

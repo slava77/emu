@@ -46,6 +46,13 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
       appBSem_(BSem::FULL)
 {
 
+
+  appBSem_.take();
+ 
+  bsem_tout.tv_sec=10;
+  bsem_tout.tv_usec=0;
+
+
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
 
   fsm_.addState ('H', "Halted");
@@ -109,12 +116,13 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   getApplicationInfoSpace()->fireItemAvailable("debug",&debug);
   getApplicationInfoSpace()->addItemChangedListener ("debug", this);
 
-  appBSem_.give();
   // === Initialize ROOT system
   if (!gApplication)
     TApplication::CreateApplication();
  
   gStyle->SetPalette(1,0);
+
+  appBSem_.give();
 }
     
     
@@ -435,6 +443,7 @@ void EmuDisplayClient::getCSCList (xgi::Input * in, xgi::Output * out)  throw (x
   // == Temporary
   // == TODO: Request or load CSC list
 
+  appBSem_.take(&bsem_tout);
   *out << "var CSC_LIST=[";
   *out << "['Online Run'";
   updateFoldersMap();
@@ -498,12 +507,13 @@ void EmuDisplayClient::getCSCList (xgi::Input * in, xgi::Output * out)  throw (x
     }
   */
   *out << "]]" << std::endl;
-
+  appBSem_.give();
 
 }
 
 void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
+  appBSem_.take(&bsem_tout);
   *out << "var CSC_COUNTERS=[" << std::endl;
   *out << "['Online Run'," << std::endl;
   updateCSCCounters();
@@ -520,7 +530,7 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
   }
 
   *out << "]]" << std::endl;
-
+  appBSem_.give();
 
 }
 
@@ -528,6 +538,7 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
 void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
 
+  appBSem_.take(&bsem_tout);
   cgicc::Cgicc cgi(in);
   std::string user_host = in->getenv("REMOTE_HOST");
 
@@ -575,6 +586,7 @@ void EmuDisplayClient::controlDQM (xgi::Input * in, xgi::Output * out)  throw (x
     }
 
   }
+  appBSem_.give();
 
 }
 
@@ -600,7 +612,7 @@ void EmuDisplayClient::getTestsList (xgi::Input * in, xgi::Output * out)  throw 
 void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
 
-  
+  appBSem_.take(&bsem_tout);  
   *out << "var NODES_LIST=[" << std::endl;
   *out << "['Node','State','Run Number','DAQ Events','DQM Events','Rate (Evt/s)','Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last event timestamp']," << std::endl;
  
@@ -694,6 +706,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
     }
   }  
   *out << "]" << std::endl;
+  appBSem_.give();
 
 }
 
@@ -748,6 +761,8 @@ TCanvas* EmuDisplayClient::getMergedCanvas(std::vector<TObject*>& canvases)
 
 void EmuDisplayClient::genImage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
+
+  appBSem_.take(&bsem_tout);
   cgicc::Cgicc cgi(in);
   int width=1200;
   int height=900;
@@ -881,7 +896,7 @@ void EmuDisplayClient::genImage (xgi::Input * in, xgi::Output * out)  throw (xgi
     }
     }
   */
-
+   appBSem_.give();
 }
 
 
