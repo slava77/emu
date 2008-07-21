@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.26 2008/07/16 17:28:36 rakness Exp $
+// $Id: DAQMB.h,v 3.27 2008/07/21 08:25:57 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.27  2008/07/21 08:25:57  rakness
+// add mapping into comments for SetKillInput(int)
+//
 // Revision 3.26  2008/07/16 17:28:36  rakness
 // (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
 //
@@ -416,6 +419,16 @@ public:
   //
   void SetxFineLatency(int finelatency){killflatclk_ = (killflatclk_&0x3ff)+((finelatency<<10)&0x3c00);}
   inline int GetxFineLatency(){return ((killflatclk_>>10)&0x0f);}
+  //
+  //Input values for SetKillInput(int killinput):
+  //killinput="0" normal mode, no one is disbaled
+  //killinput="1" ALCT data are disabled
+  //killinput="2" TMB data are disabled
+  //killinput="3" CFEB#1 data are disabled
+  //killinput="4" CFEB#2 data are disabled
+  //killinput="5" CFEB#3 data are disabled
+  //killinput="6" CFEB#4 data are disabled
+  //killinput="7" CFEB#5 data are disabled
   //
   void SetKillInput(int killinput){killflatclk_ = (killflatclk_&0x3c7f)+((killinput<<7)&0x380);}
   inline int GetKillInput(){return ((killflatclk_>>7)&0x07);}
