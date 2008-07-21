@@ -746,7 +746,7 @@ void XMLParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber 
       daqmb_->SetxFineLatency(delay);
     }
     // just use the variable 'delay' for killinput
-    if (fillInt("killinput",delay)) {
+    if (fillInt("kill_input",delay)) {
       daqmb_->SetKillInput(delay);
     }
     //
