@@ -70,7 +70,7 @@ UserExecutableLinkFlags += $(ROOTGLIBS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) EmuReadout cscmap1 occi clntsh nnz10
+Libraries = $(XdaqLibraries) EmuReadout cscmap1 occi clntsh nnz10 Minuit
 
 
 #

@@ -495,13 +495,14 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 
 	if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
-	  // == Save results for database transfer Pedestals and RMS
+	  // == Save results for database transfer of gain slopes, intercepts, non-linearity and normalized gains
 	  std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
 
 	  for (int layer=0; layer<NLAYERS; layer++) {
 	    for (int strip=0; strip<strips_per_layer; strip++) {
 	      res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-		      << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << "  " << r03.content[layer][strip] << std::endl;
+		      << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << "  " 
+			<< r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
 	    }
 	  }
 	  res_out.close();
@@ -548,7 +549,7 @@ bool Test_CFEB04::checkResults(std::string cscID)
     }
     if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
       isValid=false;
-      std::cout << cscID << "20% of channels have bad Intercept" << std::endl;
+      std::cout << cscID << ": 20% of channels have bad Intercept" << std::endl;
     }
   }
 

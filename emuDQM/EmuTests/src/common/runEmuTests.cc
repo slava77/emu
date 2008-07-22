@@ -230,12 +230,14 @@ int main(int argc, char **argv) {
 	} 
 	t1 = time(0);
 
-	LOG4CPLUS_INFO (logger, "Total Events: " << test_analyzer->getTotalEvents() << ", Readout Rate: " << (test_analyzer->getTotalEvents()/(t1-t0)) << " Events/sec" );
+	int dtime = t1-t0;
+	if (t1-t0==0) dtime=1;
+	LOG4CPLUS_INFO (logger, "Total Events: " << test_analyzer->getTotalEvents() << ", Readout Rate: " << (test_analyzer->getTotalEvents()/dtime) << " Events/sec" );
 /*
 	LOG4CPLUS_INFO (logger, "Good Events: " << test_analyzer.getGoodEventsCount() <<  ", Bad Events: " << test_analyzer.getBadEventsCount());
 	LOG4CPLUS_INFO (logger, "Unpacked CSCs Events: " << test_analyzer.getTotalUnpackedCSCs() <<  ", Unpacking Rate: " << (test_analyzer.getTotalUnpackedCSCs()/(t1-t0)) << " CSCs/sec");
 */
- 	LOG4CPLUS_INFO (logger, "Run time: " << t1-t0 << " seconds");
+ 	LOG4CPLUS_INFO (logger, "Run time: " << dtime << " seconds");
 
 	test_analyzer->finish();
 
