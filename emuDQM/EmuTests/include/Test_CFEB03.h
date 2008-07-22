@@ -11,6 +11,7 @@
 #include "TestCanvas_6gr1h.h"
 #include "TestCanvas_userHisto.h"
 #include "Test_Generic.h"
+#include "CSCxTalk.h"
 
 #include <TROOT.h>
 #include <TSystem.h>
@@ -44,6 +45,9 @@ class Test_CFEB03: public Test_Generic
         std::map<int, std::map<std::string, test_step> > htree;
 	bool fSwitch;
 	cscXtalkData xdata;
+
+	Conv conv;
+	double It[64];
 
 };
 

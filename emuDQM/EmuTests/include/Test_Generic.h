@@ -56,6 +56,8 @@ typedef ConsumerCanvas MonitoringCanvas;
 #include <TSystem.h>
 #include <TProfile.h>
 #include <TFile.h>
+#include <TLinearFitter.h>
+#include <TVector.h>
 
 #define NLAYERS 6
 #define MAX_STRIPS 80
