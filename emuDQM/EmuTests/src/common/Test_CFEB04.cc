@@ -47,7 +47,7 @@ void Test_CFEB04::initCSC(std::string cscID) {
   cscdata["R01"]=cfebdata;
 
   // R02 - Gain intercept B
-  cscdata["R02"]=cfebdata;
+ // cscdata["R02"]=cfebdata;
 
   // R03 - Gain non-linearity
   cscdata["R03"]=cfebdata;
@@ -304,7 +304,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
     // TestData2D& mask = cscdata["_MASK"];
   
     TestData2D& r01 = cscdata["R01"];
-    TestData2D& r02 = cscdata["R02"];
+    // TestData2D& r02 = cscdata["R02"];
     TestData2D& r03 = cscdata["R03"];
     TestData2D& r05 = cscdata["R05"];
 
@@ -448,12 +448,14 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	      }
 
 	      if (fValidStrip) {
-	      	a=(XY*S-X*Y)/(XX*S-X*X);
-	      	b=(Y-a*X)/S;
+	      	// a=(XY*S-X*Y)/(XX*S-X*X); // for 2 parameters fit
+		a=XY/XX;
+	      	// b=(Y-a*X)/S;
+		b=0;
 	      	avg_gain+=1/a;
 	      	avg_gain_cnt++;
-	    
-	      	ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X;
+	    	ksi=YY+a*a*XX-2*a*XY;
+	      	// ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X; // for 2-parameters fit
 	      } else {
 		a = -999;
 		b = -999;
@@ -476,7 +478,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 	      std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
 	      r01.content[layer-1][icfeb*16+strip-1] = a;
-	      r02.content[layer-1][icfeb*16+strip-1] = b;
+	      // r02.content[layer-1][icfeb*16+strip-1] = b;
 	      r03.content[layer-1][icfeb*16+strip-1] = ksi;
 	    }
 	  }
@@ -501,7 +503,8 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	  for (int layer=0; layer<NLAYERS; layer++) {
 	    for (int strip=0; strip<strips_per_layer; strip++) {
 	      res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-		      << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << "  " 
+		      << r01.content[layer][strip]  << "  " 
+			/* << r02.content[layer][strip] << "  " */
 			<< r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
 	    }
 	  }
