@@ -321,17 +321,22 @@ public:
 
 		*out << cgicc::head() << endl;
 
-		*out << "<body background=\"/tmp/osu_fed_background2.png\">" << endl;
+		*out << "<body background=\"/tmp/OSUBackground.gif\">" << endl;
 
 		*out << cgicc::fieldset()
 			.set("class","header") << endl;
 
-		*out << cgicc::img()
-			.set("src","/tmp/osu_emu2.png")
-			.set("style","float: left; width: 100px; height: 100px") << endl;
+		*out << cgicc::a()
+			.set("href","/"+getApplicationDescriptor()->getURN()+"/") << endl;
 
 		*out << cgicc::img()
-			.set("src","/tmp/osu_crate2.png")
+			.set("src","/tmp/EmuFEDSeal.png")
+			.set("style","float: left; width: 100px; height: 100px") << endl;
+
+		*out << cgicc::a() << endl;
+
+		*out << cgicc::img()
+			.set("src","/tmp/OSUCMS.png")
 			.set("style","float: right; width: 100px; height: 100px") << endl;
 
 		*out << cgicc::div(myTitle)

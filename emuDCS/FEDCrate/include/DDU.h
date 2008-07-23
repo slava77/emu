@@ -168,7 +168,7 @@ public:
 // 		throw (FEDException);
 	int readBXOrbit()
 		throw (FEDException);
-	int readBoardID()
+	int readRUI()
 		throw (FEDException);
 // 	unsigned long int readFPGALongStat()
 // 		throw (FEDException);

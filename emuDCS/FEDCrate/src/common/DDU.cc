@@ -5766,7 +5766,7 @@ void  DDU::vmepara_wr_fmmreg(unsigned short int par_val)
           irdsnd = 2 send in buffer, no read
   */
 
-  printf("Wrote to DDU VME FMM Reg: %02x%02x \n",sndbuf[1]&0xff,sndbuf[0]&0xff);
+  //printf("Wrote to DDU VME FMM Reg: %02x%02x \n",sndbuf[1]&0xff,sndbuf[0]&0xff);
 }
 
 
@@ -5789,7 +5789,7 @@ unsigned short int  DDU::vmepara_rd_fmmreg()
   rcvbuf[2]=0;
   rcvbuf[3]=0;
   devdo(VMEPARA,1,cmd,0,sndbuf,rcvbuf,2);
-  printf("Read DDU FMM Reg: %02x%02x\n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+  //printf("Read DDU FMM Reg: %02x%02x\n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
   return((rcvbuf[1]&0xff)<<8)|(rcvbuf[0]&0xff);
 }
 
@@ -7446,7 +7446,7 @@ int DDU::readBXOrbit()
 
 
 
-int DDU::readBoardID()
+int DDU::readRUI()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,32,16); }

@@ -77,7 +77,7 @@ public:
 	std::map<string, string> WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat);
 
 	/** Reads from method @sa DDU::infpga_trap() **/
-	string infpga_trap(DDU *thisDDU, enum DEVTYPE dt);
+	std::vector<std::string> infpga_trap(DDU *thisDDU, enum DEVTYPE dt);
 
 	/** Reads from method @sa DDU::readParallelStat() **/
 	std::map<string, string> ParallelStat(int stat);
