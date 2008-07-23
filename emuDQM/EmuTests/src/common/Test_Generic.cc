@@ -27,8 +27,8 @@ time_sample Test_Generic::CalculateCorrectedPulseAmplitude(pulse_fit& fit)
   double kp[4] = {1.022, -0.027, 7.6, 63.};
   double taup[4] = {-1.5, -2.5, -5, 50};
 
-  double k=kp[0] + kp[1]*cos(2*M_PI*((dX-kp[2])/kp[3]));
-  double tau=taup[0] = taup[1]*cos(2*M_PI*((dX-taup[2])/taup[3]));
+  double k = kp[0] + kp[1]*cos(2*M_PI*((dX-kp[2])/kp[3]));
+  double tau = taup[0] + taup[1]*cos(2*M_PI*((dX-taup[2])/taup[3]));
 
   peak_time.tbin = (int)(x0+tau);
   peak_time.value = (int)(A*k);
