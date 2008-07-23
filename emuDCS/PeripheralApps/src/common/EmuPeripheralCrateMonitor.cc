@@ -812,15 +812,15 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
       if (dc == 0x3fffffff ) dc = -1;
       *out << "A: " << dc <<"; ";
       // CLCT pretrigger 
-      dc=myVector[tmb]->GetCounter(4);
+      dc=myVector[tmb]->GetCounter(5);
       if (dc == 0x3fffffff ) dc = -1;
       *out << "C: " << dc << cgicc::br();
       // trig allowed, xmit to MPC
-      dc=myVector[tmb]->GetCounter(9);
+      dc=myVector[tmb]->GetCounter(28);
       if (dc == 0x3fffffff ) dc = -1;
       *out << "T: " << dc << "; ";
       // L1A: TMB triggered, TMB in L1A window
-      dc=myVector[tmb]->GetCounter(19);
+      dc=myVector[tmb]->GetCounter(34);
       if (dc == 0x3fffffff ) dc = -1;
       *out << "L: " << dc << cgicc::br();
       *out <<cgicc::td();
