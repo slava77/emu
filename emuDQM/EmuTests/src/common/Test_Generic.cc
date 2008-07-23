@@ -1030,8 +1030,8 @@ void Test_Generic::finish() {
 		else if (data.content[i][j] > limits[2])  { validity="H0"; h0_cnt++;}
 		// if (validity != "OK") failed_cnt++;
 		int prec=2;
-		if (data.content[i][j] < 1) prec = 3;
-		if (data.content[i][j] < 0.01) prec = 5;
+		if (fabs(data.content[i][j]) < 1) prec = 3;
+		if (fabs(data.content[i][j]) < 0.01) prec = 5;
 		text_res << std::fixed << std::setprecision(prec) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
 			 << std::setw(9) << data.content[i][j] << std::setw(7) << validity << std::setw(7) << (int)(mask.content[i][j]) << std::endl;
 	      }
