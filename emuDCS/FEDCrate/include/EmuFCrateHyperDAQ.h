@@ -200,27 +200,23 @@ public:
 	void DDUBrcstFED(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
 
-	/** Sends firmware to a specific board.  Consider merging with the broadcast
-	*	method.
-	**/
+	/** @Deprecated Merged with the broadcast method **/
+	/*
 	void DDULoadFirmware(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
+	*/
 
-	/** Shows the DDU FPGA status page and various communication options. **/
-	void DDUFpga(xgi::Input * in, xgi::Output * out )
+	/** Shows General DDU debugging information. **/
+	void DDUDebug(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
-	/** Traps and displays DDU debugging information (?) **/
-	//void DDUtrapDecode(xgi::Input * in, xgi::Output * out);
-		// throw (xgi::exception::Exception)
+	/** Shows Expert DDU debugging information and commands. **/
+	void DDUExpert(xgi::Input * in, xgi::Output * out )
+		throw (xgi::exception::Exception);
 
 	/** Shows the DDU InFPGA 0 and 1 status page and various communication options. **/
 	void InFpga(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
-
-	/** Shows the DDU InFPGA1 status page and various communication options. **/
-	//void INFpga1(xgi::Input * in, xgi::Output * out )
-		//throw (xgi::exception::Exception);
 
 	/** Traps and displays INFPGA debugging information (?)
 	*

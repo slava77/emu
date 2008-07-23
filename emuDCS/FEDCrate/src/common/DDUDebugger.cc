@@ -1384,12 +1384,48 @@ std::map<string, string> DDUDebugger::WriteMemoryActive(enum DEVTYPE dt, int iFi
 
 
 
-string DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
+std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 {
-	ostringstream *out = new ostringstream();
+	std::vector<std::string> out;
+	std::ostringstream outStream;
 
 	thisDDU->infpga_trap(dt);
 
+	unsigned long int lcode[6];
+
+	lcode[0] = thisDDU->fpga_lcode[0];
+	lcode[1] = thisDDU->fpga_lcode[1];
+	lcode[2] = thisDDU->fpga_lcode[2];
+	lcode[3] = thisDDU->fpga_lcode[3];
+	lcode[4] = thisDDU->fpga_lcode[4];
+	lcode[5] = thisDDU->fpga_lcode[5];
+
+	// First, spit out the full status.
+
+	string debugNames[12] = {
+		"lf-full",
+		"mem-avail",
+		"c-code",
+		"end-to",
+		"start-to",
+		"faf/nrdy",
+		"l1-err",
+		"dmb-warn",
+		"32-bit empty-0m high",
+		"32-bit empty-0m low",
+		"32-bit stat high",
+		"32-bit stat low"
+	};
+
+	// Pop out the decoded register.
+	for (unsigned int iBits = 0; iBits < 12; iBits++) {
+		int lcodeBits = 5 - (iBits/2);
+		outStream << debugNames[iBits] << ": " << setw(4) << setfill('0') << hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
+		out.push_back(outStream.str());
+		outStream.str("");
+	}
+
+/*
 	unsigned long int lcode[10];
 	int i;
 	char buf[100], buf1[100], buf2[100], buf3[100], buf4[100];
@@ -1487,6 +1523,8 @@ string DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
 
 	return out->str();
+	*/
+	return out;
 }
 
 
