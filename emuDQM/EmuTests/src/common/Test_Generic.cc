@@ -19,7 +19,7 @@ time_sample Test_Generic::CalculateCorrectedPulseAmplitude(pulse_fit& fit)
 
   double d21 = (y2-y1)/(x2-x1);
   double d32 = (y3-y2)/(x3-x2);
-  double c = (d21-d32)/(x3-x2);
+  double c = (d21-d32)/(x3-x1);
   double x0 = (x1 + 2*x2 + x3)/4 + (d21+d32)/(4*c);
   double A = y2 + c*pow(x2-x0,2);
   double dX=x0-x2;

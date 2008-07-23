@@ -543,19 +543,19 @@ void Test_CFEB03::finishCSC(std::string cscID)
 			<< " r:" << fwhm_right_time <<":" << fwhm_right  
 			<< ", leftXtalk=" << max_left/max << ", rightXtalk=" << max_right/max << std::endl;
 
-	      //	      std::ofstream res_out;
-	      /*	      
-			     res_out.open((cscID+"_chan_dump.dat").c_str(),std::ios::out | std::ios::app);
-			     res_out << "c: "<< std::dec << layer << ":" << (icfeb*16+strip) << " ";
+	      	      std::ofstream res_out;
+	      	      
+			     res_out.open((cscID+"_chan_dump.txt").c_str(),std::ios::out | std::ios::app);
+			     res_out << std::dec << layer << ":" << (icfeb*16+strip) << " ";
 			     for (int itime=0; itime < NSAMPLES-1; itime++) {
 			     for (int dac=0; dac<8; dac++) {
 			     time_step& cval = xtalkdata.content[7-dac][layer-1][icfeb*16+strip-1][itime];
-			     res_out << (int)cval.mv << " ";
+			     res_out << std::fixed << std::setprecision(1) << cval.mv << " ";
 			     }
 			     }
 			     res_out << std::endl;
 			     res_out.close();
-	      */
+	      
 
 	      int Qc[64];
 	      int Ql[64];
@@ -573,7 +573,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      bool fFirstStrip = (strip ==1 && icfeb==0)? true: false;
 	      bool fLastStrip = (strip ==16 && icfeb==(getNumStrips(cscID)/16-1))? true: false;
 	      
-	      std::ofstream res_out;
+	      // std::ofstream res_out;
 //	      res_out.open((cscID+"_dump.dat").c_str(),std::ios::out | std::ios::app);
 	      for (int i=0; i<64; i++) {
 		Qc[i]=0;
