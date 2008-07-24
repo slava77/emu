@@ -617,7 +617,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	
       } else {
 	//LOG4CPLUS_ERROR(logger_,eTag << cscTag << 
-	LOG4CPLUS_WARN(logger_,eTag << cscTag << 
+	LOG4CPLUS_ERROR(logger_,eTag << cscTag << 
 		      " Can not unpack TMB Data");
       }
     } else {
