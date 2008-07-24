@@ -43,8 +43,26 @@ void EmuPlotter::reset()
         bin_checker.modeDDU(true);
   //bin_checker.output1().show();
         //bin_checker.output2().show();
-  fBusy=false;
+
   cscCntrs.clear();
+
+  // Clear Canvases
+  std::map<std::string, MECanvases_List >::iterator citr;
+  for (citr = MECanvases.begin(); citr != MECanvases.end(); ++citr) {
+      LOG4CPLUS_INFO(logger_,"Clean Canvases Collection " << citr->first );
+                clearCanvasesCollection(citr->second);
+  }
+  MECanvases.clear();
+
+  // Clear Histograms/MEs
+  std::map<std::string, ME_List >::iterator itr;         
+  for (itr = MEs.begin(); itr != MEs.end(); ++itr) {
+        LOG4CPLUS_INFO(logger_,"Clean ME Collection " << itr->first );
+        clearMECollection(itr->second);
+  }             
+        
+  MEs.clear();
+  fBusy=false;
 }
 
 void EmuPlotter::clearMECollection(ME_List & collection) 

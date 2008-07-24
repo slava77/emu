@@ -262,10 +262,10 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   fCloseL1As = dduTrailer.reserved() & 0x1; // Get status if Close L1As bit
   if (fCloseL1As) LOG4CPLUS_DEBUG(logger_,eTag << " Close L1As bit is set");
 
-  // ==     DDU Header banch crossing number (BXN)
+  // ==     DDU Header bunch crossing number (BXN)
   BXN=dduHeader.bxnum();
-  LOG4CPLUS_DEBUG(logger_,dduTag << " DDU Header BXN Number = " << std::dec << BXN);
-  if (isMEvalid(dduME, "BXN", mo)) mo->Fill((double)BXN);
+  // LOG4CPLUS_WARN(logger_,dduTag << " DDU Header BXN Number = " << std::dec << BXN);
+  if (isMEvalid(dduME, "BXN", mo)) mo->Fill(BXN);
 
   // ==     L1A number from DDU Header
   int L1ANumber_previous_event = L1ANumbers[dduID];

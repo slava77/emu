@@ -168,6 +168,7 @@ public:
   void updateCSCHistos();
   void updateCSCFractionHistos(std::string cscTag);
 
+  void reset();
 
 protected:
 
@@ -180,7 +181,6 @@ protected:
   MECanvases_List bookDDUCanvases(int dduNumber);
 
   void init(); 
-  void reset();
   std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
   int loadXMLBookingInfo(std::string xmlFile);
   int loadXMLCanvasesInfo(std::string xmlFile);
