@@ -1020,8 +1020,20 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   uint32_t errorFlag = msg->errorFlag;
   uint32_t serverTID = msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress;
   uint32_t status = 0;
+
+  if (runNumber_ != msg->runNumber) {
+	LOG4CPLUS_INFO(getApplicationLogger(),"Detected Run Number switch from " << runNumber_ << " to " << msg->runNumber<< ". Resetting Monitor...");
+	if (plotter_ != NULL) {
+		if (fSaveROOTFile_== xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)) ) {
+			plotter_->saveToROOTFile(getROOTFileName());
+		}
+	    	sessionEvents_=0;
+		cscUnpacked_ = 0;
+		plotter_->reset();
+    	}
+  }
   runNumber_ = msg->runNumber;
-  
+
   if( errorFlag==EmuFileReader::Type2 ) status |= 0x8000;
   if( errorFlag==EmuFileReader::Type3 ) status |= 0x4000;
   if( errorFlag==EmuFileReader::Type4 ) status |= 0x2000;
