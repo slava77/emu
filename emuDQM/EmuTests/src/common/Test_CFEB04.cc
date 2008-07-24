@@ -398,7 +398,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		}
 
 		time_sample pulse_fit  = CalculateCorrectedPulseAmplitude(fit);
-		if (v06) {v06->Fill(pulse_fit.tbin);}
+		// if (v06) {v06->Fill(pulse_fit.tbin);}
 
 		val.s = pow(max_rms,2) + pow((0.01*max), 2);
 
@@ -438,6 +438,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		if (s==0) { fValidStrip = false; break; }
 
 		time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]); 
+		if (v06 && dac==5) {v06->Fill(pulse_fit.tbin);}
 	        y = pulse_fit.value;	
 		X+=x/s;
 		XX+=(x*x)/s;
@@ -448,14 +449,14 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	      }
 
 	      if (fValidStrip) {
-	      	// a=(XY*S-X*Y)/(XX*S-X*X); // for 2 parameters fit
-		a=XY/XX;
-	      	// b=(Y-a*X)/S;
-		b=0;
+	      	a=(XY*S-X*Y)/(XX*S-X*X); // for 2 parameters fit
+		//a=XY/XX;
+	        b=(Y-a*X)/S;
+		//b=0;
 	      	avg_gain+=1/a;
 	      	avg_gain_cnt++;
-	    	ksi=YY+a*a*XX-2*a*XY;
-	      	// ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X; // for 2-parameters fit
+	    	// ksi=YY+a*a*XX-2*a*XY;
+	      	ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X; // for 2-parameters fit
 	      } else {
 		a = -999;
 		b = -999;
@@ -478,7 +479,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 	      std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
 	      r01.content[layer-1][icfeb*16+strip-1] = a;
-	      // r02.content[layer-1][icfeb*16+strip-1] = b;
+	      //r02.content[layer-1][icfeb*16+strip-1] = b;
 	      r03.content[layer-1][icfeb*16+strip-1] = ksi;
 	    }
 	  }
@@ -529,7 +530,7 @@ bool Test_CFEB04::checkResults(std::string cscID)
   if (td_itr != tdata.end()) {
     TestData& cscdata= td_itr->second;
     TestData2D& r01 = cscdata["R01"];
-    TestData2D& r02 = cscdata["R02"];
+    //TestData2D& r02 = cscdata["R02"];
 
     int badChannels=0;
     // Check pedestals
@@ -542,7 +543,7 @@ bool Test_CFEB04::checkResults(std::string cscID)
       isValid=false;
       std::cout << cscID << ": 20% of channels have bad Gain" << std::endl;
     }
-
+/*
     badChannels=0;
     // Check noise
     for (int i=0; i<r02.Nlayers; i++) {
@@ -554,6 +555,7 @@ bool Test_CFEB04::checkResults(std::string cscID)
       isValid=false;
       std::cout << cscID << ": 20% of channels have bad Intercept" << std::endl;
     }
+*/
   }
 
   return isValid;

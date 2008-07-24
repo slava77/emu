@@ -20,7 +20,7 @@
 		<High1Limit>20</High1Limit>
         </TestResult>
 
-	<TestResult>
+	<!--TestResult>
                 <Test>CFEB04</Test>
                 <Type>cfeb_cnv</Type>
                 <Title>R02 - Gain intercept B (ADC)</Title>
@@ -34,11 +34,11 @@
                 <YMax>60</YMax>
                 <YBins>120</YBins>
                 <YTitle>Gain intercept</YTitle>
-                <Low1Limit>-40</Low1Limit>
-                <Low0Limit>-30</Low0Limit>
-                <High0Limit>30</High0Limit>
-                <High1Limit>40</High1Limit>
-        </TestResult>
+                <Low1Limit>-50</Low1Limit>
+                <Low0Limit>-40</Low0Limit>
+                <High0Limit>40</High0Limit>
+                <High1Limit>50</High1Limit>
+        </TestResult-->
 
 	<TestResult>
                 <Test>CFEB04</Test>
@@ -51,13 +51,13 @@
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
                 <YMin>0</YMin>
-                <YMax>50</YMax>
+                <YMax>100</YMax>
                 <YBins>200</YBins>
                 <YTitle>Gain non-linearity</YTitle>
                 <Low1Limit>0</Low1Limit>
                 <Low0Limit>0</Low0Limit>
-                <High0Limit>30</High0Limit>
-                <High1Limit>60</High1Limit>
+                <High0Limit>50</High0Limit>
+                <High1Limit>100</High1Limit>
         </TestResult>
 
 	<TestResult>
@@ -75,7 +75,7 @@
                 <YBins>41</YBins>
                 <YTitle>Saturation (ADC)</YTitle>
                 <Low1Limit>3500</Low1Limit>
-                <Low0Limit>4000</Low0Limit>
+                <Low0Limit>3800</Low0Limit>
                 <High0Limit>4095</High0Limit>
                 <High1Limit>4095</High1Limit>
         </TestResult>
