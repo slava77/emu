@@ -713,7 +713,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 
       if (checkResults(cscID)) { // Check if 20% of channels with left and right crosstalks are bad
 	// == Save results for database transfer
-	std::ofstream res_out((path+cscID+"_"+testID+"_Xtalk_DB.dat").c_str());
+	std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
 
 	for (int layer=0; layer<NLAYERS; layer++) {
 	  for (int strip=0; strip<strips_per_layer; strip++) {
@@ -724,13 +724,13 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	}
 	res_out.close();
 
-	res_out.open((path+cscID+"_"+testID+"_DB.dat").c_str());
+	res_out.open((path+cscID+"_"+testID+"_DB_Xtalk.dat").c_str());
 
         for (int layer=0; layer<NLAYERS; layer++) {
           for (int strip=0; strip<strips_per_layer; strip++) {
             res_out << std::fixed << std::setprecision(5) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-                    << r06.content[layer][strip]  << "  " << r07.content[layer][strip] << "  " <<  r03.content[layer][strip]
-                    << std::setprecision(5) << "  " << r09.content[layer][strip] << "  " << r10.content[layer][strip] << std::endl;
+                    << r06.content[layer][strip]  << "  " << r07.content[layer][strip] << "  "  
+                    << r09.content[layer][strip] << "  " << r10.content[layer][strip] << std::endl;
           }
         }
         res_out.close();
