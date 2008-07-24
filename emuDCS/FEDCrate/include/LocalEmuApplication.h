@@ -61,6 +61,34 @@ public:
 
 		// PGK We deal with INFO level unless we are doing a Debug run.
 		getApplicationLogger().setLogLevel(INFO_LOG_LEVEL);
+
+		// Move the pictures to tmp for display
+		// FIXME with something that will work with RPMs.
+		std::vector< std::string > picNames;
+		picNames.push_back("OSUBackground.gif");
+		picNames.push_back("OSUCMS.png");
+		picNames.push_back("EmuFEDSeal.png");
+		for (std::vector< std::string >::iterator iName = picNames.begin(); iName != picNames.end(); iName++) {
+			std::ifstream picIn;
+			picIn.open((*iName).c_str(),std::ios_base::binary);
+			if (picIn.is_open()) {
+				std::ofstream picOut;
+				std::ifstream picOutTest;
+				string newName = "/tmp/" + *iName;
+				// Check if file is already there...
+				picOutTest.open(newName.c_str(),std::ios_base::binary | std::ios::in);
+				if (!picOutTest.is_open()) {
+					picOut.open(newName.c_str(),std::ios_base::binary);
+					if (picOut.is_open()) {
+						picOut << picIn.rdbuf();
+						picOut.close();
+					}
+				} else {
+					picOutTest.close();
+				}
+				picIn.close();
+			}
+		}
 	}
 
 	/** Sends the GetParameters SOAP command to a target application.
