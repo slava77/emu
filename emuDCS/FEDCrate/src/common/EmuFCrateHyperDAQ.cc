@@ -80,24 +80,6 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 	tuscode[6] = 0xd0025a02;
 	tuscode[7] = 0xd1025a02;
 
-	// Move the pictures to tmp for display
-	std::vector< std::string > picNames;
-	picNames.push_back("osu_fed_background.png");
-	picNames.push_back("osu_crate.png");
-	picNames.push_back("osu_emu.png");
-	for (std::vector< std::string >::iterator iName = picNames.begin(); iName != picNames.end(); iName++) {
-		std::ifstream picIn;
-		picIn.open((*iName).c_str(),std::ios_base::binary);
-		if (picIn.is_open()) {
-			std::ofstream picOut;
-			string newName = "/tmp/" + *iName;
-			picOut.open(newName.c_str(),std::ios_base::binary);
-			picOut << picIn.rdbuf();
-			picOut.close();
-			picIn.close();
-		}
-	}
-
 }
 
 
