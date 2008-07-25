@@ -119,8 +119,8 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	char filebuf[255];
 	time_t theTime = time(NULL);
 
-	strftime(datebuf, sizeof(datebuf), "%Y-%j-%H%M%S", localtime(&theTime));
-	sprintf(filebuf,"EmuFCrate%d-%s.log",getApplicationDescriptor()->getLocalId(),datebuf);
+	strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
+	sprintf(filebuf,"EmuFCrate-%s.log",datebuf);
 
 	log4cplus::SharedAppenderPtr myAppend = new FileAppender(filebuf);
 	myAppend->setName("EmuFCrateAppender");
@@ -132,6 +132,9 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	myAppend->setLayout( myLayout );
 
 	getApplicationLogger().addAppender(myAppend);
+
+	// TEMP
+	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 
 	// PGK is an idiot.  Forgetting this leads to disasters.
 	TM = new IRQThreadManager();
@@ -516,7 +519,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				LOG4CPLUS_DEBUG(getApplicationLogger(), "DDU Status for slot " << dec << mySlot << ": 0x" << hex << CSCStat << " 0x" << dduFPGAStat << " 0x" << inFPGA0Stat << " 0x" << inFPGA1Stat << dec);
 				//printf("   DDU Status for slot %2d: 0x%04x  0x%08x  0x%08x  0x%08x\n",mySlot,(unsigned int) CSCstat,(unsigned int) DDUfpgaStat,(unsigned int) INfpga0Stat,(unsigned int) INfpga1Stat);
 
-				long int liveFibers = (myDdus[j]->infpga_CheckFiber(INFPGA0)&0x000000ff) | ((myDdus[j]->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
+				long int liveFibers = (myDdus[j]->checkFiber(INFPGA0)&0x000000ff) | ((myDdus[j]->checkFiber(INFPGA1)&0x000000ff)<<8);
 				int killFiber = (myDdus[j]->read_page1()&0xffff);
 				//int liveFibers = (myDdus[j]->checkFiber(INFPGA0) | (myDdus[j]->checkFiber(INFPGA0) << 8));
 				//int killFiber = myDdus[j]->readKillFiber()&0x7fff;

@@ -73,16 +73,23 @@ public:
 		throw (FEDException);
 	unsigned int readSoftwareSwitch()
 		throw (FEDException);
-	//void setSoftwareSwitch(unsigned int value)
-	//	throw (FEDException);
+	void setSoftwareSwitch(unsigned int value)
+		throw (FEDException);
 	unsigned int readFMM()
 		throw (FEDException);
-	//void setFMM(unsigned int value)
-	//	throw (FEDException);
+	void setFMM(unsigned int value)
+		throw (FEDException);
 	unsigned int readTTCCommand()
 		throw (FEDException);
-	//void setTTCCommand(unsigned int value)
-	//	throw (FEDException);
+	void setTTCCommand(unsigned int value)
+		throw (FEDException);
+	void resetBX()
+		throw (FEDException);
+	void resetEvents()
+		throw (FEDException);
+	void setFakeL1A(unsigned int value)
+		throw (FEDException);
+	
 
 	// EPROM reprogramming (EXPERTS ONLY !)
 	void hdrst_main(void);

@@ -184,7 +184,7 @@ public:
 	*	@param val is the legacy index number for DDU/DCCTextLoad to parse.
 	*	@param buttonText is the text you want to appear in the submit button.
 	**/
-	string makeForm(string target, unsigned int ddu, unsigned int val, string buttonText = "Load")
+	string makeForm(string target, unsigned int crate, unsigned int ddu, unsigned int val, string buttonText = "Load")
 		throw (FEDException)
 	{
 
@@ -198,6 +198,13 @@ public:
 		// The DDU
 		ostringstream dduText;
 		dduText << ddu;
+		// The Crate
+		ostringstream crateText;
+		crateText << crate;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name","crate")
+			.set("value",crateText.str()) << endl;
 		*out << cgicc::input()
 			.set("type","hidden")
 			.set("name","ddu")
@@ -207,14 +214,13 @@ public:
 		valText << val;
 		*out << cgicc::input()
 			.set("type","hidden")
-			.set("name","val")
+			.set("name","command")
 			.set("value",valText.str()) << endl;
 		// The current value
 		*out << cgicc::input()
 			.set("type","text")
 			.set("name","textdata")
 			.set("size","10")
-			.set("ENCTYPE","multipart/form-data")
 			.set("value",elements_[1]->value->str()) << endl;
 		// Submit
 		*out << cgicc::input()

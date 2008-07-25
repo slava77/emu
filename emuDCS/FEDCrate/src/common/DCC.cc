@@ -63,8 +63,8 @@ void DCC::configure()
 	//printf(" *********************** DCC configure is called \n");
 	//printf(" DCC slot %d fifoinuse %d \n",slot(),fifoinuse_);
 	if (slot() < 21) {
-		mctrl_fifoinuse(fifoinuse_);
-		mctrl_swset(softsw_);
+		setFIFOInUse(fifoinuse_);
+		setSoftwareSwitch(softsw_);
 	}
 }
 
@@ -91,7 +91,7 @@ unsigned long int  DCC::inprom_userid()
 
 unsigned long int  DCC::mprom_userid()
 {
-	enum DEVTYPE dv;;
+	enum DEVTYPE dv;
 	dv = MPROM;
 	cmd[0] = MPROM_USERCODE_L;
 	cmd[1] = MPROM_USERCODE_H;
@@ -722,6 +722,15 @@ unsigned int DCC::readSoftwareSwitch()
 }
 
 
+void DCC::setSoftwareSwitch(unsigned int value)
+	throw (FEDException)
+{
+	try {
+		return writeReg(MCTRL, 0x07, value);
+	} catch (FEDException &e) { throw; }
+}
+
+
 unsigned int DCC::readFMM()
 	throw (FEDException)
 {
@@ -731,11 +740,56 @@ unsigned int DCC::readFMM()
 }
 
 
+void DCC::setFMM(unsigned int value)
+	throw (FEDException)
+{
+	try {
+		return writeReg(MCTRL, 0x08, value);
+	} catch (FEDException &e) { throw; }
+}
+
+
 unsigned int DCC::readTTCCommand()
 	throw (FEDException)
 {
 	try {
 		return readReg(MCTRL, 0x05);
+	} catch (FEDException &e) { throw; }
+}
+
+
+void DCC::setTTCCommand(unsigned int value)
+	throw (FEDException)
+{
+	try {
+		return writeReg(MCTRL, 0x00, 0Xff | (value & 0xff));
+	} catch (FEDException &e) { throw; }
+}
+
+
+void DCC::resetBX()
+	throw (FEDException)
+{
+	try {
+		return writeReg(MCTRL, 0x00, 0xff02);
+	} catch (FEDException &e) { throw; }
+}
+
+
+void DCC::resetEvents()
+	throw (FEDException)
+{
+	try {
+		return writeReg(MCTRL, 0x00, 0xff01);
+	} catch (FEDException &e) { throw; }
+}
+
+
+void DCC::setFakeL1A(unsigned int value)
+	throw (FEDException)
+{
+	try {
+		return writeReg(MCTRL, 0x04, value);
 	} catch (FEDException &e) { throw; }
 }
 
@@ -753,16 +807,16 @@ unsigned int DCC::getDDUSlotFromFIFO(unsigned int fifo) {
 
 void DCC::crateHardReset()
 {
-	mctrl_swset(0x1000);
-	mctrl_ttccmd(0x34);
+	setSoftwareSwitch(0x1000);
+	setTTCCommand(0x34);
 	sleep((unsigned int) 3);
-	mctrl_swset(0x0000);
+	setSoftwareSwitch(0x0);
 }
 
 void DCC::crateSyncReset()
 {
-	mctrl_swset(0x1000);
-	mctrl_ttccmd(0x3);
+	setSoftwareSwitch(0x1000);
+	setTTCCommand(0x3);
 	sleep((unsigned int) 1);
-	mctrl_swset(0x0000);
+	setSoftwareSwitch(0x0);
 }

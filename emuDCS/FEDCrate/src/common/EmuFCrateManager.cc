@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.12 2008/07/09 11:33:09 paste Exp $
+/// $Id: EmuFCrateManager.cc,v 1.13 2008/07/25 15:33:09 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -112,7 +112,7 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 	char filebuf[255];
 	time_t theTime = time(NULL);
 
-	strftime(datebuf, sizeof(datebuf), "%Y-%j-%H%M%S", localtime(&theTime));
+	strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
 	sprintf(filebuf,"EmuFCrateManager-%s.log",datebuf);
 
 	log4cplus::SharedAppenderPtr myAppend = new FileAppender(filebuf);
@@ -125,6 +125,9 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 	myAppend->setLayout( myLayout );
 
 	getApplicationLogger().addAppender(myAppend);
+
+	// TEMP
+	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 
 }
 

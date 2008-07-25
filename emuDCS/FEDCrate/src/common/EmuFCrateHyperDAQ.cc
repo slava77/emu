@@ -80,6 +80,27 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 	tuscode[6] = 0xd0025a02;
 	tuscode[7] = 0xd1025a02;
 
+
+	char datebuf[55];
+	char filebuf[255];
+	time_t theTime = time(NULL);
+
+	strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
+	sprintf(filebuf,"EmuFCrateHyperDAQ-%s.log",datebuf);
+
+	log4cplus::SharedAppenderPtr myAppend = new FileAppender(filebuf);
+	myAppend->setName("EmuFCrateHyperDAQAppender");
+
+	//Appender Layout
+	std::auto_ptr<Layout> myLayout = std::auto_ptr<Layout>(new log4cplus::PatternLayout("%D{%m/%d/%Y %j-%H:%M:%S.%q} %-5p %c, %m%n"));
+	// for date code, use the Year %Y, DayOfYear %j and Hour:Min:Sec.mSec
+	// only need error data from Log lines with "ErrorData" tag
+	myAppend->setLayout( myLayout );
+
+	getApplicationLogger().addAppender(myAppend);
+
+	// TEMP
+	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 }
 
 
@@ -339,7 +360,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			*out << cgicc::td() << endl;
 
 			// Knowing which chambers are actually alive is a good thing.
-			long int liveFibers = ((*iDDU)->infpga_CheckFiber(INFPGA0)&0x000000ff) | (((*iDDU)->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
+			long int liveFibers = ((*iDDU)->checkFiber(INFPGA0)&0x000000ff) | (((*iDDU)->checkFiber(INFPGA1)&0x000000ff)<<8);
 			long int killFiber = (*iDDU)->ddu_rdkillfiber();
 
 			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2832,7 +2853,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	occuTable.addColumn("CFEB");
 
 	// It's good to know the fibers that are alive and the fibers that are killed.
-	long int liveFibers = (myDDU->infpga_CheckFiber(INFPGA0)&0x000000ff) | ((myDDU->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
+	long int liveFibers = (myDDU->checkFiber(INFPGA0)&0x000000ff) | ((myDDU->checkFiber(INFPGA1)&0x000000ff)<<8);
 	long int killFiber = myDDU->ddu_rdkillfiber();
 
 	// PGK It turns out that this is an automatically shifting register.
@@ -3686,7 +3707,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::div("View this page for a different crate/board")
 		.set("class","legend") << endl;
 
-	*out << selectACrate("DDUDebug","ddu",cgiDDU,cgiCrate) << endl;
+	*out << selectACrate("DDUExpert","ddu",cgiDDU,cgiCrate) << endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
 		.set("style","color: #A00; font-size: 10pt;") << endl;
@@ -3717,8 +3738,8 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dduTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","222") << endl;
+		.set("name","command")
+		.set("value","3") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","ddu")
@@ -3759,7 +3780,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::tr() << endl;
 
 	// Knowing which chambers are actually alive is a good thing.
-	long int liveFibers = (myDDU->infpga_CheckFiber(INFPGA0)&0x000000ff) | ((myDDU->infpga_int_CheckFiber(INFPGA1)&0x000000ff)<<8);
+	long int liveFibers = (myDDU->checkFiber(INFPGA0)&0x000000ff) | ((myDDU->checkFiber(INFPGA1)&0x000000ff)<<8);
 	long int killFiber = myDDU->ddu_rdkillfiber();
 	unsigned int fibersWithErrors = myDDU->readCSCStat();
 
@@ -3942,9 +3963,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << endl;
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","226") << endl;
+		.set("value","5") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Send one fake DDU L1A via VME") << endl;
@@ -3962,9 +3983,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << endl;
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","227") << endl;
+		.set("value","1") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Toggle DDU CFEB-calibration-pulse==L1A feature (default false)") << endl;
@@ -3982,9 +4003,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << endl;
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","228") << endl;
+		.set("value","2") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Reset DDU via VME sync reset") << endl;
@@ -4002,9 +4023,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << endl;
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","229") << endl;
+		.set("value","6") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Send FMM-Error-Disable signal") << endl;
@@ -4033,9 +4054,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << endl;
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","321") << endl;
+		.set("value","7") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
@@ -4059,9 +4080,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << endl;
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","421") << endl;
+		.set("value","8") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
@@ -4098,7 +4119,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		*(inregTable(iReg,1)->value) << showbase << hex << inreg;
 		inregTable[iReg]->setClass("none");
 		if (iReg == 0) {
-			*(inregTable(iReg,2)->value) << inregTable[iReg]->makeForm(dduTextLoad,cgiDDU,508) << endl;
+			*(inregTable(iReg,2)->value) << inregTable[iReg]->makeForm(dduTextLoad,cgiCrate,cgiDDU,9) << endl;
 		}
 	}
 
@@ -4144,7 +4165,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 			.set("class",iComment->second);
 	}
 	*/
-	*(expertTable(0,3)->value) << expertTable[0]->makeForm(dduTextLoad,cgiDDU,512);
+	*(expertTable(0,3)->value) << expertTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,11);
 	expertTable[0]->setClass("none");
 
 	unsigned int fakeL1 = myDDU->readFakeL1Reg();
@@ -4159,7 +4180,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 			.set("class",iComment->second);
 	}
 	*/
-	*(expertTable(1,3)->value) << expertTable[1]->makeForm(dduTextLoad,cgiDDU,514);
+	*(expertTable(1,3)->value) << expertTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,13);
 	expertTable[1]->setClass("none");
 
 	unsigned int foe = myDDU->readFMMReg();
@@ -4174,7 +4195,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 			.set("class",iComment->second);
 	}
 	*/
-	*(expertTable(2,3)->value) << expertTable[2]->makeForm(dduTextLoad,cgiDDU,517);
+	*(expertTable(2,3)->value) << expertTable[2]->makeForm(dduTextLoad,cgiCrate,cgiDDU,18);
 	expertTable[2]->setClass("none");
 
 	*(expertTable(3,0)->value) << "Switches";
@@ -4203,15 +4224,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("value",crateVal) << endl;
 	// This is a relic from the old days, and is read by DDUTextLoad.
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","513") << endl;
-	*out << cgicc::input()
-		.set("type","hidden")
-		.set("name","textdata")
-		.set("size","10")
-		.set("ENCTYPE","multipart/form-data")
-		.set("value","") << endl;
+		.set("value","10") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Toggle DAQ backpressure (DCC/S-Link wait)") << endl;
@@ -4230,15 +4245,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("value",crateVal) << endl;
 	// This is a relic from the old days, and is read by DDUTextLoad.
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","515") << endl;
-	*out << cgicc::input()
-		.set("type","hidden")
-		.set("name","textdata")
-		.set("size","10")
-		.set("ENCTYPE","multipart/form-data")
-		.set("value","") << endl;
+		.set("value","12") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Toggle all fake L1A (data dump/passthrough)") << endl;
@@ -4257,15 +4266,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("value",crateVal) << endl;
 	// This is a relic from the old days, and is read by DDUTextLoad.
 	*out << cgicc::input()
-		.set("name","val")
+		.set("name","command")
 		.set("type","hidden")
-		.set("value","518") << endl;
-	*out << cgicc::input()
-		.set("type","hidden")
-		.set("name","textdata")
-		.set("size","10")
-		.set("ENCTYPE","multipart/form-data")
-		.set("value","") << endl;
+		.set("value","6") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Activate FMM error-report disable setting") << endl;
@@ -4300,26 +4303,26 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*(writableTable(0,1)->value) << showbase << hex << myDDU->read_page1();
 	writableTable[0]->setClass("none");
 	// New Value...
-	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiDDU,603) << endl;
+	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << endl;
 
 	myDDU->read_page5();
 	*(writableTable(1,0)->value) << "Flash GbE FIFO thresholds";
 	*(writableTable(1,1)->value) << "0x" << hex << ((myDDU->rcv_serial[4]&0xC0)>>6) << noshowbase << setw(8) << setfill('0') << hex << (((((myDDU->rcv_serial[2]&0xC0)>>6)|((myDDU->rcv_serial[5]&0xFF)<<2)|((myDDU->rcv_serial[4]&0x3F)<<10)) << 16) | (((myDDU->rcv_serial[0]&0xC0)>>6)|((myDDU->rcv_serial[3]&0xFF)<<2)|((myDDU->rcv_serial[2]&0x3F)<<10)));
 	writableTable[1]->setClass("none");
 	// New Value...
-	*(writableTable(1,2)->value) << writableTable[1]->makeForm(dduTextLoad,cgiDDU,604) << endl;
+	*(writableTable(1,2)->value) << writableTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,15) << endl;
 
 	*(writableTable(2,0)->value) << "Flash Board ID";
 	*(writableTable(2,1)->value) << myDDU->readFlashBoardID();
 	writableTable[2]->setClass("none");
 	// New Value...
-	*(writableTable(2,2)->value) << writableTable[2]->makeForm(dduTextLoad,cgiDDU,605) << endl;
+	*(writableTable(2,2)->value) << writableTable[2]->makeForm(dduTextLoad,cgiCrate,cgiDDU,16) << endl;
 
 	*(writableTable(3,0)->value) << "Flash DDU RUI";
 	*(writableTable(3,1)->value) << myDDU->readFlashRUI();
 	writableTable[3]->setClass("none");
 	// New Value...
-	*(writableTable(3,2)->value) << writableTable[3]->makeForm("/" + getApplicationDescriptor()->getURN() + "/DDUTextLoad",cgiDDU,606) << endl;
+	*(writableTable(3,2)->value) << writableTable[3]->makeForm(dduTextLoad,cgiCrate,cgiDDU,17) << endl;
 
 	*out << writableTable.toHTML() << endl;
 
@@ -4734,52 +4737,194 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 }
 
 
-// FIXME
 void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
-	try {
+	//try {
 
-		// PGK Patented check-for-initialization
-		if (crateVector.size()==0) {
-			LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
-			return Default(in,out);
-		}
+	// PGK Patented check-for-initialization
+	if (crateVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
 
-		cgicc::Cgicc cgi(in);
-		
-		// First, I need a crate.
-		cgicc::form_iterator name = cgi.getElement("crate");
-		unsigned int cgiCrate = 0;
-		if(name != cgi.getElements().end()) {
-			cgiCrate = cgi["crate"]->getIntegerValue();
-		}
-		Crate *myCrate = crateVector[cgiCrate];
+	cgicc::Cgicc cgi(in);
 
-		name = cgi.getElement("ddu");
-		unsigned int cgiDDU = 0;
-		if (name != cgi.getElements().end()) {
-			cgiDDU = cgi["ddu"]->getIntegerValue();
-			//cout << "DDU inside " << ddu << endl;
-		}
-		DDU *myDDU = myCrate->ddus()[cgiDDU];
-		
-		int val;
-		cgicc::form_iterator name2 = cgi.getElement("val");
-		//
-		if(name2 != cgi.getElements().end()) {
-			val = cgi["val"]->getIntegerValue();
-			cout << "VAL " << val << endl;
-		}
+	// First, I need a crate.
+	cgicc::form_iterator name = cgi.getElement("crate");
+	unsigned int cgiCrate = 0;
+	if(name != cgi.getElements().end()) {
+		cgiCrate = cgi["crate"]->getIntegerValue();
+	}
+	Crate *myCrate = crateVector[cgiCrate];
 
-		string XMLtext = cgi["textdata"]->getValue();
-		// PGK a quick fix...
-		if (XMLtext.substr(0,2) == "0x") XMLtext = XMLtext.substr(2);
-		//
-		cout << XMLtext  << endl ;
-		unsigned short int para_val;
-		unsigned long int send_val;
-//		cout << " talking VME to this shitty DDU slot: " << myDDU->slot() << endl;
+	name = cgi.getElement("ddu");
+	unsigned int cgiDDU = 0;
+	if (name != cgi.getElements().end()) {
+		cgiDDU = cgi["ddu"]->getIntegerValue();
+	}
+	DDU *myDDU = myCrate->ddus()[cgiDDU];
+
+	// The command that is intended to be sent to the DDU.
+	unsigned int command = 0;
+	name = cgi.getElement("command");
+	if(name != cgi.getElements().end()) {
+		command = cgi["command"]->getIntegerValue();
+	}
+
+	// Now load the data to be loaded, if applicable.
+	std::string XMLText;
+	name = cgi.getElement("textdata");
+	if(name != cgi.getElements().end()) {
+		XMLText = cgi["textdata"]->getValue();
+	}
+
+	// The decimal number (everything is loaded with decimal)
+	unsigned long int uploadValue = 0;
+	std::stringstream uploadStream;
+	// If we have a hex number, 0x will prefix it.
+	if (XMLText.substr(0,2) == "0x") {
+		XMLText = XMLText.substr(2);
+		// If we are uploading GbEFIFOThresholds, make sure we skip the first char...
+		if (command == 15) XMLText = XMLText.substr(1);
+		uploadStream << XMLText;
+		uploadStream >> std::hex >> uploadValue;
+	} else {
+		uploadStream << XMLText;
+		uploadStream >> std::dec >> uploadValue;
+	}
+
+	unsigned long int otherValue = 0;
+	std::stringstream otherStream;
+	std::string otherText;
+	name = cgi.getElement("textdata");
+	if(name != cgi.getElements().end()) {
+		otherText = cgi["textdata"]->getValue();
+	}
+	// If we have a hex number, 0x will prefix it.
+	if (otherText.substr(0,2) == "0x") {
+		otherText = otherText.substr(2);
+		otherText = otherText.substr(0,1);
+		otherStream << otherText;
+		otherStream >> std::hex >> otherValue;
+	} else {
+		otherStream << otherText;
+		otherStream >> std::dec >> otherValue;
+	}
+	
+	// check for errors.
+	if ((uploadStream.fail() || !uploadStream.eof()) && XMLText != "") {
+		LOG4CPLUS_ERROR(getApplicationLogger(), "DDUTextLoad does not understand XMLText(" << XMLText << ")");
+		ostringstream location;
+		location << "crate=" << cgiCrate << "&ddu=" << cgiDDU;
+		webRedirect(out,"DDUExpert?"+location.str());
+	}
+
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(),"Attempting DDUTextLoad with crate(" << cgiCrate << ") ddu(" << cgiDDU << ") == slot(" << myDDU->slot() << ") command(" << command << ") XMLText(" << XMLText << ") == uploadValue(" << uploadValue << ") otherText(" << otherText << ") == otherValue(" << otherValue << ")");
+
+	//unsigned short int para_val;
+	//unsigned long int send_val;
+
+	// We need this outside the switch command...
+	unsigned short int scale;
+	
+	// Switch on the command.
+	switch (command) {
+
+	case (1): // Toggle L1 calibration signal
+		myDDU->toggleL1Cal();
+		break;
+
+	case (2): // Reset the DDUFPGA
+		myDDU->reset(DDUFPGA);
+		break;
+
+	case (3): // Load KillFiber
+		myDDU->ddu_loadkillfiber(uploadValue);
+		break;
+
+	case (4): // Load BXorbit
+		myDDU->ddu_loadbxorbit(uploadValue);
+		break;
+
+	case (5): // Send fake L1A
+		myDDU->vmeL1A();
+		break;
+
+	case (6): // Load STFU register
+		unsigned int fmm = myDDU->readFMMReg();
+		myDDU->writeFMMReg( 0XFED0 | fmm );
+		break;
+
+	case (7): // InFPGA reset
+		myDDU->reset(INFPGA0);
+		break;
+
+	case (8): // Another InFPGA reset.  Not needed?
+		myDDU->reset(INFPGA1);
+		break;
+
+	case (9): // Write the inreg
+		myDDU->writeInputReg(uploadValue);
+		break;
+
+	case (10): // Toggle something in the prescale?
+		scale = myDDU->readGbEPrescale();
+		if (scale & 0x0008) {
+			uploadValue = (scale & 0xf7f7) | 0x8080;
+		} else {
+			uploadValue = (scale | 0x0808) & 0x7f7f;
+		}
+		// No break...  I know what I am doing.
+
+	case (11): // Write prescale
+		myDDU->writeGbEPrescale(uploadValue);
+		break;
+
+	case (12): // Toggle something in the fake L1A register?
+		scale = myDDU->readFakeL1Reg();
+		if (scale  & 0x0007) {
+			uploadValue = 0xF0F0;
+		} else {
+			uploadValue = 0x8787;
+		}
+		// No break...  I know what I am doing.
+
+	case (13): // Write fake L1A register value?
+		myDDU->writeFakeL1Reg(uploadValue);
+		break;
+
+	case (14): // Write the flash killFiber
+		myDDU->writeFlashKillFiber(uploadValue);
+		break;
+
+	case (15): // SPECIAL CASE:  write GbEFIFOThresholds
+		myDDU->writeFlashGbEFIFOThresholds(otherValue, (uploadValue & 0xffff0000) >> 16, (uploadValue & 0xffff));
+		break;
+
+	case (16): // Flash board ID
+		myDDU->writeFlashBoardID(uploadValue);
+		break;
+
+	case (17): // Flash RUI
+		myDDU->writeFlashRUI(uploadValue);
+		break;
+
+	case (18): // Load FMM
+		myDDU->writeFMMReg( 0XF0E0 | uploadValue );
+		break;
+
+	default:
+		LOG4CPLUS_ERROR(getApplicationLogger(), "command(" << command << ") not understood.");
+		break;
+	}
+
+	ostringstream location;
+	location << "crate=" << cgiCrate << "&ddu=" << cgiDDU;
+	webRedirect(out,"DDUExpert?"+location.str());
+
+		/*
 		if(val==227)myDDU->ddu_l1calonoff();
 		if(val==228)myDDU->ddu_reset();
 		if(val==222){
@@ -4975,6 +5120,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		printf(" exception raised in DDUTextLoad \n");
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
+		*/
 }
 
 
@@ -5706,8 +5852,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","103") << endl;
+		.set("name","command")
+		.set("value","3") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -5828,8 +5974,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","109") << endl;
+		.set("name","command")
+		.set("value","6") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -5977,8 +6123,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","110") << endl;
+		.set("name","command")
+		.set("value","7") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -6109,8 +6255,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","105") << endl;
+		.set("name","command")
+		.set("value","4") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -6161,8 +6307,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","104") << endl;
+		.set("name","command")
+		.set("value","4") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -6185,8 +6331,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","104") << endl;
+		.set("name","command")
+		.set("value","4") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -6209,8 +6355,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","104") << endl;
+		.set("name","command")
+		.set("value","4") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -6222,7 +6368,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
-		.set("value","1c") << endl;
+		.set("value","0x1c") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Send Soft Reset to FEDCrate") << endl;
@@ -6233,8 +6379,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","104") << endl;
+		.set("name","command")
+		.set("value","4") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -6246,7 +6392,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
-		.set("value","34") << endl;
+		.set("value","0x34") << endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("value","Send Hard Reset to FEDCrate") << endl;
@@ -6269,8 +6415,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","101") << endl;
+		.set("name","command")
+		.set("value","1") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -6289,8 +6435,8 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("action",dccTextLoad) << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","val")
-		.set("value","102") << endl;
+		.set("name","command")
+		.set("value","2") << endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
@@ -6314,52 +6460,113 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
-  try {
-		// PGK Patented check-for-initialization
-		if (crateVector.size()==0) {
-			LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
-			return Default(in,out);
-		}
+	// try {
+	
+	// PGK Patented check-for-initialization
+	if (crateVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
 
-		cgicc::Cgicc cgi(in);
+	cgicc::Cgicc cgi(in);
+
+	// First, I need a crate.
+	cgicc::form_iterator name = cgi.getElement("crate");
+	unsigned int cgiCrate = 0;
+	if(name != cgi.getElements().end()) {
+		cgiCrate = cgi["crate"]->getIntegerValue();
+	}
+	Crate *myCrate = crateVector[cgiCrate];
+
+	name = cgi.getElement("dcc");
+	unsigned int cgiDCC = 0;
+	if (name != cgi.getElements().end()) {
+		cgiDCC = cgi["dcc"]->getIntegerValue();
+	}
+	DCC *myDCC = myCrate->dccs()[cgiDCC];
+
+	// The command that is intended to be sent to the DDU.
+	unsigned int command = 0;
+	name = cgi.getElement("command");
+	if(name != cgi.getElements().end()) {
+		command = cgi["command"]->getIntegerValue();
+	}
+
+	// Now load the data to be loaded, if applicable.
+	std::string XMLText;
+	name = cgi.getElement("textdata");
+	if(name != cgi.getElements().end()) {
+		XMLText = cgi["textdata"]->getValue();
+	}
+
+	// The decimal number (everything is loaded with decimal)
+	unsigned long int uploadValue = 0;
+	std::stringstream uploadStream;
+	// If we have a hex number, 0x will prefix it.
+	if (XMLText.substr(0,2) == "0x") {
+		XMLText = XMLText.substr(2);
+		// If we are uploading GbEFIFOThresholds, make sure we skip the first char...
+		if (command == 15) XMLText = XMLText.substr(1);
+		uploadStream << XMLText;
+		uploadStream >> std::hex >> uploadValue;
+	} else {
+		uploadStream << XMLText;
+		uploadStream >> std::dec >> uploadValue;
+	}
+	
+	// check for errors.
+	if ((uploadStream.fail() || !uploadStream.eof()) && XMLText != "") {
+		LOG4CPLUS_ERROR(getApplicationLogger(), "DDUTextLoad does not understand XMLText(" << XMLText << ")");
+		ostringstream location;
+		location << "crate=" << cgiCrate << "&dcc=" << cgiDCC;
+		webRedirect(out,"DCCExpert?"+location.str());
+	}
+
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(),"Attempting DDUTextLoad with crate(" << cgiCrate << ") dcc(" << cgiDCC << ") == slot(" << myDCC->slot() << ") command(" << command << ") XMLText(" << XMLText << ") == uploadValue(" << uploadValue << ")");
+
+
+	switch (command) {
+
+	case (1): // reset bx?
+		myDCC->resetBX();
+		break;
+
+	case (2): // reset event count?
+		myDCC->resetEvents();
+		break;
+
+	case (3): // set FIFO in use
+		myDCC->setFIFOInUse(uploadValue);
+		break;
+
+	case (4): // set TTC command
+		myDCC->setTTCCommand(uploadValue);
+		break;
+
+	case (5): // set fake L1A rate and number
+		myDCC->setFakeL1A(uploadValue);
+		break;
+
+	case (6): // set SW Switch
+		myDCC->setSoftwareSwitch(uploadValue);
+		break;
+
+	case (7): // set FMM register
+		myDCC->setFMM(uploadValue);
+		break;
+
+	default:
+
+		break;
+
+	}
+	
+	std::ostringstream backLocation;
+	backLocation << "DCCExpert?crate=" << cgiCrate << "&dcc=" << cgiDCC;
+	webRedirect(out,backLocation.str());
 		
-		// First, I need a crate.
-		cgicc::form_iterator name = cgi.getElement("crate");
-		unsigned int cgiCrate = 0;
-		if(name != cgi.getElements().end()) {
-			cgiCrate = cgi["crate"]->getIntegerValue();
-		}
-		Crate *myCrate = crateVector[cgiCrate];
-
-		name = cgi.getElement("dcc");
-		unsigned int cgiDCC = 0;
-		if (name != cgi.getElements().end()) {
-			cgiDCC = cgi["dcc"]->getIntegerValue();
-			//cout << "DDU inside " << ddu << endl;
-		}
-		DCC *myDCC = myCrate->dccs()[cgiDCC];
-	  
-		int val;
-		cgicc::form_iterator name2 = cgi.getElement("val");
-		//
-		if(name2 != cgi.getElements().end()) {
-			val = cgi["val"]->getIntegerValue();
-			cout << "VAL _new" << val << endl;
-		}
-
-		string XMLtext;
-		if (val==103 || val==104 || val==105 || val==109 ||val==110) {
-			XMLtext = cgi["textdata"]->getValue();
-			if (XMLtext.substr(0,2) == "0x") XMLtext = XMLtext.substr(2);
-			//
-			cout << XMLtext  << endl ;
-		}
-	  
-		unsigned int para_val;
-		char snd_serial[2];
-		static int rate,num;
-		char arate;
-		char anum;
+		/*
 		if(val==101)myDCC->mctrl_bxr();
 		if(val==102)myDCC->mctrl_evnr();
 		snd_serial[0]=0;
@@ -6412,7 +6619,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 		}
 
 		std::ostringstream backLocation;
-		backLocation << "DDUDebug?crate=" << cgiCrate << "&dcc=" << cgiDCC;
+		backLocation << "DCCExpert?crate=" << cgiCrate << "&dcc=" << cgiDCC;
 		webRedirect(out,backLocation.str());
 		//this->DCCDebug(in,out);
 
@@ -6421,6 +6628,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 		printf(" exception raised in DCCLoadFirmware \n");
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
+	*/
 }
 
 
