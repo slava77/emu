@@ -108,13 +108,22 @@
 
 </TABLE>
 <br>
-<TABLE class="paraTableName" BORDERCOLOR="black" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="70%" align="center">
+<table style="width: 100%;">
+<tr>
+
+</td>
+	<td class="TitleMargin"><rcms.control:customResourceRenderer indentation="1" type="img" 
+	path="/img/cms.gif" align="middle" width="120"  height="120"  border="0" htmlId="cms_left"/></td>
+<td>
+
+<TABLE class="paraTableName" BORDERCOLOR="black" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="100%">
 <tr>
 <TD align="center" bgcolor="#000000" class="paraTableName" >
 <rcms.control:stateRenderer titleClass="control_label1" label="<B>State<B>:&nbsp;" contentClass="control_labe13" indentation="10"/></TD>
 </tr>
 </TABLE>
-<TABLE style="width: 70%;" align="center">
+
+	<TABLE style="width: 1080px;">
 	<tr>
 		<td  bgcolor="#B0C4DE" align="center">
 		<div id="commandSection">
@@ -127,13 +136,18 @@
 	</td>
 	</tr>
 	
-</TABLE>	
+</TABLE>
+</td>
+	<td class="TitleMargin"><rcms.control:customResourceRenderer indentation="1" type="img" 
+	path="/img/YE1.gif" align="middle" width="140"  height="130"  border="0" htmlId="YE1_left"/></td>
+</tr>	
+</table>
 
-<table style="width: 1190px;">
+<table style="width: 100%;" align="center">
 <tr>
 	
 	<!--  INFO TABLE -->
-	<td bgcolor="#DCDCDC">
+	<td bgcolor="#DCDCDC" align="center">
 	<table style="color: #FFFFFF; width: 700px; background-color: #87CEFA;">
 
 	        <tr>
@@ -187,7 +201,7 @@
 	</td>
 	
 <td class="TitleMargin"><rcms.control:customResourceRenderer indentation="1" type="img" 
-	path="/img/YE1.gif" align="middle" width="300"  height="250"  border="0" htmlId="YE1_left"/></td>
+	path="/img/diag.gif" align="middle" width="400"  height="300"  border="0" htmlId="diag_left"/></td>
 </tr>	
 </table>
 
