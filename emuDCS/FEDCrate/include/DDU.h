@@ -97,8 +97,8 @@ public:
 	// PGK Failed attempt at simplified commands
 // 	void init()
 // 		throw (FEDException);
-// 	void reset(enum DEVTYPE dt)
-// 		throw (FEDException);
+	void reset(enum DEVTYPE dt)
+		throw (FEDException);
 	void setNormal(enum DEVTYPE dt)
 		throw (FEDException);
 
@@ -114,15 +114,15 @@ public:
 		throw (FEDException);
 
 	// PGK Failed attempt at simplified DDUFPGA commands
-// 	void toggleL1Cal()
-// 		throw (FEDException);
-// 	void vmeL1A()
-// 		throw (FEDException);
+	void toggleL1Cal()
+		throw (FEDException);
+	void vmeL1A()
+		throw (FEDException);
 	int checkFIFO(int fifo)
 		throw (FEDException);
 	long int readKillFiber()
 		throw (FEDException);
-// 	long int writeKillFiber(long int killFiber)
+// 	void writeKillFiber(long int killFiber)
 // 		throw (FEDException);
 	int readCRCError()
 		throw (FEDException);
@@ -322,8 +322,8 @@ public:
 		throw (FEDException);
 	int readFMMReg()
 		throw (FEDException);
-// 	void writeFMMReg(int val)
-// 		throw (FEDException);
+	void writeFMMReg(int val)
+		throw (FEDException);
 	int readCSCStat()
 		throw (FEDException);
 	int readSwitches()
@@ -336,12 +336,12 @@ public:
 		throw (FEDException);
 	int readFakeL1Reg()
 		throw (FEDException);
-// 	void writeFakeL1Reg(int val)
-// 		throw (FEDException);
+	void writeFakeL1Reg(int val)
+		throw (FEDException);
 	int readGbEPrescale()
 		throw (FEDException);
-// 	void writeGbEPrescale(int val)
-// 		throw (FEDException);
+	void writeGbEPrescale(int val)
+		throw (FEDException);
 	int readTestReg(int iReg)
 		throw (FEDException);
 	int readBusyHistory()
