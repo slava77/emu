@@ -202,6 +202,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBLoadFirmware, "CFEBLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBLoadFirmwareID, "CFEBLoadFirmwareID");
+  xgi::bind(this,&EmuPeripheralCrateConfig::DMBCheckConfiguration, "DMBCheckConfiguration");
   //
   //-----------------------------------------------
   // TMB tests
@@ -5438,6 +5439,15 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::br();
+  //
+  std::string DMBCheckConfiguration = toolbox::toString("/%s/DMBCheckConfiguration",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",DMBCheckConfiguration) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check DMB+CFEB Configuration") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
   *out << cgicc::fieldset();
   //  
   //
@@ -5864,6 +5874,32 @@ void EmuPeripheralCrateConfig::DMBTurnOn(xgi::Input * in, xgi::Output * out )
   if (thisDMB) {
     thisDMB->lowv_onoff(0x3f);
   }
+  //
+  this->DMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::DMBCheckConfiguration(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMBCheckConfiguration  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  //
+  //  thisDMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+  //
+  thisDMB->checkDAQMBXMLValues();
+  //
+  //  thisDMB->RedirectOutput(&std::cout);
   //
   this->DMBUtils(in,out);
   //
