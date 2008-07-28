@@ -469,6 +469,7 @@ private:
   void ReadTTCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void HardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DMBCheckConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogDMBTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
