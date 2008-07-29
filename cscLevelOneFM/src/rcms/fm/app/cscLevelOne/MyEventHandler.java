@@ -68,6 +68,13 @@ public class MyEventHandler extends UserStateNotificationHandler {
 	private ScheduledFuture ttsSetterFuture = null;
 	private final ScheduledExecutorService scheduler;
 
+  protected RunSequenceNumber runNumberGenerator = null;
+  protected RunNumberData     runNumberData = null;
+  protected Integer           runNumber = null;
+  protected boolean           localRunNumber = false;
+  protected RunInfo           runInfo = null;
+
+
 	/**
 	 * Handle to utility class
 	 */
@@ -416,11 +423,70 @@ public void startAction(Object obj) throws UserActionException {
 
 			// get the parameters of the command
 			ParameterSet<CommandParameter> parameterSet = getUserFunctionManager().getLastInput().getParameterSet();
+      runNumber = null;
+      localRunNumber = false;
 
 
 		// check parameter set
 		if (parameterSet.size()==0 || parameterSet.get(MyParameters.RUN_NUMBER) == null )  {
-		    
+		    // go to error, we require parameters
+		    String errMsg = "startAction: no parameters given with start command";
+		
+		    // log remark
+		    logger.info(errMsg);
+	
+		    RunInfoConnectorIF ric = functionManager.getRunInfoConnector();
+		    if ( ric != null )
+			{
+			    if ( runNumberGenerator == null )
+				{
+				    logger.info("Creating RunNumberGenerator (RunSequenceNumber) ");
+				    runNumberGenerator = new RunSequenceNumber(ric,functionManager.getOwner(),functionManager.getParameterSet().
+									       get(MyParameters.SEQ_NAME).getValue().toString());
+				}
+
+			    if ( runNumberGenerator != null )
+				{
+				    runNumberData = runNumberGenerator.createRunSequenceNumber(new Integer(functionManager.getParameterSet().get(MyParameters.SID).
+													   getValue().toString()));
+				}
+
+			    if ( runNumberData != null )
+				{
+				    runNumber =  runNumberData.getRunNumber();
+				    System.out.println("Generated RunNumber\n"+runNumberData.toString());
+				    localRunNumber = true;
+				}
+			    else
+				{
+				    logger.error("Error generating RunNumber");
+				}
+			}
+		    else
+			{
+			    logger.error("Failed to create RunNumberGenerator");
+			}
+		}
+		else
+		    {
+			// get the run number from the start command
+			runNumber =((IntegerT)parameterSet.get(MyParameters.RUN_NUMBER).getValue()).getInteger();
+		    }
+      
+		if ( runNumber != null )
+		    {
+			// Set the run number in the Function Manager parameters
+			functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.RUN_NUMBER,new IntegerT(runNumber)));
+		    }
+		else
+		    {
+			logger.error("Cannot find and/or generator RunNumber");
+		    }
+    
+		publishRunInfo(true);
+
+
+		    /*    
 		    // default to -1
 		    try {
 			parameterSet.add( new CommandParameter<IntegerT>(MyParameters.RUN_NUMBER, new IntegerT(-1)));
@@ -431,29 +497,25 @@ public void startAction(Object obj) throws UserActionException {
 		    
 		    // log this
 		    logger.warn("No run number given, defaulting to -1.");
+		    */
 		    
-		}
+		
 		
 		// get the run number from the start command
-		Integer runNumber = ((IntegerT)parameterSet.get(MyParameters.RUN_NUMBER).getValue()).getInteger();
+		//Integer runNumber = ((IntegerT)parameterSet.get(MyParameters.RUN_NUMBER).getValue()).getInteger();
 		
 		// Set the run number in the Function Manager parameters
-		functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.RUN_NUMBER,new IntegerT(-1)));
-
+		//functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.RUN_NUMBER,new IntegerT(-1)));
+		
 		//			set run number parameter
 		try {
 		    XDAQParameter xdaqParam = ((XdaqApplication)
-					       functionManager.xdaqSupervisor.getApplications().get(0))
-			.getXDAQParameter();
+					       functionManager.xdaqSupervisor.getApplications().get(0)).getXDAQParameter();
 		    
 		    xdaqParam.select("RunNumber");
-		    
-		    ParameterSet<CommandParameter> commandParam =
-			getUserFunctionManager().getLastInput().getParameterSet();
+		    ParameterSet<CommandParameter> commandParam = getUserFunctionManager().getLastInput().getParameterSet();
 		    if (commandParam == null) {
-			logger.error(getClass().toString() +
-				     "Failded to Enable XDAQ, no run # specified.");
-			
+			logger.error(getClass().toString() +"Failded to Enable XDAQ, no run # specified.");
 			functionManager.fireEvent(MyInputs.SETERROR);
 		    }
 		    logger.debug(getClass().toString() + "Run #: " + runNumber);
@@ -556,6 +618,9 @@ public void startAction(Object obj) throws UserActionException {
 			// set action
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.ACTION_MSG,new StringT("stopping")));
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.STATE, new StringT("Halted")));
+			
+			//Run Info
+			publishRunInfo(false);
 
 			// send Stop
 			try {
@@ -882,6 +947,76 @@ public void startAction(Object obj) throws UserActionException {
 		functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.TTS_TEST_PATTERN,new StringT("")));
 		functionManager.getParameterSet().put(new FunctionManagerParameter<IntegerT>(MyParameters.TTS_TEST_SEQUENCE_REPEAT,new IntegerT(-1)));
 	}
+
+public void publishRunInfo(boolean doRun)
+  {
+    RunInfoConnectorIF ric = functionManager.getRunInfoConnector();
+
+    if ( ric != null )
+    {
+      if ( runNumberData != null )
+      {
+	runInfo = new RunInfo(ric,runNumberData);
+      }
+      else
+      {
+	runInfo = new RunInfo(ric,runNumber);
+      }
+
+      runInfo.setNameSpace(MyParameters.CSC_NS);
+      if ( localRunNumber )
+      {
+	try
+	{
+	  runInfo.publishRunInfo("RunNumber", runNumber.toString());
+	}
+	catch ( RunInfoException e )
+	{
+	  logger.error("RunInfoException: "+e.toString());
+	}
+      }
+    }
+  }
+      // Record LhcStatus info
+      /*
+      try
+      {
+	lhcStatus = LhcStatus.fetchLhcStatus();
+	Class c = lhcStatus.getClass();
+	Field fields [] = c.getFields();
+	for ( int i=0; i<fields.length; i++)
+	{
+	  String fieldName = fields[i].getName();
+	  Object value = fields[i].get(lhcStatus);
+	  String type = fields[i].getType().getName();
+
+	  if ( type.equals("java.lang.String") )
+	  {
+	    StringT sValue = new StringT((String)value);
+	    Parameter<StringT> p = new Parameter<StringT>(fieldName,sValue);
+	    runInfo.publishWithHistory(p);
+	  }
+	  else if ( type.equals("int" ) )
+	  {
+	    IntegerT iValue = new IntegerT((Integer)value);
+	    Parameter<IntegerT> p = new Parameter<IntegerT>(fieldName,iValue);
+	    runInfo.publishWithHistory(p);
+	  }
+	}
+      }
+     
+      catch ( Exception e )
+      {
+	logger.warn(e.toString());
+      }
+    }
+    else
+
+    {
+      logger.error("Cannot find RunInfoConnectorIF");
+    }
+  }
+      */
 
 	private void destroyXDAQ() throws UserActionException {
 	functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.STATE,new StringT(functionManager.getState().getStateString())));
