@@ -240,12 +240,12 @@ public class MyUtil {
 	public void setParameterFromProperties() {
 		
 		List<ConfigProperty> lp = functionManager.getGroup().getThisResource().getProperties();
-		
+		logger.info("start properties");
 		for (ConfigProperty p : lp) {
+		    logger.info("geting properties" + p.getName());
 			if (p.getName().equals("Calibration_Keys")) {
-				functionManager
-				.getParameterSet()
-				.get(MyParameters.CSC_CALIB_KEYS_AVAILABLE)
+			    logger.info("ends properties");
+				functionManager.getParameterSet().get(MyParameters.CSC_CALIB_KEYS_AVAILABLE)
 				.setValue(new StringT( p.getValue() ));
 			}
 		}

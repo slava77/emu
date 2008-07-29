@@ -33,7 +33,9 @@ public class MyParameters {
      * standard parameter definitions for Level 1 Function Manager
      */
     public static final String SID = "SID";
-    
+
+    public static final String SEQ_NAME = "DEFAULT";
+
     public static final String STATE = "STATE";
     
     public static final String RUN_TYPE = "RUN_TYPE";
@@ -50,7 +52,8 @@ public class MyParameters {
     
     public static final String COMPLETION = "COMPLETION";
     
-    
+    public static final String CSC_NS = "CMS.CSC";
+
     // TTS testing set
     public static final String TTS_TEST_FED_ID = "TTS_TEST_FED_ID";
     
@@ -75,6 +78,8 @@ public class MyParameters {
 	 * Session Identifier
 	 */
 	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<IntegerT>(SID, new IntegerT(-1)));//, Exported.READONLY));
+	LVL_ONE_PARAMETER_SET.put(new FunctionManagerParameter<StringT>(SEQ_NAME, new StringT("DEFAULT"),Exported.READONLY));
+
 	/**
 	 * State of the Function Manager is currently in
 	 */
