@@ -69,6 +69,10 @@ protected:
   xdata::UnsignedLong maxNumTriggers_;
   xdata::UnsignedLong GlobalRun_;
   //
+  int xml_or_db;
+  xdata::String  XML_or_DB_;
+  xdata::String  EMU_config_ID_;
+      
   xdata::String xmlFile_;
   xdata::String CalibrationState_;
   //
