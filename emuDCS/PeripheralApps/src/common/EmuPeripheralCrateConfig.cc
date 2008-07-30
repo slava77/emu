@@ -370,6 +370,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //----------------------------
   myParameter_ =  0;
   //
+  xml_or_db = 0;  /* actual configuration source: 0: xml, 1: db */
+  XML_or_DB_ = "xml";
+  EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
   //
   for(unsigned int dmb=0; dmb<9; dmb++) {
@@ -407,6 +410,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   }
   CrateTestsOutput << "Crate Tests output:" << std::endl;
   //
+  this->getApplicationInfoSpace()->fireItemAvailable("XMLorDB", &XML_or_DB_);
+  this->getApplicationInfoSpace()->fireItemAvailable("EmuConfigurationID", &EMU_config_ID_);
   this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
   this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
   this->getApplicationInfoSpace()->fireItemAvailable("CalibrationState", &CalibrationState_);
