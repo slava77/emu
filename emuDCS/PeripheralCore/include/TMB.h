@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.46 2008/07/16 17:28:36 rakness Exp $
+// $Id: TMB.h,v 3.47 2008/07/31 13:33:43 liu Exp $
 // $Log: TMB.h,v $
+// Revision 3.47  2008/07/31 13:33:43  liu
+// bug fix in TMB counters
+//
 // Revision 3.46  2008/07/16 17:28:36  rakness
 // (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
 //
@@ -1527,7 +1530,7 @@ private:
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
   static const int MaxCounter = 48;
-  long int FinalCounter[MaxCounter];
+  long int FinalCounter[MaxCounter+2];
   //
   //-- TMB and ALCT data in raw hits VME readout --//
   std::vector< std::bitset<16> > tmb_data_;
