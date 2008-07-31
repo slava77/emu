@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.66 2008/07/16 17:28:37 rakness Exp $
+// $Id: TMB.cc,v 3.67 2008/07/31 13:33:43 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.67  2008/07/31 13:33:43  liu
+// bug fix in TMB counters
+//
 // Revision 3.66  2008/07/16 17:28:37  rakness
 // (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
 //
@@ -1420,7 +1423,7 @@ int * TMB::NewCounters(){
   //
   // Extract counter data whose picture has been taken
   //
-  for (int counter=0; counter <= GetMaxCounter(); counter++){
+  for (int counter=0; counter < GetMaxCounter(); counter++){
     //
     for (int odd_even=0; odd_even<2; odd_even++) {
       //
