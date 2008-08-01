@@ -12,9 +12,9 @@
 #    Alternatively, create a ./schemas.xml file and write this into it (replace /path/to/EmuPC.rnc):
 #        <?xml version="1.0"?>
 #        <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
-#          <default uri="/path/to/EmuPC.rnc"/>
+#          <documentElement prefix="" localName="EmuSystem" uri="/path/to/EmuPC.rnc"/>
 #        </locatingRules>
-#    All xml files will then be validated against this file by default.
+#    (See http://www.nmt.edu/tcc/help/pubs/nxml.pdf for setting up schema locating rules.)
 # 4) Toggle validation with C-c C-v
 # 5) When validation is on, errors are underlined. Move the cursor onto the underlined text to see the reason,
 #    or type C-c C-n to go to the next error.
