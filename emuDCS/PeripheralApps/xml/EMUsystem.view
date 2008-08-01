@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<tstore:configuration xmlns:tstore="urn:xdaq-tstore:1.0">
+
+  <tstore:view id="urn:tstore-view-SQL:EMUsystem">
+    <tstore:connection dbname="omds" xmlns:tstore="urn:xdaq-tstore:1.0"/>
+    <!-- <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/> -->
+    <!-- QUERY TO GET CONFIG IDs -->
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="getconfigids">
+      <sql:parameter name="TABLE">
+        <![CDATA[]]>
+      </sql:parameter>
+     <sql:parameter name="COLUMN">
+        <![CDATA[]]>
+      </sql:parameter>
+     <sql:parameter name="SIDE">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select max($COLUMN) as $COLUMN from $TABLE where EMU_ENDCAP_SIDE='$SIDE']]>
+    </sql:query>
+    <!-- TABLE: EMU_CONFIGURATION -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="configuration">
+      <sql:table name="EMU_CONFIGURATION"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="configuration">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_CONFIGURATION where EMU_CONFIG_ID=$EMU_CONFIG_ID]]>
+    </sql:query>
+    <!-- TABLE: EMU_PERIPHERALCRATE -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate">
+      <sql:table name="EMU_PERIPHERALCRATE"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_PERIPHERALCRATE where EMU_CONFIG_ID=$EMU_CONFIG_ID]]>
+    </sql:query>
+    <!-- TABLE: EMU_CCB -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="ccb">
+      <sql:table name="EMU_CCB"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="ccb">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_CCB where EMU_CONFIG_ID=$EMU_CONFIG_ID and PERIPH_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+    <!-- TABLE: EMU_MPC -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="mpc">
+      <sql:table name="EMU_MPC"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="mpc">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_MPC where EMU_CONFIG_ID=$EMU_CONFIG_ID and PERIPH_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+    <!-- TABLE: EMU_VCC -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="vcc">
+      <sql:table name="EMU_VCC"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="vcc">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_VCC where EMU_CONFIG_ID=$EMU_CONFIG_ID and PERIPH_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+    <!-- TABLE: EMU_CSC -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="csc">
+      <sql:table name="EMU_CSC"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="csc">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_CSC where EMU_CONFIG_ID=$EMU_CONFIG_ID and PERIPH_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+    <!-- TABLE: EMU_DAQMB -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="daqmb">
+      <sql:table name="EMU_DAQMB"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="daqmb">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+     <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_DAQMB where EMU_CONFIG_ID=$EMU_CONFIG_ID and CSC_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+   <!-- TABLE: EMU_CFEB -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="cfeb">
+      <sql:table name="EMU_CFEB"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="cfeb">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+     <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_CFEB where EMU_CONFIG_ID=$EMU_CONFIG_ID and DAQMB_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+    <!-- TABLE: EMU_TMB -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="tmb">
+      <sql:table name="EMU_TMB"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="tmb">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+     <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_TMB where EMU_CONFIG_ID=$EMU_CONFIG_ID and CSC_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+    <!-- TABLE: EMU_ALCT -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="alct">
+      <sql:table name="EMU_ALCT"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="alct">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+     <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_ALCT where EMU_CONFIG_ID=$EMU_CONFIG_ID and TMB_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+   <!-- TABLE: EMU_ANODECHANNEL -->
+    <sql:insert xmlns:sql="urn:tstore-view-SQL" name="anodechannel">
+      <sql:table name="EMU_ANODECHANNEL"/>
+    </sql:insert>
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="anodechannel">
+      <sql:parameter name="EMU_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+     <sql:parameter name="XXX_CONFIG_ID">
+        <![CDATA[]]>
+      </sql:parameter>
+      <![CDATA[select * from EMU_ANODECHANNEL where EMU_CONFIG_ID=$EMU_CONFIG_ID and ALCT_CONFIG_ID=$XXX_CONFIG_ID]]>
+    </sql:query>
+    <!-- Table definitions-->
+    <tstore:table key="EMU_CONFIG_ID" name="EMU_CONFIGURATION">
+      <tstore:column name="DESCRIPTION" type="string"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="EMU_CONFIG_TIME" type="time"/>
+      <tstore:column name="EMU_CONFIG_TYPE" type="string"/>
+      <tstore:column name="EMU_ENDCAP_SIDE" type="string"/>
+    </tstore:table>
+    <tstore:table key="PERIPH_CONFIG_ID" name="EMU_PERIPHERALCRATE">
+      <tstore:column name="CRATEID" type="unsigned short"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="LABEL" type="string"/>
+      <tstore:column name="PERIPH_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="CCB_CONFIG_ID" name="EMU_CCB">
+      <tstore:column name="CCB_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="CCBMODE" type="unsigned short"/>
+      <tstore:column name="CCB_FIRMWARE_DAY" type="unsigned short"/>
+      <tstore:column name="CCB_FIRMWARE_MONTH" type="unsigned short"/>
+      <tstore:column name="CCB_FIRMWARE_YEAR" type="unsigned short"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="L1ADELAY" type="unsigned short"/>
+      <tstore:column name="PERIPH_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="TTCRXID" type="unsigned short"/>
+      <tstore:column name="TTCRXCOARSEDELAY" type="unsigned short"/>
+      <tstore:column name="TTCRXFINEDELAY" type="unsigned short"/>
+      <tstore:foreignkey references="EMU_PERIPHERALCRATE">
+        <tstore:keycolumn column="PERIPH_CONFIG_ID" references="PERIPH_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="MPC_CONFIG_ID" name="EMU_MPC">
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="MPC_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="MPC_FIRMWARE_DAY" type="unsigned short"/>
+      <tstore:column name="MPC_FIRMWARE_MONTH" type="unsigned short"/>
+      <tstore:column name="MPC_FIRMWARE_YEAR" type="unsigned short"/>
+      <tstore:column name="PERIPH_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="SERIALIZERMODE" type="unsigned short"/>
+      <tstore:column name="TRANSPARENTMODE" type="unsigned short"/>
+      <tstore:foreignkey references="EMU_PERIPHERALCRATE">
+        <tstore:keycolumn column="PERIPH_CONFIG_ID" references="PERIPH_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="VCC_CONFIG_ID" name="EMU_VCC">
+      <tstore:column name="BGTO" type="string"/>
+      <tstore:column name="BTO" type="string"/>
+      <tstore:column name="DFLT_SRV_MAC" type="string"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="ETH_PORT" type="unsigned short"/>
+      <tstore:column name="ETHERNET_CR" type="string"/>
+      <tstore:column name="EXT_FIFO_CR" type="string"/>
+      <tstore:column name="MAC_ADDR" type="string"/>
+      <tstore:column name="MCAST_1" type="string"/>
+      <tstore:column name="MCAST_2" type="string"/>
+      <tstore:column name="MCAST_3" type="string"/>
+      <tstore:column name="MSG_LVl" type="unsigned short"/>
+      <tstore:column name="PERIPH_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="PKT_ON_STARTUP" type="string"/>
+      <tstore:column name="RST_MISC_CR" type="string"/>
+      <tstore:column name="VCC_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="VCC_FRMW_VER" type="string"/>
+      <tstore:column name="VME_CR" type="string"/>
+      <tstore:column name="WARN_ON_SHTDWN" type="string"/>
+      <tstore:foreignkey references="EMU_PERIPHERALCRATE">
+        <tstore:keycolumn column="PERIPH_CONFIG_ID" references="PERIPH_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="CSC_CONFIG_ID" name="EMU_CSC">
+      <tstore:column name="CSC_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="LABEL" type="string"/>
+      <tstore:column name="PERIPH_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:foreignkey references="EMU_PERIPHERALCRATE">
+        <tstore:keycolumn column="PERIPH_CONFIG_ID" references="PERIPH_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="DAQMB_CONFIG_ID" name="EMU_DAQMB">
+      <tstore:column name="ALCT_DAV_CABLE_DELAY" type="unsigned short"/>
+      <tstore:column name="CALIBRATION_L1ACC_DELAY" type="unsigned short"/>
+      <tstore:column name="CALIBRATION_LCT_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB_CABLE_DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB_DAV_CABLE_DELAY" type="unsigned short"/>
+      <tstore:column name="COMP_MODE" type="unsigned short"/>
+      <tstore:column name="COMP_TIMING" type="unsigned short"/>
+      <tstore:column name="CSC_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="DAQMB_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="DMB_CNTL_FIRMWARE_TAG" type="string"/>
+      <tstore:column name="DMB_VME_FIRMWARE_TAG" type="unsigned short"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="FEB_CLOCK_DELAY" type="unsigned short"/>
+      <tstore:column name="INJ_DAC_SET" type="float"/>
+      <tstore:column name="INJECT_DELAY" type="unsigned short"/>
+      <tstore:column name="KILL_INPUT" type="unsigned short"/>
+      <tstore:column name="PRE_BLOCK_END" type="unsigned short"/>
+      <tstore:column name="PUL_DAC_SET" type="float"/>
+      <tstore:column name="PULSE_DELAY" type="unsigned short"/>
+      <tstore:column name="SET_COMP_THRESH" type="float"/>
+      <tstore:column name="SLOT" type="unsigned short"/>
+      <tstore:column name="TMB_LCT_CABLE_DELAY" type="unsigned short"/>
+      <tstore:column name="XFINELATENCY" type="unsigned short"/>
+      <tstore:column name="XLATENCY" type="unsigned short"/>
+      <tstore:foreignkey references="EMU_CSC">
+        <tstore:keycolumn column="CSC_CONFIG_ID" references="CSC_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="CFEB_CONFIG_ID" name="EMU_CFEB">
+      <tstore:column name="CFEB_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="CFEB_FIRMWARE_TAG" type="string"/>
+      <tstore:column name="CFEB_NUMBER" type="unsigned short"/>
+      <tstore:column name="DAQMB_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="KILL_CHIP0" type="string"/>
+      <tstore:column name="KILL_CHIP1" type="string"/>
+      <tstore:column name="KILL_CHIP2" type="string"/>
+      <tstore:column name="KILL_CHIP3" type="string"/>
+      <tstore:column name="KILL_CHIP4" type="string"/>
+      <tstore:column name="KILL_CHIP5" type="string"/>
+      <tstore:foreignkey references="EMU_DAQMB">
+        <tstore:keycolumn column="DAQMB_CONFIG_ID" references="DAQMB_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="TMB_CONFIG_ID" name="EMU_TMB">
+      <tstore:column name="ADJACENT_CFEB_DISTANCE" type="unsigned short"/>
+      <tstore:column name="AFF_THRESH" type="unsigned short"/>
+      <tstore:column name="ALCT_BX0_DELAY" type="unsigned short"/>
+      <tstore:column name="ALCT_BX0_ENABLE" type="unsigned short"/>
+      <tstore:column name="ALCT_CLEAR" type="unsigned short"/>
+      <tstore:column name="ALCT_CLOCK_EN_USE_CCB" type="unsigned short"/>
+      <tstore:column name="ALCT_PRETRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="ALCT_RX_CLOCK_DELAY" type="unsigned short"/>
+      <tstore:column name="ALCT_TRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="ALCT_TX_CLOCK_DELAY" type="unsigned short"/>
+      <tstore:column name="ALL_CFEB_ACTIVE" type="unsigned short"/>
+      <tstore:column name="CFEB0DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB1DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB2DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB3DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB4DELAY" type="unsigned short"/>
+      <tstore:column name="CFEB_ENABLE_SOURCE" type="unsigned short"/>
+      <tstore:column name="CLCT_BLANKING" type="unsigned short"/>
+      <tstore:column name="CLCT_BX0_DELAY" type="unsigned short"/>
+      <tstore:column name="CLCT_DRIFT_DELAY" type="unsigned short"/>
+      <tstore:column name="CLCT_EXT_PRETRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="CLCT_FIFO_PRETRIG" type="unsigned short"/>
+      <tstore:column name="CLCT_FIFO_TBINS" type="unsigned short"/>
+      <tstore:column name="CLCT_HIT_PERSIST" type="unsigned short"/>
+      <tstore:column name="CLCT_MIN_SEPARATION" type="unsigned short"/>
+      <tstore:column name="CLCT_NPLANES_HIT_PATTERN" type="unsigned short"/>
+      <tstore:column name="CLCT_NPLANES_HIT_PRETRIG" type="unsigned short"/>
+      <tstore:column name="CLCT_PID_THRESH_PRETRIG" type="unsigned short"/>
+      <tstore:column name="CLCT_PRETRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="CLCT_STAGGER" type="unsigned short"/>
+      <tstore:column name="CLCT_THROTTLE" type="unsigned short"/>
+      <tstore:column name="CLCT_TRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="CSC_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="DMB_TX_DELAY" type="unsigned short"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="ENABLE_ALCT_RX" type="unsigned short"/>
+      <tstore:column name="ENABLE_ALCT_TX" type="unsigned short"/>
+      <tstore:column name="ENABLECLCTINPUTS_REG42" type="unsigned short"/>
+      <tstore:column name="ENABLECLCTINPUTS_REG68" type="unsigned short"/>
+      <tstore:column name="IGNORE_CCB_STARTSTOP" type="unsigned short"/>
+      <tstore:column name="L1A_ALLOW_ALCT_ONLY" type="unsigned short"/>
+      <tstore:column name="L1A_ALLOW_MATCH" type="unsigned short"/>
+      <tstore:column name="L1A_ALLOW_NOL1A" type="unsigned short"/>
+      <tstore:column name="L1A_ALLOW_NOTMB" type="unsigned short"/>
+      <tstore:column name="LAYER0_DISTRIP_HOT_CHANN_MASK" type="string"/>
+      <tstore:column name="LAYER1_DISTRIP_HOT_CHANN_MASK" type="string"/>
+      <tstore:column name="LAYER2_DISTRIP_HOT_CHANN_MASK" type="string"/>
+      <tstore:column name="LAYER3_DISTRIP_HOT_CHANN_MASK" type="string"/>
+      <tstore:column name="LAYER4_DISTRIP_HOT_CHANN_MASK" type="string"/>
+      <tstore:column name="LAYER5_DISTRIP_HOT_CHANN_MASK" type="string"/>
+      <tstore:column name="LAYER_TRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="LAYER_TRIG_THRESH" type="unsigned short"/>
+      <tstore:column name="MATCH_PRETRIG_ALCT_DELAY" type="unsigned short"/>
+      <tstore:column name="MATCH_PRETRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="MATCH_PRETRIG_WINDOW_SIZE" type="unsigned short"/>
+      <tstore:column name="MATCH_TRIG_ALCT_DELAY" type="unsigned short"/>
+      <tstore:column name="MATCH_TRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="MATCH_TRIG_WINDOW_SIZE" type="unsigned short"/>
+      <tstore:column name="MPC_IDLE_BLANK" type="unsigned short"/>
+      <tstore:column name="MPC_OUTPUT_ENABLE" type="unsigned short"/>
+      <tstore:column name="MPC_RX_DELAY" type="unsigned short"/>
+      <tstore:column name="MPC_SYNC_ERR_ENABLE" type="unsigned short"/>
+      <tstore:column name="MPC_TX_DELAY" type="unsigned short"/>
+      <tstore:column name="RAT_FIRMWARE_DAY" type="unsigned short"/>
+      <tstore:column name="RAT_FIRMWARE_MONTH" type="unsigned short"/>
+      <tstore:column name="RAT_FIRMWARE_YEAR" type="unsigned short"/>
+      <tstore:column name="RAT_TMB_DELAY" type="unsigned short"/>
+      <tstore:column name="REQUEST_L1A" type="unsigned short"/>
+      <tstore:column name="RPC0_RAT_DELAY" type="unsigned short"/>
+      <tstore:column name="RPC0_RAW_DELAY" type="unsigned short"/>
+      <tstore:column name="RPC1_RAT_DELAY" type="unsigned short"/>
+      <tstore:column name="RPC1_RAW_DELAY" type="unsigned short"/>
+      <tstore:column name="RPC_BXN_OFFSET" type="unsigned short"/>
+      <tstore:column name="RPC_EXISTS" type="unsigned short"/>
+      <tstore:column name="RPC_FIFO_DECOUPLE" type="unsigned short"/>
+      <tstore:column name="RPC_FIFO_PRETRIG" type="unsigned short"/>
+      <tstore:column name="RPC_FIFO_TBINS" type="unsigned short"/>
+      <tstore:column name="RPC_MASK_ALL" type="unsigned short"/>
+      <tstore:column name="RPC_READ_ENABLE" type="unsigned short"/>
+      <tstore:column name="SLOT" type="unsigned short"/>
+      <tstore:column name="TMB_BXN_OFFSET" type="unsigned short"/>
+      <tstore:column name="TMB_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="TMB_FIFO_MODE" type="unsigned short"/>
+      <tstore:column name="TMB_FIFO_NO_RAW_HITS" type="unsigned short"/>
+      <tstore:column name="TMB_FIRMWARE_DAY" type="unsigned short"/>
+      <tstore:column name="TMB_FIRMWARE_MONTH" type="unsigned short"/>
+      <tstore:column name="TMB_FIRMWARE_REVCODE" type="unsigned short"/>
+      <tstore:column name="TMB_FIRMWARE_TYPE" type="unsigned short"/>
+      <tstore:column name="TMB_FIRMWARE_VERSION" type="unsigned short"/>
+      <tstore:column name="TMB_FIRMWARE_YEAR" type="unsigned short"/>
+      <tstore:column name="TMB_L1A_DELAY" type="unsigned short"/>
+      <tstore:column name="TMB_L1A_OFFSET" type="unsigned short"/>
+      <tstore:column name="TMB_L1A_WINDOW_SIZE" type="unsigned short"/>
+      <tstore:column name="VALID_CLCT_REQUIRED" type="unsigned short"/>
+      <tstore:column name="WRITE_BUFFER_AUTOCLEAR" type="unsigned short"/>
+      <tstore:column name="WRITE_BUFFER_CONTINOUS_ENABLE" type="unsigned short"/>
+      <tstore:column name="WRITE_BUFFER_REQUIRED" type="unsigned short"/>
+      <tstore:foreignkey references="EMU_CSC">
+        <tstore:keycolumn column="CSC_CONFIG_ID" references="CSC_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="ALCT_CONFIG_ID" name="EMU_ALCT">
+      <tstore:column name="ALCT_ACCEL_MODE" type="unsigned short"/>
+      <tstore:column name="ALCT_NPLANES_HIT_ACCEL_PATTERN" type="unsigned short"/>
+      <tstore:column name="ALCT_NPLANES_HIT_ACCEL_PRETRIG" type="unsigned short"/>
+      <tstore:column name="ALCT_BXN_OFFSET" type="unsigned short"/>
+      <tstore:column name="ALCT_CCB_ENABLE" type="unsigned short"/>
+      <tstore:column name="ALCT_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="ALCT_CONFIG_IN_READOUT" type="unsigned short"/>
+      <tstore:column name="ALCT_DRIFT_DELAY" type="unsigned short"/>
+      <tstore:column name="ALCT_EXT_TRIG_ENABLE" type="unsigned short"/>
+      <tstore:column name="ALCT_FIFO_MODE" type="unsigned short"/>
+      <tstore:column name="ALCT_FIFO_PRETRIG" type="unsigned short"/>
+      <tstore:column name="ALCT_FIFO_TBINS" type="unsigned short"/>
+      <tstore:column name="ALCT_FIRMWARE_BACKWARD_FORWARD" type="string"/>
+      <tstore:column name="ALCT_FIRMWARE_DAY" type="unsigned short"/>
+      <tstore:column name="ALCT_FIRMWARE_MONTH" type="unsigned short"/>
+      <tstore:column name="ALCT_FIRMWARE_NEGAT_POSIT" type="string"/>
+      <tstore:column name="ALCT_FIRMWARE_YEAR" type="unsigned short"/>
+      <tstore:column name="ALCT_INJECT_MODE" type="unsigned short"/>
+      <tstore:column name="ALCT_L1A_DELAY" type="unsigned short"/>
+      <tstore:column name="ALCT_L1A_INTERNAL" type="unsigned short"/>
+      <tstore:column name="ALCT_L1A_OFFSET" type="unsigned short"/>
+      <tstore:column name="ALCT_L1A_WINDOW_WIDTH" type="unsigned short"/>
+      <tstore:column name="ALCT_NPLANES_HIT_PATTERN" type="unsigned short"/>
+      <tstore:column name="ALCT_NPLANES_HIT_PRETRIG" type="unsigned short"/>
+      <tstore:column name="ALCT_SEND_EMPTY" type="unsigned short"/>
+      <tstore:column name="ALCT_SN_SELECT" type="unsigned short"/>
+      <tstore:column name="ALCT_TESTPULSE_AMPLITUDE" type="unsigned short"/>
+      <tstore:column name="ALCT_TESTPULSE_DIRECTION" type="string"/>
+      <tstore:column name="ALCT_TESTPULSE_INVERT" type="string"/>
+      <tstore:column name="ALCT_TRIG_INFO_EN" type="unsigned short"/>
+      <tstore:column name="ALCT_TRIG_MODE" type="unsigned short"/>
+      <tstore:column name="CHAMBER_TYPE" type="string"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="TMB_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:foreignkey references="EMU_TMB">
+	<tstore:keycolumn column="TMB_CONFIG_ID" references="TMB_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+    <tstore:table key="AFEB_CONFIG_ID" name="EMU_ANODECHANNEL">
+      <tstore:column name="AFEB_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="AFEB_FINE_DELAY" type="unsigned short"/>
+      <tstore:column name="AFEB_NUMBER" type="unsigned short"/>
+      <tstore:column name="AFEB_THRESHOLD" type="unsigned short"/>
+      <tstore:column name="ALCT_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
+      <tstore:foreignkey references="EMU_ALCT">
+        <tstore:keycolumn column="ALCT_CONFIG_ID" references="ALCT_CONFIG_ID"/>
+      </tstore:foreignkey>
+      <tstore:foreignkey references="EMU_CONFIGURATION">
+        <tstore:keycolumn column="EMU_CONFIG_ID" references="EMU_CONFIG_ID"/>
+      </tstore:foreignkey>
+    </tstore:table>
+  </tstore:view>
+
+</tstore:configuration>
