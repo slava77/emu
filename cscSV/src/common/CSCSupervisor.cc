@@ -591,29 +591,38 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
   LOG4CPLUS_DEBUG(logger_, "runtype: " << run_type_.toString()
 		  << " runnumber: " << run_number_ << " nevents: " << nevents_);
   
+
   rcmsStateNotifier_.findRcmsStateListener();      	
   step_counter_ = 0;
-  
+
   //Creating csctf-cell operation
   sendCommandCellOpInit("Cell", 8);
   //OpGetStateCell("Cell", 8);
   
   try {
-    state_table_.refresh();
+
+//    state_table_.refresh();
     
     try {
       if (state_table_.getState("EmuDAQManager", 0) != "Halted") {
 	sendCommand("Halt", "EmuDAQManager");
 	waitForDAQToExecute("Halt", 10, true);
       }
+       
+      if (state_table_.getState("TTCciControl", 0) != "Halted") {
+	sendCommand("Halt", "TTCciControl");
+      }
+      if (state_table_.getState("LTCControl", 0) != "Halted") {
+	sendCommand("Halt", "LTCControl");
+      }
     } catch (xcept::Exception ignored) {}
     
-    if (state_table_.getState("TTCciControl", 0) != "Halted") {
-      sendCommand("Halt", "TTCciControl");
-    }
-    if (state_table_.getState("LTCControl", 0) != "Halted") {
-      sendCommand("Halt", "LTCControl");
-    }
+    try {
+      setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
+		   toString(nevents_));
+      setParameter("EmuDAQManager", "runType", "xsd:string",
+		   run_type_.toString());
+    } catch (xcept::Exception ignored) {}
     
     // Configure local DAQ first as its FSM is driven asynchronously,
     // and it will probably finish the transition by the time the others do.
@@ -623,12 +632,13 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
     
     // Allow LTCControl some time to halt:
     ::sleep(2);
-    
+
     string str = trim(getCrateConfig("PC", run_type_.toString()));
     if (!str.empty()) {
       setParameter(
 		   "EmuPeripheralCrateManager", "xmlFileName", "xsd:string", str);
     }
+
 
     //configuring the csctf-cell
     sendCommandCell("configure", "Cell", 8);
@@ -641,23 +651,17 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		   "[file=" + calib_params_[index].bag.ltc_.toString() + "]");
     }
     sendCommand("Configure", "LTCControl");
-    
+
     if (!isCalibrationMode()) {
       sendCommand("Configure", "EmuPeripheralCrateManager");
     } else {
       sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
-    }
-    
+    }   
+       
     sendCommand("Configure", "EmuFCrateManager");
     
     waitForDAQToExecute("Configure", 10, true);
-    try {
-      setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
-		   toString(nevents_));
-      setParameter("EmuDAQManager", "runType", "xsd:string",
-		   run_type_.toString());
-    } catch (xcept::Exception ignored) {}
-    
+       
     state_table_.refresh();
     if (!state_table_.isValidState("Configured")) {
       stringstream ss;
@@ -902,7 +906,7 @@ void CSCSupervisor::sendCommand(string command, string klass)
   // Exceptions:
   // xoap exceptions are thrown by analyzeReply() for SOAP faults.
   // xdaq exceptions are thrown by postSOAP() for socket level errors.
-  
+
   // find applications
   std::set<xdaq::ApplicationDescriptor *> apps;
   try {
@@ -919,13 +923,13 @@ void CSCSupervisor::sendCommand(string command, string klass)
   // prepare a SOAP message
   xoap::MessageReference message = createCommandSOAP(command);
   xoap::MessageReference reply;
-  
+
   // send the message one-by-one
   std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
   for (; i != apps.end(); ++i) {
     // postSOAP() may throw an exception when failed.
     reply = getApplicationContext()->postSOAP(message, *appDescriptor_, **i);
-    
+
     analyzeReply(message, reply, *i);
   }
 }
