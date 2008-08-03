@@ -10,7 +10,7 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 # Packages to be built
 #
 Project=emu
-Package=emuDCS/Switch
+Package=emuDCS/PCSwitches
 
 Sources=\
 	SwitchGUI.cc 
@@ -18,7 +18,7 @@ Sources=\
 
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
-        $(BUILD_HOME)/emu/emuDCS/Switch/include 
+        $(BUILD_HOME)/emu/emuDCS/PCSwitches/include 
 
 DependentLibraryDirs =\
   /nfshome0/durkin/cscmap_library 

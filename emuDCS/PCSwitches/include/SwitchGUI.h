@@ -385,7 +385,7 @@ void MainPage(xgi::Input * in, xgi::Output * out ) {
      char command[556];
      sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s reload",ip[swt+swadd]);
      printf("%d  %s \n",swt,command);
-     int ierr=system(command);
+     system(command);
    }
    ::sleep(40);
    this->Default(in,out);
@@ -621,7 +621,7 @@ void parse_mac(int swtch){
   char port[3];
   int prt;
   char status[8];
-  int i,j,k,n;
+  int k,n;
   file=fopen("/tmp/switch_mac.dat","r");
   while(fgets(line,128,file)!=NULL){
     if(line[2]==':'){
