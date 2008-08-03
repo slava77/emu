@@ -157,7 +157,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //-----------------------------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::ControllerUtils_Xfer, "ControllerUtils_Xfer");  
   xgi::bind(this,&EmuPeripheralCrateConfig::ControllerUtils, "ControllerUtils");  
-  xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo_User,  "VMECCGUI_GoTo_User");
+  xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo_General,  "VMECCGUI_GoTo_General");
+  xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo_Intermediate,  "VMECCGUI_GoTo_Intermediate");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_GoTo_Expert,  "VMECCGUI_GoTo_Expert");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_firmware_utils,  "VMECCGUI_firmware_utils");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils,  "VMECCGUI_cnfg_utils");
@@ -166,6 +167,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_pkt_send,  "VMECCGUI_pkt_send");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv,  "VMECCGUI_pkt_rcv");
   xgi::bind(this,&EmuPeripheralCrateConfig::VMECCGUI_misc_utils,  "VMECCGUI_misc_utils");
+  xgi::bind(this,&EmuPeripheralCrateConfig::VCC_VME_DO,  "VCC_VME_DO");
+  xgi::bind(this,&EmuPeripheralCrateConfig::VCC_VME_FILL,  "VCC_VME_FILL");
   xgi::bind(this,&EmuPeripheralCrateConfig::VCC_CRSEL_DO,  "VCC_CRSEL_DO");
   xgi::bind(this,&EmuPeripheralCrateConfig::VCC_PSWD_DO,  "VCC_PSWD_DO");
   xgi::bind(this,&EmuPeripheralCrateConfig::VCC_CMNTSK_DO,  "VCC_CMNTSK_DO");
@@ -6844,8 +6847,10 @@ void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * ou
 void EmuPeripheralCrateConfig::VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  std::string VMECCGUI_GoTo_User =
-    toolbox::toString("/%s/VMECCGUI_GoTo_User",getApplicationDescriptor()->getURN().c_str());
+  std::string VMECCGUI_GoTo_General =
+    toolbox::toString("/%s/VMECCGUI_GoTo_General",getApplicationDescriptor()->getURN().c_str());
+  std::string VMECCGUI_GoTo_Intermediate =
+    toolbox::toString("/%s/VMECCGUI_GoTo_Intermediate",getApplicationDescriptor()->getURN().c_str());
    std::string VMECCGUI_GoTo_Expert =
      toolbox::toString("/%s/VMECCGUI_GoTo_Expert",getApplicationDescriptor()->getURN().c_str());
    std::string VCC_CRSEL_DO =
@@ -6855,7 +6860,7 @@ void EmuPeripheralCrateConfig::VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Out
   *out << "  <table width=\"100%\" cellpadding=\"4\">" << std::endl;
   *out << "    <tr>" << std::endl;
   *out << "      <td align=\"left\" valign=\"top\">" << std::endl;
-  *out << "        <form action=\"" << VMECCGUI_GoTo_User << "\" method=\"GET\">" << std::endl;
+  *out << "        <form action=\"" << VMECCGUI_GoTo_General << "\" method=\"GET\">" << std::endl;
   *out << "          <fieldset><legend style=\"font-size: 18pt;\" align=\"left\">General Users</legend>" << std::endl;
   *out << "            <table cellpadding=\"4\">" << std::endl;
   *out << "              <tr>" << std::endl;
@@ -6872,6 +6877,23 @@ void EmuPeripheralCrateConfig::VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Out
   *out << "                <td align=\"left\">" << std::endl;
   *out << "          	   <input type=\"submit\" value=\"CrateConfig\" name=\"gt_crc\" style=\"background-color: #00FF00;\">"  << std::endl;
   *out << "                </td>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "            </table>" << std::endl;
+  *out << "          </fieldset>" << std::endl;
+  *out << "        </form>" << std::endl;
+  *out << "      </td>" << std::endl;
+  *out << "      <td align=\"left\" valign=\"top\">" << std::endl;
+  *out << "        <form action=\"" << VMECCGUI_GoTo_Intermediate << "\" method=\"GET\">" << std::endl;
+  *out << "          <fieldset><legend style=\"font-size: 18pt;\" align=\"left\">Intermediate Users</legend>" << std::endl;
+  *out << "            <table cellpadding=\"4\">" << std::endl;
+  *out << "              <tr>" << std::endl;
+  *out << "                <td align=\"left\">" << std::endl;
+  *out << "          	   <input type=\"submit\" value=\"VME Access\" name=\"gt_vmeacc\" style=\"background-color: #008800;\">"  << std::endl;
+  *out << "                </td>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "              <tr>" << std::endl;
+  *out << "              </tr>" << std::endl;
+  *out << "              <tr>" << std::endl;
   *out << "              </tr>" << std::endl;
   *out << "            </table>" << std::endl;
   *out << "          </fieldset>" << std::endl;
@@ -6929,10 +6951,10 @@ void EmuPeripheralCrateConfig::VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Out
 
 }
 
-void EmuPeripheralCrateConfig::VMECCGUI_GoTo_User(xgi::Input * in, xgi::Output * out )
+void EmuPeripheralCrateConfig::VMECCGUI_GoTo_General(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
-    std::cout<<" entered VMECCGUI_GoTo_User"<<std::endl;
+    std::cout<<" entered VMECCGUI_GoTo_General"<<std::endl;
     cgicc::Cgicc cgi(in);
     const CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
@@ -6951,6 +6973,27 @@ void EmuPeripheralCrateConfig::VMECCGUI_GoTo_User(xgi::Input * in, xgi::Output *
     }
     else if(gt_crc_name != cgi.getElements().end()) {
       this->CrateConfiguration(in,out);
+    }
+    else {
+      VCC_UTIL_curr_color = "\"#88CCCC\"";
+      this->ControllerUtils(in,out);
+    }
+}
+
+void EmuPeripheralCrateConfig::VMECCGUI_GoTo_Intermediate(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+{
+    std::cout<<" entered VMECCGUI_GoTo_Intermediate"<<std::endl;
+    cgicc::Cgicc cgi(in);
+    const CgiEnvironment& env = cgi.getEnvironment();
+    std::string guiStr = env.getQueryString() ;
+    cout << guiStr << endl ;
+
+    cgicc::form_iterator gt_vmeacc_name = cgi.getElement("gt_vmeacc");
+
+    if(gt_vmeacc_name != cgi.getElements().end()) {
+      VCC_UTIL_curr_color = "\"#008800\"";
+      this->VMECCGUI_VME_access(in,out);
     }
     else {
       VCC_UTIL_curr_color = "\"#88CCCC\"";
@@ -7019,6 +7062,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_GoTo_Expert(xgi::Input * in, xgi::Output
       switch(VCC_UTIL_curr_page){
       case VCC_CMNTSK:
         this->ControllerUtils(in,out);
+	break;
+      case VCC_VME:
+	this->VMECCGUI_VME_access(in,out);
 	break;
       case VCC_FRMUTIL:
         this->VMECCGUI_firmware_utils(in,out);
@@ -7147,6 +7193,9 @@ void EmuPeripheralCrateConfig::VCC_CRSEL_DO(xgi::Input * in, xgi::Output * out )
   case VCC_CMNTSK:
     this->ControllerUtils(in,out);
     break;
+  case VCC_VME:
+    this->VMECCGUI_VME_access(in,out);
+    break;
   case VCC_FRMUTIL:
     this->VMECCGUI_firmware_utils(in,out);
     break;
@@ -7199,6 +7248,9 @@ void EmuPeripheralCrateConfig::VCC_PSWD_DO(xgi::Input * in, xgi::Output * out )
   switch(VCC_UTIL_curr_page){
   case VCC_CMNTSK:
     this->ControllerUtils(in,out);
+    break;
+  case VCC_VME:
+    this->VMECCGUI_VME_access(in,out);
     break;
   case VCC_FRMUTIL:
     this->VMECCGUI_firmware_utils(in,out);
@@ -7323,6 +7375,462 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
   this->ControllerUtils(in,out);
 }
 
+
+void EmuPeripheralCrateConfig::VMECCGUI_VME_access(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+{
+  static bool first = true;
+  static std::vector<std::string> board_opt,rw_opt,rw_opt_lbl;
+  unsigned int opt;
+
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
+  if(first){
+    first = false;
+    VCC_UTIL_VME_board="";
+    VCC_UTIL_VME_sub_addr="";
+    VCC_UTIL_VME_rw="";
+    VCC_UTIL_VME_data="";
+    VCC_UTIL_VME_send_num="1";
+    VCC_UTIL_VME_add_addr="";
+    VCC_UTIL_VME_add_data=""; 
+    VCC_UTIL_VME_brd_sel="TMB1";
+    VCC_UTIL_VME_rw_sel="Read";
+    VCC_UTIL_VME_msg_data = "";
+    VCC_UTIL_VME_rbk_data = "";
+    board_opt.push_back("DLY");
+    board_opt.push_back("TMB1");
+    board_opt.push_back("DMB1");
+    board_opt.push_back("TMB2"); 
+    board_opt.push_back("DMB2");
+    board_opt.push_back("TMB3"); 
+    board_opt.push_back("DMB3");
+    board_opt.push_back("TMB4"); 
+    board_opt.push_back("DMB4");
+    board_opt.push_back("TMB5"); 
+    board_opt.push_back("DMB5");
+    board_opt.push_back("MPC"); 
+    board_opt.push_back("CCB");
+    board_opt.push_back("TMB6"); 
+    board_opt.push_back("DMB6");
+    board_opt.push_back("TMB7"); 
+    board_opt.push_back("DMB7");
+    board_opt.push_back("TMB8"); 
+    board_opt.push_back("DMB8");
+    board_opt.push_back("TMB9"); 
+    board_opt.push_back("DMB9");
+    rw_opt_lbl.push_back("Read"); 
+    rw_opt_lbl.push_back("Write"); 
+    rw_opt.push_back("R"); 
+    rw_opt.push_back("W"); 
+ }
+
+  char title[] = "VCC Utilities: VME Access";
+  char pbuf[300];
+  sprintf(pbuf,"%s<br>Current Crate is %s<br>MAC Addr: %02x-%02x-%02x-%02x-%02x-%02x",title,(lccc->GetLabel()).c_str(),lccc->vmeController()->GetDestMAC(0),lccc->vmeController()->GetDestMAC(1),lccc->vmeController()->GetDestMAC(2),lccc->vmeController()->GetDestMAC(3),lccc->vmeController()->GetDestMAC(4),lccc->vmeController()->GetDestMAC(5));
+  //
+  VCCHeader(in,out,title,pbuf);
+  //
+
+  this->VMECC_UTIL_Menu_Buttons(in,out);
+
+   std::string VCC_VME_DO =
+     toolbox::toString("/%s/VCC_VME_DO",getApplicationDescriptor()->getURN().c_str());
+   std::string VCC_VME_FILL =
+     toolbox::toString("/%s/VCC_VME_FILL",getApplicationDescriptor()->getURN().c_str());
+
+  *out << "<fieldset><legend style=\"font-size: 18pt;\" align=\"center\">VME Access</legend>" << std::endl;
+  *out << "<div align=\"center\">" << std::endl;
+  *out << "  <table border=\"3\" cellspacing=\"2\" cellpadding=\"0\" bgcolor=" << VCC_UTIL_curr_color << " style=\"border-collapse: collapse\">" << std::endl;
+  *out << "    <tr><td valign=\"top\">" << std::endl;
+  *out << "      <form action=\"" << VCC_VME_FILL << "\" method=\"GET\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Input</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
+  *out << "           <tr>" << std::endl;
+  *out << "             <td align=\"center\">Board</td>" << std::endl;
+  *out << "             <td align=\"center\">SubAddr</td>" << std::endl;
+  *out << "             <td align=\"center\">R/W</td>" << std::endl;
+  *out << "             <td align=\"center\">Data</td>" << std::endl;
+  *out << "             <td></td>" << std::endl;
+  *out << "           </tr><tr>" << std::endl;
+  *out << "             <td>" << std::endl;
+  *out << "               <select name=\"Brd_Sel\">" << std::endl;
+  for(opt=0;opt<board_opt.size();opt++){
+    if(board_opt[opt] == VCC_UTIL_VME_brd_sel){
+      *out << "                 <option selected value=\"" << board_opt[opt] << "\">" << board_opt[opt] << "</option>" << std::endl;
+    }
+    else {
+      *out << "                 <option value=\"" << board_opt[opt] << "\">" << board_opt[opt] << "</option>" << std::endl;
+    }
+  }
+  *out << "               </select>" << std::endl;
+  *out << "             </td>" << std::endl;
+  *out << "             <td><input align=\"right\" value=\"" << VCC_UTIL_VME_add_addr << "\" size=\"8\" maxwidth=\"80\" name=\"add_addr\" type=\"text\"></td>" << std::endl;
+  *out << "             <td>" << std::endl;
+  *out << "               <select name=\"RW_Sel\">" << std::endl;
+  for(opt=0;opt<rw_opt.size();opt++){
+    if(rw_opt[opt] == VCC_UTIL_VME_rw_sel){
+      *out << "                 <option selected value=\"" << rw_opt[opt] << "\">" << rw_opt_lbl[opt] << "</option>" << std::endl;
+    }
+    else {
+      *out << "                 <option value=\"" << rw_opt[opt] << "\">" << rw_opt_lbl[opt] << "</option>" << std::endl;
+    }
+  }
+  *out << "               </select>" << std::endl;
+  *out << "             </td>" << std::endl;
+  *out << "             <td><input align=\"right\" value=\"" << VCC_UTIL_VME_add_data << "\" size=\"8\" maxwidth=\"80\" name=\"add_data\" type=\"text\"></td>" << std::endl;
+  *out << "             <td><input type=\"submit\" value=\"Add to list\" name=\"add2pkt\"></td>" << std::endl;
+  *out << "           </tr>" << std::endl;
+  *out << "         </table>" << std::endl;
+  *out << "      </fieldset>" << std::endl;
+  *out << "      </form>" << std::endl;
+  *out << "    </td></tr>" << std::endl;
+  *out << "    <tr><td valign=\"top\">" << std::endl;
+  *out << "      <form action=\"" << VCC_VME_DO << "\" method=\"GET\">" << std::endl;
+  *out << "      <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Packet Contents</legend>" << std::endl;
+  *out << "         <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
+  *out << "           <tr>" << std::endl;
+  *out << "             <td align=\"center\">Board</td>" << std::endl;
+  *out << "             <td align=\"center\">SubAddr</td>" << std::endl;
+  *out << "             <td align=\"center\">R/W</td>" << std::endl;
+  *out << "             <td align=\"center\">Data</td>" << std::endl;
+  *out << "             <td></td>" << std::endl;
+  *out << "           </tr><tr>" << std::endl;
+  *out << "             <td><textarea name=\"vme_board\" rows=\"5\" cols=\"6\">" << VCC_UTIL_VME_board << "</textarea></td>" << std::endl;
+  *out << "             <td><textarea name=\"vme_sub_addr\" rows=\"5\" cols=\"8\">" << VCC_UTIL_VME_sub_addr << "</textarea></td>" << std::endl;
+  *out << "             <td><textarea name=\"vme_rw\" rows=\"5\" cols=\"3\">" << VCC_UTIL_VME_rw << "</textarea></td>" << std::endl;
+  *out << "             <td><textarea name=\"vme_data\" rows=\"5\" cols=\"8\">" << VCC_UTIL_VME_data << "</textarea></td>" << std::endl;
+  *out << "             <td></td>" << std::endl;
+  *out << "           </tr><tr>" << std::endl;
+  *out << "             <td><input name=\"vme_send\" type=\"submit\" value=\"Send\"></td>" << std::endl;
+  *out << "             <td><input align=\"right\" value=\"" << VCC_UTIL_VME_send_num << "\" size=\"3\" maxwidth=\"30\" name=\"send_num\" type=\"text\"> time(s)</td>" << std::endl;
+  *out << "             <td align=\"center\" colspan=\"2\"></td>" << std::endl;
+  *out << "             <td align=\"center\"><input name=\"vme_clear\" type=\"submit\" value=\"Clear list\"></td>" << std::endl;
+  *out << "           </tr>" << std::endl;
+  *out << "         </table>" << std::endl;
+  *out << "      </fieldset>" << std::endl;
+  *out << "      </form>" << std::endl;
+  *out << "    </td></tr>" << std::endl;
+  *out << "    <tr>" << std::endl;
+  *out << "      <td valign=\"top\">" << std::endl;
+  *out << "        <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Output</legend>" << std::endl;
+  *out << "          <table cellspacing=\"2\" cellpadding=\"4\" bgcolor=" << VCC_UTIL_curr_color << ">" << std::endl;
+  *out << "            <tr>" << std::endl;
+  *out << "              <td valign=\"top\" align = \"center\">" << std::endl;
+  *out << "                <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Readback Data</legend>" << std::endl;
+  *out << "                  <pre><p>" << VCC_UTIL_VME_rbk_data << "</p></pre>" << std::endl;
+  *out << "                </fieldset>" << std::endl;
+  *out << "              </td>" << std::endl;
+  *out << "              <td valign=\"top\" align = \"center\">" << std::endl;
+  *out << "                <fieldset><legend style=\"font-size: 16pt;\" align=\"center\">Messages</legend>" << std::endl;
+  *out << "                  <pre><p>" << VCC_UTIL_VME_msg_data << "</p></pre></td>" << std::endl;
+  *out << "                </fieldset>" << std::endl;
+  *out << "              </td>" << std::endl;
+  *out << "            </tr>" << std::endl;
+  *out << "          </table>" << std::endl;
+  *out << "        </fieldset>" << std::endl;
+  *out << "      </td>" << std::endl;
+  *out << "    </tr>" << std::endl;
+  *out << "  </table>" << std::endl;
+  *out << "</div>" << std::endl;
+  *out << "</fieldset>" << std::endl;
+
+  VCC_UTIL_curr_page = VCC_VME;
+}
+
+void EmuPeripheralCrateConfig::VCC_VME_FILL(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+{
+
+    std::cout<<" entered VCC_VME_FILL"<<std::endl;
+    cgicc::Cgicc cgi(in);
+    const CgiEnvironment& env = cgi.getEnvironment();
+    std::string guiStr = env.getQueryString() ;
+    cout << guiStr << endl ;
+
+    cgicc::form_iterator add2pkt = cgi.getElement("add2pkt");
+
+    if(add2pkt != cgi.getElements().end()) {
+      VCC_UTIL_VME_add_addr = cgi["add_addr"]->getValue();
+      VCC_UTIL_VME_add_data = cgi["add_data"]->getValue();
+      VCC_UTIL_VME_brd_sel  = cgi["Brd_Sel"]->getValue();
+      VCC_UTIL_VME_rw_sel   = cgi["RW_Sel"]->getValue();
+
+      VCC_UTIL_VME_board += VCC_UTIL_VME_brd_sel;
+      VCC_UTIL_VME_board += "\n";
+
+      if(VCC_UTIL_VME_brd_sel.compare(0,3,"DLY") == 0){
+        VCC_UTIL_VME_sub_addr += "n/a\n";
+        VCC_UTIL_VME_rw += "n/a\n";
+        VCC_UTIL_VME_data += VCC_UTIL_VME_add_data;
+        VCC_UTIL_VME_data += "\n";
+      }
+      else {
+        VCC_UTIL_VME_sub_addr += VCC_UTIL_VME_add_addr;
+        VCC_UTIL_VME_sub_addr += "\n";
+
+        VCC_UTIL_VME_rw += VCC_UTIL_VME_rw_sel;
+        VCC_UTIL_VME_rw += "\n";
+
+        if(VCC_UTIL_VME_rw_sel.compare(0,3,"W") == 0){
+          VCC_UTIL_VME_data += VCC_UTIL_VME_add_data;
+          VCC_UTIL_VME_data += "\n";
+	}
+        else {
+          VCC_UTIL_VME_data += "n/a\n";
+	}
+      }
+    }
+    this->VMECCGUI_VME_access(in,out);
+}
+
+void EmuPeripheralCrateConfig::VCC_VME_DO(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+{
+  //  unsigned short int *pbuf;
+  int i,n,nbrds,nvme,offset,itemp,pkt_type;
+  bool abrt;
+  char ctemp[256];
+  char *ptemp1,*ptemp2,*ptemp3;
+  struct vcmd_t {
+    char brd[10];
+    unsigned long addr;
+    bool wrt;
+    unsigned long data;
+    struct vcmd_t *nxt;
+    struct vcmd_t *prv;
+  } vcmd,*cur,*last;
+
+
+  Crate *lccc;
+  lccc = VCC_UTIL_curr_crate;
+  vmecc=lccc->vmecc();
+
+    std::cout<<" entered VCC_VME_DO"<<std::endl;
+    cgicc::Cgicc cgi(in);
+    const CgiEnvironment& env = cgi.getEnvironment();
+    std::string guiStr = env.getQueryString() ;
+    cout << guiStr << endl ;
+
+    cgicc::form_iterator vme_send = cgi.getElement("vme_send");
+    cgicc::form_iterator vme_clear = cgi.getElement("vme_clear");
+
+    vcmd.prv=NULL;
+    nbrds=0;
+    abrt=false;
+    if(vme_clear != cgi.getElements().end()) {
+      VCC_UTIL_VME_board = "";
+      VCC_UTIL_VME_sub_addr = "";
+      VCC_UTIL_VME_rw = "";
+      VCC_UTIL_VME_data = "";
+    }
+    if(vme_send != cgi.getElements().end()) {
+      int send_num = cgi["send_num"]->getIntegerValue();
+      VCC_UTIL_VME_send_num = cgi["send_num"]->getValue();
+      VCC_UTIL_VME_board = cgi["vme_board"]->getValue();
+      VCC_UTIL_VME_sub_addr = cgi["vme_sub_addr"]->getValue();
+      VCC_UTIL_VME_rw = cgi["vme_rw"]->getValue();
+      VCC_UTIL_VME_data = cgi["vme_data"]->getValue();
+      size_t slen = VCC_UTIL_VME_board.length();
+      ptemp1 = (char *) malloc(slen+1);
+      VCC_UTIL_VME_board.copy(ptemp1,slen);
+      ptemp1[slen]='\0';
+      ptemp3=ptemp1;
+      cur=&vcmd;
+      while((ptemp2 = strtok(ptemp3,"\n\r")) !=NULL){
+        ptemp3=NULL;
+        strcpy(cur->brd,ptemp2);
+        nbrds++;
+	std::cout << "brd " << nbrds << " is " << cur->brd << std::endl;
+	cur->nxt = (struct vcmd_t *) malloc(sizeof(struct vcmd_t));
+        cur->nxt->prv=cur;
+        cur=cur->nxt;
+      }
+      last=cur->prv;
+      free(cur);
+      last->nxt=NULL;
+      nvme=nbrds;
+      free(ptemp1);
+      slen = VCC_UTIL_VME_sub_addr.length();
+      ptemp1 = (char *) malloc(slen+1);
+      VCC_UTIL_VME_sub_addr.copy(ptemp1,slen);
+      ptemp1[slen]='\0';
+      ptemp3=ptemp1;
+      n=0;
+      cur=&vcmd;
+      while((ptemp2 = strtok(ptemp3,"\n\r")) !=NULL && n<nbrds){
+        ptemp3=NULL;
+        cur->addr = strtoul(ptemp2,NULL,16);
+        n++;
+        cur=cur->nxt;
+      }
+      free(ptemp1);
+      if(n<nbrds){
+	std::cout << " Error: not enough data provided for sub address" << std::endl;
+	std::cout << " Command not executed" << std::endl;
+        abrt=true;
+      }
+      slen = VCC_UTIL_VME_rw.length();
+      ptemp1 = (char *) malloc(slen+1);
+      VCC_UTIL_VME_rw.copy(ptemp1,slen);
+      ptemp1[slen]='\0';
+      ptemp3=ptemp1;
+      n=0;
+      cur=&vcmd;
+      while((ptemp2 = strtok(ptemp3,"\n\r")) !=NULL && n<nbrds){
+        ptemp3=NULL;
+        cur->wrt=false;
+        if(ptemp2[0]=='W') cur->wrt=true;
+        n++;
+        cur=cur->nxt;
+      }
+      free(ptemp1);
+      if(n<nbrds){
+	std::cout << " Error: not enough data provided for R/W entry" << std::endl;
+	std::cout << " Command not executed" << std::endl;
+        abrt=true;
+      }
+      slen = VCC_UTIL_VME_data.length();
+      ptemp1 = (char *) malloc(slen+1);
+      VCC_UTIL_VME_data.copy(ptemp1,slen);
+      ptemp1[slen]='\0';
+      ptemp3=ptemp1;
+      n=0;
+      cur=&vcmd;
+      while((ptemp2 = strtok(ptemp3,"\n\r")) !=NULL && n<nbrds){
+        ptemp3=NULL;
+        cur->data = strtoul(ptemp2,NULL,16);
+        n++;
+        cur=cur->nxt;
+      }
+      free(ptemp1);
+      if(n<nbrds){
+	std::cout << " Error: not enough data provided for data entry" << std::endl;
+	std::cout << " Command not executed" << std::endl;
+        abrt=true;
+      }
+      if(!abrt){
+	offset=4;
+        cur=&vcmd;
+        n=0;
+	for (cur=&vcmd;cur!=NULL && !abrt;cur=cur->nxt){
+          n++;
+	  vmecc->wbuf[offset+0]=0x00;
+	  if(cur->wrt){
+	    vmecc->wbuf[offset+1]=0x54;
+	  }
+	  else {
+	    vmecc->wbuf[offset+1]=0x44;
+	  }
+	  if(strncmp(cur->brd,"TMB",3)==0){
+	    sscanf(cur->brd,"TMB%d",&itemp);
+	    if(itemp>5)itemp++;
+	    vmecc->wbuf[offset+2]=0x00;
+	    vmecc->wbuf[offset+3]=((itemp<<4)&0xF0)|((cur->addr>>16)&0x7);
+	    vmecc->wbuf[offset+4]=(cur->addr>>8)&0xFF;
+	    vmecc->wbuf[offset+5]=cur->addr&0xFF;
+	    if(cur->wrt){
+	      vmecc->wbuf[offset+6]=(cur->data>>8)&0xFF;
+	      vmecc->wbuf[offset+7]=cur->data&0xFF;
+	      offset+=8;
+	    }
+	    else {
+	      offset+=6;
+	    }
+	  }
+	  else if(strncmp(cur->brd,"DMB",3)==0){
+	    sscanf(cur->brd,"DMB%d",&itemp);
+	    if(itemp>5)itemp++;
+	    vmecc->wbuf[offset+2]=0x00;
+	    vmecc->wbuf[offset+3]=((itemp<<4)&0xF0)|(0x08)|((cur->addr>>16)&0x7);
+	    vmecc->wbuf[offset+4]=(cur->addr>>8)&0xFF;
+	    vmecc->wbuf[offset+5]=cur->addr&0xFF;
+	    if(cur->wrt){
+	      vmecc->wbuf[offset+6]=(cur->data>>8)&0xFF;
+	      vmecc->wbuf[offset+7]=cur->data&0xFF;
+	      offset+=8;
+	    }
+	    else {
+	      offset+=6;
+	    }
+	  }
+	  else if(strncmp(cur->brd,"MPC",3)==0){
+	    vmecc->wbuf[offset+2]=0x00;
+	    vmecc->wbuf[offset+3]=(0x60)|((cur->addr>>16)&0x7);
+	    vmecc->wbuf[offset+4]=(cur->addr>>8)&0xFF;
+	    vmecc->wbuf[offset+5]=cur->addr&0xFF;
+	    if(cur->wrt){
+	      vmecc->wbuf[offset+6]=(cur->data>>8)&0xFF;
+	      vmecc->wbuf[offset+7]=cur->data&0xFF;
+	      offset+=8;
+	    }
+	    else {
+	      offset+=6;
+	    }
+	  }
+	  else if(strncmp(cur->brd,"CCB",3)==0){
+	    vmecc->wbuf[offset+2]=0x00;
+	    vmecc->wbuf[offset+3]=(0x68)|((cur->addr>>16)&0x7);
+	    vmecc->wbuf[offset+4]=(cur->addr>>8)&0xFF;
+	    vmecc->wbuf[offset+5]=cur->addr&0xFF;
+	    if(cur->wrt){
+	      vmecc->wbuf[offset+6]=(cur->data>>8)&0xFF;
+	      vmecc->wbuf[offset+7]=cur->data&0xFF;
+	      offset+=8;
+	    }
+	    else {
+	      offset+=6;
+	    }
+	  }
+	  else if(strncmp(cur->brd,"DLY",3)==0){
+	    vmecc->wbuf[offset+0]=0x02;
+	    vmecc->wbuf[offset+1]=0x00;
+	    vmecc->wbuf[offset+2]=(cur->data>>8)&0xFF;
+	    vmecc->wbuf[offset+3]=cur->data&0xFF;
+	    offset+=4;
+	  }
+	  else{
+            n--;
+	    std::cout<<"  Illegal board option: " << cur->brd << std::endl;
+	    std::cout<<"  Only executing " << n << " VME commands" << std::endl;
+	    abrt=true;
+	  }
+	}
+        nvme=n;
+        vmecc->wbuf[2]=(nvme>>8)&0xFF;
+        vmecc->wbuf[3]=nvme&0xFF;
+        for(n=0;n<send_num;n++){
+          std::cout << "VME Data: " << std::endl;
+          for(i=2;i<offset;i+=2){
+            printf("%02X%02X\n",vmecc->wbuf[i]&0xFF,vmecc->wbuf[i+1]&0xFF);
+          }
+          //      vmecc->vme_cmds((offset-2)/2);
+	}
+      }
+      VCC_UTIL_VME_msg_data = "";
+      VCC_UTIL_VME_rbk_data = "";
+      while((pkt_type=vmecc->rd_pkt())>=0){
+        if(pkt_type>INFO_PKT){
+          std::cout << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
+          VCC_UTIL_VME_msg_data += vmecc->dcode_msg_pkt(vmecc->rbuf);
+          VCC_UTIL_VME_msg_data += "\n";
+	}
+        else if (pkt_type==VMED16_PKT){
+          int nw = ((vmecc->rbuf[WRD_CNT_OFF]&0xff)<<8)|(vmecc->rbuf[WRD_CNT_OFF+1]&0xff);
+	  for(i=0;i<nw;i++){
+	    sprintf(ctemp,"0x%02X%02X\n",vmecc->rbuf[2*i+DATA_OFF]&0xFF,vmecc->rbuf[2*i+DATA_OFF+1]&0xFF);
+	    VCC_UTIL_VME_rbk_data += ctemp;
+	  }
+	}
+        else {
+          sprintf(ctemp,"Pkt Type: 0x%02X\n",pkt_type);
+          std::cout << ctemp << std::endl;
+          VCC_UTIL_VME_msg_data += ctemp;
+	}
+      }
+    }
+    this->VMECCGUI_VME_access(in,out);
+}
 
 void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
