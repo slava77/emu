@@ -186,7 +186,7 @@ protected:
 
   //VCC Utilities
 
-  enum VCC_PAGES {VCC_CMNTSK, VCC_FRMUTIL, VCC_CNFG, VCC_MAC,
+  enum VCC_PAGES {VCC_CMNTSK, VCC_VME, VCC_FRMUTIL, VCC_CNFG, VCC_MAC,
    VCC_FIFO, VCC_PKTSND, VCC_PKTRCV, VCC_MISC} VCC_UTIL_curr_page;
   Crate *VCC_UTIL_curr_crate;
   std::string VCC_UTIL_curr_crate_name;
@@ -207,6 +207,17 @@ protected:
   std::string VCC_UTIL_PROM_ver;
   bool VCC_UTIL_PROM_file_init;
   std::string VCC_UTIL_Prnt_Rtns;
+  std::string VCC_UTIL_VME_board;
+  std::string VCC_UTIL_VME_sub_addr;
+  std::string VCC_UTIL_VME_rw;
+  std::string VCC_UTIL_VME_data;
+  std::string VCC_UTIL_VME_add_addr;
+  std::string VCC_UTIL_VME_add_data;
+  std::string VCC_UTIL_VME_brd_sel;
+  std::string VCC_UTIL_VME_rw_sel;
+  std::string VCC_UTIL_VME_send_num;
+  std::string VCC_UTIL_VME_msg_data;
+  std::string VCC_UTIL_VME_rbk_data;
   std::string VCC_UTIL_CR_cur_[6];
   std::string VCC_UTIL_CR_dflt_[6];
   std::string VCC_UTIL_CR_flashA_[6];
@@ -424,10 +435,12 @@ private:
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECC_UTIL_Menu_Buttons(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECC_UTIL_Crate_Selection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void VMECCGUI_GoTo_User(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_GoTo_General(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_GoTo_Intermediate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCGUI_GoTo_Expert(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VCC_PSWD_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VCC_CRSEL_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VMECCGUI_VME_access(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCGUI_firmware_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -436,6 +449,8 @@ private:
   void VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VMECCGUI_misc_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_VME_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void VCC_VME_FILL(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VCC_CNFG_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void VCC_MAC_DO(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
