@@ -59,8 +59,10 @@
 #include "VMECC.h"
 #include "EMU_CC_constants.h"
 #include "BoardsDB.h"
+#include "EmuTStore.h"
 //
 #include "EmuApplication.h"
+
 
 class EmuPeripheralCrateConfig: public EmuApplication, xdata::ActionListener
 {
@@ -109,6 +111,7 @@ protected:
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController * MyController;
+  EmuTStore * myTStore;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
