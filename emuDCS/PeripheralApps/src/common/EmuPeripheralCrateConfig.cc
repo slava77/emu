@@ -373,7 +373,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //----------------------------
   myParameter_ =  0;
   //
-  xml_or_db = 0;  /* actual configuration source: 0: xml, 1: db */
+  xml_or_db = -1;  /* actual configuration source: 0: xml, 1: db, -1: unknown or error */
   XML_or_DB_ = "xml";
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
@@ -925,11 +925,19 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   }
 
   *out << cgicc::br() << cgicc::br() << std::endl; 
-  *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
-  *out << xmlFile_.toString() << cgicc::br() << std::endl ;
-  //
-  std::string DefineConfiguration = toolbox::toString("/%s/DefineConfiguration",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::a("[Change Configuration File]").set("href",DefineConfiguration) << endl;
+  if(xml_or_db==0)
+  {
+    *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
+    *out << xmlFile_.toString() << cgicc::br() << std::endl ;
+    //
+    std::string DefineConfiguration = toolbox::toString("/%s/DefineConfiguration",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::a("[Change Configuration File]").set("href",DefineConfiguration) << endl;
+  }
+  else if(xml_or_db==1)
+  {
+    *out << cgicc::b(cgicc::i("TStore EMU_config_ID : ")) ;
+    *out << EMU_config_ID_.toString() << cgicc::br() << std::endl ;
+  }
   *out << cgicc::br();
   //
 }
@@ -1195,10 +1203,13 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     //
   }
 
-  bool EmuPeripheralCrateConfig::ParsingXML(){
+bool EmuPeripheralCrateConfig::ParsingXML(){
+  //
+  LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
     //
-    LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
-    //
+  std::cout << "XML_or_DB: " << XML_or_DB_.toString() << std::endl;
+  if(XML_or_DB_.toString() == "xml" || XML_or_DB_.toString() == "XML")
+  {
     // Check if filename exists
     //
     if(xmlFile_.toString().find("http") == string::npos) 
@@ -1228,6 +1239,29 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     //
     emuEndcap_ = MyController->GetEmuEndcap();
     if(!emuEndcap_) return false;
+    xml_or_db = 0;
+  }
+  else if (XML_or_DB_.toString() == "db" || XML_or_DB_.toString() == "DB")
+  {
+    // from TStore    
+    // std::cout << "We are in db" << std::endl;
+    myTStore = new EmuTStore(this);
+    if(!myTStore)
+    {  std::cout << "Can't create object EmuTStore" << std::endl;
+       return false;  
+    }
+    emuEndcap_ = myTStore->getConfiguredEndcap(EMU_config_ID_.toString());   
+    if(!emuEndcap_) 
+    {  std::cout << "No EmuEndcap returned from TStore" << std::endl;
+       return false;
+    }
+    xml_or_db = 1;
+  }
+  else
+  {
+    std::cout << "No valid XML_or_DB found..." << std::endl;
+    return false;
+  }
     crateVector = emuEndcap_->crates();
     //
     total_crates_=crateVector.size();

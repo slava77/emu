@@ -34,8 +34,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::synchronizeToFromDB, "sync");
   xgi::bind(this,&EmuPCrateConfigTStore::getConfigurationFromXML, "getConfig");
   
-  xmlfile_    = "/home/xdaq/cvs/TriDAS/emu/emuDCS/PeripheralApps/xml/configuration_MEp.xml";
-  dbUserFile_ = "/home/xdaq/cvs/TriDAS/emu/emuDCS/PeripheralApps/xml/dbuserfile.txt";
+  xmlfile_    = "/home/cscdev/vme_config.xml";
+  dbUserFile_ = "/home/cscdev/dbuserfile.txt";
 
 }
 
@@ -1710,7 +1710,7 @@ EmuEndcap * EmuPCrateConfigTStore::getConfiguredEndcap(const std::string &emu_co
   std::cout << "######## Empty EmuEndcap is created." << std::endl;
   
   std::string connectionID=connect();
-
+std::cout << "Liu DEBUG: connectionID " << connectionID << std::endl;
   readConfiguration(connectionID, emu_config_id, endcap);
   std::cout << "######## EmuEndcap is complet." << std::endl;
 
