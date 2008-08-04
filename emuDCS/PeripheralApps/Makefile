@@ -20,6 +20,7 @@ Sources=\
 	CrateUtilities.cc \
         XMLParser.cc \
         TStoreRequest.cc \
+        EmuTStore.cc \
         EmuPCrateConfigTStore.cc \
         EmuController.cc \
 	EmuPeripheralCrateBroadcast.cc \
