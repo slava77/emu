@@ -985,7 +985,7 @@ rio_error (struct net_device *dev, int int_status)
 
 	/* Link change event */
 	if (int_status & LinkEvent) {
-		if (mii_wait_link (dev, 10) == 0) {
+		if (mii_wait_link (dev, 1000) == 0) {
 			printk (KERN_INFO "%s: Link up\n", dev->name);
 			if (np->phy_media)
 				mii_get_media_pcs (dev);
@@ -1491,7 +1491,7 @@ mii_wait_link (struct net_device *dev, int wait)
 		bmsr.image = mii_read (dev, phy_addr, MII_BMSR);
 		if (bmsr.bits.link_status)
 			return 0;
-		mdelay (1);
+		udelay (10);
 	} while (--wait > 0);
 	return -1;
 }
