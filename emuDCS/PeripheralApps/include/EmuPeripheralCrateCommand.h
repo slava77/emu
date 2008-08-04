@@ -57,6 +57,7 @@
 #include "CalibDAQ.h"
 #include "EmuEndcap.h"
 #include "BoardsDB.h"
+#include "EmuTStore.h"
 //
 #include "EmuApplication.h"
 
@@ -96,6 +97,7 @@ protected:
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController * MyController;
+  EmuTStore * myTStore;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
