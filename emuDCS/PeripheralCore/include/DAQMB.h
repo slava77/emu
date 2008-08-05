@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.27 2008/07/21 08:25:57 rakness Exp $
+// $Id: DAQMB.h,v 3.28 2008/08/05 08:40:36 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.28  2008/08/05 08:40:36  rakness
+// add minimum number of times to read when checking configuration
+//
 // Revision 3.27  2008/07/21 08:25:57  rakness
 // add mapping into comments for SetKillInput(int)
 //
@@ -512,7 +515,25 @@ public:
   void configure() ;
   bool checkDAQMBXMLValues();
   //
-
+  /// test if "testval" is equal expected value: "compareval", print the errors
+  bool compareValues(std::string typeOfTest, int testval, int compareval); 
+  //
+  /// test if "testval" is equal expected value: "compareval", do or do not the errors
+  bool compareValues(std::string typeOfTest, int testval, int compareval, bool print_errors); 
+  //
+  /// same as compareValues, except return depends if they should be "equalOrNot"
+  bool compareValues(std::string typeOfTest, int testval, int compareval, bool print_errors, bool equalOrNot); 
+  //
+  ///test if "testval" is within a fractional "tolerance" of "compareval", print the errors
+  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance);   
+  //
+  ///test if "testval" is within a fractional "tolerance" of "compareval", do or do not print the errors
+  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance, bool print_errors);   
+  //
+  ///report status of "check_type" to SendOutput...  whether it passed or not is set by "status_bit"
+  void ReportCheck(std::string check_type, bool status_bit);    
+  //  
+  //
 public:
   // unpacks rcvbuf from FPGA operations
   unsigned long int unpack_ibrd() const;

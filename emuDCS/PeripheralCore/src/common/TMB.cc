@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.67 2008/07/31 13:33:43 liu Exp $
+// $Id: TMB.cc,v 3.68 2008/08/05 08:40:37 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.68  2008/08/05 08:40:37  rakness
+// add minimum number of times to read when checking configuration
+//
 // Revision 3.67  2008/07/31 13:33:43  liu
 // bug fix in TMB counters
 //
@@ -3230,8 +3233,6 @@ void TMB::decode() {
 
   pfile = fopen("tmb_scope.txt","w");
 
-  //pfile2 = fopen("TMBOUT.dat","w");
-
   /*** Get firmware type code ***/
 
   adr = base_adr;
@@ -3443,7 +3444,6 @@ void TMB::decode() {
   theController->end() ;
   //fclose(pfile);
 
-  //fclose(pfile2);
   //return 0;
 
 } //main
@@ -7718,303 +7718,335 @@ int TMB::FillTMBRegister(unsigned long int address) {
 ////////////////////////////////////////////////////////////////////////////////////////
 void TMB::CheckTMBConfiguration() {
   //
-  bool config_ok = true;
+  // Default number of times to read the configuration values:
+  this->CheckTMBConfiguration(2); 
   //
-  ReadTMBConfiguration();    // fill the read values in the software
+  return;
+}
+//
+void TMB::CheckTMBConfiguration(int max_number_of_reads) {
   //
-  // Check if user has forced CFEB enable bits in register 0x68 to be copied from 0x42
-  // If yes => expected value of address 0x68 = write value of address 0x42 
-  // If no  => expected value of address 0x68 = write value of address 0x68 
+  // Read the configuration values up to a maximum number of times in order to prevent
+  // false failures which are simply bad VME reads.
   //
-  int cfebs_enabled_expected;
+  bool config_ok = false;
   //
-  if (GetCfebEnableSource() == 1) {
-    cfebs_enabled_expected = enableCLCTInputs_;
-  } else {
-    cfebs_enabled_expected = cfebs_enabled_; 
-  }
+  int number_of_reads = 0;
   //
-  //-----------------------------------------------------------------
-  // firmware information
-  //-----------------------------------------------------------------
-  config_ok &= compareValues("tmb_firmware_month"  ,GetReadTmbFirmwareMonth()  ,GetExpectedTmbFirmwareMonth()  );
-  config_ok &= compareValues("tmb_firmware_day"    ,GetReadTmbFirmwareDay()    ,GetExpectedTmbFirmwareDay()    );
-  config_ok &= compareValues("tmb_firmware_year"   ,GetReadTmbFirmwareYear()   ,GetExpectedTmbFirmwareYear()   );
-  config_ok &= compareValues("tmb_firmware_version",GetReadTmbFirmwareVersion(),GetExpectedTmbFirmwareVersion());
-  config_ok &= compareValues("tmb_firmware_revcode",GetReadTmbFirmwareRevcode(),GetExpectedTmbFirmwareRevcode());
-  config_ok &= compareValues("tmb_firmware_type"   ,GetReadTmbFirmwareType()   ,GetExpectedTmbFirmwareType()   );
-  //
-  //-----------------------------------------------------------------
-  //0X70000 = ADR_BOOT:  Hardware Bootstrap Register
-  //-----------------------------------------------------------------
-  config_ok &= compareValues("Boot register control JTAG chain (not in xml)",
-			     read_boot_control_jtag_chain_,
-			     boot_control_jtag_chain_expected);
-  //
-  //-----------------------------------------------------------------
-  //0X0E = ADR_LOOPBK:  Loop-Back Control Register
-  //-----------------------------------------------------------------
-  config_ok &= compareValues("enable_alct_tx",read_enable_alct_tx_,enable_alct_tx_);
-  config_ok &= compareValues("enable_alct_rx",read_enable_alct_rx_,enable_alct_rx_);
-  //
-  //------------------------------------------------------------------
-  //0X16 = ADR_DDD0:  3D3444 Chip 0 Delays, 1 step = 2ns
-  //------------------------------------------------------------------
-  config_ok &= compareValues("alct_rx_clock_delay",read_alct_rx_clock_delay_,alct_rx_clock_delay_);
-  config_ok &= compareValues("alct_tx_clock_delay",read_alct_tx_clock_delay_,alct_tx_clock_delay_);
-  config_ok &= compareValues("dmb_tx_delay"       ,read_dmb_tx_delay_       ,dmb_tx_delay_       );
-  config_ok &= compareValues("rat_tmb_delay"      ,read_rat_tmb_delay_      ,rat_tmb_delay_      );
-  //
-  //------------------------------------------------------------------
-  //0X18 = ADR_DDD1:  3D3444 Chip 1 Delays, 1 step = 2ns
-  //------------------------------------------------------------------
-  config_ok &= compareValues("TMB1 phase (not in xml)",read_tmb1_phase_,tmb1_phase_);
-  config_ok &= compareValues("MPC phase (not in xml)" ,read_mpc_phase_ ,mpc_phase_ );
-  config_ok &= compareValues("DCC phase (not in xml)" ,read_dcc_phase_ ,dcc_phase_ );
-  config_ok &= compareValues("cfeb0delay"             ,read_cfeb0delay_,cfeb0delay_);
-  //
-  //------------------------------------------------------------------
-  //0X1A = ADR_DDD2:  3D3444 Chip 2 Delays, 1 step = 2ns
-  //------------------------------------------------------------------
-  config_ok &= compareValues("cfeb1delay",read_cfeb1delay_,cfeb1delay_);
-  config_ok &= compareValues("cfeb2delay",read_cfeb2delay_,cfeb2delay_);
-  config_ok &= compareValues("cfeb3delay",read_cfeb3delay_,cfeb3delay_);
-  config_ok &= compareValues("cfeb4delay",read_cfeb4delay_,cfeb4delay_);
-  //
-  //------------------------------------------------------------------
-  //0X1E = ADR_RATCTRL:  RAT Module Control
-  //------------------------------------------------------------------
-  //  config_ok &= compareValues("Shift RPC 1/2 phase"             ,read_shift_rpc_ ,shift_rpc_ );
-  //  config_ok &= compareValues("RPC sync"                        ,read_rpc_sync_  ,rpc_sync_  );
-  //  config_ok &= compareValues("RAT digital serial number enable",read_rat_dsn_en_,rat_dsn_en_);
-  //
-  //------------------------------------------------------------------
-  //0X2C = ADR_CCB_TRIG:  CCB Trigger Control
-  //------------------------------------------------------------------
-  config_ok &= compareValues("Request CCB L1a on ALCT ext trig (not in xml)"     ,read_alct_ext_trig_l1aen_   ,alct_ext_trig_l1aen_   );
-  config_ok &= compareValues("Request CCB L1a on CLCT ext trig (not in xml)"     ,read_clct_ext_trig_l1aen_   ,clct_ext_trig_l1aen_   );
-  config_ok &= compareValues("request_l1a"                                       ,read_request_l1a_           ,request_l1a_           );
-  config_ok &= compareValues("Fire ALCT ext trig one-shot (not in xml)"          ,read_alct_ext_trig_vme_     ,alct_ext_trig_vme_     );
-  config_ok &= compareValues("Fire CLCT ext trig one-shot (not in xml)"          ,read_clct_ext_trig_vme_     ,clct_ext_trig_vme_     );
-  config_ok &= compareValues("CLCText fire ALCT + ALCText fire CLCT (not in xml)",read_ext_trig_both_         ,ext_trig_both_         );
-  config_ok &= compareValues("allow CLCTextCCB when ccb_ignore_rx=1 (not in xml)",read_ccb_allow_bypass_      ,ccb_allow_bypass_      );
-  config_ok &= compareValues("ignore_ccb_startstop"                              ,read_ignore_ccb_startstop_  ,ignore_ccb_startstop_  );
-  config_ok &= compareValues("Internal L1A delay (not in xml)"                   ,read_internal_l1a_delay_vme_,internal_l1a_delay_vme_);
-  //
-  //------------------------------------------------------------------
-  //0X30 = ADR_ALCT_CFG:  ALCT Configuration
-  //------------------------------------------------------------------
-  config_ok &= compareValues("Enable alct_ext_trig from CCB (not in xml)"           ,read_cfg_alct_ext_trig_en_  ,cfg_alct_ext_trig_en_  );
-  config_ok &= compareValues("Enable alct_ext_inject from CCB (not in xml)"         ,read_cfg_alct_ext_inject_en_,cfg_alct_ext_inject_en_);
-  config_ok &= compareValues("Assert alct_ext_trig (not in xml)"                    ,read_cfg_alct_ext_trig_     ,cfg_alct_ext_trig_     ); 
-  config_ok &= compareValues("Assert alct_ext_inject (not in xml)"	            ,read_cfg_alct_ext_inject_   ,cfg_alct_ext_inject_   );
-  config_ok &= compareValues("ALCT sequencer command (not in xml)" 	            ,read_alct_seq_cmd_          ,alct_seq_cmd_          );
-  config_ok &= compareValues("alct_clock_en_use_ccb"                                ,read_alct_clock_en_use_ccb_ ,alct_clock_en_use_ccb_ );
-  config_ok &= compareValues("set alct_clock_en scsi signal if above=0 (not in xml)",read_alct_clock_en_use_vme_ ,alct_clock_en_use_vme_ );
-  //
-  //------------------------------------------------------------------
-  //0X32 = ADR_ALCT_INJ:  ALCT Injector Control
-  //------------------------------------------------------------------
-  config_ok &= compareValues("alct_clear"                                    ,read_alct_clear_     ,alct_clear_     );
-  config_ok &= compareValues("start ALCT injector state machine (not in xml)",read_alct_inject_mux_,alct_inject_mux_);
-  config_ok &= compareValues("sync ALCT injector with CLCT (not in xml)"     ,read_alct_sync_clct_ ,alct_sync_clct_ );
-  config_ok &= compareValues("ALCT injector delay (not in xml)"              ,read_alct_inj_delay_ ,alct_inj_delay_ );
-  //
-  //------------------------------------------------------------------
-  //0X42 = ADR_CFEB_INJ:  CFEB Injector Control
-  //------------------------------------------------------------------
-  config_ok &= compareValues("enableCLCTInputs_reg42"                         ,read_enableCLCTInputs_ ,enableCLCTInputs_ );
-  config_ok &= compareValues("Select CFEB n for RAM read/write (not in xml)"  ,read_cfeb_ram_sel_     ,cfeb_ram_sel_     );
-  config_ok &= compareValues("Enable CFEB n for injector trigger (not in xml)",read_cfeb_inj_en_sel_  ,cfeb_inj_en_sel_  ); 
-  config_ok &= compareValues("Start CLCT pattern injector (not in xml)"       ,read_start_pattern_inj_,start_pattern_inj_);
-  //
-  //------------------------------------------------------------------
-  //0X4A,4C,4E = ADR_HCM001,HCM023,HCM045 = CFEB0 Hot Channel Masks
-  //0X50,52,54 = ADR_HCM101,HCM123,HCM145 = CFEB1 Hot Channel Masks
-  //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
-  //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
-  //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
-  //------------------------------------------------------------------
-  for (int layer=0; layer<MAX_NUM_LAYERS; layer++) {
-    for (int distrip=0; distrip<MAX_NUM_DISTRIPS_PER_LAYER; distrip++) {
-      std::ostringstream hotmasklabel;
-      hotmasklabel << "CLCT Hot Channel Mask Layer " << layer << " Distrip " << distrip; 
-      config_ok &= compareValues(hotmasklabel.str(),
-				 read_hot_channel_mask_[layer][distrip],
-				 hot_channel_mask_[layer][distrip] );
+  while (!config_ok && number_of_reads < max_number_of_reads) {
+    //
+    number_of_reads++;
+    //
+    bool print_errors;
+    //
+    if (number_of_reads == (max_number_of_reads-1) ) {
+      print_errors = true;
+      //
+    } else {
+      print_errors = false;
+      //
     }
+    //
+    config_ok = true;
+    //
+    ReadTMBConfiguration();    // fill the read values in the software
+    //
+    // Check if user has forced CFEB enable bits in register 0x68 to be copied from 0x42
+    // If yes => expected value of address 0x68 = write value of address 0x42 
+    // If no  => expected value of address 0x68 = write value of address 0x68 
+    //
+    int cfebs_enabled_expected;
+    //
+    if (GetCfebEnableSource() == 1) {
+      cfebs_enabled_expected = enableCLCTInputs_;
+    } else {
+      cfebs_enabled_expected = cfebs_enabled_; 
+    }
+    //
+    //-----------------------------------------------------------------
+    // firmware information
+    //-----------------------------------------------------------------
+    config_ok &= compareValues("TMB tmb_firmware_month"  ,GetReadTmbFirmwareMonth()  ,GetExpectedTmbFirmwareMonth()  , print_errors);
+    config_ok &= compareValues("TMB tmb_firmware_day"    ,GetReadTmbFirmwareDay()    ,GetExpectedTmbFirmwareDay()    , print_errors);
+    config_ok &= compareValues("TMB tmb_firmware_year"   ,GetReadTmbFirmwareYear()   ,GetExpectedTmbFirmwareYear()   , print_errors);
+    config_ok &= compareValues("TMB tmb_firmware_version",GetReadTmbFirmwareVersion(),GetExpectedTmbFirmwareVersion(), print_errors);
+    config_ok &= compareValues("TMB tmb_firmware_revcode",GetReadTmbFirmwareRevcode(),GetExpectedTmbFirmwareRevcode(), print_errors);
+    config_ok &= compareValues("TMB tmb_firmware_type"   ,GetReadTmbFirmwareType()   ,GetExpectedTmbFirmwareType()   , print_errors);
+    //
+    //-----------------------------------------------------------------
+    //0X70000 = ADR_BOOT:  Hardware Bootstrap Register
+    //-----------------------------------------------------------------
+    config_ok &= compareValues("TMB Boot register control JTAG chain (not in xml)",
+			       read_boot_control_jtag_chain_,
+			       boot_control_jtag_chain_expected, 
+			       print_errors);
+    //
+    //-----------------------------------------------------------------
+    //0X0E = ADR_LOOPBK:  Loop-Back Control Register
+    //-----------------------------------------------------------------
+    config_ok &= compareValues("TMB enable_alct_tx",read_enable_alct_tx_,enable_alct_tx_, print_errors);
+    config_ok &= compareValues("TMB enable_alct_rx",read_enable_alct_rx_,enable_alct_rx_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X16 = ADR_DDD0:  3D3444 Chip 0 Delays, 1 step = 2ns
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB alct_rx_clock_delay",read_alct_rx_clock_delay_,alct_rx_clock_delay_, print_errors);
+    config_ok &= compareValues("TMB alct_tx_clock_delay",read_alct_tx_clock_delay_,alct_tx_clock_delay_, print_errors);
+    config_ok &= compareValues("TMB dmb_tx_delay"       ,read_dmb_tx_delay_       ,dmb_tx_delay_       , print_errors);
+    config_ok &= compareValues("TMB rat_tmb_delay"      ,read_rat_tmb_delay_      ,rat_tmb_delay_      , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X18 = ADR_DDD1:  3D3444 Chip 1 Delays, 1 step = 2ns
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB TMB1 phase (not in xml)",read_tmb1_phase_,tmb1_phase_, print_errors);
+    config_ok &= compareValues("TMB MPC phase (not in xml)" ,read_mpc_phase_ ,mpc_phase_ , print_errors);
+    config_ok &= compareValues("TMB DCC phase (not in xml)" ,read_dcc_phase_ ,dcc_phase_ , print_errors);
+    config_ok &= compareValues("TMB cfeb0delay"             ,read_cfeb0delay_,cfeb0delay_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X1A = ADR_DDD2:  3D3444 Chip 2 Delays, 1 step = 2ns
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB cfeb1delay",read_cfeb1delay_,cfeb1delay_, print_errors);
+    config_ok &= compareValues("TMB cfeb2delay",read_cfeb2delay_,cfeb2delay_, print_errors);
+    config_ok &= compareValues("TMB cfeb3delay",read_cfeb3delay_,cfeb3delay_, print_errors);
+    config_ok &= compareValues("TMB cfeb4delay",read_cfeb4delay_,cfeb4delay_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X1E = ADR_RATCTRL:  RAT Module Control
+    //------------------------------------------------------------------
+    //  config_ok &= compareValues("TMB Shift RPC 1/2 phase"             ,read_shift_rpc_ ,shift_rpc_ , print_errors);
+    //  config_ok &= compareValues("TMB RPC sync"                        ,read_rpc_sync_  ,rpc_sync_  , print_errors);
+    //  config_ok &= compareValues("TMB RAT digital serial number enable",read_rat_dsn_en_,rat_dsn_en_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X2C = ADR_CCB_TRIG:  CCB Trigger Control
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB Request CCB L1a on ALCT ext trig (not in xml)"     ,read_alct_ext_trig_l1aen_   ,alct_ext_trig_l1aen_   , print_errors);
+    config_ok &= compareValues("TMB Request CCB L1a on CLCT ext trig (not in xml)"     ,read_clct_ext_trig_l1aen_   ,clct_ext_trig_l1aen_   , print_errors);
+    config_ok &= compareValues("TMB request_l1a"                                       ,read_request_l1a_           ,request_l1a_           , print_errors);
+    config_ok &= compareValues("TMB Fire ALCT ext trig one-shot (not in xml)"          ,read_alct_ext_trig_vme_     ,alct_ext_trig_vme_     , print_errors);
+    config_ok &= compareValues("TMB Fire CLCT ext trig one-shot (not in xml)"          ,read_clct_ext_trig_vme_     ,clct_ext_trig_vme_     , print_errors);
+    config_ok &= compareValues("TMB CLCText fire ALCT + ALCText fire CLCT (not in xml)",read_ext_trig_both_         ,ext_trig_both_         , print_errors);
+    config_ok &= compareValues("TMB allow CLCTextCCB when ccb_ignore_rx=1 (not in xml)",read_ccb_allow_bypass_      ,ccb_allow_bypass_      , print_errors);
+    config_ok &= compareValues("TMB ignore_ccb_startstop"                              ,read_ignore_ccb_startstop_  ,ignore_ccb_startstop_  , print_errors);
+    config_ok &= compareValues("TMB Internal L1A delay (not in xml)"                   ,read_internal_l1a_delay_vme_,internal_l1a_delay_vme_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X30 = ADR_ALCT_CFG:  ALCT Configuration
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB Enable alct_ext_trig from CCB (not in xml)"           ,read_cfg_alct_ext_trig_en_  ,cfg_alct_ext_trig_en_  , print_errors);
+    config_ok &= compareValues("TMB Enable alct_ext_inject from CCB (not in xml)"         ,read_cfg_alct_ext_inject_en_,cfg_alct_ext_inject_en_, print_errors);
+    config_ok &= compareValues("TMB Assert alct_ext_trig (not in xml)"                    ,read_cfg_alct_ext_trig_     ,cfg_alct_ext_trig_     , print_errors); 
+    config_ok &= compareValues("TMB Assert alct_ext_inject (not in xml)"	            ,read_cfg_alct_ext_inject_ ,cfg_alct_ext_inject_   , print_errors);
+    config_ok &= compareValues("TMB ALCT sequencer command (not in xml)" 	            ,read_alct_seq_cmd_        ,alct_seq_cmd_          , print_errors);
+    config_ok &= compareValues("TMB alct_clock_en_use_ccb"                                ,read_alct_clock_en_use_ccb_ ,alct_clock_en_use_ccb_ , print_errors);
+    config_ok &= compareValues("TMB set alct_clock_en scsi signal if above=0 (not in xml)",read_alct_clock_en_use_vme_ ,alct_clock_en_use_vme_ , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X32 = ADR_ALCT_INJ:  ALCT Injector Control
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB alct_clear"                                    ,read_alct_clear_     ,alct_clear_     , print_errors);
+    config_ok &= compareValues("TMB start ALCT injector state machine (not in xml)",read_alct_inject_mux_,alct_inject_mux_, print_errors);
+    config_ok &= compareValues("TMB sync ALCT injector with CLCT (not in xml)"     ,read_alct_sync_clct_ ,alct_sync_clct_ , print_errors);
+    config_ok &= compareValues("TMB ALCT injector delay (not in xml)"              ,read_alct_inj_delay_ ,alct_inj_delay_ , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X42 = ADR_CFEB_INJ:  CFEB Injector Control
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB enableCLCTInputs_reg42"                         ,read_enableCLCTInputs_ ,enableCLCTInputs_ , print_errors);
+    config_ok &= compareValues("TMB Select CFEB n for RAM read/write (not in xml)"  ,read_cfeb_ram_sel_     ,cfeb_ram_sel_     , print_errors);
+    config_ok &= compareValues("TMB Enable CFEB n for injector trigger (not in xml)",read_cfeb_inj_en_sel_  ,cfeb_inj_en_sel_  , print_errors); 
+    config_ok &= compareValues("TMB Start CLCT pattern injector (not in xml)"       ,read_start_pattern_inj_,start_pattern_inj_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X4A,4C,4E = ADR_HCM001,HCM023,HCM045 = CFEB0 Hot Channel Masks
+    //0X50,52,54 = ADR_HCM101,HCM123,HCM145 = CFEB1 Hot Channel Masks
+    //0X56,58,5A = ADR_HCM201,HCM223,HCM245 = CFEB2 Hot Channel Masks
+    //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
+    //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
+    //------------------------------------------------------------------
+    for (int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+      for (int distrip=0; distrip<MAX_NUM_DISTRIPS_PER_LAYER; distrip++) {
+	std::ostringstream hotmasklabel;
+	hotmasklabel << "TMB layer" << layer << "_distrip_hot_chann_mask" << distrip; 
+	config_ok &= compareValues(hotmasklabel.str(),
+				   read_hot_channel_mask_[layer][distrip],
+				   hot_channel_mask_[layer][distrip], 
+				   print_errors);
+      }
+    }
+    //
+    //------------------------------------------------------------------
+    //0X68 = ADR_SEQ_TRIG_EN:  Sequencer Trigger Source Enables
+    //N.B. See TMB documentation first before controlling CFEBs through this register...
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB clct_pretrig_enable"                                  ,read_clct_pat_trig_en_  ,clct_pat_trig_en_     , print_errors);
+    config_ok &= compareValues("TMB alct_pretrig_enable"                                  ,read_alct_pat_trig_en_  ,alct_pat_trig_en_     , print_errors);
+    config_ok &= compareValues("TMB match_pretrig_enable"                                 ,read_match_pat_trig_en_ ,match_pat_trig_en_    , print_errors);
+    config_ok &= compareValues("TMB Allow ADB ext trig (CCB) for pretrigger (not in xml)" ,read_adb_ext_trig_en_   ,adb_ext_trig_en_      , print_errors);
+    config_ok &= compareValues("TMB Allow DMB ext trig for pretrigger (not in xml)"       ,read_dmb_ext_trig_en_   ,dmb_ext_trig_en_      , print_errors);
+    config_ok &= compareValues("TMB clct_ext_pretrig_enable"                              ,read_clct_ext_trig_en_  ,clct_ext_trig_en_     , print_errors);
+    config_ok &= compareValues("TMB Allow ALCT ext trig (CCB) for pretrigger (not in xml)",read_alct_ext_trig_en_  ,alct_ext_trig_en_     , print_errors);
+    config_ok &= compareValues("TMB Initiate sequencer trigger from VME (not in xml)"     ,read_vme_ext_trig_      ,vme_ext_trig_         , print_errors);
+    config_ok &= compareValues("TMB Make clct_ext_trig fire pattern injector (not in xml)",read_ext_trig_inject_   ,ext_trig_inject_      , print_errors);
+    config_ok &= compareValues("TMB all_cfeb_active"                                      ,read_all_cfeb_active_   ,all_cfeb_active_      , print_errors);
+    config_ok &= compareValues("TMB enableCLCTInputs_reg68"                               ,read_cfebs_enabled_     ,cfebs_enabled_expected, print_errors);
+    config_ok &= compareValues("TMB cfeb_enable_source"                                   ,read_cfeb_enable_source_,cfeb_enable_source_   , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X6A = ADR_SEQ_TRIG_DLY0:  Sequencer Trigger Source Delays
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB match_pretrig_window_size"               ,read_alct_pretrig_width_,alct_pretrig_width_, print_errors);
+    config_ok &= compareValues("TMB match_pat_trig_delay"                    ,read_alct_pretrig_delay_,alct_pretrig_delay_, print_errors);
+    config_ok &= compareValues("TMB Active FEB Flag delay (not in xml)"      ,read_alct_pattern_delay_,alct_pattern_delay_, print_errors);
+    config_ok &= compareValues("TMB Delay adb_ext_trig from CCB (not in xml)",read_adb_ext_trig_delay_,adb_ext_trig_delay_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X6C = ADR_SEQ_TRIG_DLY1:  Sequencer Trigger Source Delays
+    //------------------------------------------------------------------
+    //  config_ok &= compareValues("TMB Delay dmb_ext_trig from DMB"         ,read_dmb_ext_trig_delay_  ,dmb_ext_trig_delay_ , print_errors);
+    //  config_ok &= compareValues("TMB Delay clct_ext_trig (scint) from CCB",read_clct_ext_trig_delay_ ,clct_ext_trig_delay_, print_errors);
+    //  config_ok &= compareValues("TMB Delay alct_ext_trig from CCB"        ,read_alct_ext_trig_delay_ ,alct_ext_trig_delay_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X6E = ADR_SEQ_ID:  Sequencer Board + CSC Ids
+    //------------------------------------------------------------------
+    //  config_ok &= compareValues("TMB TMB slot",read_tmb_slot_,tmb_slot_, print_errors);
+    //  config_ok &= compareValues("TMB CSC ID"  ,read_csc_id_  ,csc_id_  , print_errors);
+    //  config_ok &= compareValues("TMB Run ID"  ,read_run_id_  ,run_id_  , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X70 = ADR_SEQ_CLCT:  Sequencer CLCT configuration
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB triad_persistence"               ,read_triad_persist_   ,triad_persist_   , print_errors);
+    config_ok &= compareValues("TMB clct_halfstrip_pretrig_threshold",read_hit_thresh_      ,hit_thresh_      , print_errors);
+    config_ok &= compareValues("TMB clct_pattern_thresh"             ,read_min_hits_pattern_,min_hits_pattern_, print_errors);
+    config_ok &= compareValues("TMB clct_drift_delay"                ,read_drift_delay_     ,drift_delay_     , print_errors);
+    config_ok &= compareValues("TMB halt and wait (not in xml)"      ,read_pretrigger_halt_ ,pretrigger_halt_ , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X72 = ADR_SEQ_FIFO:  Sequencer FIFO configuration
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB tmb_fifo_mode"       ,read_fifo_mode_       ,fifo_mode_       , print_errors);
+    config_ok &= compareValues("TMB tmb_fifo_tbins"      ,read_fifo_tbins_      ,fifo_tbins_      , print_errors);
+    config_ok &= compareValues("TMB tmb_fifo_pretrig"    ,read_fifo_pretrig_    ,fifo_pretrig_    , print_errors);
+    config_ok &= compareValues("TMB tmb_fifo_no_raw_hits",read_fifo_no_raw_hits_,fifo_no_raw_hits_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB tmb_l1a_delay"                             ,read_l1adelay_        ,l1adelay_        , print_errors);
+    config_ok &= compareValues("TMB tmb_l1a_window_size"                       ,read_l1a_window_size_ ,l1a_window_size_ , print_errors);
+    config_ok &= compareValues("TMB Generate internal L1a (overrides external)",read_tmb_l1a_internal_,tmb_l1a_internal_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X76 = ADR_SEQ_OFFSET:  Sequencer Counter Offsets
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB tmb_l1a_offset",read_l1a_offset_,l1a_offset_, print_errors);
+    config_ok &= compareValues("TMB tmb_bxn_offset",read_bxn_offset_,bxn_offset_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X86 = ADR_TMB_TRIG:  TMB Trigger configuration/MPC accept
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB mpc_sync_err_enable"          ,read_tmb_sync_err_enable_,tmb_sync_err_enable_, print_errors);
+    config_ok &= compareValues("TMB alct_trig_enable"             ,read_tmb_allow_alct_     ,tmb_allow_alct_     , print_errors);
+    config_ok &= compareValues("TMB clct_trig_enable"             ,read_tmb_allow_clct_     ,tmb_allow_clct_     , print_errors);
+    config_ok &= compareValues("TMB match_trig_enable"            ,read_tmb_allow_match_    ,tmb_allow_match_    , print_errors);
+    config_ok &= compareValues("TMB mpc_rx_delay"                 ,read_mpc_rx_delay_       ,mpc_rx_delay_       , print_errors);
+    config_ok &= compareValues("TMB MPC gets TTC BX0 (not in xml)",read_mpc_sel_ttc_bx0_    ,mpc_sel_ttc_bx0_    , print_errors);
+    config_ok &= compareValues("TMB mpc_idle_blank"               ,read_mpc_idle_blank_     ,mpc_idle_blank_     , print_errors);
+    config_ok &= compareValues("TMB mpc_output_enable"            ,read_mpc_output_enable_  ,mpc_output_enable_  , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB Trigger seq flush state timer (not in xml)",read_clct_flush_delay_            ,clct_flush_delay_            , print_errors);
+    config_ok &= compareValues("TMB write_buffer_autoclear"                    ,read_wr_buffer_autoclear_         ,wr_buffer_autoclear_         , print_errors);
+    config_ok &= compareValues("TMB write_continuous_enable"                   ,read_clct_write_continuous_enable_,clct_write_continuous_enable_, print_errors);
+    config_ok &= compareValues("TMB write_buffer_required"                     ,read_wrt_buf_required_            ,wrt_buf_required_            , print_errors);
+    config_ok &= compareValues("TMB valid_clct_required"                       ,read_valid_clct_required_         ,valid_clct_required_         , print_errors);
+    config_ok &= compareValues("TMB l1a_allow_match"                           ,read_l1a_allow_match_             ,l1a_allow_match_             , print_errors);
+    config_ok &= compareValues("TMB l1a_allow_notmb"                           ,read_l1a_allow_notmb_             ,l1a_allow_notmb_             , print_errors);
+    config_ok &= compareValues("TMB l1a_allow_nol1a"                           ,read_l1a_allow_nol1a_             ,l1a_allow_nol1a_             , print_errors);
+    config_ok &= compareValues("TMB l1a_allow_alct_only"                       ,read_l1a_allow_alct_only_         ,l1a_allow_alct_only_         , print_errors);
+    config_ok &= compareValues("TMB Clear scintillator veto (not in xml)"      ,read_scint_veto_clr_              ,scint_veto_clr_              , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0XB2 = ADR_TMBTIM:  TMB Timing for ALCT*CLCT Coincidence
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB match_trig_alct_delay" ,read_alct_vpf_delay_        ,alct_vpf_delay_        , print_errors);
+    config_ok &= compareValues("TMB match_trig_window_size",read_alct_match_window_size_,alct_match_window_size_, print_errors);
+    config_ok &= compareValues("TMB mpc_tx_delay"          ,read_mpc_tx_delay_          ,mpc_tx_delay_          , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0XB6 = ADR_RPC_CFG:  RPC Configuration
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB rpc_exists"                                           ,read_rpc_exists_     ,rpc_exists_     , print_errors);
+    config_ok &= compareValues("TMB rpc_read_enable"                                      ,read_rpc_read_enable_,rpc_read_enable_, print_errors);
+    config_ok &= compareValues("TMB rpc_bxn_offset"                                       ,read_rpc_bxn_offset_ ,rpc_bxn_offset_ , print_errors);
+    config_ok &= compareValues("TMB RPC Bank address (for reading sync mode) (not in xml)",read_rpc_bank_       ,rpc_bank_       , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0XBA = ADR_RPC_RAW_DELAY:  RPC Raw Hits Data Delay
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB rpc0_raw_delay",read_rpc0_raw_delay_,rpc0_raw_delay_, print_errors);
+    config_ok &= compareValues("TMB rpc1_raw_delay",read_rpc1_raw_delay_,rpc1_raw_delay_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0XBC = ADR_RPC_INJ:  RPC Injector Control
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB rpc_mask_all"                                     ,read_rpc_mask_all_ ,rpc_mask_all_ , print_errors);
+    config_ok &= compareValues("TMB Enable RAT for injector fire (not in xml)"        ,read_inj_mask_rat_ ,inj_mask_rat_ , print_errors); 
+    config_ok &= compareValues("TMB Enable RPC inj RAM for injector fire (not in xml)",read_inj_mask_rpc_ ,inj_mask_rpc_ , print_errors); 
+    config_ok &= compareValues("TMB CFEB/RPC injectors wait for RAT (not in xml)"     ,read_inj_delay_rat_,inj_delay_rat_, print_errors); 
+    config_ok &= compareValues("TMB Enable injector RAM write (not in xml)"           ,read_rpc_inj_sel_  ,rpc_inj_sel_  , print_errors); 
+    //
+    //------------------------------------------------------------------
+    //0XC4 = ADR_RPC_TBINS:  RPC FIFO Time Bins
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB rpc_fifo_tbins"   ,read_fifo_tbins_rpc_  ,fifo_tbins_rpc_  , print_errors);
+    config_ok &= compareValues("TMB rpc_fifo_pretrig" ,read_fifo_pretrig_rpc_,fifo_pretrig_rpc_, print_errors); 
+    config_ok &= compareValues("TMB rpc_fifo_decouple",read_rpc_decouple_    ,rpc_decouple_    , print_errors); 
+    //
+    //------------------------------------------------------------------
+    //0XCA = ADR_BX0_DELAY:  BX0 to MPC delays
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB alct_bx0_delay" ,read_alct_bx0_delay_ ,alct_bx0_delay_ , print_errors);
+    config_ok &= compareValues("TMB clct_bx0_delay" ,read_clct_bx0_delay_ ,clct_bx0_delay_ , print_errors);
+    config_ok &= compareValues("TMB alct_bx0_enable",read_alct_bx0_enable_,alct_bx0_enable_, print_errors);
+    //
+    //------------------------------------------------------------------
+    //0XE6 = ADR_DDDR0:  RAT 3D3444 RPC Delays, 1 step = 2ns
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB rpc0_rat_delay",read_rpc0_rat_delay_,rpc0_rat_delay_, print_errors);
+    config_ok &= compareValues("TMB rpc1_rat_delay",read_rpc1_rat_delay_,rpc1_rat_delay_, print_errors);
+    //
+    //---------------------------------------------------------------------
+    //0XF0 = ADR_LAYER_TRIG:  Layer-Trigger Mode
+    //---------------------------------------------------------------------
+    config_ok &= compareValues("TMB layer_trig_enable",read_layer_trigger_en_ ,layer_trigger_en_ , print_errors); 
+    config_ok &= compareValues("TMB layer_trig_thresh",read_layer_trig_thresh_,layer_trig_thresh_, print_errors); 
+    config_ok &= compareValues("TMB clct_throttle"    ,read_clct_throttle_    ,clct_throttle_    , print_errors); 
+    //
+    //---------------------------------------------------------------------
+    //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
+    //---------------------------------------------------------------------
+    config_ok &= compareValues("TMB clct_blanking"         ,read_clct_blanking_         ,clct_blanking_         , print_errors);
+    config_ok &= compareValues("TMB clct_stagger"          ,read_clct_stagger_          ,clct_stagger_          , print_errors);
+    config_ok &= compareValues("TMB clct_pattern_id_thresh",read_clct_pattern_id_thresh_,clct_pattern_id_thresh_, print_errors);
+    config_ok &= compareValues("TMB aff_thresh"            ,read_aff_thresh_            ,aff_thresh_            , print_errors);
+    config_ok &= compareValues("TMB adjacent_cfeb_distance",read_adjacent_cfeb_distance_,adjacent_cfeb_distance_, print_errors);
+    //
+    //---------------------------------------------------------------------
+    //0XF6 = ADR_TEMP1:  CLCT separation
+    //---------------------------------------------------------------------
+    config_ok &= compareValues("TMB CLCT separation source is VME (not in xml)",read_clct_separation_src_,clct_separation_src_, print_errors);
+    config_ok &= compareValues("TMB min_clct_separation"                       ,read_min_clct_separation_,min_clct_separation_, print_errors);
+    //
+    tmb_configuration_status_ = (int) config_ok;
   }
-  //
-  //------------------------------------------------------------------
-  //0X68 = ADR_SEQ_TRIG_EN:  Sequencer Trigger Source Enables
-  //N.B. See TMB documentation first before controlling CFEBs through this register...
-  //------------------------------------------------------------------
-  config_ok &= compareValues("clct_pretrig_enable"                                  ,read_clct_pat_trig_en_  ,clct_pat_trig_en_     );
-  config_ok &= compareValues("alct_pretrig_enable"                                  ,read_alct_pat_trig_en_  ,alct_pat_trig_en_     );
-  config_ok &= compareValues("match_pretrig_enable"                                 ,read_match_pat_trig_en_ ,match_pat_trig_en_    );
-  config_ok &= compareValues("Allow ADB ext trig (CCB) for pretrigger (not in xml)" ,read_adb_ext_trig_en_   ,adb_ext_trig_en_      );
-  config_ok &= compareValues("Allow DMB ext trig for pretrigger (not in xml)"       ,read_dmb_ext_trig_en_   ,dmb_ext_trig_en_      );
-  config_ok &= compareValues("clct_ext_pretrig_enable"                              ,read_clct_ext_trig_en_  ,clct_ext_trig_en_     );
-  config_ok &= compareValues("Allow ALCT ext trig (CCB) for pretrigger (not in xml)",read_alct_ext_trig_en_  ,alct_ext_trig_en_     );
-  config_ok &= compareValues("Initiate sequencer trigger from VME (not in xml)"     ,read_vme_ext_trig_      ,vme_ext_trig_         );
-  config_ok &= compareValues("Make clct_ext_trig fire pattern injector (not in xml)",read_ext_trig_inject_   ,ext_trig_inject_      );
-  config_ok &= compareValues("all_cfeb_active"                                      ,read_all_cfeb_active_   ,all_cfeb_active_      );
-  config_ok &= compareValues("enableCLCTInputs_reg68"                               ,read_cfebs_enabled_     ,cfebs_enabled_expected);
-  config_ok &= compareValues("cfeb_enable_source"                                   ,read_cfeb_enable_source_,cfeb_enable_source_   );
-  //
-  //------------------------------------------------------------------
-  //0X6A = ADR_SEQ_TRIG_DLY0:  Sequencer Trigger Source Delays
-  //------------------------------------------------------------------
-  config_ok &= compareValues("match_pretrig_window_size"               ,read_alct_pretrig_width_,alct_pretrig_width_);
-  config_ok &= compareValues("match_pat_trig_delay"                    ,read_alct_pretrig_delay_,alct_pretrig_delay_);
-  config_ok &= compareValues("Active FEB Flag delay (not in xml)"      ,read_alct_pattern_delay_,alct_pattern_delay_);
-  config_ok &= compareValues("Delay adb_ext_trig from CCB (not in xml)",read_adb_ext_trig_delay_,adb_ext_trig_delay_);
-  //
-  //------------------------------------------------------------------
-  //0X6C = ADR_SEQ_TRIG_DLY1:  Sequencer Trigger Source Delays
-  //------------------------------------------------------------------
-  //  config_ok &= compareValues("Delay dmb_ext_trig from DMB"         ,read_dmb_ext_trig_delay_  ,dmb_ext_trig_delay_  );
-  //  config_ok &= compareValues("Delay clct_ext_trig (scint) from CCB",read_clct_ext_trig_delay_ ,clct_ext_trig_delay_ );
-  //  config_ok &= compareValues("Delay alct_ext_trig from CCB"        ,read_alct_ext_trig_delay_ ,alct_ext_trig_delay_ );
-  //
-  //------------------------------------------------------------------
-  //0X6E = ADR_SEQ_ID:  Sequencer Board + CSC Ids
-  //------------------------------------------------------------------
-  //  config_ok &= compareValues("TMB slot",read_tmb_slot_,tmb_slot_);
-  //  config_ok &= compareValues("CSC ID"  ,read_csc_id_  ,csc_id_  );
-  //  config_ok &= compareValues("Run ID"  ,read_run_id_  ,run_id_  );
-  //
-  //------------------------------------------------------------------
-  //0X70 = ADR_SEQ_CLCT:  Sequencer CLCT configuration
-  //------------------------------------------------------------------
-  config_ok &= compareValues("triad_persistence"               ,read_triad_persist_   ,triad_persist_   );
-  config_ok &= compareValues("clct_halfstrip_pretrig_threshold",read_hit_thresh_      ,hit_thresh_      );
-  config_ok &= compareValues("clct_pattern_thresh"             ,read_min_hits_pattern_,min_hits_pattern_);
-  config_ok &= compareValues("clct_drift_delay"                ,read_drift_delay_     ,drift_delay_     );
-  config_ok &= compareValues("halt and wait (not in xml)"      ,read_pretrigger_halt_ ,pretrigger_halt_ );
-  //
-  //------------------------------------------------------------------
-  //0X72 = ADR_SEQ_FIFO:  Sequencer FIFO configuration
-  //------------------------------------------------------------------
-  config_ok &= compareValues("tmb_fifo_mode"       ,read_fifo_mode_       ,fifo_mode_       );
-  config_ok &= compareValues("tmb_fifo_tbins"      ,read_fifo_tbins_      ,fifo_tbins_      );
-  config_ok &= compareValues("tmb_fifo_pretrig"    ,read_fifo_pretrig_    ,fifo_pretrig_    );
-  config_ok &= compareValues("tmb_fifo_no_raw_hits",read_fifo_no_raw_hits_,fifo_no_raw_hits_);
-  //
-  //------------------------------------------------------------------
-  //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
-  //------------------------------------------------------------------
-  config_ok &= compareValues("tmb_l1a_delay"                             ,read_l1adelay_        ,l1adelay_        );
-  config_ok &= compareValues("tmb_l1a_window_size"                       ,read_l1a_window_size_ ,l1a_window_size_ );
-  config_ok &= compareValues("Generate internal L1a (overrides external)",read_tmb_l1a_internal_,tmb_l1a_internal_);
-  //
-  //------------------------------------------------------------------
-  //0X76 = ADR_SEQ_OFFSET:  Sequencer Counter Offsets
-  //------------------------------------------------------------------
-  config_ok &= compareValues("tmb_l1a_offset",read_l1a_offset_,l1a_offset_);
-  config_ok &= compareValues("tmb_bxn_offset",read_bxn_offset_,bxn_offset_);
-  //
-  //------------------------------------------------------------------
-  //0X86 = ADR_TMB_TRIG:  TMB Trigger configuration/MPC accept
-  //------------------------------------------------------------------
-  config_ok &= compareValues("mpc_sync_err_enable"          ,read_tmb_sync_err_enable_,tmb_sync_err_enable_);
-  config_ok &= compareValues("alct_trig_enable"             ,read_tmb_allow_alct_     ,tmb_allow_alct_     );
-  config_ok &= compareValues("clct_trig_enable"             ,read_tmb_allow_clct_     ,tmb_allow_clct_     );
-  config_ok &= compareValues("match_trig_enable"            ,read_tmb_allow_match_    ,tmb_allow_match_    );
-  config_ok &= compareValues("mpc_rx_delay"                 ,read_mpc_rx_delay_       ,mpc_rx_delay_       );
-  config_ok &= compareValues("MPC gets TTC BX0 (not in xml)",read_mpc_sel_ttc_bx0_    ,mpc_sel_ttc_bx0_    );
-  config_ok &= compareValues("mpc_idle_blank"               ,read_mpc_idle_blank_     ,mpc_idle_blank_     );
-  config_ok &= compareValues("mpc_output_enable"            ,read_mpc_output_enable_  ,mpc_output_enable_  );
-  //
-  //------------------------------------------------------------------
-  //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
-  //------------------------------------------------------------------
-  config_ok &= compareValues("Trigger seq flush state timer (not in xml)",read_clct_flush_delay_            ,clct_flush_delay_            );
-  config_ok &= compareValues("write_buffer_autoclear"                    ,read_wr_buffer_autoclear_         ,wr_buffer_autoclear_         );
-  config_ok &= compareValues("write_continuous_enable"                   ,read_clct_write_continuous_enable_,clct_write_continuous_enable_);
-  config_ok &= compareValues("write_buffer_required"                     ,read_wrt_buf_required_            ,wrt_buf_required_            );
-  config_ok &= compareValues("valid_clct_required"                       ,read_valid_clct_required_         ,valid_clct_required_         );
-  config_ok &= compareValues("l1a_allow_match"                           ,read_l1a_allow_match_             ,l1a_allow_match_             );
-  config_ok &= compareValues("l1a_allow_notmb"                           ,read_l1a_allow_notmb_             ,l1a_allow_notmb_             );
-  config_ok &= compareValues("l1a_allow_nol1a"                           ,read_l1a_allow_nol1a_             ,l1a_allow_nol1a_             );
-  config_ok &= compareValues("l1a_allow_alct_only"                       ,read_l1a_allow_alct_only_         ,l1a_allow_alct_only_         );
-  config_ok &= compareValues("Clear scintillator veto (not in xml)"      ,read_scint_veto_clr_              ,scint_veto_clr_              );
-  //
-  //------------------------------------------------------------------
-  //0XB2 = ADR_TMBTIM:  TMB Timing for ALCT*CLCT Coincidence
-  //------------------------------------------------------------------
-  config_ok &= compareValues("match_trig_alct_delay" ,read_alct_vpf_delay_        ,alct_vpf_delay_        );
-  config_ok &= compareValues("match_trig_window_size",read_alct_match_window_size_,alct_match_window_size_);
-  config_ok &= compareValues("mpc_tx_delay"          ,read_mpc_tx_delay_          ,mpc_tx_delay_          );
-  //
-  //------------------------------------------------------------------
-  //0XB6 = ADR_RPC_CFG:  RPC Configuration
-  //------------------------------------------------------------------
-  config_ok &= compareValues("rpc_exists"                                           ,read_rpc_exists_     ,rpc_exists_     );
-  config_ok &= compareValues("rpc_read_enable"                                      ,read_rpc_read_enable_,rpc_read_enable_);
-  config_ok &= compareValues("rpc_bxn_offset"                                       ,read_rpc_bxn_offset_ ,rpc_bxn_offset_ );
-  config_ok &= compareValues("RPC Bank address (for reading sync mode) (not in xml)",read_rpc_bank_       ,rpc_bank_       );
-  //
-  //------------------------------------------------------------------
-  //0XBA = ADR_RPC_RAW_DELAY:  RPC Raw Hits Data Delay
-  //------------------------------------------------------------------
-  config_ok &= compareValues("rpc0_raw_delay",read_rpc0_raw_delay_,rpc0_raw_delay_);
-  config_ok &= compareValues("rpc1_raw_delay",read_rpc1_raw_delay_,rpc1_raw_delay_);
-  //
-  //------------------------------------------------------------------
-  //0XBC = ADR_RPC_INJ:  RPC Injector Control
-  //------------------------------------------------------------------
-  config_ok &= compareValues("rpc_mask_all"                                     ,read_rpc_mask_all_ ,rpc_mask_all_ );
-  config_ok &= compareValues("Enable RAT for injector fire (not in xml)"        ,read_inj_mask_rat_ ,inj_mask_rat_ ); 
-  config_ok &= compareValues("Enable RPC inj RAM for injector fire (not in xml)",read_inj_mask_rpc_ ,inj_mask_rpc_ ); 
-  config_ok &= compareValues("CFEB/RPC injectors wait for RAT (not in xml)"     ,read_inj_delay_rat_,inj_delay_rat_); 
-  config_ok &= compareValues("Enable injector RAM write (not in xml)"           ,read_rpc_inj_sel_  ,rpc_inj_sel_  ); 
-  //
-  //------------------------------------------------------------------
-  //0XC4 = ADR_RPC_TBINS:  RPC FIFO Time Bins
-  //------------------------------------------------------------------
-  config_ok &= compareValues("rpc_fifo_tbins"   ,read_fifo_tbins_rpc_  ,fifo_tbins_rpc_  );
-  config_ok &= compareValues("rpc_fifo_pretrig" ,read_fifo_pretrig_rpc_,fifo_pretrig_rpc_); 
-  config_ok &= compareValues("rpc_fifo_decouple",read_rpc_decouple_    ,rpc_decouple_    ); 
-  //
-  //------------------------------------------------------------------
-  //0XCA = ADR_BX0_DELAY:  BX0 to MPC delays
-  //------------------------------------------------------------------
-  config_ok &= compareValues("alct_bx0_delay" ,read_alct_bx0_delay_ ,alct_bx0_delay_ );
-  config_ok &= compareValues("clct_bx0_delay" ,read_clct_bx0_delay_ ,clct_bx0_delay_ );
-  config_ok &= compareValues("alct_bx0_enable",read_alct_bx0_enable_,alct_bx0_enable_);
-  //
-  //------------------------------------------------------------------
-  //0XE6 = ADR_DDDR0:  RAT 3D3444 RPC Delays, 1 step = 2ns
-  //------------------------------------------------------------------
-  config_ok &= compareValues("rpc0_rat_delay",read_rpc0_rat_delay_,rpc0_rat_delay_);
-  config_ok &= compareValues("rpc1_rat_delay",read_rpc1_rat_delay_,rpc1_rat_delay_);
-  //
-  //---------------------------------------------------------------------
-  //0XF0 = ADR_LAYER_TRIG:  Layer-Trigger Mode
-  //---------------------------------------------------------------------
-  config_ok &= compareValues("layer_trig_enable",read_layer_trigger_en_ ,layer_trigger_en_ ); 
-  config_ok &= compareValues("layer_trig_thresh",read_layer_trig_thresh_,layer_trig_thresh_); 
-  config_ok &= compareValues("clct_throttle"    ,read_clct_throttle_    ,clct_throttle_    ); 
-  //
-  //---------------------------------------------------------------------
-  //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
-  //---------------------------------------------------------------------
-  config_ok &= compareValues("clct_blanking"         ,read_clct_blanking_         ,clct_blanking_         );
-  config_ok &= compareValues("clct_stagger"          ,read_clct_stagger_          ,clct_stagger_          );
-  config_ok &= compareValues("clct_pattern_id_thresh",read_clct_pattern_id_thresh_,clct_pattern_id_thresh_);
-  config_ok &= compareValues("aff_thresh"            ,read_aff_thresh_            ,aff_thresh_            );
-  config_ok &= compareValues("adjacent_cfeb_distance",read_adjacent_cfeb_distance_,adjacent_cfeb_distance_);
-  //
-  //---------------------------------------------------------------------
-  //0XF6 = ADR_TEMP1:  CLCT separation
-  //---------------------------------------------------------------------
-  config_ok &= compareValues("CLCT separation source is VME (not in xml)",read_clct_separation_src_,clct_separation_src_);
-  config_ok &= compareValues("min_clct_separation"                       ,read_min_clct_separation_,min_clct_separation_);
   //
   ReportCheck("TMB configuration check",config_ok);
-  //
-  tmb_configuration_status_ = (int) config_ok;
   //
   return;
 }
@@ -8203,20 +8235,23 @@ int TMB::makemask(int bitlo, int bithi) {
 /////////////////////////////////////////////////////////////////////
 // register comparison methods
 /////////////////////////////////////////////////////////////////////
-bool TMB::compareValues(std::string TypeOfTest, 
-			int testval, 
-			int compareval) {
+bool TMB::compareValues(std::string TypeOfTest, int testval, int compareval) {
   //
-  //Default is that you want "testval" to equal "compareval"...
+  //Default is that you want a) to print the errors, and b) return true if "testval" equals "compareval"...
   //
-  return compareValues(TypeOfTest,testval,compareval,true);
+  return compareValues(TypeOfTest,testval,compareval,true,true);
   //
 }
 //
-bool TMB::compareValues(std::string TypeOfTest, 
-			int testval, 
-			int compareval,
-			bool equal) {
+bool TMB::compareValues(std::string TypeOfTest, int testval, int compareval, bool print_errors) {
+  //
+  //Default is that you want to return true if "testval" equals "compareval"...
+  //
+  return compareValues(TypeOfTest,testval,compareval,print_errors,true);
+  //
+}
+//
+bool TMB::compareValues(std::string TypeOfTest, int testval, int compareval, bool print_errors, bool equal) {
   //
   // test if "testval" is equivalent to the expected value: "compareval"
   // return depends on if you wanted them to be "equal"
@@ -8224,89 +8259,69 @@ bool TMB::compareValues(std::string TypeOfTest,
   //(*MyOutput_) << "compareValues:  " << TypeOfTest << " -> ";
   //
   if (equal) {
+    //
     if (testval == compareval) {
-      //      (*MyOutput_) << "PASS = 0x" << std::hex << compareval << std::endl;
+      // if (print_errors) (*MyOutput_) << "PASS = 0x" << std::hex << compareval << std::endl;
       return true;
     } else {
-      std::ostringstream dump;
-      dump << "compareValues:  FAIL! ";
-      dump << TypeOfTest 
-	   << " -> expected value = 0x" << std::hex << compareval
-	   << ", returned value = 0x" << std:: hex << testval
-	   << std::endl;
-      //
-      (*MyOutput_) << "compareValues:  FAIL! ";
-      (*MyOutput_) << TypeOfTest 
-		   << " -> expected value = 0x" << std::hex << compareval
-		   << ", returned value = 0x" << std:: hex << testval
-		   << std::endl;
-      //
-      SendOutput(dump.str(),"ERROR");
+      if (print_errors) {
+	(*MyOutput_) << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
+	//
+	std::ostringstream dump;
+	dump << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
+	//if (print_errors) SendOutput(dump.str(),"ERROR");
+      }
       return false;
     }
+    //
   } else {
+    //
     if (testval != compareval) {
-      //      (*MyOutput_) << "PASS -> 0x" << std::hex << testval 
-      //                   << " not equal to 0x" <<std::hex << compareval 
-      //		   << std::endl;
+      // if (print_errors) (*MyOutput_) << "PASS -> 0x" << std::hex << testval << " not equal to 0x" <<std::hex << compareval << std::endl;
       return true;
     } else {
-      std::ostringstream dump;
-      dump << "compareValues:  FAIL! ";
-      dump << TypeOfTest 
-	   << " expected = returned = 0x" << std::hex << testval
-	   << std::endl;
-      //
-      (*MyOutput_) << "compareValues:  FAIL! ";
-      (*MyOutput_) << TypeOfTest 
-		   << " expected = returned = 0x" << std::hex << testval
-		   << std::endl;
-      //
-      SendOutput(dump.str(),"ERROR");
+      if (print_errors) {
+	(*MyOutput_) << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
+	//
+	std::ostringstream dump;
+	dump << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
+	//SendOutput(dump.str(),"ERROR");
+      }
       return false;
     }
+    //
   }
 }
 //
-bool TMB::compareValues(std::string TypeOfTest, 
-			float testval, 
-			float compareval,
-			float tolerance) {
+bool TMB::compareValues(std::string TypeOfTest, float testval, float compareval, float tolerance) {
+  //
+  // default is to print the errors
+  //
+  return compareValues(TypeOfTest,testval,compareval,tolerance,true);
+  //
+}
+//
+bool TMB::compareValues(std::string TypeOfTest, float testval, float compareval, float tolerance, bool print_errors) {
   //
   // test if "testval" is within "tolerance" of "compareval"...
   //
   //  (*MyOutput_) << "compareValues tolerance:  " << TypeOfTest << " -> ";
   //
-  float err = (testval - compareval)/compareval;
-  //
-  float fractolerance = tolerance*compareval;
+  float err = (testval - compareval);
   //
   if (fabs(err)>tolerance) {
+    if (print_errors) {
+      (*MyOutput_) << TypeOfTest << " FAIL -> expected = " << compareval << ", returned = " << testval << " outside of tolerance "<< tolerance << std::endl;
+      //
       std::ostringstream dump;
-      dump << "compareValues:  FAIL! ";
-      dump << TypeOfTest 
-	   << " expected = " << compareval 
-	   << ", returned = " << testval
-	   << " outside of tolerance "<< fractolerance
-	   << std::endl;
-      //
-      (*MyOutput_) << "compareValues:  FAIL! ";
-      (*MyOutput_) << TypeOfTest 
-		   << " expected = " << compareval 
-		   << ", returned = " << testval
-		   << " outside of tolerance "<< fractolerance
-		   << std::endl;
-      //
-      SendOutput(dump.str(),"ERROR");
-      return false;
+      dump << TypeOfTest << " FAIL -> expected = " << compareval << ", returned = " << testval << " outside of tolerance "<< tolerance << std::endl;
+      //SendOutput(dump.str(),"ERROR");
+    }
+    //
+    return false;
   } else {
-    //      (*MyOutput_) << "PASS!" << std::endl;
-    //      (*MyOutput_) << TypeOfTest 
-    //		<< " value = " << testval
-    //		<< " within "<< fractolerance
-    //		<< " of " << compareval
-    //		<< std::endl;
-      return true;
+    // if (print_errors) (*MyOutput_) << TypeOfTest << " PASS -> value = " << testval << " within "<< tolerance << " of " << compareval << std::endl;
+    return true;
   }
   //
 }
@@ -8320,11 +8335,13 @@ void TMB::ReportCheck(std::string check_type, bool status_bit) {
   if ( status_bit ) {
     dump << "OK" << std::endl;
     (*MyOutput_) << "OK" << std::endl;
-    SendOutput(dump.str(),"INFO");
+    //    this->SendOutput(dump.str(),"INFO");
+    //
   } else {
     dump << "FAIL <-" << std::endl;
     (*MyOutput_) << "FAIL <-" << std::endl;
-    SendOutput(dump.str(),"ERROR");
+    //    this->SendOutput(dump.str(),"ERROR");
+    //
   }
   //
   return;

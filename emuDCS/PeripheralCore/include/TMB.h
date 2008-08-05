@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.47 2008/07/31 13:33:43 liu Exp $
+// $Id: TMB.h,v 3.48 2008/08/05 08:40:36 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.48  2008/08/05 08:40:36  rakness
+// add minimum number of times to read when checking configuration
+//
 // Revision 3.47  2008/07/31 13:33:43  liu
 // bug fix in TMB counters
 //
@@ -1437,7 +1440,8 @@ public:
   //
   //
   //-- compare read values with expected values --//
-  void CheckTMBConfiguration();
+  void CheckTMBConfiguration(int maximum_number_of_reads);
+  void CheckTMBConfiguration();                               // this method calls the above method with a fixed maximum number of reads
   inline int GetTMBConfigurationStatus() { return tmb_configuration_status_; }
   //
   void CheckRawHitsHeader();
@@ -1463,24 +1467,26 @@ public:
   //
   int ConvertToHexAscii(int value_to_convert); /// convert the argument to its "hex-ascii" value:  i.e.  2007 -> 0x2007
   //
-  //-- register comparison methods --//
-  /// test if "testval" is equal expected value: "compareval"
+  //
+  /// test if "testval" is equal expected value: "compareval", print the errors
   bool compareValues(std::string typeOfTest, int testval, int compareval); 
   //
-  /// same as compareValues, except return depends if they should be "equalOrNot"
-  bool compareValues(std::string typeOfTest, int testval, int compareval, bool equalOrNot); 
+  /// test if "testval" is equal expected value: "compareval", do or do not the errors
+  bool compareValues(std::string typeOfTest, int testval, int compareval, bool print_errors); 
   //
-  ///test if "testval" is within a fractional "tolerance" of "compareval"
+  /// same as compareValues, except return depends if they should be "equalOrNot"
+  bool compareValues(std::string typeOfTest, int testval, int compareval, bool print_errors, bool equalOrNot); 
+  //
+  ///test if "testval" is within a fractional "tolerance" of "compareval", print the errors
   bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance);   
   //
-  ///report status of "check_type" to logger and to (*MyOutput_), whether it passed or not is set by "status_bit"
+  ///test if "testval" is within a fractional "tolerance" of "compareval", do or do not print the errors
+  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance, bool print_errors);   
+  //
+  ///report status of "check_type" to SendOutput...  whether it passed or not is set by "status_bit"
   void ReportCheck(std::string check_type, bool status_bit);    
-  //
-  //
-public:
-  //
+  //  
   FILE *pfile;
-  FILE *pfile2;
   int ucla_ldev;
   //std::string version_;
   //
