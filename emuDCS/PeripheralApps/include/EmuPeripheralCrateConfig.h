@@ -130,6 +130,7 @@ protected:
   ostringstream OutputStringTMBStatus[10];
   ostringstream OutputDMBTests[10][30];
   ostringstream OutputTMBTests[10][30];
+  ostringstream OutputCheckConfiguration;
   std::vector <float> ChartData[100];
   int TMBTriggerAlct0Key[120][9];
   int TMBTriggerAlct1Key[120][9];
@@ -500,10 +501,14 @@ private:
   void LogChamberTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogCrateTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  //
+  void CheckConfigurationPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckTimeSinceHardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCratesFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  //
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigAllCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -534,6 +539,7 @@ private:
   int alct_check_ok[60][9];
   int tmb_check_ok[60][9];
   int dmb_check_ok[60][9];
+  int time_since_reset[60][9];
   //
   int crates_firmware_ok;;
   int crate_firmware_ok[60];

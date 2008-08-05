@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.43 2008/08/05 08:40:37 rakness Exp $
+// $Id: DAQMB.cc,v 3.44 2008/08/05 11:41:48 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.44  2008/08/05 11:41:48  rakness
+// new configuration check page + clean up output
+//
 // Revision 3.43  2008/08/05 08:40:37  rakness
 // add minimum number of times to read when checking configuration
 //
@@ -666,7 +669,7 @@ void DAQMB::configure() {
 //
 bool DAQMB::checkDAQMBXMLValues() { 
   //
-  (*MyOutput_) << "DAQMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+  std::cout << "DAQMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
   //
   const int max_number_of_reads = 2;
   //

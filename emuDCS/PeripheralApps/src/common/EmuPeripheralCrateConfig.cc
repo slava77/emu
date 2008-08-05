@@ -76,6 +76,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
       alct_check_ok[i][j] = -1;
       tmb_check_ok[i][j] = -1;
       dmb_check_ok[i][j] = -1;
+      time_since_reset[i][j] = -1;
     }
   }
   //
@@ -114,6 +115,16 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCStatus, "MPCStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCUtils, "MPCUtils");
   //
+  //---------------------------------
+  // bind check crate configuration
+  //---------------------------------
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckConfigurationPage,"CheckConfigurationPage");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckTimeSinceHardReset,"CheckTimeSinceHardReset");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesConfiguration, "CheckCratesConfiguration");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesFirmware, "CheckCratesFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
+  //
   //------------------------------
   // bind crate utilities
   //------------------------------
@@ -121,10 +132,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCSafeWindowScan, "MPCSafeWindowScan");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrates, "CheckCrates");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesConfiguration, "CheckCratesConfiguration");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesFirmware, "CheckCratesFirmware");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateConfig::setRawConfFile, "setRawConfFile");
   xgi::bind(this,&EmuPeripheralCrateConfig::UploadConfFile, "UploadConfFile");
@@ -139,9 +146,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateConfiguration, "CrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateTests, "CrateTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
-  xgi::bind(this, &EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
-  xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
-  xgi::bind(this, &EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
+  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
+  xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate,"MeasureL1AsAndDAVsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber,"MeasureL1AsAndDAVsForChamber");
@@ -486,31 +493,10 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
 
   *out << cgicc::td();
-  std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfiguration",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
-  if (all_crates_ok == 1) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:green") << std::endl ;
-  } else if (all_crates_ok == 0) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:red") << std::endl ;
-  } else if (all_crates_ok == -1) {
-    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:blue") << std::endl ;
-  }
-  *out << cgicc::form() << std::endl ;
+  std::string CheckConfigurationPage = toolbox::toString("/%s/CheckConfigurationPage",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::a("[Check Configuration]").set("href",CheckConfigurationPage) << endl;
   *out << cgicc::td();
-  //
-  *out << cgicc::td();
-  std::string CheckCratesFirmware = toolbox::toString("/%s/CheckCratesFirmware",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CheckCratesFirmware) << std::endl ;
-  if (crates_firmware_ok == 1) {
-    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:green") << std::endl ;
-  } else if (crates_firmware_ok == 0) {
-    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:red") << std::endl ;
-  } else if (crates_firmware_ok == -1) {
-    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:blue") << std::endl ;
-  }
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-  //
+
   *out << cgicc::table();
 
   *out << cgicc::br() << std::endl;
@@ -541,184 +527,6 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 
   *out << cgicc::table();
 
-  //
-  int initial_crate = current_crate_;
-  //
-  if (crates_firmware_ok >= 0) {
-    //
-    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
-      //
-      SetCurrentCrate(crate_number);
-      //
-      *out << crateVector[crate_number]->GetLabel() << std::endl ;
-      //
-      if (crate_firmware_ok[current_crate_] == 0) {
-	//
-	*out << cgicc::br() << cgicc::span().set("style","color:red");
-	//
-        if (ccb_firmware_ok[current_crate_] == 0) *out << " CCB firmware incorrect " << cgicc::br() << std::endl ;
-        if (mpc_firmware_ok[current_crate_] == 0) *out << " MPC firmware incorrect " << cgicc::br() << std::endl ;
-        //
-	bool alct_ok = true;
-	bool tmb_ok = true;
-	bool dmb_vme_ok = true;
-	bool dmb_control_ok = true;
-	bool cfeb_ok = true;
-	//
-	for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-	  if (alct_firmware_ok[current_crate_][chamber_index] == 0) alct_ok = false;
-	  if (tmb_firmware_ok[current_crate_][chamber_index] == 0)  tmb_ok = false;
-	  if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0)  dmb_vme_ok = false;
-	  if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0)  dmb_control_ok = false;
-	  //
-	  std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	  typedef std::vector<CFEB>::iterator CFEBItr;
-	  for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-	      int cfeb_index = (*cfebItr).number();
-	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0)  cfeb_ok = false;
-	  }
-	}
-	//
-	if (!alct_ok) {
-	  //
-	  *out << " ALCT firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (alct_firmware_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!tmb_ok) {
-	  //
-	  *out << " TMB firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (tmb_firmware_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!dmb_vme_ok) {
-	  //
-	  *out << " DMB VME firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!dmb_control_ok) {
-	  //
-	  *out << " DMB Control FPGA firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!cfeb_ok) {
-	  //
-	  *out << " CFEB firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-	    //
-	    std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	    typedef std::vector<CFEB>::iterator CFEBItr;
-	    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-	      int cfeb_index = (*cfebItr).number();
-	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0) 
-		*out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << " CFEB " << cfeb_index << ", ";
-	    }
-	  }
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-      } else if (crate_firmware_ok[current_crate_] == 1) {
-	//
-	*out << cgicc::span().set("style","color:green");
-	*out << " firmware OK" << cgicc::br();
-      } else if (crate_firmware_ok[current_crate_] == -1) {
-	//
-	*out << cgicc::span().set("style","color:blue");
-	*out << " firmware not checked" << cgicc::br();
-      }
-      *out << cgicc::span() << std::endl ;
-    }
-  }
-  //
-  if (all_crates_ok >= 0) {
-    //
-    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
-      //
-      SetCurrentCrate(crate_number);
-      //
-      *out << crateVector[crate_number]->GetLabel() << std::endl;
-      //
-      if (crate_check_ok[current_crate_] == 0) {
-	//
-	*out << cgicc::br() << cgicc::span().set("style","color:red");
-	//
-        if (ccb_check_ok[current_crate_] == 0) *out << "Config problem for CCB/TTC " << cgicc::br() << std::endl ;
-        if (mpc_check_ok[current_crate_] == 0) *out << "Config problem for MPC " << cgicc::br() << std::endl ;
-        //
-	bool alct_ok = true;
-	bool tmb_ok = true;
-	bool dmb_ok = true;
-	//
-	for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-	  if (alct_check_ok[current_crate_][chamber_index] == 0) alct_ok = false;
-	  if (tmb_check_ok[current_crate_][chamber_index] == 0)  tmb_ok = false;
-	  if (dmb_check_ok[current_crate_][chamber_index] == 0)  dmb_ok = false;
-	}
-	//
-	if (!alct_ok) {
-	  //
-	  *out << "Config problems for ALCT: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (alct_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!tmb_ok) {
-	  //
-	  *out << "Config problems for TMB: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (tmb_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!dmb_ok) {
-	  //
-	  *out << "Config problems for DMB: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (dmb_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-      } else if (crate_check_ok[current_crate_] == 1) {
-	//
-	*out << cgicc::span().set("style","color:green");
-	*out << " OK" << cgicc::br();
-      } else if (crate_check_ok[current_crate_] == -1) {
-	//
-	*out << cgicc::span().set("style","color:blue");
-	*out << " Not checked" << cgicc::br();
-      }
-      *out << cgicc::span() << std::endl ;
-    }
-  }
-  //
-  SetCurrentCrate(initial_crate);
-  //
   *out << cgicc::br() << std::endl ;
   //
   *out << cgicc::br() << cgicc::hr() <<std::endl;
@@ -733,39 +541,39 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   //
 
   // Begin select crate
-	// Config listbox
-	*out << form().set("action",
-			"/" + getApplicationDescriptor()->getURN() + "/CrateSelection") << endl;
+  // Config listbox
+  *out << form().set("action",
+		     "/" + getApplicationDescriptor()->getURN() + "/CrateSelection") << endl;
+  
+  int n_keys = crateVector.size();
+  
+  *out << "Choose Crate: " << endl;
+  *out << cgicc::select().set("name", "runtype") << endl;
+  
+  int selected_index = this_crate_no_;
+  std::string CrateName;
+  for (int i = 0; i < n_keys; ++i) {
+    if(crateVector[i]->IsAlive())
+      CrateName = crateVector[i]->GetLabel();
+    else
+      CrateName = crateVector[i]->GetLabel() + " NG";
+    if (i == selected_index) {
+      *out << option()
+	.set("value", CrateName)
+	.set("selected", "");
+    } else {
+      *out << option()
+	.set("value", CrateName);
+    }
+    *out << CrateName << option() << endl;
+  }
 
-	int n_keys = crateVector.size();
-
-	*out << "Choose Crate: " << endl;
-	*out << cgicc::select().set("name", "runtype") << endl;
-
-	int selected_index = this_crate_no_;
-        std::string CrateName;
-	for (int i = 0; i < n_keys; ++i) {
-                if(crateVector[i]->IsAlive())
-                   CrateName = crateVector[i]->GetLabel();
-                else
-                   CrateName = crateVector[i]->GetLabel() + " NG";
-		if (i == selected_index) {
-			*out << option()
-					.set("value", CrateName)
-					.set("selected", "");
-		} else {
-			*out << option()
-					.set("value", CrateName);
-		}
-		*out << CrateName << option() << endl;
-	}
-
-	*out << cgicc::select() << endl;
-
-	*out << input().set("type", "submit")
-			.set("name", "command")
-			.set("value", "CrateSelection") << endl;
-	*out << form() << endl;
+  *out << cgicc::select() << endl;
+  
+  *out << input().set("type", "submit")
+    .set("name", "command")
+    .set("value", "CrateSelection") << endl;
+  *out << form() << endl;
      
   //End select crate
  
@@ -774,18 +582,18 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   //
   if (tmbVector.size()>0 || dmbVector.size()>0) {
     //
-      //
-      // Crate Configuration
-      //
-      std::string CrateConfiguration = toolbox::toString("/%s/CrateConfiguration",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::a("[Crate Configuration]").set("href",CrateConfiguration) << endl;
-      //
-      std::string CrateTests = toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::a("[Crate Tests]").set("href",CrateTests) << endl;
-      //
-      std::string CalibrationRuns = toolbox::toString("/%s/CalibrationRuns",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::a("[Calibration Runs]").set("href",CalibrationRuns) << endl;
-      //
+    //
+    // Crate Configuration
+    //
+    std::string CrateConfiguration = toolbox::toString("/%s/CrateConfiguration",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::a("[Crate Configuration]").set("href",CrateConfiguration) << endl;
+    //
+    std::string CrateTests = toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::a("[Crate Tests]").set("href",CrateTests) << endl;
+    //
+    std::string CalibrationRuns = toolbox::toString("/%s/CalibrationRuns",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::a("[Calibration Runs]").set("href",CalibrationRuns) << endl;
+    //
     *out << cgicc::br() << cgicc::br() << cgicc::table().set("border","0");
     //
     *out << cgicc::td();
@@ -1333,95 +1141,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
 
     this->Default(in, out);
   }
-
-void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Output * out )
-  throw (xgi::exception::Exception) {
-  //
-  std::cout << "Button:  Check Configuration of All Active Crates" << std::endl;
-  //
-  if(total_crates_<=0) return;
-  //
-  int initialcrate=current_crate_;
-  //
-  all_crates_ok = 1;
-  //
-  for(unsigned i=0; i< crateVector.size(); i++) {
-    //
-    if ( crateVector[i]->IsAlive() ) {
-      //
-      SetCurrentCrate(i);	
-      //
-      CheckPeripheralCrateConfiguration();
-      //
-      all_crates_ok &= crate_check_ok[i];
-      //
-    } else {
-      //
-      crate_check_ok[i] = -1;
-    }
-  }
-  //
-  SetCurrentCrate(initialcrate);
-  //
-  this->Default(in, out);
-}
 //
-void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Output * out )
-  throw (xgi::exception::Exception) {
-  //  
-  std::cout << "Button: Check Crate Configuration" << std::endl;
-  //
-  //std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
-  //
-  CheckPeripheralCrateConfiguration();
-  //
-  this->Default(in, out);
-}
-//
-void EmuPeripheralCrateConfig::CheckCratesFirmware(xgi::Input * in, xgi::Output * out )
-  throw (xgi::exception::Exception) {
-  //
-  std::cout << "Button:  Check CSC Firmware of All Active Crates" << std::endl;
-  //
-  if(total_crates_<=0) return;
-  //
-  int initialcrate=current_crate_;
-  //
-  crates_firmware_ok = 1;
-  //
-  for(unsigned i=0; i< crateVector.size(); i++) {
-    //
-    if ( crateVector[i]->IsAlive() ) {
-      //
-      SetCurrentCrate(i);	
-      //
-      CheckPeripheralCrateFirmware();
-      //
-      crates_firmware_ok &= crate_firmware_ok[i];
-    } else {
-      //
-      crate_firmware_ok[i] = -1;
-    }
-  }
-  //
-  SetCurrentCrate(initialcrate);
-  //
-  this->Default(in, out);
-}
-//
-void EmuPeripheralCrateConfig::CheckCrateFirmware(xgi::Input * in, xgi::Output * out )
-  throw (xgi::exception::Exception) {
-  //  
-  std::cout << "Button: Check CSC firmware in one crate" << std::endl;
-  //
-  std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
-  //
-  CheckPeripheralCrateFirmware();
-  //
-  this->Default(in, out);
-}
-//
-
   // This one came from CrateUtils class which no longer exist. 
   // Better put into another class. Leave it here for now. 
   // Liu Dec.25, 2007
@@ -1443,103 +1163,6 @@ void EmuPeripheralCrateConfig::CheckCrateFirmware(xgi::Input * in, xgi::Output *
   //
     return result;
   }
-//
-// Another method which would be better in another class... let's make it work, first....
-void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
-  //
-  std::cout << "Configuration check for " << thisCrate->GetLabel() << std::endl;
-  //
-  std::cout << " .... TMBs received hard resets... "; 
-  for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
-    std::cout << std::dec << tmbVector[tmb]->ReadRegister(0xE8) << " ";
-  }
-  std::cout << " seconds ago" << std::endl;
-  //
-  crate_check_ok[current_crate_] = 1;
-  //
-  ccb_check_ok[current_crate_] = thisCrate->ccb()->CheckConfig();
-  crate_check_ok[current_crate_] &=  ccb_check_ok[current_crate_];  
-  //
-  mpc_check_ok[current_crate_] = thisCrate->mpc()->CheckConfig();
-  crate_check_ok[current_crate_] &=  mpc_check_ok[current_crate_];  
-  //
-  for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-    //	
-    Chamber * thisChamber     = chamberVector[chamber_index];
-    TMB * thisTMB             = tmbVector[chamber_index];
-    ALCTController * thisALCT = thisTMB->alctController();
-    DAQMB * thisDMB           = dmbVector[chamber_index];
-    //
-    std::cout << "Configuration check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
-    //
-    thisTMB->CheckTMBConfiguration();
-    tmb_check_ok[current_crate_][chamber_index]  = (int) thisTMB->GetTMBConfigurationStatus();
-    //
-    thisALCT->CheckALCTConfiguration();
-    alct_check_ok[current_crate_][chamber_index] = (int) thisALCT->GetALCTConfigurationStatus();
-    //
-    dmb_check_ok[current_crate_][chamber_index]  = (int) thisDMB->checkDAQMBXMLValues();
-    //
-    crate_check_ok[current_crate_] &= tmb_check_ok[current_crate_][chamber_index];
-    crate_check_ok[current_crate_] &= alct_check_ok[current_crate_][chamber_index];
-    crate_check_ok[current_crate_] &= dmb_check_ok[current_crate_][chamber_index];
-    //
-  }
-  //
-  return;
-}
-//
-//
-// Another method which would be better in another class... let's make it work, first....
-void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
-  //
-  std::cout << "Firmware check for " << thisCrate->GetLabel() << std::endl;
-  //
-  crate_firmware_ok[current_crate_] = 1;
-  //
-  ccb_firmware_ok[current_crate_] = thisCrate->ccb()->CheckFirmwareDate();
-  crate_firmware_ok[current_crate_] &= ccb_firmware_ok[current_crate_];  
-  //
-  mpc_firmware_ok[current_crate_] = thisCrate->mpc()->CheckFirmwareDate();
-  crate_firmware_ok[current_crate_] &= mpc_firmware_ok[current_crate_];  
-  //
-  for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-    //	
-    Chamber * thisChamber     = chamberVector[chamber_index];
-    TMB * thisTMB             = tmbVector[chamber_index];
-    ALCTController * thisALCT = thisTMB->alctController();
-    DAQMB * thisDMB           = dmbVector[chamber_index];
-    //
-    std::cout << "Firmware check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
-    //
-    tmb_firmware_ok[current_crate_][chamber_index]      = (int) thisTMB->CheckFirmwareDate();
-    crate_firmware_ok[current_crate_] &= tmb_firmware_ok[current_crate_][chamber_index];
-    //
-    alct_firmware_ok[current_crate_][chamber_index]     = (int) thisALCT->CheckFirmwareDate();
-    crate_firmware_ok[current_crate_] &= alct_firmware_ok[current_crate_][chamber_index];
-    //
-    dmb_vme_firmware_ok[current_crate_][chamber_index]  = (int) thisDMB->CheckVMEFirmwareVersion();
-    crate_firmware_ok[current_crate_] &= dmb_vme_firmware_ok[current_crate_][chamber_index];
-    //
-    dmb_control_firmware_ok[current_crate_][chamber_index] = (int) thisDMB->CheckControlFirmwareVersion();
-    crate_firmware_ok[current_crate_] &= dmb_control_firmware_ok[current_crate_][chamber_index];
-    //
-    std::vector<CFEB> cfebs = thisDMB->cfebs() ;
-    typedef std::vector<CFEB>::iterator CFEBItr;
-    //
-    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-      //
-      int cfeb_index = (*cfebItr).number();
-      //
-      cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] = (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
-      crate_firmware_ok[current_crate_] &= cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index];
-    }
-    //
-  }
-  //
-  return;
-}
-//
 //
   void EmuPeripheralCrateConfig::setConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -3324,34 +2947,507 @@ void EmuPeripheralCrateConfig::ResetAllCounters(xgi::Input * in, xgi::Output * o
 
 //
 ////////////////////////////////////////////////////////////////////////////////////
-// Main page methods
+// Check Configuration
 ////////////////////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateConfig::InitSystem(xgi::Input * in, xgi::Output * out ) 
+void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Init System" << endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Init System");
+  char Name[100];
+  sprintf(Name,"CSC Configuration Status");
   //
+  MyHeader(in,out,Name);
   //
-  thisCrate->configure();          // Init system
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
-  cgicc::Cgicc cgi(in);
+  *out << cgicc::legend("Actions").set("style","color:blue") << cgicc::p() << std::endl ;
   //
-  cgicc::form_iterator name = cgi.getElement("navigator");
+  *out << cgicc::table().set("border","1");
   //
-  int navigator;
-  if(name != cgi.getElements().end()) {
-    navigator = cgi["navigator"]->getIntegerValue();
-    cout << "Navigator " << navigator << endl;
-    if ( navigator == 1 ) {
-      thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
-      this->ChamberTests(in,out);
-    }
-  } else {
-    cout << "No navigator" << endl;
-    this->Default(in,out);
+  *out << cgicc::td();
+  std::string CheckTimeSinceHardReset = toolbox::toString("/%s/CheckTimeSinceHardReset",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckTimeSinceHardReset) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check time since last hard reset") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string CheckCratesConfiguration = toolbox::toString("/%s/CheckCratesConfiguration",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckCratesConfiguration) << std::endl ;
+  if (all_crates_ok == 1) {
+    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:green") << std::endl ;
+  } else if (all_crates_ok == 0) {
+    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:red") << std::endl ;
+  } else if (all_crates_ok == -1) {
+    *out << cgicc::input().set("type","submit").set("value","Check configuration of crates").set("style","color:blue") << std::endl ;
   }
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string CheckCratesFirmware = toolbox::toString("/%s/CheckCratesFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckCratesFirmware) << std::endl ;
+  if (crates_firmware_ok == 1) {
+    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:green") << std::endl ;
+  } else if (crates_firmware_ok == 0) {
+    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:red") << std::endl ;
+  } else if (crates_firmware_ok == -1) {
+    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:blue") << std::endl ;
+  }
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table();
+  //
+  *out << cgicc::fieldset();
+  //
+  //
+  int initial_crate = current_crate_;
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Time since last hard reset").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  bool print_stuff = false;
+  for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) 
+    for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+      if (time_since_reset[crate_number][chamber_index]>0) print_stuff = true;
+  //
+  if (print_stuff == true) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      *out << crateVector[crate_number]->GetLabel();
+      //
+      for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	*out << " " << std::dec << time_since_reset[crate_number][chamber_index];
+      //
+      *out << cgicc::br() << std::endl;
+    }
+  }
+  //
+  *out << cgicc::fieldset();
+  //
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Firmware Status").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  if (crates_firmware_ok >= 0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      *out << crateVector[crate_number]->GetLabel() << std::endl ;
+      //
+      if (crate_firmware_ok[current_crate_] == 0) {
+	//
+	*out << cgicc::br() << cgicc::span().set("style","color:red");
+	//
+        if (ccb_firmware_ok[current_crate_] == 0) *out << " CCB firmware incorrect " << cgicc::br() << std::endl ;
+        if (mpc_firmware_ok[current_crate_] == 0) *out << " MPC firmware incorrect " << cgicc::br() << std::endl ;
+        //
+	bool alct_ok = true;
+	bool tmb_ok = true;
+	bool dmb_vme_ok = true;
+	bool dmb_control_ok = true;
+	bool cfeb_ok = true;
+	//
+	for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	  if (alct_firmware_ok[current_crate_][chamber_index] == 0) alct_ok = false;
+	  if (tmb_firmware_ok[current_crate_][chamber_index] == 0)  tmb_ok = false;
+	  if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0)  dmb_vme_ok = false;
+	  if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0)  dmb_control_ok = false;
+	  //
+	  std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	  typedef std::vector<CFEB>::iterator CFEBItr;
+	  for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+	      int cfeb_index = (*cfebItr).number();
+	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0)  cfeb_ok = false;
+	  }
+	}
+	//
+	if (!alct_ok) {
+	  //
+	  *out << " ALCT firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (alct_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!tmb_ok) {
+	  //
+	  *out << " TMB firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (tmb_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!dmb_vme_ok) {
+	  //
+	  *out << " DMB VME firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!dmb_control_ok) {
+	  //
+	  *out << " DMB Control FPGA firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!cfeb_ok) {
+	  //
+	  *out << " CFEB firmware incorrect: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	    //
+	    std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	    typedef std::vector<CFEB>::iterator CFEBItr;
+	    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+	      int cfeb_index = (*cfebItr).number();
+	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0) 
+		*out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << " CFEB " << cfeb_index << ", ";
+	    }
+	  }
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+      } else if (crate_firmware_ok[current_crate_] == 1) {
+	//
+	*out << cgicc::span().set("style","color:green");
+	*out << " firmware OK" << cgicc::br();
+      } else if (crate_firmware_ok[current_crate_] == -1) {
+	//
+	*out << cgicc::span().set("style","color:blue");
+	*out << " firmware not checked" << cgicc::br();
+      }
+      *out << cgicc::span() << std::endl ;
+    }
+  }
+  //
+  //
+  *out << cgicc::fieldset();
+  //
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  *out << cgicc::legend("Configuration Status").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  if (all_crates_ok >= 0) {
+    //
+    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      *out << crateVector[crate_number]->GetLabel() << std::endl;
+      //
+      if (crate_check_ok[current_crate_] == 0) {
+	//
+	*out << cgicc::br() << cgicc::span().set("style","color:red");
+	//
+        if (ccb_check_ok[current_crate_] == 0) *out << "Config problem for CCB/TTC " << cgicc::br() << std::endl ;
+        if (mpc_check_ok[current_crate_] == 0) *out << "Config problem for MPC " << cgicc::br() << std::endl ;
+        //
+	bool alct_ok = true;
+	bool tmb_ok = true;
+	bool dmb_ok = true;
+	//
+	for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	  if (alct_check_ok[current_crate_][chamber_index] == 0) alct_ok = false;
+	  if (tmb_check_ok[current_crate_][chamber_index] == 0)  tmb_ok = false;
+	  if (dmb_check_ok[current_crate_][chamber_index] == 0)  dmb_ok = false;
+	}
+	//
+	if (!alct_ok) {
+	  //
+	  *out << "Config problems for ALCT: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (alct_check_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!tmb_ok) {
+	  //
+	  *out << "Config problems for TMB: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (tmb_check_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+	if (!dmb_ok) {
+	  //
+	  *out << "Config problems for DMB: " ;
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (dmb_check_ok[current_crate_][chamber_index] == 0) 
+	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
+	  //
+	  *out << cgicc::br() << std::endl ;
+	}
+	//
+      } else if (crate_check_ok[current_crate_] == 1) {
+	//
+	*out << cgicc::span().set("style","color:green");
+	*out << " OK" << cgicc::br();
+      } else if (crate_check_ok[current_crate_] == -1) {
+	//
+	*out << cgicc::span().set("style","color:blue");
+	*out << " Not checked" << cgicc::br();
+      }
+      *out << cgicc::span() << std::endl ;
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  *out << cgicc::fieldset();
 }
+//
+void EmuPeripheralCrateConfig::CheckTimeSinceHardReset(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Check time since TMBs last received hard resets... " << std::endl; 
+  //
+  int initialcrate=current_crate_;
+  //
+  for (int i=0; i<60; i++) 
+    for (int j=0; j<9; j++) 
+      time_since_reset[i][j] = -1;
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
+	time_since_reset[i][tmb] = tmbVector[tmb]->ReadRegister(0xE8); 
+	std::cout << " " << tmbVector[tmb]->ReadRegister(0xE8);
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  SetCurrentCrate(initialcrate);	
+  //
+  this->CheckConfigurationPage(in, out);
+}
+//
+void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Button:  Check Configuration of All Active Crates" << std::endl;
+  //
+  OutputCheckConfiguration.str(""); //clear the output string
+  //
+  if(total_crates_<=0) return;
+  //
+  int initialcrate=current_crate_;
+  //
+  all_crates_ok = 1;
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      CheckPeripheralCrateConfiguration();
+      //
+      all_crates_ok &= crate_check_ok[i];
+      //
+    } else {
+      //
+      crate_check_ok[i] = -1;
+    }
+  }
+  //
+  SetCurrentCrate(initialcrate);
+  //
+  //Output the errors to a file...
+  char buf[50];
+  sprintf(buf,"ConfigurationCheckLogFile.log");
+  //
+  ofstream LogFileCheckConfiguration;
+  LogFileCheckConfiguration.open(buf);
+  LogFileCheckConfiguration << OutputCheckConfiguration.str() ;
+  LogFileCheckConfiguration.close();
+  //
+  this->CheckConfigurationPage(in, out);
+}
+//
+void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Check Crate Configuration" << std::endl;
+  //
+  //std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
+  //
+  CheckPeripheralCrateConfiguration();
+  //
+  this->Default(in, out);
+}
+//
+void EmuPeripheralCrateConfig::CheckCratesFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Button:  Check CSC Firmware of All Active Crates" << std::endl;
+  //
+  if(total_crates_<=0) return;
+  //
+  int initialcrate=current_crate_;
+  //
+  crates_firmware_ok = 1;
+  //
+  for(unsigned i=0; i< crateVector.size(); i++) {
+    //
+    if ( crateVector[i]->IsAlive() ) {
+      //
+      SetCurrentCrate(i);	
+      //
+      CheckPeripheralCrateFirmware();
+      //
+      crates_firmware_ok &= crate_firmware_ok[i];
+    } else {
+      //
+      crate_firmware_ok[i] = -1;
+    }
+  }
+  //
+  SetCurrentCrate(initialcrate);
+  //
+  this->CheckConfigurationPage(in, out);
+}
+//
+void EmuPeripheralCrateConfig::CheckCrateFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //  
+  std::cout << "Button: Check CSC firmware in one crate" << std::endl;
+  //
+  std::cout << "Crate address = 0x" << std::hex << thisCrate->vmeController()->ipAddress() << std::endl;
+  //
+  CheckPeripheralCrateFirmware();
+  //
+  this->CheckConfigurationPage(in, out);
+}
+//
+// Another method which would be better in another class... let's make it work, first....
+void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
+  //
+  std::cout << "Configuration check for " << thisCrate->GetLabel() << std::endl;
+  //
+  crate_check_ok[current_crate_] = 1;
+  //
+  OutputCheckConfiguration << "Crate " << thisCrate->GetLabel() << std::endl;
+  //
+  thisCrate->ccb()->RedirectOutput(&OutputCheckConfiguration);
+  ccb_check_ok[current_crate_] = thisCrate->ccb()->CheckConfig();
+  crate_check_ok[current_crate_] &=  ccb_check_ok[current_crate_];  
+  thisCrate->ccb()->RedirectOutput(&std::cout);
+  //
+  thisCrate->mpc()->RedirectOutput(&OutputCheckConfiguration);
+  mpc_check_ok[current_crate_] = thisCrate->mpc()->CheckConfig();
+  crate_check_ok[current_crate_] &=  mpc_check_ok[current_crate_];  
+  thisCrate->mpc()->RedirectOutput(&std::cout);
+  //
+  for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+    //	
+    Chamber * thisChamber     = chamberVector[chamber_index];
+    TMB * thisTMB             = tmbVector[chamber_index];
+    ALCTController * thisALCT = thisTMB->alctController();
+    DAQMB * thisDMB           = dmbVector[chamber_index];
+    //
+    std::cout << "Configuration check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
+    //
+    OutputCheckConfiguration << (thisChamber->GetLabel()).c_str() << std::endl;
+    //
+    thisTMB->RedirectOutput(&OutputCheckConfiguration);
+    thisTMB->CheckTMBConfiguration();
+    tmb_check_ok[current_crate_][chamber_index]  = (int) thisTMB->GetTMBConfigurationStatus();
+
+    //
+    thisALCT->CheckALCTConfiguration();
+    alct_check_ok[current_crate_][chamber_index] = (int) thisALCT->GetALCTConfigurationStatus();
+    thisTMB->RedirectOutput(&std::cout);
+    //
+    thisDMB->RedirectOutput(&OutputCheckConfiguration);
+    dmb_check_ok[current_crate_][chamber_index]  = (int) thisDMB->checkDAQMBXMLValues();
+    thisDMB->RedirectOutput(&std::cout);
+    //
+    crate_check_ok[current_crate_] &= tmb_check_ok[current_crate_][chamber_index];
+    crate_check_ok[current_crate_] &= alct_check_ok[current_crate_][chamber_index];
+    crate_check_ok[current_crate_] &= dmb_check_ok[current_crate_][chamber_index];
+    //
+  }
+  //
+  return;
+}
+//
+//
+// Another method which would be better in another class... let's make it work, first....
+void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
+  //
+  std::cout << "Firmware check for " << thisCrate->GetLabel() << std::endl;
+  //
+  crate_firmware_ok[current_crate_] = 1;
+  //
+  ccb_firmware_ok[current_crate_] = thisCrate->ccb()->CheckFirmwareDate();
+  crate_firmware_ok[current_crate_] &= ccb_firmware_ok[current_crate_];  
+  //
+  mpc_firmware_ok[current_crate_] = thisCrate->mpc()->CheckFirmwareDate();
+  crate_firmware_ok[current_crate_] &= mpc_firmware_ok[current_crate_];  
+  //
+  for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+    //	
+    Chamber * thisChamber     = chamberVector[chamber_index];
+    TMB * thisTMB             = tmbVector[chamber_index];
+    ALCTController * thisALCT = thisTMB->alctController();
+    DAQMB * thisDMB           = dmbVector[chamber_index];
+    //
+    std::cout << "Firmware check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
+    //
+    tmb_firmware_ok[current_crate_][chamber_index]      = (int) thisTMB->CheckFirmwareDate();
+    crate_firmware_ok[current_crate_] &= tmb_firmware_ok[current_crate_][chamber_index];
+    //
+    alct_firmware_ok[current_crate_][chamber_index]     = (int) thisALCT->CheckFirmwareDate();
+    crate_firmware_ok[current_crate_] &= alct_firmware_ok[current_crate_][chamber_index];
+    //
+    dmb_vme_firmware_ok[current_crate_][chamber_index]  = (int) thisDMB->CheckVMEFirmwareVersion();
+    crate_firmware_ok[current_crate_] &= dmb_vme_firmware_ok[current_crate_][chamber_index];
+    //
+    dmb_control_firmware_ok[current_crate_][chamber_index] = (int) thisDMB->CheckControlFirmwareVersion();
+    crate_firmware_ok[current_crate_] &= dmb_control_firmware_ok[current_crate_][chamber_index];
+    //
+    std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
+    //
+    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+      //
+      int cfeb_index = (*cfebItr).number();
+      //
+      cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] = (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
+      crate_firmware_ok[current_crate_] &= cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index];
+    }
+    //
+  }
+  //
+  return;
+}
+//
 //
 /////////////////////////////////////////////////////////////////////
 // Chamber Utilities (synchronization) methods
@@ -3906,6 +4002,37 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
   thisDMB->RedirectOutput(&std::cout);
   //
   this->DMBTests(in,out);
+}
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+// Main page methods
+////////////////////////////////////////////////////////////////////////////////////
+void EmuPeripheralCrateConfig::InitSystem(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cout << "Init System" << endl ;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Init System");
+  //
+  //
+  thisCrate->configure();          // Init system
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("navigator");
+  //
+  int navigator;
+  if(name != cgi.getElements().end()) {
+    navigator = cgi["navigator"]->getIntegerValue();
+    cout << "Navigator " << navigator << endl;
+    if ( navigator == 1 ) {
+      thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+      this->ChamberTests(in,out);
+    }
+  } else {
+    cout << "No navigator" << endl;
+    this->Default(in,out);
+  }
 }
 //
 ////////////////////////////////////////////////////////////////
@@ -5548,6 +5675,17 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
   //
+  // Output area
+  //
+  *out << cgicc::form().set("method","GET") << std::endl ;
+  *out << cgicc::pre();
+  *out << cgicc::textarea().set("name","CrateTestDMBOutput").set("rows","50").set("cols","150").set("WRAP","OFF");
+  *out << OutputStringDMBStatus[dmb].str() << endl ;
+  *out << cgicc::textarea();
+  OutputStringDMBStatus[dmb].str("");
+  *out << cgicc::pre();
+  *out << cgicc::form() << std::endl ;
+  //
   *out << cgicc::fieldset();
   //
 }
@@ -5937,11 +6075,9 @@ void EmuPeripheralCrateConfig::DMBCheckConfiguration(xgi::Input * in, xgi::Outpu
   //
   DAQMB * thisDMB = dmbVector[dmb];
   //
-  //  thisDMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
-  //
+  thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
   thisDMB->checkDAQMBXMLValues();
-  //
-  //  thisDMB->RedirectOutput(&std::cout);
+  thisDMB->RedirectOutput(&std::cout);
   //
   this->DMBUtils(in,out);
   //
@@ -11059,7 +11195,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << "firmware version = " << TMBFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
   *out << cgicc::br();
   //
-  *out << "Step 1)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
+  *out << "Step 1)  Disable DCS monitoring to crates, and TURN OFF ALCTs" << cgicc::br() << std::endl;
   //
   std::string CheckCrateControllerFromTMBPage = toolbox::toString("/%s/CheckCrateControllerFromTMBPage",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CheckCrateControllerFromTMBPage) << std::endl ;
