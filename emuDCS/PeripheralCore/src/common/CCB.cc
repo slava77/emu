@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.30 2008/06/12 21:08:55 rakness Exp $
+// $Id: CCB.cc,v 3.31 2008/08/05 12:29:20 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.31  2008/08/05 12:29:20  rakness
+// make TTCrxFineDelay xml parameter = number of nsec
+//
 // Revision 3.30  2008/06/12 21:08:55  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -1083,7 +1086,7 @@ void CCB::configure() {
   //
   if( TTCrxFineDelay_>0)
   {
-     int delay = (TTCrxFineDelay_&0xff);
+     int delay = ConvertNanosecondsToFineDelayUnits_(TTCrxFineDelay_&0xff);
      WriteTTCrxReg(0,delay);
      WriteTTCrxReg(1,delay);
   }
@@ -1142,7 +1145,53 @@ int CCB::CheckConfig()
   }
   return 1;
 }
-
+//
+int CCB::ConvertNanosecondsToFineDelayUnits_(int delay_in_nsec) {
+  //
+  // The Fine Delay register has 240 steps (called "K" counting from 0-239) to 
+  // divide up the 24.95nsec-period LHC clock.  Thus, to delay the TTCrxFineDelay 
+  // register for a given number of nanoseconds, we use the conversion 
+  // 240/24.95 = 9.62 K-steps/nsec.  Then, from Appendix A of the TTCrx manual, 
+  // the conversion is given from K to fine-delay register setting:
+  //
+  const int register_setting[25] = 
+    { 14 ,   // K =   0 ->  0 nsec   
+      164,   //   =  10 ->  1 nsec
+      75 ,   //   =  19 ->  2 nsec
+      225,   //   =  29 ->  3 nsec
+      136,   //   =  38 ->  4 nsec
+      62 ,   //   =  48 ->  5 nsec
+      212,   //   =  58 ->  6 nsec
+      123,   //   =  67 ->  7 nsec
+      33 ,   //   =  77 ->  8 nsec
+      199,   //   =  87 ->  9 nsec
+      110,   //   =  96 -> 10 nsec
+      20 ,   //   = 106 -> 11 nsec
+      171,   //   = 115 -> 12 nsec
+      81 ,   //   = 125 -> 13 nsec
+      7  ,   //   = 135 -> 14 nsec
+      158,   //   = 144 -> 15 nsec
+      53 ,   //   = 153 -> 16 nsec
+      234,   //   = 164 -> 17 nsec
+      129,   //   = 173 -> 18 nsec
+      55 ,   //   = 183 -> 19 nsec
+      206,   //   = 192 -> 20 nsec
+      116,   //   = 202 -> 21 nsec
+      42 ,   //   = 212 -> 22 nsec
+      177,   //   = 221 -> 23 nsec
+      103 }; //   = 231 -> 24 nsec
+  //
+  if (delay_in_nsec >= 0 && delay_in_nsec < 25) {
+    //
+    return register_setting[delay_in_nsec];
+    //
+  } else {
+    // This is the default setting on power-up.  Note that this does not mean 0 nsec delay...
+    return 0;
+  }
+  //
+}
+//
 void CCB::SetL1aDelay(int l1adelay){
   //
   do_vme(VME_READ,CSRB5,sndbuf,rcvbuf,NOW);

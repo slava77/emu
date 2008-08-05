@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.13 2008/06/17 09:07:10 liu Exp $
+// $Id: CCB.h,v 3.14 2008/08/05 12:29:19 rakness Exp $
 // $Log: CCB.h,v $
+// Revision 3.14  2008/08/05 12:29:19  rakness
+// make TTCrxFineDelay xml parameter = number of nsec
+//
 // Revision 3.13  2008/06/17 09:07:10  liu
 // add TTCrxFineDelay
 //
@@ -350,6 +353,8 @@ private:
   bool l1enabled_;
   int mVersion; // CCB version number (2001,2004)
   bool mDebug;
+  //
+  int ConvertNanosecondsToFineDelayUnits_(int delay_in_nsec);
   //
   int read_firmware_day_;
   int read_firmware_month_; 
