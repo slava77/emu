@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.31 2008/07/04 14:24:29 rakness Exp $
+// $Id: ALCTController.h,v 3.32 2008/08/05 08:40:36 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.32  2008/08/05 08:40:36  rakness
+// add minimum number of times to read when checking configuration
+//
 // Revision 3.31  2008/07/04 14:24:29  rakness
 // add getters for string values
 //
@@ -204,7 +207,8 @@ class ALCTController {
   //
   void ReadALCTConfiguration();                      //Read current configuration and fill software read values
   void PrintALCTConfiguration();                     //Print software configuration values
-  void CheckALCTConfiguration();                     //Check the read values against the write values
+  void CheckALCTConfiguration(int max_number_of_reads); //Check the read values against the write values
+  void CheckALCTConfiguration();                        // this method calls the above method with a fixed maximum number of reads
   inline int GetALCTConfigurationStatus() { return alct_configuration_status_; }
   //
   bool CheckFirmwareDate();

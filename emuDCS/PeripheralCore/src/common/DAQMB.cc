@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.42 2008/07/16 17:28:37 rakness Exp $
+// $Id: DAQMB.cc,v 3.43 2008/08/05 08:40:37 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.43  2008/08/05 08:40:37  rakness
+// add minimum number of times to read when checking configuration
+//
 // Revision 3.42  2008/07/16 17:28:37  rakness
 // (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
 //
@@ -661,88 +664,155 @@ void DAQMB::configure() {
 
 }
 //
-bool DAQMB::checkDAQMBXMLValues()
-{ 
-  calctrl_fifomrst();
-  (*MyOutput_) << "DAQMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
-  // *** This part is for Buck_Flash (Parallel Memory) *****
-  int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
+bool DAQMB::checkDAQMBXMLValues() { 
   //
-  cfebs_readstatus();
-  bool cfebmatch=true;
-  //check the comp_timing, comp_mode, Pre_block_end and Extr_l1A latency setting
-   //get the initial value first:
-   killinput_=GetKillInput();
-   cfeb_clk_delay_=GetCfebClkDelay();
-   xfinelatency_=GetxFineLatency();
-   xlatency_=GetxLatency();
-
-   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-    for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
-    std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
-    if ((((febstat_[lfeb][2])&0x1f)!=comp_mode_bits) ||
-	((((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3))!=pre_block_end_)||
-	(((febstat_[lfeb][3]>>1)&0x03)!=xlatency_)){
+  (*MyOutput_) << "DAQMB: checkXMLValues() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+  //
+  const int max_number_of_reads = 2;
+  //
+  bool cfebmatch = false;
+  int number_of_reads = 0;
+  //
+  while (!cfebmatch && number_of_reads < max_number_of_reads) {
+    //
+    number_of_reads++;
+    //
+    bool print_errors;
+    if (number_of_reads == (max_number_of_reads-1) ) {
+      print_errors = true;
+      //
+    } else {
+      print_errors = false;
+      //
+    }
+    //
+    cfebmatch=true;
+    //
+    calctrl_fifomrst();
+    //
+    // *** This part is for Buck_Flash (Parallel Memory) *****
+    int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
+    //
+    cfebs_readstatus();
+    //
+    //
+    //check the comp_timing, comp_mode, Pre_block_end and Extr_l1A latency setting
+    //get the initial value first:
+    killinput_=GetKillInput();
+    cfeb_clk_delay_=GetCfebClkDelay();
+    xfinelatency_=GetxFineLatency();
+    xlatency_=GetxLatency();
+    //
+    /*
+      for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+      for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
+      std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
+      if ((((febstat_[lfeb][2])&0x1f)!=comp_mode_bits) ||
+      ((((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3))!=pre_block_end_)||
+      (((febstat_[lfeb][3]>>1)&0x03)!=xlatency_)){
       cfebmatch=false;
       std::cout << " *** FAILED Buck_Flash check " << std::endl;
       std::cout << "comp_mode_bits old " << hex << (febstat_[lfeb][2]&0x1f) <<" new " << comp_mode_bits << dec << std::endl;
       std::cout << " pre_block_end old " << (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3)) << " new " << pre_block_end_ << std::endl;
       std::cout << " xlatency old " << ((febstat_[lfeb][3]>>1)&0x03) << " new " << xlatency_ << std::endl;
+      }
+      }
+    */
+    //
+    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+      //
+      //    for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
+      //    std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
+      //
+      int comp_mode_bits_old = febstat_[lfeb][2]&0x1f;
+      int pre_block_end_old  = (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3));
+      int xlatency_old       = ((febstat_[lfeb][3]>>1)&0x03);
+      //    
+      std::ostringstream tested_value1;
+      tested_value1 << "CFEB " << (lfeb+1) << " comp_mode_bits";
+      cfebmatch &= compareValues(tested_value1.str(), comp_mode_bits_old, comp_mode_bits, print_errors);
+      //
+      std::ostringstream tested_value2;
+      tested_value2 << "CFEB " << (lfeb+1) << " pre_block_end";
+      cfebmatch &= compareValues(tested_value2.str(), pre_block_end_old, pre_block_end_, print_errors);
+      //
+      std::ostringstream tested_value3;
+      tested_value3 << "CFEB " << (lfeb+1) << " xlatency";
+      cfebmatch &= compareValues(tested_value3.str(), xlatency_old, xlatency_, print_errors);
+      //
     }
-  }
-  //check the comp_dac setting
-
-  // the reference threshold (3.590V) is the most uncertain number.  
-  // Therefore, we set a threshold on this comparison to check for gross errors
-  //
-  const int comparison_threshold = 100;
-  //
-  int secondread=0;
- SECONDREAD:
-  float compthresh[5];
-  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
-  int ibad=0;
-  for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
-    //as the monitor show that CFEB +5 is only 4.9V, the 3550 is used instead of 3590
-    int read_threshold_in_mV = (int) (3550. - compthresh[lfeb]);
-    int set_threshold_in_mV  = (int) (set_comp_thresh_ * 1000.);
-    std::cout << "****************** [read,set] thresh (mV) = [" << read_threshold_in_mV << "," << set_threshold_in_mV << "]" 
-	      << std::endl;
-    if( abs(read_threshold_in_mV - set_threshold_in_mV) > comparison_threshold ) ibad=ibad+1;
-   }
-   if(ibad>0){
+    //
+    //
+    //check the comp_dac setting...
+    //
+    // The reference threshold (3.590V) is the most uncertain number.  
+    // Therefore, we set a threshold on this comparison to check for gross errors
+    //
+    const float comparison_threshold = 100;
+    //
+    float compthresh[5];
+    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)  compthresh[lfeb]=adcplus(2,lfeb);
+    //
+    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+      //
+      //as the monitor show that CFEB +5V is only 4.9V, the 3550 is used instead of 3590
+      float read_threshold_in_mV = (3550. - compthresh[lfeb]);
+      float set_threshold_in_mV  = (set_comp_thresh_ * 1000.);
+      //
+      std::ostringstream tested_value;
+      tested_value << "CFEB " << (lfeb+1) << " set_comp_thresh";
+      cfebmatch &= compareValues(tested_value.str(),read_threshold_in_mV,set_threshold_in_mV,comparison_threshold, print_errors);
+    }
+    //
+    /*
+      int secondread=0;
+      SECONDREAD:
+      float compthresh[5];
+      for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
+      int ibad=0;
+      for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+      //as the monitor show that CFEB +5 is only 4.9V, the 3550 is used instead of 3590
+      int read_threshold_in_mV = (int) (3550. - compthresh[lfeb]);
+      int set_threshold_in_mV  = (int) (set_comp_thresh_ * 1000.);
+      std::cout << "****************** [read,set] thresh (mV) = [" << read_threshold_in_mV << "," << set_threshold_in_mV << "]" 
+      << std::endl;
+      if( abs(read_threshold_in_mV - set_threshold_in_mV) > comparison_threshold ) ibad=ibad+1;
+      }
+      //
+      if(ibad>0){
       std::cout << " *** FAILED Comparator Threshold check " << std::endl; 
       cfebmatch=false;
       if(secondread==0){
-	//        calctrl_global();
-        secondread=1;
-        goto SECONDREAD;
+      //        calctrl_global();
+      secondread=1;
+      goto SECONDREAD;
       }
-    }
+      }
+    */
+    //
     // ***  This part is related to the SFM (Serial Flash Memory) ****
     //
     // Readout the Current setting on DMB
-   
-
-   /*temperary: GUJH
-
-     comdelay=((xfinelatency_<<10)&0x3c00)+((killinput_<<7)&0x380)+((xlatency_<<5)&0x60)+(cfeb_clk_delay_&0x1f);
-     cout<<" GUJH program comdelay: "<<comdelay<<endl;
-     cout<<" xfinedelay: "<<xfinelatency_<<" killinput: "<<killinput_<<" xlatency "<<xlatency_<<" cfeb_clk_dly: "<<cfeb_clk_delay_<<endl;
-    setfebdelay(comdelay);
-*/
-
-     cout<<"****killflatclk: "<<hex<<killflatclk_<<" cfebclk: "<<cfeb_clk_delay_<<endl;
-
+    //
+    /*temperary: GUJH    
+      comdelay=((xfinelatency_<<10)&0x3c00)+((killinput_<<7)&0x380)+((xlatency_<<5)&0x60)+(cfeb_clk_delay_&0x1f);
+      cout<<" GUJH program comdelay: "<<comdelay<<endl;
+      cout<<" xfinedelay: "<<xfinelatency_<<" killinput: "<<killinput_<<" xlatency "<<xlatency_<<" cfeb_clk_dly: "<<cfeb_clk_delay_<<endl;
+      setfebdelay(comdelay);
+    */
+    //
+    //  cout << "****killflatclk: " << hex << killflatclk_ << " cfebclk: " << cfeb_clk_delay_ << endl;
+    //
     char dmbstatus[11];
     dmb_readstatus(dmbstatus);
     //check the DMB setting with the current setup
-    if ((CableDelay_!=cable_delay_)||
-	(CrateID_!=crate_id_)||
-	(CfebClkDelay_!=cfeb_clk_delay_)||
-	(XLatency_!=xlatency_)||
-	(KillInput_!=killinput_)||
-        (XFineLatency_!=xfinelatency_) ){
+    /*
+      if ((CableDelay_!=cable_delay_)||
+      (CrateID_!=crate_id_)||
+      (CfebClkDelay_!=cfeb_clk_delay_)||
+      (XLatency_!=xlatency_)||
+      (KillInput_!=killinput_)||
+      (XFineLatency_!=xfinelatency_) ){
       cfebmatch=false;
       std::cout << "*** FAILED SFM flash check " << std::endl;
       std::cout << " CableDelay old " << CableDelay_ << " new " << cable_delay_ <<std::endl;
@@ -751,10 +821,20 @@ bool DAQMB::checkDAQMBXMLValues()
       std::cout << " xlatency old " << XLatency_ << " new " << xlatency_ << std::endl;
       std::cout << " xfinelatency old " << XFineLatency_ << " new " << xfinelatency_ << std::endl;
       std::cout << " killinput old " << KillInput_ << " new " << killinput_ << std::endl;
-    }
-    return cfebmatch;
+      }
+    */
+    cfebmatch &= compareValues("DAQMB CableDelays"    ,CableDelay_  ,cable_delay_   ,print_errors);
+    cfebmatch &= compareValues("DAQMB CrateID"        ,CrateID_     ,crate_id_      ,print_errors);
+    cfebmatch &= compareValues("DAQMB feb_clock_delay",CfebClkDelay_,cfeb_clk_delay_,print_errors);
+    cfebmatch &= compareValues("DAQMB xLatency"       ,XLatency_    ,xlatency_      ,print_errors);
+    cfebmatch &= compareValues("DAQMB xFineLatency"   ,XFineLatency_,xfinelatency_  ,print_errors);
+    cfebmatch &= compareValues("DAQMB kill_input"     ,KillInput_   ,killinput_     ,print_errors);
+    //
   }
-
+  //
+  return cfebmatch;
+  //
+}
 //
 void DAQMB::enable_cfeb() {
   //
@@ -920,7 +1000,7 @@ void DAQMB::calctrl_fifomrst()
 {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CAL_FIFOMRST;
-  (*MyOutput_) << " CAL_FIFOMRST " << std::hex << (sndbuf[0]&0xff) << std::dec << std::endl;
+  std::cout << " CAL_FIFOMRST " << std::hex << (sndbuf[0]&0xff) << std::dec << std::endl;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
@@ -935,7 +1015,7 @@ void DAQMB::calctrl_fifomrst()
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-  (*MyOutput_) << " FIFOMRST reset done " << std::endl;
+  std::cout << " FIFOMRST reset done " << std::endl;
 }
 
 void DAQMB::calctrl_global()
@@ -5585,5 +5665,99 @@ int  DAQMB::test11()
    if(ierr!=0)pass=0;
    return pass;
    //
+}
+//
+/////////////////////////////////////////////////////////////////////
+// register comparison methods
+/////////////////////////////////////////////////////////////////////
+bool DAQMB::compareValues(std::string TypeOfTest, int testval, int compareval) {
+  //
+  //Default is that you want a) to print the errors, and b) return true if "testval" equals "compareval"...
+  //
+  return compareValues(TypeOfTest,testval,compareval,true,true);
+  //
+}
+//
+bool DAQMB::compareValues(std::string TypeOfTest, int testval, int compareval, bool print_errors) {
+  //
+  //Default is that you want to return true if "testval" equals "compareval"...
+  //
+  return compareValues(TypeOfTest,testval,compareval,print_errors,true);
+  //
+}
+//
+bool DAQMB::compareValues(std::string TypeOfTest, int testval, int compareval, bool print_errors, bool equal) {
+  //
+  // test if "testval" is equivalent to the expected value: "compareval"
+  // return depends on if you wanted them to be "equal"
+  //
+  //(*MyOutput_) << "compareValues:  " << TypeOfTest << " -> ";
+  //
+  if (equal) {
+    //
+    if (testval == compareval) {
+      // if (print_errors) (*MyOutput_) << "PASS = 0x" << std::hex << compareval << std::endl;
+      return true;
+    } else {
+      if (print_errors) {
+	(*MyOutput_) << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
+	//
+	std::ostringstream dump;
+	dump << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
+	//if (print_errors) SendOutput(dump.str(),"ERROR");
+      }
+      return false;
+    }
+    //
+  } else {
+    //
+    if (testval != compareval) {
+      // if (print_errors) (*MyOutput_) << "PASS -> 0x" << std::hex << testval << " not equal to 0x" <<std::hex << compareval << std::endl;
+      return true;
+    } else {
+      if (print_errors) {
+	(*MyOutput_) << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
+	//
+	std::ostringstream dump;
+	dump << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
+	//SendOutput(dump.str(),"ERROR");
+      }
+      return false;
+    }
+    //
+  }
+}
+//
+bool DAQMB::compareValues(std::string TypeOfTest, float testval, float compareval, float tolerance) {
+  //
+  // default is to print the errors
+  //
+  return compareValues(TypeOfTest,testval,compareval,tolerance,true);
+  //
+}
+//
+bool DAQMB::compareValues(std::string TypeOfTest, float testval, float compareval, float tolerance, bool print_errors) {
+  //
+  // test if "testval" is within "tolerance" of "compareval"...
+  //
+  //  (*MyOutput_) << "compareValues tolerance:  " << TypeOfTest << " -> ";
+  //
+  float err = (testval - compareval);
+  //
+  if (fabs(err)>tolerance) {
+    if (print_errors) {
+      (*MyOutput_) << TypeOfTest << " FAIL -> expected = " << compareval << ", returned = " << testval << " outside of tolerance "<< tolerance << std::endl;
+      //
+      std::ostringstream dump;
+      dump << TypeOfTest << " FAIL -> expected = " << compareval << ", returned = " << testval << " outside of tolerance "<< tolerance << std::endl;
+      //SendOutput(dump.str(),"ERROR");
+    }
+    //
+    return false;
+  } else {
+    // if (print_errors) (*MyOutput_) << TypeOfTest << " PASS -> value = " << testval << " within "<< tolerance << " of " << compareval << std::endl;
+    return true;
+  }
+  //
 }
 //
