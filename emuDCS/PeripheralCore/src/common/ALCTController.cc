@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.50 2008/08/05 08:40:36 rakness Exp $
+// $Id: ALCTController.cc,v 3.51 2008/08/05 11:41:48 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.51  2008/08/05 11:41:48  rakness
+// new configuration check page + clean up output
+//
 // Revision 3.50  2008/08/05 08:40:36  rakness
 // add minimum number of times to read when checking configuration
 //
@@ -912,7 +915,7 @@ void ALCTController::CheckALCTConfiguration(int max_number_of_reads) {
     alct_configuration_status_ = (int) config_ok;
   }
   //
-  tmb_->ReportCheck("ALCT configuration check",config_ok);
+  //  tmb_->ReportCheck("ALCT configuration check",config_ok);
   //
   return;
 }

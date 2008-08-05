@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.68 2008/08/05 08:40:37 rakness Exp $
+// $Id: TMB.cc,v 3.69 2008/08/05 11:41:48 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.69  2008/08/05 11:41:48  rakness
+// new configuration check page + clean up output
+//
 // Revision 3.68  2008/08/05 08:40:37  rakness
 // add minimum number of times to read when checking configuration
 //
@@ -8046,7 +8049,7 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     tmb_configuration_status_ = (int) config_ok;
   }
   //
-  ReportCheck("TMB configuration check",config_ok);
+  //  ReportCheck("TMB configuration check",config_ok);
   //
   return;
 }
