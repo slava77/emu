@@ -42,7 +42,6 @@ public:
 	void attachCrate(Crate *crate);
 	void startThreads(unsigned long int runNumber = 0);
 	void endThreads();
-	void killThreads();
 
 	static void *IRQThread(void *data);
 	
