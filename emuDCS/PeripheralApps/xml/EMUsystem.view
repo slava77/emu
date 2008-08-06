@@ -2,7 +2,7 @@
 <tstore:configuration xmlns:tstore="urn:xdaq-tstore:1.0">
 
   <tstore:view id="urn:tstore-view-SQL:EMUsystem">
-    <tstore:connection dbname="omds" xmlns:tstore="urn:xdaq-tstore:1.0"/>
+    <tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>
     <!-- <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/> -->
     <!-- QUERY TO GET CONFIG IDs -->
     <sql:query xmlns:sql="urn:tstore-view-SQL" name="getconfigids">
