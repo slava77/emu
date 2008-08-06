@@ -3150,14 +3150,12 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
       //
       SetCurrentCrate(crate_number);
       //
-      *out << crateVector[crate_number]->GetLabel() << std::endl;
-      //
       if (crate_check_ok[current_crate_] == 0) {
 	//
-	*out << cgicc::br() << cgicc::span().set("style","color:red");
+	*out << cgicc::span().set("style","color:red");
 	//
-        if (ccb_check_ok[current_crate_] == 0) *out << "Config problem for CCB/TTC " << cgicc::br() << std::endl ;
-        if (mpc_check_ok[current_crate_] == 0) *out << "Config problem for MPC " << cgicc::br() << std::endl ;
+        if (ccb_check_ok[current_crate_] == 0) *out << crateVector[crate_number]->GetLabel() << "CCB/TTC " << cgicc::br() << std::endl ;
+        if (mpc_check_ok[current_crate_] == 0) *out << crateVector[crate_number]->GetLabel() << "MPC " << cgicc::br() << std::endl ;
         //
 	bool alct_ok = true;
 	bool tmb_ok = true;
@@ -3171,42 +3169,39 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
 	//
 	if (!alct_ok) {
 	  //
-	  *out << "Config problems for ALCT: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (alct_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
+	      *out << crateVector[crate_number]->GetLabel() << " "
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << " ALCT" << cgicc::br();
 	}
 	//
 	if (!tmb_ok) {
 	  //
-	  *out << "Config problems for TMB: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (tmb_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
+	      *out << crateVector[crate_number]->GetLabel() << " " 
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << " TMB" << cgicc::br();
 	}
 	//
 	if (!dmb_ok) {
 	  //
-	  *out << "Config problems for DMB: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (dmb_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
+	      *out << crateVector[crate_number]->GetLabel() << " " 
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << " DMB" << cgicc::br();
 	}
 	//
       } else if (crate_check_ok[current_crate_] == 1) {
 	//
 	*out << cgicc::span().set("style","color:green");
-	*out << " OK" << cgicc::br();
+	*out << crateVector[crate_number]->GetLabel() << " OK" << cgicc::br();
       } else if (crate_check_ok[current_crate_] == -1) {
 	//
 	*out << cgicc::span().set("style","color:blue");
-	*out << " Not checked" << cgicc::br();
+	*out << crateVector[crate_number]->GetLabel() << " Not checked" << cgicc::br();
       }
       *out << cgicc::span() << std::endl ;
     }

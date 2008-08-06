@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.31 2008/08/05 12:29:20 rakness Exp $
+// $Id: CCB.cc,v 3.32 2008/08/06 08:34:33 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.32  2008/08/06 08:34:33  rakness
+// cleanup formatting of check Configuration output
+//
 // Revision 3.31  2008/08/05 12:29:20  rakness
 // make TTCrxFineDelay xml parameter = number of nsec
 //
@@ -485,7 +488,7 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
      return dummyReturn;
   }
   if (ReadTTCrxID_ == -1) {
-    (*MyOutput_) << "ReadTTCrxReg: No ReadTTCrxID, using TTCrxID from XML: "<< TTCrxID_ << std::endl;
+    std::cout << "ReadTTCrxReg: No ReadTTCrxID, using TTCrxID from XML: "<< TTCrxID_ << std::endl;
     ReadTTCrxID_ = TTCrxID_;
   }
   //
