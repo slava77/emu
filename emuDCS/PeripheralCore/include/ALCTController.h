@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.32 2008/08/05 08:40:36 rakness Exp $
+// $Id: ALCTController.h,v 3.33 2008/08/06 17:24:50 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.33  2008/08/06 17:24:50  rakness
+// add known_problem parameter to xml file; add time stamp + number of reads to config check output file
+//
 // Revision 3.32  2008/08/05 08:40:36  rakness
 // add minimum number of times to read when checking configuration
 //
@@ -210,6 +213,7 @@ class ALCTController {
   void CheckALCTConfiguration(int max_number_of_reads); //Check the read values against the write values
   void CheckALCTConfiguration();                        // this method calls the above method with a fixed maximum number of reads
   inline int GetALCTConfigurationStatus() { return alct_configuration_status_; }
+  inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
   //
   bool CheckFirmwareDate();
   //
@@ -642,6 +646,7 @@ private:
   int debug_;
   //
   int alct_configuration_status_;
+  int number_of_configuration_reads_;
   //
   //
   ////////////////////////////////////////////////////////////////////

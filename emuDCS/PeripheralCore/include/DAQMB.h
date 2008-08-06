@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.28 2008/08/05 08:40:36 rakness Exp $
+// $Id: DAQMB.h,v 3.29 2008/08/06 17:24:50 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.29  2008/08/06 17:24:50  rakness
+// add known_problem parameter to xml file; add time stamp + number of reads to config check output file
+//
 // Revision 3.28  2008/08/05 08:40:36  rakness
 // add minimum number of times to read when checking configuration
 //
@@ -514,6 +517,7 @@ public:
   void init() ;
   void configure() ;
   bool checkDAQMBXMLValues();
+  inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
   //
   /// test if "testval" is equal expected value: "compareval", print the errors
   bool compareValues(std::string typeOfTest, int testval, int compareval); 
@@ -606,6 +610,7 @@ public:
   //
   int kill_chip_[5][6];
   //
+  int number_of_configuration_reads_; 
   int fwyear_, fwmonth_, fwday_, fwvers_, fwrv_;
 
   Chamber * csc_;
