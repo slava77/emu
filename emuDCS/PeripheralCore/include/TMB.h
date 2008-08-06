@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.48 2008/08/05 08:40:36 rakness Exp $
+// $Id: TMB.h,v 3.49 2008/08/06 12:06:19 liu Exp $
 // $Log: TMB.h,v $
+// Revision 3.49  2008/08/06 12:06:19  liu
+// fix TMB/RAT firmware Hex vs Dec problem
+//
 // Revision 3.48  2008/08/05 08:40:36  rakness
 // add minimum number of times to read when checking configuration
 //
@@ -396,17 +399,17 @@ public:
   //!read the Firmware date from the TMB
   int  FirmwareDate();
   inline int  GetReadTmbFirmwareDay() { return read_tmb_firmware_day_; }
-  inline void SetExpectedTmbFirmwareDay(int day) { tmb_firmware_day_ = ConvertToHexAscii(day); }
+  inline void SetExpectedTmbFirmwareDay(int day) { tmb_firmware_day_ = day; }
   inline int  GetExpectedTmbFirmwareDay() { return tmb_firmware_day_; }
   //
   inline int  GetReadTmbFirmwareMonth() { return read_tmb_firmware_month_; }
-  inline void SetExpectedTmbFirmwareMonth(int month) { tmb_firmware_month_ = ConvertToHexAscii(month); }
+  inline void SetExpectedTmbFirmwareMonth(int month) { tmb_firmware_month_ = month; }
   inline int  GetExpectedTmbFirmwareMonth() { return tmb_firmware_month_; }
   //
   //!read the Firmware date from the TMB
   int  FirmwareYear();
   inline int  GetReadTmbFirmwareYear() { return read_tmb_firmware_year_; }
-  inline void SetExpectedTmbFirmwareYear(int year) { tmb_firmware_year_ = ConvertToHexAscii(year); }
+  inline void SetExpectedTmbFirmwareYear(int year) { tmb_firmware_year_ = year; }
   inline int  GetExpectedTmbFirmwareYear() { return tmb_firmware_year_; }
   //
   //!check that the read values are the values expected in the xml file
@@ -427,11 +430,11 @@ public:
   inline void SetExpectedTmbFirmwareRevcode(int revcode) { tmb_firmware_revcode_ = revcode; }
   inline int  GetExpectedTmbFirmwareRevcode() { return tmb_firmware_revcode_; }
   //
-  inline void SetExpectedRatFirmwareDay(int day) { rat_firmware_day_ = ConvertToHexAscii(day); }
+  inline void SetExpectedRatFirmwareDay(int day) { rat_firmware_day_ = day; }
   inline int  GetExpectedRatFirmwareDay() { return rat_firmware_day_; }
-  inline void SetExpectedRatFirmwareMonth(int month) { rat_firmware_month_ = ConvertToHexAscii(month); }
+  inline void SetExpectedRatFirmwareMonth(int month) { rat_firmware_month_ = month; }
   inline int  GetExpectedRatFirmwareMonth() { return rat_firmware_month_; }
-  inline void SetExpectedRatFirmwareYear(int year) { rat_firmware_year_ = ConvertToHexAscii(year); }
+  inline void SetExpectedRatFirmwareYear(int year) { rat_firmware_year_ = year; }
   inline int  GetExpectedRatFirmwareYear() { return rat_firmware_year_; }
   //
   int  PowerComparator();

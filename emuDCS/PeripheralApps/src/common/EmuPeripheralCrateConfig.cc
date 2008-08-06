@@ -10862,7 +10862,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   //
   // output the register information to the screen in a nice way:
   //
-  sprintf(buf,"TMB Firmware date (month/day/year) : (%02x/%02x/%04x)",
+  sprintf(buf,"TMB Firmware date (month/day/year) : (%02d/%02d/%04d)",
 	  thisTMB->GetReadTmbFirmwareMonth(),
 	  thisTMB->GetReadTmbFirmwareDay(),
 	  thisTMB->GetReadTmbFirmwareYear());
@@ -10876,7 +10876,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     *out << cgicc::span().set("style","color:red");
     *out << buf;
     *out << "--->> BAD <<---, should be ("
-	 << std::hex << thisTMB->GetExpectedTmbFirmwareMonth()
+	 << thisTMB->GetExpectedTmbFirmwareMonth()
 	 << "/"      << thisTMB->GetExpectedTmbFirmwareDay()
 	 << "/"      << thisTMB->GetExpectedTmbFirmwareYear()
 	 << ")";
