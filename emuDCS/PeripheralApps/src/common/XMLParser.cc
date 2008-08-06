@@ -833,10 +833,11 @@ void XMLParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate, xercesc::D
 
   Chamber * csc_ = new Chamber(theCrate);
 
-  std::string label, chamberType;
+  std::string label, chamberType, problem;
 
   if(fillString("label", label)) csc_->SetLabel(label);
   fillString("chamber_type", chamberType);
+  if(fillString("known_problem", problem)) csc_->SetProblemDescription(problem);
 
   //
   std::cout << "Creating CSC Type=" << chamberType 

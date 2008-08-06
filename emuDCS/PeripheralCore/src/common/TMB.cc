@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.70 2008/08/06 12:06:19 liu Exp $
+// $Id: TMB.cc,v 3.71 2008/08/06 17:24:50 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.71  2008/08/06 17:24:50  rakness
+// add known_problem parameter to xml file; add time stamp + number of reads to config check output file
+//
 // Revision 3.70  2008/08/06 12:06:19  liu
 // fix TMB/RAT firmware Hex vs Dec problem
 //
@@ -7743,15 +7746,15 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
   //
   bool config_ok = false;
   //
-  int number_of_reads = 0;
+  number_of_configuration_reads_ = 0;
   //
-  while (!config_ok && number_of_reads < max_number_of_reads) {
+  while (!config_ok && number_of_configuration_reads_ < max_number_of_reads) {
     //
-    number_of_reads++;
+    number_of_configuration_reads_++;
     //
     bool print_errors;
     //
-    if (number_of_reads == (max_number_of_reads-1) ) {
+    if (number_of_configuration_reads_ == (max_number_of_reads-1) ) {
       print_errors = true;
       //
     } else {

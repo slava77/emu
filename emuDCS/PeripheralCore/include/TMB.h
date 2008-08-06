@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.49 2008/08/06 12:06:19 liu Exp $
+// $Id: TMB.h,v 3.50 2008/08/06 17:24:50 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.50  2008/08/06 17:24:50  rakness
+// add known_problem parameter to xml file; add time stamp + number of reads to config check output file
+//
 // Revision 3.49  2008/08/06 12:06:19  liu
 // fix TMB/RAT firmware Hex vs Dec problem
 //
@@ -1446,6 +1449,7 @@ public:
   void CheckTMBConfiguration(int maximum_number_of_reads);
   void CheckTMBConfiguration();                               // this method calls the above method with a fixed maximum number of reads
   inline int GetTMBConfigurationStatus() { return tmb_configuration_status_; }
+  inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
   //
   void CheckRawHitsHeader();
   inline int GetRawHitsHeaderStatus() { return raw_hits_header_status_; }
@@ -1509,6 +1513,8 @@ private:
   //
   std::ostream * MyOutput_ ;
   bool debug_;
+  //
+  int number_of_configuration_reads_;
   //
   // on-board voltages and currents
   float v5p0_     ;	      
