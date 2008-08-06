@@ -34,6 +34,9 @@ public:
   inline void SetLabel(std::string label){label_ = label;}
   inline std::string GetLabel(){return label_;}
   //
+  inline void SetProblemDescription(std::string problem_description){problem_description_ = problem_description;}
+  inline std::string GetProblemDescription(){return problem_description_;}
+  //
 private:
   //
   TMB * thisTMB ;
@@ -44,6 +47,7 @@ private:
   Crate * crate_;
   //
   std::string label_;
+  std::string problem_description_;
   //
   std::vector <TMB> tmbs_;
   std::vector <CFEB> cfebs_;
