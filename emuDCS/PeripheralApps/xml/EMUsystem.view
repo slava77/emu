@@ -15,7 +15,7 @@
      <sql:parameter name="SIDE">
         <![CDATA[]]>
       </sql:parameter>
-      <![CDATA[select max($COLUMN) as $COLUMN from $TABLE where EMU_ENDCAP_SIDE='$SIDE']]>
+      <![CDATA[select max(NVL($COLUMN,0)) as $COLUMN from $TABLE where EMU_ENDCAP_SIDE='$SIDE']]>
     </sql:query>
     <!-- TABLE: EMU_CONFIGURATION -->
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="configuration">
