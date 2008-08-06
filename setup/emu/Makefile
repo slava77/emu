@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2008/06/16 22:03:06 rredjimi Exp $
+# $Id: Makefile,v 1.3 2008/08/06 14:56:47 rredjimi Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -21,14 +21,15 @@
 #
 # Packages to be built
 #
-##BUILD_HOME:=$(shell pwd)/../../..
+BUILD_HOME:=$(shell pwd)/../../..
 
 include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
-Project = emu
-Package=setup/emu
 PackageName = emu
+Project = emu
+Package=setup/$(PackageName)
+
 
 PACKAGE_VER_MAJOR=1
 PACKAGE_VER_MINOR=0
@@ -40,7 +41,7 @@ Description=This package is to set emu JC package
 
 Authors=Laria Redjimi
 
-Link=http://cms-emu.cern.ch/
+Link=http://cern.ch/emudoc/
 
 include $(XDAQ_ROOT)/config/mfSetupRPM.rules
 
