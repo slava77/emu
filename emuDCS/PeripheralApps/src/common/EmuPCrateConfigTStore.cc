@@ -33,10 +33,10 @@ XDAQ_INSTANTIATOR_IMPL(EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::readConfigFromDB, "read");
   xgi::bind(this,&EmuPCrateConfigTStore::synchronizeToFromDB, "sync");
   xgi::bind(this,&EmuPCrateConfigTStore::getConfigurationFromXML, "getConfig");
-  
-  xmlfile_    = "/home/cscdev/vme_config.xml";
-  dbUserFile_ = "/home/cscdev/dbuserfile.txt";
 
+  std::string HomeDir_ =getenv("HOME");
+  xmlfile_    = HomeDir_ + "/vme_config.xml";
+  dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
 }
 
 void EmuPCrateConfigTStore::outputHeader(xgi::Output * out) {
