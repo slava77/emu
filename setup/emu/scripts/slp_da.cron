@@ -1,0 +1,5 @@
+# run regularly slp directory agent check
+#
+
+*/1 * * * * root /opt/xdaq/share/emu/scripts/slp_da.sh >>/var/log/slp_da.log 2>>/var/log/slp_da.log
+
