@@ -118,37 +118,41 @@ void IRQThreadManager::endThreads() {
 	if (data_->exit == 1) {
 		//cout << "IRQThreadManager::endThreads Threads already stopped." << endl << flush;
 	} else {
+	
 		//cout << "IRQThreadManager::endThreads Gracefully killing off all threads." << endl << flush;
 		//cout << "<PGK> Before exit=1" << endl << flush;
 		data_->exit = 1;
 		//cout << "<PGK> After exit=1" << endl << flush;
-		sleep((unsigned int) 6);
-		//cout << "<PGK> After sleep" << endl << flush;
-		delete data_;
-	}
-}
+		
+		// We probably do not need to return the status of the threads,
+		//  but this may be used later for whatever reason.
+		std::vector<int> returnStatus;
+		
+		// The threads should be stopping now.  Let's join them.
+		for (unsigned int iThread=0; iThread < threadVector_.size(); iThread++) {
+			int *retStat = new int(-999); // Dumb default
+			int error = pthread_join(threadVector_[iThread].second,(void **) &retStat); // Waits until the thread calls pthread_exit(void *return_status)
 
+			// Note:  retStat points to a pointer of a value that
+			//  the pthread returned, while error is the error
+			//  status of the join routine itself.  If it is non-
+			//  zero, there was a problem.
 
-
-void IRQThreadManager::killThreads() {
-
-	if (data_->exit == 1) {
-		//cout << "IRQThreadManager::killThreads Threads already stopped." << endl;
-	} else {
-		//cout << "IRQThreadManager::killThreads Brutally killing off all threads." << endl;
-		for (unsigned int i=0; i<threadVector_.size(); i++) {
-			pthread_t threadID = threadVector_[i].second;
-			int error = pthread_cancel(threadID);
 			if (error) {
-				//cout << " Incountered error " << error << " when attempting to cancel thread." << endl;
-				exit(error);
+				// I don't know what to do.  Log this, maybe?
+				cout << "pthread_join iThread " << iThread << " returned " << error << endl;
+			} else {
+			
+				returnStatus.push_back(*((int *) retStat)); // Pointer-fu!
 			}
 		}
 		
-		sleep((unsigned int) 6);
+		// Not needed.
+		//sleep((unsigned int) 6);
+		
+		//cout << "<PGK> After sleep" << endl << flush;
 		delete data_;
 	}
-
 }
 
 
@@ -384,7 +388,8 @@ void *IRQThreadManager::IRQThread(void *data)
 	}
 
 	//cout << " IRQ_Int call pthread_exit" << endl;
-	pthread_exit(NULL);
+	int returnValue = 0; // This may be more useful later.  I don't know.
+	pthread_exit((void *) &returnValue);
 }
 
 
