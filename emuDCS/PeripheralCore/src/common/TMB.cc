@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.69 2008/08/05 11:41:48 rakness Exp $
+// $Id: TMB.cc,v 3.70 2008/08/06 12:06:19 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.70  2008/08/06 12:06:19  liu
+// fix TMB/RAT firmware Hex vs Dec problem
+//
 // Revision 3.69  2008/08/05 11:41:48  rakness
 // new configuration check page + clean up output
 //
@@ -643,6 +646,10 @@ int TMB::FirmwareDate(){
   read_tmb_firmware_day_   = data & 0xff;
   read_tmb_firmware_month_ = ((data >> 8) & 0xff);
   //
+  // convert to real decimal
+  read_tmb_firmware_day_ = (read_tmb_firmware_day_ >> 4)*10 + (read_tmb_firmware_day_ & 0xF);
+  read_tmb_firmware_month_ = (read_tmb_firmware_month_ >> 4)*10 + (read_tmb_firmware_month_ & 0xF);
+  //
   return data;
   //
 }
@@ -653,6 +660,8 @@ int TMB::FirmwareYear(){
   //
   int data = (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
   //
+  // convert to real decimal
+  data = ((data >> 12)&0xF)*1000 + ((data >> 8)&0xF)*1000+ ((data >> 4)&0xF)*10 +(data&0xF);
   read_tmb_firmware_year_ = data;
   //
   return data;
