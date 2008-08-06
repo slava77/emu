@@ -129,6 +129,10 @@ void RAT::ReadRatUserCode(){
   read_rat_firmware_month_ =  (rat_usercode_[ChipLocationRatFpga] >> 24) & 0xff;
   read_rat_firmware_day_   =  (rat_usercode_[ChipLocationRatFpga] >> 16) & 0xff;
   read_rat_firmware_year_  =  (rat_usercode_[ChipLocationRatFpga] >>  0) & 0xffff;
+  // convert to real decimal
+  read_rat_firmware_day_ = (read_rat_firmware_day_ >> 4)*10 + (read_rat_firmware_day_ & 0xF);
+  read_rat_firmware_month_ = (read_rat_firmware_month_ >> 4)*10 + (read_rat_firmware_month_ & 0xF);
+  read_rat_firmware_year_ = ((read_rat_firmware_year_ >> 12)&0xF)*1000 + ((read_rat_firmware_year_ >> 8)&0xF)*1000+ ((read_rat_firmware_year_ >> 4)&0xF)*10 +(read_rat_firmware_year_&0xF);
   //
   return;
 }
