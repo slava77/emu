@@ -645,8 +645,14 @@ void EmuPCrateConfigTStore::uploadConfiguration(const std::string &connectionID,
   std::string EMU_CONFIG_TYPE("EMU_CONFIG_TYPE");
   std::string EMU_ENDCAP_SIDE("EMU_ENDCAP_SIDE");
 
-  emu_config_id_ = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side);
-  emu_config_id_++;
+  emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side);
+  if(emu_config_id.value_==0)
+    if(endcap_side=="plus")
+         emu_config_id = 1000000;
+    else 
+         emu_config_id = 2000000;
+  emu_config_id++;
+  emu_config_id_=emu_config_id;
   xdata::TimeVal _emu_config_time = (xdata::TimeVal)currentTime.gettimeofday();
   // Info to be entered in a form on a HyperDAQ page
   xdata::String _emu_config_type = "GLOBAL";
@@ -654,7 +660,7 @@ void EmuPCrateConfigTStore::uploadConfiguration(const std::string &connectionID,
   xdata::String _emu_endcap_side = endcap_side;
 
 #ifdef debugV
-  std::cout << "-- CONFIGURATION  emu_config_id --------- " <<  emu_config_id_.toString()       << std::endl;
+  std::cout << "-- CONFIGURATION  emu_config_id --------- " <<  emu_config_id.toString()       << std::endl;
   std::cout << "-- CONFIGURATION  emu_config_time ------- " <<  _emu_config_time.toString()     << std::endl;
   std::cout << "-- CONFIGURATION  emu_config_type ------- " <<  _emu_config_type.toString()     << std::endl;
   std::cout << "-- CONFIGURATION  description ----------- " <<  _description.toString()         << std::endl;
@@ -664,7 +670,7 @@ void EmuPCrateConfigTStore::uploadConfiguration(const std::string &connectionID,
   newRows = tableDefinition_emu_configuration;
 
   newRows.setValueAt(rowId, DESCRIPTION,     _description); 
-  newRows.setValueAt(rowId, EMU_CONFIG_ID,   emu_config_id_);
+  newRows.setValueAt(rowId, EMU_CONFIG_ID,   emu_config_id);
   newRows.setValueAt(rowId, EMU_CONFIG_TIME, _emu_config_time);
   newRows.setValueAt(rowId, EMU_CONFIG_TYPE, _emu_config_type);
   newRows.setValueAt(rowId, EMU_ENDCAP_SIDE, _emu_endcap_side);
