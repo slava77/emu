@@ -21,7 +21,9 @@
          Pkt_On_Startup="false">
     </VCC>
 
-    <CSC label="test_chamber" known_problem="short description of known problem">
+    <CSC label="test_chamber" 
+         known_problem="short description of known problem"
+         problem_location_mask="ab">
       <TMB slot="10" 
            tmb_firmware_month="10"
            tmb_firmware_day="11"
