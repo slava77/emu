@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.13 2008/06/12 21:08:55 rakness Exp $
+// $Id: MPC.cc,v 3.14 2008/08/08 11:01:24 rakness Exp $
 // $Log: MPC.cc,v $
+// Revision 3.14  2008/08/08 11:01:24  rakness
+// centralize logging
+//
 // Revision 3.13  2008/06/12 21:08:55  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -148,8 +151,9 @@
 #include <unistd.h>
 #include "MPC.h"
 #include "VMEController.h"
+#include "EmuLogger.h"
 
-MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),
+MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),EmuLogger(),
 				       BoardId_(0), TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0)
 {
   std::cout << "MPC: module created in crate=" << this->crate() 
@@ -226,12 +230,20 @@ int MPC::CheckConfig()
 {
    int rx;
    rx=ReadRegister(0);
-   if((rx & 0x8201) != 0x0200) 
-   {  std::cout << "MPC_Check_Config: Register CSR0 wrong " 
-                << std::hex << (rx&0xffff) << std::dec << std::endl;
-      return 0;
-   }
-   return 1;
+   //
+   int read_value = rx & 0x8201;
+   int expected_value = 0x0200;
+   //
+   bool config_ok = true;
+   //
+   config_ok &= compareValues("MPC Register CSR0",read_value,expected_value); 
+   //
+   //   if((rx & 0x8201) != 0x0200) 
+   //   {  std::cout << "MPC_Check_Config: Register CSR0 wrong " 
+   //                << std::hex << (rx&0xffff) << std::dec << std::endl;
+   //      return 0;
+   //   }
+   return (int) config_ok;
 }
 
 void MPC::read_fifo(char address, char * data) {

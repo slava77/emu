@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.29 2008/08/06 17:24:50 rakness Exp $
+// $Id: DAQMB.h,v 3.30 2008/08/08 11:01:23 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.30  2008/08/08 11:01:23  rakness
+// centralize logging
+//
 // Revision 3.29  2008/08/06 17:24:50  rakness
 // add known_problem parameter to xml file; add time stamp + number of reads to config check output file
 //
@@ -195,6 +198,8 @@
 #include "JTAG_constants.h"
 #include "CFEB.h"
 #include "Chamber.h"
+#include "EmuLogger.h"
+//
 /**
  * more documentation available for this class at
  * http://www.physics.ohio-state.edu/~cms/dmb/prog_man.pdf
@@ -202,7 +207,7 @@
  */
 class Crate;
 
-class DAQMB: public VMEModule
+class DAQMB: public VMEModule, public EmuLogger
 {
 public:
   //friend class DAQMBParser;
@@ -262,8 +267,6 @@ public:
   int  test11();
   int  memchk(int);
   int  memchk(DEVTYPE);
-  //
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
   void dmb_readstatus(char [11]);
   void cfebs_readstatus();
@@ -519,24 +522,6 @@ public:
   bool checkDAQMBXMLValues();
   inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
   //
-  /// test if "testval" is equal expected value: "compareval", print the errors
-  bool compareValues(std::string typeOfTest, int testval, int compareval); 
-  //
-  /// test if "testval" is equal expected value: "compareval", do or do not the errors
-  bool compareValues(std::string typeOfTest, int testval, int compareval, bool print_errors); 
-  //
-  /// same as compareValues, except return depends if they should be "equalOrNot"
-  bool compareValues(std::string typeOfTest, int testval, int compareval, bool print_errors, bool equalOrNot); 
-  //
-  ///test if "testval" is within a fractional "tolerance" of "compareval", print the errors
-  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance);   
-  //
-  ///test if "testval" is within a fractional "tolerance" of "compareval", do or do not print the errors
-  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance, bool print_errors);   
-  //
-  ///report status of "check_type" to SendOutput...  whether it passed or not is set by "status_bit"
-  void ReportCheck(std::string check_type, bool status_bit);    
-  //  
   //
 public:
   // unpacks rcvbuf from FPGA operations
@@ -660,7 +645,6 @@ public:
   float comp_thresh_cfeb_[5];
   //
   int shift_out[5][36];
-  std::ostream * MyOutput_ ;
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
   int  TestStatus_[20];

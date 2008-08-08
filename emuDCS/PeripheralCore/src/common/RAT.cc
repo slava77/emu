@@ -9,10 +9,8 @@
 #include "TMB_constants.h"
 //
 //
-RAT::RAT(TMB * tmb) 
+RAT::RAT(TMB * tmb) : EmuLogger()
 {
-  //
-  MyOutput_ = &std::cout ;
   //
   (*MyOutput_) << "RAT board" << std::endl;
   //
@@ -52,11 +50,11 @@ void RAT::CheckRATConfiguration() {
   //
   ReadRatUserCode(); // fill the read values in the software
   //
-  config_ok &= tmb_->compareValues("RAT Firmware Day"  ,GetReadRatFirmwareDay()  ,tmb_->GetExpectedRatFirmwareDay()  );
-  config_ok &= tmb_->compareValues("RAT Firmware Month",GetReadRatFirmwareMonth(),tmb_->GetExpectedRatFirmwareMonth());
-  config_ok &= tmb_->compareValues("RAT Firmware Year" ,GetReadRatFirmwareYear() ,tmb_->GetExpectedRatFirmwareYear() );
+  config_ok &= compareValues("RAT Firmware Day"  ,GetReadRatFirmwareDay()  ,tmb_->GetExpectedRatFirmwareDay()  );
+  config_ok &= compareValues("RAT Firmware Month",GetReadRatFirmwareMonth(),tmb_->GetExpectedRatFirmwareMonth());
+  config_ok &= compareValues("RAT Firmware Year" ,GetReadRatFirmwareYear() ,tmb_->GetExpectedRatFirmwareYear() );
   //
-  tmb_->ReportCheck("RAT configuration check",config_ok);
+  //  ReportCheck("RAT configuration check",config_ok);
   //
   rat_configuration_status_ = (int) config_ok;
   //

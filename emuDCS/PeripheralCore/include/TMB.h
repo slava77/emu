@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.50 2008/08/06 17:24:50 rakness Exp $
+// $Id: TMB.h,v 3.51 2008/08/08 11:01:23 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.51  2008/08/08 11:01:23  rakness
+// centralize logging
+//
 // Revision 3.50  2008/08/06 17:24:50  rakness
 // add known_problem parameter to xml file; add time stamp + number of reads to config check output file
 //
@@ -310,6 +313,7 @@
 #include <bitset>
 
 #include "EMUjtag.h"
+#include "EmuLogger.h"
 
 class ALCTController;
 class TMBParser;
@@ -318,7 +322,7 @@ class AnodeChannel;
 class Crate;
 class Chamber;
 
-class TMB :  public VMEModule, public EMUjtag {
+class TMB :  public VMEModule, public EMUjtag, public EmuLogger {
 
 public:
   //
@@ -329,7 +333,6 @@ public:
   explicit TMB(Crate * , Chamber *, int );
   virtual ~TMB();
   //
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
   void WriteOutput(std::string);
   //
@@ -1475,24 +1478,6 @@ public:
   int ConvertToHexAscii(int value_to_convert); /// convert the argument to its "hex-ascii" value:  i.e.  2007 -> 0x2007
   //
   //
-  /// test if "testval" is equal expected value: "compareval", print the errors
-  bool compareValues(std::string typeOfTest, int testval, int compareval); 
-  //
-  /// test if "testval" is equal expected value: "compareval", do or do not the errors
-  bool compareValues(std::string typeOfTest, int testval, int compareval, bool print_errors); 
-  //
-  /// same as compareValues, except return depends if they should be "equalOrNot"
-  bool compareValues(std::string typeOfTest, int testval, int compareval, bool print_errors, bool equalOrNot); 
-  //
-  ///test if "testval" is within a fractional "tolerance" of "compareval", print the errors
-  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance);   
-  //
-  ///test if "testval" is within a fractional "tolerance" of "compareval", do or do not print the errors
-  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance, bool print_errors);   
-  //
-  ///report status of "check_type" to SendOutput...  whether it passed or not is set by "status_bit"
-  void ReportCheck(std::string check_type, bool status_bit);    
-  //  
   FILE *pfile;
   int ucla_ldev;
   //std::string version_;
@@ -1511,7 +1496,6 @@ private:
   Chamber * csc_;
   int tmb_idcode_[7];
   //
-  std::ostream * MyOutput_ ;
   bool debug_;
   //
   int number_of_configuration_reads_;
