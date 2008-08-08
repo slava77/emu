@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.4 2007/12/27 00:33:53 liu Exp $
+// $Id: Chamber.cc,v 3.5 2008/08/08 15:36:58 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.5  2008/08/08 15:36:58  liu
+// initialize problem_mask
+//
 // Revision 3.4  2007/12/27 00:33:53  liu
 // update
 //
@@ -74,7 +77,7 @@
 using namespace std;
 //
 Chamber::Chamber(Crate * csc):
-  crate_(csc), label_("new_csc")
+  crate_(csc), label_("new_csc"), problem_mask_(0)
 {
   csc->AddChamber(this);
 }
