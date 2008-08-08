@@ -646,11 +646,7 @@ void EmuPCrateConfigTStore::uploadConfiguration(const std::string &connectionID,
   std::string EMU_ENDCAP_SIDE("EMU_ENDCAP_SIDE");
 
   emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side);
-  if(emu_config_id.value_==0)
-    if(endcap_side=="plus")
-         emu_config_id = 1000000;
-    else 
-         emu_config_id = 2000000;
+  if(emu_config_id.value_==0) emu_config_id=((endcap_side=="plus")?1000000:2000000);
   emu_config_id++;
   emu_config_id_=emu_config_id;
   xdata::TimeVal _emu_config_time = (xdata::TimeVal)currentTime.gettimeofday();
@@ -1579,7 +1575,7 @@ void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::U
   xdata::UnsignedShort     _alct_trig_mode                 = TStore_thisALCT->GetTriggerMode();
   xdata::String            _chamber_type                   = TStore_thisALCT->GetChamberType();
 
-#ifdef debugV
+
   cout << "-- ALCT emu_config_id --------------------- " << emu_config_id_.toString()                  << std::endl;
   cout << "-- ALCT tmb_config_id --------------------- " << tmb_config_id.toString()                   << std::endl;
   cout << "-- ALCT alct_config_id -------------------- " << _alct_config_id.toString()                 << std::endl;
@@ -1614,7 +1610,7 @@ void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::U
   cout << "-- ALCT alct_trig_info_en ----------------- " << _alct_trig_info_en.toString()              << std::endl;
   cout << "-- ALCT alct_trig_mode -------------------- " << _alct_trig_mode.toString()                 << std::endl;
   cout << "-- ALCT chamber_type ---------------------- " << _chamber_type.toString()                   << std::endl;
-#endif
+
 
   newRows.clear();
   newRows = tableDefinition_emu_alct;
@@ -1716,7 +1712,7 @@ EmuEndcap * EmuPCrateConfigTStore::getConfiguredEndcap(const std::string &emu_co
   std::cout << "######## Empty EmuEndcap is created." << std::endl;
   
   std::string connectionID=connect();
-std::cout << "Liu DEBUG: connectionID " << connectionID << std::endl;
+  // std::cout << "Liu DEBUG: connectionID " << connectionID << std::endl;
   readConfiguration(connectionID, emu_config_id, endcap);
   std::cout << "######## EmuEndcap is complet." << std::endl;
 
@@ -1767,7 +1763,11 @@ void EmuPCrateConfigTStore::readPeripheralCrate(const std::string &connectionID,
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       std::string StrgValue=results.getValueAt(rowIndex,*column)->toString();
       if (*column == "PERIPH_CONFIG_ID"){periph_config_id = StrgValue;}
-      if (*column == "CRATEID"){crateid = (int)results.getValueAt(rowIndex,*column);}
+      if (*column == "CRATEID")
+      {  xdata::Serializable  * value = results.getValueAt(rowIndex,*column);
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
+         crateid = (int)*i;
+      }
       if (*column == "LABEL"){label = StrgValue;}
       std::cout << *column + ": " + StrgValue << std::endl;
     }
