@@ -237,6 +237,8 @@
       <tstore:column name="CSC_CONFIG_ID" type="unsigned int 64"/>
       <tstore:column name="EMU_CONFIG_ID" type="unsigned int 64"/>
       <tstore:column name="LABEL" type="string"/>
+      <tstore:column name="KNOWN_PROBLEM" type="string"/>
+      <tstore:column name="PROBLEM_MASK" type="unsigned int 64"/>
       <tstore:column name="PERIPH_CONFIG_ID" type="unsigned int 64"/>
       <tstore:foreignkey references="EMU_PERIPHERALCRATE">
         <tstore:keycolumn column="PERIPH_CONFIG_ID" references="PERIPH_CONFIG_ID"/>
