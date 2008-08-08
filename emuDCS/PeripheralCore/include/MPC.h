@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.9 2008/06/12 21:08:54 rakness Exp $
+// $Id: MPC.h,v 3.10 2008/08/08 11:01:23 rakness Exp $
 // $Log: MPC.h,v $
+// Revision 3.10  2008/08/08 11:01:23  rakness
+// centralize logging
+//
 // Revision 3.9  2008/06/12 21:08:54  rakness
 // add firmware tags for DMB, CFEB, MPC, CCB into xml file; add check firmware button
 //
@@ -93,11 +96,12 @@
 #ifndef MPC_h
 #define MPC_h
 #include "VMEModule.h"
+#include "EmuLogger.h"
 #include <string>
 
 class Crate;
 
-class MPC : public VMEModule {
+class MPC : public VMEModule, public EmuLogger {
  public:
   //friend class MPCParser;
 
@@ -136,7 +140,6 @@ class MPC : public VMEModule {
   void read_fifo(char address, char * data);
 
   void read_fifos();
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   void read_fifosA();
 
   // dump_fifos just writes read_fifos output to file
@@ -225,7 +228,6 @@ class MPC : public VMEModule {
   std::vector<unsigned long int> FIFOBLct1;
   std::vector<unsigned long int> FIFOBLct2;
   //
-  std::ostream * MyOutput_ ;
   int BoardId_;
   int TLK2501TxMode_;
   int TransparentModeSources_;

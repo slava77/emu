@@ -17,13 +17,13 @@
 //EMUjtag::EMUjtag(){
 //}
 //
-EMUjtag::EMUjtag(TMB * tmb) :
-  tmb_(tmb),debug_(0)
+EMUjtag::EMUjtag(TMB * tmb)
 {
   //
   std::cout << "Creating EMUjtag" << std::endl ;
   //
-  MyOutput_ = &std::cout ;
+  tmb_ = tmb; 
+  debug_ = 0;
   //
   SetWriteToDevice_(true);     //normal JTAG operation writes to the device
   jtag_chain_ = -1;
@@ -130,7 +130,7 @@ void EMUjtag::setup_jtag(int chain) {
   }
   //
   if (devices_in_chain_ == 0) {
-    (*MyOutput_) << "EMUjtag: Unsupported JTAG chain " << jtag_chain_ <<std::endl;
+    std::cout << "EMUjtag: Unsupported JTAG chain " << jtag_chain_ <<std::endl;
     jtag_chain_ = -1;
     ::sleep(5);    
   }  else {
@@ -138,7 +138,7 @@ void EMUjtag::setup_jtag(int chain) {
     if (GetWriteToDevice_()) tmb_->RestoreIdle();      //Valid JTAG chain:  bring the state machine to Run-Time Idle
     //
     if(debug_){
-      (*MyOutput_) << "EMUjtag: JTAG chain " << std::hex << jtag_chain_ 
+      std::cout << "EMUjtag: JTAG chain " << std::hex << jtag_chain_ 
 		   << " has " << std::dec << devices_in_chain_ << " devices" << std::endl;
     }
   }
@@ -208,7 +208,7 @@ void EMUjtag::ShfIR_(const int selected_chip,
   //      starting with chipN, chipN-1, ... ,chip1, and ending with chip0
   //
   if (debug_){    
-    (*MyOutput_) << "EMUjtag: ShfIR -> Use " << std::dec << bits_in_opcode_[selected_chip] 
+    std::cout << "EMUjtag: ShfIR -> Use " << std::dec << bits_in_opcode_[selected_chip] 
 		 << " bits to write opcode 0x" << std::hex << opcode 
 		 << " to chip " << std::dec << selected_chip 
 		 << " on chain 0x" << std::hex << jtag_chain_ << std::endl;
@@ -244,19 +244,19 @@ void EMUjtag::ShfIR_(const int selected_chip,
     }
   }
   //
-  //  (*MyOutput_) << "There are " << std::dec << iframe << " frames to send..." << std::endl;
+  //  std::cout << "There are " << std::dec << iframe << " frames to send..." << std::endl;
   //
   if (iframe > MAX_NUM_FRAMES) 
-    (*MyOutput_) << "EMUjtag: ShfIR ERROR: Too many frames -> " << iframe << std::endl;
+    std::cout << "EMUjtag: ShfIR ERROR: Too many frames -> " << iframe << std::endl;
   //
   //pack tdi into an array of char so scan can handle it:
   packCharBuffer(tdi_in_bits_,iframe,tdi_in_bytes_);
   //
   if (debug_ >= 10) {
-    (*MyOutput_) << "tdi bytes to ShfIR=";
+    std::cout << "tdi bytes to ShfIR=";
     for (int i=iframe/8; i>=0; i--) 
-      (*MyOutput_) << " " << std::hex << (tdi_in_bytes_[i]&0xff); 
-    (*MyOutput_) << std::endl;
+      std::cout << " " << std::hex << (tdi_in_bytes_[i]&0xff); 
+    std::cout << std::endl;
   }
   //
   if (GetWriteToDevice_()) tmb_->scan(INSTR_REGISTER, tdi_in_bytes_, iframe, tdo_in_bytes_, NO_READ_BACK);
@@ -287,7 +287,7 @@ void EMUjtag::ShfDR_(const int selected_chip,
   register_length_ = size_of_register;
   //
   if (debug_){    
-    (*MyOutput_) << "EMUjtag: ShfDR -> Write data to chip " << std::dec << selected_chip 
+    std::cout << "EMUjtag: ShfDR -> Write data to chip " << std::dec << selected_chip 
 		 << " on chain 0x" << std::hex << jtag_chain_
 		 << " using " << std::dec << register_length_ 
 		 << " bits tdi/tdo" << std::hex << std::endl;
@@ -324,26 +324,26 @@ void EMUjtag::ShfDR_(const int selected_chip,
   }
   //
   if (iframe > MAX_NUM_FRAMES) 
-    (*MyOutput_) << "EMUjtag: ShfDR ERROR: Too many frames -> " << iframe << std::endl;
+    std::cout << "EMUjtag: ShfDR ERROR: Too many frames -> " << iframe << std::endl;
   //
   //pack tdi into an array of char so scan can handle it:
   packCharBuffer(tdi_in_bits_,iframe,tdi_in_bytes_);
   //
   if (debug_ >= 10) {
-    (*MyOutput_) << "write_data  = ";
+    std::cout << "write_data  = ";
     for (int i=register_length_-1; i>=0; i--)
-      (*MyOutput_) << write_data[i];
-    (*MyOutput_) << std::endl;
+      std::cout << write_data[i];
+    std::cout << std::endl;
     //
-    (*MyOutput_) << "TDI in bits into DR = ";
+    std::cout << "TDI in bits into DR = ";
     for (int i=iframe-1; i>=0; i--)
-      (*MyOutput_) << tdi_in_bits_[i];
-    (*MyOutput_) << std::endl;
+      std::cout << tdi_in_bits_[i];
+    std::cout << std::endl;
     //
-    (*MyOutput_) << "TDI in bytes into DR=";
+    std::cout << "TDI in bytes into DR=";
     for (int i=iframe/8; i>=0; i--) 
-      (*MyOutput_) << ((tdi_in_bytes_[i] >> 4) & 0xf) << (tdi_in_bytes_[i] & 0xf);  
-    (*MyOutput_) << std::endl;
+      std::cout << ((tdi_in_bytes_[i] >> 4) & 0xf) << (tdi_in_bytes_[i] & 0xf);  
+    std::cout << std::endl;
   }
   //
   if (GetWriteToDevice_()) tmb_->scan(DATA_REGISTER, tdi_in_bytes_, iframe, tdo_in_bytes_, READ_BACK);
@@ -354,17 +354,17 @@ void EMUjtag::ShfDR_(const int selected_chip,
   unpackCharBuffer(tdo_in_bytes_,register_length_,offset,chip_tdo_in_bits_);
   //
   if (debug_ >= 10) {
-    (*MyOutput_) << "TDO in bits from DR = ";
+    std::cout << "TDO in bits from DR = ";
     for (int i=register_length_-1; i>=0; i--)
-      (*MyOutput_) << chip_tdo_in_bits_[i];
-    (*MyOutput_) << std::endl;
+      std::cout << chip_tdo_in_bits_[i];
+    std::cout << std::endl;
     //
-    (*MyOutput_) << "TDO in bytes from DR = ";
+    std::cout << "TDO in bytes from DR = ";
     char tempBuffer[MAX_BUFFER_SIZE];
     packCharBuffer(chip_tdo_in_bits_,register_length_,tempBuffer);
     for (int i=(register_length_/8)-1; i>=0; i--) 
-      (*MyOutput_) << ((tempBuffer[i] >> 4) & 0xf) << (tempBuffer[i] & 0xf);  
-    (*MyOutput_) << std::endl;
+      std::cout << ((tempBuffer[i] >> 4) & 0xf) << (tempBuffer[i] & 0xf);  
+    std::cout << std::endl;
   }
   //
   return;
@@ -432,7 +432,7 @@ void EMUjtag::CompareBitByBit(int * write_vector,
     std::ostringstream dump;
     dump << "EMUjtag: JTAG READ ->" << readdump.str() << " does not equal WRITE->" << writedump.str();
     //
-    (*MyOutput_) << "EMUjtag: JTAG READ ->" << readdump.str() 
+    std::cout << "EMUjtag: JTAG READ ->" << readdump.str() 
 		 << " does not equal WRITE->" << writedump.str() << std::endl;
     //
     tmb_->SendOutput(dump.str(),"ERROR");
@@ -508,7 +508,7 @@ int EMUjtag::bits_to_int(int * bits,
   //          = 1 for MSB first -> bits[0] = MSB of integer, bits[length] = LSB of integer
   //
   if (length>32) {
-    (*MyOutput_) << "bits_to_int ERROR: Too many bits -> " << length << std::endl;
+    std::cout << "bits_to_int ERROR: Too many bits -> " << length << std::endl;
     return 0;
   }
   //
@@ -523,7 +523,7 @@ int EMUjtag::bits_to_int(int * bits,
   }
   //
   if (debug_ >= 5)
-    (*MyOutput_) << "bits_to_int output value = " << std::hex << value << std::endl;
+    std::cout << "bits_to_int output value = " << std::hex << value << std::endl;
   //
   return value;
 }
@@ -542,7 +542,7 @@ void EMUjtag::int_to_bits(int value,
     } else {                   // Translate MSB first
       bits[ibit] = (value >>(length-ibit-1)) & 0x1;
     }
-    //    (*MyOutput_) << "bits[" << ibit << "] = " << bits[ibit] << std::endl;
+    //    std::cout << "bits[" << ibit << "] = " << bits[ibit] << std::endl;
   }
   //
   return;
@@ -585,7 +585,7 @@ void EMUjtag::CheckAndProgramProm(int which_prom) {
 //----------------------------------//
 void EMUjtag::CreateUserPromFile() {
   //
-  (*MyOutput_) << "EMUjtag:  Creating user prom image file" << std::endl;
+  std::cout << "EMUjtag:  Creating user prom image file" << std::endl;
   //
   // Create the data which is loaded to the TMB or ALCT
   //
@@ -643,7 +643,7 @@ void EMUjtag::CreateUserPromFile() {
     data_to_prom[address_counter++] = 0xbb;
     //
   } else {
-    (*MyOutput_) << "EMUjtag:  CreateUserPromFile ERROR User Prom " << std::dec << GetWhichUserProm()
+    std::cout << "EMUjtag:  CreateUserPromFile ERROR User Prom " << std::dec << GetWhichUserProm()
 		 << "does not exist... SetWhichUserProm to a valid user prom" << std::endl;
     return;
     //
@@ -898,7 +898,7 @@ bool EMUjtag::ReadUserPromFile() {
     read_ascii_prom_image_[address]=0xff;
   //
   if (file_io_) {
-    (*MyOutput_) << "EMUjtag:  READ user prom image file " << filename_dat_ << std::endl;
+    std::cout << "EMUjtag:  READ user prom image file " << filename_dat_ << std::endl;
     //
     int index_value;
     //
@@ -929,7 +929,7 @@ bool EMUjtag::ReadUserPromFile() {
       //
     } else {
       //
-      (*MyOutput_) << "EMUjtag:  ERROR Prom data file " << filename_dat_ 
+      std::cout << "EMUjtag:  ERROR Prom data file " << filename_dat_ 
 		   << " does not exist.  Please create it..." << std::endl;
       return false;
     }
@@ -939,7 +939,7 @@ bool EMUjtag::ReadUserPromFile() {
     //
   } else {
     //
-    (*MyOutput_) << "EMUjtag:  READ internal user prom image vector" << std::endl;
+    std::cout << "EMUjtag:  READ internal user prom image vector" << std::endl;
     //
     for (int address=0; address<prom_image_word_count_; address++) 
       read_ascii_prom_image_[address] = write_ascii_prom_image_[address];
@@ -951,7 +951,7 @@ bool EMUjtag::ReadUserPromFile() {
 //
 void EMUjtag::WritePromDataToDisk_() {
   //
-  (*MyOutput_) << "EMUjtag: Write file " << filename_dat_ << " to disk" << std::endl;
+  std::cout << "EMUjtag: Write file " << filename_dat_ << " to disk" << std::endl;
   //
   std::ofstream file_to_write;
   file_to_write.open(filename_dat_.c_str());
@@ -981,7 +981,7 @@ void EMUjtag::WritePromDataToDisk_() {
 int EMUjtag::GetUserPromImage(int address) {
   //
   if (address >= TOTAL_NUMBER_OF_ADDRESSES) {
-    (*MyOutput_) << "GetUserPromImage ERROR: address " << address 
+    std::cout << "GetUserPromImage ERROR: address " << address 
 		 << " out of range...  should be between 0 and " << TOTAL_NUMBER_OF_ADDRESSES-1 
 		 << std::endl;
     return 999;
@@ -994,14 +994,14 @@ void EMUjtag::SetUserPromImage_(int address,
 				int value) {
   //
   if (address >= TOTAL_NUMBER_OF_ADDRESSES) {
-    (*MyOutput_) << "SetUserPromImage ERROR: address " << address 
+    std::cout << "SetUserPromImage ERROR: address " << address 
 		 << " out of range...  should be between 0 and " << TOTAL_NUMBER_OF_ADDRESSES-1 
 		 << std::endl;
     return;
   }
   //
   if (value > 0xff) {
-    (*MyOutput_) << "SetUserPromImage ERROR: address " << std::hex << address 
+    std::cout << "SetUserPromImage ERROR: address " << std::hex << address 
 		 << " value " << value << " is too large...  should be between 0 and 255" 
 		 << std::endl;
     return;
@@ -1018,11 +1018,11 @@ void EMUjtag::SetUserPromImage_(int address,
 //----------------------------------//
 void EMUjtag::CreateXsvfFile() {
   //
-  (*MyOutput_) << "EMUjtag:  Creating XSVF file for user prom " 
+  std::cout << "EMUjtag:  Creating XSVF file for user prom " 
 	       << std::dec << GetWhichUserProm() << std::endl;
   //
   if ( !ReadUserPromFile() ) {
-    (*MyOutput_) << "EMUjtag:  prom image file not OK... Not creating XSVF file..." << std::endl;
+    std::cout << "EMUjtag:  prom image file not OK... Not creating XSVF file..." << std::endl;
     return;
   }
   //
@@ -1030,7 +1030,7 @@ void EMUjtag::CreateXsvfFile() {
   SetWriteToDevice_(false);
   //
   if ( !CreateXsvfImage_() ) {
-    (*MyOutput_) << "EMUjtag:  xsvf image creation not OK... Not creating XSVF file..." << std::endl;
+    std::cout << "EMUjtag:  xsvf image creation not OK... Not creating XSVF file..." << std::endl;
     return;
   }
   //
@@ -1056,7 +1056,7 @@ bool EMUjtag::CreateXsvfImage_() {
   // Are we writing to a valid user prom?
   if (GetWhichUserProm() != ChipLocationTmbUserPromTMB && 
       GetWhichUserProm() != ChipLocationTmbUserPromALCT) {
-    (*MyOutput_) << "EMUjtag:  ERROR User Prom " << std::dec << GetWhichUserProm()
+    std::cout << "EMUjtag:  ERROR User Prom " << std::dec << GetWhichUserProm()
 		 << "does not exist... SetWhichUserProm to a valid user prom" << std::endl;
     return false;
   }
@@ -1202,7 +1202,7 @@ void EMUjtag::WritePromImageIntoXsvfImage_() {
     for (int address_within_block=0; address_within_block<NUMBER_OF_ADDRESSES_PER_BLOCK; address_within_block++) {
       character_buffer[address_within_block] = (GetUserPromImage(address_counter++) & 0xff);
       //
-      //      (*MyOutput_) << " address within block = " << std::dec << address_within_block 
+      //      std::cout << " address within block = " << std::dec << address_within_block 
       //		   << ", address in image = " << (address_counter-1)
       //		   << ", tdi = 0x" << std::hex << tdi_in[address_within_block] 
       //		   << std::endl;
@@ -1332,7 +1332,7 @@ void EMUjtag::WritePromImageIntoXsvfVerify_() {
     for (int address_within_block=0; address_within_block<number_of_addresses_per_verify_block; address_within_block++) {
       character_buffer[address_within_block] = (GetUserPromImage(address_counter++) & 0xff);
       //
-      //      (*MyOutput_) << " address within block = " << std::dec << address_within_block 
+      //      std::cout << " address within block = " << std::dec << address_within_block 
       //      		   << ", address in image = " << (address_counter-1)
       //      		   << ", tdi = " << std::hex << (int) character_buffer[address_within_block] 
       //      		   << std::endl;
@@ -1745,7 +1745,7 @@ void EMUjtag::WriteXSTATE_(int state) {
 //
 void EMUjtag::WriteXsvfImageToDisk_() {
   //
-  (*MyOutput_) << "EMUjtag:  Write XSVF file " << filename_xsvf_ << " to disk" << std::endl;
+  std::cout << "EMUjtag:  Write XSVF file " << filename_xsvf_ << " to disk" << std::endl;
   //
   std::ofstream file_to_write;
   file_to_write.open(filename_xsvf_.c_str(),
@@ -1787,7 +1787,7 @@ void EMUjtag::ReadXsvfFile(bool create_logfile) {
 void EMUjtag::ReadXsvfFile_(bool create_logfile) {
   //
   if (file_io_) {
-    (*MyOutput_) << "EMUjtag:  Read XSVF file " << filename_xsvf_ << " from disk" << std::endl;
+    std::cout << "EMUjtag:  Read XSVF file " << filename_xsvf_ << " from disk" << std::endl;
     //
     //    for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
     //      xsvf_image_[i]=0; 
@@ -1818,7 +1818,7 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
     //
   } else {
     //
-    (*MyOutput_) << "EMUjtag:  Read internal XSVF image" << std::endl;
+    std::cout << "EMUjtag:  Read internal XSVF image" << std::endl;
     //
     number_of_read_bytes_ = number_of_write_bytes_ ;
     //
@@ -1849,14 +1849,14 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
     //
     verify_error_ = -1;    //tag that file does not exist
     //
-    (*MyOutput_) << "EMUjtag:  ERROR XSVF file " << filename_xsvf_ << " does not exist" << std::endl;
+    std::cout << "EMUjtag:  ERROR XSVF file " << filename_xsvf_ << " does not exist" << std::endl;
     //
   }
   //
   Logfile_ << std::endl;
   //
   if (tmb_->slot() < 22) {
-    (*MyOutput_) << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
+    std::cout << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
     Logfile_ << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
   }
   //
@@ -1924,16 +1924,16 @@ void EMUjtag::DecodeXsvfImage_() {
       if (command_counter % 100 == 0) {
 	float percent_programmed = 100.* (float)image_counter_ / (float)number_of_read_bytes_;
 	//
-	(*MyOutput_) << "Slot " << (int) tmb_->slot() 
+	std::cout << "Slot " << (int) tmb_->slot() 
 		     << ":  Programmed " << std::setprecision(1) << std::fixed << percent_programmed 
 		     << "% of " << std::dec << number_of_read_bytes_ 
 		     << " bytes";
-	if (tmb_->slot() < 22) (*MyOutput_) << " with " << verify_error_ <<" verify errors";
-	(*MyOutput_) << std::endl;
+	if (tmb_->slot() < 22) std::cout << " with " << verify_error_ <<" verify errors";
+	std::cout << std::endl;
       }
     //
     if (command > NUMBER_OF_DIFFERENT_XSVF_COMMANDS) {
-      (*MyOutput_) << "EMUjtag: ERROR DecodeXsvfImage_ command = " 
+      std::cout << "EMUjtag: ERROR DecodeXsvfImage_ command = " 
 		   << std::hex << command << " out of range" << std::endl;
       return;
     }
@@ -1974,7 +1974,7 @@ void EMUjtag::DecodeXsvfImage_() {
       break;
       //
     default:
-      (*MyOutput_) << "EMUjtag: ERROR DecodeXsvfImage_ unknown command = " 
+      std::cout << "EMUjtag: ERROR DecodeXsvfImage_ unknown command = " 
 		   << std::hex << command << std::endl;
       break;
     }
@@ -1987,7 +1987,7 @@ void EMUjtag::ParseXCOMPLETE_() {
   //
   if (NumberOfCommands_[XCOMPLETE] > 1) {
     //
-    (*MyOutput_) << "EMUjtag: XCOMPLETE ERROR multiple eof's reached..." << std::endl;
+    std::cout << "EMUjtag: XCOMPLETE ERROR multiple eof's reached..." << std::endl;
     //
     // set the image counter high to prevent causing more damage:
     image_counter_ = MAX_XSVF_IMAGE_NUMBER;
@@ -2008,7 +2008,7 @@ void EMUjtag::ParseXTDOMASK_() {
   int number_of_bytes = (xdr_length_-1)/8 + 1;
   //
   if (number_of_bytes > MAX_BUFFER_SIZE) {
-    (*MyOutput_) << "EMUjtag: XTDOMASK ERROR number of tdo bytes " << number_of_bytes 
+    std::cout << "EMUjtag: XTDOMASK ERROR number of tdo bytes " << number_of_bytes 
 		 << " greater than " << MAX_BUFFER_SIZE << std::endl;
     image_counter_=MAX_XSVF_IMAGE_NUMBER;
     return;
@@ -2060,11 +2060,11 @@ void EMUjtag::ParseXSIR_() {
     //
     if(debug_){
       //
-      (*MyOutput_) << "XSIR     -> Opcode ";
+      std::cout << "XSIR     -> Opcode ";
       for (int byte=number_of_bytes-1; byte>=0; byte--) {
-	(*MyOutput_) << std::hex << ( (tdi_in_bytes_[byte]>>4) & 0xf) << (tdi_in_bytes_[byte] & 0xf);
+	std::cout << std::hex << ( (tdi_in_bytes_[byte]>>4) & 0xf) << (tdi_in_bytes_[byte] & 0xf);
       }
-      (*MyOutput_) << std::endl;
+      std::cout << std::endl;
       //
     }
     //
@@ -2076,7 +2076,7 @@ void EMUjtag::ParseXSIR_() {
     //
     if(debug_){
       //
-      (*MyOutput_) << "XRUNTEST -> Pause " << std::dec << xruntest_time_ << " uSec" << std::endl;
+      std::cout << "XRUNTEST -> Pause " << std::dec << xruntest_time_ << " uSec" << std::endl;
       //
     }
     ::usleep(xruntest_time_);
@@ -2136,7 +2136,7 @@ void EMUjtag::ParseXSDRTDO_() {
   int number_of_bytes = (xdr_length_-1)/8 + 1;
   //
   if (number_of_bytes > MAX_BUFFER_SIZE) {
-    (*MyOutput_) << "EMUjtag: XSDRTDO ERROR number of tdi bytes " << number_of_bytes 
+    std::cout << "EMUjtag: XSDRTDO ERROR number of tdi bytes " << number_of_bytes 
 		 << " greater than " << MAX_BUFFER_SIZE << std::endl;
     image_counter_=MAX_XSVF_IMAGE_NUMBER;
     return;
@@ -2173,7 +2173,7 @@ void EMUjtag::ParseXSDRTDO_() {
   if ( GetWriteToDevice_() ) {
     //
     if(debug_)
-      (*MyOutput_) << "XSDRTDO  ->  " << std::setw(6) << std::dec << xdr_length_ << " bits: " << std::endl;
+      std::cout << "XSDRTDO  ->  " << std::setw(6) << std::dec << xdr_length_ << " bits: " << std::endl;
     //
     // On the data register:  shift in the TDI and shift out the TDO 
     //
@@ -2190,26 +2190,26 @@ void EMUjtag::ParseXSDRTDO_() {
     }
     //
     if(debug_){
-      (*MyOutput_) << " expect    = ";
+      std::cout << " expect    = ";
       for (int byte=number_of_bytes-1; byte>=0; byte--) 
-	(*MyOutput_) << std::hex 
+	std::cout << std::hex 
 		     << (int) ( (tdo_expected_in_bytes[byte]>>4) &0xf )
 		     << (int) ( tdo_expected_in_bytes[byte]&0xf );
-      (*MyOutput_) << std::endl;
+      std::cout << std::endl;
       //
-      (*MyOutput_) << " read back = ";
+      std::cout << " read back = ";
       for (int byte=number_of_bytes-1; byte>=0; byte--) 
-	(*MyOutput_) << std::hex 
+	std::cout << std::hex 
 		     << (int) ( (tdo_in_bytes_[byte]>>4) &0xf )
 		     << (int) ( tdo_in_bytes_[byte]&0xf );
-      (*MyOutput_) << std::endl;
+      std::cout << std::endl;
       //
-      (*MyOutput_) << " mask      = ";
+      std::cout << " mask      = ";
       for (int byte=number_of_bytes-1; byte>=0; byte--) 
-	(*MyOutput_) << std::hex 
+	std::cout << std::hex 
 		     << (int) ( (tdo_mask_in_bytes_[byte]>>4) &0xf )
 		     << (int) ( tdo_mask_in_bytes_[byte]&0xf );
-      (*MyOutput_) << std::endl;
+      std::cout << std::endl;
     }
     //
     // compare the tdo shifted out with the expected tdo, utilizing the tdo mask:
@@ -2217,7 +2217,7 @@ void EMUjtag::ParseXSDRTDO_() {
       if ( (tdo_in_bytes_[byte] & tdo_mask_in_bytes_[byte] )  != 
 	   (tdo_expected_in_bytes[byte] & tdo_mask_in_bytes_[byte]) ) {
 	if (debug_) {
-	  (*MyOutput_) << "----------> Error in byte " << std::dec << byte << std::endl;
+	  std::cout << "----------> Error in byte " << std::dec << byte << std::endl;
 	}
 	verify_error_++;
       }
@@ -2226,7 +2226,7 @@ void EMUjtag::ParseXSDRTDO_() {
     // Wait the number of microseconds specified:
     if(debug_){
       //
-      (*MyOutput_) << "XRUNTEST -> Pause " << std::dec << xruntest_time_ << " uSec" << std::endl;
+      std::cout << "XRUNTEST -> Pause " << std::dec << xruntest_time_ << " uSec" << std::endl;
       //
     }
     ::usleep(xruntest_time_);
@@ -2252,7 +2252,7 @@ void EMUjtag::ParseXSTATE_() {
       //
       if(debug_){
 	//
-	(*MyOutput_) << "XSTATE   -> RTI " << std::endl;
+	std::cout << "XSTATE   -> RTI " << std::endl;
       }
       // Assumption is that when the STATE command comes, xsvf is going to want to 
       // set up to shift an opcode into the instruction register.//
@@ -2268,7 +2268,7 @@ void EMUjtag::ParseXSTATE_() {
 int EMUjtag::GetReadXsvfImage_(unsigned int address) {
   //
   if (address >= xsvf_image_.size()) 
-    (*MyOutput_) << "GetReadXsvfImage ERROR: address " << address 
+    std::cout << "GetReadXsvfImage ERROR: address " << address 
 		 << " out of range...  should be between 0 and " << xsvf_image_.size()-1 
 		 << std::endl;
   //
@@ -2278,7 +2278,7 @@ int EMUjtag::GetReadXsvfImage_(unsigned int address) {
 void EMUjtag::SetWriteXsvfImage_(unsigned int address, int value) {
   //
   //  if (address >= MAX_XSVF_IMAGE_NUMBER) {
-  //    (*MyOutput_) << "SetWriteXsvfImage ERROR: address " << address 
+  //    std::cout << "SetWriteXsvfImage ERROR: address " << address 
   //		 << " out of range...  should be between 0 and " << MAX_XSVF_IMAGE_NUMBER-1 
   //		 << std::endl;
   //    return;
@@ -2295,7 +2295,7 @@ void EMUjtag::SetWriteXsvfImage_(unsigned int address, int value) {
 //----------------------------------//
 void EMUjtag::ProgramUserProm() {
   //
-  (*MyOutput_) << "EMUjtag:  Programming User Prom..." << std::endl;
+  std::cout << "EMUjtag:  Programming User Prom..." << std::endl;
   //
   verify_error_ = 0;
   //
@@ -2312,7 +2312,7 @@ void EMUjtag::ProgramUserProm() {
   //
   int time_elapsed = endtime - starttime;
   //
-  (*MyOutput_) << "EMUjtag:  Programmed " << std::dec <<   number_of_read_bytes_ 
+  std::cout << "EMUjtag:  Programmed " << std::dec <<   number_of_read_bytes_ 
 	       << " bytes in " << std::dec << time_elapsed << " seconds " << std::endl;
   //
   return;
@@ -2320,13 +2320,13 @@ void EMUjtag::ProgramUserProm() {
 //
 void EMUjtag::CheckUserProm() {
   //
-  (*MyOutput_) << "EMUjtag:  Compare user prom image with program in prom " 
+  std::cout << "EMUjtag:  Compare user prom image with program in prom " 
 	       << GetWhichUserProm() << "... " << std::endl;
   //
   verify_error_ = 0;
   //
   if ( !ReadUserPromFile() ) {
-    (*MyOutput_) << "EMUjtag: ERROR VerifyUserProm prom file " << filename_dat_ << " does not exist..." << std::endl;
+    std::cout << "EMUjtag: ERROR VerifyUserProm prom file " << filename_dat_ << " does not exist..." << std::endl;
     return;
   }
   //
@@ -2335,9 +2335,9 @@ void EMUjtag::CheckUserProm() {
   bool date_changed = false;
   //
   for (int address=0; address<prom_image_word_count_; address++) {
-    //    (*MyOutput_) << "EMUjtag: For address " << std::hex << address << std::endl;
-    //    (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
-    //    (*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
+    //    std::cout << "EMUjtag: For address " << std::hex << address << std::endl;
+    //    std::cout << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
+    //    std::cout << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
     //
     if ( tmb_->GetClockedOutPromImage(address) != GetUserPromImage(address) ) {
       //
@@ -2367,8 +2367,8 @@ void EMUjtag::CheckUserProm() {
 	//
       } else {
 	if (debug_) {
-	  (*MyOutput_) << "EMUjtag: WARNING address 0x" << std::hex << address;
-	  (*MyOutput_) << " to change from 0x" << std::hex << tmb_->GetClockedOutPromImage(address) 
+	  std::cout << "EMUjtag: WARNING address 0x" << std::hex << address;
+	  std::cout << " to change from 0x" << std::hex << tmb_->GetClockedOutPromImage(address) 
 		       << " -> 0x" << std::hex << GetUserPromImage(address) << std::endl;
 	}
 	verify_error_++;
@@ -2378,7 +2378,7 @@ void EMUjtag::CheckUserProm() {
   //
   if (GetNumberOfVerifyErrors() == 0 && date_changed) {
     if (GetWhichUserProm() == ChipLocationTmbUserPromTMB) {
-      (*MyOutput_) << "TMB configuration same as that loaded on " 
+      std::cout << "TMB configuration same as that loaded on " 
 		   << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 4) & 0xf)
 		   << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 0) & 0xf)
 		   << "."
@@ -2391,7 +2391,7 @@ void EMUjtag::CheckUserProm() {
 		   << std::hex << (( tmb_->GetClockedOutPromImage(0x05) >> 0) & 0xf) 
 		   << std::endl; 
     } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
-      (*MyOutput_) << "ALCT configuration same as that loaded on " 
+      std::cout << "ALCT configuration same as that loaded on " 
 		   << std::hex << (( tmb_->GetClockedOutPromImage(0x06) >> 0) & 0xf)
 		   << std::hex << (( tmb_->GetClockedOutPromImage(0x07) >> 0) & 0xf)
 		   << "."
@@ -2406,7 +2406,7 @@ void EMUjtag::CheckUserProm() {
     }
     
   } else {
-    (*MyOutput_) << "EMUjtag:  Number of verify errors = " 
+    std::cout << "EMUjtag:  Number of verify errors = " 
 		 << std::dec << GetNumberOfVerifyErrors() << std::endl;
     if ( GetNumberOfVerifyErrors() > 0 ) 
       ::sleep(1);
@@ -2419,7 +2419,7 @@ void EMUjtag::ProgramTMBProms() {
   //
   // N.B. we assume there is no JTAG verify done when programming the proms....
   //
-  (*MyOutput_) << "EMUjtag: Programming TMB Proms..." << std::endl;
+  std::cout << "EMUjtag: Programming TMB Proms..." << std::endl;
   //
   time_t starttime = time (NULL);
   //
@@ -2441,7 +2441,7 @@ void EMUjtag::ProgramTMBProms() {
   //
   int time_elapsed = endtime - starttime;
   //
-  (*MyOutput_) << "EMUjtag: TMB Programming complete in " 
+  std::cout << "EMUjtag: TMB Programming complete in " 
 	       << std::dec << time_elapsed << " seconds"
 	       << std::endl;  
   //
@@ -2553,7 +2553,7 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db ) {
 	  sscanf(Word[1],"%d",&nbits);
 	  if (nbits>MAXBUFSIZE) { 
 	    // === Handle Big Bitstreams
-	    (*MyOutput_) << "EMUjtag. nbits larger than buffer size" << std::endl;
+	    std::cout << "EMUjtag. nbits larger than buffer size" << std::endl;
 	  } else do {
 	    // == Handle Normal Bitstreams
 	    lastn=strrchr(buf,'\r');

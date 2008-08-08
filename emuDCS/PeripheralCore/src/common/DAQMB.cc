@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.45 2008/08/06 17:24:50 rakness Exp $
+// $Id: DAQMB.cc,v 3.46 2008/08/08 11:01:24 rakness Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.46  2008/08/08 11:01:24  rakness
+// centralize logging
+//
 // Revision 3.45  2008/08/06 17:24:50  rakness
 // add known_problem parameter to xml file; add time stamp + number of reads to config check output file
 //
@@ -391,6 +394,7 @@ const int DAQMB::nchips[5] = {6,6,6,6,6};
 
 DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   VMEModule(theCrate, newslot),
+  EmuLogger(),
   csc_(theChamber),
   feb_dav_delay_(23),tmb_dav_delay_(22), 
   push_dav_delay_(31), l1acc_dav_delay_(24),
@@ -426,7 +430,6 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   //
   theChamber->SetDMB(this);
   //
-  MyOutput_ = &std::cout ;
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
   for(int i=0;i<20;i++) TestStatus_[i]=-1;
@@ -5671,99 +5674,5 @@ int  DAQMB::test11()
    if(ierr!=0)pass=0;
    return pass;
    //
-}
-//
-/////////////////////////////////////////////////////////////////////
-// register comparison methods
-/////////////////////////////////////////////////////////////////////
-bool DAQMB::compareValues(std::string TypeOfTest, int testval, int compareval) {
-  //
-  //Default is that you want a) to print the errors, and b) return true if "testval" equals "compareval"...
-  //
-  return compareValues(TypeOfTest,testval,compareval,true,true);
-  //
-}
-//
-bool DAQMB::compareValues(std::string TypeOfTest, int testval, int compareval, bool print_errors) {
-  //
-  //Default is that you want to return true if "testval" equals "compareval"...
-  //
-  return compareValues(TypeOfTest,testval,compareval,print_errors,true);
-  //
-}
-//
-bool DAQMB::compareValues(std::string TypeOfTest, int testval, int compareval, bool print_errors, bool equal) {
-  //
-  // test if "testval" is equivalent to the expected value: "compareval"
-  // return depends on if you wanted them to be "equal"
-  //
-  //(*MyOutput_) << "compareValues:  " << TypeOfTest << " -> ";
-  //
-  if (equal) {
-    //
-    if (testval == compareval) {
-      // if (print_errors) (*MyOutput_) << "PASS = 0x" << std::hex << compareval << std::endl;
-      return true;
-    } else {
-      if (print_errors) {
-	(*MyOutput_) << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
-	//
-	std::ostringstream dump;
-	dump << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
-	//if (print_errors) SendOutput(dump.str(),"ERROR");
-      }
-      return false;
-    }
-    //
-  } else {
-    //
-    if (testval != compareval) {
-      // if (print_errors) (*MyOutput_) << "PASS -> 0x" << std::hex << testval << " not equal to 0x" <<std::hex << compareval << std::endl;
-      return true;
-    } else {
-      if (print_errors) {
-	(*MyOutput_) << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
-	//
-	std::ostringstream dump;
-	dump << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
-	//SendOutput(dump.str(),"ERROR");
-      }
-      return false;
-    }
-    //
-  }
-}
-//
-bool DAQMB::compareValues(std::string TypeOfTest, float testval, float compareval, float tolerance) {
-  //
-  // default is to print the errors
-  //
-  return compareValues(TypeOfTest,testval,compareval,tolerance,true);
-  //
-}
-//
-bool DAQMB::compareValues(std::string TypeOfTest, float testval, float compareval, float tolerance, bool print_errors) {
-  //
-  // test if "testval" is within "tolerance" of "compareval"...
-  //
-  //  (*MyOutput_) << "compareValues tolerance:  " << TypeOfTest << " -> ";
-  //
-  float err = (testval - compareval);
-  //
-  if (fabs(err)>tolerance) {
-    if (print_errors) {
-      (*MyOutput_) << TypeOfTest << " FAIL -> expected = " << compareval << ", returned = " << testval << " outside of tolerance "<< tolerance << std::endl;
-      //
-      std::ostringstream dump;
-      dump << TypeOfTest << " FAIL -> expected = " << compareval << ", returned = " << testval << " outside of tolerance "<< tolerance << std::endl;
-      //SendOutput(dump.str(),"ERROR");
-    }
-    //
-    return false;
-  } else {
-    // if (print_errors) (*MyOutput_) << TypeOfTest << " PASS -> value = " << testval << " within "<< tolerance << " of " << compareval << std::endl;
-    return true;
-  }
-  //
 }
 //

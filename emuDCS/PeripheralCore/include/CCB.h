@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.14 2008/08/05 12:29:19 rakness Exp $
+// $Id: CCB.h,v 3.15 2008/08/08 11:01:23 rakness Exp $
 // $Log: CCB.h,v $
+// Revision 3.15  2008/08/08 11:01:23  rakness
+// centralize logging
+//
 // Revision 3.14  2008/08/05 12:29:19  rakness
 // make TTCrxFineDelay xml parameter = number of nsec
 //
@@ -130,12 +133,13 @@
 #define CCB_h
 
 #include "VMEModule.h"
+#include "EmuLogger.h"
 #include <string>
 #include <bitset>
 
 class Crate;
 
-class CCB: public VMEModule
+class CCB: public VMEModule, public EmuLogger
 {
 public:
   void SetL1aDelay(int);
@@ -160,8 +164,6 @@ public:
   void pulse(int num_pulse=1,unsigned int pulse_delay=0xff);
   void inject(int num_pulse,unsigned int pulse_delay);
   void pedestal(int num_pulse,unsigned int pulse_delay);
-  //
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
   void HardReset_crate();
   void SoftReset_crate();
@@ -292,7 +294,7 @@ public:
   void DumpAddress(int);
 
   friend std::ostream & operator<<(std::ostream & os, CCB & ccb);
-
+  //
   //code used by DCS
 
 protected:
@@ -300,8 +302,6 @@ protected:
   enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
 private:
-  std::ostream * MyOutput_ ;
-  //
   //-- Control and Status Registers for CCB2004
   //   group A: discrete logic
   static const unsigned int CSRA1  = 0x00;

@@ -19,8 +19,6 @@ public:
   EMUjtag(TMB * );
   ~EMUjtag();
   //
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
-  //
   /////////////////////////////////////////////////////////////////////////////
   // set up your JTAG stuff correctly:
   /////////////////////////////////////////////////////////////////////////////
@@ -151,7 +149,6 @@ protected:
   //
 private:
   //
-  std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   //
   int debug_;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.71 2008/08/06 17:24:50 rakness Exp $
+// $Id: TMB.cc,v 3.72 2008/08/08 11:01:24 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.72  2008/08/08 11:01:24  rakness
+// centralize logging
+//
 // Revision 3.71  2008/08/06 17:24:50  rakness
 // add known_problem parameter to xml file; add time stamp + number of reads to config check output file
 //
@@ -473,6 +476,7 @@
 TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   VMEModule(theCrate, slot),
   EMUjtag(this),
+  EmuLogger(),
   alctController_(0),
   rat_(0),
   csc_(theChamber)
@@ -486,7 +490,6 @@ TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   //
   std::cout << "Inside TMB" << std::endl;
   //
-  MyOutput_ = &std::cout ;
   (*MyOutput_) << "TMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
   //
   //
@@ -8245,121 +8248,6 @@ int TMB::makemask(int bitlo, int bithi) {
     mask |= 1;
   }
   return mask;
-}
-//
-/////////////////////////////////////////////////////////////////////
-// register comparison methods
-/////////////////////////////////////////////////////////////////////
-bool TMB::compareValues(std::string TypeOfTest, int testval, int compareval) {
-  //
-  //Default is that you want a) to print the errors, and b) return true if "testval" equals "compareval"...
-  //
-  return compareValues(TypeOfTest,testval,compareval,true,true);
-  //
-}
-//
-bool TMB::compareValues(std::string TypeOfTest, int testval, int compareval, bool print_errors) {
-  //
-  //Default is that you want to return true if "testval" equals "compareval"...
-  //
-  return compareValues(TypeOfTest,testval,compareval,print_errors,true);
-  //
-}
-//
-bool TMB::compareValues(std::string TypeOfTest, int testval, int compareval, bool print_errors, bool equal) {
-  //
-  // test if "testval" is equivalent to the expected value: "compareval"
-  // return depends on if you wanted them to be "equal"
-  //
-  //(*MyOutput_) << "compareValues:  " << TypeOfTest << " -> ";
-  //
-  if (equal) {
-    //
-    if (testval == compareval) {
-      // if (print_errors) (*MyOutput_) << "PASS = 0x" << std::hex << compareval << std::endl;
-      return true;
-    } else {
-      if (print_errors) {
-	(*MyOutput_) << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
-	//
-	std::ostringstream dump;
-	dump << TypeOfTest << " FAIL -> expected value = 0x" << std::hex << compareval << ", returned value = 0x" << std:: hex << testval << std::endl;
-	//if (print_errors) SendOutput(dump.str(),"ERROR");
-      }
-      return false;
-    }
-    //
-  } else {
-    //
-    if (testval != compareval) {
-      // if (print_errors) (*MyOutput_) << "PASS -> 0x" << std::hex << testval << " not equal to 0x" <<std::hex << compareval << std::endl;
-      return true;
-    } else {
-      if (print_errors) {
-	(*MyOutput_) << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
-	//
-	std::ostringstream dump;
-	dump << TypeOfTest << " FAIL -> expected = returned = 0x" << std::hex << testval << std::endl;
-	//SendOutput(dump.str(),"ERROR");
-      }
-      return false;
-    }
-    //
-  }
-}
-//
-bool TMB::compareValues(std::string TypeOfTest, float testval, float compareval, float tolerance) {
-  //
-  // default is to print the errors
-  //
-  return compareValues(TypeOfTest,testval,compareval,tolerance,true);
-  //
-}
-//
-bool TMB::compareValues(std::string TypeOfTest, float testval, float compareval, float tolerance, bool print_errors) {
-  //
-  // test if "testval" is within "tolerance" of "compareval"...
-  //
-  //  (*MyOutput_) << "compareValues tolerance:  " << TypeOfTest << " -> ";
-  //
-  float err = (testval - compareval);
-  //
-  if (fabs(err)>tolerance) {
-    if (print_errors) {
-      (*MyOutput_) << TypeOfTest << " FAIL -> expected = " << compareval << ", returned = " << testval << " outside of tolerance "<< tolerance << std::endl;
-      //
-      std::ostringstream dump;
-      dump << TypeOfTest << " FAIL -> expected = " << compareval << ", returned = " << testval << " outside of tolerance "<< tolerance << std::endl;
-      //SendOutput(dump.str(),"ERROR");
-    }
-    //
-    return false;
-  } else {
-    // if (print_errors) (*MyOutput_) << TypeOfTest << " PASS -> value = " << testval << " within "<< tolerance << " of " << compareval << std::endl;
-    return true;
-  }
-  //
-}
-//
-void TMB::ReportCheck(std::string check_type, bool status_bit) {
-  //
-  std::ostringstream dump;
-  dump << "slot " << (int) slot() << ": " << check_type << " -> ";
-  (*MyOutput_) << "slot " << (int) slot() << ": " << check_type << " -> ";
-  //
-  if ( status_bit ) {
-    dump << "OK" << std::endl;
-    (*MyOutput_) << "OK" << std::endl;
-    //    this->SendOutput(dump.str(),"INFO");
-    //
-  } else {
-    dump << "FAIL <-" << std::endl;
-    (*MyOutput_) << "FAIL <-" << std::endl;
-    //    this->SendOutput(dump.str(),"ERROR");
-    //
-  }
-  //
-  return;
 }
 //
 /////////////////////////////////////////////////////////////////////

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.32 2008/08/06 08:34:33 rakness Exp $
+// $Id: CCB.cc,v 3.33 2008/08/08 11:01:24 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.33  2008/08/08 11:01:24  rakness
+// centralize logging
+//
 // Revision 3.32  2008/08/06 08:34:33  rakness
 // cleanup formatting of check Configuration output
 //
@@ -263,14 +266,17 @@
 #include "VMEController.h"
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <unistd.h> // for sleep
 #include <vector>
 #include <string>
+#include <math.h>
 #include "Crate.h"
-
+//
 //
 CCB::CCB(Crate * theCrate ,int slot)
 : VMEModule(theCrate, slot), 
+  EmuLogger(),
   TTC(NO_TTC),
   CLK_INIT_FLAG(0),
   mCCBMode(CCB::DLOG),
@@ -1116,37 +1122,70 @@ void CCB::configure() {
 int CCB::CheckConfig()
 {
   int rx;
-
- // check TTCrx ready and QPLL locked
+  //
+  bool config_ok = true;
+  //
+  // check TTCrx ready and QPLL locked
   rx=ReadRegister(CSRA3);
-  if((rx & 0x6000) != 0x2000) 
-  {  std::cout << "CCB_Check_Config: TTCrx or QPLL in wrong state " 
-               << std::hex << (rx&0xffff) << std::dec << std::endl;
-     return 0;
-  }
+  int read_value = rx & 0x6000;
+  //
+  int expected_value = 0x2000;
+  //
+  config_ok &= compareValues("CCB TTCrx/QPLL",read_value,expected_value);
+  //
+  //  if((rx & 0x6000) != 0x2000) 
+  //  {  std::cout << "CCB_Check_Config: TTCrx or QPLL in wrong state " 
+  //               << std::hex << (rx&0xffff) << std::dec << std::endl;
+  //     return 0;
+  //  }
+  //
+  //
   // check TTCrx Coarse delay
   rx=(int) (ReadTTCrxReg(2).to_ulong());
-  if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
-  {  std::cout << "CCB_Check_Config: TTCrx Coarse delay inconsistent "
-               << std::hex << (rx&0xff) << std::dec << std::endl;
-     return 0;
-  }
+  //
+  read_value = (rx&0xf);
+  expected_value = (TTCrxCoarseDelay_&0xf);
+  config_ok &= compareValues("CCB TTCrxCoarseDelay LSB",read_value,expected_value);
+  //
+  read_value = (rx&0xf0)>>4;
+  config_ok &= compareValues("CCB TTCrxCoarseDelay MSB",read_value,expected_value);
+  //
+  //  if(((rx&0xf) != (TTCrxCoarseDelay_&0xf)) || ((rx&0xf0)>>4 != (TTCrxCoarseDelay_&0xf)))  
+  //  {  std::cout << "CCB_Check_Config: TTCrx Coarse delay inconsistent "
+  //               << std::hex << (rx&0xff) << std::dec << std::endl;
+  //     return 0;
+  //  }
+  //
+  //
   // check TTCrx Control register
   rx=(int)(ReadTTCrxReg(3).to_ulong());
-  if((rx&0xff) != 0xB3) 
-  {  std::cout << "CCB_Check_Config: TTCrx Control register wrong "
-               << std::hex << (rx&0xff) << std::dec << std::endl;
-     return 0;
-  }
+  //
+  read_value = (rx&0xff);
+  expected_value = 0xB3;
+  config_ok &= compareValues("CCB TTCrx Control register",read_value,expected_value);
+  //
+  //  if((rx&0xff) != 0xB3) 
+  //  {  std::cout << "CCB_Check_Config: TTCrx Control register wrong "
+  //               << std::hex << (rx&0xff) << std::dec << std::endl;
+  //     return 0;
+  //  }
+  //
   // I2C access could leave the CCB in FPGA mode
   setCCBMode(CCB::DLOG);
+  //
   // check CCB in DLOG mode
   rx=ReadRegister(CSRA1);
-  if((rx & 1) == 0) 
-  {  std::cout << "CCB_Check_Config: CCB not in DLOG mode" << std::endl;
-     return 0;
-  }
-  return 1;
+  //
+  read_value = (rx&0x1);
+  expected_value = 0;
+  config_ok &= compareValues("CCB DLOG mode",read_value,expected_value);
+  //
+  //  if((rx & 1) == 0) 
+  //  {  std::cout << "CCB_Check_Config: CCB not in DLOG mode" << std::endl;
+  //     return 0;
+  //  }
+  //
+  return (int) config_ok;
 }
 //
 int CCB::ConvertNanosecondsToFineDelayUnits_(int delay_in_nsec) {
@@ -1762,3 +1801,4 @@ void CCB::l1a_and_trig(){
   //2004
   do_vme(VME_WRITE,0x54,sndbuf,rcvbuf,NOW); // base+0x3c
 }
+//

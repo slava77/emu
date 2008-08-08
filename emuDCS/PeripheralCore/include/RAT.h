@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 3.5 2008/01/16 18:36:51 rakness Exp $
+// $Id: RAT.h,v 3.6 2008/08/08 11:01:23 rakness Exp $
 // $Log: RAT.h,v $
+// Revision 3.6  2008/08/08 11:01:23  rakness
+// centralize logging
+//
 // Revision 3.5  2008/01/16 18:36:51  rakness
 // add broadcast firmware downloading for RAT
 //
@@ -45,17 +48,15 @@
 //
 #include <string>
 #include "EMU_JTAG_constants.h"
+#include "EmuLogger.h"
 //
 class TMB;
 //
-class RAT {
+class RAT : public EmuLogger {
  public:
   //
   RAT(TMB * );
   ~RAT();
-  //
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
-  //
   //
   //---------------------------------
   // Parameters in the database...
@@ -144,7 +145,6 @@ protected:
   //
 private:
   //
-  std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   //
   int rat_configuration_status_;

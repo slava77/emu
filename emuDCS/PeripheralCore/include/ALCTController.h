@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.33 2008/08/06 17:24:50 rakness Exp $
+// $Id: ALCTController.h,v 3.34 2008/08/08 11:01:23 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.34  2008/08/08 11:01:23  rakness
+// centralize logging
+//
 // Revision 3.33  2008/08/06 17:24:50  rakness
 // add known_problem parameter to xml file; add time stamp + number of reads to config check output file
 //
@@ -188,18 +191,17 @@
 //
 #include <string>
 #include "EMU_JTAG_constants.h"
+#include "EmuLogger.h"
 //
 class TMB;
 //
-class ALCTController {
+class ALCTController : public EmuLogger 
+{
  public:
   //
   //!chamberType = ME11, ME12, ME13, ME21, ME22, ME31, ME32, ME41, ME42
-  ALCTController(TMB * tmb, 
-		 std::string chamberType); 
+  ALCTController(TMB * tmb, std::string chamberType); 
   ~ALCTController();
-  //
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
   ///////////////////////////////////////////////////////////////////////////
   //  Useful methods to use ALCTController:
@@ -641,7 +643,6 @@ protected:
   //
 private:
   //
-  std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   int debug_;
   //

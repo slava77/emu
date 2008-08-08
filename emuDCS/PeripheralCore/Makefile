@@ -30,7 +30,8 @@ Sources=\
 	VMEModule.cc \
 	Chamber.cc \
 	EMUjtag.cc \
-	EmuEndcap.cc
+	EmuEndcap.cc \
+        EmuLogger.cc
 
 IncludeDirs = 
 
