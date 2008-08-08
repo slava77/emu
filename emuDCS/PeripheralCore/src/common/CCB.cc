@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.33 2008/08/08 11:01:24 rakness Exp $
+// $Id: CCB.cc,v 3.34 2008/08/08 17:56:54 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.34  2008/08/08 17:56:54  rakness
+// fix just introduced bug for checking DLOG mode
+//
 // Revision 3.33  2008/08/08 11:01:24  rakness
 // centralize logging
 //
@@ -1177,7 +1180,7 @@ int CCB::CheckConfig()
   rx=ReadRegister(CSRA1);
   //
   read_value = (rx&0x1);
-  expected_value = 0;
+  expected_value = 1;
   config_ok &= compareValues("CCB DLOG mode",read_value,expected_value);
   //
   //  if((rx & 1) == 0) 
