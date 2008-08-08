@@ -947,20 +947,28 @@ void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::Un
   std::string PERIPH_CONFIG_ID("PERIPH_CONFIG_ID");
   std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
   std::string LABEL("LABEL");
+  std::string KNOWN_PROBLEM("KNOWN_PROBLEM");
+  std::string PROBLEM_MASK("PROBLEM_MASK");
 
   xdata::UnsignedInteger64 _csc_config_id;
   xdata::String _label;
+  xdata::String _known_problem;
+  xdata::UnsignedInteger64 _problem_mask;
   
   for(unsigned j = 0; j < TStore_allChambers.size(); ++j) {
     if(TStore_allChambers[j]) {      
       _csc_config_id = periph_config_id + (j+1)*10000;
       _label = TStore_allChambers[j]->GetLabel();
+      _known_problem = TStore_allChambers[j]->GetProblemDescription();
+      _problem_mask = TStore_allChambers[j]->GetProblemMask();
 
 #ifdef debugV
       cout << "-- CSC emu_config_id ------ " << emu_config_id_.toString()   << std::endl;
       cout << "-- CSC periph_config_id --- " << periph_config_id.toString() << std::endl;
       cout << "-- CSC csc_config_id ------ " << _csc_config_id.toString()   << std::endl;
       cout << "-- CSC label -------------- " << _label.toString()           << std::endl;
+      cout << "-- CSC known_problem ------ " << _known_problem.toString()   << std::endl;
+      cout << "-- CSC problem_mask ------- " << _problem_mask.toString()    << std::endl;
       cout << "-- ######################## " << std::endl;
 #endif
 
@@ -970,6 +978,8 @@ void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::Un
       newRows.setValueAt(rowId, CSC_CONFIG_ID,    _csc_config_id);
       newRows.setValueAt(rowId, EMU_CONFIG_ID,    emu_config_id_);
       newRows.setValueAt(rowId, LABEL,            _label);
+      newRows.setValueAt(rowId, KNOWN_PROBLEM,    _known_problem);
+      newRows.setValueAt(rowId, PROBLEM_MASK,     _problem_mask);
       newRows.setValueAt(rowId, PERIPH_CONFIG_ID, periph_config_id);
 
       insert(connectionID,insertViewName,newRows);
@@ -1880,6 +1890,8 @@ void EmuPCrateConfigTStore::readCSC(const std::string &connectionID, const std::
       StrgValue=value->toString();
 
       if (*column == "LABEL")        {csc_->SetLabel(StrgValue);}
+      if (*column == "KNOWN_PROBLEM"){csc_->SetProblemDescription(StrgValue);}
+      if (*column == "PROBLEM_MASK") {csc_->SetProblemMask(IntValue);}
       if (*column == "CSC_CONFIG_ID"){csc_config_id = StrgValue;}
       std::cout << *column + ": " + StrgValue << std::endl;
     }
