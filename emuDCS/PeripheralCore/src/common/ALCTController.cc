@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.53 2008/08/08 11:01:24 rakness Exp $
+// $Id: ALCTController.cc,v 3.54 2008/08/08 16:18:34 liu Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.54  2008/08/08 16:18:34  liu
+// fix NoSetting values
+//
 // Revision 3.53  2008/08/08 11:01:24  rakness
 // centralize logging
 //
@@ -1343,7 +1346,7 @@ void ALCTController::Set_PulseDirection(std::string afebs_or_strips) {
 //
 std::string ALCTController::Get_PulseDirection() {
   //
-  std::string return_value = "NoSetting";
+  std::string return_value = "";
   //
   if ( GetPulseDirection() == PULSE_AFEBS ) 
     return_value = "afebs";
@@ -1963,7 +1966,7 @@ void ALCTController::Set_fastcontrol_backward_forward_type(std::string alct_firm
 //
 std::string ALCTController::Get_fastcontrol_backward_forward_type() {
   //
-  std::string return_value = "NoSetting";
+  std::string return_value = "";
   //
   if ( GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE )
     return_value = "b";
@@ -1990,7 +1993,7 @@ void ALCTController::Set_fastcontrol_negative_positive_type(std::string alct_fir
 //
 std::string ALCTController::Get_fastcontrol_negative_positive_type() {
   //
-  std::string return_value = "NoSetting";
+  std::string return_value = "";
   //
   if ( GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE )
     return_value = "n";
