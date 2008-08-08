@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.34 2008/08/08 11:01:23 rakness Exp $
+// $Id: ALCTController.h,v 3.35 2008/08/08 15:29:18 liu Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.35  2008/08/08 15:29:18  liu
+// ix Get/Set functions for database
+//
 // Revision 3.34  2008/08/08 11:01:23  rakness
 // centralize logging
 //
@@ -410,7 +413,7 @@ class ALCTController : public EmuLogger
   void SetBxcOffset(int bxc_offset); // set Write values...
   //                    bxc_offset = [0-255] -> value loaded into internal BX counter upon BC0
   int  GetBxcOffset();               // get Read values
-  int  GetWriteBxcOffset(){ return write_bxc_offset_; }
+  inline int  GetWriteBxcOffset(){ return write_bxc_offset_; }
   //
   //
   void SetPretrigNumberOfLayers(int nph_thresh); // set Write values...
@@ -470,7 +473,7 @@ class ALCTController : public EmuLogger
   void SetL1aDelay(int l1a_delay); // set Write values...
   //                   l1a_delay = [0-255] -> number of bunch crossings (after the LCT) of the leading edge of the l1a window 
   int  GetL1aDelay();              // get Read values
-  int  GetWriteL1aDelay(){ return write_l1a_delay_; }
+  inline int  GetWriteL1aDelay(){ return write_l1a_delay_; }
   //
   //
   void SetL1aWindowSize(int size); // set Write values...
@@ -518,7 +521,7 @@ class ALCTController : public EmuLogger
   //                                          0 = prefer Collision muon mode
   //                                          1 = prefer Accelerator muon mode
   int  GetAlctAmode();               // get Read values
-  inline int GetAlctWriteAmode(){ return write_alct_amode_; }
+  inline int GetWriteAlctAmode(){ return write_alct_amode_; }
   //
   //
   void SetTriggerInfoEnable(int trigger_info_en); // set Write values...
