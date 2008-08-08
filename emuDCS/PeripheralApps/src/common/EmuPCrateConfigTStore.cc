@@ -2128,11 +2128,10 @@ void EmuPCrateConfigTStore::readCFEB(const std::string &connectionID, const std:
 	  }
 	}
       }      
-      //
-      theDaqmb->cfebs_.push_back(cfeb);
-
       std::cout << *column + ": " + StrgValue << std::endl;
     }
+    //
+    theDaqmb->cfebs_.push_back(cfeb);
   }
 
 }

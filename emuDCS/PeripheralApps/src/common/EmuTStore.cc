@@ -1929,11 +1929,10 @@ void EmuTStore::readCFEB(const std::string &connectionID, const std::string &emu
 	  }
 	}
       }      
-      //
-      theDaqmb->cfebs_.push_back(cfeb);
-
       std::cout << *column + ": " + StrgValue << std::endl;
     }
+    //
+    theDaqmb->cfebs_.push_back(cfeb);
   }
 
 }
