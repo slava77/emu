@@ -464,7 +464,7 @@ void CrateUtilities::CreateTstoreTables(){
     alct_table[alct].push_back(alct_output[alct].str());
     //
     alct_output[alct].str("");
-    alct_output[alct] << myAlcts[alct]->GetAlctWriteAmode();
+    alct_output[alct] << myAlcts[alct]->GetWriteAlctAmode();
     alct_table[alct].push_back(alct_output[alct].str());
     //
     alct_output[alct].str("");
