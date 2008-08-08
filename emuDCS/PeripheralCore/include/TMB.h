@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.51 2008/08/08 11:01:23 rakness Exp $
+// $Id: TMB.h,v 3.52 2008/08/08 14:12:21 liu Exp $
 // $Log: TMB.h,v $
+// Revision 3.52  2008/08/08 14:12:21  liu
+// fix Get/Set functions for database
+//
 // Revision 3.51  2008/08/08 11:01:23  rakness
 // centralize logging
 //
@@ -936,6 +939,10 @@ public:
   //
   inline int  GetCfebEnableSource() { return cfeb_enable_source_; }
   //
+  // added for database purpose
+  inline int  GetCfebEnableSource_orig() { return cfeb_enable_source_orig; }
+
+  //
   //------------------------------------------------------------------
   //0X6A = ADR_SEQ_TRIG_DLY0:  Sequencer Trigger Source Delays
   //------------------------------------------------------------------
@@ -1841,6 +1848,7 @@ private:
   int all_cfeb_active_;
   int cfebs_enabled_;
   int cfeb_enable_source_;
+  int cfeb_enable_source_orig;
   //
   int read_clct_pat_trig_en_;
   int read_alct_pat_trig_en_;

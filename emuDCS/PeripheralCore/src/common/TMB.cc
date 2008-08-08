@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.72 2008/08/08 11:01:24 rakness Exp $
+// $Id: TMB.cc,v 3.73 2008/08/08 14:12:21 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.73  2008/08/08 14:12:21  liu
+// fix Get/Set functions for database
+//
 // Revision 3.72  2008/08/08 11:01:24  rakness
 // centralize logging
 //
@@ -7373,6 +7376,7 @@ void TMB::PrintBootRegister() {
 ////////////////////////////////////////////////////////////////////////////////////////
 void TMB::Set_cfeb_enable_source(int value) {
   //
+  cfeb_enable_source_orig = value;
   // decode TMB VME register into the bit which the VME register expects
   if (value == 42) {
     SetCfebEnableSource_(1);     
