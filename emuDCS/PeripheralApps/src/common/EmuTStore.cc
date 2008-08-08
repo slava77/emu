@@ -66,10 +66,12 @@ xdata::UnsignedInteger64 EmuTStore::getConfigId(const std::string &dbTable, cons
 xoap::MessageReference EmuTStore::sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception) {
 	xoap::MessageReference reply;
 	
+#ifdef debugV
 	std::cout << "Message: " << std::endl;
 	message->writeTo(std::cout);
 	std::cout << std::endl;
-	
+#endif
+
 	try {
 		xdaq::ApplicationDescriptor * tstoreDescriptor = thisApp->getApplicationContext()->getDefaultZone()->getApplicationDescriptor("tstore::TStore",0);
 	    xdaq::ApplicationDescriptor * tstoretestDescriptor=thisApp->getApplicationDescriptor();
@@ -82,9 +84,11 @@ xoap::MessageReference EmuTStore::sendSOAPMessage(xoap::MessageReference &messag
 	
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 		
+#ifdef debugV
 	std::cout << std::endl << "Response: " << std::endl;
 	reply->writeTo(std::cout);
 	std::cout << std::endl;
+#endif
 	
 	if (body.hasFault()) {
 	  //XCEPT_RAISE (xcept::Exception, body.getFault().getFaultString());
@@ -440,7 +444,9 @@ void EmuTStore::uploadConfiguration(const std::string &connectionID, const std::
   std::string EMU_ENDCAP_SIDE("EMU_ENDCAP_SIDE");
 
   emu_config_id_ = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side);
-  emu_config_id_++;
+  if(emu_config_id.value_==0) emu_config_id=((endcap_side=="plus")?1000000:2000000);
+  emu_config_id++;
+  emu_config_id_=emu_config_id;
   xdata::TimeVal _emu_config_time = (xdata::TimeVal)currentTime.gettimeofday();
   // Info to be entered in a form on a HyperDAQ page
   xdata::String _emu_config_type = "GLOBAL";
@@ -1504,7 +1510,7 @@ EmuEndcap * EmuTStore::getConfiguredEndcap(const std::string &emu_config_id) thr
   std::cout << "######## Empty EmuEndcap is created." << std::endl;
   
   std::string connectionID=connect();
-std::cout << "Liu DEBUG: connectionID " << connectionID << std::endl;
+  // std::cout << "Liu DEBUG: connectionID " << connectionID << std::endl;
   readConfiguration(connectionID, emu_config_id, endcap);
   std::cout << "######## EmuEndcap is complet." << std::endl;
 
@@ -1555,7 +1561,11 @@ void EmuTStore::readPeripheralCrate(const std::string &connectionID, const std::
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       std::string StrgValue=results.getValueAt(rowIndex,*column)->toString();
       if (*column == "PERIPH_CONFIG_ID"){periph_config_id = StrgValue;}
-      if (*column == "CRATEID"){crateid = (int)results.getValueAt(rowIndex,*column);}
+      if (*column == "CRATEID")
+      {  xdata::Serializable  * value = results.getValueAt(rowIndex,*column);
+         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
+         crateid = (int)*i;
+      }
       if (*column == "LABEL"){label = StrgValue;}
       std::cout << *column + ": " + StrgValue << std::endl;
     }
