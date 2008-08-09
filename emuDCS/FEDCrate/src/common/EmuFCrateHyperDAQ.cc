@@ -389,7 +389,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 					.set("class",statusClass)
 					.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 			*out << cgicc::a("RUI #"+ruiString)
-					.set("href","http://oraweb03.cern.ch:9000/pls/cms_emu_cern.pro/ddumap.web?"+ruiFormGetString);
+					.set("href","http://oraweb.cern.ch/pls/cms_emu_cern.pro/ddumap.web?"+ruiFormGetString);
 			*out << cgicc::td() << endl;
 			
 			// Loop through the chambers.  They should be in fiber-order.
