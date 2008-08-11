@@ -1002,12 +1002,13 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
 
     if(!parsed) ParsingXML();
     
-    if( MyController )
-      {
-        current_config_state_=1;
-	MyController->configure(c);
-        current_config_state_=2;
-      }
+    if(total_crates_<=0) return;
+    current_config_state_=1;
+    for(unsigned i=0; i< crateVector.size(); i++)
+    {
+        if(crateVector[i] && crateVector[i]->IsAlive()) crateVector[i]->configure(c);
+    }
+    current_config_state_=2;
     //
   }
 
