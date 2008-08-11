@@ -1,4 +1,4 @@
-// $Id: EmuFCrateManager.h,v 1.9 2008/06/25 18:13:12 paste Exp $
+// $Id: EmuFCrateManager.h,v 1.10 2008/08/11 14:04:56 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -48,7 +48,7 @@
 #include <xdata/UnsignedLong.h>
 #include <xdata/Table.h>
 
-#include "LocalEmuApplication.h"
+#include "EmuFEDApplication.h"
 // #include "EmuController.h"
 // #include "Crate.h"
 // #include "CrateUtilities.h"
@@ -62,7 +62,7 @@ using namespace std;
 
 #include "xdaq2rc/RcmsStateNotifier.h"
 
-class EmuFCrateManager: public LocalEmuApplication
+class EmuFCrateManager: public EmuFEDApplication
 {
 	class StateTable;
 	friend class StateTable;

@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.13 2008/07/25 15:33:09 paste Exp $
+/// $Id: EmuFCrateManager.cc,v 1.14 2008/08/11 14:04:58 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -34,7 +34,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuFCrateManager);
 
 EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
     //    throw (xdaq::exception::Exception) :
-	LocalEmuApplication(s),
+	EmuFEDApplication(s),
 	//state_table_(this),
 	soapConfigured_(false),
 	soapLocal_(false)
@@ -1413,7 +1413,7 @@ xoap::MessageReference EmuFCrateManager::createCommandSOAP(string command)
 	return message;
 }
 
-/* PRK Replaced in LocalEmuApplication.h
+/* PRK Replaced in EmuFEDApplication.h
 void EmuFCrateManager::setParameter(
 		string klass, string name, string type, unsigned int value)
 {

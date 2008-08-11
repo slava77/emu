@@ -1,18 +1,19 @@
 #ifndef _EmuFCrate_h_
 #define _EmuFCrate_h_
 
-#include "LocalEmuApplication.h"
-#include "EmuFController.h"
+#include "EmuFEDApplication.h"
 
 #include "xdata/String.h"
 #include "xdata/Vector.h"
+#include <vector>
 
+#include "Crate.h"
 #include "IRQThreadManager.h"
 
 using namespace std;
 using namespace cgicc;
 
-class EmuFCrate : public LocalEmuApplication, public EmuFController
+class EmuFCrate : public EmuFEDApplication
 {
 
 public:
@@ -77,6 +78,11 @@ public:
 	xoap::MessageReference onPassthru(xoap::MessageReference message)
 		throw (xoap::exception::Exception);
 
+	// Copied over from EmuFController, now defunct
+	void writeTTSBits(int crate, int slot, unsigned int bits);
+	unsigned int readTTSBits(int crate, int slot);
+	
+
 // end addition for STEP
 
 private:
@@ -108,6 +114,8 @@ private:
 
 	//string ttsIDStr_, ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
 	xdata::String endcap_; // Will say something like "plus" or "minus"
+
+	std::vector<Crate *> crateVector; // Very useful, just like in EFCHD
 
 };
 

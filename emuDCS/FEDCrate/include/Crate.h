@@ -71,8 +71,8 @@ public:
 
 	void enable();
 	void disable();
-	void configure(long unsigned int runnumber);
-	void init(long unsigned int runnumber);
+	void configure();
+	void init();
 // PGK, silly to have this belong to the crate and not the thread
 //	int irqtest(int crate,int ival);
 

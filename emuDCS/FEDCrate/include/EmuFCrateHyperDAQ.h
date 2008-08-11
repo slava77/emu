@@ -11,7 +11,7 @@
 #ifndef _EmuFCrateHyperDAQ_h_
 #define _EmuFCrateHyperDAQ_h_
 
-#include "LocalEmuApplication.h"
+#include "EmuFEDApplication.h"
 
 #include <string>
 #include <vector>
@@ -62,14 +62,14 @@ using namespace std;
 
 static const string STATE_UNKNOWN = "unknown";
 
-class EmuFCrateHyperDAQ: public LocalEmuApplication
+class EmuFCrateHyperDAQ: public EmuFEDApplication
 {
 private:
-	int reload;
+	//int reload;
 	//  long int timer,xtimer;
-	bool interrupt_set;
-	time_t interrupt_time;
-	long int ltime;
+	//bool interrupt_set;
+	//time_t interrupt_time;
+	//long int ltime;
 	unsigned long int tidcode[8];
 	unsigned long int tuscode[8];
 	//
@@ -77,25 +77,25 @@ protected:
 	//
 	xdata::String svfFile_;
 	xdata::String xmlFile_;
-	xdata::UnsignedLong myParameter_;
+	//xdata::UnsignedLong myParameter_;
 	//TestBeamCrateController tbController; // PGK ??
-	DDU* thisDDU;
-	DCC* thisDCC;
-	ostringstream CrateTestsOutput;
-	ostringstream OutputStringDDUStatus[9];
-	ostringstream OutputStringDCCStatus[9];
-	vector<DDU*> dduVector;
-	vector<DCC*> dccVector;
-	vector<VMEModule *> moduleVector;
+	//DDU* thisDDU;
+	//DCC* thisDCC;
+	//ostringstream CrateTestsOutput;
+	//ostringstream OutputStringDDUStatus[9];
+	//ostringstream OutputStringDCCStatus[9];
+	//vector<DDU*> dduVector;
+	//vector<DCC*> dccVector;
+	//vector<VMEModule *> moduleVector;
 	vector<Crate*> crateVector;
-	Crate *thisCrate;
-	std::string Operator_;
+	//Crate *thisCrate;
+	//std::string Operator_;
 	std::string DDUBoardID_[9];
 	std::string DCCBoardID_[9];
 	int DCC_ratemon[50][12];
 	int DCC_ratemon_cnt;
 	int DCC_ratemon_ch;
-	int DDU_, DCC_;
+	//int DDU_, DCC_;
 
 	string fcState_;
 	//
@@ -172,8 +172,10 @@ public:
 	*	from the xgi input which firmwares to load, etc.  Perhaps this can be
 	*	broken into multiple methods?
 	**/
+	/*
 	void DDUFirmware(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
+	*/
 
 	/** Page listing the DDU firmware broadcast options. **/
 	void DDUBroadcast(xgi::Input *in, xgi::Output *out)
