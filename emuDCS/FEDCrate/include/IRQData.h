@@ -23,6 +23,7 @@ public:
 		ddu(myDDU),
 		fibers(0),
 		errorTime(0),
+		errorEvent(0),
 		reset(0),
 		action("")
 	{
@@ -38,6 +39,7 @@ public:
 	DDU *ddu;
 	unsigned int fibers;
 	time_t errorTime;
+	unsigned long int errorEvent;
 	unsigned long int reset;
 	std::string action;
 

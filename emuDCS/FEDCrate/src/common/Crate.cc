@@ -83,9 +83,9 @@ void Crate::disable() {
   //
 }
 //
-void Crate::configure(long unsigned int runnumber = 0) {
+void Crate::configure() {
 // JRG, downloads to all boards, then starts the IRQ handler.
-	printf(" ********   Crate::configure is called with run number %u \n",(unsigned int) runnumber);
+	//printf(" ********   Crate::configure is called with run number %u \n",(unsigned int) runnumber);
 	std::vector<DDU*> myDdus = this->ddus();
 	for(unsigned i =0; i < myDdus.size(); ++i) {
 		myDdus[i]->configure();
@@ -103,7 +103,7 @@ void Crate::configure(long unsigned int runnumber = 0) {
 //	this->init(runnumber);
 }
 
-void Crate::init(long unsigned int runnumber = 0) {
+void Crate::init() {
 	// Does nothing.
 }
 

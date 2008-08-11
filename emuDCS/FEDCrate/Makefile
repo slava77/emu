@@ -18,18 +18,15 @@ Project=emu
 Package=emuDCS/FEDCrate
 
 Sources=\
+	EmuFEDLoggable.cc \
 	Crate.cc \
-	CrateSelector.cc \
-	CrateSetup.cc \
 	DDU.cc \
 	DDUParser.cc \
 	DDUDebugger.cc \
 	DCC.cc \
 	DCCParser.cc \
 	DCCDebugger.cc \
-	elong.cc \
 	EmuParser.cc \
-	TestBeamCrateController.cc \
 	FEDCrateController.cc \
 	FEDCrateParser.cc \
 	VMEController.cc \
@@ -41,7 +38,6 @@ Sources=\
 	EmuFRunControlHyperDAQ.cc \
 	EmuFCrate.cc \
 	EmuFCrateManager.cc \
-	EmuFController.cc \
 	Chamber.cc \
 	ChamberParser.cc
 

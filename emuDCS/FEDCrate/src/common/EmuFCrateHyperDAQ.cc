@@ -12,10 +12,9 @@ XDAQ_INSTANTIATOR_IMPL(EmuFCrateHyperDAQ)
 
 
 EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
-	LocalEmuApplication(s),
-	interrupt_set(false),
+	EmuFEDApplication(s),
 	xmlFile_("/home/cscdev/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml"),
-	Operator_("Name..."),
+	//Operator_("Name..."),
 	DCC_ratemon_cnt(0),
 	fcState_(STATE_UNKNOWN)
 {
@@ -25,7 +24,7 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 	xgi::bind(this,&EmuFCrateHyperDAQ::setConfFile, "setConfFile");
 	xgi::bind(this,&EmuFCrateHyperDAQ::setRawConfFile, "setRawConfFile");
 	xgi::bind(this,&EmuFCrateHyperDAQ::UploadConfFile, "UploadConfFile");
-	xgi::bind(this,&EmuFCrateHyperDAQ::DDUFirmware, "DDUFirmware");
+	//xgi::bind(this,&EmuFCrateHyperDAQ::DDUFirmware, "DDUFirmware");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDUBroadcast, "DDUBroadcast");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadBroadcast, "DDULoadBroadcast");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDUSendBroadcast, "DDUSendBroadcast");
@@ -54,7 +53,7 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 	xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate0,"getDataDCCRate0");
 	xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate1,"getDataDCCRate1");
 	//xgi::bind(this,&EmuFCrateHyperDAQ::setCrate,"setCrate");
-	myParameter_ =  0;
+	//myParameter_ =  0;
 
 	for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
 	getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
@@ -876,8 +875,8 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 
 		cout << "Clearing vectors to reset config." << endl;
 		crateVector.clear();
-		dduVector.clear();
-		dccVector.clear();
+		//dduVector.clear();
+		//dccVector.clear();
 
 		cout << "Load Default..." << endl;
 		Default(in, out);
@@ -919,8 +918,8 @@ void EmuFCrateHyperDAQ::setConfFile(xgi::Input * in, xgi::Output * out )
 
 		cout << "Clearing vectors to reset config." << endl;
 		crateVector.clear();
-		dduVector.clear();
-		dccVector.clear();
+		//dduVector.clear();
+		//dccVector.clear();
 
 		cout << "Load Default..." << endl;
 		Default(in, out);
@@ -950,8 +949,8 @@ void EmuFCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out )
 
 		cout << "Clearing vectors to reset config." << endl;
 		crateVector.clear();
-		dduVector.clear();
-		dccVector.clear();
+		//dduVector.clear();
+		//dccVector.clear();
 
 		cout << "Load Default..." << endl;
 		Default(in, out);
@@ -984,17 +983,17 @@ void EmuFCrateHyperDAQ::Configuring() {
 
 	cout << " clearing vectors..." << endl;
 	crateVector.clear();
-	dduVector.clear();
-	dccVector.clear();
+	//dduVector.clear();
+	//dccVector.clear();
 
 	cout << " setting vectors..." << endl;
 	crateVector = parser.crateVector();
-	dduVector = crateVector[0]->ddus();
-	dccVector = crateVector[0]->dccs();
-	moduleVector = crateVector[0]->modules();
-	cout << " crateVector["<<crateVector.size()<<"] dduVector["<<dduVector.size()<<"] dccVector["<<dccVector.size()<<"]" << endl;
+	//dduVector = crateVector[0]->ddus();
+	//dccVector = crateVector[0]->dccs();
+	//moduleVector = crateVector[0]->modules();
+	//cout << " crateVector["<<crateVector.size()<<"] dduVector["<<dduVector.size()<<"] dccVector["<<dccVector.size()<<"]" << endl;
 
-	thisCrate = crateVector[0];
+	//thisCrate = crateVector[0];
 
 // LSD, Make these optional with buttons
 // JRG, only start/reset the IRQ handler:
@@ -1006,7 +1005,7 @@ void EmuFCrateHyperDAQ::Configuring() {
 
 
 
-/** @Deprecated **/
+/*
 void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -1300,180 +1299,14 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 			.set("name","prom") << endl;
 		*out << cgicc::form() << endl;
 	}
-/*
-	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << endl;
-	*out << cgicc::html().set("lang", "en").set("dir","ltr") << endl;
-	*out << cgicc::title("DDU Firmware Form") << endl;
-	*out << body().set("background","/tmp/bgndcms.jpg") << endl;
-	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
-	*out << "(Load dual proms in order 1-0) (For hard reset use DCC TTC command)" <<endl;
-	*out << br() << endl;
-	*out << br() << endl;
 
-	string xmltext="";
-	for(int i=0;i<=7;i++){
-		xmltext="data/ddu_config/";
-		printf(" LOOP: %d \n",i);
-		*out << cgicc::span().set("style","color:black");
-		if(thisDDU->slot()>21){ // Broadcast only (not needed anymore?)
-			sprintf(buf," ");
-
-			switch(i) {
-			case 1:
-				sprintf(buf," <font size=+1> DDU Broadcast Firmware Load</font> ");
-				break;
-			case 3:
-				sprintf(buf,"vmeprom  ");
-				break;
-			case 4:
-				sprintf(buf,"dduprom0 ");
-				xmltext="/home/cscfed/firmware/ddu5ctrl_0.svf";
-				break;
-			case 5:
-				sprintf(buf,"dduprom1 ");
-				xmltext="/home/cscfed/firmware/ddu5ctrl_1.svf";
-				break;
-			case 6:
-				sprintf(buf,"inprom0  ");
-				break;
-			case 7:
-				sprintf(buf,"inprom1  ");
-				break;
-			default:
-				break;
-			}
-
-			printf(" %s ",buf);
-			*out << buf << cgicc::span() << endl;
-		} else {
-			thisCrate->vmeController()->CAEN_err_reset();
-			if(i==0){idcode=thisDDU->ddufpga_idcode(); sprintf(buf,"ddufpga  ");}
-			if(i==1){idcode=thisDDU->infpga_idcode0(); sprintf(buf,"infpga0  ");}
-			if(i==2){idcode=thisDDU->infpga_idcode1(); sprintf(buf,"infpga1  ");}
-			if(i==6){idcode=thisDDU->inprom_idcode0(); sprintf(buf,"inprom0  ");}
-			if(i==7){idcode=thisDDU->inprom_idcode1(); sprintf(buf,"inprom1  ");}
-			if(i==3){idcode=thisDDU->vmeprom_idcode(), sprintf(buf,"vmeprom  ");}
-			if(i==4){idcode=thisDDU->dduprom_idcode0();sprintf(buf,"dduprom0 ");}
-			if(i==5){idcode=thisDDU->dduprom_idcode1();sprintf(buf,"dduprom1 ");}
-			printf(" %s idcode %08lx ",buf,idcode);
-			*out<<buf;
-			sprintf(buf,"  id: ");
-			*out << buf;*out << cgicc::span();
-			if(thisCrate->vmeController()->CAEN_err()!=0){
-				*out << cgicc::span()
-					.set("style","color:yellow;background-color:#dddddd;");
-			}else if(idcode!=tidcode[i]){
-				*out << cgicc::span()
-					.set("style","color:red;background-color:#dddddd;");
-			} else {
-				*out << cgicc::span()
-					.set("style","color:green;background-color:#dddddd");
-			}
-			sprintf(buf,"%08lX",idcode);
-			*out << buf;*out << cgicc::span();
-
-			thisCrate->vmeController()->CAEN_err_reset();
-			if(i==0){uscode=thisDDU->ddufpga_usercode();}
-			if(i==1){uscode=thisDDU->infpga_usercode0();}
-			if(i==2){uscode=thisDDU->infpga_usercode1();}
-			if(i==6){uscode=thisDDU->inprom_usercode0();}
-			if(i==7){uscode=thisDDU->inprom_usercode1();}
-			if(i==3){uscode=thisDDU->vmeprom_usercode();}
-			if(i==4){uscode=thisDDU->dduprom_usercode0();}
-			if(i==5){uscode=thisDDU->dduprom_usercode1();}
-			*out << cgicc::span().set("style","color:black");
-			sprintf(buf," usr: ");
-			*out << buf;*out << cgicc::span();
-			if(i==4||i==5){
-				printf(" uscode %06lx ",(uscode>>8)&0x00ffffff);
-				printf(" BoardID %2ld \n",uscode&0x000000ff);
-			} else {
-				printf(" uscode %08lx \n",uscode);
-			}
-			if(thisCrate->vmeController()->CAEN_err()!=0){
-				*out << cgicc::span()
-					.set("style","color:yellow;background-color:#dddddd;");
-			}else if(i!=4 && i!=5 && uscode!=tuscode[i]){
-				*out << cgicc::span()
-					.set("style","color:red;background-color:#dddddd;");
-			}else if((i==4 || i==5) && (uscode&0xffffff00)!=(tuscode[i]&0xffffff00)){
-				*out << cgicc::span()
-					.set("style","color:red;background-color:#dddddd;");
-			}else{
-				*out << cgicc::span()
-					.set("style","color:green;background-color:#dddddd;");
-			}
-
-			if(i==4||i==5){
-				sprintf(buf,"%06lX",(uscode>>8)&0x00ffffff);
-				*out << buf;*out << cgicc::span();
-				*out << cgicc::span().set("style","color:black");
-				sprintf(buf," BoardID: ");
-				*out << buf;*out << cgicc::span();
-				*out << cgicc::span().set("style","color:blue;background-color:#dddddd;");
-				sprintf(buf,"%2ld",uscode&0x000000ff);
-			} else {
-				sprintf(buf,"%08lX",uscode);
-			}
-			//sprintf(buf,"%08lX",uscode);
-			*out << buf << cgicc::span() << endl;
-			if(i==2) *out << br() << endl;
-		} // end regular DDU (not broadcast)
-
-		*out << br() << endl;
-		printf(" now boxes \n");
-
-		if(i>=3&&i<8){
-			string dduloadfirmware =
-			toolbox::toString("/%s/DDULoadFirmware",getApplicationDescriptor()->getURN().c_str());
-
-			*out << cgicc::form().set("method","POST")
-				.set("enctype","multipart/form-data")
-				.set("action",dduloadfirmware) << endl;
-				//.set("enctype","multipart/form-data")
-
-			// NOTE: the _input_ tag is what takes the value parameter,
-			// not the _form_ tag.
-			// Also, it's not exacly well defined if file type inputs
-			// obey the value parameter.  The default value will be
-			// browser-dependent.
-			*out << cgicc::input().set("type","file")
-				.set("name","DDULoadSVF")
-				.set("value",xmltext)
-				.set("size","50") << endl;
-
-			*out << cgicc::input()
-				.set("type","submit")
-				.set("value","LoadSVF") << endl;
-			sprintf(buf,"%d",ddu);
-			*out << cgicc::input()
-				.set("type","hidden")
-				.set("value",buf)
-				.set("name","ddu") << endl;
-			sprintf(buf,"%d",i);
-
-			if(thisDDU->slot()>21)sprintf(buf,"%d",10+i);
-			*out << cgicc::input()
-				.set("type","hidden")
-				.set("value",buf)
-				.set("name","prom") << endl;
-			*out << cgicc::form() << endl ;
-
-		} else { // Not a proper thing to load
-			*out << endl;
-		}
-	} // end run over chip types
-	*out << cgicc::fieldset()<< endl;
-	*out << cgicc::body() << endl;
-	*out << cgicc::html() << endl;
-	*/
 
 	*out << cgicc::fieldset() << endl;
 
 	*out << Footer() << endl;
 
 }
-
+*/
 
 
 void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
@@ -5370,14 +5203,14 @@ void EmuFCrateHyperDAQ::LoadXMLconf(xgi::Input * in, xgi::Output * out )
 	//    cout << "  should go to this URL: " << URLname  << endl ;
 	// Here's how you clear them:
 	crateVector.clear();
-	dduVector.clear();
-	dccVector.clear();
+	//dduVector.clear();
+	//dccVector.clear();
 	// It doesn't seem to work, though (PGK)
 	//printf(" dduVector.size() %d \n",dduVector.size());
 	//printf(" dccVector.size() %d \n",dccVector.size());
 	//    dduVector.size()=0;  // How to set these to zero?!?
 	//    dccVector.size()=0;  // Then go to   this->Default(in.out);
-	reload=1;
+	//reload=1;
 
 	string loadxmlconf = toolbox::toString("/%s/",getApplicationDescriptor()->getURN().c_str());
 	//    cout<<endl<<"  JRGdebug: LoadXMLconf string="<<loadxmlconf<<endl;

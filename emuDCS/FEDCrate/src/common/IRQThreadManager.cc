@@ -291,7 +291,7 @@ void *IRQThreadManager::IRQThread(void *data)
 				chamberErrors << myDDU->getChamber(iFiber)->name() << " ";
 			}
 		}
-		
+
 		LOG4CPLUS_INFO(logger, "Decoded information follows" << endl
 			<< "FEDCrate   : " << myCrate->number() << endl
 			<< "Slot       : " << myDDU->slot() << endl

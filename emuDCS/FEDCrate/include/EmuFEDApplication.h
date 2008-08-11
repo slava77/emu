@@ -1,8 +1,9 @@
-#ifndef __LOCALEMUAPPLICATION_H__
-#define __LOCALEMUAPPLICATION_H__
+#ifndef __EMUFEDAPPLICATION_H__
+#define __EMUFEDAPPLICATION_H__
 
 #include "xdaq/WebApplication.h"
 #include "EmuApplication.h"
+#include "EmuFEDLoggable.h"
 
 #include <string>
 
@@ -32,7 +33,7 @@
 using namespace std;
 
 
-class LocalEmuApplication: public EmuApplication {
+class EmuFEDApplication: public EmuFEDLoggable, public EmuApplication {
 
 public:
 
@@ -44,7 +45,7 @@ public:
 	**/
 	xdata::Integer autoRefresh_;
 
-	LocalEmuApplication(xdaq::ApplicationStub *stub)
+	EmuFEDApplication(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception):
 		EmuApplication(stub),
 		runNumber_(0),
@@ -52,7 +53,7 @@ public:
 		NS_XSI("http://www.w3.org/2001/XMLSchema-instance"),
 		STATE_UNKNOWN("unknown")
 	{
-		xoap::bind(this, &LocalEmuApplication::onGetParameters, "GetParameters", XDAQ_NS_URI);
+		xoap::bind(this, &EmuFEDApplication::onGetParameters, "GetParameters", XDAQ_NS_URI);
 
 		// PGK Making these available on the ApplicationInfoSpace will allow
 		//  the CSCSV to set them with the "ParameterSet" SOAP command.

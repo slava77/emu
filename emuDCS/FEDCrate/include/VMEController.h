@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.4 2008/06/10 13:44:41 gilmore Exp $
+// $Id: VMEController.h,v 3.5 2008/08/11 14:04:56 paste Exp $
 // $Log: VMEController.h,v $
+// Revision 3.5  2008/08/11 14:04:56  paste
+// Intensive cleanup of stale files and the beginning of renaming things to more reasonable names in preparation of presentation of the code.
+//
 // Revision 3.4  2008/06/10 13:44:41  gilmore
 // improved FED Crate HyperDAQ operability
 //
@@ -43,8 +46,6 @@ using namespace std;
 #include <pthread.h>
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
-//#include "vmeIRQ.h"
-//#include "IRQThread.h"
 #include <log4cplus/logger.h>
 #include <xdaq/Application.h>
 
