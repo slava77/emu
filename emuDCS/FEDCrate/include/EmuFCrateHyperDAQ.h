@@ -60,8 +60,6 @@
 using namespace cgicc;
 using namespace std;
 
-static const string STATE_UNKNOWN = "unknown";
-
 class EmuFCrateHyperDAQ: public EmuFEDApplication
 {
 private:

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.1 2007/07/23 05:02:24 gilmore Exp $
+// $Id: VMEModule.h,v 3.2 2008/08/11 15:24:34 paste Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.2  2008/08/11 15:24:34  paste
+// More updates to clean up files, preparing for universal logger and presentation of code.
+//
 // Revision 3.1  2007/07/23 05:02:24  gilmore
 // major structural chages to improve multi-crate functionality
 //
@@ -24,6 +27,7 @@
 #include "Crate.h"
 class VMEController;
 #include "JTAG_constants.h"
+#include "EmuFEDLoggable.h"
 
 
 /* VMEModule is a virtual class for DCC and DDU classes.
@@ -36,7 +40,7 @@ class VMEController;
  * for those methods, not the DDU and DCC objects.
  */
 
-class VMEModule
+class VMEModule: public EmuFEDLoggable
 {
 public:
 	enum {MAXLINE = 70000};

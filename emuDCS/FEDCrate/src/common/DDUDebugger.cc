@@ -1,20 +1,5 @@
 #include "DDUDebugger.h"
 
-using namespace std;
-
-
-DDUDebugger::DDUDebugger()
-{
-}
-
-
-
-DDUDebugger::~DDUDebugger()
-{
-}
-
-
-
 std::map<string, string> DDUDebugger::DDUFPGAStat(unsigned long int stat)
 {
 	std::map<string, string> returnValues;

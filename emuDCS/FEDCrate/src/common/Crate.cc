@@ -1,8 +1,6 @@
 #include "Crate.h"
 #include "VMEModule.h"
 #include "VMEController.h"
-#include "CrateSetup.h"
-#include "Singleton.h"
 #include "DDU.h"
 #include "DCC.h"
 
@@ -14,7 +12,7 @@ Crate::Crate(int number, VMEController *theController):
 	theModules(31),
 	theController(NULL)
 {
-	Singleton<CrateSetup>::instance()->addCrate(number, this);
+	//Singleton<CrateSetup>::instance()->addCrate(number, this);
 }
 
 

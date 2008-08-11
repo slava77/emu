@@ -9,6 +9,7 @@ using namespace std;
 #include "Crate.h"
 #include "VMEController.h"
 #include "DDU.h"
+#include "EmuFEDLoggable.h"
 
 #include <cmath>
 #include <string>
@@ -32,7 +33,7 @@ using namespace std;
 #include <log4cplus/logger.h>
 #include <log4cplus/fileappender.h>
 
-class IRQThreadManager {
+class IRQThreadManager: public EmuFEDLoggable {
 
 public:
 

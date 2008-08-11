@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.h,v 3.3 2008/02/01 16:18:14 gilmore Exp $
+// $Id: FEDCrateParser.h,v 3.4 2008/08/11 15:24:34 paste Exp $
 // $Log: FEDCrateParser.h,v $
+// Revision 3.4  2008/08/11 15:24:34  paste
+// More updates to clean up files, preparing for universal logger and presentation of code.
+//
 // Revision 3.3  2008/02/01 16:18:14  gilmore
 // added fiber-to-CSCid map decode using local XML file as reference
 //
@@ -36,8 +39,9 @@
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include "Crate.h"
+#include "EmuFEDLoggable.h"
 
-class FEDCrateParser {
+class FEDCrateParser: public EmuFEDLoggable {
 
 public:
 	FEDCrateParser() {}

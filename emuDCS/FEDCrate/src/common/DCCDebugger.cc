@@ -1,18 +1,5 @@
 #include "DCCDebugger.h"
 
-using namespace std;
-
-
-DCCDebugger::DCCDebugger()
-{
-}
-
-
-
-DCCDebugger::~DCCDebugger()
-{
-}
-
 
 
 std::map<string, string> DCCDebugger::FMMStat(short int stat)
