@@ -2013,7 +2013,7 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
       if (*column == "CLCT_NPLANES_HIT_PATTERN"     ) {tmb_->SetMinHitsPattern(IntValue);            }
       if (*column == "CLCT_DRIFT_DELAY"             ) {tmb_->SetDriftDelay(IntValue);                }
       if (*column == "TMB_FIFO_MODE"                ) {tmb_->SetFifoMode(IntValue);                  }
-      if (*column == "TMB_FIFO_TBINS"               ) {tmb_->SetFifoTbins(IntValue);                 }
+      if (*column == "CLCT_FIFO_TBINS"              ) {tmb_->SetFifoTbins(IntValue);                 }
       if (*column == "CLCT_FIFO_PRETRIG"            ) {tmb_->SetFifoPreTrig(IntValue);               }
       if (*column == "MPC_SYNC_ERR_ENABLE"          ) {tmb_->SetTmbSyncErrEnable(IntValue);          }
       if (*column == "ALCT_TRIG_ENABLE"             ) {tmb_->SetTmbAllowAlct(IntValue);              }
