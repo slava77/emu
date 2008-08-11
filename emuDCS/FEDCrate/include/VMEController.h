@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.5 2008/08/11 14:04:56 paste Exp $
+// $Id: VMEController.h,v 3.6 2008/08/11 15:24:34 paste Exp $
 // $Log: VMEController.h,v $
+// Revision 3.6  2008/08/11 15:24:34  paste
+// More updates to clean up files, preparing for universal logger and presentation of code.
+//
 // Revision 3.5  2008/08/11 14:04:56  paste
 // Intensive cleanup of stale files and the beginning of renaming things to more reasonable names in preparation of presentation of the code.
 //
@@ -32,6 +35,8 @@ using namespace std;
 
 #include "VMEModule.h"
 #include "Crate.h"
+#include "EmuFEDLoggable.h"
+
 #include <cmath>
 #include <string>
 #include <stdio.h>
@@ -49,7 +54,8 @@ using namespace std;
 #include <log4cplus/logger.h>
 #include <xdaq/Application.h>
 
-class VMEController {
+class VMEController: public EmuFEDLoggable
+{
 public:
 	VMEController(int Device, int Link);
 	~VMEController();

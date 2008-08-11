@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.2 2008/06/10 13:52:12 gilmore Exp $
+// $Id: VMEModule.cc,v 3.3 2008/08/11 15:24:35 paste Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.3  2008/08/11 15:24:35  paste
+// More updates to clean up files, preparing for universal logger and presentation of code.
+//
 // Revision 3.2  2008/06/10 13:52:12  gilmore
 // improved FED Crate HyperDAQ operability
 //
@@ -21,8 +24,6 @@
 #include "VMEModule.h"
 #include "VMEController.h"
 #include "Crate.h"
-#include "CrateSetup.h"
-#include "Singleton.h"
 #include <cmath>
 #include <string>
 #include <stdio.h>

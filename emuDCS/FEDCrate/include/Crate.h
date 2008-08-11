@@ -43,12 +43,14 @@ using namespace std;
 #include <vector>
 #include <iostream>
 
+#include "EmuFEDLoggable.h"
+
 class VMEModule;
 class VMEController;
 class DDU;
 class DCC;
 
-class Crate {
+class Crate: public EmuFEDLoggable {
 public:
 	Crate(int number, VMEController* theController = NULL);
 	~Crate();

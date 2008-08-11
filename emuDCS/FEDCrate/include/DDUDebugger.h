@@ -1,7 +1,6 @@
 #ifndef DDUDebugger_h
 #define DDUDebugger_h
 
-using namespace std;
 #include <string>
 #include <map>
 #include <iostream>
@@ -9,7 +8,7 @@ using namespace std;
 #include <sstream>
 #include "DDU.h"
 
-/** A class that reads particular variables from the DDU and returns debugging
+/** A namespace that reads particular variables from the DDU and returns debugging
 *	information.  Everything is returned as a vector of pairs, the 2nd element
 *	being the class of the particular debug message
 *	(@sa LocalEmuApplication::CSS) and the 1st is the actual debug message.
@@ -17,13 +16,8 @@ using namespace std;
 *	@author Phillip Killewald
 *	@author Jason Gilmore
 **/
-class DDUDebugger
+namespace DDUDebugger
 {
-public:
-	/** Does nothing **/
-	DDUDebugger();
-	/** Does nothing **/
-	~DDUDebugger();
 
 	/** Reads from method @sa DDU::readFPGAStat(DDUFPGA) **/
 	std::map<string, string> DDUFPGAStat(unsigned long int stat);
@@ -95,8 +89,6 @@ public:
 
 	/** Reads from method @sa DDU::readFMMReg() **/
 	std::map<string, string> F0EReg(int stat);
-
-private:
 
 };
 

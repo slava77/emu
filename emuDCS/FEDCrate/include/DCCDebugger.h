@@ -9,7 +9,7 @@ using namespace std;
 #include <sstream>
 #include "DCC.h"
 
-/** A class that reads particular variables from the DCC and returns debugging
+/** A namespace that reads particular variables from the DCC and returns debugging
 *	information.  Everything is returned as a vector of pairs, the 2nd element
 *	being the class of the particular debug message
 *	(@sa LocalEmuApplication::CSS) and the 1st is the actual debug message.
@@ -17,13 +17,8 @@ using namespace std;
 *	@author Phillip Killewald
 *	@author Jianhui Gu
 **/
-class DCCDebugger
+namespace DCCDebugger
 {
-public:
-	/** Does nothing **/
-	DCCDebugger();
-	/** Does nothing **/
-	~DCCDebugger();
 
 	/** Reads from method @sa DCC::readStatusHigh(DDUFPGA) **/
 	std::map<string, string> FMMStat(short int stat);

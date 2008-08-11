@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.h,v 3.0 2006/07/20 21:16:10 geurts Exp $
+// $Id: EmuParser.h,v 3.1 2008/08/11 15:24:34 paste Exp $
 // $Log: EmuParser.h,v $
+// Revision 3.1  2008/08/11 15:24:34  paste
+// More updates to clean up files, preparing for universal logger and presentation of code.
+//
 // Revision 3.0  2006/07/20 21:16:10  geurts
 // *** empty log message ***
 //
@@ -17,8 +20,9 @@
 
 #include <xercesc/dom/DOM.hpp>
 #include <string>
+#include "EmuFEDLoggable.h"
 
-class EmuParser 
+class EmuParser: public EmuFEDLoggable
 {
 public:
   EmuParser() {}
