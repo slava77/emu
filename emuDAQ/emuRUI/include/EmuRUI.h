@@ -57,6 +57,7 @@ private:
 
   bool serverLoopAction(toolbox::task::WorkLoop *wl);
 
+  int runStartUTC_; /// Unix UTC run start time 
 
   static const unsigned int maxDevices_ = 5; // max possible number of input devices
   static const unsigned int maxClients_ = 5; // max possible number of clients
@@ -137,6 +138,7 @@ private:
   xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg )
     throw( emuRUI::exception::Exception );
   void addDataForClients(const int   runNumber, 
+			 const int   runStartUTC,
 			 const int   nEventsRead,
 			 const bool  completesEvent, 
 			 const unsigned short errorFlag, 
@@ -214,6 +216,8 @@ private:
 			const string                 paramName,
 			const string                 paramType)
     throw (emuRUI::exception::Exception);
+
+  time_t toUnixTime( const std::string YYMMDD_hhmmss_UTC );
 
   void getRunInfo() throw (emuRUI::exception::Exception);
 

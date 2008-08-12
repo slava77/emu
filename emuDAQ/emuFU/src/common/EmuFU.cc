@@ -123,6 +123,8 @@ bSem_(toolbox::BSem::FULL)
     //
     workLoopFactory_ = toolbox::task::getWorkLoopFactory();
 
+    runStartUTC_ = 0;
+
     fileWriter_ = NULL;
 
     bindFsmSoapCallbacks();
@@ -1115,6 +1117,7 @@ throw (toolbox::fsm::exception::Exception)
     destroyServers();
     createServers();
 
+    runStartUTC_  = 0;
     runStartTime_ = "YYMMDD_hhmmss_UTC";
     runStopTime_  = "YYMMDD_hhmmss_UTC";
 }
@@ -1365,14 +1368,16 @@ bool EmuFU::serverLoopAction(toolbox::task::WorkLoop *wl)
 }
 
 
-void EmuFU::addDataForClients( const int   runNumber, 
+void EmuFU::addDataForClients( const int   runNumber,
+			       const int   runStartUTC,
 			       const int   nEventsRead,
 			       const bool  completesEvent, 
 			       char* const data, 
 			       const int   dataLength ){
   unsigned short dummyErrorFlag = 0; // We don't have the error info amy more at this point.
   for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
-    clients_[iClient]->server->addData( runNumber, 
+    clients_[iClient]->server->addData( runNumber,
+					runStartUTC,
 					nEventsRead, 
 					completesEvent,
 					dummyErrorFlag,
@@ -1712,6 +1717,7 @@ throw (emuFU::exception::Exception)
 	}
       
       addDataForClients( runNumber_.value_,
+			 runStartUTC_,
 			 nbEventsProcessed_.value_,
 			 blockIsLastOfEvent,
 			 startOfPayload,
@@ -2652,6 +2658,24 @@ throw (emuFU::exception::Exception)
     return value;
 }
 
+time_t EmuFU::toUnixTime( const std::string YYMMDD_hhmmss_UTC ){
+  if ( YYMMDD_hhmmss_UTC.size() < 17 ) return time_t(0);
+
+  struct tm stm;
+  std::stringstream ss;
+
+  ss << YYMMDD_hhmmss_UTC.substr( 0,2); ss >> stm.tm_year; ss.clear(); stm.tm_year += 100;
+  ss << YYMMDD_hhmmss_UTC.substr( 2,2); ss >> stm.tm_mon;  ss.clear(); stm.tm_mon  -= 1;
+  ss << YYMMDD_hhmmss_UTC.substr( 4,2); ss >> stm.tm_mday; ss.clear();
+  ss << YYMMDD_hhmmss_UTC.substr( 7,2); ss >> stm.tm_hour; ss.clear();
+  ss << YYMMDD_hhmmss_UTC.substr( 9,2); ss >> stm.tm_min;  ss.clear();
+  ss << YYMMDD_hhmmss_UTC.substr(11,2); ss >> stm.tm_sec;  ss.clear();
+
+  time_t unixTime = mktime( &stm );
+
+  return ( unixTime < 0 ? time_t(0) : unixTime );
+}
+
 
 void EmuFU::getRunInfo()
   // Gets the run number and start time from TA
@@ -2660,7 +2684,7 @@ throw (emuFU::exception::Exception)
   runNumber_    = 0;
   isBookedRunNumber_ = false;
   runStartTime_ = "YYMMDD_hhmmss_UTC";
-
+  runStartUTC_ = 0;
 
   try
     {
@@ -2686,7 +2710,8 @@ throw (emuFU::exception::Exception)
     br = getScalarParam(*taDescriptors_.begin(),"isBookedRunNumber","boolean");
     LOG4CPLUS_INFO(logger_, "Got info on run booking from emuTA: " + br );
     runStartTime_ = getScalarParam(*taDescriptors_.begin(),"runStartTime","string");
-    LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
+    runStartUTC_ = toUnixTime( runStartTime_ );
+    LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() + " or " << runStartUTC_ );
   }
   else{
     LOG4CPLUS_ERROR(logger_, "Did not find EmuTA. ==> Run number and start time are unknown.");
