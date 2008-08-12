@@ -6,7 +6,7 @@
 namespace EmuClient 
 {
     const std::string package     = "emuDAQ/emuClient";
-    const std::string versions    = "4.0";
+    const std::string versions    = "CRUZET4";
     const std::string description = "Example I2O client for the endcap muon local DAQ";
     const std::string summary     = "emuDAQ/emuClient";
     const std::string link        = "NONE";
