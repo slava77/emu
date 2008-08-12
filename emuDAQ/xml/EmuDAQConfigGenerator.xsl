@@ -359,7 +359,7 @@
               <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/config/emuDQMCanvases.xml</xmlCanvasesCfgFile>
               <cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
               <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
-              <outputROOTFile xsi:type="xsd:string">/nfshome0/cscdqm/results/</outputROOTFile>
+              <outputROOTFile xsi:type="xsd:string">/data/dqm/</outputROOTFile>
               <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
               <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
               <dduCheckMask xsi:type="xsd:unsignedInt">0xFFFFDFFF</dduCheckMask>
