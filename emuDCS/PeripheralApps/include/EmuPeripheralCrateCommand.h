@@ -115,6 +115,7 @@ protected:
   ostringstream OutputStringTMBStatus[10];
   ostringstream OutputDMBTests[10][30];
   ostringstream OutputTMBTests[10][30];
+  ostringstream OutputCheckConfiguration;
   std::vector <float> ChartData[100];
   int TMBTriggerAlct0Key[120][9];
   int TMBTriggerAlct1Key[120][9];
