@@ -116,7 +116,7 @@ private:
       LOG4CPLUS_ERROR( logger_, fileName_ << " could not be closed.");
     }
     else{
-      writeMarkerFile();
+      // .meta file makes writeMarkerFile(); redundant
       writeMetaFile();
     }
   }
@@ -133,21 +133,21 @@ private:
     if ( fs_->is_open() ) fs_->close(); // just in case...
     fs_->open( metaFileName_.c_str(), ios::out );
 
-    *fs_ << "RUNNUMBER"   << " " << runNumber_           << endl;
-    *fs_ << "LUMISECTION" << " " << "0"                  << endl;
-    *fs_ << "NEVENTS"     << " " << eventsInFileCounter_ << endl;
-    *fs_ << "APP_NAME"    << " " << application_         << endl;
-    *fs_ << "APP_VERSION" << " " << appVersion_          << endl;
-    *fs_ << "START_TIME"  << " " << toUnixTime( runStartTime_ ) << endl; // may be 0
-    *fs_ << "STOP_TIME"   << " " << toUnixTime( runStopTime_  ) << endl; // may be 0
-    *fs_ << "CHECKSUM"    << " " << "0"                  << endl; // may be 0
-    *fs_ << "SAFETY"      << " " << "0"                  << endl; // must be 0
-    *fs_ << "DATASET"     << " " << runType_             << endl;
-    *fs_ << "STREAM"      << " " << "EDM"                << endl;
-    *fs_ << "FILENAME"    << " " << fileName_            << endl;
-    *fs_ << "PATHNAME"    << " " << pathToFile_          << endl;
-    *fs_ << "HOSTNAME"    << " " << host_                << endl;
-    *fs_ << "FILESIZE"    << " " << bytesInFileCounter_  << endl;
+    *fs_ << "runnumber"   << " " << runNumber_           << endl;
+    *fs_ << "lumisection" << " " << "0"                  << endl;
+    *fs_ << "nevents"     << " " << eventsInFileCounter_ << endl;
+    *fs_ << "appname"     << " " << application_         << endl;
+    *fs_ << "appversion"  << " " << appVersion_          << endl;
+    *fs_ << "start_time"  << " " << toUnixTime( runStartTime_ ) << endl; // may be 0
+    *fs_ << "stop_time"   << " " << toUnixTime( runStopTime_  ) << endl; // may be 0
+    *fs_ << "checksum"    << " " << "0"                  << endl; // may be 0
+    *fs_ << "setuplabel"  << " " << "CSC"                << endl;
+    *fs_ << "type"        << " " << "edm"                << endl;
+    *fs_ << "stream"      << " " << nameStream()         << endl;
+    *fs_ << "filename"    << " " << fileName_            << endl;
+    *fs_ << "pathname"    << " " << pathToFile_          << endl;
+    *fs_ << "hostname"    << " " << host_                << endl;
+    *fs_ << "filesize"    << " " << bytesInFileCounter_  << endl;
 
     fs_->close();
   }
@@ -162,41 +162,45 @@ private:
   /// Converts time given as string to Unix time
 
   ///
-  /// @param YYMMDD_hhmmss_ZZZ Time string. Must be in this format.
+  /// @param YYMMDD_hhmmss_UTC Time string. Must be in this format.
   ///
   /// @return Unix time. 0 if conversion fails.
   ///
-  time_t toUnixTime( const std::string YYMMDD_hhmmss_ZZZ ){
-    if ( YYMMDD_hhmmss_ZZZ.size() < 17 ) return time_t(0);
+  time_t toUnixTime( const std::string YYMMDD_hhmmss_UTC ){
+    if ( YYMMDD_hhmmss_UTC.size() < 17 ) return time_t(0);
 
     struct tm stm;
     std::stringstream ss;
 
-    int localHour = 0;
-    int UTCHour   = 0;
-    if ( YYMMDD_hhmmss_ZZZ.substr(14,3) == "UTC" ){
-      // Figure out the difference between local time and UTC time 
-      // in order to transform the given time to local time
-      // as mktime will assume its argument is local time.
-      time_t timeNow = time( NULL );
-      // s will point to a statically allocated variable shared by localtime and gmtime,
-      // no point in declaring it twice.    
-      struct tm *s = localtime( &timeNow );
-      localHour = s->tm_hour;
-      s = gmtime( &timeNow );
-      UTCHour = s->tm_hour;
-    }
-
-    ss << YYMMDD_hhmmss_ZZZ.substr( 0,2); ss >> stm.tm_year; ss.clear(); stm.tm_year += 100;
-    ss << YYMMDD_hhmmss_ZZZ.substr( 2,2); ss >> stm.tm_mon;  ss.clear(); stm.tm_mon  -= 1;
-    ss << YYMMDD_hhmmss_ZZZ.substr( 4,2); ss >> stm.tm_mday; ss.clear();
-    ss << YYMMDD_hhmmss_ZZZ.substr( 7,2); ss >> stm.tm_hour; ss.clear(); stm.tm_hour += localHour - UTCHour;
-    ss << YYMMDD_hhmmss_ZZZ.substr( 9,2); ss >> stm.tm_min;  ss.clear();
-    ss << YYMMDD_hhmmss_ZZZ.substr(11,2); ss >> stm.tm_sec;  ss.clear();
+    ss << YYMMDD_hhmmss_UTC.substr( 0,2); ss >> stm.tm_year; ss.clear(); stm.tm_year += 100;
+    ss << YYMMDD_hhmmss_UTC.substr( 2,2); ss >> stm.tm_mon;  ss.clear(); stm.tm_mon  -= 1;
+    ss << YYMMDD_hhmmss_UTC.substr( 4,2); ss >> stm.tm_mday; ss.clear();
+    ss << YYMMDD_hhmmss_UTC.substr( 7,2); ss >> stm.tm_hour; ss.clear();
+    ss << YYMMDD_hhmmss_UTC.substr( 9,2); ss >> stm.tm_min;  ss.clear();
+    ss << YYMMDD_hhmmss_UTC.substr(11,2); ss >> stm.tm_sec;  ss.clear();
 
     time_t unixTime = mktime( &stm );
 
     return ( unixTime < 0 ? time_t(0) : unixTime );
+  }
+
+  /// Names the stream, which will appear as a subdirectory name in CASTOR.
+
+  ///
+  /// @return Stream name as sssssYYYY, where ssss is
+  ///     <b>Local</b> for event fragments (DDU data from RUIs)
+  ///     <b>Built</b> for built local Emu events (from FUs)
+  ///     <b>Calib</b> for calibration data (DDU data from RUIs)
+  /// and YYYY is the year (not appended if runStartTime_ is not in YYMMDD_hhmmss_UTC format).
+  ///
+  std::string nameStream(){
+    string streamName;
+    if ( runType_.substr(0,5) == "Calib" ) streamName = "Calib";
+    else if ( application_.substr(0,6) == "EmuRUI" ) streamName = "Local";
+    else if ( application_.substr(0,5) == "EmuFU"  ) streamName = "Built";
+
+    if ( runStartTime_.size() < 17 ) return streamName;
+    else return streamName+string("20")+runStartTime_.substr(0,2);
   }
 
 
