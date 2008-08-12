@@ -5699,12 +5699,16 @@ xoap::MessageReference EmuDAQManager::onQueryRunSummary(xoap::MessageReference m
   getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
   xdata::String start_time = runStartTime; // xdata can readily be serialized into SOAP...
   xdata::String stop_time  = runStopTime;
+  xdata::UnsignedLong run_number; run_number.fromString( runNumber );
   xoap::SOAPName name = envelope.createName("start_time", "xdaq", "urn:xdaq-soap:3.0");
   xoap::SOAPBodyElement bodyElement = body.addBodyElement( name );
   serializer.exportAll(&start_time, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
   name = envelope.createName("stop_time", "xdaq", "urn:xdaq-soap:3.0");
   bodyElement = body.addBodyElement( name );
   serializer.exportAll(&stop_time, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+  name = envelope.createName("run_number", "xdaq", "urn:xdaq-soap:3.0");
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&run_number, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
   
   // FU event count
   xdata::String built_events = "0";
