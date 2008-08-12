@@ -58,18 +58,18 @@ public class MySetParameterHandler extends UserEventHandler {
 	public void onParameterSet(ParameterSet parameters)
 	throws UserActionException {
 
-                // debug
-                logger.info("paramters: " + parameters);
-                String debug="";
-                for (Object obj : parameters.getParameters() ) {
-                        FunctionManagerParameter fp = (FunctionManagerParameter)obj;
-                        debug += fp.getName() + ":" + fp.getValue() + "\n";
-                }
-                for (Object obj : parameters.getNames() ) {
-                        String s = (String)obj;
-                        debug += s + "\n";
-                }
-                logger.info("onParameterSetSet parameter of ECAL FM is called.\n" + debug);
+		// debug
+		logger.info("paramters: " + parameters);
+		String debug="";
+		for (Object obj : parameters.getParameters() ) {
+			FunctionManagerParameter fp = (FunctionManagerParameter)obj;
+			debug += fp.getName() + ":" + fp.getValue() + "\n";
+		}
+		for (Object obj : parameters.getNames() ) {
+			String s = (String)obj;
+			debug += s + "\n";
+		}
+		logger.info("onParameterSetSet parameter of CSC FM is called.\n" + debug);
 
 		processGuiCommands(parameters);
 
@@ -78,8 +78,8 @@ public class MySetParameterHandler extends UserEventHandler {
 
 
 
-        private void processGuiCommands(ParameterSet parameters) {
-	    /*
+	private void processGuiCommands(ParameterSet parameters) {
+		/*
                 // copy gui command
                 Parameter p = parameters.get(MyParameters.GUI_COMMAND);
                 if (p==null) {
@@ -99,8 +99,7 @@ public class MySetParameterHandler extends UserEventHandler {
 
                         if (guiCommand.equals("restoreSetup")) { }
 		}
-	    */
+		 */
 	}
 
 }
-

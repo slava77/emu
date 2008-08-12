@@ -31,9 +31,10 @@ public class GuiSubdetPanel {
 		html += "<tr>\n";
 		html += "\n<td class=\"label\">Calibration_Keys</td>";
 		html += "\n<td style=\"font-size: 1em; text-align: center; \">"; 
-		html += "\n<select class=\"RunDataInputTable\" name=\"CSC_CALIB_KEYS\" onChange=\"setAjaxRunDataParameterSelect(\'CSC_CALIB_KEYS\','"
+		html += "\n<select class=\"RunDataInputTable\" name=\"CSC_CALIB_KEYS\" onChange=\"setRunDataParameterSelect(\'CSC_CALIB_KEY\','"
 			+ "rcms.fm.fw.parameter.type.StringT' ,this)\">";
 		String calibKeys = fm.getParameterSet().get( MyParameters.CSC_CALIB_KEYS_AVAILABLE).getValue().toString();
+		
 		// make a drop down
 		if(calibKeys.length()>2) {
 			// rm []
