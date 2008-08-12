@@ -32,7 +32,6 @@ XDAQ_INSTANTIATOR_IMPL(EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::uploadConfigToDB, "upload");
   xgi::bind(this,&EmuPCrateConfigTStore::readConfigFromDB, "read");
   xgi::bind(this,&EmuPCrateConfigTStore::synchronizeToFromDB, "sync");
-  xgi::bind(this,&EmuPCrateConfigTStore::getConfigurationFromXML, "getConfig");
 
   std::string HomeDir_ =getenv("HOME");
   xmlfile_    = HomeDir_ + "/vme_config.xml";
@@ -92,11 +91,6 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::input().set("type","submit").set("value","Sync to DB").set("style", "width:120px;") << std::endl;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();
-  *out << cgicc::td().set("style", "width:130px;");
-  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("getConfig",getApplicationDescriptor()->getURN().c_str())) << std::endl;
-  *out << cgicc::input().set("type","submit").set("value","Get Config").set("style", "width:120px;") << std::endl;
-  *out << cgicc::form() << std::endl;
-  *out << cgicc::td();
   *out << cgicc::tr();
 
   *out << cgicc::table();
@@ -105,8 +99,6 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << "Messages:<br><br>";
   
 }
-//
-
 
 
 void EmuPCrateConfigTStore::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
@@ -181,16 +173,20 @@ void EmuPCrateConfigTStore::readConfigFromDB(xgi::Input * in, xgi::Output * out 
     outputStandardInterface(out);
 
     // get this from e.g. a HyperDAQ page text field
-    std::string endcap_side="plus";
-
     //*out << "<br>You clicked Read from DB<br>" << std::endl;
     std::string connectionID=connect();
+
+    std::string endcap_side="plus";
     std::string emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side).toString();
-    *out << "<br><br> max of EMU CONFIG ID = " << emu_config_id << "<br>" << std::endl;
+    *out << "<br>max of EMU_CONFIG_ID for " << endcap_side << " side = " << emu_config_id << "<br>" << std::endl;
+    endcap_side="minus";
+    emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side).toString();
+    *out << "<br>max of EMU_CONFIG_ID for " << endcap_side << " side = " << emu_config_id << "<br>" << std::endl;
+
     disconnect(connectionID);
   
-    EmuEndcap * myEndcap;
-    myEndcap = getConfiguredEndcap(emu_config_id);
+//    EmuEndcap * myEndcap;
+//    myEndcap = getConfiguredEndcap(emu_config_id);
 
     outputFooter(out);
   } catch (xcept::Exception &e) {
@@ -219,25 +215,6 @@ void EmuPCrateConfigTStore::synchronizeToFromDB(xgi::Input * in, xgi::Output * o
 
 }
 //
-
-void EmuPCrateConfigTStore::getConfigurationFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
-  try {
-    outputHeader(out);
-    outputStandardInterface(out);
-
-    //std::string xpath = "/tstore:configuration/tstore:view/tstore:table/tstore:column/@name/text()";
-    std::string xpath = "";
-    getConfiguration(xpath);
-    *out << "<br>Configuration is read from XML.<br>" << std::endl;
-
-    outputFooter(out);
-  } catch (xcept::Exception &e) {
-    outputException(out,e);
-  }
-
-}
-//
-
 
 // ################################
 // #   TStore related functions   #
@@ -272,9 +249,11 @@ xdata::UnsignedInteger64 EmuPCrateConfigTStore::getConfigId(const std::string &d
 xoap::MessageReference EmuPCrateConfigTStore::sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception) {
 	xoap::MessageReference reply;
 	
+#ifdef debugV
 	std::cout << "Message: " << std::endl;
 	message->writeTo(std::cout);
 	std::cout << std::endl;
+#endif
 	
 	try {
 		xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("tstore::TStore",0);
@@ -288,10 +267,12 @@ xoap::MessageReference EmuPCrateConfigTStore::sendSOAPMessage(xoap::MessageRefer
 	
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 		
+#ifdef debugV
 	std::cout << std::endl << "Response: " << std::endl;
 	reply->writeTo(std::cout);
 	std::cout << std::endl;
-	
+#endif
+
 	if (body.hasFault()) {
 	  //XCEPT_RAISE (xcept::Exception, body.getFault().getFaultString());
 	  XCEPT_RAISE (xcept::Exception, body.getFault().getDetail().getTextContent());
@@ -532,33 +513,6 @@ void EmuPCrateConfigTStore::synchronize(const std::string &connectionID, const s
   
 }
 
-void EmuPCrateConfigTStore::getConfiguration(const std::string &xpath) throw (xcept::Exception) {
-
-  // This is to read the configuration from the view file
-
-  std::string viewClass=tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
-  TStoreRequest request("getConfiguration",viewClass);
-
-  //add the view ID
-  request.addTStoreParameter("id","urn:tstore-view-SQL:EMUsystem");
-
-  //add view specific parameter
-  request.addTStoreParameter("path", xpath);
-  
-  xoap::MessageReference message=request.toSOAP();
-  xoap::MessageReference response=sendSOAPMessage(message);
-
-  xoap::SOAPBody body = response->getSOAPPart().getEnvelope().getBody();
-  if (body.hasFault()) {
-    XCEPT_RAISE (xcept::Exception,"An error has occured during getConfiguration!");
-  }
-
-  DOMNode *configNode=tstoreclient::getNodeNamed(response,"getConfigurationResponse");
-  //configNode contains the requested configuration.
-  std::cout << "configuration corresponding to xpath " << xpath << " is: " << tstoreclient::writeXML(configNode) << std::endl;
-
-}
-
 // ######################
 // #  Misc              #
 // ######################
@@ -607,6 +561,20 @@ void EmuPCrateConfigTStore::startUpload() throw (xcept::Exception) {
   std::vector<Crate *> myCrates;
   myCrates.clear();
   myCrates = TStore_myEndcap_->AllCrates();
+  if(myCrates.size()<=0)
+  {   std::cout << "No crate found. Stop loading to database..." << std::endl;
+      return;
+  }
+  std::string crate_lable = myCrates[0]->GetLabel();
+  std::string endcap_side;
+  if(strncmp(crate_lable.c_str(),"VMEp",4)==0)
+  {   endcap_side="plus";   }
+  else if(strncmp(crate_lable.c_str(),"VMEm",4)==0)
+  {   endcap_side="minus";  }
+  else
+  {   std::cout << "Unknown crate lable(s). Stop loading to database..." << std::endl;
+      return;
+  }
 
   std::string connectionID=connect();
 
@@ -623,7 +591,7 @@ void EmuPCrateConfigTStore::startUpload() throw (xcept::Exception) {
   getDefinition(connectionID,"alct",tableDefinition_emu_alct);
   getDefinition(connectionID,"anodechannel",tableDefinition_emu_anodechannel);
 
-  uploadConfiguration(connectionID, "plus");
+  uploadConfiguration(connectionID, endcap_side);
   uploadPeripheralCrate(connectionID, myCrates);
 
   disconnect(connectionID);
@@ -673,7 +641,7 @@ void EmuPCrateConfigTStore::uploadConfiguration(const std::string &connectionID,
   
   insert(connectionID,insertViewName,newRows);
   
-  
+  std::cout << "Configuration for " << endcap_side << " has been loaded to database as " << emu_config_id << std::endl;   
 }
 //
 

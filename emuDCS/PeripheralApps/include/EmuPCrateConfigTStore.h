@@ -59,7 +59,6 @@ public:
   void uploadConfigToDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void readConfigFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void synchronizeToFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void getConfigurationFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
 
   // Communication with TStore
   xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception);
