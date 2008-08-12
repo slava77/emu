@@ -405,6 +405,20 @@ void EmuTStore::startUpload() throw (xcept::Exception) {
   std::vector<Crate *> myCrates;
   myCrates.clear();
   myCrates = TStore_myEndcap_->AllCrates();
+  if(myCrates.size()<=0)
+  {   std::cout << "No crate found. Stop loading to database..." << std::endl;
+      return;
+  }
+  std::string crate_lable = myCrates[0]->GetLabel();
+  std::string endcap_side;
+  if(strncmp(crate_lable.c_str(),"VMEp",4)==0)
+  {   endcap_side="plus";   }
+  else if(strncmp(crate_lable.c_str(),"VMEm",4)==0)
+  {   endcap_side="minus";  }
+  else
+  {   std::cout << "Unknown crate lable(s). Stop loading to database..." << std::endl;
+      return;
+  }
 
   std::string connectionID=connect();
 
@@ -421,7 +435,7 @@ void EmuTStore::startUpload() throw (xcept::Exception) {
   getDefinition(connectionID,"alct",tableDefinition_emu_alct);
   getDefinition(connectionID,"anodechannel",tableDefinition_emu_anodechannel);
 
-  uploadConfiguration(connectionID, "plus");
+  uploadConfiguration(connectionID, endcap_side);
   uploadPeripheralCrate(connectionID, myCrates);
 
   disconnect(connectionID);
@@ -471,7 +485,7 @@ void EmuTStore::uploadConfiguration(const std::string &connectionID, const std::
   
   insert(connectionID,insertViewName,newRows);
   
-  
+  std::cout << "Configuration for " << endcap_side << " has been loaded to database as " << emu_config_id << std::endl;
 }
 //
 
