@@ -98,6 +98,7 @@ void EmuI2OServer::createCommittedHeapAllocatorMemoryPool()
 }
 
 void EmuI2OServer::addData( const int            runNumber, 
+			    const int            runStartUTC,
 			    const int            nEvents, 
 			    const bool           completesEvent, 
 			    const unsigned short errorFlag, 
@@ -137,8 +138,9 @@ void EmuI2OServer::addData( const int            runNumber,
 		      " bytes of data of event " << nEvents <<
 		      " to be sent." );
       try {
-	runNumber_ = runNumber;
-	errorFlag_ = errorFlag;
+	runNumber_   = runNumber;
+	runStartUTC_ = runStartUTC;
+	errorFlag_   = errorFlag;
 	appendNewBlock( data, dataLength, completesEvent );
       }
       catch(xcept::Exception e){
@@ -268,6 +270,7 @@ void EmuI2OServer::fillBlock( toolbox::mem::Reference *bufRef,
     pvtMsg->OrganizationID = XDAQ_ORGANIZATION_ID;
 
     block->runNumber         = runNumber_;
+    block->runStartUTC       = runStartUTC_;
     block->nEventCreditsHeld = *nEventCreditsHeld_-1; // will be updated on sending, but anyway
     block->errorFlag         = errorFlag_;
 
