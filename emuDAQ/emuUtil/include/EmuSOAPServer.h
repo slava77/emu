@@ -99,6 +99,7 @@ public:
   /// @param dataLength data length in bytes
   ///
   void   addData( const int            runNumber,
+		  const int            runStartUTC,
 		  const int            nEvents, 
 		  const bool           completesEvent, 
 		  const unsigned short errorFlag, 

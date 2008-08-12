@@ -46,6 +46,7 @@ void EmuSOAPServer::createMIMEInfo(){
 }
 
 void EmuSOAPServer::addData( const int            runNumber, 
+			     const int            runStartUTC,
 			     const int            nEvents, 
 			     const bool           completesEvent, 
 			     const unsigned short errorFlag, 
@@ -79,8 +80,9 @@ void EmuSOAPServer::addData( const int            runNumber,
   if ( isToBeSent ) {
     LOG4CPLUS_DEBUG(logger_, name_ << " SOAP server: Appending data to be sent *****"); 
     try {
-      runNumber_ = runNumber;
-      errorFlag_ = errorFlag;
+      runNumber_   = runNumber;
+      runStartUTC_ = runStartUTC;
+      errorFlag_   = errorFlag;
       appendData( data, dataLength, completesEvent );
     }
     catch( xoap::exception::Exception& xe ){
@@ -179,6 +181,12 @@ void EmuSOAPServer::createMessage()
   runnumElement.addAttribute( xsiType, "xsd:int" );
   stringstream rn; rn << runNumber_;
   runnumElement.addTextNode( rn.str() );
+
+  xoap::SOAPName    runstart        = envelope.createName( "runStartUTC" );
+  xoap::SOAPElement runstartElement = bodyElement.addChildElement( runstart );
+  runstartElement.addAttribute( xsiType, "xsd:int" );
+  stringstream rs; rs << runStartUTC_;
+  runstartElement.addTextNode( rs.str() );
 
   xoap::SOAPName    errorflag        = envelope.createName( "errorFlag" );
   xoap::SOAPElement errorflagElement = bodyElement.addChildElement( errorflag );

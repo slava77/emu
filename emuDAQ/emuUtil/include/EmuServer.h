@@ -43,6 +43,7 @@ protected:
   Logger                                      logger_; ///< logger
 
   int                                         runNumber_; ///< run number to be transmitted along with the data
+  int                                         runStartUTC_; ///< UTC run start time to be transmitted along with the data
   unsigned short                              errorFlag_; ///< error flag to be transmitted along with the data
 
   /// Creates server name.
@@ -104,6 +105,7 @@ public:
 
   /// not documented here
   virtual void   addData(   const int            runNumber, 
+			    const int            runStartUTC,
 			    const int            nEvents, 
 			    const bool           completesEvent, 
 			    const unsigned short errorFlag, 
