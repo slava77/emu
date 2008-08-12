@@ -337,7 +337,8 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			}
 
 			// get the run number from the configure command
-			String runType = ((StringT)parameterSet.get(MyParameters.RUN_TYPE).getValue()).getString();
+			// get the calib key and put it as run type (another ichiro special)
+			String runType = ((StringT)functionManager.getParameterSet().get(MyParameters.CSC_CALIB_KEY).getValue()).getString();
 
 			// Set the runType in the Function Manager parameters
 			functionManager.getParameterSet().put(new FunctionManagerParameter<StringT>(MyParameters.RUN_TYPE,new StringT(runType)));
@@ -357,8 +358,9 @@ public class MyEventHandler extends UserStateNotificationHandler {
 				// for the time being to global run = "Default".
 				// the parameter is set to the supervisor xdaq application.
 				xdaqParam.select("RunType");
-				xdaqParam.setValue("RunType", "Default");
+				xdaqParam.setValue("RunType", runType);
 				xdaqParam.send();
+				
 
 			} catch (Exception e) {
 				logger.error(getClass().toString() +
@@ -746,7 +748,7 @@ public void startAction(Object obj) throws UserActionException {
 				// here we receive "Configured" from supervisor.
 				// send a enable now.
 				try {                                                                                           
-					functionManager.xdaqSupervisor.execute(new Input("Enable"));
+					functionManager.xdaqSupervisor.execute(new Input("Start"));
 				} catch (QualifiedResourceContainerException e) {
 					logger.error("Could not enable csc supervisor.",e);
 					functionManager.fireEvent(MyInputs.SETERROR);
