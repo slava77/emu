@@ -193,20 +193,18 @@ void EmuPeripheralCrateCommand::MainPage(xgi::Input * in, xgi::Output * out )
   //
   int initial_crate = current_crate_;
   //
-  if (all_crates_ok == 0) {
+  if (all_crates_ok >= 0) {
     //
     for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
       //
       SetCurrentCrate(crate_number);
       //
-      *out << crateVector[crate_number]->GetLabel() << std::endl;
-      //
       if (crate_check_ok[current_crate_] == 0) {
 	//
-	*out << cgicc::br() << cgicc::span().set("style","color:red");
+	*out << cgicc::span().set("style","color:red");
 	//
-	if (ccb_check_ok[current_crate_] == 0) *out << "Config problem for CCB/TTC " << cgicc::br() << std::endl ;
-	if (mpc_check_ok[current_crate_] == 0) *out << "Config problem for MPC " << cgicc::br() << std::endl ;
+        if (ccb_check_ok[current_crate_] == 0) *out << thisCrate->GetLabel() << "   CCB   " << cgicc::br() << std::endl ;
+        if (mpc_check_ok[current_crate_] == 0) *out << thisCrate->GetLabel() << "   MPC   " << cgicc::br() << std::endl ;
         //
 	bool alct_ok = true;
 	bool tmb_ok = true;
@@ -220,42 +218,42 @@ void EmuPeripheralCrateCommand::MainPage(xgi::Input * in, xgi::Output * out )
 	//
 	if (!alct_ok) {
 	  //
-	  *out << "Config problems for ALCT: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (alct_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
+	      *out << thisCrate->GetLabel() << "   "
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << "   ALCT   " << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetProblemDescription() 
+		   << cgicc::br();
 	}
 	//
 	if (!tmb_ok) {
 	  //
-	  *out << "Config problems for TMB: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (tmb_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
+	      *out << thisCrate->GetLabel() << "    "
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << "   TMB   " << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetProblemDescription() 
+		   << cgicc::br();
 	}
 	//
 	if (!dmb_ok) {
 	  //
-	  *out << "Config problems for DMB: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
 	    if (dmb_check_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
+	      *out << thisCrate->GetLabel() << "    "
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << "   DMB   " << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetProblemDescription() 
+		   << cgicc::br();
 	}
 	//
       } else if (crate_check_ok[current_crate_] == 1) {
 	//
 	*out << cgicc::span().set("style","color:green");
-	*out << " OK" << cgicc::br();
+	*out << crateVector[crate_number]->GetLabel() << "   OK" << cgicc::br();
       } else if (crate_check_ok[current_crate_] == -1) {
 	//
 	*out << cgicc::span().set("style","color:blue");
-	*out << " Not checked" << cgicc::br();
+	*out << crateVector[crate_number]->GetLabel() << " Not checked" << cgicc::br();
       }
       *out << cgicc::span() << std::endl ;
     }
@@ -539,9 +537,10 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
 {
   if(!parsed) ParsingXML();
 
-  if(MyController==NULL || total_crates_<=0) return 0;
+  if(total_crates_<=0) return 0;
   if(!controller_checked_) CheckControllers();
   //
+  OutputCheckConfiguration.str(""); //clear the output string
   int initialcrate=current_crate_;
   //
   all_crates_ok = 1;
@@ -559,6 +558,28 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
   }
   SetCurrentCrate(initialcrate);
   //
+  //Output the errors to a file...
+  time_t rawtime;
+  time(&rawtime);
+  //
+  std::string buf;
+  std::string time_dump = ctime(&rawtime);
+  std::string time = time_dump.substr(0,time_dump.length()-1);
+  //
+  while( time.find(" ",0) != string::npos ) {
+    //
+    int thispos = time.find(" ",0);
+    time.replace(thispos,1,"_");
+    //
+  }
+  //
+  buf = "ConfigurationCheckLogFile"+time+".log";
+  //
+  ofstream LogFileCheckConfiguration;
+  LogFileCheckConfiguration.open(buf.c_str());
+  LogFileCheckConfiguration << OutputCheckConfiguration.str() ;
+  LogFileCheckConfiguration.close();
+
   return all_crates_ok;
 }
 
@@ -567,19 +588,19 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
   //
   std::cout << "Configuration check for " << thisCrate->GetLabel() << std::endl;
   //
-  std::cout << " .... TMBs received hard resets... "; 
-  for (unsigned int tmb=0; tmb<(tmbVector.size()<9?tmbVector.size():9) ; tmb++) {
-    std::cout << std::dec << tmbVector[tmb]->ReadRegister(0xE8) << " ";
-  }
-  std::cout << " seconds ago" << std::endl;
-  //
   crate_check_ok[current_crate_] = 1;
   //
+  OutputCheckConfiguration << "Crate " << thisCrate->GetLabel() << std::endl;
+  //
+  thisCrate->ccb()->RedirectOutput(&OutputCheckConfiguration);
   ccb_check_ok[current_crate_] = thisCrate->ccb()->CheckConfig();
   crate_check_ok[current_crate_] &=  ccb_check_ok[current_crate_];  
+  thisCrate->ccb()->RedirectOutput(&std::cout);
   //
+  thisCrate->mpc()->RedirectOutput(&OutputCheckConfiguration);
   mpc_check_ok[current_crate_] = thisCrate->mpc()->CheckConfig();
   crate_check_ok[current_crate_] &=  mpc_check_ok[current_crate_];  
+  thisCrate->mpc()->RedirectOutput(&std::cout);
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     //	
@@ -590,13 +611,31 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
     //
     std::cout << "Configuration check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
     //
+    OutputCheckConfiguration << (thisChamber->GetLabel()).c_str() 
+			     << " ... " 
+			     << (thisChamber->GetProblemDescription()).c_str() 
+			     << std::endl;
+
+    //
+    thisTMB->RedirectOutput(&OutputCheckConfiguration);
     thisTMB->CheckTMBConfiguration();
+    if (thisTMB->GetNumberOfConfigurationReads() > 1)
+      OutputCheckConfiguration << "-> N_read(TMB) = " << thisTMB->GetNumberOfConfigurationReads() << std::endl;
     tmb_check_ok[current_crate_][chamber_index]  = (int) thisTMB->GetTMBConfigurationStatus();
+    thisTMB->RedirectOutput(&std::cout);
     //
+    thisALCT->RedirectOutput(&OutputCheckConfiguration);
     thisALCT->CheckALCTConfiguration();
+    if (thisALCT->GetNumberOfConfigurationReads() > 1)
+      OutputCheckConfiguration << "-> N_read(ALCT) = " << thisALCT->GetNumberOfConfigurationReads() << std::endl;
     alct_check_ok[current_crate_][chamber_index] = (int) thisALCT->GetALCTConfigurationStatus();
+    thisALCT->RedirectOutput(&std::cout);
     //
+    thisDMB->RedirectOutput(&OutputCheckConfiguration);
     dmb_check_ok[current_crate_][chamber_index]  = (int) thisDMB->checkDAQMBXMLValues();
+    if (thisDMB->GetNumberOfConfigurationReads() > 1)
+      OutputCheckConfiguration << "-> N_read(DMB) = " << thisDMB->GetNumberOfConfigurationReads() << std::endl;
+    thisDMB->RedirectOutput(&std::cout);
     //
     crate_check_ok[current_crate_] &= tmb_check_ok[current_crate_][chamber_index];
     crate_check_ok[current_crate_] &= alct_check_ok[current_crate_][chamber_index];
