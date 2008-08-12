@@ -8,15 +8,16 @@
 
 typedef struct _I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME {
   I2O_PRIVATE_MESSAGE_FRAME PvtMessageFrame;
-  unsigned long nEventCredits;
-  unsigned long prescalingFactor;
+  U32 nEventCredits;
+  U32 prescalingFactor;
 } I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME, *PI2O_EMUCLIENT_CREDIT_MESSAGE_FRAME;
 
 typedef struct _I2O_EMU_DATA_MESSAGE_FRAME {
   I2O_PRIVATE_MESSAGE_FRAME PvtMessageFrame;
-  unsigned long  runNumber;
-  unsigned long  nEventCreditsHeld;
-  unsigned short errorFlag; // for DQM; filled by EmuRUI's server only
+  U32 runNumber;
+  U32 runStartUTC;
+  U32 nEventCreditsHeld;
+  U16 errorFlag; // for DQM; filled by EmuRUI's server only
 } I2O_EMU_DATA_MESSAGE_FRAME, *PI2O_EMU_DATA_MESSAGE_FRAME;
 
 #endif
