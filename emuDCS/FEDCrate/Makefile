@@ -27,7 +27,6 @@ Sources=\
 	DCCParser.cc \
 	DCCDebugger.cc \
 	EmuParser.cc \
-	FEDCrateController.cc \
 	FEDCrateParser.cc \
 	VMEController.cc \
 	VMEController_jtag.cc \
@@ -35,7 +34,6 @@ Sources=\
 	IRQThreadManager.cc \
 	VMEParser.cc \
 	EmuFCrateHyperDAQ.cc \
-	EmuFRunControlHyperDAQ.cc \
 	EmuFCrate.cc \
 	EmuFCrateManager.cc \
 	Chamber.cc \
