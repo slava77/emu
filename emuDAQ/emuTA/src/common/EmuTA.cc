@@ -811,6 +811,8 @@ throw (toolbox::fsm::exception::Exception)
         XCEPT_RETHROW(toolbox::fsm::exception::Exception,
             "Failed to get application descriptors and tids", e);
     }
+
+    runStopTime_ = "YYMMDD_hhmmss_UTC";
     
     nEmuRUIs_ = zone_->getApplicationDescriptors("EmuRUI").size();
     nVotesForFirstEventNumber_ = 0;
