@@ -63,6 +63,7 @@ private:
   toolbox::task::WorkLoopFactory *workLoopFactory_;
   bool serverLoopAction(toolbox::task::WorkLoop *wl);
 
+  int runStartUTC_; /// Unix UTC run start time 
 
   static const unsigned int maxDevices_ = 5; // max possible number of input devices
   static const unsigned int maxClients_ = 5; // max possible number of clients
@@ -128,6 +129,7 @@ private:
   xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg )
     throw( emuFU::exception::Exception );
   void addDataForClients(const int   runNumber, 
+			 const int   runStartUTC,
 			 const int   nEventsRead,
 			 const bool  completesEvent, 
 			 char* const data, 
@@ -149,6 +151,7 @@ private:
 			const string                 paramName,
 			const string                 paramType)
     throw (emuFU::exception::Exception);
+  time_t toUnixTime( const std::string YYMMDD_hhmmss_UTC );
   void getRunInfo() throw (emuFU::exception::Exception);
 
   xoap::MessageReference onReset(xoap::MessageReference msg)

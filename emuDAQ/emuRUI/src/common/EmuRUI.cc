@@ -126,6 +126,7 @@ applicationBSem_(toolbox::BSem::FULL)
     insideEvent_           = false;
     errorFlag_             = 0;
     previousEventNumber_   = 0;
+    runStartUTC_           = 0;
 
     // bind SOAP client credit message callback
     xoap::bind(this, &EmuRUI::onSOAPClientCreditMsg, 
@@ -653,6 +654,24 @@ throw (emuRUI::exception::Exception)
     return value;
 }
 
+time_t EmuRUI::toUnixTime( const std::string YYMMDD_hhmmss_UTC ){
+  if ( YYMMDD_hhmmss_UTC.size() < 17 ) return time_t(0);
+
+  struct tm stm;
+  std::stringstream ss;
+
+  ss << YYMMDD_hhmmss_UTC.substr( 0,2); ss >> stm.tm_year; ss.clear(); stm.tm_year += 100;
+  ss << YYMMDD_hhmmss_UTC.substr( 2,2); ss >> stm.tm_mon;  ss.clear(); stm.tm_mon  -= 1;
+  ss << YYMMDD_hhmmss_UTC.substr( 4,2); ss >> stm.tm_mday; ss.clear();
+  ss << YYMMDD_hhmmss_UTC.substr( 7,2); ss >> stm.tm_hour; ss.clear();
+  ss << YYMMDD_hhmmss_UTC.substr( 9,2); ss >> stm.tm_min;  ss.clear();
+  ss << YYMMDD_hhmmss_UTC.substr(11,2); ss >> stm.tm_sec;  ss.clear();
+
+  time_t unixTime = mktime( &stm );
+
+  return ( unixTime < 0 ? time_t(0) : unixTime );
+}
+
 
 void EmuRUI::getRunInfo()
   // EMu-specific stuff
@@ -662,6 +681,7 @@ throw (emuRUI::exception::Exception)
   runNumber_    = 0;
   isBookedRunNumber_ = false;
   runStartTime_ = "YYMMDD_hhmmss_UTC";
+  runStartUTC_  = 0;
   maxEvents_    = 0;
 
   vector< xdaq::ApplicationDescriptor* > taDescriptors;
@@ -692,7 +712,8 @@ throw (emuRUI::exception::Exception)
     br = getScalarParam(taDescriptors[0],"isBookedRunNumber","boolean");
     LOG4CPLUS_INFO(logger_, "Got info on run booking from emuTA: " + br );
     runStartTime_ = getScalarParam(taDescriptors[0],"runStartTime","string");
-    LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
+    runStartUTC_ = toUnixTime( runStartTime_ );
+    LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString()  + " or " << runStartUTC_ );
   }
   else{
     LOG4CPLUS_ERROR(logger_, "Did not find EmuTA. ==> Run number, start time, and maximum number of events are unknown.");
@@ -1502,6 +1523,7 @@ throw (toolbox::fsm::exception::Exception)
     destroyServers();
     createServers();
 
+    runStartUTC_  = 0;
     runStartTime_ = "YYMMDD_hhmmss_UTC";
     runStopTime_  = "YYMMDD_hhmmss_UTC";
 
@@ -2101,13 +2123,14 @@ bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
 
 
 void EmuRUI::addDataForClients( const int   runNumber, 
+				const int   runStartUTC,
 			        const int   nEventsRead,
 			        const bool  completesEvent, 
 				const unsigned short errorFlag, 
 			        char* const data, 
 			        const int   dataLength ){
   for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
-    clients_[iClient]->server->addData( runNumber, nEventsRead, completesEvent, 
+    clients_[iClient]->server->addData( runNumber, runStartUTC, nEventsRead, completesEvent, 
 					errorFlag, data, dataLength );
 }
 
@@ -2510,7 +2533,7 @@ int EmuRUI::continueConstructionOfSuperFrag()
       } // if ( insideEvent_ ) else
 
       // Store this data to be sent to clients (if any)
-      addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+      addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
       // TO DO: handle abnormal cases too
       if ( trailer ) errorFlag_ = 0;
 
@@ -2687,7 +2710,7 @@ int EmuRUI::continueSTEPRun()
 	if ( !header && !trailer ){
 	  writeDataToFile( data, dataLength );
 	  // Store this data to be sent to clients (if any)
-	  addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	  addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
 	} // if ( !header && !trailer )
 
 	else if ( header && !trailer ){
@@ -2706,7 +2729,7 @@ int EmuRUI::continueSTEPRun()
 	    // New event started, reset counter of passes
 	    nReadingPassesInEvent_ = 1;
 	    // Store this data to be sent to clients (if any)
-	    addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
 	    insideEvent_ = true;
 	  }
 	} // if ( header && !trailer )
@@ -2715,7 +2738,7 @@ int EmuRUI::continueSTEPRun()
 	  writeDataToFile( data, dataLength );
 	  insideEvent_ = false;
 	  // Store this data to be sent to clients (if any)
-	  addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	  addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
 	} // if ( !header && trailer )
 
 	else if ( header && trailer ){
@@ -2733,7 +2756,7 @@ int EmuRUI::continueSTEPRun()
 	    // New event started and ended, reset counter of passes
 	    nReadingPassesInEvent_ = 0;
 	    // Store this data to be sent to clients (if any)
-	    addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
 	  }
 	  insideEvent_ = false;
 	} // if ( header && trailer )
@@ -2758,7 +2781,7 @@ int EmuRUI::continueSTEPRun()
 	    // New event started, reset counter of passes
 	    nReadingPassesInEvent_ = 1;
 	    // Store this data to be sent to clients (if any)
-	    addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
 	    insideEvent_ = true;
 	  }
 	} // if ( header && !trailer )
@@ -2779,7 +2802,7 @@ int EmuRUI::continueSTEPRun()
 	    // New event started and ended, reset counter of passes
 	    nReadingPassesInEvent_ = 0;
 	    // Store this data to be sent to clients (if any)
-	    addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    addDataForClients( runNumber_.value_, runStartUTC_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
 	  }
 	  insideEvent_ = false;
 	} // if ( header && trailer )
