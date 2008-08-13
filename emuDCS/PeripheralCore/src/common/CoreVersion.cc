@@ -1,8 +1,5 @@
 #include "config/PackageInfo.h"
 
-namespace emu {
-  namespace pc {
-
 namespace EmuPeripheralCore {
 	const std::string package  =  "EmuPeripheralCore";
 	const std::string versions =  "6.4";
@@ -17,6 +14,3 @@ namespace EmuPeripheralCore {
 GETPACKAGEINFO(EmuPeripheralCore);
 
 void EmuPeripheralCore::checkPackageDependencies() {}
-
-  } // namespace emu::pc
-  } // namespace emu
