@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.47 2008/08/13 11:30:54 geurts Exp $
+// $Id: DAQMB.cc,v 3.48 2008/08/13 12:49:23 geurts Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.48  2008/08/13 12:49:23  geurts
+// explicit std:: reference for abs() function. (Note: this should probably be changed to fabs())
+//
 // Revision 3.47  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -612,7 +615,7 @@ void DAQMB::configure() {
    //for (int lfeb=0;lfeb<5;lfeb++)
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
      std::cout << "****************** thresh " << compthresh[lfeb] << " " << adcplus(2,lfeb) << std::endl;
-      if((abs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
+     if((std::abs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
     
    }
 
