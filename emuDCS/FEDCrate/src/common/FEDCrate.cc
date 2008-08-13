@@ -1,4 +1,4 @@
-#include "Crate.h"
+#include "FEDCrate.h"
 #include "VMEModule.h"
 #include "VMEController.h"
 #include "DDU.h"
@@ -7,7 +7,7 @@
 int irqprob;
 long int timer,xtimer;
 
-Crate::Crate(int number, VMEController *theController):
+FEDCrate::FEDCrate(int number, VMEController *theController):
 	theNumber(number),
 	theModules(31),
 	theController(NULL)
@@ -16,7 +16,7 @@ Crate::Crate(int number, VMEController *theController):
 }
 
 
-Crate::~Crate() {
+FEDCrate::~FEDCrate() {
 	for(unsigned i = 0; i < theModules.size(); ++i) {
 		delete theModules[i];
 	}
@@ -24,12 +24,12 @@ Crate::~Crate() {
 }
 
 
-void Crate::addModule(VMEModule *module) {
+void FEDCrate::addModule(VMEModule *module) {
 	module->setController(theController);
 	theModules[module->slot()] = module;
 }
 
-void Crate::setController(VMEController *controller) {
+void FEDCrate::setController(VMEController *controller) {
 	if (theController != NULL) {
 		std::cout << "WARNING: Trying change the VMEController of crate " << theNumber << std::endl;
 	}
@@ -42,7 +42,7 @@ void Crate::setController(VMEController *controller) {
 	}
 }
 
-std::vector<DDU *> Crate::ddus() const {
+std::vector<DDU *> FEDCrate::ddus() const {
   std::vector<DDU *> result;
   for(unsigned i = 0; i < theModules.size(); ++i) {
     DDU * ddu = dynamic_cast<DDU *>(theModules[i]);
@@ -51,7 +51,7 @@ std::vector<DDU *> Crate::ddus() const {
   return result;
 }
 
-std::vector<DCC *> Crate::dccs() const {
+std::vector<DCC *> FEDCrate::dccs() const {
   std::vector<DCC *> result;
   for(unsigned i = 0; i < theModules.size(); ++i) {
     DCC * dcc = dynamic_cast<DCC *>(theModules[i]);
@@ -60,7 +60,7 @@ std::vector<DCC *> Crate::dccs() const {
   return result;
 }
 
-int Crate::getRUI(int slot) {
+int FEDCrate::getRUI(int slot) {
 	unsigned int rui = 9 * theNumber + slot - 3;
 	if (slot > 8) rui--;  // Correct for the DCC slot.
 	if (theNumber > 0) rui -= 9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
@@ -69,19 +69,19 @@ int Crate::getRUI(int slot) {
 	return rui;
 }
 
-void Crate::enable() {
+void FEDCrate::enable() {
   //
-  std::cout << "Crate::enable called " << std::endl;
+  std::cout << "FEDCrate::enable called " << std::endl;
 }
 
 //
-void Crate::disable() {
+void FEDCrate::disable() {
   //
-  std::cout << "Crate::disable called " << std::endl;
+  std::cout << "FEDCrate::disable called " << std::endl;
   //
 }
 //
-void Crate::configure() {
+void FEDCrate::configure() {
 // JRG, downloads to all boards, then starts the IRQ handler.
 	//printf(" ********   Crate::configure is called with run number %u \n",(unsigned int) runnumber);
 	std::vector<DDU*> myDdus = this->ddus();
@@ -101,7 +101,7 @@ void Crate::configure() {
 //	this->init(runnumber);
 }
 
-void Crate::init() {
+void FEDCrate::init() {
 	// Does nothing.
 }
 

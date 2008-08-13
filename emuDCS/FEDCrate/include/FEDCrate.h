@@ -1,23 +1,23 @@
 /*************************************************************************
 
-The philosophy behind the objects Crate, VMEModule, VMEController, DDU,
+The philosophy behind the objects FEDCrate, VMEModule, VMEController, DDU,
 DCC, and IRQThread are as follows:
 
-The Crate contains DDU (pointer)s, DCC (pointer)s, and a VMEController
-(pointer).  Because it contains everything, the Crate is the highest
+The FEDCrate contains DDU (pointer)s, DCC (pointer)s, and a VMEController
+(pointer).  Because it contains everything, the FEDCrate is the highest
 level object in the scheme.  When you pass a properly formatted XML file
 to the FEDCrateParser, it will hand you back a std::vector of properly
 initialized and filled Crates.  Note that the FEDCrateParser is actually
-a brain-dead object with only minimal error checking--the Crate, DDU, DCC,
+a brain-dead object with only minimal error checking--the FEDCrate, DDU, DCC,
 and VMEController objects it makes do all the magic of proper
 initialization in their constructors.
 
-Once you have a std::vector of Crates from the FEDCrateParser, you can pick out
-the various objects from the Crate using the Crate::ddus(), dccs(), and
+Once you have a std::vector of FEDCrates from the FEDCrateParser, you can pick out
+the various objects from the FEDCrate using the Crate::ddus(), dccs(), and
 vmeController() methods.  The VMEController object is the only thing that
-is even remotely aware of which Crate in which it resides (given by the
+is even remotely aware of which FEDCrate in which it resides (given by the
 _private_ VMEController::crateNumber member).  Because of this, it is the
-user's responsiblility to keep track of which Crate he is addressing.
+user's responsiblility to keep track of which FEDCrate he is addressing.
 
 The VMEModule class is a dummy class with members that both DDU and DCC
 objects inherit.
@@ -36,8 +36,8 @@ creation and EmuFCrateHyperDAQ::VMEIntIRQ for intense IRQThread examples.
  *************************************************************************/
 
 
-#ifndef CRATE_h
-#define CRATE_h
+#ifndef __FEDCRATE_H__
+#define __FEDCRATE_H__
 
 //using namespace std;
 #include <vector>
@@ -50,10 +50,10 @@ class VMEController;
 class DDU;
 class DCC;
 
-class Crate: public EmuFEDLoggable {
+class FEDCrate: public EmuFEDLoggable {
 public:
-	Crate(int number, VMEController* theController = NULL);
-	~Crate();
+	FEDCrate(int number, VMEController* theController = NULL);
+	~FEDCrate();
 
 	int number() const {return theNumber;}
 
