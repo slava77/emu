@@ -1,7 +1,7 @@
 #include "ChamberParser.h"
 
 XERCES_CPP_NAMESPACE_USE
-using namespace std;
+//using namespace std;
 
 /** Parses the DDU fiber -> chamber linking using the input XML file.
 @param fileName is the absolute path location of Karoly's XML file.
@@ -13,14 +13,14 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 	Chamber *fakeChamber = new Chamber();
 	chamberVector_.resize(15,fakeChamber);
 
-	stringstream fileNameStream;
+	std::stringstream fileNameStream;
 /*  JRG old: used to Prepend the path XDAQ_ROOT for the XML file
 	// Remember that fileName is relative to the path $XDAQ_ROOT
 
-	string XDAQ_ROOT(getenv("XDAQ_ROOT"));
+	std::string XDAQ_ROOT(getenv("XDAQ_ROOT"));
 	if (XDAQ_ROOT == "") {
-		cerr << "Error before Xerces-c Initialization." << endl;
-		cerr << "  SET ENVIRONMENT VARIABLE XDAQ_ROOT FIRST!" << endl;
+		std::cerr << "Error before Xerces-c Initialization." << std::endl;
+		std::cerr << "  SET ENVIRONMENT VARIABLE XDAQ_ROOT FIRST!" << std::endl;
 		return;
 	}
 	fileNameStream << XDAQ_ROOT << (XDAQ_ROOT[XDAQ_ROOT.size() - 1] == '/' ? "" : "/") << fileName;
@@ -35,9 +35,9 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 		XMLPlatformUtils::Initialize();
 		
 	} catch(const XMLException& toCatch) {
-		cerr << "Error during Xerces-c Initialization.\n"
+		std::cerr << "Error during Xerces-c Initialization.\n"
 			<< "  Exception message:"
-			<< XMLString::transcode(toCatch.getMessage()) << endl;
+			<< XMLString::transcode(toCatch.getMessage()) << std::endl;
 		return;
 	}
  
@@ -61,35 +61,35 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 		
 	} catch (const XMLException& e) {
 	
-		cerr << "An error occured during parsing\n   Message: "
-			<< XMLString::transcode(e.getMessage()) << endl;
+		std::cerr << "An error occured during parsing\n   Message: "
+			<< XMLString::transcode(e.getMessage()) << std::endl;
 		errorsOccured = true;
 		
 	} catch (const DOMException& e) {
-		cerr << "An error occured during parsing\n   Message: "
-			<< XMLString::transcode(e.msg) << endl;
+		std::cerr << "An error occured during parsing\n   Message: "
+			<< XMLString::transcode(e.msg) << std::endl;
 		errorsOccured = true;
 	}
 
 	catch (...) {
-		cerr << "An error occured during parsing\n " << endl;
+		std::cerr << "An error occured during parsing\n " << std::endl;
 		errorsOccured = true;
 	}
 
 	// If the parse was successful, output the document data from the DOM tree
 	if (!errorsOccured){
 		// Get maps
-		vector<DOMNode *> pMaps = parseMaps(parser->getDocument());
+		std::vector<DOMNode *> pMaps = parseMaps(parser->getDocument());
 		
 		// Loop over maps
 		for (unsigned int iMap = 0; iMap < pMaps.size(); iMap++) {
 			// Get RUIs
-			vector<DOMNode *> pRUIs = parseRUIs(pMaps[iMap]);
+			std::vector<DOMNode *> pRUIs = parseRUIs(pMaps[iMap]);
 
 			// Loop over RUIs
 			for (unsigned int iRUI = 0; iRUI < pRUIs.size(); iRUI++) {
 				// Get DDUs
-				vector<DOMNode *> pDDUs = parseDDUs(pRUIs[iRUI], crate, slot);
+				std::vector<DOMNode *> pDDUs = parseDDUs(pRUIs[iRUI], crate, slot);
 
 				// Loop over DDUs
 				for (unsigned int iDDU = 0; iDDU < pDDUs.size(); iDDU++) {
@@ -123,15 +123,15 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 }
 
 
-vector<DOMNode *> ChamberParser::parseMaps(DOMNode * pDoc) {
-	vector<DOMNode *> nodeVector;
+std::vector<DOMNode *> ChamberParser::parseMaps(DOMNode * pDoc) {
+	std::vector<DOMNode *> nodeVector;
 	DOMNode * pNode1 = pDoc->getFirstChild();
 	while (pNode1) { // RUI-to-chamber_mapping
 	  if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
 	    if ( strcmp("RUI-to-chamber_mapping",XMLString::transcode(pNode1->getNodeName())) ){
-	      cout << "ChamberParser: WARNING - Wrong Top Element <"
+	      std::cout << "ChamberParser: WARNING - Wrong Top Element <"
 		   << XMLString::transcode(pNode1->getNodeName())
-		   << ">, should be <RUI-to-chamber_mapping>" << endl;
+		   << ">, should be <RUI-to-chamber_mapping>" << std::endl;
 	    }
 
 	    nodeVector.push_back(pNode1);
@@ -143,15 +143,15 @@ vector<DOMNode *> ChamberParser::parseMaps(DOMNode * pDoc) {
 }
 
 
-vector<DOMNode *> ChamberParser::parseRUIs(DOMNode *pMap) {
-	vector<DOMNode *> nodeVector;
+std::vector<DOMNode *> ChamberParser::parseRUIs(DOMNode *pMap) {
+	std::vector<DOMNode *> nodeVector;
 	DOMNode *pNode1 = pMap->getFirstChild();
 	while (pNode1) { // RUI
 		if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
 			if ( strcmp("RUI",XMLString::transcode(pNode1->getNodeName())) ){
-				cout << "ChamberParser: WARNING - Wrong Child Element <"
+				std::cout << "ChamberParser: WARNING - Wrong Child Element <"
 					<< XMLString::transcode(pNode1->getNodeName())
-					<< ">, should be <RUI>" << endl;
+					<< ">, should be <RUI>" << std::endl;
 			}
 
 			nodeVector.push_back(pNode1);
@@ -162,8 +162,8 @@ vector<DOMNode *> ChamberParser::parseRUIs(DOMNode *pMap) {
 	return nodeVector;
 }
 
-vector<DOMNode *> ChamberParser::parseDDUs(DOMNode *pRUI, int crate, int slot) {
-	vector<DOMNode *> nodeVector;
+std::vector<DOMNode *> ChamberParser::parseDDUs(DOMNode *pRUI, int crate, int slot) {
+	std::vector<DOMNode *> nodeVector;
 	DOMNode *pNode1 = pRUI->getFirstChild();
 	while (pNode1) { // DDU
 		if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
@@ -191,9 +191,9 @@ void ChamberParser::parseInput(DOMNode *pDDU) {
 	while (pNode1) { // DDU
 		if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
 			if ( strcmp("input",XMLString::transcode(pNode1->getNodeName())) ){
-				cout << "ChamberParser: WARNING - Wrong Child Element <"
+				std::cout << "ChamberParser: WARNING - Wrong Child Element <"
 					<< XMLString::transcode(pNode1->getNodeName())
-					<< ">, should be <input>" << endl;
+					<< ">, should be <input>" << std::endl;
 			}
 
 			int fiber;
@@ -229,8 +229,8 @@ void ChamberParser::parseInput(DOMNode *pDDU) {
 				pNode2 = pNode2->getNextSibling();
 			}
 
-			/* Fill the vector */
-			cout << "  Found input " << fiber << " chamber " << chamber->name() << endl << flush;
+			/* Fill the std::vector */
+			std::cout << "  Found input " << fiber << " chamber " << chamber->name() << std::endl << std::flush;
 			chamberVector_[fiber] = chamber;
 			
 		}

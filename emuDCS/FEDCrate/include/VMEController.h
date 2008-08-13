@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.6 2008/08/11 15:24:34 paste Exp $
+// $Id: VMEController.h,v 3.7 2008/08/13 14:20:41 paste Exp $
 // $Log: VMEController.h,v $
+// Revision 3.7  2008/08/13 14:20:41  paste
+// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
+//
 // Revision 3.6  2008/08/11 15:24:34  paste
 // More updates to clean up files, preparing for universal logger and presentation of code.
 //
@@ -24,17 +27,17 @@
 //
 //
 //----------------------------------------------------------------------
-#ifndef VMEController_h
-#define VMEController_h
+#ifndef __VMECONTROLLER_H__
+#define __VMECONTROLLER_H__
 
-using namespace std;
+//using namespace std;
 #include <vector>
 #include <iostream>
 #include "JTAG_constants.h"
 #include <string>
 
 #include "VMEModule.h"
-#include "Crate.h"
+//#include "Crate.h"
 #include "EmuFEDLoggable.h"
 
 #include <cmath>
@@ -45,8 +48,7 @@ using namespace std;
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
-
-#include <unistd.h>
+//#include <stdint.h>
 
 #include <pthread.h>
 #include "CAENVMElib.h"
@@ -109,7 +111,8 @@ public:
 	/// EPROM reprogramming (EXPERTS ONLY !)
 	void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
 	void Parse(char *buf,int *Count,char **Word);
-	long int theBHandle;
+	
+	int32_t theBHandle;
 	inline int CAEN_err(void) { return caen_err; }
 	
 	VMEModule* getTheCurrentModule();

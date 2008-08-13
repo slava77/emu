@@ -6,13 +6,13 @@ DCC, and IRQThread are as follows:
 The Crate contains DDU (pointer)s, DCC (pointer)s, and a VMEController
 (pointer).  Because it contains everything, the Crate is the highest
 level object in the scheme.  When you pass a properly formatted XML file
-to the FEDCrateParser, it will hand you back a vector of properly
+to the FEDCrateParser, it will hand you back a std::vector of properly
 initialized and filled Crates.  Note that the FEDCrateParser is actually
 a brain-dead object with only minimal error checking--the Crate, DDU, DCC,
 and VMEController objects it makes do all the magic of proper
 initialization in their constructors.
 
-Once you have a vector of Crates from the FEDCrateParser, you can pick out
+Once you have a std::vector of Crates from the FEDCrateParser, you can pick out
 the various objects from the Crate using the Crate::ddus(), dccs(), and
 vmeController() methods.  The VMEController object is the only thing that
 is even remotely aware of which Crate in which it resides (given by the
@@ -39,7 +39,7 @@ creation and EmuFCrateHyperDAQ::VMEIntIRQ for intense IRQThread examples.
 #ifndef CRATE_h
 #define CRATE_h
 
-using namespace std;
+//using namespace std;
 #include <vector>
 #include <iostream>
 
@@ -63,9 +63,9 @@ public:
 	VMEController * vmeController() const {return theController;}
 
 	/// uses RTTI to find types
-	vector<DDU *> ddus() const;
-	vector<DCC *> dccs() const;
-	inline vector<VMEModule *> modules() { return theModules; }
+	std::vector<DDU *> ddus() const;
+	std::vector<DCC *> dccs() const;
+	inline std::vector<VMEModule *> modules() { return theModules; }
 
 	// Return the rui of the DDU in the given slot.  The crate number is
 	//  needed to figure this out.
@@ -91,7 +91,7 @@ private:
 
 	int theNumber;
 	/// indexed by slot
-	vector<VMEModule *> theModules;
+	std::vector<VMEModule *> theModules;
 	VMEController * theController;
 };
 

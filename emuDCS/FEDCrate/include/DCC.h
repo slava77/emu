@@ -5,7 +5,7 @@
 #ifndef DCC_h
 #define DCC_h
 
-using namespace std;
+//using namespace std;
 #include <iostream>
 #include <vector>
 #include <string>
@@ -98,7 +98,7 @@ public:
 	void Parse(char *buf, int *Count, char **Word);
 
 	/// sends commands by name
-	void executeCommand(string command);
+	void executeCommand(std::string command);
 
 	// PGK Simplified DCC commands
 	/** Reset the crate through a TTC-override command.	**/

@@ -9,7 +9,7 @@
 
 #include "cgicc/Cgicc.h"
 
-using namespace std;
+//using namespace std;
 
 
 class DataElement
@@ -21,21 +21,21 @@ public:
 	*	@param value is the value of the pacticular element.
 	*	@param class is the class of the particular element.
 	**/
-	DataElement(ostringstream myValue, string className = "none"):
+	DataElement(std::stringstream myValue, std::string className = "none"):
 		class_(className)
 	{
 		*value << myValue;
 	}
 
-	/** Standard constructor with strings.
+	/** Standard constructor with std::strings.
 	*
 	*	@param value is the value of the pacticular element.
 	*	@param class is the class of the particular element.
 	**/
-	DataElement(string myValue = "", string klass = "none"):
+	DataElement(std::string myValue = "", std::string klass = "none"):
 		class_(klass)
 	{
-		value = new stringstream();
+		value = new std::stringstream();
 		*value << myValue;
 	}
 
@@ -43,51 +43,51 @@ public:
 	~DataElement() {}
 
 	/** Set the value straight away. **/
-	void operator= (string myValue)
+	void operator= (std::string myValue)
 	{
 		value->clear();
 		*value << value;
 	}
 
 	/** Also set the value straight away **/
-	inline void setValue(stringstream myValue)
+	inline void setValue(std::stringstream myValue)
 	{
 		value->clear();
 		*value << value;
 	}
 
 	/** Also set the value straight away **/
-	inline void setValue(string myValue)
+	inline void setValue(std::string myValue)
 	{
 		value->clear();
 		*value << value;
 	}
 
 	/** Set the CSS class **/
-	inline void setClass(string className) { class_ = className; }
+	inline void setClass(std::string className) { class_ = className; }
 
 	/** Get the CSS class **/
-	inline string getClass() { return class_; }
+	inline std::string getClass() { return class_; }
 
 	/** Display as an HTML table element **/
-	string toHTML(bool breaks = false)
+	std::string toHTML(bool breaks = false)
 	{
-		ostringstream *out = new ostringstream();
+		std::stringstream *out = new std::stringstream();
 		if (breaks) {
 			*out << cgicc::td(value->str())
 				.set("class",class_)
-				.set("style","border-right: 3px double #000;")<< endl;
+				.set("style","border-right: 3px double #000;")<< std::endl;
 		} else {
 			*out << cgicc::td(value->str())
-				.set("class",class_) << endl;
+				.set("class",class_) << std::endl;
 		}
 		return out->str();
 	}
 
-	stringstream *value;
+	std::stringstream *value;
 
 private:
-	string class_;
+	std::string class_;
 };
 
 class DataRow
@@ -98,7 +98,7 @@ public:
 	*
 	*	@param cols is the number of columns in the row.
 	**/
-	DataRow(ostringstream myName, unsigned int cols = 3, unsigned long int breaks = 0)
+	DataRow(std::stringstream myName, unsigned int cols = 3, unsigned long int breaks = 0)
 		throw (FEDException):
 		breaks_(breaks)
 	{
@@ -110,8 +110,8 @@ public:
 		*(elements_[0]->value) << myName;
 	}
 
-	/** Standard constructor with strings. **/
-	DataRow(string myName, unsigned int cols = 3, unsigned long int breaks = 0)
+	/** Standard constructor with std::strings. **/
+	DataRow(std::string myName, unsigned int cols = 3, unsigned long int breaks = 0)
 		throw (FEDException):
 		breaks_(breaks)
 	{
@@ -158,22 +158,22 @@ public:
 */
 
 	/** Set the class of the second element. **/
-	void setClass(string className)
+	void setClass(std::string className)
 		throw (FEDException)
 	{
 		if (elements_.size() < 2) XCEPT_RAISE(FEDException, "DataRow::getClass assumes that the second element is the data element.  You need at least two elements in the DataRow to call this method.");
 		elements_[1]->setClass(className);
 	}
 
-	string toHTML()
+	std::string toHTML()
 	{
-		ostringstream *out = new ostringstream();
+		std::stringstream *out = new std::stringstream();
 		*out << cgicc::tr()
-			.set("style","border-top: solid 1px #000;") << endl;
+			.set("style","border-top: solid 1px #000;") << std::endl;
 		for (unsigned int icol = 0; icol < elements_.size(); icol++) {
 			*out << elements_[icol]->toHTML( (breaks_ & (1 << icol)) );
 		}
-		*out << cgicc::tr() << endl;
+		*out << cgicc::tr() << std::endl;
 		return out->str();
 	}
 
@@ -184,55 +184,55 @@ public:
 	*	@param val is the legacy index number for DDU/DCCTextLoad to parse.
 	*	@param buttonText is the text you want to appear in the submit button.
 	**/
-	string makeForm(string target, unsigned int crate, unsigned int ddu, unsigned int val, string buttonText = "Load")
+	std::string makeForm(std::string target, unsigned int crate, unsigned int ddu, unsigned int val, std::string buttonText = "Load")
 		throw (FEDException)
 	{
 
 		if (elements_.size() < 2) XCEPT_RAISE(FEDException, "DataRow::makeForm assumes the second element is the value of the data, so at least 2 elements are required in the DataRow instance before this method can be called.");
 
-		ostringstream *out = new ostringstream();
+		std::stringstream *out = new std::stringstream();
 
 		*out << cgicc::form()
 			.set("method","GET")
-			.set("action",target) << endl;
+			.set("action",target) << std::endl;
 		// The DDU
-		ostringstream dduText;
+		std::stringstream dduText;
 		dduText << ddu;
 		// The Crate
-		ostringstream crateText;
+		std::stringstream crateText;
 		crateText << crate;
 		*out << cgicc::input()
 			.set("type","hidden")
 			.set("name","crate")
-			.set("value",crateText.str()) << endl;
+			.set("value",crateText.str()) << std::endl;
 		*out << cgicc::input()
 			.set("type","hidden")
 			.set("name","ddu")
-			.set("value",dduText.str()) << endl;
+			.set("value",dduText.str()) << std::endl;
 		// The legacy val parameter
-		ostringstream valText;
+		std::stringstream valText;
 		valText << val;
 		*out << cgicc::input()
 			.set("type","hidden")
 			.set("name","command")
-			.set("value",valText.str()) << endl;
+			.set("value",valText.str()) << std::endl;
 		// The current value
 		*out << cgicc::input()
 			.set("type","text")
 			.set("name","textdata")
 			.set("size","10")
-			.set("value",elements_[1]->value->str()) << endl;
+			.set("value",elements_[1]->value->str()) << std::endl;
 		// Submit
 		*out << cgicc::input()
 			.set("type","submit")
-			.set("value",buttonText) << endl;
-		*out << cgicc::form() << endl;
+			.set("value",buttonText) << std::endl;
+		*out << cgicc::form() << std::endl;
 
 		return out->str();
 	}
 
 private:
-	vector< DataElement * > elements_;
+	std::vector< DataElement * > elements_;
 	unsigned long int breaks_;
 };
 
@@ -244,13 +244,13 @@ public:
 	*
 	*	@param id is the HTML id tag of the table.  Should be unique.
 	**/
-	DataTable(string id):
+	DataTable(std::string id):
 		cols_(0),
 		id_(id),
 		hidden_(false),
 		breaks_(0)
 	{
-		//cout << "Making a new DataTable at " << this << " with id " << id << endl;
+		//std::cout << "Making a new DataTable at " << this << " with id " << id << std::endl;
 		// Everything is done dynamically later.
 	}
 
@@ -277,7 +277,7 @@ public:
 		return (*thisRow)[col];
 	}
 
-	void addColumn(string title) {
+	void addColumn(std::string title) {
 		headers_.push_back(title);
 		cols_++;
 		rows_.clear();
@@ -301,42 +301,42 @@ public:
 	
 	inline unsigned int countRows() { return rows_.size(); }
 
-	string toHTML(bool tableTags = true) {
-		ostringstream *out = new ostringstream();
+	std::string toHTML(bool tableTags = true) {
+		std::stringstream *out = new std::stringstream();
 
 		if (hidden_ && tableTags) {
 			*out << cgicc::table()
 				.set("id",id_)
 				.set("class","data")
-				.set("style","display: none;") << endl;
+				.set("style","display: none;") << std::endl;
 		} else if (tableTags) {
 			*out << cgicc::table()
 				.set("id",id_)
-				.set("class","data") << endl;
+				.set("class","data") << std::endl;
 		}
 		*out << cgicc::tr()
-			.set("style","font-weight: bold;") << endl;
-		vector< string >::iterator iCol;
+			.set("style","font-weight: bold;") << std::endl;
+		std::vector< std::string >::iterator iCol;
 		for (unsigned int icol = 0; icol != headers_.size(); icol++) {
 			if (breaks_ & (1 << icol)) {
 				*out << cgicc::td(headers_[icol])
-					.set("style","border-right: 3px double #000;") << endl;
+					.set("style","border-right: 3px double #000;") << std::endl;
 			} else {
-				*out << cgicc::td(headers_[icol]) << endl;
+				*out << cgicc::td(headers_[icol]) << std::endl;
 			}
 		}
-		*out << cgicc::tr() << endl;
-		vector< DataRow *>::iterator iRow;
+		*out << cgicc::tr() << std::endl;
+		std::vector< DataRow *>::iterator iRow;
 		for (iRow = rows_.begin(); iRow != rows_.end(); iRow++) {
-			*out << (*iRow)->toHTML() << endl;
+			*out << (*iRow)->toHTML() << std::endl;
 		}
 		if (tableTags) *out << cgicc::table();
 		return out->str();
 	}
 
-	unsigned int countClass(string className) {
+	unsigned int countClass(std::string className) {
 		unsigned int returnVal = 0;
-		for (vector<DataRow *>::iterator iRow = rows_.begin(); iRow != rows_.end(); iRow++) {
+		for (std::vector<DataRow *>::iterator iRow = rows_.begin(); iRow != rows_.end(); iRow++) {
 			for (unsigned int icol = 0; icol < headers_.size(); icol++) {
 				if (headers_[icol] == "Value" && (*(*iRow))[icol]->getClass() == className) returnVal++;
 			}
@@ -344,13 +344,13 @@ public:
 		return returnVal;
 	}
 
-	string printSummary() {
-		ostringstream *out = new ostringstream();
+	std::string printSummary() {
+		std::stringstream *out = new std::stringstream();
 
 		unsigned int nTotal = 0;
 
 		// Grab the classes.  Ignore "none".
-		std::map<string,unsigned int> classes;
+		std::map<std::string,unsigned int> classes;
 		for (unsigned int irow = 0; irow != rows_.size(); irow++) {
 			for (unsigned int icol = 0; icol != cols_; icol++) {
 				if (headers_[icol] != "Value" || (*this)(irow,icol)->getClass() == "none") continue;
@@ -360,21 +360,21 @@ public:
 		}
 
 		// Print "OK" first:
-		std::map<string,unsigned int>::iterator iFound = classes.find("ok");
+		std::map<std::string,unsigned int>::iterator iFound = classes.find("ok");
 		if (iFound != classes.end()) {
 			*out << cgicc::span()
 				.set("class",iFound->first);
 			*out << iFound->second << "/" << nTotal << " " << iFound->first;
-			*out << cgicc::span() << endl;
+			*out << cgicc::span() << std::endl;
 		}
 		
-		std::map<string,unsigned int>::iterator iClass;
+		std::map<std::string,unsigned int>::iterator iClass;
 		for (iClass = classes.begin(); iClass != classes.end(); iClass++) {
 			if (iClass->first == "ok") continue;
 			*out << cgicc::span()
 				.set("class",iClass->first);
 			*out << iClass->second << "/" << nTotal << " " << iClass->first;
-			*out << cgicc::span() << endl;
+			*out << cgicc::span() << std::endl;
 		}
 		
 		return out->str();

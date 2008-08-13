@@ -19,7 +19,7 @@ Package=emuDCS/FEDCrate
 
 Sources=\
 	EmuFEDLoggable.cc \
-	Crate.cc \
+	FEDCrate.cc \
 	DDU.cc \
 	DDUParser.cc \
 	DDUDebugger.cc \

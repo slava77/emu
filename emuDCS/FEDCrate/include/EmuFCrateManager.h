@@ -1,4 +1,4 @@
-// $Id: EmuFCrateManager.h,v 1.10 2008/08/11 14:04:56 paste Exp $
+// $Id: EmuFCrateManager.h,v 1.11 2008/08/13 14:20:41 paste Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -10,8 +10,8 @@
  * For the list of contributors see CREDITS.   			         *
  *************************************************************************/
 
-#ifndef _EmuFCrateManager_h_
-#define _EmuFCrateManager_h_
+#ifndef __EMUFCRATEMANAGER_H__
+#define __EMUFCRATEMANAGER_H__
 
 #include <ostream>
 
@@ -56,8 +56,8 @@
 // EmuController * MyController;
 // Crate *broadcastCrate;
 
-using namespace cgicc;
-using namespace std;
+//using namespace cgicc;
+//using namespace std;
 
 
 #include "xdaq2rc/RcmsStateNotifier.h"
@@ -102,8 +102,8 @@ public:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 		throw (toolbox::fsm::exception::Exception);
 		
-	string extractState(xoap::MessageReference message);
-	string extractRunNumber(xoap::MessageReference message);
+	std::string extractState(xoap::MessageReference message);
+	std::string extractRunNumber(xoap::MessageReference message);
 
 	xoap::MessageReference onConfigure (xoap::MessageReference message) 
 		throw (xoap::exception::Exception);
@@ -133,9 +133,9 @@ public:
 	void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) 
 		throw (xgi::exception::Exception);
 	
-	void PCsendCommand(string command, string klass) 
+	void PCsendCommand(std::string command, std::string klass) 
 		throw (xoap::exception::Exception, xdaq::exception::Exception);
-	xoap::MessageReference PCcreateCommandSOAP(string command);
+	xoap::MessageReference PCcreateCommandSOAP(std::string command);
 	//  void PCanalyzeReply(xoap::MessageReference message, xoap::MessageReference reply,xdaq::ApplicationDescriptor *app);
 
 	xoap::MessageReference killAllMessage();
@@ -151,45 +151,20 @@ public:
 	void CheckEmuFCrateState();
 
 private:
+
 	xdata::UnsignedInteger tts_id_;
 	xdata::UnsignedInteger tts_crate_;
 	xdata::UnsignedInteger tts_slot_;
 	xdata::UnsignedInteger tts_bits_;
-	//xdata::String tts_crate_;
-	//xdata::String tts_slot_;
-	//xdata::String tts_bits_;
 
-	void sendCommand(string command, string klass, int instance)
+
+	void sendCommand(std::string command, std::string klass, int instance)
 		throw (xoap::exception::Exception, xdaq::exception::Exception);
-	xoap::MessageReference createCommandSOAP(string command);
-	//void setParameter(string klass, string name, string type,string value);
-	//void setParameter(string klass, string name, string type,unsigned int value);
-	//xoap::MessageReference createParameterSetSOAP(string klass, string name, string type, string value);
-	//void analyzeReply(xoap::MessageReference message, xoap::MessageReference reply, xdaq::ApplicationDescriptor *app);
+	xoap::MessageReference createCommandSOAP(std::string command);
+
 
 	void webRedirect(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
-
-/*
-	class StateTable
-	{
-	public:
-		StateTable(EmuFCrateManager *fedmgr);
-		void addApplication(string klass);
-		void refresh();
-		string getState(string klass, unsigned int instance);
-		bool isValidState(string expected);
-		void webOutput(xgi::Output *out, string sv_state)
-			throw (xgi::exception::Exception);
-
-	private:
-		xoap::MessageReference createStateSOAP(string klass);
-		string extractState(xoap::MessageReference message, string klass);
-
-		EmuFCrateManager *fedmgr_;
-		vector<pair<xdaq::ApplicationDescriptor *, string> > table_;
-	} state_table_;
-*/
 
 	bool soapConfigured_;
 	bool soapLocal_;

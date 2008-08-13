@@ -5,7 +5,7 @@
 
 #include "Chamber.h"
 
-using namespace std;
+//using namespace std;
 
 Chamber::Chamber():
 	endcap(""),
@@ -30,30 +30,30 @@ Chamber::~Chamber()
 /**
 @returns a human-readable chamber name, like ME+1/2/12
 **/
-string Chamber::name()
+std::string Chamber::name()
 {
-	stringstream nameStream;
+	std::stringstream nameStream;
 	//nameStream << "ME" << endcap << station << "/" << type << "/" << number;
-	nameStream << endcap << station << "/" << type << "/" << setw(2) << setfill('0') << number;
+	nameStream << endcap << station << "/" << type << "/" << std::setw(2) << std::setfill('0') << number;
 	return nameStream.str();
 }
 
 /**
 @returns a human-readable peripheral crate/slot name, like +1/03 slot 2
 **/
-string Chamber::peripheralCrate()
+std::string Chamber::peripheralCrate()
 {
-	stringstream nameStream;
-	nameStream << endcap << station << "/" << setw(2) << setfill('0') << peripheralCrateVMECrate_ << " slot " << peripheralCrateVMESlot_;
+	std::stringstream nameStream;
+	nameStream << endcap << station << "/" << std::setw(2) << std::setfill('0') << peripheralCrateVMECrate_ << " slot " << peripheralCrateVMESlot_;
 	return nameStream.str();
 }
 
 /**
 @returns a human-readable fiber cassette name, like 1/2/b or something...
 **/
-string Chamber::fiberCassette()
+std::string Chamber::fiberCassette()
 {
-	stringstream nameStream;
+	std::stringstream nameStream;
 	nameStream << fiberCassetteCrate_ << "/" << fiberCassettePos_ << "/" << fiberCassetteSocket_;
 	return nameStream.str();
 }

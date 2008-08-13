@@ -1,8 +1,8 @@
 #include "DDUDebugger.h"
 
-std::map<string, string> DDUDebugger::DDUFPGAStat(unsigned long int stat)
+std::map<std::string, std::string> DDUDebugger::DDUFPGAStat(unsigned long int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x0000F000) {
 		if (stat&0xF0000000) {
@@ -64,9 +64,9 @@ std::map<string, string> DDUDebugger::DDUFPGAStat(unsigned long int stat)
 
 
 
-std::map<string, string> DDUDebugger::OutputStat(int stat)
+std::map<std::string, std::string> DDUDebugger::OutputStat(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x0000D981) {
 		if (0x00001000&stat) returnValues["DDU S-Link Not Present"] = "green";
@@ -78,15 +78,15 @@ std::map<string, string> DDUDebugger::OutputStat(int stat)
 				if (0x00004000&stat) returnValues["DAQ (DCC/S-Link) Wait occurred"] = "blue";
 				if (0x00002000&stat) returnValues["DDU S-Link Full occurred"] = "none";
 				//if (0x00001000&stat) returnValues["DDU S-Link Never Ready"] = "none";
-				//if (0x000000cef&stat&&(0x000000cef&stat)<=0x00ff) *out << br();
+				//if (0x000000cef&stat&&(0x000000cef&stat)<=0x00ff) *out << cgicc::br();
 			}
 			if (stat&0x00000E00) {
-				//if (stat&0x00000900)==0x0800||(stat&0x00000500)==0x0400) *out << br();
+				//if (stat&0x00000900)==0x0800||(stat&0x00000500)==0x0400) *out << cgicc::br();
 				if (0x00000800&stat && (0x00000100&stat) == 0) returnValues["DDU GbE Overflow occurred"] = "blue";
 				if (0x00000400&stat && (0x00000100&stat) == 0) returnValues["GbE Transmit Limit occurred"] = "none";
 				//if (0x00000200&stat&&(0x00000100&stat)==0) returnValues["GbE FIFO Always Empty &nbsp ";
 				//if (0x00000100&stat) returnValues["<font color=blue>SPY/GbE Fiber Disconnect occurred</font>";
-				//if (0x000000ef&stat) *out << br();
+				//if (0x000000ef&stat) *out << cgicc::br();
 			}
 			if (stat&0x000000F0) {
 				if (0x00000080&stat) returnValues["DDU DAQ-Limited Overflow occurred (DCC/S-Link Wait)"] = "red";
@@ -95,7 +95,7 @@ std::map<string, string> DDUDebugger::OutputStat(int stat)
 				if (0x00000010&stat && (0x00001000&stat) == 0) returnValues["DDU S-Link Not Ready"] = "red";
 			}
 			if (stat&0x0000000F) {
-				//if (0x0000000e&stat&&(0x00000001&stat)==0) *out << br();
+				//if (0x0000000e&stat&&(0x00000001&stat)==0) *out << cgicc::br();
 				if (0x00000008&stat && (0x00000100&stat) == 0) returnValues["GbE FIFO Full"] = "none";
 				if (0x00000004&stat && (0x00000100&stat) == 0) returnValues["DDU Skipped SPY Event (GbE data not sent)"] = "none";
 				if (0x00000002&stat && (0x00000100&stat) == 0) returnValues["GbE FIFO Not Empty"] = "none";
@@ -112,9 +112,9 @@ std::map<string, string> DDUDebugger::OutputStat(int stat)
 
 
 
-std::map<string, string> DDUDebugger::EBReg1(int stat)
+std::map<std::string, std::string> DDUDebugger::EBReg1(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x0000ffff) {
 		//*out << "<blockquote><font size=-1 color=orange face=arial>";
@@ -123,7 +123,7 @@ std::map<string, string> DDUDebugger::EBReg1(int stat)
 			if (0x00004000&stat) returnValues["Mult L1A Error occurred"] = "red";
 			if (0x00002000&stat) returnValues["L1A-FIFO Near Full Warning"] = "blue";
 			if (0x00001000&stat) returnValues["GbE FIFO Almost-Full"] = "none";
-			//if (0x0fff&stat) *out << br();
+			//if (0x0fff&stat) *out << cgicc::br();
 		}
 		if (stat&0x00000F00) {
 			if (0x00000800&stat) returnValues["Ext.FIFO Near Full Warning"] = "blue";
@@ -131,7 +131,7 @@ std::map<string, string> DDUDebugger::EBReg1(int stat)
 			if (0x00000400&stat) returnValues["InSingle Warning"] = "blue";
 			if (0x00000200&stat) returnValues["CFEB-CRC not OK"] = "none";
 			if (0x00000100&stat) returnValues["CFEB-CRC End Error"] = "orange";
-			//if (0x00ff&stat) *out << br();
+			//if (0x00ff&stat) *out << cgicc::br();
 		}
 		if (stat&0x000000F0) {
 			if (0x00000080&stat) returnValues["CFEB-CRC Count Error"] = "orange";
@@ -139,7 +139,7 @@ std::map<string, string> DDUDebugger::EBReg1(int stat)
 			//if (0x00000020&stat) returnValues["Latched Trigger Trail"] = "none";
 			if (0x00000020&stat) returnValues["Trigger Readout Error"] = "orange";
 			if (0x00000010&stat) returnValues["Trigger Trail Done"] = "none";
-			//if (0x000f&stat) *out << br();
+			//if (0x000f&stat) *out << cgicc::br();
 		}
 		if (stat&0x0000000F) {
 			if (0x00000008&stat) returnValues["Start Timeout"] = "red";
@@ -156,9 +156,9 @@ std::map<string, string> DDUDebugger::EBReg1(int stat)
 
 
 
-std::map<string, string> DDUDebugger::EBReg2(int stat)
+std::map<std::string, std::string> DDUDebugger::EBReg2(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x0000ffff) {
 		if (0x00000020&stat) returnValues["Empty CSC in Event flag"] = "green";
@@ -168,21 +168,21 @@ std::map<string, string> DDUDebugger::EBReg2(int stat)
 			if (0x00004000&stat) returnValues["DMB Error in Event"] = "orange";
 			if (0x00002000&stat) returnValues["Control DLL Error occured"] = "blue";
 			if (0x00001000&stat) returnValues["2nd Header First flag"] = "orange";
-			//if(0x0fdf&stat) *out << br();
+			//if(0x0fdf&stat) *out << cgicc::br();
 		}
 		if (stat&0x00000F00) {
 			if (0x00000800&stat) returnValues["Early 2nd Trailer flag"] = "none";
 			if (0x00000400&stat) returnValues["Extra 1st Trailer flag"] = "none";
 			if (0x00000200&stat) returnValues["Extra 1st Header flag"] = "none";
 			if (0x00000100&stat) returnValues["Extra 2nd Header flag"] = "none";
-			//if(0x00df&stat) *out << br();
+			//if(0x00df&stat) *out << cgicc::br();
 		}
 		if (stat&0x000000D0) {
 			if (0x00000080&stat) returnValues["SCA Full detected this Event"] = "orange";
 			if (0x00000040&stat) returnValues["Probable DMB Full occurred"] = "blue";
 			//if (0x00000020&stat) returnValues["Empty Event flag"] = "green";
 			if (0x00000010&stat) returnValues["Bad Control Word Error occurred"] = "red";
-			//if(0x000f&stat) *out << br();
+			//if(0x000f&stat) *out << cgicc::br();
 		}
 		if (stat&0x0000000F) {
 			if (0x00000008&stat) returnValues["Missed Trigger Trailer Error"] = "orange";
@@ -200,9 +200,9 @@ std::map<string, string> DDUDebugger::EBReg2(int stat)
 
 
 
-std::map<string, string> DDUDebugger::EBReg3(int stat)
+std::map<std::string, std::string> DDUDebugger::EBReg3(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x0000ffff) {
 		//*out << "<blockquote><font size=-1 color=black face=arial>";
@@ -212,14 +212,14 @@ std::map<string, string> DDUDebugger::EBReg3(int stat)
 			if (0x00002000&stat) returnValues["2nd ALCT Trailer detected"] = "red";
 			//if (0x00002000&stat) returnValues["ALCT DAV Vote True occurred"] = "none";
 			if (0x00001000&stat) returnValues["ALCT L1A mismatch error occurred"] = "none";
-			//if(0x0fff&stat) *out << br();
+			//if(0x0fff&stat) *out << cgicc::br();
 		}
 		if (stat&0x00000F00) {
 			if (0x00000800&stat) returnValues["ALCT CRC Error occurred"] = "none";
 			if (0x00000400&stat) returnValues["ALCT Wordcount Error occurred"] = "none";
 			if (0x00000200&stat) returnValues["Missing ALCT Trailer occurred"] = "none";
 			if (0x00000100&stat) returnValues["ALCT Error occurred"] = "none";
-			//if(0x00ff&stat) *out << br();
+			//if(0x00ff&stat) *out << cgicc::br();
 		}
 		if (stat&0x000000F0) {
 			if (0x00000080&stat) returnValues["DMB Critical Error occurred"] = "none";
@@ -228,7 +228,7 @@ std::map<string, string> DDUDebugger::EBReg3(int stat)
 			if (0x00000020&stat) returnValues["2nd TMB Trailer detected"] = "red";
 			//if (0x00000020&stat) returnValues["TMB DAV Vote True occurred"] = "none";
 			if (0x00000010&stat) returnValues["TMB L1A mismatch error occurred"] = "none";
-			//if(0x000f&stat) *out << br();
+			//if(0x000f&stat) *out << cgicc::br();
 		}
 		if (stat&0x0000000F) {
 			if (0x00000008&stat) returnValues["TMB CRC Error occurred"] = "none";
@@ -247,9 +247,9 @@ std::map<string, string> DDUDebugger::EBReg3(int stat)
 
 
 
-std::map<string, string> DDUDebugger::FIFO2(int stat)
+std::map<std::string, std::string> DDUDebugger::FIFO2(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x000000ff) {
 
@@ -269,9 +269,9 @@ std::map<string, string> DDUDebugger::FIFO2(int stat)
 
 
 
-std::map<string, string> DDUDebugger::FFError(int stat)
+std::map<std::string, std::string> DDUDebugger::FFError(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x000000ff) {
 
@@ -290,9 +290,9 @@ std::map<string, string> DDUDebugger::FFError(int stat)
 
 
 
-std::map<string, string> DDUDebugger::InCHistory(int stat)
+std::map<std::string, std::string> DDUDebugger::InCHistory(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x00000fff) {
 		//*out << "<blockquote><font size=-1 color=red face=arial>";
@@ -324,9 +324,9 @@ std::map<string, string> DDUDebugger::InCHistory(int stat)
 
 
 
-std::map<string, string> DDUDebugger::WarnMon(int stat)
+std::map<std::string, std::string> DDUDebugger::WarnMon(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x000000ff) {
 		if (0x01&stat) returnValues["InRD0 set FMM warning"] = "none";
@@ -351,7 +351,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 {
 
 	std::vector<std::string> out;
-	ostringstream outStream;
+	std::stringstream outStream;
 
 	thisDDU->ddu_fpgatrap();
 
@@ -367,7 +367,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 
 	// First, spit out the full status.
 
-	string debugNames[12] = {
+	std::string debugNames[12] = {
 		"o-stat",
 		"fifo-full",
 		"fifo-c",
@@ -385,14 +385,14 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 	// Pop out the decoded register.
 	for (unsigned int iBits = 0; iBits < 12; iBits++) {
 		int lcodeBits = 5 - (iBits/2);
-		outStream << debugNames[iBits] << ": " << setw(4) << setfill('0') << hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
+		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
 		out.push_back(outStream.str());
 		outStream.str("");
 	}
 
 // 	i = 23;
 // 	sprintf(buf, "                        o-stat  fful  fifo-c fifo-b");
-// 	*out << buf << endl;
+// 	*out << buf << std::endl;
 // 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
 // 	sprintf(cbuf1, "%s", sgrn);
 // 	if (0x09010000&lcode[5])sprintf(cbuf1, "%s", sblu);
@@ -408,11 +408,11 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 // 	sprintf(cbuf4, "%s", sgrn);
 // 	if (0x01ff&lcode[4])sprintf(cbuf4, "%s", sblu);
 // 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[4], snul);
-// 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+// 	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 // 
 // 	i = 15;
 // 	sprintf(buf, "                        fifo-a instat c-code  erc");
-// 	*out << buf << endl;
+// 	*out << buf << std::endl;
 // 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
 // 	sprintf(cbuf1, "%s", sgrn);
 // 	if (0xfff00000&lcode[3])sprintf(cbuf1, "%s", sred);
@@ -428,11 +428,11 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 // 	sprintf(cbuf4, "%s", sgrn);
 // 	if (0x9f1f&lcode[2])sprintf(cbuf4, "%s", syel);
 // 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[2], snul);
-// 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+// 	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 // 
 // 	i = 7;
 // 	sprintf(buf, "                         erb    era   32-bit status");
-// 	*out << buf << endl;
+// 	*out << buf << std::endl;
 // 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
 // 	sprintf(cbuf1, "%s", sgrn);
 // 	if (0x00110000&lcode[1])sprintf(cbuf1, "%s", syel);
@@ -453,7 +453,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 // 	if (0x4b23&lcode[0])sprintf(cbuf4, "%s", syel);
 // 	if (0x80dc&lcode[0])sprintf(cbuf4, "%s", sred);
 // 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[0], snul);
-// 	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+// 	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 
 	// Next, spit out the funky fiber information.
 	unsigned long int CSCStat = thisDDU->readCSCStat();
@@ -461,7 +461,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		outStream << "FMM errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (CSCStat & (1<<iFiber)) {
-				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -476,7 +476,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		outStream << "DMB errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (DMBError & (1<<iFiber)) {
-				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -488,7 +488,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		outStream << "TMB errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (TMBError & (1<<iFiber)) {
-				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -500,7 +500,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		outStream << "ALCT errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (ALCTError & (1<<iFiber)) {
-				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -512,7 +512,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		outStream << "Transmit errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (XmitError & (1<<iFiber)) {
-				outStream << dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -538,7 +538,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		INFPGA0,
 		INFPGA1
 	};
-	string devName[2] = {
+	std::string devName[2] = {
 		"INFPGA0",
 		"INFPGA1"
 	};
@@ -559,7 +559,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 				unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
-					outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+					outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 				}
 			}
 			out.push_back(outStream.str());
@@ -576,7 +576,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 				unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
-					outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+					outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 				}
 			}
 			out.push_back(outStream.str());
@@ -593,7 +593,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 				unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
-					outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+					outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 				}
 			}
 			out.push_back(outStream.str());
@@ -622,7 +622,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		if (lcode[5]&0x0000000f) {	// Ext.FIFO
 			outStream << "DDUFPGA: [Memory error for DDU external fifo(s) ";
 			for (int iFIFO=0; iFIFO < 4; iFIFO++) {
-				if (lcode[5] & (1<<iFIFO)) outStream << dec << iFIFO;
+				if (lcode[5] & (1<<iFIFO)) outStream << std::dec << iFIFO;
 			}
 			out.push_back(outStream.str() + "]");
 			outStream.str("");
@@ -659,7 +659,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		if (lcode[2]&0x08000000) out.push_back("DDUFPGA: [End C-code error]");
 		outStream << "DDUFPGA: (probably occurred on external FIFO(s) ";
 		for (int iFIFO = 0; iFIFO < 4; iFIFO++) {
-			if ((lcode[2] >> 28) & (1<<iFIFO)) outStream << dec << iFIFO << " ";
+			if ((lcode[2] >> 28) & (1<<iFIFO)) outStream << std::dec << iFIFO << " ";
 		}
 		outStream << "(from InMxmit Reg))";
 		out.push_back(outStream.str());
@@ -669,7 +669,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 	
 	// InCtrlErr at CritErr point:
 	if (lcode[0]&0x00400000) { // InCtrlErr & NotDDUfullFIFO
-		//    *out << "-debug> inside 3>" << endl;
+		//    *out << "-debug> inside 3>" << std::endl;
 		for (unsigned int iDev = 0; iDev < 2; iDev++) {
 			if (inStat[iDev] & 0x40000000) { // Filler=64bit-misalign
 				iFill |= (1 << iDev);
@@ -679,7 +679,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 					unsigned int realFiber = iFiber + iDev*8;
 					if ((fiberCheck >> 8) & (1<<iFiber)) {
-						outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+						outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 					}
 				}
 				out.push_back(outStream.str());
@@ -690,7 +690,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 
 			// If InCtrlErr and not solved, get InTrap registers (each 32 bytes)
 			if (inStat[iDev]&0x00008000) {
-				//      *out << "-debug> inside 4>" << endl;
+				//      *out << "-debug> inside 4>" << std::endl;
 				thisDDU->infpga_trap(devType[iDev]);
 				inTrap[iDev][5] = thisDDU->fpga_lcode[5];
 				inTrap[iDev][4] = thisDDU->fpga_lcode[4];
@@ -746,10 +746,10 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 	// If InCtrlErr, determine what happened at CritErr point:
 	//        Timeout/StuckDat/MultXmit/MemErr/MultL1A
 	if (!solved && lcode[0]&0x00400000) {
-		//    *out << "-debug> inside 5>" << endl;
+		//    *out << "-debug> inside 5>" << std::endl;
 		for (int iDev = 0; iDev < 2; iDev++) {
 			if (inTrapSet[iDev]) {  // got_i0trap;
-				//      *out << "-debug> inside 6>" << endl;
+				//      *out << "-debug> inside 6>" << std::endl;
 				if (inTrap[iDev][0]&0x00000040) {
 					if (inTrap[iDev][3]&0x00ff0000) {
 						outStream << devName[iDev] << ": Start timeout for fiber(s) ";
@@ -757,7 +757,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][3] >> 16) & (1<<iFiber)) {
-								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -768,7 +768,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if (((inTrap[iDev][4] >> 8) | inTrap[iDev][4]) & (1<<iFiber)) {
-								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -782,7 +782,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][2] >> 24) & (1<<iFiber)) {
-								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -797,7 +797,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if (fiberCheck & (1<<iFiber)) {
-								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -813,12 +813,12 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 
 					} else if (inTrap[iDev][0]&0x00000008) {  // InFPGA0 Memory Full
 						if ((inTrap[iDev][0]&0x00040000) > 0) {
-							outStream << devName[iDev] << ": Memory error for InRD" << dec << (0 + iDev*2);
+							outStream << devName[iDev] << ": Memory error for InRD" << std::dec << (0 + iDev*2);
 							out.push_back(outStream.str());
 							outStream.str("");
 							
 							if (inTrap[iDev][5]&0x0000001f) {
-								outStream << devName[iDev] << ": [L1A buffer overflow (" << dec << (inTrap[iDev][5]&0x0000001f) << " memories available)]";
+								outStream << devName[iDev] << ": [L1A buffer overflow (" << std::dec << (inTrap[iDev][5]&0x0000001f) << " memories available)]";
 								out.push_back(outStream.str());
 								outStream.str("");
 							} else {
@@ -826,12 +826,12 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 								if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev]);
 							}
 						} else if (inTrap[iDev][0]&0x00400000) {
-							outStream << devName[iDev] << ": Memory error for InRD" << dec << (1 + iDev*2);
+							outStream << devName[iDev] << ": Memory error for InRD" << std::dec << (1 + iDev*2);
 							out.push_back(outStream.str());
 							outStream.str("");
 							
 							if (inTrap[iDev][5]&0x000003e0) {
-								outStream << devName[iDev] << ": [L1A buffer overflow (" << dec << (inTrap[iDev][5]&0x000003e0) << " memories available)]";
+								outStream << devName[iDev] << ": [L1A buffer overflow (" << std::dec << (inTrap[iDev][5]&0x000003e0) << " memories available)]";
 								out.push_back(outStream.str());
 								outStream.str("");
 							} else {
@@ -846,7 +846,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][2] >> 16) & (1<<iFiber)) {
-								outStream << dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -868,7 +868,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			if (lcode[5]&0x000000f0) {  // InRd Mem
 				outStream << "[Memory error for DDU detected in ";
 				for (int iReg = 0; iReg < 4; iReg++) {
-					if ((lcode[5] >> 4) & (1<<iReg)) outStream << "InRd" << dec << iReg << " ";
+					if ((lcode[5] >> 4) & (1<<iReg)) outStream << "InRd" << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + "]");
 				outStream.str("");
@@ -911,7 +911,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		if (lcode[0]&0x00000004) {  // DDUctrl Fiber/FIFO Connect error
 			outStream << "[Fiber/FIFO error detected in external FIFO(s) ";
 			for (int iReg = 0; iReg < 4; iReg++) {
-				if ((lcode[3] >> 24) & (1<<iReg)) outStream << dec << iReg << " ";
+				if ((lcode[3] >> 24) & (1<<iReg)) outStream << std::dec << iReg << " ";
 			}
 			out.push_back(outStream.str() + "]");
 			outStream.str("");
@@ -926,7 +926,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			if (lcode[4]&0x00f00000) {
 				outStream << "(Start timeout for external FIFO(s) ";
 				for (int iReg = 0; iReg < 4; iReg++) {
-					if ((lcode[3] >> 20) & (1<<iReg)) outStream << dec << iReg << " ";
+					if ((lcode[3] >> 20) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + ")");
 				outStream.str("");
@@ -934,7 +934,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			if (lcode[4]&0x0f000000) {
 				outStream << "(End-wait timeout for external FIFO(s) ";
 				for (int iReg = 0; iReg < 4; iReg++) {
-					if ((lcode[3] >> 24) & (1<<iReg)) outStream << dec << iReg << " ";
+					if ((lcode[3] >> 24) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + ")");
 				outStream.str("");
@@ -942,7 +942,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			if (lcode[4]&0xf0000000) {
 				outStream << "(End-busy timeout for external FIFO(s) ";
 				for (int iReg = 0; iReg < 4; iReg++) {
-					if ((lcode[3] >> 28) & (1<<iReg)) outStream << dec << iReg << " ";
+					if ((lcode[3] >> 28) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + ")");
 				outStream.str("");
@@ -953,7 +953,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		if (lcode[0]&0x02000000) {  // DDUctrl StuckDat error
 			outStream << "[Stuck data error detected for external FIFO(s) ";
 			for (int iReg = 0; iReg < 4; iReg++) {
-				if ((lcode[3] >> 28) & (1<<iReg)) outStream << dec << iReg << " ";
+				if ((lcode[3] >> 28) & (1<<iReg)) outStream << std::dec << iReg << " ";
 			}
 			out.push_back(outStream.str() + "]");
 			outStream.str("");
@@ -1006,7 +1006,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			if ((lcode[0]&0x90400fff) == 0x0000000a && lcode[4]&0x00008000) {
 				outStream << "[DDU C-code L1A error detected for external FIFO(s) ";
 				for (int iReg = 0; iReg < 4; iReg++) {
-					if ((lcode[3] >> 20) & (1<<iReg)) outStream << dec << iReg << " ";
+					if ((lcode[3] >> 20) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + "]");
 				outStream.str("");
@@ -1022,7 +1022,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			} else if ((lcode[0]&0x9fc00dff) == 0x0040000a) {
 				outStream << "[DMB L1A mismatch error (from InFPGA) detected for external FIFO(s) ";
 				for (int iReg = 0; iReg < 4; iReg++) {
-					if ((lcode[3] >> 20) & (1<<iReg)) outStream << dec << iReg << " ";
+					if ((lcode[3] >> 20) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + "]");
 				outStream.str("");
@@ -1033,7 +1033,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			} else if (lcode[0]&0x00000002) {
 				outStream << "[Likely caused by DMB L1A mismatch, other errors too for external FIFO(s) ";
 				for (int iReg = 0; iReg < 4; iReg++) {
-					if ((lcode[3] >> 20) & (1<<iReg)) outStream << dec << iReg << " ";
+					if ((lcode[3] >> 20) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + "]");
 				outStream.str("");
@@ -1100,13 +1100,13 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 
 
 
-std::map<string, string> DDUDebugger::KillFiber(long int stat)
+std::map<std::string, std::string> DDUDebugger::KillFiber(long int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if ((stat&0x00018000) == 0x8000) returnValues["ALCT checking is disabled"] = "blue";
 	if ((stat&0x00028000) == 0x8000) returnValues["TMB checking is disabled"] = "blue";
-	//if ((stat&0x00008000)>0&&(stat&0x00030000)<0x00030000) *out << br() ;
+	//if ((stat&0x00008000)>0&&(stat&0x00030000)<0x00030000) *out << cgicc::br() ;
 	if ((stat&0x00048000) == 0x8000) returnValues["CFEB DAV/LCT/MOVLP/L1A checks disabled"] = "blue";
 	if ((stat&0x00088000) == 0x8000) returnValues["Some DMB checks disabled for SP/TF compatibility"] = "blue";
 	if ((stat&0x00008000) == 0) returnValues["All checks are Enabled"] = "green";
@@ -1116,9 +1116,9 @@ std::map<string, string> DDUDebugger::KillFiber(long int stat)
 
 
 
-std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long int stat)
+std::map<std::string, std::string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//*out << "<blockquote><font size=-1 color=red face=arial>";
@@ -1128,12 +1128,12 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 		// if (0x40000000&stat) returnValues["DLL-1 Not Locked"] = "red";
 		if (0x40000000&stat) returnValues["64-bit Filler was used"] = "red";
 		if (0x20000000&stat) {
-			ostringstream fibers;
+			std::stringstream fibers;
 			fibers << (1 + fiberOffset * 2 / 8);
 			returnValues["RdCtrl-"+fibers.str()+" Not Ready"] = "red";
 		}
 		if (0x10000000&stat) {
-			ostringstream fibers;
+			std::stringstream fibers;
 			fibers << (0 + fiberOffset * 2 / 8);
 			returnValues["RdCtrl-"+fibers.str()+" Not Ready"] = "red";
 		}
@@ -1142,18 +1142,18 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 		if (0x08000000&stat) returnValues["NoLiveFiber 0 or 1"] = "blue";
 		if (0x04000000&stat) returnValues["DLL Error occurred"] = "blue";
 		if (0x02000000&stat) {
-			ostringstream fibers;
+			std::stringstream fibers;
 			fibers << (1 + fiberOffset * 2 / 8);
 			returnValues["InRD"+fibers.str()+" DMB Warn"] = "none";
 		}
 		if (0x01000000&stat) {
-			ostringstream fibers;
+			std::stringstream fibers;
 			fibers << (0 + fiberOffset * 2 / 8);
 			returnValues["InRD"+fibers.str()+" DMB Warn"] = "none";
 		}
 	}
 	if (stat&0x00F00000) {
-		ostringstream registers;
+		std::stringstream registers;
 		registers << (1 + fiberOffset * 2 / 8);
 		if (0x00800000&stat) {
 			returnValues["InRD"+registers.str()+" DMB Full"] = "blue";
@@ -1166,19 +1166,19 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 			returnValues["MultL1A Error-InRD"+registers.str()] = "red";
 		}
 		if (0x00100000&stat) {
-			ostringstream fibers;
+			std::stringstream fibers;
 			fibers << (4 + fiberOffset) << "-" << (7 + fiberOffset);
 			returnValues["NoLiveFiber"+fibers.str()] = "none";
 		}
 	}
 	if (stat&0x000F0000) {
-		ostringstream registers;
+		std::stringstream registers;
 		registers << (0 + fiberOffset * 2 / 8);
 		if (0x00080000&stat) returnValues["InRD"+registers.str()+" DMB Full"] = "blue";
 		if (0x00040000&stat) returnValues["Mem/FIFO-InRD"+registers.str()+" Error"] = "red";
 		if (0x00020000&stat) returnValues["MultL1A Error-InRD"+registers.str()] = "red";
 		if (0x00010000&stat) {
-			ostringstream fibers;
+			std::stringstream fibers;
 			fibers << (0 + fiberOffset) << "-" << (3 + fiberOffset);
 			returnValues["NoLiveFiber"+fibers.str()] = "none";
 		}
@@ -1214,9 +1214,9 @@ std::map<string, string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long 
 
 
 
-std::map<string, string> DDUDebugger::FIFOStat(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> DDUDebugger::FIFOStat(enum DEVTYPE dt, int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//*out << "<blockquote><font size=-1 color=black face=arial>";
@@ -1244,9 +1244,9 @@ std::map<string, string> DDUDebugger::FIFOStat(enum DEVTYPE dt, int stat)
 
 
 
-std::map<string, string> DDUDebugger::FIFOFull(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> DDUDebugger::FIFOFull(enum DEVTYPE dt, int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//*out << "<blockquote><font size=-1 color=black face=arial>";
@@ -1254,13 +1254,13 @@ std::map<string, string> DDUDebugger::FIFOFull(enum DEVTYPE dt, int stat)
 		//returnValues["&nbsp InRD0 Status: &nbsp <font color=red>";
 		if (0x00000004&stat) returnValues["Ext.FIFO Full Occurred"] = "red";
 		if (0x00000001&stat) returnValues["L1A FIFO Full Occurred"] = "red";
-		//*out << "</font>" << br();
+		//*out << "</font>" << cgicc::br();
 	}
 	if (stat&0x0000000A) {
 		//returnValues["&nbsp InRD1 Status: &nbsp <font color=red>";
 		if (0x00000008&stat) returnValues["Ext.FIFO Full Occurred"] = "red";
 		if (0x00000002&stat) returnValues["L1A FIFO Full Occurred"] = "red";
-		//*out << "</font>" << br();
+		//*out << "</font>" << cgicc::br();
 	}
 
 	return returnValues;
@@ -1268,9 +1268,9 @@ std::map<string, string> DDUDebugger::FIFOFull(enum DEVTYPE dt, int stat)
 
 
 
-std::map<string, string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	//unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//out << "<blockquote><font size=-1 color=black face=arial>";
@@ -1284,7 +1284,7 @@ std::map<string, string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
 		if (0x000004&stat) returnValues["Multi-Transmit Error"] = "red";
 		if (0x000002&stat) returnValues["Stuck Data"] = "red";
 		if (0x000001&stat) returnValues["Timeout"] = "red";
-		//*out  << "</font>" << br();
+		//*out  << "</font>" << cgicc::br();
 	}
 	if (stat&0x0000ff00) {
 		//*out << " &nbsp InRD1 &nbsp <font color=red>";
@@ -1296,7 +1296,7 @@ std::map<string, string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
 		if (0x00000400&stat) returnValues["Multi-Transmit Error"] = "red";
 		if (0x00000200&stat) returnValues["Stuck Data"] = "red";
 		if (0x00000100&stat) returnValues["Timeout"] = "red";
-		//*out  << "</font>" << br();
+		//*out  << "</font>" << cgicc::br();
 	}
 
 	return returnValues;
@@ -1305,28 +1305,28 @@ std::map<string, string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
 
 
 
-std::map<string, string> DDUDebugger::FiberDiagnostics(enum DEVTYPE dt, int reg, unsigned long int stat)
+std::map<std::string, std::string> DDUDebugger::FiberDiagnostics(enum DEVTYPE dt, int reg, unsigned long int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	if (0x1f000000&stat) {
-		ostringstream fiber;
+		std::stringstream fiber;
 		fiber << "Fiber " << (3 + fiberOffset + 4*reg) << ": " << ((0x1f000000&stat) >> 24);
 		returnValues[fiber.str()] = "none";
 	}
 	if (0x001f0000&stat) {
-		ostringstream fiber;
+		std::stringstream fiber;
 		fiber << "Fiber " << (2 + fiberOffset + 4*reg) << ": " << ((0x001f0000&stat) >> 16);
 		returnValues[fiber.str()] = "none";
 	}
 	if (0x00001f00&stat) {
-		ostringstream fiber;
+		std::stringstream fiber;
 		fiber << "Fiber " << (1 + fiberOffset + 4*reg) << ": " << ((0x00001f00&stat) >> 8);
 		returnValues[fiber.str()] = "none";
 	}
 	if (0x0000001f&stat) {
-		ostringstream fiber;
+		std::stringstream fiber;
 		fiber << "Fiber " << (0 + fiberOffset + 4*reg) << ": " << ((0x0000001f&stat) >> 0);
 		returnValues[fiber.str()] = "none";
 	}
@@ -1338,28 +1338,28 @@ std::map<string, string> DDUDebugger::FiberDiagnostics(enum DEVTYPE dt, int reg,
 
 
 
-std::map<string, string> DDUDebugger::WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat)
+std::map<std::string, std::string> DDUDebugger::WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	int fiber0 = stat & 0x1f;
 	int fiber1 = (stat >> 5) & 0x1f;
 	if (fiber0 != 0x1f) {
-		ostringstream fiber;
+		std::stringstream fiber;
 		fiber << "Fiber " << (0 + iFiber*2 + fiberOffset) << ": " << fiber0;
 		returnValues[fiber.str()] = "none";
 	} else {
-		ostringstream fiber;
+		std::stringstream fiber;
 		fiber << "Fiber " << (0 + iFiber*2 + fiberOffset) << " is inactive";
 		returnValues[fiber.str()] = "none";
 	}
 	if (fiber1 != 0x1f) {
-		ostringstream fiber;
+		std::stringstream fiber;
 		fiber << "Fiber " << (1 + iFiber*2 + fiberOffset) << ": " << fiber1;
 		returnValues[fiber.str()] = "none";
 	} else {
-		ostringstream fiber;
+		std::stringstream fiber;
 		fiber << "Fiber " << (1 + iFiber*2 + fiberOffset) << " is inactive";
 		returnValues[fiber.str()] = "none";
 	}
@@ -1387,7 +1387,7 @@ std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 
 	// First, spit out the full status.
 
-	string debugNames[12] = {
+	std::string debugNames[12] = {
 		"lf-full",
 		"mem-avail",
 		"c-code",
@@ -1405,7 +1405,7 @@ std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 	// Pop out the decoded register.
 	for (unsigned int iBits = 0; iBits < 12; iBits++) {
 		int lcodeBits = 5 - (iBits/2);
-		outStream << debugNames[iBits] << ": " << setw(4) << setfill('0') << hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
+		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
 		out.push_back(outStream.str());
 		outStream.str("");
 	}
@@ -1436,11 +1436,11 @@ std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 	lcode[5] = thisDDU->fpga_lcode[5];
 
 	sprintf(buf, "  192-bit DDU InFPGA Diagnostic Trap (24 bytes) \n");
-	*out << buf << endl;
+	*out << buf << std::endl;
 
 	i = 23;
 	sprintf(buf, "                        LFfull MemAvail C-code End-TO");
-	*out << buf << endl;
+	*out << buf << std::endl;
 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
 	sprintf(cbuf1, "%s", sgrn);
 	if (0x000f8000&lcode[5] < 3)sprintf(cbuf1, "%s", sblu);
@@ -1463,11 +1463,11 @@ std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 	sprintf(cbuf4, "%s", sgrn);
 	if (0xffff&lcode[4])sprintf(cbuf4, "%s", sred);
 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[4], snul);
-	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 
 	i = 15;
 	sprintf(buf, "                      Start-TO FAF/Nrdy L1err  DMBwarn");
-	*out << buf << endl;
+	*out << buf << std::endl;
 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
 	sprintf(cbuf1, "%s", sgrn);
 	if (0xff000000&lcode[3])sprintf(cbuf1, "%s", sblu);
@@ -1484,11 +1484,11 @@ std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 	if (0x00ff&lcode[2])sprintf(cbuf4, "%s", sblu);
 	if (0xff00&lcode[2])sprintf(cbuf4, "%s", sred);
 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[2], snul);
-	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 
 	i = 7;
 	sprintf(buf, "                        32-bit-Empty0M  32-bit-status");
-	*out << buf << endl;
+	*out << buf << std::endl;
 	sprintf(buf, "      rcv bytes %2d-%2d:", i, i - 7);
 	sprintf(cbuf1, "%s", sgrn);
 	if (0xffff0000&lcode[1] == 0xf8000000)sprintf(cbuf1, "%s", sred);
@@ -1505,7 +1505,7 @@ std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 	if (0x4202&lcode[0])sprintf(cbuf4, "%s", syel);
 	if (0x80fd&lcode[0])sprintf(cbuf4, "%s", sred);
 	sprintf(buf4, "%s   %04lx%s", cbuf4, 0xffff&lcode[0], snul);
-	*out << buf << buf1 << buf2 << buf3 << buf4 << endl;
+	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 
 	return out->str();
 	*/
@@ -1514,9 +1514,9 @@ std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 
 
 
-std::map<string, string> DDUDebugger::ParallelStat(int stat)
+std::map<std::string, std::string> DDUDebugger::ParallelStat(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat&0x0080) returnValues["VME DLL-2 Not Locked"] = "blue";
 	if (stat&0x0040) returnValues["VME DLL-1 Not Locked"] = "blue";
@@ -1530,9 +1530,9 @@ std::map<string, string> DDUDebugger::ParallelStat(int stat)
 
 
 
-std::map<string, string> DDUDebugger::FMMReg(int stat)
+std::map<std::string, std::string> DDUDebugger::FMMReg(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (stat == 4) returnValues["BUSY"] = "orange";
 	else if (stat == 1) returnValues["WARNING, Near Full"] = "blue";
@@ -1546,9 +1546,9 @@ std::map<string, string> DDUDebugger::FMMReg(int stat)
 
 
 
-std::map<string, string> DDUDebugger::GbEPrescale(int stat)
+std::map<std::string, std::string> DDUDebugger::GbEPrescale(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	int reg0 = stat & 0xF;
 	int reg1 = (stat & 0xF0) >> 4;
@@ -1559,7 +1559,7 @@ std::map<string, string> DDUDebugger::GbEPrescale(int stat)
 		if ((0x7&stat) == 0x7) returnValues["Transmitting never"] = "none";
 		else {
 			unsigned int prescale = 1 << reg0;
-			ostringstream prescaleText;
+			std::stringstream prescaleText;
 			prescaleText << "1:" << prescale;
 			returnValues["Transmitting "+prescaleText.str()+" events"] = "green";
 		}
@@ -1573,9 +1573,9 @@ std::map<string, string> DDUDebugger::GbEPrescale(int stat)
 
 
 
-std::map<string, string> DDUDebugger::FakeL1Reg(int stat)
+std::map<std::string, std::string> DDUDebugger::FakeL1Reg(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	int reg0 = stat & 0xF;
 	int reg1 = (stat & 0xF0) >> 4;
@@ -1595,9 +1595,9 @@ std::map<string, string> DDUDebugger::FakeL1Reg(int stat)
 
 
 
-std::map<string, string> DDUDebugger::F0EReg(int stat)
+std::map<std::string, std::string> DDUDebugger::F0EReg(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if ((stat & 0xFFF0) == 0xFED0) returnValues["FMM error reporting disabled"] = "orange";
 	else returnValues["FMM error reporting enabled"] = "green";
@@ -1607,9 +1607,9 @@ std::map<string, string> DDUDebugger::F0EReg(int stat)
 
 
 /*
-std::map<string, string> DDUDebugger::FIFOStat(int stat)
+std::map<std::string, std::string> DDUDebugger::FIFOStat(int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 
 

@@ -1,6 +1,6 @@
 /* Global variables for DDU IRQ interrupt */
-#ifndef IRQDATA_h
-#define IRQDATA_h
+#ifndef __IRQDATA_H__
+#define __IRQDATA_H__
 
 #include <time.h>
 #include <queue>
@@ -11,14 +11,14 @@
 #include <string>
 #include <pthread.h> // For mutexes
 
-#include "Crate.h"
+#include "FEDCrate.h"
 
 /** All of the information we need to know per IRQ error. **/
 class IRQError {
 
 public:
 
-	IRQError(Crate *myCrate, DDU *myDDU):
+	IRQError(FEDCrate *myCrate, DDU *myDDU):
 		crate(myCrate),
 		ddu(myDDU),
 		fibers(0),
@@ -35,7 +35,7 @@ public:
 
 	// All public members for ease of access.
 	
-	Crate *crate;
+	FEDCrate *crate;
 	DDU *ddu;
 	unsigned int fibers;
 	time_t errorTime;
@@ -66,20 +66,20 @@ public:
 	
 	// A queue of crates that each thread can pop.  Mutexed.
 	pthread_mutex_t crateQueueMutex;
-	std::queue<Crate *> crateQueue;
+	std::queue<FEDCrate *> crateQueue;
 	
 	// "Global" variables -- all threads read these together.
 	bool exit;
 	unsigned long int runNumber;
 	
 	// "Local" variables -- each thread tries to increment only its own.
-	std::map<Crate *, unsigned long int> errorCount;
-	std::map<Crate *,DDU *> lastDDU;
-	std::map<Crate *,unsigned long int> ticks;
-	std::map<Crate *,time_t> tickTime;
-	std::map<Crate *,time_t> startTime;
+	std::map<FEDCrate *, unsigned long int> errorCount;
+	std::map<FEDCrate *,DDU *> lastDDU;
+	std::map<FEDCrate *,unsigned long int> ticks;
+	std::map<FEDCrate *,time_t> tickTime;
+	std::map<FEDCrate *,time_t> startTime;
 
-	std::map<Crate *,std::vector<IRQError *> > errorVectors;
+	std::map<FEDCrate *,std::vector<IRQError *> > errorVectors;
 	
 };
 

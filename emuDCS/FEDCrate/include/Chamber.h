@@ -5,7 +5,7 @@
 #ifndef Chamber_h
 #define Chamber_h
 
-using namespace std;
+//using namespace std;
 #include <iostream>
 #include <vector>
 #include <string>
@@ -20,21 +20,21 @@ public:
 	Chamber();
 	~Chamber();
 
-	string endcap;
+	std::string endcap;
 	int station;
 	int type;
 	int number;
 
-	string name();
-	string peripheralCrate();
-	string fiberCassette();
+	std::string name();
+	std::string peripheralCrate();
+	std::string fiberCassette();
 
 private:
 	/* PGK We might need to make these visible to the outside world at some point.
 	For now, though I don't see why they can't be private. */
 	int fiberCassetteCrate_;
 	int fiberCassettePos_;
-	string fiberCassetteSocket_;
+	std::string fiberCassetteSocket_;
 
 	int peripheralCrateId_;
 	int peripheralCrateVMECrate_;

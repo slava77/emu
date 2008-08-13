@@ -11,14 +11,14 @@
 #include "geom_def.h"
 #include <bitset>
 
-using namespace std;
+//using namespace std;
 
 #ifndef debugV //silent mode
 #define PRINT(x)
 #define PRINTSTRING(x)
 #else //verbose mode
-#define PRINT(x) cout << #x << ":\t" << x << endl;
-#define PRINTSTRING(x) cout << #x << endl;
+#define PRINT(x) std::cout << #x << ":\t" << x << std::endl;
+#define PRINTSTRING(x) std::cout << #x << std::endl;
 #endif
 
 /* PGK Seriously?  Globals in a class definition? */
@@ -38,25 +38,25 @@ DDU::DDU(int crate,int slot):
 	VMEModule(slot),
 	skip_vme_load_(0),gbe_prescale_(0),killfiber_(0xf7fff)
 {
-  //  cout<<"DDU construct\n";
+  //  std::cout<<"DDU construct\n";
 }
 
 DDU::DDU(int slot):
 	VMEModule(slot),
 	skip_vme_load_(0),gbe_prescale_(0),killfiber_(0xf7fff)
 {
-  //  cout<<"DDU construct\n";
+  //  std::cout<<"DDU construct\n";
 }
 
 
 DDU::~DDU() {
-  //  cout << "DDU destruct" << endl;
+  //  std::cout << "DDU destruct" << std::endl;
 }
 
 
 void DDU::end()
 {
-	//   cout << "calling DDU::end" << endl;
+	//   std::cout << "calling DDU::end" << std::endl;
 	//theController->start(this);
 	send_last();
 	VMEModule::end();
@@ -648,7 +648,7 @@ int DDU::ddu_rdcrcerr()
 int i,j,shft2in;
 
 long int code;
-  //printf(" ddu_rdcrcerr \n");
+  //printf(" ddu_rdcrstd::cerr \n");
   cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
   sndbuf[0]=10;
   devdo(DDUFPGA,10,cmd,8,sndbuf,rcvbuf,0);
@@ -5862,7 +5862,7 @@ unsigned short int  DDU::vmepara_rd_fakel1reg()
 void DDU::vmepara_wr_GbEprescale(unsigned short int par_val)
 // JRG, expert use only
 {
-	cout << "vmepara_wr_GbEprescale " << par_val << endl;
+	std::cout << "vmepara_wr_GbEprescale " << par_val << std::endl;
 	cmd[0]=0x09; //dev 0x09 is Special Controls register
 	cmd[1]=0x80; //cmd 0x00 is 16-bit GbE Prescale & SLink/DCC Wait Disable reg
 				// set MSB for Write
@@ -6584,14 +6584,14 @@ ipass == 4 - do everything always
 
 	devstp=devnum;
 	for(id=devnum;id<=devstp;id++){
-		//cout << "id " << id << endl;
+		//std::cout << "id " << id << std::endl;
 		dv=(DEVTYPE)id;
 		xtrbits=geo[dv].sxtrbits;
 		devstr=geo[dv].nam;
 		dwnfp    = fopen(downfile,"r");
 		fpout=fopen("eprom.bit","w");
 		while (fgets(buf,256,dwnfp) != NULL)  {
-			//cout << "buf " << buf << endl;
+			//std::cout << "buf " << buf << std::endl;
 			if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
 			} else {
 				if(strrchr(buf,';')==0){
@@ -6606,12 +6606,12 @@ ipass == 4 - do everything always
 					} while (strrchr(buf,';')==0);
 				}
 				for(i=0;i<1024;i++){
-					//cout << "i " << i << endl;
+					//std::cout << "i " << i << std::endl;
 					cmpbuf[i]=0;
 					sndbuf[i]=0;
 					rcvbuf[i]=0;
 				}
-				//cout << "Parse! " << buf << endl;
+				//std::cout << "Parse! " << buf << std::endl;
 				Parse(buf, &Count, &(Word[0]));
 				// count=count+1;
 				// printf(" count %d \n",count);
@@ -6620,14 +6620,14 @@ ipass == 4 - do everything always
 					sscanf(Word[1],"%d",&nbits);
 					nbytes=(nbits-1)/8+1;
 					for(i=2;i<Count;i+=2){
-						//cout << "Count " << Count << endl;
+						//std::cout << "Count " << Count << std::endl;
 
 		/* PGK Here is where we load up the board number.
 		I have to stop here and only send this stuff if pass==1 */
 
 						if(strcmp(Word[i],"TDI")==0){
 							for(j=0;j<nbytes;j++){
-								//cout << "j " << j << endl;
+								//std::cout << "j " << j << std::endl;
 								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
 								snd[j] = intCache;
 							}
@@ -6671,7 +6671,7 @@ ipass == 4 - do everything always
 						}
 					}
 					for(i=0;i<nbytes;i++){
-						//cout << "i " << i << endl;
+						//std::cout << "i " << i << std::endl;
 	// 					sndbuf[i]=snd[i]&smask[i];
 						sndbuf[i]=snd[i]&0xff;
 					}
@@ -6700,7 +6700,7 @@ ipass == 4 - do everything always
 
 			//  Data readback comparison here:
 					for (i=0;i<nbytes;i++) {
-						//cout << "i " << i << endl;
+						//std::cout << "i " << i << std::endl;
 						tmp=(rcvbuf[i]>>3)&0x1F;
 						rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
 				/*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
@@ -6708,7 +6708,7 @@ ipass == 4 - do everything always
 					}
 					if (cmpflag==1) {
 						for (i=0;i<nbytes;i++) {
-							//cout << "i " << i << endl;
+							//std::cout << "i " << i << std::endl;
 							fprintf(fpout," %02X",rcvbuf[i]&0xFF);
 							if (i%4==3) fprintf(fpout,"\n");
 						}
@@ -6722,7 +6722,7 @@ ipass == 4 - do everything always
 					for(i=2;i<Count;i+=2){
 						if(strcmp(Word[i],"TDI")==0){
 							for(j=0;j<nbytes;j++){
-								//cout << "j " << j << endl;
+								//std::cout << "j " << j << std::endl;
 								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
 								snd[j] = intCache;
 							}
@@ -6730,28 +6730,28 @@ ipass == 4 - do everything always
 						}
 						else if(strcmp(Word[i],"SMASK")==0){
 							for(j=0;j<nbytes;j++){
-								//cout << "j " << j << endl;
+								//std::cout << "j " << j << std::endl;
 								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
 								smask[j] = intCache;
 							}
 						}
 						if(strcmp(Word[i],"TDO")==0){
 							for(j=0;j<nbytes;j++){
-								//cout << "j " << j << endl;
+								//std::cout << "j " << j << std::endl;
 								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
 								expect[j] = intCache;
 							}
 						}
 						else if(strcmp(Word[i],"MASK")==0){
 							for(j=0;j<nbytes;j++){
-								//cout << "j " << j << endl;
+								//std::cout << "j " << j << std::endl;
 								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
 								rmask[j] = intCache;
 							}
 						}
 					}
 					for(i=0;i<nbytes;i++){
-						//cout << "i " << i << endl;
+						//std::cout << "i " << i << std::endl;
 	// 				sndbuf[i]=snd[i]&smask[i];
 						sndbuf[i]=snd[i];
 					}
@@ -6759,13 +6759,13 @@ ipass == 4 - do everything always
 					// for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
 		/*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
 			DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
-					//cout << "nowrit " << nowrit << endl;
-					//cout << "pass " << pass << endl;
-					//cout << "ipass " << ipass << endl;
-					//cout << "dv " << dv << endl;
-					//cout << "nbits " << nbits << endl;
-					//cout << "sndbuf[0] " << sndbuf[0] << endl;
-					//cout << "devdo now..." << endl;
+					//std::cout << "nowrit " << nowrit << std::endl;
+					//std::cout << "pass " << pass << std::endl;
+					//std::cout << "ipass " << ipass << std::endl;
+					//std::cout << "dv " << dv << std::endl;
+					//std::cout << "nbits " << nbits << std::endl;
+					//std::cout << "sndbuf[0] " << sndbuf[0] << std::endl;
+					//std::cout << "devdo now..." << std::endl;
 					if(nowrit==0){
 						if (pass == ipass || ipass == 4) devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
 					} else {
@@ -6863,15 +6863,15 @@ int i;
 
 
 
-void DDU::executeCommand(string command)
+void DDU::executeCommand(std::string command)
 {
 }
 
 
 /** Part of the suite of chamber methods.
-@returns a vector of chambers in fiber-order.
+@returns a std::vector of chambers in fiber-order.
 **/
-vector<Chamber *> DDU::getChambers()
+std::vector<Chamber *> DDU::getChambers()
 {
 	return chamberVector_;
 }
@@ -6884,7 +6884,7 @@ vector<Chamber *> DDU::getChambers()
 Chamber *DDU::getChamber(unsigned int fiberNumber)
 {
 	if (fiberNumber >= chamberVector_.size()) {
-		//cerr << "chamberVector_ overflow!" << endl;
+		//std::cerr << "chamberVector_ overflow!" << std::endl;
 		return 0;
 	} else return chamberVector_[fiberNumber];
 }
@@ -6900,9 +6900,9 @@ void DDU::addChamber(Chamber* chamber, unsigned int fiberNumber) {
 
 
 /** Part of the suite of chamber methods.
-@param chamberVector is a vector of chambers to overwrite the internal vector.
+@param chamberVector is a std::vector of chambers to overwrite the internal std::vector.
 **/
-void DDU::setChambers(vector<Chamber *> chamberVector) {
+void DDU::setChambers(std::vector<Chamber *> chamberVector) {
 	chamberVector_ = chamberVector;
 }
 
@@ -6958,10 +6958,10 @@ unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbi
 	//sndbuf[2]=(testVal >> 16) & 0xff;
 	//sndbuf[3]=(testVal >> 24) & 0xff;
 
-	bitset<16> test(testVal);
+	std::bitset<16> test(testVal);
 
-	//cout << "Reading register " << (int) reg << endl;
-	//cout << "Shift test is       " << test << endl;
+	//std::cout << "Reading register " << (int) reg << std::endl;
+	//std::cout << "Shift test is       " << test << std::endl;
 
 	if (dt == DDUFPGA) {
 		cmd[0]=VTX2P_USR2_L;
@@ -6976,25 +6976,25 @@ unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbi
 	}
 
 	// The very first nbits bits are what we want to return.
-	// Crawl through the buffers and give us what we want using bitsets.
-	bitset<32> ret( rcvbuf[0]|(rcvbuf[1]<<8)|(rcvbuf[2]<<16)|(rcvbuf[3]<<24) );
+	// Crawl through the buffers and give us what we want using std::bitsets.
+	std::bitset<32> ret( rcvbuf[0]|(rcvbuf[1]<<8)|(rcvbuf[2]<<16)|(rcvbuf[3]<<24) );
 	if (nbits < 32) ret &= ((1 << nbits) - 1);
 
-	//cout << "The read returned   " << ret << endl;
+	//std::cout << "The read returned   " << ret << std::endl;
 
-	bitset<16> shiftTest;
+	std::bitset<16> shiftTest;
 	// Now crawl through the buffers for the shift-test.
 	for (unsigned int ibit=nbits; ibit<(nbits+16); ibit++) {
 		unsigned int ibuf = ibit/8;
 		if (rcvbuf[ibuf] & (1 << (ibit%8))) shiftTest.set(ibit - nbits);
 	}
 
-	//cout << "Shift test returned " << shiftTest << endl << endl;
+	//std::cout << "Shift test returned " << shiftTest << std::endl << std::endl;
 
 	// For some reason, the shift test only makes sense with reads of integer
 	//  multiples of 16.  Go figure.
 	if (shiftTest != test && nbits%16 == 0) {
-		ostringstream xceptString;
+		std::stringstream xceptString;
 		xceptString << "shiftTest returned "<< shiftTest << ", should have been " << test;
 		//XCEPT_RAISE(FEDException,xceptString.str());
 	}
@@ -7066,9 +7066,9 @@ unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbi
 // 	//sndbuf[2]=(testVal >> 16) & 0xff;
 // 	//sndbuf[3]=(testVal >> 24) & 0xff;
 //
-// 	bitset<16> test(testVal);
+// 	std::bitset<16> test(testVal);
 //
-// 	bitset<32> writeVal(value & ((1 << nbits) - 1));
+// 	std::bitset<32> writeVal(value & ((1 << nbits) - 1));
 //
 // 	for (unsigned int ibit=0; ibit<nbits; ibit++) {
 // 		unsigned int ibuf = ibit/8 + 2;
@@ -7078,9 +7078,9 @@ unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbi
 // 			sndbuf[ibuf] &= (255 - (1 << (ibit%8)));
 // 		}
 // 	}
-// 	cout << "Attempting to write " << writeVal << " to register " << (int) reg << endl;
+// 	std::cout << "Attempting to write " << writeVal << " to register " << (int) reg << std::endl;
 //
-// 	cout << "Shift test is       " << test << endl;
+// 	std::cout << "Shift test is       " << test << std::endl;
 //
 // 	if (dt == DDUFPGA) {
 // 		cmd[0]=VTX2P_USR2_L;
@@ -7109,11 +7109,11 @@ unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbi
 // 	// The shift test is the next 32 bits.
 //
 // 	// Return is easy
-// 	bitset<32> ret((rcvbuf[0] | (rcvbuf[1] << 8) | (rcvbuf[2] <<16) | (rcvbuf[3] << 24)) & ((1 << nbits) - 1));
+// 	std::bitset<32> ret((rcvbuf[0] | (rcvbuf[1] << 8) | (rcvbuf[2] <<16) | (rcvbuf[3] << 24)) & ((1 << nbits) - 1));
 //
-// 	cout << "The old value was   " << ret << endl;
+// 	std::cout << "The old value was   " << ret << std::endl;
 //
-// 	bitset<16> shiftTest;
+// 	std::bitset<16> shiftTest;
 //
 // 	// Crawl through the buffers and give us the shift test.
 // 	for (unsigned int ibit=nbits; ibit<nbits+16; ibit++) {
@@ -7121,11 +7121,11 @@ unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbi
 // 		if (rcvbuf[ibuf] & (1 << (ibit%8))) shiftTest.set(ibit - nbits);
 // 	}
 //
-// 	cout << "Shift test returned " << shiftTest << endl << endl;
+// 	std::cout << "Shift test returned " << shiftTest << std::endl << std::endl;
 //
 // 	if (shiftTest != test) {
-// 		ostringstream xceptString;
-// 		//xceptString << "shiftTest returned 0x" << hex << shiftTest << dec << ", should have been 0x" << hex << testBS << dec;
+// 		std::stringstream xceptString;
+// 		//xceptString << "shiftTest returned 0x" << std::hex << shiftTest << std::dec << ", should have been 0x" << std::hex << testBS << std::dec;
 // 		xceptString << "shiftTest returned "<< shiftTest << ", should have been " << test;
 // 		XCEPT_RAISE(FEDException,xceptString.str());
 // 	}
@@ -8141,7 +8141,7 @@ unsigned long int DDU::readSerial(int command, const unsigned int nbits = 16)
 	devdo(VMESERI,2,cmd,0,sndbuf,(char *)rcv_serial,0);
 
 	// Serial reads give rcv_serial[0] as the MSB
-	bitset<32> ret;
+	std::bitset<32> ret;
 	for (unsigned int ibit = 0; ibit < nbits; ibit++) {
 		unsigned int ibuf = nbits/8 - ibit/8 - 1;
 		if (rcv_serial[ibuf] & (1 << (ibit%8))) ret.set(ibit);

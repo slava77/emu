@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
+//using namespace std;
 
 /** An exception class that FED objects throw and catch.  This will hopefully
 *	make debugging not as terrible a process as the old proceedural-based code

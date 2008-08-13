@@ -1,12 +1,12 @@
-#ifndef IRQThreadManager_H
-#define IRQThreadManager_H
+#ifndef __IRQTHREADMANAGER_H__
+#define __IRQTHREADMANAGER_H__
 
-using namespace std;
+//using namespace std;
 #include <utility>
 #include <vector>
 #include <map>
 #include <queue>
-#include "Crate.h"
+#include "FEDCrate.h"
 #include "VMEController.h"
 #include "DDU.h"
 #include "EmuFEDLoggable.h"
@@ -40,7 +40,7 @@ public:
 	IRQThreadManager();
 	~IRQThreadManager();
 	
-	void attachCrate(Crate *crate);
+	void attachCrate(FEDCrate *crate);
 	void startThreads(unsigned long int runNumber = 0);
 	void endThreads();
 
@@ -50,7 +50,7 @@ public:
 
 private:
 
-	vector< pair<Crate *, pthread_t> > threadVector_;
+	std::vector< std::pair<FEDCrate *, pthread_t> > threadVector_;
 	IRQData *data_;
 
 };

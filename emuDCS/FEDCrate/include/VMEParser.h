@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.h,v 3.2 2007/07/23 08:20:42 gujh Exp $
+// $Id: VMEParser.h,v 3.3 2008/08/13 14:20:41 paste Exp $
 // $Log: VMEParser.h,v $
+// Revision 3.3  2008/08/13 14:20:41  paste
+// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
+//
 // Revision 3.2  2007/07/23 08:20:42  gujh
 // Correct
 // CorrectCorrectCorrectCorrect
@@ -19,15 +22,15 @@
 //
 //
 //-----------------------------------------------------------------------
-#ifndef VMEParser_h
-#define VMEParser_h
+#ifndef __VMEPARSER_H__
+#define __VMEPARSER_H__
 /*
  *  class VMEParser
  *  author Alex Tumanov 7/8/03
  *     
  */
 
-#include "Crate.h"
+//#include "Crate.h"
 #include "VMEController.h"
 #include "EmuParser.h"
 #include <xercesc/dom/DOM.hpp>

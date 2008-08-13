@@ -2,9 +2,9 @@
 
 
 
-std::map<string, string> DCCDebugger::FMMStat(short int stat)
+std::map<std::string, std::string> DCCDebugger::FMMStat(short int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 
 	if (0xf&stat == 0x3) returnValues["DCC Error"] = "error";
 	else if (0x1&stat) returnValues["DCC Busy"] = "yellow";
@@ -17,22 +17,22 @@ std::map<string, string> DCCDebugger::FMMStat(short int stat)
 
 
 
-std::map<string, string> DCCDebugger::SLinkStat(short int stat)
+std::map<std::string, std::string> DCCDebugger::SLinkStat(short int stat)
 {
-	std::map<string, string> returnValues;
+	std::map<std::string, std::string> returnValues;
 	for (int iLink = 0; iLink < 2; iLink++) {
 		if (stat & (1 << (iLink*2))) {
-			ostringstream linkStat;
+			std::stringstream linkStat;
 			linkStat << "S-Link " << (iLink+1) << " active";
 			returnValues[linkStat.str()] = "green";
 		} else {
-			ostringstream linkStat;
+			std::stringstream linkStat;
 			linkStat << "S-Link " << (iLink+1) << " inactive";
 			returnValues[linkStat.str()] = "red";
 		}
 
 		if (!(stat & (1 << (iLink*2 + 1)))) {
-			ostringstream linkStat;
+			std::stringstream linkStat;
 			linkStat << "S-Link " << (iLink+1) << " backpressure";
 			returnValues[linkStat.str()] = "orange";
 		}

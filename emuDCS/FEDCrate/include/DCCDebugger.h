@@ -1,7 +1,7 @@
 #ifndef DCCDebugger_h
 #define DCCDebugger_h
 
-using namespace std;
+//using namespace std;
 #include <string>
 #include <map>
 #include <iostream>
@@ -10,7 +10,7 @@ using namespace std;
 #include "DCC.h"
 
 /** A namespace that reads particular variables from the DCC and returns debugging
-*	information.  Everything is returned as a vector of pairs, the 2nd element
+*	information.  Everything is returned as a std::vector of std::pairs, the 2nd element
 *	being the class of the particular debug message
 *	(@sa LocalEmuApplication::CSS) and the 1st is the actual debug message.
 *
@@ -21,10 +21,10 @@ namespace DCCDebugger
 {
 
 	/** Reads from method @sa DCC::readStatusHigh(DDUFPGA) **/
-	std::map<string, string> FMMStat(short int stat);
+	std::map<std::string, std::string> FMMStat(short int stat);
 
 	/** Reads from method @sa DCC::readStatusHigh(DDUFPGA) **/
-	std::map<string, string> SLinkStat(short int stat);
+	std::map<std::string, std::string> SLinkStat(short int stat);
 };
 
 #endif

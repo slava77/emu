@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.3 2008/08/11 15:24:35 paste Exp $
+// $Id: VMEModule.cc,v 3.4 2008/08/13 14:20:42 paste Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.4  2008/08/13 14:20:42  paste
+// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
+//
 // Revision 3.3  2008/08/11 15:24:35  paste
 // More updates to clean up files, preparing for universal logger and presentation of code.
 //
@@ -23,7 +26,7 @@
 //----------------------------------------------------------------------
 #include "VMEModule.h"
 #include "VMEController.h"
-#include "Crate.h"
+//#include "Crate.h"
 #include <cmath>
 #include <string>
 #include <stdio.h>
@@ -36,8 +39,8 @@ extern int delay_type;
 #define PRINT(x) 
 #define PRINTSTRING(x)  
 #else //verbose mode
-#define PRINT(x) cout << #x << ":\t" << x << endl; 
-#define PRINTSTRING(x) cout << #x << endl; 
+#define PRINT(x) std::cout << #x << ":\t" << x << std::endl; 
+#define PRINTSTRING(x) std::cout << #x << std::endl; 
 #endif
 
 VMEModule::VMEModule(int crate,int slot):
@@ -45,7 +48,7 @@ VMEModule::VMEModule(int crate,int slot):
 	theController(NULL)
 {
 	#ifdef debugV
-	cout << "creating VMEModule" << endl;
+	std::cout << "creating VMEModule" << std::endl;
 	#endif 
 	//printf("--Construction complete, controller address %08x\n",this->theController);
 }
@@ -55,14 +58,14 @@ VMEModule::VMEModule(int slot):
 	theController(NULL)
 {
 	#ifdef debugV
-	cout << "creating VMEModule" << endl;
+	std::cout << "creating VMEModule" << std::endl;
 	#endif 
 	//printf("--Construction complete, controller address %08x\n",this->theController);
 }
 
 void VMEModule::setController(VMEController *controller) {
 	if (theController != NULL) {
-		cout << "WARNING: Trying change the VMEController of " << boardType() << " " << theSlot << endl;
+		std::cout << "WARNING: Trying change the VMEController of " << boardType() << " " << theSlot << std::endl;
 	}
 	theController = controller;
 }
@@ -70,7 +73,7 @@ void VMEModule::setController(VMEController *controller) {
 void VMEModule::start() {
 	PRINTSTRING(OVAL: start() from VMEModule have been called...);
 	//  #ifdef debugV
-	// cout << "starting VMEModule for slot " << dec << theSlot << " boardType " << boardType() << " line " << (int) c << endl;
+	// std::cout << "starting VMEModule for slot " << std::dec << theSlot << " boardType " << boardType() << " line " << (int) c << std::endl;
 	// #endif  
 	// vmeadd=0x00000000|(theSlot<<19);
         theController->start(theSlot);

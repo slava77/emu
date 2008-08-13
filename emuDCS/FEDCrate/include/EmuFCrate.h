@@ -1,5 +1,5 @@
-#ifndef _EmuFCrate_h_
-#define _EmuFCrate_h_
+#ifndef __EMUFCRATE_H__
+#define __EMUFCRATE_H__
 
 #include "EmuFEDApplication.h"
 
@@ -7,11 +7,11 @@
 #include "xdata/Vector.h"
 #include <vector>
 
-#include "Crate.h"
+#include "FEDCrate.h"
 #include "IRQThreadManager.h"
 
-using namespace std;
-using namespace cgicc;
+//using namespace std;
+//using namespace cgicc;
 
 class EmuFCrate : public EmuFEDApplication
 {
@@ -94,7 +94,7 @@ private:
 		throw (xgi::exception::Exception);
 
 	//
-	string getCGIParameter(xgi::Input *in, string name);
+	std::string getCGIParameter(xgi::Input *in, std::string name);
 
 	xdata::String xmlFile_;
 	xdata::Vector<xdata::String> errorChambers_;
@@ -112,10 +112,10 @@ private:
 	xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > dccInOut_;
 	xdata::soap::Serializer serializer; // This makes SOAP so much easier!
 
-	//string ttsIDStr_, ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
+	//std::string ttsIDStr_, ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
 	xdata::String endcap_; // Will say something like "plus" or "minus"
 
-	std::vector<Crate *> crateVector; // Very useful, just like in EFCHD
+	std::vector<FEDCrate *> crateVector; // Very useful, just like in EFCHD
 
 };
 
