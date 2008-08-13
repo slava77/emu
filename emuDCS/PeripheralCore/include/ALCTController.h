@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.35 2008/08/08 15:29:18 liu Exp $
+// $Id: ALCTController.h,v 3.36 2008/08/13 11:30:53 geurts Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.36  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.35  2008/08/08 15:29:18  liu
 // ix Get/Set functions for database
 //
@@ -196,6 +200,11 @@
 #include "EMU_JTAG_constants.h"
 #include "EmuLogger.h"
 //
+
+namespace emu {
+  namespace pc {
+
+
 class TMB;
 //
 class ALCTController : public EmuLogger 
@@ -919,4 +928,8 @@ private:
   void ReadDelayLineControlReg_();                  //fills Read values with values read from ALCT
   //
 };
+
+  } // namespace emu::pc
+  } // namespace emu
+
 #endif

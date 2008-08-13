@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.14 2008/06/22 14:57:52 liu Exp $
+// $Id: Crate.h,v 3.15 2008/08/13 11:30:53 geurts Exp $
 // $Log: Crate.h,v $
+// Revision 3.15  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.14  2008/06/22 14:57:52  liu
 // new functions for monitoring
 //
@@ -75,6 +79,10 @@
 #include <vector>
 #include <iostream>
 //
+
+namespace emu {
+  namespace pc {
+
 class VMEModule;
 class VMEController;
 class ALCTController;
@@ -145,5 +153,8 @@ private:
   VMEController * theController;
 };
 
+
+  } // namespace emu::pc
+  } // namespace emu
 #endif
 

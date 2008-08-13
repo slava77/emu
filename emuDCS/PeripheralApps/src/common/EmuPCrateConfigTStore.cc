@@ -23,6 +23,9 @@
 #include "tstore/client/LoadDOM.h"
 #include "tstore/client/Client.h"
 
+namespace emu {
+  namespace pc {
+
 XDAQ_INSTANTIATOR_IMPL(EmuPCrateConfigTStore)
 
   EmuPCrateConfigTStore::EmuPCrateConfigTStore(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception): xdaq::Application(s)
@@ -520,13 +523,13 @@ void EmuPCrateConfigTStore::synchronize(const std::string &connectionID, const s
 /// Gets database user's name and password from \ref dbUserFile_ .
 void EmuPCrateConfigTStore::getDbUserData(){
 
-  fstream fs;
-  fs.open( dbUserFile_.c_str(), ios::in );
+  std::fstream fs;
+  fs.open( dbUserFile_.c_str(), std::ios::in );
   if ( fs.is_open() ){
-    string userAndPasswd;
+    std::string userAndPasswd;
     fs >> userAndPasswd;
     if ( !userAndPasswd.length() ){
-      stringstream oss;
+      std::stringstream oss;
       oss << dbUserFile_ << " contains no username/password. ==> No TStore database access.";
       throw oss.str();
     }
@@ -534,7 +537,7 @@ void EmuPCrateConfigTStore::getDbUserData(){
     fs.close();
   }
   else{
-    stringstream oss;
+    std::stringstream oss;
     oss << "Could not open " << dbUserFile_ << " for reading. ==> No TStore database access.";
     throw oss.str();
   }
@@ -650,7 +653,7 @@ void EmuPCrateConfigTStore::uploadPeripheralCrate(const std::string &connectionI
   std::string insertViewName="peripheralcrate";
   xdata::Table newRows;
 
-  cout << "List of crates:<br>" << std::endl;
+  std::cout << "List of crates:<br>" << std::endl;
   for(unsigned i = 0; i < TStore_allCrates.size(); ++i) {
     if(TStore_allCrates[i]) {
 
@@ -730,16 +733,16 @@ void EmuPCrateConfigTStore::uploadCCB(const std::string &connectionID, xdata::Un
   xdata::UnsignedShort     _ttcrxid            = TStore_thisCCB->GetTTCrxID();
 
 #ifdef debugV
-  cout << "-- CCB emu_config_id -------- " << emu_config_id_.toString()      << std::endl;
-  cout << "-- CCB ccb_config_id -------- " << _ccb_config_id.toString()      << std::endl;
-  cout << "-- CCB ccbmode -------------- " << _ccbmode.toString()            << std::endl;
-  cout << "-- CCB ccb_firmware_day ----- " << _ccb_firmware_day.toString()   << std::endl;
-  cout << "-- CCB ccb_firmware_month --- " << _ccb_firmware_month.toString() << std::endl;
-  cout << "-- CCB ccb_firmware_year ---- " << _ccb_firmware_year.toString()  << std::endl;
-  cout << "-- CCB l1adelay ------------- " << _l1adelay.toString()           << std::endl;
-  cout << "-- CCB ttcrxcoarsedelay ----- " << _ttcrxcoarsedelay.toString()   << std::endl;
-  cout << "-- CCB ttcrxfinedelay ------- " << _ttcrxfinedelay.toString()     << std::endl;
-  cout << "-- CCB ttcrxid--------------- " << _ttcrxid.toString()            << std::endl;
+  std::cout << "-- CCB emu_config_id -------- " << emu_config_id_.toString()      << std::endl;
+  std::cout << "-- CCB ccb_config_id -------- " << _ccb_config_id.toString()      << std::endl;
+  std::cout << "-- CCB ccbmode -------------- " << _ccbmode.toString()            << std::endl;
+  std::cout << "-- CCB ccb_firmware_day ----- " << _ccb_firmware_day.toString()   << std::endl;
+  std::cout << "-- CCB ccb_firmware_month --- " << _ccb_firmware_month.toString() << std::endl;
+  std::cout << "-- CCB ccb_firmware_year ---- " << _ccb_firmware_year.toString()  << std::endl;
+  std::cout << "-- CCB l1adelay ------------- " << _l1adelay.toString()           << std::endl;
+  std::cout << "-- CCB ttcrxcoarsedelay ----- " << _ttcrxcoarsedelay.toString()   << std::endl;
+  std::cout << "-- CCB ttcrxfinedelay ------- " << _ttcrxfinedelay.toString()     << std::endl;
+  std::cout << "-- CCB ttcrxid--------------- " << _ttcrxid.toString()            << std::endl;
 #endif
 
   newRows.clear();
@@ -785,13 +788,13 @@ void EmuPCrateConfigTStore::uploadMPC(const std::string &connectionID, xdata::Un
   xdata::UnsignedShort     _serializermode     = TStore_thisMPC->GetSerializerMode();
 
 #ifdef debugV
-  cout << "-- MPC emu_config_id -------- " << emu_config_id_.toString()      << std::endl;
-  cout << "-- MPC mpc_config_id -------- " << _mpc_config_id.toString()      << std::endl;
-  cout << "-- MPC mpc_firmware_day ----- " << _mpc_firmware_day.toString()   << std::endl;
-  cout << "-- MPC mpc_firmware_month --- " << _mpc_firmware_month.toString() << std::endl;
-  cout << "-- MPC mpc_firmware_year ---- " << _mpc_firmware_year.toString()  << std::endl;
-  cout << "-- MPC transparentmode ------ " << _transparentmode.toString()    << std::endl;
-  cout << "-- MPC serializermode ------- " << _serializermode.toString()     << std::endl;
+  std::cout << "-- MPC emu_config_id -------- " << emu_config_id_.toString()      << std::endl;
+  std::cout << "-- MPC mpc_config_id -------- " << _mpc_config_id.toString()      << std::endl;
+  std::cout << "-- MPC mpc_firmware_day ----- " << _mpc_firmware_day.toString()   << std::endl;
+  std::cout << "-- MPC mpc_firmware_month --- " << _mpc_firmware_month.toString() << std::endl;
+  std::cout << "-- MPC mpc_firmware_year ---- " << _mpc_firmware_year.toString()  << std::endl;
+  std::cout << "-- MPC transparentmode ------ " << _transparentmode.toString()    << std::endl;
+  std::cout << "-- MPC serializermode ------- " << _serializermode.toString()     << std::endl;
 #endif 
 
   newRows.clear();
@@ -856,25 +859,25 @@ void EmuPCrateConfigTStore::uploadVMECC(const std::string &connectionID, xdata::
   xdata::String            _warn_on_shtdwn  = TStore_thisCrate->vmeController()->GetWarn_On_Shtdwn();
 
 #ifdef debugV
-  cout << "-- VCC emu_config_id -------- " << emu_config_id_.toString()    << std::endl;
-  cout << "-- VCC periph_config_id ----- " << periph_config_id.toString()  << std::endl;
-  cout << "-- VCC vcc_config_id -------- " << _vcc_config_id.toString()    << std::endl;
-  cout << "-- VCC bgto ----------------- " <<_bgto.toString()              << std::endl;
-  cout << "-- VCC bto ------------------ " <<_bto.toString()               << std::endl;
-  cout << "-- VCC dflt_srv_mac --------- " <<_dflt_srv_mac.toString()      << std::endl;
-  cout << "-- VCC eth_port ------------- " <<_eth_port.toString()          << std::endl;
-  cout << "-- VCC ethernet_cr ---------- " <<_ethernet_cr.toString()       << std::endl;
-  cout << "-- VCC ext_fifo_cr ---------- " <<_ext_fifo_cr.toString()       << std::endl;
-  cout << "-- VCC mac_addr ------------- " <<_mac_addr.toString()          << std::endl;
-  cout << "-- VCC mcast_1 -------------- " <<_mcast_1.toString()           << std::endl;
-  cout << "-- VCC mcast_2 -------------- " <<_mcast_2.toString()           << std::endl;
-  cout << "-- VCC mcast_3 -------------- " <<_mcast_3.toString()           << std::endl;
-  cout << "-- VCC msg_lvl -------------- " <<_msg_lvl.toString()           << std::endl;
-  cout << "-- VCC pkt_on_startup ------- " <<_pkt_on_startup.toString()    << std::endl;
-  cout << "-- VCC rst_misc_cr ---------- " <<_rst_misc_cr.toString()       << std::endl;
-  cout << "-- VCC vcc_frmw_ver --------- " << _vcc_frmw_ver.toString()     << std::endl;
-  cout << "-- VCC vme_cr --------------- " <<_vme_cr.toString()            << std::endl;
-  cout << "-- VCC warn_on_shtdwn ------- " <<_warn_on_shtdwn.toString()    << std::endl;
+  std::cout << "-- VCC emu_config_id -------- " << emu_config_id_.toString()    << std::endl;
+  std::cout << "-- VCC periph_config_id ----- " << periph_config_id.toString()  << std::endl;
+  std::cout << "-- VCC vcc_config_id -------- " << _vcc_config_id.toString()    << std::endl;
+  std::cout << "-- VCC bgto ----------------- " <<_bgto.toString()              << std::endl;
+  std::cout << "-- VCC bto ------------------ " <<_bto.toString()               << std::endl;
+  std::cout << "-- VCC dflt_srv_mac --------- " <<_dflt_srv_mac.toString()      << std::endl;
+  std::cout << "-- VCC eth_port ------------- " <<_eth_port.toString()          << std::endl;
+  std::cout << "-- VCC ethernet_cr ---------- " <<_ethernet_cr.toString()       << std::endl;
+  std::cout << "-- VCC ext_fifo_cr ---------- " <<_ext_fifo_cr.toString()       << std::endl;
+  std::cout << "-- VCC mac_addr ------------- " <<_mac_addr.toString()          << std::endl;
+  std::cout << "-- VCC mcast_1 -------------- " <<_mcast_1.toString()           << std::endl;
+  std::cout << "-- VCC mcast_2 -------------- " <<_mcast_2.toString()           << std::endl;
+  std::cout << "-- VCC mcast_3 -------------- " <<_mcast_3.toString()           << std::endl;
+  std::cout << "-- VCC msg_lvl -------------- " <<_msg_lvl.toString()           << std::endl;
+  std::cout << "-- VCC pkt_on_startup ------- " <<_pkt_on_startup.toString()    << std::endl;
+  std::cout << "-- VCC rst_misc_cr ---------- " <<_rst_misc_cr.toString()       << std::endl;
+  std::cout << "-- VCC vcc_frmw_ver --------- " << _vcc_frmw_ver.toString()     << std::endl;
+  std::cout << "-- VCC vme_cr --------------- " <<_vme_cr.toString()            << std::endl;
+  std::cout << "-- VCC warn_on_shtdwn ------- " <<_warn_on_shtdwn.toString()    << std::endl;
 #endif
 
   newRows.clear();
@@ -931,13 +934,13 @@ void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::Un
       _problem_mask = TStore_allChambers[j]->GetProblemMask();
 
 #ifdef debugV
-      cout << "-- CSC emu_config_id ------ " << emu_config_id_.toString()   << std::endl;
-      cout << "-- CSC periph_config_id --- " << periph_config_id.toString() << std::endl;
-      cout << "-- CSC csc_config_id ------ " << _csc_config_id.toString()   << std::endl;
-      cout << "-- CSC label -------------- " << _label.toString()           << std::endl;
-      cout << "-- CSC known_problem ------ " << _known_problem.toString()   << std::endl;
-      cout << "-- CSC problem_mask ------- " << _problem_mask.toString()    << std::endl;
-      cout << "-- ######################## " << std::endl;
+      std::cout << "-- CSC emu_config_id ------ " << emu_config_id_.toString()   << std::endl;
+      std::cout << "-- CSC periph_config_id --- " << periph_config_id.toString() << std::endl;
+      std::cout << "-- CSC csc_config_id ------ " << _csc_config_id.toString()   << std::endl;
+      std::cout << "-- CSC label -------------- " << _label.toString()           << std::endl;
+      std::cout << "-- CSC known_problem ------ " << _known_problem.toString()   << std::endl;
+      std::cout << "-- CSC problem_mask ------- " << _problem_mask.toString()    << std::endl;
+      std::cout << "-- ######################## " << std::endl;
 #endif
 
       newRows.clear();
@@ -1023,30 +1026,30 @@ void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::
   xdata::UnsignedShort     _xlatency                = TStore_thisDAQMB->GetxLatency();
 
 #ifdef debugV
-  cout << "-- DAQMB emu_config_id -------------- " << emu_config_id_.toString()           << std::endl;
-  cout << "-- DAQMB periph_config_id ----------- " << csc_config_id.toString()            << std::endl;
-  cout << "-- DAQMB daqmb_config_id ------------ " << _daqmb_config_id.toString()         << std::endl;
-  cout << "-- DAQMB alct_dav_cable_delay ------- " << _alct_dav_cable_delay.toString()    << std::endl;
-  cout << "-- DAQMB calibration_l1acc_delay ---- " << _calibration_l1acc_delay.toString() << std::endl;
-  cout << "-- DAQMB calibration_lct_delay ------ " << _calibration_lct_delay.toString()   << std::endl;
-  cout << "-- DAQMB cfeb_cable_delay ----------- " << _cfeb_cable_delay.toString()        << std::endl;
-  cout << "-- DAQMB cfeb_dav_cable_delay ------- " << _cfeb_dav_cable_delay.toString()    << std::endl;
-  cout << "-- DAQMB comp_mode ------------------ " << _comp_mode.toString()               << std::endl;
-  cout << "-- DAQMB comp_timing ---------------- " << _comp_timing.toString()             << std::endl;
-  cout << "-- DAQMB dmb_cntl_firmware_tag ------ " << _dmb_cntl_firmware_tag.toString()   << std::endl;
-  cout << "-- DAQMB dmb_vme_firmware_tag ------- " << _dmb_vme_firmware_tag.toString()    << std::endl;
-  cout << "-- DAQMB feb_clock_delay ------------ " << _feb_clock_delay.toString()         << std::endl;
-  cout << "-- DAQMB inj_dac_set ---------------- " << _inj_dac_set.toString()             << std::endl;
-  cout << "-- DAQMB inject_delay --------------- " << _inject_delay.toString()            << std::endl;
-  cout << "-- DAQMB kill_input ----------------- " << _kill_input.toString()              << std::endl;
-  cout << "-- DAQMB pre_block_end -------------- " << _pre_block_end.toString()           << std::endl;
-  cout << "-- DAQMB pul_dac_set ---------------- " << _pul_dac_set.toString()             << std::endl;
-  cout << "-- DAQMB pulse_delay----------------- " << _pulse_delay.toString()             << std::endl;
-  cout << "-- DAQMB set_comp_tresh ------------- " << _set_comp_tresh.toString()          << std::endl;
-  cout << "-- DAQMB slot ----------------------- " << _slot.toString()                    << std::endl;
-  cout << "-- DAQMB tmb_lct_cable_delay -------- " << _tmb_lct_cable_delay.toString()     << std::endl;
-  cout << "-- DAQMB xfinelatency --------------- " << _xfinelatency.toString()            << std::endl;
-  cout << "-- DAQMB xlatency ------------------- " << _xlatency.toString()                << std::endl;
+  std::cout << "-- DAQMB emu_config_id -------------- " << emu_config_id_.toString()           << std::endl;
+  std::cout << "-- DAQMB periph_config_id ----------- " << csc_config_id.toString()            << std::endl;
+  std::cout << "-- DAQMB daqmb_config_id ------------ " << _daqmb_config_id.toString()         << std::endl;
+  std::cout << "-- DAQMB alct_dav_cable_delay ------- " << _alct_dav_cable_delay.toString()    << std::endl;
+  std::cout << "-- DAQMB calibration_l1acc_delay ---- " << _calibration_l1acc_delay.toString() << std::endl;
+  std::cout << "-- DAQMB calibration_lct_delay ------ " << _calibration_lct_delay.toString()   << std::endl;
+  std::cout << "-- DAQMB cfeb_cable_delay ----------- " << _cfeb_cable_delay.toString()        << std::endl;
+  std::cout << "-- DAQMB cfeb_dav_cable_delay ------- " << _cfeb_dav_cable_delay.toString()    << std::endl;
+  std::cout << "-- DAQMB comp_mode ------------------ " << _comp_mode.toString()               << std::endl;
+  std::cout << "-- DAQMB comp_timing ---------------- " << _comp_timing.toString()             << std::endl;
+  std::cout << "-- DAQMB dmb_cntl_firmware_tag ------ " << _dmb_cntl_firmware_tag.toString()   << std::endl;
+  std::cout << "-- DAQMB dmb_vme_firmware_tag ------- " << _dmb_vme_firmware_tag.toString()    << std::endl;
+  std::cout << "-- DAQMB feb_clock_delay ------------ " << _feb_clock_delay.toString()         << std::endl;
+  std::cout << "-- DAQMB inj_dac_set ---------------- " << _inj_dac_set.toString()             << std::endl;
+  std::cout << "-- DAQMB inject_delay --------------- " << _inject_delay.toString()            << std::endl;
+  std::cout << "-- DAQMB kill_input ----------------- " << _kill_input.toString()              << std::endl;
+  std::cout << "-- DAQMB pre_block_end -------------- " << _pre_block_end.toString()           << std::endl;
+  std::cout << "-- DAQMB pul_dac_set ---------------- " << _pul_dac_set.toString()             << std::endl;
+  std::cout << "-- DAQMB pulse_delay----------------- " << _pulse_delay.toString()             << std::endl;
+  std::cout << "-- DAQMB set_comp_tresh ------------- " << _set_comp_tresh.toString()          << std::endl;
+  std::cout << "-- DAQMB slot ----------------------- " << _slot.toString()                    << std::endl;
+  std::cout << "-- DAQMB tmb_lct_cable_delay -------- " << _tmb_lct_cable_delay.toString()     << std::endl;
+  std::cout << "-- DAQMB xfinelatency --------------- " << _xfinelatency.toString()            << std::endl;
+  std::cout << "-- DAQMB xlatency ------------------- " << _xlatency.toString()                << std::endl;
 #endif
 
   newRows.clear();
@@ -1127,17 +1130,17 @@ void EmuPCrateConfigTStore::uploadCFEB(const std::string &connectionID, xdata::U
     xdata::UnsignedInteger64  _cfeb_config_id    = daqmb_config_id + _cfeb_number;
 
 #ifdef debugV
-    cout << "-- CFEB emu_config_id ---------- " << emu_config_id_.toString()       << std::endl;
-    cout << "-- CFEB periph_config_id ------- " << daqmb_config_id.toString()      << std::endl;
-    cout << "-- CFEB cfeb_config_id --------- " << _cfeb_config_id.toString()      << std::endl;
-    cout << "-- CFEB cfeb_number ------------ " << _cfeb_number.toString()         << std::endl;
-    cout << "-- CFEB cfeb_firmware_tag ------ " << _cfeb_firmware_tag.toString()   << std::endl;
-    cout << "-- CFEB kill_chip0 ------------- " << _kill_chip0.toString()          << std::endl;
-    cout << "-- CFEB kill_chip1 ------------- " << _kill_chip1.toString()          << std::endl;
-    cout << "-- CFEB kill_chip2 ------------- " << _kill_chip2.toString()          << std::endl;
-    cout << "-- CFEB kill_chip3 ------------- " << _kill_chip3.toString()          << std::endl;
-    cout << "-- CFEB kill_chip4 ------------- " << _kill_chip4.toString()          << std::endl;
-    cout << "-- CFEB kill_chip5 ------------- " << _kill_chip5.toString()          << std::endl;
+    std::cout << "-- CFEB emu_config_id ---------- " << emu_config_id_.toString()       << std::endl;
+    std::cout << "-- CFEB periph_config_id ------- " << daqmb_config_id.toString()      << std::endl;
+    std::cout << "-- CFEB cfeb_config_id --------- " << _cfeb_config_id.toString()      << std::endl;
+    std::cout << "-- CFEB cfeb_number ------------ " << _cfeb_number.toString()         << std::endl;
+    std::cout << "-- CFEB cfeb_firmware_tag ------ " << _cfeb_firmware_tag.toString()   << std::endl;
+    std::cout << "-- CFEB kill_chip0 ------------- " << _kill_chip0.toString()          << std::endl;
+    std::cout << "-- CFEB kill_chip1 ------------- " << _kill_chip1.toString()          << std::endl;
+    std::cout << "-- CFEB kill_chip2 ------------- " << _kill_chip2.toString()          << std::endl;
+    std::cout << "-- CFEB kill_chip3 ------------- " << _kill_chip3.toString()          << std::endl;
+    std::cout << "-- CFEB kill_chip4 ------------- " << _kill_chip4.toString()          << std::endl;
+    std::cout << "-- CFEB kill_chip5 ------------- " << _kill_chip5.toString()          << std::endl;
 #endif
     
     newRows.setValueAt(rowId, CFEB_CONFIG_ID,    _cfeb_config_id);
@@ -1554,40 +1557,40 @@ void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::U
   xdata::String            _chamber_type                   = TStore_thisALCT->GetChamberType();
 
 #ifdef debugV
-  cout << "-- ALCT emu_config_id --------------------- " << emu_config_id_.toString()                  << std::endl;
-  cout << "-- ALCT tmb_config_id --------------------- " << tmb_config_id.toString()                   << std::endl;
-  cout << "-- ALCT alct_config_id -------------------- " << _alct_config_id.toString()                 << std::endl;
-  cout << "-- ALCT alct_accel_mode ------------------- " << _alct_accel_mode.toString()                << std::endl;
-  cout << "-- ALCT alct_nplanes_hit_accel_pattern ---- " << _alct_nplanes_hit_accel_pattern.toString() << std::endl;
-  cout << "-- ALCT alct_nplanes_hit_accel_pretrig ---- " << _alct_nplanes_hit_accel_pretrig.toString() << std::endl;
-  cout << "-- ALCT alct_bxn_offset ------------------- " << _alct_bxn_offset.toString()                << std::endl;
-  cout << "-- ALCT alct_ccb_enable ------------------- " << _alct_ccb_enable.toString()                << std::endl;
-  cout << "-- ALCT alct_config_in_readout ------------ " << _alct_config_in_readout.toString()         << std::endl;
-  cout << "-- ALCT alct_drift_delay ------------------ " << _alct_drift_delay.toString()               << std::endl;
-  cout << "-- ALCT alct_ext_trig_enable -------------- " << _alct_ext_trig_enable.toString()           << std::endl;
-  cout << "-- ALCT alct_fifo_mode -------------------- " << _alct_fifo_mode.toString()                 << std::endl;
-  cout << "-- ALCT alct_fifo_pretrig ----------------- " << _alct_fifo_pretrig.toString()              << std::endl;
-  cout << "-- ALCT alct_fifo_tbins ------------------- " << _alct_fifo_tbins.toString()                << std::endl;
-  cout << "-- ALCT alct_firmware_backward_forward ---- " << _alct_firmware_backward_forward.toString() << std::endl;
-  cout << "-- ALCT alct_firmware_day ----------------- " << _alct_firmware_day.toString()              << std::endl;
-  cout << "-- ALCT alct_firmware_month --------------- " << _alct_firmware_month.toString()            << std::endl;
-  cout << "-- ALCT alct_firmware_negat_posit --------- " << _alct_firmware_negat_posit.toString()      << std::endl;
-  cout << "-- ALCT alct_firmware_year ---------------- " << _alct_firmware_year.toString()             << std::endl;
-  cout << "-- ALCT alct_inject_mode ------------------ " << _alct_inject_mode.toString()               << std::endl;
-  cout << "-- ALCT alct_l1a_delay -------------------- " << _alct_l1a_delay.toString()                 << std::endl;
-  cout << "-- ALCT alct_l1a_internal ----------------- " << _alct_l1a_internal.toString()              << std::endl;
-  cout << "-- ALCT alct_l1a_offset ------------------- " << _alct_l1a_offset.toString()                << std::endl;
-  cout << "-- ALCT alct_l1a_window_width ------------- " << _alct_l1a_window_width.toString()          << std::endl;
-  cout << "-- ALCT alct_nplanes_hit_pattern ---------- " << _alct_nplanes_hit_pattern.toString()       << std::endl;
-  cout << "-- ALCT alct_nplanes_hit_pretrig ---------- " << _alct_nplanes_hit_pretrig.toString()       << std::endl;
-  cout << "-- ALCT alct_send_empty ------------------- " << _alct_send_empty.toString()                << std::endl;
-  cout << "-- ALCT alct_sn_select -------------------- " << _alct_sn_select.toString()                 << std::endl;
-  cout << "-- ALCT alct_testpulse_amplitude ---------- " << _alct_testpulse_amplitude.toString()       << std::endl;
-  cout << "-- ALCT alct_testpulse_direction ---------- " << _alct_testpulse_direction.toString()       << std::endl;
-  cout << "-- ALCT alct_testpulse_invert ------------- " << _alct_testpulse_invert.toString()          << std::endl;
-  cout << "-- ALCT alct_trig_info_en ----------------- " << _alct_trig_info_en.toString()              << std::endl;
-  cout << "-- ALCT alct_trig_mode -------------------- " << _alct_trig_mode.toString()                 << std::endl;
-  cout << "-- ALCT chamber_type ---------------------- " << _chamber_type.toString()                   << std::endl;
+  std::cout << "-- ALCT emu_config_id --------------------- " << emu_config_id_.toString()                  << std::endl;
+  std::cout << "-- ALCT tmb_config_id --------------------- " << tmb_config_id.toString()                   << std::endl;
+  std::cout << "-- ALCT alct_config_id -------------------- " << _alct_config_id.toString()                 << std::endl;
+  std::cout << "-- ALCT alct_accel_mode ------------------- " << _alct_accel_mode.toString()                << std::endl;
+  std::cout << "-- ALCT alct_nplanes_hit_accel_pattern ---- " << _alct_nplanes_hit_accel_pattern.toString() << std::endl;
+  std::cout << "-- ALCT alct_nplanes_hit_accel_pretrig ---- " << _alct_nplanes_hit_accel_pretrig.toString() << std::endl;
+  std::cout << "-- ALCT alct_bxn_offset ------------------- " << _alct_bxn_offset.toString()                << std::endl;
+  std::cout << "-- ALCT alct_ccb_enable ------------------- " << _alct_ccb_enable.toString()                << std::endl;
+  std::cout << "-- ALCT alct_config_in_readout ------------ " << _alct_config_in_readout.toString()         << std::endl;
+  std::cout << "-- ALCT alct_drift_delay ------------------ " << _alct_drift_delay.toString()               << std::endl;
+  std::cout << "-- ALCT alct_ext_trig_enable -------------- " << _alct_ext_trig_enable.toString()           << std::endl;
+  std::cout << "-- ALCT alct_fifo_mode -------------------- " << _alct_fifo_mode.toString()                 << std::endl;
+  std::cout << "-- ALCT alct_fifo_pretrig ----------------- " << _alct_fifo_pretrig.toString()              << std::endl;
+  std::cout << "-- ALCT alct_fifo_tbins ------------------- " << _alct_fifo_tbins.toString()                << std::endl;
+  std::cout << "-- ALCT alct_firmware_backward_forward ---- " << _alct_firmware_backward_forward.toString() << std::endl;
+  std::cout << "-- ALCT alct_firmware_day ----------------- " << _alct_firmware_day.toString()              << std::endl;
+  std::cout << "-- ALCT alct_firmware_month --------------- " << _alct_firmware_month.toString()            << std::endl;
+  std::cout << "-- ALCT alct_firmware_negat_posit --------- " << _alct_firmware_negat_posit.toString()      << std::endl;
+  std::cout << "-- ALCT alct_firmware_year ---------------- " << _alct_firmware_year.toString()             << std::endl;
+  std::cout << "-- ALCT alct_inject_mode ------------------ " << _alct_inject_mode.toString()               << std::endl;
+  std::cout << "-- ALCT alct_l1a_delay -------------------- " << _alct_l1a_delay.toString()                 << std::endl;
+  std::cout << "-- ALCT alct_l1a_internal ----------------- " << _alct_l1a_internal.toString()              << std::endl;
+  std::cout << "-- ALCT alct_l1a_offset ------------------- " << _alct_l1a_offset.toString()                << std::endl;
+  std::cout << "-- ALCT alct_l1a_window_width ------------- " << _alct_l1a_window_width.toString()          << std::endl;
+  std::cout << "-- ALCT alct_nplanes_hit_pattern ---------- " << _alct_nplanes_hit_pattern.toString()       << std::endl;
+  std::cout << "-- ALCT alct_nplanes_hit_pretrig ---------- " << _alct_nplanes_hit_pretrig.toString()       << std::endl;
+  std::cout << "-- ALCT alct_send_empty ------------------- " << _alct_send_empty.toString()                << std::endl;
+  std::cout << "-- ALCT alct_sn_select -------------------- " << _alct_sn_select.toString()                 << std::endl;
+  std::cout << "-- ALCT alct_testpulse_amplitude ---------- " << _alct_testpulse_amplitude.toString()       << std::endl;
+  std::cout << "-- ALCT alct_testpulse_direction ---------- " << _alct_testpulse_direction.toString()       << std::endl;
+  std::cout << "-- ALCT alct_testpulse_invert ------------- " << _alct_testpulse_invert.toString()          << std::endl;
+  std::cout << "-- ALCT alct_trig_info_en ----------------- " << _alct_trig_info_en.toString()              << std::endl;
+  std::cout << "-- ALCT alct_trig_mode -------------------- " << _alct_trig_mode.toString()                 << std::endl;
+  std::cout << "-- ALCT chamber_type ---------------------- " << _chamber_type.toString()                   << std::endl;
 #endif
 
   newRows.clear();
@@ -1658,12 +1661,12 @@ void EmuPCrateConfigTStore::uploadAnodeChannel(const std::string &connectionID, 
     xdata::UnsignedInteger64 _afeb_config_id  = alct_config_id + (afeb+1);
 
 #ifdef debugV
-    cout << "-- AFEB emu_config_id ---------- " << emu_config_id_.toString()      << std::endl;
-    cout << "-- AFEB alct_config_id --------- " << alct_config_id.toString()      << std::endl;
-    cout << "-- AFEB afeb_config_id --------- " << _afeb_config_id.toString()     << std::endl;
-    cout << "-- AFEB afeb_fine_delay -------- " << _afeb_fine_delay.toString()    << std::endl;
-    cout << "-- AFEB afeb_number ------------ " << _afeb_number.toString()        << std::endl;
-    cout << "-- AFEB afeb_threshold --------- " << _afeb_threshold.toString()     << std::endl;
+    std::cout << "-- AFEB emu_config_id ---------- " << emu_config_id_.toString()      << std::endl;
+    std::cout << "-- AFEB alct_config_id --------- " << alct_config_id.toString()      << std::endl;
+    std::cout << "-- AFEB afeb_config_id --------- " << _afeb_config_id.toString()     << std::endl;
+    std::cout << "-- AFEB afeb_fine_delay -------- " << _afeb_fine_delay.toString()    << std::endl;
+    std::cout << "-- AFEB afeb_number ------------ " << _afeb_number.toString()        << std::endl;
+    std::cout << "-- AFEB afeb_threshold --------- " << _afeb_threshold.toString()     << std::endl;
 #endif
   
     newRows.setValueAt(rowId, AFEB_CONFIG_ID,  _afeb_config_id);  
@@ -1792,7 +1795,7 @@ void EmuPCrateConfigTStore::readVCC(const std::string &connectionID, const std::
       if (*column == "MAC_ADDR"){
 	theCrate->vmeController()->SetMAC(0,StrgValue);
 	size_t pos=StrgValue.find('-');
-	while(pos!=string::npos){
+	while(pos!=std::string::npos){
 	  StrgValue.replace(pos,1,1,':');
 	  pos=StrgValue.find('-');
 	}
@@ -2367,3 +2370,5 @@ void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, co
   }
 }
 //
+} // namespace emu::pc
+} // namespace emu

@@ -6,6 +6,9 @@
 #include <fstream>
 #include <string>
 
+namespace emu {
+  namespace pc {
+
 class DAQMB;
 class CCB;
 class TMB;
@@ -53,4 +56,6 @@ class EmuEndcap {
   //
 };
 
+  } // namespace emu::pc
+  } // namespace emu
 #endif

@@ -90,29 +90,29 @@ protected:
   //
   xdata::String CalibType_;
   xdata::UnsignedInteger CalibNumber_;
-  string CalibTypeStr_; 
+  std::string CalibTypeStr_; 
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  EmuController * MyController;
+  emu::pc::EmuController * MyController;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
   //
-  CCB* thisCCB ;
-  ALCTController *alct ;
-  RAT * rat;
-  MPC * thisMPC;
+  emu::pc::CCB* thisCCB ;
+  emu::pc::ALCTController *alct ;
+  emu::pc::RAT * rat;
+  emu::pc::MPC * thisMPC;
   //
   int tmb_vme_ready;
   //
   int CCBRegisterValue_;
-  vector<TMB*>   tmbVector;
-  vector<TMBTester>   tmbTestVector;
-  vector<DAQMB*> dmbVector;
-  vector<Crate*> crateVector;
-  vector<Chamber*> chamberVector;
-  Crate *thisCrate;
+  std::vector<emu::pc::TMB*>   tmbVector;
+  std::vector<emu::pc::TMBTester>   tmbTestVector;
+  std::vector<emu::pc::DAQMB*> dmbVector;
+  std::vector<emu::pc::Crate*> crateVector;
+  std::vector<emu::pc::Chamber*> chamberVector;
+  emu::pc::Crate *thisCrate;
   std::string Operator_;
   std::string RunNumber_;
   std::string CalibrationCfebTimeEvent_;
@@ -145,21 +145,21 @@ protected:
   int this_dcounter_;
   int this_ocounter_;
   
-  std::vector<std::string> monitorables_;
+  std::vector< std::string> monitorables_;
   bool Monitor_On_, Monitor_Ready_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   toolbox::task::Timer * timer_;
   //
-  vector<int> L1aLctCounter_;
-  vector<int> CfebDavCounter_;
-  vector<int> TmbDavCounter_;
-  vector<int> AlctDavCounter_;
+  std::vector<int> L1aLctCounter_;
+  std::vector<int> CfebDavCounter_;
+  std::vector<int> TmbDavCounter_;
+  std::vector<int> AlctDavCounter_;
   //
-  std::vector<std::string> TCounterName;
-  std::vector<std::string> DCounterName;
-  std::vector<std::string> OCounterName;
+  std::vector< std::string> TCounterName;
+  std::vector< std::string> DCounterName;
+  std::vector< std::string> OCounterName;
   //
-  EmuEndcap * emuEndcap_;
+  emu::pc::EmuEndcap * emuEndcap_;
   //
 public:
   //
@@ -205,8 +205,8 @@ private:
   void SetCurrentCrate(int crate);
   int current_crate_;
   //
-  xoap::MessageReference PCcreateCommandSOAP(string command);
-  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
+  xoap::MessageReference PCcreateCommandSOAP(std::string command);
+  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
     
 };
 

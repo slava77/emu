@@ -3,6 +3,10 @@
 //
 #include <string>
 //
+
+namespace emu {
+  namespace pc {
+
 class EmuLogger 
 {
   //
@@ -43,6 +47,9 @@ protected:
 private:
   //
 };
+
+  } // namespace emu::pc
+  } // namespace emu
 
 #endif
 

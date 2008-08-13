@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.19 2008/05/28 10:35:31 liu Exp $
+// $Id: VMEModule.cc,v 3.20 2008/08/13 11:30:54 geurts Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.20  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.19  2008/05/28 10:35:31  liu
 // DMB counters in jumbo packet
 //
@@ -160,17 +164,21 @@
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
+
+namespace emu {
+  namespace pc {
+
 VMEModule::VMEModule(Crate * theCrate, int newslot): 
   theSlot(newslot)
 {
   theCrate_ = theCrate;
   //
-  cout << "creating VMEModule in crate " << theCrate->CrateID() << endl;
+  std::cout << "creating VMEModule in crate " << theCrate->CrateID() << std::endl;
   //
   theController = theCrate->vmeController();
   theCrate->addModule(this);
   //
-  cout << "Done VMEModule in crate " << theCrate->CrateID() << endl;
+  std::cout << "Done VMEModule in crate " << theCrate->CrateID() << std::endl;
   //
 }
 
@@ -180,7 +188,7 @@ void VMEModule::start() {
   PRINTSTRING(OVAL: start() from VMEModule have been called...);
   //
 #ifdef debugV
-  cout << "starting VMEModule for slot " << dec << theSlot << " boardType " << boardType() << " line " << (int) c << endl;
+  std::cout << "starting VMEModule for slot " << std::dec << theSlot << " boardType " << boardType() << " line " << (int) c << std::endl;
 #endif  
   theController->start( theSlot, boardType() );
 }
@@ -917,13 +925,13 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db, int verify )
 	    {
 	      if(strcmp(Word[2],"IDLE;")==0)
 		{
-		  if(db) cout << "STATE: goto reset idle state" << std::endl;
+		  if(db) std::cout << "STATE: goto reset idle state" << std::endl;
 		  RestoreIdle();
 		} 
 	    }
 	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET;")==0))
 	    {
-	      if(db) cout << "STATE: goto reset state" << std::endl;
+	      if(db) std::cout << "STATE: goto reset state" << std::endl;
 	      RestoreReset();
 	    }
 	  else if(strcmp(Word[0],"TRST")==0)
@@ -979,15 +987,15 @@ void VMEModule::SendOutput(std::string Output, std::string MessageType){
   //
   if(MessageType=="INFO") 
     {
-    std::cout << "INFO INFO BEGIN" << endl 
-              << Output << endl
-              << "INFO INFO END" << endl; 
+    std::cout << "INFO INFO BEGIN" << std::endl 
+              << Output << std::endl
+              << "INFO INFO END" << std::endl; 
     }
   if(MessageType=="ERROR")
     {
-    std::cout << "ERROR ERROR BEGIN" << endl 
-              << Output << endl
-              << "ERROR ERROR END" << endl; 
+    std::cout << "ERROR ERROR BEGIN" << std::endl 
+              << Output << std::endl
+              << "ERROR ERROR END" << std::endl; 
     }
   //
 }
@@ -1025,3 +1033,8 @@ void VMEModule::vme_delay(unsigned short data)
 {
   new_vme(VME_DELAY, 0, data, NULL, LATER);
 }
+
+
+  } // namespace emu::pc
+} // namespace emu
+

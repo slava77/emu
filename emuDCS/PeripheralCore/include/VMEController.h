@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.30 2008/06/19 18:54:40 bylsma Exp $
+// $Id: VMEController.h,v 3.31 2008/08/13 11:30:53 geurts Exp $
 // $Log: VMEController.h,v $
+// Revision 3.31  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.30  2008/06/19 18:54:40  bylsma
 // Added accessor functions for VCC xml parameters
 //
@@ -174,8 +178,6 @@
 #ifndef VMEController_h
 #define VMEController_h
 
-using namespace std;
-
 #include <vector>
 #include <string>
 #include <iostream>
@@ -186,6 +188,8 @@ using namespace std;
 #include <time.h>
 #include <sys/time.h>
 
+namespace emu {
+  namespace pc {
 
 class VMEController
 {
@@ -198,7 +202,7 @@ public:
 
 
   
-  void init(string ipAddr, int port);
+  void init(std::string ipAddr, int port);
   void init();
   void reset();
   int  do_schar(int open_or_close);
@@ -217,7 +221,7 @@ public:
   std::string GetMAC(int type);
   std::string GetCR(int type);
 
-  string ipAddress() const {return ipAddress_;}
+  std::string ipAddress() const {return ipAddress_;}
   int port() const {return port_;}
 
   inline void SetupJtagBaseAddress(int adr) { JtagBaseAddress_ = adr;}
@@ -395,5 +399,7 @@ private:
   std::vector<int> write_data_msb_;
   //
 };
+  } // namespace emu::pc
+} // namespace emu
 
 #endif

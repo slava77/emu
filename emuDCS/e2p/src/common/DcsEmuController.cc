@@ -50,7 +50,7 @@ void DcsEmuController::configure_simple(){
   if (mEmuDcs) DcsDisable(); // DCS contrib
 #endif 
   // read the configuration
-  std::vector<Crate*> myCrates = /*(selector()).*/crates();  // emulib4
+  std::vector<emu::pc::Crate*> myCrates = /*(selector()).*/crates();  // emulib4
      printf("======================================configure_simpl crates=%d\n",myCrates.size());
   for(unsigned i = 0; i < myCrates.size(); ++i) {
     if(myCrates[i]) configure_simple(myCrates[i]);
@@ -68,10 +68,10 @@ void DcsEmuController::configure_simple(){
 
 
 //=====================================================
-void DcsEmuController::configure_simple(Crate *crate) {
+void DcsEmuController::configure_simple(emu::pc::Crate *crate) {
   //
-  CCB * ccb = crate->ccb();
-  MPC * mpc = crate->mpc();
+  emu::pc::CCB * ccb = crate->ccb();
+  emu::pc::MPC * mpc = crate->mpc();
 
   printf("======================================configure_simpl\n");
   //
@@ -81,7 +81,7 @@ void DcsEmuController::configure_simple(Crate *crate) {
   //
   ///////////////////if(mpc) mpc->configure();
   //
-  std::vector<TMB*> myTmbs = /*(selector()).*/crate->tmbs(); // emulib4
+  std::vector<emu::pc::TMB*> myTmbs = /*(selector()).*/crate->tmbs(); // emulib4
   //  std::vector<TMB*> myTmbs = crate->tmbs();
     printf("======================================configure_simpl tmbs=%d\n",myTmbs.size());
   for(unsigned i =0; i < myTmbs.size(); ++i) {
@@ -90,7 +90,7 @@ void DcsEmuController::configure_simple(Crate *crate) {
       //
       ///////////////   myTmbs[i]->configure();
       //
-      ALCTController * alct = myTmbs[i]->alctController();
+      emu::pc::ALCTController * alct = myTmbs[i]->alctController();
       if(alct) {
 	/////////////	std::cout << "alct # =" << i << std::endl;
 	////////////	alct->configure();
@@ -108,7 +108,7 @@ void DcsEmuController::configure_simple(Crate *crate) {
     //
   }
   //
-  std::vector<DAQMB*> myDmbs = /*(selector()).*/crate->daqmbs();  // emulib4
+  std::vector<emu::pc::DAQMB*> myDmbs = /*(selector()).*/crate->daqmbs();  // emulib4
   for(unsigned i =0; i < myDmbs.size(); ++i) {
     if (myDmbs[i]->slot()<22){
       printf("slot dmb ======%d\n",myDmbs[i]->slot());

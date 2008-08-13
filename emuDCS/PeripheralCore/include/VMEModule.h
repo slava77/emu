@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.10 2008/05/28 10:35:30 liu Exp $
+// $Id: VMEModule.h,v 3.11 2008/08/13 11:30:53 geurts Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.11  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.10  2008/05/28 10:35:30  liu
 // DMB counters in jumbo packet
 //
@@ -103,6 +107,10 @@
 #include <iostream>
 #include "JTAG_constants.h"
 
+
+namespace emu {
+  namespace pc {
+
 class VMEController;
 class Crate;
 
@@ -197,5 +205,7 @@ protected:
   char cmd[1024];
   //
 };
+  } // namespace emu::pc
+} // namespace emu
 
 #endif

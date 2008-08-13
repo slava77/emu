@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.11 2008/07/16 17:28:35 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.12 2008/08/13 11:30:52 geurts Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.12  2008/08/13 11:30:52  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 1.11  2008/07/16 17:28:35  rakness
 // (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
 //
@@ -47,7 +51,7 @@
 // flag (obviously) bad results in ALCT-CLCT matching measurement
 //
 // Revision 3.34  2007/08/15 12:40:57  rakness
-// determine sync parameters w/1 button, clean up output, control level of cout with debug_
+// determine sync parameters w/1 button, clean up output, control level of std::cout with debug_
 //
 // Revision 3.33  2007/08/13 14:17:22  rakness
 // allow synchronization of full trigger/DAQ paths with TTC pulsing
@@ -290,8 +294,9 @@
 #include "ChamberUtilities.h"
 #include "TMB_constants.h"
 //
-using namespace std;
-//
+namespace emu {
+  namespace pc {
+
 ChamberUtilities::ChamberUtilities(){
   //
   debug_ = 1;      // debug >=  1 = normal output to std::cout
@@ -456,7 +461,7 @@ void ChamberUtilities::CFEBTiming(){
   //
   for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
     //
-    //    (*MyOutput_) << " Setting TimeDelay to " << TimeDelay << endl;
+    //    (*MyOutput_) << " Setting TimeDelay to " << TimeDelay << std::endl;
     //
     thisTMB->tmb_clk_delays(TimeDelay,0) ;
     thisTMB->tmb_clk_delays(TimeDelay,1) ;
@@ -517,7 +522,7 @@ void ChamberUtilities::CFEBTiming(){
 	  if (debug_) std::cout << " found" << std::endl;
 	  last_pulsed_halfstrip[List] = random_halfstrip[List];
 	} else {
-	  if (debug_) std::cout << " NOT found" << endl;
+	  if (debug_) std::cout << " NOT found" << std::endl;
 	}
 	//	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 && clct1cfeb == List ) 
 	//	  Muons[clct1cfeb][TimeDelay]++;
@@ -535,16 +540,16 @@ void ChamberUtilities::CFEBTiming(){
   // Print number of muons found versus cfeb[0-4]delay for each CFEB
   (*MyOutput_) << "TimeDelay " ;
   for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) 
-    (*MyOutput_) << setw(5) << TimeDelay ;
-  (*MyOutput_) << endl ;
+    (*MyOutput_) << std::setw(5) << TimeDelay ;
+  (*MyOutput_) << std::endl ;
   for (int CFEBs=0; CFEBs<5; CFEBs++) {
     (*MyOutput_) << "CFEB Id=" << CFEBs << " " ;
     for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
-      (*MyOutput_) << setw(5) << Muons[CFEBs][TimeDelay] ;
+      (*MyOutput_) << std::setw(5) << Muons[CFEBs][TimeDelay] ;
     }     
-    (*MyOutput_) << endl ;
+    (*MyOutput_) << std::endl ;
   }   
-  (*MyOutput_) << endl ;
+  (*MyOutput_) << std::endl ;
   //
   int TimeDelay;
   //
@@ -564,11 +569,11 @@ void ChamberUtilities::CFEBTiming(){
   }
   //
   // Print number of muons found versus cfeb[0-4]delay into the next phase for each CFEB
-  (*MyOutput_) << "TimeDelay Fixed for Delay Wrapping " << endl ;
+  (*MyOutput_) << "TimeDelay Fixed for Delay Wrapping " << std::endl ;
   (*MyOutput_) << "TimeDelay " ;
   for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) 
-    (*MyOutput_) << setw(5) << TimeDelay ;
-  (*MyOutput_) << endl;
+    (*MyOutput_) << std::setw(5) << TimeDelay ;
+  (*MyOutput_) << std::endl;
   for (int CFEBs=0; CFEBs<5; CFEBs++) {
     (*MyOutput_) << "CFEB Id=" << CFEBs << " " ;
     for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++){ 
@@ -576,11 +581,11 @@ void ChamberUtilities::CFEBTiming(){
 	CFEBMean[CFEBs]  += ((float) TimeDelay) * ((float) MuonsWork[CFEBs][TimeDelay])  ; 
 	CFEBMeanN[CFEBs] += (float) MuonsWork[CFEBs][TimeDelay] ; 
       }
-      (*MyOutput_) << setw(5) << MuonsWork[CFEBs][TimeDelay] ;
+      (*MyOutput_) << std::setw(5) << MuonsWork[CFEBs][TimeDelay] ;
     }     
-    (*MyOutput_) << endl ;
+    (*MyOutput_) << std::endl ;
   }   
-  (*MyOutput_) << endl ;
+  (*MyOutput_) << std::endl ;
   //
   for( int CFEBs=0; CFEBs<5; CFEBs++) {
     if (CFEBMeanN[CFEBs] > 8) {
@@ -711,7 +716,7 @@ void ChamberUtilities::ALCTTiming(){
       int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetNumberOfChannelsInAlct())/6/4);
       int keyWG2 = (alct->GetNumberOfChannelsInAlct())/6-keyWG;
       //
-      if (debug_) std::cout << "Injecting at wiregroup = " << dec << keyWG << std::endl;
+      if (debug_) std::cout << "Injecting at wiregroup = " << std::dec << keyWG << std::endl;
       //
       for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
 	for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct()/6); channel++) {
@@ -731,7 +736,7 @@ void ChamberUtilities::ALCTTiming(){
       //
       //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
       //
-      if (debug_) std::cout << "Set alct_rx_clock_delay = " << std::dec << k << " alct_tx_clock_delay = " << j << endl;
+      if (debug_) std::cout << "Set alct_rx_clock_delay = " << std::dec << k << " alct_tx_clock_delay = " << j << std::endl;
       thisTMB->tmb_clk_delays(k,5) ;
       thisTMB->tmb_clk_delays(j,6) ;	 
       thisTMB->ResetALCTRAMAddress();
@@ -780,67 +785,67 @@ void ChamberUtilities::ALCTTiming(){
   }
   //
   if (debug_>= 5) {
-    std::cout << "ALCT WordCount  (tx vs rx)   tx ---->" << endl;
+    std::cout << "ALCT WordCount  (tx vs rx)   tx ---->" << std::endl;
     for (int j=0;j<maxTimeBins;j++) {
       std::cout << " rx =" << j << ": ";
       for (int k=0;k<maxTimeBins;k++) 
-	std::cout << hex << setw(2) << (ALCTWordCount[j][k]&0xffff) << " ";
-      std::cout << endl;
+	std::cout << std::hex << std::setw(2) << (ALCTWordCount[j][k]&0xffff) << " ";
+      std::cout << std::endl;
     }
-    std::cout << endl;
+    std::cout << std::endl;
     //
-    std::cout << "ALCT Configuration Done (tx vs rx)   tx ----> " << endl;
+    std::cout << "ALCT Configuration Done (tx vs rx)   tx ----> " << std::endl;
     for (int j=0;j<maxTimeBins;j++) {
       std::cout  << " rx =" << j << ": ";
       for (int k=0;k<maxTimeBins;k++) 
-	std::cout << hex << setw(2) << (ALCTConfDone[j][k]&0xffff) << " " ;
-      std::cout << endl;
+	std::cout << std::hex << std::setw(2) << (ALCTConfDone[j][k]&0xffff) << " " ;
+      std::cout << std::endl;
     }
-    std::cout << endl;
+    std::cout << std::endl;
     //
-    std::cout << "Selected 1 (tx vs rx)   tx ----> " << endl;
+    std::cout << "Selected 1 (tx vs rx)   tx ----> " << std::endl;
     for (int j=0;j<maxTimeBins;j++) {
       std::cout << " rx =" << j << ": ";
       for (int k=0;k<maxTimeBins;k++) 
 	std::cout << selected[j][k] << " " ;
-      std::cout << endl;
+      std::cout << std::endl;
     }
-    std::cout << endl;
+    std::cout << std::endl;
     //
-    std::cout << "Selected 2 (tx vs rx)   tx ----> " << endl;
+    std::cout << "Selected 2 (tx vs rx)   tx ----> " << std::endl;
     for (int j=0;j<maxTimeBins;j++) {
       std::cout << " rx =" << j << ": ";
       for (int k=0;k<maxTimeBins;k++) 
 	std::cout << selected2[j][k] << " " ;
-      std::cout << endl;
+      std::cout << std::endl;
     }
-    std::cout << endl;
+    std::cout << std::endl;
     //
-    std::cout << "Selected 3 (tx vs. rx)   tx ----> " << endl;
+    std::cout << "Selected 3 (tx vs. rx)   tx ----> " << std::endl;
     for (int j=0;j<maxTimeBins;j++) {
       std::cout << " rx =" << j << ": ";
       for (int k=0;k<maxTimeBins;k++) 
 	std::cout << selected3[j][k] << " " ;
-      std::cout << endl;
+      std::cout << std::endl;
     }
-    std::cout << endl;
+    std::cout << std::endl;
   }
   //
-  (*MyOutput_) << "Result (tx vs. rx)   tx ----> " << endl;
-  (*MyOutput_) << "         00   01   02   03   04   05   06   07   08   09   10   11   12" << endl;
-  (*MyOutput_) << "        ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ====" << endl; 
+  (*MyOutput_) << "Result (tx vs. rx)   tx ----> " << std::endl;
+  (*MyOutput_) << "         00   01   02   03   04   05   06   07   08   09   10   11   12" << std::endl;
+  (*MyOutput_) << "        ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ====" << std::endl; 
   for (int j=0;j<maxTimeBins;j++){
-    (*MyOutput_) << " rx =" << dec << setw(2) << j << " " ; 
+    (*MyOutput_) << " rx =" << std::dec << std::setw(2) << j << " " ; 
     for (int k=0;k<maxTimeBins;k++) {
       if ( ALCTConfDone[j][k] > 0 ) {
-	(*MyOutput_) << hex << setw(4) << (ALCTWordCount[j][k]&0xffff) << " ";
+	(*MyOutput_) << std::hex << std::setw(4) << (ALCTWordCount[j][k]&0xffff) << " ";
 	rxtx_timing[j][k] = ALCTWordCount[j][k];
       } else {
-	(*MyOutput_) << hex << setw(4) << 0x00 << " ";
+	(*MyOutput_) << std::hex << std::setw(4) << 0x00 << " ";
 	rxtx_timing[j][k] = 0;
       }
     }
-    (*MyOutput_) << endl;
+    (*MyOutput_) << std::endl;
   }
   //
   ALCT_phase_analysis(rxtx_timing);
@@ -1317,7 +1322,7 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow() {
 //  //
 //  for (int i = 0; i < MaxTimeBin; i++){
 //    //
-//    cout << "ALCT_vpf_delay=" << i << endl;
+//    std::cout << "ALCT_vpf_delay=" << i << std::endl;
 //    //
 //    thisTMB->alct_vpf_delay(i);    // loop over this
 //    //thisTMB->trgmode(1);         // 
@@ -1475,7 +1480,7 @@ int ChamberUtilities::FindWinner(int npulses){
   std::cout << "FindWinner:  Using local pulsing of CFEB, data sent to MPC from TMB by VME..." << std::endl;
   //
   if ( ! thisMPC ) {
-    cout << " No MPC defined in XML file " << endl ;
+    std::cout << " No MPC defined in XML file " << std::endl ;
     return -1 ;
   }
   //
@@ -1538,7 +1543,7 @@ int ChamberUtilities::FindWinner(int npulses){
     //
     int iterations = 0;
     //
-    std::cout << "----------> mpc_delay_ =  " << dec << i << std::endl;
+    std::cout << "----------> mpc_delay_ =  " << std::dec << i << std::endl;
     //
     thisTMB->SetMpcRxDelay(i);
     thisTMB->WriteRegister(tmb_trig_adr);
@@ -1554,10 +1559,10 @@ int ChamberUtilities::FindWinner(int npulses){
       if (debug_) {
 	//
 	//thisMPC->firmwareVersion();
-	//(*MyOutput_) << endl;
+	//(*MyOutput_) << std::endl;
 	//
 	thisMPC->read_fifos();
-	(*MyOutput_) << endl;
+	(*MyOutput_) << std::endl;
 	//
 	thisMPC->read_csr0();
 	//
@@ -1590,22 +1595,22 @@ int ChamberUtilities::FindWinner(int npulses){
   }
   //
   for (int i=0; i<DelaySize; i++) {
-    (*MyOutput_) << "MPC0 winner delay=" << setw(3) << i << " gives " << MPC0Count[i] << endl;
+    (*MyOutput_) << "MPC0 winner delay=" << std::setw(3) << i << " gives " << MPC0Count[i] << std::endl;
   }
-  (*MyOutput_) << endl ;
+  (*MyOutput_) << std::endl ;
   //
   for (int i=0; i<DelaySize; i++) {
-    (*MyOutput_) << "MPC1 winner delay=" << setw(3) << i << " gives " << MPC1Count[i] << endl;
+    (*MyOutput_) << "MPC1 winner delay=" << std::setw(3) << i << " gives " << MPC1Count[i] << std::endl;
   }
-  (*MyOutput_) << endl ;
+  (*MyOutput_) << std::endl ;
   //
   MpcDelay  /= (MpcDelayN  + 0.0001) ;
   Mpc0Delay /= (Mpc0DelayN + 0.0001) ;
   Mpc1Delay /= (Mpc1DelayN + 0.0001) ;
   //
-  (*MyOutput_) << "Correct MPC  setting  : " << MpcDelay << endl ;
-  (*MyOutput_) << "Correct MPC0 setting  : " << Mpc0Delay << endl ;
-  (*MyOutput_) << "Correct MPC1 setting  : " << Mpc1Delay << endl ;
+  (*MyOutput_) << "Correct MPC  setting  : " << MpcDelay << std::endl ;
+  (*MyOutput_) << "Correct MPC0 setting  : " << Mpc0Delay << std::endl ;
+  (*MyOutput_) << "Correct MPC1 setting  : " << Mpc1Delay << std::endl ;
   //
   MPCdelay_ = (int)(MpcDelay + 0.5);
   //
@@ -2446,38 +2451,38 @@ void ChamberUtilities::ALCTChamberScan(){
   for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) 
     ALCTWireScan_[keyWG] = chamberResult[keyWG];
   //
-  (*MyOutput_) << "Wire" << endl;
+  (*MyOutput_) << "Wire" << std::endl;
   for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) (*MyOutput_) << keyWG/100 ;
-  (*MyOutput_) << endl;
+  (*MyOutput_) << std::endl;
   for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) (*MyOutput_) << ((keyWG/10)%10) ;
-  (*MyOutput_) << endl;
+  (*MyOutput_) << std::endl;
   for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) (*MyOutput_) << keyWG%10 ;
-  (*MyOutput_) << endl;
-  (*MyOutput_) << "Injected" << endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "Injected" << std::endl;
   for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) (*MyOutput_) << InJected[keyWG] ;
-  (*MyOutput_) << endl;
-  (*MyOutput_) << "ALCT Chamber Scan Result" << endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "ALCT Chamber Scan Result" << std::endl;
   for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) (*MyOutput_) << chamberResult[keyWG] ;
-  (*MyOutput_) << endl;
+  (*MyOutput_) << std::endl;
   for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) (*MyOutput_) << chamberResult2[keyWG] ;
-  (*MyOutput_) << endl;
+  (*MyOutput_) << std::endl;
   //
   if (debug_) {
-    cout << "Wire" << endl;
-    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) cout << keyWG/100 ;
-    cout << endl;
-    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) cout << ((keyWG/10)%10) ;
-    cout << endl;
-    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) cout << keyWG%10 ;
-    cout << endl;
-    cout << "Injected" << endl;
-    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) cout << InJected[keyWG] ;
-    cout << endl;
-    cout << "ALCT Chamber Scan Result" << endl;
-    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) cout << chamberResult[keyWG] ;
-    cout << endl;
-    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) cout << chamberResult2[keyWG] ;
-    cout << endl;
+    std::cout << "Wire" << std::endl;
+    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) std::cout << keyWG/100 ;
+    std::cout << std::endl;
+    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) std::cout << ((keyWG/10)%10) ;
+    std::cout << std::endl;
+    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) std::cout << keyWG%10 ;
+    std::cout << std::endl;
+    std::cout << "Injected" << std::endl;
+    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) std::cout << InJected[keyWG] ;
+    std::cout << std::endl;
+    std::cout << "ALCT Chamber Scan Result" << std::endl;
+    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) std::cout << chamberResult[keyWG] ;
+    std::cout << std::endl;
+    for (int keyWG=0; keyWG<alct->GetNumberOfChannelsPerLayer(); keyWG++) std::cout << chamberResult2[keyWG] ;
+    std::cout << std::endl;
   }
   //
   // revert back to initial settings
@@ -2574,10 +2579,10 @@ void ChamberUtilities::CFEBChamberScan(){
 	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
 	//
 	if (debug_) {
-	  cout << " clct0cfeb " << List << endl;
-	  cout << " clct0nhit " << clct0nhit << endl;
-	  cout << " clct0keyHalfStrip " << clct0keyHalfStrip << endl;
-	  cout << endl;
+	  std::cout << " clct0cfeb " << List << std::endl;
+	  std::cout << " clct0nhit " << clct0nhit << std::endl;
+	  std::cout << " clct0keyHalfStrip " << clct0keyHalfStrip << std::endl;
+	  std::cout << std::endl;
 	}
 	//
 	if ( clct0patternId == 10 && clct0keyHalfStrip == pulsed_halfstrip && 
@@ -2597,25 +2602,25 @@ void ChamberUtilities::CFEBChamberScan(){
     }
   //
   // print out the results
-  (*MyOutput_) << " Number of Muons seen " << endl;
+  (*MyOutput_) << " Number of Muons seen " << std::endl;
   for (int CFEBs = 0; CFEBs<5; CFEBs++) {
     (*MyOutput_) << "CFEB Id="<<CFEBs<< " " ;
     for (int HalfStrip = 0; HalfStrip<MaxStripWithinCFEB; HalfStrip++) {
       int pulsed_halfstrip = CFEBs*MaxStripWithinCFEB + HalfStrip;
-      (*MyOutput_) << setw(3) << Muons[pulsed_halfstrip] ;
+      (*MyOutput_) << std::setw(3) << Muons[pulsed_halfstrip] ;
     }
-    (*MyOutput_) << endl;
+    (*MyOutput_) << std::endl;
   }
-  (*MyOutput_) << endl;
+  (*MyOutput_) << std::endl;
   //
-  (*MyOutput_) << " Maximum number of hits " << endl;
+  (*MyOutput_) << " Maximum number of hits " << std::endl;
   for (int CFEBs = 0; CFEBs<5; CFEBs++) {
     (*MyOutput_) << "CFEB Id="<<CFEBs<< " " ;
     for (int HalfStrip = 0; HalfStrip<MaxStripWithinCFEB; HalfStrip++) {
       int pulsed_halfstrip = CFEBs*MaxStripWithinCFEB + HalfStrip;
-      (*MyOutput_) << setw(3) << MuonsMaxHits[pulsed_halfstrip] ;
+      (*MyOutput_) << std::setw(3) << MuonsMaxHits[pulsed_halfstrip] ;
     }
-    (*MyOutput_) << endl;
+    (*MyOutput_) << std::endl;
   }
   //
   // return to initial values:
@@ -2845,7 +2850,7 @@ void ChamberUtilities::FindDistripHotChannels(){
 //////////////////////////////////////////////////////////////////////
 void ChamberUtilities::InitSystem(){
   //
-  cout << "Init Chamber " << endl ;
+  std::cout << "Init Chamber " << std::endl ;
   //
   //emuController.configure();               // Init system
   //
@@ -2860,7 +2865,7 @@ void ChamberUtilities::InitSystem(){
 }
 void ChamberUtilities::InitStartSystem(){
   //
-  cout << "Init System " << endl ;
+  std::cout << "Init System " << std::endl ;
   //
   //emuController.configure();               // Init system
   //
@@ -2993,7 +2998,7 @@ void ChamberUtilities::PulseTestStrips(int delay){
     } else {
       //
       if (debug_>=10) {
-	if (alct->GetChamberType().find("ME11")!=string::npos) {
+	if (alct->GetChamberType().find("ME11")!= std::string::npos) {
 	  std::cout << alct->GetChamberType().find("ME11") <<std::endl;
 	  std::cout << alct->GetChamberType() <<std::endl;
 	  std::cout << "ME11" <<std::endl;
@@ -3112,13 +3117,13 @@ void ChamberUtilities::InjectMPCData(){
     //
     for (int npulse=0; npulse<1; npulse++) {
       //
-      cout << endl ;
-      cout << "New Run" << endl ;
-      cout << endl ;
+      std::cout << std::endl ;
+      std::cout << "New Run" << std::endl ;
+      std::cout << std::endl ;
       //
       thisTMB->mpc_delay(i);
       //
-      cout << "mpc_delay_ =  " << dec << i << endl;
+      std::cout << "mpc_delay_ =  " << std::dec << i << std::endl;
       //
       thisMPC->SoftReset();
       thisMPC->init();
@@ -3160,16 +3165,16 @@ void ChamberUtilities::InjectMPCData(){
   }
   //
   for (int i=0; i<DelaySize; i++) {
-    cout << "MPC0 winner delay=" << setw(3) << i << " gives " << MPC0Count[i] << endl;
+    std::cout << "MPC0 winner delay=" << std::setw(3) << i << " gives " << MPC0Count[i] << std::endl;
   }
   //
-  cout << endl ;
+  std::cout << std::endl ;
   //
   for (int i=0; i<DelaySize; i++) {
-    cout << "MPC1 winner delay=" << setw(3) << i << " gives " << MPC1Count[i] << endl;
+    std::cout << "MPC1 winner delay=" << std::setw(3) << i << " gives " << MPC1Count[i] << std::endl;
   }
   //
-  cout << endl ;
+  std::cout << std::endl ;
   //
 }
 //
@@ -3218,8 +3223,8 @@ extern char sndbuf[];
 extern char rcvbuf[];
 void settrgsrc(int dword)
       {
-	cout << "Input DMB trigger source value in hex (0 turns off internal L1A and LCT)" << endl;
-	cin >> hex >> dword >> dec;
+	cout << "Input DMB trigger source value in std::hex (0 turns off internal L1A and LCT)" << std::endl;
+	cin >> std::hex >> dword >> std::dec;
 
 	cmd[0]=VTX2_USR1;
 	sndbuf[0]=37;
@@ -3306,14 +3311,14 @@ void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
   int i, j, k, p;  
   //
   if (debug_>=5) {
-    cout << "The array you are working with is:" << endl;
-    cout << endl;
+    std::cout << "The array you are working with is:" << std::endl;
+    std::cout << std::endl;
     for (j = 0; j < 13; j++) {
       for (k = 0; k < 13; k++) {
-	cout << rxtx_timing[j][k] << " ";
+	std::cout << rxtx_timing[j][k] << " ";
       }
-      cout << endl;
-      cout << endl;
+      std::cout << std::endl;
+      std::cout << std::endl;
     }
   }
   //
@@ -3331,27 +3336,27 @@ void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
       //  
       if ( rxtx_timing[j][k] != 0) {        //find all non-zero matrix elements
 	//
-	if (debug_>=5) cout << "element (row column) " << j << k << " is  good "<< endl;
+	if (debug_>=5) std::cout << "element (row column) " << j << k << " is  good "<< std::endl;
 	//
 	for (i=j+1;rxtx_timing[i%13][k]!=0 && i<j+13;i++) {   //scans all non-zero element below
 	}
 	ndown = i-1-j;  //number of non-zero elements below
-	if (debug_>=5) cout << "ndown = " << ndown << "  " << endl;
+	if (debug_>=5) std::cout << "ndown = " << ndown << "  " << std::endl;
 	//
 	for (p=k+1;rxtx_timing[j][p%13]!=0 && p<k+13 ;p++) {  //scans all non-zero elements to the right
 	}
 	nright = p-1-k;  //number of non-zero elements to the right
-	if (debug_>=5) cout << "nright = " << nright << "  " << endl;		       
+	if (debug_>=5) std::cout << "nright = " << nright << "  " << std::endl;		       
 	//
 	for (i=j-1;rxtx_timing[(13+i)%13][k]!=0 && i>j-13;i--) {   //scans all non-zero elements above
 	}
 	nup = j-1-i;  //number of non-zero elements above
-	if (debug_>=5) cout << "nup = " << nup << "  " << endl;
+	if (debug_>=5) std::cout << "nup = " << nup << "  " << std::endl;
 	//
 	for (p=k-1;rxtx_timing[j][(13+p)%13]!=0 && p>k-13;p--) {   //scans all non-zero elements to the left
 	}
 	nleft = k-1-p;  //number of non-zero elements to the left
-	if (debug_>=5) cout << "nleft = " << nleft << endl;
+	if (debug_>=5) std::cout << "nleft = " << nleft << std::endl;
 	//
 	nmin = 100;
 	int numbers[] = {nup, ndown, nleft, nright};
@@ -3362,10 +3367,10 @@ void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
 	  }
 	}
 	//
-	// 				cout << "nmin =  " << nmin << endl;
+	// 				cout << "nmin =  " << nmin << std::endl;
 	ntot=ndown+nup+nright+nleft;         //finds the total number of non-zero elements in all directions
-	//				cout << "ntot =  " << ntot << endl;
-	//				cout << endl;
+	//				cout << "ntot =  " << ntot << std::endl;
+	//				cout << std::endl;
 	//
 	if (nmin_best < nmin) {         //finds the array element with the best nmin and ntot value
 	  nmin_best = nmin;
@@ -3375,21 +3380,21 @@ void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
 	  best_element_row = j;
 	  best_element_col = k;
 	  //
-	  // cout << "best element so far is " << best_element_row << best_element_col << endl;
-	  // cout << endl;
+	  // std::cout << "best element so far is " << best_element_row << best_element_col << std::endl;
+	  // std::cout << std::endl;
 	  //
 	}
       }
     }
   }
   if (debug_>=5) {
-    std::cout << "the best values of nmin and ntot are:  " << endl;
-    std::cout << "nmin =  " << nmin_best << "  and ntot =  " << ntot_best << endl;
+    std::cout << "the best values of nmin and ntot are:  " << std::endl;
+    std::cout << "nmin =  " << nmin_best << "  and ntot =  " << ntot_best << std::endl;
   }
   if (debug_) {
-    std::cout << "best element is: " << endl;
-    std::cout << "rx =  " << best_element_row << "    tx =  " << best_element_col << endl;
-    std::cout << endl;
+    std::cout << "best element is: " << std::endl;
+    std::cout << "rx =  " << best_element_row << "    tx =  " << best_element_col << std::endl;
+    std::cout << std::endl;
   }
   //
   ALCTrxPhase_ = best_element_row ;
@@ -3641,9 +3646,9 @@ void ChamberUtilities::ALCTScanDelays(){
       int keyWG  = int(rand()/(RAND_MAX+0.01)*alct->GetNumberOfChannelsPerLayer());
       //      int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
       //
-      cout << endl ;
+      std::cout << std::endl ;
       //
-      cout << "Injecting at " << dec << keyWG << endl;
+      std::cout << "Injecting at " << std::dec << keyWG << std::endl;
       for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
 	for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct()/6); channel++) {
 	  if (channel==keyWG) {
@@ -3690,10 +3695,13 @@ void ChamberUtilities::ALCTScanDelays(){
     }
   }
   //
-  for ( int DelaySetting=0; DelaySetting < 20; DelaySetting++ ) cout << CountDelay[DelaySetting] << " " ;
+  for ( int DelaySetting=0; DelaySetting < 20; DelaySetting++ ) std::cout << CountDelay[DelaySetting] << " " ;
   //
-  cout << endl ;
-  cout << endl ;
+  std::cout << std::endl ;
+  std::cout << std::endl ;
   //
 }
 //
+
+  } // namespace emu::pc
+ } // namespace emu

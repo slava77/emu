@@ -24,8 +24,8 @@ class EmuDcs;
 
 class DcsDimCommand: public DimCommand, public Task{//, public ErrorHandler{
 
- string ipslot;
- string ip_address;
+ std::string ipslot;
+ std::string ip_address;
  int ccb_slot; 
  int dmb_slot; 
  int tmb_slot; 
@@ -33,11 +33,11 @@ class DcsDimCommand: public DimCommand, public Task{//, public ErrorHandler{
 
  int lvmb_channels;
 
- string operation_command;
+ std::string operation_command;
 
  EmuDcs *EmuDcs_o;
 
-   SyncQueue<string> sQueue;
+   SyncQueue<std::string> sQueue;
 
    int db_index;
 
@@ -56,13 +56,13 @@ public:
 
   bool slotsLoading();
   bool nextSlotsLoading(int *i,int *j);
-  int commandParse(string &command);
+  int commandParse(std::string &command);
   void commandHandler();
   int getDataLV(bool isUpdate=false, bool isDRAFT=0);
   int isError();
-  int get_db_index(string ip_address, int dmb_slot);
-  int get_db_index_by_chamber(string chamber);
-  string get_slot_by_db_index(int db_index_1);
+  int get_db_index(std::string ip_address, int dmb_slot);
+  int get_db_index_by_chamber(std::string chamber);
+  std::string get_slot_by_db_index(int db_index_1);
 DcsDimCommand(DcsDimService **LV_1_DimBroker_o, DcsDimService **TEMPERATURE_1_DimBroker_o,  
               DcsDimService **COMMAND_1_DimBroker_o,DcsDimService **REFERENCE_1_DimBroker_o, DimService *RunControlService_o,
 	      EmuDcs *EmuDcs_o);

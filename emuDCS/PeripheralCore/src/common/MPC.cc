@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.14 2008/08/08 11:01:24 rakness Exp $
+// $Id: MPC.cc,v 3.15 2008/08/13 11:30:54 geurts Exp $
 // $Log: MPC.cc,v $
+// Revision 3.15  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.14  2008/08/08 11:01:24  rakness
 // centralize logging
 //
@@ -152,6 +156,9 @@
 #include "MPC.h"
 #include "VMEController.h"
 #include "EmuLogger.h"
+
+namespace emu {
+  namespace pc {
 
 MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),EmuLogger(),
 				       BoardId_(0), TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0)
@@ -827,3 +834,5 @@ void MPC::start() {
 }
 
 
+} // namespace emu::pc
+} // namespace emu

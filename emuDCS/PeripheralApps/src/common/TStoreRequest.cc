@@ -8,6 +8,9 @@
 #include "xoap/domutils.h"
 #include "xoap/SOAPBody.h"
 
+namespace emu {
+  namespace pc {
+
 TStoreRequest::TStoreRequest(const std::string &commandName,const std::string &viewClass) : 
 	viewClass_(viewClass),commandName_(commandName) {
 
@@ -60,3 +63,5 @@ xoap::MessageReference TStoreRequest::toSOAP() {
 
 	return message;
 }
+  } // namespace emu::pc
+  } // namespace emu

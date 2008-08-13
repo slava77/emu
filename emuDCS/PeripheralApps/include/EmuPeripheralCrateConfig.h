@@ -63,7 +63,6 @@
 //
 #include "EmuApplication.h"
 
-
 class EmuPeripheralCrateConfig: public EmuApplication, xdata::ActionListener
 {
   //
@@ -106,31 +105,31 @@ protected:
   //
   xdata::String CalibType_;
   xdata::UnsignedInteger CalibNumber_;
-  string CalibTypeStr_; 
+  std::string CalibTypeStr_; 
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  EmuController * MyController;
-  EmuTStore * myTStore;
+  emu::pc::EmuController * MyController;
+  emu::pc::EmuTStore * myTStore;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
   //
-  VMECC* vmecc;
-  CCB* thisCCB ;
-  ALCTController *alct ;
-  RAT * rat;
-  MPC * thisMPC;
+  emu::pc::VMECC* vmecc;
+  emu::pc::CCB* thisCCB ;
+  emu::pc::ALCTController *alct ;
+  emu::pc::RAT * rat;
+  emu::pc::MPC * thisMPC;
   BoardsDB *brddb;
-  CrateUtilities myCrateTest;
-  ostringstream CrateTestsOutput;
-  ChamberUtilities MyTest[10][30];
-  ostringstream ChamberTestsOutput[10][30];
-  ostringstream OutputStringDMBStatus[10];
-  ostringstream OutputStringTMBStatus[10];
-  ostringstream OutputDMBTests[10][30];
-  ostringstream OutputTMBTests[10][30];
-  ostringstream OutputCheckConfiguration;
+  emu::pc::CrateUtilities myCrateTest;
+  std::stringstream CrateTestsOutput;
+  emu::pc::ChamberUtilities MyTest[10][30];
+  std::ostringstream ChamberTestsOutput[10][30];
+  std::ostringstream OutputStringDMBStatus[10];
+  std::ostringstream OutputStringTMBStatus[10];
+  std::ostringstream OutputDMBTests[10][30];
+  std::ostringstream OutputTMBTests[10][30];
+  std::ostringstream OutputCheckConfiguration;
   std::vector <float> ChartData[100];
   int TMBTriggerAlct0Key[120][9];
   int TMBTriggerAlct1Key[120][9];
@@ -141,12 +140,12 @@ protected:
   int crate_controller_status;
   //
   int CCBRegisterValue_;
-  vector<TMB*>   tmbVector;
-  vector<TMBTester>   tmbTestVector;
-  vector<DAQMB*> dmbVector;
-  vector<Crate*> crateVector;
-  vector<Chamber*> chamberVector;
-  Crate *thisCrate;
+  std::vector<emu::pc::TMB*>   tmbVector;
+  std::vector<emu::pc::TMBTester>   tmbTestVector;
+  std::vector<emu::pc::DAQMB*> dmbVector;
+  std::vector<emu::pc::Crate*> crateVector;
+  std::vector<emu::pc::Chamber*> chamberVector;
+  emu::pc::Crate *thisCrate;
   std::string Operator_;
   std::string RunNumber_;
   std::string CalibrationCfebTimeEvent_;
@@ -175,15 +174,15 @@ protected:
   int this_crate_no_;
   std::string ThisCrateID_;
   
-  std::vector<std::string> monitorables_;
+  std::vector< std::string> monitorables_;
   bool Monitor_On_, Monitor_Ready_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   toolbox::task::Timer * timer_;
   //
-  vector<int> L1aLctCounter_;
-  vector<int> CfebDavCounter_;
-  vector<int> TmbDavCounter_;
-  vector<int> AlctDavCounter_;
+  std::vector<int> L1aLctCounter_;
+  std::vector<int> CfebDavCounter_;
+  std::vector<int> TmbDavCounter_;
+  std::vector<int> AlctDavCounter_;
   //
   unsigned long int DMBBoardNumber[62][10];
   unsigned long int CFEBBoardNumber[62][10][7];
@@ -192,7 +191,7 @@ protected:
 
   enum VCC_PAGES {VCC_CMNTSK, VCC_VME, VCC_FRMUTIL, VCC_CNFG, VCC_MAC,
    VCC_FIFO, VCC_PKTSND, VCC_PKTRCV, VCC_MISC} VCC_UTIL_curr_page;
-  Crate *VCC_UTIL_curr_crate;
+  emu::pc::Crate *VCC_UTIL_curr_crate;
   std::string VCC_UTIL_curr_crate_name;
   std::string VCC_UTIL_curr_color;
   std::string VCC_UTIL_acc_cntrl;
@@ -234,8 +233,8 @@ protected:
   std::string VCC_UTIL_CR_dflt_cnum;
   std::string VCC_UTIL_CR_curr_dflt;
   std::string VCC_UTIL_CR_ser_num;
-  CNFG_t VCC_UTIL_CR_to;
-  CNFG_t VCC_UTIL_CR_from;
+  emu::pc::CNFG_t VCC_UTIL_CR_to;
+  emu::pc::CNFG_t VCC_UTIL_CR_from;
   std::string VCC_UTIL_MAC_ena_dis;
   std::string VCC_UTIL_MAC_wrt_dev;
   std::string VCC_UTIL_MAC_wrt_mcast1;
@@ -292,7 +291,7 @@ protected:
   std::string VCC_UTIL_PKTRCV_rbk_data;
   
   //
-  EmuEndcap * emuEndcap_;
+  emu::pc::EmuEndcap * emuEndcap_;
   //
 public:
   //
@@ -319,7 +318,7 @@ private:
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void configureFail(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void reConfigureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
-  void postToELog( string subject, string body );
+  void postToELog( std::string subject, std::string body );
   void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void disableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void haltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
@@ -528,7 +527,7 @@ private:
   //
   void DefineFirmwareFilenames();
   //
-  std::vector<TMBTester> InitTMBTests(Crate *);
+  std::vector<emu::pc::TMBTester> InitTMBTests(emu::pc::Crate *);
   void CheckPeripheralCrateConfiguration();
   void CheckPeripheralCrateFirmware();
   bool prbs_test_;
@@ -551,9 +550,8 @@ private:
   int dmb_control_firmware_ok[60][9];
   int cfeb_firmware_ok[60][9][5];
   //
-  xoap::MessageReference PCcreateCommandSOAP(string command);
-  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
+  xoap::MessageReference PCcreateCommandSOAP(std::string command);
+  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
     
 };
-
 #endif

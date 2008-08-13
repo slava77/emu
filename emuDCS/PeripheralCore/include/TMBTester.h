@@ -7,6 +7,9 @@
 #include <string>
 #include <bitset>
 
+namespace emu {
+  namespace pc {
+
 class TMB;
 class CCB;
 class RAT;
@@ -143,6 +146,10 @@ class TMBTester {
   int dowCRC(std::bitset<64>);
   //
 };
+
+  } // namespace emu::pc
+} // namespace emu
+
 
 #endif
 

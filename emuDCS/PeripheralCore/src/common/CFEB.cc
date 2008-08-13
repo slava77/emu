@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: CFEB.cc,v 3.1 2008/08/13 11:30:54 geurts Exp $
 // $Log: CFEB.cc,v $
+// Revision 3.1  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -16,6 +20,10 @@
 //
 //-----------------------------------------------------------------------
 #include "CFEB.h"
+
+namespace emu {
+  namespace pc {
+
 
 CFEB::CFEB(int number, std::vector<BuckeyeChip> buckeyes) :
   number_(number),
@@ -42,3 +50,5 @@ char CFEB::chipMask() const {
   return chip_mask;
 }
 
+  } // namespace emu::pc
+  } // namespace emu

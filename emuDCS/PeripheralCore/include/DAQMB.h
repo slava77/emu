@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.30 2008/08/08 11:01:23 rakness Exp $
+// $Id: DAQMB.h,v 3.31 2008/08/13 11:30:53 geurts Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.31  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.30  2008/08/08 11:01:23  rakness
 // centralize logging
 //
@@ -199,12 +203,18 @@
 #include "CFEB.h"
 #include "Chamber.h"
 #include "EmuLogger.h"
+
+
+namespace emu {
+  namespace pc {
+
 //
 /**
  * more documentation available for this class at
  * http://www.physics.ohio-state.edu/~cms/dmb/prog_man.pdf
  * http://www.physics.ohio-state.edu/~cms/dmb/delayset.html
  */
+
 class Crate;
 
 class DAQMB: public VMEModule, public EmuLogger
@@ -657,5 +667,7 @@ public:
   //
 }; 
 
+  } // namespace emu::pc
+  } // namespace emu
 #endif
 

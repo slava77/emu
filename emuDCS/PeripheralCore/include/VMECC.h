@@ -6,6 +6,9 @@
 #include <vector>
 #include <string>
 
+namespace emu {
+  namespace pc {
+
 typedef struct mac_t {  /* MAC addresses */
         unsigned char device[6];
         unsigned char mcast1[6];
@@ -156,5 +159,7 @@ class VMECC: public VMEModule
  private:
 
 };
+  } // namespace emu::pc
+} // namespace emu
 
 #endif

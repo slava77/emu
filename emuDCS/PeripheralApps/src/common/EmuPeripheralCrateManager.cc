@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.6 2008/05/14 13:22:48 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.7 2008/08/13 11:30:52 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -23,8 +23,11 @@
 #include <iomanip>
 #include <time.h>
 
-using namespace cgicc;
-using namespace std;
+//using namespace cgicc;
+//using namespace std;
+
+namespace emu {
+  namespace pc {
 
 EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s): EmuApplication(s)
 {	
@@ -746,3 +749,5 @@ xoap::MessageReference EmuPeripheralCrateManager::PCcreateCommandSOAP(string com
 // provides factory method for instantion of SimpleSOAPSender application
 //
 XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateManager)
+  } // namespace emu::pc
+  } // namespace emu

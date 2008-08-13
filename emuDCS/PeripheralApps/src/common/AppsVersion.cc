@@ -1,6 +1,9 @@
 #include "config/PackageInfo.h"
 
-namespace EmuPeripheralApps {
+//namespace emu {
+//  namespace pc {
+
+    namespace EmuPeripheralApps {
 	const std::string package  =  "EmuPeripheralApps";
 	const std::string versions =  "6.4";
 	const std::string summary = "emu/emuDCS/PeripheralApps";
@@ -9,8 +12,12 @@ namespace EmuPeripheralApps {
 	const std::string link = "http://cms.cern.ch";
 	config::PackageInfo getPackageInfo();
         void checkPackageDependencies();
-}
+    }
+
 
 GETPACKAGEINFO(EmuPeripheralApps);
 
 void EmuPeripheralApps::checkPackageDependencies() {}
+
+//  } // namespace emu::pc
+// } // namespace emu

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.5 2008/08/08 15:36:58 liu Exp $
+// $Id: Chamber.cc,v 3.6 2008/08/13 11:30:54 geurts Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.6  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.5  2008/08/08 15:36:58  liu
 // initialize problem_mask
 //
@@ -74,7 +78,10 @@
 #include "CFEB.h"
 #include "Crate.h"
 //
-using namespace std;
+
+namespace emu {
+  namespace pc {
+
 //
 Chamber::Chamber(Crate * csc):
   crate_(csc), label_("new_csc"), problem_mask_(0)
@@ -91,3 +98,7 @@ Chamber::~Chamber(){
   {  thisTMB = myTMB; 
      alct = myTMB->alctController();
   }
+
+
+  } // namespace emu::pc
+  } // namespace emu

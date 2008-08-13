@@ -9,6 +9,12 @@
 #include "TMB_constants.h"
 //
 //
+
+namespace emu {
+  namespace pc {
+
+
+
 RAT::RAT(TMB * tmb) : EmuLogger()
 {
   //
@@ -865,3 +871,7 @@ int RAT::GetExpectedRatFirmwareYear() {
   return tmb_->GetExpectedRatFirmwareYear(); 
   //
 }
+
+} // namespace emu::pc  
+} // namespace emu  
+

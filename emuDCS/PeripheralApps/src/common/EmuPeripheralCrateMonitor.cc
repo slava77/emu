@@ -12,9 +12,6 @@
 #include <iomanip>
 #include <time.h>
 
-using namespace cgicc;
-using namespace std;
-
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
 /////////////////////////////////////////////////////////////////////
@@ -242,7 +239,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
    //           2  slow loop (e.g. temps/voltages)
    //           3  extra loop (e.g. CCB MPC TTC status)
 
-      Crate * now_crate;
+      emu::pc::Crate * now_crate;
       xdata::InfoSpace * is;
       char buf[8000];
       // xdata::UnsignedInteger32 *counter32;
@@ -424,67 +421,67 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     //
   // Begin select TCounter
         // Config listbox
-	*out << form().set("action",
-			"/" + getApplicationDescriptor()->getURN() + "/TCounterSelection").set("target","_blank") << endl;
+    *out << cgicc::form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/TCounterSelection").set("target","_blank") << std::endl;
 	int n_keys = TCounterName.size();
 
-	// *out << "Choose TMB Counter: " << endl;
-	*out << cgicc::select().set("name", "selected") << endl;
+	// *out << "Choose TMB Counter: " << std::endl;
+	*out << cgicc::select().set("name", "selected") << std::endl;
 
 	int selected_index = this_tcounter_;
         std::string CounterName;
 	for (int i = 0; i < n_keys; ++i) {
                 CounterName = TCounterName[i];
 		if (i == selected_index) {
-			*out << option()
+		  *out << cgicc::option()
 					.set("value", CounterName)
 					.set("selected", "");
 		} else {
-			*out << option()
+		  *out << cgicc::option()
 					.set("value", CounterName);
 		}
-		*out << CounterName << option() << endl;
+		*out << CounterName << cgicc::option() << std::endl;
 	}
 
-	*out << cgicc::select() << endl;
+	*out << cgicc::select() << std::endl;
 
-	*out << input().set("type", "submit")
+	*out << cgicc::input().set("type", "submit")
 			.set("name", "command")
-			.set("value", "TMB Counter View") << endl;
-	*out << form() << endl;
+			.set("value", "TMB Counter View") << std::endl;
+	*out << cgicc::form() << std::endl;
      
   //End select TCounter
     //
     //
   // Begin select DCounter
         // Config listbox
-	*out << form().set("action",
-			"/" + getApplicationDescriptor()->getURN() + "/DCounterSelection").set("target","_blank") << endl;
+	*out << cgicc::form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/DCounterSelection").set("target","_blank") << std::endl;
 	n_keys = DCounterName.size();
 
-	// *out << "Choose DMB Counter: " << endl;
-	*out << cgicc::select().set("name", "selected") << endl;
+	// *out << "Choose DMB Counter: " << std::endl;
+	*out << cgicc::select().set("name", "selected") << std::endl;
 
 	selected_index = this_tcounter_;
 	for (int i = 0; i < n_keys; ++i) {
                 CounterName = DCounterName[i];
 		if (i == selected_index) {
-			*out << option()
+		  *out << cgicc::option()
 					.set("value", CounterName)
 					.set("selected", "");
 		} else {
-			*out << option()
+		  *out << cgicc::option()
 					.set("value", CounterName);
 		}
-		*out << CounterName << option() << endl;
+		*out << CounterName << cgicc::option() << std::endl;
 	}
 
-	*out << cgicc::select() << endl;
+	*out << cgicc::select() << std::endl;
 
-	*out << input().set("type", "submit")
+	*out << cgicc::input().set("type", "submit")
 			.set("name", "command")
-			.set("value", "DMB Counter View") << endl;
-	*out << form() << endl;
+			.set("value", "DMB Counter View") << std::endl;
+	*out << cgicc::form() << std::endl;
      
   //End select DCounter
     //
@@ -512,13 +509,13 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
 
   // Begin select crate
         // Config listbox
-	*out << form().set("action",
-			"/" + getApplicationDescriptor()->getURN() + "/CrateSelection") << endl;
+    *out << cgicc::form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/CrateSelection") << std::endl;
 
 	n_keys = crateVector.size();
 
-	*out << "Choose Crate: " << endl;
-	*out << cgicc::select().set("name", "runtype") << endl;
+	*out << "Choose Crate: " << std::endl;
+	*out << cgicc::select().set("name", "runtype") << std::endl;
 
 	selected_index = this_crate_no_;
         std::string CrateName;
@@ -528,22 +525,22 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
                 else
                    CrateName = crateVector[i]->GetLabel() + " NG";
 		if (i == selected_index) {
-			*out << option()
-					.set("value", CrateName)
-					.set("selected", "");
+		  *out << cgicc::option()
+		    .set("value", CrateName)
+		    .set("selected", "");
 		} else {
-			*out << option()
-					.set("value", CrateName);
+		  *out << cgicc::option()
+		    .set("value", CrateName);
 		}
-		*out << CrateName << option() << endl;
+		*out << CrateName << cgicc::option() << std::endl;
 	}
 
-	*out << cgicc::select() << endl;
+	*out << cgicc::select() << std::endl;
 
-	*out << input().set("type", "submit")
+	*out << cgicc::input().set("type", "submit")
 			.set("name", "command")
-			.set("value", "CrateSelection") << endl;
-	*out << form() << endl;
+			.set("value", "CrateSelection") << std::endl;
+	*out << cgicc::form() << std::endl;
      
   //End select crate
  
@@ -627,7 +624,7 @@ void EmuPeripheralCrateMonitor::MyHeader(xgi::Input * in, xgi::Output * out, std
 //
 void EmuPeripheralCrateMonitor::Default(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
 }
 //
 /////////////////////////////////////////////////////////////////////
@@ -656,7 +653,7 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageRe
      cgicc::Cgicc cgi(in);
 
      std::string in_value = cgi.getElement("runtype")->getValue(); 
-     std::cout << "Select Crate " << in_value << endl;
+     std::cout << "Select Crate " << in_value << std::endl;
      if(!in_value.empty())
      {
         int k=in_value.find(" ",0);
@@ -677,7 +674,7 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageRe
     //
     // Check if filename exists
     //
-    if(xmlFile_.toString().find("http") == string::npos) 
+    if(xmlFile_.toString().find("http") == std::string::npos) 
     {
       std::ifstream filename(xmlFile_.toString().c_str());
       if(filename.is_open()) {
@@ -696,7 +693,7 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageRe
       delete MyController ;
     }
     //
-    MyController = new EmuController();
+    MyController = new emu::pc::EmuController();
 
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
@@ -752,7 +749,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
     //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" << std::endl;
     *out << cgicc::b("All Chambers") << std::endl;
 
   if(Monitor_On_)
@@ -792,7 +789,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
   //
   *out <<cgicc::tr();
   //
-  vector<TMB*> myVector;
+  std::vector<emu::pc::TMB*> myVector;
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
     myVector = crateVector[idx]->tmbs();
     //
@@ -851,7 +848,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
     //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"120; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"120; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
     *out << cgicc::b("All Crates") << std::endl;
 
   if(Monitor_On_)
@@ -978,7 +975,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      cgicc::Cgicc cgi(in);
 
      std::string in_value = cgi.getElement("selected")->getValue(); 
-     // std::cout << "Select Counter " << in_value << endl;
+     // std::cout << "Select Counter " << in_value << std::endl;
      if(!in_value.empty())
      {
 //        int k=in_value.find(" ",0);
@@ -994,7 +991,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
     //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
     *out << cgicc::b(TCounterName[this_tcounter_]) << std::endl;
 
   if(Monitor_On_)
@@ -1028,7 +1025,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
   //
   *out <<cgicc::tr();
   //
-  vector<TMB*> myVector;
+  std::vector<emu::pc::TMB*> myVector;
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
     myVector = crateVector[idx]->tmbs();
     //
@@ -1067,7 +1064,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      cgicc::Cgicc cgi(in);
 
      std::string in_value = cgi.getElement("selected")->getValue(); 
-     // std::cout << "Select Counter " << in_value << endl;
+     // std::cout << "Select Counter " << in_value << std::endl;
      if(!in_value.empty())
      {
 //        int k=in_value.find(" ",0);
@@ -1083,7 +1080,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
     //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
     *out << cgicc::b(DCounterName[this_dcounter_]) << std::endl;
 
   if(Monitor_On_)
@@ -1117,7 +1114,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
   //
   *out <<cgicc::tr();
   //
-  vector<DAQMB*> myVector;
+  std::vector<emu::pc::DAQMB*> myVector;
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
     myVector = crateVector[idx]->daqmbs();
     //
@@ -1155,7 +1152,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      cgicc::Cgicc cgi(in);
 
      std::string in_value = cgi.getElement("runtype")->getValue(); 
-     // std::cout << "Select Crate " << in_value << endl;
+     // std::cout << "Select Crate " << in_value << std::endl;
      if(!in_value.empty())
      {
 //        int k=in_value.find(" ",0);
@@ -1171,7 +1168,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
     //
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
     *out << cgicc::b(TCounterName[this_tcounter_]) << std::endl;
 
   }
@@ -1189,7 +1186,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
 			16, 25, 26, 27, 28, 30, 33, 34, 36, 39,
 			40, 47, 48};
 
-  ostringstream output;
+  std::ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
   output << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
   //
@@ -1197,13 +1194,13 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"3; URL=/"
-	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  Crate *myCrate;
-  vector<TMB*> myVector;
+  emu::pc::Crate *myCrate;
+  std::vector<emu::pc::TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel())
@@ -1277,13 +1274,13 @@ void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * 
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  Crate *myCrate;
-  vector<DAQMB*> myVector;
+  emu::pc::Crate *myCrate;
+  std::vector<emu::pc::DAQMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel())
@@ -1352,7 +1349,7 @@ void EmuPeripheralCrateMonitor::ResetAllCounters(xgi::Input * in, xgi::Output * 
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
-  vector<TMB*> myVector;
+  std::vector<emu::pc::TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->tmbs();
@@ -1374,7 +1371,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
@@ -1701,7 +1698,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
 
 // sending and receiving soap commands
 ////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateMonitor::PCsendCommand(string command, string klass)
+void EmuPeripheralCrateMonitor::PCsendCommand(std::string command, std::string klass)
   throw (xoap::exception::Exception, xdaq::exception::Exception){
   //
   //This is copied from CSCSupervisor::sendcommand;
@@ -1736,7 +1733,7 @@ void EmuPeripheralCrateMonitor::PCsendCommand(string command, string klass)
   }
 }
 
-xoap::MessageReference EmuPeripheralCrateMonitor::PCcreateCommandSOAP(string command) {
+xoap::MessageReference EmuPeripheralCrateMonitor::PCcreateCommandSOAP(std::string command) {
   //
   //This is copied from CSCSupervisor::createCommandSOAP
   //

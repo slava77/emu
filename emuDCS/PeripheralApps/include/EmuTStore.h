@@ -37,6 +37,9 @@
 #include <sstream>
 
 
+namespace emu {
+  namespace pc {
+
 class EmuTStore
 {
 
@@ -139,5 +142,7 @@ inline bool convertToHex(std::string &dataHex, const std::string format, const T
   }
   return converted;
 }
+  } // namespace emu::pc
+  } // namespace emu
 
 #endif

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.16 2008/07/16 17:28:36 rakness Exp $
+// $Id: TMB_constants.h,v 3.17 2008/08/13 11:30:53 geurts Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.17  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.16  2008/07/16 17:28:36  rakness
 // (backwards incompatible!) updates for 3 June 2008 TMB firmware and v3 r10 DMB firmware
 //
@@ -68,6 +72,11 @@
 // *** empty log message ***
 //
 //
+
+
+namespace emu {
+  namespace pc {
+
 //-----------------------------------------------------------------------
 //////////////////////////////////////////////
 // TMB VME register names:
@@ -2320,3 +2329,6 @@ struct tmb_id_regs
   unsigned short int fpga_type; // Xilinx FPGA Type XCV1000E (BCD)
 
 };
+
+  } // namespace emu::pc
+  } // namespace emu

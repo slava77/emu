@@ -12,13 +12,14 @@
 #include "CCB.h"
 #include "VMEController.h"
 //
-using namespace std;
+namespace emu {
+  namespace pc {
 //
 CrateUtilities::CrateUtilities() : MpcTMBTestResult(-1), myCrate_(0)
 {
   //
   debug_ = false;
-  if(debug_) std::cout << "CrateUtilities" << endl ;
+  if(debug_) std::cout << "CrateUtilities" << std::endl ;
   //
   MyOutput_ = &std::cout ;
   //
@@ -852,3 +853,6 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
   //
   return;
 }
+
+  } // namespace emu::pc
+ } // namespace emu

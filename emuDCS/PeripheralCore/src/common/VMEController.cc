@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.50 2008/06/19 18:54:40 bylsma Exp $
+// $Id: VMEController.cc,v 3.51 2008/08/13 11:30:54 geurts Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.51  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.50  2008/06/19 18:54:40  bylsma
 // Added accessor functions for VCC xml parameters
 //
@@ -309,6 +313,8 @@
 #define DATA_OFF     22
 #define INFO_PKT   0XFD
 
+namespace emu {
+  namespace pc {
 
 
 VMEController::VMEController(): 
@@ -361,11 +367,11 @@ VMEController::VMEController():
 }
 //
 VMEController::~VMEController(){
-  cout << "destructing VMEController .. closing socket " << endl;
+  std::cout << "destructing VMEController .. closing socket " << std::endl;
   do_schar(2); // give up the schar device
 }
 
-void VMEController::init(string ipAddr, int port) {
+void VMEController::init(std::string ipAddr, int port) {
   ipAddress_= ipAddr;
   port_=port;
   //
@@ -377,12 +383,12 @@ void VMEController::init()
 {
   if(done_init_) return;
   //
-  cout << "VMEController : Init()" << endl;
+  std::cout << "VMEController : Init()" << std::endl;
   //
   theSocket=do_schar(1); // register a new schar device
   //
-  cout << "VMEController opened socket = " << theSocket << endl;
-  cout << "VMEController is using eth" << port_ << endl;
+  std::cout << "VMEController opened socket = " << theSocket << std::endl;
+  std::cout << "VMEController is using eth" << port_ << std::endl;
 //   cout << "VCC Config Parameters are:" << endl;
 //   cout << "  ipAddress : " << ipAddress_ << endl;
 //   cout << "  MAC_addr  : " << std::hex << (int) MAC_addr[0] << "-" << (int) MAC_addr[1] << "-" << (int) MAC_addr[2] << "-" << (int) MAC_addr[3] << "-" << (int) MAC_addr[4] << "-" << (int) MAC_addr[5] <<  endl;
@@ -1678,3 +1684,8 @@ int VMEController::LeftToRead()
 {
  return ioctl(theSocket,SCHAR_INQR)&0xffff;
 }
+
+
+} // namespace emu::pc  
+} // namespace emu  
+

@@ -12,8 +12,12 @@
 #include <iomanip>
 #include <time.h>
 
-using namespace cgicc;
-using namespace std;
+//using namespace cgicc;
+//using namespace std;
+
+namespace emu {
+  namespace pc {
+
 
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
@@ -295,7 +299,7 @@ void EmuPeripheralCrateCommand::MyHeader(xgi::Input * in, xgi::Output * out, std
 //
 void EmuPeripheralCrateCommand::Default(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
 }
 //
 /////////////////////////////////////////////////////////////////////
@@ -416,7 +420,7 @@ bool EmuPeripheralCrateCommand::ParsingXML(){
   {
     // Check if filename exists
     //
-    if(xmlFile_.toString().find("http") == string::npos) 
+    if(xmlFile_.toString().find("http") == std::string::npos) 
     {
       std::ifstream filename(xmlFile_.toString().c_str());
       if(filename.is_open()) {
@@ -566,7 +570,7 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
   std::string time_dump = ctime(&rawtime);
   std::string time = time_dump.substr(0,time_dump.length()-1);
   //
-  while( time.find(" ",0) != string::npos ) {
+  while( time.find(" ",0) != std::string::npos ) {
     //
     int thispos = time.find(" ",0);
     time.replace(thispos,1,"_");
@@ -575,7 +579,7 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
   //
   buf = "ConfigurationCheckLogFile"+time+".log";
   //
-  ofstream LogFileCheckConfiguration;
+  std::ofstream LogFileCheckConfiguration;
   LogFileCheckConfiguration.open(buf.c_str());
   LogFileCheckConfiguration << OutputCheckConfiguration.str() ;
   LogFileCheckConfiguration.close();
@@ -649,7 +653,7 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
 
 // sending and receiving soap commands
 ////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateCommand::PCsendCommand(string command, string klass)
+void EmuPeripheralCrateCommand::PCsendCommand(std::string command, std::string klass)
   throw (xoap::exception::Exception, xdaq::exception::Exception){
   //
   //This is copied from CSCSupervisor::sendcommand;
@@ -684,7 +688,7 @@ void EmuPeripheralCrateCommand::PCsendCommand(string command, string klass)
   }
 }
 
-xoap::MessageReference EmuPeripheralCrateCommand::PCcreateCommandSOAP(string command) {
+xoap::MessageReference EmuPeripheralCrateCommand::PCcreateCommandSOAP(std::string command) {
   //
   //This is copied from CSCSupervisor::createCommandSOAP
   //
@@ -700,3 +704,7 @@ xoap::MessageReference EmuPeripheralCrateCommand::PCcreateCommandSOAP(string com
 //
 XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateCommand)
 //
+
+  } // namespace emu::pc
+  } // namespace emu
+

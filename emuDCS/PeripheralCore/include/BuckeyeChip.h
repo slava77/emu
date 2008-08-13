@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: BuckeyeChip.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: BuckeyeChip.h,v 3.1 2008/08/13 11:30:53 geurts Exp $
 // $Log: BuckeyeChip.h,v $
+// Revision 3.1  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -11,6 +15,9 @@
 //-----------------------------------------------------------------------
 #ifndef BuckeyeChip_h
 #define BuckeyeChip_h
+
+namespace emu {
+  namespace pc {
 
 /** preamp-shaper chip
  *  should be 6 per CFEB, each controlling
@@ -32,5 +39,7 @@ private:
   int shift_array_[16];
 };
 
+  } // namespace emu::pc
+  } // namespace emu
 #endif
 
