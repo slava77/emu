@@ -7,13 +7,13 @@ The FEDCrate contains DDU (pointer)s, DCC (pointer)s, and a VMEController
 (pointer).  Because it contains everything, the FEDCrate is the highest
 level object in the scheme.  When you pass a properly formatted XML file
 to the FEDCrateParser, it will hand you back a std::vector of properly
-initialized and filled Crates.  Note that the FEDCrateParser is actually
+initialized and filled FEDCrates.  Note that the FEDCrateParser is actually
 a brain-dead object with only minimal error checking--the FEDCrate, DDU, DCC,
 and VMEController objects it makes do all the magic of proper
 initialization in their constructors.
 
 Once you have a std::vector of FEDCrates from the FEDCrateParser, you can pick out
-the various objects from the FEDCrate using the Crate::ddus(), dccs(), and
+the various objects from the FEDCrate using the FEDCrate::ddus(), dccs(), and
 vmeController() methods.  The VMEController object is the only thing that
 is even remotely aware of which FEDCrate in which it resides (given by the
 _private_ VMEController::crateNumber member).  Because of this, it is the
@@ -29,9 +29,7 @@ VMEController::start_thread(runnumber), stop_thread(), and kill_thread().
 Once the thread has been started, you may access the thread directly by
 picking it out of the VMEController with VMEController::thread().
 
-Everything mentioned here has an example in the code.  Look at
-EmuFCrateHyperDAQ::Configuring for FEDCrateParser usage and Crate
-creation and EmuFCrateHyperDAQ::VMEIntIRQ for intense IRQThread examples.
+Everything mentioned here has an example in the code.
 
  *************************************************************************/
 
@@ -39,7 +37,6 @@ creation and EmuFCrateHyperDAQ::VMEIntIRQ for intense IRQThread examples.
 #ifndef __FEDCRATE_H__
 #define __FEDCRATE_H__
 
-//using namespace std;
 #include <vector>
 #include <iostream>
 
