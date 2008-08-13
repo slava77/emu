@@ -7,7 +7,7 @@ DCCParser::DCCParser(DOMNode * pNode, int crate)
 	int slot = 0;
 	fillInt("slot", slot);
 	if(slot == 0) {
-		cerr << "No slot specified for DCC! " << endl;
+		std::cerr << "No slot specified for DCC! " << std::endl;
 	} else { 
 		dcc_ = new DCC(slot);
 		fillHex("fifoinuse", dcc_->fifoinuse_);

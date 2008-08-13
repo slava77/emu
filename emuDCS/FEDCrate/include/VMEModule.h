@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.2 2008/08/11 15:24:34 paste Exp $
+// $Id: VMEModule.h,v 3.3 2008/08/13 14:20:41 paste Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.3  2008/08/13 14:20:41  paste
+// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
+//
 // Revision 3.2  2008/08/11 15:24:34  paste
 // More updates to clean up files, preparing for universal logger and presentation of code.
 //
@@ -21,10 +24,10 @@
 //
 //
 //----------------------------------------------------------------------
-#ifndef VMEModule_h
-#define VMEModule_h
+#ifndef __VMEMODULE_H__
+#define __VMEMODULE_H__
 
-#include "Crate.h"
+//#include "Crate.h"
 class VMEController;
 #include "JTAG_constants.h"
 #include "EmuFEDLoggable.h"
@@ -36,7 +39,7 @@ class VMEController;
  * any given read/write from/to the DCC and DDU requires access of the
  * controller), it shouldn't break down at the object level.
  * Therefore, I removed or modified all public methods that referenced
- * the crate or controller.  Use the Crate and VMEController objects
+ * the crate or controller.  Use the FEDCrate and VMEController objects
  * for those methods, not the DDU and DCC objects.
  */
 

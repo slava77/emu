@@ -8,8 +8,8 @@
 *	@author Phillip Killewald <paste@mps.ohio-state.edu>
 **/
 
-#ifndef _EmuFCrateHyperDAQ_h_
-#define _EmuFCrateHyperDAQ_h_
+#ifndef __EMUFCRATEHYPERDAQ_H__
+#define __EMUFCRATEHYPERDAQ_H__
 
 #include "EmuFEDApplication.h"
 
@@ -48,7 +48,7 @@
 // My Stuff
 
 #include "FEDCrateParser.h"
-#include "Crate.h"
+#include "FEDCrate.h"
 #include "DDU.h"
 #include "DCC.h"
 #include "VMEController.h"
@@ -57,8 +57,8 @@
 
 #include "EmuFController.h"
 
-using namespace cgicc;
-using namespace std;
+//using namespace cgicc;
+//using namespace std;
 
 class EmuFCrateHyperDAQ: public EmuFEDApplication
 {
@@ -79,13 +79,13 @@ protected:
 	//TestBeamCrateController tbController; // PGK ??
 	//DDU* thisDDU;
 	//DCC* thisDCC;
-	//ostringstream CrateTestsOutput;
-	//ostringstream OutputStringDDUStatus[9];
-	//ostringstream OutputStringDCCStatus[9];
-	//vector<DDU*> dduVector;
-	//vector<DCC*> dccVector;
-	//vector<VMEModule *> moduleVector;
-	vector<Crate*> crateVector;
+	//std::stringstream CrateTestsOutput;
+	//std::stringstream OutputStringDDUStatus[9];
+	//std::stringstream OutputStringDCCStatus[9];
+	//std::vector<DDU*> dduVector;
+	//std::vector<DCC*> dccVector;
+	//std::vector<VMEModule *> moduleVector;
+	std::vector<FEDCrate*> crateVector;
 	//Crate *thisCrate;
 	//std::string Operator_;
 	std::string DDUBoardID_[9];
@@ -95,7 +95,7 @@ protected:
 	int DCC_ratemon_ch;
 	//int DDU_, DCC_;
 
-	string fcState_;
+	std::string fcState_;
 	//
 public:
 
@@ -148,7 +148,7 @@ public:
 	void setRawConfFile(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
-	/** Sets the configuration file from a text input string (should point to a
+	/** Sets the configuration file from a text input std::string (should point to a
 	*	file on the server-side disk that XDAQ can access.)
 	**/
 	void setConfFile(xgi::Input * in, xgi::Output * out )
@@ -297,7 +297,7 @@ public:
 	*
 	*	@author Phillip Killewald
 	**/
-	void webRedirect(xgi::Output *out, string location = "");
+	void webRedirect(xgi::Output *out, std::string location = "");
 
 	/** My patented Select-a-crate/board
 	*

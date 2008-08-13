@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.3 2008/06/10 13:52:12 gilmore Exp $
+// $Id: VMEParser.cc,v 3.4 2008/08/13 14:20:42 paste Exp $
 // $Log: VMEParser.cc,v $
+// Revision 3.4  2008/08/13 14:20:42  paste
+// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
+//
 // Revision 3.3  2008/06/10 13:52:12  gilmore
 // improved FED Crate HyperDAQ operability
 //
@@ -20,7 +23,7 @@
 //-----------------------------------------------------------------------
 #include "VMEParser.h"
 #include "VMEController.h"
-#include "Crate.h"
+//#include "Crate.h"
 
 VMEParser::VMEParser(DOMNode * pNode, int crate)
 {

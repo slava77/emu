@@ -1,5 +1,5 @@
-#ifndef DDUParser_h
-#define DDUParser_h
+#ifndef __DDUPARSER_H__
+#define __DDUPARSER_H__
 /*
  *  class DDUParser
  *  author Stan Durkin 1/25/05
@@ -10,7 +10,7 @@ class DDU;
 #include "EmuParser.h"
 #include <xercesc/dom/DOM.hpp>
 #include "DDU.h"
-#include "Crate.h"
+//#include "Crate.h"
 #include "ChamberParser.h"
 
 XERCES_CPP_NAMESPACE_USE
@@ -24,7 +24,7 @@ public:
 	explicit DDUParser(DOMNode * pNode, int crate=0, char *fileName=0);
 
 	/// the last one parsed
-	DDU * ddu() const {return ddu_;}
+	DDU * ddu() const { return ddu_; }
 
 private:
 	DDU * ddu_;//last one parsed

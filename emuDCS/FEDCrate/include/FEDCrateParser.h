@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.h,v 3.4 2008/08/11 15:24:34 paste Exp $
+// $Id: FEDCrateParser.h,v 3.5 2008/08/13 14:20:41 paste Exp $
 // $Log: FEDCrateParser.h,v $
+// Revision 3.5  2008/08/13 14:20:41  paste
+// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
+//
 // Revision 3.4  2008/08/11 15:24:34  paste
 // More updates to clean up files, preparing for universal logger and presentation of code.
 //
@@ -21,8 +24,8 @@
 // comply. (FG)
 //
 //-----------------------------------------------------------------------
-#ifndef FEDCrateParser_h
-#define FEDCrateParser_h
+#ifndef __FEDCRATEPARSER_H__
+#define __FEDCRATEPARSER_H__
 /*
  *  class FEDCrateParser
  *  author Alex Tumanov 6/12/03
@@ -38,7 +41,7 @@
 #include <xercesc/framework/XMLPScanToken.hpp>
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
-#include "Crate.h"
+#include "FEDCrate.h"
 #include "EmuFEDLoggable.h"
 
 class FEDCrateParser: public EmuFEDLoggable {
@@ -56,7 +59,7 @@ public:
 	VMEParser vmeParser() const {return vmeParser_;}
 	/* There has to be a way to get the crates in the XML
 	back to the user, so that selectCrates will work. */
-	std::vector<Crate*> crateVector() { return crateVector_; }
+	std::vector<FEDCrate*> crateVector() { return crateVector_; }
 
 protected:
 	DDUParser dduParser_;
@@ -64,7 +67,7 @@ protected:
 	VMEParser vmeParser_;
 	char *RUIXMLFile_;
 	int crateNumber;
-	std::vector<Crate*> crateVector_;
+	std::vector<FEDCrate*> crateVector_;
 };
 
 #endif

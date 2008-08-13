@@ -109,15 +109,15 @@ void EmuFCrateHyperDAQ::Default(xgi::Input *in, xgi::Output *out )
 	throw (xgi::exception::Exception)
 {
 
-	//cout << "--Entering Default" << endl;
+	//std::cout << "--Entering Default" << std::endl;
 /* JRG, Logger stuff to add:
     // if (getApplicationLogger().exists(getApplicationLogger().getName())) {
 */
-	//LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: server startup" << endl);
-	//string LoggerName = getApplicationLogger().getName();
-	//cout << "Name of Logger is " <<  LoggerName <<endl;
+	//LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: server startup" << std::endl);
+	//std::string LoggerName = getApplicationLogger().getName();
+	//std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
 
-	// PGK Should the ddu and dcc vectors not be filled, this means we have
+	// PGK Should the ddu and dcc std::vectors not be filled, this means we have
 	//  not been properly configured.  We should inform the user about this.
 	if (crateVector.size()==0) {
 		LOG4CPLUS_INFO(getApplicationLogger(), "This instance of the HyperDAQ has not yet read in its XML file.  Initializing.");
@@ -128,10 +128,10 @@ void EmuFCrateHyperDAQ::Default(xgi::Input *in, xgi::Output *out )
 		fcState_ = state.toString();
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "EmuFCrate(" << getApplicationDescriptor()->getInstance() << ") returned state \"" << fcState_ << "\"");
 		//if (fcState_ == "Halted" || fcState_ == "Failed" || fcState_ == STATE_UNKNOWN) {
-			//cout << "FCrate reports crates are not configured.  Configuring." << endl;
+			//std::cout << "FCrate reports crates are not configured.  Configuring." << std::endl;
 			//crateVector[0]->configure(0);
 		//} else {
-			//cout << "FCrate reports crates are configured.  Skipping configuring." << endl;
+			//std::cout << "FCrate reports crates are configured.  Skipping configuring." << std::endl;
 		//}
 	}
 
@@ -146,7 +146,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	throw (xgi::exception::Exception)
 {
 	
-	//cout << "--Entering mainPage" << endl;
+	//std::cout << "--Entering mainPage" << std::endl;
 	// PGK Patented check-for-initialization
 	if (crateVector.size()==0) {
 		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
@@ -161,9 +161,9 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 	
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ")";
 	*out << Header(sTitle.str(),false);
 
@@ -175,77 +175,77 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		int crateError = 0;
 		for (unsigned int iCrate=0; iCrate<crateVector.size(); iCrate++) {
 			if (crateVector[iCrate]->number() > 5 || crateVector[iCrate]->number() < 1) {
-				*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crate " << crateVector[iCrate]->number() << " has an invalid number (should be 1-5)" << cgicc::div() << endl;
+				*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crate " << crateVector[iCrate]->number() << " has an invalid number (should be 1-5)" << cgicc::div() << std::endl;
 				crateError++;
 			}
 			for (unsigned int jCrate=iCrate+1; jCrate<crateVector.size(); jCrate++) {
 				if (crateVector[iCrate]->number() == crateVector[jCrate]->number()) {
-					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Two crates share crate number " << crateVector[iCrate]->number() << cgicc::div() << endl;
+					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Two crates share crate number " << crateVector[iCrate]->number() << cgicc::div() << std::endl;
 					crateError++;
 				}
 				if (crateVector[iCrate]->vmeController()->Device() == crateVector[jCrate]->vmeController()->Device()) {
-					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[iCrate]->number() << " and " << crateVector[jCrate]->number() << " have the same VME controller device number (" << crateVector[iCrate]->vmeController()->Device() << ")" << cgicc::div() << endl;
+					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[iCrate]->number() << " and " << crateVector[jCrate]->number() << " have the same VME controller device number (" << crateVector[iCrate]->vmeController()->Device() << ")" << cgicc::div() << std::endl;
 					crateError++;
 				}
 			}
 		}
 		if (crateError) {
-			*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "You have " << crateError << " error" << (crateError != 1 ? "s" : "") << " in your XML configuration file.  MAKE SURE YOU UNDERSTAND WHAT YOU ARE DOING BEFORE CONTINUING WITH THIS CONFIGURATION.  If you did not expect this message, fix your configuration file and reload it with the button at the bottom of the page." << cgicc::div() << endl;
+			*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "You have " << crateError << " error" << (crateError != 1 ? "s" : "") << " in your XML configuration file.  MAKE SURE YOU UNDERSTAND WHAT YOU ARE DOING BEFORE CONTINUING WITH THIS CONFIGURATION.  If you did not expect this message, fix your configuration file and reload it with the button at the bottom of the page." << cgicc::div() << std::endl;
 		}
 
 		// PGK The Reload button is not really useful anymore.
 		/*
-		string reload = toolbox::toString("/%s",getApplicationDescriptor()->getURN().c_str());
+		std::string reload = toolbox::toString("/%s",getApplicationDescriptor()->getURN().c_str());
 		*out << cgicc::input()
 			.set("type","button")
 			.set("value","Reload Page")
-			.set("onClick","window.location.href='"+reload+"'") << endl; // Javascript trick
-		*out << cgicc::br() << endl;
+			.set("onClick","window.location.href='"+reload+"'") << std::endl; // Javascript trick
+		*out << cgicc::br() << std::endl;
 		*/
 
 		// PGK Select-a-Crate/Slot
 		*out << cgicc::fieldset()
-			.set("class","fieldset") << endl;
+			.set("class","fieldset") << std::endl;
 		*out << cgicc::div("View this page for a different crate/board")
-			.set("class","legend") << endl;
+			.set("class","legend") << std::endl;
 
-		*out << selectACrate("mainPage","crate",cgiCrate,cgiCrate) << endl;
+		*out << selectACrate("mainPage","crate",cgiCrate,cgiCrate) << std::endl;
 		
 		*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-			.set("style","color: #A00; font-size: 10pt;") << endl;
+			.set("style","color: #A00; font-size: 10pt;") << std::endl;
 
-		*out << cgicc::fieldset() << endl;
-		*out << br() << endl;
+		*out << cgicc::fieldset() << std::endl;
+		*out << cgicc::br() << std::endl;
 
 		// PGK Crate monitoring tools
 		//DDU_=-99; // ?
 		*out << cgicc::fieldset()
-			.set("class","fieldset") << endl;
+			.set("class","fieldset") << std::endl;
 		*out << cgicc::div("Crate Monitoring Tools")
-			.set("class","legend") << endl;
+			.set("class","legend") << std::endl;
 
 		std::ostringstream location;
 		location << "/" + getApplicationDescriptor()->getURN() << "/DDUVoltMon?crate=" << cgiCrate;
 		*out << cgicc::a("Start DDU Volt/Temp Monitor")
 			.set("href",location.str());
-		*out << cgicc::br() << endl;
+		*out << cgicc::br() << std::endl;
 
 		location.str("");
 		location << "/" + getApplicationDescriptor()->getURN() << "/DCCRateMon?crate=" << cgiCrate;
-		*out << span("Start DCC Rate Monitor")
+		*out << cgicc::span("Start DCC Rate Monitor")
 			.set("class","undefined");
 		//*out << cgicc::a("Start DDU Volt/Temp Monitor")
 		//	.set("href",location.str());
-		*out << cgicc::br() << endl;
+		*out << cgicc::br() << std::endl;
 
-		*out << cgicc::fieldset() << endl;
+		*out << cgicc::fieldset() << std::endl;
 
 		// Table sorted by slot...
 		*out << cgicc::fieldset()
-			.set("class","fieldset") << endl;
+			.set("class","fieldset") << std::endl;
 		*out << cgicc::div("Board Communication")
 			.set("class","legend");
-		//cout << " dduVector.size() " << dduVector.size() << endl;
+		//std::cout << " dduVector.size() " << dduVector.size() << std::endl;
 
 		// PGK CAEN gets in a funny state after doing crate switching.  It doesn't seem to
 		//  cause any problems, but it does fail to read anything useful from the first
@@ -256,13 +256,13 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 		
 		if (myCrate->dccs().size()) {
-			//cout << " pinging DCC to avoid CAEN read error -1" << endl;
+			//std::cout << " pinging DCC to avoid CAEN read error -1" << std::endl;
 			myCrate->dccs()[0]->readStatusLow();
 		}
 		
 
 		// Unfortunately, the DDU routines are called with the index of the
-		//  given DDU in the DDU vector, not the module vector.
+		//  given DDU in the DDU std::vector, not the module std::vector.
 		//  This will help us keep track of what DDU we are on.
 		unsigned int iddu = 0;
 		// Same goes for DCCs (when we get more than 1)
@@ -286,8 +286,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			unsigned short int DDU_FMM = (((*iDDU)->readParallelStat()>>8)&0x000F);
 			//unsigned short int DDU_FMM = 8; // DEBUG
 			// Mark the status with pretty colors
-			string fmmClass = "green";
-			string statusClass = "ok";
+			std::string fmmClass = "green";
+			std::string statusClass = "ok";
 			if (DDU_FMM==4) { // Busy
 				fmmClass = "orange";
 			} else if (DDU_FMM==1) { // Warn, near full: reduce trigger rate
@@ -306,7 +306,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			unsigned int fibersWithErrors = (*iDDU)->readCSCStat();
 			//unsigned short int status = 0; // DEBUG
 			// Mark the status with pretty colors
-			string cscClass = "green";
+			std::string cscClass = "green";
 			if (myCrate->vmeController()->CAEN_err()!=0) {
 				cscClass = "yellow";
 			} else if (fibersWithErrors==0x0000) {
@@ -318,45 +318,45 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			// Next, print the table with the status.
 			*out << cgicc::table()
-				.set("style","width: 90%; border: 2px solid #000; margin: 5px auto 5px auto; text-align: center; border-collapse: collapse;") << endl;
+				.set("style","width: 90%; border: 2px solid #000; margin: 5px auto 5px auto; text-align: center; border-collapse: collapse;") << std::endl;
 
 			// First row:  status line
-			*out << cgicc::tr() << endl;
+			*out << cgicc::tr() << std::endl;
 			// The first element is special:  board type
 			*out << cgicc::td()
 				.set("class",statusClass)
 				.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 			*out << "DDU";
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class",fmmClass)
 				.set("style","border-bottom: 1px solid #000;")
 				.set("colspan","5");
-			*out << "FMM Status: " << uppercase << setw(1) << hex << DDU_FMM << dec << "h";
-			*out << cgicc::td() << endl;
+			*out << "FMM Status: " << std::uppercase << std::setw(1) << std::hex << DDU_FMM << std::dec << "h";
+			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class",cscClass)
 				.set("style","border-bottom: 1px solid #000;")
 				.set("colspan","5");
-			*out << "CSC Status: " << uppercase << setw(4) << hex << fibersWithErrors << dec << "h";
-			*out << cgicc::td() << endl;
+			*out << "CSC Status: " << std::uppercase << std::setw(4) << std::hex << fibersWithErrors << std::dec << "h";
+			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class","none")
 				.set("style","border-bottom: 1px solid #000;")
 				.set("colspan","5");
-			*out << "DDU L1As: " << dec << (*iDDU)->ddu_rdscaler();
-			*out << cgicc::td() << endl;
-			*out << cgicc::tr() << endl;
+			*out << "DDU L1As: " << std::dec << (*iDDU)->ddu_rdscaler();
+			*out << cgicc::td() << std::endl;
+			*out << cgicc::tr() << std::endl;
 
 			// Second row:  fiber input numbers
 			*out << cgicc::tr()
-				.set("style","") << endl;
+				.set("style","") << std::endl;
 			// The first element is special:  slot
 			*out << cgicc::td()
 				.set("class",statusClass)
 				.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 			*out << "Slot " << (*iDDU)->slot();
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 
 			// Knowing which chambers are actually alive is a good thing.
 			long int liveFibers = ((*iDDU)->checkFiber(INFPGA0)&0x000000ff) | (((*iDDU)->checkFiber(INFPGA1)&0x000000ff)<<8);
@@ -370,26 +370,26 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 				*out << cgicc::td()
 					.set("class",chamberClass)
-					.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 6%;") << iFiber << cgicc::td() << endl;
+					.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 6%;") << iFiber << cgicc::td() << std::endl;
 			}
 
-			*out << cgicc::tr() << endl;
+			*out << cgicc::tr() << std::endl;
 			
 			// Third row:  chamber names and statuses
 			*out << cgicc::tr()
-					.set("style","") << endl;
+					.set("style","") << std::endl;
 			// The first element is special:  RUI
-			stringstream ruiNumberStream;
+			std::stringstream ruiNumberStream;
 			ruiNumberStream << myCrate->getRUI((*iDDU)->slot());
-			string ruiString = ruiNumberStream.str();
+			std::string ruiString = ruiNumberStream.str();
 			// This part is terrible.
-			string ruiFormGetString = "rui1="+ruiString+"&ddu_input1=&ddu1=&fed_crate1=&ddu_slot1=&dcc_fifo1=&slink1=&fiber_crate1=&fiber_pos1=&fiber_socket1=&crateid1=&cratelabel1=&dmb_slot1=&chamberlabel1=&chamberid1=&rui2=&ddu2=&fed_crate2=&ddu_slot2=&ddu_input2=&dcc_fifo2=&slink2=&fiber_crate2=&fiber_pos2=&fiber_socket2=&crateid2=&cratelabel2=&dmb_slot2=&chamberlabel2=&chamberid2=&switch=ddu_chamber&chamber2=";
+			std::string ruiFormGetString = "rui1="+ruiString+"&ddu_input1=&ddu1=&fed_crate1=&ddu_slot1=&dcc_fifo1=&slink1=&fiber_crate1=&fiber_pos1=&fiber_socket1=&crateid1=&cratelabel1=&dmb_slot1=&chamberlabel1=&chamberid1=&rui2=&ddu2=&fed_crate2=&ddu_slot2=&ddu_input2=&dcc_fifo2=&slink2=&fiber_crate2=&fiber_pos2=&fiber_socket2=&crateid2=&cratelabel2=&dmb_slot2=&chamberlabel2=&chamberid2=&switch=ddu_chamber&chamber2=";
 			*out << cgicc::td()
 					.set("class",statusClass)
 					.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 			*out << cgicc::a("RUI #"+ruiString)
 					.set("href","http://oraweb.cern.ch/pls/cms_emu_cern.pro/ddumap.web?"+ruiFormGetString);
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 			
 			// Loop through the chambers.  They should be in fiber-order.
 			for (unsigned int iFiber=0; iFiber<15; iFiber++) {
@@ -404,32 +404,32 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 					*out << cgicc::td(thisChamber->name())
 						.set("class",chamberClass)
-						.set("style","border: 1px solid #000; border-top-width: 0px; font-size: 8pt; width: 6%;") << endl;
+						.set("style","border: 1px solid #000; border-top-width: 0px; font-size: 8pt; width: 6%;") << std::endl;
 				} else {
 					*out << cgicc::td("???")
 						.set("class","undefined")
-						.set("style","border: 1px solid #000; border-top-width: 0px; font-size: 8pt; width: 6%;") << endl;
+						.set("style","border: 1px solid #000; border-top-width: 0px; font-size: 8pt; width: 6%;") << std::endl;
 				}
 			}
 
-			*out << cgicc::tr() << endl;
+			*out << cgicc::tr() << std::endl;
 
 			// Fourth row:  commands
 			*out << cgicc::tr()
-				.set("style","") << endl;
+				.set("style","") << std::endl;
 			// The first element is blank
 			*out << cgicc::td()
 				.set("class",statusClass)
 				.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 
 			// Everything else is one big row.
 			*out << cgicc::td()
 				.set("colspan","15")
-				.set("style","font-size: 10pt;") << endl;
+				.set("style","font-size: 10pt;") << std::endl;
 
 			// Create the buttons with a big loop.
-			string appString[5] = {
+			std::string appString[5] = {
 				"/" + getApplicationDescriptor()->getURN() + "/DDUDebug",
 				"/" + getApplicationDescriptor()->getURN() + "/InFpga",
 				"/" + getApplicationDescriptor()->getURN() + "/DDUExpert",
@@ -437,7 +437,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				"/" + getApplicationDescriptor()->getURN() + "/VMESERI"
 			};
 
-			string appName[5] = {
+			std::string appName[5] = {
 				"Debug DDU Status",
 				"Individual Fiber Debugging",
 				"Expert DDU Commands",
@@ -447,21 +447,21 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			for (unsigned int iButton = 0; iButton < 5; iButton++) {
 				// Jason likes a space after the first few buttons.
-				ostringstream location;
+				std::stringstream location;
 				location << appString[iButton] << "?crate=" << cgiCrate << "&ddu=" << iddu;
 				if (iButton<2) *out << cgicc::a(appName[iButton])
 					.set("href",location.str())
-					.set("style","float: left; padding: 3px;") << endl;
+					.set("style","float: left; padding: 3px;") << std::endl;
 				else *out << cgicc::a(appName[iButton])
 					.set("href",location.str())
-					.set("style","float: right; padding: 3px;") << endl;
+					.set("style","float: right; padding: 3px;") << std::endl;
 			}
 
 			*out << cgicc::br()
-				.set("style","clear:both") << endl;
+				.set("style","clear:both") << std::endl;
 
-			*out << cgicc::td() << endl;
-			*out << cgicc::tr() << endl;
+			*out << cgicc::td() << std::endl;
+			*out << cgicc::tr() << std::endl;
 
 			*out << cgicc::table();
 
@@ -470,7 +470,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		}
 		
 		// Loop over all the DCCs
-		vector<DCC *>::iterator iDCC;
+		std::vector<DCC *>::iterator iDCC;
 		std::vector<DCC *> myDCCs = myCrate->dccs();
 		for (iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
 
@@ -482,10 +482,10 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			unsigned short int statush=(*iDCC)->mctrl_stath();
 			unsigned short int statusl=(*iDCC)->mctrl_statl();
 			unsigned short int rdfifoinuse=(*iDCC)->mctrl_rd_fifoinuse();
-			string status;
+			std::string status;
 			// Pretty colors!
-			string statusClass = "ok";
-			string dccStatus = "green";
+			std::string statusClass = "ok";
+			std::string dccStatus = "green";
 			if ((statush&0xf000)==0x2000) {
 				status = "(Ready)";
 			} else if ((statush&0xf000)==0x4000) {
@@ -508,67 +508,67 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			// Next, print the table with the status.
 			*out << cgicc::table()
-				.set("style","width: 90%; border: 3px double #000; margin: 5px auto 5px auto; text-align: center; border-collapse: collapse;") << endl;
+				.set("style","width: 90%; border: 3px double #000; margin: 5px auto 5px auto; text-align: center; border-collapse: collapse;") << std::endl;
 
 			// First row:  status line
-			*out << cgicc::tr() << endl;
+			*out << cgicc::tr() << std::endl;
 			// The first element is special:  board type
 			*out << cgicc::td()
 				.set("class",statusClass)
 				.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 			*out << "DCC";
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class",dccStatus)
 				.set("style","border-bottom: 1px solid #000; width: 18%;");
-			*out << "FMM: " << uppercase << setw(1) << hex << ((statush>>12)&0xf) << dec << "h " << status;
-			*out << cgicc::td() << endl;
+			*out << "FMM: " << std::uppercase << std::setw(1) << std::hex << ((statush>>12)&0xf) << std::dec << "h " << status;
+			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class",dccStatus)
 				.set("style","border-bottom: 1px solid #000; width: 18%;");
-			*out << "S-Link Status: " << uppercase << setw(1) << hex << (statush&0xf) << dec << "h";
-			*out << cgicc::td() << endl;
+			*out << "S-Link Status: " << std::uppercase << std::setw(1) << std::hex << (statush&0xf) << std::dec << "h";
+			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class",dccStatus)
 				.set("style","border-bottom: 1px solid #000; width: 18%;");
-			*out << "InFIFO full: " << uppercase << setw(2) << hex << ((statush>>4)&0xff) << dec << "h";
-			*out << cgicc::td() << endl;
+			*out << "InFIFO full: " << std::uppercase << std::setw(2) << std::hex << ((statush>>4)&0xff) << std::dec << "h";
+			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class",dccStatus)
 				.set("style","border-bottom: 1px solid #000; width: 18%;");
-			*out << "L1As: " << dec << (statusl&0xffff);
-			*out << cgicc::td() << endl;
+			*out << "L1As: " << std::dec << (statusl&0xffff);
+			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class",dccStatus)
 				.set("style","border-bottom: 1px solid #000; width: 18%;");
-			*out << "FIFO in use: " << uppercase << setw(4) << hex << (rdfifoinuse&0x3ff) << dec << "h";
-			*out << cgicc::td() << endl;
+			*out << "FIFO in use: " << std::uppercase << std::setw(4) << std::hex << (rdfifoinuse&0x3ff) << std::dec << "h";
+			*out << cgicc::td() << std::endl;
 
-			*out << cgicc::tr() << endl;
+			*out << cgicc::tr() << std::endl;
 
 			// Second row:  commands
 			*out << cgicc::tr()
-				.set("style","") << endl;
+				.set("style","") << std::endl;
 			// The first element is special:  slot
 			*out << cgicc::td()
 				.set("class",statusClass)
 				.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 			*out << "Slot " << (*iDCC)->slot();
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 
 			// Everything else is one big row.
 			*out << cgicc::td()
 				.set("colspan","5")
-				.set("style","font-size: 10pt;") << endl;
+				.set("style","font-size: 10pt;") << std::endl;
 
 			// Create the buttons with a big loop.
-			string appString[3] = {
+			std::string appString[3] = {
 				"/" + getApplicationDescriptor()->getURN() + "/DCCDebug",
 				"/" + getApplicationDescriptor()->getURN() + "/DCCExpert",
 				"/" + getApplicationDescriptor()->getURN() + "/DCCFirmware"
 			};
 
-			string appName[3] = {
+			std::string appName[3] = {
 				"Debug DCC Status",
 				"Expert DCC Commands",
 				"Firmware"
@@ -576,18 +576,18 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			for (unsigned int iButton = 0; iButton < 3; iButton++) {
 				// Jason likes a space after the first button.
-				ostringstream location;
+				std::stringstream location;
 				location << appString[iButton] << "?crate=" << cgiCrate << "&dcc=" << idcc;
 				if (iButton==0) *out << cgicc::a(appName[iButton]).set("style","float: left; padding: 3px;")
-					.set("href",location.str()) << endl;
+					.set("href",location.str()) << std::endl;
 				else *out << cgicc::a(appName[iButton]).set("style","float: right; padding: 3px;")
-					.set("href",location.str()) << endl;
+					.set("href",location.str()) << std::endl;
 			}
 
 			*out << cgicc::br()
-				.set("clear","both") << endl;
-			*out << cgicc::td() << endl;
-			*out << cgicc::tr() << endl;
+				.set("clear","both") << std::endl;
+			*out << cgicc::td() << std::endl;
+			*out << cgicc::tr() << std::endl;
 
 			*out << cgicc::table();
 
@@ -595,22 +595,22 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 		} // end VME Module loop.
 
-		*out << endl;
-		*out << cgicc::fieldset() << endl;
+		*out << std::endl;
+		*out << cgicc::fieldset() << std::endl;
 
 		// Broadcast table...
 		DDU *broadcastDDU = NULL;
-		for (vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
+		for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 			if ((*iDDU)->slot() > 21) broadcastDDU = (*iDDU);
 		}
 		DCC *broadcastDCC = NULL;
-		for (vector<DCC *>::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
+		for (std::vector<DCC *>::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
 			if ((*iDCC)->slot() > 21) broadcastDCC = (*iDCC);
 		}
 
 		if (broadcastDDU || broadcastDCC) {
 			*out << cgicc::fieldset()
-				.set("class","fieldset") << endl;
+				.set("class","fieldset") << std::endl;
 			*out << cgicc::div("Crate Broadcast")
 				.set("class","legend");
 
@@ -619,106 +619,106 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			if (broadcastDDU) {
 
 				// Broadcast Firmware
-				*out << cgicc::span() << endl;
+				*out << cgicc::span() << std::endl;
 				std::ostringstream crateVal;
 				crateVal << cgiCrate;
 				location.str("");
 				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBroadcast";
 				*out << cgicc::form()
 					.set("method","GET")
-					.set("action",location.str()) << endl;
+					.set("action",location.str()) << std::endl;
 				*out << cgicc::input()
 					.set("type","hidden")
 					.set("name","crate")
 					.set("value",crateVal.str());
 				*out << cgicc::input()
 					.set("type","submit")
-					.set("value","DDU Firmware Management") << endl;
-				*out << cgicc::form() << endl;
-				*out << cgicc::span() << endl;
+					.set("value","DDU Firmware Management") << std::endl;
+				*out << cgicc::form() << std::endl;
+				*out << cgicc::span() << std::endl;
 
 			}
 
 			// DCC button.
 			// Skip if there is only 1 dcc
 			if (broadcastDCC) {
-				*out << cgicc::br() << endl;
+				*out << cgicc::br() << std::endl;
 
 				// Broadcast Firmware
-				*out << cgicc::span() << endl;
+				*out << cgicc::span() << std::endl;
 				*out << cgicc::form().set("style","display: inline;")
 					.set("method","GET")
-					.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCFirmware") << endl;
+					.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCFirmware") << std::endl;
 				*out << cgicc::input()
 					.set("type","submit")
 					.set("value","Broadcast DCC Firmware")
-					.set("style","background-color: #FDD; border-color: #F00;") << endl;
-				*out << cgicc::form() << endl;
-				*out << cgicc::span() << endl;
+					.set("style","background-color: #FDD; border-color: #F00;") << std::endl;
+				*out << cgicc::form() << std::endl;
+				*out << cgicc::span() << std::endl;
 			}
 
-			*out << cgicc::fieldset() << endl;
+			*out << cgicc::fieldset() << std::endl;
 		}
 
-		*out << cgicc::br() << endl;
+		*out << cgicc::br() << std::endl;
 
 		// PGK Useful information for users.
 		*out << cgicc::fieldset()
-			.set("class","fieldset") << endl;
+			.set("class","fieldset") << std::endl;
 		*out << cgicc::div("Useful Links")
-			.set("class","legend") << endl;
+			.set("class","legend") << std::endl;
 
-		*out << cgicc::ul() << endl;
-		*out << cgicc::li() << endl;
+		*out << cgicc::ul() << std::endl;
+		*out << cgicc::li() << std::endl;
 		*out << cgicc::a("DDU Documentation")
-			.set("href","http://www.physics.ohio-state.edu/~cms/ddu") << endl;
-		*out << cgicc::li() << endl;
-		*out << cgicc::li() << endl;
+			.set("href","http://www.physics.ohio-state.edu/~cms/ddu") << std::endl;
+		*out << cgicc::li() << std::endl;
+		*out << cgicc::li() << std::endl;
 		*out << cgicc::a("DCC Documentation")
-			.set("href","http://www.physics.ohio-state.edu/~cms/dcc") << endl;
-		*out << cgicc::li() << endl;
-		*out << cgicc::li() << endl;
+			.set("href","http://www.physics.ohio-state.edu/~cms/dcc") << std::endl;
+		*out << cgicc::li() << std::endl;
+		*out << cgicc::li() << std::endl;
 		*out << cgicc::a("FED Crate Documentation")
-			.set("href","http://www.physics.ohio-state.edu/~cms/fed") << endl;
-		*out << cgicc::li() << endl;
-		*out << cgicc::li() << endl;
+			.set("href","http://www.physics.ohio-state.edu/~cms/fed") << std::endl;
+		*out << cgicc::li() << std::endl;
+		*out << cgicc::li() << std::endl;
 		*out << cgicc::a("OSU Firmware Repository")
-			.set("href","http://www.physics.ohio-state.edu/~cms/firmwares") << endl;
-		*out << cgicc::li() << endl;
-		*out << cgicc::ul() << endl;
+			.set("href","http://www.physics.ohio-state.edu/~cms/firmwares") << std::endl;
+		*out << cgicc::li() << std::endl;
+		*out << cgicc::ul() << std::endl;
 
-		*out << cgicc::fieldset() << endl;
+		*out << cgicc::fieldset() << std::endl;
 
-		*out << cgicc::br() << endl;
+		*out << cgicc::br() << std::endl;
 		// JRG, inside end of "normal" DDU/DCC Control top-level page
 		//   --add "Go to XML Reload" button here for Martin:
-		//*out << "<blockquote> &nbsp; &nbsp; </blockquote>" << endl;
-		//*out << "<P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp;" << endl;
-		*out << hr();
-		//string loadxmlconf =  toolbox::toString("/%s/LoadXMLconf",getApplicationDescriptor()->getURN().c_str());
-		string loadxmlconf = "/" + getApplicationDescriptor()->getURN() + "/configurePage";
+		//*out << "<blockquote> &nbsp; &nbsp; </blockquote>" << std::endl;
+		//*out << "<P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp;" << std::endl;
+		*out << cgicc::hr();
+		//std::string loadxmlconf =  toolbox::toString("/%s/LoadXMLconf",getApplicationDescriptor()->getURN().c_str());
+		std::string loadxmlconf = "/" + getApplicationDescriptor()->getURN() + "/configurePage";
 
 		*out << cgicc::fieldset()
-			.set("class","expert") << endl;
+			.set("class","expert") << std::endl;
 		*out << cgicc::div("Experts Only")
-			.set("class","legend") << endl;
+			.set("class","legend") << std::endl;
 		if (fcState_ == "Halted" || fcState_ == STATE_UNKNOWN) {
 			*out << cgicc::form().set("style","display: inline;")
 				.set("method","POST")
-				.set("action",loadxmlconf) << endl;
+				.set("action",loadxmlconf) << std::endl;
 			*out << cgicc::input().set("type","hidden")
 				.set("name","Reload")
 				.set("value","1");
-			*out << endl;
+			*out << std::endl;
 			*out << cgicc::input()
 				.set("type","submit")
-				.set("value","Reload XMLconfig") << endl;
+				.set("value","Reload XMLconfig") << std::endl;
 			*out << cgicc::form();
 		} else {
-			*out << "Change state to \"Halted\" before trying to change the configuration via HyperDAQ." << endl;
+			*out << "Change state to \"Halted\" before trying to change the configuration via HyperDAQ." << std::endl;
 		}
 
-		*out << cgicc::fieldset() << endl;
+		*out << cgicc::fieldset() << std::endl;
 
 		*out << Footer();
 
@@ -732,88 +732,88 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 void EmuFCrateHyperDAQ::configurePage(xgi::Input *in, xgi::Output *out )
 	throw (xgi::exception::Exception)
 {
-	cout << "--Entering Configure" << endl;
+	std::cout << "--Entering Configure" << std::endl;
 
-	string method;
+	std::string method;
 
 	//Title(out,"Configure FED Crate HyperDAQ");
 
 	try {
 
 		/* PGK I hate fieldsets. */
-		*out << cgicc::div("Choose one of the following configuration methods").set("class","title") << endl;
+		*out << cgicc::div("Choose one of the following configuration methods").set("class","title") << std::endl;
 
 		/* Use a local file */
 		method =
 		toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
 
 		*out << cgicc::fieldset()
-			.set("class","fieldset") << endl;
+			.set("class","fieldset") << std::endl;
 		*out << cgicc::div("Use a file on the server").set("class","legend");
 
 		*out << cgicc::form()
 			.set("method","POST")
-			.set("action",method) << endl;
-		*out << cgicc::span("Absolute path on server: ") << endl;
+			.set("action",method) << std::endl;
+		*out << cgicc::span("Absolute path on server: ") << std::endl;
 		*out << cgicc::input().set("type","text")
 			.set("name","xmlFilename")
 			.set("size","60")
 			.set("ENCTYPE","multipart/form-data")
-			.set("value",xmlFile_) << endl;
+			.set("value",xmlFile_) << std::endl;
 		*out << cgicc::input().set("type","submit").set("name","buttonid")
-			.set("value","Initialize and Configure") << endl;
-		*out << cgicc::form() << endl;
+			.set("value","Initialize and Configure") << std::endl;
+		*out << cgicc::form() << std::endl;
 		*out << cgicc::div("Note: FCrate Configuration always supersedes HyperDAQ Configuration.")
-			.set("style","width: 100%; color: #FF0000; font-size: 11pt; font-style: italic; text-align: right;") << endl;
+			.set("style","width: 100%; color: #FF0000; font-size: 11pt; font-style: italic; text-align: right;") << std::endl;
 
-		*out << cgicc::fieldset() << endl;
+		*out << cgicc::fieldset() << std::endl;
 
 		/* Upload file */
 		method =
 		toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
 
 		*out << cgicc::fieldset()
-			.set("class","fieldset") << endl;
+			.set("class","fieldset") << std::endl;
 		*out << cgicc::div("Upload a local file")
 			.set("class","legend");
 
 		*out << cgicc::form().set("method","POST")
 			.set("enctype","multipart/form-data")
-			.set("action",method) << endl;
-		*out << cgicc::span("Local path (use [Browse] button): ") << endl;
+			.set("action",method) << std::endl;
+		*out << cgicc::span("Local path (use [Browse] button): ") << std::endl;
 		*out << cgicc::input().set("type","file")
 			.set("name","xmlFilenameUpload")
-			.set("size","60") << endl;
+			.set("size","60") << std::endl;
 		*out << cgicc::input()
 			.set("type","submit")
-			.set("value","Initialize and Configure") << endl;
-		*out << cgicc::form() << endl;
+			.set("value","Initialize and Configure") << std::endl;
+		*out << cgicc::form() << std::endl;
 
-		*out << cgicc::fieldset() << endl;
+		*out << cgicc::fieldset() << std::endl;
 
 		/* Roll your own */
 		method =
 		toolbox::toString("/%s/setRawConfFile",getApplicationDescriptor()->getURN().c_str());
 
 		*out << cgicc::fieldset()
-			.set("class","fieldset") << endl;
+			.set("class","fieldset") << std::endl;
 		*out << cgicc::div("Type a custon configuration")
 			.set("class","legend");
 
 		*out << cgicc::form().set("method","POST")
-			.set("action",method) << endl;
+			.set("action",method) << std::endl;
 		*out << cgicc::textarea("(Type or paste configuration here)").set("name","Text")
 			.set("WRAP","OFF")
-			.set("rows","20").set("cols","60") << endl;
+			.set("rows","20").set("cols","60") << std::endl;
 		*out << cgicc::input()
 			.set("type","submit")
 			.set("value","Initialize and Configure");
-		*out << cgicc::form() << endl;
+		*out << cgicc::form() << std::endl;
 
-		*out << cgicc::fieldset() << endl;
+		*out << cgicc::fieldset() << std::endl;
 
-		*out << cgicc::body() << endl;
-		*out << cgicc::html() << endl;
+		*out << cgicc::body() << std::endl;
+		*out << cgicc::html() << std::endl;
 
 	} catch (const exception & e ) {
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
@@ -826,7 +826,7 @@ void EmuFCrateHyperDAQ::configurePage(xgi::Input *in, xgi::Output *out )
 void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 	throw (xgi::exception::Exception)
 {
-	cout << "--Entering setCrate" << endl;
+	std::cout << "--Entering setCrate" << std::endl;
 
 	if (dduVector.size()==0 && dccVector.size()==0) {
 		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
@@ -835,18 +835,18 @@ void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 	
 	Cgicc cgi(in);
 
-	cout << "Switching crate..." << endl;
+	std::cout << "Switching crate..." << std::endl;
 	int icrate = 0;
 	if (!(cgi["icrate"]->isEmpty())) icrate = cgi["icrate"]->getIntegerValue();
 
 	thisCrate = crateVector[icrate];
-	cout << " vme device " << thisCrate->vmeController()->Device() << endl;
-	cout << " vme link " << thisCrate->vmeController()->Link() << endl;
+	std::cout << " vme device " << thisCrate->vmeController()->Device() << std::endl;
+	std::cout << " vme link " << thisCrate->vmeController()->Link() << std::endl;
 	dduVector = thisCrate->ddus();
 	dccVector = thisCrate->dccs();
 	moduleVector = thisCrate->modules();
 
-	cout << " crate set to " << icrate << ", which is crate number " << thisCrate->number() << endl;
+	std::cout << " crate set to " << icrate << ", which is crate number " << thisCrate->number() << std::endl;
 	in = NULL;
 //	webRedirect(in, out);
 	webRedirect(out,"mainPage");
@@ -859,26 +859,26 @@ void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
-	cout << "--Entering setRawConfFile" << endl;
+	std::cout << "--Entering setRawConfFile" << std::endl;
 	try {
-		cout << "setRawConfFile" << endl;
+		std::cout << "setRawConfFile" << std::endl;
 
 		cgicc::Cgicc cgi(in);
 
-		ofstream TextFile ;
+		std::ofstream TextFile ;
 		TextFile.open("MyTextConfigurationFile.xml");
 		TextFile << (cgi["Text"]->getValue()) ;
 		TextFile.close();
 
 		xmlFile_ = "MyTextConfigurationFile.xml" ;
-		cout << "Out setRawConfFile" << endl ;
+		std::cout << "Out setRawConfFile" << std::endl ;
 
-		cout << "Clearing vectors to reset config." << endl;
+		std::cout << "Clearing std::vectors to reset config." << std::endl;
 		crateVector.clear();
 		//dduVector.clear();
 		//dccVector.clear();
 
-		cout << "Load Default..." << endl;
+		std::cout << "Load Default..." << std::endl;
 		Default(in, out);
 	} catch (const exception & e ) {
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
@@ -890,7 +890,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 void EmuFCrateHyperDAQ::setConfFile(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
  {
-	cout << "--Entering setConfFile" << endl;
+	std::cout << "--Entering setConfFile" << std::endl;
 	try {
 		//
 		cgicc::Cgicc cgi(in);
@@ -898,30 +898,29 @@ void EmuFCrateHyperDAQ::setConfFile(xgi::Input * in, xgi::Output * out )
 
 		/* No need for this any more.
 		int SkipConfig=0;
-		string Bid;
+		std::string Bid;
 		SkipConfig=0;
 		cgicc::form_iterator name = cgi.getElement("buttonid");
 		if(name != cgi.getElements().end()) {
 			Bid = cgi["buttonid"]->getValue();
 			if(Bid=="Init Only")SkipConfig=1;
 		}
-		cout << "setConfFile: ButtonID=" << Bid << ".   SkipConfig=" << SkipConfig << endl ;
+		std::cout << "setConfFile: ButtonID=" << Bid << ".   SkipConfig=" << SkipConfig << std::endl ;
 		*/
 
-		const_file_iterator file;
-		file = cgi.getFile("xmlFileName");
-		cout << "GetFiles string" << endl ;
-		if(file != cgi.getFiles().end()) (*file).writeToStream(cout);
-		string XMLname = cgi["xmlFileName"]->getValue();
-		//cout << XMLname  << endl;
+		cgicc::const_file_iterator file = cgi.getFile("xmlFileName");
+		std::cout << "GetFiles std::string" << std::endl ;
+		if(file != cgi.getFiles().end()) (*file).writeToStream(std::cout);
+		std::string XMLname = cgi["xmlFileName"]->getValue();
+		//std::cout << XMLname  << std::endl;
 		xmlFile_ = XMLname;
 
-		cout << "Clearing vectors to reset config." << endl;
+		std::cout << "Clearing std::vectors to reset config." << std::endl;
 		crateVector.clear();
 		//dduVector.clear();
 		//dccVector.clear();
 
-		cout << "Load Default..." << endl;
+		std::cout << "Load Default..." << std::endl;
 		Default(in, out);
 	} catch (const exception & e ) {
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
@@ -934,25 +933,24 @@ void EmuFCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
 	try {
-		cout << "UploadConfFileUpload" << endl ;
+		std::cout << "UploadConfFileUpload" << std::endl ;
 		cgicc::Cgicc cgi(in);
-		const_file_iterator file;
-		file = cgi.getFile("xmlFileNameUpload");
-		cout << "GetFiles" << endl ;
+		cgicc::const_file_iterator file = cgi.getFile("xmlFileNameUpload");
+		std::cout << "GetFiles" << std::endl ;
 		if(file != cgi.getFiles().end()) {
-			ofstream TextFile ;
+			std::ofstream TextFile ;
 			TextFile.open("MyTextConfigurationFile.xml");
 			(*file).writeToStream(TextFile);
 			TextFile.close();
 		}
 		xmlFile_ = "MyTextConfigurationFile.xml" ;
 
-		cout << "Clearing vectors to reset config." << endl;
+		std::cout << "Clearing std::vectors to reset config." << std::endl;
 		crateVector.clear();
 		//dduVector.clear();
 		//dccVector.clear();
 
-		cout << "Load Default..." << endl;
+		std::cout << "Load Default..." << std::endl;
 		Default(in, out);
 	} catch (const exception & e ) {
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
@@ -962,36 +960,36 @@ void EmuFCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out )
 
 
 void EmuFCrateHyperDAQ::Configuring() {
-	cout << "--Entering Configuring" << endl;
+	std::cout << "--Entering Configuring" << std::endl;
 /*
 	cgicc::Cgicc cgi(in);
 	const CgiEnvironment& env = cgi.getEnvironment();
-	string crateStr = env.getQueryString() ;
+	std::string crateStr = env.getQueryString() ;
 */
 
-	//cout << "Configuring: SkipConfig=" << SkipConfig << endl ;
+	//std::cout << "Configuring: SkipConfig=" << SkipConfig << std::endl ;
 
 	//
 	//-- parse XML file
 	//
-	cout << "---- XML parser ----" << endl;
-//	cout << " Here parser " << endl;
+	std::cout << "---- XML parser ----" << std::endl;
+//	std::cout << " Here parser " << std::endl;
 	FEDCrateParser parser;
-	cout << " Using file " << xmlFile_.toString() << endl ;
+	std::cout << " Using file " << xmlFile_.toString() << std::endl ;
 	parser.parseFile(xmlFile_.toString().c_str());
-	cout <<"---- Parser Finished ----"<<endl;
+	std::cout <<"---- Parser Finished ----"<<std::endl;
 
-	cout << " clearing vectors..." << endl;
+	std::cout << " clearing std::vectors..." << std::endl;
 	crateVector.clear();
 	//dduVector.clear();
 	//dccVector.clear();
 
-	cout << " setting vectors..." << endl;
+	std::cout << " setting std::vectors..." << std::endl;
 	crateVector = parser.crateVector();
 	//dduVector = crateVector[0]->ddus();
 	//dccVector = crateVector[0]->dccs();
 	//moduleVector = crateVector[0]->modules();
-	//cout << " crateVector["<<crateVector.size()<<"] dduVector["<<dduVector.size()<<"] dccVector["<<dccVector.size()<<"]" << endl;
+	//std::cout << " crateVector["<<crateVector.size()<<"] dduVector["<<dduVector.size()<<"] dccVector["<<dccVector.size()<<"]" << std::endl;
 
 	//thisCrate = crateVector[0];
 
@@ -1000,7 +998,7 @@ void EmuFCrateHyperDAQ::Configuring() {
 // JRG uncomment?  if(SkipConfig>0) thisCrate->init(0);
 	//if(SkipConfig==0) thisCrate->configure(0);
 
-	cout << "EmuFCrateHyperDAQ::Configuring  >done< " << endl ;
+	std::cout << "EmuFCrateHyperDAQ::Configuring  >done< " << std::endl ;
 }
 
 
@@ -1030,26 +1028,26 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 	unsigned int cgiDDU = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDDU = cgi["ddu"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DDU *myDDU = myCrate->ddus()[cgiDDU];
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Firmware (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
 	*out << Header(sTitle.str(),false);
 
 	
 	// PGK Select-a-DDU
 	*out << cgicc::fieldset()
-		.set("class","header") << endl;
+		.set("class","header") << std::endl;
 	*out << cgicc::div("Show this page for a different DDU")
-		.set("style","font-weight: bold; font-size: 8pt; width: 100%; text-align: center;") << endl;
+		.set("style","font-weight: bold; font-size: 8pt; width: 100%; text-align: center;") << std::endl;
 
 	unsigned int iddu = 0;
 
 	*out << cgicc::table()
-		.set("style","width: 90%; margin: 2px auto 2px auto; font-size: 8pt; text-align: center;") << endl;
-	*out << cgicc::tr() << endl;
+		.set("style","width: 90%; margin: 2px auto 2px auto; font-size: 8pt; text-align: center;") << std::endl;
+	*out << cgicc::tr() << std::endl;
 	// Loop over all the boards defined.
 	for (unsigned int iModule = 0; iModule < moduleVector.size(); iModule++) {
 
@@ -1060,9 +1058,9 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 			// Skip broadcasting
 			if (myDDU->slot() > 21) continue;
 
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 			if (iddu != cgiDDU) {
-				ostringstream location;
+				std::stringstream location;
 				location << "/" + getApplicationDescriptor()->getURN() + "/DDUFirmware?ddu=" << iddu;
 				*out << cgicc::a()
 					.set("href",location.str());
@@ -1071,14 +1069,14 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 			if (iddu != cgiDDU) {
 				*out << cgicc::a();
 			}
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 
 			iddu++;
 		}
 	}
-	*out << cgicc::tr() << endl;
-	*out << cgicc::table() << endl;
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::table() << std::endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Get this DDU back again.
 	std::vector<DDU *> myDDUs = myCrate->ddus();
@@ -1086,30 +1084,30 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 
 	// PGK Display-a-Crate
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("Crate Selection")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	*out << cgicc::div()
 		.set("style","background-color: #FF0; color: #00A; font-size: 16pt; font-weight: bold; width: 50%; text-align: center; padding: 3px; border: 2px solid #00A; margin: 5px auto 5px auto;");
 	*out << "Crate " << myCrate->number() << " Selected";
-	*out << cgicc::div() << endl;
+	*out << cgicc::div() << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("DDU Firmware User/ID Codes")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	// Pick up the FPGA and PROM user/id codes.
 	myCrate->vmeController()->CAEN_err_reset();
 	// There are names to these things.
-	string deviceNames[8] = {
+	std::string deviceNames[8] = {
 		"DDUFPGA",
 		"INFPGA0",
 		"INFPGA1",
@@ -1142,28 +1140,28 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 	userCode[7] = myDDU->inprom_usercode1();
 
 	// Next, print the table with the codes.
-	string dduClass = "";
+	std::string dduClass = "";
 	if (myCrate->vmeController()->CAEN_err()!=0) {
 		dduClass = "caution";
 	}
 
 	*out << cgicc::table()
-		.set("style","width: 90%; margin: 5px auto 5px auto; text-align: center; border-collapse: collapse; border: 2px solid #000;") << endl;
+		.set("style","width: 90%; margin: 5px auto 5px auto; text-align: center; border-collapse: collapse; border: 2px solid #000;") << std::endl;
 
 	// First row:  prom/fpga labels
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
 	// The first element is special:  DDU
 	*out << cgicc::td()
 		.set("class",dduClass)
 		.set("style","border-right: 1px solid #000; font-weight: bold; width: 12%;");
 	*out << "DDU";
-	*out << cgicc::td() << endl;
+	*out << cgicc::td() << std::endl;
 	// The second element is special:  blank
 	*out << cgicc::td()
 		.set("class",dduClass)
 		.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 	*out << "";
-	*out << cgicc::td() << endl;
+	*out << cgicc::td() << std::endl;
 
 	// Loop over the ID types
 	for (unsigned int iCode = 0; iCode < 8; iCode++) {
@@ -1171,28 +1169,28 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 			.set("class","")
 			.set("style","border: 1px solid #000; width: 10%; font-weight: bold;");
 		*out << deviceNames[iCode];
-		*out << cgicc::td() << endl;
+		*out << cgicc::td() << std::endl;
 	}
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
 
 	// Second row:  user codes
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
 	// The first element is special:  DDU
 	*out << cgicc::td()
 		.set("class",dduClass)
 		.set("style","border-right: 1px solid #000; font-weight: bold; width: 12%;");
 	*out << "Slot " << myDDU->slot();
-	*out << cgicc::td() << endl;
+	*out << cgicc::td() << std::endl;
 	// The second element is special:  label
 	*out << cgicc::td()
 		.set("class",dduClass)
 		.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 	*out << "User Code";
-	*out << cgicc::td() << endl;
+	*out << cgicc::td() << std::endl;
 
 	// Loop over the ID types
 	for (unsigned int iCode = 0; iCode < 8; iCode++) {
-		string codeClass = "ok";
+		std::string codeClass = "ok";
 		// The dduproms have the board ID encoded into it...
 		if (iCode == 4 || iCode == 5) {
 			// Check to see if these match the expectations
@@ -1209,30 +1207,30 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::td()
 			.set("class",codeClass)
 			.set("style","border: 1px solid #000; width: 10%;");
-		*out << hex << uppercase << userCode[iCode] << dec;
-		*out << cgicc::td() << endl;
+		*out << std::hex << std::uppercase << userCode[iCode] << std::dec;
+		*out << cgicc::td() << std::endl;
 	}
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
 
 	// Third row:  id codes
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
 
 	// The first element is special:  RUI
 	*out << cgicc::td()
 		.set("class",dduClass)
 		.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 	*out << "RUI #" << myCrate->getRUI(myDDU->slot());
-	*out << cgicc::td() << endl;
+	*out << cgicc::td() << std::endl;
 	// The second element is special:  label
 	*out << cgicc::td()
 		.set("class",dduClass)
 		.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 	*out << "ID Code";
-	*out << cgicc::td() << endl;
+	*out << cgicc::td() << std::endl;
 
 	// Loop over the ID types again
 	for (unsigned int iCode = 0; iCode < 8; iCode++) {
-		string codeClass = "ok";
+		std::string codeClass = "ok";
 		// Check to see if these match the expectations
 		if (idCode[iCode] != tidcode[iCode]) {
 			codeClass = "bad";
@@ -1241,27 +1239,27 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::td()
 			.set("class",codeClass)
 			.set("style","border: 1px solid #000; width: 10%;");
-		*out << hex << uppercase << idCode[iCode] << dec;
-		*out << cgicc::td() << endl;
+		*out << std::hex << std::uppercase << idCode[iCode] << std::dec;
+		*out << cgicc::td() << std::endl;
 	}
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
 
-	*out << cgicc::table() << endl;
+	*out << cgicc::table() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	myDDU = myDDUs[cgiDDU];
 
 	// Now it's time to put the upload forms for the selected DDU
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
-	ostringstream uploadTitle;
+		.set("class","fieldset") << std::endl;
+	std::stringstream uploadTitle;
 	uploadTitle << "DDU Firmware Upload (Slot " << myDDU->slot() << ", RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
 	*out << cgicc::div(uploadTitle.str())
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	// There's five things to upload:
-	string names[5] = {
+	std::string names[5] = {
 		"VMEPROM",
 		"DDUPROM0",
 		"DDUPROM1",
@@ -1274,36 +1272,36 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::form()
 			.set("method","POST")
 			.set("enctype","multipart/form-data")
-			.set("action","/"+getApplicationDescriptor()->getURN()+"/DDULoadFirmware") << endl;
+			.set("action","/"+getApplicationDescriptor()->getURN()+"/DDULoadFirmware") << std::endl;
 		// NOTE: it's not exacly well defined if file type inputs
 		// obey the value parameter.
 		*out << cgicc::div(names[iPROM])
-			.set("style","font-weight: bold;") << endl;
+			.set("style","font-weight: bold;") << std::endl;
 		*out << cgicc::input().set("type","file")
 			.set("name","DDULoadSVF")
-			.set("size","50") << endl;
+			.set("size","50") << std::endl;
 		*out << cgicc::input()
 			.set("type","submit")
-			.set("value","LoadSVF") << endl;
-		ostringstream idduValue;
+			.set("value","LoadSVF") << std::endl;
+		std::stringstream idduValue;
 		idduValue << iddu;
 		*out << cgicc::input()
 			.set("type","hidden")
 			.set("value",idduValue.str())
-			.set("name","ddu") << endl;
-		ostringstream inputValue;
+			.set("name","ddu") << std::endl;
+		std::stringstream inputValue;
 		inputValue << (iPROM+3);
 		*out << cgicc::input()
 			.set("type","hidden")
 			.set("value",inputValue.str())
-			.set("name","prom") << endl;
-		*out << cgicc::form() << endl;
+			.set("name","prom") << std::endl;
+		*out << cgicc::form() << std::endl;
 	}
 
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 
 }
 */
@@ -1327,27 +1325,27 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Firmware Manager";
 	*out << Header(sTitle.str(),false);
 
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("DDUBroadcast","crate",cgiCrate,cgiCrate) << endl;
+	*out << selectACrate("DDUBroadcast","crate",cgiCrate,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 
 	// The names of the PROMs
 	std::vector< std::string > dduPROMNames;
@@ -1385,9 +1383,9 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	std::map< std::string, std::string > diskPROMCodes;
 
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div("Step 1:  Upload DDU firmware to disk")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	
 	DataTable diskTable("diskTable");
 
@@ -1413,7 +1411,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 			pipein.close();
 		}
 
-		// Now the string diskVersion is exactly what is sounds like.
+		// Now the std::string diskVersion is exactly what is sounds like.
 		diskPROMCodes[dduPROMNames[iprom]] = diskVersion;
 
 		// Check to make sure the on-disk header looks like it should for that
@@ -1429,8 +1427,8 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 
 		// Compare the version on-disk with the magic number given above.
 		/*
-		ostringstream checkstream;
-		checkstream << hex << tuscode[i+3];
+		std::stringstream checkstream;
+		checkstream << std::hex << tuscode[i+3];
 		if ( checkstream.str() != printversion ) {
 			verr = 1;
 			printversion += " (should be " + checkstream.str() + ")";
@@ -1438,36 +1436,36 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		*/
 
 		// Make the last part of the table a form for uploading a file.
-		*(diskTable(iprom,2)->value) << form().set("method","POST")
+		*(diskTable(iprom,2)->value) << cgicc::form().set("method","POST")
 			.set("enctype","multipart/form-data")
 			.set("id","Form" + dduPROMNames[iprom])
-			.set("action","/" + getApplicationDescriptor()->getURN() + "/DDULoadBroadcast") << endl;
-		*(diskTable(iprom,2)->value) << input().set("type","file")
+			.set("action","/" + getApplicationDescriptor()->getURN() + "/DDULoadBroadcast") << std::endl;
+		*(diskTable(iprom,2)->value) << cgicc::input().set("type","file")
 			.set("name","File")
 			.set("id","File" + dduPROMNames[iprom])
-			.set("size","50") << endl;
-		*(diskTable(iprom,2)->value) << input().set("type","button")
+			.set("size","50") << std::endl;
+		*(diskTable(iprom,2)->value) << cgicc::input().set("type","button")
 			.set("value","Upload SVF")
-			.set("onClick","javascript:clickCheck('" + dduPROMNames[iprom] + "')") << endl;
-		*(diskTable(iprom,2)->value) << input().set("type","hidden")
+			.set("onClick","javascript:clickCheck('" + dduPROMNames[iprom] + "')") << std::endl;
+		*(diskTable(iprom,2)->value) << cgicc::input().set("type","hidden")
 			.set("name","svftype")
-			.set("value",dduPROMNames[iprom]) << endl;
-		*(diskTable(iprom,2)->value) << form() << endl;
+			.set("value",dduPROMNames[iprom]) << std::endl;
+		*(diskTable(iprom,2)->value) << cgicc::form() << std::endl;
 	}	
 	// Tricky: javascript check!
-	*out << "<script type=\"text/javascript\">function clickCheck(id) {" << endl;
-	*out << "var element = document.getElementById('File' + id);" << endl;
-	*out << "if (element.value == '') element.style.backgroundColor = '#FFCCCC';" << endl;
-	*out << "else {" << endl;
-	*out << "var form = document.getElementById('Form' + id);" << endl;
-	*out << "form.submit();" << endl;
-	*out << "}" << endl;
-	*out << "}</script>" << endl;
+	*out << "<script type=\"text/javascript\">function clickCheck(id) {" << std::endl;
+	*out << "var element = document.getElementById('File' + id);" << std::endl;
+	*out << "if (element.value == '') element.style.backgroundColor = '#FFCCCC';" << std::endl;
+	*out << "else {" << std::endl;
+	*out << "var form = document.getElementById('Form' + id);" << std::endl;
+	*out << "form.submit();" << std::endl;
+	*out << "}" << std::endl;
+	*out << "}</script>" << std::endl;
 
 	// Print the table to screen.
-	*out << diskTable.toHTML() << endl;
+	*out << diskTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 
 	// This is the key:  a form that is outside of everything, and bitwise
@@ -1490,13 +1488,13 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::input()
 			.set("type","hidden")
 			.set("name",dduPROMNames[iprom])
-			.set("value",diskPROMCodes[dduPROMNames[iprom]]) << endl;
+			.set("value",diskPROMCodes[dduPROMNames[iprom]]) << std::endl;
 	}
 
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div("Step 2:  Select the slots you to which you intend to load firmware")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	
 	DataTable slotTable("slotTable");
 
@@ -1528,11 +1526,11 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
 			std::ostringstream promCode, fpgaCode;
 
-			promCode << hex << (*iDDU)->readPROMUserCode(dduPROMTypes[dduPROMNames[iprom]]);
+			promCode << std::hex << (*iDDU)->readPROMUserCode(dduPROMTypes[dduPROMNames[iprom]]);
 			*(slotTable(iddu,3 + iprom)->value) << promCode.str();
 
 			if (dduPROMNames[iprom] != "VMEPROM") {
-				fpgaCode << hex << (*iDDU)->readFPGAUserCode(dduFPGATypes[dduPROMNames[iprom]]);
+				fpgaCode << std::hex << (*iDDU)->readFPGAUserCode(dduFPGATypes[dduPROMNames[iprom]]);
 			}
 
 			// Check for consistency
@@ -1553,7 +1551,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		}
 	}
 
-	*out << slotTable.toHTML() << endl;
+	*out << slotTable.toHTML() << std::endl;
 
 	*out << cgicc::input()
 		.set("type","button")
@@ -1562,43 +1560,43 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		.set("style","margin-left: 20%; margin-right: auto;");
 
 	// Tricky:  javascript toggle of check boxes
-	*out << "<script type=\"text/javascript\">" << endl;
-	*out << "function toggleBoxes(id){var x = getElementsByClassName(id); var f = document.getElementById('broadcast'); if(f.value == 0){f.value = 1; for (i=0,j=x.length;i<j;i++) {x[i].disabled=true;}} else {f.value = 0; for (i=0,j=x.length;i<j;i++) {x[i].disabled=false;}}}" << endl;
-	*out << "</script>" << endl;
+	*out << "<script type=\"text/javascript\">" << std::endl;
+	*out << "function toggleBoxes(id){var x = getElementsByClassName(id); var f = document.getElementById('broadcast'); if(f.value == 0){f.value = 1; for (i=0,j=x.length;i<j;i++) {x[i].disabled=true;}} else {f.value = 0; for (i=0,j=x.length;i<j;i++) {x[i].disabled=false;}}}" << std::endl;
+	*out << "</script>" << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
-	*out << "Legend: " << cgicc::span("All OK").set("class","ok") << " " << endl;
-	*out << cgicc::span("Disk/PROM mismatch").set("class","bad") << " " << endl;
-	*out << cgicc::span("PROM/FPGA mismatch").set("class","questionable") << cgicc::div() << endl;
+		.set("style","font-size: 8pt;") << std::endl;
+	*out << "Legend: " << cgicc::span("All OK").set("class","ok") << " " << std::endl;
+	*out << cgicc::span("Disk/PROM mismatch").set("class","bad") << " " << std::endl;
+	*out << cgicc::span("PROM/FPGA mismatch").set("class","questionable") << cgicc::div() << std::endl;
 
 	*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!")
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div("Step 3:  Press a button to upload that particular firmware to the selected boards")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("name","submit")
-		.set("value","Send VMEPROM (Emergency Load)") << endl;
+		.set("value","Send VMEPROM (Emergency Load)") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("name","submit")
-		.set("value","Send VMEPROM") << endl;
+		.set("value","Send VMEPROM") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("name","submit")
-		.set("value","Send DDUPROM") << endl;
+		.set("value","Send DDUPROM") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("name","submit")
-		.set("value","Send INPROM") << endl;
+		.set("value","Send INPROM") << std::endl;
 
 	// The crate is a must.
 	std::ostringstream crateVal;
@@ -1606,29 +1604,29 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal.str()) << endl;
+		.set("value",crateVal.str()) << std::endl;
 	
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 	
-	*out << cgicc::form() << endl;
+	*out << cgicc::form() << std::endl;
 
 
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div("Step 4:  Hard-reset the crate")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	*out << cgicc::form()
 		.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUReset?crate=" + crateVal.str())
-		.set("method","post") << endl;
+		.set("method","post") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Reset crate via DCC") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Reset crate via DCC") << std::endl;
+	*out << cgicc::form() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 
 }
 
@@ -1655,10 +1653,10 @@ void EmuFCrateHyperDAQ::DDULoadBroadcast(xgi::Input *in, xgi::Output *out)
 
 	printf(" entered DDULoadBroadcast \n");
 
-	string type = cgi["svftype"]->getValue();
+	std::string type = cgi["svftype"]->getValue();
 
 	if (type != "VMEPROM" && type != "DDUPROM0" && type != "DDUPROM1" && type != "INPROM0" && type != "INPROM1") {
-		cout << "I don't understand that PROM type (" << type << ")." << endl;
+		std::cout << "I don't understand that PROM type (" << type << ")." << std::endl;
 
 		std::ostringstream backLocation;
 		backLocation << "DDUBroadcast?crate=" << cgiCrate;
@@ -1667,9 +1665,9 @@ void EmuFCrateHyperDAQ::DDULoadBroadcast(xgi::Input *in, xgi::Output *out)
 		//return;
 	}
 
-	const_file_iterator ifile = cgi.getFile("File");
+	cgicc::const_file_iterator ifile = cgi.getFile("File");
 	if ( (*ifile).getFilename() == "" ) {
-		cout << "The file you attempted to upload either doesn't exist, or wasn't properly transferred." << endl;
+		std::cout << "The file you attempted to upload either doesn't exist, or wasn't properly transferred." << std::endl;
 		
 		std::ostringstream backLocation;
 		backLocation << "DDUBroadcast?crate=" << cgiCrate;
@@ -1678,11 +1676,11 @@ void EmuFCrateHyperDAQ::DDULoadBroadcast(xgi::Input *in, xgi::Output *out)
 		//return;
 	}
 
-	string filename = "Current" + type + ".svf";
-	ofstream outfile;
+	std::string filename = "Current" + type + ".svf";
+	std::ofstream outfile;
 	outfile.open(filename.c_str(),ios::trunc);
 	if (!outfile.is_open()) {
-		cout << "I can't open the file stream for writing (" << filename << ")." << endl;
+		std::cout << "I can't open the file stream for writing (" << filename << ")." << std::endl;
 
 		std::ostringstream backLocation;
 		backLocation << "DDUBroadcast?crate=" << cgiCrate;
@@ -1694,7 +1692,7 @@ void EmuFCrateHyperDAQ::DDULoadBroadcast(xgi::Input *in, xgi::Output *out)
 	(*ifile).writeToStream(outfile);
 	outfile.close();
 
-	cout << "downloaded and saved " << filename << " of type " << type << endl;
+	std::cout << "downloaded and saved " << filename << " of type " << type << std::endl;
 	
 	std::ostringstream backLocation;
 	backLocation << "DDUBroadcast?crate=" << cgiCrate;
@@ -1723,12 +1721,12 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	//printf(" entered DDUSendBroadcast \n");
 
 	int type = -1;
-	string submitCommand = cgi["submit"]->getValue();
+	std::string submitCommand = cgi["submit"]->getValue();
 	if (submitCommand.substr(5) == "VMEPROM") type = 0;
 	if (submitCommand.substr(5) == "DDUPROM") type = 1;
 	if (submitCommand.substr(5) == "INPROM") type = 2;
@@ -1736,7 +1734,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	if (submitCommand.substr(5) == "ALL") type = 4;
 
 	int broadcast = cgi["broadcast"]->getIntegerValue();
-	string slotsText = cgi["slots"]->getValue();
+	std::string slotsText = cgi["slots"]->getValue();
 	if (slotsText.substr(0,2) == "0x") slotsText = slotsText.substr(2);
 	unsigned int slots = 0;
 	sscanf(slotsText.data(),"%4x",&slots);
@@ -1763,7 +1761,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	}
 
 	if (type != 0 && type != 1 && type != 2 && type != 3 && type != 5) {
-		//cout << "I don't understand that PROM type (" << type << ")." << endl;
+		//std::cout << "I don't understand that PROM type (" << type << ")." << std::endl;
 		
 		std::ostringstream backLocation;
 		backLocation << "DDUBroadcast?crate=" << cgiCrate;
@@ -1772,14 +1770,14 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 		//return;
 	}
 
-	string promName[6] = {"VMEPROM","DDUPROM1","DDUPROM0","INPROM1","INPROM0","RESET"};
+	std::string promName[6] = {"VMEPROM","DDUPROM1","DDUPROM0","INPROM1","INPROM0","RESET"};
 	enum DEVTYPE devType[6] = {VMEPROM,DDUPROM1,DDUPROM0,INPROM1,INPROM0,RESET};
 
 	// Load the proper version types from the cgi handle.
-	string version[5];
+	std::string version[5];
 	for (int i=0; i<=4; i++) {
 		version[i] = cgi[promName[i].c_str()]->getValue();
-		//cout << " version on disk: " << promName[i] << " " << version[i] << endl;
+		//std::cout << " version on disk: " << promName[i] << " " << version[i] << std::endl;
 	}
 
 	int from, to;
@@ -1789,11 +1787,11 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	if (type == 3) { from = 5; to = 5; }
 	if (type == 4) { from = 0; to = 4; }
 
-	//cout << " From type " << type << ", broadcasting ";
+	//std::cout << " From type " << type << ", broadcasting ";
 	//for (int i=from; i<=to; i++) {
-	//	cout << promName[i] << " ";
+	//	std::cout << promName[i] << " ";
 	//}
-	//cout << endl;
+	//std::cout << std::endl;
 
 	// I thought this was not allowed!
 	int bnstore[myCrate->ddus().size()];
@@ -1802,14 +1800,14 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 		else if (broadcast && myCrate->ddus()[i]->slot() <= 21) continue;
 
 		DDU *myDDU = myCrate->ddus()[i];
-		//cout << "Sending to slot " << myDDU->slot() << endl;
+		//std::cout << "Sending to slot " << myDDU->slot() << std::endl;
 
 		for (int i=from; i<=to; i++) {
 			LOG4CPLUS_DEBUG(getApplicationLogger(),"Loading firmware to prom " << (i+1) << " of " << (to - from + 1) << "...");
 			
-			string filename = "Current" + promName[i] + ".svf";
-			//cout << " broadcasting " << filename << " version " << version[i] << endl;
-			LOG4CPLUS_INFO(getApplicationLogger(),"Loading server file " << filename << " (v " << hex << version[i] << dec << ") to DDU slot " << myDDU->slot() << "...");
+			std::string filename = "Current" + promName[i] + ".svf";
+			//std::cout << " broadcasting " << filename << " version " << version[i] << std::endl;
+			LOG4CPLUS_INFO(getApplicationLogger(),"Loading server file " << filename << " (v " << std::hex << version[i] << std::dec << ") to DDU slot " << myDDU->slot() << "...");
 
 			char *boardnumber = (char *) malloc(5);
 			boardnumber[0]=0x00;boardnumber[1]=0x00;boardnumber[2]=0x00;boardnumber[3]=0x00;
@@ -1828,14 +1826,14 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 						int ibn = secondaryDDU->readFlashBoardID();
 						bnstore[ddu] = ibn;
 						boardnumber[0] = ibn;
-						//cout << " pause to upload boardnumber " << ibn << endl;
-						LOG4CPLUS_DEBUG(getApplicationLogger(),"Step 2 of 3: Load boardID " << dec << ibn << " to slot " << secondaryDDU->slot() << "...");
+						//std::cout << " pause to upload boardnumber " << ibn << std::endl;
+						LOG4CPLUS_DEBUG(getApplicationLogger(),"Step 2 of 3: Load boardID " << std::dec << ibn << " to slot " << secondaryDDU->slot() << "...");
 						secondaryDDU->epromload((char *)promName[i].c_str(),devType[i],(char *)filename.c_str(),1,boardnumber,2);
 					}
 				} else {
 					int ibn = myDDU->readFlashBoardID();
 					boardnumber[0] = ibn;
-					LOG4CPLUS_DEBUG(getApplicationLogger(),"Step 2 of 3: Load boardID " << dec << ibn << " to slot " << myDDU->slot() << "...");
+					LOG4CPLUS_DEBUG(getApplicationLogger(),"Step 2 of 3: Load boardID " << std::dec << ibn << " to slot " << myDDU->slot() << "...");
 					myDDU->epromload((char *)promName[i].c_str(),devType[i],(char *)filename.c_str(),1,boardnumber,2);
 				}
 
@@ -1848,7 +1846,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 				myDDU->epromload((char *)promName[i].c_str(),devType[i],(char *)filename.c_str(),1,boardnumber);
 			}
 			free(boardnumber);
-			LOG4CPLUS_INFO(getApplicationLogger(),"Loading of server file " << filename << " (v " << hex << version[i] << dec << ") to DDU slot " << myDDU->slot() << " complete.");
+			LOG4CPLUS_INFO(getApplicationLogger(),"Loading of server file " << filename << " (v " << std::hex << version[i] << std::dec << ") to DDU slot " << myDDU->slot() << " complete.");
 
 		}
 
@@ -1861,8 +1859,8 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 			else if (broadcast && myCrate->ddus()[ddu]->slot() > 21) continue;
 			DDU *myDDU = myCrate->ddus()[ddu];
 
-			string boardversion;
-			string checkversion;
+			std::string boardversion;
+			std::string checkversion;
 			if (i==0 || i==5) {
 				boardversion = myDDU->vmeprom_usercode();
 				checkversion = version[i];
@@ -1883,9 +1881,9 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 			}
 
 			if (checkversion == boardversion) {
-				LOG4CPLUS_INFO(getApplicationLogger(),"DDU slot " << myDDU->slot() << " PROM " << promName[i] << " versions match ("<< hex << boardversion << dec <<")");
+				LOG4CPLUS_INFO(getApplicationLogger(),"DDU slot " << myDDU->slot() << " PROM " << promName[i] << " versions match ("<< std::hex << boardversion << std::dec <<")");
 			} else {
-				LOG4CPLUS_ERROR(getApplicationLogger(),"DDU slot " << myDDU->slot() << " PROM " << promName[i] << " version mismatch (shows "<< hex << boardversion << dec << ", should be "<< hex << checkversion << dec << ")");
+				LOG4CPLUS_ERROR(getApplicationLogger(),"DDU slot " << myDDU->slot() << " PROM " << promName[i] << " version mismatch (shows "<< std::hex << boardversion << std::dec << ", should be "<< std::hex << checkversion << std::dec << ")");
 			}
 		}
 	}
@@ -1917,7 +1915,7 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	myCrate->dccs()[0]->crateHardReset();
 
@@ -1973,7 +1971,7 @@ void EmuFCrateHyperDAQ::DDULoadFirmware(xgi::Input * in, xgi::Output * out )
 	int ddu = 0;
 	if(name != cgi.getElements().end()) {
 		ddu = cgi["ddu"]->getIntegerValue();
-		cout << "DDU " << ddu << endl;
+		std::cout << "DDU " << ddu << std::endl;
 	}
 	int prom;
 	cgicc::form_iterator name2 = cgi.getElement("prom");
@@ -1982,28 +1980,27 @@ void EmuFCrateHyperDAQ::DDULoadFirmware(xgi::Input * in, xgi::Output * out )
 		prom = cgi["prom"]->getIntegerValue();
 		if(prom==13)prom=9;   // JG, special Broadcast case for VMEPROM...
 		if(prom>=10)prom-=10; //  ...now remove the "10+" flag for all cases.
-		cout << "PROM " << prom << endl;
+		std::cout << "PROM " << prom << std::endl;
 	}
 	//
 	thisDDU = dduVector[ddu];
 	//
 	//
-	cout << "UploadConfFileUpload" << endl;
+	std::cout << "UploadConfFileUpload" << std::endl;
 	//
 
 
-	const_file_iterator file;
-	file = cgi.getFile("DDULoadSVF");
-	//string XMLname = (*file).getFilename();
-	// cout <<"SVF FILE: " << XMLname  << endl ;
+	cgicc::const_file_iterator file = cgi.getFile("DDULoadSVF");
+	//std::string XMLname = (*file).getFilename();
+	// std::cout <<"SVF FILE: " << XMLname  << std::endl ;
 
 
 	//
-	cout << "GetFiles" << endl ;
+	std::cout << "GetFiles" << std::endl ;
 	//
 
 	if(file != cgi.getFiles().end()) {
-		ofstream TextFile ;
+		std::ofstream TextFile ;
 		TextFile.open("MySVFFile.svf");
 		(*file).writeToStream(TextFile);
 		TextFile.close();
@@ -2059,33 +2056,33 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDDU = cgi["ddu"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DDU *myDDU = myCrate->ddus()[cgiDDU];
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDUFPGA Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
 	*out << Header(sTitle.str(),false);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("DDUDebug","ddu",cgiDDU,cgiCrate) << endl;
+	*out << selectACrate("DDUDebug","ddu",cgiDDU,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 
 	// PGK Let us now print some tables with information from the DDUFPGA.
 	// This guy will be used later to show which chambers have errors in the big
@@ -2106,13 +2103,13 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	// Display general DDU status information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('generalTable')") << endl;
-	*out << "General DDU Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('generalTable')") << std::endl;
+	*out << "General DDU Information" << cgicc::div() << std::endl;
 
 	DataTable generalTable("generalTable");
 
@@ -2134,15 +2131,15 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	
 	*(generalTable(2,0)->value) << "DDU control FPGA status (32-bit)";
 	dduValue = myDDU->ddu_fpgastat();
-	*(generalTable(2,1)->value) << showbase << hex << dduValue;
+	*(generalTable(2,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue & 0x00008000) {
 		generalTable(2,1)->setClass("bad");
 		debugTrapValid = true;
 	}
 	else if (dduValue & 0xDE4F4BFF) generalTable(2,1)->setClass("warning");
 	else generalTable(2,1)->setClass("ok");
-	std::map<string, string> dduComments = DDUDebugger::DDUFPGAStat(dduValue);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	std::map<std::string, std::string> dduComments = DDUDebugger::DDUFPGAStat(dduValue);
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(generalTable(2,2)->value) << cgicc::div(iComment->first)
@@ -2151,12 +2148,12 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(3,0)->value) << "DDU output status (16-bit)";
 	dduValue = myDDU->readOutputStat();
-	*(generalTable(3,1)->value) << showbase << hex << dduValue;
+	*(generalTable(3,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue & 0x00000080) generalTable(3,1)->setClass("bad");
 	else if (dduValue & 0x00004000) generalTable(3,1)->setClass("warning");
 	else generalTable(3,1)->setClass("ok");
 	dduComments = DDUDebugger::OutputStat(dduValue);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(generalTable(3,2)->value) << cgicc::div(iComment->first)
@@ -2165,12 +2162,12 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(4,0)->value) << "Error bus A register bits (16-bit)";
 	dduValue = myDDU->readEBReg(1);
-	*(generalTable(4,1)->value) << showbase << hex << dduValue;
+	*(generalTable(4,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue & 0x0000C00C) generalTable(4,1)->setClass("bad");
 	else if (dduValue & 0x000001C8) generalTable(4,1)->setClass("warning");
 	else generalTable(4,1)->setClass("ok");
 	dduComments = DDUDebugger::EBReg1(dduValue);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(generalTable(4,2)->value) << cgicc::div(iComment->first)
@@ -2179,12 +2176,12 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(5,0)->value) << "Error bus B register bits (16-bit)";
 	dduValue = myDDU->readEBReg(2);
-	*(generalTable(5,1)->value) << showbase << hex << dduValue;
+	*(generalTable(5,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue & 0x00000011) generalTable(5,1)->setClass("bad");
 	else if (dduValue & 0x0000D08E) generalTable(5,1)->setClass("warning");
 	else generalTable(5,1)->setClass("ok");
 	dduComments = DDUDebugger::EBReg2(dduValue);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(generalTable(5,2)->value) << cgicc::div(iComment->first)
@@ -2193,40 +2190,40 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(6,0)->value) << "Error bus C register bits (16-bit)";
 	dduValue = myDDU->readEBReg(3);
-	*(generalTable(6,1)->value) << showbase << hex << dduValue;
+	*(generalTable(6,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue & 0x0000BFBF) generalTable(6,1)->setClass("warning");
 	else generalTable(6,1)->setClass("ok");
 	dduComments = DDUDebugger::EBReg3(dduValue);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(generalTable(6,2)->value) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*out << generalTable.printSummary() << endl;
+	*out << generalTable.printSummary() << std::endl;
 
 	// Display only if there are errors.
 	if (generalTable.countClass("ok") + generalTable.countClass("none") == generalTable.countRows()) generalTable.setHidden(true);
-	*out << generalTable.toHTML() << endl;
+	*out << generalTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 
 		// Display miscellanious DDU status information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('otherTable')") << endl;
-	*out << "Other DDU Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('otherTable')") << std::endl;
+	*out << "Other DDU Information" << cgicc::div() << std::endl;
 
 	DataTable otherTable("otherTable");
 
@@ -2236,11 +2233,11 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(otherTable(0,0)->value) << "DDU near full warning (8-bit)";
 	dduValue = myDDU->readWarnMon();
-	*(otherTable(0,1)->value) << showbase << hex << ((dduValue) & 0xFF);
+	*(otherTable(0,1)->value) << showbase << std::hex << ((dduValue) & 0xFF);
 	if ((dduValue) & 0xFF) otherTable(0,1)->setClass("questionable");
 	else otherTable(0,1)->setClass("ok");
 	dduComments = DDUDebugger::WarnMon((dduValue) & 0xFF);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(otherTable(0,2)->value) << cgicc::div(iComment->first)
@@ -2249,11 +2246,11 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(otherTable(1,0)->value) << "DDU near full historical (8-bit)";
 	//dduValue = myDDU->readWarnMon();
-	*(otherTable(1,1)->value) << showbase << hex << ((dduValue >> 8) & 0xFF);
+	*(otherTable(1,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0xFF);
 	if ((dduValue >> 8) & 0xFF) otherTable(1,1)->setClass("questionable");
 	else otherTable(1,1)->setClass("ok");
 	dduComments = DDUDebugger::WarnMon((dduValue >> 8) & 0xFF);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(otherTable(1,2)->value) << cgicc::div(iComment->first)
@@ -2267,20 +2264,20 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(otherTable(3,0)->value) << "DDU start-to-end max process time";
 	//dduValue = myDDU->readWarnMon();
-	*(otherTable(3,1)->value) << showbase << hex << (((dduValue >> 8) & 0xFF) * 6.4) << " &mu;s";
+	*(otherTable(3,1)->value) << showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << " &mu;s";
 	otherTable(3,1)->setClass("none");
 
-	*out << otherTable.printSummary() << endl;
+	*out << otherTable.printSummary() << std::endl;
 
 	// Display only if there are errors.
 	if (otherTable.countClass("ok") + otherTable.countClass("none") == otherTable.countRows()) otherTable.setHidden(true);
-	*out << otherTable.toHTML() << endl;
+	*out << otherTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 	
 
 	
@@ -2288,13 +2285,13 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	myCrate->vmeController()->CAEN_err_reset();
 	// Display individual fiber information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('fiberTable')") << endl;
-	*out << "Individual Fiber Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('fiberTable')") << std::endl;
+	*out << "Individual Fiber Information" << cgicc::div() << std::endl;
 
 
 	DataTable fiberTable("fiberTable");
@@ -2305,7 +2302,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(0,0)->value) << "First event DMBLIVE";
 	dduValue = myDDU->readPermDMBLive();
-	*(fiberTable(0,1)->value) << showbase << hex << dduValue;
+	*(fiberTable(0,1)->value) << showbase << std::hex << dduValue;
 	fiberTable(0,1)->setClass("none");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
@@ -2316,7 +2313,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(1,0)->value) << "Latest event DMBLIVE";
 	dduValue = myDDU->readDMBLive();
-	*(fiberTable(1,1)->value) << showbase << hex << dduValue;
+	*(fiberTable(1,1)->value) << showbase << std::hex << dduValue;
 	fiberTable(1,1)->setClass("none");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
@@ -2327,7 +2324,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(2,0)->value) << "CRC error";
 	dduValue = myDDU->readCRCError();
-	*(fiberTable(2,1)->value) << showbase << hex << dduValue;
+	*(fiberTable(2,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(2,1)->setClass("bad");
 	else fiberTable(2,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2340,7 +2337,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(3,0)->value) << "Data transmit error";
 	dduValue = myDDU->readXmitError();
-	*(fiberTable(3,1)->value) << showbase << hex << dduValue;
+	*(fiberTable(3,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(3,1)->setClass("bad");
 	else fiberTable(3,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2353,7 +2350,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(4,0)->value) << "DMB error";
 	dduValue = myDDU->readDMBError();
-	*(fiberTable(4,1)->value) << showbase << hex << dduValue;
+	*(fiberTable(4,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(4,1)->setClass("bad");
 	else fiberTable(4,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2366,7 +2363,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(5,0)->value) << "TMB error";
 	dduValue = myDDU->readTMBError();
-	*(fiberTable(5,1)->value) << showbase << hex << dduValue;
+	*(fiberTable(5,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(5,1)->setClass("bad");
 	else fiberTable(5,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2379,7 +2376,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(6,0)->value) << "ALCT error";
 	dduValue = myDDU->readALCTError();
-	*(fiberTable(6,1)->value) << showbase << hex << dduValue;
+	*(fiberTable(6,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(6,1)->setClass("bad");
 	else fiberTable(6,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2392,7 +2389,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(7,0)->value) << "Lost-in-event error";
 	dduValue = myDDU->readLIEError();
-	*(fiberTable(7,1)->value) << showbase << hex << dduValue;
+	*(fiberTable(7,1)->value) << showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(7,1)->setClass("bad");
 	else fiberTable(7,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2403,30 +2400,30 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 		}
 	}
 
-	*out << fiberTable.printSummary() << endl;
+	*out << fiberTable.printSummary() << std::endl;
 
 	// Display only if there are errors.
 	if (fiberTable.countClass("ok") + fiberTable.countClass("none") == fiberTable.countRows()) fiberTable.setHidden(true);
-	*out << fiberTable.toHTML() << endl;
+	*out << fiberTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 
 
 	// Display InRD status information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('inrdTable')") << endl;
-	*out << "4-bit InRD Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('inrdTable')") << std::endl;
+	*out << "4-bit InRD Information" << cgicc::div() << std::endl;
 
 
 	DataTable inrdTable("inrdTable");
@@ -2437,51 +2434,51 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(inrdTable(0,0)->value) << "Stuck data error";
 	dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(0,1)->value) << showbase << hex << ((dduValue >> 12) & 0xF);
+	*(inrdTable(0,1)->value) << showbase << std::hex << ((dduValue >> 12) & 0xF);
 	if ((dduValue >> 12) & 0xF) inrdTable(0,1)->setClass("bad");
 	else inrdTable(0,1)->setClass("ok");
 
 	*(inrdTable(1,0)->value) << "Fiber or FIFO connection error";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(1,1)->value) << showbase << hex << ((dduValue >> 8) & 0xF);
+	*(inrdTable(1,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0xF);
 	if ((dduValue >> 8) & 0xF) inrdTable(1,1)->setClass("bad");
 	else inrdTable(1,1)->setClass("ok");
 
 	*(inrdTable(2,0)->value) << "L1A mismatch";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(2,1)->value) << showbase << hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(2,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(2,1)->setClass("warning");
 	else inrdTable(2,1)->setClass("ok");
 
 	*(inrdTable(3,0)->value) << "InRD with active fiber";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(3,1)->value) << showbase << hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(3,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
 	inrdTable(3,1)->setClass("none");
 
 	*(inrdTable(4,0)->value) << "Active ext. FIFO empty";
 	dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(4,1)->value) << showbase << hex << ((dduValue >> 10) & 0xF);
+	*(inrdTable(4,1)->value) << showbase << std::hex << ((dduValue >> 10) & 0xF);
 	inrdTable(4,1)->setClass("none");
 
 	*(inrdTable(5,0)->value) << "InRD near full warning";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(5,1)->value) << showbase << hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(5,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(5,1)->setClass("warning");
 	else inrdTable(5,1)->setClass("ok");
 
 	*(inrdTable(6,0)->value) << "Ext. FIFO almost-full";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(6,1)->value) << showbase << hex << ((dduValue) & 0xF);
+	*(inrdTable(6,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(6,1)->setClass("questionable");
 	else inrdTable(6,1)->setClass("ok");
 
 	*(inrdTable(7,0)->value) << "Special decode bits";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(7,1)->value) << showbase << hex << ((dduValue >> 8) & 0x43);
+	*(inrdTable(7,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0x43);
 	if ((dduValue >> 8) & 0x81) inrdTable(7,1)->setClass("warning");
 	else inrdTable(7,1)->setClass("ok");
 	dduComments = DDUDebugger::FIFO2((dduValue >> 8) & 0x43);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(inrdTable(7,2)->value) << cgicc::div(iComment->first)
@@ -2490,52 +2487,52 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(inrdTable(8,0)->value) << "Timeout-EndBusy";
 	dduValue = myDDU->checkFIFO(3);
-	*(inrdTable(8,1)->value) << showbase << hex << ((dduValue >> 12) & 0xF);
+	*(inrdTable(8,1)->value) << showbase << std::hex << ((dduValue >> 12) & 0xF);
 	if ((dduValue >> 12) & 0xF) inrdTable(8,1)->setClass("bad");
 	else inrdTable(8,1)->setClass("ok");
 
 	*(inrdTable(9,0)->value) << "Timeout-EndWait";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(9,1)->value) << showbase << hex << ((dduValue >> 8) & 0xF);
+	*(inrdTable(9,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0xF);
 	if ((dduValue >> 8) & 0xF) inrdTable(9,1)->setClass("warning");
 	else inrdTable(9,1)->setClass("ok");
 
 	*(inrdTable(10,0)->value) << "Timeout-Start";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(10,1)->value) << showbase << hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(10,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(10,1)->setClass("warning");
 	else inrdTable(10,1)->setClass("ok");
 
 	*(inrdTable(11,0)->value) << "Lost-in-data error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(11,1)->value) << showbase << hex << ((dduValue) & 0xF);
+	*(inrdTable(11,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(11,1)->setClass("bad");
 	else inrdTable(11,1)->setClass("ok");
 
 	*(inrdTable(12,0)->value) << "Raw ext. FIFO empty";
 	dduValue = myDDU->readFFError();
-	*(inrdTable(12,1)->value) << showbase << hex << ((dduValue >> 10) & 0xF);
+	*(inrdTable(12,1)->value) << showbase << std::hex << ((dduValue >> 10) & 0xF);
 	inrdTable(12,1)->setClass("none");
 
 	*(inrdTable(13,0)->value) << "InRD FIFO full";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(13,1)->value) << showbase << hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(13,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(13,1)->setClass("bad");
 	else inrdTable(13,1)->setClass("ok");
 
 	*(inrdTable(14,0)->value) << "Ext. FIFO full";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(14,1)->value) << showbase << hex << ((dduValue) & 0xF);
+	*(inrdTable(14,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(14,1)->setClass("bad");
 	else inrdTable(14,1)->setClass("ok");
 
 	*(inrdTable(15,0)->value) << "Special decode bits";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(15,1)->value) << showbase << hex << ((dduValue >> 8) & 0x43);
+	*(inrdTable(15,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0x43);
 	if ((dduValue >> 8) & 0x1) inrdTable(15,1)->setClass("bad");
 	else inrdTable(15,1)->setClass("ok");
 	dduComments = DDUDebugger::FFError((dduValue >> 8) & 0x43);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(inrdTable(15,2)->value) << cgicc::div(iComment->first)
@@ -2544,59 +2541,59 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(inrdTable(16,0)->value) << "InRD hard error";
 	dduValue = myDDU->readInRDStat();
-	*(inrdTable(16,1)->value) << showbase << hex << ((dduValue >> 12) & 0xF);
+	*(inrdTable(16,1)->value) << showbase << std::hex << ((dduValue >> 12) & 0xF);
 	if ((dduValue >> 12) & 0xF) inrdTable(16,1)->setClass("bad");
 	else inrdTable(16,1)->setClass("ok");
 
 	*(inrdTable(17,0)->value) << "InRD sync error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(17,1)->value) << showbase << hex << ((dduValue >> 8) & 0xF);
+	*(inrdTable(17,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0xF);
 	if ((dduValue >> 8) & 0xF) inrdTable(17,1)->setClass("warning");
 	else inrdTable(17,1)->setClass("ok");
 
 	*(inrdTable(18,0)->value) << "InRD single event error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(18,1)->value) << showbase << hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(18,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(18,1)->setClass("questionable");
 	else inrdTable(18,1)->setClass("ok");
 
 	*(inrdTable(19,0)->value) << "InRD timeout error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(19,1)->value) << showbase << hex << ((dduValue) & 0xF);
+	*(inrdTable(19,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(19,1)->setClass("bad");
 	else inrdTable(19,1)->setClass("ok");
 
 	*(inrdTable(20,0)->value) << "InRD multiple transmit errors";
 	dduValue = myDDU->ddu_InC_Hist();
-	*(inrdTable(20,1)->value) << showbase << hex << ((dduValue) & 0xF);
+	*(inrdTable(20,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(20,1)->setClass("bad");
 	else inrdTable(20,1)->setClass("ok");
 
 	*(inrdTable(21,0)->value) << "Special decode bits";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(21,1)->value) << showbase << hex << ((dduValue) & 0xFFF);
+	*(inrdTable(21,1)->value) << showbase << std::hex << ((dduValue) & 0xFFF);
 	if ((dduValue) & 0xC00) inrdTable(21,1)->setClass("bad");
 	else if ((dduValue) & 0x2DF) inrdTable(21,1)->setClass("warning");
 	else inrdTable(21,1)->setClass("ok");
 	dduComments = DDUDebugger::FFError((dduValue) & 0xFFF);
-	for (std::map<string,string>::iterator iComment = dduComments.begin();
+	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
 		*(inrdTable(21,2)->value) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*out << inrdTable.printSummary() << endl;
+	*out << inrdTable.printSummary() << std::endl;
 
 	// Display only if there are errors.
 	if (inrdTable.countClass("ok") + inrdTable.countClass("none") == inrdTable.countRows()) inrdTable.setHidden(true);
-	*out << inrdTable.toHTML() << endl;
+	*out << inrdTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 
@@ -2604,24 +2601,24 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	myCrate->vmeController()->CAEN_err_reset();
 	// Display the big debugging information block
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("DDU Diagnostic Trap Decoding")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	if (debugTrapValid) {
 
 		// Here it is.
 		std::vector<std::string> bigComments = DDUDebugger::ddu_fpgatrap(myDDU);
 
-		ostringstream diagCode;
-		diagCode << setfill('0');
-		diagCode << hex;
-		diagCode << setw(8) << myDDU->fpga_lcode[5] << " ";
-		diagCode << setw(8) << myDDU->fpga_lcode[4] << " ";
-		diagCode << setw(8) << myDDU->fpga_lcode[3] << " ";
-		diagCode << setw(8) << myDDU->fpga_lcode[2] << " ";
-		diagCode << setw(8) << myDDU->fpga_lcode[1] << " ";
-		diagCode << setw(8) << myDDU->fpga_lcode[0];
+		std::stringstream diagCode;
+		diagCode << std::setfill('0');
+		diagCode << std::hex;
+		diagCode << std::setw(8) << myDDU->fpga_lcode[5] << " ";
+		diagCode << std::setw(8) << myDDU->fpga_lcode[4] << " ";
+		diagCode << std::setw(8) << myDDU->fpga_lcode[3] << " ";
+		diagCode << std::setw(8) << myDDU->fpga_lcode[2] << " ";
+		diagCode << std::setw(8) << myDDU->fpga_lcode[1] << " ";
+		diagCode << std::setw(8) << myDDU->fpga_lcode[0];
 
 		// Don't tell anybody, but a div with display: inline is just another
 		//  name for a span.  I do this to solve a problem with cgicc and the
@@ -2631,10 +2628,10 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 			.set("style","font-weight: bold; display: inline;");
 
 		*out << cgicc::div(diagCode.str())
-			.set("style","display: inline;") << endl;
+			.set("style","display: inline;") << std::endl;
 
 		*out << cgicc::div()
-			.set("style","width: 95%; font-size: 10pt; margin: 10px auto 10px auto; border: 2px solid #666; padding: 2px; font-family: monospace;") << endl;
+			.set("style","width: 95%; font-size: 10pt; margin: 10px auto 10px auto; border: 2px solid #666; padding: 2px; font-family: monospace;") << std::endl;
 
 		for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComment != bigComments.end(); iComment++) {
 			*out << (*iComment) << cgicc::br();
@@ -2643,27 +2640,27 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::div();
 
 		*out << cgicc::div("The status registers are frozen in the trap only after an error occurs.  The values in the trap remain valid until a sync reset.")
-			.set("style","font-size: 8pt;") << endl;
+			.set("style","font-size: 8pt;") << std::endl;
 
 	} else {
 		*out << cgicc::div("Diagnostic trap is only valid after a DDU error has been detected.")
-			.set("style","color: #A00; font-size: 10pt;") << endl;
+			.set("style","color: #A00; font-size: 10pt;") << std::endl;
 	}
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 	
 
 
 	myCrate->vmeController()->CAEN_err_reset();
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("CSC Board Occupancies and Percentages")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	// Pick up the occupancies.
 	myCrate->vmeController()->CAEN_err_reset();
@@ -2732,20 +2729,20 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 		}
 	}
 
-	*out << occuTable.toHTML() << endl;
+	*out << occuTable.toHTML() << std::endl;
 
 	*out << cgicc::div("<sup>*</sup>The DMB percentages are relative to #L1As; other board percentages are relative to #LCTxL1A hits on the CSC.")
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	*out << cgicc::span("Red chamber labels")
-		.set("class","bad") << endl;
-	*out << cgicc::span(" denote chambers with an error.  The tables above will help diagnose the problem.") << endl;
-	*out << cgicc::div() << endl;
+		.set("class","bad") << std::endl;
+	*out << cgicc::span(" denote chambers with an error.  The tables above will help diagnose the problem.") << std::endl;
+	*out << cgicc::div() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 
 }
 
@@ -2769,33 +2766,33 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDDU = cgi["ddu"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DDU *myDDU = myCrate->ddus()[cgiDDU];
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU InFPGA Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
 	*out << Header(sTitle.str(),false);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("InFpga","ddu",cgiDDU,cgiCrate) << endl;
+	*out << selectACrate("InFpga","ddu",cgiDDU,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 	
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 	
 	// This is used to check if the debug trap is valid.  One for each device.
 	bool debugTrapValid[2] = {
@@ -2811,20 +2808,20 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		INFPGA0,
 		INFPGA1
 	};
-	string devNames[2] = {
+	std::string devNames[2] = {
 		"InFPGA0 (fibers 7-0)",
 		"InFPGA1 (fibers 14-8)"
 	};
 
 	// Display general InFPGA status information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('generalTable')") << endl;
-	*out << "General InFPGA Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('generalTable')") << std::endl;
+	*out << "General InFPGA Information" << cgicc::div() << std::endl;
 
 	DataTable generalTable("generalTable");
 
@@ -2846,15 +2843,15 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned long int infpgastat = myDDU->infpgastat(dt);
-		*(generalTable(0,iDevType*2+1)->value) << showbase << hex << infpgastat;
+		*(generalTable(0,iDevType*2+1)->value) << showbase << std::hex << infpgastat;
 		if (infpgastat & 0x00004000) generalTable(0,iDevType*2+1)->setClass("warning");
 		if (infpgastat & 0x00008000) {
 			generalTable(0,iDevType*2+1)->setClass("bad");
 			debugTrapValid[iDevType] = true;
 		}
 		if (!(infpgastat & 0x0000C000)) generalTable(0,iDevType*2+1)->setClass("ok");
-		std::map<string, string> infpgastatComments = DDUDebugger::InFPGAStat(dt,infpgastat);
-		for (std::map<string,string>::iterator iComment = infpgastatComments.begin();
+		std::map<std::string, std::string> infpgastatComments = DDUDebugger::InFPGAStat(dt,infpgastat);
+		for (std::map<std::string,std::string>::iterator iComment = infpgastatComments.begin();
 			iComment != infpgastatComments.end();
 			iComment++) {
 			*(generalTable(0,iDevType*2+2)->value) << cgicc::div(iComment->first)
@@ -2874,7 +2871,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	}
 	
 	// Summary
-	*out << generalTable.printSummary() << endl;
+	*out << generalTable.printSummary() << std::endl;
 
 	// We use a special case of the toHTML method for InFPGAs.
 	// Hide the table if all is keen.
@@ -2883,46 +2880,46 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::table()
 			.set("id","generalTable")
 			.set("class","data")
-			.set("style","display: none;") << endl;
+			.set("style","display: none;") << std::endl;
 	} else {
 		*out << cgicc::table()
 			.set("id","generalTable")
-			.set("class","data") << endl;
+			.set("class","data") << std::endl;
 	}
 
 	// Put the titles of the two InFPGAs here.
-	*out << cgicc::tr() << endl;
-	*out << cgicc::td(" ") << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::td(" ") << std::endl;
 	*out << cgicc::td(devNames[0])
 		.set("colspan","2")
-		.set("style","font-weight: bold; text-align: center; border-right: 3px double #000;")<< endl;
+		.set("style","font-weight: bold; text-align: center; border-right: 3px double #000;")<< std::endl;
 	*out << cgicc::td(devNames[1])
 		.set("colspan","2")
-		.set("style","font-weight: bold; text-align: center;") << endl;
-	*out << cgicc::tr() << endl;
+		.set("style","font-weight: bold; text-align: center;") << std::endl;
+	*out << cgicc::tr() << std::endl;
 
 	// Now print the concatonated table.
 	*out << generalTable.toHTML(false);
 
 	// And now close the table.
-	*out << cgicc::table() << endl;
+	*out << cgicc::table() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 	// Display individual fiber status information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('fiberTable')") << endl;
-	*out << "Individual Fiber Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('fiberTable')") << std::endl;
+	*out << "Individual Fiber Information" << cgicc::div() << std::endl;
 
 	DataTable fiberTable("fiberTable");
 
@@ -2956,7 +2953,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readDMBWarning = myDDU->readDMBWarning(dt);
-		*(fiberTable(0,iDevType*2+1)->value) << showbase << hex << ((readDMBWarning >> 8) & 0xff);
+		*(fiberTable(0,iDevType*2+1)->value) << showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
 		if (((readDMBWarning >> 8) & 0xff)) fiberTable(0,iDevType*2+1)->setClass("bad");
 		else fiberTable(0,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -2967,7 +2964,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(1,iDevType*2+1)->value) << showbase << hex << ((readDMBWarning) & 0xff);
+		*(fiberTable(1,iDevType*2+1)->value) << showbase << std::hex << ((readDMBWarning) & 0xff);
 		if (((readDMBWarning) & 0xff)) fiberTable(1,iDevType*2+1)->setClass("warning");
 		else fiberTable(1,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -2978,7 +2975,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int checkFiber = myDDU->checkFiber(dt);
-		*(fiberTable(2,iDevType*2+1)->value) << showbase << hex << ((checkFiber >> 8) & 0xff);
+		*(fiberTable(2,iDevType*2+1)->value) << showbase << std::hex << ((checkFiber >> 8) & 0xff);
 		if (((checkFiber >> 8) & 0xff)) fiberTable(2,iDevType*2+1)->setClass("bad");
 		else fiberTable(2,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -2989,7 +2986,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(3,iDevType*2+1)->value) << showbase << hex << ((checkFiber) & 0xff);
+		*(fiberTable(3,iDevType*2+1)->value) << showbase << std::hex << ((checkFiber) & 0xff);
 		fiberTable(3,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((checkFiber) & 0xff) & (1<<iFiber)) {
@@ -2999,7 +2996,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readDMBSync = myDDU->readDMBSync(dt);
-		*(fiberTable(4,iDevType*2+1)->value) << showbase << hex << ((readDMBSync >> 8) & 0xff);
+		*(fiberTable(4,iDevType*2+1)->value) << showbase << std::hex << ((readDMBSync >> 8) & 0xff);
 		if (((readDMBSync >> 8) & 0xff)) fiberTable(4,iDevType*2+1)->setClass("bad");
 		else fiberTable(4,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3010,7 +3007,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(5,iDevType*2+1)->value) << showbase << hex << ((readDMBSync) & 0xff);
+		*(fiberTable(5,iDevType*2+1)->value) << showbase << std::hex << ((readDMBSync) & 0xff);
 		if (((readDMBSync) & 0xff)) fiberTable(5,iDevType*2+1)->setClass("warning");
 		else fiberTable(5,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3021,7 +3018,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readRxError = myDDU->readRxError(dt);
-		*(fiberTable(6,iDevType*2+1)->value) << showbase << hex << ((readRxError >> 8) & 0xff);
+		*(fiberTable(6,iDevType*2+1)->value) << showbase << std::hex << ((readRxError >> 8) & 0xff);
 		if (((readRxError >> 8) & 0xff)) fiberTable(6,iDevType*2+1)->setClass("questionable");
 		else fiberTable(6,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3031,7 +3028,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(7,iDevType*2+1)->value) << showbase << hex << ((readRxError) & 0xff);
+		*(fiberTable(7,iDevType*2+1)->value) << showbase << std::hex << ((readRxError) & 0xff);
 		if (((readRxError) & 0xff)) fiberTable(7,iDevType*2+1)->setClass("bad");
 		else fiberTable(7,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3043,7 +3040,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readTimeout = myDDU->readTimeout(dt);
-		*(fiberTable(8,iDevType*2+1)->value) << showbase << hex << ((readTimeout >> 8) & 0xff);
+		*(fiberTable(8,iDevType*2+1)->value) << showbase << std::hex << ((readTimeout >> 8) & 0xff);
 		if (((readTimeout >> 8) & 0xff)) fiberTable(8,iDevType*2+1)->setClass("bad");
 		else fiberTable(8,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3054,7 +3051,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(9,iDevType*2+1)->value) << showbase << hex << ((readTimeout) & 0xff);
+		*(fiberTable(9,iDevType*2+1)->value) << showbase << std::hex << ((readTimeout) & 0xff);
 		if (((readTimeout) & 0xff)) fiberTable(9,iDevType*2+1)->setClass("bad");
 		else fiberTable(9,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3066,7 +3063,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readTxError = myDDU->readTxError(dt);
-		*(fiberTable(10,iDevType*2+1)->value) << showbase << hex << ((readTxError >> 8) & 0xff);
+		*(fiberTable(10,iDevType*2+1)->value) << showbase << std::hex << ((readTxError >> 8) & 0xff);
 		fiberTable(10,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readTxError >> 8) & 0xff) & (1<<iFiber)) {
@@ -3075,7 +3072,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(11,iDevType*2+1)->value) << showbase << hex << ((readTxError) & 0xff);
+		*(fiberTable(11,iDevType*2+1)->value) << showbase << std::hex << ((readTxError) & 0xff);
 		if (((readTxError) & 0xff)) fiberTable(11,iDevType*2+1)->setClass("bad");
 		else fiberTable(11,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3087,7 +3084,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readLostError = myDDU->readLostError(dt);
-		*(fiberTable(12,iDevType*2+1)->value) << showbase << hex << ((readLostError >> 8) & 0xff);
+		*(fiberTable(12,iDevType*2+1)->value) << showbase << std::hex << ((readLostError >> 8) & 0xff);
 		if (((readLostError) & 0xff)) fiberTable(12,iDevType*2+1)->setClass("warning");
 		else fiberTable(12,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3097,7 +3094,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(13,iDevType*2+1)->value) << showbase << hex << ((readLostError) & 0xff);
+		*(fiberTable(13,iDevType*2+1)->value) << showbase << std::hex << ((readLostError) & 0xff);
 		if (((readLostError) & 0xff)) fiberTable(13,iDevType*2+1)->setClass("bad");
 		else fiberTable(13,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3110,7 +3107,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	}
 
 	// Summary
-	*out << fiberTable.printSummary() << endl;
+	*out << fiberTable.printSummary() << std::endl;
 
 	// We use a special case of the toHTML method for InFPGAs.
 	// Hide the table if all is keen.
@@ -3119,46 +3116,46 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::table()
 			.set("id","fiberTable")
 			.set("class","data")
-			.set("style","display: none;") << endl;
+			.set("style","display: none;") << std::endl;
 	} else {
 		*out << cgicc::table()
 			.set("id","fiberTable")
-			.set("class","data") << endl;
+			.set("class","data") << std::endl;
 	}
 
 	// Put the titles of the two InFPGAs here.
-	*out << cgicc::tr() << endl;
-	*out << cgicc::td(" ") << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::td(" ") << std::endl;
 	*out << cgicc::td(devNames[0])
 		.set("colspan","2")
-		.set("style","font-weight: bold; text-align: center; border-right: 3px double #000;")<< endl;
+		.set("style","font-weight: bold; text-align: center; border-right: 3px double #000;")<< std::endl;
 	*out << cgicc::td(devNames[1])
 		.set("colspan","2")
-		.set("style","font-weight: bold; text-align: center;") << endl;
-	*out << cgicc::tr() << endl;
+		.set("style","font-weight: bold; text-align: center;") << std::endl;
+	*out << cgicc::tr() << std::endl;
 
 	// Now print the concatonated table.
 	*out << fiberTable.toHTML(false);
 
 	// And now close the table.
-	*out << cgicc::table() << endl;
+	*out << cgicc::table() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 	// Display other fiber information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('otherTable')") << endl;
-	*out << "Other Fiber/InRD Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('otherTable')") << std::endl;
+	*out << "Other Fiber/InRD Information" << cgicc::div() << std::endl;
 
 	DataTable otherTable("otherTable");
 
@@ -3184,7 +3181,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readFIFOStat = myDDU->readFIFOStat(dt);
-		*(otherTable(0,iDevType*2+1)->value) << showbase << hex << ((readFIFOStat >> 8) & 0xff);
+		*(otherTable(0,iDevType*2+1)->value) << showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
 		//if (((readFIFOStat >> 8) & 0xff)) otherTable(0,iDevType*2+1)->setClass("bad");
 		otherTable(0,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3194,7 +3191,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(otherTable(1,iDevType*2+1)->value) << showbase << hex << ((readFIFOStat) & 0xff);
+		*(otherTable(1,iDevType*2+1)->value) << showbase << std::hex << ((readFIFOStat) & 0xff);
 		if (((readFIFOStat) & 0xfc)) otherTable(1,iDevType*2+1)->setClass("warning");
 		else otherTable(1,iDevType*2+1)->setClass("ok");
 		std::map<std::string, std::string> readFIFOStatComments = DDUDebugger::FIFOStat(dt,(readFIFOStat) & 0xff);
@@ -3202,11 +3199,11 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			iComment != readFIFOStatComments.end();
 			iComment++) {
 			*(otherTable(1,iDevType*2+2)->value) << cgicc::div(iComment->first)
-				.set("class",iComment->second) << endl;
+				.set("class",iComment->second) << std::endl;
 		}
 
 		unsigned int readFIFOFull = myDDU->readFIFOFull(dt);
-		*(otherTable(2,iDevType*2+1)->value) << showbase << hex << ((readFIFOFull) & 0xff);
+		*(otherTable(2,iDevType*2+1)->value) << showbase << std::hex << ((readFIFOFull) & 0xff);
 		if (((readFIFOFull) & 0xff)) otherTable(2,iDevType*2+1)->setClass("bad");
 		else otherTable(2,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3216,7 +3213,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(otherTable(3,iDevType*2+1)->value) << showbase << hex << ((readFIFOFull >> 8) & 0xff);
+		*(otherTable(3,iDevType*2+1)->value) << showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
 		if (((readFIFOFull >> 8) & 0xf)) otherTable(3,iDevType*2+1)->setClass("warning");
 		else otherTable(3,iDevType*2+1)->setClass("ok");
 		std::map<std::string, std::string> readFIFOFullComments = DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff);
@@ -3224,11 +3221,11 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			iComment != readFIFOFullComments.end();
 			iComment++) {
 			*(otherTable(3,iDevType*2+2)->value) << cgicc::div(iComment->first)
-				.set("class",iComment->second) << endl;
+				.set("class",iComment->second) << std::endl;
 		}
 
 		unsigned int readCCodeStat = myDDU->infpga_CcodeStat(dt);
-		*(otherTable(4,iDevType*2+1)->value) << showbase << hex << ((readCCodeStat) & 0xff);
+		*(otherTable(4,iDevType*2+1)->value) << showbase << std::hex << ((readCCodeStat) & 0xff);
 		if ((readCCodeStat & 0xff) == 0x20) otherTable(4,iDevType*2+1)->setClass("warning");
 		else if (readCCodeStat & 0xff) otherTable(4,iDevType*2+1)->setClass("bad");
 		else otherTable(4,iDevType*2+1)->setClass("ok");
@@ -3237,10 +3234,10 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			iComment != readCCodeStatComments.end();
 			iComment++) {
 			*(otherTable(4,iDevType*2+2)->value) << cgicc::div(iComment->first)
-				.set("class",iComment->second) << endl;
+				.set("class",iComment->second) << std::endl;
 		}
 
-		*(otherTable(5,iDevType*2+1)->value) << showbase << hex << ((readCCodeStat >> 8) & 0xff);
+		*(otherTable(5,iDevType*2+1)->value) << showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
 		if (((readCCodeStat >> 8) & 0xff) == 0x20) otherTable(5,iDevType*2+1)->setClass("warning");
 		else if (((readCCodeStat >> 8) & 0xff)) otherTable(5,iDevType*2+1)->setClass("bad");
 		else otherTable(5,iDevType*2+1)->setClass("ok");
@@ -3249,13 +3246,13 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			iComment != readCCodeStatComments.end();
 			iComment++) {
 			*(otherTable(5,iDevType*2+2)->value) << cgicc::div(iComment->first)
-				.set("class",iComment->second) << endl;
+				.set("class",iComment->second) << std::endl;
 		}
 		
 	}
 
 	// Summary
-	*out << otherTable.printSummary() << endl;
+	*out << otherTable.printSummary() << std::endl;
 
 	// We use a special case of the toHTML method for InFPGAs.
 	// Hide the table if all is keen.
@@ -3264,46 +3261,46 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::table()
 			.set("id","otherTable")
 			.set("class","data")
-			.set("style","display: none;") << endl;
+			.set("style","display: none;") << std::endl;
 	} else {
 		*out << cgicc::table()
 			.set("id","otherTable")
-			.set("class","data") << endl;
+			.set("class","data") << std::endl;
 	}
 
 	// Put the titles of the two InFPGAs here.
-	*out << cgicc::tr() << endl;
-	*out << cgicc::td(" ") << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::td(" ") << std::endl;
 	*out << cgicc::td(devNames[0])
 		.set("colspan","2")
-		.set("style","font-weight: bold; text-align: center; border-right: 3px double #000;")<< endl;
+		.set("style","font-weight: bold; text-align: center; border-right: 3px double #000;")<< std::endl;
 	*out << cgicc::td(devNames[1])
 		.set("colspan","2")
-		.set("style","font-weight: bold; text-align: center;") << endl;
-	*out << cgicc::tr() << endl;
+		.set("style","font-weight: bold; text-align: center;") << std::endl;
+	*out << cgicc::tr() << std::endl;
 
 	// Now print the concatonated table.
 	*out << otherTable.toHTML(false);
 
 	// And now close the table.
-	*out << cgicc::table() << endl;
+	*out << cgicc::table() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 	// Display memctrl information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('memTable')") << endl;
-	*out << "Memory Control Information (22 fifos)" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('memTable')") << std::endl;
+	*out << "Memory Control Information (22 fifos)" << cgicc::div() << std::endl;
 
 	DataTable memTable("memTable");
 
@@ -3332,25 +3329,25 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int memValue = myDDU->readFiberDiagnostics(dt,0);
-		*(memTable(0,iDevType*2+1)->value) << showbase << hex << memValue;
+		*(memTable(0,iDevType*2+1)->value) << showbase << std::hex << memValue;
 		memTable(0,iDevType*2+1)->setClass("ok");
 		std::map< std::string, std::string> memComments = DDUDebugger::FiberDiagnostics(dt,0,memValue);
 		for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 			iComment != memComments.end();
 			iComment++) {
 			*(memTable(0,iDevType*2+2)->value) << cgicc::div(iComment->first)
-				.set("class",iComment->second) << endl;
+				.set("class",iComment->second) << std::endl;
 		}
 
 		memValue = myDDU->readFiberDiagnostics(dt,1);
-		*(memTable(1,iDevType*2+1)->value) << showbase << hex << memValue;
+		*(memTable(1,iDevType*2+1)->value) << showbase << std::hex << memValue;
 		memTable(1,iDevType*2+1)->setClass("ok");
 		memComments = DDUDebugger::FiberDiagnostics(dt,1,memValue);
 		for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 			iComment != memComments.end();
 			iComment++) {
 			*(memTable(1,iDevType*2+2)->value) << cgicc::div(iComment->first)
-				.set("class",iComment->second) << endl;
+				.set("class",iComment->second) << std::endl;
 		}
 
 		memValue = myDDU->infpga_MemAvail(dt);
@@ -3379,20 +3376,20 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 
 		for (unsigned int ireg = 0; ireg < 4; ireg++) {
 			memValue = myDDU->readWriteMemoryActive(dt,ireg);
-			*(memTable(ireg + 6,iDevType*2+1)->value) << showbase << hex << memValue;
+			*(memTable(ireg + 6,iDevType*2+1)->value) << showbase << std::hex << memValue;
 			memTable(ireg + 6,iDevType*2+1)->setClass("ok");
 			memComments = DDUDebugger::WriteMemoryActive(dt,ireg,memValue);
 			for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 				iComment != memComments.end();
 				iComment++) {
 				*(memTable(ireg + 6,iDevType*2+2)->value) << cgicc::div(iComment->first)
-					.set("class",iComment->second) << endl;
+					.set("class",iComment->second) << std::endl;
 			}
 		}
 	}
 
 	// Summary
-	*out << memTable.printSummary() << endl;
+	*out << memTable.printSummary() << std::endl;
 
 	// We use a special case of the toHTML method for InFPGAs.
 	// Hide the table if all is keen.
@@ -3401,75 +3398,75 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::table()
 			.set("id","memTable")
 			.set("class","data")
-			.set("style","display: none;") << endl;
+			.set("style","display: none;") << std::endl;
 	} else {
 		*out << cgicc::table()
 			.set("id","memTable")
-			.set("class","data") << endl;
+			.set("class","data") << std::endl;
 	}
 
 	// Put the titles of the two InFPGAs here.
-	*out << cgicc::tr() << endl;
-	*out << cgicc::td(" ") << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::td(" ") << std::endl;
 	*out << cgicc::td(devNames[0])
 		.set("colspan","2")
-		.set("style","font-weight: bold; text-align: center; border-right: 3px double #000;")<< endl;
+		.set("style","font-weight: bold; text-align: center; border-right: 3px double #000;")<< std::endl;
 	*out << cgicc::td(devNames[1])
 		.set("colspan","2")
-		.set("style","font-weight: bold; text-align: center;") << endl;
-	*out << cgicc::tr() << endl;
+		.set("style","font-weight: bold; text-align: center;") << std::endl;
+	*out << cgicc::tr() << std::endl;
 
 	// Now print the concatonated table.
 	*out << memTable.toHTML(false);
 
 	// And now close the table.
-	*out << cgicc::table() << endl;
+	*out << cgicc::table() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 
 	// Display the big debugging information block
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("InFPGA Diagnostic Trap Decoding")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
 		enum DEVTYPE dt = devTypes[iDevType];
 
 		*out << cgicc::span()
-			.set("style","background-color: #FFF; border: 2px solid #000; padding: 10px; width: 95%; margin: 10px auto 10px auto; display: block;") << endl;
+			.set("style","background-color: #FFF; border: 2px solid #000; padding: 10px; width: 95%; margin: 10px auto 10px auto; display: block;") << std::endl;
 		*out << cgicc::div(devNames[iDevType])
-			.set("style","font-size: 14pt; font-weight: bold; width: 100%; text-align: center;") << endl;
+			.set("style","font-size: 14pt; font-weight: bold; width: 100%; text-align: center;") << std::endl;
 
 		if (debugTrapValid[iDevType]) {
 
 			// Here it is.
 			std::vector<std::string> bigComments = DDUDebugger::infpga_trap(myDDU, dt);
 
-			ostringstream diagCode;
-			diagCode << setfill('0');
-			diagCode << hex;
-			diagCode << setw(8) << myDDU->fpga_lcode[5] << " ";
-			diagCode << setw(8) << myDDU->fpga_lcode[4] << " ";
-			diagCode << setw(8) << myDDU->fpga_lcode[3] << " ";
-			diagCode << setw(8) << myDDU->fpga_lcode[2] << " ";
-			diagCode << setw(8) << myDDU->fpga_lcode[1] << " ";
-			diagCode << setw(8) << myDDU->fpga_lcode[0];
+			std::stringstream diagCode;
+			diagCode << std::setfill('0');
+			diagCode << std::hex;
+			diagCode << std::setw(8) << myDDU->fpga_lcode[5] << " ";
+			diagCode << std::setw(8) << myDDU->fpga_lcode[4] << " ";
+			diagCode << std::setw(8) << myDDU->fpga_lcode[3] << " ";
+			diagCode << std::setw(8) << myDDU->fpga_lcode[2] << " ";
+			diagCode << std::setw(8) << myDDU->fpga_lcode[1] << " ";
+			diagCode << std::setw(8) << myDDU->fpga_lcode[0];
 
 			*out << cgicc::div("Trap value (194 bits): ")
 				.set("style","font-weight: bold; display: inline;");
 
 			*out << cgicc::div(diagCode.str())
-				.set("style","display: inline;") << endl;
+				.set("style","display: inline;") << std::endl;
 
 			*out << cgicc::div()
-				.set("style","width: 95%; font-size: 10pt; margin: 10px auto 10px auto; border: 2px solid #666; padding: 2px; font-family: monospace;") << endl;
+				.set("style","width: 95%; font-size: 10pt; margin: 10px auto 10px auto; border: 2px solid #666; padding: 2px; font-family: monospace;") << std::endl;
 
 			for (std::vector<std::string>::iterator iComment = bigComments.begin(); iComment != bigComments.end(); iComment++) {
 				*out << (*iComment) << cgicc::br();
@@ -3478,19 +3475,19 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::div();
 
 			*out << cgicc::div("The status registers are frozen in the trap only after an error occurs.  The values in the trap remain valid until a reset.")
-				.set("style","font-size: 8pt;") << endl;
+				.set("style","font-size: 8pt;") << std::endl;
 
 		} else {
 			*out << cgicc::div("Diagnostic trap is only valid after an InFPGA error has been detected.")
-				.set("style","color: #A00; font-size: 10pt;") << endl;
+				.set("style","color: #A00; font-size: 10pt;") << std::endl;
 		}
 		
-		*out << cgicc::span() << endl;
+		*out << cgicc::span() << std::endl;
 	}
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 
 }
 
@@ -3514,41 +3511,41 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDDU = cgi["ddu"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DDU *myDDU = myCrate->ddus()[cgiDDU];
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Expert Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
 	*out << Header(sTitle.str(),false);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("DDUExpert","ddu",cgiDDU,cgiCrate) << endl;
+	*out << selectACrate("DDUExpert","ddu",cgiDDU,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 
 
 	myCrate->vmeController()->CAEN_err_reset();
 	// Killfiber and xorbit read/set
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div("DDU KillFiber Register")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	// Massively useful for all the things that follow.
 	std::string dduTextLoad = "/"+getApplicationDescriptor()->getURN()+"/DDUTextLoad";
@@ -3562,49 +3559,49 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","3") << endl;
+		.set("value","3") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","ddu")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 
 	unsigned long int currentKillFiber = myDDU->ddu_rdkillfiber();
 	*out << cgicc::div("Current KillFiber register value: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << hex << currentKillFiber << cgicc::div() << endl;
-	*out << cgicc::br() << endl;
+	*out << showbase << std::hex << currentKillFiber << cgicc::div() << std::endl;
+	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New KillFiber register value (change this below): ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
-	ostringstream kfValue;
-	kfValue << hex << showbase << currentKillFiber;
+	std::stringstream kfValue;
+	kfValue << std::hex << showbase << currentKillFiber;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
 		.set("value",kfValue.str())
 		.set("size","8")
-		.set("id","killFiber") << endl;
+		.set("id","killFiber") << std::endl;
 
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Load KillFiber Register") << endl;
+		.set("value","Load KillFiber Register") << std::endl;
 
 	*out << cgicc::div("This is a volatile register, and will be reprogrammed on a hard reset.  If you wish to make this change perminent, change the configuration file (see the top of this page)")
-		.set("style","font-size: 8pt; color: #900;") << endl;
+		.set("style","font-size: 8pt; color: #900;") << std::endl;
 
 	// A table for the first half of the form.
 	*out << cgicc::table()
-		.set("style","width: 100%; margin: 5px auto 5px auto; font-size: 8pt; border-collapse: collapse;") << endl;
-	*out << cgicc::tr() << endl;
+		.set("style","width: 100%; margin: 5px auto 5px auto; font-size: 8pt; border-collapse: collapse;") << std::endl;
+	*out << cgicc::tr() << std::endl;
 
 	// Knowing which chambers are actually alive is a good thing.
 	long int liveFibers = (myDDU->checkFiber(INFPGA0)&0x000000ff) | ((myDDU->checkFiber(INFPGA1)&0x000000ff)<<8);
@@ -3619,11 +3616,11 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		
 		*out << cgicc::td()
 			.set("class",chamberClass)
-			.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 6%;") << dec << iFiber << cgicc::td() << endl;
+			.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 6%;") << std::dec << iFiber << cgicc::td() << std::endl;
 	}
 
-	*out << cgicc::tr() << endl;
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr() << std::endl;
 	
 	// Loop through the chambers.  They should be in fiber-order.
 	for (unsigned int iFiber=0; iFiber<15; iFiber++) {
@@ -3638,21 +3635,21 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 			*out << cgicc::td(thisChamber->name())
 				.set("class",chamberClass)
-				.set("style","border: 1px solid #000; border-top-width: 0px; width: 6%; font-weight: bold;") << endl;
+				.set("style","border: 1px solid #000; border-top-width: 0px; width: 6%; font-weight: bold;") << std::endl;
 		} else {
 			*out << cgicc::td("???")
 				.set("class","undefined")
-				.set("style","border: 1px solid #000; border-top-width: 0px; width: 6%; font-weight: bold;") << endl;
+				.set("style","border: 1px solid #000; border-top-width: 0px; width: 6%; font-weight: bold;") << std::endl;
 		}
 	}
 	*out << cgicc::tr();
 
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
 	for (unsigned int ifiber = 0; ifiber < 15; ifiber++) {
-		*out << cgicc::td() << endl;
-		ostringstream radioName;
+		*out << cgicc::td() << std::endl;
+		std::stringstream radioName;
 		radioName << "fiber" << ifiber;
-		ostringstream swapCommand;
+		std::stringstream swapCommand;
 		swapCommand << "javascript:toggleBit('killFiber'," << ifiber << ");";
 		if (currentKillFiber & 1<<ifiber) {
 			*out << cgicc::input()
@@ -3660,268 +3657,268 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 				.set("name",radioName.str())
 				.set("value","1")
 				.set("onChange",swapCommand.str())
-				.set("checked","checked") << "Live" << cgicc::br() << endl;
+				.set("checked","checked") << "Live" << cgicc::br() << std::endl;
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
 				.set("value","0")
-				.set("onChange",swapCommand.str()) << "Killed" << endl;
+				.set("onChange",swapCommand.str()) << "Killed" << std::endl;
 		} else {
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
 				.set("value","1")
-				.set("onChange",swapCommand.str()) << "Live" << cgicc::br() << endl;
+				.set("onChange",swapCommand.str()) << "Live" << cgicc::br() << std::endl;
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
 				.set("value","0")
 				.set("onChange",swapCommand.str())
-				.set("checked","checked") << "Killed" << endl;
+				.set("checked","checked") << "Killed" << std::endl;
 		}
-		*out << cgicc::td() << endl;
+		*out << cgicc::td() << std::endl;
 	}
-	*out << cgicc::tr() << endl;
-	*out << cgicc::table() << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::table() << std::endl;
 
 	// Now for some check-boxes.
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentKillFiber & (1<<15)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box15")
 			.set("onChange","javascript:toggleBit('killFiber',15);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box15")
-			.set("onChange","javascript:toggleBit('killFiber',15);") << endl;
+			.set("onChange","javascript:toggleBit('killFiber',15);") << std::endl;
 	}
-	*out << "Force all DDU checks" << cgicc::div() << endl;
+	*out << "Force all DDU checks" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentKillFiber & (1<<16)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box16")
 			.set("onChange","javascript:toggleBit('killFiber',16);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box16")
-			.set("onChange","javascript:toggleBit('killFiber',16);") << endl;
+			.set("onChange","javascript:toggleBit('killFiber',16);") << std::endl;
 	}
-	*out << "Force ALCT checks" << cgicc::div() << endl;
+	*out << "Force ALCT checks" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentKillFiber & (1<<17)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box17")
 			.set("onChange","javascript:toggleBit('killFiber',17);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box17")
-			.set("onChange","javascript:toggleBit('killFiber',17);") << endl;
+			.set("onChange","javascript:toggleBit('killFiber',17);") << std::endl;
 	}
-	*out << "Force TMB checks" << cgicc::div() << endl;
+	*out << "Force TMB checks" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentKillFiber & (1<<18)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box18")
 			.set("onChange","javascript:toggleBit('killFiber',18);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box18")
-			.set("onChange","javascript:toggleBit('killFiber',18);") << endl;
+			.set("onChange","javascript:toggleBit('killFiber',18);") << std::endl;
 	}
-	*out << "Force CFEB checks (enable DAV checks)" << cgicc::div() << endl;
+	*out << "Force CFEB checks (enable DAV checks)" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentKillFiber & (1<<19)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box19")
 			.set("onChange","javascript:toggleBit('killFiber',19);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box19")
-			.set("onChange","javascript:toggleBit('killFiber',19);") << endl;
+			.set("onChange","javascript:toggleBit('killFiber',19);") << std::endl;
 	}
-	*out << "Force normal DDU checks (off enables only SP/TF checks)" << cgicc::div() << endl;
+	*out << "Force normal DDU checks (off enables only SP/TF checks)" << cgicc::div() << std::endl;
 
-	*out << cgicc::form() << endl;
+	*out << cgicc::form() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 
 
 	// DDUFPGA Resets and other commands
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "DDUFPGA Commands" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "DDUFPGA Commands" << cgicc::div() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","5") << endl;
+		.set("value","5") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Send one fake DDU L1A via VME") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Send one fake DDU L1A via VME") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","1") << endl;
+		.set("value","1") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Toggle DDU CFEB-calibration-pulse==L1A feature (default false)") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Toggle DDU CFEB-calibration-pulse==L1A feature (default false)") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","2") << endl;
+		.set("value","2") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Reset DDU via VME sync reset") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Reset DDU via VME sync reset") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","6") << endl;
+		.set("value","6") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Send FMM-Error-Disable signal") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Send FMM-Error-Disable signal") << std::endl;
+	*out << cgicc::form() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 
 
 	// InFPGA resets
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "InFPGA Resets" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "InFPGA Resets" << cgicc::div() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","7") << endl;
+		.set("value","7") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
 		.set("size","10")
 		.set("ENCTYPE","multipart/form-data")
-		.set("value","") << endl;
+		.set("value","") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Reset InFPGA0") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Reset InFPGA0") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","8") << endl;
+		.set("value","8") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
 		.set("size","10")
 		.set("ENCTYPE","multipart/form-data")
-		.set("value","") << endl;
+		.set("value","") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Reset InFPGA1") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Reset InFPGA1") << std::endl;
+	*out << cgicc::form() << std::endl;
 
-	*out << cgicc::fieldset() << endl;	
+	*out << cgicc::fieldset() << std::endl;	
 
 
 
@@ -3929,10 +3926,10 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	myCrate->vmeController()->CAEN_err_reset();
 	// Inreg for serial writes.
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "Input Registers for Flash Writes" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "Input Registers for Flash Writes" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
 	DataTable inregTable("inregTable");
@@ -3943,35 +3940,35 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	for (unsigned int iReg = 0; iReg < 3; iReg++) {
 		unsigned int inreg = myDDU->readInputReg(iReg);
 		*(inregTable(iReg,0)->value) << "InReg" << iReg;
-		*(inregTable(iReg,1)->value) << showbase << hex << inreg;
+		*(inregTable(iReg,1)->value) << showbase << std::hex << inreg;
 		inregTable[iReg]->setClass("none");
 		if (iReg == 0) {
-			*(inregTable(iReg,2)->value) << inregTable[iReg]->makeForm(dduTextLoad,cgiCrate,cgiDDU,9) << endl;
+			*(inregTable(iReg,2)->value) << inregTable[iReg]->makeForm(dduTextLoad,cgiCrate,cgiDDU,9) << std::endl;
 		}
 	}
 
-	*out << inregTable.toHTML() << endl;
+	*out << inregTable.toHTML() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
-	*out << "Input registers are used for VMS serial writing.  You can load up to 48 bits in these three registers with bit 0 of InReg0 being the LSB." << cgicc::br() << endl;
-	*out << "The registers are pipelined, InReg0 --> InReg1 --> InReg2." << endl;
-	*out << cgicc::div() << endl;
+		.set("style","font-size: 8pt;") << std::endl;
+	*out << "Input registers are used for VMS serial writing.  You can load up to 48 bits in these three registers with bit 0 of InReg0 being the LSB." << cgicc::br() << std::endl;
+	*out << "The registers are pipelined, InReg0 --> InReg1 --> InReg2." << std::endl;
+	*out << cgicc::div() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 	// Other Serial registers that nobody but experts care about
 	myCrate->vmeController()->CAEN_err_reset();
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "Miscellaneous Serial Registers" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "Miscellaneous Serial Registers" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
 	DataTable expertTable("expertTable");
@@ -3983,9 +3980,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	// FIXME
 	unsigned int gbePrescale = myDDU->readGbEPrescale();
 	*(expertTable(0,0)->value) << "GbE prescale";
-	*(expertTable(0,1)->value) << showbase << hex << gbePrescale;
-	/*std::map<string,string> gbePrescaleComments = DDUDebugger::GbEPrescale(gbePrescale);
-	for (std::map<string,string>::iterator iComment = gbePrescaleComments.begin();
+	*(expertTable(0,1)->value) << showbase << std::hex << gbePrescale;
+	/*std::map<std::string,std::string> gbePrescaleComments = DDUDebugger::GbEPrescale(gbePrescale);
+	for (std::map<std::string,std::string>::iterator iComment = gbePrescaleComments.begin();
 		iComment != gbePrescaleComments.end();
 		iComment++) {
 		*(expertTable(0,2)->value) << cgicc::div(iComment->first)
@@ -3997,10 +3994,10 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	unsigned int fakeL1 = myDDU->readFakeL1Reg();
 	*(expertTable(1,0)->value) << "Fake L1A Data Passthrough";
-	*(expertTable(1,1)->value) << showbase << hex << fakeL1;
+	*(expertTable(1,1)->value) << showbase << std::hex << fakeL1;
 	/*
-	std::map<string,string> fakeL1Comments = DDUDebugger::FakeL1Reg(fakeL1);
-	for (std::map<string,string>::iterator iComment = fakeL1Comments.begin();
+	std::map<std::string,std::string> fakeL1Comments = DDUDebugger::FakeL1Reg(fakeL1);
+	for (std::map<std::string,std::string>::iterator iComment = fakeL1Comments.begin();
 		iComment != fakeL1Comments.end();
 		iComment++) {
 		*(expertTable(1,2)->value) << cgicc::div(iComment->first)
@@ -4012,10 +4009,10 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	unsigned int foe = myDDU->readFMMReg();
 	*(expertTable(2,0)->value) << "F0E + 4-bit FMM";
-	*(expertTable(2,1)->value) << showbase << hex << foe;
+	*(expertTable(2,1)->value) << showbase << std::hex << foe;
 	/*
-	std::map<string,string> foeComments = DDUDebugger::F0EReg(foe);
-	for (std::map<string,string>::iterator iComment = foeComments.begin();
+	std::map<std::string,std::string> foeComments = DDUDebugger::F0EReg(foe);
+	for (std::map<std::string,std::string>::iterator iComment = foeComments.begin();
 		iComment != foeComments.end();
 		iComment++) {
 		*(expertTable(2,2)->value) << cgicc::div(iComment->first)
@@ -4026,100 +4023,100 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	expertTable[2]->setClass("none");
 
 	*(expertTable(3,0)->value) << "Switches";
-	*(expertTable(3,1)->value) << showbase << hex << (myDDU->readSwitches() & 0xff);
+	*(expertTable(3,1)->value) << showbase << std::hex << (myDDU->readSwitches() & 0xff);
 	expertTable[3]->setClass("none");
 
 	for (unsigned int iReg = 0; iReg < 5; iReg++) {
 		*(expertTable(4 + iReg,0)->value) << "Test register " << iReg;
-		*(expertTable(4 + iReg,1)->value) << showbase << hex << (myDDU->readTestReg(iReg));
+		*(expertTable(4 + iReg,1)->value) << showbase << std::hex << (myDDU->readTestReg(iReg));
 		expertTable[4 + iReg]->setClass("none");
 	}
 
-	*out << expertTable.toHTML() << endl;
+	*out << expertTable.toHTML() << std::endl;
 
 	// You can toggle some more things down here.
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","crate")
 		.set("type","hidden")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	// This is a relic from the old days, and is read by DDUTextLoad.
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","10") << endl;
+		.set("value","10") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Toggle DAQ backpressure (DCC/S-Link wait)") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Toggle DAQ backpressure (DCC/S-Link wait)") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","crate")
 		.set("type","hidden")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	// This is a relic from the old days, and is read by DDUTextLoad.
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","12") << endl;
+		.set("value","12") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Toggle all fake L1A (data dump/passthrough)") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Toggle all fake L1A (data dump/passthrough)") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dduTextLoad) << endl;
+		.set("action",dduTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("name","ddu")
 		.set("type","hidden")
-		.set("value",dduVal) << endl;
+		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("name","crate")
 		.set("type","hidden")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	// This is a relic from the old days, and is read by DDUTextLoad.
 	*out << cgicc::input()
 		.set("name","command")
 		.set("type","hidden")
-		.set("value","6") << endl;
+		.set("value","6") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Activate FMM error-report disable setting") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Activate FMM error-report disable setting") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
-	*out << "GbE Prescale bits 0-2 set rate (0 => 1:1, 1 => 1:2, 2=> 1:4 ... 7 => never)" << cgicc::br() << endl;
-	*out << "GbE Prescale bit 3=1 sets DCC/S-Link wait ignore" << cgicc::br() << endl;
-	*out << "Fake L1A bit 0=1 sets InFPGA0 passthrough" << cgicc::br() << endl;
-	*out << "Fake L1A bit 1=1 sets InFPGA1 passthrough" << cgicc::br() << endl;
-	*out << "Fake L1A bit 2=1 sets DDUFPGA passthrough" << cgicc::br() << endl;
-	*out << "F0E register bits 4-15=0xFED0 disables DDU FMM error reporting" << endl;
-	*out << cgicc::div() << endl;
+		.set("style","font-size: 8pt;") << std::endl;
+	*out << "GbE Prescale bits 0-2 set rate (0 => 1:1, 1 => 1:2, 2=> 1:4 ... 7 => never)" << cgicc::br() << std::endl;
+	*out << "GbE Prescale bit 3=1 sets DCC/S-Link wait ignore" << cgicc::br() << std::endl;
+	*out << "Fake L1A bit 0=1 sets InFPGA0 passthrough" << cgicc::br() << std::endl;
+	*out << "Fake L1A bit 1=1 sets InFPGA1 passthrough" << cgicc::br() << std::endl;
+	*out << "Fake L1A bit 2=1 sets DDUFPGA passthrough" << cgicc::br() << std::endl;
+	*out << "F0E register bits 4-15=0xFED0 disables DDU FMM error reporting" << std::endl;
+	*out << cgicc::div() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 
 	// Parallel/flash writable registers
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "Writable Flash Pages" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "Writable Flash Pages" << cgicc::div() << std::endl;
 
 	DataTable writableTable("writableTable");
 	writableTable.addColumn("Page");
@@ -4127,36 +4124,36 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	writableTable.addColumn("New Value");
 
 	*(writableTable(0,0)->value) << "Flash live channels";
-	*(writableTable(0,1)->value) << showbase << hex << myDDU->read_page1();
+	*(writableTable(0,1)->value) << showbase << std::hex << myDDU->read_page1();
 	writableTable[0]->setClass("none");
 	// New Value...
-	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << endl;
+	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << std::endl;
 
 	myDDU->read_page5();
 	*(writableTable(1,0)->value) << "Flash GbE FIFO thresholds";
-	*(writableTable(1,1)->value) << "0x" << hex << ((myDDU->rcv_serial[4]&0xC0)>>6) << noshowbase << setw(8) << setfill('0') << hex << (((((myDDU->rcv_serial[2]&0xC0)>>6)|((myDDU->rcv_serial[5]&0xFF)<<2)|((myDDU->rcv_serial[4]&0x3F)<<10)) << 16) | (((myDDU->rcv_serial[0]&0xC0)>>6)|((myDDU->rcv_serial[3]&0xFF)<<2)|((myDDU->rcv_serial[2]&0x3F)<<10)));
+	*(writableTable(1,1)->value) << "0x" << std::hex << ((myDDU->rcv_serial[4]&0xC0)>>6) << noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((myDDU->rcv_serial[2]&0xC0)>>6)|((myDDU->rcv_serial[5]&0xFF)<<2)|((myDDU->rcv_serial[4]&0x3F)<<10)) << 16) | (((myDDU->rcv_serial[0]&0xC0)>>6)|((myDDU->rcv_serial[3]&0xFF)<<2)|((myDDU->rcv_serial[2]&0x3F)<<10)));
 	writableTable[1]->setClass("none");
 	// New Value...
-	*(writableTable(1,2)->value) << writableTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,15) << endl;
+	*(writableTable(1,2)->value) << writableTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,15) << std::endl;
 
 	*(writableTable(2,0)->value) << "Flash Board ID";
 	*(writableTable(2,1)->value) << myDDU->readFlashBoardID();
 	writableTable[2]->setClass("none");
 	// New Value...
-	*(writableTable(2,2)->value) << writableTable[2]->makeForm(dduTextLoad,cgiCrate,cgiDDU,16) << endl;
+	*(writableTable(2,2)->value) << writableTable[2]->makeForm(dduTextLoad,cgiCrate,cgiDDU,16) << std::endl;
 
 	*(writableTable(3,0)->value) << "Flash DDU RUI";
 	*(writableTable(3,1)->value) << myDDU->readFlashRUI();
 	writableTable[3]->setClass("none");
 	// New Value...
-	*(writableTable(3,2)->value) << writableTable[3]->makeForm(dduTextLoad,cgiCrate,cgiDDU,17) << endl;
+	*(writableTable(3,2)->value) << writableTable[3]->makeForm(dduTextLoad,cgiCrate,cgiDDU,17) << std::endl;
 
-	*out << writableTable.toHTML() << endl;
+	*out << writableTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;	
+	*out << cgicc::fieldset() << std::endl;	
 
 	
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 }
 
 
@@ -4180,45 +4177,45 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDDU = cgi["ddu"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DDU *myDDU = myCrate->ddus()[cgiDDU];
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU VME Parallel Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
 	*out << Header(sTitle.str(),false);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("VMEPARA","ddu",cgiDDU,cgiCrate) << endl;
+	*out << selectACrate("VMEPARA","ddu",cgiDDU,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 
 	myCrate->vmeController()->CAEN_err_reset();
 
 	// Display VME Control status information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('statusTable')") << endl;
-	*out << "VME Control Status" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('statusTable')") << std::endl;
+	*out << "VME Control Status" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
 	DataTable statusTable("statusTable");
@@ -4227,9 +4224,9 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int parallelStat = myDDU->readParallelStat();
 	*(statusTable(0,0)->value) << "VME status register";
-	*(statusTable(0,1)->value) << showbase << hex << parallelStat;
-	std::map<string,string> parallelStatComments = DDUDebugger::ParallelStat(parallelStat);
-	for (std::map<string,string>::iterator iComment = parallelStatComments.begin();
+	*(statusTable(0,1)->value) << showbase << std::hex << parallelStat;
+	std::map<std::string,std::string> parallelStatComments = DDUDebugger::ParallelStat(parallelStat);
+	for (std::map<std::string,std::string>::iterator iComment = parallelStatComments.begin();
 		iComment != parallelStatComments.end();
 		iComment++) {
 		*(statusTable(0,2)->value) << cgicc::div(iComment->first)
@@ -4242,9 +4239,9 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	int dduFMM = (parallelStat >> 8) & 0xf;
 	*(statusTable(1,0)->value) << "DDU FMM status";
-	*(statusTable(1,1)->value) << showbase << hex << dduFMM;
-	std::map<string,string> dduFMMComments = DDUDebugger::FMMReg(dduFMM);
-	for (std::map<string,string>::iterator iComment = dduFMMComments.begin();
+	*(statusTable(1,1)->value) << showbase << std::hex << dduFMM;
+	std::map<std::string,std::string> dduFMMComments = DDUDebugger::FMMReg(dduFMM);
+	for (std::map<std::string,std::string>::iterator iComment = dduFMMComments.begin();
 		iComment != dduFMMComments.end();
 		iComment++) {
 		*(statusTable(1,2)->value) << cgicc::div(iComment->first)
@@ -4255,28 +4252,28 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	else if (dduFMM & 0xF == 0x1) statusTable[1]->setClass("questionable");
 	else if (dduFMM & 0xF != 0x8) statusTable[1]->setClass("bad");
 
-	*out << statusTable.printSummary() << endl;
+	*out << statusTable.printSummary() << std::endl;
 
 	// Display only if there are errors.
 	if (statusTable.countClass("ok") + statusTable.countClass("none") == statusTable.countRows()) statusTable.setHidden(true);
-	*out << statusTable.toHTML() << endl;
+	*out << statusTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 	myCrate->vmeController()->CAEN_err_reset();
 	// Display individual fiber information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('fmmTable')") << endl;
-	*out << "Individual CSC FMM Reports" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('fmmTable')") << std::endl;
+	*out << "Individual CSC FMM Reports" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
 	DataTable fmmTable("fmmTable");
@@ -4286,7 +4283,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscStat = myDDU->readCSCStat();
 	*(fmmTable(0,0)->value) << "FMM problem report";
-	*(fmmTable(0,1)->value) << showbase << hex << cscStat;
+	*(fmmTable(0,1)->value) << showbase << std::hex << cscStat;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscStat & (1<<iFiber)) {
 			*(fmmTable(0,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4298,7 +4295,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscBusy = myDDU->readFMMBusy();
 	*(fmmTable(1,0)->value) << "Busy";
-	*(fmmTable(1,1)->value) << showbase << hex << cscBusy;
+	*(fmmTable(1,1)->value) << showbase << std::hex << cscBusy;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscBusy & (1<<iFiber)) {
 			*(fmmTable(1,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name());
@@ -4308,7 +4305,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscWarn = myDDU->readFMMFullWarning();
 	*(fmmTable(2,0)->value) << "Warning/near full";
-	*(fmmTable(2,1)->value) << showbase << hex << cscWarn;
+	*(fmmTable(2,1)->value) << showbase << std::hex << cscWarn;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscWarn & (1<<iFiber)) {
 			*(fmmTable(2,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4320,7 +4317,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscLS = myDDU->readFMMLostSync();
 	*(fmmTable(3,0)->value) << "Lost sync";
-	*(fmmTable(3,1)->value) << showbase << hex << cscLS;
+	*(fmmTable(3,1)->value) << showbase << std::hex << cscLS;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscLS & (1<<iFiber)) {
 			*(fmmTable(3,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4332,7 +4329,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscError = myDDU->readFMMError();
 	*(fmmTable(4,0)->value) << "Error";
-	*(fmmTable(4,1)->value) << showbase << hex << cscError;
+	*(fmmTable(4,1)->value) << showbase << std::hex << cscError;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscError & (1<<iFiber)) {
 			*(fmmTable(4,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4344,7 +4341,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscWH = myDDU->readWarningHistory();
 	*(fmmTable(5,0)->value) << "Warning history";
-	*(fmmTable(5,1)->value) << showbase << hex << cscWH;
+	*(fmmTable(5,1)->value) << showbase << std::hex << cscWH;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscWH & (1<<iFiber)) {
 			*(fmmTable(5,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4356,22 +4353,22 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscBH = myDDU->readBusyHistory();
 	*(fmmTable(6,0)->value) << "Busy history";
-	*(fmmTable(6,1)->value) << showbase << hex << cscBH;
+	*(fmmTable(6,1)->value) << showbase << std::hex << cscBH;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscBH & (1<<iFiber)) {
 			*(fmmTable(6,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name());
 		}
 	}
 
-	*out << fmmTable.printSummary() << endl;
+	*out << fmmTable.printSummary() << std::endl;
 
 	// Print table only if there are errors.
 	if (fmmTable.countClass("ok") + fmmTable.countClass("none") == fmmTable.countRows()) fmmTable.setHidden(true);
-	*out << fmmTable.toHTML() << endl;
+	*out << fmmTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 	
 }
 
@@ -4395,33 +4392,33 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDDU = cgi["ddu"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DDU *myDDU = myCrate->ddus()[cgiDDU];
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU VME Serial Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
 	*out << Header(sTitle.str(),false);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("VMESERI","ddu",cgiDDU,cgiCrate) << endl;
+	*out << selectACrate("VMESERI","ddu",cgiDDU,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 	
 	myCrate->vmeController()->CAEN_err_reset();
 
@@ -4429,13 +4426,13 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 
 	// Display Voltages
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('voltTable')") << endl;
-	*out << "Voltages" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('voltTable')") << std::endl;
+	*out << "Voltages" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
 	DataTable voltTable("voltTable");
@@ -4475,27 +4472,27 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	if (V33 > 3500 || V33 < 0) voltTable[3]->setClass("questionable");
 
 	// Print the table summary
-	*out << voltTable.printSummary() << endl;
+	*out << voltTable.printSummary() << std::endl;
 
 	// Print actual table.  Maybe.
 	if (voltTable.countClass("ok") + voltTable.countClass("none") == voltTable.countRows()) voltTable.setHidden(true);
-	*out << voltTable.toHTML() << endl;
+	*out << voltTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 	// Display Temperatures
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('tempTable')") << endl;
-	*out << "Temperatures" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('tempTable')") << std::endl;
+	*out << "Temperatures" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
 	DataTable tempTable("tempTable");
@@ -4513,27 +4510,27 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	}
 
 	// Print the table summary
-	*out << tempTable.printSummary() << endl;
+	*out << tempTable.printSummary() << std::endl;
 
 	// Print actual table.  Maybe.
 	if (tempTable.countClass("ok") + tempTable.countClass("none") == tempTable.countRows()) tempTable.setHidden(true);
-	*out << tempTable.toHTML() << endl;
+	*out << tempTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 	// Display Serial Flash RAM Status
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('ramStatusTable')") << endl;
-	*out << "Serial Flash RAM Status" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('ramStatusTable')") << std::endl;
+	*out << "Serial Flash RAM Status" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
 	DataTable ramStatusTable("ramStatusTable");
@@ -4542,21 +4539,21 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 
 	int ramStatus = myDDU->read_status();
 	*(ramStatusTable(0,0)->value) << "Serial Flash RAM Status";
-	*(ramStatusTable(0,1)->value) << showbase << hex << ramStatus;
+	*(ramStatusTable(0,1)->value) << showbase << std::hex << ramStatus;
 	ramStatusTable[0]->setClass("ok");
 	if (ramStatus & 0x003c != 0x000c) ramStatusTable[0]->setClass("warning");
 	if (ramStatus & 0x0080 != 0x0080) ramStatusTable[0]->setClass("bad");
 
 	// Print the table summary
-	*out << ramStatusTable.printSummary() << endl;
+	*out << ramStatusTable.printSummary() << std::endl;
 
 	// Print actual table.  Maybe.
 	if (ramStatusTable.countClass("ok") + ramStatusTable.countClass("none") == ramStatusTable.countRows()) ramStatusTable.setHidden(true);
-	*out << ramStatusTable.toHTML() << endl;
+	*out << ramStatusTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 
 }
 
@@ -4580,7 +4577,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
@@ -4639,7 +4636,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 	// check for errors.
 	if ((uploadStream.fail() || !uploadStream.eof()) && XMLText != "") {
 		LOG4CPLUS_ERROR(getApplicationLogger(), "DDUTextLoad does not understand XMLText(" << XMLText << ")");
-		ostringstream location;
+		std::stringstream location;
 		location << "crate=" << cgiCrate << "&ddu=" << cgiDDU;
 		webRedirect(out,"DDUExpert?"+location.str());
 	}
@@ -4744,7 +4741,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		break;
 	}
 
-	ostringstream location;
+	std::stringstream location;
 	location << "crate=" << cgiCrate << "&ddu=" << cgiDDU;
 	webRedirect(out,"DDUExpert?"+location.str());
 
@@ -4764,7 +4761,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 			myDDU->ddu_loadbxorbit(para_val);
 		}
 		if(val==226) {
-//		  cout << " sending VME L1A to this shitty DDU slot: " << myDDU->slot() << endl;
+//		  std::cout << " sending VME L1A to this shitty DDU slot: " << myDDU->slot() << std::endl;
 			myDDU->ddu_vmel1a();
 			sleep((unsigned int) 2);
 		}
@@ -4912,7 +4909,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 			//      sleep(1);
 		}
 
-		ostringstream location;
+		std::stringstream location;
 		location << "crate=" << cgiCrate << "&ddu=" << cgiDDU;
 		if(val/100==2){
 			//DDU_=ddu;
@@ -4968,13 +4965,13 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("dcc");
 	unsigned int cgiDCC = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDCC = cgi["dcc"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DCC *myDCC = myCrate->dccs()[cgiDCC];
 
@@ -4984,29 +4981,29 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 	//
 	//    printf(" initialize env \n");
 	//
-	const CgiEnvironment& env = cgi.getEnvironment();
+	const cgicc::CgiEnvironment& env = cgi.getEnvironment();
 	//
 	printf(" getQueryString \n");
-	string crateStr = env.getQueryString() ;
+	std::string crateStr = env.getQueryString() ;
 	//
-	cout << crateStr << endl ;
+	std::cout << crateStr << std::endl ;
 
 	//
-	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << endl;
+	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
 	//
-	*out << cgicc::html().set("lang", "en").set("dir","ltr") << endl;
-	*out << cgicc::title("DCC Firmware Form") << endl;
+	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+	*out << cgicc::title("DCC Firmware Form") << std::endl;
 	//
-	*out << body().set("background","/tmp/bgndcms.jpg") << endl;
-	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << myCrate->number() << " Selected" << cgicc::div() << endl;
+	*out << cgicc::body().set("background","/tmp/bgndcms.jpg") << std::endl;
+	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << myCrate->number() << " Selected" << cgicc::div() << std::endl;
 
 	char buf[300] ;
 	sprintf(buf,"DCC Firmware Slot %d",myDCC->slot());
 	//
 	*out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-	*out << endl;
+	*out << std::endl;
 	//
-	*out << cgicc::legend(buf).set("style","color:blue") << endl ;
+	*out << cgicc::legend(buf).set("style","color:blue") << std::endl ;
 
 	//
 	for(int i=0;i<2;i++){
@@ -5018,7 +5015,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 			if(i==0){sprintf(buf,"inprom  ");}
 			if(i==1){sprintf(buf,"mprom  ");}
 			printf(" %s ",buf);
-			*out<< buf << endl;;
+			*out<< buf << std::endl;;
 		}
 		if(myDCC->slot()<=21){
 			if(i==0){idcode=myDCC->inprom_chipid(); sprintf(buf,"inprom  ");}
@@ -5050,52 +5047,52 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 				*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
 			}
 			sprintf(buf,"%08lX",uscode);
-			*out << buf ;*out << cgicc::span() << endl;
+			*out << buf ;*out << cgicc::span() << std::endl;
 		}
-		*out << br() << endl;
+		*out << cgicc::br() << std::endl;
 		printf(" now boxes \n");
 		if(i<2){
-			string dccloadfirmware = toolbox::toString("/%s/DCCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+			std::string dccloadfirmware = toolbox::toString("/%s/DCCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
 			//
 			*out << cgicc::form().set("method","POST")
 				.set("enctype","multipart/form-data")
-				.set("action",dccloadfirmware) << endl;;
+				.set("action",dccloadfirmware) << std::endl;;
 			//	.set("enctype","multipart/form-data")
 			//
 			*out << cgicc::input().set("type","file")
 				.set("name","DCCLoadSVF")
-				.set("size","50") << endl;
+				.set("size","50") << std::endl;
 			//
-			*out << cgicc::input().set("type","submit").set("value","LoadSVF") << endl;
+			*out << cgicc::input().set("type","submit").set("value","LoadSVF") << std::endl;
 			sprintf(buf,"%d",cgiDCC);
-			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << endl;
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << std::endl;
 			sprintf(buf,"%d",i);
-			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","prom") << endl;
-			*out << cgicc::form() << endl ;
-			string dccfirmwarereset = toolbox::toString("/%s/DCCFirmwareReset",getApplicationDescriptor()->getURN().c_str());
-			*out << cgicc::form().set("method","GET").set("action",dccfirmwarereset) << endl;
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","prom") << std::endl;
+			*out << cgicc::form() << std::endl ;
+			std::string dccfirmwarereset = toolbox::toString("/%s/DCCFirmwareReset",getApplicationDescriptor()->getURN().c_str());
+			*out << cgicc::form().set("method","GET").set("action",dccfirmwarereset) << std::endl;
 			if(i==0){
-				*out << cgicc::input().set("type","submit").set("value","Reset InFPGA")<<endl;
+				*out << cgicc::input().set("type","submit").set("value","Reset InFPGA")<<std::endl;
 			}else{
-				*out << cgicc::input().set("type","submit").set("value","Reset MFPGA")<<endl;
+				*out << cgicc::input().set("type","submit").set("value","Reset MFPGA")<<std::endl;
 			}
 			sprintf(buf,"%d",cgiDCC);
-			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << endl;
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << std::endl;
 			sprintf(buf,"%d",i);
-			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","val") << endl;
-			*out << cgicc::form() << endl;
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","val") << std::endl;
+			*out << cgicc::form() << std::endl;
 		}else{
-			*out << endl;
+			*out << std::endl;
 		}
-		// *out << cgicc::tr() << endl;
-		// *out << cgicc::table() << endl;
+		// *out << cgicc::tr() << std::endl;
+		// *out << cgicc::table() << std::endl;
 
-		*out << br() << endl;
+		*out << cgicc::br() << std::endl;
 	}
-	*out << cgicc::legend() << endl;
-	*out << cgicc::fieldset()<< endl;
-	*out << cgicc::body() << endl;
-	*out << cgicc::html() << endl;
+	*out << cgicc::legend() << std::endl;
+	*out << cgicc::fieldset()<< std::endl;
+	*out << cgicc::body() << std::endl;
+	*out << cgicc::html() << std::endl;
 }
 
 
@@ -5118,13 +5115,13 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 		if(name != cgi.getElements().end()) {
 			cgiCrate = cgi["crate"]->getIntegerValue();
 		}
-		Crate *myCrate = crateVector[cgiCrate];
+		FEDCrate *myCrate = crateVector[cgiCrate];
 
 		name = cgi.getElement("dcc");
 		unsigned int cgiDCC = 0;
 		if (name != cgi.getElements().end()) {
 			cgiDCC = cgi["dcc"]->getIntegerValue();
-			//cout << "DDU inside " << ddu << endl;
+			//std::cout << "DDU inside " << ddu << std::endl;
 		}
 		DCC *myDCC = myCrate->dccs()[cgiDCC];
 		
@@ -5133,28 +5130,27 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 		//
 		if(name2 != cgi.getElements().end()) {
 			prom = cgi["prom"]->getIntegerValue();
-			cout << "PROM " << prom << endl;
+			std::cout << "PROM " << prom << std::endl;
 		}
 		//
 		printf(" Entered DCCLoadFirmware prom %d \n",prom);
 		//
 		//
-		cout << "UploadConfFileUpload" << endl ;
+		std::cout << "UploadConfFileUpload" << std::endl ;
 		//
 
 
-		const_file_iterator file;
-		file = cgi.getFile("DCCLoadSVF");
+		cgicc::const_file_iterator file = cgi.getFile("DCCLoadSVF");
 
 		//
-		cout << "GetFiles" << endl ;
+		std::cout << "GetFiles" << std::endl ;
 		//
 
 		if(file != cgi.getFiles().end()) {
-			string XMLname = (*file).getFilename();
-			cout <<"SVF FILE: " << XMLname  << endl ;
+			std::string XMLname = (*file).getFilename();
+			std::cout <<"SVF FILE: " << XMLname  << std::endl ;
 
-			ofstream TextFile ;
+			std::ofstream TextFile ;
 			TextFile.open("MySVFFile.svf");
 			(*file).writeToStream(TextFile);
 			TextFile.close();
@@ -5190,8 +5186,8 @@ void EmuFCrateHyperDAQ::LoadXMLconf(xgi::Input * in, xgi::Output * out )
 	printf(" enter: LoadXMLconf \n");
 	cgicc::Cgicc cgi(in);
 	//    const CgiEnvironment& env = cgi.getEnvironment();
-	//    string URLname = cgi["DefURL"]->getValue() ;
-	//    cout << "  should go to this URL: " << URLname  << endl ;
+	//    std::string URLname = cgi["DefURL"]->getValue() ;
+	//    std::cout << "  should go to this URL: " << URLname  << std::endl ;
 	// Here's how you clear them:
 	crateVector.clear();
 	//dduVector.clear();
@@ -5203,8 +5199,8 @@ void EmuFCrateHyperDAQ::LoadXMLconf(xgi::Input * in, xgi::Output * out )
 	//    dccVector.size()=0;  // Then go to   this->Default(in.out);
 	//reload=1;
 
-	string loadxmlconf = toolbox::toString("/%s/",getApplicationDescriptor()->getURN().c_str());
-	//    cout<<endl<<"  JRGdebug: LoadXMLconf string="<<loadxmlconf<<endl;
+	std::string loadxmlconf = toolbox::toString("/%s/",getApplicationDescriptor()->getURN().c_str());
+	//    std::cout<<std::endl<<"  JRGdebug: LoadXMLconf std::string="<<loadxmlconf<<std::endl;
 	webRedirect(out,"mainPage");
 	//mainPage(in,out);
 }
@@ -5228,43 +5224,43 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("dcc");
 	unsigned int cgiDCC = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDCC = cgi["dcc"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DCC *myDCC = myCrate->dccs()[cgiDCC];
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DCC Debugging Information (Crate " << myCrate->number() << " Slot #" << myDCC->slot() << ")";
 	*out << Header(sTitle.str(),false);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("DCCDebug","dcc",cgiDCC,cgiCrate) << endl;
+	*out << selectACrate("DCCDebug","dcc",cgiDCC,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 	
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 	
 	// Display general DCC status information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('generalTable')") << endl;
-	*out << "General DCC Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('generalTable')") << std::endl;
+	*out << "General DCC Information" << cgicc::div() << std::endl;
 
 	DataTable generalTable("generalTable");
 
@@ -5274,7 +5270,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(0,0)->value) << "DCC FMM Status (4-bit)";
 	unsigned long int dccValue = myDCC->readStatusHigh();
-	*(generalTable(0,1)->value) << showbase << hex << ((dccValue & 0xf000) >> 12);
+	*(generalTable(0,1)->value) << showbase << std::hex << ((dccValue & 0xf000) >> 12);
 	std::map<std::string, std::string> debugMap = DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
 		*(generalTable(0,2)->value) << cgicc::div(iDebug->first)
@@ -5293,7 +5289,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(1,0)->value) << "DCC FIFO Backpressure (8-bit)";
-	*(generalTable(1,1)->value) << showbase << hex << ((dccValue & 0x0ff0) >> 4);
+	*(generalTable(1,1)->value) << showbase << std::hex << ((dccValue & 0x0ff0) >> 4);
 	for (int iFifo = 0; iFifo < 8; iFifo++) {
 		if (!(((dccValue & 0x0ff0) >> 4) & (1<<iFifo))) {
 			if (iFifo < 4) {
@@ -5315,7 +5311,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(2,0)->value) << "DCC S-Link Status (4-bit)";
-	*(generalTable(2,1)->value) << showbase << hex << (dccValue & 0xf);
+	*(generalTable(2,1)->value) << showbase << std::hex << (dccValue & 0xf);
 	debugMap = DCCDebugger::SLinkStat(dccValue & 0xf);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
 		*(generalTable(2,2)->value) << cgicc::div(iDebug->first)
@@ -5332,28 +5328,28 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	*(generalTable(3,1)->value) << myDCC->readStatusLow();
 	generalTable(3,1)->setClass("none");
 
-	*out << generalTable.printSummary() << endl;
+	*out << generalTable.printSummary() << std::endl;
 
 	// Display only if there are errors.
 	if (generalTable.countClass("ok") + generalTable.countClass("none") == generalTable.countRows()) generalTable.setHidden(true);
-	*out << generalTable.toHTML() << endl;
+	*out << generalTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 	// Display DCC input FIFO status information
 	*out << cgicc::fieldset()
-		.set("class","normal") << endl;
+		.set("class","normal") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 	*out << cgicc::a("&plusmn;")
 		.set("class","openclose")
-		.set("onClick","javascript:toggle('ratesTable')") << endl;
-	*out << "DCC Input/Output Rate Information" << cgicc::div() << endl;
+		.set("onClick","javascript:toggle('ratesTable')") << std::endl;
+	*out << "DCC Input/Output Rate Information" << cgicc::div() << std::endl;
 
 	DataTable ratesTable("ratesTable");
 
@@ -5363,7 +5359,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 
 	*(ratesTable(0,0)->value) << "Input FIFOs Used";
 	dccValue = myDCC->readFIFOInUse();
-	*(ratesTable(0,1)->value) << showbase << hex << dccValue;
+	*(ratesTable(0,1)->value) << showbase << std::hex << dccValue;
 	for (int iFifo = 0; iFifo < 10; iFifo++) {
 		if (dccValue & (1<<iFifo)) {
 			*(ratesTable(0,2)->value) << cgicc::div()
@@ -5376,48 +5372,48 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	for (int iFifo = 0; iFifo < 5; iFifo++) {
 		*(ratesTable(iFifo+1,0)->value) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
 		dccValue = myDCC->readRate(iFifo+1);
-		*(ratesTable(iFifo+1,1)->value) << dec << dccValue << " bytes/s";
+		*(ratesTable(iFifo+1,1)->value) << std::dec << dccValue << " bytes/s";
 		ratesTable(iFifo+1,1)->setClass("none");
 	}
 
 	*(ratesTable(6,0)->value) << "S-Link 1";
 	dccValue = myDCC->readRate(0);
-	*(ratesTable(6,1)->value) << dec << dccValue << " bytes/s";
+	*(ratesTable(6,1)->value) << std::dec << dccValue << " bytes/s";
 	ratesTable(6,1)->setClass("none");
 
 	// Get rates for each FIFO, Slink2 second.
 	for (int iFifo = 5; iFifo < 10; iFifo++) {
 		*(ratesTable(iFifo+2,0)->value) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
 		dccValue = myDCC->readRate(iFifo+2);
-		*(ratesTable(iFifo+2,1)->value) << dec << dccValue << " bytes/s";
+		*(ratesTable(iFifo+2,1)->value) << std::dec << dccValue << " bytes/s";
 		ratesTable(iFifo+2,1)->setClass("none");
 	}
 
 	*(ratesTable(12,0)->value) << "S-Link 2";
 	dccValue = myDCC->readRate(6);
-	*(ratesTable(12,1)->value) << dec << dccValue << " bytes/s";
+	*(ratesTable(12,1)->value) << std::dec << dccValue << " bytes/s";
 	ratesTable(12,1)->setClass("none");
 
 
-	*out << ratesTable.toHTML() << endl;
+	*out << ratesTable.toHTML() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	// Clever trick to help with formating the cut-and-paste.
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 	
 	/*
 	printf(" enter: DCC Commands \n");
 	cgicc::Cgicc cgi(in);
 	const CgiEnvironment& env = cgi.getEnvironment();
-	string crateStr = env.getQueryString();
-	cout << crateStr << endl;
+	std::string crateStr = env.getQueryString();
+	std::cout << crateStr << std::endl;
 	cgicc::form_iterator name = cgi.getElement("dcc");
 	int dcc;
 	if(name != cgi.getElements().end()) {
 		dcc = cgi["dcc"]->getIntegerValue();
-		cout << "DCC inside " << dcc << endl;
+		std::cout << "DCC inside " << dcc << std::endl;
 		DCC_ = dcc;
 	}else{
 		dcc=DCC_;
@@ -5425,17 +5421,17 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	thisDCC = dccVector[dcc];
 	printf(" DCC %d \n",dcc);
 	printf(" set up web page \n");
-	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << endl;
-	*out << cgicc::html().set("lang", "en").set("dir","ltr") << endl;
-	*out << cgicc::title("DCC Comands Web Form") << endl;
+	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+	*out << cgicc::title("DCC Comands Web Form") << std::endl;
 	*out << body().set("background","/tmp/bgndcms.jpg");
-	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
+	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << std::endl;
 
 	char buf[300],buf2[300],buf3[300];
 	sprintf(buf,"DCC Commands VME  Slot %d",thisDCC->slot());
 	*out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-	*out << endl;
-	*out << cgicc::legend(buf).set("style","color:blue")  << endl;
+	*out << std::endl;
+	*out << cgicc::legend(buf).set("style","color:blue")  << std::endl;
 	int igu;
 	for(int i=100;i<111;i++){
 		thisCrate->vmeController()->CAEN_err_reset();
@@ -5517,9 +5513,9 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 
 
 		if((i>100 && i<107)||i==109||i==110) {
-			string dcctextload =
+			std::string dcctextload =
 			toolbox::toString("/%s/DCCTextLoad",getApplicationDescriptor()->getURN().c_str());
-			*out << cgicc::form().set("method","GET").set("action",dcctextload) << endl;
+			*out << cgicc::form().set("method","GET").set("action",dcctextload) << std::endl;
 		//	   .set("style","margin-bottom: 0")
 		}
 		*out << cgicc::span().set("style","color:black");
@@ -5532,7 +5528,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 		*out << buf2;
 		*out << cgicc::span();
 		if((i>100&&i<107)||i==109||i==110) {
-			string xmltext="";
+			std::string xmltext="";
 			if(i==103) {
 				//int readback=thisDCC->mctrl_rd_fifoinuse();
 				xmltext="ffff";
@@ -5556,7 +5552,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 					.set("size","10")
 					.set("ENCTYPE","multipart/form-data")
 					.set("value",xmltext)
-					.set("style","font-size: 13pt; font-family: arial;")<<endl;
+					.set("style","font-size: 13pt; font-family: arial;")<<std::endl;
 			}
 			*out << cgicc::input().set("type","submit")
 				.set("value","set");
@@ -5564,45 +5560,45 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc");
 			sprintf(buf,"%d",i);
 			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","val");
-			*out << buf3 << cgicc::form() << endl;
+			*out << buf3 << cgicc::form() << std::endl;
 		}else{
-			*out << br() << endl;
+			*out << cgicc::br() << std::endl;
 		}
 		if(i==103){
 			*out << "<blockquote><font size=-1 face=arial>";
-			*out << "DCC-FIFO bits map to DDU-Slots" << br();
-			*out << " &nbsp &nbsp &nbsp &nbsp b0=Slot3, &nbsp b1=Slot13, &nbsp b2=Slot4, &nbsp b3=Slot12, &nbsp b4=Slot5 &nbsp ---->> Top S-Link" << br();
+			*out << "DCC-FIFO bits map to DDU-Slots" << cgicc::br();
+			*out << " &nbsp &nbsp &nbsp &nbsp b0=Slot3, &nbsp b1=Slot13, &nbsp b2=Slot4, &nbsp b3=Slot12, &nbsp b4=Slot5 &nbsp ---->> Top S-Link" << cgicc::br();
 			*out << " &nbsp &nbsp &nbsp &nbsp b5=Slot11, &nbsp b6=Slot6, &nbsp b7=Slot10, &nbsp b8=Slot7, &nbsp b9=Slot9 &nbsp ---->> Bottom S-Link";
-			*out << "</font></blockquote>" << endl;
+			*out << "</font></blockquote>" << std::endl;
 		}
 		if(i==104){
 			*out << "<blockquote><font size=-1 face=arial>";
-			*out << "Command Code examples (hex):" << br();
+			*out << "Command Code examples (hex):" << cgicc::br();
 			*out << " &nbsp &nbsp &nbsp &nbsp 3=SyncRst, &nbsp 4=PChardRst, &nbsp 1C=SoftRst, &nbsp 34=DDUhardRst";
-			*out << "</font></blockquote>" << endl;
+			*out << "</font></blockquote>" << std::endl;
 		}
 		if(i==109){
 			*out << "<blockquote><font size=-1 face=arial>";
-			*out << "bit4 = sw4; bit5 = sw5" << br();
+			*out << "bit4 = sw4; bit5 = sw5" << cgicc::br();
 			*out << " &nbsp bit0=0&bit9=1: Enable software switch"<<br();
 			*out << " &nbsp bitC=1&bitF=0: Set TTCrx NOT ready"<<br();
 			*out << " &nbsp bitD=1&bitE=0: Ignore SLINK full, &nbsp bitD=0&bitE=1: Ignore SLINK full and Slink_down";
-			*out << "</font></blockquote>" << endl;
+			*out << "</font></blockquote>" << std::endl;
 		}
 		if(i==110) {
 			*out << "<blockquote><font size=-1 face=arial>";
 			*out << " XOR(bit4,bit5): Enable FMM overwrite";
 			*out << " &nbsp FMM[3:0]=bit[3:0]";
-			*out << "</font></blockquote>" << endl;
+			*out << "</font></blockquote>" << std::endl;
 		}
 
 	}
 
-	*out << cgicc::fieldset() << endl;
-	*out << cgicc::body() << endl;
-	*out << cgicc::html() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::body() << std::endl;
+	*out << cgicc::html() << std::endl;
 	*/
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 }
 
 
@@ -5624,40 +5620,40 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("dcc");
 	unsigned int cgiDCC = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDCC = cgi["dcc"]->getIntegerValue();
-		//cout << "DDU inside " << ddu << endl;
+		//std::cout << "DDU inside " << ddu << std::endl;
 	}
 	DCC *myDCC = myCrate->dccs()[cgiDCC];
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DCC Expert Controls (Crate " << myCrate->number() << " Slot #" << myDCC->slot() << ")";
 	*out << Header(sTitle.str(),false);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("DCCExpert","dcc",cgiDCC,cgiCrate) << endl;
+	*out << selectACrate("DCCExpert","dcc",cgiDCC,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 	
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 	
 	// DCC FIFOs in use setting
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "DCC FIFOs In Use" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "DCC FIFOs In Use" << cgicc::div() << std::endl;
 
 	// Priceless for the following
 	std::string dccTextLoad = "/"+getApplicationDescriptor()->getURN()+"/DCCTextLoad";
@@ -5670,58 +5666,58 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","3") << endl;
+		.set("value","3") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 
 	unsigned long int currentFIFOs = myDCC->readFIFOInUse();
 	*out << cgicc::div("Current FIFOs In Use register value: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << hex << currentFIFOs << cgicc::div() << endl;
-	*out << cgicc::br() << endl;
+	*out << showbase << std::hex << currentFIFOs << cgicc::div() << std::endl;
+	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New FIFOs In Use register value (change this below): ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
-	ostringstream kfValue;
-	kfValue << hex << showbase << currentFIFOs;
+	std::stringstream kfValue;
+	kfValue << std::hex << showbase << currentFIFOs;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
 		.set("value",kfValue.str())
 		.set("size","8")
-		.set("id","fifo") << endl;
+		.set("id","fifo") << std::endl;
 
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Load FIFOs In Use Register") << endl;
+		.set("value","Load FIFOs In Use Register") << std::endl;
 
 	*out << cgicc::div("This is a volatile register, and will be reprogrammed on a hard reset.  If you wish to make this change perminent, change the configuration file (see the top of this page)")
-		.set("style","font-size: 8pt; color: #900;") << endl;
+		.set("style","font-size: 8pt; color: #900;") << std::endl;
 
 	// A table for the first half of the form.
 	*out << cgicc::table()
-		.set("style","width: 100%; margin: 5px auto 5px auto; font-size: 8pt; border-collapse: collapse;") << endl;
-	*out << cgicc::tr() << endl;
+		.set("style","width: 100%; margin: 5px auto 5px auto; font-size: 8pt; border-collapse: collapse;") << std::endl;
+	*out << cgicc::tr() << std::endl;
 
 	for (unsigned int iFifo = 0; iFifo < 10; iFifo++) {
 		*out << cgicc::td()
 			.set("class","none")
-			.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 10%; background-color: #FFF;") << "FIFO " << dec << (iFifo+1) << cgicc::td() << endl;
+			.set("style","border: 1px solid #000; border-bottom-width: 0px; font-size: 8pt; width: 10%; background-color: #FFF;") << "FIFO " << std::dec << (iFifo+1) << cgicc::td() << std::endl;
 	}
 
-	*out << cgicc::tr() << endl;
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr() << std::endl;
 	
 	// Loop through the fifos.
 	for (unsigned int iFifo=0; iFifo<10; iFifo++) {
@@ -5731,21 +5727,21 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 			slotName << "DDU Slot " << slot;
 			*out << cgicc::td(slotName.str())
 				.set("class","none")
-				.set("style","border: 1px solid #000; border-top-width: 0px; width: 10%; font-weight: bold; background-color: #FFF;") << endl;
+				.set("style","border: 1px solid #000; border-top-width: 0px; width: 10%; font-weight: bold; background-color: #FFF;") << std::endl;
 		} else {
 			*out << cgicc::td("???")
 				.set("class","none")
-				.set("style","border: 1px solid #000; border-top-width: 0px; width: 10%; font-weight: bold;") << endl;
+				.set("style","border: 1px solid #000; border-top-width: 0px; width: 10%; font-weight: bold;") << std::endl;
 		}
 	}
 	*out << cgicc::tr();
 
-	*out << cgicc::tr() << endl;
+	*out << cgicc::tr() << std::endl;
 	for (unsigned int iFifo = 0; iFifo < 10; iFifo++) {
-		*out << cgicc::td() << endl;
-		ostringstream radioName;
+		*out << cgicc::td() << std::endl;
+		std::stringstream radioName;
 		radioName << "fifo" << iFifo;
-		ostringstream swapCommand;
+		std::stringstream swapCommand;
 		swapCommand << "javascript:toggleBit('fifo'," << iFifo << ");";
 		if (currentFIFOs & 1<<iFifo) {
 			*out << cgicc::input()
@@ -5753,339 +5749,339 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 				.set("name",radioName.str())
 				.set("value","1")
 				.set("onChange",swapCommand.str())
-				.set("checked","checked") << "Live" << cgicc::br() << endl;
+				.set("checked","checked") << "Live" << cgicc::br() << std::endl;
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
 				.set("value","0")
-				.set("onChange",swapCommand.str()) << "Killed" << endl;
+				.set("onChange",swapCommand.str()) << "Killed" << std::endl;
 		} else {
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
 				.set("value","1")
-				.set("onChange",swapCommand.str()) << "Live" << cgicc::br() << endl;
+				.set("onChange",swapCommand.str()) << "Live" << cgicc::br() << std::endl;
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
 				.set("value","0")
 				.set("onChange",swapCommand.str())
-				.set("checked","checked") << "Killed" << endl;
+				.set("checked","checked") << "Killed" << std::endl;
 		}
-		*out << cgicc::td() << endl;
+		*out << cgicc::td() << std::endl;
 	}
-	*out << cgicc::tr() << endl;
-	*out << cgicc::table() << endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::table() << std::endl;
 
-	*out << cgicc::form() << endl;
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::form() << std::endl;
+	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br()
-		.set("style","display: none") << endl;
+		.set("style","display: none") << std::endl;
 
 
 	// DCC Software Switch
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "DCC Software Switch" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "DCC Software Switch" << cgicc::div() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","6") << endl;
+		.set("value","6") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 
 	unsigned long int currentSwitch = myDCC->readSoftwareSwitch();
 	*out << cgicc::div("Current Software Switch value: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << hex << currentSwitch << cgicc::div() << endl;
-	*out << cgicc::br() << endl;
+	*out << showbase << std::hex << currentSwitch << cgicc::div() << std::endl;
+	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New Software Switch value (change this below): ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
 	kfValue.str("");
-	kfValue << hex << showbase << currentSwitch;
+	kfValue << std::hex << showbase << currentSwitch;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
 		.set("value",kfValue.str())
 		.set("size","8")
-		.set("id","switch") << endl;
+		.set("id","switch") << std::endl;
 
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Load Software Switch") << endl;
+		.set("value","Load Software Switch") << std::endl;
 	
 	// Now for some check-boxes.
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (!(currentSwitch & (1<<0)) && currentSwitch & (1<<9)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box09")
 			.set("onChange","javascript:toggleBit('switch',9);clearBit('switch',0);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box09")
-			.set("onChange","javascript:toggleBit('switch',9);clearBit('switch',0);") << endl;
+			.set("onChange","javascript:toggleBit('switch',9);clearBit('switch',0);") << std::endl;
 	}
-	*out << "Enable software switch" << cgicc::div() << endl;
+	*out << "Enable software switch" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (!(currentSwitch & (1<<15)) && currentSwitch & (1<<12)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1215")
 			.set("onChange","javascript:toggleBit('switch',12);clearBit('switch',15);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1215")
-			.set("onChange","javascript:toggleBit('switch',12);clearBit('switch',15);") << endl;
+			.set("onChange","javascript:toggleBit('switch',12);clearBit('switch',15);") << std::endl;
 	}
-	*out << "Set TTCrx NOT ready" << cgicc::div() << endl;
+	*out << "Set TTCrx NOT ready" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (!(currentSwitch & (1<<14)) && currentSwitch & (1<<13)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1314")
 			.set("onChange","javascript:toggleBit('switch',13);clearBit('switch',14);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1314")
-			.set("onChange","javascript:toggleBit('switch',13);clearBit('switch',14);") << endl;
+			.set("onChange","javascript:toggleBit('switch',13);clearBit('switch',14);") << std::endl;
 	}
-	*out << "Ignore S-Link full" << cgicc::div() << endl;
+	*out << "Ignore S-Link full" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (!(currentSwitch & (1<<13)) && currentSwitch & (1<<14)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1413")
 			.set("onChange","javascript:toggleBit('switch',14);clearBit('switch',13);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1413")
-			.set("onChange","javascript:toggleBit('switch',14);clearBit('switch',13);") << endl;
+			.set("onChange","javascript:toggleBit('switch',14);clearBit('switch',13);") << std::endl;
 	}
-	*out << "Ignore S-Link full and S-Link not present" << cgicc::div() << endl;
+	*out << "Ignore S-Link full and S-Link not present" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentSwitch & (1<<4)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","boxsw4")
 			.set("onChange","javascript:toggleBit('switch',4);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","boxsw4")
-			.set("onChange","javascript:toggleBit('switch',4);") << endl;
+			.set("onChange","javascript:toggleBit('switch',4);") << std::endl;
 	}
-	*out << "Set \"SW4\"" << cgicc::div() << endl;
+	*out << "Set \"SW4\"" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentSwitch & (1<<5)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","boxsw5")
 			.set("onChange","javascript:toggleBit('switch',5);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","boxsw5")
-			.set("onChange","javascript:toggleBit('switch',5);") << endl;
+			.set("onChange","javascript:toggleBit('switch',5);") << std::endl;
 	}
-	*out << "Set \"SW5\"" << cgicc::div() << endl;
+	*out << "Set \"SW5\"" << cgicc::div() << std::endl;
 	
-	*out << cgicc::form() << endl;
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::form() << std::endl;
+	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br()
-		.set("style","display: none;") << endl;
+		.set("style","display: none;") << std::endl;
 
 
 	
 	// DCC FMM Manipulation
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "DCC FMM Register" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "DCC FMM Register" << cgicc::div() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","7") << endl;
+		.set("value","7") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 
 	unsigned long int currentFMM = myDCC->readFMM();
 	*out << cgicc::div("Current FMM register: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << hex << currentFMM << cgicc::div() << endl;
-	*out << cgicc::br() << endl;
+	*out << showbase << std::hex << currentFMM << cgicc::div() << std::endl;
+	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New FMM register value (change this below): ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
 	kfValue.str("");
-	kfValue << hex << showbase << currentFMM;
+	kfValue << std::hex << showbase << currentFMM;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
 		.set("value",kfValue.str())
 		.set("size","8")
-		.set("id","fmm") << endl;
+		.set("id","fmm") << std::endl;
 
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Load FMM register") << endl;
+		.set("value","Load FMM register") << std::endl;
 	
 	// Now for some check-boxes.
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if ((currentFMM & (1<<4)) ^ (currentFMM & (1<<5))) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box4x5")
 			.set("onChange","javascript:toggleBit('fmm',4);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box4x5")
-			.set("onChange","javascript:toggleBit('fmm',4);") << endl;
+			.set("onChange","javascript:toggleBit('fmm',4);") << std::endl;
 	}
-	*out << "Enable user override" << cgicc::div() << endl;
+	*out << "Enable user override" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentFMM & (1<<0)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box0")
 			.set("onChange","javascript:toggleBit('fmm',0);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box0")
-			.set("onChange","javascript:toggleBit('fmm',0);") << endl;
+			.set("onChange","javascript:toggleBit('fmm',0);") << std::endl;
 	}
-	*out << "Set FMM bit 0 (Busy)" << cgicc::div() << endl;
+	*out << "Set FMM bit 0 (Busy)" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentFMM & (1<<1)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1")
 			.set("onChange","javascript:toggleBit('fmm',1);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1")
-			.set("onChange","javascript:toggleBit('fmm',1);") << endl;
+			.set("onChange","javascript:toggleBit('fmm',1);") << std::endl;
 	}
-	*out << "Set FMM bit 1 (Ready)" << cgicc::div() << endl;
+	*out << "Set FMM bit 1 (Ready)" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentFMM & (1<<2)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box2")
 			.set("onChange","javascript:toggleBit('fmm',2);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box2")
-			.set("onChange","javascript:toggleBit('fmm',2);") << endl;
+			.set("onChange","javascript:toggleBit('fmm',2);") << std::endl;
 	}
-	*out << "Set FMM bit 2 (Warning)" << cgicc::div() << endl;
+	*out << "Set FMM bit 2 (Warning)" << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
-		.set("style","font-size: 8pt;") << endl;
+		.set("style","font-size: 8pt;") << std::endl;
 	if (currentFMM & (1<<3)) {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box3")
 			.set("onChange","javascript:toggleBit('fmm',3);")
-			.set("checked","checked") << endl;
+			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box3")
-			.set("onChange","javascript:toggleBit('fmm',3);") << endl;
+			.set("onChange","javascript:toggleBit('fmm',3);") << std::endl;
 	}
-	*out << "Set FMM bit 3 (Out-of-Sync)" << cgicc::div() << endl;
+	*out << "Set FMM bit 3 (Out-of-Sync)" << cgicc::div() << std::endl;
 	
-	*out << cgicc::form() << endl;
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::form() << std::endl;
+	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br()
-		.set("style","display: none;") << endl;
+		.set("style","display: none;") << std::endl;
 
 
 	// DCC L1A manipulation
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "DCC L1A" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "DCC L1A" << cgicc::div() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","4") << endl;
+		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 
 	unsigned long int currentTTCCommand = myDCC->readTTCCommand();
 	unsigned long int currentL1A = ((((currentTTCCommand>>9)&0x60)+((currentFIFOs>>11)&0x1f)) << 8) | ((currentTTCCommand>>7)&0x7e);
@@ -6093,187 +6089,187 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << hex << currentL1A << cgicc::div() << endl;
-	*out << cgicc::br() << endl;
+	*out << showbase << std::hex << currentL1A << cgicc::div() << std::endl;
+	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New L1A send rate/number: ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
 	kfValue.str("");
-	kfValue << hex << showbase << currentL1A;
+	kfValue << std::hex << showbase << currentL1A;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
 		.set("value",kfValue.str())
-		.set("size","8") << endl;
+		.set("size","8") << std::endl;
 
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Load L1A register") << endl;
+		.set("value","Load L1A register") << std::endl;
 
-	*out << cgicc::form() << endl;
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::form() << std::endl;
+	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br()
-		.set("style","display: none;") << endl;
+		.set("style","display: none;") << std::endl;
 
 
 	
 	// DCC TCC Commands
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "DCC TCC Commands" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "DCC TCC Commands" << cgicc::div() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","4") << endl;
+		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
-		.set("value","3") << endl;
+		.set("value","3") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Send Sync Reset to FEDCrate") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Send Sync Reset to FEDCrate") << std::endl;
+	*out << cgicc::form() << std::endl;
 	
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","4") << endl;
+		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
-		.set("value","4") << endl;
+		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Send PCrate Hard Reset to DCC") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Send PCrate Hard Reset to DCC") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","4") << endl;
+		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
-		.set("value","0x1c") << endl;
+		.set("value","0x1c") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Send Soft Reset to FEDCrate") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Send Soft Reset to FEDCrate") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","4") << endl;
+		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","textdata")
-		.set("value","0x34") << endl;
+		.set("value","0x34") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Send Hard Reset to FEDCrate") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Send Hard Reset to FEDCrate") << std::endl;
+	*out << cgicc::form() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br()
-		.set("style","display: none;") << endl;
+		.set("style","display: none;") << std::endl;
 	
 
 	// Miscellaneous DCC commands
 	*out << cgicc::fieldset()
-		.set("class","expert") << endl;
+		.set("class","expert") << std::endl;
 	*out << cgicc::div()
-		.set("class","legend") << endl;
-	*out << "Other DCC Commands" << cgicc::div() << endl;
+		.set("class","legend") << std::endl;
+	*out << "Other DCC Commands" << cgicc::div() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","1") << endl;
+		.set("value","1") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Reset BX Counter") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Reset BX Counter") << std::endl;
+	*out << cgicc::form() << std::endl;
 
 	*out << cgicc::form()
 		.set("method","GET")
-		.set("action",dccTextLoad) << endl;
+		.set("action",dccTextLoad) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","command")
-		.set("value","2") << endl;
+		.set("value","2") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","dcc")
-		.set("value",dccVal) << endl;
+		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","crate")
-		.set("value",crateVal) << endl;
+		.set("value",crateVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Reset EVT Counter") << endl;
-	*out << cgicc::form() << endl;
+		.set("value","Reset EVT Counter") << std::endl;
+	*out << cgicc::form() << std::endl;
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 	
-	*out << Footer() << endl;
+	*out << Footer() << std::endl;
 }
 
 
@@ -6297,7 +6293,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("dcc");
 	unsigned int cgiDCC = 0;
@@ -6338,7 +6334,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	// check for errors.
 	if ((uploadStream.fail() || !uploadStream.eof()) && XMLText != "") {
 		LOG4CPLUS_ERROR(getApplicationLogger(), "DDUTextLoad does not understand XMLText(" << XMLText << ")");
-		ostringstream location;
+		std::stringstream location;
 		location << "crate=" << cgiCrate << "&dcc=" << cgiDCC;
 		webRedirect(out,"DCCExpert?"+location.str());
 	}
@@ -6394,20 +6390,20 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 		snd_serial[1]=0;
 		if(val==103){
 			//      sscanf(XMLtext.data(),"%04x",&para_val);
-			istringstream test(XMLtext);
+			istd::stringstream test(XMLtext);
 			test >> hex >> para_val;
 			printf(" mctrl_fifouse send %04x \n",para_val);
 			myDCC->mctrl_fifoinuse(para_val);
 		}
 		if(val==104){
-			//      istringstream test(XMLtext);
+			//      istd::stringstream test(XMLtext);
 			//	test >> hex >> para_val;
 			sscanf(XMLtext.data(),"%x",&para_val);
 			printf(" ttc command send %04x \n",para_val);
 			myDCC->mctrl_ttccmd(para_val);
 		}
 		if(val==105){
-			istringstream test(XMLtext);
+			istd::stringstream test(XMLtext);
 			unsigned int testVal;
 			test >> hex >> testVal;
 			rate = (testVal & 0xff00) >> 8;
@@ -6426,14 +6422,14 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 		}
 		if(val==109){
 			//      sscanf(XMLtext.data(),"%04x",&para_val);
-			istringstream test(XMLtext);
+			istd::stringstream test(XMLtext);
 			test >> hex >> para_val;
 			printf(" Set switch register %04x \n",para_val);
 			myDCC->mctrl_swset(para_val);
 		}
 		if(val==110){
 			//      sscanf(XMLtext.data(),"%04x",&para_val);
-			istringstream test(XMLtext);
+			istd::stringstream test(XMLtext);
 			test >> hex >> para_val;
 			printf(" Set FMM register %04x \n",para_val);
 			myDCC->mctrl_fmmset(para_val);
@@ -6472,13 +6468,13 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		if(name != cgi.getElements().end()) {
 			cgiCrate = cgi["crate"]->getIntegerValue();
 		}
-		Crate *myCrate = crateVector[cgiCrate];
+		FEDCrate *myCrate = crateVector[cgiCrate];
 
 		name = cgi.getElement("dcc");
 		unsigned int cgiDCC = 0;
 		if (name != cgi.getElements().end()) {
 			cgiDCC = cgi["dcc"]->getIntegerValue();
-			//cout << "DDU inside " << ddu << endl;
+			//std::cout << "DDU inside " << ddu << std::endl;
 		}
 		DCC *myDCC = myCrate->dccs()[cgiDCC];
 	  
@@ -6487,7 +6483,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		unsigned int val;
 		if(name2 != cgi.getElements().end()) {
 			val = cgi["val"]->getIntegerValue();
-			cout << "val" << val << endl;
+			std::cout << "val" << val << std::endl;
 		}
 		//
 		if(val==0)myDCC->hdrst_in();
@@ -6524,36 +6520,36 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	float v_val[4] = {1500,2500,2500,3300};
 	float v_delt = 0.05;
 	float t_val[4] = {80,80,80,80};
 	float t_delt = 0.20;
 
-	ostringstream sTitle;
+	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Voltage/Temperature Monitoring";
 	*out << Header(sTitle.str());
 	
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("View this page for a different crate/board")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
-	*out << selectACrate("DDUVoltMon","crate",cgiCrate,cgiCrate) << endl;
+	*out << selectACrate("DDUVoltMon","crate",cgiCrate,cgiCrate) << std::endl;
 
 	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << endl;
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
 
-	*out << cgicc::fieldset() << endl;
-	*out << br() << endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
 
 	// PGK Voltages/Temperatures
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << endl;
+		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("Voltages and Temperatures")
-		.set("class","legend") << endl;
+		.set("class","legend") << std::endl;
 
 	// Loop through the Modules and pick out the DDUs
 	for (unsigned int iDDU = 0; iDDU < myCrate->ddus().size(); iDDU++) {
@@ -6565,13 +6561,13 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 
 		// Check Voltages
 		myCrate->vmeController()->CAEN_err_reset();
-		string dduClass = "ok";
-		string totalVoltClass = "ok";
+		std::string dduClass = "ok";
+		std::string totalVoltClass = "ok";
 		// The actual voltage measurements
 		double voltage[4] = {0,0,0,0};
 		// Each voltage read gets two trials before failing.
 		int voltTrial[4] = {0,0,0,0};
-		string voltageClass[4] = {"ok","ok","ok","ok"};
+		std::string voltageClass[4] = {"ok","ok","ok","ok"};
 		for (unsigned int iVolt = 0; iVolt < 8; iVolt++) {
 			// Automatically do each voltage twice:
 			unsigned int jVolt = iVolt/2;
@@ -6598,12 +6594,12 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 
 		// Check Temperatures
 		myCrate->vmeController()->CAEN_err_reset();
-		string totalTempClass = "ok";
+		std::string totalTempClass = "ok";
 		// The actual temperatures
 		double temp[4] = {0,0,0,0};
 		// Each temperature read gets two trials before failing.
 		int tempTrial[4] = {0,0,0,0};
-		string tempClass[4] = {"ok","ok","ok","ok"};
+		std::string tempClass[4] = {"ok","ok","ok","ok"};
 		for (unsigned int iTemp = 0; iTemp < 8; iTemp++) {
 			// Automatically read each temperature twice
 			unsigned int jTemp = iTemp/2;
@@ -6629,23 +6625,23 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 
 		// Next, print the table with the status.
 		*out << cgicc::table()
-			.set("style","width: 90%; border: 2px solid #000; margin: 5px auto 5px auto; text-align: center; border-collapse: collapse;") << endl;
+			.set("style","width: 90%; border: 2px solid #000; margin: 5px auto 5px auto; text-align: center; border-collapse: collapse;") << std::endl;
 
 		// First row:  Voltages
-		*out << cgicc::tr() << endl;
+		*out << cgicc::tr() << std::endl;
 		// The first element is special:  board type/slot
 		*out << cgicc::td()
 			.set("class",dduClass)
 			.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 		*out << "DDU Slot " << myDDU->slot();
-		*out << cgicc::td() << endl;
+		*out << cgicc::td() << std::endl;
 
 		// The second element is special:  label
 		*out << cgicc::td()
 			.set("class",totalVoltClass)
 			.set("style","border: 1px solid #000; font-weight: bold; width: 10%;");
 		*out << "Voltages";
-		*out << cgicc::td() << endl;
+		*out << cgicc::td() << std::endl;
 
 		// Loop over voltages
 		for (unsigned int iVolt = 0; iVolt < 4; iVolt++) {
@@ -6653,25 +6649,25 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 				.set("class",voltageClass[iVolt])
 				.set("style","border-right: 1px solid #000; border-bottom: 1px solid #000; width: 20%;");
 			*out << "V" << iVolt << ": " << setprecision(4) << voltage[iVolt] << "mV";
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 		}
-		*out << cgicc::tr() << endl;
+		*out << cgicc::tr() << std::endl;
 
 		// Second row:  Temperatures
-		*out << cgicc::tr() << endl;
+		*out << cgicc::tr() << std::endl;
 		// The first element is special:  rui
 		*out << cgicc::td()
 			.set("class",dduClass)
 			.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 		*out << "RUI #" << myCrate->getRUI(myDDU->slot());
-		*out << cgicc::td() << endl;
+		*out << cgicc::td() << std::endl;
 
 		// The second element is special:  label
 		*out << cgicc::td()
 			.set("class",totalTempClass)
 			.set("style","border-right: 1px solid #000; font-weight: bold; width: 10%;");
 		*out << "Temperatures";
-		*out << cgicc::td() << endl;
+		*out << cgicc::td() << std::endl;
 
 		// Loop over temperatures
 		for (unsigned int iTemp = 0; iTemp < 4; iTemp++) {
@@ -6679,14 +6675,14 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 				.set("class",tempClass[iTemp])
 				.set("style","border-right: 1px solid #000; border-bottom: 1px solid #000; width: 20%;");
 			*out << "T" << iTemp << ": " << setprecision(4) << temp[iTemp] << "&deg;F";
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 		}
-		*out << cgicc::tr() << endl;
-		*out << cgicc::table() << endl;
+		*out << cgicc::tr() << std::endl;
+		*out << cgicc::table() << std::endl;
 
 	}
 
-	*out << cgicc::fieldset() << endl;
+	*out << cgicc::fieldset() << std::endl;
 
 	*out << Footer();
 }
@@ -6696,9 +6692,9 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 void EmuFCrateHyperDAQ::webRedirect(xgi::Input *in, xgi::Output *out)
 	throw (xgi::exception::Exception)
 {
-	string url = in->getenv("PATH_TRANSLATED");
+	std::string url = in->getenv("PATH_TRANSLATED");
 
-	HTTPResponseHeader &header = out->getHTTPResponseHeader();
+	cgicc::HTTPResponseHeader &header = out->getHTTPResponseHeader();
 
 	header.getStatusCode(303);
 	header.getReasonPhrase("See Other");
@@ -6725,17 +6721,17 @@ void EmuFCrateHyperDAQ::DCCRateMon(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	Crate *myCrate = crateVector[cgiCrate];
+	FEDCrate *myCrate = crateVector[cgiCrate];
 
 	cgicc::CgiEnvironment cgiEnvi(in);
-	string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+	std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
 	//
-	*out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"30; URL=/" << getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+	*out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"30; URL=/" << getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
 
 
 	//
-	*out << "<HTML>" <<endl;
-	*out << "<BODY bgcolor=\"#FFFFFF\">" <<endl;
+	*out << "<HTML>" <<std::endl;
+	*out << "<BODY bgcolor=\"#FFFFFF\">" <<std::endl;
 
 	DCC *myDCC = myCrate->dccs()[0];
 	unsigned short int status[12];
@@ -6751,39 +6747,39 @@ void EmuFCrateHyperDAQ::DCCRateMon(xgi::Input * in, xgi::Output * out )
 		DCC_ratemon[(DCC_ratemon_cnt+1)%50][igu]=0;
 	}
 
-	*out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_MSLine\">" <<endl;
-	*out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\">" <<endl;
-	ostringstream output;
-	output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getDataDCCRate0" << "&chartWidth=565&chartHeight=420"<<"\">"<<endl;
-	*out << output.str() << endl ;
-	*out << "<PARAM NAME=quality VALUE=high>" << endl ;
-	*out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << endl ;
+	*out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_MSLine\">" <<std::endl;
+	*out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\">" <<std::endl;
+	std::stringstream output;
+	output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getDataDCCRate0" << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+	*out << output.str() << std::endl ;
+	*out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
+	*out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
 	//
-	ostringstream output2;
-	output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\" FlashVars=\"&dataURL=getData"<< "DCCRate0"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_MSLine\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << endl;
+	std::stringstream output2;
+	output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\" FlashVars=\"&dataURL=getData"<< "DCCRate0"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_MSLine\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
 	//
-	*out << output2.str() << endl;
-	*out << "</OBJECT>" << endl;
+	*out << output2.str() << std::endl;
+	*out << "</OBJECT>" << std::endl;
 
-	*out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_MSLine\">" <<endl;
-	*out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\">" <<endl;
-	ostringstream output3;
-	output3 << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getDataDCCRate1" << "&chartWidth=565&chartHeight=420"<<"\">"<<endl;
-	*out << output3.str() << endl ;
-	*out << "<PARAM NAME=quality VALUE=high>" << endl ;
-	*out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << endl ;
+	*out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_MSLine\">" <<std::endl;
+	*out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\">" <<std::endl;
+	std::stringstream output3;
+	output3 << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getDataDCCRate1" << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+	*out << output3.str() << std::endl ;
+	*out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
+	*out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
 	//
-	ostringstream output4;
-	output4 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\" FlashVars=\"&dataURL=getData"<< "DCCRate1"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_MSLine\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << endl;
+	std::stringstream output4;
+	output4 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\" FlashVars=\"&dataURL=getData"<< "DCCRate1"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_MSLine\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
 	//
-	*out << output4.str() << endl;
-	*out << "</OBJECT>" << endl;
+	*out << output4.str() << std::endl;
+	*out << "</OBJECT>" << std::endl;
 
 
 
 
-	*out << "</BODY>" << endl;
-	*out << "</HTML>" << endl;
+	*out << "</BODY>" << std::endl;
+	*out << "</HTML>" << std::endl;
 
 }
 
@@ -6793,36 +6789,36 @@ void EmuFCrateHyperDAQ::getDataDCCRate0(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
 	//
-	*out << "<graph caption='DCC S-Link 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << endl;
-	//      *out << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << endl;
-	//cout << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << endl;
-	*out << "<categories>" << endl;
-	//cout << "<categories>" << endl;
+	*out << "<graph caption='DCC S-Link 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+	//      *out << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+	//std::cout << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+	*out << "<categories>" << std::endl;
+	//std::cout << "<categories>" << std::endl;
 	for(int i=0;i<50;i++){
-		*out << "<category name='"<<i<<"' hoverText='' />" << endl;
-		//cout << "<category name='"<<i<<"' hoverText='' />" << endl;
+		*out << "<category name='"<<i<<"' hoverText='' />" << std::endl;
+		//std::cout << "<category name='"<<i<<"' hoverText='' />" << std::endl;
 	}
-	*out << "</categories>" <<endl;
-	//cout << "</categories>" <<endl;
+	*out << "</categories>" <<std::endl;
+	//std::cout << "</categories>" <<std::endl;
 	for(int ch=0;ch<6;ch++){
-		if(ch==0)*out << "<dataset seriesName='S-Link 0 ' color='0080C0' showValues='0'>" <<endl;
-		if(ch==1)*out << "<dataset seriesName='Slot 3 DDU ' color='008040' showValues='0'>" <<endl;
-		if(ch==2)*out << "<dataset seriesName='Slot 13 DDU ' color='800080' showValues='0'>" <<endl;
-		if(ch==3)*out << "<dataset seriesName='Slot 4 DDU ' color='FF8040' showValues='0'>" <<endl;
-		if(ch==4)*out << "<dataset seriesName='Slot 12 DDU ' color='FFF000' showValues='0'>" <<endl;
-		if(ch==5)*out << "<dataset seriesName='Slot 5 DDU ' color='FF0080' showValues='0'>" <<endl;
+		if(ch==0)*out << "<dataset seriesName='S-Link 0 ' color='0080C0' showValues='0'>" <<std::endl;
+		if(ch==1)*out << "<dataset seriesName='Slot 3 DDU ' color='008040' showValues='0'>" <<std::endl;
+		if(ch==2)*out << "<dataset seriesName='Slot 13 DDU ' color='800080' showValues='0'>" <<std::endl;
+		if(ch==3)*out << "<dataset seriesName='Slot 4 DDU ' color='FF8040' showValues='0'>" <<std::endl;
+		if(ch==4)*out << "<dataset seriesName='Slot 12 DDU ' color='FFF000' showValues='0'>" <<std::endl;
+		if(ch==5)*out << "<dataset seriesName='Slot 5 DDU ' color='FF0080' showValues='0'>" <<std::endl;
 		for(unsigned int i=0;i<50;i++) {
-			ostringstream output;
-			// output << "<set name='" << ch <<"'"<< " value='" << DCC_ratemon[i][ch] << "'" << " />" << endl;
-			output << "<set value='" << DCC_ratemon[i][ch] << "'" << " />" << endl;
-			*out << output.str() << endl ;
-		//cout << output.str() << endl ;
+			std::stringstream output;
+			// output << "<set name='" << ch <<"'"<< " value='" << DCC_ratemon[i][ch] << "'" << " />" << std::endl;
+			output << "<set value='" << DCC_ratemon[i][ch] << "'" << " />" << std::endl;
+			*out << output.str() << std::endl ;
+		//std::cout << output.str() << std::endl ;
 		}
-		*out << "</dataset>"<<endl;
-		//cout << "</dataset>"<<endl;
+		*out << "</dataset>"<<std::endl;
+		//std::cout << "</dataset>"<<std::endl;
 	}
-	*out << "</graph>" << endl;
-	//cout << "</graph>" << endl;
+	*out << "</graph>" << std::endl;
+	//std::cout << "</graph>" << std::endl;
 }
 
 
@@ -6831,45 +6827,45 @@ void EmuFCrateHyperDAQ::getDataDCCRate1(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
 	//
-	*out << "<graph caption='DCC S-Link 1' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << endl;
-	//      *out << "<graph caption='DCC FPGA 1' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << endl;
-	//cout << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << endl;
-	*out << "<categories>" << endl;
-	//cout << "<categories>" << endl;
+	*out << "<graph caption='DCC S-Link 1' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+	//      *out << "<graph caption='DCC FPGA 1' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+	//std::cout << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+	*out << "<categories>" << std::endl;
+	//std::cout << "<categories>" << std::endl;
 	for(int i=0;i<50;i++){
-		*out << "<category name='"<<i<<"' hoverText='' />" << endl;
-		//cout << "<category name='"<<i<<"' hoverText='' />" << endl;
+		*out << "<category name='"<<i<<"' hoverText='' />" << std::endl;
+		//std::cout << "<category name='"<<i<<"' hoverText='' />" << std::endl;
 	}
-	*out << "</categories>" <<endl;
-	//cout << "</categories>" <<endl;
+	*out << "</categories>" <<std::endl;
+	//std::cout << "</categories>" <<std::endl;
 	for(int ch=6;ch<12;ch++){
-		if(ch==6)*out << "<dataset seriesName='S-Link 1 ' color='0080C0' showValues='0'>" <<endl;
-		if(ch==7)*out << "<dataset seriesName='Slot 11 DDU ' color='008040' showValues='0'>" <<endl;
-		if(ch==8)*out << "<dataset seriesName='Slot 6 DDU ' color='800080' showValues='0'>" <<endl;
-		if(ch==9)*out << "<dataset seriesName='Slot 10 DDU ' color='FF8040' showValues='0'>" <<endl;
-		if(ch==10)*out << "<dataset seriesName=' Slot 7 DDU ' color='FFF000' showValues='0'>" <<endl;
-		if(ch==11)*out << "<dataset seriesName='DDU Slot 9 DDU ' color='FF0080' showValues='0'>" <<endl;
+		if(ch==6)*out << "<dataset seriesName='S-Link 1 ' color='0080C0' showValues='0'>" <<std::endl;
+		if(ch==7)*out << "<dataset seriesName='Slot 11 DDU ' color='008040' showValues='0'>" <<std::endl;
+		if(ch==8)*out << "<dataset seriesName='Slot 6 DDU ' color='800080' showValues='0'>" <<std::endl;
+		if(ch==9)*out << "<dataset seriesName='Slot 10 DDU ' color='FF8040' showValues='0'>" <<std::endl;
+		if(ch==10)*out << "<dataset seriesName=' Slot 7 DDU ' color='FFF000' showValues='0'>" <<std::endl;
+		if(ch==11)*out << "<dataset seriesName='DDU Slot 9 DDU ' color='FF0080' showValues='0'>" <<std::endl;
 		for(unsigned int i=0;i<50;i++) {
-			ostringstream output;
-			// output << "<set name='" << ch <<"'"<< " value='" << DCC_ratemon[i][ch] << "'" << " />" << endl;
-			output << "<set value='" << DCC_ratemon[i][ch] << "'" << " />" << endl;
-			*out << output.str() << endl ;
-			//cout << output.str() << endl ;
+			std::stringstream output;
+			// output << "<set name='" << ch <<"'"<< " value='" << DCC_ratemon[i][ch] << "'" << " />" << std::endl;
+			output << "<set value='" << DCC_ratemon[i][ch] << "'" << " />" << std::endl;
+			*out << output.str() << std::endl ;
+			//std::cout << output.str() << std::endl ;
 		}
-		*out << "</dataset>"<<endl;
-		//cout << "</dataset>"<<endl;
+		*out << "</dataset>"<<std::endl;
+		//std::cout << "</dataset>"<<std::endl;
 	}
-	*out << "</graph>" << endl;
-	//cout << "</graph>" << endl;
+	*out << "</graph>" << std::endl;
+	//std::cout << "</graph>" << std::endl;
 }
 
 
 
-void EmuFCrateHyperDAQ::webRedirect(xgi::Output *out ,string location)
+void EmuFCrateHyperDAQ::webRedirect(xgi::Output *out ,std::string location)
 {
-	string url = "/" + getApplicationDescriptor()->getURN() + "/" + location;
+	std::string url = "/" + getApplicationDescriptor()->getURN() + "/" + location;
 
-	HTTPResponseHeader &header = out->getHTTPResponseHeader();
+	cgicc::HTTPResponseHeader &header = out->getHTTPResponseHeader();
 
 	header.getStatusCode(303);
 	header.getReasonPhrase("See Other");
@@ -6883,7 +6879,7 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 	
 	for (unsigned int iCrate = 0; iCrate < crateVector.size(); iCrate++) {
 		*out << cgicc::table()
-			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt; margin-bottom: 10px;") << endl;
+			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt; margin-bottom: 10px;") << std::endl;
 		
 		std::ostringstream columns;
 		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
@@ -6895,24 +6891,24 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 		crateName << "Crate " << crateVector[iCrate]->number();
 		
 		// For crate-specific pages, link the crates.
-		*out << cgicc::tr() << endl;
+		*out << cgicc::tr() << std::endl;
 		*out << cgicc::td()
 			.set("style",selectedCrate+" border: 1px solid #000;")
-			.set("colspan",columns.str()) << endl;
+			.set("colspan",columns.str()) << std::endl;
 
 		std::ostringstream locationCrate;
 		if (what == "crate") {
 			locationCrate << "/" << getApplicationDescriptor()->getURN() << "/" << location << "?crate=" << iCrate;
 			*out << cgicc::a(crateName.str())
-				.set("href",locationCrate.str()) << endl;
+				.set("href",locationCrate.str()) << std::endl;
 		} else {
-			*out << crateName.str() << endl;
+			*out << crateName.str() << std::endl;
 		}
-		*out << cgicc::td() << endl;
-		*out << cgicc::tr() << endl;
+		*out << cgicc::td() << std::endl;
+		*out << cgicc::tr() << std::endl;
 
 		// For board-specific pages, link the board.
-		*out << cgicc::tr() << endl;
+		*out << cgicc::tr() << std::endl;
 		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
 
 			std::string selectedBoard = "";
@@ -6926,17 +6922,17 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			}
 			
 			*out << cgicc::td()
-				.set("style",selectedBoard+" border: 1px solid #000;") << endl;
+				.set("style",selectedBoard+" border: 1px solid #000;") << std::endl;
 
 			std::ostringstream locationBoard;
 			if (what == "ddu") {
 				locationBoard << "/" << getApplicationDescriptor()->getURN() << "/" << location << "?crate=" << iCrate << "&ddu=" << iDDU;
 				*out << cgicc::a(boardName.str())
-					.set("href",locationBoard.str()) << endl;
+					.set("href",locationBoard.str()) << std::endl;
 			} else {
-				*out << boardName.str() << endl;
+				*out << boardName.str() << std::endl;
 			}
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 		}
 		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
 
@@ -6951,20 +6947,20 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			}
 			
 			*out << cgicc::td()
-				.set("style",selectedBoard+" border: 1px solid #000;") << endl;
+				.set("style",selectedBoard+" border: 1px solid #000;") << std::endl;
 
 			std::ostringstream locationBoard;
 			if (what == "dcc") {
 				locationBoard << "/" << getApplicationDescriptor()->getURN() << "/" << location << "?crate=" << iCrate << "&dcc=" << iDCC;
 				*out << cgicc::a(boardName.str())
-					.set("href",locationBoard.str()) << endl;
+					.set("href",locationBoard.str()) << std::endl;
 			} else {
-				*out << boardName.str() << endl;
+				*out << boardName.str() << std::endl;
 			}
-			*out << cgicc::td() << endl;
+			*out << cgicc::td() << std::endl;
 		}
-		*out << cgicc::tr() << endl;
-		*out << cgicc::table() << endl;
+		*out << cgicc::tr() << std::endl;
+		*out << cgicc::table() << std::endl;
 	}
 	
 	return out->str();

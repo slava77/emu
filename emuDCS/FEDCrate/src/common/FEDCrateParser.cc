@@ -1,7 +1,10 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 3.6 2008/06/10 13:52:12 gilmore Exp $
+// $Id: FEDCrateParser.cc,v 3.7 2008/08/13 14:20:42 paste Exp $
 // $Log: FEDCrateParser.cc,v $
+// Revision 3.7  2008/08/13 14:20:42  paste
+// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
+//
 // Revision 3.6  2008/06/10 13:52:12  gilmore
 // improved FED Crate HyperDAQ operability
 //
@@ -32,7 +35,7 @@
 #include "FEDCrateParser.h"
 
 XERCES_CPP_NAMESPACE_USE
-using namespace std;
+//using namespace std;
 
 void FEDCrateParser::parseFile(const char* name){ 
 	//PGK: clear the crateVector
@@ -44,9 +47,9 @@ void FEDCrateParser::parseFile(const char* name){
 	}
   
 	catch(const XMLException& toCatch){
-		cerr << "Error during Xerces-c Initialization.\n"
+		std::cerr << "Error during Xerces-c Initialization.\n"
 			<< "  Exception message:"
-			<< XMLString::transcode(toCatch.getMessage()) << endl;
+			<< XMLString::transcode(toCatch.getMessage()) << std::endl;
 		return ;
 	}
  
@@ -72,20 +75,20 @@ void FEDCrateParser::parseFile(const char* name){
 	}
   
 	catch (const XMLException& e){
-		cerr << "An error occured during parsing\n   Message: "
-			<< XMLString::transcode(e.getMessage()) << endl;
+		std::cerr << "An error occured during parsing\n   Message: "
+			<< XMLString::transcode(e.getMessage()) << std::endl;
 		errorsOccured = true;
 	}
 
  
 	catch (const DOMException& e){
-		cerr << "An error occured during parsing\n   Message: "
-			<< XMLString::transcode(e.msg) << endl;
+		std::cerr << "An error occured during parsing\n   Message: "
+			<< XMLString::transcode(e.msg) << std::endl;
 		errorsOccured = true;
 	}
 
 	catch (...){
-		cerr << "An error occured during parsing\n " << endl;
+		std::cerr << "An error occured during parsing\n " << std::endl;
 		errorsOccured = true;
 	}
 
@@ -95,12 +98,12 @@ void FEDCrateParser::parseFile(const char* name){
 		DOMNode * pNode1 = pDoc->getFirstChild();
 		while (pNode1) { // EmuSystem
 			if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
-				cout << "FEDCrateParser: pNode1=" 
-					<< XMLString::transcode(pNode1->getNodeName()) << endl;
+				std::cout << "FEDCrateParser: pNode1=" 
+					<< XMLString::transcode(pNode1->getNodeName()) << std::endl;
 				if (strcmp("EmuSystem",XMLString::transcode(pNode1->getNodeName()))){
-					cout << "FEDCrateParser: WARNING - Wrong Top Element <"
+					std::cout << "FEDCrateParser: WARNING - Wrong Top Element <"
 						<< XMLString::transcode(pNode1->getNodeName())
-						<< ">, should be <EmuSystem>" << endl;
+						<< ">, should be <EmuSystem>" << std::endl;
 				}
 				/* PGK I added a new attribute that will link you to the
 				XML file you want to parse for DDU fiber -> chamber mapping. */
@@ -109,55 +112,55 @@ void FEDCrateParser::parseFile(const char* name){
 				DOMNode *ruiNode = ruiAttributes->getNamedItem(XMLString::transcode("RUI-to-chamber_map"));
 				RUIXMLFile_ = XMLString::transcode(ruiNode->getNodeValue());
 
-				cout << "JRG  RUIXMLFile_ = " << RUIXMLFile_ << endl;
+				std::cout << "JRG  RUIXMLFile_ = " << RUIXMLFile_ << std::endl;
 				char cmdstring[222];
 				sprintf(cmdstring,"/bin/ls -al %s",RUIXMLFile_);
 				printf("JRG  try system command %s \n",cmdstring);
 				system(cmdstring);
 
 				#ifdef debugV
-				cout << "  RUIXMLFile_ = " << RUIXMLFile_ << endl;
+				std::cout << "  RUIXMLFile_ = " << RUIXMLFile_ << std::endl;
 				#endif
 
 				DOMNode * pNode2 = pNode1->getFirstChild();
-				if (pNode2==0) cout << " Bad element "<< endl;
+				if (pNode2==0) std::cout << " Bad element "<< std::endl;
 				while(pNode2) { // Crate
 					if (pNode2->getNodeType() == DOMNode::ELEMENT_NODE) {
-						cout <<"FEDCrateParser: pNode2=" 
-							<< XMLString::transcode(pNode2->getNodeName()) << endl;
+						std::cout <<"FEDCrateParser: pNode2=" 
+							<< XMLString::transcode(pNode2->getNodeName()) << std::endl;
 						#ifdef debugV
-						cout << "  Getting FED Crate attributes" << endl;
+						std::cout << "  Getting FED Crate attributes" << std::endl;
 						#endif
 						if (strcmp("FEDCrate",XMLString::transcode(pNode2->getNodeName()))){
-							cout << "FEDCrateParser: WARNING - Wrong EmuSystem Child Element <"
+							std::cout << "FEDCrateParser: WARNING - Wrong EmuSystem Child Element <"
 							<< XMLString::transcode(pNode2->getNodeName()) 
-							<< ">, should be <FEDCrate>" << endl; 
+							<< ">, should be <FEDCrate>" << std::endl; 
 						}
 				
 						DOMNamedNodeMap * pAttributes = pNode2->getAttributes();
 						#ifdef debugV
 						int attrCount = pAttributes->getLength();
-						cout << "  number of attributes = " << attrCount << endl;
+						std::cout << "  number of attributes = " << attrCount << std::endl;
 						#endif
 				
 						DOMNode * e = pAttributes->getNamedItem(XMLString::transcode("Crate"));
 						crateNumber = atoi(XMLString::transcode(e->getNodeValue()));
 						#ifdef debugV
-						cout << "  crateNumber = " << crateNumber << endl;
+						std::cout << "  crateNumber = " << crateNumber << std::endl;
 						#endif
 
 						/* At this point, the crate has been fully specified.
 							Let us initialize it and later add the appropriate
 							objects.
 						*/
-						Crate* crate = new Crate(crateNumber);
+						FEDCrate* crate = new FEDCrate(crateNumber);
 
 						DOMNode * pNode3 = pNode2->getFirstChild(); 
-						if (pNode3==0) cout << " Bad element "<< endl;
+						if (pNode3==0) std::cout << " Bad element "<< std::endl;
 
 						while(pNode3) { // VMEModules (DDU, DCC, controller?)
 							if (pNode3->getNodeType() == DOMNode::ELEMENT_NODE) {
-								cout <<"  "<< XMLString::transcode(pNode3->getNodeName()) << endl;
+								std::cout <<"  "<< XMLString::transcode(pNode3->getNodeName()) << std::endl;
 							}
 					
 							if (strcmp("VME",XMLString::transcode(pNode3->getNodeName()))==0) {  
@@ -180,7 +183,7 @@ void FEDCrateParser::parseFile(const char* name){
 							pNode3 = pNode3->getNextSibling();
 					
 						} // end of looping over boards (pNode3)
-						cout <<"FEDCrateParser: finished looping over boards for crate #"<< crateNumber << endl; 
+						std::cout <<"FEDCrateParser: finished looping over boards for crate #"<< crateNumber << std::endl; 
 						/* At this time, the crate object is complete. */
 						crateVector_.push_back(crate);
 				

@@ -608,7 +608,7 @@ if(cnt==0)return;
 
 
 void VMEController::initDevice(int idev) {
-  if(debugV)cout << "InitDevice " << idev << endl;
+  if(debugV)std::cout << "InitDevice " << idev << std::endl;
     vmeadd=0x00000000;
 }
 

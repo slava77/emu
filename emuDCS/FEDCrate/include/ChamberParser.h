@@ -20,7 +20,7 @@ class Chamber;
 
 XERCES_CPP_NAMESPACE_USE
 
-using namespace std;
+//using namespace std;
 
 class ChamberParser: public EmuParser
 {
@@ -29,16 +29,16 @@ public:
 	ChamberParser(){}
 	explicit ChamberParser(char *fileName, int crate, int slot);
 
-	inline vector<Chamber *> chamberVector() const { return chamberVector_; }
+	inline std::vector<Chamber *> chamberVector() const { return chamberVector_; }
 
 private:
 	// This parsing is annoying.  Use Stan's idea of parsing every step with a different method.
-	vector<DOMNode *> parseMaps(DOMNode *pDoc);
-	vector<DOMNode *> parseRUIs(DOMNode *pMap);
-	vector<DOMNode *> parseDDUs(DOMNode *pRUI, int crate, int slot);
+	std::vector<DOMNode *> parseMaps(DOMNode *pDoc);
+	std::vector<DOMNode *> parseRUIs(DOMNode *pMap);
+	std::vector<DOMNode *> parseDDUs(DOMNode *pRUI, int crate, int slot);
 	void parseInput(DOMNode *pDDU);
 
-	vector<Chamber *> chamberVector_;
+	std::vector<Chamber *> chamberVector_;
 };
 
 #endif

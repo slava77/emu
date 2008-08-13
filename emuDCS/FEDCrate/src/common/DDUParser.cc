@@ -1,6 +1,6 @@
 #include "DDUParser.h"
 
-using namespace std;
+//using namespace std;
 
 DDUParser::DDUParser(DOMNode * pNode, int crate, char *fileName): slot_(0)
 {
@@ -9,7 +9,7 @@ DDUParser::DDUParser(DOMNode * pNode, int crate, char *fileName): slot_(0)
 	fillInt("slot", slot_);
 	
 	if(slot_ == 0) {
-		cerr << "No slot specified for DDU! " << endl;
+		std::cerr << "No slot specified for DDU! " << std::endl;
 	} else { 
 		ddu_ = new DDU(slot_);
 		fillInt("skip_vme_load", ddu_->skip_vme_load_); 

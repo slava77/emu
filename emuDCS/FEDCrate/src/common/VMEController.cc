@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.8 2008/06/10 13:52:12 gilmore Exp $
+// $Id: VMEController.cc,v 3.9 2008/08/13 14:20:42 paste Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.9  2008/08/13 14:20:42  paste
+// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
+//
 // Revision 3.8  2008/06/10 13:52:12  gilmore
 // improved FED Crate HyperDAQ operability
 //
@@ -23,6 +26,7 @@
 //----------------------------------------------------------------------
 #include "VMEController.h"
 
+
 #define DELAY2 0.016
 #define DELAY3 16.384
 
@@ -31,8 +35,8 @@
 #define PRINT(x) 
 #define PRINTSTRING(x)  
 #else //verbose mode
-#define PRINT(x) cout << #x << ":\t" << x << endl; 
-#define PRINTSTRING(x) cout << #x << endl; 
+#define PRINT(x) std::cout << #x << ":\t" << x << std::endl; 
+#define PRINTSTRING(x) std::cout << #x << std::endl; 
 #endif
 
 
@@ -60,8 +64,8 @@ VMEController::VMEController(int Device, int Link):
 	short Lin;
 	short Dev;
 	VMEBoard=cvV2718;
-	long BHandle; 
-	cout << "constructing VMEController " << endl;
+	int32_t BHandle; 
+	std::cout << "constructing VMEController " << std::endl;
 	Dev=Device;
 	Lin=Link;
 
@@ -69,7 +73,7 @@ VMEController::VMEController(int Device, int Link):
 		int result = CAENVME_Init(VMEBoard,Device,Link,&BHandle);
 		//printf(" result from initializing CAENVME with VMEBoard %08x Device %08x Link %08x BHandle %08x: %08x\n",VMEBoard,Device,Link,BHandle);
 		if(result != cvSuccess){
-			cout << "Error in Opening CAEN Controller " << result << endl;
+			std::cout << "Error in Opening CAEN Controller " << result << std::endl;
 			exit(1);
 		}
 	}else{
@@ -82,13 +86,13 @@ VMEController::VMEController(int Device, int Link):
 
 
 VMEController::~VMEController(){
-	cout << "destructing VMEController .. closing socket " << endl;
+	std::cout << "destructing VMEController .. closing socket " << std::endl;
 	CAEN_close();
 }
 /*
 void VMEController::start_thread(long unsigned int runnumber) {
 	if (is_thread_started) {
-		cout << " VMEController: thread alread started, killing previous thread (unsafe)" << endl;
+		std::cout << " VMEController: thread alread started, killing previous thread (unsafe)" << std::endl;
 		this->kill_thread();
 	}
 	IRQData data;
@@ -118,7 +122,7 @@ void VMEController::start_thread(long unsigned int runnumber) {
 
 void VMEController::end_thread() {
 	if (!is_thread_started) {
-		cout << " VMEController: thread not started, ignoring end request" << endl;
+		std::cout << " VMEController: thread not started, ignoring end request" << std::endl;
 		return;
 	}
 	is_thread_started = false;
@@ -128,7 +132,7 @@ void VMEController::end_thread() {
 
 void VMEController::kill_thread() {
 	if (!is_thread_started) {
-		cout << " VMEController: thread not started, ignoring kill request" << endl;
+		std::cout << " VMEController: thread not started, ignoring kill request" << std::endl;
 		return;
 	}
 	is_thread_started = false;

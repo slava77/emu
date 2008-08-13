@@ -7,14 +7,14 @@
 #include <unistd.h>
 #include "geom_def.h"
 
-using namespace std;
+//using namespace std;
 
 #ifndef debugV //silent mode
 #define PRINT(x)
 #define PRINTSTRING(x)
 #else //verbose mode
-#define PRINT(x) cout << #x << ":\t" << x << endl;
-#define PRINTSTRING(x) cout << #x << endl;
+#define PRINT(x) std::cout << #x << ":\t" << x << std::endl;
+#define PRINTSTRING(x) std::cout << #x << std::endl;
 #endif
 
 extern char filename[100];
@@ -31,7 +31,7 @@ DCC::DCC(int crate, int slot) :
 		fifoinuse_(1022),
 		softsw_(0)
 {
-	// cout<<"DCC \n";
+	// std::cout<<"DCC \n";
 }
 
 DCC::DCC(int slot) :
@@ -39,19 +39,19 @@ DCC::DCC(int slot) :
 		fifoinuse_(1022),
 		softsw_(0)
 {
-	// cout<<"DCC \n";
+	// std::cout<<"DCC \n";
 }
 
 
 DCC::~DCC()
 {
-	// cout << "Killing DCC" << endl;
+	// std::cout << "Killing DCC" << std::endl;
 }
 
 
 void DCC::end()
 {
-	//  cout << "calling DCC::end" << endl;
+	//  std::cout << "calling DCC::end" << std::endl;
 	send_last();
 	VMEModule::end();
 }
@@ -616,7 +616,7 @@ void DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ,
 
 
 
-void DCC::executeCommand(string command)
+void DCC::executeCommand(std::string command)
 {
 }
 

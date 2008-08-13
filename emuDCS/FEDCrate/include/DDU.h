@@ -5,7 +5,7 @@
 #ifndef DDU_h
 #define DDU_h
 
-using namespace std;
+//using namespace std;
 #include <iostream>
 #include <vector>
 #include <string>
@@ -420,21 +420,21 @@ public:
   void Parse(char *buf,int *Count,char **Word);
 
   /// sends commands by name
-  void executeCommand(string command);
+  void executeCommand(std::string command);
 
   // unpacks rcvbuf from FPGA operations
   unsigned long int unpack_ibrd() const;
   unsigned int unpack_ival() const;
 
 	/* PGK Chamber routines */
-	vector<Chamber *> getChambers();
+	std::vector<Chamber *> getChambers();
 	Chamber *getChamber(unsigned int fiberNumber);
 	void addChamber(Chamber *chamber, unsigned int fiberNumber);
-	void setChambers(vector<Chamber *> chamberVector);
+	void setChambers(std::vector<Chamber *> chamberVector);
 
 private:
 
-	vector<Chamber *> chamberVector_;
+	std::vector<Chamber *> chamberVector_;
 
 };
 

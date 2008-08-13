@@ -15,11 +15,11 @@ IRQThreadManager::~IRQThreadManager() {
 
 
 
-void IRQThreadManager::attachCrate(Crate *crate) {
+void IRQThreadManager::attachCrate(FEDCrate *crate) {
 
 	pthread_t threadID;
-	//cout << "IRQThreadManager::attachCrate Attaching crate with number " << crate->number() << endl;
-	threadVector_.push_back(pair<Crate *, pthread_t>(crate, threadID));
+	//std::cout << "IRQThreadManager::attachCrate Attaching crate with number " << crate->number() << std::endl;
+	threadVector_.push_back(std::pair<FEDCrate *, pthread_t>(crate, threadID));
 
 }
 
@@ -28,7 +28,7 @@ void IRQThreadManager::attachCrate(Crate *crate) {
 
 void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
-	//cout << "IRQThreadManager::startThreads Create unique Logger for EmuFEDVME" << endl;
+	//std::cout << "IRQThreadManager::startThreads Create unique Logger for EmuFEDVME" << std::endl;
 
 	// Make the shared data object that will be passed between threads and the
 	// mother program.
@@ -36,12 +36,12 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 	char datebuf[55];
 	//char filebuf[255];
-	ostringstream fileName;
+	std::stringstream fileName;
 	time_t theTime = time(NULL);
 
 	// log file format: EmuFMMThread_Crate#_YYYYMMDD-hhmmss_rRUNNUMBER.log
 	strftime(datebuf, sizeof(datebuf), "%Y%m%d-%H%M%S", localtime(&theTime));
-	fileName << "EmuFMMThread_" << datebuf << "_r" << setw(5) << setfill('0') << dec << runNumber;
+	fileName << "EmuFMMThread_" << datebuf << "_r" << std::setw(5) << std::setfill('0') << std::dec << runNumber;
 	//sprintf(filebuf,"EmuFMMThread_%s_r%05u.log",datebuf,(unsigned int) runNumber);
 
 	log4cplus::SharedAppenderPtr myAppend = new FileAppender(fileName.str().c_str());
@@ -56,7 +56,7 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 	logger.addAppender(myAppend);
 
-	//cout << "IRQThreadManager::startThreads Clearing shared data" << endl;
+	//std::cout << "IRQThreadManager::startThreads Clearing shared data" << std::endl;
 	
 	data_->runNumber = runNumber;
 	// Do not quit the threads immediately.
@@ -64,7 +64,7 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 	// First, load up the data_ object with the crates that I govern.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
-		//cout << "IRQThreadManager::startThread Adding and clearing data for crate number " << threadVector_[i].first->number() << endl;
+		//std::cout << "IRQThreadManager::startThread Adding and clearing data for crate number " << threadVector_[i].first->number() << std::endl;
 
 		// At this point, most of the variables in the data_ object have been
 		// cleared.
@@ -103,12 +103,12 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 	// Next, execute the threads.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
-		//cout << "IRQThreadManager::startThread Starting thread for crate number " << threadVector_[i].first->number() << endl;
+		//std::cout << "IRQThreadManager::startThread Starting thread for crate number " << threadVector_[i].first->number() << std::endl;
 
 		// Start the thread (as a static function)
 		//int error = pthread_create(&(threadVector_[i].second), NULL, IRQThread, data_);
 		pthread_create(&(threadVector_[iThread].second), NULL, IRQThread, data_);
-		//cout << "IRQThreadManager::startThread pthread launched with status " << error << endl;
+		//std::cout << "IRQThreadManager::startThread pthread launched with status " << error << std::endl;
 	}
 }
 
@@ -116,13 +116,13 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 void IRQThreadManager::endThreads() {
 	if (data_->exit == 1) {
-		//cout << "IRQThreadManager::endThreads Threads already stopped." << endl << flush;
+		//std::cout << "IRQThreadManager::endThreads Threads already stopped." << std::endl << flush;
 	} else {
 	
-		//cout << "IRQThreadManager::endThreads Gracefully killing off all threads." << endl << flush;
-		//cout << "<PGK> Before exit=1" << endl << flush;
+		//std::cout << "IRQThreadManager::endThreads Gracefully killing off all threads." << std::endl << flush;
+		//std::cout << "<PGK> Before exit=1" << std::endl << flush;
 		data_->exit = 1;
-		//cout << "<PGK> After exit=1" << endl << flush;
+		//std::cout << "<PGK> After exit=1" << std::endl << flush;
 		
 		// We probably do not need to return the status of the threads,
 		//  but this may be used later for whatever reason.
@@ -140,7 +140,7 @@ void IRQThreadManager::endThreads() {
 
 			if (error) {
 				// I don't know what to do.  Log this, maybe?
-				cout << "pthread_join iThread " << iThread << " returned " << error << endl;
+				std::cout << "pthread_join iThread " << iThread << " returned " << error << std::endl;
 			} else {
 			
 				returnStatus.push_back(*((int *) retStat)); // Pointer-fu!
@@ -150,7 +150,7 @@ void IRQThreadManager::endThreads() {
 		// Not needed.
 		//sleep((unsigned int) 6);
 		
-		//cout << "<PGK> After sleep" << endl << flush;
+		//std::cout << "<PGK> After sleep" << std::endl << flush;
 		delete data_;
 	}
 }
@@ -168,7 +168,7 @@ void *IRQThreadManager::IRQThread(void *data)
 	//  that I am the only one working with this particular crate.)
 	// Use mutexes to serialize
 	pthread_mutex_lock(&(locdata->crateQueueMutex));
-	Crate *myCrate = locdata->crateQueue.front();
+	FEDCrate *myCrate = locdata->crateQueue.front();
 	locdata->crateQueue.pop();
 	pthread_mutex_unlock(&(locdata->crateQueueMutex));
 
@@ -179,7 +179,7 @@ void *IRQThreadManager::IRQThread(void *data)
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 
 	// Knowing what DDUs we are talking to is useful as well.
-	vector<DDU *> dduVector = myCrate->ddus();
+	std::vector<DDU *> dduVector = myCrate->ddus();
 
 	// This is when we started.  Don't know why this screws up sometimes...
 	time(&(locdata->startTime[myCrate]));
@@ -210,7 +210,7 @@ void *IRQThreadManager::IRQThread(void *data)
 			//  Reset all my data.
 			if (myDDU->readCSCStat() < lastError[myDDU]) {
 				LOG4CPLUS_INFO(logger, "Reset detected on crate " << myCrate->number());
-				LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << endl);
+				LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << std::endl);
 
 				// Increment the reset count on all the errors from that crate...
 				std::vector<IRQError *> myErrors = locdata->errorVectors[myCrate];
@@ -257,7 +257,7 @@ void *IRQThreadManager::IRQThread(void *data)
 		// Problem if there is no matching DDU...
 		if (myDDU == NULL) {
 			// Looks like this happens all the time.  Squelch errors.
-			//LOG4CPLUS_FATAL(logger, "IRQ set from an unrecognized slot!  Crate " << myCrate->number() << " slot " << dec << (errorData[1] & 0x1f) << " error data " << hex << setw(2) << setfill('0') << (int) errorData[1] << setw(2) << setfill('0') << (int) errorData[0]);
+			//LOG4CPLUS_FATAL(logger, "IRQ set from an unrecognized slot!  Crate " << myCrate->number() << " slot " << std::dec << (errorData[1] & 0x1f) << " error data " << std::hex << std::setw(2) << std::setfill('0') << (int) errorData[1] << std::setw(2) << std::setfill('0') << (int) errorData[0]);
 			continue;
 		}
 
@@ -282,9 +282,9 @@ void *IRQThreadManager::IRQThread(void *data)
 		// Log everything now.
 		LOG4CPLUS_ERROR(logger, "Interrupt detected!");
 		time_t theTime = time(NULL);
-		LOG4CPLUS_ERROR(logger, " ErrorData " << dec << myCrate->number() << " " << myDDU->slot() << " " << uppercase << hex << setw(4) << setfill('0') << cscStatus << " " << dec << (uintmax_t) theTime);
+		LOG4CPLUS_ERROR(logger, " ErrorData " << std::dec << myCrate->number() << " " << myDDU->slot() << " " << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << cscStatus << " " << std::dec << (uintmax_t) theTime);
 
-		ostringstream fiberErrors, chamberErrors;
+		std::stringstream fiberErrors, chamberErrors;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (xorStatus & (1<<iFiber)) {
 				fiberErrors << iFiber << " ";
@@ -292,15 +292,15 @@ void *IRQThreadManager::IRQThread(void *data)
 			}
 		}
 
-		LOG4CPLUS_INFO(logger, "Decoded information follows" << endl
-			<< "FEDCrate   : " << myCrate->number() << endl
-			<< "Slot       : " << myDDU->slot() << endl
-			<< "RUI        : " << myCrate->getRUI(myDDU->slot()) << endl
-			<< "DDU error  : " << ((cscStatus & 0x8000) == 0x8000) << endl
-			<< "Fibers     : " << fiberErrors.str() << endl
-			<< "Chambers   : " << chamberErrors.str() << endl
-			<< "Hard Error : " << hardError << endl
-			<< "Sync Error : " << syncError << endl
+		LOG4CPLUS_INFO(logger, "Decoded information follows" << std::endl
+			<< "FEDCrate   : " << myCrate->number() << std::endl
+			<< "Slot       : " << myDDU->slot() << std::endl
+			<< "RUI        : " << myCrate->getRUI(myDDU->slot()) << std::endl
+			<< "DDU error  : " << ((cscStatus & 0x8000) == 0x8000) << std::endl
+			<< "Fibers     : " << fiberErrors.str() << std::endl
+			<< "Chambers   : " << chamberErrors.str() << std::endl
+			<< "Hard Error : " << hardError << std::endl
+			<< "Sync Error : " << syncError << std::endl
 			<< "Wants Reset: " << resetWanted);
 		
 		LOG4CPLUS_INFO(logger, cscsWithHardError << " CSCs on this DDU have hard errors");
@@ -328,7 +328,7 @@ void *IRQThreadManager::IRQThread(void *data)
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			// Skip it if it is already killed or if it didn't cause a problem
 			if (!(liveFibers & (1<<iFiber)) || !(xorStatus & (1<<iFiber))) {
-				//LOG4CPLUS_DEBUG(logger, "Fiber is either killed (killFiber " << hex << liveFibers << ") or did not cause a problem (xorStatus " << hex << xorStatus << ")");
+				//LOG4CPLUS_DEBUG(logger, "Fiber is either killed (killFiber " << std::hex << liveFibers << ") or did not cause a problem (xorStatus " << std::hex << xorStatus << ")");
 				continue;
 			}
 			// Look through the history of problem fibers and count them
@@ -351,7 +351,7 @@ void *IRQThreadManager::IRQThread(void *data)
 				//liveFibers &= ~(1<<iFiber); // Bit-foo!
 				//myDDU->ddu_loadkillfiber(liveFibers);
 				// Record the action taken.
-				ostringstream actionTaken;
+				std::stringstream actionTaken;
 				actionTaken << "Fiber " << iFiber << " (" << myDDU->getChamber(iFiber)->name() << ") has had " << problemCount << " errors since the last hard reset.  Check for hardware problems. ";
 				myError->action += actionTaken.str();
 			}
@@ -359,7 +359,7 @@ void *IRQThreadManager::IRQThread(void *data)
 		
 		// Discover the error counts of the other crates.
 		unsigned long int totalChamberErrors = 0;
-		for (std::map<Crate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
+		for (std::map<FEDCrate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
 			if (iCount->first != myCrate) {
 				LOG4CPLUS_INFO(logger,"Crate " << iCount->first->number() << " reports " << iCount->second << " CSCs in an error state.");
 			}
@@ -370,11 +370,11 @@ void *IRQThreadManager::IRQThread(void *data)
 		if (totalChamberErrors > 2) {
 			LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this endcap is " << totalChamberErrors);
 			// Make a note of it in the error log.
-			ostringstream actionTaken;
+			std::stringstream actionTaken;
 			actionTaken << "A resync has been requested for this endcap. ";
 			myError->action += actionTaken.str();
 			// Loop over the crates and take away SFTU
-			for (std::map<Crate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
+			for (std::map<FEDCrate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
 				// Find the broadcast slot on this crate.
 				std::vector<DDU *> myDDUs = iCount->first->ddus();
 				for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
@@ -387,7 +387,7 @@ void *IRQThreadManager::IRQThread(void *data)
 		locdata->errorVectors[myCrate].push_back(myError);
 	}
 
-	//cout << " IRQ_Int call pthread_exit" << endl;
+	//std::cout << " IRQ_Int call pthread_exit" << std::endl;
 	int returnValue = 0; // This may be more useful later.  I don't know.
 	pthread_exit((void *) &returnValue);
 }

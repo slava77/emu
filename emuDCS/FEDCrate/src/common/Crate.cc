@@ -31,9 +31,9 @@ void Crate::addModule(VMEModule *module) {
 
 void Crate::setController(VMEController *controller) {
 	if (theController != NULL) {
-		cout << "WARNING: Trying change the VMEController of crate " << theNumber << endl;
+		std::cout << "WARNING: Trying change the VMEController of crate " << theNumber << std::endl;
 	}
-	cout << "Setting controller in crate " << theNumber << endl;
+	std::cout << "Setting controller in crate " << theNumber << std::endl;
 	theController = controller;
 	theController->setCrate(theNumber);
 	for (unsigned int i=0; i<theModules.size(); i++) {
@@ -42,8 +42,8 @@ void Crate::setController(VMEController *controller) {
 	}
 }
 
-vector<DDU *> Crate::ddus() const {
-  vector<DDU *> result;
+std::vector<DDU *> Crate::ddus() const {
+  std::vector<DDU *> result;
   for(unsigned i = 0; i < theModules.size(); ++i) {
     DDU * ddu = dynamic_cast<DDU *>(theModules[i]);
     if(ddu != 0) result.push_back(ddu);
@@ -51,8 +51,8 @@ vector<DDU *> Crate::ddus() const {
   return result;
 }
 
-vector<DCC *> Crate::dccs() const {
-  vector<DCC *> result;
+std::vector<DCC *> Crate::dccs() const {
+  std::vector<DCC *> result;
   for(unsigned i = 0; i < theModules.size(); ++i) {
     DCC * dcc = dynamic_cast<DCC *>(theModules[i]);
     if(dcc != 0) result.push_back(dcc);
@@ -97,7 +97,7 @@ void Crate::configure() {
 // JRG, we probably want to keep IRQ clear/reset here (End, then Start):
 // PGK, new objects (IRQThread) in town.  Use these instead.
 // PGK, better yet, just call init.
-//	cout << " ********   Crate::configure complete, running init..." << endl;
+//	std::cout << " ********   Crate::configure complete, running init..." << std::endl;
 //	this->init(runnumber);
 }
 
