@@ -7,7 +7,7 @@
 class InfoMonitorService;
 class EmuDcs;
 #endif
-class DcsEmuController : public EmuController{
+class DcsEmuController : public emu::pc::EmuController{
 
 public:
   DcsEmuController();
@@ -16,7 +16,7 @@ public:
 
 
  void  configure_simple();
- void  configure_simple(Crate * crate);
+ void  configure_simple(emu::pc::Crate * crate);
 #ifdef USEDCS
   // DCS sharing
   void DcsSetup();

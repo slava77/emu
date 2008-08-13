@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.31 2008/05/15 12:06:44 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.32 2008/08/13 11:30:52 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -24,11 +24,8 @@
 #include <time.h>
 #include "EmuEndcap.h"
 
-using namespace cgicc;
-using namespace std;
-
-const string       VMECC_FIRMWARE_DIR = "vcc"; 
-const string       VMECC_FIRMWARE_VER ="4.31";   
+const std::string       VMECC_FIRMWARE_DIR = "vcc"; 
+const std:: string       VMECC_FIRMWARE_VER ="4.31";   
 
 EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuApplication(s)
 {	
@@ -194,7 +191,7 @@ void EmuPeripheralCrateBroadcast::timeExpired (toolbox::task::TimerEvent& e)
 void EmuPeripheralCrateBroadcast::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/"
-       <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<endl;
+       <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
 }
 //
 /////////////////////////////////////////////////////////////////////////////////
@@ -272,7 +269,7 @@ void EmuPeripheralCrateBroadcast::LoadCFEBcalchannel(xgi::Input * in, xgi::Outpu
   //
   DefineBroadcastCrate();
   //
-  cout <<" Buckeye shift channels......"<<endl;
+  std::cout <<" Buckeye shift channels......"<<std::endl;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
@@ -299,7 +296,7 @@ void EmuPeripheralCrateBroadcast::LoadCFEBinternal(xgi::Input * in, xgi::Output 
   //
   unsigned short int dword[2];
   dword[0]=0;
-  cout << " Loading all Buckeye half-strip pattern 8 ..."<<endl;
+  std::cout << " Loading all Buckeye half-strip pattern 8 ..."<<std::endl;
   broadcastDMB->buck_shift_comp_bc(8);
   in=NULL;
   this->LoadCFEBcalchannel(in, out);
@@ -309,7 +306,7 @@ void EmuPeripheralCrateBroadcast::LoadCFEBexternal(xgi::Input * in, xgi::Output 
   //
   unsigned short int dword[2];
   dword[0]=0;
-  cout <<" Loading all Buckeye external pattern 8 ..."<<endl;
+  std::cout <<" Loading all Buckeye external pattern 8 ..."<<std::endl;
   broadcastDMB->buck_shift_ext_bc(8);
   in=NULL;
   this->LoadCFEBcalchannel(in, out);
@@ -319,7 +316,7 @@ void EmuPeripheralCrateBroadcast::LoadDACandTrigger(xgi::Input * in, xgi::Output
   //
   unsigned short int dword[2];
   dword[0]=0;
-  cout <<" Loading all Buckeye external pattern 8 ..."<<endl;
+  std::cout <<" Loading all Buckeye external pattern 8 ..."<<std::endl;
   broadcastDMB->set_cal_dac(1.0,1.0);
   broadcastDMB->settrgsrc(1);
   in=NULL;
@@ -334,13 +331,13 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
   //define broadcast crate and board, if not defined before
   //
   if (!broadcastCrate) {
-    cout <<" Broadcast crate has not been defined yet"<<endl;
-    cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_.toString() << endl;
+    std::cout <<" Broadcast crate has not been defined yet"<<std::endl;
+    std::cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_.toString() << std::endl;
     //
-    MyController = new EmuController();
+    MyController = new emu::pc::EmuController();
     MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_.toString().c_str());
     MyController->init();
-    vector<Crate *> tmpcrate=MyController->GetEmuEndcap()->broadcast_crate();
+    std::vector<emu::pc::Crate *> tmpcrate=MyController->GetEmuEndcap()->broadcast_crate();
     broadcastCrate = tmpcrate[0];
     unsigned int ib=(broadcastCrate->daqmbs()).size()-1;
     broadcastDMB = (broadcastCrate->daqmbs())[ib];
@@ -351,7 +348,7 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
     broadcastCCB  = broadcastCrate->ccb();
   }
   //
-  cout <<" Broadcast components are defined "<<endl;
+  std::cout <<" Broadcast components are defined "<<std::endl;
   //
   return;
 }
@@ -379,7 +376,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
     //
   // load the DAQMB Controller FPGA firmware
   //
-  cout <<"Ready to load firmware for all components ..."<<endl;
+     std::cout <<"Ready to load firmware for all components ..."<<std::endl;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
@@ -441,7 +438,7 @@ void EmuPeripheralCrateBroadcast::LoadDMBControlFPGAFirmware(xgi::Input * in, xg
   unsigned short int dword[2];
   dword[0]=0;
   char *outp=(char *)dword;
-  cout <<" Loading all the DMB's Controller FPGAs firmware from " << DmbControlFPGAFirmwareFile_ <<endl;
+  std::cout <<" Loading all the DMB's Controller FPGAs firmware from " << DmbControlFPGAFirmwareFile_ <<std::endl;
   broadcastDMB->epromload(MPROM,DmbControlFPGAFirmwareFile_.c_str(),1,outp);
   in=NULL;
   this->LoadDMBCFEBFPGAFirmware(in, out);
@@ -452,21 +449,21 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
   // load the DAQMB VME FPGA firmware
   //
   char *outp="0";
-  cout <<" Loading all the DMB's VME FPGAs firmware from " << DmbVmeFPGAFirmwareFile_ <<endl;
-  cout <<" Step 1: Sending SOAP message to all the crates to readback the VME_PROM_ID"<<endl;
-  cout <<"         This is the DMB board number"<<endl;
+  std::cout <<" Loading all the DMB's VME FPGAs firmware from " << DmbVmeFPGAFirmwareFile_ <<std::endl;
+  std::cout <<" Step 1: Sending SOAP message to all the crates to readback the VME_PROM_ID"<<std::endl;
+  std::cout <<"         This is the DMB board number"<<std::endl;
   //
   //SOAP message to read back the DMB board ID:
   PCsendCommand("ReadVmePromUserid","EmuPeripheralCrateConfig");
   //
-  cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
+  std::cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<std::endl;
   broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,1);
   //
-  cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
+  std::cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<std::endl;
   //SOAP message to individual crates to program the PROM_USERCODE
   PCsendCommand("LoadVmePromUserid","EmuPeripheralCrateConfig");
   //
-  cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
+  std::cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<std::endl;
   broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,3);
   //
   this->LoadDMBCFEBFPGAFirmware(in, out);
@@ -529,7 +526,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit);
   for(unsigned int j=0;j<limit;j++){
-    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
     int slott=broadcastDMB0->slot();
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
@@ -556,7 +553,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit1=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit1);
   for(unsigned int j=0;j<limit1;j++){
-    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
     int slott=broadcastDMB0->slot();
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
@@ -584,7 +581,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit2=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit2);
   for(unsigned int j=0;j<limit2;j++){
-    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
     int slott=broadcastDMB0->slot();
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
@@ -611,9 +608,9 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit3=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit3);
   for(unsigned int j=0;j<limit3;j++){
-    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
-    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
-    typedef std::vector<CFEB>::iterator CFEBItr;
+    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<emu::pc::CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febfpgauser(*cfebItr);
@@ -642,9 +639,9 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit4=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit4);
   for(unsigned int j=0;j<limit4;j++){
-    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
-    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
-    typedef std::vector<CFEB>::iterator CFEBItr;
+    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<emu::pc::CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febpromuser(*cfebItr);
@@ -709,9 +706,9 @@ void EmuPeripheralCrateBroadcast::VMECCTestSkewClear(xgi::Input * in,xgi::Output
   printf(" limit %d \n",limit);
   *out << " ****CFEB ON-OFF REGISTER SET " << std::hex << onoff[iof] << std::dec << " Only CFEB" << ionoff[iof] << " will return usercode "<< std::endl;
   for(unsigned int j=0;j<limit;j++){
-    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
-    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
-    typedef std::vector<CFEB>::iterator CFEBItr;
+    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<emu::pc::CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febfpgauser(*cfebItr);
@@ -746,21 +743,21 @@ void EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Out
   //
   char *outp="0";
   //
-  cout <<" Loading all the CFEBs FPGAs firmware from " << CfebFPGAFirmwareFile_ <<endl;
+  std::cout <<" Loading all the CFEBs FPGAs firmware from " << CfebFPGAFirmwareFile_ <<std::endl;
   //
-  cout <<" Step 1: Sending SOAP message to all the crates to readback the CFEB_PROM_ID"<<endl;
-  cout <<"         This is the CFEB board number"<<endl;
+  std::cout <<" Step 1: Sending SOAP message to all the crates to readback the CFEB_PROM_ID"<<std::endl;
+  std::cout <<"         This is the CFEB board number"<<std::endl;
   //SOAP message to read back the CFEB board ID:
   PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrateConfig");
   //
-  cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<endl;
+  std::cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<std::endl;
   broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,1);
   //
-  cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<endl;
+  std::cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<std::endl;
   //SOAP message to individual crates to program the CFEB PROM_USERCODE
   PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrateConfig");
   //
-  cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
+  std::cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<std::endl;
   broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,3);
   //
   this->LoadDMBCFEBFPGAFirmware(in, out);
@@ -873,10 +870,10 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   //
   In_Broadcast_ = true;
   std::cout<< "This is a checking printing for OnConfigCal0"<<std::endl;
-  ostringstream test;
+  std::ostringstream test;
   message->writeTo(test);
-  std::cout << test.str() <<endl;
-  std::cout << " Print check working in OnConfigCal0 "<<endl;
+  std::cout << test.str() <<std::endl;
+  std::cout << " Print check working in OnConfigCal0 "<<std::endl;
   //
   //implement the cal0 configure process:
   float dac;
@@ -899,7 +896,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   //
   std::cout << "Set DAC for DMB slot  " << broadcastDMB->slot() << std::endl;
   broadcastDMB->set_cal_dac(dac,dac);
-  cout <<" DAC is set to: "<<dac<<endl;
+  std::cout <<" DAC is set to: "<<dac<<std::endl;
   //Enable CLCT (bit0=1), disable L1A (bit1=0) on DMB calibration
   broadcastDMB->settrgsrc(1);
   //
@@ -929,7 +926,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBComparator (x
   float dac, threshold;
   int nsleep = 100, highthreshold;  
   In_Broadcast_ = true;
-  ostringstream test;
+  std::ostringstream test;
   message->writeTo(test);
   std::cout << test.str() <<std::endl;
   //
@@ -978,7 +975,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBGains (xoap::
   float dac;
   int nsleep = 100;  
   In_Broadcast_ = true;
-  ostringstream test;
+  std::ostringstream test;
   message->writeTo(test);
   std::cout << test.str() <<std::endl;
   //
@@ -1008,7 +1005,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBCrossTalk (xo
   //
   std::cout<< "This is a checking printing for OnEnableCalCFEBCrossTalk"<<std::endl;
   In_Broadcast_ = true;
-  ostringstream test;
+  std::ostringstream test;
   message->writeTo(test);
   std::cout << test.str() <<std::endl;
   //
@@ -1037,7 +1034,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   int nsleep = 100;  
   //
   In_Broadcast_ = true;
-  ostringstream test;
+  std::ostringstream test;
   message->writeTo(test);
   std::cout << test.str() <<std::endl;
   //
@@ -1102,7 +1099,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
 ////////////////////////////////////////////////////////////////////
 // sending and receiving soap commands
 ////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateBroadcast::PCsendCommand(string command, string klass)
+void EmuPeripheralCrateBroadcast::PCsendCommand(std::string command, std::string klass)
   throw (xoap::exception::Exception, xdaq::exception::Exception){
   //
   //This is copied from CSCSupervisor::sendcommand;
@@ -1137,7 +1134,7 @@ void EmuPeripheralCrateBroadcast::PCsendCommand(string command, string klass)
   }
 }
 //
-xoap::MessageReference EmuPeripheralCrateBroadcast::PCcreateCommandSOAP(string command) {
+xoap::MessageReference EmuPeripheralCrateBroadcast::PCcreateCommandSOAP(std::string command) {
   //
   //This is copied from CSCSupervisor::createCommandSOAP
   //
@@ -1206,3 +1203,4 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onHalt (xoap::MessageReferen
 // provides factory method for instantion of SimpleSOAPSender application
 //
 XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateBroadcast)
+//

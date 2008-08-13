@@ -20,6 +20,9 @@
 #include "EmuEndcap.h"
 #include "VMECC.h"
 
+namespace emu {
+  namespace pc {
+
 XMLParser::XMLParser(): pAttributes_(0), emuEndcap_(0) {}
 
 void XMLParser::parseNode(xercesc::DOMNode * pNode) 
@@ -158,7 +161,7 @@ bool XMLParser::VCCParser(xercesc::DOMNode *pNode, Crate * theCrate)
   if(fillString("MAC_addr", StrgValue)){
     theCrate->vmeController()->SetMAC(0,StrgValue);
     size_t pos=StrgValue.find('-');
-    while(pos!=string::npos){
+    while(pos!=std::string::npos){
       StrgValue.replace(pos,1,1,':');
       pos=StrgValue.find('-');
     }
@@ -984,7 +987,7 @@ void XMLParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuEndcap * endcap
 
     crate->vmeController()->SetVMEAddress(dep_VMEaddress);
     size_t pos=dep_VMEaddress.find(':');
-    while(pos!=string::npos){
+    while(pos!=std::string::npos){
       dep_VMEaddress.replace(pos,1,1,'-');
       pos=dep_VMEaddress.find(':');
     }
@@ -1112,3 +1115,5 @@ void XMLParser::parseFile(const std::string name)
   //  no explicit deletion.
   //
 }
+  } // namespace emu::pc
+  } // namespace emu

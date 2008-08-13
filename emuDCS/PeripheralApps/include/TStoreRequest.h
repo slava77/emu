@@ -1,6 +1,12 @@
+#ifndef _TSTOREREQUEST_H
+#define _TSTOREREQUEST_H
+
 #include "xoap/MessageReference.h"
 #include "xoap/SOAPEnvelope.h"
 #include "xoap/SOAPElement.h"
+
+namespace emu {
+  namespace pc {
 
 class TStoreRequest {
 	public:
@@ -21,3 +27,8 @@ class TStoreRequest {
 												const std::string &namespacePrefix);
 	xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message);
 };
+
+  } // namespace emu::pc
+  } // namespace emu
+
+#endif

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.46 2008/08/08 11:01:24 rakness Exp $
+// $Id: DAQMB.cc,v 3.47 2008/08/13 11:30:54 geurts Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.47  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.46  2008/08/08 11:01:24  rakness
 // centralize logging
 //
@@ -364,7 +368,6 @@
 #include <iomanip>
 #include "geom.h"
 
-using namespace std;
 
 #ifndef debugV //silent mode
 #define PRINT(x) 
@@ -374,6 +377,8 @@ using namespace std;
 #define PRINTSTRING(x) std::cout << #x << std::endl; 
 #endif
 
+namespace emu {
+  namespace pc {
 
 // declarations
 void Parse(char *buf,int *Count,char **Word);
@@ -519,7 +524,7 @@ void DAQMB::configure() {
    //(*MyOutput_) << std::endl;
    (*MyOutput_) << "CFEB size="<<cfebs_.size()<<std::endl;
   //
-  ostringstream dump, dump2, dump3, dump4;
+   std::ostringstream dump, dump2, dump3, dump4;
   dump2 << (int)this->crate();
   dump3 << (int)this->slot();
   dump  << "DAQMB: configure() for crate = " ;
@@ -582,7 +587,7 @@ void DAQMB::configure() {
 	 ((((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3))!=pre_block_end_)||
        (((febstat_[lfeb][3]>>1)&0x03)!=xlatency_)) {cfebmatch=false;
        std::cout << "Reprogram DMB flash cfeb" << lfeb << std::endl;
-       std::cout << "comp_mode_bits old " << hex << (febstat_[lfeb][2]&0x1f) << " new " << comp_mode_bits << dec << std::endl;
+       std::cout << "comp_mode_bits old " << std::hex << (febstat_[lfeb][2]&0x1f) << " new " << comp_mode_bits << std::dec << std::endl;
        std::cout << " pre_block_end old " << (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3)) << " new " << pre_block_end_ << std::endl;
        std::cout << " xlatency old " << ((febstat_[lfeb][3]>>1)&0x03) << " new " << xlatency_ << std::endl;
        }
@@ -658,7 +663,7 @@ void DAQMB::configure() {
 	std::cout << " killinput old " << KillInput_ << " new " << killinput_ << std::endl;
      (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
      setcrateid(crate_id_);
-     (*MyOutput_) << "Set fine_latency, kill_input, xL1A, cfeb clk delay " <<hex<< killflatclk_ <<" in hex"<< std::endl ;
+     (*MyOutput_) << "Set fine_latency, kill_input, xL1A, cfeb clk delay " <<std::hex<< killflatclk_ <<" in hex"<< std::endl ;
      //     comdelay=((xfinelatency_<<10)&0x3c00)+((killinput_<<7)&0x380)+((xlatency_<<5)&0x60)+(cfeb_clk_delay_&0x1f);
      //     cout<<" GUJH program comdelay: "<<hex <<killflatclk_ <<dec<<endl;
      //     cout<<" xfinedelay: "<<xfinelatency_<<" killinput: "<<killinput_<<" xlatency "<<xlatency_<<" cfeb_clk_dly: "<<cfeb_clk_delay_<<endl;
@@ -911,7 +916,7 @@ void DAQMB::setfebdelay(int dword)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   (*MyOutput_) << " GUJH setfebdelay to " << dword << std::endl;
-  cout<< " GUJH setfebdelay to " << dword << std::endl;
+  std::cout<< " GUJH setfebdelay to " << dword << std::endl;
   //
   // Update
   //
@@ -1995,7 +2000,7 @@ unsigned long int  DAQMB::febfpgaid(const CFEB & cfeb)
   sndbuf[3]=0xFF;
   devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
   (*MyOutput_) << " The FEB " << dv-F1SCAM+1 << "FPGA Chip should be 610093 (last 6 digits) "  << std::endl;
-  (*MyOutput_) << " The FPGA Chip IDCODE is " << hex << 
+  (*MyOutput_) << " The FPGA Chip IDCODE is " << std::hex << 
     (0xff&rcvbuf[3]) << (0xff&rcvbuf[2]) << (0xff&rcvbuf[1]) << (0xff&rcvbuf[0]) << std::endl;
   // RPW not sure about this
   unsigned long ibrd = unpack_ibrd();
@@ -2224,7 +2229,7 @@ char shft_bits[6][6];
       cmd[0]=VTX_USR2;
       char chip_mask= cfebItr->chipMask();
       devdo(dv,5,cmd,6,&chip_mask,rcvbuf,0);
-      vector<BuckeyeChip> buckeyes = cfebItr->buckeyeChips();
+      std::vector<BuckeyeChip> buckeyes = cfebItr->buckeyeChips();
       nchips2=buckeyes.size();
       cmd[0]=VTX_USR1;
       sndbuf[0]=CHIP_SHFT;
@@ -3201,11 +3206,11 @@ void DAQMB::epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,cha
   int pass;
   pass=1;
   nowrit=0;
-  cout <<"IPASS: "<<ipass<<" PASS: "<<pass<<endl;
+  std::cout <<"IPASS: "<<ipass<<" PASS: "<<pass<<std::endl;
   (*MyOutput_) << " epromload " << std::endl;
   (*MyOutput_) << " devnum    " << devnum << std::endl;
 
-  cout <<"IPASS: "<<ipass<<" PASS: "<<pass<<endl;
+  std::cout <<"IPASS: "<<ipass<<" PASS: "<<pass<<std::endl;
 
 /* ipass acts as a hiccup.
 ipass == 1 - load up to the part where you have to load the board number
@@ -3213,7 +3218,7 @@ ipass == 2 - load only the board number
 ipass == 3 - load only the stuff after the board number
 */
   if(devnum==ALL){
-    cout <<" Please load individual CFEBs, devnum==ALL is not supported !"<<endl;
+    std::cout <<" Please load individual CFEBs, devnum==ALL is not supported !"<<std::endl;
     return;
   }
   //
@@ -3381,7 +3386,7 @@ ipass == 3 - load only the stuff after the board number
             if(nbytes==1){
               if(0xfd==(snd[0]&0xff)) {
                 nowrit=1;
-                cout<<" nowrit changed"<<endl;
+                std::cout<<" nowrit changed"<<std::endl;
               }
             } // nowrit=1  
           }
@@ -3956,7 +3961,7 @@ void DAQMB::setpulsedelay(int tinj){
       | (tinj & 0x1F) << 9
       | (inject_delay_ & 0x1F) << 14;
   }
-   cout << "DAQMB:configure: caldelay " << hex << cal_delay_bits << dec << endl;
+  std::cout << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
    setcaldelay(cal_delay_bits);
 }
 
@@ -3979,7 +3984,7 @@ void DAQMB::set_rndmtrg_rate(int rate)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-  std::cout<< "Random Trigger Rate set to: "<<hex<<rate<<endl;
+  std::cout<< "Random Trigger Rate set to: "<<std::hex<<rate<<std::endl;
 }
 
 void DAQMB::toggle_rndmtrg_start()
@@ -4256,32 +4261,32 @@ void DAQMB::PrintCounters(){
   printf("  TMB DAV delay:    %d", GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
   printf("  ALCT DAV delay:   %d", GetAlctDavCounter() ); printf(" CMS clock cycles \n");
   //
-  cout << endl ;
+  std::cout << std::endl ;
   //
-  cout << "  L1A to LCT Scope: " ;
-  cout << setw(3) << GetL1aLctScope() << " " ;
-  for( int i=4; i>-1; i--) cout << ((GetL1aLctScope()>>i)&0x1) ;
-  cout << endl ;
+  std::cout << "  L1A to LCT Scope: " ;
+  std::cout << std::setw(3) << GetL1aLctScope() << " " ;
+  for( int i=4; i>-1; i--) std::cout << ((GetL1aLctScope()>>i)&0x1) ;
+  std::cout << std::endl ;
   //
-  cout << "  CFEB DAV Scope:   " ;
-  cout << setw(3) << GetCfebDavScope() << " " ;
-  for( int i=4; i>-1; i--) cout << ((GetCfebDavScope()>>i)&0x1) ;
-  cout << endl ;
+  std::cout << "  CFEB DAV Scope:   " ;
+  std::cout << std::setw(3) << GetCfebDavScope() << " " ;
+  for( int i=4; i>-1; i--) std::cout << ((GetCfebDavScope()>>i)&0x1) ;
+  std::cout << std::endl ;
   //
-  cout << "  TMB DAV Scope:    " ;
-  cout << setw(3) << GetTmbDavScope() << " " ;
-  for( int i=4; i>-1; i--) cout << ((GetTmbDavScope()>>i)&0x1) ;
-  cout << endl ;
+  std::cout << "  TMB DAV Scope:    " ;
+  std::cout << std::setw(3) << GetTmbDavScope() << " " ;
+  for( int i=4; i>-1; i--) std::cout << ((GetTmbDavScope()>>i)&0x1) ;
+  std::cout << std::endl ;
   //
-  cout << "  ALCT DAV Scope:   " ;
-  cout << setw(3) << GetAlctDavScope() << " " ;
-  for( int i=4; i>-1; i--) cout << ((GetAlctDavScope()>>i)&0x1) ;
-  cout << endl ;
+  std::cout << "  ALCT DAV Scope:   " ;
+  std::cout << std::setw(3) << GetAlctDavScope() << " " ;
+  for( int i=4; i>-1; i--) std::cout << ((GetAlctDavScope()>>i)&0x1) ;
+  std::cout << std::endl ;
   //
-  cout << "  Active DAV Scope: " ;
-  cout << setw(3) << GetActiveDavScope() << " " ;
-  for( int i=4; i>-1; i--) cout << ((GetActiveDavScope()>>i)&0x1) ;
-  cout << endl ;
+  std::cout << "  Active DAV Scope: " ;
+  std::cout << std::setw(3) << GetActiveDavScope() << " " ;
+  for( int i=4; i>-1; i--) std::cout << ((GetActiveDavScope()>>i)&0x1) ;
+  std::cout << std::endl ;
   //
 }
 
@@ -4699,7 +4704,7 @@ void DAQMB::PrintCounters(int user_option){
     }
     //
     (*MyOutput_) << "  L1A to LCT Scope: " ;
-    (*MyOutput_) << setw(5) << GetL1aLctScope() << " " ;
+    (*MyOutput_) << std::setw(5) << GetL1aLctScope() << " " ;
     for( int i=4; i>-1; i--) (*MyOutput_) << ((GetL1aLctScope()>>i)&0x1) ;
     (*MyOutput_) << std::endl ;
     //
@@ -4710,7 +4715,7 @@ void DAQMB::PrintCounters(int user_option){
     }
     //
     (*MyOutput_) << "  CFEB DAV Scope:   " ;
-    (*MyOutput_) << setw(5) << GetCfebDavScope() << " " ;
+    (*MyOutput_) << std::setw(5) << GetCfebDavScope() << " " ;
     for( int i=4; i>-1; i--) (*MyOutput_) << ((GetCfebDavScope()>>i)&0x1) ;
     (*MyOutput_) << std::endl ;
     //
@@ -4721,7 +4726,7 @@ void DAQMB::PrintCounters(int user_option){
     }
     //
     (*MyOutput_) << "  TMB DAV Scope:    " ;
-    (*MyOutput_) << setw(5) << GetTmbDavScope() << " " ;
+    (*MyOutput_) << std::setw(5) << GetTmbDavScope() << " " ;
     for( int i=4; i>-1; i--) (*MyOutput_) << ((GetTmbDavScope()>>i)&0x1) ;
     (*MyOutput_) << std::endl ;
     //
@@ -4732,12 +4737,12 @@ void DAQMB::PrintCounters(int user_option){
     }
     //
     (*MyOutput_) << "  ALCT DAV Scope:   " ;
-    (*MyOutput_) << setw(5) << GetAlctDavScope() << " " ;
+    (*MyOutput_) << std::setw(5) << GetAlctDavScope() << " " ;
     for( int i=4; i>-1; i--) (*MyOutput_) << ((GetAlctDavScope()>>i)&0x1) ;
     (*MyOutput_) << std::endl ;
     //
     (*MyOutput_) << "  Active DAV Scope: " ;
-    (*MyOutput_) << setw(5) << GetActiveDavScope() << " " ;
+    (*MyOutput_) << std::setw(5) << GetActiveDavScope() << " " ;
     for( int i=4; i>-1; i--) (*MyOutput_) << ((GetActiveDavScope()>>i)&0x1) ;
     (*MyOutput_) << std::endl ;
     //
@@ -5382,7 +5387,7 @@ int DAQMB::test6()
     if(ival!=0x20610093){
       err2=err2+1;
       ierr=1;
-      (*MyOutput_) << " ERROR: "<<hex<<i<<" febfpgaid is: "<<ival
+      (*MyOutput_) << " ERROR: "<<std::hex<<i<<" febfpgaid is: "<<ival
 		   << " and should be 0x20610093" << std::endl;
     }
   }
@@ -5676,3 +5681,5 @@ int  DAQMB::test11()
    //
 }
 //
+} // namespace emu::pc
+} // namespace emu

@@ -4,6 +4,9 @@
 #include <xercesc/dom/DOM.hpp>
 #include <string>
 
+namespace emu {
+  namespace pc {
+
 class Crate;
 class Chamber;
 class EmuEndcap;
@@ -37,5 +40,8 @@ protected:
   xercesc::DOMNamedNodeMap * pAttributes_;
   EmuEndcap * emuEndcap_;
 };
+
+  } // namespace emu::pc
+  } // namespace emu
 
 #endif

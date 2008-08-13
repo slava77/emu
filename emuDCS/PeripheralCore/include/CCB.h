@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.15 2008/08/08 11:01:23 rakness Exp $
+// $Id: CCB.h,v 3.16 2008/08/13 11:30:53 geurts Exp $
 // $Log: CCB.h,v $
+// Revision 3.16  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.15  2008/08/08 11:01:23  rakness
 // centralize logging
 //
@@ -136,6 +140,10 @@
 #include "EmuLogger.h"
 #include <string>
 #include <bitset>
+
+namespace emu {
+  namespace pc {
+
 
 class Crate;
 
@@ -365,5 +373,8 @@ private:
   int expected_firmware_year_;
 };
 
+
+  } // namespace emu::pc
+  } // namespace emu
 #endif
 

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.52 2008/08/08 14:12:21 liu Exp $
+// $Id: TMB.h,v 3.53 2008/08/13 11:30:53 geurts Exp $
 // $Log: TMB.h,v $
+// Revision 3.53  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.52  2008/08/08 14:12:21  liu
 // fix Get/Set functions for database
 //
@@ -317,6 +321,9 @@
 
 #include "EMUjtag.h"
 #include "EmuLogger.h"
+
+namespace emu {
+  namespace pc {
 
 class ALCTController;
 class TMBParser;
@@ -2476,5 +2483,9 @@ private:
   //
 };
 
+  } // namespace emu::pc
+} // namespace emu
+
 #endif
 
+ 

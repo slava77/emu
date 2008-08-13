@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.73 2008/08/08 14:12:21 liu Exp $
+// $Id: TMB.cc,v 3.74 2008/08/13 11:30:54 geurts Exp $
 // $Log: TMB.cc,v $
+// Revision 3.74  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.73  2008/08/08 14:12:21  liu
 // fix Get/Set functions for database
 //
@@ -476,6 +480,10 @@
 // the VME addresses here are defined in
 // http://www-collider.physics.ucla.edu/cms/trigger/tmb2001/tmb2001_spec.pdf
 
+namespace emu {
+  namespace pc {
+
+
 TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   VMEModule(theCrate, slot),
   EMUjtag(this),
@@ -841,8 +849,8 @@ void TMB::configure(int c) {
   //
   ClearVmeWriteVecs();
   //
-  ostringstream dump;
-  ostringstream dump2;
+  std::ostringstream dump;
+  std::ostringstream dump2;
   //
   dump  << "TMB : configuring in slot = ";
   dump2 << theSlot;
@@ -2378,7 +2386,7 @@ int TMB::TestArray(){
   return 0;
 }
 //
-int TMB::TMBCRCcalc(std::vector<std::bitset <16> >& TMBData) {
+int TMB::TMBCRCcalc(std::vector< std::bitset <16> >& TMBData) {
   //
   std::bitset<22> CRC=calCRC22(TMBData);
   //  (*MyOutput_) << " Test here " << CRC.to_ulong() << std::endl ;
@@ -5070,8 +5078,8 @@ long long int TMB::GetDistripHotChannelMask(int layer) {
   // There must be a cleaner way to do this... but it is working so I leave it alone...
   //
   // split it into upper and lower bits because going to ulong will result in an exception, below...
-  bitset<20> msb_mask;  
-  bitset<20> lsb_mask;  
+  std::bitset<20> msb_mask;  
+  std::bitset<20> lsb_mask;  
   //
   if (debug_)
     std::cout << "TMB: Getting Distrip hot channel mask for Layer " << std::dec << layer 
@@ -8359,3 +8367,7 @@ int TMB::GetHotChannelDistripFromMap_(unsigned long int vme_address, int bit_in_
   return -999;
 }
 //
+
+} // namespace emu::pc  
+} // namespace emu  
+

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.34 2008/08/08 17:56:54 rakness Exp $
+// $Id: CCB.cc,v 3.35 2008/08/13 11:30:54 geurts Exp $
 // $Log: CCB.cc,v $
+// Revision 3.35  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.34  2008/08/08 17:56:54  rakness
 // fix just introduced bug for checking DLOG mode
 //
@@ -277,6 +281,11 @@
 #include "Crate.h"
 //
 //
+
+namespace emu {
+  namespace pc {
+
+
 CCB::CCB(Crate * theCrate ,int slot)
 : VMEModule(theCrate, slot), 
   EmuLogger(),
@@ -663,7 +672,7 @@ void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
   sndbuf[1]=0x02; 
   do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
   //
-  bitset<8> inputreadBackDataBit(value);
+  std::bitset<8> inputreadBackDataBit(value);
   // 
   // Write data
   for(int i(7); i>=0; --i) {
@@ -1805,3 +1814,6 @@ void CCB::l1a_and_trig(){
   do_vme(VME_WRITE,0x54,sndbuf,rcvbuf,NOW); // base+0x3c
 }
 //
+
+  } // namespace emu::pc
+  } // namespace emu

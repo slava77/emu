@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.14 2008/05/14 13:22:49 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.15 2008/08/13 11:30:51 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -71,8 +71,6 @@
 #include "ConnectionsDB.h"
 #include "BoardsDB.h"
 
-using namespace cgicc;
-using namespace std;
 
 //class EmuPeripheralCrateBroadcast: public xdaq::Application
 class EmuPeripheralCrateBroadcast: public EmuApplication,
@@ -137,8 +135,8 @@ public:
   xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
   // Sending soap messages
   //
-  xoap::MessageReference PCcreateCommandSOAP(string command);
-  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
+  xoap::MessageReference PCcreateCommandSOAP(std::string command);
+  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
   //
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
@@ -151,15 +149,15 @@ public:
 private:
 
   int calsetup;
-  EmuController * MyController;
-  VMECC* vmecc;
-  Crate * broadcastCrate;
-  DAQMB * broadcastDMB;
-  TMB * broadcastTMB;
-  RAT * broadcastRAT;
-  MPC * broadcastMPC;
-  ALCTController * broadcastALCT;
-  CCB * broadcastCCB;
+  emu::pc::EmuController * MyController;
+  emu::pc::VMECC* vmecc;
+  emu::pc::Crate * broadcastCrate;
+  emu::pc::DAQMB * broadcastDMB;
+  emu::pc::TMB * broadcastTMB;
+  emu::pc::RAT * broadcastRAT;
+  emu::pc::MPC * broadcastMPC;
+  emu::pc::ALCTController * broadcastALCT;
+  emu::pc::CCB * broadcastCCB;
 
   xdata::String VMECCFirmwareDir_; 
   xdata::String VMECCFirmwareVer_; 

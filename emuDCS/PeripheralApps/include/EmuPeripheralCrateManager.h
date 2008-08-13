@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.1 2007/12/26 11:22:31 liu Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.2 2008/08/13 11:30:51 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -76,7 +76,7 @@ public:
   void CheckEmuPeripheralCrateState(xgi::Input * in, xgi::Output * out );
   int CompareEmuPeripheralCrateCalibrationState(std::string state_compare);
   void UploadDB(xgi::Input * in, xgi::Output * out );
-  void AddRow(int Row,xdata::Table & table, std::vector<std::string> NewColumn);
+  void AddRow(int Row,xdata::Table & table, std::vector< std::string> NewColumn);
   int CompareEmuPeripheralCrateState(std::string state_compare);
   //
   void CheckEmuPeripheralCrateCalibrationState(xgi::Input * in, xgi::Output * out );
@@ -112,7 +112,7 @@ public:
   void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
   //
   void relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception);
-  std::vector < std::vector <std::string > > ConvertTable(xdata::Table thisTable) throw (xgi::exception::Exception);
+  std::vector < std::vector< std::string > > ConvertTable(xdata::Table thisTable) throw (xgi::exception::Exception);
   std::string MIMETypeFromXdataType(std::string xdataType);
   void addAttachment(xoap::MessageReference message,xdata::Serializable &data,std::string contentId);
   void SetRandomDataTable(xdata::Table & table,int Row);

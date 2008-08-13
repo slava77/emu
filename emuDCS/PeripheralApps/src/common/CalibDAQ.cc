@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 1.1 2007/12/26 11:23:47 liu Exp $
+// $Id: CalibDAQ.cc,v 1.2 2008/08/13 11:30:52 geurts Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 1.2  2008/08/13 11:30:52  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 1.1  2007/12/26 11:23:47  liu
 // new parser and applications
 //
@@ -203,6 +207,9 @@
 #include "JTAG_constants.h"
 #include "ChamberUtilities.h"
 #include "EmuEndcap.h"
+
+namespace emu {
+  namespace pc {
 
 CalibDAQ::CalibDAQ(EmuEndcap *endcap){
   myEndcap = endcap;
@@ -1418,3 +1425,5 @@ void CalibDAQ::FindL1aDelayComparator() {
   }
   //
 }
+  } // namespace emu::pc
+ } // namespace emu

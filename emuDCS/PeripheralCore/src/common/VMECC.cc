@@ -9,7 +9,9 @@
 
 #include "EMU_CC_constants.h"
 
-using namespace std;
+namespace emu {
+  namespace pc {
+
 
 VMECC::VMECC(Crate * theCrate,int slot)
 :VMEModule(theCrate,slot)
@@ -877,7 +879,7 @@ void VMECC::send_ver_prom_data()
     if(pause){
       while((n=eth_read())>6){
 	pktnum++;
-	std::cout << endl;
+	std::cout << std::endl;
 	ptyp = rbuf[PKT_TYP_OFF]&0xff;
 	if(ptyp>=INFO_PKT){
 	  std::cout << "pktnum A" << pktnum << ": " << dcode_msg_pkt(rbuf) << std::endl;
@@ -996,7 +998,7 @@ void VMECC::send_prg_prom_data()
     if(pause){
       while((n=eth_read())>6){
 	pktnum++;
-	std::cout << endl;
+	std::cout <<  std::endl;
 	ptyp = rbuf[PKT_TYP_OFF]&0xff;
 	if(ptyp>=INFO_PKT){
 	  std::cout << "pktnum A" << pktnum << ": " << dcode_msg_pkt(rbuf) << std::endl;
@@ -2448,3 +2450,8 @@ void VMECC::ld_usr_reg(unsigned int user)
   n=eth_write();
   return;
 }
+
+
+} // namespace emu::pc  
+} // namespace emu  
+

@@ -26,6 +26,10 @@
 
 /* register 1-7 special commands 0x10-rs 0x11-w feb power 0x12-r febpower */
 
+
+namespace emu {
+  namespace pc {
+
 void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
 {
   char cmd2[9000];
@@ -1759,4 +1763,9 @@ unsigned short int *ptr_r;
   return;
  }
 }
+
+} // namespace emu::pc  
+} // namespace emu  
+
+
 

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.41 2008/07/17 11:30:29 liu Exp $
+// $Id: Crate.cc,v 3.42 2008/08/13 11:30:54 geurts Exp $
 // $Log: Crate.cc,v $
+// Revision 3.42  2008/08/13 11:30:54  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.41  2008/07/17 11:30:29  liu
 // update number of counters
 //
@@ -190,6 +194,10 @@
 #include "ALCTController.h"
 #include "Chamber.h"
 #include "VMECC.h"
+
+namespace emu {
+  namespace pc {
+
 
 Crate::Crate(int CrateID, VMEController * controller) : 
   theCrateID(CrateID),  
@@ -556,3 +564,6 @@ void Crate::MonitorDMB(int cycle, char * buf)
   *buf2 = (TOTAL_DMB_COUNTERS/2)*9;
   return;
 }
+
+} // namespace emu::pc
+} // namespace emu

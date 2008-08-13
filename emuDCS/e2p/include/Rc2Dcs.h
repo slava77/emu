@@ -26,7 +26,7 @@ public:
   int option_to_set;
 
 int TIME_TO_WAIT_AFTER_GETDATA;
- vector<string> data_vector;
+ std::vector<std::string> data_vector;
 
 //-----------
   Rc2Dcs();

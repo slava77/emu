@@ -61,6 +61,11 @@
 //
 #include "EmuApplication.h"
 
+
+namespace emu {
+  namespace pc {
+
+
 class EmuPeripheralCrateCommand: public EmuApplication, xdata::ActionListener
 {
   //
@@ -92,7 +97,7 @@ protected:
   //
   xdata::String CalibType_;
   xdata::UnsignedInteger CalibNumber_;
-  string CalibTypeStr_; 
+  std::string CalibTypeStr_; 
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
@@ -108,14 +113,14 @@ protected:
   MPC * thisMPC;
   BoardsDB *brddb;
   CrateUtilities myCrateTest;
-  ostringstream CrateTestsOutput;
+  std::ostringstream CrateTestsOutput;
   ChamberUtilities MyTest[10][30];
-  ostringstream ChamberTestsOutput[10][30];
-  ostringstream OutputStringDMBStatus[10];
-  ostringstream OutputStringTMBStatus[10];
-  ostringstream OutputDMBTests[10][30];
-  ostringstream OutputTMBTests[10][30];
-  ostringstream OutputCheckConfiguration;
+  std::ostringstream ChamberTestsOutput[10][30];
+  std::ostringstream OutputStringDMBStatus[10];
+  std::ostringstream OutputStringTMBStatus[10];
+  std::ostringstream OutputDMBTests[10][30];
+  std::ostringstream OutputTMBTests[10][30];
+  std::ostringstream OutputCheckConfiguration;
   std::vector <float> ChartData[100];
   int TMBTriggerAlct0Key[120][9];
   int TMBTriggerAlct1Key[120][9];
@@ -125,11 +130,11 @@ protected:
   int tmb_vme_ready;
   //
   int CCBRegisterValue_;
-  vector<TMB*>   tmbVector;
-  vector<TMBTester>   tmbTestVector;
-  vector<DAQMB*> dmbVector;
-  vector<Crate*> crateVector;
-  vector<Chamber*> chamberVector;
+  std::vector<TMB*>   tmbVector;
+  std::vector<TMBTester>   tmbTestVector;
+  std::vector<DAQMB*> dmbVector;
+  std::vector<Crate*> crateVector;
+  std::vector<Chamber*> chamberVector;
   Crate *thisCrate;
   std::string Operator_;
   std::string RunNumber_;
@@ -157,10 +162,10 @@ protected:
   int tmb_check_ok[60][9];
   int dmb_check_ok[60][9];
   //
-  vector<int> L1aLctCounter_;
-  vector<int> CfebDavCounter_;
-  vector<int> TmbDavCounter_;
-  vector<int> AlctDavCounter_;
+  std::vector<int> L1aLctCounter_;
+  std::vector<int> CfebDavCounter_;
+  std::vector<int> TmbDavCounter_;
+  std::vector<int> AlctDavCounter_;
   //
   EmuEndcap * emuEndcap_;
   //
@@ -204,9 +209,12 @@ private:
   void CheckPeripheralCrateConfiguration();
   void CheckControllers();
   //
-  xoap::MessageReference PCcreateCommandSOAP(string command);
-  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
+  xoap::MessageReference PCcreateCommandSOAP(std::string command);
+  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
     
 };
+
+} // namespace emu::pc
+} // namespace emu
 
 #endif

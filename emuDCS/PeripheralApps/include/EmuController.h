@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.h,v 1.3 2008/02/21 09:55:37 liu Exp $
+// $Id: EmuController.h,v 1.4 2008/08/13 11:30:51 geurts Exp $
 // $Log: EmuController.h,v $
+// Revision 1.4  2008/08/13 11:30:51  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 1.3  2008/02/21 09:55:37  liu
 // add fast config button etc.
 //
@@ -44,6 +48,9 @@
 #include <string>
 #include <vector>
 
+namespace emu {
+  namespace pc {
+
 class Crate;
 class EmuEndcap;
 
@@ -76,4 +83,6 @@ private:
   std::vector<Crate*> myCrates;
 };
 
+  } // namespace emu::pc
+  } // namespace emu
 #endif

@@ -20,7 +20,6 @@
 #include "toolbox/Task.h"
 #include "DcsEmuController.h"
 
-using namespace std;
 
 #define MAX_CHAMBER_NUMBER 108
 
@@ -39,11 +38,11 @@ int ch_all_counter;
  int READOUT_CYCLE_DELAY;
  int READOUT_COUNTER_NUMBER;
   
-EmuDcs(string *file_to_load_cfeb, string *file_to_load_vme_chip, string *file_to_load_control_chip,
-       string *file_to_load_valct288, string *file_to_load_salct288, 
-       string *file_to_load_valct384, string *file_to_load_salct384, 
-       string *file_to_load_valct672, string *file_to_load_salct672, 
-       string *file_to_load_tmb);
+EmuDcs(std::string *file_to_load_cfeb, std::string *file_to_load_vme_chip, std::string *file_to_load_control_chip,
+       std::string *file_to_load_valct288, std::string *file_to_load_salct288, 
+       std::string *file_to_load_valct384, std::string *file_to_load_salct384, 
+       std::string *file_to_load_valct672, std::string *file_to_load_salct672, 
+       std::string *file_to_load_tmb);
 
 EmuDcs(DcsEmuController *theEmuController); // emulib4 EmuDcs(CrateSelector &theSelectorDcs); 
 
@@ -84,7 +83,7 @@ void EmuDcs_launch();
   int programTMB();
   int programMPC();
 
-  int loadALCT(string &command);
+  int loadALCT(std::string &command);
   int loadTMB();
  
   int programDAQMB_VMEChip();
@@ -106,19 +105,19 @@ void EmuDcs_launch();
   int readLV_Reference();
   
   int db();
-  int getServiceName(int index, char *system, string &service_name);  
+  int getServiceName(int index, char *system, std::string &service_name);  
 
 
-  ///  int commandParse(string &command);
-  ///  bool slotsLoading(/*string &ip_address, int ccb_slot,int dmb_slot,int tmb_slot,int mpc_slot*/);
+  ///  int commandParse(std::string &command);
+  ///  bool slotsLoading(/*std::string &ip_address, int ccb_slot,int dmb_slot,int tmb_slot,int mpc_slot*/);
   
 
-  int controlDAQMB(DAQMB *daqmb);
-  int controlCCB(CCB *ccb);
-  int controlTMB(TMB *tmb);
+  int controlDAQMB(emu::pc::DAQMB *daqmb);
+  int controlCCB(emu::pc::CCB *ccb);
+  int controlTMB(emu::pc::TMB *tmb);
 
 
-  int simulationLVStatusControl(string &ipslot);
+  int simulationLVStatusControl(std::string &ipslot);
   static void catchFunction(int);
 
 // ===test stuff below 
@@ -127,8 +126,8 @@ void EmuDcs_launch();
 
 //================================================
 
-  vector<string> slots;
-  vector<string> chamber_slots;
+  std::vector<std::string> slots;
+  std::vector<std::string> chamber_slots;
   int db_index;
 
   int number_of_cfebs; // temporal parameter: should be taken from DAQMB object 
@@ -145,21 +144,21 @@ private:
 
  int RepeatNumber; // temporary data 
 
-  string *file_to_load_cfeb;
-  string *file_to_load_vme_chip;
-  string *file_to_load_control_chip;
+  std::string *file_to_load_cfeb;
+  std::string *file_to_load_vme_chip;
+  std::string *file_to_load_control_chip;
 
- string *file_to_load_valct288; 
- string *file_to_load_salct288; 
+ std::string *file_to_load_valct288; 
+ std::string *file_to_load_salct288; 
 
-  string *file_to_load_valct384; 
- string *file_to_load_salct384;
+  std::string *file_to_load_valct384; 
+ std::string *file_to_load_salct384;
 
 
-  string *file_to_load_valct672;  
-  string *file_to_load_salct672; 
+  std::string *file_to_load_valct672;  
+  std::string *file_to_load_salct672; 
 
-  string *file_to_load_tmb;
+  std::string *file_to_load_tmb;
 
  //================================
 
@@ -178,10 +177,10 @@ private:
   DimService *RunControlService;
 
 
-  DAQMB *daqmb;
-  CCB *ccb;
-  TMB *tmb;
-  ALCTController *alct_c;
+  emu::pc::DAQMB *daqmb;
+  emu::pc::CCB *ccb;
+  emu::pc::TMB *tmb;
+  emu::pc::ALCTController *alct_c;
   //  VMEController *vme; //  to avoid the call like: daqmb->theController->theCurrentModule
   
 
@@ -191,8 +190,8 @@ private:
 
 //== for simulation: to keep power staus ==========
 
-vector<string> d360_ipslot;
-vector<int> slot_status;
+std::vector<std::string> d360_ipslot;
+std::vector<int> slot_status;
 int current_set;
 
 

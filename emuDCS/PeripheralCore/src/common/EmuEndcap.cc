@@ -10,7 +10,10 @@
 #include "VMEController.h"
 #include "EmuEndcap.h"
 
-using namespace std;
+namespace emu {
+  namespace pc {
+
+
 
 EmuEndcap::EmuEndcap(){
   theCrates.clear();
@@ -119,3 +122,5 @@ std::vector<TMB *> EmuEndcap::tmbs()  {
 std::vector<TMB *> EmuEndcap::tmbs(Crate * crate)  {
   return crate->tmbs();
 }
+} // namespace emu::pc
+} // namespace emu

@@ -1,3 +1,6 @@
+namespace emu {
+  namespace pc {
+
 /* Time outs */
 #define RD_TMO_short   200
 #define RD_TMO_med    1000
@@ -1125,3 +1128,6 @@ unsigned short int prm_dat[0x80000];
 #define REQ_RWD       1 //Release When Done  Requester
 #define REQ_FAIR_ROR  2 //Fair Release on Request Requester
 #define REQ_FAIR_RWD  3 //Fair Release When Done  Requester
+
+  } // namespace emu::pc
+  } // namespace emu

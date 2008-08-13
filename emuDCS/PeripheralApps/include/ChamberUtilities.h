@@ -11,6 +11,11 @@
 #include "MPC.h"
 #include "RAT.h"
 #include "ALCTController.h"
+
+
+namespace emu {
+  namespace pc {
+
 /**
    Functions specific to a chamber which may use methods from several different core classes  
  */
@@ -322,4 +327,6 @@ private:
   int initial_alct_pattern_thresh_;
 };
 
+  } // namespace emu::pc
+  } // namespace emu
 #endif

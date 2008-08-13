@@ -18,6 +18,12 @@
 #define PRINTSTRING(x) std::cout << #x << std::endl;
 #endif
 
+
+namespace emu {
+  namespace pc {
+
+
+
 TMBTester::TMBTester() {
   tmb_ = 0;
   ccb_ = 0;
@@ -1217,4 +1223,9 @@ void TMBTester::computeBER(int rpc){
 ///////////////////////////////////////////////
 //  END: The following belong in TMB.cc
 ///////////////////////////////////////////////
+
+
+
+} // namespace emu::pc  
+} // namespace emu  
 

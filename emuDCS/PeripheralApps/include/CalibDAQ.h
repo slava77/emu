@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 1.1 2007/12/26 11:22:28 liu Exp $
+// $Id: CalibDAQ.h,v 1.2 2008/08/13 11:30:51 geurts Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 1.2  2008/08/13 11:30:51  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 1.1  2007/12/26 11:22:28  liu
 // new parser and applications
 //
@@ -73,6 +77,9 @@
 #define CalibDAQ_h
 #include <string>
 
+namespace emu {
+  namespace pc {
+
 class DAQMB;
 class Crate;
 class EmuEndcap;
@@ -107,4 +114,6 @@ private:
    EmuEndcap * myEndcap;
 };
 
+  } // namespace emu::pc
+  } // namespace emu
 #endif

@@ -17,6 +17,12 @@
 //EMUjtag::EMUjtag(){
 //}
 //
+
+namespace emu {
+  namespace pc {
+
+
+
 EMUjtag::EMUjtag(TMB * tmb)
 {
   //
@@ -3033,3 +3039,5 @@ void EMUjtag::Parse(char *buf,int *Count,char **Word) {
 }
 
 
+} // namespace emu::pc
+} // namespace emu

@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.10 2008/08/08 11:01:23 rakness Exp $
+// $Id: MPC.h,v 3.11 2008/08/13 11:30:53 geurts Exp $
 // $Log: MPC.h,v $
+// Revision 3.11  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.10  2008/08/08 11:01:23  rakness
 // centralize logging
 //
@@ -98,6 +102,12 @@
 #include "VMEModule.h"
 #include "EmuLogger.h"
 #include <string>
+
+namespace emu {
+  namespace pc {
+
+
+
 
 class Crate;
 
@@ -243,4 +253,6 @@ class MPC : public VMEModule, public EmuLogger {
   //
 };
 
+  } // namespace emu::pc
+  } // namespace emu
 #endif

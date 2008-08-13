@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: slicetestconfig.cpp,v 1.2 2008/01/10 11:57:29 liu Exp $
+// $Id: slicetestconfig.cpp,v 1.3 2008/08/13 11:30:52 geurts Exp $
 // $Log: slicetestconfig.cpp,v $
+// Revision 1.3  2008/08/13 11:30:52  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 1.2  2008/01/10 11:57:29  liu
 // update
 //
@@ -49,7 +53,7 @@ int main(int argc, char **argv)
   //parser.parseFile(xmlFile);
 
   //TestBeamCrateController tbController;
-  EmuController emuController;
+  emu::pc::EmuController emuController;
   emuController.SetConfFile(xmlFile);
   emuController.init();
   //

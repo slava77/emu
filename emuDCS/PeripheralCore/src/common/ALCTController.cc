@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.54 2008/08/08 16:18:34 liu Exp $
+// $Id: ALCTController.cc,v 3.55 2008/08/13 11:30:53 geurts Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.55  2008/08/13 11:30:53  geurts
+// introduce emu::pc:: namespaces
+// remove any occurences of "using namespace" and make std:: references explicit
+//
 // Revision 3.54  2008/08/08 16:18:34  liu
 // fix NoSetting values
 //
@@ -333,6 +337,11 @@
 #include "TMB.h"
 //
 //
+
+namespace emu {
+  namespace pc {
+
+
 ALCTController::ALCTController(TMB * tmb, std::string chamberType) :  EmuLogger() 
 {
   tmb_ = tmb;
@@ -735,7 +744,7 @@ bool ALCTController::CheckFirmwareDate() {
       GetFastControlDay()               == GetExpectedFastControlDay()               ) {
     //
     // OK to this point... further checks for ME11...
-    if ( GetChamberType().find("ME11") != string::npos ) {
+    if ( GetChamberType().find("ME11") != std::string::npos ) {
       //
       if (GetFastControlBackwardForwardType()  == GetExpectedFastControlBackwardForwardType() &&
 	  GetFastControlNegativePositiveType() == GetExpectedFastControlNegativePositiveType() ) {
@@ -4316,3 +4325,6 @@ int ALCTController::CheckFirmwareConfiguration() {
   return return_value;
   //
 }
+
+  } // namespace emu::pc
+  } // namespace emu

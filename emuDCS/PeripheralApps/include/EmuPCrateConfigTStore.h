@@ -36,6 +36,8 @@
 
 #include <sstream>
 
+namespace emu {
+  namespace pc {
 
 class EmuPCrateConfigTStore: public xdaq::Application
 {
@@ -154,5 +156,9 @@ inline bool convertToHex(std::string &dataHex, const std::string format, const T
   }
   return converted;
 }
+
+} // namespace emu::pc
+} // namespace emu
+
 
 #endif

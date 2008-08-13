@@ -167,11 +167,11 @@ int EmuDcs::svc(){
 }
 
 //========================================================================  
-EmuDcs::EmuDcs(string *file_to_load_cfeb, string *file_to_load_vme_chip, string *file_to_load_control_chip,
-       string *file_to_load_valct288, string *file_to_load_salct288, 
-       string *file_to_load_valct384, string *file_to_load_salct384, 
-       string *file_to_load_valct672, string *file_to_load_salct672, 
-string *file_to_load_tmb)
+EmuDcs::EmuDcs(std::string *file_to_load_cfeb, std::string *file_to_load_vme_chip, std::string *file_to_load_control_chip,
+       std::string *file_to_load_valct288, std::string *file_to_load_salct288, 
+       std::string *file_to_load_valct384, std::string *file_to_load_salct384, 
+       std::string *file_to_load_valct672, std::string *file_to_load_salct672, 
+std::string *file_to_load_tmb)
   : Task(""), OPERATION_ACTIVE(false), RepeatNumber(1),
  file_to_load_cfeb(file_to_load_cfeb),file_to_load_vme_chip(file_to_load_vme_chip), 
   file_to_load_control_chip(file_to_load_control_chip),
@@ -191,13 +191,13 @@ EmuDcs::EmuDcs(DcsEmuController *theEmuController) : DcsEmuController(*theEmuCon
 
   //  theSelectorDcs=&theSelector;  //emulib4
 
-file_to_load_cfeb = new string("/home/fast/data/daqmb_config/feb_prom/fcntl_v9_r1.svf");
-file_to_load_vme_chip=new string("/home/fast/data/daqmb_config/mthb_vprom/vme4_v16_r3.svf");
-file_to_load_control_chip=new string("/home/fast/data/daqmb_config/mthb_cprom/cntl4_v35_r1.svf");
-file_to_load_valct288=new string("/home/fast/data/daqmb_config/alct_vprom/alct288_virtex.svf");
-file_to_load_valct384=new string("/home/fast/data/daqmb_config/alct_vprom/alct384_virtex.svf");
-file_to_load_valct672=new string("/home/fast/data/daqmb_config/alct_vprom/alct672_virtex.svf");
-file_to_load_tmb=new string("/home/fast/data/daqmb_config/tmb_eprom/tmb2001a_101802.svf");
+file_to_load_cfeb = new std::string("/home/fast/data/daqmb_config/feb_prom/fcntl_v9_r1.svf");
+file_to_load_vme_chip=new std::string("/home/fast/data/daqmb_config/mthb_vprom/vme4_v16_r3.svf");
+file_to_load_control_chip=new std::string("/home/fast/data/daqmb_config/mthb_cprom/cntl4_v35_r1.svf");
+file_to_load_valct288=new std::string("/home/fast/data/daqmb_config/alct_vprom/alct288_virtex.svf");
+file_to_load_valct384=new std::string("/home/fast/data/daqmb_config/alct_vprom/alct384_virtex.svf");
+file_to_load_valct672=new std::string("/home/fast/data/daqmb_config/alct_vprom/alct672_virtex.svf");
+file_to_load_tmb=new std::string("/home/fast/data/daqmb_config/tmb_eprom/tmb2001a_101802.svf");
 
  printf("test\n");
 
@@ -207,11 +207,11 @@ activate();
 //========================================================================  
 void EmuDcs::EmuDcs_launch()
   /*
-string *file_to_load_cfeb, string *file_to_load_vme_chip, string *file_to_load_control_chip,
-       string *file_to_load_valct288, string *file_to_load_salct288, 
-       string *file_to_load_valct384, string *file_to_load_salct384, 
-       string *file_to_load_valct672, string *file_to_load_salct672, 
-string *file_to_load_tmb) 
+std::string *file_to_load_cfeb, std::string *file_to_load_vme_chip, std::string *file_to_load_control_chip,
+       std::string *file_to_load_valct288, std::string *file_to_load_salct288, 
+       std::string *file_to_load_valct384, std::string *file_to_load_salct384, 
+       std::string *file_to_load_valct672, std::string *file_to_load_salct672, 
+std::string *file_to_load_tmb) 
 : RepeatNumber(1), OPERATION_ACTIVE(false), 
  file_to_load_cfeb(file_to_load_cfeb),file_to_load_vme_chip(file_to_load_vme_chip), 
   file_to_load_control_chip(file_to_load_control_chip),
@@ -237,7 +237,7 @@ string *file_to_load_tmb)
 
   // exit(0);
   
-  string service_name;
+  std::string service_name;
   
   ch_all_counter=0;
   
@@ -302,10 +302,10 @@ string *file_to_load_tmb)
   /*
   CrateSetup *cr_setup_o= new CrateSetup(); 
   VMEController *vme = new VMEController("128.146.39.89", 6030);
-  Crate * crate = new Crate(0, vme); 
-  DAQMB * daqmb = new DAQMB(0, 13, 5);
-  CCB * ccb =  new CCB(0, 11);
-  TMB * tmb = new TMB(0, 21);
+  emu::pc::Crate * crate = new emu::pc::Crate(0, vme); 
+  emu::pc::DAQMB * daqmb = new emu::pc::DAQMB(0, 13, 5);
+  emu::pc::CCB * ccb =  new emu::pc::CCB(0, 11);
+  emu::pc::TMB * tmb = new emu::pc::TMB(0, 21);
   */ 
 
 //======  for dynatem2 ========================================================
@@ -314,11 +314,11 @@ string *file_to_load_tmb)
   CrateSetup *cr_setup_o= new CrateSetup(); /////////////////
   VMEController * vme = new VMEController("137.138.102.223", 6030);
   //  VMEController * vme = new VMEController("137.138.102.223", 6030);
-  Crate * crate = new Crate(0, vme); 
-  DAQMB * daqmb = new DAQMB(0, 7, 5);
-  CCB * ccb =  new CCB(0, 13);
+  emu::pc::Crate * crate = new emu::pc::Crate(0, vme); 
+  emu::pc::DAQMB * daqmb = new emu::pc::DAQMB(0, 7, 5);
+  emu::pc::CCB * ccb =  new emu::pc::CCB(0, 13);
 
-  TMB * tmb = new TMB(0, 6);
+  emu::pc::TMB * tmb = new emu::pc::TMB(0, 6);
   */
  //==============================================================
   //--------------
@@ -362,7 +362,7 @@ string *file_to_load_tmb)
 
 void EmuDcs::dcs_enable(){
 
-  /////// II vector<Crate *> v_crates= crates();
+  /////// II std::vector<emu::pc::Crate *> v_crates= crates();
    /////// II    for(int i=0;i< v_crates.size();i++)v_crates[i]->vmeController()->openSocket();
 
     soft_start();
@@ -371,7 +371,7 @@ void EmuDcs::dcs_enable(){
 //=======================================================================================
 void EmuDcs::dcs_disable(){
 
- /////// II vector<Crate *> v_crates= crates();
+ /////// II std::vector<emu::pc::Crate *> v_crates= crates();
   /////// II  for(int i=0;i< v_crates.size();i++)v_crates[i]->vmeController()->closeSocket();
 
     soft_stop(); 
@@ -487,8 +487,8 @@ int EmuDcs::safeExit(){
 
   /*
   // signal(SIGALRM,this->catchFunction);
-  //fg  DAQMB *daqmb_loc = dynamic_cast<DAQMB *>(((VMEControllerdcs *) daqmb->getTheController())->getTheCurrentModule()); //
-  DAQMB *daqmb_loc = dynamic_cast<DAQMB *>(((VMEController *) daqmb->getTheController())->getTheCurrentModule()); //
+  //fg  emu::pc::DAQMB *daqmb_loc = dynamic_cast<emu::pc::DAQMB *>(((VMEControllerdcs *) daqmb->getTheController())->getTheCurrentModule()); //
+  emu::pc::DAQMB *daqmb_loc = dynamic_cast<emu::pc::DAQMB *>(((VMEController *) daqmb->getTheController())->getTheCurrentModule()); //
   if(daqmb_loc != 0) daqmb->getTheController()->end();
   */
 
@@ -1029,13 +1029,13 @@ int EmuDcs::lowv_status(bool IS_SIMULATION_LOCAL){
 
 /*
 bool EmuDcs::slotsLoading(){
-  //(string &ip_address, int ccb_slot,int dmb_slot,int tmb_slot,int mpc_slot){
+  //(std::string &ip_address, int ccb_slot,int dmb_slot,int tmb_slot,int mpc_slot){
 
 
 
-  vector<Crate *> v_crates=crates();
+  std::vector<emu::pc::Crate *> v_crates=crates();
   //  int size_crates=v_crates.size();
-  vector<DAQMB *> v_daqmbs;
+  std::vector<emu::pc::DAQMB *> v_daqmbs;
 
   bool crate_ok = false;
   //////  bool ccb_ok   = false;
@@ -1056,7 +1056,7 @@ bool EmuDcs::slotsLoading(){
    v_daqmbs=daqmbs(v_crates[i]);
    for(int j=0;j<v_daqmbs.size() ;j++){
      if(dmb_slot == v_daqmbs[j]->slot()){
-       controlDAQMB(v_daqmbs[j]);
+       controlemu::pc::DAQMB(v_daqmbs[j]);
        dmb_ok=true;
      }
    } // j loop
@@ -1101,7 +1101,7 @@ bool EmuDcs::slotsLoading(){
 
 //=====================================================================
 
-int EmuDcs::commandParse(string &command){
+int EmuDcs::commandParse(std::string &command){
 
   
      int pos=command.find("|",0);
@@ -1110,7 +1110,7 @@ int EmuDcs::commandParse(string &command){
 
     int pos2= ipslot.find(";",0);
     int pos1= ipslot.find(";",pos2+1);
-    if(pos1 == string::npos){
+    if(pos1 == std::string::npos){
      dmb_slot=atoi((ipslot.substr(pos2+1, ipslot.size() - pos2 -1)).c_str());
     }
     else{
@@ -1164,12 +1164,12 @@ int EmuDcs::programAll2004(){
 
   //  ccb->prgall_bckpln();
 
-  ccb->setCCBMode(CCB::VMEFPGA);
+  ccb->setCCBMode(emu::pc::CCB::VMEFPGA);
   ::usleep(100000);
-  //ccb->setCCBMode(CCB::DLOG);
+  //ccb->setCCBMode(emu::pc::CCB::DLOG);
   ccb->hard_reset_all();
   ::sleep(1);
-   ccb->setCCBMode(CCB::DLOG);
+   ccb->setCCBMode(emu::pc::CCB::DLOG);
 
   return 1;
 
@@ -1274,12 +1274,12 @@ int EmuDcs::programAllCFEBs(){
   */
 
   /////////  03/31/2005 ((CCBdcs *)ccb)->hard_reset_dmb();
- ccb->setCCBMode(CCB::VMEFPGA);
+ ccb->setCCBMode(emu::pc::CCB::VMEFPGA);
   ::usleep(100000);
-  //ccb->setCCBMode(CCB::DLOG);
+  //ccb->setCCBMode(emu::pc::CCB::DLOG);
    ccb->hard_reset_dmb();
   ::sleep(1);
-   ccb->setCCBMode(CCB::DLOG);
+   ccb->setCCBMode(emu::pc::CCB::DLOG);
 #ifdef DCS_PRINTING_0
 	printf("HARD RESET DMB DONE\n");
 #endif
@@ -1364,12 +1364,12 @@ DEVTYPE devnum;
 int EmuDcs::programALCT(){
 
   ////////// 03/31/2005  ((CCBdcs *)ccb)->hard_reset_alct();
- ccb->setCCBMode(CCB::VMEFPGA);
+ ccb->setCCBMode(emu::pc::CCB::VMEFPGA);
   ::usleep(100000);
-  //ccb->setCCBMode(CCB::DLOG);
+  //ccb->setCCBMode(emu::pc::CCB::DLOG);
    ccb->hard_reset_alct();
   ::sleep(1);
-   ccb->setCCBMode(CCB::DLOG);
+   ccb->setCCBMode(emu::pc::CCB::DLOG);
 #ifdef DCS_PRINTING_0
 	printf("HARD RESET ALCT DONE\n");
 #endif
@@ -1382,12 +1382,12 @@ int EmuDcs::programDAQMB(){
 
   ///////// 03/31/2005 ((CCBdcs *)ccb)->hard_reset_dmb();
 
- ccb->setCCBMode(CCB::VMEFPGA);
+ ccb->setCCBMode(emu::pc::CCB::VMEFPGA);
   ::usleep(100000);
-  //ccb->setCCBMode(CCB::DLOG);
+  //ccb->setCCBMode(emu::pc::CCB::DLOG);
    ccb->hard_reset_dmb();
   ::sleep(1);
-   ccb->setCCBMode(CCB::DLOG);
+   ccb->setCCBMode(emu::pc::CCB::DLOG);
 #ifdef DCS_PRINTING_0
 	printf("HARD RESET DMB DONE\n");
 #endif
@@ -1400,12 +1400,12 @@ int EmuDcs::programTMB(){
 
   //////// 03/31/2005  ((CCBdcs *)ccb)->hard_reset_tmb();
 
- ccb->setCCBMode(CCB::VMEFPGA);
+ ccb->setCCBMode(emu::pc::CCB::VMEFPGA);
   ::usleep(100000);
-  //ccb->setCCBMode(CCB::DLOG);
+  //ccb->setCCBMode(emu::pc::CCB::DLOG);
     ccb->hard_reset_tmb();
   ::sleep(1);
-   ccb->setCCBMode(CCB::DLOG);
+   ccb->setCCBMode(emu::pc::CCB::DLOG);
 #ifdef DCS_PRINTING_0
 	printf("HARD RESET TMB DONE\n");
 #endif
@@ -1419,12 +1419,12 @@ int EmuDcs::programMPC(){
 
   ////////// 03/31/2005  ((CCBdcs *)ccb)->hard_reset_mpc();
 
- ccb->setCCBMode(CCB::VMEFPGA);
+ ccb->setCCBMode(emu::pc::CCB::VMEFPGA);
   ::usleep(100000);
-  //ccb->setCCBMode(CCB::DLOG);
+  //ccb->setCCBMode(emu::pc::CCB::DLOG);
    ccb->hard_reset_mpc();
   ::sleep(1);
-   ccb->setCCBMode(CCB::DLOG);
+   ccb->setCCBMode(emu::pc::CCB::DLOG);
 #ifdef DCS_PRINTING_0
 	printf("HARD RESET MPC DONE\n");
 #endif
@@ -1433,7 +1433,7 @@ int EmuDcs::programMPC(){
 
 }
 //=====================================================================
-int EmuDcs::loadALCT(string &command){
+int EmuDcs::loadALCT(std::string &command){
   /*
      ALCTController::CHAMBER ch_type = ALCTController::ME22;
      if(alct_c == NULL)  alct_c = new ALCTController(tmb,ch_type);
@@ -1442,7 +1442,7 @@ int EmuDcs::loadALCT(string &command){
 
   	int db = 0;
   	int jchan = 3; // virtext ALCT chip
-        string *file_to_load_valct;
+        std::string *file_to_load_valct;
 	if(command=="load_alct288")file_to_load_valct=file_to_load_valct288;
 	else if(command=="load_alct384")file_to_load_valct=file_to_load_valct384;
 	else if(command=="load_alct672")file_to_load_valct=file_to_load_valct672;
@@ -1630,17 +1630,17 @@ int EmuDcs::readLV_Reference(){
 //=====================================================================
 
 
-int EmuDcs::controlDAQMB(DAQMB *daqmb){        /////////////////////
+int EmuDcs::controlDAQMB(emu::pc::DAQMB *daqmb){        /////////////////////
     this->daqmb = daqmb;  
     return 1;
 }
 //=====================================================================
-int EmuDcs::controlCCB(CCB *ccb){        /////////////////////
+int EmuDcs::controlCCB(emu::pc::CCB *ccb){        /////////////////////
     this->ccb = ccb; 
     return 1; 
 }
 //=====================================================================
-int EmuDcs::controlTMB(TMB *tmb){        /////////////////////
+int EmuDcs::controlTMB(emu::pc::TMB *tmb){        /////////////////////
     this->tmb = tmb;
 
     //     ALCTController::CHAMBER ch_type = ALCTController::ME22;
@@ -1658,7 +1658,7 @@ int EmuDcs::controlTMB(TMB *tmb){        /////////////////////
 }
 //=====================================================================
 
-int EmuDcs::simulationLVStatusControl(string &ipslot){
+int EmuDcs::simulationLVStatusControl(std::string &ipslot){
 
     bool found=false;
     for(int i=0;i< d360_ipslot.size();i++ ){
@@ -1683,12 +1683,12 @@ int EmuDcs::simulationLVStatusControl(string &ipslot){
 
 int EmuDcs::db(){
   
-  vector<Crate *> v_crates= /*theSelectorDcs->*/crates();
-  vector<DAQMB *> v_daqmbs;
-  vector<TMB *>   v_tmbs;
+  std::vector<emu::pc::Crate *> v_crates= /*theSelectorDcs->*/crates();
+  std::vector<emu::pc::DAQMB *> v_daqmbs;
+  std::vector<emu::pc::TMB *>   v_tmbs;
  
 #ifdef NEW_DIM_SERVICES
-vector<Chamber *>   v_chambers;/////// postponed 
+std::vector<emu::pc::Chamber *>   v_chambers;/////// postponed 
 #endif
   
   char tmp[100];
@@ -1709,7 +1709,7 @@ v_chambers=v_crates[i]->chambers();///////// postponed
       for(int j=0;j<v_daqmbs.size();j++){
 	
 	sprintf(tmp,"%s;%d",(v_crates[i]->vmeController()->ipAddress()).c_str(),v_daqmbs[j]->slot()); 
-	slots.push_back(string(tmp));
+	slots.push_back(std::string(tmp));
 	CHAMBER_NUMBER++;
       	printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++slots[%d]=%s\n",j,tmp);
 	
@@ -1720,7 +1720,7 @@ v_chambers=v_crates[i]->chambers();///////// postponed
       for(int j=0;j<v_chambers.size();j++){
 	//	printf("%s %d\n",(v_chambers[j]->GetLabel()).c_str(),(v_chambers[j]->GetLabel()).size() );
 		sprintf(tmp,"%s",v_chambers[j]->GetLabel().c_str()); 
-	chamber_slots.push_back(string(tmp));
+	chamber_slots.push_back(std::string(tmp));
 	//////CHAMBER_NUMBER++;
       	printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++slots[%d]=%s\n",j,tmp);
 	
@@ -1733,7 +1733,7 @@ v_chambers=v_crates[i]->chambers();///////// postponed
 
 }
 //=====================================================================
-int EmuDcs::getServiceName(int index, char *system, string &service_name){
+int EmuDcs::getServiceName(int index, char *system, std::string &service_name){
 
   
       int pos, pos_prev=0; 
@@ -1741,22 +1741,22 @@ int EmuDcs::getServiceName(int index, char *system, string &service_name){
       //   for(int i=0;i<slots.size();i++){
       int i=index;
 
-           service_name=string(system);
+           service_name=std::string(system);
 	   
            pos_prev=slots[i].find(";",0)+1;
-           service_name+=string("_")+slots[i].substr(0,pos_prev-1);
+           service_name+=std::string("_")+slots[i].substr(0,pos_prev-1);
 
             for(int j=0;j<1;j++){
         	pos=slots[i].find(";",pos_prev);
-                if(pos == string::npos)pos=slots[i].size();
-                service_name+=string("_")+slots[i].substr(pos_prev,pos-pos_prev);
+                if(pos == std::string::npos)pos=slots[i].size();
+                service_name+=std::string("_")+slots[i].substr(pos_prev,pos-pos_prev);
                 pos_prev=pos+1;
 	    } // for j
 	   
           
 
 #ifdef NEW_DIM_SERVICES	    
-service_name=string(system)+string("_")+chamber_slots[i];///////// postpone
+service_name=std::string(system)+std::string("_")+chamber_slots[i];///////// postpone
 #else
 
 
@@ -1770,15 +1770,15 @@ service_name=string(system)+string("_")+chamber_slots[i];///////// postpone
                 pos=service_name.find(".",pos_prev);
 #endif
 
-                if(pos==string::npos){
+                if(pos==std::string::npos){
 
 
 		}
                 else{
 		  ///		  printf("pos=%d\n",pos);
 		}
-                //if(pos == string::npos)pos=slots[i].size();
-                //tmp_str+=string("_")+slots[i].substr(pos_prev,pos-pos_prev);
+                //if(pos == std::string::npos)pos=slots[i].size();
+                //tmp_str+=std::string("_")+slots[i].substr(pos_prev,pos-pos_prev);
                 service_name.replace(pos,1,"_");
                 pos_prev=pos+1;
 	    } // for j
@@ -1864,7 +1864,7 @@ int EmuDcs::test(){
   printf("22\n");
   // ALCTController::CHAMBER ch_type = ALCTController::ME22;
  printf("221 %ld\n",tmb);
- ALCTController *alct_r = new ALCTController(tmb,"ME22");//)ch_type);
+ emu::pc::ALCTController *alct_r = new emu::pc::ALCTController(tmb,"ME22");//)ch_type);
  printf("222 %ld\n",alct_r);
   	int db = 0;
  
@@ -1889,7 +1889,7 @@ int EmuDcs::test(){
 	    //alct_r->SVFLoad(int *jch, char *fn, int db );
 
 
-	    //	    vector<int> *ss = new vector<int>(5);
+	    //	    std::vector<int> *ss = new std::vector<int>(5);
 
 
 

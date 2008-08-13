@@ -8,6 +8,12 @@
 //
 #include "EmuLogger.h"
 //
+
+namespace emu {
+  namespace pc {
+
+
+
 EmuLogger::EmuLogger() {
   //
   std::cout << "Instantiate EmuLogger" << std::endl;
@@ -133,3 +139,5 @@ void EmuLogger::ReportCheck(std::string check_type, bool status_bit) {
   return;
 }
 //
+} // namespace emu::pc
+} // namespace emu

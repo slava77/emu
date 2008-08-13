@@ -5,6 +5,11 @@
 #include <vector>
 #include <string>
 
+
+namespace emu {
+  namespace pc {
+
+
 class TMB;
 class DAQMB;
 class CCB;
@@ -68,4 +73,7 @@ private:
   //
 };
 
+
+  } // namespace emu::pc
+  } // namespace emu
 #endif

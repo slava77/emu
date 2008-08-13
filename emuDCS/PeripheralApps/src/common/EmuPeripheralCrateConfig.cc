@@ -12,15 +12,13 @@
 #include <iomanip>
 #include <time.h>
 
-using namespace cgicc;
-using namespace std;
 
-const string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
+const std::string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
 //
-const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
-const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
-const string       VMECC_FIRMWARE_DIR = "vcc"; 
-//const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
+const std::string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
+const std::string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
+const std::string       VMECC_FIRMWARE_DIR = "vcc"; 
+//const std::string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
@@ -31,17 +29,17 @@ const string       VMECC_FIRMWARE_DIR = "vcc";
 // In other words:  9 April 2007 firmware should reside in YEARMONTHDAY=20070409
 //
 // The XXX in the ALCT firmware specification corresponds to the following structure:
-const string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror.svf";//
 //
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
@@ -494,7 +492,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 
   *out << cgicc::td();
   std::string CheckConfigurationPage = toolbox::toString("/%s/CheckConfigurationPage",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::a("[Check Configuration]").set("href",CheckConfigurationPage) << endl;
+  *out << cgicc::a("[Check Configuration]").set("href",CheckConfigurationPage) << std::endl;
   *out << cgicc::td();
 
   *out << cgicc::table();
@@ -542,13 +540,13 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
 
   // Begin select crate
   // Config listbox
-  *out << form().set("action",
-		     "/" + getApplicationDescriptor()->getURN() + "/CrateSelection") << endl;
+  *out << cgicc::form().set("action",
+		     "/" + getApplicationDescriptor()->getURN() + "/CrateSelection") << std::endl;
   
   int n_keys = crateVector.size();
   
-  *out << "Choose Crate: " << endl;
-  *out << cgicc::select().set("name", "runtype") << endl;
+  *out << "Choose Crate: " << std::endl;
+  *out << cgicc::select().set("name", "runtype") << std::endl;
   
   int selected_index = this_crate_no_;
   std::string CrateName;
@@ -558,22 +556,22 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     else
       CrateName = crateVector[i]->GetLabel() + " NG";
     if (i == selected_index) {
-      *out << option()
+      *out << cgicc::option()
 	.set("value", CrateName)
 	.set("selected", "");
     } else {
-      *out << option()
+      *out << cgicc::option()
 	.set("value", CrateName);
     }
-    *out << CrateName << option() << endl;
+    *out << CrateName << cgicc::option() << std::endl;
   }
 
-  *out << cgicc::select() << endl;
+  *out << cgicc::select() << std::endl;
   
-  *out << input().set("type", "submit")
+  *out << cgicc::input().set("type", "submit")
     .set("name", "command")
-    .set("value", "CrateSelection") << endl;
-  *out << form() << endl;
+    .set("value", "CrateSelection") << std::endl;
+  *out << cgicc::form() << std::endl;
      
   //End select crate
  
@@ -586,13 +584,13 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     // Crate Configuration
     //
     std::string CrateConfiguration = toolbox::toString("/%s/CrateConfiguration",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::a("[Crate Configuration]").set("href",CrateConfiguration) << endl;
+    *out << cgicc::a("[Crate Configuration]").set("href",CrateConfiguration) << std::endl;
     //
     std::string CrateTests = toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::a("[Crate Tests]").set("href",CrateTests) << endl;
+    *out << cgicc::a("[Crate Tests]").set("href",CrateTests) << std::endl;
     //
     std::string CalibrationRuns = toolbox::toString("/%s/CalibrationRuns",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::a("[Calibration Runs]").set("href",CalibrationRuns) << endl;
+    *out << cgicc::a("[Calibration Runs]").set("href",CalibrationRuns) << std::endl;
     //
     *out << cgicc::br() << cgicc::br() << cgicc::table().set("border","0");
     //
@@ -739,7 +737,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
     *out << xmlFile_.toString() << cgicc::br() << std::endl ;
     //
     std::string DefineConfiguration = toolbox::toString("/%s/DefineConfiguration",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::a("[Change Configuration File]").set("href",DefineConfiguration) << endl;
+    *out << cgicc::a("[Change Configuration File]").set("href",DefineConfiguration) << std::endl;
   }
   else if(xml_or_db==1)
   {
@@ -767,7 +765,7 @@ void EmuPeripheralCrateConfig::MyHeader(xgi::Input * in, xgi::Output * out, std:
 //
 void EmuPeripheralCrateConfig::Default(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
 }
 //
 /////////////////////////////////////////////////////////////////////
@@ -781,17 +779,17 @@ xoap::MessageReference EmuPeripheralCrateConfig::onCalibration(xoap::MessageRefe
   //
   ::sleep(1);
   //
-  cout<<"soap Apr.11, 2007 "<<endl;
-  cout<<"Entered the EMUPERIPHERALCRATE.cc "<<endl;
+  std::cout<<"soap Apr.11, 2007 "<<std::endl;
+  std::cout<<"Entered the EMUPERIPHERALCRATE.cc "<<std::endl;
   printf(" LSD: Entered Calibration \n"); 
-  ostringstream test;
+  std::ostringstream test;
   message->writeTo(test);
-  cout << test.str() << endl;
+  std::cout << test.str() << std::endl;
   printf(" Print calibtype \n");
   std::string junk = CalibType_;
-  cout << junk << endl;
+  std::cout << junk << std::endl;
   printf(" Print calibnumber \n");
-  cout << CalibNumber_ << endl;
+  std::cout << CalibNumber_ << std::endl;
   //
   //CalibrationState_ = setting;
   //
@@ -930,7 +928,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
      cgicc::Cgicc cgi(in);
 
      std::string in_value = cgi.getElement("runtype")->getValue(); 
-     std::cout << "Select Crate " << in_value << endl;
+     std::cout << "Select Crate " << in_value << std::endl;
      if(!in_value.empty())
      {
         int k=in_value.find(" ",0);
@@ -976,18 +974,18 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
   {
     try
       {
-	cout << "setRawConfFile" << endl ;
+	std::cout << "setRawConfFile" << std::endl ;
 	//
 	cgicc::Cgicc cgi(in);
 	//
-	ofstream TextFile ;
+	std::ofstream TextFile ;
 	TextFile.open("MyTextConfigurationFile.xml");
 	TextFile << (cgi["Text"]->getValue()) ; 
 	TextFile.close();
 	//
 	xmlFile_ = "MyTextConfigurationFile.xml" ;
 	//
-	cout << "Out setRawConfFile" << endl ;
+	std::cout << "Out setRawConfFile" << std::endl ;
 	//
 	this->Default(in,out);
       }
@@ -1021,7 +1019,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
   {
     // Check if filename exists
     //
-    if(xmlFile_.toString().find("http") == string::npos) 
+    if(xmlFile_.toString().find("http") == std::string::npos) 
     {
       std::ifstream filename(xmlFile_.toString().c_str());
       if(filename.is_open()) {
@@ -1040,7 +1038,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
       delete MyController ;
     }
     //
-    MyController = new EmuController();
+    MyController = new emu::pc::EmuController();
 
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
@@ -1054,7 +1052,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
   {
     // from TStore    
     // std::cout << "We are in db" << std::endl;
-    myTStore = new EmuTStore(this);
+    myTStore = new emu::pc::EmuTStore(this);
     if(!myTStore)
     {  std::cout << "Can't create object EmuTStore" << std::endl;
        return false;  
@@ -1146,15 +1144,15 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
   // This one came from CrateUtils class which no longer exist. 
   // Better put into another class. Leave it here for now. 
   // Liu Dec.25, 2007
-  std::vector<TMBTester> EmuPeripheralCrateConfig::InitTMBTests(Crate *MyCrate_)
+  std::vector<emu::pc::TMBTester> EmuPeripheralCrateConfig::InitTMBTests(emu::pc::Crate *MyCrate_)
   {
-    std::vector<TMB *>       tmbVector = MyCrate_->tmbs();
-    CCB * MyCCB_ = MyCrate_->ccb();
-    std::vector<TMBTester>   result;
+    std::vector<emu::pc::TMB *>       tmbVector = MyCrate_->tmbs();
+    emu::pc::CCB * MyCCB_ = MyCrate_->ccb();
+    std::vector<emu::pc::TMBTester>   result;
   //
     for( unsigned i=0; i< tmbVector.size(); i++) {
     //
-       TMBTester tmp;
+       emu::pc::TMBTester tmp;
        tmp.setTMB(tmbVector[i]);
        tmp.setCCB(MyCCB_);
        tmp.setRAT(tmbVector[i]->getRAT());
@@ -1173,16 +1171,16 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
 	//
 	cgicc::Cgicc cgi(in);
 	//
-	const_file_iterator file;
+	cgicc::const_file_iterator file;
 	file = cgi.getFile("xmlFileName");
 	//
-	std::cout << "GetFiles string" << endl ;
+	std::cout << "GetFiles string" << std::endl ;
 	//
 	if(file != cgi.getFiles().end()) (*file).writeToStream(std::cout);
 	//
-	string XMLname = cgi["xmlFileName"]->getValue() ; 
+	std::string XMLname = cgi["xmlFileName"]->getValue() ; 
 	//
-	std::cout << XMLname  << endl ;
+	std::cout << XMLname  << std::endl ;
 	//
 	xmlFile_ = XMLname ;
 	//
@@ -1204,17 +1202,17 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
     try
       {
 	//
-	cout << "UploadConfFileUpload" << endl ;
+	std::cout << "UploadConfFileUpload" << std::endl ;
 	//
 	cgicc::Cgicc cgi(in);
 	//
-	const_file_iterator file;
+	cgicc::const_file_iterator file;
 	file = cgi.getFile("xmlFileNameUpload");
 	//
-	cout << "GetFiles" << endl ;
+	std::cout << "GetFiles" << std::endl ;
 	//
 	if(file != cgi.getFiles().end()) {
-	  ofstream TextFile ;
+	  std::ofstream TextFile ;
 	  TextFile.open("MyTextConfigurationFile.xml");
 	  (*file).writeToStream(TextFile);
 	  TextFile.close();
@@ -1224,7 +1222,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
 	//
 	ParsingXML();
 	//
-	cout << "UploadConfFile done" << endl ;
+	std::cout << "UploadConfFile done" << std::endl ;
 	//
 	this->Default(in,out);
 	//
@@ -1307,7 +1305,7 @@ void EmuPeripheralCrateConfig::CrateTests(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::form().set("method","GET") << std::endl ;
   *out << cgicc::textarea().set("name","CrateTestsOutput").set("WRAP","OFF").set("rows","20").set("cols","100");
-  *out << CrateTestsOutput.str() << endl ;
+  *out << CrateTestsOutput.str() << std::endl ;
   *out << cgicc::textarea();
   *out << cgicc::form() << std::endl ;
   //
@@ -1441,7 +1439,7 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
     //
     *out << cgicc::td();
     //
-    *out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
+    *out << "Slot " << std::setfill('0') << std::setw(2) << std::dec << ii << std::endl;
     //
     *out << cgicc::td();
     //----------------------------------
@@ -1460,7 +1458,7 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
       //
       *out << cgicc::td();
       std::string ControllerUtils_Xfer = toolbox::toString("/%s/ControllerUtils_Xfer?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-      *out << cgicc::a("Controller Utils").set("href",ControllerUtils_Xfer) << endl;
+      *out << cgicc::a("Controller Utils").set("href",ControllerUtils_Xfer) << std::endl;
       *out << cgicc::td();
       //
     }
@@ -1481,17 +1479,17 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
       *out << cgicc::td();
       //
       *out << cgicc::td();
-      if ( CCBBoardID_.find("-1") == string::npos ) {
+      if ( CCBBoardID_.find("-1") == std::string::npos ) {
 	std::string CCBStatus = toolbox::toString("/%s/CCBStatus?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-	*out << cgicc::a("CCB Status").set("href",CCBStatus) << endl;
+	*out << cgicc::a("CCB Status").set("href",CCBStatus) << std::endl;
       }
       *out << cgicc::td();
       //
       *out << cgicc::td();
-      if ( CCBBoardID_.find("-1") == string::npos ) {
+      if ( CCBBoardID_.find("-1") == std::string::npos ) {
 	//sprintf(Name,"CCB Utils slot=%d",slot);
 	std::string CCBUtils = toolbox::toString("/%s/CCBUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-	*out << cgicc::a("CCB Utils").set("href",CCBUtils) << endl;
+	*out << cgicc::a("CCB Utils").set("href",CCBUtils) << std::endl;
       }
       *out << cgicc::td();
       //
@@ -1514,16 +1512,16 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
       *out << cgicc::form() << std::endl ;
       *out << cgicc::td();
       //
-      if ( MPCBoardID_.find("-1") == string::npos && thisMPC ) {
+      if ( MPCBoardID_.find("-1") == std::string::npos && thisMPC ) {
 	//
 	*out << cgicc::td();
 	std::string MPCStatus = toolbox::toString("/%s/MPCStatus?mpc=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-	*out << cgicc::a("MPC Status").set("href",MPCStatus) << endl;
+	*out << cgicc::a("MPC Status").set("href",MPCStatus) << std::endl;
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
 	std::string MPCUtils = toolbox::toString("/%s/MPCUtils?mpc=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-	*out << cgicc::a("MPC Utils").set("href",MPCUtils) << endl;
+	*out << cgicc::a("MPC Utils").set("href",MPCUtils) << std::endl;
 	*out << cgicc::td();
       }
     }
@@ -1571,29 +1569,29 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
 	*out << cgicc::td();
 	  //
 	*out << cgicc::td();
-	if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	if ( TMBBoardID_[i].find("-1") == std::string::npos ) {
 	  std::string MonitorTMBTrigger = toolbox::toString("/%s/MonitorTMBTrigger?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("Monitor TMB trigger").set("href",MonitorTMBTrigger) << endl;
+	  *out << cgicc::a("Monitor TMB trigger").set("href",MonitorTMBTrigger) << std::endl;
 	  *out << cgicc::td();
 	  //
 	  *out << cgicc::td();
 	  std::string TMBStatus = toolbox::toString("/%s/TMBStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("TMB Status").set("href",TMBStatus) << endl;
+	  *out << cgicc::a("TMB Status").set("href",TMBStatus) << std::endl;
 	  //
 	}
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	if ( TMBBoardID_[i].find("-1") == std::string::npos ) {
 	  std::string TMBTests = toolbox::toString("/%s/TMBTests?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("TMB Tests").set("href",TMBTests) << endl;
+	  *out << cgicc::a("TMB Tests").set("href",TMBTests) << std::endl;
 	}
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	if ( TMBBoardID_[i].find("-1") == std::string::npos ) {
 	    std::string TMBUtils = toolbox::toString("/%s/TMBUtils?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	    *out << cgicc::a("TMB Utils").set("href",TMBUtils) << endl;
+	    *out << cgicc::a("TMB Utils").set("href",TMBUtils) << std::endl;
 	}
 	*out << cgicc::td();
 	//
@@ -1606,13 +1604,13 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
 	  //
 	  if ( dmbslot == slot+1 ) {
 	    *out << cgicc::td();
-	    if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	    if ( TMBBoardID_[i].find("-1") == std::string::npos ) {
 	      //
 	      char Name[50];
 	      sprintf(Name,"Chamber Tests: %s",(thisCrate->GetChamber(slot)->GetLabel()).c_str());
 	      //
 	      std::string ChamberTests = toolbox::toString("/%s/ChamberTests?tmb=%d&dmb=%d",getApplicationDescriptor()->getURN().c_str(),i,iii);
-	      *out << cgicc::a(Name).set("href",ChamberTests) << endl;
+	      *out << cgicc::a(Name).set("href",ChamberTests) << std::endl;
 	      //
 	      //std::cout << "Creating ChamberTests for TMB=" << i << ", DMB=" << iii << std::endl;
 	      //
@@ -1655,24 +1653,24 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
+	if ( DMBBoardID_[i].find("-1",0) == std::string::npos ) {
 	  std::string DMBStatus = toolbox::toString("/%s/DMBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("DMB Status").set("href",DMBStatus) << endl;
+	  *out << cgicc::a("DMB Status").set("href",DMBStatus) << std::endl;
 	  //
 	}
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
+	if ( DMBBoardID_[i].find("-1",0) == std::string::npos ) {
 	  std::string DMBTests = toolbox::toString("/%s/DMBTests?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("DMB Tests").set("href",DMBTests) << endl;
+	  *out << cgicc::a("DMB Tests").set("href",DMBTests) << std::endl;
 	}
 	*out << cgicc::td();
 	//
 	*out << cgicc::td();
-	if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
+	if ( DMBBoardID_[i].find("-1",0) == std::string::npos ) {
 	  std::string DMBUtils = toolbox::toString("/%s/DMBUtils?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	  *out << cgicc::a("DMB Utils").set("href",DMBUtils) << endl;
+	  *out << cgicc::a("DMB Utils").set("href",DMBUtils) << std::endl;
 	}
 	*out << cgicc::td();
 	//
@@ -1915,7 +1913,7 @@ void EmuPeripheralCrateConfig::CrateStatus(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::CalibrationALCTThresholdScan(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.ALCTThresholdScan();
   //
@@ -1926,7 +1924,7 @@ void EmuPeripheralCrateConfig::CalibrationALCTThresholdScan(xgi::Input * in, xgi
 void EmuPeripheralCrateConfig::CalibrationALCTConnectivity(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.ALCTConnectivity();
   //
@@ -1937,7 +1935,7 @@ void EmuPeripheralCrateConfig::CalibrationALCTConnectivity(xgi::Input * in, xgi:
 void EmuPeripheralCrateConfig::CalibrationCFEBConnectivity(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.CFEBConnectivity();
   //
@@ -1948,7 +1946,7 @@ void EmuPeripheralCrateConfig::CalibrationCFEBConnectivity(xgi::Input * in, xgi:
 void EmuPeripheralCrateConfig::FindLv1aDelayComparator(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.FindL1aDelayComparator();
   //
@@ -1959,7 +1957,7 @@ void EmuPeripheralCrateConfig::FindLv1aDelayComparator(xgi::Input * in, xgi::Out
 void EmuPeripheralCrateConfig::FindLv1aDelayALCT(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.FindL1aDelayALCT();
   //
@@ -1970,7 +1968,7 @@ void EmuPeripheralCrateConfig::FindLv1aDelayALCT(xgi::Input * in, xgi::Output * 
 void EmuPeripheralCrateConfig::CalibrationCFEBGain(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.gainCFEB();
   //
@@ -1981,7 +1979,7 @@ void EmuPeripheralCrateConfig::CalibrationCFEBGain(xgi::Input * in, xgi::Output 
 void EmuPeripheralCrateConfig::CalibrationCFEBSaturation(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.CFEBSaturationTest();
   //
@@ -1992,7 +1990,7 @@ void EmuPeripheralCrateConfig::CalibrationCFEBSaturation(xgi::Input * in, xgi::O
 void EmuPeripheralCrateConfig::CalibrationCFEBXtalk(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.timeCFEB();
   //
@@ -2003,7 +2001,7 @@ void EmuPeripheralCrateConfig::CalibrationCFEBXtalk(xgi::Input * in, xgi::Output
 void EmuPeripheralCrateConfig::CalibrationComparatorPulse(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   calib.pulseComparatorPulse();
   //
@@ -2014,7 +2012,7 @@ void EmuPeripheralCrateConfig::CalibrationComparatorPulse(xgi::Input * in, xgi::
 void EmuPeripheralCrateConfig::CalibrationCFEBPedestal(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  CalibDAQ calib(emuEndcap_);
+  emu::pc::CalibDAQ calib(emuEndcap_);
   //
   //calib.loadConstants();
   //
@@ -2041,7 +2039,7 @@ void EmuPeripheralCrateConfig::CrateDumpConfiguration(xgi::Input * in, xgi::Outp
 void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  ostringstream output;
+  std::ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
   output << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
   //
@@ -2050,13 +2048,13 @@ void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Outpu
   //
   if (AutoRefresh_) {
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"3; URL=/"
-	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
   }
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  vector<TMB*> myVector;
+  std::vector<emu::pc::TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->tmbs();
@@ -2133,12 +2131,12 @@ void EmuPeripheralCrateConfig::CrateDMBCounters(xgi::Input * in, xgi::Output * o
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  vector<DAQMB*> myVector;
+  std::vector<emu::pc::DAQMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->daqmbs();
@@ -2389,7 +2387,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTrigger(xgi::Input * in, xgi::Output * 
   cgicc::CgiEnvironment cgiEnvi(in);
   std::string Page="MonitorTMBTriggerRedirect?"+cgiEnvi.getQueryString();
   //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
   //
 }
 //
@@ -2403,7 +2401,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerRedirect(xgi::Input * in, xgi::O
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
   } else {
-    cout << "MonitorTMBTrigger:  No tmb" << endl ;
+    std::cout << "MonitorTMBTrigger:  No tmb" << std::endl ;
   }
   //
   //
@@ -2459,7 +2457,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Ou
   //
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
   //
   cgicc::Cgicc cgi(in);
   //
@@ -2468,12 +2466,12 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Ou
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
   } else {
-    cout << "Not tmb" << endl ;
+    std::cout << "Not tmb" << std::endl ;
   }
   //
   std::cout << "MenuMonitor " << MenuMonitor_ << std::endl;
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   int oldValue=0;
   //
@@ -2501,7 +2499,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Ou
   *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_Column3D\">" <<std::endl;
   *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\">" <<std::endl;
   //
-  ostringstream output;
+  std::ostringstream output;
   //
   if (MenuMonitor_ == 1 ) {
     output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerAlct0Key?tmb="<<tmb << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
@@ -2516,7 +2514,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Ou
   *out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
   *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
   //
-  ostringstream output2;
+  std::ostringstream output2;
   if (MenuMonitor_ == 1 ) {
     output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerAlct0Key?tmb="<<tmb<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
   }
@@ -2532,7 +2530,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Ou
   *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_Column3D\">" <<std::endl;
   *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\">" <<std::endl;
   //
-  ostringstream output3;
+  std::ostringstream output3;
   if(MenuMonitor_ == 1 ){
     output3 << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerAlct1Key?tmb=" << tmb<<"&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
   }
@@ -2546,7 +2544,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Ou
   *out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
   *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
   //
-  ostringstream output4;
+  std::ostringstream output4;
   if(MenuMonitor_==1) {
     output4 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerAlct1Key?tmb="<<tmb<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
   }
@@ -2577,7 +2575,7 @@ void EmuPeripheralCrateConfig::CreateMonitorUnit(xgi::Input * in, xgi::Output * 
   if(name != cgi.getElements().end()) {
     Counter_ = cgi["counter"]->getIntegerValue();
   } else {
-    cout << "No counter" << endl;
+    std::cout << "No counter" << std::endl;
     LOG4CPLUS_INFO(getApplicationLogger(), "no counters");
   }
   //
@@ -2889,7 +2887,7 @@ void EmuPeripheralCrateConfig::Display(xgi::Input * in, xgi::Output * out, int c
     *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_Bar2D\">" <<std::endl;
     *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\">" <<std::endl;
     //
-    ostringstream output;
+    std::ostringstream output;
     output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << counter <<"\">"<<std::endl;
     //
     std::cout << output.str() << std::endl;
@@ -2898,7 +2896,7 @@ void EmuPeripheralCrateConfig::Display(xgi::Input * in, xgi::Output * out, int c
     *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
     //*out << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\" FlashVars=\"&dataURL=getData\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Bar2D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
     //
-    ostringstream output2;
+    std::ostringstream output2;
     output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\" FlashVars=\"&dataURL=getData"<< counter <<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Bar2D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
     //
     *out << output2.str() << std::endl;
@@ -3059,8 +3057,8 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
 	  if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0)  dmb_vme_ok = false;
 	  if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0)  dmb_control_ok = false;
 	  //
-	  std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	  typedef std::vector<CFEB>::iterator CFEBItr;
+	  std::vector<emu::pc::CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	  typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
 	  for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
 	      int cfeb_index = (*cfebItr).number();
 	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0)  cfeb_ok = false;
@@ -3112,8 +3110,8 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
 	  *out << " CFEB firmware incorrect: " ;
 	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
 	    //
-	    std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	    typedef std::vector<CFEB>::iterator CFEBItr;
+	    std::vector<emu::pc::CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
 	    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
 	      int cfeb_index = (*cfebItr).number();
 	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0) 
@@ -3296,7 +3294,7 @@ void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Ou
   std::string time_dump = ctime(&rawtime);
   std::string time = time_dump.substr(0,time_dump.length()-1);
   //
-  while( time.find(" ",0) != string::npos ) {
+  while( time.find(" ",0) != std::string::npos ) {
     //
     int thispos = time.find(" ",0); 
     time.replace(thispos,1,"_");
@@ -3305,7 +3303,7 @@ void EmuPeripheralCrateConfig::CheckCratesConfiguration(xgi::Input * in, xgi::Ou
   //
   buf = "ConfigurationCheckLogFile"+time+".log";
   //
-  ofstream LogFileCheckConfiguration;
+  std::ofstream LogFileCheckConfiguration;
   LogFileCheckConfiguration.open(buf.c_str());
   LogFileCheckConfiguration << OutputCheckConfiguration.str() ;
   LogFileCheckConfiguration.close();
@@ -3389,10 +3387,10 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     //	
-    Chamber * thisChamber     = chamberVector[chamber_index];
-    TMB * thisTMB             = tmbVector[chamber_index];
-    ALCTController * thisALCT = thisTMB->alctController();
-    DAQMB * thisDMB           = dmbVector[chamber_index];
+    emu::pc::Chamber * thisChamber     = chamberVector[chamber_index];
+    emu::pc::TMB * thisTMB             = tmbVector[chamber_index];
+    emu::pc::ALCTController * thisALCT = thisTMB->alctController();
+    emu::pc::DAQMB * thisDMB           = dmbVector[chamber_index];
     //
     std::cout << "Configuration check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
     //
@@ -3447,10 +3445,10 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     //	
-    Chamber * thisChamber     = chamberVector[chamber_index];
-    TMB * thisTMB             = tmbVector[chamber_index];
-    ALCTController * thisALCT = thisTMB->alctController();
-    DAQMB * thisDMB           = dmbVector[chamber_index];
+    emu::pc::Chamber * thisChamber     = chamberVector[chamber_index];
+    emu::pc::TMB * thisTMB             = tmbVector[chamber_index];
+    emu::pc::ALCTController * thisALCT = thisTMB->alctController();
+    emu::pc::DAQMB * thisDMB           = dmbVector[chamber_index];
     //
     std::cout << "Firmware check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
     //
@@ -3466,8 +3464,8 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
     dmb_control_firmware_ok[current_crate_][chamber_index] = (int) thisDMB->CheckControlFirmwareVersion();
     crate_firmware_ok[current_crate_] &= dmb_control_firmware_ok[current_crate_][chamber_index];
     //
-    std::vector<CFEB> cfebs = thisDMB->cfebs() ;
-    typedef std::vector<CFEB>::iterator CFEBItr;
+    std::vector<emu::pc::CFEB> cfebs = thisDMB->cfebs() ;
+    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
     //
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
       //
@@ -3489,7 +3487,7 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
 void EmuPeripheralCrateConfig::InitChamber(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Init Chamber" << endl ;
+  std::cout << "Init Chamber" << std::endl ;
   LOG4CPLUS_INFO(getApplicationLogger(), "Init Chamber");
   //
   cgicc::Cgicc cgi(in);
@@ -3500,10 +3498,10 @@ void EmuPeripheralCrateConfig::InitChamber(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "InitChamber:  DMB " << dmb << endl;
+    std::cout << "InitChamber:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "InitChamber:No dmb" << endl;
+    std::cout << "InitChamber:No dmb" << std::endl;
     dmb = DMB_;
   }
   //
@@ -3511,17 +3509,17 @@ void EmuPeripheralCrateConfig::InitChamber(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "InitChamber:  TMB " << tmb << endl;
+    std::cout << "InitChamber:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "InitChamber:  No tmb" << endl;
+    std::cout << "InitChamber:  No tmb" << std::endl;
     tmb = TMB_;
   }
   //
   MyTest[tmb][current_crate_].InitSystem();          // Init chamber
   //
   // Comment out dangerous next line....
-  //  thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+  //  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
   //
   this->ChamberTests(in,out);
   //
@@ -3596,16 +3594,16 @@ void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB tests: DMB " << dmb << endl;
+    std::cout << "DMB tests: DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "DMB tests: No dmb" << endl ;
+    std::cout << "DMB tests: No dmb" << std::endl ;
     dmb = DMB_;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
-  Chamber * thisChamber = chamberVector[dmb];
+  emu::pc::Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
   sprintf(Name,"%s DMB tests, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
@@ -3614,7 +3612,7 @@ void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out )
   //
   char buf[200] ;
   //
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << endl ;
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
   //
   *out << cgicc::legend("DMB Tests").set("style","color:blue") ;
   //
@@ -3786,7 +3784,7 @@ void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::form().set("method","GET") << std::endl ;
   *out << cgicc::textarea().set("name","CrateTestDMBOutput").set("WRAP","OFF").set("rows","20").set("cols","60");
-  *out << OutputDMBTests[dmb][current_crate_].str() << endl ;
+  *out << OutputDMBTests[dmb][current_crate_].str() << std::endl ;
   *out << cgicc::textarea();
   *out << cgicc::form();
   //
@@ -3812,13 +3810,13 @@ void EmuPeripheralCrateConfig::DMBTestAll(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB TestAll" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB TestAll" << std::endl ;
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test3();
@@ -3844,13 +3842,13 @@ void EmuPeripheralCrateConfig::DMBTest3(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "Test3 DMB " << dmb << endl;
+    std::cout << "Test3 DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB Test3" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB Test3" << std::endl ;
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test3();
@@ -3870,13 +3868,13 @@ void EmuPeripheralCrateConfig::DMBTest4(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "Test4 DMB " << dmb << endl;
+    std::cout << "Test4 DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB Test4" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB Test4" << std::endl ;
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test4();
@@ -3896,13 +3894,13 @@ void EmuPeripheralCrateConfig::DMBTest5(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "Test5 DMB " << dmb << endl;
+    std::cout << "Test5 DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB Test5" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB Test5" << std::endl ;
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test5();
@@ -3922,13 +3920,13 @@ void EmuPeripheralCrateConfig::DMBTest6(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "Test6 DMB " << dmb << endl;
+    std::cout << "Test6 DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB Test6" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB Test6" << std::endl ;
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test6();
@@ -3948,13 +3946,13 @@ void EmuPeripheralCrateConfig::DMBTest8(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "Test8 DMB " << dmb << endl;
+    std::cout << "Test8 DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB Test8" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB Test8" << std::endl ;
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test8();
@@ -3973,13 +3971,13 @@ void EmuPeripheralCrateConfig::DMBTest9(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "Test9 DMB " << dmb << endl;
+    std::cout << "Test9 DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB Test9" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB Test9" << std::endl ;
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test9();
@@ -3998,13 +3996,13 @@ void EmuPeripheralCrateConfig::DMBTest10(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "Test10 DMB " << dmb << endl;
+    std::cout << "Test10 DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB Test10" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB Test10" << std::endl ;
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test10();
@@ -4023,13 +4021,13 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "Test11 DMB " << dmb << endl;
+    std::cout << "Test11 DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  OutputDMBTests[dmb][current_crate_] << "DMB Test11" << endl ;
+  OutputDMBTests[dmb][current_crate_] << "DMB Test11" << std::endl ;
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&std::cout);
   thisDMB->test11();
@@ -4045,7 +4043,7 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::InitSystem(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Init System" << endl ;
+  std::cout << "Init System" << std::endl ;
   LOG4CPLUS_INFO(getApplicationLogger(), "Init System");
   //
   //
@@ -4058,13 +4056,13 @@ void EmuPeripheralCrateConfig::InitSystem(xgi::Input * in, xgi::Output * out )
   int navigator;
   if(name != cgi.getElements().end()) {
     navigator = cgi["navigator"]->getIntegerValue();
-    cout << "Navigator " << navigator << endl;
+    std::cout << "Navigator " << navigator << std::endl;
     if ( navigator == 1 ) {
-      thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+      thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
       this->ChamberTests(in,out);
     }
   } else {
-    cout << "No navigator" << endl;
+    std::cout << "No navigator" << std::endl;
     this->Default(in,out);
   }
 }
@@ -4083,10 +4081,10 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   if( name != cgi.getElements().end() ) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "ChamberTests:  DMB " << dmb << endl;
+    std::cout << "ChamberTests:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "ChamberTests:  No dmb" << endl;
+    std::cout << "ChamberTests:  No dmb" << std::endl;
     dmb = DMB_;
   }
   //
@@ -4094,18 +4092,18 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   if( name != cgi.getElements().end() ) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "ChamberTests:  TMB " << tmb << endl;
+    std::cout << "ChamberTests:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "ChamberTests:  No tmb" << endl;
+    std::cout << "ChamberTests:  No tmb" << std::endl;
     tmb = TMB_;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   alct = thisTMB->alctController();
   //
-  Chamber * thisChamber = chamberVector[tmb];
+  emu::pc::Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s synchronization, crate=%s, TMBslot=%d, DMBslot=%d",
@@ -4553,7 +4551,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::form().set("method","GET") << std::endl ;
   *out << cgicc::textarea().set("name","ChamberTestOutput").set("WRAP","OFF").set("rows","20").set("cols","100");
-  *out << ChamberTestsOutput[tmb][current_crate_].str() << endl ;
+  *out << ChamberTestsOutput[tmb][current_crate_].str() << std::endl ;
   *out << cgicc::textarea();
   *out << cgicc::form() << std::endl ;
   //
@@ -4570,7 +4568,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::setupCoincidencePulsing(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Setup coincidence pulsing" << endl;
+  std::cout << "Setup coincidence pulsing" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "Setup Coincidence Pulsing");
   //
   cgicc::Cgicc cgi(in);
@@ -4583,10 +4581,10 @@ void EmuPeripheralCrateConfig::setupCoincidencePulsing(xgi::Input * in, xgi::Out
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "Setup Coincidence Pulsing:  TMB " << tmb << endl;
+    std::cout << "Setup Coincidence Pulsing:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "Setup Coincidence Pulsing:  No tmb" << endl;
+    std::cout << "Setup Coincidence Pulsing:  No tmb" << std::endl;
     tmb = TMB_;
   }
   //
@@ -4609,23 +4607,23 @@ void EmuPeripheralCrateConfig::TMBStartTrigger(xgi::Input * in, xgi::Output * ou
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "No dmb" << endl;
+    std::cout << "No dmb" << std::endl;
   }
   //
   name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "No tmb" << endl;
+    std::cout << "No tmb" << std::endl;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->StartTTC();
   //
@@ -4636,7 +4634,7 @@ void EmuPeripheralCrateConfig::TMBStartTrigger(xgi::Input * in, xgi::Output * ou
 void EmuPeripheralCrateConfig::EnableL1aRequest(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Enable L1a request" << endl ;
+  std::cout << "Enable L1a request" << std::endl ;
   //
   cgicc::Cgicc cgi(in);
   //
@@ -4646,29 +4644,29 @@ void EmuPeripheralCrateConfig::EnableL1aRequest(xgi::Input * in, xgi::Output * o
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "No dmb" << endl;
+    std::cout << "No dmb" << std::endl;
   }
   //
   name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "No tmb" << endl;
+    std::cout << "No tmb" << std::endl;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   std::cout << "DMB slot " << thisDMB->slot() << " TMB slot " << thisTMB->slot() << std::endl;
   //
   thisTMB->EnableL1aRequest();
-  thisCCB->setCCBMode(CCB::VMEFPGA);
+  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
   //
   this->ChamberTests(in,out);
   //
@@ -4677,7 +4675,7 @@ void EmuPeripheralCrateConfig::EnableL1aRequest(xgi::Input * in, xgi::Output * o
 void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "ALCTTiming" << endl;
+  std::cout << "ALCTTiming" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "ALCTTiming");
   //
   cgicc::Cgicc cgi(in);
@@ -4688,10 +4686,10 @@ void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "ALCTTiming:  DMB " << dmb << endl;
+    std::cout << "ALCTTiming:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "ALCTTiming:  No dmb" << endl;
+    std::cout << "ALCTTiming:  No dmb" << std::endl;
     dmb = DMB_;
   }
   //
@@ -4699,10 +4697,10 @@ void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "ALCTTiming:  TMB " << tmb << endl;
+    std::cout << "ALCTTiming:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "ALCTTiming: No tmb" << endl;
+    std::cout << "ALCTTiming: No tmb" << std::endl;
     tmb = TMB_;
   }
   //
@@ -4717,7 +4715,7 @@ void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::CFEBTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "CFEBTiming" << endl;
+  std::cout << "CFEBTiming" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "CFEBTiming");
   //
   cgicc::Cgicc cgi(in);
@@ -4728,10 +4726,10 @@ void EmuPeripheralCrateConfig::CFEBTiming(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "CFEBTiming:  DMB " << dmb << endl;
+    std::cout << "CFEBTiming:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "CFEBTiming:  No dmb" << endl;
+    std::cout << "CFEBTiming:  No dmb" << std::endl;
     dmb = DMB_;
   }
   //
@@ -4739,10 +4737,10 @@ void EmuPeripheralCrateConfig::CFEBTiming(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "CFEBTiming:  TMB " << tmb << endl;
+    std::cout << "CFEBTiming:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "CFEBTiming:  No tmb" << endl;
+    std::cout << "CFEBTiming:  No tmb" << std::endl;
     tmb = TMB_;
   }
   //
@@ -4757,7 +4755,7 @@ void EmuPeripheralCrateConfig::CFEBTiming(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::Automatic(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Perform all synchronization steps in order" << endl;
+  std::cout << "Perform all synchronization steps in order" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "Automatic");
   //
   cgicc::Cgicc cgi(in);
@@ -4797,7 +4795,7 @@ void EmuPeripheralCrateConfig::Automatic(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Find L1A and DAV delays for chamber" << endl;
+  std::cout << "Find L1A and DAV delays for chamber" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "Find L1A and DAV delays for chamber");
   //
   cgicc::Cgicc cgi(in);
@@ -4827,7 +4825,7 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi
 void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Find L1A and DAV delays for crate" << endl;
+  std::cout << "Find L1A and DAV delays for crate" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "Find L1A and DAV delays for crate");
   //
   cgicc::Cgicc cgi(in);
@@ -4851,7 +4849,7 @@ void EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForCrate(xgi::Input * in, xgi::
 void EmuPeripheralCrateConfig::MeasureL1AsForCrate(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Find L1A delays for crate" << endl;
+  std::cout << "Find L1A delays for crate" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "Find L1A delays for crate");
   //
   cgicc::Cgicc cgi(in);
@@ -4875,7 +4873,7 @@ void EmuPeripheralCrateConfig::MeasureL1AsForCrate(xgi::Input * in, xgi::Output 
 void EmuPeripheralCrateConfig::MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Find DAV cable delays for Crate" << endl;
+  std::cout << "Find DAV cable delays for Crate" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "Find DAV cable delays");
   //
   cgicc::Cgicc cgi(in);
@@ -5006,7 +5004,7 @@ void EmuPeripheralCrateConfig::setDataReadValues(xgi::Input * in, xgi::Output * 
 void EmuPeripheralCrateConfig::TMBL1aTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "TMBL1aTiming" << endl;
+  std::cout << "TMBL1aTiming" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "TMBL1aTiming");
   //
   cgicc::Cgicc cgi(in);
@@ -5017,10 +5015,10 @@ void EmuPeripheralCrateConfig::TMBL1aTiming(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "TMBL1aTiming:  DMB " << dmb << endl;
+    std::cout << "TMBL1aTiming:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "TMBL1aTiming:  No dmb" << endl;
+    std::cout << "TMBL1aTiming:  No dmb" << std::endl;
     dmb = DMB_;
   }
   //
@@ -5049,7 +5047,7 @@ void EmuPeripheralCrateConfig::TMBL1aTiming(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::ALCTL1aTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "ALCTL1aTiming" << endl;
+  std::cout << "ALCTL1aTiming" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "ALCTL1aTiming");
   //
   cgicc::Cgicc cgi(in);
@@ -5060,10 +5058,10 @@ void EmuPeripheralCrateConfig::ALCTL1aTiming(xgi::Input * in, xgi::Output * out 
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "ALCTL1aTiming:  DMB " << dmb << endl;
+    std::cout << "ALCTL1aTiming:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "No dmb" << endl;
+    std::cout << "No dmb" << std::endl;
     dmb = DMB_;
   }
   //
@@ -5077,7 +5075,7 @@ void EmuPeripheralCrateConfig::ALCTL1aTiming(xgi::Input * in, xgi::Output * out 
 	      << ", pausing " << MyTest[tmb][current_crate_].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "No tmb" << endl;
+    std::cout << "No tmb" << std::endl;
     tmb = TMB_;
   }
   //
@@ -5092,7 +5090,7 @@ void EmuPeripheralCrateConfig::ALCTL1aTiming(xgi::Input * in, xgi::Output * out 
 void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "EmuPeripheralCrate:  ALCTvpf" << endl;
+  std::cout << "EmuPeripheralCrate:  ALCTvpf" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "ALCTvpf");
   //
   cgicc::Cgicc cgi(in);
@@ -5103,11 +5101,11 @@ void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "ALCTvpf:  TMB " << tmb << " will read TMB Raw Hits "
+    std::cout << "ALCTvpf:  TMB " << tmb << " will read TMB Raw Hits "
 	 << MyTest[tmb][current_crate_].getNumberOfDataReads() << " times" << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "ALCTvpf:  No tmb" << endl;
+    std::cout << "ALCTvpf:  No tmb" << std::endl;
   }
   //
   int dmb;
@@ -5115,10 +5113,10 @@ void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "ALCTvpf:  DMB " << dmb << endl;
+    std::cout << "ALCTvpf:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "ALCTvpf:  No dmb" << endl;
+    std::cout << "ALCTvpf:  No dmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5131,7 +5129,7 @@ void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::ALCTScan(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "ALCTScan" << endl;
+  std::cout << "ALCTScan" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "ALCTScan");
   //
   cgicc::Cgicc cgi(in);
@@ -5142,20 +5140,20 @@ void EmuPeripheralCrateConfig::ALCTScan(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "ALCTScan:  DMB " << dmb << endl;
+    std::cout << "ALCTScan:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "ALCTScan:  No dmb" << endl;
+    std::cout << "ALCTScan:  No dmb" << std::endl;
   }
   //
   name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "ALCTScan:  TMB " << tmb << endl;
+    std::cout << "ALCTScan:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "ALCTScan:  No tmb" << endl;
+    std::cout << "ALCTScan:  No tmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5169,7 +5167,7 @@ void EmuPeripheralCrateConfig::ALCTScan(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::CFEBScan(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "CFEBScan" << endl;
+  std::cout << "CFEBScan" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "CFEBScan");
   //
   cgicc::Cgicc cgi(in);
@@ -5180,20 +5178,20 @@ void EmuPeripheralCrateConfig::CFEBScan(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "CFEBScan:  DMB " << dmb << endl;
+    std::cout << "CFEBScan:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "CFEBScan:  No dmb" << endl;
+    std::cout << "CFEBScan:  No dmb" << std::endl;
   }
   //
   name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "CFEBScan:  TMB " << tmb << endl;
+    std::cout << "CFEBScan:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "CFEBScan:  No tmb" << endl;
+    std::cout << "CFEBScan:  No tmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5207,7 +5205,7 @@ void EmuPeripheralCrateConfig::CFEBScan(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::FindDistripHotChannel(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Find CLCT Distrip Hot Channels" << endl;
+  std::cout << "Find CLCT Distrip Hot Channels" << std::endl;
   //
   cgicc::Cgicc cgi(in);
   //
@@ -5217,20 +5215,20 @@ void EmuPeripheralCrateConfig::FindDistripHotChannel(xgi::Input * in, xgi::Outpu
   //
   if (name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "FindDistripHotChannel:  TMB " << tmb << endl;
+    std::cout << "FindDistripHotChannel:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "FindDistripHotChannel:  No tmb" << endl;
+    std::cout << "FindDistripHotChannel:  No tmb" << std::endl;
   }
   //
   name = cgi.getElement("dmb");
   //
   if (name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "FindDistripHotChannel:  DMB " << dmb << endl;
+    std::cout << "FindDistripHotChannel:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "FindDistripHotChannel:  No dmb" << endl;
+    std::cout << "FindDistripHotChannel:  No dmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5244,7 +5242,7 @@ void EmuPeripheralCrateConfig::FindDistripHotChannel(xgi::Input * in, xgi::Outpu
 void EmuPeripheralCrateConfig::FindWinner(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "EmuPeripheralCrate:  FindWinner" << endl;
+  std::cout << "EmuPeripheralCrate:  FindWinner" << std::endl;
   LOG4CPLUS_INFO(getApplicationLogger(), "FindWinner");
   //
   cgicc::Cgicc cgi(in);
@@ -5255,22 +5253,22 @@ void EmuPeripheralCrateConfig::FindWinner(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "FindWinner:  DMB " << dmb << endl;
+    std::cout << "FindWinner:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "FindWinner:  No dmb" << endl;
+    std::cout << "FindWinner:  No dmb" << std::endl;
   }
   //
   name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "FindWinner:  TMB " << tmb 
+    std::cout << "FindWinner:  TMB " << tmb 
 	 << ", pausing " << MyTest[tmb][current_crate_].getPauseAtEachSetting() 
 	 << " seconds at each delay value" << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "FindWinner:  No tmb" << endl;
+    std::cout << "FindWinner:  No tmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5283,7 +5281,7 @@ void EmuPeripheralCrateConfig::FindWinner(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::AlctDavCableDelay(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Measure ALCT DAV cable delay" << endl;
+  std::cout << "Measure ALCT DAV cable delay" << std::endl;
   //    LOG4CPLUS_INFO(getApplicationLogger(), "Measure ALCT DAV cable delay");
   //
   cgicc::Cgicc cgi(in);
@@ -5294,23 +5292,23 @@ void EmuPeripheralCrateConfig::AlctDavCableDelay(xgi::Input * in, xgi::Output * 
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "AlctDavCableDelay:  TMB " << tmb << endl;
+    std::cout << "AlctDavCableDelay:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "AlctDavCableDelay:  No tmb" << endl;
+    std::cout << "AlctDavCableDelay:  No tmb" << std::endl;
   }
   //
   name = cgi.getElement("dmb");
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "AlctDavCableDelay:  DMB " << dmb 
+    std::cout << "AlctDavCableDelay:  DMB " << dmb 
 	 << " Read " << MyTest[tmb][current_crate_].getNumberOfDataReads()
 	 << " times, pausing " << MyTest[tmb][current_crate_].getPauseBetweenDataReads() 
 	 << "usec between each read" << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "AlctDavCableDelay:  No dmb" << endl;
+    std::cout << "AlctDavCableDelay:  No dmb" << std::endl;
   }
   //
   //
@@ -5325,7 +5323,7 @@ void EmuPeripheralCrateConfig::AlctDavCableDelay(xgi::Input * in, xgi::Output * 
 void EmuPeripheralCrateConfig::CfebDavCableDelay(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Measure CFEB DAV cable delay" << endl;
+  std::cout << "Measure CFEB DAV cable delay" << std::endl;
   //    LOG4CPLUS_INFO(getApplicationLogger(), "Measure CFEB DAV cable delay");
   //
   cgicc::Cgicc cgi(in);
@@ -5336,33 +5334,33 @@ void EmuPeripheralCrateConfig::CfebDavCableDelay(xgi::Input * in, xgi::Output * 
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "CfebDavCableDelay:  TMB " << tmb << endl;
+    std::cout << "CfebDavCableDelay:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "CfebDavCableDelay:  No tmb" << endl;
+    std::cout << "CfebDavCableDelay:  No tmb" << std::endl;
   }
   //
   name = cgi.getElement("dmb");
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "CfebDavCableDelay:  DMB " << dmb 
+    std::cout << "CfebDavCableDelay:  DMB " << dmb 
 	 << " Read " << MyTest[tmb][current_crate_].getNumberOfDataReads()
 	 << " times, pausing " << MyTest[tmb][current_crate_].getPauseBetweenDataReads() 
 	 << "usec between each read" << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "CfebDavCableDelay:  No dmb" << endl;
+    std::cout << "CfebDavCableDelay:  No dmb" << std::endl;
   }
   //
   name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "CfebDavCableDelay:  TMB " << tmb << endl;
+    std::cout << "CfebDavCableDelay:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "CfebDavCableDelay:  No tmb" << endl;
+    std::cout << "CfebDavCableDelay:  No tmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5376,7 +5374,7 @@ void EmuPeripheralCrateConfig::CfebDavCableDelay(xgi::Input * in, xgi::Output * 
 void EmuPeripheralCrateConfig::TmbLctCableDelay(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Measure TMB LCT cable delay" << endl;
+  std::cout << "Measure TMB LCT cable delay" << std::endl;
   //    LOG4CPLUS_INFO(getApplicationLogger(), "Measure TMB LCT cable delay");
   //
   cgicc::Cgicc cgi(in);
@@ -5387,10 +5385,10 @@ void EmuPeripheralCrateConfig::TmbLctCableDelay(xgi::Input * in, xgi::Output * o
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TmbLctCableDelay:  TMB " << tmb << endl;
+    std::cout << "TmbLctCableDelay:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "TmbLctCableDelay:  No tmb" << endl;
+    std::cout << "TmbLctCableDelay:  No tmb" << std::endl;
   }
   //
   name = cgi.getElement("dmb");
@@ -5403,7 +5401,7 @@ void EmuPeripheralCrateConfig::TmbLctCableDelay(xgi::Input * in, xgi::Output * o
 	      << "usec between each read" << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "TmbLctCableDelay:  No dmb" << endl;
+    std::cout << "TmbLctCableDelay:  No dmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5417,7 +5415,7 @@ void EmuPeripheralCrateConfig::TmbLctCableDelay(xgi::Input * in, xgi::Output * o
 void EmuPeripheralCrateConfig::PrintDmbValuesAndScopes(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "Print All DMB Values and Scopes" << endl;
+  std::cout << "Print All DMB Values and Scopes" << std::endl;
   //    LOG4CPLUS_INFO(getApplicationLogger(), "Print All DMB Values and Scopes");
   //
   cgicc::Cgicc cgi(in);
@@ -5428,20 +5426,20 @@ void EmuPeripheralCrateConfig::PrintDmbValuesAndScopes(xgi::Input * in, xgi::Out
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "PrintDmbValuesAndScopes:  DMB " << dmb << endl;
+    std::cout << "PrintDmbValuesAndScopes:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "PrintDmbValuesAndScopes:  No dmb" << endl;
+    std::cout << "PrintDmbValuesAndScopes:  No dmb" << std::endl;
   }
   //
   name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "PrintDmbValuesAndScopes:  TMB " << tmb << endl;
+    std::cout << "PrintDmbValuesAndScopes:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "PrintDmbValuesAndScopes:  No tmb" << endl;
+    std::cout << "PrintDmbValuesAndScopes:  No tmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].ReadAllDmbValuesAndScopes();
@@ -5457,7 +5455,7 @@ void EmuPeripheralCrateConfig::PrintDmbValuesAndScopes(xgi::Input * in, xgi::Out
 void EmuPeripheralCrateConfig::RatTmbTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "RatTmbTiming" << endl;
+  std::cout << "RatTmbTiming" << std::endl;
   //
   cgicc::Cgicc cgi(in);
   //
@@ -5465,10 +5463,10 @@ void EmuPeripheralCrateConfig::RatTmbTiming(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "RatTmbTiming:  TMB " << tmb << endl;
+    std::cout << "RatTmbTiming:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "RatTmbTiming:  No tmb" << endl;
+    std::cout << "RatTmbTiming:  No tmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5482,7 +5480,7 @@ void EmuPeripheralCrateConfig::RatTmbTiming(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::RpcRatTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "RpcRatTiming" << endl;
+  std::cout << "RpcRatTiming" << std::endl;
   //
   cgicc::Cgicc cgi(in);
   //
@@ -5490,10 +5488,10 @@ void EmuPeripheralCrateConfig::RpcRatTiming(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "RpcRatTiming:  TMB " << tmb << endl;
+    std::cout << "RpcRatTiming:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "RpcRatTiming:  No tmb" << endl;
+    std::cout << "RpcRatTiming:  No tmb" << std::endl;
   }
   //
   MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
@@ -5516,15 +5514,15 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "Not dmb" << endl ;
+    std::cout << "Not dmb" << std::endl ;
     dmb = DMB_;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
-  Chamber * thisChamber = chamberVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
   sprintf(Name,"%s CFEB status, crate=%s, DMBslot=%d",
@@ -5539,9 +5537,9 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   //
   char buf[200];
   //
-  std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+  std::vector<emu::pc::CFEB> cfebs = thisDMB->cfebs() ;
   //
-  typedef std::vector<CFEB>::iterator CFEBItr;
+  typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
   //
   for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
     //
@@ -5588,16 +5586,16 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMBUtils:  DMB " << dmb << endl;
+    std::cout << "DMBUtils:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "DMBUtils:  No dmb" << endl ;
+    std::cout << "DMBUtils:  No dmb" << std::endl ;
     dmb = DMB_;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
-  Chamber * thisChamber = chamberVector[dmb];
+  emu::pc::Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
   sprintf(Name,"%s DMB utilities, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
@@ -5609,7 +5607,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   //
   char buf[200] ;
   //
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << endl ;
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
   //
   *out << cgicc::legend("DMB Utils").set("style","color:blue") ;
   //
@@ -5654,7 +5652,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset();
   //  
   //
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << endl ;
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl ;
   //
   *out << cgicc::legend("DMB/CFEB Load PROM").set("style","color:red") ;
   //
@@ -5714,7 +5712,7 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form().set("method","GET") << std::endl ;
   *out << cgicc::pre();
   *out << cgicc::textarea().set("name","CrateTestDMBOutput").set("rows","50").set("cols","150").set("WRAP","OFF");
-  *out << OutputStringDMBStatus[dmb].str() << endl ;
+  *out << OutputStringDMBStatus[dmb].str() << std::endl ;
   *out << cgicc::textarea();
   OutputStringDMBStatus[dmb].str("");
   *out << cgicc::pre();
@@ -5734,13 +5732,13 @@ void EmuPeripheralCrateConfig::DMBTurnOff(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMBTurnOff:  DMB " << dmb << endl;
+    std::cout << "DMBTurnOff:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
-  cout << "DMBTurnOff" << endl;
+  std::cout << "DMBTurnOff" << std::endl;
   //
   if (thisDMB) {
     thisDMB->lowv_onoff(0x0);
@@ -5760,18 +5758,18 @@ void EmuPeripheralCrateConfig::DMBLoadFirmware(xgi::Input * in, xgi::Output * ou
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMBLoadFirmware:  DMB " << dmb << endl;
+    std::cout << "DMBLoadFirmware:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
   thisCCB->hardReset();
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   if (thisDMB) {
     //
-    cout << "DMBLoadFirmware in slot " << thisDMB->slot() << endl;
-    if (thisDMB->slot()==25) cout <<" Broadcast Loading the control FPGA insode one crate"<<endl;
+    std::cout << "DMBLoadFirmware in slot " << thisDMB->slot() << std::endl;
+    if (thisDMB->slot()==25) std::cout <<" Broadcast Loading the control FPGA insode one crate"<<std::endl;
     //
     ::sleep(1);
     unsigned short int dword[2];
@@ -5799,11 +5797,11 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmware(xgi::Input * in, xgi::Output *
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMBVmeLoadFirmware:  DMB " << dmb << endl;
+    std::cout << "DMBVmeLoadFirmware:  DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   int mindmb = dmb;
   int maxdmb = dmb+1;
@@ -5820,7 +5818,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmware(xgi::Input * in, xgi::Output *
     //
     if (thisDMB) {
       //
-      cout << "DMBVmeLoadFirmware in slot " << thisDMB->slot() << endl;
+      std::cout << "DMBVmeLoadFirmware in slot " << thisDMB->slot() << std::endl;
       //
       ::sleep(1);
       //
@@ -5865,22 +5863,22 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi:
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   if (thisDMB->slot() == 25) { 
-    cout <<" The emergency load is NOT available for DMB slot25"<<endl;
-    cout <<" Please use individual slot loading !!!"<<endl;
+    std::cout <<" The emergency load is NOT available for DMB slot25"<<std::endl;
+    std::cout <<" Please use individual slot loading !!!"<<std::endl;
     return;
   }
   //
   thisCCB->hardReset();
   if (thisDMB) {
     //
-    cout << "DMB Vme Load Firmware Emergency in slot " << thisDMB->slot() << endl;
+    std::cout << "DMB Vme Load Firmware Emergency in slot " << thisDMB->slot() << std::endl;
     LOG4CPLUS_INFO(getApplicationLogger(),"Started DMB Vme Load Firmware Emergency");
     //
     ::sleep(1);
@@ -5894,7 +5892,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi:
     dword[1]=0xDB00;
     if (((dmbNumber&0xfff)==0)||((dmbNumber&0xfff)==0xfff)) dword[0]=dmbID&0x03ff;
 
-    cout<<" The DMB number is set to: "<<dword[0]<<" Entered: "<<dmbNumber<<" Database lookup: "<<dmbID<<endl;
+    std::cout<<" The DMB number is set to: "<<dword[0]<<" Entered: "<<dmbNumber<<" Database lookup: "<<dmbID<<std::endl;
     char * outp=(char *)dword;  
     thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
   }
@@ -5929,11 +5927,11 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   int mindmb = dmb;
   int maxdmb = dmb+1;
   if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each cfeb
@@ -5944,19 +5942,19 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
     //
     thisDMB = dmbVector[dmb];
     //
-    cout << "CFEBLoadFirmware - DMB " << dmb << endl;
+    std::cout << "CFEBLoadFirmware - DMB " << dmb << std::endl;
     //
     thisCCB->hardReset();
     //
     if (thisDMB) {
       //
-      vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
       //
       ::sleep(1);
       //
       if (dmbNumber == -1 ) {
 	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
-	  ostringstream dum;
+	  std::ostringstream dum;
 	  dum << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< i << std::endl;
 	  LOG4CPLUS_INFO(getApplicationLogger(), dum.str());
 	  unsigned short int dword[2];
@@ -6023,27 +6021,27 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmwareID(xgi::Input * in, xgi::Output *
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   if ((thisDMB->slot() >21) || (thisDMB->slot() <3)){
     std::cout<<" Invalid DMB slot for CFEB Number reloading "<<thisDMB->slot()<<std::endl;
     return;
   }
   //
-  cout << "CFEBLoadFirmware - DMB " << dmb << endl;
+  std::cout << "CFEBLoadFirmware - DMB " << dmb << std::endl;
   //
   //    thisCCB->hardReset();
   //
   if (thisDMB) {
     //
-    vector<CFEB> thisCFEBs = thisDMB->cfebs();
+    std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
     //
     ::sleep(1);
     //
-    ostringstream dum;
+    std::ostringstream dum;
     dum << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< dmbNumber << std::endl;
     LOG4CPLUS_INFO(getApplicationLogger(), dum.str());
     for (unsigned int i=0; i<thisCFEBs.size(); i++) {
@@ -6077,13 +6075,13 @@ void EmuPeripheralCrateConfig::DMBTurnOn(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
-  cout << "DMBTurnOn" << endl;
+  std::cout << "DMBTurnOn" << std::endl;
   //
   if (thisDMB) {
     thisDMB->lowv_onoff(0x3f);
@@ -6107,7 +6105,7 @@ void EmuPeripheralCrateConfig::DMBCheckConfiguration(xgi::Input * in, xgi::Outpu
     DMB_ = dmb;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
   thisDMB->checkDAQMBXMLValues();
@@ -6123,7 +6121,7 @@ void EmuPeripheralCrateConfig::DMBCheckConfiguration(xgi::Input * in, xgi::Outpu
 void EmuPeripheralCrateConfig::TMBPrintCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  cout << "TMBPrintCounters "<< endl;
+  std::cout << "TMBPrintCounters "<< std::endl;
   //
   cgicc::Cgicc cgi(in);
   //
@@ -6132,11 +6130,11 @@ void EmuPeripheralCrateConfig::TMBPrintCounters(xgi::Input * in, xgi::Output * o
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "Start PrintCounters");
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
@@ -6159,11 +6157,11 @@ void EmuPeripheralCrateConfig::TMBResetCounters(xgi::Input * in, xgi::Output * o
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->ResetCounters();
   //
   this->TMBUtils(in,out);
@@ -6188,9 +6186,9 @@ void EmuPeripheralCrateConfig::TMBCounterForFixedTime(xgi::Input * in, xgi::Outp
     wait_time = cgi["time_to_wait"]->getIntegerValue();
   }
   //
-  cout << "Read TMB " << tmb << " counters over " << wait_time << " seconds" << endl;
+  std::cout << "Read TMB " << tmb << " counters over " << wait_time << " seconds" << std::endl;
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->ResetCounters();
   //
   ::sleep(wait_time);
@@ -6214,11 +6212,11 @@ void EmuPeripheralCrateConfig::TriggerTestInjectALCT(xgi::Input * in, xgi::Outpu
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->TriggerTestInjectALCT();
   thisTMB->RedirectOutput(&std::cout);
@@ -6237,11 +6235,11 @@ void EmuPeripheralCrateConfig::armScope(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->scope(1,0,29);
   thisTMB->RedirectOutput(&std::cout);
@@ -6260,11 +6258,11 @@ void EmuPeripheralCrateConfig::forceScope(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->ForceScopeTrigger();
   thisTMB->RedirectOutput(&std::cout);
@@ -6283,11 +6281,11 @@ void EmuPeripheralCrateConfig::readoutScope(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->ClearScintillatorVeto();
   thisTMB->scope(0,1);
@@ -6307,11 +6305,11 @@ void EmuPeripheralCrateConfig::TriggerTestInjectCLCT(xgi::Input * in, xgi::Outpu
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->TriggerTestInjectCLCT();
   thisTMB->RedirectOutput(&std::cout);
@@ -6330,11 +6328,11 @@ void EmuPeripheralCrateConfig::TMBDumpAllRegisters(xgi::Input * in, xgi::Output 
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->DumpAllRegisters();
   thisTMB->RedirectOutput(&std::cout);
@@ -6352,11 +6350,11 @@ void EmuPeripheralCrateConfig::TMBClearUserProms(xgi::Input * in, xgi::Output * 
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromTMBClear);
   thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromALCTClear);
@@ -6375,12 +6373,12 @@ void EmuPeripheralCrateConfig::TMBConfigure(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "Configure:  TMB " << tmb << endl;
+    std::cout << "Configure:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
-  ALCTController * alct = thisTMB->alctController();
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  emu::pc::ALCTController * alct = thisTMB->alctController();
   thisTMB->configure();
   alct->configure();
   //
@@ -6398,12 +6396,12 @@ void EmuPeripheralCrateConfig::TMBReadConfiguration(xgi::Input * in, xgi::Output
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
-  ALCTController * alct = thisTMB->alctController();
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  emu::pc::ALCTController * alct = thisTMB->alctController();
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   alct->RedirectOutput(&OutputStringTMBStatus[tmb]);
@@ -6430,12 +6428,12 @@ void EmuPeripheralCrateConfig::TMBCheckConfiguration(xgi::Input * in, xgi::Outpu
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
-  ALCTController * alct = thisTMB->alctController();
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  emu::pc::ALCTController * alct = thisTMB->alctController();
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   alct->RedirectOutput(&OutputStringTMBStatus[tmb]);
@@ -6460,11 +6458,11 @@ void EmuPeripheralCrateConfig::TMBReadStateMachines(xgi::Input * in, xgi::Output
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   //
@@ -6493,11 +6491,11 @@ void EmuPeripheralCrateConfig::TMBRawHits(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMBRawHits:  TMB " << tmb << endl;
+    std::cout << "TMBRawHits:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->TMBRawhits();
@@ -6517,11 +6515,11 @@ void EmuPeripheralCrateConfig::ALCTRawHits(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "ALCTRawHits:  TMB " << tmb << endl;
+    std::cout << "ALCTRawHits:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->ALCTRawhits();
@@ -6541,11 +6539,11 @@ void EmuPeripheralCrateConfig::TMBCheckStateMachines(xgi::Input * in, xgi::Outpu
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   //
@@ -6569,16 +6567,16 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "Not tmb" << endl ;
+    std::cout << "Not tmb" << std::endl ;
     tmb = TMB_;
   }
   //
-  ALCTController * alct = tmbVector[tmb]->alctController();
+  emu::pc::ALCTController * alct = tmbVector[tmb]->alctController();
   //
-  Chamber * thisChamber = chamberVector[tmb];
+  emu::pc::Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s ALCT status, crate=%s, TMBslot=%d",
@@ -6641,30 +6639,30 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   //
   /////////////////////////////////////////////////
   *out << cgicc::td().set("ALIGN","center");
-  *out << "power line" << endl;
+  *out << "power line" << std::endl;
   *out << cgicc::td();
   //
   *out << cgicc::td().set("ALIGN","center");
-  *out << "+3.3V" << endl;
+  *out << "+3.3V" << std::endl;
   *out << cgicc::td();
   //
   *out << cgicc::td().set("ALIGN","center");  
-  *out << "+1.8V" << endl;
+  *out << "+1.8V" << std::endl;
   *out << cgicc::td();
   //
   *out << cgicc::td().set("ALIGN","center");
-  *out << "+5.5V B" << endl;
+  *out << "+5.5V B" << std::endl;
   *out << cgicc::td();
   //
   *out << cgicc::td().set("ALIGN","center");
-  *out << "+5.5V A" << endl;
+  *out << "+5.5V A" << std::endl;
   *out << cgicc::td();
   //
   /////////////////////////////////////////////////
   *out << cgicc::tr();
   //
   *out << cgicc::td().set("ALIGN","center");  
-  *out << "measured V" << endl;
+  *out << "measured V" << std::endl;
   *out << cgicc::td();
   //
   //
@@ -6731,7 +6729,7 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::tr();
   //
   *out << cgicc::td().set("ALIGN","center");
-  *out << "measured I" << endl;
+  *out << "measured I" << std::endl;
   *out << cgicc::td();
   //
   //
@@ -6811,16 +6809,16 @@ void EmuPeripheralCrateConfig::RATStatus(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "Not tmb" << endl ;
+    std::cout << "Not tmb" << std::endl ;
     tmb = TMB_;
   }
   //
-  RAT * rat = tmbVector[tmb]->getRAT();
+  emu::pc::RAT * rat = tmbVector[tmb]->getRAT();
   //
-  Chamber * thisChamber = chamberVector[tmb];
+  emu::pc::Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s RAT status, crate=%s, TMBslot=%d",
@@ -6921,25 +6919,25 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br() << "CCB Mode = ";
   int ccb_mode = thisCCB->GetCCBmode();
   switch(ccb_mode) {
-  case CCB::TTCrqFPGA:
-    *out << "TTCrgFPGA" << endl;
+  case emu::pc::CCB::TTCrqFPGA:
+    *out << "TTCrgFPGA" << std::endl;
     break;
-  case CCB::VMEFPGA:
-    *out << "VMEFPGA" << endl;
+  case emu::pc::CCB::VMEFPGA:
+    *out << "VMEFPGA" << std::endl;
     break;
-  case CCB::DLOG:
-    *out << "DLOG" << endl;
+  case emu::pc::CCB::DLOG:
+    *out << "DLOG" << std::endl;
     break;
   default:
-    *out << "unknown" << endl;
+    *out << "unknown" << std::endl;
     break;
   }
   //
-  *out << cgicc::br() << "CSRA1 =  " << std::hex << thisCCB->ReadRegister(0) << endl;
-  *out << cgicc::br() << "CSRA2 =  " << std::hex << thisCCB->ReadRegister(2) << endl;
-  *out << cgicc::br() << "CSRA3 =  " << std::hex << thisCCB->ReadRegister(4) << endl;
-  *out << cgicc::br() << "CSRB1 =  " << std::hex << thisCCB->ReadRegister(0x20) << endl;
-  *out << cgicc::br() << "CSRB18 = " << std::hex << thisCCB->ReadRegister(0x42) << endl;
+  *out << cgicc::br() << "CSRA1 =  " << std::hex << thisCCB->ReadRegister(0) << std::endl;
+  *out << cgicc::br() << "CSRA2 =  " << std::hex << thisCCB->ReadRegister(2) << std::endl;
+  *out << cgicc::br() << "CSRA3 =  " << std::hex << thisCCB->ReadRegister(4) << std::endl;
+  *out << cgicc::br() << "CSRB1 =  " << std::hex << thisCCB->ReadRegister(0x20) << std::endl;
+  *out << cgicc::br() << "CSRB18 = " << std::hex << thisCCB->ReadRegister(0x42) << std::endl;
   //
   *out << cgicc::fieldset();
   //
@@ -6987,7 +6985,7 @@ void EmuPeripheralCrateConfig::ControllerUtils_Xfer(xgi::Input * in, xgi::Output
 void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   static bool first = true;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
@@ -7160,9 +7158,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_GoTo_General(xgi::Input * in, xgi::Outpu
 {
     std::cout<<" entered VMECCGUI_GoTo_General"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator gt_cut_name = cgi.getElement("gt_cut");
     cgicc::form_iterator gt_ypg_name = cgi.getElement("gt_ypg");
@@ -7189,9 +7187,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_GoTo_Intermediate(xgi::Input * in, xgi::
 {
     std::cout<<" entered VMECCGUI_GoTo_Intermediate"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator gt_vmeacc_name = cgi.getElement("gt_vmeacc");
 
@@ -7210,9 +7208,9 @@ void EmuPeripheralCrateConfig::VMECCGUI_GoTo_Expert(xgi::Input * in, xgi::Output
 {
     std::cout<<" entered VMECCGUI_GoTo_Expert"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator gt_pswd_name = cgi.getElement("gt_pswd");
     cgicc::form_iterator st_usrmd_name = cgi.getElement("st_usrmd");
@@ -7373,14 +7371,14 @@ void EmuPeripheralCrateConfig::VCC_CRSEL_DO(xgi::Input * in, xgi::Output * out )
 
   std::cout<<" entered VCC_CRSEL_DO"<<std::endl;
   cgicc::Cgicc cgi(in);
-  const CgiEnvironment& env = cgi.getEnvironment();
+  const cgicc::CgiEnvironment& env = cgi.getEnvironment();
   std::string guiStr = env.getQueryString() ;
-  cout << guiStr << endl ;
+  std::cout << guiStr << std::endl ;
   cgicc::form_iterator crate_sel = cgi.getElement("crate_sel");
 
   if(crate_sel != cgi.getElements().end()) {
     VCC_UTIL_curr_crate_name = cgi["crate_sel"]->getValue();
-    std::cout << "selected " << VCC_UTIL_curr_crate_name << endl;
+    std::cout << "selected " << VCC_UTIL_curr_crate_name << std::endl;
     found = false;
     for(i=0; i<(int)crateVector.size() && !found; i++){
       if(VCC_UTIL_curr_crate_name==crateVector[i]->GetLabel()){
@@ -7433,7 +7431,7 @@ void EmuPeripheralCrateConfig::VCC_PSWD_DO(xgi::Input * in, xgi::Output * out )
 {
   std::cout<<" entered VCC_PSWD_DO"<<std::endl;
   cgicc::Cgicc cgi(in);
-  const CgiEnvironment& env = cgi.getEnvironment();
+  const cgicc::CgiEnvironment& env = cgi.getEnvironment();
   std::string guiStr = env.getQueryString() ;
   cgicc::form_iterator expert_mode = cgi.getElement("expert_mode");
 
@@ -7441,11 +7439,11 @@ void EmuPeripheralCrateConfig::VCC_PSWD_DO(xgi::Input * in, xgi::Output * out )
     std::string pswd_entered = cgi["expert_pswd"]->getValue();
     std::string name_entered = cgi["expert_name"]->getValue();
     if(pswd_entered == VCC_UTIL_expert_pswd){
-      std::cout << "VCC expert access granted to " << name_entered << endl;
+      std::cout << "VCC expert access granted to " << name_entered << std::endl;
       VCC_UTIL_acc_cntrl = "enabled";
     }
     else {
-      std::cout << "VCC expert access denied to " << name_entered << endl;
+      std::cout << "VCC expert access denied to " << name_entered << std::endl;
       VCC_UTIL_acc_cntrl = "disabled";
     }
   }
@@ -7493,14 +7491,14 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
   int n,i;
   char *cc;
 
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   std::cout<<" entered VCC_CMNTSK_DO"<<std::endl;
   cgicc::Cgicc cgi(in);
-  const CgiEnvironment& env = cgi.getEnvironment();
+  const cgicc::CgiEnvironment& env = cgi.getEnvironment();
   std::string guiStr = env.getQueryString() ;
-  cout << guiStr << endl ;
+  std::cout << guiStr << std::endl ;
   cgicc::form_iterator cmntsk_tog_dbg = cgi.getElement("cmntsk_tog_dbg");
   cgicc::form_iterator cmntsk_vccsn = cgi.getElement("cmntsk_vccsn");
   cgicc::form_iterator cmntsk_cc = cgi.getElement("cmntsk_cc");
@@ -7520,29 +7518,29 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
     }
   }
   if(cmntsk_vccsn != cgi.getElements().end()) {
-    SN_t sn = vmecc->rd_ser_num();
+    emu::pc::SN_t sn = vmecc->rd_ser_num();
     if(sn.status == 0){
       sprintf(ctemp,"VCC%02d",sn.sn);
       VCC_UTIL_cmn_tsk_sn = ctemp;
     }
     else {
-      std::cout << "Error while reading serial number. Status=" << sn.status << "  Error type = " << hex << sn.err_typ << std::endl;
+      std::cout << "Error while reading serial number. Status=" << sn.status << "  Error type = " << std::hex << sn.err_typ << std::endl;
       VCC_UTIL_cmn_tsk_sn = "-";
     }
   }
   if(cmntsk_cc != cgi.getElements().end()) {
     cc = vmecc->read_customer_code();
     if(cc != 0){
-      cout << "Customer Code is " << cc << endl;
+      std::cout << "Customer Code is " << cc << std::endl;
       VCC_UTIL_cmn_tsk_cc=cc;
     } else {
-      cout << "Customer Code readback failed!" << endl;
+      std::cout << "Customer Code readback failed!" << std::endl;
       VCC_UTIL_cmn_tsk_cc="Readback Failed!";
     }
   }
   if(cmntsk_ldfrmw != cgi.getElements().end()) {
-    vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
-    vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
+    vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
+    vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL);
     std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
     std::cout << "Path = " << PROM_Path << "\nVer = " << vmecc->VCC_frmw_ver << std::endl;
     vmecc->prg_vcc_prom_ver(PROM_Path.c_str(),vmecc->VCC_frmw_ver.c_str());
@@ -7586,7 +7584,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_VME_access(xgi::Input * in, xgi::Output 
   static std::vector<std::string> board_opt,rw_opt,rw_opt_lbl;
   unsigned int opt;
 
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   if(first){
@@ -7748,9 +7746,9 @@ void EmuPeripheralCrateConfig::VCC_VME_FILL(xgi::Input * in, xgi::Output * out )
 
     std::cout<<" entered VCC_VME_FILL"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator add2pkt = cgi.getElement("add2pkt");
 
@@ -7806,15 +7804,15 @@ void EmuPeripheralCrateConfig::VCC_VME_DO(xgi::Input * in, xgi::Output * out )
   } vcmd,*cur,*last;
 
 
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_VME_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator vme_send = cgi.getElement("vme_send");
     cgicc::form_iterator vme_clear = cgi.getElement("vme_clear");
@@ -8014,12 +8012,12 @@ void EmuPeripheralCrateConfig::VCC_VME_DO(xgi::Input * in, xgi::Output * out )
       VCC_UTIL_VME_msg_data = "";
       VCC_UTIL_VME_rbk_data = "";
       while((pkt_type=vmecc->rd_pkt())>=0){
-        if(pkt_type>INFO_PKT){
+        if(pkt_type>emu::pc::INFO_PKT){
           std::cout << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
           VCC_UTIL_VME_msg_data += vmecc->dcode_msg_pkt(vmecc->rbuf);
           VCC_UTIL_VME_msg_data += "\n";
 	}
-        else if (pkt_type==VMED16_PKT){
+        else if (pkt_type==emu::pc::VMED16_PKT){
           int nw = ((vmecc->rbuf[WRD_CNT_OFF]&0xff)<<8)|(vmecc->rbuf[WRD_CNT_OFF+1]&0xff);
 	  for(i=0;i<nw;i++){
 	    sprintf(ctemp,"0x%02X%02X\n",vmecc->rbuf[2*i+DATA_OFF]&0xFF,vmecc->rbuf[2*i+DATA_OFF+1]&0xFF);
@@ -8039,7 +8037,7 @@ void EmuPeripheralCrateConfig::VCC_VME_DO(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
@@ -8141,15 +8139,15 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
   char ctemp[256];
   char *cptemp;
   int i,ptyp,ack;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
-  CNFG_ptr rbk_cp;
+  emu::pc::CNFG_ptr rbk_cp;
   vmecc=lccc->vmecc();
     std::cout<<" entered VCC_FRMUTIL_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
     cgicc::form_iterator dvid_name = cgi.getElement("dvid");
     cgicc::form_iterator rd_uc_name = cgi.getElement("rd_uc");
     cgicc::form_iterator rd_cc_name = cgi.getElement("rd_cc");
@@ -8178,59 +8176,59 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     unsigned int status=0;
     unsigned short int base_addr=0;
     char *pch =(char *) &VCC_UTIL_base_addr_inp[0];
-    cout.fill('0');
-    cout.setf(ios::showbase);
+    std::cout.fill('0');
+    std::cout.setf(std::ios::showbase);
     if(dvid_name != cgi.getElements().end()) {
       dvid = vmecc->read_dev_id();
       if(dvid>0){
-        cout << "Device ID is " << setw(8) << hex << dvid << endl;
+        std::cout << "Device ID is " << std::setw(8) << std::hex << dvid << std::endl;
         sprintf(ctemp,"%08X",dvid);
         VCC_UTIL_Frmw_rbk_[0]=ctemp;
       } else {
-        cout << "Device ID readback failed!" << endl;
+        std::cout << "Device ID readback failed!" << std::endl;
         VCC_UTIL_Frmw_rbk_[0]="Readback Failed!";
       }
     }
     if(rd_uc_name != cgi.getElements().end()) {
       uc = vmecc->read_user_code();
       if(uc>0){
-        cout << "User Code is " << setw(8) << hex  << uc << endl;
+        std::cout << "User Code is " << std::setw(8) << std::hex  << uc << std::endl;
         sprintf(ctemp,"%08X",uc);
         VCC_UTIL_Frmw_rbk_[1]=ctemp;
       } else {
-        cout << "User Code readback failed!" << endl;
+        std::cout << "User Code readback failed!" << std::endl;
         VCC_UTIL_Frmw_rbk_[1]="Readback Failed!";
       }
     }
     if(rd_cc_name != cgi.getElements().end()) {
       cc = vmecc->read_customer_code();
       if(cc != 0){
-        cout << "Customer Code is " << cc << endl;
+        std::cout << "Customer Code is " << cc << std::endl;
         VCC_UTIL_Frmw_rbk_[2]=cc;
       } else {
-        cout << "Customer Code readback failed!" << endl;
+        std::cout << "Customer Code readback failed!" << std::endl;
         VCC_UTIL_Frmw_rbk_[2]="Readback Failed!";
       }
     }
     if(chk_con_name != cgi.getElements().end()) {
       con_stat = vmecc->chk_jtag_conn();
       if(con_stat == 1){
-        cout << "JTAG connection is good." << endl;
+        std::cout << "JTAG connection is good." << std::endl;
         VCC_UTIL_Frmw_rbk_[3]="Good.";
       }
       else {
-        cout << "JTAG connection is BAD!" << endl;
+        std::cout << "JTAG connection is BAD!" << std::endl;
         VCC_UTIL_Frmw_rbk_[3]="BAD!";
       }
     }
     if(status_name != cgi.getElements().end()) {
       status = vmecc->get_jtag_status();
       if(status>0){
-        cout << "JTAG Module Status is " << setw(4) << hex << status << endl;
+        std::cout << "JTAG Module Status is " << std::setw(4) << std::hex << status << std::endl;
         sprintf(ctemp,"0x%04X",status&0xFFFF);
         VCC_UTIL_Frmw_rbk_[4]=ctemp;
       } else {
-        cout << "Status readback failed!" << endl;
+        std::cout << "Status readback failed!" << std::endl;
         VCC_UTIL_Frmw_rbk_[4]="Readback Failed!";
       }
     }
@@ -8242,7 +8240,7 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
       VCC_UTIL_base_addr_inp = cgi["base_addr"]->getValue();
       base_addr = (unsigned short) strtol(VCC_UTIL_base_addr_inp.c_str(),&pch,16);
       vmecc->ld_rtn_base_addr(base_addr);
-      cout << "base address set " << setw(4) << hex  << base_addr << endl;
+      std::cout << "base address set " << std::setw(4) << std::hex  << base_addr << std::endl;
       VCC_UTIL_Frmw_rbk_[6]= VCC_UTIL_base_addr_inp;
     }
     if(rdmcs_name != cgi.getElements().end()) {
@@ -8254,29 +8252,29 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
       if(cptemp!=NULL) VCC_UTIL_maj_ver = cptemp+1;
       cptemp=strtok(0,".");
       if(cptemp!=NULL) VCC_UTIL_min_ver = cptemp;
-      cout << "Project: " << VCC_UTIL_proj << endl;
-      cout << "Major Version: " << VCC_UTIL_maj_ver << endl;
-      cout << "Minor Version: " << VCC_UTIL_min_ver << endl;
+      std::cout << "Project: " << VCC_UTIL_proj << std::endl;
+      std::cout << "Major Version: " << VCC_UTIL_maj_ver << std::endl;
+      std::cout << "Minor Version: " << VCC_UTIL_min_ver << std::endl;
       VCC_UTIL_PROM_ver = VCC_UTIL_maj_ver + "." + VCC_UTIL_min_ver;
-      cout << "PROM  Version: " << VCC_UTIL_PROM_ver << endl;
+      std::cout << "PROM  Version: " << VCC_UTIL_PROM_ver << std::endl;
       std::string Full_PROM_Filename = FirmwareDir_+VMECC_FIRMWARE_DIR+"/"+VCC_UTIL_prom_file_inp;
       nl = vmecc->read_mcs(Full_PROM_Filename.c_str());
       if(nl>0){
         if(nl==65553){
-          cout << "File " << Full_PROM_Filename << " has been readin." << endl;
+          std::cout << "File " << Full_PROM_Filename << " has been readin." << std::endl;
           VCC_UTIL_Frmw_rbk_[7]=VCC_UTIL_prom_file_inp;
           VCC_UTIL_PROM_file_init = true;
 	}
 	else {
           VCC_UTIL_Frmw_rbk_[7]="Readin Failed!";
-          cout << "Readin Failed!" << endl;
-          cout << "Wrong number of lines readin! Lines read = " << nl << endl;
+          std::cout << "Readin Failed!" << std::endl;
+          std::cout << "Wrong number of lines readin! Lines read = " << nl << std::endl;
 	  VCC_UTIL_PROM_file_init = false;
 	}
       }
       else {
         VCC_UTIL_Frmw_rbk_[7]="Readin Failed!";
-        cout << "Readin Failed!" << endl;
+        std::cout << "Readin Failed!" << std::endl;
         VCC_UTIL_PROM_file_init = false;
       }
     }
@@ -8296,36 +8294,36 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
       if(VCC_UTIL_PROM_file_init){
 	int pktnum = 0;
         rbk_cp = vmecc->read_crs();
-        vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
-        vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL);
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
 	vmecc->program_prom_cmd();
 	vmecc->send_prg_prom_data();
 	vmecc->send_uc_cc_data(VCC_UTIL_Frmw_rbk_[7].c_str());
 	while((n=vmecc->eth_read())>6){
 	  pktnum++;
 	  ptyp = vmecc->rbuf[PKT_TYP_OFF]&0xff;
-	  if(ptyp>=INFO_PKT){
+	  if(ptyp>=emu::pc::INFO_PKT){
             std::cout << "pktnum B" << pktnum << ": " << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
 	  } else {
             std::cout << "pktnum B" << pktnum << ": ";
 	    ack = AK_STATUS(vmecc->rbuf); 
 	    switch(ack){
-	    case NO_ACK:
+	    case emu::pc::NO_ACK:
 	      std::cout << "Non message or no acknowledge packet received" << std::endl;
 	      break;
-	    case CC_S:
+	    case emu::pc::CC_S:
 	      std::cout << "Command completed successfully" << std::endl;
 	      break;
-	    case CC_W:
+	    case emu::pc::CC_W:
 	      std::cout << "Command completed with a warning" << std::endl;
 	      break;
-	    case CC_E:
+	    case emu::pc::CC_E:
 	      std::cout << "Command  completed with an error" << std::endl;
 	      break;
-	    case CE_I:
+	    case emu::pc::CE_I:
 	      std::cout << "Command execution finished incomplete" << std::endl;
 	      break;
-	    case CIP_W: case CIP_E:
+	    case emu::pc::CIP_W: case emu::pc::CIP_E:
 	      std::cout << "Command in progress with an error or warning" << std::endl;
 	      break;
 	    default:
@@ -8334,7 +8332,7 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
 	    }
 	  }
 	}
-        vmecc->wrt_crs(RST_MISC, rbk_cp);
+        vmecc->wrt_crs(emu::pc::RST_MISC, rbk_cp);
         free(rbk_cp);
       }
       else {
@@ -8343,9 +8341,9 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     }
     if(prgver_name != cgi.getElements().end()) {
       if(VCC_UTIL_PROM_file_init){
-        vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
-        vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
-        CNFG_ptr cp=vmecc->read_crs();
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL);
+        emu::pc::CNFG_ptr cp=vmecc->read_crs();
         vmecc->print_crs(cp);
         free(cp);
         std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
@@ -8358,10 +8356,10 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     }
     if(custom_name != cgi.getElements().end()) {
       vmecc->ld_rtn_base_addr(0x180);
-      vmecc->exec_routine(JC_Custom_Rtn);
+      vmecc->exec_routine(emu::pc::JC_Custom_Rtn);
       while((n=vmecc->eth_read())>6){
         ptyp = vmecc->rbuf[PKT_TYP_OFF]&0xff;
-	if(ptyp>=INFO_PKT){
+	if(ptyp>=emu::pc::INFO_PKT){
 	  printf("%s",vmecc->dcode_msg_pkt(vmecc->rbuf));
 	} else {
           printf("Rtn_Pkt: ");
@@ -8375,7 +8373,7 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
       FILE *fp=fopen(MCS_mem_file.c_str(),"w");
       for(i=0;i<0x80000;i++){
         if(i!=0 && i%8==0)fprintf(fp,"\n");
-        fprintf(fp,"%04hX",prm_dat[i]);
+        fprintf(fp,"%04hX",emu::pc::prm_dat[i]);
       }
       fprintf(fp,"\n");
       fclose(fp);
@@ -8387,11 +8385,11 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     if(verify_name != cgi.getElements().end()) {
       if(VCC_UTIL_PROM_file_init){
         rbk_cp = vmecc->read_crs();
-        vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
-        vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL);
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
         vmecc->verify_prom_cmd();
         vmecc->send_ver_prom_data();
-        vmecc->wrt_crs(RST_MISC, rbk_cp);
+        vmecc->wrt_crs(emu::pc::RST_MISC, rbk_cp);
         free(rbk_cp);
       }
       else {
@@ -8410,7 +8408,7 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
 void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
@@ -8548,17 +8546,17 @@ void EmuPeripheralCrateConfig::VCC_CNFG_DO(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
   char ctemp[256];
-  CNFG_ptr rbk_cp;
+  emu::pc::CNFG_ptr rbk_cp;
   unsigned int temp;
   char *pch =(char *) &VCC_UTIL_CR_wrt_[0];
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
     std::cout<<" entered VCC_CNFG_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
     cgicc::form_iterator eth_cr_chk_name = cgi.getElement("eth_cr_chk");
     cgicc::form_iterator exfifo_cr_chk_name = cgi.getElement("exfifo_cr_chk");
     cgicc::form_iterator rstmsc_cr_chk_name = cgi.getElement("rstmsc_cr_chk");
@@ -8596,7 +8594,7 @@ void EmuPeripheralCrateConfig::VCC_CNFG_DO(xgi::Input * in, xgi::Output * out )
     temp = strtoul(VCC_UTIL_CR_wrt_[5].c_str(),&pch,16);
     VCC_UTIL_CR_to.vme_bgto = (unsigned short int) temp;
 
-    cout << "Values to send to controller are:" << endl;
+    std::cout << "Values to send to controller are:" << std::endl;
     vmecc->print_crs(&VCC_UTIL_CR_to);
     if(wrt_sel_crs_name != cgi.getElements().end()) {
       if(eth_cr_chk_name != cgi.getElements().end()) {
@@ -8734,13 +8732,13 @@ void EmuPeripheralCrateConfig::VCC_CNFG_DO(xgi::Input * in, xgi::Output * out )
       }
     }
     if(rd_ser_num_name != cgi.getElements().end()) {
-      SN_t sn = vmecc->rd_ser_num();
+      emu::pc::SN_t sn = vmecc->rd_ser_num();
       if(sn.status == 0){
         sprintf(ctemp,"VCC%02d",sn.sn);
         VCC_UTIL_CR_ser_num = ctemp;
       }
       else {
-	std::cout << "Error while reading serial number. Status=" << sn.status << "  Error type = " << hex << sn.err_typ << std::endl;
+	std::cout << "Error while reading serial number. Status=" << sn.status << "  Error type = " << std::hex << sn.err_typ << std::endl;
         VCC_UTIL_CR_ser_num = "-";
       }
     }
@@ -8751,7 +8749,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
 {
   static bool first = true;
   std::string ena_dis;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
@@ -8842,20 +8840,20 @@ void EmuPeripheralCrateConfig::VCC_MAC_DO(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
   char ctemp[256];
-  CNFG_ptr rbk_cp;
-  CNFG_t wrt_mac;
+  emu::pc::CNFG_ptr rbk_cp;
+  emu::pc::CNFG_t wrt_mac;
   std::string stemp;
   unsigned int temp[6];
 
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_MAC_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator ena_dev_mac = cgi.getElement("ena_dev_mac");
     cgicc::form_iterator wrt_macs = cgi.getElement("wrt_macs");
@@ -8873,7 +8871,7 @@ void EmuPeripheralCrateConfig::VCC_MAC_DO(xgi::Input * in, xgi::Output * out )
     if(wrt_macs != cgi.getElements().end()) {
       if(which_mac != cgi.getElements().end()) {
         stemp = cgi["mac_choice"]->getValue();
-        cout << "Chosen MAC " << stemp.c_str() << endl;
+        std::cout << "Chosen MAC " << stemp.c_str() << std::endl;
         if(stemp == "dev_mac"){
           VCC_UTIL_MAC_wrt_dev = cgi["dev_mac_addr"]->getValue();
           sscanf(VCC_UTIL_MAC_wrt_dev.c_str(),"%2x-%2x-%2x-%2x-%2x-%2x",&temp[0],&temp[1],&temp[2],&temp[3],&temp[4],&temp[5]);
@@ -8945,9 +8943,9 @@ void EmuPeripheralCrateConfig::VCC_MAC_DO(xgi::Input * in, xgi::Output * out )
 
 void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
-  CNFG_ptr rbk_cp;
+  emu::pc::CNFG_ptr rbk_cp;
   static bool first = true;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   if(first){
@@ -9102,15 +9100,15 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
   char *pch = (char *) &VCC_UTIL_FIFO_wrt_data;
   std::string stemp;
 
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_FIFO_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator fifo_mode = cgi.getElement("fifo_mode");
     cgicc::form_iterator err_inj = cgi.getElement("err_inj");
@@ -9128,31 +9126,31 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 
     if(fifo_mode != cgi.getElements().end()) {
       if(VCC_UTIL_FIFO_mode == "Test"){
-        vmecc->set_clr_bits(CLR, EXTFIFO, ~FIFO_CR_TST);
+        vmecc->set_clr_bits(emu::pc::CLR, emu::pc::EXTFIFO, ~FIFO_CR_TST);
         VCC_UTIL_FIFO_mode = "VME";
       }
       else {
-        vmecc->set_clr_bits(SET, EXTFIFO, FIFO_CR_TST);
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::EXTFIFO, FIFO_CR_TST);
         VCC_UTIL_FIFO_mode = "Test";
       }
     }
     if(err_inj != cgi.getElements().end()) {
       if(VCC_UTIL_FIFO_inj == "On"){
-        vmecc->set_clr_bits(CLR, EXTFIFO, ~FIFO_CR_INJ);
+        vmecc->set_clr_bits(emu::pc::CLR, emu::pc::EXTFIFO, ~FIFO_CR_INJ);
         VCC_UTIL_FIFO_inj = "Off";
       }
       else {
-        vmecc->set_clr_bits(SET, EXTFIFO, FIFO_CR_INJ);
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::EXTFIFO, FIFO_CR_INJ);
         VCC_UTIL_FIFO_inj = "On";
       }
     }
     if(ecc_state != cgi.getElements().end()) {
       if(VCC_UTIL_FIFO_ecc == "Ena"){
-        vmecc->set_clr_bits(CLR, EXTFIFO, ~FIFO_CR_ECC);
+        vmecc->set_clr_bits(emu::pc::CLR, emu::pc::EXTFIFO, ~FIFO_CR_ECC);
         VCC_UTIL_FIFO_ecc = "Dis";
       }
       else {
-        vmecc->set_clr_bits(SET, EXTFIFO, FIFO_CR_ECC);
+        vmecc->set_clr_bits(emu::pc::SET, emu::pc::EXTFIFO, FIFO_CR_ECC);
         VCC_UTIL_FIFO_ecc = "Ena";
       }
     }
@@ -9259,12 +9257,12 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 	  }
 	}
         while((pkt_type=vmecc->rd_pkt())>=0){
-          if(pkt_type>INFO_PKT){
+          if(pkt_type>emu::pc::INFO_PKT){
             std::cout << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
             VCC_UTIL_FIFO_msg_data += vmecc->dcode_msg_pkt(vmecc->rbuf);
             VCC_UTIL_FIFO_msg_data += "\n";
 	  }
-          else if (pkt_type==EXFIFO_PKT){
+          else if (pkt_type==emu::pc::EXFIFO_PKT){
             int nw = ((vmecc->rbuf[WRD_CNT_OFF]&0xff)<<8)|(vmecc->rbuf[WRD_CNT_OFF+1]&0xff);
 	    for(i=0;i<nw;i++){
 	      sprintf(ctemp,"0x%02X%02X\n",vmecc->rbuf[2*i+DATA_OFF]&0xFF,vmecc->rbuf[2*i+DATA_OFF+1]&0xFF);
@@ -9286,7 +9284,7 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
@@ -9365,15 +9363,15 @@ void EmuPeripheralCrateConfig::VCC_PKTSND_DO(xgi::Input * in, xgi::Output * out 
   char *pch1 = (char *) &VCC_UTIL_PKTSND_cmnd;
   char *pch2 = (char *) &VCC_UTIL_PKTSND_data;
 
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_PKTSND_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator rst_seq_id = cgi.getElement("rst_seq_id");
     cgicc::form_iterator snd_pkt_now = cgi.getElement("snd_pkt_now");
@@ -9426,7 +9424,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
 {
   char ctemp[256];
   static bool first = true;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   if(first){
@@ -9560,17 +9558,17 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
   int i,n;
   int pkt,pkt_type,wc;
   std::string save1,save2;
-  union hdr_stat hdr;
+  union emu::pc::hdr_stat hdr;
   bool new_pkt;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_PKTRCV_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator rd_pkt = cgi.getElement("rd_pkt");
     cgicc::form_iterator flsh_pkt = cgi.getElement("flsh_pkt");
@@ -9626,7 +9624,7 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
 	  wc = DAT_WRD_CNT(vmecc->rbuf);
           sprintf(ctemp,"%d",((vmecc->rbuf[PKT_LEN_OFF]&0xff)<<8)|(vmecc->rbuf[PKT_LEN_OFF+1]&0xff));
 	  VCC_UTIL_PKTRCV_pkt_len = ctemp;
-	  if(pkt_type>INFO_PKT){
+	  if(pkt_type>emu::pc::INFO_PKT){
 	    std::cout << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
 	    VCC_UTIL_PKTRCV_rbk_data += vmecc->dcode_msg_pkt(vmecc->rbuf);
 	    VCC_UTIL_PKTRCV_rbk_data += "\n";
@@ -9694,7 +9692,7 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
           int ack_stat = AK_STATUS(vmecc->rbuf);
           sprintf(ctemp,"%d",ack_stat);
  	  VCC_UTIL_PKTRCV_ack_num = ctemp;
- 	  VCC_UTIL_PKTRCV_ack_stat = ak_status[ack_stat].mnem;
+ 	  VCC_UTIL_PKTRCV_ack_stat = emu::pc::ak_status[ack_stat].mnem;
           if(WITH_DATA(vmecc->rbuf)==1){
             strcpy(ctemp," with data");
 	  }
@@ -9706,55 +9704,55 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
           sprintf(ctemp,"%d",pkt_type);
  	  VCC_UTIL_PKTRCV_pkt_typ_num = ctemp;
           switch(pkt_type){
-          case LPBCK_PKT:
+          case emu::pc::LPBCK_PKT:
             strcpy(ctemp,"LPBCK");
             break;
-          case TXNWRDS_PKT:
+          case emu::pc::TXNWRDS_PKT:
             strcpy(ctemp,"TXNWRDS");
             break;
-	  case EXFIFO_PKT:
+	  case emu::pc::EXFIFO_PKT:
             strcpy(ctemp,"EXFIFO");
             break;
-	  case VMED08_PKT:
+	  case emu::pc::VMED08_PKT:
             strcpy(ctemp,"VME_D08");
             break;
-	  case VMED16_PKT:
+	  case emu::pc::VMED16_PKT:
             strcpy(ctemp,"VME_D16");
             break;
-	  case VMED32_PKT:
+	  case emu::pc::VMED32_PKT:
             strcpy(ctemp,"VME_D32");
             break;
-	  case VMED64_PKT:
+	  case emu::pc::VMED64_PKT:
             strcpy(ctemp,"VME_D64");
             break;
-	  case JTAG_MOD_PKT:
+	  case emu::pc::JTAG_MOD_PKT:
             strcpy(ctemp,"JTAG_MOD");
             break;
-	  case CNFG_MOD_PKT:
+	  case emu::pc::CNFG_MOD_PKT:
             strcpy(ctemp,"CNFG_MOD");
             break;
-	  case FLSH_RBK_PKT:
+	  case emu::pc::FLSH_RBK_PKT:
             strcpy(ctemp,"FLSH_RBK");
             break;
-	  case ETH_NET_PKT:
+	  case emu::pc::ETH_NET_PKT:
             strcpy(ctemp,"ETH_NET");
             break;
-	  case IHD08_STAT_ID_PKT:
+	  case emu::pc::IHD08_STAT_ID_PKT:
             strcpy(ctemp,"IH_D08");
             break;
-	  case IHD16_STAT_ID_PKT:
+	  case emu::pc::IHD16_STAT_ID_PKT:
             strcpy(ctemp,"IH_D16");
             break;
-	  case IHD32_STAT_ID_PKT:
+	  case emu::pc::IHD32_STAT_ID_PKT:
             strcpy(ctemp,"IH_D32");
             break;
-	  case INFO_PKT:
+	  case emu::pc::INFO_PKT:
             strcpy(ctemp,"INFO");
             break;
-	  case WARN_PKT:
+	  case emu::pc::WARN_PKT:
             strcpy(ctemp,"WARN");
             break;
-	  case ERR_PKT:
+	  case emu::pc::ERR_PKT:
             strcpy(ctemp,"ERROR");
             break;
 	  default:
@@ -9790,11 +9788,11 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
 
 void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
-  CNFG_ptr rbk_cp;
+  emu::pc::CNFG_ptr rbk_cp;
   int msglvl;
   char ctemp[256];
   static bool first = true;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   if(first){
@@ -9966,18 +9964,18 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
 void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
-  CNFG_ptr rbk_cp;
+  emu::pc::CNFG_ptr rbk_cp;
   char ctemp[256];
   int msglvl;
-  Crate *lccc;
+  emu::pc::Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
     std::cout<<" entered VCC_MISC_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    const cgicc::CgiEnvironment& env = cgi.getEnvironment();
     std::string guiStr = env.getQueryString() ;
-    cout << guiStr << endl ;
+    std::cout << guiStr << std::endl ;
 
     cgicc::form_iterator misc_warn_ena = cgi.getElement("misc_warn_ena");
     cgicc::form_iterator misc_warn_dis = cgi.getElement("misc_warn_dis");
@@ -10015,17 +10013,17 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
       VCC_UTIL_misc_strtup = "Disabled";
     }
     if(misc_spont_ena != cgi.getElements().end()) {
-      vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
+      vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
       VCC_UTIL_misc_spont = "Enabled";
     }
     if(misc_spont_dis != cgi.getElements().end()) {
-      vmecc->set_clr_bits(CLR, ETHER, ~ETH_CR_SPONT);
+      vmecc->set_clr_bits(emu::pc::CLR, emu::pc::ETHER, ~ETH_CR_SPONT);
       VCC_UTIL_misc_spont = "Disabled";
     }
     if(misc_msglvl != cgi.getElements().end()) {
       msglvl = cgi["rd_msglvl"]->getIntegerValue();
-      vmecc->set_clr_bits(CLR, RST_MISC, ~RST_CR_MSGLVL);
-      vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL & (msglvl<<8));
+      vmecc->set_clr_bits(emu::pc::CLR, emu::pc::RST_MISC, ~RST_CR_MSGLVL);
+      vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL & (msglvl<<8));
       sprintf(ctemp,"%d",msglvl);
       VCC_UTIL_misc_wrt_msglvl = ctemp;
       rbk_cp = vmecc->read_crs();
@@ -10051,8 +10049,8 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
       if(misc_jtag_chk != cgi.getElements().end()) {
         val |= RST_CR_JTAG;
       }
-      vmecc->set_clr_bits(CLR, RST_MISC, ~(0x1F));
-      vmecc->set_clr_bits(SET, RST_MISC, val);
+      vmecc->set_clr_bits(emu::pc::CLR, emu::pc::RST_MISC, ~(0x1F));
+      vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, val);
     }
     if(misc_rst_src_rd != cgi.getElements().end() || misc_refresh != cgi.getElements().end()) {
       rbk_cp = vmecc->read_crs();
@@ -10113,7 +10111,7 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
       vmecc->reload_fpga();
     }
     if(misc_sysrst != cgi.getElements().end()) {
-      vmecc->set_clr_bits(SET, VME, VME_CR_FRC_SRST);
+      vmecc->set_clr_bits(emu::pc::SET, emu::pc::VME, VME_CR_FRC_SRST);
     }
     this->VMECCGUI_misc_utils(in,out);
 }
@@ -10141,7 +10139,7 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   std::string ReadCCBRegister = 
     toolbox::toString("/%s/ReadCCBRegister",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ReadCCBRegister) << std::endl ;
-  *out << "Read Register (hex)..." << std:: endl;
+  *out << "Read Register (hex)..." << std::endl;
   *out << cgicc::input().set("type","text").set("value","0").set("name","CCBRegister") << std::endl ;
   *out << "Register value : (hex) " << std::hex << CCBRegisterValue_ << std::endl;
   *out << cgicc::form() << std::endl ;
@@ -10189,11 +10187,11 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
     printf("Programming CCB using %s\n", CCBFirmware_.toString().c_str());
     int status = thisCCB->svfLoad(&jch,CCBFirmware_.toString().c_str(),debugMode, verify);
     if (status >= 0){
-      cout << "=== Programming finished"<< endl;
-      cout << "=== " << status << " Verify Errors  occured" << endl;
+      std::cout << "=== Programming finished"<< std::endl;
+      std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
     }
     else{
-      cout << "=== Fatal Error. Exiting with " <<  status << endl;
+      std::cout << "=== Fatal Error. Exiting with " <<  status << std::endl;
     }
     //
     //    thisCCB->hardReset();
@@ -10257,7 +10255,7 @@ void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out )
   //
   thisMPC->RedirectOutput(&std::cout);
   //
-  *out << cgicc::br() << "CSR0 = " << std::hex << thisMPC->ReadRegister(0) << endl;
+  *out << cgicc::br() << "CSR0 = " << std::hex << thisMPC->ReadRegister(0) << std::endl;
   //
   *out << cgicc::fieldset();
   //
@@ -10300,11 +10298,11 @@ void EmuPeripheralCrateConfig::MPCLoadFirmware(xgi::Input * in, xgi::Output * ou
   printf("Programming MPC using %s\n", MPCFirmware_.toString().c_str());
   int status = thisMPC->svfLoad(&jch,MPCFirmware_.toString().c_str(),debugMode, verify);
   if (status >= 0){
-    cout << "=== Programming finished"<< endl;
-    cout << "=== " << status << " Verify Errors  occured" << endl;
+    std::cout << "=== Programming finished"<< std::endl;
+    std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
   }
   else{
-    cout << "=== Fatal Error. Exiting with " <<  status << endl;
+    std::cout << "=== Fatal Error. Exiting with " <<  status << std::endl;
   }
   //
   //thisCCB->hardReset();
@@ -10326,16 +10324,16 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
   cgicc::form_iterator name = cgi.getElement("tmb");
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMBTests: TMB " << tmb << endl;
+    std::cout << "TMBTests: TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "TMBTests: No tmb" << endl ;
+    std::cout << "TMBTests: No tmb" << std::endl ;
     tmb = TMB_;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
-  Chamber * thisChamber = chamberVector[tmb];
+  emu::pc::Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s TMB tests, %s slot=%d",
@@ -10346,7 +10344,7 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
   char buf[20];
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-  *out << endl ;
+  *out << std::endl ;
   //
   std::string RunAllTests = toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",RunAllTests) << std::endl ;
@@ -10721,7 +10719,7 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
   /////////////////////////////////////////////////////////////////////
   //
   *out << cgicc::textarea().set("name","TMBTestOutput").set("WRAP","OFF").set("rows","20").set("cols","100");
-  *out << OutputTMBTests[tmb][current_crate_].str() << endl ;
+  *out << OutputTMBTests[tmb][current_crate_].str() << std::endl ;
   *out << cgicc::textarea();
   //    
   std::string LogTMBTestsOutput = toolbox::toString("/%s/LogTMBTestsOutput",getApplicationDescriptor()->getURN().c_str());
@@ -10746,7 +10744,7 @@ void EmuPeripheralCrateConfig::testTMB(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "testTMB:  TMB " << tmb << endl;
+    std::cout << "testTMB:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   }
   //
@@ -10755,7 +10753,7 @@ void EmuPeripheralCrateConfig::testTMB(xgi::Input * in, xgi::Output * out )
   int tmbTestid;
   if(name != cgi.getElements().end()) {
     tmbTestid = cgi["tmbTestid"]->getIntegerValue();
-    cout << "tmbTestid " << tmbTestid << endl;
+    std::cout << "tmbTestid " << tmbTestid << std::endl;
   }
   //
   tmbTestVector[tmb].RedirectOutput(&OutputTMBTests[tmb][current_crate_]);
@@ -10845,14 +10843,14 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMBStatus:  TMB=" << tmb << endl;
+    std::cout << "TMBStatus:  TMB=" << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "TMBStatus: No TMB" << endl ;
+    std::cout << "TMBStatus: No TMB" << std::endl ;
     tmb = TMB_;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   alct = thisTMB->alctController();
   rat  = thisTMB->getRAT();
@@ -10861,7 +10859,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     std::string ALCTStatus =
       toolbox::toString("/%s/ALCTStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),tmb);
     //
-    *out << cgicc::a("ALCT Status").set("href",ALCTStatus) << endl;
+    *out << cgicc::a("ALCT Status").set("href",ALCTStatus) << std::endl;
     //
   }
   //
@@ -10869,11 +10867,11 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     std::string RATStatus =
       toolbox::toString("/%s/RATStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),tmb);
     //
-    *out << cgicc::a("RAT Status").set("href",RATStatus) << endl;
+    *out << cgicc::a("RAT Status").set("href",RATStatus) << std::endl;
     //
   }
   //
-  Chamber * thisChamber = chamberVector[tmb];
+  emu::pc::Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s TMB status, crate=%s, slot=%d",
@@ -11182,16 +11180,16 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMBUtils:  TMB " << tmb << endl;
+    std::cout << "TMBUtils:  TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "TMBUtils:  No TMB" << endl ;
+    std::cout << "TMBUtils:  No TMB" << std::endl ;
     tmb = TMB_;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
-  Chamber * thisChamber = chamberVector[tmb];
+  emu::pc::Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s TMB utilities, crate=%s slot=%d",
@@ -11206,7 +11204,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   char buf[200] ;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-  *out << endl ;
+  *out << std::endl ;
   //
   *out << cgicc::legend("Load Firmware through TMB").set("style","color:blue") ;
   //
@@ -11386,7 +11384,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br() << std::endl;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-  *out << endl ;
+  *out << std::endl ;
   //
   *out << cgicc::legend("Other TMB Utilities").set("style","color:blue") ;
   //
@@ -11639,7 +11637,7 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     .set("rows","50")
     .set("cols","150")
     .set("WRAP","OFF");
-  *out << OutputStringTMBStatus[tmb].str() << endl ;
+  *out << OutputStringTMBStatus[tmb].str() << std::endl ;
   *out << cgicc::textarea();
   OutputStringTMBStatus[tmb].str("");
   *out << cgicc::pre();
@@ -11667,8 +11665,8 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     if((tmbVector[tmb]->slot())>21) continue;   
 
     //
-    TMB * thisTMB = tmbVector[tmb];
-    ALCTController * thisALCT = tmbVector[tmb]->alctController();
+    emu::pc::TMB * thisTMB = tmbVector[tmb];
+    emu::pc::ALCTController  * thisALCT = tmbVector[tmb]->alctController();
     //
     char date[8];
     sprintf(date,"%4x%1x%1x%1x%1x",
@@ -11709,7 +11707,7 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     std::ostringstream ALCTFirmware;
     ALCTFirmware << FirmwareDir_ << "alct/" << date << "/";
     //
-    if ( (thisALCT->GetChamberType()).find("ME11") != string::npos ) {
+    if ( (thisALCT->GetChamberType()).find("ME11") != std::string::npos ) {
       //
       if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
 	  thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
@@ -11723,19 +11721,19 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
       } else {
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11;
       }
-    } else if ( (thisALCT->GetChamberType()).find("ME12") != string::npos ) {
+    } else if ( (thisALCT->GetChamberType()).find("ME12") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME12;
-    } else if ( (thisALCT->GetChamberType()).find("ME13") != string::npos ) {
+    } else if ( (thisALCT->GetChamberType()).find("ME13") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME13;
-    } else if ( (thisALCT->GetChamberType()).find("ME21") != string::npos ) {
+    } else if ( (thisALCT->GetChamberType()).find("ME21") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME21;
-    } else if ( (thisALCT->GetChamberType()).find("ME22") != string::npos ) {
+    } else if ( (thisALCT->GetChamberType()).find("ME22") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME22;
-    } else if ( (thisALCT->GetChamberType()).find("ME31") != string::npos ) {
+    } else if ( (thisALCT->GetChamberType()).find("ME31") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME31;
-    } else if ( (thisALCT->GetChamberType()).find("ME32") != string::npos ) {
+    } else if ( (thisALCT->GetChamberType()).find("ME32") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME32;
-    } else if ( (thisALCT->GetChamberType()).find("ME41") != string::npos ) {
+    } else if ( (thisALCT->GetChamberType()).find("ME41") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME41;
     } 
     //
@@ -11778,19 +11776,19 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "Load firmware for TMB[" << tmb << "]" << endl;
+    std::cout << "Load firmware for TMB[" << tmb << "]" << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "No TMB defined to load... taking default = " << TMB_ << endl ;
+    std::cout << "No TMB defined to load... taking default = " << TMB_ << std::endl ;
     tmb = TMB_;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   tmb_vme_ready = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
-  thisCCB->setCCBMode(CCB::VMEFPGA);
+  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
   //
   int number_of_verify_errors = 0;
   //
@@ -11806,29 +11804,29 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
     thisTMB->ClearXsvfFilename();
     //
     number_of_verify_errors = thisTMB->GetNumberOfVerifyErrors();
-    cout << "=== Programming TMB firmware finished for slot " << thisTMB->slot() << endl;
-    cout << "=== " << number_of_verify_errors << " Verify Errors occured" << endl;
+    std::cout << "=== Programming TMB firmware finished for slot " << thisTMB->slot() << std::endl;
+    std::cout << "=== " << number_of_verify_errors << " Verify Errors occured" << std::endl;
     //
     if (number_of_verify_errors < 0) {
-      cout << "File does not exist, programming did not occur..."<< endl;
+      std::cout << "File does not exist, programming did not occur..."<< std::endl;
       //
     } else if (number_of_verify_errors == 0) {
-      cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< endl;
+      std::cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< std::endl;
       //
     } else {
-      cout << "ERROR!! -> Number of errors = " << number_of_verify_errors << " not equal to 0!!" << std::endl;
+      std::cout << "ERROR!! -> Number of errors = " << number_of_verify_errors << " not equal to 0!!" << std::endl;
       std::cout << std::endl;
-      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
-      cout << "!!!!     IF you are BROADCASTING TO CRATE, this is OK     !!!! " << endl;
-      cout << "!!!!                                                      !!!! " << endl;
-      cout << "!!!! IF you are NOT, this is a PROBLEM, DO NOT HARD RESET !!!! " << endl;
-      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
+      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl;
+      std::cout << "!!!!     IF you are BROADCASTING TO CRATE, this is OK     !!!! " << std::endl;
+      std::cout << "!!!!                                                      !!!! " << std::endl;
+      std::cout << "!!!! IF you are NOT, this is a PROBLEM, DO NOT HARD RESET !!!! " << std::endl;
+      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl;
     }
     //
   } 
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(CCB::DLOG);
+  thisCCB->setCCBMode(emu::pc::CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -11843,22 +11841,22 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "Load TMB firmware crate, called from TMB[" << tmb << "]" << endl;
+    std::cout << "Load TMB firmware crate, called from TMB[" << tmb << "]" << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "No TMB defined to load... taking default = " << TMB_ << endl ;
+    std::cout << "No TMB defined to load... taking default = " << TMB_ << std::endl ;
     tmb = TMB_;
   }
   //
   // Create a TMB which all TMB's within a crate will listen to....
   //
-  Chamber * thisChamber = chamberVector[tmb];
-  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26);
+  emu::pc::Chamber * thisChamber = chamberVector[tmb];
+  emu::pc::TMB * thisTMB = new emu::pc::TMB(thisCrate, thisChamber, 26);
   //
   tmb_vme_ready = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
-  thisCCB->setCCBMode(CCB::VMEFPGA);
+  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
   //
   std::cout << "Broadcast TMB firmware to slot " << thisTMB->slot() << " in 5 seconds..." << std::endl;
   //
@@ -11868,10 +11866,10 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   thisTMB->ProgramTMBProms();
   thisTMB->ClearXsvfFilename();
   //
-  cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< endl;
+  std::cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< std::endl;
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(CCB::DLOG);
+  thisCCB->setCCBMode(emu::pc::CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -11895,7 +11893,7 @@ void EmuPeripheralCrateConfig::CheckTMBFirmware(xgi::Input * in, xgi::Output * o
   //
   for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
     //
-    TMB * thisTMB = tmbVector[tmb];
+    emu::pc::TMB * thisTMB = tmbVector[tmb];
     //
     if (thisTMB->slot() < 22) {
       short unsigned int BootReg;
@@ -11918,7 +11916,7 @@ void EmuPeripheralCrateConfig::ClearTMBBootReg(xgi::Input * in, xgi::Output * ou
     //
     for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
       //
-      TMB * thisTMB = tmbVector[tmb];
+      emu::pc::TMB * thisTMB = tmbVector[tmb];
       //
       if (thisTMB->slot() < 22) {
 	short unsigned int BootReg;
@@ -11955,8 +11953,8 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
     tmb = TMB_;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
-  ALCTController * thisALCT = thisTMB->alctController();
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  emu::pc::ALCTController  * thisALCT = thisTMB->alctController();
   //
   if (!thisALCT) {
     std::cout << "This ALCT not defined" << std::endl;
@@ -11964,7 +11962,7 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   }
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
-  thisCCB->setCCBMode(CCB::VMEFPGA);
+  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
   //
@@ -11990,14 +11988,14 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   //
   if (status >= 0){
     LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
-    cout << "=== Programming finished"<< endl;
-    //	cout << "=== " << status << " Verify Errors  occured" << endl;
+    std::cout << "=== Programming finished"<< std::endl;
+    //	cout << "=== " << status << " Verify Errors  occured" << std::endl;
   } else {
-    cout << "=== Fatal Error. Exiting with " << status << endl;
+    std::cout << "=== Fatal Error. Exiting with " << status << std::endl;
   }
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(CCB::DLOG);
+  thisCCB->setCCBMode(emu::pc::CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -12012,19 +12010,19 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "Load ALCT firmware crate, called from TMB[" << tmb << "]" << endl;
+    std::cout << "Load ALCT firmware crate, called from TMB[" << tmb << "]" << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "No ALCT defined to load... taking default = " << TMB_ << endl ;
+    std::cout << "No ALCT defined to load... taking default = " << TMB_ << std::endl ;
     tmb = TMB_;
   }
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
-  thisCCB->setCCBMode(CCB::VMEFPGA);
+  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
   //
   for (unsigned i=0; i<tmbVector.size(); i++) {
-    TMB * thisTMB = tmbVector[i];
-    ALCTController * thisALCT = thisTMB->alctController();
+    emu::pc::TMB * thisTMB = tmbVector[i];
+    emu::pc::ALCTController  * thisALCT = thisTMB->alctController();
     //
     if (!thisALCT) {
       std::cout << "This ALCT not defined" << std::endl;
@@ -12055,15 +12053,15 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     //
     if (status >= 0){
       LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
-      cout << "=== Programming finished"<< endl;
-      //	cout << "=== " << status << " Verify Errors  occured" << endl;
+      std::cout << "=== Programming finished"<< std::endl;
+      //	cout << "=== " << status << " Verify Errors  occured" << std::endl;
     } else {
-      cout << "=== Fatal Error. Exiting with " << status << endl;
+      std::cout << "=== Fatal Error. Exiting with " << status << std::endl;
     }
   }
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(CCB::DLOG);
+  thisCCB->setCCBMode(emu::pc::CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -12078,14 +12076,14 @@ void EmuPeripheralCrateConfig::LoadRATFirmware(xgi::Input * in, xgi::Output * ou
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "Not tmb" << endl ;
+    std::cout << "Not tmb" << std::endl ;
     tmb = TMB_;
   }
   //
-  TMB * thisTMB = tmbVector[tmb];
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
   std::cout << "Loading RAT firmware " << std::endl;
   //
@@ -12104,11 +12102,11 @@ void EmuPeripheralCrateConfig::LoadRATFirmware(xgi::Input * in, xgi::Output * ou
   thisTMB->enableAllClocks();
   //
   if (status >= 0){
-    cout << "=== Programming finished"<< endl;
-    //    cout << "=== " << status << " Verify Errors  occured" << endl;
+    std::cout << "=== Programming finished"<< std::endl;
+    //    std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
   }
   else{
-    cout << "=== Fatal Error. Exiting with " <<  status << endl;
+    std::cout << "=== Fatal Error. Exiting with " <<  status << std::endl;
   }
   //
   this->TMBUtils(in,out);
@@ -12127,10 +12125,10 @@ void EmuPeripheralCrateConfig::DMBBoardID(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "Not dmb" << endl ;
+    std::cout << "Not dmb" << std::endl ;
     dmb = DMB_;
   }
   //
@@ -12151,10 +12149,10 @@ void EmuPeripheralCrateConfig::TMBBoardID(xgi::Input * in, xgi::Output * out )
   int tmb;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMB " << tmb << endl;
+    std::cout << "TMB " << tmb << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "Not tmb" << endl ;
+    std::cout << "Not tmb" << std::endl ;
     tmb = TMB_;
   }
   //
@@ -12175,10 +12173,10 @@ void EmuPeripheralCrateConfig::RATBoardID(xgi::Input * in, xgi::Output * out )
   int rat;
   if(name != cgi.getElements().end()) {
     rat = cgi["rat"]->getIntegerValue();
-    cout << "RAT " << rat << endl;
+    std::cout << "RAT " << rat << std::endl;
     RAT_ = rat;
   } else {
-    cout << "Not rat" << endl ;
+    std::cout << "Not rat" << std::endl ;
     rat = RAT_;
   }
   //
@@ -12279,28 +12277,28 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   int dmb;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "DMB " << dmb << endl;
+    std::cout << "DMB " << dmb << std::endl;
     DMB_ = dmb;
   } else {
-    cout << "Not dmb" << endl ;
+    std::cout << "Not dmb" << std::endl ;
     dmb = DMB_;
   }
   //
-  DAQMB * thisDMB = dmbVector[dmb];
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
   //
   bool isME13 = false;
-  TMB * thisTMB   = tmbVector[dmb];
-  ALCTController * thisALCT;
+  emu::pc::TMB * thisTMB   = tmbVector[dmb];
+  emu::pc::ALCTController * thisALCT;
   if (thisTMB) 
     thisALCT = thisTMB->alctController();
   if (thisALCT) 
-    if ( (thisALCT->GetChamberType()).find("ME13") != string::npos )
+    if ( (thisALCT->GetChamberType()).find("ME13") != std::string::npos )
       isME13 = true;
   //
-  Chamber * thisChamber = chamberVector[dmb];
+  emu::pc::Chamber * thisChamber = chamberVector[dmb];
       std::string chamber=thisChamber->GetLabel();
       unsigned long int cfebID[5], cfebIDread[5];
-      vector <CFEB> thisCFEBs=thisDMB->cfebs();
+      std::vector <emu::pc::CFEB> thisCFEBs=thisDMB->cfebs();
       //
       for (unsigned i=0;i<thisCFEBs.size();i++) {
         cfebIDread[i]=thisDMB->febpromuser(thisCFEBs[i]);
@@ -12328,7 +12326,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   if( thisDMB->cfebs().size() > 0 ) {
     std::string CFEBStatus =
       toolbox::toString("/%s/CFEBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),dmb);
-    *out << cgicc::a("CFEB Status").set("href",CFEBStatus) << endl;
+    *out << cgicc::a("CFEB Status").set("href",CFEBStatus) << std::endl;
   }
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
@@ -12401,10 +12399,10 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //thisDMB->daqmb_promfpga_dump();
   //
   *out << cgicc::fieldset();
-  *out << endl ;
+  *out << std::endl ;
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-  *out << endl ;
+  *out << std::endl ;
   //
   *out << cgicc::legend("Voltages, Temperatures, & Currents").set("style","color:blue") 
        << cgicc::p() << std::endl ;
@@ -13134,7 +13132,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
     int registerValue = -1;
     if(name2 != cgi.getElements().end()) {
       registerValue = strtol(cgi["CCBregister"]->getValue().c_str(),NULL,16);
-      cout << "Register " << registerValue << endl;
+      std::cout << "Register " << registerValue << std::endl;
       //
       CCBRegisterValue_ = thisCCB->ReadRegister(registerValue);
       //
@@ -13179,11 +13177,11 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     int dmb;
     if(name != cgi.getElements().end()) {
       dmb = cgi["dmb"]->getIntegerValue();
-      cout << "DMB " << dmb << endl;
+      std::cout << "DMB " << dmb << std::endl;
       DMB_ = dmb;
     }
     //
-    DAQMB * thisDMB = dmbVector[dmb];
+    emu::pc::DAQMB * thisDMB = dmbVector[dmb];
     //
     thisDMB->RedirectOutput(&std::cout);
     thisDMB->PrintCounters(1);
@@ -13196,7 +13194,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     throw (xgi::exception::Exception)
   {
     //
-    cout << "LogDMBTestsOutput" << std::endl;
+    std::cout << "LogDMBTestsOutput" << std::endl;
     //
     cgicc::Cgicc cgi(in);
     //
@@ -13207,18 +13205,18 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     int dmb;
     if(name != cgi.getElements().end()) {
       dmb = cgi["dmb"]->getIntegerValue();
-      cout << "DMB " << dmb << endl;
+      std::cout << "DMB " << dmb << std::endl;
       DMB_ = dmb;
     } else {
-      cout << "Not dmb" << endl ;
+      std::cout << "Not dmb" << std::endl ;
       dmb = DMB_;
     }
     //
     cgicc::form_iterator name2 = cgi.getElement("ClearDMBTestsOutput");
     //
     if(name2 != cgi.getElements().end()) {
-      cout << "Clear..." << endl;
-      cout << cgi["ClearDMBTestsOutput"]->getValue() << std::endl ;
+      std::cout << "Clear..." << std::endl;
+      std::cout << cgi["ClearDMBTestsOutput"]->getValue() << std::endl ;
       OutputDMBTests[dmb][current_crate_].str("");
       OutputDMBTests[dmb][current_crate_] << "DMB-CFEB Tests " 
 					  << thisCrate->GetChamber(dmbVector[dmb]->slot())->GetLabel().c_str() 
@@ -13229,14 +13227,14 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     return;
     }
     //
-    DAQMB * thisDMB = dmbVector[dmb];
+    emu::pc::DAQMB * thisDMB = dmbVector[dmb];
     //
-    cout << DMBBoardID_[dmb] << endl ;
+    std::cout << DMBBoardID_[dmb] << std::endl ;
     //
     char buf[20];
     sprintf(buf,"DMBTestsLogFile_%d_%s.log",thisDMB->slot(),DMBBoardID_[dmb].c_str());
     //
-    ofstream DMBTestsLogFile;
+    std::ofstream DMBTestsLogFile;
     DMBTestsLogFile.open(buf);
     DMBTestsLogFile << OutputDMBTests[dmb][current_crate_].str() ;
     DMBTestsLogFile.close();
@@ -13257,7 +13255,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     std::string time_dump = ctime(&rawtime);
     std::string time = time_dump.substr(0,time_dump.length()-1);
     //
-    while( time.find(" ",0) != string::npos ) {
+    while( time.find(" ",0) != std::string::npos ) {
       //
       int thispos = time.find(" ",0); 
       time.replace(thispos,1,"_");
@@ -13267,7 +13265,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     //    buf = "EmuPeripheralCrateTestSummary_"+RunNumber_+"_"+Operator_+time+".log";
     buf = "EmuPeripheralCrateTestSummary_"+RunNumber_+"_"+Operator_+".log";
     //
-    ofstream LogFile;
+    std::ofstream LogFile;
     LogFile.open(buf.c_str());
     //
     LogFile << " *** Output : Test Summary *** " << std::endl ;
@@ -13337,8 +13335,8 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       //      LogFile << std::endl;
       //
       //      for (unsigned int dmbctr=0; dmbctr<(dmbVector.size()<9?dmbVector.size():9) ; dmbctr++) {
-      //      DAQMB * thisDMB = dmbVector[dmbctr];
-      //      vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      //      emu::pc::DAQMB * thisDMB = dmbVector[dmbctr];
+      //      vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
       //      for (unsigned int cfebctr=0; cfebctr<thisCFEBs.size(); cfebctr++) {
       //	LogFile << "CFEBid " << std::setw(5) << dmbctr 
       //		<< std::setw(5) << cfebctr 
@@ -13366,7 +13364,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
 
       for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
 	//	
-	Chamber * thisChamber = chamberVector[i];
+	emu::pc::Chamber * thisChamber = chamberVector[i];
 	//
 	LogFile << "slot                 " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
@@ -13490,10 +13488,10 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     //
     std::cout << "File to write to" << buf << std::endl ;
     //
-    ifstream TextFile ;
+    std::ifstream TextFile ;
     TextFile.open(xmlFile_.toString().c_str());
     //
-    ofstream LogFile;
+    std::ofstream LogFile;
     LogFile.open(buf.c_str());
     while(TextFile.good()) LogFile << (char) TextFile.get() ;
     TextFile.close();
@@ -13520,7 +13518,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     throw (xgi::exception::Exception)
   {
     //
-    cout << "LogTMBTestsOutput" << std::endl;
+    std::cout << "LogTMBTestsOutput" << std::endl;
     //
     cgicc::Cgicc cgi(in);
     //
@@ -13529,18 +13527,18 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     int tmb;
     if(name != cgi.getElements().end()) {
       tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
+      std::cout << "TMB " << tmb << std::endl;
       TMB_ = tmb;
     } else {
-      cout << "Not tmb" << endl ;
+      std::cout << "Not tmb" << std::endl ;
       tmb = TMB_;
     }
     //
     cgicc::form_iterator name2 = cgi.getElement("ClearTMBTestsOutput");
     //
     if(name2 != cgi.getElements().end()) {
-      cout << "Clear..." << endl;
-      cout << cgi["ClearTMBTestsOutput"]->getValue() << std::endl ;
+      std::cout << "Clear..." << std::endl;
+      std::cout << cgi["ClearTMBTestsOutput"]->getValue() << std::endl ;
       OutputTMBTests[tmb][current_crate_].str("");
       OutputTMBTests[tmb][current_crate_] << "TMB-RAT Tests " 
 					  << thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() 
@@ -13551,14 +13549,14 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       //
     }
     //
-    TMB * thisTMB = tmbVector[tmb];
+    emu::pc::TMB * thisTMB = tmbVector[tmb];
     //
-    cout << TMBBoardID_[tmb] << endl ;
+    std::cout << TMBBoardID_[tmb] << std::endl ;
     //
     char buf[20];
     sprintf(buf,"TMBTestsLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
     //
-    ofstream TMBTestsLogFile;
+    std::ofstream TMBTestsLogFile;
     TMBTestsLogFile.open(buf);
     TMBTestsLogFile << OutputTMBTests[tmb][current_crate_].str() ;
     TMBTestsLogFile.close();
@@ -13576,7 +13574,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     throw (xgi::exception::Exception)
   {
     //
-    cout << "LogChamberTestsOutput" << std::endl;
+    std::cout << "LogChamberTestsOutput" << std::endl;
     //
     cgicc::Cgicc cgi(in);
     //
@@ -13585,18 +13583,18 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     int tmb;
     if(name != cgi.getElements().end()) {
       tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
+      std::cout << "TMB " << tmb << std::endl;
       TMB_ = tmb;
     } else {
-      cout << "Not tmb" << endl ;
+      std::cout << "Not tmb" << std::endl ;
       tmb = TMB_;
     }
     //
     cgicc::form_iterator name2 = cgi.getElement("ClearChamberTestsOutput");
     //
     if(name2 != cgi.getElements().end()) {
-      cout << "Clear..." << endl;
-      cout << cgi["ClearChamberTestsOutput"]->getValue() << std::endl ;
+      std::cout << "Clear..." << std::endl;
+      std::cout << cgi["ClearChamberTestsOutput"]->getValue() << std::endl ;
       ChamberTestsOutput[tmb][current_crate_].str("");
       ChamberTestsOutput[tmb][current_crate_] << "Chamber-Crate Phases " 
 					      << thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() 
@@ -13607,14 +13605,14 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       //
     }
     //
-    TMB * thisTMB = tmbVector[tmb];
+    emu::pc::TMB * thisTMB = tmbVector[tmb];
     //
-    cout << TMBBoardID_[tmb] << endl ;
+    std::cout << TMBBoardID_[tmb] << std::endl ;
     //
     char buf[20];
     sprintf(buf,"ChamberTestsLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
     //
-    ofstream ChamberTestsLogFile;
+    std::ofstream ChamberTestsLogFile;
     ChamberTestsLogFile.open(buf);
     ChamberTestsLogFile << ChamberTestsOutput[tmb][current_crate_].str() ;
     ChamberTestsLogFile.close();
@@ -13629,15 +13627,15 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     throw (xgi::exception::Exception)
   {
     //
-    cout << "LogCrateTestsOutput" << std::endl;
+    std::cout << "LogCrateTestsOutput" << std::endl;
     //
     cgicc::Cgicc cgi(in);
     //
     cgicc::form_iterator name2 = cgi.getElement("ClearCrateTestsOutput");
     //
     if(name2 != cgi.getElements().end()) {
-      cout << "Clear..." << endl;
-      cout << cgi["ClearCrateTestsOutput"]->getValue() << std::endl ;
+      std::cout << "Clear..." << std::endl;
+      std::cout << cgi["ClearCrateTestsOutput"]->getValue() << std::endl ;
       CrateTestsOutput.str("");
       //
       this->CrateTests(in,out);
@@ -13648,7 +13646,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     char buf[20];
     sprintf(buf,"CrateTestsLogFile.log");
     //
-    ofstream CrateTestsLogFile;
+    std::ofstream CrateTestsLogFile;
     CrateTestsLogFile.open(buf);
     CrateTestsLogFile << CrateTestsOutput.str() ;
     CrateTestsLogFile.close();
@@ -13677,11 +13675,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllVmePromUserid (xoap::Mes
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
-      DAQMB * thisDMB=dmbVector[idmb];
+      emu::pc::DAQMB * thisDMB=dmbVector[idmb];
       unsigned long int boardnumber=thisDMB->mbpromuser(0);
       DMBBoardNumber[cv][idmb]=boardnumber;
-      cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
-      cout <<" This DMB Board Number: "<<DMBBoardNumber[cv][idmb]<<endl<<endl;
+      std::cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<std::endl;
+      std::cout <<" This DMB Board Number: "<<DMBBoardNumber[cv][idmb]<<std::endl<<std::endl;
     }
     //
   }
@@ -13708,7 +13706,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
-      DAQMB * thisDMB=dmbVector[idmb];
+      emu::pc::DAQMB * thisDMB=dmbVector[idmb];
       unsigned long int boardnumber=DMBBoardNumber[cv][idmb];
       char prombrdname[4];
       //	if (idmb==0) boardnumber = 0xdb00000c;
@@ -13728,21 +13726,21 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
 	  ((boardnumber&0xfff)==0xaad)) {
 	prombrdname[0]=dmbID&0xff;
 	prombrdname[1]=(dmbID>>8)&0x0f;
-	cout<<" DMB board number reprogram from Database ..."<<endl;
+	std::cout<<" DMB board number reprogram from Database ..."<<std::endl;
       }
       //temperarily overwrite all board number using database
       //	prombrdname[0]=dmbID&0xff;
       //	prombrdname[1]=(dmbID>>8)&0x0f;
 
-        cout<<" Loading the board number ..."<<(prombrdname[0]&0xff)+((prombrdname[1]<<8)&0xf00)<<" was set to: "<<(boardnumber&0xffff)<<endl;
+        std::cout<<" Loading the board number ..."<<(prombrdname[0]&0xff)+((prombrdname[1]<<8)&0xf00)<<" was set to: "<<(boardnumber&0xffff)<<std::endl;
 
       //
       std::string DMBVmeFirmware = FirmwareDir_+DMBVME_FIRMWARE_FILENAME;
       //
       thisDMB->epromload_broadcast(VPROM,DMBVmeFirmware.c_str(),1,prombrdname,2);
       usleep(200);
-      cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
-      //  cout <<" This DMB is programmed to board number: "<<boardnumber<<endl<<endl;
+      std::cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<std::endl;
+      //  std::cout <<" This DMB is programmed to board number: "<<boardnumber<<std::endl<<std::endl;
     }
     //
   }
@@ -13769,18 +13767,18 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllCfebPromUserid (xoap::Me
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
-      DAQMB * thisDMB=dmbVector[idmb];
-      cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
+      emu::pc::DAQMB * thisDMB=dmbVector[idmb];
+      std::cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<std::endl;
       //loop over the cfebs
       //define CFEBs
-      vector <CFEB> thisCFEBs=thisDMB->cfebs();
+      std::vector <emu::pc::CFEB> thisCFEBs=thisDMB->cfebs();
       //
       for (unsigned i=0;i<thisCFEBs.size();i++) {
 	CFEBBoardNumber[cv][idmb][i]=thisDMB->febpromuser(thisCFEBs[i]);
-	cout <<" This CFEB Board Number: "<<CFEBBoardNumber[cv][idmb][i]<<endl;
+	std::cout <<" This CFEB Board Number: "<<CFEBBoardNumber[cv][idmb][i]<<std::endl;
       }
       //
-      cout <<endl;
+      std::cout <<std::endl;
     }
     //
   }
@@ -13806,25 +13804,25 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
-      DAQMB * thisDMB=dmbVector[idmb];
-      Chamber * thisChamber=chamberVector[idmb];
-      cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
+      emu::pc::DAQMB * thisDMB=dmbVector[idmb];
+      emu::pc::Chamber * thisChamber=chamberVector[idmb];
+      std::cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<std::endl;
       //loop over the cfebs
       //define CFEBs
-      vector <CFEB> thisCFEBs=thisDMB->cfebs();
+      std::vector <emu::pc::CFEB> thisCFEBs=thisDMB->cfebs();
       //
       for (unsigned i=0;i<thisCFEBs.size();i++) {
 	char promid[4];
 	unsigned long int boardid=CFEBBoardNumber[cv][idmb][i];
 	/*
 	  unsigned long int fpgaid=thisDMB->febfpgaid(thisCFEBs[i]);
-	  cout <<" i= "<<i<<endl;
+	  std::cout <<" i= "<<i<<std::endl;
 	  if (i==0) boardid=0xcfeb08e5;
 	  if (i==1) boardid=0xcfeb08e1;
 	  if (i==2) boardid=0xcfeb08e4;
 	  if (i==3) boardid=0xcfeb0903;
 	  if (i==4) boardid=0xcfeb063a;
-	  cout <<" This CFEB Board Number should be set to: "<<boardid<<endl;
+	  std::cout <<" This CFEB Board Number should be set to: "<<boardid<<std::endl;
 	*/
 	std::string chamber=thisChamber->GetLabel();
 	int cfebID=brddb->ChamberToCFEBID(chamber,i+1);
@@ -13839,7 +13837,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
 	    ((boardid&0x00000fff)==0xfff) ||
             ((boardid&0x00000fff)==0xaad)) {
 	   promid[0]=cfebID&0xff;
-	   cout<<" CFEB board number reprogram from Database ..."<<endl;
+	   std::cout<<" CFEB board number reprogram from Database ..."<<std::endl;
 	}
 	promid[1]=(cfebID>>8)&0x0f;
 	promid[2]=0xeb;
@@ -13851,11 +13849,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
 	//
 	thisDMB->epromload_broadcast(thisCFEBs[i].promDevice(),CFEBFirmware.c_str(),1,promid,2);
 	usleep(200);
-	        cout <<" This CFEB Board Number is set to: "<<newcfebid;
-          cout <<"     was set to: "<<(boardid&0xffff)<<endl;
-	cout <<" This CFEB Board Number is set to: CFEB"<<hex<<((promid[1])&0xff)<<((promid[0])&0xff)<<" was set to: "<<hex<<boardid<<endl;
+	        std::cout <<" This CFEB Board Number is set to: "<<newcfebid;
+          std::cout <<"     was set to: "<<(boardid&0xffff)<<std::endl;
+	std::cout <<" This CFEB Board Number is set to: CFEB"<<std::hex<<((promid[1])&0xff)<<((promid[0])&0xff)<<" was set to: "<<std::hex<<boardid<<std::endl;
       }
-      cout <<endl;
+      std::cout <<std::endl;
     }
     //
   }
@@ -13867,7 +13865,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
 }
 // sending and receiving soap commands
 ////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateConfig::PCsendCommand(string command, string klass)
+    void EmuPeripheralCrateConfig::PCsendCommand(std::string command, std::string klass)
   throw (xoap::exception::Exception, xdaq::exception::Exception){
   //
   //This is copied from CSCSupervisor::sendcommand;
@@ -13902,7 +13900,7 @@ void EmuPeripheralCrateConfig::PCsendCommand(string command, string klass)
   }
 }
 
-xoap::MessageReference EmuPeripheralCrateConfig::PCcreateCommandSOAP(string command) {
+xoap::MessageReference EmuPeripheralCrateConfig::PCcreateCommandSOAP(std::string command) {
   //
   //This is copied from CSCSupervisor::createCommandSOAP
   //

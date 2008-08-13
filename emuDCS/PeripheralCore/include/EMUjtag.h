@@ -6,6 +6,9 @@
 #include <fstream>
 #include "EMU_JTAG_constants.h"
 
+namespace emu {
+  namespace pc {
+
 class TMB;
 class EMUjtag 
 {
@@ -286,6 +289,8 @@ private:
   //
   //
 };
+  } // namespace emu::pc
+  } // namespace emu
 
 #endif
 

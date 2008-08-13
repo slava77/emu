@@ -35,10 +35,10 @@ bool SUSPEND_UPDATE_SERVICE = false;
 //=====================================================================
 bool DcsDimCommand::nextSlotsLoading(int *i,int *j){
 
-  vector<Crate *> v_crates= EmuDcs_o->crates();
-  vector<DAQMB *> v_daqmbs;
-  vector<TMB *>   v_tmbs;
-  Crate *crate1;
+  std::vector<emu::pc::Crate *> v_crates= EmuDcs_o->crates();
+  std::vector<emu::pc::DAQMB *> v_daqmbs;
+  std::vector<emu::pc::TMB *>   v_tmbs;
+  emu::pc::Crate *crate1;
  
 
 #ifdef DCS_PRINTING_0
@@ -86,7 +86,7 @@ printf("21 %d %d\n",*i,v_crates.size());
   if(SIMULATION){
   char tmp[10];
   sprintf(tmp,"%d",dmb_slot);
-  ipslot=ip_address+";"+string(tmp);
+  ipslot=ip_address+";"+std::string(tmp);
     EmuDcs_o->simulationLVStatusControl(ipslot);
   }
 
@@ -102,11 +102,11 @@ bool DcsDimCommand::slotsLoading(){
 
 
 
-  vector<Crate *> v_crates= EmuDcs_o->crates();
-  Crate *crate1;
+  std::vector<emu::pc::Crate *> v_crates= EmuDcs_o->crates();
+  emu::pc::Crate *crate1;
   //  int size_crates=v_crates.size();
-  vector<DAQMB *> v_daqmbs;
-  vector<TMB *>   v_tmbs;
+  std::vector<emu::pc::DAQMB *> v_daqmbs;
+  std::vector<emu::pc::TMB *>   v_tmbs;
 
   bool crate_ok = false;
   //////  bool ccb_ok   = false;
@@ -142,7 +142,7 @@ bool DcsDimCommand::slotsLoading(){
  // for simulation use
   char tmp[10];
   sprintf(tmp,"%d",dmb_slot);
-  ipslot=ip_address+";"+string(tmp);
+  ipslot=ip_address+";"+std::string(tmp);
 
      }
    } // j loop
@@ -156,7 +156,7 @@ bool DcsDimCommand::slotsLoading(){
    
   if(!crate_ok || !dmb_ok){
 
-    cout << "this command is not for me" << endl;
+    std::cout << "this command is not for me" << std::endl;
     /*
      cout <<  "ERROR: EmuDcs::slotsAndCrateSelection \n" 
 	  << "ip_address, ccb_slot, dmb_slot are not found: \n"
@@ -203,7 +203,7 @@ bool DcsDimCommand::slotsLoading(){
 
 
 //===============================================================================================
-int DcsDimCommand::commandParse(string &command){
+int DcsDimCommand::commandParse(std::string &command){
 
   
      int pos=command.find("|",0);
@@ -212,7 +212,7 @@ int DcsDimCommand::commandParse(string &command){
 
     int pos2= ipslot.find(";",0);
     int pos1= ipslot.find(";",pos2+1);
-    if(pos1 == string::npos){
+    if(pos1 == std::string::npos){
      dmb_slot=atoi((ipslot.substr(pos2+1, ipslot.size() - pos2 -1)).c_str());
      lvmb_channels=0x3f;
     }
@@ -238,7 +238,7 @@ void DcsDimCommand::commandHandler(){
 #ifdef DCS_PRINTING_0
     printf("server++\n");
 #endif
-    string sub_command=getString();
+    std::string sub_command=getString();
 
 
 /* II
@@ -283,7 +283,7 @@ int DcsDimCommand::svc(){
 
   static bool FIRST_CHIP=true;
 
-  string sub_command;
+  std::string sub_command;
 
   while(1){ // indefinite loop (there are no breaks for it)
 
@@ -293,10 +293,10 @@ int DcsDimCommand::svc(){
 
 
 
-    if(sub_command.find("all",0) == string::npos && sub_command.find(":00:",0) == string::npos ){ // it means the chamber_db comes
+    if(sub_command.find("all",0) == std::string::npos && sub_command.find(":00:",0) == std::string::npos ){ // it means the chamber_db comes
    int pos;
     pos=sub_command.find("|",0);
-    string extract_operation = sub_command.substr(pos+1);
+    std::string extract_operation = sub_command.substr(pos+1);
 
       int db_index_1=get_db_index_by_chamber(sub_command);
       sub_command=get_slot_by_db_index(db_index_1)+"|"+extract_operation; // convert to slot_db
@@ -869,7 +869,7 @@ SUSPEND_UPDATE_SERVICE = false;
 
 
 // *************************************************************************************************************
-    else if(operation_command.find("load_alct") != string::npos){  
+    else if(operation_command.find("load_alct") != std::string::npos){  
       if(!SIMULATION){
        printf("load_alct\n");
        EmuDcs_o->loadALCT(operation_command);
@@ -1040,13 +1040,13 @@ int DcsDimCommand::getDataLV(bool isUpdate, bool isDRAFT){
   }
 //=================================================================================================
 
-int DcsDimCommand::get_db_index(string ip_address, int dmb_slot){
+int DcsDimCommand::get_db_index(std::string ip_address, int dmb_slot){
 
     char tmp[100];
     int db_index=-1;
       sprintf(tmp,"%s;%d",ip_address.c_str(), dmb_slot);
       for(int i10=0;i10<EmuDcs_o->slots.size();i10++){ 
-       if(EmuDcs_o->slots[i10] == string(tmp)){
+	if(EmuDcs_o->slots[i10] == std::string(tmp)){
         db_index=i10; break;
        }
       }
@@ -1058,11 +1058,11 @@ int DcsDimCommand::get_db_index(string ip_address, int dmb_slot){
 }
 //=================================================================================================
 
-int DcsDimCommand::get_db_index_by_chamber(string chamber){
+int DcsDimCommand::get_db_index_by_chamber(std::string chamber){
 
     int db_index=-1;
       for(int i10=0;i10<EmuDcs_o->chamber_slots.size();i10++){ 
-       if(chamber.find(EmuDcs_o->chamber_slots[i10],0) != string::npos){
+	if(chamber.find(EmuDcs_o->chamber_slots[i10],0) != std::string::npos){
         db_index=i10; break;
        }
       }
@@ -1074,11 +1074,11 @@ int DcsDimCommand::get_db_index_by_chamber(string chamber){
 }
 //=================================================================================================
 
-string DcsDimCommand::get_slot_by_db_index(int db_index_1){
+std::string DcsDimCommand::get_slot_by_db_index(int db_index_1){
 
 
 
-  string db_slot=EmuDcs_o->slots[db_index_1];
+  std::string db_slot=EmuDcs_o->slots[db_index_1];
   return db_slot;
 
 }

@@ -7,6 +7,10 @@
 #include "XMLParser.h"
 #include "VMEController.h"
 
+
+namespace emu {
+  namespace pc {
+
 EmuController::EmuController():myEndcap(0)
 {
   xmlFile_     =     "" ;
@@ -70,3 +74,6 @@ void EmuController::NotInDCS()
     if(myCrates[i]) myCrates[i]->vmeController()->SetUseDCS(false);
   }
 }
+
+} // namespace emu::pc
+} // namespace emu
