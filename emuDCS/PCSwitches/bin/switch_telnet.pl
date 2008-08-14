@@ -124,5 +124,150 @@ if ($ARGV eq "status") {
 	$telnet->waitfor('/Would you like to save them now\? \(y\/n\) /');
 	$telnet->print('y');
         $telnet->waitfor('/System will now restart\!/');
-    }
+} elsif ($ARGV eq "clrcounters") {
+        $telnet->print('enable');
+        $telnet->waitfor('/Password:$/');
+        $telnet->print('');
+        $telnet->waitfor('/\(GSM7212\) \#/');
+        $telnet->print('clear counters all');
+        $telnet->waitfor('/Are you sure you want to clear ALL port stats\? \(y\/n\)/');
+        $telnet->print('y');
+        $telnet->waitfor('/\(GSM7212\) \#/');
+        $telnet->print('exit');
+        $telnet->waitfor('/\(GSM7212\) \>/');        
+    } elsif ($ARGV eq "problems"){
+	$telnet->print('show interface ethernet 0/1');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+         }
+        $telnet->print('show interface ethernet 0/2');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+	}
+        $telnet->print('show interface ethernet 0/3');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+	}
+        $telnet->print('show interface ethernet 0/4');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+	}
+        $telnet->print('show interface ethernet 0/5');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+        }
+        $telnet->print('show interface ethernet 0/6');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+        }
+        $telnet->print('show interface ethernet 0/7');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+	}
+        $telnet->print('show interface ethernet 0/8');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+        }
+        $telnet->print('show interface ethernet 0/9');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+        }
+        $telnet->print('show interface ethernet 0/10');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+	}
+        $telnet->print('show interface ethernet 0/11');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+        }
+        $telnet->print('show interface ethernet 0/12');
+        my $line = 0;
+        while ($line = $telnet->get()) {
+            print $line;
+            if ($line =~ /More/) {
+                $telnet->print('');
+            }
+            if ($line =~ /\(GSM7212\)/) {
+                last;
+            }
+        }
+
+     }
 
