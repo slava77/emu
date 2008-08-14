@@ -7,6 +7,9 @@
 #include <sstream>
 #include <iomanip>
 
+namespace emu{
+  namespace db{
+
 class ConnectionsDB
 {
 public:
@@ -118,5 +121,7 @@ protected:
   xercesc::DOMNamedNodeMap * pAttributes_;
 };
 
+  }
+}
 
 #endif

@@ -26,6 +26,9 @@ not crate and slot in their GUIs
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 
+namespace emu {
+  namespace db {
+
 ConnectionsDB::ConnectionsDB(): pAttributes_(0)
 {
   HOMEDIR_=getenv("BUILD_HOME");
@@ -810,4 +813,7 @@ std::string ConnectionsDB::sNametoDump(std::string name)
     return s;
   } 
   return s;
+}
+
+  }
 }

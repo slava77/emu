@@ -28,16 +28,13 @@
 
 #include "ConnectionsDB.h"
 
-using namespace cgicc;
-using namespace std;
-
 
 class SetKillFibersGUI: public xdaq::Application
 {
  public:
   XDAQ_INSTANTIATOR();
 
-  ConnectionsDB *condb;
+  emu::db::ConnectionsDB *condb;
   xdata::String CallBack_;
   std::string val;
   std::string ToPrint;
@@ -54,7 +51,7 @@ SetKillFibersGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception): x
   xgi::bind(this,&SetKillFibersGUI::CallBack2, "CallBack2");
   xgi::bind(this,&SetKillFibersGUI::CallBack3, "CallBack3");
 
-  condb = new ConnectionsDB();
+  condb = new emu::db::ConnectionsDB();
 
   for(unsigned int i=0;i<4;i++){
     for(unsigned int j=0;j<9;j++){

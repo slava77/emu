@@ -7,6 +7,9 @@
 #include <sstream>
 #include <iomanip>
 
+namespace emu {
+  namespace db {
+
 class BoardsDB
 {
 public:
@@ -75,5 +78,7 @@ protected:
   xercesc::DOMNamedNodeMap * pAttributes_;
 };
 
+  }
+}
 
 #endif

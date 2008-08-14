@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.15 2008/08/13 11:30:51 geurts Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.16 2008/08/14 09:33:02 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -95,8 +95,8 @@ public:
   std::string CCBFirmwareFile_;
   std::string MPCFirmwareFile_;
   //
-  BoardsDB *brddb;
-  ConnectionsDB *condb;
+  emu::db::BoardsDB *brddb;
+  emu::db::ConnectionsDB *condb;
   //
   EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s);
   //

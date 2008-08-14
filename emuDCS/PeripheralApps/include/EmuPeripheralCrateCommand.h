@@ -111,7 +111,7 @@ protected:
   ALCTController *alct ;
   RAT * rat;
   MPC * thisMPC;
-  BoardsDB *brddb;
+  emu::db::BoardsDB *brddb;
   CrateUtilities myCrateTest;
   std::ostringstream CrateTestsOutput;
   ChamberUtilities MyTest[10][30];

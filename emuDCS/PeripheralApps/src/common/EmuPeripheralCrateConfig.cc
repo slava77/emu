@@ -442,7 +442,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   this_crate_no_=0;
 
   prbs_test_ = false;
-  brddb= new BoardsDB();
+  brddb= new emu::db::BoardsDB();
 
   parsed=0;
 }

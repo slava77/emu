@@ -120,7 +120,7 @@ protected:
   emu::pc::ALCTController *alct ;
   emu::pc::RAT * rat;
   emu::pc::MPC * thisMPC;
-  BoardsDB *brddb;
+  emu::db::BoardsDB *brddb;
   emu::pc::CrateUtilities myCrateTest;
   std::stringstream CrateTestsOutput;
   emu::pc::ChamberUtilities MyTest[10][30];

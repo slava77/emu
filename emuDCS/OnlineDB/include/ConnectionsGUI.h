@@ -27,15 +27,12 @@
 
 #include "ConnectionsDB.h"
 
-using namespace cgicc;
-using namespace std;
-
 class ConnectionsGUI: public xdaq::Application
 {
  public:
   XDAQ_INSTANTIATOR();
 
-  ConnectionsDB *condb;
+  emu::db::ConnectionsDB *condb;
   xdata::String CallBack_;
   std::string val;
   std::string ToPrint1;
@@ -47,14 +44,14 @@ ConnectionsGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception): xda
   xgi::bind(this,&ConnectionsGUI::MainPage, "MainPage");
   xgi::bind(this,&ConnectionsGUI::CallBack, "CallBack");
  
-  condb = new ConnectionsDB();
+  condb = new emu::db::ConnectionsDB();
 
   val="";
 }  
 
 void Default(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<endl;
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
 }
 
 void MainPage(xgi::Input * in, xgi::Output * out ) {
@@ -91,7 +88,7 @@ void MainPage(xgi::Input * in, xgi::Output * out ) {
     *out << cgicc::form() << std::endl ;
  
     *out << cgicc::h3();
-    *out << pre();
+    *out << cgicc::pre();
     //   *out << cgicc::span().set("style","color:black;background-color:blue");
     *out << ToPrint1 << std::endl;
     *out << cgicc::pre();
@@ -123,7 +120,7 @@ void MainPage(xgi::Input * in, xgi::Output * out ) {
     *out << cgicc::form() << std::endl ;
  
     *out << cgicc::h3();
-    *out << pre();
+    *out << cgicc::pre();
     //   *out << cgicc::span().set("style","color:black;background-color:blue");
     *out << ToPrint2 << std::endl;
     *out << cgicc::pre();
