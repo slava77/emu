@@ -62,7 +62,7 @@ class SwitchGUI: public xdaq::Application
   int slot;
  }SIDE;
 
- SIDE side[32];
+ SIDE side[33];
 
 typedef struct Mac{
   char *mac;
@@ -129,9 +129,10 @@ PC_STATS pc[2];
 SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception): xdaq::Application(s) 
 {	
 
-SIDE plus[32]={
+SIDE plus[33]={
   {"csc-pc1    ",4,6,0},
   {"csc-dcs-pc1",4,8,0},
+  {"csc-pc1b   ",4,7,0},
   {"vme+1/1    ",3,2,0},			
   {"vme+1/2    ",1,7,0},			
   {"vme+1/3    ",1,8,0},			
@@ -164,9 +165,10 @@ SIDE plus[32]={
   {"vme+4/6    ",3,11,0}
 };	
 
-SIDE minus[32]={
+SIDE minus[33]={
   {"csc-pc2    ",7,6,0},
   {"csc-dcs-pc2",7,8,0},
+  {"csc-pc2b   ",7,7,0},
   {"vme-1/1    ",10,2,0},			
   {"vme-1/2    ",8,7,0},			
   {"vme-1/3    ",8,8,0},			
@@ -248,6 +250,11 @@ PC_STATS pc_minus[2]={
   xgi::bind(this,&SwitchGUI::Maintenance, "Maintenance");
   xgi::bind(this,&SwitchGUI::ResetSwitch, "ResetSwitch");
   xgi::bind(this,&SwitchGUI::MacGUI, "MacGUI");
+  xgi::bind(this,&SwitchGUI::CLRcounters,"CLRcounters");
+  xgi::bind(this,&SwitchGUI::ProblemsGUI,"ProblemsGUI");
+
+  int ierr=system("cp $BUILD_HOME/emu/emuDCS/PCSwitches/img/mainemus.jpg /tmp/mainemus.jpg");
+      ierr=system("cp $BUILD_HOME/emu/emuDCS/PCSwitches/img/osulogo.jpg /tmp/osulogo.jpg");
 
   std::cout << "Hostname is: " << toolbox::net::getHostName() << std::endl;
   std::cout << "Domainname is: " << toolbox::net::getDomainName() << std::endl;
@@ -262,12 +269,12 @@ PC_STATS pc_minus[2]={
   std::cout << " Choosing " << Side << " side chambers " << std::endl;
   init=0;
   if(Side=="plus"){
-     for(int i=0;i<32;i++)side[i]=plus[i];
+     for(int i=0;i<33;i++)side[i]=plus[i];
      swadd=0;swadd2=0;
      for(int i=0;i<2;i++)pc[i]=pc_plus[i];
   }
   if(Side=="minus"){
-     for(int i=0;i<32;i++)side[i]=minus[i];
+     for(int i=0;i<33;i++)side[i]=minus[i];
      swadd=4;swadd2=6;
      for(int i=0;i<2;i++)pc[i]=pc_minus[i];
   }
@@ -323,6 +330,12 @@ void MainPage(xgi::Input * in, xgi::Output * out ) {
    *out << cgicc::form() << std::endl;
    *out << cgicc::td() << std::endl;
    *out << cgicc::td();
+   std::string CLRcounters = toolbox::toString("/%s/CLRcounters",getApplicationDescriptor()->getURN().c_str());
+   *out << cgicc::form().set("method","GET").set("action",CLRcounters) << std::endl ;
+   *out << cgicc::input().set("type","submit").set("value","CLR Counters") << std::endl ;
+   *out << cgicc::form() << std::endl;
+   *out << cgicc::td() << std::endl;
+   *out << cgicc::td();
    std::string Maintenance = toolbox::toString("/%s/Maintenance",getApplicationDescriptor()->getURN().c_str());
    *out << cgicc::form().set("method","GET").set("action",Maintenance) << std::endl ;
    *out << cgicc::input().set("type","submit").set("value","Maintenance") << std::endl ;
@@ -332,6 +345,12 @@ void MainPage(xgi::Input * in, xgi::Output * out ) {
    std::string MacGUI = toolbox::toString("/%s/MacGUI",getApplicationDescriptor()->getURN().c_str());
    *out << cgicc::form().set("method","GET").set("action",MacGUI) << std::endl ;
    *out << cgicc::input().set("type","submit").set("value","Check Mac Table") << std::endl ;
+   *out << cgicc::form() << std::endl;
+   *out << cgicc::td() << std::endl;
+   *out << cgicc::td();
+   std::string ProblemsGUI = toolbox::toString("/%s/ProblemsGUI",getApplicationDescriptor()->getURN().c_str());
+   *out << cgicc::form().set("method","GET").set("action",ProblemsGUI) << std::endl ;
+   *out << cgicc::input().set("type","submit").set("value","Ethernet Faults") << std::endl ;
    *out << cgicc::form() << std::endl;
    *out << cgicc::td() << std::endl;
    *out << cgicc::tr() << std::endl;
@@ -390,6 +409,18 @@ void MainPage(xgi::Input * in, xgi::Output * out ) {
    ::sleep(40);
    this->Default(in,out);
  }
+
+  void CLRcounters(xgi::Input * in, xgi::Output * out )                                                                  throw (xgi::exception::Exception) {
+    cgicc::Cgicc cgi(in);
+    for(int swt=0;swt<4;swt++){
+      char command[556];
+      sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s clrcounters",ip[swt+swadd]);
+      printf("%d  %s \n",swt,command);
+      system(command);
+    }
+    this->Default(in,out);
+  }
+
 
  void Maintenance(xgi::Input * in, xgi::Output * out )
    throw (xgi::exception::Exception) {
@@ -476,6 +507,45 @@ void MainPage(xgi::Input * in, xgi::Output * out ) {
    this->MacGUI(in,out);
  }
 
+ void ProblemsGUI(xgi::Input * in, xgi::Output * out )
+   throw (xgi::exception::Exception) {
+   cgicc::Cgicc cgi(in);
+   *out<<Header("VME Problem Tables",false);
+   
+   *out << cgicc::table();
+   *out << cgicc::tr();
+   *out << cgicc::td();
+   std::string GotoMain = toolbox::toString("/%s/GotoMain",getApplicationDescriptor()->getURN().c_str());
+   *out << cgicc::form().set("method","GET").set("action",GotoMain) << std::endl ;
+   *out << cgicc::input().set("type","submit").set("value","Go to Main") << std::endl ;
+   *out << cgicc::form() << std::endl;
+   *out << cgicc::td() << std::endl;
+   *out << cgicc::td();
+   std::string Maintenance = toolbox::toString("/%s/Maintenance",getApplicationDescriptor()->getURN().c_str());
+   *out << cgicc::form().set("method","GET").set("action",Maintenance) << std::endl ;
+   *out << cgicc::input().set("type","submit").set("value","Maintenance") << std::endl ;
+   *out << cgicc::form() << std::endl;
+   *out << cgicc::td() << std::endl;
+   *out << cgicc::td();
+   std::string GotoMacGUI = toolbox::toString("/%s/GotoMacGUI",getApplicationDescriptor()->getURN().c_str());
+   *out << cgicc::form().set("method","GET").set("action",GotoMacGUI) << std::endl ;
+   *out << cgicc::input().set("type","submit").set("value","Check MAC Tables") << std::endl ;
+   *out << cgicc::form() << std::endl;
+   *out << cgicc::td() << std::endl;
+   *out << cgicc::tr() << std::endl;
+   *out << cgicc::table() << std::endl;
+   *out << cgicc::hr() << std::endl;
+   for(int swt=0;swt<4;swt++){
+     char buf[40];
+     sprintf(buf,"Switch %d Problems",swt+swadd2+1);
+     std::cout << buf << std::endl;
+     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+     *out << cgicc::legend(buf).set("style","color:blue").set("align","left") << cgicc::p() << std::endl ;
+     *out << html_parse_problems(swt+swadd2+1);
+     *out << cgicc::fieldset() << endl;
+   }
+   *out<<Footer()<<endl;
+ }
 
 
 void parse_status(int swtch,int prt){
@@ -652,7 +722,7 @@ std::string html_port_status(){
   rtns=rtns+strbuf;
   sprintf(strbuf,"<thead> \n   <tr><th>crate</th><th>switch</th><th>port</th><th>link</th><th>rx</th><th>rx_error</th><th>tx</th><th>tx_error</th></tr> \n </tr> \n <tbody> \n");
   rtns=rtns+strbuf;
-  for(crate=0;crate<32;crate++){
+  for(crate=0;crate<33;crate++){
     swt=side[crate].nswitch-swadd2;
     prt=side[crate].nport;
     slt=side[crate].slot;
@@ -677,7 +747,7 @@ std::string html_port_status(){
   rtns=rtns+strbuf;
   sprintf(strbuf,"<thead> \n   <tr><th>crate</th><th>switch</th><th>port</th><th> vlan </th><th>mac</th><th>status</th></tr> \n </tr> \n <tbody> \n");
   rtns=rtns+strbuf;
-  for(crate=0;crate<32;crate++){
+  for(crate=0;crate<33;crate++){
     swt=side[crate].nswitch-swadd2;
     prt=side[crate].nport;
     slt=side[crate].slot;
@@ -709,7 +779,7 @@ std::string html_mac_table()
   for(int swt=0;swt<4;swt++){
     for(int prt=0;prt<12;prt++){
       char *chmbr="";
-      for(int i=0;i<32;i++){
+      for(int i=0;i<33;i++){
         int s=side[i].nswitch;
         int p=side[i].nport;
         if(s-swadd2==swt+1&&p==prt+1)chmbr=side[i].name;
@@ -986,6 +1056,101 @@ std::string html_pc_status(){
   return rtns;
 }
 
+std::string html_parse_problems(int swtch){
+  int ninteresting_lines=30;
+  int interesting_lines[30]={13,14,16,17,18,19,20,22,25,26,27,28,29,30,31,32,33,
+      40,41,43,44,45,46,49,50,51,52,53,54,56};
+  int port;
+  char line[256];
+  char name[50];
+  char num[12];
+  int ntline;
+  int tn[25];
+  char tline[25][50];
+  int n;
+
+  char command[556];
+  sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s problems > /tmp/problems.dat \n",ip[swtch-swadd2-1+swadd]);
+  printf("%d  %s \n",swtch,command);
+  int ierr;
+  ierr=system(command);
+
+  FILE *file;
+  int i,j,k,l,g,il;
+  char strbuf[500];
+  std::string rtns="";
+  sprintf(strbuf,"<table cellpadding=6 rules=groups frame=box>");
+  rtns=rtns+strbuf;
+  sprintf(strbuf,"<thead> \n   <tr><th>switch</th><th>port</th><th>name</th><th>errors</th></tr> \n </tr> \n </thead> \n <tbody> \n");
+  rtns=rtns+strbuf;
+  file=fopen("/tmp/problems.dat","r");
+  // printf(" file opened \n"); 
+  for(i=0;i<924;i++){
+    il=i%77;
+    fgets(line,256,file);
+    // printf(" %d %s ",il,line);
+    if(il==0){
+      ntline=0;
+      k=0;
+      if(i>76)k=11;
+      fill_char(num,line,26+k,2);
+      //printf(" num %s \n",num);
+      sscanf(num,"%d",&port);
+    }
+    for(j=0;j<ninteresting_lines;j++){
+      if(il==interesting_lines[j]){
+        fill_char(num,line,48,10);
+        //printf("%d %d %s %s ",i,il,line,num);
+        fill_name(name,line);
+        sscanf(num,"%d",&n);
+        //printf("-> %d %s %d  \n",ntline,name,n);
+        if(n!=0){
+          for(g=0;g<50;g++)tline[ntline][g]=name[g];
+          tn[ntline]=n;
+          ntline=ntline+1;
+          printf(" *** ntline %d %s %d \n",ntline-1,tline[ntline-1],tn[ntline-1]);
+        }
+      }
+    } 
+    if(il==76){
+      int ido=0;
+      for(l=0;l<ntline;l++)if(tn[l]!=0)ido=1;
+      if(ido==1){
+        sprintf(strbuf,"<tr><td>%d</td><td>%d</td><td></td><td></td></tr> \n",swtch,port);
+        rtns=rtns+strbuf;
+      }
+      printf(" ntline %d \n",ntline);
+      for(l=0;l<ntline;l++){
+          sprintf(strbuf,"<tr><td></td><td></td><td>%s</td><td>%d</td></tr>",tline[l],tn[l]);
+          rtns=rtns+strbuf;
+      }
+    }
+  }
+  fclose(file);
+  ierr=system("rm /tmp/problems.dat");
+  sprintf(strbuf,"</tbody> \n </table> \n"); 
+  rtns=rtns+strbuf;
+  return rtns;
+}
+
+void fill_name(char *var, char *line){
+  int i;
+  int j,k;
+  k=0;
+  j=0;
+  for(i=0;i<128;i++){
+    if(k==0){
+    if(line[i]=='.'&&line[i+1]=='.'){
+      k=1;
+    }else{
+      var[i]=line[i];
+      j=j+1;
+    }
+    }
+  }
+  var[j]='\0';
+}
+
 
 void fill_expected_mac_table(){
 
@@ -995,9 +1160,9 @@ void fill_expected_mac_table(){
   }EXPECTED_MACS;
 #include "expected_macs_plus.h"
 #include "expected_macs_minus.h"
-  EXPECTED_MACS em[36];  
-  if(swadd==0)for(int i=0;i<36;i++)em[i]=expplus[i];
-  if(swadd==4)for(int i=0;i<36;i++)em[i]=expminus[i];
+  EXPECTED_MACS em[37];  
+  if(swadd==0)for(int i=0;i<37;i++)em[i]=expplus[i];
+  if(swadd==4)for(int i=0;i<37;i++)em[i]=expminus[i];
    
   // initialization
   for(int swt=0;swt<4;swt++){
@@ -1006,7 +1171,7 @@ void fill_expected_mac_table(){
     }
   }
   std::cout << " after initialization " << std:: endl;
-  for(int i=0;i<32;i++){
+  for(int i=0;i<33;i++){
     int swt=side[i].nswitch-1-swadd2;
     int prt=side[i].nport-1;
     int n=sw[swt][prt].nmacs_expected;
@@ -1019,15 +1184,15 @@ void fill_expected_mac_table(){
     std::cout << " entered plus " << std::endl;
     // switch pointers
     int n=sw[3][1].nmacs_expected;
-    sw[3][1].mac_expected[n].mac=em[32].mac;
+    sw[3][1].mac_expected[n].mac=em[33].mac;
     n=n+1;
     sw[3][1].nmacs_expected=n;
     n=sw[3][2].nmacs_expected;
-    sw[3][2].mac_expected[n].mac=em[33].mac;
+    sw[3][2].mac_expected[n].mac=em[34].mac;
     n=n+1;
     sw[3][2].nmacs_expected=n;
     n=sw[3][3].nmacs_expected;
-    sw[3][3].mac_expected[n].mac=em[34].mac;
+    sw[3][3].mac_expected[n].mac=em[35].mac;
     n=n+1;
     sw[3][3].nmacs_expected=n;
     
@@ -1036,7 +1201,7 @@ void fill_expected_mac_table(){
       // fill in pc macs
       for(int i=0;i<2;i++){
         int n=sw[swt][tprt[i]].nmacs_expected; 
-        sw[swt][tprt[i]].mac_expected[n].mac=em[35].mac;  // switch 4
+        sw[swt][tprt[i]].mac_expected[n].mac=em[36].mac;  // switch 4
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
         sw[swt][tprt[i]].mac_expected[n].mac=em[0].mac;  // pc 1
@@ -1045,7 +1210,10 @@ void fill_expected_mac_table(){
         sw[swt][tprt[i]].mac_expected[n].mac=em[1].mac;  // pc 2
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
-      }
+	sw[swt][tprt[i]].mac_expected[n].mac=em[2].mac;  // pc 1b
+        n=n+1;
+        sw[swt][tprt[i]].nmacs_expected=n;
+        }
     // mac pointers to switchs 1-3
       for(int prt=0;prt<5;prt++){
         int n=sw[3][swt+1].nmacs_expected; 
@@ -1068,15 +1236,15 @@ void fill_expected_mac_table(){
     std::cout << " entered minus " << std::endl;
     // switch pointers
     int n=sw[0][1].nmacs_expected;
-    sw[0][1].mac_expected[n].mac=em[33].mac;
+    sw[0][1].mac_expected[n].mac=em[34].mac;
     n=n+1;
     sw[0][1].nmacs_expected=n;
     n=sw[0][2].nmacs_expected;
-    sw[0][2].mac_expected[n].mac=em[34].mac;
+    sw[0][2].mac_expected[n].mac=em[35].mac;
     n=n+1;
     sw[0][2].nmacs_expected=n;
     n=sw[0][3].nmacs_expected;
-    sw[0][3].mac_expected[n].mac=em[35].mac;
+    sw[0][3].mac_expected[n].mac=em[36].mac;
     n=n+1;
     sw[0][3].nmacs_expected=n; 
 
@@ -1085,13 +1253,16 @@ void fill_expected_mac_table(){
       // fill in pc macs
       for(int i=0;i<2;i++){
         int n=sw[swt][tprt[i]].nmacs_expected; 
-        sw[swt][tprt[i]].mac_expected[n].mac=em[32].mac;  // switch 4
+        sw[swt][tprt[i]].mac_expected[n].mac=em[33].mac;  // switch 4
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
         sw[swt][tprt[i]].mac_expected[n].mac=em[0].mac;  // pc 1
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
         sw[swt][tprt[i]].mac_expected[n].mac=em[1].mac;  // pc 2
+        n=n+1;
+        sw[swt][tprt[i]].nmacs_expected=n;
+        sw[swt][tprt[i]].mac_expected[n].mac=em[2].mac;  // pc 2b                          
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
       }
