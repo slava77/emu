@@ -1,13 +1,36 @@
-
 #include "IRQThreadManager.h"
 
-IRQThreadManager::IRQThreadManager() {
+#include <utility>
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <log4cplus/logger.h>
+#include <log4cplus/fileappender.h>
+//#include <cmath>
+//#include <stdio.h>
+//#include <fcntl.h>
+//#include <errno.h>
+//#include <inttypes.h>
+//#include <time.h>
+//#include <bitset>
+//#include <unistd.h>
+
+#include "FEDCrate.h"
+#include "VMEController.h"
+#include "DDU.h"
+#include "Chamber.h"
+#include "IRQData.h"
+#include "CAENVMElib.h"
+#include "CAENVMEtypes.h"
+
+
+emu::fed::IRQThreadManager::IRQThreadManager() {
 	threadVector_.clear();
 }
 
 
 
-IRQThreadManager::~IRQThreadManager() {
+emu::fed::IRQThreadManager::~IRQThreadManager() {
 
 	//endThreads();
 
@@ -15,10 +38,10 @@ IRQThreadManager::~IRQThreadManager() {
 
 
 
-void IRQThreadManager::attachCrate(FEDCrate *crate) {
+void emu::fed::IRQThreadManager::attachCrate(FEDCrate *crate) {
 
 	pthread_t threadID;
-	//std::cout << "IRQThreadManager::attachCrate Attaching crate with number " << crate->number() << std::endl;
+	//std::cout << "emu::fed::IRQThreadManager::attachCrate Attaching crate with number " << crate->number() << std::endl;
 	threadVector_.push_back(std::pair<FEDCrate *, pthread_t>(crate, threadID));
 
 }
@@ -26,9 +49,9 @@ void IRQThreadManager::attachCrate(FEDCrate *crate) {
 
 
 
-void IRQThreadManager::startThreads(unsigned long int runNumber) {
+void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber) {
 
-	//std::cout << "IRQThreadManager::startThreads Create unique Logger for EmuFEDVME" << std::endl;
+	//std::cout << "emu::fed::IRQThreadManager::startThreads Create unique Logger for EmuFEDVME" << std::endl;
 
 	// Make the shared data object that will be passed between threads and the
 	// mother program.
@@ -44,11 +67,11 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 	fileName << "EmuFMMThread_" << datebuf << "_r" << std::setw(5) << std::setfill('0') << std::dec << runNumber;
 	//sprintf(filebuf,"EmuFMMThread_%s_r%05u.log",datebuf,(unsigned int) runNumber);
 
-	log4cplus::SharedAppenderPtr myAppend = new FileAppender(fileName.str().c_str());
+	log4cplus::SharedAppenderPtr myAppend = new log4cplus::FileAppender(fileName.str().c_str());
 	myAppend->setName("EmuFMMIRQAppender");
 
 	//Appender Layout
-	std::auto_ptr<Layout> myLayout = std::auto_ptr<Layout>(new log4cplus::PatternLayout("%D{%m/%d/%Y %j-%H:%M:%S.%q} %-5p %c, %m%n"));
+	std::auto_ptr<log4cplus::Layout> myLayout = std::auto_ptr<log4cplus::Layout>(new log4cplus::PatternLayout("%D{%m/%d/%Y %j-%H:%M:%S.%q} %-5p %c, %m%n"));
 	// for date code, use the Year %Y, DayOfYear %j and Hour:Min:Sec.mSec
 	// only need error data from Log lines with "ErrorData" tag
 	myAppend->setLayout( myLayout );
@@ -56,7 +79,7 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 	logger.addAppender(myAppend);
 
-	//std::cout << "IRQThreadManager::startThreads Clearing shared data" << std::endl;
+	//std::cout << "emu::fed::IRQThreadManager::startThreads Clearing shared data" << std::endl;
 	
 	data_->runNumber = runNumber;
 	// Do not quit the threads immediately.
@@ -64,7 +87,7 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 	// First, load up the data_ object with the crates that I govern.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
-		//std::cout << "IRQThreadManager::startThread Adding and clearing data for crate number " << threadVector_[i].first->number() << std::endl;
+		//std::cout << "emu::fed::IRQThreadManager::startThread Adding and clearing data for crate number " << threadVector_[i].first->number() << std::endl;
 
 		// At this point, most of the variables in the data_ object have been
 		// cleared.
@@ -103,23 +126,23 @@ void IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 	// Next, execute the threads.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
-		//std::cout << "IRQThreadManager::startThread Starting thread for crate number " << threadVector_[i].first->number() << std::endl;
+		//std::cout << "emu::fed::IRQThreadManager::startThread Starting thread for crate number " << threadVector_[i].first->number() << std::endl;
 
 		// Start the thread (as a static function)
 		//int error = pthread_create(&(threadVector_[i].second), NULL, IRQThread, data_);
 		pthread_create(&(threadVector_[iThread].second), NULL, IRQThread, data_);
-		//std::cout << "IRQThreadManager::startThread pthread launched with status " << error << std::endl;
+		//std::cout << "emu::fed::IRQThreadManager::startThread pthread launched with status " << error << std::endl;
 	}
 }
 
 
 
-void IRQThreadManager::endThreads() {
+void emu::fed::IRQThreadManager::endThreads() {
 	if (data_->exit == 1) {
-		//std::cout << "IRQThreadManager::endThreads Threads already stopped." << std::endl << flush;
+		//std::cout << "emu::fed::IRQThreadManager::endThreads Threads already stopped." << std::endl << flush;
 	} else {
 	
-		//std::cout << "IRQThreadManager::endThreads Gracefully killing off all threads." << std::endl << flush;
+		//std::cout << "emu::fed::IRQThreadManager::endThreads Gracefully killing off all threads." << std::endl << flush;
 		//std::cout << "<PGK> Before exit=1" << std::endl << flush;
 		data_->exit = 1;
 		//std::cout << "<PGK> After exit=1" << std::endl << flush;
@@ -158,7 +181,7 @@ void IRQThreadManager::endThreads() {
 
 
 /// The big one
-void *IRQThreadManager::IRQThread(void *data)
+void *emu::fed::IRQThreadManager::IRQThread(void *data)
 {
 
 	// Recast the void pointer as something more useful.
@@ -173,13 +196,13 @@ void *IRQThreadManager::IRQThread(void *data)
 	pthread_mutex_unlock(&(locdata->crateQueueMutex));
 
 	// We need the handle of the controller we are talking to.
-	long int BHandle = myCrate->vmeController()->theBHandle;
+	long int BHandle = myCrate->getVMEController()->getBHandle();
 
 	//char buf[300];
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 
 	// Knowing what DDUs we are talking to is useful as well.
-	std::vector<DDU *> dduVector = myCrate->ddus();
+	std::vector<DDU *> dduVector = myCrate->getDDUs();
 
 	// This is when we started.  Don't know why this screws up sometimes...
 	time(&(locdata->startTime[myCrate]));
@@ -376,7 +399,7 @@ void *IRQThreadManager::IRQThread(void *data)
 			// Loop over the crates and take away SFTU
 			for (std::map<FEDCrate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
 				// Find the broadcast slot on this crate.
-				std::vector<DDU *> myDDUs = iCount->first->ddus();
+				std::vector<DDU *> myDDUs = iCount->first->getDDUs();
 				for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 					if ((*iDDU)->slot() > 21) (*iDDU)->vmepara_wr_fmmreg(0xFED8);
 				}

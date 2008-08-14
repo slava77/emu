@@ -1,94 +1,94 @@
 #include "FEDCrate.h"
+
+#include <iostream>
+
 #include "VMEModule.h"
 #include "VMEController.h"
 #include "DDU.h"
 #include "DCC.h"
 
-int irqprob;
-long int timer,xtimer;
-
-FEDCrate::FEDCrate(int number, VMEController *theController):
-	theNumber(number),
-	theModules(31),
-	theController(NULL)
+emu::fed::FEDCrate::FEDCrate(int myNumber, VMEController *myController):
+	number_(myNumber),
+	moduleVector_(31),
+	vmeController_(myController)
 {
-	//Singleton<CrateSetup>::instance()->addCrate(number, this);
+	// Does nothing
 }
 
 
-FEDCrate::~FEDCrate() {
-	for(unsigned i = 0; i < theModules.size(); ++i) {
-		delete theModules[i];
+emu::fed::FEDCrate::~FEDCrate() {
+	for(unsigned i = 0; i < moduleVector_.size(); ++i) {
+		delete moduleVector_[i];
 	}
-	delete theController;
+	delete vmeController_;
 }
 
 
-void FEDCrate::addModule(VMEModule *module) {
-	module->setController(theController);
-	theModules[module->slot()] = module;
+void emu::fed::FEDCrate::addModule(VMEModule *module) {
+	module->setController(vmeController_);
+	moduleVector_[module->slot()] = module;
 }
 
-void FEDCrate::setController(VMEController *controller) {
-	if (theController != NULL) {
-		std::cout << "WARNING: Trying change the VMEController of crate " << theNumber << std::endl;
+void emu::fed::FEDCrate::setController(VMEController *controller) {
+	if (vmeController_ != NULL) {
+		std::cout << "WARNING: Trying change the VMEController of crate " << number_ << std::endl;
 	}
-	std::cout << "Setting controller in crate " << theNumber << std::endl;
-	theController = controller;
-	theController->setCrate(theNumber);
-	for (unsigned int i=0; i<theModules.size(); i++) {
-		if (theModules[i] == NULL) continue;
-		theModules[i]->setController(theController);
+	std::cout << "Setting controller in crate " << number_ << std::endl;
+	vmeController_ = controller;
+	vmeController_->setCrate(number_);
+	for (unsigned int i=0; i<moduleVector_.size(); i++) {
+		if (moduleVector_[i] == NULL) continue;
+		moduleVector_[i]->setController(vmeController_);
 	}
 }
 
-std::vector<DDU *> FEDCrate::ddus() const {
+std::vector<emu::fed::DDU *> emu::fed::FEDCrate::getDDUs() const {
   std::vector<DDU *> result;
-  for(unsigned i = 0; i < theModules.size(); ++i) {
-    DDU * ddu = dynamic_cast<DDU *>(theModules[i]);
+  for(unsigned i = 0; i < moduleVector_.size(); ++i) {
+    DDU *ddu = dynamic_cast<DDU *>(moduleVector_[i]);
     if(ddu != 0) result.push_back(ddu);
   }
   return result;
 }
 
-std::vector<DCC *> FEDCrate::dccs() const {
+std::vector<emu::fed::DCC *> emu::fed::FEDCrate::getDCCs() const {
   std::vector<DCC *> result;
-  for(unsigned i = 0; i < theModules.size(); ++i) {
-    DCC * dcc = dynamic_cast<DCC *>(theModules[i]);
+  for(unsigned i = 0; i < moduleVector_.size(); ++i) {
+    DCC *dcc = dynamic_cast<DCC *>(moduleVector_[i]);
     if(dcc != 0) result.push_back(dcc);
   }
   return result;
 }
 
-int FEDCrate::getRUI(int slot) {
-	unsigned int rui = 9 * theNumber + slot - 3;
+int emu::fed::FEDCrate::getRUI(int slot) {
+	unsigned int rui = 9 * number_ + slot - 3;
 	if (slot > 8) rui--;  // Correct for the DCC slot.
-	if (theNumber > 0) rui -= 9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
-	if (theNumber>4) rui = 0; // This is the TF DDU.
+	if (number_ > 0) rui -= 9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
+	if (number_>4) rui = 0; // This is the TF DDU.
 
 	return rui;
 }
 
-void FEDCrate::enable() {
+void emu::fed::FEDCrate::enable() {
   //
-  std::cout << "FEDCrate::enable called " << std::endl;
+  std::cout << "emu::fed::FEDCrate::enable called " << std::endl;
 }
 
 //
-void FEDCrate::disable() {
+void emu::fed::FEDCrate::disable() {
   //
-  std::cout << "FEDCrate::disable called " << std::endl;
+  std::cout << "emu::fed::FEDCrate::disable called " << std::endl;
   //
 }
 //
-void FEDCrate::configure() {
+void emu::fed::FEDCrate::configure() {
 // JRG, downloads to all boards, then starts the IRQ handler.
-	//printf(" ********   Crate::configure is called with run number %u \n",(unsigned int) runnumber);
-	std::vector<DDU*> myDdus = this->ddus();
+	//printf(" ********   emu::fed::FEDCrate::configure is called with run number %u \n",(unsigned int) runnumber);
+	std::vector<DDU*> myDdus = this->getDDUs();
 	for(unsigned i =0; i < myDdus.size(); ++i) {
 		myDdus[i]->configure();
 	}
-	std::vector<DCC*> myDccs = this->dccs();
+	std::vector<DCC*> myDccs = this->getDCCs();
 	for(unsigned i =0; i < myDccs.size(); ++i) {
 		myDccs[i]->configure();
 	}
@@ -97,11 +97,11 @@ void FEDCrate::configure() {
 // JRG, we probably want to keep IRQ clear/reset here (End, then Start):
 // PGK, new objects (IRQThread) in town.  Use these instead.
 // PGK, better yet, just call init.
-//	std::cout << " ********   Crate::configure complete, running init..." << std::endl;
+//	std::cout << " ********   emu::fed::FEDCrate::configure complete, running init..." << std::endl;
 //	this->init(runnumber);
 }
 
-void FEDCrate::init() {
+void emu::fed::FEDCrate::init() {
 	// Does nothing.
 }
 

@@ -1,44 +1,43 @@
-#ifndef ChamberParser_h
-#define ChamberParser_h
+#ifndef __CHAMBERPARSER_H__
+#define __CHAMBERPARSER_H__
 /*
  *  class ChamberParser
  *  author Phillip Killewald 1/31/08
  *     
  */
-class Chamber;
+
 #include <vector>
+#include <xercesc/dom/DOM.hpp>
+
 #include "EmuParser.h"
-#include <xercesc/dom/DOM.hpp>
-#include "Chamber.h"
-#include <stdlib.h> // getenv
-#include <sstream>
 
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/framework/XMLPScanToken.hpp>
-#include <xercesc/dom/DOM.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
+//XERCES_CPP_NAMESPACE_USE
 
-XERCES_CPP_NAMESPACE_USE
+namespace emu {
+	namespace fed {
 
-//using namespace std;
+		class Chamber;
 
-class ChamberParser: public EmuParser
-{
+		class ChamberParser: public EmuParser
+		{
+		
+		public:
 
-public:
-	ChamberParser(){}
-	explicit ChamberParser(char *fileName, int crate, int slot);
+			explicit ChamberParser(char *myFileName, int myCrate, int mySlot);
+		
+			inline std::vector<Chamber *> getChambers() const { return chamberVector_; }
+		
+		private:
+			// This parsing is annoying.  Use Stan's idea of parsing every step with a different method.
+			std::vector<xercesc::DOMNode *> parseMaps(xercesc::DOMNode *myDoc);
+			std::vector<xercesc::DOMNode *> parseRUIs(xercesc::DOMNode *myMap);
+			std::vector<xercesc::DOMNode *> parseDDUs(xercesc::DOMNode *myRUI, int myCrate, int mySlot);
+			void parseInput(xercesc::DOMNode *myDDU);
+		
+			std::vector<Chamber *> chamberVector_;
+		};
 
-	inline std::vector<Chamber *> chamberVector() const { return chamberVector_; }
-
-private:
-	// This parsing is annoying.  Use Stan's idea of parsing every step with a different method.
-	std::vector<DOMNode *> parseMaps(DOMNode *pDoc);
-	std::vector<DOMNode *> parseRUIs(DOMNode *pMap);
-	std::vector<DOMNode *> parseDDUs(DOMNode *pRUI, int crate, int slot);
-	void parseInput(DOMNode *pDDU);
-
-	std::vector<Chamber *> chamberVector_;
-};
+	}
+}
 
 #endif

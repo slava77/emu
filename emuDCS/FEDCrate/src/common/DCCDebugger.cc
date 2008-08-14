@@ -1,8 +1,12 @@
 #include "DCCDebugger.h"
 
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 
-std::map<std::string, std::string> DCCDebugger::FMMStat(short int stat)
+
+std::map<std::string, std::string> emu::fed::DCCDebugger::FMMStat(short int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -17,7 +21,7 @@ std::map<std::string, std::string> DCCDebugger::FMMStat(short int stat)
 
 
 
-std::map<std::string, std::string> DCCDebugger::SLinkStat(short int stat)
+std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(short int stat)
 {
 	std::map<std::string, std::string> returnValues;
 	for (int iLink = 0; iLink < 2; iLink++) {

@@ -16,24 +16,29 @@
 *
 *	@author Phillip Killewald
 **/
-class FEDException: public xcept::Exception
-{
+namespace emu {
+	namespace fed {
 
-public:
+		class FEDException: public xcept::Exception
+		{
+		
+		public:
+		
+			FEDException()
+				throw ():
+				xcept::Exception()
+			{};
+		
+			FEDException( const std::string& name, const std::string& message, const std::string& module, int line, const std::string& function ):
+				xcept::Exception(name, message, module, line, function)
+			{};
+		
+			FEDException( const std::string& name, const std::string& message, const std::string& module, int line, const std::string& function,xcept::Exception& previous ):
+				xcept::Exception(name, message, module, line, function, previous)
+			{};
+		};
 
-	FEDException()
-		throw ():
-		xcept::Exception()
-	{};
-
-	FEDException( const std::string& name, const std::string& message, const std::string& module, int line, const std::string& function ):
-		xcept::Exception(name, message, module, line, function)
-	{};
-
-	FEDException( const std::string& name, const std::string& message, const std::string& module, int line, const std::string& function,xcept::Exception& previous ):
-		xcept::Exception(name, message, module, line, function, previous)
-	{};
-};
-
+	}
+}
 
 #endif

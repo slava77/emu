@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.h,v 3.3 2008/08/13 14:20:41 paste Exp $
-// $Log: VMEParser.h,v $
+// $Id: VMEControllerParser.h,v 3.1 2008/08/14 14:14:32 paste Exp $
+// $Log: VMEControllerParser.h,v $
+// Revision 3.1  2008/08/14 14:14:32  paste
+// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
+//
 // Revision 3.3  2008/08/13 14:20:41  paste
 // Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
 //
@@ -22,35 +25,31 @@
 //
 //
 //-----------------------------------------------------------------------
-#ifndef __VMEPARSER_H__
-#define __VMEPARSER_H__
-/*
- *  class VMEParser
- *  author Alex Tumanov 7/8/03
- *     
- */
+#ifndef __VMECONTROLLERPARSER_H__
+#define __VMECONTROLLERPARSER_H__
 
-//#include "Crate.h"
-#include "VMEController.h"
-#include "EmuParser.h"
 #include <xercesc/dom/DOM.hpp>
 
+#include "EmuParser.h"
+namespace emu {
+	namespace fed {
 
-XERCES_CPP_NAMESPACE_USE
+		class VMEController;
 
+		class VMEControllerParser : public EmuParser
+		{
+		
+		public:
+			explicit VMEControllerParser(xercesc::DOMNode * pNode, int crate = 0);
+			
+			inline VMEController *getController() { return vmeController_; }
+		
+		private:
+			VMEController *vmeController_;
+		};
 
-class VMEParser : public EmuParser
-{
-
-public:
-	VMEParser(){}
-	explicit VMEParser(DOMNode * pNode, int crate = 0);
-	
-	VMEController * controller() const {return controller_;}
-
-protected:
-	VMEController * controller_; 
-};
+	}
+}
 
 #endif
 

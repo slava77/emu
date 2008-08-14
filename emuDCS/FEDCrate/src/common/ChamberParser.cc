@@ -1,14 +1,20 @@
 #include "ChamberParser.h"
 
-XERCES_CPP_NAMESPACE_USE
-//using namespace std;
+//#include <stdlib.h>
+#include <iostream>
+#include <sstream>
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/framework/XMLPScanToken.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
+
+#include "Chamber.h"
 
 /** Parses the DDU fiber -> chamber linking using the input XML file.
 @param fileName is the absolute path location of Karoly's XML file.
 @param crate is the crate number in which the DDU resides.
 @param slot is the slot in which the DDU resides in its given crate.
 **/
-ChamberParser::ChamberParser(char *fileName, int crate, int slot)
+emu::fed::ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 {
 	Chamber *fakeChamber = new Chamber();
 	chamberVector_.resize(15,fakeChamber);
@@ -32,12 +38,12 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 	/// Initialize XML4C system
 	try{
 	
-		XMLPlatformUtils::Initialize();
+		xercesc::XMLPlatformUtils::Initialize();
 		
-	} catch(const XMLException& toCatch) {
+	} catch(const xercesc::XMLException& toCatch) {
 		std::cerr << "Error during Xerces-c Initialization.\n"
 			<< "  Exception message:"
-			<< XMLString::transcode(toCatch.getMessage()) << std::endl;
+			<< xercesc::XMLString::transcode(toCatch.getMessage()) << std::endl;
 		return;
 	}
  
@@ -45,8 +51,8 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 	//  The parser will call back to methods of the ErrorHandler if it
 	//  discovers errors during the course of parsing the XML document.
 	//
-	XercesDOMParser *parser = new XercesDOMParser;
-	parser->setValidationScheme(XercesDOMParser::Val_Auto);
+	xercesc::XercesDOMParser *parser = new xercesc::XercesDOMParser;
+	parser->setValidationScheme(xercesc::XercesDOMParser::Val_Auto);
 	parser->setDoNamespaces(false);
 	parser->setCreateEntityReferenceNodes(false);
 	//parser->setToCreateXMLDeclTypeNode(true);
@@ -59,15 +65,15 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 	
 		parser->parse(fileNameStream.str().c_str());
 		
-	} catch (const XMLException& e) {
+	} catch (const xercesc::XMLException& e) {
 	
 		std::cerr << "An error occured during parsing\n   Message: "
-			<< XMLString::transcode(e.getMessage()) << std::endl;
+			<< xercesc::XMLString::transcode(e.getMessage()) << std::endl;
 		errorsOccured = true;
 		
-	} catch (const DOMException& e) {
+	} catch (const xercesc::DOMException& e) {
 		std::cerr << "An error occured during parsing\n   Message: "
-			<< XMLString::transcode(e.msg) << std::endl;
+			<< xercesc::XMLString::transcode(e.msg) << std::endl;
 		errorsOccured = true;
 	}
 
@@ -79,17 +85,17 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 	// If the parse was successful, output the document data from the DOM tree
 	if (!errorsOccured){
 		// Get maps
-		std::vector<DOMNode *> pMaps = parseMaps(parser->getDocument());
+		std::vector<xercesc::DOMNode *> pMaps = parseMaps(parser->getDocument());
 		
 		// Loop over maps
 		for (unsigned int iMap = 0; iMap < pMaps.size(); iMap++) {
 			// Get RUIs
-			std::vector<DOMNode *> pRUIs = parseRUIs(pMaps[iMap]);
+			std::vector<xercesc::DOMNode *> pRUIs = parseRUIs(pMaps[iMap]);
 
 			// Loop over RUIs
 			for (unsigned int iRUI = 0; iRUI < pRUIs.size(); iRUI++) {
 				// Get DDUs
-				std::vector<DOMNode *> pDDUs = parseDDUs(pRUIs[iRUI], crate, slot);
+				std::vector<xercesc::DOMNode *> pDDUs = parseDDUs(pRUIs[iRUI], crate, slot);
 
 				// Loop over DDUs
 				for (unsigned int iDDU = 0; iDDU < pDDUs.size(); iDDU++) {
@@ -113,7 +119,7 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 
 
 	// And call the termination method
-	XMLPlatformUtils::Terminate();
+	xercesc::XMLPlatformUtils::Terminate();
 	// DomMemDebug().print();
 
 	//
@@ -123,14 +129,14 @@ ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 }
 
 
-std::vector<DOMNode *> ChamberParser::parseMaps(DOMNode * pDoc) {
-	std::vector<DOMNode *> nodeVector;
-	DOMNode * pNode1 = pDoc->getFirstChild();
+std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseMaps(xercesc::DOMNode * pDoc) {
+	std::vector<xercesc::DOMNode *> nodeVector;
+	xercesc::DOMNode * pNode1 = pDoc->getFirstChild();
 	while (pNode1) { // RUI-to-chamber_mapping
-	  if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
-	    if ( strcmp("RUI-to-chamber_mapping",XMLString::transcode(pNode1->getNodeName())) ){
+	  if (pNode1->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+	    if ( strcmp("RUI-to-chamber_mapping",xercesc::XMLString::transcode(pNode1->getNodeName())) ){
 	      std::cout << "ChamberParser: WARNING - Wrong Top Element <"
-		   << XMLString::transcode(pNode1->getNodeName())
+		   << xercesc::XMLString::transcode(pNode1->getNodeName())
 		   << ">, should be <RUI-to-chamber_mapping>" << std::endl;
 	    }
 
@@ -143,14 +149,14 @@ std::vector<DOMNode *> ChamberParser::parseMaps(DOMNode * pDoc) {
 }
 
 
-std::vector<DOMNode *> ChamberParser::parseRUIs(DOMNode *pMap) {
-	std::vector<DOMNode *> nodeVector;
-	DOMNode *pNode1 = pMap->getFirstChild();
+std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseRUIs(xercesc::DOMNode *pMap) {
+	std::vector<xercesc::DOMNode *> nodeVector;
+	xercesc::DOMNode *pNode1 = pMap->getFirstChild();
 	while (pNode1) { // RUI
-		if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
-			if ( strcmp("RUI",XMLString::transcode(pNode1->getNodeName())) ){
+		if (pNode1->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+			if ( strcmp("RUI",xercesc::XMLString::transcode(pNode1->getNodeName())) ){
 				std::cout << "ChamberParser: WARNING - Wrong Child Element <"
-					<< XMLString::transcode(pNode1->getNodeName())
+					<< xercesc::XMLString::transcode(pNode1->getNodeName())
 					<< ">, should be <RUI>" << std::endl;
 			}
 
@@ -162,12 +168,12 @@ std::vector<DOMNode *> ChamberParser::parseRUIs(DOMNode *pMap) {
 	return nodeVector;
 }
 
-std::vector<DOMNode *> ChamberParser::parseDDUs(DOMNode *pRUI, int crate, int slot) {
-	std::vector<DOMNode *> nodeVector;
-	DOMNode *pNode1 = pRUI->getFirstChild();
+std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseDDUs(xercesc::DOMNode *pRUI, int crate, int slot) {
+	std::vector<xercesc::DOMNode *> nodeVector;
+	xercesc::DOMNode *pNode1 = pRUI->getFirstChild();
 	while (pNode1) { // DDU
-		if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
-			if ( strcmp("DDU",XMLString::transcode(pNode1->getNodeName())) == 0 ) {
+		if (pNode1->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+			if ( strcmp("DDU",xercesc::XMLString::transcode(pNode1->getNodeName())) == 0 ) {
 
 				// Skip everything that's not the correct DDU
 				// Ugly ugly ugly!
@@ -186,13 +192,13 @@ std::vector<DOMNode *> ChamberParser::parseDDUs(DOMNode *pRUI, int crate, int sl
 	return nodeVector;
 }
 
-void ChamberParser::parseInput(DOMNode *pDDU) {
-	DOMNode *pNode1 = pDDU->getFirstChild();
+void emu::fed::ChamberParser::parseInput(xercesc::DOMNode *pDDU) {
+	xercesc::DOMNode *pNode1 = pDDU->getFirstChild();
 	while (pNode1) { // DDU
-		if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
-			if ( strcmp("input",XMLString::transcode(pNode1->getNodeName())) ){
+		if (pNode1->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+			if ( strcmp("input",xercesc::XMLString::transcode(pNode1->getNodeName())) ){
 				std::cout << "ChamberParser: WARNING - Wrong Child Element <"
-					<< XMLString::transcode(pNode1->getNodeName())
+					<< xercesc::XMLString::transcode(pNode1->getNodeName())
 					<< ">, should be <input>" << std::endl;
 			}
 
@@ -203,22 +209,22 @@ void ChamberParser::parseInput(DOMNode *pDDU) {
 			/* Prep the chamber object */
 			Chamber *chamber = new Chamber();
 
-			DOMNode *pNode2 = pNode1->getFirstChild();
+			xercesc::DOMNode *pNode2 = pNode1->getFirstChild();
 			while (pNode2) { // FiberCassette, PeripheralCrate, or Chamber
 			
-				if ( strcmp("FiberCassette",XMLString::transcode(pNode2->getNodeName())) == 0 ) {
+				if ( strcmp("FiberCassette",xercesc::XMLString::transcode(pNode2->getNodeName())) == 0 ) {
 					parseNode(pNode2);
 					fillInt("crate", chamber->fiberCassetteCrate_);
 					fillInt("pos", chamber->fiberCassettePos_);
 					fillString("socket", chamber->fiberCassetteSocket_);
 				}
-				if ( strcmp("PeripheralCrate",XMLString::transcode(pNode2->getNodeName())) == 0 ) {
+				if ( strcmp("PeripheralCrate",xercesc::XMLString::transcode(pNode2->getNodeName())) == 0 ) {
 					parseNode(pNode2);
 					fillInt("id", chamber->peripheralCrateId_);
 					fillInt("VMEcrate", chamber->peripheralCrateVMECrate_);
 					fillInt("VMEslot", chamber->peripheralCrateVMESlot_);
 				}
-				if ( strcmp("Chamber",XMLString::transcode(pNode2->getNodeName())) == 0 ) {
+				if ( strcmp("Chamber",xercesc::XMLString::transcode(pNode2->getNodeName())) == 0 ) {
 					parseNode(pNode2);
 					fillString("endcap", chamber->endcap);
 					fillInt("station", chamber->station);

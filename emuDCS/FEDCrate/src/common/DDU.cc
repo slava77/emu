@@ -1,69 +1,53 @@
 /* New motherboard VTX2 not VTX  so MCTRL,6  not MCTRL,5 */
 #include "DDU.h"
-#include "VMEController.h"
-#include <fstream>
+
+#include <iostream>
+//#include <fstream>
 #include <stdio.h>
 #include <cmath>
-#include <unistd.h>
-#include <time.h>
+//#include <unistd.h>
+//#include <time.h>
 #include <iomanip>
 #include <math.h>
-#include "geom_def.h"
 #include <bitset>
+#include <sstream>
 
-//using namespace std;
+#include "Chamber.h"
 
-#ifndef debugV //silent mode
-#define PRINT(x)
-#define PRINTSTRING(x)
-#else //verbose mode
-#define PRINT(x) std::cout << #x << ":\t" << x << std::endl;
-#define PRINTSTRING(x) std::cout << #x << std::endl;
-#endif
-
-/* PGK Seriously?  Globals in a class definition? */
-char filename[100];
-unsigned int hexval;
-short int intval;
-short int intval2;
-
-
-
-
-// declarations
-//void Parse(char *buf,int *Count,char **Word);
-//void shuffle(char *a,char *b);
-
-DDU::DDU(int crate,int slot):
-	VMEModule(slot),
-	skip_vme_load_(0),gbe_prescale_(0),killfiber_(0xf7fff)
+emu::fed::DDU::DDU(int myCrate,int mySlot):
+	VMEModule(mySlot),
+	skip_vme_load_(0),
+	gbe_prescale_(0),
+	killfiber_(0xf7fff)
 {
-  //  std::cout<<"DDU construct\n";
+	std::cerr << "Deprecated constructor.  Use DDU(int) instead of DDU(int,int)." << std::endl;
 }
 
-DDU::DDU(int slot):
-	VMEModule(slot),
-	skip_vme_load_(0),gbe_prescale_(0),killfiber_(0xf7fff)
+emu::fed::DDU::DDU(int mySlot):
+	VMEModule(mySlot),
+	skip_vme_load_(0),
+	gbe_prescale_(0),
+	killfiber_(0xf7fff)
 {
   //  std::cout<<"DDU construct\n";
 }
 
 
-DDU::~DDU() {
+emu::fed::DDU::~DDU() {
   //  std::cout << "DDU destruct" << std::endl;
 }
 
 
-void DDU::end()
+void emu::fed::DDU::end()
 {
-	//   std::cout << "calling DDU::end" << std::endl;
+	//   std::cout << "calling emu::fed::DDU::end" << std::endl;
 	//theController->start(this);
 	send_last();
 	VMEModule::end();
 }
 
 
-void DDU::configure() {
+void emu::fed::DDU::configure() {
 	printf(" ********************DDU configure is called, slot %d\n",slot());
 	//  printf(" DDU slot %d gbe_prescale %d  \n",slot(),gbe_prescale_);
 	if(skip_vme_load_==0){
@@ -77,7 +61,7 @@ void DDU::configure() {
 
 
 
-void DDU::ddu_init()
+void emu::fed::DDU::ddu_init()
 {
 	devdo(DDUFPGA,-1,cmd,0,sndbuf,rcvbuf,2);
 }
@@ -88,7 +72,7 @@ void DDU::ddu_init()
 
 
 
-void DDU::ddu_shfttst(int tst)
+void emu::fed::DDU::ddu_shfttst(int tst)
 {
 	int shft2in;
 	cmd[0]=VTX2P_BYPASS_L;
@@ -123,7 +107,7 @@ void DDU::ddu_shfttst(int tst)
 
 
 
-void DDU::ddu_lowfpgastat()
+void emu::fed::DDU::ddu_lowfpgastat()
 {
 int i,shft0in,shft1in,shft2in;
 unsigned long int code;
@@ -177,7 +161,7 @@ unsigned long int code;
 }
 
 
-void DDU::ddu_hifpgastat()
+void emu::fed::DDU::ddu_hifpgastat()
 {
 int i,shft0in,shft1in,shft2in;
 unsigned long int code;
@@ -236,7 +220,7 @@ unsigned long int code;
 
 
 
-unsigned int DDU::ddu_checkFIFOa()
+unsigned int emu::fed::DDU::ddu_checkFIFOa()
 {
 int i,j,shft2in;
 unsigned long int code;
@@ -290,7 +274,7 @@ unsigned long int code;
 }
 
 
-unsigned int DDU::ddu_checkFIFOb()
+unsigned int emu::fed::DDU::ddu_checkFIFOb()
 {
 int i,j,shft2in;
 unsigned long int code;
@@ -346,7 +330,7 @@ unsigned long int code;
 }
 
 
-unsigned int DDU::ddu_checkFIFOc()
+unsigned int emu::fed::DDU::ddu_checkFIFOc()
 {
 int i,j,shft2in;
 
@@ -405,7 +389,7 @@ unsigned long int code;
 
 
 
-void DDU::ddu_rdfibererr()
+void emu::fed::DDU::ddu_rdfibererr()
 //JRG: Delete
 {
 int i,j,shft2in;
@@ -458,7 +442,7 @@ unsigned long int code;
 }
 
 
-void DDU::ddu_rdfiberok()
+void emu::fed::DDU::ddu_rdfiberok()
 //JRG: Delete
 {
 int i,j,shft2in;
@@ -507,7 +491,7 @@ unsigned long int code;
 }
 
 
-long unsigned int DDU::ddu_rdkillfiber()
+long unsigned int emu::fed::DDU::ddu_rdkillfiber()
 {
 int shft2in;
 unsigned long int code;
@@ -569,7 +553,7 @@ unsigned long int code;
 
 
 
-void DDU::ddu_loadkillfiber(long int regval)
+void emu::fed::DDU::ddu_loadkillfiber(long int regval)
 {
 int i,j,shft2in;
 unsigned long int code;
@@ -643,7 +627,7 @@ unsigned long int code;
 
 
 
-int DDU::ddu_rdcrcerr()
+int emu::fed::DDU::ddu_rdcrcerr()
 {
 int i,j,shft2in;
 
@@ -699,7 +683,7 @@ long int code;
 
 
 
-void DDU::ddu_rdl1aerr()
+void emu::fed::DDU::ddu_rdl1aerr()
 //JRG: Delete
 {
 int i,j,shft2in;
@@ -748,7 +732,7 @@ long int code;
 }
 
 
-int DDU::ddu_rdxmiterr()
+int emu::fed::DDU::ddu_rdxmiterr()
 {
 int i,j,shft2in;
 
@@ -831,7 +815,7 @@ long int code;
 
 
 
-void DDU::ddu_rdtimesterr()
+void emu::fed::DDU::ddu_rdtimesterr()
 //JRG: Delete
 {
 int i,j,shft2in;
@@ -880,7 +864,7 @@ long int code;
 }
 
 
-void DDU::ddu_rdtimeewerr()
+void emu::fed::DDU::ddu_rdtimeewerr()
 //JRG: Delete
 {
 int i,j,shft2in;
@@ -929,7 +913,7 @@ long int code;
 }
 
 
-void DDU::ddu_rdtimeeaerr()
+void emu::fed::DDU::ddu_rdtimeeaerr()
 //JRG: Delete
 {
 int i,j,shft2in;
@@ -978,7 +962,7 @@ long int code;
 }
 
 
-int DDU::ddu_rddmberr()
+int emu::fed::DDU::ddu_rddmberr()
 {
 int i,j,shft2in;
 
@@ -1035,7 +1019,7 @@ long int code;
 
 
 
-int DDU::ddu_rdtmberr()
+int emu::fed::DDU::ddu_rdtmberr()
 {
 int i,j,shft2in;
 
@@ -1092,7 +1076,7 @@ long int code;
 
 
 
-int DDU::ddu_rdlieerr()
+int emu::fed::DDU::ddu_rdlieerr()
 {
 int i,j,shft2in;
 
@@ -1150,7 +1134,7 @@ long int code;
 
 
 
-void DDU::ddu_rdliderr()
+void emu::fed::DDU::ddu_rdliderr()
 //JRG: Delete
 {
 int i,j,shft2in;
@@ -1199,7 +1183,7 @@ long int code;
 }
 
 
-void DDU::ddu_rdpaferr()
+void emu::fed::DDU::ddu_rdpaferr()
 //JRG: Delete
 {
 int i,j,shft0in,shft1in,shft2in;
@@ -1249,7 +1233,7 @@ long int code;
 }
 
 
-int DDU::ddu_rdfferr()
+int emu::fed::DDU::ddu_rdfferr()
 {
 int j,shft2in;
 
@@ -1311,7 +1295,7 @@ long int code;
 
 
 
-unsigned int DDU::ddu_rderareg()
+unsigned int emu::fed::DDU::ddu_rderareg()
 {
 int i,j,shft0in,shft1in,shft2in;
 
@@ -1370,7 +1354,7 @@ long int code;
 
 
 
-unsigned int DDU::ddu_rderbreg()
+unsigned int emu::fed::DDU::ddu_rderbreg()
 {
 int i,j,shft0in,shft1in,shft2in;
 
@@ -1426,7 +1410,7 @@ long int code;
 }
 
 
-unsigned int DDU::ddu_rdercreg()
+unsigned int emu::fed::DDU::ddu_rdercreg()
 {
 int i,j,shft0in,shft1in,shft2in;
 
@@ -1488,7 +1472,7 @@ long int code;
 
 
 
-unsigned int DDU::ddu_InRDstat()
+unsigned int emu::fed::DDU::ddu_InRDstat()
 // JRG, 16-bit Persistent Register, can include in Monitor Loop
 //      Error triggered by any bits true.
 {
@@ -1553,7 +1537,7 @@ long int code;
 
 
 
-int DDU::ddu_InC_Hist()
+int emu::fed::DDU::ddu_InC_Hist()
 // JRG, 16-bit Persistent Register, can include in Monitor Loop
 //      Error triggered by any bits true.
 {
@@ -1622,7 +1606,7 @@ long int code;
 
 
 
-void DDU::ddu_rd_verr_cnt()
+void emu::fed::DDU::ddu_rd_verr_cnt()
 {
 int i,shft0in,shft1in,shft2in;
 
@@ -1674,7 +1658,7 @@ long int code;
 
 
 
-void DDU::ddu_rd_cons_cnt()
+void emu::fed::DDU::ddu_rd_cons_cnt()
 {
 int i,shft0in,shft1in,shft2in;
 
@@ -1723,7 +1707,7 @@ long int code;
 
 
 
-void DDU::ddu_fifo0verr_cnt()
+void emu::fed::DDU::ddu_fifo0verr_cnt()
 {
 int i,shft0in,shft1in,shft2in;
 
@@ -1769,7 +1753,7 @@ long int code;
 }
 
 
-void DDU::ddu_fifo1verr_cnt()
+void emu::fed::DDU::ddu_fifo1verr_cnt()
 {
 int i,shft0in,shft1in,shft2in;
 
@@ -1820,7 +1804,7 @@ long int code;
 
 
 
-void DDU::ddu_earlyVerr_cnt()
+void emu::fed::DDU::ddu_earlyVerr_cnt()
 {
 int i,shft0in,shft1in,shft2in;
 
@@ -1871,7 +1855,7 @@ long int code;
 
 
 
-void DDU::ddu_verr23cnt()
+void emu::fed::DDU::ddu_verr23cnt()
 {
 int i,shft0in,shft1in,shft2in;
 
@@ -1922,7 +1906,7 @@ long int code;
 
 
 
-void DDU::ddu_verr55cnt()
+void emu::fed::DDU::ddu_verr55cnt()
 {
 int i,shft0in,shft1in,shft2in;
 
@@ -1973,7 +1957,7 @@ long int code;
 
 
 
-unsigned int DDU::ddu_rdostat()
+unsigned int emu::fed::DDU::ddu_rdostat()
 {
 int i,shft0in,shft1in,shft2in;
 long int code;
@@ -2034,7 +2018,7 @@ long int code;
 
 
 
-void DDU::ddu_rdempty()
+void emu::fed::DDU::ddu_rdempty()
 //JRG: Delete
 {
 int i,j,shft0in,shft1in,shft2in;
@@ -2085,7 +2069,7 @@ long int code;
 }
 
 
-void DDU::ddu_rdstuckbuf()
+void emu::fed::DDU::ddu_rdstuckbuf()
 //JRG: Delete
 {
 int i,j,shft2in;
@@ -2135,7 +2119,7 @@ long int code;
 
 
 
-unsigned long int DDU::ddu_rdscaler()
+unsigned long int emu::fed::DDU::ddu_rdscaler()
 {
 int i,shft2in;
 
@@ -2189,13 +2173,13 @@ long int code;
 
 
 
-unsigned long int DDU::ddu_int_rdscaler()
+unsigned long int emu::fed::DDU::ddu_int_rdscaler()
 {
 	return ddu_rdscaler();
 }
 
 
-int DDU::ddu_rdalcterr()
+int emu::fed::DDU::ddu_rdalcterr()
 {
 int i,j,shft2in;
 
@@ -2253,7 +2237,7 @@ long int code;
 
 
 
-void DDU::ddu_loadbxorbit(int regval)
+void emu::fed::DDU::ddu_loadbxorbit(int regval)
 {
 int shft2in;
 
@@ -2313,7 +2297,7 @@ long int code;
 
 
 
-int DDU::ddu_rdbxorbit()
+int emu::fed::DDU::ddu_rdbxorbit()
 {
 int i,shft2in;
 
@@ -2372,7 +2356,7 @@ long int code;
 
 
 
-void DDU::ddu_lvl1onoff()
+void emu::fed::DDU::ddu_lvl1onoff()
 {
   printf("    DDU Toggle Cal L1A \n");
   cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
@@ -2394,7 +2378,7 @@ void DDU::ddu_lvl1onoff()
 
 
 
-unsigned int DDU::ddu_rd_boardID()
+unsigned int emu::fed::DDU::ddu_rd_boardID()
 {
  int i,shft0in,shft1in,shft2in;
  long int code;
@@ -2451,7 +2435,7 @@ unsigned int DDU::ddu_rd_boardID()
 
 
 
-unsigned long int DDU::ddu_fpgastat()
+unsigned long int emu::fed::DDU::ddu_fpgastat()
 {
 int shft2in;
 long int errcode;
@@ -2528,7 +2512,7 @@ long int errcode;
 
 
 
-void DDU::ddu_occmon()
+void emu::fed::DDU::ddu_occmon()
 {
 	int i,j,shft0in,shft1in,shft2in;
 	long int errcode;
@@ -2617,7 +2601,7 @@ void DDU::ddu_occmon()
 
 
 
-void DDU::ddu_fpgatrap()
+void emu::fed::DDU::ddu_fpgatrap()
 // JRG, 192-bits, Uses custom decode routine, skip for now in Monitor Loop
 {
 int i,shft0in,shft1in,shft2in;
@@ -2720,7 +2704,7 @@ long int errcode;
 }
 
 
-void DDU::ddu_reset()
+void emu::fed::DDU::ddu_reset()
 {
   printf(" Enter DDUFPGA reset. \n");
   cmd[0]=VTX2P_USR1_L;
@@ -2748,7 +2732,7 @@ void DDU::ddu_reset()
 
 
 
-void DDU::ddu_l1calonoff()
+void emu::fed::DDU::ddu_l1calonoff()
 {
   printf(" Enter ddu_l1calonoff (toggle). \n");
   cmd[0]=VTX2P_USR1_L;
@@ -2777,7 +2761,7 @@ void DDU::ddu_l1calonoff()
 
 
 
-void DDU::ddu_vmel1a()
+void emu::fed::DDU::ddu_vmel1a()
 {
   printf(" Enter ddu_vmel1a. \n");
   cmd[0]=VTX2P_USR1_L;
@@ -2805,7 +2789,7 @@ void DDU::ddu_vmel1a()
 
 
 
-void DDU::ddu_status_decode(int long code)  // Old outdated DDU3? do not use!
+void emu::fed::DDU::ddu_status_decode(int long code)  // Old outdated DDU3? do not use!
 {
 // JRG 21feb06, old outdated routine, only good for DDU prototypes!
 
@@ -2893,7 +2877,7 @@ Pre-ddu3ctrl_v8r15576:
 
 
 
-void DDU::ddu_ostatus_decode(int long code)  // Old outdated DDU3? do not use!
+void emu::fed::DDU::ddu_ostatus_decode(int long code)  // Old outdated DDU3? do not use!
 {
 //printf("\nReceived code=%08X\n",code);
 // JRG, 16-bit DDU output path status:
@@ -2933,7 +2917,7 @@ void DDU::ddu_ostatus_decode(int long code)  // Old outdated DDU3? do not use!
 
 
 
-void DDU::ddu_era_decode(int long code)
+void emu::fed::DDU::ddu_era_decode(int long code)
 {
 //printf("\nReceived code=%08X\n",code);
 // JRG, 16-bit DDU Error Bus A:
@@ -2973,7 +2957,7 @@ void DDU::ddu_era_decode(int long code)
 
 
 
-void DDU::ddu_erb_decode(int long code)
+void emu::fed::DDU::ddu_erb_decode(int long code)
 {
 //printf("\nReceived code=%08X\n",code);
 // JRG, 16-bit DDU Error Bus B:
@@ -3016,7 +3000,7 @@ void DDU::ddu_erb_decode(int long code)
 
 
 
-void DDU::ddu_erc_decode(int long code)
+void emu::fed::DDU::ddu_erc_decode(int long code)
 {
 //printf("\nReceived code=%08X\n",code);
 // JRG, 16-bit DDU Error Bus C:
@@ -3054,7 +3038,7 @@ void DDU::ddu_erc_decode(int long code)
 
 
 
-void DDU::ddu5status_decode(int long code)
+void emu::fed::DDU::ddu5status_decode(int long code)
 {
 // JRG, low-order 16-bit status (most serious errors):
  if((code&0x0000F000)>0){
@@ -3314,7 +3298,7 @@ void in_Ccode_decode(int long code)
 
 
 
-unsigned long int DDU::ddufpga_idcode()
+unsigned long int emu::fed::DDU::ddufpga_idcode()
 {
  enum DEVTYPE dv;
 // printf(" DDU Virtex PRO ID should be  xxxxx \n");
@@ -3338,7 +3322,7 @@ unsigned long int DDU::ddufpga_idcode()
 
 }
 
-unsigned long int DDU::infpga_idcode0()
+unsigned long int emu::fed::DDU::infpga_idcode0()
 {
 enum DEVTYPE dv;
 // printf(" INFPGA Virtex PRO ID should be  xxxxx \n");
@@ -3361,7 +3345,7 @@ enum DEVTYPE dv;
       devdo(dv,14,cmd,0,sndbuf,rcvbuf,0);
 }
 
-unsigned long int DDU::infpga_idcode1()
+unsigned long int emu::fed::DDU::infpga_idcode1()
 {
 enum DEVTYPE dv;
   dv=INFPGA1;
@@ -3384,7 +3368,7 @@ enum DEVTYPE dv;
 }
 
 
-unsigned long int DDU::ddufpga_usercode()
+unsigned long int emu::fed::DDU::ddufpga_usercode()
 {
 enum DEVTYPE dv;
   dv=DDUFPGA;
@@ -3406,7 +3390,7 @@ enum DEVTYPE dv;
       return ibrd;
 }
 
-unsigned long int DDU::infpga_usercode0()
+unsigned long int emu::fed::DDU::infpga_usercode0()
 {
 enum DEVTYPE dv;
 //  printf(" INFPGA Virtex PRO ID should be  xxxxx \n");
@@ -3429,7 +3413,7 @@ enum DEVTYPE dv;
       return ibrd;
 }
 
-unsigned long int DDU::infpga_usercode1()
+unsigned long int emu::fed::DDU::infpga_usercode1()
 {
 enum DEVTYPE dv;
   dv=INFPGA1;
@@ -3452,7 +3436,7 @@ enum DEVTYPE dv;
 }
 
 
-void DDU::infpga_shfttst(enum DEVTYPE dv,int tst)
+void emu::fed::DDU::infpga_shfttst(enum DEVTYPE dv,int tst)
 {
   int shft2in;
   cmd[0]=VTX2P20_BYPASS_L;
@@ -3482,7 +3466,7 @@ shft2in=(((0x01&rcvbuf[2])<<15)|((0xff&rcvbuf[1])<<7)|(0xfe&rcvbuf[0])>>1);
 
 
 
-void DDU::infpga_reset(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_reset(enum DEVTYPE dv)
 {
   printf(" Enter INFPGA reset. \n");
   cmd[0]=VTX2P20_USR1_L;
@@ -3505,7 +3489,7 @@ void DDU::infpga_reset(enum DEVTYPE dv)
 }
 
 
-unsigned long int DDU::infpga_rdscaler(enum DEVTYPE dv)
+unsigned long int emu::fed::DDU::infpga_rdscaler(enum DEVTYPE dv)
 {
 int shft2in;
 long int code;
@@ -3552,7 +3536,7 @@ long int code;
   return code;
 }
 
-int DDU::ddu_dmblive()
+int emu::fed::DDU::ddu_dmblive()
 // JRG, 15-bits, can include in Monitor Loop; has a transient moment at
 //   _every_ Begining-of-Event, but all events should end w/the same state
 //      Error not triggered here!
@@ -3621,7 +3605,7 @@ long int code;
 
 
 
-int DDU::ddu_pdmblive()
+int emu::fed::DDU::ddu_pdmblive()
 // JRG, 15-bits, can include in Monitor Loop; has a transient moment at
 //   _first_ Begining-of-Event, Persistent thereafter.
 //   Should compare exactly with DMBlive.
@@ -3690,7 +3674,7 @@ long int code;
 
 
 
-int DDU::ddu_rd_WarnMon()
+int emu::fed::DDU::ddu_rd_WarnMon()
 // JRG, 16-bit Register, can include in Monitor Loop
 //      Error triggered by any bits true, indicates a Warning state occurred
 //         bits 7-0 are not persistent
@@ -3753,7 +3737,7 @@ long int code;
 
 
 
-void DDU::ddu_maxTimeCount()
+void emu::fed::DDU::ddu_maxTimeCount()
 // JRG, 16-bits, maybe read once at run/Loop start, Persistent.
 //      Error not triggered here!
 {
@@ -3810,7 +3794,7 @@ int i,shft0in,shft1in,shft2in;
 
 
 
-int DDU::infpga_rd1scaler(enum DEVTYPE dv)
+int emu::fed::DDU::infpga_rd1scaler(enum DEVTYPE dv)
 // JRG, 24-bits, can include in Monitor Loop, changes for each event
 //      Error not triggered here!
 {
@@ -3871,7 +3855,7 @@ long int code;
 
 
 
-void DDU::infpga_lowstat(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_lowstat(enum DEVTYPE dv)
 {
 int i,shft0in,shft1in,shft2in;
 long int code;
@@ -3928,7 +3912,7 @@ long int code;
 }
 
 
-void DDU::infpga_histat(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_histat(enum DEVTYPE dv)
 {
 int i,shft0in,shft1in,shft2in;
 long int code;
@@ -3984,8 +3968,8 @@ long int code;
   devdo(dv,14,cmd,0,sndbuf,rcvbuf,2);
 }
 
-unsigned long int DDU::infpgastat(enum DEVTYPE dv)
-     //void DDU::infpga_dfpgastat(enum DEVTYPE dv)
+unsigned long int emu::fed::DDU::infpgastat(enum DEVTYPE dv)
+     //void emu::fed::DDU::infpga_dfpgastat(enum DEVTYPE dv)
 {
 int shft2in;
 long int errcode;
@@ -4061,7 +4045,7 @@ long int errcode;
 
 
 
-int DDU::infpga_CheckFiber(enum DEVTYPE dv)
+int emu::fed::DDU::infpga_CheckFiber(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4114,9 +4098,9 @@ long int code;
 }
 
 
-int DDU::infpga_int_CheckFiber(enum DEVTYPE dv)
+int emu::fed::DDU::infpga_int_CheckFiber(enum DEVTYPE dv)
 {
-	return DDU::infpga_CheckFiber(dv);
+	return emu::fed::DDU::infpga_CheckFiber(dv);
 }
 
 
@@ -4125,7 +4109,7 @@ int DDU::infpga_int_CheckFiber(enum DEVTYPE dv)
 
 
 
-void DDU::infpga_DMBsync(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_DMBsync(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4181,7 +4165,7 @@ long int code;
 
 
 
-void DDU::infpga_FIFOstatus(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_FIFOstatus(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4237,7 +4221,7 @@ long int code;
 
 
 
-void DDU::infpga_FIFOfull(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_FIFOfull(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4294,7 +4278,7 @@ long int code;
 
 
 
-void DDU::infpga_RxErr(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_RxErr(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4350,7 +4334,7 @@ long int code;
 
 
 
-void DDU::infpga_Timeout(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_Timeout(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4405,7 +4389,7 @@ long int code;
 
 
 
-void DDU::infpga_XmitErr(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_XmitErr(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4461,7 +4445,7 @@ long int code;
 
 
 
-int DDU::infpga_WrMemActive(enum DEVTYPE dv,int ifiber)
+int emu::fed::DDU::infpga_WrMemActive(enum DEVTYPE dv,int ifiber)
 {
 int i,k,shft2in;
 long int code;
@@ -4517,7 +4501,7 @@ long int code;
 
 
 
-int DDU::infpga_DMBwarn(enum DEVTYPE dv)
+int emu::fed::DDU::infpga_DMBwarn(enum DEVTYPE dv)
 // JRG, 16-bit Persistent Register, can include in Monitor Loop
 //      Error triggered by any bits true.
 
@@ -4581,7 +4565,7 @@ long int code;
 
 
 
-int DDU::infpga_MemAvail(enum DEVTYPE dv)
+int emu::fed::DDU::infpga_MemAvail(enum DEVTYPE dv)
 {
 int i,shft2in;
 long int code;
@@ -4637,7 +4621,7 @@ long int code;
 
 
 
-int DDU::infpga_Min_Mem(enum DEVTYPE dv)
+int emu::fed::DDU::infpga_Min_Mem(enum DEVTYPE dv)
 {
 int i,shft2in;
 long int code;
@@ -4693,7 +4677,7 @@ long int code;
 
 
 
-void DDU::infpga_LostErr(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_LostErr(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4748,7 +4732,7 @@ long int code;
 
 
 
-int DDU::infpga_CcodeStat(enum DEVTYPE dv)
+int emu::fed::DDU::infpga_CcodeStat(enum DEVTYPE dv)
 // JRG, 16-bits, Uses custom decode routine, can include in Monitor Loop
 //      Error triggered by these bits: 15-0
 //         bits 13,5 are not persistent
@@ -4819,7 +4803,7 @@ long int code;
 
 
 
-void DDU::infpga_StatA(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_StatA(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4870,7 +4854,7 @@ long int code;
 
 
 
-void DDU::infpga_StatB(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_StatB(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4921,7 +4905,7 @@ long int code;
 
 
 
-void DDU::infpga_StatC(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_StatC(enum DEVTYPE dv)
 {
 int i,j,shft2in;
 long int code;
@@ -4976,7 +4960,7 @@ long int code;
 
 
 
-void DDU::infpga_FiberDiagA(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_FiberDiagA(enum DEVTYPE dv)
 {
 int i,shft2in;
 long int code;
@@ -5041,7 +5025,7 @@ long int code;
 }
 
 
-void DDU::infpga_FiberDiagB(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_FiberDiagB(enum DEVTYPE dv)
 {
 int i,shft2in;
 long int code;
@@ -5112,7 +5096,7 @@ long int code;
 
 
 
-void DDU::infpga_trap(enum DEVTYPE dv)
+void emu::fed::DDU::infpga_trap(enum DEVTYPE dv)
      // JRG, 192-bits, Uses custom decode routine, skip for now in Monitor Loop
 {
 int i,shft0in,shft1in,shft2in;
@@ -5213,7 +5197,7 @@ unsigned long int errcode;
 
 
 
-unsigned long int DDU::inprom_idcode1()
+unsigned long int emu::fed::DDU::inprom_idcode1()
 {
 enum DEVTYPE dv;
 // printf(" inprom_idcode entered \n");
@@ -5240,7 +5224,7 @@ enum DEVTYPE dv;
 }
 
 
-unsigned long int DDU::inprom_idcode0()
+unsigned long int emu::fed::DDU::inprom_idcode0()
 {
 enum DEVTYPE dv;
 printf(" inprom_idcode entered \n");
@@ -5268,7 +5252,7 @@ printf(" inprom_idcode entered \n");
 }
 
 
-unsigned long int DDU::vmeprom_idcode()
+unsigned long int emu::fed::DDU::vmeprom_idcode()
 {
 enum DEVTYPE dv;
 // printf(" vmeprom_idcode entered \n");
@@ -5290,7 +5274,7 @@ enum DEVTYPE dv;
 }
 
 
-unsigned long int DDU::dduprom_idcode1()
+unsigned long int emu::fed::DDU::dduprom_idcode1()
 {
 enum DEVTYPE dv;
 // printf(" dduprom_idcode entered \n");
@@ -5316,7 +5300,7 @@ enum DEVTYPE dv;
 }
 
 
-unsigned long int DDU::dduprom_idcode0()
+unsigned long int emu::fed::DDU::dduprom_idcode0()
 {
 enum DEVTYPE dv;
 // printf(" dduprom_idcode entered \n");
@@ -5338,7 +5322,7 @@ enum DEVTYPE dv;
 }
 
 
-unsigned long int  DDU::inprom_usercode1()
+unsigned long int  emu::fed::DDU::inprom_usercode1()
 {
 enum DEVTYPE dv;
 printf(" inprom_usercode entered \n");
@@ -5366,7 +5350,7 @@ printf(" inprom_usercode entered \n");
 }
 
 
-unsigned long int DDU::inprom_usercode0()
+unsigned long int emu::fed::DDU::inprom_usercode0()
 {
 enum DEVTYPE dv;
 printf(" entering inprom usercode 1 \n");
@@ -5393,7 +5377,7 @@ printf(" entering inprom usercode 1 \n");
 }
 
 
-unsigned long int  DDU::vmeprom_usercode()
+unsigned long int  emu::fed::DDU::vmeprom_usercode()
 {
 enum DEVTYPE dv;
 // printf(" vmeprom_usercode entered \n");
@@ -5415,7 +5399,7 @@ enum DEVTYPE dv;
 }
 
 
-unsigned long int  DDU::dduprom_usercode1()
+unsigned long int  emu::fed::DDU::dduprom_usercode1()
 {
 enum DEVTYPE dv;
 // printf(" dduprom_usercode entered \n");
@@ -5441,7 +5425,7 @@ enum DEVTYPE dv;
 }
 
 
-unsigned long int  DDU::dduprom_usercode0()
+unsigned long int  emu::fed::DDU::dduprom_usercode0()
 {
 enum DEVTYPE dv;
       dv=DDUPROM0;
@@ -5466,7 +5450,7 @@ enum DEVTYPE dv;
 
 
 
-unsigned short int  DDU::vmepara_busy()
+unsigned short int  emu::fed::DDU::vmepara_busy()
 {
   cmd[0]=0x00;
   cmd[1]=0x00;
@@ -5488,7 +5472,7 @@ unsigned short int  DDU::vmepara_busy()
 
 
 
-unsigned short int  DDU::vmepara_fullwarn()
+unsigned short int  emu::fed::DDU::vmepara_fullwarn()
 {
   cmd[0]=0x01;
   cmd[1]=0x00;
@@ -5511,7 +5495,7 @@ unsigned short int  DDU::vmepara_fullwarn()
 
 
 
-unsigned short int  DDU::vmepara_lostsync()
+unsigned short int  emu::fed::DDU::vmepara_lostsync()
 {
   cmd[0]=0x02;
   cmd[1]=0x00;
@@ -5534,7 +5518,7 @@ unsigned short int  DDU::vmepara_lostsync()
 
 
 
-unsigned short int  DDU::vmepara_error()
+unsigned short int  emu::fed::DDU::vmepara_error()
 {
   cmd[0]=0x03;
   cmd[1]=0x00;
@@ -5557,7 +5541,7 @@ unsigned short int  DDU::vmepara_error()
 
 
 
-unsigned short int DDU::vmepara_CSCstat()
+unsigned short int emu::fed::DDU::vmepara_CSCstat()
 // JRG, 16-bit Persistent Register, can include in Monitor Loop
 //      Error triggered by any bits true.
 {
@@ -5582,7 +5566,7 @@ unsigned short int DDU::vmepara_CSCstat()
 
 
 
-unsigned short int  DDU::vmepara_switch()
+unsigned short int  emu::fed::DDU::vmepara_switch()
 {
   cmd[0]=0x0e;
   cmd[1]=0x00;
@@ -5606,7 +5590,7 @@ unsigned short int  DDU::vmepara_switch()
 
 
 
-unsigned short int  DDU::vmepara_status()
+unsigned short int  emu::fed::DDU::vmepara_status()
 {
   cmd[0]=0x0f;
   cmd[1]=0x00;
@@ -5630,7 +5614,7 @@ unsigned short int  DDU::vmepara_status()
 
 
 
-unsigned short int DDU::vmepara_rd_inreg0()
+unsigned short int emu::fed::DDU::vmepara_rd_inreg0()
 {
   cmd[0]=0x08; //dev 0x08 is serial-input register
   cmd[1]=0x00; //cmd 0x00 is the first 16-bit reg (MSB word)
@@ -5648,7 +5632,7 @@ unsigned short int DDU::vmepara_rd_inreg0()
 }
 
 
-unsigned short int DDU::vmepara_rd_inreg1()
+unsigned short int emu::fed::DDU::vmepara_rd_inreg1()
 {
   cmd[0]=0x08; //dev 0x08 is serial-input register
   cmd[1]=0x01; //cmd 0x01 is the 2nd 16-bit reg
@@ -5666,7 +5650,7 @@ unsigned short int DDU::vmepara_rd_inreg1()
 }
 
 
-unsigned short int DDU::vmepara_rd_inreg2()
+unsigned short int emu::fed::DDU::vmepara_rd_inreg2()
 {
   cmd[0]=0x08; //dev 0x08 is serial-input register
   cmd[1]=0x02; //cmd 0x02 is the third 16-bit reg
@@ -5689,7 +5673,7 @@ unsigned short int DDU::vmepara_rd_inreg2()
 
 
 
-void DDU::vmepara_wr_inreg(unsigned short int par_val)
+void emu::fed::DDU::vmepara_wr_inreg(unsigned short int par_val)
 {
   cmd[0]=0x08; //dev 0x08 is serial-input register
   cmd[1]=0x80; //cmd 0x00 is first 16-bit reg (MSB word); set MSB for Write
@@ -5725,7 +5709,7 @@ void DDU::vmepara_wr_inreg(unsigned short int par_val)
 
 
 
-void  DDU::vmepara_wr_fmmreg(unsigned short int par_val)
+void  emu::fed::DDU::vmepara_wr_fmmreg(unsigned short int par_val)
 // JRG, expert use only
 {
 
@@ -5775,7 +5759,7 @@ void  DDU::vmepara_wr_fmmreg(unsigned short int par_val)
 
 
 
-unsigned short int  DDU::vmepara_rd_fmmreg()
+unsigned short int  emu::fed::DDU::vmepara_rd_fmmreg()
 // JRG, expert use only
 {
   cmd[0]=0x09; //dev 0x09 is Special Controls register
@@ -5795,7 +5779,7 @@ unsigned short int  DDU::vmepara_rd_fmmreg()
 
 
 
-void DDU::vmepara_wr_fakel1reg(unsigned short int par_val)
+void emu::fed::DDU::vmepara_wr_fakel1reg(unsigned short int par_val)
 // JRG, expert use only
 {
   cmd[0]=0x09; //dev 0x09 is Special Controls register
@@ -5835,7 +5819,7 @@ void DDU::vmepara_wr_fakel1reg(unsigned short int par_val)
 
 
 
-unsigned short int  DDU::vmepara_rd_fakel1reg()
+unsigned short int  emu::fed::DDU::vmepara_rd_fakel1reg()
 // JRG, 16-bits, maybe read once at run/Loop start, otherwise expert use only
 //      Error not triggered here!
 {
@@ -5859,7 +5843,7 @@ unsigned short int  DDU::vmepara_rd_fakel1reg()
 
 
 
-void DDU::vmepara_wr_GbEprescale(unsigned short int par_val)
+void emu::fed::DDU::vmepara_wr_GbEprescale(unsigned short int par_val)
 // JRG, expert use only
 {
 	std::cout << "vmepara_wr_GbEprescale " << par_val << std::endl;
@@ -5900,7 +5884,7 @@ void DDU::vmepara_wr_GbEprescale(unsigned short int par_val)
 
 
 
-unsigned short int  DDU::vmepara_rd_GbEprescale()
+unsigned short int  emu::fed::DDU::vmepara_rd_GbEprescale()
 // JRG, 16-bits, maybe read once at run/Loop start, otherwise expert use only
 //      Error not triggered here!
 {
@@ -5926,7 +5910,7 @@ unsigned short int  DDU::vmepara_rd_GbEprescale()
 
 
 
-unsigned short int DDU::vmepara_rd_testreg0()
+unsigned short int emu::fed::DDU::vmepara_rd_testreg0()
 // JRG, expert use only
 {
   cmd[0]=0x08; //dev 0x08 is related to serial-input register
@@ -5946,7 +5930,7 @@ unsigned short int DDU::vmepara_rd_testreg0()
 }
 
 
-unsigned short int DDU::vmepara_rd_testreg1()
+unsigned short int emu::fed::DDU::vmepara_rd_testreg1()
 // JRG, expert use only
 {
   cmd[0]=0x08; //dev 0x08 is related to serial-input register
@@ -5966,7 +5950,7 @@ unsigned short int DDU::vmepara_rd_testreg1()
 }
 
 
-unsigned short int  DDU::vmepara_rd_testreg2()
+unsigned short int  emu::fed::DDU::vmepara_rd_testreg2()
 // JRG, expert use only
 {
   cmd[0]=0x08; //dev 0x08 is related to serial-input register
@@ -5986,7 +5970,7 @@ unsigned short int  DDU::vmepara_rd_testreg2()
 }
 
 
-unsigned short int DDU::vmepara_rd_testreg3()
+unsigned short int emu::fed::DDU::vmepara_rd_testreg3()
 // JRG, expert use only
 {
   cmd[0]=0x08; //dev 0x08 is related to serial-input register
@@ -6006,7 +5990,7 @@ unsigned short int DDU::vmepara_rd_testreg3()
 }
 
 
-unsigned short int DDU::vmepara_rd_testreg4()
+unsigned short int emu::fed::DDU::vmepara_rd_testreg4()
 // JRG, expert use only
 {
   cmd[0]=0x08; //dev 0x08 is related to serial-input register
@@ -6029,7 +6013,7 @@ unsigned short int DDU::vmepara_rd_testreg4()
 
 
 
-unsigned short int DDU::vmepara_warnhist()
+unsigned short int emu::fed::DDU::vmepara_warnhist()
 // JRG, 16-bit Persistent Register, can include in Monitor Loop
 //      Error triggered by any bit changes...really Warning state flags
 //      Historical FMM-WARN flags
@@ -6055,7 +6039,7 @@ unsigned short int DDU::vmepara_warnhist()
 
 
 
-unsigned short int DDU::vmepara_busyhist()
+unsigned short int emu::fed::DDU::vmepara_busyhist()
 // JRG, 16-bit Persistent Register, can include in Monitor Loop
 //      Error triggered by any bits changes.
 //      Historical FMM-BUSY flags
@@ -6086,7 +6070,7 @@ unsigned short int DDU::vmepara_busyhist()
 
 
 // all serial DEVDOs were ...,0) for Reads, ...,1) for Writes
-int DDU::read_status()
+int emu::fed::DDU::read_status()
 {
   cmd[0]=0x04; //dev 0x04 is flash sram
   cmd[1]=0x00; // cmd 0x00 is read flash status, 8 bits
@@ -6103,14 +6087,14 @@ int DDU::read_status()
 
 
 
-int DDU::read_int_page1()
+int emu::fed::DDU::read_int_page1()
 {
 	return read_page1();
 }
 
 
 
-int DDU::read_page1()
+int emu::fed::DDU::read_page1()
 {
 //int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6130,7 +6114,7 @@ int DDU::read_page1()
 
 
 
-void DDU::write_page1()
+void emu::fed::DDU::write_page1()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6151,7 +6135,7 @@ int i;
 
 
 
-int DDU::read_page3()
+int emu::fed::DDU::read_page3()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6173,7 +6157,7 @@ int i;
 
 
 
-void DDU::write_page3()
+void emu::fed::DDU::write_page3()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6194,7 +6178,7 @@ int i;
 
 
 
-void DDU::read_page4()
+void emu::fed::DDU::read_page4()
 {
 unsigned int code[3];
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6219,7 +6203,7 @@ unsigned int code[3];
 
 
 
-void DDU::write_page4()
+void emu::fed::DDU::write_page4()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6242,7 +6226,7 @@ int i;
 
 
 
-void DDU::read_page5()
+void emu::fed::DDU::read_page5()
 {
   unsigned int code[3];
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6268,7 +6252,7 @@ void DDU::read_page5()
 
 
 
-void DDU::write_page5()
+void emu::fed::DDU::write_page5()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6298,7 +6282,7 @@ int i;
 
 
 
-int DDU::read_page7()
+int emu::fed::DDU::read_page7()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6320,7 +6304,7 @@ int i;
 
 
 
-void DDU::write_page7()
+void emu::fed::DDU::write_page7()
 {
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
@@ -6352,7 +6336,7 @@ int i;
 
 
 
-void DDU::read_vmesd0()
+void emu::fed::DDU::read_vmesd0()
 {
 
 unsigned int code[3];
@@ -6372,7 +6356,7 @@ unsigned int code[3];
 }
 
 
-void DDU::read_vmesd1()
+void emu::fed::DDU::read_vmesd1()
 {
 
 unsigned int code[3];
@@ -6392,7 +6376,7 @@ unsigned int code[3];
 }
 
 
-void DDU::read_vmesd2()
+void emu::fed::DDU::read_vmesd2()
 {
 
 unsigned int code[3];
@@ -6412,7 +6396,7 @@ unsigned int code[3];
 }
 
 
-void DDU::read_vmesd3()
+void emu::fed::DDU::read_vmesd3()
 {
 
 unsigned int code[3];
@@ -6437,7 +6421,7 @@ unsigned int code[3];
 
 
 
-void DDU::write_vmesdF()
+void emu::fed::DDU::write_vmesdF()
 {
 
   cmd[0]=0x0f; //dev 0x0F is all DDR FIFOs
@@ -6457,7 +6441,7 @@ void DDU::write_vmesdF()
 
 /* DAQMB   Voltages  */
 
-float DDU::adcplus(int ichp,int ichn){
+float emu::fed::DDU::adcplus(int ichp,int ichn){
 //printf(" inside adcplus %d %d \n",ichp,ichn);
   unsigned int ival= readADC(ichp, ichn);
 
@@ -6472,7 +6456,7 @@ float DDU::adcplus(int ichp,int ichn){
 }
 
 
-float DDU::adcminus(int ichp,int ichn){
+float emu::fed::DDU::adcminus(int ichp,int ichn){
   unsigned int ival= readADC(ichp, ichn);
   if((0x0800&ival)==0x0800)ival=ival|0xf000;
   return (float) ival;
@@ -6480,7 +6464,7 @@ float DDU::adcminus(int ichp,int ichn){
 
 
 /* Thermometers */
-float DDU::readthermx(int it)
+float emu::fed::DDU::readthermx(int it)
 {
   float cval,fval;
   float Vout= (float) readADC(1, it) / 1000.;
@@ -6497,7 +6481,7 @@ float DDU::readthermx(int it)
     return fval;
 }
 
-unsigned int DDU::readADC(int ireg, int ichn) {
+unsigned int emu::fed::DDU::readADC(int ireg, int ichn) {
   cmd[0]=ireg; /* register 1-4 */
   cmd[1]=ichn; /* channel 0-7 */
   devdo(SADC,16,cmd,0,sndbuf,rcvbuf,2);
@@ -6505,7 +6489,7 @@ unsigned int DDU::readADC(int ireg, int ichn) {
 }
 
 
-void DDU::read_therm()
+void emu::fed::DDU::read_therm()
 {
          printf("\nReading all DDU Temperatures\n");
          printf("Reading Temp 0: %5.2f F \n",readthermx(0));
@@ -6515,7 +6499,7 @@ void DDU::read_therm()
 }
 
 
-void DDU::read_voltages()
+void emu::fed::DDU::read_voltages()
 {
          printf("\nReading all DDU Voltages\n");
          printf("Reading V15P: %5.2f V \n",adcplus(1,4));
@@ -6525,12 +6509,12 @@ void DDU::read_voltages()
 }
 
 
-unsigned int DDU::unpack_ival(){
+unsigned int emu::fed::DDU::unpack_ival(){
   return ((rcvbuf[1]<<8)&0x0f00)|(rcvbuf[0]&0xff);
 }
 
 
-void DDU::Parse(char *buf,int *Count,char **Word)
+void emu::fed::DDU::Parse(char *buf,int *Count,char **Word)
 {
 
   *Word = buf;
@@ -6548,14 +6532,14 @@ void DDU::Parse(char *buf,int *Count,char **Word)
 }
 
 
-void DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
+void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 {
 	epromload(design,devnum,downfile,writ,cbrdnum,4);
 }
 
 
 
-void DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum,int ipass)
+void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum,int ipass)
 {
 	enum DEVTYPE devstp,dv;
 	char *devstr;
@@ -6571,15 +6555,14 @@ void DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,cha
 	char snd[5000],expect[5000],rmask[5000],smask[5000],cmpbuf[5000];
 	int intCache;
 
-/* ipass acts as a hiccup.
-ipass == 1 - load up to the part where you have to load the board number
-ipass == 2 - load only the board number
-ipass == 3 - load only the stuff after the board number
-ipass == 4 - do everything always
-*/
+	/* ipass acts as a hiccup.
+	ipass == 1 - load up to the part where you have to load the board number
+	ipass == 2 - load only the board number
+	ipass == 3 - load only the stuff after the board number
+	ipass == 4 - do everything always
+	*/
 	int pass = 1;
 
-	extern struct GEOM geo[];
 	//printf(" epromload %d \n",devnum);
 
 	devstp=devnum;
@@ -6842,7 +6825,7 @@ ipass == 4 - do everything always
 
 
 
-void DDU::all_chip_info()
+void emu::fed::DDU::all_chip_info()
 {
 int i;
   char *fpga[3]={" ddufpga-0"," infpga-0 "," infpga-1 "};
@@ -6863,7 +6846,7 @@ int i;
 
 
 
-void DDU::executeCommand(std::string command)
+void emu::fed::DDU::executeCommand(std::string command)
 {
 }
 
@@ -6871,7 +6854,7 @@ void DDU::executeCommand(std::string command)
 /** Part of the suite of chamber methods.
 @returns a std::vector of chambers in fiber-order.
 **/
-std::vector<Chamber *> DDU::getChambers()
+std::vector<emu::fed::Chamber *> emu::fed::DDU::getChambers()
 {
 	return chamberVector_;
 }
@@ -6881,7 +6864,7 @@ std::vector<Chamber *> DDU::getChambers()
 @param fiberNumber runs from 0-14 on (most) DDUs.
 @returns the chamber at the given fiber input number.
 **/
-Chamber *DDU::getChamber(unsigned int fiberNumber)
+emu::fed::Chamber *emu::fed::DDU::getChamber(unsigned int fiberNumber)
 {
 	if (fiberNumber >= chamberVector_.size()) {
 		//std::cerr << "chamberVector_ overflow!" << std::endl;
@@ -6894,7 +6877,7 @@ Chamber *DDU::getChamber(unsigned int fiberNumber)
 @param chamber is the chamber being added.
 @param fiberNumber is the fiber slot of the chamber.
 **/
-void DDU::addChamber(Chamber* chamber, unsigned int fiberNumber) {
+void emu::fed::DDU::addChamber(emu::fed::Chamber* chamber, unsigned int fiberNumber) {
 	chamberVector_[fiberNumber] = chamber;
 }
 
@@ -6902,13 +6885,13 @@ void DDU::addChamber(Chamber* chamber, unsigned int fiberNumber) {
 /** Part of the suite of chamber methods.
 @param chamberVector is a std::vector of chambers to overwrite the internal std::vector.
 **/
-void DDU::setChambers(std::vector<Chamber *> chamberVector) {
+void emu::fed::DDU::setChambers(std::vector<emu::fed::Chamber *> chamberVector) {
 	chamberVector_ = chamberVector;
 }
 
 
 
-// void DDU::init()
+// void emu::fed::DDU::init()
 // 	throw (FEDException)
 // {
 // 	devdo(DDUFPGA,-1,cmd,0,sndbuf,rcvbuf,2);
@@ -6916,7 +6899,7 @@ void DDU::setChambers(std::vector<Chamber *> chamberVector) {
 
 
 
-unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbits = 16)
+unsigned long int emu::fed::DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbits = 16)
 	throw (FEDException)
 {
 
@@ -7023,7 +7006,7 @@ unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbi
 /** Same thing as the readReg routine, but we have to be a bit smarter about
 *	where we place the shift test and where we put the data.
 **/
-// unsigned long int DDU::writeReg(enum DEVTYPE dt, char reg, unsigned long int value, const unsigned int nbits = 16)
+// unsigned long int emu::fed::DDU::writeReg(enum DEVTYPE dt, char reg, unsigned long int value, const unsigned int nbits = 16)
 // 	throw (FEDException)
 // {
 //
@@ -7136,7 +7119,7 @@ unsigned long int DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbi
 
 
 
-void DDU::reset(enum DEVTYPE dt = DDUFPGA)
+void emu::fed::DDU::reset(enum DEVTYPE dt = DDUFPGA)
 	throw (FEDException)
 {
 
@@ -7180,7 +7163,7 @@ void DDU::reset(enum DEVTYPE dt = DDUFPGA)
 
 
 
-void DDU::setNormal(enum DEVTYPE dt = DDUFPGA)
+void emu::fed::DDU::setNormal(enum DEVTYPE dt = DDUFPGA)
 	throw (FEDException)
 {
 
@@ -7210,7 +7193,7 @@ void DDU::setNormal(enum DEVTYPE dt = DDUFPGA)
 
 
 
-unsigned long int DDU::readFPGAStat(enum DEVTYPE dt)
+unsigned long int emu::fed::DDU::readFPGAStat(enum DEVTYPE dt)
 	throw (FEDException)
 {
 	try { return readReg(dt,3,32); }
@@ -7219,7 +7202,7 @@ unsigned long int DDU::readFPGAStat(enum DEVTYPE dt)
 
 
 
-int DDU::checkFIFO(int fifo)
+int emu::fed::DDU::checkFIFO(int fifo)
 	throw (FEDException)
 {
 	if (fifo < 1 || fifo > 3) {
@@ -7240,7 +7223,7 @@ int DDU::checkFIFO(int fifo)
 
 
 
-long int DDU::readKillFiber()
+long int emu::fed::DDU::readKillFiber()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,13,20); }
@@ -7249,7 +7232,7 @@ long int DDU::readKillFiber()
 
 
 
-// void DDU::writeKillFiber(long int killFiber = 0xf7fff)
+// void emu::fed::DDU::writeKillFiber(long int killFiber = 0xf7fff)
 // 	throw (FEDException)
 // {
 // 	try { return writeReg(DDUFPGA,14,killFiber,20); }
@@ -7258,7 +7241,7 @@ long int DDU::readKillFiber()
 
 
 
-int DDU::readCRCError()
+int emu::fed::DDU::readCRCError()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,10,15); }
@@ -7267,7 +7250,7 @@ int DDU::readCRCError()
 
 
 
-int DDU::readXmitError()
+int emu::fed::DDU::readXmitError()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,12,15); }
@@ -7276,7 +7259,7 @@ int DDU::readXmitError()
 
 
 
-int DDU::readDMBError()
+int emu::fed::DDU::readDMBError()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,15,15); }
@@ -7285,7 +7268,7 @@ int DDU::readDMBError()
 
 
 
-int DDU::readTMBError()
+int emu::fed::DDU::readTMBError()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,16,15); }
@@ -7294,7 +7277,7 @@ int DDU::readTMBError()
 
 
 
-int DDU::readLIEError()
+int emu::fed::DDU::readLIEError()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,18,15); }
@@ -7303,7 +7286,7 @@ int DDU::readLIEError()
 
 
 
-int DDU::readFFError()
+int emu::fed::DDU::readFFError()
 	throw(FEDException)
 {
 	try { return readReg(DDUFPGA,9,15); }
@@ -7312,7 +7295,7 @@ int DDU::readFFError()
 
 
 
-int DDU::readEBReg(int reg = 1)
+int emu::fed::DDU::readEBReg(int reg = 1)
 	throw(FEDException)
 {
 	if (reg < 1 || reg > 3) {
@@ -7325,7 +7308,7 @@ int DDU::readEBReg(int reg = 1)
 
 
 
-int DDU::readInRDStat()
+int emu::fed::DDU::readInRDStat()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,19,16); }
@@ -7334,7 +7317,7 @@ int DDU::readInRDStat()
 
 
 
-int DDU::readInCHistory()
+int emu::fed::DDU::readInCHistory()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,20,16); }
@@ -7343,7 +7326,7 @@ int DDU::readInCHistory()
 //
 //
 //
-// int DDU::readVoteErrorCount()
+// int emu::fed::DDU::readVoteErrorCount()
 // 	throw (FEDException)
 // {
 // 	try { return readReg(DDUFPGA,25,16); }
@@ -7352,7 +7335,7 @@ int DDU::readInCHistory()
 //
 //
 //
-// int DDU::readConsVoteErrorCount()
+// int emu::fed::DDU::readConsVoteErrorCount()
 // 	throw (FEDException)
 // {
 // 	try { return readReg(DDUFPGA,26,16); }
@@ -7361,7 +7344,7 @@ int DDU::readInCHistory()
 //
 //
 //
-// int DDU::readFIFOVoteErrorCount(int fifo = 0)
+// int emu::fed::DDU::readFIFOVoteErrorCount(int fifo = 0)
 // 	throw (FEDException)
 // {
 // 	if (fifo < 0 || fifo > 1) {
@@ -7374,7 +7357,7 @@ int DDU::readInCHistory()
 //
 //
 //
-// int DDU::readEarlyVoteErrorCount()
+// int emu::fed::DDU::readEarlyVoteErrorCount()
 // 	throw (FEDException)
 // {
 // 	try { return readReg(DDUFPGA,19,16); }
@@ -7383,7 +7366,7 @@ int DDU::readInCHistory()
 //
 //
 //
-// int DDU::readVoteError23Count()
+// int emu::fed::DDU::readVoteError23Count()
 // 	throw (FEDException)
 // {
 // 	try { return readReg(DDUFPGA,20,16); }
@@ -7392,7 +7375,7 @@ int DDU::readInCHistory()
 //
 //
 //
-// int DDU::readVoteError55Count()
+// int emu::fed::DDU::readVoteError55Count()
 // 	throw (FEDException)
 // {
 // 	try { return readReg(DDUFPGA,21,16); }
@@ -7401,7 +7384,7 @@ int DDU::readInCHistory()
 //
 //
 //
-int DDU::readOutputStat()
+int emu::fed::DDU::readOutputStat()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,6,16); }
@@ -7410,7 +7393,7 @@ int DDU::readOutputStat()
 //
 //
 //
-long int DDU::readL1Scaler(enum DEVTYPE dt = DDUFPGA)
+long int emu::fed::DDU::readL1Scaler(enum DEVTYPE dt = DDUFPGA)
 	throw (FEDException)
 {
 	try { return readReg(dt,2,24); }
@@ -7419,7 +7402,7 @@ long int DDU::readL1Scaler(enum DEVTYPE dt = DDUFPGA)
 //
 //
 //
-int DDU::readALCTError()
+int emu::fed::DDU::readALCTError()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,17,15); }
@@ -7428,7 +7411,7 @@ int DDU::readALCTError()
 
 
 
-// int DDU::writeBXOrbit(int BXOrbit)
+// int emu::fed::DDU::writeBXOrbit(int BXOrbit)
 // 	throw (FEDException)
 // {
 // 	try { return writeReg(DDUFPGA,29,BXOrbit,12); }
@@ -7437,7 +7420,7 @@ int DDU::readALCTError()
 
 
 
-int DDU::readBXOrbit()
+int emu::fed::DDU::readBXOrbit()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,30,12); }
@@ -7446,7 +7429,7 @@ int DDU::readBXOrbit()
 
 
 
-int DDU::readRUI()
+int emu::fed::DDU::readRUI()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,32,16); }
@@ -7455,7 +7438,7 @@ int DDU::readRUI()
 //
 //
 //
-// unsigned long int DDU::readOccupancyMon()
+// unsigned long int emu::fed::DDU::readOccupancyMon()
 // 	throw (FEDException)
 // {
 // 	try { return readReg(DDUFPGA,34,32); }
@@ -7464,7 +7447,7 @@ int DDU::readRUI()
 
 
 
-void DDU::toggleL1Cal()
+void emu::fed::DDU::toggleL1Cal()
 	throw (FEDException)
 {
 	try { readReg(DDUFPGA,31); }
@@ -7473,7 +7456,7 @@ void DDU::toggleL1Cal()
 
 
 
-void DDU::vmeL1A()
+void emu::fed::DDU::vmeL1A()
 	throw (FEDException)
 {
 	try { readReg(DDUFPGA,33); }
@@ -7482,7 +7465,7 @@ void DDU::vmeL1A()
 
 
 
-int DDU::readDMBLive()
+int emu::fed::DDU::readDMBLive()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,25,15); }
@@ -7491,7 +7474,7 @@ int DDU::readDMBLive()
 
 
 
-int DDU::readPermDMBLive()
+int emu::fed::DDU::readPermDMBLive()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,26,15); }
@@ -7500,7 +7483,7 @@ int DDU::readPermDMBLive()
 
 
 
-int DDU::readWarnMon()
+int emu::fed::DDU::readWarnMon()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,27,16); }
@@ -7509,7 +7492,7 @@ int DDU::readWarnMon()
 
 
 
-int DDU::readMaxTimeoutCount()
+int emu::fed::DDU::readMaxTimeoutCount()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,28,16); }
@@ -7518,7 +7501,7 @@ int DDU::readMaxTimeoutCount()
 
 
 
-long int DDU::readL1Scaler1(enum DEVTYPE dt)
+long int emu::fed::DDU::readL1Scaler1(enum DEVTYPE dt)
 	throw (FEDException)
 {
 	if (dt != INFPGA0 && dt != INFPGA1) {
@@ -7531,7 +7514,7 @@ long int DDU::readL1Scaler1(enum DEVTYPE dt)
 
 
 
-int DDU::checkFiber(enum DEVTYPE dt)
+int emu::fed::DDU::checkFiber(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7545,7 +7528,7 @@ int DDU::checkFiber(enum DEVTYPE dt)
 
 
 
-int DDU::readDMBSync(enum DEVTYPE dt)
+int emu::fed::DDU::readDMBSync(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7559,7 +7542,7 @@ int DDU::readDMBSync(enum DEVTYPE dt)
 
 
 
-int DDU::readFIFOStat(enum DEVTYPE dt)
+int emu::fed::DDU::readFIFOStat(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7573,7 +7556,7 @@ int DDU::readFIFOStat(enum DEVTYPE dt)
 
 
 
-int DDU::readFIFOFull(enum DEVTYPE dt)
+int emu::fed::DDU::readFIFOFull(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7587,7 +7570,7 @@ int DDU::readFIFOFull(enum DEVTYPE dt)
 
 
 
-int DDU::readRxError(enum DEVTYPE dt)
+int emu::fed::DDU::readRxError(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7601,7 +7584,7 @@ int DDU::readRxError(enum DEVTYPE dt)
 
 
 
-int DDU::readTimeout(enum DEVTYPE dt)
+int emu::fed::DDU::readTimeout(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7615,7 +7598,7 @@ int DDU::readTimeout(enum DEVTYPE dt)
 
 
 
-int DDU::readTxError(enum DEVTYPE dt)
+int emu::fed::DDU::readTxError(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7630,7 +7613,7 @@ int DDU::readTxError(enum DEVTYPE dt)
 
 
 
-int DDU::readWriteMemoryActive(enum DEVTYPE dt, int iFiber)
+int emu::fed::DDU::readWriteMemoryActive(enum DEVTYPE dt, int iFiber)
 	throw (FEDException)
 {
 
@@ -7648,7 +7631,7 @@ int DDU::readWriteMemoryActive(enum DEVTYPE dt, int iFiber)
 
 
 
-int DDU::readDMBWarning(enum DEVTYPE dt)
+int emu::fed::DDU::readDMBWarning(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7662,7 +7645,7 @@ int DDU::readDMBWarning(enum DEVTYPE dt)
 
 
 
-int DDU::readMemoryAvailable(enum DEVTYPE dt)
+int emu::fed::DDU::readMemoryAvailable(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7676,7 +7659,7 @@ int DDU::readMemoryAvailable(enum DEVTYPE dt)
 
 
 
-int DDU::readMinMemory(enum DEVTYPE dt)
+int emu::fed::DDU::readMinMemory(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7690,7 +7673,7 @@ int DDU::readMinMemory(enum DEVTYPE dt)
 
 
 
-int DDU::readLostError(enum DEVTYPE dt)
+int emu::fed::DDU::readLostError(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7704,7 +7687,7 @@ int DDU::readLostError(enum DEVTYPE dt)
 
 
 
-int DDU::readCCodeStat(enum DEVTYPE dt)
+int emu::fed::DDU::readCCodeStat(enum DEVTYPE dt)
 	throw (FEDException)
 {
 
@@ -7718,7 +7701,7 @@ int DDU::readCCodeStat(enum DEVTYPE dt)
 //
 //
 //
-// int DDU::readINFPGAStatusReg(enum DEVTYPE dt, int i)
+// int emu::fed::DDU::readINFPGAStatusReg(enum DEVTYPE dt, int i)
 // 	throw (FEDException)
 // {
 //
@@ -7737,7 +7720,7 @@ int DDU::readCCodeStat(enum DEVTYPE dt)
 
 
 
-long unsigned int DDU::readFiberDiagnostics(enum DEVTYPE dt, int i)
+long unsigned int emu::fed::DDU::readFiberDiagnostics(enum DEVTYPE dt, int i)
 	throw (FEDException)
 {
 
@@ -7755,7 +7738,7 @@ long unsigned int DDU::readFiberDiagnostics(enum DEVTYPE dt, int i)
 
 
 
-unsigned long int DDU::readFPGAUserCode(enum DEVTYPE dt)
+unsigned long int emu::fed::DDU::readFPGAUserCode(enum DEVTYPE dt)
 	throw (FEDException)
 {
 	int address = 0;
@@ -7793,7 +7776,7 @@ unsigned long int DDU::readFPGAUserCode(enum DEVTYPE dt)
 
 
 
-unsigned long int DDU::readPROMUserCode(enum DEVTYPE dt)
+unsigned long int emu::fed::DDU::readPROMUserCode(enum DEVTYPE dt)
 	throw (FEDException)
 {
 	if (dt != DDUPROM0 && dt != DDUPROM1 && dt != INPROM0 && dt != INPROM1 && dt != VMEPROM) {
@@ -7829,7 +7812,7 @@ unsigned long int DDU::readPROMUserCode(enum DEVTYPE dt)
 //
 //
 //
-// unsigned long int DDU::readIDCode(enum DEVTYPE dt)
+// unsigned long int emu::fed::DDU::readIDCode(enum DEVTYPE dt)
 // 	throw (FEDException)
 // {
 //
@@ -7874,7 +7857,7 @@ unsigned long int DDU::readPROMUserCode(enum DEVTYPE dt)
 //
 //
 //
-// unsigned long int DDU::readUserCode(enum DEVTYPE dt)
+// unsigned long int emu::fed::DDU::readUserCode(enum DEVTYPE dt)
 // 	throw (FEDException)
 // {
 //
@@ -7919,7 +7902,7 @@ unsigned long int DDU::readPROMUserCode(enum DEVTYPE dt)
 //
 //
 // Always 16 bits.
-int DDU::readParallel(int command)
+int emu::fed::DDU::readParallel(int command)
 	throw (FEDException)
 {
 	cmd[0] = command&0x00ff;
@@ -7939,7 +7922,7 @@ int DDU::readParallel(int command)
 
 
 
-void DDU::writeParallel(int command, int val)
+void emu::fed::DDU::writeParallel(int command, int val)
 	throw (FEDException)
 {
 	cmd[0]=(command&0x00ff);
@@ -7964,7 +7947,7 @@ void DDU::writeParallel(int command, int val)
 
 
 
-int DDU::readFMMBusy()
+int emu::fed::DDU::readFMMBusy()
 	throw (FEDException)
 {
 	try { return readParallel(0x0000); }
@@ -7973,7 +7956,7 @@ int DDU::readFMMBusy()
 
 
 
-int DDU::readFMMFullWarning()
+int emu::fed::DDU::readFMMFullWarning()
 	throw (FEDException)
 {
 	try { return readParallel(0x0001); }
@@ -7982,7 +7965,7 @@ int DDU::readFMMFullWarning()
 
 
 
-int DDU::readFMMLostSync()
+int emu::fed::DDU::readFMMLostSync()
 	throw (FEDException)
 {
 	try { return readParallel(0x0002); }
@@ -7991,7 +7974,7 @@ int DDU::readFMMLostSync()
 
 
 
-int DDU::readFMMError()
+int emu::fed::DDU::readFMMError()
 	throw (FEDException)
 {
 	try { return readParallel(0x0003); }
@@ -8000,7 +7983,7 @@ int DDU::readFMMError()
 
 
 
-int DDU::readCSCStat()
+int emu::fed::DDU::readCSCStat()
 	throw (FEDException)
 {
 	try { return readParallel(0x0004); }
@@ -8009,7 +7992,7 @@ int DDU::readCSCStat()
 
 
 
-int DDU::readFMMReg()
+int emu::fed::DDU::readFMMReg()
 	throw (FEDException)
 {
 	try { return readParallel(0x0F09); }
@@ -8018,7 +8001,7 @@ int DDU::readFMMReg()
 
 
 
-int DDU::readSwitches()
+int emu::fed::DDU::readSwitches()
 	throw (FEDException)
 {
 	try { return readParallel(0x000e); }
@@ -8027,7 +8010,7 @@ int DDU::readSwitches()
 
 
 
-int DDU::readParallelStat()
+int emu::fed::DDU::readParallelStat()
 	throw (FEDException)
 {
 	try { return readParallel(0x000f); }
@@ -8036,7 +8019,7 @@ int DDU::readParallelStat()
 
 
 
-int DDU::readInputReg(int iReg)
+int emu::fed::DDU::readInputReg(int iReg)
 	throw (FEDException)
 {
 	if (iReg < 0 || iReg > 2) {
@@ -8048,7 +8031,7 @@ int DDU::readInputReg(int iReg)
 
 
 
-void DDU::writeInputReg(int val)
+void emu::fed::DDU::writeInputReg(int val)
 	throw (FEDException)
 {
 	try { writeParallel(0x8008, val); }
@@ -8057,7 +8040,7 @@ void DDU::writeInputReg(int val)
 
 
 
-void DDU::writeFMMReg(int val)
+void emu::fed::DDU::writeFMMReg(int val)
 	throw (FEDException)
 {
 	try { writeParallel(0x8f09, val); }
@@ -8066,7 +8049,7 @@ void DDU::writeFMMReg(int val)
 
 
 
-void DDU::writeFakeL1Reg(int val)
+void emu::fed::DDU::writeFakeL1Reg(int val)
 	throw (FEDException)
 {
 	try { writeParallel(0x8509, val); }
@@ -8075,7 +8058,7 @@ void DDU::writeFakeL1Reg(int val)
 
 
 
-int DDU::readFakeL1Reg()
+int emu::fed::DDU::readFakeL1Reg()
 	throw (FEDException)
 {
 	try { return readParallel(0x0509); }
@@ -8084,7 +8067,7 @@ int DDU::readFakeL1Reg()
 
 
 
-void DDU::writeGbEPrescale(int val)
+void emu::fed::DDU::writeGbEPrescale(int val)
 	throw (FEDException)
 {
 	try { writeParallel(0x8009, val); }
@@ -8093,7 +8076,7 @@ void DDU::writeGbEPrescale(int val)
 
 
 
-int DDU::readGbEPrescale()
+int emu::fed::DDU::readGbEPrescale()
 	throw (FEDException)
 {
 	try { return readParallel(0x0009); }
@@ -8102,7 +8085,7 @@ int DDU::readGbEPrescale()
 
 
 
-int DDU::readTestReg(int iReg)
+int emu::fed::DDU::readTestReg(int iReg)
 	throw (FEDException)
 {
 	if (iReg < 0 || iReg > 4) {
@@ -8114,7 +8097,7 @@ int DDU::readTestReg(int iReg)
 
 
 
-int DDU::readWarningHistory()
+int emu::fed::DDU::readWarningHistory()
 	throw (FEDException)
 {
 	try { return readParallel(0x0005); }
@@ -8123,7 +8106,7 @@ int DDU::readWarningHistory()
 
 
 
-int DDU::readBusyHistory()
+int emu::fed::DDU::readBusyHistory()
 	throw (FEDException)
 {
 	try { return readParallel(0x0006); }
@@ -8132,7 +8115,7 @@ int DDU::readBusyHistory()
 
 
 
-unsigned long int DDU::readSerial(int command, const unsigned int nbits = 16)
+unsigned long int emu::fed::DDU::readSerial(int command, const unsigned int nbits = 16)
 	throw (FEDException)
 {
 	cmd[0] = command&0x00ff;
@@ -8152,7 +8135,7 @@ unsigned long int DDU::readSerial(int command, const unsigned int nbits = 16)
 
 
 
-void DDU::writeSerial(int command)
+void emu::fed::DDU::writeSerial(int command)
 	throw (FEDException)
 {
 	// load writes into the inreg before calling this...
@@ -8166,7 +8149,7 @@ void DDU::writeSerial(int command)
 
 
 
-char DDU::readSerialStat()
+char emu::fed::DDU::readSerialStat()
 	throw (FEDException)
 {
 	try { return readSerial(0x0004,8); }
@@ -8175,7 +8158,7 @@ char DDU::readSerialStat()
 
 
 
-int DDU::readFlashKillFiber()
+int emu::fed::DDU::readFlashKillFiber()
 	throw (FEDException)
 {
 	try { return readSerial(0x0104,16); }
@@ -8184,7 +8167,7 @@ int DDU::readFlashKillFiber()
 
 
 
-void DDU::writeFlashKillFiber(int val)
+void emu::fed::DDU::writeFlashKillFiber(int val)
 	throw (FEDException)
 {
 	try {
@@ -8196,7 +8179,7 @@ void DDU::writeFlashKillFiber(int val)
 
 
 
-int DDU::readFlashBoardID()
+int emu::fed::DDU::readFlashBoardID()
 	throw (FEDException)
 {
 	try { return readSerial(0x0304,16); }
@@ -8205,7 +8188,7 @@ int DDU::readFlashBoardID()
 
 
 
-void DDU::writeFlashBoardID(int val)
+void emu::fed::DDU::writeFlashBoardID(int val)
 	throw (FEDException)
 {
 	try {
@@ -8218,7 +8201,7 @@ void DDU::writeFlashBoardID(int val)
 //
 //
 //
-// unsigned long int DDU::readFlashInFIFOThresholds()
+// unsigned long int emu::fed::DDU::readFlashInFIFOThresholds()
 // 	throw (FEDException)
 // {
 // 	try { return readSerial(0x0404,32); }
@@ -8227,7 +8210,7 @@ void DDU::writeFlashBoardID(int val)
 //
 //
 //
-// void DDU::writeFlashInFIFOThresholds(unsigned long int val)
+// void emu::fed::DDU::writeFlashInFIFOThresholds(unsigned long int val)
 // 	throw (FEDException)
 // {
 // 	int val1 = val&0x0000ffff;
@@ -8243,7 +8226,7 @@ void DDU::writeFlashBoardID(int val)
 
 
 
-unsigned long int DDU::readFlashGbEFIFOThresholds()
+unsigned long int emu::fed::DDU::readFlashGbEFIFOThresholds()
 	throw (FEDException)
 {
 	try { return readSerial(0x0504,32); }
@@ -8252,7 +8235,7 @@ unsigned long int DDU::readFlashGbEFIFOThresholds()
 
 
 
-void DDU::writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
+void emu::fed::DDU::writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
 	throw (FEDException)
 {
 	try {
@@ -8266,7 +8249,7 @@ void DDU::writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
 
 
 
-int DDU::readFlashRUI()
+int emu::fed::DDU::readFlashRUI()
 	throw (FEDException)
 {
 	try { return readSerial(0x0704,16); }
@@ -8275,7 +8258,7 @@ int DDU::readFlashRUI()
 
 
 
-void DDU::writeFlashRUI(int val)
+void emu::fed::DDU::writeFlashRUI(int val)
 	throw (FEDException)
 {
 	try {
@@ -8287,7 +8270,7 @@ void DDU::writeFlashRUI(int val)
 //
 //
 //
-// unsigned long int DDU::readInFIFOThreshold(int iFifo)
+// unsigned long int emu::fed::DDU::readInFIFOThreshold(int iFifo)
 // 	throw (FEDException)
 // {
 // 	if (iFifo > 3 || iFifo < 0) {
@@ -8300,7 +8283,7 @@ void DDU::writeFlashRUI(int val)
 //
 //
 //
-// void DDU::forceLoadFIFOsFromFlash()
+// void emu::fed::DDU::forceLoadFIFOsFromFlash()
 // 	throw (FEDException)
 // {
 // 	try { readSerial(0x000f); }

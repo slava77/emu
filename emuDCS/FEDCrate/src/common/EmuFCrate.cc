@@ -1,34 +1,28 @@
 #include "EmuFCrate.h"
 
-// addition for STEP
-#include "FEDCrate.h"
-#include "DDU.h"
-#include "DCC.h"
-#include "IRQData.h"
-#include "FEDCrateParser.h"
-// end addition for STEP
-
 #include <iomanip>
+#include <iostream>
 
 #include "xdaq/NamespaceURI.h"
-#include "xoap/Method.h"  // xoap::bind()
-#include "xgi/Method.h"  // xgi::bind()
+#include "xoap/Method.h"
+#include "xgi/Method.h"
 
-// Includes added for createReply:
-#include "xoap/MessageFactory.h"  // createMessage()
+#include "xoap/MessageFactory.h"
 #include "xoap/SOAPPart.h"
 #include "xoap/SOAPEnvelope.h"
 #include "xoap/SOAPBody.h"
-#include "xoap/domutils.h"  // XMLCh2String()
+#include "xoap/domutils.h"
 
 #include "cgicc/HTMLClasses.h"
 
-//using namespace cgicc;
-//using namespace std;
+#include "FEDCrate.h"
+#include "DDU.h"
+#include "Chamber.h"
+#include "DCC.h"
+#include "IRQData.h"
+#include "FEDCrateParser.h"
 
 XDAQ_INSTANTIATOR_IMPL(EmuFCrate);
-
-static const std::string STATE_UNKNOWN = "unknown";
 
 EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	EmuFEDApplication(s),
@@ -138,7 +132,7 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 
 	// PGK is an idiot.  Forgetting this leads to disasters.
-	TM = new IRQThreadManager();
+	TM = new emu::fed::IRQThreadManager();
 
 }
 
@@ -339,17 +333,17 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 	// PGK Easier parsing.  Less confusing.
 	LOG4CPLUS_INFO(getApplicationLogger(),"EmuFCrate::configureAction using XML file " << xmlFile_.toString());
-	FEDCrateParser parser;
+	emu::fed::FEDCrateParser parser;
 	parser.parseFile(xmlFile_.toString().c_str());
 
 	crateVector.clear();
 
-	crateVector = parser.crateVector();
+	crateVector = parser.getCrates();
 
 	// PGK No hard reset or sync reset is coming any time soon, so we should
 	//  do it ourselves.
-	for (std::vector< FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
-		std::vector< DCC * > dccs = (*iCrate)->dccs();
+	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+		std::vector< emu::fed::DCC * > dccs = (*iCrate)->getDCCs();
 		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
 			LOG4CPLUS_INFO(getApplicationLogger(), "HARD RESET THROUGH DCC!");
 			dccs[0]->crateHardReset();
@@ -388,10 +382,10 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	// PGK At this point, we need to check to see if the constants from the
 	//  XML file have been properly loaded into the DDUs.  This will call
 	//  updateFlashAction, which will automatically load everything as needed.
-	for (std::vector< FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
 		//std::cout << "Checking crate " << (*iCrate)->number() << std::endl;
-		std::vector<DDU *>::iterator iDDU;
-		std::vector<DDU *> ddus = (*iCrate)->ddus();
+		std::vector<emu::fed::DDU *>::iterator iDDU;
+		std::vector<emu::fed::DDU *> ddus = (*iCrate)->getDDUs();
 		for (iDDU = ddus.begin(); iDDU != ddus.end(); iDDU++) {
 
 			if ((*iDDU)->slot() > 21) continue;
@@ -416,7 +410,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 			int flashKillFiber = (*iDDU)->read_page1();
 			//long int fpgaKillFiber = (*iDDU)->readKillFiber();
 			long int fpgaKillFiber = (*iDDU)->ddu_rdkillfiber();
-			long int xmlKillFiber = (*iDDU)->killfiber_;
+			long int xmlKillFiber = (*iDDU)->getKillFiber();
 			//unsigned short int DDUGbEPrescale = (*iDDU)->readGbEPrescale() & 0xf;
 			//unsigned short int dduGbEPrescale = (*iDDU)->vmepara_rd_GbEprescale() & 0xf;
 			//unsigned short int xmlGbEPrescale = (*iDDU)->gbe_prescale_ & 0xf;
@@ -464,8 +458,8 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	unsigned short int count=0;
 	for(unsigned i = 0; i < crateVector.size(); ++i){
 		// find DDUs in each crate
-		std::vector<DDU*> myDdus = crateVector[i]->ddus();
-		std::vector<DCC *> myDccs = crateVector[i]->dccs();
+		std::vector<emu::fed::DDU *> myDdus = crateVector[i]->getDDUs();
+		std::vector<emu::fed::DCC *> myDccs = crateVector[i]->getDCCs();
 		for(unsigned j =0; j < myDdus.size(); ++j){
 			if(myDdus[j]->slot()==28){
 				if (crateVector[i]->number() > 4) { // Track finder
@@ -567,7 +561,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		}
 
 		// Now check the fifoinuse parameter from the DCC
-		std::vector<DCC *>::iterator idcc;
+		std::vector<emu::fed::DCC *>::iterator idcc;
 		for (idcc = myDccs.begin(); idcc != myDccs.end(); idcc++) {
 			int fifoinuse = (*idcc)->mctrl_rd_fifoinuse() & 0x3FF;
 			if (fifoinuse != (*idcc)->fifoinuse_) {
@@ -613,8 +607,8 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 
 	// PGK No hard reset or sync reset is coming any time soon, so we should
 	//  do it ourselves.
-	for (std::vector< FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
-		std::vector< DCC * > dccs = (*iCrate)->dccs();
+	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+		std::vector< emu::fed::DCC * > dccs = (*iCrate)->getDCCs();
 		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
 			LOG4CPLUS_INFO(getApplicationLogger(), "SYNC RESET THROUGH DCC!");
 			dccs[0]->crateSyncReset();
@@ -622,7 +616,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	}
 
 	// PGK You have to wipe the thread manager and start over.
-	TM = new IRQThreadManager();
+	TM = new emu::fed::IRQThreadManager();
 	for (unsigned int i=0; i<crateVector.size(); i++) {
 		if (crateVector[i]->number() > 4) continue;
 		TM->attachCrate(crateVector[i]);
@@ -829,7 +823,7 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 			*out << cgicc::div("IRQ Monitoring Enabled")
 				.set("class","legend") << std::endl;
 
-			for (std::vector<FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+			for (std::vector<emu::fed::FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
 
 				int crateNumber = (*iCrate)->number();
 
@@ -874,7 +868,7 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 				*out << cgicc::td("Action taken") << std::endl;
 				*out << cgicc::tr() << std::endl;
 
-				std::vector<IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
+				std::vector<emu::fed::IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
 				// Print something pretty if there is no error
 				if (errorVector.size() == 0) {
 					*out << cgicc::tr() << std::endl;
@@ -887,7 +881,7 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 					*out << cgicc::tr() << std::endl;
 				} else {
 
-					for (std::vector<IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
+					for (std::vector<emu::fed::IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
 						// Mark the error as grey if there has been a reset.
 						std::string errorClass = "";
 						std::string chamberClass = "error";
@@ -1077,7 +1071,7 @@ xoap::MessageReference EmuFCrate::onPassthru(xoap::MessageReference message)
 	for(unsigned i = 0; i < crateVector.size(); ++i)
 	{
 		// find DDUs in each crate
-		std::vector<DDU*> myDdus = crateVector[i]->ddus();
+		std::vector<emu::fed::DDU *> myDdus = crateVector[i]->getDDUs();
 		for(unsigned j =0; j < myDdus.size(); ++j)
 		{
 			std::cout << "Setting passthru mode for crate: " << i << " DDU: " << j << " slot: " << myDdus[j]->slot()
@@ -1110,14 +1104,14 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 		errorChambers_.clear();
 
 		// PGK Update the DCC rate info.  This is confusing as all get-out.
-		for (std::vector<FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+		for (std::vector<emu::fed::FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
 			int crateNumber = (*iCrate)->number();
 			if (crateNumber > 4) continue; // Skip TF
-			std::vector<DCC *> myDccs = (*iCrate)->dccs();
+			std::vector<emu::fed::DCC *> myDccs = (*iCrate)->getDCCs();
 			xdata::Vector<xdata::UnsignedInteger> crateV;
 			//std::cout << "Updating getParameters Crate Number " << (*iCrate)->number() << std::endl;
 			crateV.push_back((*iCrate)->number());
-			std::vector<DCC *>::iterator idcc;
+			std::vector<emu::fed::DCC *>::iterator idcc;
 			for (idcc = myDccs.begin(); idcc != myDccs.end(); idcc++) {
 				unsigned short int status[6];
 				int dr[6];
@@ -1153,8 +1147,8 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 			// errorChambers update
 			errorChambers_.clear();
 			
-			std::vector<IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
-			for (std::vector<IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
+			std::vector<emu::fed::IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
+			for (std::vector<emu::fed::IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
 				// Skip things that have already been reset (we think)
 				if ((*iError)->reset) continue;
 				// Report the chamber names and RUI names that are in an error state.
@@ -1204,21 +1198,21 @@ void EmuFCrate::writeTTSBits(int crate, int slot, unsigned int bits)
 {
 	
 	//std::cout << "### EmuFController::writeTTSBits on " << crate << " " << slot << std::endl;
-	for (std::vector<FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+	for (std::vector<emu::fed::FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
 		if ((*iCrate)->number() != crate) continue;
 	
 		if (slot == 8 || slot == 18) {
 			
-			std::vector<DCC *> dccVector = (*iCrate)->dccs();
-			for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
+			std::vector<emu::fed::DCC *> dccVector = (*iCrate)->getDCCs();
+			for (std::vector<emu::fed::DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
 				if ((*iDCC)->slot() != slot) continue;
 	
 				(*iDCC)->mctrl_fmmset((bits | 0x10) & 0xffff);
 			}
 		} else {
 			
-			std::vector<DDU *> dduVector = (*iCrate)->ddus();
-			for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+			std::vector<emu::fed::DDU *> dduVector = (*iCrate)->getDDUs();
+			for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 				if ((*iDDU)->slot() != slot) continue;
 				
 				(*iDDU)->vmepara_wr_fmmreg((bits | 0xf0e0) & 0xffff);
@@ -1233,21 +1227,21 @@ unsigned int EmuFCrate::readTTSBits(int crate, int slot)
 {
 	
 	//std::cout << "### EmuFController::readTTSBits on " << crate << " " << slot << std::endl;
-	for (std::vector<FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+	for (std::vector<emu::fed::FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
 		if ((*iCrate)->number() != crate) continue;
 		
 		if (slot == 8 || slot == 18) {
 			
-			std::vector<DCC *> dccVector = (*iCrate)->dccs();
-			for (std::vector<DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
+			std::vector<emu::fed::DCC *> dccVector = (*iCrate)->getDCCs();
+			for (std::vector<emu::fed::DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
 				if ((*iDCC)->slot() != slot) continue;
 				
 				return (*iDCC)->mctrl_fmmrd() & 0xf;
 			}
 		} else {
 			
-			std::vector<DDU *> dduVector = (*iCrate)->ddus();
-			for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+			std::vector<emu::fed::DDU *> dduVector = (*iCrate)->getDDUs();
+			for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 				if ((*iDDU)->slot() != slot) continue;
 				
 				return (*iDDU)->vmepara_rd_fmmreg() & 0xf;

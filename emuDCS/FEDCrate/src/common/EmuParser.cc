@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.cc,v 3.0 2006/07/20 21:16:11 geurts Exp $
+// $Id: EmuParser.cc,v 3.1 2008/08/14 14:14:33 paste Exp $
 // $Log: EmuParser.cc,v $
+// Revision 3.1  2008/08/14 14:14:33  paste
+// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
+//
 // Revision 3.0  2006/07/20 21:16:11  geurts
 // *** empty log message ***
 //
@@ -13,10 +16,11 @@
 //
 //-----------------------------------------------------------------------
 #include "EmuParser.h"
+
 #include <stdio.h>
 #include <iostream>
 
-void EmuParser::parseNode(xercesc::DOMNode * pNode) {
+void emu::fed::EmuParser::parseNode(xercesc::DOMNode * pNode) {
   pAttributes_ = pNode->getAttributes();
   size_ = pAttributes_->getLength();
   #ifdef debugV
@@ -24,7 +28,7 @@ void EmuParser::parseNode(xercesc::DOMNode * pNode) {
   #endif
 }
 
-void EmuParser::fillInt(std::string item, int & target) {
+void emu::fed::EmuParser::fillInt(std::string item, int & target) {
   int value; 
   XMLCh * name = xercesc::XMLString::transcode(item.c_str());
   xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
@@ -40,7 +44,7 @@ void EmuParser::fillInt(std::string item, int & target) {
 }
 
 
-void EmuParser::fillHex(std::string item, int & target) {
+void emu::fed::EmuParser::fillHex(std::string item, int & target) {
   int value; 
   XMLCh * name = xercesc::XMLString::transcode(item.c_str());
   xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
@@ -56,7 +60,7 @@ void EmuParser::fillHex(std::string item, int & target) {
 }
 
 
-void EmuParser::fillString(std::string item, std::string & target) {
+void emu::fed::EmuParser::fillString(std::string item, std::string & target) {
   std::string value;
   XMLCh * name = xercesc::XMLString::transcode(item.c_str());
   xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
@@ -70,7 +74,7 @@ void EmuParser::fillString(std::string item, std::string & target) {
 }
 
 
-void EmuParser::fillFloat(std::string item, float & target) {
+void emu::fed::EmuParser::fillFloat(std::string item, float & target) {
   float value;
   XMLCh * name = xercesc::XMLString::transcode(item.c_str());
   xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);

@@ -11,92 +11,31 @@
 #ifndef __EMUFCRATEHYPERDAQ_H__
 #define __EMUFCRATEHYPERDAQ_H__
 
-#include "EmuFEDApplication.h"
-
-#include <string>
-#include <vector>
-#include <stdexcept>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <cstdlib>
-#include <iomanip>
-#include <time.h>
-#include <stdio.h>
-#include <map>
-
 #include "xdaq/Application.h"
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
-#include "xdata/UnsignedLong.h"
 #include "xdata/String.h"
 
-// For SOAP querying of the FCrate process
-#include "xdaq/NamespaceURI.h"  // XDAQ_NS_URI
-#include "xoap/MessageFactory.h"  // createMessage()
-#include "xoap/SOAPPart.h"
-#include "xoap/SOAPEnvelope.h"
-#include "xoap/SOAPBody.h"
-
-
-#include "cgicc/CgiDefs.h"
-#include "cgicc/Cgicc.h"
-#include "cgicc/HTTPHTMLHeader.h"
-#include "cgicc/HTMLClasses.h"
-#include "cgicc/FormFile.h"
-
-// My Stuff
-
-#include "FEDCrateParser.h"
+#include "EmuFEDApplication.h"
 #include "FEDCrate.h"
-#include "DDU.h"
-#include "DCC.h"
-#include "VMEController.h"
-#include "JTAG_constants.h"
-//#include "IRQThread.h"
-
-#include "EmuFController.h"
-
-//using namespace cgicc;
-//using namespace std;
 
 class EmuFCrateHyperDAQ: public EmuFEDApplication
 {
 private:
-	//int reload;
-	//  long int timer,xtimer;
-	//bool interrupt_set;
-	//time_t interrupt_time;
-	//long int ltime;
+
 	unsigned long int tidcode[8];
 	unsigned long int tuscode[8];
-	//
-protected:
-	//
+
 	xdata::String svfFile_;
 	xdata::String xmlFile_;
-	//xdata::UnsignedLong myParameter_;
-	//TestBeamCrateController tbController; // PGK ??
-	//DDU* thisDDU;
-	//DCC* thisDCC;
-	//std::stringstream CrateTestsOutput;
-	//std::stringstream OutputStringDDUStatus[9];
-	//std::stringstream OutputStringDCCStatus[9];
-	//std::vector<DDU*> dduVector;
-	//std::vector<DCC*> dccVector;
-	//std::vector<VMEModule *> moduleVector;
-	std::vector<FEDCrate*> crateVector;
-	//Crate *thisCrate;
-	//std::string Operator_;
+	std::vector<emu::fed::FEDCrate*> crateVector;
 	std::string DDUBoardID_[9];
 	std::string DCCBoardID_[9];
 	int DCC_ratemon[50][12];
 	int DCC_ratemon_cnt;
 	int DCC_ratemon_ch;
-	//int DDU_, DCC_;
-
 	std::string fcState_;
-	//
+
 public:
 
 	XDAQ_INSTANTIATOR();

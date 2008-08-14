@@ -1,7 +1,10 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 3.7 2008/08/13 14:20:42 paste Exp $
+// $Id: FEDCrateParser.cc,v 3.8 2008/08/14 14:14:33 paste Exp $
 // $Log: FEDCrateParser.cc,v $
+// Revision 3.8  2008/08/14 14:14:33  paste
+// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
+//
 // Revision 3.7  2008/08/13 14:20:42  paste
 // Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
 //
@@ -34,22 +37,30 @@
 
 #include "FEDCrateParser.h"
 
-XERCES_CPP_NAMESPACE_USE
-//using namespace std;
+#include <iostream>
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/framework/XMLPScanToken.hpp>
+#include <xercesc/dom/DOM.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
 
-void FEDCrateParser::parseFile(const char* name){ 
+#include "DDUParser.h"
+#include "DCCParser.h"
+#include "VMEControllerParser.h"
+#include "FEDCrate.h"
+
+void emu::fed::FEDCrateParser::parseFile(const char* name){ 
 	//PGK: clear the crateVector
-  std::cout << " durkin: entered parser " << std::endl;
+	//std::cout << " durkin: entered parser " << std::endl;
 	crateVector_.clear();
 	/// Initialize XML4C system
 	try{
-		XMLPlatformUtils::Initialize();
+		xercesc::XMLPlatformUtils::Initialize();
 	}
   
-	catch(const XMLException& toCatch){
+	catch(const xercesc::XMLException& toCatch){
 		std::cerr << "Error during Xerces-c Initialization.\n"
 			<< "  Exception message:"
-			<< XMLString::transcode(toCatch.getMessage()) << std::endl;
+			<< xercesc::XMLString::transcode(toCatch.getMessage()) << std::endl;
 		return ;
 	}
  
@@ -59,8 +70,8 @@ void FEDCrateParser::parseFile(const char* name){
 	//  The parser will call back to methods of the ErrorHandler if it
 	//  discovers errors during the course of parsing the XML document.
 	//
-	XercesDOMParser *parser = new XercesDOMParser;
-	parser->setValidationScheme(XercesDOMParser::Val_Auto);
+	xercesc::XercesDOMParser *parser = new xercesc::XercesDOMParser();
+	parser->setValidationScheme(xercesc::XercesDOMParser::Val_Auto);
 	parser->setDoNamespaces(false);
 	parser->setCreateEntityReferenceNodes(false);
 	//parser->setToCreateXMLDeclTypeNode(true);
@@ -74,16 +85,16 @@ void FEDCrateParser::parseFile(const char* name){
 		parser->parse(name);
 	}
   
-	catch (const XMLException& e){
+	catch (const xercesc::XMLException& e){
 		std::cerr << "An error occured during parsing\n   Message: "
-			<< XMLString::transcode(e.getMessage()) << std::endl;
+			<< xercesc::XMLString::transcode(e.getMessage()) << std::endl;
 		errorsOccured = true;
 	}
 
  
-	catch (const DOMException& e){
+	catch (const xercesc::DOMException& e){
 		std::cerr << "An error occured during parsing\n   Message: "
-			<< XMLString::transcode(e.msg) << std::endl;
+			<< xercesc::XMLString::transcode(e.msg) << std::endl;
 		errorsOccured = true;
 	}
 
@@ -94,60 +105,47 @@ void FEDCrateParser::parseFile(const char* name){
 
 	// If the parse was successful, output the document data from the DOM tree
 	if (!errorsOccured){
-		DOMNode * pDoc = parser->getDocument();
-		DOMNode * pNode1 = pDoc->getFirstChild();
+		xercesc::DOMNode * pDoc = parser->getDocument();
+		xercesc::DOMNode * pNode1 = pDoc->getFirstChild();
 		while (pNode1) { // EmuSystem
-			if (pNode1->getNodeType() == DOMNode::ELEMENT_NODE) {
+			if (pNode1->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
 				std::cout << "FEDCrateParser: pNode1=" 
-					<< XMLString::transcode(pNode1->getNodeName()) << std::endl;
-				if (strcmp("EmuSystem",XMLString::transcode(pNode1->getNodeName()))){
+					<< xercesc::XMLString::transcode(pNode1->getNodeName()) << std::endl;
+				if (strcmp("EmuSystem",xercesc::XMLString::transcode(pNode1->getNodeName()))){
 					std::cout << "FEDCrateParser: WARNING - Wrong Top Element <"
-						<< XMLString::transcode(pNode1->getNodeName())
+						<< xercesc::XMLString::transcode(pNode1->getNodeName())
 						<< ">, should be <EmuSystem>" << std::endl;
 				}
 				/* PGK I added a new attribute that will link you to the
 				XML file you want to parse for DDU fiber -> chamber mapping. */
 
-				DOMNamedNodeMap *ruiAttributes = pNode1->getAttributes();
-				DOMNode *ruiNode = ruiAttributes->getNamedItem(XMLString::transcode("RUI-to-chamber_map"));
-				RUIXMLFile_ = XMLString::transcode(ruiNode->getNodeValue());
+				xercesc::DOMNamedNodeMap *ruiAttributes = pNode1->getAttributes();
+				xercesc::DOMNode *ruiNode = ruiAttributes->getNamedItem(xercesc::XMLString::transcode("RUI-to-chamber_map"));
+				char *RUIXMLFile = xercesc::XMLString::transcode(ruiNode->getNodeValue());
 
-				std::cout << "JRG  RUIXMLFile_ = " << RUIXMLFile_ << std::endl;
-				char cmdstring[222];
-				sprintf(cmdstring,"/bin/ls -al %s",RUIXMLFile_);
-				printf("JRG  try system command %s \n",cmdstring);
-				system(cmdstring);
+				//std::cout << "JRG  RUIXMLFile = " << RUIXMLFile << std::endl;
+				//char cmdstring[222];
+				//sprintf(cmdstring,"/bin/ls -al %s",RUIXMLFile);
+				//printf("JRG  try system command %s \n",cmdstring);
+				//system(cmdstring);
 
-				#ifdef debugV
-				std::cout << "  RUIXMLFile_ = " << RUIXMLFile_ << std::endl;
-				#endif
-
-				DOMNode * pNode2 = pNode1->getFirstChild();
+				xercesc::DOMNode * pNode2 = pNode1->getFirstChild();
 				if (pNode2==0) std::cout << " Bad element "<< std::endl;
 				while(pNode2) { // Crate
-					if (pNode2->getNodeType() == DOMNode::ELEMENT_NODE) {
+					if (pNode2->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
 						std::cout <<"FEDCrateParser: pNode2=" 
-							<< XMLString::transcode(pNode2->getNodeName()) << std::endl;
-						#ifdef debugV
-						std::cout << "  Getting FED Crate attributes" << std::endl;
-						#endif
-						if (strcmp("FEDCrate",XMLString::transcode(pNode2->getNodeName()))){
+							<< xercesc::XMLString::transcode(pNode2->getNodeName()) << std::endl;
+
+						if (strcmp("FEDCrate",xercesc::XMLString::transcode(pNode2->getNodeName()))){
 							std::cout << "FEDCrateParser: WARNING - Wrong EmuSystem Child Element <"
-							<< XMLString::transcode(pNode2->getNodeName()) 
+							<< xercesc::XMLString::transcode(pNode2->getNodeName()) 
 							<< ">, should be <FEDCrate>" << std::endl; 
 						}
 				
-						DOMNamedNodeMap * pAttributes = pNode2->getAttributes();
-						#ifdef debugV
-						int attrCount = pAttributes->getLength();
-						std::cout << "  number of attributes = " << attrCount << std::endl;
-						#endif
+						xercesc::DOMNamedNodeMap * pAttributes = pNode2->getAttributes();
 				
-						DOMNode * e = pAttributes->getNamedItem(XMLString::transcode("Crate"));
-						crateNumber = atoi(XMLString::transcode(e->getNodeValue()));
-						#ifdef debugV
-						std::cout << "  crateNumber = " << crateNumber << std::endl;
-						#endif
+						xercesc::DOMNode * e = pAttributes->getNamedItem(xercesc::XMLString::transcode("Crate"));
+						int crateNumber = atoi(xercesc::XMLString::transcode(e->getNodeValue()));
 
 						/* At this point, the crate has been fully specified.
 							Let us initialize it and later add the appropriate
@@ -155,29 +153,29 @@ void FEDCrateParser::parseFile(const char* name){
 						*/
 						FEDCrate* crate = new FEDCrate(crateNumber);
 
-						DOMNode * pNode3 = pNode2->getFirstChild(); 
+						xercesc::DOMNode * pNode3 = pNode2->getFirstChild(); 
 						if (pNode3==0) std::cout << " Bad element "<< std::endl;
 
 						while(pNode3) { // VMEModules (DDU, DCC, controller?)
-							if (pNode3->getNodeType() == DOMNode::ELEMENT_NODE) {
-								std::cout <<"  "<< XMLString::transcode(pNode3->getNodeName()) << std::endl;
+							if (pNode3->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+								std::cout <<"  "<< xercesc::XMLString::transcode(pNode3->getNodeName()) << std::endl;
 							}
 					
-							if (strcmp("VME",XMLString::transcode(pNode3->getNodeName()))==0) {  
-								vmeParser_ = VMEParser(pNode3);
-								crate->setController(vmeParser_.controller());
+							if (strcmp("VME",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+								VMEControllerParser vmeParser = VMEControllerParser(pNode3);
+								crate->setController(vmeParser.getController());
 							}
 
-							if (strcmp("DDU",XMLString::transcode(pNode3->getNodeName()))==0) {
+							if (strcmp("DDU",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {
 								/* PGK the crateNumber is only because the ChamberParser needs it.
 								The DDU should be ignorant of its crateNumber. */
-								dduParser_ = DDUParser(pNode3, crateNumber, RUIXMLFile_);
-								crate->addModule(dduParser_.ddu());
+								DDUParser dduParser = DDUParser(pNode3, crateNumber, RUIXMLFile);
+								crate->addModule((VMEModule *) dduParser.getDDU());
 							}
 						
-							if (strcmp("DCC",XMLString::transcode(pNode3->getNodeName()))==0) {
-								dccParser_ = DCCParser(pNode3);
-								crate->addModule(dccParser_.dcc());
+							if (strcmp("DCC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {
+								DCCParser dccParser = DCCParser(pNode3);
+								crate->addModule((VMEModule *) dccParser.getDCC());
 							}
 						
 							pNode3 = pNode3->getNextSibling();
@@ -210,7 +208,7 @@ void FEDCrateParser::parseFile(const char* name){
 	
 
 	// And call the termination method
-	XMLPlatformUtils::Terminate();
+	xercesc::XMLPlatformUtils::Terminate();
 	// DomMemDebug().print();
 		
 	//

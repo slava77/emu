@@ -38,59 +38,64 @@ Everything mentioned here has an example in the code.
 #define __FEDCRATE_H__
 
 #include <vector>
-#include <iostream>
 
 #include "EmuFEDLoggable.h"
 
-class VMEModule;
-class VMEController;
-class DDU;
-class DCC;
+namespace emu {
+	namespace fed {
 
-class FEDCrate: public EmuFEDLoggable {
-public:
-	FEDCrate(int number, VMEController* theController = NULL);
-	~FEDCrate();
+		class VMEModule;
+		class VMEController;
+		class DDU;
+		class DCC;
 
-	int number() const {return theNumber;}
+		class FEDCrate: public EmuFEDLoggable {
+		public:
+			FEDCrate(int myNumber, VMEController* myController = 0);
+			~FEDCrate();
+		
+			int number() const {return number_;}
+		
+			void addModule(VMEModule* module);
+			void setController(VMEController* controller);
+		
+			VMEController *getVMEController() const { return vmeController_; }
+		
+			/// uses RTTI to find types
+			std::vector<DDU *> getDDUs() const;
+			std::vector<DCC *> getDCCs() const;
+			inline std::vector<VMEModule *> getModules() { return moduleVector_; }
+		
+			// Return the rui of the emu::fed::DDU in the given slot.  The crate number is
+			//  needed to figure this out.
+			int getRUI(int slot);
+		
+			void enable();
+			void disable();
+			void configure();
+			void init();
+		// PGK, silly to have this belong to the crate and not the thread
+		//	int irqtest(int crate,int ival);
+		
+		private:
+		
+			template<class T> T * findBoard() const
+			{
+				for(unsigned i = 0; i < moduleVector_.size(); ++i) {
+					T * result = dynamic_cast<T *>(moduleVector_[i]);
+					if (result != 0) return result;
+				}
+				return 0;
+			}
+		
+			int number_;
+			/// indexed by slot
+			std::vector<VMEModule *> moduleVector_;
+			VMEController * vmeController_;
+		};
 
-	void addModule(VMEModule* module);
-	void setController(VMEController* controller);
-
-	VMEController * vmeController() const {return theController;}
-
-	/// uses RTTI to find types
-	std::vector<DDU *> ddus() const;
-	std::vector<DCC *> dccs() const;
-	inline std::vector<VMEModule *> modules() { return theModules; }
-
-	// Return the rui of the DDU in the given slot.  The crate number is
-	//  needed to figure this out.
-	int getRUI(int slot);
-
-	void enable();
-	void disable();
-	void configure();
-	void init();
-// PGK, silly to have this belong to the crate and not the thread
-//	int irqtest(int crate,int ival);
-
-private:
-
-	template<class T> T * findBoard() const
-	{
-		for(unsigned i = 0; i < theModules.size(); ++i) {
-			T * result = dynamic_cast<T *>(theModules[i]);
-			if(result != 0) return result;
-		}
-		return 0;
 	}
-
-	int theNumber;
-	/// indexed by slot
-	std::vector<VMEModule *> theModules;
-	VMEController * theController;
-};
+}
 
 #endif
 

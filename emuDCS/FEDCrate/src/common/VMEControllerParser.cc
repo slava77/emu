@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.4 2008/08/13 14:20:42 paste Exp $
-// $Log: VMEParser.cc,v $
+// $Id: VMEControllerParser.cc,v 3.1 2008/08/14 14:14:33 paste Exp $
+// $Log: VMEControllerParser.cc,v $
+// Revision 3.1  2008/08/14 14:14:33  paste
+// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
+//
 // Revision 3.4  2008/08/13 14:20:42  paste
 // Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
 //
@@ -21,43 +24,16 @@
 //
 //
 //-----------------------------------------------------------------------
-#include "VMEParser.h"
-#include "VMEController.h"
-//#include "Crate.h"
+#include "VMEControllerParser.h"
 
-VMEParser::VMEParser(DOMNode * pNode, int crate)
+#include "VMEController.h"
+
+emu::fed::VMEControllerParser::VMEControllerParser(xercesc::DOMNode * pNode, int crate)
 {
 	int Link;
 	int Device;
 	parseNode(pNode);
 	fillInt("Device",Device); 
 	fillInt("Link",Link);
-	controller_ = new VMEController(Device, Link);
-	//fillInt("vmeirq_start", controller_->start_thread_on_init); 
+	vmeController_ = new VMEController(Device, Link);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

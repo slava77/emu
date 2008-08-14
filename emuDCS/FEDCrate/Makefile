@@ -29,15 +29,15 @@ Sources=\
 	EmuParser.cc \
 	FEDCrateParser.cc \
 	VMEController.cc \
-	VMEController_jtag.cc \
+	VMEControllerParser.cc \
 	VMEModule.cc \
 	IRQThreadManager.cc \
-	VMEParser.cc \
 	EmuFCrateHyperDAQ.cc \
 	EmuFCrate.cc \
 	EmuFCrateManager.cc \
 	Chamber.cc \
-	ChamberParser.cc
+	ChamberParser.cc \
+	JTAGDevice.cc
 
 
 IncludeDirs = \

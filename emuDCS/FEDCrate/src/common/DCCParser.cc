@@ -1,6 +1,10 @@
 #include "DCCParser.h"
 
-DCCParser::DCCParser(DOMNode * pNode, int crate)
+#include <iostream>
+
+#include "DCC.h"
+
+emu::fed::DCCParser::DCCParser(xercesc::DOMNode * pNode, int crate)
 {
 	parseNode(pNode);
 	

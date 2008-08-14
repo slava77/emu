@@ -6,12 +6,10 @@
 #include "xdata/String.h"
 #include "xdata/Vector.h"
 #include <vector>
+#include <string>
 
 #include "FEDCrate.h"
 #include "IRQThreadManager.h"
-
-//using namespace std;
-//using namespace cgicc;
 
 class EmuFCrate : public EmuFEDApplication
 {
@@ -104,7 +102,7 @@ private:
 	xdata::UnsignedInteger ttsSlot_;
 	xdata::UnsignedInteger ttsBits_;
 
-	IRQThreadManager *TM;
+	emu::fed::IRQThreadManager *TM;
 
 	bool soapConfigured_;
 	bool soapLocal_;
@@ -115,7 +113,7 @@ private:
 	//std::string ttsIDStr_, ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
 	xdata::String endcap_; // Will say something like "plus" or "minus"
 
-	std::vector<FEDCrate *> crateVector; // Very useful, just like in EFCHD
+	std::vector<emu::fed::FEDCrate *> crateVector; // Very useful, just like in EFCHD
 
 };
 
