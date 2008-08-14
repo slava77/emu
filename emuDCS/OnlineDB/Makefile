@@ -1,6 +1,6 @@
 ##
 #
-# This is the TriDAS/emu/emuDCS/PeripheralApps Package Makefile
+# This is the TriDAS/emu/emuDCS/OnlineDB Package Makefile
 #
 ##
 
@@ -16,7 +16,8 @@ Package=emuDCS/OnlineDB
 Sources=\
 	BoardsDB.cc \
         ConnectionsDB.cc \
-        ConnectionsGUI.cc 
+        ConnectionsGUI.cc \
+	OnlineDBVersion.cc
 
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
