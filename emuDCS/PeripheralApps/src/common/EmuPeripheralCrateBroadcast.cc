@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.32 2008/08/13 11:30:52 geurts Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.33 2008/08/14 09:33:02 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -100,7 +100,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
 
   current_state_ = 0;
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateBroadcastXmlFile_);
-  brddb= new BoardsDB();
+  brddb= new emu::db::BoardsDB();
 
   // everything below for Monitoring
   timer_ = toolbox::task::getTimerFactory()->createTimer("EmuMonitorTimer");

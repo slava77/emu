@@ -24,6 +24,9 @@ parse and use xml board data bases.
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 
+namespace emu {
+  namespace db{
+
 BoardsDB::BoardsDB(): pAttributes_(0)
 {
   HOMEDIR_=getenv("BUILD_HOME");
@@ -354,3 +357,6 @@ int BoardsDB::ChamberToCFEBID(std::string chamber,int cfeb){
   }
   return cfebID;
 } 
+
+  }
+}
