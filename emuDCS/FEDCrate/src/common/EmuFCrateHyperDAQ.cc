@@ -1,12 +1,42 @@
-
 #include "EmuFCrateHyperDAQ.h"
+
+#include <string>
+#include <vector>
+//#include <stdexcept>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <cstdlib>
+#include <iomanip>
+#include <time.h>
+//#include <stdio.h>
+#include <map>
+#include <bitset>
+#include <fstream>
+
+#include "xdaq/NamespaceURI.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/SOAPPart.h"
+#include "xoap/SOAPEnvelope.h"
+#include "xoap/SOAPBody.h"
+//#include "xdata/UnsignedLong.h"
+
+//#include "cgicc/CgiDefs.h"
+#include "cgicc/Cgicc.h"
+//#include "cgicc/HTTPHTMLHeader.h"
+//#include "cgicc/HTMLClasses.h"
+//#include "cgicc/FormFile.h"
 
 #include "DDUDebugger.h"
 #include "DCCDebugger.h"
 #include "DataTable.h"
-
-#include <bitset>
-#include <fstream>
+#include "FEDCrateParser.h"
+#include "FEDCrate.h"
+#include "DDU.h"
+#include "Chamber.h"
+#include "DCC.h"
+#include "VMEController.h"
+#include "JTAG_constants.h"
 
 XDAQ_INSTANTIATOR_IMPL(EmuFCrateHyperDAQ)
 
@@ -161,7 +191,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 	
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ")";
@@ -183,8 +213,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Two crates share crate number " << crateVector[iCrate]->number() << cgicc::div() << std::endl;
 					crateError++;
 				}
-				if (crateVector[iCrate]->vmeController()->Device() == crateVector[jCrate]->vmeController()->Device()) {
-					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[iCrate]->number() << " and " << crateVector[jCrate]->number() << " have the same VME controller device number (" << crateVector[iCrate]->vmeController()->Device() << ")" << cgicc::div() << std::endl;
+				if (crateVector[iCrate]->getVMEController()->Device() == crateVector[jCrate]->getVMEController()->Device()) {
+					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[iCrate]->number() << " and " << crateVector[jCrate]->number() << " have the same VME controller device number (" << crateVector[iCrate]->getVMEController()->Device() << ")" << cgicc::div() << std::endl;
 					crateError++;
 				}
 			}
@@ -255,9 +285,9 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		//  If there is no DCC, then you'll just have to live with the error, I guess.
 
 		
-		if (myCrate->dccs().size()) {
+		if (myCrate->getDCCs().size()) {
 			//std::cout << " pinging DCC to avoid CAEN read error -1" << std::endl;
-			myCrate->dccs()[0]->readStatusLow();
+			myCrate->getDCCs()[0]->readStatusLow();
 		}
 		
 
@@ -269,18 +299,18 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		unsigned int idcc = 0;
 
 		// Loop over all the DDUs
-		std::vector<DDU *> myDDUs = myCrate->ddus();
-		std::vector<DDU *>::iterator iDDU;
+		std::vector<emu::fed::DDU *> myDDUs = myCrate->getDDUs();
+		std::vector<emu::fed::DDU *>::iterator iDDU;
 		for (iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 			// Determine if we are working on a DDU or a DCC by module type
-			//(*iDDU) = dynamic_cast<DDU *>(moduleVector[iModule]);
-			//thisDCC = dynamic_cast<DCC *>(moduleVector[iModule]);
+			//(*iDDU) = dynamic_cast<emu::fed::DDU *>(moduleVector[iModule]);
+			//thisDCC = dynamic_cast<emu::fed::DCC *>(moduleVector[iModule]);
 
 			// Skip broadcasting
 			if ((*iDDU)->slot() > 21) continue;
 
 			// First, determine the status of the DDU.
-			myCrate->vmeController()->CAEN_err_reset();
+			myCrate->getVMEController()->CAEN_err_reset();
 			// Do a fast FMM status check
 			//unsigned short int DDU_FMM = (((*iDDU)->vmepara_status()>>8)&0x000F);
 			unsigned short int DDU_FMM = (((*iDDU)->readParallelStat()>>8)&0x000F);
@@ -307,7 +337,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			//unsigned short int status = 0; // DEBUG
 			// Mark the status with pretty colors
 			std::string cscClass = "green";
-			if (myCrate->vmeController()->CAEN_err()!=0) {
+			if (myCrate->getVMEController()->CAEN_err()!=0) {
 				cscClass = "yellow";
 			} else if (fibersWithErrors==0x0000) {
 				cscClass = "green";
@@ -393,7 +423,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			
 			// Loop through the chambers.  They should be in fiber-order.
 			for (unsigned int iFiber=0; iFiber<15; iFiber++) {
-				Chamber *thisChamber = (*iDDU)->getChamber(iFiber);
+				emu::fed::Chamber *thisChamber = (*iDDU)->getChamber(iFiber);
 				// DDU::getChamber will return a null pointer if there is
 				//  no chamber at that fiber position.
 				std::string chamberClass = "ok";
@@ -470,15 +500,15 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		}
 		
 		// Loop over all the DCCs
-		std::vector<DCC *>::iterator iDCC;
-		std::vector<DCC *> myDCCs = myCrate->dccs();
+		std::vector<emu::fed::DCC *>::iterator iDCC;
+		std::vector<emu::fed::DCC *> myDCCs = myCrate->getDCCs();
 		for (iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
 
 			// Skip broadcasting
 			if ((*iDCC)->slot() > 21) continue;
 
 			// First, determine the status of the DCC.
-			myCrate->vmeController()->CAEN_err_reset();
+			myCrate->getVMEController()->CAEN_err_reset();
 			unsigned short int statush=(*iDCC)->mctrl_stath();
 			unsigned short int statusl=(*iDCC)->mctrl_statl();
 			unsigned short int rdfifoinuse=(*iDCC)->mctrl_rd_fifoinuse();
@@ -599,12 +629,12 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::fieldset() << std::endl;
 
 		// Broadcast table...
-		DDU *broadcastDDU = NULL;
-		for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
+		emu::fed::DDU *broadcastDDU = NULL;
+		for (std::vector<emu::fed::DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 			if ((*iDDU)->slot() > 21) broadcastDDU = (*iDDU);
 		}
-		DCC *broadcastDCC = NULL;
-		for (std::vector<DCC *>::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
+		emu::fed::DCC *broadcastDCC = NULL;
+		for (std::vector<emu::fed::DCC *>::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
 			if ((*iDCC)->slot() > 21) broadcastDCC = (*iDCC);
 		}
 
@@ -722,7 +752,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 		*out << Footer();
 
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
 }
@@ -815,7 +845,7 @@ void EmuFCrateHyperDAQ::configurePage(xgi::Input *in, xgi::Output *out )
 		*out << cgicc::body() << std::endl;
 		*out << cgicc::html() << std::endl;
 
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
 }
@@ -840,10 +870,10 @@ void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 	if (!(cgi["icrate"]->isEmpty())) icrate = cgi["icrate"]->getIntegerValue();
 
 	thisCrate = crateVector[icrate];
-	std::cout << " vme device " << thisCrate->vmeController()->Device() << std::endl;
-	std::cout << " vme link " << thisCrate->vmeController()->Link() << std::endl;
-	dduVector = thisCrate->ddus();
-	dccVector = thisCrate->dccs();
+	std::cout << " vme device " << thisCrate->getVMEController()->Device() << std::endl;
+	std::cout << " vme link " << thisCrate->getVMEController()->Link() << std::endl;
+	dduVector = thisCrate->getDDUs();
+	dccVector = thisCrate->getDCCs();
 	moduleVector = thisCrate->modules();
 
 	std::cout << " crate set to " << icrate << ", which is crate number " << thisCrate->number() << std::endl;
@@ -880,7 +910,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 
 		std::cout << "Load Default..." << std::endl;
 		Default(in, out);
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
 }
@@ -922,7 +952,7 @@ void EmuFCrateHyperDAQ::setConfFile(xgi::Input * in, xgi::Output * out )
 
 		std::cout << "Load Default..." << std::endl;
 		Default(in, out);
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
 }
@@ -952,7 +982,7 @@ void EmuFCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out )
 
 		std::cout << "Load Default..." << std::endl;
 		Default(in, out);
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
 }
@@ -974,7 +1004,7 @@ void EmuFCrateHyperDAQ::Configuring() {
 	//
 	std::cout << "---- XML parser ----" << std::endl;
 //	std::cout << " Here parser " << std::endl;
-	FEDCrateParser parser;
+	emu::fed::FEDCrateParser parser;
 	std::cout << " Using file " << xmlFile_.toString() << std::endl ;
 	parser.parseFile(xmlFile_.toString().c_str());
 	std::cout <<"---- Parser Finished ----"<<std::endl;
@@ -985,9 +1015,9 @@ void EmuFCrateHyperDAQ::Configuring() {
 	//dccVector.clear();
 
 	std::cout << " setting std::vectors..." << std::endl;
-	crateVector = parser.crateVector();
-	//dduVector = crateVector[0]->ddus();
-	//dccVector = crateVector[0]->dccs();
+	crateVector = parser.getCrates();
+	//dduVector = crateVector[0]->getDDUs();
+	//dccVector = crateVector[0]->getDCCs();
 	//moduleVector = crateVector[0]->modules();
 	//std::cout << " crateVector["<<crateVector.size()<<"] dduVector["<<dduVector.size()<<"] dccVector["<<dccVector.size()<<"]" << std::endl;
 
@@ -1030,7 +1060,7 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 		cgiDDU = cgi["ddu"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DDU *myDDU = myCrate->ddus()[cgiDDU];
+	emu::fed::DDU *myDDU = myCrate->getDDUs()[cgiDDU];
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Firmware (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
@@ -1052,7 +1082,7 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 	for (unsigned int iModule = 0; iModule < moduleVector.size(); iModule++) {
 
 		// Determine if we are working on a DDU or a DCC by module type
-		myDDU = dynamic_cast<DDU *>(moduleVector[iModule]);
+		myDDU = dynamic_cast<emu::fed::DDU *>(moduleVector[iModule]);
 		if (myDDU != 0) {
 			// I am a DDU!
 			// Skip broadcasting
@@ -1079,7 +1109,7 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::fieldset() << std::endl;
 
 	// Get this DDU back again.
-	std::vector<DDU *> myDDUs = myCrate->ddus();
+	std::vector<emu::fed::DDU *> myDDUs = myCrate->getDDUs();
 	myDDU = myDDUs[cgiDDU];
 
 	// PGK Display-a-Crate
@@ -1105,7 +1135,7 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 		.set("class","legend") << std::endl;
 
 	// Pick up the FPGA and PROM user/id codes.
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 	// There are names to these things.
 	std::string deviceNames[8] = {
 		"DDUFPGA",
@@ -1141,7 +1171,7 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 
 	// Next, print the table with the codes.
 	std::string dduClass = "";
-	if (myCrate->vmeController()->CAEN_err()!=0) {
+	if (myCrate->getVMEController()->CAEN_err()!=0) {
 		dduClass = "caution";
 	}
 
@@ -1325,7 +1355,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	
 	std::stringstream sTitle;
@@ -1387,7 +1417,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div("Step 1:  Upload DDU firmware to disk")
 		.set("class","legend") << std::endl;
 	
-	DataTable diskTable("diskTable");
+	emu::fed::DataTable diskTable("diskTable");
 
 	diskTable.addColumn("DDU PROM Name");
 	diskTable.addColumn("On-Disk Firmware Version");
@@ -1406,7 +1436,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		// My perl-fu is 1337, indeed!
 		systemCall << "perl -e 'while ($line = <>) { if ($line =~ /SIR 8 TDI \\(fd\\) TDO \\(00\\) ;/) { $line = <>; if ($line =~ /TDI \\((........)\\)/) { print $1; } } }' <Current" << dduPROMNames[iprom] << ".svf >check_ver 2>&1";
 		if (!system(systemCall.str().c_str())) {
-			std::ifstream pipein("check_ver",ios::in);
+			std::ifstream pipein("check_ver",std::ios::in);
 			getline(pipein,diskVersion);
 			pipein.close();
 		}
@@ -1496,7 +1526,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div("Step 2:  Select the slots you to which you intend to load firmware")
 		.set("class","legend") << std::endl;
 	
-	DataTable slotTable("slotTable");
+	emu::fed::DataTable slotTable("slotTable");
 
 	slotTable.addColumn("Slot number");
 	slotTable.addColumn("RUI");
@@ -1507,8 +1537,8 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 
 
 	int iddu = -1;
-	std::vector<DDU *> myDDUs = myCrate->ddus();
-	for (std::vector< DDU * >::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
+	std::vector<emu::fed::DDU *> myDDUs = myCrate->getDDUs();
+	for (std::vector< emu::fed::DDU * >::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 		if ((*iDDU)->slot() >= 21) continue;
 		iddu++;
 		std::ostringstream bitFlipCommand;
@@ -1678,7 +1708,7 @@ void EmuFCrateHyperDAQ::DDULoadBroadcast(xgi::Input *in, xgi::Output *out)
 
 	std::string filename = "Current" + type + ".svf";
 	std::ofstream outfile;
-	outfile.open(filename.c_str(),ios::trunc);
+	outfile.open(filename.c_str(),std::ios::trunc);
 	if (!outfile.is_open()) {
 		std::cout << "I can't open the file stream for writing (" << filename << ")." << std::endl;
 
@@ -1721,7 +1751,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	//printf(" entered DDUSendBroadcast \n");
 
@@ -1744,8 +1774,8 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 		slots = 0;
 		broadcast = 0; // Can't broadcast emergency VMEPROM.
 		// Loop through the DDUs and add them all to the list of slots to load.
-		std::vector<DDU *> myDDUs = myCrate->ddus();
-		for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
+		std::vector<emu::fed::DDU *> myDDUs = myCrate->getDDUs();
+		for (std::vector<emu::fed::DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 			if ((*iDDU)->slot() <= 21) {
 				slots |= (*iDDU)->slot();
 			}
@@ -1794,12 +1824,12 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	//std::cout << std::endl;
 
 	// I thought this was not allowed!
-	int bnstore[myCrate->ddus().size()];
-	for (unsigned int i=0; i<myCrate->ddus().size(); i++) {
-		if (!broadcast && !(slots & (1 << myCrate->ddus()[i]->slot()))) continue;
-		else if (broadcast && myCrate->ddus()[i]->slot() <= 21) continue;
+	int bnstore[myCrate->getDDUs().size()];
+	for (unsigned int i=0; i<myCrate->getDDUs().size(); i++) {
+		if (!broadcast && !(slots & (1 << myCrate->getDDUs()[i]->slot()))) continue;
+		else if (broadcast && myCrate->getDDUs()[i]->slot() <= 21) continue;
 
-		DDU *myDDU = myCrate->ddus()[i];
+		emu::fed::DDU *myDDU = myCrate->getDDUs()[i];
 		//std::cout << "Sending to slot " << myDDU->slot() << std::endl;
 
 		for (int i=from; i<=to; i++) {
@@ -1820,8 +1850,8 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 				myDDU->epromload((char *)promName[i].c_str(),devType[i],(char *)filename.c_str(),1,boardnumber,1);
 
 				if (broadcast) {
-					for (unsigned int ddu=0; ddu<myCrate->ddus().size(); ddu++) {
-						DDU *secondaryDDU = myCrate->ddus()[ddu];
+					for (unsigned int ddu=0; ddu<myCrate->getDDUs().size(); ddu++) {
+						emu::fed::DDU *secondaryDDU = myCrate->getDDUs()[ddu];
 						if (secondaryDDU->slot() > 21) continue;
 						int ibn = secondaryDDU->readFlashBoardID();
 						bnstore[ddu] = ibn;
@@ -1854,10 +1884,10 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	LOG4CPLUS_INFO(getApplicationLogger(),"All firmware loading operations complete, checking PROM ids...");
 
 	for (int i=from; i<=to; i++) { // loop over PROMS
-		for (unsigned int ddu=0; ddu<myCrate->ddus().size(); ddu++) { // loop over boards
-			if (!broadcast && !(slots & (1 << myCrate->ddus()[ddu]->slot()))) continue;
-			else if (broadcast && myCrate->ddus()[ddu]->slot() > 21) continue;
-			DDU *myDDU = myCrate->ddus()[ddu];
+		for (unsigned int ddu=0; ddu<myCrate->getDDUs().size(); ddu++) { // loop over boards
+			if (!broadcast && !(slots & (1 << myCrate->getDDUs()[ddu]->slot()))) continue;
+			else if (broadcast && myCrate->getDDUs()[ddu]->slot() > 21) continue;
+			emu::fed::DDU *myDDU = myCrate->getDDUs()[ddu];
 
 			std::string boardversion;
 			std::string checkversion;
@@ -1915,9 +1945,9 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
-	myCrate->dccs()[0]->crateHardReset();
+	myCrate->getDCCs()[0]->crateHardReset();
 
 	std::ostringstream backLocation;
 	backLocation << "DDUBroadcast?crate=" << cgiCrate;
@@ -1949,7 +1979,7 @@ void EmuFCrateHyperDAQ::DDUBrcstFED(xgi::Input *in, xgi::Output *out)
 		webRedirect(out,"mainPage");
 		//mainPage(in,out);
 
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		printf(" exception raised in DDUBrcstFED \n");
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
@@ -2056,7 +2086,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
@@ -2064,7 +2094,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 		cgiDDU = cgi["ddu"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DDU *myDDU = myCrate->ddus()[cgiDDU];
+	emu::fed::DDU *myDDU = myCrate->getDDUs()[cgiDDU];
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDUFPGA Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
@@ -2098,7 +2128,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	myDDU->infpga_shift0 = 0;
 	myDDU->ddu_shift0 = 0;
 
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 
 
 	// Display general DDU status information
@@ -2111,7 +2141,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 		.set("onClick","javascript:toggle('generalTable')") << std::endl;
 	*out << "General DDU Information" << cgicc::div() << std::endl;
 
-	DataTable generalTable("generalTable");
+	emu::fed::DataTable generalTable("generalTable");
 
 	generalTable.addColumn("Register");
 	generalTable.addColumn("Value");
@@ -2131,14 +2161,14 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	
 	*(generalTable(2,0)->value) << "DDU control FPGA status (32-bit)";
 	dduValue = myDDU->ddu_fpgastat();
-	*(generalTable(2,1)->value) << showbase << std::hex << dduValue;
+	*(generalTable(2,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x00008000) {
 		generalTable(2,1)->setClass("bad");
 		debugTrapValid = true;
 	}
 	else if (dduValue & 0xDE4F4BFF) generalTable(2,1)->setClass("warning");
 	else generalTable(2,1)->setClass("ok");
-	std::map<std::string, std::string> dduComments = DDUDebugger::DDUFPGAStat(dduValue);
+	std::map<std::string, std::string> dduComments = emu::fed::DDUDebugger::DDUFPGAStat(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2148,11 +2178,11 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(3,0)->value) << "DDU output status (16-bit)";
 	dduValue = myDDU->readOutputStat();
-	*(generalTable(3,1)->value) << showbase << std::hex << dduValue;
+	*(generalTable(3,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x00000080) generalTable(3,1)->setClass("bad");
 	else if (dduValue & 0x00004000) generalTable(3,1)->setClass("warning");
 	else generalTable(3,1)->setClass("ok");
-	dduComments = DDUDebugger::OutputStat(dduValue);
+	dduComments = emu::fed::DDUDebugger::OutputStat(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2162,11 +2192,11 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(4,0)->value) << "Error bus A register bits (16-bit)";
 	dduValue = myDDU->readEBReg(1);
-	*(generalTable(4,1)->value) << showbase << std::hex << dduValue;
+	*(generalTable(4,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x0000C00C) generalTable(4,1)->setClass("bad");
 	else if (dduValue & 0x000001C8) generalTable(4,1)->setClass("warning");
 	else generalTable(4,1)->setClass("ok");
-	dduComments = DDUDebugger::EBReg1(dduValue);
+	dduComments = emu::fed::DDUDebugger::EBReg1(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2176,11 +2206,11 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(5,0)->value) << "Error bus B register bits (16-bit)";
 	dduValue = myDDU->readEBReg(2);
-	*(generalTable(5,1)->value) << showbase << std::hex << dduValue;
+	*(generalTable(5,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x00000011) generalTable(5,1)->setClass("bad");
 	else if (dduValue & 0x0000D08E) generalTable(5,1)->setClass("warning");
 	else generalTable(5,1)->setClass("ok");
-	dduComments = DDUDebugger::EBReg2(dduValue);
+	dduComments = emu::fed::DDUDebugger::EBReg2(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2190,10 +2220,10 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(6,0)->value) << "Error bus C register bits (16-bit)";
 	dduValue = myDDU->readEBReg(3);
-	*(generalTable(6,1)->value) << showbase << std::hex << dduValue;
+	*(generalTable(6,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x0000BFBF) generalTable(6,1)->setClass("warning");
 	else generalTable(6,1)->setClass("ok");
-	dduComments = DDUDebugger::EBReg3(dduValue);
+	dduComments = emu::fed::DDUDebugger::EBReg3(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2225,7 +2255,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 		.set("onClick","javascript:toggle('otherTable')") << std::endl;
 	*out << "Other DDU Information" << cgicc::div() << std::endl;
 
-	DataTable otherTable("otherTable");
+	emu::fed::DataTable otherTable("otherTable");
 
 	otherTable.addColumn("Register");
 	otherTable.addColumn("Value");
@@ -2233,10 +2263,10 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(otherTable(0,0)->value) << "DDU near full warning (8-bit)";
 	dduValue = myDDU->readWarnMon();
-	*(otherTable(0,1)->value) << showbase << std::hex << ((dduValue) & 0xFF);
+	*(otherTable(0,1)->value) << std::showbase << std::hex << ((dduValue) & 0xFF);
 	if ((dduValue) & 0xFF) otherTable(0,1)->setClass("questionable");
 	else otherTable(0,1)->setClass("ok");
-	dduComments = DDUDebugger::WarnMon((dduValue) & 0xFF);
+	dduComments = emu::fed::DDUDebugger::WarnMon((dduValue) & 0xFF);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2246,10 +2276,10 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(otherTable(1,0)->value) << "DDU near full historical (8-bit)";
 	//dduValue = myDDU->readWarnMon();
-	*(otherTable(1,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0xFF);
+	*(otherTable(1,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0xFF);
 	if ((dduValue >> 8) & 0xFF) otherTable(1,1)->setClass("questionable");
 	else otherTable(1,1)->setClass("ok");
-	dduComments = DDUDebugger::WarnMon((dduValue >> 8) & 0xFF);
+	dduComments = emu::fed::DDUDebugger::WarnMon((dduValue >> 8) & 0xFF);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2264,7 +2294,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(otherTable(3,0)->value) << "DDU start-to-end max process time";
 	//dduValue = myDDU->readWarnMon();
-	*(otherTable(3,1)->value) << showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << " &mu;s";
+	*(otherTable(3,1)->value) << std::showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << " &mu;s";
 	otherTable(3,1)->setClass("none");
 
 	*out << otherTable.printSummary() << std::endl;
@@ -2282,7 +2312,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	
 
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 	// Display individual fiber information
 	*out << cgicc::fieldset()
 		.set("class","normal") << std::endl;
@@ -2294,7 +2324,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	*out << "Individual Fiber Information" << cgicc::div() << std::endl;
 
 
-	DataTable fiberTable("fiberTable");
+	emu::fed::DataTable fiberTable("fiberTable");
 
 	fiberTable.addColumn("Register");
 	fiberTable.addColumn("Value");
@@ -2302,7 +2332,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(0,0)->value) << "First event DMBLIVE";
 	dduValue = myDDU->readPermDMBLive();
-	*(fiberTable(0,1)->value) << showbase << std::hex << dduValue;
+	*(fiberTable(0,1)->value) << std::showbase << std::hex << dduValue;
 	fiberTable(0,1)->setClass("none");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
@@ -2313,7 +2343,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(1,0)->value) << "Latest event DMBLIVE";
 	dduValue = myDDU->readDMBLive();
-	*(fiberTable(1,1)->value) << showbase << std::hex << dduValue;
+	*(fiberTable(1,1)->value) << std::showbase << std::hex << dduValue;
 	fiberTable(1,1)->setClass("none");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
@@ -2324,7 +2354,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(2,0)->value) << "CRC error";
 	dduValue = myDDU->readCRCError();
-	*(fiberTable(2,1)->value) << showbase << std::hex << dduValue;
+	*(fiberTable(2,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(2,1)->setClass("bad");
 	else fiberTable(2,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2337,7 +2367,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(3,0)->value) << "Data transmit error";
 	dduValue = myDDU->readXmitError();
-	*(fiberTable(3,1)->value) << showbase << std::hex << dduValue;
+	*(fiberTable(3,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(3,1)->setClass("bad");
 	else fiberTable(3,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2350,7 +2380,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(4,0)->value) << "DMB error";
 	dduValue = myDDU->readDMBError();
-	*(fiberTable(4,1)->value) << showbase << std::hex << dduValue;
+	*(fiberTable(4,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(4,1)->setClass("bad");
 	else fiberTable(4,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2363,7 +2393,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(5,0)->value) << "TMB error";
 	dduValue = myDDU->readTMBError();
-	*(fiberTable(5,1)->value) << showbase << std::hex << dduValue;
+	*(fiberTable(5,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(5,1)->setClass("bad");
 	else fiberTable(5,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2376,7 +2406,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(6,0)->value) << "ALCT error";
 	dduValue = myDDU->readALCTError();
-	*(fiberTable(6,1)->value) << showbase << std::hex << dduValue;
+	*(fiberTable(6,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(6,1)->setClass("bad");
 	else fiberTable(6,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2389,7 +2419,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(fiberTable(7,0)->value) << "Lost-in-event error";
 	dduValue = myDDU->readLIEError();
-	*(fiberTable(7,1)->value) << showbase << std::hex << dduValue;
+	*(fiberTable(7,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue) fiberTable(7,1)->setClass("bad");
 	else fiberTable(7,1)->setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2426,7 +2456,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	*out << "4-bit InRD Information" << cgicc::div() << std::endl;
 
 
-	DataTable inrdTable("inrdTable");
+	emu::fed::DataTable inrdTable("inrdTable");
 
 	inrdTable.addColumn("Register");
 	inrdTable.addColumn("Value");
@@ -2434,50 +2464,50 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(inrdTable(0,0)->value) << "Stuck data error";
 	dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(0,1)->value) << showbase << std::hex << ((dduValue >> 12) & 0xF);
+	*(inrdTable(0,1)->value) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 	if ((dduValue >> 12) & 0xF) inrdTable(0,1)->setClass("bad");
 	else inrdTable(0,1)->setClass("ok");
 
 	*(inrdTable(1,0)->value) << "Fiber or FIFO connection error";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(1,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0xF);
+	*(inrdTable(1,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
 	if ((dduValue >> 8) & 0xF) inrdTable(1,1)->setClass("bad");
 	else inrdTable(1,1)->setClass("ok");
 
 	*(inrdTable(2,0)->value) << "L1A mismatch";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(2,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(2,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(2,1)->setClass("warning");
 	else inrdTable(2,1)->setClass("ok");
 
 	*(inrdTable(3,0)->value) << "InRD with active fiber";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(3,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(3,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 	inrdTable(3,1)->setClass("none");
 
 	*(inrdTable(4,0)->value) << "Active ext. FIFO empty";
 	dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(4,1)->value) << showbase << std::hex << ((dduValue >> 10) & 0xF);
+	*(inrdTable(4,1)->value) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
 	inrdTable(4,1)->setClass("none");
 
 	*(inrdTable(5,0)->value) << "InRD near full warning";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(5,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(5,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(5,1)->setClass("warning");
 	else inrdTable(5,1)->setClass("ok");
 
 	*(inrdTable(6,0)->value) << "Ext. FIFO almost-full";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(6,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
+	*(inrdTable(6,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(6,1)->setClass("questionable");
 	else inrdTable(6,1)->setClass("ok");
 
 	*(inrdTable(7,0)->value) << "Special decode bits";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(7,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0x43);
+	*(inrdTable(7,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
 	if ((dduValue >> 8) & 0x81) inrdTable(7,1)->setClass("warning");
 	else inrdTable(7,1)->setClass("ok");
-	dduComments = DDUDebugger::FIFO2((dduValue >> 8) & 0x43);
+	dduComments = emu::fed::DDUDebugger::FIFO2((dduValue >> 8) & 0x43);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2487,51 +2517,51 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(inrdTable(8,0)->value) << "Timeout-EndBusy";
 	dduValue = myDDU->checkFIFO(3);
-	*(inrdTable(8,1)->value) << showbase << std::hex << ((dduValue >> 12) & 0xF);
+	*(inrdTable(8,1)->value) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 	if ((dduValue >> 12) & 0xF) inrdTable(8,1)->setClass("bad");
 	else inrdTable(8,1)->setClass("ok");
 
 	*(inrdTable(9,0)->value) << "Timeout-EndWait";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(9,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0xF);
+	*(inrdTable(9,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
 	if ((dduValue >> 8) & 0xF) inrdTable(9,1)->setClass("warning");
 	else inrdTable(9,1)->setClass("ok");
 
 	*(inrdTable(10,0)->value) << "Timeout-Start";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(10,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(10,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(10,1)->setClass("warning");
 	else inrdTable(10,1)->setClass("ok");
 
 	*(inrdTable(11,0)->value) << "Lost-in-data error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(11,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
+	*(inrdTable(11,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(11,1)->setClass("bad");
 	else inrdTable(11,1)->setClass("ok");
 
 	*(inrdTable(12,0)->value) << "Raw ext. FIFO empty";
 	dduValue = myDDU->readFFError();
-	*(inrdTable(12,1)->value) << showbase << std::hex << ((dduValue >> 10) & 0xF);
+	*(inrdTable(12,1)->value) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
 	inrdTable(12,1)->setClass("none");
 
 	*(inrdTable(13,0)->value) << "InRD FIFO full";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(13,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(13,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(13,1)->setClass("bad");
 	else inrdTable(13,1)->setClass("ok");
 
 	*(inrdTable(14,0)->value) << "Ext. FIFO full";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(14,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
+	*(inrdTable(14,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(14,1)->setClass("bad");
 	else inrdTable(14,1)->setClass("ok");
 
 	*(inrdTable(15,0)->value) << "Special decode bits";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(15,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0x43);
+	*(inrdTable(15,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
 	if ((dduValue >> 8) & 0x1) inrdTable(15,1)->setClass("bad");
 	else inrdTable(15,1)->setClass("ok");
-	dduComments = DDUDebugger::FFError((dduValue >> 8) & 0x43);
+	dduComments = emu::fed::DDUDebugger::FFError((dduValue >> 8) & 0x43);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2541,41 +2571,41 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	*(inrdTable(16,0)->value) << "InRD hard error";
 	dduValue = myDDU->readInRDStat();
-	*(inrdTable(16,1)->value) << showbase << std::hex << ((dduValue >> 12) & 0xF);
+	*(inrdTable(16,1)->value) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 	if ((dduValue >> 12) & 0xF) inrdTable(16,1)->setClass("bad");
 	else inrdTable(16,1)->setClass("ok");
 
 	*(inrdTable(17,0)->value) << "InRD sync error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(17,1)->value) << showbase << std::hex << ((dduValue >> 8) & 0xF);
+	*(inrdTable(17,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
 	if ((dduValue >> 8) & 0xF) inrdTable(17,1)->setClass("warning");
 	else inrdTable(17,1)->setClass("ok");
 
 	*(inrdTable(18,0)->value) << "InRD single event error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(18,1)->value) << showbase << std::hex << ((dduValue >> 4) & 0xF);
+	*(inrdTable(18,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
 	if ((dduValue >> 4) & 0xF) inrdTable(18,1)->setClass("questionable");
 	else inrdTable(18,1)->setClass("ok");
 
 	*(inrdTable(19,0)->value) << "InRD timeout error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(19,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
+	*(inrdTable(19,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(19,1)->setClass("bad");
 	else inrdTable(19,1)->setClass("ok");
 
 	*(inrdTable(20,0)->value) << "InRD multiple transmit errors";
 	dduValue = myDDU->ddu_InC_Hist();
-	*(inrdTable(20,1)->value) << showbase << std::hex << ((dduValue) & 0xF);
+	*(inrdTable(20,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(20,1)->setClass("bad");
 	else inrdTable(20,1)->setClass("ok");
 
 	*(inrdTable(21,0)->value) << "Special decode bits";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(21,1)->value) << showbase << std::hex << ((dduValue) & 0xFFF);
+	*(inrdTable(21,1)->value) << std::showbase << std::hex << ((dduValue) & 0xFFF);
 	if ((dduValue) & 0xC00) inrdTable(21,1)->setClass("bad");
 	else if ((dduValue) & 0x2DF) inrdTable(21,1)->setClass("warning");
 	else inrdTable(21,1)->setClass("ok");
-	dduComments = DDUDebugger::FFError((dduValue) & 0xFFF);
+	dduComments = emu::fed::DDUDebugger::FFError((dduValue) & 0xFFF);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
@@ -2598,7 +2628,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 
 
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 	// Display the big debugging information block
 	*out << cgicc::fieldset()
 		.set("class","fieldset") << std::endl;
@@ -2608,7 +2638,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	if (debugTrapValid) {
 
 		// Here it is.
-		std::vector<std::string> bigComments = DDUDebugger::ddu_fpgatrap(myDDU);
+		std::vector<std::string> bigComments = emu::fed::DDUDebugger::ddu_fpgatrap(myDDU);
 
 		std::stringstream diagCode;
 		diagCode << std::setfill('0');
@@ -2656,20 +2686,20 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	
 
 
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 	*out << cgicc::fieldset()
 		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("CSC Board Occupancies and Percentages")
 		.set("class","legend") << std::endl;
 
 	// Pick up the occupancies.
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 
 	// Now we grab what we want.
 	unsigned long int scalar = myDDU->ddu_rdscaler();
 
 	// Make us a DataTable!
-	DataTable occuTable("occuTable");
+	emu::fed::DataTable occuTable("occuTable");
 
 	occuTable.addColumn("Fiber Input");
 	occuTable.addColumn("Chamber");
@@ -2695,7 +2725,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 		unsigned long int CFEBval = myDDU->fpga_lcode[3] & 0x0fffffff;
 
 		(*occuTable(iFiber,0)->value) << iFiber;
-		Chamber *thisChamber = myDDU->getChamber(iFiber);
+		emu::fed::Chamber *thisChamber = myDDU->getChamber(iFiber);
 
 		std::string chamberClass = "ok";
 
@@ -2708,16 +2738,16 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 			occuTable(iFiber,1)->setClass(chamberClass);
 
 			(*occuTable(iFiber,2)->value) << DMBval;
-			(*occuTable(iFiber,2)->value) << "<br />" << setprecision(3) << (scalar ? DMBval*100./scalar : 0) << "%";
+			(*occuTable(iFiber,2)->value) << "<br />" << std::setprecision(3) << (scalar ? DMBval*100./scalar : 0) << "%";
 
 			(*occuTable(iFiber,3)->value) << ALCTval;
-			(*occuTable(iFiber,3)->value) << "<br />" << setprecision(3) << (DMBval ? ALCTval*100./DMBval : 0) << "%";
+			(*occuTable(iFiber,3)->value) << "<br />" << std::setprecision(3) << (DMBval ? ALCTval*100./DMBval : 0) << "%";
 
 			(*occuTable(iFiber,4)->value) << TMBval;
-			(*occuTable(iFiber,4)->value) << "<br />" << setprecision(3) << (DMBval ? TMBval*100./DMBval : 0) << "%";
+			(*occuTable(iFiber,4)->value) << "<br />" << std::setprecision(3) << (DMBval ? TMBval*100./DMBval : 0) << "%";
 
 			(*occuTable(iFiber,5)->value) << CFEBval;
-			(*occuTable(iFiber,5)->value) << "<br />" << setprecision(3) << (DMBval ? CFEBval*100./DMBval : 0) << "%";
+			(*occuTable(iFiber,5)->value) << "<br />" << std::setprecision(3) << (DMBval ? CFEBval*100./DMBval : 0) << "%";
 
 		} else {
 			(*occuTable(iFiber,1)->value) << "???";
@@ -2766,7 +2796,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
@@ -2774,7 +2804,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		cgiDDU = cgi["ddu"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DDU *myDDU = myCrate->ddus()[cgiDDU];
+	emu::fed::DDU *myDDU = myCrate->getDDUs()[cgiDDU];
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU InFPGA Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
@@ -2801,7 +2831,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	};
 	
 	// Start reading some registers!
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 
 	// Do this for both InFPGAs
 	enum DEVTYPE devTypes[2] = {
@@ -2823,7 +2853,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		.set("onClick","javascript:toggle('generalTable')") << std::endl;
 	*out << "General InFPGA Information" << cgicc::div() << std::endl;
 
-	DataTable generalTable("generalTable");
+	emu::fed::DataTable generalTable("generalTable");
 
 	// Names have to come first, because there is only one of each.
 	generalTable.addColumn("Register");
@@ -2843,14 +2873,14 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned long int infpgastat = myDDU->infpgastat(dt);
-		*(generalTable(0,iDevType*2+1)->value) << showbase << std::hex << infpgastat;
+		*(generalTable(0,iDevType*2+1)->value) << std::showbase << std::hex << infpgastat;
 		if (infpgastat & 0x00004000) generalTable(0,iDevType*2+1)->setClass("warning");
 		if (infpgastat & 0x00008000) {
 			generalTable(0,iDevType*2+1)->setClass("bad");
 			debugTrapValid[iDevType] = true;
 		}
 		if (!(infpgastat & 0x0000C000)) generalTable(0,iDevType*2+1)->setClass("ok");
-		std::map<std::string, std::string> infpgastatComments = DDUDebugger::InFPGAStat(dt,infpgastat);
+		std::map<std::string, std::string> infpgastatComments = emu::fed::DDUDebugger::InFPGAStat(dt,infpgastat);
 		for (std::map<std::string,std::string>::iterator iComment = infpgastatComments.begin();
 			iComment != infpgastatComments.end();
 			iComment++) {
@@ -2921,7 +2951,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		.set("onClick","javascript:toggle('fiberTable')") << std::endl;
 	*out << "Individual Fiber Information" << cgicc::div() << std::endl;
 
-	DataTable fiberTable("fiberTable");
+	emu::fed::DataTable fiberTable("fiberTable");
 
 	// Names have to come first, because there is only one of each.
 	fiberTable.addColumn("Register");
@@ -2953,7 +2983,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readDMBWarning = myDDU->readDMBWarning(dt);
-		*(fiberTable(0,iDevType*2+1)->value) << showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
+		*(fiberTable(0,iDevType*2+1)->value) << std::showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
 		if (((readDMBWarning >> 8) & 0xff)) fiberTable(0,iDevType*2+1)->setClass("bad");
 		else fiberTable(0,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -2964,7 +2994,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(1,iDevType*2+1)->value) << showbase << std::hex << ((readDMBWarning) & 0xff);
+		*(fiberTable(1,iDevType*2+1)->value) << std::showbase << std::hex << ((readDMBWarning) & 0xff);
 		if (((readDMBWarning) & 0xff)) fiberTable(1,iDevType*2+1)->setClass("warning");
 		else fiberTable(1,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -2975,7 +3005,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int checkFiber = myDDU->checkFiber(dt);
-		*(fiberTable(2,iDevType*2+1)->value) << showbase << std::hex << ((checkFiber >> 8) & 0xff);
+		*(fiberTable(2,iDevType*2+1)->value) << std::showbase << std::hex << ((checkFiber >> 8) & 0xff);
 		if (((checkFiber >> 8) & 0xff)) fiberTable(2,iDevType*2+1)->setClass("bad");
 		else fiberTable(2,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -2986,7 +3016,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(3,iDevType*2+1)->value) << showbase << std::hex << ((checkFiber) & 0xff);
+		*(fiberTable(3,iDevType*2+1)->value) << std::showbase << std::hex << ((checkFiber) & 0xff);
 		fiberTable(3,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((checkFiber) & 0xff) & (1<<iFiber)) {
@@ -2996,7 +3026,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readDMBSync = myDDU->readDMBSync(dt);
-		*(fiberTable(4,iDevType*2+1)->value) << showbase << std::hex << ((readDMBSync >> 8) & 0xff);
+		*(fiberTable(4,iDevType*2+1)->value) << std::showbase << std::hex << ((readDMBSync >> 8) & 0xff);
 		if (((readDMBSync >> 8) & 0xff)) fiberTable(4,iDevType*2+1)->setClass("bad");
 		else fiberTable(4,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3007,7 +3037,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(5,iDevType*2+1)->value) << showbase << std::hex << ((readDMBSync) & 0xff);
+		*(fiberTable(5,iDevType*2+1)->value) << std::showbase << std::hex << ((readDMBSync) & 0xff);
 		if (((readDMBSync) & 0xff)) fiberTable(5,iDevType*2+1)->setClass("warning");
 		else fiberTable(5,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3018,7 +3048,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readRxError = myDDU->readRxError(dt);
-		*(fiberTable(6,iDevType*2+1)->value) << showbase << std::hex << ((readRxError >> 8) & 0xff);
+		*(fiberTable(6,iDevType*2+1)->value) << std::showbase << std::hex << ((readRxError >> 8) & 0xff);
 		if (((readRxError >> 8) & 0xff)) fiberTable(6,iDevType*2+1)->setClass("questionable");
 		else fiberTable(6,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3028,7 +3058,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(7,iDevType*2+1)->value) << showbase << std::hex << ((readRxError) & 0xff);
+		*(fiberTable(7,iDevType*2+1)->value) << std::showbase << std::hex << ((readRxError) & 0xff);
 		if (((readRxError) & 0xff)) fiberTable(7,iDevType*2+1)->setClass("bad");
 		else fiberTable(7,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3040,7 +3070,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readTimeout = myDDU->readTimeout(dt);
-		*(fiberTable(8,iDevType*2+1)->value) << showbase << std::hex << ((readTimeout >> 8) & 0xff);
+		*(fiberTable(8,iDevType*2+1)->value) << std::showbase << std::hex << ((readTimeout >> 8) & 0xff);
 		if (((readTimeout >> 8) & 0xff)) fiberTable(8,iDevType*2+1)->setClass("bad");
 		else fiberTable(8,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3051,7 +3081,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(9,iDevType*2+1)->value) << showbase << std::hex << ((readTimeout) & 0xff);
+		*(fiberTable(9,iDevType*2+1)->value) << std::showbase << std::hex << ((readTimeout) & 0xff);
 		if (((readTimeout) & 0xff)) fiberTable(9,iDevType*2+1)->setClass("bad");
 		else fiberTable(9,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3063,7 +3093,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readTxError = myDDU->readTxError(dt);
-		*(fiberTable(10,iDevType*2+1)->value) << showbase << std::hex << ((readTxError >> 8) & 0xff);
+		*(fiberTable(10,iDevType*2+1)->value) << std::showbase << std::hex << ((readTxError >> 8) & 0xff);
 		fiberTable(10,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readTxError >> 8) & 0xff) & (1<<iFiber)) {
@@ -3072,7 +3102,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(11,iDevType*2+1)->value) << showbase << std::hex << ((readTxError) & 0xff);
+		*(fiberTable(11,iDevType*2+1)->value) << std::showbase << std::hex << ((readTxError) & 0xff);
 		if (((readTxError) & 0xff)) fiberTable(11,iDevType*2+1)->setClass("bad");
 		else fiberTable(11,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3084,7 +3114,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readLostError = myDDU->readLostError(dt);
-		*(fiberTable(12,iDevType*2+1)->value) << showbase << std::hex << ((readLostError >> 8) & 0xff);
+		*(fiberTable(12,iDevType*2+1)->value) << std::showbase << std::hex << ((readLostError >> 8) & 0xff);
 		if (((readLostError) & 0xff)) fiberTable(12,iDevType*2+1)->setClass("warning");
 		else fiberTable(12,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3094,7 +3124,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(fiberTable(13,iDevType*2+1)->value) << showbase << std::hex << ((readLostError) & 0xff);
+		*(fiberTable(13,iDevType*2+1)->value) << std::showbase << std::hex << ((readLostError) & 0xff);
 		if (((readLostError) & 0xff)) fiberTable(13,iDevType*2+1)->setClass("bad");
 		else fiberTable(13,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3157,7 +3187,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		.set("onClick","javascript:toggle('otherTable')") << std::endl;
 	*out << "Other Fiber/InRD Information" << cgicc::div() << std::endl;
 
-	DataTable otherTable("otherTable");
+	emu::fed::DataTable otherTable("otherTable");
 
 	// Names have to come first, because there is only one of each.
 	otherTable.addColumn("Register");
@@ -3181,7 +3211,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readFIFOStat = myDDU->readFIFOStat(dt);
-		*(otherTable(0,iDevType*2+1)->value) << showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
+		*(otherTable(0,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
 		//if (((readFIFOStat >> 8) & 0xff)) otherTable(0,iDevType*2+1)->setClass("bad");
 		otherTable(0,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3191,10 +3221,10 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(otherTable(1,iDevType*2+1)->value) << showbase << std::hex << ((readFIFOStat) & 0xff);
+		*(otherTable(1,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
 		if (((readFIFOStat) & 0xfc)) otherTable(1,iDevType*2+1)->setClass("warning");
 		else otherTable(1,iDevType*2+1)->setClass("ok");
-		std::map<std::string, std::string> readFIFOStatComments = DDUDebugger::FIFOStat(dt,(readFIFOStat) & 0xff);
+		std::map<std::string, std::string> readFIFOStatComments = emu::fed::DDUDebugger::FIFOStat(dt,(readFIFOStat) & 0xff);
 		for (std::map< std::string, std::string >::iterator iComment = readFIFOStatComments.begin();
 			iComment != readFIFOStatComments.end();
 			iComment++) {
@@ -3203,7 +3233,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readFIFOFull = myDDU->readFIFOFull(dt);
-		*(otherTable(2,iDevType*2+1)->value) << showbase << std::hex << ((readFIFOFull) & 0xff);
+		*(otherTable(2,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOFull) & 0xff);
 		if (((readFIFOFull) & 0xff)) otherTable(2,iDevType*2+1)->setClass("bad");
 		else otherTable(2,iDevType*2+1)->setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -3213,10 +3243,10 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		*(otherTable(3,iDevType*2+1)->value) << showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
+		*(otherTable(3,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
 		if (((readFIFOFull >> 8) & 0xf)) otherTable(3,iDevType*2+1)->setClass("warning");
 		else otherTable(3,iDevType*2+1)->setClass("ok");
-		std::map<std::string, std::string> readFIFOFullComments = DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff);
+		std::map<std::string, std::string> readFIFOFullComments = emu::fed::DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff);
 		for (std::map< std::string, std::string >::iterator iComment = readFIFOFullComments.begin();
 			iComment != readFIFOFullComments.end();
 			iComment++) {
@@ -3225,11 +3255,11 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int readCCodeStat = myDDU->infpga_CcodeStat(dt);
-		*(otherTable(4,iDevType*2+1)->value) << showbase << std::hex << ((readCCodeStat) & 0xff);
+		*(otherTable(4,iDevType*2+1)->value) << std::showbase << std::hex << ((readCCodeStat) & 0xff);
 		if ((readCCodeStat & 0xff) == 0x20) otherTable(4,iDevType*2+1)->setClass("warning");
 		else if (readCCodeStat & 0xff) otherTable(4,iDevType*2+1)->setClass("bad");
 		else otherTable(4,iDevType*2+1)->setClass("ok");
-		std::map<std::string, std::string> readCCodeStatComments = DDUDebugger::CCodeStat(dt,(readCCodeStat) & 0xff);
+		std::map<std::string, std::string> readCCodeStatComments = emu::fed::DDUDebugger::CCodeStat(dt,(readCCodeStat) & 0xff);
 		for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
 			iComment != readCCodeStatComments.end();
 			iComment++) {
@@ -3237,11 +3267,11 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 				.set("class",iComment->second) << std::endl;
 		}
 
-		*(otherTable(5,iDevType*2+1)->value) << showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
+		*(otherTable(5,iDevType*2+1)->value) << std::showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
 		if (((readCCodeStat >> 8) & 0xff) == 0x20) otherTable(5,iDevType*2+1)->setClass("warning");
 		else if (((readCCodeStat >> 8) & 0xff)) otherTable(5,iDevType*2+1)->setClass("bad");
 		else otherTable(5,iDevType*2+1)->setClass("ok");
-		readCCodeStatComments = DDUDebugger::CCodeStat(dt,(readCCodeStat >> 8) & 0xff);
+		readCCodeStatComments = emu::fed::DDUDebugger::CCodeStat(dt,(readCCodeStat >> 8) & 0xff);
 		for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
 			iComment != readCCodeStatComments.end();
 			iComment++) {
@@ -3302,7 +3332,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		.set("onClick","javascript:toggle('memTable')") << std::endl;
 	*out << "Memory Control Information (22 fifos)" << cgicc::div() << std::endl;
 
-	DataTable memTable("memTable");
+	emu::fed::DataTable memTable("memTable");
 
 	// Names have to come first, because there is only one of each.
 	memTable.addColumn("Register");
@@ -3329,9 +3359,9 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		unsigned int memValue = myDDU->readFiberDiagnostics(dt,0);
-		*(memTable(0,iDevType*2+1)->value) << showbase << std::hex << memValue;
+		*(memTable(0,iDevType*2+1)->value) << std::showbase << std::hex << memValue;
 		memTable(0,iDevType*2+1)->setClass("ok");
-		std::map< std::string, std::string> memComments = DDUDebugger::FiberDiagnostics(dt,0,memValue);
+		std::map< std::string, std::string> memComments = emu::fed::DDUDebugger::FiberDiagnostics(dt,0,memValue);
 		for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 			iComment != memComments.end();
 			iComment++) {
@@ -3340,9 +3370,9 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		}
 
 		memValue = myDDU->readFiberDiagnostics(dt,1);
-		*(memTable(1,iDevType*2+1)->value) << showbase << std::hex << memValue;
+		*(memTable(1,iDevType*2+1)->value) << std::showbase << std::hex << memValue;
 		memTable(1,iDevType*2+1)->setClass("ok");
-		memComments = DDUDebugger::FiberDiagnostics(dt,1,memValue);
+		memComments = emu::fed::DDUDebugger::FiberDiagnostics(dt,1,memValue);
 		for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 			iComment != memComments.end();
 			iComment++) {
@@ -3376,9 +3406,9 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 
 		for (unsigned int ireg = 0; ireg < 4; ireg++) {
 			memValue = myDDU->readWriteMemoryActive(dt,ireg);
-			*(memTable(ireg + 6,iDevType*2+1)->value) << showbase << std::hex << memValue;
+			*(memTable(ireg + 6,iDevType*2+1)->value) << std::showbase << std::hex << memValue;
 			memTable(ireg + 6,iDevType*2+1)->setClass("ok");
-			memComments = DDUDebugger::WriteMemoryActive(dt,ireg,memValue);
+			memComments = emu::fed::DDUDebugger::WriteMemoryActive(dt,ireg,memValue);
 			for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 				iComment != memComments.end();
 				iComment++) {
@@ -3447,7 +3477,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		if (debugTrapValid[iDevType]) {
 
 			// Here it is.
-			std::vector<std::string> bigComments = DDUDebugger::infpga_trap(myDDU, dt);
+			std::vector<std::string> bigComments = emu::fed::DDUDebugger::infpga_trap(myDDU, dt);
 
 			std::stringstream diagCode;
 			diagCode << std::setfill('0');
@@ -3511,7 +3541,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
@@ -3519,7 +3549,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		cgiDDU = cgi["ddu"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DDU *myDDU = myCrate->ddus()[cgiDDU];
+	emu::fed::DDU *myDDU = myCrate->getDDUs()[cgiDDU];
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Expert Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
@@ -3540,7 +3570,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::br() << std::endl;
 
 
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 	// Killfiber and xorbit read/set
 	*out << cgicc::fieldset()
 		.set("class","expert") << std::endl;
@@ -3578,12 +3608,12 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << std::hex << currentKillFiber << cgicc::div() << std::endl;
+	*out << std::showbase << std::hex << currentKillFiber << cgicc::div() << std::endl;
 	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New KillFiber register value (change this below): ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
 	std::stringstream kfValue;
-	kfValue << std::hex << showbase << currentKillFiber;
+	kfValue << std::hex << std::showbase << currentKillFiber;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
@@ -3624,7 +3654,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	
 	// Loop through the chambers.  They should be in fiber-order.
 	for (unsigned int iFiber=0; iFiber<15; iFiber++) {
-		Chamber *thisChamber = myDDU->getChamber(iFiber);
+		emu::fed::Chamber *thisChamber = myDDU->getChamber(iFiber);
 		// DDU::getChamber will return a null pointer if there is
 		//  no chamber at that fiber position.
 		std::string chamberClass = "ok";
@@ -3923,7 +3953,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 
 
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 	// Inreg for serial writes.
 	*out << cgicc::fieldset()
 		.set("class","expert") << std::endl;
@@ -3932,7 +3962,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*out << "Input Registers for Flash Writes" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
-	DataTable inregTable("inregTable");
+	emu::fed::DataTable inregTable("inregTable");
 	inregTable.addColumn("Register");
 	inregTable.addColumn("Value");
 	inregTable.addColumn("New Value");
@@ -3940,7 +3970,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	for (unsigned int iReg = 0; iReg < 3; iReg++) {
 		unsigned int inreg = myDDU->readInputReg(iReg);
 		*(inregTable(iReg,0)->value) << "InReg" << iReg;
-		*(inregTable(iReg,1)->value) << showbase << std::hex << inreg;
+		*(inregTable(iReg,1)->value) << std::showbase << std::hex << inreg;
 		inregTable[iReg]->setClass("none");
 		if (iReg == 0) {
 			*(inregTable(iReg,2)->value) << inregTable[iReg]->makeForm(dduTextLoad,cgiCrate,cgiDDU,9) << std::endl;
@@ -3963,7 +3993,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 
 	// Other Serial registers that nobody but experts care about
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 	*out << cgicc::fieldset()
 		.set("class","expert") << std::endl;
 	*out << cgicc::div()
@@ -3971,7 +4001,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*out << "Miscellaneous Serial Registers" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
-	DataTable expertTable("expertTable");
+	emu::fed::DataTable expertTable("expertTable");
 	expertTable.addColumn("Register");
 	expertTable.addColumn("Value");
 	expertTable.addColumn("Decoded Register Info");
@@ -3980,8 +4010,8 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	// FIXME
 	unsigned int gbePrescale = myDDU->readGbEPrescale();
 	*(expertTable(0,0)->value) << "GbE prescale";
-	*(expertTable(0,1)->value) << showbase << std::hex << gbePrescale;
-	/*std::map<std::string,std::string> gbePrescaleComments = DDUDebugger::GbEPrescale(gbePrescale);
+	*(expertTable(0,1)->value) << std::showbase << std::hex << gbePrescale;
+	/*std::map<std::string,std::string> gbePrescaleComments = emu::fed::DDUDebugger::GbEPrescale(gbePrescale);
 	for (std::map<std::string,std::string>::iterator iComment = gbePrescaleComments.begin();
 		iComment != gbePrescaleComments.end();
 		iComment++) {
@@ -3994,9 +4024,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	unsigned int fakeL1 = myDDU->readFakeL1Reg();
 	*(expertTable(1,0)->value) << "Fake L1A Data Passthrough";
-	*(expertTable(1,1)->value) << showbase << std::hex << fakeL1;
+	*(expertTable(1,1)->value) << std::showbase << std::hex << fakeL1;
 	/*
-	std::map<std::string,std::string> fakeL1Comments = DDUDebugger::FakeL1Reg(fakeL1);
+	std::map<std::string,std::string> fakeL1Comments = emu::fed::DDUDebugger::FakeL1Reg(fakeL1);
 	for (std::map<std::string,std::string>::iterator iComment = fakeL1Comments.begin();
 		iComment != fakeL1Comments.end();
 		iComment++) {
@@ -4009,9 +4039,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	unsigned int foe = myDDU->readFMMReg();
 	*(expertTable(2,0)->value) << "F0E + 4-bit FMM";
-	*(expertTable(2,1)->value) << showbase << std::hex << foe;
+	*(expertTable(2,1)->value) << std::showbase << std::hex << foe;
 	/*
-	std::map<std::string,std::string> foeComments = DDUDebugger::F0EReg(foe);
+	std::map<std::string,std::string> foeComments = emu::fed::DDUDebugger::F0EReg(foe);
 	for (std::map<std::string,std::string>::iterator iComment = foeComments.begin();
 		iComment != foeComments.end();
 		iComment++) {
@@ -4023,12 +4053,12 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	expertTable[2]->setClass("none");
 
 	*(expertTable(3,0)->value) << "Switches";
-	*(expertTable(3,1)->value) << showbase << std::hex << (myDDU->readSwitches() & 0xff);
+	*(expertTable(3,1)->value) << std::showbase << std::hex << (myDDU->readSwitches() & 0xff);
 	expertTable[3]->setClass("none");
 
 	for (unsigned int iReg = 0; iReg < 5; iReg++) {
 		*(expertTable(4 + iReg,0)->value) << "Test register " << iReg;
-		*(expertTable(4 + iReg,1)->value) << showbase << std::hex << (myDDU->readTestReg(iReg));
+		*(expertTable(4 + iReg,1)->value) << std::showbase << std::hex << (myDDU->readTestReg(iReg));
 		expertTable[4 + iReg]->setClass("none");
 	}
 
@@ -4118,20 +4148,20 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("class","legend") << std::endl;
 	*out << "Writable Flash Pages" << cgicc::div() << std::endl;
 
-	DataTable writableTable("writableTable");
+	emu::fed::DataTable writableTable("writableTable");
 	writableTable.addColumn("Page");
 	writableTable.addColumn("Value");
 	writableTable.addColumn("New Value");
 
 	*(writableTable(0,0)->value) << "Flash live channels";
-	*(writableTable(0,1)->value) << showbase << std::hex << myDDU->read_page1();
+	*(writableTable(0,1)->value) << std::showbase << std::hex << myDDU->read_page1();
 	writableTable[0]->setClass("none");
 	// New Value...
 	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << std::endl;
 
 	myDDU->read_page5();
 	*(writableTable(1,0)->value) << "Flash GbE FIFO thresholds";
-	*(writableTable(1,1)->value) << "0x" << std::hex << ((myDDU->rcv_serial[4]&0xC0)>>6) << noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((myDDU->rcv_serial[2]&0xC0)>>6)|((myDDU->rcv_serial[5]&0xFF)<<2)|((myDDU->rcv_serial[4]&0x3F)<<10)) << 16) | (((myDDU->rcv_serial[0]&0xC0)>>6)|((myDDU->rcv_serial[3]&0xFF)<<2)|((myDDU->rcv_serial[2]&0x3F)<<10)));
+	*(writableTable(1,1)->value) << "0x" << std::hex << ((myDDU->rcv_serial[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((myDDU->rcv_serial[2]&0xC0)>>6)|((myDDU->rcv_serial[5]&0xFF)<<2)|((myDDU->rcv_serial[4]&0x3F)<<10)) << 16) | (((myDDU->rcv_serial[0]&0xC0)>>6)|((myDDU->rcv_serial[3]&0xFF)<<2)|((myDDU->rcv_serial[2]&0x3F)<<10)));
 	writableTable[1]->setClass("none");
 	// New Value...
 	*(writableTable(1,2)->value) << writableTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,15) << std::endl;
@@ -4177,7 +4207,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
@@ -4185,7 +4215,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 		cgiDDU = cgi["ddu"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DDU *myDDU = myCrate->ddus()[cgiDDU];
+	emu::fed::DDU *myDDU = myCrate->getDDUs()[cgiDDU];
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU VME Parallel Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
@@ -4205,7 +4235,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br() << std::endl;
 
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 
 	// Display VME Control status information
 	*out << cgicc::fieldset()
@@ -4218,14 +4248,14 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << "VME Control Status" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
-	DataTable statusTable("statusTable");
+	emu::fed::DataTable statusTable("statusTable");
 	statusTable.addColumn("Register");
 	statusTable.addColumn("Value");
 
 	unsigned int parallelStat = myDDU->readParallelStat();
 	*(statusTable(0,0)->value) << "VME status register";
-	*(statusTable(0,1)->value) << showbase << std::hex << parallelStat;
-	std::map<std::string,std::string> parallelStatComments = DDUDebugger::ParallelStat(parallelStat);
+	*(statusTable(0,1)->value) << std::showbase << std::hex << parallelStat;
+	std::map<std::string,std::string> parallelStatComments = emu::fed::DDUDebugger::ParallelStat(parallelStat);
 	for (std::map<std::string,std::string>::iterator iComment = parallelStatComments.begin();
 		iComment != parallelStatComments.end();
 		iComment++) {
@@ -4239,8 +4269,8 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	int dduFMM = (parallelStat >> 8) & 0xf;
 	*(statusTable(1,0)->value) << "DDU FMM status";
-	*(statusTable(1,1)->value) << showbase << std::hex << dduFMM;
-	std::map<std::string,std::string> dduFMMComments = DDUDebugger::FMMReg(dduFMM);
+	*(statusTable(1,1)->value) << std::showbase << std::hex << dduFMM;
+	std::map<std::string,std::string> dduFMMComments = emu::fed::DDUDebugger::FMMReg(dduFMM);
 	for (std::map<std::string,std::string>::iterator iComment = dduFMMComments.begin();
 		iComment != dduFMMComments.end();
 		iComment++) {
@@ -4264,7 +4294,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::br()
 		.set("style","display: none") << std::endl;
 
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 	// Display individual fiber information
 	*out << cgicc::fieldset()
 		.set("class","normal") << std::endl;
@@ -4276,14 +4306,14 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << "Individual CSC FMM Reports" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
-	DataTable fmmTable("fmmTable");
+	emu::fed::DataTable fmmTable("fmmTable");
 	fmmTable.addColumn("Register");
 	fmmTable.addColumn("Value");
 	fmmTable.addColumn("Decoded Chambers");
 
 	unsigned int cscStat = myDDU->readCSCStat();
 	*(fmmTable(0,0)->value) << "FMM problem report";
-	*(fmmTable(0,1)->value) << showbase << std::hex << cscStat;
+	*(fmmTable(0,1)->value) << std::showbase << std::hex << cscStat;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscStat & (1<<iFiber)) {
 			*(fmmTable(0,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4295,7 +4325,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscBusy = myDDU->readFMMBusy();
 	*(fmmTable(1,0)->value) << "Busy";
-	*(fmmTable(1,1)->value) << showbase << std::hex << cscBusy;
+	*(fmmTable(1,1)->value) << std::showbase << std::hex << cscBusy;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscBusy & (1<<iFiber)) {
 			*(fmmTable(1,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name());
@@ -4305,7 +4335,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscWarn = myDDU->readFMMFullWarning();
 	*(fmmTable(2,0)->value) << "Warning/near full";
-	*(fmmTable(2,1)->value) << showbase << std::hex << cscWarn;
+	*(fmmTable(2,1)->value) << std::showbase << std::hex << cscWarn;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscWarn & (1<<iFiber)) {
 			*(fmmTable(2,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4317,7 +4347,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscLS = myDDU->readFMMLostSync();
 	*(fmmTable(3,0)->value) << "Lost sync";
-	*(fmmTable(3,1)->value) << showbase << std::hex << cscLS;
+	*(fmmTable(3,1)->value) << std::showbase << std::hex << cscLS;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscLS & (1<<iFiber)) {
 			*(fmmTable(3,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4329,7 +4359,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscError = myDDU->readFMMError();
 	*(fmmTable(4,0)->value) << "Error";
-	*(fmmTable(4,1)->value) << showbase << std::hex << cscError;
+	*(fmmTable(4,1)->value) << std::showbase << std::hex << cscError;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscError & (1<<iFiber)) {
 			*(fmmTable(4,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4341,7 +4371,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscWH = myDDU->readWarningHistory();
 	*(fmmTable(5,0)->value) << "Warning history";
-	*(fmmTable(5,1)->value) << showbase << std::hex << cscWH;
+	*(fmmTable(5,1)->value) << std::showbase << std::hex << cscWH;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscWH & (1<<iFiber)) {
 			*(fmmTable(5,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
@@ -4353,7 +4383,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	unsigned int cscBH = myDDU->readBusyHistory();
 	*(fmmTable(6,0)->value) << "Busy history";
-	*(fmmTable(6,1)->value) << showbase << std::hex << cscBH;
+	*(fmmTable(6,1)->value) << std::showbase << std::hex << cscBH;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscBH & (1<<iFiber)) {
 			*(fmmTable(6,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name());
@@ -4392,7 +4422,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
@@ -4400,7 +4430,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 		cgiDDU = cgi["ddu"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DDU *myDDU = myCrate->ddus()[cgiDDU];
+	emu::fed::DDU *myDDU = myCrate->getDDUs()[cgiDDU];
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU VME Serial Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
@@ -4420,7 +4450,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br() << std::endl;
 	
-	myCrate->vmeController()->CAEN_err_reset();
+	myCrate->getVMEController()->CAEN_err_reset();
 
 	// No debugger needed here.
 
@@ -4435,13 +4465,13 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << "Voltages" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
-	DataTable voltTable("voltTable");
+	emu::fed::DataTable voltTable("voltTable");
 	voltTable.addColumn("Voltage");
 	voltTable.addColumn("Value");
 
 	float V15 = myDDU->adcplus(1,4);
 	*(voltTable(0,0)->value) << "Voltage V15";
-	*(voltTable(0,1)->value) << setprecision(4) << V15 << " mV";
+	*(voltTable(0,1)->value) << std::setprecision(4) << V15 << " mV";
 	voltTable[0]->setClass("ok");
 	if (V15 > 1500*1.025 || V15 < 1500*0.975) voltTable[0]->setClass("warning");
 	if (V15 > 1500*1.05 || V15 < 1500*0.95) voltTable[0]->setClass("bad");
@@ -4449,7 +4479,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 
 	float V25 = myDDU->adcplus(1,5);
 	*(voltTable(1,0)->value) << "Voltage V25";
-	*(voltTable(1,1)->value) << setprecision(4) << V25 << " mV";
+	*(voltTable(1,1)->value) << std::setprecision(4) << V25 << " mV";
 	voltTable[1]->setClass("ok");
 	if (V25 > 2500*1.025 || V25 < 2500*0.975) voltTable[1]->setClass("warning");
 	if (V25 > 2500*1.05 || V25 < 2500*0.95) voltTable[1]->setClass("bad");
@@ -4457,7 +4487,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	
 	float V25a = myDDU->adcplus(1,6);
 	*(voltTable(2,0)->value) << "Voltage V25A";
-	*(voltTable(2,1)->value) << setprecision(4) << V25a << " mV";
+	*(voltTable(2,1)->value) << std::setprecision(4) << V25a << " mV";
 	voltTable[2]->setClass("ok");
 	if (V25a > 2500*1.025 || V25a < 2500*0.975) voltTable[2]->setClass("warning");
 	if (V25a > 2500*1.05 || V25a < 2500*0.95) voltTable[2]->setClass("bad");
@@ -4465,7 +4495,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	
 	float V33 = myDDU->adcplus(1,7);
 	*(voltTable(3,0)->value) << "Voltage V33";
-	*(voltTable(3,1)->value) << setprecision(4) << V33 << " mV";
+	*(voltTable(3,1)->value) << std::setprecision(4) << V33 << " mV";
 	voltTable[3]->setClass("ok");
 	if (V33 > 3300*1.025 || V33 < 3300*0.975) voltTable[3]->setClass("warning");
 	if (V33 > 3300*1.05 || V33 < 3300*0.95) voltTable[3]->setClass("bad");
@@ -4495,14 +4525,14 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << "Temperatures" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
-	DataTable tempTable("tempTable");
+	emu::fed::DataTable tempTable("tempTable");
 	tempTable.addColumn("Temperature");
 	tempTable.addColumn("Value");
 
 	for (unsigned int iTemp = 0; iTemp < 4; iTemp++) {
 		float T0 = myDDU->readthermx(iTemp);
 		*(tempTable(iTemp,0)->value) << "Temperature " << iTemp;
-		*(tempTable(iTemp,1)->value) << setprecision(4) << T0 << "&deg;F";
+		*(tempTable(iTemp,1)->value) << std::setprecision(4) << T0 << "&deg;F";
 		tempTable[iTemp]->setClass("ok");
 		if (T0 > 80*1.2 || T0 < 80*0.8) tempTable[iTemp]->setClass("warning");
 		if (T0 > 80*1.4 || T0 < 80*0.6) tempTable[iTemp]->setClass("bad");
@@ -4533,13 +4563,13 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << "Serial Flash RAM Status" << cgicc::div() << std::endl;
 
 	// New idea:  make the table first, then display it later.
-	DataTable ramStatusTable("ramStatusTable");
+	emu::fed::DataTable ramStatusTable("ramStatusTable");
 	ramStatusTable.addColumn("Register");
 	ramStatusTable.addColumn("Value");
 
 	int ramStatus = myDDU->read_status();
 	*(ramStatusTable(0,0)->value) << "Serial Flash RAM Status";
-	*(ramStatusTable(0,1)->value) << showbase << std::hex << ramStatus;
+	*(ramStatusTable(0,1)->value) << std::showbase << std::hex << ramStatus;
 	ramStatusTable[0]->setClass("ok");
 	if (ramStatus & 0x003c != 0x000c) ramStatusTable[0]->setClass("warning");
 	if (ramStatus & 0x0080 != 0x0080) ramStatusTable[0]->setClass("bad");
@@ -4577,14 +4607,14 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("ddu");
 	unsigned int cgiDDU = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDDU = cgi["ddu"]->getIntegerValue();
 	}
-	DDU *myDDU = myCrate->ddus()[cgiDDU];
+	emu::fed::DDU *myDDU = myCrate->getDDUs()[cgiDDU];
 
 	// The command that is intended to be sent to the DDU.
 	unsigned int command = 0;
@@ -4937,7 +4967,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 			//this->VMEPARA(in,out);
 		}
 
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		printf(" exception raised in DDUTextLoad \n");
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
@@ -4965,7 +4995,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("dcc");
 	unsigned int cgiDCC = 0;
@@ -4973,7 +5003,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 		cgiDCC = cgi["dcc"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DCC *myDCC = myCrate->dccs()[cgiDCC];
+	emu::fed::DCC *myDCC = myCrate->getDCCs()[cgiDCC];
 
 	unsigned long int idcode,uscode;
 	unsigned long int tidcode[2]={0x05035093,0xf5059093};
@@ -5031,14 +5061,14 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 			}
 			sprintf(buf,"%08lX",idcode);
 			*out << buf;*out << cgicc::span();
-			myCrate->vmeController()->CAEN_err_reset();
+			myCrate->getVMEController()->CAEN_err_reset();
 			if(i==0){uscode=myDCC->inprom_userid();}
 			if(i==1){uscode=myDCC->mprom_userid();}
 			*out << cgicc::span().set("style","color:black");
 			sprintf(buf," usr: ");
 			*out << buf;*out << cgicc::span();
 			printf(" uscode %08lx \n",uscode);
-			if(myCrate->vmeController()->CAEN_err()!=0){
+			if(myCrate->getVMEController()->CAEN_err()!=0){
 				*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 			//    }else if(uscode!=tuscode[i]){
 			}else if(0xffff0000&uscode!=0xffff0000&tuscode[i]){
@@ -5115,7 +5145,7 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 		if(name != cgi.getElements().end()) {
 			cgiCrate = cgi["crate"]->getIntegerValue();
 		}
-		FEDCrate *myCrate = crateVector[cgiCrate];
+		emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 		name = cgi.getElement("dcc");
 		unsigned int cgiDCC = 0;
@@ -5123,7 +5153,7 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 			cgiDCC = cgi["dcc"]->getIntegerValue();
 			//std::cout << "DDU inside " << ddu << std::endl;
 		}
-		DCC *myDCC = myCrate->dccs()[cgiDCC];
+		emu::fed::DCC *myDCC = myCrate->getDCCs()[cgiDCC];
 		
 		int prom;
 		cgicc::form_iterator name2 = cgi.getElement("prom");
@@ -5172,7 +5202,7 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 		backLocation << "DCCFirmware?crate=" << cgiCrate << "&dcc=" << cgiDCC;
 		webRedirect(out,backLocation.str());
 		//this->DCCFirmware(in,out);
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		printf(" exception raised in DCCLoadFirmware \n");
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
@@ -5224,7 +5254,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("dcc");
 	unsigned int cgiDCC = 0;
@@ -5232,7 +5262,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 		cgiDCC = cgi["dcc"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DCC *myDCC = myCrate->dccs()[cgiDCC];
+	emu::fed::DCC *myDCC = myCrate->getDCCs()[cgiDCC];
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DCC Debugging Information (Crate " << myCrate->number() << " Slot #" << myDCC->slot() << ")";
@@ -5262,7 +5292,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 		.set("onClick","javascript:toggle('generalTable')") << std::endl;
 	*out << "General DCC Information" << cgicc::div() << std::endl;
 
-	DataTable generalTable("generalTable");
+	emu::fed::DataTable generalTable("generalTable");
 
 	generalTable.addColumn("Register");
 	generalTable.addColumn("Value");
@@ -5270,8 +5300,8 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(0,0)->value) << "DCC FMM Status (4-bit)";
 	unsigned long int dccValue = myDCC->readStatusHigh();
-	*(generalTable(0,1)->value) << showbase << std::hex << ((dccValue & 0xf000) >> 12);
-	std::map<std::string, std::string> debugMap = DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
+	*(generalTable(0,1)->value) << std::showbase << std::hex << ((dccValue & 0xf000) >> 12);
+	std::map<std::string, std::string> debugMap = emu::fed::DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
 		*(generalTable(0,2)->value) << cgicc::div(iDebug->first)
 			.set("class",iDebug->second);
@@ -5289,7 +5319,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(1,0)->value) << "DCC FIFO Backpressure (8-bit)";
-	*(generalTable(1,1)->value) << showbase << std::hex << ((dccValue & 0x0ff0) >> 4);
+	*(generalTable(1,1)->value) << std::showbase << std::hex << ((dccValue & 0x0ff0) >> 4);
 	for (int iFifo = 0; iFifo < 8; iFifo++) {
 		if (!(((dccValue & 0x0ff0) >> 4) & (1<<iFifo))) {
 			if (iFifo < 4) {
@@ -5311,8 +5341,8 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(2,0)->value) << "DCC S-Link Status (4-bit)";
-	*(generalTable(2,1)->value) << showbase << std::hex << (dccValue & 0xf);
-	debugMap = DCCDebugger::SLinkStat(dccValue & 0xf);
+	*(generalTable(2,1)->value) << std::showbase << std::hex << (dccValue & 0xf);
+	debugMap = emu::fed::DCCDebugger::SLinkStat(dccValue & 0xf);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
 		*(generalTable(2,2)->value) << cgicc::div(iDebug->first)
 			.set("class",iDebug->second);
@@ -5351,7 +5381,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 		.set("onClick","javascript:toggle('ratesTable')") << std::endl;
 	*out << "DCC Input/Output Rate Information" << cgicc::div() << std::endl;
 
-	DataTable ratesTable("ratesTable");
+	emu::fed::DataTable ratesTable("ratesTable");
 
 	ratesTable.addColumn("Register");
 	ratesTable.addColumn("Value");
@@ -5359,7 +5389,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 
 	*(ratesTable(0,0)->value) << "Input FIFOs Used";
 	dccValue = myDCC->readFIFOInUse();
-	*(ratesTable(0,1)->value) << showbase << std::hex << dccValue;
+	*(ratesTable(0,1)->value) << std::showbase << std::hex << dccValue;
 	for (int iFifo = 0; iFifo < 10; iFifo++) {
 		if (dccValue & (1<<iFifo)) {
 			*(ratesTable(0,2)->value) << cgicc::div()
@@ -5434,7 +5464,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::legend(buf).set("style","color:blue")  << std::endl;
 	int igu;
 	for(int i=100;i<111;i++){
-		thisCrate->vmeController()->CAEN_err_reset();
+		thisCrate->getVMEController()->CAEN_err_reset();
 		sprintf(buf3," ");
 		if(i==100){
 			unsigned short int statush=thisDCC->mctrl_stath();
@@ -5520,7 +5550,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 		}
 		*out << cgicc::span().set("style","color:black");
 		*out << buf << cgicc::span();
-		if(thisCrate->vmeController()->CAEN_err()!=0){
+		if(thisCrate->getVMEController()->CAEN_err()!=0){
 			*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 		}else{
 			*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
@@ -5620,7 +5650,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("dcc");
 	unsigned int cgiDCC = 0;
@@ -5628,7 +5658,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		cgiDCC = cgi["dcc"]->getIntegerValue();
 		//std::cout << "DDU inside " << ddu << std::endl;
 	}
-	DCC *myDCC = myCrate->dccs()[cgiDCC];
+	emu::fed::DCC *myDCC = myCrate->getDCCs()[cgiDCC];
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DCC Expert Controls (Crate " << myCrate->number() << " Slot #" << myDCC->slot() << ")";
@@ -5685,12 +5715,12 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << std::hex << currentFIFOs << cgicc::div() << std::endl;
+	*out << std::showbase << std::hex << currentFIFOs << cgicc::div() << std::endl;
 	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New FIFOs In Use register value (change this below): ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
 	std::stringstream kfValue;
-	kfValue << std::hex << showbase << currentFIFOs;
+	kfValue << std::hex << std::showbase << currentFIFOs;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
@@ -5807,12 +5837,12 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << std::hex << currentSwitch << cgicc::div() << std::endl;
+	*out << std::showbase << std::hex << currentSwitch << cgicc::div() << std::endl;
 	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New Software Switch value (change this below): ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
 	kfValue.str("");
-	kfValue << std::hex << showbase << currentSwitch;
+	kfValue << std::hex << std::showbase << currentSwitch;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
@@ -5956,12 +5986,12 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << std::hex << currentFMM << cgicc::div() << std::endl;
+	*out << std::showbase << std::hex << currentFMM << cgicc::div() << std::endl;
 	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New FMM register value (change this below): ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
 	kfValue.str("");
-	kfValue << std::hex << showbase << currentFMM;
+	kfValue << std::hex << std::showbase << currentFMM;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
@@ -6089,12 +6119,12 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
 		.set("style","display: inline;");
-	*out << showbase << std::hex << currentL1A << cgicc::div() << std::endl;
+	*out << std::showbase << std::hex << currentL1A << cgicc::div() << std::endl;
 	*out << cgicc::br() << std::endl;
 	*out << cgicc::div("New L1A send rate/number: ")
 		.set("style","font-weight: bold; display: inline; color: #090;");
 	kfValue.str("");
-	kfValue << std::hex << showbase << currentL1A;
+	kfValue << std::hex << std::showbase << currentL1A;
 	*out << cgicc::input()
 		.set("type","text")
 		.set("name","textdata")
@@ -6293,14 +6323,14 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	name = cgi.getElement("dcc");
 	unsigned int cgiDCC = 0;
 	if (name != cgi.getElements().end()) {
 		cgiDCC = cgi["dcc"]->getIntegerValue();
 	}
-	DCC *myDCC = myCrate->dccs()[cgiDCC];
+	emu::fed::DCC *myDCC = myCrate->getDCCs()[cgiDCC];
 
 	// The command that is intended to be sent to the DDU.
 	unsigned int command = 0;
@@ -6441,7 +6471,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 		//this->DCCDebug(in,out);
 
 
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		printf(" exception raised in DCCLoadFirmware \n");
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
@@ -6468,7 +6498,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		if(name != cgi.getElements().end()) {
 			cgiCrate = cgi["crate"]->getIntegerValue();
 		}
-		FEDCrate *myCrate = crateVector[cgiCrate];
+		emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 		name = cgi.getElement("dcc");
 		unsigned int cgiDCC = 0;
@@ -6476,7 +6506,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 			cgiDCC = cgi["dcc"]->getIntegerValue();
 			//std::cout << "DDU inside " << ddu << std::endl;
 		}
-		DCC *myDCC = myCrate->dccs()[cgiDCC];
+		emu::fed::DCC *myDCC = myCrate->getDCCs()[cgiDCC];
 	  
 		cgicc::form_iterator name2 = cgi.getElement("val");
 		//
@@ -6495,7 +6525,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		backLocation << "DCCFirmware?crate=" << cgiCrate << "&dcc=" << cgiDCC;
 		webRedirect(out,backLocation.str());
 		//this->DCCFirmware(in,out);
-	} catch (const exception & e ) {
+	} catch (const std::exception & e ) {
 		printf(" exception raised in DCCLoadFirmware \n");
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
@@ -6520,7 +6550,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	float v_val[4] = {1500,2500,2500,3300};
 	float v_delt = 0.05;
@@ -6552,15 +6582,15 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		.set("class","legend") << std::endl;
 
 	// Loop through the Modules and pick out the DDUs
-	for (unsigned int iDDU = 0; iDDU < myCrate->ddus().size(); iDDU++) {
+	for (unsigned int iDDU = 0; iDDU < myCrate->getDDUs().size(); iDDU++) {
 
-		DDU *myDDU = myCrate->ddus()[iDDU];
+		emu::fed::DDU *myDDU = myCrate->getDDUs()[iDDU];
 		// I am a DDU!
 		// Skip broadcasting
 		if (myDDU->slot() > 21) continue;
 
 		// Check Voltages
-		myCrate->vmeController()->CAEN_err_reset();
+		myCrate->getVMEController()->CAEN_err_reset();
 		std::string dduClass = "ok";
 		std::string totalVoltClass = "ok";
 		// The actual voltage measurements
@@ -6573,7 +6603,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			unsigned int jVolt = iVolt/2;
 			// Voltages are 4-7
 			voltage[jVolt] = myDDU->adcplus(1,jVolt+4);
-			if( myCrate->vmeController()->CAEN_err() != 0) {
+			if( myCrate->getVMEController()->CAEN_err() != 0) {
 				dduClass = "caution";
 			}
 			if ((voltage[jVolt] > v_val[jVolt] - v_val[jVolt] * v_delt) && (voltage[jVolt] < v_val[jVolt] + v_val[jVolt] * v_delt)) {
@@ -6593,7 +6623,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		}
 
 		// Check Temperatures
-		myCrate->vmeController()->CAEN_err_reset();
+		myCrate->getVMEController()->CAEN_err_reset();
 		std::string totalTempClass = "ok";
 		// The actual temperatures
 		double temp[4] = {0,0,0,0};
@@ -6604,7 +6634,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			// Automatically read each temperature twice
 			unsigned int jTemp = iTemp/2;
 			temp[jTemp] = myDDU->readthermx(jTemp);
-			if( myCrate->vmeController()->CAEN_err() != 0) {
+			if( myCrate->getVMEController()->CAEN_err() != 0) {
 				dduClass = "caution";
 			}
 			if ((temp[jTemp] > t_val[jTemp] - t_val[jTemp] * t_delt) && (temp[jTemp] < t_val[jTemp] + t_val[jTemp] * t_delt)) {
@@ -6648,7 +6678,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td()
 				.set("class",voltageClass[iVolt])
 				.set("style","border-right: 1px solid #000; border-bottom: 1px solid #000; width: 20%;");
-			*out << "V" << iVolt << ": " << setprecision(4) << voltage[iVolt] << "mV";
+			*out << "V" << iVolt << ": " << std::setprecision(4) << voltage[iVolt] << "mV";
 			*out << cgicc::td() << std::endl;
 		}
 		*out << cgicc::tr() << std::endl;
@@ -6674,7 +6704,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::td()
 				.set("class",tempClass[iTemp])
 				.set("style","border-right: 1px solid #000; border-bottom: 1px solid #000; width: 20%;");
-			*out << "T" << iTemp << ": " << setprecision(4) << temp[iTemp] << "&deg;F";
+			*out << "T" << iTemp << ": " << std::setprecision(4) << temp[iTemp] << "&deg;F";
 			*out << cgicc::td() << std::endl;
 		}
 		*out << cgicc::tr() << std::endl;
@@ -6721,7 +6751,7 @@ void EmuFCrateHyperDAQ::DCCRateMon(xgi::Input * in, xgi::Output * out )
 	if(name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
 	}
-	FEDCrate *myCrate = crateVector[cgiCrate];
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
 
 	cgicc::CgiEnvironment cgiEnvi(in);
 	std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
@@ -6733,7 +6763,7 @@ void EmuFCrateHyperDAQ::DCCRateMon(xgi::Input * in, xgi::Output * out )
 	*out << "<HTML>" <<std::endl;
 	*out << "<BODY bgcolor=\"#FFFFFF\">" <<std::endl;
 
-	DCC *myDCC = myCrate->dccs()[0];
+	emu::fed::DCC *myDCC = myCrate->getDCCs()[0];
 	unsigned short int status[12];
 
 	for(int igu=0;igu<12;igu++) {
@@ -6882,7 +6912,7 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt; margin-bottom: 10px;") << std::endl;
 		
 		std::ostringstream columns;
-		columns << (crateVector[iCrate]->ddus().size() + crateVector[iCrate]->dccs().size());
+		columns << (crateVector[iCrate]->getDDUs().size() + crateVector[iCrate]->getDCCs().size());
 
 		std::string selectedCrate = "";
 		if (what == "crate" && index == iCrate) selectedCrate = "background-color: #FF9;";
@@ -6909,14 +6939,14 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 
 		// For board-specific pages, link the board.
 		*out << cgicc::tr() << std::endl;
-		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->ddus().size(); iDDU++) {
+		for (unsigned int iDDU = 0; iDDU < crateVector[iCrate]->getDDUs().size(); iDDU++) {
 
 			std::string selectedBoard = "";
 			if (what == "ddu" && index == iDDU && crateIndex == iCrate) selectedBoard = "background-color: #FF9;";
 			
 			std::ostringstream boardName;
-			if (crateVector[iCrate]->ddus()[iDDU]->slot() <= 21) {
-				boardName << "DDU Slot " << crateVector[iCrate]->ddus()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->ddus()[iDDU]->slot());
+			if (crateVector[iCrate]->getDDUs()[iDDU]->slot() <= 21) {
+				boardName << "DDU Slot " << crateVector[iCrate]->getDDUs()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->getDDUs()[iDDU]->slot());
 			} else {
 				boardName << "DDU BROADCAST";
 			}
@@ -6934,14 +6964,14 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			}
 			*out << cgicc::td() << std::endl;
 		}
-		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->dccs().size(); iDCC++) {
+		for (unsigned int iDCC = 0; iDCC < crateVector[iCrate]->getDCCs().size(); iDCC++) {
 
 			std::string selectedBoard = "";
 			if (what == "dcc" && index == iDCC && crateIndex == iCrate) selectedBoard = "background-color: #FF9;";
 			
 			std::ostringstream boardName;
-			if (crateVector[iCrate]->dccs()[iDCC]->slot() <= 21) {
-				boardName << "DCC Slot " << crateVector[iCrate]->dccs()[iDCC]->slot();
+			if (crateVector[iCrate]->getDCCs()[iDCC]->slot() <= 21) {
+				boardName << "DCC Slot " << crateVector[iCrate]->getDCCs()[iDCC]->slot();
 			} else {
 				boardName << "BROADCAST DCC";
 			}

@@ -30,10 +30,8 @@
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTMLClasses.h"
 
-//using namespace std;
 
-
-class EmuFEDApplication: public EmuFEDLoggable, public EmuApplication {
+class EmuFEDApplication: public emu::fed::EmuFEDLoggable, public EmuApplication {
 
 public:
 

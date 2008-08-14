@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.h,v 3.1 2008/08/11 15:24:34 paste Exp $
+// $Id: EmuParser.h,v 3.2 2008/08/14 14:14:32 paste Exp $
 // $Log: EmuParser.h,v $
+// Revision 3.2  2008/08/14 14:14:32  paste
+// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
+//
 // Revision 3.1  2008/08/11 15:24:34  paste
 // More updates to clean up files, preparing for universal logger and presentation of code.
 //
@@ -22,23 +25,29 @@
 #include <string>
 #include "EmuFEDLoggable.h"
 
-class EmuParser: public EmuFEDLoggable
-{
-public:
-  EmuParser() {}
-  virtual ~EmuParser() {}
+namespace emu {
+	namespace fed {
 
-  void parseNode(xercesc::DOMNode * pNode);
-  void fillInt(std::string item, int & target);
-  void fillHex(std::string item, int & target);
-  void fillFloat(std::string item, float & target);
-  void fillString(std::string item, std::string & target);
+		class EmuParser: public EmuFEDLoggable
+		{
+		public:
+			EmuParser() {}
+			virtual ~EmuParser() {}
+			
+			void parseNode(xercesc::DOMNode * pNode);
+			void fillInt(std::string item, int & target);
+			void fillHex(std::string item, int & target);
+			void fillFloat(std::string item, float & target);
+			void fillString(std::string item, std::string & target);
+		
+		protected:
+			xercesc::DOMNamedNodeMap * pAttributes_;
+			int size_;
+		
+		};
 
-protected:
-  xercesc::DOMNamedNodeMap * pAttributes_;
-  int size_;
-
-};
+	}
+}
 
 #endif
 

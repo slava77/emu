@@ -1,6 +1,13 @@
 #include "DDUDebugger.h"
 
-std::map<std::string, std::string> DDUDebugger::DDUFPGAStat(unsigned long int stat)
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
+#include "DDU.h"
+#include "Chamber.h"
+
+std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(unsigned long int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -64,7 +71,7 @@ std::map<std::string, std::string> DDUDebugger::DDUFPGAStat(unsigned long int st
 
 
 
-std::map<std::string, std::string> DDUDebugger::OutputStat(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -112,7 +119,7 @@ std::map<std::string, std::string> DDUDebugger::OutputStat(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::EBReg1(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -156,7 +163,7 @@ std::map<std::string, std::string> DDUDebugger::EBReg1(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::EBReg2(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -200,7 +207,7 @@ std::map<std::string, std::string> DDUDebugger::EBReg2(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::EBReg3(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -247,7 +254,7 @@ std::map<std::string, std::string> DDUDebugger::EBReg3(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::FIFO2(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -269,7 +276,7 @@ std::map<std::string, std::string> DDUDebugger::FIFO2(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::FFError(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -290,7 +297,7 @@ std::map<std::string, std::string> DDUDebugger::FFError(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::InCHistory(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -324,7 +331,7 @@ std::map<std::string, std::string> DDUDebugger::InCHistory(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::WarnMon(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -347,7 +354,7 @@ std::map<std::string, std::string> DDUDebugger::WarnMon(int stat)
 }
 
 
-std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
+std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 {
 
 	std::vector<std::string> out;
@@ -1100,7 +1107,7 @@ std::vector <std::string> DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 
 
 
-std::map<std::string, std::string> DDUDebugger::KillFiber(long int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(long int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1116,7 +1123,7 @@ std::map<std::string, std::string> DDUDebugger::KillFiber(long int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1214,7 +1221,7 @@ std::map<std::string, std::string> DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsi
 
 
 
-std::map<std::string, std::string> DDUDebugger::FIFOStat(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(enum DEVTYPE dt, int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1244,7 +1251,7 @@ std::map<std::string, std::string> DDUDebugger::FIFOStat(enum DEVTYPE dt, int st
 
 
 
-std::map<std::string, std::string> DDUDebugger::FIFOFull(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(enum DEVTYPE dt, int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1268,7 +1275,7 @@ std::map<std::string, std::string> DDUDebugger::FIFOFull(enum DEVTYPE dt, int st
 
 
 
-std::map<std::string, std::string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1305,7 +1312,7 @@ std::map<std::string, std::string> DDUDebugger::CCodeStat(enum DEVTYPE dt, int s
 
 
 
-std::map<std::string, std::string> DDUDebugger::FiberDiagnostics(enum DEVTYPE dt, int reg, unsigned long int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FiberDiagnostics(enum DEVTYPE dt, int reg, unsigned long int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1338,7 +1345,7 @@ std::map<std::string, std::string> DDUDebugger::FiberDiagnostics(enum DEVTYPE dt
 
 
 
-std::map<std::string, std::string> DDUDebugger::WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1369,7 +1376,7 @@ std::map<std::string, std::string> DDUDebugger::WriteMemoryActive(enum DEVTYPE d
 
 
 
-std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
+std::vector<std::string> emu::fed::DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 {
 	std::vector<std::string> out;
 	std::ostringstream outStream;
@@ -1514,7 +1521,7 @@ std::vector<std::string> DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
 
 
 
-std::map<std::string, std::string> DDUDebugger::ParallelStat(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStat(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1530,7 +1537,7 @@ std::map<std::string, std::string> DDUDebugger::ParallelStat(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::FMMReg(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FMMReg(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1546,7 +1553,7 @@ std::map<std::string, std::string> DDUDebugger::FMMReg(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::GbEPrescale(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1573,7 +1580,7 @@ std::map<std::string, std::string> DDUDebugger::GbEPrescale(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::FakeL1Reg(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1595,7 +1602,7 @@ std::map<std::string, std::string> DDUDebugger::FakeL1Reg(int stat)
 
 
 
-std::map<std::string, std::string> DDUDebugger::F0EReg(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1607,7 +1614,7 @@ std::map<std::string, std::string> DDUDebugger::F0EReg(int stat)
 
 
 /*
-std::map<std::string, std::string> DDUDebugger::FIFOStat(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(int stat)
 {
 	std::map<std::string, std::string> returnValues;
 

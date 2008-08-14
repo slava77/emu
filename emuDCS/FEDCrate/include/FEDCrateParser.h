@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.h,v 3.5 2008/08/13 14:20:41 paste Exp $
+// $Id: FEDCrateParser.h,v 3.6 2008/08/14 14:14:32 paste Exp $
 // $Log: FEDCrateParser.h,v $
+// Revision 3.6  2008/08/14 14:14:32  paste
+// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
+//
 // Revision 3.5  2008/08/13 14:20:41  paste
 // Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
 //
@@ -26,49 +29,36 @@
 //-----------------------------------------------------------------------
 #ifndef __FEDCRATEPARSER_H__
 #define __FEDCRATEPARSER_H__
-/*
- *  class FEDCrateParser
- *  author Alex Tumanov 6/12/03
- *     
- */
 
+#include <vector>
 
-#include "DDUParser.h"
-#include "DCCParser.h"
-#include "VMEParser.h"
-#include <iostream>
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/framework/XMLPScanToken.hpp>
-#include <xercesc/dom/DOM.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include "FEDCrate.h"
 #include "EmuFEDLoggable.h"
 
-class FEDCrateParser: public EmuFEDLoggable {
+namespace emu {
+	namespace fed {
 
-public:
-	FEDCrateParser() {}
-	
-	/** Parse the file
-		@param name File Name
-	*/
-	void parseFile(const char* name);
-	
-	DDUParser dduParser() const {return dduParser_;}
-	DCCParser dccParser() const {return dccParser_;}
-	VMEParser vmeParser() const {return vmeParser_;}
-	/* There has to be a way to get the crates in the XML
-	back to the user, so that selectCrates will work. */
-	std::vector<FEDCrate*> crateVector() { return crateVector_; }
+		class FEDCrate;
 
-protected:
-	DDUParser dduParser_;
-	DCCParser dccParser_;
-	VMEParser vmeParser_;
-	char *RUIXMLFile_;
-	int crateNumber;
-	std::vector<FEDCrate*> crateVector_;
-};
+		class FEDCrateParser: public EmuFEDLoggable {
+		
+		public:
+			FEDCrateParser() {}
+			
+			/** Parse the file
+				@param name File Name
+			*/
+			void parseFile(const char* name);
+			
+			/* There has to be a way to get the crates in the XML
+			back to the user, so that selectCrates will work. */
+			inline std::vector<FEDCrate *> getCrates() { return crateVector_; }
+		
+		private:
+			std::vector<FEDCrate *> crateVector_;
+		};
+
+	}
+}
 
 #endif
 

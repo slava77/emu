@@ -1,40 +1,23 @@
 /* New motherboard VTX2 not VTX  so MCTRL,6  not MCTRL,5 */
 #include "DCC.h"
-#include "VMEController.h"
-#include <fstream>
+
+#include <iostream>
+#include <vector>
+//#include <fstream>
 #include <stdio.h>
 #include <cmath>
-#include <unistd.h>
-#include "geom_def.h"
+//#include <unistd.h>
 
-//using namespace std;
 
-#ifndef debugV //silent mode
-#define PRINT(x)
-#define PRINTSTRING(x)
-#else //verbose mode
-#define PRINT(x) std::cout << #x << ":\t" << x << std::endl;
-#define PRINTSTRING(x) std::cout << #x << std::endl;
-#endif
-
-extern char filename[100];
-extern unsigned int hexval;
-extern short int intval;
-extern short int intval2;
-
-// declarations
-void Parse(char *buf, int *Count, char **Word);
-void shuffle(char *a, char *b);
-
-DCC::DCC(int crate, int slot) :
+emu::fed::DCC::DCC(int crate, int slot) :
 		VMEModule(slot),
 		fifoinuse_(1022),
 		softsw_(0)
 {
-	// std::cout<<"DCC \n";
+	std::cerr << "Deprecated constructor.  Use DCC(int) instead of DCC(int,int)." << std::endl;
 }
 
-DCC::DCC(int slot) :
+emu::fed::DCC::DCC(int slot) :
 		VMEModule(slot),
 		fifoinuse_(1022),
 		softsw_(0)
@@ -43,21 +26,21 @@ DCC::DCC(int slot) :
 }
 
 
-DCC::~DCC()
+emu::fed::DCC::~DCC()
 {
 	// std::cout << "Killing DCC" << std::endl;
 }
 
 
-void DCC::end()
+void emu::fed::DCC::end()
 {
-	//  std::cout << "calling DCC::end" << std::endl;
+	//  std::cout << "calling emu::fed::DCC::end" << std::endl;
 	send_last();
 	VMEModule::end();
 }
 
 
-void DCC::configure()
+void emu::fed::DCC::configure()
 {
 
 	//printf(" *********************** DCC configure is called \n");
@@ -68,7 +51,7 @@ void DCC::configure()
 	}
 }
 
-unsigned long int  DCC::inprom_userid()
+unsigned long int  emu::fed::DCC::inprom_userid()
 {
 	enum DEVTYPE dv;
 	//printf(" inpromuser entered \n");
@@ -89,7 +72,7 @@ unsigned long int  DCC::inprom_userid()
 	return ibrd;
 }
 
-unsigned long int  DCC::mprom_userid()
+unsigned long int  emu::fed::DCC::mprom_userid()
 {
 	enum DEVTYPE dv;
 	dv = MPROM;
@@ -110,7 +93,7 @@ unsigned long int  DCC::mprom_userid()
 	devdo(dv, 16, cmd, 0, sndbuf, rcvbuf, 0);
 	return ibrd;
 }
-unsigned long int  DCC::inprom_chipid()
+unsigned long int  emu::fed::DCC::inprom_chipid()
 {
 	enum DEVTYPE dv;
 	printf(" inpromuser entered \n");
@@ -132,7 +115,7 @@ unsigned long int  DCC::inprom_chipid()
 
 }
 
-unsigned long int  DCC::mprom_chipid()
+unsigned long int  emu::fed::DCC::mprom_chipid()
 {
 	enum DEVTYPE dv;
 	dv = MPROM;
@@ -156,7 +139,7 @@ unsigned long int  DCC::mprom_chipid()
 
 
 
-void DCC::mctrl_bxr()
+void emu::fed::DCC::mctrl_bxr()
 {
 	cmd[0] = 0x00;  // fcn 0x00-write 0x01-read
 	cmd[1] = 0x00;  // vme add
@@ -165,7 +148,7 @@ void DCC::mctrl_bxr()
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
 
-void DCC::mctrl_evnr()
+void emu::fed::DCC::mctrl_evnr()
 {
 	cmd[0] = 0x00;  // fcn 0x00-write 0x01-read
 	cmd[1] = 0x00;  // vme add
@@ -174,7 +157,7 @@ void DCC::mctrl_evnr()
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
 
-void DCC::mctrl_fakeL1A(char rate, char num)
+void emu::fed::DCC::mctrl_fakeL1A(char rate, char num)
 {
 	cmd[0] = 0x00;  // fcn 0x00-write 0x01-read
 	cmd[1] = 0x04;  // vme add
@@ -184,7 +167,7 @@ void DCC::mctrl_fakeL1A(char rate, char num)
 }
 
 
-void DCC::mctrl_fifoinuse(unsigned short int fifo)
+void emu::fed::DCC::mctrl_fifoinuse(unsigned short int fifo)
 {
 	unsigned short int tmp;
 	tmp = (fifo & 0x07FF);
@@ -196,7 +179,7 @@ void DCC::mctrl_fifoinuse(unsigned short int fifo)
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
 
-void DCC::mctrl_reg(char *c)
+void emu::fed::DCC::mctrl_reg(char *c)
 {
 	printf(" register entered \n");
 	cmd[0] = 0x01;  // fcn 0x00-write 0x01-read
@@ -210,7 +193,7 @@ void DCC::mctrl_reg(char *c)
 }
 
 
-void DCC::mctrl_swset(unsigned short int swset)
+void emu::fed::DCC::mctrl_swset(unsigned short int swset)
 {
 	unsigned short int tmp;
 	tmp = (swset & 0xffff);
@@ -222,7 +205,7 @@ void DCC::mctrl_swset(unsigned short int swset)
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
 
-unsigned short int  DCC::mctrl_swrd()
+unsigned short int  emu::fed::DCC::mctrl_swrd()
 {
 	unsigned short int swrd = 0;
 	cmd[0] = 0x01;  // fcn 0x00-write 0x01-read
@@ -234,7 +217,7 @@ unsigned short int  DCC::mctrl_swrd()
 	swrd = ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
 	return swrd;
 }
-void DCC::mctrl_fmmset(unsigned short int fmmset)
+void emu::fed::DCC::mctrl_fmmset(unsigned short int fmmset)
 {
 	unsigned short int tmp;
 	tmp = (fmmset & 0xffff);
@@ -246,7 +229,7 @@ void DCC::mctrl_fmmset(unsigned short int fmmset)
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
 
-unsigned short int  DCC::mctrl_fmmrd()
+unsigned short int  emu::fed::DCC::mctrl_fmmrd()
 {
 	unsigned short int fmmrd = 0;
 	cmd[0] = 0x01;  // fcn 0x00-write 0x01-read
@@ -259,7 +242,7 @@ unsigned short int  DCC::mctrl_fmmrd()
 	return fmmrd;
 }
 
-unsigned short int  DCC::mctrl_stath()
+unsigned short int  emu::fed::DCC::mctrl_stath()
 {
 	unsigned short int rcvr = 0;
 	cmd[0] = 0x01;  // fcn 0x00-write 0x01-read
@@ -273,7 +256,7 @@ unsigned short int  DCC::mctrl_stath()
 }
 
 
-unsigned short int DCC::mctrl_statl()
+unsigned short int emu::fed::DCC::mctrl_statl()
 {
 	unsigned short int rcvr = 0;
 	cmd[0] = 0x01;  // fcn 0x00-write 0x01-read
@@ -286,7 +269,7 @@ unsigned short int DCC::mctrl_statl()
 	return rcvr;
 }
 
-unsigned short int DCC::mctrl_ratemon(int vaddress)
+unsigned short int emu::fed::DCC::mctrl_ratemon(int vaddress)
 {
 	unsigned short int rcvr = 0;
 	cmd[0] = 0x01;  // fcn 0x00-write 0x01-read
@@ -300,7 +283,7 @@ unsigned short int DCC::mctrl_ratemon(int vaddress)
 }
 
 
-void DCC::mctrl_ttccmd(unsigned short int ctcc)
+void emu::fed::DCC::mctrl_ttccmd(unsigned short int ctcc)
 {
 	unsigned short int tmp;
 	tmp = (ctcc << 2) & 0xfc;
@@ -311,7 +294,7 @@ void DCC::mctrl_ttccmd(unsigned short int ctcc)
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
 
-unsigned short int  DCC::mctrl_rd_fifoinuse()
+unsigned short int  emu::fed::DCC::mctrl_rd_fifoinuse()
 {
 	unsigned short int rcvr = 0;
 	cmd[0] = 0x01;  // fcn 0x00-write 0x01-read
@@ -325,7 +308,7 @@ unsigned short int  DCC::mctrl_rd_fifoinuse()
 	return rcvr;
 }
 
-unsigned short int  DCC::mctrl_rd_ttccmd()
+unsigned short int  emu::fed::DCC::mctrl_rd_ttccmd()
 {
 	unsigned short int rcvr = 0;
 	cmd[0] = 0x01;  // fcn 0x00-write 0x01-read
@@ -340,7 +323,7 @@ unsigned short int  DCC::mctrl_rd_ttccmd()
 }
 
 
-void DCC::hdrst_in(void)
+void emu::fed::DCC::hdrst_in(void)
 {
 	enum DEVTYPE dv;
 	printf(" InFOGA hardreset by inprom CF \n");
@@ -354,7 +337,7 @@ void DCC::hdrst_in(void)
 	sleep((unsigned int) 1);
 }
 
-void DCC::hdrst_main(void)
+void emu::fed::DCC::hdrst_main(void)
 {
 	enum DEVTYPE dv;
 	printf(" MainFOGA hardreset by Main_prom CF \n");
@@ -373,7 +356,7 @@ void DCC::hdrst_main(void)
 
 
 
-void DCC::Parse(char *buf, int *Count, char **Word)
+void emu::fed::DCC::Parse(char *buf, int *Count, char **Word)
 {
 	*Word = buf;
 	*Count = 0;
@@ -390,7 +373,7 @@ void DCC::Parse(char *buf, int *Count, char **Word)
 }
 
 
-void DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ, char *cbrdnum)
+void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ, char *cbrdnum)
 {
 	enum DEVTYPE devstp, dv;
 	char *devstr;
@@ -402,7 +385,6 @@ void DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ,
 	int tstusr;
 	int nowrit;
 	char snd[5000], expect[5000], rmask[5000], smask[5000], cmpbuf[5000];
-	extern struct GEOM geo[];
 	//printf(" epromload %d \n",devnum);
 
 	/*
@@ -616,12 +598,12 @@ void DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ,
 
 
 
-void DCC::executeCommand(std::string command)
+void emu::fed::DCC::executeCommand(std::string command)
 {
 }
 
 
-unsigned long int DCC::readReg(enum DEVTYPE dt, char reg)
+unsigned long int emu::fed::DCC::readReg(enum DEVTYPE dt, char reg)
 	throw (FEDException)
 {
 	// reads are always 16 bits from the DCC
@@ -643,7 +625,7 @@ unsigned long int DCC::readReg(enum DEVTYPE dt, char reg)
 }
 
 
-void DCC::writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
+void emu::fed::DCC::writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
 	throw (FEDException)
 {
 	// reads are always 16 bits from the DCC
@@ -664,7 +646,7 @@ void DCC::writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
 
 
 
-unsigned int DCC::readStatusHigh()
+unsigned int emu::fed::DCC::readStatusHigh()
 	throw (FEDException)
 {
 	try {
@@ -674,7 +656,7 @@ unsigned int DCC::readStatusHigh()
 
 
 
-unsigned int DCC::readStatusLow()
+unsigned int emu::fed::DCC::readStatusLow()
 	throw (FEDException)
 {
 	try {
@@ -684,7 +666,7 @@ unsigned int DCC::readStatusLow()
 
 
 
-unsigned int DCC::readFIFOInUse()
+unsigned int emu::fed::DCC::readFIFOInUse()
 	throw (FEDException)
 {
 	try {
@@ -694,7 +676,7 @@ unsigned int DCC::readFIFOInUse()
 
 
 
-void DCC::setFIFOInUse(unsigned int value)
+void emu::fed::DCC::setFIFOInUse(unsigned int value)
 	throw (FEDException)
 {
 	try {
@@ -703,7 +685,7 @@ void DCC::setFIFOInUse(unsigned int value)
 }
 
 
-unsigned int DCC::readRate(unsigned int fifo)
+unsigned int emu::fed::DCC::readRate(unsigned int fifo)
 	throw (FEDException)
 {
 	if (fifo > 11) XCEPT_RAISE(FEDException, "there are only 12 FIFOs to check [0-11]");
@@ -713,7 +695,7 @@ unsigned int DCC::readRate(unsigned int fifo)
 }
 
 
-unsigned int DCC::readSoftwareSwitch()
+unsigned int emu::fed::DCC::readSoftwareSwitch()
 	throw (FEDException)
 {
 	try {
@@ -722,7 +704,7 @@ unsigned int DCC::readSoftwareSwitch()
 }
 
 
-void DCC::setSoftwareSwitch(unsigned int value)
+void emu::fed::DCC::setSoftwareSwitch(unsigned int value)
 	throw (FEDException)
 {
 	try {
@@ -731,7 +713,7 @@ void DCC::setSoftwareSwitch(unsigned int value)
 }
 
 
-unsigned int DCC::readFMM()
+unsigned int emu::fed::DCC::readFMM()
 	throw (FEDException)
 {
 	try {
@@ -740,7 +722,7 @@ unsigned int DCC::readFMM()
 }
 
 
-void DCC::setFMM(unsigned int value)
+void emu::fed::DCC::setFMM(unsigned int value)
 	throw (FEDException)
 {
 	try {
@@ -749,7 +731,7 @@ void DCC::setFMM(unsigned int value)
 }
 
 
-unsigned int DCC::readTTCCommand()
+unsigned int emu::fed::DCC::readTTCCommand()
 	throw (FEDException)
 {
 	try {
@@ -758,7 +740,7 @@ unsigned int DCC::readTTCCommand()
 }
 
 
-void DCC::setTTCCommand(unsigned int value)
+void emu::fed::DCC::setTTCCommand(unsigned int value)
 	throw (FEDException)
 {
 	try {
@@ -767,7 +749,7 @@ void DCC::setTTCCommand(unsigned int value)
 }
 
 
-void DCC::resetBX()
+void emu::fed::DCC::resetBX()
 	throw (FEDException)
 {
 	try {
@@ -776,7 +758,7 @@ void DCC::resetBX()
 }
 
 
-void DCC::resetEvents()
+void emu::fed::DCC::resetEvents()
 	throw (FEDException)
 {
 	try {
@@ -785,7 +767,7 @@ void DCC::resetEvents()
 }
 
 
-void DCC::setFakeL1A(unsigned int value)
+void emu::fed::DCC::setFakeL1A(unsigned int value)
 	throw (FEDException)
 {
 	try {
@@ -794,7 +776,7 @@ void DCC::setFakeL1A(unsigned int value)
 }
 
 
-unsigned int DCC::getDDUSlotFromFIFO(unsigned int fifo) {
+unsigned int emu::fed::DCC::getDDUSlotFromFIFO(unsigned int fifo) {
 	if (slot() == 8 && fifo < 10) {
 		return (fifo % 2) ? 13 - fifo/2 : fifo/2 + 3;
 	} else if (slot() == 17 && fifo < 8 && fifo >= 2) {
@@ -805,7 +787,7 @@ unsigned int DCC::getDDUSlotFromFIFO(unsigned int fifo) {
 }
 
 
-void DCC::crateHardReset()
+void emu::fed::DCC::crateHardReset()
 {
 	setSoftwareSwitch(0x1000);
 	setTTCCommand(0x34);
@@ -813,7 +795,7 @@ void DCC::crateHardReset()
 	setSoftwareSwitch(0x0);
 }
 
-void DCC::crateSyncReset()
+void emu::fed::DCC::crateSyncReset()
 {
 	setSoftwareSwitch(0x1000);
 	setTTCCommand(0x3);

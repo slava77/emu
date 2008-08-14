@@ -5,9 +5,12 @@
 
 #include "Chamber.h"
 
-//using namespace std;
+#include <iostream>
+#include <vector>
+#include <sstream>
+#include <iomanip>
 
-Chamber::Chamber():
+emu::fed::Chamber::Chamber():
 	endcap(""),
 	station(0),
 	type(0),
@@ -22,7 +25,7 @@ Chamber::Chamber():
 	// All that for nothing...
 }
 
-Chamber::~Chamber()
+emu::fed::Chamber::~Chamber()
 {
 	// Nothing.
 }
@@ -30,7 +33,7 @@ Chamber::~Chamber()
 /**
 @returns a human-readable chamber name, like ME+1/2/12
 **/
-std::string Chamber::name()
+std::string emu::fed::Chamber::name()
 {
 	std::stringstream nameStream;
 	//nameStream << "ME" << endcap << station << "/" << type << "/" << number;
@@ -41,7 +44,7 @@ std::string Chamber::name()
 /**
 @returns a human-readable peripheral crate/slot name, like +1/03 slot 2
 **/
-std::string Chamber::peripheralCrate()
+std::string emu::fed::Chamber::peripheralCrate()
 {
 	std::stringstream nameStream;
 	nameStream << endcap << station << "/" << std::setw(2) << std::setfill('0') << peripheralCrateVMECrate_ << " slot " << peripheralCrateVMESlot_;
@@ -51,7 +54,7 @@ std::string Chamber::peripheralCrate()
 /**
 @returns a human-readable fiber cassette name, like 1/2/b or something...
 **/
-std::string Chamber::fiberCassette()
+std::string emu::fed::Chamber::fiberCassette()
 {
 	std::stringstream nameStream;
 	nameStream << fiberCassetteCrate_ << "/" << fiberCassettePos_ << "/" << fiberCassetteSocket_;

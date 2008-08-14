@@ -1,33 +1,31 @@
 #ifndef __DCCPARSER_H__
 #define __DCCPARSER_H__
-/*
- *  class DCCParser
- *  author Stan Durkin 1/25/05
- *     
- */
-class DCC;
-#include <vector>
-#include "EmuParser.h"
+
 #include <xercesc/dom/DOM.hpp>
-#include "DCC.h"
-//#include "Crate.h"
 
-XERCES_CPP_NAMESPACE_USE
+#include "EmuParser.h"
 
+namespace emu {
+	namespace fed {
 
-class DCCParser: public EmuParser
-{
-
-public:
-	DCCParser(){}
-	explicit DCCParser(DOMNode * pNode, int crate = 0);
+		class DCC;
 		
-	/// the last one parsed
-	DCC * dcc() const { return dcc_; }
+		class DCCParser: public EmuParser
+		{
+		
+		public:
+			DCCParser(){}
+			explicit DCCParser(xercesc::DOMNode *pNode, int crate = 0);
+				
+			/// the last one parsed
+			inline DCC *getDCC() { return dcc_; }
+		
+		private:
+			DCC *dcc_;//last one parsed
+		};
 
-private:
-	DCC * dcc_;//last one parsed
-};
+	}
+}
 
 #endif
 

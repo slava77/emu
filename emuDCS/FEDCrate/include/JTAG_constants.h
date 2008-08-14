@@ -1,19 +1,22 @@
-#ifndef JTAG_constants_h
-#define JTAG_constants_h
+#ifndef __JTAG_CONSTANTS_H__
+#define __JTAG_CONSTANTS_H__
 
 #define INSTR_REG 0
 #define DATA_REG 1
 #define PROM_BYPASS 0xFF
 #define TERMINATE 2
+
 enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
-	      OUTFIFO,VMEPROM,DDUPROM0,DDUPROM1,
-	      INPROM0,INPROM1,DDUFPGA,INFPGA0,INFPGA1,SLINK,
-	      VMEPARA,VMESERI,RESET,SADC,MPROM,INPROM,INCTRL1,
-	      INCTRL2,INCTRL3,INCTRL4,INCTRL5,MCTRL,RESET1,RESET2};
+	OUTFIFO,VMEPROM,DDUPROM0,DDUPROM1,
+	INPROM0,INPROM1,DDUFPGA,INFPGA0,INFPGA1,SLINK,
+	VMEPARA,VMESERI,RESET,SADC,MPROM,INPROM,INCTRL1,
+	INCTRL2,INCTRL3,INCTRL4,INCTRL5,MCTRL,RESET1,RESET2};
+
 /* JTAG instructions */
 #define EXT_TEST 0x00
 #define BYPASS   0x81
 #define SEL_PATH 0x7E
+
 /* Path options */
 /* #define NO_PATH    0x00
 #define CPLD_PATH  0x02
@@ -38,6 +41,7 @@ enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
 #define PROM_USERCODE 0xFD
 #define PROM_CONFIG 0xEE
 #define PROM_BYPASS10 0x3FF
+
 /* VIRTEX fpga scan instructions */
 #define VTX2_EXTEST 0x00
 #define VTX2_SAMPLE 0x01
@@ -53,6 +57,7 @@ enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
 #define VTX2_JPROG  0x0B
 #define VTX2_SHUTDN 0x0D
 #define VTX2_BYPASS 0x3F
+
 /* virtex-ii pro20  fpga 14 bit scan instructions */
 #define VTX2P20_EXTEST_L 0xC0
 #define VTX2P20_EXTEST_H 0x3F
@@ -66,6 +71,7 @@ enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
 #define VTX2P20_USERCODE_H 0x3F
 #define VTX2P20_IDCODE_L 0xC9
 #define VTX2P20_IDCODE_H 0x3F
+
 /* big prom DCC MPROM 16 bit scan instructions */
 #define MPROM_BYPASS_L 0xFF
 #define MPROM_BYPASS_H 0xFF
@@ -73,6 +79,7 @@ enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
 #define MPROM_USERCODE_H 0x00
 #define MPROM_IDCODE_L 0xFE
 #define MPROM_IDCODE_H 0x00
+
 /* virtex-ii pro  fpga 10 bit scan instructions */
 #define VTX2P_EXTEST_L 0xC0
 #define VTX2P_EXTEST_H 0x03
@@ -100,6 +107,7 @@ enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
 #define VTX_HIGHZ 0x0A
 #define VTX_JSTART 0x0C
 #define VTX_BYPASS 0x1F
+
 /* SCAM-FPGA modes (Virtex FPGA) */
 #define NORM_MODE  0
 #define RESET_MODE 1
@@ -110,6 +118,7 @@ enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
 #define COMP_MODE  9
 #define CHIP_MASK 10
 #define CHIP_SHFT 11
+
 /* CALCTRL modes */
 #define CAL_FIFOMRST 0xe
 #define CAL_GLOBAL 15
@@ -121,6 +130,7 @@ enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
 #define CAL_TOGGLE_CMODE 14
 #define CAL_DELAY 0x11
 #define CAL_PROGFEB 20
+
 /* TRGCTRL modes */
 #define TRG_STATUS 0
 #define TRG_READFIFO 2
@@ -131,6 +141,7 @@ enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
 #define GLOBAL_RST 0x01
 #define TRG_RATE 0x13
 #define RTRG_TGL 0x14
+
 /* DDU definitions */
 #define DDUFPGA_RST 0x01
 #define ECNTRL_RST 0x01

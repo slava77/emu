@@ -1,6 +1,6 @@
 #include "EmuFEDLoggable.h"
 
-EmuFEDLoggable::EmuFEDLoggable()
+emu::fed::EmuFEDLoggable::EmuFEDLoggable()
 {
 	
 }
