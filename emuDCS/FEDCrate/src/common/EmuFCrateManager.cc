@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id:
+* $Id: EmuFCrateManager.cc,v 1.17 2008/08/14 14:16:22 paste Exp $
 *
-* $Log:
+* $Log: EmuFCrateManager.cc,v $
+* Revision 1.17  2008/08/14 14:16:22  paste
+* Testing CVS replacement
+*
 \*****************************************************************************/
 #include "EmuFCrateManager.h"
 
