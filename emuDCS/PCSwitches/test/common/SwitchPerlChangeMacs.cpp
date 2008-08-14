@@ -26,7 +26,7 @@ void print_switch_changes(int swt);
   int slot;
  }SIDE;
 
- SIDE side[32];
+ SIDE side[33];
 
 typedef struct Mac{
   char *mac;
@@ -87,9 +87,10 @@ typedef struct pc_stats{
 }PC_STATS;
 
 PC_STATS pc[2];
-SIDE plus[32]={
+SIDE plus[33]={
   {"csc-pc1    ",4,6,0},
   {"csc-dcs-pc1",4,8,0},
+  {"csc-pc1b   ",4,7,0},
   {"vme+1/1    ",3,2,0},			
   {"vme+1/2    ",1,7,0},			
   {"vme+1/3    ",1,8,0},			
@@ -122,9 +123,10 @@ SIDE plus[32]={
   {"vme+4/6    ",3,11,0}
 };	
 
-SIDE minus[32]={
+SIDE minus[33]={
   {"csc-pc2    ",7,6,0},
   {"csc-dcs-pc2",7,8,0},
+  {"csc-pc2b   ",7,7,0},
   {"vme-1/1    ",10,2,0},			
   {"vme-1/2    ",8,7,0},			
   {"vme-1/3    ",8,8,0},			
@@ -229,7 +231,7 @@ int main(int argc,char *argv[]){
 
   Side="plus";
   if(Side=="plus"){
-     for(int i=0;i<32;i++)side[i]=plus[i];
+     for(int i=0;i<33;i++)side[i]=plus[i];
      for(int i=0;i<4;i++){
        for(int j=0;j<12;j++)sidevlan[i][j]=plusvlan[i][j];
      }
@@ -244,7 +246,7 @@ int main(int argc,char *argv[]){
 
   Side="minus";
   if(Side=="minus"){
-     for(int i=0;i<32;i++)side[i]=minus[i];
+     for(int i=0;i<33;i++)side[i]=minus[i];
      for(int i=0;i<4;i++){
        for(int j=0;j<12;j++)sidevlan[i][j]=minusvlan[i][j];
      }
@@ -281,7 +283,7 @@ void fill_expected_mac_table(){
       sw[swt][prt].nmacs_expected=0;
     }
   }
-  for(int i=0;i<32;i++){
+  for(int i=0;i<33;i++){
     int swt=side[i].nswitch-1-swadd2;
     int prt=side[i].nport-1;
     int n=sw[swt][prt].nmacs_expected;
@@ -293,15 +295,15 @@ void fill_expected_mac_table(){
   if(swadd==0){ 
     // switch pointers
     int n=sw[3][1].nmacs_expected;
-    sw[3][1].mac_expected[n].mac=em[32].mac;
+    sw[3][1].mac_expected[n].mac=em[33].mac;
     n=n+1;
     sw[3][1].nmacs_expected=n;
     n=sw[3][2].nmacs_expected;
-    sw[3][2].mac_expected[n].mac=em[33].mac;
+    sw[3][2].mac_expected[n].mac=em[34].mac;
     n=n+1;
     sw[3][2].nmacs_expected=n;
     n=sw[3][3].nmacs_expected;
-    sw[3][3].mac_expected[n].mac=em[34].mac;
+    sw[3][3].mac_expected[n].mac=em[35].mac;
     n=n+1;
     sw[3][3].nmacs_expected=n;
     
@@ -310,13 +312,16 @@ void fill_expected_mac_table(){
       // fill in pc macs
       for(int i=0;i<2;i++){
         int n=sw[swt][tprt[i]].nmacs_expected; 
-        sw[swt][tprt[i]].mac_expected[n].mac=em[35].mac;  // switch 4
+        sw[swt][tprt[i]].mac_expected[n].mac=em[36].mac;  // switch 4
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
         sw[swt][tprt[i]].mac_expected[n].mac=em[0].mac;  // pc 1
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
         sw[swt][tprt[i]].mac_expected[n].mac=em[1].mac;  // pc 2
+        n=n+1;
+        sw[swt][tprt[i]].nmacs_expected=n;
+        sw[swt][tprt[i]].mac_expected[n].mac=em[2].mac;  // pc 1b                                                      
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
       }
@@ -341,15 +346,15 @@ void fill_expected_mac_table(){
   if(swadd==4){ 
     // switch pointers
     int n=sw[0][1].nmacs_expected;
-    sw[0][1].mac_expected[n].mac=em[33].mac;
+    sw[0][1].mac_expected[n].mac=em[34].mac;
     n=n+1;
     sw[0][1].nmacs_expected=n;
     n=sw[0][2].nmacs_expected;
-    sw[0][2].mac_expected[n].mac=em[34].mac;
+    sw[0][2].mac_expected[n].mac=em[35].mac;
     n=n+1;
     sw[0][2].nmacs_expected=n;
     n=sw[0][3].nmacs_expected;
-    sw[0][3].mac_expected[n].mac=em[35].mac;
+    sw[0][3].mac_expected[n].mac=em[36].mac;
     n=n+1;
     sw[0][3].nmacs_expected=n; 
 
@@ -358,13 +363,16 @@ void fill_expected_mac_table(){
       // fill in pc macs
       for(int i=0;i<2;i++){
         int n=sw[swt][tprt[i]].nmacs_expected; 
-        sw[swt][tprt[i]].mac_expected[n].mac=em[32].mac;  // switch 4
+        sw[swt][tprt[i]].mac_expected[n].mac=em[33].mac;  // switch 4
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
         sw[swt][tprt[i]].mac_expected[n].mac=em[0].mac;  // pc 1
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
         sw[swt][tprt[i]].mac_expected[n].mac=em[1].mac;  // pc 2
+        n=n+1;
+        sw[swt][tprt[i]].nmacs_expected=n;
+        sw[swt][tprt[i]].mac_expected[n].mac=em[2].mac;  // pc 2b                                                      
         n=n+1;
         sw[swt][tprt[i]].nmacs_expected=n;
       }
