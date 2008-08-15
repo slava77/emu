@@ -38,6 +38,7 @@
       <xsl:call-template name="RUIs"/>
       <xsl:call-template name="EmuDisplayClient"/>
       <xsl:call-template name="EmuMonitors"/>
+      <xsl:call-template name="TTCciControl"/>
 
     </xc:Partition>
   </xsl:template>
@@ -126,20 +127,20 @@
 	  <buildEvents xsi:type="xsd:boolean"><xsl:if test="$BUILD='N'">false</xsl:if><xsl:if test="$BUILD='Y'">true</xsl:if></buildEvents>
 	  <runType xsi:type="xsd:string">Monitor</runType>
 	  <globalMode xsi:type="xsd:boolean">true</globalMode>
-	  <runDbBookingCommand xsi:type="xsd:string">/usr/java/jdk/bin/java -jar /nfshome0/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
-	  <runDbWritingCommand xsi:type="xsd:string">/usr/java/jdk/bin/java -jar /nfshome0/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
+	  <runDbBookingCommand xsi:type="xsd:string">/nfshome0/cscdaq/bin/java -jar /nfshome0/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
+	  <runDbWritingCommand xsi:type="xsd:string">/nfshome0/cscdaq/bin/java -jar /nfshome0/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
 	  <runDbAddress xsi:type="xsd:string">jdbc:oracle:thin:@cmsonr1-v.cms:10121/cms_rcms.cern.ch</runDbAddress>
 	  <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbUser</runDbUserFile>
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbTestUser</runDbUserFile> -->
 	  <!-- <runDbUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.runDbMTCCUser</runDbUserFile> -->
-	  <curlCommand xsi:type="xsd:string">/usr/bin/curl -v</curlCommand>
+	  <curlCommand xsi:type="xsd:string">/usr/bin/curl -v -k</curlCommand>
 	  <curlCookies xsi:type="xsd:string">.curlCookies</curlCookies>
 	  <CMSUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.CMSUser</CMSUserFile>
 	  <eLogUserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.eLogUser</eLogUserFile>
 	  <eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/CSC</eLogURL>
 	  <!-- <eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/Test</eLogURL> -->
-	  <postToELog xsi:type="xsd:boolean">false</postToELog>
-	  <controlDQM xsi:type="xsd:boolean">true</controlDQM>
+	  <postToELog xsi:type="xsd:boolean">true</postToELog>
+	  <controlDQM xsi:type="xsd:boolean">false</controlDQM>
 	  <hardwareMapping xsi:type="xsd:string">emu/config/EmuDAQ/RUI-to-chamber_mapping.xml</hardwareMapping>
 	  <TF_FM_URL xsi:type="xsd:string">http://UNKNOWN.cms:12000</TF_FM_URL>
 	  <CSC_FM_URL xsi:type="xsd:string">http://cmsrc-csc.cms:12000</CSC_FM_URL>
@@ -374,4 +375,11 @@
     </xsl:for-each>
   </xsl:template>
 
+<!-- Generate context for TTCciControl of TF just for getting the trigger sources -->
+  <xsl:template name="TTCciControl">
+    <xsl:comment>TTCciControl (TF)</xsl:comment>
+    <xc:Context url="http://ttc-csc.cms:20110">
+      <xc:Application class="TTCciControl" id="42" instance="2" network="local"/>
+    </xc:Context>
+  </xsl:template>
 </xsl:transform>
