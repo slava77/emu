@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: DDUParser.cc,v 3.6 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: DDUParser.cc,v $
+* Revision 3.6  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "DDUParser.h"
 
 #include <iostream>

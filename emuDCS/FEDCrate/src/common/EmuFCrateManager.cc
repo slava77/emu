@@ -1,9 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.17 2008/08/14 14:16:22 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.18 2008/08/15 08:35:51 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
-* Revision 1.17  2008/08/14 14:16:22  paste
-* Testing CVS replacement
+* Revision 1.18  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
 *
 \*****************************************************************************/
 #include "EmuFCrateManager.h"

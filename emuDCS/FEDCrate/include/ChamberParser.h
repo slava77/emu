@@ -1,10 +1,14 @@
+/*****************************************************************************\
+* $Id: ChamberParser.h,v 1.4 2008/08/15 08:35:50 paste Exp $
+*
+* $Log: ChamberParser.h,v $
+* Revision 1.4  2008/08/15 08:35:50  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __CHAMBERPARSER_H__
 #define __CHAMBERPARSER_H__
-/*
- *  class ChamberParser
- *  author Phillip Killewald 1/31/08
- *     
- */
 
 #include <vector>
 #include <xercesc/dom/DOM.hpp>

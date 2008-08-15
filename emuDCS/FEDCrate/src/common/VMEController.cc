@@ -1,32 +1,12 @@
-//----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.10 2008/08/14 14:14:33 paste Exp $
-// $Log: VMEController.cc,v $
-// Revision 3.10  2008/08/14 14:14:33  paste
-// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
-//
-// Revision 3.9  2008/08/13 14:20:42  paste
-// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
-//
-// Revision 3.8  2008/06/10 13:52:12  gilmore
-// improved FED Crate HyperDAQ operability
-//
-// Revision 3.6  2007/07/23 05:03:30  gilmore
-// major structural chages to improve multi-crate functionality
-//
-// Revision 3.3.2.1  2007/03/19 15:03:23  gilmore
-// fixes for VMEser/VMEpara expert functions
-//
-// Revision 3.3  2006/10/04 03:00:25  gilmore
-// Removed some debug lines.
-//
-// Revision 3.1  2006/08/04 20:28:27  gilmore
-// Added Logserver feature to EmuFEDVME Interrupt handler.
-//
-// Revision 1.25  2004/07/22 18:52:38  tfcvs
-// added accessor functions for DCS integration
-//
-//
-//----------------------------------------------------------------------
+/*****************************************************************************\
+* $Id: VMEController.cc,v 3.11 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: VMEController.cc,v $
+* Revision 3.11  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "VMEController.h"
 
 #include <vector>

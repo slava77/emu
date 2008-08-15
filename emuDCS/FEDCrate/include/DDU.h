@@ -1,7 +1,12 @@
-/*
-     S. Durkin      1/25/05
-
- */
+/*****************************************************************************\
+* $Id: DDU.h,v 3.15 2008/08/15 08:35:50 paste Exp $
+*
+* $Log: DDU.h,v $
+* Revision 3.15  2008/08/15 08:35:50  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __DDU_H__
 #define __DDU_H__
 

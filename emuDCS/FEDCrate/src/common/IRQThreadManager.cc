@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: IRQThreadManager.cc,v 3.16 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: IRQThreadManager.cc,v $
+* Revision 3.16  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "IRQThreadManager.h"
 
 #include <utility>

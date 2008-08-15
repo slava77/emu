@@ -1,20 +1,12 @@
-//-----------------------------------------------------------------------
-// $Id: EmuParser.cc,v 3.1 2008/08/14 14:14:33 paste Exp $
-// $Log: EmuParser.cc,v $
-// Revision 3.1  2008/08/14 14:14:33  paste
-// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
-//
-// Revision 3.0  2006/07/20 21:16:11  geurts
-// *** empty log message ***
-//
-// Revision 1.3  2006/05/09 19:20:03  gilmore
-// Fix for DCC configure function.
-//
-// Revision 2.0  2005/04/12 08:07:05  geurts
-// *** empty log message ***
-//
-//
-//-----------------------------------------------------------------------
+/*****************************************************************************\
+* $Id: EmuParser.cc,v 3.2 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: EmuParser.cc,v $
+* Revision 3.2  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "EmuParser.h"
 
 #include <stdio.h>

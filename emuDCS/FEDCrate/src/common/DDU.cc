@@ -1,4 +1,12 @@
-/* New motherboard VTX2 not VTX  so MCTRL,6  not MCTRL,5 */
+/*****************************************************************************\
+* $Id: DDU.cc,v 3.24 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: DDU.cc,v $
+* Revision 3.24  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "DDU.h"
 
 #include <iostream>

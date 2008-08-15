@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: DDUDebugger.h,v 1.8 2008/08/15 08:35:50 paste Exp $
+*
+* $Log: DDUDebugger.h,v $
+* Revision 1.8  2008/08/15 08:35:50  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __DDUDEBUGGER_H__
 #define __DDUDEBUGGER_H__
 

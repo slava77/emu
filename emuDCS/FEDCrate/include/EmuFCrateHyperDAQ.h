@@ -1,4 +1,12 @@
-
+/*****************************************************************************\
+* $Id: EmuFCrateHyperDAQ.h,v 3.47 2008/08/15 08:35:50 paste Exp $
+*
+* $Log: EmuFCrateHyperDAQ.h,v $
+* Revision 3.47  2008/08/15 08:35:50  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 /** XDAQ-based interface for controlling and debugging FED Crates.
 *	Please, PLEASE leave the editing of this file to the experts!
 *

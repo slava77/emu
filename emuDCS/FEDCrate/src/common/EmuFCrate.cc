@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: EmuFCrate.cc,v 3.33 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: EmuFCrate.cc,v $
+* Revision 3.33  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "EmuFCrate.h"
 
 #include <iomanip>
@@ -495,20 +504,20 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				//myDdus[j]->ddu_fpgastat(); //  & 0xdecfffff  <<- note the mask
 				unsigned long int dduFPGAStat = myDdus[j]->ddu_fpgastat()&0xdecfffff;  // <<- note the mask
 				//unsigned long int dduFPGAStat = myDdus[j]->readFPGAStat(DDUFPGA) & 0xdecfffff;
-				//myDdus[j]->infpgastat(INFPGA0); // & 0xf7eedfff  <<- note the mask
-				unsigned long int inFPGA0Stat = myDdus[j]->infpgastat(INFPGA0) & 0xf7eedfff;  // <<- note the mask
-				//unsigned long int inFPGA0Stat = myDdus[j]->readFPGAStat(INFPGA0) & 0xf7eedfff;
-				//myDdus[j]->infpgastat(INFPGA1); // & 0xf7eedfff  <<- note the mask
-				unsigned long int inFPGA1Stat = myDdus[j]->infpgastat(INFPGA1) & 0xf7eedfff;  // <<- note the mask
-				//unsigned long int inFPGA1Stat = myDdus[j]->readFPGAStat(INFPGA0) & 0xf7eedfff;
+				//myDdus[j]->infpgastat(emu::fed::INFPGA0); // & 0xf7eedfff  <<- note the mask
+				unsigned long int inFPGA0Stat = myDdus[j]->infpgastat(emu::fed::INFPGA0) & 0xf7eedfff;  // <<- note the mask
+				//unsigned long int inFPGA0Stat = myDdus[j]->readFPGAStat(emu::fed::INFPGA0) & 0xf7eedfff;
+				//myDdus[j]->infpgastat(emu::fed::INFPGA1); // & 0xf7eedfff  <<- note the mask
+				unsigned long int inFPGA1Stat = myDdus[j]->infpgastat(emu::fed::INFPGA1) & 0xf7eedfff;  // <<- note the mask
+				//unsigned long int inFPGA1Stat = myDdus[j]->readFPGAStat(emu::fed::INFPGA0) & 0xf7eedfff;
 
 				//std::cout << "   DDU Status for slot " << mySlot << " (hex) " << std::hex << CSCstat << " " << DDUfpgaStat << " " << INfpga0Stat << " " << INfpga1Stat << std::dec << std::endl;
 				LOG4CPLUS_DEBUG(getApplicationLogger(), "DDU Status for slot " << std::dec << mySlot << ": 0x" << std::hex << CSCStat << " 0x" << dduFPGAStat << " 0x" << inFPGA0Stat << " 0x" << inFPGA1Stat << std::dec);
 				//printf("   DDU Status for slot %2d: 0x%04x  0x%08x  0x%08x  0x%08x\n",mySlot,(unsigned int) CSCstat,(unsigned int) DDUfpgaStat,(unsigned int) INfpga0Stat,(unsigned int) INfpga1Stat);
 
-				long int liveFibers = (myDdus[j]->checkFiber(INFPGA0)&0x000000ff) | ((myDdus[j]->checkFiber(INFPGA1)&0x000000ff)<<8);
+				long int liveFibers = (myDdus[j]->checkFiber(emu::fed::INFPGA0)&0x000000ff) | ((myDdus[j]->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
 				int killFiber = (myDdus[j]->read_page1()&0xffff);
-				//int liveFibers = (myDdus[j]->checkFiber(INFPGA0) | (myDdus[j]->checkFiber(INFPGA0) << 8));
+				//int liveFibers = (myDdus[j]->checkFiber(emu::fed::INFPGA0) | (myDdus[j]->checkFiber(emu::fed::INFPGA0) << 8));
 				//int killFiber = myDdus[j]->readKillFiber()&0x7fff;
 				// std::cout << "   LiveFibers for slot " << mySlot << ": 0x" << std::hex << LiveFibers << std::dec << std::endl;
 				// std::cout << "   killFiber for slot " << mySlot << ": 0x" << std::hex << killFiber << std::dec << std::endl;

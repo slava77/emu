@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: FEDCrate.h,v 1.4 2008/08/15 08:35:50 paste Exp $
+*
+* $Log: FEDCrate.h,v $
+* Revision 1.4  2008/08/15 08:35:50  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 /*************************************************************************
 
 The philosophy behind the objects FEDCrate, VMEModule, VMEController, DDU,
