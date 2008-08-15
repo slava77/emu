@@ -23,10 +23,12 @@
 #include "tstore/client/LoadDOM.h"
 #include "tstore/client/Client.h"
 
-namespace emu {
-  namespace pc {
 
-XDAQ_INSTANTIATOR_IMPL(EmuPCrateConfigTStore)
+
+XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
+
+  namespace emu {
+    namespace pc {
 
   EmuPCrateConfigTStore::EmuPCrateConfigTStore(xdaq::ApplicationStub * s) throw (xdaq::exception::Exception): xdaq::Application(s)
 {
@@ -2370,5 +2372,5 @@ void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, co
   }
 }
 //
-} // namespace emu::pc
-} // namespace emu
+    }
+  }
