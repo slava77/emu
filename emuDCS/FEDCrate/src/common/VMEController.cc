@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.11 2008/08/15 08:35:51 paste Exp $
+* $Id: VMEController.cc,v 3.12 2008/08/15 10:40:20 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.12  2008/08/15 10:40:20  paste
+* Working on fixing CAEN controller opening problems
+*
 * Revision 3.11  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -39,7 +42,7 @@ emu::fed::VMEController::VMEController(int Device, int Link):
 
 	//if(OpenBHandle[Device][Link]==-1){
 		int result = CAENVME_Init(VMEBoard,Device,Link,&BHandle);
-		//printf(" result from initializing CAENVME with VMEBoard %08x Device %08x Link %08x BHandle %08x: %08x\n",VMEBoard,Device,Link,BHandle);
+		printf(" result from initializing CAENVME with VMEBoard %08x Device %08x Link %08x BHandle %08x: %08x\n",VMEBoard,Device,Link,BHandle);
 		if(result != cvSuccess){
 			std::cerr << "Error in Opening CAEN Controller " << result << std::endl;
 			exit(1);

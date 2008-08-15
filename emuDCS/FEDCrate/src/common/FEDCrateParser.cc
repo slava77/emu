@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrateParser.cc,v 3.9 2008/08/15 08:35:51 paste Exp $
+* $Id: FEDCrateParser.cc,v 3.10 2008/08/15 10:40:20 paste Exp $
 *
 * $Log: FEDCrateParser.cc,v $
+* Revision 3.10  2008/08/15 10:40:20  paste
+* Working on fixing CAEN controller opening problems
+*
 * Revision 3.9  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -77,7 +80,7 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 	}
 
 	// If the parse was successful, output the document data from the DOM tree
-	if (!errorsOccured){
+	if (!errorsOccured) {
 		xercesc::DOMNode * pDoc = parser->getDocument();
 		xercesc::DOMNode * pNode1 = pDoc->getFirstChild();
 		while (pNode1) { // EmuSystem
@@ -134,7 +137,7 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 								std::cout <<"  "<< xercesc::XMLString::transcode(pNode3->getNodeName()) << std::endl;
 							}
 					
-							if (strcmp("VME",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+							if (strcmp("VME",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {
 								VMEControllerParser vmeParser = VMEControllerParser(pNode3);
 								crate->setController(vmeParser.getController());
 							}
