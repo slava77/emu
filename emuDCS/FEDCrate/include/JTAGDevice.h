@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: JTAGDevice.h,v 3.2 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: JTAGDevice.h,v $
+* Revision 3.2  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __JTAGDEVICE_H__
 #define __JTAGDEVICE_H__
 

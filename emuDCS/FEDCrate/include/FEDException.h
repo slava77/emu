@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: FEDException.h,v 1.4 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: FEDException.h,v $
+* Revision 1.4  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef FEDEXCEPTION_h
 #define FEDEXCEPTION_h
 

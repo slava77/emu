@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: FEDCrate.cc,v 1.3 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: FEDCrate.cc,v $
+* Revision 1.3  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "FEDCrate.h"
 
 #include <iostream>

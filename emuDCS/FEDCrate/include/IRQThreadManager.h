@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: IRQThreadManager.h,v 3.7 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: IRQThreadManager.h,v $
+* Revision 3.7  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __IRQTHREADMANAGER_H__
 #define __IRQTHREADMANAGER_H__
 

@@ -1,8 +1,12 @@
-/*
-	Phillip Killewald
-	1/31/08
-*/
-
+/*****************************************************************************\
+* $Id: Chamber.cc,v 1.6 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: Chamber.cc,v $
+* Revision 1.6  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "Chamber.h"
 
 #include <iostream>

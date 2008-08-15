@@ -1,39 +1,12 @@
-
-//-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 3.8 2008/08/14 14:14:33 paste Exp $
-// $Log: FEDCrateParser.cc,v $
-// Revision 3.8  2008/08/14 14:14:33  paste
-// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
-//
-// Revision 3.7  2008/08/13 14:20:42  paste
-// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
-//
-// Revision 3.6  2008/06/10 13:52:12  gilmore
-// improved FED Crate HyperDAQ operability
-//
-// Revision 3.4  2008/02/10 00:06:06  gilmore
-// compatibility fixes for current cscpro/cscdev configuration
-//
-// Revision 3.3  2008/02/01 16:18:15  gilmore
-// added fiber-to-CSCid map decode using local XML file as reference
-//
-// Revision 3.2  2007/07/23 05:03:28  gilmore
-// major structural chages to improve multi-crate functionality
-//
-// Revision 3.0  2006/07/20 21:16:11  geurts
-// *** empty log message ***
-//
-// Revision 1.2  2006/01/21 19:55:02  gilmore
-// *** empty log message ***
-//
-// Revision 1.21  2004/07/19 19:37:57  tfcvs
-// Removed unused variables and unsigned some variables in order to prevent compiler warnings (-Wall flag) (FG)
-//
-// Revision 1.20  2004/06/11 09:38:17  tfcvs
-// improved checks on top elements. print out warnings in case they do not
-// comply. (FG)
-//
-//-----------------------------------------------------------------------
+/*****************************************************************************\
+* $Id: FEDCrateParser.cc,v 3.9 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: FEDCrateParser.cc,v $
+* Revision 3.9  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 
 #include "FEDCrateParser.h"
 

@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: JTAG_constants.h,v 3.2 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: JTAG_constants.h,v $
+* Revision 3.2  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __JTAG_CONSTANTS_H__
 #define __JTAG_CONSTANTS_H__
 
@@ -6,11 +15,15 @@
 #define PROM_BYPASS 0xFF
 #define TERMINATE 2
 
-enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
-	OUTFIFO,VMEPROM,DDUPROM0,DDUPROM1,
-	INPROM0,INPROM1,DDUFPGA,INFPGA0,INFPGA1,SLINK,
-	VMEPARA,VMESERI,RESET,SADC,MPROM,INPROM,INCTRL1,
-	INCTRL2,INCTRL3,INCTRL4,INCTRL5,MCTRL,RESET1,RESET2};
+namespace emu {
+	namespace fed {
+		enum DEVTYPE {ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,
+			OUTFIFO,VMEPROM,DDUPROM0,DDUPROM1,
+			INPROM0,INPROM1,DDUFPGA,INFPGA0,INFPGA1,SLINK,
+			VMEPARA,VMESERI,RESET,SADC,MPROM,INPROM,INCTRL1,
+			INCTRL2,INCTRL3,INCTRL4,INCTRL5,MCTRL,RESET1,RESET2};
+	}
+}
 
 /* JTAG instructions */
 #define EXT_TEST 0x00

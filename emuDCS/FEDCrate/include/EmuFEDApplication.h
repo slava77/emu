@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: EmuFEDApplication.h,v 3.4 2008/08/15 08:35:50 paste Exp $
+*
+* $Log: EmuFEDApplication.h,v $
+* Revision 3.4  2008/08/15 08:35:50  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __EMUFEDAPPLICATION_H__
 #define __EMUFEDAPPLICATION_H__
 

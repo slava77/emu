@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: DataTable.h,v 1.6 2008/08/15 08:35:50 paste Exp $
+*
+* $Log: DataTable.h,v $
+* Revision 1.6  2008/08/15 08:35:50  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __DATATABLE_H__
 #define __DATATABLE_H__
 

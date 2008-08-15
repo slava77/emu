@@ -1,3 +1,12 @@
+/*****************************************************************************\
+* $Id: EmuFCrateHyperDAQ.cc,v 3.40 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.40  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #include "EmuFCrateHyperDAQ.h"
 
 #include <string>
@@ -389,7 +398,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			*out << cgicc::td() << std::endl;
 
 			// Knowing which chambers are actually alive is a good thing.
-			long int liveFibers = ((*iDDU)->checkFiber(INFPGA0)&0x000000ff) | (((*iDDU)->checkFiber(INFPGA1)&0x000000ff)<<8);
+			long int liveFibers = ((*iDDU)->checkFiber(emu::fed::INFPGA0)&0x000000ff) | (((*iDDU)->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
 			long int killFiber = (*iDDU)->ddu_rdkillfiber();
 
 			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -1386,19 +1395,19 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	dduPROMNames.push_back("INPROM1");
 
 	// The device types of the PROMs
-	std::map< std::string, enum DEVTYPE > dduPROMTypes;
-	dduPROMTypes["VMEPROM"] = VMEPROM;
-	dduPROMTypes["DDUPROM0"] = DDUPROM0;
-	dduPROMTypes["DDUPROM1"] = DDUPROM1;
-	dduPROMTypes["INPROM0"] = INPROM0;
-	dduPROMTypes["INPROM1"] = INPROM1;
+	std::map< std::string, enum emu::fed::DEVTYPE > dduPROMTypes;
+	dduPROMTypes["VMEPROM"] = emu::fed::VMEPROM;
+	dduPROMTypes["DDUPROM0"] = emu::fed::DDUPROM0;
+	dduPROMTypes["DDUPROM1"] = emu::fed::DDUPROM1;
+	dduPROMTypes["INPROM0"] = emu::fed::INPROM0;
+	dduPROMTypes["INPROM1"] = emu::fed::INPROM1;
 
 	// The device types of the FPGA corresponding to the PROMS
-	std::map< std::string, enum DEVTYPE > dduFPGATypes;
-	dduFPGATypes["DDUPROM0"] = DDUFPGA;
-	dduFPGATypes["DDUPROM1"] = DDUFPGA;
-	dduFPGATypes["INPROM0"] = INFPGA0;
-	dduFPGATypes["INPROM1"] = INFPGA1;
+	std::map< std::string, enum emu::fed::DEVTYPE > dduFPGATypes;
+	dduFPGATypes["DDUPROM0"] = emu::fed::DDUFPGA;
+	dduFPGATypes["DDUPROM1"] = emu::fed::DDUFPGA;
+	dduFPGATypes["INPROM0"] = emu::fed::INFPGA0;
+	dduFPGATypes["INPROM1"] = emu::fed::INFPGA1;
 
 	// A map of PROM name to the first two identifying digits in the version
 	//  number.
@@ -1801,7 +1810,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	}
 
 	std::string promName[6] = {"VMEPROM","DDUPROM1","DDUPROM0","INPROM1","INPROM0","RESET"};
-	enum DEVTYPE devType[6] = {VMEPROM,DDUPROM1,DDUPROM0,INPROM1,INPROM0,RESET};
+	enum emu::fed::DEVTYPE devType[6] = {emu::fed::VMEPROM,emu::fed::DDUPROM1,emu::fed::DDUPROM0,emu::fed::INPROM1,emu::fed::INPROM0,emu::fed::RESET};
 
 	// Load the proper version types from the cgi handle.
 	std::string version[5];
@@ -2710,7 +2719,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	occuTable.addColumn("CFEB");
 
 	// It's good to know the fibers that are alive and the fibers that are killed.
-	long int liveFibers = (myDDU->checkFiber(INFPGA0)&0x000000ff) | ((myDDU->checkFiber(INFPGA1)&0x000000ff)<<8);
+	long int liveFibers = (myDDU->checkFiber(emu::fed::INFPGA0)&0x000000ff) | ((myDDU->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
 	long int killFiber = myDDU->ddu_rdkillfiber();
 
 	// PGK It turns out that this is an automatically shifting register.
@@ -2834,9 +2843,9 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	myCrate->getVMEController()->CAEN_err_reset();
 
 	// Do this for both InFPGAs
-	enum DEVTYPE devTypes[2] = {
-		INFPGA0,
-		INFPGA1
+	enum emu::fed::DEVTYPE devTypes[2] = {
+		emu::fed::INFPGA0,
+		emu::fed::INFPGA1
 	};
 	std::string devNames[2] = {
 		"InFPGA0 (fibers 7-0)",
@@ -2864,7 +2873,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	generalTable.addColumn("Decoded Status");
 
 	for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
-		enum DEVTYPE dt = devTypes[iDevType];
+		enum emu::fed::DEVTYPE dt = devTypes[iDevType];
 
 		if (iDevType == 0) {
 			*(generalTable(0,0)->value) << "InFPGA status (32-bit)";
@@ -2962,8 +2971,8 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	fiberTable.addColumn("Decoded Chambers");
 
 	for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
-		enum DEVTYPE dt = devTypes[iDevType];
-		unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
+		enum emu::fed::DEVTYPE dt = devTypes[iDevType];
+		unsigned int fiberOffset = (dt == emu::fed::INFPGA0 ? 0 : 8);
 
 		if (iDevType == 0) {
 			*(fiberTable(0,0)->value) << "DMB full";
@@ -3198,8 +3207,8 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	otherTable.addColumn("Decoded Chambers/Status");
 
 	for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
-		enum DEVTYPE dt = devTypes[iDevType];
-		unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
+		enum emu::fed::DEVTYPE dt = devTypes[iDevType];
+		unsigned int fiberOffset = (dt == emu::fed::INFPGA0 ? 0 : 8);
 
 		if (iDevType == 0) {
 			*(otherTable(0,0)->value) << "Input buffer empty";
@@ -3343,7 +3352,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	memTable.addColumn("Decoded Status");
 
 	for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
-		enum DEVTYPE dt = devTypes[iDevType];
+		enum emu::fed::DEVTYPE dt = devTypes[iDevType];
 
 		if (iDevType == 0) {
 			*(memTable(0,0)->value) << "FIFOs Used, Fibers 3-0/11-8";
@@ -3467,7 +3476,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		.set("class","legend") << std::endl;
 
 	for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
-		enum DEVTYPE dt = devTypes[iDevType];
+		enum emu::fed::DEVTYPE dt = devTypes[iDevType];
 
 		*out << cgicc::span()
 			.set("style","background-color: #FFF; border: 2px solid #000; padding: 10px; width: 95%; margin: 10px auto 10px auto; display: block;") << std::endl;
@@ -3634,7 +3643,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::tr() << std::endl;
 
 	// Knowing which chambers are actually alive is a good thing.
-	long int liveFibers = (myDDU->checkFiber(INFPGA0)&0x000000ff) | ((myDDU->checkFiber(INFPGA1)&0x000000ff)<<8);
+	long int liveFibers = (myDDU->checkFiber(emu::fed::INFPGA0)&0x000000ff) | ((myDDU->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
 	long int killFiber = myDDU->ddu_rdkillfiber();
 	unsigned int fibersWithErrors = myDDU->readCSCStat();
 
@@ -4688,7 +4697,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		break;
 
 	case (2): // Reset the DDUFPGA
-		myDDU->reset(DDUFPGA);
+		myDDU->reset(emu::fed::DDUFPGA);
 		break;
 
 	case (3): // Load KillFiber
@@ -4709,11 +4718,11 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		break;
 
 	case (7): // InFPGA reset
-		myDDU->reset(INFPGA0);
+		myDDU->reset(emu::fed::INFPGA0);
 		break;
 
 	case (8): // Another InFPGA reset.  Not needed?
-		myDDU->reset(INFPGA1);
+		myDDU->reset(emu::fed::INFPGA1);
 		break;
 
 	case (9): // Write the inreg
@@ -5194,8 +5203,8 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 		printf(" DCC epromload %d \n",prom);
 		cbrdnum=(char*)malloc(5);
 		cbrdnum[0]=0x00;cbrdnum[1]=0x00;cbrdnum[2]=0x00;cbrdnum[3]=0x00;
-		if(prom==1)myDCC->epromload("MPROM",RESET,"MySVFFile.svf",1,cbrdnum);
-		if(prom==0)myDCC->epromload("INPROM",INPROM,"MySVFFile.svf",1,cbrdnum);
+		if(prom==1)myDCC->epromload("MPROM",emu::fed::RESET,"MySVFFile.svf",1,cbrdnum);
+		if(prom==0)myDCC->epromload("INPROM",emu::fed::INPROM,"MySVFFile.svf",1,cbrdnum);
 		in=NULL;
 
 		std::ostringstream backLocation;

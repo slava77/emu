@@ -1,32 +1,12 @@
-//----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.4 2008/08/14 14:14:32 paste Exp $
-// $Log: VMEModule.h,v $
-// Revision 3.4  2008/08/14 14:14:32  paste
-// Adding things to namespace emu::fed, condensing include files, renaming VMEParser.
-//
-// Revision 3.3  2008/08/13 14:20:41  paste
-// Massive update removing "using namespace" code and cleaning out stale header files as preparation for RPMs.
-//
-// Revision 3.2  2008/08/11 15:24:34  paste
-// More updates to clean up files, preparing for universal logger and presentation of code.
-//
-// Revision 3.1  2007/07/23 05:02:24  gilmore
-// major structural chages to improve multi-crate functionality
-//
-// Revision 3.0  2006/07/20 21:16:10  geurts
-// *** empty log message ***
-//
-// Revision 1.3  2006/01/27 15:57:34  gilmore
-// *** empty log message ***
-//
-// Revision 1.16  2004/08/05 04:10:13  tfcvs
-// Update
-//
-// Revision 1.15  2004/07/22 18:52:38  tfcvs
-// added accessor functions for DCS integration
-//
-//
-//----------------------------------------------------------------------
+/*****************************************************************************\
+* $Id: VMEModule.h,v 3.5 2008/08/15 08:35:51 paste Exp $
+*
+* $Log: VMEModule.h,v $
+* Revision 3.5  2008/08/15 08:35:51  paste
+* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
+*
+*
+\*****************************************************************************/
 #ifndef __VMEMODULE_H__
 #define __VMEMODULE_H__
 
