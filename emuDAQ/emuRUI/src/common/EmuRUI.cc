@@ -2230,14 +2230,9 @@ void EmuRUI::createFileWriters(){
 	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
 	      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
-	      stringstream app;
-	      app << "EmuRUI";
-	      app.fill('0');
-	      app.width(2);
-	      app << instance_;
 	      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, 
 					       pathToDataOutFile_.toString(), 
-					       u.getHost(), app.str(), EmuRUIV::versions, &logger_ );
+					       u.getHost(), "EmuRUI", instance_, EmuRUIV::versions, &logger_ );
 	    }
 	  else if ( runType_.toString() != "Monitor" &&
 		    runType_.toString() != "Debug"      ) // must be a calibration or STEP run...
@@ -2261,15 +2256,10 @@ void EmuRUI::createFileWriters(){
 	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
 	      toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
-	      stringstream app;
-	      app << "EmuRUI";
-	      app.fill('0');
-	      app.width(2);
-	      app << instance_;
-// 	      badEventsFileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
+// 	      badEventsFileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), "EmuRUI", instance_, EmuRUIV::versions, &logger_ );
 	      badEventsFileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, 
 							pathToDataOutFile_.toString(), 
-							u.getHost(), app.str(), EmuRUIV::versions, &logger_ );
+							u.getHost(), "EmuRUI", instance_, EmuRUIV::versions, &logger_ );
 	    }
 	  if ( badEventsFileWriter_ ){
 	    try{
