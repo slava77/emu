@@ -768,7 +768,7 @@ void CSCSupervisor::stopAction(toolbox::Event::Reference evt)
       sendCommand("Halt", "EmuDAQManager");
     } catch (xcept::Exception ignored) {}
     
-    writeRunInfo( true, true );
+    writeRunInfo( true, false );
     sendCommand("Disable", "EmuFCrateManager");
     sendCommand("Disable", "EmuPeripheralCrateManager");
     sendCommand("Configure", "TTCciControl");
@@ -804,7 +804,7 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
     try {
       sendCommand("Halt", "EmuDAQManager");
     } catch (xcept::Exception ignored) {}
-    writeRunInfo( true, true );
+    writeRunInfo( true, false );
   } catch (xoap::exception::Exception e) {
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
@@ -3427,7 +3427,7 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     string TriggerSource("UNKNOWN");
     string BGOSource("UNKNOWN");
     try{
-      app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TTCciControl",0);
+      app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TTCciControl",2);
 	  xoap::MessageReference message =
 			createParameterGetSOAP("TTCciControl", namesAndTypes);
 	  xoap::MessageReference reply =
@@ -3439,11 +3439,11 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
       BGOSource     = extractParameter(reply, "BGOSource");
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
-      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 0: " << 
+      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 2: " << 
 		      xcept::stdformat_exception_history(e) );
     }
     catch(xcept::Exception e){
-      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 0: " << 
+      LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 2: " << 
 		      xcept::stdformat_exception_history(e) );
     }
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci</td>";
