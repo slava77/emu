@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.16 2008/08/15 08:35:51 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.17 2008/08/15 09:59:22 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.17  2008/08/15 09:59:22  paste
+* Fixed bug where transitions to Halted state while threads were not active caused a crash.
+*
 * Revision 3.16  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -18,7 +21,7 @@
 //#include <cmath>
 //#include <stdio.h>
 //#include <fcntl.h>
-//#include <errno.h>
+#include <errno.h>
 //#include <inttypes.h>
 //#include <time.h>
 //#include <bitset>
@@ -147,7 +150,7 @@ void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 
 void emu::fed::IRQThreadManager::endThreads() {
-	if (data_->exit == 1) {
+	if (data_->exit == 1 | threadVector_.size() == 0) {
 		//std::cout << "emu::fed::IRQThreadManager::endThreads Threads already stopped." << std::endl << flush;
 	} else {
 	
@@ -170,12 +173,19 @@ void emu::fed::IRQThreadManager::endThreads() {
 			//  status of the join routine itself.  If it is non-
 			//  zero, there was a problem.
 
-			if (error) {
-				// I don't know what to do.  Log this, maybe?
-				std::cout << "pthread_join iThread " << iThread << " returned " << error << std::endl;
-			} else {
-			
+			switch (error) {
+			case (EINVAL):
+				std::cout << "pthread_join iThread " << iThread << " returned EINVAL (" << error << ")" << std::flush << std::endl;
+				break;
+			case (ESRCH):
+				std::cout << "pthread_join iThread " << iThread << " returned ESRCH (" << error << ")" << std::flush << std::endl;
+				break;
+			case (EDEADLK):
+				std::cout << "pthread_join iThread " << iThread << " returned EDEADLK (" << error << ")" << std::flush << std::endl;
+				break;
+			case (0):
 				returnStatus.push_back(*((int *) retStat)); // Pointer-fu!
+				break;
 			}
 		}
 		
@@ -184,6 +194,7 @@ void emu::fed::IRQThreadManager::endThreads() {
 		
 		//std::cout << "<PGK> After sleep" << std::endl << flush;
 		delete data_;
+		threadVector_.clear();
 	}
 }
 
