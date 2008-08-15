@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.17 2008/08/15 09:59:22 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.18 2008/08/15 16:14:51 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.18  2008/08/15 16:14:51  paste
+* Fixed threads (hopefully).
+*
 * Revision 3.17  2008/08/15 09:59:22  paste
 * Fixed bug where transitions to Halted state while threads were not active caused a crash.
 *
@@ -37,6 +40,7 @@
 
 
 emu::fed::IRQThreadManager::IRQThreadManager() {
+	data_ = new IRQData();
 	threadVector_.clear();
 }
 
@@ -99,49 +103,35 @@ void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 	// First, load up the data_ object with the crates that I govern.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
-		//std::cout << "emu::fed::IRQThreadManager::startThread Adding and clearing data for crate number " << threadVector_[i].first->number() << std::endl;
-
-		// At this point, most of the variables in the data_ object have been
-		// cleared.
-		/*
-		int crateNumber = threadVector_[i].first->number();
-		data_->crateNumbers.push(crateNumber);
-		data_->crate[crateNumber] = threadVector_[i].first;
-		data_->Handles[crateNumber] = threadVector_[i].first->vmeController()->theBHandle;
-		data_->startTime[crateNumber] = 0;
-		data_->count[crateNumber] = 0;
-		data_->countFMM[crateNumber] = 0;
-		data_->countSync[crateNumber] = 0;
-		data_->ticks[crateNumber] = 0;
-		data_->tickTime[crateNumber] = 0;
-
-		data_->lastDDU[crateNumber] = 0;
-		data_->lastStatus[crateNumber] = 0;
-		data_->lastErrs[crateNumber][0] = 0;
-		data_->lastErrs[crateNumber][1] = 0;
-		data_->lastErrs[crateNumber][2] = 0;
-		data_->lastCountFMM[crateNumber] = 0;
-		
-		for (int j=0; j<21; j++) {
-			data_->lastError[crateNumber][j] = 0; // Per DDU slot
-			data_->lastFMMStat[crateNumber][j] = 0; // Per DDU slot
-			data_->accError[crateNumber][j] = 0; // Per DDU slot
-			data_->dduCount[crateNumber][j] = 0; // Per DDU slot
-			data_->lastErrorTime[crateNumber][j] = 0; // Per DDU slot
-			
-			data_->previousProblem[crateNumber][j] = 0;
-		}
-		*/
-
 		data_->crateQueue.push(threadVector_[iThread].first);
 	}
-
+	
 	// Next, execute the threads.
+	
+	// Check the crates to see if any of the DDUs are in an error state and
+	//  make a note in the log.  This is because DDUs that are already throwing
+	//  errors will not set interrupts, so we want to notify the user somehow
+	//  about the possible problem.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
+		
 		//std::cout << "emu::fed::IRQThreadManager::startThread Starting thread for crate number " << threadVector_[i].first->number() << std::endl;
+		emu::fed::FEDCrate *myCrate = threadVector_[iThread].first;
+		std::vector<emu::fed::DDU *> dduVector = myCrate->getDDUs();
+		for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
+			if ((*iDDU)->slot() >= 21) continue;
+			unsigned int cscStatus = (*iDDU)->readCSCStat();
+			if (cscStatus) {
+				std::string chambers;
+				for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
+					if (cscStatus & (1 << iFiber)) {
+						if (iFiber == 15) chambers += "DDU ";
+						else chambers += (*iDDU)->getChamber(iFiber)->name() + " ";
+					}
+				}
+				LOG4CPLUS_WARN(logger, "Crate " << myCrate->number() << " Slot " << (*iDDU)->slot() << " shows errors in " << chambers << " before the threads actually started.  These may not show up as interrupts!");
+			}
+		}
 
-		// Start the thread (as a static function)
-		//int error = pthread_create(&(threadVector_[i].second), NULL, IRQThread, data_);
 		pthread_create(&(threadVector_[iThread].second), NULL, IRQThread, data_);
 		//std::cout << "emu::fed::IRQThreadManager::startThread pthread launched with status " << error << std::endl;
 	}
@@ -150,14 +140,16 @@ void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber) {
 
 
 void emu::fed::IRQThreadManager::endThreads() {
-	if (data_->exit == 1 | threadVector_.size() == 0) {
-		//std::cout << "emu::fed::IRQThreadManager::endThreads Threads already stopped." << std::endl << flush;
+
+	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
+
+	if (data_->exit == 1 || threadVector_.size() == 0) {
+		LOG4CPLUS_DEBUG(logger,"Threads already stopped.");
 	} else {
-	
-		//std::cout << "emu::fed::IRQThreadManager::endThreads Gracefully killing off all threads." << std::endl << flush;
-		//std::cout << "<PGK> Before exit=1" << std::endl << flush;
+		LOG4CPLUS_DEBUG(logger,"Gracefully killing off all threads.");
+		
 		data_->exit = 1;
-		//std::cout << "<PGK> After exit=1" << std::endl << flush;
+		
 		
 		// We probably do not need to return the status of the threads,
 		//  but this may be used later for whatever reason.
@@ -184,6 +176,7 @@ void emu::fed::IRQThreadManager::endThreads() {
 				std::cout << "pthread_join iThread " << iThread << " returned EDEADLK (" << error << ")" << std::flush << std::endl;
 				break;
 			case (0):
+				std::cout << "pthread_join iThread " << iThread << " returned retStat (" << *((int *) retStat) << ")" << std::flush << std::endl;
 				returnStatus.push_back(*((int *) retStat)); // Pointer-fu!
 				break;
 			}
@@ -194,6 +187,7 @@ void emu::fed::IRQThreadManager::endThreads() {
 		
 		//std::cout << "<PGK> After sleep" << std::endl << flush;
 		delete data_;
+		data_ = new IRQData();
 		threadVector_.clear();
 	}
 }
@@ -349,6 +343,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		LOG4CPLUS_INFO(logger, cscsWithHardError << " CSCs on this DDU have hard errors");
 		LOG4CPLUS_INFO(logger, cscsWithSyncError << " CSCs on this DDU have sync errors");
 		
+		if (!xorStatus) {
+			LOG4CPLUS_INFO(logger, "No CSC or DDU errors detected...  Ignoring interrupt");
+			continue;
+		}
+
 		// Record the error in an accessable history of errors.
 		lastError[myDDU] = cscStatus;
 		IRQError *myError = new IRQError(myCrate, myDDU);
@@ -410,7 +409,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		}
 		
 		// Check if we have sufficient error conditions to reset.
-		if (totalChamberErrors > 2) {
+		if (totalChamberErrors > 1) {
 			LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this endcap is " << totalChamberErrors);
 			// Make a note of it in the error log.
 			std::stringstream actionTaken;

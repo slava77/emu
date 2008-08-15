@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.h,v 3.9 2008/08/15 08:35:51 paste Exp $
+* $Id: VMEController.h,v 3.10 2008/08/15 16:14:50 paste Exp $
 *
 * $Log: VMEController.h,v $
+* Revision 3.10  2008/08/15 16:14:50  paste
+* Fixed threads (hopefully).
+*
 * Revision 3.9  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -38,6 +41,14 @@ namespace emu {
 			
 			void setCrate(int number);
 			
+			/**	I am doing something smart here.  Instead of making the BHandles extern,
+			*	I am going to have the original constructor set its own BHanlde to a
+			*	crazy value in case of an error.  Thus, if the device is already open, I
+			*	will be able to check the BHandle to figure that out, then simply replace
+			*	the BHandle with the correct value once I know it.
+			**/
+			inline void setBHandle(int32_t BHandle) { BHandle_ = BHandle; }
+
 			/// if not current modules, it stops current and starts new
 			/// this base routine sends a signal consisting of the
 			/// university and slot

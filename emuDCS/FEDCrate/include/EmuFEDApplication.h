@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.h,v 3.4 2008/08/15 08:35:50 paste Exp $
+* $Id: EmuFEDApplication.h,v 3.5 2008/08/15 16:14:50 paste Exp $
 *
 * $Log: EmuFEDApplication.h,v $
+* Revision 3.5  2008/08/15 16:14:50  paste
+* Fixed threads (hopefully).
+*
 * Revision 3.4  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -180,6 +183,9 @@ public:
 	*	@param type is the type of the varialbe you want to set.  Use
 	*	std::strings like "xsd:string" and "xsd:unsignedLong".
 	*	@param value is a std::string representation of the value to be set.
+	*	@param instance is the instance of the application whose parameter
+	*	you want to set.  Optional.  Negative numbers will result in all
+	*	applications of class name klass being sent the message.
 	*
 	*	@note Because I don't know where this call is handled, I do not
 	*	know anything about error handling.  Just try to make sure
@@ -188,7 +194,7 @@ public:
 	*
 	*	@author Phillip Killewald (stolen from Laria's CSCSupervisor.cc)
 	**/
-	void setParameter(std::string klass, std::string name, std::string type, std::string value)
+	void setParameter(std::string klass, std::string name, std::string type, std::string value, int instance = -1)
 	{
 
 		// find applications
@@ -226,8 +232,11 @@ public:
 		// send the message one-by-one
 		std::set<xdaq::ApplicationDescriptor *>::iterator i;
 		for (i = apps.begin(); i != apps.end(); ++i) {
-			reply = getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), **i);
-			// Analysis here, if debugging needed.
+			if (instance < 0 || (int) (*i)->getInstance() == instance) {
+				reply = getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), **i);
+				// Analysis here, if debugging needed.
+				if (instance >= 0) break;
+			}
 		}
 
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "setParameter successfully returning");

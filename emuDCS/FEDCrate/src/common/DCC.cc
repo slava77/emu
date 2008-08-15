@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.15 2008/08/15 08:35:51 paste Exp $
+* $Id: DCC.cc,v 3.16 2008/08/15 16:14:51 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.16  2008/08/15 16:14:51  paste
+* Fixed threads (hopefully).
+*
 * Revision 3.15  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -752,7 +755,7 @@ void emu::fed::DCC::setTTCCommand(unsigned int value)
 	throw (FEDException)
 {
 	try {
-		return writeReg(MCTRL, 0x00, 0Xff | (value & 0xff));
+		return writeReg(MCTRL, 0x00, 0Xff00 | (value & 0xff));
 	} catch (FEDException &e) { throw; }
 }
 
