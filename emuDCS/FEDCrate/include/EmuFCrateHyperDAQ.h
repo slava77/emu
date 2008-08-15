@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 3.47 2008/08/15 08:35:50 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 3.48 2008/08/15 10:23:01 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.h,v $
+* Revision 3.48  2008/08/15 10:23:01  paste
+* Fixed EmuFCrateLoggable function definitions
+*
 * Revision 3.47  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -26,6 +29,7 @@
 
 #include "EmuFEDApplication.h"
 #include "FEDCrate.h"
+#include "EmuFEDLoggable.h"
 
 class EmuFCrateHyperDAQ: public EmuFEDApplication
 {

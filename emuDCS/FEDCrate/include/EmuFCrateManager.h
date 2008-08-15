@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.h,v 1.13 2008/08/15 08:35:50 paste Exp $
+* $Id: EmuFCrateManager.h,v 1.14 2008/08/15 10:23:02 paste Exp $
 *
 * $Log: EmuFCrateManager.h,v $
+* Revision 1.14  2008/08/15 10:23:02  paste
+* Fixed EmuFCrateLoggable function definitions
+*
 * Revision 1.13  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -17,7 +20,7 @@
 #include "xdata/Table.h"
 
 #include "EmuFEDApplication.h"
-
+#include "EmuFEDLoggable.h"
 
 class EmuFCrateManager: public EmuFEDApplication
 {

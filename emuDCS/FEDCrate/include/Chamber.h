@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Chamber.h,v 1.5 2008/08/15 08:35:50 paste Exp $
+* $Id: Chamber.h,v 1.6 2008/08/15 10:23:01 paste Exp $
 *
 * $Log: Chamber.h,v $
+* Revision 1.6  2008/08/15 10:23:01  paste
+* Fixed EmuFCrateLoggable function definitions
+*
 * Revision 1.5  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -9,8 +12,6 @@
 \*****************************************************************************/
 #ifndef __CHAMBER_H__
 #define __CHAMBER_H__
-
-//using namespace std;
 
 #include <string>
 
