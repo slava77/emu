@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.40 2008/08/15 08:35:51 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.41 2008/08/15 16:14:51 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.41  2008/08/15 16:14:51  paste
+* Fixed threads (hopefully).
+*
 * Revision 3.40  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -1025,6 +1028,67 @@ void EmuFCrateHyperDAQ::Configuring() {
 
 	std::cout << " setting std::vectors..." << std::endl;
 	crateVector = parser.getCrates();
+
+	// Check the controller and see if we need to (a) get the BHandle from
+	//  EmuFCrate, or (b) send the BHandle to EmuFCrate.  This is done in
+	//  lieu of externs, globals, or singletons.
+	
+	// First, we must make a system to parse out strings.  String-fu!
+	// Strings looke like this:  "Crate# BHandle# Crate# BHandle# Crate# BHandle#..."
+	std::map< int, int > BHandles;
+	xoap::MessageReference reply = getParameters("EmuFCrate",getApplicationDescriptor()->getInstance());
+	xdata::String BHandleString = readParameter<xdata::String>(reply, "BHandles");
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(),"Got old handles: " << BHandleString.toString());
+	
+	std::stringstream sHandles(BHandleString.toString());
+	int buffer;
+	while (sHandles >> buffer) {
+		int crateNumber = buffer;
+		sHandles >> buffer;
+		int BHandle = buffer;
+		
+		BHandles[crateNumber] = BHandle;
+	}
+	
+	std::ostringstream newHandles;
+	
+	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+		emu::fed::VMEController *myController = (*iCrate)->getVMEController();
+		if (myController->getBHandle() == -1) {
+			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has already been opened by someone else.  Asking EmuFCrate for the BHandle...");
+			
+			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
+				if (iHandle->first != (*iCrate)->number()) continue;
+				LOG4CPLUS_INFO(getApplicationLogger(),"Found handle " << iHandle->second);
+				myController->setBHandle(iHandle->second);
+				
+				newHandles << iHandle->first << " " << iHandle->second << " ";
+				
+				break;
+			}
+		} else {
+			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has been first opened by this application.  Telling EmuFCrate the BHandle...");
+			
+			bool replaced = false;
+			
+			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
+				if (iHandle->first != (*iCrate)->number()) continue;
+				LOG4CPLUS_INFO(getApplicationLogger(),"Resetting handle (was " << iHandle->second << ")");
+				replaced = true;
+				newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
+			}
+			
+			if (!replaced) newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
+			
+		}
+
+	}
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(),"Sending new handles: " << newHandles.str());
+	
+	setParameter("EmuFCrate","BHandles","xsd:string",newHandles.str(),getApplicationDescriptor()->getInstance());
+	
 	//dduVector = crateVector[0]->getDDUs();
 	//dccVector = crateVector[0]->getDCCs();
 	//moduleVector = crateVector[0]->modules();

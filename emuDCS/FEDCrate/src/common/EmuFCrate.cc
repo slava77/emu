@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.34 2008/08/15 09:59:22 paste Exp $
+* $Id: EmuFCrate.cc,v 3.35 2008/08/15 16:14:51 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.35  2008/08/15 16:14:51  paste
+* Fixed threads (hopefully).
+*
 * Revision 3.34  2008/08/15 09:59:22  paste
 * Fixed bug where transitions to Halted state while threads were not active caused a crash.
 *
@@ -32,12 +35,14 @@
 #include "Chamber.h"
 #include "DCC.h"
 #include "IRQData.h"
+#include "VMEController.h"
 #include "FEDCrateParser.h"
 
 XDAQ_INSTANTIATOR_IMPL(EmuFCrate);
 
 EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	EmuFEDApplication(s),
+	BHandles_(""),
 	ttsID_(0),
 	ttsCrate_(0),
 	ttsSlot_(0),
@@ -107,6 +112,7 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	getApplicationInfoSpace()->fireItemAvailable("dccInOut", &dccInOut_);
 	getApplicationInfoSpace()->fireItemAvailable("errorChambers", &errorChambers_);
 	getApplicationInfoSpace()->fireItemAvailable("endcap", &endcap_);
+	getApplicationInfoSpace()->fireItemAvailable("BHandles", &BHandles_);
 
 	// HyperDAQ pages
 	xgi::bind(this, &EmuFCrate::webDefault, "Default");
@@ -351,6 +357,61 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	crateVector.clear();
 
 	crateVector = parser.getCrates();
+	
+	// First, we must make a system to parse out strings.  String-fu!
+	// Strings looke like this:  "Crate# BHandle# Crate# BHandle# Crate# BHandle#..."
+	std::map< int, int > BHandles;
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(),"Got old handles: " << BHandles_.toString());
+	
+	std::stringstream sHandles(BHandles_.toString());
+	int buffer;
+	while (sHandles >> buffer) {
+		int crateNumber = buffer;
+		sHandles >> buffer;
+		int BHandle = buffer;
+		
+		BHandles[crateNumber] = BHandle;
+	}
+	
+	std::ostringstream newHandles;
+	
+	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+		emu::fed::VMEController *myController = (*iCrate)->getVMEController();
+		if (myController->getBHandle() == -1) {
+			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has already been opened by someone else.  Looking for the BHandle...");
+			
+			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
+				if (iHandle->first != (*iCrate)->number()) continue;
+				LOG4CPLUS_INFO(getApplicationLogger(),"Found handle " << iHandle->second);
+				myController->setBHandle(iHandle->second);
+				
+				newHandles << iHandle->first << " " << iHandle->second << " ";
+				
+				break;
+			}
+		} else {
+			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has been first opened by this application.  Saving the BHandle...");
+			
+			bool replaced = false;
+			
+			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
+				if (iHandle->first != (*iCrate)->number()) continue;
+				LOG4CPLUS_INFO(getApplicationLogger(),"Resetting handle (was " << iHandle->second << ")");
+				replaced = true;
+				newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
+			}
+			
+			if (!replaced) newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
+			
+		}
+
+	}
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(),"Saving new handles: " << newHandles.str());
+	
+	BHandles_ = newHandles.str();
+
 
 	// PGK No hard reset or sync reset is coming any time soon, so we should
 	//  do it ourselves.
@@ -628,6 +689,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	}
 
 	// PGK You have to wipe the thread manager and start over.
+	delete TM;
 	TM = new emu::fed::IRQThreadManager();
 	for (unsigned int i=0; i<crateVector.size(); i++) {
 		if (crateVector[i]->number() > 4) continue;
@@ -660,9 +722,9 @@ void EmuFCrate::haltAction(toolbox::Event::Reference e)
 	soapConfigured_ = false;
 	soapLocal_ = false;
 
-	//LOG4CPLUS_DEBUG(getApplicationLogger(), "Calling IRQThreadManager::endThreads...");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Calling IRQThreadManager::endThreads...");
 	TM->endThreads();
-	//LOG4CPLUS_DEBUG(getApplicationLogger(), "...Returned from IRQThreadManager::endThreads.");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "...Returned from IRQThreadManager::endThreads.");
 
 }
 

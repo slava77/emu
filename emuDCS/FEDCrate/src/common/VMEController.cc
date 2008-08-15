@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.12 2008/08/15 10:40:20 paste Exp $
+* $Id: VMEController.cc,v 3.13 2008/08/15 16:14:51 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.13  2008/08/15 16:14:51  paste
+* Fixed threads (hopefully).
+*
 * Revision 3.12  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -41,16 +44,21 @@ emu::fed::VMEController::VMEController(int Device, int Link):
 	//std::cout << "constructing VMEController " << std::endl;
 
 	//if(OpenBHandle[Device][Link]==-1){
-		int result = CAENVME_Init(VMEBoard,Device,Link,&BHandle);
-		printf(" result from initializing CAENVME with VMEBoard %08x Device %08x Link %08x BHandle %08x: %08x\n",VMEBoard,Device,Link,BHandle);
-		if(result != cvSuccess){
-			std::cerr << "Error in Opening CAEN Controller " << result << std::endl;
-			exit(1);
-		}
+	int result = CAENVME_Init(VMEBoard,Device,Link,&BHandle);
+	//printf(" result from initializing CAENVME with VMEBoard %08x Device %08x Link %08x BHandle %08x: %08x\n",VMEBoard,Device,Link,BHandle,result);
+	if (result == cvGenericError) {
+		std::cout << "CAEN Controller device " << Device << " link " << Link << " is already open." << std::endl;
+		//BHandle_ = -1;
+	} else if (result != cvSuccess)	{
+		std::cerr << "Error in Opening CAEN Controller " << result << std::endl;
+		exit(1);
+	} else {
+		BHandle_ = BHandle;
+	}
 	//}else{
 	//	BHandle=OpenBHandle[Device][Link];
 	//}
-	BHandle_ = BHandle;
+
 	//OpenBHandle[Device][Link]=BHandle;
 	//printf("--Construction comeplete, address %08x\n",this);
 
@@ -91,6 +99,7 @@ emu::fed::VMEController::VMEController(int Device, int Link):
 
 	//OpenBHandle = {{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1}};
 }
+
 
 
 emu::fed::VMEController::~VMEController(){

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.h,v 3.14 2008/08/15 10:40:20 paste Exp $
+* $Id: EmuFCrate.h,v 3.15 2008/08/15 16:14:50 paste Exp $
 *
 * $Log: EmuFCrate.h,v $
+* Revision 3.15  2008/08/15 16:14:50  paste
+* Fixed threads (hopefully).
+*
 * Revision 3.14  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -108,6 +111,7 @@ private:
 
 	xdata::String xmlFile_;
 	xdata::Vector<xdata::String> errorChambers_;
+	xdata::String BHandles_;
 
 	xdata::UnsignedInteger ttsID_;
 	xdata::UnsignedInteger ttsCrate_;
