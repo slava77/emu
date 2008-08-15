@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.h,v 3.13 2008/08/15 10:23:01 paste Exp $
+* $Id: EmuFCrate.h,v 3.14 2008/08/15 10:40:20 paste Exp $
 *
 * $Log: EmuFCrate.h,v $
-* Revision 3.13  2008/08/15 10:23:01  paste
-* Fixed EmuFCrateLoggable function definitions
+* Revision 3.14  2008/08/15 10:40:20  paste
+* Working on fixing CAEN controller opening problems
 *
 * Revision 3.12  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
@@ -22,7 +22,6 @@
 
 #include "FEDCrate.h"
 #include "IRQThreadManager.h"
-#include "EmuFEDLoggable.h"
 
 class EmuFCrate : public EmuFEDApplication
 {

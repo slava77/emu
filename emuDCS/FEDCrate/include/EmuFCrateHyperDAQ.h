@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 3.48 2008/08/15 10:23:01 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 3.49 2008/08/15 10:40:20 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.h,v $
-* Revision 3.48  2008/08/15 10:23:01  paste
-* Fixed EmuFCrateLoggable function definitions
+* Revision 3.49  2008/08/15 10:40:20  paste
+* Working on fixing CAEN controller opening problems
 *
 * Revision 3.47  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
@@ -29,7 +29,6 @@
 
 #include "EmuFEDApplication.h"
 #include "FEDCrate.h"
-#include "EmuFEDLoggable.h"
 
 class EmuFCrateHyperDAQ: public EmuFEDApplication
 {

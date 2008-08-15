@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 3.15 2008/08/15 10:23:01 paste Exp $
+* $Id: DCC.h,v 3.16 2008/08/15 10:40:20 paste Exp $
 *
 * $Log: DCC.h,v $
-* Revision 3.15  2008/08/15 10:23:01  paste
-* Fixed EmuFCrateLoggable function definitions
+* Revision 3.16  2008/08/15 10:40:20  paste
+* Working on fixing CAEN controller opening problems
 *
 * Revision 3.14  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
@@ -19,7 +19,6 @@
 #include "FEDException.h"
 
 #include "VMEModule.h"
-#include "EmuFEDLoggable.h"
 
 namespace emu {
 
