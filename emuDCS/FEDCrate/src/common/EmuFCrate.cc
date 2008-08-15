@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.36 2008/08/15 18:01:17 paste Exp $
+* $Id: EmuFCrate.cc,v 3.37 2008/08/15 18:48:05 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
-* Revision 3.36  2008/08/15 18:01:17  paste
-* Fixed IRQ thread error propagation to EmuFCrateManager.
+* Revision 3.37  2008/08/15 18:48:05  paste
+* Fixed thread error propagation to EmuFCrateManager.
 *
 * Revision 3.35  2008/08/15 16:14:51  paste
 * Fixed threads (hopefully).
