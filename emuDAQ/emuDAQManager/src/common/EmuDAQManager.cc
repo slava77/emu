@@ -1415,10 +1415,6 @@ void EmuDAQManager::getTriggerSources()
       LOG4CPLUS_WARN(logger_, "The embarassement of riches: " << 
 		      appDescriptors.size() << 
 		      " TTCciControl instances found. Trying first one.");
-//     TTCci_ClockSource_   = getScalarParam(appDescriptors[0],"ClockSource"  ,"string");
-//     TTCci_OrbitSource_   = getScalarParam(appDescriptors[0],"OrbitSource"  ,"string");
-//     TTCci_TriggerSource_ = getScalarParam(appDescriptors[0],"TriggerSource","string");
-//     TTCci_BGOSource_     = getScalarParam(appDescriptors[0],"BGOSource"    ,"string");
     map <string,string> namesAndTypes;
     namesAndTypes["ClockSource"  ] = "string";
     namesAndTypes["OrbitSource"  ] = "string";
@@ -5426,32 +5422,32 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">comments</td><td>" << textToHtml(comments_) << "</td></tr>";
 
 
-    //
-    // trigger mode
-    //
-    getTriggerMode();
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
-    htmlMessageToELog << "<td><table>";
-    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger mode" << "</td><td align=\"right\">" 
-		      << TF_triggerMode_.toString() << "</td></tr>";
-    htmlMessageToELog << "</table></td></tr>";
-    name  = "trigger_mode";
-    value = TF_triggerMode_.toString();
-    if ( toDatabase && isBookedRunNumber_ ){
-      success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
-    }
+//     //
+//     // trigger mode
+//     //
+//     getTriggerMode();
+//     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
+//     htmlMessageToELog << "<td><table>";
+//     htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger mode" << "</td><td align=\"right\">" 
+// 		      << TF_triggerMode_.toString() << "</td></tr>";
+//     htmlMessageToELog << "</table></td></tr>";
+//     name  = "trigger_mode";
+//     value = TF_triggerMode_.toString();
+//     if ( toDatabase && isBookedRunNumber_ ){
+//       success = runInfo_->writeRunInfo( name, value, nameSpace );
+//       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+// 				     nameSpace << ":" << name << " = " << value ); }
+//       else          { LOG4CPLUS_ERROR(logger_,
+// 				      "Failed to write " << nameSpace << ":" << name << 
+// 				      " to run database " << runDbAddress_.toString() <<
+// 				      " : " << runInfo_->errorMessage() ); }
+//     }
 
     //
     // trigger sources
     //
     getTriggerSources();
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci</td>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci (TF)</td>";
     htmlMessageToELog << "<td><table>";
     htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "clock source"   << "</td><td align=\"right\">" 
 		      << TTCci_ClockSource_.toString()   << "</td></tr>";
@@ -5572,7 +5568,7 @@ void EmuDAQManager::postToELog( string subject, string body, vector<string> *att
   EmuELog *eel;
   try
     {
-      eel = new EmuELog("TODOspecifyCurlHost",
+      eel = new EmuELog(curlHost_.toString(),
 			curlCommand_.toString(),
 			curlCookies_.toString(),
 			CMSUserFile_.toString(),
@@ -5868,8 +5864,8 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 
     try
       {
-	// Write to database and e-log only if not in global mode.
-	writeRunInfo( !globalMode_.value_ , !globalMode_.value_ );
+	// Write to database only if not in global mode.
+	writeRunInfo( !globalMode_.value_ , true );
       }
     catch(...)
       {
