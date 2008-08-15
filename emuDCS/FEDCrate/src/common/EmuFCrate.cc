@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.35 2008/08/15 16:14:51 paste Exp $
+* $Id: EmuFCrate.cc,v 3.36 2008/08/15 18:01:17 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.36  2008/08/15 18:01:17  paste
+* Fixed IRQ thread error propagation to EmuFCrateManager.
+*
 * Revision 3.35  2008/08/15 16:14:51  paste
 * Fixed threads (hopefully).
 *
@@ -1175,9 +1178,13 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 	if (state_.toString() == "Enabled") {
 		// dccInOut update
 		dccInOut_.clear();
-		errorChambers_.clear();
+		errorChambers_ = "";
 
 		// PGK Update the DCC rate info.  This is confusing as all get-out.
+		
+		// FTW!
+		std::ostringstream errorChamberString;
+		
 		for (std::vector<emu::fed::FEDCrate *>::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
 			int crateNumber = (*iCrate)->number();
 			if (crateNumber > 4) continue; // Skip TF
@@ -1190,7 +1197,7 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 				unsigned short int status[6];
 				int dr[6];
 				for (int igu=0;igu<6;igu++) {
-					status[igu]=(*idcc)->mctrl_ratemon(igu);
+					status[igu]=(*idcc)->readRate(igu);
 					dr[igu]=((status[igu]&0x3fff)<<(((status[igu]>>14)&0x3)*4));
 				}
 				crateV.push_back(dr[0]);
@@ -1203,7 +1210,7 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 				//std::cout << "Slink0: " << dr[0] << std::endl;
 
 				for (int igu=6;igu<12;igu++) {
-					status[igu-6]=(*idcc)->mctrl_ratemon(igu);
+					status[igu-6]=(*idcc)->readRate(igu);
 					dr[igu-6]=((status[igu-6]&0x3fff)<<(((status[igu-6]>>14)&0x3)*4));
 				}
 				crateV.push_back(dr[0]);
@@ -1217,26 +1224,29 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 			}
 			//std::cout << "Pushing back." << std::endl;
 			dccInOut_.push_back(crateV);
-
-			// errorChambers update
-			errorChambers_.clear();
 			
+			// Now for the chamber errors from IRQ...
+
 			std::vector<emu::fed::IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
 			for (std::vector<emu::fed::IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
+				//LOG4CPLUS_DEBUG(getApplicationLogger(), "I think that there is an error on crate " << (*iCrate)->number() << " slot " << (*iError)->ddu->slot() << " with reset " << (*iError)->reset);
 				// Skip things that have already been reset (we think)
 				if ((*iError)->reset) continue;
 				// Report the chamber names and RUI names that are in an error state.
 				for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
 					if ((*iError)->fibers & (1<<iFiber)) {
+						//LOG4CPLUS_DEBUG(getApplicationLogger(), "I think that there is an error on crate " << (*iCrate)->number() << " slot " << (*iError)->ddu->slot() << " fiber " << iFiber << " with reset " << (*iError)->reset);
+						if (errorChamberString.str() != "") errorChamberString << ", ";
 						if (iFiber == 15) {
-							std::stringstream ruiStream;
-							ruiStream << "RUI#" << (*iCrate)->getRUI((*iError)->ddu->slot());
-							errorChambers_.push_back(ruiStream.str());
-						} else errorChambers_.push_back((*iError)->ddu->getChamber(iFiber)->name());
+							errorChamberString << "RUI#" << (*iCrate)->getRUI((*iError)->ddu->slot());
+						} else errorChamberString << (*iError)->ddu->getChamber(iFiber)->name() + " ";
 					}
 				}
 			}
 		}
+		
+		// FTW!
+		errorChambers_ = errorChamberString.str();
 	}
 	// PGK Following is just what EmuFEDApplication does.
 
