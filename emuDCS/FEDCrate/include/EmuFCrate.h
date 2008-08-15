@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.h,v 3.15 2008/08/15 16:14:50 paste Exp $
+* $Id: EmuFCrate.h,v 3.16 2008/08/15 17:36:16 paste Exp $
 *
 * $Log: EmuFCrate.h,v $
+* Revision 3.16  2008/08/15 17:36:16  paste
+* Fixed thread error propogation to EmuFCrateManager via EmuFCrate
+*
 * Revision 3.15  2008/08/15 16:14:50  paste
 * Fixed threads (hopefully).
 *
@@ -110,7 +113,7 @@ private:
 	std::string getCGIParameter(xgi::Input *in, std::string name);
 
 	xdata::String xmlFile_;
-	xdata::Vector<xdata::String> errorChambers_;
+	xdata::String errorChambers_;
 	xdata::String BHandles_;
 
 	xdata::UnsignedInteger ttsID_;
