@@ -72,40 +72,39 @@
 	<rcms.notification:hiddenInputRenderer indentation="4" /> 
 
 <TABLE class="HeaderTable" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="100%">
-
 	<tr>
-	<TD bgcolor="#000000">
-	<button id="showStatusTableButton" class="MenuButton"
-			value="Status Table" name="Status Table"
-			onClick="onShowStatusTableButton()">Status Table </button>
-	</TD>
-
 	<td><a class="MenuLinkEnabled" href="./DiagnosticServlet"><B>Diagnostic Page</B></a></td>
         <td><a class="MenuLinkEnabled" href="../../../Collector/Collector"><B>Logging Collector</B></a></td>
         <td><a class="MenuLinkEnabled" href="./MonitoringToolsServlet"><B>Monitoring Tools</B></a></td>
         <td><a class="MenuLinkEnabled" href="./RunInfoServlet"><B>Run Info</B></a></td>
         <td><a class="MenuLinkEnabled" href="./RunningConfigurationServlet"><B>Running Configurations</B></a></td>
         <td><a class="MenuLinkEnabled" href="./LogoutServlet"><B>Logout</B></a></td>
-	
+	</tr>
+
+</TABLE>
+
+<TABLE align="center" class="HeaderTable" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="50%">
+<tr>
 	<!--  REFRESH BUTTON --> 
-	<TD bgcolor="#696969">
+	<TD align="center" bgcolor="#ADFF2F">
 	<rcms.control:refreshButtonRenderer
 		cssClass="button1" onClickFunction="onUpdatedRefreshButton()"
 		name="Refresh" indentation="10" />
 	</TD>
 	
-	<TD bgcolor="#4682B4">
+	<TD align="center" bgcolor="#4682B4">
 	<rcms.control:createButtonRenderer cssClass="button1"
 	onClickFunction="onCreateButton()" name="Create" indentation="10" /> 
 	<rcms.control:attachButtonRenderer cssClass="button1" 
 	onClickFunction="onAttachButton()" name="Attach"indentation="10" /> 
 	<rcms.control:detachButtonRenderer cssClass="button1" 
 	onClickFunction="onDetachButton()" name="Detach" indentation="10" /> 
+	</TD>	
+	<TD align="center" bgcolor="#FF8C00">
 	<rcms.control:destroyButtonRenderer cssClass="button1" 
 	onClickFunction="onMyDestroyButton()" name="Destroy" indentation="10" />
 	</TD>
-	</tr>
-
+</tr>
 </TABLE>
 <br>
 <table style="width: 100%;">
@@ -118,8 +117,12 @@
 
 <TABLE class="paraTableName" BORDERCOLOR="black" BORDER="4" CELLPADDING="2" CELLSPACING="2" WIDTH="100%">
 <tr>
-<TD align="center" bgcolor="#000000" class="paraTableName" >
+<TD align="center" bgcolor="#F5F5DC" class="paraTableName" >
 <rcms.control:stateRenderer titleClass="control_label1" label="<B>State<B>:&nbsp;" contentClass="control_labe13" indentation="10"/></TD>
+
+<TD  align="center" bgcolor="#000000">
+<button id="showStatusTableButton" class="MenuButton" value="StatusTable" name="StatusTable"
+			onClick="onShowStatusTableButton()">StatusTable </button></TD>
 </tr>
 </TABLE>
 
@@ -157,7 +160,7 @@
 				contentClass="control_label2" indentation="10" />
 	
 			<rcms.control:configurationKeyRenderer titleClass="control_label1"
-				hidden="true" label="Configuration Keys:&nbsp;"
+				hidden="true" label="<B>Configuration Keys<B>:&nbsp;"
 				contentClass="control_label2" indentation="10" />
 		</TD>
 		</tr>
