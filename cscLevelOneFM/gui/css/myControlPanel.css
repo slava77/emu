@@ -219,10 +219,11 @@
 	line-height: 1em; 
 }
 .HeaderTable{
-	background-color: #FFFFE0;
+	background-color: #87CEFA;
 	color: blue;
 	font-family: monospace;
-	font-size: 0.8em; 
+	font-size: 1.5em; 
+	text-align : center;	
 	font-family: Helvetica, Verdana, sans-serif; 
 	line-height: 1em; 
 }
@@ -251,9 +252,8 @@
 	background-color: #008000;	 
 	position: relative;
 	top: 0px; 
-	left: 0px; 
-	height: 30px; 
-	width:  100px
+	left: 0px;  
+
 }
 .SubdetTableHeader{
 	color: white;
