@@ -1091,14 +1091,9 @@ throw (toolbox::fsm::exception::Exception)
     // create new writer if path is not empty
     if ( pathToDataOutFile_ != string("") && (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 ){
       toolbox::net::URL u( appContext_->getContextDescriptor()->getURL() );
-      stringstream app;
-      app << "EmuFU";
-      app.fill('0');
-      app.width(2);
-      app << instance_;
       fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, 
 				       pathToDataOutFile_.toString(), 
-				       u.getHost(), app.str(), EmuFUV::versions, &logger_ );
+				       u.getHost(), "EmuFU", instance_, EmuFUV::versions, &logger_ );
     }
     
     // Create an Emu event header

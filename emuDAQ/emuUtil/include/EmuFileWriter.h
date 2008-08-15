@@ -4,8 +4,9 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <ostream>
+#include <iomanip>
 #include "log4cplus/logger.h"
-#include <stdio.h>
 
 /// Class for writing binary data files.
 
@@ -48,7 +49,8 @@ private:
   unsigned int  maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened
   string        pathToFile_;	///< direcory where the file is to be written
   string        host_;          ///< host name
-  string        application_;	///< name of application producing the data
+  string        appName_;	///< name of application producing the data
+  unsigned int  appInstance_;	///< instance of application producing the data
   string        appVersion_;    ///< version of application producing the data
   Logger        logger_;	///< logger
   string        runStartTime_;	///< date and time of start of run
@@ -70,10 +72,11 @@ private:
   void nameFile(){
     ostringstream fileNameStream;
     fileNameStream << pathToFile_        << "/csc_";
-    fileNameStream.fill('0');
-    fileNameStream.width(8);
+    fileNameStream << setfill('0') << setw(8);
     fileNameStream << runNumber_         << "_";
-    fileNameStream << application_       << "_";
+    fileNameStream << appName_ ;
+    fileNameStream << setfill('0') << setw(2);
+    fileNameStream << appInstance_       << "_";
     fileNameStream << runType_           << "_";
     fileNameStream.width(3);
     fileNameStream << filesInRunCounter_;
@@ -136,11 +139,11 @@ private:
     *fs_ << "runnumber"   << " " << runNumber_           << endl;
     *fs_ << "lumisection" << " " << "0"                  << endl;
     *fs_ << "nevents"     << " " << eventsInFileCounter_ << endl;
-    *fs_ << "appname"     << " " << application_         << endl;
+    *fs_ << "appname"     << " " << appName_             << endl;
+    *fs_ << "instance"    << " " << appInstance_         << endl;
     *fs_ << "appversion"  << " " << appVersion_          << endl;
     *fs_ << "start_time"  << " " << toUnixTime( runStartTime_ ) << endl; // may be 0
     *fs_ << "stop_time"   << " " << toUnixTime( runStopTime_  ) << endl; // may be 0
-    *fs_ << "checksum"    << " " << "0"                  << endl; // may be 0
     *fs_ << "setuplabel"  << " " << "CSC"                << endl;
     *fs_ << "type"        << " " << "edm"                << endl;
     *fs_ << "stream"      << " " << nameStream()         << endl;
@@ -196,8 +199,8 @@ private:
   std::string nameStream(){
     string streamName;
     if ( runType_.substr(0,5) == "Calib" ) streamName = "Calib";
-    else if ( application_.substr(0,6) == "EmuRUI" ) streamName = "Local";
-    else if ( application_.substr(0,5) == "EmuFU"  ) streamName = "Built";
+    else if ( appName_.substr(0,6) == "EmuRUI" ) streamName = "Local";
+    else if ( appName_.substr(0,5) == "EmuFU"  ) streamName = "Built";
 
     if ( runStartTime_.size() < 17 ) return streamName;
     else return streamName+string("20")+runStartTime_.substr(0,2);
@@ -214,12 +217,13 @@ public:
   /// @param app name of application producing the data
   /// @param logger logger
   ///
-  EmuFileWriter(const unsigned int maxFileSize, const string pathToFile, const string host, const string app, const string version, const Logger* logger)
+  EmuFileWriter(const unsigned int maxFileSize, const string pathToFile, const string host, const string appName, const unsigned int appInstance, const string appVersion, const Logger* logger)
     :maxFileSize_         (maxFileSize)
     ,pathToFile_          (pathToFile)
     ,host_                (host)
-    ,application_         (app)
-    ,appVersion_          (version)
+    ,appName_             (appName)
+    ,appInstance_         (appInstance)
+    ,appVersion_          (appVersion)
     ,logger_              (*logger)
     ,runStartTime_        ("")
     ,runStopTime_         ("")
