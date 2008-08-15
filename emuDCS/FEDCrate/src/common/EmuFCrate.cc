@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.33 2008/08/15 08:35:51 paste Exp $
+* $Id: EmuFCrate.cc,v 3.34 2008/08/15 09:59:22 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.34  2008/08/15 09:59:22  paste
+* Fixed bug where transitions to Halted state while threads were not active caused a crash.
+*
 * Revision 3.33  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -657,9 +660,9 @@ void EmuFCrate::haltAction(toolbox::Event::Reference e)
 	soapConfigured_ = false;
 	soapLocal_ = false;
 
-	//std::cout << "Is this were I die?" << std::endl;
+	//LOG4CPLUS_DEBUG(getApplicationLogger(), "Calling IRQThreadManager::endThreads...");
 	TM->endThreads();
-	//std::cout << "No" << std::endl;
+	//LOG4CPLUS_DEBUG(getApplicationLogger(), "...Returned from IRQThreadManager::endThreads.");
 
 }
 
