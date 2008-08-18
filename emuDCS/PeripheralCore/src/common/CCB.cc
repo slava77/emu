@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.35 2008/08/13 11:30:54 geurts Exp $
+// $Id: CCB.cc,v 3.36 2008/08/18 12:15:13 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.36  2008/08/18 12:15:13  rakness
+// add FPGA configuration done reads and accessors
+//
 // Revision 3.35  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -311,6 +314,18 @@ CCB::CCB(Crate * theCrate ,int slot)
   expected_firmware_day_   = 999;
   expected_firmware_month_ = 999;
   expected_firmware_year_  = 999;
+  //
+  for (int i=0; i<9; i++) {
+    read_tmb_cfg_done_[i] = 999;
+    read_alct_cfg_done_[i]= 999;
+    read_dmb_cfg_done_[i] = 999;
+  }
+  //
+  read_mpc_cfg_done_   = 999;  
+  read_ccb_fpga_ready_ = 999;
+  read_ttcrx_ready_    = 999;
+  read_qpll_lock_      = 999;
+  read_eprom_config_ok_= 999;
   //
   (*MyOutput_) << "CCB: in crate=" << this->crate()
 	    << " slot=" << this->slot() << std::endl;
@@ -836,10 +851,49 @@ int CCB::ReadRegister(int reg){
   //
   //printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
+  DecodeRegister_(reg,value);
+  //
   return value;
   //
 }
 
+void CCB::DecodeRegister_(unsigned int address, int value) {
+  //
+  if (address == CSRA2) {
+    //
+    read_mpc_cfg_done_ = value & 0x1;
+    //
+    for (int i=0; i < 9; i++) {
+      int shift = i + 1;
+      read_alct_cfg_done_[i] = (value >> shift) & 0x1;
+    }
+    //
+    for (int i=0; i < 6; i++) {
+      int shift = i + 10;
+      read_tmb_cfg_done_[i]  = (value >> shift) & 0x1;
+    }
+    //
+  } else if (address == CSRA3) {
+    //
+    for (int i=6; i < 9; i++) {
+      int shift = i - 6;
+      read_tmb_cfg_done_[i]  = (value >> shift) & 0x1;
+    }
+    //
+    for (int i=0; i < 9; i++) {
+      int shift = i + 3;
+      read_dmb_cfg_done_[i]  = (value >> shift) & 0x1;
+    }
+    //
+    read_ccb_fpga_ready_  = (value >> 12) & 0x1;
+    read_ttcrx_ready_     = (value >> 13) & 0x1;
+    read_qpll_lock_       = (value >> 14) & 0x1;
+    read_eprom_config_ok_ = (value >> 15) & 0x1;
+    //
+  }
+  //
+  return;
+}
 
 void CCB::enableL1() {
   (*MyOutput_) << "CCB: Enable L1A." << std::endl;
@@ -1139,11 +1193,9 @@ int CCB::CheckConfig()
   //
   // check TTCrx ready and QPLL locked
   rx=ReadRegister(CSRA3);
-  int read_value = rx & 0x6000;
   //
-  int expected_value = 0x2000;
-  //
-  config_ok &= compareValues("CCB TTCrx/QPLL",read_value,expected_value);
+  config_ok &= compareValues("CCB TTCrx",read_ttcrx_ready_,expected_ttcrx_ready_);
+  config_ok &= compareValues("CCB QPLL lock",read_qpll_lock_,expected_qpll_lock_);
   //
   //  if((rx & 0x6000) != 0x2000) 
   //  {  std::cout << "CCB_Check_Config: TTCrx or QPLL in wrong state " 
@@ -1155,8 +1207,8 @@ int CCB::CheckConfig()
   // check TTCrx Coarse delay
   rx=(int) (ReadTTCrxReg(2).to_ulong());
   //
-  read_value = (rx&0xf);
-  expected_value = (TTCrxCoarseDelay_&0xf);
+  int read_value = (rx&0xf);
+  int expected_value = (TTCrxCoarseDelay_&0xf);
   config_ok &= compareValues("CCB TTCrxCoarseDelay LSB",read_value,expected_value);
   //
   read_value = (rx&0xf0)>>4;
@@ -1191,6 +1243,13 @@ int CCB::CheckConfig()
   read_value = (rx&0x1);
   expected_value = 1;
   config_ok &= compareValues("CCB DLOG mode",read_value,expected_value);
+  //
+  //Check component FPGA programming done
+  ReadRegister(CSRA2);
+  ReadRegister(CSRA3);
+  //
+  config_ok &= compareValues("CCB FPGA programmed",read_ccb_fpga_ready_,expected_ccb_fpga_ready_);
+  config_ok &= compareValues("MPC FPGA programmed",read_mpc_cfg_done_  ,expected_mpc_cfg_done_  );
   //
   //  if((rx & 1) == 0) 
   //  {  std::cout << "CCB_Check_Config: CCB not in DLOG mode" << std::endl;
