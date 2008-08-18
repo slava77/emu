@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.18 2008/08/15 08:35:51 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.19 2008/08/18 08:30:15 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.19  2008/08/18 08:30:15  paste
+* Update to fix error propagation from IRQ threads to EmuFCrateManager.
+*
 * Revision 1.18  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -253,18 +256,18 @@ void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xg
 		// Print a table of all the DCC input and output rates.
 		if (currentState == "Enabled") {
 
-			xdata::Vector<xdata::String> errorChambers = readParameter<xdata::Vector<xdata::String> >(reply,"errorChambers");
-			if (errorChambers.size()) {
+			xdata::String errorChambers = readParameter<xdata::String>(reply,"errorChambers");
+
+			//LOG4CPLUS_DEBUG(getApplicationLogger(),"I think that there are " << errorChambers.size() << " errors to read out.");
+
+			if (errorChambers != "") {
 				*out << cgicc::div()
 					<< "Chambers in an error state: " << std::endl;
 				*out << cgicc::span()
 					.set("class","error") << std::endl;
-				for (unsigned int iChamber = 0; iChamber < errorChambers.size(); iChamber++) {
-					*out << errorChambers[iChamber].toString() << " ";
-				}
+				*out << errorChambers.toString();
 				*out << cgicc::span() << std::endl;
 				*out << cgicc::div() << std::endl;
-
 			}
 
 			// PGK The reply is a std::vector of std::vectors of integers.
