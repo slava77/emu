@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.16 2008/08/13 11:30:53 geurts Exp $
+// $Id: CCB.h,v 3.17 2008/08/18 12:15:13 rakness Exp $
 // $Log: CCB.h,v $
+// Revision 3.17  2008/08/18 12:15:13  rakness
+// add FPGA configuration done reads and accessors
+//
 // Revision 3.16  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -303,6 +306,15 @@ public:
 
   friend std::ostream & operator<<(std::ostream & os, CCB & ccb);
   //
+  inline int GetReadALCTConfigDone(int alct_index) { return read_alct_cfg_done_[alct_index]; }
+  inline int GetExpectedALCTConfigDone() { return expected_alct_cfg_done_; }
+  //
+  inline int GetReadTMBConfigDone(int tmb_index) { return read_tmb_cfg_done_[tmb_index]; }
+  inline int GetExpectedTMBConfigDone() { return expected_tmb_cfg_done_; }
+  //
+  inline int GetReadDMBConfigDone(int dmb_index) { return read_dmb_cfg_done_[dmb_index]; }
+  inline int GetExpectedDMBConfigDone() { return expected_dmb_cfg_done_; }
+  //
   //code used by DCS
 
 protected:
@@ -310,6 +322,9 @@ protected:
   enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
 private:
+  //
+  void DecodeRegister_(unsigned int address, int value);
+  //
   //-- Control and Status Registers for CCB2004
   //   group A: discrete logic
   static const unsigned int CSRA1  = 0x00;
@@ -371,6 +386,26 @@ private:
   int expected_firmware_day_;
   int expected_firmware_month_; 
   int expected_firmware_year_;
+  //
+  static const int expected_mpc_cfg_done_  = 0;
+  static const int expected_tmb_cfg_done_  = 0;
+  static const int expected_alct_cfg_done_ = 0;
+  static const int expected_dmb_cfg_done_  = 1;
+  //
+  static const int expected_ccb_fpga_ready_  = 1;
+  static const int expected_ttcrx_ready_     = 1;
+  static const int expected_qpll_lock_       = 0;
+  static const int expected_eprom_config_ok_ = 0;
+  //
+  int read_mpc_cfg_done_    ;
+  int read_tmb_cfg_done_[9] ;
+  int read_alct_cfg_done_[9];
+  int read_dmb_cfg_done_[9] ;
+  
+  int read_ccb_fpga_ready_ ;
+  int read_ttcrx_ready_    ;
+  int read_qpll_lock_      ;
+  int read_eprom_config_ok_;
 };
 
 
