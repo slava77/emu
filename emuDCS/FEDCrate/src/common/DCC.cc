@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.16 2008/08/15 16:14:51 paste Exp $
+* $Id: DCC.cc,v 3.17 2008/08/19 14:51:02 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.17  2008/08/19 14:51:02  paste
+* Update to make VMEModules more independent of VMEControllers.
+*
 * Revision 3.16  2008/08/15 16:14:51  paste
 * Fixed threads (hopefully).
 *
@@ -46,8 +49,8 @@ emu::fed::DCC::~DCC()
 void emu::fed::DCC::end()
 {
 	//  std::cout << "calling emu::fed::DCC::end" << std::endl;
-	send_last();
-	VMEModule::end();
+	//send_last();
+	//VMEModule::end();
 }
 
 
@@ -487,17 +490,17 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 					// for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
 					if (nowrit == 0) {
 						if ((geo[dv].jchan == 12)) {
-							scan_reset(DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+							scan(RESET,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 						} else {
-							scan(DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+							scan(NONE,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 						}
 					} else {
 						if (writ == 1) {
 
 							if ((geo[dv].jchan == 12)) {
-								scan_reset(DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+								scan(RESET,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 							} else {
-								scan(DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+								scan(NONE,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 							}
 						}
 					}
@@ -604,7 +607,7 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 		fclose(dwnfp);
 	}
 	flush_vme();
-	send_last();
+	//send_last();
 }
 
 

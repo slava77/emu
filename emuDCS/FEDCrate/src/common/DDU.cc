@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.24 2008/08/15 08:35:51 paste Exp $
+* $Id: DDU.cc,v 3.25 2008/08/19 14:51:02 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 3.25  2008/08/19 14:51:02  paste
+* Update to make VMEModules more independent of VMEControllers.
+*
 * Revision 3.24  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -50,8 +53,8 @@ void emu::fed::DDU::end()
 {
 	//   std::cout << "calling emu::fed::DDU::end" << std::endl;
 	//theController->start(this);
-	send_last();
-	VMEModule::end();
+	//send_last();
+	//VMEModule::end();
 }
 
 
@@ -6670,20 +6673,20 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 					// for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
 					if(nowrit==0){
 						if((geo[dv].jchan==12)){
-								if (pass == ipass || ipass == 4) scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == ipass || ipass == 4) scan(RESET,DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
 								if (pass == 2) pass++;
 						}else{
-								if (pass == ipass || ipass == 4) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == ipass || ipass == 4) scan(NONE,DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
 								if (pass == 2) pass++;
 						}
 					}else{
 						if(writ==1){
 
 							if((geo[dv].jchan==12)){
-								if (pass == ipass || ipass == 4) scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == ipass || ipass == 4) scan(RESET,DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
 								if (pass == 2) pass++;
 							}else{
-								if (pass == ipass || ipass == 4) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == ipass || ipass == 4) scan(NONE,DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
 								if (pass == 2) pass++;
 							}
 						}
@@ -6826,7 +6829,7 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 		fclose(dwnfp);
 	}
 	flush_vme();
-	send_last();
+	//send_last();
 }
 
 
