@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.41 2008/08/15 16:14:51 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.42 2008/08/19 14:51:02 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.42  2008/08/19 14:51:02  paste
+* Update to make VMEModules more independent of VMEControllers.
+*
 * Revision 3.41  2008/08/15 16:14:51  paste
 * Fixed threads (hopefully).
 *
@@ -225,8 +228,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Two crates share crate number " << crateVector[iCrate]->number() << cgicc::div() << std::endl;
 					crateError++;
 				}
-				if (crateVector[iCrate]->getVMEController()->Device() == crateVector[jCrate]->getVMEController()->Device()) {
-					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[iCrate]->number() << " and " << crateVector[jCrate]->number() << " have the same VME controller device number (" << crateVector[iCrate]->getVMEController()->Device() << ")" << cgicc::div() << std::endl;
+				if (crateVector[iCrate]->getVMEController()->getDevice() == crateVector[jCrate]->getVMEController()->getDevice()) {
+					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[iCrate]->number() << " and " << crateVector[jCrate]->number() << " have the same VME controller device number (" << crateVector[iCrate]->getVMEController()->getDevice() << ")" << cgicc::div() << std::endl;
 					crateError++;
 				}
 			}
@@ -322,7 +325,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			if ((*iDDU)->slot() > 21) continue;
 
 			// First, determine the status of the DDU.
-			myCrate->getVMEController()->CAEN_err_reset();
+			//myCrate->getVMEController()->CAEN_err_reset();
 			// Do a fast FMM status check
 			//unsigned short int DDU_FMM = (((*iDDU)->vmepara_status()>>8)&0x000F);
 			unsigned short int DDU_FMM = (((*iDDU)->readParallelStat()>>8)&0x000F);
@@ -349,9 +352,10 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			//unsigned short int status = 0; // DEBUG
 			// Mark the status with pretty colors
 			std::string cscClass = "green";
-			if (myCrate->getVMEController()->CAEN_err()!=0) {
-				cscClass = "yellow";
-			} else if (fibersWithErrors==0x0000) {
+			//if (myCrate->getVMEController()->CAEN_err() != 0) {
+				//cscClass = "yellow";
+			//} else
+			if (fibersWithErrors==0x0000) {
 				cscClass = "green";
 			} else {
 				cscClass = "red";
@@ -520,7 +524,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			if ((*iDCC)->slot() > 21) continue;
 
 			// First, determine the status of the DCC.
-			myCrate->getVMEController()->CAEN_err_reset();
+			//myCrate->getVMEController()->CAEN_err_reset();
 			unsigned short int statush=(*iDCC)->mctrl_stath();
 			unsigned short int statusl=(*iDCC)->mctrl_statl();
 			unsigned short int rdfifoinuse=(*iDCC)->mctrl_rd_fifoinuse();
@@ -2201,7 +2205,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	myDDU->infpga_shift0 = 0;
 	myDDU->ddu_shift0 = 0;
 
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 
 
 	// Display general DDU status information
@@ -2385,7 +2389,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	
 
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 	// Display individual fiber information
 	*out << cgicc::fieldset()
 		.set("class","normal") << std::endl;
@@ -2701,7 +2705,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 
 
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 	// Display the big debugging information block
 	*out << cgicc::fieldset()
 		.set("class","fieldset") << std::endl;
@@ -2759,14 +2763,14 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	
 
 
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 	*out << cgicc::fieldset()
 		.set("class","fieldset") << std::endl;
 	*out << cgicc::div("CSC Board Occupancies and Percentages")
 		.set("class","legend") << std::endl;
 
 	// Pick up the occupancies.
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 
 	// Now we grab what we want.
 	unsigned long int scalar = myDDU->ddu_rdscaler();
@@ -2904,7 +2908,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 	};
 	
 	// Start reading some registers!
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 
 	// Do this for both InFPGAs
 	enum emu::fed::DEVTYPE devTypes[2] = {
@@ -3643,7 +3647,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::br() << std::endl;
 
 
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 	// Killfiber and xorbit read/set
 	*out << cgicc::fieldset()
 		.set("class","expert") << std::endl;
@@ -4026,7 +4030,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 
 
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 	// Inreg for serial writes.
 	*out << cgicc::fieldset()
 		.set("class","expert") << std::endl;
@@ -4066,7 +4070,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 
 	// Other Serial registers that nobody but experts care about
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 	*out << cgicc::fieldset()
 		.set("class","expert") << std::endl;
 	*out << cgicc::div()
@@ -4308,7 +4312,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br() << std::endl;
 
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 
 	// Display VME Control status information
 	*out << cgicc::fieldset()
@@ -4367,7 +4371,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::br()
 		.set("style","display: none") << std::endl;
 
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 	// Display individual fiber information
 	*out << cgicc::fieldset()
 		.set("class","normal") << std::endl;
@@ -4523,7 +4527,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::fieldset() << std::endl;
 	*out << cgicc::br() << std::endl;
 	
-	myCrate->getVMEController()->CAEN_err_reset();
+	//myCrate->getVMEController()->CAEN_err_reset();
 
 	// No debugger needed here.
 
@@ -5134,17 +5138,18 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 			}
 			sprintf(buf,"%08lX",idcode);
 			*out << buf;*out << cgicc::span();
-			myCrate->getVMEController()->CAEN_err_reset();
+			//myCrate->getVMEController()->CAEN_err_reset();
 			if(i==0){uscode=myDCC->inprom_userid();}
 			if(i==1){uscode=myDCC->mprom_userid();}
 			*out << cgicc::span().set("style","color:black");
 			sprintf(buf," usr: ");
 			*out << buf;*out << cgicc::span();
 			printf(" uscode %08lx \n",uscode);
-			if(myCrate->getVMEController()->CAEN_err()!=0){
-				*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+			//if(myCrate->getVMEController()->CAEN_err()!=0){
+				// *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 			//    }else if(uscode!=tuscode[i]){
-			}else if(0xffff0000&uscode!=0xffff0000&tuscode[i]){
+			//}else
+			if(0xffff0000&uscode!=0xffff0000&tuscode[i]){
 				*out << cgicc::span().set("style","color:red;background-color:#dddddd;");
 			}else{
 				*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
@@ -6663,7 +6668,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		if (myDDU->slot() > 21) continue;
 
 		// Check Voltages
-		myCrate->getVMEController()->CAEN_err_reset();
+		//myCrate->getVMEController()->CAEN_err_reset();
 		std::string dduClass = "ok";
 		std::string totalVoltClass = "ok";
 		// The actual voltage measurements
@@ -6676,9 +6681,9 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			unsigned int jVolt = iVolt/2;
 			// Voltages are 4-7
 			voltage[jVolt] = myDDU->adcplus(1,jVolt+4);
-			if( myCrate->getVMEController()->CAEN_err() != 0) {
-				dduClass = "caution";
-			}
+			//if( myCrate->getVMEController()->CAEN_err() != 0) {
+				//dduClass = "caution";
+			//}
 			if ((voltage[jVolt] > v_val[jVolt] - v_val[jVolt] * v_delt) && (voltage[jVolt] < v_val[jVolt] + v_val[jVolt] * v_delt)) {
 				// Do nothing?
 			} else {
@@ -6696,7 +6701,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		}
 
 		// Check Temperatures
-		myCrate->getVMEController()->CAEN_err_reset();
+		//myCrate->getVMEController()->CAEN_err_reset();
 		std::string totalTempClass = "ok";
 		// The actual temperatures
 		double temp[4] = {0,0,0,0};
@@ -6707,9 +6712,9 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			// Automatically read each temperature twice
 			unsigned int jTemp = iTemp/2;
 			temp[jTemp] = myDDU->readthermx(jTemp);
-			if( myCrate->getVMEController()->CAEN_err() != 0) {
-				dduClass = "caution";
-			}
+			//if( myCrate->getVMEController()->CAEN_err() != 0) {
+				//dduClass = "caution";
+			//}
 			if ((temp[jTemp] > t_val[jTemp] - t_val[jTemp] * t_delt) && (temp[jTemp] < t_val[jTemp] + t_val[jTemp] * t_delt)) {
 				// Do nothing?
 			} else {

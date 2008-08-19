@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.h,v 1.4 2008/08/15 08:35:50 paste Exp $
+* $Id: FEDCrate.h,v 1.5 2008/08/19 14:51:01 paste Exp $
 *
 * $Log: FEDCrate.h,v $
+* Revision 1.5  2008/08/19 14:51:01  paste
+* Update to make VMEModules more independent of VMEControllers.
+*
 * Revision 1.4  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -67,9 +70,10 @@ namespace emu {
 		
 			void addModule(VMEModule* module);
 			void setController(VMEController* controller);
+			void setBHandle(int32_t myBHandle);
 		
 			VMEController *getVMEController() const { return vmeController_; }
-		
+
 			/// uses RTTI to find types
 			std::vector<DDU *> getDDUs() const;
 			std::vector<DCC *> getDCCs() const;

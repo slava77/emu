@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.cc,v 1.3 2008/08/15 08:35:51 paste Exp $
+* $Id: FEDCrate.cc,v 1.4 2008/08/19 14:51:02 paste Exp $
 *
 * $Log: FEDCrate.cc,v $
+* Revision 1.4  2008/08/19 14:51:02  paste
+* Update to make VMEModules more independent of VMEControllers.
+*
 * Revision 1.3  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -25,6 +28,7 @@ emu::fed::FEDCrate::FEDCrate(int myNumber, VMEController *myController):
 }
 
 
+
 emu::fed::FEDCrate::~FEDCrate() {
 	for(unsigned i = 0; i < moduleVector_.size(); ++i) {
 		delete moduleVector_[i];
@@ -33,10 +37,15 @@ emu::fed::FEDCrate::~FEDCrate() {
 }
 
 
+
 void emu::fed::FEDCrate::addModule(VMEModule *module) {
-	module->setController(vmeController_);
+	if (vmeController_) {
+		module->setBHandle(vmeController_->getBHandle());
+	}
 	moduleVector_[module->slot()] = module;
 }
+
+
 
 void emu::fed::FEDCrate::setController(VMEController *controller) {
 	if (vmeController_ != NULL) {
@@ -44,30 +53,50 @@ void emu::fed::FEDCrate::setController(VMEController *controller) {
 	}
 	std::cout << "Setting controller in crate " << number_ << std::endl;
 	vmeController_ = controller;
-	vmeController_->setCrate(number_);
+	//vmeController_->setCrate(number_);
 	for (unsigned int i=0; i<moduleVector_.size(); i++) {
 		if (moduleVector_[i] == NULL) continue;
-		moduleVector_[i]->setController(vmeController_);
+		moduleVector_[i]->setBHandle(vmeController_->getBHandle());
 	}
 }
 
-std::vector<emu::fed::DDU *> emu::fed::FEDCrate::getDDUs() const {
-  std::vector<DDU *> result;
-  for(unsigned i = 0; i < moduleVector_.size(); ++i) {
-    DDU *ddu = dynamic_cast<DDU *>(moduleVector_[i]);
-    if(ddu != 0) result.push_back(ddu);
-  }
-  return result;
+
+
+void emu::fed::FEDCrate::setBHandle(int32_t myBHandle) {
+	if (vmeController_->getBHandle() != -1) {
+		std::cout << "WARNING: Trying change the BHandle associated with crate " << number_ << std::endl;
+	}
+	std::cout << "Setting BHandle in crate " << number_ << std::endl;
+	if (vmeController_ != NULL) vmeController_->setBHandle(myBHandle);
+	for (std::vector<VMEModule *>::iterator iModule = moduleVector_.begin(); iModule != moduleVector_.end(); iModule++) {
+		if ((*iModule) == NULL) continue;
+		(*iModule)->setBHandle(myBHandle);
+	}
 }
 
-std::vector<emu::fed::DCC *> emu::fed::FEDCrate::getDCCs() const {
-  std::vector<DCC *> result;
-  for(unsigned i = 0; i < moduleVector_.size(); ++i) {
-    DCC *dcc = dynamic_cast<DCC *>(moduleVector_[i]);
-    if(dcc != 0) result.push_back(dcc);
-  }
-  return result;
+
+
+std::vector<emu::fed::DDU *> emu::fed::FEDCrate::getDDUs() const {
+	std::vector<DDU *> result;
+	for(unsigned i = 0; i < moduleVector_.size(); ++i) {
+		DDU *ddu = dynamic_cast<DDU *>(moduleVector_[i]);
+		if(ddu != 0) result.push_back(ddu);
+	}
+	return result;
 }
+
+
+
+std::vector<emu::fed::DCC *> emu::fed::FEDCrate::getDCCs() const {
+	std::vector<DCC *> result;
+	for(unsigned i = 0; i < moduleVector_.size(); ++i) {
+		DCC *dcc = dynamic_cast<DCC *>(moduleVector_[i]);
+		if(dcc != 0) result.push_back(dcc);
+	}
+	return result;
+}
+
+
 
 int emu::fed::FEDCrate::getRUI(int slot) {
 	unsigned int rui = 9 * number_ + slot - 3;
@@ -78,18 +107,21 @@ int emu::fed::FEDCrate::getRUI(int slot) {
 	return rui;
 }
 
+
+
 void emu::fed::FEDCrate::enable() {
-  //
-  std::cout << "emu::fed::FEDCrate::enable called " << std::endl;
+	std::cout << "emu::fed::FEDCrate::enable called " << std::endl;
 }
 
-//
+
+
 void emu::fed::FEDCrate::disable() {
-  //
-  std::cout << "emu::fed::FEDCrate::disable called " << std::endl;
-  //
+
+	std::cout << "emu::fed::FEDCrate::disable called " << std::endl;
 }
-//
+
+
+
 void emu::fed::FEDCrate::configure() {
 // JRG, downloads to all boards, then starts the IRQ handler.
 	//printf(" ********   emu::fed::FEDCrate::configure is called with run number %u \n",(unsigned int) runnumber);
@@ -110,7 +142,8 @@ void emu::fed::FEDCrate::configure() {
 //	this->init(runnumber);
 }
 
+
+
 void emu::fed::FEDCrate::init() {
 	// Does nothing.
 }
-

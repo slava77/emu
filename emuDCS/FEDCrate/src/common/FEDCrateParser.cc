@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrateParser.cc,v 3.10 2008/08/15 10:40:20 paste Exp $
+* $Id: FEDCrateParser.cc,v 3.11 2008/08/19 14:51:02 paste Exp $
 *
 * $Log: FEDCrateParser.cc,v $
+* Revision 3.11  2008/08/19 14:51:02  paste
+* Update to make VMEModules more independent of VMEControllers.
+*
 * Revision 3.10  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -39,8 +42,6 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 			<< xercesc::XMLString::transcode(toCatch.getMessage()) << std::endl;
 		return ;
 	}
- 
-  
  
 	//  Create our parser, then attach an error handler to the parser.
 	//  The parser will call back to methods of the ErrorHandler if it
