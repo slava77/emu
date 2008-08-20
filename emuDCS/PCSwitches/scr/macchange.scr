@@ -1,0 +1,7 @@
+! example to change mac :08 to mac :23 in port 2
+configure
+interface  0/2
+no port-security mac-address  02:00:00:00:00:08 1
+port-security mac-address  02:00:00:00:00:23 1
+exit
+exit

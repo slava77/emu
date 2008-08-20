@@ -1,0 +1,162 @@
+!Current Configuration:
+! 
+!System Description "GSM7212 L2 Managed Gigabit Switch"
+!System Description 6.2.0.14
+! 
+set prompt "GSM7212"
+network protocol none
+network parameters 192.168.10.108 255.255.255.0 0.0.0.0
+vlan database
+vlan name 1 VLAN bottom 
+vlan  2 
+vlan name 2 VLAN top 
+exit 
+configure 
+logging buffered
+logging host 192.168.10.1 514 info
+logging syslog
+mtu 10240
+lineconfig
+serial timeout 160
+exit  
+no spanning-tree
+spanning-tree configuration name 00-14-6C-C4-EB-B0
+snmp-server community public@2
+bridge aging-time 630 
+no snmp-server traps linkmode
+port-security 
+interface  0/1 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan participation exclude 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  02:00:00:00:00:11 1
+exit 
+interface  0/2 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan participation exclude 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  02:00:00:00:00:42 1
+exit 
+interface  0/3 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan participation exclude 2 
+port-security 
+port-security mac-address  02:00:00:00:00:08 1
+exit 
+interface  0/4 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan participation exclude 2 
+port-security 
+port-security mac-address  02:00:00:00:00:3F 1
+exit 
+interface  0/5 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan participation exclude 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  02:00:00:00:00:3B 1
+exit 
+interface  0/6 
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan participation exclude 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  00:0D:88:B2:65:21 1
+port-security mac-address  00:13:46:99:34:BE 1
+port-security mac-address  00:14:22:23:90:A0 1
+port-security mac-address  00:14:6C:C0:02:C9 1
+exit 
+interface  0/7 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan pvid 2 
+vlan participation exclude 1 
+vlan participation include 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  02:00:00:00:00:21 2
+exit 
+interface  0/8 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan pvid 2 
+vlan participation exclude 1 
+vlan participation include 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  02:00:00:00:00:22 2
+exit 
+interface  0/9 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan pvid 2 
+vlan participation exclude 1 
+vlan participation include 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  02:00:00:00:00:2A 2
+exit 
+interface  0/10 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan pvid 2 
+vlan participation exclude 1 
+vlan participation include 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  02:00:00:00:00:27 2
+exit 
+interface  0/11 
+no auto-negotiate
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan pvid 2 
+vlan participation exclude 1 
+vlan participation include 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  02:00:00:00:00:3A 2
+exit 
+interface  0/12 
+no port lacpmode
+no snmp trap link-status
+no spanning-tree port mode
+vlan pvid 2 
+vlan participation exclude 1 
+vlan participation include 2 
+port-security 
+port-security max-dynamic 20 
+port-security mac-address  00:0D:88:B2:65:21 2
+port-security mac-address  00:13:46:99:34:BE 2
+port-security mac-address  00:14:22:23:90:A0 2
+port-security mac-address  00:14:6C:C0:02:C9 2
+exit 
+exit  
