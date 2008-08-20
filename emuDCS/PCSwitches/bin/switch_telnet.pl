@@ -269,5 +269,23 @@ if ($ARGV eq "status") {
             }
         }
 
-     }
-
+    } elsif ($ARGV eq "runningconfig"){
+        $telnet->print('show running-config');
+        $line = $telnet->getline();
+        my $stop = 1;
+        while($stop){
+	    $line = $telnet->getline();
+	    if($line =~ /More/){
+		$stop = 1;
+            } elsif (length($line) == 1) {
+                $stop = 1;
+            } elsif ($line =~ /\(GSM7212\)/) {
+                $stop = 0; 
+            } else {
+                print $line;
+            } 
+            $telnet->print(' ');
+        }
+    }
+$telnet->print('logout');
+$telnet->close;         
