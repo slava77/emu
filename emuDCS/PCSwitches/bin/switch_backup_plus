@@ -1,0 +1,4 @@
+./switch_telnet.pl 192.168.10.101 runningconfig > ../scr/switch01_backup.scr
+./switch_telnet.pl 192.168.10.102 runningconfig > ../scr/switch02_backup.scr
+./switch_telnet.pl 192.168.10.103 runningconfig > ../scr/switch03_backup.scr
+./switch_telnet.pl 192.168.10.104 runningconfig > ../scr/switch04_backup.scr
