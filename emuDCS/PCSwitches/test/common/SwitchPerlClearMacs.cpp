@@ -64,7 +64,9 @@ int main(int argc,char *argv[]){
 void fill_switch_macs(char *thisip){
     char command[556];
     sprintf(command,"$BUILD_HOME/emu/emuDCS/Switch/bin/switch_telnet.pl %s mac-addr-table > /tmp/switch_mac.dat \n",thisip);
+    printf(" before switch connections \n");
     int ierr=system(command);
+    printf(" after switch connections \n");
     parse_mac();
     ierr=system("rm /tmp/switch_mac.dat");
 }
@@ -135,6 +137,7 @@ void print_switch_configurations(char *thisip){
       char *mac=sw[prt].mac[i].mac;
       // std::cout << swt << " " <<  prt+1 << " " << port <<" " << mac <<" vlan " << tvlan << std::endl;
       f << interface(port);
+      f << autonegotiate(true,port);
       f << portsecuritymacaddress(false,port,mac,tvlan);
       f << exitinterface();
     }
