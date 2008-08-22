@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.15 2008/08/13 11:30:53 geurts Exp $
+// $Id: Crate.h,v 3.16 2008/08/22 13:05:36 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.16  2008/08/22 13:05:36  liu
+// monitoring update
+//
 // Revision 3.15  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -132,6 +135,7 @@ public:
   void MonitorCCB(int cycle, char * buf);
   void MonitorTMB(int cycle, char * buf);
   void MonitorDMB(int cycle, char * buf);
+  void MonitorDCS(int cycle, char * buf);
 
 private:
 
