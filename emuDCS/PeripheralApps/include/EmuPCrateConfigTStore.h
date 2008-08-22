@@ -61,6 +61,8 @@ public:
   void uploadConfigToDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void readConfigFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void synchronizeToFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void SelectConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void SetTypeDesc(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
 
   // Communication with TStore
   xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception);
@@ -108,6 +110,9 @@ public:
 
 private:
 
+  std::string config_type_;
+  std::string config_desc_;
+  std::string xmlpath_;
   std::string xmlfile_;
   std::string dbUserFile_;
   std::string dbUserAndPassword_;
