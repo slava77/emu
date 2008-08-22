@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.42 2008/08/13 11:30:54 geurts Exp $
+// $Id: Crate.cc,v 3.43 2008/08/22 13:05:36 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.43  2008/08/22 13:05:36  liu
+// monitoring update
+//
 // Revision 3.42  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -562,6 +565,26 @@ void Crate::MonitorDMB(int cycle, char * buf)
     }
   }
   *buf2 = (TOTAL_DMB_COUNTERS/2)*9;
+  return;
+}
+
+void Crate::MonitorDCS(int cycle, char * buf) 
+{
+  int TOTAL_DCS_COUNTERS=12; // aligned at 4 bytes (integer)
+  char * countbuf;
+  short *buf2;
+
+  buf2=(short *)buf;
+  *buf2 = 0;
+  vmeController()->SetUseDelay(true);
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
+  for(unsigned i =0; i < myDmbs.size(); ++i) {
+    if(IsAlive())
+    {  countbuf=myDmbs[i]->GetCounters();
+       if(countbuf) memcpy(buf+4+i*2*TOTAL_DCS_COUNTERS, countbuf, TOTAL_DCS_COUNTERS);
+    }
+  }
+  *buf2 = (TOTAL_DCS_COUNTERS)*9;
   return;
 }
 

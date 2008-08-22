@@ -41,6 +41,8 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateDMBCounters, "CrateDMBCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateTMBCountersRight, "CrateTMBCountersRight");
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::FullResetTMBC, "FullResetTMBC");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::XmlOutput, "XmlOutput");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateMonitor::TCounterSelection, "TCounterSelection");
@@ -219,15 +221,15 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
 
             // for TMB fast counters
                 is->fireItemAvailable("TMBcounter",new xdata::Vector<xdata::UnsignedInteger32>());
-                is->fireItemAvailable("TMBtime",new xdata::TimeVal);
+                is->fireItemAvailable("TMBftime",new xdata::TimeVal);
 
             // for DMB fast counters
                 is->fireItemAvailable("DMBcounter",new xdata::Vector<xdata::UnsignedShort>());
-                is->fireItemAvailable("DMBtime",new xdata::TimeVal);
+                is->fireItemAvailable("DMBftime",new xdata::TimeVal);
 
-            // for TMB temps, voltages
-
-            // for DMB temps, voltages
+            // for DCS temps, voltages
+                is->fireItemAvailable("DCStemps",new xdata::Vector<xdata::UnsignedShort>());
+                is->fireItemAvailable("DCSstime",new xdata::TimeVal);
 
          }
      Monitor_Ready_=true;
@@ -304,6 +306,18 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
 
                    status = dynamic_cast<xdata::String *>(is->find("MPCstatus"));
                    *status = id2.str();
+                }
+             }
+             else if( cycle==2)
+             {
+                now_crate-> MonitorDCS(cycle, buf);
+                if(buf2[0])
+                {
+                   // std::cout << "DCS counters " << buf2[0] << std::endl;
+                   xdata::Vector<xdata::UnsignedShort> *dmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("DCStemps"));
+                   if(dmbdata->size()==0)
+                      for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0);
+                   for(unsigned ii=0; ii<buf2[0]; ii++) (*dmbdata)[ii] = buf2[ii+1];
                 }
              }
              else if( cycle==1)
@@ -1360,6 +1374,35 @@ void EmuPeripheralCrateMonitor::ResetAllCounters(xgi::Input * in, xgi::Output * 
   }
 
   this->Default(in,out);
+}
+
+void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::vector<emu::pc::TMB*> myVector;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     myVector = crateVector[i]->tmbs();
+     for(unsigned int i=0; i<myVector.size(); i++) 
+     {
+       myVector[i]->ResetCounters();
+     }
+  }
+  this->Default(in,out);
+}
+
+void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::vector<emu::pc::TMB*> myVector;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     myVector = crateVector[i]->tmbs();
+     for(unsigned int i=0; i<myVector.size(); i++) 
+     {
+
+     }
+  }
 }
 
 void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out ) 
