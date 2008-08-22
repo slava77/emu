@@ -37,10 +37,15 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::uploadConfigToDB, "upload");
   xgi::bind(this,&EmuPCrateConfigTStore::readConfigFromDB, "read");
   xgi::bind(this,&EmuPCrateConfigTStore::synchronizeToFromDB, "sync");
+  xgi::bind(this,&EmuPCrateConfigTStore::SelectConfFile, "SelectConfFile");
+  xgi::bind(this,&EmuPCrateConfigTStore::SetTypeDesc, "SetTypeDesc");
 
   std::string HomeDir_ =getenv("HOME");
-  xmlfile_    = HomeDir_ + "/vme_config.xml";
+  xmlpath_    = HomeDir_ + "/config/pc/";
+  xmlfile_    = "";
   dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
+  config_type_ = "GLOBAL";
+  config_desc_ = "manual entry";
 }
 
 void EmuPCrateConfigTStore::outputHeader(xgi::Output * out) {
@@ -55,13 +60,12 @@ void EmuPCrateConfigTStore::outputHeader(xgi::Output * out) {
 			    getApplicationDescriptor()->getURN(),
 			    "/hyperdaq/images/HyperDAQ.jpg"
 			    );
-  *out << cgicc::fieldset().set("style","font-size: 10pt;  font-family: arial;") << std::endl;
 }
 //
 
 void EmuPCrateConfigTStore::outputFooter(xgi::Output * out) {
   *out << cgicc::fieldset() << cgicc::html();
-  xgi::Utils::getPageFooter(*out);
+//  xgi::Utils::getPageFooter(*out);
 }
 //
 
@@ -72,6 +76,8 @@ void EmuPCrateConfigTStore::outputException(xgi::Output * out,xcept::Exception &
 //
 
 void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
+
+  *out << cgicc::fieldset().set("style","font-size: 10pt;  font-family: arial;") << std::endl;
 
   *out << cgicc::table().set("border","0");
 
@@ -100,8 +106,48 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
 
   *out << cgicc::table();
 
-  *out << "<hr><br>";
-  *out << "Messages:<br><br>";
+  *out << "<hr>";
+  *out << "XML filename: ";
+  *out << cgicc::input().set("type","text").set("value",xmlfile_).set("style", "width:585px;").set("DISABLED") << cgicc::br() << std::endl;
+  *out << "config type: ";
+  *out << cgicc::input().set("type","text").set("value",config_type_).set("DISABLED") << cgicc::br() << std::endl;
+  *out << "Description: ";
+  *out << cgicc::input().set("type","text").set("value",config_desc_).set("DISABLED") << cgicc::br() << std::endl;
+  //
+  *out << cgicc::fieldset() << cgicc::br();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << cgicc::legend("Select XML file").set("style","color:blue") << std::endl ;
+  //
+  std::string methodUpload = toolbox::toString("/%s/SelectConfFile",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","POST").set("enctype","multipart/form-data").set("action",methodUpload) << std::endl ;
+  *out << cgicc::input().set("type","file").set("name","xmlFilenameUpload").set("size","90") << std::endl;
+  *out << cgicc::input().set("type","submit").set("value","Select") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string ReadString = 
+    toolbox::toString("/%s/SetTypeDesc",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadString) << std::endl ;
+  *out << cgicc::input().set("type","text").set("value","").set("name","ConfigType") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Set Type") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  //
+  ReadString = 
+    toolbox::toString("/%s/SetTypeDesc",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadString) << std::endl ;
+  *out << cgicc::input().set("type","text").set("value","").set("name","ConfigDesc") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Set Description") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+
+  *out << cgicc::fieldset() << cgicc::br();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << std::endl;
+  //
+
+  *out << "Messages:<br>";
+//  *out << cgicc::fieldset() << cgicc::br();
+  //
   
 }
 
@@ -116,14 +162,71 @@ void EmuPCrateConfigTStore::Default(xgi::Input * in, xgi::Output * out ) throw (
     outputException(out,e);
   }
 }
-//
+// 
+
+void EmuPCrateConfigTStore::SelectConfFile(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    try
+      {
+	std::cout << "Button: Select XML file" << std::endl ;
+	//
+	cgicc::Cgicc cgi(in);
+	//
+	cgicc::const_file_iterator file;
+	file = cgi.getFile("xmlFileNameUpload");
+	//
+	if(file != cgi.getFiles().end()) {
+	  xmlfile_=(*file).getFilename();
+          std::cout << "Select XML file " << xmlfile_ << std::endl;
+	}
+	this->Default(in,out);
+	//
+      }
+    catch (const std::exception & e )
+      {
+	//XECPT_RAISE(xgi::exception::Exception, e.what());
+      }
+  }
+
+  void EmuPCrateConfigTStore::SetTypeDesc(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name2 = cgi.getElement("ConfigType");
+    if(name2 != cgi.getElements().end()) {
+      config_type_ = cgi["ConfigType"]->getValue();
+      std::cout << "Type " << config_type_ << std::endl;
+      //
+    }
+    //
+    name2 = cgi.getElement("ConfigDesc");
+    if(name2 != cgi.getElements().end()) {
+      config_desc_ = cgi["ConfigDesc"]->getValue();
+      std::cout << "Description " << config_desc_ << std::endl;
+      //
+    }
+    //
+    this->Default(in,out);
+    //
+  }
+  //
 
 void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
     try {
-    outputHeader(out);
-    outputStandardInterface(out);
-    *out << cgicc::input().set("type","text").set("value",xmlfile_).set("style", "width:585px;").set("DISABLED") << std::endl;
-    *out << "<br><br>Parsing of the peripheral crate config XML file into DOM tree ..." << std::endl;
+ outputHeader(out);
+ outputStandardInterface(out);
+ if(xmlfile_.length()<=0) 
+ {
+    *out << "No XML file selected. Please select a valid XML file first." << std::endl;
+ }
+ else
+ {
+    std::string xmlname = xmlpath_ + xmlfile_;
+    std::cout << "XML full name " << xmlname << std::endl;
+    *out << "Parsing of the peripheral crate config XML file into DOM tree ..." << std::endl;
     time_t rawtime;
     struct tm * timeinfo;
     time ( &rawtime );
@@ -131,13 +234,16 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
     *out << "<br>Parsing started at: " << asctime (timeinfo) << std::endl;
     
     XMLParser TStore_emuparser;
-    TStore_emuparser.parseFile( xmlfile_ );
+    TStore_emuparser.parseFile( xmlname );
     TStore_myEndcap_ = TStore_emuparser.GetEmuEndcap();
     
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-    *out << "<br>Parsing ended at: " << asctime (timeinfo) << std::endl;
-    
+    if(TStore_myEndcap_)
+      *out << "<br>Parsing ended at: " << asctime (timeinfo) << std::endl;
+    else
+      *out << "<br>ERROR.....Parser failed." <<std::endl;
+ }    
     outputFooter(out);
   } catch (xcept::Exception &e) {
     outputException(out,e);
@@ -163,7 +269,8 @@ void EmuPCrateConfigTStore::uploadConfigToDB(xgi::Input * in, xgi::Output * out 
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
     *out << "<br>Uploading finished at: " << asctime (timeinfo) << std::endl;
-    
+    *out << "<br>EMU_Config_ID " << emu_config_id_ << " uploaded to Database." << std::endl;
+
     outputFooter(out);
   } catch (xcept::Exception &e) {
     outputException(out,e);
@@ -210,8 +317,12 @@ void EmuPCrateConfigTStore::synchronizeToFromDB(xgi::Input * in, xgi::Output * o
     std::string connectionID=connect();
     std::string syncMode = "to database"; // possibilities: "to database" OR "from database" OR "both ways"
     std::string syncPattern = "^EMU_.*$";
-    synchronize(connectionID,syncMode,syncPattern);
-    *out << "<br>Synchronization to DB has finished.<br>" << std::endl;
+
+// LIU 8-22-2008. disable this function. For creating new database tables only 
+    *out << "<br>This function is for creating new database tables only." << std::endl;
+
+    // synchronize(connectionID,syncMode,syncPattern);
+    // *out << "<br>Synchronization to DB has finished.<br>" << std::endl;
 
     outputFooter(out);
   } catch (xcept::Exception &e) {
@@ -624,8 +735,8 @@ void EmuPCrateConfigTStore::uploadConfiguration(const std::string &connectionID,
   emu_config_id_=emu_config_id;
   xdata::TimeVal _emu_config_time = (xdata::TimeVal)currentTime.gettimeofday();
   // Info to be entered in a form on a HyperDAQ page
-  xdata::String _emu_config_type = "GLOBAL";
-  xdata::String _description     = "manual entry";
+  xdata::String _emu_config_type = config_type_;
+  xdata::String _description     = config_desc_;
   xdata::String _emu_endcap_side = endcap_side;
 
 #ifdef debugV
