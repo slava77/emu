@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.38 2008/08/18 08:30:15 paste Exp $
+* $Id: EmuFCrate.cc,v 3.39 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.39  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.38  2008/08/18 08:30:15  paste
 * Update to fix error propagation from IRQ threads to EmuFCrateManager.
 *
@@ -20,6 +23,9 @@
 
 #include <iomanip>
 #include <iostream>
+#include <log4cplus/logger.h>
+#include <log4cplus/fileappender.h>
+#include <log4cplus/configurator.h>
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
@@ -133,12 +139,12 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	// log file format: EmuFEDYYYY-DOY-HHMMSS_rRUNNUMBER.log
 	char datebuf[55];
 	char filebuf[255];
-	time_t theTime = time(NULL);
+	std::time_t theTime = time(NULL);
 
-	strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
-	sprintf(filebuf,"EmuFCrate-%s.log",datebuf);
+	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
+	std::sprintf(filebuf,"EmuFCrate-%s.log",datebuf);
 
-	log4cplus::SharedAppenderPtr myAppend = new FileAppender(filebuf);
+	log4cplus::SharedAppenderPtr myAppend = new log4cplus::FileAppender(filebuf);
 	myAppend->setName("EmuFCrateAppender");
 
 	//Appender Layout
@@ -540,11 +546,11 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 			if(myDdus[j]->slot()==28){
 				if (crateVector[i]->number() > 4) { // Track finder
 					LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Enable to Crate " << crateVector[i]->number());
-					myDdus[j]->vmepara_wr_fmmreg(0x0000);
+					myDdus[j]->writeFMMReg(0x0000);
 				} else {
 					LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Disable to Crate " << crateVector[i]->number());
 					//std::cout <<"   Setting FMM Error Disable for Crate " << crateVector[i]->number() << std::endl;
-					myDdus[j]->vmepara_wr_fmmreg(0xFED0+(count&0x000f));
+					myDdus[j]->writeFMMReg(0xFED0+(count&0x000f));
 				}
 			}
 		}
@@ -554,7 +560,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 			//std::cout << " EmuFCrate: Checking DDU configure status for Crate " << crateVector[i]->number() << " slot " << myDdus[j]->slot() << std::endl;
 
 			if (myDdus[j]->slot() < 21){
-				int FMMReg = myDdus[j]->vmepara_rd_fmmreg();
+				int FMMReg = myDdus[j]->readFMMReg();
 				//int FMMReg = myDdus[j]->readFMMReg();
 				//if(RegRead!=(0xFED0+(count&0x000f)))std::cout << "    fmmreg broadcast check is wrong, got " << std::hex << RegRead << " should be FED0+" << count << std::dec << std::endl;
 				if (FMMReg!=(0xFED0+(count&0x000f))) {
@@ -566,8 +572,8 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				//  myDdus[j]->ddu_reset(); // sync reset via VME
 				//  unsigned long int thisL1A=myDdus[j]->ddu_rdscaler();
 
-				int CSCStat = myDdus[j]->vmepara_CSCstat();
-				//int CSCStat = myDdus[j]->readCSCStat();
+				//int CSCStat = myDdus[j]->vmepara_CSCstat();
+				int CSCStat = myDdus[j]->readCSCStat();
 				//myDdus[j]->ddu_fpgastat(); //  & 0xdecfffff  <<- note the mask
 				unsigned long int dduFPGAStat = myDdus[j]->ddu_fpgastat()&0xdecfffff;  // <<- note the mask
 				//unsigned long int dduFPGAStat = myDdus[j]->readFPGAStat(DDUFPGA) & 0xdecfffff;
@@ -639,8 +645,8 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		// Now check the fifoinuse parameter from the DCC
 		std::vector<emu::fed::DCC *>::iterator idcc;
 		for (idcc = myDccs.begin(); idcc != myDccs.end(); idcc++) {
-			int fifoinuse = (*idcc)->mctrl_rd_fifoinuse() & 0x3FF;
-			if (fifoinuse != (*idcc)->fifoinuse_) {
+			int fifoinuse = (*idcc)->readFIFOInUse() & 0x3FF;
+			if (fifoinuse != (*idcc)->getFIFOInUse()) {
 				LOG4CPLUS_ERROR(getApplicationLogger(), "DCC configure failure due to FIFOInUse mismatch");
 				//std::cout << "     * DCC configure failure due to FifoInUse mismatch *" << std::endl;
 				//std::cout << "     * saw 0x" << std::hex << fifoinuse << std::dec << ", expected 0x" << std::hex << (*idcc)->fifoinuse_ << std::dec << " *" << std::endl;
@@ -1156,10 +1162,10 @@ xoap::MessageReference EmuFCrate::onPassthru(xoap::MessageReference message)
 
 			if (myDdus[j]->slot() < 21)
 			{
-				myDdus[j]->vmepara_wr_GbEprescale (0xf0f0); // no prescaling
-				myDdus[j]->vmepara_wr_fakel1reg   (0x8787); // fake L1A for each event
-				myDdus[j]->ddu_loadkillfiber      (step_killfiber_); // user selects which inputs to use
-				myDdus[j]->ddu_reset(); // sync reset via VME
+				myDdus[j]->writeGbEPrescale(0xf0f0); // no prescaling
+				myDdus[j]->writeFakeL1Reg(0x8787); // fake L1A for each event
+				myDdus[j]->ddu_loadkillfiber(step_killfiber_); // user selects which inputs to use
+				myDdus[j]->reset(emu::fed::DDUFPGA); // sync reset via VME
 			}
 		}
 	}
@@ -1291,7 +1297,7 @@ void EmuFCrate::writeTTSBits(int crate, int slot, unsigned int bits)
 			for (std::vector<emu::fed::DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
 				if ((*iDCC)->slot() != slot) continue;
 	
-				(*iDCC)->mctrl_fmmset((bits | 0x10) & 0xffff);
+				(*iDCC)->setFMM((bits | 0x10) & 0xffff);
 			}
 		} else {
 			
@@ -1299,7 +1305,7 @@ void EmuFCrate::writeTTSBits(int crate, int slot, unsigned int bits)
 			for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 				if ((*iDDU)->slot() != slot) continue;
 				
-				(*iDDU)->vmepara_wr_fmmreg((bits | 0xf0e0) & 0xffff);
+				(*iDDU)->writeFMMReg((bits | 0xf0e0) & 0xffff);
 			}
 		}
 	}
@@ -1320,7 +1326,7 @@ unsigned int EmuFCrate::readTTSBits(int crate, int slot)
 			for (std::vector<emu::fed::DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
 				if ((*iDCC)->slot() != slot) continue;
 				
-				return (*iDCC)->mctrl_fmmrd() & 0xf;
+				return (*iDCC)->readFMM() & 0xf;
 			}
 		} else {
 			
@@ -1328,7 +1334,7 @@ unsigned int EmuFCrate::readTTSBits(int crate, int slot)
 			for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 				if ((*iDDU)->slot() != slot) continue;
 				
-				return (*iDDU)->vmepara_rd_fmmreg() & 0xf;
+				return (*iDDU)->readFMMReg() & 0xf;
 			}
 		}
 	}

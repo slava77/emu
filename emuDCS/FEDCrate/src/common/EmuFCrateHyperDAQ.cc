@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.42 2008/08/19 14:51:02 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.43 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.43  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.42  2008/08/19 14:51:02  paste
 * Update to make VMEModules more independent of VMEControllers.
 *
@@ -28,6 +31,9 @@
 #include <map>
 #include <bitset>
 #include <fstream>
+#include <log4cplus/logger.h>
+#include <log4cplus/fileappender.h>
+#include <log4cplus/configurator.h>
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/MessageFactory.h"
@@ -39,7 +45,7 @@
 //#include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
 //#include "cgicc/HTTPHTMLHeader.h"
-//#include "cgicc/HTMLClasses.h"
+#include "cgicc/HTMLClasses.h"
 //#include "cgicc/FormFile.h"
 
 #include "DDUDebugger.h"
@@ -60,7 +66,7 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 	EmuFEDApplication(s),
 	xmlFile_("/home/cscdev/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml"),
 	//Operator_("Name..."),
-	DCC_ratemon_cnt(0),
+	//DCC_ratemon_cnt(0),
 	fcState_(STATE_UNKNOWN)
 {
 	xgi::bind(this,&EmuFCrateHyperDAQ::Default, "Default");
@@ -69,6 +75,7 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 	xgi::bind(this,&EmuFCrateHyperDAQ::setConfFile, "setConfFile");
 	xgi::bind(this,&EmuFCrateHyperDAQ::setRawConfFile, "setRawConfFile");
 	xgi::bind(this,&EmuFCrateHyperDAQ::UploadConfFile, "UploadConfFile");
+	
 	//xgi::bind(this,&EmuFCrateHyperDAQ::DDUFirmware, "DDUFirmware");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDUBroadcast, "DDUBroadcast");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadBroadcast, "DDULoadBroadcast");
@@ -86,53 +93,41 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 	//xgi::bind(this,&EmuFCrateHyperDAQ::DDUtrapDecode,"DDUtrapDecode");
 	xgi::bind(this,&EmuFCrateHyperDAQ::LoadXMLconf,"LoadXMLconf");
 	
-	xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmware,"DCCFirmware");
-	xgi::bind(this,&EmuFCrateHyperDAQ::DCCLoadFirmware,"DCCLoadFirmware");
-	xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmwareReset,"DCCFirmwareReset");
+	//xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmware,"DCCFirmware");
+	//xgi::bind(this,&EmuFCrateHyperDAQ::DCCLoadFirmware,"DCCLoadFirmware");
+	//xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmwareReset,"DCCFirmwareReset");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCBroadcast, "DCCBroadcast");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCLoadBroadcast, "DCCLoadBroadcast");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCSendBroadcast, "DCCSendBroadcast");
+	
 	xgi::bind(this,&EmuFCrateHyperDAQ::DCCDebug,"DCCDebug");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DCCExpert,"DCCExpert");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DCCTextLoad, "DCCTextLoad");
 	
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDUVoltMon,"DDUVoltMon");
-	xgi::bind(this,&EmuFCrateHyperDAQ::DCCRateMon,"DCCRateMon");
-	xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate0,"getDataDCCRate0");
-	xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate1,"getDataDCCRate1");
+	//xgi::bind(this,&EmuFCrateHyperDAQ::DCCRateMon,"DCCRateMon");
+	//xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate0,"getDataDCCRate0");
+	//xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate1,"getDataDCCRate1");
+	
 	//xgi::bind(this,&EmuFCrateHyperDAQ::setCrate,"setCrate");
 	//myParameter_ =  0;
 
-	for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
+	// for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
 	getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
-	for(int i=0;i<12;i++){
-		for(int j=0;j<50;j++){
-			DCC_ratemon[j][i]=i+1;
-		}
-	}
-	tidcode[0] = 0x2124a093;
-	tidcode[1] = 0x31266093;
-	tidcode[2] = 0x31266093;
-	tidcode[3] = 0x05036093;
-	tidcode[4] = 0x05036093;
-	tidcode[5] = 0x05036093;
-	tidcode[6] = 0x05036093;
-	tidcode[7] = 0x05036093;
-	tuscode[0] = 0xcf043a02;
-	tuscode[1] = 0xdf025a02;
-	tuscode[2] = 0xdf025a02;
-	tuscode[3] = 0xb0020a04;
-	tuscode[4] = 0xc043dd99;
-	tuscode[5] = 0xc143dd99;
-	tuscode[6] = 0xd0025a02;
-	tuscode[7] = 0xd1025a02;
-
+	// for(int i=0;i<12;i++){
+	// for(int j=0;j<50;j++){
+	// DCC_ratemon[j][i]=i+1;
+	// }
+	// }
 
 	char datebuf[55];
 	char filebuf[255];
-	time_t theTime = time(NULL);
+	std::time_t theTime = time(NULL);
 
-	strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
-	sprintf(filebuf,"EmuFCrateHyperDAQ-%s.log",datebuf);
+	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
+	std::sprintf(filebuf,"EmuFCrateHyperDAQ-%s.log",datebuf);
 
-	log4cplus::SharedAppenderPtr myAppend = new FileAppender(filebuf);
+	log4cplus::SharedAppenderPtr myAppend = new log4cplus::FileAppender(filebuf);
 	myAppend->setName("EmuFCrateHyperDAQAppender");
 
 	//Appender Layout
@@ -275,13 +270,13 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			.set("href",location.str());
 		*out << cgicc::br() << std::endl;
 
-		location.str("");
-		location << "/" + getApplicationDescriptor()->getURN() << "/DCCRateMon?crate=" << cgiCrate;
-		*out << cgicc::span("Start DCC Rate Monitor")
-			.set("class","undefined");
+		//location.str("");
+		//location << "/" + getApplicationDescriptor()->getURN() << "/DCCRateMon?crate=" << cgiCrate;
+		// *out << cgicc::span("Start DCC Rate Monitor")
+		//	.set("class","undefined");
 		//*out << cgicc::a("Start DDU Volt/Temp Monitor")
 		//	.set("href",location.str());
-		*out << cgicc::br() << std::endl;
+		// *out << cgicc::br() << std::endl;
 
 		*out << cgicc::fieldset() << std::endl;
 
@@ -525,9 +520,9 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			// First, determine the status of the DCC.
 			//myCrate->getVMEController()->CAEN_err_reset();
-			unsigned short int statush=(*iDCC)->mctrl_stath();
-			unsigned short int statusl=(*iDCC)->mctrl_statl();
-			unsigned short int rdfifoinuse=(*iDCC)->mctrl_rd_fifoinuse();
+			unsigned short int statush = (*iDCC)->readStatusHigh();
+			unsigned short int statusl = (*iDCC)->readStatusLow();
+			unsigned short int rdfifoinuse = (*iDCC)->readFIFOInUse();
 			std::string status;
 			// Pretty colors!
 			std::string statusClass = "ok";
@@ -692,13 +687,20 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 				// Broadcast Firmware
 				*out << cgicc::span() << std::endl;
-				*out << cgicc::form().set("style","display: inline;")
+				std::ostringstream crateVal;
+				crateVal << cgiCrate;
+				location.str("");
+				location << "/" << getApplicationDescriptor()->getURN() << "/DCCBroadcast";
+				*out << cgicc::form()
 					.set("method","GET")
-					.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCFirmware") << std::endl;
+					.set("action",location.str()) << std::endl;
+				*out << cgicc::input()
+					.set("type","hidden")
+					.set("name","crate")
+					.set("value",crateVal.str());
 				*out << cgicc::input()
 					.set("type","submit")
-					.set("value","Broadcast DCC Firmware")
-					.set("style","background-color: #FDD; border-color: #F00;") << std::endl;
+					.set("value","DCC Firmware Management") << std::endl;
 				*out << cgicc::form() << std::endl;
 				*out << cgicc::span() << std::endl;
 			}
@@ -1832,6 +1834,9 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 
 	//printf(" entered DDUSendBroadcast \n");
 
+	// unsigned int tidcode[8] = {0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
+	// unsigned int tuscode[8] = {0xcf043a02,0xdf025a02,0xdf025a02,0xb0020a04,0xc043dd99,0xc143dd99,0xd0025a02,0xd1025a02};
+
 	int type = -1;
 	std::string submitCommand = cgi["submit"]->getValue();
 	if (submitCommand.substr(5) == "VMEPROM") type = 0;
@@ -1902,11 +1907,11 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 
 	// I thought this was not allowed!
 	int bnstore[myCrate->getDDUs().size()];
-	for (unsigned int i=0; i<myCrate->getDDUs().size(); i++) {
-		if (!broadcast && !(slots & (1 << myCrate->getDDUs()[i]->slot()))) continue;
-		else if (broadcast && myCrate->getDDUs()[i]->slot() <= 21) continue;
+	for (unsigned int iBoard=0; iBoard<myCrate->getDDUs().size(); iBoard++) {
+		if (!broadcast && !(slots & (1 << myCrate->getDDUs()[iBoard]->slot()))) continue;
+		else if (broadcast && myCrate->getDDUs()[iBoard]->slot() <= 21) continue;
 
-		emu::fed::DDU *myDDU = myCrate->getDDUs()[i];
+		emu::fed::DDU *myDDU = myCrate->getDDUs()[iBoard];
 		//std::cout << "Sending to slot " << myDDU->slot() << std::endl;
 
 		for (int i=from; i<=to; i++) {
@@ -1969,21 +1974,21 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 			std::string boardversion;
 			std::string checkversion;
 			if (i==0 || i==5) {
-				boardversion = myDDU->vmeprom_usercode();
+				boardversion = myDDU->readPROMUserCode(emu::fed::VMEPROM);
 				checkversion = version[i];
 			} else if (i==1) {
-				boardversion = myDDU->dduprom_usercode0();
+				boardversion = myDDU->readPROMUserCode(emu::fed::DDUPROM0);
 				checkversion = version[i].substr(0,6);
 				checkversion += (bnstore[i] & 0xff);
 			} else if (i==2) {
-				boardversion = myDDU->dduprom_usercode1();
+				boardversion = myDDU->readPROMUserCode(emu::fed::DDUPROM1);
 				checkversion = version[i].substr(0,6);
 				checkversion += (bnstore[i] & 0xff);
 			} else if (i==3) {
-				boardversion = myDDU->inprom_usercode0();
+				boardversion = myDDU->readPROMUserCode(emu::fed::INPROM0);
 				checkversion = version[i];
 			} else if (i==4) {
-				boardversion = myDDU->inprom_usercode1();
+				boardversion = myDDU->readPROMUserCode(emu::fed::INPROM1);
 				checkversion = version[i];
 			}
 
@@ -2202,8 +2207,8 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	bool debugTrapValid = false;
 
 	// PGK Your guess is as good as mine.
-	myDDU->infpga_shift0 = 0;
-	myDDU->ddu_shift0 = 0;
+	//myDDU->infpga_shift0 = 0;
+	//myDDU->ddu_shift0 = 0;
 
 	//myCrate->getVMEController()->CAEN_err_reset();
 
@@ -2237,7 +2242,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	generalTable(1,1)->setClass("none");
 	
 	*(generalTable(2,0)->value) << "DDU control FPGA status (32-bit)";
-	dduValue = myDDU->ddu_fpgastat();
+	dduValue = myDDU->readFPGAStat(emu::fed::DDUFPGA);
 	*(generalTable(2,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x00008000) {
 		generalTable(2,1)->setClass("bad");
@@ -2715,17 +2720,18 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	if (debugTrapValid) {
 
 		// Here it is.
-		std::vector<std::string> bigComments = emu::fed::DDUDebugger::ddu_fpgatrap(myDDU);
+		std::vector<unsigned long int> lcode = myDDU->ddu_fpgatrap();
+		std::vector<std::string> bigComments = emu::fed::DDUDebugger::ddu_fpgatrap(lcode, myDDU);
 
 		std::stringstream diagCode;
 		diagCode << std::setfill('0');
 		diagCode << std::hex;
-		diagCode << std::setw(8) << myDDU->fpga_lcode[5] << " ";
-		diagCode << std::setw(8) << myDDU->fpga_lcode[4] << " ";
-		diagCode << std::setw(8) << myDDU->fpga_lcode[3] << " ";
-		diagCode << std::setw(8) << myDDU->fpga_lcode[2] << " ";
-		diagCode << std::setw(8) << myDDU->fpga_lcode[1] << " ";
-		diagCode << std::setw(8) << myDDU->fpga_lcode[0];
+		diagCode << std::setw(8) << lcode[5] << " ";
+		diagCode << std::setw(8) << lcode[4] << " ";
+		diagCode << std::setw(8) << lcode[3] << " ";
+		diagCode << std::setw(8) << lcode[2] << " ";
+		diagCode << std::setw(8) << lcode[1] << " ";
+		diagCode << std::setw(8) << lcode[0];
 
 		// Don't tell anybody, but a div with display: inline is just another
 		//  name for a span.  I do this to solve a problem with cgicc and the
@@ -2795,11 +2801,11 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	//  different.
 	//  This means I need to do this 15 times per board.
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-		myDDU->ddu_occmon();
-		unsigned long int DMBval = myDDU->fpga_lcode[0] & 0x0fffffff;
-		unsigned long int ALCTval = myDDU->fpga_lcode[1] & 0x0fffffff;
-		unsigned long int TMBval = myDDU->fpga_lcode[2] & 0x0fffffff;
-		unsigned long int CFEBval = myDDU->fpga_lcode[3] & 0x0fffffff;
+		std::vector<unsigned long int> lcode = myDDU->ddu_occmon();
+		unsigned long int DMBval = lcode[0] & 0x0fffffff;
+		unsigned long int ALCTval = lcode[1] & 0x0fffffff;
+		unsigned long int TMBval = lcode[2] & 0x0fffffff;
+		unsigned long int CFEBval = lcode[3] & 0x0fffffff;
 
 		(*occuTable(iFiber,0)->value) << iFiber;
 		emu::fed::Chamber *thisChamber = myDDU->getChamber(iFiber);
@@ -3554,17 +3560,18 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		if (debugTrapValid[iDevType]) {
 
 			// Here it is.
-			std::vector<std::string> bigComments = emu::fed::DDUDebugger::infpga_trap(myDDU, dt);
+			std::vector<unsigned long int> lcode = myDDU->infpga_trap(dt);
+			std::vector<std::string> bigComments = emu::fed::DDUDebugger::infpga_trap(lcode, dt);
 
 			std::stringstream diagCode;
 			diagCode << std::setfill('0');
 			diagCode << std::hex;
-			diagCode << std::setw(8) << myDDU->fpga_lcode[5] << " ";
-			diagCode << std::setw(8) << myDDU->fpga_lcode[4] << " ";
-			diagCode << std::setw(8) << myDDU->fpga_lcode[3] << " ";
-			diagCode << std::setw(8) << myDDU->fpga_lcode[2] << " ";
-			diagCode << std::setw(8) << myDDU->fpga_lcode[1] << " ";
-			diagCode << std::setw(8) << myDDU->fpga_lcode[0];
+			diagCode << std::setw(8) << lcode[5] << " ";
+			diagCode << std::setw(8) << lcode[4] << " ";
+			diagCode << std::setw(8) << lcode[3] << " ";
+			diagCode << std::setw(8) << lcode[2] << " ";
+			diagCode << std::setw(8) << lcode[1] << " ";
+			diagCode << std::setw(8) << lcode[0];
 
 			*out << cgicc::div("Trap value (194 bits): ")
 				.set("style","font-weight: bold; display: inline;");
@@ -4236,9 +4243,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	// New Value...
 	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << std::endl;
 
-	myDDU->read_page5();
+	std::vector<unsigned long int> lcode = myDDU->read_page5();
 	*(writableTable(1,0)->value) << "Flash GbE FIFO thresholds";
-	*(writableTable(1,1)->value) << "0x" << std::hex << ((myDDU->rcv_serial[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((myDDU->rcv_serial[2]&0xC0)>>6)|((myDDU->rcv_serial[5]&0xFF)<<2)|((myDDU->rcv_serial[4]&0x3F)<<10)) << 16) | (((myDDU->rcv_serial[0]&0xC0)>>6)|((myDDU->rcv_serial[3]&0xFF)<<2)|((myDDU->rcv_serial[2]&0x3F)<<10)));
+	*(writableTable(1,1)->value) << "0x" << std::hex << ((lcode[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((lcode[2]&0xC0)>>6)|((lcode[5]&0xFF)<<2)|((lcode[4]&0x3F)<<10)) << 16) | (((lcode[0]&0xC0)>>6)|((lcode[3]&0xFF)<<2)|((lcode[2]&0x3F)<<10)));
 	writableTable[1]->setClass("none");
 	// New Value...
 	*(writableTable(1,2)->value) << writableTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,15) << std::endl;
@@ -4644,7 +4651,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	ramStatusTable.addColumn("Register");
 	ramStatusTable.addColumn("Value");
 
-	int ramStatus = myDDU->read_status();
+	int ramStatus = myDDU->readSerialStat();
 	*(ramStatusTable(0,0)->value) << "Serial Flash RAM Status";
 	*(ramStatusTable(0,1)->value) << std::showbase << std::hex << ramStatus;
 	ramStatusTable[0]->setClass("ok");
@@ -5053,6 +5060,481 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 
 
 
+void EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
+throw (xgi::exception::Exception)
+{
+	
+	// PGK Patented check-for-initialization
+	if (crateVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
+	
+	cgicc::Cgicc cgi(in);
+	
+	// First, I need a crate.
+	cgicc::form_iterator name = cgi.getElement("crate");
+	unsigned int cgiCrate = 0;
+	if(name != cgi.getElements().end()) {
+		cgiCrate = cgi["crate"]->getIntegerValue();
+	}
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
+	
+	
+	std::stringstream sTitle;
+	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DCC Firmware Manager";
+	*out << Header(sTitle.str(),false);
+	
+	
+	// PGK Select-a-Crate/Slot
+	*out << cgicc::fieldset()
+		.set("class","fieldset") << std::endl;
+	*out << cgicc::div("View this page for a different crate/board")
+		.set("class","legend") << std::endl;
+	
+	*out << selectACrate("DCCBroadcast","crate",cgiCrate,cgiCrate) << std::endl;
+	
+	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
+		.set("style","color: #A00; font-size: 10pt;") << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
+	
+	// The names of the PROMs
+	std::vector< std::string > dccPROMNames;
+	dccPROMNames.push_back("INPROM");
+	dccPROMNames.push_back("MPROM");
+	
+	// The device types of the PROMs
+	std::map< std::string, enum emu::fed::DEVTYPE > dccPROMTypes;
+	dccPROMTypes["INPROM"] = emu::fed::INPROM;
+	dccPROMTypes["MPROM"] = emu::fed::RESET;
+	
+	// Store the codes to compare them to the FPGAs
+	std::map< std::string, std::string > diskPROMCodes;
+	
+	*out << cgicc::fieldset()
+		.set("class","normal") << std::endl;
+	*out << cgicc::div("Step 1:  Upload DCC firmware to disk")
+		.set("class","legend") << std::endl;
+	
+	emu::fed::DataTable diskTable("diskTable");
+	
+	diskTable.addColumn("DCC PROM Name");
+	diskTable.addColumn("On-Disk Firmware Version");
+	diskTable.addColumn("Upload New Firmware");
+	
+	// Loop over the prom types and give us a pretty table
+	for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
+		
+		*(diskTable(iprom,0)->value) << dccPROMNames[iprom];
+		
+		// Get the version number from the on-disk file
+		// Best mashup of perl EVER!
+		std::ostringstream systemCall;
+		std::string diskVersion;
+		
+		// My perl-fu is 1337, indeed!
+		systemCall << "perl -e 'while ($line = <>) { if ($line =~ /SIR 8 TDI \\(fd\\) TDO \\(00\\) ;/) { $line = <>; if ($line =~ /TDI \\((........)\\)/) { print $1; } } }' <Current" << dccPROMNames[iprom] << ".svf >check_ver 2>&1";
+		if (!system(systemCall.str().c_str())) {
+			std::ifstream pipein("check_ver",std::ios::in);
+			getline(pipein,diskVersion);
+			pipein.close();
+		}
+		
+		// Now the std::string diskVersion is exactly what is sounds like.
+		diskPROMCodes[dccPROMNames[iprom]] = diskVersion;
+		
+		// Check to make sure the on-disk header looks like it should for that
+		//  particular PROM
+		std::string diskHeader( diskVersion, 0, 3 );
+		if ( diskHeader != "dcc" ) {
+			*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+			diskTable(iprom,1)->setClass("bad");
+		} else {
+			*(diskTable(iprom,1)->value) << diskVersion;
+			diskTable(iprom,1)->setClass("ok");
+		}
+		
+		// Compare the version on-disk with the magic number given above.
+		/*
+		std::stringstream checkstream;
+		checkstream << std::hex << tuscode[i+3];
+		if ( checkstream.str() != printversion ) {
+			verr = 1;
+			printversion += " (should be " + checkstream.str() + ")";
+		}
+		*/
+		
+		// Make the last part of the table a form for uploading a file.
+		*(diskTable(iprom,2)->value) << cgicc::form().set("method","POST")
+			.set("enctype","multipart/form-data")
+			.set("id","Form" + dccPROMNames[iprom])
+			.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCLoadBroadcast") << std::endl;
+		*(diskTable(iprom,2)->value) << cgicc::input().set("type","file")
+			.set("name","File")
+			.set("id","File" + dccPROMNames[iprom])
+			.set("size","50") << std::endl;
+		*(diskTable(iprom,2)->value) << cgicc::input().set("type","button")
+			.set("value","Upload SVF")
+			.set("onClick","javascript:clickCheck('" + dccPROMNames[iprom] + "')") << std::endl;
+		*(diskTable(iprom,2)->value) << cgicc::input().set("type","hidden")
+			.set("name","svftype")
+			.set("value",dccPROMNames[iprom]) << std::endl;
+		*(diskTable(iprom,2)->value) << cgicc::form() << std::endl;
+	}
+	// Tricky: javascript check!
+	*out << "<script type=\"text/javascript\">function clickCheck(id) {" << std::endl;
+	*out << "var element = document.getElementById('File' + id);" << std::endl;
+	*out << "if (element.value == '') element.style.backgroundColor = '#FFCCCC';" << std::endl;
+	*out << "else {" << std::endl;
+	*out << "var form = document.getElementById('Form' + id);" << std::endl;
+	*out << "form.submit();" << std::endl;
+	*out << "}" << std::endl;
+	*out << "}</script>" << std::endl;
+	
+	// Print the table to screen.
+	*out << diskTable.toHTML() << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+	
+	
+	// This is the key:  a form that is outside of everything, and bitwise
+	//  selectors of the slots to upgrade.
+	*out << cgicc::form()
+		.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCSendBroadcast")
+		.set("method","GET");
+	*out << cgicc::input()
+		.set("type","hidden")
+		.set("name","slots")
+		.set("id","slots")
+		.set("value","0x0");
+	*out << cgicc::input()
+		.set("type","hidden")
+		.set("name","broadcast")
+		.set("id","broadcast")
+		.set("value","0");
+	
+	for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("name",dccPROMNames[iprom])
+			.set("value",diskPROMCodes[dccPROMNames[iprom]]) << std::endl;
+	}
+	
+	*out << cgicc::fieldset()
+		.set("class","normal") << std::endl;
+	*out << cgicc::div("Step 2:  Select the slots you to which you intend to load firmware")
+		.set("class","legend") << std::endl;
+	
+	emu::fed::DataTable slotTable("slotTable");
+	
+	slotTable.addColumn("Slot number");
+	for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
+		slotTable.addColumn(dccPROMNames[iprom]);
+	}
+	
+	
+	int idcc = -1;
+	std::vector<emu::fed::DCC *> myDCCs = myCrate->getDCCs();
+	for (std::vector< emu::fed::DCC * >::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
+		if ((*iDCC)->slot() >= 21) continue;
+		idcc++;
+		std::ostringstream bitFlipCommand;
+		bitFlipCommand << "Javascript:toggleBit('slots'," << (*iDCC)->slot() << ");";
+		
+		*(slotTable(idcc,0)->value) << cgicc::input()
+			.set("type","checkbox")
+			.set("class","slotBox")
+			.set("onChange",bitFlipCommand.str()) << " " << (*iDCC)->slot();
+		
+		for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
+			std::ostringstream idCode, userCode;
+			
+			idCode << std::hex << (*iDCC)->readIDCode(dccPROMTypes[dccPROMNames[iprom]]);
+			*(slotTable(idcc,1 + 2*iprom)->value) << idCode.str();
+			
+			userCode << std::hex << (*iDCC)->readUserCode(dccPROMTypes[dccPROMNames[iprom]]);
+			*(slotTable(idcc,2 + 2*iprom)->value) << userCode.str();
+			
+			// Check for consistency
+			slotTable(idcc,1 + 2*iprom)->setClass("ok");
+			slotTable(idcc,2 + 2*iprom)->setClass("ok");
+			if (diskPROMCodes[dccPROMNames[iprom]] != userCode.str()) {
+				slotTable(idcc,2 + 2*iprom)->setClass("bad");
+			}
+		}
+	}
+	
+	*out << slotTable.toHTML() << std::endl;
+	
+	*out << cgicc::input()
+		.set("type","button")
+		.set("value","Toggle Broadcast")
+		.set("onClick","javascript:toggleBoxes('slotBox');")
+		.set("style","margin-left: 20%; margin-right: auto;");
+	
+	// Tricky:  javascript toggle of check boxes
+	*out << "<script type=\"text/javascript\">" << std::endl;
+	*out << "function toggleBoxes(id){var x = getElementsByClassName(id); var f = document.getElementById('broadcast'); if(f.value == 0){f.value = 1; for (i=0,j=x.length;i<j;i++) {x[i].disabled=true;}} else {f.value = 0; for (i=0,j=x.length;i<j;i++) {x[i].disabled=false;}}}" << std::endl;
+	*out << "</script>" << std::endl;
+	
+	*out << cgicc::div()
+		.set("style","font-size: 8pt;") << std::endl;
+	*out << "Legend: " << cgicc::span("All OK").set("class","ok") << " " << std::endl;
+	*out << cgicc::span("Disk/PROM mismatch").set("class","bad") << " " << std::endl;
+	
+	*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!")
+		.set("style","font-size: 8pt;") << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+	
+	
+	*out << cgicc::fieldset()
+		.set("class","normal") << std::endl;
+	*out << cgicc::div("Step 3:  Press a button to upload that particular firmware to the selected boards")
+		.set("class","legend") << std::endl;
+	
+	*out << cgicc::input()
+		.set("type","submit")
+		.set("name","submit")
+		.set("value","Send INPROM") << std::endl;
+	*out << cgicc::input()
+		.set("type","submit")
+		.set("name","submit")
+		.set("value","Send MPROM") << std::endl;
+	
+	// The crate is a must.
+	std::ostringstream crateVal;
+	crateVal << cgiCrate;
+	*out << cgicc::input()
+		.set("type","hidden")
+		.set("name","crate")
+		.set("value",crateVal.str()) << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+	
+	*out << cgicc::form() << std::endl;
+	
+	
+	*out << cgicc::fieldset()
+		.set("class","normal") << std::endl;
+	*out << cgicc::div("Step 4:  Hard-reset the crate")
+		.set("class","legend") << std::endl;
+	
+	*out << cgicc::form()
+		.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUReset?crate=" + crateVal.str())
+		.set("method","post") << std::endl;
+	*out << cgicc::input()
+		.set("type","submit")
+		.set("value","Reset crate via DCC") << std::endl;
+	*out << cgicc::form() << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+	
+	*out << Footer() << std::endl;
+	
+}
+
+
+
+void EmuFCrateHyperDAQ::DCCLoadBroadcast(xgi::Input *in, xgi::Output *out)
+	throw (xgi::exception::Exception)
+{
+	// PGK Patented check-for-initialization
+	if (crateVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
+	
+	cgicc::Cgicc cgi(in);
+	
+	// First, I need a crate.
+	cgicc::form_iterator name = cgi.getElement("crate");
+	unsigned int cgiCrate = 0;
+	if(name != cgi.getElements().end()) {
+		cgiCrate = cgi["crate"]->getIntegerValue();
+	}
+	//Crate *myCrate = crateVector[cgiCrate];
+	
+	//printf(" entered DDULoadBroadcast \n");
+	
+	std::string type = cgi["svftype"]->getValue();
+	
+	if (type != "INPROM" && type != "MPROM") {
+		//std::cout << "I don't understand that PROM type (" << type << ")." << std::endl;
+		LOG4CPLUS_ERROR(getApplicationLogger(), "DCCLoadBroadcast: I do not understand the PROM type " << type);
+		
+		std::ostringstream backLocation;
+		backLocation << "DCCBroadcast?crate=" << cgiCrate;
+		webRedirect(out,backLocation.str());
+		//this->DDUBroadcast(in,out);
+		//return;
+	}
+	
+	cgicc::const_file_iterator ifile = cgi.getFile("File");
+	if ( (*ifile).getFilename() == "" ) {
+		//std::cout << "The file you attempted to upload either doesn't exist, or wasn't properly transferred." << std::endl;
+		LOG4CPLUS_ERROR(getApplicationLogger(), "DCCLoadBradcast: The file you attempted to upload either doesn't exist, or wasn't properly transferred");
+		
+		std::ostringstream backLocation;
+		backLocation << "DCCBroadcast?crate=" << cgiCrate;
+		webRedirect(out,backLocation.str());
+		//this->DDUBroadcast(in,out);
+		//return;
+	}
+	
+	std::string filename = "Current" + type + ".svf";
+	std::ofstream outfile;
+	outfile.open(filename.c_str(),std::ios::trunc);
+	if (!outfile.is_open()) {
+		LOG4CPLUS_ERROR(getApplicationLogger(), "DCCLoadBroadcast: The file " << filename << " cannot be opened for writing");
+		
+		std::ostringstream backLocation;
+		backLocation << "DDUBroadcast?crate=" << cgiCrate;
+		webRedirect(out,backLocation.str());
+		//this->DDUBroadcast(in,out);
+		//return;
+	}
+	
+	(*ifile).writeToStream(outfile);
+	outfile.close();
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "DCCLoadBroadcast: downloaded and saved " << filename << " of type " << type);
+	
+	std::ostringstream backLocation;
+	backLocation << "DDUBroadcast?crate=" << cgiCrate;
+	webRedirect(out,backLocation.str());
+	//this->DDUBroadcast(in,out);
+	
+}
+
+
+void EmuFCrateHyperDAQ::DCCSendBroadcast(xgi::Input *in, xgi::Output *out)
+throw (xgi::exception::Exception)
+{
+	
+	// PGK Patented check-for-initialization
+	if (crateVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
+	
+	cgicc::Cgicc cgi(in);
+	
+	// First, I need a crate.
+	cgicc::form_iterator name = cgi.getElement("crate");
+	unsigned int cgiCrate = 0;
+	if(name != cgi.getElements().end()) {
+		cgiCrate = cgi["crate"]->getIntegerValue();
+	}
+	emu::fed::FEDCrate *myCrate = crateVector[cgiCrate];
+	
+	//printf(" entered DDUSendBroadcast \n");
+	
+	// unsigned int tidcode[8] = {0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
+	// unsigned int tuscode[8] = {0xcf043a02,0xdf025a02,0xdf025a02,0xb0020a04,0xc043dd99,0xc143dd99,0xd0025a02,0xd1025a02};
+	
+	int type = -1;
+	std::string submitCommand = cgi["submit"]->getValue();
+	if (submitCommand.substr(5) == "INPROM") type = 0;
+	if (submitCommand.substr(5) == "MPROM") type = 1;
+	
+	int broadcast = cgi["broadcast"]->getIntegerValue();
+	std::string slotsText = cgi["slots"]->getValue();
+	if (slotsText.substr(0,2) == "0x") slotsText = slotsText.substr(2);
+	unsigned int slots = 0;
+	sscanf(slotsText.data(),"%4x",&slots);
+	
+	if (type == 1 && broadcast) {
+		LOG4CPLUS_ERROR(getApplicationLogger(),"Cannot broadcast MPROM firmware");
+		std::ostringstream backLocation;
+		backLocation << "DCCBroadcast?crate=" << cgiCrate;
+		webRedirect(out,backLocation.str());
+	}
+	
+	// Error:  no slots to load.
+	if (!broadcast && !slots) {
+		LOG4CPLUS_ERROR(getApplicationLogger(),"No slots selected for firmware loading, and broadcast not set");
+		std::ostringstream backLocation;
+		backLocation << "DCCBroadcast?crate=" << cgiCrate;
+		webRedirect(out,backLocation.str());
+	}
+	
+	if (type != 0 && type != 1) {
+		//std::cout << "I don't understand that PROM type (" << type << ")." << std::endl;
+		LOG4CPLUS_ERROR(getApplicationLogger(),"PROM type not understood");
+		std::ostringstream backLocation;
+		backLocation << "DCCBroadcast?crate=" << cgiCrate;
+		webRedirect(out,backLocation.str());
+		//this->DDUBroadcast(in,out);
+		//return;
+	}
+	
+	std::string promName[2] = {"INPROM","MPROM"};
+	enum emu::fed::DEVTYPE devType[2] = {emu::fed::INPROM,emu::fed::RESET};
+	
+	// Load the proper version types from the cgi handle.
+	std::string version[2];
+	for (int i=0; i<=2; i++) {
+		version[i] = cgi[promName[i].c_str()]->getValue();
+		//std::cout << " version on disk: " << promName[i] << " " << version[i] << std::endl;
+	}
+	
+	//std::cout << " From type " << type << ", broadcasting ";
+	//for (int i=from; i<=to; i++) {
+	//	std::cout << promName[i] << " ";
+	//}
+	//std::cout << std::endl;
+	
+	// I thought this was not allowed!
+	//int bnstore[myCrate->getDCCs().size()];
+	for (unsigned int iBoard=0; iBoard < myCrate->getDCCs().size(); iBoard++) {
+		if (!broadcast && !(slots & (1 << myCrate->getDCCs()[iBoard]->slot()))) continue;
+		else if (broadcast && myCrate->getDCCs()[iBoard]->slot() <= 21) continue;
+		
+		emu::fed::DCC *myDCC = myCrate->getDCCs()[iBoard];
+		//std::cout << "Sending to slot " << myDDU->slot() << std::endl;
+		
+
+		LOG4CPLUS_DEBUG(getApplicationLogger(),"Loading firmware to prom " << type << "...");
+		
+		std::string filename = "Current" + promName[type] + ".svf";
+		//std::cout << " broadcasting " << filename << " version " << version[i] << std::endl;
+		LOG4CPLUS_INFO(getApplicationLogger(),"Loading server file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << myDCC->slot() << "...");
+		
+		LOG4CPLUS_DEBUG(getApplicationLogger(),"Step 1 of 1: Load all firmware data...");
+		myDCC->epromload((char *)promName[type].c_str(),devType[type],(char *)filename.c_str(),1);
+
+		LOG4CPLUS_INFO(getApplicationLogger(),"Loading of server file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << myDCC->slot() << " complete.");
+		
+	}
+	LOG4CPLUS_INFO(getApplicationLogger(),"All firmware loading operations complete, checking PROM ids...");
+	
+	
+	for (unsigned int dcc=0; dcc<myCrate->getDCCs().size(); dcc++) { // loop over boards
+		if (!broadcast && !(slots & (1 << myCrate->getDCCs()[dcc]->slot()))) continue;
+		else if (broadcast && myCrate->getDCCs()[dcc]->slot() > 21) continue;
+		emu::fed::DCC *myDCC = myCrate->getDCCs()[dcc];
+		
+		std::ostringstream versionCheck;
+		versionCheck << myDCC->readUserCode(devType[type]);
+		
+		if (version[type] == versionCheck.str()) {
+			LOG4CPLUS_INFO(getApplicationLogger(),"DCC slot " << myDCC->slot() << " PROM " << promName[type] << " versions match ("<< std::hex << version[type] << std::dec <<")");
+		} else {
+			LOG4CPLUS_ERROR(getApplicationLogger(),"DCC slot " << myDCC->slot() << " PROM " << promName[type] << " version mismatch (shows "<< std::hex << versionCheck.str() << std::dec << ", should be "<< std::hex << version[type] << std::dec << ")");
+		}
+	}
+	
+	std::ostringstream backLocation;
+	backLocation << "DCCBroadcast?crate=" << cgiCrate;
+	webRedirect(out,backLocation.str());
+	//this->DDUBroadcast(in,out);
+}
+
+
+/*
 void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -5114,7 +5596,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 
 	//
 	for(int i=0;i<2;i++){
-		//*out << cgicc::table().set("border","0").set("rules","none").set("frame","void");
+		// *out << cgicc::table().set("border","0").set("rules","none").set("frame","void");
 		// *out << cgicc::tr();
 		printf(" LOOP: %d \n",i);
 		*out << cgicc::span().set("style","color:black");
@@ -5202,9 +5684,9 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::body() << std::endl;
 	*out << cgicc::html() << std::endl;
 }
+*/
 
-
-
+/*
 void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -5263,11 +5745,11 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 			(*file).writeToStream(TextFile);
 			TextFile.close();
 		}
-		/*  char buf[400];
-		FILE *dwnfp;
-		dwnfp    = fopen("MySVFFile.svf","r");
-		while (fgets(buf,256,dwnfp) != NULL)printf("%s",buf);
-		fclose(dwnfp); */
+//  char buf[400];
+// FILE *dwnfp;
+// dwnfp    = fopen("MySVFFile.svf","r");
+// while (fgets(buf,256,dwnfp) != NULL)printf("%s",buf);
+// fclose(dwnfp);
 		char *cbrdnum;
 		printf(" DCC epromload %d \n",prom);
 		cbrdnum=(char*)malloc(5);
@@ -5285,7 +5767,7 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
 }
-
+*/
 
 
 void EmuFCrateHyperDAQ::LoadXMLconf(xgi::Input * in, xgi::Output * out )
@@ -6557,7 +7039,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 }
 
 
-
+/*
 void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -6608,7 +7090,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
 }
-
+*/
 
 
 void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
@@ -6811,7 +7293,7 @@ void EmuFCrateHyperDAQ::webRedirect(xgi::Input *in, xgi::Output *out)
 }
 
 
-
+/*
 void EmuFCrateHyperDAQ::DCCRateMon(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -6890,9 +7372,9 @@ void EmuFCrateHyperDAQ::DCCRateMon(xgi::Input * in, xgi::Output * out )
 	*out << "</HTML>" << std::endl;
 
 }
+*/
 
-
-
+/*
 void EmuFCrateHyperDAQ::getDataDCCRate0(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -6928,9 +7410,10 @@ void EmuFCrateHyperDAQ::getDataDCCRate0(xgi::Input * in, xgi::Output * out )
 	*out << "</graph>" << std::endl;
 	//std::cout << "</graph>" << std::endl;
 }
+*/
 
-
-/** @note Merge with getDataDCCRate0. **/
+/** @note Merge with getDataDCCRate0? **/
+/*
 void EmuFCrateHyperDAQ::getDataDCCRate1(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -6966,7 +7449,7 @@ void EmuFCrateHyperDAQ::getDataDCCRate1(xgi::Input * in, xgi::Output * out )
 	*out << "</graph>" << std::endl;
 	//std::cout << "</graph>" << std::endl;
 }
-
+*/
 
 
 void EmuFCrateHyperDAQ::webRedirect(xgi::Output *out ,std::string location)

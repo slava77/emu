@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.9 2008/08/15 08:35:51 paste Exp $
+* $Id: DDUDebugger.cc,v 1.10 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: DDUDebugger.cc,v $
+* Revision 1.10  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 1.9  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -363,23 +366,11 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(int stat)
 }
 
 
-std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
+std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsigned long int> lcode, DDU *thisDDU)
 {
 
 	std::vector<std::string> out;
 	std::stringstream outStream;
-
-	thisDDU->ddu_fpgatrap();
-
-	//printf(" enter DDUtrapDecode \n");
-	unsigned long int lcode[6];
-
-	lcode[0] = thisDDU->fpga_lcode[0];
-	lcode[1] = thisDDU->fpga_lcode[1];
-	lcode[2] = thisDDU->fpga_lcode[2];
-	lcode[3] = thisDDU->fpga_lcode[3];
-	lcode[4] = thisDDU->fpga_lcode[4];
-	lcode[5] = thisDDU->fpga_lcode[5];
 
 	// First, spit out the full status.
 
@@ -535,7 +526,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 		outStream.str("");
 	}
 
-	unsigned long int inTrap[2][6];
+	std::vector<unsigned long int> inTrap[2];
 	bool inTrapSet[2] = {
 		false,
 		false
@@ -707,13 +698,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(DDU *thisDDU)
 			// If InCtrlErr and not solved, get InTrap registers (each 32 bytes)
 			if (inStat[iDev]&0x00008000) {
 				//      *out << "-debug> inside 4>" << std::endl;
-				thisDDU->infpga_trap(devType[iDev]);
-				inTrap[iDev][5] = thisDDU->fpga_lcode[5];
-				inTrap[iDev][4] = thisDDU->fpga_lcode[4];
-				inTrap[iDev][3] = thisDDU->fpga_lcode[3];
-				inTrap[iDev][2] = thisDDU->fpga_lcode[2];
-				inTrap[iDev][1] = thisDDU->fpga_lcode[1];
-				inTrap[iDev][0] = thisDDU->fpga_lcode[0];
+				inTrap[iDev] = thisDDU->infpga_trap(devType[iDev]);
 				inTrapSet[iDev] = true;
 			}
 		}
@@ -1385,21 +1370,10 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(enum
 
 
 
-std::vector<std::string> emu::fed::DDUDebugger::infpga_trap(DDU *thisDDU, enum DEVTYPE dt)
+std::vector<std::string> emu::fed::DDUDebugger::infpga_trap(std::vector<unsigned long int> lcode, enum DEVTYPE dt)
 {
 	std::vector<std::string> out;
 	std::ostringstream outStream;
-
-	thisDDU->infpga_trap(dt);
-
-	unsigned long int lcode[6];
-
-	lcode[0] = thisDDU->fpga_lcode[0];
-	lcode[1] = thisDDU->fpga_lcode[1];
-	lcode[2] = thisDDU->fpga_lcode[2];
-	lcode[3] = thisDDU->fpga_lcode[3];
-	lcode[4] = thisDDU->fpga_lcode[4];
-	lcode[5] = thisDDU->fpga_lcode[5];
 
 	// First, spit out the full status.
 

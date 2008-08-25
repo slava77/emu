@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.7 2008/08/19 14:51:03 paste Exp $
+* $Id: VMEModule.cc,v 3.8 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.8  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.7  2008/08/19 14:51:03  paste
 * Update to make VMEModules more independent of VMEControllers.
 *
@@ -27,8 +30,6 @@
 emu::fed::VMEModule::VMEModule(int mySlot):
 	//vmeController_(0),
 	slot_(mySlot),
-	Device_(-1),
-	Link_(-1),
 	BHandle_(-1)
 {
 	vmeadd_ = slot_ << 19;
@@ -63,12 +64,29 @@ void emu::fed::VMEModule::CAEN_read(unsigned long Address,unsigned short int *da
 
 
 
+int16_t emu::fed::VMEModule::CAEN_read(unsigned long Address)
+throw (FEDException)
+{
+	int16_t *readData;
+	CVAddressModifier AM = cvA24_U_DATA;
+	CVDataWidth DW = cvD16;
+	int err = CAENVME_ReadCycle(BHandle_,Address,readData,AM,DW);
+	if (err) {
+		std::ostringstream error;
+		error << "CAENVME read error " << err;
+		XCEPT_RAISE(FEDException, error.str());
+	}
+	return *readData;
+}
+
+
+
 void emu::fed::VMEModule::CAEN_write(unsigned long Address,unsigned short int *data)
 	throw (FEDException)
 {
 	CVAddressModifier AM = cvA24_U_DATA;
 	CVDataWidth DW = cvD16;
-	int err = CAENVME_WriteCycle(BHandle_,Address,(char *)data,AM,DW);
+	int err = CAENVME_WriteCycle(BHandle_, Address, (char *)data, AM, DW);
 	if (err) {
 		std::ostringstream error;
 		error << "CAENVME write error " << err;
@@ -78,7 +96,22 @@ void emu::fed::VMEModule::CAEN_write(unsigned long Address,unsigned short int *d
 
 
 
-void emu::fed::VMEModule::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv) {
+void emu::fed::VMEModule::CAEN_write(unsigned long Address, int16_t data)
+	throw (FEDException)
+{
+	CVAddressModifier AM = cvA24_U_DATA;
+	CVDataWidth DW = cvD16;
+	int err = CAENVME_WriteCycle(BHandle_, Address, &data, AM, DW);
+	if (err) {
+		std::ostringstream error;
+		error << "CAENVME write error " << err;
+		XCEPT_RAISE(FEDException, error.str());
+	}
+}
+
+
+
+void emu::fed::VMEModule::vme_controller(int irdwr, unsigned short int address, unsigned short int data, char *rcv) {
 
 	// irdwr:
 	// 0 bufread
@@ -93,19 +126,21 @@ void emu::fed::VMEModule::vme_controller(int irdwr,unsigned short int *ptr,unsig
 	
 	case 0:
 	case 2:
-		char rdata[2];
-		CAEN_read((long unsigned int) ptr,(unsigned short int *) rdata);
-		rcv[0] = rdata[0];
-		rcv[1] = rdata[1];
+		//char rdata[2];
+		//CAEN_read((long unsigned int) ptr,(unsigned short int *) rdata);
+		int readData = CAEN_read(address);
+		rcv[0] = readData & 0xff;
+		rcv[1] = (readData & 0xff00) >> 8;
 		break;
 		
 	case 1:
 	case 3:
-		CAEN_write((long unsigned int) ptr,data);
+		//CAEN_write((long unsigned int) ptr,data);
+		CAEN_write(address, data);
 		break;
 		
 	case 6:
-		udelay((long int) ((*data)*DELAY3));
+		udelay((long int) (data * DELAY3));
 		break;
 	
 	default:
@@ -118,10 +153,9 @@ void emu::fed::VMEModule::vme_controller(int irdwr,unsigned short int *ptr,unsig
 
 void  emu::fed::VMEModule::sleep_vme(const char *outbuf)   // in usecs (min 16 usec)
 {
-	char tmp = 0;
-	unsigned short int tmp2 = (unsigned short int) ((((outbuf[1]<<8)&0xff00) + (outbuf[0]&0xff)) / 16.0 + 1);
-	unsigned short int *ptr;
-	vme_controller(6,ptr,&tmp2,&tmp);
+	unsigned short int delay = (unsigned short int) ((((outbuf[1]<<8)&0xff00) + (outbuf[0]&0xff)) / 16.0 + 1);
+	
+	udelay((long int) (delay * DELAY3));
 }
 
 
@@ -330,7 +364,7 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 	
 	// For later...
 	unsigned short int tird[3] = {1,1,3};
-	unsigned short int tmp = 0;
+	//unsigned short int tmp = 0;
 	
 	if (cnt == 0) return;
 	if (ird < 0 || ird > 2) XCEPT_RAISE(FEDException, "ird out-of-bounds!");
@@ -346,31 +380,25 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 	
 	if (idev == 12) { // RESET
 		unsigned long int add_reset = vmeadd_ | 0x0000fffe;
-		unsigned short int *ptr = (unsigned short int *) add_reset;
+		//unsigned short int *ptr = (unsigned short int *) add_reset;
 		
 		if (reg == 0) {
-			tmp = 0;
-			vme_controller(1,ptr,&tmp,rcv);
-			vme_controller(1,ptr,&tmp,rcv);
-			tmp++;
-			vme_controller(1,ptr,&tmp,rcv);
-			vme_controller(1,ptr,&tmp,rcv);
-			tmp--;
-			vme_controller(1,ptr,&tmp,rcv);
-			vme_controller(1,ptr,&tmp,rcv);
+			vme_controller(1,add_reset,0,rcv);
+			vme_controller(1,add_reset,0,rcv);
+			vme_controller(1,add_reset,1,rcv);
+			vme_controller(1,add_reset,1,rcv);
+			vme_controller(1,add_reset,0,rcv);
+			vme_controller(1,add_reset,0,rcv);
 		}
 		
 		//data
 		
 		else if (reg == 1) {
-			tmp = 0;
-			vme_controller(1,ptr,&tmp,rcv);
-			vme_controller(1,ptr,&tmp,rcv);
-			tmp++;
-			vme_controller(1,ptr,&tmp,rcv);
-			tmp--;
-			vme_controller(1,ptr,&tmp,rcv);
-			vme_controller(1,ptr,&tmp,rcv);
+			vme_controller(1,add_reset,0,rcv);
+			vme_controller(1,add_reset,0,rcv);
+			vme_controller(1,add_reset,1,rcv);
+			vme_controller(1,add_reset,0,rcv);
+			vme_controller(1,add_reset,0,rcv);
 		}
 		
 		int byte = cnt/16;
@@ -381,20 +409,16 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 				ival2 = ((*data) >> j) & 0x01;
 				if (i != byte-1 || bit != 0 || j != 15) {
 					if (ival2 == 0) {
-						tmp = 0;
-						vme_controller(1,ptr,&tmp,rcv);
+						vme_controller(1,add_reset,0,rcv);
 					}
 					else if (ival2 == 1) {
-						tmp = 2;
-						vme_controller(1,ptr,&tmp,rcv);
+						vme_controller(1,add_reset,2,rcv);
 					}
 				} else {
 					if (ival2 == 0) {
-						tmp = 1;
-						vme_controller(1,ptr,&tmp,rcv);
+						vme_controller(1,add_reset,1,rcv);
 					} else if (ival2 == 1) {
-						tmp = 3;
-						vme_controller(1,ptr,&tmp,rcv);
+						vme_controller(1,add_reset,3,rcv);
 					}
 				}
 			}
@@ -404,37 +428,33 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 			ival2 = ((*data) >> j) & 0x01;
 			if ( j < bit-1 ) {
 				if (ival2 == 0) {
-					tmp = 0;
-					vme_controller(1,ptr,&tmp,rcv);
+					vme_controller(1,add_reset,0,rcv);
 				} else if (ival2 == 1) {
-					tmp = 2;
-					vme_controller(1,ptr,&tmp,rcv);
+					vme_controller(1,add_reset,2,rcv);
 				}
 			} else {
 				if (ival2 == 0) {
-					vme_controller(1,ptr,&tmp,rcv);
+					vme_controller(1,add_reset,0,rcv);
 				} else if (ival2 == 1) {
-					vme_controller(1,ptr,&tmp,rcv);
+					vme_controller(1,add_reset,0,rcv);
 				}
 			}
 		}
-		tmp = 1;
-		vme_controller(1,ptr,&tmp,rcv);
-		tmp = 0;
-		vme_controller(3,ptr,&tmp,rcv);
+		vme_controller(1,add_reset,1,rcv);
+		vme_controller(3,add_reset,0,rcv);
 		return;
 	}
 	
 	else if (reg == 0) {
 		unsigned long int add_i = (vmeadd_ | (idev << 12) | 0x0000001c) & 0xfffff0ff;
 		add_i |= (cnt2<<8);
-		unsigned short int *ptr_i = (unsigned short int*) add_i;
+		//unsigned short int *ptr_i = (unsigned short int*) add_i;
 		//bit = cnt;
 		// xif(bit>8)*ptr_i=*data;
 		// xif(bit<=8)*ptr_i=((*data)>>8);
 		// if(bit<=8)*data=((*data)>>8);
 		// printf(" 1 VME W: %08x %04x \n",ptr_i,*data);
-		vme_controller(tird[ird],ptr_i,data,rcv);
+		vme_controller(tird[ird],add_i,*data,rcv);
 		return;
 	}
 		
@@ -447,37 +467,36 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 		if (byte == 0 || (byte == 1 & bit == 0)) {
 			unsigned long int add_d = (vmeadd_ | (idev << 12) | 0x0000000c) & 0xfffff0ff;
 			add_d |= (cnt2<<8);
-			unsigned short int *ptr_d = (unsigned short int *) add_d; 
+			//unsigned short int *ptr_d = (unsigned short int *) add_d; 
 			// printf(" 2 VME W: %08x %04x \n",ptr_d,*data);
 			// xif(bit>8|byte==1)*ptr_d=*data;
 			// xif(bit<=8&byte!=1)*ptr_d=((*data)>>8);
 			// if(bit<=8&byte!=1)*data=((*data)>>8);
-			vme_controller(tird[ird],ptr_d,data,rcv);
+			vme_controller(tird[ird],add_d,*data,rcv);
 			//  printf("2 VME W: %08x %04x \n",ptr_dh,*data);
 			if(ird == 1) {
 				unsigned long int add_r = vmeadd_ | (idev << 12) | 0x00000014;
-				unsigned short int *ptr_r = (unsigned short int *) add_r;
+				//unsigned short int *ptr_r = (unsigned short int *) add_r;
 				// x*data2=*ptr_r;
 				// printf(" R %08x \n",ptr_r);
-				tmp = 0;
-				vme_controller(2,ptr_r,&tmp,rcv);
+				vme_controller(2,add_r,0,rcv);
 			}
 			return;
 		}
 		
 		
 		unsigned long int add_dh = ((vmeadd_ | (idev << 12) | 0x00000004) & 0xfffff0ff) | 0x0f00;
-		unsigned short int *ptr_dh = (unsigned short int *) add_dh;
+		//unsigned short int *ptr_dh = (unsigned short int *) add_dh;
 		// printf(" 3 VME W: %08x %04x \n",ptr_dh,*data);
-		vme_controller(1,ptr_dh,data,rcv);
+		vme_controller(1,add_dh,*data,rcv);
 		// x*ptr_dh=*data;
 		data++;
 		
 		if (ird == 1) {
 			unsigned long int add_r = vmeadd_ | (idev << 12) | 0x00000014;
-			unsigned short int *ptr_r = (unsigned short int *) add_r;
+			//unsigned short int *ptr_r = (unsigned short int *) add_r;
 			// printf("3 R %08x \n",ptr_r);
-			vme_controller(0,ptr_r,&tmp,rcv);
+			vme_controller(0,add_r,0,rcv);
 			// x*data2=*ptr_r; 
 			// printf(" rddata %04x \n",*data2);
 		}
@@ -486,15 +505,15 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 			if (i == byte-2 && bit==0) {
 				
 				unsigned long int add_dt = ((vmeadd_ | (idev << 12) | 0x00000008) & 0xfffff0ff) | 0x0f00;
-				unsigned short int *ptr_dt = (unsigned short int *) add_dt;
+				//unsigned short int *ptr_dt = (unsigned short int *) add_dt;
 				// printf("4 VME W: %08x %04x \n",ptr_dt,*data);
-				vme_controller(tird[ird],ptr_dt,data,rcv);
+				vme_controller(tird[ird],add_dt,*data,rcv);
 				// x*ptr_dt=*data;
 				if (ird == 1) {
 					unsigned long int add_r = vmeadd_ | (idev << 12) | 0x00000014;
-					unsigned short int *ptr_r = (unsigned short int *) add_r;
+					//unsigned short int *ptr_r = (unsigned short int *) add_r;
 					//  printf("4 R %08x \n",ptr_r);
-					vme_controller(2,ptr_r,data,rcv);
+					vme_controller(2,add_r,*data,rcv);
 					// x*data2=*ptr_r;  
 					// printf(" rddata %04x \n",*data2);
 				}
@@ -502,17 +521,17 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 				
 			} else {
 				unsigned long int add_ds = ((vmeadd_ | (idev << 12) | 0x00000000) & 0xfffff0ff) | 0x0f00;
-				unsigned short int *ptr_ds = (unsigned short int *) add_ds;
+				//unsigned short int *ptr_ds = (unsigned short int *) add_ds;
 				// printf("5 VME W: %08x %04x \n",ptr_ds,*data);
-				vme_controller(1,ptr_ds,data,rcv);
+				vme_controller(1,add_ds,*data,rcv);
 				// x*ptr_ds=*data;
 				data++;
 				
 				if (ird == 1) {
 					unsigned long int add_r = vmeadd_ | (idev << 12) | 0x00000014;
-					unsigned short int *ptr_r = (unsigned short int *) add_r;
+					//unsigned short int *ptr_r = (unsigned short int *) add_r;
 					// printf(" R %08x \n",ptr_r);
-					vme_controller(0,ptr_r,&tmp,rcv);
+					vme_controller(0,add_r,0,rcv);
 					// x*data2=*ptr_r; 
 					// printf(" rddata %04x \n",*data2);
 				}
@@ -522,17 +541,17 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 		cnt2 = bit-1;
 		unsigned long int add_dt = (vmeadd_ | (idev << 12) | 0x00000008) & 0xfffff0ff;
 		add_dt |= (cnt2 << 8);
-		unsigned short int *ptr_dt = (unsigned short int *) add_dt;
+		//unsigned short int *ptr_dt = (unsigned short int *) add_dt;
 		// printf("6 VME W: %08x %04x \n",ptr_dt,*data);
 		// xif(bit>8)*ptr_dt=*data;
 		// xif(bit<=8)*ptr_dt=*data>>8;
 		// if(bit<=8)*data=*data>>8;
-		vme_controller(tird[ird],ptr_dt,data,rcv);
+		vme_controller(tird[ird],add_dt,*data,rcv);
 		if (ird == 1) {
 			unsigned long int add_r = vmeadd_ | (idev << 12) | 0x00000014;
-			unsigned short int *ptr_r = (unsigned short int *) add_r;
+			//unsigned short int *ptr_r = (unsigned short int *) add_r;
 			// printf(" R %08x \n",ptr_r);
-			vme_controller(2,ptr_r,&tmp,rcv);
+			vme_controller(2,add_r,0,rcv);
 			// x*data2=*ptr_r; 
 			// printf(" rddata %04x \n",*data2);
 		}
@@ -542,7 +561,7 @@ void emu::fed::VMEModule::scan(DEVTYPE dev, int reg, const char *snd, int cnt, c
 }
 
 
-
+/*
 void emu::fed::VMEModule::handshake_vme()
 {
 	unsigned long int add_control_r = 0x00082800;
@@ -550,16 +569,16 @@ void emu::fed::VMEModule::handshake_vme()
 	vme_controller(4,ptr,0,0); // flush
 	vme_controller(5,ptr,0,0); // handshake
 }
+*/
 
-
-
+/*
 void emu::fed::VMEModule::flush_vme()
 {
 	unsigned short int *ptr;
 	// printf(" flush buffers to VME \n");
 	vme_controller(4,ptr,0,0); // flush
 }
-
+*/
 
 
 void emu::fed::VMEModule::vmeser(const char *cmd,const char *snd,char *rcv)
@@ -579,21 +598,21 @@ void emu::fed::VMEModule::vmeser(const char *cmd,const char *snd,char *rcv)
 // 		6 delay
 
 	unsigned long int add_vmesert = (vmeadd_ | 0x00040000) + ((cmd[0] & 0x000f) << 12) + ((cmd[1] & 0x000f) << 2);
-	unsigned short int *ptr = (unsigned short int *) add_vmesert;
+	//unsigned short int *ptr = (unsigned short int *) add_vmesert;
 	
 	unsigned short int icmd = cmd[1] & 0x000f; //DDU command
 	unsigned short int iadr = cmd[0] & 0x000f; //DDU device
 	
 	if ((icmd > 8 && iadr == 4) || (iadr >= 8)) { //write, but ignore snd data
-		vme_controller(3,ptr,0,rcv);
+		vme_controller(3,add_vmesert,0,rcv);
 		
 	} else if (icmd < 9 && iadr == 4) { //read
 		int nt = seri[icmd]/2;
 		for (int i = 0; i < nt-1; i++) {
-			vme_controller(0,ptr,0,rcv);
+			vme_controller(0,add_vmesert,0,rcv);
 		}
 
-		vme_controller(2,ptr,0,rcv);
+		vme_controller(2,add_vmesert,0,rcv);
 		
 		// printf(" scan vmeser: return from read, nrcv=%d,",nrcv);
 		for (int i = 0; i < nt; i++) {
@@ -605,8 +624,8 @@ void emu::fed::VMEModule::vmeser(const char *cmd,const char *snd,char *rcv)
 		}
 		
 	} else if (iadr < 4) { //read
-		vme_controller(0,ptr,0,rcv);
-		vme_controller(2,ptr,0,rcv);
+		vme_controller(0,add_vmesert,0,rcv);
+		vme_controller(2,add_vmesert,0,rcv);
 
 		// printf(" scan vmeser: return from read, nrcv=%d,",nrcv);
 		for (int i = 0; i < 2; i++) {
@@ -628,7 +647,7 @@ void emu::fed::VMEModule::vmepara(const char *cmd, const char *snd, char *rcv)
 	unsigned short int icmd = cmd[1] & 0x00ff;  //0-127 read, >=128 write
 	unsigned short int idev = cmd[0] & 0x000f;  //0-7 CMD ignored, >=8 CMD req'd.
 	unsigned long int add_vmepart = (vmeadd_ | 0x00030000) + (idev << 12) + (icmd << 2);
-	unsigned short int *ptr = (unsigned short int *) add_vmepart;
+	//unsigned short int *ptr = (unsigned short int *) add_vmepart;
 	
 	//JRG, added Write case:
 	if (icmd > 127 && idev >= 8) {  //Write
@@ -675,10 +694,10 @@ give you a picture of DANGERMAN!
 
 */
 		
-		vme_controller(3,ptr,(unsigned short int *) snd,rcv);
+		vme_controller(3,add_vmepart,*snd,rcv);
 		//JRG, end Write case ^^^^
 	} else { //Read
-		vme_controller(2,ptr,0,rcv);
+		vme_controller(2,add_vmepart,0,rcv);
 		// printf(" scan vmepar: return from read, nrcv=%d,",nrcv);
 		// for(i=0;i<nrcv;i++)printf(" %02x",rcv[i]&0xff);
 		// printf("\n");
@@ -691,21 +710,21 @@ void emu::fed::VMEModule::dcc(const char *cmd,char *rcv)
 {
 	
 	unsigned long int add = vmeadd_ + (cmd[1] << 2);
-	unsigned short int *ptr = (unsigned short int *) add;
+	//unsigned short int *ptr = (unsigned short int *) add;
 	// n = readline(sockfd,cmd,4); 
 	// printf(" dcc: cmd %02x %02x %02x %02x \n",cmd[0]&0xff,cmd[1]&0xff,cmd[2]&0xff,cmd[3]&0xff);
 	//tcmd=cmd[1]<<2;
 	if (cmd[0] == 0x00) {
 		char c[2] = {cmd[3], cmd[2]};
 		unsigned short int *data = (unsigned short int *) c;
-		vme_controller(3,ptr,data,rcv);
+		vme_controller(3,add, *data,rcv);
 		// printf(" dcc write: ptr %08x data %04x \n",ptr,*data);
 		// printf(" about to write \n");
 		// *ptr=*data;
 	} else if (cmd[0] == 0x01 ) {
 		// data2=rcv;
 		//unsigned short int *data;
-		vme_controller(2,ptr,NULL,rcv);
+		vme_controller(2,add,0,rcv);
 		// *data2=*ptr; 
 		// printf(" dcc read: ptr %08x data %04x \n",ptr,*data2);
 		// n = writen(sockfd,rcv,2);
@@ -723,12 +742,12 @@ void emu::fed::VMEModule::vme_adc(int ichp, int ichn, char *rcv)
 	// printf(" enter vme_adc \n");
 	
 	unsigned short int val[2] = {adcreg[ichp], adcbyt[ichp-1][ichn]};
-	unsigned short int tmp[2] = {0x0000,0x0000};
+	//unsigned short int tmp[2] = {0x0000,0x0000};
 	
 	if (val[0] == 0) {
 		unsigned long int add_adcrs = vmeadd_ | 0x0000d000 | 0x00000024;
-		unsigned short int *ptr = (unsigned short int *) add_adcrs;
-		vme_controller(2,ptr,tmp,rcv); // *ptr=*data;
+		//unsigned short int *ptr = (unsigned short int *) add_adcrs;
+		vme_controller(2,add_adcrs,0,rcv); // *ptr=*data;
 		return;
 	}
 	// ptr=(unsigned short int *)add_adcws;
@@ -736,19 +755,18 @@ void emu::fed::VMEModule::vme_adc(int ichp, int ichn, char *rcv)
 	// vme_controller(3,ptr,&val[0],rcv);
 	// *ptr=val[0];
 	unsigned long int add_adcw = vmeadd_ | 0x0000d000 | 0x00000020;
-	unsigned short int *ptr = (unsigned short int *) add_adcw;
+	//unsigned short int *ptr = (unsigned short int *) add_adcw;
 	
 	// printf(" adc write %08x %02x \n",ptr,val[1]&0xff);
-	vme_controller(3,ptr,&val[1],rcv); // *ptr=val[1];
+	vme_controller(3,add_adcw,val[1],rcv); // *ptr=val[1];
 	
+	unsigned long int add = vmeadd_ | 0x0000d000;
 	if (val[0] != 0x07) {
-		unsigned long int add_adcr = vmeadd_ | 0x0000d000 | 0x00000004;
-		ptr = (unsigned short int *) add_adcr;
+		add |= 0x00000004;
 	} else {
-		unsigned long int add_adcrbb = vmeadd_ | 0x0000d000 | 0x0000000c;
-		ptr = (unsigned short int *) add_adcrbb;
+		add |= 0x0000000c;
 	}
-	vme_controller(2,ptr,tmp,rcv); // *data=*ptr;
+	vme_controller(2,add,0,rcv); // *data=*ptr;
 	
 	// print(" adc read %08x %02x %02x\n",ptr,rbuf[1]&0xff,rbuf[0]&0xff);
 }
@@ -758,18 +776,15 @@ void emu::fed::VMEModule::vme_adc(int ichp, int ichn, char *rcv)
 void emu::fed::VMEModule::RestoreIdle(enum DEVTYPE dv)
 {
 	char tmp[2] = {0x00,0x00};
-	unsigned short int *ptr;
 	
 	if (dv == RESET) {
 		unsigned long int address = (vmeadd_ | 0x0000fffe);
-		ptr = (unsigned short int *) address;
+		//ptr = (unsigned short int *) address;
 		for (int i = 0; i < 5; i++) {
-			unsigned short int val = 1;
-			vme_controller(1,ptr,&val,tmp);
+			vme_controller(1,address,1,tmp);
 		}
 	} else {
-		ptr = (unsigned short *) (vmeadd_ | 0x00001000 | 0x00000018);
-		unsigned short int val = 0;
-		vme_controller(3,ptr,&val,tmp);
+		unsigned long int address = (vmeadd_ | 0x00001000 | 0x00000018);
+		vme_controller(3,address,0,tmp);
 	}
 }

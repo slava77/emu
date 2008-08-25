@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.19 2008/08/18 08:30:15 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.20 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.20  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 1.19  2008/08/18 08:30:15  paste
 * Update to fix error propagation from IRQ threads to EmuFCrateManager.
 *
@@ -20,6 +23,9 @@
 //#include <cstdlib>
 #include <iomanip>
 //#include <time.h>
+#include <log4cplus/logger.h>
+#include <log4cplus/fileappender.h>
+#include <log4cplus/configurator.h>
 
 #include "xdata/UnsignedLong.h"
 //#include "xoap/DOMParser.h"
@@ -40,7 +46,7 @@
 //#include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
 //#include "cgicc/HTTPHTMLHeader.h"
-//#include "cgicc/HTMLClasses.h"
+#include "cgicc/HTMLClasses.h"
 // #include "xdata/String.h"
 // #include "xdata/Float.h"
 // #include "xdata/Double.h"
@@ -130,12 +136,12 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 	// log file format: EmuFEDYYYY-DOY-HHMMSS_rRUNNUMBER.log
 	char datebuf[55];
 	char filebuf[255];
-	time_t theTime = time(NULL);
+	std::time_t theTime = time(NULL);
 
-	strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
-	sprintf(filebuf,"EmuFCrateManager-%s.log",datebuf);
+	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
+	std::sprintf(filebuf,"EmuFCrateManager-%s.log",datebuf);
 
-	log4cplus::SharedAppenderPtr myAppend = new FileAppender(filebuf);
+	log4cplus::SharedAppenderPtr myAppend = new log4cplus::FileAppender(filebuf);
 	myAppend->setName("EmuFCrateManagerAppender");
 
 	//Appender Layout
@@ -529,40 +535,40 @@ void EmuFCrateManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 
 std::string EmuFCrateManager::extractRunNumber(xoap::MessageReference message)
 {
-      xoap::SOAPElement root = message->getSOAPPart()
+	xoap::SOAPElement root = message->getSOAPPart()
 	.getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
-      xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
-      xoap::SOAPElement state = properties.getChildElements(*(new xoap::SOAPName("RunNumber", "", "")))[0];
+	xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
+	xoap::SOAPElement state = properties.getChildElements(*(new xoap::SOAPName("RunNumber", "", "")))[0];
 
-      return state.getValue();
+	return state.getValue();
 }
 
 
 
 xoap::MessageReference EmuFCrateManager::QueryFCrateInfoSpace()
 {
-      xoap::MessageReference message = xoap::createMessage();
-      xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-      envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+	xoap::MessageReference message = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+	envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 
-      xoap::SOAPName command = envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
-      xoap::SOAPName properties = envelope.createName("properties", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
-      xoap::SOAPName parameter   = envelope.createName("stateName", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
-      xoap::SOAPName parameter2  = envelope.createName("CalibrationState", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
-      xoap::SOAPName xsitype    = envelope.createName("type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
+	xoap::SOAPName command = envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+	xoap::SOAPName properties = envelope.createName("properties", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
+	xoap::SOAPName parameter   = envelope.createName("stateName", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
+	xoap::SOAPName parameter2  = envelope.createName("CalibrationState", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
+	xoap::SOAPName xsitype    = envelope.createName("type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
 
-      xoap::SOAPElement properties_e = envelope.getBody()
+	xoap::SOAPElement properties_e = envelope.getBody()
 	.addBodyElement(command)
 	.addChildElement(properties);
-      properties_e.addAttribute(xsitype, "soapenc:Struct");
+	properties_e.addAttribute(xsitype, "soapenc:Struct");
 
-      xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
-      parameter_e.addAttribute(xsitype, "xsd:string");
+	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+	parameter_e.addAttribute(xsitype, "xsd:string");
 
-      parameter_e = properties_e.addChildElement(parameter2);
-      parameter_e.addAttribute(xsitype, "xsd:string");
+	parameter_e = properties_e.addChildElement(parameter2);
+	parameter_e.addAttribute(xsitype, "xsd:string");
 
-      return message;
+	return message;
 }
 
 
@@ -940,7 +946,7 @@ void EmuFCrateManager::SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * o
     //
 }
 
-
+// FIXME
   //
 //This is copied from CSCSupervisor::sendcommand;
 void EmuFCrateManager::PCsendCommand(std::string command, std::string klass)
@@ -996,16 +1002,15 @@ void EmuFCrateManager::sendCommand(std::string command, std::string klass, int i
 	// xdaq exceptions are thrown by postSOAP() for socket level errors.
 
 	// find applications
-  std::cout << "  * EmuFCrateManager: inside sendCommand" << std::endl;
-  xdaq::ApplicationDescriptor *app;
-  try {
-    app = getApplicationContext()->getDefaultZone()
-      ->getApplicationDescriptor(klass, instance);
-    std::cout << "  * EmuFCrateManager: sendCommand, got application " << klass << std::endl;
-  } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    std::cout << "  * EmuFCrateManager: sendCommand, application not found! " << klass << std::endl;
-    return; // Do nothing if the target doesn't exist
-  }
+	//std::cout << "  * EmuFCrateManager: inside sendCommand" << std::endl;
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "sendCommand with parameters command("<< command <<") klass("<< klass <<") instance("<< instance <<")");
+	xdaq::ApplicationDescriptor *app;
+	try {
+		app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor(klass, instance);
+	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+		LOG4CPLUS_ERROR(getApplicationLogger(), "sendCommand found no applications matching klass("<< klass <<") instance("<< instance <<")");
+		return; // Do nothing if the target doesn't exist
+	}
 
 	// prepare a SOAP message
   xoap::MessageReference message = createCommandSOAP(command);

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 3.16 2008/08/15 10:40:20 paste Exp $
+* $Id: DCC.h,v 3.17 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: DCC.h,v $
+* Revision 3.17  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.16  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -36,14 +39,14 @@ namespace emu {
 			virtual ~DCC();
 			/// from the BOARDTYPE enum
 			virtual unsigned int boardType() const {return DCC_ENUM;}
-			virtual void end();
+			/* virtual void end(); */
 		
-			int fifoinuse_;
-			int softsw_;
-		
+			inline int getFIFOInUse() { return fifoinuse_; }
+
 			void configure();
 		
 			// DCC commands
+			/*
 			unsigned long int inprom_userid();
 			unsigned long int mprom_userid();
 			unsigned long int inprom_chipid();
@@ -64,9 +67,10 @@ namespace emu {
 			unsigned short int  mctrl_rd_fifoinuse();
 			unsigned short int  mctrl_rd_ttccmd();
 			void mctrl_ttccmd(unsigned short int ctcc);
+			*/
 		
 			// PGK Attempt at simplified DCC commands
-			unsigned long int readReg(enum DEVTYPE dt, char reg)
+			unsigned long int readReg(enum DEVTYPE dt, char reg, unsigned int nBits = 4)
 				throw (FEDException);
 			void writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
 				throw (FEDException);
@@ -99,12 +103,15 @@ namespace emu {
 				throw (FEDException);
 			void setFakeL1A(unsigned int value)
 				throw (FEDException);
-			
+			unsigned long int readIDCode(enum DEVTYPE dt)
+				throw (FEDException);
+			unsigned long int readUserCode(enum DEVTYPE dt)
+				throw (FEDException);
 		
 			// EPROM reprogramming (EXPERTS ONLY !)
-			void hdrst_main(void);
-			void hdrst_in(void);
-			void epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ, char *cbrdnum);
+			/* void hdrst_main(void); */
+			/* void hdrst_in(void); */
+			void epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ);
 		
 			/// sends commands by name
 			void executeCommand(std::string command);
@@ -120,10 +127,12 @@ namespace emu {
 			unsigned int getDDUSlotFromFIFO(unsigned int fifo);
 		
 			// unpacks rcvbuf from FPGA operations
-			unsigned long int unpack_ibrd() const;
-			unsigned int unpack_ival() const;
+			/* unsigned long int unpack_ibrd() const; */
+			/* unsigned int unpack_ival() const; */
 		
 		private:
+			int fifoinuse_;
+			int softsw_;
 
 			void Parse(char *buf, int *Count, char **Word);
 			void shuffle(char *a, char *b);
