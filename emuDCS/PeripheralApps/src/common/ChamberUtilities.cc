@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.12 2008/08/13 11:30:52 geurts Exp $
+// $Id: ChamberUtilities.cc,v 1.13 2008/08/25 09:36:16 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.13  2008/08/25 09:36:16  rakness
+// specify precisely position of L1A in ALCT receipt window
+//
 // Revision 1.12  2008/08/13 11:30:52  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -318,10 +321,10 @@ ChamberUtilities::ChamberUtilities(){
   number_of_data_reads_     = 100;    // default number of data reads
   //
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
-  min_alct_l1a_delay_value_ = 130;
-  max_alct_l1a_delay_value_ = 160;
-  min_tmb_l1a_delay_value_  = 120; 
-  max_tmb_l1a_delay_value_  = 150; 
+  min_alct_l1a_delay_value_ = 134;
+  max_alct_l1a_delay_value_ = 148;
+  min_tmb_l1a_delay_value_  = 115; 
+  max_tmb_l1a_delay_value_  = 129; 
   //
   MyOutput_ = &std::cout ;
   //
@@ -2141,7 +2144,13 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
   (*MyOutput_) << "Number of L1A in ALCT window vs. alct_l1a_delay" << std::endl;
   PrintHistogram("Number of L1A in ALCT window",alct_in_l1a_window,alct_delay_min,alct_delay_max,alct_average);
   //
-  ALCTL1aDelay_ = RoundOff(alct_average);
+  // The L1A receipt window is truncated in firmware to be an even number of bx wide.  Thus,
+  // in order to make sure we are on the LEFT (low) side of the average value, use the following
+  // method for rounding off...
+  ALCTL1aDelay_ = RoundOffForEvenWindowWidths(alct_average);
+  //
+  //  ALCTL1aDelay_ = RoundOff(alct_average);
+  //
   (*MyOutput_) << " Best value is alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
   (*MyOutput_) << "-----------------------------------------------" << std::endl;
   //
@@ -2330,7 +2339,13 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   (*MyOutput_) << "Number of L1A in ALCT window vs. alct_l1a_delay" << std::endl;
   PrintHistogram("Number of L1A in ALCT window",ALCT_l1a_accepted,minlimit,maxlimit,average);
   //
-  ALCTL1aDelay_ = RoundOff(average);
+  // The L1A receipt window is truncated in firmware to be an even number of bx wide.  Thus,
+  // in order to make sure we are on the LEFT (low) side of the average value, use the following
+  // method for rounding off...
+  ALCTL1aDelay_ = RoundOffForEvenWindowWidths(average);
+  //
+  //  ALCTL1aDelay_ = RoundOff(average);
+  //
   (*MyOutput_) << " Best value is alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
   (*MyOutput_) << "-----------------------------------------------" << std::endl;
   //

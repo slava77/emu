@@ -149,6 +149,7 @@ public:
   float AverageHistogram(int * histogram, int min_value, int max_value);
   void bit_to_array(int data, int * array, const int size) ;
   inline int RoundOff(float RealNumber) { return ( (int) (RealNumber + 0.5) ); }
+  inline int RoundOffForEvenWindowWidths(float RealNumber) { return ((int) RealNumber); }
   //
   //
   // Following should be deprecated?
