@@ -11669,12 +11669,10 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     emu::pc::ALCTController  * thisALCT = tmbVector[tmb]->alctController();
     //
     char date[8];
-    sprintf(date,"%4x%1x%1x%1x%1x",
-	    thisTMB->GetExpectedTmbFirmwareYear()&0xffff,
-	    (thisTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
-	    (thisTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
-	    (thisTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
-	    (thisTMB->GetExpectedTmbFirmwareDay()     )&0xf);
+    sprintf(date,"%4u%02u%02u",
+	    thisTMB->GetExpectedTmbFirmwareYear(),
+	    thisTMB->GetExpectedTmbFirmwareMonth(),
+	    thisTMB->GetExpectedTmbFirmwareDay());
     //
     std::ostringstream TMBFirmware;
     TMBFirmware << FirmwareDir_ << "tmb/" << date << "/tmb";   // ".xsvf" is added in SetXsvfFilename
@@ -11740,12 +11738,10 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     ALCTFirmware_[tmb] = ALCTFirmware.str();
     //    std::cout << "ALCT " << tmb << " load " << ALCTFirmware_[tmb].toString() << std::endl;
     //
-    sprintf(date,"%4x%1x%1x%1x%1x",
-	    thisTMB->GetExpectedRatFirmwareYear()&0xffff,
-	    (thisTMB->GetExpectedRatFirmwareMonth()>>4)&0xf,
-	    (thisTMB->GetExpectedRatFirmwareMonth()   )&0xf,
-	    (thisTMB->GetExpectedRatFirmwareDay()  >>4)&0xf,
-	    (thisTMB->GetExpectedRatFirmwareDay()     )&0xf);
+    sprintf(date,"%4u%02u%02u",
+	    thisTMB->GetExpectedRatFirmwareYear() ,
+	    thisTMB->GetExpectedRatFirmwareMonth(),
+	    thisTMB->GetExpectedRatFirmwareDay()  );
     //
     std::ostringstream RATFirmware; 
     RATFirmware << FirmwareDir_ << "rat/" << date << "/rat.svf";
