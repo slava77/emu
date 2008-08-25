@@ -62,10 +62,6 @@
 #include "EmuApplication.h"
 
 
-namespace emu {
-  namespace pc {
-
-
 class EmuPeripheralCrateCommand: public EmuApplication, xdata::ActionListener
 {
   //
@@ -101,20 +97,20 @@ protected:
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  EmuController * MyController;
-  EmuTStore * myTStore;
+  emu::pc::EmuController * MyController;
+  emu::pc::EmuTStore * myTStore;
   //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
   //
-  CCB* thisCCB ;
-  ALCTController *alct ;
-  RAT * rat;
-  MPC * thisMPC;
+  emu::pc::CCB* thisCCB ;
+  emu::pc::ALCTController *alct ;
+  emu::pc::RAT * rat;
+  emu::pc::MPC * thisMPC;
   emu::db::BoardsDB *brddb;
-  CrateUtilities myCrateTest;
+  emu::pc::CrateUtilities myCrateTest;
   std::ostringstream CrateTestsOutput;
-  ChamberUtilities MyTest[10][30];
+  emu::pc::ChamberUtilities MyTest[10][30];
   std::ostringstream ChamberTestsOutput[10][30];
   std::ostringstream OutputStringDMBStatus[10];
   std::ostringstream OutputStringTMBStatus[10];
@@ -130,12 +126,12 @@ protected:
   int tmb_vme_ready;
   //
   int CCBRegisterValue_;
-  std::vector<TMB*>   tmbVector;
-  std::vector<TMBTester>   tmbTestVector;
-  std::vector<DAQMB*> dmbVector;
-  std::vector<Crate*> crateVector;
-  std::vector<Chamber*> chamberVector;
-  Crate *thisCrate;
+  std::vector<emu::pc::TMB*>   tmbVector;
+  std::vector<emu::pc::TMBTester>   tmbTestVector;
+  std::vector<emu::pc::DAQMB*> dmbVector;
+  std::vector<emu::pc::Crate*> crateVector;
+  std::vector<emu::pc::Chamber*> chamberVector;
+  emu::pc::Crate *thisCrate;
   std::string Operator_;
   std::string RunNumber_;
   int Counter_;
@@ -167,7 +163,7 @@ protected:
   std::vector<int> TmbDavCounter_;
   std::vector<int> AlctDavCounter_;
   //
-  EmuEndcap * emuEndcap_;
+  emu::pc::EmuEndcap * emuEndcap_;
   //
 public:
   //
@@ -213,8 +209,5 @@ private:
   void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
     
 };
-
-} // namespace emu::pc
-} // namespace emu
 
 #endif
