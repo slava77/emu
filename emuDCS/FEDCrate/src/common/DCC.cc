@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.17 2008/08/19 14:51:02 paste Exp $
+* $Id: DCC.cc,v 3.18 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.18  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.17  2008/08/19 14:51:02  paste
 * Update to make VMEModules more independent of VMEControllers.
 *
@@ -45,14 +48,14 @@ emu::fed::DCC::~DCC()
 	// std::cout << "Killing DCC" << std::endl;
 }
 
-
+/*
 void emu::fed::DCC::end()
 {
 	//  std::cout << "calling emu::fed::DCC::end" << std::endl;
 	//send_last();
 	//VMEModule::end();
 }
-
+*/
 
 void emu::fed::DCC::configure()
 {
@@ -65,6 +68,8 @@ void emu::fed::DCC::configure()
 	}
 }
 
+
+/*
 unsigned long int  emu::fed::DCC::inprom_userid()
 {
 	enum DEVTYPE dv;
@@ -85,7 +90,10 @@ unsigned long int  emu::fed::DCC::inprom_userid()
 	devdo(dv, 8, cmd, 0, sndbuf, rcvbuf, 0);
 	return ibrd;
 }
+*/
 
+
+/*
 unsigned long int  emu::fed::DCC::mprom_userid()
 {
 	enum DEVTYPE dv;
@@ -107,6 +115,9 @@ unsigned long int  emu::fed::DCC::mprom_userid()
 	devdo(dv, 16, cmd, 0, sndbuf, rcvbuf, 0);
 	return ibrd;
 }
+*/
+
+/*
 unsigned long int  emu::fed::DCC::inprom_chipid()
 {
 	enum DEVTYPE dv;
@@ -128,7 +139,9 @@ unsigned long int  emu::fed::DCC::inprom_chipid()
 	return ibrd;
 
 }
+*/
 
+/*
 unsigned long int  emu::fed::DCC::mprom_chipid()
 {
 	enum DEVTYPE dv;
@@ -150,9 +163,9 @@ unsigned long int  emu::fed::DCC::mprom_chipid()
 	ibrd = (rcvbuf[0] & 0xff) | ((rcvbuf[1] & 0xff) << 8) | ((rcvbuf[2] & 0xff) << 16) | ((rcvbuf[3] & 0xff) << 24) | ibrd;
 	return ibrd;
 }
+*/
 
-
-
+/*
 void emu::fed::DCC::mctrl_bxr()
 {
 	cmd[0] = 0x00;  // fcn 0x00-write 0x01-read
@@ -161,7 +174,9 @@ void emu::fed::DCC::mctrl_bxr()
 	cmd[3] = 0x02;  // data l
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
+*/
 
+/*
 void emu::fed::DCC::mctrl_evnr()
 {
 	cmd[0] = 0x00;  // fcn 0x00-write 0x01-read
@@ -170,7 +185,9 @@ void emu::fed::DCC::mctrl_evnr()
 	cmd[3] = 0x01;  // data l
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
+*/
 
+/*
 void emu::fed::DCC::mctrl_fakeL1A(char rate, char num)
 {
 	cmd[0] = 0x00;  // fcn 0x00-write 0x01-read
@@ -179,8 +196,9 @@ void emu::fed::DCC::mctrl_fakeL1A(char rate, char num)
 	cmd[3] = num;  // data l
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
+*/
 
-
+/*
 void emu::fed::DCC::mctrl_fifoinuse(unsigned short int fifo)
 {
 	unsigned short int tmp;
@@ -192,7 +210,9 @@ void emu::fed::DCC::mctrl_fifoinuse(unsigned short int fifo)
 	cmd[3] = tmp & 0xff;  // data l
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
+*/
 
+/*
 void emu::fed::DCC::mctrl_reg(char *c)
 {
 	printf(" register entered \n");
@@ -205,8 +225,9 @@ void emu::fed::DCC::mctrl_reg(char *c)
 		printf(" rcvbuf %02x %02x \n", rcvbuf[0]&0xff, rcvbuf[1]&0xff);
 	}
 }
+*/
 
-
+/*
 void emu::fed::DCC::mctrl_swset(unsigned short int swset)
 {
 	unsigned short int tmp;
@@ -218,7 +239,9 @@ void emu::fed::DCC::mctrl_swset(unsigned short int swset)
 	cmd[3] = tmp & 0xff;  // data l
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
+*/
 
+/*
 unsigned short int  emu::fed::DCC::mctrl_swrd()
 {
 	unsigned short int swrd = 0;
@@ -231,6 +254,9 @@ unsigned short int  emu::fed::DCC::mctrl_swrd()
 	swrd = ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
 	return swrd;
 }
+*/
+
+/*
 void emu::fed::DCC::mctrl_fmmset(unsigned short int fmmset)
 {
 	unsigned short int tmp;
@@ -242,7 +268,9 @@ void emu::fed::DCC::mctrl_fmmset(unsigned short int fmmset)
 	cmd[3] = tmp & 0xff;  // data l
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
+*/
 
+/*
 unsigned short int  emu::fed::DCC::mctrl_fmmrd()
 {
 	unsigned short int fmmrd = 0;
@@ -255,7 +283,9 @@ unsigned short int  emu::fed::DCC::mctrl_fmmrd()
 	fmmrd = ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
 	return fmmrd;
 }
+*/
 
+/*
 unsigned short int  emu::fed::DCC::mctrl_stath()
 {
 	unsigned short int rcvr = 0;
@@ -268,8 +298,9 @@ unsigned short int  emu::fed::DCC::mctrl_stath()
 	rcvr = ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
 	return rcvr;
 }
+*/
 
-
+/*
 unsigned short int emu::fed::DCC::mctrl_statl()
 {
 	unsigned short int rcvr = 0;
@@ -282,7 +313,9 @@ unsigned short int emu::fed::DCC::mctrl_statl()
 	rcvr = ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
 	return rcvr;
 }
+*/
 
+/*
 unsigned short int emu::fed::DCC::mctrl_ratemon(int vaddress)
 {
 	unsigned short int rcvr = 0;
@@ -295,8 +328,9 @@ unsigned short int emu::fed::DCC::mctrl_ratemon(int vaddress)
 	rcvr = ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
 	return rcvr;
 }
+*/
 
-
+/*
 void emu::fed::DCC::mctrl_ttccmd(unsigned short int ctcc)
 {
 	unsigned short int tmp;
@@ -307,7 +341,9 @@ void emu::fed::DCC::mctrl_ttccmd(unsigned short int ctcc)
 	cmd[3] = tmp & 0xff;  // data l
 	devdo(MCTRL, 4, cmd, 0, sndbuf, rcvbuf, 1);
 }
+*/
 
+/*
 unsigned short int  emu::fed::DCC::mctrl_rd_fifoinuse()
 {
 	unsigned short int rcvr = 0;
@@ -321,7 +357,9 @@ unsigned short int  emu::fed::DCC::mctrl_rd_fifoinuse()
 	rcvr = ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
 	return rcvr;
 }
+*/
 
+/*
 unsigned short int  emu::fed::DCC::mctrl_rd_ttccmd()
 {
 	unsigned short int rcvr = 0;
@@ -335,8 +373,9 @@ unsigned short int  emu::fed::DCC::mctrl_rd_ttccmd()
 	rcvr = ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
 	return rcvr;
 }
+*/
 
-
+/*
 void emu::fed::DCC::hdrst_in(void)
 {
 	enum DEVTYPE dv;
@@ -350,7 +389,9 @@ void emu::fed::DCC::hdrst_in(void)
 	devdo(dv, 8, cmd, 0, sndbuf, rcvbuf, 0);
 	sleep((unsigned int) 1);
 }
+*/
 
+/*
 void emu::fed::DCC::hdrst_main(void)
 {
 	enum DEVTYPE dv;
@@ -367,7 +408,7 @@ void emu::fed::DCC::hdrst_main(void)
 	devdo(dv, 16, cmd, 0, sndbuf, rcvbuf, 0);
 	sleep((unsigned int) 1);
 }
-
+*/
 
 
 void emu::fed::DCC::Parse(char *buf, int *Count, char **Word)
@@ -387,7 +428,8 @@ void emu::fed::DCC::Parse(char *buf, int *Count, char **Word)
 }
 
 
-void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ, char *cbrdnum)
+
+void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ)
 {
 	enum DEVTYPE devstp, dv;
 	char *devstr;
@@ -396,9 +438,10 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 	char *Word[256], *lastn;
 	int Count, i, j, id, nbits, nbytes, pause, xtrbits, looppause;
 	int tmp, cmpflag;
-	int tstusr;
-	int nowrit;
+	//int tstusr;
+	int nowrit = 1; //?
 	char snd[5000], expect[5000], rmask[5000], smask[5000], cmpbuf[5000];
+	char sndbuf[1024], rcvbuf[1024];
 	//printf(" epromload %d \n",devnum);
 
 	/*
@@ -453,17 +496,7 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 							for (j = 0;j < nbytes;j++) {
 								sscanf(&Word[i+1][2*(nbytes-j-1) +1], "%2hhX", &snd[j]);
 							}
-//JRG, new selective way to download UNALTERED PromUserCode from SVF to
-//  ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
-//  was  if(nowrit==1){
-							if (nowrit == 1 && (cbrdnum[0] | cbrdnum[1] | cbrdnum[2] | cbrdnum[3]) != 0) {
-								tstusr = 0;
-								snd[0] = cbrdnum[0];
-								snd[1] = cbrdnum[1];
-								snd[2] = cbrdnum[2];
-								snd[3] = cbrdnum[3];
-								//printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
-							}
+
 						}
 						if (strcmp(Word[i], "SMASK") == 0) {
 							for (j = 0;j < nbytes;j++) {
@@ -494,14 +527,11 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 						} else {
 							scan(NONE,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 						}
-					} else {
-						if (writ == 1) {
-
-							if ((geo[dv].jchan == 12)) {
-								scan(RESET,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
-							} else {
-								scan(NONE,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
-							}
+					} else if (writ == 1) {
+						if ((geo[dv].jchan == 12)) {
+							scan(RESET,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+						} else {
+							scan(NONE,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 						}
 					}
 
@@ -588,7 +618,7 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 					devdo(dv, -99, sndbuf, 0, sndbuf, rcvbuf, 2);
 					//fpause=fpause*1.5+100;
 					//pause=fpause;
-					flush_vme();
+					//flush_vme();
 					//usleep(pause);
 					//printf(" send sleep \n");
 				} else if ((strcmp(Word[0], "STATE") == 0) && (strcmp(Word[1], "RESET") == 0) && (strcmp(Word[2], "IDLE;") == 0)) {
@@ -606,18 +636,19 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 		fclose(fpout);
 		fclose(dwnfp);
 	}
-	flush_vme();
+	//flush_vme();
 	//send_last();
 }
 
 
-
+/*
 void emu::fed::DCC::executeCommand(std::string command)
 {
 }
+*/
 
 
-unsigned long int emu::fed::DCC::readReg(enum DEVTYPE dt, char reg)
+unsigned long int emu::fed::DCC::readReg(enum DEVTYPE dt, char reg, unsigned int nBits)
 	throw (FEDException)
 {
 	// reads are always 16 bits from the DCC
@@ -627,15 +658,18 @@ unsigned long int emu::fed::DCC::readReg(enum DEVTYPE dt, char reg)
 	}
 
 	char cmd[4];
+	char sndbuf[4];
+	char rcvbuf[4];
+	
 	cmd[0] = 0x01; // For read function
 	cmd[1] = reg; // vme address
 	cmd[2] = 0xff; // data h
 	cmd[3] = 0xff; // data l
 
 	// This is it.
-	devdo(dt, 4, cmd, 0, sndbuf, rcvbuf, 1);
+	devdo(dt, nBits, cmd, 0, sndbuf, rcvbuf, 1);
 
-	return ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0x00ff);
+	return ((rcvbuf[3] << 24) & 0xff000000) | ((rcvbuf[2] << 16) & 0xff0000) | ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0xff);
 }
 
 
@@ -649,6 +683,9 @@ void emu::fed::DCC::writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
 	}
 
 	char cmd[4];
+	char sndbuf[4];
+	char rcvbuf[4];
+	
 	cmd[0] = 0x00; // For write function
 	cmd[1] = reg; // vme address
 	cmd[2] = (value >> 8) & 0xff; // data h
@@ -788,6 +825,92 @@ void emu::fed::DCC::setFakeL1A(unsigned int value)
 		return writeReg(MCTRL, 0x04, value);
 	} catch (FEDException &e) { throw; }
 }
+
+
+unsigned long int emu::fed::DCC::readIDCode(enum DEVTYPE dt)
+	throw (FEDException)
+{
+	unsigned int nBits = 0;
+	char cmd[2];
+	char sndbuf[5];
+	char rcvbuf[5];
+	
+	if (dt == INPROM) {
+		cmd[0] = PROM_IDCODE;
+		nBits = 8;
+	} else if (dt == MPROM) {
+		cmd[0] = MPROM_IDCODE_L;
+		cmd[1] = MPROM_IDCODE_H;
+		nBits = 16;
+	} else {
+		XCEPT_RAISE(FEDException, "Can only read IDCode from DEVTYPEs INPROM or MPROM");
+	}
+	
+	// special case:  no readReg.
+	sndbuf[0] = 0xFF;
+	sndbuf[1] = 0xFF;
+	sndbuf[2] = 0xFF;
+	sndbuf[3] = 0xFF;
+	sndbuf[4] = 0xFF;
+	devdo(dt, nBits, cmd, 32, sndbuf, rcvbuf, 1);
+	
+	if (dt == INPROM) {
+		cmd[0] = PROM_BYPASS;
+	} else if (dt == MPROM) {
+		cmd[0] = MPROM_BYPASS_L;
+		cmd[1] = MPROM_BYPASS_H;
+	}
+
+	sndbuf[0] = 0;
+	devdo(dt, nBits, cmd, 0, sndbuf, rcvbuf, 0);
+
+	return (rcvbuf[0] & 0xff) | ((rcvbuf[1] & 0xff) << 8) | ((rcvbuf[2] & 0xff) << 16) | ((rcvbuf[3] & 0xff) << 24);
+}
+
+
+
+unsigned long int emu::fed::DCC::readUserCode(enum DEVTYPE dt)
+	throw (FEDException)
+{
+	
+	unsigned int nBits = 0;
+	char cmd[2];
+	char sndbuf[5];
+	char rcvbuf[5];
+	
+	if (dt == INPROM) {
+		cmd[0] = PROM_USERCODE;
+		nBits = 8;
+	} else if (dt == MPROM) {
+		cmd[0] = MPROM_USERCODE_L;
+		cmd[1] = MPROM_USERCODE_H;
+		nBits = 16;
+	} else {
+		XCEPT_RAISE(FEDException, "Can only read UserID from DEVTYPEs INPROM or MPROM");
+	}
+	
+	// special case:  no readReg.
+	sndbuf[0] = 0xFF;
+	sndbuf[1] = 0xFF;
+	sndbuf[2] = 0xFF;
+	sndbuf[3] = 0xFF;
+	sndbuf[4] = 0xFF;
+	devdo(dt, nBits, cmd, 32, sndbuf, rcvbuf, 1);
+	
+	if (dt == INPROM) {
+		cmd[0] = PROM_BYPASS;
+	} else if (dt == MPROM) {
+		cmd[0] = MPROM_BYPASS_L;
+		cmd[1] = MPROM_BYPASS_H;
+	}
+	
+	sndbuf[0] = 0;
+	devdo(dt, nBits, cmd, 0, sndbuf, rcvbuf, 0);
+	
+	return (rcvbuf[0] & 0xff) | ((rcvbuf[1] & 0xff) << 8) | ((rcvbuf[2] & 0xff) << 16) | ((rcvbuf[3] & 0xff) << 24);
+	
+}
+
 
 
 unsigned int emu::fed::DCC::getDDUSlotFromFIFO(unsigned int fifo) {

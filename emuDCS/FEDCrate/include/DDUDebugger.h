@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.h,v 1.8 2008/08/15 08:35:50 paste Exp $
+* $Id: DDUDebugger.h,v 1.9 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: DDUDebugger.h,v $
+* Revision 1.9  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 1.8  2008/08/15 08:35:50  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -61,7 +64,7 @@ namespace emu {
 			std::map<std::string, std::string> WarnMon(int stat);
 		
 			/** Reads from method @sa DDU::ddu_fpgatrap() **/
-			std::vector<std::string> ddu_fpgatrap(DDU *thisDDU);
+			std::vector<std::string> ddu_fpgatrap(std::vector<unsigned long int> lcode, DDU *thisDDU);
 		
 			/** Reads from method @sa DDU::readKillFiber() **/
 			std::map<std::string, std::string> KillFiber(long int stat);
@@ -85,7 +88,7 @@ namespace emu {
 			std::map<std::string, std::string> WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat);
 		
 			/** Reads from method @sa DDU::infpga_trap() **/
-			std::vector<std::string> infpga_trap(DDU *thisDDU, enum DEVTYPE dt);
+			std::vector<std::string> infpga_trap(std::vector<unsigned long int> lcode, enum DEVTYPE dt);
 		
 			/** Reads from method @sa DDU::readParallelStat() **/
 			std::map<std::string, std::string> ParallelStat(int stat);

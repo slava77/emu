@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.18 2008/08/15 16:14:51 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.19 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.19  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.18  2008/08/15 16:14:51  paste
 * Fixed threads (hopefully).
 *
@@ -420,7 +423,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				// Find the broadcast slot on this crate.
 				std::vector<DDU *> myDDUs = iCount->first->getDDUs();
 				for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
-					if ((*iDDU)->slot() > 21) (*iDDU)->vmepara_wr_fmmreg(0xFED8);
+					if ((*iDDU)->slot() > 21) (*iDDU)->writeFMMReg(0xFED8);
 				}
 			}
 		}

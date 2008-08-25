@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 3.17 2008/08/15 10:40:20 paste Exp $
+* $Id: DDU.h,v 3.18 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: DDU.h,v $
+* Revision 3.18  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.17  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -40,70 +43,70 @@ namespace emu {
 			inline unsigned int getKillFiber() { return killfiber_; }
 
 			/// from the BOARDTYPE enum
-			virtual unsigned int boardType() const {return DDU_ENUM;}
-			virtual void end();
+			virtual inline unsigned int boardType() const {return DDU_ENUM;}
+			/* virtual void end(); */
 			
 			void configure();
 		
 		// DDU commands initialization/reset
-			void ddu_init();
-			void ddu_reset();
-			void ddu_l1calonoff();
+			/* void ddu_init(); */
+			/* void ddu_reset(); */
+			/* void ddu_l1calonoff(); */
 			void ddu_vmel1a();
 		// DDU register control
-			void ddu_shfttst(int tst);
-			void ddu_lowfpgastat();
-			void ddu_hifpgastat();
-			unsigned int ddu_checkFIFOa();
-			unsigned int ddu_checkFIFOb();
-			unsigned int ddu_checkFIFOc();
-			void ddu_rdfibererr();
-			void ddu_rdfiberok();
+			/* void ddu_shfttst(int tst); */
+			/* void ddu_lowfpgastat(); */
+			/* void ddu_hifpgastat(); */
+			/* unsigned int ddu_checkFIFOa(); */
+			/* unsigned int ddu_checkFIFOb(); */
+			/* unsigned int ddu_checkFIFOc(); */
+			/* void ddu_rdfibererr(); */
+			/* void ddu_rdfiberok(); */
 			long unsigned int ddu_rdkillfiber();
 			void ddu_loadkillfiber(long int regval);
-			int ddu_rdcrcerr();
-			void ddu_rdl1aerr();
-			int ddu_rdxmiterr();
-			void ddu_rdtimesterr();
-			void ddu_rdtimeewerr();
-			void ddu_rdtimeeaerr();
-			int ddu_rddmberr();
-			int ddu_rdtmberr();
-			int ddu_rdlieerr();
-			void ddu_rdliderr();
-			void ddu_rdpaferr();
-			int ddu_rdfferr();
-			unsigned int ddu_rderareg();
-			unsigned int ddu_rderbreg();
-			unsigned int ddu_rdercreg();
-			unsigned int ddu_InRDstat();
-			int  ddu_InC_Hist();
-			int  ddu_dmblive();
-			int  ddu_pdmblive();
-			int  ddu_rd_WarnMon();
-			void ddu_rd_verr_cnt();
-			void ddu_rd_cons_cnt();
-			void ddu_fifo0verr_cnt();
-			void ddu_fifo1verr_cnt();
-			void ddu_earlyVerr_cnt();
-			void ddu_verr23cnt();
-			void ddu_verr55cnt();
-			unsigned int ddu_rdostat();
-			void ddu_rdempty();
-			void ddu_rdstuckbuf();
+			/* int ddu_rdcrcerr(); */
+			/* void ddu_rdl1aerr(); */
+			/* int ddu_rdxmiterr(); */
+			/* void ddu_rdtimesterr(); */
+			/* void ddu_rdtimeewerr(); */
+			/* void ddu_rdtimeeaerr(); */
+			/* int ddu_rddmberr(); */
+			/* int ddu_rdtmberr(); */
+			/* int ddu_rdlieerr(); */
+			/* void ddu_rdliderr(); */
+			/* void ddu_rdpaferr(); */
+			/* int ddu_rdfferr(); */
+			/* unsigned int ddu_rderareg(); */
+			/* unsigned int ddu_rderbreg(); */
+			/* unsigned int ddu_rdercreg(); */
+			/* unsigned int ddu_InRDstat(); */
+			unsigned long int  ddu_InC_Hist();
+			/* int  ddu_dmblive(); */
+			/* int  ddu_pdmblive(); */
+			/* int  ddu_rd_WarnMon(); */
+			/* void ddu_rd_verr_cnt(); */
+			/* void ddu_rd_cons_cnt(); */
+			/* void ddu_fifo0verr_cnt(); */
+			/* void ddu_fifo1verr_cnt(); */
+			/* void ddu_earlyVerr_cnt(); */
+			/* void ddu_verr23cnt(); */
+			/* void ddu_verr55cnt(); */
+			/* unsigned int ddu_rdostat(); */
+			/* void ddu_rdempty(); */
+			/* void ddu_rdstuckbuf(); */
 			unsigned long int ddu_rdscaler();
-			unsigned long int ddu_int_rdscaler();
-			int ddu_rdalcterr();
+			/* unsigned long int ddu_int_rdscaler(); */
+			/* int ddu_rdalcterr(); */
 			void ddu_loadbxorbit(int regval);
-			int ddu_rdbxorbit();
-			void ddu_lvl1onoff();
-			unsigned int ddu_rd_boardID();
+			/* int ddu_rdbxorbit(); */
+			/* void ddu_lvl1onoff(); */
+			/* unsigned int ddu_rd_boardID(); */
 			unsigned long int ddu_fpgastat();
-			void ddu_occmon();
-			void ddu_fpgatrap();
+			std::vector<unsigned long int> ddu_occmon();
+			std::vector<unsigned long int> ddu_fpgatrap();
 			//  void ddu_trap_decode();
-			void ddu_maxTimeCount();
-			unsigned short int ddu_code0,ddu_code1,ddu_shift0;
+			/* void ddu_maxTimeCount(); */
+			//unsigned short int ddu_code0,ddu_code1,ddu_shift0;
 		
 			// PGK Failed attempt at simplified commands
 		// 	void init()
@@ -189,35 +192,35 @@ namespace emu {
 				throw (FEDException);
 		
 			// INFPGA register control
-			void infpga_shfttst(enum DEVTYPE dv,int tst);
+			/* void infpga_shfttst(enum DEVTYPE dv,int tst); */
 			void infpga_reset(enum DEVTYPE dv);
 			unsigned long int infpga_rdscaler(enum DEVTYPE dv);
-			int  infpga_rd1scaler(enum DEVTYPE dv);
-			void infpga_lowstat(enum DEVTYPE dv);
-			void infpga_histat(enum DEVTYPE dv);
+			unsigned long int infpga_rd1scaler(enum DEVTYPE dv);
+			/* void infpga_lowstat(enum DEVTYPE dv); */
+			/* void infpga_histat(enum DEVTYPE dv); */
 			unsigned long int infpgastat(enum DEVTYPE dv);
-			int infpga_CheckFiber(enum DEVTYPE dv);
-			int infpga_int_CheckFiber(enum DEVTYPE dv);
-			void infpga_DMBsync(enum DEVTYPE dv);
-			void infpga_FIFOstatus(enum DEVTYPE dv);
-			void infpga_FIFOfull(enum DEVTYPE dv);
-			void infpga_RxErr(enum DEVTYPE dv);
-			void infpga_Timeout(enum DEVTYPE dv);
-			void infpga_XmitErr(enum DEVTYPE dv);
-			int infpga_WrMemActive(enum DEVTYPE dv,int ifiber);
-			int infpga_DMBwarn(enum DEVTYPE dv);
-			int infpga_MemAvail(enum DEVTYPE dv);
-			int infpga_Min_Mem(enum DEVTYPE dv);
-			void infpga_LostErr(enum DEVTYPE dv);
-			int  infpga_CcodeStat(enum DEVTYPE dv);
-			void infpga_StatA(enum DEVTYPE dv);
-			void infpga_StatB(enum DEVTYPE dv);
-			void infpga_StatC(enum DEVTYPE dv);
-			void infpga_FiberDiagA(enum DEVTYPE dv);
-			void infpga_FiberDiagB(enum DEVTYPE dv);
-			void infpga_trap(enum DEVTYPE dv);
-			unsigned short int infpga_code0,infpga_code1,infpga_shift0;
-			unsigned long int fpga_lcode[10];
+			/* int infpga_CheckFiber(enum DEVTYPE dv); */
+			/* int infpga_int_CheckFiber(enum DEVTYPE dv); */
+			/* void infpga_DMBsync(enum DEVTYPE dv); */
+			/* void infpga_FIFOstatus(enum DEVTYPE dv); */
+			/* void infpga_FIFOfull(enum DEVTYPE dv); */
+			/* void infpga_RxErr(enum DEVTYPE dv); */
+			/* void infpga_Timeout(enum DEVTYPE dv); */
+			/* void infpga_XmitErr(enum DEVTYPE dv); */
+			/* int infpga_WrMemActive(enum DEVTYPE dv,int ifiber); */
+			/* int infpga_DMBwarn(enum DEVTYPE dv); */
+			unsigned long int infpga_MemAvail(enum DEVTYPE dv);
+			unsigned long int infpga_Min_Mem(enum DEVTYPE dv);
+			/* void infpga_LostErr(enum DEVTYPE dv); */
+			unsigned long int infpga_CcodeStat(enum DEVTYPE dv);
+			/* void infpga_StatA(enum DEVTYPE dv); */
+			/* void infpga_StatB(enum DEVTYPE dv); */
+			/* void infpga_StatC(enum DEVTYPE dv); */
+			/* void infpga_FiberDiagA(enum DEVTYPE dv); */
+			/* void infpga_FiberDiagB(enum DEVTYPE dv); */
+			std::vector<unsigned long int> infpga_trap(enum DEVTYPE dv);
+			//unsigned short int infpga_code0,infpga_code1,infpga_shift0;
+			//unsigned long int fpga_lcode[10];
 		
 			// PGK Failed attempt at simplified INFPGA commands
 			long int readL1Scaler1(enum DEVTYPE dv)
@@ -254,6 +257,7 @@ namespace emu {
 				throw (FEDException);
 		
 			// DDU Status Decode
+			/*
 			void ddu_status_decode(int long code);
 			void ddu_ostatus_decode(int long code);
 			void ddu_era_decode(int long code);
@@ -284,6 +288,7 @@ namespace emu {
 			unsigned long int dduprom_usercode0();
 			unsigned long int dduprom_usercode1();
 			void all_chip_info();
+			*/
 		
 			// PGK Failed attempt at simplified ID/user codes
 			unsigned long int readFPGAUserCode(enum DEVTYPE dt)
@@ -292,6 +297,7 @@ namespace emu {
 				throw (FEDException);
 		
 			// DDU parallel
+			/*
 			unsigned short int vmepara_busy();
 			unsigned short int vmepara_fullwarn();
 			unsigned short int vmepara_CSCstat();
@@ -316,6 +322,7 @@ namespace emu {
 			unsigned short int vmepara_rd_testreg4();
 			unsigned short int vmepara_busyhist();
 			unsigned short int vmepara_warnhist();
+			*/
 		
 			// PGK Failed attempt at simplified VME parallel
 			int readParallel(int command)
@@ -361,15 +368,20 @@ namespace emu {
 				throw (FEDException);
 		
 			// DDU serial
+			/*
 			int read_status();
 			int read_int_page1();
+			*/
 			int read_page1();
+			/*
 			void write_page1();
 			int read_page3();
 			void write_page3();
 			void read_page4();
 			void write_page4();
-			void read_page5();
+			*/
+			std::vector<unsigned long int> read_page5();
+			/*
 			void write_page5();
 			int read_page7();
 			void write_page7();
@@ -380,6 +392,7 @@ namespace emu {
 			void write_vmesdF();
 			char snd_serial[6];
 			char rcv_serial[6];
+			*/
 		
 			// PGK Failed attempt at simplified VME serial
 			unsigned long int readSerial(int command, const unsigned int nbits)
@@ -389,8 +402,8 @@ namespace emu {
 		
 			char readSerialStat()
 				throw (FEDException);
-			int readFlashKillFiber()
-				throw (FEDException);
+			/* int readFlashKillFiber()
+				throw (FEDException); */
 			void writeFlashKillFiber(int val)
 				throw (FEDException);
 			int readFlashBoardID()
@@ -419,11 +432,13 @@ namespace emu {
 			float adcminus(int ichp,int ichn);
 			float readthermx(int it);
 			unsigned int readADC(int ireg, int ichn);
+			/*
 			void read_therm();
 			void read_voltages();
-			
+			*/
+
 			// Unpack characters to integers
-			unsigned int unpack_ival();
+			/* unsigned int unpack_ival(); */
 			
 			// EPROM reprogramming (EXPERTS ONLY !)
 			void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
@@ -431,12 +446,14 @@ namespace emu {
 			void Parse(char *buf,int *Count,char **Word);
 			
 			/// sends commands by name
-			void executeCommand(std::string command);
+			/* void executeCommand(std::string command); */
 			
 			// unpacks rcvbuf from FPGA operations
+			/*
 			unsigned long int unpack_ibrd() const;
 			unsigned int unpack_ival() const;
-		
+			*/
+			
 			/* PGK Chamber routines */
 			std::vector<Chamber *> getChambers();
 			Chamber *getChamber(unsigned int fiberNumber);
@@ -446,7 +463,7 @@ namespace emu {
 		private:
 		
 			std::vector<Chamber *> chamberVector_;
-			int skip_vme_load_;
+			//int skip_vme_load_;
 			int gbe_prescale_;
 			unsigned int killfiber_;
 

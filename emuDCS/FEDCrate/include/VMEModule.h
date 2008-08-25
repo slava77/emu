@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.6 2008/08/19 14:51:02 paste Exp $
+* $Id: VMEModule.h,v 3.7 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.7  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.6  2008/08/19 14:51:02  paste
 * Update to make VMEModules more independent of VMEControllers.
 *
@@ -66,21 +69,48 @@ namespace emu {
 			// JTAG stuff
 			void CAEN_read(unsigned long Address, unsigned short int *data)
 				throw (FEDException);
+
+			/** Returns the value from a particular address on this module.
+			*	Because single address reads are always, ALWAYS 16 bits for these
+			*	particular boards, this function will always return a 16-bit
+			*	value.  Other routines will perform cycles of reads to dig out
+			*	values larger than 16 bits.
+			*
+			*	@note No pointers were harmed in the making of this method.
+			*
+			*	@param Address The address (technically on any module) from
+			*	which to read the data.
+			*
+			*	@returns the 16-bit value at that address.
+			**/
+			int16_t CAEN_read(unsigned long Address)
+				throw (FEDException);
 			
 			void CAEN_write(unsigned long Address, unsigned short int *data)
 				throw (FEDException);
+
+			/** Writes 16 bits of data to the specified address.
+			*
+			*	@note Again, pointers are not used.
+			*
+			*	@param Address The address (technically on any module) to
+			*	where the data will be written
+			*	@param data The data two be written.
+			**/
+			void CAEN_write(unsigned long Address, int16_t data)
+				throw (FEDException);
 			
-			void vme_controller(int irdwr, unsigned short int *ptr, unsigned short int *data, char *rcv);
+			void vme_controller(int irdwr, unsigned short int address, unsigned short int data, char *rcv);
 			
 			void devdo(DEVTYPE dev, int ncmd, const char *cmd, int nbuf, const char *inbuf, char *outbuf, int irdsnd)
 				throw (FEDException);
 			
-			void scan(DEVTYPE dev, int reg, const char *snd, int cnt2, char *rcv, int ird)
+			void scan(DEVTYPE dev, int reg, const char *snd, int cnt, char *rcv, int ird)
 				throw (FEDException);
 			
-			void handshake_vme();
+			/* void handshake_vme(); */
 			
-			void flush_vme();
+			/* void flush_vme(); */
 			
 			void vmeser(const char *cmd, const char *snd, char *rcv);
 			
@@ -100,25 +130,21 @@ namespace emu {
 			
 			/* void initDevice(int a); */
 			/// used for calls to do_vme
-			// FIXME!
-			enum FCN { VME_READ=1, VME_WRITE=2 };
-			enum WRT { LATER, NOW };
+			//enum FCN { VME_READ=1, VME_WRITE=2 };
+			//enum WRT { LATER, NOW };
 		
 			/// required for DDU/DCC communications
-			// FIXME!
-			char sndbuf[4096];
-			char rcvbuf[4096];
-			char rcvbuf2[4096];
-			char cmd[4096];
+			//char sndbuf[4096];
+			//char rcvbuf[4096];
+			//char rcvbuf2[4096];
+			//char cmd[4096];
 		
 		private:
 			int slot_;
 			int Device_;
 			int Link_;
 			int32_t BHandle_;
-			
 			unsigned long int vmeadd_;
-			//int idevo_;
 			
 			inline int pows_(int n, int m) { int ret = 1; for (int i=0; i<m; i++) ret *= n; return ret; }
 			inline void udelay(long int itim) { for (long int j=0; j<itim; j++) for (long int i=0; i<200; i++); }

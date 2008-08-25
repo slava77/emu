@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.14 2008/08/19 14:51:02 paste Exp $
+* $Id: VMEController.cc,v 3.15 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.15  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.14  2008/08/19 14:51:02  paste
 * Update to make VMEModules more independent of VMEControllers.
 *
@@ -45,7 +48,7 @@ emu::fed::VMEController::VMEController(int Device, int Link)
 	//endian_(SWAP)
 {
 	CVBoardTypes VMEBoard = cvV2718;
-	int32_t BHandle; 
+	int32_t BHandle;
 	
 	int result = CAENVME_Init(VMEBoard,Device_,Link_,&BHandle);
 	

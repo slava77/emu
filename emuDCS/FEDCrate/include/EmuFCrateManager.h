@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.h,v 1.15 2008/08/15 10:40:20 paste Exp $
+* $Id: EmuFCrateManager.h,v 1.16 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: EmuFCrateManager.h,v $
+* Revision 1.16  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 1.15  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -98,7 +101,7 @@ private:
 	xdata::UnsignedInteger tts_slot_;
 	xdata::UnsignedInteger tts_bits_;
 
-	void sendCommand(std::string command, std::string klass, int instance)
+	void sendCommand(std::string command, std::string klass, int instance = -1)
 		throw (xoap::exception::Exception, xdaq::exception::Exception);
 	xoap::MessageReference createCommandSOAP(std::string command);
 

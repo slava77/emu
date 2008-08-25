@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 3.49 2008/08/15 10:40:20 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 3.50 2008/08/25 12:25:49 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.h,v $
+* Revision 3.50  2008/08/25 12:25:49  paste
+* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
+*
 * Revision 3.49  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -34,17 +37,16 @@ class EmuFCrateHyperDAQ: public EmuFEDApplication
 {
 private:
 
-	unsigned long int tidcode[8];
-	unsigned long int tuscode[8];
-
 	xdata::String svfFile_;
 	xdata::String xmlFile_;
 	std::vector<emu::fed::FEDCrate*> crateVector;
 	std::string DDUBoardID_[9];
 	std::string DCCBoardID_[9];
+	/*
 	int DCC_ratemon[50][12];
 	int DCC_ratemon_cnt;
 	int DCC_ratemon_ch;
+	*/
 	std::string fcState_;
 
 public:
@@ -147,9 +149,11 @@ public:
 		throw (xgi::exception::Exception);
 
 	/** Broadcasts 0xFED8 to the DDU FMM register (?) **/
+	/*
 	void DDUBrcstFED(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
-
+	*/
+	
 	/** @Deprecated Merged with the broadcast method **/
 	/*
 	void DDULoadFirmware(xgi::Input * in, xgi::Output * out )
@@ -191,13 +195,31 @@ public:
 	void VMEIntIRQ(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
-	/** Page for DCC firmware loading/checking. **/
-	void DCCFirmware(xgi::Input * in, xgi::Output * out )
+	/** Page listing the DCC firmware broadcast options. **/
+	void DCCBroadcast(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception);
+	
+	/** Uploads the broadcastable firmware from the client computer to the
+	*	server computer.
+	**/
+	void DCCLoadBroadcast(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception);
+	
+	/** Broadcasts firmware to all DCCs simultaneously. **/
+	void DCCSendBroadcast(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
 
+	/** Page for DCC firmware loading/checking. **/
+	/*
+	void DCCFirmware(xgi::Input * in, xgi::Output * out )
+		throw (xgi::exception::Exception);
+	*/
+
 	/** Routine for actually loading the DCC firmware. **/
+	/*
 	void DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
+	*/
 
 	/** Debugging routine for XML configuration file loading (?) **/
 	void LoadXMLconf(xgi::Input * in, xgi::Output * out )
@@ -216,8 +238,10 @@ public:
 		throw (xgi::exception::Exception);
 
 	/** Hard-reset the DCC to reset and load firmware. **/
+	/*
 	void DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
+	*/
 
 	/** Live DDU voltage monitoring page. **/
 	void DDUVoltMon(xgi::Input * in, xgi::Output * out )
@@ -228,21 +252,24 @@ public:
 		throw (xgi::exception::Exception);
 
 	/** Live DCC data rate monitoring. **/
+	/*
 	void DCCRateMon(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
-
+	*/
 	/** Display a static page with a graph for the DCC data rate off the first
 	*	S-Link channel.
 	**/
+	/*
 	void getDataDCCRate0(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
-
+	*/
 	/** Display a static page with a graph for the DCC data rate off the second
 	*	S-Link channel.
 	**/
+	/*
 	void getDataDCCRate1(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
-
+	*/
 	/** Redirect the user so that the form information is cleared from the URL.
 	*
 	*	@author Phillip Killewald

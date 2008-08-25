@@ -8,8 +8,8 @@ include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 # these variables will disappear soon ...
-DIMDIR=$(XDAQ_ROOT)/$(Project)/extern/dim/$(XDAQ_OS)$(XDAQ_PLATFORM)
-DCSDIR=$(XDAQ_ROOT)/emu/emuDCS/e2p
+#DIMDIR=$(XDAQ_ROOT)/$(Project)/extern/dim/$(XDAQ_OS)$(XDAQ_PLATFORM)
+#DCSDIR=$(XDAQ_ROOT)/emu/emuDCS/e2p
 
 #
 # Packages to be built
@@ -18,26 +18,29 @@ Project=emu
 Package=emuDCS/FEDCrate
 
 Sources=\
+	FEDVersion.cc \
 	EmuFEDLoggable.cc \
-	FEDCrate.cc \
-	DDU.cc \
-	DDUParser.cc \
-	DDUDebugger.cc \
-	DCC.cc \
-	DCCParser.cc \
-	DCCDebugger.cc \
-	EmuParser.cc \
-	FEDCrateParser.cc \
-	VMEController.cc \
-	VMEControllerParser.cc \
+	JTAGDevice.cc \
 	VMEModule.cc \
-	IRQThreadManager.cc \
-	EmuFCrateHyperDAQ.cc \
-	EmuFCrate.cc \
-	EmuFCrateManager.cc \
 	Chamber.cc \
+	DDU.cc \
+	DCC.cc \
+	VMEController.cc \
+	FEDCrate.cc \
+	EmuParser.cc \
 	ChamberParser.cc \
-	JTAGDevice.cc
+	DDUParser.cc \
+	DCCParser.cc \
+	VMEControllerParser.cc \
+	FEDCrateParser.cc \
+	EmuFEDApplication.cc \
+	EmuFCrateManager.cc \
+	IRQThreadManager.cc \
+	EmuFCrate.cc \
+	DDUDebugger.cc \
+	DCCDebugger.cc \
+	DataTable.cc \
+	EmuFCrateHyperDAQ.cc
 
 
 IncludeDirs = \
