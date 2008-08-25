@@ -1382,10 +1382,13 @@ void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out
   std::vector<emu::pc::TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     myVector = crateVector[i]->tmbs();
-     for(unsigned int i=0; i<myVector.size(); i++) 
+     if(crateVector[i]->IsAlive())
      {
-       myVector[i]->ResetCounters();
+        myVector = crateVector[i]->tmbs();
+        for(unsigned int j=0; j<myVector.size(); j++) 
+        {
+          myVector[j]->ResetCounters();
+        }
      }
   }
   this->Default(in,out);
@@ -1394,15 +1397,31 @@ void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out
 void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
+  *out << "<?xml-stylesheet type=\"text/xml\" href=\"counterMonitor.xsl\"?>" << std::endl;
+  *out << "<emuCounters dateTime=\"2008-08-25 16:34:56\">" << std::endl;
+  *out << "  <sample name=\"cumulative\" delta_t=\"500\">" << std::endl;
+
   std::vector<emu::pc::TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      myVector = crateVector[i]->tmbs();
-     for(unsigned int i=0; i<myVector.size(); i++) 
+     for(unsigned int j=0; j<myVector.size(); j++) 
      {
-
+        *out << "    <count chamber=\"";
+        *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << "\" alct=\"";
+        *out << myVector[j]->GetCounter(1);
+        *out << "\" clct=\"";
+        *out << myVector[j]->GetCounter(5);
+        *out << "\" l1a=\"";
+        *out << myVector[j]->GetCounter(34);
+        *out << "\"/>" << std::endl;
      }
   }
+
+  *out << "  <sample>" << std::endl;
+  *out << "<emuCounters>" << std::endl;
 }
 
 void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out ) 
