@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: DataTable.h,v 1.8 2008/08/26 13:09:02 paste Exp $
+* $Id: DataTable.h,v 1.9 2008/08/26 13:40:08 paste Exp $
 *
 * $Log: DataTable.h,v $
-* Revision 1.8  2008/08/26 13:09:02  paste
-* Documentation update.
+* Revision 1.9  2008/08/26 13:40:08  paste
+* Updating and adding documentation
 *
 * Revision 1.7  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
@@ -26,7 +26,7 @@
 namespace emu {
 	namespace fed {
 
-		/** An individual element of a DataRow object.  Contains the actual value
+		/** @class DataElement An individual element of a DataRow object.  Contains the actual value
 		*	to be displayed (as a stringstream) and the CSC class name of the element
 		*	for formatting purposes.
 		**/
@@ -91,7 +91,7 @@ namespace emu {
 		};
 		
 	
-		/** An individual row of a DataTable object.  These contain DataElements. **/
+		/** @class DataRow An individual row of a DataTable object.  These contain DataElements. **/
 		class DataRow
 		{
 			friend class DataTable;
@@ -153,7 +153,7 @@ namespace emu {
 			unsigned long int breaks_;
 		};
 		
-		/** A class for building, maintaining, and easily displaying tables of data
+		/** @class DataTable A class for building, maintaining, and easily displaying tables of data
 		*	used in the EmuFCrateHyperDAQ application.
 		*
 		*	@sa @class EmuFCrateHyperDAQ

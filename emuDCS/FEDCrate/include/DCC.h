@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 3.17 2008/08/25 12:25:49 paste Exp $
+* $Id: DCC.h,v 3.18 2008/08/26 13:40:08 paste Exp $
 *
 * $Log: DCC.h,v $
+* Revision 3.18  2008/08/26 13:40:08  paste
+* Updating and adding documentation
+*
 * Revision 3.17  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -27,22 +30,29 @@ namespace emu {
 
 	namespace fed {
 
+		/** @class DCC A class for talking to DCC boards. **/
 		class DCC: public VMEModule
 		{
 		public:
 			friend class DCCParser;
 		
-			// standard routines
-			/// construct with all the standard CFEBs and BuckeyeChips
+			/** @deprecated Please use the DCC(int) constructor instead. **/
 			DCC(int, int);
+
+			/** @param slot the slot of the board for VME addressing purposes. **/
 			DCC(int slot);
+
 			virtual ~DCC();
-			/// from the BOARDTYPE enum
+
+			/** @return the type of board this is, useful for dynamic casting. **/
 			virtual unsigned int boardType() const {return DCC_ENUM;}
-			/* virtual void end(); */
 		
+			/** @return the FIFOInUse parameter. **/
 			inline int getFIFOInUse() { return fifoinuse_; }
 
+			/** Configure the DCC by loading the FIFOInUse and SoftwareSwitch variables to
+			*	the PROMs.
+			**/
 			void configure();
 		
 			// DCC commands
@@ -70,8 +80,20 @@ namespace emu {
 			*/
 		
 			// PGK Attempt at simplified DCC commands
+			/** A general function to read from a given register via JTAG.
+			*	
+			*	@param dt the JTAG device from which to read.
+			*	@param reg the register from which to read.
+			*	@param nBits the number of bits to read back (?).  Not used.
+			**/
 			unsigned long int readReg(enum DEVTYPE dt, char reg, unsigned int nBits = 4)
 				throw (FEDException);
+			
+			/** A general function to write to a given register via JTAG.
+			*	@param dt the JTAG device to which the data will be written.
+			*	@param reg the register to which the data will be written.
+			*	@param value the value to write.
+			**/
 			void writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
 				throw (FEDException);
 		
@@ -113,22 +135,20 @@ namespace emu {
 			/* void hdrst_in(void); */
 			void epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ);
 		
-			/// sends commands by name
+			/** @deprecated **/
 			void executeCommand(std::string command);
 		
 			// PGK Simplified DCC commands
-			/** Reset the crate through a TTC-override command.	**/
+			/** Reset the crate through a TTC-override command. **/
 			void crateHardReset();
+			
 			/** Sync reset the crate through a TTC-override command. **/
 			void crateSyncReset();
+			
 			/** Return the slot number of the DDU corresponding to the given input
 			*	fifo
 			**/
 			unsigned int getDDUSlotFromFIFO(unsigned int fifo);
-		
-			// unpacks rcvbuf from FPGA operations
-			/* unsigned long int unpack_ibrd() const; */
-			/* unsigned int unpack_ival() const; */
 		
 		private:
 			int fifoinuse_;

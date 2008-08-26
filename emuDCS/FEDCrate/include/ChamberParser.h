@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: ChamberParser.h,v 1.7 2008/08/26 13:09:02 paste Exp $
+* $Id: ChamberParser.h,v 1.8 2008/08/26 13:40:08 paste Exp $
 *
 * $Log: ChamberParser.h,v $
-* Revision 1.7  2008/08/26 13:09:02  paste
-* Documentation update.
+* Revision 1.8  2008/08/26 13:40:08  paste
+* Updating and adding documentation
 *
 * Revision 1.6  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
@@ -24,10 +24,11 @@
 namespace emu {
 	namespace fed {
 
+		/// \no
 		class Chamber;
 
-		/** A parser that builds Chamber objects to be loaded into the DDU.
-		*	@sa @class Chamber
+		/** @class ChamberParser A parser that builds Chamber objects to be loaded into the DDU.
+		*	@sa Chamber
 		**/
 		class ChamberParser: public EmuParser
 		{
