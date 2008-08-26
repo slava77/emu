@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.48 2008/08/13 12:49:23 geurts Exp $
+// $Id: DAQMB.cc,v 3.49 2008/08/26 11:57:06 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.49  2008/08/26 11:57:06  liu
+// change abs() to fabs()
+//
 // Revision 3.48  2008/08/13 12:49:23  geurts
 // explicit std:: reference for abs() function. (Note: this should probably be changed to fabs())
 //
@@ -615,7 +618,7 @@ void DAQMB::configure() {
    //for (int lfeb=0;lfeb<5;lfeb++)
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
      std::cout << "****************** thresh " << compthresh[lfeb] << " " << adcplus(2,lfeb) << std::endl;
-     if((std::abs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
+     if((std::fabs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
     
    }
 
