@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: Chamber.h,v 1.7 2008/08/26 13:09:02 paste Exp $
+* $Id: Chamber.h,v 1.8 2008/08/26 13:40:08 paste Exp $
 *
 * $Log: Chamber.h,v $
-* Revision 1.7  2008/08/26 13:09:02  paste
-* Documentation update.
+* Revision 1.8  2008/08/26 13:40:08  paste
+* Updating and adding documentation
 *
 * Revision 1.6  2008/08/15 10:23:01  paste
 * Fixed EmuFCrateLoggable function definitions
@@ -21,7 +21,7 @@
 namespace emu {
 	namespace fed {
 
-		/** A class for easy access to chamber names and locations. **/
+		/** @class Chamber A class for easy access to chamber names and locations. **/
 		class Chamber
 		{
 		public:
