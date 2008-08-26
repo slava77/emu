@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.39 2008/08/25 12:25:49 paste Exp $
+* $Id: EmuFCrate.cc,v 3.40 2008/08/26 13:09:02 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.40  2008/08/26 13:09:02  paste
+* Documentation update.
+*
 * Revision 3.39  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -428,7 +431,11 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		std::vector< emu::fed::DCC * > dccs = (*iCrate)->getDCCs();
 		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
 			LOG4CPLUS_INFO(getApplicationLogger(), "HARD RESET THROUGH DCC!");
-			dccs[0]->crateHardReset();
+			try {
+				dccs[0]->crateHardReset();
+			} catch (emu::fed::FEDException &e) {
+				LOG4CPLUS_ERROR(getApplicationLogger(), "CAEN error detected.");
+			}
 		}
 		LOG4CPLUS_INFO(getApplicationLogger(), "Configuring crate " << (*iCrate)->number());
 		(*iCrate)->configure();
