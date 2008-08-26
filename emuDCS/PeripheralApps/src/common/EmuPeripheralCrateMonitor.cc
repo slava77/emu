@@ -50,6 +50,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::OCounterSelection, "OCounterSelection");
   xgi::bind(this,&EmuPeripheralCrateMonitor::ChamberView, "ChamberView");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateView, "CrateView");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::BeamView, "BeamView");
 
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStart      ,"MonitorStart");
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStop      ,"MonitorStop");
@@ -413,6 +414,15 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     std::string EndcapView2 = toolbox::toString("/%s/CrateView",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",EndcapView2).set("target","_blank") << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","All Crates").set("name", "EndcapView") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+
+    *out << cgicc::td();
+    std::string beamView = toolbox::toString("/%s/BeamView",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",beamView).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Beam Monitor").set("name", "BeamView") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
@@ -1422,6 +1432,104 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
 
   *out << "  <sample>" << std::endl;
   *out << "<emuCounters>" << std::endl;
+}
+
+
+void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+
+  long long int me_total[5][4], out_total=0, total=0;
+  long long int l_sum=0, r_sum=0, t_sum=0, b_sum=0;
+
+  for(int i=0;i<5;i++) for(int j=0;j<4;j++) me_total[i][j]=0;
+
+  std::vector<emu::pc::TMB*> myVector;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     myVector = crateVector[i]->tmbs();
+     for(unsigned int j=0; j<myVector.size(); j++) 
+     {
+        std::string chname = crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        int station = std::atoi(chname.substr(3,1).c_str());
+        int ring = std::atoi(chname.substr(5,1).c_str());
+        int chnumb = std::atoi(chname.substr(7,2).c_str());
+
+        int value = myVector[j]->GetCounter(1);  // ALCT
+
+        total += value;
+        me_total[station][ring] += value;
+        if(ring>1) out_total += value;
+        else
+        {
+           if(station==1)
+           {
+              if(chnumb<=5 && chnumb>=14) t_sum += value;
+              else if(chnumb<=15 && chnumb>=22) r_sum += value;
+              else if(chnumb<=23 && chnumb>=32) b_sum += value;
+              else l_sum += value;
+           }
+           else
+           {
+              if(chnumb<=3 && chnumb>=7) t_sum += value;
+              else if(chnumb<=8 && chnumb>=11) r_sum += value;
+              else if(chnumb<=12 && chnumb>=16) b_sum += value;
+              else l_sum += value;
+           }
+        }
+     }
+  }
+  //
+  MyHeader(in,out,"Crate Status");
+  //
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  //
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
+  //
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+  //
+
+  *out << cgicc::fieldset().set("style","font-size: 16pt; font-family: courier;");
+  *out << cgicc::legend("BEAM Position").set("style","color:green") << std::endl ;
+
+  if(total) 
+  {  
+     double o_t = (double)out_total/(double)total;
+     *out << "Outer/Total  " << o_t << cgicc::br() << std::endl;
+  }
+  if(r_sum+l_sum)
+  {
+     double r_l = ((double)r_sum-(double)l_sum)/((double)r_sum+(double)l_sum);
+     *out << "R-L/R+L Inner  " << r_l << cgicc::br() << std::endl;
+  }
+  if(b_sum+t_sum)
+  {
+     double b_t = ((double)b_sum-(double)t_sum)/((double)b_sum+(double)t_sum);
+     *out << "B-T/B+T Inner  " << b_t << cgicc::br() << cgicc::hr() << std::endl;
+  }
+  *out << cgicc::br();
+  *out << cgicc::fieldset();
+
+  *out << cgicc::fieldset().set("style","font-size: 16pt; font-family: courier;");
+  *out << cgicc::legend("Chamber Sums").set("style","color:blue") << std::endl ;
+  *out << "Total  " << total << cgicc::br() << cgicc::br() << std::endl;
+  *out << "ME 1/1: " << me_total[1][1] << "  ME 1/2: " << me_total[1][2];
+  *out << "  ME 1/3: "  << me_total[1][3] << cgicc::br() << std::endl;
+  *out << "ME 2/1: " << me_total[2][1] << "  ME 2/2: " << me_total[2][2] << cgicc::br() << std::endl;
+  *out << "ME 3/1: " << me_total[3][1] << "  ME 3/2: " << me_total[3][2] << cgicc::br() << std::endl;
+  *out << "ME 4/1: " << me_total[4][1] << cgicc::br() << std::endl;
+  *out << cgicc::br();
+  *out << cgicc::fieldset();
+
 }
 
 void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out ) 

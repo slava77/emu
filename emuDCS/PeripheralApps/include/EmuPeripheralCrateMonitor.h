@@ -200,6 +200,7 @@ private:
   void OCounterSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ChamberView(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateView(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void BeamView(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void InitCounterNames();
       
   void CheckControllers();
