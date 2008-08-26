@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DataTable.h,v 1.7 2008/08/25 12:25:49 paste Exp $
+* $Id: DataTable.h,v 1.8 2008/08/26 13:09:02 paste Exp $
 *
 * $Log: DataTable.h,v $
+* Revision 1.8  2008/08/26 13:09:02  paste
+* Documentation update.
+*
 * Revision 1.7  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -23,25 +26,30 @@
 namespace emu {
 	namespace fed {
 
+		/** An individual element of a DataRow object.  Contains the actual value
+		*	to be displayed (as a stringstream) and the CSC class name of the element
+		*	for formatting purposes.
+		**/
 		class DataElement
 		{
 			friend class DataRow;
+			
 		public:
+			
 			/** Standard constructor.
 			*
-			*	@param value is the value of the pacticular element.
-			*	@param class is the class of the particular element.
+			*	@param myValue is the value of the pacticular element.
+			*	@param klass is the class of the particular element.
 			**/
 			DataElement(std::stringstream myValue, std::string className = "none");
 		
 			/** Standard constructor with std::strings.
 			*
-			*	@param value is the value of the pacticular element.
-			*	@param class is the class of the particular element.
+			*	@param myValue is the value of the pacticular element.
+			*	@param klass is the class of the particular element.
 			**/
 			DataElement(std::string myValue = "", std::string klass = "none");
 		
-			/** Standard destructor **/
 			~DataElement() {}
 		
 			/** Set the value straight away. **/
@@ -52,42 +60,47 @@ namespace emu {
 				return value->str();
 			}
 		
-			/** Also set the value straight away **/
+			/** Set the value straight away. **/
 			inline void setValue(std::stringstream myValue)
 			{
 				value->clear();
 				*value << value;
 			}
 		
-			/** Also set the value straight away **/
+			/** Set the value straight away. **/
 			inline void setValue(std::string myValue)
 			{
 				value->clear();
 				*value << value;
 			}
 		
-			/** Set the CSS class **/
+			/** Set the CSS class. **/
 			inline void setClass(std::string className) { class_ = className; }
 		
-			/** Get the CSS class **/
+			/** @returns CSS class. **/
 			inline std::string getClass() { return class_; }
 		
-			/** Display as an HTML table element **/
+			/** Display as an HTML table element \<td\>. **/
 			std::string toHTML(bool breaks = false);
 		
+			/// The value that will be displayed, made public for easy writing to and from.
 			std::stringstream *value;
 		
 		private:
 			std::string class_;
 		};
 		
+	
+		/** An individual row of a DataTable object.  These contain DataElements. **/
 		class DataRow
 		{
 			friend class DataTable;
 		public:
 			/** Standard constructor.
 			*
-			*	@param cols is the number of columns in the row.
+			*	@param myName is the name of the row, or the "title" of the element of data to be displayed.
+			*	@param cols is the number of columns in the row to begin with.  Can be dynamically updated later.
+			*	@param breaks is a set of bits with each high bit corresponding to placing a break in the table after that column.
 			**/
 			DataRow(std::stringstream myName, unsigned int cols = 3, unsigned long int breaks = 0)
 				throw (FEDException);
@@ -96,18 +109,22 @@ namespace emu {
 			DataRow(std::string myName, unsigned int cols = 3, unsigned long int breaks = 0)
 				throw (FEDException);
 		
-			/** Standard destructor **/
 			~DataRow() {}
 		
 			/** Access a given element. **/
 			DataElement *operator[] (unsigned int element)
 				throw (FEDException);
 		
-			/** Set which elements to draw a line after (using borders). **/
+			/** Set which elements to draw a line after (using borders). 
+			*
+			*	@param breaks is a set of bits with each high bit corresponding to placing a break in the table after that column.
+			**/
 			inline void setBreaks(unsigned long int breaks) { breaks_ = breaks; }
 		
-		
-			/** Set the class of the second element. **/
+			/** Set the CSS class name of the \e second element.
+			*	The second element is sometimes used as the data value, so it might be
+			*	important to have an easy way to set its class.
+			**/
 			inline void setClass(std::string className)
 				throw (FEDException)
 			{
@@ -115,7 +132,10 @@ namespace emu {
 				elements_[1]->setClass(className);
 			}
 		
-			/** What it looks like **/
+			/** @returns a string representing the row in and HTML table row \<tr\>.
+			
+				@sa @class DataElement method toHTML.
+			**/
 			std::string toHTML();
 		
 			/** Make a form for editing the present value.
@@ -133,42 +153,78 @@ namespace emu {
 			unsigned long int breaks_;
 		};
 		
-		
+		/** A class for building, maintaining, and easily displaying tables of data
+		*	used in the EmuFCrateHyperDAQ application.
+		*
+		*	@sa @class EmuFCrateHyperDAQ
+		**/
 		class DataTable
 		{
 		public:
 			/** Standard constructor.
 			*
-			*	@param id is the HTML id tag of the table.  Should be unique.
+			*	@param id the HTML id tag of the table.  Should be unique.
 			**/
 			DataTable(std::string id);
 		
-			/** Standard destructor. **/
 			~DataTable() {};
 		
-			/** Access a given row. **/
+			/** Access a given DataRow. **/
 			DataRow *operator[] (unsigned int row);
 		
-			/** Access a given element. **/
+			/** Access a given DataElement.  Will automatically expand DataRows with
+			*	new DataElements and expand with more DataRows as needed.
+			*
+			*	@param row the DataRow to access.
+			*	@param col the DataElement in that row to access.
+			**/
 			DataElement *operator() (unsigned int row, unsigned int col);
 		
+			/** Add a column to the table.  Will expand the DataRows as needed.
+			*
+			*	@param title the title of the column to appear at the top of the HTML version of the table.
+			**/
 			void addColumn(std::string title);
 		
 			/** Put a border-defined break to the right of the last defined column. **/
 			void addBreak()
 				throw (FEDException);
 		
+			/** Add a pre-constructed DataRow to the table. **/
 			void addRow(DataRow *row);
 			
+			/** @return the number of DaraRows in the table. **/
 			inline unsigned int countRows() { return rows_.size(); }
 		
+			/** @return the table formatted as an HTML table \<table\>.
+			*
+			*	@param tableTags if true will display the table with the opening and closing \<table\> tags.  Useful if you want to combine tables under the same set of tags.
+			**/
 			std::string toHTML(bool tableTags = true);
 		
+			/** @return the number of times a particular class name appears in the classes
+			*	of the DataElements.
+			*
+			*	@param className the CSS class name for which to search.
+			**/
 			unsigned int countClass(std::string className);
 		
+			/** @returns a string summarizing the classes of the table in the format
+			*	"#withClassName1/#Elements ClassName1 #withClassName2/#Elements ClassName2..."
+			*	Will automatically skip class names that are empty or "none", and wraps each
+			*	or the class summaries in an HTML \<span\> tag with the same class as
+			*	that which is being described.
+			**/
 			std::string printSummary();
 		
+			/** @returns whether or not the table is set to not display (via the HTML
+			*	parameter style="display: none;".
+			**/
 			inline bool isHidden() { return hidden_; }
+			
+			/** Sets whether or not the table is set to not display (via the HTML
+			*	parameter style="display: none;".
+			**/
 			inline void setHidden(bool hidden) { hidden_ = hidden; }
 		
 		private:

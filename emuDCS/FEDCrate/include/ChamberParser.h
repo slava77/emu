@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: ChamberParser.h,v 1.6 2008/08/15 10:40:20 paste Exp $
+* $Id: ChamberParser.h,v 1.7 2008/08/26 13:09:02 paste Exp $
 *
 * $Log: ChamberParser.h,v $
+* Revision 1.7  2008/08/26 13:09:02  paste
+* Documentation update.
+*
 * Revision 1.6  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -23,13 +26,27 @@ namespace emu {
 
 		class Chamber;
 
+		/** A parser that builds Chamber objects to be loaded into the DDU.
+		*	@sa @class Chamber
+		**/
 		class ChamberParser: public EmuParser
 		{
 		
 		public:
 
+			/** The constructor will automatically perform the parsing of Karoly's
+			*	Chamber->RUI XML mapping file.
+			*
+			*	@param myFileName the absolute location to the Chamber->RUI XML file to parse.
+			*	@param myCrate the crate number of the DDU in question (for parsing purposes).
+			*	@param mySlot the slot number of the DDU in question (for parsing purposes).
+			*
+			*	@todo Change the DDU configuration file so that it contains the chamber
+			*	definitions so this parser can work like all the rest.
+			**/
 			explicit ChamberParser(char *myFileName, int myCrate, int mySlot);
 		
+			/// @returns the vector of chambers for the given DDU as parsed from the XML file
 			inline std::vector<Chamber *> getChambers() const { return chamberVector_; }
 		
 		private:

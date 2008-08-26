@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: ChamberParser.cc,v 1.5 2008/08/15 08:35:51 paste Exp $
+* $Id: ChamberParser.cc,v 1.6 2008/08/26 13:09:02 paste Exp $
 *
 * $Log: ChamberParser.cc,v $
+* Revision 1.6  2008/08/26 13:09:02  paste
+* Documentation update.
+*
 * Revision 1.5  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -18,18 +21,14 @@
 
 #include "Chamber.h"
 
-/** Parses the DDU fiber -> chamber linking using the input XML file.
-@param fileName is the absolute path location of Karoly's XML file.
-@param crate is the crate number in which the DDU resides.
-@param slot is the slot in which the DDU resides in its given crate.
-**/
+
 emu::fed::ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 {
 	Chamber *fakeChamber = new Chamber();
 	chamberVector_.resize(15,fakeChamber);
 
 	std::stringstream fileNameStream;
-/*  JRG old: used to Prepend the path XDAQ_ROOT for the XML file
+	/*  JRG old: used to Prepend the path XDAQ_ROOT for the XML file
 	// Remember that fileName is relative to the path $XDAQ_ROOT
 
 	std::string XDAQ_ROOT(getenv("XDAQ_ROOT"));
@@ -39,12 +38,11 @@ emu::fed::ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 		return;
 	}
 	fileNameStream << XDAQ_ROOT << (XDAQ_ROOT[XDAQ_ROOT.size() - 1] == '/' ? "" : "/") << fileName;
-*/
+	*/
 
 //  JRG, now use absolute path for the XML file specification:
 	fileNameStream << fileName;
 
-	/// Initialize XML4C system
 	try{
 	
 		xercesc::XMLPlatformUtils::Initialize();
@@ -138,6 +136,7 @@ emu::fed::ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 }
 
 
+
 std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseMaps(xercesc::DOMNode * pDoc) {
 	std::vector<xercesc::DOMNode *> nodeVector;
 	xercesc::DOMNode * pNode1 = pDoc->getFirstChild();
@@ -158,6 +157,7 @@ std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseMaps(xercesc::DOMN
 }
 
 
+
 std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseRUIs(xercesc::DOMNode *pMap) {
 	std::vector<xercesc::DOMNode *> nodeVector;
 	xercesc::DOMNode *pNode1 = pMap->getFirstChild();
@@ -176,6 +176,8 @@ std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseRUIs(xercesc::DOMN
 
 	return nodeVector;
 }
+
+
 
 std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseDDUs(xercesc::DOMNode *pRUI, int crate, int slot) {
 	std::vector<xercesc::DOMNode *> nodeVector;
@@ -200,6 +202,8 @@ std::vector<xercesc::DOMNode *> emu::fed::ChamberParser::parseDDUs(xercesc::DOMN
 
 	return nodeVector;
 }
+
+
 
 void emu::fed::ChamberParser::parseInput(xercesc::DOMNode *pDDU) {
 	xercesc::DOMNode *pNode1 = pDDU->getFirstChild();
