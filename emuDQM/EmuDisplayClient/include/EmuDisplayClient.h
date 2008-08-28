@@ -31,6 +31,7 @@
 #include "ConsumerCanvas.hh"
 
 #include "EmuDQM_AppParameters.h"
+#include "EmuDQM_Utils.h"
 
 typedef std::map<std::string, std::set<int> > MapType;
 typedef std::map<std::string, std::map<std::string, std::string> >Counters;

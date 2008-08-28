@@ -440,72 +440,69 @@ void EmuDisplayClient::getVMEMapping (xgi::Input * in, xgi::Output * out)  throw
 
 void EmuDisplayClient::getCSCList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
-  // == Temporary
-  // == TODO: Request or load CSC list
 
   appBSem_.take(&bsem_tout);
   *out << "var CSC_LIST=[";
   *out << "['Online Run'";
-  updateFoldersMap();
-  if (!foldersMap.empty()) {
-    std::vector<std::string> EMU_folders;
-    std::vector<std::string> DDU_folders;
-    std::vector<std::string> CSC_folders;
-    std::map<std::string, std::set<int> >::const_iterator itr;
-    for (itr=foldersMap.begin(); itr != foldersMap.end(); ++itr) {
+  try 
+    {
+      updateFoldersMap();
+      if (!foldersMap.empty()) {
+	std::vector<std::string> EMU_folders;
+	std::vector<std::string> DDU_folders;
+	std::vector<std::string> CSC_folders;
+	std::map<std::string, std::set<int> >::const_iterator itr;
+	for (itr=foldersMap.begin(); itr != foldersMap.end(); ++itr) {
 
-      std::string folder = itr->first;
-      if (folder.find("EMU") != std::string::npos) EMU_folders.push_back(folder);
-      else if (folder.find("DDU") != std::string::npos) DDU_folders.push_back(folder);
-      else if (folder.find("CSC") != std::string::npos) CSC_folders.push_back(folder);
-    }
+	  std::string folder = itr->first;
+	  if (folder.find("EMU") != std::string::npos) EMU_folders.push_back(folder);
+	  else if (folder.find("DDU") != std::string::npos) DDU_folders.push_back(folder);
+	  else if (folder.find("CSC") != std::string::npos) CSC_folders.push_back(folder);
+	}
 
-    if (EMU_folders.size()) {
-      *out << ",\n['EMU',[";
-      for (uint32_t i=0; i<EMU_folders.size(); i++ ) {
-	*out << "'"<< EMU_folders[i] << ((i==EMU_folders.size()-1)?"'":"',");
-      }
-      *out << "]]";
-    }
-    if (DDU_folders.size()) {
-      *out << ",\n['DDU',[";
-      for (uint32_t i=0; i<DDU_folders.size(); i++ ) {
-	*out << "'"<< DDU_folders[i] << ((i==DDU_folders.size()-1)?"'":"',");
-      }
-      *out << "]]";
-    }
-
-
-    // Quick fix !!!TODO: Sorted output
-    if (CSC_folders.size()) {
-      int crate=0;
-      int slot=0;
-      int cur_crate=-1;
-      for (uint32_t i=0; i<CSC_folders.size(); i++ ) {
-        std::string csc_ptrn = "CSC_%d_%d";
-        if (sscanf(CSC_folders[i].c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
-	  if (crate != cur_crate) {
-	    if (cur_crate>=0) *out << "]]";
-	    *out << ",\n['crate"<< crate << "', [";
+	if (EMU_folders.size()) {
+	  *out << ",\n['EMU',[";
+	  for (uint32_t i=0; i<EMU_folders.size(); i++ ) {
+	    *out << "'"<< EMU_folders[i] << ((i==EMU_folders.size()-1)?"'":"',");
 	  }
-	  *out << "'slot" << slot << "',";
-        }
-        cur_crate = crate;
+	  *out << "]]";
+	}
+	if (DDU_folders.size()) {
+	  *out << ",\n['DDU',[";
+	  for (uint32_t i=0; i<DDU_folders.size(); i++ ) {
+	    *out << "'"<< DDU_folders[i] << ((i==DDU_folders.size()-1)?"'":"',");
+	  }
+	  *out << "]]";
+	}
 
+
+	// Quick fix !!!TODO: Sorted output
+	if (CSC_folders.size()) {
+	  int crate=0;
+	  int slot=0;
+	  int cur_crate=-1;
+	  for (uint32_t i=0; i<CSC_folders.size(); i++ ) {
+	    std::string csc_ptrn = "CSC_%d_%d";
+	    if (sscanf(CSC_folders[i].c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
+	      if (crate != cur_crate) {
+		if (cur_crate>=0) *out << "]]";
+		*out << ",\n['crate"<< crate << "', [";
+	      }
+	      *out << "'slot" << slot << "',";
+	    }
+	    cur_crate = crate;
+
+	  }
+	  *out << "]]";
+	}
       }
-      *out << "]]";
     }
-  }
-  /*
-    ifstream map;
-    map.open( (BaseDir.toString()+"/csc_list.js").c_str());
-    if (map) {
-    *out << map.rdbuf();
-    } else {
-    // == Empty map
-    *out << "var CSC_LIST=[]" << std::endl;
+  catch (xoap::exception::Exception &e) 
+    {
+      if (debug) LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to getCSCList: " 
+				 << xcept::stdformat_exception_history(e));
     }
-  */
+ 
   *out << "]]" << std::endl;
   appBSem_.give();
 
@@ -516,18 +513,27 @@ void EmuDisplayClient::getCSCCounters (xgi::Input * in, xgi::Output * out)  thro
   appBSem_.take(&bsem_tout);
   *out << "var CSC_COUNTERS=[" << std::endl;
   *out << "['Online Run'," << std::endl;
-  updateCSCCounters();
-  if (!cscCounters.empty()) {
+  try 
+    {
+      updateCSCCounters();
+      if (!cscCounters.empty()) {
 	CSCCounters::iterator citr;
 	for (citr=cscCounters.begin(); citr != cscCounters.end(); ++citr) {
-		*out << "['" << citr->first << "',[";
-		std::map<std::string, std::string>::iterator itr;
-		for (itr=citr->second.begin(); itr != citr->second.end(); ++itr) { // == Loop and Output Counters 			
-			*out << "['"<< itr->first << "','" << itr->second <<"'],";	
-		}	
-		*out << "]]," << std::endl;
+	  *out << "['" << citr->first << "',[";
+	  std::map<std::string, std::string>::iterator itr;
+	  for (itr=citr->second.begin(); itr != citr->second.end(); ++itr) { // == Loop and Output Counters 			
+	    *out << "['"<< itr->first << "','" << itr->second <<"'],";	
+	  }	
+	  *out << "]]," << std::endl;
 	}
-  }
+      }
+    }
+  catch (xoap::exception::Exception &e)
+    {
+      if (debug) LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to getCSCList: "
+				 << xcept::stdformat_exception_history(e));
+
+    }
 
   *out << "]]" << std::endl;
   appBSem_.give();
@@ -615,7 +621,7 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
   appBSem_.take(&bsem_tout);  
   *out << "var NODES_LIST=[" << std::endl;
   *out << "['Node','State','Run Number','DAQ Events','DQM Events','Rate (Evt/s)','Unpacked CSCs','Rate (CSCs/s)','Readout Mode','Data Source','Last event timestamp']," << std::endl;
- 
+
   std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
   std::set<xdaq::ApplicationDescriptor*>  ruis = getAppsList("EmuRUI","default");
   if (!monitors.empty()) {
@@ -626,82 +632,83 @@ void EmuDisplayClient::getNodesStatus (xgi::Input * in, xgi::Output * out)  thro
     for (pos=monitors.begin(); pos!=monitors.end(); ++pos) {
       // for (int i=0; i<monitors_.size(); i++) {
       if ((*pos) == NULL) continue;
-	  if (!ruis.empty()) {
-		for (rui_itr=ruis.begin(); rui_itr != ruis.end(); ++rui_itr) {
-			if ((*pos)->getInstance() == (*rui_itr)->getInstance()) {
-				rui=(*rui_itr);
-				break;
-			}
-		}
-          }
+      if (!ruis.empty()) {
+	for (rui_itr=ruis.begin(); rui_itr != ruis.end(); ++rui_itr) {
+	  if ((*pos)->getInstance() == (*rui_itr)->getInstance()) {
+	    rui=(*rui_itr);
+	    break;
+	  }
+	}
+      }
 
 
-	  std::ostringstream st;
-	  st << (*pos)->getClassName() << "-" << (*pos)->getInstance();
-	  std::string nodename = st.str();
+      std::ostringstream st;
+      st << (*pos)->getClassName() << "-" << (*pos)->getInstance();
+      std::string nodename = st.str();
       
-	  std::string applink = "NA";
-	  std::string state =  "NA";
-	  std::string stateChangeTime = "NA";
-	  std::string runNumber   = "NA";
-	  std::string events = "0";
-	  std::string dataRate   = "0";
-	  std::string cscUnpacked   = "0";
-	  std::string cscRate   = "0";
-	  std::string readoutMode   = "NA";
-	  std::string lastEventTime = "NA";
+      std::string applink = "NA";
+      std::string state =  "NA";
+      std::string stateChangeTime = "NA";
+      std::string runNumber   = "NA";
+      std::string events = "0";
+      std::string dataRate   = "0";
+      std::string cscUnpacked   = "0";
+      std::string cscRate   = "0";
+      std::string readoutMode   = "NA";
+      std::string lastEventTime = "NA";
      
 
-	  std::string nDAQevents = "0";
-	  std::string dataSource = "NA";
+      std::string nDAQevents = "0";
+      std::string dataSource = "NA";
 
-	  try
-	    {
-	      applink = (*pos)->getContextDescriptor()->getURL()+"/"+(*pos)->getURN();
-	      state =  emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"stateName","string");
-	      if (!viewOnly_) {
-		applink += "/showControl";
-	      }
-	      if (state == "") {
-		state = "Unknown/Dead";
-		continue;
-	      }
-	      else {
-		stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"stateChangeTime","string");
-		state += " at " + stateChangeTime;
-	      }
+      try
+	{
+	  applink = (*pos)->getContextDescriptor()->getURL()+"/"+(*pos)->getURN();
+	  state =  emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"stateName","string");
+	  if (!viewOnly_) {
+	    applink += "/showControl";
+	  }
+	  if (state == "") {
+	    state = "Unknown/Dead";
+	    continue;
+	  }
+	  else {
+	    stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"stateChangeTime","string");
+	    state += " at " + stateChangeTime;
+	  }
 
 
-	      runNumber   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(),  (*pos),"runNumber","unsignedInt");
-	      events = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"sessionEvents","unsignedInt");
-	      dataRate   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"averageRate","unsignedInt");
-	      cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"cscUnpacked","unsignedInt");
-	      cscRate   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"cscRate","unsignedInt");
-	      readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"readoutMode","string");
-	      lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"lastEventTime","string");
+	  runNumber   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(),  (*pos),"runNumber","unsignedInt");
+	  events = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"sessionEvents","unsignedInt");
+	  dataRate   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"averageRate","unsignedInt");
+	  cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"cscUnpacked","unsignedInt");
+	  cscRate   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"cscRate","unsignedInt");
+	  readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"readoutMode","string");
+	  //lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"lastEventTime","string");
 
-	      nDAQevents = "0";
-	      if (readoutMode == "internal") {
-		dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"inputDeviceName","string");
-		nDAQevents = events;
-	      }
-	      if (readoutMode == "external") {
-		dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"serversClassName","string");
-		if (rui != NULL) {
-			nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), rui,"nEventsRead","unsignedLong");
-			// nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
-		}
-	      }
+	  nDAQevents = "0";
+	  if (readoutMode == "internal") {
+	    dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"inputDeviceName","string");
+	    nDAQevents = events;
+	  }
+	  if (readoutMode == "external") {
+	    dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"serversClassName","string");
+	    if (rui != NULL) {
+	      // == Commented it to prevent online DQM freezes
+	      // nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), rui,"nEventsRead","unsignedLong");
+	      // nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
 	    }
-	  catch(xcept::Exception e)
-	    {
-	     if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
-	    }
-	  *out << "['"<< nodename << "','"<< applink << "','" << state
-	       << "','" << runNumber << "','" << nDAQevents << "','" << events 
-	       << "','" << dataRate << "','" << cscUnpacked << "','" << cscRate
-	       << "','" << readoutMode << "','" << dataSource << "','" << lastEventTime
-	       << "']" << "," << std::endl;
+	  }
+	}
+      catch(xcept::Exception e)
+	{
+	  if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+	}
+      *out << "['"<< nodename << "','"<< applink << "','" << state
+	   << "','" << runNumber << "','" << nDAQevents << "','" << events 
+	   << "','" << dataRate << "','" << cscUnpacked << "','" << cscRate
+	   << "','" << readoutMode << "','" << dataSource << "','" << lastEventTime
+	   << "']" << "," << std::endl;
 
     }
   }  
@@ -744,7 +751,7 @@ TCanvas* EmuDisplayClient::getMergedCanvas(std::vector<TObject*>& canvases)
 		double min1=reinterpret_cast<TH1*>(obj)->GetMinimum();
 		// LOG4CPLUS_INFO(getApplicationLogger(), obj->GetName() << " " << max1 << " " << min1 << " " << max2 << " " << min2);	
 		if ((max1 == min1) && (max1 == 0)) {
-			reinterpret_cast<TH1*>(obj)->SetMaximum(reinterpret_cast<TH1*>(obj)->GetMinimum()+0.01);
+		  reinterpret_cast<TH1*>(obj)->SetMaximum(reinterpret_cast<TH1*>(obj)->GetMinimum()+0.01);
 		} 		
 		if (max2>max1) reinterpret_cast<TH1*>(obj)->SetMaximum(max2);
 		if (min2<min1) reinterpret_cast<TH1*>(obj)->SetMinimum(min2);	
@@ -896,7 +903,7 @@ void EmuDisplayClient::genImage (xgi::Input * in, xgi::Output * out)  throw (xgi
     }
     }
   */
-   appBSem_.give();
+  appBSem_.give();
 }
 
 
@@ -1440,9 +1447,9 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
       return bmap;
       // handle exception
     }
-   catch (pt::exception::Exception& e)
+  catch (pt::exception::Exception& e)
     {
-        return bmap;
+      return bmap;
     }
 
 
@@ -1531,9 +1538,9 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
       return bmap;
       // handle exception
     }
-   catch (pt::exception::Exception& e)
+  catch (pt::exception::Exception& e)
     {
-        return bmap;
+      return bmap;
     }
 
 
@@ -1731,9 +1738,9 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
       return buf;
       // handle exception
     }
-   catch (pt::exception::Exception& e)
+  catch (pt::exception::Exception& e)
     {
-        return buf;
+      return buf;
     }
 	
   
@@ -1797,16 +1804,16 @@ void EmuDisplayClient::updateCSCCounters()
 
 Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
 {
-// Prepare SOAP Message for DQM Node
+  // Prepare SOAP Message for DQM Node
   xoap::MessageReference msg = xoap::createMessage();
   xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
   xoap::SOAPBody body = envelope.getBody();
   xoap::SOAPName commandName = envelope.createName("requestCSCCounters","xdaq", "urn:xdaq-soap:3.0");
   xoap::SOAPName originator ("originator", "", "");
   xoap::SOAPElement command = body.addBodyElement(commandName );
-	Counters clist;
-	clist.clear();
-   try
+  Counters clist;
+  clist.clear();
+  try
     {
       LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending requestFoldersList to " << dest->getClassName() << " ID" << dest->getLocalId());
       // appBSem_.take();
@@ -1840,46 +1847,46 @@ Counters EmuDisplayClient::requestCSCCounters(xdaq::ApplicationDescriptor* dest)
 
               for (vector<xoap::SOAPElement>::iterator f_itr = cscElement.begin();
                    f_itr != cscElement.end(); ++f_itr) {
-			std::string csc = f_itr->getValue();
-			// LOG4CPLUS_INFO (getApplicationLogger(), f_itr->getValue());
-			vector<xoap::SOAPElement> objElement = f_itr->getChildElements();
+		std::string csc = f_itr->getValue();
+		// LOG4CPLUS_INFO (getApplicationLogger(), f_itr->getValue());
+		vector<xoap::SOAPElement> objElement = f_itr->getChildElements();
 
-	                for (vector<xoap::SOAPElement>::iterator o_itr = objElement.begin();
-        	             o_itr != objElement.end(); ++o_itr ) {
-			  std::string tag=o_itr->getElementName().getLocalName();
-	                  std::string value = o_itr->getValue();
+		for (vector<xoap::SOAPElement>::iterator o_itr = objElement.begin();
+		     o_itr != objElement.end(); ++o_itr ) {
+		  std::string tag=o_itr->getElementName().getLocalName();
+		  std::string value = o_itr->getValue();
 			  
-			 if (value != "") {
-				clist[csc][tag]=value;
-			 //	LOG4CPLUS_INFO (getApplicationLogger(),o_itr->getElementName().getLocalName() << "="<< value);
-			 }
+		  if (value != "") {
+		    clist[csc][tag]=value;
+		    //	LOG4CPLUS_INFO (getApplicationLogger(),o_itr->getElementName().getLocalName() << "="<< value);
+		  }
 
-                	}
+		}
 
 
 
-//                flist.insert(f_itr->getValue());
+		//                flist.insert(f_itr->getValue());
 
               }
             }
           }
         }
     }
-   catch (xdaq::exception::Exception& e)
+  catch (xdaq::exception::Exception& e)
     {
       return clist;
       // handle exception
     }
-   catch (pt::exception::Exception& e) 
+  catch (pt::exception::Exception& e) 
     {
-	clist.clear();
-	return clist;
+      clist.clear();
+      return clist;
     }
 
-    // LOG4CPLUS_INFO (getApplicationLogger(), "CSC Counters are updated");
+  // LOG4CPLUS_INFO (getApplicationLogger(), "CSC Counters are updated");
 
 
-	return clist;
+  return clist;
 }
 
 std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDescriptor* dest)
@@ -1945,10 +1952,10 @@ std::set<std::string>  EmuDisplayClient::requestFoldersList(xdaq::ApplicationDes
       return flist;
       // handle exception
     }
-   catch (pt::exception::Exception& e)
+  catch (pt::exception::Exception& e)
     {
-        flist.clear();
-        return flist;
+      flist.clear();
+      return flist;
     }
 
 
@@ -1974,12 +1981,12 @@ std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::Stri
       LOG4CPLUS_ERROR (getApplicationLogger(),
 		       "No Applications with class name " << className.toString() <<
 		       "found." << xcept::stdformat_exception_history(e));
-	return applist;
+      return applist;
     }
-   catch (pt::exception::Exception& e)
+  catch (pt::exception::Exception& e)
     {
-        applist.clear();
-        return applist;
+      applist.clear();
+      return applist;
     }
 
   return applist;
