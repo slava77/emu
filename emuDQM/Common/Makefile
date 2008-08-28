@@ -22,6 +22,7 @@ Project=emu
 Package=emuDQM/Common
 
 Sources=\
+	EmuDQM_Utils.cc \
 	ConsumerCanvas.cc \
 	EmuDQM_AppParameters.cc \
 	EmuMonitoringObject.cc \
