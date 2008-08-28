@@ -111,12 +111,12 @@
                 <XMax>80</XMax>
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
-                <YMin>-0.012</YMin>
+                <YMin>-0.002</YMin>
                 <YMax>0</YMax>
-                <YBins>120</YBins>
+                <YBins>200</YBins>
                 <YTitle>Slope</YTitle>
-                <Low1Limit>-0.01</Low1Limit>
-                <Low0Limit>-0.01</Low0Limit>
+                <Low1Limit>-0.0018</Low1Limit>
+                <Low0Limit>-0.0018</Low0Limit>
                 <High0Limit>0</High0Limit>
                 <High1Limit>0</High1Limit>
         </TestResult>
@@ -172,12 +172,12 @@
                 <XMax>80</XMax>
                 <XBins>80</XBins>
                 <XTitle>Strip Number</XTitle>
-                <YMin>-0.012</YMin>
+                <YMin>-0.002</YMin>
                 <YMax>0</YMax>
-                <YBins>120</YBins>
+                <YBins>200</YBins>
                 <YTitle>Slope</YTitle>
-                <Low1Limit>-0.01</Low1Limit>
-                <Low0Limit>-0.01</Low0Limit>
+                <Low1Limit>-0.0018</Low1Limit>
+                <Low0Limit>-0.0018</Low0Limit>
                 <High0Limit>0</High0Limit>
                 <High1Limit>0</High1Limit>
         </TestResult>
