@@ -38,7 +38,7 @@ bool EmuTFbookkeeper::book(unsigned short sp, unsigned short mpc, unsigned short
 			if( iter->second.prefix == "TF_id_id_id_" ) continue;
 			identifier<<"TF_";
 		} else return false;
-		std::map<std::string,TH1*> &hists = ( sp && mpc && csc ? cscHists : ( sp && mpc && !csc ? pcHists : ( sp && !mpc && !csc ? spHists : tfHists ) ) );
+		__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> > &hists = ( sp && mpc && csc ? cscHists : ( sp && mpc && !csc ? pcHists : ( sp && !mpc && !csc ? spHists : tfHists ) ) );
 
 		// Assign full name to the histogram
 		std::string hFullName = iter->second.type + identifier.str() + iter->second.name;
@@ -175,9 +175,9 @@ std::map<std::string,TCanvas*> EmuTFbookkeeper::wrapToCanvases(const std::map<st
 			continue;
 		}
 		// Based on canvas type, select set of histograms of the same type
-		const std::map<std::string,TH1*> &hists = ( ids.size()==3 ? cscHists : ( ids.size()==2 ? pcHists : ( ids.size()==1 ? spHists : tfHists ) ) );
+		const __gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> > &hists = ( ids.size()==3 ? cscHists : ( ids.size()==2 ? pcHists : ( ids.size()==1 ? spHists : tfHists ) ) );
 		// From this set choose histograms that go on this particular canvas
-		for(std::map<std::string,TH1*>::const_iterator hist=hists.begin(); hist!=hists.end(); hist++){
+		for(__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::const_iterator hist=hists.begin(); hist!=hists.end(); hist++){
 			// Define histogram ids first
 			std::vector<std::string> hist_ids;
 			size_t name_start=std::string::npos;

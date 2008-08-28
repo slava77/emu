@@ -57,6 +57,8 @@ int main(int argc, char *argv[]){
 	// Keep track of dates
 	map<string,string> history;
 
+        int prescaling = argc - 1; // Stupid way to speed-up this process
+
 	for(int arg=1; arg<argc; arg++){
 		struct stat info;
 		if( stat(argv[arg],&info)==0 ){
@@ -76,7 +78,7 @@ int main(int argc, char *argv[]){
 		const unsigned short *buf=0;
 
 		// Main cycle
-		while( (size = reader.read(buf)) /*&& nevents<117500*/ ){
+		while( (size = reader.next(buf,prescaling)) /*&& nevents<117500*/ ){
 			filler.fill(buf,size,reader.status());
 			if( filler.last_event_status() == EmuTFfiller::CLEAR ){
 				last_size = size;
