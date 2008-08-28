@@ -1462,10 +1462,11 @@
 		<SetOption>bar1</SetOption>
 		<XMin>0</XMin>
 		<XMax>4096</XMax>
-		<XBins>4096</XBins>
+		<XBins>512</XBins>
 		<XTitle>BXN Counter Number</XTitle>
 		<YTitle>Number of Events</YTitle>
 		<SetOptStat>e</SetOptStat>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -1634,6 +1635,7 @@
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Incremental change in DDU L1A number since previous event</Title>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h2</Type>
