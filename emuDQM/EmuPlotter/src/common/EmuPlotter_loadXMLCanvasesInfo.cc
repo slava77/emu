@@ -33,27 +33,26 @@ int EmuPlotter::loadXMLCanvasesInfo(std::string xmlFile)
     return 1;
   }
   EmuMonitoringCanvas * obj = NULL;
-  clearCanvasesCollection(commonCanvasesFactory);
-  clearCanvasesCollection(chamberCanvasesFactory);
-  clearCanvasesCollection(dduCanvasesFactory);
+
+  clearCanvasesCollection(MECanvasFactories);
+
   for(uint32_t i=0; i<itemList->getLength(); i++){
 	obj = new EmuMonitoringCanvas(itemList->item(i));
 
 	std::string name = obj->getName();
 	if (obj->getPrefix().find("DDU") != std::string::npos) {
-		dduCanvasesFactory[name] = obj;
+		MECanvasFactories["DDU"][name] = obj;
+
 	} else
 	if (obj->getPrefix().find("CSC") != std::string::npos) {
-                chamberCanvasesFactory[name] = obj;
+		MECanvasFactories["CSC"][name] = obj;
         } else {
 		obj->setSummaryMap(&summaryMap);
 		obj->setChamberMap(&chamberMap);
-		commonCanvasesFactory[name] = obj;
+		MECanvasFactories["EMU"][name] = obj;
+
 	}
   }
-  //printCanvasesCollection(commonCanvasesFactory);
-  //printCanvasesCollection(dduCanvasesFactory);
-  // printCanvasesCollection(chamberCanvasesFactory);
 
   delete parser;
   return 0;
