@@ -11,7 +11,7 @@
 
 #include <time.h>
 
-
+/*
 std::string now()
 {
   char buf[255];
@@ -28,7 +28,7 @@ std::string now()
   return time;
 
 };
-
+*/
 
 std::string getDateTime(){
   time_t t;
@@ -87,7 +87,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   defineWebSM();
 
   stateName_ = wsm_.getStateName(wsm_.getCurrentState());
-  stateChangeTime_ = now();
+  stateChangeTime_ = emu::dqm::utils::now();
   lastEventTime_ = "---";
 
   bindI2Ocallbacks();
@@ -423,7 +423,7 @@ xoap::MessageReference EmuMonitor::fireEvent (xoap::MessageReference msg) throw 
 	      fsm_.fireEvent(e);
 	      // Synchronize Web state machine
 	      wsm_.setInitialState(fsm_.getCurrentState());
-	      stateChangeTime_ = now();
+	      stateChangeTime_ = emu::dqm::utils::now();
 	    }
 	  catch (toolbox::fsm::exception::Exception & e)
 	    {
@@ -1021,8 +1021,9 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   uint32_t serverTID = msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress;
   uint32_t status = 0;
 
-  if (runNumber_ != msg->runNumber) {
-	LOG4CPLUS_INFO(getApplicationLogger(),"Detected Run Number switch from " << runNumber_ << " to " << msg->runNumber<< ". Resetting Monitor...");
+  if ((runNumber_ != msg->runNumber) || (runStartUTC_ != msg->runStartUTC)) {
+	LOG4CPLUS_INFO(getApplicationLogger(),"Detected Run Number switch. Resetting Monitor...");
+//" from " << runNumber_ << " to " << msg->runNumber<< ". Resetting Monitor...");
 	if (plotter_ != NULL) {
 		if (fSaveROOTFile_== xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)) ) {
 			plotter_->saveToROOTFile(getROOTFileName());
@@ -1033,6 +1034,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
     	}
   }
   runNumber_ = msg->runNumber;
+  runStartUTC_ = msg->runStartUTC;
 
   if( errorFlag==EmuFileReader::Type2 ) status |= 0x8000;
   if( errorFlag==EmuFileReader::Type3 ) status |= 0x4000;
@@ -1051,7 +1053,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
     LOG4CPLUS_DEBUG(getApplicationLogger(),
 		   // "Received " << bufRef->getDataSize() <<
 		   "Received evt#" << eventsReceived_ << " (req: " << eventsRequested_ << ")" <<
-		   sizeOfPayload << " bytes, run " << msg->runNumber <<
+		   sizeOfPayload << " bytes, run " << msg->runNumber << ", start time " << msg->runStartUTC << 
 		   ", errorFlag 0x"  << std::hex << status << std::dec <<
 		   " from " << serversClassName_.toString() <<
 		   ":" << serverTID <<
@@ -1405,7 +1407,7 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
     for (unsigned i=0; i< plotter_->getUnpackedDMBCount(); i++) {
       pmeterCSC_->addSample(1);
     }
-    lastEventTime_ = now();
+    lastEventTime_ = emu::dqm::utils::now();
   }
 }
 
