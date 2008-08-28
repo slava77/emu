@@ -614,10 +614,10 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      for (int i=0; i<64; i++)
                   {
                     if ((Qcc[i]>0.25*Qcc_max) && !fFirstStrip) {
-                      arrL.push_back(std::make_pair(i, Rl[i]));
+                      arrL.push_back(std::make_pair(i*6.25, Rl[i]));
                     }
                     if ((Qcc[i]>0.25*Qcc_max) && !fFirstStrip) {
-                      arrR.push_back(std::make_pair(i, Rr[i]));
+                      arrR.push_back(std::make_pair(i*6.25, Rr[i]));
                     }
 
                   }
