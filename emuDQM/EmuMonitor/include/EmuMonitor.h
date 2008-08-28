@@ -42,6 +42,7 @@
 
 #include "EmuDQM_AppParameters.h"
 #include "EmuDQM_SOAPCommands.h"
+#include "EmuDQM_Utils.h"
 
 #include "RateMeter.h"
 
@@ -228,6 +229,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::UnsignedInteger   cscRate_;
   xdata::UnsignedInteger   cscUnpacked_;
   xdata::UnsignedInteger   runNumber_;
+  xdata::UnsignedInteger   runStartUTC_;
 
 
   xdata::Boolean 	useAltFileReader_;
