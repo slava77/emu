@@ -9,13 +9,22 @@
 #include "TH2.h"
 #include "TCanvas.h"
 #include "EmuTFxmlParsing.h"
+#include <ext/hash_map>
+
+namespace __gnu_cxx {
+  template<>
+  struct hash<std::string>{
+    hash<char*> hasher;
+    size_t operator()(const std::string& s) const { return hasher(s.c_str()); }
+  };
+}
 
 class EmuTFbookkeeper {
 private:
-	std::map<std::string,TH1*>           tfHists, spHists,     pcHists,         cscHists;
-	std::map<std::string,TH1*>           tfAlias, spAlias[12], pcAlias[12][60], cscAlias[12][60][9];
-	std::map<std::string,EmuTFxmlParsing::HistAttributes> attributes;
-	std::list<TObject*>                                   cleenupList;
+	__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >  tfHists, spHists,     pcHists,         cscHists;
+	__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >  tfAlias, spAlias[12], pcAlias[12][60], cscAlias[12][60][9];
+	std::map<std::string,EmuTFxmlParsing::HistAttributes>    attributes;
+	std::list<TObject*>                                      cleenupList;
 	bool isModified;
 	std::ostream *printout; // utilized for error messages only
 
@@ -27,7 +36,7 @@ public:
 	// See if histograms for a specific sp/pc/csc were booked
 	bool isBooked(unsigned short sp=0, unsigned short mpc=0, unsigned short csc=0){
 		if( sp>12 || mpc>60 || csc>9 ) return false;
-		std::map<std::string,TH1*> &hists = ( sp && mpc && csc ? cscAlias[sp-1][mpc-1][csc-1] : ( sp && mpc && !csc ? pcAlias[sp-1][mpc-1] : ( sp && !mpc && !csc ? spAlias[sp-1] : tfAlias ) ) );
+		__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> > &hists = ( sp && mpc && csc ? cscAlias[sp-1][mpc-1][csc-1] : ( sp && mpc && !csc ? pcAlias[sp-1][mpc-1] : ( sp && !mpc && !csc ? spAlias[sp-1] : tfAlias ) ) );
 		return hists.size();
 	}
 	// Check if any new histograms were created since last resetModified() call:
@@ -47,8 +56,8 @@ public:
 	// Get histogram with specific name hname for a specific sp/pc/csc
 	TH1* get(std::string hname, unsigned short sp=0, unsigned short mpc=0, unsigned short csc=0){
 		if( sp>12 || mpc>60 || csc>9 ) return 0;
-		std::map<std::string,TH1*> &hists = ( sp && mpc && csc ? cscAlias[sp-1][mpc-1][csc-1] : ( sp && mpc && !csc ? pcAlias[sp-1][mpc-1] : ( sp && !mpc && !csc ? spAlias[sp-1] : tfAlias ) ) );
-		std::map<std::string,TH1*>::const_iterator entry = hists.find(hname);
+		__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> > &hists = ( sp && mpc && csc ? cscAlias[sp-1][mpc-1][csc-1] : ( sp && mpc && !csc ? pcAlias[sp-1][mpc-1] : ( sp && !mpc && !csc ? spAlias[sp-1] : tfAlias ) ) );
+		__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::const_iterator entry = hists.find(hname);
 		return ( entry==hists.end() ? 0 : entry->second );
 	}
 	// Get list of histograms with specific name
@@ -58,19 +67,19 @@ public:
 		if( iter == attributes.end() ) return retval;
 
 		if( iter->second.prefix == "TF_" ){
-			std::map<std::string,TH1*>::const_iterator hist = tfAlias.find(hname);
+			__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::const_iterator hist = tfAlias.find(hname);
 			if( hist != tfAlias.end() ) retval.push_back( hist->second );
 		}
 		if( iter->second.prefix == "TF_id_" ){
 			for(int sp=0; sp<12; sp++){
-				std::map<std::string,TH1*>::const_iterator hist = spAlias[sp].find(hname);
+				__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::const_iterator hist = spAlias[sp].find(hname);
 				if( hist != spAlias[sp].end() ) retval.push_back( hist->second );
 			}
 		}
 		if( iter->second.prefix == "TF_id_id_" ){
 			for(int sp=0; sp<12; sp++)
 				for(int mpc=0; mpc<60; mpc++){
-					std::map<std::string,TH1*>::const_iterator hist = pcAlias[sp][mpc].find(hname);
+					__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::const_iterator hist = pcAlias[sp][mpc].find(hname);
 					if( hist != pcAlias[sp][mpc].end() ) retval.push_back( hist->second );
 				}
 		}
@@ -78,7 +87,7 @@ public:
 			for(int sp=0; sp<12; sp++)
 				for(int mpc=0; mpc<60; mpc++)
 					for(int csc=0; csc<9; csc++){
-						std::map<std::string,TH1*>::const_iterator hist = cscAlias[sp][mpc][csc].find(hname);
+						__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::const_iterator hist = cscAlias[sp][mpc][csc].find(hname);
 						if( hist != cscAlias[sp][mpc][csc].end() ) retval.push_back( hist->second );
 					}
 		}
@@ -95,13 +104,13 @@ public:
 	}
 	// Cleanup
 	~EmuTFbookkeeper(void){
-		for(std::map<std::string,TH1*>::iterator iter=tfHists.begin(); iter!=tfHists.end(); iter++)
+		for(__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::iterator iter=tfHists.begin(); iter!=tfHists.end(); iter++)
 			delete iter->second;
-		for(std::map<std::string,TH1*>::iterator iter=spHists.begin(); iter!=spHists.end(); iter++)
+		for(__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::iterator iter=spHists.begin(); iter!=spHists.end(); iter++)
 			delete iter->second;
-		for(std::map<std::string,TH1*>::iterator iter=pcHists.begin(); iter!=pcHists.end(); iter++)
+		for(__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::iterator iter=pcHists.begin(); iter!=pcHists.end(); iter++)
 			delete iter->second;
-		for(std::map<std::string,TH1*>::iterator iter=cscHists.begin(); iter!=cscHists.end(); iter++)
+		for(__gnu_cxx::hash_map<std::string,TH1*,__gnu_cxx::hash<std::string> >::iterator iter=cscHists.begin(); iter!=cscHists.end(); iter++)
 			delete iter->second;
 		for(std::list<TObject*>::iterator iter=cleenupList.begin(); iter!=cleenupList.end(); iter++)
 			delete *iter;
