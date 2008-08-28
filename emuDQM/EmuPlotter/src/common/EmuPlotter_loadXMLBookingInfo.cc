@@ -33,33 +33,23 @@ int EmuPlotter::loadXMLBookingInfo(std::string xmlFile)
     return 1;
   }
   EmuMonitoringObject * obj = NULL;
-  clearMECollection(commonMEfactory);
-  clearMECollection(chamberMEfactory);
-  clearMECollection(dduMEfactory);
+  
+  clearMECollection(MEFactories);
+
   for(uint32_t i=0; i<itemList->getLength(); i++){
-//    createME(itemList->item(i));
-	// EmuMonitoringObject obj(itemList->item(i));
 	obj = new EmuMonitoringObject(itemList->item(i));
 
 	std::string name = obj->getName();
 	if (obj->getPrefix().find("DDU") != std::string::npos) {
-		// dduMEfactory.insert(pair<string,EmuMonitoringObject>(name, obj)); ;
-		dduMEfactory[name] = obj;
+		MEFactories["DDU"][name] = obj;
 	} else
 	if (obj->getPrefix().find("CSC") != std::string::npos) {
-	//	chamberMEfactory.insert(pair<string,EmuMonitoringObject>(name, obj));
-                chamberMEfactory[name] = obj;
+		MEFactories["CSC"][name]=obj;
         } else {
-	//	commonMEfactory.insert(pair<string,EmuMonitoringObject>(name, obj));
-		commonMEfactory[name] = obj;
+		MEFactories["EMU"][name]=obj;
 	}
   }
-/*
-	LOG4CPLUS_INFO(logger_, "=== Common ME Factory");
-	printMECollection(commonMEfactory);
-	LOG4CPLUS_INFO(logger_, "=== Chamber ME Factory");
-	printMECollection(chamberMEfactory);
- */   
+
   delete parser;
   return 0;
 }

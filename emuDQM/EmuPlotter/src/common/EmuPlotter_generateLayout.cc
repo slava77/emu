@@ -11,8 +11,11 @@ void EmuPlotter::generateLayout(std::string filename, std::string rootfolder)
 	char *stopstring;
 
 	MECanvases_List_iterator itr;
-	
-	for (itr = commonCanvasesFactory.begin(); itr != commonCanvasesFactory.end(); ++itr) {
+
+	ME_List& mefactory = MEFactories["EMU"];
+	MECanvases_List& factory = MECanvasFactories["EMU"];
+	for (itr = factory.begin(); itr != factory.end(); ++itr) {	
+// 	for (itr = commonCanvasesFactory.begin(); itr != commonCanvasesFactory.end(); ++itr) {
                 EmuMonitoringCanvas * obj = itr->second;
 		out << "csclayout(dqmitems,\"" << obj->getTitle() << "\"," << std::endl;
 		int cols = strtol(obj->getParameter("NumPadsX").c_str(),&stopstring, 10);
@@ -24,8 +27,8 @@ void EmuPlotter::generateLayout(std::string filename, std::string rootfolder)
 				st.clear();
 				st << "Pad" << i*cols+j;
 				std::string name = obj->getParameter(st.str());
-				ME_List_iterator me = commonMEfactory.find(name);
-				if (me != commonMEfactory.end()) {
+				ME_List_iterator me = mefactory.find(name);
+				if (me != mefactory.end()) {
 					out << "\"" << rootfolder << "/Common/" << me->second->getFullName() << "\"" 
 					<< ((j==cols)?"]":",") << (((i<rows-1) && (j==cols))?",":"") << std::endl;
 				}
@@ -41,8 +44,11 @@ void EmuPlotter::generateLayout(std::string filename, std::string rootfolder)
 		Otherwise, all possible DDU and CSC ID should be defined
 	*/
 	return;
-
-	for (itr = dduCanvasesFactory.begin(); itr != dduCanvasesFactory.end(); ++itr) {
+	
+	mefactory = MEFactories["DDU"];
+	factory = MECanvasFactories["DDU"];
+        for (itr = factory.begin(); itr != factory.end(); ++itr) {
+//	for (itr = dduCanvasesFactory.begin(); itr != dduCanvasesFactory.end(); ++itr) {
                 EmuMonitoringCanvas * obj = itr->second;
                 out << "csclayout(dqmitems,\"DDU/" << obj->getTitle() << "\"," << std::endl;
 		int cols = strtol(obj->getParameter("NumPadsX").c_str(),&stopstring, 10);
@@ -54,8 +60,8 @@ void EmuPlotter::generateLayout(std::string filename, std::string rootfolder)
                                 st.clear();
                                 st << "Pad" << i*cols+j;
 				std::string name = obj->getParameter(st.str());
-                                ME_List_iterator me = dduMEfactory.find(name);
-                                if (me != dduMEfactory.end()) {
+                                ME_List_iterator me = mefactory.find(name);
+                                if (me != mefactory.end()) {
                                         out << "\"" << rootfolder << "/DDU_id/" << me->second->getFullName() << "\""
                                         << ((j==cols)?"]":",") << (((i<rows-1) && (j==cols))?",":"") << std::endl;
                                 }
@@ -67,7 +73,10 @@ void EmuPlotter::generateLayout(std::string filename, std::string rootfolder)
                 out << ")\n" << std::endl;
         }
 
-	for (itr = chamberCanvasesFactory.begin(); itr != chamberCanvasesFactory.end(); ++itr) {
+	mefactory = MEFactories["CSC"];
+	factory = MECanvasFactories["CSC"];
+        for (itr = factory.begin(); itr != factory.end(); ++itr) {
+//	for (itr = chamberCanvasesFactory.begin(); itr != chamberCanvasesFactory.end(); ++itr) {
                 EmuMonitoringCanvas * obj = itr->second;
                 out << "csclayout(dqmitems,\"CSC/" << obj->getTitle() << "\"," << std::endl;
                 int cols = strtol(obj->getParameter("NumPadsX").c_str(),&stopstring, 10);
@@ -79,8 +88,8 @@ void EmuPlotter::generateLayout(std::string filename, std::string rootfolder)
                                 st.clear();
                                 st << "Pad" << i*cols+j;
 				std::string name = obj->getParameter(st.str());
-                                ME_List_iterator me = chamberMEfactory.find(name);
-                                if (me != chamberMEfactory.end()) {
+                                ME_List_iterator me = mefactory.find(name);
+                                if (me != mefactory.end()) {
                                         out << "\"" << rootfolder << "/CSC_id_id/" << me->second->getFolder() << "/" << me->second->getFullName() << "\""
                                         << ((j==cols)?"]":",") << (((i<rows-1) && (j==cols))?",":"") << std::endl;
                                 }

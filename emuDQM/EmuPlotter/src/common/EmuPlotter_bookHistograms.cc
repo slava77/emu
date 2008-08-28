@@ -6,7 +6,8 @@ ME_List EmuPlotter::bookCommon(int nodeNumber)
 	std::string prefix = "EMU_Summary";
 	ME_List commonMEs;
 	ME_List_iterator itr;
-	for (itr = commonMEfactory.begin(); itr != commonMEfactory.end(); ++itr) {
+	ME_List& factory = MEFactories["EMU"];
+	for (itr = factory.begin(); itr != factory.end(); ++itr) {
 		EmuMonitoringObject * obj = new EmuMonitoringObject(*itr->second);
 		obj->setPrefix(prefix);
 		commonMEs[obj->getName()] = obj;
@@ -21,8 +22,8 @@ ME_List EmuPlotter::bookDDU(int dduNumber)
 	std::string prefix = Form("DDU_%02d", dduNumber);
  	ME_List dduMEs;
         ME_List_iterator itr;
-
-	for (itr = dduMEfactory.begin(); itr != dduMEfactory.end(); ++itr) {
+	ME_List& factory = MEFactories["DDU"];
+	for (itr = factory.begin(); itr != factory.end(); ++itr) {
 		EmuMonitoringObject* obj = new EmuMonitoringObject(*itr->second);
 		obj->setPrefix(prefix);
 		dduMEs[obj->getName()] = obj;
@@ -39,8 +40,8 @@ ME_List EmuPlotter::bookChamber(int chamberID)
 	std::string prefix = Form("CSC_%03d_%02d", crate, slot);
 	ME_List chamberMEs;
         ME_List_iterator itr;
-
-	for (itr = chamberMEfactory.begin(); itr != chamberMEfactory.end(); ++itr) {
+	ME_List& factory = MEFactories["CSC"];
+	for (itr = factory.begin(); itr != factory.end(); ++itr) {
 		EmuMonitoringObject* obj = new EmuMonitoringObject(*itr->second);
 		obj->setPrefix(prefix);
 		chamberMEs[obj->getName()] = obj;

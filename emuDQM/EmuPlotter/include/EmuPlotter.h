@@ -70,6 +70,7 @@
 // typedef TH1 MonitorElement;
 #include "EmuMonitoringObject.h"
 #include "EmuMonitoringCanvas.h"
+#include "EmuDQM_Utils.h"
 #include "CSCReadoutMappingFromFile.h"
 
 /*
@@ -87,6 +88,9 @@ typedef std::map<std::string, uint32_t> CSCCounters;
 /// @brief EmuPlotter class
 /// 
 ///
+
+
+
 
 class EmuPlotter {
 public:
@@ -143,6 +147,7 @@ public:
   void generateLayout(std::string filename, std::string rootfolder);
   int generateReport(std::string rootfile,std::string path,std::string runname="");
   void showReport();
+  void saveReport(std::string filename);
    
   bool isListModified() { return fListModified;}
   bool isBusy() { return fBusy;};
@@ -153,6 +158,7 @@ public:
   void setUnpackingDebug(bool flag) {/*CSCDDUEventData::setDebug(flag);*/}
 
   bool isMEvalid(ME_List&, std::string, EmuMonitoringObject* & );
+  MonitorElement* findME(std::string tag, std::string name, TDirectory* rootfolder);
   std::map<std::string, ME_List >&  GetMEs() { return MEs;};
   std::map<std::string, MECanvases_List >&  GetMECanvases() { return MECanvases;};
   std::map<std::string, CSCCounters >& GetCSCCounters() { return cscCntrs;}
@@ -182,10 +188,13 @@ protected:
 
   void init(); 
   std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
+  std::string getCSCName(std::string cscID, int& crate, int& slot, int& csctype, int& cscposition );
   int loadXMLBookingInfo(std::string xmlFile);
   int loadXMLCanvasesInfo(std::string xmlFile);
+  void clearMECollection(std::map<std::string, ME_List > & collection);
   void clearMECollection(ME_List &collection);
   void printMECollection(ME_List &collection);
+  void clearCanvasesCollection(std::map<std::string, MECanvases_List > & collection);
   void clearCanvasesCollection(MECanvases_List &collection);
   void printCanvasesCollection(MECanvases_List &collection);
   EmuMonitoringObject* createME(DOMNode* MEInfo);  
@@ -208,13 +217,8 @@ private:
   std::map<std::string, ME_List > MEs;
   std::map<std::string, MECanvases_List > MECanvases;
 
-  ME_List dduMEfactory;
-  ME_List chamberMEfactory;
-  ME_List commonMEfactory;
-
-  MECanvases_List dduCanvasesFactory;
-  MECanvases_List chamberCanvasesFactory;
-  MECanvases_List commonCanvasesFactory;
+  std::map<std::string, ME_List > MEFactories;
+  std::map<std::string, MECanvases_List > MECanvasFactories; 
 
   std::map<std::string,uint32_t> nDMBEvents;
   std::map<uint32_t,uint32_t> L1ANumbers;
