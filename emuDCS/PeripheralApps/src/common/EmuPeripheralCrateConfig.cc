@@ -8085,7 +8085,7 @@ void EmuPeripheralCrateConfig::VCC_VME_DO(xgi::Input * in, xgi::Output * out )
           for(i=2;i<offset;i+=2){
             printf("%02X%02X\n",vmecc->wbuf[i]&0xFF,vmecc->wbuf[i+1]&0xFF);
           }
-          //      vmecc->vme_cmds((offset-2)/2);
+          vmecc->vme_cmds((offset-2)/2);
 	}
       }
       VCC_UTIL_VME_msg_data = "";
