@@ -24,13 +24,14 @@ function view (layout,scale){
 	for(var y=1; y<=nRows; y++){
 		document.writeln("<tr>\n");
 		for(var x=1; x<=nCols; x++){
-                        var title = location[x][y].replace(/^.*?\//g, "").replace(/\/\w+.png$/g, ":");
+                        var title = ( location[x][y] ? location[x][y].replace(/^.*?\//g, "").replace(/\/\w+.png$/g, ":") : "" );
 			document.writeln("<td>"+title+"</td>\n");
 		}
 		document.writeln("</tr>\n");
 		document.writeln("<tr>\n");
 		for(var x=1; x<=nCols; x++){
-			document.writeln("<td><a href="+location[x][y]+"><img alt='qwe' border=1 width="+width[location[x][y]]+" vspace=10 hspace=10 height="+height[location[x][y]]+" src="+location[x][y]+"></a></td>\n");
+			if( location[x][y] ) document.writeln("<td><a href="+location[x][y]+"><img alt='qwe' border=1 width="+width[location[x][y]]+" vspace=10 hspace=10 height="+height[location[x][y]]+" src="+location[x][y]+"></a></td>\n");
+                        else document.writeln("<td></td>\n");
 		}
 		document.writeln("</tr>\n");
 	}

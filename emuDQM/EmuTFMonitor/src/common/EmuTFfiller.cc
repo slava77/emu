@@ -463,7 +463,10 @@ if( sp == 0 ){
 				if( dt_phi_bend ) dt_phi_bend->Fill(dt_stub->phi_bend());
 
 				TH1F *dt_phi = (TH1F*)tf.get("dt_phi",sp);
-				if( dt_phi ) dt_phi->Fill(dt_stub->phi());
+				if( dt_phi ){
+                                    signed int s_phi = dt_stub->phi();
+                                    dt_phi->Fill( (s_phi&0x800 ? (s_phi&0x7FF)-0x800 : s_phi&0x7FF) );
+                                }
 
 				TH2F *dt_synch = (TH2F*)tf.get("dt_synch",sp);
 				if( dt_synch ) dt_synch->Fill(spPtr->header().BXN()%(int)dt_synch->GetXaxis()->GetXmax(),dt_stub->BXN()%(int)dt_synch->GetYaxis()->GetXmax());
