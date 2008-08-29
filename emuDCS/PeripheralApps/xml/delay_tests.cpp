@@ -1,6 +1,7 @@
 /*
   Daniel Aharoni- delay_tests.cpp
   DAharoni@ucla.edu
+  Created summer 2007 during minus-side Slice Test on surface
   For information concerning this program see...
           http://twiki.cern.ch/twiki/bin/view/CMS/CSCTimingProgram
 
@@ -59,6 +60,11 @@
      - Concatenate minus and plus endcap files for cable lengths and afeb thresholds and delays.
      - Add reading in Dayong fine timing corrections file.
 
+  *  Modifications by Jay Hauser 4 June 2008, 
+     - Implemented Dayong LCT relative timing corrections by changing AFEB fine delays, and if
+       over-range or negative, wrap around with subsequent corrections to mpc_tx_delay, mpc_rx_delay,
+       tmb_l1a_delay.  See subsequent fixes described below on 18 Aug 2008.
+
   *  Modifications by Jay Hauser 27 June 2008, 
      - Reverse sign of fine timing correction back to positive "correction" in Dayong's files now.
      - Some changes to the XML file format, find out if we need to make other code corrections
@@ -69,6 +75,28 @@
      - Hopefully this will work out with integer bunch crossing delays and the next step will
        be to program shifts for non-integer shifts to TTCrxCoarse delays.
 
+  * Modifications by Jay Hauser 18 Aug 2008
+     - Fix Dayong relative LCT timing correction algorithm to no longer shift mpc_rx_delay (a 
+       fixed value of 6 since all versions of TMB firmware after ~Oct. 2007, downloaded ~June 2008).
+     - Fix Dayong relative LCT timing correction algorithm to put in wrap-around shifts for alct_l1a_delay 
+       and tmb_lct_cable_delay automatically so they don't need to be re-measured.
+     - Reduce ttc_ccb_fiber_offset = 5 -> 2 to center range of TTCrxCoarseDelay
+     - (in progress) Implement TTCrxFineDelay corrections inside adjust_ttc_delays:
+       > Calculate integer number of ns delay.
+       > Display the fine delay settings (ns), as well as the sub-ns deviations from perfection.
+       > Read in measured values and keep separate from predicted values
+
+  * Modifications by Jay Hauser 28 Aug 2008
+     - Put in TTCrxFineDelay corrections (in option 28). Plan is:
+       > Add correction to TTCrxFineDelay by crate, afeb_fine_delay values by chamber
+       > Calculate rollover in afeb_fine_delays
+       > If roll-over, there is less ALCT delay to L1A, so just like situation with adjusting
+         for Dayong's timing offsets (option 22), need to adjust this chamber's:
+         1) mpc_tx_delay += 1
+	 2) alct_l1a_delay +=1
+	 3) tmb_l1a_delay +=1
+	 4) tmb_lct_cable_delay +=1
+       > Make sure the right parameters get written to the output XML file.
 */
 
 #include <iostream>
@@ -181,7 +209,7 @@ struct chambers { //Holds all information for a chamber
 void options();                            //options of what type of data/delays to display
 void output_data_to_file();                //used to import predicted timing parameters to excel or other type programs
 void create_config_file();                 //creates a configuration .xml file for a defined trigger sector
-void read_in_data(const char file_name[]); //reads in data
+void read_in_config(const char file_name[]); //reads in XML file (usually measured) data
 void read_in_cable_lengths(const char file_name[]);              //reads in cable length ALCT and CFEB + revision
 void read_in_afeb_fine_delays(const char file_name[]);
 void read_in_afeb_thresh(const char file_name[]);
@@ -202,11 +230,11 @@ void set_parameters();                     //user can adjust comp_timing, clct(a
 void mpc_delays();                         //calculates mpc_tx_delay and mpc_rx_delay
 void tmb_l1a_delay();                  
 void alct_l1a_delay();
-void adjust_mpc_afeb();
+void adjust_LCT_fine_timing();
 void adjust_ttc_delays();
 void adjust_measured_parameters();
-void TTCrxCoarseDelayFun();
-void display_TTCrxCoarseDelayFun();
+void TTCrxDelayCalc();
+void display_TTCrxDelayCalc();
 double time_of_flight(int s, int z, int y, int x);
 void output_measured_parameters(string file_name);
 char difference_beyond_thresh(int measured, int predicted, int thresh, int z, int y, int x);
@@ -228,10 +256,12 @@ int end_chamber[5][4];                     //the ending chamber in the range of 
 int chamber_limit[2][5][4] = {};           //holds the low and high chamber that the user is interested in.  First cell: 0 = low, 1 = high
 chambers ME[2][5][4][37];                  //an array of all ME- and ME+ chambers
 double fiber_length[2][5][13] = {};        //TTC to CCB fiber lengths
-int TTCrxCoarseDelayPred[2][5][13] = {};
+int TTCrxCoarseDelayPred[2][5][13] = {};   //units are bx
 int TTCrxCoarseDelayMeas[2][5][13] = {};
+int TTCrxFineDelayPred[2][5][13] = {};     //units are ns, not bx
+int TTCrxFineDelayMeas[2][5][13] = {};
 int ttc_rx_corr[2][5][13] = {};
-double ttc_rx_corr_fine[2][5][13] = {};
+int ttc_rx_corr_fine[2][5][13] = {};
 //
 unsigned ChamberToPCMap[5][4][37] = {};
 //
@@ -275,8 +305,6 @@ const double afeb_fine_delay_asic_nsec_per_setting = 2.2;
 //
 // cfeb[0-4]delay (rx clock delay):
 const int internal_cfeb_rx_clock_delay_offset = 19;
-//const int internal_cfeb_rx_clock_delay_offset = 6;  //value for TMB firmware that latched comparator data 1/2 clock cycle slow 
-//                                                      (Peripheral Crate commissioning--summer 2006)
 //
 // alct_tx_clock_delay:
 const int internal_alct_tx_clock_delay_offset = 20;
@@ -290,8 +318,8 @@ int clct_alct_latency_difference = 4;
 // mpc_rx_delay:
 const int transmission_plus_mpc_processing_time = 5;
 //
-// TTCrxCoarseDelayFun (tmb_l1a_delay, alct_l1a_delay, tmb_lct_cable_delay)
-const int ttc_ccb_fiber_offset = 5;
+// TTCrxDelayCalc (tmb_l1a_delay, alct_l1a_delay, tmb_lct_cable_delay)
+const int ttc_ccb_fiber_offset = 2;
 //
 // tmb_l1a_delay, alct_l1a_delay, tmb_lct_cable_delay:
 const int l1a_latency_from_mpc_to_ttc_output = 101;  //predictions for TeamA ME+2 far side...
@@ -363,14 +391,21 @@ int main() {
   //string filename4="measured_xml/VME_MEm1234_20080625.xml";
   //string filename5="measured_xml/VME_MEm1234_20080625.xml";
   //Aug 2008: new files
-  string filename4="measured_xml/VME_minus_20080731_midweek_global.xml";
-  string filename5="measured_xml/VME_plus_20080731_midweek_global.xml";
+  //string filename4="measured_xml/VME_minus_20080731_midweek_global.xml";
+  //string filename5="measured_xml/VME_plus_20080731_midweek_global.xml";
+  //  string filename4="measured_xml/VME_minus_20080813_midweek_global_day2.xml";
+  // string filename5="measured_xml/VME_plus_20080813_midweek_global_day2.xml";
+  //
+  //1-crate test xml files:
+  //
+  string filename4="measured_xml/am.xml";
+  string filename5="measured_xml/ap.xml";
   //
   cout << "Reading in measured XML from " << filename4 << " ..." << endl;
-  read_in_data(filename4.c_str());
+  read_in_config(filename4.c_str());
   //
   cout << "Reading in measured XML from " << filename5 << " ..." << endl;
-  read_in_data(filename5.c_str());
+  read_in_config(filename5.c_str());
   //
   // Make predictions of the parameters:
   //
@@ -428,15 +463,16 @@ int main() {
 	  cout << endl << endl << "Allowing all chambers to be displayed" << endl;
       }
       //
-      if (choice == 22)                 //adjust mpc/afeb_fine delays to align LCTs at SP, write XML config file
-	adjust_mpc_afeb();
+      if (choice == 22)     //adjust fine timing mpc/afeb_fine delays to align LCTs at SP (Dayong corrections)
+	                    // or to adjust TTCrxFineDelay values, then write new XML config file
+	adjust_LCT_fine_timing();
       //
       if (choice == 23)                 //change comp_timing, clct_drift_delay, and/or alct_drift_delay for MEASURED
 	                                //values, then write config XML file
 	adjust_measured_parameters();
       //
       if (choice == 24)                 //calculate and display the TTCrxCoarseDelays based on fiber lengths
-	display_TTCrxCoarseDelayFun();
+	display_TTCrxDelayCalc();
       //
       if (choice == 25) {               //"chamber line up at MPC" -JH what does that mean??
 	select_chamber();
@@ -528,7 +564,11 @@ void predict_all_timing_parameters() {
   // **********FUNCTIONS NEED TO STAY IN THIS ORDER******************************
   //
   // compute delays depending strictly on the cable length
-  TTCrxCoarseDelayFun();
+  //
+  //First the TTCrx{Coarse/Fine}Delay calculations from optical fibers:
+  TTCrxDelayCalc();
+  //
+  //Then other cable delays from copper cable lengths and propagation speeds:
   alct_to_cfeb_skewclear_delay();
   cfeb_cable_delay();
   afeb_cable_adjustment();
@@ -555,7 +595,7 @@ void predict_all_timing_parameters() {
 //
 //---------------------------------------------------------------------------------------------------------
 //
-void TTCrxCoarseDelayFun() {
+void TTCrxDelayCalc() {
   char VME[11] = {};
   double length;
   double max_length = 0;
@@ -597,30 +637,22 @@ void TTCrxCoarseDelayFun() {
       }
     }
   }
-  // ------ Calc Delay -----------------------------
+  //
+  //Calc Delay setting longest fiber to zero initially:
+  //
   for (z_side = 0; z_side < 2; z_side++) {  
     for (x = 1; x <= 4; x++) {
       for (y = 1; y <= number_of_crates[x]; y++) {
 	if (fiber_length[z_side][x][y])
 	  TTCrxCoarseDelayPred[z_side][x][y] = (int) (0.5 + (max_length - fiber_length[z_side][x][y]));
+	  TTCrxFineDelayPred[z_side][x][y] = int( 25*( (0.5 + (max_length - fiber_length[z_side][x][y]))
+	    -TTCrxCoarseDelayPred[z_side][x][y]) );
       }
     }
   }
-  // ------------ Center in 15 bx window ------------
-  //  for (z_side = 0; z_side < 2; z_side++) {
-  //  for (x = 1; x <= 4; x++) {
-  //    for (y = 1; y <= number_of_crates[x]; y++) {
-  //if (fiber_length[z_side][x][y]) {
-  //  if (min_coarse > TTCrxCoarseDelayPred[z_side][x][y])
-  //    min_coarse = TTCrxCoarseDelayPred[z_side][x][y];
-  //  if (max_coarse < TTCrxCoarseDelayPred[z_side][x][y])
-  //    max_coarse = TTCrxCoarseDelayPred[z_side][x][y];
-  //}
-  //  }
-  //}
-  //}
-  //ttc_ccb_fiber_offset = (int) ( 0.5 + (7.5 - (min_coarse + max_coarse)/2.0));
   //  
+  //Apply a global shift:
+  //
   for (z_side = 0; z_side < 2; z_side++) {  
     for (x = 1; x <= 4; x++) {
       for (y = 1; y <= number_of_crates[x]; y++) {
@@ -1473,12 +1505,12 @@ void read_in_sp_offsets(const char file_name[]) {
 //
 // TTCrxCoarseDelay adjustments read in (may be precalculated by this program based on fiber lengths, in fact)
 //---------------------------------------------------------------------------------------------------------
-void read_in_ttc_offsets(const char file_name[]) {
+void read_in_ttc_delays(const char file_name[]) {
   /*
     reads in and stores the bx time offsets for all crates
   */
   int ttc_corr;
-  double ttc_corr_fine;
+  int ttc_corr_fine;
   char VME[8];
   //
   int z_side = 0;
@@ -1486,28 +1518,37 @@ void read_in_ttc_offsets(const char file_name[]) {
   int station;
   int crate;
   //
-  cout << "read_in_ttc_offsets: read from TTC bx offset file name " << file_name << endl;
+  cout << "read_in_ttc_delays: read from TTC delay file name " << file_name << endl;
   ifstream ttc_offsets(file_name, ios::in);
-  // Read in data line:
+  if (ttc_offsets.fail())
+    cout << file_name << " not found.  Measured timing parameters not read in" << endl << endl;
+  //
+  // Read in each data line:
   while(ttc_offsets >> VME >> ttc_corr >> ttc_corr_fine ) {
     cz_side = VME[3];
     if (cz_side == 'p')   z_side = 1;
     if (cz_side == 'm')   z_side = 0;
     //
+    //Figure out which crate:
     station = (int) VME[4] - 48;        // hacky character to integer conversions
     crate = 10 * ((int) VME[6] - 48) + ((int) VME[7] - 48);
+    //
+    //Store the TTC delay information:
     ttc_rx_corr[z_side][station][crate] = ttc_corr;
     ttc_rx_corr_fine[z_side][station][crate] = ttc_corr_fine;
-    cout << "read_in_ttc_offsets:" << station << " " << crate << " bx=" << ttc_corr << " fine=" << ttc_corr_fine << endl;
+    //
+    //Debug:
+    cout << "read_in_ttc_delays: VME" << cz_side << station << "/" << crate 
+	 << ": bx=" << ttc_corr << " fine=" << ttc_corr_fine << endl;
   }
-
-    cout << "TTC bx offset file was read in" << endl << endl;
+  //
+  //Cleanup:
+  cout << "TTC bx offset file has been read in." << endl << endl;
   ttc_offsets.close();
 }
 //---------------------------------------------------------------------------------------------------------
 //
 void read_in_afeb_thresh(const char file_name[]) {
-  ifstream in_file(file_name, ios::in);
   int number;
   char chamber[10];
   char temp[3];
@@ -1518,6 +1559,7 @@ void read_in_afeb_thresh(const char file_name[]) {
   int delay;
   int w = 0;
   int z_side = 0;
+  ifstream in_file(file_name, ios::in);
   if (in_file.fail())
     cout << file_name << " not found.  afeb threshold not read in" << endl << endl;
   while (in_file >> number >> chamber >> temp >> waste >> date >> number_of_delays) {
@@ -1578,17 +1620,17 @@ void read_in_afeb_fine_delays(const char file_name[]) {
 }
 //---------------------------------------------------------------------------------------------------------
 //
-void read_in_data(const char file_name[]) {                 
+void read_in_config(const char file_name[]) {                 
   //
   //Reads in data from xml file and stores it in appropriate chamber ME[][][]
   //
-  ifstream config (file_name , ios::in);
   string line;
   int x = 0, y = 0, z = 0, z_side = 0;
   int z_crate = 0, x_crate = 0;
   int place = 0;
   int temp = 0;
   char quote = '"';
+  ifstream config (file_name , ios::in);
   if (config.fail())
     cout << file_name << " not found.  Measured timing parameters not read in" << endl << endl;
   while (getline(config, line)) {
@@ -1609,7 +1651,7 @@ void read_in_data(const char file_name[]) {
 	x_crate = ((int) line[place + 6] - 48) * 10 + (int) line[place + 7] - 48;
       else
 	x_crate = (int) line[place +6] - 48;
-      //     cout << "DEBUG read_in_data z_side, z_crate, x_crate: " << z_side << ", " << z_crate << ", " << x_crate << endl;
+      //     cout << "DEBUG read_in_config z_side, z_crate, x_crate: " << z_side << ", " << z_crate << ", " << x_crate << endl;
     }
       //
       //The only parameters that go with crate:
@@ -1621,6 +1663,16 @@ void read_in_data(const char file_name[]) {
 	  TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] = 10 * TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] + (int) line[place] - 48;
 	  place++;
 	}
+      }
+      if (line.find("TTCrxFineDelay") != string::npos){
+	TTCrxFineDelayMeas[z_side][z_crate][x_crate] = 0;
+	place = line.find(quote) + 1;
+	while (line[place] != '"') {
+	  TTCrxFineDelayMeas[z_side][z_crate][x_crate] = 10 * TTCrxFineDelayMeas[z_side][z_crate][x_crate] + (int) line[place] - 48;
+	  place++;
+	}
+	cout << "read_in_config:: DEBUG read in value of TTCrxFineDelayMeas " 
+	     << TTCrxFineDelayMeas[z_side][z_crate][x_crate] << endl;
       }
     //
     //Parameters by chamber below - find out which chamber:
@@ -2222,7 +2274,7 @@ void create_config_file() {
 }
 //---------------------------------------------------------------------------------------------------------
 //
-void adjust_mpc_afeb() {
+void adjust_LCT_fine_timing() {
   /*
     Allows user to align LCT timing at SP.
     Reads in an XML file, shifts afeb/mpc_tx_delays
@@ -2266,7 +2318,7 @@ void adjust_mpc_afeb() {
   if (infile.fail() == 1)
     cout << endl << file_name << " NOT FOUND" << endl;
   //  
-  read_in_data(file_name.c_str());
+  read_in_config(file_name.c_str());
   //
   // Parse the xml file: find which chamber
   //
@@ -2311,12 +2363,11 @@ void adjust_mpc_afeb() {
       }
 
       //
-      correction = 0;
-      //
       // Find the smallest and the largest settings:
       //
-      largest = 15;
-      smallest = 0;
+      correction = 0;
+      smallest   = 0;
+      largest    = 15;
       //
       for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) {
 	//
@@ -2324,25 +2375,37 @@ void adjust_mpc_afeb() {
 	//
 	if ((ME[z_side][z][y][x].afeb_fine_delay[w] < 0) && (ME[z_side][z][y][x].afeb_fine_delay[w] < smallest)) {
 	  smallest = ME[z_side][z][y][x].afeb_fine_delay[w];
-	  correction = -(int)((smallest - 11.4) / 11.4);
+	  correction = -(int)((smallest - 11.4) / 11.4);                 //If we have a negative smallest
 	} 
 	//
 	if ((ME[z_side][z][y][x].afeb_fine_delay[w] > 15) && (ME[z_side][z][y][x].afeb_fine_delay[w] > largest)) {
 	  largest = ME[z_side][z][y][x].afeb_fine_delay[w];
-	  correction = -(int) (((largest + 11.4) - 16) / 11.4);
+	  correction = -(int) (((largest + 11.4) - 16) / 11.4);          //If we have a too-big largest
 	}
       }
       //
       for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) {
-	ME[z_side][z][y][x].afeb_fine_delay[w] += (int) (correction * 11.4);
+	ME[z_side][z][y][x].afeb_fine_delay[w] += (int) (correction * 11.4);  //Apply the wrap-around correction if any
       }	
-      ME[z_side][z][y][x].mpc_tx_delay -= correction;
-      ME[z_side][z][y][x].mpc_rx_delay -= correction;
+      ME[z_side][z][y][x].mpc_tx_delay -= correction; //Correct these parameters for wrap-around
+      //
+      //18Aug2008 No longer needed:
+      //      ME[z_side][z][y][x].mpc_rx_delay -= correction;
       ME[z_side][z][y][x].tmb_l1a_delay -= correction;
+      //
+      //18Aug2008 add these corrections so don't need to remeasure:
+      //
+      ME[z_side][z][y][x].alct_l1a_delay -= correction;
+      ME[z_side][z][y][x].tmb_lct_cable_delay -= correction;
+
+      //
+      //Complain if we are totally out of range on mpc_tx_delay (user intervention will be required):
       //
       if (ME[z_side][z][y][x].mpc_tx_delay < 0)
 	cout << "ERROR: The adjustment by " << change 
 	     << " bx shifted the mpc_tx_delay below 0 for chamber ME" << z_side << z << "/" << y << "/" << x << endl;
+      //
+      //Complain if we are out of range on AFEB fine delays (some plateauing of optimal values):
       //
       for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) {
 	// if (ME[z_side][z][y][x].afeb_fine_delay[w] > 15 || ME[z_side][z][y][x].afeb_fine_delay[w] < 0)
@@ -2371,67 +2434,97 @@ void adjust_mpc_afeb() {
 //
 void adjust_ttc_delays() {
   /*
-    Allows user to change TTC delays in the CCB without ruining other timing.
+    Allows user to change TTC delays in the CCB without ruining other timing by reading an offsets file.
     There is another option for calculating TTC delays based on optical fiber lengths that
-    should be run to determine those delays.
-
-    This version can only change INTEGER values of TTC delays
+    should be run to determine and display those delays.
 
     Procedure:
         Reads in an XML file
 	...then prompt user for desired TTC timing shifts (by crate). For each crate:
 	...shifts TTCrxCoarseDelay (CCB)
+NEW:
+	...shifts TTCrXFineDelay (CCB)
+	...shifts afeb_fine_delay values the same (ALCT)
+	...if rollover, need to adjust the following +1 beyond adjustment for TTCrxCoarseDelay
+OLDER:
         ...shifts up to 9 mpc_tx_delay values (TMB - note range is 0-15)
 	...shifts up to 9 tmb_l1a_delay values (TMB)
 	...shifts up to 9 alct_l1a_delay values (TMB--> ALCT)
 	...shifts up to 9 tmb_lct_cable_delay values (DAQMB - note range is 0-7)
         ...then outputs to a revised XML file
+
+
   */
-  string file_name;
-  string offset_file_name;
-  bool use_offset_file;               
+  int user_choice;
+  string ttc_file_name;
+  string config_file_name;
+  bool use_deltas; 
   int ichange = 0;
-  double change = 0;
   string line;
   ifstream infile;
-  int x, y, z;
+  int x=0, y=0, z=0;
   int z_side = 0;
-  int z_crate;
-  int x_crate;
+  int z_crate=0;
+  int x_crate=0;
   char cz_side = '-';
   int place;
   //
+  //New for proper TTCrxFineDelay adjustment
+  int smallest, largest;
+  int correction;
+  unsigned int w; //AFEB index
+  double change = 0;
+  //
   cout << endl << "Warning: Changes made here will be stored in the measured timing parameter variables until the program is closed" << endl;
   //
-  // here either run interactively (chamber by chamber) or read in file with TTC offsets
+  //User may choose either (1) calculated ttc coarse, fine delays, or (2) changes to ttc measured delays
   //
-  cout << "Enter I for Interactive or the <filename> of the file containing TTC offsets" << endl;
+  cout << endl << "Enter 1 (...dont...) to apply TTC delays directly, or 2 to apply CORRECTIONS" << endl;
   cout << "===> ";
-  cin >> offset_file_name;
-    if ((offset_file_name == 'i') || (offset_file_name == 'I'))
-      use_offset_file = false;
-    else {
-      use_offset_file = true;
-      read_in_ttc_offsets(offset_file_name.c_str());
-    }
+  cin >> user_choice;
+  cout << "User choice = " << user_choice;
+  use_deltas = false;
+  if( user_choice == 1) {
+    cout << "You chose calculations directly based on TTC fiber lengths" << endl;
+    use_deltas = false;
+    cout << "Option not yet completely implemented (JH, 19Aug2008)!!! Return." << endl;
+    return;}
+  else if (user_choice==2) {
+    cout << "You chose to apply delta corrections" << endl;
+    use_deltas = true;
+    cout << endl << user_choice << " is your option.  Please continue..." << endl << endl;}
+  else {
+    cout << "INVALID CHOICE, no operation performed, return to menu." << endl;
+    return;}
   //
-  cout << "What is the file name you wish to modify?" << endl;
+  //Get name of file with TTC offsets or values and read it in:
+  //
+  cout << "Enter the <filename> of the file containing TTC delays data" << endl
+       << "             (e.g. ttc_delays.txt or ttc_offsets.txt)" << endl;
   cout << "===> ";
-  cin >> file_name;
+  cin >> ttc_file_name;
+  read_in_ttc_delays(ttc_file_name.c_str());
   //
-  if (file_name.find(".xml") == string::npos) file_name += ".xml";
-  infile.open(file_name.c_str(), ios::in);
-  if (infile.fail() == 1)
-    cout << endl << file_name << " NOT FOUND" << endl;
-  //  
-  read_in_data(file_name.c_str());
+  //Get name of XML configuration file and start reading it in:
   //
-  // Parse the xml file: find which crate and apply correction to TTCrxCoarseDelayMeas
+  cout << "What is the XML configuration file name you wish to modify?" << endl;
+  cout << "===> ";
+  cin >> config_file_name;
+  if (config_file_name.find(".xml") == string::npos) config_file_name += ".xml";
+  infile.open(config_file_name.c_str(), ios::in);
+  if (infile.fail() == 1) {
+    cout << endl << config_file_name << " NOT FOUND, no operations performed" << endl;
+    return;}
+  read_in_config(config_file_name.c_str());
+  //
+  // Parse the xml file: find which Peripheral Crate and apply correction to TTCrxCoarseDelayMeas
   //
   while (getline(infile, line)) {
     //
-    if (line.find("<PeripheralCrate") != string::npos) {   // look for crate location
-      place = line.find("VME");                           //in the form VMEp1_12 etc
+    //Look for *crate* location in the form VMEp1_12, etc. and calculated TTCrx corrections
+    //
+    if (line.find("<PeripheralCrate") != string::npos) {
+      place = line.find("VME");
       if (line[place + 3] == 'm') {
     	cz_side ='-';
 	z_side = 0;
@@ -2441,18 +2534,32 @@ void adjust_ttc_delays() {
 	z_side = 1;
       }
       z_crate = (int) line[place + 4] - 48;// station
-                                           // no y (ring for peripheral crates)
+                                           // no y (i.e. no ring index for peripheral crates)
       if (line[place + 7] != '"')          // handle 1 or 2 digits for phi of crate
 	x_crate = ((int) line[place + 6] - 48) * 10 + (int) line[place + 7] - 48;
       else
 	x_crate = (int) line[place +6] - 48;
       //
-      TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] += ttc_rx_corr[z_side][z_crate][x_crate];
+      //Calculate what to change TTCrxCoarseDelay to:
+      //
+      if(use_deltas) TTCrxCoarseDelayPred[z_side][z_crate][x_crate] += ttc_rx_corr[z_side][z_crate][x_crate];
+      else TTCrxCoarseDelayPred[z_side][z_crate][x_crate] = ttc_rx_corr[z_side][z_crate][x_crate];
+      //
+      //Calculate what to change TTCrxFineDelay to:
+      //
+      if(ttc_rx_corr_fine[z_side][z_crate][x_crate] != 0) {
+	cout << endl  << "adjust_ttc_delays: VME" << cz_side << z_crate << "/" << x_crate 
+	     << " will change FINE TTC to value (or change by) =" 
+	     << ttc_rx_corr_fine[z_side][z_crate][x_crate]
+	     << " ns" << endl;
+      }
+      if(use_deltas) TTCrxFineDelayPred[z_side][z_crate][x_crate] += ttc_rx_corr_fine[z_side][z_crate][x_crate];
+      else TTCrxFineDelayPred[z_side][z_crate][x_crate] = ttc_rx_corr_fine[z_side][z_crate][x_crate];
     }
     //
-    // Find which chamber and apply other corrections
+    //Look for *chamber* location in the form ME+1/1/23 etc. and apply other corrections
     //
-   if (line.find("CSC label") != string::npos && line.find("Broadcast") == string::npos) {
+    if (line.find("CSC label") != string::npos && line.find("Broadcast") == string::npos) {
       place = line.find("ME");                   //in the form ME-_/_/_
       if (line[place + 2] == '-') {
     	cz_side ='-';
@@ -2469,21 +2576,73 @@ void adjust_ttc_delays() {
       else
 	x = (int) line[place +7] - 48;
       //
-      // Apply the appropriate corrections:
+      // Apply the appropriate TTCrxCoarseDelay corrections:
       //
       ichange = ttc_rx_corr[z_side][z_crate][x_crate];
       cout << endl  << "ME" << cz_side << z << "/" << y << "/" << x << " Changing by " << ichange << " bx" << endl;
       //
-      ME[z_side][z][y][x].mpc_tx_delay        += ichange;
-      ME[z_side][z][y][x].tmb_l1a_delay       += ichange;
-      ME[z_side][z][y][x].alct_l1a_delay      += ichange;
-      ME[z_side][z][y][x].tmb_lct_cable_delay += ichange;
-      //cout << "  --> mpc_tx_delay " << ME[z_side][z][y][x].mpc_tx_delay 
-      //	   << " tmb_l1a_delay " << ME[z_side][z][y][x].tmb_l1a_delay
-      //   << " alct_l1a_delay " << ME[z_side][z][y][x].alct_l1a_delay
-      //   << " tmb_lct_cable_delay " << ME[z_side][z][y][x].tmb_lct_cable_delay << endl;
+      if (ichange!=0) {
+	ME[z_side][z][y][x].mpc_tx_delay        += ichange;
+	ME[z_side][z][y][x].tmb_l1a_delay       += ichange;
+	ME[z_side][z][y][x].alct_l1a_delay      += ichange;
+	ME[z_side][z][y][x].tmb_lct_cable_delay += ichange;
+	cout << "  TTCrxCoarseDelay --> mpc_tx_delay " << ME[z_side][z][y][x].mpc_tx_delay 
+	     << " tmb_l1a_delay " << ME[z_side][z][y][x].tmb_l1a_delay
+	     << " alct_l1a_delay " << ME[z_side][z][y][x].alct_l1a_delay
+	     << " tmb_lct_cable_delay " << ME[z_side][z][y][x].tmb_lct_cable_delay << endl;
+      } 
+      else {
+	cout << " TTCrxCoarseDelay --> no correction required" << endl;
+      }
       //
-      //Check for errors:
+      //NEW: Apply the appropriate TTCrxFineDelay corrections if non-zero
+      //
+      change = ttc_rx_corr_fine[z_side][z_crate][x_crate]; //Recall units are ns
+      if (change !=0) {
+	//
+	// Loop over AFEBs, applying fine delay corrections, and find the smallest and the largest settings per chamber:
+	//
+	correction = 0; //This is an integer that will be -1 bx if we wrap around on high side, +1 bx if wrap low side
+	smallest   = 0;
+	largest    = 15;
+	//
+	for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) { //Loop over AFEBs on this chamber, apply shifts
+	  //
+	  //Calculate the AFEB delay setting based on the timing change:
+	  ME[z_side][z][y][x].afeb_fine_delay[w] += (int) (0.5 + (change / afeb_fine_delay_asic_nsec_per_setting)); 
+	  // cout << "DEBUG: AFEB #" << w << ", new fine delay =" << ME[z_side][z][y][x].afeb_fine_delay[w] << endl; 
+	  //
+	  //Calculate what to do if get negative values (have to add a bx to delays):
+	  if ((ME[z_side][z][y][x].afeb_fine_delay[w] < 0) && (ME[z_side][z][y][x].afeb_fine_delay[w] < smallest)) {
+	    smallest = ME[z_side][z][y][x].afeb_fine_delay[w];
+	    correction = -(int)((smallest - 11.4) / 11.4);                 //If we have a negative smallest
+	  }
+	//
+	//Calculate what to do if get values too large (have to subtract a bx to delays):
+	  if ((ME[z_side][z][y][x].afeb_fine_delay[w] > 15) && (ME[z_side][z][y][x].afeb_fine_delay[w] > largest)) {
+	    largest = ME[z_side][z][y][x].afeb_fine_delay[w];
+	    correction = -(int) (((largest + 11.4) - 16) / 11.4);          //If we have a too-big largest
+	  }
+	}
+	//
+	// Ended first loop over AFEBs applying shifts, now look if we wrapped around
+	//
+	cout << "DEBUG: for this chamber, AFEB smallest=" << smallest << ", large=" << largest << ", correction=" << correction
+	     << endl;
+	//Now we know if we have wrap-around (non-zero correction), apply wrap-around correction
+	//
+	for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) {
+	  //  cout << "DEBUG: must apply wraparound correction on AFEB " << w << " by (minus) " << correction << endl; 
+	  ME[z_side][z][y][x].afeb_fine_delay[w] += (int) (correction * 11.4);  //Apply the wrap-around correction if any
+	  // cout << "  --> fixed AFEB " << w << " delay, new value=" << ME[z_side][z][y][x].afeb_fine_delay[w] << endl;
+	}	
+	ME[z_side][z][y][x].tmb_l1a_delay -= correction;
+	ME[z_side][z][y][x].mpc_tx_delay -= correction; //Correct these parameters for wrap-around
+	ME[z_side][z][y][x].alct_l1a_delay -= correction;
+	ME[z_side][z][y][x].tmb_lct_cable_delay -= correction;
+      } // End check if non-zero fine delay correction
+      //
+      //Check for errors in the parameter settings:
       //
       if (ME[z_side][z][y][x].mpc_tx_delay < 0)
 	cout << "ERROR: The adjustment by " << change 
@@ -2497,11 +2656,32 @@ void adjust_ttc_delays() {
 	cout << "ERROR: The adjustment by " << change 
 	     << " bx shifted the tmb_lct_cable_delay above 7 for chamber ME" << z_side << z << "/" << y << "/" << x << endl;
       //
-   }
-  }
+      //Complain if we are out of range on AFEB fine delays (some plateauing of optimal values):
+      //
+      for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) {
+	// if (ME[z_side][z][y][x].afeb_fine_delay[w] > 15 || ME[z_side][z][y][x].afeb_fine_delay[w] < 0)
+	if (ME[z_side][z][y][x].afeb_fine_delay[w] > 15) {
+	  cout << "WARNING: The adjustment by " << change << " ns shifted afeb_fine_delay " << w + 1 
+	       << " to a value of " << ME[z_side][z][y][x].afeb_fine_delay[w] << " for chamber ME" 
+	       << cz_side << z << "/" << y << "/" << x << endl;
+	  ME[z_side][z][y][x].afeb_fine_delay[w] = 15;
+	  cout << "  value CUTOFF at 15" << endl;
+	}
+	if(ME[z_side][z][y][x].afeb_fine_delay[w] < 0) {
+	  cout << "WARNING: The adjustment by " << change << " ns shifted afeb_fine_delay " << w + 1 
+	       << " to a value of " << ME[z_side][z][y][x].afeb_fine_delay[w] << " for chamber ME" 
+	       << cz_side << z << "/" << y << "/" << x << endl;
+	  ME[z_side][z][y][x].afeb_fine_delay[w] = 0;
+	  cout << "  value CUTOFF at 0" << endl;
+	}
+      } //End loop over check AFEB fine delay range
+
+    } //End handling of this chamber encountered during XML file parsing
+  } //End loop over XML file lines
   //
-  output_measured_parameters(file_name);
-}
+  output_measured_parameters(config_file_name);
+} //End this routine
+//
 //---------------------------------------------------------------------------------------------------------
 //
 void adjust_measured_parameters() {
@@ -2529,7 +2709,7 @@ void adjust_measured_parameters() {
     //
   } else {
     //
-    read_in_data(file_name.c_str());
+    read_in_config(file_name.c_str());
     cout << "Change comp_timing by ===> ";
     cin >> comp_change;
     cout << "Change clct_drift_delay by ===> ";
@@ -2773,7 +2953,7 @@ void options() {         //options of what type of data/delays to display
     cout << "21: Change between text display for all chambers and only measured chambers" << endl;
     cout << "22: Adjust mpc/afeb_fine_delays to align chambers at SP then write config file" << endl;
     cout << "23: Change comp_timing, clct_drift_delay, and/or alct_drift_delay for MEASURED values then write config file" << endl;
-    cout << "24: TTCrxCoarseDelay" << endl;
+    cout << "24: TTCrxCoarseDelay calculation based on optical fiber lengths" << endl;
     cout << "25: Chamber line up at MPC" << endl;
     cout << "26: Send plots to output files" << endl;
     cout << "27: Use measured values for subsequent predictions" << endl << endl;
@@ -4164,13 +4344,13 @@ void display_type() {
 }
 //
 //---------------------------------------------------------------------------------------------------------
-void display_TTCrxCoarseDelayFun() {
+void display_TTCrxDelayCalc() {
   int number_of_crates[5] = {0,12,6,6,6};
   int x, y;
   int z_side;
   char cz_side;
   cout << "TTCrxCoarseDelay    : " << endl;
-  cout << "              | Length(bx)   |   Delay(bx) |     Sum      |" << endl;
+  cout << "              | Length(bx)   |  Delay(bx) | FineDel(ns) |  Sum (bx)   |" << endl;
   cz_side = '-';
   for (z_side = 0; z_side < 2; z_side++) {
     if (z_side == 1) cz_side = '+';
@@ -4181,7 +4361,9 @@ void display_TTCrxCoarseDelayFun() {
 	       << setw(2) <<  y 
 	       << "> : |  " << setw(7) << fiber_length[z_side][x][y] 
 	       << "     |    " << setw(3) <<  TTCrxCoarseDelayPred[z_side][x][y] 
-	       << "     |     " << setw(7) << fiber_length[z_side][x][y] + TTCrxCoarseDelayPred[z_side][x][y] 
+	       << "     |    " << setw(4)  <<  TTCrxFineDelayPred[z_side][x][y] 
+	       << "     |    " << setw(7) << fiber_length[z_side][x][y] + double(TTCrxCoarseDelayPred[z_side][x][y])
+	    +double(TTCrxFineDelayPred[z_side][x][y])/25
 	       << "  |" <<  endl;
       }
     }
