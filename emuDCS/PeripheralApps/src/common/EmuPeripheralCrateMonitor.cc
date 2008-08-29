@@ -1273,10 +1273,12 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
 	output <<cgicc::td();
 	output <<cgicc::td();
       }
-      if ( myVector[tmb]->GetCounter(count) == 0x3fffffff )
+      int value = myVector[tmb]->GetCounter(count);
+      /* 0xBAADBAAD from VCC for a failed VME access */
+      if (  value == 0x3fffffff || value < 0 )
          output << "-1";
       else 
-   	 output << myVector[tmb]->GetCounter(count);
+   	 output << value ;
       output <<cgicc::td();
     }
     output <<cgicc::tr();
@@ -1454,7 +1456,8 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
         int ring = std::atoi(chname.substr(5,1).c_str());
         int chnumb = std::atoi(chname.substr(7,2).c_str());
 
-        int value = myVector[j]->GetCounter(1);  // ALCT
+        int value = myVector[j]->GetCounter(13);  // ALCT
+        if(value < 0) value = 0;
 
         total += value;
         me_total[station][ring] += value;
