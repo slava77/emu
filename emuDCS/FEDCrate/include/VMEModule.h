@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.7 2008/08/25 12:25:49 paste Exp $
+* $Id: VMEModule.h,v 3.8 2008/08/30 14:49:04 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.8  2008/08/30 14:49:04  paste
+* Attempts to make VME work under the new design model where VMEModules take over for the VMEController.
+*
 * Revision 3.7  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -36,6 +39,8 @@ namespace emu {
 
 	namespace fed {
 		
+		class VMEController;
+		
 		class VMEModule: public EmuFEDLoggable, public JTAGDevice
 		{
 		public:
@@ -45,17 +50,16 @@ namespace emu {
 			virtual ~VMEModule() {};
 			inline const int slot() {return slot_;}
 			
-			/// Removing seperate VMEController class (not needed)
-			inline int getDevice() {return Device_;}
-			inline int getLink() {return Link_;}
-			inline int32_t getBHandle() { return BHandle_; }
+// 			inline int getDevice() {return Device_;}
+// 			inline int getLink() {return Link_;}
+// 			inline int32_t getBHandle() { return BHandle_; }
 			/**	I am doing something smart here.  Instead of making the BHandles extern,
 			*	I am going to have the original constructor set its own BHanlde to a
 			*	crazy value in case of an error.  Thus, if the device is already open, I
 			*	will be able to check the BHandle to figure that out, then simply replace
 			*	the BHandle with the correct value once I know it.
 			**/
-			inline void setBHandle(int32_t BHandle) { BHandle_ = BHandle; }
+// 			inline void setBHandle(int32_t BHandle) { BHandle_ = BHandle; }
 			
 			// should automatically start().  Here's what you do if
 			// you want to end() by hand
@@ -63,6 +67,8 @@ namespace emu {
 			
 			enum BOARDTYPE { DDU_ENUM=0, DCC_ENUM };
 			virtual unsigned int boardType() const = 0;
+			
+			void inline setController(VMEController *myController) { controller_ = myController; }
 		
 		protected:
 		
@@ -141,10 +147,9 @@ namespace emu {
 		
 		private:
 			int slot_;
-			int Device_;
-			int Link_;
-			int32_t BHandle_;
 			unsigned long int vmeadd_;
+			
+			VMEController *controller_;
 			
 			inline int pows_(int n, int m) { int ret = 1; for (int i=0; i<m; i++) ret *= n; return ret; }
 			inline void udelay(long int itim) { for (long int j=0; j<itim; j++) for (long int i=0; i<200; i++); }

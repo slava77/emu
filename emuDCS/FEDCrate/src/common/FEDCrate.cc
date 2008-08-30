@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.cc,v 1.4 2008/08/19 14:51:02 paste Exp $
+* $Id: FEDCrate.cc,v 1.5 2008/08/30 14:49:04 paste Exp $
 *
 * $Log: FEDCrate.cc,v $
+* Revision 1.5  2008/08/30 14:49:04  paste
+* Attempts to make VME work under the new design model where VMEModules take over for the VMEController.
+*
 * Revision 1.4  2008/08/19 14:51:02  paste
 * Update to make VMEModules more independent of VMEControllers.
 *
@@ -30,17 +33,17 @@ emu::fed::FEDCrate::FEDCrate(int myNumber, VMEController *myController):
 
 
 emu::fed::FEDCrate::~FEDCrate() {
+	delete vmeController_;
 	for(unsigned i = 0; i < moduleVector_.size(); ++i) {
 		delete moduleVector_[i];
 	}
-	delete vmeController_;
 }
 
 
 
 void emu::fed::FEDCrate::addModule(VMEModule *module) {
 	if (vmeController_) {
-		module->setBHandle(vmeController_->getBHandle());
+		module->setController(vmeController_);
 	}
 	moduleVector_[module->slot()] = module;
 }
@@ -56,7 +59,7 @@ void emu::fed::FEDCrate::setController(VMEController *controller) {
 	//vmeController_->setCrate(number_);
 	for (unsigned int i=0; i<moduleVector_.size(); i++) {
 		if (moduleVector_[i] == NULL) continue;
-		moduleVector_[i]->setBHandle(vmeController_->getBHandle());
+		moduleVector_[i]->setController(vmeController_);
 	}
 }
 
@@ -68,10 +71,6 @@ void emu::fed::FEDCrate::setBHandle(int32_t myBHandle) {
 	}
 	std::cout << "Setting BHandle in crate " << number_ << std::endl;
 	if (vmeController_ != NULL) vmeController_->setBHandle(myBHandle);
-	for (std::vector<VMEModule *>::iterator iModule = moduleVector_.begin(); iModule != moduleVector_.end(); iModule++) {
-		if ((*iModule) == NULL) continue;
-		(*iModule)->setBHandle(myBHandle);
-	}
 }
 
 

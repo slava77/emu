@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.8 2008/08/25 12:25:49 paste Exp $
+* $Id: VMEModule.cc,v 3.9 2008/08/30 14:49:04 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.9  2008/08/30 14:49:04  paste
+* Attempts to make VME work under the new design model where VMEModules take over for the VMEController.
+*
 * Revision 3.8  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -24,13 +27,13 @@
 
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
+#include "VMEController.h"
 
 #define DELAY3 16.384
 
 emu::fed::VMEModule::VMEModule(int mySlot):
 	//vmeController_(0),
-	slot_(mySlot),
-	BHandle_(-1)
+	slot_(mySlot)
 {
 	vmeadd_ = slot_ << 19;
 }
@@ -54,7 +57,7 @@ void emu::fed::VMEModule::CAEN_read(unsigned long Address,unsigned short int *da
 {
 	CVAddressModifier AM = cvA24_U_DATA;
 	CVDataWidth DW = cvD16;
-	int err = CAENVME_ReadCycle(BHandle_,Address,data,AM,DW);
+	int err = CAENVME_ReadCycle(controller_->getBHandle(),Address,data,AM,DW);
 	if (err) {
 		std::ostringstream error;
 		error << "CAENVME read error " << err;
@@ -70,7 +73,7 @@ throw (FEDException)
 	int16_t *readData;
 	CVAddressModifier AM = cvA24_U_DATA;
 	CVDataWidth DW = cvD16;
-	int err = CAENVME_ReadCycle(BHandle_,Address,readData,AM,DW);
+	int err = CAENVME_ReadCycle(controller_->getBHandle(),Address,readData,AM,DW);
 	if (err) {
 		std::ostringstream error;
 		error << "CAENVME read error " << err;
@@ -86,7 +89,7 @@ void emu::fed::VMEModule::CAEN_write(unsigned long Address,unsigned short int *d
 {
 	CVAddressModifier AM = cvA24_U_DATA;
 	CVDataWidth DW = cvD16;
-	int err = CAENVME_WriteCycle(BHandle_, Address, (char *)data, AM, DW);
+	int err = CAENVME_WriteCycle(controller_->getBHandle(), Address, (char *)data, AM, DW);
 	if (err) {
 		std::ostringstream error;
 		error << "CAENVME write error " << err;
@@ -101,7 +104,7 @@ void emu::fed::VMEModule::CAEN_write(unsigned long Address, int16_t data)
 {
 	CVAddressModifier AM = cvA24_U_DATA;
 	CVDataWidth DW = cvD16;
-	int err = CAENVME_WriteCycle(BHandle_, Address, &data, AM, DW);
+	int err = CAENVME_WriteCycle(controller_->getBHandle(), Address, &data, AM, DW);
 	if (err) {
 		std::ostringstream error;
 		error << "CAENVME write error " << err;
