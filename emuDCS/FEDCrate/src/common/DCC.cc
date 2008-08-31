@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.18 2008/08/25 12:25:49 paste Exp $
+* $Id: DCC.cc,v 3.19 2008/08/31 21:18:27 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.19  2008/08/31 21:18:27  paste
+* Moved buffers from VMEController class to VMEModule class for more rebust communication.
+*
 * Revision 3.18  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -760,7 +763,10 @@ void emu::fed::DCC::setSoftwareSwitch(unsigned int value)
 {
 	try {
 		return writeReg(MCTRL, 0x07, value);
-	} catch (FEDException &e) { throw; }
+	} catch (FEDException &e) { 
+		// This always causes an error for some reason.
+		//throw;
+	}
 }
 
 
