@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.43 2008/08/25 12:25:49 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.44 2008/08/31 21:18:27 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.44  2008/08/31 21:18:27  paste
+* Moved buffers from VMEController class to VMEModule class for more rebust communication.
+*
 * Revision 3.43  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -603,19 +606,17 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				.set("style","font-size: 10pt;") << std::endl;
 
 			// Create the buttons with a big loop.
-			std::string appString[3] = {
+			std::string appString[2] = {
 				"/" + getApplicationDescriptor()->getURN() + "/DCCDebug",
-				"/" + getApplicationDescriptor()->getURN() + "/DCCExpert",
-				"/" + getApplicationDescriptor()->getURN() + "/DCCFirmware"
+				"/" + getApplicationDescriptor()->getURN() + "/DCCExpert"
 			};
 
-			std::string appName[3] = {
+			std::string appName[2] = {
 				"Debug DCC Status",
-				"Expert DCC Commands",
-				"Firmware"
+				"Expert DCC Commands"
 			};
 
-			for (unsigned int iButton = 0; iButton < 3; iButton++) {
+			for (unsigned int iButton = 0; iButton < 2; iButton++) {
 				// Jason likes a space after the first button.
 				std::stringstream location;
 				location << appString[iButton] << "?crate=" << cgiCrate << "&dcc=" << idcc;
@@ -639,7 +640,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		*out << std::endl;
 		*out << cgicc::fieldset() << std::endl;
 
-		// Broadcast table...
+		// Firmware Table...
+		/*
 		emu::fed::DDU *broadcastDDU = NULL;
 		for (std::vector<emu::fed::DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 			if ((*iDDU)->slot() > 21) broadcastDDU = (*iDDU);
@@ -648,65 +650,62 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		for (std::vector<emu::fed::DCC *>::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
 			if ((*iDCC)->slot() > 21) broadcastDCC = (*iDCC);
 		}
+		*/
 
-		if (broadcastDDU || broadcastDCC) {
-			*out << cgicc::fieldset()
-				.set("class","fieldset") << std::endl;
-			*out << cgicc::div("Crate Broadcast")
-				.set("class","legend");
+		*out << cgicc::fieldset()
+			.set("class","fieldset") << std::endl;
+		*out << cgicc::div("Firmware Management")
+			.set("class","legend");
 
-			// DDU buttons.
-			// Skip if there is only 1 ddu
-			if (broadcastDDU) {
+		// DDU buttons.
+		if (myCrate->getDDUs().size()) {
 
-				// Broadcast Firmware
-				*out << cgicc::span() << std::endl;
-				std::ostringstream crateVal;
-				crateVal << cgiCrate;
-				location.str("");
-				location << "/" << getApplicationDescriptor()->getURN() << "/DDUBroadcast";
-				*out << cgicc::form()
-					.set("method","GET")
-					.set("action",location.str()) << std::endl;
-				*out << cgicc::input()
-					.set("type","hidden")
-					.set("name","crate")
-					.set("value",crateVal.str());
-				*out << cgicc::input()
-					.set("type","submit")
-					.set("value","DDU Firmware Management") << std::endl;
-				*out << cgicc::form() << std::endl;
-				*out << cgicc::span() << std::endl;
+			// Broadcast Firmware
+			*out << cgicc::span() << std::endl;
+			std::ostringstream crateVal;
+			crateVal << cgiCrate;
+			location.str("");
+			location << "/" << getApplicationDescriptor()->getURN() << "/DDUBroadcast";
+			*out << cgicc::form()
+				.set("method","GET")
+				.set("action",location.str()) << std::endl;
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("name","crate")
+				.set("value",crateVal.str());
+			*out << cgicc::input()
+				.set("type","submit")
+				.set("value","DDU Firmware Management") << std::endl;
+			*out << cgicc::form() << std::endl;
+			*out << cgicc::span() << std::endl;
 
-			}
-
-			// DCC button.
-			// Skip if there is only 1 dcc
-			if (broadcastDCC) {
-				*out << cgicc::br() << std::endl;
-
-				// Broadcast Firmware
-				*out << cgicc::span() << std::endl;
-				std::ostringstream crateVal;
-				crateVal << cgiCrate;
-				location.str("");
-				location << "/" << getApplicationDescriptor()->getURN() << "/DCCBroadcast";
-				*out << cgicc::form()
-					.set("method","GET")
-					.set("action",location.str()) << std::endl;
-				*out << cgicc::input()
-					.set("type","hidden")
-					.set("name","crate")
-					.set("value",crateVal.str());
-				*out << cgicc::input()
-					.set("type","submit")
-					.set("value","DCC Firmware Management") << std::endl;
-				*out << cgicc::form() << std::endl;
-				*out << cgicc::span() << std::endl;
-			}
-
-			*out << cgicc::fieldset() << std::endl;
 		}
+
+		// DCC button.
+		if (myCrate->getDCCs().size()) {
+			*out << cgicc::br() << std::endl;
+
+			// Broadcast Firmware
+			*out << cgicc::span() << std::endl;
+			std::ostringstream crateVal;
+			crateVal << cgiCrate;
+			location.str("");
+			location << "/" << getApplicationDescriptor()->getURN() << "/DCCBroadcast";
+			*out << cgicc::form()
+				.set("method","GET")
+				.set("action",location.str()) << std::endl;
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("name","crate")
+				.set("value",crateVal.str());
+			*out << cgicc::input()
+				.set("type","submit")
+				.set("value","DCC Firmware Management") << std::endl;
+			*out << cgicc::form() << std::endl;
+			*out << cgicc::span() << std::endl;
+		}
+
+		*out << cgicc::fieldset() << std::endl;
 
 		*out << cgicc::br() << std::endl;
 
@@ -1067,7 +1066,7 @@ void EmuFCrateHyperDAQ::Configuring() {
 			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
 				if (iHandle->first != (*iCrate)->number()) continue;
 				LOG4CPLUS_INFO(getApplicationLogger(),"Found handle " << iHandle->second);
-				myController->setBHandle(iHandle->second);
+				(*iCrate)->setBHandle(iHandle->second);
 				
 				newHandles << iHandle->first << " " << iHandle->second << " ";
 				
@@ -5108,7 +5107,7 @@ throw (xgi::exception::Exception)
 	// The device types of the PROMs
 	std::map< std::string, enum emu::fed::DEVTYPE > dccPROMTypes;
 	dccPROMTypes["INPROM"] = emu::fed::INPROM;
-	dccPROMTypes["MPROM"] = emu::fed::RESET;
+	dccPROMTypes["MPROM"] = emu::fed::MPROM;
 	
 	// Store the codes to compare them to the FPGAs
 	std::map< std::string, std::string > diskPROMCodes;
@@ -5231,7 +5230,8 @@ throw (xgi::exception::Exception)
 	
 	slotTable.addColumn("Slot number");
 	for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
-		slotTable.addColumn(dccPROMNames[iprom]);
+		slotTable.addColumn(dccPROMNames[iprom] + " IDCode");
+		slotTable.addColumn(dccPROMNames[iprom] + " UserCode");
 	}
 	
 	
@@ -5953,7 +5953,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	for (int iFifo = 0; iFifo < 10; iFifo++) {
 		if (dccValue & (1<<iFifo)) {
 			*(ratesTable(0,2)->value) << cgicc::div()
-				.set("class","none") << "FIFO " << (iFifo+1) << " (Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
+				.set("class","none") << "FIFO " << (iFifo+1) << " (Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")" << cgicc::div();
 		}
 	}
 	ratesTable(0,1)->setClass("none");

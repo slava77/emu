@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.8 2008/08/30 14:49:04 paste Exp $
+* $Id: VMEModule.h,v 3.9 2008/08/31 21:18:27 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.9  2008/08/31 21:18:27  paste
+* Moved buffers from VMEController class to VMEModule class for more rebust communication.
+*
 * Revision 3.8  2008/08/30 14:49:04  paste
 * Attempts to make VME work under the new design model where VMEModules take over for the VMEController.
 *
@@ -68,7 +71,7 @@ namespace emu {
 			enum BOARDTYPE { DDU_ENUM=0, DCC_ENUM };
 			virtual unsigned int boardType() const = 0;
 			
-			void inline setController(VMEController *myController) { controller_ = myController; }
+			void inline setBHandle(int32_t BHandle) { BHandle_ = BHandle; }
 		
 		protected:
 		
@@ -89,7 +92,7 @@ namespace emu {
 			*
 			*	@returns the 16-bit value at that address.
 			**/
-			int16_t CAEN_read(unsigned long Address)
+			unsigned long int CAEN_read(unsigned long Address)
 				throw (FEDException);
 			
 			void CAEN_write(unsigned long Address, unsigned short int *data)
@@ -106,7 +109,7 @@ namespace emu {
 			void CAEN_write(unsigned long Address, int16_t data)
 				throw (FEDException);
 			
-			void vme_controller(int irdwr, unsigned short int address, unsigned short int data, char *rcv);
+			void vme_controller(int irdwr, unsigned short int *ptr, unsigned short int *data, char *rcv);
 			
 			void devdo(DEVTYPE dev, int ncmd, const char *cmd, int nbuf, const char *inbuf, char *outbuf, int irdsnd)
 				throw (FEDException);
@@ -126,7 +129,7 @@ namespace emu {
 			
 			void vme_adc(int ichp,int ichn,char *rcv);
 			
-			void RestoreIdle(enum DEVTYPE dv);
+			void RestoreIdle(enum DEVTYPE dev);
 
 			void sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
 			
@@ -148,11 +151,12 @@ namespace emu {
 		private:
 			int slot_;
 			unsigned long int vmeadd_;
+			int idevo_;
 			
-			VMEController *controller_;
+			int32_t BHandle_;
 			
 			inline int pows_(int n, int m) { int ret = 1; for (int i=0; i<m; i++) ret *= n; return ret; }
-			inline void udelay(long int itim) { for (long int j=0; j<itim; j++) for (long int i=0; i<200; i++); }
+			inline void udelay_(long int itim) { for (long int j=0; j<itim; j++) for (long int i=0; i<200; i++); }
 		};
 
 	}

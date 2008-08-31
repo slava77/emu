@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.40 2008/08/26 13:09:02 paste Exp $
+* $Id: EmuFCrate.cc,v 3.41 2008/08/31 21:18:27 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.41  2008/08/31 21:18:27  paste
+* Moved buffers from VMEController class to VMEModule class for more rebust communication.
+*
 * Revision 3.40  2008/08/26 13:09:02  paste
 * Documentation update.
 *
@@ -396,7 +399,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
 				if (iHandle->first != (*iCrate)->number()) continue;
 				LOG4CPLUS_INFO(getApplicationLogger(),"Found handle " << iHandle->second);
-				myController->setBHandle(iHandle->second);
+				(*iCrate)->setBHandle(iHandle->second);
 				
 				newHandles << iHandle->first << " " << iHandle->second << " ";
 				
