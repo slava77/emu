@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 3.18 2008/08/25 12:25:49 paste Exp $
+* $Id: DDU.h,v 3.19 2008/09/01 11:30:32 paste Exp $
 *
 * $Log: DDU.h,v $
+* Revision 3.19  2008/09/01 11:30:32  paste
+* Added features to DDU, IRQThreads corresponding to new DDU firmware.
+*
 * Revision 3.18  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -189,6 +192,8 @@ namespace emu {
 		// 	unsigned long int readOccupancyMon()
 		// 		throw (FEDException);
 			int readMaxTimeoutCount()
+				throw (FEDException);
+			int readAdvancedFiberErrors()
 				throw (FEDException);
 		
 			// INFPGA register control

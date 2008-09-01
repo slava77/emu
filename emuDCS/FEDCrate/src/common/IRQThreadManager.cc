@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.19 2008/08/25 12:25:49 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.20 2008/09/01 11:30:32 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.20  2008/09/01 11:30:32  paste
+* Added features to DDU, IRQThreads corresponding to new DDU firmware.
+*
 * Revision 3.19  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -36,6 +39,7 @@
 #include "FEDCrate.h"
 #include "VMEController.h"
 #include "DDU.h"
+#include "DDUDebugger.h"
 #include "Chamber.h"
 #include "IRQData.h"
 #include "CAENVMElib.h"
@@ -303,7 +307,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		// Collect the present CSC status and store...
 		unsigned int cscStatus = myDDU->readCSCStat();
-		unsigned int xorStatus = cscStatus^lastError[myDDU];
+		unsigned int advStatus = myDDU->readAdvancedFiberErrors();
+		unsigned int xorStatus = (cscStatus | advStatus)^lastError[myDDU];
 		
 		// What type of error did I see?
 		bool hardError = (errorData[1] & 0x80);
@@ -336,6 +341,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			<< "FEDCrate   : " << myCrate->number() << std::endl
 			<< "Slot       : " << myDDU->slot() << std::endl
 			<< "RUI        : " << myCrate->getRUI(myDDU->slot()) << std::endl
+			<< "CSC Status : " << std::hex << cscStatus << std::endl
+			<< "ADV Status : " << advStatus << std::endl
+			<< "XOR Status : " << xorStatus << std::dec << std::endl
 			<< "DDU error  : " << ((cscStatus & 0x8000) == 0x8000) << std::endl
 			<< "Fibers     : " << fiberErrors.str() << std::endl
 			<< "Chambers   : " << chamberErrors.str() << std::endl
@@ -350,6 +358,14 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			LOG4CPLUS_INFO(logger, "No CSC or DDU errors detected...  Ignoring interrupt");
 			continue;
 		}
+
+		std::vector<std::string> trapInfo = DDUDebugger::ddu_fpgatrap(myDDU->ddu_fpgatrap(),myDDU);
+		std::ostringstream trapStream;
+		for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+			trapStream << (*iTrap) << std::endl;
+		}
+		
+		LOG4CPLUS_INFO(logger, "Logging DDUFPGA diagnostic trap information:" << std::endl << trapStream.str());
 
 		// Record the error in an accessable history of errors.
 		lastError[myDDU] = cscStatus;

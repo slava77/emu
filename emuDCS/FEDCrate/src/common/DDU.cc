@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.27 2008/08/31 21:18:27 paste Exp $
+* $Id: DDU.cc,v 3.28 2008/09/01 11:30:32 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 3.28  2008/09/01 11:30:32  paste
+* Added features to DDU, IRQThreads corresponding to new DDU firmware.
+*
 * Revision 3.27  2008/08/31 21:18:27  paste
 * Moved buffers from VMEController class to VMEModule class for more rebust communication.
 *
@@ -3283,73 +3286,78 @@ enum DEVTYPE dv;
 /*
 unsigned long int emu::fed::DDU::ddufpga_usercode()
 {
-enum DEVTYPE dv;
-  dv=DDUFPGA;
-      cmd[0]=VTX2P_USERCODE_L;
-      cmd[1]=VTX2P_USERCODE_H;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,10,cmd,32,sndbuf,rcvbuf,1);
-      // printf(" The DDU FPGA Chip USERCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=VTX2P_BYPASS_L;
-      cmd[1]=VTX2P_BYPASS_H;
-      sndbuf[0]=0;
-      devdo(dv,10,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      return ibrd;
+	char cmd[32];
+	char sndbuf[32];
+	char rcvbuf[32];
+
+	enum DEVTYPE dv = DDUFPGA;
+	cmd[0]=VTX2P_USERCODE_L;
+	cmd[1]=VTX2P_USERCODE_H;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+	devdo(dv,10,cmd,32,sndbuf,rcvbuf,1);
+	// printf(" The DDU FPGA Chip USERCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+	cmd[0]=VTX2P_BYPASS_L;
+	cmd[1]=VTX2P_BYPASS_H;
+	sndbuf[0]=0;
+	devdo(dv,10,cmd,0,sndbuf,rcvbuf,0);
+	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return ibrd;
 }
 */
 
 /*
 unsigned long int emu::fed::DDU::infpga_usercode0()
 {
-enum DEVTYPE dv;
-//  printf(" INFPGA Virtex PRO ID should be  xxxxx \n");
-  dv=INFPGA0;
-      cmd[0]=VTX2P20_USERCODE_L;
-      cmd[1]=VTX2P20_USERCODE_H;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,14,cmd,32,sndbuf,rcvbuf,1);
-      // printf(" The INFPGA-0 Chip USERCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=VTX2P20_BYPASS_L;
-      cmd[1]=VTX2P20_BYPASS_H;
-      sndbuf[0]=0;
-      devdo(dv,14,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      return ibrd;
+	char cmd[32];
+	char sndbuf[32];
+	char rcvbuf[32];
+	
+	enum DEVTYPE dv = INFPGA0;
+	cmd[0]=VTX2P20_USERCODE_L;
+	cmd[1]=VTX2P20_USERCODE_H;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+	devdo(dv,14,cmd,32,sndbuf,rcvbuf,1);
+	// printf(" The INFPGA-0 Chip USERCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+	cmd[0]=VTX2P20_BYPASS_L;
+	cmd[1]=VTX2P20_BYPASS_H;
+	sndbuf[0]=0;
+	devdo(dv,14,cmd,0,sndbuf,rcvbuf,0);
+	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return ibrd;
 }
 */
 
 /*
 unsigned long int emu::fed::DDU::infpga_usercode1()
 {
-enum DEVTYPE dv;
-  dv=INFPGA1;
-      cmd[0]=VTX2P20_USERCODE_L;
-      cmd[1]=VTX2P20_USERCODE_H;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,14,cmd,32,sndbuf,rcvbuf,1);
-     // printf(" The INFPGA-1 Chip USERCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=VTX2P20_BYPASS_L;
-      cmd[1]=VTX2P20_BYPASS_H;
-      sndbuf[0]=0;
-      devdo(dv,14,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      return ibrd;
+	char cmd[32];
+	char sndbuf[32];
+	char rcvbuf[32];
+	
+	enum DEVTYPE dv = INFPGA1;
+	cmd[0]=VTX2P20_USERCODE_L;
+	cmd[1]=VTX2P20_USERCODE_H;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+	devdo(dv,14,cmd,32,sndbuf,rcvbuf,1);
+	// printf(" The INFPGA-1 Chip USERCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+	cmd[0]=VTX2P20_BYPASS_L;
+	cmd[1]=VTX2P20_BYPASS_H;
+	sndbuf[0]=0;
+	devdo(dv,14,cmd,0,sndbuf,rcvbuf,0);
+	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return ibrd;
 }
 */
 
@@ -5190,131 +5198,135 @@ enum DEVTYPE dv;
 */
 
 /*
-unsigned long int  emu::fed::DDU::inprom_usercode1()
+unsigned long int emu::fed::DDU::inprom_usercode1()
 {
-enum DEVTYPE dv;
-printf(" inprom_usercode entered \n");
-      dv=INPROM1;
+	char cmd[32];
+	char sndbuf[32];
+	char rcvbuf[32];
+	
+	enum DEVTYPE dv = INPROM1;
 
-      cmd[0]=PROM_USERCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
-      rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
-      rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
-      rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
-      rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
-      printf(" The INPROM-1 Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      printf(" leaving \n");
-      return ibrd;
+	cmd[0]=PROM_USERCODE;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+	devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
+	rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
+	rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
+	rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
+	rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
+	//printf(" The INPROM-1 Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+	cmd[0]=PROM_BYPASS;
+	sndbuf[0]=0;
+	devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return ibrd;
 }
 */
 
 /*
 unsigned long int emu::fed::DDU::inprom_usercode0()
 {
-enum DEVTYPE dv;
-printf(" entering inprom usercode 1 \n");
-      dv=INPROM0;
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+	char cmd[32];
+	char sndbuf[32];
+	char rcvbuf[32];
+	
+	enum DEVTYPE dv = INPROM0;
+	cmd[0]=PROM_BYPASS;
+	sndbuf[0]=0;
+	devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
 
-      cmd[0]=PROM_USERCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
-      printf(" The INPROM-0 Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      printf(" leaving \n");
-      return ibrd;
+	cmd[0]=PROM_USERCODE;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+	devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
+	//printf(" The INPROM-0 Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+	cmd[0]=PROM_BYPASS;
+	sndbuf[0]=0;
+	devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return ibrd;
 }
 */
 
 /*
-unsigned long int  emu::fed::DDU::vmeprom_usercode()
+unsigned long int emu::fed::DDU::vmeprom_usercode()
 {
-enum DEVTYPE dv;
-// printf(" vmeprom_usercode entered \n");
-      dv=VMEPROM;
-      cmd[0]=PROM_USERCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
-      // printf(" The VMEPROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      return ibrd;
+	char cmd[32];
+	char sndbuf[32];
+	char rcvbuf[32];
+	
+	enum DEVTYPE dv = VMEPROM;
+	cmd[0]=PROM_USERCODE;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+	devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
+	// printf(" The VMEPROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+	cmd[0]=PROM_BYPASS;
+	sndbuf[0]=0;
+	devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return ibrd;
 }
 */
 
 /*
-unsigned long int  emu::fed::DDU::dduprom_usercode1()
+unsigned long int emu::fed::DDU::dduprom_usercode1()
 {
-enum DEVTYPE dv;
-// printf(" dduprom_usercode entered \n");
-      dv=DDUPROM1;
-      cmd[0]=PROM_USERCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
-      rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
-      rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
-      rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
-      rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
-      // printf(" The DDUPROM-1 Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      return ibrd;
+	char cmd[32];
+	char sndbuf[32];
+	char rcvbuf[32];
+	
+	enum DEVTYPE dv = DDUPROM1;
+	cmd[0]=PROM_USERCODE;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+	devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
+	rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
+	rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
+	rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
+	rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
+	// printf(" The DDUPROM-1 Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+	cmd[0]=PROM_BYPASS;
+	sndbuf[0]=0;
+	devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return ibrd;
 }
 */
 
 /*
-unsigned long int  emu::fed::DDU::dduprom_usercode0()
+unsigned long int emu::fed::DDU::dduprom_usercode0()
 {
-enum DEVTYPE dv;
-      dv=DDUPROM0;
-      cmd[0]=PROM_USERCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
-      // printf(" The DDUPROM-0 Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      return ibrd;
+	char cmd[32];
+	char sndbuf[32];
+	char rcvbuf[32];
+	
+	enum DEVTYPE dv = DDUPROM0;
+	cmd[0]=PROM_USERCODE;
+	sndbuf[0]=0xFF;
+	sndbuf[1]=0xFF;
+	sndbuf[2]=0xFF;
+	sndbuf[3]=0xFF;
+	sndbuf[4]=0xFF;
+	devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
+	// printf(" The DDUPROM-0 Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+	cmd[0]=PROM_BYPASS;
+	sndbuf[0]=0;
+	devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return ibrd;
 }
 */
 
@@ -6533,7 +6545,7 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 					if(nowrit==0){
 						if (pass == ipass || ipass == 4) devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
 					} else {
-						if(writ==1 && (pass == ipass || ipass == 4))devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+						if(writ==1 && (pass == ipass || ipass == 4)) devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
 						if(writ==0)printf(" ***************** nowrit %02x \n",sndbuf[0]);
 					}
 
@@ -7309,6 +7321,15 @@ int emu::fed::DDU::readMaxTimeoutCount()
 
 
 
+int emu::fed::DDU::readAdvancedFiberErrors()
+	throw (FEDException)
+{
+	try { return readReg(DDUFPGA,35,15); }
+	catch (FEDException &e) { throw; }
+}
+
+
+
 long int emu::fed::DDU::readL1Scaler1(enum DEVTYPE dt)
 	throw (FEDException)
 {
@@ -7581,9 +7602,11 @@ unsigned long int emu::fed::DDU::readFPGAUserCode(enum DEVTYPE dt)
 		cmd[1]=VTX2P20_BYPASS_H;
 	}
 
+	unsigned long int returnVal = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+
 	sndbuf[0]=0;
 	devdo(dt,address,cmd,0,sndbuf,rcvbuf,0);
-	return (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return returnVal;
 }
 
 
@@ -7599,6 +7622,12 @@ unsigned long int emu::fed::DDU::readPROMUserCode(enum DEVTYPE dt)
 		XCEPT_RAISE(FEDException,"DEVTYPE not understood as a PROM");
 	}
 
+	if (dt == INFPGA0) {
+		cmd[0] = PROM_BYPASS;
+		sndbuf[0] = 0;
+		devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
+	}
+
 	cmd[0] = PROM_USERCODE;
 	sndbuf[0]=0xFF;
 	sndbuf[1]=0xFF;
@@ -7606,20 +7635,29 @@ unsigned long int emu::fed::DDU::readPROMUserCode(enum DEVTYPE dt)
 	sndbuf[3]=0xFF;
 	sndbuf[4]=0xFF;
 
+	
 	if (dt == INPROM1 || dt == DDUPROM1) {
 		devdo(dt,8,cmd,33,sndbuf,rcvbuf,1);
-		rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
-		rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
-		rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
-		rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
+		char tmpbuf[5];
+		for (int i = 0; i < 5; i++) {
+			tmpbuf[i] = rcvbuf[i];
+		}
+		rcvbuf[0]=((tmpbuf[0]>>1)&0x7f)+((tmpbuf[1]<<7)&0x80);
+		rcvbuf[1]=((tmpbuf[1]>>1)&0x7f)+((tmpbuf[2]<<7)&0x80);
+		rcvbuf[2]=((tmpbuf[2]>>1)&0x7f)+((tmpbuf[3]<<7)&0x80);
+		rcvbuf[3]=((tmpbuf[3]>>1)&0x7f)+((tmpbuf[4]<<7)&0x80);
 	} else {
 		devdo(dt,8,cmd,32,sndbuf,rcvbuf,1);
 	}
-	cmd[0] = PROM_BYPASS;  
+	
+	unsigned long int returnVal = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	
+	cmd[0] = PROM_BYPASS;
 	sndbuf[0]=0;
 	devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
 
-	return (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
+	return returnVal;
+
 }
 
 

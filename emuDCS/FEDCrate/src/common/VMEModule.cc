@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.10 2008/08/31 21:18:27 paste Exp $
+* $Id: VMEModule.cc,v 3.11 2008/09/01 11:30:32 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.11  2008/09/01 11:30:32  paste
+* Added features to DDU, IRQThreads corresponding to new DDU firmware.
+*
 * Revision 3.10  2008/08/31 21:18:27  paste
 * Moved buffers from VMEController class to VMEModule class for more rebust communication.
 *
@@ -74,7 +77,8 @@ void emu::fed::VMEModule::CAEN_read(unsigned long Address,unsigned short int *da
 		//std::cout << "Sleeping due to error " << err << std::endl;
 		//sleep((unsigned int) 3);
 		error << "CAENVME read error " << err;
-		XCEPT_RAISE(FEDException, error.str());
+		std::cerr << " #&$%! " << error.str() << std::endl;
+		//XCEPT_RAISE(FEDException, error.str());
 	}
 	
 	//std::cout << "Returning data: " << std::hex << *data << std::endl << std::endl;
@@ -101,7 +105,8 @@ throw (FEDException)
 		//std::cout << "Sleeping due to error " << err << std::endl;
 		//sleep((unsigned int) 3);
 		error << "CAENVME read error " << err;
-		XCEPT_RAISE(FEDException, error.str());
+		std::cerr << " #&$%! " << error.str() << std::endl;
+		//XCEPT_RAISE(FEDException, error.str());
 	}
 	unsigned long int retData = readData[0] | (readData[1] << 8) | (readData[2] << 16) | (readData[3] << 24);
 	return retData;
@@ -126,7 +131,8 @@ void emu::fed::VMEModule::CAEN_write(unsigned long Address,unsigned short int *d
 		//std::cout << "Sleeping due to error " << err << std::endl;
 		//sleep((unsigned int) 3);
 		error << "CAENVME write error " << err;
-		XCEPT_RAISE(FEDException, error.str());
+		std::cerr << " #&$%! " << error.str() << std::endl;
+		//XCEPT_RAISE(FEDException, error.str());
 	}
 }
 
@@ -149,7 +155,8 @@ void emu::fed::VMEModule::CAEN_write(unsigned long Address, int16_t data)
 		//std::cout << "Sleeping due to error " << err << std::endl;
 		//sleep((unsigned int) 3);
 		error << "CAENVME write error " << err;
-		XCEPT_RAISE(FEDException, error.str());
+		std::cerr << " #&$%! " << error.str() << std::endl;
+		//XCEPT_RAISE(FEDException, error.str());
 	}
 }
 
