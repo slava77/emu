@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.44 2008/08/31 21:18:27 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.45 2008/09/01 11:30:32 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.45  2008/09/01 11:30:32  paste
+* Added features to DDU, IRQThreads corresponding to new DDU firmware.
+*
 * Revision 3.44  2008/08/31 21:18:27  paste
 * Moved buffers from VMEController class to VMEModule class for more rebust communication.
 *
@@ -683,7 +686,6 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 		// DCC button.
 		if (myCrate->getDCCs().size()) {
-			*out << cgicc::br() << std::endl;
 
 			// Broadcast Firmware
 			*out << cgicc::span() << std::endl;
