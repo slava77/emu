@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.28 2008/09/01 11:30:32 paste Exp $
+* $Id: DDU.cc,v 3.29 2008/09/01 23:46:24 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 3.29  2008/09/01 23:46:24  paste
+* Trying to fix what I broke...
+*
 * Revision 3.28  2008/09/01 11:30:32  paste
 * Added features to DDU, IRQThreads corresponding to new DDU firmware.
 *
@@ -502,9 +505,9 @@ unsigned long int code;
 
 long unsigned int emu::fed::DDU::ddu_rdkillfiber()
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	//printf("    ddu_rdkillfiber \n");
 	cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
 	sndbuf[0]=13;
@@ -565,9 +568,9 @@ void emu::fed::DDU::ddu_loadkillfiber(long int regval)
 	//int i,j,shft2in;
 	//unsigned long int code;
 	//printf("    ddu_loadkillfiber,  Received value=%lX \n",regval);
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
 	sndbuf[0]=14;
@@ -1520,9 +1523,9 @@ unsigned long int emu::fed::DDU::ddu_InC_Hist()
 // JRG, 16-bit Persistent Register, can include in Monitor Loop
 //      Error triggered by any bits true.
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//int i,j,shft2in;
 	// enum DEVTYPE devstp,dv;
@@ -2073,9 +2076,9 @@ long int code;
 unsigned long int emu::fed::DDU::ddu_rdscaler()
 {
 
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	//printf(" ddu_rdscaler \n");
 	
 	cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
@@ -2184,9 +2187,9 @@ long int code;
 
 void emu::fed::DDU::ddu_loadbxorbit(int regval)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//printf("    ddu_loadbxorbit,  Received value=%d \n",regval);
 	cmd[0]=VTX2P_USR1_L;cmd[1]=VTX2P_USR2_H;
@@ -2368,9 +2371,9 @@ unsigned int emu::fed::DDU::ddu_rd_boardID()
 
 unsigned long int emu::fed::DDU::ddu_fpgastat()
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	//  printf(" ddu_fpgastat \n");
 	
 	cmd[0]=VTX2P_USR1_L;
@@ -2444,9 +2447,9 @@ unsigned long int emu::fed::DDU::ddu_fpgastat()
 
 std::vector<unsigned long int> emu::fed::DDU::ddu_occmon()
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 
 	std::vector<unsigned long int> retVal;
 	
@@ -2521,9 +2524,9 @@ std::vector<unsigned long int> emu::fed::DDU::ddu_fpgatrap()
 // JRG, 192-bits, Uses custom decode routine, skip for now in Monitor Loop
 {
 
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	//printf(" ddu_fpgatrap \n");
 
 	std::vector<unsigned long int> retVal;
@@ -2675,9 +2678,9 @@ void emu::fed::DDU::ddu_l1calonoff()
 
 void emu::fed::DDU::ddu_vmel1a()
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//printf(" Enter ddu_vmel1a. \n");
 	cmd[0]=VTX2P_USR1_L;
@@ -3394,9 +3397,9 @@ shft2in=(((0x01&rcvbuf[2])<<15)|((0xff&rcvbuf[1])<<7)|(0xfe&rcvbuf[0])>>1);
 
 void emu::fed::DDU::infpga_reset(enum DEVTYPE dv)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//printf(" Enter INFPGA reset. \n");
 	cmd[0]=VTX2P20_USR1_L;
@@ -3423,9 +3426,9 @@ void emu::fed::DDU::infpga_reset(enum DEVTYPE dv)
 unsigned long int emu::fed::DDU::infpga_rdscaler(enum DEVTYPE dv)
 {
 
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//printf(" infpga_rdscaler \n");
 	cmd[0]=VTX2P20_USR1_L;cmd[1]=VTX2P20_USR2_H;
@@ -3718,9 +3721,9 @@ unsigned long int emu::fed::DDU::infpga_rd1scaler(enum DEVTYPE dv)
 // JRG, 24-bits, can include in Monitor Loop, changes for each event
 //      Error not triggered here!
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//  if (bar==NULL)printf(" infpga_rd1scaler \n");
 	cmd[0]=VTX2P20_USR1_L;cmd[1]=VTX2P20_USR2_H;
@@ -3892,9 +3895,9 @@ long int code;
 unsigned long int emu::fed::DDU::infpgastat(enum DEVTYPE dv)
      //void emu::fed::DDU::infpga_dfpgastat(enum DEVTYPE dv)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 //  printf(" infpgastat \n");
 
 	cmd[0]=VTX2P20_USR1_L;
@@ -4451,9 +4454,9 @@ long int code;
 
 unsigned long int emu::fed::DDU::infpga_MemAvail(enum DEVTYPE dv)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//printf(" infpga_MemAvail (DDU In_Ctrl FPGA) \n");
 	cmd[0]=VTX2P20_USR1_L;
@@ -4505,9 +4508,9 @@ unsigned long int emu::fed::DDU::infpga_MemAvail(enum DEVTYPE dv)
 unsigned long int emu::fed::DDU::infpga_Min_Mem(enum DEVTYPE dv)
 {
 
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//printf(" infpga_Mem_Min (DDU In_Ctrl FPGA) \n");
 	cmd[0]=VTX2P20_USR1_L;
@@ -4613,9 +4616,9 @@ unsigned long int emu::fed::DDU::infpga_CcodeStat(enum DEVTYPE dv)
 //      Error triggered by these bits: 15-0
 //         bits 13,5 are not persistent
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	//printf(" infpga_CcodeStatus (DDU In_Ctrl FPGA) \n");
 	cmd[0]=VTX2P20_USR1_L;
@@ -4968,9 +4971,9 @@ std::vector<unsigned long int> emu::fed::DDU::infpga_trap(enum DEVTYPE dv)
      // JRG, 192-bits, Uses custom decode routine, skip for now in Monitor Loop
 {
 
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	std::vector<unsigned long int> retVal;
 
@@ -5912,9 +5915,9 @@ int emu::fed::DDU::read_int_page1()
 
 int emu::fed::DDU::read_page1()
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	cmd[0]=0x04; //dev 0x04 is flash sram
 	cmd[1]=0x01; //read 16 bits from page 1
@@ -6024,9 +6027,9 @@ int i;
 
 std::vector<unsigned long int> emu::fed::DDU::read_page5()
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	std::vector<unsigned long int> retVal;
 
@@ -6266,9 +6269,9 @@ float emu::fed::DDU::readthermx(int it)
 
 
 unsigned int emu::fed::DDU::readADC(int ireg, int ichn) {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	cmd[0]=ireg;
 	cmd[1]=ichn;
 	
@@ -6693,9 +6696,9 @@ void emu::fed::DDU::setChambers(std::vector<emu::fed::Chamber *> chamberVector) 
 unsigned long int emu::fed::DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbits = 16)
 	throw (FEDException)
 {
-	char cmd[32];
-	char rcvbuf[32];
-	char sndbuf[32];
+	//char cmd[32];
+	//char rcvbuf[32];
+	//char sndbuf[32];
 	/*
 	std::cout << "-------------" << std::endl;
 	std::cout << "Called readReg with" << std::endl;
@@ -6936,9 +6939,9 @@ void emu::fed::DDU::reset(enum DEVTYPE dt = DDUFPGA)
 	throw (FEDException)
 {
 
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	if (dt == DDUFPGA) {
 		cmd[0]=VTX2P_USR1_L;
@@ -6983,9 +6986,9 @@ void emu::fed::DDU::reset(enum DEVTYPE dt = DDUFPGA)
 void emu::fed::DDU::setNormal(enum DEVTYPE dt = DDUFPGA)
 	throw (FEDException)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	if (dt == DDUFPGA) {
 
@@ -7570,9 +7573,9 @@ long unsigned int emu::fed::DDU::readFiberDiagnostics(enum DEVTYPE dt, int i)
 unsigned long int emu::fed::DDU::readFPGAUserCode(enum DEVTYPE dt)
 	throw (FEDException)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	int address = 0;
 	if (dt == DDUFPGA) {
@@ -7614,9 +7617,9 @@ unsigned long int emu::fed::DDU::readFPGAUserCode(enum DEVTYPE dt)
 unsigned long int emu::fed::DDU::readPROMUserCode(enum DEVTYPE dt)
 	throw (FEDException)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	if (dt != DDUPROM0 && dt != DDUPROM1 && dt != INPROM0 && dt != INPROM1 && dt != VMEPROM) {
 		XCEPT_RAISE(FEDException,"DEVTYPE not understood as a PROM");
@@ -7759,9 +7762,9 @@ unsigned long int emu::fed::DDU::readPROMUserCode(enum DEVTYPE dt)
 int emu::fed::DDU::readParallel(int command)
 	throw (FEDException)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	cmd[0] = command&0x00ff;
 	cmd[1] = (command&0xff00) >> 8;
@@ -7785,9 +7788,9 @@ void emu::fed::DDU::writeParallel(int command, int val)
 {
 	//std::cout << "writeParallel with command " << std::hex << command << " and val " << val << std::dec << std::endl;
 
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	cmd[0]=(command&0x00ff);
 	cmd[1]=(command&0xff00) >> 8;
@@ -7984,9 +7987,9 @@ int emu::fed::DDU::readBusyHistory()
 unsigned long int emu::fed::DDU::readSerial(int command, const unsigned int nbits = 16)
 	throw (FEDException)
 {
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	cmd[0] = command&0x00ff;
 	cmd[1] = (command&0xff00) >> 8;
@@ -8009,9 +8012,9 @@ void emu::fed::DDU::writeSerial(int command)
 	throw (FEDException)
 {
 	// load writes into the inreg before calling this...
-	char cmd[32];
-	char sndbuf[32];
-	char rcvbuf[32];
+	//char cmd[32];
+	//char sndbuf[32];
+	//char rcvbuf[32];
 	
 	cmd[0] = command&0x00ff;
 	cmd[1] = (command&0xff00) >> 8;

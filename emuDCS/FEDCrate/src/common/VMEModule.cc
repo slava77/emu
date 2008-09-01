@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.11 2008/09/01 11:30:32 paste Exp $
+* $Id: VMEModule.cc,v 3.12 2008/09/01 23:46:24 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.12  2008/09/01 23:46:24  paste
+* Trying to fix what I broke...
+*
 * Revision 3.11  2008/09/01 11:30:32  paste
 * Added features to DDU, IRQThreads corresponding to new DDU firmware.
 *
@@ -218,7 +221,7 @@ void emu::fed::VMEModule::vme_controller(int irdwr,unsigned short int *ptr,unsig
 	} else if (irdwr == 3) {
 		CAEN_write(pttr,data);
 	} else if (irdwr == 6) {
-		static long int packet_delay = (long int) ((*data)*DELAY3);
+		long int packet_delay = (long int) ((*data)*DELAY3);
 		// printf(" packet_delay %d %ld \n",*data,packet_delay);
 		udelay_(packet_delay);
 	}
@@ -443,7 +446,7 @@ void emu::fed::VMEModule::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,int nb
 	std::cout << "outbuf[0]: " << std::hex << (int) outbuf[0] << std::endl;
 	std::cout << "outbuf[1]: " << std::hex << (int) outbuf[1] << std::endl;
 	*/
-	char cmd2[64];
+	char cmd2[1024];
 	
 	int ncmd2;
 	int nbcmd2;

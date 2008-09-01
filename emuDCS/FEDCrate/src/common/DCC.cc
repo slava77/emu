@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.19 2008/08/31 21:18:27 paste Exp $
+* $Id: DCC.cc,v 3.20 2008/09/01 23:46:24 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.20  2008/09/01 23:46:24  paste
+* Trying to fix what I broke...
+*
 * Revision 3.19  2008/08/31 21:18:27  paste
 * Moved buffers from VMEController class to VMEModule class for more rebust communication.
 *
@@ -660,9 +663,9 @@ unsigned long int emu::fed::DCC::readReg(enum DEVTYPE dt, char reg, unsigned int
 		XCEPT_RAISE(FEDException,"Can't read from that device");
 	}
 
-	char cmd[4];
-	char sndbuf[4];
-	char rcvbuf[4];
+	//char cmd[4];
+	//char sndbuf[4];
+	//char rcvbuf[4];
 	
 	cmd[0] = 0x01; // For read function
 	cmd[1] = reg; // vme address
@@ -685,9 +688,9 @@ void emu::fed::DCC::writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
 		XCEPT_RAISE(FEDException,"Can't read from that device");
 	}
 
-	char cmd[4];
-	char sndbuf[4];
-	char rcvbuf[4];
+	//char cmd[4];
+	//char sndbuf[4];
+	//char rcvbuf[4];
 	
 	cmd[0] = 0x00; // For write function
 	cmd[1] = reg; // vme address
@@ -837,9 +840,9 @@ unsigned long int emu::fed::DCC::readIDCode(enum DEVTYPE dt)
 	throw (FEDException)
 {
 	unsigned int nBits = 0;
-	char cmd[2];
-	char sndbuf[5];
-	char rcvbuf[5];
+	//char cmd[2];
+	//char sndbuf[5];
+	//char rcvbuf[5];
 	
 	if (dt == INPROM) {
 		cmd[0] = PROM_IDCODE;
@@ -880,9 +883,9 @@ unsigned long int emu::fed::DCC::readUserCode(enum DEVTYPE dt)
 {
 	
 	unsigned int nBits = 0;
-	char cmd[2];
-	char sndbuf[5];
-	char rcvbuf[5];
+	//char cmd[2];
+	//char sndbuf[5];
+	//char rcvbuf[5];
 	
 	if (dt == INPROM) {
 		cmd[0] = PROM_USERCODE;
