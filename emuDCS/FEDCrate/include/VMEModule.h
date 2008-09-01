@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.9 2008/08/31 21:18:27 paste Exp $
+* $Id: VMEModule.h,v 3.10 2008/09/01 23:46:24 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.10  2008/09/01 23:46:24  paste
+* Trying to fix what I broke...
+*
 * Revision 3.9  2008/08/31 21:18:27  paste
 * Moved buffers from VMEController class to VMEModule class for more rebust communication.
 *
@@ -138,15 +141,14 @@ namespace emu {
 			int CAEN_reset(void);
 			
 			/* void initDevice(int a); */
-			/// used for calls to do_vme
 			//enum FCN { VME_READ=1, VME_WRITE=2 };
 			//enum WRT { LATER, NOW };
 		
-			/// required for DDU/DCC communications
-			//char sndbuf[4096];
-			//char rcvbuf[4096];
-			//char rcvbuf2[4096];
-			//char cmd[4096];
+			// I can't win.
+			char sndbuf[4096];
+			char rcvbuf[4096];
+			char rcvbuf2[4096];
+			char cmd[4096];
 		
 		private:
 			int slot_;
