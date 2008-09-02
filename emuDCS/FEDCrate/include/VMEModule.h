@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.10 2008/09/01 23:46:24 paste Exp $
+* $Id: VMEModule.h,v 3.11 2008/09/02 08:39:52 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.11  2008/09/02 08:39:52  paste
+* Better handling and display of new features in the DDU firmware.
+*
 * Revision 3.10  2008/09/01 23:46:24  paste
 * Trying to fix what I broke...
 *
@@ -147,7 +150,6 @@ namespace emu {
 			// I can't win.
 			char sndbuf[4096];
 			char rcvbuf[4096];
-			char rcvbuf2[4096];
 			char cmd[4096];
 		
 		private:

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.45 2008/09/01 11:30:32 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.46 2008/09/02 08:39:53 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.46  2008/09/02 08:39:53  paste
+* Better handling and display of new features in the DDU firmware.
+*
 * Revision 3.45  2008/09/01 11:30:32  paste
 * Added features to DDU, IRQThreads corresponding to new DDU firmware.
 *
@@ -350,13 +353,14 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			// Check for CSC status
 			//unsigned short int status = (*iDDU)->vmepara_CSCstat();
 			unsigned int fibersWithErrors = (*iDDU)->readCSCStat();
+			unsigned int advancedErrors = (*iDDU)->readAdvancedFiberErrors();
 			//unsigned short int status = 0; // DEBUG
 			// Mark the status with pretty colors
 			std::string cscClass = "green";
 			//if (myCrate->getVMEController()->CAEN_err() != 0) {
 				//cscClass = "yellow";
 			//} else
-			if (fibersWithErrors==0x0000) {
+			if ((fibersWithErrors | advancedErrors) == 0x0000) {
 				cscClass = "green";
 			} else {
 				cscClass = "red";
@@ -385,7 +389,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				.set("class",cscClass)
 				.set("style","border-bottom: 1px solid #000;")
 				.set("colspan","5");
-			*out << "CSC Status: " << std::uppercase << std::setw(4) << std::hex << fibersWithErrors << std::dec << "h";
+			*out << "CSC/Adv Status: " << std::uppercase << std::setw(4) << std::hex << fibersWithErrors << "/" << std::uppercase << std::setw(4) << advancedErrors << std::dec << "h";
 			*out << cgicc::td() << std::endl;
 			*out << cgicc::td()
 				.set("class","none")
@@ -413,7 +417,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				std::string chamberClass = "ok";
 				if (!(killFiber & (1<<iFiber))) chamberClass = "none";
 				else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
-				else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
+				else if ((fibersWithErrors | advancedErrors) & (1<<iFiber)) chamberClass = "bad";
 
 				*out << cgicc::td()
 					.set("class",chamberClass)
@@ -447,7 +451,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				if (thisChamber != NULL) {
 					if (!(killFiber & (1<<iFiber))) chamberClass = "none";
 					else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
-					else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
+					else if ((fibersWithErrors | advancedErrors) & (1<<iFiber)) chamberClass = "bad";
 
 					*out << cgicc::td(thisChamber->name())
 						.set("class",chamberClass)
@@ -2202,7 +2206,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	//  table.
 	//unsigned int fibersWithErrors = 0;
 	// PGK On second thought, this is a more accurate and consistant check.
-	unsigned int fibersWithErrors = myDDU->readCSCStat();
+	unsigned int fibersWithErrors = myDDU->readCSCStat() | myDDU->readAdvancedFiberErrors();
 
 	// This is used to check if the debug trap is valid.
 	bool debugTrapValid = false;
@@ -3721,7 +3725,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	// Knowing which chambers are actually alive is a good thing.
 	long int liveFibers = (myDDU->checkFiber(emu::fed::INFPGA0)&0x000000ff) | ((myDDU->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
 	long int killFiber = myDDU->ddu_rdkillfiber();
-	unsigned int fibersWithErrors = myDDU->readCSCStat();
+	unsigned int fibersWithErrors = myDDU->readCSCStat() | myDDU->readAdvancedFiberErrors();
 
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		std::string chamberClass = "ok";
@@ -4396,7 +4400,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	fmmTable.addColumn("Value");
 	fmmTable.addColumn("Decoded Chambers");
 
-	unsigned int cscStat = myDDU->readCSCStat();
+	unsigned int cscStat = myDDU->readCSCStat() | myDDU->readAdvancedFiberErrors();
 	*(fmmTable(0,0)->value) << "FMM problem report";
 	*(fmmTable(0,1)->value) << std::showbase << std::hex << cscStat;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
