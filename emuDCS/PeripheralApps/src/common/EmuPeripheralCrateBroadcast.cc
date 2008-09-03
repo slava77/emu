@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.33 2008/08/14 09:33:02 geurts Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.34 2008/09/03 10:46:16 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -41,6 +41,9 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
   MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_102706.svf";
   //
+  number_of_layers_pretrig_ = 2;
+  number_of_layers_pattern_ = 4;
+  //
   //    std::cout << "PeripheralCrateBroadcastXmlFile_ = " << PeripheralCrateBroadcastXmlFile_ << std::endl;
   //    std::cout << "DmbControlFPGAFirmwareFile_      = " << DmbControlFPGAFirmwareFile_      << std::endl;
   //    std::cout << "DmbVmeFPGAFirmwareFile_          = " << DmbVmeFPGAFirmwareFile_          << std::endl;
@@ -61,6 +64,8 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   xgi::bind(this,&EmuPeripheralCrateBroadcast::LoadCFEBexternal, "LoadCFEBexternal");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::DmbTurnOnPower, "DmbTurnOnPower");
   xgi::bind(this,&EmuPeripheralCrateBroadcast::DmbTurnOffPower, "DmbTurnOffPower");
+  //
+  xgi::bind(this,&EmuPeripheralCrateBroadcast::SetNumberOfLayersInTrigger, "SetNumberOfLayersInTrigger");
   //
   // Bind firmware loading
   //
@@ -246,12 +251,20 @@ void EmuPeripheralCrateBroadcast::MainPage(xgi::Input * in, xgi::Output * out ) 
   *out << cgicc::input().set("type","submit").set("value","-----  Broadcast Turn OFF On-chamber electronics power ----") << std::endl ;
   *out << cgicc::form();
   //
-  //  *out << cgicc::br();
+  *out << cgicc::br();
   //
-  //  std::string SetRadioactiveTrigger = toolbox::toString("/%s/SetRadioactiveTrigger",getApplicationDescriptor()->getURN().c_str());
-  //  *out << cgicc::form().set("method","GET").set("action",SetRadioactiveTrigger) << std::endl ;
-  //  *out << cgicc::input().set("type","submit").set("value","Radioactive trigger on all crates") << std::endl ;
-  //  *out << cgicc::form();
+  char buf[20];
+  //
+  std::string SetNumberOfLayersInTrigger = toolbox::toString("/%s/SetNumberOfLayersInTrigger",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SetNumberOfLayersInTrigger) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Set thresholds for ALCT*CLCT trigger") << std::endl ;
+  *out << "N_layers_pretrig" << std::endl;
+  sprintf(buf,"%d",number_of_layers_pretrig_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","number_of_layers_pretrig") << std::endl ;
+  *out << "N_layers_pattern" << std::endl;
+  sprintf(buf,"%d",number_of_layers_pattern_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","number_of_layers_pattern") << std::endl ;
+  *out << cgicc::form();
   //
   //  std::string SetOutputToMPCDisable = toolbox::toString("/%s/SetOutputToMPCDisable",getApplicationDescriptor()->getURN().c_str());
   //  *out << cgicc::form().set("method","GET").set("action",SetOutputToMPCDisable) << std::endl ;
@@ -1059,26 +1072,38 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onEnableCalCFEBSCAPed (xoap:
   return createReply(message);
 }
 //
-//void EmuPeripheralCrateBroadcast::SetRadioactiveTrigger(xgi::Input * in, xgi::Output * out )  {
-//  //
-//  DefineBroadcastCrate();
-//  //
-//  std::cout <<" Broadcast radioactive trigger setting..."<<std::endl;
-//  //
-//  broadcastTMB->SetHsPretrigThresh(1);
-//  broadcastTMB->SetMinHitsPattern(1);
-//  broadcastTMB->WriteRegister(0x70);
-//  //
-//  broadcastALCT->SetFifoPretrig(10);
-//  broadcastALCT->SetDriftDelay(2);
-//  broadcastALCT->SetPretrigNumberOfLayers(1);
-//  broadcastALCT->SetPretrigNumberOfPattern(1);
-//  broadcastALCT->WriteConfigurationReg();
-//  //
-//  in=NULL;
-//  this->Default(in, out);
-//  //
-//}
+void EmuPeripheralCrateBroadcast::SetNumberOfLayersInTrigger(xgi::Input * in, xgi::Output * out )  {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("number_of_layers_pretrig");
+  cgicc::form_iterator name2 = cgi.getElement("number_of_layers_pattern");
+  //
+  if(name != cgi.getElements().end()) 
+    number_of_layers_pretrig_ = strtol(cgi["number_of_layers_pretrig"]->getValue().c_str(),NULL,10);
+  //
+  if(name2 != cgi.getElements().end()) 
+    number_of_layers_pattern_ = strtol(cgi["number_of_layers_pattern"]->getValue().c_str(),NULL,10);
+  //
+  DefineBroadcastCrate();
+  //
+  std::cout << " Broadcast " << number_of_layers_pretrig_ << "/" << number_of_layers_pattern_ 
+	    << " layers in pretrig/pattern trigger..." << std::endl;
+  //
+  broadcastTMB->SetHsPretrigThresh(number_of_layers_pretrig_);
+  broadcastTMB->SetMinHitsPattern(number_of_layers_pattern_);
+  broadcastTMB->WriteRegister(0x70);
+  //
+  broadcastALCT->SetFifoPretrig(10);
+  broadcastALCT->SetDriftDelay(2);
+  broadcastALCT->SetPretrigNumberOfLayers(number_of_layers_pretrig_);
+  broadcastALCT->SetPretrigNumberOfPattern(number_of_layers_pattern_);
+  broadcastALCT->WriteConfigurationReg();
+  //
+  in=NULL;
+  this->Default(in, out);
+  //
+}
 ////
 //void EmuPeripheralCrateBroadcast::SetOutputToMPCDisable(xgi::Input * in, xgi::Output * out )  {
 //  //
