@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.46 2008/09/02 08:39:53 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.47 2008/09/03 17:52:59 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.47  2008/09/03 17:52:59  paste
+* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
+*
 * Revision 3.46  2008/09/02 08:39:53  paste
 * Better handling and display of new features in the DDU firmware.
 *
@@ -4765,9 +4768,8 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 
 	//unsigned short int para_val;
 	//unsigned long int send_val;
-
-	// We need this outside the switch command...
-	unsigned short int scale;
+	
+	unsigned int scale;
 	
 	// Switch on the command.
 	switch (command) {
@@ -4809,7 +4811,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		myDDU->writeInputReg(uploadValue);
 		break;
 
-	case (10): // Toggle something in the prescale?
+	case (10): // Toggle DDU backpressure ignore.
 		scale = myDDU->readGbEPrescale();
 		if (scale & 0x0008) {
 			uploadValue = (scale & 0xf7f7) | 0x8080;

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.20 2008/09/01 11:30:32 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.21 2008/09/03 17:52:59 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.21  2008/09/03 17:52:59  paste
+* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
+*
 * Revision 3.20  2008/09/01 11:30:32  paste
 * Added features to DDU, IRQThreads corresponding to new DDU firmware.
 *
@@ -234,6 +237,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	// Continue unless someone tells us to stop.
 	while (locdata->exit == false) {
 
+		LOG4CPLUS_DEBUG(logger, "Start of loop reached.");
+
 		// Increase the ticks.
 		locdata->ticks[myCrate]++;
 
@@ -446,6 +451,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		// Save the error.
 		locdata->errorVectors[myCrate].push_back(myError);
+		
+		LOG4CPLUS_DEBUG(logger, "End of loop reached.");
 	}
 
 	//std::cout << " IRQ_Int call pthread_exit" << std::endl;
