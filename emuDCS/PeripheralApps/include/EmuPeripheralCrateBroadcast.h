@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.16 2008/08/14 09:33:02 geurts Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.17 2008/09/03 10:46:16 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -108,6 +108,7 @@ public:
   void DmbTurnOnPower(xgi::Input * in, xgi::Output * out );
   void DmbTurnOffPower(xgi::Input * in, xgi::Output * out );
   void LoadDACandTrigger(xgi::Input * in, xgi::Output * out );
+  void SetNumberOfLayersInTrigger(xgi::Input * in, xgi::Output * out );
   //
   // Firmware
   //
@@ -161,7 +162,10 @@ private:
 
   xdata::String VMECCFirmwareDir_; 
   xdata::String VMECCFirmwareVer_; 
-
+  //
+  int number_of_layers_pretrig_;
+  int number_of_layers_pattern_;
+  //
   // for monitoring
   bool Monitor_On_, Monitor_Ready_, In_Monitor_, In_Broadcast_;
   toolbox::task::Timer * timer_;
