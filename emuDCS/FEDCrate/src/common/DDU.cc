@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.29 2008/09/01 23:46:24 paste Exp $
+* $Id: DDU.cc,v 3.30 2008/09/03 17:52:58 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 3.30  2008/09/03 17:52:58  paste
+* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
+*
 * Revision 3.29  2008/09/01 23:46:24  paste
 * Trying to fix what I broke...
 *
@@ -6458,20 +6461,20 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 					// for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
 					if(nowrit==0){
 						if((geo[dv].jchan==12)){
-								if (pass == ipass || ipass == 4) scan(RESET,DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == ipass || ipass == 4) scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
 								if (pass == 2) pass++;
 						}else{
-								if (pass == ipass || ipass == 4) scan(NONE,DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == ipass || ipass == 4) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
 								if (pass == 2) pass++;
 						}
 					}else{
 						if(writ==1){
 
 							if((geo[dv].jchan==12)){
-								if (pass == ipass || ipass == 4) scan(RESET,DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == ipass || ipass == 4) scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
 								if (pass == 2) pass++;
 							}else{
-								if (pass == ipass || ipass == 4) scan(NONE,DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == ipass || ipass == 4) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
 								if (pass == 2) pass++;
 							}
 						}
@@ -7939,6 +7942,9 @@ int emu::fed::DDU::readFakeL1Reg()
 void emu::fed::DDU::writeGbEPrescale(int val)
 	throw (FEDException)
 {
+	val &= 0xf;
+	int complement = 0xf - val;
+	val |= (complement << 12) | (val << 8) | (complement << 4);
 	try { writeParallel(0x8009, val); }
 	catch (FEDException &e) { throw; }
 }

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.h,v 3.11 2008/08/19 14:51:02 paste Exp $
+* $Id: VMEController.h,v 3.12 2008/09/03 17:52:58 paste Exp $
 *
 * $Log: VMEController.h,v $
+* Revision 3.12  2008/09/03 17:52:58  paste
+* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
+*
 * Revision 3.11  2008/08/19 14:51:02  paste
 * Update to make VMEModules more independent of VMEControllers.
 *
@@ -55,44 +58,40 @@ namespace emu {
 			**/
 			inline void setBHandle(int32_t BHandle) { BHandle_ = BHandle; }
 
-			/// if not current modules, it stops current and starts new
-			/// this base routine sends a signal consisting of the
-			/// university and slot
-			// void start(VMEModule * module);
-			/* void start(int slot); */
-			/// ends whatever module is current
-			/* void end(); */
+			//void start(VMEModule * module);
+			void start(int slot);
+			void end();
 			
 			/// JTAG stuff
-			/* void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd); */
-			/* void scan(int reg,const char *snd,int cnt2,char *rcv,int ird); */
-			/* void RestoreIdle(); */
-			/* void InitJTAG(int port); */
-			/* void CloseJTAG(); */
-			/* void send_last(); */
-			/* void RestoreIdle_reset(); */
-			/* void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird); */
-			/* void sleep_vme(const char *outbuf);   // in usecs (min 16 usec) */
-			/* void sleep_vme2(unsigned short int time); // time in usec */
-			/* void long_sleep_vme2(float time);   // time in usec */
-			/* void handshake_vme(); */
-			/* void flush_vme(); */
-			/* void vmeser(const char *cmd,const char *snd,char *rcv); */
-			/* void vmepara(const char *cmd,const char *snd,char *rcv); */
-			/* void dcc(const char *cmd,char *rcv); */
-			/* void vme_adc(int ichp,int ichn,char *rcv); */
-			/*void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv); */
-			/* int CAEN_read(unsigned long Address,unsigned short int *data); */
-			/* int CAEN_write(unsigned long Address,unsigned short int *data); */
+			void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd); 
+			void scan(int reg,const char *snd,int cnt2,char *rcv,int ird); 
+			void RestoreIdle(); 
+			void InitJTAG(int port); 
+			void CloseJTAG(); 
+			void send_last(); 
+			void RestoreIdle_reset(); 
+			void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird); 
+			void sleep_vme(const char *outbuf);   // in usecs (min 16 usec) 
+			void sleep_vme2(unsigned short int time); // time in usec 
+			void long_sleep_vme2(float time);   // time in usec 
+			void handshake_vme(); 
+			void flush_vme(); 
+			void vmeser(const char *cmd,const char *snd,char *rcv); 
+			void vmepara(const char *cmd,const char *snd,char *rcv); 
+			void dcc(const char *cmd,char *rcv); 
+			void vme_adc(int ichp,int ichn,char *rcv); 
+			void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv); 
+			int CAEN_read(unsigned long Address,unsigned short int *data); 
+			int CAEN_write(unsigned long Address,unsigned short int *data); 
 			
 			// Keep me
-			/* void CAEN_close(); */
-			/* int CAEN_reset(void); */
-			/* void CAEN_err_reset(void); */
+			void CAEN_close();
+			int CAEN_reset(void);
+			void CAEN_err_reset(void);
 			
-			/* int udelay(long int itim); */
-			/* void sdly(); */
-			/* void initDevice(int a); */
+			int udelay(long int itim);
+			void sdly();
+			void initDevice(int a);
 			
 			// EPROM reprogramming (EXPERTS ONLY !)
 			// void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
@@ -107,13 +106,13 @@ namespace emu {
 			int Device_;
 			int Link_;
 			int32_t BHandle_;
-			/* VMEModule *currentModule_; */
+			VMEModule *currentModule_;
 			//const ENDIAN endian_;
-			/* int idevo_; */
-			/* int feuseo; */
-			/* int plev; */
-			/* int crateNumber; */
-			/* int caen_err_; */
+			int idevo_;
+			int feuseo;
+			int plev;
+			int crateNumber;
+			int caen_err;
 
 		};
 

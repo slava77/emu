@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.20 2008/09/01 23:46:24 paste Exp $
+* $Id: DCC.cc,v 3.21 2008/09/03 17:52:58 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.21  2008/09/03 17:52:58  paste
+* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
+*
 * Revision 3.20  2008/09/01 23:46:24  paste
 * Trying to fix what I broke...
 *
@@ -529,15 +532,15 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 					// for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
 					if (nowrit == 0) {
 						if ((geo[dv].jchan == 12)) {
-							scan(RESET,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+							scan_reset(DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 						} else {
-							scan(NONE,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+							scan(DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 						}
 					} else if (writ == 1) {
 						if ((geo[dv].jchan == 12)) {
-							scan(RESET,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+							scan_reset(DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 						} else {
-							scan(NONE,DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
+							scan(DATA_REG, sndbuf, nbits + xtrbits, rcvbuf, 0);
 						}
 					}
 
@@ -804,7 +807,7 @@ void emu::fed::DCC::setTTCCommand(unsigned int value)
 	throw (FEDException)
 {
 	try {
-		return writeReg(MCTRL, 0x00, 0Xff00 | (value & 0xff));
+		return writeReg(MCTRL, 0x00, 0Xff00 | ((value << 2) & 0xfc));
 	} catch (FEDException &e) { throw; }
 }
 

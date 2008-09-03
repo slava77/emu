@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 3.7 2008/08/25 12:25:49 paste Exp $
+* $Id: DDUParser.cc,v 3.8 2008/09/03 17:52:59 paste Exp $
 *
 * $Log: DDUParser.cc,v $
+* Revision 3.8  2008/09/03 17:52:59  paste
+* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
+*
 * Revision 3.7  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -29,7 +32,7 @@ emu::fed::DDUParser::DDUParser(xercesc::DOMNode *pNode, int crate, char *fileNam
 	} else { 
 		ddu_ = new DDU(slot_);
 		//fillInt("skip_vme_load", ddu_->skip_vme_load_); 
-		fillInt("gbe_prescale", ddu_->gbe_prescale_); 
+		fillHex("gbe_prescale", (int &) ddu_->gbe_prescale_); 
 		fillHex("killfiber", (int &) ddu_->killfiber_);
 
 		ChamberParser CP = ChamberParser(fileName, crate, slot_);
