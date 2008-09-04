@@ -29,6 +29,14 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   alct = 0;
   nTrigger_ = 100;
   MenuMonitor_ = 2;
+  total_min = 0;
+  total_max = 0;
+  O_T_min = 0.;
+  O_T_max = 0.;
+  R_L_min = 0.;
+  R_L_max = 0.;
+  T_B_min = 0.;
+  T_B_max = 0.;
   //
   tmb_vme_ready = -1;
   //
@@ -43,6 +51,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::FullResetTMBC, "FullResetTMBC");
   xgi::bind(this,&EmuPeripheralCrateMonitor::XmlOutput, "XmlOutput");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSOutput, "DCSOutput");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateMonitor::TCounterSelection, "TCounterSelection");
@@ -223,6 +232,8 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
             // for TMB fast counters
                 is->fireItemAvailable("TMBcounter",new xdata::Vector<xdata::UnsignedInteger32>());
                 is->fireItemAvailable("TMBftime",new xdata::TimeVal);
+                is->fireItemAvailable("OTMBcounter",new xdata::Vector<xdata::UnsignedInteger32>());
+                is->fireItemAvailable("OTMBftime",new xdata::TimeVal);
 
             // for DMB fast counters
                 is->fireItemAvailable("DMBcounter",new xdata::Vector<xdata::UnsignedShort>());
@@ -328,8 +339,17 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                 {
                    // std::cout << "TMB counters " << (buf2[0]/2) << std::endl;
                    xdata::Vector<xdata::UnsignedInteger32> *tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
+                   xdata::Vector<xdata::UnsignedInteger32> *otmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("OTMBcounter"));
+                   if(otmbdata->size()==0)
+                      for(unsigned ii=0; ii<(buf2[0]/2); ii++) otmbdata->push_back(0);
                    if(tmbdata->size()==0)
+                   {   
                       for(unsigned ii=0; ii<(buf2[0]/2); ii++) tmbdata->push_back(0);
+                   }
+                   else
+                   {
+                      for(unsigned ii=0; ii<(buf2[0]/2); ii++) (*otmbdata)[ii] = (*tmbdata)[ii];
+                   }
                    for(unsigned ii=0; ii<(buf2[0]/2); ii++) (*tmbdata)[ii] = buf4[ii+1];
                 }
                 now_crate-> MonitorDMB(cycle, buf);
@@ -1391,9 +1411,18 @@ void EmuPeripheralCrateMonitor::ResetAllCounters(xgi::Input * in, xgi::Output * 
 void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  xdata::InfoSpace * is;
+  xdata::Vector<xdata::UnsignedInteger32> *tmbdata;
+  xdata::Vector<xdata::UnsignedInteger32> *otmbdata;
   std::vector<emu::pc::TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
+     is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
+     otmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("OTMBcounter"));
+     for(unsigned ii=0; ii<(otmbdata->size()); ii++) (*otmbdata)[ii]=0;
+     for(unsigned ii=0; ii<(tmbdata->size()); ii++) (*tmbdata)[ii]=0;
+
      if(crateVector[i]->IsAlive())
      {
         myVector = crateVector[i]->tmbs();
@@ -1406,7 +1435,106 @@ void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out
   this->Default(in,out);
 }
 
-void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out ) 
+void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+
+  unsigned int TOTAL_TMB_COUNTERS=49;
+  std::vector<emu::pc::TMB*> myVector;
+  int o_value, n_value, i_value;
+  xdata::InfoSpace * is;
+
+  //
+  *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
+  *out << "<?xml-stylesheet type=\"text/xml\" href=\"counterMonitor.xsl\"?>" << std::endl;
+  *out << "<emuCounters dateTime=\"";
+  toolbox::TimeVal currentTime;
+  xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
+  *out << now_time.toString();
+  *out << "\">" << std::endl;
+
+  *out << "  <sample name=\"sliding\" delta_t=\"5\">" << std::endl;
+
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     std::string cratename = crateVector[i]->GetLabel();
+     // for debug, should not happen
+     if(cratename!=(monitorables_[i].substr(4,cratename.length())))
+         std::cout << "ERROR: crates out of order in Monitor " << cratename << " " << monitorables_[i] << std::endl;
+
+     is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     xdata::Vector<xdata::Integer32> *tmbdata = dynamic_cast<xdata::Vector<xdata::Integer32> *>(is->find("TMBcounter"));
+     xdata::Vector<xdata::Integer32> *otmbdata = dynamic_cast<xdata::Vector<xdata::Integer32> *>(is->find("OTMBcounter"));
+     
+     myVector = crateVector[i]->tmbs();
+     for(unsigned int j=0; j<myVector.size(); j++) 
+     {
+        *out << "    <count chamber=\"";
+        *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << "\" lct=\"";
+//        *out << myVector[j]->GetCounter(13);
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        if(o_value == 0x3FFFFFFF || o_value < 0) o_value = -1;
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        if(n_value == 0x3FFFFFFF || n_value < 0) n_value = -1;
+        // when a counter has error, should be -1, but the XML displayer needs
+        //  non-negative number, so set it to 0 here and in the following:
+        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
+        if(i_value<-1) i_value=0;
+        *out << i_value;
+        *out << "\" l1a=\"";
+//        *out << myVector[j]->GetCounter(34);
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+34];
+        if(o_value == 0x3FFFFFFF || o_value < 0) o_value = -1;
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        if(n_value == 0x3FFFFFFF || n_value < 0) n_value = -1;
+        // counter error, set it to 0:
+        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
+        if(i_value<-1) i_value=0;
+        *out << i_value;
+        *out << "\"/>" << std::endl;
+     }
+  }
+
+  *out << "  <sample>" << std::endl;
+
+  *out << "  <sample name=\"cumulative\" delta_t=\"1000\">" << std::endl;
+
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     std::string cratename = crateVector[i]->GetLabel();
+     // for debug, should not happen
+     if(cratename!=(monitorables_[i].substr(4,cratename.length())))
+         std::cout << "ERROR: crates out of order in Monitor " << cratename << " " << monitorables_[i] << std::endl;
+
+     is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     xdata::Vector<xdata::Integer32> *tmbdata = dynamic_cast<xdata::Vector<xdata::Integer32> *>(is->find("TMBcounter"));
+     
+     myVector = crateVector[i]->tmbs();
+     for(unsigned int j=0; j<myVector.size(); j++) 
+     {
+        *out << "    <count chamber=\"";
+        *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << "\" lct=\"";
+//        *out << myVector[j]->GetCounter(13);
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        // counter error, set it to 0 here:
+        if(n_value == 0x3FFFFFFF || n_value < 0) n_value = 0;
+        *out << n_value;
+        *out << "\" l1a=\"";
+//        *out << myVector[j]->GetCounter(34);
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+34];
+        // counter error, set it to 0 here:
+        if(n_value == 0x3FFFFFFF || n_value < 0) n_value = 0;
+        *out << n_value;
+        *out << "\"/>" << std::endl;
+     }
+  }
+
+  *out << "  <sample>" << std::endl;
+  *out << "<emuCounters>" << std::endl;
+}
+
+void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
@@ -1440,14 +1568,24 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
-  long long int me_total[5][4], out_total=0, total=0;
+  unsigned int TOTAL_TMB_COUNTERS=49;
+  std::vector<emu::pc::TMB*> myVector;
+  xdata::InfoSpace * is;
+
+  long long int me_total[5][4], out_total=0, total=0, out_total_i=0, total_i=0;
   long long int l_sum=0, r_sum=0, t_sum=0, b_sum=0;
+  long long int l_sum_i=0, r_sum_i=0, t_sum_i=0, b_sum_i=0;
+  double O_T=0., O_T_int=0., R_L=0., R_L_int=0., T_B=0., T_B_int=0.;
+  int o_value, n_value, d_value;
 
   for(int i=0;i<5;i++) for(int j=0;j<4;j++) me_total[i][j]=0;
 
-  std::vector<emu::pc::TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
+     is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     xdata::Vector<xdata::Integer32> *tmbdata = dynamic_cast<xdata::Vector<xdata::Integer32> *>(is->find("TMBcounter"));
+     xdata::Vector<xdata::Integer32> *otmbdata = dynamic_cast<xdata::Vector<xdata::Integer32> *>(is->find("OTMBcounter"));
+
      myVector = crateVector[i]->tmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
@@ -1456,30 +1594,79 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
         int ring = std::atoi(chname.substr(5,1).c_str());
         int chnumb = std::atoi(chname.substr(7,2).c_str());
 
-        int value = myVector[j]->GetCounter(13);  // ALCT
-        if(value < 0) value = 0;
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        if(o_value == 0x3FFFFFFF || o_value < 0) o_value = -1;
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        if(n_value == 0x3FFFFFFF || n_value < 0) n_value = -1;
+        // when a counter has error, set it to 0 here and in the following:
+        d_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
+        if(d_value < 0) d_value = 0;
+        if(n_value < 0) n_value = 0;
 
-        total += value;
-        me_total[station][ring] += value;
-        if(ring>1) out_total += value;
+        total   += d_value;
+        total_i += n_value;
+        me_total[station][ring] += d_value;
+        if(ring>1)
+        {  
+           out_total   += d_value;
+           out_total_i += n_value;
+        }           
         else
         {
            if(station==1)
            {
-              if(chnumb<=5 && chnumb>=14) t_sum += value;
-              else if(chnumb<=15 && chnumb>=22) r_sum += value;
-              else if(chnumb<=23 && chnumb>=32) b_sum += value;
-              else l_sum += value;
+              if(chnumb<=5 && chnumb>=14) 
+              {  t_sum += d_value;  t_sum_i += n_value; }
+              else if(chnumb<=15 && chnumb>=22)
+              {  r_sum += d_value;  r_sum_i += n_value; }
+              else if(chnumb<=23 && chnumb>=32)
+              {  b_sum += d_value;  b_sum_i += n_value; }
+              else 
+              {  l_sum += d_value;  l_sum_i += n_value; }
            }
            else
            {
-              if(chnumb<=3 && chnumb>=7) t_sum += value;
-              else if(chnumb<=8 && chnumb>=11) r_sum += value;
-              else if(chnumb<=12 && chnumb>=16) b_sum += value;
-              else l_sum += value;
+              if(chnumb<=3 && chnumb>=7) 
+              {  t_sum += d_value;  t_sum_i += n_value; }
+              else if(chnumb<=8 && chnumb>=11)
+              {  r_sum += d_value;  r_sum_i += n_value; }
+              else if(chnumb<=12 && chnumb>=16)
+              {  b_sum += d_value;  b_sum_i += n_value; }
+              else 
+              {  l_sum += d_value;  l_sum_i += n_value; }
            }
         }
      }
+  }
+  if(total > total_max) total_max=total;
+  if(total < total_min || total_min==0) total_min=total;
+  if(total) 
+  {  O_T = (double)out_total/(double)total;
+     if(O_T > O_T_max) O_T_max = O_T;
+     if(O_T < O_T_min) O_T_min = O_T;
+  }
+  if(r_sum+l_sum)
+  {
+     R_L = ((double)r_sum-(double)l_sum)/((double)r_sum+(double)l_sum);
+     if(R_L > R_L_max) R_L_max = R_L;
+     if(R_L < R_L_min) R_L_min = R_L;
+  }
+  if(t_sum+b_sum)
+  {
+     T_B = ((double)t_sum-(double)b_sum)/((double)t_sum+(double)b_sum);
+     if(T_B > T_B_max) T_B_max = T_B;
+     if(T_B < T_B_min) T_B_min = T_B;
+  }
+  if(total_i) 
+  {  O_T_int = (double)out_total_i/(double)total_i;
+  }
+  if(r_sum_i+l_sum_i)
+  {
+     R_L_int = ((double)r_sum_i-(double)l_sum_i)/((double)r_sum_i+(double)l_sum_i);
+  }
+  if(t_sum_i+b_sum_i)
+  {
+     T_B_int = ((double)t_sum_i-(double)b_sum_i)/((double)t_sum_i+(double)b_sum_i);
   }
   //
   MyHeader(in,out,"Crate Status");
@@ -1503,35 +1690,89 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
 
   *out << cgicc::fieldset().set("style","font-size: 16pt; font-family: courier;");
   *out << cgicc::legend("BEAM Position").set("style","color:green") << std::endl ;
-
-  if(total) 
-  {  
-     double o_t = (double)out_total/(double)total;
-     *out << "Outer/Total  " << o_t << cgicc::br() << std::endl;
-  }
-  if(r_sum+l_sum)
-  {
-     double r_l = ((double)r_sum-(double)l_sum)/((double)r_sum+(double)l_sum);
-     *out << "R-L/R+L Inner  " << r_l << cgicc::br() << std::endl;
-  }
-  if(b_sum+t_sum)
-  {
-     double b_t = ((double)b_sum-(double)t_sum)/((double)b_sum+(double)t_sum);
-     *out << "B-T/B+T Inner  " << b_t << cgicc::br() << cgicc::hr() << std::endl;
-  }
+  *out << cgicc::table().set("border","1");
+  //
+  // table top
+  //
+  *out << cgicc::td() << cgicc::td();
+  *out << cgicc::td() << "Rate" << cgicc::td();
+  *out << cgicc::td() << "Min" << cgicc::td();
+  *out << cgicc::td() << "Max" << cgicc::td();
+  *out << cgicc::td() << "Integral" << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+  //
+  *out << cgicc::td() << "Total" << cgicc::td();
+  *out << cgicc::td() << total << cgicc::td();
+  *out << cgicc::td() << total_min << cgicc::td();
+  *out << cgicc::td() << total_max << cgicc::td();
+  *out << cgicc::td() << total_i << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+  //
+  *out << cgicc::td() << "Outer/Total" << cgicc::td();
+  *out << cgicc::td() << O_T << cgicc::td();
+  *out << cgicc::td() << O_T_min << cgicc::td();
+  *out << cgicc::td() << O_T_max << cgicc::td();
+  *out << cgicc::td() << O_T_int << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+  //
+  *out << cgicc::td() << "R-L/R+L" << cgicc::td();
+  *out << cgicc::td() << R_L << cgicc::td();
+  *out << cgicc::td() << R_L_min << cgicc::td();
+  *out << cgicc::td() << R_L_max << cgicc::td();
+  *out << cgicc::td() << R_L_int << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+  //
+  *out << cgicc::td() << "T-B/T+B" << cgicc::td();
+  *out << cgicc::td() << T_B << cgicc::td();
+  *out << cgicc::td() << T_B_min << cgicc::td();
+  *out << cgicc::td() << T_B_max << cgicc::td();
+  *out << cgicc::td() << T_B_int << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+  *out << cgicc::table();
+ 
   *out << cgicc::br();
   *out << cgicc::fieldset();
 
   *out << cgicc::fieldset().set("style","font-size: 16pt; font-family: courier;");
   *out << cgicc::legend("Chamber Sums").set("style","color:blue") << std::endl ;
-  *out << "Total  " << total << cgicc::br() << cgicc::br() << std::endl;
-  *out << "ME 1/1: " << me_total[1][1] << "  ME 1/2: " << me_total[1][2];
-  *out << "  ME 1/3: "  << me_total[1][3] << cgicc::br() << std::endl;
-  *out << "ME 2/1: " << me_total[2][1] << "  ME 2/2: " << me_total[2][2] << cgicc::br() << std::endl;
-  *out << "ME 3/1: " << me_total[3][1] << "  ME 3/2: " << me_total[3][2] << cgicc::br() << std::endl;
-  *out << "ME 4/1: " << me_total[4][1] << cgicc::br() << std::endl;
-  *out << cgicc::br();
+
+  *out << cgicc::table().set("border","1");
+
+  *out << cgicc::td() << "ME 1/1" << cgicc::td();
+  *out << cgicc::td() << me_total[1][1] << cgicc::td();
+  *out << cgicc::td() << "ME 1/2" << cgicc::td();
+  *out << cgicc::td() << me_total[1][2] << cgicc::td();
+  *out << cgicc::td() << "ME 1/3"  << cgicc::td();
+  *out << cgicc::td() << me_total[1][3]  << cgicc::td() << cgicc::tr() << std::endl;
+
+  *out << cgicc::td() << "ME 2/1" << cgicc::td();
+  *out << cgicc::td() << me_total[2][1] << cgicc::td();
+  *out << cgicc::td() << "ME 2/2" << cgicc::td();
+  *out << cgicc::td() << me_total[2][2] << cgicc::td();
+  *out << cgicc::td() << cgicc::td();
+  *out << cgicc::td() << cgicc::td() << cgicc::tr() << std::endl;
+
+  *out << cgicc::td() << "ME 3/1" << cgicc::td();
+  *out << cgicc::td() << me_total[3][1] << cgicc::td();
+  *out << cgicc::td() << "ME 3/2" << cgicc::td();
+  *out << cgicc::td() << me_total[3][2] << cgicc::td();
+  *out << cgicc::td() << cgicc::td();
+  *out << cgicc::td() << cgicc::td() << cgicc::tr() << std::endl;
+
+  *out << cgicc::td() << "ME 4/1" << cgicc::td();
+  *out << cgicc::td() << me_total[4][1] << cgicc::td();
+  *out << cgicc::td() << cgicc::td();
+  *out << cgicc::td() << cgicc::td();
+  *out << cgicc::td() << cgicc::td();
+  *out << cgicc::td() << cgicc::td() << cgicc::tr() << std::endl;
+
+  *out << cgicc::table();
   *out << cgicc::fieldset();
+
+    std::string fullReset = toolbox::toString("/%s/FullResetTMBC",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",fullReset) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Reset Whole Endcap") << std::endl ;
+    *out << cgicc::form() << std::endl ;
 
 }
 
