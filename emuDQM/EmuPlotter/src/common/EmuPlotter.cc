@@ -44,6 +44,8 @@ void EmuPlotter::reset()
   //bin_checker.output1().show();
   //bin_checker.output2().show();
 
+  nDMBEvents.clear();
+  L1ANumbers.clear();
   cscCntrs.clear();
 
   clearCanvasesCollection(MECanvases);
