@@ -191,6 +191,7 @@ protected:
   std::string getCSCName(std::string cscID, int& crate, int& slot, int& csctype, int& cscposition );
   int loadXMLBookingInfo(std::string xmlFile);
   int loadXMLCanvasesInfo(std::string xmlFile);
+  int loadKillBitsConfig(std::string xmlFile);
   void clearMECollection(std::map<std::string, ME_List > & collection);
   void clearMECollection(ME_List &collection);
   void printMECollection(ME_List &collection);
@@ -253,6 +254,7 @@ private:
   
   std::string xmlHistosBookingCfgFile;
   std::string xmlCanvasesCfgFile;
+  std::string xmlKillBitsCfgFile;
   std::string cscMapFile;
 
   CSCReadoutMappingFromFile cscMapping;

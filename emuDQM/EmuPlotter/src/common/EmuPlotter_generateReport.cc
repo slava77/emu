@@ -5,6 +5,58 @@
   Generate text file with DQM report
 */
 
+int EmuPlotter::loadKillBitsConfig(std::string killbitsFile)
+{
+/*
+  if (killbitsFile == "") {
+    return 1;
+  }
+
+  XMLPlatformUtils::Initialize();
+  XercesDOMParser *parser = new XercesDOMParser();
+  parser->setValidationScheme(XercesDOMParser::Val_Always);
+  parser->setDoNamespaces(true);
+  parser->setDoSchema(true);
+  parser->setValidationSchemaFullChecking(false); // this is default
+  parser->setCreateEntityReferenceNodes(true);  // this is default
+  parser->setIncludeIgnorableWhitespace (false);
+
+  parser->parse(killbitsFile.c_str());
+  DOMDocument *doc = parser->getDocument();
+  DOMNodeList *l = doc->getElementsByTagName( XMLString::transcode("KillBits") );
+  if( l->getLength() != 1 ){
+    return 1;
+  }
+
+  DOMNodeList *itemList = doc->getElementsByTagName( XMLString::transcode("CSC") );
+  if( itemList->getLength() == 0 ){
+    return 1;
+  }
+  for(uint32_t i=0; i<itemList->getLength(); i++){
+    std::map<std::string, std::string> obj_info;
+    std::map<std::string, std::string>::iterator itr;
+    DOMNodeList *children = itemList->item(i)->getChildNodes();
+    for(unsigned int i=0; i<children->getLength(); i++){
+      std::string paramname = std::string(XMLString::transcode(children->item(i)->getNodeName()));
+      if ( children->item(i)->hasChildNodes() ) {
+        std::string param = std::string(XMLString::transcode(children->item(i)->getFirstChild()->getNodeValue()));
+        obj_info[paramname] = param;
+      }
+    }
+    itr = obj_info.find("CSC");
+    if (itr != obj_info.end()) {
+      std::cout << "Found masks for " << itr->second << std::endl;
+      if (obj_info["CFEBChans"] != "") {
+        tmasks[itr->second]=parseMask(obj_info["CFEBChans"]);
+      }
+    }
+  }
+  delete parser;
+*/
+  return 0;
+}
+
+
 int getNumStrips(std::string cscID)
 {
   if ((cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0 )) return 64;
@@ -123,6 +175,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     LOG4CPLUS_ERROR (logger_, "No histos folder in file");
     return -1;
   }
+
+  //  loadKillBitsConfig(xmlKillBitsCfgFile);
 
   std::ofstream tree_items;
   std::ofstream csc_list;
