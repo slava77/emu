@@ -9,6 +9,7 @@
 #include "xdaq/exception/Exception.h"
 #include "xdata/UnsignedInteger32.h"
 #include "xdata/UnsignedShort.h"
+#include "xdata/Integer32.h"
 #include "xdata/UnsignedLong.h"
 #include "xdata/String.h"
 #include "xdata/Vector.h"
@@ -161,6 +162,10 @@ protected:
   //
   emu::pc::EmuEndcap * emuEndcap_;
   //
+  // for beam monitor
+  long long int total_min, total_max;
+  double O_T_min, O_T_max, R_L_min, R_L_max, T_B_min, T_B_max;
+      
 public:
   //
   XDAQ_INSTANTIATOR();
@@ -189,6 +194,7 @@ private:
   void ResetAllCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FullResetTMBC(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void XmlOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void DCSOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
