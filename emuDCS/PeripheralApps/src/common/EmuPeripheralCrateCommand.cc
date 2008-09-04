@@ -548,6 +548,10 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
   //
   for(unsigned i=0; i< crateVector.size(); i++) {
     //
+    // add extra controller check before checking config for each crate
+    bool cr = (crateVector[i]->vmeController()->SelfTest()) && (crateVector[i]->vmeController()->exist(13));
+    crateVector[i]->SetLife( cr );
+    if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
     if ( crateVector[i]->IsAlive() ) {
       //
       SetCurrentCrate(i);	
