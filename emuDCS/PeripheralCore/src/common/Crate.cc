@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.43 2008/08/22 13:05:36 liu Exp $
+// $Id: Crate.cc,v 3.44 2008/09/05 17:44:45 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.44  2008/09/05 17:44:45  liu
+// monitoring update
+//
 // Revision 3.43  2008/08/22 13:05:36  liu
 // monitoring update
 //
@@ -531,11 +534,13 @@ void Crate::MonitorCCB(int cycle, char * buf)
 void Crate::MonitorTMB(int cycle, char * buf) 
 {
   int TOTAL_TMB_COUNTERS=49;
-  int * countbuf;
+  int * countbuf, *buf4;
   short *buf2;
+ 
   
   buf2=(short *)buf;
-  *buf2 = 0;
+  buf4=(int *)buf;
+  for(int i=0; i<= TOTAL_TMB_COUNTERS*9; i++) buf4[i]=0;
   vmeController()->SetUseDelay(true);
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
