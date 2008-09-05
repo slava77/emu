@@ -1023,7 +1023,7 @@ void CSCSupervisor::sendCommandCellOpInit(string klass, int instance)
   std::string urn="NULL";
   std::string url="NULL";
   std::map<std::string, xdata::Serializable*> param;
-  std::string mnumb="50808";
+  std::string mnumb="120808";
   param["KEY"] = new xdata::String(mnumb);
   std::string ns="urn:ts-soap:3.0";
   std::string opId="MTCCIIConfiguration";
@@ -1099,7 +1099,7 @@ void CSCSupervisor::sendCommandCell(string command, string klass, int instance)
   std::string urn="";
   std::string url="";
   std::map<std::string, xdata::Serializable*> param;
-  std::string mnumb="50808";
+  std::string mnumb="120808";
   param["KEY"] = new xdata::String(mnumb);
   std::string ns="urn:ts-soap:3.0";
   std::string opid="MTCCIIConfiguration";
