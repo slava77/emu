@@ -1472,9 +1472,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
         o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
-        if(o_value == 0x3FFFFFFF || o_value > 0x7FFFFFFF) o_value = -1;
+        if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
-        if(n_value == 0x3FFFFFFF || n_value > 0x7FFFFFFF) n_value = -1;
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1, but the XML displayer needs
         //  non-negative number, so set it to 0 here and in the following:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
@@ -1483,9 +1483,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
         o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+34];
-        if(o_value == 0x3FFFFFFF || o_value > 0x7FFFFFFF) o_value = -1;
+        if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+34];
-        if(n_value == 0x3FFFFFFF || n_value > 0x7FFFFFFF) n_value = -1;
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // counter error, set it to 0:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
         if(i_value<-1) i_value=0;
@@ -1517,13 +1517,13 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
 //        *out << myVector[j]->GetCounter(13);
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
         // counter error, set it to 0 here:
-        if(n_value == 0x3FFFFFFF || n_value > 0x7FFFFFFF) n_value = 0;
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = 0;
         *out << n_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+34];
         // counter error, set it to 0 here:
-        if(n_value == 0x3FFFFFFF || n_value > 0x7FFFFFFF) n_value = 0;
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = 0;
         *out << n_value;
         *out << "\"/>" << std::endl;
      }
@@ -1593,10 +1593,10 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
         int ring = std::atoi(chname.substr(5,1).c_str());
         int chnumb = std::atoi(chname.substr(7,2).c_str());
         o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
-        if(o_value == 0x3FFFFFFF || o_value > 0x7FFFFFFF) o_value = -1;
+        if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
 
-        if(n_value == 0x3FFFFFFF || n_value > 0x7FFFFFFF) n_value = -1;
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, set it to 0 here and in the following:
         d_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
         if(d_value < 0) d_value = 0;
