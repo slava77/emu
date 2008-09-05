@@ -1577,8 +1577,8 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
   xdata::InfoSpace * is;
 
   long long int me_total[5][4], out_total=0, total=0, out_total_i=0, total_i=0;
-  long long int l_sum=0, r_sum=0, t_sum=0, b_sum=0;
-  long long int l_sum_i=0, r_sum_i=0, t_sum_i=0, b_sum_i=0;
+  double l_sum=0., r_sum=0., t_sum=0., b_sum=0.;
+  double l_sum_i=0., r_sum_i=0., t_sum_i=0., b_sum_i=0.;
   double O_T=0., O_T_int=0., R_L=0., R_L_int=0., T_B=0., T_B_int=0.;
   int o_value, n_value, d_value;
 
@@ -1592,7 +1592,6 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
 
      if(tmbdata==NULL || tmbdata->size()==0) continue;
      if(otmbdata==NULL || otmbdata->size()==0) continue;
-     // std::cout << "Crate " << i << " TMB " << tmbdata->size() << " OLD " << otmbdata->size() << std::endl;
 
      myVector = crateVector[i]->tmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
@@ -1601,10 +1600,10 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
         int station = std::atoi(chname.substr(3,1).c_str());
         int ring = std::atoi(chname.substr(5,1).c_str());
         int chnumb = std::atoi(chname.substr(7,2).c_str());
+
         o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
-
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, set it to 0 here and in the following:
         d_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
@@ -1623,22 +1622,22 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
         {
            if(station==1)
            {
-              if(chnumb<=5 && chnumb>=14) 
+              if(chnumb>=5 && chnumb<=14) 
               {  t_sum += d_value;  t_sum_i += n_value; }
-              else if(chnumb<=15 && chnumb>=22)
+              else if(chnumb>=15 && chnumb<=22)
               {  r_sum += d_value;  r_sum_i += n_value; }
-              else if(chnumb<=23 && chnumb>=32)
+              else if(chnumb>=23 && chnumb<=32)
               {  b_sum += d_value;  b_sum_i += n_value; }
               else 
               {  l_sum += d_value;  l_sum_i += n_value; }
            }
            else
            {
-              if(chnumb<=3 && chnumb>=7) 
+              if(chnumb>=3 && chnumb<=7) 
               {  t_sum += d_value;  t_sum_i += n_value; }
-              else if(chnumb<=8 && chnumb>=11)
+              else if(chnumb>=8 && chnumb<=11)
               {  r_sum += d_value;  r_sum_i += n_value; }
-              else if(chnumb<=12 && chnumb>=16)
+              else if(chnumb>=12 && chnumb<=16)
               {  b_sum += d_value;  b_sum_i += n_value; }
               else 
               {  l_sum += d_value;  l_sum_i += n_value; }
@@ -1653,29 +1652,28 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
      if(O_T > O_T_max) O_T_max = O_T;
      if(O_T < O_T_min) O_T_min = O_T;
   }
-  // std::cout << "R " << r_sum << " L " << l_sum << " T " << t_sum << " B " << b_sum << std::endl; 
-  if(r_sum+l_sum)
+  if(r_sum+l_sum>0.)
   {
-     R_L = ((double)r_sum-(double)l_sum)/((double)r_sum+(double)l_sum);
+     R_L = (r_sum-l_sum)/(r_sum+l_sum);
      if(R_L > R_L_max) R_L_max = R_L;
      if(R_L < R_L_min) R_L_min = R_L;
   }
-  if(t_sum+b_sum)
+  if(t_sum+b_sum>0.)
   {
-     T_B = ((double)t_sum-(double)b_sum)/((double)t_sum+(double)b_sum);
+     T_B = (t_sum-b_sum)/(t_sum+b_sum);
      if(T_B > T_B_max) T_B_max = T_B;
      if(T_B < T_B_min) T_B_min = T_B;
   }
   if(total_i) 
   {  O_T_int = (double)out_total_i/(double)total_i;
   }
-  if(r_sum_i+l_sum_i)
+  if(r_sum_i+l_sum_i>0.)
   {
-     R_L_int = ((double)r_sum_i-(double)l_sum_i)/((double)r_sum_i+(double)l_sum_i);
+     R_L_int = (r_sum_i-l_sum_i)/(r_sum_i+l_sum_i);
   }
-  if(t_sum_i+b_sum_i)
+  if(t_sum_i+b_sum_i>0.)
   {
-     T_B_int = ((double)t_sum_i-(double)b_sum_i)/((double)t_sum_i+(double)b_sum_i);
+     T_B_int = (t_sum_i-b_sum_i)/(t_sum_i+b_sum_i);
   }
   //
   MyHeader(in,out,"Crate Status");
