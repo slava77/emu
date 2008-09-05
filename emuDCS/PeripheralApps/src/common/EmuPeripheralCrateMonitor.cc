@@ -1444,7 +1444,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
 
   //
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
-  *out << "<?xml-stylesheet type=\"text/xml\" href=\"counterMonitor.xsl\"?>" << std::endl;
+//  *out << "<?xml-stylesheet type=\"text/xml\" href=\"counterMonitor.xsl\"?>" << std::endl;
   *out << "<emuCounters dateTime=\"";
   toolbox::TimeVal currentTime;
   xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
@@ -1457,13 +1457,16 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   {
      std::string cratename = crateVector[i]->GetLabel();
      // for debug, should not happen
-     if(cratename!=(monitorables_[i].substr(4,cratename.length())))
+     if(cratename!=(monitorables_[i].substr(8,cratename.length())))
          std::cout << "ERROR: crates out of order in Monitor " << cratename << " " << monitorables_[i] << std::endl;
 
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::UnsignedInteger32> *tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
      xdata::Vector<xdata::UnsignedInteger32> *otmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("OTMBcounter"));
      
+     if(tmbdata==NULL || tmbdata->size()==0) continue;
+     if(otmbdata==NULL || otmbdata->size()==0) continue;
+
      myVector = crateVector[i]->tmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
@@ -1494,7 +1497,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
      }
   }
 
-  *out << "  <sample>" << std::endl;
+  *out << "  </sample>" << std::endl;
 
   *out << "  <sample name=\"cumulative\" delta_t=\"1000\">" << std::endl;
 
@@ -1507,6 +1510,8 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
 
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::UnsignedInteger32> *tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
+     if(tmbdata==NULL || tmbdata->size()==0) continue;
+
      
      myVector = crateVector[i]->tmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
@@ -1529,8 +1534,8 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
      }
   }
 
-  *out << "  <sample>" << std::endl;
-  *out << "<emuCounters>" << std::endl;
+  *out << "  </sample>" << std::endl;
+  *out << "</emuCounters>" << std::endl;
 }
 
 void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out ) 
@@ -1584,6 +1589,10 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::UnsignedInteger32> *tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
      xdata::Vector<xdata::UnsignedInteger32> *otmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("OTMBcounter"));
+
+     if(tmbdata==NULL || tmbdata->size()==0) continue;
+     if(otmbdata==NULL || otmbdata->size()==0) continue;
+     // std::cout << "Crate " << i << " TMB " << tmbdata->size() << " OLD " << otmbdata->size() << std::endl;
 
      myVector = crateVector[i]->tmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
