@@ -1442,6 +1442,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   int o_value, n_value, i_value;
   xdata::InfoSpace * is;
 
+  if(!Monitor_Ready_) return;
   //
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
 //  *out << "<?xml-stylesheet type=\"text/xml\" href=\"counterMonitor.xsl\"?>" << std::endl;
@@ -1504,14 +1505,10 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      std::string cratename = crateVector[i]->GetLabel();
-     // for debug, should not happen
-     if(cratename!=(monitorables_[i].substr(4,cratename.length())))
-         std::cout << "ERROR: crates out of order in Monitor " << cratename << " " << monitorables_[i] << std::endl;
 
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
      xdata::Vector<xdata::UnsignedInteger32> *tmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedInteger32> *>(is->find("TMBcounter"));
      if(tmbdata==NULL || tmbdata->size()==0) continue;
-
      
      myVector = crateVector[i]->tmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
