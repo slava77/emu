@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: JTAGDevice.cc,v 3.2 2008/08/15 08:35:51 paste Exp $
+* $Id: JTAGDevice.cc,v 3.3 2008/09/07 22:25:36 paste Exp $
 *
 * $Log: JTAGDevice.cc,v $
+* Revision 3.3  2008/09/07 22:25:36  paste
+* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
+*
 * Revision 3.2  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -209,7 +212,7 @@ emu::fed::JTAGDevice::JTAGDevice() {
 	geo[19].kbybit = 1;
 	geo[19].nser = 5;
 	geo[19].seri[0] = 18; geo[19].seri[1] = 19; geo[19].seri[2] = -20; geo[19].seri[3] = 21; geo[19].seri[4] = 22;
-	geo[19].sxtrbits = 3;
+	geo[19].sxtrbits = 2;
 	geo[19].femask = 0xff;
 
 	geo[20].nam = "INCTRL4";

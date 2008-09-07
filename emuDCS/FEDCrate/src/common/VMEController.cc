@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.16 2008/09/03 17:52:59 paste Exp $
+* $Id: VMEController.cc,v 3.17 2008/09/07 22:25:36 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.17  2008/09/07 22:25:36  paste
+* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
+*
 * Revision 3.16  2008/09/03 17:52:59  paste
 * Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
 *
@@ -504,57 +507,84 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
 
 /**********  end initialize ***********************/
 /**********  send the JTAG data ************************/ 
-if(idev<=8||idev==12){
-if(ncmd>0){
-/* stan jtag kludge kludge for serial devices */
-   if(geo[dev].nser!=0){
-      ppnt=0;
-      cmd2[0]=0x00;
-      cmd2[1]=0x00;
-      m=geo[dev].nser;
-      for(i=0;i<geo[dev].nser;i++){
-       if(geo[dev].seri[m-i-1]<0)
-         {tmp[0]=cmd[0];pcmd=geo[-1*geo[dev].seri[m-i-1]].kbit;}
-       else
-	 {tmp[0]=geo[geo[dev].seri[m-i-1]].kbypass;pcmd=geo[geo[dev].seri[m-i-1]].kbit;}
-       /*       printf(" i %d tmp[0] %04x pcmd %d  \n",i,tmp[0],pcmd);
-		printf(" cmd[0] %02x \n",cmd[0]); */
-       for(k=0;k<pcmd;k++){
-       ppnt=ppnt+1;
-       if(((tmp[0]>>k)&0x01)!=0){
-         if(ppnt<9){pow2=pows(2,ppnt-1);cmd2[0]=cmd2[0]+pow2;
-	 /*printf(" k cmd %d %02x %d %d \n",k,cmd2[0],ppnt,pow2); */}
-         if(ppnt>8){pow2=pows(2,ppnt-9);cmd2[1]=cmd2[1]+pow2;} 
-       }
-     }
-   }
-   ncmd2=ppnt;
-   nbcmd2=ncmd2/8+1;
-   nbuf2=geo[dev].sxtrbits;
-   if(nbuf>0){  
-     nbuf2=nbuf2+nbuf;}
-   else{
-     nbuf2=0;}
-  kbit=geo[dev].kbit;
-  kbybit=geo[dev].kbybit;
-  kbypass=geo[dev].kbypass;
-  /*   printf(" final ncmd %d cmd %04x %04x \n",ncmd,cmd[1],cmd[0]);
-       printf(" final nbuf %d nbuf %d \n",nbuf2,nbuf); */
-   }
-   else
-   {
-     nbuf2=nbuf;
-     ncmd2=ncmd;
-     k=ncmd2/8+1;
-     if(k>100)printf(" ****************CATASTROPY STOP STOP ");
-     for(i=0;i<k;i++){
-      cmd2[i]=cmd[i];
-     }
-   }
-   // printf(" ********** %s dev prev_dev %d %d \n",geo[dev].nam,dev,prev_dev);
-/* end stan kludge */
-}
-}
+	if(idev<=8||idev==12){
+		if(ncmd>0){
+			/* stan jtag kludge kludge for serial devices */
+			if(geo[dev].nser!=0){
+				ppnt=0;
+				cmd2[0]=0x00;
+				cmd2[1]=0x00;
+				m=geo[dev].nser;
+				for(i=0;i<geo[dev].nser;i++){
+					if(geo[dev].seri[m-i-1]<0) {
+						tmp[0]=cmd[0];
+						pcmd=geo[-1*geo[dev].seri[m-i-1]].kbit;
+					} else {
+						tmp[0]=geo[geo[dev].seri[m-i-1]].kbypass;
+						pcmd=geo[geo[dev].seri[m-i-1]].kbit;
+					}
+					/*       printf(" i %d tmp[0] %04x pcmd %d  \n",i,tmp[0],pcmd);
+						printf(" cmd[0] %02x \n",cmd[0]); */
+
+					// Take a look at this code:
+					
+					for(k=0;k<pcmd;k++){
+						ppnt=ppnt+1;
+						if(((tmp[0]>>k)&0x01)!=0){
+							if(ppnt<9) {
+								pow2=pows(2,ppnt-1);
+								cmd2[0]=cmd2[0]+pow2;
+							}
+							if(ppnt>8) {
+								pow2=pows(2,ppnt-9);
+								cmd2[1]=cmd2[1]+pow2;
+							}
+						}
+					}
+					
+
+					// PGK Now take a look at this:
+					
+					// Make a bit mask of pcmd bits
+					/*
+					ppnt = (1 << pcmd) - 1;
+
+					// Load cmd2 with the value in tmp, masked by ppnt.
+					cmd2[0] += tmp[0] & (ppnt & 0xff);
+					cmd2[1] += tmp[1] & ((ppnt >> 8) & 0xff);
+
+					// And add the ppnt
+					ppnt += pcmd;
+					*/
+					// Which do you prefer?
+				}
+				
+				ncmd2=ppnt;
+				nbcmd2=ncmd2/8+1;
+				nbuf2=geo[dev].sxtrbits;
+				if(nbuf>0){
+					nbuf2=nbuf2+nbuf;
+				} else {
+					nbuf2=0;
+				}
+				kbit=geo[dev].kbit;
+				kbybit=geo[dev].kbybit;
+				kbypass=geo[dev].kbypass;
+				/*   printf(" final ncmd %d cmd %04x %04x \n",ncmd,cmd[1],cmd[0]);
+					printf(" final nbuf %d nbuf %d \n",nbuf2,nbuf); */
+			} else {
+				nbuf2=nbuf;
+				ncmd2=ncmd;
+				k=ncmd2/8+1;
+				if(k>100)printf(" ****************CATASTROPY STOP STOP ");
+				for(i=0;i<k;i++){
+					cmd2[i]=cmd[i];
+				}
+			}
+		// printf(" ********** %s dev prev_dev %d %d \n",geo[dev].nam,dev,prev_dev);
+		/* end stan kludge */
+		}
+	}
 
 switch(idev){
     case 1:   /* jtag feboards */ 
