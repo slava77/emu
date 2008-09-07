@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 3.18 2008/08/26 13:40:08 paste Exp $
+* $Id: DCC.h,v 3.19 2008/09/07 22:25:35 paste Exp $
 *
 * $Log: DCC.h,v $
+* Revision 3.19  2008/09/07 22:25:35  paste
+* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
+*
 * Revision 3.18  2008/08/26 13:40:08  paste
 * Updating and adding documentation
 *
@@ -149,11 +152,31 @@ namespace emu {
 			*	fifo
 			**/
 			unsigned int getDDUSlotFromFIFO(unsigned int fifo);
-		
+
+			// PGK New interface
+			int16_t readTTCCommandAdvanced()
+				throw (FEDException);
+
+			void writeTTCCommandAdvanced(int8_t value)
+				throw (FEDException);
+
+			int32_t readUserCodeAdvanced(enum DEVTYPE dev)
+				throw (FEDException);
+
+			void loadPROMAdvanced(enum DEVTYPE dev, char *fileName)
+				throw (FEDException);
+
 		private:
 			int fifoinuse_;
 			int softsw_;
 
+			// PGK New interface
+			virtual std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, char myReg, unsigned int nBits)
+				throw (FEDException);
+
+			virtual std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, char myReg, unsigned int nBits, std::vector<int16_t>)
+				throw (FEDException);
+			
 			void Parse(char *buf, int *Count, char **Word);
 			void shuffle(char *a, char *b);
 		};

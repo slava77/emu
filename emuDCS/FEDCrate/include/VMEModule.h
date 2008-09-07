@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.12 2008/09/03 17:52:58 paste Exp $
+* $Id: VMEModule.h,v 3.13 2008/09/07 22:25:35 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.13  2008/09/07 22:25:35  paste
+* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
+*
 * Revision 3.12  2008/09/03 17:52:58  paste
 * Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
 *
@@ -52,6 +55,8 @@ namespace emu {
 	namespace fed {
 		
 		class VMEController;
+	
+		struct JTAGElement;
 		
 		class VMEModule: public EmuFEDLoggable, public JTAGDevice
 		{
@@ -73,6 +78,9 @@ namespace emu {
 			virtual unsigned int boardType() const = 0;
 			
 			void setController(VMEController *controller);
+
+			// Phil's new commands
+			inline void setBHandle(int16_t myHandle) { BHandle_ = myHandle; }
 		
 		protected:
 		
@@ -111,7 +119,38 @@ namespace emu {
 			char rcvbuf[4096];
 			char rcvbuf2[4096];
 			char cmd[4096];
-		
+
+
+			// Phil's new commands.
+			std::map<enum DEVTYPE, JTAGElement *> JTAGMap;
+
+			virtual std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits)
+				throw(FEDException);
+
+			virtual std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits, std::vector<int16_t> myData)
+				throw(FEDException);
+
+			std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits, int16_t myData)
+				throw(FEDException);
+
+			void commandCycle(enum DEVTYPE dev, int16_t myCommand)
+				throw (FEDException);
+			
+			int16_t readVME(uint32_t myAddress)
+				throw (FEDException);
+			
+			void writeVME(uint32_t myAddress, int16_t myData)
+				throw (FEDException);
+
+			std::vector<int16_t> readCycle(int32_t myAddress, unsigned int nBits)
+				throw(FEDException);
+
+			std::vector<int16_t> jtagReadWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<int16_t> myData)
+				throw(FEDException);
+
+			void writeCycle(int32_t myAddress, unsigned int nBits, std::vector<int16_t> myData)
+				throw(FEDException);
+			
 		private:
 			int slot_;
 			int idevo_;
@@ -120,6 +159,11 @@ namespace emu {
 			
 			inline int pows(int n, int m) { int ret = 1; for (int i=0; i<m; i++) ret *= n; return ret; }
 			inline void udelay(long int itim) { for (long int j=0; j<itim; j++) for (long int i=0; i<200; i++); }
+
+			// Phil's new commands.
+			int16_t BHandle_;
+			int32_t vmeAddress_;
+			
 		};
 
 	}

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 3.19 2008/09/01 11:30:32 paste Exp $
+* $Id: DDU.h,v 3.20 2008/09/07 22:25:35 paste Exp $
 *
 * $Log: DDU.h,v $
+* Revision 3.20  2008/09/07 22:25:35  paste
+* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
+*
 * Revision 3.19  2008/09/01 11:30:32  paste
 * Added features to DDU, IRQThreads corresponding to new DDU firmware.
 *
@@ -385,7 +388,7 @@ namespace emu {
 			void read_page4();
 			void write_page4();
 			*/
-			std::vector<unsigned long int> read_page5();
+			std::vector<int> read_page5();
 			/*
 			void write_page5();
 			int read_page7();
@@ -464,6 +467,10 @@ namespace emu {
 			Chamber *getChamber(unsigned int fiberNumber);
 			void addChamber(Chamber *chamber, unsigned int fiberNumber);
 			void setChambers(std::vector<Chamber *> chamberVector);
+
+			// PGK New interface
+			int16_t readCSCStatAdvanced()
+				throw (FEDException);
 		
 		private:
 		
@@ -471,6 +478,13 @@ namespace emu {
 			//int skip_vme_load_;
 			int gbe_prescale_;
 			unsigned int killfiber_;
+
+			// PGK New interface
+			virtual std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, char myReg, unsigned int nBits)
+				throw (FEDException);
+			
+			virtual std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, char myReg, unsigned int nBits, std::vector<int16_t>)
+				throw (FEDException);
 
 		};
 

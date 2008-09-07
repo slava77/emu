@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.30 2008/09/03 17:52:58 paste Exp $
+* $Id: DDU.cc,v 3.31 2008/09/07 22:25:36 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 3.31  2008/09/07 22:25:36  paste
+* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
+*
 * Revision 3.30  2008/09/03 17:52:58  paste
 * Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
 *
@@ -39,6 +42,7 @@
 #include <sstream>
 
 #include "Chamber.h"
+#include "JTAGElement.h"
 
 emu::fed::DDU::DDU(int myCrate,int mySlot):
 	VMEModule(mySlot),
@@ -55,7 +59,50 @@ emu::fed::DDU::DDU(int mySlot):
 	gbe_prescale_(0),
 	killfiber_(0xf7fff)
 {
-  //  std::cout<<"DDU construct\n";
+
+	// Build the JTAG chains
+	
+	JTAGElement elementOUTFIFO = {"OUTFIFO", 1, PROM_BYPASS, 8, 0x00001000, false, NONE};
+	JTAGMap[OUTFIFO] = &elementOUTFIFO;
+
+	JTAGElement elementVMEPROM = {"VMEPROM", 2, PROM_BYPASS, 8, 0x00002000, false, NONE};
+	JTAGMap[VMEPROM] = &elementVMEPROM;
+
+	JTAGElement elementDDUPROM0 = {"DDUPROM0", 3, PROM_BYPASS, 8, 0x00003000, false, DDUPROM1};
+	JTAGMap[DDUPROM0] = &elementDDUPROM0;
+
+	JTAGElement elementDDUPROM1 = {"DDUPROM1", 3, PROM_BYPASS, 8, 0x00003000, false, NONE};
+	JTAGMap[DDUPROM1] = &elementDDUPROM1;
+
+	JTAGElement elementINPROM0 = {"INPROM0", 4, PROM_BYPASS, 8, 0x00004000, false, INPROM1};
+	JTAGMap[INPROM0] = &elementINPROM0;
+
+	JTAGElement elementINPROM1 = {"INPROM1", 4, PROM_BYPASS, 8, 0x00004000, false, NONE};
+	JTAGMap[INPROM1] = &elementINPROM1;
+	
+	JTAGElement elementDDUFPGA = {"DDUFPGA", 5, PROM_BYPASS, 10, 0x00005000, false, NONE};
+	JTAGMap[DDUFPGA] = &elementDDUFPGA;
+
+	JTAGElement elementINFPGA0 = {"INFPGA0", 6, VTX2_BYPASS, 14, 0x00006000, false, NONE};
+	JTAGMap[INFPGA0] = &elementINFPGA0;
+
+	JTAGElement elementINFPGA1 = {"INFPGA1", 7, VTX2_BYPASS, 14, 0x00007000, false, NONE};
+	JTAGMap[INFPGA1] = &elementINFPGA1;
+
+	JTAGElement elementSLINK = {"SLINK", 8, PROM_BYPASS, 8, 0x00008000, false, NONE};
+	JTAGMap[SLINK] = &elementSLINK;
+
+	JTAGElement elementVMEPARA = {"VMEPARA", 9, PROM_BYPASS, 8, 0x00030000, true, NONE};
+	JTAGMap[VMEPARA] = &elementVMEPARA;
+
+	JTAGElement elementVMESERI = {"VMESERI", 10, PROM_BYPASS, 8, 0x00040000, true, NONE};
+	JTAGMap[VMESERI] = &elementVMESERI;
+
+	JTAGElement elementRESET = {"RESET", 12, PROM_BYPASS, 8, 0x0000fffe, false, NONE};
+	JTAGMap[RESET] = &elementRESET;
+
+	JTAGElement elementSADC = {"SADC", 13, PROM_BYPASS, 8, 0x0000d000, false, NONE};
+	JTAGMap[SADC] = &elementSADC;
 }
 
 
@@ -6028,13 +6075,13 @@ int i;
 */
 
 
-std::vector<unsigned long int> emu::fed::DDU::read_page5()
+std::vector<int> emu::fed::DDU::read_page5()
 {
 	//char cmd[32];
 	//char sndbuf[32];
 	//char rcvbuf[32];
 	
-	std::vector<unsigned long int> retVal;
+	std::vector<int> retVal;
 
 	//unsigned int code[3];
 	cmd[0]=0x04; //dev 0x04 is flash sram
@@ -8171,3 +8218,81 @@ void emu::fed::DDU::writeFlashRUI(int val)
 // 	try { readSerial(0x000f); }
 // 	catch (FEDException &e) { throw; }
 // }
+
+
+
+std::vector<int16_t> emu::fed::DDU::readRegAdvanced(enum DEVTYPE dev, char myRegister, unsigned int nBits)
+throw (FEDException)
+{
+	// The information about the element being written
+	JTAGElement *element = JTAGMap[dev];
+	
+	//std::cout << "Attempting to read from " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << std::endl;
+
+	// Serial registers are goofy
+	if (dev == VMESERI) {
+
+		int32_t myAddress = ((myRegister & 0x0f00) << 4) | ((myRegister & 0x000f) << 2) | element->bitCode;
+		
+		// You should know the number of read cycles you need to do by the nBits.
+		unsigned int nWords = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
+
+		std::vector<int16_t> tempResult;
+		for (unsigned int iWords = 0; iWords < nWords; iWords++) {
+			tempResult.push_back(readVME(myAddress));
+		}
+		
+		// Do an endian swap on serial reads.
+		std::vector<int16_t> result;
+		for (std::vector<int16_t>::iterator iResult = tempResult.begin(); iResult != tempResult.end(); iResult++) {
+			result.push_back( (((*iResult) & 0x00ff) << 8) | (((*iResult) & 0xff00) >> 8) );
+		}
+		return result;
+		
+	// Direct VME reads are different
+	} else if (element->directVME) {
+		
+		int32_t myAddress = (myRegister << 12) | element->bitCode;
+		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
+		
+		std::vector<int16_t> result;
+		result.push_back(readVME(myAddress));
+		return result;
+
+	// Everything else is what I will call a JTAG read.
+	} else {
+		
+
+		
+	}
+}
+
+
+
+std::vector<int16_t> emu::fed::DDU::writeRegAdvanced(enum DEVTYPE dev, char myRegister, unsigned int nBits, std::vector<int16_t> myData)
+throw (FEDException)
+{
+
+	
+	
+}
+
+
+
+
+
+
+
+int16_t emu::fed::DDU::readCSCStatAdvanced()
+throw (FEDException)
+{
+	try {
+		return readRegAdvanced(VMEPARA, 0x04, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+

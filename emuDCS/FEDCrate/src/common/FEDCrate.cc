@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.cc,v 1.6 2008/08/31 21:18:27 paste Exp $
+* $Id: FEDCrate.cc,v 1.7 2008/09/07 22:25:36 paste Exp $
 *
 * $Log: FEDCrate.cc,v $
+* Revision 1.7  2008/09/07 22:25:36  paste
+* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
+*
 * Revision 1.6  2008/08/31 21:18:27  paste
 * Moved buffers from VMEController class to VMEModule class for more rebust communication.
 *
@@ -37,6 +40,7 @@ emu::fed::FEDCrate::~FEDCrate() {
 
 
 void emu::fed::FEDCrate::addModule(VMEModule *module) {
+	module->setController(vmeController_);
 	module->setBHandle(vmeController_->getBHandle());
 	moduleVector_[module->slot()] = module;
 }
@@ -50,6 +54,7 @@ void emu::fed::FEDCrate::setController(VMEController *controller) {
 	//vmeController_->setCrate(number_);
 	for (unsigned int i=0; i<moduleVector_.size(); i++) {
 		if (moduleVector_[i] == NULL) continue;
+		moduleVector_[i]->setController(vmeController_);
 		moduleVector_[i]->setBHandle(vmeController_->getBHandle());
 	}
 }
