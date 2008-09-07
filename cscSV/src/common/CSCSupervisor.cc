@@ -697,6 +697,10 @@ void CSCSupervisor::startAction(toolbox::Event::Reference evt)
   
   try {
     state_table_.refresh();
+      setParameter("EmuFCrateManager",
+		   "runNumber", "xsd:unsignedLong", run_number_.toString());
+      setParameter("EmuFCrateManager",
+		   "runType", "xsd:string", run_type_.toString());
     sendCommand("Enable", "EmuFCrateManager");
     
     if (!isCalibrationMode()) {
