@@ -1,61 +1,61 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <?xml-stylesheet type="text/xml" href="RUI-to-computer_mapping_XSLT.xml"?>
-<RUI-to-computer_mapping date="2007-11-08">
+<RUI-to-computer_mapping date="2008-05-15">
   <computer host="csc-c2d07-02.cms" alias="csc-daq10.cms">
-    <RUI instance="0" port="40300" schar="2"/>
+    <RUI instance="0" port="20300" schar="2"/>
   </computer>
   <computer host="csc-c2d07-03.cms" alias="csc-daq01.cms">
-    <RUI instance="1" port="40301" schar="2"/>
-    <RUI instance="2" port="40302" schar="3"/>
-    <RUI instance="3" port="40303" schar="4"/>
-    <RUI instance="4" port="40304" schar="5"/>
+    <RUI instance="1" port="20301" schar="2"/>
+    <RUI instance="2" port="20302" schar="3"/>
+    <RUI instance="3" port="20303" schar="4"/>
+    <RUI instance="4" port="20304" schar="5"/>
   </computer>
   <computer host="csc-c2d07-04.cms" alias="csc-daq02.cms">
-    <RUI instance="5" port="40305" schar="2"/>
-    <RUI instance="6" port="40306" schar="3"/>
-    <RUI instance="7" port="40307" schar="4"/>
-    <RUI instance="8" port="40308" schar="5"/>
+    <RUI instance="5" port="20305" schar="2"/>
+    <RUI instance="6" port="20306" schar="3"/>
+    <RUI instance="7" port="20307" schar="4"/>
+    <RUI instance="8" port="20308" schar="5"/>
   </computer>
   <computer host="csc-c2d07-05.cms" alias="csc-daq03.cms">
-    <RUI instance="9"  port="40309" schar="2"/>
-    <RUI instance="10" port="40310" schar="3"/>
-    <RUI instance="11" port="40311" schar="4"/>
-    <RUI instance="12" port="40312" schar="5"/>
+    <RUI instance="9"  port="20309" schar="2"/>
+    <RUI instance="10" port="20310" schar="3"/>
+    <RUI instance="11" port="20311" schar="4"/>
+    <RUI instance="12" port="20312" schar="5"/>
   </computer>
   <computer host="csc-c2d07-07.cms" alias="csc-daq04.cms">
-    <RUI instance="13" port="40313" schar="2"/>
-    <RUI instance="14" port="40314" schar="3"/>
-    <RUI instance="15" port="40315" schar="4"/>
-    <RUI instance="16" port="40316" schar="5"/>
+    <RUI instance="13" port="20313" schar="2"/>
+    <RUI instance="14" port="20314" schar="3"/>
+    <RUI instance="15" port="20315" schar="4"/>
+    <RUI instance="16" port="20316" schar="5"/>
   </computer>
   <computer host="csc-c2d07-09.cms" alias="csc-daq05.cms">
-    <RUI instance="17" port="40317" schar="2"/>
-    <RUI instance="18" port="40318" schar="3"/>
-    <RUI instance="19" port="40319" schar=""/>
-    <RUI instance="20" port="40320" schar=""/>
+    <RUI instance="17" port="20317" schar="2"/>
+    <RUI instance="18" port="20318" schar="3"/>
+    <RUI instance="19" port="20319" schar="4"/>
+    <RUI instance="20" port="20320" schar="5"/>
   </computer>
-  <computer host="" alias="">
-    <RUI instance="21" port="40321" schar=""/>
-    <RUI instance="22" port="40322" schar=""/>
-    <RUI instance="23" port="40323" schar=""/>
-    <RUI instance="24" port="40324" schar=""/>
+  <computer host="csc-c2d07-10.cms" alias="csc-daq06.cms">
+    <RUI instance="21" port="20321" schar="2"/>
+    <RUI instance="22" port="20322" schar="3"/>
+    <RUI instance="23" port="20323" schar="4"/>
+    <RUI instance="24" port="20324" schar="5"/>
   </computer>
-  <computer host="" alias="">
-    <RUI instance="25" port="40325" schar=""/>
-    <RUI instance="26" port="40326" schar=""/>
-    <RUI instance="27" port="40327" schar=""/>
-    <RUI instance="28" port="40328" schar=""/>
+  <computer host="csc-c2d07-11.cms" alias="csc-daq07.cms">
+    <RUI instance="25" port="20325" schar="2"/>
+    <RUI instance="26" port="20326" schar="3"/>
+    <RUI instance="27" port="20327" schar="4"/>
+    <RUI instance="28" port="20328" schar="5"/>
   </computer>
-  <computer host="" alias="">
-    <RUI instance="29" port="40329" schar=""/>
-    <RUI instance="30" port="40330" schar=""/>
-    <RUI instance="31" port="40331" schar=""/>
-    <RUI instance="32" port="40332" schar=""/>
+  <computer host="csc-c2d07-12.cms" alias="csc-daq08.cms">
+    <RUI instance="29" port="20329" schar="2"/>
+    <RUI instance="30" port="20330" schar="3"/>
+    <RUI instance="31" port="20331" schar="4"/>
+    <RUI instance="32" port="20332" schar="5"/>
   </computer>
-  <computer host="" alias="">
-    <RUI instance="33" port="40333" schar=""/>
-    <RUI instance="34" port="40334" schar=""/>
-    <RUI instance="35" port="40335" schar=""/>
-    <RUI instance="36" port="40336" schar=""/>
+  <computer host="csc-c2d07-13.cms" alias="csc-daq09.cms">
+    <RUI instance="33" port="20333" schar="2"/>
+    <RUI instance="34" port="20334" schar="3"/>
+    <RUI instance="35" port="20335" schar="4"/>
+    <RUI instance="36" port="20336" schar="5"/>
   </computer>
 </RUI-to-computer_mapping>
