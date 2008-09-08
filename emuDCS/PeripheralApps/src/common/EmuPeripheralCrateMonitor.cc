@@ -1451,7 +1451,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   if(!Monitor_Ready_) return;
   //
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
-  *out << "<?xml-stylesheet type=\"text/xml\" href=\"tmp/counterMonitor/counterMonitor_XSL.xml\"?>" << std::endl;
+  *out << "<?xml-stylesheet type=\"text/xml\" href=\"/tmp/counterMonitor/counterMonitor_XSL.xml\"?>" << std::endl;
   *out << "<emuCounters dateTime=\"";
   toolbox::TimeVal currentTime;
   xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
