@@ -789,6 +789,8 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
 {
      unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
 
+    if(!Monitor_Ready_) return;
+
      cgicc::Cgicc cgi(in);
 
     // std::cout << "Select Over View " << std::endl;
@@ -888,6 +890,8 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
 {
 //     unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
      unsigned TOTAL_COUNTS=9;
+
+    if(!Monitor_Ready_) return;
 
      cgicc::Cgicc cgi(in);
 
@@ -1421,6 +1425,9 @@ void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out
   xdata::Vector<xdata::UnsignedInteger32> *tmbdata;
   xdata::Vector<xdata::UnsignedInteger32> *otmbdata;
   std::vector<emu::pc::TMB*> myVector;
+
+  if(!Monitor_Ready_) return;
+
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
@@ -1587,6 +1594,8 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
 
   for(int i=0;i<5;i++) for(int j=0;j<4;j++) me_total[i][j]=0;
 
+  if(!Monitor_Ready_) return;
+
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
@@ -1679,7 +1688,7 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
      T_B_int = (t_sum_i-b_sum_i)/(t_sum_i+b_sum_i);
   }
   //
-  MyHeader(in,out,"Crate Status");
+  MyHeader(in,out,"Beam Monitor");
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
