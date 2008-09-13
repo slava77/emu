@@ -112,7 +112,7 @@
 	<th class="DCC" colspan="2">DCC</th>
 	<th class="DDU" colspan="3">DDU</th>
 	<th class="fiber" colspan="3">fiber cassette</th>
-	<th class="PC" colspan="3">peripheral crate</th>
+	<th class="PC" colspan="4">peripheral crate</th>
 	<th class="chamber">&#160;&#160;chamber&#160;&#160;</th>
       </tr>
       <tr>
@@ -129,6 +129,7 @@
 	<th class="fiber">crate</th>
 	<th class="fiber">pos</th>
 	<th class="fiber">socket</th>
+	<th class="PC">&#160;&#160;&#160;&#160;name&#160;&#160;&#160;&#160;</th>
 	<th class="PC">id</th>
 	<th class="PC">sector</th>
 	<th class="PC">pos</th>
@@ -150,6 +151,7 @@
 	<th class="fiber">crate</th>
 	<th class="fiber">pos</th>
 	<th class="fiber">socket</th>
+	<th class="PC">&#160;&#160;&#160;&#160;name&#160;&#160;&#160;&#160;</th>
 	<th class="PC">id</th>
 	<th class="PC">sector</th>
 	<th class="PC">pos</th>
@@ -161,7 +163,7 @@
 	<th class="DCC" colspan="2">DCC</th>
 	<th class="DDU" colspan="3">DDU</th>
 	<th class="fiber" colspan="3">fiber cassette</th>
-	<th class="PC" colspan="3">peripheral crate</th>
+	<th class="PC" colspan="4">peripheral crate</th>
 	<th class="chamber">&#160;&#160;chamber&#160;&#160;</th>
       </tr>
     </xsl:if>
@@ -198,13 +200,17 @@
       <td class="fiber"><xsl:value-of select="FiberCassette/@crate"/></td>
       <td class="fiber"><xsl:value-of select="FiberCassette/@pos"/></td>
       <td class="fiber"><xsl:value-of select="FiberCassette/@socket"/></td>
+      <td class="PC name">
+	<xsl:attribute name="onmousedown">colorTriggerSector('<xsl:value-of select="$PC_NAME"/>')</xsl:attribute>
+	<a href="#graphics"><xsl:value-of select="$PC_NAME"/></a>
+      </td>
       <td class="PC"><xsl:value-of select="PeripheralCrate/@id"/></td>
       <td class="PC">
 	<xsl:attribute name="onmousedown">colorTriggerSector('<xsl:value-of select="$PC_NAME"/>')</xsl:attribute>
 	<a href="#graphics"><xsl:value-of select="PeripheralCrate/@VMEcrate"/></a>
       </td>
       <td class="PC"><xsl:value-of select="PeripheralCrate/@VMEslot"/></td>
-      <td class="chamber">
+      <td class="chamber name">
 	<xsl:attribute name="onmousedown">colorChamber('<xsl:value-of select="$CHAMBER_NAME"/>')</xsl:attribute>
 	<a href="#graphics"><xsl:value-of select="$CHAMBER_NAME_PRETTY"/></a>
       </td>
@@ -219,7 +225,7 @@
 	<th class="DCC" colspan="2">DCC</th>
 	<th class="DDU" colspan="3">DDU</th>
 	<th class="fiber" colspan="3">fiber cassette</th>
-	<th class="PC" colspan="3">peripheral crate</th>
+	<th class="PC" colspan="4">peripheral crate</th>
 	<th class="chamber">&#160;&#160;chamber&#160;&#160;</th>
       </tr>
       <tr>
@@ -236,6 +242,7 @@
 	<th class="fiber">crate</th>
 	<th class="fiber">pos</th>
 	<th class="fiber">socket</th>
+	<th class="PC">name</th>
 	<th class="PC">id</th>
 	<th class="PC">sector</th>
 	<th class="PC">pos</th>
@@ -257,6 +264,7 @@
 	  table.mapping th.RUI,th.DCC,th.fiber,th.chamber { background-color: #112277; }
 	  table.mapping th.computer,th.DDU,th.PC { background-color: #001177; }
 	  table.mapping td.RUI,td.DCC,td.DDU,td.PC,td.computer,td.fiber {  text-align:center; }
+	  table.mapping td.name {  text-align:left; }
 	  table.mapping a:link,a:active,a:visited { color:#99BBFF; }
 	  table.mapping a:hover { color:#FFFF00; font-weight:bold; }
 	</style>
