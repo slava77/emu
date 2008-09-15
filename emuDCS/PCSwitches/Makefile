@@ -13,8 +13,9 @@ Project=emu
 Package=emuDCS/PCSwitches
 
 Sources=\
-	SwitchGUI.cc 
-
+	SwitchGUI.cc \
+	Switch.cc
+	
 
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
@@ -29,7 +30,7 @@ TestLibraryDirs = \
 
 UserCFlags  = 
 UserCCFlags = 
-UserDynamicLinkFlags =
+UserDynamicLinkFlags = --warn-unresolved-symbols
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
 

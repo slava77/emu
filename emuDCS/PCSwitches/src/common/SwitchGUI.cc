@@ -23,6 +23,13 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
 	xgi::bind(this,&SwitchGUI::ProblemsGUI,"ProblemsGUI");
 	init=0;
 
+	this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFileName_);
+	this->getApplicationInfoSpace()->fireItemAvailable("switchTelnet", &switchTelnet_);
+	this->getApplicationInfoSpace()->fireItemAvailable("shutdownPort", &shutdownPort_);
+	this->getApplicationInfoSpace()->fireItemAvailable("backupScript", &backupScript_);
+
+	std::cout << "xmlFileName=" << (std::string) xmlFileName_ << std::endl;
+
 	S = new emu::pcsw::Switch();
 }
 

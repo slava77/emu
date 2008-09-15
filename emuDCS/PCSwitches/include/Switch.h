@@ -149,7 +149,7 @@ class Switch
    std::string eth_hook_stats();
    std::string switch_stats(int lasthex);
 
-    std::ostringstream OutputSwitch;
+   std::ostringstream OutputSwitch;
 
 private:
 
