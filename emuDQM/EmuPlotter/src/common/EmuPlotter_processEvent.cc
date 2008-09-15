@@ -458,6 +458,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 */
   int nCSCs = chamberDatas.size();
 
+/*
   if (nCSCs != dduHeader.ncsc()) {
     LOG4CPLUS_WARN(logger_,eTag << dduTag << " Mismatch between number of unpacked CSCs:" << chamberDatas.size() <<" and reported CSCs from DDU Header:" << dduHeader.ncsc() );
     // == Current trick to maximize number of unpacked CSCs.
@@ -466,7 +467,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 //    nCSCs-=1;
 //    return;
   }
-
+*/
   // return;
 
   for(int i=0; i< nCSCs; i++) {
