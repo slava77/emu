@@ -1249,6 +1249,8 @@
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
+		<SetLogy>1</SetLogy>
+		<SetLogz>1</SetLogz>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -1480,6 +1482,7 @@
 		<YTitle>Number of Events</YTitle>
 		<SetOptStat>emro</SetOptStat>
 		<Title>DDU Buffer Size</Title>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
