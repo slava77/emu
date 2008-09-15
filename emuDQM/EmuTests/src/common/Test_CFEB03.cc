@@ -714,7 +714,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
       std::string rpath = "Test_"+testID+"/"+outDir;
       std::string path = rpath+"/"+cscID+"/";
 
-      if (checkResults(cscID)) { // Check if 20% of channels with left and right crosstalks are bad
+//      if (checkResults(cscID)) { // Check if 20% of channels with left and right crosstalks are bad
 	// == Save results for database transfer
 	std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
 
@@ -737,7 +737,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
           }
         }
         res_out.close();
-      }
+//      }
 
     } else {
       std::cout << cscID << ": Invalid" << std::endl;
@@ -749,6 +749,8 @@ bool Test_CFEB03::checkResults(std::string cscID)
 {
   bool isValid=true;
   cscTestData::iterator td_itr =  tdata.find(cscID);
+  TestData& cscdata= td_itr->second;
+  TestData2D& mask = cscdata["_MASK"];
 
   //   return isValid;
 
@@ -761,7 +763,7 @@ bool Test_CFEB03::checkResults(std::string cscID)
     // Check Left Xtalk
     for (int i=0; i<r04.Nlayers; i++) {
       for (int j=0; j<r04.Nbins; j++) {
-	if ((r04.content[i][j] > 0.15) || (r04.content[i][j] < 0.03)) badChannels++;
+	if (((r04.content[i][j] > 0.15) || (r04.content[i][j] < 0.03)) && ((int)(mask.content[i][j]) == 0)) badChannels++;
       }
     }
     if (badChannels/(float(r04.Nlayers*r04.Nbins)) >=0.2) {
@@ -773,7 +775,7 @@ bool Test_CFEB03::checkResults(std::string cscID)
     // Check Right Xtalk
     for (int i=0; i<r05.Nlayers; i++) {
       for (int j=0; j<r05.Nbins; j++) {
-	if ((r05.content[i][j] > 0.15 ) || (r05.content[i][j] < 0.03)) badChannels++;
+	if ( ((r05.content[i][j] > 0.15 ) || (r05.content[i][j] < 0.03)) && ((int)(mask.content[i][j]) == 0)) badChannels++;
       }
     }
     if (badChannels/(float(r05.Nlayers*r05.Nbins)) >=0.2) {
