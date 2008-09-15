@@ -47,7 +47,7 @@ void Test_CFEB04::initCSC(std::string cscID) {
   cscdata["R01"]=cfebdata;
 
   // R02 - Gain intercept B
- // cscdata["R02"]=cfebdata;
+  // cscdata["R02"]=cfebdata;
 
   // R03 - Gain non-linearity
   cscdata["R03"]=cfebdata;
@@ -476,9 +476,15 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		double residual = y-a*x-b;
 		if (v05) v05->Fill(dac, residual);
               }
+	      if (a>999.) a=999.;
+	      if (a<-999.) a=-999.;
+	      if (ksi>999.) ksi=999.;
+	      if (ksi<-999.) ksi=-999.;
 
 	      std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
-	      r01.content[layer-1][icfeb*16+strip-1] = a;
+	      double gain=a;
+
+              r01.content[layer-1][icfeb*16+strip-1] = gain;
 	      //r02.content[layer-1][icfeb*16+strip-1] = b;
 	      r03.content[layer-1][icfeb*16+strip-1] = ksi;
 	    }
@@ -505,8 +511,8 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	    for (int strip=0; strip<strips_per_layer; strip++) {
 	      res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
 		      << r01.content[layer][strip]  << "  " 
-			/* << r02.content[layer][strip] << "  " */
-			<< r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
+		/* << r02.content[layer][strip] << "  " */
+		      << r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
 	    }
 	  }
 	  res_out.close();
@@ -543,19 +549,19 @@ bool Test_CFEB04::checkResults(std::string cscID)
       isValid=false;
       std::cout << cscID << ": 20% of channels have bad Gain" << std::endl;
     }
-/*
-    badChannels=0;
-    // Check noise
-    for (int i=0; i<r02.Nlayers; i++) {
+    /*
+      badChannels=0;
+      // Check noise
+      for (int i=0; i<r02.Nlayers; i++) {
       for (int j=0; j<r02.Nbins; j++) {
-	if ((r02.content[i][j] > 50) || (r02.content[i][j] < -50)) badChannels++;
+      if ((r02.content[i][j] > 50) || (r02.content[i][j] < -50)) badChannels++;
       }
-    }
-    if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
+      }
+      if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
       isValid=false;
       std::cout << cscID << ": 20% of channels have bad Intercept" << std::endl;
-    }
-*/
+      }
+    */
   }
 
   return isValid;
