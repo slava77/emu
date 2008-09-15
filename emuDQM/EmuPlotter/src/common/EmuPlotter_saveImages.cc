@@ -433,7 +433,7 @@ void EmuPlotter::generateCanvasesListFile(std::string filename, std::string imgf
   MECanvases_List_iterator itr;
 
   cnv_list << "	['EMU', ' '," << std::endl;
-  MECanvases_List& factory = MECanvasFactories["EMU"];
+  MECanvases_List factory = MECanvasFactories["EMU"];
   for (itr = factory.begin(); itr != factory.end(); ++itr) {
 //   for (itr = commonCanvasesFactory.begin(); itr != commonCanvasesFactory.end(); ++itr) {
         EmuMonitoringCanvas * obj = itr->second;

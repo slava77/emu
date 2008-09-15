@@ -99,11 +99,23 @@ void EmuPlotter::clearCanvasesCollection(std::map<std::string, MECanvases_List >
 
 }
 
+void EmuPlotter::printCanvasesCollection(std::map<std::string, MECanvases_List > & collection)
+{
+  std::map<std::string, MECanvases_List >::iterator citr;
+  for (citr = collection.begin(); citr != collection.end(); ++citr) {
+    LOG4CPLUS_DEBUG(logger_,"Print Canvases Collection " << citr->first );
+    printCanvasesCollection(citr->second);
+  }
+
+}
+
+
 void EmuPlotter::clearCanvasesCollection(MECanvases_List & collection)
 {
 
   if (collection.size() > 0) {
     for (MECanvases_List_iterator itr = collection.begin();itr != collection.end(); ++itr) {
+	LOG4CPLUS_DEBUG(logger_,"Clean " << itr->first );
       if (itr->second) delete itr->second;
     }
     collection.clear();
@@ -115,7 +127,7 @@ void EmuPlotter::printCanvasesCollection(MECanvases_List & collection)
 {
   int i = 0;
   for (MECanvases_List_iterator itr = collection.begin();itr != collection.end(); ++itr) {
-    LOG4CPLUS_INFO(logger_, ++i << ":" << itr->first << ":" << itr->second->getFullName());
+    LOG4CPLUS_DEBUG(logger_, ++i << ":" << itr->first << ":" << itr->second->getFullName());
   }
 
 }
@@ -128,7 +140,7 @@ void EmuPlotter::cleanup()
   
   clearCanvasesCollection(MECanvases);
   clearMECollection(MEs);
-  
+
   clearCanvasesCollection(MECanvasFactories);
   clearMECollection(MEFactories);
 
