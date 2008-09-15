@@ -187,6 +187,8 @@ private:
 
   void MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ReadingOn();
+  void ReadingOff();
   void CreateEmuInfospace();
   void PublishEmuInfospace(int cycle);
   void CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
