@@ -65,8 +65,8 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
     xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStop      ,"MonitorStop");
   //
   // SOAP for Monitor controll
-   xoap::bind(this,&EmuPeripheralCrateMonitor::onMonitorStart      ,"MonitorStart",XDAQ_NS_URI);
-   xoap::bind(this,&EmuPeripheralCrateMonitor::onMonitorStop      ,"MonitorStop",XDAQ_NS_URI);
+    xoap::bind(this,&EmuPeripheralCrateMonitor::onMonitorStart      ,"MonitorStart",XDAQ_NS_URI);
+    xoap::bind(this,&EmuPeripheralCrateMonitor::onMonitorStop      ,"MonitorStop",XDAQ_NS_URI);
     xoap::bind(this,&EmuPeripheralCrateMonitor::onFastLoop      ,"FastLoop", XDAQ_NS_URI);
     xoap::bind(this,&EmuPeripheralCrateMonitor::onSlowLoop      ,"SlowLoop", XDAQ_NS_URI);
     xoap::bind(this,&EmuPeripheralCrateMonitor::onExtraLoop      ,"ExtraLoop", XDAQ_NS_URI);
@@ -148,7 +148,7 @@ void EmuPeripheralCrateMonitor::dummyAction(toolbox::Event::Reference e)
 }
 //
 
-void EmuPeripheralCrateMonitor::MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+void EmuPeripheralCrateMonitor::ReadingOn()
 {
      if(!Monitor_On_)
      {
@@ -159,22 +159,54 @@ void EmuPeripheralCrateMonitor::MonitorStart(xgi::Input * in, xgi::Output * out 
          }
          PCsendCommand("MonitorStart","EmuPeripheralCrateBroadcast");
          Monitor_On_=true;
-         std::cout<< "Monitor Started" << std::endl;
+         std::cout<< "Monitor Reading On" << std::endl;
      }
      fireEvent("Enable");
-     this->Default(in,out);
 }
 
-void EmuPeripheralCrateMonitor::MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+void EmuPeripheralCrateMonitor::ReadingOff()
 {
      if(Monitor_On_)
      {
          PCsendCommand("MonitorStop","EmuPeripheralCrateBroadcast");
          Monitor_On_=false;
-         std::cout << "Monitor stopped" << std::endl;
+         std::cout << "Monitor Reading Off" << std::endl;
      }
      fireEvent("Halt");
+}
+
+void EmuPeripheralCrateMonitor::MonitorStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+{
+     ReadingOn();
      this->Default(in,out);
+}
+
+void EmuPeripheralCrateMonitor::MonitorStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+{
+     ReadingOff();
+     this->Default(in,out);
+}
+
+/////////////////////////////////////////////////////////////////////
+// SOAP Callback  
+/////////////////////////////////////////////////////////////////////
+
+xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStart (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  std::cout << "SOAP MonitorStart" << std::endl;
+  //
+  ReadingOn();
+  //
+  return createReply(message);
+}
+
+xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  std::cout << "SOAP MonitorStop" << std::endl;
+  //
+  ReadingOff();
+  //
+  return createReply(message);
 }
 
 xoap::MessageReference EmuPeripheralCrateMonitor::onFastLoop (xoap::MessageReference message) 
@@ -676,25 +708,6 @@ void EmuPeripheralCrateMonitor::Default(xgi::Input * in, xgi::Output * out )
   *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
 }
 //
-/////////////////////////////////////////////////////////////////////
-// SOAP Callback  
-/////////////////////////////////////////////////////////////////////
-
-xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStart (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP MonitorStart" << std::endl;
-  //
-  return createReply(message);
-}
-
-xoap::MessageReference EmuPeripheralCrateMonitor::onMonitorStop (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP MonitorStop" << std::endl;
-  //
-  fireEvent("Halt");
-  //
-  return createReply(message);
-}
 
   void EmuPeripheralCrateMonitor::CrateSelection(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)

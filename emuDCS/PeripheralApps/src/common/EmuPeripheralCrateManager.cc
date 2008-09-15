@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.7 2008/08/13 11:30:52 geurts Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.8 2008/09/15 08:12:15 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -457,6 +457,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReferen
   //
   PCsendCommand("Enable","EmuPeripheralCrateCommand");
   PCsendCommand("Enable","EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStart","EmuPeripheralCrateMonitor");
   //
   fireEvent("Enable");
   //
@@ -471,6 +472,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageRefere
   //
   PCsendCommand("Disable","EmuPeripheralCrateCommand");
   PCsendCommand("Disable","EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStop","EmuPeripheralCrateMonitor");
   //
   fireEvent("Disable");
   //
@@ -485,6 +487,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onHalt (xoap::MessageReference
   //
   PCsendCommand("Halt","EmuPeripheralCrateCommand");
   PCsendCommand("Halt","EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStop","EmuPeripheralCrateMonitor");
   //
   fireEvent("Halt");
   //
