@@ -757,13 +757,13 @@ void Test_CFEB02::finishCSC(std::string cscID)
         for (int i=0; i<NLAYERS; i++) {
           for (int j=0; j<strips_per_layer; j++) {
             res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+i*strips_per_layer+j) << "  "
-  		  << std::setw(6) << r12.content[i][j]  << std::setw(6) << r13.content[i][j]
-                  << std::setw(6) << r14.content[i][j]  << std::setw(6) << r15.content[i][j]
-                  << std::setw(6) << r16.content[i][j]  << std::setw(6) << r17.content[i][j]
-                  << std::setw(6) << r18.content[i][j]  << std::setw(6) << r19.content[i][j]
-                  << std::setw(6) << r20.content[i][j]  << std::setw(6) << r21.content[i][j]
-                  << std::setw(6) << r22.content[i][j]  << std::setw(6) << r23.content[i][j]
-		  << std::endl;
+		    << std::setw(6) << r12.content[i][j]  << std::setw(6) << r13.content[i][j]
+		    << std::setw(6) << r14.content[i][j]  << std::setw(6) << r15.content[i][j]
+		    << std::setw(6) << r16.content[i][j]  << std::setw(6) << r17.content[i][j]
+		    << std::setw(6) << r18.content[i][j]  << std::setw(6) << r19.content[i][j]
+		    << std::setw(6) << r20.content[i][j]  << std::setw(6) << r21.content[i][j]
+		    << std::setw(6) << r22.content[i][j]  << std::setw(6) << r23.content[i][j]
+		    << std::endl;
 
           }
         }

@@ -536,25 +536,26 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      }
 	      if (fwhm_right_time > fwhm_left_time) fwhm = fwhm_right_time-fwhm_left_time;
 	      r03.content[layer-1][icfeb*16+strip-1] = fwhm;
-	
-	      std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) 
-			<< " peak_amp=" << max << ", peak_time=" <<  peak_time << ", cnt=" << cnt 
-			<< ", fwhm=" << fwhm << " l:" << fwhm_left_time << ":" << fwhm_left
-			<< " r:" << fwhm_right_time <<":" << fwhm_right  
-			<< ", leftXtalk=" << max_left/max << ", rightXtalk=" << max_right/max << std::endl;
-
+	      /*	
+		std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) 
+		<< " peak_amp=" << max << ", peak_time=" <<  peak_time << ", cnt=" << cnt 
+		<< ", fwhm=" << fwhm << " l:" << fwhm_left_time << ":" << fwhm_left
+		<< " r:" << fwhm_right_time <<":" << fwhm_right  
+		<< ", lXtalk=" << max_left/max << ", rXtalk=" << max_right/max << std::endl;
+	      */
 	      std::ofstream res_out;
-	      	      
-	      res_out.open((cscID+"_chan_dump.txt").c_str(),std::ios::out | std::ios::app);
-	      res_out << std::dec << layer << ":" << (icfeb*16+strip) << " ";
-	      for (int itime=0; itime < NSAMPLES-1; itime++) {
-		for (int dac=0; dac<8; dac++) {
-		  time_step& cval = xtalkdata.content[7-dac][layer-1][icfeb*16+strip-1][itime];
-		  res_out << std::fixed << std::setprecision(1) << cval.mv << " ";
-		}
-	      }
-	      res_out << std::endl;
-	      res_out.close();
+	      /*	      	      
+				     res_out.open((cscID+"_chan_dump.txt").c_str(),std::ios::out | std::ios::app);
+				     res_out << std::dec << layer << ":" << (icfeb*16+strip) << " ";
+				     for (int itime=0; itime < NSAMPLES-1; itime++) {
+				     for (int dac=0; dac<8; dac++) {
+				     time_step& cval = xtalkdata.content[7-dac][layer-1][icfeb*16+strip-1][itime];
+				     res_out << std::fixed << std::setprecision(1) << cval.mv << " ";
+				     }
+				     }
+				     res_out << std::endl;
+				     res_out.close();
+	      */
 	      
 
 	      int Qc[64];
@@ -572,6 +573,8 @@ void Test_CFEB03::finishCSC(std::string cscID)
 
 	      bool fFirstStrip = (strip ==1 && icfeb==0)? true: false;
 	      bool fLastStrip = (strip ==16 && icfeb==(getNumStrips(cscID)/16-1))? true: false;
+	      if (((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) && ((strip ==1 && icfeb==4)))
+                fFirstStrip = true;
 	      
 	      // std::ofstream res_out;
 	      //	      res_out.open((cscID+"_dump.dat").c_str(),std::ios::out | std::ios::app);
