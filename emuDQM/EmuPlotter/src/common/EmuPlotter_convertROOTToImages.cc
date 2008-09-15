@@ -38,6 +38,7 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 
   TIter nextkey( sourcedir->GetListOfKeys() );
   TKey *key;
+
  
   while ( (key = (TKey*)nextkey())) {
     TObject *obj = key->ReadObj();
@@ -169,6 +170,7 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	  clearMECollection(MEs[name]);
 	  MECanvases.clear();
 	  MEs.clear();
+
 	}
       }
   }
@@ -221,10 +223,12 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
   csc_list.clear();
   csc_list.close();
 
+
   createTreePage(path);
   createTreeEngine(path);
   createTreeTemplate(path);
-  createHTMLNavigation(path);
+  createHTMLNavigation(path);  
+
   generateCanvasesListFile(path+"/canvases_list.js", format);
 
   return 0;

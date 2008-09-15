@@ -197,6 +197,7 @@ protected:
   void printMECollection(ME_List &collection);
   void clearCanvasesCollection(std::map<std::string, MECanvases_List > & collection);
   void clearCanvasesCollection(MECanvases_List &collection);
+  void printCanvasesCollection(std::map<std::string, MECanvases_List > & collection);
   void printCanvasesCollection(MECanvases_List &collection);
   EmuMonitoringObject* createME(DOMNode* MEInfo);  
 
