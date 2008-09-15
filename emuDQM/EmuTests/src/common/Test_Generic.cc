@@ -241,24 +241,38 @@ TestData2D parseMask(std::string s)
       std::string range_pair = tmp.substr(start_pos+1, end_pos);
       tmp.replace(start_pos,end_pos+1,"");
       if (range_pair.find(":") != std::string::npos) {
-        int layer = strtol(range_pair.substr(0,range_pair.find(":")).c_str(),  &stopstring, 10);
-        std::string chans = range_pair.substr(range_pair.find(":")+1, range_pair.length());
+	std::string layers = range_pair.substr(0,range_pair.find(":"));
+	std::string chans = range_pair.substr(range_pair.find(":")+1, range_pair.length());
+	int ly_start=0;
+        int ly_end=0;
+	int ch_start=0;
+        int ch_end=0;
+
+	// Parse layers 
+	if (layers.find("-") != std::string::npos) {
+          ly_start = strtol(layers.substr(0,chans.find("-")).c_str(),  &stopstring, 10);
+          ly_end = strtol(layers.substr(chans.find("-")+1,layers.length()).c_str(),  &stopstring, 10);
+        } else {
+          ly_start = strtol(layers.c_str(),  &stopstring, 10);
+          ly_end = ly_start;
+        }
 	
+	// Parse channels
         if (chans.find("-") != std::string::npos) {
-	  int ch_start=0;
-	  int ch_end=0;
 	  ch_start = strtol(chans.substr(0,chans.find("-")).c_str(),  &stopstring, 10);
 	  ch_end = strtol(chans.substr(chans.find("-")+1,chans.length()).c_str(),  &stopstring, 10);
-          for (int i=ch_start; i<= ch_end; i++) {
-	    mask.content[layer-1][i-1]=1;
-	    std::cout << Form("mask chan %d:%d", layer, i) << std::endl; 
-
-	  }
 	} else {
-	  int chan = strtol(chans.c_str(),  &stopstring, 10);
-	  mask.content[layer-1][chan-1] = 1;
-	  std::cout << Form("mask chan %d:%d", layer, chan) << std::endl;
+	  ch_start = strtol(chans.c_str(),  &stopstring, 10);
+	  ch_end = ch_start;
 	}
+
+	for (int i=ly_start; i<=ly_end; i++) {
+	  for (int j=ch_start; j<= ch_end; j++) {
+            mask.content[i-1][j-1]=1;
+            std::cout << Form("mask chan %d:%d", i, j) << std::endl;
+          }
+	}
+
       }
       end_pos = tmp.find(")");
       start_pos = tmp.find("(");
