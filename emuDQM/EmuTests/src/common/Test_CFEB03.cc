@@ -406,7 +406,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
   
     TestData& cscdata= td_itr->second;
 
-    // TestData2D& mask = cscdata["_MASK"];
+    TestData2D& mask = cscdata["_MASK"];
   
     TestData2D& r01 = cscdata["R01"];
     TestData2D& r02 = cscdata["R02"];
@@ -722,7 +722,8 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	  for (int strip=0; strip<strips_per_layer; strip++) {
 	    res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
 		    << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << "  " <<  r03.content[layer][strip] 
-		    << std::setprecision(3) << "  " << r04.content[layer][strip] << "  " << r05.content[layer][strip] << std::endl;
+		    << std::setprecision(3) << "  " << r04.content[layer][strip] << "  " << r05.content[layer][strip] 
+			<< "  " << mask.content[layer][strip] << std::endl;
 	  }
 	}
 	res_out.close();
@@ -733,7 +734,8 @@ void Test_CFEB03::finishCSC(std::string cscID)
           for (int strip=0; strip<strips_per_layer; strip++) {
             res_out << std::fixed << std::setprecision(5) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
                     << r06.content[layer][strip]  << "  " << r07.content[layer][strip] << "  "  
-                    << r09.content[layer][strip] << "  " << r10.content[layer][strip] << std::endl;
+                    << r09.content[layer][strip] << "  " << r10.content[layer][strip] 
+			<< "  " << mask.content[layer][strip] << std::endl;
           }
         }
         res_out.close();
