@@ -359,7 +359,7 @@ void EmuMonitor::setupPlotter()
 
   plotter_ = new EmuPlotter(this->getApplicationLogger());
   //   plotter_ = new EmuPlotter();
-  //  plotter_->setLogLevel(WARN_LOG_LEVEL);
+  plotter_->setLogLevel(ERROR_LOG_LEVEL);
   plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);
   if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
   if (xmlCanvasesCfgFile_ != "") plotter_->setXMLCanvasesCfgFile(xmlCanvasesCfgFile_.toString());
