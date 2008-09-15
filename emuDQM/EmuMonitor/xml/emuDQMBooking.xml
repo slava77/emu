@@ -1249,7 +1249,6 @@
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetLogy>1</SetLogy>
 		<SetLogz>1</SetLogz>
 	</Histogram>
 	<Histogram>
@@ -1706,6 +1705,7 @@
 		<YTitle>Number of Events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
 		<Title>DDU Word (64 bits) Count</Title>
+		<SetLogy>1</SetLogy>
 	</Histogram>
 
 <!-- ========================================================================================
