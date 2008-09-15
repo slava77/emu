@@ -543,18 +543,18 @@ void Test_CFEB03::finishCSC(std::string cscID)
 			<< " r:" << fwhm_right_time <<":" << fwhm_right  
 			<< ", leftXtalk=" << max_left/max << ", rightXtalk=" << max_right/max << std::endl;
 
-	      	      std::ofstream res_out;
+	      std::ofstream res_out;
 	      	      
-			     res_out.open((cscID+"_chan_dump.txt").c_str(),std::ios::out | std::ios::app);
-			     res_out << std::dec << layer << ":" << (icfeb*16+strip) << " ";
-			     for (int itime=0; itime < NSAMPLES-1; itime++) {
-			     for (int dac=0; dac<8; dac++) {
-			     time_step& cval = xtalkdata.content[7-dac][layer-1][icfeb*16+strip-1][itime];
-			     res_out << std::fixed << std::setprecision(1) << cval.mv << " ";
-			     }
-			     }
-			     res_out << std::endl;
-			     res_out.close();
+	      res_out.open((cscID+"_chan_dump.txt").c_str(),std::ios::out | std::ios::app);
+	      res_out << std::dec << layer << ":" << (icfeb*16+strip) << " ";
+	      for (int itime=0; itime < NSAMPLES-1; itime++) {
+		for (int dac=0; dac<8; dac++) {
+		  time_step& cval = xtalkdata.content[7-dac][layer-1][icfeb*16+strip-1][itime];
+		  res_out << std::fixed << std::setprecision(1) << cval.mv << " ";
+		}
+	      }
+	      res_out << std::endl;
+	      res_out.close();
 	      
 
 	      int Qc[64];
@@ -574,7 +574,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      bool fLastStrip = (strip ==16 && icfeb==(getNumStrips(cscID)/16-1))? true: false;
 	      
 	      // std::ofstream res_out;
-//	      res_out.open((cscID+"_dump.dat").c_str(),std::ios::out | std::ios::app);
+	      //	      res_out.open((cscID+"_dump.dat").c_str(),std::ios::out | std::ios::app);
 	      for (int i=0; i<64; i++) {
 		Qc[i]=0;
 		int itime = i/8;
@@ -612,15 +612,15 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	      std::vector< std::pair<double, double> > arrL;
               std::vector< std::pair<double, double> > arrR;
 	      for (int i=0; i<64; i++)
-                  {
-                    if ((Qcc[i]>0.25*Qcc_max) && !fFirstStrip) {
-                      arrL.push_back(std::make_pair(i*6.25, Rl[i]));
-                    }
-                    if ((Qcc[i]>0.25*Qcc_max) && !fLastStrip) {
-                      arrR.push_back(std::make_pair(i*6.25, Rr[i]));
-                    }
+		{
+		  if ((Qcc[i]>0.25*Qcc_max) && !fFirstStrip) {
+		    arrL.push_back(std::make_pair(i*6.25, Rl[i]));
+		  }
+		  if ((Qcc[i]>0.25*Qcc_max) && !fLastStrip) {
+		    arrR.push_back(std::make_pair(i*6.25, Rr[i]));
+		  }
 
-                  }
+		}
 
 
 	      if (!fFirstStrip) {	  
@@ -642,7 +642,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		  }
 		*/
 		r06.content[layer-1][icfeb*16+strip-1]=params(1);
-		r07.content[layer-1][icfeb*16+strip-1]=params(0);
+		r07.content[layer-1][icfeb*16+strip-1]=params(1)*r02.content[layer-1][icfeb*16+strip-1]+params(0);
 		double chisquare=lf->GetChisquare();
 		r08.content[layer-1][icfeb*16+strip-1]=chisquare;
 		// printf("chisquare=%f\n", chisquare);
@@ -670,7 +670,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		  }
 		*/
 		r09.content[layer-1][icfeb*16+strip-1]=params(1);
-		r10.content[layer-1][icfeb*16+strip-1]=params(0);
+		r10.content[layer-1][icfeb*16+strip-1]=params(1)*r02.content[layer-1][icfeb*16+strip-1]+params(0);
 		double chisquare=lf->GetChisquare();
 		r11.content[layer-1][icfeb*16+strip-1]=chisquare;
 		// printf("chisquare=%f\n", chisquare);
