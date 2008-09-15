@@ -304,6 +304,11 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           now_crate=crateVector[i];
           if(cycle==3 && now_crate && !(now_crate->IsAlive()))
           {
+             if (!(now_crate->vmeController()->SelfTest())) 
+             {   
+                now_crate->vmeController()->reset();
+                ::sleep(1);
+             }
              bool cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
              now_crate->SetLife( cr );
           }
