@@ -199,7 +199,7 @@ int Test_Generic::loadTestCfg()
     }
    
     itr = obj_info.find("Test"); 
-    if ((itr != obj_info.end()) && (itr->second == testID)) {
+    if ((itr != obj_info.end()) && ((itr->second == testID) || (itr->second == "ALL"))) {
       itr = obj_info.find("Name");
       if ((itr != obj_info.end()) && (itr->second != "")) {
 	std::cout << "Found info for " << itr->second << std::endl;
@@ -250,8 +250,8 @@ TestData2D parseMask(std::string s)
 
 	// Parse layers 
 	if (layers.find("-") != std::string::npos) {
-          ly_start = strtol(layers.substr(0,chans.find("-")).c_str(),  &stopstring, 10);
-          ly_end = strtol(layers.substr(chans.find("-")+1,layers.length()).c_str(),  &stopstring, 10);
+          ly_start = strtol(layers.substr(0,layers.find("-")).c_str(),  &stopstring, 10);
+          ly_end = strtol(layers.substr(layers.find("-")+1,layers.length()).c_str(),  &stopstring, 10);
         } else {
           ly_start = strtol(layers.c_str(),  &stopstring, 10);
           ly_end = ly_start;
