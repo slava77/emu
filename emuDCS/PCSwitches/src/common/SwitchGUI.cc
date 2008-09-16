@@ -16,6 +16,7 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
 	xgi::bind(this,&SwitchGUI::GotoMain, "GotoMain");
 	xgi::bind(this,&SwitchGUI::GotoMacGUI,"GotoMacGUI");
 	xgi::bind(this,&SwitchGUI::Maintenance, "Maintenance");
+	xgi::bind(this,&SwitchGUI::BackupSwitch, "BackupSwitch");
 	xgi::bind(this,&SwitchGUI::ResetSwitch, "ResetSwitch");
 	xgi::bind(this,&SwitchGUI::ResetCounters, "ResetCounters");
 	xgi::bind(this,&SwitchGUI::MacGUI, "MacGUI");
@@ -27,8 +28,7 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
 	this->getApplicationInfoSpace()->fireItemAvailable("switchTelnet", &switchTelnet_);
 	this->getApplicationInfoSpace()->fireItemAvailable("shutdownPort", &shutdownPort_);
 	this->getApplicationInfoSpace()->fireItemAvailable("backupScript", &backupScript_);
-
-	std::cout << "xmlFileName=" << (std::string) xmlFileName_ << std::endl;
+	this->getApplicationInfoSpace()->fireItemAvailable("testScript", &testScript_);
 
 	S = new emu::pcsw::Switch();
 }
@@ -41,9 +41,9 @@ void SwitchGUI::MainPage(xgi::Input * in, xgi::Output * out ) {
 
 	// fill statistic
 	S->fill_pc_statistics();
-	S->fill_switch_statistics();
-	S->fill_switch_macs();
-	S->fill_ping();
+	S->fill_switch_statistics(switchTelnet_);
+	S->fill_switch_macs(switchTelnet_);
+	S->fill_ping(switchTelnet_);
 
 	if(init==0){
         	S->copy_stats_new2old();
@@ -111,9 +111,15 @@ void SwitchGUI::GotoMain(xgi::Input * in, xgi::Output * out ) throw (xgi::except
 	this->Default(in,out);
 }
 
+void SwitchGUI::BackupSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
+	cgicc::Cgicc cgi(in);
+      	S->BackupSwitch(backupScript_);
+      	this->Default(in,out);
+}
+
 void SwitchGUI::ResetSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
-      	S->ResetSwitch();
+      	S->ResetSwitch(switchTelnet_);
       	this->Default(in,out);
 }
 
@@ -122,18 +128,15 @@ void SwitchGUI::ResetCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::e
 	switch_ = cgi["switch"]->getIntegerValue();
 	prt_ = cgi["prt"]->getIntegerValue();
 	slt_ = cgi["slt"]->getIntegerValue();
-	S->ResetCounters(switch_,prt_);
+	S->ResetCounters(switch_,prt_, switchTelnet_);
 	this->Default(in,out);
 }
-
-
 
 void SwitchGUI::CLRcounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
-	S->CLRcounters();
+	S->CLRcounters(switchTelnet_);
 	this->Default(in,out);
 }
-
 
 void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
@@ -146,6 +149,12 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 	std::string GotoMain = toolbox::toString("/%s/GotoMain",getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method","GET").set("action",GotoMain) << std::endl ;
 	*out << cgicc::input().set("type","submit").set("value","Go to Main") << std::endl ;
+	*out << cgicc::form() << std::endl;
+	*out << cgicc::td();
+	std::string BackupSwitch = toolbox::toString("/%s/BackupSwitch",getApplicationDescriptor()->getURN().c_str());
+	*out << cgicc::form().set("method","GET").set("action",BackupSwitch) << std::endl ;
+	if(S->swadd==0) *out << cgicc::input().set("type","submit").set("value","Backup Plus Switches") << std::endl ;
+	if(S->swadd==4) *out << cgicc::input().set("type","submit").set("value","Backup Minus Switches") << std::endl ;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	char *buf;
@@ -166,7 +175,7 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 void SwitchGUI::MacGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
 
-	S->fill_switch_macs();
+	S->fill_switch_macs(switchTelnet_);
 
 	*out<<Header("VME Gigabit Switch MAC Tables",false);
 
@@ -234,7 +243,7 @@ void SwitchGUI::ProblemsGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 	*out << cgicc::tr() << std::endl;
 	*out << cgicc::table() << std::endl;
 	*out << cgicc::hr() << std::endl;
-	S->fill_problems();
+	S->fill_problems(switchTelnet_);
 	for(int swt=0;swt<4;swt++){
 		char buf[40];
 		sprintf(buf,"Switch %d Problems",swt+S->swadd2+1);
