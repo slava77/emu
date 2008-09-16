@@ -242,12 +242,16 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
         InitCounterNames();
         //Create infospaces for monitoring
         monitorables_.clear();
+        vcc_reset.clear();
         for ( unsigned int i = 0; i < crateVector.size(); i++ )
         {
                 toolbox::net::URN urn = this->createQualifiedInfoSpace("EMu_"+(crateVector[i]->GetLabel())+"_PCrate");
                 std::cout << "Crate " << i << " " << urn.toString() << std::endl;
                 monitorables_.push_back(urn.toString());
                 xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(urn.toString());
+
+            // for VCC
+                vcc_reset.push_back(0);
 
             // for CCB, MPC, TTC etc.
                 is->fireItemAvailable("CCB_CSRA1",new xdata::UnsignedShort(0));
@@ -308,6 +312,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              {   
                 now_crate->vmeController()->reset();
                 ::sleep(1);
+                vcc_reset[i] = vcc_reset[i] + 1;
              }
              bool cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
              now_crate->SetLife( cr );
@@ -907,7 +912,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
 //     unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
-     unsigned TOTAL_COUNTS=9;
+     unsigned TOTAL_COUNTS=10;
 
     if(!Monitor_Ready_) return;
 
@@ -1026,6 +1031,9 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
            break;
          case 8:
    	   *out << dtstr;
+           break;
+         case 9:
+           *out << vcc_reset[idx];
            break;
          default:
            *out << "Unknown";
@@ -2169,15 +2177,16 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     DCounterName.push_back( "ACTIVE DAV Scope");
     DCounterName.push_back( "L1A to LCT Scope");  // 8
 
-    OCounterName.push_back( "CCB mode  "); // 0
-    OCounterName.push_back( "TTCrx     ");
-    OCounterName.push_back( "QPLL      ");
-    OCounterName.push_back( "MPC       ");
-    OCounterName.push_back( "CCB CSRA1 ");
-    OCounterName.push_back( "CCB CSRA2 ");
-    OCounterName.push_back( "CCB CSRA3 ");
-    OCounterName.push_back( "TTC BRSTR ");
-    OCounterName.push_back( "TTC DTSTR ");
+    OCounterName.push_back( "CCB mode"); // 0
+    OCounterName.push_back( "TTCrx   ");
+    OCounterName.push_back( "QPLL    ");
+    OCounterName.push_back( "MPC     ");
+    OCounterName.push_back( "CSRA1 ");
+    OCounterName.push_back( "CSRA2 ");
+    OCounterName.push_back( "CSRA3 ");
+    OCounterName.push_back( "BRSTR ");
+    OCounterName.push_back( "DTSTR ");
+    OCounterName.push_back( "RESET ");
     OCounterName.push_back( "MPC CSR0  ");
     OCounterName.push_back( "MPC CSR4  "); // 10
     OCounterName.push_back( "MPC CSR7  ");
