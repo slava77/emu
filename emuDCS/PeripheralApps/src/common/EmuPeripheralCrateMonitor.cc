@@ -1110,15 +1110,35 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
 	*out <<cgicc::td();
 	*out <<cgicc::td();
 
-        if(crateVector[idx]->IsAlive()) *out << "On ";
-        else * out << "Off";
+        if(crateVector[idx]->IsAlive())
+        { 
+           *out << "On ";
+        }
+        else
+        {
+           *out << cgicc::span().set("style","color:red");
+           *out << "Off";
+           *out << cgicc::span();
+        }
         *out <<cgicc::td();
         *out <<cgicc::td();
       }
-      if ( myVector[tmb]->GetCounter(this_tcounter_) == 0x3fffffff )
+      int value = myVector[tmb]->GetCounter(this_tcounter_);
+      /* 0xBAADBAAD from VCC for a failed VME access */
+      if (  value == 0x3fffffff || value < 0 )
+      {
+         *out << cgicc::span().set("style","color:magenta");
          *out << "-1";
+         *out << cgicc::span();
+      }
+      else if ( value==0 )
+      {
+         *out << cgicc::span().set("style","color:red");
+         *out << "0";
+         *out << cgicc::span();
+      }
       else 
-   	 *out << myVector[tmb]->GetCounter(this_tcounter_);
+   	 *out << value;
       *out <<cgicc::td();
     }
     *out <<cgicc::tr();
@@ -1324,8 +1344,18 @@ void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Outp
       int value = myVector[tmb]->GetCounter(count);
       /* 0xBAADBAAD from VCC for a failed VME access */
       if (  value == 0x3fffffff || value < 0 )
+      {
+         output << cgicc::span().set("style","color:magenta");
          output << "-1";
-      else 
+         output << cgicc::span();
+      }
+      else if ( value==0 )
+      {
+         output << cgicc::span().set("style","color:red");
+         output << "0";
+         output << cgicc::span();
+      }
+     else
    	 output << value ;
       output <<cgicc::td();
     }
