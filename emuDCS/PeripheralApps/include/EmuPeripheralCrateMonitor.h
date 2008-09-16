@@ -155,6 +155,7 @@ protected:
   std::vector<int> CfebDavCounter_;
   std::vector<int> TmbDavCounter_;
   std::vector<int> AlctDavCounter_;
+  std::vector<int> vcc_reset;
   //
   std::vector< std::string> TCounterName;
   std::vector< std::string> DCounterName;
