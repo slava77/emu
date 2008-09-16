@@ -2,6 +2,7 @@
 #define _Switch_h_
 
 #include <string>
+#include <sstream>
 #include <vector>
 #include <stdexcept>
 #include <iostream>
@@ -108,17 +109,17 @@ class Switch
   ~Switch();
 
 // switch configure commands
-   void ResetSwitch();
-   void BackupSwitch();
-   void ResetCounters(int swtch,int prt);
-   void CLRcounters();
+   void ResetSwitch(std::string switchTelnet);
+   void BackupSwitch(std::string backupScript);
+   void ResetCounters(int swtch,int prt, std::string switchTelnet);
+   void CLRcounters(std::string switchTelnet);
 
 // switch read commands
-   void fill_switch_statistics();
-   void fill_switch_macs();
+   void fill_switch_statistics(std::string switchTelnet);
+   void fill_switch_macs(std::string switchTelnet);
    void fill_pc_statistics();
-   void fill_ping();
-   void fill_problems();
+   void fill_ping(std::string switchTelnet);
+   void fill_problems(std::string switchTelnet);
 
 // parse commands
    void parse_status(int swtch,int prt);
@@ -147,7 +148,7 @@ class Switch
 // other unrelated utilities that needed a home
    std::string dlink_stats();
    std::string eth_hook_stats();
-   std::string switch_stats(int lasthex);
+   std::string switch_stats(int lasthex, std::string testScript);
 
    std::ostringstream OutputSwitch;
 

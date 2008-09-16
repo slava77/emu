@@ -30,9 +30,9 @@
 #include "xgi/Method.h"
 #include "xdata/UnsignedLong.h"
 #include "xdata/String.h"
-
+#include "xdata/InfoSpaceFactory.h"
+#include "xdata/InfoSpace.h"
 #include "toolbox/net/Utils.h"
-
 
 #include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
@@ -51,6 +51,7 @@ class SwitchGUI: public xdaq::Application {
 	void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);	
 	void MainPage(xgi::Input * in, xgi::Output * out );	
 	void GotoMain(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+	void BackupSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);	
 	void ResetSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);	
 	void ResetCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
 	void CLRcounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -82,6 +83,7 @@ class SwitchGUI: public xdaq::Application {
 	xdata::String switchTelnet_;
 	xdata::String shutdownPort_;
 	xdata::String backupScript_;
+	xdata::String testScript_;
 	std::ostringstream OutputSwitch;
 
 };

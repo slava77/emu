@@ -4,6 +4,8 @@
 #include "toolbox/net/Utils.h"
 #include "xdaq/exception/Exception.h"
 
+using namespace std;
+
 namespace emu{
   namespace pcsw{
 
@@ -33,9 +35,10 @@ namespace emu{
       };
    
       std::cout << " Entered Switch Instatiation " << std::endl;
-
+/*    This cannot work--no $BUILD_HOME on production systems!!
       int ierr=system("cp $BUILD_HOME/emu/emuDCS/PCSwitches/img/redball.gif /tmp/redball.gif");
       ierr=system("cp $BUILD_HOME/emu/emuDCS/PCSwitches/img/grnball.gif /tmp/grnball.gif");
+*/
        std::cout << " just instantiated " << std::endl;      
       //Output the errors to a file...
       time_t rawtime;
@@ -97,7 +100,7 @@ namespace emu{
 
 // switch configure commands
 
-    void Switch::ResetSwitch(){
+    void Switch::ResetSwitch(std::string switchTelnet){
       OutputSwitch << "ResetSwitch" << std::endl;
       LogFileSwitch.open(filebuf.c_str());
       int morder[4]={2,3,0,1};
@@ -108,17 +111,17 @@ namespace emu{
       for(int i=0;i<4;i++){
         int swt=order[i];
         OutputSwitch << " swt " << order[i]+swadd2 << std::endl;
-        char command[556];
-        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s reload",ip[swt+swadd]);
+        std::string command;
+        command = switchTelnet + " " + ip[swt+swadd] + " reload";
         OutputSwitch << swt << " " << swt+swadd << " " << ip[swt+swadd] << " " << command << std::endl;
-        system(command);
+        system(command.c_str());
       }
       ::sleep(40);
       LogFileSwitch << OutputSwitch.str() ;
       LogFileSwitch.close();
     }
 
-    void Switch::BackupSwitch(){
+    void Switch::BackupSwitch(std::string backupScript){
       OutputSwitch << "BackupSwitch" << std::endl;
       LogFileSwitch.open(filebuf.c_str());
       int morder[4]={2,3,0,1};
@@ -129,11 +132,10 @@ namespace emu{
       for(int i=0;i<4;i++){
         int swt=order[i];
         OutputSwitch << " swt " << order[i]+swadd2 << std::endl;
-        char command[556];
-	    if(swadd==0) sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_backup_minus");
-		if(swadd==4) sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_backup_plus");
-        OutputSwitch << swt << " " << swt+swadd << " " << ip[swt+swadd] << " " << command << std::endl;
-        system(command);
+//	    if(swadd==0) sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_backup_minus");
+//		if(swadd==4) sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_backup_plus");
+        OutputSwitch << swt << " " << swt+swadd << " " << ip[swt+swadd] << " " << backupScript << std::endl;
+        system(backupScript.c_str());
       }
       ::sleep(40);
       LogFileSwitch << OutputSwitch.str() ;
@@ -142,28 +144,35 @@ namespace emu{
 
 
     
-    void Switch::ResetCounters(int swtch,int prt){
+    void Switch::ResetCounters(int swtch,int prt, std::string switchTelnet){
       OutputSwitch << "ResetCounters" << std::endl;
-      char command[556];
-      if(swadd==4) sprintf(command,"$BUILD_HOME/emu/emuDCS/Switch/bin/switch_telnet.pl %s resetcounter 0/%d",ip[swtch-swadd+1],prt);
-      else sprintf(command,"$BUILD_HOME/emu/emuDCS/Switch/bin/switch_telnet.pl %s resetcounter 0/%d",ip[swtch-swadd-1],prt);
-	  OutputSwitch << command << std::endl;
+      stringstream port;
+      string command;
+      if(swadd==4) {
+//	sprintf(command,"$BUILD_HOME/emu/emuDCS/Switch/bin/switch_telnet.pl %s resetcounter 0/%d",ip[swtch-swadd+1],prt);
+	port << switchTelnet << " " << ip[swtch-swadd+1] << " resetcounter 0/" << prt;
+	port >> command;
+      } else {
+	port << switchTelnet << " " << ip[swtch-swadd-1] << " resetcounter 0/" << prt;
+	port >> command;
+      }
       int ierr;
-      ierr=system(command);
+      ierr=system(command.c_str());
       LogFileSwitch << OutputSwitch.str() ;
       LogFileSwitch.close();
     }
         
-    void Switch::CLRcounters(){
+    void Switch::CLRcounters(std::string switchTelnet){
       OutputSwitch << "CLRcounters" << std::endl;
       LogFileSwitch.open(filebuf.c_str());
       for(int swt=0;swt<4;swt++) {
-        char command[556];
-        char symb[2]=" ";
-        if(swt!=3)symb[0]='&';
-        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s clrcounters%s",ip[swt+swadd],symb);
+        std::string command;
+        std::string symb="  ";
+        if(swt!=3)symb="& ";
+	command = switchTelnet + " " + ip[swt+swadd] + " clrcounters " + symb;
+//        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s clrcounters%s",ip[swt+swadd],symb);
         OutputSwitch << swt << command << std::endl;
-        system(command);
+        system(command.c_str());
       }
       usleep(250000);
       LogFileSwitch << OutputSwitch.str() ;
@@ -173,16 +182,19 @@ namespace emu{
 // switch read commands
 
 
-    void Switch::fill_switch_statistics(){
+    void Switch::fill_switch_statistics(std::string switchTelnet){
       for(int swt=0;swt<4;swt++){
         printf(" swt %d \n",swt);
-        char command[556];
-        char symb[2]=" ";
-        if(swt!=3)symb[0]='&';
-        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s status all > /tmp/switch_status%02d.dat %s \n",ip[swt+swadd],swt+swadd2+1,symb);
-        printf("%d  %s \n",swt,command);
+        std::string command;
+	std::stringstream switch_status;
+        std::string symb="  ";
+        if(swt!=3)symb="& ";
+	switch_status << switchTelnet << " " << ip[swt+swadd] << " status all > /tmp/switch_status" << swt+swadd2+1 << ".dat " << symb;
+//        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s status all > /tmp/switch_status%02d.dat %s \n",ip[swt+swadd],swt+swadd2+1,symb);
+	
+        std::cout << swt << command << std::endl;
         int ierr;
-        ierr=system(command);
+        ierr=system(command.c_str());
       }
       usleep(250000);
       for(int swt=0;swt<4;swt++){
@@ -193,13 +205,15 @@ namespace emu{
         ierr=system(tmp);
       } 
       for(int swt=0;swt<4;swt++){
-        char symb[2]=" ";
-        if(swt!=3)symb[0]='&';
-        char command[300];
-        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s interfaceall > /tmp/switch_interface%02d.dat %s\n",ip[swt+swadd],swt+swadd2+1,symb);
-        printf("%d  %s \n",swt,command);
+        std::string symb=" ";
+        if(swt!=3)symb="& ";
+        std::string command;
+	std::stringstream switch_status;
+	switch_status << switchTelnet << " " << ip[swt+swadd] << " interfaceall > /tmp/switch_interface" << swt+swadd2+1 << ".dat " << symb;
+//        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s interfaceall > /tmp/switch_interface%02d.dat %s\n",ip[swt+swadd],swt+swadd2+1,symb);
+        std::cout << swt << command << std::endl;
         int ierr;
-        ierr=system(command);
+        ierr=system(command.c_str());
       }
       usleep(250000);
       for(int swt=0;swt<4;swt++){
@@ -212,7 +226,7 @@ namespace emu{
     
     }
     
-    void Switch::fill_switch_macs(){
+    void Switch::fill_switch_macs(std::string switchTelnet){
 
       for(int swt=0;swt<4;swt++){
         for(int prt=0;prt<12;prt++){
@@ -222,10 +236,12 @@ namespace emu{
 
       for(int swt=0;swt<4;swt++){
         printf(" swt %d \n",swt);
-        char command[556];
-        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s mac-addr-table > /tmp/switch_mac.dat \n",ip[swt+swadd]);
-        printf("%d  %s \n",swt,command);
-        int ierr=system(command);
+        std::string command;
+	command = switchTelnet + " " + ip[swt+swadd] + " mac-addr-table > /tmp/switch_mac.dat";
+//        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s mac-addr-table > /tmp/switch_mac.dat \n",ip[swt+swadd]);
+        std::cout << swt << command << std::endl;
+        int ierr;
+	ierr=system(command.c_str());
         parse_mac(swt);
         ierr=system("rm /tmp/switch_mac.dat");
       }
@@ -250,14 +266,20 @@ namespace emu{
     }
 
     
-    void Switch::fill_ping(){ 
+    void Switch::fill_ping(std::string switchTelnet){ 
       char line[128];
       FILE *file;
       for(int i=0;i<4;i++){
-        char command[250];
-        sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s connecttest >& /tmp/connect%02d.dat",ip[i+swadd],i+swadd2+1);
-		std::cout << command << std::endl;
-        system(command);
+        std::string command;
+	std::stringstream connecttest;
+	connecttest << i+swadd2+1;
+
+//        sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s connecttest >& /tmp/connect%02d.dat",ip[i+swadd],i+swadd2+1);
+	command = switchTelnet + " " + ip[i+swadd] + " connecttest >& /tmp/connect";
+	connecttest >> command; 
+	command += ".dat";
+	std::cout << command << std::endl;
+        system(command.c_str());
       }
       usleep(250000);
       std::cout << " after usleep " << std::endl;
@@ -559,15 +581,21 @@ namespace emu{
   }
     
 
-    void Switch::fill_problems(){
-      char command[556];
+    void Switch::fill_problems(std::string switchTelnet){
+      std::string command;
       for(int swt=0;swt<4;swt++){
-	char symb[2]=" ";
-        if(swt!=3)symb[0]='&';
-        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s problems > /tmp/problems%02d.dat%s \n",ip[swt+swadd],swt+1+swadd2,symb);
-        printf("%d  %s \n",swt,command);
+	std::string symb=" ";
+        if(swt!=3)symb="& ";
+	std::stringstream problems;
+	problems << swt+1+swadd2;
+	command = switchTelnet + " " + ip[swt+swadd] + " problems > /tmp/problems"; 
+	problems >> command;
+	command += ".dat" + symb;
+//        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s problems > /tmp/problems%02d.dat%s \n",ip[swt+swadd],swt+1+swadd2,symb);
+	std::cout << swt << " " << command << std::endl;
+//        printf("%d  %s \n",swt,command);
         int ierr;
-        ierr=system(command);
+        ierr=system(command.c_str());
       }
       usleep(250000);
     }
@@ -640,7 +668,8 @@ namespace emu{
       }
       fclose(file);
       sprintf(temp,"rm /tmp/problems%02d.dat",swtch);
-      int ierr=system(temp);
+      int ierr;
+      ierr=system(temp);
       sprintf(strbuf,"</tbody> \n </table> \n"); 
       rtns=rtns+strbuf;
       return rtns;
@@ -823,7 +852,7 @@ namespace emu{
   }
 
 
-  std::string Switch::switch_stats(int lasthex){ 
+  std::string Switch::switch_stats(int lasthex, std::string testScript){ 
 
  // find port with problems
     int s[2];   
@@ -843,16 +872,28 @@ namespace emu{
     for(int i=0;i<2;i++){
       sprintf(line," %s %s switch %d port %d \n",side[s[i]].pmac.mac,side[s[i]].name,side[s[i]].nswitch,side[s[i]].nport);
       rtns=rtns+line;
-      char command[150];
-      sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PeripheralApps/xml/test.pl 192.168.10.1%02d %d > /tmp/error.dat",side[s[i]].nswitch,side[s[i]].nport);
-      int err=system(command);
+      std::string command;
+      std::stringstream testpl;
+      command = testScript + " 192.168.10.1";
+
+      if(side[s[i]].nswitch == 10) testpl << side[s[i]].nswitch;
+      else testpl << "0" <<  side[s[i]].nswitch;
+      testpl >> command;
+      command += " ";
+      testpl <<side[s[i]].nport;
+      testpl >> command;
+      command += " > /tmp/error.dat"; 
+//      sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PeripheralApps/xml/test.pl 192.168.10.1%02d %d > /tmp/error.dat",side[s[i]].nswitch,side[s[i]].nport);
+      std::cout << command << std::endl;
+      int ierr;
+      ierr=system(command.c_str());
       FILE *file;
       file=fopen("/tmp/error.dat","r");
       while(fgets(line,128,file)){
         if(line[0]!='(')rtns=rtns+line;
       }
       fclose(file);
-      err=system("rm -f /tmp/error.dat");
+      ierr=system("rm -f /tmp/error.dat");
     }
     return rtns;
   }
