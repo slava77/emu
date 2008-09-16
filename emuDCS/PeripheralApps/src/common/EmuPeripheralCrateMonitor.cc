@@ -812,8 +812,6 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
 {
      unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
 
-    if(!Monitor_Ready_) return;
-
      cgicc::Cgicc cgi(in);
 
     // std::cout << "Select Over View " << std::endl;
@@ -835,6 +833,8 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
      *out << cgicc::span().set("style","color:red");
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
+
+    if(!Monitor_Ready_) return;
 
   *out << cgicc::br() << cgicc::span().set("style","color:blue");
   *out << cgicc::b("A: ") << cgicc::i(" ALCT pattern; ") << cgicc::b("C: ") << cgicc::i(" CLCT pretrig; ");
@@ -914,8 +914,6 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
 //     unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
      unsigned TOTAL_COUNTS=10;
 
-    if(!Monitor_Ready_) return;
-
      cgicc::Cgicc cgi(in);
 
      // std::cout << "Select Crate View " << std::endl;
@@ -936,6 +934,8 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
      *out << cgicc::span().set("style","color:red");
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
+
+    if(!Monitor_Ready_) return;
 
   *out << cgicc::table().set("border","1");
   //
@@ -1084,6 +1084,8 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
 
+    if(!Monitor_Ready_) return;
+
   *out << cgicc::table().set("border","1");
   //
   *out <<cgicc::td();
@@ -1192,6 +1194,8 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      *out << cgicc::span().set("style","color:red");
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
+
+    if(!Monitor_Ready_) return;
 
   *out << cgicc::table().set("border","1");
   //
