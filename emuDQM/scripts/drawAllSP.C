@@ -22,13 +22,14 @@ void drawAllSP(const char *filename){
 	TIterator *keys = f.GetListOfKeys()->MakeIterator();
 
 	TKey *key=0;
-	TString summary_plain;
+	TString summary_plain, timing_plain, miscellaneous_plain;
 	TMap hist_ref;
 	while( ( key=(TKey*)keys->Next() ) ){
 		if( !strncmp(key->GetClassName(),"TH1C",4) ){
 			TH1C *str = (TH1C*)key->ReadObj();
-			if(strncmp(str->GetName(),"summary",7)) continue;
-			summary_plain.Append(str->GetArray()+1,str->GetNbinsX());
+			if(!strncmp(str->GetName(),"summary",7)) summary_plain.Append(str->GetArray()+1,str->GetNbinsX());
+			if(!strncmp(str->GetName(),"timing",6))  timing_plain. Append(str->GetArray()+1,str->GetNbinsX());
+			if(!strncmp(str->GetName(),"miscellaneous",13)) miscellaneous_plain.Append(str->GetArray()+1,str->GetNbinsX());
 		}
 
 		if( strncmp(key->GetClassName(),"TCanvas",7) ) continue;
@@ -140,6 +141,11 @@ void drawAllSP(const char *filename){
 		}
 	}
 
+	TString miscellaneous_html(miscellaneous_plain);
+	miscellaneous_html.ReplaceAll("\n",1,"<br>\n",5);
+	miscellaneous_html.Prepend("<html>\n<head>\n</head>\n<body>\n");
+	miscellaneous_html.Append("</body>\n<html>\n");
+
 	TString summary_html(summary_plain);
 	for(Ssiz_t from=summary_html.Index("Failed: ",8,0),to=summary_html.Index("\n",from); from>0&&to>0; from=summary_html.Index("Failed: ",to),to=summary_html.Index("\n",from)){
 		TString name = summary_html(from+14,to-from-14);
@@ -153,15 +159,18 @@ void drawAllSP(const char *filename){
 		} else cout<<"Can't find canvas for "<<name<<endl;
 	}
 	summary_html.ReplaceAll("\n",1,"<br>\n",5);
+	summary_html.Prepend("<html>\n<head>\n</head>\n<body>\n");
+	summary_html.Append("</body>\n<html>\n");
 
-	for(Ssiz_t from=summary_html.Index("Timing",6,0),to=summary_html.Index("\n",from),first_time=1; from>0&&to>0; from=summary_html.Index("\n",from)+1,to=summary_html.Index("\n",from)){
+	TString timing_html(timing_plain);
+	for(Ssiz_t from=timing_html.Index("Timing",6,0),to=timing_html.Index("\n",from),first_time=1; from>0&&to>0; from=timing_html.Index("\n",from)+1,to=timing_html.Index("\n",from)){
 		if( from == to ) continue;
-		TString line = summary_html(from,to-from);
+		TString line = timing_html(from,to-from);
 		line.ReplaceAll("<br>",4,"",0);
 		if( first_time ){
                         char tab[1024];
 			sprintf(tab,"<table><tr><td>%s</td></tr><tr><td>Chambers</td><td>Mean</td><td>RMS</td><td>nHits</td></tr>\n",line.Data());
-			summary_html.Replace(from,to-from,tab);
+			timing_html.Replace(from,to-from,tab);
 			first_time = 0;
 			continue;
 		}
@@ -171,7 +180,7 @@ void drawAllSP(const char *filename){
 		if( mean<0 || rms<0 || nhits<0 ){
 			char row[1024];
 			sprintf(row,"<tr><td>%s</td></tr>\n",line.Data());
-			summary_html.Replace(from,to-from,row);
+			timing_html.Replace(from,to-from,row);
 		} else {
 			char row[1024];
 			TString _diff = line(0,mean);
@@ -184,13 +193,13 @@ void drawAllSP(const char *filename){
 			if( !end_pos ) _rms = "&#151;"; else _rms = _rms(0,end_pos);
 			TString _nhits= line.Data()+nhits+8;
 			sprintf(row,"<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n",_diff.Data(),_mean.Data(),_rms.Data(),_nhits.Data());
-			summary_html.Replace(from,to-from,row);
+			timing_html.Replace(from,to-from,row);
 		}
 	}
-	summary_html.Append("</table>");
+	timing_html.Append("</table>");
+	timing_html.Prepend("<html>\n<head>\n</head>\n<body>\n");
+	timing_html.Append("</body>\n<html>\n");
 
-	summary_html.Prepend("<html>\n<head>\n</head>\n<body>\n");
-	summary_html.Append("</body>\n<html>\n");
 	sprintf(command,"mkdir -p plots/%s",filename);
 	gSystem->Exec(command);
 	FILE *file=0;
@@ -199,6 +208,14 @@ void drawAllSP(const char *filename){
 	if( (file=fopen(summary,"wt"))!=NULL )
 		fwrite(summary_html.Data(),1,summary_html.Length(),file);
 	else cout<<"Cannot dump summary"<<endl;
+	sprintf(summary,"plots/%s/timing.html",filename);
+	if( (file=fopen(summary,"wt"))!=NULL )
+		fwrite(timing_html.Data(),1,timing_html.Length(),file);
+	else cout<<"Cannot dump timing"<<endl;
+	sprintf(summary,"plots/%s/miscellaneous.html",filename);
+	if( (file=fopen(summary,"wt"))!=NULL )
+		fwrite(miscellaneous_html.Data(),1,miscellaneous_html.Length(),file);
+	else cout<<"Cannot dump miscellaneous"<<endl;
 
 exit(0);
 }

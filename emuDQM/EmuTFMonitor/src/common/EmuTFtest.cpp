@@ -45,6 +45,8 @@ int main(int argc, char *argv[]){
 	// Histograms/Canvases description
 	std::map<std::string,HistAttributes>   histList   = parseHistXML  (BASE "EmuTFMonitor/xml/CSCTF_histograms.xml");
 	std::map<std::string,CanvasAttributes> canvasList = parseCanvasXML(BASE "EmuTFMonitor/xml/CSCTF_canvases.xml");
+	//std::map<std::string,HistAttributes>   histList   = parseHistXML  (BASE "EmuTFMonitor/xml/CSCTF_histograms_quick.xml");
+	//std::map<std::string,CanvasAttributes> canvasList = parseCanvasXML(BASE "EmuTFMonitor/xml/CSCTF_canvases_quick.xml");
 	std::map<std::string,CheckAttributes>  checkList  = parseCheckXML (BASE "EmuTFMonitor/xml/CSCTF_checks.xml");
 
 	EmuTFfiller filler(histList);
@@ -57,7 +59,8 @@ int main(int argc, char *argv[]){
 	// Keep track of dates
 	map<string,string> history;
 
-        int prescaling = argc - 1; // Stupid way to speed-up this process
+        int prescaling = 1;//argc - 1; // Stupid way to speed-up this process
+	int nEventsTotal = 0;
 
 	for(int arg=1; arg<argc; arg++){
 		struct stat info;
@@ -86,15 +89,15 @@ int main(int argc, char *argv[]){
 			}
 			nevents++;
 		}
-
+		nEventsTotal += nevents;
 	}
 
 
 
-	// Summary Information
-	std::ostringstream str;
+	// Miscellaneous information
+	std::ostringstream misc;
 	for(map<string,string>::const_iterator file=history.begin(); file!=history.end(); file++)
-		str<<file->first<<"  ["<<file->second<<"]"<<endl;
+		misc<<file->first<<"  ["<<file->second<<"]"<<endl;
 
 	if( last_size && last_buf ){
 		CSCTFEvent tfEvent;
@@ -102,10 +105,13 @@ int main(int argc, char *argv[]){
 		vector<CSCSPEvent> SPs = tfEvent.SPs();
 		for(vector<CSCSPEvent>::const_iterator spPtr=SPs.begin(); spPtr!=SPs.end(); spPtr++){
 			unsigned short sp = spPtr->header().sector() + ( spPtr->header().endcap() ? 0 : 6 );
-			str<<"SP"<<sp<<"  boar_id=0x"<<hex<<spPtr->trailer().board_id()<<dec<<" SP readout configuration: "<<spPtr->trailer().year()<<"/"<<spPtr->trailer().month()<<"/"<<spPtr->trailer().day()<<endl;
+			misc<<"SP"<<sp<<"  boar_id=0x"<<hex<<spPtr->trailer().board_id()<<dec<<" SP readout configuration: "<<spPtr->trailer().year()<<"/"<<spPtr->trailer().month()<<"/"<<spPtr->trailer().day()<<endl;
 		}
 	}
+	misc<<"Number of processed events = "<<nEventsTotal<<", prescaling = "<<prescaling<<endl;
 
+	// Summary information
+	std::ostringstream str;
 	EmuTFvalidator validator(filler.bookkeeper());
 	str<<"nErrors: "<<validator.check(checkList)<<endl;
 	list<string> failed = validator.falied();
@@ -120,9 +126,11 @@ int main(int argc, char *argv[]){
 //	alias[""] = "";
 
 	ofstream report("report.txt");
+	report<<misc.str()<<ends;
 	report<<str.str()<<ends;
 	report.close();
 
+// Timing information
 std::ostringstream str2;
 for(int spNum=1; spNum<=12; spNum++){
 	string sp="SP";
@@ -284,20 +292,27 @@ for(int spNum=1; spNum<=12; spNum++){
 	report2<<str2.str()<<ends;
 	report2.close();
 
-	std::map<std::string,TCanvas*> rootCanvases = filler.bookkeeper().wrapToCanvases(canvasList);
-	std::map<std::string,TCanvas*>::iterator iter = rootCanvases.begin();
-	TFile file("qqq.root","RECREATE");
-	while( iter != rootCanvases.end() ){
-		//iter->second->Draw();
-		iter->second->Write();
-		iter++;
-	}
+        std::map<std::string,TCanvas*> rootCanvases = filler.bookkeeper().wrapToCanvases(canvasList);
+        std::map<std::string,TCanvas*>::iterator iter = rootCanvases.begin();
+        TFile file("qqq.root","RECREATE");
+        while( iter != rootCanvases.end() ){
+                //iter->second->Draw();
+                iter->second->Write();
+                iter++;
+        }
+
 	// Write summary information
-	string sum = str.str() + str2.str();
+	string sum = str.str(), tim = str2.str(), mis = misc.str();
 	TH1C summary("summary","Summary",sum.length(),0,1);
+	TH1C timing ("timing", "timing", tim.length(),0,1);
+	TH1C miscellaneous("miscellaneous","miscellaneous",mis.length(),0,1);
 	for(unsigned int i=0;i<sum.length();i++) summary.SetBinContent(i+1,sum[i]);
+	for(unsigned int i=0;i<tim.length();i++) timing. SetBinContent(i+1,tim[i]);
+	for(unsigned int i=0;i<mis.length();i++) miscellaneous.SetBinContent(i+1,mis[i]);
 	cout<<"Summary ["<<summary.GetNbinsX()<<"="<<sum.length()<<"]:"<<endl<<(summary.GetArray()+1)<<endl;
 	summary.Write();
+	timing.Write();
+	miscellaneous.Write();
 	file.Close();
 	app.Terminate();
 	return 0;

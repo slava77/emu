@@ -212,6 +212,17 @@
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
 		<Prefix>TF_id_</Prefix>
+		<Name>dt_time_bin</Name>
+		<Title>DT Stub Time Bin</Title>
+		<XRange>(0:7)</XRange>
+		<XBins>7</XBins>
+		<XLabel>Time Bin</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="bar1:FillColor=48">
+		<Type>h1_</Type>
+		<Prefix>TF_id_</Prefix>
 		<Name>dt_quality</Name>
 		<Title>Quality</Title>
 		<XRange>(0:8)</XRange>

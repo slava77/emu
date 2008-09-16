@@ -24,10 +24,10 @@ my $DATAHOST= "csc-daq10";
 #my $SU_DQM  = "sudo -H -u cscdqm bash -c";
 my $SU_DQM  = "bash -c";
 #my $TFDQM   = "perl /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/bin/linux/x86/EmuTFtest.exe /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
-my $TFDQM   = "perl /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/csctfpro/TriDAS/emu/emuDQM/EmuTFMonitor/bin/linux/x86/EmuTFtest.exe /nfshome0/cscdqm/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
+my $TFDQM   = "perl /nfshome0/csctfpro/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /nfshome0/csctfpro/TriDAS/emu/emuDQM/EmuTFMonitor/bin/linux/x86/EmuTFtest.exe /nfshome0/csctfpro/TriDAS/emu/emuDQM/scripts/drawAllSP.C";
 my $local_run_pattern = "csc_000*RUI00*.raw";
 my $global_run_pattern = "GlobalCruzet1*.A.storageManager.*.0000.dat";
-my $first_run_to_process = 58733; # 51410; 
+my $first_run_to_process = 62063;
 my $first_timestamp_to_process = "080711_232031_UTC"; # if part of file name -> higher priority than previous
 my $CMSSW = "~kkotov/CMSSW_2_0_5/";
 
@@ -162,6 +162,7 @@ foreach my $run ( sort keys %runs_todo ) {
 		my $number = $run;
 		$number =~ s/\w*?.0+(\d+).*/$1/g;
 		if($number<$first_run_to_process){ next; }
+		if( $run=~ /CFEB/ ){ next; }
 	}
 	print "Local run: $run; ";
 
@@ -207,16 +208,32 @@ foreach my $run ( sort keys %runs_todo ) {
 			$PREPARE = "$SU_DQM 'ssh -2 $DQMHOST \"if [ -e $file ] ; then ln -s $file $SCRATCH/tf_scratch/$dirname 2>/dev/null; else scp -2 -r $DATAHOST:$file $SCRATCH/tf_scratch/$dirname/ 2>/dev/null; fi\"'";
 		        die "Can't copy/link data file: $file ::: $PREPARE" if system("$PREPARE");
 		}
-		$PREPARE = "$SU_DQM 'scp -2 tree_runs.js $DQMHOST:$SCRATCH/tf_scratch/'";
-		die "Can't copy tree_runs.js" if system("$PREPARE");
+		#$PREPARE = "$SU_DQM 'scp -2 tree_runs.js $DQMHOST:$SCRATCH/tf_scratch/'";
+		#die "Can't copy tree_runs.js" if system("$PREPARE");
 
 #		die "Can't process $run" if system("ssh -2 $DQMHOST \"$SU_DQM 'export HOME=/nfshome0/cscdqm/ && source /nfshome0/cscdqm/.bash_profile && cd $SCRATCH/tf_scratch/ && nice -19 $TFDQM'\"");
 #		while( system("ssh -2 $DQMHOST \"$SU_DQM 'export HOME=/nfshome0/cscdqm/ && source /nfshome0/cscdqm/.bash_profile && cd $SCRATCH/tf_scratch/ && ulimit -v 1048576 && nice -19 $TFDQM'\"") ){
 		while( system("ssh -2 $DQMHOST \"$SU_DQM 'export HOME=/nfshome0/csctfpro/ && source /nfshome0/csctfpro/setroot.sh && source /nfshome0/csctfpro/xdaqenv4.sh && cd $SCRATCH/tf_scratch/ && ulimit -v 1048576 && nice -19 $TFDQM'\"") ){
 #print "Can't process $run. Trying again\n";
 		}
-		die "Can't run cadaver"  if system("ssh -2 $DQMHOST 'rm $SCRATCH/tf_scratch/*.raw' && mkdir -p $SCRATCH && scp -r -2 $DQMHOST:$SCRATCH/tf_scratch/ $SCRATCH && cat $SCRATCH/tf_scratch/$dirname/*.cadaver | awk 'BEGIN{print \"lcd $SCRATCH/tf_scratch/\\n\"} {print \$0}' | $WEB >> cron_job_tf.log && cp $SCRATCH/tf_scratch/tree_runs.js ./ && echo -e \"lcd $SCRATCH/tf_scratch/\ncd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $WEB >> cron_job_tf.log");
-		die "Can't clean up"     if system("echo rm -rf $SCRATCH && ssh -2 $DQMHOST \"cp $SCRATCH/tf_scratch/tree_runs.js ./ && cd $SCRATCH/tf_scratch/ && find . -name '*.log' -exec gzip {} \\; && find . -name '*.log.gz' -exec cp {} $LOGS \\; && find . -name '*.root' -exec cp {} $LOGS/ \\; && repeat=0 && while [ \"`cat $SCRATCH/tf_scratch/report.txt | awk -f ~/data/mask.awk | ~/data/client lxplus201.cern.ch:20000 | grep 'Connect'`\" != \"Connect\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done && cd ../ && rm -rf ./tf_scratch\"");
+		#die "Can't run"  if system("ssh -2 $DQMHOST 'rm $SCRATCH/tf_scratch/*.raw' && mkdir -p $SCRATCH && scp -r -2 $DQMHOST:$SCRATCH/tf_scratch/ $SCRATCH && cat $SCRATCH/tf_scratch/$dirname/*.cadaver | awk 'BEGIN{print \"lcd $SCRATCH/tf_scratch/\\n\"} {print \$0}' | $WEB >> cron_job_tf.log && cp $SCRATCH/tf_scratch/tree_runs.js ./ && echo -e \"lcd $SCRATCH/tf_scratch/\ncd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $WEB >> cron_job_tf.log");
+		die "Can't run"  if system("ssh -2 $DQMHOST 'rm $SCRATCH/tf_scratch/*.raw' && mkdir -p $SCRATCH && scp -r -2 $DQMHOST:$SCRATCH/tf_scratch/ $SCRATCH && cat $SCRATCH/tf_scratch/$dirname/*.cadaver | awk 'BEGIN{print \"lcd $SCRATCH/tf_scratch/\\n\"} {print \$0}' >> cron_job_tf.log");
+
+		die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nget tree_runs.js tree_runs.js\n\" | $WEB >> cron_job_tf_quick.log");
+		open(RUNS,"< tree_runs.js") or die "Can't read tree_runs.js";
+		my @tree_runs = <RUNS>;
+		close RUNS;
+		open(RUNS,"< $SCRATCH/tf_quick/tree_runs.js") or die "Can't read $SCRATCH/tf_quick/tree_runs.js";
+		my @processed_runs = <RUNS>;
+		close RUNS;
+		open(RUNS,"> tree_runs.js") or die "Can't write to tree_runs.js";
+		print RUNS shift @tree_runs;
+		print RUNS $processed_runs[1].",";
+		foreach my $entry ( @tree_runs ){ print RUNS $entry; }
+		close RUNS;
+		die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $WEB >> cron_job_tf_quick.log");
+
+		die "Can't clean up"     if system("rm -rf $SCRATCH && ssh -2 $DQMHOST \"cp $SCRATCH/tf_scratch/tree_runs.js ./ && cd $SCRATCH/tf_scratch/ && find . -name '*.log' -exec gzip {} \\; && find . -name '*.log.gz' -exec cp {} $LOGS \\; && find . -name '*.root' -exec cp {} $LOGS/ \\; && repeat=0 && while [ \"`cat $SCRATCH/tf_scratch/report.txt | awk -f ~/data/mask.awk | ~/data/client lxplus201.cern.ch:20000 | grep 'Connect'`\" != \"Connect\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done && cd ../ && rm -rf ./tf_scratch\"");
 
 		open(RUNS,"< tree_runs.js") or die "Can't read tree_runs.js";
 		@runs_done = <RUNS>;

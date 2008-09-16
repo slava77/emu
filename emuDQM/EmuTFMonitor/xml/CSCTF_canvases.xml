@@ -86,7 +86,8 @@
 		<Name>dt_data2</Name>
 		<Title>Drift Tubes</Title>
 		<Item>dt_bits(Top)</Item>
-		<Item>dt_synch(Bottom)</Item>
+		<Item>dt_synch(0.485x0.485+0.01+0.01)</Item>
+		<Item>dt_time_bin(0.485x0.485+0.505+0.01)</Item>
 	</Canvas>
 
 	<Canvas>

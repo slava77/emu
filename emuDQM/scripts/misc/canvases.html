@@ -10,6 +10,7 @@ parent.sp=1;
 parent.station=0;
 parent.type=0;
 parent.scale=1;
+parent.frames[1].location = parent.folder+'/summary.html';
 
 document.writeln("Correlated LCTs:");
 //document.writeln("(<a target='viewer' href=view.html onClick='parent.station=0'>F4</a>");
@@ -45,7 +46,13 @@ document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"t
 document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"DDU_status.png\"'>DDU status</a>");
 document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"integrity.png\"'>Data Integrity</a>");
 document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"occupancy.png\"'>Occupancy</a>");
-document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"summary.html\"'>Validation Summary</a>");
+document.writeln("</ul>");
+
+document.writeln("Summaries:");
+document.writeln("<ul>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"miscellaneous.html\"'>Miscellaneous</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"timing.html\"'>Timing summary</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"summary.html\"'>Validation summary</a>");
 //document.writeln("<li><a target='viewer' href=\""+parent.folder+'/summary.html\"'+">Validation Summary</a>");
 document.writeln("</ul>");
 
@@ -61,6 +68,8 @@ for(var run=0; run<RUNS.length; run++){
 }
 document.writeln("</select>");
 document.writeln("</form>");
+setRun(0);
+
 </script>
 
 <script language="JavaScript">
@@ -70,8 +79,10 @@ function setRun(run){
 	var prev_folder = parent.folder;
 	parent.folder   = RUNS[run][0].replace(/\s+.*$/g, "");
 	parent.run      = run;
+
 	if( parent.frames[1].location.href.indexOf("view.html")>0 ){
 		parent.frames[1].location.reload();
+//parent.frames[1].location = parent.folder+'/summary.html';
 	} else {
 		var expr = new RegExp(prev_folder, "g");
 		parent.frames[1].location.href = parent.frames[1].location.href.replace(expr,parent.folder);
