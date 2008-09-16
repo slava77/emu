@@ -5,7 +5,7 @@
 
 namespace CSCSupervisor {
 	const std::string package     = "CSCSupervisor";
-	const std::string versions    = "3.3";
+	const std::string versions    = "3.4";
 	const std::string description = "CSC supervisor";
 
 	const std::string summary     = "emu/cscSV";
