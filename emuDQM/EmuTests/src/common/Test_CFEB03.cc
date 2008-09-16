@@ -50,6 +50,9 @@ void Test_CFEB03::initCSC(std::string cscID) {
     cscdata["_MASK"]=cfebdata;
   }
 
+  for (int i=0; i<TEST_DATA2D_NLAYERS; i++) 
+	for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
+
   // R01 - Pulse Maximum Amplitude
   cscdata["R01"]=cfebdata;
 

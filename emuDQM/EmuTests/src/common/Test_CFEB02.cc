@@ -34,6 +34,10 @@ void Test_CFEB02::initCSC(std::string cscID) {
     cscdata["_MASK"]=cfebdata;
   }
 
+  for (int i=0; i<TEST_DATA2D_NLAYERS; i++)
+        for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
+
+
   // mv0 - initial pedestals
   cscdata["_MV0"]=cfebdata;
 

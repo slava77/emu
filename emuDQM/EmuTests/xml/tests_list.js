@@ -30,7 +30,7 @@ var TREE_ITEMS = [
 	['CFEB03','Pulse Response',
 		['R01', 'Pulse Maximum Amplitude'],
 		['R02', 'Pulse Peak Time Position'],
-		['R03', 'Pulse FHWM'],
+		['R03', 'Pulse FWHM'],
 		['R04', 'Left crosstalk'],
 		['R05', 'Right crosstalk'],
 	        ['R06', 'Left crosstalk slope'],
