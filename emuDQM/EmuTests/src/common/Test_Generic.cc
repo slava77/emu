@@ -269,7 +269,7 @@ TestData2D parseMask(std::string s)
 	for (int i=ly_start; i<=ly_end; i++) {
 	  for (int j=ch_start; j<= ch_end; j++) {
             mask.content[i-1][j-1]=1;
-            std::cout << Form("mask chan %d:%d", i, j) << std::endl;
+     //       std::cout << Form("mask chan %d:%d", i, j) << std::endl;
           }
 	}
 
@@ -322,8 +322,9 @@ int Test_Generic::loadMasks()
     }
     itr = obj_info.find("CSC");
     if (itr != obj_info.end()) {
-      std::cout << "Found masks for " << itr->second << std::endl;
+//      std::cout << "Found masks for " << itr->second << std::endl;
       if (obj_info["CFEBChans"] != "") {
+	std::cout << "Found masks for " << itr->second << ": " << obj_info["CFEBChans"] << std::endl;
 	tmasks[itr->second]=parseMask(obj_info["CFEBChans"]);
       }
     }
