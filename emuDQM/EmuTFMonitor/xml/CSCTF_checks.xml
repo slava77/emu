@@ -23,6 +23,7 @@
 		<Title>allowed_values</Title>
 		<Item Properties="15:14:13:12:11:5:3:2:1">halfStripQuality</Item>
 		<Item Properties="10:9:8:7:6:4:3:2:1">diStripQuality</Item>
+		<Item Properties="8">DDU_status</Item>
 	</Check>
 
 	<Check>

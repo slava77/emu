@@ -6,6 +6,7 @@ my $TF_DATA_FOLDER = $ARGV[0];
 my $TF_DQM_EXEC    = $ARGV[1];
 my $TF_ROOT_MACRO  = $ARGV[2];
 my $CADAVER          = undef;
+#my $CADAVER          = "~kkotov/cadaver";
 my $WEB              = "https://cms-csc.web.cern.ch:444/cms-csc/";
 
 # Read content of the target derictory - analog of `/bin/find . -type f`

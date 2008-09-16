@@ -86,6 +86,14 @@ if( parent.type != 0 ){
                 layout[folder+'/occupancy.png'] = '600x500+1+1';
         }
 
+	if( parent.type=="miscellaneous.html" ){
+		parent.frames[1].location = folder+'/miscellaneous.html';
+	}
+
+	if( parent.type=="timing.html" ){
+		parent.frames[1].location = folder+'/timing.html';
+	}
+
 	if( parent.type=="summary.html" ){
 		parent.frames[1].location = folder+'/summary.html';
 	}

@@ -105,7 +105,7 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 	}
 
 
-	vector<CSCSPEvent> SPs = tfEvent.SPs();
+	vector<const CSCSPEvent*> SPs = tfEvent.SPs_fast();
 
 /// If this is first record
 ///if( current_orbit[0]==-1 ){
@@ -114,7 +114,8 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 ///      current_orbit[_sp++] = spPtr->counters().orbit_counter();
 ///}
 
-	for(vector<CSCSPEvent>::const_iterator spPtr=SPs.begin(); spPtr!=SPs.end(); spPtr++){
+	for(vector<const CSCSPEvent*>::const_iterator spItr=SPs.begin(); spItr!=SPs.end(); spItr++){
+		const CSCSPEvent *spPtr = *spItr;
 		// Container for storing all LCTs from SP event
 		EmuTFtiming shared_hits;
 
@@ -455,6 +456,9 @@ if( sp == 0 ){
 					dt_bits->Fill(dt_stub->bc0()>>2);
 					dt_bits->Fill(dt_stub->BXN()>>3);
 				}
+
+				TH1F *dt_time_bin = (TH1F*)tf.get("dt_time_bin",sp);
+				if( dt_time_bin ) dt_time_bin->Fill(dt_stub->tbin());
 
 				TH1F *dt_quality = (TH1F*)tf.get("dt_quality",sp);
 				if( dt_quality ) dt_quality->Fill(dt_stub->quality());
