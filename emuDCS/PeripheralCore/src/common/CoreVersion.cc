@@ -2,7 +2,7 @@
 
 namespace EmuPeripheralCore {
 	const std::string package  =  "EmuPeripheralCore";
-	const std::string versions =  "6.5";
+	const std::string versions =  "6.6";
 	const std::string summary = "emu/emuDCS/PeripheralCore";
 	const std::string description = "Emu Peripheral Crate Core Library";
 	const std::string authors = "Jinghua Liu for cms-emu-onlinesoftware";
