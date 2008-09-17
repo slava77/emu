@@ -158,12 +158,13 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   // === set ltc_bug=2 in case of LTC double L1A bug
   // TODO: automatic detection of LTC L1A bug
   //  int ltc_bug=1;
-  if ((DDUstats[dduID].evt_cntr == 8) && (DDUstats[dduID].empty_evt_cntr==0)) {
-    LOG4CPLUS_DEBUG(logger, "No LTC/TTC double L1A bug in data");
-    ltc_bug=1;
-  } else {
-    LOG4CPLUS_DEBUG(logger, "Found LTC/TTC double L1A bug in data");
-  }
+  if (DDUstats[dduID].evt_cntr == 8) 
+    if  (DDUstats[dduID].empty_evt_cntr==0) {
+      LOG4CPLUS_DEBUG(logger, "No LTC/TTC double L1A bug in data");
+      ltc_bug=1;
+    } else {
+      LOG4CPLUS_DEBUG(logger, "Found LTC/TTC double L1A bug in data");
+    }
 
   int dacSwitch=25*ltc_bug;
   int stripSwitch=250*ltc_bug;
