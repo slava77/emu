@@ -180,8 +180,10 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
       itr->second.evt_cnt = 0;
     }
   }
+  /*
   if (chamberDatas.size())
     std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID <<  " strip: " << DDUstats[dduID].strip << " dac: "  << DDUstats[dduID].dac << std::endl;
+  */
 
   for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin();
       chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
