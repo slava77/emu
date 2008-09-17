@@ -82,7 +82,5 @@ class SwitchGUI: public xdaq::Application {
 	xdata::String switchTelnet_;
 	xdata::String shutdownPort_;
 	xdata::String backupDir_;
-	std::ostringstream OutputSwitch;
-
 };
 #endif
