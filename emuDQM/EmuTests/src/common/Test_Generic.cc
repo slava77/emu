@@ -982,9 +982,11 @@ void Test_Generic::finish() {
 	else mo->SetMaximum(1);
       }
 
+      LOG4CPLUS_INFO(logger, "Finalize " << testID << " analysis for " << cscID);
       finishCSC(cscID); 
-      LOG4CPLUS_INFO(logger, "Save " << testID << " results for " << cscID);
 
+
+      LOG4CPLUS_INFO(logger, "Save " << testID << " results for " << cscID);
 
       if (nCSCEvents[cscID] < nExpectedEvents/2) {
 	sum_res = 4;
