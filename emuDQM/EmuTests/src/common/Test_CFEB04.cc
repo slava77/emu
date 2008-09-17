@@ -82,7 +82,7 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
 
   if (dduID != (bin_checker.dduSourceID()&0xFF)) {
 
-    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << (bin_checker.dduSourceID()&0xFF) << " First event"<< std::endl;
+    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << (bin_checker.dduSourceID()&0xFF) << " First event");
     dduID = bin_checker.dduSourceID()&0xFF;
     dduL1A[dduID]=0;
     DDUstats[dduID].evt_cntr=0;
@@ -105,20 +105,20 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   currL1A=(int)(dduData.header().lvl1num());
   if (DDUstats[dduID].evt_cntr ==1) {
     DDUstats[dduID].first_l1a = currL1A;
-    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " first l1a:" << DDUstats[dduID].first_l1a << std::endl;
+    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
+	      << " first l1a:" << DDUstats[dduID].first_l1a);
   } else if (DDUstats[dduID].first_l1a==-1) {
     DDUstats[dduID].first_l1a = currL1A-DDUstats[dduID].evt_cntr+1;
-    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
+    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
 	      << " first l1a :" << DDUstats[dduID].first_l1a << " after " 
-	      << currL1A-DDUstats[dduID].evt_cntr << " bad events" << std::endl;
+	      << currL1A-DDUstats[dduID].evt_cntr << " bad events");
   }
 
   DDUstats[dduID].l1a_cntr=currL1A;
 
   if ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) != (DDUstats[dduID].evt_cntr-1)) {
-    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " desynched l1a: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)) << std::endl;
+    LOG4CPLUS_WARN(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
+	      << " desynched l1a: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)));
   }
   
   std::vector<CSCEventData> chamberDatas;
@@ -136,7 +136,7 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   // TODO: automatic detection of LTC L1A bug
   //  int ltc_bug=1;
   if ((DDUstats[dduID].evt_cntr == 8) && (DDUstats[dduID].empty_evt_cntr==0)) {
-    std::cout << "No LTC/TTC double L1A bug in data" << std::endl;
+    LOG4CPLUS_INFO(logger, "No LTC/TTC double L1A bug in data");
     ltc_bug=1;
   }
 
@@ -186,7 +186,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 
   cscTestData::iterator td_itr = tdata.find(cscID);
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
-    std::cout << "Found " << cscID << std::endl;
+    LOG4CPLUS_INFO(logger, "Found " << cscID);
     initCSC(cscID);
     addCSCtoMap(cscID, dmbHeader->crateID(), dmbHeader->dmbID());
   }
@@ -241,7 +241,7 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 	double Qmax=gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
 
 	if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC()) {
-	  std::cout << cscID << " CRC check failed for time sample 1 and 2" << std::endl;
+	  LOG4CPLUS_WARN(logger, cscID << " CRC check failed for time sample 1 and 2");
 	  continue;
 	}
         double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
@@ -250,7 +250,9 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 	for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
 
 	  if (!(cfebData->timeSlice(itime)->checkCRC())) {
-	    std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " CRC failed, cfeb" << icfeb << ", layer" << layer << ", strip" << curr_strip << ", dac" << curr_dac << ", time sample " << itime << std::endl;
+	    LOG4CPLUS_WARN(logger,"Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID 
+	<< " CRC failed, cfeb" << icfeb << ", layer" << layer << ", strip" << curr_strip 
+	<< ", dac" << curr_dac << ", time sample " << itime);
 	    // continue; 
 	  }
 	  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
@@ -356,8 +358,8 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		cnt = cval.cnt;
 
 		if (cval.cnt<13) {
-		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) 
-			    << " Error> dac=" << dac << " , sample=" << itime << ", cnt="<< cval.cnt << std::endl;
+		  LOG4CPLUS_DEBUG(logger, cscID << ":" << layer << ":" << (icfeb*16+strip) 
+			    << " Error> dac=" << dac << " , sample=" << itime << ", cnt="<< cval.cnt);
 		  fValid=false;
 		} else {
 		  cval.mv /=cval.cnt;
@@ -412,13 +414,13 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 		val.s = pow(max_rms,2) + pow((0.01*max), 2);
 
-		std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
+		LOG4CPLUS_DEBUG(logger, cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
 			  << ", mv=" << val.mv << ", rms=" << val.rms 
 			  << ", max=" << val.max << ", peak_tbin=" << peak_time
 			  << ", s=" << val.s << ", x=" << (11.2+28.0*dac) << ", corr_peak_amp=" << pulse_fit.value << ", corr_peak_time=" << pulse_fit.tbin 
 			  << ", left:" << fit.left.value << ":" << fit.left.tbin 
 			  << " peak:" << fit.max.value << ":" << fit.max.tbin 
-			  << " right:" << fit.right.value << ":" << fit.right.tbin << std::endl; 
+			  << " right:" << fit.right.value << ":" << fit.right.tbin); 
 	      }
 
 	    }
@@ -491,7 +493,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	      if (ksi>999.) ksi=999.;
 	      if (ksi<-999.) ksi=-999.;
 
-	      std::cout << cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi << std::endl;
+	      LOG4CPLUS_DEBUG(logger, cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi);
 	      double gain=a;
 
               r01.content[layer-1][icfeb*16+strip-1] = gain;
@@ -530,7 +532,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 
     } else {
-      std::cout << cscID << ": Invalid" << std::endl;
+      LOG4CPLUS_WARN(logger, cscID << ": Invalid");
     }
 	
 
@@ -557,7 +559,7 @@ bool Test_CFEB04::checkResults(std::string cscID)
     }
     if (badChannels/(float(r01.Nlayers*r01.Nbins)) >=0.2) {
       isValid=false;
-      std::cout << cscID << ": 20% of channels have bad Gain" << std::endl;
+      LOG4CPLUS_WARN(logger,cscID << ": 20% of channels have bad Gain");
     }
     /*
       badChannels=0;
@@ -569,7 +571,7 @@ bool Test_CFEB04::checkResults(std::string cscID)
       }
       if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
       isValid=false;
-      std::cout << cscID << ": 20% of channels have bad Intercept" << std::endl;
+      LOG4CPLUS_WARN(logger, cscID << ": 20% of channels have bad Intercept");
       }
     */
   }

@@ -177,12 +177,12 @@ int Test_Generic::loadTestCfg()
   DOMDocument *doc = parser->getDocument();
   DOMNodeList *l = doc->getElementsByTagName( XMLString::transcode("Booking") );
   if( l->getLength() != 1 ){
-    //  LOG4CPLUS_ERROR (logger_, "There is not exactly one Booking node in configuration");
+    LOG4CPLUS_ERROR (logger, "There is not exactly one Booking node in configuration");
     return 1;
   }
   DOMNodeList *itemList = doc->getElementsByTagName( XMLString::transcode("TestResult") );
   if( itemList->getLength() == 0 ){
-    //   LOG4CPLUS_ERROR (logger_, "There no histograms to book");
+    LOG4CPLUS_ERROR (logger, "There no histograms to book");
     return 1;
   }
   for(uint32_t i=0; i<itemList->getLength(); i++){
@@ -201,7 +201,7 @@ int Test_Generic::loadTestCfg()
     if ((itr != obj_info.end()) && ((itr->second == testID) || (itr->second == "ALL"))) {
       itr = obj_info.find("Name");
       if ((itr != obj_info.end()) && (itr->second != "")) {
-	std::cout << "Found info for " << itr->second << std::endl;
+	LOG4CPLUS_INFO(logger, "Found info for " << itr->second);
 	xmlCfg[itr->second] = obj_info;
       }
     }
@@ -323,7 +323,7 @@ int Test_Generic::loadMasks()
     if (itr != obj_info.end()) {
       //      std::cout << "Found masks for " << itr->second << std::endl;
       if (obj_info["CFEBChans"] != "") {
-	std::cout << "Found masks for " << itr->second << ": " << obj_info["CFEBChans"] << std::endl;
+	LOG4CPLUS_INFO(logger, "Found masks for " << itr->second << ": " << obj_info["CFEBChans"]);
 	tmasks[itr->second]=parseMask(obj_info["CFEBChans"]);
       }
     }
@@ -886,7 +886,7 @@ void Test_Generic::doBinCheck() {
   
     cscTestData::iterator td_itr = tdata.find(cscID);
     if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
-      std::cout << "Found " << cscID << std::endl;
+      LOG4CPLUS_INFO(logger, "Found " << cscID);
       initCSC(cscID);
       //      mhistos[cscID] = bookMonHistosCSC(cscID);
     }
@@ -908,7 +908,8 @@ void Test_Generic::doBinCheck() {
     }
 
     if (isCSCError) { 
-      std::cout << "Evt#" << std::dec << nTotalEvents << "> " << cscID << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << chamber->second << std::dec << std::endl;
+      LOG4CPLUS_WARN(logger, "Evt#" << std::dec << nTotalEvents << "> " << cscID 
+	<< ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << chamber->second << std::dec);
       nCSCBadEvents[cscID]++;
     }
     chamber++;
@@ -981,7 +982,7 @@ void Test_Generic::finish() {
 	else mo->SetMaximum(1);
       }
 
-      std::cout << "Save Test results for " << cscID << std::endl;
+      LOG4CPLUS_INFO(logger, "Save Test results for " << cscID);
       finishCSC(cscID); 
 
       if (nCSCEvents[cscID] < nExpectedEvents/2) {
