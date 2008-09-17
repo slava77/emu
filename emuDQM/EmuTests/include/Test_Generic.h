@@ -204,6 +204,7 @@ class Test_Generic
 	virtual void initCSC(std::string cscID) = 0;
 	virtual void bookTestsForCSC(std::string cscID);
 	virtual void bookCommonHistos();
+        void fillCrateMap(CSCCrateMap* mapobj);
 	void addCSCtoMap(std::string, int, int);
 
 	int loadTestCfg();
@@ -247,6 +248,8 @@ class Test_Generic
         CSCtoHWmap cscmap;
         CSCCrateMap* cratemap;
 //  	cscmap1 *map;
+
+	Logger logger;
 
 };
 
