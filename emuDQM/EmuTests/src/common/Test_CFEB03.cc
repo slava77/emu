@@ -105,7 +105,7 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
 
   if (dduID != (bin_checker.dduSourceID()&0xFF)) {
 
-    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << (bin_checker.dduSourceID()&0xFF) << " First event"<< std::endl;
+    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << (bin_checker.dduSourceID()&0xFF) << " First event");
     dduID = bin_checker.dduSourceID()&0xFF;
     dduL1A[dduID]=0;
     DDUstats[dduID].evt_cntr=0;
@@ -128,20 +128,20 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   currL1A=(int)(dduData.header().lvl1num());
   if (DDUstats[dduID].evt_cntr ==1) {
     DDUstats[dduID].first_l1a = currL1A;
-    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " first l1a:" << DDUstats[dduID].first_l1a << std::endl;
+    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
+	      << " first l1a:" << DDUstats[dduID].first_l1a);
   } else if (DDUstats[dduID].first_l1a==-1) {
     DDUstats[dduID].first_l1a = currL1A-DDUstats[dduID].evt_cntr+1;
-    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
+    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
 	      << " first l1a :" << DDUstats[dduID].first_l1a << " after " 
-	      << currL1A-DDUstats[dduID].evt_cntr << " bad events" << std::endl;
+	      << currL1A-DDUstats[dduID].evt_cntr << " bad events");
   }
 
   DDUstats[dduID].l1a_cntr=currL1A;
 
   if ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) != (DDUstats[dduID].evt_cntr-1)) {
-    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " desynched l1a: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)) << std::endl;
+    LOG4CPLUS_WARN(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
+	      << " desynched l1a: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)));
   }
   
   std::vector<CSCEventData> chamberDatas;
@@ -159,7 +159,7 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   // TODO: automatic detection of LTC L1A bug
   //  int ltc_bug=1;
   if ((DDUstats[dduID].evt_cntr == 8) && (DDUstats[dduID].empty_evt_cntr==0)) {
-    std::cout << "No LTC/TTC double L1A bug in data" << std::endl;
+    LOG4CPLUS_INFO(logger, "No LTC/TTC double L1A bug in data");
     ltc_bug=1;
   }
 
@@ -213,7 +213,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 
   cscTestData::iterator td_itr = tdata.find(cscID);
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
-    std::cout << "Found " << cscID << std::endl;
+    LOG4CPLUS_INFO(logger, "Found " << cscID);
     initCSC(cscID);
     addCSCtoMap(cscID, dmbHeader->crateID(), dmbHeader->dmbID());
   }
@@ -236,7 +236,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
   if ( (curr_strip>16) 
        || (curr_dac > TIME_STEPS) 
        || (nCSCEvents[cscID] > nExpectedEvents)) {
-    std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " Went beyond pre-defined events counter for this test" << std::endl;
+    LOG4CPLUS_WARN(logger, "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " Went beyond pre-defined events counter for this test");
     return;
   }
  
@@ -269,7 +269,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 
       // Check if CFEB has data and skip it if it doesn't 
       if (!cfebData || !cfebData->check()) {
-	std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " No CFEB" << icfeb+1 << " Data" << std::endl;
+	LOG4CPLUS_WARN(logger, "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " No CFEB" << icfeb+1 << " Data");
 	continue;
       }
       
@@ -285,7 +285,7 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 
 	// Do CRC check of first two timesamples for pedestal calculation 
 	if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC()) {
-	  std::cout << cscID << " CRC check failed for central strip time sample 1 and 2" << std::endl;
+	  LOG4CPLUS_WARN(logger, cscID << " CRC check failed for central strip time sample 1 and 2");
 	  continue;
 	}
 
@@ -315,8 +315,8 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 	      if (v02) { v02->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi-Q12);}
 
 	    } else {
-	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " CRC failed strip " << icfeb << ":" << layer << ":" << curr_strip 
-			<< ", time step" << curr_dac << ", time sample " << itime << std::endl;
+	      LOG4CPLUS_WARN(logger,"Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " CRC failed strip " << icfeb << ":" << layer << ":" << curr_strip 
+			<< ", time step" << curr_dac << ", time sample " << itime);
 	    }
 
         }
@@ -357,20 +357,20 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 			xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].left_cnt++;
 
 		      } else {
-			std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID
+			LOG4CPLUS_WARN(logger,"Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID
 				  << " CRC failed, left strip " << icfeb << ":" << layer << ":" << curr_strip
-				  << ", time step" << curr_dac << ", time sample " << itime << std::endl;
+				  << ", time step" << curr_dac << ", time sample " << itime);
 		      }
 
 		  }
 
 		} else {
-		  std::cout << cscID << " CRC check failed for left strip time sample 1 and 2" << std::endl;
+		  LOG4CPLUS_WARN(logger, cscID << " CRC check failed for left strip time sample 1 and 2");
 		}
 
 	    } else {
-	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " strip " << icfeb+1 << ":" << layer << ":" << curr_strip
-			<< " - No data for left strip " <<  cfeb+1 << ":" << strip << std::endl;
+	      LOG4CPLUS_WARN(logger,"Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " strip " << icfeb+1 << ":" << layer << ":" << curr_strip
+			<< " - No data for left strip " <<  cfeb+1 << ":" << strip);
 	    }
 
 	} // Left Strip
@@ -412,19 +412,19 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 
 			xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].right_cnt++;
 		      } else {
-			std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID
+			LOG4CPLUS_WARN(logger,"Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID
 				  << " CRC failed, right strip " << icfeb << ":" << layer << ":" << curr_strip
-				  << ", time step" << curr_dac << ", time sample " << itime << std::endl;
+				  << ", time step" << curr_dac << ", time sample " << itime);
 		      }
 
 		  }
 		} else {
-		  std::cout << cscID << " CRC check failed for time right strip sample 1 and 2" << std::endl;
+		  LOG4CPLUS_WARN(logger, cscID << " CRC check failed for time right strip sample 1 and 2");
 		}
 	
 	    } else {
-	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " strip " << icfeb+1 << ":" << layer << ":" << curr_strip
-			<< " - No data for right strip " <<  cfeb+1 << ":" << strip << std::endl;
+	      LOG4CPLUS_WARN(logger, "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " strip " << icfeb+1 << ":" << layer << ":" << curr_strip
+			<< " - No data for right strip " <<  cfeb+1 << ":" << strip);
 	    }
 	} // Right Strip
 
@@ -527,8 +527,8 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		cnt = cval.cnt;
 
 		if (cval.cnt<13) {
-		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) 
-			    << " Error> time step=" << dac << ", sample=" << itime << ", cnt="<< cval.cnt << std::endl;
+		  LOG4CPLUS_DEBUG(logger, cscID << ":" << layer << ":" << (icfeb*16+strip) 
+			    << " Error> time step=" << dac << ", sample=" << itime << ", cnt="<< cval.cnt);
 		  fValid=false;
 
 		} else {
@@ -811,7 +811,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
       //      }
 
     } else {
-      std::cout << cscID << ": Invalid" << std::endl;
+      LOG4CPLUS_WARN(logger, cscID << ": Invalid");
     }
   }
 }
@@ -839,7 +839,7 @@ bool Test_CFEB03::checkResults(std::string cscID)
     }
     if (badChannels/(float(r04.Nlayers*r04.Nbins)) >=0.2) {
       isValid=false;
-      std::cout << cscID << ": 20% of channels have bad Left Crosstalk" << std::endl;
+      LOG4CPLUS_WARN(logger, cscID << ": 20% of channels have bad Left Crosstalk");
     }
 
     badChannels=0;
@@ -851,7 +851,7 @@ bool Test_CFEB03::checkResults(std::string cscID)
     }
     if (badChannels/(float(r05.Nlayers*r05.Nbins)) >=0.2) {
       isValid=false;
-      std::cout << cscID << ": 20% of channels have bad Right Crosstalk" << std::endl;
+      LOG4CPLUS_WARN(logger, cscID << ": 20% of channels have bad Right Crosstalk");
     }
   }
 

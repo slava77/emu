@@ -193,7 +193,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 
   cscTestData::iterator td_itr = tdata.find(cscID);
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
-    std::cout << "Found " << cscID << std::endl;
+    LOG4CPLUS_INFO(logger, "Found " << cscID);
     initCSC(cscID);
     addCSCtoMap(cscID, dmbHeader->crateID(), dmbHeader->dmbID());
   }
@@ -351,7 +351,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 		// int scaNumber = 8*conv_blk[scaBlock]+(offset+itime)%8;
 
 		if (scaNumber >= 96) {
-		  std::cout << "Invalid SCA cell" << std::endl;
+		  LOG4CPLUS_ERROR(logger, "Invalid SCA cell");
 		}
 
 		scadata.content[layer-1][icfeb*16+strip-1][scaNumber].value += Qi;
@@ -485,9 +485,9 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 
 void Test_CFEB02::finishCSC(std::string cscID) 
 {
-  
+ 
   if (nCSCEvents[cscID] < nExpectedEvents/2) {
-    std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
+    LOG4CPLUS_ERROR(logger, Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ));
     // = Set error 
     return;
   }
@@ -803,7 +803,7 @@ bool Test_CFEB02::checkResults(std::string cscID)
     }
     if (badChannels/(float(r01.Nlayers*r01.Nbins)) >=0.2) { 
       isValid=false;
-      std::cout << cscID << ": 20% of channels have bad Pedestals" << std::endl;
+      LOG4CPLUS_WARN(logger, cscID << ": 20% of channels have bad Pedestals");
     }
 
     badChannels=0;
@@ -815,7 +815,7 @@ bool Test_CFEB02::checkResults(std::string cscID)
     }
     if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
       isValid=false;
-      std::cout << cscID << ": 20% of channels have bad Noise" << std::endl;
+      LOG4CPLUS_WARN(logger, cscID << ": 20% of channels have bad Noise");
     }
   }
 
