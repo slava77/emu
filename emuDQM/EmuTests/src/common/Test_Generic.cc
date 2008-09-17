@@ -746,6 +746,9 @@ void Test_Generic::bookTestsForCSC(std::string cscID) {
   MonHistos cschistos;
   TestCanvases csccnvs;
   char *stopstring;
+
+  ResultsCodes rcodes;
+
   for (testParamsCfg::iterator itr=xmlCfg.begin(); itr != xmlCfg.end(); ++itr) {
     bookParams& params = itr->second;
     if (params.find("Type") != params.end()) {
@@ -828,6 +831,8 @@ void Test_Generic::bookTestsForCSC(std::string cscID) {
   hFormatErrors[cscID]->SetOption("textcolz");
 
   mhistos[cscID]=cschistos;
+
+  rescodes[cscID] = rcodes;
 
   //  return cschistos;
 }
@@ -949,6 +954,8 @@ void Test_Generic::finish() {
       sum_res=0;
       std::string cscID = td_itr->first;
 
+      ResultsCodes& rcodes = rescodes[cscID];
+      ResultsCodes::iterator r_itr;
 
       TDirectory * rdir = f->mkdir((cscID).c_str());
       std::string path = rpath+"/"+cscID+"/";
@@ -976,23 +983,12 @@ void Test_Generic::finish() {
       }
   
       finishCSC(cscID); 
-      if (nCSCEvents[cscID] >= nExpectedEvents/2) {
-	//	finishCSC(cscID);
-      } else {
-	//	std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
-	// = Set error 
-	sum_res=4;
-	// fres << "\t['V00','" << 4 << "']," << std::endl;
-	csc_fres << "\t['V00','" << 4 << "']," << std::endl;
+
+      if (nCSCEvents[cscID] < nExpectedEvents/2) {
+	sum_res = 4;
 	fEnoughData = false;
-	/*
-	  if (mhistos[cscID]["V00"]) {
-
-	  }	
-	*/
+	rcodes["V00"] = sum_res;
       }
-
-
 
       TestData& cscdata= td_itr->second;
       TestData2D& mask = cscdata["_MASK"];
@@ -1032,7 +1028,7 @@ void Test_Generic::finish() {
 	  text_res << "Analysis ver." << ANALYSIS_VER << " Time: " << testTime <<  std::endl;
 	  text_res << "Total Events: " << nCSCEvents[cscID] << " Rejected: " << nCSCBadEvents[cscID] << std::endl;
 	  text_res << "Limits: L1=" << limits[0] << ", L0="<< limits[1] << ", H0="<< limits[2]<<", H1=" << limits[3] << std::endl;
-	  if (fEnoughData) {
+//	  if (fEnoughData) {
 	    text_res <<  "Layer Strip    Value Status Masked" << std::endl;
 	    for (int i=0; i<data.Nlayers; i++) {
 	      for (int j=0; j<data.Nbins; j++) {
@@ -1052,7 +1048,7 @@ void Test_Generic::finish() {
 	      }
 	    }
 	    text_res <<  "Out of range counters: L1=" << l1_cnt << ", L0="<< l0_cnt << ", H0="<< h0_cnt <<", H1=" << h1_cnt << std::endl;
-	  }
+//	  }
 	  text_res << "TEST STATUS: ";
 	  if (!fEnoughData) { text_res << "FAILED NOT ENOUGH DATA";}
 	  else if ((l0_cnt+h0_cnt)>0) { text_res << "FAILED";}
@@ -1098,7 +1094,16 @@ void Test_Generic::finish() {
 	//	m_itr->second->Draw();
 
 	cnv->SetHistoObject(m_itr->second);
-	//	cnv->SetResultCode(1);
+
+	// Set results code for user histograms
+	r_itr = rcodes.find(subtestID);
+	if (r_itr != rcodes.end()) {
+		res = r_itr->second;
+		csc_fres << "\t['"<< subtestID << "','" << res << "']," << std::endl;
+		cnv->SetResultCode(res);
+		if (res > sum_res) sum_res = res;
+	}
+
 	cnv->Draw();
 	cnv->SaveAs((path+cscID+"_"+testID+"_"+subtestID+".png").c_str());
 	//	cnv->Print((path+cscID+"_"+testID+"_"+subtestID+".png").c_str());

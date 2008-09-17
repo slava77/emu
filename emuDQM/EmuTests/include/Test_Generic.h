@@ -73,6 +73,9 @@ typedef std::map<std::string, TestCanvases> cscTestCanvases;
 typedef std::map<std::string, std::string> bookParams;
 typedef std::map<std::string, bookParams> testParamsCfg;
 typedef std::map<std::string, std::pair<int,int> >CSCtoHWmap;
+typedef std::map<std::string, int> ResultsCodes;
+typedef std::map<std::string, ResultsCodes> cscResultsCodes;
+
 
 // == CFEB SCA cell sample pair (value, count)
 typedef struct sca_sample {
@@ -154,6 +157,8 @@ typedef struct time_step {
 //        double max_rms;
 //        int max_cnt;
         int cnt;
+	int left_cnt;
+	int right_cnt;
 } time_step;
 
 
@@ -211,6 +216,7 @@ class Test_Generic
         unsigned long binCheckMask;
 	cscTestData tdata;
 	cscMonHistos mhistos;
+	cscResultsCodes rescodes;
 	// MonHistos emuhistos;
 	TestCanvases emucnvs;
 
