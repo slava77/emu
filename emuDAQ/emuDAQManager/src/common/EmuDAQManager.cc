@@ -75,6 +75,8 @@ runInfo_(0)
 
     exportParams(appInfoSpace_);
 
+    abortedRun_ = true;
+
     comments_        = "";
     globalRunNumber_ = "";
     badRun_          = false;
@@ -2256,6 +2258,9 @@ void EmuDAQManager::configureDAQ()
     bool rusGenerateDummySuperFrags = ruiDescriptors_.size() == 0;
     bool busDropEvents              = fuDescriptors_.size()  == 0;
 
+    // Forget previous run number.
+    runNumber_ = 0;
+
     globalRunNumber_ = "";
     // If run number is booked, it will be on "Enable". For the time being, it's not booked.
     isBookedRunNumber_ = false;
@@ -2263,6 +2268,8 @@ void EmuDAQManager::configureDAQ()
     badRun_ = true;
     // It may be aborted after "Configure". Reset comment to null once the run is started.
     comments_ = "aborted after configuration";
+    // Assumed aborted until started.
+    abortedRun_ = true;
 
     try
     {
@@ -2538,7 +2545,8 @@ throw (emuDAQManager::exception::Exception)
     badRun_ = false;
     // No comment by default.
     comments_ = "";
-
+    // If it's gotten this far, this run is obviously not aborted.
+    abortedRun_ = false;
 }
 
 
@@ -5323,6 +5331,9 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 
   // Don't write about debug runs:
   if ( runType_.toString() == "Debug" ||  runType_.toString().find("STEP",0) != string::npos ) return;
+
+  // Don't write about aborted runs either:
+  if ( abortedRun_ ) return;
 
   // If it's not a debug run, it should normally have been booked. Inform the user that it somehow wasn't.
   if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
