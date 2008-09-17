@@ -269,7 +269,7 @@ TestData2D parseMask(std::string s)
 	for (int i=ly_start; i<=ly_end; i++) {
 	  for (int j=ch_start; j<= ch_end; j++) {
             mask.content[i-1][j-1]=1;
-     //       std::cout << Form("mask chan %d:%d", i, j) << std::endl;
+	    //       std::cout << Form("mask chan %d:%d", i, j) << std::endl;
           }
 	}
 
@@ -322,7 +322,7 @@ int Test_Generic::loadMasks()
     }
     itr = obj_info.find("CSC");
     if (itr != obj_info.end()) {
-//      std::cout << "Found masks for " << itr->second << std::endl;
+      //      std::cout << "Found masks for " << itr->second << std::endl;
       if (obj_info["CFEBChans"] != "") {
 	std::cout << "Found masks for " << itr->second << ": " << obj_info["CFEBChans"] << std::endl;
 	tmasks[itr->second]=parseMask(obj_info["CFEBChans"]);
@@ -981,7 +981,8 @@ void Test_Generic::finish() {
 	if (max_freq>0) mo->SetMaximum(max_freq);
 	else mo->SetMaximum(1);
       }
-  
+
+      std::cout << "Save Test results for " << cscID << std::endl;
       finishCSC(cscID); 
 
       if (nCSCEvents[cscID] < nExpectedEvents/2) {
@@ -1028,27 +1029,27 @@ void Test_Generic::finish() {
 	  text_res << "Analysis ver." << ANALYSIS_VER << " Time: " << testTime <<  std::endl;
 	  text_res << "Total Events: " << nCSCEvents[cscID] << " Rejected: " << nCSCBadEvents[cscID] << std::endl;
 	  text_res << "Limits: L1=" << limits[0] << ", L0="<< limits[1] << ", H0="<< limits[2]<<", H1=" << limits[3] << std::endl;
-//	  if (fEnoughData) {
-	    text_res <<  "Layer Strip    Value Status Masked" << std::endl;
-	    for (int i=0; i<data.Nlayers; i++) {
-	      for (int j=0; j<data.Nbins; j++) {
-		//        	text_res << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
-		//			<< std::setw(9) << data.content[i][j] << std::endl;
-		std::string validity="OK";
-		if (data.content[i][j] < limits[0])  { validity="L1"; l0_cnt++;}
-		else if (data.content[i][j] < limits[1])  { validity="L0"; l1_cnt++;}
-		else if (data.content[i][j] > limits[3])  { validity="H1"; h1_cnt++;}
-		else if (data.content[i][j] > limits[2])  { validity="H0"; h0_cnt++;}
-		// if (validity != "OK") failed_cnt++;
-		int prec=2;
-		if (fabs(data.content[i][j]) < 1) prec = 3;
-		if (fabs(data.content[i][j]) < 0.01) prec = 5;
-		text_res << std::fixed << std::setprecision(prec) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
-			 << std::setw(9) << data.content[i][j] << std::setw(7) << validity << std::setw(7) << (int)(mask.content[i][j]) << std::endl;
-	      }
+	  //	  if (fEnoughData) {
+	  text_res <<  "Layer Strip    Value Status Masked" << std::endl;
+	  for (int i=0; i<data.Nlayers; i++) {
+	    for (int j=0; j<data.Nbins; j++) {
+	      //        	text_res << std::fixed << std::setprecision(2) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
+	      //			<< std::setw(9) << data.content[i][j] << std::endl;
+	      std::string validity="OK";
+	      if (data.content[i][j] < limits[0])  { validity="L1"; l0_cnt++;}
+	      else if (data.content[i][j] < limits[1])  { validity="L0"; l1_cnt++;}
+	      else if (data.content[i][j] > limits[3])  { validity="H1"; h1_cnt++;}
+	      else if (data.content[i][j] > limits[2])  { validity="H0"; h0_cnt++;}
+	      // if (validity != "OK") failed_cnt++;
+	      int prec=2;
+	      if (fabs(data.content[i][j]) < 1) prec = 3;
+	      if (fabs(data.content[i][j]) < 0.01) prec = 5;
+	      text_res << std::fixed << std::setprecision(prec) << std::setw(5) << (i+1) << std::setw(6) << (j+1)
+		       << std::setw(9) << data.content[i][j] << std::setw(7) << validity << std::setw(7) << (int)(mask.content[i][j]) << std::endl;
 	    }
-	    text_res <<  "Out of range counters: L1=" << l1_cnt << ", L0="<< l0_cnt << ", H0="<< h0_cnt <<", H1=" << h1_cnt << std::endl;
-//	  }
+	  }
+	  text_res <<  "Out of range counters: L1=" << l1_cnt << ", L0="<< l0_cnt << ", H0="<< h0_cnt <<", H1=" << h1_cnt << std::endl;
+	  //	  }
 	  text_res << "TEST STATUS: ";
 	  if (!fEnoughData) { text_res << "FAILED NOT ENOUGH DATA";}
 	  else if ((l0_cnt+h0_cnt)>0) { text_res << "FAILED";}
@@ -1098,10 +1099,10 @@ void Test_Generic::finish() {
 	// Set results code for user histograms
 	r_itr = rcodes.find(subtestID);
 	if (r_itr != rcodes.end()) {
-		res = r_itr->second;
-		csc_fres << "\t['"<< subtestID << "','" << res << "']," << std::endl;
-		cnv->SetResultCode(res);
-		if (res > sum_res) sum_res = res;
+	  res = r_itr->second;
+	  csc_fres << "\t['"<< subtestID << "','" << res << "']," << std::endl;
+	  cnv->SetResultCode(res);
+	  if (res > sum_res) sum_res = res;
 	}
 
 	cnv->Draw();
