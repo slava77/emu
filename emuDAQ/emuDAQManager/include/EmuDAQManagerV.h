@@ -6,7 +6,7 @@
 namespace EmuDAQManager
 {
     const std::string package     = "emuDAQManager";
-    const std::string versions    = "CRUZET4";
+    const std::string versions    = "R_20080917";
     const std::string description = "Manages the EmuDAQ applications";
     const std::string summary     = "emuDAQ/emuDAQManager";
     const std::string link        = "NONE";

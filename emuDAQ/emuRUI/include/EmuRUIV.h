@@ -6,7 +6,7 @@
 namespace EmuRUI
 {
     const std::string package     = "emuRUI";
-    const std::string versions    = "CRUZET4";
+    const std::string versions    = "R_20080917";
     const std::string description = "Readout Unit Interface (RUI) for the endcap muon local DAQ";
     const std::string summary     = "emuDAQ/emuRUI";
     const std::string link        = "NONE";
