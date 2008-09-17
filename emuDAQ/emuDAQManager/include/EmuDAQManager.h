@@ -243,6 +243,7 @@ private:
   void writeRunInfo( bool toDatabase, bool toELog );
   void postToELog( string subject, string body, vector<string> *attachments=0 );
   bool isBookedRunNumber_;
+  bool abortedRun_; // The run is aborted if it is never started (only configured).
 
   xdata::UnsignedLong runNumber_;
   xdata::UnsignedLong runSequenceNumber_;
