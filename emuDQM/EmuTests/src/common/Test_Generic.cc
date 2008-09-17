@@ -102,7 +102,7 @@ std::map<std::string, int> getCSCTypeToBinMap()
 
 void Test_Generic::fillCrateMap(CSCCrateMap* mapobj)
 {
-  LOG4CPLUS_INFO(logger, "Filling CSCCrateMap");
+  LOG4CPLUS_DEBUG(logger, "Filling CSCCrateMap");
   cscmap1 *map = new cscmap1 ();
   CSCMapItem::MapItem item;
 
@@ -201,7 +201,7 @@ int Test_Generic::loadTestCfg()
     if ((itr != obj_info.end()) && ((itr->second == testID) || (itr->second == "ALL"))) {
       itr = obj_info.find("Name");
       if ((itr != obj_info.end()) && (itr->second != "")) {
-	LOG4CPLUS_INFO(logger, "Found info for " << itr->second);
+	LOG4CPLUS_DEBUG(logger, "Found info for " << itr->second);
 	xmlCfg[itr->second] = obj_info;
       }
     }
@@ -323,7 +323,7 @@ int Test_Generic::loadMasks()
     if (itr != obj_info.end()) {
       //      std::cout << "Found masks for " << itr->second << std::endl;
       if (obj_info["CFEBChans"] != "") {
-	LOG4CPLUS_INFO(logger, "Found masks for " << itr->second << ": " << obj_info["CFEBChans"]);
+	LOG4CPLUS_DEBUG(logger, "Found masks for " << itr->second << ": " << obj_info["CFEBChans"]);
 	tmasks[itr->second]=parseMask(obj_info["CFEBChans"]);
       }
     }
@@ -982,8 +982,9 @@ void Test_Generic::finish() {
 	else mo->SetMaximum(1);
       }
 
-      LOG4CPLUS_INFO(logger, "Save Test results for " << cscID);
       finishCSC(cscID); 
+      LOG4CPLUS_INFO(logger, "Save " << testID << " results for " << cscID);
+
 
       if (nCSCEvents[cscID] < nExpectedEvents/2) {
 	sum_res = 4;

@@ -106,11 +106,11 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   if (DDUstats[dduID].evt_cntr ==1) {
     DDUstats[dduID].first_l1a = currL1A;
     LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " first l1a:" << DDUstats[dduID].first_l1a);
+	      << " First L1A:" << DDUstats[dduID].first_l1a);
   } else if (DDUstats[dduID].first_l1a==-1) {
     DDUstats[dduID].first_l1a = currL1A-DDUstats[dduID].evt_cntr+1;
     LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " first l1a :" << DDUstats[dduID].first_l1a << " after " 
+	      << " First L1A :" << DDUstats[dduID].first_l1a << " after " 
 	      << currL1A-DDUstats[dduID].evt_cntr << " bad events");
   }
 
@@ -118,7 +118,7 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
 
   if ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) != (DDUstats[dduID].evt_cntr-1)) {
     LOG4CPLUS_WARN(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " desynched l1a: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)));
+	      << " Desynched L1A: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)));
   }
   
   std::vector<CSCEventData> chamberDatas;
@@ -297,6 +297,8 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 
 void Test_CFEB04::finishCSC(std::string cscID) 
 {
+
+    LOG4CPLUS_INFO(logger, "Finalize " << testID << " analysis for " << cscID);
   /* 
      if (nCSCEvents[cscID] < nExpectedEvents/2) {
      std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
