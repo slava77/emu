@@ -105,7 +105,7 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
 
   if (dduID != (bin_checker.dduSourceID()&0xFF)) {
 
-    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << (bin_checker.dduSourceID()&0xFF) << " First event");
+    LOG4CPLUS_DEBUG(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << (bin_checker.dduSourceID()&0xFF) << " First event");
     dduID = bin_checker.dduSourceID()&0xFF;
     dduL1A[dduID]=0;
     DDUstats[dduID].evt_cntr=0;
@@ -128,11 +128,11 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   currL1A=(int)(dduData.header().lvl1num());
   if (DDUstats[dduID].evt_cntr ==1) {
     DDUstats[dduID].first_l1a = currL1A;
-    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
+    LOG4CPLUS_DEBUG(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
 	      << " First L1A:" << DDUstats[dduID].first_l1a);
   } else if (DDUstats[dduID].first_l1a==-1) {
     DDUstats[dduID].first_l1a = currL1A-DDUstats[dduID].evt_cntr+1;
-    LOG4CPLUS_INFO(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
+    LOG4CPLUS_DEBUG(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
 	      << " First L1A :" << DDUstats[dduID].first_l1a << " after " 
 	      << currL1A-DDUstats[dduID].evt_cntr << " bad events");
   }
@@ -159,8 +159,10 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   // TODO: automatic detection of LTC L1A bug
   //  int ltc_bug=1;
   if ((DDUstats[dduID].evt_cntr == 8) && (DDUstats[dduID].empty_evt_cntr==0)) {
-    LOG4CPLUS_INFO(logger, "No LTC/TTC double L1A bug in data");
+    LOG4CPLUS_DEBUG(logger, "No LTC/TTC double L1A bug in data");
     ltc_bug=1;
+  } else {
+    LOG4CPLUS_DEBUG(logger, "Found LTC/TTC double L1A bug in data");
   }
 
   int dacSwitch=25*ltc_bug;
@@ -440,7 +442,6 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 
 void Test_CFEB03::finishCSC(std::string cscID) 
 {
-  LOG4CPLUS_INFO(logger, "Finalize " << testID << " analysis for " << cscID);
   /* 
      if (nCSCEvents[cscID] < nExpectedEvents/2) {
      std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
