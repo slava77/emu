@@ -110,7 +110,7 @@ class Switch
 
 // switch configure commands
    void ResetSwitch(std::string switchTelnet);
-   void BackupSwitch(std::string backupScript);
+   void BackupSwitch(std::string switchTelnet, std::string BackupDir);
    void ResetCounters(int swtch,int prt, std::string switchTelnet);
    void CLRcounters(std::string switchTelnet);
 
