@@ -217,23 +217,28 @@ foreach my $run ( sort keys %runs_todo ) {
 #print "Can't process $run. Trying again\n";
 		}
 		#die "Can't run"  if system("ssh -2 $DQMHOST 'rm $SCRATCH/tf_scratch/*.raw' && mkdir -p $SCRATCH && scp -r -2 $DQMHOST:$SCRATCH/tf_scratch/ $SCRATCH && cat $SCRATCH/tf_scratch/$dirname/*.cadaver | awk 'BEGIN{print \"lcd $SCRATCH/tf_scratch/\\n\"} {print \$0}' | $WEB >> cron_job_tf.log && cp $SCRATCH/tf_scratch/tree_runs.js ./ && echo -e \"lcd $SCRATCH/tf_scratch/\ncd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $WEB >> cron_job_tf.log");
-		die "Can't run"  if system("ssh -2 $DQMHOST 'rm $SCRATCH/tf_scratch/*.raw' && mkdir -p $SCRATCH && scp -r -2 $DQMHOST:$SCRATCH/tf_scratch/ $SCRATCH && cat $SCRATCH/tf_scratch/$dirname/*.cadaver | awk 'BEGIN{print \"lcd $SCRATCH/tf_scratch/\\n\"} {print \$0}' >> cron_job_tf.log");
+		die "Can't run"  if system("ssh -2 $DQMHOST 'rm $SCRATCH/tf_scratch/*.raw' && mkdir -p $SCRATCH && scp -r -2 $DQMHOST:$SCRATCH/tf_scratch/ $SCRATCH && cat $SCRATCH/tf_scratch/$dirname/*.cadaver | awk 'BEGIN{print \"lcd $SCRATCH/tf_scratch/\\n\"} {print \$0}' >> /dev/null");
 
-		die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nget tree_runs.js tree_runs.js\n\" | $WEB >> cron_job_tf_quick.log");
+		die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nget tree_runs.js tree_runs.js\n\" | $WEB >> cron_job_tf.log");
 		open(RUNS,"< tree_runs.js") or die "Can't read tree_runs.js";
 		my @tree_runs = <RUNS>;
 		close RUNS;
-		open(RUNS,"< $SCRATCH/tf_quick/tree_runs.js") or die "Can't read $SCRATCH/tf_quick/tree_runs.js";
+		open(RUNS,"< $SCRATCH/tf_scratch/tree_runs.js") or die "Can't read $SCRATCH/tf_scratch/tree_runs.js";
 		my @processed_runs = <RUNS>;
 		close RUNS;
 		open(RUNS,"> tree_runs.js") or die "Can't write to tree_runs.js";
 		print RUNS shift @tree_runs;
-		print RUNS $processed_runs[1].",";
-		foreach my $entry ( @tree_runs ){ print RUNS $entry; }
+		my $new_run = $processed_runs[1];
+		$new_run =~ s/\n/,\n/g;
+		print RUNS $new_run; 
+		foreach my $entry ( @tree_runs ){
+			next if( $entry =~ $windows_name );
+			print RUNS $entry;
+		}
 		close RUNS;
-		die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $WEB >> cron_job_tf_quick.log");
+		die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $WEB >> cron_job_tf.log");
 
-		die "Can't clean up"     if system("rm -rf $SCRATCH && ssh -2 $DQMHOST \"cp $SCRATCH/tf_scratch/tree_runs.js ./ && cd $SCRATCH/tf_scratch/ && find . -name '*.log' -exec gzip {} \\; && find . -name '*.log.gz' -exec cp {} $LOGS \\; && find . -name '*.root' -exec cp {} $LOGS/ \\; && repeat=0 && while [ \"`cat $SCRATCH/tf_scratch/report.txt | awk -f ~/data/mask.awk | ~/data/client lxplus201.cern.ch:20000 | grep 'Connect'`\" != \"Connect\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done && cd ../ && rm -rf ./tf_scratch\"");
+		die "Can't clean up"     if system("ssh -2 $DQMHOST \"cd $SCRATCH/tf_scratch/ && find . -name '*.log' -exec gzip {} \\; && find . -name '*.log.gz' -exec cp {} $LOGS \\; && find . -name '*.root' -exec cp {} $LOGS/ \\; && repeat=0 && while [ \"`cat $SCRATCH/tf_scratch/report.txt | awk -f ~/data/mask.awk | ~/data/client lxplus210.cern.ch:20000 | grep 'Connect'`\" != \"Connect\" ] && [ \$repeat -le 5 ] ; do repeat=`expr \$repeat + 1`; sleep 60 ; done && cd ../ && rm -rf ./tf_scratch\" && rm -rf $SCRATCH");
 
 		open(RUNS,"< tree_runs.js") or die "Can't read tree_runs.js";
 		@runs_done = <RUNS>;
