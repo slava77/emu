@@ -10,6 +10,7 @@ Test_CFEB03::Test_CFEB03(std::string dfile): Test_Generic(dfile) {
   binCheckMask=0x1FFB7BF6;
   ltc_bug=2;
 
+  logger = Logger::getInstance(testID);
   
   for (int i=0; i<64; i++) 
     It[i] = conv.elec(i*6.25, 50.);

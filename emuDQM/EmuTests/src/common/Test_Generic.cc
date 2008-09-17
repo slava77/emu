@@ -2,7 +2,6 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
-void fillCrateMap(CSCCrateMap* mapobj);
 
 time_sample Test_Generic::CalculateCorrectedPulseAmplitude(pulse_fit& fit)
 {
@@ -42,7 +41,7 @@ int Test_Generic::getNumStrips(std::string cscID)
   else return 80;
 }
 
-Test_Generic::Test_Generic(std::string dfile): dataFile(dfile) {
+Test_Generic::Test_Generic(std::string dfile): dataFile(dfile), logger(Logger::getInstance("Generic")) {
   binCheckMask=0xFFFFFFFF;
   cratemap = new CSCCrateMap();
   fillCrateMap(cratemap);
@@ -101,9 +100,9 @@ std::map<std::string, int> getCSCTypeToBinMap()
 }
 
 
-void fillCrateMap(CSCCrateMap* mapobj)
+void Test_Generic::fillCrateMap(CSCCrateMap* mapobj)
 {
-  std::cout << "Filling CSCCrateMap" << std::endl;
+  LOG4CPLUS_INFO(logger, "Filling CSCCrateMap");
   cscmap1 *map = new cscmap1 ();
   CSCMapItem::MapItem item;
 

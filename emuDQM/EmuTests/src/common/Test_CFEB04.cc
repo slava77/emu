@@ -8,6 +8,9 @@ Test_CFEB04::Test_CFEB04(std::string dfile): Test_Generic(dfile) {
   dduID=0;
   binCheckMask=0x1FFB7BF6;
   ltc_bug=2;
+
+  logger = Logger::getInstance(testID);
+
 }
 
 
