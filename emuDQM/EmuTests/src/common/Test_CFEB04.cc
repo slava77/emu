@@ -44,7 +44,7 @@ void Test_CFEB04::initCSC(std::string cscID) {
   }
 
   for (int i=0; i<TEST_DATA2D_NLAYERS; i++)
-        for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
+    for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
 
   // R01 - Gain slope A
   cscdata["R01"]=cfebdata;
@@ -318,6 +318,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
     TH2F* v05 = reinterpret_cast<TH2F*>(cschistos["V05"]);
     TH2F* v06 = reinterpret_cast<TH2F*>(cschistos["V06"]);
 
+    ResultsCodes& rcodes = rescodes[cscID];
 
     CSCtoHWmap::iterator itr = cscmap.find(cscID);
 
@@ -374,6 +375,9 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	      val.cnt = cnt;
 
 	      if (v01) { v01->Fill(dac,cnt);}
+	      if (!fValid) {
+		rcodes["V01"] = 4;
+	      }
 
 	      if (cnt>0 && fValid) {
 
@@ -506,28 +510,28 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	std::string path = rpath+"/"+cscID+"/";
 
 
-	if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
-	  // == Save results for database transfer of gain slopes, intercepts, non-linearity and normalized gains
-	  std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
+	//	if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
+	// == Save results for database transfer of gain slopes, intercepts, non-linearity and normalized gains
+	std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
 
-	  for (int layer=0; layer<NLAYERS; layer++) {
-	    for (int strip=0; strip<strips_per_layer; strip++) {
-	      res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-		      << r01.content[layer][strip]  << "  " 
-		/* << r02.content[layer][strip] << "  " */
-		      << r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
-	    }
+	for (int layer=0; layer<NLAYERS; layer++) {
+	  for (int strip=0; strip<strips_per_layer; strip++) {
+	    res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+		    << r01.content[layer][strip]  << "  " 
+	      /* << r02.content[layer][strip] << "  " */
+		    << r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
 	  }
-	  res_out.close();
 	}
-
-
-      } else {
-	std::cout << cscID << ": Invalid" << std::endl;
+	res_out.close();
       }
+
+
+    } else {
+      std::cout << cscID << ": Invalid" << std::endl;
+    }
 	
 
-    }
+    //  }
 
   }
 }

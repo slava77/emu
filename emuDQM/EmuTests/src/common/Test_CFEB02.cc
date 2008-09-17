@@ -35,7 +35,7 @@ void Test_CFEB02::initCSC(std::string cscID) {
   }
 
   for (int i=0; i<TEST_DATA2D_NLAYERS; i++)
-        for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
+    for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
 
 
   // mv0 - initial pedestals
@@ -301,6 +301,8 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 	      }
 	    }
 	    if (fEventValid) {
+	      double Q12=0, Q345=0, Q3=0, Q4=0, Q5=0, Q6=0, Q7=0;
+	      /*
 	      double Q12=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts 
 			  + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
 	      double Q345=((cfebData->timeSlice(2))->timeSample(layer,strip)->adcCounts 
@@ -311,6 +313,56 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 	      double Q5 = (cfebData->timeSlice(4))->timeSample(layer,strip)->adcCounts;
 	      double Q6 = (cfebData->timeSlice(5))->timeSample(layer,strip)->adcCounts;
 	      double Q7 = (cfebData->timeSlice(6))->timeSample(layer,strip)->adcCounts;
+	      */
+
+
+	      for (int itime=0;itime<nTimeSamples;itime++){
+		CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
+		int Qi = (int) ((timeSample->adcCounts)&0xFFF);
+
+		switch (itime) {
+		case 0: Q12 = Qi; break;
+		case 1: Q12 += Qi; Q12 /= 2.; break;
+		case 2: Q345 = Qi; Q3 = Qi; break;
+		case 3: Q345 += Qi; Q4 = Qi; break;
+		case 4: Q345 += Qi; Q5 = Qi; Q345 /= 3.; break;		    
+		case 5: Q6 = Qi; break;
+		case 6: Q7 = Qi; break;
+		}
+
+
+		CSCCFEBSCAControllerWord scaControllerWord = (cfebData->timeSlice(itime))->scaControllerWord(layer);
+		int scaBlock  = (int)(scaControllerWord.sca_blk);
+		int trigTime = (int)(scaControllerWord.trig_time);
+		int lctPhase = (int)(scaControllerWord.lct_phase);
+
+		for(int pos=0;pos<8;pos++){if(trigTime==(1<<pos)) lctPhase=pos;}
+
+		if(trigTime!=0){
+		  cap = lctPhase+itime;
+		  blk_strt =itime;
+		}else{
+		  cap=itime-blk_strt-1;
+		}
+		
+		int scaNumber=8*conv_blk[scaBlock]+cap;
+
+		// int scaNumber = 8*conv_blk[scaBlock]+(offset+itime)%8;
+
+		if (scaNumber >= 96) {
+		  std::cout << "Invalid SCA cell" << std::endl;
+		}
+
+		scadata.content[layer-1][icfeb*16+strip-1][scaNumber].value += Qi;
+		scadata.content[layer-1][icfeb*16+strip-1][scaNumber].cnt++;
+		v03->Fill(scaNumber);
+		v04->Fill(conv_blk[scaBlock]);
+
+		r01.content[layer-1][icfeb*16+strip-1] += Qi;
+		r01.cnts[layer-1][icfeb*16+strip-1]++;
+		r02.content[layer-1][icfeb*16+strip-1] += pow(Qi,2);
+		r02.cnts[layer-1][icfeb*16+strip-1]++;
+	      }
 
 	      _q12.content[layer-1][icfeb*16+strip-1] += Q12;
 	      _q12.cnts[layer-1][icfeb*16+strip-1]++;
@@ -393,58 +445,7 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 	      r23.content[layer-1][icfeb*16+strip-1] += Q7*Q7;
               r23.cnts[layer-1][icfeb*16+strip-1]++;
 
-	      /*
-		offset = 0;
-		// == Find offset in sca block
-		for (int itime=0;itime<nTimeSamples-1;itime++){
-		if ( (cfebData->timeSlice(itime+1))->scaControllerWord(layer).sca_blk != 
-		(cfebData->timeSlice(itime))->scaControllerWord(layer).sca_blk )  
-		{
-		std::cout << Form("%d:%d block %d change in sample %d", 
-		layer, icfeb*16+strip, 
-		(int)((cfebData->timeSlice(itime))->scaControllerWord(layer).sca_blk), itime+1 ) << std::endl;
-		offset = nTimeSamples-itime-1;
-		break;
-		}
-		}
-	      */
-	      for (int itime=0;itime<nTimeSamples;itime++){
-		CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
-		int Qi = (int) ((timeSample->adcCounts)&0xFFF);
 
-
-		CSCCFEBSCAControllerWord scaControllerWord = (cfebData->timeSlice(itime))->scaControllerWord(layer);
-		int scaBlock  = (int)(scaControllerWord.sca_blk);
-		int trigTime = (int)(scaControllerWord.trig_time);
-		int lctPhase = (int)(scaControllerWord.lct_phase);
-
-		for(int pos=0;pos<8;pos++){if(trigTime==(1<<pos)) lctPhase=pos;}
-
-		if(trigTime!=0){
-		  cap = lctPhase+itime;
-		  blk_strt =itime;
-		}else{
-		  cap=itime-blk_strt-1;
-		}
-		
-		int scaNumber=8*conv_blk[scaBlock]+cap;
-
-		// int scaNumber = 8*conv_blk[scaBlock]+(offset+itime)%8;
-
-		if (scaNumber >= 96) {
-		  std::cout << "Invalid SCA cell" << std::endl;
-		}
-
-		scadata.content[layer-1][icfeb*16+strip-1][scaNumber].value += Qi;
-		scadata.content[layer-1][icfeb*16+strip-1][scaNumber].cnt++;
-		v03->Fill(scaNumber);
-		v04->Fill(conv_blk[scaBlock]);
-
-		r01.content[layer-1][icfeb*16+strip-1] += Qi;
-		r01.cnts[layer-1][icfeb*16+strip-1]++;
-		r02.content[layer-1][icfeb*16+strip-1] += pow(Qi,2);
-		r02.cnts[layer-1][icfeb*16+strip-1]++;
-	      }
 	    }
 	  }
 	}
@@ -528,6 +529,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
     TestData2D& r22 = cscdata["R22"];
     TestData2D& r23 = cscdata["R23"];
 
+    // ResultsCodes& rcodes = rescodes[cscID];
 
     CFEBSCAData& scadata = sdata[cscID]; 
  
@@ -709,8 +711,9 @@ void Test_CFEB02::finishCSC(std::string cscID)
       std::string rpath = "Test_"+testID+"/"+outDir;
       std::string path = rpath+"/"+cscID+"/";
      
-
-      std::ofstream res_out((path+cscID+"_CFEB02_01.results").c_str());
+      std::ofstream res_out;
+      /*
+      res_out.open((path+cscID+"_CFEB02_01.results").c_str());
       res_out << "Layer Strip Pedestal Noise SCA_rms P12_Ped P12_rms P345_Ped P345_rms" << std::endl;
       for (int i=0; i<NLAYERS; i++) {
 	for (int j=0; j<strips_per_layer; j++) {
@@ -741,9 +744,10 @@ void Test_CFEB02::finishCSC(std::string cscID)
 	}
       }
       res_out.close();
+      */
 
-
-      if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
+      
+      //      if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
 
 	// == Save results for database transfer Pedestals and RMS
 	// i - layer, j - strip
@@ -773,7 +777,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
         }
         res_out.close();
 
-      }
+	//      }
 
     }
 

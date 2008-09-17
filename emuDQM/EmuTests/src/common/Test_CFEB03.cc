@@ -22,6 +22,7 @@ void Test_CFEB03::initCSC(std::string cscID) {
   XtalkData xtalkdata;
   xtalkdata.Nbins = getNumStrips(cscID);
   xtalkdata.Nlayers = 6;
+  
   memset(xtalkdata.content, 0, sizeof (xtalkdata.content));
   
   xdata[cscID] = xtalkdata;
@@ -41,8 +42,7 @@ void Test_CFEB03::initCSC(std::string cscID) {
 
   htree[dduID][cscID]=tstep;
 
-  
-  
+    
   // Channels mask
   if (tmasks.find(cscID) != tmasks.end()) {
     cscdata["_MASK"]=tmasks[cscID];
@@ -51,7 +51,7 @@ void Test_CFEB03::initCSC(std::string cscID) {
   }
 
   for (int i=0; i<TEST_DATA2D_NLAYERS; i++) 
-	for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
+    for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
 
   // R01 - Pulse Maximum Amplitude
   cscdata["R01"]=cfebdata;
@@ -85,7 +85,6 @@ void Test_CFEB03::initCSC(std::string cscID) {
 
   // R11 - Rright(t) RMS
   cscdata["R11"]=cfebdata;
-
 
   tdata[cscID] = cscdata;;
 
@@ -181,6 +180,8 @@ void Test_CFEB03::analyze(const char * data, int32_t dataSize, uint32_t errorSta
       itr->second.evt_cnt = 0;
     }
   }
+  if (chamberDatas.size())
+    std::cout << "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID <<  " strip: " << DDUstats[dduID].strip << " dac: "  << DDUstats[dduID].dac << std::endl;
 
   for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin();
       chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
@@ -217,9 +218,9 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 
   // == Define aliases to access chamber specific data
 
-  TestData& cscdata = tdata[cscID];
+  // TestData& cscdata = tdata[cscID];
 
-  TestData2D& r04 = cscdata["R04"];
+  //  TestData2D& r04 = cscdata["R04"];
   
   MonHistos& cschistos = mhistos[cscID];
 
@@ -257,138 +258,177 @@ void Test_CFEB03::analyzeCSC(const CSCEventData& data)
 
   l1a_cntrs[cscID]=dmbHeader->l1a(); 
 
+
   // == Check if CFEB Data Available 
   if (dmbHeader->cfebAvailable()){
     for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
+
+      // Check if CFEB has data and skip it if it doesn't 
       if (!cfebData || !cfebData->check()) {
 	std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " No CFEB" << icfeb+1 << " Data" << std::endl;
 	continue;
       }
       
-      for (unsigned int layer = 1; layer <= 6; layer++){ // loop over layers in a given chamber
-	int nTimeSamples= cfebData->nTimeSamples();
-	double Qmax=xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
+      bool fFirstStrip = (curr_strip ==1 && icfeb==0)? true: false;
+      bool fLastStrip = (curr_strip ==16 && icfeb==(getNumStrips(cscID)/16-1))? true: false;
+      if (((cscID.find("ME+1.1") == 0) || (cscID.find("ME-1.1") ==0 )) && ((curr_strip ==1 && icfeb==4)))
+	fFirstStrip = true;
 
+      for (unsigned int layer = 1; layer <= 6; layer++){ // loop over layers in a given chamber
+
+	int nTimeSamples= cfebData->nTimeSamples(); // Get number of time samples
+	//	double Qmax=xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
+
+	// Do CRC check of first two timesamples for pedestal calculation 
 	if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC()) {
-	  std::cout << cscID << " CRC check failed for time sample 1 and 2" << std::endl;
+	  std::cout << cscID << " CRC check failed for central strip time sample 1 and 2" << std::endl;
 	  continue;
 	}
+
+	// Calculate Central strip Pedestals
         double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
 		    + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
 
+	// Loop over Central strip timesamples
+	for (int itime=0;itime<nTimeSamples;itime++){ 
+
+          if (cfebData->timeSlice(itime)->checkCRC()) 
+	    {
+
+	      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
+	      int Qi = (int) ((timeSample->adcCounts)&0xFFF);
+	      xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].cnt++;
+	      xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].mv += Qi-Q12;
+
+	      /*
+		if (Qi-Q12>Qmax) {
+		Qmax=Qi-Q12;
+		if (curr_dac==TIME_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
+		xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
+		}
+	      */
+
+	      if (v02) { v02->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi-Q12);}
+
+	    } else {
+	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " CRC failed strip " << icfeb << ":" << layer << ":" << curr_strip 
+			<< ", time step" << curr_dac << ", time sample " << itime << std::endl;
+	    }
+
+        }
+	
+	// Fill left Strip
+
 	double Q12_left=0;
-	double Q12_right=0;
-	if ((icfeb*16+curr_strip-1) >= 1) {
+	int Qi_left = 0;
+	
+	if (!fFirstStrip) { // Not the first strip 
 	  int cfeb = icfeb;	
 	  int strip = curr_strip -1;
 	  if (strip == 0) { cfeb -= 1; strip=16;}
+
 	  CSCCFEBData *  cfebData = data.cfebData(cfeb);
-	  if (!cfebData || !cfebData->check()) {
-	    std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " No CFEB" << cfeb+1 << " Data for right strip" << strip << std::endl; 
-	    continue;
-	  }
-	  if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC()) {
-	    std::cout << cscID << " CRC check failed for time sample 1 and 2" << std::endl;
-	    continue;
-	  }
 
-	  Q12_left=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts
-                    + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
-	}
+	  if (cfebData && cfebData->check()) 
+	    {
+	      
+	      if (cfebData->timeSlice(0)->checkCRC() &&  cfebData->timeSlice(1)->checkCRC()) 
+		{ 
+		  // Calculate Left Strip Pedestals
+		  Q12_left=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts
+			    + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
+		  
+		  // Loop over Left Strip timesamples
+		  for (int itime=0;itime<nTimeSamples;itime++){
+		    if (cfebData->timeSlice(itime)->checkCRC())
+		      {
 
-	if ((icfeb*16+curr_strip-1) < getNumStrips(cscID)-1 ) {
+			CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
+
+			Qi_left = (int) ((timeSample->adcCounts)&0xFFF);
+
+			if (v03) { v03->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi_left-Q12_left);}
+
+			xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].left += Qi_left-Q12_left;
+			xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].left_cnt++;
+
+		      } else {
+			std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID
+				  << " CRC failed, left strip " << icfeb << ":" << layer << ":" << curr_strip
+				  << ", time step" << curr_dac << ", time sample " << itime << std::endl;
+		      }
+
+		  }
+
+		} else {
+		  std::cout << cscID << " CRC check failed for left strip time sample 1 and 2" << std::endl;
+		}
+
+	    } else {
+	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " strip " << icfeb+1 << ":" << layer << ":" << curr_strip
+			<< " - No data for left strip " <<  cfeb+1 << ":" << strip << std::endl;
+	    }
+
+	} // Left Strip
+
+
+	// Fill Right Strip
+
+	double Q12_right=0;
+        int Qi_right = 0;
+
+	if (!fLastStrip) { // Not the last strip
 	  int cfeb = icfeb;
 	  int strip = curr_strip+1;
 	  if (strip == 17) { cfeb += 1; strip =1;}
 	  CSCCFEBData * cfebData =  data.cfebData(cfeb);
-	  if (!cfebData || !cfebData->check()) {
-	    std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " No CFEB" << cfeb+1 << " Data for left strip" << strip << std::endl;
-	    continue;
-	  }
-	  if (!cfebData->timeSlice(0)->checkCRC() || !cfebData->timeSlice(1)->checkCRC()) {
-	    std::cout << cscID << " CRC check failed for time sample 1 and 2" << std::endl;
-	    continue;
-	  }
-	  Q12_right=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts
-		     + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
-        }
+	  if (cfebData && cfebData->check()) 
+	    {
+
+	      if (cfebData->timeSlice(0)->checkCRC() && cfebData->timeSlice(1)->checkCRC()) 
+		{
+
+		  // Calculate Right Strip Pedestals
+		  Q12_right=((cfebData->timeSlice(0))->timeSample(layer,strip)->adcCounts
+			     + (cfebData->timeSlice(1))->timeSample(layer,strip)->adcCounts)/2.;
+
+		  // Loop over Right strip timesamples
+		  for (int itime=0;itime<nTimeSamples;itime++){
+
+		    if (cfebData->timeSlice(itime)->checkCRC())
+		      {
+
+			CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
+
+			Qi_right = (int) ((timeSample->adcCounts)&0xFFF);
+
+			if (v03) { v03->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi_right-Q12_right);}
+
+			xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].right += Qi_right-Q12_right;
+
+			xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].right_cnt++;
+		      } else {
+			std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID
+				  << " CRC failed, right strip " << icfeb << ":" << layer << ":" << curr_strip
+				  << ", time step" << curr_dac << ", time sample " << itime << std::endl;
+		      }
+
+		  }
+		} else {
+		  std::cout << cscID << " CRC check failed for time right strip sample 1 and 2" << std::endl;
+		}
+	
+	    } else {
+	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " strip " << icfeb+1 << ":" << layer << ":" << curr_strip
+			<< " - No data for right strip " <<  cfeb+1 << ":" << strip << std::endl;
+	    }
+	} // Right Strip
+
         
+      } // Layers
 
-	for (int itime=0;itime<nTimeSamples;itime++){ // loop over time samples (8 or 16)
-
-	  if (!(cfebData->timeSlice(itime)->checkCRC())) {
-	    std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " CRC failed, cfeb" << icfeb << ", layer" << layer << ", strip" << curr_strip << ", time step" << curr_dac << ", time sample " << itime << std::endl;
-	    // continue; 
-	  }
-	  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);	  
-          int Qi = (int) ((timeSample->adcCounts)&0xFFF);
-	  int Qi_left = 0;
-	  int Qi_right = 0;
-
-	  if ((icfeb*16+curr_strip-1) >= 1) {
-	    int cfeb = icfeb;
-	    int strip = curr_strip -1;
-	    if (strip == 0) { cfeb -= 1; strip=16;}
-	    CSCCFEBData *  cfebData = data.cfebData(cfeb);
-
-	    if (!cfebData || !cfebData->check()) {
-	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " No CFEB" << cfeb+1 << " Data for left strip" << strip << std::endl;
-	      continue;
-	    }
-	    if (!cfebData->timeSlice(itime)->checkCRC()){
-	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID 
-			<< " CRC failed, cfeb" << icfeb << ", layer" << layer << ", strip" << curr_strip 
-			<< ", time step" << curr_dac << ", time sample " << itime << std::endl;
-	      continue;
-	    }
-	    CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
-	    Qi_left = (int) ((timeSample->adcCounts)&0xFFF);
-	    if (v03) { v03->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi_left-Q12_left);}
-
-          }
-
-	  if ((icfeb*16+curr_strip-1) < getNumStrips(cscID)-1 ) {
-	    int cfeb = icfeb;
-	    int strip = curr_strip+1;
-	    if (strip == 17) { cfeb += 1; strip =1;}
-	    CSCCFEBData * cfebData =  data.cfebData(cfeb);
-	    if (!cfebData || !cfebData->check()) {
-	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID << " No CFEB" << cfeb+1 << " Data for right strip" << strip << std::endl;
-	      continue;
-	    }
-	    if (!cfebData->timeSlice(itime)->checkCRC()){
-	      std::cout << "Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID 
-			<< " CRC failed, cfeb" << icfeb << ", layer" << layer << ", strip" << curr_strip 
-			<< ", time step" << curr_dac << ", time sample " << itime << std::endl;
-	      continue;
-	    }
-
-	    CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
-	    Qi_right = (int) ((timeSample->adcCounts)&0xFFF);
-	    if (v03) { v03->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi_right-Q12_right);}
-
-          }
-
-	  xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].cnt++;
-	  xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].mv += Qi-Q12;
-	  xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].left += Qi_left-Q12_left;
-	  xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][itime].right += Qi_right-Q12_right;
-	  /*	
-	    if (Qi-Q12>Qmax) {
-            Qmax=Qi-Q12;
-            if (curr_dac==TIME_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
-            xtalkdata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
-	    }
-	  */
-	  if (v02) { v02->Fill(itime*50+6.25*(TIME_STEPS-curr_dac), Qi-Q12);}
-
-
-        }
-
-      } 
-    }
-
+    } // CFEBs
 
   } // CFEB data available
   
@@ -406,6 +446,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
   */
   cscTestData::iterator td_itr =  tdata.find(cscID);
   if (td_itr != tdata.end()) {
+
   
     TestData& cscdata= td_itr->second;
 
@@ -433,6 +474,9 @@ void Test_CFEB03::finishCSC(std::string cscID)
     TH2F* v08 = reinterpret_cast<TH2F*>(cschistos["V08"]);
     TH2F* v09 = reinterpret_cast<TH2F*>(cschistos["V09"]);
     TH2F* v10 = reinterpret_cast<TH2F*>(cschistos["V10"]);
+
+    ResultsCodes& rcodes = rescodes[cscID];
+
     /*
       std::ofstream res_out;
 
@@ -459,9 +503,12 @@ void Test_CFEB03::finishCSC(std::string cscID)
 
       //      bool fValid=true;
 
-      for (unsigned int layer = 1; layer <= 6; layer++){
+      for (unsigned int layer = 1; layer <= 6; layer++) {
+
 	for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
+ 
 	  for(int strip = 1; strip <=16  ; ++strip) { // loop over cfeb strip	
+
 	    double max=0;
             double peak_time=0;
 	    double max_left=0;
@@ -469,6 +516,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 	    //	    time_step& val= xtalkdata.content[0][layer-1][icfeb*16+strip-1][NSAMPLES-1];
 	    int cnt=0;	
 	    bool fValid=true;
+
 	    for (int dac=0; dac<TIME_STEPS; dac++) { 
   	      for (int itime=0; itime < NSAMPLES-1; itime++) {
 
@@ -479,10 +527,12 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		  std::cout << cscID << ":" << layer << ":" << (icfeb*16+strip) 
 			    << " Error> time step=" << dac << ", sample=" << itime << ", cnt="<< cval.cnt << std::endl;
 		  fValid=false;
+
 		} else {
+
 		  cval.mv /=cval.cnt;
-		  cval.left /=cval.cnt;
-		  cval.right /=cval.cnt;
+		  if (cval.left_cnt) cval.left /=cval.left_cnt;
+		  if (cval.right_cnt) cval.right /=cval.right_cnt;
 
 		  if ((cval.mv > max) && (dac<7)) {
 		    peak_time = itime*50. + (TIME_STEPS-dac)*6.25;
@@ -499,8 +549,13 @@ void Test_CFEB03::finishCSC(std::string cscID)
                   }
 
 		}
+
 	      }
+
               if (v01) { v01->Fill(dac,cnt);}
+	      if (!fValid) {
+		rcodes["V01"] = 4;
+	      }
 
 	    }
 
@@ -586,9 +641,9 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		int itime = i/8;
 		int step = 7-i%8;
 		time_step& cval = xtalkdata.content[step][layer-1][icfeb*16+strip-1][itime];
-		Qc[i]=cval.mv;
-		Ql[i]=cval.left;
-		Qr[i]=cval.right;
+		Qc[i]=(int)cval.mv;
+		Ql[i]=(int)cval.left;
+		Qr[i]=(int)cval.right;
 		Qcc[i]=0;
 		Qlc[i]=0;
 		Qrc[i]=0;
@@ -633,7 +688,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		TLinearFitter* lf = new TLinearFitter(1);
 		lf->SetFormula("1 ++ x");
 	
-		for (int i=0; i< arrL.size(); i++) {
+		for (unsigned i=0; i< arrL.size(); i++) {
 		  lf->AddPoint(&(arrL[i].first), arrL[i].second, 1.);
 		}	
 
@@ -659,13 +714,13 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		r06.content[layer-1][icfeb*16+strip-1]=0;
                 r07.content[layer-1][icfeb*16+strip-1]=0;
                 r08.content[layer-1][icfeb*16+strip-1]=0;
-		}
+	      }
 
 	      if (!fLastStrip) {
 		TLinearFitter* lf = new TLinearFitter(1);
 		lf->SetFormula("1 ++ x");
 
-		for (int i=0; i< arrR.size(); i++) {
+		for (unsigned i=0; i< arrR.size(); i++) {
 		  lf->AddPoint(&(arrR[i].first), arrR[i].second, 1.);
 		}
 
@@ -690,7 +745,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		r09.content[layer-1][icfeb*16+strip-1]=0;
                 r10.content[layer-1][icfeb*16+strip-1]=0;
                 r11.content[layer-1][icfeb*16+strip-1]=0;
-		}
+	      }
 
 
 	      /*
@@ -725,32 +780,32 @@ void Test_CFEB03::finishCSC(std::string cscID)
       std::string rpath = "Test_"+testID+"/"+outDir;
       std::string path = rpath+"/"+cscID+"/";
 
-//      if (checkResults(cscID)) { // Check if 20% of channels with left and right crosstalks are bad
-	// == Save results for database transfer
-	std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
+      //      if (checkResults(cscID)) { // Check if 20% of channels with left and right crosstalks are bad
+      // == Save results for database transfer
+      std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
 
-	for (int layer=0; layer<NLAYERS; layer++) {
-	  for (int strip=0; strip<strips_per_layer; strip++) {
-	    res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-		    << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << "  " <<  r03.content[layer][strip] 
-		    << std::setprecision(3) << "  " << r04.content[layer][strip] << "  " << r05.content[layer][strip] 
-			<< "  " << (int)(mask.content[layer][strip]) << std::endl;
-	  }
+      for (int layer=0; layer<NLAYERS; layer++) {
+	for (int strip=0; strip<strips_per_layer; strip++) {
+	  res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+		  << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << "  " <<  r03.content[layer][strip] 
+		  << std::setprecision(3) << "  " << r04.content[layer][strip] << "  " << r05.content[layer][strip] 
+		  << "  " << (int)(mask.content[layer][strip]) << std::endl;
 	}
-	res_out.close();
+      }
+      res_out.close();
 
-	res_out.open((path+cscID+"_"+testID+"_DB_Xtalk.dat").c_str());
+      res_out.open((path+cscID+"_"+testID+"_DB_Xtalk.dat").c_str());
 
-        for (int layer=0; layer<NLAYERS; layer++) {
-          for (int strip=0; strip<strips_per_layer; strip++) {
-            res_out << std::fixed << std::setprecision(5) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-                    << r06.content[layer][strip]  << "  " << r07.content[layer][strip] << "  "  
-                    << r09.content[layer][strip] << "  " << r10.content[layer][strip] 
-			<< "  " << (int)(mask.content[layer][strip]) << std::endl;
-          }
-        }
-        res_out.close();
-//      }
+      for (int layer=0; layer<NLAYERS; layer++) {
+	for (int strip=0; strip<strips_per_layer; strip++) {
+	  res_out << std::fixed << std::setprecision(5) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+		  << r06.content[layer][strip]  << "  " << r07.content[layer][strip] << "  "  
+		  << r09.content[layer][strip] << "  " << r10.content[layer][strip] 
+		  << "  " << (int)(mask.content[layer][strip]) << std::endl;
+	}
+      }
+      res_out.close();
+      //      }
 
     } else {
       std::cout << cscID << ": Invalid" << std::endl;
