@@ -655,7 +655,11 @@ void Test_CFEB03::finishCSC(std::string cscID)
 
 		//	      lf->Clear();
 		delete lf;
-	      }
+	      } else { // Set Left crosstalk values to 0
+		r06.content[layer-1][icfeb*16+strip-1]=0;
+                r07.content[layer-1][icfeb*16+strip-1]=0;
+                r08.content[layer-1][icfeb*16+strip-1]=0;
+		}
 
 	      if (!fLastStrip) {
 		TLinearFitter* lf = new TLinearFitter(1);
@@ -682,7 +686,11 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		// printf("chisquare=%f\n", chisquare);
 
 		delete lf;
-	      }
+	      } else {  // Set Right crosstalk values to 0
+		r09.content[layer-1][icfeb*16+strip-1]=0;
+                r10.content[layer-1][icfeb*16+strip-1]=0;
+                r11.content[layer-1][icfeb*16+strip-1]=0;
+		}
 
 
 	      /*
