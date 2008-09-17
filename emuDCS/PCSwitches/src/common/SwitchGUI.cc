@@ -24,11 +24,9 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
 	xgi::bind(this,&SwitchGUI::ProblemsGUI,"ProblemsGUI");
 	init=0;
 
-	this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFileName_);
+	this->getApplicationInfoSpace()->fireItemAvailable("backupDirectory", &backupDir_);
 	this->getApplicationInfoSpace()->fireItemAvailable("switchTelnet", &switchTelnet_);
 	this->getApplicationInfoSpace()->fireItemAvailable("shutdownPort", &shutdownPort_);
-	this->getApplicationInfoSpace()->fireItemAvailable("backupScript", &backupScript_);
-	this->getApplicationInfoSpace()->fireItemAvailable("testScript", &testScript_);
 
 	S = new emu::pcsw::Switch();
 }
@@ -39,18 +37,22 @@ void SwitchGUI::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::excepti
 
 void SwitchGUI::MainPage(xgi::Input * in, xgi::Output * out ) {
 
+
+
 	// fill statistic
 	S->fill_pc_statistics();
 	S->fill_switch_statistics(switchTelnet_);
 	S->fill_switch_macs(switchTelnet_);
 	S->fill_ping(switchTelnet_);
-
 	if(init==0){
         	S->copy_stats_new2old();
         	init=1;
       	}
 
       	*out<<Header("VME Gigabit Switch Statistics",false);
+	*out << (std::string) switchTelnet_ << std::endl;
+	*out << (std::string) shutdownPort_ << std::endl;
+	*out << (std::string) backupDir_ << std::endl;
       	*out  << S->html_ping() << std::endl;
 
       	*out << cgicc::table();
@@ -113,7 +115,7 @@ void SwitchGUI::GotoMain(xgi::Input * in, xgi::Output * out ) throw (xgi::except
 
 void SwitchGUI::BackupSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
-      	S->BackupSwitch(backupScript_);
+      	S->BackupSwitch(switchTelnet_,backupDir_);
       	this->Default(in,out);
 }
 
@@ -142,7 +144,7 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 	cgicc::Cgicc cgi(in);
 
 	*out<<Header("VME Gigabit Switch Maintenance",false);
-
+	*out << "backupDir_= " <<(std::string) backupDir_ << std::endl;
 	*out << cgicc::table();
 	*out << cgicc::tr();
 	*out << cgicc::td();

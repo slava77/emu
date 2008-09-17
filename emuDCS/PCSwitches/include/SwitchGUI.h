@@ -79,11 +79,9 @@ class SwitchGUI: public xdaq::Application {
 	xdata::UnsignedLong switch_;
 	xdata::UnsignedLong prt_;
 	xdata::UnsignedLong slt_;
-	xdata::String xmlFileName_;
 	xdata::String switchTelnet_;
 	xdata::String shutdownPort_;
-	xdata::String backupScript_;
-	xdata::String testScript_;
+	xdata::String backupDir_;
 	std::ostringstream OutputSwitch;
 
 };
