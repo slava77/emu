@@ -27,7 +27,6 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
 	this->getApplicationInfoSpace()->fireItemAvailable("backupDirectory", &backupDir_);
 	this->getApplicationInfoSpace()->fireItemAvailable("switchTelnet", &switchTelnet_);
 	this->getApplicationInfoSpace()->fireItemAvailable("shutdownPort", &shutdownPort_);
-
 	S = new emu::pcsw::Switch();
 }
 
@@ -50,9 +49,9 @@ void SwitchGUI::MainPage(xgi::Input * in, xgi::Output * out ) {
       	}
 
       	*out<<Header("VME Gigabit Switch Statistics",false);
-	*out << (std::string) switchTelnet_ << std::endl;
-	*out << (std::string) shutdownPort_ << std::endl;
-	*out << (std::string) backupDir_ << std::endl;
+	*out << (std::string) switchTelnet_ << "<br>" << std::endl;
+	*out << (std::string) shutdownPort_ << "<br>" << std::endl;
+	*out << (std::string) backupDir_ << "<br>" << std::endl;
       	*out  << S->html_ping() << std::endl;
 
       	*out << cgicc::table();
