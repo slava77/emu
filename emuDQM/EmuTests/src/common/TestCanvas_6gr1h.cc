@@ -405,7 +405,7 @@ int TestCanvas_6gr1h::Fill (TestData2D& data, TestData2D& mask) {
 			fX[fNbin] = fNbin;
 			fY[fNbin] = data.content[fNlayer][fNbin];
 			
-			if (fY[fNbin] == -999.) continue;
+			// if (fY[fNbin] == -999.) continue;
 			
 			theRightHisto->Fill(fY[fNbin]);
 			
