@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.42 2008/09/19 16:53:52 paste Exp $
+* $Id: EmuFCrate.cc,v 3.43 2008/09/19 23:13:59 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.43  2008/09/19 23:13:59  paste
+* Fixed a small bug in disabling of error reporting, added missing file.
+*
 * Revision 3.42  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -545,19 +548,18 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		// find DDUs in each crate
 		std::vector<emu::fed::DDU *> myDdus = crateVector[i]->getDDUs();
 		std::vector<emu::fed::DCC *> myDccs = crateVector[i]->getDCCs();
+		
 		for(unsigned j =0; j < myDdus.size(); ++j){
-			if(myDdus[j]->slot()==28){
-				if (crateVector[i]->number() > 4) { // Track finder
-					LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Enable to Crate " << crateVector[i]->number());
-					myDdus[j]->writeFMMReg(0x0000);
-				} else {
-					LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Disable to Crate " << crateVector[i]->number());
-					//std::cout <<"   Setting FMM Error Disable for Crate " << crateVector[i]->number() << std::endl;
-					myDdus[j]->writeFMMReg(0xFED0+(count&0x000f));
-				}
+			if (crateVector[i]->number() > 4) { // Track finder
+				//LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Enable to Crate " << crateVector[i]->number());
+				myDdus[j]->writeFMMReg(0x0000);
+			} else {
+				//LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Disable to Crate " << crateVector[i]->number());
+				//std::cout <<"   Setting FMM Error Disable for Crate " << crateVector[i]->number() << std::endl;
+				myDdus[j]->writeFMMReg(0xFED0);
 			}
 		}
-
+		
 		for(unsigned j =0; j < myDdus.size(); ++j){
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "checking DDU configure status, Crate " << crateVector[i]->number() << " slot " << myDdus[j]->slot());
 			//std::cout << " EmuFCrate: Checking DDU configure status for Crate " << crateVector[i]->number() << " slot " << myDdus[j]->slot() << std::endl;
@@ -566,7 +568,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				int FMMReg = myDdus[j]->readFMMReg();
 				//int FMMReg = myDdus[j]->readFMMReg();
 				//if(RegRead!=(0xFED0+(count&0x000f)))std::cout << "    fmmreg broadcast check is wrong, got " << std::hex << RegRead << " should be FED0+" << count << std::dec << std::endl;
-				if (FMMReg!=(0xFED0+(count&0x000f))) {
+				if (FMMReg!=(0xFED0)) {
 					LOG4CPLUS_WARN(getApplicationLogger(), "fmmreg broadcast check is wrong, got " << std::hex << FMMReg << ", should be 0xFED" << count);
 				}
 
