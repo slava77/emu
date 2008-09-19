@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.cc,v 1.7 2008/09/07 22:25:36 paste Exp $
+* $Id: FEDCrate.cc,v 1.8 2008/09/19 16:53:52 paste Exp $
 *
 * $Log: FEDCrate.cc,v $
+* Revision 1.8  2008/09/19 16:53:52  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 1.7  2008/09/07 22:25:36  paste
 * Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
 *
@@ -24,10 +27,9 @@
 
 emu::fed::FEDCrate::FEDCrate(int myNumber, VMEController *myController):
 	number_(myNumber),
-	moduleVector_(31),
-	vmeController_(myController)
+	moduleVector_(31)
 {
-	// Does nothing
+	setController(myController); // Will be removed later.
 }
 
 

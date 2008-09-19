@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.47 2008/09/03 17:52:59 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.48 2008/09/19 16:53:52 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.48  2008/09/19 16:53:52  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.47  2008/09/03 17:52:59  paste
 * Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
 *
@@ -70,6 +73,8 @@
 #include "DCC.h"
 #include "VMEController.h"
 #include "JTAG_constants.h"
+
+#include "CAENVMElib.h"
 
 XDAQ_INSTANTIATOR_IMPL(EmuFCrateHyperDAQ)
 
@@ -219,6 +224,182 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ")";
 	*out << Header(sTitle.str(),false);
 
+	// Test new DCC communication here.
+	/* These work
+	std::clog << " @@@@@ Testing readTTCCommand @@@@@ " << std::endl;
+	unsigned long int test = myCrate->getDCCs()[0]->readTTCCommand();
+	std::clog << "readTTCCommand: " << test << std::endl;
+	std::clog << " @@@@@ Testing readTTCCommandAdvanced @@@@@ " << std::endl;
+	test = myCrate->getDCCs()[0]->readTTCCommandAdvanced();
+	std::clog << "readTTCCommandAdvanced: " << test << std::endl;
+
+	std::clog << " @@@@@ Testing readUserCode @@@@@ " << std::endl;
+	test = myCrate->getDCCs()[0]->inprom_userid();
+	std::clog << "readUserCode(INPROM): " << test << std::endl;
+	std::clog << " @@@@@ Testing readUserCodeAdvanced @@@@@ " << std::endl;
+	test = myCrate->getDCCs()[0]->readUserCodeAdvanced(emu::fed::INPROM);
+	std::clog << "readUserCodeAdvanced(INPROM): " << test << std::endl;
+
+	std::clog << " @@@@@ Testing setTTCCommand @@@@@ " << std::endl;
+	myCrate->getDCCs()[0]->setTTCCommand(0x34);
+	std::clog << " @@@@@ Testing writeTTCCommandAdvanced @@@@@ " << std::endl;
+	myCrate->getDCCs()[0]->writeTTCCommandAdvanced(0x34);
+	*/
+	
+	// I should test the eprom load here, but I need to be sure everything works.
+	// Get the svf file from http://www.physics.ohio-state.edu/~cms/firmwares/dcc3drx_v9_r3.svf
+	/*
+	std::clog << " @@@@@ Testing epromload @@@@@ " << std::endl;
+	myCrate->getDCCs()[0]->epromload("INPROM",emu::fed::INPROM,"/tmp/dcc3drx_v9_r3.svf",1);
+	std::clog << " @@@@@ Testing loadPROMAdvanced @@@@@ " << std::endl;
+	myCrate->getDCCs()[0]->loadPROMAdvanced(emu::fed::INPROM,"/tmp/dcc3drx_v9_r3.svf");
+	*/
+	/*
+	std::clog << " @@@@@ Testing readCSCStat @@@@@ " << std::endl;
+	unsigned long int test = myCrate->getDDUs()[0]->readCSCStat();
+	std::clog << "readCSCStat: " << std::hex << test << std::endl;
+	std::clog << " @@@@@ Testing readCSCStatAdvanced @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readCSCStatAdvanced();
+	std::clog << "readCSCStatAdvanced: " << test << std::endl;
+
+	std::clog << " @@@@@ Testing readSerialStat @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readSerialStat();
+	std::clog << "readSerialStat: " << test << std::endl;
+	std::clog << " @@@@@ Testing readSerialStatAdvanced @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readSerialStatAdvanced();
+	std::clog << "readSerialStatAdvanced: " << test << std::endl;
+
+	std::clog << " @@@@@ Testing read_page5 @@@@@ " << std::endl;
+	std::vector<int> vtest = myCrate->getDDUs()[0]->read_page5();
+	std::clog << "read_page5: ";
+	for (std::vector<int>::iterator iTest = vtest.begin(); iTest != vtest.end(); iTest++) {
+		std::clog << test;
+	}
+	std::clog << std::endl;
+	std::clog << " @@@@@ Testing readGbEFIFOThresholdsAdvanced @@@@@ " << std::endl;
+	std::vector<int16_t> vtest2 = myCrate->getDDUs()[0]->readGbEFIFOThresholdsAdvanced();
+	std::clog << "readGbEFIFOThresholdsAdvanced: ";
+	for (std::vector<int16_t>::iterator iTest = vtest2.begin(); iTest != vtest2.end(); iTest++) {
+		std::clog << test;
+	}
+	std::clog << std::endl;
+
+	std::clog << " @@@@@ Testing readthermx(2) @@@@@ " << std::endl;
+	float ftest = myCrate->getDDUs()[0]->readthermx(2);
+	std::clog << "readthermx(2): " << ftest << std::endl;
+	std::clog << " @@@@@ Testing readTemperatureAdvanced(2) @@@@@ " << std::endl;
+	ftest = myCrate->getDDUs()[0]->readTemperatureAdvanced(2);
+	std::clog << "readTemperatureAdvanced(2): " << ftest << std::endl;
+
+	std::clog << " @@@@@ Testing adcplus(1,7) @@@@@ " << std::endl;
+	ftest = myCrate->getDDUs()[0]->adcplus(1,7);
+	std::clog << "adcplus(1,7): " << ftest << std::endl;
+	std::clog << " @@@@@ Testing readVoltageAdvanced(3) @@@@@ " << std::endl;
+	ftest = myCrate->getDDUs()[0]->readVoltageAdvanced(3);
+	std::clog << "readVoltageAdvanced(3): " << ftest << std::endl;
+
+	std::clog << " @@@@@ Testing ddu_rdkillfiber @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->ddu_rdkillfiber();
+	std::clog << "ddu_rdkillfiber: " << test << std::endl;
+	std::clog << " @@@@@ Testing readKillFiberAdvanced @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readKillFiberAdvanced();
+	std::clog << "readKillFiberAdvanced: " << test << std::endl;
+
+	std::clog << " @@@@@ Testing ddu_loadkillfiber(0xf7654) @@@@@ " << std::endl;
+	myCrate->getDDUs()[0]->ddu_loadkillfiber(0xf7654);
+	std::clog << " @@@@@ Testing writeKillFiberAdvanced(0xf3210) @@@@@ " << std::endl;
+	myCrate->getDDUs()[0]->writeKillFiberAdvanced(0xf3210);
+
+	std::clog << " @@@@@ Testing infpga_CcodeStat(emu::fed::INFPGA0) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->infpga_CcodeStat(emu::fed::INFPGA0);
+	std::clog << "infpga_CcodeStat(emu::fed::INFPGA0): " << test << std::endl;
+	std::clog << " @@@@@ Testing readCCodeStatAdvanced(emu::fed::INFPGA0) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readCCodeStatAdvanced(emu::fed::INFPGA0);
+	std::clog << "readCCodeStatAdvanced(emu::fed::INFPGA0): " << test << std::endl;
+
+	std::clog << " @@@@@ Testing infpga_CcodeStat(emu::fed::INFPGA1) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->infpga_CcodeStat(emu::fed::INFPGA1);
+	std::clog << "infpga_CcodeStat(emu::fed::INFPGA1): " << test << std::endl;
+	std::clog << " @@@@@ Testing readCCodeStatAdvanced(emu::fed::INFPGA1) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readCCodeStatAdvanced(emu::fed::INFPGA1);
+	std::clog << "readCCodeStatAdvanced(emu::fed::INFPGA1): " << test << std::endl;
+
+	std::clog << " @@@@@ Testing infpga_usercode0() @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->infpga_usercode0();
+	std::clog << "infpga_usercode0(): " << test << std::endl;
+	std::clog << " @@@@@ Testing readUserCodeAdvanced(emu::fed::INFPGA0) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readUserCodeAdvanced(emu::fed::INFPGA0);
+	std::clog << "readUserCodeAdvanced(emu::fed::INFPGA0): " << test << std::endl;
+
+	std::clog << " @@@@@ Testing infpga_usercode1() @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->infpga_usercode1();
+	std::clog << "infpga_usercode1(): " << test << std::endl;
+	std::clog << " @@@@@ Testing readUserCodeAdvanced(emu::fed::INFPGA1) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readUserCodeAdvanced(emu::fed::INFPGA1);
+	std::clog << "readUserCodeAdvanced(emu::fed::INFPGA1): " << test << std::endl;
+
+	std::clog << " @@@@@ Testing infpga_idcode0() @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->infpga_idcode0();
+	std::clog << "infpga_idcode0(): " << test << std::endl;
+	std::clog << " @@@@@ Testing readIDCodeAdvanced(emu::fed::INFPGA0) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readIDCodeAdvanced(emu::fed::INFPGA0);
+	std::clog << "readIDCodeAdvanced(emu::fed::INFPGA0): " << test << std::endl;
+	
+	std::clog << " @@@@@ Testing infpga_idcode1() @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->infpga_idcode1();
+	std::clog << "infpga_idcode1(): " << test << std::endl;
+	std::clog << " @@@@@ Testing readIDCodeAdvanced(emu::fed::INFPGA1) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readIDCodeAdvanced(emu::fed::INFPGA1);
+	std::clog << "readIDCodeAdvanced(emu::fed::INFPGA1): " << test << std::endl;
+
+	std::clog << " @@@@@ Testing dduprom_usercode0() @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->dduprom_usercode0();
+	std::clog << "dduprom_usercode0(): " << test << std::endl;
+	std::clog << " @@@@@ Testing readUserCodeAdvanced(emu::fed::DDUPROM0) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readUserCodeAdvanced(emu::fed::DDUPROM0);
+	std::clog << "readUserCodeAdvanced(emu::fed::DDUPROM0): " << test << std::endl;
+	
+	std::clog << " @@@@@ Testing dduprom_usercode1() @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->dduprom_usercode1();
+	std::clog << "dduprom_usercode1(): " << test << std::endl;
+	std::clog << " @@@@@ Testing readUserCodeAdvanced(emu::fed::DDUPROM1) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readUserCodeAdvanced(emu::fed::DDUPROM1);
+	std::clog << "readUserCodeAdvanced(emu::fed::DDUPROM1): " << test << std::endl;
+	
+	std::clog << " @@@@@ Testing dduprom_idcode0() @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->dduprom_idcode0();
+	std::clog << "dduprom_idcode0(): " << test << std::endl;
+	std::clog << " @@@@@ Testing readIDCodeAdvanced(emu::fed::DDUPROM0) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readIDCodeAdvanced(emu::fed::DDUPROM0);
+	std::clog << "readIDCodeAdvanced(emu::fed::DDUPROM0): " << test << std::endl;
+	
+	std::clog << " @@@@@ Testing dduprom_idcode1() @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->dduprom_idcode1();
+	std::clog << "dduprom_idcode1(): " << test << std::endl;
+	std::clog << " @@@@@ Testing readIDCodeAdvanced(emu::fed::DDUPROM1) @@@@@ " << std::endl;
+	test = myCrate->getDDUs()[0]->readIDCodeAdvanced(emu::fed::DDUPROM1);
+	std::clog << "readIDCodeAdvanced(emu::fed::DDUPROM1): " << test << std::endl;
+	*/
+	/*
+	std::clog << " @@@@@ Testing epromload up to usercode @@@@@ " << std::endl;
+	char *BN = (char *) malloc(4);
+	BN[0] = 0x55; BN[1] = 0; BN[2] = 0; BN[3] = 0;
+	myCrate->getDDUs()[0]->epromload("DDUPROM1",emu::fed::DDUPROM1,"/tmp/ddu5ctrl_1.svf",1,(char *)BN,1);
+	std::clog << " @@@@@ Testing epromload of usercode @@@@@ " << std::endl;
+	myCrate->getDDUs()[0]->epromload("DDUPROM1",emu::fed::DDUPROM1,"/tmp/ddu5ctrl_1.svf",1,(char *)BN,2);
+	std::clog << " @@@@@ Testing epromload after usercode @@@@@ " << std::endl;
+	myCrate->getDDUs()[0]->epromload("DDUPROM1",emu::fed::DDUPROM1,"/tmp/ddu5ctrl_1.svf",1,(char *)BN,3);
+	
+	std::clog << " @@@@@ Testing loadPROMAdvanced up to usercode @@@@@ " << std::endl;
+	myCrate->getDDUs()[0]->loadPROMAdvanced(emu::fed::DDUPROM1,"/tmp/ddu5ctrl_1.svf","","c045dd99");
+	std::clog << " @@@@@ Testing load of usercode @@@@@ " << std::endl;
+	std::vector<int16_t> writeMe(2);
+	writeMe.push_back(0xdd00 | 0x55);
+	writeMe.push_back(0xc045);
+	myCrate->getDDUs()[0]->jtagReadWrite(emu::fed::DDUPROM1, 32, writeMe, true);
+	std::clog << " @@@@@ Testing loadPROMAdvanced after usercode @@@@@ " << std::endl;
+	myCrate->getDDUs()[0]->loadPROMAdvanced(emu::fed::DDUPROM1,"/tmp/ddu5ctrl_1.svf","c045dd99");
+	*/
 	try {
 
 		// Check for errors in crates.  Should only have crate numbers 1-5,
@@ -307,10 +488,10 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		//  If there is no DCC, then you'll just have to live with the error, I guess.
 
 		
-		if (myCrate->getDCCs().size()) {
-			//std::cout << " pinging DCC to avoid CAEN read error -1" << std::endl;
-			myCrate->getDCCs()[0]->readStatusLow();
-		}
+		//if (myCrate->getDCCs().size()) {
+		//std::cout << " pinging DCC to avoid CAEN read error -1" << std::endl;
+		//myCrate->getDCCs()[0]->readStatusLow();
+		//}
 		
 
 		// Unfortunately, the DDU routines are called with the index of the
@@ -329,7 +510,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			//thisDCC = dynamic_cast<emu::fed::DCC *>(moduleVector[iModule]);
 
 			// Skip broadcasting
-			if ((*iDDU)->slot() > 21) continue;
+			if ((*iDDU)->isBroadcast()) continue;
 
 			// First, determine the status of the DDU.
 			//myCrate->getVMEController()->CAEN_err_reset();
@@ -529,7 +710,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		for (iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
 
 			// Skip broadcasting
-			if ((*iDCC)->slot() > 21) continue;
+			if ((*iDCC)->isBroadcast()) continue;
 
 			// First, determine the status of the DCC.
 			//myCrate->getVMEController()->CAEN_err_reset();
@@ -1866,7 +2047,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 		// Loop through the DDUs and add them all to the list of slots to load.
 		std::vector<emu::fed::DDU *> myDDUs = myCrate->getDDUs();
 		for (std::vector<emu::fed::DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
-			if ((*iDDU)->slot() <= 21) {
+			if (!(*iDDU)->isBroadcast()) {
 				slots |= (*iDDU)->slot();
 			}
 		}
@@ -1917,7 +2098,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	int bnstore[myCrate->getDDUs().size()];
 	for (unsigned int iBoard=0; iBoard<myCrate->getDDUs().size(); iBoard++) {
 		if (!broadcast && !(slots & (1 << myCrate->getDDUs()[iBoard]->slot()))) continue;
-		else if (broadcast && myCrate->getDDUs()[iBoard]->slot() <= 21) continue;
+		else if (broadcast && !myCrate->getDDUs()[iBoard]->isBroadcast()) continue;
 
 		emu::fed::DDU *myDDU = myCrate->getDDUs()[iBoard];
 		//std::cout << "Sending to slot " << myDDU->slot() << std::endl;
@@ -1942,7 +2123,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 				if (broadcast) {
 					for (unsigned int ddu=0; ddu<myCrate->getDDUs().size(); ddu++) {
 						emu::fed::DDU *secondaryDDU = myCrate->getDDUs()[ddu];
-						if (secondaryDDU->slot() > 21) continue;
+						if (secondaryDDU->isBroadcast()) continue;
 						int ibn = secondaryDDU->readFlashBoardID();
 						bnstore[ddu] = ibn;
 						boardnumber[0] = ibn;
@@ -1976,7 +2157,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	for (int i=from; i<=to; i++) { // loop over PROMS
 		for (unsigned int ddu=0; ddu<myCrate->getDDUs().size(); ddu++) { // loop over boards
 			if (!broadcast && !(slots & (1 << myCrate->getDDUs()[ddu]->slot()))) continue;
-			else if (broadcast && myCrate->getDDUs()[ddu]->slot() > 21) continue;
+			else if (broadcast && myCrate->getDDUs()[ddu]->isBroadcast()) continue;
 			emu::fed::DDU *myDDU = myCrate->getDDUs()[ddu];
 
 			std::string boardversion;
@@ -2209,7 +2390,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	//  table.
 	//unsigned int fibersWithErrors = 0;
 	// PGK On second thought, this is a more accurate and consistant check.
-	unsigned int fibersWithErrors = myDDU->readCSCStat() | myDDU->readAdvancedFiberErrors();
+	unsigned int fibersWithErrors = myDDU->readCSCStatAdvanced() | myDDU->readAdvancedFiberErrors();
 
 	// This is used to check if the debug trap is valid.
 	bool debugTrapValid = false;
@@ -3728,7 +3909,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	// Knowing which chambers are actually alive is a good thing.
 	long int liveFibers = (myDDU->checkFiber(emu::fed::INFPGA0)&0x000000ff) | ((myDDU->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
 	long int killFiber = myDDU->ddu_rdkillfiber();
-	unsigned int fibersWithErrors = myDDU->readCSCStat() | myDDU->readAdvancedFiberErrors();
+	unsigned int fibersWithErrors = myDDU->readCSCStatAdvanced() | myDDU->readAdvancedFiberErrors();
 
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		std::string chamberClass = "ok";
@@ -4251,7 +4432,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	// New Value...
 	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << std::endl;
 
-	std::vector<unsigned long int> lcode = myDDU->read_page5();
+	std::vector<int> lcode = myDDU->read_page5();
 	*(writableTable(1,0)->value) << "Flash GbE FIFO thresholds";
 	*(writableTable(1,1)->value) << "0x" << std::hex << ((lcode[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((lcode[2]&0xC0)>>6)|((lcode[5]&0xFF)<<2)|((lcode[4]&0x3F)<<10)) << 16) | (((lcode[0]&0xC0)>>6)|((lcode[3]&0xFF)<<2)|((lcode[2]&0x3F)<<10)));
 	writableTable[1]->setClass("none");
@@ -4403,7 +4584,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	fmmTable.addColumn("Value");
 	fmmTable.addColumn("Decoded Chambers");
 
-	unsigned int cscStat = myDDU->readCSCStat() | myDDU->readAdvancedFiberErrors();
+	unsigned int cscStat = myDDU->readCSCStatAdvanced() | myDDU->readAdvancedFiberErrors();
 	*(fmmTable(0,0)->value) << "FMM problem report";
 	*(fmmTable(0,1)->value) << std::showbase << std::hex << cscStat;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -5499,7 +5680,7 @@ throw (xgi::exception::Exception)
 	//int bnstore[myCrate->getDCCs().size()];
 	for (unsigned int iBoard=0; iBoard < myCrate->getDCCs().size(); iBoard++) {
 		if (!broadcast && !(slots & (1 << myCrate->getDCCs()[iBoard]->slot()))) continue;
-		else if (broadcast && myCrate->getDCCs()[iBoard]->slot() <= 21) continue;
+		else if (broadcast && !myCrate->getDCCs()[iBoard]->isBroadcast()) continue;
 		
 		emu::fed::DCC *myDCC = myCrate->getDCCs()[iBoard];
 		//std::cout << "Sending to slot " << myDDU->slot() << std::endl;
@@ -5512,7 +5693,8 @@ throw (xgi::exception::Exception)
 		LOG4CPLUS_INFO(getApplicationLogger(),"Loading server file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << myDCC->slot() << "...");
 		
 		LOG4CPLUS_DEBUG(getApplicationLogger(),"Step 1 of 1: Load all firmware data...");
-		myDCC->epromload((char *)promName[type].c_str(),devType[type],(char *)filename.c_str(),1);
+		//myDCC->epromload((char *)promName[type].c_str(),devType[type],(char *)filename.c_str(),1);
+		myDCC->loadPROMAdvanced(devType[type],(char *) filename.c_str());
 
 		LOG4CPLUS_INFO(getApplicationLogger(),"Loading of server file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << myDCC->slot() << " complete.");
 		
@@ -5522,11 +5704,11 @@ throw (xgi::exception::Exception)
 	
 	for (unsigned int dcc=0; dcc<myCrate->getDCCs().size(); dcc++) { // loop over boards
 		if (!broadcast && !(slots & (1 << myCrate->getDCCs()[dcc]->slot()))) continue;
-		else if (broadcast && myCrate->getDCCs()[dcc]->slot() > 21) continue;
+		else if (broadcast && myCrate->getDCCs()[dcc]->isBroadcast()) continue;
 		emu::fed::DCC *myDCC = myCrate->getDCCs()[dcc];
 		
 		std::ostringstream versionCheck;
-		versionCheck << myDCC->readUserCode(devType[type]);
+		versionCheck << myDCC->readUserCodeAdvanced(devType[type]);
 		
 		if (version[type] == versionCheck.str()) {
 			LOG4CPLUS_INFO(getApplicationLogger(),"DCC slot " << myDCC->slot() << " PROM " << promName[type] << " versions match ("<< std::hex << version[type] << std::dec <<")");
@@ -5867,7 +6049,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	generalTable.addColumn("Decoded Status");
 
 	*(generalTable(0,0)->value) << "DCC FMM Status (4-bit)";
-	unsigned long int dccValue = myDCC->readStatusHigh();
+	unsigned long int dccValue = myDCC->readStatusHighAdvanced();
 	*(generalTable(0,1)->value) << std::showbase << std::hex << ((dccValue & 0xf000) >> 12);
 	std::map<std::string, std::string> debugMap = emu::fed::DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
@@ -5923,7 +6105,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(3,0)->value) << "DCC L1A Count (16-bit)";
-	*(generalTable(3,1)->value) << myDCC->readStatusLow();
+	*(generalTable(3,1)->value) << myDCC->readStatusLowAdvanced();
 	generalTable(3,1)->setClass("none");
 
 	*out << generalTable.printSummary() << std::endl;
@@ -5956,7 +6138,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	ratesTable.addColumn("Decoded Status");
 
 	*(ratesTable(0,0)->value) << "Input FIFOs Used";
-	dccValue = myDCC->readFIFOInUse();
+	dccValue = myDCC->readFIFOInUseAdvanced();
 	*(ratesTable(0,1)->value) << std::showbase << std::hex << dccValue;
 	for (int iFifo = 0; iFifo < 10; iFifo++) {
 		if (dccValue & (1<<iFifo)) {
@@ -5969,26 +6151,26 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	// Get rates for each FIFO, Slink1 first.
 	for (int iFifo = 0; iFifo < 5; iFifo++) {
 		*(ratesTable(iFifo+1,0)->value) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
-		dccValue = myDCC->readRate(iFifo+1);
+		dccValue = myDCC->readRateAdvanced(iFifo+1);
 		*(ratesTable(iFifo+1,1)->value) << std::dec << dccValue << " bytes/s";
 		ratesTable(iFifo+1,1)->setClass("none");
 	}
 
 	*(ratesTable(6,0)->value) << "S-Link 1";
-	dccValue = myDCC->readRate(0);
+	dccValue = myDCC->readRateAdvanced(0);
 	*(ratesTable(6,1)->value) << std::dec << dccValue << " bytes/s";
 	ratesTable(6,1)->setClass("none");
 
 	// Get rates for each FIFO, Slink2 second.
 	for (int iFifo = 5; iFifo < 10; iFifo++) {
 		*(ratesTable(iFifo+2,0)->value) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
-		dccValue = myDCC->readRate(iFifo+2);
+		dccValue = myDCC->readRateAdvanced(iFifo+2);
 		*(ratesTable(iFifo+2,1)->value) << std::dec << dccValue << " bytes/s";
 		ratesTable(iFifo+2,1)->setClass("none");
 	}
 
 	*(ratesTable(12,0)->value) << "S-Link 2";
-	dccValue = myDCC->readRate(6);
+	dccValue = myDCC->readRateAdvanced(6);
 	*(ratesTable(12,1)->value) << std::dec << dccValue << " bytes/s";
 	ratesTable(12,1)->setClass("none");
 
@@ -6278,7 +6460,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentFIFOs = myDCC->readFIFOInUse();
+	unsigned long int currentFIFOs = myDCC->readFIFOInUseAdvanced();
 	*out << cgicc::div("Current FIFOs In Use register value: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
@@ -6400,7 +6582,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentSwitch = myDCC->readSoftwareSwitch();
+	unsigned long int currentSwitch = myDCC->readSoftwareSwitchAdvanced();
 	*out << cgicc::div("Current Software Switch value: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
@@ -6549,7 +6731,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentFMM = myDCC->readFMM();
+	unsigned long int currentFMM = myDCC->readFMMAdvanced();
 	*out << cgicc::div("Current FMM register: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
@@ -6681,7 +6863,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentTTCCommand = myDCC->readTTCCommand();
+	unsigned long int currentTTCCommand = myDCC->readTTCCommandAdvanced();
 	unsigned long int currentL1A = ((((currentTTCCommand>>9)&0x60)+((currentFIFOs>>11)&0x1f)) << 8) | ((currentTTCCommand>>7)&0x7e);
 	*out << cgicc::div("Current L1A send rate/number: ")
 		.set("style","font-weight: bold; display: inline;");
@@ -6944,31 +7126,31 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	switch (command) {
 
 	case (1): // reset bx?
-		myDCC->resetBX();
+		myDCC->resetBXAdvanced();
 		break;
 
 	case (2): // reset event count?
-		myDCC->resetEvents();
+		myDCC->resetEventsAdvanced();
 		break;
 
 	case (3): // set FIFO in use
-		myDCC->setFIFOInUse(uploadValue);
+		myDCC->writeFIFOInUseAdvanced(uploadValue);
 		break;
 
 	case (4): // set TTC command
-		myDCC->setTTCCommand(uploadValue);
+		myDCC->writeTTCCommandAdvanced(uploadValue);
 		break;
 
 	case (5): // set fake L1A rate and number
-		myDCC->setFakeL1A(uploadValue);
+		myDCC->writeFakeL1AAdvanced(uploadValue);
 		break;
 
 	case (6): // set SW Switch
-		myDCC->setSoftwareSwitch(uploadValue);
+		myDCC->writeSoftwareSwitchAdvanced(uploadValue);
 		break;
 
 	case (7): // set FMM register
-		myDCC->setFMM(uploadValue);
+		myDCC->writeFMMAdvanced(uploadValue);
 		break;
 
 	default:
@@ -7155,7 +7337,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		emu::fed::DDU *myDDU = myCrate->getDDUs()[iDDU];
 		// I am a DDU!
 		// Skip broadcasting
-		if (myDDU->slot() > 21) continue;
+		if (myDDU->isBroadcast()) continue;
 
 		// Check Voltages
 		//myCrate->getVMEController()->CAEN_err_reset();
@@ -7170,7 +7352,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			// Automatically do each voltage twice:
 			unsigned int jVolt = iVolt/2;
 			// Voltages are 4-7
-			voltage[jVolt] = myDDU->adcplus(1,jVolt+4);
+			voltage[jVolt] = myDDU->readVoltageAdvanced(jVolt);
 			//if( myCrate->getVMEController()->CAEN_err() != 0) {
 				//dduClass = "caution";
 			//}
@@ -7201,7 +7383,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		for (unsigned int iTemp = 0; iTemp < 8; iTemp++) {
 			// Automatically read each temperature twice
 			unsigned int jTemp = iTemp/2;
-			temp[jTemp] = myDDU->readthermx(jTemp);
+			temp[jTemp] = myDDU->readTemperatureAdvanced(jTemp);
 			//if( myCrate->getVMEController()->CAEN_err() != 0) {
 				//dduClass = "caution";
 			//}
@@ -7514,10 +7696,11 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			if (what == "ddu" && index == iDDU && crateIndex == iCrate) selectedBoard = "background-color: #FF9;";
 			
 			std::ostringstream boardName;
-			if (crateVector[iCrate]->getDDUs()[iDDU]->slot() <= 21) {
+			if (!crateVector[iCrate]->getDDUs()[iDDU]->isBroadcast()) {
 				boardName << "DDU Slot " << crateVector[iCrate]->getDDUs()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->getDDUs()[iDDU]->slot());
 			} else {
-				boardName << "DDU BROADCAST";
+				//boardName << "DDU BROADCAST";
+				continue;
 			}
 			
 			*out << cgicc::td()
@@ -7539,10 +7722,11 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			if (what == "dcc" && index == iDCC && crateIndex == iCrate) selectedBoard = "background-color: #FF9;";
 			
 			std::ostringstream boardName;
-			if (crateVector[iCrate]->getDCCs()[iDCC]->slot() <= 21) {
+			if (!crateVector[iCrate]->getDCCs()[iDCC]->isBroadcast()) {
 				boardName << "DCC Slot " << crateVector[iCrate]->getDCCs()[iDCC]->slot();
 			} else {
-				boardName << "BROADCAST DCC";
+				//boardName << "BROADCAST DCC";
+				continue;
 			}
 			
 			*out << cgicc::td()

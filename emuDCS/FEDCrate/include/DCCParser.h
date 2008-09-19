@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCCParser.h,v 3.6 2008/08/15 10:40:20 paste Exp $
+* $Id: DCCParser.h,v 3.7 2008/09/19 16:53:51 paste Exp $
 *
 * $Log: DCCParser.h,v $
+* Revision 3.7  2008/09/19 16:53:51  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.6  2008/08/15 10:40:20  paste
 * Working on fixing CAEN controller opening problems
 *
@@ -27,7 +30,7 @@ namespace emu {
 		
 		public:
 			DCCParser(){}
-			explicit DCCParser(xercesc::DOMNode *pNode, int crate = 0);
+			explicit DCCParser(xercesc::DOMElement *pNode);
 				
 			/// the last one parsed
 			inline DCC *getDCC() { return dcc_; }

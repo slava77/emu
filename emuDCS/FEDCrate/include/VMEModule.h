@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.13 2008/09/07 22:25:35 paste Exp $
+* $Id: VMEModule.h,v 3.14 2008/09/19 16:53:51 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.14  2008/09/19 16:53:51  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.13  2008/09/07 22:25:35  paste
 * Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
 *
@@ -66,6 +69,7 @@ namespace emu {
 			VMEModule(int mySlot);
 			virtual ~VMEModule() {};
 			inline const int slot() {return slot_;}
+			inline const bool isBroadcast() { return (slot_ > 21); }
 			
 			// should automatically start().  Here's what you do if
 			// you want to end() by hand
@@ -81,16 +85,29 @@ namespace emu {
 
 			// Phil's new commands
 			inline void setBHandle(int16_t myHandle) { BHandle_ = myHandle; }
+
+			/** Parses and loads a given .svf file into a given PROM.
+			 *
+			 * @param dev the PROM to which to load the parsed .svf file.
+			 * @param fileName the name on the local disk of the .svf file.
+			 * @param startString if set will cause the loader to ignore all instructions until the line after the one matching it.
+			 * @param stopString if set will cause the loader to stop immidately if it is found in the current line being read.  The line will not be loaded.
+			 **/
+			void loadPROMAdvanced(enum DEVTYPE dev, char *fileName, std::string startString = "", std::string stopString = "")
+				throw (FEDException);
+
+			std::vector<int16_t> jtagReadWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<int16_t> myData, bool writeOnly = false)
+				throw(FEDException);
 		
 		protected:
 		
 			void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
 			void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
-			void RestoreIdle();
+			//void RestoreIdle();
 			void InitJTAG(int port);
 			void CloseJTAG();
 			void send_last();
-			void RestoreIdle_reset();
+			//void RestoreIdle_reset();
 			void  scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
 			void  sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
 			//void  sleep_vme2(unsigned short int time); // time in usec
@@ -101,18 +118,18 @@ namespace emu {
 			void vmepara(const char *cmd,const char *snd,char *rcv);
 			void dcc(const char *cmd,char *rcv);
 			void vme_adc(int ichp,int ichn,char *rcv);
-			void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
-			void CAEN_close(void);
-			int CAEN_reset(void);
+			//void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
+			//void CAEN_close(void);
+			//int CAEN_reset(void);
 			int CAEN_read(unsigned long Address,unsigned short int *data);
 			int CAEN_write(unsigned long Address,unsigned short int *data);
 		
-			void sdly();
-			void initDevice(int a);
+			//void sdly();
+			//void initDevice(int a);
 			/// used for calls to do_vme
-			enum FCN { VME_READ=1, VME_WRITE=2 };
-			enum WRT { LATER, NOW };
-			int theSlot;
+			//enum FCN { VME_READ=1, VME_WRITE=2 };
+			//enum WRT { LATER, NOW };
+			//int theSlot;
 		
 			/// required for DDU/DCC communications
 			char sndbuf[4096];
@@ -122,17 +139,18 @@ namespace emu {
 
 
 			// Phil's new commands.
-			std::map<enum DEVTYPE, JTAGElement *> JTAGMap;
 
+			std::map<enum DEVTYPE, JTAGElement *> JTAGMap;
+			/*
 			virtual std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits)
 				throw(FEDException);
 
 			virtual std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits, std::vector<int16_t> myData)
 				throw(FEDException);
-
+		
 			std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits, int16_t myData)
 				throw(FEDException);
-
+			*/
 			void commandCycle(enum DEVTYPE dev, int16_t myCommand)
 				throw (FEDException);
 			
@@ -145,11 +163,11 @@ namespace emu {
 			std::vector<int16_t> readCycle(int32_t myAddress, unsigned int nBits)
 				throw(FEDException);
 
-			std::vector<int16_t> jtagReadWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<int16_t> myData)
-				throw(FEDException);
-
 			void writeCycle(int32_t myAddress, unsigned int nBits, std::vector<int16_t> myData)
 				throw(FEDException);
+			
+			void bogoDelay(uint64_t time);
+
 			
 		private:
 			int slot_;
@@ -163,6 +181,7 @@ namespace emu {
 			// Phil's new commands.
 			int16_t BHandle_;
 			int32_t vmeAddress_;
+			long double bogoMips_;
 			
 		};
 

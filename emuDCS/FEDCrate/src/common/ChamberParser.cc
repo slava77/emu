@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: ChamberParser.cc,v 1.6 2008/08/26 13:09:02 paste Exp $
+* $Id: ChamberParser.cc,v 1.7 2008/09/19 16:53:52 paste Exp $
 *
 * $Log: ChamberParser.cc,v $
+* Revision 1.7  2008/09/19 16:53:52  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 1.6  2008/08/26 13:09:02  paste
 * Documentation update.
 *
@@ -15,30 +18,65 @@
 //#include <stdlib.h>
 #include <iostream>
 #include <sstream>
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/framework/XMLPScanToken.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
+//#include <xercesc/util/PlatformUtils.hpp>
+//#include <xercesc/framework/XMLPScanToken.hpp>
+//#include <xercesc/parsers/XercesDOMParser.hpp>
 
 #include "Chamber.h"
 
 
+emu::fed::ChamberParser::ChamberParser(xercesc::DOMElement *pNode)
+{
+	//std::cout << "parse" << std::endl;
+	parseNode(pNode);
+
+	//std::cout << "new" << std::endl;
+	chamber_ = new Chamber();
+	
+	std::string chamberName;
+	std::string pCrateName;
+	
+	// Chamber Name looks like "+1/2/03"
+	fillString("Name", chamberName);
+	//std::cout << "chamberName" << chamberName << std::endl;
+
+	int station, type, number;
+	sscanf(chamberName.c_str(), "%*c%1d/%1d/%02d", &station, &type, &number);
+
+	std::string endcapString(chamberName.substr(0,1));
+	chamber_->endcap = endcapString;
+	//std::cout << "endcap" << chamber_->endcap << std::endl;
+	chamber_->station = station;
+	//std::cout << "station" << chamber_->station << std::endl;
+	chamber_->type = type;
+	//std::cout << "type" << chamber_->type << std::endl;
+	chamber_->number = number;
+	//std::cout << "number" << chamber_->number << std::endl;
+
+	// Chamber PeripheralCrate looks like "VMEp1_2"
+	fillString("PeripheralCrate", pCrateName);
+	//std::cout << "pCrateName" << pCrateName << std::endl;
+
+	int pcrate;
+	sscanf(pCrateName.c_str(), "VME%*c%*d_%d", &pcrate);
+	
+	chamber_->peripheralCrateVMECrate_ = pcrate;
+	//std::cout << "peripheralCrateVMECrate" << chamber_->peripheralCrateVMECrate_ << std::endl;
+
+	fillInt("Fiber",fiber_);
+	//std::cout << "Fiber" << fiber_ << std::endl;
+	fillInt("Killed",killed_);
+	//std::cout << "Killed" << killed_ << std::endl;
+	//std::cout << "done" << std::endl;
+}
+
+/*
 emu::fed::ChamberParser::ChamberParser(char *fileName, int crate, int slot)
 {
 	Chamber *fakeChamber = new Chamber();
 	chamberVector_.resize(15,fakeChamber);
 
 	std::stringstream fileNameStream;
-	/*  JRG old: used to Prepend the path XDAQ_ROOT for the XML file
-	// Remember that fileName is relative to the path $XDAQ_ROOT
-
-	std::string XDAQ_ROOT(getenv("XDAQ_ROOT"));
-	if (XDAQ_ROOT == "") {
-		std::cerr << "Error before Xerces-c Initialization." << std::endl;
-		std::cerr << "  SET ENVIRONMENT VARIABLE XDAQ_ROOT FIRST!" << std::endl;
-		return;
-	}
-	fileNameStream << XDAQ_ROOT << (XDAQ_ROOT[XDAQ_ROOT.size() - 1] == '/' ? "" : "/") << fileName;
-	*/
 
 //  JRG, now use absolute path for the XML file specification:
 	fileNameStream << fileName;
@@ -219,7 +257,6 @@ void emu::fed::ChamberParser::parseInput(xercesc::DOMNode *pDDU) {
 			parseNode(pNode1);
 			fillInt("id",fiber);
 
-			/* Prep the chamber object */
 			Chamber *chamber = new Chamber();
 
 			xercesc::DOMNode *pNode2 = pNode1->getFirstChild();
@@ -248,7 +285,6 @@ void emu::fed::ChamberParser::parseInput(xercesc::DOMNode *pDDU) {
 				pNode2 = pNode2->getNextSibling();
 			}
 
-			/* Fill the std::vector */
 			std::cout << "  Found input " << fiber << " chamber " << chamber->name() << std::endl << std::flush;
 			chamberVector_[fiber] = chamber;
 			
@@ -258,3 +294,4 @@ void emu::fed::ChamberParser::parseInput(xercesc::DOMNode *pDDU) {
 
 	return;
 }
+*/

@@ -1,7 +1,11 @@
+//#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.17 2008/09/07 22:25:36 paste Exp $
+* $Id: VMEController.cc,v 3.18 2008/09/19 16:53:52 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.18  2008/09/19 16:53:52  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.17  2008/09/07 22:25:36  paste
 * Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
 *
@@ -37,6 +41,8 @@
 #include <fcntl.h>
 #include <errno.h>
 //#include <string.h>
+
+#include <sys/time.h> // POSIX gettimeofday routine for microsecond timers
 
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
@@ -198,7 +204,9 @@ int emu::fed::VMEController::CAEN_read(unsigned long Address,unsigned short int 
 	CVDataWidth DW=cvD16;
 // printf("BHandle_ %08x \n",BHandle_);
 // printf(" +++++ CAENVME read sent +++++\n");
+	//std::clog << std::hex << "Old Read  BHandle_(" << BHandle_ << ") Address(" << Address << ") " << std::flush;
 	err=CAENVME_ReadCycle(BHandle_,Address,data,AM,DW);
+	//std::clog << std::hex << "data(" << (int16_t) *data << ")" << std::flush << std::endl;
 	if(err!=0){
 		caen_err=err;
 		printf(" CAENVME read err %d \n",caen_err);
@@ -210,12 +218,15 @@ int emu::fed::VMEController::CAEN_read(unsigned long Address,unsigned short int 
 
 int emu::fed::VMEController::CAEN_write(unsigned long Address,unsigned short int *data)
 {
-	int err;
+	int err = 0;
 	CVAddressModifier AM=cvA24_U_DATA;
 	CVDataWidth DW=cvD16;
 
 	//printf(" write: handle %d address %08x data %04x AM %d DW %d \n",BHandle_,Address,*data,AM,DW);
+	//std::clog << std::hex << "Old Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << (int16_t) *data << ")" << std::flush << std::endl;
+#ifndef CAEN_DEBUG
 	err=CAENVME_WriteCycle(BHandle_,Address,(char *)data,AM,DW);
+#endif
 	if(err!=0){
 		caen_err=err;
 		printf(" CAENVME write err %d \n",caen_err);
@@ -279,10 +290,16 @@ long unsigned int pttr;
 
 int emu::fed::VMEController::udelay(long int itim)
 {
+	timeval startTime;
+	timeval endTime;
+	gettimeofday(&startTime,NULL);
   int i,j;
   for(j=0;j<itim;j++){
       for(i=0;i<200;i++);
   }
+	gettimeofday(&endTime,NULL);
+	unsigned long int diffTime = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
+	std::clog << "--udelay time: " << diffTime << " microseconds" << std::endl;
   return 0; 
 }
 

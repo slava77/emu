@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.41 2008/08/31 21:18:27 paste Exp $
+* $Id: EmuFCrate.cc,v 3.42 2008/09/19 16:53:52 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.42  2008/09/19 16:53:52  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.41  2008/08/31 21:18:27  paste
 * Moved buffers from VMEController class to VMEModule class for more rebust communication.
 *
@@ -372,6 +375,8 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	crateVector.clear();
 
 	crateVector = parser.getCrates();
+
+	endcap_ = parser.getName();
 	
 	// First, we must make a system to parse out strings.  String-fu!
 	// Strings looke like this:  "Crate# BHandle# Crate# BHandle# Crate# BHandle#..."
@@ -457,18 +462,6 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 //	   -Verify the 32-bit status from InFPGAs == 0?
 //              use  DDU::infpgastat(enum DEVTYPE dv)&0xf7eedfff   <<- note the mask
 //	 -->> definitely need to ignore some bits though!  see the masks
-
-
-	// Now is a good time to set what endcap we are.
-	if (crateVector.size() == 1) {
-		if (crateVector[0]->number() == 5) endcap_ = "TrackFinder";
-		else if (crateVector[0]->number() == 0) endcap_ = "Test Crate";
-	} else if (crateVector.size() == 2) {
-		if (crateVector[0]->number() == 1 && crateVector[1]->number() == 2
-			|| crateVector[0]->number() == 2 && crateVector[1]->number() == 1) endcap_ = "Plus-Side";
-		else if (crateVector[0]->number() == 3 && crateVector[1]->number() == 4
-			|| crateVector[0]->number() == 4 && crateVector[1]->number() == 3) endcap_ = "Minus-Side";
-	}
 
 
 	// PGK At this point, we need to check to see if the constants from the
