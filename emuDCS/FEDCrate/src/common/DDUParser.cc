@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 3.8 2008/09/03 17:52:59 paste Exp $
+* $Id: DDUParser.cc,v 3.9 2008/09/19 16:53:52 paste Exp $
 *
 * $Log: DDUParser.cc,v $
+* Revision 3.9  2008/09/19 16:53:52  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.8  2008/09/03 17:52:59  paste
 * Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
 *
@@ -17,26 +20,29 @@
 
 #include <iostream>
 
-#include "ChamberParser.h"
+//#include "ChamberParser.h"
 #include "DDU.h"
 
-emu::fed::DDUParser::DDUParser(xercesc::DOMNode *pNode, int crate, char *fileName):
+emu::fed::DDUParser::DDUParser(xercesc::DOMElement *pNode):
 	slot_(0)
 {
 	parseNode(pNode);
 
-	fillInt("slot", slot_);
+	fillInt("Slot", slot_);
 	
 	if(slot_ == 0) {
 		std::cerr << "No slot specified for DDU! " << std::endl;
 	} else { 
 		ddu_ = new DDU(slot_);
 		//fillInt("skip_vme_load", ddu_->skip_vme_load_); 
-		fillHex("gbe_prescale", (int &) ddu_->gbe_prescale_); 
-		fillHex("killfiber", (int &) ddu_->killfiber_);
+		fillHex("GbE_prescale", (int &) ddu_->gbe_prescale_);
+		//fillHex("killfiber", (int &) ddu_->killfiber_);
 
-		ChamberParser CP = ChamberParser(fileName, crate, slot_);
-		ddu_->setChambers(CP.getChambers());
+		// Kill Fiber is a little more complicated now.
+		fillHex("Options", options_);
+
+		//ChamberParser CP = ChamberParser(fileName, crate, slot_);
+		//ddu_->setChambers(CP.getChambers());
 	}
 }
 

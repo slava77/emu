@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: ChamberParser.h,v 1.8 2008/08/26 13:40:08 paste Exp $
+* $Id: ChamberParser.h,v 1.9 2008/09/19 16:53:51 paste Exp $
 *
 * $Log: ChamberParser.h,v $
+* Revision 1.9  2008/09/19 16:53:51  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 1.8  2008/08/26 13:40:08  paste
 * Updating and adding documentation
 *
@@ -16,7 +19,7 @@
 #ifndef __CHAMBERPARSER_H__
 #define __CHAMBERPARSER_H__
 
-#include <vector>
+//#include <vector>
 #include <xercesc/dom/DOM.hpp>
 
 #include "EmuParser.h"
@@ -24,7 +27,6 @@
 namespace emu {
 	namespace fed {
 
-		/// \no
 		class Chamber;
 
 		/** @class ChamberParser A parser that builds Chamber objects to be loaded into the DDU.
@@ -45,19 +47,26 @@ namespace emu {
 			*	@todo Change the DDU configuration file so that it contains the chamber
 			*	definitions so this parser can work like all the rest.
 			**/
-			explicit ChamberParser(char *myFileName, int myCrate, int mySlot);
+			//explicit ChamberParser(char *myFileName, int myCrate, int mySlot);
+			explicit ChamberParser(xercesc::DOMElement *pNode);
 		
 			/// @returns the vector of chambers for the given DDU as parsed from the XML file
-			inline std::vector<Chamber *> getChambers() const { return chamberVector_; }
+			//inline std::vector<Chamber *> getChambers() const { return chamberVector_; }
+			inline Chamber *getChamber() const { return chamber_; }
+			inline const int isKilled() { return (killed_ ? 1 : 0); }
+			inline const int getFiber() { return fiber_; }
 		
 		private:
 			// This parsing is annoying.  Use Stan's idea of parsing every step with a different method.
-			std::vector<xercesc::DOMNode *> parseMaps(xercesc::DOMNode *myDoc);
-			std::vector<xercesc::DOMNode *> parseRUIs(xercesc::DOMNode *myMap);
-			std::vector<xercesc::DOMNode *> parseDDUs(xercesc::DOMNode *myRUI, int myCrate, int mySlot);
-			void parseInput(xercesc::DOMNode *myDDU);
+			//std::vector<xercesc::DOMNode *> parseMaps(xercesc::DOMNode *myDoc);
+			//std::vector<xercesc::DOMNode *> parseRUIs(xercesc::DOMNode *myMap);
+			//std::vector<xercesc::DOMNode *> parseDDUs(xercesc::DOMNode *myRUI, int myCrate, int mySlot);
+			//void parseInput(xercesc::DOMNode *myDDU);
 		
-			std::vector<Chamber *> chamberVector_;
+			//std::vector<Chamber *> chamberVector_;
+			Chamber *chamber_;
+			int killed_;
+			int fiber_;
 		};
 
 	}

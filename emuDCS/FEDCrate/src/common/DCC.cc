@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.22 2008/09/07 22:25:36 paste Exp $
+* $Id: DCC.cc,v 3.23 2008/09/19 16:53:52 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.23  2008/09/19 16:53:52  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.22  2008/09/07 22:25:36  paste
 * Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
 *
@@ -36,13 +39,14 @@
 #include <stdio.h>
 #include <cmath>
 //#include <unistd.h>
-#include <fstream>
+
+#include <sys/time.h> // POSIX gettimeofday routine for microsecond timers
 
 #include "JTAGElement.h"
 
 emu::fed::DCC::DCC(int crate, int slot) :
 		VMEModule(slot),
-		fifoinuse_(1022),
+		fifoinuse_(0x3fe),
 		softsw_(0)
 {
 	std::cerr << "Deprecated constructor.  Use DCC(int) instead of DCC(int,int)." << std::endl;
@@ -50,40 +54,40 @@ emu::fed::DCC::DCC(int crate, int slot) :
 
 emu::fed::DCC::DCC(int slot) :
 		VMEModule(slot),
-		fifoinuse_(1022),
+		fifoinuse_(0x3fe),
 		softsw_(0)
 {
 	// Build the JTAG chains
+
+	JTAGElement *elementMPROM = new JTAGElement("MPROM", 2, MPROM_BYPASS_L | (MPROM_BYPASS_H << 8), 16, 0x00002000, false, NONE);
+	JTAGMap[MPROM] = elementMPROM;
 	
-	JTAGElement elementMPROM = {"MPROM", 2, MPROM_BYPASS_L | (MPROM_BYPASS_H << 8), 16, 0x00002000, false, NONE};
-	JTAGMap[MPROM] = &elementMPROM;
-	
-	JTAGElement elementINPROM = {"INPROM", 3, PROM_BYPASS, 8, 0x00003000, false, NONE};
-	JTAGMap[INPROM] = &elementINPROM;
+	JTAGElement *elementINPROM = new JTAGElement("INPROM", 3, PROM_BYPASS, 8, 0x00003000, false, NONE);
+	JTAGMap[INPROM] = elementINPROM;
 
-	JTAGElement elementINCTRL1 = {"INCTRL1", 4, PROM_BYPASS, 8, 0x00004000, false, NONE};
-	JTAGMap[INCTRL1] = &elementINCTRL1;
+	JTAGElement *elementINCTRL1 = new JTAGElement("INCTRL1", 4, PROM_BYPASS, 8, 0x00004000, false, NONE);
+	JTAGMap[INCTRL1] = elementINCTRL1;
 
-	JTAGElement elementINCTRL2 = {"INCTRL2", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL1};
-	JTAGMap[INCTRL2] = &elementINCTRL2;
+	JTAGElement *elementINCTRL2 = new JTAGElement("INCTRL2", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL1);
+	JTAGMap[INCTRL2] = elementINCTRL2;
 
-	JTAGElement elementINCTRL3 = {"INCTRL3", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL2};
-	JTAGMap[INCTRL3] = &elementINCTRL3;
+	JTAGElement *elementINCTRL3 = new JTAGElement("INCTRL3", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL2);
+	JTAGMap[INCTRL3] = elementINCTRL3;
 
-	JTAGElement elementINCTRL4 = {"INCTRL4", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL3};
-	JTAGMap[INCTRL4] = &elementINCTRL4;
+	JTAGElement *elementINCTRL4 = new JTAGElement("INCTRL4", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL3);
+	JTAGMap[INCTRL4] = elementINCTRL4;
 
-	JTAGElement elementINCTRL5 = {"INCTRL5", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL4};
-	JTAGMap[INCTRL5] = &elementINCTRL5;
+	JTAGElement *elementINCTRL5 = new JTAGElement("INCTRL5", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL4);
+	JTAGMap[INCTRL5] = elementINCTRL5;
 
-	JTAGElement elementMCTRL = {"MCTRL", 11, PROM_BYPASS, 10, 0x00000000, true, NONE};
-	JTAGMap[MCTRL] = &elementMCTRL;
+	JTAGElement *elementMCTRL = new JTAGElement("MCTRL", 11, PROM_BYPASS, 10, 0x00000000, true, NONE);
+	JTAGMap[MCTRL] = elementMCTRL;
 
-	JTAGElement elementRESET1 = {"RESET1", 12, PROM_BYPASS, 8, 0x0000fffe, false, NONE};
-	JTAGMap[RESET1] = &elementRESET1;
+	JTAGElement *elementRESET1 = new JTAGElement("RESET1", 12, PROM_BYPASS, 8, 0x0000fffe, false, NONE);
+	JTAGMap[RESET1] = elementRESET1;
 
-	JTAGElement elementRESET2 = {"RESET2", 12, PROM_BYPASS, 8, 0x0000fffe, false, RESET1};
-	JTAGMap[RESET2] = &elementRESET2;
+	JTAGElement *elementRESET2 = new JTAGElement("RESET2", 12, PROM_BYPASS, 8, 0x0000fffe, false, RESET1);
+	JTAGMap[RESET2] = elementRESET2;
 	
 }
 
@@ -108,8 +112,8 @@ void emu::fed::DCC::configure()
 	//printf(" *********************** DCC configure is called \n");
 	//printf(" DCC slot %d fifoinuse %d \n",slot(),fifoinuse_);
 	if (slot() < 21) {
-		setFIFOInUse(fifoinuse_);
-		setSoftwareSwitch(softsw_);
+		writeFIFOInUseAdvanced(fifoinuse_);
+		writeSoftwareSwitchAdvanced(softsw_);
 	}
 }
 
@@ -508,9 +512,9 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 		//printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
 
 		while (fgets(buf, 256, dwnfp) != NULL) {
-			//printf("%s",buf);
 			if ((buf[0] == '/' && buf[1] == '/') || buf[0] == '!') {
 				//printf("%s",buf);
+				std::cerr << buf << std::flush;
 			} else {
 				if (strrchr(buf, ';') == 0) {
 					do {
@@ -524,6 +528,7 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 						}
 					} while (strrchr(buf, ';') == 0);
 				}
+				std::cerr << buf << std::flush;
 				for (i = 0;i < 1024;i++) {
 					cmpbuf[i] = 0;
 					sndbuf[i] = 0;
@@ -657,7 +662,7 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 						for (looppause = 0;looppause < pause / 65536;looppause++) devdo(dv, -99, sndbuf, 0, sndbuf, rcvbuf, 0);
 						pause = 65535;
 					}
-					sndbuf[0] = pause - (pause / 256) * 256;
+					sndbuf[0] = pause - (pause / 256) * 256; // Seriously?
 					sndbuf[1] = pause / 256;
 					//printf(" sndbuf %02x %02x %d \n",sndbuf[1],sndbuf[0],pause);
 					devdo(dv, -99, sndbuf, 0, sndbuf, rcvbuf, 2);
@@ -685,12 +690,6 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 	//send_last();
 }
 
-
-/*
-void emu::fed::DCC::executeCommand(std::string command)
-{
-}
-*/
 
 
 unsigned long int emu::fed::DCC::readReg(enum DEVTYPE dt, char reg, unsigned int nBits)
@@ -977,18 +976,20 @@ unsigned int emu::fed::DCC::getDDUSlotFromFIFO(unsigned int fifo) {
 
 void emu::fed::DCC::crateHardReset()
 {
-	setSoftwareSwitch(0x1000);
-	setTTCCommand(0x34);
-	sleep((unsigned int) 3);
-	setSoftwareSwitch(0x0);
+	uint16_t switchCache = readSoftwareSwitchAdvanced();
+	writeSoftwareSwitchAdvanced(0x1000);
+	writeTTCCommandAdvanced(0x34);
+	sleep((unsigned int) 2);
+	writeSoftwareSwitchAdvanced(switchCache);
 }
 
 void emu::fed::DCC::crateSyncReset()
 {
-	setSoftwareSwitch(0x1000);
-	setTTCCommand(0x3);
+	uint16_t switchCache = readSoftwareSwitchAdvanced();
+	writeSoftwareSwitchAdvanced(0x1000);
+	writeTTCCommandAdvanced(0x3);
 	sleep((unsigned int) 1);
-	setSoftwareSwitch(0x0);
+	writeSoftwareSwitchAdvanced(switchCache);
 }
 
 
@@ -999,7 +1000,7 @@ throw (FEDException)
 	// The information about the element being written
 	JTAGElement *element = JTAGMap[dev];
 	
-	//std::cout << "Attempting to read from " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << std::endl;
+	//std::clog << "Attempting to read from " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << std::endl;
 		
 	// Direct VME reads are different
 	if (element->directVME) {
@@ -1019,7 +1020,7 @@ throw (FEDException)
 		// Read the register out
 		// Make me a bogus bunch of bits to shove into the register
 		unsigned int nWords = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
-		std::vector<int16_t> bogoBits(nWords,0);
+		std::vector<int16_t> bogoBits(nWords,0xFFFF);
 
 		// Shove in (and read out)
 		std::vector<int16_t> result = jtagReadWrite(dev, nBits, bogoBits);
@@ -1081,7 +1082,122 @@ throw (FEDException)
 
 
 
-int16_t emu::fed::DCC::readTTCCommandAdvanced()
+uint16_t emu::fed::DCC::readStatusHighAdvanced()
+throw (FEDException)
+{
+	try {
+		return readRegAdvanced(MCTRL, 0x02, 16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DCC::readStatusLowAdvanced()
+throw (FEDException)
+{
+	try {
+		return readRegAdvanced(MCTRL, 0x01, 16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DCC::readFIFOInUseAdvanced()
+throw (FEDException)
+{
+	try {
+		return readRegAdvanced(MCTRL, 0x06, 16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DCC::writeFIFOInUseAdvanced(uint16_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<int16_t> myData(1,value & 0x07FF);
+		writeRegAdvanced(MCTRL, 0x03, 16, myData);
+		return;
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DCC::readRateAdvanced(unsigned int fifo)
+throw (FEDException)
+{
+	if (fifo > 11) XCEPT_RAISE(FEDException, "there are only 12 FIFOs to check [0-11]");
+	try {
+		return readRegAdvanced(MCTRL, 0x10 + fifo, 16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DCC::readSoftwareSwitchAdvanced()
+throw (FEDException)
+{
+	try {
+		return readRegAdvanced(MCTRL, 0x1f, 16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DCC::writeSoftwareSwitchAdvanced(uint16_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<int16_t> myData(1, value);
+		writeRegAdvanced(MCTRL, 0x07, 16, myData);
+		return;
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DCC::readFMMAdvanced()
+throw (FEDException)
+{
+	try {
+		return readRegAdvanced(MCTRL, 0x1e, 16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DCC::writeFMMAdvanced(uint16_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<int16_t> myData(1, value);
+		writeRegAdvanced(MCTRL, 0x08, 16, myData);
+		return;
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DCC::readTTCCommandAdvanced()
 throw (FEDException)
 {
 	try {
@@ -1097,8 +1213,8 @@ void emu::fed::DCC::writeTTCCommandAdvanced(int8_t value)
 throw (FEDException)
 {
 	try {
-		std::vector<int16_t> myData;
-		myData.push_back(0xff00 | ((value << 2) & 0xfc)); // The first two bits are special.
+		// The first two bits are special.
+		std::vector<int16_t> myData(1, 0xff00 | ((value << 2) & 0xfc));
 		writeRegAdvanced(MCTRL,0x00,16,myData);
 		return;
 	} catch (FEDException) {
@@ -1108,9 +1224,68 @@ throw (FEDException)
 
 
 
-int32_t emu::fed::DCC::readUserCodeAdvanced(enum DEVTYPE dev)
+void emu::fed::DCC::resetBXAdvanced()
 throw (FEDException)
 {
+	try {
+		std::vector<int16_t> myData(1, 0x02);
+		writeRegAdvanced(MCTRL,0x00,16,myData);
+		return;
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DCC::resetEventsAdvanced()
+throw (FEDException)
+{
+	try {
+		std::vector<int16_t> myData(1, 0x01);
+		writeRegAdvanced(MCTRL,0x00,16,myData);
+		return;
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DCC::writeFakeL1AAdvanced(uint16_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<int16_t> myData(1, value);
+		writeRegAdvanced(MCTRL,0x04,16,myData);
+		return;
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint32_t emu::fed::DCC::readIDCodeAdvanced(enum DEVTYPE dev)
+throw (FEDException)
+{
+	if (dev != MPROM && dev != INPROM)
+		XCEPT_RAISE(FEDException, "must supply a PROM device as an argument");
+	try {
+		std::vector<int16_t> result = readRegAdvanced(dev,PROM_IDCODE,32);
+		return result[0] | (result[1] << 16);
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint32_t emu::fed::DCC::readUserCodeAdvanced(enum DEVTYPE dev)
+throw (FEDException)
+{
+	if (dev != MPROM && dev != INPROM)
+		XCEPT_RAISE(FEDException, "must supply a PROM device as an argument");
 	try {
 		std::vector<int16_t> result = readRegAdvanced(dev,PROM_USERCODE,32);
 		return result[0] | (result[1] << 16);
@@ -1121,195 +1296,5 @@ throw (FEDException)
 
 
 
-void emu::fed::DCC::loadPROMAdvanced(enum DEVTYPE dev, char *fileName)
-throw (FEDException)
-{
 
-	// The element in the chain that I am using
-	JTAGElement *element = JTAGMap[dev];
 
-	// Now we open the file and being parsing.
-	std::ifstream inFile(fileName, std::ifstream::in);
-
-	// Can't have bogus files
-	if (!inFile.is_open()) {
-		std::stringstream error;
-		error << "Cannot open file " << fileName;
-		XCEPT_RAISE(FEDException, error.str());
-	}
-
-	// Now start parsing the file.  Read lines until we have an eof.
-	while (!inFile.eof()) {
-
-		// Each line is a command (or comment)
-		std::string myLine;
-		getline(inFile, myLine);
-
-		// Automatically reject comments.
-		if (myLine.substr(0,2) == "//" || myLine.substr(0,1) == "!") continue;
-
-		// IMPORTANT:  Concatonate lines until there is a semicolon
-		while (myLine.rfind(';') == std::string::npos) {
-
-			// There may be nothing more to read.  In that case, quit (no error)
-			if (inFile.eof()) {
-				std::cout << "Warning: reached end-of-file and discarding the line " << myLine << std::endl;
-				return;
-			}
-
-			// Get the next line and staple it on.
-			std::string nextLine;
-			getline(inFile, myLine);
-			myLine += nextLine;
-		}
-
-		// Wipe out that troublesome semicolon now.
-		myLine = myLine.substr(0,myLine.find(';'));
-
-		// Make the line into a stream for easier parsing.
-		std::istringstream myLineStream(myLine);
-		
-		// The first thing in the string is the command.
-		std::string command;
-		myLineStream >> command;
-		
-		// Switch on the command
-		// SDR is "send data", SIR is "send instruction"
-		if (command == "SDR" || command == "SIR") {
-
-			// The next thing is the decimal number of bits.
-			unsigned long int nBits = 0;
-			myLineStream >> std::dec >> nBits;
-
-			// It will be imporant to know how many words and bytes this is.
-			// Use the magic ceiling...
-			//unsigned long int nWords = (nBits == 0) ? 0 : (nBits - 1) / 16 + 1;
-			unsigned long int nBytes = (nBits == 0) ? 0 : (nBits - 1) / 8 + 1;
-
-			// The next instruction should be "TDI".  If not, it's not useful to us.
-			std::string nextCommand;
-			myLineStream >> nextCommand;
-			if (nextCommand != "TDI") {
-				continue;
-			}
-
-			// Read in the crap after TDI as a string.  We have to parse it as hex.
-			std::string value;
-			myLineStream >> value;
-
-			// If we know what we are doing, there are parentheses at the beginning and end.
-			if (value[0] != '(' || value[value.length() - 1] != ')') {
-				std::cout << "Warning:  " << command << " value " << value << " not enclosed in parentheses.  Ignoring." << std::endl;
-				continue;
-			} else {
-				value = value.substr(1,value.length() - 2);
-			}
-
-			// Now we parse the hex digits one byte at a time, as all instructions have
-			// byte-sized values.
-			std::vector<int8_t> bogoData;
-			bogoData.reserve(nBytes);
-			for (unsigned long int iByte = 0; iByte < nBytes; iByte++) {
-				int8_t byte;
-				sscanf(value.substr(iByte * 2, 2).c_str(), "%2hhx", &byte);
-				bogoData.push_back(byte);
-			}
-
-			// Make the data into a vector we can use.
-			std::vector<int16_t> myData;
-			for (unsigned int iDatum = 0; iDatum < nBytes; iDatum += 2) {
-				int16_t newDatum = bogoData[iDatum];
-				if ( (iDatum + 1) < nBytes) {
-					newDatum |= (bogoData[iDatum + 1] << 8);
-				}
-				myData.push_back(newDatum);
-			}
-
-			// Send instructions, but only if it makes sense to.
-			if (command == "SIR") {
-
-				if (nBits != element->cmdBits) {
-					std::stringstream error;
-					error << "SIR command " << value << " with nBits " << nBits << " does not match the number of bits in the command bus of dev " << element->name << " (" << element->cmdBits << ")";
-					XCEPT_RAISE(FEDException, error.str());
-				}
-
-				// The number of bits matches that of the command bus.
-				commandCycle(dev, myData[0]);
-
-				continue;
-				
-			// Send data
-			} else {
-
-				// It's just a JTAG read/write.
-				std::vector<int16_t> result = jtagReadWrite(dev, nBits, myData);
-
-				// You can do something with the result here.
-
-				continue;
-			}
-
-			// That's it.  Now we do sleeping
-		} else if (command == "RUNTEST") {
-
-			// The next variable is the time to sleep.
-			unsigned long int time;
-			myLineStream >> time;
-
-			// Use magic usleep.  We don't really need it exact, just close enough.
-			// Oh, and at least 16 microseconds.
-			if (time < 16) time = 16;
-			usleep(time);
-
-			continue;
-
-			// Finally, a reset-idle command
-		} else if (command == "STATE") {
-
-			// The only state we care about is when we have
-			// STATE RESET IDLE;
-			// So check for these two.
-			std::string value;
-			myLineStream >> value;
-
-			if (value != "RESET") continue;
-
-			myLineStream >> value;
-
-			if (value != "IDLE") continue;
-
-			// Now we reset idle, clearly.
-
-			if (dev == RESET || dev == RESET2) {
-
-				int32_t myAddress = element->bitCode;
-
-				// Real data to send.
-				std::vector<int16_t> bogoBits(1,1);
-
-				// Send it 5 times.
-				writeCycle(myAddress, element->cmdBits, bogoBits);
-				writeCycle(myAddress, element->cmdBits, bogoBits);
-				writeCycle(myAddress, element->cmdBits, bogoBits);
-				writeCycle(myAddress, element->cmdBits, bogoBits);
-				writeCycle(myAddress, element->cmdBits, bogoBits);
-
-				continue;
-
-			} else {
-				
-				int32_t myAddress = element->bitCode | 0x00000018;
-
-				// Fake data to send.
-				std::vector<int16_t> bogoBits(1,0);
-				
-				writeCycle(myAddress, element->cmdBits, bogoBits);
-			}
-			continue;
-			
-		}
-	}
-
-	inFile.close();
-}

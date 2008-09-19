@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.21 2008/09/03 17:52:59 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.22 2008/09/19 16:53:52 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.22  2008/09/19 16:53:52  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.21  2008/09/03 17:52:59  paste
 * Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
 *
@@ -109,7 +112,7 @@ void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber) {
 	
 	data_->runNumber = runNumber;
 	// Do not quit the threads immediately.
-	data_->exit = 0;
+	data_->exit = false;
 
 	// First, load up the data_ object with the crates that I govern.
 	for (unsigned int iThread = 0; iThread < threadVector_.size(); iThread++) {
@@ -152,13 +155,18 @@ void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber) {
 void emu::fed::IRQThreadManager::endThreads() {
 
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
-
-	if (data_->exit == 1 || threadVector_.size() == 0) {
+	
+	LOG4CPLUS_DEBUG(logger,"Next line: data_->exit");
+	LOG4CPLUS_DEBUG(logger,data_->exit);
+	LOG4CPLUS_DEBUG(logger,"Next line: threadVector_.size()");
+	LOG4CPLUS_DEBUG(logger,threadVector_.size());
+	
+	if (data_->exit || threadVector_.size() == 0) {
 		LOG4CPLUS_DEBUG(logger,"Threads already stopped.");
 	} else {
 		LOG4CPLUS_DEBUG(logger,"Gracefully killing off all threads.");
 		
-		data_->exit = 1;
+		data_->exit = true;
 		
 		
 		// We probably do not need to return the status of the threads,
@@ -237,7 +245,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	// Continue unless someone tells us to stop.
 	while (locdata->exit == false) {
 
-		LOG4CPLUS_DEBUG(logger, "Start of loop reached.");
+		//LOG4CPLUS_DEBUG(logger, "Start of loop reached.");
 
 		// Increase the ticks.
 		locdata->ticks[myCrate]++;
@@ -452,7 +460,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		// Save the error.
 		locdata->errorVectors[myCrate].push_back(myError);
 		
-		LOG4CPLUS_DEBUG(logger, "End of loop reached.");
+		//LOG4CPLUS_DEBUG(logger, "End of loop reached.");
 	}
 
 	//std::cout << " IRQ_Int call pthread_exit" << std::endl;

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 3.20 2008/09/07 22:25:35 paste Exp $
+* $Id: DDU.h,v 3.21 2008/09/19 16:53:51 paste Exp $
 *
 * $Log: DDU.h,v $
+* Revision 3.21  2008/09/19 16:53:51  paste
+* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+*
 * Revision 3.20  2008/09/07 22:25:35  paste
 * Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
 *
@@ -39,6 +42,7 @@ namespace emu {
 		class DDU: public VMEModule
 		{
 			friend class DDUParser;
+			friend class FEDCrateParser;
 
 		public:
 		
@@ -280,21 +284,29 @@ namespace emu {
 			
 			// DDU FPGA id/user codes
 			unsigned long int ddufpga_idcode();
+			*/
 			unsigned long int infpga_idcode0();
 			unsigned long int infpga_idcode1();
+			/*
 			unsigned long int ddufpga_usercode();
+			*/
 			unsigned long int infpga_usercode0();
 			unsigned long int infpga_usercode1();
+			/*
 			unsigned long int inprom_idcode0();
 			unsigned long int inprom_idcode1();
 			unsigned long int vmeprom_idcode();
+			*/
 			unsigned long int dduprom_idcode0();
 			unsigned long int dduprom_idcode1();
+			/*
 			unsigned long int inprom_usercode0();
 			unsigned long int inprom_usercode1();
 			unsigned long int vmeprom_usercode();
+			*/
 			unsigned long int dduprom_usercode0();
 			unsigned long int dduprom_usercode1();
+			/*
 			void all_chip_info();
 			*/
 		
@@ -469,23 +481,51 @@ namespace emu {
 			void setChambers(std::vector<Chamber *> chamberVector);
 
 			// PGK New interface
+			
 			int16_t readCSCStatAdvanced()
 				throw (FEDException);
-		
-		private:
+
+			int8_t readSerialStatAdvanced()
+				throw (FEDException);
+
+			std::vector<int16_t> readGbEFIFOThresholdsAdvanced()
+				throw (FEDException);
+
+			float readTemperatureAdvanced(unsigned int sensor)
+				throw (FEDException);
+
+			float readVoltageAdvanced(unsigned int sensor)
+				throw (FEDException);
+
+			int32_t readKillFiberAdvanced()
+				throw (FEDException);
+
+			void writeKillFiberAdvanced(int32_t value)
+				throw (FEDException);
+
+			int16_t readCCodeStatAdvanced(enum DEVTYPE dev)
+				throw (FEDException);
+
+			int32_t readUserCodeAdvanced(enum DEVTYPE dev)
+				throw (FEDException);
+
+			int32_t readIDCodeAdvanced(enum DEVTYPE dev)
+				throw (FEDException);
+			
+		protected:
 		
 			std::vector<Chamber *> chamberVector_;
 			//int skip_vme_load_;
 			int gbe_prescale_;
-			unsigned int killfiber_;
+			unsigned long int killfiber_;
 
 			// PGK New interface
-			virtual std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, char myReg, unsigned int nBits)
+			std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, int myReg, unsigned int nBits)
 				throw (FEDException);
 			
-			virtual std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, char myReg, unsigned int nBits, std::vector<int16_t>)
+			std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, int myReg, unsigned int nBits, std::vector<int16_t>)
 				throw (FEDException);
-
+			
 		};
 
 	}
