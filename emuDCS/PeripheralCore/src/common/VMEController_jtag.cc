@@ -1262,13 +1262,13 @@ void VMEController::RestoreIdle_alct()
   ptr=(unsigned short int *)add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller((k==2)?3:1,ptr,d+k,tmp);
   //
 }
 
@@ -1287,13 +1287,13 @@ void VMEController::RestoreIdle_jtag()
   //
   d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;
   
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller((k==2)?3:1,ptr,d+k,tmp);
   //
 }
 
@@ -1309,13 +1309,13 @@ void VMEController::RestoreReset_jtag()
   ptr=(unsigned short int *)add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
-  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller(1,ptr,d+k,tmp);
+  for(k=0;k<3;k++)VME_controller((k==2)?3:1,ptr,d+k,tmp);
   //d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-  //for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  //for(k=0;k<3;k++)VME_controller((k==2)?3:1,ptr,d+k,tmp);
   //
 }
 
