@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.31 2008/08/13 11:30:53 geurts Exp $
+// $Id: DAQMB.h,v 3.32 2008/09/21 18:26:14 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.32  2008/09/21 18:26:14  liu
+// monitoring update
+//
 // Revision 3.31  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -531,6 +534,8 @@ public:
   void configure() ;
   bool checkDAQMBXMLValues();
   inline int GetNumberOfConfigurationReads() { return number_of_configuration_reads_; }
+
+  int DCSreadAll(char *data);  
   //
   //
 public:

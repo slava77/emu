@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.49 2008/08/26 11:57:06 liu Exp $
+// $Id: DAQMB.cc,v 3.50 2008/09/21 18:26:15 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.50  2008/09/21 18:26:15  liu
+// monitoring update
+//
 // Revision 3.49  2008/08/26 11:57:06  liu
 // change abs() to fabs()
 //
@@ -5686,6 +5689,38 @@ int  DAQMB::test11()
    return pass;
    //
 }
+
+int DAQMB::DCSreadAll(char *data)
+{
+  unsigned short n, m;
+  int retn;
+
+  for(int i=1; i<6; i++)
+  {
+     // devdo() dev=25, ncmd=16, Cmd[0]=i, Cmd[1]=j
+
+     m = i-1;
+     for(int j=0;j<8; j++)
+     {
+        write_later(0x8020, m);
+        n=(j<<4) + 0xFF89;
+        write_later(0x8000, n);
+        read_later(0x8004);
+     }
+  }
+  for(int j=0; j<6; j++)
+  {
+     // devdo() dev=17, ncmd=16, Cmd[0]=1, Cmd[1]=j
+
+     write_later(0x7020, 0x0E);
+     n=(j<<4) + 0xFF89;
+     write_later(0x7000, n);
+     if(j==5) retn=read_now(0x7004, data);
+     else     read_later(0x7004);
+  }
+  return retn;
+}
+
 //
 } // namespace emu::pc
 } // namespace emu
