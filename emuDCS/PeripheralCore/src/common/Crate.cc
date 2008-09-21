@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.44 2008/09/05 17:44:45 liu Exp $
+// $Id: Crate.cc,v 3.45 2008/09/21 18:26:15 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.45  2008/09/21 18:26:15  liu
+// monitoring update
+//
 // Revision 3.44  2008/09/05 17:44:45  liu
 // monitoring update
 //
@@ -575,19 +578,18 @@ void Crate::MonitorDMB(int cycle, char * buf)
 
 void Crate::MonitorDCS(int cycle, char * buf) 
 {
-  int TOTAL_DCS_COUNTERS=12; // aligned at 4 bytes (integer)
-  char * countbuf;
+  int rn, TOTAL_DCS_COUNTERS=48; // aligned at 4 bytes (integer)
   short *buf2;
 
   buf2=(short *)buf;
   *buf2 = 0;
+  for(int i=0; i<= TOTAL_DCS_COUNTERS*9; i++) buf2[i]=0;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
     if(IsAlive())
-    {  countbuf=myDmbs[i]->GetCounters();
-       if(countbuf) memcpy(buf+4+i*2*TOTAL_DCS_COUNTERS, countbuf, TOTAL_DCS_COUNTERS);
-    }
+       rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
+       // if ( rn<0 ) error condition
   }
   *buf2 = (TOTAL_DCS_COUNTERS)*9;
   return;
