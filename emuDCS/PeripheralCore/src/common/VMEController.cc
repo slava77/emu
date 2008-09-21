@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.51 2008/08/13 11:30:54 geurts Exp $
+// $Id: VMEController.cc,v 3.52 2008/09/21 18:24:35 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.52  2008/09/21 18:24:35  liu
+// change JTAG Idle sequence
+//
 // Revision 3.51  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -974,7 +977,7 @@ int VMEController::vcc_write_command(int code, int n_words, unsigned short *writ
    int n,l,lcnt;
 
 // disabled changing VCC's configuration in DCS
-   if(useDCS_) return -100;
+   if(useDCS_ && n_words>0) return -100;
 
    if(code<0 || code > 0xFF || n_words<0) return -1;
    wbuf[0]=0x00;
@@ -1194,7 +1197,8 @@ bool VMEController::exist(int slot)
    if(slot%2==1 && slot!=13) add_ptr += 0x6024;
 
    ptr=(unsigned short int *)add_ptr;
-   vme_controller(2,ptr,tmp2,(char *)tmp);
+   int rt=VME_controller(2,ptr,tmp2,(char *)tmp);
+   if(rt<0) return false;
    if(DEBUG) printf("read back: %02X%02X\n", tmp[1]&0xff, tmp[0]&0xff);
 /*
    v_return=!error_count;
@@ -1496,6 +1500,7 @@ READETH:
           }
           fflush(NULL);
           SetLife(false);
+          nread=0;
           return -100;
         }
 // Jinghua Liu to debug
