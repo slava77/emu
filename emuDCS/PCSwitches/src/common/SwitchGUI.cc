@@ -24,6 +24,8 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
 	xgi::bind(this,&SwitchGUI::ProblemsGUI,"ProblemsGUI");
 	init=0;
 
+        xoap::bind(this,&SwitchGUI::FixCrates,"FixCrates", XDAQ_NS_URI);
+
 	this->getApplicationInfoSpace()->fireItemAvailable("backupDirectory", &backupDir_);
 	this->getApplicationInfoSpace()->fireItemAvailable("switchTelnet", &switchTelnet_);
 	this->getApplicationInfoSpace()->fireItemAvailable("shutdownPort", &shutdownPort_);
@@ -48,10 +50,16 @@ void SwitchGUI::MainPage(xgi::Input * in, xgi::Output * out ) {
         	init=1;
       	}
 
-      	*out<<Header("VME Gigabit Switch Statistics",false);
-	*out << (std::string) switchTelnet_ << "<br>" << std::endl;
-	*out << (std::string) shutdownPort_ << "<br>" << std::endl;
-	*out << (std::string) backupDir_ << "<br>" << std::endl;
+	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+	std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+	xgi::Utils::getPageHeader(out,"SwitchGUI",myUrn,"","");
+
+	/*
+	*out << "switchTelnet_ = " <<  (std::string) switchTelnet_ << "<br>" << std::endl;
+	*out << "shutdownPort_ = " << (std::string) shutdownPort_ << "<br>" << std::endl;
+	*out << "backupDir_ = " << (std::string) backupDir_ << "<br>" << std::endl;
+	*/
       	*out  << S->html_ping() << std::endl;
 
       	*out << cgicc::table();
@@ -142,7 +150,11 @@ void SwitchGUI::CLRcounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
 
-	*out<<Header("VME Gigabit Switch Maintenance",false);
+        *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+        *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+        std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+        xgi::Utils::getPageHeader(out,"SwitchGUI: VME Gigabit Switch Maintenance",myUrn,"","");
+
 	*out << "backupDir_= " <<(std::string) backupDir_ << std::endl;
 	*out << cgicc::table();
 	*out << cgicc::tr();
@@ -178,7 +190,12 @@ void SwitchGUI::MacGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exceptio
 
 	S->fill_switch_macs(switchTelnet_);
 
-	*out<<Header("VME Gigabit Switch MAC Tables",false);
+//	*out<<Header("VME Gigabit Switch MAC Tables",false);
+        *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+        *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+        std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+        xgi::Utils::getPageHeader(out,"SwitchGUI: VME Gigabit Switch MAC Tables",myUrn,"","");
+
 
 	*out << cgicc::table();
 	*out << cgicc::tr();
@@ -219,7 +236,12 @@ void SwitchGUI::GotoMacGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exce
 
 void SwitchGUI::ProblemsGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
-	*out<<Header("VME Problem Tables",false);
+//	*out<<Header("VME Problem Tables",false);
+
+        *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+        *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+        std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+        xgi::Utils::getPageHeader(out,"SwitchGUI: VME Problem Tables",myUrn,"","");
 
 	*out << cgicc::table();
 	*out << cgicc::tr();
@@ -310,6 +332,52 @@ string SwitchGUI::Header(string myTitle,bool reload=true) {
 
 	return out->str();
 }
+
+xoap::MessageReference SwitchGUI::FixCrates(xoap::MessageReference msg) throw (xoap::exception::Exception) { 
+//      SOAPMessage reply = xdaq::frameSend ( request_ );         
+	xoap::MessageReference reply = msg;         
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();         
+	try {
+        	xoap::SOAPName counterTag ("CrateVector", "", "");
+                vector<xoap::SOAPElement> content = body.getChildElements();                 
+		for (unsigned int i = 0; i < content.size(); i++) {                         
+			vector<xoap::SOAPElement> c = content[i].getChildElements(counterTag);
+                        for (unsigned int j = 0; j < c.size(); j++) {
+                                if (c[0].getElementName() == counterTag) {
+                                        for(int crate=0;crate<32;crate++){
+						if (S->side[crate].label == c[0].getValue()) {
+							std::string command,command2;
+							std::stringstream commandstream;
+							command = (std::string) shutdownPort_ + " " + S->side[crate].ipaddr + " ";
+							commandstream << S->side[crate].nport;
+							commandstream >> command2;
+							command += command2;
+							cout << command << endl;
+							int ierr;
+							ierr=system(command.c_str());
+						}
+//                                      cout << "The server replied with counter: ";
+//                                      cout << c[0].getValue() << endl;
+                                        }
+                                }
+                        }
+
+                }
+        } catch (xoap::exception::Exception& e) {
+                xoap::SOAPFault fault = body.getFault();
+                string msg = "Server error: ";
+                msg += fault.getFaultString();
+                XCEPT_RETHROW(xoap::exception::Exception, msg, e);
+        }
+
+//      xoap::MessageReference reply = xoap::createMessage();
+//      xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+//      xoap::SOAPName responseName = envelope.createName("onMessageResponse", "xdaq",XDAQ_NS_URI);
+//      xoap::SOAPBodyElement e = envelope.getBody().addBodyElement(responseName);
+        return reply;
+}
+
+
 
 string SwitchGUI::CSS() {
 	ostringstream *out = new ostringstream();
