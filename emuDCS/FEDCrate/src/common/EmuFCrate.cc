@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.43 2008/09/19 23:13:59 paste Exp $
+* $Id: EmuFCrate.cc,v 3.44 2008/09/22 14:31:54 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.44  2008/09/22 14:31:54  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 3.43  2008/09/19 23:13:59  paste
 * Fixed a small bug in disabling of error reporting, added missing file.
 *
@@ -497,7 +500,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 			//int flashKillFiber = (*iDDU)->readFlashKillFiber();
 			int flashKillFiber = (*iDDU)->read_page1();
 			//long int fpgaKillFiber = (*iDDU)->readKillFiber();
-			long int fpgaKillFiber = (*iDDU)->ddu_rdkillfiber();
+			long int fpgaKillFiber = (*iDDU)->readKillFiberAdvanced();
 			long int xmlKillFiber = (*iDDU)->getKillFiber();
 			//unsigned short int DDUGbEPrescale = (*iDDU)->readGbEPrescale() & 0xf;
 			//unsigned short int dduGbEPrescale = (*iDDU)->vmepara_rd_GbEprescale() & 0xf;
@@ -518,7 +521,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				//std::cout << "... reloading FPGA killFiber register ..." << std::endl;
 				LOG4CPLUS_INFO(getApplicationLogger(),"fpga and XML killFiber disagree:  reloading fpga");
 				//(*iDDU)->writeKillFiber(xmlKillFiber);
-				(*iDDU)->ddu_loadkillfiber(xmlKillFiber);
+				(*iDDU)->writeKillFiberAdvanced(xmlKillFiber);
 			}
 			// PGK GbEPrescale is depricated.
 			/*
@@ -548,7 +551,13 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		// find DDUs in each crate
 		std::vector<emu::fed::DDU *> myDdus = crateVector[i]->getDDUs();
 		std::vector<emu::fed::DCC *> myDccs = crateVector[i]->getDCCs();
+
+		// Set FMM error disable.  Not on TF, though
+		if (crateVector[i]->number() < 5) {
+			crateVector[i]->getBroadcastDDU()->writeFMMReg(0xFED0);
+		}
 		
+		/*
 		for(unsigned j =0; j < myDdus.size(); ++j){
 			if (crateVector[i]->number() > 4) { // Track finder
 				//LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Enable to Crate " << crateVector[i]->number());
@@ -559,7 +568,8 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				myDdus[j]->writeFMMReg(0xFED0);
 			}
 		}
-		
+		*/
+
 		for(unsigned j =0; j < myDdus.size(); ++j){
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "checking DDU configure status, Crate " << crateVector[i]->number() << " slot " << myDdus[j]->slot());
 			//std::cout << " EmuFCrate: Checking DDU configure status for Crate " << crateVector[i]->number() << " slot " << myDdus[j]->slot() << std::endl;
@@ -1169,7 +1179,7 @@ xoap::MessageReference EmuFCrate::onPassthru(xoap::MessageReference message)
 			{
 				myDdus[j]->writeGbEPrescale(0xf0f0); // no prescaling
 				myDdus[j]->writeFakeL1Reg(0x8787); // fake L1A for each event
-				myDdus[j]->ddu_loadkillfiber(step_killfiber_); // user selects which inputs to use
+				myDdus[j]->writeKillFiberAdvanced(step_killfiber_); // user selects which inputs to use
 				myDdus[j]->reset(emu::fed::DDUFPGA); // sync reset via VME
 			}
 		}

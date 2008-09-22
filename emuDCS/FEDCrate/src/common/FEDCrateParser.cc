@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrateParser.cc,v 3.12 2008/09/19 16:53:52 paste Exp $
+* $Id: FEDCrateParser.cc,v 3.13 2008/09/22 14:31:54 paste Exp $
 *
 * $Log: FEDCrateParser.cc,v $
+* Revision 3.13  2008/09/22 14:31:54  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 3.12  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -105,7 +108,7 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 		return;
 	}
 	
-	std::cout << xercesc::XMLString::transcode(pEmuSystem->getTagName()) << std::endl;
+	//std::cout << xercesc::XMLString::transcode(pEmuSystem->getTagName()) << std::endl;
 
 	// Let's get the system name
 	std::string tempName(xercesc::XMLString::transcode(pEmuSystem->getAttribute( xercesc::XMLString::transcode("Name"))));
@@ -124,7 +127,7 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 		xercesc::DOMElement *pFEDCrate = (xercesc::DOMElement *) pFEDCrates->item(iFEDCrate);
 
 		// Report!
-		std::cout << " " << xercesc::XMLString::transcode(pFEDCrate->getTagName()) << std::endl;
+		//std::cout << " " << xercesc::XMLString::transcode(pFEDCrate->getTagName()) << std::endl;
 
 		// Make the FEDCrate.  Get the number first.
 		int crateNumber = atoi(xercesc::XMLString::transcode(pFEDCrate->getAttribute( xercesc::XMLString::transcode("Number"))));
@@ -141,7 +144,7 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 
 		// Report!
 		xercesc::DOMElement *pVMEController = (xercesc::DOMElement *) pVMEControllers->item(0);
-		std::cout << "  " << xercesc::XMLString::transcode(pVMEController->getTagName()) << std::endl;
+		//std::cout << "  " << xercesc::XMLString::transcode(pVMEController->getTagName()) << std::endl;
 
 		// Parse the attributes and make the controller.
 		VMEControllerParser vmeParser = VMEControllerParser(pVMEController);
@@ -155,7 +158,7 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 			xercesc::DOMElement *pDDU = (xercesc::DOMElement *) pDDUs->item(iDDU);
 			
 			// Report!
-			std::cout << "  " << xercesc::XMLString::transcode(pDDU->getTagName()) << std::endl;
+			//std::cout << "  " << xercesc::XMLString::transcode(pDDU->getTagName()) << std::endl;
 
 			// Parse and store killed fiber high 5 bits:
 			DDUParser dduParser = DDUParser(pDDU);
@@ -171,7 +174,7 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 				xercesc::DOMElement *pChamber = (xercesc::DOMElement *) pChambers->item(iChamber);
 				
 				// Report!
-				std::cout << "   " << xercesc::XMLString::transcode(pChamber->getTagName()) << std::endl;
+				//std::cout << "   " << xercesc::XMLString::transcode(pChamber->getTagName()) << std::endl;
 
 				// Parse and add to the DDU.
 				ChamberParser chamberParser = ChamberParser(pChamber);
@@ -183,18 +186,18 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 				// Alter the killfiber now.
 				if (!chamberParser.isKilled()) {
 					killfiber |= (1 << chamberParser.getFiber());
-					std::cout << "   Fiber " << chamberParser.getFiber() << " Alive" << std::endl;
+					//std::cout << "   Fiber " << chamberParser.getFiber() << " Alive" << std::endl;
 				} else {
-					std::cout << "   Fiber " << chamberParser.getFiber() << " Killed" << std::endl;
+					//std::cout << "   Fiber " << chamberParser.getFiber() << " Killed" << std::endl;
 				}
 
 			}
 
-			std::cout << "   Loading killfiber " << std::hex << killfiber << std::dec << std::endl;
+			//std::cout << "   Loading killfiber " << std::hex << killfiber << std::dec << std::endl;
 			newDDU->killfiber_ = killfiber;
 
 			// Add the DDU to the crate.
-			newCrate->addModule(newDDU);
+			newCrate->addDDU(newDDU);
 		}
 
 		// Get DCCs
@@ -205,20 +208,20 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 			xercesc::DOMElement *pDCC = (xercesc::DOMElement *) pDCCs->item(iDCC);
 			
 			// Report!
-			std::cout << "  " << xercesc::XMLString::transcode(pDCC->getTagName()) << std::endl;
+			//std::cout << "  " << xercesc::XMLString::transcode(pDCC->getTagName()) << std::endl;
 
 			// Parse
 			DCCParser dccParser = DCCParser(pDCC);
 
 			// Add the DCC to the crate.
-			newCrate->addModule((VMEModule *) dccParser.getDCC());
+			newCrate->addDCC(dccParser.getDCC());
 		}
 
 		// Done:  push the FEDCrate back.
 		crateVector_.push_back(newCrate);
 	}
 
-	std::cout << "Done parsing file " << name << std::endl;
+	//std::cout << "Done parsing file " << name << std::endl;
 	//
 	//  Clean up the error handler. The parser does not adopt handlers
 	//  since they could be many objects or one object installed for multiple

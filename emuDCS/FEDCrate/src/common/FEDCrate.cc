@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.cc,v 1.8 2008/09/19 16:53:52 paste Exp $
+* $Id: FEDCrate.cc,v 1.9 2008/09/22 14:31:54 paste Exp $
 *
 * $Log: FEDCrate.cc,v $
+* Revision 1.9  2008/09/22 14:31:54  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 1.8  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -26,26 +29,48 @@
 #include "DCC.h"
 
 emu::fed::FEDCrate::FEDCrate(int myNumber, VMEController *myController):
-	number_(myNumber),
-	moduleVector_(31)
+	number_(myNumber)
 {
+	dduVector_.reserve(14);
+	dccVector_.reserve(2);
 	setController(myController); // Will be removed later.
+
+	broadcastDDU_ = new DDU(21); // Slot 21 = broadcast slot.
 }
 
 
 emu::fed::FEDCrate::~FEDCrate() {
-	for(unsigned i = 0; i < moduleVector_.size(); ++i) {
-		delete moduleVector_[i];
+	for(unsigned int iDDU = 0; iDDU < dduVector_.size(); iDDU++) {
+		delete dduVector_[iDDU];
+	}
+	for(unsigned int iDCC = 0; iDCC < dccVector_.size(); iDCC++) {
+		delete dccVector_[iDCC];
 	}
 	delete vmeController_;
 }
 
-
+/*
 void emu::fed::FEDCrate::addModule(VMEModule *module) {
 	module->setController(vmeController_);
 	module->setBHandle(vmeController_->getBHandle());
 	moduleVector_[module->slot()] = module;
 }
+*/
+void emu::fed::FEDCrate::addDDU(DDU *myDDU) {
+	myDDU->setController(vmeController_);
+	myDDU->setBHandle(vmeController_->getBHandle());
+	dduVector_.push_back(myDDU);
+}
+
+
+
+void emu::fed::FEDCrate::addDCC(DCC *myDCC) {
+	myDCC->setController(vmeController_);
+	myDCC->setBHandle(vmeController_->getBHandle());
+	dccVector_.push_back(myDCC);
+}
+
+
 
 void emu::fed::FEDCrate::setController(VMEController *controller) {
 	if (vmeController_ != NULL) {
@@ -54,10 +79,13 @@ void emu::fed::FEDCrate::setController(VMEController *controller) {
 	std::cout << "Setting controller in crate " << number_ << std::endl;
 	vmeController_ = controller;
 	//vmeController_->setCrate(number_);
-	for (unsigned int i=0; i<moduleVector_.size(); i++) {
-		if (moduleVector_[i] == NULL) continue;
-		moduleVector_[i]->setController(vmeController_);
-		moduleVector_[i]->setBHandle(vmeController_->getBHandle());
+	for(std::vector<DDU *>::iterator iDDU = dduVector_.begin(); iDDU != dduVector_.end(); iDDU++) {
+		(*iDDU)->setController(vmeController_);
+		(*iDDU)->setBHandle(vmeController_->getBHandle());
+	}
+	for(std::vector<DCC *>::iterator iDCC = dccVector_.begin(); iDCC != dccVector_.end(); iDCC++) {
+		(*iDCC)->setController(vmeController_);
+		(*iDCC)->setBHandle(vmeController_->getBHandle());
 	}
 }
 
@@ -69,30 +97,15 @@ void emu::fed::FEDCrate::setBHandle(int32_t BHandle) {
 	std::cout << "Setting BHandle in crate " << number_ << std::endl;
 	vmeController_->setBHandle(BHandle);
 	//vmeController_->setCrate(number_);
-	for (unsigned int i=0; i<moduleVector_.size(); i++) {
-		if (moduleVector_[i] == NULL) continue;
-		moduleVector_[i]->setBHandle(vmeController_->getBHandle());
+	for(std::vector<DDU *>::iterator iDDU = dduVector_.begin(); iDDU != dduVector_.end(); iDDU++) {
+		(*iDDU)->setBHandle(vmeController_->getBHandle());
+	}
+	for(std::vector<DCC *>::iterator iDCC = dccVector_.begin(); iDCC != dccVector_.end(); iDCC++) {
+		(*iDCC)->setBHandle(vmeController_->getBHandle());
 	}
 }
 
 
-std::vector<emu::fed::DDU *> emu::fed::FEDCrate::getDDUs() const {
-  std::vector<DDU *> result;
-  for(unsigned i = 0; i < moduleVector_.size(); ++i) {
-    DDU *ddu = dynamic_cast<DDU *>(moduleVector_[i]);
-    if(ddu != 0) result.push_back(ddu);
-  }
-  return result;
-}
-
-std::vector<emu::fed::DCC *> emu::fed::FEDCrate::getDCCs() const {
-  std::vector<DCC *> result;
-  for(unsigned i = 0; i < moduleVector_.size(); ++i) {
-    DCC *dcc = dynamic_cast<DCC *>(moduleVector_[i]);
-    if(dcc != 0) result.push_back(dcc);
-  }
-  return result;
-}
 
 int emu::fed::FEDCrate::getRUI(int slot) {
 	unsigned int rui = 9 * number_ + slot - 3;
@@ -103,30 +116,17 @@ int emu::fed::FEDCrate::getRUI(int slot) {
 	return rui;
 }
 
-void emu::fed::FEDCrate::enable() {
-  //
-  std::cout << "emu::fed::FEDCrate::enable called " << std::endl;
-}
 
-//
-void emu::fed::FEDCrate::disable() {
-  //
-  std::cout << "emu::fed::FEDCrate::disable called " << std::endl;
-  //
-}
+
 //
 void emu::fed::FEDCrate::configure() {
 // JRG, downloads to all boards, then starts the IRQ handler.
 	//printf(" ********   emu::fed::FEDCrate::configure is called with run number %u \n",(unsigned int) runnumber);
-	std::vector<DDU*> myDdus = this->getDDUs();
-	for(unsigned i =0; i < myDdus.size(); ++i) {
-		std::cout << "Configuring DDU in slot " << myDdus[i]->slot() << std::endl;
-		myDdus[i]->configure();
+	for(std::vector<DDU *>::iterator iDDU = dduVector_.begin(); iDDU != dduVector_.end(); iDDU++) {
+		(*iDDU)->configure();
 	}
-	std::vector<DCC*> myDccs = this->getDCCs();
-	for(unsigned i =0; i < myDccs.size(); ++i) {
-		std::cout << "Configuring DCC in slot " << myDccs[i]->slot() << std::endl;
-		myDccs[i]->configure();
+	for(std::vector<DCC *>::iterator iDCC = dccVector_.begin(); iDCC != dccVector_.end(); iDCC++) {
+		(*iDCC)->configure();
 	}
 
 // LSD, move IRQ start to Init phase:
@@ -137,7 +137,4 @@ void emu::fed::FEDCrate::configure() {
 //	this->init(runnumber);
 }
 
-void emu::fed::FEDCrate::init() {
-	// Does nothing.
-}
 

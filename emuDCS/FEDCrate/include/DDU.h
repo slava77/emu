@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 3.21 2008/09/19 16:53:51 paste Exp $
+* $Id: DDU.h,v 3.22 2008/09/22 14:31:53 paste Exp $
 *
 * $Log: DDU.h,v $
-* Revision 3.21  2008/09/19 16:53:51  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+* Revision 3.22  2008/09/22 14:31:53  paste
+* /tmp/cvsY7EjxV
 *
 * Revision 3.20  2008/09/07 22:25:35  paste
 * Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
@@ -46,7 +46,6 @@ namespace emu {
 
 		public:
 		
-			DDU(int myCrate, int mySlot); // Deprecated
 			DDU(int mySlot);
 			virtual ~DDU();
 
@@ -72,8 +71,8 @@ namespace emu {
 			/* unsigned int ddu_checkFIFOc(); */
 			/* void ddu_rdfibererr(); */
 			/* void ddu_rdfiberok(); */
-			long unsigned int ddu_rdkillfiber();
-			void ddu_loadkillfiber(long int regval);
+			/* long unsigned int ddu_rdkillfiber(); */
+			/* void ddu_loadkillfiber(long int regval); */
 			/* int ddu_rdcrcerr(); */
 			/* void ddu_rdl1aerr(); */
 			/* int ddu_rdxmiterr(); */
@@ -144,8 +143,8 @@ namespace emu {
 				throw (FEDException);
 			int checkFIFO(int fifo)
 				throw (FEDException);
-			long int readKillFiber()
-				throw (FEDException);
+			//	long int readKillFiber()
+			//	throw (FEDException);
 		// 	void writeKillFiber(long int killFiber)
 		// 		throw (FEDException);
 			int readCRCError()
@@ -299,11 +298,11 @@ namespace emu {
 			*/
 			unsigned long int dduprom_idcode0();
 			unsigned long int dduprom_idcode1();
-			/*
+			
 			unsigned long int inprom_usercode0();
 			unsigned long int inprom_usercode1();
 			unsigned long int vmeprom_usercode();
-			*/
+			
 			unsigned long int dduprom_usercode0();
 			unsigned long int dduprom_usercode1();
 			/*
@@ -506,10 +505,16 @@ namespace emu {
 			int16_t readCCodeStatAdvanced(enum DEVTYPE dev)
 				throw (FEDException);
 
+			void writeFMMRegisterAdvanced(int16_t value)
+				throw (FEDException);
+
 			int32_t readUserCodeAdvanced(enum DEVTYPE dev)
 				throw (FEDException);
 
 			int32_t readIDCodeAdvanced(enum DEVTYPE dev)
+				throw (FEDException);
+
+			int16_t readFlashBoardIDAdvanced()
 				throw (FEDException);
 			
 		protected:
