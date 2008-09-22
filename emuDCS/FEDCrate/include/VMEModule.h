@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.14 2008/09/19 16:53:51 paste Exp $
+* $Id: VMEModule.h,v 3.15 2008/09/22 14:31:53 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.15  2008/09/22 14:31:53  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 3.14  2008/09/19 16:53:51  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -42,6 +45,7 @@
 
 #include "EmuFEDLoggable.h"
 #include "JTAGDevice.h"
+#include "JTAGElement.h"
 
 /* VMEModule is a virtual class for DCC and DDU classes.
  * A VMEModule should be apathetic to the controller and crate,
@@ -96,7 +100,19 @@ namespace emu {
 			void loadPROMAdvanced(enum DEVTYPE dev, char *fileName, std::string startString = "", std::string stopString = "")
 				throw (FEDException);
 
-			std::vector<int16_t> jtagReadWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<int16_t> myData, bool writeOnly = false)
+			void loadPROMAdvanced(enum DEVTYPE dev, const char *fileName, std::string startString = "", std::string stopString = "")
+				throw (FEDException) {
+					return loadPROMAdvanced(dev, (char *) fileName, startString, stopString);
+				}
+
+			void loadPROMAdvanced(enum DEVTYPE dev, std::string fileName, std::string startString = "", std::string stopString = "")
+				throw (FEDException) {
+					return loadPROMAdvanced(dev, fileName.c_str(), startString, stopString);
+				}
+
+			std::vector<int16_t> jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<int16_t> myData, bool noRead = false)
+				throw(FEDException);
+			std::vector<int16_t> jtagRead(enum DEVTYPE dev, unsigned int nBits)
 				throw(FEDException);
 		
 		protected:
@@ -140,7 +156,7 @@ namespace emu {
 
 			// Phil's new commands.
 
-			std::map<enum DEVTYPE, JTAGElement *> JTAGMap;
+			std::map<enum DEVTYPE, JTAGChain> JTAGMap;
 			/*
 			virtual std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits)
 				throw(FEDException);

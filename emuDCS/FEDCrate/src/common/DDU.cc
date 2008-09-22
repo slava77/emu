@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.32 2008/09/19 16:53:52 paste Exp $
+* $Id: DDU.cc,v 3.33 2008/09/22 14:31:54 paste Exp $
 *
 * $Log: DDU.cc,v $
-* Revision 3.32  2008/09/19 16:53:52  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
+* Revision 3.33  2008/09/22 14:31:54  paste
+* /tmp/cvsY7EjxV
 *
 * Revision 3.31  2008/09/07 22:25:36  paste
 * Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
@@ -47,16 +47,6 @@
 #include "Chamber.h"
 #include "JTAGElement.h"
 
-emu::fed::DDU::DDU(int myCrate,int mySlot):
-	VMEModule(mySlot),
-	//skip_vme_load_(0),
-	chamberVector_(15),
-	gbe_prescale_(0),
-	killfiber_(0xf7fff)
-{
-	std::cerr << "Deprecated constructor.  Use DDU(int) instead of DDU(int,int)." << std::endl;
-}
-
 emu::fed::DDU::DDU(int mySlot):
 	VMEModule(mySlot),
 	//skip_vme_load_(0),
@@ -66,48 +56,90 @@ emu::fed::DDU::DDU(int mySlot):
 {
 
 	// Build the JTAG chains
-	
-	JTAGElement *elementOUTFIFO = new JTAGElement("OUTFIFO", 1, PROM_BYPASS, 8, 0x00001000, false, NONE);
-	JTAGMap[OUTFIFO] = elementOUTFIFO;
 
-	JTAGElement *elementVMEPROM = new JTAGElement("VMEPROM", 2, PROM_BYPASS, 16, 0x00002000, false, NONE);
-	JTAGMap[VMEPROM] = elementVMEPROM;
+	// OUTFIFO is one element
+	/*
+	JTAGChain chainOUTFIFO;
+	JTAGElement *elementOUTFIFO = new JTAGElement("OUTFIFO", OUTFIFO, 1, PROM_BYPASS, 8, 0x00001000, false);
+	chainOUTFIFO.push_back(elementOUTFIFO);
+	JTAGMap[OUTFIFO] = chainOUTFIFO;
+	*/
 
-	JTAGElement *elementDDUPROM0 = new JTAGElement("DDUPROM0", 3, PROM_BYPASS, 16, 0x00003000, false, NONE);
-	JTAGMap[DDUPROM0] = elementDDUPROM0;
+	// VMEPROM is one element
+	JTAGChain chainVMEPROM;
+	JTAGElement *elementVMEPROM = new JTAGElement("VMEPROM", VMEPROM, 2, PROM_BYPASS, 8, 0x00002000, false);
+	chainVMEPROM.push_back(elementVMEPROM);
+	JTAGMap[VMEPROM] = chainVMEPROM;
 
-	JTAGElement *elementDDUPROM1 = new JTAGElement("DDUPROM1", 3, PROM_BYPASS, 16, 0x00003000, false, DDUPROM0);
-	JTAGMap[DDUPROM1] = elementDDUPROM1;
+	// DDUPROM has two elements
+	JTAGChain chainDDUPROM;
+	JTAGElement *elementDDUPROM0 = new JTAGElement("DDUPROM0", DDUPROM0, 3, PROM_BYPASS, 8, 0x00003000, false);
+	chainDDUPROM.push_back(elementDDUPROM0);
 
-	JTAGElement *elementINPROM0 = new JTAGElement("INPROM0", 4, PROM_BYPASS, 16, 0x00004000, false, NONE);
-	JTAGMap[INPROM0] = elementINPROM0;
+	JTAGElement *elementDDUPROM1 = new JTAGElement("DDUPROM1", DDUPROM1, 3, PROM_BYPASS, 8, 0x00003000, false);
+	chainDDUPROM.push_back(elementDDUPROM1);
+	JTAGMap[DDUPROM0] = chainDDUPROM;
+	JTAGMap[DDUPROM1] = chainDDUPROM;
 
-	JTAGElement *elementINPROM1 = new JTAGElement("INPROM1", 4, PROM_BYPASS, 16, 0x00004000, false, INPROM0);
-	JTAGMap[INPROM1] = elementINPROM1;
-	
-	JTAGElement *elementDDUFPGA = new JTAGElement("DDUFPGA", 5, PROM_BYPASS, 10, 0x00005000, false, NONE);
-	JTAGMap[DDUFPGA] = elementDDUFPGA;
+	// INPROM has two elements
+	JTAGChain chainINPROM;
+	JTAGElement *elementINPROM0 = new JTAGElement("INPROM0", INPROM0, 4, PROM_BYPASS, 8, 0x00004000, false);
+	chainINPROM.push_back(elementINPROM0);
 
-	JTAGElement *elementINFPGA0 = new JTAGElement("INFPGA0", 6, VTX2_BYPASS, 14, 0x00006000, false, NONE);
-	JTAGMap[INFPGA0] = elementINFPGA0;
+	JTAGElement *elementINPROM1 = new JTAGElement("INPROM1", INPROM1, 4, PROM_BYPASS, 8, 0x00004000, false);
+	chainINPROM.push_back(elementINPROM1);
+	JTAGMap[INPROM0] = chainINPROM;
+	JTAGMap[INPROM1] = chainINPROM;
 
-	JTAGElement *elementINFPGA1 = new JTAGElement("INFPGA1", 7, VTX2_BYPASS, 14, 0x00007000, false, NONE);
-	JTAGMap[INFPGA1] = elementINFPGA1;
+	// DDUFPGA is one element
+	JTAGChain chainDDUFPGA;
+	JTAGElement *elementDDUFPGA = new JTAGElement("DDUFPGA", DDUFPGA, 5, PROM_BYPASS, 10, 0x00005000, false);
+	chainDDUFPGA.push_back(elementDDUFPGA);
+	JTAGMap[DDUFPGA] = chainDDUFPGA;
 
-	JTAGElement *elementSLINK = new JTAGElement("SLINK", 8, PROM_BYPASS, 8, 0x00008000, false, NONE);
-	JTAGMap[SLINK] = elementSLINK;
+	// INFPGAs look like two elements, but are actually individual
+	JTAGChain chainINFPGA0;
+	JTAGElement *elementINFPGA0 = new JTAGElement("INFPGA0", INFPGA0, 6, VTX2_BYPASS, 14, 0x00006000, false);
+	chainINFPGA0.push_back(elementINFPGA0);
+	JTAGMap[INFPGA0] = chainINFPGA0;
 
-	JTAGElement *elementVMEPARA = new JTAGElement("VMEPARA", 9, PROM_BYPASS, 8, 0x00030000, true, NONE);
-	JTAGMap[VMEPARA] = elementVMEPARA;
+	// INFPGAs are one each
+	JTAGChain chainINFPGA1;
+	JTAGElement *elementINFPGA1 = new JTAGElement("INFPGA1", INFPGA1, 7, VTX2_BYPASS, 14, 0x00007000, false);
+	chainINFPGA1.push_back(elementINFPGA1);
+	JTAGMap[INFPGA1] = chainINFPGA1;
 
-	JTAGElement *elementVMESERI = new JTAGElement("VMESERI", 10, PROM_BYPASS, 8, 0x00040000, true, NONE);
-	JTAGMap[VMESERI] = elementVMESERI;
+	// SLINK is one element
+	/*
+	JTAGChain chainSLINK;
+	JTAGElement *elementSLINK = new JTAGElement("SLINK", SLINK, 8, PROM_BYPASS, 8, 0x00008000, false);
+	chainSLINK.push_back(elementSLINK);
+	JTAGMap[SLINK] = chainSLINK;
+	*/
 
-	JTAGElement *elementRESET = new JTAGElement("RESET", 12, PROM_BYPASS, 8, 0x0000fffe, false, NONE);
-	JTAGMap[RESET] = elementRESET;
+	// VME Parallel registers is one element
+	JTAGChain chainVMEPARA;
+	JTAGElement *elementVMEPARA = new JTAGElement("VMEPARA", VMEPARA, 9, PROM_BYPASS, 8, 0x00030000, true);
+	chainVMEPARA.push_back(elementVMEPARA);
+	JTAGMap[VMEPARA] = chainVMEPARA;
 
-	JTAGElement *elementSADC = new JTAGElement("SADC", 13, PROM_BYPASS, 8, 0x0000d000, false, NONE);
-	JTAGMap[SADC] = elementSADC;
+	// VME Serial registers is one element
+	JTAGChain chainVMESERI;
+	JTAGElement *elementVMESERI = new JTAGElement("VMESERI", VMESERI, 10, PROM_BYPASS, 8, 0x00040000, true);
+	chainVMESERI.push_back(elementVMESERI);
+	JTAGMap[VMESERI] = chainVMESERI;
+
+	// The JTAG reset path is special, but looks like one element
+	JTAGChain chainRESET;
+	JTAGElement *elementRESET = new JTAGElement("RESET", RESET, 12, PROM_BYPASS, 8, 0x0000fffe, false);
+	chainRESET.push_back(elementRESET);
+	JTAGMap[RESET] = chainRESET;
+
+	// The SADC is special, but looks like one element
+	JTAGChain chainSADC;
+	JTAGElement *elementSADC = new JTAGElement("SADC", SADC, 13, PROM_BYPASS, 8, 0x0000d000, false);
+	chainSADC.push_back(elementSADC);
+	JTAGMap[SADC] = chainSADC;
 	
 }
 
@@ -130,9 +162,10 @@ void emu::fed::DDU::configure() {
 	//printf(" ********************DDU configure is called, slot %d\n",slot());
 	//  printf(" DDU slot %d gbe_prescale %d  \n",slot(),gbe_prescale_);
 	//if(skip_vme_load_==0){
-	if (slot()<21) {
+	if (!isBroadcast()) {
 		writeGbEPrescale(gbe_prescale_);
-		ddu_loadkillfiber(killfiber_);
+		writeKillFiberAdvanced(killfiber_);
+		writeFMMRegisterAdvanced(0xFED0);
 	}
 	//}
 	//else{
@@ -558,7 +591,7 @@ unsigned long int code;
 }
 */
 
-
+/*
 long unsigned int emu::fed::DDU::ddu_rdkillfiber()
 {
 	//char cmd[32];
@@ -616,9 +649,9 @@ long unsigned int emu::fed::DDU::ddu_rdkillfiber()
 
 	return code;
 }
+*/
 
-
-
+/*
 void emu::fed::DDU::ddu_loadkillfiber(long int regval)
 {
 	//int i,j,shft2in;
@@ -691,7 +724,7 @@ void emu::fed::DDU::ddu_loadkillfiber(long int regval)
 	devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,2);
 	
 }
-
+*/
 
 /*
 int emu::fed::DDU::ddu_rdcrcerr()
@@ -5257,7 +5290,7 @@ enum DEVTYPE dv;
 }
 
 
-/*
+
 unsigned long int emu::fed::DDU::inprom_usercode1()
 {
 	char cmd[32];
@@ -5284,9 +5317,9 @@ unsigned long int emu::fed::DDU::inprom_usercode1()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
-*/
 
-/*
+
+
 unsigned long int emu::fed::DDU::inprom_usercode0()
 {
 	char cmd[32];
@@ -5312,9 +5345,9 @@ unsigned long int emu::fed::DDU::inprom_usercode0()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
-*/
 
-/*
+
+
 unsigned long int emu::fed::DDU::vmeprom_usercode()
 {
 	char cmd[32];
@@ -5336,7 +5369,7 @@ unsigned long int emu::fed::DDU::vmeprom_usercode()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
-*/
+
 
 
 unsigned long int emu::fed::DDU::dduprom_usercode1()
@@ -6429,7 +6462,7 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 		while (fgets(buf,256,dwnfp) != NULL)  {
 
 			if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
-				std::cerr << buf;
+				//std::cerr << buf;
 			} else {
 				if(strrchr(buf,';')==0){
 					do {
@@ -6442,7 +6475,7 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 						}
 					} while (strrchr(buf,';')==0);
 				}
-				std::cerr << buf;
+				//std::cerr << buf;
 				for(i=0;i<1024;i++){
 					//std::cout << "i " << i << std::endl;
 					cmpbuf[i]=0;
@@ -6655,7 +6688,7 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 					// printf(" send sleep \n");
 				}
 				else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
-					printf("goto reset idle state\n");
+					//printf("goto reset idle state\n");
 					//	   usleep(1000);
 					// DEBUG There is an error here vvv
 					devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
@@ -7105,14 +7138,14 @@ int emu::fed::DDU::checkFIFO(int fifo)
 }
 
 
-
+/*
 long int emu::fed::DDU::readKillFiber()
 	throw (FEDException)
 {
 	try { return readReg(DDUFPGA,13,20); }
 	catch (FEDException &e) { throw; }
 }
-
+*/
 
 
 // void emu::fed::DDU::writeKillFiber(long int killFiber = 0xf7fff)
@@ -8235,17 +8268,17 @@ std::vector<int16_t> emu::fed::DDU::readRegAdvanced(enum DEVTYPE dev, int myRegi
 throw (FEDException)
 {
 	// The information about the element being written
-	JTAGElement *element = JTAGMap[dev];
+	JTAGChain chain = JTAGMap[dev];
 	
 	//std::clog << "Attempting to read from " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << std::endl;
 	
-	// Direct VME reads are different
-	if (element->directVME) {
+	// Direct VME reads are different.  Doesn't matter what element in the chain it is.
+	if (chain.front()->directVME) {
 		
 		// The address contains both the device to read and the register to read.
 		int8_t myDevice = myRegister & 0xff;
 		int8_t myChannel = (myRegister & 0x0f00) >> 8;
-		int32_t myAddress = (myDevice << 12) | (myChannel << 2) | element->bitCode;
+		int32_t myAddress = (myDevice << 12) | (myChannel << 2) | chain.front()->bitCode;
 		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 		
 		return readCycle(myAddress,nBits);
@@ -8254,10 +8287,10 @@ throw (FEDException)
 
 		// The register given is actually just a command to open a JTAG-like register:
 		std::vector<int16_t> bogoData(1,myRegister);
-		writeCycle(element->bitCode, element->cmdBits, bogoData);
+		writeCycle(chain.front()->bitCode, chain.front()->cmdBits, bogoData);
 
 		// Now we read like a VME register
-		return readCycle(element->bitCode | 0x4, nBits);
+		return readCycle(chain.front()->bitCode | 0x4, nBits);
 		
 	// Everything else is a JTAG command?
 	} else {
@@ -8276,7 +8309,7 @@ throw (FEDException)
 
 		// Now this path is open.  We can send the register that we want loaded.
 		std::vector<int16_t> bogoCommand(1,myRegister);
-		jtagReadWrite(dev, 8, bogoCommand, true);
+		jtagWrite(dev, 8, bogoCommand, true);
 
 		// Now we have to send the "Bypass" command to actually load the register.
 		int16_t bypassCommand;
@@ -8298,13 +8331,8 @@ throw (FEDException)
 		
 		commandCycle(dev, u2Command);
 		
-		// Read the register out
-		// Make me a bogus bunch of bits to shove into the register
-		unsigned int nWords = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
-		std::vector<int16_t> bogoBits(nWords,0xFFFF);
-		
 		// Shove in (and read out)
-		std::vector<int16_t> result = jtagReadWrite(dev, nBits, bogoBits);
+		std::vector<int16_t> result = jtagRead(dev, nBits);
 
 		// Before we leave, we need to reset the FPGA to the normal status.
 		// Close the USR2 pathway with the bypass command.
@@ -8315,7 +8343,7 @@ throw (FEDException)
 
 		bogoCommand.clear();
 		bogoCommand.push_back(NORM_MODE);
-		jtagReadWrite(dev, 8, bogoCommand, true);
+		jtagWrite(dev, 8, bogoCommand, true);
 
 		commandCycle(dev,bypassCommand);
 		
@@ -8332,7 +8360,7 @@ throw (FEDException)
 {
 
 	// The information about the element being written
-	JTAGElement *element = JTAGMap[dev];
+	JTAGChain chain = JTAGMap[dev];
 	
 	//std::cout << "Attempting to write to " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << " values (low to high) ";
 	//for (std::vector<int16_t>::iterator iData = myData.begin(); iData != myData.end(); iData++) {
@@ -8340,13 +8368,13 @@ throw (FEDException)
 	//}
 	//std::cout << std::endl;
 	
-	// Direct VME writes are different
-	if (element->directVME) {
+	// Direct VME writes are different.  Doesn't matter which element in the chain this is.
+	if (chain.front()->directVME) {
 
 		// The address contains both the device to read and the register to read.
 		int8_t myDevice = myRegister & 0xff;
 		int8_t myChannel = (myRegister & 0x0f00) >> 8;
-		int32_t myAddress = (myDevice << 12) | (myChannel << 2) | element->bitCode;
+		int32_t myAddress = (myDevice << 12) | (myChannel << 2) | chain.front()->bitCode;
 		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 		
 		writeCycle(myAddress, nBits, myData);
@@ -8372,7 +8400,7 @@ throw (FEDException)
 		
 		// Now this path is open.  We can send the register that we want loaded.
 		std::vector<int16_t> bogoCommand(1,myRegister);
-		jtagReadWrite(dev, 8, bogoCommand, true);
+		jtagWrite(dev, 8, bogoCommand, true);
 		
 		// Now we have to send the "Bypass" command to actually load the register.
 		int16_t bypassCommand;
@@ -8395,7 +8423,7 @@ throw (FEDException)
 		commandCycle(dev, u2Command);
 		
 		// Shove in (and read out)
-		std::vector<int16_t> result = jtagReadWrite(dev, nBits, myData);
+		std::vector<int16_t> result = jtagWrite(dev, nBits, myData);
 		
 		// Before we leave, we need to reset the FPGA to the normal status.
 		// Close the USR2 pathway with the bypass command.
@@ -8406,7 +8434,7 @@ throw (FEDException)
 		
 		bogoCommand.clear();
 		bogoCommand.push_back(NORM_MODE);
-		jtagReadWrite(dev, 8, bogoCommand, true);
+		jtagWrite(dev, 8, bogoCommand, true);
 		
 		commandCycle(dev,bypassCommand);
 		
@@ -8434,7 +8462,7 @@ int8_t emu::fed::DDU::readSerialStatAdvanced()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(VMESERI, 0x04, 8)[0];
+		return readRegAdvanced(VMESERI, 0x04, 8)[0] & 0x00ff;
 	} catch (FEDException) {
 		throw;
 	}
@@ -8487,7 +8515,7 @@ throw (FEDException)
 {
 	try {
 		std::vector<int16_t> result = readRegAdvanced(DDUFPGA, 13, 20);
-		return result[0] | (result[1] << 16);
+		return (result[0] | ((int32_t) result[1] << 16)) & 0x000fffff;
 	} catch (FEDException) {
 		throw;
 	}
@@ -8501,7 +8529,7 @@ throw (FEDException)
 	try {
 		std::vector<int16_t> bogoBits;
 		bogoBits.reserve(2);
-		std::cerr << "value " << value << std::endl;
+		//std::cerr << "value " << value << std::endl;
 		bogoBits.push_back( (value & 0xffff) );
 		bogoBits.push_back( ((value & 0xf0000) >> 16) );
 		//std::cerr << "bogoBits[0]" << std::hex << bogoBits[0] << " bogoBits[1]" << bogoBits[1] << std::endl;
@@ -8526,6 +8554,31 @@ throw (FEDException)
 
 
 
+void emu::fed::DDU::writeFMMRegisterAdvanced(int16_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<int16_t> bogoBits(1, value);
+		writeRegAdvanced(VMEPARA, 0x8f09, 16, bogoBits);
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+int16_t emu::fed::DDU::readFlashBoardIDAdvanced()
+throw (FEDException)
+{
+	try {
+		return readRegAdvanced(VMESERI, 0x0304, 16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
 int32_t emu::fed::DDU::readUserCodeAdvanced(enum DEVTYPE dev)
 throw (FEDException)
 {
@@ -8544,11 +8597,8 @@ throw (FEDException)
 	commandCycle(dev, ucCommand);
 
 	// Now this path is open.  We can read the usercode out.
-	// Make me a bogus bunch of bits to shove into the register
-	std::vector<int16_t> bogoBits(2,0xFFFF);
-
 	// Shove in (and read out)
-	std::vector<int16_t> result = jtagReadWrite(dev, 32, bogoBits);
+	std::vector<int16_t> result = jtagRead(dev, 32);
 
 	// Now we have to send the "Bypass" command clean house.
 	int16_t bypassCommand;
@@ -8586,11 +8636,9 @@ throw (FEDException)
 	commandCycle(dev, ucCommand);
 	
 	// Now this path is open.  We can read the usercode out.
-	// Make me a bogus bunch of bits to shove into the register
-	std::vector<int16_t> bogoBits(2,0xFFFF);
 	
 	// Shove in (and read out)
-	std::vector<int16_t> result = jtagReadWrite(dev, 32, bogoBits);
+	std::vector<int16_t> result = jtagRead(dev, 32);
 	
 	// Now we have to send the "Bypass" command clean house.
 	int16_t bypassCommand;
@@ -8604,7 +8652,7 @@ throw (FEDException)
 	
 	commandCycle(dev, bypassCommand);
 	
-	return ((int32_t) result[0] & 0xffff) | ((int32_t) result[1] << 16);
+	return (result[0] & 0xffff) | (result[1] << 16);
 	
 }
 

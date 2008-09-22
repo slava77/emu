@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.18 2008/09/19 16:53:52 paste Exp $
+* $Id: VMEController.cc,v 3.19 2008/09/22 14:31:54 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.19  2008/09/22 14:31:54  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 3.18  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -204,9 +207,13 @@ int emu::fed::VMEController::CAEN_read(unsigned long Address,unsigned short int 
 	CVDataWidth DW=cvD16;
 // printf("BHandle_ %08x \n",BHandle_);
 // printf(" +++++ CAENVME read sent +++++\n");
-	//std::clog << std::hex << "Old Read  BHandle_(" << BHandle_ << ") Address(" << Address << ") " << std::flush;
+#ifdef CAEN_DEBUG
+	std::clog << std::hex << "Old Read  BHandle_(" << BHandle_ << ") Address(" << Address << ") " << std::flush;
+#endif
 	err=CAENVME_ReadCycle(BHandle_,Address,data,AM,DW);
-	//std::clog << std::hex << "data(" << (int16_t) *data << ")" << std::flush << std::endl;
+#ifdef CAEN_DEBUG
+	std::clog << std::hex << "data(" << (int16_t) *data << ")" << std::flush << std::endl;
+#endif
 	if(err!=0){
 		caen_err=err;
 		printf(" CAENVME read err %d \n",caen_err);
@@ -223,8 +230,9 @@ int emu::fed::VMEController::CAEN_write(unsigned long Address,unsigned short int
 	CVDataWidth DW=cvD16;
 
 	//printf(" write: handle %d address %08x data %04x AM %d DW %d \n",BHandle_,Address,*data,AM,DW);
-	//std::clog << std::hex << "Old Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << (int16_t) *data << ")" << std::flush << std::endl;
-#ifndef CAEN_DEBUG
+#ifdef CAEN_DEBUG
+	std::clog << std::hex << "Old Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << (int16_t) *data << ")" << std::flush << std::endl;
+#else
 	err=CAENVME_WriteCycle(BHandle_,Address,(char *)data,AM,DW);
 #endif
 	if(err!=0){

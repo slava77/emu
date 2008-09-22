@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 3.9 2008/09/19 16:53:52 paste Exp $
+* $Id: DDUParser.cc,v 3.10 2008/09/22 14:31:54 paste Exp $
 *
 * $Log: DDUParser.cc,v $
+* Revision 3.10  2008/09/22 14:31:54  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 3.9  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -26,15 +29,18 @@
 emu::fed::DDUParser::DDUParser(xercesc::DOMElement *pNode):
 	slot_(0)
 {
+
 	parseNode(pNode);
 
 	fillInt("Slot", slot_);
 	
 	if(slot_ == 0) {
 		std::cerr << "No slot specified for DDU! " << std::endl;
-	} else { 
+	} else {
+
 		ddu_ = new DDU(slot_);
-		//fillInt("skip_vme_load", ddu_->skip_vme_load_); 
+		//fillInt("skip_vme_load", ddu_->skip_vme_load_);
+
 		fillHex("GbE_prescale", (int &) ddu_->gbe_prescale_);
 		//fillHex("killfiber", (int &) ddu_->killfiber_);
 

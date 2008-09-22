@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.22 2008/09/19 16:53:52 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.23 2008/09/22 14:31:54 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.23  2008/09/22 14:31:54  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 3.22  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -397,7 +400,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		// Check to see if any of the fibers are troublesome and report
 		std::vector<IRQError *> errorVector = locdata->errorVectors[myCrate];
-		unsigned int liveFibers = myDDU->ddu_rdkillfiber();
+		unsigned int liveFibers = myDDU->readKillFiberAdvanced();
 		//LOG4CPLUS_DEBUG(logger, "Checking for problem fibers in crate " << myCrate->number() << " slot " << myDDU->slot());
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			// Skip it if it is already killed or if it didn't cause a problem

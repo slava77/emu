@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.23 2008/09/19 16:53:52 paste Exp $
+* $Id: DCC.cc,v 3.24 2008/09/22 14:31:54 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.24  2008/09/22 14:31:54  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 3.23  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -59,35 +62,56 @@ emu::fed::DCC::DCC(int slot) :
 {
 	// Build the JTAG chains
 
-	JTAGElement *elementMPROM = new JTAGElement("MPROM", 2, MPROM_BYPASS_L | (MPROM_BYPASS_H << 8), 16, 0x00002000, false, NONE);
-	JTAGMap[MPROM] = elementMPROM;
-	
-	JTAGElement *elementINPROM = new JTAGElement("INPROM", 3, PROM_BYPASS, 8, 0x00003000, false, NONE);
-	JTAGMap[INPROM] = elementINPROM;
+	// MPROM is one element
+	JTAGChain chainMPROM;
+	JTAGElement *elementMPROM = new JTAGElement("MPROM", MPROM, 2, MPROM_BYPASS_L | (MPROM_BYPASS_H << 8), 16, 0x00002000, false);
+	chainMPROM.push_back(elementMPROM);
+	JTAGMap[MPROM] = chainMPROM;
 
-	JTAGElement *elementINCTRL1 = new JTAGElement("INCTRL1", 4, PROM_BYPASS, 8, 0x00004000, false, NONE);
-	JTAGMap[INCTRL1] = elementINCTRL1;
+	// INPROM is one element
+	JTAGChain chainINPROM;
+	JTAGElement *elementINPROM = new JTAGElement("INPROM", INPROM, 3, PROM_BYPASS, 8, 0x00003000, false);
+	chainINPROM.push_back(elementINPROM);
+	JTAGMap[INPROM] = chainINPROM;
 
-	JTAGElement *elementINCTRL2 = new JTAGElement("INCTRL2", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL1);
-	JTAGMap[INCTRL2] = elementINCTRL2;
+	// INCTRL is 5 elements.  Tricky!
+	/*
+	JTAGChain chainINCTRL;
+	JTAGElement *elementINCTRL1 = new JTAGElement("INCTRL1", INCTRL1, 4, PROM_BYPASS, 8, 0x00004000, false);
 
-	JTAGElement *elementINCTRL3 = new JTAGElement("INCTRL3", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL2);
-	JTAGMap[INCTRL3] = elementINCTRL3;
+	JTAGElement *elementINCTRL2 = new JTAGElement("INCTRL2", INCTRL2, 4, PROM_BYPASS, 8, 0x00004000, false);
+	chainINCTRL.push_back(elementINCTRL2);
 
-	JTAGElement *elementINCTRL4 = new JTAGElement("INCTRL4", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL3);
-	JTAGMap[INCTRL4] = elementINCTRL4;
+	JTAGElement *elementINCTRL3 = new JTAGElement("INCTRL3", INCTRL3, 4, PROM_BYPASS, 8, 0x00004000, false);
+	chainINCTRL.push_back(elementINCTRL3);
 
-	JTAGElement *elementINCTRL5 = new JTAGElement("INCTRL5", 4, PROM_BYPASS, 8, 0x00004000, false, INCTRL4);
-	JTAGMap[INCTRL5] = elementINCTRL5;
+	JTAGElement *elementINCTRL4 = new JTAGElement("INCTRL4", INCTRL4, 4, PROM_BYPASS, 8, 0x00004000, false);
+	chainINCTRL.push_back(elementINCTRL4);
 
-	JTAGElement *elementMCTRL = new JTAGElement("MCTRL", 11, PROM_BYPASS, 10, 0x00000000, true, NONE);
-	JTAGMap[MCTRL] = elementMCTRL;
+	JTAGElement *elementINCTRL5 = new JTAGElement("INCTRL5", INCTRL5, 4, PROM_BYPASS, 8, 0x00004000, false);
+	chainINCTRL.push_back(elementINCTRL5);
+	JTAGMap[INCTRL1] = chainINCTRL;
+	JTAGMap[INCTRL2] = chainINCTRL;
+	JTAGMap[INCTRL3] = chainINCTRL;
+	JTAGMap[INCTRL4] = chainINCTRL;
+	JTAGMap[INCTRL5] = chainINCTRL;
+	*/
 
-	JTAGElement *elementRESET1 = new JTAGElement("RESET1", 12, PROM_BYPASS, 8, 0x0000fffe, false, NONE);
-	JTAGMap[RESET1] = elementRESET1;
+	// MCTRL is one element
+	JTAGChain chainMCTRL;
+	JTAGElement *elementMCTRL = new JTAGElement("MCTRL", MCTRL, 11, PROM_BYPASS, 10, 0x00000000, true);
+	chainMCTRL.push_back(elementMCTRL);
+	JTAGMap[MCTRL] = chainMCTRL;
 
-	JTAGElement *elementRESET2 = new JTAGElement("RESET2", 12, PROM_BYPASS, 8, 0x0000fffe, false, RESET1);
-	JTAGMap[RESET2] = elementRESET2;
+	// The RESET path is two elements.  Tricky!
+	JTAGChain chainRESET;
+	JTAGElement *elementRESET1 = new JTAGElement("RESET1", RESET, 12, PROM_BYPASS, 8, 0x0000fffe, false);
+	chainRESET.push_back(elementRESET1);
+
+	JTAGElement *elementRESET2 = new JTAGElement("RESET2", RESET2, 12, PROM_BYPASS, 8, 0x0000fffe, false);
+	chainRESET.push_back(elementRESET2);
+	JTAGMap[RESET1] = chainRESET;
+	JTAGMap[RESET2] = chainRESET;
 	
 }
 
@@ -997,36 +1021,35 @@ void emu::fed::DCC::crateSyncReset()
 std::vector<int16_t> emu::fed::DCC::readRegAdvanced(enum DEVTYPE dev, char myRegister, unsigned int nBits)
 throw (FEDException)
 {
-	// The information about the element being written
-	JTAGElement *element = JTAGMap[dev];
+	// The information about the element being written is stored in the chain.
+	JTAGChain chain = JTAGMap[dev];
+	// The first element in the chain will give us all the information about the
+	// class of VME communication we need to use.
 	
 	//std::clog << "Attempting to read from " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << std::endl;
 		
-	// Direct VME reads are different
-	if (element->directVME) {
+	if (chain.front()->directVME) {
+		// Direct VME reads are always one element, and are not JTAG commands.
 
-		// The address for MCTRL is special, as it also contains the command code.
-		int32_t myAddress = (myRegister << 2) | element->bitCode;
+		// The address of the read is stored in the chain.
+		int32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 
 		return readCycle(myAddress,nBits);
 
-	// Everything else is a JTAG command?
 	} else {
+		// Everything else is a JTAG command, and may or may not
+		// be part of a chain.
 
 		// Open the appropriate register with an initialization command.
 		commandCycle(dev, myRegister);
 
-		// Read the register out
-		// Make me a bogus bunch of bits to shove into the register
-		unsigned int nWords = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
-		std::vector<int16_t> bogoBits(nWords,0xFFFF);
-
 		// Shove in (and read out)
-		std::vector<int16_t> result = jtagReadWrite(dev, nBits, bogoBits);
+		std::vector<int16_t> result = jtagRead(dev, nBits);
 
-		// Finally, set the bypass
-		commandCycle(dev, element->bypassCommand);
+		// Finally, set the bypass.  All bypass commands in the chain are equal.
+		// That is part of the definition of JTAG.
+		commandCycle(dev, chain.front()->bypassCommand);
 
 		return result;
 		
@@ -1041,7 +1064,7 @@ throw (FEDException)
 {
 	
 	// The information about the element being written
-	JTAGElement *element = JTAGMap[dev];
+	JTAGChain chain = JTAGMap[dev];
 	
 	//std::cout << "Attempting to write to " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << " values (low to high) ";
 	//for (std::vector<int16_t>::iterator iData = myData.begin(); iData != myData.end(); iData++) {
@@ -1050,10 +1073,10 @@ throw (FEDException)
 	//std::cout << std::endl;
 	
 	// Direct VME writes are different
-	if (element->directVME) {
+	if (chain.front()->directVME) {
 		
 		// The address for MCTRL is special, as it also contains the command code.
-		int32_t myAddress = (myRegister << 2) | element->bitCode;
+		int32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 		
 		writeCycle(myAddress, nBits, myData);
@@ -1069,10 +1092,10 @@ throw (FEDException)
 		commandCycle(dev, myRegister);
 		
 		// Shove in (and read out)
-		std::vector<int16_t> result = jtagReadWrite(dev, nBits, myData);
+		std::vector<int16_t> result = jtagWrite(dev, nBits, myData);
 		
 		// Finally, set the bypass
-		commandCycle(dev, element->bypassCommand);
+		commandCycle(dev, chain.front()->bypassCommand);
 		
 		return result; // The value that used to be in the register.
 		
@@ -1269,10 +1292,17 @@ throw (FEDException)
 uint32_t emu::fed::DCC::readIDCodeAdvanced(enum DEVTYPE dev)
 throw (FEDException)
 {
-	if (dev != MPROM && dev != INPROM)
+	int16_t command = 0;
+	if (dev == MPROM) {
+		command = ((MPROM_IDCODE_H << 8) & 0xff00) | (MPROM_IDCODE_L & 0xff);
+	} else if (dev == INPROM) {
+		command = PROM_IDCODE & 0xff;
+	} else {
 		XCEPT_RAISE(FEDException, "must supply a PROM device as an argument");
+	}
+	
 	try {
-		std::vector<int16_t> result = readRegAdvanced(dev,PROM_IDCODE,32);
+		std::vector<int16_t> result = readRegAdvanced(dev,command,32);
 		return result[0] | (result[1] << 16);
 	} catch (FEDException) {
 		throw;
@@ -1284,17 +1314,21 @@ throw (FEDException)
 uint32_t emu::fed::DCC::readUserCodeAdvanced(enum DEVTYPE dev)
 throw (FEDException)
 {
-	if (dev != MPROM && dev != INPROM)
+	int16_t command = 0;
+	if (dev == MPROM) {
+		command = ((MPROM_USERCODE_H << 8) & 0xff00) | (MPROM_USERCODE_L & 0xff);
+	} else if (dev == INPROM) {
+		command = PROM_USERCODE & 0xff;
+	} else {
 		XCEPT_RAISE(FEDException, "must supply a PROM device as an argument");
+	}
+	
 	try {
-		std::vector<int16_t> result = readRegAdvanced(dev,PROM_USERCODE,32);
+		std::vector<int16_t> result = readRegAdvanced(dev,command,32);
 		return result[0] | (result[1] << 16);
 	} catch (FEDException) {
 		throw;
 	}
 }
-
-
-
 
 

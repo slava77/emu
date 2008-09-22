@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 3.50 2008/08/25 12:25:49 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 3.51 2008/09/22 14:31:53 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.h,v $
+* Revision 3.51  2008/09/22 14:31:53  paste
+* /tmp/cvsY7EjxV
+*
 * Revision 3.50  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -25,12 +28,17 @@
 #ifndef __EMUFCRATEHYPERDAQ_H__
 #define __EMUFCRATEHYPERDAQ_H__
 
+#include <string>
+#include <vector>
+#include <utility> // pair
+
 #include "xdaq/Application.h"
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
 #include "xdata/String.h"
 
 #include "EmuFEDApplication.h"
+#include "FEDException.h"
 #include "FEDCrate.h"
 
 class EmuFCrateHyperDAQ: public EmuFEDApplication
@@ -281,6 +289,58 @@ public:
 	*	@author Phillip Killewald
 	**/
 	std::string selectACrate(std::string location, std::string what, unsigned int index, unsigned int crateIndex = 0);
+
+	/** A way to easily get the selected crate from the CGI variables
+	 *
+	 * @param cgi The Cgicc object which to parse.
+	 * @returns a pair of the cgi integer value parsed from cgi and a
+	 * pointer to the target FEDCrate object
+	 * 
+	 * @author Phillip Killewald
+	 **/
+	std::pair<unsigned int, emu::fed::FEDCrate *> getCGICrate(cgicc::Cgicc cgi)
+		throw (emu::fed::FEDException);
+
+	/** A way to easily get the selected DDU/DCC from the CGI variables
+	 *
+	 * @param cgi The Cgicc object which to parse.
+	 * @returns a pair of the cgi integer value parsed from cgi and a
+	 * pointer to the target VMEModule object
+	 *
+	 * @author Phillip Killewald
+	 **/
+	template<class T>
+		std::pair<unsigned int, T *> getCGIBoard(cgicc::Cgicc cgi)
+		throw (emu::fed::FEDException) {
+
+			// Start with the crate
+			std::pair<unsigned int, emu::fed::FEDCrate *> cratePair = getCGICrate(cgi);
+			emu::fed::FEDCrate *crate = cratePair.second;
+
+			// Now get the vector of boards.
+			std::vector<T *> boardVector = crate->getBoards<T>();
+
+			// Die if there are no boards from which to choose.
+			if (boardVector.size() == 0) {
+				XCEPT_RAISE(emu::fed::FEDException, "Cannot select a board when there are no boards to select!");
+			}
+			
+
+			// Then get the board number
+			cgicc::form_iterator name = cgi.getElement("board");
+			unsigned int cgiBoard = 0;
+			if(name != cgi.getElements().end()) {
+				cgiBoard = cgi["board"]->getIntegerValue();
+			}
+			
+			// Warn if the number from cgi is out of bounds of the board vector
+			if (cgiBoard >= boardVector.size() || cgiBoard < 0) {
+				LOG4CPLUS_WARN(getApplicationLogger(), "Board " << cgiBoard << " is out-of-bounds");
+				cgiBoard = 0;
+			}
+			
+			return std::pair<unsigned int, T *> (cgiBoard, boardVector[cgiBoard]);
+		}
 
 };
 
