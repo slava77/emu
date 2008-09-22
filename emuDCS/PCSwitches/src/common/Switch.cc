@@ -186,7 +186,7 @@ namespace emu{
 	
         std::cout << swt << "  "  << command << std::endl;
         int ierr;
-        ierr=system(command.c_str());
+        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
       }
       usleep(250000);
       for(int swt=0;swt<4;swt++){
@@ -194,7 +194,7 @@ namespace emu{
         char tmp[100];
 	sprintf(tmp,"rm /tmp/switch_status%02d.dat",swt+swadd2+1);
         int ierr;
-        ierr=system(tmp);
+        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(tmp);
       } 
       for(int swt=0;swt<4;swt++){
         std::string symb=" ";
@@ -210,15 +210,15 @@ namespace emu{
 //        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s interfaceall > /tmp/switch_interface%02d.dat %s\n",ip[swt+swadd],swt+swadd2+1,symb);
         std::cout << swt << " " << command << std::endl;
         int ierr;
-        ierr=system(command.c_str());
+        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
       }
       usleep(250000);
       for(int swt=0;swt<4;swt++){
         parse_interface_all(swt);
         char tmp[100];
-        sprintf(tmp,"rm /tmp/switch_interface%02d.dat",swt+swadd2+1);
+        if(toolbox::net::getHostName()  != "emucom02.cern.ch") sprintf(tmp,"rm /tmp/switch_interface%02d.dat",swt+swadd2+1);
         int ierr;
-        ierr=system(tmp); 
+        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(tmp); 
       }
     
     }
@@ -238,9 +238,15 @@ namespace emu{
 //        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s mac-addr-table > /tmp/switch_mac.dat \n",ip[swt+swadd]);
         std::cout << swt << command << std::endl;
         int ierr;
-	ierr=system(command.c_str());
+	if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
+	if(toolbox::net::getHostName() == "emucom02.cern.ch") {
+		char emucommand[445];
+		sprintf(emucommand, "cp /tmp/switch_mac0%d.dat /tmp/switch_mac.dat", swt+1);
+		printf("%s\n", emucommand);
+		system(emucommand);
+        }
         parse_mac(swt);
-        ierr=system("rm /tmp/switch_mac.dat");
+        if(toolbox::net::getHostName()  != "emucom02.cern.ch") ierr=system("rm /tmp/switch_mac.dat");
       }
     
     }
@@ -278,7 +284,7 @@ namespace emu{
 
 //        sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s connecttest >& /tmp/connect%02d.dat",ip[i+swadd],i+swadd2+1);
 	std::cout << command << std::endl;
-        system(command.c_str());
+        if(toolbox::net::getHostName() != "emucom02.cern.ch") system(command.c_str());
       }
       usleep(250000);
       std::cout << " after usleep " << std::endl;
@@ -297,7 +303,7 @@ namespace emu{
 	std::cout << " switch link "<< i<< " " <<link[i]<<std::endl;
         fclose(file);
         sprintf(tmp,"rm /tmp/connect%02d.dat",i+swadd2+1);
-        system(tmp);
+        if(toolbox::net::getHostName() != "emucom02.cern.ch") system(tmp);
       }
     }
 
@@ -588,7 +594,7 @@ namespace emu{
 	std::cout << swt << " " << command << std::endl;
 //        printf("%d  %s \n",swt,command);
         int ierr;
-        ierr=system(command.c_str());
+        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
       }
       usleep(250000);
     }
@@ -660,7 +666,7 @@ namespace emu{
         }
       }
       fclose(file);
-      sprintf(temp,"rm /tmp/problems%02d.dat",swtch);
+      if(toolbox::net::getHostName() != "emucom02.cern.ch") sprintf(temp,"rm /tmp/problems%02d.dat",swtch);
       int ierr;
       ierr=system(temp);
       sprintf(strbuf,"</tbody> \n </table> \n"); 
@@ -880,14 +886,14 @@ namespace emu{
 //      sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PeripheralApps/xml/test.pl 192.168.10.1%02d %d > /tmp/error.dat",side[s[i]].nswitch,side[s[i]].nport);
       std::cout << command << std::endl;
       int ierr;
-      ierr=system(command.c_str());
+      if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
       FILE *file;
       file=fopen("/tmp/error.dat","r");
       while(fgets(line,128,file)){
         if(line[0]!='(')rtns=rtns+line;
       }
       fclose(file);
-      ierr=system("rm -f /tmp/error.dat");
+      if(toolbox::net::getHostName()  != "emucom02.cern.ch") ierr=system("rm -f /tmp/error.dat");
     }
     return rtns;
   }
