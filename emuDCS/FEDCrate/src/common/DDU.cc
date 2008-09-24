@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.33 2008/09/22 14:31:54 paste Exp $
+* $Id: DDU.cc,v 3.34 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 3.34  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.33  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -162,11 +165,9 @@ void emu::fed::DDU::configure() {
 	//printf(" ********************DDU configure is called, slot %d\n",slot());
 	//  printf(" DDU slot %d gbe_prescale %d  \n",slot(),gbe_prescale_);
 	//if(skip_vme_load_==0){
-	if (!isBroadcast()) {
-		writeGbEPrescale(gbe_prescale_);
-		writeKillFiberAdvanced(killfiber_);
-		writeFMMRegisterAdvanced(0xFED0);
-	}
+	writeGbEPrescale(gbe_prescale_);
+	writeKillFiber(killfiber_);
+	//writeFMMAdvanced(0xFED0);
 	//}
 	//else{
 		//printf("     skipping config download for this DDU. \n");
@@ -1607,7 +1608,7 @@ long int code;
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::ddu_InC_Hist()
 // JRG, 16-bit Persistent Register, can include in Monitor Loop
 //      Error triggered by any bits true.
@@ -1674,7 +1675,7 @@ unsigned long int emu::fed::DDU::ddu_InC_Hist()
 	
 	return code;
 }
-
+*/
 
 /*
 void emu::fed::DDU::ddu_rd_verr_cnt()
@@ -2161,7 +2162,7 @@ long int code;
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::ddu_rdscaler()
 {
 
@@ -2211,7 +2212,7 @@ unsigned long int emu::fed::DDU::ddu_rdscaler()
 	
 	return code;
 }
-
+*/
 
 /*
 unsigned long int emu::fed::DDU::ddu_int_rdscaler()
@@ -2273,7 +2274,7 @@ long int code;
 }
 */
 
-
+/*
 void emu::fed::DDU::ddu_loadbxorbit(int regval)
 {
 	//char cmd[32];
@@ -2327,7 +2328,7 @@ void emu::fed::DDU::ddu_loadbxorbit(int regval)
 	sndbuf[0]=0;
 	devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,2);
 }
-
+*/
 
 /*
 int emu::fed::DDU::ddu_rdbxorbit()
@@ -2457,7 +2458,7 @@ unsigned int emu::fed::DDU::ddu_rd_boardID()
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::ddu_fpgastat()
 {
 	//char cmd[32];
@@ -2502,15 +2503,15 @@ unsigned long int emu::fed::DDU::ddu_fpgastat()
 	//ddu_code1=((0x00ff&rcvbuf[2])|((0x00ff&rcvbuf[3])<<8));
 	//ddu_code0=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8));
 	//ddu_shift0=shft2in;
-	/*
-	printf("   ----> 70-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
-	for(i=0;i<11;i=i+4){
-		shft0in=(((0x01&rcvbuf[i+2])<<15)|((0xff&rcvbuf[i+1])<<7)|(0xfe&rcvbuf[i])>>1);
-		shft1in=(((0x01&rcvbuf[i+4])<<15)|((0xff&rcvbuf[i+3])<<7)|(0xfe&rcvbuf[i+2])>>1);
-		printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
-		printf("      right-shifted one: %04x/%04x\n",shft1in,shft0in);
-	}
-	*/
+	
+// 	printf("   ----> 70-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
+// 	for(i=0;i<11;i=i+4){
+// 		shft0in=(((0x01&rcvbuf[i+2])<<15)|((0xff&rcvbuf[i+1])<<7)|(0xfe&rcvbuf[i])>>1);
+// 		shft1in=(((0x01&rcvbuf[i+4])<<15)|((0xff&rcvbuf[i+3])<<7)|(0xfe&rcvbuf[i+2])>>1);
+// 		printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
+// 		printf("      right-shifted one: %04x/%04x\n",shft1in,shft0in);
+// 	}
+	
 	//  ddu5status_decode(errcode);
 	cmd[0]=VTX2P_BYPASS_L;
 	cmd[1]=VTX2P_BYPASS_H;
@@ -2531,9 +2532,9 @@ unsigned long int emu::fed::DDU::ddu_fpgastat()
 	
 	return code;
 }
+*/
 
-
-
+/*
 std::vector<unsigned long int> emu::fed::DDU::ddu_occmon()
 {
 	//char cmd[32];
@@ -2606,9 +2607,9 @@ std::vector<unsigned long int> emu::fed::DDU::ddu_occmon()
 
 	return retVal;
 }
+*/
 
-
-
+/*
 std::vector<unsigned long int> emu::fed::DDU::ddu_fpgatrap()
 // JRG, 192-bits, Uses custom decode routine, skip for now in Monitor Loop
 {
@@ -2714,7 +2715,7 @@ std::vector<unsigned long int> emu::fed::DDU::ddu_fpgatrap()
 
 	return retVal;
 }
-
+*/
 
 /*
 void emu::fed::DDU::ddu_reset()
@@ -2764,7 +2765,7 @@ void emu::fed::DDU::ddu_l1calonoff()
 }
 */
 
-
+/*
 void emu::fed::DDU::ddu_vmel1a()
 {
 	//char cmd[32];
@@ -2790,6 +2791,7 @@ void emu::fed::DDU::ddu_vmel1a()
 	devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,2);
 	//printf(" DDUFPGA VME L1A done. \n");
 }
+*/
 
 /*
 void emu::fed::DDU::ddu_status_decode(int long code)  // Old outdated DDU3? do not use!
@@ -3326,7 +3328,7 @@ unsigned long int emu::fed::DDU::ddufpga_idcode()
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::infpga_idcode0()
 {
 enum DEVTYPE dv;
@@ -3349,9 +3351,9 @@ enum DEVTYPE dv;
       return ibrd;
       devdo(dv,14,cmd,0,sndbuf,rcvbuf,0);
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::infpga_idcode1()
 {
 enum DEVTYPE dv;
@@ -3373,7 +3375,7 @@ enum DEVTYPE dv;
       ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       return ibrd;
 }
-
+*/
 
 /*
 unsigned long int emu::fed::DDU::ddufpga_usercode()
@@ -3401,7 +3403,7 @@ unsigned long int emu::fed::DDU::ddufpga_usercode()
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::infpga_usercode0()
 {
 	char cmd[32];
@@ -3425,9 +3427,9 @@ unsigned long int emu::fed::DDU::infpga_usercode0()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::infpga_usercode1()
 {
 	char cmd[32];
@@ -3451,7 +3453,7 @@ unsigned long int emu::fed::DDU::infpga_usercode1()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
-
+*/
 
 /*
 void emu::fed::DDU::infpga_shfttst(enum DEVTYPE dv,int tst)
@@ -3483,7 +3485,7 @@ shft2in=(((0x01&rcvbuf[2])<<15)|((0xff&rcvbuf[1])<<7)|(0xfe&rcvbuf[0])>>1);
 }
 */
 
-
+/*
 void emu::fed::DDU::infpga_reset(enum DEVTYPE dv)
 {
 	//char cmd[32];
@@ -3509,9 +3511,9 @@ void emu::fed::DDU::infpga_reset(enum DEVTYPE dv)
 	devdo(dv,14,cmd,0,sndbuf,rcvbuf,2);
 	//printf(" INFPGA reset done. \n");
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::infpga_rdscaler(enum DEVTYPE dv)
 {
 
@@ -3561,7 +3563,7 @@ unsigned long int emu::fed::DDU::infpga_rdscaler(enum DEVTYPE dv)
 	
 	return code;
 }
-
+*/
 
 /*
 int emu::fed::DDU::ddu_dmblive()
@@ -3805,7 +3807,7 @@ int i,shft0in,shft1in,shft2in;
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::infpga_rd1scaler(enum DEVTYPE dv)
 // JRG, 24-bits, can include in Monitor Loop, changes for each event
 //      Error not triggered here!
@@ -3862,7 +3864,7 @@ unsigned long int emu::fed::DDU::infpga_rd1scaler(enum DEVTYPE dv)
 	devdo(dv,14,cmd,0,sndbuf,rcvbuf,2);
 	return code;
 }
-
+*/
 
 /*
 void emu::fed::DDU::infpga_lowstat(enum DEVTYPE dv)
@@ -3980,7 +3982,7 @@ long int code;
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::infpgastat(enum DEVTYPE dv)
      //void emu::fed::DDU::infpga_dfpgastat(enum DEVTYPE dv)
 {
@@ -4054,7 +4056,7 @@ unsigned long int emu::fed::DDU::infpgastat(enum DEVTYPE dv)
 	
 	return code;
 }
-
+*/
 
 /*
 int emu::fed::DDU::infpga_CheckFiber(enum DEVTYPE dv)
@@ -4540,7 +4542,7 @@ long int code;
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::infpga_MemAvail(enum DEVTYPE dv)
 {
 	//char cmd[32];
@@ -4591,9 +4593,9 @@ unsigned long int emu::fed::DDU::infpga_MemAvail(enum DEVTYPE dv)
 	
 	return code;
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::infpga_Min_Mem(enum DEVTYPE dv)
 {
 
@@ -4645,7 +4647,7 @@ unsigned long int emu::fed::DDU::infpga_Min_Mem(enum DEVTYPE dv)
 	
 	return code & 0x3ff;
 }
-
+*/
 
 /*
 void emu::fed::DDU::infpga_LostErr(enum DEVTYPE dv)
@@ -4699,7 +4701,7 @@ long int code;
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::infpga_CcodeStat(enum DEVTYPE dv)
 // JRG, 16-bits, Uses custom decode routine, can include in Monitor Loop
 //      Error triggered by these bits: 15-0
@@ -4728,12 +4730,12 @@ unsigned long int emu::fed::DDU::infpga_CcodeStat(enum DEVTYPE dv)
 	unsigned long int code=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8))&0x0000ffff;
 	
 	//printf(" DDU C-code Status [15-0]:  ");
-	/*
-	printf(" InRd0 DDU C-code Status [7-0]:  ");
-	code=rcvbuf[0]&0x000000ff;
-	printf(" InRd1 DDU C-code Status [7-0]:  ");
-	code=rcvbuf[1]&0x000000ff;
-	*/
+	
+// 	printf(" InRd0 DDU C-code Status [7-0]:  ");
+// 	code=rcvbuf[0]&0x000000ff;
+// 	printf(" InRd1 DDU C-code Status [7-0]:  ");
+// 	code=rcvbuf[1]&0x000000ff;
+	
 	//for(j=15;j>=0;j--){
 		//printf("%1ld",(code>>j)&0x00000001);
 		//if((j/8)*8==j&&j>0)printf(".");
@@ -4767,7 +4769,7 @@ unsigned long int emu::fed::DDU::infpga_CcodeStat(enum DEVTYPE dv)
 	
 	return code;
 }
-
+*/
 
 /*
 void emu::fed::DDU::infpga_StatA(enum DEVTYPE dv)
@@ -5055,7 +5057,7 @@ long int code;
 }
 */
 
-
+/*
 std::vector<unsigned long int> emu::fed::DDU::infpga_trap(enum DEVTYPE dv)
      // JRG, 192-bits, Uses custom decode routine, skip for now in Monitor Loop
 {
@@ -5159,7 +5161,7 @@ std::vector<unsigned long int> emu::fed::DDU::infpga_trap(enum DEVTYPE dv)
 	
 	return retVal;
 }
-
+*/
 
 /*
 unsigned long int emu::fed::DDU::inprom_idcode1()
@@ -5240,7 +5242,7 @@ enum DEVTYPE dv;
 }
 */
 
-
+/*
 unsigned long int emu::fed::DDU::dduprom_idcode1()
 {
 enum DEVTYPE dv;
@@ -5265,9 +5267,9 @@ enum DEVTYPE dv;
       ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       return ibrd;
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::dduprom_idcode0()
 {
 enum DEVTYPE dv;
@@ -5288,9 +5290,9 @@ enum DEVTYPE dv;
       ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       return ibrd;
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::inprom_usercode1()
 {
 	char cmd[32];
@@ -5317,9 +5319,9 @@ unsigned long int emu::fed::DDU::inprom_usercode1()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::inprom_usercode0()
 {
 	char cmd[32];
@@ -5345,9 +5347,9 @@ unsigned long int emu::fed::DDU::inprom_usercode0()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::vmeprom_usercode()
 {
 	char cmd[32];
@@ -5369,9 +5371,9 @@ unsigned long int emu::fed::DDU::vmeprom_usercode()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::dduprom_usercode1()
 {
 	char cmd[32];
@@ -5397,9 +5399,9 @@ unsigned long int emu::fed::DDU::dduprom_usercode1()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
+*/
 
-
-
+/*
 unsigned long int emu::fed::DDU::dduprom_usercode0()
 {
 	char cmd[32];
@@ -5421,7 +5423,7 @@ unsigned long int emu::fed::DDU::dduprom_usercode0()
 	unsigned long int ibrd = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
 	return ibrd;
 }
-
+*/
 
 /*
 unsigned short int  emu::fed::DDU::vmepara_busy()
@@ -6002,7 +6004,7 @@ int emu::fed::DDU::read_int_page1()
 }
 */
 
-
+/*
 int emu::fed::DDU::read_page1()
 {
 	//char cmd[32];
@@ -6020,7 +6022,7 @@ int emu::fed::DDU::read_page1()
 	
 	return (((rcvbuf[0]&0x00ff)<<8)|(rcvbuf[1]&0x00ff));
 }
-
+*/
 
 /*
 void emu::fed::DDU::write_page1()
@@ -6114,7 +6116,7 @@ int i;
 }
 */
 
-
+/*
 std::vector<int> emu::fed::DDU::read_page5()
 {
 	//char cmd[32];
@@ -6144,7 +6146,7 @@ std::vector<int> emu::fed::DDU::read_page5()
 
 	return retVal;
 }
-
+*/
 
 /*
 void emu::fed::DDU::write_page5()
@@ -6316,7 +6318,7 @@ void emu::fed::DDU::write_vmesdF()
 }
 */
 
-
+/*
 float emu::fed::DDU::adcplus(int ichp,int ichn){
 	//printf(" inside adcplus %d %d \n",ichp,ichn);
 	unsigned int ival = readADC(ichp, ichn);
@@ -6328,17 +6330,17 @@ float emu::fed::DDU::adcplus(int ichp,int ichn){
 	}
 	return (float) ival;
 }
+*/
 
-
-
+/*
 float emu::fed::DDU::adcminus(int ichp,int ichn){
 	unsigned int ival= readADC(ichp, ichn);
 	if((0x0800&ival)==0x0800)ival=ival|0xf000;
 	return (float) ival;
 }
+*/
 
-
-
+/*
 float emu::fed::DDU::readthermx(int it)
 {
 	float cval,fval;
@@ -6355,9 +6357,9 @@ float emu::fed::DDU::readthermx(int it)
 	fval=9.0/5.0*cval+32.;
 	return fval;
 }
+*/
 
-
-
+/*
 unsigned int emu::fed::DDU::readADC(int ireg, int ichn) {
 	//char cmd[32];
 	//char sndbuf[32];
@@ -6368,7 +6370,7 @@ unsigned int emu::fed::DDU::readADC(int ireg, int ichn) {
 	devdo(SADC,16,cmd,0,sndbuf,rcvbuf,2);
 	return ((rcvbuf[1]<<8)&0x0f00)|(rcvbuf[0]&0xff);
 }
-
+*/
 
 /*
 void emu::fed::DDU::read_therm()
@@ -6398,7 +6400,7 @@ unsigned int emu::fed::DDU::unpack_ival(){
 }
 */
 
-
+/*
 void emu::fed::DDU::Parse(char *buf,int *Count,char **Word)
 {
 	
@@ -6415,15 +6417,15 @@ void emu::fed::DDU::Parse(char *buf,int *Count,char **Word)
 	}
 	*buf = '\0';
 }
-
-
+*/
+/*
 void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 {
 	epromload(design,devnum,downfile,writ,cbrdnum,4);
 }
+*/
 
-
-
+/*
 void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum,int ipass)
 {
 	enum DEVTYPE devstp,dv;
@@ -6441,12 +6443,12 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 	char sndbuf[32], rcvbuf[1024];
 	int intCache;
 
-	/* ipass acts as a hiccup.
-	ipass == 1 - load up to the part where you have to load the board number
-	ipass == 2 - load only the board number
-	ipass == 3 - load only the stuff after the board number
-	ipass == 4 - do everything always
-	*/
+// 	 ipass acts as a hiccup.
+// 	ipass == 1 - load up to the part where you have to load the board number
+// 	ipass == 2 - load only the board number
+// 	ipass == 3 - load only the stuff after the board number
+// 	ipass == 4 - do everything always
+	
 	int pass = 1;
 
 	//printf(" epromload %d \n",devnum);
@@ -6493,8 +6495,8 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 					for(i=2;i<Count;i+=2){
 						//std::cout << "Count " << Count << std::endl;
 
-		/* PGK Here is where we load up the board number.
-		I have to stop here and only send this stuff if pass==1 */
+// 		PGK Here is where we load up the board number.
+// 		I have to stop here and only send this stuff if pass==1
 
 						if(strcmp(Word[i],"TDI")==0){
 							for(j=0;j<nbytes;j++){
@@ -6502,9 +6504,9 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&intCache);
 								snd[j] = intCache;
 							}
-		/*JRG, new selective way to download UNALTERED PromUserCode from SVF to
-			ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
-			was  if(nowrit==1){  */
+// 		JRG, new selective way to download UNALTERED PromUserCode from SVF to
+// 			ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
+// 			was  if(nowrit==1){
 		//    if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
 							if(nowrit==1&&(cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
 								tstusr=0;
@@ -6574,8 +6576,8 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 						//std::cout << "i " << i << std::endl;
 						tmp=(rcvbuf[i]>>3)&0x1F;
 						rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
-				/*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-				printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); */
+// 				if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
+// 				printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
 					}
 					if (cmpflag==1) {
 						for (i=0;i<nbytes;i++) {
@@ -6628,8 +6630,8 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 					}
 			//   printf("I%04d",nbits);
 					// for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
-		/*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
-			DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
+// 		JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
+// 			DDU prom, but screws up CFEB/DMB program method:      nowrit=0;
 					//std::cout << "nowrit " << nowrit << std::endl;
 					//std::cout << "pass " << pass << std::endl;
 					//std::cout << "ipass " << ipass << std::endl;
@@ -6644,30 +6646,30 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 						if(writ==0)printf(" ***************** nowrit %02x \n",sndbuf[0]);
 					}
 
-			/*
-					printf("send %2d instr bits %02X %02X %02X %02X %02X\n",nbits,sndbuf[4]&0xFF,sndbuf[3]&0xFF,sndbuf[2]&0xFF,sndbuf[1]&0xFF,sndbuf[0]&0xFF);
-					printf("expect %2d instr bits %02X %02X %02X %02X %02X\n",nbits,expect[4]&0xFF,expect[3]&0xFF,expect[2]&0xFF,expect[1]&0xFF,expect[0]&0xFF);
-			*/
+			
+// 					printf("send %2d instr bits %02X %02X %02X %02X %02X\n",nbits,sndbuf[4]&0xFF,sndbuf[3]&0xFF,sndbuf[2]&0xFF,sndbuf[1]&0xFF,sndbuf[0]&0xFF);
+// 					printf("expect %2d instr bits %02X %02X %02X %02X %02X\n",nbits,expect[4]&0xFF,expect[3]&0xFF,expect[2]&0xFF,expect[1]&0xFF,expect[0]&0xFF);
+			
 				}
 				else if(strcmp(Word[0],"RUNTEST")==0){
 					sscanf(Word[1],"%d",&pause);
 			//          printf("RUNTEST = %d\n",pause);
-			/*   ipd=83*pause;
-					// sleep(1);
-					t1=(double) clock()/(double) CLOCKS_PER_SEC;
-					for(i=0;i<ipd;i++);
-					t2=(double) clock()/(double) CLOCKS_PER_SEC;
-			//  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1); */
+// 			   ipd=83*pause;
+// 					// sleep(1);
+// 					t1=(double) clock()/(double) CLOCKS_PER_SEC;
+// 					for(i=0;i<ipd;i++);
+// 					t2=(double) clock()/(double) CLOCKS_PER_SEC;
+// 			//  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1);
 			//          for (i=0;i<pause/100;i++)
 			//  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
 					// fpause=pause;
 					// pause=pause/2;
-		/*
-		// JRG, tried this delay for CAEN, no good:
-			printf("  RUNTEST, pause for %d usec\n",pause);
-			if(pause>1000)usleep(pause);
-			else usleep(1000);
-		*/
+		
+// 		// JRG, tried this delay for CAEN, no good:
+// 			printf("  RUNTEST, pause for %d usec\n",pause);
+// 			if(pause>1000)usleep(pause);
+// 			else usleep(1000);
+		
 
 					if (pause>65535) {
 						sndbuf[0]=255;
@@ -6708,7 +6710,7 @@ void emu::fed::DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,in
 	//flush_vme();
 	//send_last();
 }
-
+*/
 
 /*
 void emu::fed::DDU::all_chip_info()
@@ -6778,1679 +6780,52 @@ void emu::fed::DDU::setChambers(std::vector<emu::fed::Chamber *> chamberVector) 
 
 
 
-// void emu::fed::DDU::init()
-// 	throw (FEDException)
-// {
-// 	devdo(DDUFPGA,-1,cmd,0,sndbuf,rcvbuf,2);
-// }
-
-
-
-unsigned long int emu::fed::DDU::readReg(enum DEVTYPE dt, char reg, const unsigned int nbits = 16)
-	throw (FEDException)
-{
-	//char cmd[32];
-	//char rcvbuf[32];
-	//char sndbuf[32];
-	/*
-	std::cout << "-------------" << std::endl;
-	std::cout << "Called readReg with" << std::endl;
-	std::cout << " dt " << dt << std::endl;
-	std::cout << " reg " << (short int) reg << std::endl;
-	std::cout << " nbits " << nbits << std::endl;
-	std::cout << " sndbuf[0] " << (int) sndbuf[0] << std::endl;
-	std::cout << " sndbuf[1] " << (int) sndbuf[1] << std::endl;
-	std::cout << " rcvbuf[0] " << (int) rcvbuf[0] << std::endl;
-	std::cout << " rcvbuf[1] " << (int) rcvbuf[1] << std::endl;
-	*/
-	if (nbits > 32) {
-		XCEPT_RAISE(FEDException, "cannot read more than 32 bits at a time");
-	}
-
-	if (dt == DDUFPGA) {
-		cmd[0]=VTX2P_USR1_L;
-		cmd[1]=VTX2P_USR1_H;
-		sndbuf[0]=reg;
-		// Open USR1 pathway and write the command
-		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
-
-		cmd[0]=VTX2P_BYPASS_L;
-		cmd[1]=VTX2P_BYPASS_H;
-		// Close USR1 pathway to execute the read.
-		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-	} else if (dt == INFPGA0 || dt == INFPGA1) {
-		cmd[0]=VTX2P20_USR1_L;
-		cmd[1]=VTX2P20_USR1_H;
-		sndbuf[0]=reg;
-		// Open USR1 pathway and write the command
-		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
-
-		cmd[0]=VTX2P20_BYPASS_L;
-		cmd[1]=VTX2P20_BYPASS_H;
-		// Close USR1 pathway to execute the read.
-		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-	}else {
-		XCEPT_RAISE(FEDException,"Can't read from that device");
-	}
-
-	// Now we shove through the number of bits we need with a shift test.
-	//srand( time(NULL) );
-	unsigned long int testVal = rand();
-	sndbuf[0]=testVal & 0xff;
-	sndbuf[1]=(testVal >> 8) & 0xff;
-	//sndbuf[2]=(testVal >> 16) & 0xff;
-	//sndbuf[3]=(testVal >> 24) & 0xff;
-
-	std::bitset<16> test(testVal);
-
-	//std::cout << "Reading register " << (int) reg << std::endl;
-	//std::cout << "Shift test is       " << test << std::endl;
-
-	if (dt == DDUFPGA) {
-		cmd[0]=VTX2P_USR2_L;
-		cmd[1]=VTX2P_USR2_H;
-		// Open USR2 pathway and shove the bits through
-		devdo(dt,10,cmd,nbits*2,sndbuf,rcvbuf,1);
-	} else if (dt == INFPGA0 || dt == INFPGA1) {
-		cmd[0]=VTX2P20_USR2_L;
-		cmd[1]=VTX2P20_USR2_H;
-		// Open USR2 pathway and shove the bits through
-		devdo(dt,14,cmd,nbits*2,sndbuf,rcvbuf,1);
-	}
-	/*
-	std::cout << " --------- " << std::endl;
-	std::cout << " sndbuf[0] " << (int) sndbuf[0] << std::endl;
-	std::cout << " sndbuf[1] " << (int) sndbuf[1] << std::endl;
-	std::cout << " rcvbuf[0] " << (int) rcvbuf[0] << std::endl;
-	std::cout << " rcvbuf[1] " << (int) rcvbuf[1] << std::endl;
-	*/
-	// The very first nbits bits are what we want to return.
-	// Crawl through the buffers and give us what we want using std::bitsets.
-	std::bitset<32> ret( rcvbuf[0]|(rcvbuf[1]<<8)|(rcvbuf[2]<<16)|(rcvbuf[3]<<24) );
-	if (nbits < 32) ret &= ((1 << nbits) - 1);
-
-	/*
-	std::cout << "The read returned " << ret << std::endl;
-	std::cout << std::endl;
-	*/
-	
-	std::bitset<16> shiftTest;
-	// Now crawl through the buffers for the shift-test.
-	for (unsigned int ibit=nbits; ibit<(nbits+16); ibit++) {
-		unsigned int ibuf = ibit/8;
-		if (rcvbuf[ibuf] & (1 << (ibit%8))) shiftTest.set(ibit - nbits);
-	}
-
-	//std::cout << "Shift test returned " << shiftTest << std::endl << std::endl;
-
-	// For some reason, the shift test only makes sense with reads of integer
-	//  multiples of 16.  Go figure.
-	if (shiftTest != test && nbits%16 == 0) {
-		std::stringstream xceptString;
-		xceptString << "shiftTest returned "<< shiftTest << ", should have been " << test;
-		//XCEPT_RAISE(FEDException,xceptString.str());
-	}
-
-	// Close the read paths.
-	if (dt == DDUFPGA) {
-		cmd[0]=VTX2P_BYPASS_L;
-		cmd[1]=VTX2P_BYPASS_H;
-		// Close USR2 pathway to end the read
-		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-	} else if (dt == INFPGA0 || dt == INFPGA1) {
-		cmd[0]=VTX2P20_BYPASS_L;
-		cmd[1]=VTX2P20_BYPASS_H;
-		// Close USR2 pathway to end the read
-		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-	}
-	// Finally, set normal on the FPGA.
-	setNormal(dt);
-
-	return ret.to_ulong();
-
-}
-
-
-
-/** Same thing as the readReg routine, but we have to be a bit smarter about
-*	where we place the shift test and where we put the data.
-**/
-// unsigned long int emu::fed::DDU::writeReg(enum DEVTYPE dt, char reg, unsigned long int value, const unsigned int nbits = 16)
-// 	throw (FEDException)
-// {
-//
-// 	if (nbits > 32) {
-// 		XCEPT_RAISE(FEDException, "cannot write more than 32 bits at a time");
-// 	}
-//
-// 	if (dt == DDUFPGA) {
-// 		cmd[0]=VTX2P_USR1_L;
-// 		cmd[1]=VTX2P_USR1_H;
-// 		sndbuf[0]=reg;
-// 		// Open USR1 pathway and write the command
-// 		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
-//
-// 		cmd[0]=VTX2P_BYPASS_L;
-// 		cmd[1]=VTX2P_BYPASS_H;
-// 		// Close USR1 pathway to execute the read and begin the write
-// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
-// 		cmd[0]=VTX2P20_USR1_L;
-// 		cmd[1]=VTX2P20_USR1_H;
-// 		sndbuf[0]=reg;
-// 		// Open USR1 pathway and write the command
-// 		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
-//
-// 		cmd[0]=VTX2P20_BYPASS_L;
-// 		cmd[1]=VTX2P20_BYPASS_H;
-// 		// Close USR1 pathway to execute the read and begin the write
-// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-// 	} else {
-// 		XCEPT_RAISE(FEDException,"Can't write to that device");
-// 	}
-//
-// 	// Now we shove through the number of bits we need with a shift test
-// 	// AND the data we want to write.
-// 	//srand( time(NULL) );
-// 	unsigned long int testVal = rand();
-// 	sndbuf[0]=testVal & 0xff;
-// 	sndbuf[1]=(testVal >> 8) & 0xff;
-// 	//sndbuf[2]=(testVal >> 16) & 0xff;
-// 	//sndbuf[3]=(testVal >> 24) & 0xff;
-//
-// 	std::bitset<16> test(testVal);
-//
-// 	std::bitset<32> writeVal(value & ((1 << nbits) - 1));
-//
-// 	for (unsigned int ibit=0; ibit<nbits; ibit++) {
-// 		unsigned int ibuf = ibit/8 + 2;
-// 		if (writeVal.test(ibit)) {
-// 			sndbuf[ibuf] |= (1 << (ibit%8));
-// 		} else {
-// 			sndbuf[ibuf] &= (255 - (1 << (ibit%8)));
-// 		}
-// 	}
-// 	std::cout << "Attempting to write " << writeVal << " to register " << (int) reg << std::endl;
-//
-// 	std::cout << "Shift test is       " << test << std::endl;
-//
-// 	if (dt == DDUFPGA) {
-// 		cmd[0]=VTX2P_USR2_L;
-// 		cmd[1]=VTX2P_USR2_H;
-// 		// Open USR2 pathway and shove the bits through
-// 		devdo(dt,10,cmd,nbits + 16,sndbuf,rcvbuf,1);
-//
-// 		cmd[0]=VTX2P_BYPASS_L;
-// 		cmd[1]=VTX2P_BYPASS_H;
-// 		// Close USR2 pathway to commit the write
-// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
-// 		cmd[0]=VTX2P20_USR2_L;
-// 		cmd[1]=VTX2P20_USR2_H;
-// 		// Open USR2 pathway and shove the bits through
-// 		devdo(dt,14,cmd,nbits + 16,sndbuf,rcvbuf,1);
-//
-// 		cmd[0]=VTX2P20_BYPASS_L;
-// 		cmd[1]=VTX2P20_BYPASS_H;
-// 		// Close USR2 pathway to commit the write
-// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-// 	}
-// 	setNormal(dt);
-//
-// 	// The old value is the first nbits bits.
-// 	// The shift test is the next 32 bits.
-//
-// 	// Return is easy
-// 	std::bitset<32> ret((rcvbuf[0] | (rcvbuf[1] << 8) | (rcvbuf[2] <<16) | (rcvbuf[3] << 24)) & ((1 << nbits) - 1));
-//
-// 	std::cout << "The old value was   " << ret << std::endl;
-//
-// 	std::bitset<16> shiftTest;
-//
-// 	// Crawl through the buffers and give us the shift test.
-// 	for (unsigned int ibit=nbits; ibit<nbits+16; ibit++) {
-// 		unsigned int ibuf = ibit/8;
-// 		if (rcvbuf[ibuf] & (1 << (ibit%8))) shiftTest.set(ibit - nbits);
-// 	}
-//
-// 	std::cout << "Shift test returned " << shiftTest << std::endl << std::endl;
-//
-// 	if (shiftTest != test) {
-// 		std::stringstream xceptString;
-// 		//xceptString << "shiftTest returned 0x" << std::hex << shiftTest << std::dec << ", should have been 0x" << std::hex << testBS << std::dec;
-// 		xceptString << "shiftTest returned "<< shiftTest << ", should have been " << test;
-// 		XCEPT_RAISE(FEDException,xceptString.str());
-// 	}
-//
-// 	return ret.to_ulong(); // The previous value of the register.
-//
-// }
-
-
-
-void emu::fed::DDU::reset(enum DEVTYPE dt = DDUFPGA)
-	throw (FEDException)
-{
-
-	//char cmd[32];
-	//char sndbuf[32];
-	//char rcvbuf[32];
-	
-	if (dt == DDUFPGA) {
-		cmd[0]=VTX2P_USR1_L;
-		cmd[1]=VTX2P_USR1_H;
-		sndbuf[0]=DDUFPGA_RST;
-		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
-		cmd[0]=VTX2P_BYPASS_L;
-		cmd[1]=VTX2P_BYPASS_H;
-		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-
-		cmd[0]=VTX2P_USR1_L;
-		cmd[1]=VTX2P_USR1_H;
-		sndbuf[0]=NORM_MODE;
-		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
-		cmd[0]=VTX2P_BYPASS_L;
-		cmd[1]=VTX2P_BYPASS_H;
-		sndbuf[0]=0;
-		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-	} else if (dt == INFPGA0 || dt == INFPGA1) {
-		cmd[0]=VTX2P20_USR1_L;
-		cmd[1]=VTX2P20_USR1_H;
-		sndbuf[0]=DDUFPGA_RST;
-		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
-		cmd[0]=VTX2P20_BYPASS_L;
-		cmd[1]=VTX2P20_BYPASS_H;
-		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-
-		cmd[0]=VTX2P20_USR1_L;
-		cmd[1]=VTX2P20_USR1_H;
-		sndbuf[0]=NORM_MODE;
-		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
-		cmd[0]=VTX2P20_BYPASS_L;
-		cmd[1]=VTX2P20_BYPASS_H;
-		sndbuf[0]=0;
-		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-	}
-
-}
-
-
-
-void emu::fed::DDU::setNormal(enum DEVTYPE dt = DDUFPGA)
-	throw (FEDException)
-{
-	//char cmd[32];
-	//char sndbuf[32];
-	//char rcvbuf[32];
-	
-	if (dt == DDUFPGA) {
-
-		cmd[0]=VTX2P_USR1_L;
-		cmd[1]=VTX2P_USR1_H;
-		sndbuf[0]=NORM_MODE;
-		devdo(dt,10,cmd,8,sndbuf,rcvbuf,0);
-
-		cmd[0]=VTX2P_BYPASS_L;
-		cmd[1]=VTX2P_BYPASS_H;
-		sndbuf[0]=0;
-		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-	} else {
-		cmd[0]=VTX2P20_USR1_L;
-		cmd[1]=VTX2P20_USR1_H;
-		sndbuf[0]=NORM_MODE;
-		devdo(dt,14,cmd,8,sndbuf,rcvbuf,0);
-
-		cmd[0]=VTX2P20_BYPASS_L;
-		cmd[1]=VTX2P20_BYPASS_H;
-		sndbuf[0]=0;
-		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-	}
-}
-
-
-
-unsigned long int emu::fed::DDU::readFPGAStat(enum DEVTYPE dt)
-	throw (FEDException)
-{
-	try { return readReg(dt,3,32); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::checkFIFO(int fifo)
-	throw (FEDException)
-{
-	if (fifo < 1 || fifo > 3) {
-		XCEPT_RAISE(FEDException, "argument must be between 1 and 3 (inclusive)");
-	}
-
-	int command;
-	if (fifo == 1)
-		command=7;
-	else if (fifo == 2)
-		command=8;
-	else if (fifo == 3)
-		command=11;
-
-	try { return readReg(DDUFPGA,command,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-/*
-long int emu::fed::DDU::readKillFiber()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,13,20); }
-	catch (FEDException &e) { throw; }
-}
-*/
-
-
-// void emu::fed::DDU::writeKillFiber(long int killFiber = 0xf7fff)
-// 	throw (FEDException)
-// {
-// 	try { return writeReg(DDUFPGA,14,killFiber,20); }
-// 	catch (FEDException &e) { throw; }
-// }
-
-
-
-int emu::fed::DDU::readCRCError()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,10,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readXmitError()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,12,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readDMBError()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,15,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readTMBError()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,16,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readLIEError()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,18,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFFError()
-	throw(FEDException)
-{
-	try { return readReg(DDUFPGA,9,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readEBReg(int reg = 1)
-	throw(FEDException)
-{
-	if (reg < 1 || reg > 3) {
-		XCEPT_RAISE(FEDException, "argument must be 1, 2, or 3");
-	}
-
-	try { return readReg(DDUFPGA,21 + reg,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readInRDStat()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,19,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readInCHistory()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,20,16); }
-	catch (FEDException &e) { throw; }
-}
-//
-//
-//
-// int emu::fed::DDU::readVoteErrorCount()
-// 	throw (FEDException)
-// {
-// 	try { return readReg(DDUFPGA,25,16); }
-// 	catch (FEDException &e) { throw; }
-// }
-//
-//
-//
-// int emu::fed::DDU::readConsVoteErrorCount()
-// 	throw (FEDException)
-// {
-// 	try { return readReg(DDUFPGA,26,16); }
-// 	catch (FEDException &e) { throw; }
-// }
-//
-//
-//
-// int emu::fed::DDU::readFIFOVoteErrorCount(int fifo = 0)
-// 	throw (FEDException)
-// {
-// 	if (fifo < 0 || fifo > 1) {
-// 		XCEPT_RAISE(FEDException, "argument must be 0 or 1");
-// 	}
-//
-// 	try { return readReg(DDUFPGA,27+fifo,16); }
-// 	catch (FEDException &e) { throw; }
-// }
-//
-//
-//
-// int emu::fed::DDU::readEarlyVoteErrorCount()
-// 	throw (FEDException)
-// {
-// 	try { return readReg(DDUFPGA,19,16); }
-// 	catch (FEDException &e) { throw; }
-// }
-//
-//
-//
-// int emu::fed::DDU::readVoteError23Count()
-// 	throw (FEDException)
-// {
-// 	try { return readReg(DDUFPGA,20,16); }
-// 	catch (FEDException &e) { throw; }
-// }
-//
-//
-//
-// int emu::fed::DDU::readVoteError55Count()
-// 	throw (FEDException)
-// {
-// 	try { return readReg(DDUFPGA,21,16); }
-// 	catch (FEDException &e) { throw; }
-// }
-//
-//
-//
-int emu::fed::DDU::readOutputStat()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,6,16); }
-	catch (FEDException &e) { throw; }
-}
-//
-//
-//
-long int emu::fed::DDU::readL1Scaler(enum DEVTYPE dt = DDUFPGA)
-	throw (FEDException)
-{
-	try { return readReg(dt,2,24); }
-	catch (FEDException &e) { throw; }
-}
-//
-//
-//
-int emu::fed::DDU::readALCTError()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,17,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-// int emu::fed::DDU::writeBXOrbit(int BXOrbit)
-// 	throw (FEDException)
-// {
-// 	try { return writeReg(DDUFPGA,29,BXOrbit,12); }
-// 	catch (FEDException &e) { throw; }
-// }
-
-
-
-int emu::fed::DDU::readBXOrbit()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,30,12); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readRUI()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,32,16); }
-	catch (FEDException &e) { throw; }
-}
-//
-//
-//
-// unsigned long int emu::fed::DDU::readOccupancyMon()
-// 	throw (FEDException)
-// {
-// 	try { return readReg(DDUFPGA,34,32); }
-// 	catch (FEDException &e) { throw; }
-// }
-
-
-
-void emu::fed::DDU::toggleL1Cal()
-	throw (FEDException)
-{
-	try { readReg(DDUFPGA,31); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DDU::vmeL1A()
-	throw (FEDException)
-{
-	try { readReg(DDUFPGA,33); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readDMBLive()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,25,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readPermDMBLive()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,26,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readWarnMon()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,27,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readMaxTimeoutCount()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,28,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readAdvancedFiberErrors()
-	throw (FEDException)
-{
-	try { return readReg(DDUFPGA,35,15); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-long int emu::fed::DDU::readL1Scaler1(enum DEVTYPE dt)
-	throw (FEDException)
-{
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,26,24); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::checkFiber(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,6,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readDMBSync(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,7,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFIFOStat(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,8,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFIFOFull(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,9,12); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readRxError(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,10,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readTimeout(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,11,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readTxError(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,12,16); }
-	catch (FEDException &e) { throw; }
-
-}
-
-
-
-int emu::fed::DDU::readWriteMemoryActive(enum DEVTYPE dt, int iFiber)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	if (iFiber > 3 || iFiber < 0) {
-		XCEPT_RAISE(FEDException,"second argument must be between 0 and 3 (inclusive)");
-	}
-
-	try { return readReg(dt,13 + iFiber,10); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readDMBWarning(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,21,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readMemoryAvailable(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,17,10); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readMinMemory(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,18,10); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readLostError(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,19,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readCCodeStat(enum DEVTYPE dt)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	try { return readReg(dt,20,16); }
-	catch (FEDException &e) { throw; }
-}
-//
-//
-//
-// int emu::fed::DDU::readINFPGAStatusReg(enum DEVTYPE dt, int i)
-// 	throw (FEDException)
-// {
-//
-// 	if (dt != INFPGA0 && dt != INFPGA1) {
-// 		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-// 	}
-//
-// 	if (i < 1 || i > 3) {
-// 		XCEPT_RAISE(FEDException,"second argument must be between 1 and 3 (inclusive)");
-// 	}
-//
-// 	try { return readReg(dt,21+i,16); }
-// 	catch (FEDException &e) { throw; }
-//
-// }
-
-
-
-long unsigned int emu::fed::DDU::readFiberDiagnostics(enum DEVTYPE dt, int i)
-	throw (FEDException)
-{
-
-	if (dt != INFPGA0 && dt != INFPGA1) {
-		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
-	}
-
-	if (i < 0 || i > 1) {
-		XCEPT_RAISE(FEDException,"second argument must be 0 or 1");
-	}
-
-	try { return readReg(dt,30+i,32); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-unsigned long int emu::fed::DDU::readFPGAUserCode(enum DEVTYPE dt)
-	throw (FEDException)
-{
-	//char cmd[32];
-	//char sndbuf[32];
-	//char rcvbuf[32];
-	
-	int address = 0;
-	if (dt == DDUFPGA) {
-		cmd[0]=VTX2P_USERCODE_L;
-		cmd[1]=VTX2P_USERCODE_H;
-		address = 10;
-	} else if (dt == INFPGA0 || dt == INFPGA1) {
-		cmd[0]=VTX2P20_USERCODE_L;
-		cmd[1]=VTX2P20_USERCODE_H;
-		address = 14;
-	} else {
-		XCEPT_RAISE(FEDException,"DEVTYPE not understood as an FPGA");
-	}
-
-	sndbuf[0]=0xFF;
-	sndbuf[1]=0xFF;
-	sndbuf[2]=0xFF;
-	sndbuf[3]=0xFF;
-	sndbuf[4]=0xFF;
-
-	devdo(dt,address,cmd,32,sndbuf,rcvbuf,1);
-	if (dt == DDUFPGA) {
-		cmd[0]=VTX2P_BYPASS_L;
-		cmd[1]=VTX2P_BYPASS_H;
-	} else if (dt == INFPGA0 || dt == INFPGA1) {
-		cmd[0]=VTX2P20_BYPASS_L;
-		cmd[1]=VTX2P20_BYPASS_H;
-	}
-
-	unsigned long int returnVal = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
-
-	sndbuf[0]=0;
-	devdo(dt,address,cmd,0,sndbuf,rcvbuf,0);
-	return returnVal;
-}
-
-
-
-unsigned long int emu::fed::DDU::readPROMUserCode(enum DEVTYPE dt)
-	throw (FEDException)
-{
-	//char cmd[32];
-	//char sndbuf[32];
-	//char rcvbuf[32];
-	
-	if (dt != DDUPROM0 && dt != DDUPROM1 && dt != INPROM0 && dt != INPROM1 && dt != VMEPROM) {
-		XCEPT_RAISE(FEDException,"DEVTYPE not understood as a PROM");
-	}
-
-	if (dt == INFPGA0) {
-		cmd[0] = PROM_BYPASS;
-		sndbuf[0] = 0;
-		devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
-	}
-
-	cmd[0] = PROM_USERCODE;
-	sndbuf[0]=0xFF;
-	sndbuf[1]=0xFF;
-	sndbuf[2]=0xFF;
-	sndbuf[3]=0xFF;
-	sndbuf[4]=0xFF;
-
-	
-	if (dt == INPROM1 || dt == DDUPROM1) {
-		devdo(dt,8,cmd,33,sndbuf,rcvbuf,1);
-		char tmpbuf[5];
-		for (int i = 0; i < 5; i++) {
-			tmpbuf[i] = rcvbuf[i];
-		}
-		rcvbuf[0]=((tmpbuf[0]>>1)&0x7f)+((tmpbuf[1]<<7)&0x80);
-		rcvbuf[1]=((tmpbuf[1]>>1)&0x7f)+((tmpbuf[2]<<7)&0x80);
-		rcvbuf[2]=((tmpbuf[2]>>1)&0x7f)+((tmpbuf[3]<<7)&0x80);
-		rcvbuf[3]=((tmpbuf[3]>>1)&0x7f)+((tmpbuf[4]<<7)&0x80);
-	} else {
-		devdo(dt,8,cmd,32,sndbuf,rcvbuf,1);
-	}
-	
-	unsigned long int returnVal = (rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24);
-	
-	cmd[0] = PROM_BYPASS;
-	sndbuf[0]=0;
-	devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
-
-	return returnVal;
-
-}
-
-
-
-
-//
-//
-//
-// unsigned long int emu::fed::DDU::readIDCode(enum DEVTYPE dt)
-// 	throw (FEDException)
-// {
-//
-// 	sndbuf[0]=0xFF;
-// 	sndbuf[1]=0xFF;
-// 	sndbuf[2]=0xFF;
-// 	sndbuf[3]=0xFF;
-// 	sndbuf[4]=0xFF;
-//
-// 	if (dt == DDUFPGA) {
-// 		cmd[0]=VTX2P_IDCODE_L;
-// 		cmd[1]=VTX2P_IDCODE_H;
-// 		devdo(dt,10,cmd,32,sndbuf,rcvbuf,1);
-// 		cmd[0]=VTX2P_BYPASS_L;
-// 		cmd[1]=VTX2P_BYPASS_H;
-// 		sndbuf[0]=0;
-// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
-// 		cmd[0]=VTX2P20_IDCODE_L;
-// 		cmd[1]=VTX2P20_IDCODE_H;
-// 		devdo(dt,14,cmd,32,sndbuf,rcvbuf,1);
-// 		cmd[0]=VTX2P20_BYPASS_L;
-// 		cmd[1]=VTX2P20_BYPASS_H;
-// 		sndbuf[0]=0;
-// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-// 	} else {
-// 		cmd[0]=PROM_IDCODE;
-// 		if (dt == DDUPROM1 || dt == INPROM1) {
-// 			devdo(dt,8,cmd,33,sndbuf,rcvbuf,1);
-// 		} else {
-// 			devdo(dt,8,cmd,32,sndbuf,rcvbuf,1);
-// 		}
-// 		cmd[0]=PROM_BYPASS;
-// 		sndbuf[0]=0;
-// 		devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
-// 	}
-//
-// 	unsigned long int ibrd=0x00000000;
-// 	ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-// 	return ibrd;
-// }
-//
-//
-//
-// unsigned long int emu::fed::DDU::readUserCode(enum DEVTYPE dt)
-// 	throw (FEDException)
-// {
-//
-// 	sndbuf[0]=0xFF;
-// 	sndbuf[1]=0xFF;
-// 	sndbuf[2]=0xFF;
-// 	sndbuf[3]=0xFF;
-// 	sndbuf[4]=0xFF;
-//
-// 	if (dt == DDUFPGA) {
-// 		cmd[0]=VTX2P_USERCODE_L;
-// 		cmd[1]=VTX2P_USERCODE_H;
-// 		devdo(dt,10,cmd,32,sndbuf,rcvbuf,1);
-// 		cmd[0]=VTX2P_BYPASS_L;
-// 		cmd[1]=VTX2P_BYPASS_H;
-// 		sndbuf[0]=0;
-// 		devdo(dt,10,cmd,0,sndbuf,rcvbuf,0);
-// 	} else if (dt == INFPGA0 || dt == INFPGA1) {
-// 		cmd[0]=VTX2P20_USERCODE_L;
-// 		cmd[1]=VTX2P20_USERCODE_H;
-// 		devdo(dt,14,cmd,32,sndbuf,rcvbuf,1);
-// 		cmd[0]=VTX2P20_BYPASS_L;
-// 		cmd[1]=VTX2P20_BYPASS_H;
-// 		sndbuf[0]=0;
-// 		devdo(dt,14,cmd,0,sndbuf,rcvbuf,0);
-// 	} else {
-// 		cmd[0]=PROM_USERCODE;
-// 		if (dt == DDUPROM1 || dt == INPROM1) {
-// 			devdo(dt,8,cmd,33,sndbuf,rcvbuf,1);
-// 		} else {
-// 			devdo(dt,8,cmd,32,sndbuf,rcvbuf,1);
-// 		}
-// 		cmd[0]=PROM_BYPASS;
-// 		sndbuf[0]=0;
-// 		devdo(dt,8,cmd,0,sndbuf,rcvbuf,0);
-// 	}
-//
-// 	unsigned long int ibrd=0x00000000;
-// 	ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-// 	return ibrd;
-// }
-//
-//
-// Always 16 bits.
-int emu::fed::DDU::readParallel(int command)
-	throw (FEDException)
-{
-	//char cmd[32];
-	//char sndbuf[32];
-	//char rcvbuf[32];
-	
-	cmd[0] = command&0x00ff;
-	cmd[1] = (command&0xff00) >> 8;
-	sndbuf[0]=0;
-	sndbuf[1]=0;
-	sndbuf[2]=0;
-	sndbuf[3]=0;
-	rcvbuf[0]=0;
-	rcvbuf[1]=0;
-	rcvbuf[2]=0;
-	rcvbuf[3]=0;
-	devdo(VMEPARA,1,cmd,0,sndbuf,rcvbuf,2);
-
-	return ((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0xff);
-}
-
-
-
-void emu::fed::DDU::writeParallel(int command, int val)
-	throw (FEDException)
-{
-	//std::cout << "writeParallel with command " << std::hex << command << " and val " << val << std::dec << std::endl;
-
-	//char cmd[32];
-	//char sndbuf[32];
-	//char rcvbuf[32];
-	
-	cmd[0]=(command&0x00ff);
-	cmd[1]=(command&0xff00) >> 8;
-
-	sndbuf[0]=(val&0x00ff);
-	sndbuf[1]=(val&0xff00) >> 8;
-	
-	/*
-	std::cout << "cmd[0] " << std::hex << (int) cmd[0] << std::dec << std::endl;
-	std::cout << "cmd[1] " << std::hex << (int) cmd[1] << std::dec << std::endl;
-	std::cout << "sndbuf[0] " << std::hex << (int) sndbuf[0] << std::dec << std::endl;
-	std::cout << "sndbuf[1] " << std::hex << (int) sndbuf[1] << std::dec << std::endl;
-	*/
-
-	// Parallel writes are all 16-bit, so garbage the rest
-	//srand( time(NULL) );
-	
-	rcvbuf[0]=0;
-	rcvbuf[1]=0;
-
-	devdo(VMEPARA,1,cmd,0,sndbuf,rcvbuf,2);
-}
-
-
-
-int emu::fed::DDU::readFMMBusy()
-	throw (FEDException)
-{
-	try { return readParallel(0x0000); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFMMFullWarning()
-	throw (FEDException)
-{
-	try { return readParallel(0x0001); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFMMLostSync()
-	throw (FEDException)
-{
-	try { return readParallel(0x0002); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFMMError()
-	throw (FEDException)
-{
-	try { return readParallel(0x0003); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readCSCStat()
-	throw (FEDException)
-{
-	try { return readParallel(0x0004); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFMMReg()
-	throw (FEDException)
-{
-	try { return readParallel(0x0F09); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readSwitches()
-	throw (FEDException)
-{
-	try { return readParallel(0x000e); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readParallelStat()
-	throw (FEDException)
-{
-	try { return readParallel(0x000f); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readInputReg(int iReg)
-	throw (FEDException)
-{
-	if (iReg < 0 || iReg > 2) {
-		XCEPT_RAISE(FEDException,"argument must be between 0 and 2 (inclusive)");
-	}
-	try { return readParallel(0x0008 | (iReg << 8)); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DDU::writeInputReg(int val)
-	throw (FEDException)
-{
-	try { writeParallel(0x8008, val); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DDU::writeFMMReg(int val)
-	throw (FEDException)
-{
-	try { writeParallel(0x8f09, val); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DDU::writeFakeL1Reg(int val)
-	throw (FEDException)
-{
-	try { writeParallel(0x8509, val); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFakeL1Reg()
-	throw (FEDException)
-{
-	try { return readParallel(0x0509); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DDU::writeGbEPrescale(int val)
-	throw (FEDException)
-{
-	val &= 0xf;
-	int complement = 0xf - val;
-	val |= (complement << 12) | (val << 8) | (complement << 4);
-	try { writeParallel(0x8009, val); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readGbEPrescale()
-	throw (FEDException)
-{
-	try { return readParallel(0x0009); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readTestReg(int iReg)
-	throw (FEDException)
-{
-	if (iReg < 0 || iReg > 4) {
-		XCEPT_RAISE(FEDException,"argument must be between 0 and 4 (inclusive)");
-	}
-	try { return readParallel(0x0008 | ((iReg + 3) << 8)); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readWarningHistory()
-	throw (FEDException)
-{
-	try { return readParallel(0x0005); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readBusyHistory()
-	throw (FEDException)
-{
-	try { return readParallel(0x0006); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-unsigned long int emu::fed::DDU::readSerial(int command, const unsigned int nbits = 16)
-	throw (FEDException)
-{
-	//char cmd[32];
-	//char sndbuf[32];
-	//char rcvbuf[32];
-	
-	cmd[0] = command&0x00ff;
-	cmd[1] = (command&0xff00) >> 8;
-
-	devdo(VMESERI,2,cmd,0,sndbuf,(char *)rcvbuf,0);
-
-	// Serial reads give rcv_serial[0] as the MSB
-	std::bitset<32> ret;
-	for (unsigned int ibit = 0; ibit < nbits; ibit++) {
-		unsigned int ibuf = nbits/8 - ibit/8 - 1;
-		if (rcvbuf[ibuf] & (1 << (ibit%8))) ret.set(ibit);
-	}
-
-	return ret.to_ulong();
-}
-
-
-
-void emu::fed::DDU::writeSerial(int command)
-	throw (FEDException)
-{
-	// load writes into the inreg before calling this...
-	//char cmd[32];
-	//char sndbuf[32];
-	//char rcvbuf[32];
-	
-	cmd[0] = command&0x00ff;
-	cmd[1] = (command&0xff00) >> 8;
-
-	devdo(VMESERI,2,cmd,0,sndbuf,rcvbuf,0);
-	usleep(20000);
-}
-
-
-
-char emu::fed::DDU::readSerialStat()
-	throw (FEDException)
-{
-	try { return readSerial(0x0004,8); }
-	catch (FEDException &e) { throw; }
-}
-
-
-/*
-int emu::fed::DDU::readFlashKillFiber()
-	throw (FEDException)
-{
-	try { return readSerial(0x0104,16); }
-	catch (FEDException &e) { throw; }
-}
-*/
-
-
-void emu::fed::DDU::writeFlashKillFiber(int val)
-	throw (FEDException)
-{
-	try {
-		writeInputReg(val);
-		writeSerial(0x0904);
-	}
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFlashBoardID()
-	throw (FEDException)
-{
-	try { return readSerial(0x0304,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DDU::writeFlashBoardID(int val)
-	throw (FEDException)
-{
-	try {
-		writeInputReg(val);
-		writeSerial(0x0b04);
-	}
-	catch (FEDException &e) { throw; }
-	return;
-}
-//
-//
-//
-// unsigned long int emu::fed::DDU::readFlashInFIFOThresholds()
-// 	throw (FEDException)
-// {
-// 	try { return readSerial(0x0404,32); }
-// 	catch (FEDException &e) { throw; }
-// }
-//
-//
-//
-// void emu::fed::DDU::writeFlashInFIFOThresholds(unsigned long int val)
-// 	throw (FEDException)
-// {
-// 	int val1 = val&0x0000ffff;
-// 	int val2 = (val&0xffff0000) >> 16;
-// 	try {
-// 		writeInputReg(val2);
-// 		writeInputReg(val1);
-// 		writeSerial(0x0c04,val1, val2);
-// 	}
-// 	catch (FEDException &e) { throw; }
-// 	return;
-// }
-
-
-
-unsigned long int emu::fed::DDU::readFlashGbEFIFOThresholds()
-	throw (FEDException)
-{
-	try { return readSerial(0x0504,32); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DDU::writeFlashGbEFIFOThresholds(int val1, int val2, int val3)
-	throw (FEDException)
-{
-	try {
-		writeInputReg(val3);
-		writeInputReg(val2);
-		writeInputReg(val1);
-		writeSerial(0x0d04);
-	}
-	catch (FEDException &e) { throw; }
-}
-
-
-
-int emu::fed::DDU::readFlashRUI()
-	throw (FEDException)
-{
-	try { return readSerial(0x0704,16); }
-	catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DDU::writeFlashRUI(int val)
-	throw (FEDException)
-{
-	try {
-		writeInputReg(val);
-		writeSerial(0x0f04);
-	}
-	catch (FEDException &e) { throw; }
-}
-//
-//
-//
-// unsigned long int emu::fed::DDU::readInFIFOThreshold(int iFifo)
-// 	throw (FEDException)
-// {
-// 	if (iFifo > 3 || iFifo < 0) {
-// 		XCEPT_RAISE(FEDException,"argument must be between 0 and 3 (inclusive)");
-// 	}
-//
-// 	try { return readSerial(0x0000 + iFifo,32); }
-// 	catch (FEDException &e) { throw; }
-// }
-//
-//
-//
-// void emu::fed::DDU::forceLoadFIFOsFromFlash()
-// 	throw (FEDException)
-// {
-// 	try { readSerial(0x000f); }
-// 	catch (FEDException &e) { throw; }
-// }
-
-
-
-std::vector<int16_t> emu::fed::DDU::readRegAdvanced(enum DEVTYPE dev, int myRegister, unsigned int nBits)
-throw (FEDException)
-{
-	// The information about the element being written
-	JTAGChain chain = JTAGMap[dev];
-	
-	//std::clog << "Attempting to read from " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << std::endl;
-	
-	// Direct VME reads are different.  Doesn't matter what element in the chain it is.
-	if (chain.front()->directVME) {
-		
-		// The address contains both the device to read and the register to read.
-		int8_t myDevice = myRegister & 0xff;
-		int8_t myChannel = (myRegister & 0x0f00) >> 8;
-		int32_t myAddress = (myDevice << 12) | (myChannel << 2) | chain.front()->bitCode;
-		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
-		
-		return readCycle(myAddress,nBits);
-		
-	} else if (dev == SADC) {
-
-		// The register given is actually just a command to open a JTAG-like register:
-		std::vector<int16_t> bogoData(1,myRegister);
-		writeCycle(chain.front()->bitCode, chain.front()->cmdBits, bogoData);
-
-		// Now we read like a VME register
-		return readCycle(chain.front()->bitCode | 0x4, nBits);
-		
-	// Everything else is a JTAG command?
-	} else {
-
-		// The FPGAs are a beast.  We first need to send an instruction to the USR1
-		// pathway to load the register we want to read in the USR2 pathway.
-		// The commands are different for the different FPGAs.
-		int16_t u1Command;
-		if (dev == DDUFPGA) {
-			u1Command = VTX2P_USR1_L | (VTX2P_USR1_H << 8);
-		} else {
-			u1Command = VTX2P20_USR1_L | (VTX2P20_USR1_H << 8);
-		}
-
-		commandCycle(dev, u1Command);
-
-		// Now this path is open.  We can send the register that we want loaded.
-		std::vector<int16_t> bogoCommand(1,myRegister);
-		jtagWrite(dev, 8, bogoCommand, true);
-
-		// Now we have to send the "Bypass" command to actually load the register.
-		int16_t bypassCommand;
-		if (dev == DDUFPGA) {
-			bypassCommand = VTX2P_BYPASS_L | (VTX2P_BYPASS_H << 8);
-		} else {
-			bypassCommand = VTX2P20_BYPASS_L | (VTX2P20_BYPASS_H << 8);
-		}
-		
-		commandCycle(dev, bypassCommand);
-
-		// Finally, we have to open the USR2 pathway and do a standard JTAG read.
-		int16_t u2Command;
-		if (dev == DDUFPGA) {
-			u2Command = VTX2P_USR2_L | (VTX2P_USR2_H << 8);
-		} else {
-			u2Command = VTX2P20_USR2_L | (VTX2P20_USR2_H << 8);
-		}
-		
-		commandCycle(dev, u2Command);
-		
-		// Shove in (and read out)
-		std::vector<int16_t> result = jtagRead(dev, nBits);
-
-		// Before we leave, we need to reset the FPGA to the normal status.
-		// Close the USR2 pathway with the bypass command.
-		commandCycle(dev, bypassCommand);
-
-		// Open the USR1 pathway and send a NORM_MODE command.
-		commandCycle(dev, u1Command);
-
-		bogoCommand.clear();
-		bogoCommand.push_back(NORM_MODE);
-		jtagWrite(dev, 8, bogoCommand, true);
-
-		commandCycle(dev,bypassCommand);
-		
-		return result;
-		
-	}
-
-}
-
-
-
-std::vector<int16_t> emu::fed::DDU::writeRegAdvanced(enum DEVTYPE dev, int myRegister, unsigned int nBits, std::vector<int16_t> myData)
-throw (FEDException)
-{
-
-	// The information about the element being written
-	JTAGChain chain = JTAGMap[dev];
-	
-	//std::cout << "Attempting to write to " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << " values (low to high) ";
-	//for (std::vector<int16_t>::iterator iData = myData.begin(); iData != myData.end(); iData++) {
-	//std::cout << std::showbase << std::hex << (*iData) << std::dec << " ";
-	//}
-	//std::cout << std::endl;
-	
-	// Direct VME writes are different.  Doesn't matter which element in the chain this is.
-	if (chain.front()->directVME) {
-
-		// The address contains both the device to read and the register to read.
-		int8_t myDevice = myRegister & 0xff;
-		int8_t myChannel = (myRegister & 0x0f00) >> 8;
-		int32_t myAddress = (myDevice << 12) | (myChannel << 2) | chain.front()->bitCode;
-		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
-		
-		writeCycle(myAddress, nBits, myData);
-		
-		// This sort of write does not read back, so return an empty vector.
-		std::vector<int16_t> bogoBits;
-		return bogoBits;
-		
-	// Everything else is a JTAG command?
-	} else {
-		
-		// The FPGAs are a beast.  We first need to send an instruction to the USR1
-		// pathway to load the register we want to read in the USR2 pathway.
-		// The commands are different for the different FPGAs.
-		int16_t u1Command;
-		if (dev == DDUFPGA) {
-			u1Command = VTX2P_USR1_L | (VTX2P_USR1_H << 8);
-		} else {
-			u1Command = VTX2P20_USR1_L | (VTX2P20_USR1_H << 8);
-		}
-		
-		commandCycle(dev, u1Command);
-		
-		// Now this path is open.  We can send the register that we want loaded.
-		std::vector<int16_t> bogoCommand(1,myRegister);
-		jtagWrite(dev, 8, bogoCommand, true);
-		
-		// Now we have to send the "Bypass" command to actually load the register.
-		int16_t bypassCommand;
-		if (dev == DDUFPGA) {
-			bypassCommand = VTX2P_BYPASS_L | (VTX2P_BYPASS_H << 8);
-		} else {
-			bypassCommand = VTX2P20_BYPASS_L | (VTX2P20_BYPASS_H << 8);
-		}
-		
-		commandCycle(dev, bypassCommand);
-		
-		// Finally, we have to open the USR2 pathway and do a standard JTAG read.
-		int16_t u2Command;
-		if (dev == DDUFPGA) {
-			u2Command = VTX2P_USR2_L | (VTX2P_USR2_H << 8);
-		} else {
-			u2Command = VTX2P20_USR2_L | (VTX2P20_USR2_H << 8);
-		}
-		
-		commandCycle(dev, u2Command);
-		
-		// Shove in (and read out)
-		std::vector<int16_t> result = jtagWrite(dev, nBits, myData);
-		
-		// Before we leave, we need to reset the FPGA to the normal status.
-		// Close the USR2 pathway with the bypass command.
-		commandCycle(dev, bypassCommand);
-		
-		// Open the USR1 pathway and send a NORM_MODE command.
-		commandCycle(dev, u1Command);
-		
-		bogoCommand.clear();
-		bogoCommand.push_back(NORM_MODE);
-		jtagWrite(dev, 8, bogoCommand, true);
-		
-		commandCycle(dev,bypassCommand);
-		
-		return result;
-		
-	}
-	
-}
-
-
-
-int16_t emu::fed::DDU::readCSCStatAdvanced()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Read VME Parallel
+///////////////////////////////////////////////////////////////////////////////
+
+uint16_t emu::fed::DDU::readFMM()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(VMEPARA, 0x04, 16)[0];
+		return readRegister(VMEPARA, 0x0f09, 16)[0];
 	} catch (FEDException) {
 		throw;
 	}
@@ -8458,11 +6833,11 @@ throw (FEDException)
 
 
 
-int8_t emu::fed::DDU::readSerialStatAdvanced()
+uint16_t emu::fed::DDU::readCSCStatus()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(VMESERI, 0x04, 8)[0] & 0x00ff;
+		return readRegister(VMEPARA, 0x04, 16)[0];
 	} catch (FEDException) {
 		throw;
 	}
@@ -8470,11 +6845,11 @@ throw (FEDException)
 
 
 
-std::vector<int16_t> emu::fed::DDU::readGbEFIFOThresholdsAdvanced()
+uint16_t emu::fed::DDU::readFMMBusy()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(VMESERI, 0x0504, 34);
+		return readRegister(VMEPARA, 0x00, 16)[0];
 	} catch (FEDException) {
 		throw;
 	}
@@ -8482,12 +6857,342 @@ throw (FEDException)
 
 
 
-float emu::fed::DDU::readTemperatureAdvanced(unsigned int sensor)
+uint16_t emu::fed::DDU::readFMMFullWarning()
 throw (FEDException)
 {
-	if (sensor >= 4) XCEPT_RAISE(FEDException, "argument must be 0-3 inclusive");
 	try {
-		float Vout= (float) readRegAdvanced(SADC, 0x89 | (sensor << 4), 16)[0] / 1000.;
+		return readRegister(VMEPARA, 0x01, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readFMMLostSync()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMEPARA, 0x02, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readFMMError()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMEPARA, 0x03, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readSwitches()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMEPARA, 0x0e, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readParallelStatus()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMEPARA, 0x0f, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readInputRegister(uint8_t iReg)
+throw (FEDException)
+{
+	if (iReg > 2) {
+		XCEPT_RAISE(FEDException,"InputRegister argument must be between 0 and 2 (inclusive)");
+	}
+	try {
+		return readRegister(VMEPARA, 0x0008 | (iReg << 8), 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readFakeL1()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMEPARA, 0x0509, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readGbEPrescale()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMEPARA, 0x0009, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readTestRegister(uint8_t iReg)
+throw (FEDException)
+{
+	if (iReg > 4) {
+		XCEPT_RAISE(FEDException,"TestRegister argument must be between 0 and 4 (inclusive)");
+	}
+	try {
+		return readRegister(VMEPARA, 0x0008 | ((iReg + 3) << 8), 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readWarningHistory()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMEPARA, 0x0005, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readBusyHistory()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMEPARA, 0x0006, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Write VME Parallel
+///////////////////////////////////////////////////////////////////////////////
+
+void emu::fed::DDU::writeFMM(uint16_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<uint16_t> bogoBits(1, value);
+		writeRegister(VMEPARA, 0x8f09, 16, bogoBits);
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::writeFakeL1(uint16_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<uint16_t> bogoBits(1, value);
+		writeRegister(VMEPARA, 0x8509, 16, bogoBits);
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::writeGbEPrescale(uint8_t value)
+throw (FEDException)
+{
+	value &= 0xf;
+	uint8_t complement = 0xf - value;
+	uint16_t loadMe = (complement << 12) | (value << 8) | (complement << 4) | value;
+	try {
+		std::vector<uint16_t> bogoBits(1, loadMe);
+		writeRegister(VMEPARA, 0x8009, 16, bogoBits);
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::writeInputRegister(uint16_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<uint16_t> bogoData(1,value);
+		writeRegister(VMEPARA, 0x8008, 16, bogoData);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Read VME Serial/Flash
+///////////////////////////////////////////////////////////////////////////////
+
+uint8_t emu::fed::DDU::readSerialStatus()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMESERI, 0x04, 8)[0] & 0x00ff;
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readFlashKillFiber()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMESERI, 0x0104,16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readFlashBoardID()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMESERI, 0x0304, 16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readFlashRUI()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMESERI, 0x0704,16)[0];
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+std::vector<uint16_t> emu::fed::DDU::readFlashGbEFIFOThresholds()
+throw (FEDException)
+{
+	try {
+		return readRegister(VMESERI, 0x0504,34);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Write VME Serial/Flash
+///////////////////////////////////////////////////////////////////////////////
+
+void emu::fed::DDU::writeFlashKillFiber(uint16_t value)
+throw (FEDException)
+{
+	try {
+		// Input register needs to be written first before updating flash.
+		writeInputRegister(value & 0x7fff);
+		// Bogus data for sending to the VMESERI path.
+		std::vector<uint16_t> bogoData(1,0);
+		writeRegister(VMESERI, 0x0904, 16, bogoData);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::writeFlashBoardID(uint16_t value)
+throw (FEDException)
+{
+	try {
+		// Input register needs to be written first before updating flash.
+		writeInputRegister(value);
+		// Bogus data for sending to the VMESERI path.
+		std::vector<uint16_t> bogoData(1,0);
+		writeRegister(VMESERI, 0x0b04, 16, bogoData);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::writeFlashRUI(uint16_t value)
+throw (FEDException)
+{
+	try {
+		// Input register needs to be written first before updating flash.
+		writeInputRegister(value);
+		// Bogus data for sending to the VMESERI path.
+		std::vector<uint16_t> bogoData(1,0);
+		writeRegister(VMESERI, 0x0f04, 16, bogoData);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::writeFlashGbEFIFOThresholds(std::vector<uint16_t> values)
+throw (FEDException)
+{
+	if (values.size() != 3) {
+		XCEPT_RAISE(FEDException, "value to be written to GBEFIFOThresholds needs to be 34 bits (3 uint16_t values)");
+	}
+	try {
+		// Input register needs to be written first before updating flash.
+		for (std::vector<uint16_t>::iterator iValue = values.begin(); iValue != values.end(); iValue++) {
+			writeInputRegister((*iValue));
+		}
+		// Bogus data for sending to the VMESERI path.
+		std::vector<uint16_t> bogoData(1,0);
+		writeRegister(VMESERI, 0x0d04, 16, bogoData);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Read SADC
+///////////////////////////////////////////////////////////////////////////////
+
+float emu::fed::DDU::readTemperature(uint8_t sensor)
+throw (FEDException)
+{
+	if (sensor >= 4) XCEPT_RAISE(FEDException, "Tmperature sensor argument must be 0-3 inclusive");
+	try {
+		float Vout= (float) readRegister(SADC, 0x0089 | (sensor << 4), 16)[0] / 1000.;
 		float cval = 1/(0.1049406423E-2+0.2133635468E-3*log(65000.0/Vout-13000.0)+0.7522287E-7*pow(log(65000.0/Vout-13000.0),3.0))-0.27315E3; // Celcius
 		float fval=9.0/5.0*cval+32.; // Ferinheit
 		return fval;
@@ -8497,12 +7202,27 @@ throw (FEDException)
 }
 
 
-float emu::fed::DDU::readVoltageAdvanced(unsigned int sensor)
+
+float emu::fed::DDU::readVoltage(uint8_t sensor)
 throw (FEDException)
 {
-	if (sensor >= 4) XCEPT_RAISE(FEDException, "argument must be 0-3 inclusive");
+	if (sensor >= 4) XCEPT_RAISE(FEDException, "Voltage sensor argument must be 0-3 inclusive");
 	try {
-		return (float) readRegAdvanced(SADC, 0x89 | ((sensor+4) << 4), 16)[0];
+		return (float) readRegister(SADC, 0x0089 | ((sensor+4) << 4), 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Read DDUFPGA
+///////////////////////////////////////////////////////////////////////////////
+
+uint16_t emu::fed::DDU::readOutputStatus()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 6, 16)[0];
 	} catch (FEDException) {
 		throw;
 	}
@@ -8510,12 +7230,23 @@ throw (FEDException)
 
 
 
-int32_t emu::fed::DDU::readKillFiberAdvanced()
+uint16_t emu::fed::DDU::readFIFOStatus(uint8_t fifo)
 throw (FEDException)
 {
+	if (fifo < 1 || fifo > 3) {
+		XCEPT_RAISE(FEDException, "FIFOStatus argument must be between 1 and 3 (inclusive)");
+	}
+	
+	uint16_t command;
+	if (fifo == 1)
+		command = 7;
+	else if (fifo == 2)
+		command = 8;
+	else if (fifo == 3)
+		command = 11;
+	
 	try {
-		std::vector<int16_t> result = readRegAdvanced(DDUFPGA, 13, 20);
-		return (result[0] | ((int32_t) result[1] << 16)) & 0x000fffff;
+		return readRegister(DDUFPGA, command, 16)[0];
 	} catch (FEDException) {
 		throw;
 	}
@@ -8523,17 +7254,279 @@ throw (FEDException)
 
 
 
-void emu::fed::DDU::writeKillFiberAdvanced(int32_t value)
+uint16_t emu::fed::DDU::readFFError()
+throw(FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 9, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readCRCError()
 throw (FEDException)
 {
 	try {
-		std::vector<int16_t> bogoBits;
+		return readRegister(DDUFPGA, 10, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readXmitError()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 12, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint32_t emu::fed::DDU::readKillFiber()
+throw (FEDException)
+{
+	try {
+		std::vector<uint16_t> result = readRegister(DDUFPGA, 13, 20);
+		return (result[0] | ((uint32_t) result[1] << 16)) & 0x000fffff;
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readDMBError()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 15, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readTMBError()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 16, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+uint16_t emu::fed::DDU::readALCTError()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 17, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readLIEError()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 18, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readInRDStat()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 19, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readInCHistory()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 20, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readEBRegister(uint8_t reg = 1)
+throw(FEDException)
+{
+	if (reg < 1 || reg > 3) {
+		XCEPT_RAISE(FEDException, "EBRegister argument must be 1, 2, or 3");
+	}
+	try {
+		return readRegister(DDUFPGA, 21 + reg, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readDMBLive()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 25, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readDMBLiveAtFirstEvent()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 26, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readWarningMonitor()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 27, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readMaxTimeoutCount()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 28, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readBXOrbit()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 30, 12)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::toggleL1Calibration()
+throw (FEDException)
+{
+	try {
+		// Magic
+		readRegister(DDUFPGA, 31, 16);
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readRUI()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 32, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+void emu::fed::DDU::sendFakeL1A()
+throw (FEDException)
+{
+	try {
+		// Magic
+		readRegister(DDUFPGA, 33, 16);
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+std::vector<uint32_t> emu::fed::DDU::readOccupancyMonitor()
+throw (FEDException)
+{
+	try {
+		std::vector<uint32_t> result;
+		for (unsigned int iTimes = 0; iTimes < 4; iTimes++) {
+			std::vector<uint16_t> tempResult = readRegister(DDUFPGA, 34, 32);
+			result.push_back((tempResult[1] << 16) | tempResult[0]);
+		}
+		return result;
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readAdvancedFiberErrors()
+throw (FEDException)
+{
+	try {
+		return readRegister(DDUFPGA, 35, 15)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Write DDUFPGA
+///////////////////////////////////////////////////////////////////////////////
+
+void emu::fed::DDU::writeKillFiber(uint32_t value)
+throw (FEDException)
+{
+	try {
+		std::vector<uint16_t> bogoBits;
 		bogoBits.reserve(2);
-		//std::cerr << "value " << value << std::endl;
 		bogoBits.push_back( (value & 0xffff) );
 		bogoBits.push_back( ((value & 0xf0000) >> 16) );
-		//std::cerr << "bogoBits[0]" << std::hex << bogoBits[0] << " bogoBits[1]" << bogoBits[1] << std::endl;
-		writeRegAdvanced(DDUFPGA, 14, 20, bogoBits);
+		writeRegister(DDUFPGA, 14, 20, bogoBits);
 	} catch (FEDException) {
 		throw;
 	}
@@ -8541,12 +7534,30 @@ throw (FEDException)
 
 
 
-int16_t emu::fed::DDU::readCCodeStatAdvanced(enum DEVTYPE dev)
+void emu::fed::DDU::writeBXOrbit(uint16_t value)
 throw (FEDException)
 {
-	if (dev != INFPGA0 && dev != INFPGA1) XCEPT_RAISE(FEDException, "argument must be DEVTYPE INFPGA0 or INFPGA1");
 	try {
-		return readRegAdvanced(dev, 20, 16)[0];
+		std::vector<uint16_t> bogoBits(1, value & 0xfff);
+		writeRegister(DDUFPGA, 29, 12, bogoBits);
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Read INFPGA
+///////////////////////////////////////////////////////////////////////////////
+
+uint32_t emu::fed::DDU::readL1Scaler1(enum DEVTYPE dev)
+throw (FEDException)
+{
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		std::vector<uint16_t> result = readRegister(dev, 26, 24);
+		return (result[1] << 16) | result[0];
 	} catch (FEDException) {
 		throw;
 	}
@@ -8554,12 +7565,15 @@ throw (FEDException)
 
 
 
-void emu::fed::DDU::writeFMMRegisterAdvanced(int16_t value)
+uint16_t emu::fed::DDU::readFiberStatus(enum DEVTYPE dev)
 throw (FEDException)
 {
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
 	try {
-		std::vector<int16_t> bogoBits(1, value);
-		writeRegAdvanced(VMEPARA, 0x8f09, 16, bogoBits);
+		return readRegister(dev, 6, 16)[0];
 	} catch (FEDException) {
 		throw;
 	}
@@ -8567,25 +7581,237 @@ throw (FEDException)
 
 
 
-int16_t emu::fed::DDU::readFlashBoardIDAdvanced()
+uint16_t emu::fed::DDU::readDMBSync(enum DEVTYPE dev)
 throw (FEDException)
 {
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
 	try {
-		return readRegAdvanced(VMESERI, 0x0304, 16)[0];
-	} catch (FEDException &e) {
+		return readRegister(dev, 7, 16)[0];
+	} catch (FEDException) {
 		throw;
 	}
 }
 
 
 
-int32_t emu::fed::DDU::readUserCodeAdvanced(enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readFIFOStatus(enum DEVTYPE dev)
 throw (FEDException)
 {
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		return readRegister(dev, 8, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
 
+
+
+uint16_t emu::fed::DDU::readFIFOFull(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		return readRegister(dev, 9, 12)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readRxError(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		return readRegister(dev, 10, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readTimeout(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		return readRegister(dev, 11, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readTxError(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		return readRegister(dev, 12, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+	
+}
+
+
+
+uint16_t emu::fed::DDU::readActiveWriteMemory(enum DEVTYPE dev, uint8_t iFiber)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	
+	if (iFiber > 3) {
+		XCEPT_RAISE(FEDException,"second argument must be between 0 and 3 (inclusive)");
+	}
+	
+	try {
+		return readRegister(dev, 13 + iFiber, 10)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readAvailableMemory(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	
+	try {
+		return readRegister(dev, 17, 10)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readMinMemory(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		return readRegister(dev, 18, 10)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readLostError(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		return readRegister(dev, 19, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readCCodeStatus(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	try {
+		return readRegister(dev, 20, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint16_t emu::fed::DDU::readDMBWarning(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	
+	try {
+		return readRegister(dev, 21, 16)[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+
+
+uint32_t emu::fed::DDU::readFiberDiagnostics(enum DEVTYPE dev, uint8_t iDiagnostic)
+throw (FEDException)
+{
+	
+	if (dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"this can only be called with a DEVTYPE INFPGA0 or INFPGA1");
+	}
+	
+	if (iDiagnostic > 1) {
+		XCEPT_RAISE(FEDException,"second argument must be 0 or 1");
+	}
+
+	try {
+		std::vector<uint16_t> result = readRegister(dev, 30 + iDiagnostic, 32);
+		return (result[1] << 16) | result[0];
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Read User/ID codes
+///////////////////////////////////////////////////////////////////////////////
+
+uint32_t emu::fed::DDU::readUserCode(enum DEVTYPE dev)
+throw (FEDException)
+{
+	
 	// The FPGAs are a beast.  We first need to send an instruction to open the
 	// correct pathway.
-	int16_t ucCommand;
+	uint16_t ucCommand;
 	if (dev == DDUFPGA) {
 		ucCommand = VTX2P_USERCODE_L | (VTX2P_USERCODE_H << 8);
 	} else if (dev == INFPGA0 || dev == INFPGA1) {
@@ -8593,15 +7819,15 @@ throw (FEDException)
 	} else {
 		ucCommand = PROM_USERCODE;
 	}
-
+	
 	commandCycle(dev, ucCommand);
-
+	
 	// Now this path is open.  We can read the usercode out.
 	// Shove in (and read out)
-	std::vector<int16_t> result = jtagRead(dev, 32);
-
+	std::vector<uint16_t> result = jtagRead(dev, 32);
+	
 	// Now we have to send the "Bypass" command clean house.
-	int16_t bypassCommand;
+	uint16_t bypassCommand;
 	if (dev == DDUFPGA) {
 		bypassCommand = VTX2P_BYPASS_L | (VTX2P_BYPASS_H << 8);
 	} else if (dev == INFPGA0 || dev == INFPGA1) {
@@ -8609,22 +7835,22 @@ throw (FEDException)
 	} else {
 		bypassCommand = PROM_BYPASS;
 	}
-
+	
 	commandCycle(dev, bypassCommand);
-
+	
 	return (result[0] & 0xffff) | (result[1] << 16);
 	
 }
 
 
 
-int32_t emu::fed::DDU::readIDCodeAdvanced(enum DEVTYPE dev)
+uint32_t emu::fed::DDU::readIDCode(enum DEVTYPE dev)
 throw (FEDException)
 {
-
+	
 	// The FPGAs are a beast.  We first need to send an instruction to open the
 	// correct pathway.
-	int16_t ucCommand;
+	uint16_t ucCommand;
 	if (dev == DDUFPGA) {
 		ucCommand = VTX2P_IDCODE_L | (VTX2P_IDCODE_H << 8);
 	} else if (dev == INFPGA0 || dev == INFPGA1) {
@@ -8638,10 +7864,10 @@ throw (FEDException)
 	// Now this path is open.  We can read the usercode out.
 	
 	// Shove in (and read out)
-	std::vector<int16_t> result = jtagRead(dev, 32);
+	std::vector<uint16_t> result = jtagRead(dev, 32);
 	
 	// Now we have to send the "Bypass" command clean house.
-	int16_t bypassCommand;
+	uint16_t bypassCommand;
 	if (dev == DDUFPGA) {
 		bypassCommand = VTX2P_BYPASS_L | (VTX2P_BYPASS_H << 8);
 	} else if (dev == INFPGA0 || dev == INFPGA1) {
@@ -8656,3 +7882,296 @@ throw (FEDException)
 	
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Resets
+///////////////////////////////////////////////////////////////////////////////
+
+void emu::fed::DDU::resetFPGA(enum DEVTYPE dev)
+throw (FEDException)
+{
+	if (dev != DDUFPGA && dev != INFPGA0 && dev != INFPGA1)
+		XCEPT_RAISE(FEDException, "Need to specify a valid FGPA");
+	try {
+		commandCycle(dev, DDUFPGA_RST);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Universal reads
+///////////////////////////////////////////////////////////////////////////////
+
+uint32_t emu::fed::DDU::readFPGAStatus(enum DEVTYPE dev)
+throw (FEDException)
+{
+	if (dev != DDUFPGA && dev != INFPGA0 && dev != INFPGA1)
+		XCEPT_RAISE(FEDException, "Need to specify a valid FGPA");
+	try {
+		std::vector<uint16_t> result = readRegister(dev, 3, 32);
+		return (result[0] & 0xffff) | (result[1] << 16);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+uint32_t emu::fed::DDU::readL1Scaler(enum DEVTYPE dev)
+throw (FEDException)
+{
+	if (dev != DDUFPGA && dev != INFPGA0 && dev != INFPGA1) {
+		XCEPT_RAISE(FEDException,"Need to specify a valid FPGA");
+	}
+	try {
+		std::vector<uint16_t> result = readRegister(dev, 2, 24);
+		return (result[0] & 0xffff) | (result[1] << 16);
+	} catch (FEDException &e) {
+		throw;
+	}
+}
+
+
+
+std::vector<uint16_t> emu::fed::DDU::readDebugTrap(enum DEVTYPE dev)
+throw (FEDException)
+{
+	try {
+		if (dev == DDUFPGA)
+			return readRegister(DDUFPGA, 21, 192);
+		else if (dev == INFPGA0 || dev == INFPGA1)
+			return readRegister(dev, 25, 192);
+		else
+			XCEPT_RAISE(FEDException, "DebugTrap argument needs to be a valid FPGA");
+	} catch (FEDException) {
+		throw;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Private methods
+///////////////////////////////////////////////////////////////////////////////
+
+std::vector<uint16_t> emu::fed::DDU::readRegister(enum DEVTYPE dev, int myRegister, unsigned int nBits)
+throw (FEDException)
+{
+	// The information about the element being written
+	JTAGChain chain = JTAGMap[dev];
+	
+	//std::clog << "Attempting to read from " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << std::endl;
+	
+	// Direct VME reads are different.  Doesn't matter what element in the chain it is.
+	if (chain.front()->directVME) {
+		
+		// The address contains both the device to read and the register to read.
+		uint8_t myDevice = myRegister & 0xff;
+		uint8_t myChannel = ((myRegister & 0xff00) >> 8) & 0xff;
+		uint32_t myAddress = (myDevice << 12) | (myChannel << 2) | chain.front()->bitCode;
+		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
+
+		if (dev == VMESERI) {
+			// Serial reads are fun.  It gives you the LSB first, but the mask is applied
+			// to the low n bits of the LSB instead of the high n bits of the MSB.
+
+			// In order to accomplish this, we first need to force readCycle to not
+			// mask things out.  Ask for full bytes only with a ceiling function
+			unsigned int myBytes = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
+			unsigned int remainderBits = nBits % 16;
+
+			// Now do the read
+			std::vector<uint16_t> tempResult = readCycle(myAddress, myBytes * 16);
+
+			// Now shuffle the bits.
+			if (remainderBits) {
+
+				std::vector<uint16_t> result;
+				
+				for (unsigned int iValue = 0; iValue < tempResult.size(); iValue++) {
+
+					// Shift and mask
+					uint16_t newValue = (tempResult[iValue] >> (16 - remainderBits)) & ((1 << remainderBits) - 1);
+					// Add on the bits from the next element if this is not the last element.
+					if ((iValue + 1) != tempResult.size()) {
+						newValue |= (tempResult[iValue + 1] << remainderBits);
+					} else {
+						// Mask the final value if this is the last
+						newValue &= (1 << remainderBits) - 1;
+					}
+
+					// Push back the value.
+					result.push_back(newValue);
+				}
+
+				return result;
+				
+			} else {
+				
+				return tempResult;
+				
+			}
+
+		} else {
+			// Parallel reads are standerd.
+			return readCycle(myAddress,nBits);
+		}
+		
+	} else if (dev == SADC) {
+		
+		// The register given is actually just a command to open a JTAG-like register:
+		std::vector<uint16_t> bogoData(1,myRegister);
+		writeCycle(chain.front()->bitCode, chain.front()->cmdBits, bogoData);
+		
+		// Now we read like a VME register
+		return readCycle(chain.front()->bitCode | 0x4, nBits);
+		
+	// Everything else is a JTAG command?
+	} else {
+		
+		// The FPGAs are a beast.  We first need to send an instruction to the USR1
+		// pathway to load the register we want to read in the USR2 pathway.
+		// The commands are different for the different FPGAs.
+		uint16_t u1Command;
+		if (dev == DDUFPGA) {
+			u1Command = VTX2P_USR1_L | (VTX2P_USR1_H << 8);
+		} else {
+			u1Command = VTX2P20_USR1_L | (VTX2P20_USR1_H << 8);
+		}
+		
+		commandCycle(dev, u1Command);
+		
+		// Now this path is open.  We can send the register that we want loaded.
+		std::vector<uint16_t> bogoCommand(1,myRegister);
+		jtagWrite(dev, 8, bogoCommand, true);
+		
+		// Now we have to send the "Bypass" command to actually load the register.
+		uint16_t bypassCommand;
+		if (dev == DDUFPGA) {
+			bypassCommand = VTX2P_BYPASS_L | (VTX2P_BYPASS_H << 8);
+		} else {
+			bypassCommand = VTX2P20_BYPASS_L | (VTX2P20_BYPASS_H << 8);
+		}
+		
+		commandCycle(dev, bypassCommand);
+		
+		// Finally, we have to open the USR2 pathway and do a standard JTAG read.
+		uint16_t u2Command;
+		if (dev == DDUFPGA) {
+			u2Command = VTX2P_USR2_L | (VTX2P_USR2_H << 8);
+		} else {
+			u2Command = VTX2P20_USR2_L | (VTX2P20_USR2_H << 8);
+		}
+		
+		commandCycle(dev, u2Command);
+		
+		// Shove in (and read out)
+		std::vector<uint16_t> result = jtagRead(dev, nBits);
+		
+		// Before we leave, we need to reset the FPGA to the normal status.
+		// Close the USR2 pathway with the bypass command.
+		commandCycle(dev, bypassCommand);
+		
+		// Open the USR1 pathway and send a NORM_MODE command.
+		commandCycle(dev, u1Command);
+		
+		bogoCommand.clear();
+		bogoCommand.push_back(NORM_MODE);
+		jtagWrite(dev, 8, bogoCommand, true);
+		
+		commandCycle(dev,bypassCommand);
+		
+		return result;
+		
+	}
+	
+}
+
+
+
+std::vector<uint16_t> emu::fed::DDU::writeRegister(enum DEVTYPE dev, int myRegister, unsigned int nBits, std::vector<uint16_t> myData)
+throw (FEDException)
+{
+	
+	// The information about the element being written
+	JTAGChain chain = JTAGMap[dev];
+	
+	//std::cout << "Attempting to write to " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << " values (low to high) ";
+	//for (std::vector<uint16_t>::iterator iData = myData.begin(); iData != myData.end(); iData++) {
+	//std::cout << std::showbase << std::hex << (*iData) << std::dec << " ";
+	//}
+	//std::cout << std::endl;
+	
+	// Direct VME writes are different.  Doesn't matter which element in the chain this is.
+	if (chain.front()->directVME) {
+		
+		// The address contains both the device to read and the register to read.
+		uint8_t myDevice = myRegister & 0xff;
+		uint8_t myChannel = (myRegister & 0xff00) >> 8;
+		uint32_t myAddress = (myDevice << 12) | (myChannel << 2) | chain.front()->bitCode;
+		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
+		
+		writeCycle(myAddress, nBits, myData);
+		
+		// This sort of write does not read back, so return an empty vector.
+		std::vector<uint16_t> bogoBits;
+		return bogoBits;
+		
+	// Everything else is a JTAG command?
+	} else {
+		
+		// The FPGAs are a beast.  We first need to send an instruction to the USR1
+		// pathway to load the register we want to read in the USR2 pathway.
+		// The commands are different for the different FPGAs.
+		uint16_t u1Command;
+		if (dev == DDUFPGA) {
+			u1Command = VTX2P_USR1_L | (VTX2P_USR1_H << 8);
+		} else {
+			u1Command = VTX2P20_USR1_L | (VTX2P20_USR1_H << 8);
+		}
+		
+		commandCycle(dev, u1Command);
+		
+		// Now this path is open.  We can send the register that we want loaded.
+		std::vector<uint16_t> bogoCommand(1,myRegister);
+		jtagWrite(dev, 8, bogoCommand, true);
+		
+		// Now we have to send the "Bypass" command to actually load the register.
+		uint16_t bypassCommand;
+		if (dev == DDUFPGA) {
+			bypassCommand = VTX2P_BYPASS_L | (VTX2P_BYPASS_H << 8);
+		} else {
+			bypassCommand = VTX2P20_BYPASS_L | (VTX2P20_BYPASS_H << 8);
+		}
+		
+		commandCycle(dev, bypassCommand);
+		
+		// Finally, we have to open the USR2 pathway and do a standard JTAG read.
+		uint16_t u2Command;
+		if (dev == DDUFPGA) {
+			u2Command = VTX2P_USR2_L | (VTX2P_USR2_H << 8);
+		} else {
+			u2Command = VTX2P20_USR2_L | (VTX2P20_USR2_H << 8);
+		}
+		
+		commandCycle(dev, u2Command);
+		
+		// Shove in (and read out)
+		std::vector<uint16_t> result = jtagWrite(dev, nBits, myData);
+		
+		// Before we leave, we need to reset the FPGA to the normal status.
+		// Close the USR2 pathway with the bypass command.
+		commandCycle(dev, bypassCommand);
+		
+		// Open the USR1 pathway and send a NORM_MODE command.
+		commandCycle(dev, u1Command);
+		
+		bogoCommand.clear();
+		bogoCommand.push_back(NORM_MODE);
+		jtagWrite(dev, 8, bogoCommand, true);
+		
+		commandCycle(dev,bypassCommand);
+		
+		return result;
+		
+	}
+	
+}

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.h,v 1.6 2008/09/22 14:31:53 paste Exp $
+* $Id: FEDCrate.h,v 1.7 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: FEDCrate.h,v $
+* Revision 1.7  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 1.6  2008/09/22 14:31:53  paste
 * /tmp/cvsY7EjxV
 *
@@ -66,7 +69,7 @@ namespace emu {
 
 		class FEDCrate: public EmuFEDLoggable {
 		public:
-			FEDCrate(int myNumber, VMEController* myController = 0);
+			FEDCrate(int myNumber);
 			~FEDCrate();
 		
 			int number() const {return number_;}
@@ -76,7 +79,7 @@ namespace emu {
 			void setController(VMEController* controller);
 			void setBHandle(int32_t myBHandle);
 		
-			VMEController *getVMEController() const { return vmeController_; }
+			VMEController *getController() const { return vmeController_; }
 
 			inline std::vector<DDU *> getDDUs() const { return dduVector_; }
 			inline std::vector<DCC *> getDCCs() const { return dccVector_; }

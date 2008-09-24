@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.49 2008/09/22 14:31:54 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.50 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.50  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.49  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -251,8 +254,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	/* Works
 	std::clog << " @@@@@ Testing epromload @@@@@ " << std::endl;
 	myCrate->getDCCs()[0]->epromload("INPROM",emu::fed::INPROM,"/tmp/dcc3drx_v9_r3.svf",1);
-	std::clog << " @@@@@ Testing loadPROMAdvanced @@@@@ " << std::endl;
-	myCrate->getDCCs()[0]->loadPROMAdvanced(emu::fed::INPROM,"/tmp/dcc3drx_v9_r3.svf");
+	std::clog << " @@@@@ Testing loadPROM @@@@@ " << std::endl;
+	myCrate->getDCCs()[0]->loadPROM(emu::fed::INPROM,"/tmp/dcc3drx_v9_r3.svf");
 	*/
 	/* works
 	std::clog << " @@@@@ Testing readCSCStat @@@@@ " << std::endl;
@@ -273,17 +276,18 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	std::vector<int> vtest = myCrate->getDDUs()[0]->read_page5();
 	std::clog << "read_page5: ";
 	for (std::vector<int>::iterator iTest = vtest.begin(); iTest != vtest.end(); iTest++) {
-		std::clog << test;
+		std::clog << (*iTest);
 	}
 	std::clog << std::endl;
-	std::clog << " @@@@@ Testing readGbEFIFOThresholdsAdvanced @@@@@ " << std::endl;
-	std::vector<int16_t> vtest2 = myCrate->getDDUs()[0]->readGbEFIFOThresholdsAdvanced();
-	std::clog << "readGbEFIFOThresholdsAdvanced: ";
-	for (std::vector<int16_t>::iterator iTest = vtest2.begin(); iTest != vtest2.end(); iTest++) {
-		std::clog << test;
+	std::clog << "Parsed: " << ((vtest[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((vtest[2]&0xC0)>>6)|((vtest[5]&0xFF)<<2)|((vtest[4]&0x3F)<<10)) << 16) | (((vtest[0]&0xC0)>>6)|((vtest[3]&0xFF)<<2)|((vtest[2]&0x3F)<<10))) << std::endl;
+	std::clog << " @@@@@ Testing readFlashGbEFIFOThresholds @@@@@ " << std::endl;
+	std::vector<uint16_t> vtest2 = myCrate->getDDUs()[0]->readFlashGbEFIFOThresholds();
+	std::clog << "readFlashGbEFIFOThresholds: ";
+	for (std::vector<uint16_t>::iterator iTest = vtest2.begin(); iTest != vtest2.end(); iTest++) {
+		std::clog << std::setw(4) << std::setfill('0') << (*iTest);
 	}
 	std::clog << std::endl;
-
+	
 	std::clog << " @@@@@ Testing readthermx(2) @@@@@ " << std::endl;
 	float ftest = myCrate->getDDUs()[0]->readthermx(2);
 	std::clog << "readthermx(2): " << ftest << std::endl;
@@ -297,9 +301,9 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	std::clog << " @@@@@ Testing readVoltageAdvanced(3) @@@@@ " << std::endl;
 	ftest = myCrate->getDDUs()[0]->readVoltageAdvanced(3);
 	std::clog << "readVoltageAdvanced(3): " << ftest << std::endl;
-
+	
 	std::clog << " @@@@@ Testing ddu_rdkillfiber @@@@@ " << std::endl;
-	test = myCrate->getDDUs()[0]->ddu_rdkillfiber();
+	unsigned long int test = myCrate->getDDUs()[0]->ddu_rdkillfiber();
 	std::clog << "ddu_rdkillfiber: " << test << std::endl;
 	std::clog << " @@@@@ Testing readKillFiberAdvanced @@@@@ " << std::endl;
 	test = myCrate->getDDUs()[0]->readKillFiberAdvanced();
@@ -307,9 +311,9 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 	std::clog << " @@@@@ Testing ddu_loadkillfiber(0xf7654) @@@@@ " << std::endl;
 	myCrate->getDDUs()[0]->ddu_loadkillfiber(0xf7654);
-	std::clog << " @@@@@ Testing writeKillFiberAdvanced(0xf3210) @@@@@ " << std::endl;
+	std::clog << " @@@@@ Testing writeKillFiberAdvanced(0xf7654) @@@@@ " << std::endl;
 	myCrate->getDDUs()[0]->writeKillFiberAdvanced(0xf3210);
-
+	
 	std::clog << " @@@@@ Testing infpga_CcodeStat(emu::fed::INFPGA0) @@@@@ " << std::endl;
 	test = myCrate->getDDUs()[0]->infpga_CcodeStat(emu::fed::INFPGA0);
 	std::clog << "infpga_CcodeStat(emu::fed::INFPGA0): " << test << std::endl;
@@ -370,15 +374,15 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	std::clog << " @@@@@ Testing epromload after usercode @@@@@ " << std::endl;
 	myCrate->getDDUs()[0]->epromload("DDUPROM0",emu::fed::DDUPROM0,"/tmp/ddu5ctrl_0.svf",1,(char *)BN,3);
 	
-	std::clog << " @@@@@ Testing loadPROMAdvanced up to usercode @@@@@ " << std::endl;
-	myCrate->getDDUs()[0]->loadPROMAdvanced(emu::fed::DDUPROM0,"/tmp/ddu5ctrl_0.svf","","c045dd99");
+	std::clog << " @@@@@ Testing loadPROM up to usercode @@@@@ " << std::endl;
+	myCrate->getDDUs()[0]->loadPROM(emu::fed::DDUPROM0,"/tmp/ddu5ctrl_0.svf","","c045dd99");
 	std::clog << " @@@@@ Testing load of usercode @@@@@ " << std::endl;
 	std::vector<int16_t> writeMe;
 	writeMe.push_back(0xdd00 | 22);
 	writeMe.push_back(0xc045);
 	myCrate->getDDUs()[0]->jtagWrite(emu::fed::DDUPROM0, 32, writeMe, true);
-	std::clog << " @@@@@ Testing loadPROMAdvanced after usercode @@@@@ " << std::endl;
-	myCrate->getDDUs()[0]->loadPROMAdvanced(emu::fed::DDUPROM0,"/tmp/ddu5ctrl_0.svf","c045dd99");
+	std::clog << " @@@@@ Testing loadPROM after usercode @@@@@ " << std::endl;
+	myCrate->getDDUs()[0]->loadPROM(emu::fed::DDUPROM0,"/tmp/ddu5ctrl_0.svf","c045dd99");
 	*/
 
 	try {
@@ -397,8 +401,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Two crates share crate number " << crateVector[iCrate]->number() << cgicc::div() << std::endl;
 					crateError++;
 				}
-				if (crateVector[iCrate]->getVMEController()->getDevice() == crateVector[jCrate]->getVMEController()->getDevice()) {
-					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[iCrate]->number() << " and " << crateVector[jCrate]->number() << " have the same VME controller device number (" << crateVector[iCrate]->getVMEController()->getDevice() << ")" << cgicc::div() << std::endl;
+				if (crateVector[iCrate]->getController()->getDevice() == crateVector[jCrate]->getController()->getDevice()) {
+					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[iCrate]->number() << " and " << crateVector[jCrate]->number() << " have the same VME controller device number (" << crateVector[iCrate]->getController()->getDevice() << ")" << cgicc::div() << std::endl;
 					crateError++;
 				}
 			}
@@ -490,14 +494,12 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			//(*iDDU) = dynamic_cast<emu::fed::DDU *>(moduleVector[iModule]);
 			//thisDCC = dynamic_cast<emu::fed::DCC *>(moduleVector[iModule]);
 
-			// Skip broadcasting
-			if ((*iDDU)->isBroadcast()) continue;
 
 			// First, determine the status of the DDU.
 			//myCrate->getVMEController()->CAEN_err_reset();
 			// Do a fast FMM status check
 			//unsigned short int DDU_FMM = (((*iDDU)->vmepara_status()>>8)&0x000F);
-			unsigned short int DDU_FMM = (((*iDDU)->readParallelStat()>>8)&0x000F);
+			unsigned short int DDU_FMM = (((*iDDU)->readParallelStatus()>>8)&0x000F);
 			//unsigned short int DDU_FMM = 8; // DEBUG
 			// Mark the status with pretty colors
 			std::string fmmClass = "green";
@@ -517,7 +519,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 
 			// Check for CSC status
 			//unsigned short int status = (*iDDU)->vmepara_CSCstat();
-			unsigned int fibersWithErrors = (*iDDU)->readCSCStat();
+			unsigned int fibersWithErrors = (*iDDU)->readCSCStatus();
 			unsigned int advancedErrors = (*iDDU)->readAdvancedFiberErrors();
 			//unsigned short int status = 0; // DEBUG
 			// Mark the status with pretty colors
@@ -560,7 +562,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				.set("class","none")
 				.set("style","border-bottom: 1px solid #000;")
 				.set("colspan","5");
-			*out << "DDU L1As: " << std::dec << (*iDDU)->ddu_rdscaler();
+			*out << "DDU L1As: " << std::dec << (*iDDU)->readL1Scaler(emu::fed::DDUFPGA);
 			*out << cgicc::td() << std::endl;
 			*out << cgicc::tr() << std::endl;
 
@@ -575,8 +577,8 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			*out << cgicc::td() << std::endl;
 
 			// Knowing which chambers are actually alive is a good thing.
-			long int liveFibers = ((*iDDU)->checkFiber(emu::fed::INFPGA0)&0x000000ff) | (((*iDDU)->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
-			long int killFiber = (*iDDU)->readKillFiberAdvanced();
+			long int liveFibers = ((*iDDU)->readFiberStatus(emu::fed::INFPGA0)&0x000000ff) | (((*iDDU)->readFiberStatus(emu::fed::INFPGA1)&0x000000ff)<<8);
+			long int killFiber = (*iDDU)->readKillFiber();
 
 			for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 				std::string chamberClass = "ok";
@@ -690,14 +692,11 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		std::vector<emu::fed::DCC *> myDCCs = myCrate->getDCCs();
 		for (iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
 
-			// Skip broadcasting
-			if ((*iDCC)->isBroadcast()) continue;
-
 			// First, determine the status of the DCC.
 			//myCrate->getVMEController()->CAEN_err_reset();
 			unsigned short int statush = (*iDCC)->readStatusHigh();
 			unsigned short int statusl = (*iDCC)->readStatusLow();
-			unsigned short int rdfifoinuse = (*iDCC)->readFIFOInUse();
+			//unsigned short int rdfifoinuse = (*iDCC)->readFIFOInUse();
 			std::string status;
 			// Pretty colors!
 			std::string statusClass = "ok";
@@ -754,11 +753,13 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 				.set("style","border-bottom: 1px solid #000; width: 18%;");
 			*out << "L1As: " << std::dec << (statusl&0xffff);
 			*out << cgicc::td() << std::endl;
+			/*
 			*out << cgicc::td()
 				.set("class",dccStatus)
 				.set("style","border-bottom: 1px solid #000; width: 18%;");
 			*out << "FIFO in use: " << std::uppercase << std::setw(4) << std::hex << (rdfifoinuse&0x3ff) << std::dec << "h";
 			*out << cgicc::td() << std::endl;
+			*/
 
 			*out << cgicc::tr() << std::endl;
 
@@ -1230,7 +1231,7 @@ void EmuFCrateHyperDAQ::Configuring() {
 	std::ostringstream newHandles;
 	
 	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
-		emu::fed::VMEController *myController = (*iCrate)->getVMEController();
+		emu::fed::VMEController *myController = (*iCrate)->getController();
 		if (myController->getBHandle() == -1) {
 			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has already been opened by someone else.  Asking EmuFCrate for the BHandle...");
 			
@@ -1851,11 +1852,11 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 			uint32_t promCode = 0;
 			uint32_t fpgaCode = 0;
 			
-			promCode = myDDU->readUserCodeAdvanced(dduPROMTypes[iprom]);
+			promCode = myDDU->readUserCode(dduPROMTypes[iprom]);
 			*(slotTable(iDDU,3 + iprom)->value) << std::hex << promCode;
 
 			if (dduPROMNames[iprom] != "VMEPROM") {
-				fpgaCode = myDDU->readUserCodeAdvanced(dduFPGATypes[iprom]);
+				fpgaCode = myDDU->readUserCode(dduFPGATypes[iprom]);
 			}
 
 			// Check for consistency
@@ -1905,8 +1906,9 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::span("Disk/PROM mismatch").set("class","bad") << " " << std::endl;
 	*out << cgicc::span("PROM/FPGA mismatch").set("class","questionable") << cgicc::div() << std::endl;
 
-	*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!")
-		.set("style","font-size: 8pt;") << std::endl;
+	*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!") << std::endl;
+
+	*out << cgicc::div() << std::endl;
 
 	*out << cgicc::fieldset() << std::endl;
 
@@ -2173,7 +2175,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 				std::vector<uint32_t> boardNumbers;
 				std::vector<emu::fed::DDU *> checkTheseDDUs = (broadcast) ? myCrate->getDDUs() : loadTheseDDUs;
 				for (std::vector<emu::fed::DDU *>::iterator jDDU = checkTheseDDUs.begin(); jDDU != checkTheseDDUs.end(); jDDU++) {
-					boardNumbers.push_back((*jDDU)->readFlashBoardIDAdvanced());
+					boardNumbers.push_back((*jDDU)->readFlashBoardID());
 				}
 
 				LOG4CPLUS_DEBUG(getApplicationLogger(),"Step 1 of 3: Load firmware up to " << std::hex << version[iProm] << std::dec << "...");
@@ -2181,7 +2183,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 				// The last parameter tells us where to stop.
 				std::stringstream usercodeText;
 				usercodeText << std::hex << version[iProm];
-				(*iDDU)->loadPROMAdvanced(devType[iProm], fileName, "", "(" + usercodeText.str() + ")");
+				(*iDDU)->loadPROM(devType[iProm], fileName, "", "(" + usercodeText.str() + ")");
 				
 				//char *boardnumber = (char *) malloc(5);
 				//boardnumber[0]=0x01;boardnumber[1]=0x00;boardnumber[2]=0x00;boardnumber[3]=0x00;
@@ -2196,7 +2198,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 					uint32_t myBoardNumber = boardNumbers[jDDU];
 
 					// Make the proper usercode.
-					std::vector<int16_t> userCode;
+					std::vector<uint16_t> userCode;
 					userCode.push_back((version[iProm] & 0x0000ff00) | (myBoardNumber & 0xff));
 					userCode.push_back((version[iProm] & 0xffff0000) >> 16);
 
@@ -2213,13 +2215,13 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 
 				// Now continue the load from after where we left off.  The second-to-last
 				// parameter tells us the line from where we should continue.
-				(*iDDU)->loadPROMAdvanced(devType[iProm], fileName, "(" + usercodeText.str() + ")", "");
+				(*iDDU)->loadPROM(devType[iProm], fileName, "(" + usercodeText.str() + ")", "");
 				//boardnumber[0] = 1;
 				//(*iDDU)->epromload((char *) promName[iProm].c_str(), devType[iProm], (char *) fileName.c_str(), 1, boardnumber, 3);
 
 				// Now check to see if the usercode matches.
 				if (!broadcast) {
-					int32_t checkUserCode = (*iDDU)->readUserCodeAdvanced(devType[iProm]);
+					int32_t checkUserCode = (*iDDU)->readUserCode(devType[iProm]);
 					
 					if ((checkUserCode & 0xffffff00) != (version[iProm] & 0xffffff00)) {
 						LOG4CPLUS_ERROR(getApplicationLogger(), "PROM load failed to " << promName[iProm] << ": expected version " << std::hex << version[iProm] << std::dec << ", read back " << std::hex << checkUserCode << std::dec);
@@ -2230,10 +2232,10 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 				
 			} else {
 				// All other loads are very simple.
-				(*iDDU)->loadPROMAdvanced(devType[iProm], fileName);
+				(*iDDU)->loadPROM(devType[iProm], fileName);
 
 				// Now check to see if the usercode matches.
-				uint32_t checkUserCode = (*iDDU)->readUserCodeAdvanced(devType[iProm]);
+				uint32_t checkUserCode = (*iDDU)->readUserCode(devType[iProm]);
 
 				if (checkUserCode != version[iProm]) {
 					LOG4CPLUS_ERROR(getApplicationLogger(), "PROM load failed to " << promName[iProm] << ": expected version " << std::hex << version[iProm] << std::dec << ", read back " << std::hex << checkUserCode << std::dec);
@@ -2442,7 +2444,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	//  table.
 	//unsigned int fibersWithErrors = 0;
 	// PGK On second thought, this is a more accurate and consistant check.
-	unsigned int fibersWithErrors = myDDU->readCSCStatAdvanced() | myDDU->readAdvancedFiberErrors();
+	unsigned int fibersWithErrors = myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors();
 
 	// This is used to check if the debug trap is valid.
 	bool debugTrapValid = false;
@@ -2478,12 +2480,12 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	*(generalTable(1,0)->value) << "DDU L1 scaler";
 	// PGK gives flakey values.
 	//dduValue = myDDU->readL1Scaler(DDUFPGA);
-	dduValue = myDDU->ddu_rdscaler();
+	dduValue = myDDU->readL1Scaler(emu::fed::DDUFPGA);
 	*(generalTable(1,1)->value) << dduValue;
 	generalTable(1,1)->setClass("none");
 	
 	*(generalTable(2,0)->value) << "DDU control FPGA status (32-bit)";
-	dduValue = myDDU->readFPGAStat(emu::fed::DDUFPGA);
+	dduValue = myDDU->readFPGAStatus(emu::fed::DDUFPGA);
 	*(generalTable(2,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x00008000) {
 		generalTable(2,1)->setClass("bad");
@@ -2500,7 +2502,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(3,0)->value) << "DDU output status (16-bit)";
-	dduValue = myDDU->readOutputStat();
+	dduValue = myDDU->readOutputStatus();
 	*(generalTable(3,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x00000080) generalTable(3,1)->setClass("bad");
 	else if (dduValue & 0x00004000) generalTable(3,1)->setClass("warning");
@@ -2514,7 +2516,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(4,0)->value) << "Error bus A register bits (16-bit)";
-	dduValue = myDDU->readEBReg(1);
+	dduValue = myDDU->readEBRegister(1);
 	*(generalTable(4,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x0000C00C) generalTable(4,1)->setClass("bad");
 	else if (dduValue & 0x000001C8) generalTable(4,1)->setClass("warning");
@@ -2528,7 +2530,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(5,0)->value) << "Error bus B register bits (16-bit)";
-	dduValue = myDDU->readEBReg(2);
+	dduValue = myDDU->readEBRegister(2);
 	*(generalTable(5,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x00000011) generalTable(5,1)->setClass("bad");
 	else if (dduValue & 0x0000D08E) generalTable(5,1)->setClass("warning");
@@ -2542,7 +2544,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(6,0)->value) << "Error bus C register bits (16-bit)";
-	dduValue = myDDU->readEBReg(3);
+	dduValue = myDDU->readEBRegister(3);
 	*(generalTable(6,1)->value) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x0000BFBF) generalTable(6,1)->setClass("warning");
 	else generalTable(6,1)->setClass("ok");
@@ -2585,7 +2587,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	otherTable.addColumn("Decoded Status");
 
 	*(otherTable(0,0)->value) << "DDU near full warning (8-bit)";
-	dduValue = myDDU->readWarnMon();
+	dduValue = myDDU->readWarningMonitor();
 	*(otherTable(0,1)->value) << std::showbase << std::hex << ((dduValue) & 0xFF);
 	if ((dduValue) & 0xFF) otherTable(0,1)->setClass("questionable");
 	else otherTable(0,1)->setClass("ok");
@@ -2654,7 +2656,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	fiberTable.addColumn("Decoded Chambers");
 
 	*(fiberTable(0,0)->value) << "First event DMBLIVE";
-	dduValue = myDDU->readPermDMBLive();
+	dduValue = myDDU->readDMBLiveAtFirstEvent();
 	*(fiberTable(0,1)->value) << std::showbase << std::hex << dduValue;
 	fiberTable(0,1)->setClass("none");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -2786,7 +2788,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	inrdTable.addColumn("Decoded Chambers");
 
 	*(inrdTable(0,0)->value) << "Stuck data error";
-	dduValue = myDDU->checkFIFO(1);
+	dduValue = myDDU->readFIFOStatus(1);
 	*(inrdTable(0,1)->value) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 	if ((dduValue >> 12) & 0xF) inrdTable(0,1)->setClass("bad");
 	else inrdTable(0,1)->setClass("ok");
@@ -2809,7 +2811,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	inrdTable(3,1)->setClass("none");
 
 	*(inrdTable(4,0)->value) << "Active ext. FIFO empty";
-	dduValue = myDDU->checkFIFO(2);
+	dduValue = myDDU->readFIFOStatus(2);
 	*(inrdTable(4,1)->value) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
 	inrdTable(4,1)->setClass("none");
 
@@ -2839,7 +2841,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(inrdTable(8,0)->value) << "Timeout-EndBusy";
-	dduValue = myDDU->checkFIFO(3);
+	dduValue = myDDU->readFIFOStatus(3);
 	*(inrdTable(8,1)->value) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
 	if ((dduValue >> 12) & 0xF) inrdTable(8,1)->setClass("bad");
 	else inrdTable(8,1)->setClass("ok");
@@ -2917,7 +2919,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	else inrdTable(19,1)->setClass("ok");
 
 	*(inrdTable(20,0)->value) << "InRD multiple transmit errors";
-	dduValue = myDDU->ddu_InC_Hist();
+	dduValue = myDDU->readInCHistory();
 	*(inrdTable(20,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
 	if ((dduValue) & 0xF) inrdTable(20,1)->setClass("bad");
 	else inrdTable(20,1)->setClass("ok");
@@ -2961,8 +2963,8 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	if (debugTrapValid) {
 
 		// Here it is.
-		std::vector<unsigned long int> lcode = myDDU->ddu_fpgatrap();
-		std::vector<std::string> bigComments = emu::fed::DDUDebugger::ddu_fpgatrap(lcode, myDDU);
+		std::vector<uint16_t> lcode = myDDU->readDebugTrap(emu::fed::DDUFPGA);
+		std::vector<std::string> bigComments = emu::fed::DDUDebugger::DDUDebugTrap(lcode, myDDU);
 
 		std::stringstream diagCode;
 		diagCode << std::setfill('0');
@@ -3020,7 +3022,7 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	//myCrate->getVMEController()->CAEN_err_reset();
 
 	// Now we grab what we want.
-	unsigned long int scalar = myDDU->ddu_rdscaler();
+	unsigned long int scalar = myDDU->readL1Scaler(emu::fed::DDUFPGA);
 
 	// Make us a DataTable!
 	emu::fed::DataTable occuTable("occuTable");
@@ -3034,15 +3036,15 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	occuTable.addColumn("CFEB");
 
 	// It's good to know the fibers that are alive and the fibers that are killed.
-	long int liveFibers = (myDDU->checkFiber(emu::fed::INFPGA0)&0x000000ff) | ((myDDU->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
-	long int killFiber = myDDU->readKillFiberAdvanced();
+	long int liveFibers = (myDDU->readFiberStatus(emu::fed::INFPGA0)&0x000000ff) | ((myDDU->readFiberStatus(emu::fed::INFPGA1)&0x000000ff)<<8);
+	long int killFiber = myDDU->readKillFiber();
 
 	// PGK It turns out that this is an automatically shifting register.
 	//  If you read from it 60 times, you get 15 sets of 4 values, all
 	//  different.
 	//  This means I need to do this 15 times per board.
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-		std::vector<unsigned long int> lcode = myDDU->ddu_occmon();
+		std::vector<uint32_t> lcode = myDDU->readOccupancyMonitor();
 		unsigned long int DMBval = lcode[0] & 0x0fffffff;
 		unsigned long int ALCTval = lcode[1] & 0x0fffffff;
 		unsigned long int TMBval = lcode[2] & 0x0fffffff;
@@ -3189,7 +3191,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			*(generalTable(2,0)->value) << "L1 Event Scaler1/3 (24-bit)";
 		}
 
-		unsigned long int infpgastat = myDDU->infpgastat(dt);
+		unsigned long int infpgastat = myDDU->readFPGAStatus(dt);
 		*(generalTable(0,iDevType*2+1)->value) << std::showbase << std::hex << infpgastat;
 		if (infpgastat & 0x00004000) generalTable(0,iDevType*2+1)->setClass("warning");
 		if (infpgastat & 0x00008000) {
@@ -3207,12 +3209,12 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 
 		// PGK Flaking out
 		//unsigned long int L1Scaler = myDDU->readL1Scaler(dt);
-		unsigned long int L1Scaler = myDDU->infpga_rdscaler(dt);
+		unsigned long int L1Scaler = myDDU->readL1Scaler(dt);
 		*(generalTable(1,iDevType*2+1)->value) << L1Scaler;
 
 		// PGK Flaking out
 		//unsigned long int L1Scaler1 = myDDU->readL1Scaler1(dt);
-		unsigned long int L1Scaler1 = myDDU->infpga_rd1scaler(dt);
+		unsigned long int L1Scaler1 = myDDU->readL1Scaler1(dt);
 		*(generalTable(2,iDevType*2+1)->value) << L1Scaler1;
 
 	}
@@ -3321,7 +3323,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			}
 		}
 
-		unsigned int checkFiber = myDDU->checkFiber(dt);
+		unsigned int checkFiber = myDDU->readFiberStatus(dt);
 		*(fiberTable(2,iDevType*2+1)->value) << std::showbase << std::hex << ((checkFiber >> 8) & 0xff);
 		if (((checkFiber >> 8) & 0xff)) fiberTable(2,iDevType*2+1)->setClass("bad");
 		else fiberTable(2,iDevType*2+1)->setClass("ok");
@@ -3527,7 +3529,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 			*(otherTable(5,0)->value) << "InRD1/3 C-code status (8-bit)";
 		}
 
-		unsigned int readFIFOStat = myDDU->readFIFOStat(dt);
+		unsigned int readFIFOStat = myDDU->readFIFOStatus(dt);
 		*(otherTable(0,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
 		//if (((readFIFOStat >> 8) & 0xff)) otherTable(0,iDevType*2+1)->setClass("bad");
 		otherTable(0,iDevType*2+1)->setClass("ok");
@@ -3571,7 +3573,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 				.set("class",iComment->second) << std::endl;
 		}
 
-		unsigned int readCCodeStat = myDDU->infpga_CcodeStat(dt);
+		unsigned int readCCodeStat = myDDU->readCCodeStatus(dt);
 		*(otherTable(4,iDevType*2+1)->value) << std::showbase << std::hex << ((readCCodeStat) & 0xff);
 		if ((readCCodeStat & 0xff) == 0x20) otherTable(4,iDevType*2+1)->setClass("warning");
 		else if (readCCodeStat & 0xff) otherTable(4,iDevType*2+1)->setClass("bad");
@@ -3697,7 +3699,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 				.set("class",iComment->second) << std::endl;
 		}
 
-		memValue = myDDU->infpga_MemAvail(dt);
+		memValue = myDDU->readAvailableMemory(dt);
 		*(memTable(2,iDevType*2+1)->value) << (memValue & 0x1f);
 		if ((memValue & 0x1f) == 1) memTable(2,iDevType*2+1)->setClass("warning");
 		else if ((memValue & 0x1f) == 0) memTable(2,iDevType*2+1)->setClass("bad");
@@ -3709,7 +3711,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		if (((memValue >> 5) & 0x1f) == 0) memTable(3,iDevType*2+1)->setClass("bad");
 		else memTable(3,iDevType*2+1)->setClass("ok");
 
-		memValue = myDDU->infpga_Min_Mem(dt);
+		memValue = myDDU->readMinMemory(dt);
 		*(memTable(4,iDevType*2+1)->value) << (memValue & 0x1f);
 		if ((memValue & 0x1f) == 1) memTable(4,iDevType*2+1)->setClass("warning");
 		else if ((memValue & 0x1f) == 0) memTable(4,iDevType*2+1)->setClass("bad");
@@ -3722,7 +3724,7 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		else memTable(5,iDevType*2+1)->setClass("ok");
 
 		for (unsigned int ireg = 0; ireg < 4; ireg++) {
-			memValue = myDDU->readWriteMemoryActive(dt,ireg);
+			memValue = myDDU->readActiveWriteMemory(dt,ireg);
 			*(memTable(ireg + 6,iDevType*2+1)->value) << std::showbase << std::hex << memValue;
 			memTable(ireg + 6,iDevType*2+1)->setClass("ok");
 			memComments = emu::fed::DDUDebugger::WriteMemoryActive(dt,ireg,memValue);
@@ -3794,8 +3796,8 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		if (debugTrapValid[iDevType]) {
 
 			// Here it is.
-			std::vector<unsigned long int> lcode = myDDU->infpga_trap(dt);
-			std::vector<std::string> bigComments = emu::fed::DDUDebugger::infpga_trap(lcode, dt);
+			std::vector<uint16_t> lcode = myDDU->readDebugTrap(dt);
+			std::vector<std::string> bigComments = emu::fed::DDUDebugger::INFPGADebugTrap(lcode, dt);
 
 			std::stringstream diagCode;
 			diagCode << std::setfill('0');
@@ -3914,7 +3916,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentKillFiber = myDDU->readKillFiberAdvanced();
+	unsigned long int currentKillFiber = myDDU->readKillFiber();
 	*out << cgicc::div("Current KillFiber register value: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
@@ -3945,9 +3947,9 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::tr() << std::endl;
 
 	// Knowing which chambers are actually alive is a good thing.
-	long int liveFibers = (myDDU->checkFiber(emu::fed::INFPGA0)&0x000000ff) | ((myDDU->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
-	long int killFiber = myDDU->readKillFiberAdvanced();
-	unsigned int fibersWithErrors = myDDU->readCSCStatAdvanced() | myDDU->readAdvancedFiberErrors();
+	long int liveFibers = (myDDU->readFiberStatus(emu::fed::INFPGA0)&0x000000ff) | ((myDDU->readFiberStatus(emu::fed::INFPGA1)&0x000000ff)<<8);
+	long int killFiber = myDDU->readKillFiber();
+	unsigned int fibersWithErrors = myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors();
 
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		std::string chamberClass = "ok";
@@ -4279,7 +4281,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	inregTable.addColumn("New Value");
 
 	for (unsigned int iReg = 0; iReg < 3; iReg++) {
-		unsigned int inreg = myDDU->readInputReg(iReg);
+		unsigned int inreg = myDDU->readInputRegister(iReg);
 		*(inregTable(iReg,0)->value) << "InReg" << iReg;
 		*(inregTable(iReg,1)->value) << std::showbase << std::hex << inreg;
 		inregTable[iReg]->setClass("none");
@@ -4333,7 +4335,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*(expertTable(0,3)->value) << expertTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,11);
 	expertTable[0]->setClass("none");
 
-	unsigned int fakeL1 = myDDU->readFakeL1Reg();
+	unsigned int fakeL1 = myDDU->readFakeL1();
 	*(expertTable(1,0)->value) << "Fake L1A Data Passthrough";
 	*(expertTable(1,1)->value) << std::showbase << std::hex << fakeL1;
 	/*
@@ -4348,7 +4350,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	*(expertTable(1,3)->value) << expertTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,13);
 	expertTable[1]->setClass("none");
 
-	unsigned int foe = myDDU->readFMMReg();
+	unsigned int foe = myDDU->readFMM();
 	*(expertTable(2,0)->value) << "F0E + 4-bit FMM";
 	*(expertTable(2,1)->value) << std::showbase << std::hex << foe;
 	/*
@@ -4369,7 +4371,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iReg = 0; iReg < 5; iReg++) {
 		*(expertTable(4 + iReg,0)->value) << "Test register " << iReg;
-		*(expertTable(4 + iReg,1)->value) << std::showbase << std::hex << (myDDU->readTestReg(iReg));
+		*(expertTable(4 + iReg,1)->value) << std::showbase << std::hex << (myDDU->readTestRegister(iReg));
 		expertTable[4 + iReg]->setClass("none");
 	}
 
@@ -4464,15 +4466,16 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	writableTable.addColumn("Value");
 	writableTable.addColumn("New Value");
 
-	*(writableTable(0,0)->value) << "Flash live channels";
-	*(writableTable(0,1)->value) << std::showbase << std::hex << myDDU->read_page1();
+	*(writableTable(0,0)->value) << "Flash KillFiber";
+	*(writableTable(0,1)->value) << std::showbase << std::hex << myDDU->readFlashKillFiber();
 	writableTable[0]->setClass("none");
 	// New Value...
 	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << std::endl;
 
-	std::vector<int> lcode = myDDU->read_page5();
+	std::vector<uint16_t> lcode = myDDU->readFlashGbEFIFOThresholds();
 	*(writableTable(1,0)->value) << "Flash GbE FIFO thresholds";
-	*(writableTable(1,1)->value) << "0x" << std::hex << ((lcode[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((lcode[2]&0xC0)>>6)|((lcode[5]&0xFF)<<2)|((lcode[4]&0x3F)<<10)) << 16) | (((lcode[0]&0xC0)>>6)|((lcode[3]&0xFF)<<2)|((lcode[2]&0x3F)<<10)));
+	//*(writableTable(1,1)->value) << "0x" << std::hex << ((lcode[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((lcode[2]&0xC0)>>6)|((lcode[5]&0xFF)<<2)|((lcode[4]&0x3F)<<10)) << 16) | (((lcode[0]&0xC0)>>6)|((lcode[3]&0xFF)<<2)|((lcode[2]&0x3F)<<10)));
+	*(writableTable(1,1)->value) << "0x" << std::hex << std::setw(1) << std::setfill('0') << lcode[2] << std::setw(4) << lcode[1] << std::setw(4) << lcode[0];
 	writableTable[1]->setClass("none");
 	// New Value...
 	*(writableTable(1,2)->value) << writableTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,15) << std::endl;
@@ -4556,7 +4559,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	statusTable.addColumn("Register");
 	statusTable.addColumn("Value");
 
-	unsigned int parallelStat = myDDU->readParallelStat();
+	unsigned int parallelStat = myDDU->readParallelStatus();
 	*(statusTable(0,0)->value) << "VME status register";
 	*(statusTable(0,1)->value) << std::showbase << std::hex << parallelStat;
 	std::map<std::string,std::string> parallelStatComments = emu::fed::DDUDebugger::ParallelStat(parallelStat);
@@ -4615,7 +4618,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	fmmTable.addColumn("Value");
 	fmmTable.addColumn("Decoded Chambers");
 
-	unsigned int cscStat = myDDU->readCSCStatAdvanced() | myDDU->readAdvancedFiberErrors();
+	unsigned int cscStat = myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors();
 	*(fmmTable(0,0)->value) << "FMM problem report";
 	*(fmmTable(0,1)->value) << std::showbase << std::hex << cscStat;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -4766,7 +4769,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	voltTable.addColumn("Voltage");
 	voltTable.addColumn("Value");
 
-	float V15 = myDDU->adcplus(1,4);
+	float V15 = myDDU->readVoltage(0);
 	*(voltTable(0,0)->value) << "Voltage V15";
 	*(voltTable(0,1)->value) << std::setprecision(4) << V15 << " mV";
 	voltTable[0]->setClass("ok");
@@ -4774,7 +4777,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	if (V15 > 1500*1.05 || V15 < 1500*0.95) voltTable[0]->setClass("bad");
 	if (V15 > 3500 || V15 < 0) voltTable[0]->setClass("questionable");
 
-	float V25 = myDDU->adcplus(1,5);
+	float V25 = myDDU->readVoltage(1);
 	*(voltTable(1,0)->value) << "Voltage V25";
 	*(voltTable(1,1)->value) << std::setprecision(4) << V25 << " mV";
 	voltTable[1]->setClass("ok");
@@ -4782,7 +4785,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	if (V25 > 2500*1.05 || V25 < 2500*0.95) voltTable[1]->setClass("bad");
 	if (V25 > 3500 || V25 < 0) voltTable[1]->setClass("questionable");
 	
-	float V25a = myDDU->adcplus(1,6);
+	float V25a = myDDU->readVoltage(2);
 	*(voltTable(2,0)->value) << "Voltage V25A";
 	*(voltTable(2,1)->value) << std::setprecision(4) << V25a << " mV";
 	voltTable[2]->setClass("ok");
@@ -4790,7 +4793,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	if (V25a > 2500*1.05 || V25a < 2500*0.95) voltTable[2]->setClass("bad");
 	if (V25a > 3500 || V25a < 0) voltTable[2]->setClass("questionable");
 	
-	float V33 = myDDU->adcplus(1,7);
+	float V33 = myDDU->readVoltage(3);
 	*(voltTable(3,0)->value) << "Voltage V33";
 	*(voltTable(3,1)->value) << std::setprecision(4) << V33 << " mV";
 	voltTable[3]->setClass("ok");
@@ -4827,7 +4830,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	tempTable.addColumn("Value");
 
 	for (unsigned int iTemp = 0; iTemp < 4; iTemp++) {
-		float T0 = myDDU->readthermx(iTemp);
+		float T0 = myDDU->readTemperature(iTemp);
 		*(tempTable(iTemp,0)->value) << "Temperature " << iTemp;
 		*(tempTable(iTemp,1)->value) << std::setprecision(4) << T0 << "&deg;F";
 		tempTable[iTemp]->setClass("ok");
@@ -4864,7 +4867,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	ramStatusTable.addColumn("Register");
 	ramStatusTable.addColumn("Value");
 
-	int ramStatus = myDDU->readSerialStat();
+	int ramStatus = myDDU->readSerialStatus();
 	*(ramStatusTable(0,0)->value) << "Serial Flash RAM Status";
 	*(ramStatusTable(0,1)->value) << std::showbase << std::hex << ramStatus;
 	ramStatusTable[0]->setClass("ok");
@@ -4967,47 +4970,51 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 
 	//unsigned short int para_val;
 	//unsigned long int send_val;
-	
+
+	// Switches don't like to have variables declared in the statement.
 	unsigned int scale;
+	std::vector<uint16_t> writeMe;
+	writeMe.reserve(3);
+	unsigned int fmm;
 	
 	// Switch on the command.
 	switch (command) {
 
 	case (1): // Toggle L1 calibration signal
-		myDDU->toggleL1Cal();
+		myDDU->toggleL1Calibration();
 		break;
-
+		
 	case (2): // Reset the DDUFPGA
-		myDDU->reset(emu::fed::DDUFPGA);
+		myDDU->resetFPGA(emu::fed::DDUFPGA);
 		break;
-
+		
 	case (3): // Load KillFiber
-		myDDU->writeKillFiberAdvanced(uploadValue);
+		myDDU->writeKillFiber(uploadValue);
 		break;
 
 	case (4): // Load BXorbit
-		myDDU->ddu_loadbxorbit(uploadValue);
+		myDDU->writeBXOrbit(uploadValue);
 		break;
 
 	case (5): // Send fake L1A
-		myDDU->vmeL1A();
+		myDDU->sendFakeL1A();
 		break;
 
 	case (6): // Load STFU register
-		unsigned int fmm = myDDU->readFMMReg();
-		myDDU->writeFMMReg( 0XFED0 | fmm );
+		fmm = myDDU->readFMM();
+		myDDU->writeFMM( 0XFED0 | fmm );
 		break;
-
+		
 	case (7): // InFPGA reset
-		myDDU->reset(emu::fed::INFPGA0);
+		myDDU->resetFPGA(emu::fed::INFPGA0);
 		break;
 
 	case (8): // Another InFPGA reset.  Not needed?
-		myDDU->reset(emu::fed::INFPGA1);
+		myDDU->resetFPGA(emu::fed::INFPGA1);
 		break;
-
+		
 	case (9): // Write the inreg
-		myDDU->writeInputReg(uploadValue);
+		myDDU->writeInputRegister(uploadValue);
 		break;
 
 	case (10): // Toggle DDU backpressure ignore.
@@ -5024,7 +5031,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		break;
 
 	case (12): // Toggle something in the fake L1A register?
-		scale = myDDU->readFakeL1Reg();
+		scale = myDDU->readFakeL1();
 		if (scale  & 0x0007) {
 			uploadValue = 0xF0F0;
 		} else {
@@ -5033,7 +5040,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		// No break...  I know what I am doing.
 
 	case (13): // Write fake L1A register value?
-		myDDU->writeFakeL1Reg(uploadValue);
+		myDDU->writeFakeL1(uploadValue);
 		break;
 
 	case (14): // Write the flash killFiber
@@ -5041,7 +5048,10 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		break;
 
 	case (15): // SPECIAL CASE:  write GbEFIFOThresholds
-		myDDU->writeFlashGbEFIFOThresholds(otherValue, (uploadValue & 0xffff0000) >> 16, (uploadValue & 0xffff));
+		writeMe.push_back(uploadValue & 0xffff);
+		writeMe.push_back((uploadValue & 0xffff0000) >> 16);
+		writeMe.push_back(otherValue);
+		myDDU->writeFlashGbEFIFOThresholds(writeMe);
 		break;
 
 	case (16): // Flash board ID
@@ -5053,7 +5063,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 		break;
 
 	case (18): // Load FMM
-		myDDU->writeFMMReg( 0XF0E0 | uploadValue );
+		myDDU->writeFMM( uploadValue );
 		break;
 
 	default:
@@ -5407,7 +5417,7 @@ throw (xgi::exception::Exception)
 			*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
 			diskTable(iprom,1)->setClass("bad");
 		} else {
-			*(diskTable(iprom,1)->value) << diskVersion;
+			*(diskTable(iprom,1)->value) << std::hex << diskVersion;
 			diskTable(iprom,1)->setClass("ok");
 		}
 		
@@ -5510,10 +5520,10 @@ throw (xgi::exception::Exception)
 		
 		for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
 			
-			uint32_t idCode = (*iDCC)->readIDCodeAdvanced(dccPROMTypes[iprom]);
+			uint32_t idCode = (*iDCC)->readIDCode(dccPROMTypes[iprom]);
 			*(slotTable(idcc,1 + 2*iprom)->value) << std::hex << idCode;
 			
-			uint32_t userCode = (*iDCC)->readUserCodeAdvanced(dccPROMTypes[iprom]);
+			uint32_t userCode = (*iDCC)->readUserCode(dccPROMTypes[iprom]);
 			*(slotTable(idcc,2 + 2*iprom)->value) << std::hex << userCode;
 			
 			// Check for consistency
@@ -5547,8 +5557,9 @@ throw (xgi::exception::Exception)
 	*out << "Legend: " << cgicc::span("All OK").set("class","ok") << " " << std::endl;
 	*out << cgicc::span("Disk/PROM mismatch").set("class","bad") << " " << std::endl;
 	
-	*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!")
-		.set("style","font-size: 8pt;") << std::endl;
+	*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!") << std::endl;
+
+	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset() << std::endl;
 	
@@ -5651,7 +5662,7 @@ void EmuFCrateHyperDAQ::DCCLoadBroadcast(xgi::Input *in, xgi::Output *out)
 		LOG4CPLUS_ERROR(getApplicationLogger(), "DCCLoadBroadcast: The file " << filename << " cannot be opened for writing");
 		
 		std::ostringstream backLocation;
-		backLocation << "DDUBroadcast?crate=" << cgiCrate;
+		backLocation << "DCCBroadcast?crate=" << cgiCrate;
 		webRedirect(out,backLocation.str());
 		//this->DDUBroadcast(in,out);
 		//return;
@@ -5663,7 +5674,7 @@ void EmuFCrateHyperDAQ::DCCLoadBroadcast(xgi::Input *in, xgi::Output *out)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "DCCLoadBroadcast: downloaded and saved " << filename << " of type " << type);
 	
 	std::ostringstream backLocation;
-	backLocation << "DDUBroadcast?crate=" << cgiCrate;
+	backLocation << "DCCBroadcast?crate=" << cgiCrate;
 	webRedirect(out,backLocation.str());
 	//this->DDUBroadcast(in,out);
 	
@@ -5735,7 +5746,8 @@ throw (xgi::exception::Exception)
 	promName.push_back("MPROM");
 	std::vector<enum emu::fed::DEVTYPE> devType;
 	devType.push_back(emu::fed::INPROM);
-	devType.push_back(emu::fed::RESET);
+	//devType.push_back(emu::fed::RESET);
+	devType.push_back(emu::fed::MPROM);
 	
 	// Load the proper version types from the cgi handle.
 	std::vector<uint32_t> version;
@@ -5771,10 +5783,10 @@ throw (xgi::exception::Exception)
 		LOG4CPLUS_INFO(getApplicationLogger(),"Loading file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << myDCC->slot() << "...");
 		
 		//myDCC->epromload((char *)promName[type].c_str(),devType[type],(char *)filename.c_str(),1);
-		myDCC->loadPROMAdvanced(devType[type],(char *) filename.c_str());
+		myDCC->loadPROM(devType[type],(char *) filename.c_str());
 
 		// Check the usercode.
-		uint32_t checkCode = myDCC->readUserCodeAdvanced(devType[type]);
+		uint32_t checkCode = myDCC->readUserCode(devType[type]);
 		if (checkCode != version[type]) {
 			LOG4CPLUS_ERROR(getApplicationLogger(),"Firmware load failed: expected usercode " << std::hex << version[type] << ", got " << checkCode << std::dec);
 		} else {
@@ -6095,7 +6107,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	generalTable.addColumn("Decoded Status");
 
 	*(generalTable(0,0)->value) << "DCC FMM Status (4-bit)";
-	unsigned long int dccValue = myDCC->readStatusHighAdvanced();
+	unsigned long int dccValue = myDCC->readStatusHigh();
 	*(generalTable(0,1)->value) << std::showbase << std::hex << ((dccValue & 0xf000) >> 12);
 	std::map<std::string, std::string> debugMap = emu::fed::DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
@@ -6151,7 +6163,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	}
 
 	*(generalTable(3,0)->value) << "DCC L1A Count (16-bit)";
-	*(generalTable(3,1)->value) << myDCC->readStatusLowAdvanced();
+	*(generalTable(3,1)->value) << myDCC->readStatusLow();
 	generalTable(3,1)->setClass("none");
 
 	*out << generalTable.printSummary() << std::endl;
@@ -6184,7 +6196,7 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	ratesTable.addColumn("Decoded Status");
 
 	*(ratesTable(0,0)->value) << "Input FIFOs Used";
-	dccValue = myDCC->readFIFOInUseAdvanced();
+	dccValue = myDCC->readFIFOInUse();
 	*(ratesTable(0,1)->value) << std::showbase << std::hex << dccValue;
 	for (int iFifo = 0; iFifo < 10; iFifo++) {
 		if (dccValue & (1<<iFifo)) {
@@ -6197,26 +6209,26 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	// Get rates for each FIFO, Slink1 first.
 	for (int iFifo = 0; iFifo < 5; iFifo++) {
 		*(ratesTable(iFifo+1,0)->value) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
-		dccValue = myDCC->readRateAdvanced(iFifo+1);
+		dccValue = myDCC->readRate(iFifo+1);
 		*(ratesTable(iFifo+1,1)->value) << std::dec << dccValue << " bytes/s";
 		ratesTable(iFifo+1,1)->setClass("none");
 	}
 
 	*(ratesTable(6,0)->value) << "S-Link 1";
-	dccValue = myDCC->readRateAdvanced(0);
+	dccValue = myDCC->readRate(0);
 	*(ratesTable(6,1)->value) << std::dec << dccValue << " bytes/s";
 	ratesTable(6,1)->setClass("none");
 
 	// Get rates for each FIFO, Slink2 second.
 	for (int iFifo = 5; iFifo < 10; iFifo++) {
 		*(ratesTable(iFifo+2,0)->value) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
-		dccValue = myDCC->readRateAdvanced(iFifo+2);
+		dccValue = myDCC->readRate(iFifo+2);
 		*(ratesTable(iFifo+2,1)->value) << std::dec << dccValue << " bytes/s";
 		ratesTable(iFifo+2,1)->setClass("none");
 	}
 
 	*(ratesTable(12,0)->value) << "S-Link 2";
-	dccValue = myDCC->readRateAdvanced(6);
+	dccValue = myDCC->readRate(6);
 	*(ratesTable(12,1)->value) << std::dec << dccValue << " bytes/s";
 	ratesTable(12,1)->setClass("none");
 
@@ -6499,7 +6511,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentFIFOs = myDCC->readFIFOInUseAdvanced();
+	unsigned long int currentFIFOs = myDCC->readFIFOInUse();
 	*out << cgicc::div("Current FIFOs In Use register value: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
@@ -6621,7 +6633,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentSwitch = myDCC->readSoftwareSwitchAdvanced();
+	unsigned long int currentSwitch = myDCC->readSoftwareSwitch();
 	*out << cgicc::div("Current Software Switch value: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
@@ -6770,7 +6782,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentFMM = myDCC->readFMMAdvanced();
+	unsigned long int currentFMM = myDCC->readFMM();
 	*out << cgicc::div("Current FMM register: ")
 		.set("style","font-weight: bold; display: inline;");
 	*out << cgicc::div()
@@ -6902,7 +6914,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("name","crate")
 		.set("value",crateVal) << std::endl;
 
-	unsigned long int currentTTCCommand = myDCC->readTTCCommandAdvanced();
+	unsigned long int currentTTCCommand = myDCC->readTTCCommand();
 	unsigned long int currentL1A = ((((currentTTCCommand>>9)&0x60)+((currentFIFOs>>11)&0x1f)) << 8) | ((currentTTCCommand>>7)&0x7e);
 	*out << cgicc::div("Current L1A send rate/number: ")
 		.set("style","font-weight: bold; display: inline;");
@@ -7159,31 +7171,31 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	switch (command) {
 
 	case (1): // reset bx?
-		myDCC->resetBXAdvanced();
+		myDCC->resetBX();
 		break;
 
 	case (2): // reset event count?
-		myDCC->resetEventsAdvanced();
+		myDCC->resetEvents();
 		break;
 
 	case (3): // set FIFO in use
-		myDCC->writeFIFOInUseAdvanced(uploadValue);
+		myDCC->writeFIFOInUse(uploadValue);
 		break;
 
 	case (4): // set TTC command
-		myDCC->writeTTCCommandAdvanced(uploadValue);
+		myDCC->writeTTCCommand(uploadValue);
 		break;
 
 	case (5): // set fake L1A rate and number
-		myDCC->writeFakeL1AAdvanced(uploadValue);
+		myDCC->writeFakeL1A(uploadValue);
 		break;
 
 	case (6): // set SW Switch
-		myDCC->writeSoftwareSwitchAdvanced(uploadValue);
+		myDCC->writeSoftwareSwitch(uploadValue);
 		break;
 
 	case (7): // set FMM register
-		myDCC->writeFMMAdvanced(uploadValue);
+		myDCC->writeFMM(uploadValue);
 		break;
 
 	default:
@@ -7359,8 +7371,6 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 
 		emu::fed::DDU *myDDU = myCrate->getDDUs()[iDDU];
 		// I am a DDU!
-		// Skip broadcasting
-		if (myDDU->isBroadcast()) continue;
 
 		// Check Voltages
 		//myCrate->getVMEController()->CAEN_err_reset();
@@ -7375,7 +7385,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 			// Automatically do each voltage twice:
 			unsigned int jVolt = iVolt/2;
 			// Voltages are 4-7
-			voltage[jVolt] = myDDU->readVoltageAdvanced(jVolt);
+			voltage[jVolt] = myDDU->readVoltage(jVolt);
 			//if( myCrate->getVMEController()->CAEN_err() != 0) {
 				//dduClass = "caution";
 			//}
@@ -7406,7 +7416,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 		for (unsigned int iTemp = 0; iTemp < 8; iTemp++) {
 			// Automatically read each temperature twice
 			unsigned int jTemp = iTemp/2;
-			temp[jTemp] = myDDU->readTemperatureAdvanced(jTemp);
+			temp[jTemp] = myDDU->readTemperature(jTemp);
 			//if( myCrate->getVMEController()->CAEN_err() != 0) {
 				//dduClass = "caution";
 			//}
@@ -7716,13 +7726,8 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			if (what == "ddu" && index == iDDU && crateIndex == iCrate) selectedBoard = "background-color: #FF9;";
 			
 			std::ostringstream boardName;
-			if (!crateVector[iCrate]->getDDUs()[iDDU]->isBroadcast()) {
-				boardName << "DDU Slot " << crateVector[iCrate]->getDDUs()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->getDDUs()[iDDU]->slot());
-			} else {
-				//boardName << "DDU BROADCAST";
-				continue;
-			}
-			
+			boardName << "DDU Slot " << crateVector[iCrate]->getDDUs()[iDDU]->slot() << ": RUI #" << crateVector[iCrate]->getRUI(crateVector[iCrate]->getDDUs()[iDDU]->slot());
+
 			*out << cgicc::td()
 				.set("style",selectedBoard+" border: 1px solid #000;") << std::endl;
 
@@ -7742,12 +7747,7 @@ std::string EmuFCrateHyperDAQ::selectACrate(std::string location, std::string wh
 			if (what == "dcc" && index == iDCC && crateIndex == iCrate) selectedBoard = "background-color: #FF9;";
 			
 			std::ostringstream boardName;
-			if (!crateVector[iCrate]->getDCCs()[iDCC]->isBroadcast()) {
-				boardName << "DCC Slot " << crateVector[iCrate]->getDCCs()[iDCC]->slot();
-			} else {
-				//boardName << "BROADCAST DCC";
-				continue;
-			}
+			boardName << "DCC Slot " << crateVector[iCrate]->getDCCs()[iDCC]->slot();
 			
 			*out << cgicc::td()
 				.set("style",selectedBoard+" border: 1px solid #000;") << std::endl;

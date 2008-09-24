@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.h,v 3.17 2008/08/18 08:30:14 paste Exp $
+* $Id: EmuFCrate.h,v 3.18 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: EmuFCrate.h,v $
+* Revision 3.18  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.17  2008/08/18 08:30:14  paste
 * Update to fix error propagation from IRQ threads to EmuFCrateManager.
 *
@@ -87,19 +90,10 @@ public:
 	//void webSetTTSBits(xgi::Input *in, xgi::Output *out)
 	//	throw (xgi::exception::Exception);
 
-// addition for STEP
-
-	xdata::UnsignedInteger step_killfiber_;
-
-	xoap::MessageReference onPassthru(xoap::MessageReference message)
-		throw (xoap::exception::Exception);
-
 	// Copied over from EmuFController, now defunct
 	void writeTTSBits(int crate, int slot, unsigned int bits);
 	unsigned int readTTSBits(int crate, int slot);
 	
-
-// end addition for STEP
 
 private:
 	//
