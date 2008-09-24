@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.h,v 3.12 2008/09/03 17:52:58 paste Exp $
+* $Id: VMEController.h,v 3.13 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: VMEController.h,v $
+* Revision 3.13  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.12  2008/09/03 17:52:58  paste
 * Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
 *
@@ -33,7 +36,7 @@ namespace emu {
 
 		class VMEModule;
 
-		class VMEController: public EmuFEDLoggable, public JTAGDevice
+		class VMEController: public EmuFEDLoggable
 		{
 		public:
 			VMEController(int Device, int Link)
@@ -59,10 +62,12 @@ namespace emu {
 			inline void setBHandle(int32_t BHandle) { BHandle_ = BHandle; }
 
 			//void start(VMEModule * module);
+			/*
 			void start(int slot);
 			void end();
-			
+			*/
 			/// JTAG stuff
+			/*
 			void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd); 
 			void scan(int reg,const char *snd,int cnt2,char *rcv,int ird); 
 			void RestoreIdle(); 
@@ -100,12 +105,13 @@ namespace emu {
 			// inline int CAEN_err(void) { return caen_err; }
 			
 			//inline VMEModule* getCurrentModule() { return currentModule_; }
-			
+			*/
 		private:
 			
 			int Device_;
 			int Link_;
 			int32_t BHandle_;
+			/*
 			VMEModule *currentModule_;
 			//const ENDIAN endian_;
 			int idevo_;
@@ -113,6 +119,7 @@ namespace emu {
 			int plev;
 			int crateNumber;
 			int caen_err;
+			*/
 
 		};
 

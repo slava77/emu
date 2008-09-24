@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.h,v 1.9 2008/08/25 12:25:49 paste Exp $
+* $Id: DDUDebugger.h,v 1.10 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: DDUDebugger.h,v $
+* Revision 1.10  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 1.9  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -63,8 +66,8 @@ namespace emu {
 			/** Reads from method @sa DDU::readWarnMon() **/
 			std::map<std::string, std::string> WarnMon(int stat);
 		
-			/** Reads from method @sa DDU::ddu_fpgatrap() **/
-			std::vector<std::string> ddu_fpgatrap(std::vector<unsigned long int> lcode, DDU *thisDDU);
+			/** Reads from method @sa DDU::readDebugTrap(DDUFPGA) **/
+			std::vector<std::string> DDUDebugTrap(std::vector<uint16_t> lcode, DDU *thisDDU);
 		
 			/** Reads from method @sa DDU::readKillFiber() **/
 			std::map<std::string, std::string> KillFiber(long int stat);
@@ -87,8 +90,8 @@ namespace emu {
 			/** Reads from method @sa DDU::readWriteMemoryActive(INFPGAX) **/
 			std::map<std::string, std::string> WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat);
 		
-			/** Reads from method @sa DDU::infpga_trap() **/
-			std::vector<std::string> infpga_trap(std::vector<unsigned long int> lcode, enum DEVTYPE dt);
+			/** Reads from method @sa DDU::readDebugTrap(INFPGAX) **/
+			std::vector<std::string> INFPGADebugTrap(std::vector<uint16_t> lcode, enum DEVTYPE dt);
 		
 			/** Reads from method @sa DDU::readParallelStat() **/
 			std::map<std::string, std::string> ParallelStat(int stat);

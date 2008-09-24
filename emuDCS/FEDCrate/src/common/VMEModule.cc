@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.16 2008/09/22 14:31:54 paste Exp $
+* $Id: VMEModule.cc,v 3.17 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.17  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.16  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -55,9 +58,10 @@
 
 emu::fed::VMEModule::VMEModule(int mySlot):
 	//vmeController_(0),
-	slot_(mySlot),
-	controller_(NULL)
+	slot_(mySlot)
 {
+	// Initialize mutexes
+	pthread_mutex_init(&mutex_, NULL);
 	
 	vmeAddress_ = slot_ << 19;
 
@@ -80,7 +84,7 @@ emu::fed::VMEModule::VMEModule(int mySlot):
 	bogoMips_ = ((long double) 1000000. / (3.66 * (long double) usecsWasted));
 }
 
-
+/*
 void emu::fed::VMEModule::setController(VMEController *controller) {
 	
 	if (controller_ != NULL) {
@@ -90,9 +94,9 @@ void emu::fed::VMEModule::setController(VMEController *controller) {
 	controller_ = controller;
 	
 }
+*/
 
-
-
+/*
 void emu::fed::VMEModule::start() {
 	// vmeadd_=0x00000000|(slot_<<19);
 	
@@ -195,6 +199,7 @@ void emu::fed::VMEModule::sleep_vme(const char *outbuf)
 	controller_->sleep_vme(outbuf);
 	
 }
+*/
 /*
 void emu::fed::VMEModule::sleep_vme2(unsigned short int time)
 {
@@ -209,6 +214,7 @@ void emu::fed::VMEModule::long_sleep_vme2(float time)
 	controller_->long_sleep_vme2(time);
 }
 */
+/*
 void emu::fed::VMEModule::send_last()
 {
 	
@@ -249,10 +255,10 @@ void emu::fed::VMEModule::vme_adc(int ichp,int ichn,char *rcv)
 	controller_->vme_adc(ichp,ichn,rcv);
 
 }
+*/
 
 
-
-void emu::fed::VMEModule::writeCycle(int32_t myAddress, unsigned int nBits, std::vector<int16_t> myData)
+void emu::fed::VMEModule::writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData)
 throw(FEDException)
 {
 	// What I really need is the number of words and remainder bits.
@@ -262,19 +268,22 @@ throw(FEDException)
 
 
 	// Now, I start the sending process...
+	pthread_mutex_lock(&mutex_);
 	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
 		// If this is the last thing I am writing, be sure to use a bitmask.
-		int16_t bitMask = 0xffff;
+		uint16_t bitMask = 0xffff;
 		if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
 		
 		writeVME(myAddress,myData[iWord] & bitMask);
 	}
+	pthread_mutex_unlock(&mutex_);
+	
 	return;
 }
 
 
 
-std::vector<int16_t> emu::fed::VMEModule::readCycle(int32_t myAddress, unsigned int nBits)
+std::vector<uint16_t> emu::fed::VMEModule::readCycle(uint32_t myAddress, unsigned int nBits)
 throw(FEDException)
 {
 	// What I really need is the number of words and remainder bits.
@@ -283,54 +292,58 @@ throw(FEDException)
 	unsigned int remainderBits = nBits % 16;
 
 	// Reserving speeds things up and helps prevent memory fragmentation.
-	std::vector<int16_t> result;
+	std::vector<uint16_t> result;
 	result.reserve(nWords);
 	
 	// Now, I start the reading process...
+	pthread_mutex_lock(&mutex_);
 	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
-		// If this is the last thing I am writing, be sure to use a bitmask.
-		int16_t bitMask = 0xffff;
+		// If this is the last thing I am read, be sure to use a bitmask.
+		uint16_t bitMask = 0xffff;
 		if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
 		result.push_back(readVME(myAddress) & bitMask);
 	}
+	pthread_mutex_unlock(&mutex_);
 	return result;
 }
 
 
 /*
-std::vector<int16_t> emu::fed::VMEModule::writeRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits, int16_t myData)
+std::vector<uint16_t> emu::fed::VMEModule::writeRegAdvanced(enum DEVTYPE dev, uint32_t myAddress, unsigned int nBits, uint16_t myData)
 throw(FEDException)
 {
-	std::vector<int16_t> newData;
+	std::vector<uint16_t> newData;
 	newData.push_back(myData);
 	return writeRegAdvanced(dev, myAddress, nBits, newData);
 }
 */
 
 
-void emu::fed::VMEModule::commandCycle(enum DEVTYPE dev, int16_t myCommand)
+void emu::fed::VMEModule::commandCycle(enum DEVTYPE dev, uint16_t myCommand)
 throw (FEDException)
 {
 
 	// Address encoded in the JTAG channel, and is the same for all elements of the chain.
 	// This is part of the definition of JTAG.
 	JTAGChain chain = JTAGMap[dev];
-	int32_t myAddress = chain.front()->bitCode;
+	uint32_t myAddress = chain.front()->bitCode;
 	
 	// The RESET command is very straight forward
 	if (dev == RESET || dev == RESET1 || dev == RESET2) {
 
 		// Some fake vectors for sending data.
-		std::vector<int16_t> bogoData0(1,0);
-		std::vector<int16_t> bogoData1(1,1);
+		std::vector<uint16_t> bogoData0(1,0);
+		std::vector<uint16_t> bogoData1(1,1);
 
 		// Send the reset command pattern
+		pthread_mutex_lock(&mutex_);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
+		pthread_mutex_unlock(&mutex_);
 
 		return;
 	}
@@ -340,7 +353,7 @@ throw (FEDException)
 	unsigned int nBits = 0;
 
 	// We also need to know what the commands are along the chain.
-	std::vector<int16_t> commands;
+	std::vector<uint16_t> commands;
 
 	// This is needed for smart pushing back of arbitrarily-sized commands
 	unsigned int remainder = 0;
@@ -389,19 +402,19 @@ throw (FEDException)
 
 
 
-std::vector<int16_t> emu::fed::VMEModule::jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<int16_t> myData, bool noRead)
+std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<uint16_t> myData, bool noRead)
 throw (FEDException)
 {
 	// Get the chain.  Very important to know.
 	JTAGChain chain = JTAGMap[dev];
 
 	// Set up the return value.
-	std::vector<int16_t> result;
+	std::vector<uint16_t> result;
 	result.reserve(nBits/16 + 1);
 
 	// The address is encoded in the JTAG channel.  The address is the same for all
 	// elements in the chain (part of the definition of JTAG).
-	int32_t myAddress = chain.front()->bitCode;
+	uint32_t myAddress = chain.front()->bitCode;
 
 	// The number of bits you have to send increases by one for each JTAG element
 	// in the chain _after_ this element.  Count those now.
@@ -419,12 +432,13 @@ throw (FEDException)
 	if (dev == RESET || dev == RESET2) {
 
 		// Some fake vectors for sending data.
-		std::vector<int16_t> bogoData0(1,0);
-		std::vector<int16_t> bogoData1(1,1);
-		std::vector<int16_t> bogoData2(1,2);
-		std::vector<int16_t> bogoData3(1,3);
+		std::vector<uint16_t> bogoData0(1,0);
+		std::vector<uint16_t> bogoData1(1,1);
+		std::vector<uint16_t> bogoData2(1,2);
+		std::vector<uint16_t> bogoData3(1,3);
 		
 		// Send the write command pattern
+		pthread_mutex_lock(&mutex_);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
@@ -450,6 +464,7 @@ throw (FEDException)
 				else writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 			}
 		}
+		pthread_mutex_unlock(&mutex_);
 		
 		// Return nothing.
 		return result;
@@ -467,17 +482,19 @@ throw (FEDException)
 	}
 	
 	// Now, I start the sending process...
+	pthread_mutex_lock(&mutex_);
 	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
 
 		// If this is the last thing I am writing, be sure to use a bitmask.
-		int16_t bitMask = 0xffff;
+		uint16_t bitMask = 0xffff;
 		
 		// Check to see if this is the first word and flag appropriately.
-		int32_t address = myAddress & 0xfffff0ff;
+		uint32_t address = myAddress & 0xfffff0ff;
 		if (iWord == 0) address |= 0x4; // first
 		if (iWord == nWords - 1) address |= 0x8; // last
 		if ((iWord == nWords - 1) && remainderBits) {
 			address |= ((remainderBits - 1) << 8); // remainder, if any.
+			// For writing, the mask is on the write, so we want to mask out the HIGH bits.
 			bitMask = (1 << remainderBits) - 1;
 		}
 		else address |= 0x0f00;
@@ -489,7 +506,7 @@ throw (FEDException)
 		// Read now and store it for later.
 		if (!noRead) {
 			address = myAddress | 0x14;
-			int16_t tempResult = readVME(address);
+			uint16_t tempResult = readVME(address);
 		
 			// Do some bit manipulations if this is the remainder.
 			if (iWord == nWords - 1 && remainderBits) {
@@ -503,7 +520,7 @@ throw (FEDException)
 
 				// Make sure the bits I shift off the end carry to the previous value.
 				if (iWord > 0) {
-					int16_t carryValue = tempResult << (16 - extraBits);
+					uint16_t carryValue = tempResult << (16 - extraBits);
 					result[iWord - 1] |= carryValue;
 				}
 
@@ -514,6 +531,7 @@ throw (FEDException)
 			result.push_back(tempResult);
 		}
 	}
+	pthread_mutex_unlock(&mutex_);
 	
 	return result;
 
@@ -521,19 +539,19 @@ throw (FEDException)
 
 
 
-std::vector<int16_t> emu::fed::VMEModule::jtagRead(enum DEVTYPE dev, unsigned int nBits)
+std::vector<uint16_t> emu::fed::VMEModule::jtagRead(enum DEVTYPE dev, unsigned int nBits)
 throw (FEDException)
 {
 	// Get the chain.  Very important to know.
 	JTAGChain chain = JTAGMap[dev];
 	
 	// Set up the return value.
-	std::vector<int16_t> result;
+	std::vector<uint16_t> result;
 	result.reserve(nBits/16 + 1);
 	
 	// The address is encoded in the JTAG channel.  The address is the same for all
 	// elements in the chain (part of the definition of JTAG).
-	int32_t myAddress = chain.front()->bitCode;
+	uint32_t myAddress = chain.front()->bitCode;
 	
 	// The number of bits you have to send increases by one for each JTAG element
 	// in the chain _before_ this element.  Count those now.
@@ -552,18 +570,21 @@ throw (FEDException)
 	unsigned int remainderBits = (nBits + extraBits) % 16;
 	
 	// Now, I start the sending process...
+	pthread_mutex_lock(&mutex_);
 	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
 		
 		// If this is the last thing I am reading, be sure to use a bitmask.
-		int16_t bitMask = 0xffff;
+		uint16_t bitMask = 0xffff;
 
 		// Check to see if this is the first word and flag appropriately.
-		int32_t address = myAddress & 0xfffff0ff;
+		uint32_t address = myAddress & 0xfffff0ff;
 		if (iWord == 0) address |= 0x4; // first
 		if (iWord == nWords - 1) address |= 0x8; // last
 		if ((iWord == nWords - 1) && remainderBits) {
 			address |= ((remainderBits - 1) << 8); // remainder, if any.
+			// The bit mask is to mask in the HIGH remainderBits bits, not the LOW bits.
 			bitMask = (1 << remainderBits) - 1;
+			bitMask = bitMask << (16 - remainderBits);
 		}
 		else address |= 0x0f00;
 		
@@ -573,10 +594,11 @@ throw (FEDException)
 		
 		// Read now and store it for later.
 		address = myAddress | 0x14;
-		int16_t tempResult = readVME(address) & bitMask;
+		uint16_t tempResult = readVME(address) & bitMask;
+		//std::cerr << "tempResult is " << std::hex << tempResult << " mask " << bitMask << std::endl;
 
 		// Do some bit manipulations if this is the remainder.
-		if (iWord == nWords - 1 && remainderBits) {
+		if ((iWord == nWords - 1) && remainderBits) {
 			tempResult = tempResult >> (16 - remainderBits);
 		}
 
@@ -587,7 +609,7 @@ throw (FEDException)
 
 			// Make sure the bits I shift off the end carry to the previous value.
 			if (iWord > 0) {
-				int16_t carryValue = tempResult << (16 - extraBits);
+				uint16_t carryValue = tempResult << (16 - extraBits);
 				result[iWord - 1] |= carryValue;
 			}
 
@@ -595,8 +617,11 @@ throw (FEDException)
 			tempResult = tempResult >> extraBits;
 		}
 
+		//std::cerr << "tempResult finally is " << std::hex << tempResult << std::endl;
+
 		result.push_back(tempResult);
 	}
+	pthread_mutex_unlock(&mutex_);
 	
 	return result;
 	
@@ -604,7 +629,7 @@ throw (FEDException)
 
 
 
-int16_t emu::fed::VMEModule::readVME(uint32_t Address)
+uint16_t emu::fed::VMEModule::readVME(uint32_t Address)
 throw (FEDException)
 {
 	// The address always has the board slot encoded.
@@ -617,8 +642,8 @@ throw (FEDException)
 	CVDataWidth DW = cvD16;
 
 	// 16-bit buffer to fill durring reads
-	int16_t data;
-	//int64_t *data;
+	uint16_t data;
+	//uint64_t *data;
 
 	// Read and return error code
 #ifdef CAEN_DEBUG
@@ -649,7 +674,7 @@ throw (FEDException)
 
 
 
-void emu::fed::VMEModule::writeVME(uint32_t Address, int16_t data)
+void emu::fed::VMEModule::writeVME(uint32_t Address, uint16_t data)
 throw (FEDException)
 {
 	// The address always has the board slot encoded.
@@ -687,7 +712,7 @@ throw (FEDException)
 
 
 
-void emu::fed::VMEModule::loadPROMAdvanced(enum DEVTYPE dev, char *fileName, std::string startString, std::string stopString)
+void emu::fed::VMEModule::loadPROM(enum DEVTYPE dev, char *fileName, std::string startString, std::string stopString)
 throw (FEDException)
 {
 	
@@ -815,10 +840,10 @@ throw (FEDException)
 			
 			// Now we parse the hex digits one byte at a time, as all instructions have
 			// byte-sized values.
-			std::vector<int8_t> bogoData;
+			std::vector<uint8_t> bogoData;
 			bogoData.reserve(nBytes);
 			for (unsigned long int iByte = 0; iByte < nBytes; iByte++) {
-				int8_t byte;
+				uint8_t byte;
 				sscanf(value.substr(iByte * 2, 2).c_str(), "%2hhx", &byte);
 				// Be careful!  This is in reverse order!
 				bogoData.push_back(byte & 0xff);
@@ -826,13 +851,13 @@ throw (FEDException)
 			}
 			
 			// Make the data into a vector we can use.
-			std::vector<int16_t> myData;
+			std::vector<uint16_t> myData;
 			myData.reserve(nBytes/2);
 			// Remember that the vector we made above is made in reverse endianness!
 			// I would like to iterate backwards here, but I have to use two elements
 			// of the old vector at a time to make the new vector.
 			for (unsigned int iDatum = 0; iDatum < nBytes; iDatum +=2) {
-				int16_t newDatum = bogoData[nBytes - iDatum - 1] & 0x00ff;
+				uint16_t newDatum = bogoData[nBytes - iDatum - 1] & 0x00ff;
 				if ( (iDatum + 1) < nBytes) {
 					newDatum |= ((bogoData[nBytes - iDatum - 2] & 0x00ff) << 8);
 				}
@@ -859,7 +884,7 @@ throw (FEDException)
 			} else {
 				
 				// It's just a JTAG read/write.
-				//std::vector<int16_t> result = jtagReadWrite(dev, nBits, myData);
+				//std::vector<uint16_t> result = jtagReadWrite(dev, nBits, myData);
 				// You can do something with the result here if you want.
 				
 				// The "true" at the end means write-only and don't read back.
@@ -910,10 +935,10 @@ throw (FEDException)
 			
 			if (dev == RESET || dev == RESET1 || dev == RESET2) {
 				
-				int32_t myAddress = element->bitCode;
+				uint32_t myAddress = element->bitCode;
 				
 				// Real data to send.
-				std::vector<int16_t> bogoBits(1,1);
+				std::vector<uint16_t> bogoBits(1,1);
 				
 				// Send it 5 times.
 				writeCycle(myAddress, element->cmdBits, bogoBits);
@@ -926,10 +951,10 @@ throw (FEDException)
 				
 			} else {
 				
-				int32_t myAddress = element->bitCode | 0x00000018;
+				uint32_t myAddress = element->bitCode | 0x00000018;
 				
 				// Fake data to send.
-				std::vector<int16_t> bogoBits(1,0x0);
+				std::vector<uint16_t> bogoBits(1,0x0);
 				
 				writeCycle(myAddress, element->cmdBits, bogoBits);
 			}

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.10 2008/08/25 12:25:49 paste Exp $
+* $Id: DDUDebugger.cc,v 1.11 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: DDUDebugger.cc,v $
+* Revision 1.11  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 1.10  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -366,7 +369,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(int stat)
 }
 
 
-std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsigned long int> lcode, DDU *thisDDU)
+std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16_t> lcode, DDU *thisDDU)
 {
 
 	std::vector<std::string> out;
@@ -391,8 +394,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 
 	// Pop out the decoded register.
 	for (unsigned int iBits = 0; iBits < 12; iBits++) {
-		int lcodeBits = 5 - (iBits/2);
-		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
+		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << lcode[11 - iBits];
 		out.push_back(outStream.str());
 		outStream.str("");
 	}
@@ -463,7 +465,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 // 	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 
 	// Next, spit out the funky fiber information.
-	unsigned long int CSCStat = thisDDU->readCSCStat();
+	unsigned long int CSCStat = thisDDU->readCSCStatus();
 	if (CSCStat & 0x7fff) {
 		outStream << "FMM errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -526,7 +528,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 		outStream.str("");
 	}
 
-	std::vector<unsigned long int> inTrap[2];
+	std::vector<uint16_t> inTrap[2];
 	bool inTrapSet[2] = {
 		false,
 		false
@@ -552,7 +554,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 
 	for (int iDev = 0; iDev < 2; iDev++) {
 		
-		inStat[iDev] = thisDDU->readFPGAStat(devType[iDev]);
+		inStat[iDev] = thisDDU->readFPGAStatus(devType[iDev]);
 		
 		if (inStat[iDev]&0x04000000) {          // DLL Error
 			out.push_back(devName[iDev] + ": DLL error detected");
@@ -560,7 +562,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 			solved = true;
 			
 		} else if (inStat[iDev]&0x00000004) {     // Fiber Change
-			unsigned int fiberCheck = thisDDU->checkFiber(devType[iDev]);
+			unsigned int fiberCheck = thisDDU->readFiberStatus(devType[iDev]);
 			outStream << devName[iDev] << ": Fiber connection error detected on fiber(s) ";
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
@@ -698,7 +700,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 			// If InCtrlErr and not solved, get InTrap registers (each 32 bytes)
 			if (inStat[iDev]&0x00008000) {
 				//      *out << "-debug> inside 4>" << std::endl;
-				inTrap[iDev] = thisDDU->infpga_trap(devType[iDev]);
+				inTrap[iDev] = thisDDU->readDebugTrap(devType[iDev]);
 				inTrapSet[iDev] = true;
 			}
 		}
@@ -751,24 +753,24 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 		for (int iDev = 0; iDev < 2; iDev++) {
 			if (inTrapSet[iDev]) {  // got_i0trap;
 				//      *out << "-debug> inside 6>" << std::endl;
-				if (inTrap[iDev][0]&0x00000040) {
-					if (inTrap[iDev][3]&0x00ff0000) {
+				if (inTrap[iDev][0]&0x0040) {
+					if (inTrap[iDev][6]&0x00ff) {
 						outStream << devName[iDev] << ": Start timeout for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
-							if ((inTrap[iDev][3] >> 16) & (1<<iFiber)) {
+							if ((inTrap[iDev][7]) & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
 						outStream.str("");
-					} else if (inTrap[iDev][4]&0x0000ffff) {
+					} else if (inTrap[iDev][8]) {
 						outStream << devName[iDev] << ": End timeout for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
-							if (((inTrap[iDev][4] >> 8) | inTrap[iDev][4]) & (1<<iFiber)) {
+							if (((inTrap[iDev][8] >> 8) | inTrap[iDev][8]) & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
@@ -777,12 +779,12 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 					
 						if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev] + ")");
 						solved = true;
-					} else if (inTrap[iDev][0]&0x00000080) {  // StuckData
+					} else if (inTrap[iDev][0]&0x0080) {  // StuckData
 						outStream << devName[iDev] << ": stuck data for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
-							if ((inTrap[iDev][2] >> 24) & (1<<iFiber)) {
+							if ((inTrap[iDev][4] >> 8) & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
@@ -791,7 +793,7 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 						
 						if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev] + ")");
 						solved = true;
-					} else if (inTrap[iDev][0]&0x00000010) {  // Multi-Xmit error
+					} else if (inTrap[iDev][0]&0x0010) {  // Multi-Xmit error
 						unsigned int fiberCheck = thisDDU->readTxError(devType[iDev]);
 						outStream << devName[iDev] << ": Multiple SpecialWord bit errors for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
@@ -806,33 +808,33 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 						
 						if (iFill & (1 << iDev)) out.push_back(devName[iDev] + ": [Extra or missing 16-bit words, too]");
 
-						if (inTrap[iDev][0]&0x00000020) out.push_back(devName[iDev] + "[multiple bit-errors in the same word]");  // typical for offset in DMBhdr1+2, maybe TMBtr/DMBtr
+						if (inTrap[iDev][0]&0x0020) out.push_back(devName[iDev] + "[multiple bit-errors in the same word]");  // typical for offset in DMBhdr1+2, maybe TMBtr/DMBtr
 						else out.push_back(devName[iDev] + ": [single bit-errors in different words]");
 					
 						if (iFill & (1 << iDev)) out.push_back("(probably related to 64-bit align error for " + devName[iDev] + ")");
 						solved = true;
 
-					} else if (inTrap[iDev][0]&0x00000008) {  // InFPGA0 Memory Full
-						if ((inTrap[iDev][0]&0x00040000) > 0) {
+					} else if (inTrap[iDev][0]&0x0008) {  // InFPGA0 Memory Full
+						if ((inTrap[iDev][1]&0x0004) > 0) {
 							outStream << devName[iDev] << ": Memory error for InRD" << std::dec << (0 + iDev*2);
 							out.push_back(outStream.str());
 							outStream.str("");
 							
-							if (inTrap[iDev][5]&0x0000001f) {
-								outStream << devName[iDev] << ": [L1A buffer overflow (" << std::dec << (inTrap[iDev][5]&0x0000001f) << " memories available)]";
+							if (inTrap[iDev][10]&0x001f) {
+								outStream << devName[iDev] << ": [L1A buffer overflow (" << std::dec << (inTrap[iDev][10]&0x001f) << " memories available)]";
 								out.push_back(outStream.str());
 								outStream.str("");
 							} else {
 								out.push_back(devName[iDev] + ": [all InMem units used]");
 								if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev]);
 							}
-						} else if (inTrap[iDev][0]&0x00400000) {
+						} else if (inTrap[iDev][1]&0x0040) {
 							outStream << devName[iDev] << ": Memory error for InRD" << std::dec << (1 + iDev*2);
 							out.push_back(outStream.str());
 							outStream.str("");
 							
-							if (inTrap[iDev][5]&0x000003e0) {
-								outStream << devName[iDev] << ": [L1A buffer overflow (" << std::dec << (inTrap[iDev][5]&0x000003e0) << " memories available)]";
+							if (inTrap[iDev][10]&0x03e0) {
+								outStream << devName[iDev] << ": [L1A buffer overflow (" << std::dec << (inTrap[iDev][10]&0x03e0) << " memories available)]";
 								out.push_back(outStream.str());
 								outStream.str("");
 							} else {
@@ -841,12 +843,12 @@ std::vector <std::string> emu::fed::DDUDebugger::ddu_fpgatrap(std::vector<unsign
 							}
 						}
 						solved = true;
-					} else if ((inTrap[iDev][0]&0x002001fc) == 0x00200000) {
+					} else if ( !(inTrap[iDev][0] & 0x01fc) && (inTrap[iDev][1]&0x0020)) {
 						outStream << devName[iDev] << ": Multiple L1A errors for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
-							if ((inTrap[iDev][2] >> 16) & (1<<iFiber)) {
+							if ((inTrap[iDev][5]) & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
 							}
 						}
@@ -1370,7 +1372,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(enum
 
 
 
-std::vector<std::string> emu::fed::DDUDebugger::infpga_trap(std::vector<unsigned long int> lcode, enum DEVTYPE dt)
+std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(std::vector<uint16_t> lcode, enum DEVTYPE dt)
 {
 	std::vector<std::string> out;
 	std::ostringstream outStream;
@@ -1394,8 +1396,9 @@ std::vector<std::string> emu::fed::DDUDebugger::infpga_trap(std::vector<unsigned
 
 	// Pop out the decoded register.
 	for (unsigned int iBits = 0; iBits < 12; iBits++) {
-		int lcodeBits = 5 - (iBits/2);
-		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
+		//int lcodeBits = 5 - (iBits/2);
+		//outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << (iBits % 2 ? ((0xffff0000&lcode[lcodeBits]) >> 16) : (0xffff&lcode[lcodeBits]));
+		outStream << debugNames[iBits] << ": " << std::setw(4) << std::setfill('0') << std::hex << lcode[11 - iBits];
 		out.push_back(outStream.str());
 		outStream.str("");
 	}

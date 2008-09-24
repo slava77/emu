@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.24 2008/09/22 14:31:54 paste Exp $
+* $Id: DCC.cc,v 3.25 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.25  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.24  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -46,14 +49,6 @@
 #include <sys/time.h> // POSIX gettimeofday routine for microsecond timers
 
 #include "JTAGElement.h"
-
-emu::fed::DCC::DCC(int crate, int slot) :
-		VMEModule(slot),
-		fifoinuse_(0x3fe),
-		softsw_(0)
-{
-	std::cerr << "Deprecated constructor.  Use DCC(int) instead of DCC(int,int)." << std::endl;
-}
 
 emu::fed::DCC::DCC(int slot) :
 		VMEModule(slot),
@@ -136,8 +131,8 @@ void emu::fed::DCC::configure()
 	//printf(" *********************** DCC configure is called \n");
 	//printf(" DCC slot %d fifoinuse %d \n",slot(),fifoinuse_);
 	if (slot() < 21) {
-		writeFIFOInUseAdvanced(fifoinuse_);
-		writeSoftwareSwitchAdvanced(softsw_);
+		writeFIFOInUse(fifoinuse_);
+		writeSoftwareSwitch(softsw_);
 	}
 }
 
@@ -483,7 +478,7 @@ void emu::fed::DCC::hdrst_main(void)
 }
 */
 
-
+/*
 void emu::fed::DCC::Parse(char *buf, int *Count, char **Word)
 {
 	*Word = buf;
@@ -517,14 +512,14 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 	char sndbuf[1024], rcvbuf[1024];
 	//printf(" epromload %d \n",devnum);
 
-	/*
-	if(devnum==ALL){
-		devnum=F1PROM;
-		devstp=F5PROM;
-	} else {
-		devstp=devnum;
-	}
-	*/
+	
+// 	if(devnum==ALL){
+// 		devnum=F1PROM;
+// 		devstp=F5PROM;
+// 	} else {
+// 		devstp=devnum;
+// 	}
+	
 	devstp = devnum;
 	for (id = devnum;id <= devstp;id++) {
 		dv = (DEVTYPE) id;
@@ -614,7 +609,7 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 						tmp = (rcvbuf[i] >> 3) & 0x1F;
 						rcvbuf[i] = tmp | (rcvbuf[i+1] << 5 & 0xE0);
 						//if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-						//printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); */
+						//printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); 
 					}
 					if (cmpflag == 1) {
 						for (i = 0;i < nbytes;i++) {
@@ -713,278 +708,7 @@ void emu::fed::DCC::epromload(char *design, enum DEVTYPE devnum, char *downfile,
 	//flush_vme();
 	//send_last();
 }
-
-
-
-unsigned long int emu::fed::DCC::readReg(enum DEVTYPE dt, char reg, unsigned int nBits)
-	throw (FEDException)
-{
-	// reads are always 16 bits from the DCC
-
-	if (dt != INPROM && dt != MCTRL) {
-		XCEPT_RAISE(FEDException,"Can't read from that device");
-	}
-
-	//char cmd[4];
-	//char sndbuf[4];
-	//char rcvbuf[4];
-	
-	cmd[0] = 0x01; // For read function
-	cmd[1] = reg; // vme address
-	cmd[2] = 0xff; // data h
-	cmd[3] = 0xff; // data l
-
-	// This is it.
-	devdo(dt, nBits, cmd, 0, sndbuf, rcvbuf, 1);
-
-	return ((rcvbuf[3] << 24) & 0xff000000) | ((rcvbuf[2] << 16) & 0xff0000) | ((rcvbuf[1] << 8) & 0xff00) | (rcvbuf[0] & 0xff);
-}
-
-
-
-
-
-void emu::fed::DCC::writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
-	throw (FEDException)
-{
-	// reads are always 16 bits from the DCC
-
-	if (dt != INPROM && dt != MCTRL) {
-		XCEPT_RAISE(FEDException,"Can't read from that device");
-	}
-
-	//char cmd[4];
-	//char sndbuf[4];
-	//char rcvbuf[4];
-	
-	cmd[0] = 0x00; // For write function
-	cmd[1] = reg; // vme address
-	cmd[2] = (value >> 8) & 0xff; // data h
-	cmd[3] = value & 0xff; // data l
-
-	// This is it.
-	devdo(dt, 4, cmd, 0, sndbuf, rcvbuf, 1);
-}
-
-
-
-unsigned int emu::fed::DCC::readStatusHigh()
-	throw (FEDException)
-{
-	try {
-		return readReg(MCTRL, 0x02);
-	} catch (FEDException &e) { throw; }
-}
-
-
-
-unsigned int emu::fed::DCC::readStatusLow()
-	throw (FEDException)
-{
-	try {
-		return readReg(MCTRL, 0x01);
-	} catch (FEDException &e) { throw; }
-}
-
-
-
-unsigned int emu::fed::DCC::readFIFOInUse()
-	throw (FEDException)
-{
-	try {
-		return readReg(MCTRL, 0x06);
-	} catch (FEDException &e) { throw; }
-}
-
-
-
-void emu::fed::DCC::setFIFOInUse(unsigned int value)
-	throw (FEDException)
-{
-	try {
-		writeReg(MCTRL, 0x03, value);
-	} catch (FEDException &e) { throw; }
-}
-
-
-unsigned int emu::fed::DCC::readRate(unsigned int fifo)
-	throw (FEDException)
-{
-	if (fifo > 11) XCEPT_RAISE(FEDException, "there are only 12 FIFOs to check [0-11]");
-	try {
-		return readReg(MCTRL, 0x10 + fifo);
-	} catch (FEDException &e) { throw; }
-}
-
-
-unsigned int emu::fed::DCC::readSoftwareSwitch()
-	throw (FEDException)
-{
-	try {
-		return readReg(MCTRL, 0x1f);
-	} catch (FEDException &e) { throw; }
-}
-
-
-void emu::fed::DCC::setSoftwareSwitch(unsigned int value)
-	throw (FEDException)
-{
-	try {
-		return writeReg(MCTRL, 0x07, value);
-	} catch (FEDException &e) { 
-		// This always causes an error for some reason.
-		//throw;
-	}
-}
-
-
-unsigned int emu::fed::DCC::readFMM()
-	throw (FEDException)
-{
-	try {
-		return readReg(MCTRL, 0x1e);
-	} catch (FEDException &e) { throw; }
-}
-
-
-void emu::fed::DCC::setFMM(unsigned int value)
-	throw (FEDException)
-{
-	try {
-		return writeReg(MCTRL, 0x08, value);
-	} catch (FEDException &e) { throw; }
-}
-
-
-unsigned int emu::fed::DCC::readTTCCommand()
-	throw (FEDException)
-{
-	try {
-		return readReg(MCTRL, 0x05);
-	} catch (FEDException &e) { throw; }
-}
-
-
-void emu::fed::DCC::setTTCCommand(unsigned int value)
-	throw (FEDException)
-{
-	try {
-		return writeReg(MCTRL, 0x00, 0Xff00 | ((value << 2) & 0xfc));
-	} catch (FEDException &e) { throw; }
-}
-
-
-void emu::fed::DCC::resetBX()
-	throw (FEDException)
-{
-	try {
-		return writeReg(MCTRL, 0x00, 0xff02);
-	} catch (FEDException &e) { throw; }
-}
-
-
-void emu::fed::DCC::resetEvents()
-	throw (FEDException)
-{
-	try {
-		return writeReg(MCTRL, 0x00, 0xff01);
-	} catch (FEDException &e) { throw; }
-}
-
-
-void emu::fed::DCC::setFakeL1A(unsigned int value)
-	throw (FEDException)
-{
-	try {
-		return writeReg(MCTRL, 0x04, value);
-	} catch (FEDException &e) { throw; }
-}
-
-
-unsigned long int emu::fed::DCC::readIDCode(enum DEVTYPE dt)
-	throw (FEDException)
-{
-	unsigned int nBits = 0;
-	//char cmd[2];
-	//char sndbuf[5];
-	//char rcvbuf[5];
-	
-	if (dt == INPROM) {
-		cmd[0] = PROM_IDCODE;
-		nBits = 8;
-	} else if (dt == MPROM) {
-		cmd[0] = MPROM_IDCODE_L;
-		cmd[1] = MPROM_IDCODE_H;
-		nBits = 16;
-	} else {
-		XCEPT_RAISE(FEDException, "Can only read IDCode from DEVTYPEs INPROM or MPROM");
-	}
-	
-	// special case:  no readReg.
-	sndbuf[0] = 0xFF;
-	sndbuf[1] = 0xFF;
-	sndbuf[2] = 0xFF;
-	sndbuf[3] = 0xFF;
-	sndbuf[4] = 0xFF;
-	devdo(dt, nBits, cmd, 32, sndbuf, rcvbuf, 1);
-	
-	if (dt == INPROM) {
-		cmd[0] = PROM_BYPASS;
-	} else if (dt == MPROM) {
-		cmd[0] = MPROM_BYPASS_L;
-		cmd[1] = MPROM_BYPASS_H;
-	}
-
-	sndbuf[0] = 0;
-	devdo(dt, nBits, cmd, 0, sndbuf, rcvbuf, 0);
-
-	return (rcvbuf[0] & 0xff) | ((rcvbuf[1] & 0xff) << 8) | ((rcvbuf[2] & 0xff) << 16) | ((rcvbuf[3] & 0xff) << 24);
-}
-
-
-
-unsigned long int emu::fed::DCC::readUserCode(enum DEVTYPE dt)
-	throw (FEDException)
-{
-	
-	unsigned int nBits = 0;
-	//char cmd[2];
-	//char sndbuf[5];
-	//char rcvbuf[5];
-	
-	if (dt == INPROM) {
-		cmd[0] = PROM_USERCODE;
-		nBits = 8;
-	} else if (dt == MPROM) {
-		cmd[0] = MPROM_USERCODE_L;
-		cmd[1] = MPROM_USERCODE_H;
-		nBits = 16;
-	} else {
-		XCEPT_RAISE(FEDException, "Can only read UserID from DEVTYPEs INPROM or MPROM");
-	}
-	
-	// special case:  no readReg.
-	sndbuf[0] = 0xFF;
-	sndbuf[1] = 0xFF;
-	sndbuf[2] = 0xFF;
-	sndbuf[3] = 0xFF;
-	sndbuf[4] = 0xFF;
-	devdo(dt, nBits, cmd, 32, sndbuf, rcvbuf, 1);
-	
-	if (dt == INPROM) {
-		cmd[0] = PROM_BYPASS;
-	} else if (dt == MPROM) {
-		cmd[0] = MPROM_BYPASS_L;
-		cmd[1] = MPROM_BYPASS_H;
-	}
-	
-	sndbuf[0] = 0;
-	devdo(dt, nBits, cmd, 0, sndbuf, rcvbuf, 0);
-	
-	return (rcvbuf[0] & 0xff) | ((rcvbuf[1] & 0xff) << 8) | ((rcvbuf[2] & 0xff) << 16) | ((rcvbuf[3] & 0xff) << 24);
-	
-}
-
+*/
 
 
 unsigned int emu::fed::DCC::getDDUSlotFromFIFO(unsigned int fifo) {
@@ -998,27 +722,28 @@ unsigned int emu::fed::DCC::getDDUSlotFromFIFO(unsigned int fifo) {
 }
 
 
+
 void emu::fed::DCC::crateHardReset()
 {
-	uint16_t switchCache = readSoftwareSwitchAdvanced();
-	writeSoftwareSwitchAdvanced(0x1000);
-	writeTTCCommandAdvanced(0x34);
+	uint16_t switchCache = readSoftwareSwitch();
+	writeSoftwareSwitch(0x1000);
+	writeTTCCommand(0x34);
 	sleep((unsigned int) 2);
-	writeSoftwareSwitchAdvanced(switchCache);
+	writeSoftwareSwitch(switchCache);
 }
 
 void emu::fed::DCC::crateSyncReset()
 {
-	uint16_t switchCache = readSoftwareSwitchAdvanced();
-	writeSoftwareSwitchAdvanced(0x1000);
-	writeTTCCommandAdvanced(0x3);
+	uint16_t switchCache = readSoftwareSwitch();
+	writeSoftwareSwitch(0x1000);
+	writeTTCCommand(0x3);
 	sleep((unsigned int) 1);
-	writeSoftwareSwitchAdvanced(switchCache);
+	writeSoftwareSwitch(switchCache);
 }
 
 
 
-std::vector<int16_t> emu::fed::DCC::readRegAdvanced(enum DEVTYPE dev, char myRegister, unsigned int nBits)
+std::vector<uint16_t> emu::fed::DCC::readRegister(enum DEVTYPE dev, char myRegister, unsigned int nBits)
 throw (FEDException)
 {
 	// The information about the element being written is stored in the chain.
@@ -1032,7 +757,7 @@ throw (FEDException)
 		// Direct VME reads are always one element, and are not JTAG commands.
 
 		// The address of the read is stored in the chain.
-		int32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
+		uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 
 		return readCycle(myAddress,nBits);
@@ -1045,7 +770,7 @@ throw (FEDException)
 		commandCycle(dev, myRegister);
 
 		// Shove in (and read out)
-		std::vector<int16_t> result = jtagRead(dev, nBits);
+		std::vector<uint16_t> result = jtagRead(dev, nBits);
 
 		// Finally, set the bypass.  All bypass commands in the chain are equal.
 		// That is part of the definition of JTAG.
@@ -1059,7 +784,7 @@ throw (FEDException)
 
 
 
-std::vector<int16_t> emu::fed::DCC::writeRegAdvanced(enum DEVTYPE dev, char myRegister, unsigned int nBits, std::vector<int16_t> myData)
+std::vector<uint16_t> emu::fed::DCC::writeRegister(enum DEVTYPE dev, char myRegister, unsigned int nBits, std::vector<uint16_t> myData)
 throw (FEDException)
 {
 	
@@ -1067,7 +792,7 @@ throw (FEDException)
 	JTAGChain chain = JTAGMap[dev];
 	
 	//std::cout << "Attempting to write to " << element->name << " register " << std::hex << (unsigned int) myRegister << " bits " << std::dec << nBits << " values (low to high) ";
-	//for (std::vector<int16_t>::iterator iData = myData.begin(); iData != myData.end(); iData++) {
+	//for (std::vector<uint16_t>::iterator iData = myData.begin(); iData != myData.end(); iData++) {
 	//std::cout << std::showbase << std::hex << (*iData) << std::dec << " ";
 	//}
 	//std::cout << std::endl;
@@ -1076,13 +801,13 @@ throw (FEDException)
 	if (chain.front()->directVME) {
 		
 		// The address for MCTRL is special, as it also contains the command code.
-		int32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
+		uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 		//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 		
 		writeCycle(myAddress, nBits, myData);
 
 		// This sort of write does not read back, so return an empty vector.
-		std::vector<int16_t> bogoBits;
+		std::vector<uint16_t> bogoBits;
 		return bogoBits;
 		
 	// Everything else is a JTAG command?
@@ -1092,7 +817,7 @@ throw (FEDException)
 		commandCycle(dev, myRegister);
 		
 		// Shove in (and read out)
-		std::vector<int16_t> result = jtagWrite(dev, nBits, myData);
+		std::vector<uint16_t> result = jtagWrite(dev, nBits, myData);
 		
 		// Finally, set the bypass
 		commandCycle(dev, chain.front()->bypassCommand);
@@ -1105,11 +830,11 @@ throw (FEDException)
 
 
 
-uint16_t emu::fed::DCC::readStatusHighAdvanced()
+uint16_t emu::fed::DCC::readStatusHigh()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(MCTRL, 0x02, 16)[0];
+		return readRegister(MCTRL, 0x02, 16)[0];
 	} catch (FEDException &e) {
 		throw;
 	}
@@ -1117,11 +842,11 @@ throw (FEDException)
 
 
 
-uint16_t emu::fed::DCC::readStatusLowAdvanced()
+uint16_t emu::fed::DCC::readStatusLow()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(MCTRL, 0x01, 16)[0];
+		return readRegister(MCTRL, 0x01, 16)[0];
 	} catch (FEDException &e) {
 		throw;
 	}
@@ -1129,11 +854,11 @@ throw (FEDException)
 
 
 
-uint16_t emu::fed::DCC::readFIFOInUseAdvanced()
+uint16_t emu::fed::DCC::readFIFOInUse()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(MCTRL, 0x06, 16)[0];
+		return readRegister(MCTRL, 0x06, 16)[0];
 	} catch (FEDException &e) {
 		throw;
 	}
@@ -1141,12 +866,12 @@ throw (FEDException)
 
 
 
-void emu::fed::DCC::writeFIFOInUseAdvanced(uint16_t value)
+void emu::fed::DCC::writeFIFOInUse(uint16_t value)
 throw (FEDException)
 {
 	try {
-		std::vector<int16_t> myData(1,value & 0x07FF);
-		writeRegAdvanced(MCTRL, 0x03, 16, myData);
+		std::vector<uint16_t> myData(1,value & 0x07FF);
+		writeRegister(MCTRL, 0x03, 16, myData);
 		return;
 	} catch (FEDException &e) {
 		throw;
@@ -1155,12 +880,12 @@ throw (FEDException)
 
 
 
-uint16_t emu::fed::DCC::readRateAdvanced(unsigned int fifo)
+uint16_t emu::fed::DCC::readRate(unsigned int fifo)
 throw (FEDException)
 {
 	if (fifo > 11) XCEPT_RAISE(FEDException, "there are only 12 FIFOs to check [0-11]");
 	try {
-		return readRegAdvanced(MCTRL, 0x10 + fifo, 16)[0];
+		return readRegister(MCTRL, 0x10 + fifo, 16)[0];
 	} catch (FEDException &e) {
 		throw;
 	}
@@ -1168,11 +893,11 @@ throw (FEDException)
 
 
 
-uint16_t emu::fed::DCC::readSoftwareSwitchAdvanced()
+uint16_t emu::fed::DCC::readSoftwareSwitch()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(MCTRL, 0x1f, 16)[0];
+		return readRegister(MCTRL, 0x1f, 16)[0];
 	} catch (FEDException &e) {
 		throw;
 	}
@@ -1180,12 +905,12 @@ throw (FEDException)
 
 
 
-void emu::fed::DCC::writeSoftwareSwitchAdvanced(uint16_t value)
+void emu::fed::DCC::writeSoftwareSwitch(uint16_t value)
 throw (FEDException)
 {
 	try {
-		std::vector<int16_t> myData(1, value);
-		writeRegAdvanced(MCTRL, 0x07, 16, myData);
+		std::vector<uint16_t> myData(1, value);
+		writeRegister(MCTRL, 0x07, 16, myData);
 		return;
 	} catch (FEDException &e) {
 		throw;
@@ -1194,11 +919,11 @@ throw (FEDException)
 
 
 
-uint16_t emu::fed::DCC::readFMMAdvanced()
+uint16_t emu::fed::DCC::readFMM()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(MCTRL, 0x1e, 16)[0];
+		return readRegister(MCTRL, 0x1e, 16)[0];
 	} catch (FEDException &e) {
 		throw;
 	}
@@ -1206,12 +931,12 @@ throw (FEDException)
 
 
 
-void emu::fed::DCC::writeFMMAdvanced(uint16_t value)
+void emu::fed::DCC::writeFMM(uint16_t value)
 throw (FEDException)
 {
 	try {
-		std::vector<int16_t> myData(1, value);
-		writeRegAdvanced(MCTRL, 0x08, 16, myData);
+		std::vector<uint16_t> myData(1, value);
+		writeRegister(MCTRL, 0x08, 16, myData);
 		return;
 	} catch (FEDException &e) {
 		throw;
@@ -1220,11 +945,11 @@ throw (FEDException)
 
 
 
-uint16_t emu::fed::DCC::readTTCCommandAdvanced()
+uint16_t emu::fed::DCC::readTTCCommand()
 throw (FEDException)
 {
 	try {
-		return readRegAdvanced(MCTRL,0x05,16)[0];
+		return readRegister(MCTRL,0x05,16)[0];
 	} catch (FEDException) {
 		throw;
 	}
@@ -1232,13 +957,13 @@ throw (FEDException)
 
 
 
-void emu::fed::DCC::writeTTCCommandAdvanced(int8_t value)
+void emu::fed::DCC::writeTTCCommand(uint8_t value)
 throw (FEDException)
 {
 	try {
 		// The first two bits are special.
-		std::vector<int16_t> myData(1, 0xff00 | ((value << 2) & 0xfc));
-		writeRegAdvanced(MCTRL,0x00,16,myData);
+		std::vector<uint16_t> myData(1, 0xff00 | ((value << 2) & 0xfc));
+		writeRegister(MCTRL,0x00,16,myData);
 		return;
 	} catch (FEDException) {
 		throw;
@@ -1247,12 +972,12 @@ throw (FEDException)
 
 
 
-void emu::fed::DCC::resetBXAdvanced()
+void emu::fed::DCC::resetBX()
 throw (FEDException)
 {
 	try {
-		std::vector<int16_t> myData(1, 0x02);
-		writeRegAdvanced(MCTRL,0x00,16,myData);
+		std::vector<uint16_t> myData(1, 0x02);
+		writeRegister(MCTRL,0x00,16,myData);
 		return;
 	} catch (FEDException) {
 		throw;
@@ -1261,12 +986,12 @@ throw (FEDException)
 
 
 
-void emu::fed::DCC::resetEventsAdvanced()
+void emu::fed::DCC::resetEvents()
 throw (FEDException)
 {
 	try {
-		std::vector<int16_t> myData(1, 0x01);
-		writeRegAdvanced(MCTRL,0x00,16,myData);
+		std::vector<uint16_t> myData(1, 0x01);
+		writeRegister(MCTRL,0x00,16,myData);
 		return;
 	} catch (FEDException) {
 		throw;
@@ -1275,12 +1000,12 @@ throw (FEDException)
 
 
 
-void emu::fed::DCC::writeFakeL1AAdvanced(uint16_t value)
+void emu::fed::DCC::writeFakeL1A(uint16_t value)
 throw (FEDException)
 {
 	try {
-		std::vector<int16_t> myData(1, value);
-		writeRegAdvanced(MCTRL,0x04,16,myData);
+		std::vector<uint16_t> myData(1, value);
+		writeRegister(MCTRL,0x04,16,myData);
 		return;
 	} catch (FEDException) {
 		throw;
@@ -1289,10 +1014,10 @@ throw (FEDException)
 
 
 
-uint32_t emu::fed::DCC::readIDCodeAdvanced(enum DEVTYPE dev)
+uint32_t emu::fed::DCC::readIDCode(enum DEVTYPE dev)
 throw (FEDException)
 {
-	int16_t command = 0;
+	uint16_t command = 0;
 	if (dev == MPROM) {
 		command = ((MPROM_IDCODE_H << 8) & 0xff00) | (MPROM_IDCODE_L & 0xff);
 	} else if (dev == INPROM) {
@@ -1302,7 +1027,7 @@ throw (FEDException)
 	}
 	
 	try {
-		std::vector<int16_t> result = readRegAdvanced(dev,command,32);
+		std::vector<uint16_t> result = readRegister(dev,command,32);
 		return result[0] | (result[1] << 16);
 	} catch (FEDException) {
 		throw;
@@ -1311,10 +1036,10 @@ throw (FEDException)
 
 
 
-uint32_t emu::fed::DCC::readUserCodeAdvanced(enum DEVTYPE dev)
+uint32_t emu::fed::DCC::readUserCode(enum DEVTYPE dev)
 throw (FEDException)
 {
-	int16_t command = 0;
+	uint16_t command = 0;
 	if (dev == MPROM) {
 		command = ((MPROM_USERCODE_H << 8) & 0xff00) | (MPROM_USERCODE_L & 0xff);
 	} else if (dev == INPROM) {
@@ -1324,7 +1049,7 @@ throw (FEDException)
 	}
 	
 	try {
-		std::vector<int16_t> result = readRegAdvanced(dev,command,32);
+		std::vector<uint16_t> result = readRegister(dev,command,32);
 		return result[0] | (result[1] << 16);
 	} catch (FEDException) {
 		throw;

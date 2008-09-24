@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 3.20 2008/09/19 16:53:51 paste Exp $
+* $Id: DCC.h,v 3.21 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: DCC.h,v $
+* Revision 3.21  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.20  2008/09/19 16:53:51  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -42,9 +45,6 @@ namespace emu {
 		public:
 			friend class DCCParser;
 		
-			/** @deprecated Please use the DCC(int) constructor instead. **/
-			DCC(int, int);
-
 			/** @param slot the slot of the board for VME addressing purposes. **/
 			DCC(int slot);
 
@@ -54,7 +54,7 @@ namespace emu {
 			 *
 			 * @deprecated Not actually used any more?
 			 **/
-			virtual unsigned int boardType() const {return DCC_ENUM;}
+			//virtual unsigned int boardType() const {return DCC_ENUM;}
 		
 			/** @return the FIFOInUse parameter. **/
 			inline int getFIFOInUse() { return fifoinuse_; }
@@ -88,51 +88,10 @@ namespace emu {
 			void mctrl_ttccmd(unsigned short int ctcc);
 			*/
 		
-			// PGK First attempt at simplified DCC commands
-			unsigned long int readReg(enum DEVTYPE dt, char reg, unsigned int nBits = 4)
-				throw (FEDException);
-			
-
-			void writeReg(enum DEVTYPE dt, char reg, unsigned long int value)
-				throw (FEDException);
-		
-			unsigned int readStatusHigh()
-				throw (FEDException);
-			unsigned int readStatusLow()
-				throw (FEDException);
-			unsigned int readFIFOInUse()
-				throw (FEDException);
-			void setFIFOInUse(unsigned int value)
-				throw (FEDException);
-			unsigned int readRate(unsigned int fifo)
-				throw (FEDException);
-			unsigned int readSoftwareSwitch()
-				throw (FEDException);
-			void setSoftwareSwitch(unsigned int value)
-				throw (FEDException);
-			unsigned int readFMM()
-				throw (FEDException);
-			void setFMM(unsigned int value)
-				throw (FEDException);
-			unsigned int readTTCCommand()
-				throw (FEDException);
-			void setTTCCommand(unsigned int value)
-				throw (FEDException);
-			void resetBX()
-				throw (FEDException);
-			void resetEvents()
-				throw (FEDException);
-			void setFakeL1A(unsigned int value)
-				throw (FEDException);
-			unsigned long int readIDCode(enum DEVTYPE dt)
-				throw (FEDException);
-			unsigned long int readUserCode(enum DEVTYPE dt)
-				throw (FEDException);
-		
 			// EPROM reprogramming (EXPERTS ONLY !)
 			/* void hdrst_main(void); */
 			/* void hdrst_in(void); */
-			void epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ);
+			/* void epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ); */
 		
 			// PGK Simplified DCC commands
 			/** Hard reset the crate through a TTC-override command. **/
@@ -151,15 +110,15 @@ namespace emu {
 			// PGK New interface
 
 			/** @returns the high 16-bits of the DCC status register **/
-			uint16_t readStatusHighAdvanced()
+			uint16_t readStatusHigh()
 				throw (FEDException);
 
 			/** @returns the low 16-bits of the DCC status register
 			 *
 			 * @note These 16 bits are actually independent of the value returned from
-			 * readStatusHighAdvanced.  The name is purely historical.
+			 * readStatusHigh.  The name is purely historical.
 			 **/
-			uint16_t readStatusLowAdvanced()
+			uint16_t readStatusLow()
 				throw (FEDException);
 
 			/** @returns the input FIFOs (DDUs) that are being read in
@@ -170,7 +129,7 @@ namespace emu {
 			 * 
 			 * @sa getDDUSlotFromFIFO
 			 **/
-			uint16_t readFIFOInUseAdvanced()
+			uint16_t readFIFOInUse()
 				throw (FEDException);
 
 			/** Write a new value to the FIFOInUse register.
@@ -181,7 +140,7 @@ namespace emu {
 			 *
 			 * @sa getDDUSlotFromFIFO
 			 **/
-			void writeFIFOInUseAdvanced(uint16_t value)
+			void writeFIFOInUse(uint16_t value)
 				throw (FEDException);
 
 			/** @returns the current read-in or read-out data rate (in bytes/sec) of
@@ -192,7 +151,7 @@ namespace emu {
 			 * 1-5, fifo==6 corresponds to S-Link 1, and fifo==[7,11] correspond to
 			 * the DDU input FIFOs 6-10.
 			 **/
-			uint16_t readRateAdvanced(unsigned int fifo)
+			uint16_t readRate(unsigned int fifo)
 				throw (FEDException);
 
 			/** @returns the current setting of the omni-purpose software switch.
@@ -212,20 +171,20 @@ namespace emu {
 			 * bits 5-7: select the xilinx platform revision, which determines the
 			 * S-Link (FMM) IDs.
 			 **/
-			uint16_t readSoftwareSwitchAdvanced()
+			uint16_t readSoftwareSwitch()
 				throw (FEDException);
 
 			/** Set the omni-purpose software switch.
 			 *
 			 * @param value the value to which to set the software switch.
 			 * 
-			 * @sa readSoftwareSwitchAdvanced()
+			 * @sa readSoftwareSwitch()
 			 **/
-			void writeSoftwareSwitchAdvanced(uint16_t value)
+			void writeSoftwareSwitch(uint16_t value)
 				throw (FEDException);
 
 			/** @return the value of the FMM register. **/
-			uint16_t readFMMAdvanced()
+			uint16_t readFMM()
 				throw (FEDException);
 
 			/** Write a custom value to the FMM register.
@@ -234,11 +193,11 @@ namespace emu {
 			 *
 			 * @note useful for TTS tests.
 			 **/
-			void writeFMMAdvanced(uint16_t value)
+			void writeFMM(uint16_t value)
 				throw (FEDException);
 
 			/** @return the last TTC command sent. **/
-			uint16_t readTTCCommandAdvanced()
+			uint16_t readTTCCommand()
 				throw (FEDException);
 
 			/** Immediately sends a TTC command to the FED crate.
@@ -250,17 +209,17 @@ namespace emu {
 			 *
 			 * @note This routine takes care of the unused 2 bits at the beginning
 			 * of the TTC command byte for the user.  These 2 bits can be sent using
-			 * the commands resetBXAdvanced() and resetEventsAdvanced().
+			 * the commands resetBX() and resetEvents().
 			 **/
-			void writeTTCCommandAdvanced(int8_t value)
+			void writeTTCCommand(uint8_t value)
 				throw (FEDException);
 
 			/** Send the TTC command to reset BX values in the FED crate. **/
-			void resetBXAdvanced()
+			void resetBX()
 				throw (FEDException);
 
 			/** Send the TTC command to reset event counters in the FED crate. **/
-			void resetEventsAdvanced()
+			void resetEvents()
 				throw (FEDException);
 
 			/** Set the fake L1A generation register.
@@ -268,21 +227,21 @@ namespace emu {
 			 * @param value the low 8 bits are used to set the number of L1As to generate,
 			 * the high 8 bits are used to set the rate at which they are generated.
 			 **/
-			void writeFakeL1AAdvanced(uint16_t value)
+			void writeFakeL1A(uint16_t value)
 				throw (FEDException);
 
 			/** @return the ID code from the given PROM chip.
 			 *
 			 * @param dev the device from which to read the ID code.
 			 **/
-			uint32_t readIDCodeAdvanced(enum DEVTYPE dev)
+			uint32_t readIDCode(enum DEVTYPE dev)
 				throw (FEDException);
 
 			/** @return the User code programmed into the given PROM chip.
 			 *
 			 * @param dev the device from which to read the User code.
 			 **/
-			uint32_t readUserCodeAdvanced(enum DEVTYPE dev)
+			uint32_t readUserCode(enum DEVTYPE dev)
 				throw (FEDException);
 
 			
@@ -292,14 +251,14 @@ namespace emu {
 
 			// PGK New interface
 			
-			std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, char myReg, unsigned int nBits)
+			std::vector<uint16_t> readRegister(enum DEVTYPE dev, char myReg, unsigned int nBits)
 				throw (FEDException);
 
-			std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, char myReg, unsigned int nBits, std::vector<int16_t>)
+			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, char myReg, unsigned int nBits, std::vector<uint16_t>)
 				throw (FEDException);
 			
-			void Parse(char *buf, int *Count, char **Word);
-			void shuffle(char *a, char *b);
+			/* void Parse(char *buf, int *Count, char **Word); */
+			/* void shuffle(char *a, char *b); */
 		};
 
 	}

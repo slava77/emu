@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.15 2008/09/22 14:31:53 paste Exp $
+* $Id: VMEModule.h,v 3.16 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.16  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.15  2008/09/22 14:31:53  paste
 * /tmp/cvsY7EjxV
 *
@@ -40,6 +43,8 @@
 #ifndef __VMEMODULE_H__
 #define __VMEMODULE_H__
 
+#include <pthread.h> // For mutexes
+
 #include "JTAG_constants.h"
 #include "FEDException.h"
 
@@ -65,7 +70,7 @@ namespace emu {
 	
 		struct JTAGElement;
 		
-		class VMEModule: public EmuFEDLoggable, public JTAGDevice
+		class VMEModule: public EmuFEDLoggable
 		{
 		public:
 			//enum {MAXLINE = 70000};
@@ -73,11 +78,12 @@ namespace emu {
 			VMEModule(int mySlot);
 			virtual ~VMEModule() {};
 			inline const int slot() {return slot_;}
-			inline const bool isBroadcast() { return (slot_ > 21); }
-			
+
+			/*
 			// should automatically start().  Here's what you do if
 			// you want to end() by hand
 			void endDevice();
+
 			
 			virtual void start();
 			virtual void end();
@@ -86,7 +92,7 @@ namespace emu {
 			virtual unsigned int boardType() const = 0;
 			
 			void setController(VMEController *controller);
-
+			*/
 			// Phil's new commands
 			inline void setBHandle(int16_t myHandle) { BHandle_ = myHandle; }
 
@@ -97,26 +103,27 @@ namespace emu {
 			 * @param startString if set will cause the loader to ignore all instructions until the line after the one matching it.
 			 * @param stopString if set will cause the loader to stop immidately if it is found in the current line being read.  The line will not be loaded.
 			 **/
-			void loadPROMAdvanced(enum DEVTYPE dev, char *fileName, std::string startString = "", std::string stopString = "")
+			void loadPROM(enum DEVTYPE dev, char *fileName, std::string startString = "", std::string stopString = "")
 				throw (FEDException);
 
-			void loadPROMAdvanced(enum DEVTYPE dev, const char *fileName, std::string startString = "", std::string stopString = "")
+			void loadPROM(enum DEVTYPE dev, const char *fileName, std::string startString = "", std::string stopString = "")
 				throw (FEDException) {
-					return loadPROMAdvanced(dev, (char *) fileName, startString, stopString);
+					return loadPROM(dev, (char *) fileName, startString, stopString);
 				}
 
-			void loadPROMAdvanced(enum DEVTYPE dev, std::string fileName, std::string startString = "", std::string stopString = "")
+			void loadPROM(enum DEVTYPE dev, std::string fileName, std::string startString = "", std::string stopString = "")
 				throw (FEDException) {
-					return loadPROMAdvanced(dev, fileName.c_str(), startString, stopString);
+					return loadPROM(dev, fileName.c_str(), startString, stopString);
 				}
 
-			std::vector<int16_t> jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<int16_t> myData, bool noRead = false)
+			std::vector<uint16_t> jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<uint16_t> myData, bool noRead = false)
 				throw(FEDException);
-			std::vector<int16_t> jtagRead(enum DEVTYPE dev, unsigned int nBits)
+			std::vector<uint16_t> jtagRead(enum DEVTYPE dev, unsigned int nBits)
 				throw(FEDException);
 		
 		protected:
-		
+
+			/*
 			void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
 			void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
 			//void RestoreIdle();
@@ -152,52 +159,47 @@ namespace emu {
 			char rcvbuf[4096];
 			char rcvbuf2[4096];
 			char cmd[4096];
-
+			*/
 
 			// Phil's new commands.
 
 			std::map<enum DEVTYPE, JTAGChain> JTAGMap;
-			/*
-			virtual std::vector<int16_t> readRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits)
-				throw(FEDException);
 
-			virtual std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits, std::vector<int16_t> myData)
-				throw(FEDException);
-		
-			std::vector<int16_t> writeRegAdvanced(enum DEVTYPE dev, int32_t myAddress, unsigned int nBits, int16_t myData)
-				throw(FEDException);
-			*/
-			void commandCycle(enum DEVTYPE dev, int16_t myCommand)
+			void commandCycle(enum DEVTYPE dev, uint16_t myCommand)
 				throw (FEDException);
 			
-			int16_t readVME(uint32_t myAddress)
+			uint16_t readVME(uint32_t myAddress)
 				throw (FEDException);
 			
-			void writeVME(uint32_t myAddress, int16_t myData)
+			void writeVME(uint32_t myAddress, uint16_t myData)
 				throw (FEDException);
 
-			std::vector<int16_t> readCycle(int32_t myAddress, unsigned int nBits)
+			std::vector<uint16_t> readCycle(uint32_t myAddress, unsigned int nBits)
 				throw(FEDException);
 
-			void writeCycle(int32_t myAddress, unsigned int nBits, std::vector<int16_t> myData)
+			void writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData)
 				throw(FEDException);
 			
 			void bogoDelay(uint64_t time);
 
-			
 		private:
 			int slot_;
-			int idevo_;
+			//int idevo_;
 			
-			VMEController *controller_;
-			
+			//VMEController *controller_;
+
+			/*
 			inline int pows(int n, int m) { int ret = 1; for (int i=0; i<m; i++) ret *= n; return ret; }
 			inline void udelay(long int itim) { for (long int j=0; j<itim; j++) for (long int i=0; i<200; i++); }
-
+			*/
+			
 			// Phil's new commands.
 			int16_t BHandle_;
-			int32_t vmeAddress_;
+			uint32_t vmeAddress_;
 			long double bogoMips_;
+
+			// Each board will be able to mutex out the other boards from reading and writing
+			pthread_mutex_t mutex_;
 			
 		};
 

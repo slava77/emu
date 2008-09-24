@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.19 2008/09/22 14:31:54 paste Exp $
+* $Id: VMEController.cc,v 3.20 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.20  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.19  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -51,6 +54,7 @@
 #include "CAENVMEtypes.h"
 #include "VMEModule.h"
 
+/*
 #define DELAY2 0.016
 #define DELAY3 16.384
 
@@ -79,7 +83,7 @@ int cntvme_rd;
 
 int ife;
 
-unsigned long vmeadd; /* vme base address */
+unsigned long vmeadd;
 unsigned long vmeadd_tmp;
 unsigned long add_i,add_d,add_dh,add_ds,add_dt,add_sw,add_sr,add_rst,add_r;
 unsigned long add_reset;
@@ -125,8 +129,7 @@ unsigned long msk_adcws={0x00000020};
 unsigned long msk_adcrs={0x00000024};
 
 #define debugV 0
-
-/* register 1-7 special commands 0x10-rs 0x11-w feb power 0x12-r febpower */
+*/
 
 emu::fed::VMEController::VMEController(int Device, int Link)
 	throw (FEDException): 
@@ -136,28 +139,20 @@ emu::fed::VMEController::VMEController(int Device, int Link)
 	//currentModule_(0)
 	//endian_(SWAP)
 {
-	CVBoardTypes VMEBoard;
-	short Lin;
-	short Dev;
-	VMEBoard=cvV2718;
-	int32_t BHandle; 
-	//std::cout << "constructing VMEController " << std::endl;
-	Dev=Device;
-	Lin=Link;
+	CVBoardTypes VMEBoard = cvV2718;
 
-	if(OpenBHandle[Dev][Lin]==-1){
-		int result = CAENVME_Init(VMEBoard,Device,Link,&BHandle);
-		//printf(" result from initializing CAENVME with VMEBoard %08x Device %08x Link %08x BHandle %08x: %08x\n",VMEBoard,Device,Link,BHandle);
-		if(result != cvSuccess){
-			std::cout << "Error in Opening CAEN Controller " << result << std::endl;
-			exit(1);
-		}
-	}else{
-		BHandle=OpenBHandle[Dev][Lin];
+	int32_t BHandle;
+
+	CVErrorCodes err = CAENVME_Init(VMEBoard, Device_, Link_, &BHandle);
+
+	if (err != cvSuccess) {
+		std::ostringstream error;
+		error << "error " << err << ": " << CAENVME_DecodeError(err);
+		//XCEPT_RAISE(FEDException, error.str());
+	} else {
+		BHandle_ = BHandle;
 	}
-	BHandle_=BHandle;
-	OpenBHandle[Dev][Lin]=BHandle;
-	//printf("--Construction comeplete, address %08x\n",this);
+
 }
 
 
@@ -167,7 +162,7 @@ emu::fed::VMEController::~VMEController(){
 	CAENVME_End(BHandle_);
 }
 
-
+/*
 void emu::fed::VMEController::start(int slot){
   vmeadd=slot<<19;
 }
@@ -191,7 +186,6 @@ void emu::fed::VMEController::send_last() {
 
 int emu::fed::VMEController::CAEN_reset(void)
 { 
-  /* blank for now, little reason to reset */
   return 0;
 }
 
@@ -212,7 +206,7 @@ int emu::fed::VMEController::CAEN_read(unsigned long Address,unsigned short int 
 #endif
 	err=CAENVME_ReadCycle(BHandle_,Address,data,AM,DW);
 #ifdef CAEN_DEBUG
-	std::clog << std::hex << "data(" << (int16_t) *data << ")" << std::flush << std::endl;
+	std::clog << std::hex << "data(" << (uint16_t) *data << ")" << std::flush << std::endl;
 #endif
 	if(err!=0){
 		caen_err=err;
@@ -231,7 +225,7 @@ int emu::fed::VMEController::CAEN_write(unsigned long Address,unsigned short int
 
 	//printf(" write: handle %d address %08x data %04x AM %d DW %d \n",BHandle_,Address,*data,AM,DW);
 #ifdef CAEN_DEBUG
-	std::clog << std::hex << "Old Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << (int16_t) *data << ")" << std::flush << std::endl;
+	std::clog << std::hex << "Old Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << (uint16_t) *data << ")" << std::flush << std::endl;
 #else
 	err=CAENVME_WriteCycle(BHandle_,Address,(char *)data,AM,DW);
 #endif
@@ -258,15 +252,15 @@ static long int packet_delay=0;
 char rdata[2];
 
 long unsigned int pttr;
-  /* irdwr:   
-              0 bufread
-              1 bufwrite 
-              2 bufread snd  
-              3 bufwrite snd 
-              4 flush to VME
-              5 loop back 
-              6 delay
-*/
+// irdwr:
+//               0 bufread
+//               1 bufwrite 
+//               2 bufread snd  
+//               3 bufwrite snd 
+//               4 flush to VME
+//               5 loop back 
+//               6 delay
+
 // LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Inside controller");
  pttr=(long unsigned int)ptr;
  if(irdwr==0){
@@ -336,11 +330,11 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
 	unsigned long int vmeaddo;
 	static int feuse;  
 
-	/* irdsnd for jtag
-			irdsnd = 0 send immediately, no read
-			irdsnd = 1 send immediately, read
-			irdsnd = 2 send in buffer, no read
-	*/
+//  irdsnd for jtag
+// 			irdsnd = 0 send immediately, no read
+// 			irdsnd = 1 send immediately, read
+// 			irdsnd = 2 send in buffer, no read
+
 	if(dev!=99){
 	idev=geo[dev].jchan;
 	}else{
@@ -350,7 +344,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
 	// printf(" enter devdo %d %d \n",dev,idev);
 	
 	// printf(" idev idevo_ dev %d %d %d \n",idev,idevo_,dev);
-	/****** check we have same old device otherwise we need to initialize */
+
 	init=0;
 	if(idev!=idevo_||vmeadd!=vmeaddo){
 		init=1;
@@ -359,12 +353,11 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
 	vmeaddo=vmeadd;
 
   //  printf(" about to initialize plev idve devo init %d %d %d %d \n",plev,idev,idevo_,init);
-/************  JTAG initialize ******************/
-/************  immediate instruction nonJTAG ****/
+
 
   switch(idev){
 
-   case 1:  /* JTAG */
+   case 1:  
      if(init==1){ 
       feuse=0xff;
       ife=1;
@@ -380,7 +373,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
      }
    break;
 
-   case 2:   /* JTAG */ 
+   case 2:   
      if(init==1){
       feuse=0xff;
       ife=0; 
@@ -396,7 +389,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
      }
    break;
 
-   case 3:   /* JTAG */ 
+   case 3:   
      if(init==1){
       ife=0;
       // printf(" init daqmb prom \n");
@@ -412,7 +405,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
      }
    break;
 
-  case 4:   /* JTAG */
+  case 4:  
     if(init==1){
      feuse=0xff;
      ife=0;
@@ -429,7 +422,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
     }
    break;
 
-  case 5:   /* JTAG */
+  case 5:  
     if(init==1){
      feuse=0xff;
      ife=0;
@@ -446,7 +439,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
     }
    break;
 
-  case 6:   /* JTAG */
+  case 6:   
     if(init==1){
      feuse=0xff;
      ife=0;
@@ -463,7 +456,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
     }
    break;
 
-  case 7:   /* JTAG */
+  case 7:   
     if(init==1){
      feuse=0xff;
      ife=0;
@@ -480,7 +473,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
     }
    break;
 
-  case 8:   /* JTAG */
+  case 8:   
     if(init==1){
      feuse=0xff;
      ife=0;
@@ -512,7 +505,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
      dcc(cmd,outbuf); 
    break;
 
-   case 12:   /* RESET emergency VME PROM loading */ 
+   case 12:   
      if(init==1){
        feuse=0x99;
        ife=99;
@@ -530,11 +523,10 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
     break;  
   }
 
-/**********  end initialize ***********************/
-/**********  send the JTAG data ************************/ 
+
 	if(idev<=8||idev==12){
 		if(ncmd>0){
-			/* stan jtag kludge kludge for serial devices */
+// 			 stan jtag kludge kludge for serial devices 
 			if(geo[dev].nser!=0){
 				ppnt=0;
 				cmd2[0]=0x00;
@@ -548,8 +540,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
 						tmp[0]=geo[geo[dev].seri[m-i-1]].kbypass;
 						pcmd=geo[geo[dev].seri[m-i-1]].kbit;
 					}
-					/*       printf(" i %d tmp[0] %04x pcmd %d  \n",i,tmp[0],pcmd);
-						printf(" cmd[0] %02x \n",cmd[0]); */
+
 
 					// Take a look at this code:
 					
@@ -571,16 +562,16 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
 					// PGK Now take a look at this:
 					
 					// Make a bit mask of pcmd bits
-					/*
-					ppnt = (1 << pcmd) - 1;
-
-					// Load cmd2 with the value in tmp, masked by ppnt.
-					cmd2[0] += tmp[0] & (ppnt & 0xff);
-					cmd2[1] += tmp[1] & ((ppnt >> 8) & 0xff);
-
-					// And add the ppnt
-					ppnt += pcmd;
-					*/
+					
+// 					ppnt = (1 << pcmd) - 1;
+// 
+// 					// Load cmd2 with the value in tmp, masked by ppnt.
+// 					cmd2[0] += tmp[0] & (ppnt & 0xff);
+// 					cmd2[1] += tmp[1] & ((ppnt >> 8) & 0xff);
+// 
+// 					// And add the ppnt
+// 					ppnt += pcmd;
+					
 					// Which do you prefer?
 				}
 				
@@ -595,8 +586,7 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
 				kbit=geo[dev].kbit;
 				kbybit=geo[dev].kbybit;
 				kbypass=geo[dev].kbypass;
-				/*   printf(" final ncmd %d cmd %04x %04x \n",ncmd,cmd[1],cmd[0]);
-					printf(" final nbuf %d nbuf %d \n",nbuf2,nbuf); */
+
 			} else {
 				nbuf2=nbuf;
 				ncmd2=ncmd;
@@ -607,12 +597,12 @@ void emu::fed::VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,in
 				}
 			}
 		// printf(" ********** %s dev prev_dev %d %d \n",geo[dev].nam,dev,prev_dev);
-		/* end stan kludge */
+// 		 end stan kludge
 		}
 	}
 
 switch(idev){
-    case 1:   /* jtag feboards */ 
+    case 1:  
       if(ncmd==-99){sleep_vme(cmd);break;}    
       if(ncmd<0){RestoreIdle();break;}
       if(ncmd>0){
@@ -632,7 +622,7 @@ switch(idev){
       }
 
     break;
-    case 2: /* jtag motherboard cntrl */ 
+    case 2:
       if(ncmd==-99){sleep_vme(cmd);break;}        
       if(ncmd<0){RestoreIdle();break;}
       if(ncmd>0){
@@ -652,7 +642,7 @@ switch(idev){
       }
 
     break;
-    case 3: /* jtag motherboard prom */
+    case 3: 
       if(ncmd==-99){sleep_vme(cmd);break;}   
       if(ncmd<0){RestoreIdle();break;}
       if(ncmd>0&nbuf>0){
@@ -670,7 +660,7 @@ switch(idev){
       }
 
     break;
-    case 4: /* jtag vme-mthrbrd prom */
+    case 4:
       if(ncmd==-99){sleep_vme(cmd);break;}
       if(ncmd<0){RestoreIdle();break;}
       if(ncmd>0){
@@ -690,7 +680,7 @@ switch(idev){
       }
 
     break;
-    case 5: /* jtag */
+    case 5:
       if(ncmd==-99){sleep_vme(cmd);break;}
       if(ncmd<0){RestoreIdle();break;}
       if(ncmd>0){
@@ -710,7 +700,7 @@ switch(idev){
       }
 
     break;
-    case 6: /* jtag */
+    case 6:
       if(ncmd==-99){sleep_vme(cmd);break;}
       if(ncmd<0){RestoreIdle();break;}
       if(ncmd>0){
@@ -730,7 +720,7 @@ switch(idev){
       }
 
     break;
-    case 7: /* jtag */
+    case 7:
       if(ncmd==-99){sleep_vme(cmd);break;}
       if(ncmd<0){RestoreIdle();break;}
       if(ncmd>0){
@@ -750,7 +740,7 @@ switch(idev){
       }
 
     break;
-    case 8: /* jtag */
+    case 8:
       if(ncmd==-99){sleep_vme(cmd);break;}
       if(ncmd<0){RestoreIdle();break;}
       if(ncmd>0){
@@ -769,7 +759,7 @@ switch(idev){
         outbuf[nbuf2/8]=temp&0x00ff;
       }
     break;
-   case 12: /* reset vme  prom */
+   case 12: 
       // printf(" reset vme prom ncmd2 %d %d nbuf2 %d \n",ncmd2,ncmd,nbuf2);     
       if(ncmd==-99){sleep_vme(cmd);break;}
       if(ncmd<0){RestoreIdle_reset();break;}
@@ -784,7 +774,7 @@ switch(idev){
     break;
 
 }
-/*************  end of senddata **********************/
+
 }
 
 
@@ -812,7 +802,7 @@ if(cnt==0)return;
  // printf(" reg ird %d %d \n",reg,ird);
  data=(unsigned short int *) snd;
 
- /* instr */
+
 
  if(reg==0){
    add_i=add_i&msk_clr;
@@ -827,7 +817,7 @@ if(cnt==0)return;
    return;
  }
 
- /* data */
+
 
   if(reg==1){
    byte=cnt/16;
@@ -954,18 +944,7 @@ void emu::fed::VMEController::CloseJTAG()
 }
 
 
-/*
- * readline (fd, ptr, maxlen)
- *    input  : fd -> socket descripter or file(?)
- *             ptr -> pointor for the buffer
- *             maxlen -> Maximum length of line
- *    output : number of bytes read
- *    
- *   function: Read a line from a "fd" descriptor a byte at a time.
- *             looking for the newline. Store the newline in the buffer,
- *             then follow it with a NULL. ( remove '\n' )
- *
- */
+
 
 
 int pows(int n,int m)
@@ -1007,7 +986,6 @@ unsigned short int *ptr;
  data=(unsigned short int *) snd;
  // printf("scan_reset %d %d %02x %02x \n",reg,cnt,snd[1]&0xff,snd[0]&0xff);
 
- /* instr */
 
  if(reg==0){
     vme_controller(1,ptr,x00,rcv);sdly();
@@ -1018,7 +996,7 @@ unsigned short int *ptr;
     vme_controller(1,ptr,x00,rcv);sdly();
  }
 
- /* data */
+
 
  if(reg==1){ 
     vme_controller(1,ptr,x00,rcv);sdly();
@@ -1062,14 +1040,7 @@ unsigned short int *ptr;
 
 void emu::fed::VMEController::sdly()
 {
-/*
-char tmp[1]={0x00};
-unsigned short int tmp2[1]={0x0000};
-unsigned short int *ptr;
-// delay_type=2;
-// tmp2[0]=50;
-//  vme_controller(6,ptr,tmp2,tmp);
-*/
+
 }
 
 
@@ -1152,16 +1123,7 @@ void emu::fed::VMEController::vmeser(const char *cmd,const char *snd,char *rcv)
  char tr;
  unsigned short int tmp[1]={0x0000};
  int nrcv;
-/* void emu::fed::VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
-           irdwr:   
-              0 bufread
-              1 bufwrite 
-              2 bufread snd  
-              3 bufwrite snd 
-              4 flush to VME
-              5 loop back 
-              6 delay
-*/
+
 	add_vmesert=add_vmeser+(cmd[0]&0x000f)*4096+4*(cmd[1]&0x000f);
         icmd=cmd[1]&0x000f;  //DDU command
         iadr=cmd[0]&0x000f;  //DDU device
@@ -1295,12 +1257,12 @@ void emu::fed::VMEController::vme_adc(int ichp,int ichn,char *rcv)
       val[1]=adcbyt[ichp-1][ichn];
       if(val[0]==0){ 
          ptr=(unsigned short int *)add_adcrs;
-	 vme_controller(2,ptr,tmp,rcv);     //*ptr=*data;  
+	 vme_controller(2,ptr,tmp,rcv);     
          return;
        }
       // ptr=(unsigned short int *)add_adcws;
        // printf(" select register%08x  %02x \n",ptr,val[0]&0xff);
-      //  vme_controller(3,ptr,&val[0],rcv);     //*ptr=val[0];  
+      //  vme_controller(3,ptr,&val[0],rcv);     
          ptr=(unsigned short int *)add_adcw;
          // printf(" adc write %08x %02x \n",ptr,val[1]&0xff);
 	 vme_controller(3,ptr,&val[1],rcv);    // *ptr=val[1]; 
@@ -1309,7 +1271,8 @@ void emu::fed::VMEController::vme_adc(int ichp,int ichn,char *rcv)
       }else{
           ptr=(unsigned short int *)add_adcrbb;
       }
-      vme_controller(2,ptr,tmp,rcv);     //*data=*ptr;  
+      vme_controller(2,ptr,tmp,rcv);     
 
       // print(" adc read %08x %02x %02x\n",ptr,rbuf[1]&0xff,rbuf[0]&0xff);
 }
+*/

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.23 2008/09/22 14:31:54 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.24 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.24  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.23  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -135,7 +138,7 @@ void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber) {
 		std::vector<emu::fed::DDU *> dduVector = myCrate->getDDUs();
 		for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 			if ((*iDDU)->slot() >= 21) continue;
-			unsigned int cscStatus = (*iDDU)->readCSCStat();
+			unsigned int cscStatus = (*iDDU)->readCSCStatus();
 			if (cscStatus) {
 				std::string chambers;
 				for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
@@ -231,7 +234,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	pthread_mutex_unlock(&(locdata->crateQueueMutex));
 
 	// We need the handle of the controller we are talking to.
-	long int BHandle = myCrate->getVMEController()->getBHandle();
+	long int BHandle = myCrate->getController()->getBHandle();
 
 	//char buf[300];
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
@@ -268,7 +271,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 			// If my status has cleared, then all is cool, right?
 			//  Reset all my data.
-			if (myDDU->readCSCStat() < lastError[myDDU]) {
+			if (myDDU->readCSCStatus() < lastError[myDDU]) {
 				LOG4CPLUS_INFO(logger, "Reset detected on crate " << myCrate->number());
 				LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << std::endl);
 
@@ -322,7 +325,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		}
 
 		// Collect the present CSC status and store...
-		unsigned int cscStatus = myDDU->readCSCStat();
+		unsigned int cscStatus = myDDU->readCSCStatus();
 		unsigned int advStatus = myDDU->readAdvancedFiberErrors();
 		unsigned int xorStatus = (cscStatus | advStatus)^lastError[myDDU];
 		
@@ -375,7 +378,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			continue;
 		}
 
-		std::vector<std::string> trapInfo = DDUDebugger::ddu_fpgatrap(myDDU->ddu_fpgatrap(),myDDU);
+		std::vector<std::string> trapInfo = DDUDebugger::DDUDebugTrap(myDDU->readDebugTrap(DDUFPGA), myDDU);
 		std::ostringstream trapStream;
 		for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
 			trapStream << (*iTrap) << std::endl;
@@ -400,7 +403,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 		// Check to see if any of the fibers are troublesome and report
 		std::vector<IRQError *> errorVector = locdata->errorVectors[myCrate];
-		unsigned int liveFibers = myDDU->readKillFiberAdvanced();
+		unsigned int liveFibers = myDDU->readKillFiber();
 		//LOG4CPLUS_DEBUG(logger, "Checking for problem fibers in crate " << myCrate->number() << " slot " << myDDU->slot());
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			// Skip it if it is already killed or if it didn't cause a problem
@@ -453,10 +456,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			// Loop over the crates and take away SFTU
 			for (std::map<FEDCrate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
 				// Find the broadcast slot on this crate.
-				std::vector<DDU *> myDDUs = iCount->first->getDDUs();
-				for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
-					if ((*iDDU)->slot() > 21) (*iDDU)->writeFMMReg(0xFED8);
-				}
+				iCount->first->getBroadcastDDU()->writeFMM(0xFED8);
 			}
 		}
 

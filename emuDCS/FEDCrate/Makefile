@@ -20,7 +20,6 @@ Package=emuDCS/FEDCrate
 Sources=\
 	FEDVersion.cc \
 	EmuFEDLoggable.cc \
-	JTAGDevice.cc \
 	VMEModule.cc \
 	Chamber.cc \
 	DDU.cc \

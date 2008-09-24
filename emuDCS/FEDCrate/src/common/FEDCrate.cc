@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.cc,v 1.9 2008/09/22 14:31:54 paste Exp $
+* $Id: FEDCrate.cc,v 1.10 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: FEDCrate.cc,v $
+* Revision 1.10  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 1.9  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -28,14 +31,13 @@
 #include "DDU.h"
 #include "DCC.h"
 
-emu::fed::FEDCrate::FEDCrate(int myNumber, VMEController *myController):
+emu::fed::FEDCrate::FEDCrate(int myNumber):
 	number_(myNumber)
 {
 	dduVector_.reserve(14);
 	dccVector_.reserve(2);
-	setController(myController); // Will be removed later.
 
-	broadcastDDU_ = new DDU(21); // Slot 21 = broadcast slot.
+	broadcastDDU_ = new DDU(28); // Slot > 21 => broadcast slot.
 }
 
 
@@ -57,16 +59,20 @@ void emu::fed::FEDCrate::addModule(VMEModule *module) {
 }
 */
 void emu::fed::FEDCrate::addDDU(DDU *myDDU) {
-	myDDU->setController(vmeController_);
-	myDDU->setBHandle(vmeController_->getBHandle());
+	//myDDU->setController(vmeController_);
+	if (vmeController_ != NULL) {
+		myDDU->setBHandle(vmeController_->getBHandle());
+	}
 	dduVector_.push_back(myDDU);
 }
 
 
 
 void emu::fed::FEDCrate::addDCC(DCC *myDCC) {
-	myDCC->setController(vmeController_);
-	myDCC->setBHandle(vmeController_->getBHandle());
+	//myDCC->setController(vmeController_);
+	if (vmeController_ != NULL) {
+		myDCC->setBHandle(vmeController_->getBHandle());
+	}
 	dccVector_.push_back(myDCC);
 }
 
@@ -76,15 +82,19 @@ void emu::fed::FEDCrate::setController(VMEController *controller) {
 	if (vmeController_ != NULL) {
 		std::cout << "WARNING: Trying change the VMEController of crate " << number_ << std::endl;
 	}
-	std::cout << "Setting controller in crate " << number_ << std::endl;
+
 	vmeController_ = controller;
 	//vmeController_->setCrate(number_);
+
+	//broadcastDDU_->setController(vmeController_); // Will be removed later.
+	broadcastDDU_->setBHandle(vmeController_->getBHandle());
+	
 	for(std::vector<DDU *>::iterator iDDU = dduVector_.begin(); iDDU != dduVector_.end(); iDDU++) {
-		(*iDDU)->setController(vmeController_);
+		//(*iDDU)->setController(vmeController_);
 		(*iDDU)->setBHandle(vmeController_->getBHandle());
 	}
 	for(std::vector<DCC *>::iterator iDCC = dccVector_.begin(); iDCC != dccVector_.end(); iDCC++) {
-		(*iDCC)->setController(vmeController_);
+		//(*iDCC)->setController(vmeController_);
 		(*iDCC)->setBHandle(vmeController_->getBHandle());
 	}
 }
@@ -97,6 +107,9 @@ void emu::fed::FEDCrate::setBHandle(int32_t BHandle) {
 	std::cout << "Setting BHandle in crate " << number_ << std::endl;
 	vmeController_->setBHandle(BHandle);
 	//vmeController_->setCrate(number_);
+	
+	broadcastDDU_->setBHandle(vmeController_->getBHandle());
+	
 	for(std::vector<DDU *>::iterator iDDU = dduVector_.begin(); iDDU != dduVector_.end(); iDDU++) {
 		(*iDDU)->setBHandle(vmeController_->getBHandle());
 	}
@@ -108,6 +121,11 @@ void emu::fed::FEDCrate::setBHandle(int32_t BHandle) {
 
 
 int emu::fed::FEDCrate::getRUI(int slot) {
+	// TF is special.
+	if (number_ == 5) return 192;
+	// Test crate is special
+	if (number_ < 1 || number_ > 5) return 0;
+	
 	unsigned int rui = 9 * number_ + slot - 3;
 	if (slot > 8) rui--;  // Correct for the DCC slot.
 	if (number_ > 0) rui -= 9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.

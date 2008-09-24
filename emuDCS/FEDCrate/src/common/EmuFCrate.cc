@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.44 2008/09/22 14:31:54 paste Exp $
+* $Id: EmuFCrate.cc,v 3.45 2008/09/24 18:38:38 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.45  2008/09/24 18:38:38  paste
+* Completed new VME communication protocols.
+*
 * Revision 3.44  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -144,11 +147,6 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	xgi::bind(this, &EmuFCrate::webConfigure, "Configure");
 	// PGK We can let the CSCSV do all the TTS business.
 	//xgi::bind(this, &EmuFCrate::webSetTTSBits, "SetTTSBits");
-
-	// addition for STEP
-	getApplicationInfoSpace()->fireItemAvailable ("step_killfiber", &step_killfiber_);
-	xoap::bind(this, &EmuFCrate::onPassthru,  "Passthru", XDAQ_NS_URI);
-	// end addition for STEP
 
 	// Logger/Appender
 	// log file format: EmuFEDYYYY-DOY-HHMMSS_rRUNNUMBER.log
@@ -352,6 +350,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "Entering EmuFCrate::configureAction");
 	//std::cout << "    enter EmuFCrate::configureAction " << std::endl;
 
+	// Determine whether this is a local configure or a configure from SOAP
 	if (soapLocal_) {
 		soapLocal_ = false;
 		soapConfigured_ = false;
@@ -359,7 +358,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		soapConfigured_ = true;
 	}
 
-	// The run type is given to us via SOAP.
+	// The run type is given to us via SOAP.  If it's not set yet, tough rocks.
 	if (runType_.toString() != "") {
 		LOG4CPLUS_INFO(getApplicationLogger(), "Run type is " << runType_.toString());
 	} else {
@@ -378,10 +377,12 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	emu::fed::FEDCrateParser parser;
 	parser.parseFile(xmlFile_.toString().c_str());
 
+	// From the parser, set the crates.
 	crateVector.clear();
-
 	crateVector = parser.getCrates();
 
+	// Get the name of this endcap from the parser, too.  This is specified in the XML
+	// for convenience.
 	endcap_ = parser.getName();
 	
 	// First, we must make a system to parse out strings.  String-fu!
@@ -389,7 +390,8 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	std::map< int, int > BHandles;
 	
 	LOG4CPLUS_DEBUG(getApplicationLogger(),"Got old handles: " << BHandles_.toString());
-	
+
+	// Parse out the string into handles (if they have already been opened by HyperDAQ)
 	std::stringstream sHandles(BHandles_.toString());
 	int buffer;
 	while (sHandles >> buffer) {
@@ -399,35 +401,51 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		
 		BHandles[crateNumber] = BHandle;
 	}
-	
+
+	// Now we have to see if we need new handles from the crate vector.
 	std::ostringstream newHandles;
-	
+
 	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
-		emu::fed::VMEController *myController = (*iCrate)->getVMEController();
+		// The controller knows its handle.
+		emu::fed::VMEController *myController = (*iCrate)->getController();
+
+		// A handle of -1 means that opening of the handle failed, so someone has
+		// already opened it (HyperDAQ)
 		if (myController->getBHandle() == -1) {
 			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has already been opened by someone else.  Looking for the BHandle...");
-			
+
+			// If that is the case, we can look up the handle.  Handles are stored by
+			// create NUMBER (not index), so we need to check against our crate number.
 			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
+				
 				if (iHandle->first != (*iCrate)->number()) continue;
 				LOG4CPLUS_INFO(getApplicationLogger(),"Found handle " << iHandle->second);
 				(*iCrate)->setBHandle(iHandle->second);
-				
+
+				// In this case, just copy the old handle information to our new string.
 				newHandles << iHandle->first << " " << iHandle->second << " ";
 				
 				break;
 			}
 		} else {
+
+			// If the handle is a reasonable number, we assume that we created it.  Use it.
 			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has been first opened by this application.  Saving the BHandle...");
 			
 			bool replaced = false;
-			
+
+			// It may be the case that the handle was opened at some point in the past,
+			// then closed.  If that is the case, we need to reset the handle in the string.
 			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
+				
 				if (iHandle->first != (*iCrate)->number()) continue;
 				LOG4CPLUS_INFO(getApplicationLogger(),"Resetting handle (was " << iHandle->second << ")");
 				replaced = true;
 				newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
 			}
-			
+
+			// If nothing was replaced (we didn't find the crate number in the previous
+			// string), then we write a new one.
 			if (!replaced) newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
 			
 		}
@@ -442,7 +460,11 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	// PGK No hard reset or sync reset is coming any time soon, so we should
 	//  do it ourselves.
 	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
+
+		// Only reset if we have a DCC in the crate.
 		std::vector< emu::fed::DCC * > dccs = (*iCrate)->getDCCs();
+
+		// Don't reset crate 5 (TF)
 		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
 			LOG4CPLUS_INFO(getApplicationLogger(), "HARD RESET THROUGH DCC!");
 			try {
@@ -451,6 +473,8 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 				LOG4CPLUS_ERROR(getApplicationLogger(), "CAEN error detected.");
 			}
 		}
+
+		// Now we do the configure.  This is big.
 		LOG4CPLUS_INFO(getApplicationLogger(), "Configuring crate " << (*iCrate)->number());
 		(*iCrate)->configure();
 	}
@@ -474,67 +498,41 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	//  XML file have been properly loaded into the DDUs.  This will call
 	//  updateFlashAction, which will automatically load everything as needed.
 	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
-		//std::cout << "Checking crate " << (*iCrate)->number() << std::endl;
-		std::vector<emu::fed::DDU *>::iterator iDDU;
-		std::vector<emu::fed::DDU *> ddus = (*iCrate)->getDDUs();
-		for (iDDU = ddus.begin(); iDDU != ddus.end(); iDDU++) {
 
-			if ((*iDDU)->slot() > 21) continue;
-
-			if ((*iCrate)->number() > 4) {
-				// TrackFinder is a bit funny...
-				int flashRUI = (*iDDU)->readFlashRUI();
-				int targetRUI = 192;
-
-				LOG4CPLUS_DEBUG(getApplicationLogger(),"RUI: flash(" << flashRUI << ") calculated(" << targetRUI << ")");
-				
-				if (flashRUI != targetRUI) {
-					LOG4CPLUS_INFO(getApplicationLogger(),"Flash and calculated RUI disagree:  reloading flash");
-					(*iDDU)->writeFlashRUI(targetRUI);
-				}
-				continue;
-			}
+		std::vector<emu::fed::DDU *> myDDUs = (*iCrate)->getDDUs();
+		for (std::vector<emu::fed::DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 
 			LOG4CPLUS_INFO(getApplicationLogger(), "Reading flash values for crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot());
 
-			//int flashKillFiber = (*iDDU)->readFlashKillFiber();
-			int flashKillFiber = (*iDDU)->read_page1();
-			//long int fpgaKillFiber = (*iDDU)->readKillFiber();
-			long int fpgaKillFiber = (*iDDU)->readKillFiberAdvanced();
-			long int xmlKillFiber = (*iDDU)->getKillFiber();
-			//unsigned short int DDUGbEPrescale = (*iDDU)->readGbEPrescale() & 0xf;
-			//unsigned short int dduGbEPrescale = (*iDDU)->vmepara_rd_GbEprescale() & 0xf;
-			//unsigned short int xmlGbEPrescale = (*iDDU)->gbe_prescale_ & 0xf;
+			uint32_t flashKillFiber = (*iDDU)->readFlashKillFiber();
+			uint32_t fpgaKillFiber = (*iDDU)->readKillFiber();
+			uint32_t xmlKillFiber = (*iDDU)->getKillFiber();
 
-			//std::cout << "Slot " << std::setw(2) << (*iDDU)->slot() << " killFiber: XML(" << std::hex << xmlKillFiber << std::dec << ") fpga(" << std::hex << fpgaKillFiber << std::dec << ") flash(" << std::hex << flashKillFiber << std::dec << ")" << std::endl;
-			//std::cout << "        GbEPrescale: XML(" << std::hex << (*iDDU)->gbe_prescale_ << std::dec << ") DDU(" << std::hex << dduGbEPrescale << std::dec << ")" << std::endl;
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "killFiber: XML(" << std::hex << xmlKillFiber << std::dec << ") fpga(" << std::hex << fpgaKillFiber << std::dec << ") flash(" << std::hex << flashKillFiber << std::dec << ")");
 
 			if ((flashKillFiber & 0x7fff) != (xmlKillFiber & 0x7fff)) {
-				//std::cout << "... reflashing killFiber register ..." << std::endl;
 				LOG4CPLUS_INFO(getApplicationLogger(),"Flash and XML killFiber disagree:  reloading flash");
-				//(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0x7fff);
-				//(*iDDU)->writeInputReg(xmlKillFiber & 0x7fff);
 				(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0x7fff);
 			}
 			if (fpgaKillFiber != xmlKillFiber) {
-				//std::cout << "... reloading FPGA killFiber register ..." << std::endl;
 				LOG4CPLUS_INFO(getApplicationLogger(),"fpga and XML killFiber disagree:  reloading fpga");
-				//(*iDDU)->writeKillFiber(xmlKillFiber);
-				(*iDDU)->writeKillFiberAdvanced(xmlKillFiber);
+				(*iDDU)->writeKillFiber(xmlKillFiber);
 			}
-			// PGK GbEPrescale is depricated.
-			/*
-			if ((*iDDU)->gbe_prescale_ != DDUgbePrescale) {
-				std::cout << "... reloading GbEPrescale register ..." << std::endl;
-				(*iDDU)->vmepara_wr_GbEprescale((*iDDU)->gbe_prescale_);
+
+			uint16_t fpgaGbEPrescale = (*iDDU)->readGbEPrescale();
+			uint16_t xmlGbEPrescale = (*iDDU)->getGbEPrescale();
+			
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "GbE_Prescale: XML(" << std::hex << xmlGbEPrescale << std::dec << ") fpga(" << std::hex << fpgaGbEPrescale << std::dec << ")");
+			
+			if ((fpgaGbEPrescale & 0xf) != xmlGbEPrescale) {
+				LOG4CPLUS_INFO(getApplicationLogger(),"fpga and XML killFiber disagree:  reloading fpga");
+				(*iDDU)->writeGbEPrescale(xmlGbEPrescale);
 			}
-			*/
 
 			// Now we should check if the RUI matches the flash value and
 			//  update it as needed.
-			int flashRUI = (*iDDU)->readFlashRUI();
-			int targetRUI = (*iCrate)->getRUI((*iDDU)->slot());
+			uint16_t flashRUI = (*iDDU)->readFlashRUI();
+			uint16_t targetRUI = (*iCrate)->getRUI((*iDDU)->slot());
 
 			LOG4CPLUS_DEBUG(getApplicationLogger(),"RUI: flash(" << flashRUI << ") calculated(" << targetRUI << ")");
 			
@@ -554,85 +552,52 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 		// Set FMM error disable.  Not on TF, though
 		if (crateVector[i]->number() < 5) {
-			crateVector[i]->getBroadcastDDU()->writeFMMReg(0xFED0);
+			crateVector[i]->getBroadcastDDU()->writeFMM(0xFED0);
 		}
-		
-		/*
-		for(unsigned j =0; j < myDdus.size(); ++j){
-			if (crateVector[i]->number() > 4) { // Track finder
-				//LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Enable to Crate " << crateVector[i]->number());
-				myDdus[j]->writeFMMReg(0x0000);
-			} else {
-				//LOG4CPLUS_DEBUG(getApplicationLogger(), "broadcasting FMM Error Disable to Crate " << crateVector[i]->number());
-				//std::cout <<"   Setting FMM Error Disable for Crate " << crateVector[i]->number() << std::endl;
-				myDdus[j]->writeFMMReg(0xFED0);
-			}
-		}
-		*/
 
 		for(unsigned j =0; j < myDdus.size(); ++j){
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "checking DDU configure status, Crate " << crateVector[i]->number() << " slot " << myDdus[j]->slot());
 			//std::cout << " EmuFCrate: Checking DDU configure status for Crate " << crateVector[i]->number() << " slot " << myDdus[j]->slot() << std::endl;
 
 			if (myDdus[j]->slot() < 21){
-				int FMMReg = myDdus[j]->readFMMReg();
+				int FMMReg = myDdus[j]->readFMM();
 				//int FMMReg = myDdus[j]->readFMMReg();
 				//if(RegRead!=(0xFED0+(count&0x000f)))std::cout << "    fmmreg broadcast check is wrong, got " << std::hex << RegRead << " should be FED0+" << count << std::dec << std::endl;
 				if (FMMReg!=(0xFED0)) {
 					LOG4CPLUS_WARN(getApplicationLogger(), "fmmreg broadcast check is wrong, got " << std::hex << FMMReg << ", should be 0xFED" << count);
 				}
 
+				int CSCStat = myDdus[j]->readCSCStatus();
+				unsigned long int dduFPGAStat = myDdus[j]->readFPGAStatus(emu::fed::DDUFPGA)&0xdecfffff;  // <<- note the mask
+				unsigned long int inFPGA0Stat = myDdus[j]->readFPGAStatus(emu::fed::INFPGA0) & 0xf7eedfff;  // <<- note the mask
+				unsigned long int inFPGA1Stat = myDdus[j]->readFPGAStatus(emu::fed::INFPGA1) & 0xf7eedfff;  // <<- note the mask
 
-				int mySlot = myDdus[j]->slot();
-				//  myDdus[j]->ddu_reset(); // sync reset via VME
-				//  unsigned long int thisL1A=myDdus[j]->ddu_rdscaler();
+				LOG4CPLUS_DEBUG(getApplicationLogger(), "DDU Status for slot " << std::dec << myDdus[j]->slot() << ": 0x" << std::hex << CSCStat << " 0x" << dduFPGAStat << " 0x" << inFPGA0Stat << " 0x" << inFPGA1Stat << std::dec);
 
-				//int CSCStat = myDdus[j]->vmepara_CSCstat();
-				int CSCStat = myDdus[j]->readCSCStat();
-				//myDdus[j]->ddu_fpgastat(); //  & 0xdecfffff  <<- note the mask
-				unsigned long int dduFPGAStat = myDdus[j]->ddu_fpgastat()&0xdecfffff;  // <<- note the mask
-				//unsigned long int dduFPGAStat = myDdus[j]->readFPGAStat(DDUFPGA) & 0xdecfffff;
-				//myDdus[j]->infpgastat(emu::fed::INFPGA0); // & 0xf7eedfff  <<- note the mask
-				unsigned long int inFPGA0Stat = myDdus[j]->infpgastat(emu::fed::INFPGA0) & 0xf7eedfff;  // <<- note the mask
-				//unsigned long int inFPGA0Stat = myDdus[j]->readFPGAStat(emu::fed::INFPGA0) & 0xf7eedfff;
-				//myDdus[j]->infpgastat(emu::fed::INFPGA1); // & 0xf7eedfff  <<- note the mask
-				unsigned long int inFPGA1Stat = myDdus[j]->infpgastat(emu::fed::INFPGA1) & 0xf7eedfff;  // <<- note the mask
-				//unsigned long int inFPGA1Stat = myDdus[j]->readFPGAStat(emu::fed::INFPGA0) & 0xf7eedfff;
+				long int liveFibers = (myDdus[j]->readFiberStatus(emu::fed::INFPGA0)&0x000000ff) | ((myDdus[j]->readFiberStatus(emu::fed::INFPGA1)&0x000000ff)<<8);
+				int killFiber = (myDdus[j]->readKillFiber() & 0x7fff);
 
-				//std::cout << "   DDU Status for slot " << mySlot << " (hex) " << std::hex << CSCstat << " " << DDUfpgaStat << " " << INfpga0Stat << " " << INfpga1Stat << std::dec << std::endl;
-				LOG4CPLUS_DEBUG(getApplicationLogger(), "DDU Status for slot " << std::dec << mySlot << ": 0x" << std::hex << CSCStat << " 0x" << dduFPGAStat << " 0x" << inFPGA0Stat << " 0x" << inFPGA1Stat << std::dec);
-				//printf("   DDU Status for slot %2d: 0x%04x  0x%08x  0x%08x  0x%08x\n",mySlot,(unsigned int) CSCstat,(unsigned int) DDUfpgaStat,(unsigned int) INfpga0Stat,(unsigned int) INfpga1Stat);
+				LOG4CPLUS_INFO(getApplicationLogger(), "liveFibers/killFibers for slot " << std::dec << myDdus[j]->slot() << ": 0x" << std::hex << liveFibers << " 0x" << killFiber << std::dec);
 
-				long int liveFibers = (myDdus[j]->checkFiber(emu::fed::INFPGA0)&0x000000ff) | ((myDdus[j]->checkFiber(emu::fed::INFPGA1)&0x000000ff)<<8);
-				int killFiber = (myDdus[j]->read_page1()&0xffff);
-				//int liveFibers = (myDdus[j]->checkFiber(emu::fed::INFPGA0) | (myDdus[j]->checkFiber(emu::fed::INFPGA0) << 8));
-				//int killFiber = myDdus[j]->readKillFiber()&0x7fff;
-				// std::cout << "   LiveFibers for slot " << mySlot << ": 0x" << std::hex << LiveFibers << std::dec << std::endl;
-				// std::cout << "   killFiber for slot " << mySlot << ": 0x" << std::hex << killFiber << std::dec << std::endl;
-				//printf("   LiveFibers for slot %2d: 0x%04x     killFiber=%04x\n",mySlot,(unsigned int) LiveFibers,(unsigned int) killFiber);
-				LOG4CPLUS_INFO(getApplicationLogger(), "liveFibers/killFibers for slot " << std::dec << mySlot << ": 0x" << std::hex << liveFibers << " 0x" << killFiber << std::dec);
+				unsigned long int thisL1A = myDdus[j]->readL1Scaler(emu::fed::DDUFPGA);
+				LOG4CPLUS_DEBUG(getApplicationLogger(), "L1A Scalar for slot " << std::dec << myDdus[j]->slot() << ": " << thisL1A);
 
-				unsigned long int thisL1A = myDdus[j]->ddu_rdscaler();
-				//long unsigned int thisL1A = myDdus[j]->readL1Scalar(DDUFPGA);
-				//std::cout << "   L1A Scaler = " << thisL1A << std::endl;
-				LOG4CPLUS_DEBUG(getApplicationLogger(), "L1A Scalar for slot " << std::dec << mySlot << ": " << thisL1A);
-
-				if (inFPGA0Stat>0) {
+				if (inFPGA0Stat) {
 					Fail++;
 					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to INFPGA0 error");
 					//std::cout<<"     * DDU configure failure due to INFPGA0 error *" <<std::endl;
 				}
-				if (inFPGA1Stat>0) {
+				if (inFPGA1Stat) {
 					Fail++;
 					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to INFPGA1 error");
 					//std::cout<<"     * DDU configure failure due to INFPGA1 error *" <<std::endl;
 				}
-				if (dduFPGAStat>0) {
+				if (dduFPGAStat) {
 					Fail++;
 					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to DDUFPGA error");
 					//std::cout<<"     * DDU configure failure due to DDUFPGA error *" <<std::endl;
 				}
-				if (CSCStat>0) {
+				if (CSCStat) {
 					Fail++;
 					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to CSCStat error");
 					//std::cout<<"     * DDU configure failure due to CSCstat error *" <<std::endl;
@@ -645,7 +610,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 					//std::cout<<"     * DDU configure failure due to Live Fiber mismatch *" <<std::endl; 76ff 77ff 79ff 7aff 7bff
 				}
 				*/
-				if (thisL1A>0) {
+				if (thisL1A) {
 					Fail++;
 					LOG4CPLUS_ERROR(getApplicationLogger(), "DDU configure failure due to L1A Scaler not reset");
 					//std::cout<<"     * DDU configure failure due to L1A scaler not Reset *" <<std::endl;
@@ -675,11 +640,10 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	// At this point, we have crates, so we can set up the dccInOut_ std::vector.
 
 	// On Failure of above, set this:	XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrate::configureAction");
-	if(Fail>0) {
+	if (Fail) {
 		//XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrate::configureAction");
 		LOG4CPLUS_WARN(getApplicationLogger(), "number of failures: " << Fail << ".   Continuing in a possibly bad state (failure is not an option!)");
 	}
-	// JRG, finally we need to Broadcast the "FMM Error Disable" signal to both FED Crates.
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "Leaving EmuFCrate::configureAction");
 	//std::cout << " EmuFCrate:  Received Message Configure" << std::endl;
@@ -1157,39 +1121,6 @@ void EmuFCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 
 
 
-// addition for STEP
-
-// this routine is written in the assumption that we have only one DDU at this time, for STEP setup.
-// if used on multy-ddu setup, will program them all with the same killfiber.
-// user must program step_killfiber_ before calling this routine.
-xoap::MessageReference EmuFCrate::onPassthru(xoap::MessageReference message)
-	throw (xoap::exception::Exception)
-{
-
-	for(unsigned i = 0; i < crateVector.size(); ++i)
-	{
-		// find DDUs in each crate
-		std::vector<emu::fed::DDU *> myDdus = crateVector[i]->getDDUs();
-		for(unsigned j =0; j < myDdus.size(); ++j)
-		{
-			std::cout << "Setting passthru mode for crate: " << i << " DDU: " << j << " slot: " << myDdus[j]->slot()
-				 << " fiber mask: 0x" << std::hex << step_killfiber_.toString() << std::dec << std::endl;
-
-			if (myDdus[j]->slot() < 21)
-			{
-				myDdus[j]->writeGbEPrescale(0xf0f0); // no prescaling
-				myDdus[j]->writeFakeL1Reg(0x8787); // fake L1A for each event
-				myDdus[j]->writeKillFiberAdvanced(step_killfiber_); // user selects which inputs to use
-				myDdus[j]->reset(emu::fed::DDUFPGA); // sync reset via VME
-			}
-		}
-	}
-	return createReply(message);
-}
-
-// end addition for STEP
-
-
 // PGK Ugly, but it must be done.  We have to update the parameters that the
 //  EmuFCrateManager asks for or else they won't be updated!
 xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message)
@@ -1312,7 +1243,7 @@ void EmuFCrate::writeTTSBits(int crate, int slot, unsigned int bits)
 			for (std::vector<emu::fed::DCC *>::iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
 				if ((*iDCC)->slot() != slot) continue;
 	
-				(*iDCC)->setFMM((bits | 0x10) & 0xffff);
+				(*iDCC)->writeFMM((bits | 0x10) & 0xffff);
 			}
 		} else {
 			
@@ -1320,7 +1251,7 @@ void EmuFCrate::writeTTSBits(int crate, int slot, unsigned int bits)
 			for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 				if ((*iDDU)->slot() != slot) continue;
 				
-				(*iDDU)->writeFMMReg((bits | 0xf0e0) & 0xffff);
+				(*iDDU)->writeFMM((bits | 0xf0e0) & 0xffff);
 			}
 		}
 	}
@@ -1349,7 +1280,7 @@ unsigned int EmuFCrate::readTTSBits(int crate, int slot)
 			for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 				if ((*iDDU)->slot() != slot) continue;
 				
-				return (*iDDU)->readFMMReg() & 0xf;
+				return (*iDDU)->readFMM() & 0xf;
 			}
 		}
 	}
