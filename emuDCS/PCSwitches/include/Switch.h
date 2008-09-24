@@ -40,7 +40,6 @@ class Switch
       int nswitch;
       int nport;
       int vlan;
-      std::string ipaddr;
       MAC pmac;
     }SIDE;
 
@@ -151,6 +150,7 @@ class Switch
    std::string eth_hook_stats();
    std::string switch_stats(int lasthex, std::string testScript);
 
+   std::ostringstream OutputSwitch;
 
 private:
 
