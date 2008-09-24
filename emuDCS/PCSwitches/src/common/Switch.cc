@@ -17,7 +17,7 @@ namespace emu{
       //cern switch addresses
       char* tip[8]={
        "192.168.10.101","192.168.10.102",
-       "192.168.10.103","192.168.10.104",
+       "192.168.10.103","192.168.10.106",
        "192.168.10.107","192.168.10.108",
        "192.168.10.109","192.168.10.110"
       };
@@ -53,16 +53,18 @@ namespace emu{
       std::cout << " Choosing " << Side << " side chambers " << std::endl;
       init=0;
       if(Side=="plus"){
-         for(int i=0;i<49;i++)side[i]=plus[i];
+         for(int i=0;i<43;i++)side[i]=plus[i];
          swadd=0;swadd2=0;
+	  printf("gets to here?\n");
          for(int i=0;i<2;i++)pc[i]=pc_plus[i];
       }
       if(Side=="minus"){
-         for(int i=0;i<49;i++)side[i]=minus[i];
+         for(int i=0;i<43;i++)side[i]=minus[i];
          swadd=4;swadd2=6;
          for(int i=0;i<2;i++)pc[i]=pc_minus[i];
       }
       for(int i=0;i<8;i++)ip[i]=tip[i];
+	  printf("gets to here?\n");
       fill_expected_mac_table();
       printf(" leave instantiation \n");
     }  
@@ -186,7 +188,7 @@ namespace emu{
 	
         std::cout << swt << "  "  << command << std::endl;
         int ierr;
-        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
+        ierr=system(command.c_str());
       }
       usleep(250000);
       for(int swt=0;swt<4;swt++){
@@ -194,7 +196,7 @@ namespace emu{
         char tmp[100];
 	sprintf(tmp,"rm /tmp/switch_status%02d.dat",swt+swadd2+1);
         int ierr;
-        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(tmp);
+        ierr=system(tmp);
       } 
       for(int swt=0;swt<4;swt++){
         std::string symb=" ";
@@ -210,15 +212,15 @@ namespace emu{
 //        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s interfaceall > /tmp/switch_interface%02d.dat %s\n",ip[swt+swadd],swt+swadd2+1,symb);
         std::cout << swt << " " << command << std::endl;
         int ierr;
-        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
+        ierr=system(command.c_str());
       }
       usleep(250000);
       for(int swt=0;swt<4;swt++){
         parse_interface_all(swt);
         char tmp[100];
-        if(toolbox::net::getHostName()  != "emucom02.cern.ch") sprintf(tmp,"rm /tmp/switch_interface%02d.dat",swt+swadd2+1);
+        sprintf(tmp,"rm /tmp/switch_interface%02d.dat",swt+swadd2+1);
         int ierr;
-        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(tmp); 
+        ierr=system(tmp); 
       }
     
     }
@@ -238,15 +240,9 @@ namespace emu{
 //        sprintf(command,"$BUILD_HOME/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s mac-addr-table > /tmp/switch_mac.dat \n",ip[swt+swadd]);
         std::cout << swt << command << std::endl;
         int ierr;
-	if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
-	if(toolbox::net::getHostName() == "emucom02.cern.ch") {
-		char emucommand[445];
-		sprintf(emucommand, "cp /tmp/switch_mac0%d.dat /tmp/switch_mac.dat", swt+1);
-		printf("%s\n", emucommand);
-		system(emucommand);
-        }
+	ierr=system(command.c_str());
         parse_mac(swt);
-        if(toolbox::net::getHostName()  != "emucom02.cern.ch") ierr=system("rm /tmp/switch_mac.dat");
+        ierr=system("rm /tmp/switch_mac.dat");
       }
     
     }
@@ -284,7 +280,7 @@ namespace emu{
 
 //        sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PCSwitches/bin/switch_telnet.pl %s connecttest >& /tmp/connect%02d.dat",ip[i+swadd],i+swadd2+1);
 	std::cout << command << std::endl;
-        if(toolbox::net::getHostName() != "emucom02.cern.ch") system(command.c_str());
+        system(command.c_str());
       }
       usleep(250000);
       std::cout << " after usleep " << std::endl;
@@ -303,7 +299,7 @@ namespace emu{
 	std::cout << " switch link "<< i<< " " <<link[i]<<std::endl;
         fclose(file);
         sprintf(tmp,"rm /tmp/connect%02d.dat",i+swadd2+1);
-        if(toolbox::net::getHostName() != "emucom02.cern.ch") system(tmp);
+        system(tmp);
       }
     }
 
@@ -594,7 +590,7 @@ namespace emu{
 	std::cout << swt << " " << command << std::endl;
 //        printf("%d  %s \n",swt,command);
         int ierr;
-        if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
+        ierr=system(command.c_str());
       }
       usleep(250000);
     }
@@ -666,7 +662,7 @@ namespace emu{
         }
       }
       fclose(file);
-      if(toolbox::net::getHostName() != "emucom02.cern.ch") sprintf(temp,"rm /tmp/problems%02d.dat",swtch);
+      sprintf(temp,"rm /tmp/problems%02d.dat",swtch);
       int ierr;
       ierr=system(temp);
       sprintf(strbuf,"</tbody> \n </table> \n"); 
@@ -758,7 +754,7 @@ namespace emu{
       }
       return j;
     }
-
+/*
     void Switch::fill_expected_mac_table(){
 	  std::cout << " enter fill_expected_mac_table" << std::endl;
       // initialization
@@ -796,8 +792,47 @@ namespace emu{
       }
       dump_expected_macs(swadd2);
     }
+*/
+ 
+    void Switch::fill_expected_mac_table(){
+      std::cout << " enter fill_expected_mac_table" << std::endl;
+      // initialization
+      for(int swt=0;swt<4;swt++){
+        for(int prt=0;prt<12;prt++){
+          sw[swt][prt].nmacs_expected=0;
+        }
+      }
 
-    
+      for(int i=0;i<33;i++){
+        int swt=side[i].nswitch-1-swadd2;
+        int prt=side[i].nport-1;
+        int n=sw[swt][prt].nmacs_expected;
+        for(int k=0;k<18;k++)sw[swt][prt].mac_expected[n].mac[k]=side[i].pmac.mac[k];
+        n=n+1;
+        sw[swt][prt].nmacs_expected=n;
+      }
+
+      // now primary switch transfers
+      for(int i=37;i<43;i++){
+        char tmp[3];
+        tmp[0]=side[i].name[8];tmp[1]=side[i].name[9];tmp[3]='\0';
+        int swt;
+        sscanf(tmp,"%d",&swt);
+    //printf(" swt %d %s\n",swt,side[i].name);
+        for(int j=0;j<37;j++){
+       if(side[j].nswitch==swt&&((side[j].vlan==side[i].vlan&&((swt!=4&&swt!=7)||j<3))||(side[j].vlan==0&&(i<40||i>42))||(j<3||side[j].nport==13))){
+            int swt=side[i].nswitch-1-swadd2;
+            int prt=side[i].nport-1;
+            int n=sw[swt][prt].nmacs_expected;
+            for(int k=0;k<18;k++)sw[swt][prt].mac_expected[n].mac[k]=side[j].pmac.mac[k];
+            n=n+1;
+            sw[swt][prt].nmacs_expected=n;
+          }
+        }
+      }
+      dump_expected_macs(swadd2);
+    }
+
     void Switch::dump_expected_macs(int ioff){
       std::cout << " Expected Switch Addresses " << std::endl;
       for(int swt=0;swt<4;swt++){
@@ -805,13 +840,13 @@ namespace emu{
         for(int prt=0;prt<12;prt++){
           int n=sw[swt][prt].nmacs_expected;
           for(int m=0;m<n;m++){
-    	//std::cout << swt+1 << " " << prt+1 << " " << sw[swt][prt].nmacs_expected << std::endl;
-    	std::cout << swt+1 << " " << prt+1 << " " << sw[swt][prt].mac_expected[m].mac << std::endl;
+        std::cout << swt+1 << " " << prt+1 << " " << sw[swt][prt].mac_expected[m].mac << std::endl;
           }
         }
       }
     }
-    
+
+
    void Switch::copy_stats_new2old(){
 
       for(int swt=0;swt<4;swt++){
@@ -886,14 +921,14 @@ namespace emu{
 //      sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PeripheralApps/xml/test.pl 192.168.10.1%02d %d > /tmp/error.dat",side[s[i]].nswitch,side[s[i]].nport);
       std::cout << command << std::endl;
       int ierr;
-      if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=system(command.c_str());
+      ierr=system(command.c_str());
       FILE *file;
       file=fopen("/tmp/error.dat","r");
       while(fgets(line,128,file)){
         if(line[0]!='(')rtns=rtns+line;
       }
       fclose(file);
-      if(toolbox::net::getHostName()  != "emucom02.cern.ch") ierr=system("rm -f /tmp/error.dat");
+      ierr=system("rm -f /tmp/error.dat");
     }
     return rtns;
   }
