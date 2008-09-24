@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: JTAGElement.h,v 1.1 2008/09/19 23:13:59 paste Exp $
+* $Id: JTAGElement.h,v 1.2 2008/09/24 18:42:28 paste Exp $
 *
 * $Log: JTAGElement.h,v $
-* Revision 1.1  2008/09/19 23:13:59  paste
-* Fixed a small bug in disabling of error reporting, added missing file.
+* Revision 1.2  2008/09/24 18:42:28  paste
+* Fixing JTAGElement double-checkin problem.
 *
 *
 \*****************************************************************************/
@@ -11,6 +11,7 @@
 #define __JTAGELEMENT_H__
 
 #include <string>
+#include <list>
 
 #include "JTAG_constants.h"
 
@@ -19,7 +20,7 @@ namespace emu {
 
 		/** @class JTAGElement
 		 * A class defining one element in a (possibly) multi-element JTAG
-		 * chain.  Works in tandem with a map like a unidirectional linked-list.
+		 * chain.  Works in tandem with a bidirectional linked-list.
 		 *
 		 * @author Phillip Killewald
 		 **/
@@ -27,14 +28,14 @@ namespace emu {
 
 		public:
 
-			JTAGElement(std::string myName, int myChannel, int16_t myBypassCommand, unsigned int myCmdBits, int32_t myBitCode, bool myDirectVME, enum DEVTYPE myPreviousDevice):
+			JTAGElement(std::string myName, enum DEVTYPE myDev, int myChannel, int16_t myBypassCommand, unsigned int myCmdBits, int32_t myBitCode, bool myDirectVME):
 				name(myName),
+				dev(myDev),
 				channel(myChannel),
 				bypassCommand(myBypassCommand),
 				cmdBits(myCmdBits),
 				bitCode(myBitCode),
-				directVME(myDirectVME),
-				previousDevice(myPreviousDevice)
+				directVME(myDirectVME)
 			{}
 			
 			~JTAGElement() {}
@@ -59,11 +60,11 @@ namespace emu {
 
 			/// Is this device accessable through a direct VME read?
 			bool directVME;
-
-			enum DEVTYPE previousDevice;
 			
 		};
 
+		typedef std::list<JTAGElement *> JTAGChain;
+	
 	}
 
 }
