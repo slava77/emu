@@ -47,11 +47,10 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   // Bind monitoring methods
   //----------------------------
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateDMBCounters, "CrateDMBCounters");
-  xgi::bind(this,&EmuPeripheralCrateMonitor::CrateTMBCountersRight, "CrateTMBCountersRight");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::CrateTMBCounters, "CrateTMBCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::FullResetTMBC, "FullResetTMBC");
   xgi::bind(this,&EmuPeripheralCrateMonitor::XmlOutput, "XmlOutput");
-  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSOutput, "DCSOutput");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateMonitor::TCounterSelection, "TCounterSelection");
@@ -61,8 +60,19 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateView, "CrateView");
   xgi::bind(this,&EmuPeripheralCrateMonitor::BeamView, "BeamView");
 
-    xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStart      ,"MonitorStart");
-    xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStop      ,"MonitorStop");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStart      ,"MonitorStart");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::MonitorStop      ,"MonitorStop");
+
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSOutput, "DCSOutput");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSDefault, "DCSDefault");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSMain, "DCSMain");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSChamber, "DCSChamber");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateLV, "DCSCrateLV");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateCUR, "DCSCrateCUR");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateTemp, "DCSCrateTemp");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSStatSel, "DCSStatSel");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSChamSel, "DCSChamSel");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateSel, "DCSCrateSel");
   //
   // SOAP for Monitor controll
     xoap::bind(this,&EmuPeripheralCrateMonitor::onMonitorStart      ,"MonitorStart",XDAQ_NS_URI);
@@ -133,6 +143,11 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   this_tcounter_=0;
   this_dcounter_=0;
   this_ocounter_=0;
+
+  DCS_this_crate_no_=0;
+  dcs_station=0;
+  dcs_ring=1;
+  dcs_chamber=0;
 
   parsed=0;
 }
@@ -276,7 +291,7 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 is->fireItemAvailable("DMBftime",new xdata::TimeVal);
 
             // for DCS temps, voltages
-                is->fireItemAvailable("DCStemps",new xdata::Vector<xdata::UnsignedShort>());
+                is->fireItemAvailable("DCStemps",new xdata::Vector<xdata::Float>());
                 is->fireItemAvailable("DCSstime",new xdata::TimeVal);
 
          }
@@ -373,10 +388,20 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                 if(buf2[0])
                 {
                    // std::cout << "DCS counters " << buf2[0] << std::endl;
-                   xdata::Vector<xdata::UnsignedShort> *dmbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("DCStemps"));
+                   xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
                    if(dmbdata->size()==0)
-                      for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0);
-                   for(unsigned ii=0; ii<buf2[0]; ii++) (*dmbdata)[ii] = buf2[ii+1];
+                      for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0.);
+                   for(unsigned ii=0; ii<buf2[0]; ii++)
+                   {   if((ii%48)<40) 
+                          (*dmbdata)[ii] = 10.0/4096.0*buf2[ii+1];
+                       else 
+                       {  float Vout= buf2[ii+1]/1000.0;
+                          if(Vout >0. && Vout<5.0)
+                              (*dmbdata)[ii] =1/(0.001049406423+0.0002133635468*log(65000.0/Vout-13000.0)+0.7522287E-7*pow(log(65000.0/Vout-13000.0),3.0))-273.15;
+                          else
+                              (*dmbdata)[ii] = -500.0;
+                       }
+                   }
                 }
              }
              else if( cycle==1)
@@ -434,10 +459,26 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   if( active_crates <= total_crates_) 
      *out << cgicc::b(" Active Crates: ") << active_crates << cgicc::br() << std::endl ;
  
+     *out << cgicc::table().set("border","0");
+     //
+     *out << cgicc::td();
      std::string CheckCrates = toolbox::toString("/%s/CheckCrates",getApplicationDescriptor()->getURN().c_str());
      *out << cgicc::form().set("method","GET").set("action",CheckCrates) << std::endl ;
      *out << cgicc::input().set("type","submit").set("value","Check Crate Controllers") << std::endl ;
      *out << cgicc::form() << std::endl ;
+     *out << cgicc::td() << cgicc::td() << cgicc::td();
+     
+  if(Monitor_Ready_)
+  {
+     *out << cgicc::td();
+     std::string DCSMain = toolbox::toString("/%s/DCSMain",getApplicationDescriptor()->getURN().c_str());
+     *out << cgicc::form().set("method","GET").set("action",DCSMain).set("target","_blank") << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","DCS Main Page") << std::endl ;
+     *out << cgicc::form() << std::endl ;
+     *out << cgicc::td();
+  }
+     *out << cgicc::table();
+ 
 
   *out << cgicc::br() << std::endl ;
   if(Monitor_On_)
@@ -450,7 +491,8 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
      *out << cgicc::form() << std::endl ;
   } else
   {
-     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << std::endl ;
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
      std::string TurnOnMonitor = toolbox::toString("/%s/MonitorStart",getApplicationDescriptor()->getURN().c_str());
      *out << cgicc::form().set("method","GET").set("action",TurnOnMonitor) << std::endl ;
      *out << cgicc::input().set("type","submit").set("value","Turn On Monitor") << std::endl ;
@@ -577,11 +619,6 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
   //End select DCounter
     //
     //
-//    std::string CrateDMBCounters = toolbox::toString("/%s/CrateDMBCounters",getApplicationDescriptor()->getURN().c_str());
-//    *out << cgicc::form().set("method","GET").set("action",CrateDMBCounters).set("target","_blank") << std::endl ;
-//    *out << cgicc::input().set("type","submit").set("value","DMB counters").set("name","DMBCounters") << std::endl ;
-//    *out << cgicc::form() << std::endl ;
-    //
     //
     *out << cgicc::fieldset();
     //
@@ -656,7 +693,7 @@ void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::td();
     //
-    std::string CrateTMBCounters = toolbox::toString("/%s/CrateTMBCountersRight",getApplicationDescriptor()->getURN().c_str());
+    std::string CrateTMBCounters = toolbox::toString("/%s/CrateTMBCounters",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CrateTMBCounters).set("target","_blank") << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","TMB counters").set("name", thisCrate->GetLabel()) << std::endl ;
     *out << cgicc::form() << std::endl ;
@@ -718,6 +755,619 @@ void EmuPeripheralCrateMonitor::Default(xgi::Input * in, xgi::Output * out )
   *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<std::endl;
 }
 //
+//
+void EmuPeripheralCrateMonitor::DCSDefault(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<"DCSMain"<<"\">" <<std::endl;
+}
+//
+
+void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception)
+{
+       int n_keys, selected_index;
+       bool plus_side;
+       std::string CounterName, current_ch_name, endcap_name, dcs_chamber_name;
+       std::string station_name[8]={"1/1","1/2","1/3","2/1","2/2","3/1","3/2","4/1"};
+       int         station_size[8]={ 36,   36,   36,   18,   36,  18,    36,   18  };
+       xdata::UnsignedShort xchamber;
+
+  if(!parsed) ParsingXML();
+  endcap_name=crateVector[0]->GetLabel();
+  plus_side = (endcap_name.substr(3,1)=="p");
+
+  if(plus_side)
+  {
+     MyHeader(in,out,"EmuPeripheralCrateMonitor--DCS Plus Endcap");
+     endcap_name="ME+";
+  }
+  else
+  {
+     MyHeader(in,out,"EmuPeripheralCrateMonitor--DCS Minus Endcap");
+     endcap_name="ME-";
+  }
+
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else
+  {
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << std::endl ;
+  }
+  //
+  *out << cgicc::hr() <<std::endl;
+  if(Monitor_Ready_)
+  {
+    xchamber=dcs_chamber+1;
+    dcs_chamber_name=endcap_name+station_name[dcs_station]+"/"+xchamber.toString();
+    *out << cgicc::h3("Chamber View")<< std::endl;
+
+    *out << cgicc::span().set("style","color:blue");
+    *out << cgicc::b(cgicc::i("Current Chamber : ")) ;
+    *out << dcs_chamber_name << cgicc::span() << std::endl;
+ 
+    *out << cgicc::table().set("border","0");
+    //
+    *out << cgicc::td();
+    //
+  // Begin select station
+    *out << cgicc::form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/DCSStatSel") << std::endl;
+	n_keys = 8;
+
+	*out << cgicc::select().set("name", "selected") << std::endl;
+
+	selected_index = dcs_station;
+	for (int i = 0; i < n_keys; ++i) {
+                CounterName = endcap_name+station_name[i];
+		if (i == selected_index) {
+		  *out << cgicc::option()
+					.set("value", CounterName)
+					.set("selected", "");
+		} else {
+		  *out << cgicc::option()
+					.set("value", CounterName);
+		}
+		*out << CounterName << cgicc::option() << std::endl;
+	}
+
+	*out << cgicc::select() << std::endl;
+
+	*out << cgicc::input().set("type", "submit")
+			.set("name", "command")
+			.set("value", "Select Station/Ring") << std::endl;
+	*out << cgicc::form() << std::endl;
+     
+  //End select station
+    //
+    *out << cgicc::td();
+    *out << cgicc::td();
+    //
+  // Begin select chamber
+    *out << cgicc::form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/DCSChamSel") << std::endl;
+	n_keys = station_size[dcs_station];
+
+	// *out << "Choose TMB Counter: " << std::endl;
+	*out << cgicc::select().set("name", "selected") << std::endl;
+
+	selected_index = dcs_chamber;
+	for (int i = 0; i < n_keys; ++i) {
+                xchamber=i+1;
+                CounterName = endcap_name+station_name[dcs_station]+"/"+xchamber.toString();
+		if (i == selected_index) {
+		  *out << cgicc::option()
+					.set("value", CounterName)
+					.set("selected", "");
+		} else {
+		  *out << cgicc::option()
+					.set("value", CounterName);
+		}
+		*out << CounterName << cgicc::option() << std::endl;
+	}
+
+	*out << cgicc::select() << std::endl;
+
+	*out << cgicc::input().set("type", "submit")
+			.set("name", "command")
+			.set("value", "Select Chamber") << std::endl;
+	*out << cgicc::form() << std::endl;
+     
+  //End select chamber
+    *out << cgicc::td();
+    *out << cgicc::table() << cgicc::br() << std::endl;
+   //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#407080");
+    *out << std::endl;
+//    *out << cgicc::legend((("Monitoring"))) ;
+
+    std::string DCSchamber = toolbox::toString("/%s/DCSChamber",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",DCSchamber).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Low Voltages and Temperatures").set("name", dcs_chamber_name) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::fieldset();
+    //
+    *out << std::endl;
+    //
+    *out << cgicc::hr() <<std::endl;
+
+    *out << cgicc::h3("Crate View")<< std::endl;
+  
+    *out << cgicc::span().set("style","color:blue");
+    *out << cgicc::b(cgicc::i("Current Crate : ")) ;
+    *out << crateVector[DCS_this_crate_no_]->GetLabel() << cgicc::span() << std::endl ;
+ 
+    *out << cgicc::br();
+ 
+
+  // Begin select crate
+        // Config listbox
+    *out << cgicc::form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/DCSCrateSel") << std::endl;
+
+	n_keys = crateVector.size();
+
+	*out << "Choose Crate: " << std::endl;
+	*out << cgicc::select().set("name", "runtype") << std::endl;
+
+	selected_index = DCS_this_crate_no_;
+        std::string CrateName;
+	for (int i = 0; i < n_keys; ++i) {
+                if(crateVector[i]->IsAlive())
+                   CrateName = crateVector[i]->GetLabel();
+                else
+                   CrateName = crateVector[i]->GetLabel() + " NG";
+		if (i == selected_index) {
+		  *out << cgicc::option()
+		    .set("value", CrateName)
+		    .set("selected", "");
+		} else {
+		  *out << cgicc::option()
+		    .set("value", CrateName);
+		}
+		*out << CrateName << cgicc::option() << std::endl;
+	}
+
+	*out << cgicc::select() << std::endl;
+
+	*out << cgicc::input().set("type", "submit")
+			.set("name", "command")
+			.set("value", "CrateSelection") << std::endl;
+	*out << cgicc::form() << std::endl;
+     
+  //End select crate
+ 
+    *out << cgicc::br()<< std::endl;
+  //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color: #407080");
+    *out << std::endl;
+  //  *out << cgicc::legend((("Monitoring"))) ;
+    //
+    *out << cgicc::table().set("border","0");
+    //
+    *out << cgicc::td();
+    //
+    std::string DCSCrateLV = toolbox::toString("/%s/DCSCrateLV",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",DCSCrateLV).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Low Voltages").set("name", crateVector[DCS_this_crate_no_]->GetLabel()) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
+    std::string DCSCrateCUR = toolbox::toString("/%s/DCSCrateCUR",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",DCSCrateCUR).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Currents").set("name", crateVector[DCS_this_crate_no_]->GetLabel()) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    //
+    *out << cgicc::td();
+    //
+    std::string DCSCrateTemp = toolbox::toString("/%s/DCSCrateTemp",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",DCSCrateTemp).set("target","_blank") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Temperatures").set("name",crateVector[DCS_this_crate_no_]->GetLabel()) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    *out << cgicc::fieldset();
+    //
+    *out << std::endl;
+    //
+  }
+
+  *out << cgicc::br() << cgicc::br() << std::endl; 
+  *out << cgicc::b(cgicc::i("Configuration filename : ")) ;
+  *out << xmlFile_.toString() << cgicc::br() << std::endl ;
+  //
+}
+
+  void EmuPeripheralCrateMonitor::DCSChamSel(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     int         station_size[8]={ 36,   36,   36,   18,   36,  18,    36,   18  };
+
+     cgicc::Cgicc cgi(in);
+
+     std::string in_value = cgi.getElement("selected")->getValue(); 
+     if(!in_value.empty())
+     {
+          dcs_chamber=atoi(in_value.substr(7,2).c_str())-1;
+     }
+     if(dcs_chamber<0 || dcs_chamber>=station_size[dcs_station]) dcs_chamber=0;
+ 
+     this->DCSDefault(in,out);
+  }
+
+  void EmuPeripheralCrateMonitor::DCSStatSel(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     std::string station_name[8]={"1/1","1/2","1/3","2/1","2/2","3/1","3/2","4/1"};
+     int         station_size[8]={ 36,   36,   36,   18,   36,  18,    36,   18  };
+
+     cgicc::Cgicc cgi(in);
+
+     std::string in_value = cgi.getElement("selected")->getValue(); 
+     // std::cout << "Select Counter " << in_value << std::endl;
+     if(!in_value.empty())
+     {
+//        int k=in_value.find(" ",0);
+//        std::string value = (k) ? in_value.substr(0,k):in_value;
+        for(unsigned i=0; i< 8; i++)
+        {
+           if((in_value.substr(3,3))==station_name[i]) dcs_station=i;
+        }
+     }
+     if(dcs_chamber>=station_size[dcs_station]) dcs_chamber=0;
+     this->DCSDefault(in,out);
+  }
+
+  void EmuPeripheralCrateMonitor::DCSCrateSel(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     cgicc::Cgicc cgi(in);
+
+     std::string in_value = cgi.getElement("runtype")->getValue(); 
+     std::cout << "DCS Select Crate " << in_value << std::endl;
+     if(!in_value.empty())
+     {
+        int k=in_value.find(" ",0);
+        std::string value = (k) ? in_value.substr(0,k):in_value;
+        for(unsigned i=0; i< crateVector.size(); i++)
+        {
+           if(value==crateVector[i]->GetLabel())
+           {  
+               DCS_this_crate_no_=i;
+               DCS_ThisCrateID_=value;
+           }
+        }
+     }
+     this->DCSDefault(in,out);
+  }
+
+void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+//  int TOTAL_TMB_COUNTERS=48, Total_Temps=8;
+//  float temp_max[8]={37., 37., 37., 37., 37., 37., 38., 37.};
+//  float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
+//  float val;
+
+  if(!Monitor_Ready_) return;
+  //
+  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  //
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  //
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
+  //
+  Page=cgiEnvi.getQueryString();
+  std::string cham_name=Page.substr(0,Page.find("=", 0) );
+  std::vector<emu::pc::DAQMB*> myVector;
+  int mycrate=0;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(cham_name==crateVector[i]->GetLabel())
+     {  myVector = crateVector[i]->daqmbs();
+        mycrate = i;
+     }
+  }
+  *out << cgicc::b("Chamber: "+ cham_name) << std::endl;
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+  *out << cgicc::br() << cgicc::b("<center> Low Voltages and Temperatures </center>") << std::endl;
+
+  *out << cgicc::span().set("style","color:red");
+  *out << cgicc::br() << cgicc::b("<center> Coming soon...Please use Crate View for now... </center>") << std::endl;
+  *out << cgicc::span();
+
+   
+}
+
+void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+  int TOTAL_TMB_COUNTERS=48, Total_count=19;
+  float lv_max[19]={3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 2.0, 6.0, 6.0};
+  float lv_min[19]={3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 1.6, 5.0, 5.0};
+  float val;
+
+  if(!Monitor_Ready_) return;
+  //
+  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  //
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  //
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
+  //
+  Page=cgiEnvi.getQueryString();
+  std::string crate_name=Page.substr(0,Page.find("=", 0) );
+  std::vector<emu::pc::DAQMB*> myVector;
+  int mycrate=0;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(crate_name==crateVector[i]->GetLabel())
+     {  myVector = crateVector[i]->daqmbs();
+        mycrate = i;
+     }
+  }
+  *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+  *out << cgicc::br() << cgicc::b("<center> Low Voltages (Volts) </center>") << std::endl;
+
+  xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
+
+  xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
+  if(dcsdata==NULL || dcsdata->size()==0) return;
+
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    *out <<cgicc::td();
+    *out << crateVector[mycrate]->GetChamber(myVector[dmb])->GetLabel();
+    *out <<cgicc::td();
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  for (int count=0; count<Total_count; count++) {
+    //
+    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(dmb==0) {
+        *out << LVCounterName[count] ;
+	*out <<cgicc::td() << cgicc::td();
+      }
+      *out << std::setprecision(4);
+      val=(*dcsdata)[dmb*TOTAL_TMB_COUNTERS+19+count];
+      if(val<0.)    
+         *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+      else if(val > lv_max[count] || val < lv_min[count])
+         *out << cgicc::span().set("style","color:red") << val << cgicc::span();
+      else 
+         *out << val;  
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+  }
+  //
+  *out << cgicc::table();
+  //
+}
+
+void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+  int TOTAL_TMB_COUNTERS=48, Total_count=19;
+//  float lv_max[19]={3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 2.0, 6.0, 6.0};
+//  float lv_min[19]={3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 1.6, 5.0, 5.0};
+  float val;
+
+  if(!Monitor_Ready_) return;
+  //
+  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  //
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  //
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
+  //
+  Page=cgiEnvi.getQueryString();
+  std::string crate_name=Page.substr(0,Page.find("=", 0) );
+  std::vector<emu::pc::DAQMB*> myVector;
+  int mycrate=0;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(crate_name==crateVector[i]->GetLabel())
+     {  myVector = crateVector[i]->daqmbs();
+        mycrate = i;
+     }
+  }
+  *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+  *out << cgicc::br() << cgicc::b("<center> Currents (Amps) </center>") << std::endl;
+
+  xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
+
+  xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
+  if(dcsdata==NULL || dcsdata->size()==0) return;
+
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    *out <<cgicc::td();
+    *out << crateVector[mycrate]->GetChamber(myVector[dmb])->GetLabel();
+    *out <<cgicc::td();
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  for (int count=0; count<Total_count; count++) {
+    //
+    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(dmb==0) {
+        *out << LVCounterName[count] ;
+	*out <<cgicc::td() << cgicc::td();
+      }
+      *out << std::setprecision(4);
+      val=(*dcsdata)[dmb*TOTAL_TMB_COUNTERS+count];
+      if(val<0.)    
+         *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+//
+// warning disabled. need valid ranges.  
+//
+//      else if(val > lv_max[count] || val < lv_min[count])
+//         *out << cgicc::span().set("style","color:red") << val << cgicc::span();
+      else 
+         *out << val;  
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+  }
+  //
+  *out << cgicc::table();
+  //
+}
+
+void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+  int TOTAL_TMB_COUNTERS=48, Total_Temps=8;
+  float temp_max[8]={37., 37., 37., 37., 37., 37., 38., 37.};
+  float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
+  float val;
+
+  if(!Monitor_Ready_) return;
+  //
+  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+  //
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  //
+  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"300; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
+  //
+  Page=cgiEnvi.getQueryString();
+  std::string crate_name=Page.substr(0,Page.find("=", 0) );
+  std::vector<emu::pc::DAQMB*> myVector;
+  int mycrate=0;
+  for ( unsigned int i = 0; i < crateVector.size(); i++ )
+  {
+     if(crate_name==crateVector[i]->GetLabel())
+     {  myVector = crateVector[i]->daqmbs();
+        mycrate = i;
+     }
+  }
+  *out << cgicc::b("Crate: "+crate_name) << std::endl;
+  if(Monitor_On_)
+  {
+     *out << cgicc::span().set("style","color:green");
+     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+  } else 
+  { 
+     *out << cgicc::span().set("style","color:red");
+     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+  }
+
+  *out << cgicc::br() << cgicc::b("<center> Temperatures (C) </center>") << std::endl;
+
+  xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
+
+  xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
+  if(dcsdata==NULL || dcsdata->size()==0) return;
+
+  *out << cgicc::table().set("border","1");
+  //
+  *out <<cgicc::td();
+  *out <<cgicc::td();
+  //
+  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+    *out <<cgicc::td();
+    *out << crateVector[mycrate]->GetChamber(myVector[dmb])->GetLabel();
+    *out <<cgicc::td();
+  }
+  //
+  *out <<cgicc::tr();
+  //
+  for (int count=0; count<Total_Temps; count++) {
+    //
+    for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
+      //
+      *out <<cgicc::td();
+      //
+      if(dmb==0) {
+        *out << TECounterName[count] ;
+	*out <<cgicc::td() << cgicc::td();
+      }
+      *out << std::setprecision(4);
+      val=(*dcsdata)[dmb*TOTAL_TMB_COUNTERS+40+count];
+      if(val<0.)    
+         *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+      else if(val > temp_max[count] || val < temp_min[count])
+         *out << cgicc::span().set("style","color:red") << val << cgicc::span();
+      else 
+         *out << val;  
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+  }
+  //
+  *out << cgicc::table();
+  //
+    
+}
 
   void EmuPeripheralCrateMonitor::CrateSelection(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -1072,7 +1722,6 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
-    *out << cgicc::b(TCounterName[this_tcounter_]) << std::endl;
 
   if(Monitor_On_)
   {
@@ -1084,6 +1733,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
 
+    *out << cgicc::b("<center>"+TCounterName[this_tcounter_]+"</center>" ) << std::endl;
     if(!Monitor_Ready_) return;
 
   *out << cgicc::table().set("border","1");
@@ -1183,7 +1833,6 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
-    *out << cgicc::b(DCounterName[this_dcounter_]) << std::endl;
 
   if(Monitor_On_)
   {
@@ -1195,6 +1844,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
 
+    *out << cgicc::b("<center>"+DCounterName[this_dcounter_]+"</center>" ) << std::endl;
     if(!Monitor_Ready_) return;
 
   *out << cgicc::table().set("border","1");
@@ -1280,7 +1930,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
 ///////////////////////////////////////////////////////
 // Counters displays
 ///////////////////////////////////////////////////////
-void EmuPeripheralCrateMonitor::CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) 
+void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
   //  int counter_idx[30]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -2195,6 +2845,35 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     OCounterName.push_back( "MPC CSR4  "); // 10
     OCounterName.push_back( "MPC CSR7  ");
     OCounterName.push_back( "MPC CSR8  "); // 12
+
+    LVCounterName.push_back( "CFEB1 3.3V ");  // 0
+    LVCounterName.push_back( "CFEB1 5V   ");  //
+    LVCounterName.push_back( "CFEB1 6V   ");  //
+    LVCounterName.push_back( "CFEB2 3.3V ");  // 3
+    LVCounterName.push_back( "CFEB2 5V   ");  //
+    LVCounterName.push_back( "CFEB2 6V   ");  //
+    LVCounterName.push_back( "CFEB3 3.3V ");  // 6
+    LVCounterName.push_back( "CFEB3 5V   ");  //
+    LVCounterName.push_back( "CFEB3 6V   ");  //
+    LVCounterName.push_back( "CFEB4 3.3V ");  // 9
+    LVCounterName.push_back( "CFEB4 5V   ");  //
+    LVCounterName.push_back( "CFEB4 6V   ");  //
+    LVCounterName.push_back( "CFEB5 3.3V ");  // 12
+    LVCounterName.push_back( "CFEB5 5V   ");  //
+    LVCounterName.push_back( "CFEB5 6V   ");  //
+    LVCounterName.push_back( "ALCT 3.3V  ");  // 15
+    LVCounterName.push_back( "ALCT 1.8V  ");  //
+    LVCounterName.push_back( "ALCT 5.5V B");  //
+    LVCounterName.push_back( "ALCT 5.5V A");  // 18
+
+    TECounterName.push_back( "DMB Temp  ");  // 0
+    TECounterName.push_back( "CFEB1 Temp");  // 1
+    TECounterName.push_back( "CFEB2 Temp");  // 
+    TECounterName.push_back( "CFEB3 Temp");  //
+    TECounterName.push_back( "CFEB4 Temp");  // 
+    TECounterName.push_back( "CFEB5 Temp");  // 5
+    TECounterName.push_back( "ALCT  Temp");  // 
+    TECounterName.push_back( "TMB Temp  ");  // 7
 }
 
 // sending and receiving soap commands
