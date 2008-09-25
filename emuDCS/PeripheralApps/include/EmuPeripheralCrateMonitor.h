@@ -7,6 +7,7 @@
 #include "xdaq/ApplicationContext.h"
 #include "xdaq/ApplicationStub.h"
 #include "xdaq/exception/Exception.h"
+#include "xdata/Float.h"
 #include "xdata/UnsignedInteger32.h"
 #include "xdata/UnsignedShort.h"
 #include "xdata/Integer32.h"
@@ -145,6 +146,9 @@ protected:
   int this_tcounter_;
   int this_dcounter_;
   int this_ocounter_;
+  int DCS_this_crate_no_;
+  std::string DCS_ThisCrateID_;
+
   
   std::vector< std::string> monitorables_;
   bool Monitor_On_, Monitor_Ready_;
@@ -160,12 +164,16 @@ protected:
   std::vector< std::string> TCounterName;
   std::vector< std::string> DCounterName;
   std::vector< std::string> OCounterName;
+  std::vector< std::string> LVCounterName;
+  std::vector< std::string> TECounterName;
   //
   emu::pc::EmuEndcap * emuEndcap_;
   //
   // for beam monitor
   long long int total_min, total_max;
   double O_T_min, O_T_max, R_L_min, R_L_max, T_B_min, T_B_max;
+
+  int dcs_station, dcs_ring, dcs_chamber;
       
 public:
   //
@@ -192,12 +200,11 @@ private:
   void ReadingOff();
   void CreateEmuInfospace();
   void PublishEmuInfospace(int cycle);
-  void CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CrateTMBCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateDMBCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ResetAllCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FullResetTMBC(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void XmlOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void DCSOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -216,6 +223,19 @@ private:
   bool ParsingXML();
   void SetCurrentCrate(int crate);
   int current_crate_;
+  //
+  // all DCS related methods
+  //
+  void DCSOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSDefault(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSMain(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSChamSel(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSStatSel(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSCrateSel(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSCrateLV(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSCrateCUR(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSCrateTemp(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void DCSChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   xoap::MessageReference PCcreateCommandSOAP(std::string command);
   void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
