@@ -75,7 +75,6 @@ protected:
   xdata::String  EMU_config_ID_;
 
   xdata::String xmlFile_;
-  xdata::String CalibrationState_;
   //
   xdata::String curlCommand_;         // the curl command's full path
   xdata::String curlCookies_;         // file for cookies
@@ -88,18 +87,9 @@ protected:
   //
   bool DisplayRatio_;
   bool AutoRefresh_;
-  int MenuMonitor_;
-  //
-  xdata::String CalibType_;
-  xdata::UnsignedInteger CalibNumber_;
-  std::string CalibTypeStr_; 
   //
   std::string xmlFile;
-  xdata::UnsignedLong myParameter_;
   emu::pc::EmuController * MyController;
-  //
-  //TMB * thisTMB ;
-  //DAQMB* thisDMB ;
   //
   emu::pc::CCB* thisCCB ;
   emu::pc::ALCTController *alct ;
@@ -108,31 +98,13 @@ protected:
   //
   int tmb_vme_ready;
   //
-  int CCBRegisterValue_;
   std::vector<emu::pc::TMB*>   tmbVector;
   std::vector<emu::pc::TMBTester>   tmbTestVector;
   std::vector<emu::pc::DAQMB*> dmbVector;
   std::vector<emu::pc::Crate*> crateVector;
   std::vector<emu::pc::Chamber*> chamberVector;
   emu::pc::Crate *thisCrate;
-  std::string Operator_;
   std::string RunNumber_;
-  std::string CalibrationCfebTimeEvent_;
-  std::string MPCBoardID_;
-  std::string CCBBoardID_;
-  std::string ControllerBoardID_;
-  std::string DMBBoardID_[10];
-  std::string TMBBoardID_[10];
-  std::string RATBoardID_[10];
-  std::string CrateChassisID_;
-  std::string CrateRegulatorBoardID_;
-  std::string PeripheralCrateMotherBoardID_;
-  std::string ELMBID_;
-  std::string BackplaneID_;
-  int CFEBid_[10][5];
-  int TMB_, DMB_,RAT_;
-  int Counter_;
-  int nTrigger_;
 
   int parsed;
   int current_config_state_;  // index to global_config_states[]
@@ -155,10 +127,6 @@ protected:
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   toolbox::task::Timer * timer_;
   //
-  std::vector<int> L1aLctCounter_;
-  std::vector<int> CfebDavCounter_;
-  std::vector<int> TmbDavCounter_;
-  std::vector<int> AlctDavCounter_;
   std::vector<int> vcc_reset;
   //
   std::vector< std::string> TCounterName;
