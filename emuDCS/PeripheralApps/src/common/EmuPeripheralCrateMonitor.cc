@@ -21,14 +21,6 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   DisplayRatio_ = false;
   AutoRefresh_  = true;
   MyController = 0;
-  //thisTMB = 0;
-  //thisDMB = 0;
-  thisCCB = 0;
-  thisMPC = 0;
-  rat = 0;
-  alct = 0;
-  nTrigger_ = 100;
-  MenuMonitor_ = 2;
   total_min = 0;
   total_max = 0;
   O_T_min = 0.;
@@ -102,22 +94,11 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   //----------------------------
   // initialize variables
   //----------------------------
-  myParameter_ =  0;
-  //
   xml_or_db = 0;  /* actual configuration source: 0: xml, 1: db */
   XML_or_DB_ = "xml";
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
   //
-  for(unsigned int dmb=0; dmb<9; dmb++) {
-    L1aLctCounter_.push_back(0);
-    CfebDavCounter_.push_back(0);
-    TmbDavCounter_.push_back(0);
-    AlctDavCounter_.push_back(0);
-  }
-  //
-  CCBRegisterValue_ = -1;
-  Operator_ = "Operator";
   RunNumber_= "-1";
   //
   this->getApplicationInfoSpace()->fireItemAvailable("XMLorDB", &XML_or_DB_);
@@ -146,7 +127,6 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
 
   DCS_this_crate_no_=0;
   dcs_station=0;
-  dcs_ring=1;
   dcs_chamber=0;
 
   parsed=0;
@@ -292,8 +272,9 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
 
             // for DCS temps, voltages
                 is->fireItemAvailable("DCStemps",new xdata::Vector<xdata::Float>());
+                is->fireItemAvailable("DCScrate",new xdata::UnsignedShort(0));
+                is->fireItemAvailable("DCSitime",new xdata::UnsignedInteger32(0));
                 is->fireItemAvailable("DCSstime",new xdata::TimeVal);
-
          }
      Monitor_Ready_=true;
 }
@@ -307,7 +288,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       emu::pc::Crate * now_crate;
       xdata::InfoSpace * is;
       char buf[8000];
-      // xdata::UnsignedInteger32 *counter32;
+      xdata::UnsignedInteger32 *counter32;
       xdata::UnsignedShort *counter16;
       xdata::String *status;
       unsigned long *buf4;
@@ -402,6 +383,10 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                               (*dmbdata)[ii] = -500.0;
                        }
                    }
+                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
+                   *counter16 = 1;
+                   counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
+                   *counter32 = time(NULL);
                 }
              }
              else if( cycle==1)
@@ -436,6 +421,15 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
              }
                // is->fireGroupChanged(names, this);
           }
+          else
+          {  // for non-communicating crates
+             if( cycle==2 )
+             {
+                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
+                   *counter16 = 0;
+             }
+          }
+
       }
 }
 
@@ -2260,32 +2254,41 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
 
 void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
-  //
-  *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
-  *out << "<?xml-stylesheet type=\"text/xml\" href=\"counterMonitor.xsl\"?>" << std::endl;
-  *out << "<emuCounters dateTime=\"2008-08-25 16:34:56\">" << std::endl;
-  *out << "  <sample name=\"cumulative\" delta_t=\"500\">" << std::endl;
 
-  std::vector<emu::pc::TMB*> myVector;
+  char sout[600];
+  unsigned int readtime;
+  unsigned short crateok;
+  float val;
+  std::vector<emu::pc::DAQMB*> myVector;
+  int TOTAL_DCS_COUNTERS=48;
+  xdata::InfoSpace * is;
+
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     myVector = crateVector[i]->tmbs();
+     is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
+     xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
+     if(dmbdata==NULL || dmbdata->size()==0) continue;
+     xdata::UnsignedInteger32 *counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
+     if (counter32==NULL) readtime=0; 
+        else readtime = (*counter32);
+     xdata::UnsignedShort *counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
+     if (counter16==NULL) crateok= 0; 
+        else crateok = (*counter16);
+
+     myVector = crateVector[i]->daqmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
-        *out << "    <count chamber=\"";
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
-        *out << "\" alct=\"";
-        *out << myVector[j]->GetCounter(1);
-        *out << "\" clct=\"";
-        *out << myVector[j]->GetCounter(5);
-        *out << "\" l1a=\"";
-        *out << myVector[j]->GetCounter(34);
-        *out << "\"/>" << std::endl;
+        *out << " " << crateok << " " << readtime << " ";
+        bzero(sout,500);
+        for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
+        {  val= (*dmbdata)[k];
+           sprintf(sout,"%8.4f ", val);
+        }
+        *out << sout << std::endl;
      }
   }
 
-  *out << "  <sample>" << std::endl;
-  *out << "<emuCounters>" << std::endl;
 }
 
 
