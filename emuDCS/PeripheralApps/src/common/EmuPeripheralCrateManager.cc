@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.8 2008/09/15 08:12:15 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.9 2008/09/26 14:04:00 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -398,7 +398,8 @@ xoap::MessageReference EmuPeripheralCrateManager::QueryPeripheralCrateInfoSpace(
 xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   std::cout << "Get SOAP message ConfigCalCFEB " << std::endl;
-   PCsendCommand("ConfigCalCFEB","EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStop","EmuPeripheralCrateMonitor");
+  PCsendCommand("ConfigCalCFEB","EmuPeripheralCrateBroadcast");
    //
   std::cout << "SOAP message ConfigCalCFEB relayed to Broadcast" << std::endl;
 //   ::sleep(1);
@@ -440,6 +441,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageRefe
   time_t thistime = ::time(NULL);
   std::cout << "SOAP message Configure: " << ::ctime(&thistime) << std::endl;
   //
+  PCsendCommand("MonitorStop","EmuPeripheralCrateMonitor");
   PCsendCommand("Configure","EmuPeripheralCrateCommand");
   PCsendCommand("Configure","EmuPeripheralCrateBroadcast");
   //
