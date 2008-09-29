@@ -516,9 +516,17 @@ void EmuPeripheralCrateCommand::CheckControllers()
     bool cr;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-        cr = (crateVector[i]->vmeController()->SelfTest()) && (crateVector[i]->vmeController()->exist(13));
+        cr = crateVector[i]->vmeController()->SelfTest();
+        if(!cr)
+        {  std::cout << "Exclude Crate " << crateVector[i]->GetLabel()
+                     << "--Dead Controller " << std::endl;
+        }
+        else
+        {  cr=crateVector[i]->vmeController()->exist(13);
+           if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel()
+                     << "--No VME access " << std::endl;
+        }
         crateVector[i]->SetLife( cr );
-        if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
     }
     controller_checked_ = true;
 }
