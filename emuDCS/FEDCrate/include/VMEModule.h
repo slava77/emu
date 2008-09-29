@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.16 2008/09/24 18:38:38 paste Exp $
+* $Id: VMEModule.h,v 3.17 2008/09/29 08:36:26 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.17  2008/09/29 08:36:26  paste
+* Removed references to extinct JTAGDevice.h
+*
 * Revision 3.16  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -49,7 +52,6 @@
 #include "FEDException.h"
 
 #include "EmuFEDLoggable.h"
-#include "JTAGDevice.h"
 #include "JTAGElement.h"
 
 /* VMEModule is a virtual class for DCC and DDU classes.

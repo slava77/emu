@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.h,v 3.13 2008/09/24 18:38:38 paste Exp $
+* $Id: VMEController.h,v 3.14 2008/09/29 08:36:26 paste Exp $
 *
 * $Log: VMEController.h,v $
+* Revision 3.14  2008/09/29 08:36:26  paste
+* Removed references to extinct JTAGDevice.h
+*
 * Revision 3.13  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -27,7 +30,6 @@
 #include "JTAG_constants.h"
 #include "FEDException.h"
 
-#include "JTAGDevice.h"
 #include "EmuFEDLoggable.h"
 
 namespace emu {
