@@ -293,7 +293,6 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       xdata::String *status;
       unsigned long *buf4;
       unsigned short *buf2;
-
       buf2=(unsigned short *)buf;
       buf4=(unsigned long *)buf;
       if(cycle<1 || cycle>3) return;
@@ -301,21 +300,22 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       //update infospaces
       for ( unsigned int i = 0; i < crateVector.size(); i++ )
       {
+          is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
           now_crate=crateVector[i];
           if(cycle==3 && now_crate && !(now_crate->IsAlive()))
           {
-             if (!(now_crate->vmeController()->SelfTest())) 
+             bool cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
+             if(!cr)
              {   
                 now_crate->vmeController()->reset();
                 ::sleep(1);
                 vcc_reset[i] = vcc_reset[i] + 1;
+                cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
              }
-             bool cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
              now_crate->SetLife( cr );
           }
           if(now_crate && now_crate->IsAlive()) 
           {
-             is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
              if(cycle==3)
              {  
                 now_crate-> MonitorCCB(cycle, buf);
@@ -368,15 +368,15 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                 now_crate-> MonitorDCS(cycle, buf);
                 if(buf2[0])
                 {
-                   // std::cout << "DCS counters " << buf2[0] << std::endl;
+                   // std::cout << "Crate " << i << " DCS counters " << buf2[0] << std::endl;
                    xdata::Vector<xdata::Float> *dmbdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
                    if(dmbdata->size()==0)
                       for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0.);
                    for(unsigned ii=0; ii<buf2[0]; ii++)
                    {   if((ii%48)<40) 
-                          (*dmbdata)[ii] = 10.0/4096.0*buf2[ii+1];
+                          (*dmbdata)[ii] = 10.0/4096.0*buf2[ii+2];
                        else 
-                       {  float Vout= buf2[ii+1]/1000.0;
+                       {  float Vout= buf2[ii+2]/1000.0;
                           if(Vout >0. && Vout<5.0)
                               (*dmbdata)[ii] =1/(0.001049406423+0.0002133635468*log(65000.0/Vout-13000.0)+0.7522287E-7*pow(log(65000.0/Vout-13000.0),3.0))-273.15;
                           else
@@ -1277,8 +1277,8 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_TMB_COUNTERS=48, Total_Temps=8;
-  float temp_max[8]={37., 37., 37., 37., 37., 37., 38., 37.};
+  int TOTAL_TMB_COUNTERS=48, Total_Temps=6;
+  float temp_max[8]={40., 40., 40., 40., 40., 40., 40., 40.};
   float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
   float val;
 
@@ -2255,7 +2255,6 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
-  char sout[600];
   unsigned int readtime;
   unsigned short crateok;
   float val;
@@ -2275,17 +2274,17 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      if (counter16==NULL) crateok= 0; 
         else crateok = (*counter16);
 
+     *out << std::setprecision(5);
      myVector = crateVector[i]->daqmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
-        *out << " " << crateok << " " << readtime << " ";
-        bzero(sout,500);
+        *out << " " << crateok << " " << readtime;
         for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
         {  val= (*dmbdata)[k];
-           sprintf(sout,"%8.4f ", val);
+           *out << " " << val;
         }
-        *out << sout << std::endl;
+        *out << std::endl;
      }
   }
 
@@ -2715,10 +2714,18 @@ void EmuPeripheralCrateMonitor::CheckControllers()
     bool cr;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-        cr = (crateVector[i]->vmeController()->SelfTest()) && (crateVector[i]->vmeController()->exist(13));
+       cr = crateVector[i]->vmeController()->SelfTest();
+        if(!cr)
+        {  std::cout << "Exclude Crate " << crateVector[i]->GetLabel()
+                     << "--Dead Controller " << std::endl;
+        }
+        else
+        {  cr=crateVector[i]->vmeController()->exist(13);
+           if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel()
+                     << "--No VME access " << std::endl;
+        }
         crateVector[i]->SetLife( cr );
-        if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() << std::endl;
-    }
+      }
     controller_checked_ = true;
 }
 
