@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.53 2008/08/13 11:30:53 geurts Exp $
+// $Id: TMB.h,v 3.54 2008/09/30 14:27:07 liu Exp $
 // $Log: TMB.h,v $
+// Revision 3.54  2008/09/30 14:27:07  liu
+// read ALCT temperature in monitoring
+//
 // Revision 3.53  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -1491,6 +1494,7 @@ public:
   //
   int ConvertToHexAscii(int value_to_convert); /// convert the argument to its "hex-ascii" value:  i.e.  2007 -> 0x2007
   //
+  int TMB::DCSreadAll(char *data); /// read out all DCS values (Temperatures and LVs)
   //
   FILE *pfile;
   int ucla_ldev;
