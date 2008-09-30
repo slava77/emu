@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.26 2008/09/30 09:17:14 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.27 2008/09/30 21:45:00 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.27  2008/09/30 21:45:00  paste
+* Fixed a bug where single errors could be mistaken as multiple IRQs.
+*
 * Revision 3.26  2008/09/30 09:17:14  paste
 * Removed debugging statements in IRQThreadManager
 *
@@ -396,7 +399,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		LOG4CPLUS_INFO(logger, "Logging DDUFPGA diagnostic trap information:" << std::endl << trapStream.str());
 
 		// Record the error in an accessable history of errors.
-		lastError[myDDU] = cscStatus;
+		lastError[myDDU] = (cscStatus | advStatus);
 		IRQError *myError = new IRQError(myCrate, myDDU);
 		myError->fibers = xorStatus;
 		
