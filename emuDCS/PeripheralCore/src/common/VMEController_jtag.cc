@@ -1152,7 +1152,7 @@ void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ir
 
  //
    if (DEBUG) {
-      printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
+      printf("scan_jtag: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
    }
 
    //  reg=0: instruction
@@ -1283,7 +1283,7 @@ void VMEController::RestoreIdle_jtag()
   ptr=(unsigned short int *)add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   //
-  std::cout << "ptr="<<ptr<< " pvme= " <<pvme<< std::endl;
+  // std::cout << "ptr="<<ptr<< " pvme= " <<pvme<< std::endl;
   //
   d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;
   

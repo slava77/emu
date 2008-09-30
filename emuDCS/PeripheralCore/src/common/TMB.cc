@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.74 2008/08/13 11:30:54 geurts Exp $
+// $Id: TMB.cc,v 3.75 2008/09/30 14:27:07 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.75  2008/09/30 14:27:07  liu
+// read ALCT temperature in monitoring
+//
 // Revision 3.74  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -8365,6 +8368,33 @@ int TMB::GetHotChannelDistripFromMap_(unsigned long int vme_address, int bit_in_
     //
   } 
   return -999;
+}
+//
+int TMB::DCSreadAll(char *data) 
+{
+  char out[2];
+  unsigned short tt, tr;
+
+  start(6,1);
+  // RestoreIdle();
+  // send out register number
+  out[0]=0x12;
+  out[1]=0;
+  scan(0, out, 6, (char *)&tt, 0);
+  // read in value
+  out[0]=0x5;
+  out[1]=0;
+  scan(1, out, 11, (char *)&tt, 1);
+  // tt is LSB, now convert to 11bit MSB
+  tr=0;
+  for(int i=0;i<10;i++)
+  {   tr |= (tt & 1);
+      tr <<= 1;
+      tt >>= 1;
+  } 
+  tr |= (tt & 1);
+  memcpy(data, &tr, 2);
+  return 2;
 }
 //
 

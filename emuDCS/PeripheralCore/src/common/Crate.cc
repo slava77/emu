@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.45 2008/09/21 18:26:15 liu Exp $
+// $Id: Crate.cc,v 3.46 2008/09/30 14:27:07 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.46  2008/09/30 14:27:07  liu
+// read ALCT temperature in monitoring
+//
 // Revision 3.45  2008/09/21 18:26:15  liu
 // monitoring update
 //
@@ -586,10 +589,14 @@ void Crate::MonitorDCS(int cycle, char * buf)
   for(int i=0; i<= TOTAL_DCS_COUNTERS*9; i++) buf2[i]=0;
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
+  std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
     if(IsAlive())
-       rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
+    {  
+        rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
        // if ( rn<0 ) error condition
+        rn=myTmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS+46*2);
+    }
   }
   *buf2 = (TOTAL_DCS_COUNTERS)*9;
   return;
