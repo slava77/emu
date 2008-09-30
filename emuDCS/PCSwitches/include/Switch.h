@@ -25,7 +25,6 @@ class Switch
   public:
 
     // switch stuff
-    int init;
     std::string sidelabel;
     int link[4];   
 

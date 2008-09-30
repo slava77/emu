@@ -14,12 +14,9 @@ namespace emu{
   Switch::Switch() { }
 
   void Switch::initialize() {
-    //cern switch addresses
-   
     std::cout << " Entered Switch Instantiation " << std::endl;
     std::cout << "Hostname is: " << toolbox::net::getHostName() << std::endl;
     std::cout << " Choosing " << sidelabel << " side chambers " << std::endl;
-    init=0;
     fill_expected_mac_table();
     printf(" leave instantiation \n");
   }  
@@ -142,6 +139,7 @@ namespace emu{
       int ierr;
       if(toolbox::net::getHostName() != "emucom02.cern.ch") ierr=unlink(tmp.c_str());
     }
+    copy_stats_new2old();
   }
 
   void Switch::fill_switch_macs(std::string switchTelnet) {
@@ -162,6 +160,7 @@ namespace emu{
       parse_mac(swt);
       if(toolbox::net::getHostName()  != "emucom02.cern.ch") ierr=system("rm /tmp/switch_mac.dat");
     }
+    copy_stats_new2old();
   }
     
   void Switch::fill_pc_statistics() {  
@@ -176,6 +175,7 @@ namespace emu{
     ierr=system(command.c_str());
     parser_pc(1);
     ierr=unlink("out.lis");
+    copy_stats_new2old();
   }
 
   void Switch::fill_ping(std::string switchTelnet){ 
@@ -206,26 +206,11 @@ namespace emu{
       fclose(file);
       if(toolbox::net::getHostName() != "emucom02.cern.ch") unlink(tmp.c_str());
     }
+    copy_stats_new2old();
   }
 
 // parse commands
-/*
-  void Switch::parse_status(int swtch,int prt){
-    char line[128];
-    FILE *file;
-    int i;
-    std::string tmp;
-    tmp = "/tmp/switch_status" + ip_addresses[swtch].ipaddr + ".dat";
-    file=fopen(tmp.c_str(),"r");
-    for(i=0;i<6;i++)
-      fgets(line,128,file);
-    fill_char(sw[swtch][prt].port,line,0,4);
-    fill_char(sw[swtch][prt].media,line,8,6);
-    fill_char(sw[swtch][prt].link,line,49,4);
-//    printf("port=%s, media=%s, link=%s, line=%s\n", sw[swtch][prt].port,sw[swtch][prt].media,sw[swtch][prt].link, line);
-    fclose(file);
-  }
- */   
+
   void Switch::parse_status_all(int swtch){
     char line[128];
     FILE *file;
@@ -251,47 +236,8 @@ namespace emu{
       }
     } 
     fclose(file);
-}
-/*    
-  void Switch::parse_interface(int swtch,int prt){
-    char line[128];
-    FILE *file;
-    int i;
-    char tmp[100];
-    sprintf(tmp,"/tmp/switch_interface%s.dat", ip_addresses[swtch].ipaddr.c_str());
-    file=fopen(tmp,"r");
-    for(i=0;i<9;i++) {
-      fgets(line,128,file);
-      // printf(" %s \n",line);
-      fill_char((char *) tmp,line,47,15);
-      if(i==3) {
-        sscanf(tmp,"%d",&sw[swtch][prt].rx);
-        printf(" rx %d \n",sw[swtch][prt].rx);
-      }
-      if(i==4) {
-        sscanf(tmp,"%d",&sw[swtch][prt].rx_error);
-        printf(" rx_error %d \n",sw[swtch][prt].rx_error);
-      }
-      if(i==5) {
-        sscanf(tmp,"%d",&sw[swtch][prt].rx_broad);
-        printf(" rx_broad %d \n",sw[swtch][prt].rx_broad);
-      }
-      if(i==6) {
-        sscanf(tmp,"%d",&sw[swtch][prt].tx);
-        printf(" tx %d \n",sw[swtch][prt].tx);
-      }
-      if(i==7) {
-        sscanf(tmp,"%d",&sw[swtch][prt].tx_error);
-        printf(" tx_error %d \n",sw[swtch][prt].tx_error);
-      }
-      if(i==8) {
-        sscanf(tmp,"%d",&sw[swtch][prt].collision);
-        printf(" collision %d \n",sw[swtch][prt].collision);
-      }
-    }
-    fclose(file);
   }
-*/
+
   void Switch::parse_interface_all(int swtch){
     char line[128];
     FILE *file;
@@ -312,27 +258,21 @@ namespace emu{
         fill_char(tmp,line,47,15);
         if(i==3) {
           sscanf(tmp,"%d",&sw[swtch][prt].rx);
-//          printf(" rx %d \n",sw[swtch][prt].rx);
         }
         if(i==4){
           sscanf(tmp,"%d",&sw[swtch][prt].rx_error);
-//          printf(" rx_error %d \n",sw[swtch][prt].rx_error);
         }
         if(i==5){
           sscanf(tmp,"%d",&sw[swtch][prt].rx_broad);
-//          printf(" rx_broad %d \n",sw[swtch][prt].rx_broad);
         }
         if(i==6){
           sscanf(tmp,"%d",&sw[swtch][prt].tx);
-//          printf(" tx %d \n",sw[swtch][prt].tx);
         }
         if(i==7){
           sscanf(tmp,"%d",&sw[swtch][prt].tx_error);
-//          printf(" tx_error %d \n",sw[swtch][prt].tx_error);
         }
         if(i==8){
           sscanf(tmp,"%d",&sw[swtch][prt].collision);
-//          printf(" collision %d \n",sw[swtch][prt].collision);
         }
       }
     }
@@ -358,12 +298,10 @@ namespace emu{
       if(line[2]==':'){
         fill_char(mac,line,0,17);
         fill_char(port,line,30,5);
-        printf("mac=%s,port=%s,line=%s, switch=%d\n", mac, port, line, swtch);
         sscanf(port,"%d",&prt);
         fill_char(sw[swtch][prt-1].vlan,line,39,1);
         fill_char(status,line,48,10);
         n=sw[swtch][prt-1].nmacs;
-        // if(sw[swtch][prt-1].mac[n].mac==NULL)sw[swtch][prt-1].mac[n].mac=(char *)malloc(19);
         if(n<MAX_MACS&&prt<13){
           sw[swtch][prt-1].mac[n].mac=mac;
           sw[swtch][prt-1].mac[n].status=status;
@@ -383,21 +321,15 @@ namespace emu{
     int i;
     file=fopen("out.lis","r");
     fgets(line,500,file);
-    // printf(" line %s \n",line);
+
     for(i=7;i<500;i++)line2[i-7]=line[i];
     sscanf(line2,"%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld ",&eth[ieth].rx_bytes,&eth[ieth].rx,&eth[ieth].rx_err,&eth[ieth].rx_drop,&eth[ieth].rx_fifo,&eth[ieth].rx_frame,&eth[ieth].rx_compressed,&eth[ieth].rx_multicast,&eth[ieth].tx_bytes,&eth[ieth].tx,&eth[ieth].tx_err,&eth[ieth].tx_drop,&eth[ieth].tx_fifo,&eth[ieth].tx_colls,&eth[ieth].tx_carrier,&eth[ieth].tx_compressed);
     fclose(file);
   }
     
-
   std::string Switch::html_mac_table() {
     char strbuf[500];
     std::cout << " enter mac " << std::endl;
-    int i,j,k;
-    for(i=0;i<4;i++)
-      for(j=0;j<12;j++)
-	for(k=0;k<30;k++)
-          printf("i=%d,j=%d,k=%d,%s,%s,%s,%d,%d,%s\n",i,j,k,sw[i][j].port, sw[i][j].media, sw[i][j].link,sw[i][j].nmacs,sw[i][j].nmacs_expected,sw[i][j].mac_expected[k].mac.c_str());
     std::string rtns="";
     sprintf(strbuf,"<table cellpadding=6 rules=groups frame=box>");
     rtns=rtns+strbuf;
@@ -435,14 +367,12 @@ namespace emu{
 	  else
 	    colstat="";
           int slt=0;
-          if(i==0) {
+//          if(i==0) {
             first=1;
             sprintf(strbuf,"<tr><td>%d</td><td>%d/%d</td><td %s>%s</td><td>%s</td><td %s>%s</td><td %s>%s</td></tr> \n",swt+1,slt,prt+1,colvlan,sw[swt][prt].vlan,chmbr.c_str(),colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
-            printf("swt+1=%d slt=%d/prt+1=%d colvlan=%s sw[swt][prt].vlan=%s chmbr=%s colmac=%s sw[swt][prt].mac[i].mac.c_str()=%s colstat=%s sw[swt][prt].mac[i].status.c_str()=%s\n",swt+1,slt,prt+1,colvlan,sw[swt][prt].vlan,chmbr.c_str(),colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
-          } else {
-            sprintf(strbuf,"<tr><td></td><td></td><td></td><td></td><td %s>%s</td><td %s>%s</td></tr> \n",colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
-            printf(" colmac=%s ,sw[swt][prt].mac[i].mac.c_str()=%s colstat=%s sw[swt][prt].mac[i].status.c_str()=%s\n",colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
-          }
+//          } else {
+//            sprintf(strbuf,"<tr><td></td><td></td><td></td><td></td><td %s>%s</td><td %s>%s</td></tr> \n",colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
+//          }
           rtns=rtns+strbuf;
         }
         colvlan=" bgcolor=\"orange\"";colmac=" bgcolor=\"orange\"";colstat=" bgcolor=\"orange\"";
@@ -456,8 +386,9 @@ namespace emu{
           }
           if(ipass==0){
             int slt=0;
-            if(first==0)sprintf(strbuf,"<tr><td>%d</td><td>%d/%d</td><td %s>%s</td><td>%s</td><td %s>%s</td><td %s>Missing</td></tr> \n",swt,slt,prt+1,colvlan,sw[swt][prt].vlan,chmbr.c_str(),colmac,sw[swt][prt].mac_expected[i].mac.c_str(),colstat);
-            if(first==1)sprintf(strbuf,"<tr><td></td><td></td><td></td><td></td><td %s>%s</td><td %s>Missing</td></tr> \n",colmac,sw[swt][prt].mac_expected[i].mac.c_str(),colstat);
+//            if(first==0)sprintf(strbuf,"<tr><td>%d</td><td>%d/%d</td><td %s>%s</td><td>%s</td><td %s>%s</td><td %s>Missing</td></tr> \n",swt,slt,prt+1,colvlan,sw[swt][prt].vlan,chmbr.c_str(),colmac,sw[swt][prt].mac_expected[i].mac.c_str(),colstat);
+            sprintf(strbuf,"<tr><td>%d</td><td>%d/%d</td><td %s>%s</td><td>%s</td><td %s>%s</td><td %s>Missing</td></tr> \n",swt,slt,prt+1,colvlan,sw[swt][prt].vlan,chmbr.c_str(),colmac,sw[swt][prt].mac_expected[i].mac.c_str(),colstat);
+//            if(first==1)sprintf(strbuf,"<tr><td></td><td></td><td></td><td></td><td %s>%s</td><td %s>Missing</td></tr> \n",colmac,sw[swt][prt].mac_expected[i].mac.c_str(),colstat);
             first=1;
             rtns=rtns+strbuf;
           }
@@ -497,7 +428,6 @@ std::string Switch::html_pc_status(){
       if(swt!=3)symb="& ";
       command = switchTelnet + " " + ip_addresses[swt].ipaddr + " problems >& /tmp/problems" + ip_addresses[swt].ipaddr + ".dat" + symb;
       std::cout << swt << " " << command << std::endl;
-      //  printf("%d  %s \n",swt,command);
       int ierr;
       if(toolbox::net::getHostName() != "emucom02.cern.ch")
         ierr=system(command.c_str());
@@ -531,26 +461,21 @@ std::string Switch::html_pc_status(){
     sprintf(temp,"/tmp/problems%s.dat",ip_addresses[swtch-1].ipaddr.c_str());
     printf("%s\n", temp);
     file=fopen(temp,"r");
-    // printf(" file opened \n"); 
     for(i=0;i<924;i++){
       il=i%77;
       fgets(line,256,file);
-      // printf(" %d %s ",il,line);
       if(il==0){
         ntline=0;
         k=0;
         if(i>76)k=11;
         fill_char(num,line,26+k,2);
-        //printf(" num %s \n",num);
         sscanf(num,"%d",&port);
       }
       for(j=0;j<ninteresting_lines;j++){
         if(il==interesting_lines[j]){
           fill_char(num,line,48,10);
-          //printf("%d %d %s %s ",i,il,line,num);
           fill_name(name,line);
           sscanf(num,"%d",&n);
-          //printf("-> %d %s %d\n",ntline,name,n);
           if(n!=0){
             for(g=0;g<50;g++)tline[ntline][g]=name[g];
             tn[ntline]=n;
@@ -593,7 +518,7 @@ std::string Switch::html_pc_status(){
     rtns=rtns+strbuf;
     sprintf(strbuf,"<thead> \n <tr><th>crate</th><th>switch</th><th>port</th><th>link</th><th>rx</th><th>rx_error</th><th>tx</th><th>tx_error</th></tr> \n </tr> \n <tbody> \n");
     rtns=rtns+strbuf;
-    for(crate=0;crate<43;crate++){
+    for(crate=0;crate<49;crate++){
       swt=side[crate].nswitch;
       prt=side[crate].nport;
       slt=side[crate].vlan;
@@ -620,9 +545,7 @@ std::string Switch::html_pc_status(){
     rtns=rtns+strbuf;
     char ballimg[4][128];
     for(int j=0;j<4;j++){
-      //  sprintf(ballimg[j],"<img src=\"/tmp/redball.gif\" style=\"center:\"/>");
       sprintf(ballimg[j],"<font color=\"red\">OFF</font>");
-      //  if(link[j]==1)sprintf(ballimg[j],"<img src=\"/tmp/grnball.gif\" style=\"center:\"/>");
       if(link[j]==1)sprintf(ballimg[j],"<font color=\"green\">ON</font>");
     } 
     sprintf(strbuf,"<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n",ballimg[0],ballimg[1],ballimg[2],ballimg[3]);
@@ -641,7 +564,6 @@ std::string Switch::html_pc_status(){
     for(i=first;i<first+length;i++)
       var[i-first]=line[i];
     var[length]='\0';
-//    printf("fill_char: <!!!!>%s<!!!!>%s<!!!!>\n", var, line);
   }
 
   void Switch::fill_name(char *var, char *line){
@@ -662,50 +584,6 @@ std::string Switch::html_pc_status(){
     var[j]='\0';
   }
 
-/* 
-  void Switch::fill_expected_mac_table(){
-    std::cout << " enter fill_expected_mac_table" << std::endl;
-      // initialization
-    for(int swt=0;swt<4;swt++){
-      for(int prt=0;prt<12;prt++){
-        sw[swt][prt].nmacs_expected=0;
-      }
-    }
-    int i;  
-    for(i=0;i<37;i++){
-      int swt=side[i].nswitch-1;
-      int prt=side[i].nport-1;
-      int n=sw[swt][prt].nmacs_expected;
-      if(prt!=12) {
-        sw[swt][prt].mac_expected[n].mac=side[i].pmac.mac;
-        std::cout << " from 0 to 37: Switch" << swt+1 << " " << prt << " " << sw[swt][prt].mac_expected[n].mac << std::endl;
-        n++;
-      }
-      sw[swt][prt].nmacs_expected=n;
-    }
-    // now primary switch transfers
-    for(int i=37;i<49;i++){
-      char tmp[3];
-      tmp[0]=side[i].name[8];tmp[1]=side[i].name[9];tmp[3]='\0';
-      int swt;
-      sscanf(tmp,"%d",&swt);
-//      printf(" swt %d, name %s \n",swt, side[i].name.c_str());
-      for(int j=0;j<37;j++){
-        if(side[j].nswitch==swt&&(side[j].vlan==side[i].vlan||(side[j].vlan==0&&(i<40||i>42))||(j<3))){
-//          int swt=side[i].nswitch-1;
-          int prt=side[i].nport-1;
-          int n=sw[swt][prt].nmacs_expected;
-          sw[swt][prt].mac_expected[n].mac=side[j].pmac.mac;
-          std::cout << " from 37 to 49: " << swt << " " << prt << " " << sw[swt][prt].mac_expected[n].mac << side[j].pmac.mac << std::endl;
-          n=n+1;
-          sw[swt][prt].nmacs_expected=n;
-        }
-      }
-    }
-    dump_expected_macs();
-  }
-*/    
-
   void Switch::fill_expected_mac_table(){
     std::cout << " enter fill_expected_mac_table" << std::endl;
     // initialization
@@ -723,22 +601,7 @@ std::string Switch::html_pc_status(){
       n++;
       sw[swt][prt].nmacs_expected=n;
     }
-/*
-    for(int i=37;i<49;i++){
-//      printf(" swt %d, name %s \n",swt, side[i].name.c_str());
-      for(int j=0;j<37;j++){
-        if(side[j].nswitch==swt&&(side[j].vlan==side[i].vlan||(side[j].vlan==0&&(i<40||i>42))||(j<3))){
-//          int swt=side[i].nswitch-1;
-          int prt=side[i].nport-1;
-          int n=sw[swt][prt].nmacs_expected;
-          sw[swt][prt].mac_expected[n].mac=side[j].pmac.mac;
-          std::cout << " from 37 to 49: " << swt << " " << prt << " " << sw[swt][prt].mac_expected[n].mac << side[j].pmac.mac << std::endl;
-          n=n+1;
-          sw[swt][prt].nmacs_expected=n;
-        }
-      }
-    }
-*/
+
     // now primary switch transfers
     for(int i=37;i<43;i++){
       char tmp[3];
@@ -766,10 +629,8 @@ std::string Switch::html_pc_status(){
       std::cout << "Switch" <<swt+1<<std::endl;
       for(int prt=0;prt<12;prt++){
         int n=sw[swt][prt].nmacs_expected;
-        for(int m=0;m<n;m++){
-//          std::cout << swt+1 << " " << prt+1 << " " << sw[swt][prt].nmacs_expected << std::endl;
+        for(int m=0;m<n;m++)
           std::cout << swt+1 << " " << prt+1 << " " << sw[swt][prt].mac_expected[m].mac << std::endl;
-        }
       }
     }
   }
@@ -844,7 +705,6 @@ std::string Switch::html_pc_status(){
       testpl <<side[s[i]].nport;
       testpl >> command;
       command += " > /tmp/error.dat"; 
-      //sprintf(command,"/nfshome0/cscpro/TriDAS/emu/emuDCS/PeripheralApps/xml/test.pl 192.168.10.1%02d %d > /tmp/error.dat",side[s[i]].nswitch,side[s[i]].nport);
       std::cout << command << std::endl;
       int ierr;
       if(toolbox::net::getHostName() != "emucom02.cern.ch")

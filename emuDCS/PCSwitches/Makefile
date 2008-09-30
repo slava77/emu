@@ -14,6 +14,7 @@ Package=emuDCS/PCSwitches
 
 Sources=\
 	SwitchGUI.cc \
+        XMLParser.cc \
 	Switch.cc
 	
 
