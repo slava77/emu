@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.45 2008/09/24 18:38:38 paste Exp $
+* $Id: EmuFCrate.cc,v 3.46 2008/09/30 08:32:40 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.46  2008/09/30 08:32:40  paste
+* Updated IRQ Threads so that the endcap name is mentioned in the log filename
+*
 * Revision 3.45  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -172,7 +175,7 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 
 	// PGK is an idiot.  Forgetting this leads to disasters.
-	TM = new emu::fed::IRQThreadManager();
+	TM = new emu::fed::IRQThreadManager(endcap_);
 
 }
 
@@ -678,7 +681,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 
 	// PGK You have to wipe the thread manager and start over.
 	delete TM;
-	TM = new emu::fed::IRQThreadManager();
+	TM = new emu::fed::IRQThreadManager(endcap_);
 	for (unsigned int i=0; i<crateVector.size(); i++) {
 		if (crateVector[i]->number() > 4) continue;
 		TM->attachCrate(crateVector[i]);

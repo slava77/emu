@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.24 2008/09/24 18:38:38 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.25 2008/09/30 08:32:40 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.25  2008/09/30 08:32:40  paste
+* Updated IRQ Threads so that the endcap name is mentioned in the log filename
+*
 * Revision 3.24  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -58,7 +61,10 @@
 #include "CAENVMEtypes.h"
 
 
-emu::fed::IRQThreadManager::IRQThreadManager() {
+
+emu::fed::IRQThreadManager::IRQThreadManager(std::string myEndcap = ""):
+	endcap_(myEndcap)
+{
 	data_ = new IRQData();
 	threadVector_.clear();
 }
@@ -97,9 +103,9 @@ void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber) {
 	std::stringstream fileName;
 	time_t theTime = time(NULL);
 
-	// log file format: EmuFMMThread_Crate#_YYYYMMDD-hhmmss_rRUNNUMBER.log
+	// log file format: EmuFMMThread_(EndcapName_)YYYYMMDD-hhmmss_rRUNNUMBER.log
 	strftime(datebuf, sizeof(datebuf), "%Y%m%d-%H%M%S", localtime(&theTime));
-	fileName << "EmuFMMThread_" << datebuf << "_r" << std::setw(5) << std::setfill('0') << std::dec << runNumber;
+	fileName << "EmuFMMThread_" << (endcap_ != "" ? endcap_ + "_" : "") << datebuf << "_r" << std::setw(5) << std::setfill('0') << std::dec << runNumber;
 	//sprintf(filebuf,"EmuFMMThread_%s_r%05u.log",datebuf,(unsigned int) runNumber);
 
 	log4cplus::SharedAppenderPtr myAppend = new log4cplus::FileAppender(fileName.str().c_str());
