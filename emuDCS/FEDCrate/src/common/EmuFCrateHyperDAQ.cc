@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.50 2008/09/24 18:38:38 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.51 2008/09/30 08:12:24 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.51  2008/09/30 08:12:24  paste
+* Fixed a bug in DDU and DCC Expert Controls
+*
 * Revision 3.50  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -2288,118 +2291,6 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
 }
 
 
-/// @note There should be a more expert function that handles these sorts of things.
-/// @Deprecated Use DDUExpert functions instead
-/*
-void EmuFCrateHyperDAQ::DDUBrcstFED(xgi::Input *in, xgi::Output *out)
-	throw (xgi::exception::Exception) {
-	try {
-		Cgicc cgi(in);
-
-		printf(" entered DDUBcstFED \n");
-		int broadcastddu;
-		for (unsigned int i=0; i<dduVector.size(); i++) {
-			if (dduVector[i]->slot() > 21) broadcastddu = i;
-		}
-		printf("   dduVectorSize=%d, broadcastDDU indexID=%d\n",dduVector.size(),broadcastddu);
-		thisDDU = dduVector[broadcastddu];
-		thisDDU->vmepara_wr_fmmreg(0xFED8);
-		// This is a better way to reload the main page, I think.
-		//std::ostringstream backLocation;
-		//backLocation << "mainPage?crate=" << cgiCrate;
-		//webRedirect(out,backLocation.str());
-		webRedirect(out,"mainPage");
-		//mainPage(in,out);
-
-	} catch (const std::exception & e ) {
-		printf(" exception raised in DDUBrcstFED \n");
-		//XECPT_RAISE(xgi::exception::Exception, e.what());
-	}
-
-}
-*/
-
-/// @note Try to merge this with the broadcast method.
-/// @Deprecated User DDUFirmware functions instead
-/*
-void EmuFCrateHyperDAQ::DDULoadFirmware(xgi::Input * in, xgi::Output * out )
-	throw (xgi::exception::Exception)
-{
-
-	cgicc::Cgicc cgi(in);
-
-	cgicc::form_iterator name = cgi.getElement("ddu");
-
-	int ddu = 0;
-	if(name != cgi.getElements().end()) {
-		ddu = cgi["ddu"]->getIntegerValue();
-		std::cout << "DDU " << ddu << std::endl;
-	}
-	int prom;
-	cgicc::form_iterator name2 = cgi.getElement("prom");
-	//
-	if(name2 != cgi.getElements().end()) {
-		prom = cgi["prom"]->getIntegerValue();
-		if(prom==13)prom=9;   // JG, special Broadcast case for VMEPROM...
-		if(prom>=10)prom-=10; //  ...now remove the "10+" flag for all cases.
-		std::cout << "PROM " << prom << std::endl;
-	}
-	//
-	thisDDU = dduVector[ddu];
-	//
-	//
-	std::cout << "UploadConfFileUpload" << std::endl;
-	//
-
-
-	cgicc::const_file_iterator file = cgi.getFile("DDULoadSVF");
-	//std::string XMLname = (*file).getFilename();
-	// std::cout <<"SVF FILE: " << XMLname  << std::endl ;
-
-
-	//
-	std::cout << "GetFiles" << std::endl ;
-	//
-
-	if(file != cgi.getFiles().end()) {
-		std::ofstream TextFile ;
-		TextFile.open("MySVFFile.svf");
-		(*file).writeToStream(TextFile);
-		TextFile.close();
-	}
-	char buf[400];
-	FILE *dwnfp;
-	dwnfp    = fopen("MySVFFile.svf","r");
-	printf("ready to download PROM %d \n",prom);
-	while (fgets(buf,256,dwnfp) != NULL)printf("%s",buf);
-	fclose(dwnfp);
-	printf(" I am done so prom wont be called %d \n",prom);
-
-	char *cbrdnum;
-	cbrdnum=(char*)malloc(5);
-	cbrdnum[0]=0x00;cbrdnum[1]=0x00;cbrdnum[2]=0x00;cbrdnum[3]=0x00;
-	if(prom==6)thisDDU->epromload("INPROM0",INPROM0,"MySVFFile.svf",1,cbrdnum);
-	if(prom==7)thisDDU->epromload("INPROM1",INPROM1,"MySVFFile.svf",1,cbrdnum);
-	//if(prom==3)thisDDU->epromload("RESET",RESET,"MySVFFile.svf",1,cbrdnum);
-	// DEBUG What happens here?
-	if(prom==3)thisDDU->epromload("VMEPROM",VMEPROM,"MySVFFile.svf",1,cbrdnum);
-	if(prom==9)thisDDU->epromload("VMEPROM",VMEPROM,"MySVFFile.svf",1,cbrdnum);
-	if(prom==4||prom==5){
-		int brdnum=thisDDU->read_page3();
-		cbrdnum[0]=brdnum;
-	}
-	if(prom==4)thisDDU->epromload("DDUPROM0",DDUPROM0,"MySVFFile.svf",1,cbrdnum);
-	if(prom==5)thisDDU->epromload("DDUPROM1",DDUPROM1,"MySVFFile.svf",1,cbrdnum);
-	free(cbrdnum);
-	in=NULL;
-	//std::ostringstream backLocation;
-	//backLocation << "DDUFirmware?crate=" << cgiCrate << "&board=" << cgiDDU;
-	//webRedirect(out,backLocation.str());
-	this->DDUFirmware(in,out);
-	// this->Default(in,out);
-}
-*/
-
 
 void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
@@ -3909,7 +3800,7 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","3") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","ddu")
+		.set("name","board")
 		.set("value",dduVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6504,7 +6395,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","3") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
