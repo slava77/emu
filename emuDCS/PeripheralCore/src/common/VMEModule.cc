@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.20 2008/08/13 11:30:54 geurts Exp $
+// $Id: VMEModule.cc,v 3.21 2008/09/30 14:26:03 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.21  2008/09/30 14:26:03  liu
+// remove EMU_JTAG_constants from VMEModule
+//
 // Revision 3.20  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -154,7 +157,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h> // read and write
-#include "EMU_JTAG_constants.h"
+// #include "EMU_JTAG_constants.h"
 
 #ifndef debugV //silent mode
 #define PRINT(x) 
@@ -258,7 +261,7 @@ void VMEModule::RestoreReset() {
 void VMEModule::SetupJtag() {
   //
   if(boardType()==TMB_ENUM){
-    if ( JtagSource_ == jtagSourceFPGA ) {
+    if ( JtagSource_ ) {
       theController->SetupJtagBaseAddress(0x10);
     }else {
       theController->SetupJtagBaseAddress(0x70000);
