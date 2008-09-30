@@ -1049,10 +1049,15 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-//  int TOTAL_TMB_COUNTERS=48, Total_Temps=8;
-//  float temp_max[8]={37., 37., 37., 37., 37., 37., 38., 37.};
-//  float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
-//  float val;
+  int TOTAL_TMB_COUNTERS=48;
+  float temp_max[8]={40., 40., 40., 40., 40., 40., 40., 40.};
+  float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
+  float cv_max[3]={3.5, 5.4, 6.5};
+  float cv_min[3]={3.1, 4.6, 5.5};
+  float av_max[4]={3.5, 2.0, 6.0, 6.0};
+  float av_min[4]={3.1, 1.6, 5.0, 5.0};
+  float val;
+  int cfebs=5;
 
   if(!Monitor_Ready_) return;
   //
@@ -1068,14 +1073,20 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   Page=cgiEnvi.getQueryString();
   std::string cham_name=Page.substr(0,Page.find("=", 0) );
   std::vector<emu::pc::DAQMB*> myVector;
-  int mycrate=0;
+  int mycrate=0, mychamb=0;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
-     if(cham_name==crateVector[i]->GetLabel())
-     {  myVector = crateVector[i]->daqmbs();
-        mycrate = i;
+     myVector = crateVector[i]->daqmbs();
+     for ( unsigned int j = 0; j < myVector.size(); j++ )
+     {
+       if(cham_name==crateVector[i]->GetChamber(myVector[j])->GetLabel())
+       {  mycrate = i;
+          mychamb = j;
+       }
      }
   }
+  // chamber 1/3 have only 4 CFEBs
+  if(cham_name.substr(3,3)=="1/3") cfebs=4;
   *out << cgicc::b("Chamber: "+ cham_name) << std::endl;
   if(Monitor_On_)
   {
@@ -1087,13 +1098,110 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
 
-  *out << cgicc::br() << cgicc::b("<center> Low Voltages and Temperatures </center>") << std::endl;
+  xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
 
-  *out << cgicc::span().set("style","color:red");
-  *out << cgicc::br() << cgicc::b("<center> Coming soon...Please use Crate View for now... </center>") << std::endl;
-  *out << cgicc::span();
+  xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
+  if(dcsdata==NULL || dcsdata->size()==0) return;
 
-   
+  *out << cgicc::br() << cgicc::b("<center> Low Voltages and Currents </center>") << std::endl;
+
+  // CFEBs
+  *out << cgicc::table().set("border","1").set("align","center");
+  //
+  *out <<cgicc::td() << cgicc::td();
+  *out <<cgicc::td() << "3.3V" << cgicc::td();
+  *out <<cgicc::td() << "I" << cgicc::td();
+  *out <<cgicc::td() << "5V" << cgicc::td();
+  *out <<cgicc::td() << "I" << cgicc::td();
+  *out <<cgicc::td() << "6V" << cgicc::td();
+  *out <<cgicc::td() << "I" << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+
+  for(int feb=0; feb<cfebs; feb++)
+  {
+     *out <<cgicc::td() << "CFEB " << feb+1 << cgicc::td();
+     for(int cnt=0; cnt<3; cnt++)
+     {
+        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+19+3*feb+cnt];
+        *out << cgicc::td();
+        if(val<0.)    
+           *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+        else if(val > cv_max[cnt] || val < cv_min[cnt])
+           *out << cgicc::span().set("style","color:red") << val << cgicc::span();
+        else 
+           *out << val;  
+        *out << cgicc::td();
+        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+3*feb+cnt];
+        *out <<cgicc::td() << val << cgicc::td();
+     }
+     *out << cgicc::tr() << std::endl;
+  }
+  *out << cgicc::table() << cgicc::br() << std::endl;
+
+  // ALCT
+  *out << cgicc::table().set("border","1").set("align","center");
+  //
+  *out <<cgicc::td() << cgicc::td();
+  *out <<cgicc::td() << "3.3V" << cgicc::td();
+  *out <<cgicc::td() << "I" << cgicc::td();
+  *out <<cgicc::td() << "1.8V" << cgicc::td();
+  *out <<cgicc::td() << "I" << cgicc::td();
+  *out <<cgicc::td() << "5.5V B" << cgicc::td();
+  *out <<cgicc::td() << "I" << cgicc::td();
+  *out <<cgicc::td() << "5.5V A" << cgicc::td();
+  *out <<cgicc::td() << "I" << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+
+     *out <<cgicc::td() << "ALCT" << cgicc::td();
+     for(int cnt=0; cnt<4; cnt++)
+     {
+        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+19+15+cnt];
+        *out <<cgicc::td();
+        if(val<0.)    
+           *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+        else if(val > av_max[cnt] || val < av_min[cnt])
+           *out << cgicc::span().set("style","color:red") << val << cgicc::span();
+        else 
+           *out << val;  
+        *out << cgicc::td();
+        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+15+cnt];
+        *out <<cgicc::td() << val << cgicc::td();
+     }
+     *out << cgicc::tr() << std::endl;
+
+  *out << cgicc::table() << cgicc::br() << cgicc::hr()<< std::endl;
+
+  // TEMPs
+  *out << cgicc::br() << cgicc::b("<center> Temperatures (C)</center>") << std::endl;
+  *out << cgicc::table().set("border","1").set("align","center");
+  //
+  *out <<cgicc::td() << cgicc::td();
+  *out <<cgicc::td() << "DMB" << cgicc::td();
+  *out <<cgicc::td() << "CFEB 1" << cgicc::td();
+  *out <<cgicc::td() << "CFEB 2" << cgicc::td();
+  *out <<cgicc::td() << "CFEB 3" << cgicc::td();
+  *out <<cgicc::td() << "CFEB 4" << cgicc::td();
+  if(cfebs==5) *out <<cgicc::td() << "CFEB 5" << cgicc::td();
+// *out <<cgicc::td() << "ALCT" << cgicc::td();
+  *out << cgicc::tr() << std::endl;
+
+     *out <<cgicc::td() << "Temperature (C)" << cgicc::td();
+     for(int cnt=0; cnt<(cfebs+1); cnt++)
+     {
+        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+40+cnt];
+        *out <<cgicc::td();
+        if(val<0.)    
+           *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
+        else if(val > temp_max[cnt] || val < temp_min[cnt])
+           *out << cgicc::span().set("style","color:red") << val << cgicc::span();
+        else 
+           *out << val;  
+        *out <<cgicc::td();
+     }
+     *out << cgicc::tr() << std::endl;
+
+  *out << cgicc::table() << std::endl;
+
 }
 
 void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out ) 
@@ -1144,7 +1252,7 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
   xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
   if(dcsdata==NULL || dcsdata->size()==0) return;
 
-  *out << cgicc::table().set("border","1");
+  *out << cgicc::table().set("border","1").set("align","center");
   //
   *out <<cgicc::td();
   *out <<cgicc::td();
@@ -1231,7 +1339,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
   xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
   if(dcsdata==NULL || dcsdata->size()==0) return;
 
-  *out << cgicc::table().set("border","1");
+  *out << cgicc::table().set("border","1").set("align","center");
   //
   *out <<cgicc::td();
   *out <<cgicc::td();
@@ -1322,7 +1430,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
   xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
   if(dcsdata==NULL || dcsdata->size()==0) return;
 
-  *out << cgicc::table().set("border","1");
+  *out << cgicc::table().set("border","1").set("align","center");
   //
   *out <<cgicc::td();
   *out <<cgicc::td();
