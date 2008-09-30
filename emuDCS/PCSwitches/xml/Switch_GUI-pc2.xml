@@ -7,11 +7,11 @@
         <xc:Context url="http://vmepcs2G18-08.cms:40024">
                 <xc:Application class="SwitchGUI" id="50" instance="0" network="local">
                         <properties xmlns="urn:xdaq-application:SwitchGUI" xsi:type="soapenc:Struct">
-                                <xmlFileName xsi:type="xsd:string">/home/grayson/config/configPC.xml</xmlFileName>
-                                <switchTelnet xsi:type="xsd:string">/home/grayson/TriDAS/emu/emuDCS/PCSwitches/bin/switch_telnet.pl</switchTelnet>
-                                <shutdownPort xsi:type="xsd:string">/home/grayson/TriDAS/emu/emuDCS/PCSwitches/bin/shutdown-port.pl</shutdownPort>
-                                <backupScript xsi:type="xsd:string">/home/grayson/TriDAS/emu/emuDCS/PCSwitches/bin/switch_backup_plus</backupScript>
-                                <testScript xsi:type="xsd:string">/home/grayson/TriDAS/emu/emuDCS/PCSwitches/bin/switch_backup_plus</testScript>
+                                <xmlFileName xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/PCSwitches/xml/MinusSwitches.xml</xmlFileName>
+                                <switchTelnet xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/PCSwitches/bin/switch_telnet.pl</switchTelnet>
+                                <shutdownPort xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/PCSwitches/bin/shutdown-port.pl</shutdownPort>
+                                <backupDirectory xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/PCSwitches/scr</backupDirectory>
+
                         </properties>
 
                 </xc:Application> 

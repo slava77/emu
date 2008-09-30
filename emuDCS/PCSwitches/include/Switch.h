@@ -13,6 +13,8 @@
 #include <iomanip>
 #include <time.h>
 
+#include "xdata/String.h"
+
 #define MAX_MACS 50
 
 namespace emu{
@@ -23,23 +25,26 @@ class Switch
   public:
 
     // switch stuff
-    int swadd;
-    int swadd2;
     int init;
-
+    std::string sidelabel;
     int link[4];   
 
+    int num_pcs;
+    int num_connections;
+    int num_switches;
+
     typedef struct Mac{
-      char mac[19];
-      char status[24];
+      std::string mac;
+      std::string status;
     }MAC;
 
     typedef struct side{
-      char *name;
+      std::string name;
       std::string label;
       int nswitch;
       int nport;
       int vlan;
+      std::string ipaddr;
       MAC pmac;
     }SIDE;
 
@@ -67,7 +72,13 @@ class Switch
 
     SW sw[4][12];
     SW old[4][12];
-    char *ip[8];
+
+    typedef struct ip{
+      std::string label;
+      std::string ipaddr;
+    } IP;
+
+    IP ip_addresses[4];
     
     //pc stuff
     typedef struct pc_eth{
@@ -93,21 +104,18 @@ class Switch
     PC_ETH ethold[2];
     
     typedef struct pc_stats{
-      char machine[12];
-      char eth[5];
+      std::string machine;
+      std::string eth;
     }PC_STATS;
     
     PC_STATS pc[2];
     
-    std::ofstream LogFileSwitch;
     std::string filebuf;
-
-
 
 // constructor destructor
    Switch();
   ~Switch();
-
+   void initialize();
 // switch configure commands
    void ResetSwitch(std::string switchTelnet);
    void BackupSwitch(std::string switchTelnet, std::string BackupDir);
@@ -122,9 +130,9 @@ class Switch
    void fill_problems(std::string switchTelnet);
 
 // parse commands
-   void parse_status(int swtch,int prt);
+//   void parse_status(int swtch,int prt);
    void parse_status_all(int swtch);
-   void parse_interface(int swtch,int prt);
+//   void parse_interface(int swtch,int prt);
    void parse_interface_all(int swtch);
    void parse_mac(int swtch);
    void parser_pc(int ieth);
@@ -139,9 +147,8 @@ class Switch
 
 // utilities
    void fill_name(char *var, char *line);
-   int compare(char *a,char *b,int begin,int length);
    void fill_char(char *var,char *line,int first,int length);
-   void dump_expected_macs(int ioff);
+   void dump_expected_macs();
    void fill_expected_mac_table();
    void copy_stats_new2old();
 
@@ -150,7 +157,6 @@ class Switch
    std::string eth_hook_stats();
    std::string switch_stats(int lasthex, std::string testScript);
 
-   std::ostringstream OutputSwitch;
 
 private:
 
