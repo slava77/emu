@@ -11,7 +11,6 @@
 #include <iomanip>
 #include <time.h>
 
-
 #include "xdaq/Application.h"
 #include "xdaq/ApplicationGroup.h"
 #include "xdaq/ApplicationContext.h"
@@ -61,6 +60,8 @@ class SwitchGUI: public xdaq::Application {
 	void ProblemsGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);	
 	void html_port_status(xgi::Input * in, xgi::Output * out );
 
+        xoap::MessageReference FixCrates(xoap::MessageReference msg) throw (xoap::exception::Exception);
+
 	/* modifier Phillip Killewald HTML Stuff */
 	
 	virtual std::string Header(std::string myTitle,bool reload);
@@ -79,6 +80,7 @@ class SwitchGUI: public xdaq::Application {
 	xdata::UnsignedLong switch_;
 	xdata::UnsignedLong prt_;
 	xdata::UnsignedLong slt_;
+	xdata::String xmlFileName_;
 	xdata::String switchTelnet_;
 	xdata::String shutdownPort_;
 	xdata::String backupDir_;

@@ -1,4 +1,5 @@
 #include "SwitchGUI.h"
+#include "XMLParser.h" 
 
 // provides factory method for instantion of HellWorld application
 //
@@ -24,10 +25,13 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
 	xgi::bind(this,&SwitchGUI::ProblemsGUI,"ProblemsGUI");
 	init=0;
 
+        xoap::bind(this,&SwitchGUI::FixCrates,"FixCrates", XDAQ_NS_URI);
+
+	this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFileName_);
 	this->getApplicationInfoSpace()->fireItemAvailable("backupDirectory", &backupDir_);
 	this->getApplicationInfoSpace()->fireItemAvailable("switchTelnet", &switchTelnet_);
 	this->getApplicationInfoSpace()->fireItemAvailable("shutdownPort", &shutdownPort_);
-	S = new emu::pcsw::Switch();
+
 }
 
 void SwitchGUI::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
@@ -35,23 +39,34 @@ void SwitchGUI::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::excepti
 }
 
 void SwitchGUI::MainPage(xgi::Input * in, xgi::Output * out ) {
-
-
+//	S = new emu::pcsw::Switch();
+	emu::pcsw::XMLParser switchparser;
+        switchparser.parseFile(xmlFileName_);
+	S = switchparser.GetSwitch();
 
 	// fill statistic
+	S->initialize();
 	S->fill_pc_statistics();
 	S->fill_switch_statistics(switchTelnet_);
 	S->fill_switch_macs(switchTelnet_);
 	S->fill_ping(switchTelnet_);
 	if(init==0){
-        	S->copy_stats_new2old();
-        	init=1;
+          S->copy_stats_new2old();
+          init=1;
       	}
 
-      	*out<<Header("VME Gigabit Switch Statistics",false);
-	*out << (std::string) switchTelnet_ << "<br>" << std::endl;
-	*out << (std::string) shutdownPort_ << "<br>" << std::endl;
-	*out << (std::string) backupDir_ << "<br>" << std::endl;
+	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+	std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+	xgi::Utils::getPageHeader(out,"SwitchGUI",myUrn,"","");
+
+	/*
+	*out << "xmlFileName_ = " <<  (std::string) xmlFileName_ << "<br>" << std::endl;
+	*out << "switchTelnet_ = " <<  (std::string) switchTelnet_ << "<br>" << std::endl;
+	*out << "shutdownPort_ = " << (std::string) shutdownPort_ << "<br>" << std::endl;
+	*out << "backupDir_ = " << (std::string) backupDir_ << "<br>" << std::endl;
+	*/
+
       	*out  << S->html_ping() << std::endl;
 
       	*out << cgicc::table();
@@ -142,8 +157,12 @@ void SwitchGUI::CLRcounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
 
-	*out<<Header("VME Gigabit Switch Maintenance",false);
-	*out << "backupDir_= " <<(std::string) backupDir_ << std::endl;
+        *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+        *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+        std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+        xgi::Utils::getPageHeader(out,"SwitchGUI: VME Gigabit Switch Maintenance",myUrn,"","");
+
+//	*out << "backupDir_= " <<(std::string) backupDir_ << std::endl;
 	*out << cgicc::table();
 	*out << cgicc::tr();
 	*out << cgicc::td();
@@ -154,13 +173,13 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 	*out << cgicc::td();
 	std::string BackupSwitch = toolbox::toString("/%s/BackupSwitch",getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method","GET").set("action",BackupSwitch) << std::endl ;
-	if(S->swadd==0) *out << cgicc::input().set("type","submit").set("value","Backup Plus Switches") << std::endl ;
-	if(S->swadd==4) *out << cgicc::input().set("type","submit").set("value","Backup Minus Switches") << std::endl ;
+	if(S->sidelabel=="PLUS") *out << cgicc::input().set("type","submit").set("value","Backup Plus Switches") << std::endl ;
+	if(S->sidelabel=="MINUS") *out << cgicc::input().set("type","submit").set("value","Backup Minus Switches") << std::endl ;
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::td() << std::endl;
 	char *buf;
-	if(S->swadd==0)buf="Reload Plus Switches";
-	if(S->swadd==4)buf="Reload Minus Switches";
+	if(S->sidelabel=="PLUS")buf="Reload Plus Switches";
+	if(S->sidelabel=="MINUS")buf="Reload Minus Switches";
 	*out << cgicc::td();
 	std::string ResetSwitch = toolbox::toString("/%s/ResetSwitch",getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method","GET").set("action",ResetSwitch) << std::endl ;
@@ -178,7 +197,12 @@ void SwitchGUI::MacGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exceptio
 
 	S->fill_switch_macs(switchTelnet_);
 
-	*out<<Header("VME Gigabit Switch MAC Tables",false);
+//	*out<<Header("VME Gigabit Switch MAC Tables",false);
+        *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+        *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+        std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+        xgi::Utils::getPageHeader(out,"SwitchGUI: VME Gigabit Switch MAC Tables",myUrn,"","");
+
 
 	*out << cgicc::table();
 	*out << cgicc::tr();
@@ -219,7 +243,12 @@ void SwitchGUI::GotoMacGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exce
 
 void SwitchGUI::ProblemsGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);
-	*out<<Header("VME Problem Tables",false);
+//	*out<<Header("VME Problem Tables",false);
+
+        *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+        *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+        std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+        xgi::Utils::getPageHeader(out,"SwitchGUI: VME Problem Tables",myUrn,"","");
 
 	*out << cgicc::table();
 	*out << cgicc::tr();
@@ -247,11 +276,11 @@ void SwitchGUI::ProblemsGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 	S->fill_problems(switchTelnet_);
 	for(int swt=0;swt<4;swt++){
 		char buf[40];
-		sprintf(buf,"Switch %d Problems",swt+S->swadd2+1);
+		sprintf(buf,"Switch %d Problems",swt+1);
 		std::cout << buf << std::endl;
 		*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
 		*out << cgicc::legend(buf).set("style","color:blue").set("align","left") << cgicc::p() << std::endl ;
-		*out << S->html_parse_problems(swt+S->swadd2+1);
+		*out << S->html_parse_problems(swt+1);
 		*out << cgicc::fieldset() << endl;
 	}
 	*out<<Footer()<<endl;
@@ -263,11 +292,11 @@ void SwitchGUI::html_port_status(xgi::Input * in, xgi::Output * out ) {
 	*out << "<table cellpadding=6 rules=groups frame=box>";
 	*out << "<thead>" << std::endl << "<tr><th>crate</th><th>switch</th><th>port</th><th>link</th><th>rx</th><th>rx_error</th><th>tx</th><th>tx_error</th></tr>" << std::endl << "</tr>" << std::endl <<  "<tbody>" << std::endl;
 
-	for(crate=0;crate<32;crate++){
-		swt=S->side[crate].nswitch-S->swadd2;
+	for(crate=0;crate<33;crate++){
+		swt=S->side[crate].nswitch;
 		prt=S->side[crate].nport;
 		slt=S->side[crate].vlan;
-		*out << "<tr><td>" << S->side[crate].name << "</td><td>" << swt+S->swadd2 << "</td><td>" <<  "0/" << prt << "</td><td>" << S->sw[swt-1][prt-1].link << "</td><td>" << S->sw[swt-1][prt-1].rx << "</td><td>" << S->sw[swt-1][prt-1].rx_error << "</td><td>" << S->sw[swt-1][prt-1].tx << "</td><td>" << S->sw[swt-1][prt-1].tx_error << "</td><td>" <<  cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/ResetCounters",getApplicationDescriptor()->getURN().c_str())) << std::endl <<  cgicc::input().set("type","hidden").set("name","switch").set("value",toolbox::toString("%d", swt+S->swadd2)) << std::endl <<  cgicc::input().set("type","hidden").set("name","slt").set("value",toolbox::toString("%d", slt)) << std::endl <<  cgicc::input().set("type","hidden").set("name","prt").set("value",toolbox::toString("%d", prt)) << std::endl << cgicc::input().set("type","submit").set("value","Reset Counters") << std::endl <<  cgicc::form() << std::endl  << "</td></tr>" << std::endl;
+		*out << "<tr><td>" << S->side[crate].name << "</td><td>" << swt << "</td><td>" <<  "0/" << prt << "</td><td>" << S->sw[swt-1][prt-1].link << "</td><td>" << S->sw[swt-1][prt-1].rx << "</td><td>" << S->sw[swt-1][prt-1].rx_error << "</td><td>" << S->sw[swt-1][prt-1].tx << "</td><td>" << S->sw[swt-1][prt-1].tx_error << "</td><td>" <<  cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/ResetCounters",getApplicationDescriptor()->getURN().c_str())) << std::endl <<  cgicc::input().set("type","hidden").set("name","switch").set("value",toolbox::toString("%d", swt)) << std::endl <<  cgicc::input().set("type","hidden").set("name","slt").set("value",toolbox::toString("%d", slt)) << std::endl <<  cgicc::input().set("type","hidden").set("name","prt").set("value",toolbox::toString("%d", prt)) << std::endl << cgicc::input().set("type","submit").set("value","Reset Counters") << std::endl <<  cgicc::form() << std::endl  << "</td></tr>" << std::endl;
 
 		*out << "<tr><td></td><td></td><td></td><td></td><td>" << S->sw[swt-1][prt-1].rx-S->old[swt-1][prt-1].rx << "</td><td>" << S->sw[swt-1][prt-1].rx_error-S->old[swt-1][prt-1].rx_error << "</td><td>" << S->sw[swt-1][prt-1].tx-S->old[swt-1][prt-1].tx << "</td><td>" << S->sw[swt-1][prt-1].tx_error-S->old[swt-1][prt-1].tx_error << "</td></tr>" << std::endl;
 
@@ -310,6 +339,52 @@ string SwitchGUI::Header(string myTitle,bool reload=true) {
 
 	return out->str();
 }
+
+xoap::MessageReference SwitchGUI::FixCrates(xoap::MessageReference msg) throw (xoap::exception::Exception) { 
+//      SOAPMessage reply = xdaq::frameSend ( request_ );         
+	xoap::MessageReference reply = msg;         
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();         
+	try {
+        	xoap::SOAPName counterTag ("CrateVector", "", "");
+                vector<xoap::SOAPElement> content = body.getChildElements();                 
+		for (unsigned int i = 0; i < content.size(); i++) {                         
+			vector<xoap::SOAPElement> c = content[i].getChildElements(counterTag);
+                        for (unsigned int j = 0; j < c.size(); j++) {
+                                if (c[0].getElementName() == counterTag) {
+                                        for(int crate=0;crate<32;crate++){
+						if (S->side[crate].label == c[0].getValue()) {
+							std::string command,command2;
+							std::stringstream commandstream;
+							command = (std::string) shutdownPort_ + " " + S->side[crate].ipaddr + " ";
+							commandstream << S->side[crate].nport;
+							commandstream >> command2;
+							command += command2;
+							cout << command << endl;
+							int ierr;
+							ierr=system(command.c_str());
+						}
+//                                      cout << "The server replied with counter: ";
+//                                      cout << c[0].getValue() << endl;
+                                        }
+                                }
+                        }
+
+                }
+        } catch (xoap::exception::Exception& e) {
+                xoap::SOAPFault fault = body.getFault();
+                string msg = "Server error: ";
+                msg += fault.getFaultString();
+                XCEPT_RETHROW(xoap::exception::Exception, msg, e);
+        }
+
+//      xoap::MessageReference reply = xoap::createMessage();
+//      xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+//      xoap::SOAPName responseName = envelope.createName("onMessageResponse", "xdaq",XDAQ_NS_URI);
+//      xoap::SOAPBodyElement e = envelope.getBody().addBodyElement(responseName);
+        return reply;
+}
+
+
 
 string SwitchGUI::CSS() {
 	ostringstream *out = new ostringstream();
@@ -360,15 +435,14 @@ string SwitchGUI::Footer() {
 	*out << cgicc::fieldset().set("class","footer") << endl;
 	*out << cgicc::div().set("class","switch") << endl;
 	*out << cgicc::span("Switches(Experts Only!)").set("style","font-weight: bold") << endl;
-	*out << cgicc::a("switch 1").set("href","http://192.168.10.101/") << ", " << endl;
-	*out << cgicc::a("switch 2").set("href","http://192.168.10.102/") << ", " << endl;
-	*out << cgicc::a("switch 3").set("href","http://192.168.10.103/") << ", " << endl;
-	*out << cgicc::a("switch 4").set("href","http://192.168.10.104/") << ", " << endl;
-	*out << cgicc::a("switch 6").set("href","http://192.168.10.106/") << ", " << endl;
-	*out << cgicc::a("switch 7").set("href","http://localhost:8129") << ", " << endl;
-	*out << cgicc::a("switch 8").set("href","http://192.168.10.108/") << ", " << endl;
-	*out << cgicc::a("switch 9").set("href","http://192.168.10.109/") << ", " << endl;
-	*out << cgicc::a("switch 10").set("href","http://192.168.10.110/") << ", " << endl;
+        std::string Switch_name, Switch_URL;
+        for(int i=0;i<4;i++) {
+	  Switch_name = "Switch " + S->ip_addresses[i].label;
+          Switch_URL = "http://" + S->ip_addresses[i].ipaddr;
+          *out << cgicc::a(Switch_name).set("href",Switch_URL);
+          if(i!=3) *out << ", ";
+          *out << endl;
+        }
 	*out << cgicc::div() << endl;
 	*out << cgicc::hr() << endl;
 	*out << "Built on " << __DATE__ << " at " << __TIME__ << "." << cgicc::br() << endl;
