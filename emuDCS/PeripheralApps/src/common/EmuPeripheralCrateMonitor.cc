@@ -375,10 +375,19 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    for(unsigned ii=0; ii<buf2[0]; ii++)
                    {   if((ii%48)<40) 
                           (*dmbdata)[ii] = 10.0/4096.0*buf2[ii+2];
-                       else 
-                       {  float Vout= buf2[ii+2]/1000.0;
+                       else if((ii%48)<46)
+                       {  /* DMB Temps */
+                          float Vout= buf2[ii+2]/1000.0;
                           if(Vout >0. && Vout<5.0)
                               (*dmbdata)[ii] =1/(0.001049406423+0.0002133635468*log(65000.0/Vout-13000.0)+0.7522287E-7*pow(log(65000.0/Vout-13000.0),3.0))-273.15;
+                          else
+                              (*dmbdata)[ii] = -500.0;
+                       }
+                       else
+                       {  /* ALCT Temps */
+                          float Vout= (float)(buf2[ii+2])*1.225/1023.0;
+                          if(Vout<1.225)
+                              (*dmbdata)[ii] =100.0*(Vout-0.75)+25.0;
                           else
                               (*dmbdata)[ii] = -500.0;
                        }
@@ -1182,12 +1191,13 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   *out <<cgicc::td() << "CFEB 3" << cgicc::td();
   *out <<cgicc::td() << "CFEB 4" << cgicc::td();
   if(cfebs==5) *out <<cgicc::td() << "CFEB 5" << cgicc::td();
-// *out <<cgicc::td() << "ALCT" << cgicc::td();
+  *out <<cgicc::td() << "ALCT" << cgicc::td();
   *out << cgicc::tr() << std::endl;
 
      *out <<cgicc::td() << "Temperature (C)" << cgicc::td();
-     for(int cnt=0; cnt<(cfebs+1); cnt++)
+     for(int cnt=0; cnt<7; cnt++)
      {
+        if(cfebs<5 && cnt==5) continue;
         val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+40+cnt];
         *out <<cgicc::td();
         if(val<0.)    
@@ -1198,6 +1208,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
            *out << val;  
         *out <<cgicc::td();
      }
+
      *out << cgicc::tr() << std::endl;
 
   *out << cgicc::table() << std::endl;
@@ -1385,7 +1396,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_TMB_COUNTERS=48, Total_Temps=6;
+  int TOTAL_TMB_COUNTERS=48, Total_Temps=7;
   float temp_max[8]={40., 40., 40., 40., 40., 40., 40., 40.};
   float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
   float val;
