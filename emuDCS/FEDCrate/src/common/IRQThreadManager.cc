@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.25 2008/09/30 08:32:40 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.26 2008/09/30 09:17:14 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.26  2008/09/30 09:17:14  paste
+* Removed debugging statements in IRQThreadManager
+*
 * Revision 3.25  2008/09/30 08:32:40  paste
 * Updated IRQ Threads so that the endcap name is mentioned in the log filename
 *
@@ -168,15 +171,15 @@ void emu::fed::IRQThreadManager::endThreads() {
 
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 	
-	LOG4CPLUS_DEBUG(logger,"Next line: data_->exit");
-	LOG4CPLUS_DEBUG(logger,data_->exit);
-	LOG4CPLUS_DEBUG(logger,"Next line: threadVector_.size()");
-	LOG4CPLUS_DEBUG(logger,threadVector_.size());
+	//LOG4CPLUS_DEBUG(logger,"Next line: data_->exit");
+	//LOG4CPLUS_DEBUG(logger,data_->exit);
+	//LOG4CPLUS_DEBUG(logger,"Next line: threadVector_.size()");
+	//LOG4CPLUS_DEBUG(logger,threadVector_.size());
 	
 	if (data_->exit || threadVector_.size() == 0) {
-		LOG4CPLUS_DEBUG(logger,"Threads already stopped.");
+		//LOG4CPLUS_DEBUG(logger,"Threads already stopped.");
 	} else {
-		LOG4CPLUS_DEBUG(logger,"Gracefully killing off all threads.");
+		//LOG4CPLUS_DEBUG(logger,"Gracefully killing off all threads.");
 		
 		data_->exit = true;
 		
