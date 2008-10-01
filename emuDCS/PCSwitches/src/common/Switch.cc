@@ -70,19 +70,20 @@ namespace emu{
     if(toolbox::net::getHostName() != "emucom02.cern.ch")
       ::sleep(40);
   }
-    
+
   void Switch::ResetCounters(int swtch,int prt, std::string switchTelnet){
-    stringstream port;
+    char port[2];
+    sprintf(port, "%d", prt);
     string command;
-    port << switchTelnet << " " << ip_addresses[swtch].ipaddr << " resetcounter 0/" << prt;
-    port >> command;
+    command = switchTelnet + " " + ip_addresses[swtch-1].ipaddr + " resetcounter 0/" + port;
     int ierr;
+    printf("%s\n", command.c_str());
     if(toolbox::net::getHostName() != "emucom02.cern.ch")
       ierr=system(command.c_str());
     else
       printf("%s\n", command.c_str());
   }
-        
+
   void Switch::CLRcounters(std::string switchTelnet){
     for(int swt=0;swt<4;swt++) {
       std::string command;
@@ -306,7 +307,6 @@ namespace emu{
           sw[swtch][prt-1].mac[n].mac=mac;
           sw[swtch][prt-1].mac[n].status=status;
           sw[swtch][prt-1].nmacs++;
-          printf("swt=%d,prt-1=%d,n=%d,sw[swt][prt].mac[n].mac=%s, sw[swtch][prt-1].mac[n].status=%s\n",swtch,prt-1,n,sw[swtch][prt-1].mac[n].mac.c_str(),sw[swtch][prt-1].mac[n].status.c_str());
         }
       }
       line[2]=0;
@@ -350,14 +350,14 @@ namespace emu{
         colvlan="";colmac="";colstat="";
         int ivlan;
         sscanf(sw[swt][prt].vlan,"%d",&ivlan);
-        if(sidelabel=="PLUS") {
-          if(swt==3){
-            if(ivlan!=1)colvlan=" bgcolor=\"red\"";
-          }else{
-            if(prt+1<=6&&ivlan!=1)colvlan=" bgcolor=\"red\"";
-            if(prt+1>6&&ivlan!=2)colvlan=" bgcolor=\"red\"";
-          }
-        } 
+//        if(sidelabel=="PLUS") {
+//          if(swt==3){
+//            if(ivlan!=1)colvlan=" bgcolor=\"red\"";
+//          }else{
+//            if(prt+1<=6&&ivlan!=1)colvlan=" bgcolor=\"red\"";
+//            if(prt+1>6&&ivlan!=2)colvlan=" bgcolor=\"red\"";
+//          }
+//        } 
         int first=0;
         int n=sw[swt][prt].nmacs;
         for(int i=0;i<n;i++) {
@@ -369,7 +369,10 @@ namespace emu{
           int slt=0;
 //          if(i==0) {
             first=1;
-            sprintf(strbuf,"<tr><td>%d</td><td>%d/%d</td><td %s>%s</td><td>%s</td><td %s>%s</td><td %s>%s</td></tr> \n",swt+1,slt,prt+1,colvlan,sw[swt][prt].vlan,chmbr.c_str(),colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
+	    if(sidelabel=="PLUS")
+              sprintf(strbuf,"<tr><td>%d</td><td>%d/%d</td><td %s>%s</td><td>%s</td><td %s>%s</td><td %s>%s</td></tr> \n",swt+1,slt,prt+1,colvlan,sw[swt][prt].vlan,chmbr.c_str(),colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
+            else
+              sprintf(strbuf,"<tr><td>%d</td><td>%d/%d</td><td %s>%s</td><td>%s</td><td %s>%s</td><td %s>%s</td></tr> \n",swt+1+6,slt,prt+1,colvlan,sw[swt][prt].vlan,chmbr.c_str(),colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
 //          } else {
 //            sprintf(strbuf,"<tr><td></td><td></td><td></td><td></td><td %s>%s</td><td %s>%s</td></tr> \n",colmac,sw[swt][prt].mac[i].mac.c_str(),colstat,sw[swt][prt].mac[i].status.c_str());
 //          }
@@ -488,7 +491,10 @@ std::string Switch::html_pc_status(){
         int ido=0;
         for(l=0;l<ntline;l++)if(tn[l]!=0)ido=1;
         if(ido==1){
-          sprintf(strbuf,"<tr><td>%d</td><td>%d</td><td></td><td></td></tr> \n",swtch,port);
+	  if(sidelabel== "PLUS")
+            sprintf(strbuf,"<tr><td>%d</td><td>%d</td><td></td><td></td></tr> \n",swtch,port);
+	  else
+            sprintf(strbuf,"<tr><td>%d</td><td>%d</td><td></td><td></td></tr> \n",swtch+6,port);
           rtns=rtns+strbuf;
         }
         printf(" ntline %d \n",ntline);
@@ -541,7 +547,10 @@ std::string Switch::html_pc_status(){
     rtns=rtns+strbuf;
     sprintf(strbuf,"<tbody align=\"center\" bgcolor=\"black\">\n");
     rtns=rtns+strbuf;
-    sprintf(strbuf,"<tr><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td></tr>\n",1,2,3,4);
+    if(sidelabel=="PLUS")
+      sprintf(strbuf,"<tr><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td></tr>\n",1,2,3,4);
+    else
+      sprintf(strbuf,"<tr><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td><td><font color=\"white\">Switch%d</font></td></tr>\n",7,8,9,10);
     rtns=rtns+strbuf;
     char ballimg[4][128];
     for(int j=0;j<4;j++){
@@ -585,14 +594,12 @@ std::string Switch::html_pc_status(){
   }
 
   void Switch::fill_expected_mac_table(){
-    std::cout << " enter fill_expected_mac_table" << std::endl;
-    // initialization
+    std::cout << "enter fill_expected_mac_table" << std::endl;
     for(int swt=0;swt<4;swt++){
       for(int prt=0;prt<12;prt++){
         sw[swt][prt].nmacs_expected=0;
       }
     }
-
     for(int i=0;i<33;i++){
       int swt=side[i].nswitch-1;
       int prt=side[i].nport-1;
@@ -606,17 +613,18 @@ std::string Switch::html_pc_status(){
     for(int i=37;i<43;i++){
       char tmp[3];
       tmp[0]=side[i].name[8];tmp[1]=side[i].name[9];tmp[3]='\0';
-      int swt;
-      sscanf(tmp,"%d",&swt);
+      int sweetch;
+      sscanf(tmp,"%d",&sweetch);
       //printf(" swt %d %s\n",swt,side[i].name);
       for(int j=0;j<37;j++){
-        if(side[j].nswitch==swt&&((side[j].vlan==side[i].vlan&&((swt!=4&&swt!=7)||j<3))||(side[j].vlan==0&&(i<40||i>42))||(j<3||side[j].nport==13))){
+        if(side[j].nswitch==sweetch&&((side[j].vlan==side[i].vlan&&((sweetch!=4&&sweetch!=7)||j<3))||(side[j].vlan==0&&(i<40||i>42))||(j<3||side[j].nport==13))){
           int swt=side[i].nswitch-1;
           int prt=side[i].nport-1;
           int n=sw[swt][prt].nmacs_expected;
           sw[swt][prt].mac_expected[n].mac=side[j].pmac.mac;
           n++;
           sw[swt][prt].nmacs_expected=n;
+	  std::cout << "swt=" << swt << " switch=" << sweetch << " " << side[j].pmac.mac << std::endl;
         }
       }
     }

@@ -20,10 +20,18 @@ cd $BUILD_HOME/emu/emuDCS/PCSwitches/
 
 # start xdaq
 if [ $HOSTNAME = "vmepcS2G18-08" ]; then
-  export XMLFILE="xml/Switch_GUI-pc2.xml"
+  if [ $USER = "cscdev" ]; then
+    export XMLFILE="xml/pc2_cscdev.xml"
+  else
+    export XMLFILE="xml/pc2_cscpro.xml"   
+  fi
   export LOGFILE="~/log/Switchpc2.log.40024"
 else
-  export XMLFILE="xml/Switch_GUI-pc1.xml"
+  if [ $USER = "cscdev" ]; then
+    export XMLFILE="xml/pc1_cscdev.xml"
+  else
+    export XMLFILE="xml/pc1_cscpro.xml"
+  fi
   export LOGFILE="~/log/Switchpc1.log.40024"
 fi
 nohup $XDAQ_ROOT/bin/xdaq.exe -p 40024 -c $XMLFILE -l INFO >& $LOGFILE &
