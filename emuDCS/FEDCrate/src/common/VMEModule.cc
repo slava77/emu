@@ -1,10 +1,10 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.18 2008/10/01 07:49:39 paste Exp $
+* $Id: VMEModule.cc,v 3.19 2008/10/01 14:10:04 paste Exp $
 *
 * $Log: VMEModule.cc,v $
-* Revision 3.18  2008/10/01 07:49:39  paste
-* Removed busyloop waiting in favor of less accurate but more resource-friendly usleep.
+* Revision 3.19  2008/10/01 14:10:04  paste
+* Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
 *
 * Revision 3.17  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
@@ -885,11 +885,11 @@ throw (FEDException)
 			unsigned long int time;
 			myLineStream >> time;
 			
-			#ifdef CAEN_DEBUG
+#ifdef CAEN_DEBUG
 			timeval startTime;
 			timeval endTime;
 			gettimeofday(&startTime,NULL);
-			#endif
+#endif
 			
 			// Only use usleep if the number of microseconds is greater than 50.
 			// Below that, we don't have the kind of resolution we need to be accurate,
@@ -898,11 +898,11 @@ throw (FEDException)
 				usleep(time);
 			}
 			
-			#ifdef CAEN_DEBUG
+#ifdef CAEN_DEBUG
 			gettimeofday(&endTime,NULL);
 			unsigned long int diffTime = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
 			std::clog << "--usleep time: " << diffTime << " microseconds" << std::endl;
-			#endif
+#endif
 			
 			continue;
 			

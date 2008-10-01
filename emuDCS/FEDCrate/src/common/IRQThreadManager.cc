@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.27 2008/09/30 21:45:00 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.28 2008/10/01 14:10:04 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.28  2008/10/01 14:10:04  paste
+* Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
+*
 * Revision 3.27  2008/09/30 21:45:00  paste
 * Fixed a bug where single errors could be mistaken as multiple IRQs.
 *
@@ -245,9 +248,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	locdata->crateQueue.pop();
 	pthread_mutex_unlock(&(locdata->crateQueueMutex));
 
-	// We need the handle of the controller we are talking to.
-	long int BHandle = myCrate->getController()->getBHandle();
-
 	//char buf[300];
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 
@@ -272,8 +272,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		time(&(locdata->tickTime[myCrate]));
 
 		// Enable the IRQ and wait for something to happen for 5 seconds...
-		CAENVME_IRQEnable(BHandle,0x1);
-		int allClear = CAENVME_IRQWait(BHandle,0x1,5000);
+		bool allClear = myCrate->getController()->waitIRQ(5000);
+		
 
 		// If allClear is non-zero, then there was not an error.
 		// If there was no error, check to see if we were in an error state
@@ -283,20 +283,29 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 			// If my status has cleared, then all is cool, right?
 			//  Reset all my data.
-			if (myDDU->readCSCStatus() < lastError[myDDU]) {
-				LOG4CPLUS_INFO(logger, "Reset detected on crate " << myCrate->number());
-				LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << std::endl);
+			if ((myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors()) < lastError[myDDU]) {
+				LOG4CPLUS_INFO(logger, "Reset detected on crate " << myCrate->number() << ": checking again to make sure...");
+				usleep(100);
+				
+				if ((myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors()) < lastError[myDDU]) {
+					LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << myCrate->number());
+					LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << std::endl);
 
-				// Increment the reset count on all the errors from that crate...
-				std::vector<IRQError *> myErrors = locdata->errorVectors[myCrate];
-				for (std::vector<IRQError *>::iterator iError = myErrors.begin(); iError != myErrors.end(); iError++) {
-					(*iError)->reset++;
+					// Increment the reset count on all the errors from that crate...
+					std::vector<IRQError *> myErrors = locdata->errorVectors[myCrate];
+					for (std::vector<IRQError *>::iterator iError = myErrors.begin(); iError != myErrors.end(); iError++) {
+						(*iError)->reset++;
+					}
+
+					// Reset the total error count and the saved errors.
+					locdata->errorCount[myCrate] = 0;
+					locdata->lastDDU[myCrate] = NULL;
+					lastError.clear();
+				} else {
+					
+					LOG4CPLUS_INFO(logger, "No reset.  Continuing as normal.");
+					
 				}
-
-				// Reset the total error count and the saved errors.
-				locdata->errorCount[myCrate] = 0;
-				locdata->lastDDU[myCrate] = NULL;
-				lastError.clear();
 
 			}
 			
@@ -313,16 +322,12 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		//unsigned int ERR,SYNC,FMM,NUM_ERR,NUM_SYNC,SLOT;
 
 		// Read out the error information into a local variable.
-		unsigned char errorData[2] = {
-			0,
-			0
-		};
-		CAENVME_IACKCycle(BHandle,cvIRQ1,errorData,cvD16);
+		uint16_t errorData = myCrate->getController()->readIRQ();
 
 		// In which slot did the error occur?  Get the DDU that matches.
 		DDU *myDDU = NULL;
 		for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-			if ((*iDDU)->slot() == (errorData[1] & 0x1f)) {
+			if ((*iDDU)->slot() == ((errorData & 0x1f00) >> 8)) {
 				locdata->lastDDU[myCrate] = (*iDDU);
 				myDDU = (*iDDU);
 				break;
@@ -342,18 +347,18 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		unsigned int xorStatus = (cscStatus | advStatus)^lastError[myDDU];
 		
 		// What type of error did I see?
-		bool hardError = (errorData[1] & 0x80);
-		bool syncError = (errorData[1] & 0x40);
+		bool hardError = (errorData & 0x8000);
+		bool syncError = (errorData & 0x4000);
 
 		// If the DDU wants a reset, it will request it (basically an OR of
 		//  the two above values.)
-		bool resetWanted = (errorData[1] & 0x20);
+		bool resetWanted = (errorData & 0x2000);
 
 		// How many CSCs are in an error state on the given DDU?
-		unsigned int cscsWithHardError = ((errorData[0] >> 4) & 0x0f);
+		unsigned int cscsWithHardError = ((errorData >> 4) & 0x000f);
 
 		// How many CSCs are in a bad sync state on the given DDU?
-		unsigned int cscsWithSyncError = (errorData[0] & 0x0f);
+		unsigned int cscsWithSyncError = (errorData & 0x000f);
 		
 		// Log everything now.
 		LOG4CPLUS_ERROR(logger, "Interrupt detected!");

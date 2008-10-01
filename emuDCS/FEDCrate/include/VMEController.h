@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEController.h,v 3.14 2008/09/29 08:36:26 paste Exp $
+* $Id: VMEController.h,v 3.15 2008/10/01 14:10:03 paste Exp $
 *
 * $Log: VMEController.h,v $
+* Revision 3.15  2008/10/01 14:10:03  paste
+* Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
+*
 * Revision 3.14  2008/09/29 08:36:26  paste
 * Removed references to extinct JTAGDevice.h
 *
@@ -26,6 +29,7 @@
 #define __VMECONTROLLER_H__
 
 #include <iostream>
+#include <pthread.h> // for mutexes
 
 #include "JTAG_constants.h"
 #include "FEDException.h"
@@ -52,6 +56,23 @@ namespace emu {
 			inline int getDevice() {return Device_;}
 			inline int getLink() {return Link_;}
 			inline int32_t getBHandle() { return BHandle_; }
+			
+			/** Set the IRQ enabled and wait until an interrupt comes through
+			*
+			*	@param mSecs the number of milliseconds to wait for an
+			*	interrupt before exiting with all clear status.
+			*
+			*	@returns false if there was an interrupt set, true otherwise.
+			**/
+			bool waitIRQ(unsigned int mSecs = 5000)
+				throw (FEDException);
+			
+			/** Read the VME IRQ channel
+			*
+			*	@returns the 16-bits read from the IRQ channel.
+			**/
+			uint16_t readIRQ()
+				throw (FEDException);
 			
 			/* void setCrate(int number); */
 			
@@ -113,6 +134,7 @@ namespace emu {
 			int Device_;
 			int Link_;
 			int32_t BHandle_;
+			pthread_mutex_t mutex_;
 			/*
 			VMEModule *currentModule_;
 			//const ENDIAN endian_;
