@@ -137,28 +137,20 @@ void XMLParser::ConnectionParser(xercesc::DOMNode *pNode, Switch * S, int Counte
   int nswitch, nport, vlan;
   parseNode(pNode);
 
-  if ( fillString("name", name) ) {
+  if ( fillString("name", name) )
     S->side[Counter].name=name;
-  }
-  if ( fillString("label", label) ) {
+  if ( fillString("label", label) )
     S->side[Counter].label=label;
-  }
-  if ( fillInt("nswitch",nswitch) ) {
+  if ( fillInt("nswitch",nswitch) )
     S->side[Counter].nswitch=nswitch;
-  }
-  if ( fillInt("nport",nport) ) {
+  if ( fillInt("nport",nport) )
     S->side[Counter].nport=nport;
-  }
-  if ( fillInt("vlan",vlan) ) {
+  if ( fillInt("vlan",vlan) )
     S->side[Counter].vlan=vlan;
-  }
-  if ( fillString("ipaddr", ipaddr) ) {
+  if ( fillString("ipaddr", ipaddr) )
     S->side[Counter].ipaddr=ipaddr;
-  }
-  if ( fillString("pmac", pmac) ) {
+  if ( fillString("pmac", pmac) )
     S->side[Counter].pmac.mac=pmac;
-  }
-
 }
 
 
@@ -181,6 +173,7 @@ void XMLParser::PCParser(xercesc::DOMNode *pNode, Switch * S, int Counter) {
     S->pc[Counter].machine = machine;
   if ( fillString("eth", eth) )
     S->pc[Counter].eth=eth;
+  std::cout << std::endl;
 }
 
 void XMLParser::EndcapSideParser(xercesc::DOMNode *pNode, Switch * S, xercesc::DOMNode *pNodeGlobal) { 
@@ -334,7 +327,6 @@ void XMLParser::parseFile(const std::string name)
   //  since they could be many objects or one object installed for multiple
   //  handlers.
   //
-
   //  Delete the parser itself.  Must be done prior to calling Terminate, below.
   delete parser;
   

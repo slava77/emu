@@ -2,7 +2,7 @@
   <EndcapSide label="MINUS">
       <Connection name="csc-pc2    "
 	      label=""
-	      nswitch="7"
+	      nswitch="1"
 	      nport="6"
       	      vlan="1"
 	      ipaddr="192.168.10.107"
@@ -10,7 +10,7 @@
       </Connection>
       <Connection name="csc-dcs-pc2"
 	      label=""
-	      nswitch="7"
+	      nswitch="1"
 	      nport="8"
       	      vlan="1"
 	      ipaddr="192.168.10.107"
@@ -18,7 +18,7 @@
       </Connection>
       <Connection name="csc-pc2b   "
               label=""
-              nswitch="7"
+              nswitch="1"
               nport="7"
               vlan="1"
               ipaddr="192.168.10.107"
@@ -26,7 +26,7 @@
       </Connection>
       <Connection name="vme-1/1    "
               label="VMEm1_1"
-              nswitch="7"
+              nswitch="1"
               nport="1"
               vlan="1"
               ipaddr="192.168.10.107"
@@ -34,7 +34,7 @@
       </Connection>
       <Connection name="vme-1/2    "
               label="VMEm1_2"
-              nswitch="8"
+              nswitch="2"
               nport="7"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -42,7 +42,7 @@
       </Connection>
       <Connection name="vme-1/3    "
               label="VMEm1_3"
-              nswitch="8"
+              nswitch="2"
               nport="8"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -50,7 +50,7 @@
       </Connection>
       <Connection name="vme-1/4    "
               label="VMEm1_4"
-              nswitch="9"
+              nswitch="3"
               nport="7"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -58,7 +58,7 @@
       </Connection>
       <Connection name="vme-1/5    "
               label="VMEm1_5"
-              nswitch="9"
+              nswitch="3"
               nport="8"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -66,7 +66,7 @@
       </Connection>
       <Connection name="vme-1/6    "
               label="VMEm1_6"
-              nswitch="10"
+              nswitch="4"
               nport="7"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -74,7 +74,7 @@
       </Connection>
       <Connection name="vme-1/7    "
               label="VMEm1_7"
-              nswitch="10"
+              nswitch="4"
               nport="8"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -82,7 +82,7 @@
       </Connection>
       <Connection name="vme-1/8    "
               label="VMEm1_8"
-              nswitch="8"
+              nswitch="2"
               nport="1"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -90,7 +90,7 @@
       </Connection>
       <Connection name="vme-1/9    "
               label="VMEm1_9"
-              nswitch="8"
+              nswitch="2"
               nport="2"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -98,7 +98,7 @@
       </Connection>
       <Connection name="vme-1/10   "
               label="VMEm1_10"
-              nswitch="9"
+              nswitch="3"
               nport="1"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -106,7 +106,7 @@
       </Connection>
       <Connection name="vme-1/11   "
               label="VMEm1_11"
-              nswitch="9"
+              nswitch="3"
               nport="2"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -114,7 +114,7 @@
       </Connection>
       <Connection name="vme-1/12   "
               label="VMEm1_12"
-              nswitch="10"
+              nswitch="4"
               nport="1"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -122,7 +122,7 @@
       </Connection>
       <Connection name="vme-2/1    "
               label="VMEm2_1"
-              nswitch="10"
+              nswitch="4"
               nport="3"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -130,7 +130,7 @@
       </Connection>
       <Connection name="vme-2/2    "
               label="VMEm2_2"
-              nswitch="8"
+              nswitch="2"
               nport="9"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -138,15 +138,15 @@
       </Connection>
       <Connection name="vme-2/3    "
               label="VMEm2_3"
-              nswitch="9"
+              nswitch="3"
               nport="9"
-              vlan="2"
+              vlan="1"
               ipaddr="192.168.10.109"
               pmac="02:00:00:00:00:3E">
       </Connection>
       <Connection name="vme-2/4    "
               label="VMEm2_4"
-              nswitch="10"
+              nswitch="4"
               nport="9"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -154,7 +154,7 @@
       </Connection>
       <Connection name="vme-2/5    "
               label="VMEm2_5"
-              nswitch="8"
+              nswitch="2"
               nport="3"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -162,7 +162,7 @@
       </Connection>
       <Connection name="vme-2/6    "
               label="VMEm2_6"
-              nswitch="9"
+              nswitch="3"
               nport="3"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -170,7 +170,7 @@
       </Connection>
       <Connection name="vme-3/1    "
               label="VMEm3_1"
-              nswitch="9"
+              nswitch="3"
               nport="4"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -178,7 +178,7 @@
       </Connection>
       <Connection name="vme-3/2    "
               label="VMEm3_2"
-              nswitch="10"
+              nswitch="4"
               nport="4"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -186,7 +186,7 @@
       </Connection>
       <Connection name="vme-3/3    "
               label="VMEm3_3"
-              nswitch="8"
+              nswitch="2"
               nport="10"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -194,7 +194,7 @@
       </Connection>
       <Connection name="vme-3/4    "
               label="VMEm3_4"
-              nswitch="9"
+              nswitch="3"
               nport="10"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -202,7 +202,7 @@
       </Connection>
       <Connection name="vme-3/5    "
               label="VMEm3_5"
-              nswitch="10"
+              nswitch="4"
               nport="10"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -210,7 +210,7 @@
       </Connection>
       <Connection name="vme-3/6    "
               label="VMEm3_6"
-              nswitch="8"
+              nswitch="2"
               nport="4"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -218,7 +218,7 @@
       </Connection>
       <Connection name="vme-4/1    "
               label="VMEm4_1"
-              nswitch="8"
+              nswitch="2"
               nport="5"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -226,7 +226,7 @@
       </Connection>
       <Connection name="vme-4/2    "
               label="VMEm4_2"
-              nswitch="9"
+              nswitch="3"
               nport="5"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -234,7 +234,7 @@
       </Connection>
       <Connection name="vme-4/3    "
               label="VMEm4_3"
-              nswitch="10"
+              nswitch="4"
               nport="5"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -242,7 +242,7 @@
       </Connection>
       <Connection name="vme-4/4    "
               label="VMEm4_4"
-              nswitch="8"
+              nswitch="2"
               nport="11"
               vlan="1"
               ipaddr="192.168.10.108"
@@ -250,7 +250,7 @@
       </Connection>
       <Connection name="vme-4/5    "
               label="VMEm4_5"
-              nswitch="9"
+              nswitch="3"
               nport="11"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -258,7 +258,7 @@
       </Connection>
       <Connection name="vme-4/6    "
               label="VMEm4_6"
-              nswitch="10"
+              nswitch="4"
               nport="11"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -266,7 +266,7 @@
       </Connection>
       <Connection name="switch07   "
 	      label=""
-	      nswitch="7"
+	      nswitch="1"
 	      nport="13"
       	      vlan="0"
 	      ipaddr="192.168.10.107"
@@ -274,7 +274,7 @@
       </Connection>
       <Connection name="switch08   "
 	      label=""
-	      nswitch="8"
+	      nswitch="2"
 	      nport="13"
       	      vlan="0"
 	      ipaddr="192.168.10.108"
@@ -282,7 +282,7 @@
       </Connection>
       <Connection name="switch09   "
 	      label=""
-	      nswitch="9"
+	      nswitch="3"
 	      nport="13"
       	      vlan="0"
 	      ipaddr="192.168.10.109"
@@ -290,7 +290,7 @@
       </Connection>
       <Connection name="switch10   "
 	      label=""
-	      nswitch="10"
+	      nswitch="4"
 	      nport="13"
       	      vlan="0"
 	      ipaddr="192.168.10.110"
@@ -298,7 +298,7 @@
       </Connection>
       <Connection name="trans07f08 "
 	      label=""
-	      nswitch="7"
+	      nswitch="1"
 	      nport="2"
       	      vlan="1"
 	      ipaddr="192.168.10.107"
@@ -306,7 +306,7 @@
       </Connection>
       <Connection name="trans07f09 "
               label=""
-              nswitch="7"
+              nswitch="1"
               nport="3"
               vlan="1"
               ipaddr="192.168.10.107"
@@ -314,7 +314,7 @@
       </Connection>
       <Connection name="trans07f10 "
               label=""
-              nswitch="7"
+              nswitch="1"
               nport="4"
               vlan="1"
               ipaddr="192.168.10.107"
@@ -322,7 +322,7 @@
       </Connection>
       <Connection name="trans08b07 "
 	      label=""
-	      nswitch="8"
+	      nswitch="2"
 	      nport="6"
       	      vlan="1"
 	      ipaddr="192.168.10.108"
@@ -330,7 +330,7 @@
       </Connection>
       <Connection name="trans09b07 "
               label=""
-              nswitch="9"
+              nswitch="3"
               nport="6"
               vlan="1"
               ipaddr="192.168.10.109"
@@ -338,7 +338,7 @@
       </Connection>
       <Connection name="trans10b07 "
               label=""
-              nswitch="10"
+              nswitch="4"
               nport="6"
               vlan="1"
               ipaddr="192.168.10.110"
@@ -356,6 +356,12 @@
       <Switch label="10"
               ipaddr="192.168.10.110">
       </Switch>
+      <PC machine="csc-pc2"
+	  eth="eth1">
+      </PC>
+      <PC machine="csc-dcs-pc2"
+	  eth="eth2">
+      </PC>
   </EndcapSide>
 </EmuSystem>
 
