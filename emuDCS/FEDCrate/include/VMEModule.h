@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.17 2008/09/29 08:36:26 paste Exp $
+* $Id: VMEModule.h,v 3.18 2008/10/01 07:49:38 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.18  2008/10/01 07:49:38  paste
+* Removed busyloop waiting in favor of less accurate but more resource-friendly usleep.
+*
 * Revision 3.17  2008/09/29 08:36:26  paste
 * Removed references to extinct JTAGDevice.h
 *
@@ -182,6 +185,7 @@ namespace emu {
 			void writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData)
 				throw(FEDException);
 			
+			/** @deprecated Uses usleep instead **/
 			void bogoDelay(uint64_t time);
 
 		private:
@@ -198,7 +202,6 @@ namespace emu {
 			// Phil's new commands.
 			int16_t BHandle_;
 			uint32_t vmeAddress_;
-			long double bogoMips_;
 
 			// Each board will be able to mutex out the other boards from reading and writing
 			pthread_mutex_t mutex_;

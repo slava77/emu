@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.17 2008/09/24 18:38:38 paste Exp $
+* $Id: VMEModule.cc,v 3.18 2008/10/01 07:49:39 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.18  2008/10/01 07:49:39  paste
+* Removed busyloop waiting in favor of less accurate but more resource-friendly usleep.
+*
 * Revision 3.17  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -64,24 +67,6 @@ emu::fed::VMEModule::VMEModule(int mySlot):
 	pthread_mutex_init(&mutex_, NULL);
 	
 	vmeAddress_ = slot_ << 19;
-
-	// In order to have a more accurate count in the delay sequence,
-	// I need to calculate bogomips myself.
-	// I wish there were a better way to do this, but these machines
-	// do not run in real time.
-	unsigned long int loopsThatWasteTheComputersTime = 1000000;
-	timeval startTime;
-	timeval endTime;
-	gettimeofday(&startTime,NULL);
-	
-	while (loopsThatWasteTheComputersTime > 0) {
-		--loopsThatWasteTheComputersTime;
-	}
-	
-	gettimeofday(&endTime,NULL);
-	uint64_t usecsWasted = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
-	// I am always off by a factor of 3.66
-	bogoMips_ = ((long double) 1000000. / (3.66 * (long double) usecsWasted));
 }
 
 /*
@@ -900,19 +885,24 @@ throw (FEDException)
 			unsigned long int time;
 			myLineStream >> time;
 			
-			// Use magic bogoDelay.  We don't really need it exact, just close enough.
-			// Oh, and at least 16 microseconds.
-			//if (time < 16) time = 16;
-			
+			#ifdef CAEN_DEBUG
 			timeval startTime;
 			timeval endTime;
 			gettimeofday(&startTime,NULL);
+			#endif
 			
-			bogoDelay(time);
+			// Only use usleep if the number of microseconds is greater than 50.
+			// Below that, we don't have the kind of resolution we need to be accurate,
+			// and it's not like it matters much anyway.
+			if (time >= 50) {
+				usleep(time);
+			}
 			
+			#ifdef CAEN_DEBUG
 			gettimeofday(&endTime,NULL);
 			unsigned long int diffTime = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
-			std::clog << "--bogoDelay time: " << diffTime << " microseconds" << std::endl;
+			std::clog << "--usleep time: " << diffTime << " microseconds" << std::endl;
+			#endif
 			
 			continue;
 			
@@ -967,7 +957,7 @@ throw (FEDException)
 }
 
 
-
+/*
 void emu::fed::VMEModule::bogoDelay(uint64_t time) {
 	// I hate myself for doing this, but it looks like I have no choice.
 	// These machines do not run in real-time, so I need a busyloop to wait
@@ -979,4 +969,5 @@ void emu::fed::VMEModule::bogoDelay(uint64_t time) {
 	}
 	return;
 }
+*/
 
