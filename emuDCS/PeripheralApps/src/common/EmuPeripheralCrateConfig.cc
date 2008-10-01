@@ -4551,6 +4551,7 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //  *out << cgicc::pre();
   //
   //
+  // The following buttons are not being used at the moment...
   //
   //  *out << cgicc::pre();
   //  *out << "F) Measure the communication phase of the RPC link board to the RAT" << std::endl;
@@ -4558,22 +4559,6 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //  *out << "   -> Make sure the RPC parity-bit is enabled for the following scan" << std::endl;
   //  *out << cgicc::pre();
   //
-  // The following buttons are not being used at the moment...
-  //  std::string RpcRatTiming = toolbox::toString("/%s/RpcRatTiming",getApplicationDescriptor()->getURN().c_str());
-  //  *out << cgicc::form().set("method","GET").set("action",RpcRatTiming) << std::endl ;
-  //  *out << cgicc::input().set("type","submit").set("value","Determine RPC-RAT phase") << std::endl ;
-  //  sprintf(buf,"%d",tmb);
-  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  //  sprintf(buf,"%d",dmb);
-  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-  //  *out << cgicc::form() << std::endl ;
-  //  //
-  //  *out << "rpc0_rat_delay = " << MyTest[tmb][current_crate_].GetRpcRatDelayTest() 
-  //       << " ("  << MyTest[tmb][current_crate_].GetRpcRatDelay()     << ") " << std::endl;
-  //  *out << cgicc::br();
-  //  *out << cgicc::br();
-  //  //
-  //  //
   //  std::string setupCoincidencePulsing = toolbox::toString("/%s/setupCoincidencePulsing",getApplicationDescriptor()->getURN().c_str());
   //  *out << cgicc::form().set("method","GET").set("action",setupCoincidencePulsing) << std::endl ;
   //  *out << cgicc::input().set("type","submit").set("value","Setup Coincidence Pulsing") << std::endl ;
@@ -4590,6 +4575,21 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << "------------------------------------------------------------------" << std::endl;
   *out << cgicc::pre();
   //
+  std::string RpcRatTiming = toolbox::toString("/%s/RpcRatTiming",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",RpcRatTiming) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Determine RPC-RAT phase") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << "rpc0_rat_delay = " << MyTest[tmb][current_crate_].GetRpcRatDelayTest() 
+       << " ("  << MyTest[tmb][current_crate_].GetRpcRatDelay()     << ") " << std::endl;
+  *out << cgicc::br();
+  *out << cgicc::br();
+  //  //
+  //  //
   std::string FindDistripHotChannel = toolbox::toString("/%s/FindDistripHotChannel",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",FindDistripHotChannel) << std::endl ;
   sprintf(buf,"%d",tmb);
