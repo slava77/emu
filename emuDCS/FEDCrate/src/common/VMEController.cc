@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.20 2008/09/24 18:38:38 paste Exp $
+* $Id: VMEController.cc,v 3.21 2008/10/01 14:10:04 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.21  2008/10/01 14:10:04  paste
+* Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
+*
 * Revision 3.20  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -152,15 +155,79 @@ emu::fed::VMEController::VMEController(int Device, int Link)
 	} else {
 		BHandle_ = BHandle;
 	}
+	
+	// Initialize mutexes
+	pthread_mutex_init(&mutex_, NULL);
 
 }
 
 
 
-emu::fed::VMEController::~VMEController(){
+emu::fed::VMEController::~VMEController() {
 	//std::cout << "destructing VMEController .. closing socket " << std::endl;
 	CAENVME_End(BHandle_);
 }
+
+
+
+bool emu::fed::VMEController::waitIRQ(unsigned int mSecs)
+throw (FEDException)
+{
+	// If the BHandle is not set properly, just return a good signal (true)
+	if (BHandle_ < 0) return true;
+	
+	pthread_mutex_lock(&mutex_);
+	CVErrorCodes err = CAENVME_IRQEnable(BHandle_, cvIRQ1);
+	pthread_mutex_unlock(&mutex_);
+	
+	if (err != cvSuccess) {
+		std::ostringstream error;
+		error << "error " << err << ": " << CAENVME_DecodeError(err);
+		if (err == cvBusError) {
+			//std::cerr << error.str() << std::endl;
+			//std::cerr << "    sleeping it off..." << std::endl;
+			//sleep((unsigned int) 1);
+		} else {
+			XCEPT_RAISE(FEDException, error.str());
+			//std::cerr << error.str() << std::endl;
+		}
+	}
+	
+	pthread_mutex_lock(&mutex_);
+	bool status = CAENVME_IRQWait(BHandle_, cvIRQ1, mSecs);
+	pthread_mutex_unlock(&mutex_);
+	return status;
+}
+
+
+uint16_t emu::fed::VMEController::readIRQ()
+throw (FEDException)
+{
+	// If the BHandle is not set properly, return nothing
+	if (BHandle_ < 0) return 0;
+	
+	uint16_t errorData;
+	
+	pthread_mutex_lock(&mutex_);
+	CVErrorCodes err = CAENVME_IACKCycle(BHandle_, cvIRQ1, &errorData, cvD16);
+	pthread_mutex_unlock(&mutex_);
+	
+	if (err != cvSuccess) {
+		std::ostringstream error;
+		error << "error " << err << ": " << CAENVME_DecodeError(err);
+		if (err == cvBusError) {
+			//std::cerr << error.str() << std::endl;
+			//std::cerr << "    sleeping it off..." << std::endl;
+			//sleep((unsigned int) 1);
+		} else {
+			XCEPT_RAISE(FEDException, error.str());
+			//std::cerr << error.str() << std::endl;
+		}
+	}
+	
+	return errorData;
+}
+
 
 /*
 void emu::fed::VMEController::start(int slot){
