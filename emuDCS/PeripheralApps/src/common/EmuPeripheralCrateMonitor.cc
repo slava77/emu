@@ -1067,6 +1067,8 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   float av_min[4]={3.1, 1.6, 5.0, 5.0};
   float val;
   int cfebs=5;
+  unsigned int readtime;
+  int difftime;
 
   if(!Monitor_Ready_) return;
   //
@@ -1106,11 +1108,18 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      *out << cgicc::span().set("style","color:red");
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
+  *out << cgicc::br() << cgicc::b("Crate: "+(crateVector[mycrate]->GetLabel())) << std::endl;
 
   xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
-
   xdata::Vector<xdata::Float> *dcsdata = dynamic_cast<xdata::Vector<xdata::Float> *>(is->find("DCStemps"));
   if(dcsdata==NULL || dcsdata->size()==0) return;
+  xdata::UnsignedInteger32 *counter32 = dynamic_cast<xdata::UnsignedInteger32 *>(is->find("DCSitime"));
+  if (counter32) 
+  {
+     readtime = (*counter32);
+     difftime=time(NULL)-readtime;
+     if(difftime>0) *out << " reading was " << difftime << " seconds old" << std::endl;
+  }
 
   *out << cgicc::br() << cgicc::b("<center> Low Voltages and Currents </center>") << std::endl;
 
@@ -2400,7 +2409,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
         *out << " " << crateok << " " << readtime;
         for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
-        {  val= (*dmbdata)[k];
+        {  val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
            *out << " " << val;
         }
         *out << std::endl;
