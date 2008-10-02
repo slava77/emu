@@ -12,7 +12,12 @@ parent.type=0;
 parent.scale=1;
 parent.frames[1].location = parent.folder+'/summary.html';
 
-document.writeln("Correlated LCTs:");
+if(parent.quick)
+document.writeln("<a target='selector' href=canvases.html onClick='parent.quick=0'>Fully processed runs (slow,complete)</a><br>");
+else
+document.writeln("<a target='selector' href=canvases.html onClick='parent.quick=1'>Quickly processed runs (fast,sketchy)</a><br>");
+
+document.writeln("<br>Correlated LCTs:");
 //document.writeln("(<a target='viewer' href=view.html onClick='parent.station=0'>F4</a>");
 //document.writeln("<a target='viewer' href=view.html onClick='parent.station=1'>F3</a>");
 //document.writeln("<a target='viewer' href=view.html onClick='parent.station=2'>F2</a>");
@@ -64,6 +69,8 @@ for(var run=0; run<RUNS.length; run++){
 	var option = RUNS[run][0].replace(/\s+.*$/g, "").replace(/cscdaq\//g, "");
 	option = option.replace(/tmp\//g, "");
 	var time   = RUNS[run][0].replace(/^.*?\s+/g, "");
+	if( parent.quick==0 && option.substring(0,5)=="quick" ) continue;
+	if( parent.quick==1 && option.substring(0,5)!="quick" ) continue;
 	document.writeln("<option value=\""+run+"\">"+option.substring(0,15)+" "+time+"</option>");
 }
 document.writeln("</select>");
