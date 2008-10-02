@@ -249,16 +249,8 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
                 vcc_reset.push_back(0);
 
             // for CCB, MPC, TTC etc.
-                is->fireItemAvailable("CCB_CSRA1",new xdata::UnsignedShort(0));
-                is->fireItemAvailable("CCB_CSRA2",new xdata::UnsignedShort(0));
-                is->fireItemAvailable("CCB_CSRA3",new xdata::UnsignedShort(0));
-                is->fireItemAvailable("TTC_BRSTR",new xdata::UnsignedShort(0));
-                is->fireItemAvailable("TTC_DTSTR",new xdata::UnsignedShort(0));
-                is->fireItemAvailable("QPLL",new xdata::String("uninitialized"));
-                is->fireItemAvailable("CCBstatus",new xdata::String("uninitialized"));
-                is->fireItemAvailable("MPCstatus",new xdata::String("uninitialized"));
                 is->fireItemAvailable("CCBcounter",new xdata::Vector<xdata::UnsignedShort>());
-                is->fireItemAvailable("CCBtime",new xdata::TimeVal);
+                is->fireItemAvailable("CCBftime",new xdata::TimeVal);
 
             // for TMB fast counters
                 is->fireItemAvailable("TMBcounter",new xdata::Vector<xdata::UnsignedInteger32>());
@@ -290,7 +282,6 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       char buf[8000];
       xdata::UnsignedInteger32 *counter32;
       xdata::UnsignedShort *counter16;
-      xdata::String *status;
       unsigned long *buf4;
       unsigned short *buf2;
       buf2=(unsigned short *)buf;
@@ -325,42 +316,6 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    if(ccbdata->size()==0) 
                       for(unsigned ii=0; ii<buf2[0]; ii++) ccbdata->push_back(0);
                    for(unsigned ii=0; ii<buf2[0]; ii++) (*ccbdata)[ii] = buf2[ii+1];
-
-                   // CCB & TTC counters
-                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA1"));
-                   *counter16 = buf2[1];
-                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA2"));
-                   *counter16 = buf2[2];
-                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA3"));
-                   *counter16 = buf2[3];
-                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TTC_BRSTR"));
-                   *counter16 = buf2[10];
-                   counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("TTC_DTSTR"));
-                   *counter16 = buf2[11];
-                   std::stringstream id1, id2, id0;
-
-
-                   // add this one to help the TTC group's global clock scan
-                   id0 <<(((buf2[3]&0x4000) || (buf2[3]&0x2000)==0)?"Unlocked":"Locked");
-                   status = dynamic_cast<xdata::String *>(is->find("QPLL"));
-                   *status = id0.str();
-
-                   // CCB status
-                   id1 << "CCB mode: " << ((buf2[1]&0x1)?"DLOG":"FPGA");
-		   id1 << ", TTCrx: " << ((buf2[3]&0x2000)?"Ready":"NotReady");
-                   id1 << ", QPLL: " << (((buf2[3]&0x4000) || (buf2[3]&0x2000)==0)?"Unlocked":"Locked");
-
-                   status = dynamic_cast<xdata::String *>(is->find("CCBstatus"));
-                   *status = id1.str();
-
-                   // MPC status
-                   id2 << "MPC mode: " << ((buf2[12]&0x1)?"Test":"Trig");
-		   id2 << ", Transimitter: " << ((buf2[12]&0x0200)?"On":"Off");
-                   id2 << ", Serializer: " << ((buf2[12]&0x4000)?"On":"Off");
-                   id2 << ", PRBS: " << ((buf2[12]&0x8000)?"Test":"Norm");
-
-                   status = dynamic_cast<xdata::String *>(is->find("MPCstatus"));
-                   *status = id2.str();
                 }
              }
              else if( cycle==2)
@@ -2675,18 +2630,13 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   //
   xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
+  xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
+  if(ccbdata==NULL || ccbdata->size()==0) return;
 
-  xdata::UnsignedShort *counter16;
-  unsigned short csra1,csra2,csra3;
-  counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA1"));
-  csra1=(unsigned short)  *counter16;
-  counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA2"));
-  csra2=(unsigned short)  *counter16;
-  counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("CCB_CSRA3"));
-  csra3=(unsigned short)  *counter16;
+  unsigned short csra1= (*ccbdata)[0];
+  unsigned short csra2= (*ccbdata)[1];
+  unsigned short csra3= (*ccbdata)[2];
 
- //  int ccbmode = (thisCCB->ReadRegister(0x0))&0x1;
-  //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
   *out << "CCB Mode : ";
   if((csra1&0x1) == 1) {
