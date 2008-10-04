@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.cc,v 1.1 2008/08/25 13:33:31 paste Exp $
+* $Id: EmuFEDApplication.cc,v 1.2 2008/10/04 18:44:06 paste Exp $
 *
 * $Log: EmuFEDApplication.cc,v $
+* Revision 1.2  2008/10/04 18:44:06  paste
+* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
+*
 * Revision 1.1  2008/08/25 13:33:31  paste
 * Forgot this one...
 *
@@ -15,6 +18,7 @@
 
 #include "cgicc/Cgicc.h"
 #include "cgicc/HTMLClasses.h"
+#include "cgicc/HTMLDoctype.h"
 #include "xoap/Method.h"
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
@@ -40,6 +44,7 @@ EmuFEDApplication::EmuFEDApplication(xdaq::ApplicationStub *stub)
 
 	// Move the pictures to tmp for display
 	// FIXME with something that will work with RPMs.
+	/*
 	std::vector< std::string > picNames;
 	picNames.push_back("OSUBackground.gif");
 	picNames.push_back("OSUCMS.png");
@@ -65,6 +70,7 @@ EmuFEDApplication::EmuFEDApplication(xdaq::ApplicationStub *stub)
 			picIn.close();
 		}
 	}
+	*/
 }
 
 
@@ -179,64 +185,35 @@ void EmuFEDApplication::setParameter(std::string klass, std::string name, std::s
 
 
 
-std::string EmuFEDApplication::Header(std::string myTitle,bool reload) {
+std::string EmuFEDApplication::Header(std::string myTitle) {
+	std::vector<std::string> fileNames;
+	return Header(myTitle, fileNames);
+}
+
+
+
+std::string EmuFEDApplication::Header(std::string myTitle, std::vector<std::string> jsFileNames) {
 	std::stringstream *out = new std::stringstream();
 
-	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-	*out << "<html>" << std::endl;
+	// *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+	// This installation of CGICC is ancient and does not understand
+	// the XHTML Doctype.  Make my own.
+	*out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
+	*out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
 	*out << cgicc::head() << std::endl;
-	*out << CSS();
+	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/emu/emuDCS/FEDCrate/css/EmuFEDApplication.css\" />" << std::endl;
+	
 	*out << cgicc::title(myTitle) << std::endl;
 
-	// Auto-refreshing
-	// PGK use javascript:  it makes things easier.
-	/*
-	if (autoRefresh_ >= 0 && reload) {
-		*out << cgicc::meta()
-			.set("http-equiv","refresh")
-			.set("content",autoRefresh_.toString() + ";/" + getApplicationDescriptor()->getURN() ) << std::endl;
+
+	// Include the javascript files
+	for (std::vector<std::string>::iterator iFile = jsFileNames.begin(); iFile != jsFileNames.end(); iFile++) {
+		*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDCrate/js/" << (*iFile) << "\"></script>" << std::endl;
 	}
-	*/
-
-	// Auto-refreshing with javascript
-	if (autoRefresh_ >= 0 && reload) {
-		*out << "<script type='text/javascript'>" << std::endl;
-		// The regex makes sure we don't constantly resubmit "GET" posts.
-		*out << "setTimeout('window.location.href=window.location.href.replace(/[\\?].*$/,\"\");'," << (1000 * autoRefresh_) << ");" << std::endl;
-		*out << "</script>" << std::endl;
-	}
-
-	// Javascript error flasher!
-	*out << "<script type='text/javascript'>" << std::endl;
-	*out << "var red = 1;" << std::endl;
-	*out << "function getElementsByClassName(classname) {var node = document.getElementsByTagName(\"body\")[0];var a = [];var re = new RegExp('\\\\b' + classname + '\\\\b'); var els = node.getElementsByTagName(\"*\");for(var i=0,j=els.length; i<j; i++)if(re.test(els[i].className))a.push(els[i]);return a;}" << std::endl;
-	*out << "function setcolor(){var x = getElementsByClassName('error');var c1;var c2; if (red){ red = 0; c1 = 'red'; c2 = 'black'; } else { red = 1; c1 = 'black'; c2 = 'red'; } for (i=0,j=x.length;i<j;i++) {x[i].style.backgroundColor = c1; x[i].style.color = c2;} setTimeout('setcolor();',400);}" << std::endl;
-	*out << "setTimeout('setcolor();',400)" << std::endl;
-	*out << "</script>" << std::endl;
-
-	// Javascript table toggler
-	*out << "<script type='text/javascript'>" << std::endl;
-	*out << "function toggle(id) {var elem = document.getElementById(id);	elem.style.display = (elem.style.display != 'none' ? 'none' : '' );}" << std::endl;
-	*out << "</script>" << std::endl;
-
-	// Javascript bit-flipper
-	*out << "<script type='text/javascript'>" << std::endl;
-	*out << "function toggleBit(id,bit) { var elem = document.getElementById(id); oldValue = parseInt(elem.value); newValue = (oldValue ^ (1 << bit)); elem.value = \"0x\" + newValue.toString(16); }" << std::endl;
-	*out << "</script>" << std::endl;
-
-	// Javascript bit-setter
-	*out << "<script type='text/javascript'>" << std::endl;
-	*out << "function setBit(id,bit) { var elem = document.getElementById(id); oldValue = parseInt(elem.value); newValue = (oldValue | (1 << bit)); elem.value = \"0x\" + newValue.toString(16); }" << std::endl;
-	*out << "</script>" << std::endl;
-
-	// Javascript bit-clearer
-	*out << "<script type='text/javascript'>" << std::endl;
-	*out << "function clearBit(id,bit) { var elem = document.getElementById(id); oldValue = parseInt(elem.value); newValue = (oldValue & ~(1 << bit)); elem.value = \"0x\" + newValue.toString(16); }" << std::endl;
-	*out << "</script>" << std::endl;
 
 	*out << cgicc::head() << std::endl;
 
-	*out << "<body background=\"/tmp/OSUBackground.gif\">" << std::endl;
+	*out << "<body background=\"/emu/emuDCS/FEDCrate/img/OSUBackground.gif\">" << std::endl;
 
 	*out << cgicc::fieldset()
 		.set("class","header") << std::endl;
@@ -245,13 +222,13 @@ std::string EmuFEDApplication::Header(std::string myTitle,bool reload) {
 		.set("href","/"+getApplicationDescriptor()->getURN()+"/") << std::endl;
 
 	*out << cgicc::img()
-		.set("src","/tmp/EmuFEDSeal.png")
+	.set("src","/emu/emuDCS/FEDCrate/img/EmuFEDSeal.png")
 		.set("style","float: left; width: 100px; height: 100px") << std::endl;
 
 	*out << cgicc::a() << std::endl;
 
 	*out << cgicc::img()
-		.set("src","/tmp/OSUCMS.png")
+	.set("src","/emu/emuDCS/FEDCrate/img/OSUCMS.png")
 		.set("style","float: right; width: 100px; height: 100px") << std::endl;
 
 	*out << cgicc::div(myTitle)

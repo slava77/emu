@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.46 2008/09/30 08:32:40 paste Exp $
+* $Id: EmuFCrate.cc,v 3.47 2008/10/04 18:44:05 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.47  2008/10/04 18:44:05  paste
+* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
+*
 * Revision 3.46  2008/09/30 08:32:40  paste
 * Updated IRQ Threads so that the endcap name is mentioned in the log filename
 *
@@ -728,7 +731,10 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrate(" << getApplicationDescriptor()->getInstance() << ") " << endcap_.toString();
-	*out << Header(sTitle.str());
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("reload.js");
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(), jsFileNames);
 
 	// Manual state changing
 	*out << cgicc::fieldset()
@@ -946,7 +952,7 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 					*out << cgicc::tr() << std::endl;
 				} else {
 
-					for (std::vector<emu::fed::IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
+					for (std::vector<emu::fed::IRQError *>::reverse_iterator iError = errorVector.rbegin(); iError != errorVector.rend(); iError++) {
 						// Mark the error as grey if there has been a reset.
 						std::string errorClass = "";
 						std::string chamberClass = "error";

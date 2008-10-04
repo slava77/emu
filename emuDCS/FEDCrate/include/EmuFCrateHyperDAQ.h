@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 3.51 2008/09/22 14:31:53 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 3.52 2008/10/04 18:44:04 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.h,v $
+* Revision 3.52  2008/10/04 18:44:04  paste
+* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
+*
 * Revision 3.51  2008/09/22 14:31:53  paste
 * /tmp/cvsY7EjxV
 *
@@ -149,24 +152,19 @@ public:
 	void DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
 
-	/** Resets a particular DDU either cheating by using TTC, or the "real"
+	/** Resets a particular Crate either cheating by using TTC, or the "real"
 	*	way, by requesting a global reset.  The global reset method may or may
 	*	not work ever.
 	**/
 	void DDUReset(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
-
-	/** Broadcasts 0xFED8 to the DDU FMM register (?) **/
-	/*
-	void DDUBrcstFED(xgi::Input *in, xgi::Output *out)
+		
+	/** Resets a particular Crate either cheating by using TTC, or the "real"
+	*	way, by requesting a global reset.  The global reset method may or may
+	*	not work ever.
+	**/
+	void DCCReset(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception);
-	*/
-	
-	/** @Deprecated Merged with the broadcast method **/
-	/*
-	void DDULoadFirmware(xgi::Input * in, xgi::Output * out )
-		throw (xgi::exception::Exception);
-	*/
 
 	/** Shows General DDU debugging information. **/
 	void DDUDebug(xgi::Input * in, xgi::Output * out )

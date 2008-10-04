@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.20 2008/08/25 12:25:49 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.21 2008/10/04 18:44:06 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.21  2008/10/04 18:44:06  paste
+* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
+*
 * Revision 1.20  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -26,6 +29,7 @@
 #include <log4cplus/logger.h>
 #include <log4cplus/fileappender.h>
 #include <log4cplus/configurator.h>
+#include <math.h>
 
 #include "xdata/UnsignedLong.h"
 //#include "xoap/DOMParser.h"
@@ -47,6 +51,7 @@
 #include "cgicc/Cgicc.h"
 //#include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTMLClasses.h"
+#include "cgicc/HTTPResponseHeader.h"
 // #include "xdata/String.h"
 // #include "xdata/Float.h"
 // #include "xdata/Double.h"
@@ -161,8 +166,15 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 // HyperDAQ pages
 void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
+	// This header manipulation will make inline SVG possible, I think.
+	cgicc::HTTPResponseHeader newHeader("HTTP/1.1",200,"OK");
+	newHeader.addHeader("Content-Type","application/xhtml+xml");
+	out->setHTTPResponseHeader(newHeader);
 
-	*out << Header("EmuFCrateManager");
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("errorFlasher.js");
+	jsFileNames.push_back("reload.js");
+	*out << Header("EmuFCrateManager", jsFileNames);
 
 	// Manual state changing
 	*out << cgicc::fieldset()
@@ -366,6 +378,128 @@ void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xg
 
 		*out << cgicc::fieldset() << std::endl;
 	}
+	
+	// Testing SVG
+	
+	// Radius of an individual station in px
+	unsigned int stationRadius = 100;
+	
+	// Spacing between stations (and sides of SVG canvas) in px
+	unsigned int stationSpacing = 10;
+	
+	// Proportions of chamber sizes in "normal" stations, inside out
+	std::vector<float> normalSizes;
+	normalSizes.push_back(0.8);
+	normalSizes.push_back(1);
+	
+	// Proportions of chamber sizes in ME1/1 stations, inside out
+	std::vector<float> me11Sizes;
+	me11Sizes.push_back(0.8);
+	me11Sizes.push_back(0.9);
+	me11Sizes.push_back(1);
+	
+	// Proportions of misc. other things
+	float centerSize = 0.5;
+	float ringSpacing = 0.05;
+	
+	// Draw the canvas
+	*out << "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" << (4 * stationRadius * 2 + 5 * stationSpacing) << "\" height=\"" << (4 * stationRadius + 3 * stationSpacing) << "\" style=\"margin: 5px auto 5px auto;\">" << std::endl;
+	
+	// Loop over endcaps
+	for (unsigned int iEndcap = 1; iEndcap <= 2; iEndcap++) {
+		
+		// Loop over stations
+		for (unsigned int iStation = 1; iStation <= 4; iStation++) {
+			
+			// Draw the ring itself
+			unsigned int centerX = (stationRadius * 2 + stationSpacing) * iStation - stationRadius;
+			unsigned int centerY = (stationRadius * 2 + stationSpacing) * iEndcap - stationRadius;
+			
+			*out << "<circle cx=\"" << centerX << "\" cy=\"" << centerY << "\" r=\"" << stationRadius << "\" stroke=\"#000\" stroke-width=\"3\" fill=\"#FFF\" />" << std::endl;
+			
+			// Calculate sizes of things
+			std::vector<float> radii;
+			
+			// Station 1 is different
+			std::vector<float> sizes;
+			if (iStation == 1) sizes = me11Sizes;
+			else sizes = normalSizes;
+			
+			float total = 0;
+			for (std::vector<float>::iterator iSize = sizes.begin(); iSize != sizes.end(); iSize++) {
+				total += (*iSize);
+			}
+			
+			float totalSizes = centerSize + ringSpacing * (sizes.size() - 1) + total;
+			
+			float radiusCache = centerSize/totalSizes * stationRadius;
+			
+			for (std::vector<float>::iterator iSize = sizes.begin(); iSize != sizes.end(); iSize++) {
+
+				radii.push_back(radiusCache);
+				radii.push_back(radiusCache + (*iSize)/totalSizes * stationRadius);
+				
+				radiusCache += ringSpacing/totalSizes * stationRadius + (*iSize)/totalSizes * stationRadius;
+			}
+			
+			// Start drawing chambers
+			for (unsigned int iRing = 1; iRing <= sizes.size(); iRing++) {
+				
+				// Number of chambers in this ring.
+				unsigned int nChambers = 18;
+				if (iStation == 1 || iRing == 2) {
+					nChambers = 36;
+				}
+				
+				// The verticies of the trapizoid
+				std::vector<float> xPoints(1,0);
+				std::vector<float> yPoints(1,0);
+				xPoints.reserve(4);
+				yPoints.reserve(4);
+				
+				xPoints.push_back(cos(3.14159265/nChambers) * sin(3.14159265/nChambers) * 2 * radii[2 * (iRing - 1) + 1]);
+				yPoints.push_back(sin(3.14159265/nChambers) * sin(3.14159265/nChambers) * 2 * radii[2 * (iRing - 1) + 1]);
+				
+				xPoints.push_back(cos(3.14159265/nChambers) * sin(3.14159265/nChambers) * 2 * radii[2 * (iRing - 1)]);
+				yPoints.push_back(sin(3.14159265/nChambers) * sin(3.14159265/nChambers) * 2 * radii[2 * (iRing - 1)] + radii[2 * (iRing - 1) + 1] - radii[2 * (iRing - 1)]);
+				
+				xPoints.push_back(0);
+				yPoints.push_back(radii[2 * (iRing - 1) + 1] - radii[2 * (iRing - 1)]);
+				
+				// The starting angle for chamber 1
+				float angularOffset = 90;
+				if (nChambers == 18) {
+					angularOffset -= 10;
+				}
+				
+				// Draw the chamber and move it to the appropriate location
+				for (unsigned int iChamber = 1; iChamber <= nChambers; iChamber++) {
+					
+					// Set the status
+					std::string status = "killed";
+					if (iStation == 4 && iRing == 2) {
+						status = "undefined";
+					}
+					
+					float angle = angularOffset - (360/nChambers * (iChamber - 1));
+					
+					// Rotate and move the group
+					*out << "<g transform=\"rotate(" << angle << " " << centerX << " " << centerY << ") translate(" << centerX << " " << ((stationRadius * 2 + stationSpacing) * iEndcap - stationRadius - radii[2 * (iRing - 1) + 1]) << ")\" >" << std::endl;
+					
+					// Draw the chamber
+					*out << "<polygon id=\"" << (iEndcap == 1 ? "p" : "m") << iStation << "_" << iRing << "_" << iChamber << "\" stroke=\"#000\" stroke-width=\"1\" class=\"" << status << "\" points=\"";
+					for (unsigned int iPoint = 0; iPoint < 4; iPoint++) {
+						*out << xPoints[iPoint] << "," << yPoints[iPoint] << " ";
+					}
+					*out << "\" />" << std::endl;
+					*out << "</g>" << std::endl;
+				}
+			}
+		}
+		
+	}
+	
+	*out << "</svg>" << std::endl;
 
 	*out << Footer();
 

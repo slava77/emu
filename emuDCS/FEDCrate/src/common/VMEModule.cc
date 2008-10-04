@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.19 2008/10/01 14:10:04 paste Exp $
+* $Id: VMEModule.cc,v 3.20 2008/10/04 18:44:06 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.20  2008/10/04 18:44:06  paste
+* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
+*
 * Revision 3.19  2008/10/01 14:10:04  paste
 * Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
 *
@@ -750,7 +753,7 @@ throw (FEDException)
 		
 		// Automatically reject comments.
 		if (myLine.substr(0,2) == "//" || myLine.substr(0,1) == "!") {
-			//std::cerr << myLine << std::flush << std::endl;
+			std::cerr << myLine << std::flush << std::endl;
 			continue;
 		}
 		
@@ -770,7 +773,7 @@ throw (FEDException)
 			myLine += nextLine;
 		}
 		
-		//std::cerr << myLine << std::flush << std::endl;
+		std::cerr << myLine << std::flush << std::endl;
 		
 		// Wipe out that troublesome semicolon now.
 		myLine = myLine.substr(0,myLine.find(';'));
