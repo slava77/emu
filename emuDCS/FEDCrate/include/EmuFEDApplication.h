@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.h,v 3.6 2008/08/25 12:25:49 paste Exp $
+* $Id: EmuFEDApplication.h,v 3.7 2008/10/04 18:44:05 paste Exp $
 *
 * $Log: EmuFEDApplication.h,v $
+* Revision 3.7  2008/10/04 18:44:05  paste
+* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
+*
 * Revision 3.6  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -20,6 +23,7 @@
 #include "EmuFEDLoggable.h"
 
 #include <string>
+#include <vector>
 
 #include "xoap/DOMParser.h"
 #include "xoap/MessageReference.h"
@@ -148,20 +152,18 @@ public:
 	/** Returns a standard Header for the EmuFCrate pages.  Displays a title,
 	*	 the experts (with links), and some cool pictures.
 	*
-	*	@note The images that should be displayed are hard-linked to the /tmp
-	*	 directory.  This means that the images in the FEDCrate directory must
-	*	 be copied over to the /tmp directory on the machine that it runs to
-	*	 make everything pretty.
-	*
 	*	@param myTitle is the title that will be displayed at the top of the
 	*	 page.
+	*	@param jsFileNames is a vector of file names to be included as javascripts,
+	*	 see the directory FEDCrate/js for a list of files one can include.
 	*	@returns a huge std::string that is basically the header of the page in
 	*	 HTML.  Good for outputting straight to the xgi::Output.
 	*
 	*	@sa the autoRefresh_ member and the CSS method.
 	**/
-	virtual std::string Header(std::string myTitle,bool reload=true);
-
+	virtual std::string Header(std::string myTitle, std::vector<std::string> jsFileNames);
+	
+	virtual std::string Header(std::string myTitle);
 
 	/** Returns the standard CSS code for the EmuFCrate applications.
 	*

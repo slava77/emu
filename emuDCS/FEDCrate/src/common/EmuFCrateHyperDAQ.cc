@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.51 2008/09/30 08:12:24 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.52 2008/10/04 18:44:05 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.52  2008/10/04 18:44:05  paste
+* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
+*
 * Revision 3.51  2008/09/30 08:12:24  paste
 * Fixed a bug in DDU and DCC Expert Controls
 *
@@ -107,6 +110,7 @@ EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub * s):
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadBroadcast, "DDULoadBroadcast");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDUSendBroadcast, "DDUSendBroadcast");
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDUReset, "DDUReset");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCReset, "DCCReset");
 	//xgi::bind(this,&EmuFCrateHyperDAQ::DDUBrcstFED, "DDUBrcstFED");
 
 	xgi::bind(this,&EmuFCrateHyperDAQ::DDUDebug, "DDUDebug");
@@ -228,7 +232,9 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 	
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ")";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 	// Test new DCC communication here.
 	/* These work
@@ -413,16 +419,6 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		if (crateError) {
 			*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "You have " << crateError << " error" << (crateError != 1 ? "s" : "") << " in your XML configuration file.  MAKE SURE YOU UNDERSTAND WHAT YOU ARE DOING BEFORE CONTINUING WITH THIS CONFIGURATION.  If you did not expect this message, fix your configuration file and reload it with the button at the bottom of the page." << cgicc::div() << std::endl;
 		}
-
-		// PGK The Reload button is not really useful anymore.
-		/*
-		std::string reload = toolbox::toString("/%s",getApplicationDescriptor()->getURN().c_str());
-		*out << cgicc::input()
-			.set("type","button")
-			.set("value","Reload Page")
-			.set("onClick","window.location.href='"+reload+"'") << std::endl; // Javascript trick
-		*out << cgicc::br() << std::endl;
-		*/
 
 		// PGK Select-a-Crate/Slot
 		*out << cgicc::fieldset()
@@ -1603,7 +1599,10 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Firmware Manager";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("bitFlipper.js");
+	jsFileNames.push_back("formChecker.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 
 	// PGK Select-a-Crate/Slot
@@ -1771,21 +1770,12 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 			.set("size","50") << std::endl;
 		*(diskTable(iprom,2)->value) << cgicc::input().set("type","button")
 			.set("value","Upload SVF")
-			.set("onClick","javascript:clickCheck('" + dduPROMNames[iprom] + "')") << std::endl;
+			.set("onClick","javascript:if (formCheck('File" + dduPROMNames[iprom] + "')) { document.getElementById('Form" + dduPROMNames[iprom] + "').submit(); }") << std::endl;
 		*(diskTable(iprom,2)->value) << cgicc::input().set("type","hidden")
 			.set("name","svftype")
 			.set("value",dduPROMNames[iprom]) << std::endl;
 		*(diskTable(iprom,2)->value) << cgicc::form() << std::endl;
 	}	
-	// Tricky: javascript check!
-	*out << "<script type=\"text/javascript\">function clickCheck(id) {" << std::endl;
-	*out << "var element = document.getElementById('File' + id);" << std::endl;
-	*out << "if (element.value == '') element.style.backgroundColor = '#FFCCCC';" << std::endl;
-	*out << "else {" << std::endl;
-	*out << "var form = document.getElementById('Form' + id);" << std::endl;
-	*out << "form.submit();" << std::endl;
-	*out << "}" << std::endl;
-	*out << "}</script>" << std::endl;
 
 	// Print the table to screen.
 	*out << diskTable.toHTML() << std::endl;
@@ -1803,11 +1793,6 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		.set("name","slots")
 		.set("id","slots")
 		.set("value","0x0");
-	*out << cgicc::input()
-		.set("type","hidden")
-		.set("name","broadcast")
-		.set("id","broadcast")
-		.set("value","0");
 
 	for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
 		std::stringstream codeStream;
@@ -1840,11 +1825,17 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		
 		std::ostringstream bitFlipCommand;
 		bitFlipCommand << "Javascript:toggleBit('slots'," << myDDU->slot() << ");";
+		
+		std::ostringstream elementID;
+		elementID << "slotBox" << myDDU->slot();
 
 		*(slotTable(iDDU,0)->value) << cgicc::input()
 			.set("type","checkbox")
 			.set("class","slotBox")
-			.set("onChange",bitFlipCommand.str()) << " " << myDDU->slot();
+			.set("id",elementID.str())
+			.set("onChange",bitFlipCommand.str()) << " " 
+			<< cgicc::label()
+			.set("for",elementID.str()) << myDDU->slot() << cgicc::label();
 		
 		*(slotTable(iDDU,1)->value) << myCrate->getRUI(myDDU->slot());
 
@@ -1893,15 +1884,12 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << slotTable.toHTML() << std::endl;
 
 	*out << cgicc::input()
-		.set("type","button")
-		.set("value","Toggle Broadcast")
-		.set("onClick","javascript:toggleBoxes('slotBox');")
+		.set("type","checkbox")
+		.set("id","broadcast")
 		.set("style","margin-left: 20%; margin-right: auto;");
-
-	// Tricky:  javascript toggle of check boxes
-	*out << "<script type=\"text/javascript\">" << std::endl;
-	*out << "function toggleBoxes(id){var x = getElementsByClassName(id); var f = document.getElementById('broadcast'); if(f.value == 0){f.value = 1; for (i=0,j=x.length;i<j;i++) {x[i].disabled=true;}} else {f.value = 0; for (i=0,j=x.length;i<j;i++) {x[i].disabled=false;}}}" << std::endl;
-	*out << "</script>" << std::endl;
+	*out << cgicc::label()
+		.set("for","broadcast")
+		<< "Enable Broadcast" << cgicc::label();
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -2292,6 +2280,37 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
 
 
 
+void EmuFCrateHyperDAQ::DCCReset(xgi::Input *in, xgi::Output *out)
+throw (xgi::exception::Exception)
+{
+	
+	// PGK Patented check-for-initialization
+	if (crateVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
+	
+	cgicc::Cgicc cgi(in);
+	
+	// First, I need a crate.
+	std::pair<unsigned int, emu::fed::FEDCrate *> cratePair = getCGICrate(cgi);
+	unsigned int cgiCrate = cratePair.first;
+	emu::fed::FEDCrate *myCrate = cratePair.second;
+	
+	// No DCC = no luck.
+	if (myCrate->getDCCs().size()) {
+		myCrate->getDCCs()[0]->crateHardReset();
+	} else {
+		LOG4CPLUS_ERROR(getApplicationLogger(), "No DCCs present in configuration: manual crate resets not allowed.");
+	}
+	
+	std::ostringstream backLocation;
+	backLocation << "DCCBroadcast?crate=" << cgiCrate;
+	webRedirect(out,backLocation.str());
+}
+
+
+
 void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -2314,7 +2333,10 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDUFPGA Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("tableToggler.js");
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
@@ -3018,7 +3040,10 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU InFPGA Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("tableToggler.js");
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
@@ -3757,7 +3782,11 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Expert Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("tableToggler.js");
+	jsFileNames.push_back("bitFlipper.js");
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
@@ -3889,26 +3918,30 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
+				.set("id",radioName.str() + "live")
 				.set("value","1")
 				.set("onChange",swapCommand.str())
-				.set("checked","checked") << "Live" << cgicc::br() << std::endl;
+				.set("checked","checked") << cgicc::label("Live").set("for",radioName.str() + "live") << cgicc::br() << std::endl;
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
+				.set("id",radioName.str() + "killed")
 				.set("value","0")
-				.set("onChange",swapCommand.str()) << "Killed" << std::endl;
+				.set("onChange",swapCommand.str()) << cgicc::label("Killed").set("for",radioName.str() + "killed") << std::endl;
 		} else {
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
+				.set("id",radioName.str() + "live")
 				.set("value","1")
-				.set("onChange",swapCommand.str()) << "Live" << cgicc::br() << std::endl;
+				.set("onChange",swapCommand.str()) << cgicc::label("Live").set("for",radioName.str() + "live") << cgicc::br() << std::endl;
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
+				.set("id",radioName.str() + "killed")
 				.set("value","0")
 				.set("onChange",swapCommand.str())
-				.set("checked","checked") << "Killed" << std::endl;
+				.set("checked","checked") << cgicc::label("Killed").set("for",radioName.str() + "killed") << std::endl;
 		}
 		*out << cgicc::td() << std::endl;
 	}
@@ -3922,15 +3955,19 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box15")
+			.set("id","box15")
 			.set("onChange","javascript:toggleBit('killFiber',15);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box15")
+			.set("id","box15")
 			.set("onChange","javascript:toggleBit('killFiber',15);") << std::endl;
 	}
-	*out << "Force all DDU checks" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box15")
+		<< "Force all DDU checks" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -3938,15 +3975,19 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box16")
+			.set("id","box16")
 			.set("onChange","javascript:toggleBit('killFiber',16);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box16")
+			.set("id","box16")
 			.set("onChange","javascript:toggleBit('killFiber',16);") << std::endl;
 	}
-	*out << "Force ALCT checks" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box16")
+		<< "Force ALCT checks" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -3954,15 +3995,19 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box17")
+			.set("id","box17")
 			.set("onChange","javascript:toggleBit('killFiber',17);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box17")
+			.set("id","box17")
 			.set("onChange","javascript:toggleBit('killFiber',17);") << std::endl;
 	}
-	*out << "Force TMB checks" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box17")
+		<< "Force TMB checks" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -3970,15 +4015,19 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box18")
+			.set("id","box18")
 			.set("onChange","javascript:toggleBit('killFiber',18);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box18")
+			.set("id","box18")
 			.set("onChange","javascript:toggleBit('killFiber',18);") << std::endl;
 	}
-	*out << "Force CFEB checks (enable DAV checks)" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box18")
+		<< "Force CFEB checks (enable DAV checks)" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -3986,15 +4035,19 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box19")
+			.set("id","box19")
 			.set("onChange","javascript:toggleBit('killFiber',19);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box19")
+			.set("id","box19")
 			.set("onChange","javascript:toggleBit('killFiber',19);") << std::endl;
 	}
-	*out << "Force normal DDU checks (off enables only SP/TF checks)" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box19")
+		<< "Force normal DDU checks (off enables only SP/TF checks)" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::form() << std::endl;
 
@@ -4417,7 +4470,10 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU VME Parallel Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("tableToggler.js");
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
@@ -4625,7 +4681,10 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU VME Serial Controls (RUI #" << myCrate->getRUI(myDDU->slot()) << ")";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("tableToggler.js");
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
@@ -5187,7 +5246,10 @@ throw (xgi::exception::Exception)
 	
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DCC Firmware Manager";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("bitFlipper.js");
+	jsFileNames.push_back("formChecker.js");
+	*out << Header(sTitle.str(),jsFileNames);
 	
 	
 	// PGK Select-a-Crate/Slot
@@ -5246,6 +5308,8 @@ throw (xgi::exception::Exception)
 		// Can't have bogus files
 		if (!inFile.is_open()) {
 			LOG4CPLUS_ERROR(getApplicationLogger(), "Cannot open file " << fileName);
+			*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+			diskTable(iprom,1)->setClass("bad");
 			//std::clog << "Cannot open file " << fileName << std::endl;
 		} else {
 			
@@ -5286,30 +5350,25 @@ throw (xgi::exception::Exception)
 			inFile.close();
 		}
 		
-		// My perl-fu is 1337, indeed!
-		/*
-		systemCall << "perl -e 'while ($line = <>) { if ($line =~ /SIR 8 TDI \\(fd\\) TDO \\(00\\) ;/) { $line = <>; if ($line =~ /TDI \\((........)\\)/) { print $1; } } }' <Current" << dccPROMNames[iprom] << ".svf >check_ver 2>&1";
-		if (!system(systemCall.str().c_str())) {
-			std::ifstream pipein("check_ver",std::ios::in);
-			getline(pipein,diskVersion);
-			pipein.close();
-		}
-		*/
-		
 		// Now the std::string diskVersion is exactly what is sounds like.
 		diskPROMCodes.push_back(diskVersion);
 		
 		// Check to make sure the on-disk header looks like it should for that
 		//  particular PROM
-		std::stringstream diskVersionString;
-		diskVersionString << std::hex << diskVersion;
-		std::string diskHeader( diskVersionString.str(), 0, 3 );
-		if ( diskHeader != "dcc" ) {
-			*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
-			diskTable(iprom,1)->setClass("bad");
+		if (dccPROMTypes[iprom] == emu::fed::MPROM) {
+			*(diskTable(iprom,1)->value) << "MPROM has no usercode";
+			diskTable(iprom,1)->setClass("undefined");
 		} else {
-			*(diskTable(iprom,1)->value) << std::hex << diskVersion;
-			diskTable(iprom,1)->setClass("ok");
+			std::stringstream diskVersionString;
+			diskVersionString << std::hex << diskVersion;
+			std::string diskHeader( diskVersionString.str(), 0, 3 );
+			if ( diskHeader != "dcc" ) {
+				*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+				diskTable(iprom,1)->setClass("bad");
+			} else {
+				*(diskTable(iprom,1)->value) << std::hex << diskVersion;
+				diskTable(iprom,1)->setClass("ok");
+			}
 		}
 		
 		// Compare the version on-disk with the magic number given above.
@@ -5333,21 +5392,12 @@ throw (xgi::exception::Exception)
 			.set("size","50") << std::endl;
 		*(diskTable(iprom,2)->value) << cgicc::input().set("type","button")
 			.set("value","Upload SVF")
-			.set("onClick","javascript:clickCheck('" + dccPROMNames[iprom] + "')") << std::endl;
+			.set("onClick","javascript:if (formCheck('File" + dccPROMNames[iprom] + "')) { document.getElementById('Form" + dccPROMNames[iprom] + "').submit(); }") << std::endl;
 		*(diskTable(iprom,2)->value) << cgicc::input().set("type","hidden")
 			.set("name","svftype")
 			.set("value",dccPROMNames[iprom]) << std::endl;
 		*(diskTable(iprom,2)->value) << cgicc::form() << std::endl;
 	}
-	// Tricky: javascript check!
-	*out << "<script type=\"text/javascript\">function clickCheck(id) {" << std::endl;
-	*out << "var element = document.getElementById('File' + id);" << std::endl;
-	*out << "if (element.value == '') element.style.backgroundColor = '#FFCCCC';" << std::endl;
-	*out << "else {" << std::endl;
-	*out << "var form = document.getElementById('Form' + id);" << std::endl;
-	*out << "form.submit();" << std::endl;
-	*out << "}" << std::endl;
-	*out << "}</script>" << std::endl;
 	
 	// Print the table to screen.
 	*out << diskTable.toHTML() << std::endl;
@@ -5396,59 +5446,56 @@ throw (xgi::exception::Exception)
 	}
 	
 	
-	int idcc = -1;
 	std::vector<emu::fed::DCC *> myDCCs = myCrate->getDCCs();
-	for (std::vector< emu::fed::DCC * >::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
-		if ((*iDCC)->slot() >= 21) continue;
-		idcc++;
-		std::ostringstream bitFlipCommand;
-		bitFlipCommand << "Javascript:toggleBit('slots'," << (*iDCC)->slot() << ");";
+	for (unsigned int iDCC = 0; iDCC != myDCCs.size(); iDCC++) {
 		
-		*(slotTable(idcc,0)->value) << cgicc::input()
+		emu::fed::DCC *myDCC = myDCCs[iDCC];
+		
+		std::ostringstream bitFlipCommand;
+		bitFlipCommand << "Javascript:toggleBit('slots'," << myDCC->slot() << ");";
+		
+		std::ostringstream elementID;
+		elementID << "slotBox" << myDCC->slot();
+		
+		*(slotTable(iDCC,0)->value) << cgicc::input()
 			.set("type","checkbox")
 			.set("class","slotBox")
-			.set("onChange",bitFlipCommand.str()) << " " << (*iDCC)->slot();
+			.set("id",elementID.str())
+			.set("onChange",bitFlipCommand.str()) << " "
+			<< cgicc::label()
+			.set("for",elementID.str()) << myDCC->slot() << cgicc::label();
 		
 		for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
 			
-			uint32_t idCode = (*iDCC)->readIDCode(dccPROMTypes[iprom]);
-			*(slotTable(idcc,1 + 2*iprom)->value) << std::hex << idCode;
-			
-			uint32_t userCode = (*iDCC)->readUserCode(dccPROMTypes[iprom]);
-			*(slotTable(idcc,2 + 2*iprom)->value) << std::hex << userCode;
-			
-			// Check for consistency
-			slotTable(idcc,1 + 2*iprom)->setClass("none");
-			slotTable(idcc,2 + 2*iprom)->setClass("ok");
-			if (diskPROMCodes[iprom] != userCode) {
-				slotTable(idcc,2 + 2*iprom)->setClass("bad");
+			if (dccPROMTypes[iprom] == emu::fed::MPROM) {
+				*(slotTable(iDCC,1 + 2*iprom)->value) << "MPROM has no IDcode";
+				slotTable(iDCC,1 + 2*iprom)->setClass("undefined");
+				
+				*(slotTable(iDCC,2 + 2*iprom)->value) << "MPROM has no usercode";
+				slotTable(iDCC,2 + 2*iprom)->setClass("undefined");
+			} else {
+				uint32_t idCode = myDCC->readIDCode(dccPROMTypes[iprom]);
+				*(slotTable(iDCC,1 + 2*iprom)->value) << std::hex << idCode;
+				
+				uint32_t userCode = myDCC->readUserCode(dccPROMTypes[iprom]);
+				*(slotTable(iDCC,2 + 2*iprom)->value) << std::hex << userCode;
+				
+				// Check for consistency
+				slotTable(iDCC,1 + 2*iprom)->setClass("none");
+				slotTable(iDCC,2 + 2*iprom)->setClass("ok");
+				if (diskPROMCodes[iprom] != userCode) {
+					slotTable(iDCC,2 + 2*iprom)->setClass("bad");
+				}
 			}
 		}
 	}
 	
 	*out << slotTable.toHTML() << std::endl;
-
-	/*
-	*out << cgicc::input()
-		.set("type","button")
-		.set("value","Toggle Broadcast")
-		.set("onClick","javascript:toggleBoxes('slotBox');")
-		.set("style","margin-left: 20%; margin-right: auto;");
-	*/
-	
-	// Tricky:  javascript toggle of check boxes
-	/*
-	*out << "<script type=\"text/javascript\">" << std::endl;
-	*out << "function toggleBoxes(id){var x = getElementsByClassName(id); var f = document.getElementById('broadcast'); if(f.value == 0){f.value = 1; for (i=0,j=x.length;i<j;i++) {x[i].disabled=true;}} else {f.value = 0; for (i=0,j=x.length;i<j;i++) {x[i].disabled=false;}}}" << std::endl;
-	*out << "</script>" << std::endl;
-	*/
 	
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
 	*out << "Legend: " << cgicc::span("All OK").set("class","ok") << " " << std::endl;
 	*out << cgicc::span("Disk/PROM mismatch").set("class","bad") << " " << std::endl;
-	
-	*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!") << std::endl;
 
 	*out << cgicc::div() << std::endl;
 	
@@ -5488,7 +5535,7 @@ throw (xgi::exception::Exception)
 		.set("class","legend") << std::endl;
 	
 	*out << cgicc::form()
-		.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUReset?crate=" + crateVal.str())
+		.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCReset?crate=" + crateVal.str())
 		.set("method","post") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
@@ -5642,7 +5689,7 @@ throw (xgi::exception::Exception)
 	
 	// Load the proper version types from the cgi handle.
 	std::vector<uint32_t> version;
-	for (int iProm = 0; iProm <= 2; iProm++) {
+	for (int iProm = 0; iProm < 2; iProm++) {
 		// cgicc can't handle 32-bit ints.  Parse myself from the string.
 		std::string versionString = cgi[promName[iProm].c_str()]->getValue();
 		unsigned long int versionCache = 0;
@@ -5965,7 +6012,10 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DCC Debugging Information (Crate " << myCrate->number() << " Slot #" << myDCC->slot() << ")";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("tableToggler.js");
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
@@ -6354,7 +6404,10 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DCC Expert Controls (Crate " << myCrate->number() << " Slot #" << myDCC->slot() << ")";
-	*out << Header(sTitle.str(),false);
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("bitFlipper.js");
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
@@ -6469,26 +6522,30 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
+				.set("id",radioName.str() + "live")
 				.set("value","1")
 				.set("onChange",swapCommand.str())
-				.set("checked","checked") << "Live" << cgicc::br() << std::endl;
+				.set("checked","checked") << cgicc::label("Live").set("for",radioName.str() + "live") << cgicc::br() << std::endl;
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
+				.set("id",radioName.str() + "killed")
 				.set("value","0")
-				.set("onChange",swapCommand.str()) << "Killed" << std::endl;
+				.set("onChange",swapCommand.str()) << cgicc::label("Killed").set("for",radioName.str() + "killed") << std::endl;
 		} else {
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
+				.set("id",radioName.str() + "live")
 				.set("value","1")
-				.set("onChange",swapCommand.str()) << "Live" << cgicc::br() << std::endl;
+				.set("onChange",swapCommand.str()) << cgicc::label("Live").set("for",radioName.str() + "live") << cgicc::br() << std::endl;
 			*out << cgicc::input()
 				.set("type","radio")
 				.set("name",radioName.str())
+				.set("id",radioName.str() + "killed")
 				.set("value","0")
 				.set("onChange",swapCommand.str())
-				.set("checked","checked") << "Killed" << std::endl;
+				.set("checked","checked") << cgicc::label("Killed").set("for",radioName.str() + "killed") << std::endl;
 		}
 		*out << cgicc::td() << std::endl;
 	}
@@ -6553,15 +6610,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box09")
+			.set("id","box09")
 			.set("onChange","javascript:toggleBit('switch',9);clearBit('switch',0);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box09")
+			.set("id","box09")
 			.set("onChange","javascript:toggleBit('switch',9);clearBit('switch',0);") << std::endl;
 	}
-	*out << "Enable software switch" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box09")
+		<< "Enable software switch" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6569,15 +6630,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1215")
+			.set("id","box1215")
 			.set("onChange","javascript:toggleBit('switch',12);clearBit('switch',15);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1215")
+			.set("id","box1215")
 			.set("onChange","javascript:toggleBit('switch',12);clearBit('switch',15);") << std::endl;
 	}
-	*out << "Set TTCrx NOT ready" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box1215")
+		<< "Set TTCrx NOT ready" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6585,15 +6650,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1314")
+			.set("id","box1314")
 			.set("onChange","javascript:toggleBit('switch',13);clearBit('switch',14);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1314")
+			.set("id","box1314")
 			.set("onChange","javascript:toggleBit('switch',13);clearBit('switch',14);") << std::endl;
 	}
-	*out << "Ignore S-Link full" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box1314")
+		<< "Ignore S-Link full" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6601,15 +6670,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1413")
+			.set("id","box1413")
 			.set("onChange","javascript:toggleBit('switch',14);clearBit('switch',13);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1413")
+			.set("id","box1413")
 			.set("onChange","javascript:toggleBit('switch',14);clearBit('switch',13);") << std::endl;
 	}
-	*out << "Ignore S-Link full and S-Link not present" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box1413")
+		<< "Ignore S-Link full and S-Link not present" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6617,15 +6690,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","boxsw4")
+			.set("id","boxsw4")
 			.set("onChange","javascript:toggleBit('switch',4);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","boxsw4")
+			.set("id","boxsw4")
 			.set("onChange","javascript:toggleBit('switch',4);") << std::endl;
 	}
-	*out << "Set \"SW4\"" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","boxsw4")
+		<< "Set \"SW4\"" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6633,15 +6710,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","boxsw5")
+			.set("id","boxsw5")
 			.set("onChange","javascript:toggleBit('switch',5);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","boxsw5")
+			.set("id","boxsw5")
 			.set("onChange","javascript:toggleBit('switch',5);") << std::endl;
 	}
-	*out << "Set \"SW5\"" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","boxsw5")
+		<< "Set \"SW5\"" << cgicc::label() << cgicc::div() << std::endl;
 	
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::fieldset() << std::endl;
@@ -6702,15 +6783,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box4x5")
+			.set("id","box4x5")
 			.set("onChange","javascript:toggleBit('fmm',4);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box4x5")
+			.set("id","box4x5")
 			.set("onChange","javascript:toggleBit('fmm',4);") << std::endl;
 	}
-	*out << "Enable user override" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box4x5")
+		<< "Enable user override" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6718,15 +6803,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box0")
+			.set("id","box0")
 			.set("onChange","javascript:toggleBit('fmm',0);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box0")
+			.set("id","box0")
 			.set("onChange","javascript:toggleBit('fmm',0);") << std::endl;
 	}
-	*out << "Set FMM bit 0 (Busy)" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box0")
+		<< "Set FMM bit 0 (Busy)" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6734,15 +6823,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1")
+			.set("id","box1")
 			.set("onChange","javascript:toggleBit('fmm',1);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box1")
+			.set("id","box1")
 			.set("onChange","javascript:toggleBit('fmm',1);") << std::endl;
 	}
-	*out << "Set FMM bit 1 (Ready)" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box1")
+		<< "Set FMM bit 1 (Ready)" << cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6750,15 +6843,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box2")
+			.set("id","box2")
 			.set("onChange","javascript:toggleBit('fmm',2);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box2")
+			.set("id","box2")
 			.set("onChange","javascript:toggleBit('fmm',2);") << std::endl;
 	}
-	*out << "Set FMM bit 2 (Warning)" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box2")
+		<< "Set FMM bit 2 (Warning)" <<  cgicc::label() << cgicc::div() << std::endl;
 
 	*out << cgicc::div()
 		.set("style","font-size: 8pt;") << std::endl;
@@ -6766,15 +6863,19 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box3")
+			.set("id","box3")
 			.set("onChange","javascript:toggleBit('fmm',3);")
 			.set("checked","checked") << std::endl;
 	} else {
 		*out << cgicc::input()
 			.set("type","checkbox")
 			.set("name","box3")
+			.set("id","box3")
 			.set("onChange","javascript:toggleBit('fmm',3);") << std::endl;
 	}
-	*out << "Set FMM bit 3 (Out-of-Sync)" << cgicc::div() << std::endl;
+	*out << cgicc::label()
+		.set("for","box3")
+		<< "Set FMM bit 3 (Out-of-Sync)" << cgicc::label() << cgicc::div() << std::endl;
 	
 	*out << cgicc::form() << std::endl;
 	*out << cgicc::fieldset() << std::endl;
@@ -7235,7 +7336,9 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 
 	std::stringstream sTitle;
 	sTitle << "EmuFCrateHyperDAQ(" << getApplicationDescriptor()->getInstance() << ") DDU Voltage/Temperature Monitoring";
-	*out << Header(sTitle.str());
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("errorFlasher.js");
+	*out << Header(sTitle.str(),jsFileNames);
 	
 	// PGK Select-a-Crate/Slot
 	*out << cgicc::fieldset()
