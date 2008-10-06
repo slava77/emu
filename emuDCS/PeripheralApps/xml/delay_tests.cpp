@@ -148,7 +148,7 @@ struct chambers { //Holds all information for a chamber
   int predicted_tmb_lct_cable_delay;
   int tmb_l1a_delay;
   int predicted_tmb_l1a_delay;
-  int bx_offset_clct;
+  int tmb_bxn_offset;
   //CFEB -------------------------------------------
   int cfeb_cable_delay;
   int predicted_cfeb_cable_delay;
@@ -176,7 +176,7 @@ struct chambers { //Holds all information for a chamber
   int predicted_alct_rx_clock_delay;
   int alct_dav_cable_delay;
   int predicted_alct_dav_cable_delay;
-  int bx_offset_alct;
+  int alct_bxn_offset;
   //------- Calculated in match_trig_alct_delay() ---------
   int afeb_fine_delay_average;
   int init_afeb_fine_delay_average;
@@ -206,14 +206,17 @@ struct chambers { //Holds all information for a chamber
     tmb_lct_cable_delay = -1;
     tmb_l1a_delay = -1;
     alct_l1a_delay = -1;
-    bx_offset_clct = -1;
-    bx_offset_alct = -1;
+    tmb_bxn_offset = -1;
+    alct_bxn_offset = -1;
     not_rounded_match_trig_alct_delay = -1;
     sp_bx_offset_sector = -999.;
     sp_bx_offset_global = -999;
   }
 };
-
+//
+//struct crates { //Holds all information for a crate
+//}
+//
 //function ---------------------------------------------------------------------
 void options();                            //options of what type of data/delays to display
 void output_data_to_file();                //used to import predicted timing parameters to excel or other type programs
@@ -414,8 +417,8 @@ int main() {
   //Oct 2008: recent files
   // string filename4="VME_minus_20080915_LHC.xml";
   // string filename5="VME_plus_20080915_LHC.xml";
-  string filename4="VME_minus_TTCrxFineDelays_LHC.xml";
-  string filename5="VME_plus_TTCrxFineDelays_LHC.xml.new";
+  string filename4="VME_minus_TTCrxFineDelays_bxn_LHC.xml";
+  string filename5="VME_plus_TTCrxFineDelays_bxn_LHC.xml";
   //
   cout << "Reading in measured XML from " << filename4 << " ..." << endl;
   read_in_config(filename4.c_str());
@@ -1592,8 +1595,8 @@ void read_in_bx_values(const char file_name[]) {
     cell[1] = (int) chamber[5] - 48;
     cell[2] = 10 * ((int) chamber[7] - 48) + ((int) chamber[8] - 48);
 
-    ME[z_side][cell[0]][cell[1]][cell[2]].bx_offset_alct = alct_bx;
-    ME[z_side][cell[0]][cell[1]][cell[2]].bx_offset_clct = clct_bx;
+    ME[z_side][cell[0]][cell[1]][cell[2]].alct_bxn_offset = alct_bx;
+    ME[z_side][cell[0]][cell[1]][cell[2]].tmb_bxn_offset = clct_bx;
     //cout << "DEBUG: Bunch crossing bxn offsets for side " << cz_side <<", station " << cell[0] << ", ring " << cell[1]
     // << ", phi=" << cell[2] << " are (ALCT) " << alct_bx << " and (CLCT) " << clct_bx << endl;
   }
@@ -1718,6 +1721,8 @@ void read_in_config(const char file_name[]) {
 	  TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] = 10 * TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] + (int) line[place] - 48;
 	  place++;
 	}
+	//cout << "read_in_config:: DEBUG read in value of TTCrxCoarseDelayMeas " 
+	//    << TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] << endl;
       }
       if (line.find("TTCrxFineDelay") != string::npos){
 	TTCrxFineDelayMeas[z_side][z_crate][x_crate] = 0;
@@ -1727,7 +1732,7 @@ void read_in_config(const char file_name[]) {
 	  place++;
 	}
 	//cout << "read_in_config:: DEBUG read in value of TTCrxFineDelayMeas " 
-	//    << TTCrxFineDelayMeas[z_side][z_crate][x_crate] << endl;
+	//   << TTCrxFineDelayMeas[z_side][z_crate][x_crate] << endl;
       }
     //
     //Parameters by chamber below - find out which chamber:
@@ -1941,6 +1946,25 @@ void read_in_config(const char file_name[]) {
 	place++;
       }
       ME[z_side][z][y][x].afeb_fine_delay.push_back(temp);
+    }
+    //
+    //06-Oct-08 JH added:
+    //
+    if (line.find("tmb_bxn_offset") != string::npos){
+      ME[z_side][z][y][x].tmb_bxn_offset = 0;
+      place = line.find(quote) + 1;     
+      while (line[place] != '"') {
+	ME[z_side][z][y][x].tmb_bxn_offset = 10 * ME[z_side][z][y][x].tmb_bxn_offset + (int) line[place] - 48;
+	place++;
+      }
+    }
+    if (line.find("alct_bxn_offset") != string::npos){
+      ME[z_side][z][y][x].alct_bxn_offset = 0;
+      place = line.find(quote) + 1;     
+      while (line[place] != '"') {
+	ME[z_side][z][y][x].alct_bxn_offset = 10 * ME[z_side][z][y][x].alct_bxn_offset + (int) line[place] - 48;
+	place++;
+      }
     }
   }
   config.close();
@@ -2497,21 +2521,19 @@ void adjust_ttc_delays() {
     should be run to determine and display those delays.
 
     Procedure:
-        Reads in an XML file
-	...then prompt user for desired TTC timing shifts (by crate). For each crate:
+	Reads in a .txt file containing desired TTC timing shifts (by crate) using read_in_ttc_delays function.
+        Reads in an XML file to be modified.
+	For each crate:
 	...shifts TTCrxCoarseDelay (CCB)
-NEW:
-	...shifts TTCrXFineDelay (CCB)
-	...shifts afeb_fine_delay values the same (ALCT)
+	...shifts TTCrxFineDelay (CCB)
+	Also for each chamber
+	...shifts afeb_fine_delay values the same as the TTCrxFineDelay change (ALCT)
 	...if rollover, need to adjust the following +1 beyond adjustment for TTCrxCoarseDelay
-OLDER:
         ...shifts up to 9 mpc_tx_delay values (TMB - note range is 0-15)
 	...shifts up to 9 tmb_l1a_delay values (TMB)
 	...shifts up to 9 alct_l1a_delay values (TMB--> ALCT)
 	...shifts up to 9 tmb_lct_cable_delay values (DAQMB - note range is 0-7)
-        ...then outputs to a revised XML file
-
-
+        Then outputs to a revised XML file
   */
   int user_choice;
   string ttc_file_name;
@@ -2598,22 +2620,27 @@ OLDER:
       else
 	x_crate = (int) line[place +6] - 48;
       //
-      //Calculate what to change TTCrxCoarseDelay to:
+      //TTCrx{Coarse,Fine}Delay changes applied:
       //
-      if(use_deltas) TTCrxCoarseDelayPred[z_side][z_crate][x_crate] += ttc_rx_corr[z_side][z_crate][x_crate];
-      else TTCrxCoarseDelayPred[z_side][z_crate][x_crate] = ttc_rx_corr[z_side][z_crate][x_crate];
-      //
-      //Calculate what to change TTCrxFineDelay to:
-      //
-      if(ttc_rx_corr_fine[z_side][z_crate][x_crate] != 0) {
+      if(ttc_rx_corr[z_side][z_crate][x_crate] != 0 ||
+	 ttc_rx_corr_fine[z_side][z_crate][x_crate] != 0) {
+	if(use_deltas) {
+	  TTCrxCoarseDelayPred[z_side][z_crate][x_crate] 
+	    = TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] + ttc_rx_corr[z_side][z_crate][x_crate];
+	  TTCrxFineDelayPred[z_side][z_crate][x_crate] 
+	    = TTCrxFineDelayMeas[z_side][z_crate][x_crate] + ttc_rx_corr_fine[z_side][z_crate][x_crate];
+	}
+	else {
+	  TTCrxCoarseDelayPred[z_side][z_crate][x_crate] = ttc_rx_corr[z_side][z_crate][x_crate];
+	  TTCrxFineDelayPred[z_side][z_crate][x_crate]   = ttc_rx_corr_fine[z_side][z_crate][x_crate];
+	}    
+	//   (these are important, so let the user know about it)
 	cout << endl  << "adjust_ttc_delays: VME" << cz_side << z_crate << "/" << x_crate 
-	     << " will change FINE TTC to value (or change by) =" 
-	     << ttc_rx_corr_fine[z_side][z_crate][x_crate]
-	     << " ns" << endl;
+	     << " change TTCrx{Coarse,Fine}Delays to values ={" 
+	     << TTCrxCoarseDelayPred[z_side][z_crate][x_crate] << ", "
+	     << TTCrxFineDelayPred[z_side][z_crate][x_crate]
+	     << " ns}" << endl;
       }
-      if(use_deltas) TTCrxFineDelayPred[z_side][z_crate][x_crate] 
-		       = TTCrxFineDelayMeas[z_side][z_crate][x_crate] + ttc_rx_corr_fine[z_side][z_crate][x_crate];
-      else TTCrxFineDelayPred[z_side][z_crate][x_crate] = ttc_rx_corr_fine[z_side][z_crate][x_crate];
     }
     //
     //Look for *chamber* location in the form ME+1/1/23 etc. and apply other corrections
@@ -2638,21 +2665,19 @@ OLDER:
       // Apply the appropriate TTCrxCoarseDelay corrections:
       //
       ichange = ttc_rx_corr[z_side][z_crate][x_crate];
-      cout << endl  << "ME" << cz_side << z << "/" << y << "/" << x << " Changing by " << ichange << " bx" << endl;
       //
       if (ichange!=0) {
 	ME[z_side][z][y][x].mpc_tx_delay        += ichange;
 	ME[z_side][z][y][x].tmb_l1a_delay       += ichange;
 	ME[z_side][z][y][x].alct_l1a_delay      += ichange;
 	ME[z_side][z][y][x].tmb_lct_cable_delay += ichange;
-	cout << "  TTCrxCoarseDelay --> mpc_tx_delay " << ME[z_side][z][y][x].mpc_tx_delay 
-	     << " tmb_l1a_delay " << ME[z_side][z][y][x].tmb_l1a_delay
-	     << " alct_l1a_delay " << ME[z_side][z][y][x].alct_l1a_delay
-	     << " tmb_lct_cable_delay " << ME[z_side][z][y][x].tmb_lct_cable_delay << endl;
+
+	cout << "ME" << cz_side << z << "/" << y << "/" << x << " Changing "
+	     << "  mpc_tx_delay to " << ME[z_side][z][y][x].mpc_tx_delay 
+	     << ", tmb_l1a_delay to " << ME[z_side][z][y][x].tmb_l1a_delay
+	     << ", alct_l1a_delay to " << ME[z_side][z][y][x].alct_l1a_delay
+	     << ", tmb_lct_cable_delay to " << ME[z_side][z][y][x].tmb_lct_cable_delay << endl;
       } 
-      else {
-	cout << " TTCrxCoarseDelay --> no correction required" << endl;
-      }
       //
       //NEW: Apply the appropriate TTCrxFineDelay corrections if non-zero
       //
@@ -2689,12 +2714,10 @@ OLDER:
 	    correction = -(int) (((largest + 11.4) - 16) / 11.4);          //If we have a too-big largest
 	  }
 	}
+	//cout << "DEBUG: for this chamber, AFEB smallest=" << smallest << ", large=" << largest << ", correction=" << correction
+	//     << endl;
 	//
-	// Ended first loop over AFEBs applying shifts, now look if we wrapped around
-	//
-	cout << "DEBUG: for this chamber, AFEB smallest=" << smallest << ", large=" << largest << ", correction=" << correction
-	     << endl;
-	//Now we know if we have wrap-around (non-zero correction), apply wrap-around correction
+	//Ended 1st loop over AFEBs applying shifts, Now if non-zero correction we must apply wrap-around shifts
 	//
 	for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) {
 	  //  cout << "DEBUG: must apply wraparound correction on AFEB " << w << " by (minus) " << correction << endl; 
@@ -2854,14 +2877,14 @@ void adjust_bx_offsets() {
       //   -ME[]etc : these are the values Chad determined from "monster" events September 2008, negative sign needed
       //   +1 for ALCT: because ALCT bxn offsets somehow need to start at 1, not 0 (don't understand it...)
       //
-      int alct_val = user_offsets[0] - ME[z_side][z][y][x].bx_offset_alct +1;
-      int clct_val = user_offsets[1] - ME[z_side][z][y][x].bx_offset_clct;
+      int alct_val = user_offsets[0] - ME[z_side][z][y][x].alct_bxn_offset +1;
+      int clct_val = user_offsets[1] - ME[z_side][z][y][x].tmb_bxn_offset;
       if (alct_val < 0) cout << "ERROR!!! ALCT bx offset <0 detected";
       if (clct_val < 0) cout << "ERROR!!! CLCT bx offset <0 detected";
       //
       if (alct_val !=0 || clct_val!=0) {
-	ME[z_side][z][y][x].bx_offset_alct = alct_val;
-	ME[z_side][z][y][x].bx_offset_clct = clct_val;
+	ME[z_side][z][y][x].alct_bxn_offset = alct_val;
+	ME[z_side][z][y][x].tmb_bxn_offset = clct_val;
 	cout << endl  << "adjust_bx_offsets: ME" << cz_side << z << "/" << y << "/" << x 
 	     <<     " Changing alct bx numbers to/by " << alct_val 
 	     << " bx, changing clct bx numbers to/by " << clct_val << endl;
@@ -3031,7 +3054,7 @@ void output_measured_parameters(string file_name) {
     //CCB parameters:
     //
     else if (line.find("TTCrxCoarseDelay") != string::npos) {
-      config << "        TTCrxCoarseDelay=\"" << TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] << "\"" << endl;
+      config << "        TTCrxCoarseDelay=\"" << TTCrxCoarseDelayPred[z_side][z_crate][x_crate] << "\"" << endl;
     } 
     //Oops, need to add similar for TTCrxFineDelay
     else if (line.find("TTCrxFineDelay=") != string::npos) {
@@ -3057,7 +3080,7 @@ void output_measured_parameters(string file_name) {
       config << "         match_trig_window_size=\"" << ME[z_side][z][y][x].match_trig_window_size << "\"" << endl;
        } 
     else if (line.find("tmb_bxn_offset") != string::npos){
-      config << "         tmb_bxn_offset=\"" << ME[z_side][z][y][x].bx_offset_clct << "\"" << endl;
+      config << "         tmb_bxn_offset=\"" << ME[z_side][z][y][x].tmb_bxn_offset << "\"" << endl;
     } 
     //
     //ALCT parameters:
@@ -3069,7 +3092,7 @@ void output_measured_parameters(string file_name) {
       config << "             alct_l1a_delay=\"" << ME[z_side][z][y][x].alct_l1a_delay << "\"" << endl;
     }
     else if (line.find("alct_bxn_offset") != string::npos){
-      config << "             alct_bxn_offset=\"" << ME[z_side][z][y][x].bx_offset_alct << "\"" << endl;
+      config << "             alct_bxn_offset=\"" << ME[z_side][z][y][x].alct_bxn_offset << "\"" << endl;
     } 
     //
     //DAQMB parameters:
