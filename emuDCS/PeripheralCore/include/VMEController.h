@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.31 2008/08/13 11:30:53 geurts Exp $
+// $Id: VMEController.h,v 3.32 2008/10/06 11:25:46 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.32  2008/10/06 11:25:46  liu
+// avoid malloc in eth_write
+//
 // Revision 3.31  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -334,6 +337,7 @@ private:
   unsigned char MCAST_3[6];
   unsigned char Dflt_Srv_MAC[6];
 
+  char msgbuf[10000]; // big enough for one Jumbo packet
   char spebuff[MAXLINE];
   bool done_init_;
   bool alive_;

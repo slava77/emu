@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.52 2008/09/21 18:24:35 liu Exp $
+// $Id: VMEController.cc,v 3.53 2008/10/06 11:25:46 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.53  2008/10/06 11:25:46  liu
+// avoid malloc in eth_write
+//
 // Revision 3.52  2008/09/21 18:24:35  liu
 // change JTAG Idle sequence
 //
@@ -870,7 +873,7 @@ GETMORE:
 }
 
 int VMEController::eth_write()
-{  char *msg;
+{ 
   int msg_size;
   int nwritten;
   int i;
@@ -879,22 +882,17 @@ int VMEController::eth_write()
      //   ether_header.h_proto = htons(0xfff);
 
    msg_size = sizeof(ether_header) + nwbuf;
-   if((msg = (char *)malloc(msg_size*sizeof(unsigned char))) == NULL){ 
-          std::cout << "ERROR in eth_write(): malloc(): No memory available" << std::endl;
-           exit(1);
-   }
-   memcpy(msg, &ether_header, sizeof(ether_header));
-   memcpy(msg + sizeof(ether_header), wbuf, nwbuf); 
-   nwritten = write(theSocket, (const void *)msg, msg_size);
+   memcpy(msgbuf, &ether_header, sizeof(ether_header));
+   memcpy(msgbuf + sizeof(ether_header), wbuf, nwbuf); 
+   nwritten = write(theSocket, (const void *)msgbuf, msg_size);
 // Jinghua Liu to debug
   if(DEBUG>10)
    {
      printf("ETH_WRITE****");
-     for(i=0;i<msg_size;i++) printf("%02X ",msg[i]&0xff);
+     for(i=0;i<msg_size;i++) printf("%02X ",msgbuf[i]&0xff);
      printf("\n");
      printf("Packet written : %d\n", nwritten);
    }
-   free(msg);
    return nwritten; 
 }
 
