@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.46 2008/09/30 14:27:07 liu Exp $
+// $Id: Crate.cc,v 3.47 2008/10/06 11:26:06 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.47  2008/10/06 11:26:06  liu
+// update
+//
 // Revision 3.46  2008/09/30 14:27:07  liu
 // read ALCT temperature in monitoring
 //
@@ -513,7 +516,10 @@ void Crate::init() {
 
 void Crate::MonitorCCB(int cycle, char * buf) 
 {
-  buf[0]=0;
+  int  TOTAL_CCB_COUNTERS=15;
+
+  short *buf2=(short *)buf;
+  for(int i=0; i<= TOTAL_CCB_COUNTERS; i++) buf2[i]=0;
   
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
@@ -534,7 +540,7 @@ void Crate::MonitorCCB(int cycle, char * buf)
   mpc->read_later(0xB8);
   mpc->read_later(0xCA);
   int rb=mpc->read_now(0xCC, buf+2);
-  if(rb>0)  buf[0]=rb;
+  if(rb>0)  buf2[0]=TOTAL_CCB_COUNTERS;
 }
 
 void Crate::MonitorTMB(int cycle, char * buf) 
