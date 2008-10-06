@@ -86,7 +86,7 @@
        > Display the fine delay settings (ns), as well as the sub-ns deviations from perfection.
        > Read in measured values and keep separate from predicted values
 
-  * Modifications by Jay Hauser 28 Aug 2008
+  * Modifications by Jay Hauser 28 Aug 2008 fixed 16-Sep-2008 (TTCrxFineDelay values were not written!)
      - Put in TTCrxFineDelay corrections (in option 28). Plan is:
        > Add correction to TTCrxFineDelay by crate, afeb_fine_delay values by chamber
        > Calculate rollover in afeb_fine_delays
@@ -97,6 +97,11 @@
 	 3) tmb_l1a_delay +=1
 	 4) tmb_lct_cable_delay +=1
        > Make sure the right parameters get written to the output XML file.
+
+  * Modifications by Jay Hauser 3-Oct-2008
+     - Fix rounding of negative values for afeb_fine_delay values from TTCrx delay changes, 
+       a la --> rounded = (int) (val>0 ? val+0.5 : val-0.5);
+     - Add ability to put in bx number offsets for ALCT and CLCT (from Chad) as option 29
 */
 
 #include <iostream>
@@ -143,6 +148,7 @@ struct chambers { //Holds all information for a chamber
   int predicted_tmb_lct_cable_delay;
   int tmb_l1a_delay;
   int predicted_tmb_l1a_delay;
+  int bx_offset_clct;
   //CFEB -------------------------------------------
   int cfeb_cable_delay;
   int predicted_cfeb_cable_delay;
@@ -170,6 +176,7 @@ struct chambers { //Holds all information for a chamber
   int predicted_alct_rx_clock_delay;
   int alct_dav_cable_delay;
   int predicted_alct_dav_cable_delay;
+  int bx_offset_alct;
   //------- Calculated in match_trig_alct_delay() ---------
   int afeb_fine_delay_average;
   int init_afeb_fine_delay_average;
@@ -199,6 +206,8 @@ struct chambers { //Holds all information for a chamber
     tmb_lct_cable_delay = -1;
     tmb_l1a_delay = -1;
     alct_l1a_delay = -1;
+    bx_offset_clct = -1;
+    bx_offset_alct = -1;
     not_rounded_match_trig_alct_delay = -1;
     sp_bx_offset_sector = -999.;
     sp_bx_offset_global = -999;
@@ -232,6 +241,7 @@ void tmb_l1a_delay();
 void alct_l1a_delay();
 void adjust_LCT_fine_timing();
 void adjust_ttc_delays();
+void adjust_bx_offsets();
 void adjust_measured_parameters();
 void TTCrxDelayCalc();
 void display_TTCrxDelayCalc();
@@ -398,8 +408,14 @@ int main() {
   //
   //1-crate test xml files:
   //
-  string filename4="measured_xml/am.xml";
-  string filename5="measured_xml/ap.xml";
+  //string filename4="measured_xml/am.xml";
+  //string filename5="measured_xml/ap.xml";
+  //
+  //Oct 2008: recent files
+  // string filename4="VME_minus_20080915_LHC.xml";
+  // string filename5="VME_plus_20080915_LHC.xml";
+  string filename4="VME_minus_TTCrxFineDelays_LHC.xml";
+  string filename5="VME_plus_TTCrxFineDelays_LHC.xml.new";
   //
   cout << "Reading in measured XML from " << filename4 << " ..." << endl;
   read_in_config(filename4.c_str());
@@ -421,7 +437,7 @@ int main() {
     //
     display_choice = 0;                    //default is text display of results
     //
-    if ((choice >= 1) && (choice <= 28) || (choice == 99) ) {  //if choice picked is an allowed choice
+    if ((choice >= 1) && (choice <= 29) || (choice == 99) ) {  //if choice picked is an allowed choice
       //
       if((choice >= 1) && (choice <= 17)) { //these require display of some sort
 	if (choice != 5) 	  
@@ -531,6 +547,9 @@ int main() {
       }
       if (choice == 28) 
 	adjust_ttc_delays();
+      //
+      if (choice == 29)
+	adjust_bx_offsets();
       //
       if ((choice != 20) && (choice != 21) && (choice != 99))
 	if (exit())                         //if exit returns 1 then breaks the loop and exits program 
@@ -644,7 +663,7 @@ void TTCrxDelayCalc() {
     for (x = 1; x <= 4; x++) {
       for (y = 1; y <= number_of_crates[x]; y++) {
 	if (fiber_length[z_side][x][y])
-	  TTCrxCoarseDelayPred[z_side][x][y] = (int) (0.5 + (max_length - fiber_length[z_side][x][y]));
+	  TTCrxCoarseDelayPred[z_side][x][y] = int(0.5 + (max_length - fiber_length[z_side][x][y]));
 	  TTCrxFineDelayPred[z_side][x][y] = int( 25*( (0.5 + (max_length - fiber_length[z_side][x][y]))
 	    -TTCrxCoarseDelayPred[z_side][x][y]) );
       }
@@ -1546,6 +1565,42 @@ void read_in_ttc_delays(const char file_name[]) {
   cout << "TTC bx offset file has been read in." << endl << endl;
   ttc_offsets.close();
 }
+//
+// bx number offsets adjustments read in
+//--------------------------------------
+void read_in_bx_values(const char file_name[]) {
+  /*
+    reads in and stores the bx time offsets for all crates
+  */
+  char chamber[9];
+  int alct_bx;
+  int clct_bx;
+  //
+  int z_side = 0;
+  char cz_side;
+  int cell[3] = {};
+  //
+  cout << "read_in_bx_values: read from bx number file name " << file_name << endl;
+  ifstream bx_values(file_name, ios::in);
+  // Read in data line:
+  while(bx_values >> chamber >> alct_bx >> clct_bx ) {
+    cz_side = chamber[2];
+    if (cz_side == '+')   z_side = 1;
+    if (cz_side == '-')   z_side = 0;
+    //
+    cell[0] = (int) chamber[3] - 48;
+    cell[1] = (int) chamber[5] - 48;
+    cell[2] = 10 * ((int) chamber[7] - 48) + ((int) chamber[8] - 48);
+
+    ME[z_side][cell[0]][cell[1]][cell[2]].bx_offset_alct = alct_bx;
+    ME[z_side][cell[0]][cell[1]][cell[2]].bx_offset_clct = clct_bx;
+    //cout << "DEBUG: Bunch crossing bxn offsets for side " << cz_side <<", station " << cell[0] << ", ring " << cell[1]
+    // << ", phi=" << cell[2] << " are (ALCT) " << alct_bx << " and (CLCT) " << clct_bx << endl;
+  }
+  
+    cout << "read_in_bx_values: bx number offset file was read in" << endl << endl;
+  bx_values.close();
+}
 //---------------------------------------------------------------------------------------------------------
 //
 void read_in_afeb_thresh(const char file_name[]) {
@@ -1671,8 +1726,8 @@ void read_in_config(const char file_name[]) {
 	  TTCrxFineDelayMeas[z_side][z_crate][x_crate] = 10 * TTCrxFineDelayMeas[z_side][z_crate][x_crate] + (int) line[place] - 48;
 	  place++;
 	}
-	cout << "read_in_config:: DEBUG read in value of TTCrxFineDelayMeas " 
-	     << TTCrxFineDelayMeas[z_side][z_crate][x_crate] << endl;
+	//cout << "read_in_config:: DEBUG read in value of TTCrxFineDelayMeas " 
+	//    << TTCrxFineDelayMeas[z_side][z_crate][x_crate] << endl;
       }
     //
     //Parameters by chamber below - find out which chamber:
@@ -2371,7 +2426,10 @@ void adjust_LCT_fine_timing() {
       //
       for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) {
 	//
-	ME[z_side][z][y][x].afeb_fine_delay[w] += (int) (0.5 + (change * 25 / afeb_fine_delay_asic_nsec_per_setting)); 
+	double setting_change = change*25 /  afeb_fine_delay_asic_nsec_per_setting;
+	int fine_change = int(setting_change<0 ? setting_change+0.5 : setting_change-0.5);  //rounding that works for negative numbers
+	ME[z_side][z][y][x].afeb_fine_delay[w] += fine_change; 
+	//ME[z_side][z][y][x].afeb_fine_delay[w] += floor(0.5 + (change * 25 / afeb_fine_delay_asic_nsec_per_setting)); 
 	//
 	if ((ME[z_side][z][y][x].afeb_fine_delay[w] < 0) && (ME[z_side][z][y][x].afeb_fine_delay[w] < smallest)) {
 	  smallest = ME[z_side][z][y][x].afeb_fine_delay[w];
@@ -2553,7 +2611,8 @@ OLDER:
 	     << ttc_rx_corr_fine[z_side][z_crate][x_crate]
 	     << " ns" << endl;
       }
-      if(use_deltas) TTCrxFineDelayPred[z_side][z_crate][x_crate] += ttc_rx_corr_fine[z_side][z_crate][x_crate];
+      if(use_deltas) TTCrxFineDelayPred[z_side][z_crate][x_crate] 
+		       = TTCrxFineDelayMeas[z_side][z_crate][x_crate] + ttc_rx_corr_fine[z_side][z_crate][x_crate];
       else TTCrxFineDelayPred[z_side][z_crate][x_crate] = ttc_rx_corr_fine[z_side][z_crate][x_crate];
     }
     //
@@ -2609,7 +2668,13 @@ OLDER:
 	for (w = 0; w < ME[z_side][z][y][x].afeb_fine_delay.size(); w++) { //Loop over AFEBs on this chamber, apply shifts
 	  //
 	  //Calculate the AFEB delay setting based on the timing change:
-	  ME[z_side][z][y][x].afeb_fine_delay[w] += (int) (0.5 + (change / afeb_fine_delay_asic_nsec_per_setting)); 
+	  double setting_change = change /  afeb_fine_delay_asic_nsec_per_setting;
+	  int fine_change = (int)(setting_change>0 ? setting_change+0.5 : setting_change-0.5);
+	  if (w==0) cout << "First AFEB this chamber, change in ns=" << change 
+			 << ", setting change float, int " << setting_change << ", " << fine_change << endl;
+	  ME[z_side][z][y][x].afeb_fine_delay[w] += fine_change; 
+	  //
+	  //ME[z_side][z][y][x].afeb_fine_delay[w] += (int) (0.5 + (change / afeb_fine_delay_asic_nsec_per_setting)); 
 	  // cout << "DEBUG: AFEB #" << w << ", new fine delay =" << ME[z_side][z][y][x].afeb_fine_delay[w] << endl; 
 	  //
 	  //Calculate what to do if get negative values (have to add a bx to delays):
@@ -2676,6 +2741,135 @@ OLDER:
 	}
       } //End loop over check AFEB fine delay range
 
+    } //End handling of this chamber encountered during XML file parsing
+  } //End loop over XML file lines
+  //
+  output_measured_parameters(config_file_name);
+} //End this routine
+//---------------------------------------------------------------------------------------------------------
+// Adjust bunch crossing offsets for ALCT and CLCT:
+//
+void adjust_bx_offsets() {
+  /*
+    Allows user to change TTC delays in the CCB without ruining other timing by reading an offsets file.
+    There is another option for calculating TTC delays based on optical fiber lengths that
+    should be run to determine and display those delays.
+
+    Procedure:
+        Reads in an XML file, then applies bx offsets for alct and clct data.
+        ...then outputs to a revised XML file
+
+
+  */
+  int user_choice;
+  string bx_file_name;
+  string config_file_name;
+  bool use_deltas; 
+  string line;
+  ifstream infile;
+  int x=0, y=0, z=0;
+  int z_side = 0;
+  char cz_side = '-';
+  int place;
+  //
+  //User may choose to read in file with either (1) bx offsets, or (2) bx offset corrections
+  //
+  cout << endl << "Enter 1 to apply bx offsets directly, or 2 (DONT) to apply CORRECTIONS" << endl;
+  cout << "===> ";
+  cin >> user_choice;
+  cout << "User choice = " << user_choice;
+  use_deltas = false;
+  if( user_choice == 1) {
+    cout << "You chose to apply bx offset numbers directly" << endl;
+    use_deltas = false;
+    cout << endl << user_choice << " is your option.  Please continue..." << endl << endl;
+    }
+  else if (user_choice==2) {
+    cout << "You chose to apply delta corrections" << endl;
+    use_deltas = true;
+    cout << "Option not yet implemented (JH, 03-Oct-2008)!!! Return to menu." << endl;
+    return;}
+  else {
+    cout << "INVALID CHOICE, no operation performed, return to menu." << endl;
+    return;}
+  //
+  //Get name of file with bx number values or offsets and read it in:
+  //
+  cout << "Enter the <filename> of the file containing bx number offset data" << endl
+       << "             (e.g. bxn_values.txt)" << endl;
+  cout << "===> ";
+  cin >> bx_file_name;
+  read_in_bx_values(bx_file_name.c_str());
+  //
+  //Apply global bx number corrections?
+  //
+  int user_offsets[2]; //ALCT, then CLCT global offsets to apply
+  user_offsets[0]=0;
+  user_offsets[1]=0;
+  cout << "Enter global bx number correction to apply to ALCT values:" << endl;
+  cin >> user_offsets[0]; 
+  cout << "Enter global bx number correction to apply to CLCT values:" << endl;
+  cin >> user_offsets[1]; 
+  cout << "We apply global bx number offsets of " << user_offsets[0] << " (ALCT), and " 
+       << user_offsets[1] << " (CLCT)" << endl;
+  //
+  //Get name of XML configuration file and start reading it in:
+  //
+  cout << "What is the XML configuration file name you wish to modify?" << endl;
+  cout << "===> ";
+  cin >> config_file_name;
+  if (config_file_name.find(".xml") == string::npos) config_file_name += ".xml";
+  infile.open(config_file_name.c_str(), ios::in);
+  if (infile.fail() == 1) {
+    cout << endl << config_file_name << " NOT FOUND, no operations performed" << endl;
+    cout << "ERROR!!!" << endl << "ERROR!!!" << endl << endl;
+    return;}
+  read_in_config(config_file_name.c_str());
+  //
+  // Parse the xml file: find which Peripheral Crate and apply correction to TTCrxCoarseDelayMeas
+  //
+  while (getline(infile, line)) {
+    //
+    //Look for *chamber* location in the form ME+1/1/23 etc. and apply other corrections
+    //
+    if (line.find("CSC label") != string::npos && line.find("Broadcast") == string::npos) {
+      place = line.find("ME");                   //in the form ME-_/_/_
+      if (line[place + 2] == '-') {
+    	cz_side ='-';
+	z_side = 0;
+      }
+      else if (line[place + 2] == '+') {
+	cz_side = '+';
+	z_side = 1;
+      }
+      z = (int) line[place + 3] - 48;
+      y = (int) line[place + 5] - 48;
+      if (line[place + 8] != '"')
+	x = ((int) line[place + 7] - 48) * 10 + (int) line[place + 8] - 48;
+      else
+	x = (int) line[place +7] - 48;
+      //
+      // Apply the appropriate bx_offset_{alct,clct}_{pred,meas} corrections:
+      //   user_offsets : user-selected global bx number offsets
+      //   -ME[]etc : these are the values Chad determined from "monster" events September 2008, negative sign needed
+      //   +1 for ALCT: because ALCT bxn offsets somehow need to start at 1, not 0 (don't understand it...)
+      //
+      int alct_val = user_offsets[0] - ME[z_side][z][y][x].bx_offset_alct +1;
+      int clct_val = user_offsets[1] - ME[z_side][z][y][x].bx_offset_clct;
+      if (alct_val < 0) cout << "ERROR!!! ALCT bx offset <0 detected";
+      if (clct_val < 0) cout << "ERROR!!! CLCT bx offset <0 detected";
+      //
+      if (alct_val !=0 || clct_val!=0) {
+	ME[z_side][z][y][x].bx_offset_alct = alct_val;
+	ME[z_side][z][y][x].bx_offset_clct = clct_val;
+	cout << endl  << "adjust_bx_offsets: ME" << cz_side << z << "/" << y << "/" << x 
+	     <<     " Changing alct bx numbers to/by " << alct_val 
+	     << " bx, changing clct bx numbers to/by " << clct_val << endl;
+	//
+      } 
+      else {
+	cout << " adjust_bx_offsets: no correction required for this chamber" << endl;
+      }
     } //End handling of this chamber encountered during XML file parsing
   } //End loop over XML file lines
   //
@@ -2839,6 +3033,11 @@ void output_measured_parameters(string file_name) {
     else if (line.find("TTCrxCoarseDelay") != string::npos) {
       config << "        TTCrxCoarseDelay=\"" << TTCrxCoarseDelayMeas[z_side][z_crate][x_crate] << "\"" << endl;
     } 
+    //Oops, need to add similar for TTCrxFineDelay
+    else if (line.find("TTCrxFineDelay=") != string::npos) {
+      //
+      config << "        TTCrxFineDelay=\"" << TTCrxFineDelayPred[z_side][z_crate][x_crate] << "\"" << endl;
+    }
     //
     //TMB parameters:
     //
@@ -2857,8 +3056,8 @@ void output_measured_parameters(string file_name) {
     else if (line.find("match_trig_window_size") != string::npos) {
       config << "         match_trig_window_size=\"" << ME[z_side][z][y][x].match_trig_window_size << "\"" << endl;
        } 
-    else if (line.find("match_trig_alct_delay") != string::npos){
-      config << "         match_trig_alct_delay=\"" << ME[z_side][z][y][x].match_trig_alct_delay << "\"" << endl;
+    else if (line.find("tmb_bxn_offset") != string::npos){
+      config << "         tmb_bxn_offset=\"" << ME[z_side][z][y][x].bx_offset_clct << "\"" << endl;
     } 
     //
     //ALCT parameters:
@@ -2868,6 +3067,9 @@ void output_measured_parameters(string file_name) {
     } 
     else if (line.find("alct_l1a_delay") != string::npos){
       config << "             alct_l1a_delay=\"" << ME[z_side][z][y][x].alct_l1a_delay << "\"" << endl;
+    }
+    else if (line.find("alct_bxn_offset") != string::npos){
+      config << "             alct_bxn_offset=\"" << ME[z_side][z][y][x].bx_offset_alct << "\"" << endl;
     } 
     //
     //DAQMB parameters:
@@ -2956,14 +3158,15 @@ void options() {         //options of what type of data/delays to display
     cout << "24: TTCrxCoarseDelay calculation based on optical fiber lengths" << endl;
     cout << "25: Chamber line up at MPC" << endl;
     cout << "26: Send plots to output files" << endl;
-    cout << "27: Use measured values for subsequent predictions" << endl << endl;
-    cout << "28: Apply various corrections when adjusting TTCrx delays" << endl << endl;
+    cout << "27: Use measured values for subsequent predictions" << endl;
+    cout << "28: Apply various corrections when adjusting TTCrx delays" << endl;
+    cout << "29: Apply corrections to bx number offsets" << endl;
     cout << "99: Exit" << endl;
    
     cout << "===> ";
     cin >> choice; //user inputs his/her choice
     
-    if ((choice < 1) || (choice > 28 && choice != 99) ) //if picked option is not allowed
+    if ((choice < 1) || (choice > 29 && choice != 99) ) //if picked option is not allowed
       cout << endl << endl << choice << " is not an option.  Please pick again." << endl << endl;
     else 
       break;
