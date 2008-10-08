@@ -2345,6 +2345,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   int TOTAL_DCS_COUNTERS=48;
   xdata::InfoSpace * is;
 
+  if(!Monitor_Ready_) return;
+
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
