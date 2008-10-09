@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.20 2008/10/04 18:44:06 paste Exp $
+* $Id: VMEModule.cc,v 3.21 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.21  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 3.20  2008/10/04 18:44:06  paste
 * Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
 *
@@ -324,14 +327,12 @@ throw (FEDException)
 		std::vector<uint16_t> bogoData1(1,1);
 
 		// Send the reset command pattern
-		pthread_mutex_lock(&mutex_);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
-		pthread_mutex_unlock(&mutex_);
 
 		return;
 	}
@@ -426,7 +427,6 @@ throw (FEDException)
 		std::vector<uint16_t> bogoData3(1,3);
 		
 		// Send the write command pattern
-		pthread_mutex_lock(&mutex_);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 		writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
@@ -452,7 +452,6 @@ throw (FEDException)
 				else writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
 			}
 		}
-		pthread_mutex_unlock(&mutex_);
 		
 		// Return nothing.
 		return result;

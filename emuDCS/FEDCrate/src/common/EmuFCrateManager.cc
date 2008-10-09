@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.21 2008/10/04 18:44:06 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.22 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.22  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 1.21  2008/10/04 18:44:06  paste
 * Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
 *
@@ -78,9 +81,6 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 
 	xgi::bind(this,&EmuFCrateManager::webDefault, "Default");
 	xgi::bind(this,&EmuFCrateManager::webFire, "Fire");
-	//xgi::bind(this,&EmuFCrateManager::MainPage, "MainPage");
-	//xgi::bind(this,&EmuFCrateManager::SendSOAPMessageConfigure, "SendSOAPMessageConfigure");
-	//xgi::bind(this,&EmuFCrateManager::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
 
 	// SOAP call-back functions, which relays to *Action method.
 	xoap::bind(this, &EmuFCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
@@ -88,9 +88,6 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 	xoap::bind(this, &EmuFCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &EmuFCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
 	xoap::bind(this, &EmuFCrateManager::onSetTTSBits, "SetTTSBits", XDAQ_NS_URI);
-	//xoap::bind(this, &EmuFCrateManager::onSetTTSBitsResponse, "SetTTSBitsResponse", XDAQ_NS_URI);
-
-	//	xoap::bind(this, &CSCSupervisor::onSetTTS,    "SetTTS",    XDAQ_NS_URI);
 
 	// fsm_ is defined in EmuApplication
 	fsm_.addState('H', "Halted",     this, &EmuFCrateManager::stateChanged);
@@ -119,14 +116,6 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 	fsm_.addStateTransition(
 		'F', 'H', "Halt",      this, &EmuFCrateManager::haltAction); // valid
 
-	// PGK We don't need these to be state transitions.
-	/*
-	fsm_.addStateTransition(
-		'E', 'E', "SetTTSBits",this, &EmuFCrateManager::setTTSBitsAction);
-	fsm_.addStateTransition(
-		'E', 'E', "SetTTSBitsResponse",this, &EmuFCrateManager::setTTSBitsResponseAction);
-	*/
-
 	fsm_.setInitialState('H');
 	fsm_.reset();
 
@@ -134,8 +123,6 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 
 	// state_ is defined in EmuApplication
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
-
-	//state_table_.addApplication("EmuFCrate");
 
 	// Logger/Appender
 	// log file format: EmuFEDYYYY-DOY-HHMMSS_rRUNNUMBER.log
@@ -351,34 +338,6 @@ void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xg
 
 	*out << cgicc::fieldset() << std::endl;
 
-	//LOG4CPLUS_INFO(getApplicationLogger(), "XRelay");
-	// XRelays?
-	std::set<xdaq::ApplicationDescriptor * > xrdescriptors =
-		getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("XRelay");
-
-	if (xrdescriptors.size()) {
-
-		*out << cgicc::fieldset()
-			.set("class","fieldset") << std::endl;
-		*out << cgicc::div("XRelays")
-			.set("class","legend") << std::endl;
-
-		std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
-		for ( itDescriptor = xrdescriptors.begin(); itDescriptor != xrdescriptors.end(); itDescriptor++ ) {
-			std::stringstream className;
-			className << (*itDescriptor)->getClassName() << "(" << (*itDescriptor)->getInstance() << ")";
-			std::stringstream url;
-			url << (*itDescriptor)->getContextDescriptor()->getURL() << "/" << (*itDescriptor)->getURN();
-
-			*out << cgicc::a(className.str())
-				.set("href",url.str()) << std::endl;
-
-			*out << cgicc::br() << std::endl;
-		}
-
-		*out << cgicc::fieldset() << std::endl;
-	}
-	
 	// Testing SVG
 	
 	// Radius of an individual station in px
@@ -569,7 +528,7 @@ void EmuFCrateManager::configureAction(toolbox::Event::Reference e)
 	setParameter("EmuFCrate","runType","xsd:string",runType_.toString());
 
 	try{
-		PCsendCommand("Configure","EmuFCrate");
+		sendCommand("Configure","EmuFCrate");
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrateManager::configureAction");
 	}
@@ -591,7 +550,7 @@ void EmuFCrateManager::enableAction(toolbox::Event::Reference e)
 	setParameter("EmuFCrate","runNumber","xsd:unsignedLong",runNumber_.toString());
 
 	try{
-		PCsendCommand("Enable","EmuFCrate");
+		sendCommand("Enable","EmuFCrate");
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrateManager::enableAction");
 	}
@@ -605,7 +564,7 @@ void EmuFCrateManager::disableAction(toolbox::Event::Reference e)
 	soapLocal_ = false;
 
 	try{
-		PCsendCommand("Disable","EmuFCrate");
+		sendCommand("Disable","EmuFCrate");
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrateManager::disableAction");
 	}
@@ -619,11 +578,12 @@ void EmuFCrateManager::haltAction(toolbox::Event::Reference e)
 	soapLocal_ = false;
 	soapConfigured_ = false;
 	try{
-		PCsendCommand("Halt","EmuFCrate");
+		sendCommand("Halt","EmuFCrate");
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RAISE(toolbox::fsm::exception::Exception, "error in EmuFCrateManager::haltAction");
 	}
 }
+
 
 
 void EmuFCrateManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
@@ -666,48 +626,6 @@ void EmuFCrateManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 
 
 
-
-std::string EmuFCrateManager::extractRunNumber(xoap::MessageReference message)
-{
-	xoap::SOAPElement root = message->getSOAPPart()
-	.getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
-	xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
-	xoap::SOAPElement state = properties.getChildElements(*(new xoap::SOAPName("RunNumber", "", "")))[0];
-
-	return state.getValue();
-}
-
-
-
-xoap::MessageReference EmuFCrateManager::QueryFCrateInfoSpace()
-{
-	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-	envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
-
-	xoap::SOAPName command = envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
-	xoap::SOAPName properties = envelope.createName("properties", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
-	xoap::SOAPName parameter   = envelope.createName("stateName", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
-	xoap::SOAPName parameter2  = envelope.createName("CalibrationState", "EmuFCrate", "urn:xdaq-application:EmuFCrate");
-	xoap::SOAPName xsitype    = envelope.createName("type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
-
-	xoap::SOAPElement properties_e = envelope.getBody()
-	.addBodyElement(command)
-	.addChildElement(properties);
-	properties_e.addAttribute(xsitype, "soapenc:Struct");
-
-	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
-	parameter_e.addAttribute(xsitype, "xsd:string");
-
-	parameter_e = properties_e.addChildElement(parameter2);
-	parameter_e.addAttribute(xsitype, "xsd:string");
-
-	return message;
-}
-
-
-
-
 xoap::MessageReference EmuFCrateManager::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
 {
 
@@ -747,9 +665,6 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 {
 	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP command received: SetTTSBits");
 
-	// PGK This doesn't need to be a state transition.
-	//fireEvent("SetTTSBits");
-
 	const std::string fed_app = "EmuFCrate";
 
 	// JRG, decode the Source ID into Crate/Slot locations
@@ -771,25 +686,10 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 		if (islot>7) islot++;
 		tts_slot_ = islot;
 	}
-/*
-	else if(srcID>850&&srcID<860){  // crate 4 DDUs, S1-G08g, ME-
-	  tts_crate_=4;
-	  unsigned int islot=srcID-847; // srcID-851+4
-	  if(islot>7)islot++;
-	  tts_slot_=islot;
-	}
-	else if(srcID>860&&srcID<870){  // crate 3 DDUs, S1-G08i, ME-
-	  tts_crate_=3;
-	  unsigned int islot=srcID-857; // srcID-861+4
-	  if(islot>7)islot++;
-	  tts_slot_=islot;
-	}
-*/
 	else if (srcID==760) { //crate ? TF-DDU, S1-?
 		tts_crate_ = 3;  // JRG temp!  Later should be 5!  After ME- installed.
 		tts_slot_ = 2;   // check...!
 	}
-
 	else { // set crates/slot for DCCs,
 		unsigned int icrate = (srcID-748)/2; // will work for both S-Link IDs
 		if (icrate>0&&icrate<5) {
@@ -797,48 +697,21 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 			tts_slot_ = 8;
 		}
 	}
-/*  better way used above ^^^^
-	if(srcID==752){  //crate 2 DCC, S1-G06g
-	  tts_crate_=2;
-	  tts_slot_=8;
-	}
-	if(srcID==750){  //crate 1 DCC, S1-G06i
-	  tts_crate_=1;
-	  tts_slot_=8;
-	}
-	if(srcID==756){  //crate 4 DCC, S1-G08g
-	  tts_crate_=4;
-	  tts_slot_=8;
-	}
-	if(srcID==754){  //crate 3 DCC, S1-G08i
-	  tts_crate_=3;
-	  tts_slot_=8;
-	}
-*/
 
 	try {
-// JRG: this is the instance for the FED application, NOT really the CrateID
-//		int instance = (tts_crate_ == "1") ? 0 : 1;
-		int instance = 0;
-		xdata::UnsignedInteger ui_diff = 1;
+		// JRG: this is the instance for the FED application, NOT really the CrateID
+		int instance = tts_crate_;
 
-// JRG 9/29/07: need to have unique instance for each crate fed_app process
-//		if(tts_crate_>0)instance=tts_crate_ - ui_diff;
-		instance=tts_crate_;
-		if(instance>0)instance--;
-		if(srcID==760)tts_crate_=5;
-/* JRG, for case of 2 FED crates in a single config (2 crates per EmuFCrate):
-		if(instance>2)instance=1;
-		else instance=0;
-*/
+		// JRG 9/29/07: need to have unique instance for each crate fed_app process
+		if (instance > 0) instance--;
+		if (srcID == 760) tts_crate_=5;
+
 		setParameter(fed_app,"ttsCrate","xsd:unsignedInt",tts_crate_.toString());
 		setParameter(fed_app,"ttsSlot", "xsd:unsignedInt",tts_slot_.toString());
 		setParameter(fed_app,"ttsBits", "xsd:unsignedInt",tts_bits_.toString());
-//		std::cout << "inside setTTSAction" << tts_crate_.str() << tts_slot_.str() << tts_bits_.str() << std::endl;
 
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "TTSBits being sent to " << fed_app << "(" << instance << ")");
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Crate " << tts_crate_.toString() << " Slot " << tts_slot_.toString() << " Bits " << tts_bits_.toString());
-		//std::cout << " ** EmuFCrateManager: inside setTTSBitsAction, setParameter tried, now sendCommand instance=" << instance << fed_app << std::endl;
 
 		sendCommand("SetTTSBits", fed_app, instance);
 
@@ -851,11 +724,7 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 		LOG4CPLUS_ERROR(getApplicationLogger(), "setParameter failed");
 		//std::cout << "*!* EmuFCrateManager: inside setTTSBitsAction, setParameter failed" << std::endl;
 	}
-	//std::cout << "*** EmuFCrateManager: end of setTTSBitsAction" << std::endl;
 
-	//SendSOAPMessageXRelaySimple("SetTTSBits","");
-
-	//std::cout << "*** EmuFCrateManager: end of onSetTTSBits, so return" << std::endl;
 	return createReply(message);
 
 }
@@ -878,7 +747,7 @@ xoap::MessageReference EmuFCrateManager::onDisable (xoap::MessageReference messa
 
 	return createReply(message);
 }
-  //
+
 
 
 xoap::MessageReference EmuFCrateManager::onHalt (xoap::MessageReference message) throw (xoap::exception::Exception)
@@ -890,200 +759,10 @@ xoap::MessageReference EmuFCrateManager::onHalt (xoap::MessageReference message)
 
 	return createReply(message);
 }
- //
-
-
-xoap::MessageReference EmuFCrateManager::createXRelayMessage(const std::string & command, const std::string & setting,
- std::set<xdaq::ApplicationDescriptor * > descriptor )
-{
-  std::cout << "  * EmuFCrateManager: inside createXRelayMessage" << std::endl ;
-      // Build a SOAP msg with the Xrelay header:
-  xoap::MessageReference msg  = xoap::createMessage();
-    //
-    std::string topNode = "relay";
-    std::string prefix = "xr";
-    std::string httpAdd = "http://xdaq.web.cern.ch/xdaq/xsd/2004/XRelay-10";
-    xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
-    xoap::SOAPName envelopeName = envelope.getElementName();
-    xoap::SOAPHeader header = envelope.addHeader();
-    xoap::SOAPName relayName = envelope.createName(topNode, prefix,  httpAdd);
-    xoap::SOAPHeaderElement relayElement = header.addHeaderElement(relayName);
-
-    // Add the actor attribute
-    xoap::SOAPName actorName = envelope.createName("actor", envelope.getElementName().getPrefix(),
-						   envelope.getElementName().getURI());
-    relayElement.addAttribute(actorName,httpAdd);
-
-    // Add the "to" node
-    std::string childNode = "to";
-    // Send to all the destinations:
-    //
-     std::set<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
-      getApplicationContext()->getDefaultZone()->getApplicationGroup("broker")->getApplicationDescriptors("XRelay");
-    // xdata::UnsignedIntegerT lid4=4;
-    // std::set<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
-    //     getApplicationContext()->getZone("default")->getApplicationGroup("broker")->getApplicationDescriptors("XRelay");
-
-   //
-    std::cout << "  * EmuFcrateManager: descriptorXrelays size = " << descriptorsXrelays.size() << std::endl;
-    //
-    std::set<xdaq::ApplicationDescriptor * >::iterator  itDescriptorsXrelays = descriptorsXrelays.begin();
-
-    std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
-
-    for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ )
-      {
-        std::string classNameStr = (*itDescriptor)->getClassName();
-	//
-	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
-	std::string urn = (*itDescriptor)->getURN();
-	//
-	std::string urlXRelay = (*itDescriptorsXrelays)->getContextDescriptor()->getURL();
- 	std::string urnXRelay = (*itDescriptorsXrelays)->getURN();
-	itDescriptorsXrelays++;
-	if (itDescriptorsXrelays ==  descriptorsXrelays.end()) itDescriptorsXrelays=descriptorsXrelays.begin();
-	//
-	xoap::SOAPName toName = envelope.createName(childNode, prefix, " ");
-	xoap::SOAPElement childElement = relayElement.addChildElement(toName);
-	xoap::SOAPName urlName = envelope.createName("url");
-	xoap::SOAPName urnName = envelope.createName("urn");
-	childElement.addAttribute(urlName,urlXRelay);
-	childElement.addAttribute(urnName,urnXRelay);
-	xoap::SOAPElement childElement2 = childElement.addChildElement(toName);
-	childElement2.addAttribute(urlName,url);
-	childElement2.addAttribute(urnName,urn);
-	//
-      }
-    //
-    // Create body
-    //
-    xoap::SOAPBody body = envelope.getBody();
-    xoap::SOAPName cmd  = envelope.createName(command,"xdaq","urn:xdaq-soap:3.0");
-    xoap::SOAPElement queryElement = body.addBodyElement(cmd);
-    //
-    if(setting != "" ) {
-      xoap::SOAPName att  = envelope.createName("Setting");
-      queryElement.addAttribute(att,setting);
-    }
-    //
-    //
-    // msg->writeTo(std::cout);
-    //
-    return msg;
-    //
-}
-
-
-  // Post XRelay SOAP message to XRelay application
-void EmuFCrateManager::relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception)
-{
-    // Retrieve the list of applications expecting this command and build the XRelay header
-    xoap::MessageReference reply;
-    try
-      {
-	// Get the Xrelay application descriptor and post the message:
-	xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->getDefaultZone()->
-	  getApplicationGroup("broker")->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
-
-	// Depricated
-	//reply = getApplicationContext()->postSOAP(msg, xrelay);
-	reply = getApplicationContext()->postSOAP(msg, *getApplicationDescriptor(), *xrelay);
-	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
-	if (body.hasFault()) {
-	  std::cout << "EmuFcrateManager: No connection. " << body.getFault().getFaultString() << std::endl;
-	} else {
-	  //reply->writeTo(std::cout);
-	  //std::cout << std::endl;
-	}
-      }
-    catch (xdaq::exception::Exception& e)
-      {
-	XCEPT_RETHROW (xgi::exception::Exception, "Cannot relay message", e);
-      }
-
-     std::cout << " ** EmuFcrateManager: Finish relayMessage" << std::endl;
-
-}
 
 
 
-
-
-
-void EmuFCrateManager::SendSOAPMessageXRelaySimple(std::string command,std::string setting)
-{
-    //
-  std::cout << " ** EmuFCrateManager: inside SendSOAPMessageXRelaySimple" << std::endl ;
-      std::set<xdaq::ApplicationDescriptor * >  descriptors =
-      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuFCrate");
-    //
-  std::cout << " ** EmuFCrateManager: SendSOAPMessageXRelaySimple, got EmuFCrate App" << std::endl ;
-      xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
-  std::cout << " ** EmuFCrateManager: SendSOAPMessageXRelaySimple, created XRelayMessage" << std::endl ;
-  //  std::cout << configure.toString() << std::endl;
-
-      this->relayMessage(configure);
-}
-
-
-
-void EmuFCrateManager::SendSOAPMessageXRelayReturn(std::string command,std::string setting)
-{
-    //
-  std::cout << " ** EmuFCrateManager: inside SendSOAPMessageXRelayReturn" << std::endl ;
-      std::set<xdaq::ApplicationDescriptor * >  descriptors =
-      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("CSCSupervisor");
-    //
-  std::cout << " ** EmuFCrateManager: SendSOAPMessageXRelayReturn, got EmuFCrate App" << std::endl ;
-      xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
-  std::cout << " ** EmuFCrateManager: SendSOAPMessageXRelayReturn, created XRelayMessage" << std::endl ;
-  //  std::cout << configure.toString() << std::endl;
-
-      this->relayMessage(configure);
-}
-
-
-
-void EmuFCrateManager::SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out )
-  throw (xgi::exception::Exception)
-{
-    //
-    std::cout << "EmuFcrateManager: SendSOAPMessage Configure" << std::endl;
-    //
-    xoap::MessageReference msg = xoap::createMessage();
-    xoap::SOAPPart soap = msg->getSOAPPart();
-    xoap::SOAPEnvelope envelope = soap.getEnvelope();
-    xoap::SOAPBody body = envelope.getBody();
-    xoap::SOAPName command = envelope.createName("Configure","xdaq", "urn:xdaq-soap:3.0");
-    body.addBodyElement(command);
-    //
-    try
-      {
-	std::set<xdaq::ApplicationDescriptor * >  descriptors =
-	  getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuFCrate");
-	//
-	std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
-	for ( itDescriptor = descriptors.begin(); itDescriptor != descriptors.end(); itDescriptor++ )
-	  {
-	  	// Depricated
-	    //xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, (*itDescriptor));
-	    xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, *getApplicationDescriptor(), **itDescriptor);
-	  }
-	//
-      }
-    catch (xdaq::exception::Exception& e)
-      {
-	XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);
-      }
-    //
-    this->Default(in,out);
-    //
-}
-
-// FIXME
-  //
-//This is copied from CSCSupervisor::sendcommand;
-void EmuFCrateManager::PCsendCommand(std::string command, std::string klass)
+void EmuFCrateManager::sendCommand(std::string command, std::string klass)
 	throw (xoap::exception::Exception, xdaq::exception::Exception)
 {
 	// Exceptions:
@@ -1099,33 +778,17 @@ void EmuFCrateManager::PCsendCommand(std::string command, std::string klass)
 	}
 
 	// prepare a SOAP message
-	xoap::MessageReference message = PCcreateCommandSOAP(command);
-	xoap::MessageReference reply;
+	xoap::MessageReference message = createCommandSOAP(command);
 
 	// send the message one-by-one
-	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-	for (; i != apps.end(); ++i) {
+	
+	for (std::set<xdaq::ApplicationDescriptor *>::iterator iApp = apps.begin(); iApp != apps.end(); iApp++) {
 		// postSOAP() may throw an exception when failed.
-		// Depricated
-		//reply = getApplicationContext()->postSOAP(message, *i);
-		reply = getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), **i);
-
-		//      PCanalyzeReply(message, reply, *i);
+		//xoap::MessageReference reply = getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), **i);
+		getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *(*iApp));
 	}
 }
 
-
-//
-//This is copied from CSCSupervisor::createCommandSOAP
-xoap::MessageReference EmuFCrateManager::PCcreateCommandSOAP(std::string command)
-{
-    xoap::MessageReference message = xoap::createMessage();
-    xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-    xoap::SOAPName name = envelope.createName(command, "xdaq", "urn:xdaq-soap:3.0");
-    envelope.getBody().addBodyElement(name);
-
-    return message;
-}
 
 
 void EmuFCrateManager::sendCommand(std::string command, std::string klass, int instance)
@@ -1147,22 +810,47 @@ void EmuFCrateManager::sendCommand(std::string command, std::string klass, int i
 	}
 
 	// prepare a SOAP message
-  xoap::MessageReference message = createCommandSOAP(command);
-  std::cout << "  * EmuFCrateManager: sendCommand, created Soap message" << std::endl;
-  xoap::MessageReference reply;
+	xoap::MessageReference message = createCommandSOAP(command);
+	//std::cout << "  * EmuFCrateManager: sendCommand, created Soap message" << std::endl;
 
 	// send the message
 	// postSOAP() may throw an exception when failed.
-  std::cout << "  * EmuFCrateManager: sendCommand, sending Soap message" << std::endl;
-  // Depricated
-  //reply = getApplicationContext()->postSOAP(message, app);
-  reply = getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *app);
-  std::cout << "  * EmuFCrateManager: sendCommand, got Soap reply " << std::endl;
-  std::cout << "            tts_bits_=" << tts_bits_.toString() << std::endl;
+	//std::cout << "  * EmuFCrateManager: sendCommand, sending Soap message" << std::endl;
+	//xoap::MessageReference reply = getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *app);
+	unsigned int iTries = 5;
+	while (iTries > 0) {
+		try {
+			getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *app);
+			break;
+		} catch (xoap::exception::Exception &e) {
+			LOG4CPLUS_ERROR(getApplicationLogger(), "sendCommand failed sending command("<< command <<") to klass("<< klass <<") instance("<< instance <<"):  exception " << e.what());
+			std::string messageOut;
+			message->writeTo(messageOut);
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "Message was as follows:" << std::endl << messageOut);
+			iTries--;
+			LOG4CPLUS_DEBUG(getApplicationLogger(), iTries << " remaining.");
+		} catch (xdaq::exception::Exception &e) {
+			LOG4CPLUS_ERROR(getApplicationLogger(), "sendCommand failed sending command("<< command <<") to klass("<< klass <<") instance("<< instance <<"):  exception " << e.what());
+			std::string messageOut;
+			message->writeTo(messageOut);
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "Message was as follows:" << std::endl << messageOut);
+			iTries--;
+			LOG4CPLUS_DEBUG(getApplicationLogger(), iTries << " remaining.");
+		} catch (...) {
+			LOG4CPLUS_ERROR(getApplicationLogger(), "sendCommand failed sending command("<< command <<") to klass("<< klass <<") instance("<< instance <<"):  exception ???");
+			std::string messageOut;
+			message->writeTo(messageOut);
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "Message was as follows:" << std::endl << messageOut);
+			iTries--;
+			LOG4CPLUS_DEBUG(getApplicationLogger(), iTries << " remaining.");
+		}
+	}
+	
+	if (iTries == 0) {
+		LOG4CPLUS_ERROR(getApplicationLogger(), "sendCommand maximum number of tries reached.  Setting failed state!");
+		XCEPT_RAISE(toolbox::fsm::exception::Exception, "sendCommand maximum number of tries reached");
+	}
 
-  //analyzeReply(message, reply, app);
-  std::cout << "  * EmuFCrateManager: sendCommand, analyzed message,reply,app" << std::endl;
-  std::cout << "            tts_bits_=" << tts_bits_.toString() << std::endl;
 }
 
 
@@ -1177,74 +865,3 @@ xoap::MessageReference EmuFCrateManager::createCommandSOAP(std::string command)
 	return message;
 }
 
-
-
-void EmuFCrateManager::CheckEmuFCrateState() {
-  //
-  std::cout << " inside EmuFCrateManager::CheckEmuFCrateState " << std::endl ;
-
-  std::set<xdaq::ApplicationDescriptor * >  descriptor =
-    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuFCrate");
-  //
-  std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptor;
-  for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) {
-    std::string classNameStr = (*itDescriptor)->getClassName();
-    std::cout << classNameStr << " " << std::endl ;
-    std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
-    std::cout << url << " " << std::endl;
-    std::string urn = (*itDescriptor)->getURN();
-    std::cout << urn << std::endl;
-    //
-    xoap::MessageReference reply;
-    //
-    bool failed = false ;
-    //
-
-    std::cout << " EmuFCrateManager::CheckEmuFCrateState-- about to try Query" << std::endl;
-    try {
-      xoap::MessageReference msg   = QueryFCrateInfoSpace();
-      // Depricated
-      //reply = getApplicationContext()->postSOAP(msg, (*itDescriptor));
-      reply = getApplicationContext()->postSOAP(msg, *getApplicationDescriptor(), **itDescriptor);
-      std::cout << " EmuFCrateManager::CheckEmuFCrateState-- try Query OK? " << std::endl;
-    }
-    //
-    catch (xdaq::exception::Exception& e) {
-      std::cout << " EmuFCrateManager::CheckEmuFCrateState-- try Query Exception! " << std::endl;
-      // *out << cgicc::span().set("style","color:red");
-      std::cout << "(Not running)"<<std::endl;
-      // *out << cgicc::span();
-      failed = true;
-    }
-    //
-    if(!failed) {
-      //
-      std::cout << " EmuFCrateManager::CheckEmuFCrateState-- inside Query OK " << std::endl;
-      xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
-      if (body.hasFault()) {
-	std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
-      } else {
-      std::cout << " EmuFCrateManager::CheckEmuFCrateState-- inside Query Failed " << std::endl;
-	//	*out << cgicc::span().set("style","color:green");
-	std::cout << "(" << extractState(reply) << ")";
-	std::cout << cgicc::span();
-      }
-      //
-    }
-    //
-    // *out << cgicc::br();
-    //
-  }
-  //
-}
-
-std::string EmuFCrateManager::extractState(xoap::MessageReference message) {
-  //
-  //LOG4CPLUS_INFO(getApplicationLogger(), "extractState");
-  //
-  xoap::SOAPElement root = message->getSOAPPart().getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
-  xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
-  xoap::SOAPElement state = properties.getChildElements(*(new xoap::SOAPName("stateName", "", "")))[0];
-  //
-  return state.getValue();
-}

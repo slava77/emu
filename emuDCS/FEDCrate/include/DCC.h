@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 3.21 2008/09/24 18:38:38 paste Exp $
+* $Id: DCC.h,v 3.22 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: DCC.h,v $
+* Revision 3.22  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 3.21  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -242,6 +245,15 @@ namespace emu {
 			 * @param dev the device from which to read the User code.
 			 **/
 			uint32_t readUserCode(enum DEVTYPE dev)
+				throw (FEDException);
+				
+			/** Resets an FPGA through the given PROM.
+			*
+			*	@param dev the PROM through which the signal should be sent.
+			*
+			*	@note The RESET device will reset the MCTRL FPGA.
+			**/
+			void resetPROM(enum DEVTYPE dev)
 				throw (FEDException);
 
 			

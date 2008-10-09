@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCCDebugger.cc,v 1.5 2008/08/15 08:35:51 paste Exp $
+* $Id: DCCDebugger.cc,v 1.6 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: DCCDebugger.cc,v $
+* Revision 1.6  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 1.5  2008/08/15 08:35:51  paste
 * Massive update to finalize namespace introduction and to clean up stale log messages in the code.
 *
@@ -34,7 +37,7 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(short int st
 {
 	std::map<std::string, std::string> returnValues;
 	for (int iLink = 0; iLink < 2; iLink++) {
-		if (stat & (1 << (iLink*2))) {
+		if (stat & (1 << (iLink*2 + 1))) {
 			std::stringstream linkStat;
 			linkStat << "S-Link " << (iLink+1) << " active";
 			returnValues[linkStat.str()] = "green";
@@ -44,7 +47,7 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(short int st
 			returnValues[linkStat.str()] = "red";
 		}
 
-		if (!(stat & (1 << (iLink*2 + 1)))) {
+		if (!(stat & (1 << (iLink*2)))) {
 			std::stringstream linkStat;
 			linkStat << "S-Link " << (iLink+1) << " backpressure";
 			returnValues[linkStat.str()] = "orange";
@@ -53,4 +56,27 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(short int st
 
 	return returnValues;
 }
+
+
+
+std::map<std::string, std::string> emu::fed::DCCDebugger::InFIFOStat(short int stat) {
+	std::map<std::string, std::string> returnValues;
+	for (unsigned int iBit = 0; iBit < 3; iBit++) {
+		if (!(stat & (1 << iBit))) {
+			std::stringstream bitStat;
+			bitStat << "InFIFO " << (iBit*2 + 1) << "/" << (iBit*2 + 2) << " half full";
+			returnValues[bitStat.str()] = "orange";
+		}
+	}
+	for (unsigned int iBit = 3; iBit < 8; iBit++) {
+		if (!(stat & (1 << iBit))) {
+			std::stringstream bitStat;
+			bitStat << "InFIFO " << ((iBit - 3)*2 + 1) << "/" << ((iBit - 3)*2 + 2) << " almost full";
+			returnValues[bitStat.str()] = "red";
+		}
+	}
+	
+	return returnValues;
+}
+
 

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.34 2008/09/24 18:38:38 paste Exp $
+* $Id: DDU.cc,v 3.35 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 3.35  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 3.34  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -7237,7 +7240,7 @@ throw (FEDException)
 		XCEPT_RAISE(FEDException, "FIFOStatus argument must be between 1 and 3 (inclusive)");
 	}
 	
-	uint16_t command;
+	uint16_t command = 7;
 	if (fifo == 1)
 		command = 7;
 	else if (fifo == 2)

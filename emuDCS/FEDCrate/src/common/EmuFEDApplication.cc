@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.cc,v 1.2 2008/10/04 18:44:06 paste Exp $
+* $Id: EmuFEDApplication.cc,v 1.3 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: EmuFEDApplication.cc,v $
+* Revision 1.3  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 1.2  2008/10/04 18:44:06  paste
 * Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
 *
@@ -252,51 +255,6 @@ std::string EmuFEDApplication::Header(std::string myTitle, std::vector<std::stri
 
 	*out << cgicc::br()
 		.set("style","clear: both;") << std::endl;
-
-	return out->str();
-}
-
-
-
-std::string EmuFEDApplication::CSS() {
-	std::stringstream *out = new std::stringstream();
-
-	*out << cgicc::style() << std::endl;
-	*out << cgicc::comment() << std::endl;
-	*out << "div.title {width: 80%; margin: 20px auto 20px auto; text-align: center; color: #000; font-size: 16pt; font-weight: bold;}" << std::endl;
-	*out << "div.expert {width: 80%; margin: 2px auto 2px auto; text-align: center;}" << std::endl;
-	*out << "fieldset.header {width: 95%; margin: 5px auto 5px auto; padding: 2px 2px 2px 2px; border: 2px solid #555; background-color: #FFF;}" << std::endl;
-	*out << "fieldset.footer {width: 95%; margin: 20px auto 5px auto; padding: 2px 2px 2px 2px; font-size: 9pt; font-style: italic; border: 0px solid #555; text-align: center;}" << std::endl;
-	*out << "fieldset.fieldset, fieldset.normal, fieldset.expert {width: 90%; margin: 10px auto 10px auto; padding: 2px 2px 2px 2px; border: 2px solid #555; background-color: #FFF;}" << std::endl;
-	*out << "fieldset.expert {background-color: #CCC; border: dashed 2px #C00; clear: both;}" << std::endl;
-	*out << "div.legend {width: 100%; padding-left: 20px; margin-bottom: 10px; color: #00D; font-size: 12pt; font-weight: bold;}" << std::endl;
-	*out << ".openclose {border: 1px solid #000; padding: 0px; cursor: pointer; font-family: monospace; color: #000; background-color: #FFF;}" << std::endl;
-	*out << "table.data {border-width: 0px; border-collapse: collapse; margin: 5px auto 5px auto; font-size: 9pt;} " << std::endl;
-	*out << "table.data td {padding: 1px 8px 1px 8px;}" << std::endl;
-	*out << ".Halted, .Enabled, .Disabled, .Configured, .Failed, .unknown {padding: 2px; background-color: #000; font-family: monospace;}" << std::endl;
-	*out << ".Halted {color: #F99;}" << std::endl;
-	*out << ".Enabled {color: #9F9;}" << std::endl;
-	*out << ".Disabled {color: #FF9;}" << std::endl;
-	*out << ".Configured {color: #99F;}" << std::endl;
-	*out << ".Failed, .unknown {color: #F99; font-weight: bold; text-decoration: blink;}" << std::endl;
-	*out << ".error {padding: 2px; background-color: #000; color: #F00; font-family: monospace;}" << std::endl;
-	*out << ".warning {padding: 2px; background-color: #F60; color: #000; font-family: monospace;}" << std::endl;
-	*out << ".orange {padding: 2px; color: #930; font-family: monospace;}" << std::endl;
-	*out << ".caution {padding: 2px; background-color: #FF6; color: #000; font-family: monospace;}" << std::endl;
-	*out << ".yellow {padding: 2px; color: #990; font-family: monospace;}" << std::endl;
-	*out << ".ok {padding: 2px; background-color: #6F6; color: #000; font-family: monospace;}" << std::endl;
-	*out << ".green {padding: 2px; color: #090; font-family: monospace;}" << std::endl;
-	*out << ".bad {padding: 2px; background-color: #F66; color: #000; font-family: monospace;}" << std::endl;
-	*out << ".red {padding: 2px; color: #900; font-family: monospace;}" << std::endl;
-	*out << ".questionable {padding: 2px; background-color: #66F; color: #000; font-family: monospace;}" << std::endl;
-	*out << ".blue {padding: 2px; color: #009; font-family: monospace;}" << std::endl;
-	*out << ".none {padding: 2px; font-family: monospace;}" << std::endl;
-	*out << ".undefined {padding: 2px; background-color: #CCC; color: #333; font-family: monospace;}" << std::endl;
-
-	*out << ".button {padding: 2px; -moz-border-radius: 3px; -webkit-border-radius: 3px; border: 1px solid #000; cursor: pointer;}" << std::endl;
-	//*out << "body {background-image: url('/tmp/osu_fed_background2.png'); background-repeat: repeat;}" << std::endl;
-	*out << cgicc::comment() << std::endl;
-	*out << cgicc::style() << std::endl;
 
 	return out->str();
 }
