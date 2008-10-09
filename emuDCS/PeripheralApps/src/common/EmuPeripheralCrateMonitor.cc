@@ -1779,6 +1779,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
 {
      unsigned int tmbslots[9]={2,4,6,8,10,14,16,18,20};
 
+    if(!Monitor_Ready_) return;
      cgicc::Cgicc cgi(in);
 
      std::string in_value = cgi.getElement("selected")->getValue(); 
@@ -1811,7 +1812,6 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
   }
 
     *out << cgicc::b("<center>"+TCounterName[this_tcounter_]+"</center>" ) << std::endl;
-    if(!Monitor_Ready_) return;
 
   *out << cgicc::table().set("border","1");
   //
@@ -1890,6 +1890,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
   {
      unsigned int dmbslots[9]={3,5,7,9,11,15,17,19,21};
 
+    if(!Monitor_Ready_) return;
      cgicc::Cgicc cgi(in);
 
      std::string in_value = cgi.getElement("selected")->getValue(); 
@@ -1922,7 +1923,6 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
   }
 
     *out << cgicc::b("<center>"+DCounterName[this_dcounter_]+"</center>" ) << std::endl;
-    if(!Monitor_Ready_) return;
 
   *out << cgicc::table().set("border","1");
   //
