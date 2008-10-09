@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.h,v 1.16 2008/08/25 12:25:49 paste Exp $
+* $Id: EmuFCrateManager.h,v 1.17 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: EmuFCrateManager.h,v $
+* Revision 1.17  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 1.16  2008/08/25 12:25:49  paste
 * Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
 *
@@ -52,9 +55,6 @@ public:
 
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 		throw (toolbox::fsm::exception::Exception);
-		
-	std::string extractState(xoap::MessageReference message);
-	std::string extractRunNumber(xoap::MessageReference message);
 
 	xoap::MessageReference onConfigure (xoap::MessageReference message) 
 		throw (xoap::exception::Exception);
@@ -69,28 +69,13 @@ public:
 	
 	xoap::MessageReference onSetTTSBits(xoap::MessageReference message) 
 		throw (xoap::exception::Exception);
-
-	void relayMessage (xoap::MessageReference msg) 
-		throw (xgi::exception::Exception);
-	void SendSOAPMessageXRelaySimple(std::string command,std::string setting);
-	void SendSOAPMessageXRelayReturn(std::string command,std::string setting);
-	void SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
-		throw (xgi::exception::Exception);
-	void SendSOAPMessageCalibrationXRelay(xgi::Input * in, xgi::Output * out ) 
-		throw (xgi::exception::Exception);
-	void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) 
-		throw (xgi::exception::Exception);
 	
-	void PCsendCommand(std::string command, std::string klass) 
-		throw (xoap::exception::Exception, xdaq::exception::Exception);
 	xoap::MessageReference PCcreateCommandSOAP(std::string command);
 
 	xoap::MessageReference killAllMessage();
-	xoap::MessageReference QueryFCrateInfoSpace();
 	xoap::MessageReference QueryLTCInfoSpace();
 	xoap::MessageReference QueryJobControlInfoSpace();
 	xoap::MessageReference ExecuteCommandMessage(std::string port);
-	xoap::MessageReference createXRelayMessage(const std::string & command, const std::string & setting, std::set<xdaq::ApplicationDescriptor * > descriptor );
 
 	void CheckEmuFCrateState();
 
@@ -101,8 +86,11 @@ private:
 	xdata::UnsignedInteger tts_slot_;
 	xdata::UnsignedInteger tts_bits_;
 
-	void sendCommand(std::string command, std::string klass, int instance = -1)
+	void sendCommand(std::string command, std::string klass, int instance)
 		throw (xoap::exception::Exception, xdaq::exception::Exception);
+	void sendCommand(std::string command, std::string klass) 
+		throw (xoap::exception::Exception, xdaq::exception::Exception);
+
 	xoap::MessageReference createCommandSOAP(std::string command);
 
 	void webRedirect(xgi::Input *in, xgi::Output *out)

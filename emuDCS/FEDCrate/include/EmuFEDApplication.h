@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.h,v 3.7 2008/10/04 18:44:05 paste Exp $
+* $Id: EmuFEDApplication.h,v 3.8 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: EmuFEDApplication.h,v $
+* Revision 3.8  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 3.7  2008/10/04 18:44:05  paste
 * Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
 *
@@ -58,7 +61,7 @@ public:
 	*	descriptor.
 	*	@returns a SOAP message reply for use with @sa readParameter.
 	*
-	*	@author Phillip Killewald <paste@mps.ohio-state.edu>
+	*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 	**/
 	xoap::MessageReference getParameters(xdaq::ApplicationDescriptor *applicationDescriptor)
 		throw (xdaq::exception::Exception);
@@ -71,7 +74,7 @@ public:
 	*	sending the request.
 	*	@returns a SOAP message reply for use with @sa readParameter.
 	*
-	*	@author Phillip Killewald <paste@mps.ohio-state.edu>
+	*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 	**/
 	xoap::MessageReference getParameters(std::string applicationName, unsigned int instance)
 		throw (xdaq::exception::Exception);
@@ -114,7 +117,7 @@ public:
 	*	extends the xdata::Serializable class (but not an xdata::Serializable
 	*	instance itself).
 	*
-	*	@author Phillip Killewald <paste@mps.ohio-state.edu>
+	*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 	**/
 	template<class T>
 	T readParameter(xoap::MessageReference message, std::string parameterName)
@@ -158,29 +161,15 @@ public:
 	*	 see the directory FEDCrate/js for a list of files one can include.
 	*	@returns a huge std::string that is basically the header of the page in
 	*	 HTML.  Good for outputting straight to the xgi::Output.
-	*
-	*	@sa the autoRefresh_ member and the CSS method.
 	**/
 	virtual std::string Header(std::string myTitle, std::vector<std::string> jsFileNames);
 	
 	virtual std::string Header(std::string myTitle);
 
-	/** Returns the standard CSS code for the EmuFCrate applications.
-	*
-	*	@returns a huge std::string that is basically the CSS code in HTML.  Good
-	*	 for outputting straight to the xgi::Output.
-	*
-	*	@sa the Header and Footer methods.
-	**/
-	virtual std::string CSS();
-
-
 	/** Returns the standard Footer for the EmuFCrate applications.
 	*
 	*	@returns a huge std::string that is basically the footer code in HTML.  Good
 	*	 for outputting straight to the xgi::Output.
-	*
-	*	@sa the CSS method.
 	**/
 	virtual std::string Footer();
 
@@ -193,7 +182,7 @@ protected:
 	/** Serializes this application's ApplicationInfoSpace and returns it.
 	*	As things stand, is bound to the "GetParameters" SOAP command.
 	*
-	*	@author Phillip Killewald <paste@mps.ohio-state.edu>
+	*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 	**/
 	xoap::MessageReference onGetParameters(xoap::MessageReference message)
 		throw (xoap::exception::Exception);

@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.52 2008/10/04 18:44:05 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.53 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
-* Revision 3.52  2008/10/04 18:44:05  paste
-* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
+* Revision 3.53  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
 *
 * Revision 3.51  2008/09/30 08:12:24  paste
 * Fixed a bug in DDU and DCC Expert Controls
@@ -2128,7 +2128,8 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	}
 
 	// We should know which proms we should load once a button is pressed.
-	unsigned int from, to;
+	unsigned int from = 1;
+	unsigned int to = 0;
 	if (type == 0) { from = 0; to = 0; }
 	if (type == 1) { from = 1; to = 2; }
 	if (type == 2) { from = 3; to = 4; }
@@ -2298,10 +2299,10 @@ throw (xgi::exception::Exception)
 	emu::fed::FEDCrate *myCrate = cratePair.second;
 	
 	// No DCC = no luck.
-	if (myCrate->getDCCs().size()) {
-		myCrate->getDCCs()[0]->crateHardReset();
-	} else {
-		LOG4CPLUS_ERROR(getApplicationLogger(), "No DCCs present in configuration: manual crate resets not allowed.");
+	std::vector<emu::fed::DCC *> myDCCs = myCrate->getDCCs();
+	for (std::vector<emu::fed::DCC *>::iterator iDCC = myDCCs.begin(); iDCC != myDCCs.end(); iDCC++) {
+		(*iDCC)->resetPROM(emu::fed::INPROM);
+		(*iDCC)->resetPROM(emu::fed::RESET);
 	}
 	
 	std::ostringstream backLocation;
@@ -5510,6 +5511,10 @@ throw (xgi::exception::Exception)
 	*out << cgicc::input()
 		.set("type","submit")
 		.set("name","submit")
+		.set("value","Send MPROM (Emergency Load)") << std::endl;
+	*out << cgicc::input()
+		.set("type","submit")
+		.set("name","submit")
 		.set("value","Send INPROM") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
@@ -5531,7 +5536,7 @@ throw (xgi::exception::Exception)
 	
 	*out << cgicc::fieldset()
 		.set("class","normal") << std::endl;
-	*out << cgicc::div("Step 4:  Hard-reset the crate")
+	*out << cgicc::div("Step 4:  Reset the FPGAs")
 		.set("class","legend") << std::endl;
 	
 	*out << cgicc::form()
@@ -5539,7 +5544,7 @@ throw (xgi::exception::Exception)
 		.set("method","post") << std::endl;
 	*out << cgicc::input()
 		.set("type","submit")
-		.set("value","Reset crate via DCC") << std::endl;
+		.set("value","Reset FPGAs") << std::endl;
 	*out << cgicc::form() << std::endl;
 	
 	*out << cgicc::fieldset() << std::endl;
@@ -5645,6 +5650,8 @@ throw (xgi::exception::Exception)
 	std::string submitCommand = cgi["submit"]->getValue();
 	if (submitCommand.substr(5) == "INPROM") type = 0;
 	if (submitCommand.substr(5) == "MPROM") type = 1;
+	if (submitCommand.substr(5) == "MPROM (Emergency Load)") type = 2;
+	
 	
 	//int broadcast = cgi["broadcast"]->getIntegerValue();
 	std::string slotsText = cgi["slots"]->getValue();
@@ -5669,7 +5676,7 @@ throw (xgi::exception::Exception)
 		webRedirect(out,backLocation.str());
 	}
 	
-	if (type != 0 && type != 1) {
+	if (type != 0 && type != 1 && type != 2) {
 		//std::cout << "I don't understand that PROM type (" << type << ")." << std::endl;
 		LOG4CPLUS_ERROR(getApplicationLogger(),"PROM type not understood");
 		std::ostringstream backLocation;
@@ -5682,10 +5689,11 @@ throw (xgi::exception::Exception)
 	std::vector<std::string> promName;
 	promName.push_back("INPROM");
 	promName.push_back("MPROM");
+	promName.push_back("MPROM");
 	std::vector<enum emu::fed::DEVTYPE> devType;
 	devType.push_back(emu::fed::INPROM);
-	//devType.push_back(emu::fed::RESET);
 	devType.push_back(emu::fed::MPROM);
+	devType.push_back(emu::fed::RESET);
 	
 	// Load the proper version types from the cgi handle.
 	std::vector<uint32_t> version;
@@ -5719,16 +5727,19 @@ throw (xgi::exception::Exception)
 		std::string filename = "Current" + promName[type] + ".svf";
 		//std::cout << " broadcasting " << filename << " version " << version[i] << std::endl;
 		LOG4CPLUS_INFO(getApplicationLogger(),"Loading file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << myDCC->slot() << "...");
+		std::cout << "Loading file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << myDCC->slot() << "..." << std::endl;
 		
 		//myDCC->epromload((char *)promName[type].c_str(),devType[type],(char *)filename.c_str(),1);
 		myDCC->loadPROM(devType[type],(char *) filename.c_str());
 
 		// Check the usercode.
-		uint32_t checkCode = myDCC->readUserCode(devType[type]);
-		if (checkCode != version[type]) {
-			LOG4CPLUS_ERROR(getApplicationLogger(),"Firmware load failed: expected usercode " << std::hex << version[type] << ", got " << checkCode << std::dec);
-		} else {
-			LOG4CPLUS_INFO(getApplicationLogger(),"Firmware load succeeded: expected usercode " << std::hex << version[type] << ", got " << checkCode << std::dec)
+		if (devType[type] != emu::fed::RESET) {
+			uint32_t checkCode = myDCC->readUserCode(devType[type]);
+			if (checkCode != version[type]) {
+				LOG4CPLUS_ERROR(getApplicationLogger(),"Firmware load failed: expected usercode " << std::hex << version[type] << ", got " << checkCode << std::dec);
+			} else {
+				LOG4CPLUS_INFO(getApplicationLogger(),"Firmware load succeeded: expected usercode " << std::hex << version[type] << ", got " << checkCode << std::dec)
+			}
 		}
 	}
 	
@@ -6069,22 +6080,15 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 
 	*(generalTable(1,0)->value) << "DCC FIFO Backpressure (8-bit)";
 	*(generalTable(1,1)->value) << std::showbase << std::hex << ((dccValue & 0x0ff0) >> 4);
-	for (int iFifo = 0; iFifo < 8; iFifo++) {
-		if (!(((dccValue & 0x0ff0) >> 4) & (1<<iFifo))) {
-			if (iFifo < 4) {
-				*(generalTable(1,2)->value) << cgicc::div()
-					.set("class","red") << "FIFO " << (iFifo*2+1) << " or " << (iFifo*2+2) << " (Slot " << myDCC->getDDUSlotFromFIFO(iFifo*2) << " or " << myDCC->getDDUSlotFromFIFO(iFifo*2+1) << ")" << cgicc::div();
-			} else if (iFifo == 7) {
-				*(generalTable(1,2)->value) << cgicc::div()
-					.set("class","red") << "FIFO 9 or 10 (Slot " << myDCC->getDDUSlotFromFIFO(8) << " or " << myDCC->getDDUSlotFromFIFO(9) << ")" << cgicc::div();
-			} else {
-				*(generalTable(1,2)->value) << cgicc::div()
-					.set("class","red") << "Output FIFO to S-Link " << (iFifo/5 + 1) << cgicc::div();
-			}
-		}
+	debugMap = emu::fed::DCCDebugger::InFIFOStat((dccValue & 0x0ff0) >> 4);
+	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
+		*(generalTable(1,2)->value) << cgicc::div(iDebug->first)
+		.set("class",iDebug->second);
 	}
-	if (((dccValue & 0x0ff0) >> 4) != 0xbf) {
+	if (dccValue & 0x0f80) {
 		generalTable(1,1)->setClass("bad");
+	} else if (dccValue & 0x0070) {
+		generalTable(1,1)->setClass("warning");
 	} else {
 		generalTable(1,1)->setClass("ok");
 	}

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 3.25 2008/09/24 18:38:38 paste Exp $
+* $Id: DCC.cc,v 3.26 2008/10/09 11:21:19 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 3.26  2008/10/09 11:21:19  paste
+* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
+*
 * Revision 3.25  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -98,15 +101,12 @@ emu::fed::DCC::DCC(int slot) :
 	chainMCTRL.push_back(elementMCTRL);
 	JTAGMap[MCTRL] = chainMCTRL;
 
-	// The RESET path is two elements.  Tricky!
+	// The RESET path is one element.
 	JTAGChain chainRESET;
-	JTAGElement *elementRESET1 = new JTAGElement("RESET1", RESET, 12, PROM_BYPASS, 8, 0x0000fffe, false);
-	chainRESET.push_back(elementRESET1);
+	JTAGElement *elementRESET = new JTAGElement("RESET", RESET, 12, PROM_BYPASS, 8, 0x0000fffe, false);
+	chainRESET.push_back(elementRESET);
 
-	JTAGElement *elementRESET2 = new JTAGElement("RESET2", RESET2, 12, PROM_BYPASS, 8, 0x0000fffe, false);
-	chainRESET.push_back(elementRESET2);
-	JTAGMap[RESET1] = chainRESET;
-	JTAGMap[RESET2] = chainRESET;
+	JTAGMap[RESET] = chainRESET;
 	
 }
 
@@ -1056,4 +1056,24 @@ throw (FEDException)
 	}
 }
 
+
+
+void emu::fed::DCC::resetPROM(enum DEVTYPE dev)
+throw (FEDException)
+{
+	if (dev != INPROM && dev != MPROM && dev != RESET) {
+		XCEPT_RAISE(FEDException, "must supply a PROM device as an argument");
+	}
+	
+	try {
+		commandCycle(dev, 0x00EE);
+		uint16_t bpCommand = 0;
+		if (dev == RESET) bpCommand = 0xFFFF;
+		else bpCommand = PROM_BYPASS;
+		commandCycle(dev, bpCommand);
+		sleep(1);
+	} catch (FEDException) {
+		throw;
+	}
+}
 
