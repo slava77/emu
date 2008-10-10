@@ -2344,6 +2344,8 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   std::vector<emu::pc::DAQMB*> myVector;
   int TOTAL_DCS_COUNTERS=48;
   xdata::InfoSpace * is;
+  std::string mac;
+  int ip, slot;
 
   if(!Monitor_Ready_) return;
 
@@ -2359,12 +2361,16 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
      if (counter16==NULL) crateok= 0; 
         else crateok = (*counter16);
 
+     mac=crateVector[i]->vmeController()->GetMAC(0);
+     ip=strtol(mac.substr(15,2).c_str(), NULL, 16);
      *out << std::setprecision(5);
      myVector = crateVector[i]->daqmbs();
      for(unsigned int j=0; j<myVector.size(); j++) 
      {
+        slot = myVector[j]->slot();
+        ip = (ip & 0xff) + slot*256;
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
-        *out << " " << crateok << " " << readtime;
+        *out << " " << crateok << " " << readtime << " " << ip;
         for(int k=0; k<TOTAL_DCS_COUNTERS; k++) 
         {  val= (*dmbdata)[j*TOTAL_DCS_COUNTERS+k];
            *out << " " << val;
