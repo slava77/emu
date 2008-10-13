@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.cc,v 1.3 2008/10/09 11:21:19 paste Exp $
+* $Id: EmuFEDApplication.cc,v 1.4 2008/10/13 11:56:41 paste Exp $
 *
 * $Log: EmuFEDApplication.cc,v $
+* Revision 1.4  2008/10/13 11:56:41  paste
+* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
+*
 * Revision 1.3  2008/10/09 11:21:19  paste
 * Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
 *
@@ -31,6 +34,7 @@ EmuFEDApplication::EmuFEDApplication(xdaq::ApplicationStub *stub)
 	throw (xdaq::exception::Exception):
 	EmuApplication(stub),
 	runNumber_(0),
+	endcap_("?"),
 	autoRefresh_(20),
 	NS_XSI("http://www.w3.org/2001/XMLSchema-instance"),
 	STATE_UNKNOWN("unknown")
@@ -41,39 +45,11 @@ EmuFEDApplication::EmuFEDApplication(xdaq::ApplicationStub *stub)
 	//  the CSCSV to set them with the "ParameterSet" SOAP command.
 	getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
 	getApplicationInfoSpace()->fireItemAvailable("runType", &runType_);
+	getApplicationInfoSpace()->fireItemAvailable("endcap", &endcap_);
 
 	// PGK We deal with INFO level unless we are doing a Debug run.
 	getApplicationLogger().setLogLevel(INFO_LOG_LEVEL);
 
-	// Move the pictures to tmp for display
-	// FIXME with something that will work with RPMs.
-	/*
-	std::vector< std::string > picNames;
-	picNames.push_back("OSUBackground.gif");
-	picNames.push_back("OSUCMS.png");
-	picNames.push_back("EmuFEDSeal.png");
-	for (std::vector< std::string >::iterator iName = picNames.begin(); iName != picNames.end(); iName++) {
-		std::ifstream picIn;
-		picIn.open((*iName).c_str(),std::ios_base::binary);
-		if (picIn.is_open()) {
-			std::ofstream picOut;
-			std::ifstream picOutTest;
-			std::string newName = "/tmp/" + *iName;
-			// Check if file is already there...
-			picOutTest.open(newName.c_str(),std::ios_base::binary | std::ios::in);
-			if (!picOutTest.is_open()) {
-				picOut.open(newName.c_str(),std::ios_base::binary);
-				if (picOut.is_open()) {
-					picOut << picIn.rdbuf();
-					picOut.close();
-				}
-			} else {
-				picOutTest.close();
-			}
-			picIn.close();
-		}
-	}
-	*/
 }
 
 

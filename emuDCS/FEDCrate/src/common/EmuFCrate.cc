@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.47 2008/10/04 18:44:05 paste Exp $
+* $Id: EmuFCrate.cc,v 3.48 2008/10/13 11:56:40 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.48  2008/10/13 11:56:40  paste
+* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
+*
 * Revision 3.47  2008/10/04 18:44:05  paste
 * Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
 *
@@ -81,8 +84,7 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	ttsSlot_(0),
 	ttsBits_(0),
 	soapConfigured_(false),
-	soapLocal_(false),
-	endcap_("?")
+	soapLocal_(false)
 {
 	//
 	// State machine definition

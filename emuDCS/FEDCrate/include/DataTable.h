@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DataTable.h,v 1.9 2008/08/26 13:40:08 paste Exp $
+* $Id: DataTable.h,v 1.10 2008/10/13 11:56:40 paste Exp $
 *
 * $Log: DataTable.h,v $
+* Revision 1.10  2008/10/13 11:56:40  paste
+* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
+*
 * Revision 1.9  2008/08/26 13:40:08  paste
 * Updating and adding documentation
 *
@@ -30,7 +33,7 @@ namespace emu {
 		*	to be displayed (as a stringstream) and the CSC class name of the element
 		*	for formatting purposes.
 		**/
-		class DataElement
+		class DataElement: public std::stringstream
 		{
 			friend class DataRow;
 			
@@ -39,40 +42,23 @@ namespace emu {
 			/** Standard constructor.
 			*
 			*	@param myValue is the value of the pacticular element.
-			*	@param klass is the class of the particular element.
+			*	@param className is the class of the particular element.
 			**/
 			DataElement(std::stringstream myValue, std::string className = "none");
 		
 			/** Standard constructor with std::strings.
 			*
 			*	@param myValue is the value of the pacticular element.
-			*	@param klass is the class of the particular element.
+			*	@param className is the class of the particular element.
 			**/
 			DataElement(std::string myValue = "", std::string klass = "none");
+
+			/** Copy constructor, for the stupid stringstream **/
+			DataElement(const DataElement &myElement);
+
+			DataElement &operator= (const DataElement &myElement);
 		
 			~DataElement() {}
-		
-			/** Set the value straight away. **/
-			inline std::string operator= (std::string myValue)
-			{
-				value->clear();
-				*value << value;
-				return value->str();
-			}
-		
-			/** Set the value straight away. **/
-			inline void setValue(std::stringstream myValue)
-			{
-				value->clear();
-				*value << value;
-			}
-		
-			/** Set the value straight away. **/
-			inline void setValue(std::string myValue)
-			{
-				value->clear();
-				*value << value;
-			}
 		
 			/** Set the CSS class. **/
 			inline void setClass(std::string className) { class_ = className; }
@@ -83,16 +69,13 @@ namespace emu {
 			/** Display as an HTML table element \<td\>. **/
 			std::string toHTML(bool breaks = false);
 		
-			/// The value that will be displayed, made public for easy writing to and from.
-			std::stringstream *value;
-		
 		private:
 			std::string class_;
 		};
 		
 	
 		/** @class DataRow An individual row of a DataTable object.  These contain DataElements. **/
-		class DataRow
+		class DataRow: public std::vector<DataElement>
 		{
 			friend class DataTable;
 		public:
@@ -111,8 +94,8 @@ namespace emu {
 		
 			~DataRow() {}
 		
-			/** Access a given element. **/
-			DataElement *operator[] (unsigned int element)
+			/** Access a given element.  Expand the vector as needed.  **/
+			DataElement &operator[] (unsigned int element)
 				throw (FEDException);
 		
 			/** Set which elements to draw a line after (using borders). 
@@ -128,8 +111,8 @@ namespace emu {
 			inline void setClass(std::string className)
 				throw (FEDException)
 			{
-				if (elements_.size() < 2) XCEPT_RAISE(FEDException, "DataRow::getClass assumes that the second element is the data element.  You need at least two elements in the DataRow to call this method.");
-				elements_[1]->setClass(className);
+				if (size() < 2) XCEPT_RAISE(FEDException, "DataRow::getClass assumes that the second element is the data element.  You need at least two elements in the DataRow to call this method.");
+				(*this)[1].setClass(className);
 			}
 		
 			/** @returns a string representing the row in and HTML table row \<tr\>.
@@ -141,6 +124,7 @@ namespace emu {
 			/** Make a form for editing the present value.
 			*
 			*	@param target is the target URL of the form
+			*	@param crate is the target crate that is being addressed
 			*	@param ddu is the index of the ddu that is being addressed
 			*	@param val is the legacy index number for DDU/DCCTextLoad to parse.
 			*	@param buttonText is the text you want to appear in the submit button.
@@ -149,7 +133,7 @@ namespace emu {
 				throw (FEDException);
 		
 		private:
-			std::vector< DataElement * > elements_;
+			//std::vector< DataElement > elements_;
 			unsigned long int breaks_;
 		};
 		
@@ -158,7 +142,7 @@ namespace emu {
 		*
 		*	@sa @class EmuFCrateHyperDAQ
 		**/
-		class DataTable
+		class DataTable: public std::vector<DataRow>
 		{
 		public:
 			/** Standard constructor.
@@ -169,8 +153,8 @@ namespace emu {
 		
 			~DataTable() {};
 		
-			/** Access a given DataRow. **/
-			DataRow *operator[] (unsigned int row);
+			/** Access a given DataRow.  Increase the DataRow vector as needed.  **/
+			DataRow &operator[] (unsigned int row);
 		
 			/** Access a given DataElement.  Will automatically expand DataRows with
 			*	new DataElements and expand with more DataRows as needed.
@@ -178,7 +162,7 @@ namespace emu {
 			*	@param row the DataRow to access.
 			*	@param col the DataElement in that row to access.
 			**/
-			DataElement *operator() (unsigned int row, unsigned int col);
+			DataElement &operator() (unsigned int row, unsigned int col);
 		
 			/** Add a column to the table.  Will expand the DataRows as needed.
 			*
@@ -191,10 +175,10 @@ namespace emu {
 				throw (FEDException);
 		
 			/** Add a pre-constructed DataRow to the table. **/
-			void addRow(DataRow *row);
+			void addRow(DataRow row);
 			
 			/** @return the number of DaraRows in the table. **/
-			inline unsigned int countRows() { return rows_.size(); }
+			inline unsigned int countRows() { return size(); }
 		
 			/** @return the table formatted as an HTML table \<table\>.
 			*
@@ -228,7 +212,7 @@ namespace emu {
 			inline void setHidden(bool hidden) { hidden_ = hidden; }
 		
 		private:
-			std::vector< DataRow *> rows_;
+			//std::vector< DataRow > rows_;
 			std::vector< std::string > headers_;
 			unsigned int cols_;
 			std::string id_;

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.h,v 3.18 2008/09/24 18:38:38 paste Exp $
+* $Id: EmuFCrate.h,v 3.19 2008/10/13 11:56:40 paste Exp $
 *
 * $Log: EmuFCrate.h,v $
+* Revision 3.19  2008/10/13 11:56:40  paste
+* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
+*
 * Revision 3.18  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -122,9 +125,6 @@ private:
 
 	xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > dccInOut_;
 	xdata::soap::Serializer serializer; // This makes SOAP so much easier!
-
-	//std::string ttsIDStr_, ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
-	xdata::String endcap_; // Will say something like "plus" or "minus"
 
 	std::vector<emu::fed::FEDCrate *> crateVector; // Very useful, just like in EFCHD
 
