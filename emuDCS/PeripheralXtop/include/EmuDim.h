@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.1 2008/10/12 11:56:18 liu Exp $
+// $Id: EmuDim.h,v 1.2 2008/10/13 12:14:28 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -69,7 +69,10 @@ public:
   std::string ConfigDir_;  
   //
   xdata::String PeripheralCrateDimFile_;
+  xdata::String BadChamberFile_;
   xdata::String XmasDcsUrl_;
+  xdata::String TestPrefix_;
+  xdata::Integer OpMode_;
   //
   EmuDim(xdaq::ApplicationStub * s);
   //
@@ -92,8 +95,9 @@ public:
   // for Monitoring
   xoap::MessageReference  SoapStart(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference  SoapStop(xoap::MessageReference message) throw (xoap::exception::Exception);
-  void EmuDim::ButtonStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void EmuDim::ButtonStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ButtonStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ButtonStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void Command(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void timeExpired (toolbox::task::TimerEvent& e);
   void Start();
   void Stop();
