@@ -15,7 +15,8 @@ ifeq ($(Set),framework)
 Packages=\
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
-	emuDCS/e2p \
+        emuDCS/PeripheralXtop \
+        emuDCS/PCSwitches \
 	emuDCS/OnlineDB \
 	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCrate
@@ -26,8 +27,7 @@ Packages= \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
 	emuDCS/OnlineDB \
-	emuDCS/drivers \
-	emuDCS/e2p
+	emuDCS/drivers/gbit-vme
 endif
 
 ifeq ($(Set),FEDCrate)
