@@ -1,0 +1,319 @@
+<EmuSystem Name="Minus-Side">
+	<FEDCrate Comment="" Number="3">
+		<VMEController Comment="" Device="1" Link="0"/>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="19" Slot="4">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/05" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/05" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/14" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/20" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/05" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/10" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/13" PeripheralCrate="VMEm4_4"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/26" PeripheralCrate="VMEm4_4"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/08" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/08" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/13" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/19" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/08" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/07" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/25" PeripheralCrate="VMEm4_4"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="20" Slot="5">
+			<Chamber Comment="Lost +7.5V digital to chamber" Fiber="0" Killed="1" Name="-1/1/04" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/04" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/12" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/18" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/04" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/09" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/12" PeripheralCrate="VMEm4_4"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/24" PeripheralCrate="VMEm4_4"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/07" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/07" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/11" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/17" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/07" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/06" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/23" PeripheralCrate="VMEm4_4"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="21" Slot="6">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/03" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/03" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/10" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/16" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="DMB full setting warnings on 13/10/08, awaiting analysis" Fiber="4" Killed="1" Name="-1/2/03" PeripheralCrate="VMEm1_2"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/08" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/11" PeripheralCrate="VMEm4_4"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/22" PeripheralCrate="VMEm4_4"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/06" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/06" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/09" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/15" PeripheralCrate="VMEm3_3"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/06" PeripheralCrate="VMEm1_3"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/05" PeripheralCrate="VMEm2_2"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/21" PeripheralCrate="VMEm4_4"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="22" Slot="7">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/11" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/11" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/20" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/26" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/11" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/13" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/16" PeripheralCrate="VMEm4_5"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/32" PeripheralCrate="VMEm4_5"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/14" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/14" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/19" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/25" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/14" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/10" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/31" PeripheralCrate="VMEm4_5"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="23" Slot="9">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/10" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/10" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/18" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="CFEB4 bad DAV-LCT and full FIFO, also bad CFEB2" Fiber="3" Killed="1" Name="-3/2/24" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/10" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/12" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/15" PeripheralCrate="VMEm4_5"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/30" PeripheralCrate="VMEm4_5"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/13" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/13" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/17" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/23" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/13" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/09" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/29" PeripheralCrate="VMEm4_5"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="24" Slot="10">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/09" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/09" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/16" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/22" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/09" PeripheralCrate="VMEm1_4"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/11" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/14" PeripheralCrate="VMEm4_5"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/28" PeripheralCrate="VMEm4_5"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/12" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/12" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/15" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/21" PeripheralCrate="VMEm3_4"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/12" PeripheralCrate="VMEm1_5"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/08" PeripheralCrate="VMEm2_3"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/27" PeripheralCrate="VMEm4_5"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="25" Slot="11">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/17" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/17" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/26" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/32" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/17" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/16" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/01" PeripheralCrate="VMEm4_6"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/02" PeripheralCrate="VMEm4_6"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/20" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/20" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/25" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/31" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/20" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/13" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/01" PeripheralCrate="VMEm4_6"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="26" Slot="12">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/16" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/16" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/24" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/30" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/16" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/15" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/18" PeripheralCrate="VMEm4_6"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/36" PeripheralCrate="VMEm4_6"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/19" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/19" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/23" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/29" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/19" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/12" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/35" PeripheralCrate="VMEm4_6"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="27" Slot="13">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/15" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/15" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/22" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/28" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/15" PeripheralCrate="VMEm1_6"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/14" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/17" PeripheralCrate="VMEm4_6"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/34" PeripheralCrate="VMEm4_6"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/18" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/18" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/21" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/27" PeripheralCrate="VMEm3_5"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/18" PeripheralCrate="VMEm1_7"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/11" PeripheralCrate="VMEm2_4"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/33" PeripheralCrate="VMEm4_6"/>
+		</DDU>
+		<DCC Comment="" FIFO_in_use="3fe" Slot="8"/>
+	</FEDCrate>
+	<FEDCrate Comment="" Number="4">
+		<VMEController Comment="" Device="0" Link="0"/>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="28" Slot="4">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/23" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/23" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/32" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/02" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/23" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/01" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/04" PeripheralCrate="VMEm4_1"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/08" PeripheralCrate="VMEm4_1"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/26" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/26" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/31" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/01" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/26" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/16" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/07" PeripheralCrate="VMEm4_1"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="29" Slot="5">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/22" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/22" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/30" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/36" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/22" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/18" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/03" PeripheralCrate="VMEm4_1"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/06" PeripheralCrate="VMEm4_1"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/25" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/25" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/29" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/35" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/25" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="DMB full setting warnings on 12/10/08, awaiting analysis" Fiber="13" Killed="1" Name="-2/1/15" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/05" PeripheralCrate="VMEm4_1"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="30" Slot="6">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/21" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/21" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/28" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/34" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/21" PeripheralCrate="VMEm1_8"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/17" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/02" PeripheralCrate="VMEm4_1"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/04" PeripheralCrate="VMEm4_1"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/24" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/24" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/27" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/33" PeripheralCrate="VMEm3_6"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/24" PeripheralCrate="VMEm1_9"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/14" PeripheralCrate="VMEm2_5"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/03" PeripheralCrate="VMEm4_1"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="31" Slot="7">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/29" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/29" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/02" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/08" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/29" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/04" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/07" PeripheralCrate="VMEm4_2"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/14" PeripheralCrate="VMEm4_2"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/32" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/32" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/01" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/07" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/32" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/01" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/13" PeripheralCrate="VMEm4_2"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="32" Slot="9">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/28" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/28" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/36" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/06" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/28" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/03" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/06" PeripheralCrate="VMEm4_2"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/12" PeripheralCrate="VMEm4_2"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/31" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/31" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/35" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/05" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/31" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/18" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/11" PeripheralCrate="VMEm4_2"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="33" Slot="10">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/27" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/27" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/34" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/04" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/27" PeripheralCrate="VMEm1_10"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/02" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/05" PeripheralCrate="VMEm4_2"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/10" PeripheralCrate="VMEm4_2"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/30" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/30" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/33" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/03" PeripheralCrate="VMEm3_1"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/30" PeripheralCrate="VMEm1_11"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/17" PeripheralCrate="VMEm2_6"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/09" PeripheralCrate="VMEm4_2"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="34" Slot="11">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/35" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/35" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/08" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/14" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/35" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/07" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/10" PeripheralCrate="VMEm4_3"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/20" PeripheralCrate="VMEm4_3"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/02" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/02" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/07" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/13" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/02" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/04" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/19" PeripheralCrate="VMEm4_3"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="35" Slot="12">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/34" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/34" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/06" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/12" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/34" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/06" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/09" PeripheralCrate="VMEm4_3"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/18" PeripheralCrate="VMEm4_3"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/01" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/01" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/05" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/11" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/01" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/03" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/17" PeripheralCrate="VMEm4_3"/>
+		</DDU>
+		<DDU Comment="" GbE_prescale="0" Options="1e" RUI="36" Slot="13">
+			<Chamber Comment="" Fiber="0" Killed="0" Name="-1/1/33" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="1" Killed="0" Name="-1/3/33" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="2" Killed="0" Name="-2/2/04" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="3" Killed="0" Name="-3/2/10" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="4" Killed="0" Name="-1/2/33" PeripheralCrate="VMEm1_12"/>
+			<Chamber Comment="" Fiber="5" Killed="0" Name="-3/1/05" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="6" Killed="0" Name="-4/1/08" PeripheralCrate="VMEm4_3"/>
+			<Chamber Comment="" Fiber="7" Killed="0" Name="-4/2/16" PeripheralCrate="VMEm4_3"/>
+			<Chamber Comment="" Fiber="8" Killed="0" Name="-1/1/36" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="9" Killed="0" Name="-1/3/36" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="10" Killed="0" Name="-2/2/03" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="11" Killed="0" Name="-3/2/09" PeripheralCrate="VMEm3_2"/>
+			<Chamber Comment="" Fiber="12" Killed="0" Name="-1/2/36" PeripheralCrate="VMEm1_1"/>
+			<Chamber Comment="" Fiber="13" Killed="0" Name="-2/1/02" PeripheralCrate="VMEm2_1"/>
+			<Chamber Comment="" Fiber="14" Killed="0" Name="-4/2/15" PeripheralCrate="VMEm4_3"/>
+		</DDU>
+		<DCC Comment="" FIFO_in_use="3fe" Slot="8"/>
+	</FEDCrate>
+</EmuSystem>
+<!-- Generated using Phillip Killewald's kill-fiber script -->
+<!-- Mon Oct 13 10:36:45 2008 -->
+<!-- Please keep the Comment attributes up-to-date! -->

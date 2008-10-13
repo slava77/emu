@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.h,v 3.8 2008/10/09 11:21:19 paste Exp $
+* $Id: EmuFEDApplication.h,v 3.9 2008/10/13 11:56:40 paste Exp $
 *
 * $Log: EmuFEDApplication.h,v $
+* Revision 3.9  2008/10/13 11:56:40  paste
+* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
+*
 * Revision 3.8  2008/10/09 11:21:19  paste
 * Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
 *
@@ -46,6 +49,7 @@ public:
 
 	xdata::UnsignedLong runNumber_;
 	xdata::String runType_;
+	xdata::String endcap_;
 
 	/** Time in seconds to automatically refresh a HyperDAQ page.
 	*	Negative numbers turn off auto-refresh.

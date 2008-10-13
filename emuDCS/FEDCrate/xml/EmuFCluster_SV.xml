@@ -49,7 +49,12 @@
 				</filesForFC>
 			</properties>
 		</xc:Application>	
-		<xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+		<xc:Application class="EmuFCrateManager" id="30" instance="0" service="emufcrate" network="local"> 
+			<properties xmlns="urn:xdaq-application:EmuFCrateMAnager" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>	
+		<xc:Module>${BUILD_HOME}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+		<xc:Module>${BUILD_HOME}/emu/emuDCS/FEDCrate/lib/linux/x86/libEmuFEDCrate.so</xc:Module>        
 	</xc:Context>
 
 	<xc:Context url="http://csc-fed1:40100">		
@@ -58,14 +63,25 @@
 				<xmlFileName xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/FEDCrate/xml/config_c1.xml</xmlFileName>
 			</properties>
 		</xc:Application>	
+		<xc:Application class="EmuFCrateHyperDAQ" id="43" instance="0" service="emufcrate" network="local"> 
+			<properties xmlns="urn:xdaq-application:EmuFCrateHyperDAQ" xsi:type="soapenc:Struct">
+				<xmlFileName xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/FEDCrate/xml/config_c1.xml</xmlFileName>
+			</properties>
+		</xc:Application>	
 		<xc:Application class="EmuFCrate" id="34" instance="1" service="emufcrate" network="local"> 
 			<properties xmlns="urn:xdaq-application:EmuFCrate" xsi:type="soapenc:Struct">
 				<xmlFileName xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/FEDCrate/xml/config_c2.xml</xmlFileName>
 			</properties>
 		</xc:Application>	
+		<xc:Application class="EmuFCrateHyperDAQ" id="44" instance="1" service="emufcrate" network="local"> 
+			<properties xmlns="urn:xdaq-application:EmuFCrateHyperDAQ" xsi:type="soapenc:Struct">
+				<xmlFileName xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/FEDCrate/xml/config_c1.xml</xmlFileName>
+			</properties>
+		</xc:Application>	
 
-		<xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
-		<xc:Module>${XDAQ_ROOT}/emu/emuDCS/FEDCrate/lib/linux/x86/libEmuFEDCrate.so</xc:Module>        
+		<xc:Module>${BUILD_HOME}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+		<xc:Module>${BUILD_HOME}/emu/emuDCS/FEDCrate/lib/linux/x86/libEmuFEDCrate.so</xc:Module>        
+		<xc:Module>${XDAQ_ROOT}/lib/libCAENVME.so</xc:Module>        
 	</xc:Context>
 </xc:Partition>
 

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.53 2008/10/09 11:21:19 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.54 2008/10/13 11:56:40 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.54  2008/10/13 11:56:40  paste
+* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
+*
 * Revision 3.53  2008/10/09 11:21:19  paste
 * Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
 *
@@ -1669,7 +1672,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	// Loop over the prom types and give us a pretty table
 	for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
 	
-		*(diskTable(iprom,0)->value) << dduPROMNames[iprom];
+		diskTable(iprom,0) << dduPROMNames[iprom];
 
 		// Get the version number from the on-disk file
 		// Open the file and read up until the usercode.
@@ -1742,11 +1745,11 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		// Check to make sure the on-disk header looks like it should for that
 		//  particular PROM
 		if ( diskPROMCodes[iprom] >> 24 != dduPROMHeaders[iprom] ) {
-			*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
-			diskTable(iprom,1)->setClass("bad");
+			diskTable(iprom,1) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+			diskTable(iprom,1).setClass("bad");
 		} else {
-			*(diskTable(iprom,1)->value) << std::hex << diskVersion;
-			diskTable(iprom,1)->setClass("ok");
+			diskTable(iprom,1) << std::hex << diskVersion;
+			diskTable(iprom,1).setClass("ok");
 		}
 
 		// Compare the version on-disk with the magic number given above.
@@ -1760,21 +1763,21 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		*/
 
 		// Make the last part of the table a form for uploading a file.
-		*(diskTable(iprom,2)->value) << cgicc::form().set("method","POST")
+		diskTable(iprom,2) << cgicc::form().set("method","POST")
 			.set("enctype","multipart/form-data")
 			.set("id","Form" + dduPROMNames[iprom])
 			.set("action","/" + getApplicationDescriptor()->getURN() + "/DDULoadBroadcast") << std::endl;
-		*(diskTable(iprom,2)->value) << cgicc::input().set("type","file")
+		diskTable(iprom,2) << cgicc::input().set("type","file")
 			.set("name","File")
 			.set("id","File" + dduPROMNames[iprom])
 			.set("size","50") << std::endl;
-		*(diskTable(iprom,2)->value) << cgicc::input().set("type","button")
+		diskTable(iprom,2) << cgicc::input().set("type","button")
 			.set("value","Upload SVF")
 			.set("onClick","javascript:if (formCheck('File" + dduPROMNames[iprom] + "')) { document.getElementById('Form" + dduPROMNames[iprom] + "').submit(); }") << std::endl;
-		*(diskTable(iprom,2)->value) << cgicc::input().set("type","hidden")
+		diskTable(iprom,2) << cgicc::input().set("type","hidden")
 			.set("name","svftype")
 			.set("value",dduPROMNames[iprom]) << std::endl;
-		*(diskTable(iprom,2)->value) << cgicc::form() << std::endl;
+		diskTable(iprom,2) << cgicc::form() << std::endl;
 	}	
 
 	// Print the table to screen.
@@ -1829,7 +1832,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		std::ostringstream elementID;
 		elementID << "slotBox" << myDDU->slot();
 
-		*(slotTable(iDDU,0)->value) << cgicc::input()
+		slotTable(iDDU,0) << cgicc::input()
 			.set("type","checkbox")
 			.set("class","slotBox")
 			.set("id",elementID.str())
@@ -1837,9 +1840,9 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 			<< cgicc::label()
 			.set("for",elementID.str()) << myDDU->slot() << cgicc::label();
 		
-		*(slotTable(iDDU,1)->value) << myCrate->getRUI(myDDU->slot());
+		slotTable(iDDU,1) << myCrate->getRUI(myDDU->slot());
 
-		*(slotTable(iDDU,2)->value) << myDDU->readFlashBoardID();
+		slotTable(iDDU,2) << myDDU->readFlashBoardID();
 
 		for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
 
@@ -1847,35 +1850,35 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 			uint32_t fpgaCode = 0;
 			
 			promCode = myDDU->readUserCode(dduPROMTypes[iprom]);
-			*(slotTable(iDDU,3 + iprom)->value) << std::hex << promCode;
+			slotTable(iDDU,3 + iprom) << std::hex << promCode;
 
 			if (dduPROMNames[iprom] != "VMEPROM") {
 				fpgaCode = myDDU->readUserCode(dduFPGATypes[iprom]);
 			}
 
 			// Check for consistency
-			slotTable(iDDU,3 + iprom)->setClass("ok");
+			slotTable(iDDU,3 + iprom).setClass("ok");
 			// DDUPROMs are tricky
 			if (dduFPGATypes[iprom] == emu::fed::DDUFPGA) {
 				
 				if ((diskPROMCodes[iprom] & 0xffffff00) != (promCode & 0xffffff00)) {
 					// Match usercode against PROM code
-					slotTable(iDDU,3 + iprom)->setClass("bad");
+					slotTable(iDDU,3 + iprom).setClass("bad");
 					
 				} else if (fpgaCode & 0x000ff000 != promCode & 0x00ff0000) {
 					// Match usercode against FPGA code
-					slotTable(iDDU,3 + iprom)->setClass("questionable");
+					slotTable(iDDU,3 + iprom).setClass("questionable");
 				}
 				
 			} else if (diskPROMCodes[iprom] != promCode) {
 				// Else match usercode against PROM code
-				slotTable(iDDU,3 + iprom)->setClass("bad");
+				slotTable(iDDU,3 + iprom).setClass("bad");
 
 			} else if (dduPROMTypes[iprom] == emu::fed::INPROM0 || dduPROMTypes[iprom] == emu::fed::INPROM1) {
 				// INPROMs have a special FPGA code
 				
 				if (fpgaCode & 0x00ffffff != promCode & 0x00ffffff) {
-					slotTable(iDDU,3 + iprom)->setClass("bad");
+					slotTable(iDDU,3 + iprom).setClass("bad");
 				}
 			}
 		}
@@ -2386,87 +2389,87 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	generalTable.addColumn("Value");
 	generalTable.addColumn("Decoded Status");
 
-	*(generalTable(0,0)->value) << "DDU RUI (16-bit)";
+	generalTable(0,0) << "DDU RUI (16-bit)";
 	unsigned long int dduValue = myDDU->readRUI();
-	*(generalTable(0,1)->value) << dduValue;
-	generalTable(0,1)->setClass("none");
+	generalTable(0,1) << dduValue;
+	generalTable(0,1).setClass("none");
 
-	*(generalTable(1,0)->value) << "DDU L1 scaler";
+	generalTable(1,0) << "DDU L1 scaler";
 	// PGK gives flakey values.
 	//dduValue = myDDU->readL1Scaler(DDUFPGA);
 	dduValue = myDDU->readL1Scaler(emu::fed::DDUFPGA);
-	*(generalTable(1,1)->value) << dduValue;
-	generalTable(1,1)->setClass("none");
+	generalTable(1,1) << dduValue;
+	generalTable(1,1).setClass("none");
 	
-	*(generalTable(2,0)->value) << "DDU control FPGA status (32-bit)";
+	generalTable(2,0) << "DDU control FPGA status (32-bit)";
 	dduValue = myDDU->readFPGAStatus(emu::fed::DDUFPGA);
-	*(generalTable(2,1)->value) << std::showbase << std::hex << dduValue;
+	generalTable(2,1) << std::showbase << std::hex << dduValue;
 	if (dduValue & 0x00008000) {
-		generalTable(2,1)->setClass("bad");
+		generalTable(2,1).setClass("bad");
 		debugTrapValid = true;
 	}
-	else if (dduValue & 0xDE4F4BFF) generalTable(2,1)->setClass("warning");
-	else generalTable(2,1)->setClass("ok");
+	else if (dduValue & 0xDE4F4BFF) generalTable(2,1).setClass("warning");
+	else generalTable(2,1).setClass("ok");
 	std::map<std::string, std::string> dduComments = emu::fed::DDUDebugger::DDUFPGAStat(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(generalTable(2,2)->value) << cgicc::div(iComment->first)
+		generalTable(2,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*(generalTable(3,0)->value) << "DDU output status (16-bit)";
+	generalTable(3,0) << "DDU output status (16-bit)";
 	dduValue = myDDU->readOutputStatus();
-	*(generalTable(3,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue & 0x00000080) generalTable(3,1)->setClass("bad");
-	else if (dduValue & 0x00004000) generalTable(3,1)->setClass("warning");
-	else generalTable(3,1)->setClass("ok");
+	generalTable(3,1) << std::showbase << std::hex << dduValue;
+	if (dduValue & 0x00000080) generalTable(3,1).setClass("bad");
+	else if (dduValue & 0x00004000) generalTable(3,1).setClass("warning");
+	else generalTable(3,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::OutputStat(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(generalTable(3,2)->value) << cgicc::div(iComment->first)
+		generalTable(3,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*(generalTable(4,0)->value) << "Error bus A register bits (16-bit)";
+	generalTable(4,0) << "Error bus A register bits (16-bit)";
 	dduValue = myDDU->readEBRegister(1);
-	*(generalTable(4,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue & 0x0000C00C) generalTable(4,1)->setClass("bad");
-	else if (dduValue & 0x000001C8) generalTable(4,1)->setClass("warning");
-	else generalTable(4,1)->setClass("ok");
+	generalTable(4,1) << std::showbase << std::hex << dduValue;
+	if (dduValue & 0x0000C00C) generalTable(4,1).setClass("bad");
+	else if (dduValue & 0x000001C8) generalTable(4,1).setClass("warning");
+	else generalTable(4,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::EBReg1(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(generalTable(4,2)->value) << cgicc::div(iComment->first)
+		generalTable(4,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*(generalTable(5,0)->value) << "Error bus B register bits (16-bit)";
+	generalTable(5,0) << "Error bus B register bits (16-bit)";
 	dduValue = myDDU->readEBRegister(2);
-	*(generalTable(5,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue & 0x00000011) generalTable(5,1)->setClass("bad");
-	else if (dduValue & 0x0000D08E) generalTable(5,1)->setClass("warning");
-	else generalTable(5,1)->setClass("ok");
+	generalTable(5,1) << std::showbase << std::hex << dduValue;
+	if (dduValue & 0x00000011) generalTable(5,1).setClass("bad");
+	else if (dduValue & 0x0000D08E) generalTable(5,1).setClass("warning");
+	else generalTable(5,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::EBReg2(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(generalTable(5,2)->value) << cgicc::div(iComment->first)
+		generalTable(5,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*(generalTable(6,0)->value) << "Error bus C register bits (16-bit)";
+	generalTable(6,0) << "Error bus C register bits (16-bit)";
 	dduValue = myDDU->readEBRegister(3);
-	*(generalTable(6,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue & 0x0000BFBF) generalTable(6,1)->setClass("warning");
-	else generalTable(6,1)->setClass("ok");
+	generalTable(6,1) << std::showbase << std::hex << dduValue;
+	if (dduValue & 0x0000BFBF) generalTable(6,1).setClass("warning");
+	else generalTable(6,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::EBReg3(dduValue);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(generalTable(6,2)->value) << cgicc::div(iComment->first)
+		generalTable(6,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
@@ -2500,41 +2503,41 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	otherTable.addColumn("Value");
 	otherTable.addColumn("Decoded Status");
 
-	*(otherTable(0,0)->value) << "DDU near full warning (8-bit)";
+	otherTable(0,0) << "DDU near full warning (8-bit)";
 	dduValue = myDDU->readWarningMonitor();
-	*(otherTable(0,1)->value) << std::showbase << std::hex << ((dduValue) & 0xFF);
-	if ((dduValue) & 0xFF) otherTable(0,1)->setClass("questionable");
-	else otherTable(0,1)->setClass("ok");
+	otherTable(0,1) << std::showbase << std::hex << ((dduValue) & 0xFF);
+	if ((dduValue) & 0xFF) otherTable(0,1).setClass("questionable");
+	else otherTable(0,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::WarnMon((dduValue) & 0xFF);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(otherTable(0,2)->value) << cgicc::div(iComment->first)
+		otherTable(0,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*(otherTable(1,0)->value) << "DDU near full historical (8-bit)";
+	otherTable(1,0) << "DDU near full historical (8-bit)";
 	//dduValue = myDDU->readWarnMon();
-	*(otherTable(1,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0xFF);
-	if ((dduValue >> 8) & 0xFF) otherTable(1,1)->setClass("questionable");
-	else otherTable(1,1)->setClass("ok");
+	otherTable(1,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xFF);
+	if ((dduValue >> 8) & 0xFF) otherTable(1,1).setClass("questionable");
+	else otherTable(1,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::WarnMon((dduValue >> 8) & 0xFF);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(otherTable(1,2)->value) << cgicc::div(iComment->first)
+		otherTable(1,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*(otherTable(2,0)->value) << "DDU L1A-to-start max process time";
+	otherTable(2,0) << "DDU L1A-to-start max process time";
 	dduValue = myDDU->readMaxTimeoutCount();
-	*(otherTable(2,1)->value) << (((dduValue) & 0xFF) * 400.0) << " ns";
-	otherTable(2,1)->setClass("none");
+	otherTable(2,1) << (((dduValue) & 0xFF) * 400.0) << " ns";
+	otherTable(2,1).setClass("none");
 
-	*(otherTable(3,0)->value) << "DDU start-to-end max process time";
+	otherTable(3,0) << "DDU start-to-end max process time";
 	//dduValue = myDDU->readWarnMon();
-	*(otherTable(3,1)->value) << std::showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << " &mu;s";
-	otherTable(3,1)->setClass("none");
+	otherTable(3,1) << std::showbase << std::hex << (((dduValue >> 8) & 0xFF) * 6.4) << " &mu;s";
+	otherTable(3,1).setClass("none");
 
 	*out << otherTable.printSummary() << std::endl;
 
@@ -2569,101 +2572,101 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	fiberTable.addColumn("Value");
 	fiberTable.addColumn("Decoded Chambers");
 
-	*(fiberTable(0,0)->value) << "First event DMBLIVE";
+	fiberTable(0,0) << "First event DMBLIVE";
 	dduValue = myDDU->readDMBLiveAtFirstEvent();
-	*(fiberTable(0,1)->value) << std::showbase << std::hex << dduValue;
-	fiberTable(0,1)->setClass("none");
+	fiberTable(0,1) << std::showbase << std::hex << dduValue;
+	fiberTable(0,1).setClass("none");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
-			*(fiberTable(0,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fiberTable(0,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","none");
 		}
 	}
 
-	*(fiberTable(1,0)->value) << "Latest event DMBLIVE";
+	fiberTable(1,0) << "Latest event DMBLIVE";
 	dduValue = myDDU->readDMBLive();
-	*(fiberTable(1,1)->value) << std::showbase << std::hex << dduValue;
-	fiberTable(1,1)->setClass("none");
+	fiberTable(1,1) << std::showbase << std::hex << dduValue;
+	fiberTable(1,1).setClass("none");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
-			*(fiberTable(1,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fiberTable(1,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","none");
 		}
 	}
 
-	*(fiberTable(2,0)->value) << "CRC error";
+	fiberTable(2,0) << "CRC error";
 	dduValue = myDDU->readCRCError();
-	*(fiberTable(2,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue) fiberTable(2,1)->setClass("bad");
-	else fiberTable(2,1)->setClass("ok");
+	fiberTable(2,1) << std::showbase << std::hex << dduValue;
+	if (dduValue) fiberTable(2,1).setClass("bad");
+	else fiberTable(2,1).setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
-			*(fiberTable(2,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fiberTable(2,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 			//fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
-	*(fiberTable(3,0)->value) << "Data transmit error";
+	fiberTable(3,0) << "Data transmit error";
 	dduValue = myDDU->readXmitError();
-	*(fiberTable(3,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue) fiberTable(3,1)->setClass("bad");
-	else fiberTable(3,1)->setClass("ok");
+	fiberTable(3,1) << std::showbase << std::hex << dduValue;
+	if (dduValue) fiberTable(3,1).setClass("bad");
+	else fiberTable(3,1).setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
-			*(fiberTable(3,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fiberTable(3,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 			//fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
-	*(fiberTable(4,0)->value) << "DMB error";
+	fiberTable(4,0) << "DMB error";
 	dduValue = myDDU->readDMBError();
-	*(fiberTable(4,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue) fiberTable(4,1)->setClass("bad");
-	else fiberTable(4,1)->setClass("ok");
+	fiberTable(4,1) << std::showbase << std::hex << dduValue;
+	if (dduValue) fiberTable(4,1).setClass("bad");
+	else fiberTable(4,1).setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
-			*(fiberTable(4,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fiberTable(4,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 			//fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
-	*(fiberTable(5,0)->value) << "TMB error";
+	fiberTable(5,0) << "TMB error";
 	dduValue = myDDU->readTMBError();
-	*(fiberTable(5,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue) fiberTable(5,1)->setClass("bad");
-	else fiberTable(5,1)->setClass("ok");
+	fiberTable(5,1) << std::showbase << std::hex << dduValue;
+	if (dduValue) fiberTable(5,1).setClass("bad");
+	else fiberTable(5,1).setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
-			*(fiberTable(5,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fiberTable(5,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 			//fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
-	*(fiberTable(6,0)->value) << "ALCT error";
+	fiberTable(6,0) << "ALCT error";
 	dduValue = myDDU->readALCTError();
-	*(fiberTable(6,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue) fiberTable(6,1)->setClass("bad");
-	else fiberTable(6,1)->setClass("ok");
+	fiberTable(6,1) << std::showbase << std::hex << dduValue;
+	if (dduValue) fiberTable(6,1).setClass("bad");
+	else fiberTable(6,1).setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
-			*(fiberTable(6,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fiberTable(6,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 			//fibersWithErrors |= 1<<iFiber;
 		}
 	}
 
-	*(fiberTable(7,0)->value) << "Lost-in-event error";
+	fiberTable(7,0) << "Lost-in-event error";
 	dduValue = myDDU->readLIEError();
-	*(fiberTable(7,1)->value) << std::showbase << std::hex << dduValue;
-	if (dduValue) fiberTable(7,1)->setClass("bad");
-	else fiberTable(7,1)->setClass("ok");
+	fiberTable(7,1) << std::showbase << std::hex << dduValue;
+	if (dduValue) fiberTable(7,1).setClass("bad");
+	else fiberTable(7,1).setClass("ok");
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (dduValue & (1<<iFiber)) {
-			*(fiberTable(7,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fiberTable(7,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 			//fibersWithErrors |= 1<<iFiber;
 		}
@@ -2701,154 +2704,154 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 	inrdTable.addColumn("Value");
 	inrdTable.addColumn("Decoded Chambers");
 
-	*(inrdTable(0,0)->value) << "Stuck data error";
+	inrdTable(0,0) << "Stuck data error";
 	dduValue = myDDU->readFIFOStatus(1);
-	*(inrdTable(0,1)->value) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
-	if ((dduValue >> 12) & 0xF) inrdTable(0,1)->setClass("bad");
-	else inrdTable(0,1)->setClass("ok");
+	inrdTable(0,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
+	if ((dduValue >> 12) & 0xF) inrdTable(0,1).setClass("bad");
+	else inrdTable(0,1).setClass("ok");
 
-	*(inrdTable(1,0)->value) << "Fiber or FIFO connection error";
+	inrdTable(1,0) << "Fiber or FIFO connection error";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(1,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
-	if ((dduValue >> 8) & 0xF) inrdTable(1,1)->setClass("bad");
-	else inrdTable(1,1)->setClass("ok");
+	inrdTable(1,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
+	if ((dduValue >> 8) & 0xF) inrdTable(1,1).setClass("bad");
+	else inrdTable(1,1).setClass("ok");
 
-	*(inrdTable(2,0)->value) << "L1A mismatch";
+	inrdTable(2,0) << "L1A mismatch";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(2,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-	if ((dduValue >> 4) & 0xF) inrdTable(2,1)->setClass("warning");
-	else inrdTable(2,1)->setClass("ok");
+	inrdTable(2,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+	if ((dduValue >> 4) & 0xF) inrdTable(2,1).setClass("warning");
+	else inrdTable(2,1).setClass("ok");
 
-	*(inrdTable(3,0)->value) << "InRD with active fiber";
+	inrdTable(3,0) << "InRD with active fiber";
 	//dduValue = myDDU->checkFIFO(1);
-	*(inrdTable(3,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-	inrdTable(3,1)->setClass("none");
+	inrdTable(3,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+	inrdTable(3,1).setClass("none");
 
-	*(inrdTable(4,0)->value) << "Active ext. FIFO empty";
+	inrdTable(4,0) << "Active ext. FIFO empty";
 	dduValue = myDDU->readFIFOStatus(2);
-	*(inrdTable(4,1)->value) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
-	inrdTable(4,1)->setClass("none");
+	inrdTable(4,1) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
+	inrdTable(4,1).setClass("none");
 
-	*(inrdTable(5,0)->value) << "InRD near full warning";
+	inrdTable(5,0) << "InRD near full warning";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(5,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-	if ((dduValue >> 4) & 0xF) inrdTable(5,1)->setClass("warning");
-	else inrdTable(5,1)->setClass("ok");
+	inrdTable(5,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+	if ((dduValue >> 4) & 0xF) inrdTable(5,1).setClass("warning");
+	else inrdTable(5,1).setClass("ok");
 
-	*(inrdTable(6,0)->value) << "Ext. FIFO almost-full";
+	inrdTable(6,0) << "Ext. FIFO almost-full";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(6,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
-	if ((dduValue) & 0xF) inrdTable(6,1)->setClass("questionable");
-	else inrdTable(6,1)->setClass("ok");
+	inrdTable(6,1) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) inrdTable(6,1).setClass("questionable");
+	else inrdTable(6,1).setClass("ok");
 
-	*(inrdTable(7,0)->value) << "Special decode bits";
+	inrdTable(7,0) << "Special decode bits";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(7,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
-	if ((dduValue >> 8) & 0x81) inrdTable(7,1)->setClass("warning");
-	else inrdTable(7,1)->setClass("ok");
+	inrdTable(7,1) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
+	if ((dduValue >> 8) & 0x81) inrdTable(7,1).setClass("warning");
+	else inrdTable(7,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::FIFO2((dduValue >> 8) & 0x43);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(inrdTable(7,2)->value) << cgicc::div(iComment->first)
+		inrdTable(7,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*(inrdTable(8,0)->value) << "Timeout-EndBusy";
+	inrdTable(8,0) << "Timeout-EndBusy";
 	dduValue = myDDU->readFIFOStatus(3);
-	*(inrdTable(8,1)->value) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
-	if ((dduValue >> 12) & 0xF) inrdTable(8,1)->setClass("bad");
-	else inrdTable(8,1)->setClass("ok");
+	inrdTable(8,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
+	if ((dduValue >> 12) & 0xF) inrdTable(8,1).setClass("bad");
+	else inrdTable(8,1).setClass("ok");
 
-	*(inrdTable(9,0)->value) << "Timeout-EndWait";
+	inrdTable(9,0) << "Timeout-EndWait";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(9,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
-	if ((dduValue >> 8) & 0xF) inrdTable(9,1)->setClass("warning");
-	else inrdTable(9,1)->setClass("ok");
+	inrdTable(9,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
+	if ((dduValue >> 8) & 0xF) inrdTable(9,1).setClass("warning");
+	else inrdTable(9,1).setClass("ok");
 
-	*(inrdTable(10,0)->value) << "Timeout-Start";
+	inrdTable(10,0) << "Timeout-Start";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(10,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-	if ((dduValue >> 4) & 0xF) inrdTable(10,1)->setClass("warning");
-	else inrdTable(10,1)->setClass("ok");
+	inrdTable(10,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+	if ((dduValue >> 4) & 0xF) inrdTable(10,1).setClass("warning");
+	else inrdTable(10,1).setClass("ok");
 
-	*(inrdTable(11,0)->value) << "Lost-in-data error";
+	inrdTable(11,0) << "Lost-in-data error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(11,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
-	if ((dduValue) & 0xF) inrdTable(11,1)->setClass("bad");
-	else inrdTable(11,1)->setClass("ok");
+	inrdTable(11,1) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) inrdTable(11,1).setClass("bad");
+	else inrdTable(11,1).setClass("ok");
 
-	*(inrdTable(12,0)->value) << "Raw ext. FIFO empty";
+	inrdTable(12,0) << "Raw ext. FIFO empty";
 	dduValue = myDDU->readFFError();
-	*(inrdTable(12,1)->value) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
-	inrdTable(12,1)->setClass("none");
+	inrdTable(12,1) << std::showbase << std::hex << ((dduValue >> 10) & 0xF);
+	inrdTable(12,1).setClass("none");
 
-	*(inrdTable(13,0)->value) << "InRD FIFO full";
+	inrdTable(13,0) << "InRD FIFO full";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(13,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-	if ((dduValue >> 4) & 0xF) inrdTable(13,1)->setClass("bad");
-	else inrdTable(13,1)->setClass("ok");
+	inrdTable(13,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+	if ((dduValue >> 4) & 0xF) inrdTable(13,1).setClass("bad");
+	else inrdTable(13,1).setClass("ok");
 
-	*(inrdTable(14,0)->value) << "Ext. FIFO full";
+	inrdTable(14,0) << "Ext. FIFO full";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(14,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
-	if ((dduValue) & 0xF) inrdTable(14,1)->setClass("bad");
-	else inrdTable(14,1)->setClass("ok");
+	inrdTable(14,1) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) inrdTable(14,1).setClass("bad");
+	else inrdTable(14,1).setClass("ok");
 
-	*(inrdTable(15,0)->value) << "Special decode bits";
+	inrdTable(15,0) << "Special decode bits";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(15,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
-	if ((dduValue >> 8) & 0x1) inrdTable(15,1)->setClass("bad");
-	else inrdTable(15,1)->setClass("ok");
+	inrdTable(15,1) << std::showbase << std::hex << ((dduValue >> 8) & 0x43);
+	if ((dduValue >> 8) & 0x1) inrdTable(15,1).setClass("bad");
+	else inrdTable(15,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::FFError((dduValue >> 8) & 0x43);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(inrdTable(15,2)->value) << cgicc::div(iComment->first)
+		inrdTable(15,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
-	*(inrdTable(16,0)->value) << "InRD hard error";
+	inrdTable(16,0) << "InRD hard error";
 	dduValue = myDDU->readInRDStat();
-	*(inrdTable(16,1)->value) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
-	if ((dduValue >> 12) & 0xF) inrdTable(16,1)->setClass("bad");
-	else inrdTable(16,1)->setClass("ok");
+	inrdTable(16,1) << std::showbase << std::hex << ((dduValue >> 12) & 0xF);
+	if ((dduValue >> 12) & 0xF) inrdTable(16,1).setClass("bad");
+	else inrdTable(16,1).setClass("ok");
 
-	*(inrdTable(17,0)->value) << "InRD sync error";
+	inrdTable(17,0) << "InRD sync error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(17,1)->value) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
-	if ((dduValue >> 8) & 0xF) inrdTable(17,1)->setClass("warning");
-	else inrdTable(17,1)->setClass("ok");
+	inrdTable(17,1) << std::showbase << std::hex << ((dduValue >> 8) & 0xF);
+	if ((dduValue >> 8) & 0xF) inrdTable(17,1).setClass("warning");
+	else inrdTable(17,1).setClass("ok");
 
-	*(inrdTable(18,0)->value) << "InRD single event error";
+	inrdTable(18,0) << "InRD single event error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(18,1)->value) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
-	if ((dduValue >> 4) & 0xF) inrdTable(18,1)->setClass("questionable");
-	else inrdTable(18,1)->setClass("ok");
+	inrdTable(18,1) << std::showbase << std::hex << ((dduValue >> 4) & 0xF);
+	if ((dduValue >> 4) & 0xF) inrdTable(18,1).setClass("questionable");
+	else inrdTable(18,1).setClass("ok");
 
-	*(inrdTable(19,0)->value) << "InRD timeout error";
+	inrdTable(19,0) << "InRD timeout error";
 	//dduValue = myDDU->checkFIFO(2);
-	*(inrdTable(19,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
-	if ((dduValue) & 0xF) inrdTable(19,1)->setClass("bad");
-	else inrdTable(19,1)->setClass("ok");
+	inrdTable(19,1) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) inrdTable(19,1).setClass("bad");
+	else inrdTable(19,1).setClass("ok");
 
-	*(inrdTable(20,0)->value) << "InRD multiple transmit errors";
+	inrdTable(20,0) << "InRD multiple transmit errors";
 	dduValue = myDDU->readInCHistory();
-	*(inrdTable(20,1)->value) << std::showbase << std::hex << ((dduValue) & 0xF);
-	if ((dduValue) & 0xF) inrdTable(20,1)->setClass("bad");
-	else inrdTable(20,1)->setClass("ok");
+	inrdTable(20,1) << std::showbase << std::hex << ((dduValue) & 0xF);
+	if ((dduValue) & 0xF) inrdTable(20,1).setClass("bad");
+	else inrdTable(20,1).setClass("ok");
 
-	*(inrdTable(21,0)->value) << "Special decode bits";
+	inrdTable(21,0) << "Special decode bits";
 	//dduValue = myDDU->readFFError(2);
-	*(inrdTable(21,1)->value) << std::showbase << std::hex << ((dduValue) & 0xFFF);
-	if ((dduValue) & 0xC00) inrdTable(21,1)->setClass("bad");
-	else if ((dduValue) & 0x2DF) inrdTable(21,1)->setClass("warning");
-	else inrdTable(21,1)->setClass("ok");
+	inrdTable(21,1) << std::showbase << std::hex << ((dduValue) & 0xFFF);
+	if ((dduValue) & 0xC00) inrdTable(21,1).setClass("bad");
+	else if ((dduValue) & 0x2DF) inrdTable(21,1).setClass("warning");
+	else inrdTable(21,1).setClass("ok");
 	dduComments = emu::fed::DDUDebugger::FFError((dduValue) & 0xFFF);
 	for (std::map<std::string,std::string>::iterator iComment = dduComments.begin();
 		iComment != dduComments.end();
 		iComment++) {
-		*(inrdTable(21,2)->value) << cgicc::div(iComment->first)
+		inrdTable(21,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 
@@ -2964,38 +2967,38 @@ void EmuFCrateHyperDAQ::DDUDebug(xgi::Input * in, xgi::Output * out )
 		unsigned long int TMBval = lcode[2] & 0x0fffffff;
 		unsigned long int CFEBval = lcode[3] & 0x0fffffff;
 
-		(*occuTable(iFiber,0)->value) << iFiber;
+		occuTable(iFiber,0) << iFiber;
 		emu::fed::Chamber *thisChamber = myDDU->getChamber(iFiber);
 
 		std::string chamberClass = "ok";
 
 		if (thisChamber != NULL) {
-			(*occuTable(iFiber,1)->value) << thisChamber->name();
+			occuTable(iFiber,1) << thisChamber->name();
 			if (!(killFiber & (1<<iFiber))) chamberClass = "none";
 			else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
 			else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
 
-			occuTable(iFiber,1)->setClass(chamberClass);
+			occuTable(iFiber,1).setClass(chamberClass);
 
-			(*occuTable(iFiber,2)->value) << DMBval;
-			(*occuTable(iFiber,2)->value) << "<br />" << std::setprecision(3) << (scalar ? DMBval*100./scalar : 0) << "%";
+			occuTable(iFiber,2) << DMBval;
+			occuTable(iFiber,2) << "<br />" << std::setprecision(3) << (scalar ? DMBval*100./scalar : 0) << "%";
 
-			(*occuTable(iFiber,3)->value) << ALCTval;
-			(*occuTable(iFiber,3)->value) << "<br />" << std::setprecision(3) << (DMBval ? ALCTval*100./DMBval : 0) << "%";
+			occuTable(iFiber,3) << ALCTval;
+			occuTable(iFiber,3) << "<br />" << std::setprecision(3) << (DMBval ? ALCTval*100./DMBval : 0) << "%";
 
-			(*occuTable(iFiber,4)->value) << TMBval;
-			(*occuTable(iFiber,4)->value) << "<br />" << std::setprecision(3) << (DMBval ? TMBval*100./DMBval : 0) << "%";
+			occuTable(iFiber,4) << TMBval;
+			occuTable(iFiber,4) << "<br />" << std::setprecision(3) << (DMBval ? TMBval*100./DMBval : 0) << "%";
 
-			(*occuTable(iFiber,5)->value) << CFEBval;
-			(*occuTable(iFiber,5)->value) << "<br />" << std::setprecision(3) << (DMBval ? CFEBval*100./DMBval : 0) << "%";
+			occuTable(iFiber,5) << CFEBval;
+			occuTable(iFiber,5) << "<br />" << std::setprecision(3) << (DMBval ? CFEBval*100./DMBval : 0) << "%";
 
 		} else {
-			(*occuTable(iFiber,1)->value) << "???";
-			occuTable(iFiber,1)->setClass("undefined");
-			(*occuTable(iFiber,2)->value) << "N/A";
-			(*occuTable(iFiber,3)->value) << "N/A";
-			(*occuTable(iFiber,4)->value) << "N/A";
-			(*occuTable(iFiber,5)->value) << "N/A";
+			occuTable(iFiber,1) << "???";
+			occuTable(iFiber,1).setClass("undefined");
+			occuTable(iFiber,2) << "N/A";
+			occuTable(iFiber,3) << "N/A";
+			occuTable(iFiber,4) << "N/A";
+			occuTable(iFiber,5) << "N/A";
 		}
 	}
 
@@ -3103,36 +3106,36 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		enum emu::fed::DEVTYPE dt = devTypes[iDevType];
 
 		if (iDevType == 0) {
-			*(generalTable(0,0)->value) << "InFPGA status (32-bit)";
-			*(generalTable(1,0)->value) << "L1 Event Scaler0/2 (24-bit)";
-			*(generalTable(2,0)->value) << "L1 Event Scaler1/3 (24-bit)";
+			generalTable(0,0) << "InFPGA status (32-bit)";
+			generalTable(1,0) << "L1 Event Scaler0/2 (24-bit)";
+			generalTable(2,0) << "L1 Event Scaler1/3 (24-bit)";
 		}
 
 		unsigned long int infpgastat = myDDU->readFPGAStatus(dt);
-		*(generalTable(0,iDevType*2+1)->value) << std::showbase << std::hex << infpgastat;
-		if (infpgastat & 0x00004000) generalTable(0,iDevType*2+1)->setClass("warning");
+		generalTable(0,iDevType*2+1) << std::showbase << std::hex << infpgastat;
+		if (infpgastat & 0x00004000) generalTable(0,iDevType*2+1).setClass("warning");
 		if (infpgastat & 0x00008000) {
-			generalTable(0,iDevType*2+1)->setClass("bad");
+			generalTable(0,iDevType*2+1).setClass("bad");
 			debugTrapValid[iDevType] = true;
 		}
-		if (!(infpgastat & 0x0000C000)) generalTable(0,iDevType*2+1)->setClass("ok");
+		if (!(infpgastat & 0x0000C000)) generalTable(0,iDevType*2+1).setClass("ok");
 		std::map<std::string, std::string> infpgastatComments = emu::fed::DDUDebugger::InFPGAStat(dt,infpgastat);
 		for (std::map<std::string,std::string>::iterator iComment = infpgastatComments.begin();
 			iComment != infpgastatComments.end();
 			iComment++) {
-			*(generalTable(0,iDevType*2+2)->value) << cgicc::div(iComment->first)
+			generalTable(0,iDevType*2+2) << cgicc::div(iComment->first)
 				.set("class",iComment->second);
 		}
 
 		// PGK Flaking out
 		//unsigned long int L1Scaler = myDDU->readL1Scaler(dt);
 		unsigned long int L1Scaler = myDDU->readL1Scaler(dt);
-		*(generalTable(1,iDevType*2+1)->value) << L1Scaler;
+		generalTable(1,iDevType*2+1) << L1Scaler;
 
 		// PGK Flaking out
 		//unsigned long int L1Scaler1 = myDDU->readL1Scaler1(dt);
 		unsigned long int L1Scaler1 = myDDU->readL1Scaler1(dt);
-		*(generalTable(2,iDevType*2+1)->value) << L1Scaler1;
+		generalTable(2,iDevType*2+1) << L1Scaler1;
 
 	}
 	
@@ -3202,171 +3205,171 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		unsigned int fiberOffset = (dt == emu::fed::INFPGA0 ? 0 : 8);
 
 		if (iDevType == 0) {
-			*(fiberTable(0,0)->value) << "DMB full";
-			*(fiberTable(1,0)->value) << "DMB warning";
-			*(fiberTable(2,0)->value) << "Connection error";
-			*(fiberTable(3,0)->value) << "Link active";
-			*(fiberTable(4,0)->value) << "Stuck data";
-			*(fiberTable(5,0)->value) << "L1A mismatch";
-			*(fiberTable(6,0)->value) << "GT-Rx error";
-			*(fiberTable(7,0)->value) << "Timeout-start";
-			*(fiberTable(8,0)->value) << "Timeout-end busy";
-			*(fiberTable(9,0)->value) << "Timeout-end wait";
-			*(fiberTable(10,0)->value) << "SCA full history";
-			*(fiberTable(11,0)->value) << "CSC transmit error";
-			*(fiberTable(12,0)->value) << "DDU lost-in-event error";
-			*(fiberTable(13,0)->value) << "DDU lost-in-data error";
+			fiberTable(0,0) << "DMB full";
+			fiberTable(1,0) << "DMB warning";
+			fiberTable(2,0) << "Connection error";
+			fiberTable(3,0) << "Link active";
+			fiberTable(4,0) << "Stuck data";
+			fiberTable(5,0) << "L1A mismatch";
+			fiberTable(6,0) << "GT-Rx error";
+			fiberTable(7,0) << "Timeout-start";
+			fiberTable(8,0) << "Timeout-end busy";
+			fiberTable(9,0) << "Timeout-end wait";
+			fiberTable(10,0) << "SCA full history";
+			fiberTable(11,0) << "CSC transmit error";
+			fiberTable(12,0) << "DDU lost-in-event error";
+			fiberTable(13,0) << "DDU lost-in-data error";
 		}
 
 		unsigned int readDMBWarning = myDDU->readDMBWarning(dt);
-		*(fiberTable(0,iDevType*2+1)->value) << std::showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
-		if (((readDMBWarning >> 8) & 0xff)) fiberTable(0,iDevType*2+1)->setClass("bad");
-		else fiberTable(0,iDevType*2+1)->setClass("ok");
+		fiberTable(0,iDevType*2+1) << std::showbase << std::hex << ((readDMBWarning >> 8) & 0xff);
+		if (((readDMBWarning >> 8) & 0xff)) fiberTable(0,iDevType*2+1).setClass("bad");
+		else fiberTable(0,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readDMBWarning >> 8) & 0xff) & (1<<iFiber)) {
 				//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-				*(fiberTable(0,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(0,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
 
-		*(fiberTable(1,iDevType*2+1)->value) << std::showbase << std::hex << ((readDMBWarning) & 0xff);
-		if (((readDMBWarning) & 0xff)) fiberTable(1,iDevType*2+1)->setClass("warning");
-		else fiberTable(1,iDevType*2+1)->setClass("ok");
+		fiberTable(1,iDevType*2+1) << std::showbase << std::hex << ((readDMBWarning) & 0xff);
+		if (((readDMBWarning) & 0xff)) fiberTable(1,iDevType*2+1).setClass("warning");
+		else fiberTable(1,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readDMBWarning) & 0xff) & (1<<iFiber)) {
-				*(fiberTable(1,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(1,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","orange");
 			}
 		}
 
 		unsigned int checkFiber = myDDU->readFiberStatus(dt);
-		*(fiberTable(2,iDevType*2+1)->value) << std::showbase << std::hex << ((checkFiber >> 8) & 0xff);
-		if (((checkFiber >> 8) & 0xff)) fiberTable(2,iDevType*2+1)->setClass("bad");
-		else fiberTable(2,iDevType*2+1)->setClass("ok");
+		fiberTable(2,iDevType*2+1) << std::showbase << std::hex << ((checkFiber >> 8) & 0xff);
+		if (((checkFiber >> 8) & 0xff)) fiberTable(2,iDevType*2+1).setClass("bad");
+		else fiberTable(2,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((checkFiber >> 8) & 0xff) & (1<<iFiber)) {
 				//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-				*(fiberTable(2,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(2,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
 
-		*(fiberTable(3,iDevType*2+1)->value) << std::showbase << std::hex << ((checkFiber) & 0xff);
-		fiberTable(3,iDevType*2+1)->setClass("ok");
+		fiberTable(3,iDevType*2+1) << std::showbase << std::hex << ((checkFiber) & 0xff);
+		fiberTable(3,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((checkFiber) & 0xff) & (1<<iFiber)) {
-				*(fiberTable(3,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(3,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","none");
 			}
 		}
 
 		unsigned int readDMBSync = myDDU->readDMBSync(dt);
-		*(fiberTable(4,iDevType*2+1)->value) << std::showbase << std::hex << ((readDMBSync >> 8) & 0xff);
-		if (((readDMBSync >> 8) & 0xff)) fiberTable(4,iDevType*2+1)->setClass("bad");
-		else fiberTable(4,iDevType*2+1)->setClass("ok");
+		fiberTable(4,iDevType*2+1) << std::showbase << std::hex << ((readDMBSync >> 8) & 0xff);
+		if (((readDMBSync >> 8) & 0xff)) fiberTable(4,iDevType*2+1).setClass("bad");
+		else fiberTable(4,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readDMBSync >> 8) & 0xff) & (1<<iFiber)) {
 				//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-				*(fiberTable(4,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(4,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
 
-		*(fiberTable(5,iDevType*2+1)->value) << std::showbase << std::hex << ((readDMBSync) & 0xff);
-		if (((readDMBSync) & 0xff)) fiberTable(5,iDevType*2+1)->setClass("warning");
-		else fiberTable(5,iDevType*2+1)->setClass("ok");
+		fiberTable(5,iDevType*2+1) << std::showbase << std::hex << ((readDMBSync) & 0xff);
+		if (((readDMBSync) & 0xff)) fiberTable(5,iDevType*2+1).setClass("warning");
+		else fiberTable(5,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readDMBSync) & 0xff) & (1<<iFiber)) {
-				*(fiberTable(5,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(5,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","orange");
 			}
 		}
 
 		unsigned int readRxError = myDDU->readRxError(dt);
-		*(fiberTable(6,iDevType*2+1)->value) << std::showbase << std::hex << ((readRxError >> 8) & 0xff);
-		if (((readRxError >> 8) & 0xff)) fiberTable(6,iDevType*2+1)->setClass("questionable");
-		else fiberTable(6,iDevType*2+1)->setClass("ok");
+		fiberTable(6,iDevType*2+1) << std::showbase << std::hex << ((readRxError >> 8) & 0xff);
+		if (((readRxError >> 8) & 0xff)) fiberTable(6,iDevType*2+1).setClass("questionable");
+		else fiberTable(6,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readRxError >> 8) & 0xff) & (1<<iFiber)) {
-				*(fiberTable(6,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(6,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","blue");
 			}
 		}
 
-		*(fiberTable(7,iDevType*2+1)->value) << std::showbase << std::hex << ((readRxError) & 0xff);
-		if (((readRxError) & 0xff)) fiberTable(7,iDevType*2+1)->setClass("bad");
-		else fiberTable(7,iDevType*2+1)->setClass("ok");
+		fiberTable(7,iDevType*2+1) << std::showbase << std::hex << ((readRxError) & 0xff);
+		if (((readRxError) & 0xff)) fiberTable(7,iDevType*2+1).setClass("bad");
+		else fiberTable(7,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readRxError) & 0xff) & (1<<iFiber)) {
 				//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-				*(fiberTable(7,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(7,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
 
 		unsigned int readTimeout = myDDU->readTimeout(dt);
-		*(fiberTable(8,iDevType*2+1)->value) << std::showbase << std::hex << ((readTimeout >> 8) & 0xff);
-		if (((readTimeout >> 8) & 0xff)) fiberTable(8,iDevType*2+1)->setClass("bad");
-		else fiberTable(8,iDevType*2+1)->setClass("ok");
+		fiberTable(8,iDevType*2+1) << std::showbase << std::hex << ((readTimeout >> 8) & 0xff);
+		if (((readTimeout >> 8) & 0xff)) fiberTable(8,iDevType*2+1).setClass("bad");
+		else fiberTable(8,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readTimeout >> 8) & 0xff) & (1<<iFiber)) {
 				//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-				*(fiberTable(8,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(8,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
 
-		*(fiberTable(9,iDevType*2+1)->value) << std::showbase << std::hex << ((readTimeout) & 0xff);
-		if (((readTimeout) & 0xff)) fiberTable(9,iDevType*2+1)->setClass("bad");
-		else fiberTable(9,iDevType*2+1)->setClass("ok");
+		fiberTable(9,iDevType*2+1) << std::showbase << std::hex << ((readTimeout) & 0xff);
+		if (((readTimeout) & 0xff)) fiberTable(9,iDevType*2+1).setClass("bad");
+		else fiberTable(9,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readTimeout) & 0xff) & (1<<iFiber)) {
 				//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-				*(fiberTable(9,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(9,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
 
 		unsigned int readTxError = myDDU->readTxError(dt);
-		*(fiberTable(10,iDevType*2+1)->value) << std::showbase << std::hex << ((readTxError >> 8) & 0xff);
-		fiberTable(10,iDevType*2+1)->setClass("ok");
+		fiberTable(10,iDevType*2+1) << std::showbase << std::hex << ((readTxError >> 8) & 0xff);
+		fiberTable(10,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readTxError >> 8) & 0xff) & (1<<iFiber)) {
-				*(fiberTable(10,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(10,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","none");
 			}
 		}
 
-		*(fiberTable(11,iDevType*2+1)->value) << std::showbase << std::hex << ((readTxError) & 0xff);
-		if (((readTxError) & 0xff)) fiberTable(11,iDevType*2+1)->setClass("bad");
-		else fiberTable(11,iDevType*2+1)->setClass("ok");
+		fiberTable(11,iDevType*2+1) << std::showbase << std::hex << ((readTxError) & 0xff);
+		if (((readTxError) & 0xff)) fiberTable(11,iDevType*2+1).setClass("bad");
+		else fiberTable(11,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readTxError) & 0xff) & (1<<iFiber)) {
 				//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-				*(fiberTable(11,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(11,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
 
 		unsigned int readLostError = myDDU->readLostError(dt);
-		*(fiberTable(12,iDevType*2+1)->value) << std::showbase << std::hex << ((readLostError >> 8) & 0xff);
-		if (((readLostError) & 0xff)) fiberTable(12,iDevType*2+1)->setClass("warning");
-		else fiberTable(12,iDevType*2+1)->setClass("ok");
+		fiberTable(12,iDevType*2+1) << std::showbase << std::hex << ((readLostError >> 8) & 0xff);
+		if (((readLostError) & 0xff)) fiberTable(12,iDevType*2+1).setClass("warning");
+		else fiberTable(12,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readLostError >> 8) & 0xff) & (1<<iFiber)) {
-				*(fiberTable(12,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(12,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","orange");
 			}
 		}
 
-		*(fiberTable(13,iDevType*2+1)->value) << std::showbase << std::hex << ((readLostError) & 0xff);
-		if (((readLostError) & 0xff)) fiberTable(13,iDevType*2+1)->setClass("bad");
-		else fiberTable(13,iDevType*2+1)->setClass("ok");
+		fiberTable(13,iDevType*2+1) << std::showbase << std::hex << ((readLostError) & 0xff);
+		if (((readLostError) & 0xff)) fiberTable(13,iDevType*2+1).setClass("bad");
+		else fiberTable(13,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readLostError) & 0xff) & (1<<iFiber)) {
 				//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-				*(fiberTable(13,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				fiberTable(13,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
@@ -3438,80 +3441,80 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		unsigned int fiberOffset = (dt == emu::fed::INFPGA0 ? 0 : 8);
 
 		if (iDevType == 0) {
-			*(otherTable(0,0)->value) << "Input buffer empty";
-			*(otherTable(1,0)->value) << "Special decode bits (8-bit)";
-			*(otherTable(2,0)->value) << "Input buffer full history";
-			*(otherTable(3,0)->value) << "Special decode bits (4-bit)";
-			*(otherTable(4,0)->value) << "InRD0/2 C-code status (8-bit)";
-			*(otherTable(5,0)->value) << "InRD1/3 C-code status (8-bit)";
+			otherTable(0,0) << "Input buffer empty";
+			otherTable(1,0) << "Special decode bits (8-bit)";
+			otherTable(2,0) << "Input buffer full history";
+			otherTable(3,0) << "Special decode bits (4-bit)";
+			otherTable(4,0) << "InRD0/2 C-code status (8-bit)";
+			otherTable(5,0) << "InRD1/3 C-code status (8-bit)";
 		}
 
 		unsigned int readFIFOStat = myDDU->readFIFOStatus(dt);
-		*(otherTable(0,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
-		//if (((readFIFOStat >> 8) & 0xff)) otherTable(0,iDevType*2+1)->setClass("bad");
-		otherTable(0,iDevType*2+1)->setClass("ok");
+		otherTable(0,iDevType*2+1) << std::showbase << std::hex << ((readFIFOStat >> 8) & 0xff);
+		//if (((readFIFOStat >> 8) & 0xff)) otherTable(0,iDevType*2+1).setClass("bad");
+		otherTable(0,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readFIFOStat >> 8) & 0xff) & (1<<iFiber)) {
-				*(otherTable(0,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				otherTable(0,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","none");
 			}
 		}
 
-		*(otherTable(1,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
-		if (((readFIFOStat) & 0xfc)) otherTable(1,iDevType*2+1)->setClass("warning");
-		else otherTable(1,iDevType*2+1)->setClass("ok");
+		otherTable(1,iDevType*2+1) << std::showbase << std::hex << ((readFIFOStat) & 0xff);
+		if (((readFIFOStat) & 0xfc)) otherTable(1,iDevType*2+1).setClass("warning");
+		else otherTable(1,iDevType*2+1).setClass("ok");
 		std::map<std::string, std::string> readFIFOStatComments = emu::fed::DDUDebugger::FIFOStat(dt,(readFIFOStat) & 0xff);
 		for (std::map< std::string, std::string >::iterator iComment = readFIFOStatComments.begin();
 			iComment != readFIFOStatComments.end();
 			iComment++) {
-			*(otherTable(1,iDevType*2+2)->value) << cgicc::div(iComment->first)
+			otherTable(1,iDevType*2+2) << cgicc::div(iComment->first)
 				.set("class",iComment->second) << std::endl;
 		}
 
 		unsigned int readFIFOFull = myDDU->readFIFOFull(dt);
-		*(otherTable(2,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOFull) & 0xff);
-		if (((readFIFOFull) & 0xff)) otherTable(2,iDevType*2+1)->setClass("bad");
-		else otherTable(2,iDevType*2+1)->setClass("ok");
+		otherTable(2,iDevType*2+1) << std::showbase << std::hex << ((readFIFOFull) & 0xff);
+		if (((readFIFOFull) & 0xff)) otherTable(2,iDevType*2+1).setClass("bad");
+		else otherTable(2,iDevType*2+1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 			if (((readFIFOFull) & 0xff) & (1<<iFiber)) {
-				*(otherTable(2,iDevType*2+2)->value) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+				otherTable(2,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
 					.set("class","red");
 			}
 		}
 
-		*(otherTable(3,iDevType*2+1)->value) << std::showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
-		if (((readFIFOFull >> 8) & 0xf)) otherTable(3,iDevType*2+1)->setClass("warning");
-		else otherTable(3,iDevType*2+1)->setClass("ok");
+		otherTable(3,iDevType*2+1) << std::showbase << std::hex << ((readFIFOFull >> 8) & 0xff);
+		if (((readFIFOFull >> 8) & 0xf)) otherTable(3,iDevType*2+1).setClass("warning");
+		else otherTable(3,iDevType*2+1).setClass("ok");
 		std::map<std::string, std::string> readFIFOFullComments = emu::fed::DDUDebugger::FIFOFull(dt,(readFIFOFull >> 8) & 0xff);
 		for (std::map< std::string, std::string >::iterator iComment = readFIFOFullComments.begin();
 			iComment != readFIFOFullComments.end();
 			iComment++) {
-			*(otherTable(3,iDevType*2+2)->value) << cgicc::div(iComment->first)
+			otherTable(3,iDevType*2+2) << cgicc::div(iComment->first)
 				.set("class",iComment->second) << std::endl;
 		}
 
 		unsigned int readCCodeStat = myDDU->readCCodeStatus(dt);
-		*(otherTable(4,iDevType*2+1)->value) << std::showbase << std::hex << ((readCCodeStat) & 0xff);
-		if ((readCCodeStat & 0xff) == 0x20) otherTable(4,iDevType*2+1)->setClass("warning");
-		else if (readCCodeStat & 0xff) otherTable(4,iDevType*2+1)->setClass("bad");
-		else otherTable(4,iDevType*2+1)->setClass("ok");
+		otherTable(4,iDevType*2+1) << std::showbase << std::hex << ((readCCodeStat) & 0xff);
+		if ((readCCodeStat & 0xff) == 0x20) otherTable(4,iDevType*2+1).setClass("warning");
+		else if (readCCodeStat & 0xff) otherTable(4,iDevType*2+1).setClass("bad");
+		else otherTable(4,iDevType*2+1).setClass("ok");
 		std::map<std::string, std::string> readCCodeStatComments = emu::fed::DDUDebugger::CCodeStat(dt,(readCCodeStat) & 0xff);
 		for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
 			iComment != readCCodeStatComments.end();
 			iComment++) {
-			*(otherTable(4,iDevType*2+2)->value) << cgicc::div(iComment->first)
+			otherTable(4,iDevType*2+2) << cgicc::div(iComment->first)
 				.set("class",iComment->second) << std::endl;
 		}
 
-		*(otherTable(5,iDevType*2+1)->value) << std::showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
-		if (((readCCodeStat >> 8) & 0xff) == 0x20) otherTable(5,iDevType*2+1)->setClass("warning");
-		else if (((readCCodeStat >> 8) & 0xff)) otherTable(5,iDevType*2+1)->setClass("bad");
-		else otherTable(5,iDevType*2+1)->setClass("ok");
+		otherTable(5,iDevType*2+1) << std::showbase << std::hex << ((readCCodeStat >> 8) & 0xff);
+		if (((readCCodeStat >> 8) & 0xff) == 0x20) otherTable(5,iDevType*2+1).setClass("warning");
+		else if (((readCCodeStat >> 8) & 0xff)) otherTable(5,iDevType*2+1).setClass("bad");
+		else otherTable(5,iDevType*2+1).setClass("ok");
 		readCCodeStatComments = emu::fed::DDUDebugger::CCodeStat(dt,(readCCodeStat >> 8) & 0xff);
 		for (std::map< std::string, std::string >::iterator iComment = readCCodeStatComments.begin();
 			iComment != readCCodeStatComments.end();
 			iComment++) {
-			*(otherTable(5,iDevType*2+2)->value) << cgicc::div(iComment->first)
+			otherTable(5,iDevType*2+2) << cgicc::div(iComment->first)
 				.set("class",iComment->second) << std::endl;
 		}
 		
@@ -3582,73 +3585,73 @@ void EmuFCrateHyperDAQ::InFpga(xgi::Input * in, xgi::Output * out )
 		enum emu::fed::DEVTYPE dt = devTypes[iDevType];
 
 		if (iDevType == 0) {
-			*(memTable(0,0)->value) << "FIFOs Used, Fibers 3-0/11-8";
-			*(memTable(1,0)->value) << "FIFOs Used, Fibers 7-4/15-12";
-			*(memTable(2,0)->value) << "MemCtrl0/2 FIFOs Available";
-			*(memTable(3,0)->value) << "MemCtrl1/3 FIFOs Available";
-			*(memTable(4,0)->value) << "MemCtrl0/2 Minimum FIFOs Available";
-			*(memTable(5,0)->value) << "MemCtrl1/3 Minimum FIFOs Available";
-			*(memTable(6,0)->value) << "Write Memory Active, Fibers 1-0/9-8";
-			*(memTable(7,0)->value) << "Write Memory Active, Fibers 3-2/11-10";
-			*(memTable(8,0)->value) << "Write Memory Active, Fibers 5-4/13-12";
-			*(memTable(9,0)->value) << "Write Memory Active, Fibers 7-6/15-14";
+			memTable(0,0) << "FIFOs Used, Fibers 3-0/11-8";
+			memTable(1,0) << "FIFOs Used, Fibers 7-4/15-12";
+			memTable(2,0) << "MemCtrl0/2 FIFOs Available";
+			memTable(3,0) << "MemCtrl1/3 FIFOs Available";
+			memTable(4,0) << "MemCtrl0/2 Minimum FIFOs Available";
+			memTable(5,0) << "MemCtrl1/3 Minimum FIFOs Available";
+			memTable(6,0) << "Write Memory Active, Fibers 1-0/9-8";
+			memTable(7,0) << "Write Memory Active, Fibers 3-2/11-10";
+			memTable(8,0) << "Write Memory Active, Fibers 5-4/13-12";
+			memTable(9,0) << "Write Memory Active, Fibers 7-6/15-14";
 		}
 
 		unsigned int memValue = myDDU->readFiberDiagnostics(dt,0);
-		*(memTable(0,iDevType*2+1)->value) << std::showbase << std::hex << memValue;
-		memTable(0,iDevType*2+1)->setClass("ok");
+		memTable(0,iDevType*2+1) << std::showbase << std::hex << memValue;
+		memTable(0,iDevType*2+1).setClass("ok");
 		std::map< std::string, std::string> memComments = emu::fed::DDUDebugger::FiberDiagnostics(dt,0,memValue);
 		for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 			iComment != memComments.end();
 			iComment++) {
-			*(memTable(0,iDevType*2+2)->value) << cgicc::div(iComment->first)
+			memTable(0,iDevType*2+2) << cgicc::div(iComment->first)
 				.set("class",iComment->second) << std::endl;
 		}
 
 		memValue = myDDU->readFiberDiagnostics(dt,1);
-		*(memTable(1,iDevType*2+1)->value) << std::showbase << std::hex << memValue;
-		memTable(1,iDevType*2+1)->setClass("ok");
+		memTable(1,iDevType*2+1) << std::showbase << std::hex << memValue;
+		memTable(1,iDevType*2+1).setClass("ok");
 		memComments = emu::fed::DDUDebugger::FiberDiagnostics(dt,1,memValue);
 		for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 			iComment != memComments.end();
 			iComment++) {
-			*(memTable(1,iDevType*2+2)->value) << cgicc::div(iComment->first)
+			memTable(1,iDevType*2+2) << cgicc::div(iComment->first)
 				.set("class",iComment->second) << std::endl;
 		}
 
 		memValue = myDDU->readAvailableMemory(dt);
-		*(memTable(2,iDevType*2+1)->value) << (memValue & 0x1f);
-		if ((memValue & 0x1f) == 1) memTable(2,iDevType*2+1)->setClass("warning");
-		else if ((memValue & 0x1f) == 0) memTable(2,iDevType*2+1)->setClass("bad");
-		else memTable(2,iDevType*2+1)->setClass("ok");
+		memTable(2,iDevType*2+1) << (memValue & 0x1f);
+		if ((memValue & 0x1f) == 1) memTable(2,iDevType*2+1).setClass("warning");
+		else if ((memValue & 0x1f) == 0) memTable(2,iDevType*2+1).setClass("bad");
+		else memTable(2,iDevType*2+1).setClass("ok");
 
 		//memValue = myDDU->infpga_MemAvail(dt);
-		*(memTable(3,iDevType*2+1)->value) << ((memValue >> 5) & 0x1f);
-		if (((memValue >> 5) & 0x1f) == 1) memTable(3,iDevType*2+1)->setClass("warning");
-		if (((memValue >> 5) & 0x1f) == 0) memTable(3,iDevType*2+1)->setClass("bad");
-		else memTable(3,iDevType*2+1)->setClass("ok");
+		memTable(3,iDevType*2+1) << ((memValue >> 5) & 0x1f);
+		if (((memValue >> 5) & 0x1f) == 1) memTable(3,iDevType*2+1).setClass("warning");
+		if (((memValue >> 5) & 0x1f) == 0) memTable(3,iDevType*2+1).setClass("bad");
+		else memTable(3,iDevType*2+1).setClass("ok");
 
 		memValue = myDDU->readMinMemory(dt);
-		*(memTable(4,iDevType*2+1)->value) << (memValue & 0x1f);
-		if ((memValue & 0x1f) == 1) memTable(4,iDevType*2+1)->setClass("warning");
-		else if ((memValue & 0x1f) == 0) memTable(4,iDevType*2+1)->setClass("bad");
-		else memTable(4,iDevType*2+1)->setClass("ok");
+		memTable(4,iDevType*2+1) << (memValue & 0x1f);
+		if ((memValue & 0x1f) == 1) memTable(4,iDevType*2+1).setClass("warning");
+		else if ((memValue & 0x1f) == 0) memTable(4,iDevType*2+1).setClass("bad");
+		else memTable(4,iDevType*2+1).setClass("ok");
 
 		//memValue = myDDU->infpga_Min_Mem(dt);
-		*(memTable(5,iDevType*2+1)->value) << ((memValue >> 5) & 0x1f);
-		if (((memValue >> 5) & 0x1f) == 1) memTable(5,iDevType*2+1)->setClass("warning");
-		if (((memValue >> 5) & 0x1f) == 0) memTable(5,iDevType*2+1)->setClass("bad");
-		else memTable(5,iDevType*2+1)->setClass("ok");
+		memTable(5,iDevType*2+1) << ((memValue >> 5) & 0x1f);
+		if (((memValue >> 5) & 0x1f) == 1) memTable(5,iDevType*2+1).setClass("warning");
+		if (((memValue >> 5) & 0x1f) == 0) memTable(5,iDevType*2+1).setClass("bad");
+		else memTable(5,iDevType*2+1).setClass("ok");
 
 		for (unsigned int ireg = 0; ireg < 4; ireg++) {
 			memValue = myDDU->readActiveWriteMemory(dt,ireg);
-			*(memTable(ireg + 6,iDevType*2+1)->value) << std::showbase << std::hex << memValue;
-			memTable(ireg + 6,iDevType*2+1)->setClass("ok");
+			memTable(ireg + 6,iDevType*2+1) << std::showbase << std::hex << memValue;
+			memTable(ireg + 6,iDevType*2+1).setClass("ok");
 			memComments = emu::fed::DDUDebugger::WriteMemoryActive(dt,ireg,memValue);
 			for (std::map< std::string, std::string >::iterator iComment = memComments.begin();
 				iComment != memComments.end();
 				iComment++) {
-				*(memTable(ireg + 6,iDevType*2+2)->value) << cgicc::div(iComment->first)
+				memTable(ireg + 6,iDevType*2+2) << cgicc::div(iComment->first)
 					.set("class",iComment->second) << std::endl;
 			}
 		}
@@ -4227,11 +4230,11 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iReg = 0; iReg < 3; iReg++) {
 		unsigned int inreg = myDDU->readInputRegister(iReg);
-		*(inregTable(iReg,0)->value) << "InReg" << iReg;
-		*(inregTable(iReg,1)->value) << std::showbase << std::hex << inreg;
-		inregTable[iReg]->setClass("none");
+		inregTable(iReg,0) << "InReg" << iReg;
+		inregTable(iReg,1) << std::showbase << std::hex << inreg;
+		inregTable[iReg].setClass("none");
 		if (iReg == 0) {
-			*(inregTable(iReg,2)->value) << inregTable[iReg]->makeForm(dduTextLoad,cgiCrate,cgiDDU,9) << std::endl;
+			inregTable(iReg,2) << inregTable[iReg].makeForm(dduTextLoad,cgiCrate,cgiDDU,9) << std::endl;
 		}
 	}
 
@@ -4267,57 +4270,57 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 
 	// FIXME
 	unsigned int gbePrescale = myDDU->readGbEPrescale();
-	*(expertTable(0,0)->value) << "GbE prescale";
-	*(expertTable(0,1)->value) << std::showbase << std::hex << gbePrescale;
+	expertTable(0,0) << "GbE prescale";
+	expertTable(0,1) << std::showbase << std::hex << gbePrescale;
 	/*std::map<std::string,std::string> gbePrescaleComments = emu::fed::DDUDebugger::GbEPrescale(gbePrescale);
 	for (std::map<std::string,std::string>::iterator iComment = gbePrescaleComments.begin();
 		iComment != gbePrescaleComments.end();
 		iComment++) {
-		*(expertTable(0,2)->value) << cgicc::div(iComment->first)
+		expertTable(0,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 	*/
-	*(expertTable(0,3)->value) << expertTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,11);
-	expertTable[0]->setClass("none");
+	expertTable(0,3) << expertTable[0].makeForm(dduTextLoad,cgiCrate,cgiDDU,11);
+	expertTable[0].setClass("none");
 
 	unsigned int fakeL1 = myDDU->readFakeL1();
-	*(expertTable(1,0)->value) << "Fake L1A Data Passthrough";
-	*(expertTable(1,1)->value) << std::showbase << std::hex << fakeL1;
+	expertTable(1,0) << "Fake L1A Data Passthrough";
+	expertTable(1,1) << std::showbase << std::hex << fakeL1;
 	/*
 	std::map<std::string,std::string> fakeL1Comments = emu::fed::DDUDebugger::FakeL1Reg(fakeL1);
 	for (std::map<std::string,std::string>::iterator iComment = fakeL1Comments.begin();
 		iComment != fakeL1Comments.end();
 		iComment++) {
-		*(expertTable(1,2)->value) << cgicc::div(iComment->first)
+		expertTable(1,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 	*/
-	*(expertTable(1,3)->value) << expertTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,13);
-	expertTable[1]->setClass("none");
+	expertTable(1,3) << expertTable[1].makeForm(dduTextLoad,cgiCrate,cgiDDU,13);
+	expertTable[1].setClass("none");
 
 	unsigned int foe = myDDU->readFMM();
-	*(expertTable(2,0)->value) << "F0E + 4-bit FMM";
-	*(expertTable(2,1)->value) << std::showbase << std::hex << foe;
+	expertTable(2,0) << "F0E + 4-bit FMM";
+	expertTable(2,1) << std::showbase << std::hex << foe;
 	/*
 	std::map<std::string,std::string> foeComments = emu::fed::DDUDebugger::F0EReg(foe);
 	for (std::map<std::string,std::string>::iterator iComment = foeComments.begin();
 		iComment != foeComments.end();
 		iComment++) {
-		*(expertTable(2,2)->value) << cgicc::div(iComment->first)
+		expertTable(2,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
 	*/
-	*(expertTable(2,3)->value) << expertTable[2]->makeForm(dduTextLoad,cgiCrate,cgiDDU,18);
-	expertTable[2]->setClass("none");
+	expertTable(2,3) << expertTable[2].makeForm(dduTextLoad,cgiCrate,cgiDDU,18);
+	expertTable[2].setClass("none");
 
-	*(expertTable(3,0)->value) << "Switches";
-	*(expertTable(3,1)->value) << std::showbase << std::hex << (myDDU->readSwitches() & 0xff);
-	expertTable[3]->setClass("none");
+	expertTable(3,0) << "Switches";
+	expertTable(3,1) << std::showbase << std::hex << (myDDU->readSwitches() & 0xff);
+	expertTable[3].setClass("none");
 
 	for (unsigned int iReg = 0; iReg < 5; iReg++) {
-		*(expertTable(4 + iReg,0)->value) << "Test register " << iReg;
-		*(expertTable(4 + iReg,1)->value) << std::showbase << std::hex << (myDDU->readTestRegister(iReg));
-		expertTable[4 + iReg]->setClass("none");
+		expertTable(4 + iReg,0) << "Test register " << iReg;
+		expertTable(4 + iReg,1) << std::showbase << std::hex << (myDDU->readTestRegister(iReg));
+		expertTable[4 + iReg].setClass("none");
 	}
 
 	*out << expertTable.toHTML() << std::endl;
@@ -4411,31 +4414,31 @@ void EmuFCrateHyperDAQ::DDUExpert(xgi::Input * in, xgi::Output * out )
 	writableTable.addColumn("Value");
 	writableTable.addColumn("New Value");
 
-	*(writableTable(0,0)->value) << "Flash KillFiber";
-	*(writableTable(0,1)->value) << std::showbase << std::hex << myDDU->readFlashKillFiber();
-	writableTable[0]->setClass("none");
+	writableTable(0,0) << "Flash KillFiber";
+	writableTable(0,1) << std::showbase << std::hex << myDDU->readFlashKillFiber();
+	writableTable[0].setClass("none");
 	// New Value...
-	*(writableTable(0,2)->value) << writableTable[0]->makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << std::endl;
+	writableTable(0,2) << writableTable[0].makeForm(dduTextLoad,cgiCrate,cgiDDU,14) << std::endl;
 
 	std::vector<uint16_t> lcode = myDDU->readFlashGbEFIFOThresholds();
-	*(writableTable(1,0)->value) << "Flash GbE FIFO thresholds";
-	//*(writableTable(1,1)->value) << "0x" << std::hex << ((lcode[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((lcode[2]&0xC0)>>6)|((lcode[5]&0xFF)<<2)|((lcode[4]&0x3F)<<10)) << 16) | (((lcode[0]&0xC0)>>6)|((lcode[3]&0xFF)<<2)|((lcode[2]&0x3F)<<10)));
-	*(writableTable(1,1)->value) << "0x" << std::hex << std::setw(1) << std::setfill('0') << lcode[2] << std::setw(4) << lcode[1] << std::setw(4) << lcode[0];
-	writableTable[1]->setClass("none");
+	writableTable(1,0) << "Flash GbE FIFO thresholds";
+	//writableTable(1,1) << "0x" << std::hex << ((lcode[4]&0xC0)>>6) << std::noshowbase << std::setw(8) << std::setfill('0') << std::hex << (((((lcode[2]&0xC0)>>6)|((lcode[5]&0xFF)<<2)|((lcode[4]&0x3F)<<10)) << 16) | (((lcode[0]&0xC0)>>6)|((lcode[3]&0xFF)<<2)|((lcode[2]&0x3F)<<10)));
+	writableTable(1,1) << "0x" << std::hex << std::setw(1) << std::setfill('0') << lcode[2] << std::setw(4) << lcode[1] << std::setw(4) << lcode[0];
+	writableTable[1].setClass("none");
 	// New Value...
-	*(writableTable(1,2)->value) << writableTable[1]->makeForm(dduTextLoad,cgiCrate,cgiDDU,15) << std::endl;
+	writableTable(1,2) << writableTable[1].makeForm(dduTextLoad,cgiCrate,cgiDDU,15) << std::endl;
 
-	*(writableTable(2,0)->value) << "Flash Board ID";
-	*(writableTable(2,1)->value) << myDDU->readFlashBoardID();
-	writableTable[2]->setClass("none");
+	writableTable(2,0) << "Flash Board ID";
+	writableTable(2,1) << myDDU->readFlashBoardID();
+	writableTable[2].setClass("none");
 	// New Value...
-	*(writableTable(2,2)->value) << writableTable[2]->makeForm(dduTextLoad,cgiCrate,cgiDDU,16) << std::endl;
+	writableTable(2,2) << writableTable[2].makeForm(dduTextLoad,cgiCrate,cgiDDU,16) << std::endl;
 
-	*(writableTable(3,0)->value) << "Flash DDU RUI";
-	*(writableTable(3,1)->value) << myDDU->readFlashRUI();
-	writableTable[3]->setClass("none");
+	writableTable(3,0) << "Flash DDU RUI";
+	writableTable(3,1) << myDDU->readFlashRUI();
+	writableTable[3].setClass("none");
 	// New Value...
-	*(writableTable(3,2)->value) << writableTable[3]->makeForm(dduTextLoad,cgiCrate,cgiDDU,17) << std::endl;
+	writableTable(3,2) << writableTable[3].makeForm(dduTextLoad,cgiCrate,cgiDDU,17) << std::endl;
 
 	*out << writableTable.toHTML() << std::endl;
 
@@ -4508,34 +4511,34 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	statusTable.addColumn("Value");
 
 	unsigned int parallelStat = myDDU->readParallelStatus();
-	*(statusTable(0,0)->value) << "VME status register";
-	*(statusTable(0,1)->value) << std::showbase << std::hex << parallelStat;
+	statusTable(0,0) << "VME status register";
+	statusTable(0,1) << std::showbase << std::hex << parallelStat;
 	std::map<std::string,std::string> parallelStatComments = emu::fed::DDUDebugger::ParallelStat(parallelStat);
 	for (std::map<std::string,std::string>::iterator iComment = parallelStatComments.begin();
 		iComment != parallelStatComments.end();
 		iComment++) {
-		*(statusTable(0,2)->value) << cgicc::div(iComment->first)
+		statusTable(0,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
-	statusTable[0]->setClass("ok");
-	if ((parallelStat >> 8) & 0xF == 0x4) statusTable[0]->setClass("warning");
-	else if ((parallelStat >> 8) & 0xF == 0x1) statusTable[0]->setClass("questionable");
-	else if ((parallelStat >> 8) & 0xF != 0x8) statusTable[0]->setClass("bad");
+	statusTable[0].setClass("ok");
+	if ((parallelStat >> 8) & 0xF == 0x4) statusTable[0].setClass("warning");
+	else if ((parallelStat >> 8) & 0xF == 0x1) statusTable[0].setClass("questionable");
+	else if ((parallelStat >> 8) & 0xF != 0x8) statusTable[0].setClass("bad");
 
 	int dduFMM = (parallelStat >> 8) & 0xf;
-	*(statusTable(1,0)->value) << "DDU FMM status";
-	*(statusTable(1,1)->value) << std::showbase << std::hex << dduFMM;
+	statusTable(1,0) << "DDU FMM status";
+	statusTable(1,1) << std::showbase << std::hex << dduFMM;
 	std::map<std::string,std::string> dduFMMComments = emu::fed::DDUDebugger::FMMReg(dduFMM);
 	for (std::map<std::string,std::string>::iterator iComment = dduFMMComments.begin();
 		iComment != dduFMMComments.end();
 		iComment++) {
-		*(statusTable(1,2)->value) << cgicc::div(iComment->first)
+		statusTable(1,2) << cgicc::div(iComment->first)
 			.set("class",iComment->second);
 	}
-	statusTable[1]->setClass("ok");
-	if (dduFMM & 0xF == 0x4) statusTable[1]->setClass("warning");
-	else if (dduFMM & 0xF == 0x1) statusTable[1]->setClass("questionable");
-	else if (dduFMM & 0xF != 0x8) statusTable[1]->setClass("bad");
+	statusTable[1].setClass("ok");
+	if (dduFMM & 0xF == 0x4) statusTable[1].setClass("warning");
+	else if (dduFMM & 0xF == 0x1) statusTable[1].setClass("questionable");
+	else if (dduFMM & 0xF != 0x8) statusTable[1].setClass("bad");
 
 	*out << statusTable.printSummary() << std::endl;
 
@@ -4567,81 +4570,81 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	fmmTable.addColumn("Decoded Chambers");
 
 	unsigned int cscStat = myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors();
-	*(fmmTable(0,0)->value) << "FMM problem report";
-	*(fmmTable(0,1)->value) << std::showbase << std::hex << cscStat;
+	fmmTable(0,0) << "FMM problem report";
+	fmmTable(0,1) << std::showbase << std::hex << cscStat;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscStat & (1<<iFiber)) {
-			*(fmmTable(0,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fmmTable(0,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 		}
 	}
-	fmmTable[0]->setClass("ok");
-	if (cscStat) fmmTable[0]->setClass("bad");
+	fmmTable[0].setClass("ok");
+	if (cscStat) fmmTable[0].setClass("bad");
 
 	unsigned int cscBusy = myDDU->readFMMBusy();
-	*(fmmTable(1,0)->value) << "Busy";
-	*(fmmTable(1,1)->value) << std::showbase << std::hex << cscBusy;
+	fmmTable(1,0) << "Busy";
+	fmmTable(1,1) << std::showbase << std::hex << cscBusy;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscBusy & (1<<iFiber)) {
-			*(fmmTable(1,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name());
+			fmmTable(1,2) << cgicc::div(myDDU->getChamber(iFiber)->name());
 		}
 	}
-	fmmTable[1]->setClass("ok");
+	fmmTable[1].setClass("ok");
 
 	unsigned int cscWarn = myDDU->readFMMFullWarning();
-	*(fmmTable(2,0)->value) << "Warning/near full";
-	*(fmmTable(2,1)->value) << std::showbase << std::hex << cscWarn;
+	fmmTable(2,0) << "Warning/near full";
+	fmmTable(2,1) << std::showbase << std::hex << cscWarn;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscWarn & (1<<iFiber)) {
-			*(fmmTable(2,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fmmTable(2,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","orange");
 		}
 	}
-	fmmTable[2]->setClass("ok");
-	if (cscWarn) fmmTable[2]->setClass("warning");
+	fmmTable[2].setClass("ok");
+	if (cscWarn) fmmTable[2].setClass("warning");
 
 	unsigned int cscLS = myDDU->readFMMLostSync();
-	*(fmmTable(3,0)->value) << "Lost sync";
-	*(fmmTable(3,1)->value) << std::showbase << std::hex << cscLS;
+	fmmTable(3,0) << "Lost sync";
+	fmmTable(3,1) << std::showbase << std::hex << cscLS;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscLS & (1<<iFiber)) {
-			*(fmmTable(3,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fmmTable(3,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 		}
 	}
-	fmmTable[3]->setClass("ok");
-	if (cscLS) fmmTable[3]->setClass("bad");
+	fmmTable[3].setClass("ok");
+	if (cscLS) fmmTable[3].setClass("bad");
 
 	unsigned int cscError = myDDU->readFMMError();
-	*(fmmTable(4,0)->value) << "Error";
-	*(fmmTable(4,1)->value) << std::showbase << std::hex << cscError;
+	fmmTable(4,0) << "Error";
+	fmmTable(4,1) << std::showbase << std::hex << cscError;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscError & (1<<iFiber)) {
-			*(fmmTable(4,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fmmTable(4,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","red");
 		}
 	}
-	fmmTable[4]->setClass("ok");
-	if (cscError) fmmTable[4]->setClass("bad");
+	fmmTable[4].setClass("ok");
+	if (cscError) fmmTable[4].setClass("bad");
 
 	unsigned int cscWH = myDDU->readWarningHistory();
-	*(fmmTable(5,0)->value) << "Warning history";
-	*(fmmTable(5,1)->value) << std::showbase << std::hex << cscWH;
+	fmmTable(5,0) << "Warning history";
+	fmmTable(5,1) << std::showbase << std::hex << cscWH;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscWH & (1<<iFiber)) {
-			*(fmmTable(5,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name())
+			fmmTable(5,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
 				.set("class","orange");
 		}
 	}
-	fmmTable[5]->setClass("ok");
-	if (cscWH) fmmTable[5]->setClass("warning");
+	fmmTable[5].setClass("ok");
+	if (cscWH) fmmTable[5].setClass("warning");
 
 	unsigned int cscBH = myDDU->readBusyHistory();
-	*(fmmTable(6,0)->value) << "Busy history";
-	*(fmmTable(6,1)->value) << std::showbase << std::hex << cscBH;
+	fmmTable(6,0) << "Busy history";
+	fmmTable(6,1) << std::showbase << std::hex << cscBH;
 	for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 		if (cscBH & (1<<iFiber)) {
-			*(fmmTable(6,2)->value) << cgicc::div(myDDU->getChamber(iFiber)->name());
+			fmmTable(6,2) << cgicc::div(myDDU->getChamber(iFiber)->name());
 		}
 	}
 
@@ -4721,36 +4724,36 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	voltTable.addColumn("Value");
 
 	float V15 = myDDU->readVoltage(0);
-	*(voltTable(0,0)->value) << "Voltage V15";
-	*(voltTable(0,1)->value) << std::setprecision(4) << V15 << " mV";
-	voltTable[0]->setClass("ok");
-	if (V15 > 1500*1.025 || V15 < 1500*0.975) voltTable[0]->setClass("warning");
-	if (V15 > 1500*1.05 || V15 < 1500*0.95) voltTable[0]->setClass("bad");
-	if (V15 > 3500 || V15 < 0) voltTable[0]->setClass("questionable");
+	voltTable(0,0) << "Voltage V15";
+	voltTable(0,1) << std::setprecision(4) << V15 << " mV";
+	voltTable[0].setClass("ok");
+	if (V15 > 1500*1.025 || V15 < 1500*0.975) voltTable[0].setClass("warning");
+	if (V15 > 1500*1.05 || V15 < 1500*0.95) voltTable[0].setClass("bad");
+	if (V15 > 3500 || V15 < 0) voltTable[0].setClass("questionable");
 
 	float V25 = myDDU->readVoltage(1);
-	*(voltTable(1,0)->value) << "Voltage V25";
-	*(voltTable(1,1)->value) << std::setprecision(4) << V25 << " mV";
-	voltTable[1]->setClass("ok");
-	if (V25 > 2500*1.025 || V25 < 2500*0.975) voltTable[1]->setClass("warning");
-	if (V25 > 2500*1.05 || V25 < 2500*0.95) voltTable[1]->setClass("bad");
-	if (V25 > 3500 || V25 < 0) voltTable[1]->setClass("questionable");
+	voltTable(1,0) << "Voltage V25";
+	voltTable(1,1) << std::setprecision(4) << V25 << " mV";
+	voltTable[1].setClass("ok");
+	if (V25 > 2500*1.025 || V25 < 2500*0.975) voltTable[1].setClass("warning");
+	if (V25 > 2500*1.05 || V25 < 2500*0.95) voltTable[1].setClass("bad");
+	if (V25 > 3500 || V25 < 0) voltTable[1].setClass("questionable");
 	
 	float V25a = myDDU->readVoltage(2);
-	*(voltTable(2,0)->value) << "Voltage V25A";
-	*(voltTable(2,1)->value) << std::setprecision(4) << V25a << " mV";
-	voltTable[2]->setClass("ok");
-	if (V25a > 2500*1.025 || V25a < 2500*0.975) voltTable[2]->setClass("warning");
-	if (V25a > 2500*1.05 || V25a < 2500*0.95) voltTable[2]->setClass("bad");
-	if (V25a > 3500 || V25a < 0) voltTable[2]->setClass("questionable");
+	voltTable(2,0) << "Voltage V25A";
+	voltTable(2,1) << std::setprecision(4) << V25a << " mV";
+	voltTable[2].setClass("ok");
+	if (V25a > 2500*1.025 || V25a < 2500*0.975) voltTable[2].setClass("warning");
+	if (V25a > 2500*1.05 || V25a < 2500*0.95) voltTable[2].setClass("bad");
+	if (V25a > 3500 || V25a < 0) voltTable[2].setClass("questionable");
 	
 	float V33 = myDDU->readVoltage(3);
-	*(voltTable(3,0)->value) << "Voltage V33";
-	*(voltTable(3,1)->value) << std::setprecision(4) << V33 << " mV";
-	voltTable[3]->setClass("ok");
-	if (V33 > 3300*1.025 || V33 < 3300*0.975) voltTable[3]->setClass("warning");
-	if (V33 > 3300*1.05 || V33 < 3300*0.95) voltTable[3]->setClass("bad");
-	if (V33 > 3500 || V33 < 0) voltTable[3]->setClass("questionable");
+	voltTable(3,0) << "Voltage V33";
+	voltTable(3,1) << std::setprecision(4) << V33 << " mV";
+	voltTable[3].setClass("ok");
+	if (V33 > 3300*1.025 || V33 < 3300*0.975) voltTable[3].setClass("warning");
+	if (V33 > 3300*1.05 || V33 < 3300*0.95) voltTable[3].setClass("bad");
+	if (V33 > 3500 || V33 < 0) voltTable[3].setClass("questionable");
 
 	// Print the table summary
 	*out << voltTable.printSummary() << std::endl;
@@ -4782,12 +4785,12 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 
 	for (unsigned int iTemp = 0; iTemp < 4; iTemp++) {
 		float T0 = myDDU->readTemperature(iTemp);
-		*(tempTable(iTemp,0)->value) << "Temperature " << iTemp;
-		*(tempTable(iTemp,1)->value) << std::setprecision(4) << T0 << "&deg;F";
-		tempTable[iTemp]->setClass("ok");
-		if (T0 > 80*1.2 || T0 < 80*0.8) tempTable[iTemp]->setClass("warning");
-		if (T0 > 80*1.4 || T0 < 80*0.6) tempTable[iTemp]->setClass("bad");
-		if (T0 > 170 || T0 < 0) tempTable[iTemp]->setClass("questionable");
+		tempTable(iTemp,0) << "Temperature " << iTemp;
+		tempTable(iTemp,1) << std::setprecision(4) << T0 << "&deg;F";
+		tempTable[iTemp].setClass("ok");
+		if (T0 > 80*1.2 || T0 < 80*0.8) tempTable[iTemp].setClass("warning");
+		if (T0 > 80*1.4 || T0 < 80*0.6) tempTable[iTemp].setClass("bad");
+		if (T0 > 170 || T0 < 0) tempTable[iTemp].setClass("questionable");
 	}
 
 	// Print the table summary
@@ -4819,11 +4822,11 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	ramStatusTable.addColumn("Value");
 
 	int ramStatus = myDDU->readSerialStatus();
-	*(ramStatusTable(0,0)->value) << "Serial Flash RAM Status";
-	*(ramStatusTable(0,1)->value) << std::showbase << std::hex << ramStatus;
-	ramStatusTable[0]->setClass("ok");
-	if (ramStatus & 0x003c != 0x000c) ramStatusTable[0]->setClass("warning");
-	if (ramStatus & 0x0080 != 0x0080) ramStatusTable[0]->setClass("bad");
+	ramStatusTable(0,0) << "Serial Flash RAM Status";
+	ramStatusTable(0,1) << std::showbase << std::hex << ramStatus;
+	ramStatusTable[0].setClass("ok");
+	if (ramStatus & 0x003c != 0x000c) ramStatusTable[0].setClass("warning");
+	if (ramStatus & 0x0080 != 0x0080) ramStatusTable[0].setClass("bad");
 
 	// Print the table summary
 	*out << ramStatusTable.printSummary() << std::endl;
@@ -5294,7 +5297,7 @@ throw (xgi::exception::Exception)
 	// Loop over the prom types and give us a pretty table
 	for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
 		
-		*(diskTable(iprom,0)->value) << dccPROMNames[iprom];
+		diskTable(iprom,0) << dccPROMNames[iprom];
 		
 		// Get the version number from the on-disk file
 		// Best mashup of perl EVER!
@@ -5309,8 +5312,8 @@ throw (xgi::exception::Exception)
 		// Can't have bogus files
 		if (!inFile.is_open()) {
 			LOG4CPLUS_ERROR(getApplicationLogger(), "Cannot open file " << fileName);
-			*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
-			diskTable(iprom,1)->setClass("bad");
+			diskTable(iprom,1) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+			diskTable(iprom,1).setClass("bad");
 			//std::clog << "Cannot open file " << fileName << std::endl;
 		} else {
 			
@@ -5357,18 +5360,18 @@ throw (xgi::exception::Exception)
 		// Check to make sure the on-disk header looks like it should for that
 		//  particular PROM
 		if (dccPROMTypes[iprom] == emu::fed::MPROM) {
-			*(diskTable(iprom,1)->value) << "MPROM has no usercode";
-			diskTable(iprom,1)->setClass("undefined");
+			diskTable(iprom,1) << "MPROM has no usercode";
+			diskTable(iprom,1).setClass("undefined");
 		} else {
 			std::stringstream diskVersionString;
 			diskVersionString << std::hex << diskVersion;
 			std::string diskHeader( diskVersionString.str(), 0, 3 );
 			if ( diskHeader != "dcc" ) {
-				*(diskTable(iprom,1)->value) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
-				diskTable(iprom,1)->setClass("bad");
+				diskTable(iprom,1) << "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+				diskTable(iprom,1).setClass("bad");
 			} else {
-				*(diskTable(iprom,1)->value) << std::hex << diskVersion;
-				diskTable(iprom,1)->setClass("ok");
+				diskTable(iprom,1) << std::hex << diskVersion;
+				diskTable(iprom,1).setClass("ok");
 			}
 		}
 		
@@ -5383,21 +5386,21 @@ throw (xgi::exception::Exception)
 		*/
 		
 		// Make the last part of the table a form for uploading a file.
-		*(diskTable(iprom,2)->value) << cgicc::form().set("method","POST")
+		diskTable(iprom,2) << cgicc::form().set("method","POST")
 			.set("enctype","multipart/form-data")
 			.set("id","Form" + dccPROMNames[iprom])
 			.set("action","/" + getApplicationDescriptor()->getURN() + "/DCCLoadBroadcast") << std::endl;
-		*(diskTable(iprom,2)->value) << cgicc::input().set("type","file")
+		diskTable(iprom,2) << cgicc::input().set("type","file")
 			.set("name","File")
 			.set("id","File" + dccPROMNames[iprom])
 			.set("size","50") << std::endl;
-		*(diskTable(iprom,2)->value) << cgicc::input().set("type","button")
+		diskTable(iprom,2) << cgicc::input().set("type","button")
 			.set("value","Upload SVF")
 			.set("onClick","javascript:if (formCheck('File" + dccPROMNames[iprom] + "')) { document.getElementById('Form" + dccPROMNames[iprom] + "').submit(); }") << std::endl;
-		*(diskTable(iprom,2)->value) << cgicc::input().set("type","hidden")
+		diskTable(iprom,2) << cgicc::input().set("type","hidden")
 			.set("name","svftype")
 			.set("value",dccPROMNames[iprom]) << std::endl;
-		*(diskTable(iprom,2)->value) << cgicc::form() << std::endl;
+		diskTable(iprom,2) << cgicc::form() << std::endl;
 	}
 	
 	// Print the table to screen.
@@ -5458,7 +5461,7 @@ throw (xgi::exception::Exception)
 		std::ostringstream elementID;
 		elementID << "slotBox" << myDCC->slot();
 		
-		*(slotTable(iDCC,0)->value) << cgicc::input()
+		slotTable(iDCC,0) << cgicc::input()
 			.set("type","checkbox")
 			.set("class","slotBox")
 			.set("id",elementID.str())
@@ -5469,23 +5472,23 @@ throw (xgi::exception::Exception)
 		for (unsigned int iprom = 0; iprom < dccPROMNames.size(); iprom++) {
 			
 			if (dccPROMTypes[iprom] == emu::fed::MPROM) {
-				*(slotTable(iDCC,1 + 2*iprom)->value) << "MPROM has no IDcode";
-				slotTable(iDCC,1 + 2*iprom)->setClass("undefined");
+				slotTable(iDCC,1 + 2*iprom) << "MPROM has no IDcode";
+				slotTable(iDCC,1 + 2*iprom).setClass("undefined");
 				
-				*(slotTable(iDCC,2 + 2*iprom)->value) << "MPROM has no usercode";
-				slotTable(iDCC,2 + 2*iprom)->setClass("undefined");
+				slotTable(iDCC,2 + 2*iprom) << "MPROM has no usercode";
+				slotTable(iDCC,2 + 2*iprom).setClass("undefined");
 			} else {
 				uint32_t idCode = myDCC->readIDCode(dccPROMTypes[iprom]);
-				*(slotTable(iDCC,1 + 2*iprom)->value) << std::hex << idCode;
+				slotTable(iDCC,1 + 2*iprom) << std::hex << idCode;
 				
 				uint32_t userCode = myDCC->readUserCode(dccPROMTypes[iprom]);
-				*(slotTable(iDCC,2 + 2*iprom)->value) << std::hex << userCode;
+				slotTable(iDCC,2 + 2*iprom) << std::hex << userCode;
 				
 				// Check for consistency
-				slotTable(iDCC,1 + 2*iprom)->setClass("none");
-				slotTable(iDCC,2 + 2*iprom)->setClass("ok");
+				slotTable(iDCC,1 + 2*iprom).setClass("none");
+				slotTable(iDCC,2 + 2*iprom).setClass("ok");
 				if (diskPROMCodes[iprom] != userCode) {
-					slotTable(iDCC,2 + 2*iprom)->setClass("bad");
+					slotTable(iDCC,2 + 2*iprom).setClass("bad");
 				}
 			}
 		}
@@ -6058,58 +6061,58 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	generalTable.addColumn("Value");
 	generalTable.addColumn("Decoded Status");
 
-	*(generalTable(0,0)->value) << "DCC FMM Status (4-bit)";
+	generalTable(0,0) << "DCC FMM Status (4-bit)";
 	unsigned long int dccValue = myDCC->readStatusHigh();
-	*(generalTable(0,1)->value) << std::showbase << std::hex << ((dccValue & 0xf000) >> 12);
+	generalTable(0,1) << std::showbase << std::hex << ((dccValue & 0xf000) >> 12);
 	std::map<std::string, std::string> debugMap = emu::fed::DCCDebugger::FMMStat((dccValue & 0xf000) >> 12);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
-		*(generalTable(0,2)->value) << cgicc::div(iDebug->first)
+		generalTable(0,2) << cgicc::div(iDebug->first)
 			.set("class",iDebug->second);
 	}
 	if (((dccValue & 0xf000) >> 12) == 0x3) {
-		generalTable(0,1)->setClass("bad");
+		generalTable(0,1).setClass("bad");
 	} else if (((dccValue & 0xf000) >> 12) == 0x1) {
-		generalTable(0,1)->setClass("warning");
+		generalTable(0,1).setClass("warning");
 	} else if (((dccValue & 0xf000) >> 12) == 0x4) {
-		generalTable(0,1)->setClass("caution");
+		generalTable(0,1).setClass("caution");
 	} else if (((dccValue & 0xf000) >> 12) == 0x8) {
-		generalTable(0,1)->setClass("bad");
+		generalTable(0,1).setClass("bad");
 	} else {
-		generalTable(0,1)->setClass("ok");
+		generalTable(0,1).setClass("ok");
 	}
 
-	*(generalTable(1,0)->value) << "DCC FIFO Backpressure (8-bit)";
-	*(generalTable(1,1)->value) << std::showbase << std::hex << ((dccValue & 0x0ff0) >> 4);
+	generalTable(1,0) << "DCC FIFO Backpressure (8-bit)";
+	generalTable(1,1) << std::showbase << std::hex << ((dccValue & 0x0ff0) >> 4);
 	debugMap = emu::fed::DCCDebugger::InFIFOStat((dccValue & 0x0ff0) >> 4);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
-		*(generalTable(1,2)->value) << cgicc::div(iDebug->first)
+		generalTable(1,2) << cgicc::div(iDebug->first)
 		.set("class",iDebug->second);
 	}
 	if (dccValue & 0x0f80) {
-		generalTable(1,1)->setClass("bad");
+		generalTable(1,1).setClass("bad");
 	} else if (dccValue & 0x0070) {
-		generalTable(1,1)->setClass("warning");
+		generalTable(1,1).setClass("warning");
 	} else {
-		generalTable(1,1)->setClass("ok");
+		generalTable(1,1).setClass("ok");
 	}
 
-	*(generalTable(2,0)->value) << "DCC S-Link Status (4-bit)";
-	*(generalTable(2,1)->value) << std::showbase << std::hex << (dccValue & 0xf);
+	generalTable(2,0) << "DCC S-Link Status (4-bit)";
+	generalTable(2,1) << std::showbase << std::hex << (dccValue & 0xf);
 	debugMap = emu::fed::DCCDebugger::SLinkStat(dccValue & 0xf);
 	for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
-		*(generalTable(2,2)->value) << cgicc::div(iDebug->first)
+		generalTable(2,2) << cgicc::div(iDebug->first)
 			.set("class",iDebug->second);
 	}
 	if (!(dccValue & 0x8) || !(dccValue & 0x2)) {
-		generalTable(2,1)->setClass("caution");
+		generalTable(2,1).setClass("caution");
 	}
 	if (!(dccValue & 0x4) || !(dccValue & 0x1)) {
-		generalTable(2,1)->setClass("bad");
+		generalTable(2,1).setClass("bad");
 	}
 
-	*(generalTable(3,0)->value) << "DCC L1A Count (16-bit)";
-	*(generalTable(3,1)->value) << myDCC->readStatusLow();
-	generalTable(3,1)->setClass("none");
+	generalTable(3,0) << "DCC L1A Count (16-bit)";
+	generalTable(3,1) << myDCC->readStatusLow();
+	generalTable(3,1).setClass("none");
 
 	*out << generalTable.printSummary() << std::endl;
 
@@ -6140,42 +6143,42 @@ void EmuFCrateHyperDAQ::DCCDebug(xgi::Input * in, xgi::Output * out )
 	ratesTable.addColumn("Value");
 	ratesTable.addColumn("Decoded Status");
 
-	*(ratesTable(0,0)->value) << "Input FIFOs Used";
+	ratesTable(0,0) << "Input FIFOs Used";
 	dccValue = myDCC->readFIFOInUse();
-	*(ratesTable(0,1)->value) << std::showbase << std::hex << dccValue;
+	ratesTable(0,1) << std::showbase << std::hex << dccValue;
 	for (int iFifo = 0; iFifo < 10; iFifo++) {
 		if (dccValue & (1<<iFifo)) {
-			*(ratesTable(0,2)->value) << cgicc::div()
+			ratesTable(0,2) << cgicc::div()
 				.set("class","none") << "FIFO " << (iFifo+1) << " (Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")" << cgicc::div();
 		}
 	}
-	ratesTable(0,1)->setClass("none");
+	ratesTable(0,1).setClass("none");
 
 	// Get rates for each FIFO, Slink1 first.
 	for (int iFifo = 0; iFifo < 5; iFifo++) {
-		*(ratesTable(iFifo+1,0)->value) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
+		ratesTable(iFifo+1,0) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
 		dccValue = myDCC->readRate(iFifo+1);
-		*(ratesTable(iFifo+1,1)->value) << std::dec << dccValue << " bytes/s";
-		ratesTable(iFifo+1,1)->setClass("none");
+		ratesTable(iFifo+1,1) << std::dec << dccValue << " bytes/s";
+		ratesTable(iFifo+1,1).setClass("none");
 	}
 
-	*(ratesTable(6,0)->value) << "S-Link 1";
+	ratesTable(6,0) << "S-Link 1";
 	dccValue = myDCC->readRate(0);
-	*(ratesTable(6,1)->value) << std::dec << dccValue << " bytes/s";
-	ratesTable(6,1)->setClass("none");
+	ratesTable(6,1) << std::dec << dccValue << " bytes/s";
+	ratesTable(6,1).setClass("none");
 
 	// Get rates for each FIFO, Slink2 second.
 	for (int iFifo = 5; iFifo < 10; iFifo++) {
-		*(ratesTable(iFifo+2,0)->value) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
+		ratesTable(iFifo+2,0) << "FIFO " << (iFifo+1) << " (DDU Slot " << myDCC->getDDUSlotFromFIFO(iFifo) << ")";
 		dccValue = myDCC->readRate(iFifo+2);
-		*(ratesTable(iFifo+2,1)->value) << std::dec << dccValue << " bytes/s";
-		ratesTable(iFifo+2,1)->setClass("none");
+		ratesTable(iFifo+2,1) << std::dec << dccValue << " bytes/s";
+		ratesTable(iFifo+2,1).setClass("none");
 	}
 
-	*(ratesTable(12,0)->value) << "S-Link 2";
+	ratesTable(12,0) << "S-Link 2";
 	dccValue = myDCC->readRate(6);
-	*(ratesTable(12,1)->value) << std::dec << dccValue << " bytes/s";
-	ratesTable(12,1)->setClass("none");
+	ratesTable(12,1) << std::dec << dccValue << " bytes/s";
+	ratesTable(12,1).setClass("none");
 
 
 	*out << ratesTable.toHTML() << std::endl;
