@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.1 2008/10/12 11:55:49 liu Exp $
+// $Id: Chamber.cc,v 1.2 2008/10/13 12:14:28 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.2  2008/10/13 12:14:28  liu
+// update
+//
 // Revision 1.1  2008/10/12 11:55:49  liu
 // new release of e2p code
 //
@@ -34,13 +37,13 @@ void Chamber::Fill(char *buffer, int source)
        {
            i = atoi(item);
            if(source) states_bk[idx] = i; 
-           else if(idx<2) states[idx] = i; 
+           states[idx] = i; 
        }
        else if(idx<52)
        {  
            y=strtof(item,NULL);
            if(source) values_bk[idx-3]=y;
-           else values[idx-3]=y;
+           values[idx-3]=y;
        }
        idx++;
        item=strtok_r(NULL, sep, &last);
@@ -50,20 +53,32 @@ void Chamber::Fill(char *buffer, int source)
       std::cout << "Total " << idx << " last one " << values[47] << std::endl;
 }
 
+//   hint (operation mode)
+//    0        default, selected by EmuDim
+//    1        file value, all good
+//    2        reading error removed
+//    3        true reading with all errors
+
 void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
 {
    int *info;
    float *data;
    char *vcc_ip = "02:00:00:00:00:00";
+   //   float V33, V50, V60, C33, C50, C60, V18, V55, V56, C18, C55, C56;
 
-   if(hint==0)
-   {  info = &(states[0]);
-      data = &(values[0]);
-   }      
-   else
+   if(hint==1)
    {  info = &(states_bk[0]);
       data = &(values_bk[0]);
    }
+   else
+   {  info = &(states[0]);
+      data = &(values[0]);
+      if(hint==2)
+      {
+        float allc33= data[0]+data[3]+data[6]+data[9]; 
+        if(allc33 < 0.1 || allc33 >10.) data = &(values_bk[0]);       
+      }
+   }      
    for(int i=0; i<CFEB_NUMBER; i++)
    {
       dim_lv->cfeb.v33[i] = data[19+3*i];
@@ -97,21 +112,26 @@ void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
    float *data;
    char *vcc_ip = "02:00:00:00:00:00";
 
-   if(hint==0)
-   {  info = &(states[0]);
-      data = &(values[0]);
-   }      
-   else
+   if(hint==1)
    {  info = &(states_bk[0]);
       data = &(values_bk[0]);
+   }      
+   else
+   {  info = &(states[0]);
+      data = &(values[0]);
+      if(hint==2)
+      {
+         if(data[40]<-30 || data[43]< -30 )  data= &(values_bk[0]);
+      }
    }
       dim_temp->t_daq = data[40];
       dim_temp->t_cfeb1 = data[41];
       dim_temp->t_cfeb2 = data[42];
       dim_temp->t_cfeb3 = data[43];
       dim_temp->t_cfeb4 = data[44];
-      dim_temp->t_cfeb5 = data[45];
-      dim_temp->t_alct = data[46];
+      // 1/3 chambers have no CFEB5
+      dim_temp->t_cfeb5 =(data[45]<(-30)) ? (0.5*(data[43]+data[44])) : data[45];
+      dim_temp->t_alct = (data[46]<(-30)) ? values_bk[46] : data[46];
    
    dim_temp->update_time = info[1];
    dim_temp->slot = (states_bk[2]>>8)&0xFF;

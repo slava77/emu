@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.1 2008/10/12 11:55:50 liu Exp $
+// $Id: EmuDim.cc,v 1.2 2008/10/13 12:14:28 liu Exp $
 
 #include "EmuDim.h"
 
@@ -18,12 +18,15 @@ namespace emu {
   namespace e2p {
 
 EmuDim::EmuDim(xdaq::ApplicationStub * s): EmuApplication(s)
-{	
+{
   HomeDir_     = getenv("HOME");
   ConfigDir_   = HomeDir_+"/config/";
   //
   PeripheralCrateDimFile_  = "";
+  BadChamberFile_ = "";
   XmasDcsUrl_ = "";
+  TestPrefix_ = "";
+  OpMode_ = 0;
 
   // Bind SOAP callback
   //
@@ -48,7 +51,10 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): EmuApplication(s)
 
   current_state_ = 0;
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateDimFile_);
+  getApplicationInfoSpace()->fireItemAvailable("BadChamberFileName", &BadChamberFile_);
   getApplicationInfoSpace()->fireItemAvailable("XmasDcsUrl", &XmasDcsUrl_ );
+  getApplicationInfoSpace()->fireItemAvailable("TestPrefix", &TestPrefix_ );
+  getApplicationInfoSpace()->fireItemAvailable("OperationMode", &OpMode_ );
 
   // everything below for Monitoring
   timer_ = toolbox::task::getTimerFactory()->createTimer("EmuMonitorTimer");
@@ -68,6 +74,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): EmuApplication(s)
   xoap::bind(this, &EmuDim::SoapStop, "SoapStop", XDAQ_NS_URI);
   xgi::bind(this,&EmuDim::ButtonStart      ,"ButtonStart");
   xgi::bind(this,&EmuDim::ButtonStop      ,"ButtonStop");
+  xgi::bind(this,&EmuDim::Command      ,"Command");
 
 }  
 
@@ -149,7 +156,6 @@ void EmuDim::Stop ()
      }
 }
 
-
 void EmuDim::ButtonStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
      Start();
@@ -160,6 +166,24 @@ void EmuDim::ButtonStop(xgi::Input * in, xgi::Output * out ) throw (xgi::excepti
 {
      Stop();
      this->Default(in,out);
+}
+
+void EmuDim::Command(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+{
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page, Cmnd, Param;
+    Page=cgiEnvi.getQueryString();
+    int equ=Page.find("=", 0);
+    if(equ>=0 && equ < (int) Page.length())
+    {   Cmnd=Page.substr(0,equ);
+        Param=Page.substr(equ+1);
+    }
+    else
+    {
+        Cmnd=Page;
+        Param="";
+    }
+   // std::cout << "Command " << Cmnd << " with " << Param.length() << std::endl;
 }
 
 void EmuDim::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -344,16 +368,17 @@ int EmuDim::ChnameToNumber(const char *chname)
 void EmuDim::StartDim(int chs)
 {
    int total=0, i=0;
-   std::string dim_lv_name, dim_temp_name;
+   std::string dim_lv_name, dim_temp_name, dim_command, pref;
 
+   pref=TestPrefix_;
    while(total<chs && i < TOTAL_CHAMBERS)
    {
       if(chamb[i].Ready())
       {
          chamb[i].GetDimLV(1, &(EmuDim_lv[i]));
          chamb[i].GetDimTEMP(1, &(EmuDim_temp[i]));
-         dim_lv_name = "LV_1_" + chamb[i].GetLabel(); 
-         dim_temp_name = "TEMP_1_" + chamb[i].GetLabel(); 
+         dim_lv_name = pref + "LV_1_" + chamb[i].GetLabel(); 
+         dim_temp_name = pref + "TEMP_1_" + chamb[i].GetLabel(); 
 
          LV_1_Service[i]= new DimService(dim_lv_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:5;F:9;I:2;C:80",
            &(EmuDim_lv[i]), sizeof(LV_1_DimBroker));
@@ -364,7 +389,8 @@ void EmuDim::StartDim(int chs)
       }
       i++;
    }
-   LV_1_Command = new DimCommand("LV_1_COMMAND","C");
+   dim_command = pref+ "LV_1_COMMAND";
+   LV_1_Command = new DimCommand( dim_command.c_str(),"C");
    DimServer::start("Emu_Peripheral");
    time_t thistime = ::time(NULL);
    char cbuf[30];
@@ -373,10 +399,12 @@ void EmuDim::StartDim(int chs)
 
 int EmuDim::UpdateDim(int ch)
 {
+   int mode = OpMode_;
+   if(mode<=0) mode = 2;
    if(ch>=0 && ch < TOTAL_CHAMBERS && chamb[ch].Ready())
    {
-         chamb[ch].GetDimLV(0, &(EmuDim_lv[ch]));
-         chamb[ch].GetDimTEMP(0, &(EmuDim_temp[ch]));
+         chamb[ch].GetDimLV(mode, &(EmuDim_lv[ch]));
+         chamb[ch].GetDimTEMP(mode, &(EmuDim_temp[ch]));
          if(LV_1_Service[ch]) LV_1_Service[ch]->updateService();
          if(TEMP_1_Service[ch]) TEMP_1_Service[ch]->updateService();
          return 1;
