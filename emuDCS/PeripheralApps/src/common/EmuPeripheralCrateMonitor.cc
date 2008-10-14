@@ -152,7 +152,7 @@ void EmuPeripheralCrateMonitor::ReadingOn()
              CreateEmuInfospace();
              Monitor_Ready_=true;
          }
-         PCsendCommand("MonitorStart","EmuPeripheralCrateBroadcast");
+         PCsendCommand("MonitorStart","EmuPeripheralCrateTimer");
          Monitor_On_=true;
          std::cout<< "Monitor Reading On" << std::endl;
      }
@@ -163,7 +163,7 @@ void EmuPeripheralCrateMonitor::ReadingOff()
 {
      if(Monitor_On_)
      {
-         PCsendCommand("MonitorStop","EmuPeripheralCrateBroadcast");
+         PCsendCommand("MonitorStop","EmuPeripheralCrateTimer");
          Monitor_On_=false;
          std::cout << "Monitor Reading Off" << std::endl;
      }
@@ -328,11 +328,13 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    if(dmbdata->size()==0)
                       for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0.);
                    for(unsigned ii=0; ii<buf2[0]; ii++)
-                   {   if((ii%48)<40) 
-                          (*dmbdata)[ii] = 10.0/4096.0*buf2[ii+2];
+                   {   unsigned short rdv = buf2[ii+2]&0xFFF;
+                       if(rdv==0xFFF) rdv = 0;
+                       if((ii%48)<40) 
+                          (*dmbdata)[ii] = 10.0/4096.0*rdv;
                        else if((ii%48)<46)
                        {  /* DMB Temps */
-                          float Vout= buf2[ii+2]/1000.0;
+                          float Vout= rdv/1000.0;
                           if(Vout >0. && Vout<5.0)
                               (*dmbdata)[ii] =1/(0.001049406423+0.0002133635468*log(65000.0/Vout-13000.0)+0.7522287E-7*pow(log(65000.0/Vout-13000.0),3.0))-273.15;
                           else
@@ -340,7 +342,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                        }
                        else
                        {  /* ALCT Temps */
-                          float Vout= (float)(buf2[ii+2])*1.225/1023.0;
+                          float Vout= (float)(rdv)*1.225/1023.0;
                           if(Vout<1.225)
                               (*dmbdata)[ii] =100.0*(Vout-0.75)+25.0;
                           else
