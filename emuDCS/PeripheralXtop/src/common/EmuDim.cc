@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.2 2008/10/13 12:14:28 liu Exp $
+// $Id: EmuDim.cc,v 1.3 2008/10/14 11:15:22 liu Exp $
 
 #include "EmuDim.h"
 
@@ -104,7 +104,7 @@ void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
 
      std::string name = e.getTimerTask()->name;
      // std::cout << "timeExpired: " << name << std::endl;
-     if(strncmp(name.c_str(),"EmuPCrateRead",13)==0) 
+     if(strncmp(name.c_str(),"EmuDimRead",13)==0) 
      {  ReadFromXmas();
         UpdateAllDim();
      }
@@ -123,26 +123,28 @@ void EmuDim::Start ()
          timer_->start(); // must activate timer before submission, abort otherwise!!!
          if(fastloop) 
          {   interval1.sec((time_t)fastloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval1, 0, "EmuPCrateCmnd" );
+             timer_->scheduleAtFixedRate(startTime,this, interval1, 0, "EmuDimCmnd" );
              std::cout << "Dim Command scheduled" << std::endl;
              ::sleep(2);
          }
          if(slowloop) 
          {   interval2.sec((time_t)slowloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval2, 0, "EmuPCrateRead" );
-             std::cout << "XMAS read scheduled" << std::endl;
+             timer_->scheduleAtFixedRate(startTime,this, interval2, 0, "EmuDimRead" );
+             std::cout << "XMAS Read scheduled" << std::endl;
          }
          if(extraloop) 
          {   interval3.sec((time_t)extraloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval3, 0, "EmuPCrateExtra" );
+             timer_->scheduleAtFixedRate(startTime,this, interval3, 0, "EmuDimExtra" );
              std::cout << "extra scheduled" << std::endl;
          }
          Monitor_Ready_=true;
      }
      Monitor_On_=true;
-     time_t thistime = ::time(NULL);
      char cbuf[30];
-     std::cout<< "EmuDim Started " << ::ctime_r(&thistime, cbuf) << std::endl;
+     time_t thistime = ::time(NULL);
+     ::ctime_r(&thistime, cbuf);
+     cbuf[24]=0;
+     std::cout<< "EmuDim Started " << cbuf << std::endl;
 }
 
 void EmuDim::Stop () 
@@ -150,9 +152,11 @@ void EmuDim::Stop ()
      if(Monitor_On_)
      {
          Monitor_On_=false;
-         time_t thistime = ::time(NULL);
          char cbuf[30];
-         std::cout << "EmuDim stopped " << ::ctime_r(&thistime, cbuf);
+         time_t thistime = ::time(NULL);
+         ::ctime_r(&thistime, cbuf);
+         cbuf[24]=0;
+         std::cout << "EmuDim stopped " << cbuf << std::endl;
      }
 }
 
@@ -283,9 +287,11 @@ int EmuDim::ReadFromXmas()
    MyLoader->reload();
    // then fill the structure
    ch=ParseTXT(MyLoader->Content(), MyLoader->Content_Size(), 0);
-   time_t thistime = ::time(NULL);
    char cbuf[30];
-   std::cout << ch << " Chambers read at " << ::ctime_r(&thistime, cbuf) << std::endl;
+   time_t thistime = ::time(NULL);
+   ::ctime_r(&thistime, cbuf);
+   cbuf[24]=0;
+   std::cout << ch << " Chambers read at " << cbuf << std::endl;
    // 
    return ch;
 }
@@ -298,10 +304,10 @@ int EmuDim::ParseTXT(char *buff, int buffsize, int source)
    char *endstr;
    unsigned char *bbb=(unsigned char *)buff;
 
-   if(buffsize < 40) return 0;
+   if(buffsize < 100) return 0;
    for(int i=0; i<buffsize; i++)
-   {  if((bbb[i]< 0x20 || bbb[i]>0x70) && bbb[i]!=0x0a)
-      { std::cout << "ERROR at " << i << std::hex << bbb[i] << std::dec << std::endl;
+   {  if((bbb[i]< 0x20 || bbb[i]>0x7e) && bbb[i]!=0x0a)
+      { std::cout << "ERROR at " << i << " " << std::hex << (int)(bbb[i]) << std::dec << std::endl;
         bbb[i]=0x0a;
       }
    }
@@ -325,7 +331,7 @@ int EmuDim::FillChamber(char *buff, int source)
    char * endstr;
    std::string label;
 
-   if(strlen(buff) < 4) return 0;
+   if(strlen(buff) < 100) return 0;
    endstr=strchr(buff, ' ');
    if(endstr==NULL) return 0;
    *endstr=0;
@@ -339,7 +345,7 @@ int EmuDim::FillChamber(char *buff, int source)
        chamb[chnumb].Fill(content, source);
    }
    else
-   {   std::cout << "ERROR in tag " << label << std::endl;
+   {   std::cout << "WRONG tag " << label << std::endl;
    }
    return 1;
 }
@@ -368,7 +374,7 @@ int EmuDim::ChnameToNumber(const char *chname)
 void EmuDim::StartDim(int chs)
 {
    int total=0, i=0;
-   std::string dim_lv_name, dim_temp_name, dim_command, pref;
+   std::string dim_lv_name, dim_temp_name, dim_command, dim_server, pref;
 
    pref=TestPrefix_;
    while(total<chs && i < TOTAL_CHAMBERS)
@@ -389,12 +395,17 @@ void EmuDim::StartDim(int chs)
       }
       i++;
    }
-   dim_command = pref+ "LV_1_COMMAND";
+   dim_command = pref + "LV_1_COMMAND";
    LV_1_Command = new DimCommand( dim_command.c_str(),"C");
-   DimServer::start("Emu_Peripheral");
-   time_t thistime = ::time(NULL);
+   dim_server = pref + "Emu-Dcs Dim Server";
+   DimServer::start(dim_server.c_str());
    char cbuf[30];
-   std::cout << total << " DIM serives start at " << ::ctime_r(&thistime, cbuf) << std::endl;
+   time_t thistime = ::time(NULL);
+   ::ctime_r(&thistime, cbuf);
+   cbuf[24]=0;
+   std::cout << total << " DIM serives";
+   if(pref!="") std::cout << " ( with prefix " << pref << " ) ";
+   std::cout << "started at " << cbuf << std::endl;
 }
 
 int EmuDim::UpdateDim(int ch)
