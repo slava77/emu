@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.28 2008/10/01 14:10:04 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.29 2008/10/15 00:46:56 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.29  2008/10/15 00:46:56  paste
+* Attempt to solve certain crashes on Enable/Disable commands.
+*
 * Revision 3.28  2008/10/01 14:10:04  paste
 * Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
 *
@@ -248,6 +251,8 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	locdata->crateQueue.pop();
 	pthread_mutex_unlock(&(locdata->crateQueueMutex));
 
+	unsigned int crateNumber = myCrate->number();
+	
 	//char buf[300];
 	log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFMMIRQ");
 
@@ -255,7 +260,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	std::vector<DDU *> dduVector = myCrate->getDDUs();
 
 	// This is when we started.  Don't know why this screws up sometimes...
-	time(&(locdata->startTime[myCrate]));
+	time(&(locdata->startTime[crateNumber]));
 
 	// A local tally of what the last error on a given DDU was.
 	std::map<DDU *, int> lastError;
@@ -266,10 +271,10 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		//LOG4CPLUS_DEBUG(logger, "Start of loop reached.");
 
 		// Increase the ticks.
-		locdata->ticks[myCrate]++;
+		locdata->ticks[crateNumber]++;
 
 		// Set the time of the last tick.
-		time(&(locdata->tickTime[myCrate]));
+		time(&(locdata->tickTime[crateNumber]));
 
 		// Enable the IRQ and wait for something to happen for 5 seconds...
 		bool allClear = myCrate->getController()->waitIRQ(5000);
@@ -278,28 +283,28 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		// If allClear is non-zero, then there was not an error.
 		// If there was no error, check to see if we were in an error state
 		//  before...
-		if(allClear && locdata->errorCount[myCrate] > 0) {
-			DDU *myDDU = locdata->lastDDU[myCrate];
+		if(allClear && locdata->errorCount[crateNumber] > 0) {
+			DDU *myDDU = locdata->lastDDU[crateNumber];
 
 			// If my status has cleared, then all is cool, right?
 			//  Reset all my data.
 			if ((myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors()) < lastError[myDDU]) {
-				LOG4CPLUS_INFO(logger, "Reset detected on crate " << myCrate->number() << ": checking again to make sure...");
+				LOG4CPLUS_INFO(logger, "Reset detected on crate " << crateNumber << ": checking again to make sure...");
 				usleep(100);
 				
 				if ((myDDU->readCSCStatus() | myDDU->readAdvancedFiberErrors()) < lastError[myDDU]) {
-					LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << myCrate->number());
+					LOG4CPLUS_INFO(logger, "Reset confirmed on crate " << crateNumber);
 					LOG4CPLUS_ERROR(logger, " ErrorData RESET Detected" << std::endl);
 
 					// Increment the reset count on all the errors from that crate...
-					std::vector<IRQError *> myErrors = locdata->errorVectors[myCrate];
+					std::vector<IRQError *> myErrors = locdata->errorVectors[crateNumber];
 					for (std::vector<IRQError *>::iterator iError = myErrors.begin(); iError != myErrors.end(); iError++) {
 						(*iError)->reset++;
 					}
 
 					// Reset the total error count and the saved errors.
-					locdata->errorCount[myCrate] = 0;
-					locdata->lastDDU[myCrate] = NULL;
+					locdata->errorCount[crateNumber] = 0;
+					locdata->lastDDU[crateNumber] = NULL;
 					lastError.clear();
 				} else {
 					
@@ -328,7 +333,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		DDU *myDDU = NULL;
 		for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
 			if ((*iDDU)->slot() == ((errorData & 0x1f00) >> 8)) {
-				locdata->lastDDU[myCrate] = (*iDDU);
+				locdata->lastDDU[crateNumber] = (*iDDU);
 				myDDU = (*iDDU);
 				break;
 			}
@@ -363,7 +368,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		// Log everything now.
 		LOG4CPLUS_ERROR(logger, "Interrupt detected!");
 		time_t theTime = time(NULL);
-		LOG4CPLUS_ERROR(logger, " ErrorData " << std::dec << myCrate->number() << " " << myDDU->slot() << " " << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << cscStatus << " " << std::dec << (uintmax_t) theTime);
+		LOG4CPLUS_ERROR(logger, " ErrorData " << std::dec << crateNumber << " " << myDDU->slot() << " " << std::uppercase << std::hex << std::setw(4) << std::setfill('0') << cscStatus << " " << std::dec << (uintmax_t) theTime);
 
 		std::stringstream fiberErrors, chamberErrors;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -374,7 +379,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		}
 
 		LOG4CPLUS_INFO(logger, "Decoded information follows" << std::endl
-			<< "FEDCrate   : " << myCrate->number() << std::endl
+			<< "FEDCrate   : " << crateNumber << std::endl
 			<< "Slot       : " << myDDU->slot() << std::endl
 			<< "RUI        : " << myCrate->getRUI(myDDU->slot()) << std::endl
 			<< "CSC Status : " << std::hex << cscStatus << std::endl
@@ -412,14 +417,14 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		// PGK I am not so worried about DDU-only errors...
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (xorStatus & (1<<iFiber)) {
-				locdata->errorCount[myCrate]++;
+				locdata->errorCount[crateNumber]++;
 			}
 		}
-		locdata->lastDDU[myCrate] = myDDU;
+		locdata->lastDDU[crateNumber] = myDDU;
 
 
 		// Check to see if any of the fibers are troublesome and report
-		std::vector<IRQError *> errorVector = locdata->errorVectors[myCrate];
+		std::vector<IRQError *> errorVector = locdata->errorVectors[crateNumber];
 		unsigned int liveFibers = myDDU->readKillFiber();
 		//LOG4CPLUS_DEBUG(logger, "Checking for problem fibers in crate " << myCrate->number() << " slot " << myDDU->slot());
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -443,7 +448,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			}
 			// If the threshold has been reached, Warn (no death yet)
 			if (problemCount >= 3) {
-				LOG4CPLUS_INFO(logger, "Fiber " << iFiber << " in crate " << myCrate->number() << " slot " << myDDU->slot() << " (RUI " << myCrate->getRUI(myDDU->slot()) << ", chamber " << myDDU->getChamber(iFiber)->name() << ") has set an error " << problemCount << " times.  Please check this chamber for harware problems.");
+				LOG4CPLUS_INFO(logger, "Fiber " << iFiber << " in crate " << crateNumber << " slot " << myDDU->slot() << " (RUI " << myCrate->getRUI(myDDU->slot()) << ", chamber " << myDDU->getChamber(iFiber)->name() << ") has set an error " << problemCount << " times.  Please check this chamber for harware problems.");
 				// Forgot this last time...  oops.
 				//liveFibers &= ~(1<<iFiber); // Bit-foo!
 				//myDDU->ddu_loadkillfiber(liveFibers);
@@ -456,9 +461,9 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		
 		// Discover the error counts of the other crates.
 		unsigned long int totalChamberErrors = 0;
-		for (std::map<FEDCrate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
-			if (iCount->first != myCrate) {
-				LOG4CPLUS_INFO(logger,"Crate " << iCount->first->number() << " reports " << iCount->second << " CSCs in an error state.");
+		for (std::map<unsigned int, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
+			if (iCount->first != crateNumber) {
+				LOG4CPLUS_INFO(logger,"Crate " << iCount->first << " reports " << iCount->second << " CSCs in an error state.");
 			}
 			totalChamberErrors += iCount->second;
 		}
@@ -471,14 +476,18 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			actionTaken << "A resync has been requested for this endcap. ";
 			myError->action += actionTaken.str();
 			// Loop over the crates and take away SFTU
-			for (std::map<FEDCrate *, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
+			/*
+			for (std::map<unsigned int, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
 				// Find the broadcast slot on this crate.
 				iCount->first->getBroadcastDDU()->writeFMM(0xFED8);
 			}
+			*/
+			// I only have to do this to my crate:  eventually, a reset will come.
+			myCrate->getBroadcastDDU()->writeFMM(0xFED8);
 		}
 
 		// Save the error.
-		locdata->errorVectors[myCrate].push_back(myError);
+		locdata->errorVectors[crateNumber].push_back(myError);
 		
 		//LOG4CPLUS_DEBUG(logger, "End of loop reached.");
 	}
