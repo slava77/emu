@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 3.8 2008/09/19 16:53:51 paste Exp $
+* $Id: IRQData.h,v 3.9 2008/10/15 00:46:56 paste Exp $
 *
 * $Log: IRQData.h,v $
+* Revision 3.9  2008/10/15 00:46:56  paste
+* Attempt to solve certain crashes on Enable/Disable commands.
+*
 * Revision 3.8  2008/09/19 16:53:51  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -90,13 +93,13 @@ namespace emu {
 			unsigned long int runNumber;
 			
 			// "Local" variables -- each thread tries to increment only its own.
-			std::map<FEDCrate *, unsigned long int> errorCount;
-			std::map<FEDCrate *,DDU *> lastDDU;
-			std::map<FEDCrate *,unsigned long int> ticks;
-			std::map<FEDCrate *,time_t> tickTime;
-			std::map<FEDCrate *,time_t> startTime;
+			std::map<unsigned int, unsigned long int> errorCount;
+			std::map<unsigned int,DDU *> lastDDU;
+			std::map<unsigned int,unsigned long int> ticks;
+			std::map<unsigned int,time_t> tickTime;
+			std::map<unsigned int,time_t> startTime;
 		
-			std::map<FEDCrate *,std::vector<IRQError *> > errorVectors;
+			std::map<unsigned int,std::vector<IRQError *> > errorVectors;
 			
 		};
 

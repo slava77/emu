@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.48 2008/10/13 11:56:40 paste Exp $
+* $Id: EmuFCrate.cc,v 3.49 2008/10/15 00:46:56 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.49  2008/10/15 00:46:56  paste
+* Attempt to solve certain crashes on Enable/Disable commands.
+*
 * Revision 3.48  2008/10/13 11:56:40  paste
 * Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
 *
@@ -190,7 +193,7 @@ xoap::MessageReference EmuFCrate::onConfigure(xoap::MessageReference message)
 	throw (xoap::exception::Exception)
 {
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Configure");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP state change requested: Configure");
 	
 	// PGK I avoid errors at all cost.
 	if (state_.toString() == "Enabled" || state_.toString() == "Failed") {
@@ -209,7 +212,7 @@ xoap::MessageReference EmuFCrate::onEnable(xoap::MessageReference message)
 	throw (xoap::exception::Exception)
 {
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Enable");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP state change requested: Enable");
 	// PGK I avoid errors at all cost.
 	if (state_.toString() == "Halted" || state_.toString() == "Failed") {
 		LOG4CPLUS_WARN(getApplicationLogger(), state_.toString() <<"->Enabled is not a valid transition.  Fixing by going to Halted->Configured first.");
@@ -227,7 +230,7 @@ xoap::MessageReference EmuFCrate::onEnable(xoap::MessageReference message)
 xoap::MessageReference EmuFCrate::onDisable(xoap::MessageReference message)
 	throw (xoap::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Disable");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP state change requested: Disable");
 
 	// PGK I avoid errors at all cost.
 	if (state_.toString() != "Enabled") {
@@ -246,7 +249,7 @@ xoap::MessageReference EmuFCrate::onDisable(xoap::MessageReference message)
 xoap::MessageReference EmuFCrate::onHalt(xoap::MessageReference message)
 	throw (xoap::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Halt");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP state change requested: Halt");
 
 	fireEvent("Halt");
 
@@ -259,7 +262,7 @@ xoap::MessageReference EmuFCrate::onSetTTSBits(xoap::MessageReference message)
 	throw (xoap::exception::Exception)
 {
 	//std::cout << "EmuFCrate: inside onSetTTSBits" << std::endl;
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP command: SetTTSBits");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP command: SetTTSBits");
 	// PGK We don't need a state transition here.  This is a simple routine.
 	//fireEvent("SetTTSBits");
 
@@ -368,9 +371,9 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 	// The run type is given to us via SOAP.  If it's not set yet, tough rocks.
 	if (runType_.toString() != "") {
-		LOG4CPLUS_INFO(getApplicationLogger(), "Run type is " << runType_.toString());
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Run type is " << runType_.toString());
 	} else {
-		LOG4CPLUS_INFO(getApplicationLogger(), "Run type is empty.  Assuming run type \"Debug\"");
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Run type is empty.  Assuming run type \"Debug\"");
 	}
 	if (runType_.toString() == "Debug" || runType_.toString() == "") {
 		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
@@ -381,7 +384,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 	// JRG: note that the HardReset & Resynch should already be done by this point!
 
 	// PGK Easier parsing.  Less confusing.
-	LOG4CPLUS_INFO(getApplicationLogger(),"EmuFCrate::configureAction using XML file " << xmlFile_.toString());
+	LOG4CPLUS_DEBUG(getApplicationLogger(),"EmuFCrate::configureAction using XML file " << xmlFile_.toString());
 	emu::fed::FEDCrateParser parser;
 	parser.parseFile(xmlFile_.toString().c_str());
 
@@ -420,14 +423,14 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		// A handle of -1 means that opening of the handle failed, so someone has
 		// already opened it (HyperDAQ)
 		if (myController->getBHandle() == -1) {
-			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has already been opened by someone else.  Looking for the BHandle...");
+			LOG4CPLUS_DEBUG(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has already been opened by someone else.  Looking for the BHandle...");
 
 			// If that is the case, we can look up the handle.  Handles are stored by
 			// create NUMBER (not index), so we need to check against our crate number.
 			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
 				
 				if (iHandle->first != (*iCrate)->number()) continue;
-				LOG4CPLUS_INFO(getApplicationLogger(),"Found handle " << iHandle->second);
+				LOG4CPLUS_DEBUG(getApplicationLogger(),"Found handle " << iHandle->second);
 				(*iCrate)->setBHandle(iHandle->second);
 
 				// In this case, just copy the old handle information to our new string.
@@ -438,7 +441,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		} else {
 
 			// If the handle is a reasonable number, we assume that we created it.  Use it.
-			LOG4CPLUS_INFO(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has been first opened by this application.  Saving the BHandle...");
+			LOG4CPLUS_DEBUG(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has been first opened by this application.  Saving the BHandle...");
 			
 			bool replaced = false;
 
@@ -447,7 +450,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
 				
 				if (iHandle->first != (*iCrate)->number()) continue;
-				LOG4CPLUS_INFO(getApplicationLogger(),"Resetting handle (was " << iHandle->second << ")");
+				LOG4CPLUS_DEBUG(getApplicationLogger(),"Resetting handle (was " << iHandle->second << ")");
 				replaced = true;
 				newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
 			}
@@ -474,7 +477,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 		// Don't reset crate 5 (TF)
 		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
-			LOG4CPLUS_INFO(getApplicationLogger(), "HARD RESET THROUGH DCC!");
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "HARD RESET THROUGH DCC!");
 			try {
 				dccs[0]->crateHardReset();
 			} catch (emu::fed::FEDException &e) {
@@ -483,7 +486,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		}
 
 		// Now we do the configure.  This is big.
-		LOG4CPLUS_INFO(getApplicationLogger(), "Configuring crate " << (*iCrate)->number());
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuring crate " << (*iCrate)->number());
 		(*iCrate)->configure();
 	}
 
@@ -510,7 +513,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 		std::vector<emu::fed::DDU *> myDDUs = (*iCrate)->getDDUs();
 		for (std::vector<emu::fed::DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 
-			LOG4CPLUS_INFO(getApplicationLogger(), "Reading flash values for crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot());
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "Reading flash values for crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot());
 
 			uint32_t flashKillFiber = (*iDDU)->readFlashKillFiber();
 			uint32_t fpgaKillFiber = (*iDDU)->readKillFiber();
@@ -664,13 +667,13 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Enable");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Received SOAP message: Enable");
 	soapLocal_ = false;
 
 	// PGK If the run number is not set, this is a debug run.
-	LOG4CPLUS_INFO(getApplicationLogger(), "The run number is " << runNumber_.toString());
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "The run number is " << runNumber_.toString());
 	if (runNumber_.toString() == "" || runNumber_.toString() == "0") {
-		LOG4CPLUS_INFO(getApplicationLogger(), "Run number not set, assuming run type \"Debug\"");
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Run number not set, assuming run type \"Debug\"");
 		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 	}
 
@@ -679,7 +682,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 	for (std::vector< emu::fed::FEDCrate * >::iterator iCrate = crateVector.begin(); iCrate != crateVector.end(); iCrate++) {
 		std::vector< emu::fed::DCC * > dccs = (*iCrate)->getDCCs();
 		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
-			LOG4CPLUS_INFO(getApplicationLogger(), "SYNC RESET THROUGH DCC!");
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "SYNC RESET THROUGH DCC!");
 			dccs[0]->crateSyncReset();
 		}
 	}
@@ -700,7 +703,7 @@ void EmuFCrate::enableAction(toolbox::Event::Reference e)
 void EmuFCrate::disableAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Disable");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Received SOAP message: Disable");
 	std::cout << "Received Message Disable" << std::endl ;
 	soapLocal_ = false;
 
@@ -713,7 +716,7 @@ void EmuFCrate::disableAction(toolbox::Event::Reference e)
 void EmuFCrate::haltAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Halt");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Received SOAP message: Halt");
 	std::cout << "Received Message Halt" << std::endl;
 	soapConfigured_ = false;
 	soapLocal_ = false;
@@ -920,12 +923,12 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 				*out << cgicc::td()
 					.set("colspan","6") << std::endl;
 
-				time_t startTime = TM->data()->startTime[(*iCrate)];
-				time_t tickTime = TM->data()->tickTime[(*iCrate)];
+				time_t startTime = TM->data()->startTime[crateNumber];
+				time_t tickTime = TM->data()->tickTime[crateNumber];
 
 				tm *startTimeInfo = localtime(&startTime);
 				*out << "Thread started " << asctime(startTimeInfo) << cgicc::br();
-				*out << TM->data()->ticks[(*iCrate)] << " ticks, ";
+				*out << TM->data()->ticks[crateNumber] << " ticks, ";
 				tm *tickTimeInfo = localtime(&tickTime);
 				*out << "last tick " << asctime(tickTimeInfo) << std::endl;
 				*out << cgicc::td() << std::endl;
@@ -941,7 +944,7 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 				*out << cgicc::td("Action taken") << std::endl;
 				*out << cgicc::tr() << std::endl;
 
-				std::vector<emu::fed::IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
+				std::vector<emu::fed::IRQError *> errorVector = TM->data()->errorVectors[crateNumber];
 				// Print something pretty if there is no error
 				if (errorVector.size() == 0) {
 					*out << cgicc::tr() << std::endl;
@@ -1051,7 +1054,7 @@ void EmuFCrate::webFire(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		action = cgi["action"]->getValue();
 		std::cout << "webFire action: " << action << std::endl;
-		LOG4CPLUS_INFO(getApplicationLogger(), "Local FSM state change requested: " << action);
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Local FSM state change requested: " << action);
 		fireEvent(action);
 	}
 
@@ -1125,9 +1128,7 @@ void EmuFCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 	std::cout << " stateChanged called " << std::endl;
 	EmuApplication::stateChanged(fsm);
 
-	std::stringstream log;
-	log << "FSM state changed to " << state_.toString();
-	LOG4CPLUS_INFO(getApplicationLogger(), log.str());
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM state changed to " << state_.toString());
 }
 
 
@@ -1190,7 +1191,7 @@ xoap::MessageReference EmuFCrate::onGetParameters(xoap::MessageReference message
 			
 			// Now for the chamber errors from IRQ...
 
-			std::vector<emu::fed::IRQError *> errorVector = TM->data()->errorVectors[(*iCrate)];
+			std::vector<emu::fed::IRQError *> errorVector = TM->data()->errorVectors[crateNumber];
 			for (std::vector<emu::fed::IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
 				//LOG4CPLUS_DEBUG(getApplicationLogger(), "I think that there is an error on crate " << (*iCrate)->number() << " slot " << (*iError)->ddu->slot() << " with reset " << (*iError)->reset);
 				// Skip things that have already been reset (we think)

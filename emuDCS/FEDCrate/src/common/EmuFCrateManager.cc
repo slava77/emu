@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.22 2008/10/09 11:21:19 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.23 2008/10/15 00:46:56 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.23  2008/10/15 00:46:56  paste
+* Attempt to solve certain crashes on Enable/Disable commands.
+*
 * Revision 1.22  2008/10/09 11:21:19  paste
 * Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
 *
@@ -477,9 +480,7 @@ void EmuFCrateManager::webFire(xgi::Input *in, xgi::Output *out)
 	if(name != cgi.getElements().end()) {
 		action = cgi["action"]->getValue();
 		std::cout << "webFire action: " << action << std::endl;
-		std::stringstream log;
-		log << "Local FSM state change requested: " << action;
-		LOG4CPLUS_INFO(getApplicationLogger(), log.str());
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Local FSM state change requested: " << action;);
 		fireEvent(action);
 	}
 
@@ -506,7 +507,7 @@ void EmuFCrateManager::configureAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
 	//std::cout << "  inside EmuFCrateManager::configureAction " << std::endl;
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Configure");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Received SOAP message: Configure");
 
 	if (soapLocal_) {
 		soapLocal_ = false;
@@ -517,7 +518,7 @@ void EmuFCrateManager::configureAction(toolbox::Event::Reference e)
 
 	// PGK This is given to us from the CSCSV.  This will determine our logging
 	//  preferences.
-	LOG4CPLUS_INFO(getApplicationLogger(), "Run type is " << runType_.toString());
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Run type is " << runType_.toString());
 	if (runType_.toString() == "Debug") {
 		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 	} else {
@@ -538,11 +539,11 @@ void EmuFCrateManager::configureAction(toolbox::Event::Reference e)
 void EmuFCrateManager::enableAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Enable");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Received SOAP message: Enable");
 	soapLocal_ = false;
 
 	// PGK If the run number is not set, this is a debug run.
-	LOG4CPLUS_INFO(getApplicationLogger(), "The run number is " << runNumber_.toString());
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "The run number is " << runNumber_.toString());
 	if (runNumber_.toString() == "" || runNumber_.toString() == "0") {
 		getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 	}
@@ -560,7 +561,7 @@ void EmuFCrateManager::enableAction(toolbox::Event::Reference e)
 void EmuFCrateManager::disableAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Disable");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Received SOAP message: Disable");
 	soapLocal_ = false;
 
 	try{
@@ -574,7 +575,7 @@ void EmuFCrateManager::disableAction(toolbox::Event::Reference e)
 void EmuFCrateManager::haltAction(toolbox::Event::Reference e)
 	throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Received SOAP message: Halt");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Received SOAP message: Halt");
 	soapLocal_ = false;
 	soapConfigured_ = false;
 	try{
@@ -620,7 +621,7 @@ void EmuFCrateManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 		XCEPT_RAISE(toolbox::fsm::exception::Exception, "failure in one of the EmuFCrates");
 	}
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "FSM state changed to " << state_.toString());
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM state changed to " << state_.toString());
 	
 }
 
@@ -629,7 +630,7 @@ void EmuFCrateManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 xoap::MessageReference EmuFCrateManager::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
 {
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Configure");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP state change requested: Configure");
 
 	// PGK I avoid errors at all cost.
 	if (state_.toString() == "Enabled" || state_.toString() == "Failed") {
@@ -647,7 +648,7 @@ xoap::MessageReference EmuFCrateManager::onConfigure (xoap::MessageReference mes
 xoap::MessageReference EmuFCrateManager::onEnable (xoap::MessageReference message) throw (xoap::exception::Exception)
 {
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Enable");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP state change requested: Enable");
 
 	// PGK I avoid errors at all cost.
 	if (state_.toString() == "Halted" || state_.toString() == "Failed") {
@@ -663,7 +664,7 @@ xoap::MessageReference EmuFCrateManager::onEnable (xoap::MessageReference messag
 
 xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference message) throw (xoap::exception::Exception)
 {
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP command received: SetTTSBits");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP command received: SetTTSBits");
 
 	const std::string fed_app = "EmuFCrate";
 
@@ -734,7 +735,7 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 xoap::MessageReference EmuFCrateManager::onDisable (xoap::MessageReference message) throw (xoap::exception::Exception)
 {
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Disable");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP state change requested: Disable");
 
 	// PGK I avoid errors at all cost.
 	if (state_.toString() != "Enabled") {
@@ -753,7 +754,7 @@ xoap::MessageReference EmuFCrateManager::onDisable (xoap::MessageReference messa
 xoap::MessageReference EmuFCrateManager::onHalt (xoap::MessageReference message) throw (xoap::exception::Exception)
 {
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "Remote SOAP state change requested: Halt");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP state change requested: Halt");
 
 	fireEvent("Halt");
 
