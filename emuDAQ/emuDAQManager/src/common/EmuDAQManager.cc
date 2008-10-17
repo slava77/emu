@@ -2011,12 +2011,14 @@ void EmuDAQManager::createAllAppStatesVector(){
   daqAppStates_.clear();
   daqContexts_.clear();
   vector<xdaq::ApplicationDescriptor*> allApps;
-  allApps.insert( allApps.end(), evmDescriptors_.begin(), evmDescriptors_.end() );
-  allApps.insert( allApps.end(), buDescriptors_ .begin(), buDescriptors_ .end() );
-  allApps.insert( allApps.end(), ruDescriptors_ .begin(), ruDescriptors_ .end() );
+  if ( buildEvents_.value_ ){ 
+    allApps.insert( allApps.end(), evmDescriptors_.begin(), evmDescriptors_.end() );
+    allApps.insert( allApps.end(), buDescriptors_ .begin(), buDescriptors_ .end() );
+    allApps.insert( allApps.end(), ruDescriptors_ .begin(), ruDescriptors_ .end() );
+    allApps.insert( allApps.end(), fuDescriptors_ .begin(), fuDescriptors_ .end() );
+  }
   allApps.insert( allApps.end(), taDescriptors_ .begin(), taDescriptors_ .end() );
   allApps.insert( allApps.end(), ruiDescriptors_.begin(), ruiDescriptors_.end() );
-  allApps.insert( allApps.end(), fuDescriptors_ .begin(), fuDescriptors_ .end() );
   vector<xdaq::ApplicationDescriptor*>::iterator a;
   for ( a=allApps.begin(); a!=allApps.end(); ++a ){
     daqAppStates_.push_back( make_pair( *a, string("UNKNOWN") ) );
@@ -2271,45 +2273,47 @@ void EmuDAQManager::configureDAQ()
     // Assumed aborted until started.
     abortedRun_ = true;
 
-    try
-    {
-        checkThereIsARuBuilder();
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Not enough applications to make a RU builder", e);
-    }
+    if ( buildEvents_.value_ ){
+      try
+	{
+	  checkThereIsARuBuilder();
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Not enough applications to make a RU builder", e);
+	}
+      
+      try
+	{
+	  setEVMGenerateDummyTriggers(evmGenerateDummyTriggers);
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to tell EVM whether or not to generate dummy triggers", e);
+	}
+      
+      try
+	{
+	  setRUsGenerateDummySuperFrags(rusGenerateDummySuperFrags);
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to tell RUs whether or not to generate dummy super-fragments",
+			e);
+	}
 
-    try
-    {
-        setEVMGenerateDummyTriggers(evmGenerateDummyTriggers);
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to tell EVM whether or not to generate dummy triggers", e);
-    }
-
-    try
-    {
-        setRUsGenerateDummySuperFrags(rusGenerateDummySuperFrags);
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-         "Failed to tell RUs whether or not to generate dummy super-fragments",
-         e);
-    }
-
-    try
-    {
-        setBUsDropEvents(busDropEvents);
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to tell BUs whether or not drop events", e);
+      try
+	{
+	  setBUsDropEvents(busDropEvents);
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to tell BUs whether or not drop events", e);
+	}
     }
 
     // If the TA is present then start it as an imaginary trigger
@@ -2366,14 +2370,16 @@ void EmuDAQManager::configureDAQ()
       LOG4CPLUS_ERROR(logger_,"No TA found.");
     }
 
-    try
-    {
-        configureRuBuilder();
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to configure RU builder", e);
+    if ( buildEvents_.value_ ){
+      try
+	{
+	  configureRuBuilder();
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to configure RU builder", e);
+	}
     }
 
     // RUIs
@@ -2390,18 +2396,20 @@ void EmuDAQManager::configureDAQ()
         }
     }
 
-    // FUs
-    if(fuDescriptors_.size() > 0)
-    {
-        try
-        {
-            configureFilterFarm();
-        }
-        catch(xcept::Exception e)
-        {
-            XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                "Failed to configure filter farm", e);
-        }
+    if ( buildEvents_.value_ ){
+      // FUs
+      if(fuDescriptors_.size() > 0)
+	{
+	  try
+	    {
+	      configureFilterFarm();
+	    }
+	  catch(xcept::Exception e)
+	    {
+	      XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			    "Failed to configure filter farm", e);
+	    }
+	}
     }
 }
 
@@ -2414,45 +2422,47 @@ throw (emuDAQManager::exception::Exception)
     bool busDropEvents              = fuDescriptors_.size()  == 0;
 
 
-    try
-    {
-        checkThereIsARuBuilder();
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Not enough applications to make a RU builder", e);
-    }
+    if ( buildEvents_.value_ ){
+      try
+	{
+	  checkThereIsARuBuilder();
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Not enough applications to make a RU builder", e);
+	}
+      
+      try
+	{
+	  setEVMGenerateDummyTriggers(evmGenerateDummyTriggers);
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to tell EVM whether or not to generate dummy triggers", e);
+	}
 
-    try
-    {
-        setEVMGenerateDummyTriggers(evmGenerateDummyTriggers);
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to tell EVM whether or not to generate dummy triggers", e);
-    }
-
-    try
-    {
-        setRUsGenerateDummySuperFrags(rusGenerateDummySuperFrags);
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-         "Failed to tell RUs whether or not to generate dummy super-fragments",
-         e);
-    }
-
-    try
-    {
-        setBUsDropEvents(busDropEvents);
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to tell BUs whether or not drop events", e);
+      try
+	{
+	  setRUsGenerateDummySuperFrags(rusGenerateDummySuperFrags);
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to tell RUs whether or not to generate dummy super-fragments",
+			e);
+	}
+      
+      try
+	{
+	  setBUsDropEvents(busDropEvents);
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to tell BUs whether or not drop events", e);
+	}
     }
 
     // If the TA is present then start it as an imaginary trigger
@@ -2503,14 +2513,16 @@ throw (emuDAQManager::exception::Exception)
         }
     }
 
-    try
-    {
-        startRuBuilder();
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to start RU builder", e);
+    if ( buildEvents_.value_ ){
+      try
+	{
+	  startRuBuilder();
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to start RU builder", e);
+	}
     }
 
     // If RUIs are present then start them as an imaginary FED builder
@@ -2527,18 +2539,20 @@ throw (emuDAQManager::exception::Exception)
         }
     }
 
-    // If FUs are present then start them as an imafinary filter farm
-    if(fuDescriptors_.size() > 0)
-    {
-        try
-        {
-            startFilterFarm();
-        }
-        catch(xcept::Exception e)
-        {
-            XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                "Failed to start filter farm", e);
-        }
+    if ( buildEvents_.value_ ){
+      // If FUs are present then start them as an imafinary filter farm
+      if(fuDescriptors_.size() > 0)
+	{
+	  try
+	    {
+	      startFilterFarm();
+	    }
+	  catch(xcept::Exception e)
+	    {
+	      XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			    "Failed to start filter farm", e);
+	    }
+	}
     }
 
     // Once started, all runs are assumed good until proven otherwise.
@@ -3152,14 +3166,16 @@ throw (emuDAQManager::exception::Exception)
         }
     }
 
-    try
-    {
-        stopRuBuilder();
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to stop RU builder", e);
+    if ( buildEvents_.value_ ){
+      try
+	{
+	  stopRuBuilder();
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to stop RU builder", e);
+	}
     }
 
     // If imaginary trigger was started
@@ -3176,18 +3192,20 @@ throw (emuDAQManager::exception::Exception)
         }
     }
 
-    // If imaginary filter farm was started
-    if(fuDescriptors_.size() > 0)
-    {
-        try
-        {
-            stopFilterFarm();
-        }
-        catch(xcept::Exception e)
-        {
-            XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                "Failed to stop filter farm", e);
-        }
+    if ( buildEvents_.value_ ){
+      // If imaginary filter farm was started
+      if(fuDescriptors_.size() > 0)
+	{
+	  try
+	    {
+	      stopFilterFarm();
+	    }
+	  catch(xcept::Exception e)
+	    {
+	      XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			    "Failed to stop filter farm", e);
+	    }
+	}
     }
 }
 
@@ -3243,18 +3261,20 @@ throw (emuDAQManager::exception::Exception)
         }
     }
 
-    // Builder cannot be reset. Halt it instead.
-    try
-    {
-        stopRuBuilder();
-    }
-    catch(xcept::Exception e)
-    {
-      // Don't rethrow here, but log an error message and go ahead and reset the rest
-//         XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//             "Failed to stop RU builder", e);
-	oss << " Failed to stop RU builder: " << xcept::stdformat_exception_history(e);
-	LOG4CPLUS_ERROR(logger_, "Failed to stop RU builder: " << xcept::stdformat_exception_history(e) );
+    if ( buildEvents_.value_ ){
+      // Builder cannot be reset. Halt it instead.
+      try
+	{
+	  stopRuBuilder();
+	}
+      catch(xcept::Exception e)
+	{
+	  // Don't rethrow here, but log an error message and go ahead and reset the rest
+	  //         XCEPT_RETHROW(emuDAQManager::exception::Exception,
+	  //             "Failed to stop RU builder", e);
+	  oss << " Failed to stop RU builder: " << xcept::stdformat_exception_history(e);
+	  LOG4CPLUS_ERROR(logger_, "Failed to stop RU builder: " << xcept::stdformat_exception_history(e) );
+	}
     }
 
     // EmuTA cannot be reset. (Should it?) Halt it instead.
@@ -3275,21 +3295,23 @@ throw (emuDAQManager::exception::Exception)
     }
 
 
-  // Reset EmuFUs
-    if(fuDescriptors_.size() > 0)
-    {
-        try
-        {
-            resetApps( fuDescriptors_ );
-        }
-        catch(xcept::Exception e)
-        {
-	  // Don't rethrow here, but log an error message and go ahead and reset the rest
-//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//                 "Failed to reset EmuFUs", e);
-	  oss << " Failed to reset EmuFUs: " << xcept::stdformat_exception_history(e);
-	  LOG4CPLUS_ERROR(logger_, "Failed to reset EmuFUs: " << xcept::stdformat_exception_history(e) );
-        }
+    if ( buildEvents_.value_ ){
+      // Reset EmuFUs
+      if(fuDescriptors_.size() > 0)
+	{
+	  try
+	    {
+	      resetApps( fuDescriptors_ );
+	    }
+	  catch(xcept::Exception e)
+	    {
+	      // Don't rethrow here, but log an error message and go ahead and reset the rest
+	      //             XCEPT_RETHROW(emuDAQManager::exception::Exception,
+	      //                 "Failed to reset EmuFUs", e);
+	      oss << " Failed to reset EmuFUs: " << xcept::stdformat_exception_history(e);
+	      LOG4CPLUS_ERROR(logger_, "Failed to reset EmuFUs: " << xcept::stdformat_exception_history(e) );
+	    }
+	}
     }
 
     if ( oss.str().size() ){
