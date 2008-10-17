@@ -6,7 +6,7 @@
 namespace EmuFU
 {
     const std::string package     = "emuFU";
-    const std::string versions    = "R_20080917";
+    const std::string versions    = "08.10.17";
     const std::string description = "Filter unit for the endcap muon local DAQ";
     const std::string summary     = "emuDAQ/emuFU";
     const std::string link        = "NONE";
