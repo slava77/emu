@@ -351,12 +351,12 @@ throw (toolbox::fsm::exception::Exception)
     }
 
     // If the EmuTA has moved to the Enabled state and there are some held credits
-    if((state == 'E') && ((xdata::UnsignedLongT) nbCreditsHeld_ != (unsigned long)0))
-    {
-        // Send triggers for the held credits
-        sendNTriggers(nbCreditsHeld_);
-        nbCreditsHeld_ = 0;  // Credits have been used up
-    }
+//     if((state == 'E') && ((xdata::UnsignedLongT) nbCreditsHeld_ != (unsigned long)0))
+//     {
+//         // Send triggers for the held credits
+//         sendNTriggers(nbCreditsHeld_);
+//         nbCreditsHeld_ = 0;  // Credits have been used up
+//     }
 }
 
 
