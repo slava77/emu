@@ -6,7 +6,7 @@
 namespace EmuTA
 {
     const std::string package     = "emuTA";
-    const std::string versions    = "R_20080917";
+    const std::string versions    = "08.10.17";
     const std::string description = "A dummy trigger adapter (or rather generator) for the endcap muon local DAQ";
     const std::string summary     = "emuDAQ/emuTA";
     const std::string link        = "NONE";

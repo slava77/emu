@@ -6,7 +6,7 @@
 namespace EmuSOAPClient 
 {
     const std::string package     = "emuDAQ/emuSOAPClient";
-    const std::string versions    = "R_20080917";
+    const std::string versions    = "08.10.17";
     const std::string description = "Example SOAP client for the endcap muon local DAQ";
     const std::string summary     = "emuDAQ/emuSOAPClient";
     const std::string link        = "NONE";
