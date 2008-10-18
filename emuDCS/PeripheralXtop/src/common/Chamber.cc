@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.2 2008/10/13 12:14:28 liu Exp $
+// $Id: Chamber.cc,v 1.3 2008/10/18 18:18:44 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.3  2008/10/18 18:18:44  liu
+// update
+//
 // Revision 1.2  2008/10/13 12:14:28  liu
 // update
 //
@@ -15,7 +18,7 @@ namespace emu {
 
 //
 Chamber::Chamber():
-label_("CSC"), active_(0), ready_(false)
+label_("CSC"), active_(0), ready_(false), corruption(false)
 {
 }
 
@@ -49,8 +52,11 @@ void Chamber::Fill(char *buffer, int source)
        item=strtok_r(NULL, sep, &last);
    };
    if(source && idx==51) ready_ = true;
-   if(idx!=51 || (source==0 && values[47]!=(-50.))) 
-      std::cout << "Total " << idx << " last one " << values[47] << std::endl;
+   if(idx!=51 || values[47]!=(-50.))
+   {   std::cout << "BAD...total " << idx << " last one " << values[47] << std::endl;
+       corruption = true;
+   }
+   else corruption = false;
 }
 
 //   hint (operation mode)
@@ -66,7 +72,7 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
    char *vcc_ip = "02:00:00:00:00:00";
    //   float V33, V50, V60, C33, C50, C60, V18, V55, V56, C18, C55, C56;
 
-   if(hint==1)
+   if(corruption || hint==1)
    {  info = &(states_bk[0]);
       data = &(values_bk[0]);
    }
@@ -75,8 +81,8 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       data = &(values[0]);
       if(hint==2)
       {
-        float allc33= data[0]+data[3]+data[6]+data[9]; 
-        if(allc33 < 0.1 || allc33 >10.) data = &(values_bk[0]);       
+        float allc33= data[0]+data[3]+data[6]+data[9];
+        if( allc33 >10.) data = &(values_bk[0]);
       }
    }      
    for(int i=0; i<CFEB_NUMBER; i++)
@@ -112,7 +118,7 @@ void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
    float *data;
    char *vcc_ip = "02:00:00:00:00:00";
 
-   if(hint==1)
+   if(corruption || hint==1)
    {  info = &(states_bk[0]);
       data = &(values_bk[0]);
    }      

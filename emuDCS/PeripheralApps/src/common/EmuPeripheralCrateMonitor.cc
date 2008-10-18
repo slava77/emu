@@ -1615,19 +1615,64 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
       // ALCT: LCT sent to TMB
       int dc=myVector[tmb]->GetCounter(1);
       if (dc == 0x3fffffff ) dc = -1;
-      *out << "A: " << dc <<"; ";
+      if(dc<0) 
+      {  *out << cgicc::span().set("style","color:magenta");
+         *out << "A: " << dc <<"; ";
+         *out << cgicc::span();
+      }
+      else if(dc==0)
+      {  *out << cgicc::span().set("style","color:red");
+         *out << "A: " << dc <<"; ";
+         *out << cgicc::span();
+      }
+      else
+         *out << "A: " << dc <<"; ";
       // CLCT pretrigger 
       dc=myVector[tmb]->GetCounter(5);
       if (dc == 0x3fffffff ) dc = -1;
-      *out << "C: " << dc << cgicc::br();
+      if(dc<0) 
+      {  *out << cgicc::span().set("style","color:magenta");
+         *out << "C: " << dc;
+         *out << cgicc::span();
+      }
+      else if(dc==0)
+      {  *out << cgicc::span().set("style","color:red");
+         *out << "C: " << dc;
+         *out << cgicc::span();
+      }
+      else
+         *out << "C: " << dc;
+      *out << cgicc::br();
       // trig allowed, xmit to MPC
       dc=myVector[tmb]->GetCounter(28);
       if (dc == 0x3fffffff ) dc = -1;
-      *out << "T: " << dc << "; ";
+      if(dc<0) 
+      {  *out << cgicc::span().set("style","color:magenta");
+         *out << "T: " << dc <<"; ";
+         *out << cgicc::span();
+      }
+      else if(dc==0)
+      {  *out << cgicc::span().set("style","color:red");
+         *out << "T: " << dc <<"; ";
+         *out << cgicc::span();
+      }
+      else
+         *out << "T: " << dc << "; ";
       // L1A: TMB triggered, TMB in L1A window
       dc=myVector[tmb]->GetCounter(34);
       if (dc == 0x3fffffff ) dc = -1;
-      *out << "L: " << dc << cgicc::br();
+      if(dc<0) 
+      {  *out << cgicc::span().set("style","color:magenta");
+         *out << "L: " << dc;
+         *out << cgicc::span();
+      }
+      else if(dc==0)
+      {  *out << cgicc::span().set("style","color:red");
+         *out << "L: " << dc;
+         *out << cgicc::span();
+      }
+      else
+         *out << "L: " << dc;
       *out <<cgicc::td();
     }
     *out <<cgicc::tr();
