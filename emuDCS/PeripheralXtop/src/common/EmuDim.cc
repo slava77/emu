@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.3 2008/10/14 11:15:22 liu Exp $
+// $Id: EmuDim.cc,v 1.4 2008/10/18 18:18:44 liu Exp $
 
 #include "EmuDim.h"
 
@@ -343,11 +343,12 @@ int EmuDim::FillChamber(char *buff, int source)
    if(chnumb>=0 && chnumb <TOTAL_CHAMBERS)
    {   if(source) chamb[chnumb].SetLabel(label);
        chamb[chnumb].Fill(content, source);
+       return 1;
    }
    else
    {   std::cout << "WRONG tag " << label << std::endl;
+       return 0;
    }
-   return 1;
 }
 
 int EmuDim::ChnameToNumber(const char *chname)
@@ -357,6 +358,7 @@ int EmuDim::ChnameToNumber(const char *chname)
    int station = std::atoi(chname+3);
    int ring = std::atoi(chname+5);
    int chnumb = std::atoi(chname+7);
+   if(ring<1 || ring>3) return -3;
    switch(station)
    {   case 1:
          return     (ring-1)*36 + chnumb-1;
@@ -416,8 +418,11 @@ int EmuDim::UpdateDim(int ch)
    {
          chamb[ch].GetDimLV(mode, &(EmuDim_lv[ch]));
          chamb[ch].GetDimTEMP(mode, &(EmuDim_temp[ch]));
+     try 
+     {
          if(LV_1_Service[ch]) LV_1_Service[ch]->updateService();
          if(TEMP_1_Service[ch]) TEMP_1_Service[ch]->updateService();
+     } catch (...) {}
          return 1;
    }
    else return 0;

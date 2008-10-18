@@ -36,6 +36,7 @@ private:
   std::string label_;
   int active_;
   bool ready_;
+  bool corruption;
 
   int states[4];
   float values[60];
