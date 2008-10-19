@@ -12958,11 +12958,11 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"CFEB1 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,1))/1000.);
-  if ( value/1000. < 5.0*0.95 ||
-       value/1000. > 5.0*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
+  if ( value/1000. < 0.85 ||
+       value/1000. > 1.20 ) {
+    *out << cgicc::span().set("style","color:red");
   } else {
-    *out << cgicc::span().set("style","color:black");
+    *out << cgicc::span().set("style","color:green");
   }
   *out << buf ;
   *out << cgicc::span();
@@ -12998,11 +12998,11 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"CFEB2 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,4))/1000.);
-  if ( value/1000. < 5.0*0.95 ||
-       value/1000. > 5.0*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
+  if ( value/1000. < 0.85 ||
+       value/1000. > 1.2 ) {
+    *out << cgicc::span().set("style","color:red");
   } else {
-    *out << cgicc::span().set("style","color:black");      
+    *out << cgicc::span().set("style","color:green");      
   }
   *out << buf ;
   *out << cgicc::span();
@@ -13037,11 +13037,11 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"CFEB3 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,7))/1000.);
-  if (  value/1000. < 5.0*0.95 ||
-	value/1000. > 5.0*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
+  if (  value/1000. < 0.85 ||
+	value/1000. > 1.2 ) {
+    *out << cgicc::span().set("style","color:red");
   } else {
-    *out << cgicc::span().set("style","color:black");      
+    *out << cgicc::span().set("style","color:green");      
   }
   *out << buf ;
   *out << cgicc::span();
@@ -13077,11 +13077,11 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"CFEB4 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,2))/1000.);
-  if ( value/1000. < 5.0*0.95 ||
-       value/1000. > 5.0*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
+  if ( value/1000. < 0.85 ||
+       value/1000. > 1.2 ) {
+    *out << cgicc::span().set("style","color:red");
   } else {
-    *out << cgicc::span().set("style","color:black");  
+    *out << cgicc::span().set("style","color:green");  
   }
   *out << buf ;
   *out << cgicc::span();
@@ -13117,11 +13117,11 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::td();
   sprintf(buf,"CFEB5 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,5))/1000.);
-  if ( value/1000. < 5.0*0.95 ||
-       value/1000. > 5.0*1.05 ) {
-    *out << cgicc::span().set("style","color:black");
+  if ( value/1000. < 0.85 ||
+       value/1000. > 1.2 ) {
+    *out << cgicc::span().set("style","color:red");
   } else {
-    *out << cgicc::span().set("style","color:black");  
+    *out << cgicc::span().set("style","color:green");  
   }
   *out << buf ;
   *out << cgicc::span();
