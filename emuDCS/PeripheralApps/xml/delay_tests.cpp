@@ -98,10 +98,21 @@
 	 4) tmb_lct_cable_delay +=1
        > Make sure the right parameters get written to the output XML file.
 
-  * Modifications by Jay Hauser 3-Oct-2008
+  * Modifications by Jay Hauser 3-Oct-2008 and 5-Oct-2008
      - Fix rounding of negative values for afeb_fine_delay values from TTCrx delay changes, 
        a la --> rounded = (int) (val>0 ? val+0.5 : val-0.5);
-     - Add ability to put in bx number offsets for ALCT and CLCT (from Chad) as option 29
+     - Put in bx number offsets for ALCT and CLCT (from Chad) as option 29
+
+  * Modifications by Jay Hauser 14-Oct-2008 to 21-Oct-2008 
+    - add save plot to file feature for numerous options.
+    - Change calculations of cfeb and alct phases to keep floating point until the actual
+      setting is calculated.  Tweak the predictions a little to improve them. Print out
+      lists of chambers that disagree badly.  Fix the "wrapping" of CFEB phases at 12->0 boundary.
+    - Change the calculations of alct_l1a_delay and tmb_l1a_delay to take advantage of 
+      isochronous PC clocking--> big improvement.
+    - Tweak many other options to match CMS conditions and to remove unnecessary (int)'s.
+    - Fixed bug (+1) in calculation of number of bins in plots with integers
+
 */
 
 #include <iostream>
@@ -154,7 +165,7 @@ struct chambers { //Holds all information for a chamber
   int predicted_cfeb_cable_delay;
   double cfeb_tmb_skew_length;
   char cfeb_tmb_skew_revision;
-  double cfeb_tmb_skew_delay;
+  double clct_skewclear_delay;
   int cfeb[5];
   int predicted_cfeb_delay;
   int average_cfeb_delay;
@@ -228,8 +239,8 @@ void read_in_afeb_thresh(const char file_name[]);
 void set_range_to_all_chambers();          //opens up all chambers
 void select_chamber();                     //allows the user to input desired chamber
 void cfeb_delay_function();                //calculates predicted and measured cfeb_delay
-void alct_tx_delay_setting_function();     //calculates predicted and measured alct_tx_delay_setting
-void alct_rx_delay_setting_function();     //calculates predicted and measured alct_rx_delay
+void alct_tx_delay_function();     //calculates predicted and measured alct_tx_delay_setting
+void alct_rx_delay_function();     //calculates predicted and measured alct_rx_delay
 void alct_to_cfeb_skewclear_delay();       //calculates cfeb/alct skewdelay
 void display_type();                       //Choose between text based or graphical based display of data
 void clct_alct_match_window();             //calculates match window
@@ -290,7 +301,7 @@ int match_trig_window_size = 7;
 bool display_only_measured_chambers = true;    
 //
 //Make a gif file as well whenever a plot is displayed:
-bool send_plots_to_file = false;               
+bool send_plots_to_file = true;               
 //
 // When appropriate, use the measured values in the xml file so as not to propagate 
 // a bad prediction of one value on to the next predicted value.  Especially 
@@ -308,19 +319,19 @@ int cfeb_cable_delay_thresh = 0;
 int cfeb_dav_cable_delay_thresh = 1;
 int alct_dav_cable_delay_thresh = 1;
 int tmb_lct_cable_delay_thresh = 1;
-int tmb_l1a_delay_thresh = 1;
-int alct_l1a_delay_thresh = 1;
+int tmb_l1a_delay_thresh = 0;
+int alct_l1a_delay_thresh = 0;
 //
-const int ddd_asic_nsec_per_setting = 2;
+const double ddd_asic_nsec_per_setting = 2.;
 const double afeb_fine_delay_asic_nsec_per_setting = 2.2;
 //
 // constant values to tune which affect the predictions:
 //
 // cfeb[0-4]delay (rx clock delay):
-const int internal_cfeb_rx_clock_delay_offset = 19;
+const double internal_cfeb_rx_clock_delay_offset = 17.0; //units are ns
 //
 // alct_tx_clock_delay:
-const int internal_alct_tx_clock_delay_offset = 20;
+const double internal_alct_tx_clock_delay_offset = 19.5; //units are ns
 //
 // alct_rx_clock_delay:
 const int alct_tx_rx_offset = 3;
@@ -329,7 +340,7 @@ const int alct_tx_rx_offset = 3;
 int clct_alct_latency_difference = 4;      
 //
 // mpc_rx_delay:
-const int transmission_plus_mpc_processing_time = 5;
+const int transmission_plus_mpc_processing_time = 4;
 //
 // TTCrxDelayCalc (tmb_l1a_delay, alct_l1a_delay, tmb_lct_cable_delay)
 const int ttc_ccb_fiber_offset = 2;
@@ -345,19 +356,26 @@ const int l1a_latency_from_mpc_to_ttc_output = 101;  //predictions for TeamA ME+
 //const int l1a_latency_from_mpc_to_ttc_output = 156;   //value for minus side slice test Summer 2007
 //
 // tmb_lct_cable_delay:
-const int tmb_lct_cable_delay_offset = -117; // predictions for TeamA ME+2 far side...
+const int tmb_lct_cable_delay_offset = -118; // JH ad hoc needed for Oct 2008 data
+//const int tmb_lct_cable_delay_offset = -117; // predictions for TeamA ME+2 far side...
 //const int tmb_lct_cable_delay_offset = -118; //Value for xLatency = 0 (Global Run at End November and GRESeptember)
 //const int tmb_lct_cable_delay_offset = 6; //value for minus side slice test Summer 2007
 // 
 // alct_l1a_delay:
 const int tmb_to_alct_propagation = 0;
+//Algo. #1: const double alct_l1a_delay_offset = 139.11;
+//Algo. #2: JH big improvement seen:
+const double alct_l1a_delay_offset = 135.22;
 //
 // cfeb_dav_cable_delay:
 //const int cfeb_dav_processing_time_offset = 5;  
-const int cfeb_dav_processing_time_offset = 6;  
+//const int cfeb_dav_processing_time_offset = 6;  
+const double cfeb_dav_processing_time_offset = 5.4; //JH 15-Oct-08 make this a floating point knob (better results)
+
 //
 // alct_dav_cable_delay:
-const int alct_dav_processing_time_offset = 6;
+//const int alct_dav_processing_time_offset = 6;
+const double alct_dav_processing_time_offset = 6.8;
 //
 //
 // Here we go: start by clearing the chamber parameter structure
@@ -597,7 +615,7 @@ void predict_all_timing_parameters() {
   //
   // compute communication phases
   cfeb_delay_function();
-  alct_rx_delay_setting_function(); //tx called in this function
+  alct_rx_delay_function(); //tx called in this function
   //
   // Align the ALCT with the CLCT, assuming that the ALCT (critical latency) has been lined up at the SP
   mpc_delays(); 
@@ -688,8 +706,8 @@ void TTCrxDelayCalc() {
 //---------------------------------------------------------------------------------------------------------
 //
 void cfeb_cable_delay(){
-  /*      Calculates cfeb_cable_delay based on cfeb_tmb_skew_delay
-	  If skew_delay is below 53 then make cfeb_cabe_delay = 1
+  /*      Calculates cfeb_cable_delay based on clct_skewclear_delay
+	  If skew_delay is below 53 then make cfeb_cable_delay = 1
 	  else make cfeb_cable_delay = 0.
 	  Twiki page said cut off value should be 50 not 53 but it
 	  seems like 53 works better.  This is the spot in the largest
@@ -701,7 +719,7 @@ void cfeb_cable_delay(){
     for (z = chamber_limit[0][0][0]; z <= chamber_limit[1][0][0]; z++){        //ME number
       for (y = chamber_limit[0][z][0]; y <= chamber_limit[1][z][0]; y++) {     //n number
 	for (x = chamber_limit[0][z][y]; x <= chamber_limit[1][z][y]; x++) {   //chamber number
-	  if (ME[z_side][z][y][x].cfeb_tmb_skew_delay > 53)
+	  if (ME[z_side][z][y][x].clct_skewclear_delay > 53)
 	    ME[z_side][z][y][x].predicted_cfeb_cable_delay = 0;
 	  else
 	    ME[z_side][z][y][x].predicted_cfeb_cable_delay = 1;
@@ -711,7 +729,7 @@ void cfeb_cable_delay(){
 	  //		      << " R" << y
 	  //		      << " C" << x
 	  //		      << " = " << ME[z_side][z][y][x].cfeb_tmb_skew_length
-	  //		      << "m takes " << ME[z_side][z][y][x].cfeb_tmb_skew_delay 
+	  //		      << "m takes " << ME[z_side][z][y][x].clct_skewclear_delay 
 	  //		      << "nsec" << std::endl;  
 	}
       }
@@ -732,9 +750,9 @@ void alct_to_cfeb_skewclear_delay() {
       for (y = chamber_limit[0][z][0]; y <= chamber_limit[1][z][0]; y++) { 
 	for (x = chamber_limit[0][z][y]; x <= chamber_limit[1][z][y]; x++) {   //chamber number
 	  if (ME[z_side][z][y][x].cfeb_tmb_skew_revision  == 'N')
-	    ME[z_side][z][y][x].cfeb_tmb_skew_delay = ME[z_side][z][y][x].cfeb_tmb_skew_length * (4.7);
+	    ME[z_side][z][y][x].clct_skewclear_delay = ME[z_side][z][y][x].cfeb_tmb_skew_length * (4.7);
 	  else
-	    ME[z_side][z][y][x].cfeb_tmb_skew_delay = ME[z_side][z][y][x].cfeb_tmb_skew_length * (5.2);
+	    ME[z_side][z][y][x].clct_skewclear_delay = ME[z_side][z][y][x].cfeb_tmb_skew_length * (5.2);
 	  //
 	  //	  if (z==1 && y==1) 
 	  //	    std::cout << "CFEB cable length E" << z_side
@@ -742,7 +760,7 @@ void alct_to_cfeb_skewclear_delay() {
 	  //		      << " R" << y
 	  //		      << " C" << x
 	  //		      << " = " << ME[z_side][z][y][x].cfeb_tmb_skew_length
-	  //		      << "m takes " << 	    ME[z_side][z][y][x].cfeb_tmb_skew_delay 
+	  //		      << "m takes " << 	    ME[z_side][z][y][x].clct_skewclear_delay 
 	  //		      << "nsec" << std::endl;  
 	}
       }
@@ -803,54 +821,70 @@ void cfeb_delay_function(){
     predicted_cfeb_delay = the number of ns needed to delay the signal to reach the begining of the next BX (in setting steps not ns)
   */
   int x, y, z, z_side = 0;                                                          //used for for loops
+  double dt;
+  int meas, pred, delta;
+  char cz_side[2];
+  cz_side[0]='-';
+  cz_side[1]='+';
+  //
   for (z_side = 0; z_side <= 1; z_side++) {
-	  //cout << endl << "JH: CFEB delay calculated for side " << z_side << endl;
     for (z = chamber_limit[0][0][0]; z <= chamber_limit[1][0][0]; z++){    
       for (y = chamber_limit[0][z][0]; y <= chamber_limit[1][z][0]; y++) { 
 	for (x = chamber_limit[0][z][y]; x <= chamber_limit[1][z][y]; x++) {  
-	  if (ME[z_side][z][y][x].cfeb[0] == -1)
+	  if (ME[z_side][z][y][x].cfeb[0] == -1)         //case that data not read in
 	    ME[z_side][z][y][x].average_cfeb_delay = -1;
-	  else {
+	  else {                                         //have timing data
 	    //
 	    // correct for wrapping, if needed
 	    bool perform_wrap = false;
 	    for (int label=1; label<5; label++) {
-	      double diff=ME[z_side][z][y][x].cfeb[0] - ME[z_side][z][y][x].cfeb[label] ;
+	      double diff=abs(ME[z_side][z][y][x].cfeb[0] - ME[z_side][z][y][x].cfeb[label]) ;
 	      if (diff>6.) perform_wrap = true;
 	    }
 	    //
 	    double tmp[5] = {};
 	    //
-	    for (int label=0; label<5; label++) {
+	    for (int label=0; label<5; label++) {   //Get all the values before averaging:
 	      //
 	      if (perform_wrap) {
 		//		cout << " before cfeb[" << label << "] = " << ME[z_side][z][y][x].cfeb[label] << "... ";
 		tmp[label] = (ME[z_side][z][y][x].cfeb[label] + 12.5);
-		if (tmp[label] > 13.) 
+		if (tmp[label] > 15.) 
 		  tmp[label] -= 12.5;
 		//		cout << " after tmp[" << label << "] = " << tmp[label] << "... " << endl;
 	      } else {
-		//		cout << "...NOT wrapping" << endl;
+		//			cout << "...NOT wrapping" << endl;
 		tmp[label] = ME[z_side][z][y][x].cfeb[label];
 	      }
 	      //
 	    }
-	    //
 	    ME[z_side][z][y][x].average_cfeb_delay = (int) (0.5 + (tmp[0] + tmp[1] + tmp[2] + tmp[3] + tmp[4])/5.);
-	    //
 	  }
-	  ME[z_side][z][y][x].predicted_cfeb_delay = 
-	    ((int) (0.5 + (25 - (int) (0.5 + internal_cfeb_rx_clock_delay_offset 
-				       + 2 * ME[z_side][z][y][x].cfeb_tmb_skew_delay) % 25)/ddd_asic_nsec_per_setting)) % 13;
-	  //	  if (z_side==0 && z==1 && (y==1 || y==2) ) 
-	  //	    std::cout << "cfeb[0-4]delay for E" << z_side 
-	  //		      << " S" << z
-	  //		      << " R" << y
-	  //		      << " C" << x
-	  //		      << " = " << ME[z_side][z][y][x].predicted_cfeb_delay
-	  //		      << std::endl;
-	  //		      << " cable length of " << ME[z_side][z][y][x].cfeb_tmb_skew_delay  
-
+	  //JH new calculation: calculate relevant floating point time interval
+	  dt = internal_cfeb_rx_clock_delay_offset + 2*ME[z_side][z][y][x].clct_skewclear_delay;
+	  //JH then calculate time remainder, in base 25ns (one clock cycle):
+	  dt = 25 - (dt - 25*int(dt/25)); 
+	  //JH then calculate the setting of the DDD delay device (2ns steps, range 0-12):
+	  ME[z_side][z][y][x].predicted_cfeb_delay = ( (int) (dt/ddd_asic_nsec_per_setting) ) %13;
+	  //old DA formula:
+	  //    ((int) (0.5 + (25 - (int) ( 0.5 + internal_cfeb_rx_clock_delay_offset 
+	  //		  + 2 * ME[z_side][z][y][x].clct_skewclear_delay) % 25)/ddd_asic_nsec_per_setting)) % 13;
+	  //
+	  //JH Print out details if a bad time match:
+	  //
+	  meas = ME[z_side][z][y][x].average_cfeb_delay;
+	  pred = ME[z_side][z][y][x].predicted_cfeb_delay;
+	  delta = meas-pred;
+	  //cout << "JH DEBUG delta =" << delta << " from meas=" << meas << " and pred=" << pred << endl;
+	  delta = ( abs(delta+13) %13);
+	  if (delta > 6) delta=13-delta;
+	  //cout << "         ------>" << delta << endl;
+	  //JH print out chambers with bad matches right now:
+	  if (delta > 3) {
+	    cout << "cfeb_delay_function: bad match, delta=" << delta 
+		 << " for ME" << cz_side[z_side] << z << "/" << y << "/" << x 
+		 << ": Meas=" << meas << ", Pred=" << pred << endl;
+	  }
 	}
       }
     }
@@ -858,7 +892,7 @@ void cfeb_delay_function(){
 }
 //---------------------------------------------------------------------------------------------------------
 //
-void alct_tx_delay_setting_function() {                     
+void alct_tx_delay_function() {                     
   /*       Function calculates the predicted_alct_tx_clock_delay, predicted_alct_tx_cycle
 	   and alct_skewclear_delay.
 	   alct_skewclear delay is calculated from the alct_skewclear_length and 
@@ -869,33 +903,55 @@ void alct_tx_delay_setting_function() {
 	   gives the number of ns till next BX.  We divide by 2 to convert to setting.
   */
   int x, y, z, z_side;
+  double dt;
+  int meas, pred, delta;
+  char cz_side[2];
+  cz_side[0]='-';
+  cz_side[1]='+';
+  //
   for (z_side = 0; z_side <= 1; z_side++) {
     for (z = chamber_limit[0][0][0]; z <= chamber_limit[1][0][0]; z++){ 
       for (y = chamber_limit[0][z][0]; y <= chamber_limit[1][z][0]; y++) {
 	for (x = chamber_limit[0][z][y]; x <= chamber_limit[1][z][y]; x++) { 
-	  ME[z_side][z][y][x].predicted_alct_tx_clock_delay = 
-	    ((int) (0.5 + 
-		    (25 - (int)(0.5 + internal_alct_tx_clock_delay_offset
-				+ 2 * ME[z_side][z][y][x].alct_skewclear_delay) % 25)/ddd_asic_nsec_per_setting)) % 13;
+
+	  //JH new calculation:
+	  dt = internal_alct_tx_clock_delay_offset + 2*ME[z_side][z][y][x].alct_skewclear_delay;
+	  //JH then calculate time remainder, in base 25ns (one clock cycle):
+	  dt = 25 - (dt - 25*int(dt/25)); 
+	  //JH then calculate the setting of the DDD delay device (2ns steps, range 0-12):
+	  ME[z_side][z][y][x].predicted_alct_tx_clock_delay = ( (int) (dt/ddd_asic_nsec_per_setting) ) %13;
+	  //Old DA calculation:
+	  //  ME[z_side][z][y][x].predicted_alct_tx_clock_delay = 
+	  //  ((int) (0.5 + 
+	  //	    (25 - (int)(0.5 + internal_alct_tx_clock_delay_offset
+	  //	     + 2 * ME[z_side][z][y][x].alct_skewclear_delay) % 25)/ddd_asic_nsec_per_setting)) % 13;
 	  //
-	  //	  if (z_side==0 && z==1 && (y==1 || y==2)) 
-	  //	    std::cout << "alct_tx_delay for E" << z_side 
-	  //		      << " S" << z
-	  //		      << " R" << y
-	  //		      << " C" << x
-	  //		      << " = " << ME[z_side][z][y][x].predicted_alct_tx_clock_delay
-	  //		      << std::endl;  
-	  //		      << " cable length of " << ME[z_side][z][y][x].alct_skewclear_delay
+	  //JH Print out details if a bad time match:
+	  //
+	  meas = ME[z_side][z][y][x].alct_tx_clock_delay;
+	  pred = ME[z_side][z][y][x].predicted_alct_tx_clock_delay;
+	  delta = meas-pred;
+	  //cout << "JH DEBUG delta =" << delta << " from meas=" << meas << " and pred=" << pred << endl;
+	  delta = ( abs(delta+13) %13);
+	  if (delta > 6) delta=13-delta;
+	  //cout << "         ------>" << delta << endl;
+	  //JH print out chambers with bad matches right now:
+	  if (delta > 3) {
+	    cout << "alct_tx_delay_function: bad match, delta=" << delta 
+		 << " for ME" << cz_side[z_side] << z << "/" << y << "/" << x 
+		 << ": Meas=" << meas << ", Pred=" << pred << endl;
+	  }
+
 	}
       }
     }
   }
 }
 //
-void alct_rx_delay_setting_function() {
+void alct_rx_delay_function() {
   int x, y, z, z_side = 0;
   //
-  alct_tx_delay_setting_function();
+  alct_tx_delay_function();
   //
   for (z_side = 0; z_side <= 1; z_side++) {
     for (z = chamber_limit[0][0][0]; z <= chamber_limit[1][0][0]; z++){
@@ -1205,11 +1261,11 @@ void clct_alct_match_window() {
 	  //
 	  ME[z_side][z][y][x].clock_phase_difference = 
 	    ((double)
-	     ( (int)(0.5 + 2 * ME[z_side][z][y][x].predicted_cfeb_delay + ME[z_side][z][y][x].cfeb_tmb_skew_delay) % 25 
+	     ( (int)(0.5 + 2 * ME[z_side][z][y][x].predicted_cfeb_delay + ME[z_side][z][y][x].clct_skewclear_delay) % 25 
 	       - (int)(0.5 + 2 * ME[z_side][z][y][x].predicted_alct_tx_clock_delay + ME[z_side][z][y][x].alct_skewclear_delay) % 25))/25;
 	  //
 	  ME[z_side][z][y][x].cable_difference_in_bx = 
-	    (int)( (ME[z_side][z][y][x].alct_skewclear_delay-ME[z_side][z][y][x].cfeb_tmb_skew_delay) / 25);
+	    (int)( (ME[z_side][z][y][x].alct_skewclear_delay-ME[z_side][z][y][x].clct_skewclear_delay) / 25);
 	  //   
 	  ME[z_side][z][y][x].predicted_not_rounded_match_trig_alct_delay = 
 	    clct_alct_latency_difference 
@@ -1268,8 +1324,8 @@ void clct_alct_match_window() {
 //
 void tmb_lct_cable_delay() {
   /*      
-	  Calculates tmb_lct_cable_delay based on cfeb_tmb_skew_delay and mpc_tx_delay
-	  Depending on what range the cfeb_tmb_skew_delay falls into, we give the
+	  Calculates tmb_lct_cable_delay based on clct_skewclear_delay and mpc_tx_delay
+	  Depending on what range the clct_skewclear_delay falls into, we give the
 	  tmb_lct_cable_delay a value of 0 to 3.  The ranges in the 'if' statements
 	  have been adjusted to maximize the correlation between measured and predicted tmb_lct_cable_delay
 	  +11 FROM TWIKI PAGE
@@ -1281,11 +1337,11 @@ void tmb_lct_cable_delay() {
 	for (x = chamber_limit[0][z][y]; x <= chamber_limit[1][z][y]; x++) {   //chamber number
 	  //
 	  ME[z_side][z][y][x].predicted_tmb_lct_cable_delay = 
-	    tmb_lct_cable_delay_offset 
-	    - comp_timing 
-	    - (int)(ME[z_side][z][y][x].cfeb_tmb_skew_delay /25.)
+	                                                     //JH add pos. number inside int then subtract:
+	    (int)(1000+tmb_lct_cable_delay_offset-ME[z_side][z][y][x].clct_skewclear_delay /25.)-1000 
 	    + l1a_latency_from_mpc_to_ttc_output
-	    + (TTCrxCoarseDelayPred[z_side][z][ChamberToPCMap[z][y][x]] + (int) fiber_length[z_side][z][ChamberToPCMap[z][y][x]]);
+	    + (TTCrxCoarseDelayPred[z_side][z][ChamberToPCMap[z][y][x]] + (int) fiber_length[z_side][z][ChamberToPCMap[z][y][x]])
+	  - comp_timing;
 	}
       }
     }
@@ -1297,7 +1353,18 @@ void tmb_l1a_delay() {
   //
   // Calculates the amount of time to wait between the LCT (sent to the MPC) and the L1A
   //
+  //  double clct_l1a_delay_offset = 120.2;    //Positive CLCT to L1A return bx plus phase adjustment
+  int clct_l1a_delay_offset = 120;    //Option 2: if just depends on ALCT time only
+  double alct_l1a_delay_offset = 0.11;     //Phase adjustment only
   int x, y, z, z_side = 0;
+  //JH try to find optimum phases by scanning, count discrepancies:
+  //
+  //for(double cval = 120.0; cval<121.1; cval=cval+0.1) {
+  //  clct_l1a_delay_offset=cval;
+  //for(double aval = 0.0; aval<1.1; aval=aval+0.1) {
+  //  alct_l1a_delay_offset=aval;
+    int discreps=0;
+    int nchambers=0;
   for (z_side = 0; z_side <= 1; z_side++) {                                                   //endcap
     for (z = chamber_limit[0][0][0]; z <= chamber_limit[1][0][0]; z++){        //station
       for (y = chamber_limit[0][z][0]; y <= chamber_limit[1][z][0]; y++) {     //ring
@@ -1316,21 +1383,51 @@ void tmb_l1a_delay() {
 	    ME[z_side][z][y][x].predicted_tmb_l1a_delay = 
 	      ME[z_side][z][y][x].mpc_tx_delay           
 	      + l1a_latency_from_mpc_to_ttc_output
-	      + (TTCrxCoarseDelayPred[z_side][z][ChamberToPCMap[z][y][x]] + (int) fiber_length[z_side][z][ChamberToPCMap[z][y][x]]);
+	      + (TTCrxCoarseDelayPred[z_side][z][ChamberToPCMap[z][y][x]] 
+		 + (int) fiber_length[z_side][z][ChamberToPCMap[z][y][x]]);
 	    //
 	  } else {
 	    //
-	    ME[z_side][z][y][x].predicted_tmb_l1a_delay = 
-	      ME[z_side][z][y][x].predicted_mpc_tx_delay 
-	      + l1a_latency_from_mpc_to_ttc_output
-	      + (TTCrxCoarseDelayPred[z_side][z][ChamberToPCMap[z][y][x]] + (int) fiber_length[z_side][z][ChamberToPCMap[z][y][x]]);
+	    // ME[z_side][z][y][x].predicted_tmb_l1a_delay = 
+	    //  ME[z_side][z][y][x].predicted_mpc_tx_delay 
+	    //  + l1a_latency_from_mpc_to_ttc_output
+	    //  + (TTCrxCoarseDelayPred[z_side][z][ChamberToPCMap[z][y][x]] 
+	    //	 + (int) fiber_length[z_side][z][ChamberToPCMap[z][y][x]]);
 	    //
+	    //JH 20-Oct-08 Think a little harder: it seems that the total delays to add are:
+	    //	1) (CLCT-ALCT) mean time in the TMB  depends on Skewclear lengths
+	    //	2) ALCT variations in time from TMB up to MPC (mpc_tx_delay, integer)
+	    //	The rest is isochronous to MPC, and SP, and L1, and TTC, and back to TMB.
+	    //	The first part is the hardest:
+	    //	CLCT has CFEB Skewclear delay, use (int) (const_c + Skewclear_c)
+	    //	ALCT has ALCT Skewclear delay, use (int) (const_a + Skewclear_a)
+	    //	So there are two phase wrapping parameters to be understood. 
+	    //The ALCT phase wrapping may be 0.11 bx = 2.75ns/
+	    //Delay is the difference between clct-finding (varies) and L1A being returned (same for every chamber)
+	    //
+	    //Version 2: if the LCT goes out relative to ALCT, then just need mpc_tx_delay correction
+	      ME[z_side][z][y][x].predicted_tmb_l1a_delay = 
+		//        (int) (clct_l1a_delay_offset + ME[z_side][z][y][x].clct_skewclear_delay/25)
+		//- (int) (alct_l1a_delay_offset + ME[z_side][z][y][x].alct_skewclear_delay/25)
+		clct_l1a_delay_offset
+		+ ME[z_side][z][y][x].mpc_tx_delay;
+	      //JH debug
+	      int pred = ME[z_side][z][y][x].predicted_tmb_l1a_delay;
+	      int meas = ME[z_side][z][y][x].tmb_l1a_delay;
+	      nchambers++;
+	      if (pred != meas) {
+		discreps++;
+		//      cout << "tmb_l1a_delay: diff for side " << z_side <<", station " << z << ", ring " << y
+		// << ", phi=" << x << " pred=" << pred << " and meas=" << meas << endl;
+	      }
+	    }
 	  }
-	  //
 	}
       }
     }
-  }
+  cout << "tmb_l1a_delay: using {clct/alct}_l1a_delay_offsets=" << clct_l1a_delay_offset 
+       << ", " << alct_l1a_delay_offset << " find discreps=" << discreps << "/" << nchambers << endl;
+  //  }}
 }
 //---------------------------------------------------------------------------------------------------------
 //
@@ -1356,18 +1453,22 @@ void alct_l1a_delay() {
 	      - alct_drift_delay                                    
 	      + ME[z_side][z][y][x].match_trig_alct_delay
 	      + (int)(0.5 + (ME[z_side][z][y][x].alct_skewclear_delay / 25.) );
-	      //	      + (int)(0.5 + 2.*ME[z_side][z][y][x].alct_skewclear_delay / 25. );
+	      // + (int)(0.5 + 2.*ME[z_side][z][y][x].alct_skewclear_delay / 25. );
 	    //
 	  } else {
-	    //
 	    ME[z_side][z][y][x].predicted_alct_l1a_delay = 
-	      ME[z_side][z][y][x].predicted_tmb_l1a_delay 
-	      + tmb_to_alct_propagation 
-	      - alct_drift_delay                                    
-	      + ME[z_side][z][y][x].predicted_match_trig_alct_delay
-	      + (int)(2.*ME[z_side][z][y][x].alct_skewclear_delay / 25. );
-	    //
-	  }
+	      //JH 19-Oct-2008 previous "general" calculation
+	      //	      ME[z_side][z][y][x].predicted_tmb_l1a_delay 
+	      //+ tmb_to_alct_propagation 
+	      //- alct_drift_delay                                    
+	      //+ ME[z_side][z][y][x].predicted_match_trig_alct_delay
+	      //+ (int)(2.*ME[z_side][z][y][x].alct_skewclear_delay / 25. );
+	      //JH 19-Oct-2008 new "simple" calculation with isochronous peripheral crate clocking
+	      //Algo. #1:	      (int)(alct_l1a_delay_offset + ME[z_side][z][y][x].alct_skewclear_delay/25);
+	      //Algo. #2: JH 19-Oct-2008 spectacular improvement
+	      (int)(alct_l1a_delay_offset + 2*ME[z_side][z][y][x].alct_skewclear_delay/25
+		    +ME[z_side][z][y][x].mpc_tx_delay);
+		    }
 	  //
 	}
       }
@@ -1381,8 +1482,8 @@ void alct_l1a_delay() {
 //---------------------------------------------------------------------------------------------------------
 //
 void cfeb_dav_cable_delay() {
-  /*      Calculates cfeb_dav_cable_delay based on cfeb_tmb_skew_delay and cfeb_cable_delay
-	  Depending on what range the cfeb_tmb_skew_delay falls into, we give the
+  /*      Calculates cfeb_dav_cable_delay based on clct_skewclear_delay and cfeb_cable_delay
+	  Depending on what range the clct_skewclear_delay falls into, we give the
 	  cfeb_dav_cable_delay a value of 0 to 2.  We then subtract the cfeb_cable_delay
 	  value.  The ranges in the 'if' statements have been adjusted to maximize
 	  the corrilation between measured and predicted cfeb_dav_cable_delay.
@@ -1398,9 +1499,15 @@ void cfeb_dav_cable_delay() {
 	  // N.B.  Since there is no measured cfeb_cable_delay, the predicted_cfeb_cable_delay is all we have:
 	  //
 	  ME[z_side][z][y][x].predicted_cfeb_dav_cable_delay = 
-	    cfeb_dav_processing_time_offset
-	    - (int)((2 * ME[z_side][z][y][x].cfeb_tmb_skew_delay)/25) 
-	    - ME[z_side][z][y][x].predicted_cfeb_cable_delay;
+	    (int)(cfeb_dav_processing_time_offset-(2 * ME[z_side][z][y][x].clct_skewclear_delay)/25) //JH new calculation method
+	    - ME[z_side][z][y][x].predicted_cfeb_cable_delay;  //JH is this the right thing to subtract?
+	  //    	    cfeb_dav_processing_time_offset
+	  //- (int)(0.6+(2 * ME[z_side][z][y][x].clct_skewclear_delay)/25) //JH can add "vernier" change here
+	  //- ME[z_side][z][y][x].predicted_cfeb_cable_delay;
+	    //JH: Previous calculation:
+	    //6
+	    //- (int)((2 * ME[z_side][z][y][x].clct_skewclear_delay)/25)
+	    //- ME[z_side][z][y][x].predicted_cfeb_cable_delay;
 	  //
 	}
       }
@@ -1414,7 +1521,7 @@ void alct_dav_cable_delay() {
 	  Calculates alct_dav_cable_delay based on alct_skewclear_delay.
 	  Depending on what range the alct_skewclear_delay falls into, we give the
 	  alct_dav_cable_delay a value of 0 to 3. The ranges in the 'if' statements 
-	  have been adjusted to maximize the corrilation between measured and predicted
+	  have been adjusted to maximize the correlation between measured and predicted
 	  alct_dav_cable_delay.
   */
   //
@@ -1425,8 +1532,12 @@ void alct_dav_cable_delay() {
 	for (x = chamber_limit[0][z][y]; x <= chamber_limit[1][z][y]; x++) {   //chamber number
 	  //
 	  ME[z_side][z][y][x].predicted_alct_dav_cable_delay = 
-	    alct_dav_processing_time_offset
-	    - (int)(0.5 + 2.*ME[z_side][z][y][x].alct_skewclear_delay / 25. );
+	    //    alct_dav_processing_time_offset
+	    //    - (int)(0.5 + 2.*ME[z_side][z][y][x].alct_skewclear_delay / 25. );
+	    //JH tweak a little to optimize the agreement with measured alct_dav delays
+	    // - (int)(0.2 + 2.*ME[z_side][z][y][x].alct_skewclear_delay / 25. );
+	    //JH put the offset inside the (int)
+	    (int)(alct_dav_processing_time_offset - 2.*ME[z_side][z][y][x].alct_skewclear_delay / 25. );
 	  //
 	}
       }
@@ -3157,7 +3268,7 @@ void options() {         //options of what type of data/delays to display
     cout << "Please make a selection and then hit return:" << endl;
     cout << "1 : cfeb_rx_delay" << endl;
     cout << "2 : alct_tx_delay" << endl;
-    cout << "3 : Compare alct_skewclear_delay to cfeb_tmb_skew_delay" << endl; 
+    cout << "3 : Compare alct_skewclear_delay to clct_skewclear_delay" << endl; 
     cout << "4 : alct_rx_clock_delay" << endl;
     cout << "5 : Display properties of chamber{s}" << endl;
     cout << "6 : Compare measured alct_rx_clock_delay to alct_tx_clock_delay" << endl; 
@@ -3167,7 +3278,7 @@ void options() {         //options of what type of data/delays to display
     cout << "10: cfeb_dav_cable_delay" << endl;
     cout << "11: afeb_fine_delays" << endl;
     cout << "12: match_trig_alct_delay"<< endl;
-    cout << "13: tmb_lct_cable_delay" << endl;
+    cout << "13: tmb_lct_cable_delay a.k.a. AFF-L1A cable delay" << endl;
     cout << "14: alct_l1a_delay" << endl;
     cout << "15: tmb_l1a_delay" << endl;
     cout << "16: mpc_tx_delay" << endl;
@@ -3325,10 +3436,10 @@ void display_graph() {
     //---------------------------------------------------------------------------
     TCanvas *c1 = new TCanvas("c1","Delay Graph",200,10,600,400);
     //    c1->Divide(2,1);
-    x2[0] = y2[0] = 0;
-    x2[1] = y2[1] = 13;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(y2[1] - y2[0]) + 1;
+    x2[0] = y2[0] = -0.5;
+    x2[1] = y2[1] = 12.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
     TH2F * h1 = new TH2F("h1","CFEB rx clock delay",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     TGraph *graph = new TGraph(number_of_chambers_of_interest); 
     //--------------------------------------------------------------------------
@@ -3368,10 +3479,10 @@ void display_graph() {
     h1->GetYaxis()->SetTitle("measured values");
     h1->Draw("BOX");
     //
-    TGraph *graph_line = new TGraph(2, x2, y2); 
-    graph_line->Draw("L");
+    TGraph *graph_line1 = new TGraph(2, x2, y2); 
+    graph_line1->Draw("L");
     c1->Update();
-    c1->Print("asdf.gif");
+    //c1->Print("asdf.gif");
     if (send_plots_to_file)
       c1->SaveAs("pictures/cfeb_rx_clock_delay.gif");
     break;
@@ -3382,10 +3493,10 @@ void display_graph() {
     //-----------------------------------------------------------------------
     TCanvas *c2 = new TCanvas("c2","Delay Graph",200,10,600,400);
     //
-    x2[0] = y2[0] = 0;
-    x2[1] = y2[1] = 13;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(y2[1] - y2[0]) + 1;
+    x2[0] = y2[0] = -0.5;
+    x2[1] = y2[1] = 12.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
 
     TH2F *h2 = new TH2F("h2","ALCT tx clock delay",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     //
@@ -3423,7 +3534,7 @@ void display_graph() {
     //-----------------------------------------------------------------------------
     TCanvas *c3 = new TCanvas("c3","Delay Graph",200,10,600,400);
     c3->Divide(2,1);
-    TH2F *h3 = new TH2F("h3","Number of chambers for each delay",85,0,85,85,0,85);
+    TH2F *h3 = new TH2F("h3","Number of chambers for each delay",65,20,65,65,0,65);
     TGraph *graph3 = new TGraph(468);
     //-----------------------------------------------------------------------------
     for (z_side = side[0]; z_side <= side[1]; z_side++) {
@@ -3431,8 +3542,8 @@ void display_graph() {
 	for (y = chamber_limit[0][z][0]; y <= chamber_limit[1][z][0]; y++) { //n number
 	  for (x = chamber_limit[0][z][y]; x <= chamber_limit[1][z][y]; x++) { //chamber number    
 	    //    if (ME[z_side][z][y][x].has_measured_values == true) {
-	      graph3->SetPoint(temp, ME[z_side][z][y][x].cfeb_tmb_skew_delay, ME[z_side][z][y][x].alct_skewclear_delay);
-	      h3->Fill(ME[z_side][z][y][x].cfeb_tmb_skew_delay, ME[z_side][z][y][x].alct_skewclear_delay);
+	      graph3->SetPoint(temp, ME[z_side][z][y][x].clct_skewclear_delay, ME[z_side][z][y][x].alct_skewclear_delay);
+	      h3->Fill(ME[z_side][z][y][x].clct_skewclear_delay, ME[z_side][z][y][x].alct_skewclear_delay);
 	      temp++;
 	      // }
 	  }
@@ -3440,15 +3551,15 @@ void display_graph() {
       }
     }
     //-------------------------------------------------
-    x2[0] = y2[0] = 0;
+    x2[0] = y2[0] = 20;
     x2[1] = y2[1] = 85;
     TGraph *graph_line3 = new TGraph(2,x2,y2);
     //-------------------------------------------------
     graph3->SetMarkerStyle(8);
     graph3->SetMarkerColor(4);
-    graph_line3->SetTitle("alct_skewclear_delay to cfeb_tmb_skew_delay");
-    graph_line3->GetXaxis()->SetTitle("cfeb_tmb_skew_delay");
-    graph_line3->GetYaxis()->SetTitle("alct_skewclear_delay");
+    graph_line3->SetTitle("alct_skewclear_delay to clct_skewclear_delay");
+    graph_line3->GetXaxis()->SetTitle("clct_skewclear_delay (ns)");
+    graph_line3->GetYaxis()->SetTitle("alct_skewclear_delay (ns)");
     //-------------------------------------------------
     c3->cd(1);
     graph_line3->Draw("AL");
@@ -3459,6 +3570,8 @@ void display_graph() {
     graph_line3->Draw("");
     //-------------------------------------------------
     c3->Update();
+    if (send_plots_to_file)
+      c3->SaveAs("pictures/cfeb_vs_alct_skewclear.gif");
     break;
     //
   case 4:
@@ -3467,10 +3580,10 @@ void display_graph() {
     //-------------------------------------------------------------------------
     TCanvas *c4 = new TCanvas("c4","Delay Graph",200,10,600,400);
     //
-    x2[0] = y2[0] = 0;
-    x2[1] = y2[1] = 13;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(y2[1] - y2[0]) + 1;
+    x2[0] = y2[0] = -0.5;
+    x2[1] = y2[1] = 12.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
     TH2F *h4 = new TH2F("h4","ALCT rx clock delay",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     //
     TGraph *graph4 = new TGraph(number_of_chambers_of_interest);
@@ -3501,7 +3614,7 @@ void display_graph() {
       c4->SaveAs("pictures/alct_rx_clock_delay.gif");
     break;
     //
-  case 5: 
+  case 5: //This is a listing of chamber parameters, nothing to plot.
     break;
     //
   case 6:
@@ -3527,15 +3640,15 @@ void display_graph() {
       }
     }
     //--------------------------------------------------
-    x2[0] =-3; 
-    y2[0] = 0;
-    x2[1] = 12;
-    y2[1] = 15;
+    x2[0] =-2.5; 
+    y2[0] =-0.5;
+    x2[1] = 12.5;
+    y2[1] = 14.5;
     TGraph *graphf = new TGraph(2, x2, y2);
     //-------------------------------------------------
-    x2[0] = 9.5; 
-    y2[0] = 0;
-    x2[1] = 12;
+    x2[0] = 8.5; 
+    y2[0] = -0.5;
+    x2[1] = 12.5;
     y2[1] = 3.5;;
     TGraph *graphf2 = new TGraph(2, x2, y2);
     //-------------------------------------------------
@@ -3556,6 +3669,8 @@ void display_graph() {
     graphf->Draw("");
     //------------------------------------------------
     c6->Update();
+    if (send_plots_to_file)
+      c6->SaveAs("pictures/alct_meas_tx_vs_rx_delays.gif");
     break;
   case 7:
     TCanvas *c7 = new TCanvas("c7","Delay Graph",200,10,600,400);
@@ -3611,14 +3726,22 @@ void display_graph() {
     c7->cd(4);
     graph7c->Draw("AP");
     c7->Update(); 
+    if (send_plots_to_file)
+      c7->SaveAs("pictures/match_trig_alct_delay_contributions.gif");
     break;
   case 8:
     TH2F *old_object8 = (TH2F*) gROOT->FindObject("h8");
     if (old_object8) old_object8->Delete();
     //-----------------------------------------------------------------------
     TCanvas *c8 = new TCanvas("c8","Delay Graph",200,10,600,400);
-    c8->Divide(2,1);
-    TH2F *h8 = new TH2F("h8","Chamber Distribution",2,0,2,2,0,2);
+    //c8->Divide(2,1);
+    x2[0] = -1.5;
+    y2[0] = -1.5;
+    x2[1] =  3.5;
+    y2[1] =  3.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
+    TH2F *h8 = new TH2F("h8","Chamber Distribution",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     TGraph *graph8 = new TGraph(number_of_chambers_of_interest); 
     //---------------------------------------------------------------------------
     for (z_side = side[0]; z_side <= side[1]; z_side++) {    
@@ -3635,25 +3758,30 @@ void display_graph() {
       }
     }
     //----------------------------------------------
-    x2[0] = y2[0] = 0;
-    x2[1] = y2[1] = 2;
-    TGraph *graph_line8 = new TGraph(2, x2, y2); 
+    //x2[0] = y2[0] = -1.5;
+    //x2[1] = y2[1] =  3.5;
+    //TGraph *graph_line8 = new TGraph(2, x2, y2); 
     //----------------------------------------------
-    graph8->SetMarkerStyle(8);
-    graph8->SetMarkerColor(4);
-    graph_line8->SetTitle("CFEB Cable Delay");
-    graph_line8->GetYaxis()->SetTitle("predicted_cfeb_cable_delay");
-    graph_line8->GetXaxis()->SetTitle("cfeb_cable_delay");
+    //graph8->SetMarkerStyle(8);
+    //graph8->SetMarkerColor(4);
+    //graph_line8->SetTitle("CFEB Cable Delay");
+    //graph_line8->GetXaxis()->SetTitle("predicted_cfeb_cable_delay");
+    //graph_line8->GetYaxis()->SetTitle("set_cfeb_cable_delay");
     //-----------------------------------------------
-    c8->cd(1);
-    graph_line8->Draw("AL");
-    graph8->Draw("P");
+    //c8->cd(1);
+    //graph_line8->Draw("AL");
+    //graph8->Draw("P");
     //-----------------------------------------------
-    c8->cd(2);
+    //c8->cd(2);
+    h8->GetXaxis()->SetTitle("predicted_cfeb_cable_delay");
+    h8->GetYaxis()->SetTitle("set_cfeb_cable_delay");
     h8->Draw("BOX");
-    graph_line8->Draw();
+    TGraph *graph_line8 = new TGraph(2, x2, y2); 
+    graph_line8->Draw("L");
     //-----------------------------------------------
     c8->Update();
+    if (send_plots_to_file)
+      c8->SaveAs("pictures/cfeb_cable_delay_dmb.gif");
     break;
  case 9:
     TH2F *old_object9 = (TH2F*) gROOT->FindObject("h9");
@@ -3661,12 +3789,12 @@ void display_graph() {
     //-------------------------------------------------------------------------------
     TCanvas *c9 = new TCanvas("c9","Delay Graph",200,10,600,400);
     //    c9->Divide(2,1);
-    x2[0] = 0;
-    y2[0] = 0;
-    x2[1] = 5;
-    y2[1] = 5;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(y2[1] - y2[0]) + 1;
+    x2[0] = -0.5;
+    y2[0] = -0.5;
+    x2[1] =  5.5;
+    y2[1] =  5.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
     //
     TH2F *h9 = new TH2F("h9","ALCT DAV cable delay",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     TGraph *graph9 = new TGraph(number_of_chambers_of_interest);
@@ -3685,8 +3813,6 @@ void display_graph() {
       }
     }
     //------------------------------------------------
-  
-    //-----------------------------------------------
     //    graph9->SetMarkerStyle(8);
     //    graph9->SetMarkerColor(4);
     //    graph_line9->SetTitle("Predicted to Measured alct_dav_cable_delay");
@@ -3712,12 +3838,12 @@ void display_graph() {
     //------------------------------------------------------------------------------
     TCanvas *c10 = new TCanvas("c10","Delay Graph",200,10,600,400);
     //    c10->Divide(2,1);
-    x2[0] = 0;
-    y2[0] = 0;
-    x2[1] = 3;
-    y2[1] = 3;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(y2[1] - y2[0]) + 1;
+    x2[0] = -1.5;
+    y2[0] = -1.5;
+    x2[1] =  3.5;
+    y2[1] =  3.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
     //
     TH2F *h10 = new TH2F("h10","CFEB DAV cable delay",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     TGraph *graph10 = new TGraph(number_of_chambers_of_interest);
@@ -3824,7 +3950,9 @@ void display_graph() {
     // graph11->Draw("APL");
     // c11->Update();
     
-    break;
+    if (send_plots_to_file)
+      c11->SaveAs("pictures/afeb_fine_delays.gif");
+   break;
   case 12:
     TH2F *old_object12 = (TH2F*) gROOT->FindObject("h12");
     if (old_object12) old_object12->Delete();
@@ -3835,8 +3963,8 @@ void display_graph() {
     y2[0] = 0;
     x2[1] = 11;
     y2[1] = 11;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(y2[1] - y2[0]) + 1;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
     //
     TH2F *h12 = new TH2F("h12","ALCT delay to match CLCT",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     TGraph *graph12 = new TGraph(number_of_chambers_of_interest);
@@ -3945,10 +4073,10 @@ void display_graph() {
     //------------------------------------------------------------------------------
     TCanvas *c13 = new TCanvas("c1","Delay Graph",200,10,600,400);
     //    c13->Divide(2,1);
-    x2[0] = y2[0] = 0;
-    x2[1] = y2[1] = 7;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(x2[1] - x2[0]) + 1;
+    x2[0] = y2[0] = -0.5;
+    x2[1] = y2[1] =  7.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(x2[1] - x2[0]);
     //
     TH2F *h13 = new TH2F("h13","AFF-L1A cable delay",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     TGraph *graph13 = new TGraph(number_of_chambers_of_interest); 
@@ -3992,10 +4120,10 @@ void display_graph() {
     //------------------------------------------------------------------------------
     TCanvas *c14 = new TCanvas("c1","Delay Graph",200,10,600,400);
     //    c14->Divide(2,1);
-    x2[0] = y2[0] = 132;
-    x2[1] = y2[1] = 138;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(y2[1] - y2[0]) + 1;
+    x2[0] = y2[0] = 138.5;
+    x2[1] = y2[1] = 144.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
     TH2F *h14 = new TH2F("h14","ALCT L1A delay",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     TGraph *graph14 = new TGraph(number_of_chambers_of_interest); 
     //-------------------------------------------------------------------------------
@@ -4029,10 +4157,18 @@ void display_graph() {
     //------------------------------------------------------------------------------
     TCanvas *c15 = new TCanvas("c15","Delay Graph",200,10,600,400);
     //
-    x2[0] = y2[0] = 122;
-    x2[1] = y2[1] = 130;
-    nbinsx = int(x2[1] - x2[0]) + 1;
-    nbinsy = int(y2[1] - y2[0]) + 1;
+    x2[0] = y2[0] = 119.5;
+    x2[1] = y2[1] = 124.5;
+    nbinsx = int(x2[1] - x2[0]);
+    nbinsy = int(y2[1] - y2[0]);
+    //JH: option to plot difference meas-pred versus various things such as Skewclear lengths (ns)
+    //x2[0] = 25.;
+    //y2[0] = -3.;
+    //x2[1] = 85.;
+    //y2[1] =  3.;
+    //nbinsx = 60;
+    //nbinsy = 30;
+
     TH2F *h15 = new TH2F("h15","TMB L1A delay",nbinsx,x2[0],x2[1],nbinsy,y2[0],y2[1]);
     //
     TGraph *graph15 = new TGraph(number_of_chambers_of_interest); 
@@ -4042,6 +4178,10 @@ void display_graph() {
 	for (y = chamber_limit[0][z][0]; y <= chamber_limit[1][z][0]; y++) {
 	  for (x = chamber_limit[0][z][y]; x <= chamber_limit[1][z][y]; x++) {    
 	    if (ME[z_side][z][y][x].has_measured_values == true) {
+	      //graph15->SetPoint(temp, ME[z_side][z][y][x].clct_skewclear_delay,
+	      //		ME[z_side][z][y][x].tmb_l1a_delay-ME[z_side][z][y][x].predicted_tmb_l1a_delay); 
+	      // h15->Fill(ME[z_side][z][y][x].clct_skewclear_delay,
+	      //		ME[z_side][z][y][x].tmb_l1a_delay-ME[z_side][z][y][x].predicted_tmb_l1a_delay); 
 	      graph15->SetPoint(temp, ME[z_side][z][y][x].predicted_tmb_l1a_delay, ME[z_side][z][y][x].tmb_l1a_delay);
 	      h15->Fill(ME[z_side][z][y][x].predicted_tmb_l1a_delay, ME[z_side][z][y][x].tmb_l1a_delay);
 	      temp++;
@@ -4050,6 +4190,9 @@ void display_graph() {
 	}
       }
     }
+    //JH option:
+    //h15->GetXaxis()->SetTitle("clct_skewclear_delay (ns)");
+    //h15->GetYaxis()->SetTitle("tmb_l1a_delay (meas-pred) (bx)");
     h15->GetXaxis()->SetTitle("predicted values");
     h15->GetYaxis()->SetTitle("measured values");
     h15->Draw("BOX");
@@ -4096,7 +4239,8 @@ void display_graph() {
     graph_line16->GetYaxis()->SetTitle("measured_mpc_tx_delay");
     //------------------------------------------------------
     c16->cd(1);
-    graph_line->Draw("AL");
+    graph_line16->Draw("AL");
+    //JH   graph_line->Draw("AL");
     graph16->Draw("P");
     //-----------------------------------------------------
     c16->cd(2);
@@ -4104,6 +4248,8 @@ void display_graph() {
     graph_line16->Draw("");
     //-----------------------------------------------------
     c16->Update();
+    if (send_plots_to_file)
+      c16->SaveAs("pictures/mpc_tx_delay.gif");
     break;
  case 17:
     TH2F *old_object17 = (TH2F*) gROOT->FindObject("h17");
@@ -4111,7 +4257,7 @@ void display_graph() {
     //------------------------------------------------------------------------------
     TCanvas *c17 = new TCanvas("c17","Delay Graph",200,10,600,400);
     c17->Divide(2,1);
-    TH2F *h17 = new TH2F("h17","Number of chambers for each delay",10,0,10,10,0,10);
+    TH2F *h17 = new TH2F("h17","Number of chambers for each delay",5,5,10,5,5,10);
     TGraph *graph17 = new TGraph(number_of_chambers_of_interest); 
     //-------------------------------------------------------------------------------
     for (z_side = side[0]; z_side <= side[1]; z_side++) {    
@@ -4128,14 +4274,14 @@ void display_graph() {
       }
     }
     //------------------------------------------------------
-    x2[0] = y2[0] = 0;
+    x2[0] = y2[0] = 5;
     x2[1] = y2[1] = 10;
     TGraph *graph_line17 = new TGraph(2, x2, y2); 
     //-----------------------------------------------------
     graph17->SetMarkerStyle(8);
     graph17->SetMarkerColor(4);
     graph_line17->SetTitle("mpc_rx_delay");
-    graph_line17->GetXaxis()->SetTitle("predictedmpc_rx_delay");
+    graph_line17->GetXaxis()->SetTitle("predicted_mpc_rx_delay");
     graph_line17->GetYaxis()->SetTitle("measured_mpc_rx_delay");
     //------------------------------------------------------
     c17->cd(1);
@@ -4147,6 +4293,8 @@ void display_graph() {
     graph_line17->Draw("");
     //-----------------------------------------------------
     c17->Update();
+    if (send_plots_to_file)
+      c17->SaveAs("pictures/mpc_rx_delay.gif");
     break;
     
   default:
@@ -4201,7 +4349,7 @@ void display_data() {
 	    case (2): 
 	      if (display_text == 1) {
 		cout << "alct_tx_clock_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }
 	      cout << "ME" << cz_side  << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].alct_tx_clock_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_alct_tx_clock_delay << "     |      " 
@@ -4209,16 +4357,16 @@ void display_data() {
 	      break;
 	    case (3):
 	      if (display_text == 1) {
-		cout << "alct_skewclear_delay to cfeb_tmb_skew_delay : " << endl;
+		cout << "alct_skewclear_delay to clct_skewclear_delay : " << endl;
 		cout << "            |    ALCT    |     CFEB    |" << endl;
 	      }
 	      cout << "ME" << cz_side  << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(5) << ME[z_side][z][y][x].alct_skewclear_delay
-		   << "   |     " << setw(5) <<  ME[z_side][z][y][x].cfeb_tmb_skew_delay << "   |" << endl;
+		   << "   |     " << setw(5) <<  ME[z_side][z][y][x].clct_skewclear_delay << "   |" << endl;
 	      break;
 	    case (4):
 	      if (display_text == 1) {
 		cout << "alct_rx_clock_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].alct_rx_clock_delay << "     |     "  
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_alct_rx_clock_delay << "     |      " 
@@ -4227,8 +4375,8 @@ void display_data() {
 	    case (5):
 	      cout << "ME" << cz_side << z << "/" << y << "/" << x << " : " << endl;
 	      cout << "     alct_skewclear_delay (ns)          |          " << setw(5) << ME[z_side][z][y][x].alct_skewclear_delay << "           |" << endl;
-	      cout << "     cfeb_tmb_skew_delay  (ns)          |          " << setw(5) << ME[z_side][z][y][x].cfeb_tmb_skew_delay << "           |" <<  endl;
-	      cout << "                                        |  Measured  |  Predicted  |Out Of Thr |" << endl;
+	      cout << "     clct_skewclear_delay  (ns)          |          " << setw(5) << ME[z_side][z][y][x].clct_skewclear_delay << "           |" <<  endl;
+	      cout << "                                        |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      cout << "     comp_timing                        |    " << setw(3) << ME[z_side][z][y][x].comp_timing << "     |     " 
 		   << setw(3) << comp_timing << "     |" << endl;
 	      cout << "     alct_drift_delay                   |    " << setw(3) << ME[z_side][z][y][x].alct_drift_delay << "     |     " 
@@ -4325,7 +4473,7 @@ void display_data() {
 	    case (8):
 	      if (display_text == 1) {
 		cout << "cfeb_cable_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }	  
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].cfeb_cable_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_cfeb_cable_delay << "     |      " 
@@ -4335,7 +4483,7 @@ void display_data() {
 	    case (9):
 	      if (display_text == 1) {
 		cout << "alct_dav_cable_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].alct_dav_cable_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_alct_dav_cable_delay << "     |      " 
@@ -4345,7 +4493,7 @@ void display_data() {
 	    case (10):
 	      if (display_text == 1) {
 		cout << "cfeb_dav_cable_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].cfeb_dav_cable_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_cfeb_dav_cable_delay << "     |      " 
@@ -4361,7 +4509,7 @@ void display_data() {
 	    case (12):
 	      if (display_text == 1) {
 		cout << "match_trig_alct_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].match_trig_alct_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_match_trig_alct_delay << "     |      " 
@@ -4370,7 +4518,7 @@ void display_data() {
 	    case (13):
 	      if (display_text == 1) {
 		cout << "tmb_lct_cable_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }	  
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].tmb_lct_cable_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_tmb_lct_cable_delay << "     |      " 
@@ -4379,7 +4527,7 @@ void display_data() {
 	    case (14):
 	      if (display_text == 1) {
 		cout << "alct_l1a_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }	  
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].alct_l1a_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_alct_l1a_delay << "     |      " 
@@ -4388,7 +4536,7 @@ void display_data() {
 	    case (15):
 	      if (display_text == 1) {
 		cout << "tmb_l1a_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].tmb_l1a_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_tmb_l1a_delay << "     |      " 
@@ -4397,7 +4545,7 @@ void display_data() {
 	    case (16):
 	      if (display_text == 1) {
 		cout << "mpc_tx_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].mpc_tx_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_mpc_tx_delay << "     |      " 
@@ -4406,7 +4554,7 @@ void display_data() {
 	    case (17):
 	      if (display_text == 1) {
 		cout << "mpc_rx_delay : " << endl;
-		cout << "            |  Measured  |  Predicted  |Out Of Thr |" << endl;
+		cout << "            |  Measured  |  Predicted  | Out Of Thr  |" << endl;
 	      }
 	      cout << "ME" << cz_side << z << "/" << y << "/" << setw(2) << x << " : |    " << setw(3) << ME[z_side][z][y][x].mpc_rx_delay << "     |     " 
 		   << setw(3) <<  ME[z_side][z][y][x].predicted_mpc_rx_delay << "     |      " 
@@ -4455,7 +4603,7 @@ void select_chamber() {
     number_of_chambers_of_interest = 0;
     
     
-    cout << "Please enter the chamber number you are interested in (Use the form ME(+,-)_/_/_)." << endl;
+    cout << "Please enter the desired chambers, e.g. ME+1/2/4 (one) or MExX/X/X (all):" << endl;
     cout << "Enter X's to see all chambers :" << endl << endl;
     cout << "===> ME"; 
     cin >> temp;
@@ -4487,8 +4635,10 @@ void select_chamber() {
 	chamber_limit[1][0][0] = c[0];
 	cout << endl << endl << "You have selected ME" << temp[0] << c[0];
       }
-      else
+      else {
 	good_value = 0;
+	cout << "JH DEBUG fail test 1" << endl;
+      }
     }
     
     if ((temp[3] == 'X') || (temp[3] == 'x')) {
@@ -4501,8 +4651,10 @@ void select_chamber() {
 	  chamber_limit[0][z][0] = c[1];
 	  chamber_limit[1][z][0] = c[1];
 	}
-	else
+	else {
 	  good_value = 0;
+	  cout << "JH DEBUG fail test 2" << endl;
+	}
       }
       if (good_value == 1)
 	cout << "/" << c[1];
@@ -4519,8 +4671,10 @@ void select_chamber() {
 	    chamber_limit[0][z][y] = c[2];
 	    chamber_limit[1][z][y] = c[2];
 	  }
-	  else
+	  else {
 	    good_value = 0;
+	    cout << "JH DEBUG fail test 3" << endl;
+	  }
 	}
       }
       if (good_value == 1)
@@ -4649,7 +4803,7 @@ void output_data_to_file() {
       out_file << "Chamber                  " << "\t\t";
       break;
     case (2):
-      out_file << "cfeb_tmb_skew_delay" << "\t\t";
+      out_file << "clct_skewclear_delay" << "\t\t";
       break;
     case (3):
       out_file << "alct_skewclear_delay" << "\t\t";
@@ -4708,7 +4862,7 @@ void output_data_to_file() {
 	      out_file << "ME" << cz_side << z << "/" << y << "/" << x << "\t";
 	      break;
 	    case (2):
-	      out_file << ME[z_side][z][y][x].cfeb_tmb_skew_delay << "\t";
+	      out_file << ME[z_side][z][y][x].clct_skewclear_delay << "\t";
 	      break;
 	    case (3):
 	      out_file << ME[z_side][z][y][x].alct_skewclear_delay << "\t";
