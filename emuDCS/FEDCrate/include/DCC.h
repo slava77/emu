@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 3.22 2008/10/09 11:21:19 paste Exp $
+* $Id: DCC.h,v 3.23 2008/10/22 20:23:57 paste Exp $
 *
 * $Log: DCC.h,v $
+* Revision 3.23  2008/10/22 20:23:57  paste
+* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
+*
 * Revision 3.22  2008/10/09 11:21:19  paste
 * Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
 *
@@ -53,6 +56,19 @@ namespace emu {
 
 			virtual ~DCC();
 
+			//////////// By request of Jianhui, ported from old VMEController
+			void devdo(enum DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
+			void dcc(const char *cmd,char *rcv);
+			void sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
+			void RestoreIdle();
+			void scan(int reg,const char *snd,int cnt,char *rcv,int ird);
+			void RestoreIdle_reset();
+			void scan_reset(int reg,const char *snd, int cnt, char *rcv,int ird);
+			void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
+			int CAEN_read(unsigned long Address,unsigned short int *data);
+			int CAEN_write(unsigned long Address,unsigned short int *data);
+			int udelay(long int itim);
+
 			/** @return the type of board this is, useful for dynamic casting.
 			 *
 			 * @deprecated Not actually used any more?
@@ -67,8 +83,7 @@ namespace emu {
 			**/
 			void configure();
 		
-			// DCC commands
-			/*
+			// DCC commands, back at the request of Jianhui
 			unsigned long int inprom_userid();
 			unsigned long int mprom_userid();
 			unsigned long int inprom_chipid();
@@ -89,12 +104,11 @@ namespace emu {
 			unsigned short int  mctrl_rd_fifoinuse();
 			unsigned short int  mctrl_rd_ttccmd();
 			void mctrl_ttccmd(unsigned short int ctcc);
-			*/
 		
 			// EPROM reprogramming (EXPERTS ONLY !)
-			/* void hdrst_main(void); */
-			/* void hdrst_in(void); */
-			/* void epromload(char *design, enum DEVTYPE devnum, char *downfile, int writ); */
+			void hdrst_main(void);
+			void hdrst_in(void);
+			void epromload(const char *design, enum DEVTYPE devnum, const char *downfile, int writ);
 		
 			// PGK Simplified DCC commands
 			/** Hard reset the crate through a TTC-override command. **/
@@ -269,8 +283,36 @@ namespace emu {
 			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, char myReg, unsigned int nBits, std::vector<uint16_t>)
 				throw (FEDException);
 			
-			/* void Parse(char *buf, int *Count, char **Word); */
+			void Parse(char *buf, int *Count, char **Word);
 			/* void shuffle(char *a, char *b); */
+
+		private:
+			unsigned long vmeadd;
+			unsigned long vmeadd_tmp;
+			unsigned long add_i,add_d,add_dh,add_ds,add_dt,add_sw,add_sr,add_rst,add_r;
+			unsigned long add_reset;
+			unsigned long add_control_r;
+			unsigned long add_dcc_r,add_dcc_w;
+			unsigned long add_adcr,add_adcw,add_adcrbb,add_adcws,add_adcrs;
+			
+			unsigned long msk00;
+			unsigned long msk02;
+			unsigned long msk03;
+			unsigned long msk0f;
+			
+			unsigned long msk_clr;
+			unsigned long msk_rst;
+			unsigned long msk_i;
+			unsigned long msk_d;
+			unsigned long msk_dh;
+			unsigned long msk_ds;
+			unsigned long msk_dt;
+			unsigned long msk_sw;
+			unsigned long msk_sr;
+			unsigned long msk_r;
+			unsigned long msk_control_r;
+			unsigned long msk_dcc_r;
+			unsigned long msk_dcc_w;
 		};
 
 	}

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 3.52 2008/10/04 18:44:04 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 3.53 2008/10/22 20:23:57 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.h,v $
+* Revision 3.53  2008/10/22 20:23:57  paste
+* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
+*
 * Revision 3.52  2008/10/04 18:44:04  paste
 * Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
 *
@@ -202,52 +205,50 @@ public:
 		throw (xgi::exception::Exception);
 
 	/** Page listing the DCC firmware broadcast options. **/
-	void DCCBroadcast(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
+	//void DCCBroadcast(xgi::Input *in, xgi::Output *out)
+	//	throw (xgi::exception::Exception);
 	
 	/** Uploads the broadcastable firmware from the client computer to the
 	*	server computer.
 	**/
-	void DCCLoadBroadcast(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
+	//void DCCLoadBroadcast(xgi::Input *in, xgi::Output *out)
+	//	throw (xgi::exception::Exception);
 	
 	/** Broadcasts firmware to all DCCs simultaneously. **/
-	void DCCSendBroadcast(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
+	//void DCCSendBroadcast(xgi::Input *in, xgi::Output *out)
+	//	throw (xgi::exception::Exception);
 
 	/** Page for DCC firmware loading/checking. **/
-	/*
 	void DCCFirmware(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
-	*/
 
 	/** Routine for actually loading the DCC firmware. **/
-	/*
 	void DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
-	*/
 
 	/** Debugging routine for XML configuration file loading (?) **/
 	void LoadXMLconf(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
 	/** Page for reading general debug information from the DCC. **/
-	void DCCDebug(xgi::Input * in, xgi::Output * out )
-		throw (xgi::exception::Exception);
+	//void DCCDebug(xgi::Input * in, xgi::Output * out )
+	//	throw (xgi::exception::Exception);
 
 	/** Page for reading and setting expert registers on the DCC. **/
-	void DCCExpert(xgi::Input * in, xgi::Output * out )
+	//void DCCExpert(xgi::Input * in, xgi::Output * out )
+	//	throw (xgi::exception::Exception);
+
+	/** Page for sending commands to the DCC. **/
+	void DCCCommands(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
 
 	/** Load data into the DCC from text (?) **/
 	void DCCTextLoad(xgi::Input * in, xgi::Output * out )
-		throw (xgi::exception::Exception);
+		throw (xgi::exception::Exception);	
 
 	/** Hard-reset the DCC to reset and load firmware. **/
-	/*
 	void DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		throw (xgi::exception::Exception);
-	*/
 
 	/** Live DDU voltage monitoring page. **/
 	void DDUVoltMon(xgi::Input * in, xgi::Output * out )

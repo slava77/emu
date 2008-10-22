@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.23 2008/10/15 00:46:56 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.24 2008/10/22 20:23:58 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.24  2008/10/22 20:23:58  paste
+* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
+*
 * Revision 1.23  2008/10/15 00:46:56  paste
 * Attempt to solve certain crashes on Enable/Disable commands.
 *
@@ -365,7 +368,7 @@ void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xg
 	float ringSpacing = 0.05;
 	
 	// Draw the canvas
-	*out << "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" << (4 * stationRadius * 2 + 5 * stationSpacing) << "\" height=\"" << (4 * stationRadius + 3 * stationSpacing) << "\" style=\"margin: 5px auto 5px auto;\">" << std::endl;
+	*out << "<!--svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" << (4 * stationRadius * 2 + 5 * stationSpacing) << "\" height=\"" << (4 * stationRadius + 3 * stationSpacing) << "\" style=\"margin: 5px auto 5px auto;\">" << std::endl;
 	
 	// Loop over endcaps
 	for (unsigned int iEndcap = 1; iEndcap <= 2; iEndcap++) {
@@ -461,7 +464,7 @@ void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xg
 		
 	}
 	
-	*out << "</svg>" << std::endl;
+	*out << "</svg-->" << std::endl;
 
 	*out << Footer();
 

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.49 2008/10/15 00:46:56 paste Exp $
+* $Id: EmuFCrate.cc,v 3.50 2008/10/22 20:23:58 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.50  2008/10/22 20:23:58  paste
+* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
+*
 * Revision 3.49  2008/10/15 00:46:56  paste
 * Attempt to solve certain crashes on Enable/Disable commands.
 *
@@ -148,6 +151,9 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	getApplicationInfoSpace()->fireItemAvailable("ttsSlot",  &ttsSlot_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsBits",  &ttsBits_);
 	getApplicationInfoSpace()->fireItemAvailable("dccInOut", &dccInOut_);
+	getApplicationInfoSpace()->fireItemAvailable("dduNumbers", &dduNumbers_);
+	getApplicationInfoSpace()->fireItemAvailable("dccNumbers", &dccNumbers_);
+	getApplicationInfoSpace()->fireItemAvailable("cscNumbers", &cscNumbers_);
 	getApplicationInfoSpace()->fireItemAvailable("errorChambers", &errorChambers_);
 	getApplicationInfoSpace()->fireItemAvailable("endcap", &endcap_);
 	getApplicationInfoSpace()->fireItemAvailable("BHandles", &BHandles_);

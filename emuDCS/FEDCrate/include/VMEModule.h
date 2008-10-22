@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.18 2008/10/01 07:49:38 paste Exp $
+* $Id: VMEModule.h,v 3.19 2008/10/22 20:23:57 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.19  2008/10/22 20:23:57  paste
+* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
+*
 * Revision 3.18  2008/10/01 07:49:38  paste
 * Removed busyloop waiting in favor of less accurate but more resource-friendly usleep.
 *
@@ -100,6 +103,7 @@ namespace emu {
 			*/
 			// Phil's new commands
 			inline void setBHandle(int16_t myHandle) { BHandle_ = myHandle; }
+			inline int16_t getBHandle() { return BHandle_; }
 
 			/** Parses and loads a given .svf file into a given PROM.
 			 *

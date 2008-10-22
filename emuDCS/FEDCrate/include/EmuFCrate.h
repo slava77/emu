@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.h,v 3.19 2008/10/13 11:56:40 paste Exp $
+* $Id: EmuFCrate.h,v 3.20 2008/10/22 20:23:57 paste Exp $
 *
 * $Log: EmuFCrate.h,v $
+* Revision 3.20  2008/10/22 20:23:57  paste
+* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
+*
 * Revision 3.19  2008/10/13 11:56:40  paste
 * Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
 *
@@ -124,6 +127,9 @@ private:
 	bool soapLocal_;
 
 	xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > dccInOut_;
+	xdata::Vector<xdata::UnsignedInteger> dduNumbers_;
+	xdata::Vector<xdata::UnsignedInteger> dccNumbers_;
+	xdata::Vector<xdata::UnsignedInteger> cscNumbers_;
 	xdata::soap::Serializer serializer; // This makes SOAP so much easier!
 
 	std::vector<emu::fed::FEDCrate *> crateVector; // Very useful, just like in EFCHD

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.29 2008/10/15 00:46:56 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.30 2008/10/22 20:23:58 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.30  2008/10/22 20:23:58  paste
+* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
+*
 * Revision 3.29  2008/10/15 00:46:56  paste
 * Attempt to solve certain crashes on Enable/Disable commands.
 *
@@ -407,6 +410,22 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		}
 		
 		LOG4CPLUS_INFO(logger, "Logging DDUFPGA diagnostic trap information:" << std::endl << trapStream.str());
+
+		trapInfo = DDUDebugger::INFPGADebugTrap(myDDU->readDebugTrap(INFPGA0), INFPGA0);
+		trapStream.str("");
+		for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+			trapStream << (*iTrap) << std::endl;
+		}
+
+		LOG4CPLUS_INFO(logger, "Logging INFPGA0 diagnostic trap information:" << std::endl << trapStream.str());
+
+		trapInfo = DDUDebugger::INFPGADebugTrap(myDDU->readDebugTrap(INFPGA1), INFPGA1);
+		trapStream.str("");
+		for (std::vector<std::string>::iterator iTrap = trapInfo.begin(); iTrap != trapInfo.end(); iTrap++) {
+			trapStream << (*iTrap) << std::endl;
+		}
+		
+		LOG4CPLUS_INFO(logger, "Logging INFPGA1 diagnostic trap information:" << std::endl << trapStream.str());
 
 		// Record the error in an accessable history of errors.
 		lastError[myDDU] = (cscStatus | advStatus);
