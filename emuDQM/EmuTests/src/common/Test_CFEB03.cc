@@ -709,7 +709,8 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		  }
 		*/
 		r06.content[layer-1][icfeb*16+strip-1]=params(1);
-		r07.content[layer-1][icfeb*16+strip-1]=params(1)*r02.content[layer-1][icfeb*16+strip-1]+params(0);
+		// r07.content[layer-1][icfeb*16+strip-1]=params(1)*r02.content[layer-1][icfeb*16+strip-1]+params(0);
+		r07.content[layer-1][icfeb*16+strip-1]=params(1)*Qcc_peak_time*6.25+params(0);
 		double chisquare=lf->GetChisquare();
 		r08.content[layer-1][icfeb*16+strip-1]=chisquare;
 		// printf("chisquare=%f\n", chisquare);
@@ -741,7 +742,8 @@ void Test_CFEB03::finishCSC(std::string cscID)
 		  }
 		*/
 		r09.content[layer-1][icfeb*16+strip-1]=params(1);
-		r10.content[layer-1][icfeb*16+strip-1]=params(1)*r02.content[layer-1][icfeb*16+strip-1]+params(0);
+		// r10.content[layer-1][icfeb*16+strip-1]=params(1)*r02.content[layer-1][icfeb*16+strip-1]+params(0);
+		r10.content[layer-1][icfeb*16+strip-1]=params(1)*Qcc_peak_time*6.25+params(0);
 		double chisquare=lf->GetChisquare();
 		r11.content[layer-1][icfeb*16+strip-1]=chisquare;
 		// printf("chisquare=%f\n", chisquare);

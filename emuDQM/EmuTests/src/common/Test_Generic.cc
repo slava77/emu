@@ -1105,7 +1105,7 @@ void Test_Generic::finish() {
 	  res = r_itr->second;
 	  csc_fres << "\t['"<< subtestID << "','" << res << "']," << std::endl;
 	  cnv->SetResultCode(res);
-	  if (res > sum_res) sum_res = res;
+	  // if (res > sum_res) sum_res = res;
 	}
 
 	cnv->Draw();
