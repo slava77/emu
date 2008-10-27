@@ -86,6 +86,7 @@ protected:
   xdata::String RATFirmware_[10];
   xdata::String ALCTFirmware_[10];
   xdata::String CFEBFirmware_;
+  xdata::String CFEBVerify_;
   xdata::String VMECCFirmwareDir_; 
   xdata::String VMECCFirmwareVer_; 
   std::string FirmwareDir_ ;
@@ -405,6 +406,7 @@ private:
   void DMBVmeLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CFEBReadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBLoadFirmwareID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBTurnOn(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBPrintCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

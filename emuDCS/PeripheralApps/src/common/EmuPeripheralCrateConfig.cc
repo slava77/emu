@@ -14,6 +14,7 @@
 #include "CCB.h"
 
 const std::string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
+const std::string       CFEB_VERIFY_FILENAME = "cfeb/cfeb_verify.svf";
 //
 const std::string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
 const std::string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
@@ -210,6 +211,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmware, "DMBVmeLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBLoadFirmware, "CFEBLoadFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CFEBReadFirmware, "CFEBReadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBLoadFirmwareID, "CFEBLoadFirmwareID");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBCheckConfiguration, "DMBCheckConfiguration");
   //
@@ -5782,6 +5784,17 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::br();
+
+  std::string CFEBReadFirmware = toolbox::toString("/%s/CFEBReadFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CFEBReadFirmware) << std::endl ;
+  *out << "CFEB to verify (0-4), (-1 == all) : ";
+  *out << cgicc::input().set("type","text").set("value","-1").set("name","DMBNumber") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","CFEB Read Firmware") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br();
   //
   std::string CFEBLoadFirmwareID = toolbox::toString("/%s/CFEBLoadFirmwareID",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CFEBLoadFirmwareID) << std::endl ;
@@ -5985,6 +5998,87 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi:
   }
   ::sleep(1);
   thisCCB->hardReset();
+  //
+  this->DMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  LOG4CPLUS_INFO(getApplicationLogger(),"Started CFEB firmware Verify");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int dmbNumber = -1;
+  //
+  cgicc::form_iterator name2 = cgi.getElement("DMBNumber");
+  //int registerValue = -1;
+  if(name2 != cgi.getElements().end()) {
+    dmbNumber = cgi["DMBNumber"]->getIntegerValue();
+  }
+  //
+  std::cout << "Loading DMBNumber " <<dmbNumber << std::endl ;
+  //*out << "Loading DMBNumber " <<dmbNumber ;
+  //*out << cgicc::br();
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  int mindmb = dmb;
+  int maxdmb = dmb+1;
+  if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each cfeb
+    mindmb = 0;
+    maxdmb = dmbVector.size()-1;
+  }
+  for (dmb=mindmb; dmb<maxdmb; dmb++) {
+    //
+    thisDMB = dmbVector[dmb];
+    //
+    std::cout << "CFEBReadFirmware - DMB " << dmb << std::endl;
+    //
+    thisCCB->hardReset();
+    //
+    if (thisDMB) {
+      //
+      std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
+      //
+      ::sleep(1);
+      //
+      if (dmbNumber == -1 ) {
+	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
+	  std::ostringstream dum;
+	  dum << "Verifying CFEB firmware for DMB=" << dmb << " CFEB="<< i << std::endl;
+	  LOG4CPLUS_INFO(getApplicationLogger(), dum.str());
+	  unsigned short int dword[2];
+	  dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
+	  CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
+	  char * outp=(char *)dword;   // recast dword
+	  thisDMB->epromload_verify(thisCFEBs[i].promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
+	}
+      } else {
+	std::cout << "Verifying CFEB firmware for DMB=" << dmb << " CFEB="<< dmbNumber << std::endl;
+	unsigned short int dword[2];
+	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
+	  if (thisCFEBs[i].number() == dmbNumber ) {
+	    dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
+	    CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
+	    char * outp=(char *)dword;   // recast dword
+	    thisDMB->epromload_verify(thisCFEBs[i].promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
+	  }
+	}
+      }
+    }
+    ::sleep(1);
+    thisCCB->hardReset();
+  }
   //
   this->DMBUtils(in,out);
   //
@@ -11743,6 +11837,8 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
   DMBVmeFirmware_ = DMBVmeFirmware;
   //
   std::string CFEBFirmware = FirmwareDir_+CFEB_FIRMWARE_FILENAME;
+  std::string CFEBVerify = FirmwareDir_+CFEB_VERIFY_FILENAME;
+  CFEBVerify_ = CFEBVerify;
   CFEBFirmware_ = CFEBFirmware;
   //
   //create filename for TMB, ALCT, and RAT firmware based on expected dates...
