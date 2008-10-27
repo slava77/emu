@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.32 2008/09/21 18:26:14 liu Exp $
+// $Id: DAQMB.h,v 3.33 2008/10/27 08:51:51 gujh Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.33  2008/10/27 08:51:51  gujh
+// Put the CFEB PROM firmware readback capability
+//    ---- GU, Oct. 27, 2008
+//
 // Revision 3.32  2008/09/21 18:26:14  liu
 // monitoring update
 //
@@ -353,6 +357,7 @@ public:
   //
   void preamp_initx();
 // DAQMB program proms (electronics experts only)
+  void epromload_verify(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
   void epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
   void epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum, int ipass);
   void epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
