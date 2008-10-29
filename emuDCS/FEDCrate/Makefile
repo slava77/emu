@@ -67,7 +67,7 @@ TestLibraryDirs = \
 	$(XDAQ_ROOT)/emu/cscSV/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib
 
 UserCFlags  = 
-UserCCFlags = -march=nocona -pipe -fomit-frame-pointer -O2 -DOSUcc -fPIC -DLINUX  -s
+UserCCFlags = -pipe -O2 -DOSUcc -fPIC -DLINUX  -s
 //UserDynamicLinkFlags = -l CAENVME
 UserStaticLinkFlags =
 UserExecutableLinkFlags =-D_REENTRAN -pthread

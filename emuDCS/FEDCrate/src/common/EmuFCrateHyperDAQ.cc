@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.55 2008/10/22 20:23:58 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.56 2008/10/29 16:01:44 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.56  2008/10/29 16:01:44  paste
+* Updated interoperability with primative DCC commands, added new xdata variables for future use.
+*
 * Revision 3.55  2008/10/22 20:23:58  paste
 * Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
 *
@@ -1060,7 +1063,7 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 void EmuFCrateHyperDAQ::configurePage(xgi::Input *in, xgi::Output *out )
 	throw (xgi::exception::Exception)
 {
-	std::cout << "--Entering Configure" << std::endl;
+	//std::cout << "--Entering Configure" << std::endl;
 
 	std::string method;
 
@@ -1187,7 +1190,7 @@ void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
-	std::cout << "--Entering setRawConfFile" << std::endl;
+	//std::cout << "--Entering setRawConfFile" << std::endl;
 	try {
 		std::cout << "setRawConfFile" << std::endl;
 
@@ -1218,7 +1221,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 void EmuFCrateHyperDAQ::setConfFile(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
  {
-	std::cout << "--Entering setConfFile" << std::endl;
+	//std::cout << "--Entering setConfFile" << std::endl;
 	try {
 		//
 		cgicc::Cgicc cgi(in);
@@ -1288,7 +1291,7 @@ void EmuFCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out )
 
 
 void EmuFCrateHyperDAQ::Configuring() {
-	std::cout << "--Entering Configuring" << std::endl;
+	//std::cout << "--Entering Configuring" << std::endl;
 /*
 	cgicc::Cgicc cgi(in);
 	const CgiEnvironment& env = cgi.getEnvironment();
@@ -1314,6 +1317,10 @@ void EmuFCrateHyperDAQ::Configuring() {
 
 	std::cout << " setting std::vectors..." << std::endl;
 	crateVector = parser.getCrates();
+
+	// Get the name of this endcap from the parser, too.  This is specified in the XML
+	// for convenience.
+	endcap_ = parser.getName();
 
 	// Check the controller and see if we need to (a) get the BHandle from
 	//  EmuFCrate, or (b) send the BHandle to EmuFCrate.  This is done in
@@ -5842,7 +5849,12 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
 
-
+	// PGK Patented check-for-initialization
+	if (crateVector.size()==0) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
+		return Default(in,out);
+	}
+	
 	// PGK Patented check-for-initialization
 	if (crateVector.size()==0) {
 		LOG4CPLUS_INFO(getApplicationLogger(), "Jumping back to Default for proper initialization...");
@@ -5965,7 +5977,9 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 				*out << cgicc::input().set("type","submit").set("value","Reset MFPGA")<<std::endl;
 			}
 			sprintf(buf,"%d",cgiDCC);
-			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << std::endl;
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","board") << std::endl;
+			sprintf(buf,"%d",cgiCrate);
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","crate") << std::endl;
 			sprintf(buf,"%d",i);
 			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","val") << std::endl;
 			*out << cgicc::form() << std::endl;
@@ -6467,7 +6481,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","6") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6640,7 +6654,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","7") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6792,7 +6806,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6844,7 +6858,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6868,7 +6882,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6892,7 +6906,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6916,7 +6930,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","4") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6952,7 +6966,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","1") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6972,7 +6986,7 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 		.set("value","2") << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
-		.set("name","dcc")
+		.set("name","board")
 		.set("value",dccVal) << std::endl;
 	*out << cgicc::input()
 		.set("type","hidden")
@@ -6988,6 +7002,210 @@ void EmuFCrateHyperDAQ::DCCExpert(xgi::Input * in, xgi::Output * out )
 	*out << Footer() << std::endl;
 }
 */
+
+// As requested by Jianhui
+void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
+	throw (xgi::exception::Exception)
+{
+	printf(" enter: DCC Commands \n");
+	cgicc::Cgicc cgi(in);
+	const cgicc::CgiEnvironment& env = cgi.getEnvironment();
+	std::string crateStr = env.getQueryString();
+	std::cout << crateStr << std::endl;
+
+	// First, I need a crate.
+	std::pair<unsigned int, emu::fed::FEDCrate *> cratePair = getCGICrate(cgi);
+	unsigned int cgiCrate = cratePair.first;
+	emu::fed::FEDCrate *thisCrate = cratePair.second;
+	
+	std::pair<unsigned int, emu::fed::DCC *> boardPair = getCGIBoard<emu::fed::DCC>(cgi);
+	unsigned int cgiDCC = boardPair.first;
+	emu::fed::DCC *thisDCC = boardPair.second;
+	
+	std::cout << "DCC inside " << cgiDCC << std::endl;
+
+	printf(" DCC %d \n",cgiDCC);
+	//thisDCC = dccVector[dcc];
+	printf(" set up web page \n");
+	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+	*out << cgicc::title("DCC Comands Web Form") << std::endl;
+	*out << cgicc::body().set("background","/tmp/bgndcms.jpg");
+	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << std::endl;
+	
+	char buf[300],buf2[300],buf3[300];
+	sprintf(buf,"DCC Commands VME  Slot %d",thisDCC->slot());
+	*out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
+	*out << std::endl;
+	*out << cgicc::legend(buf).set("style","color:blue")  << std::endl;
+	int igu;
+	for(int i=100;i<111;i++){
+		//thisCrate->vmeController()->CAEN_err_reset();
+		sprintf(buf3," ");
+		if(i==100){
+			unsigned short int statush=thisDCC->mctrl_stath();
+			unsigned short int statusl=thisDCC->mctrl_statl();
+			sprintf(buf,"Status:");
+			sprintf(buf2," H: %04X L: %04X ",statush,statusl);
+			
+		}
+		if(i==101){
+			sprintf(buf,"BX Reset:");
+			sprintf(buf2," ");
+		}
+		if(i==102){
+			sprintf(buf,"EVN Reset:");
+			sprintf(buf2," ");
+		}
+		if(i==103){
+			unsigned short int fifouse=thisDCC->mctrl_rd_fifoinuse();
+			sprintf(buf,"Set FIFOs Used:");
+			sprintf(buf2," %04X ",(fifouse&0x7ff));
+			//           sprintf(buf2," ");
+			sprintf(buf3,"<font size=-1> (selects which DDUs must be processed by DCC)</font>");
+		}
+		if(i==104){
+			unsigned short int ttccmd=thisDCC->mctrl_rd_ttccmd();
+			sprintf(buf,"TTC Command:");
+			sprintf(buf2," %04X ",(ttccmd>>2)&0x3f);
+			//           sprintf(buf2," ");
+			sprintf(buf3,"<font size=-1> (only works when TTC fiber input to DCC is disabled)</font>");
+		}
+		if(i==105){
+			unsigned short int fifouse=thisDCC->mctrl_rd_fifoinuse();
+			unsigned short int ttccmd=thisDCC->mctrl_rd_ttccmd();
+			sprintf(buf,"Load L1A:");
+			sprintf(buf2," %02x , %02x",((ttccmd>>9)&0x60)+((fifouse>>11)&0x1f),(ttccmd>>7)&0x7e );
+		}
+		if(i==106){
+			sprintf(buf," Load L1A(no prompt):");
+			sprintf(buf2," ");
+		}
+		
+		if (i==107) {
+			sprintf(buf,"Date Rate Slink0:");
+			unsigned short int status[6];
+			int dr[6];
+			for (igu=0;igu<6;igu++) {
+				status[igu]=thisDCC->mctrl_ratemon(igu);
+				dr[igu]=((status[igu]&0x3fff)<<(((status[igu]>>14)&0x3)*4));
+			}
+			sprintf(buf2," %d  ddu3: %d  ddu13: %d  ddu4: %d  ddu12 %d  ddu5: %d",dr[0],dr[1],dr[2],dr[3],dr[4],dr[5]);
+		}
+		if (i==108) {
+			sprintf(buf,"Date Rate Slink1:");
+			unsigned short int status[6];
+			int dr[6];
+			for (igu=6;igu<12;igu++) {
+				status[igu-6]=thisDCC->mctrl_ratemon(igu);
+				dr[igu-6]=((status[igu-6]&0x3fff)<<(((status[igu-6]>>14)&0x3)*4));
+			}
+			sprintf(buf2," %d  ddu11: %d  ddu6: %d  ddu10: %d  ddu7: %d  ddu9: %d",dr[0],dr[1],dr[2],dr[3],dr[4],dr[5]);
+		}
+		if(i==109){
+			unsigned short int swset=thisDCC->mctrl_swrd();
+			sprintf(buf,"Set switch register:");
+			sprintf(buf2," %04X ",(swset&0xffff));
+			//           sprintf(buf2," ");
+			sprintf(buf3,"<font size=-1> (set the software switch etc)</font>");
+		}
+		if(i==110){
+			unsigned short int fmmset=thisDCC->mctrl_fmmrd();
+			sprintf(buf,"Set FMM register:");
+			sprintf(buf2," %04X ",(fmmset&0xffff));
+			//           sprintf(buf2," ");
+			sprintf(buf3,"<font size=-1> (set the FMM status)</font>");
+		}
+		
+		
+		if((i>100 && i<107)||i==109||i==110) {
+			std::string dcctextload =
+			toolbox::toString("/%s/DCCTextLoad",getApplicationDescriptor()->getURN().c_str());
+			*out << cgicc::form().set("method","GET").set("action",dcctextload) << std::endl;
+			//	   .set("style","margin-bottom: 0")
+		}
+		*out << cgicc::span().set("style","color:black");
+		*out << buf << cgicc::span();
+		//if(thisCrate->vmeController()->CAEN_err()!=0){
+			//*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+		//}else{
+			*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+		//}
+		*out << buf2;
+		*out << cgicc::span();
+		if((i>100&&i<107)||i==109||i==110) {
+			std::string xmltext="";
+			if(i==103) {
+				//int readback=thisDCC->mctrl_rd_fifoinuse();
+				xmltext="ffff";
+				//       xmltext=(readback);
+			}
+			if(i==104) {
+				// int readback2= thisDCC->mctrl_rd_tcccmd();
+				xmltext="ffff";
+				//  xmltext=(readback2);
+			}
+			if (i==109) {
+				xmltext="0000";
+			}
+			if (i==110) {
+				xmltext="0000";
+			}
+			if(i==105)xmltext="2,5";
+			if(i==103|i==104|i==105|i==109|i==110){
+				*out << cgicc::input().set("type","text")
+				.set("name","textdata")
+				.set("size","10")
+				.set("ENCTYPE","multipart/form-data")
+				.set("value",xmltext)
+				.set("style","font-size: 13pt; font-family: arial;")<< std::endl;
+			}
+			*out << cgicc::input().set("type","submit")
+			.set("value","set");
+			sprintf(buf,"%d",cgiDCC);
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","board");
+			sprintf(buf,"%d",cgiCrate);
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","crate");
+			sprintf(buf,"%d",i);
+			*out << cgicc::input().set("type","hidden").set("value",buf).set("name","command");
+			*out << buf3 << cgicc::form() << std::endl;
+		}else{
+			*out << cgicc::br() << std::endl;
+		}
+		if(i==103){
+			*out << "<blockquote><font size=-1 face=arial>";
+			*out << "DCC-FIFO bits map to DDU-Slots" << cgicc::br();
+			*out << " &nbsp &nbsp &nbsp &nbsp b0=Slot3, &nbsp b1=Slot13, &nbsp b2=Slot4, &nbsp b3=Slot12, &nbsp b4=Slot5 &nbsp ---->> Top S-Link" << cgicc::br();
+			*out << " &nbsp &nbsp &nbsp &nbsp b5=Slot11, &nbsp b6=Slot6, &nbsp b7=Slot10, &nbsp b8=Slot7, &nbsp b9=Slot9 &nbsp ---->> Bottom S-Link";
+			*out << "</font></blockquote>" << std::endl;
+		}
+		if(i==104){
+			*out << "<blockquote><font size=-1 face=arial>";
+			*out << "Command Code examples (hex):" << cgicc::br();
+			*out << " &nbsp &nbsp &nbsp &nbsp 3=SyncRst, &nbsp 4=PChardRst, &nbsp 1C=SoftRst, &nbsp 34=DDUhardRst";
+			*out << "</font></blockquote>" << std::endl;
+		}
+		if(i==109){
+			*out << "<blockquote><font size=-1 face=arial>";
+			*out << "bit4 = sw4; bit5 = sw5" << cgicc::br();
+			*out << " &nbsp bit0=0&bit9=1: Enable software switch" << cgicc::br();
+			*out << " &nbsp bitC=1&bitF=0: Set TTCrx NOT ready" << cgicc::br();
+			*out << " &nbsp bitD=1&bitE=0: Ignore SLINK full, &nbsp bitD=0&bitE=1: Ignore SLINK full and Slink_down";
+			*out << "</font></blockquote>" << std::endl;
+		}
+		if(i==110) {
+			*out << "<blockquote><font size=-1 face=arial>";
+			*out << " XOR(bit4,bit5): Enable FMM overwrite";
+			*out << " &nbsp FMM[3:0]=bit[3:0]";
+			*out << "</font></blockquote>" << std::endl;
+		}
+		
+	}
+	
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::body() << std::endl;
+	*out << cgicc::html() << std::endl;
+}
 
 
 void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
@@ -7032,8 +7250,6 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	// If we have a hex number, 0x will prefix it.
 	if (XMLText.substr(0,2) == "0x") {
 		XMLText = XMLText.substr(2);
-		// If we are uploading GbEFIFOThresholds, make sure we skip the first char...
-		if (command == 15) XMLText = XMLText.substr(1);
 		uploadStream << XMLText;
 		uploadStream >> std::hex >> uploadValue;
 	} else {
@@ -7046,13 +7262,14 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 		LOG4CPLUS_ERROR(getApplicationLogger(), "DCCTextLoad does not understand XMLText(" << XMLText << ")");
 		std::stringstream location;
 		location << "crate=" << cgiCrate << "&board=" << cgiDCC;
-		webRedirect(out,"DCCExpert?"+location.str());
+		//webRedirect(out,"DCCExpert?"+location.str());
+		webRedirect(out,"DCCCommands?"+location.str());
 	}
 
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(),"Attempting DCCTextLoad with crate(" << cgiCrate << ") dcc(" << cgiDCC << ") == slot(" << myDCC->slot() << ") command(" << command << ") XMLText(" << XMLText << ") == uploadValue(" << uploadValue << ")");
 
-
+/*
 	switch (command) {
 
 	case (1): // reset bx?
@@ -7088,78 +7305,73 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 		break;
 
 	}
-	
+	*/
+
+
+	if(command==101)myDCC->mctrl_bxr();
+	if(command==102)myDCC->mctrl_evnr();
+	//snd_serial[0]=0;
+	//snd_serial[1]=0;
+	if(command==103){
+		//      sscanf(XMLtext.data(),"%04x",&para_val);
+		std::stringstream test(XMLText);
+		unsigned int para_val = 0;
+		test >> std::hex >> para_val;
+		printf(" mctrl_fifouse send %04x \n",para_val);
+		myDCC->mctrl_fifoinuse(para_val);
+	}
+	if(command==104){
+		//      istd::stringstream test(XMLText);
+		//	test >> hex >> para_val;
+		unsigned int para_val = 0;
+		sscanf(XMLText.data(),"%x",&para_val);
+		printf(" ttc command send %04x \n",para_val);
+		myDCC->mctrl_ttccmd(para_val);
+	}
+	if(command==105){
+		unsigned int rate = 0;
+		unsigned int num = 0;
+		sscanf(XMLText.data(),"%x,%x",&rate,&num);
+		//sscanf(XMLText.data(),"%02hhx%02hhx",&rate,&num);
+		//if(rate>255)rate=255;
+		//if(num>255)num=255;
+		printf(" load L1A send rate:%d num:%d \n",rate,num);
+		myDCC->mctrl_fakeL1A(rate,num);
+	}
+	if(command==106){
+		unsigned short int fifouse=myDCC->mctrl_rd_fifoinuse();
+		unsigned short int ttccmd=myDCC->mctrl_rd_ttccmd();
+		unsigned int rate = ((ttccmd>>9)&0x60)+((fifouse>>11)&0x1f);
+		unsigned int num = (ttccmd>>7)&0x7e;
+		printf(" load (no prompt) L1A send rate:%d num:%d \n",rate,num);
+		myDCC->mctrl_fakeL1A(rate,num);
+	}
+	if(command==109){
+		//      sscanf(XMLText.data(),"%04x",&para_val);
+		std::stringstream test(XMLText);
+		unsigned int para_val;
+		test >> std::hex >> para_val;
+		printf(" Set switch register %04x \n",para_val);
+		myDCC->mctrl_swset(para_val);
+	}
+	if(command==110){
+		//      sscanf(XMLText.data(),"%04x",&para_val);
+		std::stringstream test(XMLText);
+		unsigned int para_val;
+		test >> std::hex >> para_val;
+		printf(" Set FMM register %04x \n",para_val);
+		myDCC->mctrl_fmmset(para_val);
+	}
+
 	std::ostringstream backLocation;
-	backLocation << "DCCExpert?crate=" << cgiCrate << "&board=" << cgiDCC;
+	//backLocation << "DCCExpert?crate=" << cgiCrate << "&board=" << cgiDCC;
+	backLocation << "DCCCommands?crate=" << cgiCrate << "&board=" << cgiDCC;
 	webRedirect(out,backLocation.str());
 		
-		/*
-		if(val==101)myDCC->mctrl_bxr();
-		if(val==102)myDCC->mctrl_evnr();
-		snd_serial[0]=0;
-		snd_serial[1]=0;
-		if(val==103){
-			//      sscanf(XMLtext.data(),"%04x",&para_val);
-			istd::stringstream test(XMLtext);
-			test >> hex >> para_val;
-			printf(" mctrl_fifouse send %04x \n",para_val);
-			myDCC->mctrl_fifoinuse(para_val);
-		}
-		if(val==104){
-			//      istd::stringstream test(XMLtext);
-			//	test >> hex >> para_val;
-			sscanf(XMLtext.data(),"%x",&para_val);
-			printf(" ttc command send %04x \n",para_val);
-			myDCC->mctrl_ttccmd(para_val);
-		}
-		if(val==105){
-			istd::stringstream test(XMLtext);
-			unsigned int testVal;
-			test >> hex >> testVal;
-			rate = (testVal & 0xff00) >> 8;
-			num = (testVal & 0xff);
-			//sscanf(XMLtext.data(),"%02hhx%02hhx",&rate,&num);
-			//if(rate>255)rate=255;
-			//if(num>255)num=255;
-			arate=rate;anum=num;
-			printf(" load L1A send rate:%d num:%d \n",arate,anum);
-			myDCC->mctrl_fakeL1A(arate,anum);
-		}
-		if(val==106){
-			arate=rate;anum=num;
-			printf(" load (no prompt) L1A send rate:%d num:%d \n",arate,anum);
-			myDCC->mctrl_fakeL1A(arate,anum);
-		}
-		if(val==109){
-			//      sscanf(XMLtext.data(),"%04x",&para_val);
-			istd::stringstream test(XMLtext);
-			test >> hex >> para_val;
-			printf(" Set switch register %04x \n",para_val);
-			myDCC->mctrl_swset(para_val);
-		}
-		if(val==110){
-			//      sscanf(XMLtext.data(),"%04x",&para_val);
-			istd::stringstream test(XMLtext);
-			test >> hex >> para_val;
-			printf(" Set FMM register %04x \n",para_val);
-			myDCC->mctrl_fmmset(para_val);
-		}
-
-		std::ostringstream backLocation;
-		backLocation << "DCCExpert?crate=" << cgiCrate << "&board=" << cgiDCC;
-		webRedirect(out,backLocation.str());
-		//this->DCCDebug(in,out);
-
-
-	} catch (const std::exception & e ) {
-		printf(" exception raised in DCCLoadFirmware \n");
-		//XECPT_RAISE(xgi::exception::Exception, e.what());
-	}
-	*/
 }
 
 
-/*
+
 void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 	throw (xgi::exception::Exception)
 {
@@ -7175,7 +7387,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		// First, I need a crate.
 		std::pair<unsigned int, emu::fed::FEDCrate *> cratePair = getCGICrate(cgi);
 		unsigned int cgiCrate = cratePair.first;
-		emu::fed::FEDCrate *myCrate = cratePair.second;
+		//emu::fed::FEDCrate *myCrate = cratePair.second;
 
 		std::pair<unsigned int, emu::fed::DCC *> boardPair = getCGIBoard<emu::fed::DCC>(cgi);
 		unsigned int cgiDCC = boardPair.first;
@@ -7183,7 +7395,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 	  
 		cgicc::form_iterator name2 = cgi.getElement("val");
 		//
-		unsigned int val;
+		unsigned int val = 2;
 		if(name2 != cgi.getElements().end()) {
 			val = cgi["val"]->getIntegerValue();
 			std::cout << "val" << val << std::endl;
@@ -7203,7 +7415,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
 }
-*/
+
 
 
 void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 3.53 2008/10/22 20:23:57 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 3.54 2008/10/29 16:01:43 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.h,v $
+* Revision 3.54  2008/10/29 16:01:43  paste
+* Updated interoperability with primative DCC commands, added new xdata variables for future use.
+*
 * Revision 3.53  2008/10/22 20:23:57  paste
 * Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
 *
@@ -54,13 +57,9 @@ private:
 	xdata::String svfFile_;
 	xdata::String xmlFile_;
 	std::vector<emu::fed::FEDCrate*> crateVector;
-	std::string DDUBoardID_[9];
-	std::string DCCBoardID_[9];
-	/*
-	int DCC_ratemon[50][12];
-	int DCC_ratemon_cnt;
-	int DCC_ratemon_ch;
-	*/
+	//std::string DDUBoardID_[9];
+	//std::string DCCBoardID_[9];
+	
 	std::string fcState_;
 
 public:
