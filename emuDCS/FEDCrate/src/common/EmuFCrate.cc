@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.50 2008/10/22 20:23:58 paste Exp $
+* $Id: EmuFCrate.cc,v 3.51 2008/10/29 16:01:44 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.51  2008/10/29 16:01:44  paste
+* Updated interoperability with primative DCC commands, added new xdata variables for future use.
+*
 * Revision 3.50  2008/10/22 20:23:58  paste
 * Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
 *
@@ -155,7 +158,6 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s):
 	getApplicationInfoSpace()->fireItemAvailable("dccNumbers", &dccNumbers_);
 	getApplicationInfoSpace()->fireItemAvailable("cscNumbers", &cscNumbers_);
 	getApplicationInfoSpace()->fireItemAvailable("errorChambers", &errorChambers_);
-	getApplicationInfoSpace()->fireItemAvailable("endcap", &endcap_);
 	getApplicationInfoSpace()->fireItemAvailable("BHandles", &BHandles_);
 
 	// HyperDAQ pages

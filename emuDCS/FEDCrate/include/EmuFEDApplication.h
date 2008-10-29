@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.h,v 3.9 2008/10/13 11:56:40 paste Exp $
+* $Id: EmuFEDApplication.h,v 3.10 2008/10/29 16:01:43 paste Exp $
 *
 * $Log: EmuFEDApplication.h,v $
+* Revision 3.10  2008/10/29 16:01:43  paste
+* Updated interoperability with primative DCC commands, added new xdata variables for future use.
+*
 * Revision 3.9  2008/10/13 11:56:40  paste
 * Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
 *
@@ -41,6 +44,7 @@
 #include "xercesc/dom/DOMDocument.hpp"
 #include "xercesc/dom/DOMNodeList.hpp"
 #include "xercesc/dom/DOMNode.hpp"
+#include "xgi/Input.h"
 
 
 class EmuFEDApplication: public emu::fed::EmuFEDLoggable, public EmuApplication {
@@ -176,6 +180,13 @@ public:
 	*	 for outputting straight to the xgi::Output.
 	**/
 	virtual std::string Footer();
+
+	/** Dumps out information from the CGI input variable for debugging.
+	*
+	*	@param in is the standard CGI input variable that is passed to almost
+	*	everything.
+	**/
+	void dumpEnvironment(xgi::Input *in);
 
 protected:
 

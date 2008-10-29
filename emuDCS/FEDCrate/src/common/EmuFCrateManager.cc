@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.24 2008/10/22 20:23:58 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.25 2008/10/29 16:01:44 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.25  2008/10/29 16:01:44  paste
+* Updated interoperability with primative DCC commands, added new xdata variables for future use.
+*
 * Revision 1.24  2008/10/22 20:23:58  paste
 * Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
 *
@@ -159,6 +162,7 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 // HyperDAQ pages
 void EmuFCrateManager::webDefault(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
+	
 	// This header manipulation will make inline SVG possible, I think.
 	cgicc::HTTPResponseHeader newHeader("HTTP/1.1",200,"OK");
 	newHeader.addHeader("Content-Type","application/xhtml+xml");

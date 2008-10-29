@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.cc,v 1.4 2008/10/13 11:56:41 paste Exp $
+* $Id: EmuFEDApplication.cc,v 1.5 2008/10/29 16:01:44 paste Exp $
 *
 * $Log: EmuFEDApplication.cc,v $
+* Revision 1.5  2008/10/29 16:01:44  paste
+* Updated interoperability with primative DCC commands, added new xdata variables for future use.
+*
 * Revision 1.4  2008/10/13 11:56:41  paste
 * Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
 *
@@ -25,6 +28,7 @@
 #include "cgicc/Cgicc.h"
 #include "cgicc/HTMLClasses.h"
 #include "cgicc/HTMLDoctype.h"
+#include "cgicc/CgiEnvironment.h"
 #include "xoap/Method.h"
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
@@ -281,4 +285,44 @@ xoap::MessageReference EmuFEDApplication::onGetParameters(xoap::MessageReference
 	//std::cout << std::endl;
 	return reply;
 
+}
+
+
+
+void EmuFEDApplication::dumpEnvironment(xgi::Input *in)
+{
+	std::ostringstream dump;
+	cgicc::Cgicc cgi(in);
+	const cgicc::CgiEnvironment& env = cgi.getEnvironment();
+
+	dump << "Dumping CGI environment..." << std::endl;
+
+	dump << "Request Method: " << env.getRequestMethod() << std::endl;
+	dump << "Path Info: " << env.getPathInfo() << std::endl;
+	dump << "Path Translated: " << env.getPathTranslated() << std::endl;
+	dump << "Script Name: " << env.getScriptName() << std::endl;
+	dump << "HTTP Referrer: " << env.getReferrer() << std::endl;
+	dump << "HTTP Cookie: " << env.getCookies() << std::endl;
+	dump << "Query String: " << env.getQueryString() << std::endl;
+	dump << "Content Length: " << env.getContentLength() << std::endl;
+	dump << "Post Data: " << env.getPostData() << std::endl;
+	dump << "Remote Host: " << env.getRemoteHost() << std::endl;
+	dump << "Remote Address: " << env.getRemoteAddr() << std::endl;
+	dump << "Authorization Type: " << env.getAuthType() << std::endl;
+	dump << "Remote User: " << env.getRemoteUser() << std::endl;
+	dump << "Remote Identification: " << env.getRemoteIdent() << std::endl;
+	dump << "Content Type: " << env.getContentType() << std::endl;
+	dump << "HTTP Accept: " << env.getAccept() << std::endl;
+	dump << "User Agent: " << env.getUserAgent() << std::endl;
+	dump << "Server Software: " << env.getServerSoftware() << std::endl;
+	dump << "Server Name: " << env.getServerName() << std::endl;
+	dump << "Gateway Interface: " << env.getGatewayInterface() << std::endl;
+	dump << "Server Protocol: " << env.getServerProtocol() << std::endl;
+	dump << "Server Port: " << env.getServerPort() << std::endl;
+	dump << "HTTPS: " << (env.usingHTTPS() ? "true" : "false") << std::endl;
+	dump << "Redirect Request: " << env.getRedirectRequest() << std::endl;
+	dump << "Redirect URL: " << env.getRedirectURL() << std::endl;
+	dump << "Redirect Status: " << env.getRedirectStatus() << std::endl;
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(), dump.str());
 }
