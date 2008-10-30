@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.56 2008/10/29 16:01:44 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.57 2008/10/30 12:58:52 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.57  2008/10/30 12:58:52  paste
+* Fixed a minor display bug in EmuFCrateHyperDAQ.
+*
 * Revision 3.56  2008/10/29 16:01:44  paste
 * Updated interoperability with primative DCC commands, added new xdata variables for future use.
 *
@@ -808,6 +811,9 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		} // end VME Module loop.
 		*/
 
+		*out << std::endl;
+		*out << cgicc::fieldset() << std::endl;
+		
 		///////////// Jianhui requested this regression
 		*out << cgicc::fieldset()
 			.set("style","font-size: 13pt; font-family: arial;") << std::endl;
@@ -919,9 +925,6 @@ void EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		} // End loop over DCCs
 		*out << cgicc::fieldset() << std::endl;
 
-
-		*out << std::endl;
-		*out << cgicc::fieldset() << std::endl;
 
 		// Firmware Table...
 		/*
@@ -1128,7 +1131,7 @@ void EmuFCrateHyperDAQ::configurePage(xgi::Input *in, xgi::Output *out )
 
 		*out << cgicc::fieldset()
 			.set("class","fieldset") << std::endl;
-		*out << cgicc::div("Type a custon configuration")
+		*out << cgicc::div("Type a custom configuration")
 			.set("class","legend");
 
 		*out << cgicc::form().set("method","POST")
