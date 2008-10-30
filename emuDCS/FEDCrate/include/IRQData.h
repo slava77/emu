@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 3.9 2008/10/15 00:46:56 paste Exp $
+* $Id: IRQData.h,v 3.10 2008/10/30 12:56:10 paste Exp $
 *
 * $Log: IRQData.h,v $
+* Revision 3.10  2008/10/30 12:56:10  paste
+* Fixing more map-related bugs in IRQData
+* Changing IRQ FMM threshold to > 8 chambers (from > 1 chamber)
+*
 * Revision 3.9  2008/10/15 00:46:56  paste
 * Attempt to solve certain crashes on Enable/Disable commands.
 *
@@ -96,8 +100,10 @@ namespace emu {
 			std::map<unsigned int, unsigned long int> errorCount;
 			std::map<unsigned int,DDU *> lastDDU;
 			std::map<unsigned int,unsigned long int> ticks;
-			std::map<unsigned int,time_t> tickTime;
-			std::map<unsigned int,time_t> startTime;
+			// Changed these to strings because right-shifting a time_t constant
+			// in a map sometimes crashes.
+			std::map<unsigned int,std::string> tickTime;
+			std::map<unsigned int,std::string> startTime;
 		
 			std::map<unsigned int,std::vector<IRQError *> > errorVectors;
 			
