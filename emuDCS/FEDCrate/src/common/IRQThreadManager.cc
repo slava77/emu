@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.30 2008/10/22 20:23:58 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.31 2008/10/30 12:56:11 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.31  2008/10/30 12:56:11  paste
+* Fixing more map-related bugs in IRQData
+* Changing IRQ FMM threshold to > 8 chambers (from > 1 chamber)
+*
 * Revision 3.30  2008/10/22 20:23:58  paste
 * Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
 *
@@ -263,7 +267,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 	std::vector<DDU *> dduVector = myCrate->getDDUs();
 
 	// This is when we started.  Don't know why this screws up sometimes...
-	time(&(locdata->startTime[crateNumber]));
+	time_t tock;
+	time(&tock);
+	tm *tockInfo = localtime(&tock);
+	std::string tockText(asctime(tockInfo));
+	locdata->startTime[crateNumber] = tockText;
 
 	// A local tally of what the last error on a given DDU was.
 	std::map<DDU *, int> lastError;
@@ -277,8 +285,12 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		locdata->ticks[crateNumber]++;
 
 		// Set the time of the last tick.
-		time(&(locdata->tickTime[crateNumber]));
-
+		time_t tick;
+		time(&tick);
+		tm *tickInfo = localtime(&tick);
+		std::string tickText(asctime(tickInfo));
+		locdata->tickTime[crateNumber] = tickText;
+		
 		// Enable the IRQ and wait for something to happen for 5 seconds...
 		bool allClear = myCrate->getController()->waitIRQ(5000);
 		
@@ -439,6 +451,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				locdata->errorCount[crateNumber]++;
 			}
 		}
+		// Just in case there is some bizarre error at this point that causes this to
+		// overflow...
+		if (locdata->errorCount[crateNumber] > 15) {
+			locdata->errorCount[crateNumber] = 15;
+		}
 		locdata->lastDDU[crateNumber] = myDDU;
 
 
@@ -488,7 +505,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		}
 		
 		// Check if we have sufficient error conditions to reset.
-		if (totalChamberErrors > 1) {
+		if (totalChamberErrors > 8) {
 			LOG4CPLUS_INFO(logger, "A resync will be requested because the total number of CSCs in an error state on this endcap is " << totalChamberErrors);
 			// Make a note of it in the error log.
 			std::stringstream actionTaken;
@@ -498,11 +515,11 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			/*
 			for (std::map<unsigned int, unsigned long int>::iterator iCount = locdata->errorCount.begin(); iCount != locdata->errorCount.end(); iCount++) {
 				// Find the broadcast slot on this crate.
-				iCount->first->getBroadcastDDU()->writeFMM(0xFED8);
+				iCount->first->getBroadcastDDU()->writeFMM(0xFED0);
 			}
 			*/
 			// I only have to do this to my crate:  eventually, a reset will come.
-			myCrate->getBroadcastDDU()->writeFMM(0xFED8);
+			myCrate->getBroadcastDDU()->writeFMM(0xFED0);
 		}
 
 		// Save the error.

@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.51 2008/10/29 16:01:44 paste Exp $
+* $Id: EmuFCrate.cc,v 3.52 2008/10/30 12:56:11 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.52  2008/10/30 12:56:11  paste
+* Fixing more map-related bugs in IRQData
+* Changing IRQ FMM threshold to > 8 chambers (from > 1 chamber)
+*
 * Revision 3.51  2008/10/29 16:01:44  paste
 * Updated interoperability with primative DCC commands, added new xdata variables for future use.
 *
@@ -931,14 +935,9 @@ void EmuFCrate::webDefault(xgi::Input *in, xgi::Output *out)
 				*out << cgicc::td()
 					.set("colspan","6") << std::endl;
 
-				time_t startTime = TM->data()->startTime[crateNumber];
-				time_t tickTime = TM->data()->tickTime[crateNumber];
-
-				tm *startTimeInfo = localtime(&startTime);
-				*out << "Thread started " << asctime(startTimeInfo) << cgicc::br();
+				*out << "Thread started " << TM->data()->startTime[crateNumber] << cgicc::br();
 				*out << TM->data()->ticks[crateNumber] << " ticks, ";
-				tm *tickTimeInfo = localtime(&tickTime);
-				*out << "last tick " << asctime(tickTimeInfo) << std::endl;
+				*out << "last tick " << TM->data()->tickTime[crateNumber] << std::endl;
 				*out << cgicc::td() << std::endl;
 				*out << cgicc::tr() << std::endl;
 
