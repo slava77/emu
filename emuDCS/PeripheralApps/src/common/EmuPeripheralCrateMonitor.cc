@@ -1077,6 +1077,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      difftime=time(NULL)-readtime;
      if(difftime>0) *out << " reading was " << difftime << " seconds old" << std::endl;
   }
+  *out << std::setprecision(4);
 
   *out << cgicc::br() << cgicc::b("<center> Low Voltages and Currents </center>") << std::endl;
 
