@@ -38,6 +38,7 @@ private:
   bool ready_;
   bool corruption;
 
+  int old_time_lv, old_time_temp;
   int states[4];
   float values[60];
 

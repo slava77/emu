@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.2 2008/10/13 12:14:28 liu Exp $
+// $Id: EmuDim.h,v 1.3 2008/11/03 20:00:13 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -125,7 +125,7 @@ private:
   
   //
   // for monitoring
-  bool Monitor_On_, Monitor_Ready_, In_Monitor_, In_Broadcast_;
+  bool Monitor_On_, Monitor_Ready_, In_Monitor_, Suspended_;
   toolbox::task::Timer * timer_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   int current_state_;

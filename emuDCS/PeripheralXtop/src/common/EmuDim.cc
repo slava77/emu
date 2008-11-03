@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.4 2008/10/18 18:18:44 liu Exp $
+// $Id: EmuDim.cc,v 1.5 2008/11/03 20:00:13 liu Exp $
 
 #include "EmuDim.h"
 
@@ -63,7 +63,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): EmuApplication(s)
   Monitor_On_ = false;
   Monitor_Ready_ = false;
   In_Monitor_ = false;
-  In_Broadcast_ = false;
+  Suspended_ = false;
   fastloop=0;
   slowloop=0;
   extraloop=0;
@@ -96,12 +96,13 @@ void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
 {
 
      if(! Monitor_On_ ) return;
-     if( In_Monitor_  || In_Broadcast_) return;
+     if( In_Monitor_ ) return;
      In_Monitor_ = true;
 
      // always check DimCommand
      CheckCommand();
 
+     if( Suspended_ ) return;
      std::string name = e.getTimerTask()->name;
      // std::cout << "timeExpired: " << name << std::endl;
      if(strncmp(name.c_str(),"EmuDimRead",13)==0) 
@@ -446,10 +447,18 @@ void EmuDim::CheckCommand()
    {
       std::string cmnd = LV_1_Command->getString();
       std::cout << "Dim Command:" << cmnd << std::endl;
-      if(cmnd.substr(cmnd.length()-8,8)=="get_data")
+      if(cmnd.substr(0,10)=="STOP_SLOW_")
+      {
+         Suspended_ = true;
+      }
+      else if(cmnd.substr(0,12)=="RESUME_SLOW_")
+      {
+         Suspended_ = false;
+      }
+      else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
       {
          int ch=ChnameToNumber(cmnd.c_str());
-         UpdateDim(ch);
+         if(!Suspended_) UpdateDim(ch);
       }
       // all other commands are ignored
    }

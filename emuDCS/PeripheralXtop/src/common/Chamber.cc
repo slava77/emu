@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.3 2008/10/18 18:18:44 liu Exp $
+// $Id: Chamber.cc,v 1.4 2008/11/03 20:00:13 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.4  2008/11/03 20:00:13  liu
+// do not update timestamp for all-zero chamber
+//
 // Revision 1.3  2008/10/18 18:18:44  liu
 // update
 //
@@ -39,7 +42,9 @@ void Chamber::Fill(char *buffer, int source)
        if(idx<3) 
        {
            i = atoi(item);
-           if(source) states_bk[idx] = i; 
+           if(source) 
+             {  states_bk[idx] = i; 
+             }
            states[idx] = i; 
        }
        else if(idx<52)
@@ -51,7 +56,12 @@ void Chamber::Fill(char *buffer, int source)
        idx++;
        item=strtok_r(NULL, sep, &last);
    };
-   if(source && idx==51) ready_ = true;
+   if(source && idx==51) 
+   {   
+       old_time_lv = states_bk[1];
+       old_time_temp = states_bk[1];
+       ready_ = true;
+   }
    if(idx!=51 || values[47]!=(-50.))
    {   std::cout << "BAD...total " << idx << " last one " << values[47] << std::endl;
        corruption = true;
@@ -67,7 +77,7 @@ void Chamber::Fill(char *buffer, int source)
 
 void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
 {
-   int *info;
+   int *info, this_st, total_st=0;
    float *data;
    char *vcc_ip = "02:00:00:00:00:00";
    //   float V33, V50, V60, C33, C50, C60, V18, V55, V56, C18, C55, C56;
@@ -93,7 +103,10 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->cfeb.c33[i] = data[ 0+3*i];
       dim_lv->cfeb.c50[i] = data[ 1+3*i];
       dim_lv->cfeb.c60[i] = data[ 2+3*i];
-      dim_lv->cfeb.status[i] = info[0];
+      this_st=info[0];
+      if(data[19+3*i]==0. && data[20+3*i]==0. && data[21+3*i]==0.) this_st=0;
+      dim_lv->cfeb.status[i] = this_st;
+      total_st += this_st;
    }
       dim_lv->alct.v18 = data[35];
       dim_lv->alct.v33 = data[34];
@@ -103,9 +116,17 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->alct.c33 = data[15];
       dim_lv->alct.c55 = data[17];
       dim_lv->alct.c56 = data[18];
-      dim_lv->alct.status = info[0];
+      this_st=info[0];
+      if(data[34]==0. && data[35]==0. && data[36]==0. && data[37]==0. ) this_st=0;
+      dim_lv->alct.status = this_st;
+      total_st += this_st;
    
-   dim_lv->update_time = info[1];
+   if(total_st)
+   {  dim_lv->update_time = info[1];
+      old_time_lv = info[1];
+   }
+   else
+      dim_lv->update_time = old_time_lv;
    dim_lv->slot = (states_bk[2]>>8)&0xFF;
 
    memcpy(dim_lv->VCCMAC, vcc_ip, 18);
@@ -115,7 +136,7 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
 void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
 {
    int *info;
-   float *data;
+   float *data, total_temp;
    char *vcc_ip = "02:00:00:00:00:00";
 
    if(corruption || hint==1)
@@ -130,16 +151,24 @@ void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
          if(data[40]<-30 || data[43]< -30 )  data= &(values_bk[0]);
       }
    }
-      dim_temp->t_daq = data[40];
-      dim_temp->t_cfeb1 = data[41];
-      dim_temp->t_cfeb2 = data[42];
-      dim_temp->t_cfeb3 = data[43];
-      dim_temp->t_cfeb4 = data[44];
+      dim_temp->t_daq = (data[40]<(-30)) ? 0.0 :data[40];
+      dim_temp->t_cfeb1 = (data[41]<(-30)) ? 0.0 :data[41];
+      dim_temp->t_cfeb2 = (data[42]<(-30)) ? 0.0 :data[42];
+      dim_temp->t_cfeb3 = (data[43]<(-30)) ? 0.0 :data[43];
+      dim_temp->t_cfeb4 = (data[44]<(-30)) ? 0.0 :data[44];
       // 1/3 chambers have no CFEB5
-      dim_temp->t_cfeb5 =(data[45]<(-30)) ? (0.5*(data[43]+data[44])) : data[45];
-      dim_temp->t_alct = (data[46]<(-30)) ? values_bk[46] : data[46];
+      dim_temp->t_cfeb5 = (data[45]<(-30)) ? 0.0 : data[45];
+      dim_temp->t_alct = (data[46]<(-30)) ? 0.0 : data[46];
    
-   dim_temp->update_time = info[1];
+   total_temp = dim_temp->t_daq + dim_temp->t_cfeb1 + dim_temp->t_cfeb2
+            + dim_temp->t_cfeb3 + dim_temp->t_cfeb4 + dim_temp->t_alct;
+   if(total_temp>1.0)
+   {
+      dim_temp->update_time = info[1];
+      old_time_temp = info[1];
+   }
+   else
+      dim_temp->update_time = old_time_temp;
    dim_temp->slot = (states_bk[2]>>8)&0xFF;
 
    memcpy(dim_temp->VCCMAC, vcc_ip, 18);
