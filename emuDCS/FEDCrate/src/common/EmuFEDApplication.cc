@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.cc,v 1.5 2008/10/29 16:01:44 paste Exp $
+* $Id: EmuFEDApplication.cc,v 1.6 2008/11/03 23:33:47 paste Exp $
 *
 * $Log: EmuFEDApplication.cc,v $
+* Revision 1.6  2008/11/03 23:33:47  paste
+* Modifications to fix "missing stylesheet/javascript" problem.
+*
 * Revision 1.5  2008/10/29 16:01:44  paste
 * Updated interoperability with primative DCC commands, added new xdata variables for future use.
 *
@@ -184,19 +187,27 @@ std::string EmuFEDApplication::Header(std::string myTitle, std::vector<std::stri
 	*out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
 	*out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
 	*out << cgicc::head() << std::endl;
-	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/emu/emuDCS/FEDCrate/css/EmuFEDApplication.css\" />" << std::endl;
+	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/tmp/emu/emuDCS/FEDCrate/css/EmuFEDApplication.css\" />" << std::endl;
 	
 	*out << cgicc::title(myTitle) << std::endl;
 
 
 	// Include the javascript files
 	for (std::vector<std::string>::iterator iFile = jsFileNames.begin(); iFile != jsFileNames.end(); iFile++) {
-		*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDCrate/js/" << (*iFile) << "\"></script>" << std::endl;
+		*out << "<script type=\"text/javascript\" src=\"/tmp/emu/emuDCS/FEDCrate/js/" << (*iFile) << "\"></script>" << std::endl;
 	}
 
 	*out << cgicc::head() << std::endl;
 
-	*out << "<body background=\"/emu/emuDCS/FEDCrate/img/OSUBackground.gif\">" << std::endl;
+	// Dynamic backgrounds
+	std::string endcapBackground = "/tmp/emu/emuDCS/FEDCrate/img/Background-" + endcap_.toString() + ".png";
+	std::ifstream checkBackground(endcapBackground.c_str());
+	if (!checkBackground) {
+		endcapBackground = "/tmp/emu/emuDCS/FEDCrate/img/Background-Default.png";
+	} else {
+		checkBackground.close();
+	}
+	*out << "<body background=\"" << endcapBackground << "\">" << std::endl;
 
 	*out << cgicc::fieldset()
 		.set("class","header") << std::endl;
@@ -205,13 +216,13 @@ std::string EmuFEDApplication::Header(std::string myTitle, std::vector<std::stri
 		.set("href","/"+getApplicationDescriptor()->getURN()+"/") << std::endl;
 
 	*out << cgicc::img()
-	.set("src","/emu/emuDCS/FEDCrate/img/EmuFEDSeal.png")
+	.set("src","/tmp/emu/emuDCS/FEDCrate/img/EmuFEDSeal.png")
 		.set("style","float: left; width: 100px; height: 100px") << std::endl;
 
 	*out << cgicc::a() << std::endl;
 
 	*out << cgicc::img()
-	.set("src","/emu/emuDCS/FEDCrate/img/OSUCMS.png")
+	.set("src","/tmp/emu/emuDCS/FEDCrate/img/OSUCMS.png")
 		.set("style","float: right; width: 100px; height: 100px") << std::endl;
 
 	*out << cgicc::div(myTitle)
