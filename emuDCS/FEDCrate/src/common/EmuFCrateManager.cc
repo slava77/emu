@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.25 2008/10/29 16:01:44 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.26 2008/11/03 23:33:47 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.26  2008/11/03 23:33:47  paste
+* Modifications to fix "missing stylesheet/javascript" problem.
+*
 * Revision 1.25  2008/10/29 16:01:44  paste
 * Updated interoperability with primative DCC commands, added new xdata variables for future use.
 *
@@ -155,6 +158,8 @@ EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s):
 
 	// TEMP
 	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
+
+	endcap_ = "Manager";
 
 }
 

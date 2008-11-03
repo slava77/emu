@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DataTable.cc,v 1.2 2008/10/13 11:56:40 paste Exp $
+* $Id: DataTable.cc,v 1.3 2008/11/03 23:33:47 paste Exp $
 *
 * $Log: DataTable.cc,v $
+* Revision 1.3  2008/11/03 23:33:47  paste
+* Modifications to fix "missing stylesheet/javascript" problem.
+*
 * Revision 1.2  2008/10/13 11:56:40  paste
 * Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
 *
@@ -94,13 +97,13 @@ emu::fed::DataRow::DataRow(std::string myName, unsigned int cols, unsigned long 
 emu::fed::DataElement &emu::fed::DataRow::operator[] (unsigned int element)
 	throw (FEDException)
 {
-	if (element < size()) return (*this)[element];
+	if (element < size()) return at(element);
 	else {
 		for (unsigned int ielement = size(); ielement <= element; ielement++) {
 			DataElement newElement;
 			push_back(newElement);
 		}
-		return (*this)[element];
+		return at(element);
 	}
 }
 
@@ -183,13 +186,13 @@ emu::fed::DataTable::DataTable(std::string id):
 
 emu::fed::DataRow &emu::fed::DataTable::operator[] (unsigned int row)
 {
-	if (row < size()) return (*this)[row];
+	if (row < size()) return at(row);
 	else {
 		for (unsigned int irow = size(); irow <= row; irow++) {
 			DataRow newRow("",cols_,breaks_);
 			push_back(newRow);
 		}
-		return (*this)[row];
+		return at(row);
 	}
 }
 
