@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.58 2008/11/04 00:01:40 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.59 2008/11/04 00:51:09 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
-* Revision 3.58  2008/11/04 00:01:40  paste
-* A fix for the fix for the aforementioned bug.
+* Revision 3.59  2008/11/04 00:51:09  paste
+* Fixed problems with DDU firmware uploading and broadcasting.
 *
 * Revision 3.57  2008/10/30 12:58:52  paste
 * Fixed a minor display bug in EmuFCrateHyperDAQ.
@@ -1911,11 +1911,13 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::form()
 		.set("action","/" + getApplicationDescriptor()->getURN() + "/DDUSendBroadcast")
 		.set("method","GET");
+        /*
 	*out << cgicc::input()
 		.set("type","hidden")
 		.set("name","slots")
 		.set("id","slots")
 		.set("value","0x0");
+        */
 
 	for (unsigned int iprom = 0; iprom < dduPROMNames.size(); iprom++) {
 		std::stringstream codeStream;
@@ -1946,17 +1948,18 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 
 		emu::fed::DDU *myDDU = myDDUs[iDDU];
 		
-		std::ostringstream bitFlipCommand;
-		bitFlipCommand << "Javascript:toggleBit('slots'," << myDDU->slot() << ");";
+		//std::ostringstream bitFlipCommand;
+		//bitFlipCommand << "Javascript:toggleBit('slots'," << myDDU->slot() << ");";
 		
 		std::ostringstream elementID;
-		elementID << "slotBox" << myDDU->slot();
+		elementID << "slot" << myDDU->slot();
 
 		slotTable(iDDU,0) << cgicc::input()
 			.set("type","checkbox")
 			.set("class","slotBox")
 			.set("id",elementID.str())
-			.set("onChange",bitFlipCommand.str()) << " " 
+            .set("name",elementID.str())
+			//.set("onChange",bitFlipCommand.str()) << " " 
 			<< cgicc::label()
 			.set("for",elementID.str()) << myDDU->slot() << cgicc::label();
 		
@@ -2009,6 +2012,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::input()
 		.set("type","checkbox")
 		.set("id","broadcast")
+        .set("name","broadcast")
 		.set("style","margin-left: 20%; margin-right: auto;");
 	*out << cgicc::label()
 		.set("for","broadcast")
@@ -2183,37 +2187,32 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	if (submitCommand.substr(5) == "VMEPROM (Emergency Load)") type = 3;
 
 	// Check to see if I should broadcast or if I should load to certain slots only.
-	int broadcast = 0;
-    if (cgi["broadcast"] != cgi.getElements().end()) {
-        broadcast = cgi["broadcast"]->getIntegerValue();
-    }
-	std::string slotsText = "";
-    if (cgi["slots"] != cgi.getElements().end()) {
-        cgi["slots"]->getValue();
-    }
+	bool broadcast = cgi.queryCheckbox("broadcast");
+    std::vector<unsigned int> slots;
 
-	// Get rid of hex
-	if (slotsText.substr(0,2) == "0x") slotsText = slotsText.substr(2);
-
-	// The slots cgi variable is a 15-bit number with obvious meaning.
-	unsigned int slots = 0;
-	sscanf(slotsText.c_str(),"%4x",&slots);
+    for (unsigned int iSlot = 1; iSlot <= 20; iSlot++) {
+        std::ostringstream slotName;
+        slotName << "slot" << iSlot;
+        if (cgi.queryCheckbox(slotName.str())) {
+            slots.push_back(iSlot);
+        }
+    }
 
 	if (type == 3 && broadcast) {
 		LOG4CPLUS_WARN(getApplicationLogger(),"Cannot broadcast VMEPROM firmware via emergency load.  Defaulting to individual board loading");
 		
-		slots = 0;
-		broadcast = 0; // Can't broadcast emergency VMEPROM.
+		slots.clear();
+		broadcast = false; // Can't broadcast emergency VMEPROM.
 		
 		// Loop through the DDUs and add them all to the list of slots to load.
 		std::vector<emu::fed::DDU *> myDDUs = myCrate->getDDUs();
 		for (std::vector<emu::fed::DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
-			slots |= (*iDDU)->slot();
+			slots.push_back((*iDDU)->slot());
 		}
 	}
 
 	// Error:  no slots to load.
-	if (!broadcast && !slots) {
+	if (!broadcast && !slots.size()) {
 		LOG4CPLUS_ERROR(getApplicationLogger(),"No slots selected for firmware loading, and broadcast not set");
 		std::ostringstream backLocation;
 		backLocation << "DDUBroadcast?crate=" << cgiCrate;
@@ -2271,7 +2270,9 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	} else {
 		std::vector<emu::fed::DDU *> dduVector = myCrate->getDDUs();
 		for (std::vector<emu::fed::DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-			if (slots & (1 << (*iDDU)->slot())) loadTheseDDUs.push_back((*iDDU));
+            for (unsigned int iSlot = 0; iSlot < slots.size(); iSlot++) {
+                if ((int) slots[iSlot] == (*iDDU)->slot()) loadTheseDDUs.push_back((*iDDU));
+            }
 		}
 	}
 
