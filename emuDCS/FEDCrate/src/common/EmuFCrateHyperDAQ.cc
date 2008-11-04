@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.57 2008/10/30 12:58:52 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.58 2008/11/04 00:01:40 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.58  2008/11/04 00:01:40  paste
+* A fix for the fix for the aforementioned bug.
+*
 * Revision 3.57  2008/10/30 12:58:52  paste
 * Fixed a minor display bug in EmuFCrateHyperDAQ.
 *
@@ -2180,8 +2183,14 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 	if (submitCommand.substr(5) == "VMEPROM (Emergency Load)") type = 3;
 
 	// Check to see if I should broadcast or if I should load to certain slots only.
-	int broadcast = cgi["broadcast"]->getIntegerValue();
-	std::string slotsText = cgi["slots"]->getValue();
+	int broadcast = 0;
+    if (cgi["broadcast"] != cgi.getElements().end()) {
+        broadcast = cgi["broadcast"]->getIntegerValue();
+    }
+	std::string slotsText = "";
+    if (cgi["slots"] != cgi.getElements().end()) {
+        cgi["slots"]->getValue();
+    }
 
 	// Get rid of hex
 	if (slotsText.substr(0,2) == "0x") slotsText = slotsText.substr(2);
