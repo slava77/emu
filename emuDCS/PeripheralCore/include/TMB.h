@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.54 2008/09/30 14:27:07 liu Exp $
+// $Id: TMB.h,v 3.55 2008/11/07 13:00:16 liu Exp $
 // $Log: TMB.h,v $
+// Revision 3.55  2008/11/07 13:00:16  liu
+// remove warnings
+//
 // Revision 3.54  2008/09/30 14:27:07  liu
 // read ALCT temperature in monitoring
 //
@@ -1494,7 +1497,7 @@ public:
   //
   int ConvertToHexAscii(int value_to_convert); /// convert the argument to its "hex-ascii" value:  i.e.  2007 -> 0x2007
   //
-  int TMB::DCSreadAll(char *data); /// read out all DCS values (Temperatures and LVs)
+  int DCSreadAll(char *data); /// read out all DCS values (Temperatures and LVs)
   //
   FILE *pfile;
   int ucla_ldev;

@@ -148,9 +148,9 @@ public:
   XDAQ_INSTANTIATOR();
   //
   EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s);
-  void EmuPeripheralCrateMonitor::actionPerformed (xdata::Event& e);
-  void EmuPeripheralCrateMonitor::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out );
+  void actionPerformed (xdata::Event& e);
+  void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MainPage(xgi::Input * in, xgi::Output * out );
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception); 
 
 

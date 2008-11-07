@@ -170,9 +170,9 @@ public:
   XDAQ_INSTANTIATOR();
   //
   EmuPeripheralCrateCommand(xdaq::ApplicationStub * s);
-  void EmuPeripheralCrateCommand::actionPerformed (xdata::Event& e);
-  void EmuPeripheralCrateCommand::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void EmuPeripheralCrateCommand::MainPage(xgi::Input * in, xgi::Output * out );
+  void actionPerformed (xdata::Event& e);
+  void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MainPage(xgi::Input * in, xgi::Output * out );
 
 private:
 

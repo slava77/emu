@@ -299,9 +299,9 @@ public:
   XDAQ_INSTANTIATOR();
   //
   EmuPeripheralCrateConfig(xdaq::ApplicationStub * s);
-  void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e);
-  void EmuPeripheralCrateConfig::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out );
+  void actionPerformed (xdata::Event& e);
+  void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MainPage(xgi::Input * in, xgi::Output * out );
 
   xoap::MessageReference ReadAllVmePromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference LoadAllVmePromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
