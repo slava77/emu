@@ -30,31 +30,31 @@ public:
   void CreateTstoreTables();
   void DumpTstoreTables();
   //
-  inline std::vector< std::string> CrateUtilities::GetPeriphTable(){
+  inline std::vector< std::string> GetPeriphTable(){
     return periph_table;
   }
   //
-  inline std::vector< std::string> CrateUtilities::GetCSCTable(int number){
+  inline std::vector< std::string> GetCSCTable(int number){
     return csc_table[number];
   }
   //
-  inline std::vector< std::string> CrateUtilities::GetTmbTable(int number){
+  inline std::vector< std::string> GetTmbTable(int number){
     return tmb_table[number];
   }
   //
-  inline std::vector< std::string> CrateUtilities::GetDmbTable(int number){
+  inline std::vector< std::string> GetDmbTable(int number){
     return dmb_table[number];
   }
   // 
-  inline std::vector< std::string> CrateUtilities::GetAlctTable(int number){
+  inline std::vector< std::string> GetAlctTable(int number){
     return alct_table[number];
   }
   //
-  inline std::vector< std::vector< std::string> > CrateUtilities::GetAfebTable(){
+  inline std::vector< std::vector< std::string> > GetAfebTable(){
     return afeb_table;
   }
   //
-  inline std::vector< std::vector< std::string> > CrateUtilities::GetCfebTable(){
+  inline std::vector< std::vector< std::string> > GetCfebTable(){
     return cfeb_table;
   }
   //
