@@ -52,6 +52,7 @@ std::string exitconfig();
 // interface commands (show -> enable -> configure -> interface)
 std::string interface(char *port);
 std::string interfacerange(char *port);
+std::string shutdown(bool tlag,char *port);
 std::string adminmode(bool flag,char *port);
 std::string portlacpmode(bool flag,char *port);
 std::string autonegotiate(bool flag,char *port);
@@ -61,14 +62,18 @@ std::string vlaningressfilter(bool flag,char *port);
 std::string vlanparticipation(char *port,char *include,int vlan);
 std::string vlanacceptframeall(bool flag,char *port);
 std::string vlanpriority(char *port,int priority);
+std::string portsecurity(bool flag,char *port);
 std::string portsecuritymaxdynamic(char *port,int number);
 std::string portsecuritymaxsstatic(char *port,int number);
 std::string portsecuritymacaddress(bool flag,char *port,char *mac,int tvlan);
 std::string portchannelstaticenable(bool flag,char *port);
-std::string portsecurity(bool flag,char *port);
 std::string snmpservertrapsviolation(bool flat,char *port);
 std::string exitinterface();
 char *tport(char *port);
+// perl commands
+std::string psleep(int time);
+// scr2pl commands
+std::string waitfor(std::string mode,char *port);
 char buf[6];
 
 
@@ -438,6 +443,21 @@ std::string interfacerange(char *port){
   return rtns;
 }
 
+std::string shutdown(bool flag,char *port){
+  char strbuf[50];
+  std::string rtns="";
+  if(flag){
+    sprintf(strbuf,"$telnet->print('shutdown');\n");
+  }else{
+    sprintf(strbuf,"$telnet->print('no shutdown');\n");
+  }
+  rtns=rtns+strbuf;
+  sprintf(strbuf,"$telnet->waitfor('/\\(GSM7212\\) \\(Interface %s\\)#/');\n",tport(port));
+  rtns=rtns+strbuf;
+  return rtns;
+}
+
+
 std::string adminmode(bool flag,char *port){
   char strbuf[50];
   std::string rtns="";
@@ -548,6 +568,20 @@ std::string vlanpriority(char *port,int level){
   return rtns;
 }
 
+std::string portsecurity(bool flag,char *port){
+  char strbuf[50];
+  std::string rtns="";
+  if(flag){
+    sprintf(strbuf,"$telnet->print('port-security');\n");
+  }else{
+    sprintf(strbuf,"$telnet->print('no port-security');\n");
+  }
+  rtns=rtns+strbuf;
+  sprintf(strbuf,"$telnet->waitfor('/\\(GSM7212\\) \\(Interface %s\\)#/');\n",tport(port));
+  rtns=rtns+strbuf;
+  return rtns;
+
+}
 
 std::string portsecuritymaxdynamic(char *port,int number){
   char strbuf[50];
@@ -598,20 +632,6 @@ std::string portchannelstaticenable(bool flag,char *port){
   return rtns;
 }
 
-std::string portsecurity(bool flag,char *port){
-  char strbuf[50];
-  std::string rtns="";
-  if(flag){
-    sprintf(strbuf,"$telnet->print('port-security');\n");
-  }else{
-    sprintf(strbuf,"$telnet->print('no port-security');\n");
-  }
-  rtns=rtns+strbuf;
-  sprintf(strbuf,"$telnet->waitfor('/\\(GSM7212\\) \\(Interface %s\\)#/');\n",tport(port));
-  rtns=rtns+strbuf;
-  return rtns;
-}
-
 std::string snmpservertrapsviolation(bool flag,char *port){
   char strbuf[50];
   std::string rtns="";
@@ -644,5 +664,24 @@ char *tport(char *port){
   return buf;
 }
 
+std::string psleep(int time){
+  char strbuf[50];
+  std::string rtns="";
+  sprintf(strbuf,"sleep %d;\n",time);
+  rtns=strbuf;
+  return rtns;
+} 
+
+std::string waitfor(std::string mode,char *port){
+  char strbuf[50];
+  std::string rtns="";
+  if(mode=="enable")sprintf(strbuf,"$telnet->waitfor('/\\(GSM7212\\) #/');\n");
+  if(mode=="configure")sprintf(strbuf,"$telnet->waitfor('/\\(GSM7212\\) \\(Config\\)#/');\n");
+  if(mode=="vlan")sprintf(strbuf,"$telnet->waitfor('/\\(GSM7212\\) \\(Vlan\\)#/');\n");
+  if(mode=="interface")sprintf(strbuf,"$telnet->waitfor('/\\(GSM7212\\) \\(Interface %s\\)#/');\n",port);
+  if(mode=="lineconfig")sprintf(strbuf,"$telnet->waitfor('/\\(GSM7212\\) \\(Line\\)#/');\n");
+  rtns=rtns+strbuf;
+  return rtns;
+}
 
 
