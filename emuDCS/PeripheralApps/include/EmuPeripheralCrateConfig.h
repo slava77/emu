@@ -508,7 +508,10 @@ private:
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCratesFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void CheckCrateFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckCrateFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  //
+  void PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
+  void FixCFEB(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   //
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
