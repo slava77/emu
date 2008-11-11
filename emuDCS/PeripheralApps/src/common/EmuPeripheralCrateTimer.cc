@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.1 2008/10/13 13:11:07 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.2 2008/11/11 13:23:34 liu Exp $
 
 #include "EmuPeripheralCrateTimer.h"
 
@@ -16,24 +16,17 @@
 EmuPeripheralCrateTimer::EmuPeripheralCrateTimer(xdaq::ApplicationStub * s): EmuApplication(s)
 {	
   //
-  xoap::bind(this, &EmuPeripheralCrateTimer::onConfigure, "Configure", XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateTimer::onEnable,    "Enable",    XDAQ_NS_URI);
-  xoap::bind(this, &EmuPeripheralCrateTimer::onDisable,   "Disable",   XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateTimer::onHalt,      "Halt",      XDAQ_NS_URI);
 
   xgi::bind(this,&EmuPeripheralCrateTimer::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateTimer::MainPage, "MainPage");
   //
   fsm_.addState('H', "Halted", this, &EmuPeripheralCrateTimer::stateChanged);
-  fsm_.addState('C', "Configured", this, &EmuPeripheralCrateTimer::stateChanged);
   fsm_.addState('E', "Enabled",    this, &EmuPeripheralCrateTimer::stateChanged);
   //
-  fsm_.addStateTransition('H', 'C', "Configure", this, &EmuPeripheralCrateTimer::dummyAction);
-  fsm_.addStateTransition('C', 'C', "Configure", this, &EmuPeripheralCrateTimer::dummyAction);
-  fsm_.addStateTransition('C', 'E', "Enable",    this, &EmuPeripheralCrateTimer::dummyAction);
+  fsm_.addStateTransition('H', 'E', "Enable",    this, &EmuPeripheralCrateTimer::dummyAction);
   fsm_.addStateTransition('E', 'E', "Enable",    this, &EmuPeripheralCrateTimer::dummyAction);
-  fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuPeripheralCrateTimer::dummyAction);
-  fsm_.addStateTransition('C', 'H', "Halt",      this, &EmuPeripheralCrateTimer::dummyAction);
   fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuPeripheralCrateTimer::dummyAction);
   fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuPeripheralCrateTimer::dummyAction);
   //
@@ -90,6 +83,7 @@ xoap::MessageReference EmuPeripheralCrateTimer::MonitorStart (xoap::MessageRefer
          Monitor_Ready_=true;
      }
      Monitor_On_=true;
+     fireEvent("Enable");
      time_t thistime = ::time(NULL);
      std::cout<< "Monitor Started " << ::ctime(&thistime) << std::endl;
      return createReply(message);
@@ -107,6 +101,7 @@ xoap::MessageReference EmuPeripheralCrateTimer::MonitorStop (xoap::MessageRefere
          if(extraloop) timer_->remove("EmuPCrateExtra" );
          timer_->stop(); 
 #endif
+         fireEvent("Halt");
          time_t thistime = ::time(NULL);
          std::cout << "Monitor stopped " << ::ctime(&thistime) << std::endl;
      }
@@ -199,16 +194,6 @@ void EmuPeripheralCrateTimer::dummyAction(toolbox::Event::Reference e)
     throw (toolbox::fsm::exception::Exception) {
   // currently do nothing
 }
-//
-xoap::MessageReference EmuPeripheralCrateTimer::onConfigure (xoap::MessageReference message)
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP Configure" << std::endl;
-  //
-  current_state_ = 1;
-  fireEvent("Configure");
-  //
-  return createReply(message);
-}
 
 //
 xoap::MessageReference EmuPeripheralCrateTimer::onEnable (xoap::MessageReference message)
@@ -217,17 +202,6 @@ xoap::MessageReference EmuPeripheralCrateTimer::onEnable (xoap::MessageReference
   //
   current_state_ = 2;
   fireEvent("Enable");
-  //
-  return createReply(message);
-}
-
-//
-xoap::MessageReference EmuPeripheralCrateTimer::onDisable (xoap::MessageReference message)
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP Disable" << std::endl;
-  //
-  current_state_ = 1;
-  fireEvent("Disable");
   //
   return createReply(message);
 }
