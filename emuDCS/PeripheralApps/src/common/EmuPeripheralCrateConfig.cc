@@ -123,6 +123,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesFirmware, "CheckCratesFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
+  xgi::bind(this,&EmuPeripheralCrateConfig::PowerOnFixCFEB, "PowerOnFixCFEB");
+  xgi::bind(this,&EmuPeripheralCrateConfig::FixCFEB, "FixCFEB");
   //
   //------------------------------
   // bind crate utilities
@@ -497,6 +499,14 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   std::string FastConfigureAll = toolbox::toString("/%s/FastConfigCrates",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",FastConfigureAll) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Crates Power-up Init") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+
+  std::cout << " PowerOnFixCFEB " << std::endl;
+  *out << cgicc::td();
+  std::string PowerOnFixCFEB = toolbox::toString("/%s/PowerOnFixCFEB",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",PowerOnFixCFEB) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Power On Fix CFEBs").set("style","color:blue") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
 
@@ -3518,6 +3528,174 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
   return;
 }
 //
+
+
+void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  int cur18a[5]={1,1,1,2,2};
+  int cur18b[5]={1,4,7,2,5};
+  int slot2num[22]={0,0,0,0,0,1,0,2,0,3,0,4,0,0,0,5,0,6,0,7,0,8};
+
+  MyHeader(in,out,"Power On Fix Erased CFEB Proms");
+
+  *out << cgicc::table().set("border","0");
+  *out << cgicc::tr();
+  *out << cgicc::td();
+  *out << " Chamber ";
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << " Crate ";
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << " Slot " ;
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << " CFEB " ;
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << " Current" ;
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << " " ;
+  *out << cgicc::td();
+  *out << cgicc::tr()<<std::endl;
+  // std::cout << " LSD: crate size " << crateVector.size() << std::endl;
+  for(unsigned i=0; i< crateVector.size(); i++){
+    // std::cout << "LSD: Crate: " << crateVector[i]->GetLabel() << std::endl;
+    int  this_crate_no_=i;
+    SetCurrentCrate(this_crate_no_);
+    int CSRA3=0x04;
+    thisCCB->ReadRegister(CSRA3);
+    for (unsigned int k=0; k<dmbVector.size(); k++) {
+      emu::pc::DAQMB * thisDMB = dmbVector[k];
+      int slot = thisDMB->slot();
+      if(slot<22){
+        int dmbcfg= thisCCB->GetReadDMBConfigDone(slot2num[slot]);
+        emu::pc::Chamber *thisChamber = chamberVector[k];
+        // std::cout << " LSD: slot: " << slot << " " << " k: " << k << " slot2num " << slot2num[slot] << "daqcfg " << dmbcfg << " chamber " << thisChamber->GetLabel() << std::endl;
+        std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
+        for(unsigned int j=0;j<thisCFEBs.size();j++){
+          int numcfeb;
+          for(unsigned int jj=0;jj<thisCFEBs.size();jj++){
+            if(j==(unsigned int)thisCFEBs[jj].number())numcfeb=jj;
+          }
+          std::cout << " LSD febpromid " << " " << thisChamber->GetLabel() << ":" << numcfeb << " " << std::hex << thisDMB->febpromid(thisCFEBs[numcfeb]) << std::dec << std::endl;
+        }
+        if(dmbcfg==0){
+          for(unsigned int j=0;j<thisCFEBs.size();j++){
+            int numcfeb;
+            for(unsigned int jj=0;jj<thisCFEBs.size();jj++){
+              if(j==(unsigned int)thisCFEBs[jj].number())numcfeb=jj;
+            }
+            // std::cout << " LSD febpromid " << j << " " << thisChamber->GetLabel() << " " << std::hex << thisDMB->febpromid(thisCFE\Bs[numcfeb]) << std::dec << std::endl;
+            float current=thisDMB->lowv_adc(cur18a[j],cur18b[j])/1000.;
+            if(current<0.81&&current>0.01){
+              *out << cgicc::tr();
+              *out << cgicc::td();
+              *out << thisChamber->GetLabel();
+              *out << cgicc::td();
+              *out << cgicc::td();
+              *out <<  crateVector[i]->GetLabel();
+              *out << cgicc::td();
+              *out << cgicc::td();
+              *out << slot;
+              *out << cgicc::td();
+              *out << cgicc::td();
+              *out << "CFEB"<<j+1;
+              *out << cgicc::td();
+              *out << cgicc::td();
+              *out << current;
+              *out << cgicc::td();
+              *out << cgicc::td();
+              std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
+              *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
+              *out << cgicc::input().set("type","submit").set("value","Fix CFEB").set("style","color:red") << std::endl ;
+              char buf[20];
+              sprintf(buf,"%d",i);
+              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+              sprintf(buf,"%d",k);
+              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
+              sprintf(buf,"%d",numcfeb);
+              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+              *out << cgicc::form() << std::endl ;
+              *out << cgicc::td();
+              *out << cgicc::tr() << std::endl;
+            }
+          }
+        }
+      }
+    }
+  }
+  *out << cgicc::table() << std::endl;
+}
+//
+void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  std::cout << " Entered FixCFEB " << std::endl;
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name1 = cgi.getElement("ncrt");
+  int ncrt;
+  if(name1 != cgi.getElements().end()) {
+    ncrt = cgi["ncrt"]->getIntegerValue();
+    std::cout << "ncrt " << ncrt << std::endl;
+  } else {
+    std::cout << "Not ncrt" << std::endl ;
+    ncrt=-1;
+  }
+  cgicc::form_iterator name2 = cgi.getElement("ndmb");
+  int ndmb;
+  if(name2 != cgi.getElements().end()) {
+    ndmb = cgi["ndmb"]->getIntegerValue();
+    std::cout << "ndmb " << ndmb << std::endl;
+  } else {
+    std::cout << "Not ndmb" << std::endl ;
+    ndmb=-1;
+  }
+  cgicc::form_iterator name3 = cgi.getElement("ncfeb");
+  int ncfeb;
+  if(name3 != cgi.getElements().end()) {
+    ncfeb = cgi["ncfeb"]->getIntegerValue();
+    std::cout << "ncfeb " << ncfeb << std::endl;
+  } else {
+    std::cout << "Not ncfeb" << std::endl ;
+    ncfeb=-1;
+  }
+  if(ncrt>-1&&ndmb>-1&&ncfeb>-1){
+    SetCurrentCrate(ncrt);
+    emu::pc::DAQMB * thisDMB = dmbVector[ndmb];
+    std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
+    emu::pc::CFEB thisCFEB = thisCFEBs[ncfeb];
+
+    // now readback bit contents of prom
+    char * outp;             ;   // recast dword
+    thisDMB->epromload_verify(thisCFEB.promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
+    std::cout << " time calculation " << std::endl;
+    time_t rawtime;
+    time(&rawtime);
+    std::string buf;
+    std::string time_dump = ctime(&rawtime);
+    std::string time = time_dump.substr(0,time_dump.length()-1);
+    while( time.find(" ",0) != std::string::npos ) {
+      int thispos = time.find(" ",0);
+      time.replace(thispos,1,"_");
+    }
+    std::cout << "time " << time << std::endl;
+    std::string temp = toolbox::toString("mv eprom.bit /tmp/verify_%s_slot%d_cfeb%d_%s.bit",crateVector[ncrt]->GetLabel().c_str(),thisDMB->slot(),thisCFEB.number()+1,time.c_str());
+    std::cout  << temp << std::endl;
+    system(temp.c_str());
+
+    // now reprogram the prom
+    unsigned short int dword[2];
+    dword[0]=thisDMB->febpromuser(thisCFEB);
+    char * outp2=(char *)dword;   // recast dword
+    thisDMB->epromload(thisCFEB.promDevice(),CFEBFirmware_.toString().c_str(),1,outp2);
+    // now do a hard reset
+    thisCCB->hardReset();
+  }
+  this->PowerOnFixCFEB(in,out);
+}
+
 //
 // Another method which would be better in another class... let's make it work, first....
 void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
