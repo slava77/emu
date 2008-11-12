@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.6 2008/11/12 14:21:33 liu Exp $
+// $Id: EmuDim.cc,v 1.7 2008/11/12 17:13:35 liu Exp $
 
 #include "EmuDim.h"
 
@@ -102,7 +102,7 @@ void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
      // always check DimCommand
      CheckCommand();
 
-     if( Suspended_ ) return;
+     // if( Suspended_ ) return;
      std::string name = e.getTimerTask()->name;
      // std::cout << "timeExpired: " << name << std::endl;
      if(strncmp(name.c_str(),"EmuDimRead",13)==0) 
