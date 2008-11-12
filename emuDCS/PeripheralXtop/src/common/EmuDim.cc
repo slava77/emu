@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.5 2008/11/03 20:00:13 liu Exp $
+// $Id: EmuDim.cc,v 1.6 2008/11/12 14:21:33 liu Exp $
 
 #include "EmuDim.h"
 
@@ -106,7 +106,7 @@ void EmuDim::timeExpired (toolbox::task::TimerEvent& e)
      std::string name = e.getTimerTask()->name;
      // std::cout << "timeExpired: " << name << std::endl;
      if(strncmp(name.c_str(),"EmuDimRead",13)==0) 
-     {  ReadFromXmas();
+     {  if( !Suspended_ ) ReadFromXmas();
         UpdateAllDim();
      }
      In_Monitor_ = false;
@@ -458,7 +458,7 @@ void EmuDim::CheckCommand()
       else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
       {
          int ch=ChnameToNumber(cmnd.c_str());
-         if(!Suspended_) UpdateDim(ch);
+         UpdateDim(ch);
       }
       // all other commands are ignored
    }
