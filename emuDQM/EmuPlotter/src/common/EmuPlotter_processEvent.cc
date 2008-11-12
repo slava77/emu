@@ -8,24 +8,23 @@ void printb(unsigned short* buf)
         cout << dec << std::endl;
 };
 
-void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber)
+void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t errorStat, int32_t nodeNumber)
 {
   //	LOG4CPLUS_INFO(logger_ , "processing event data");
-  
+ 
+
   int node = 0; // Set EMU root folder
   //   int node = nodeNumber;
   //  std::string nodeTag = Form("EMU_%d",node); // == This emuMonitor node number
 
   std::string nodeTag = "EMU";
   std::map<std::string, ME_List >::iterator itr;
-  ME_List nodeME; // === Global histos specific for this emuMonitor node
   EmuMonitoringObject *mo = NULL;  // == pointer to MonitoringObject
   unpackedDMBcount = 0; 
  
   nEvents++;
   eTag=Form("Evt# %d: ", nEvents); 
-  evtSize=dataSize;
-
+/*
   // == Check and book global node specific histos
   if (MEs.size() == 0 || ((itr = MEs.find(nodeTag)) == MEs.end())) {
     LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << nodeTag << " not found. Booking...");
@@ -35,11 +34,12 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     // printMECollection(MEs[nodeTag]);
     fBusy = false;
   }
-	
-  nodeME = MEs[nodeTag];
+*/	
+  ME_List& nodeME = MEs[nodeTag]; // === Global histos specific for this emuMonitor node
+
   
 
-  // if (isMEvalid(nodeME, "Buffer_Size", mo)) mo->Fill(dataSize);
+  // if (isMEvalid(nodeME, "Buffer_Size", mo)) mo->Fill(evtSize);
 
   // ==     Check DDU Readout Error Status
   /*
@@ -70,7 +70,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   LOG4CPLUS_DEBUG(logger_,eTag << "Start binary checking of buffer...");
   const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
   bin_checker.setMask(binCheckMask);
-  if( bin_checker.check(tmp,dataSize/sizeof(short)) < 0 ){
+  if( bin_checker.check(tmp,evtSize/sizeof(short)) < 0 ){
     //   No ddu trailer found - force checker to summarize errors by adding artificial trailer
     const uint16_t dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
     tmp = dduTrailer; bin_checker.check(tmp,uint32_t(4));
@@ -198,7 +198,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
   // CSCDDUEventData dduData((uint16_t *) data);
   
-  
+ 
   CSCDDUHeader dduHeader  = dduData.header();
 /*
   if (!dduHeader.check()) {
@@ -244,7 +244,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   LOG4CPLUS_DEBUG(logger_,eTag << "Start unpacking " << dduTag);
 
-  if (isMEvalid(dduME, "Buffer_Size", mo)) mo->Fill(dataSize);
+  if (isMEvalid(dduME, "Buffer_Size", mo)) mo->Fill(evtSize);
   // ==     DDU word counter
   int trl_word_count = 0;
   trl_word_count = dduTrailer.wordcount();
@@ -1110,22 +1110,22 @@ void EmuPlotter::updateEfficiencyHistos()
 
     if (isMEvalid(nodeME, "CSC_Format_Errors", mo1)) {
       TH2* err = dynamic_cast<TH2*>(mo1->getObject());
-      summary.ReadErrorChambers(rep, err, 0.1, 5.0);
+      summary.ReadErrorChambers(rep, err, cscdqm::FORMAT_ERR, 0.1, 5.0);
     }
 
     if (isMEvalid(nodeME, "CSC_L1A_out_of_sync", mo1)) {
       TH2* err = dynamic_cast<TH2*>(mo1->getObject());
-      summary.ReadErrorChambers(rep, err, 0.1, 5.0);
+      summary.ReadErrorChambers(rep, err, cscdqm::L1SYNC_ERR, 0.1, 5.0);
     }
 
     if (isMEvalid(nodeME, "CSC_DMB_input_fifo_full", mo1)) {
       TH2* err = dynamic_cast<TH2*>(mo1->getObject());
-      summary.ReadErrorChambers(rep, err, 0.1, 5.0);
+      summary.ReadErrorChambers(rep, err, cscdqm::FIFOFULL_ERR, 0.1, 5.0);
     }
 
     if (isMEvalid(nodeME, "CSC_DMB_input_timeout", mo1)) {
       TH2* err = dynamic_cast<TH2*>(mo1->getObject());
-      summary.ReadErrorChambers(rep, err, 0.1, 5.0);
+      summary.ReadErrorChambers(rep, err, cscdqm::INPUTTO_ERR, 0.1, 5.0);
     }
 
   }
@@ -1135,34 +1135,35 @@ void EmuPlotter::updateEfficiencyHistos()
   //
 
 
-  if (isMEvalid(nodeME, "Summary_ME1", mo)) {
+  if (isMEvalid(nodeME, "Physics_ME1", mo)) {
     TH2* tmp = dynamic_cast<TH2*>(mo->getObject());
     summary.Write(tmp, 1);
   }
 
-  if (isMEvalid(nodeME, "Summary_ME2", mo)) {
+  if (isMEvalid(nodeME, "Physics_ME2", mo)) {
     TH2* tmp = dynamic_cast<TH2*>(mo->getObject());
     summary.Write(tmp, 2);
   }
 
-  if (isMEvalid(nodeME, "Summary_ME3", mo)) {
+  if (isMEvalid(nodeME, "Physics_ME3", mo)) {
     TH2* tmp = dynamic_cast<TH2*>(mo->getObject());
     summary.Write(tmp, 3);
   }
 
-  if (isMEvalid(nodeME, "Summary_ME4", mo)) {
+  if (isMEvalid(nodeME, "Physics_ME4", mo)) {
     TH2* tmp = dynamic_cast<TH2*>(mo->getObject());
     summary.Write(tmp, 4);
   }
 
 
-  if (isMEvalid(nodeME, "reportSummaryMap", mo)) {
+  if (isMEvalid(nodeME, "Physics_EMU", mo)) {
 
     TH2* tmp=dynamic_cast<TH2*>(mo->getObject());
-    float rs = summary.WriteMap(tmp);
-    float he = summary.GetEfficiencyHW();
-    TString title = Form("EMU Status: Physics Efficiency %.2f", rs);
-    tmp->SetTitle(title);
+    // float rs = 
+    summary.WriteMap(tmp);
+    // float he = summary.GetEfficiencyHW();
+    // TString title = Form("EMU Status: Physics Efficiency %.2f", rs);
+    // tmp->SetTitle(title);
 
   }
 

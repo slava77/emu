@@ -72,7 +72,7 @@ void EmuPlotter::clearMECollection(ME_List & collection)
 
   if (collection.size() > 0) {
     for (ME_List_iterator itr = collection.begin();itr != collection.end(); ++itr) {
-	if (itr->second) delete itr->second;
+      if (itr->second) delete itr->second;
     }
     collection.clear();
   }
@@ -115,7 +115,7 @@ void EmuPlotter::clearCanvasesCollection(MECanvases_List & collection)
 
   if (collection.size() > 0) {
     for (MECanvases_List_iterator itr = collection.begin();itr != collection.end(); ++itr) {
-	LOG4CPLUS_DEBUG(logger_,"Clean " << itr->first );
+      LOG4CPLUS_DEBUG(logger_,"Clean " << itr->first );
       if (itr->second) delete itr->second;
     }
     collection.clear();
@@ -160,6 +160,19 @@ void EmuPlotter::book() {
     {
       reset();
       loadXMLCanvasesInfo(xmlCanvasesCfgFile);
+
+      // == Check and book global node specific histos
+      std::map<std::string, ME_List >::iterator itr;
+      if (MEs.size() == 0 || ((itr = MEs.find("EMU")) == MEs.end())) {
+	//  LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << nodeTag << " not found. Booking...");
+	fBusy = true;
+	MEs["EMU"] = bookCommon(0);
+	MECanvases["EMU"] = bookCommonCanvases(0);
+	// printMECollection(MEs[nodeTag]);
+	fBusy = false;
+      }
+
+
     }
 
 }

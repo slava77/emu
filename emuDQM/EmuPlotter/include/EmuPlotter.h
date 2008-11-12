@@ -43,7 +43,7 @@
 #include "DataFormats/CSCDigi/interface/CSCALCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 
-#include "DQM/CSCMonitorModule/interface/CSCSummary.h"
+#include "DQM/CSCMonitorModule/interface/CSCDQM_Summary.h"
 
 
 // ==  ROOT Section
@@ -72,6 +72,8 @@
 #include "EmuMonitoringCanvas.h"
 #include "EmuDQM_Utils.h"
 #include "CSCReadoutMappingFromFile.h"
+#include "CSCReport.h"
+
 
 /*
 typedef struct CSCCounters {
@@ -146,6 +148,8 @@ public:
   void generateCanvasesListFile(std::string filename="canvases_list.js", std::string imgformat="png");
   void generateLayout(std::string filename, std::string rootfolder);
   int generateReport(std::string rootfile,std::string path,std::string runname="");
+  int save_ALCT_CLCT_Match_Data(std::string rootfile,std::string path,std::string runname="");
+  int save_CSCCounters(std::string rootfile,std::string path,std::string runname="");
   void showReport();
   void saveReport(std::string filename);
    
@@ -264,12 +268,14 @@ private:
   std::map<std::string, CSCCounters> cscCntrs;
  
   /** CSC summary map */
-  CSCSummary summary;
+  cscdqm::Summary summary;
   ChamberMap chamberMap;
   SummaryMap summaryMap;
 
 
   std::map<std::string, std::vector<std::string> > report;
+  DQMReport dqm_report;
+
  
 
 };
