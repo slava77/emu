@@ -134,6 +134,8 @@ int main(int argc, char **argv) {
     TCLAP::ValueArg<std::string> cfgCSCMapArg("", "cscmapfile", "[DATA] CSC Map TXT file", false, "", "path to file");
     TCLAP::SwitchArg forwardRootArg("f","forwardroot", "[DATA] If set then forwards newly created ROOT file for image processing.", false);
     TCLAP::SwitchArg generateReportArg("g","genrep", "[DATA] If set then generate DQM report from ROOT file.", false);
+    TCLAP::SwitchArg saveALCT_CLCT_MatchArg("m","alctmatch", "[DATA] If set then save ALCT-CLCT match data.", false);
+    TCLAP::SwitchArg saveCSCCounters("c","counters", "[DATA] If set then save CSC Counters.", false);
     
     // for Root histograms processing
     TCLAP::ValueArg<std::string> filterArg("","filter","[ROOT] ROOT file folder filter", false, "", "string");
@@ -159,6 +161,8 @@ int main(int argc, char **argv) {
     cmd.add(binMaskArg);
     cmd.add(forwardRootArg);
     cmd.add(generateReportArg);
+    cmd.add(saveALCT_CLCT_MatchArg);
+    cmd.add(saveCSCCounters);
 
     // Parse the argv array.
     cmd.parse(argc, argv);
@@ -193,7 +197,9 @@ int main(int argc, char **argv) {
     bool isRoot = rootSwitchArg.getValue();
     bool forwardRoot = forwardRootArg.getValue();
     bool configOnly = cfgOnlyArg.getValue();
-    bool generateReport = generateReportArg.getValue();
+    bool f_generateReport = generateReportArg.getValue();
+    bool f_saveALCT_CLCT_Match = saveALCT_CLCT_MatchArg.getValue();
+    bool f_saveCSCCounters = saveCSCCounters.getValue();
 
     uint32_t dduCheckMask = dduMaskArg.getValue();
     uint32_t binCheckMask = binMaskArg.getValue();
@@ -351,8 +357,15 @@ int main(int argc, char **argv) {
     if (isRoot) {
       
       LOG4CPLUS_INFO (logger, "Load MEs from ROOT file " << histofile);
-      if (generateReport)
+
+      
+
+      if (f_generateReport)
       	plotter->generateReport(histofile, plotsdir.c_str(), runname);
+      else if (f_saveALCT_CLCT_Match)
+	plotter->save_ALCT_CLCT_Match_Data(histofile, plotsdir.c_str(), runname);
+      else if (f_saveCSCCounters) 
+	plotter->save_CSCCounters(histofile, plotsdir.c_str(), runname);
       else 
       // Go go go
         plotter->convertROOTToImages(histofile, plotsdir.c_str(), IMG_FORMAT, IMG_WIDTH, IMG_HEIGHT, runname, filter);
