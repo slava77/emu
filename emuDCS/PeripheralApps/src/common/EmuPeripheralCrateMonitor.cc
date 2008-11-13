@@ -2321,16 +2321,37 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
      {
         *out << "    <count chamber=\"";
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << "\" alct=\"";
+//        *out << myVector[j]->GetCounter(0);
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+0];
+        if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+0];
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
+        // when a counter has error, should be -1
+
+        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
+        if(i_value<-1) i_value=-1;
+        *out << i_value;
+        *out << "\" clct=\"";
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+5];
+        if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+5];
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
+        // when a counter has error, should be -1
+
+        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
+        if(i_value<-1) i_value=-1;
+        *out << i_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
         o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
-        // when a counter has error, should be -1, but the XML displayer needs
-        //  non-negative number, so set it to 0 here and in the following:
-        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
-        if(i_value<-1) i_value=0;
+        // when a counter has error, should be -1
+
+        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
+        if(i_value<-1) i_value=-1;
         *out << i_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
@@ -2338,9 +2359,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+34];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
-        // counter error, set it to 0:
-        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
-        if(i_value<-1) i_value=0;
+        // counter error, set it to -1:
+        i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
+        if(i_value<-1) i_value=-1;
         *out << i_value;
         *out << "\"/>" << std::endl;
      }
@@ -2363,17 +2384,29 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
      {
         *out << "    <count chamber=\"";
         *out << crateVector[i]->GetChamber(myVector[j])->GetLabel();
+        *out << "\" alct=\"";
+//        *out << myVector[j]->GetCounter(0);
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+0];
+        // counter error, set it to -1 here:
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
+        *out << n_value;
+        *out << "\" clct=\"";
+//        *out << myVector[j]->GetCounter(5);
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+5];
+        // counter error, set it to -1 here:
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
+        *out << n_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
-        // counter error, set it to 0 here:
-        if(n_value == 0x3FFFFFFF || n_value <0) n_value = 0;
+        // counter error, set it to -1 here:
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
         n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+34];
-        // counter error, set it to 0 here:
-        if(n_value == 0x3FFFFFFF || n_value <0) n_value = 0;
+        // counter error, set it to -1 here:
+        if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\"/>" << std::endl;
      }
