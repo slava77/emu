@@ -87,8 +87,6 @@ protected:
   xdata::String ALCTFirmware_[10];
   xdata::String CFEBFirmware_;
   xdata::String CFEBVerify_;
-  xdata::String VMECCFirmwareDir_; 
-  xdata::String VMECCFirmwareVer_; 
   std::string FirmwareDir_ ;
   //
   xdata::String curlCommand_;         // the curl command's full path

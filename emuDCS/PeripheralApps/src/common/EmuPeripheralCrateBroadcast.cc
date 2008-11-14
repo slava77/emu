@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.34 2008/09/03 10:46:16 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.35 2008/11/14 11:46:22 bylsma Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -25,7 +25,6 @@
 #include "EmuEndcap.h"
 
 const std::string       VMECC_FIRMWARE_DIR = "vcc"; 
-const std:: string       VMECC_FIRMWARE_VER ="4.31";   
 
 EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuApplication(s)
 {	
@@ -489,15 +488,10 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
     vmecc=broadcastCrate->vmecc();
     broadcastCrate->vmeController()->init();
 
-    sprintf(buf," Entered VMECCLoadFirmwareBcast \n");
-    std::cout<<buf<<std::endl;
-    std::string VMECCFirmware = FirmwareDir_+VMECC_FIRMWARE_DIR;
-    VMECCFirmwareDir_=VMECCFirmware;
-   std::cout << " firmware dir: " << VMECCFirmwareDir_ .toString()<< std::endl;
-   std::string VMECCFirmwareD=VMECC_FIRMWARE_VER;
-    VMECCFirmwareVer_=VMECCFirmwareD;
-    std::cout << " firmware ver: " << VMECCFirmwareVer_ .toString()<< std::endl;
-    vmecc->prg_vcc_prom_bcast(VMECCFirmwareDir_.toString().c_str(),VMECCFirmwareVer_.toString().c_str());
+    std::cout<< " Entered VMECCLoadFirmwareBcast \n" <<std::endl;
+    std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
+    std::cout << "Path = " << PROM_Path << "\nVer = " << vmecc->VCC_frmw_ver << std::endl;
+    vmecc->prg_vcc_prom_bcast(PROM_Path.c_str(),vmecc->VCC_frmw_ver.c_str());
     this->LoadDMBCFEBFPGAFirmware(in,out);
     //
   }

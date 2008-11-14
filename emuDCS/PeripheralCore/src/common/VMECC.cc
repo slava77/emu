@@ -1104,21 +1104,30 @@ void VMECC::prg_vcc_prom_ver(const char *path,const char *ver)
 {
   char fname[36];
   char fullname[256];
+  FILE *fp;
   int n,pktnum,rslt;
   unsigned int temp_uint;
   static unsigned int device_id = 0xF5057093;
   char *tmp_cp;
   int ptyp;
   int ack;
-  char buf[100];
+
   strcpy(fname,"D783C.V");
   strcat(fname,ver);
   strcat(fname,".mcs");
   strcpy(fullname,path);
   strcat(fullname,"/");
   strcat(fullname,fname);
-  sprintf(buf," %s \n",fullname);
-  std::cout << "VMECC PromLoad Filename: "<< buf << "\n" <<std::endl;
+
+  fp = fopen(fullname,"r");
+  if(fp==NULL){
+    std::cout << "Could not find file " << fullname << "\n" <<std::endl;
+    return ;
+  }
+  else{
+    fclose(fp);
+  }
+  std::cout << "VMECC PromLoad Filename: "<< fullname << "\n" <<std::endl;
   rslt = chk_jtag_conn();
   if(rslt == 1){
     temp_uint = read_dev_id();
@@ -1216,6 +1225,7 @@ void VMECC::prg_vcc_prom_bcast(const char *path, const char *ver)
   char fname[36];
   char fullname[256];
   int rslt;
+  FILE *fp;
 
   strcpy(fname,"D783C.V");
   strcat(fname,ver);
@@ -1223,6 +1233,15 @@ void VMECC::prg_vcc_prom_bcast(const char *path, const char *ver)
   strcpy(fullname,path);
   strcat(fullname,"/");
   strcat(fullname,fname);
+  fp = fopen(fullname,"r");
+  if(fp==NULL){
+    std::cout << "Could not find file " << fullname << "\n" <<std::endl;
+    return ;
+  }
+  else{
+    fclose(fp);
+  }
+  std::cout << "VMECC PromLoad Filename: "<< fullname << "\n" <<std::endl;
 
   std::cout << "Disabling messages..." << std::endl;
   set_clr_bits(CLR,RST_MISC,~RST_CR_MSGLVL);
