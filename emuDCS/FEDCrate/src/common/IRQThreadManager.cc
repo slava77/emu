@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.31 2008/10/30 12:56:11 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.32 2008/11/14 09:34:31 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.32  2008/11/14 09:34:31  paste
+* Updated IRQ thread handling to fix and abstract FMM enabling and disabling.
+*
 * Revision 3.31  2008/10/30 12:56:11  paste
 * Fixing more map-related bugs in IRQData
 * Changing IRQ FMM threshold to > 8 chambers (from > 1 chamber)
@@ -519,7 +522,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			}
 			*/
 			// I only have to do this to my crate:  eventually, a reset will come.
-			myCrate->getBroadcastDDU()->writeFMM(0xFED0);
+			myCrate->getBroadcastDDU()->enableFMM();
 		}
 
 		// Save the error.

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 3.35 2008/10/09 11:21:19 paste Exp $
+* $Id: DDU.cc,v 3.36 2008/11/14 09:34:31 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 3.36  2008/11/14 09:34:31  paste
+* Updated IRQ thread handling to fix and abstract FMM enabling and disabling.
+*
 * Revision 3.35  2008/10/09 11:21:19  paste
 * Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
 *
@@ -7949,6 +7952,30 @@ throw (FEDException)
 	} catch (FEDException) {
 		throw;
 	}
+}
+
+
+
+void emu::fed::DDU::disableFMM()
+throw (FEDException)
+{
+    try {
+        return writeFMM(0xFED0);
+    } catch (FEDException) {
+        throw;
+    }
+}
+
+
+
+void emu::fed::DDU::enableFMM()
+throw (FEDException)
+{
+    try {
+        return writeFMM(0xFED8);
+    } catch (FEDException) {
+        throw;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
