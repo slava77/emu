@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.17 2008/09/03 10:46:16 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.18 2008/11/14 11:46:22 bylsma Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -160,8 +160,6 @@ private:
   emu::pc::ALCTController * broadcastALCT;
   emu::pc::CCB * broadcastCCB;
 
-  xdata::String VMECCFirmwareDir_; 
-  xdata::String VMECCFirmwareVer_; 
   //
   int number_of_layers_pretrig_;
   int number_of_layers_pattern_;
