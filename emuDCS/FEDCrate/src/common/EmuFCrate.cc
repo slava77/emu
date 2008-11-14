@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.52 2008/10/30 12:56:11 paste Exp $
+* $Id: EmuFCrate.cc,v 3.53 2008/11/14 09:34:31 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.53  2008/11/14 09:34:31  paste
+* Updated IRQ thread handling to fix and abstract FMM enabling and disabling.
+*
 * Revision 3.52  2008/10/30 12:56:11  paste
 * Fixing more map-related bugs in IRQData
 * Changing IRQ FMM threshold to > 8 chambers (from > 1 chamber)
@@ -575,7 +578,7 @@ void EmuFCrate::configureAction(toolbox::Event::Reference e)
 
 		// Set FMM error disable.  Not on TF, though
 		if (crateVector[i]->number() < 5) {
-			crateVector[i]->getBroadcastDDU()->writeFMM(0xFED0);
+			crateVector[i]->getBroadcastDDU()->disableFMM();
 		}
 
 		for(unsigned j =0; j < myDdus.size(); ++j){

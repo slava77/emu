@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 3.23 2008/09/24 18:38:38 paste Exp $
+* $Id: DDU.h,v 3.24 2008/11/14 09:34:31 paste Exp $
 *
 * $Log: DDU.h,v $
+* Revision 3.24  2008/11/14 09:34:31  paste
+* Updated IRQ thread handling to fix and abstract FMM enabling and disabling.
+*
 * Revision 3.23  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -520,6 +523,14 @@ namespace emu {
 
 			std::vector<uint16_t> readDebugTrap(enum DEVTYPE dev)
 				throw (FEDException);
+
+            // Misc. routines
+
+            void disableFMM()
+                throw (FEDException);
+
+            void enableFMM()
+                throw (FEDException);
 			
 		protected:
 		
