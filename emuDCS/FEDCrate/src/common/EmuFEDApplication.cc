@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.cc,v 1.6 2008/11/03 23:33:47 paste Exp $
+* $Id: EmuFEDApplication.cc,v 1.7 2008/11/15 13:59:15 paste Exp $
 *
 * $Log: EmuFEDApplication.cc,v $
+* Revision 1.7  2008/11/15 13:59:15  paste
+* Added initial support for AJAX communication.
+*
 * Revision 1.6  2008/11/03 23:33:47  paste
 * Modifications to fix "missing stylesheet/javascript" problem.
 *
@@ -42,9 +45,7 @@ EmuFEDApplication::EmuFEDApplication(xdaq::ApplicationStub *stub)
 	EmuApplication(stub),
 	runNumber_(0),
 	endcap_("?"),
-	autoRefresh_(20),
-	NS_XSI("http://www.w3.org/2001/XMLSchema-instance"),
-	STATE_UNKNOWN("unknown")
+	autoRefresh_(20)
 {
 	xoap::bind(this, &EmuFEDApplication::onGetParameters, "GetParameters", XDAQ_NS_URI);
 
@@ -193,6 +194,8 @@ std::string EmuFEDApplication::Header(std::string myTitle, std::vector<std::stri
 
 
 	// Include the javascript files
+    // Always include prototype
+    *out << "<script type=\"text/javascript\" src=\"/tmp/emu/emuDCS/FEDCrate/js/prototype.js\"></script>" << std::endl;
 	for (std::vector<std::string>::iterator iFile = jsFileNames.begin(); iFile != jsFileNames.end(); iFile++) {
 		*out << "<script type=\"text/javascript\" src=\"/tmp/emu/emuDCS/FEDCrate/js/" << (*iFile) << "\"></script>" << std::endl;
 	}

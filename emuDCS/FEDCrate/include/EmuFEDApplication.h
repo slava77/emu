@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFEDApplication.h,v 3.10 2008/10/29 16:01:43 paste Exp $
+* $Id: EmuFEDApplication.h,v 3.11 2008/11/15 13:59:14 paste Exp $
 *
 * $Log: EmuFEDApplication.h,v $
+* Revision 3.11  2008/11/15 13:59:14  paste
+* Added initial support for AJAX communication.
+*
 * Revision 3.10  2008/10/29 16:01:43  paste
 * Updated interoperability with primative DCC commands, added new xdata variables for future use.
 *
@@ -46,6 +49,8 @@
 #include "xercesc/dom/DOMNode.hpp"
 #include "xgi/Input.h"
 
+#define NS_XSI "http://www.w3.org/2001/XMLSchema-instance"
+#define STATE_UNKNOWN "unknown"
 
 class EmuFEDApplication: public emu::fed::EmuFEDLoggable, public EmuApplication {
 
@@ -189,10 +194,6 @@ public:
 	void dumpEnvironment(xgi::Input *in);
 
 protected:
-
-	// "Globals"
-	std::string NS_XSI;
-	std::string STATE_UNKNOWN;
 	
 	/** Serializes this application's ApplicationInfoSpace and returns it.
 	*	As things stand, is bound to the "GetParameters" SOAP command.
