@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.75 2008/09/30 14:27:07 liu Exp $
+// $Id: TMB.cc,v 3.76 2008/11/17 08:26:59 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.76  2008/11/17 08:26:59  rakness
+// add unjam TMB
+//
 // Revision 3.75  2008/09/30 14:27:07  liu
 // read ALCT temperature in monitoring
 //
@@ -3895,6 +3898,32 @@ int TMB::tmb_set_boot_reg(unsigned short int value) {
   //
   return 0;   
 }
+//
+void TMB::UnjamFPGA() {
+  //
+  // Unjam the TMB FPGA from a "stuck" state, sometimes encountered when 
+  // a JTAG sequence is interrupted...
+  //
+  // clear TMB boot register
+  tmb_set_boot_reg(0);
+  sleep(1);
+  //
+  // Set up the software to talk to the TMB Mezzanine PROMs+FPGA JTAG chain
+  // (through the bootstrap register)
+  setup_jtag(ChainTmbMezz);
+  //
+  // Bring the Test Access Port (TAP) state to Run-Test-Idle
+  RestoreIdle();
+  //
+  if (this->slot() < 22) {
+    short unsigned int BootReg;
+    tmb_get_boot_reg(&BootReg);
+    tmb_set_boot_reg(BootReg & 0xff7f);     //give the JTAG chain back to the FPGA 
+  }
+  //
+  return;
+}
+//
 //
 int TMB::tmb_hard_reset_alct_fpga() {
   //

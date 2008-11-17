@@ -232,6 +232,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBHardResetFromTMBPage, "CCBHardResetFromTMBPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTMBFirmware, "CheckTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
+  xgi::bind(this,&EmuPeripheralCrateConfig::UnjamTMB, "UnjamTMB");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadCrateALCTFirmware, "LoadCrateALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadRATFirmware, "LoadRATFirmware");
@@ -3627,6 +3628,63 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
     }
   }
   *out << cgicc::table() << std::endl;
+
+  // now ALCTs
+  *out << "ALCT FPGAs not programmed " << std::endl;
+  *out << cgicc::table().set("border","0");
+  *out << cgicc::tr();
+  *out << cgicc::td();
+  *out << " Crate ";
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << " Slot " ;
+  *out << cgicc::td();
+  *out << cgicc::td();
+  *out << " Current" ;
+  *out << cgicc::td();
+  *out << cgicc::tr()<<std::endl;
+
+  for(unsigned i=0; i< crateVector.size(); i++){
+    // std::cout << "LSD: Crate: " << crateVector[i]->GetLabel() << std::endl;
+    int  this_crate_no_=i;
+    SetCurrentCrate(this_crate_no_);
+    int CSRA2=0x02;
+    thisCCB->ReadRegister(CSRA2);
+    for (unsigned int k=0; k<tmbVector.size(); k++) {
+      emu::pc::TMB * thisTMB = tmbVector[k];
+      int tslot = thisTMB->slot();
+      for (unsigned int k2=0; k2<dmbVector.size(); k2++) {
+        emu::pc::DAQMB * thisDMB = dmbVector[k2];
+        int dslot = thisDMB->slot();
+        emu::pc::Chamber *thisChamber = chamberVector[slot2num[dslot]];
+        if(dslot+1==tslot){
+          int alctcfg=thisCCB->GetReadALCTConfigDone(slot2num[dslot]);
+          float current=thisDMB->lowv_adc(3,0)/1000.;
+          if(current<0.2 && current>0.001 && alctcfg==0) {
+            // emu::pc::ALCTController  * thisALCT = thisTMB->alctController();
+	    // thisALCT->ReadSlowControlId();
+            std::cout << "ALCT " << thisChamber->GetLabel() << ", alct cfg=" << std::hex <<  alctcfg << std::dec << ", current=" << current << std::endl;
+            *out << cgicc::tr();
+            *out << cgicc::td();
+            *out << thisChamber->GetLabel();
+            *out << cgicc::td();
+            *out << cgicc::td();
+            *out <<  crateVector[i]->GetLabel();
+            *out << cgicc::td();
+            *out << cgicc::td();
+            *out << tslot;
+            *out << cgicc::td();
+            *out << cgicc::td();
+            *out << current << std::endl;
+            *out << cgicc::td();
+            *out << cgicc::tr();
+          }
+        }
+      }
+    }
+  }
+  *out << cgicc::table() << std::endl;
+  //
 }
 //
 void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
@@ -11754,6 +11812,15 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
+  *out << cgicc::br() << std::endl;
+  //
+  std::string UnjamTMB = toolbox::toString("/%s/UnjamTMB",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",UnjamTMB) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Unjam TMB FPGA") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
   //--------------------------------------------------------
   *out << cgicc::table().set("border","0");
   //
@@ -12287,6 +12354,30 @@ void EmuPeripheralCrateConfig::ClearTMBBootReg(xgi::Input * in, xgi::Output * ou
   } else {
     //
     std::cout << "TMB is not ready for VME access" << std::endl;
+  }
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::UnjamTMB(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  }
+  //
+  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  //
+  if (thisTMB->slot() < 22) {
+    thisTMB->UnjamFPGA();
   }
   //
   this->TMBUtils(in,out);

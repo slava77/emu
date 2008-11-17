@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.55 2008/11/07 13:00:16 liu Exp $
+// $Id: TMB.h,v 3.56 2008/11/17 08:26:59 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.56  2008/11/17 08:26:59  rakness
+// add unjam TMB
+//
 // Revision 3.55  2008/11/07 13:00:16  liu
 // remove warnings
 //
@@ -1420,6 +1423,8 @@ public:
   //
   //!Return the software value to be written into the register at "address", whose values have been set by the "Set...(int data)" methods
   int  FillTMBRegister(unsigned long int address); 
+  //
+  void UnjamFPGA();
   //
   void ReadTmbIdCodes();
   inline int GetTMBmezzFpgaIdCode() { return tmb_idcode_[0]; }
