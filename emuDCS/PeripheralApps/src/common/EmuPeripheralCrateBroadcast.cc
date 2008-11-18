@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.35 2008/11/14 11:46:22 bylsma Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.36 2008/11/18 16:58:12 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -483,7 +483,6 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
 //
   void EmuPeripheralCrateBroadcast::VMECCLoadFirmwareBcast(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
-    char buf[50];
     DefineBroadcastCrate();
     vmecc=broadcastCrate->vmecc();
     broadcastCrate->vmeController()->init();
