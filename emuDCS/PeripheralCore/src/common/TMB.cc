@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.76 2008/11/17 08:26:59 rakness Exp $
+// $Id: TMB.cc,v 3.77 2008/11/18 16:57:41 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.77  2008/11/18 16:57:41  rakness
+// make unjam TMB more simple and robust
+//
 // Revision 3.76  2008/11/17 08:26:59  rakness
 // add unjam TMB
 //
@@ -3875,24 +3878,8 @@ int TMB::tmb_get_boot_reg(unsigned short int* value) {
 //
 int TMB::tmb_set_boot_reg(unsigned short int value) {
   //
-  //char sndbuf[2];
-  //char rcvbuf[2];
-  //
   sndbuf[0]=(value >> 8) & 0xff;
   sndbuf[1]=value & 0xff;
-  //
-  //printf(" Here1. %x %x \n",sndbuf[0]&0xff,sndbuf[1]&0xff);
-  //
-  //tmb_vme(VME_WRITE, 0x16,sndbuf,rcvbuf, NOW);
-  //
-  //tmb_vme(VME_READ,  0x16,sndbuf,rcvbuf, NOW);
-  //
-  //sndbuf[0]=value & 0xff;
-  //sndbuf[1]=(value >> 8) & 0xff;
-  //
-  //printf(" Here2. %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-  //
-  //printf("\n");
   //
   tmb_vme(VME_WRITE | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
   //
@@ -3901,25 +3888,85 @@ int TMB::tmb_set_boot_reg(unsigned short int value) {
 //
 void TMB::UnjamFPGA() {
   //
-  // Unjam the TMB FPGA from a "stuck" state, sometimes encountered when 
-  // a JTAG sequence is interrupted...
+  std::cout << "Unjam TMB JTAG chains..." << std::endl;
+  //
+  const int tck_up = 0x0004;
+  const int tck_dn = 0x0000;
+  //
+  const int tms_up = 0x0002;
+  const int tms_dn = 0x0000;
+  //
+  // Pick the chain according to bits [6:3].  Use the bootstrap register (bit[7]=1)
+  const int tmb_mezz_chain  = 0x00a0;
+  const int alct_jtag_chain = 0x0080;
+  const int tmb_user_chain  = 0x00c0;
+  const int tmb_fpga_chain  = 0x00e0;
   //
   // clear TMB boot register
   tmb_set_boot_reg(0);
   sleep(1);
   //
-  // Set up the software to talk to the TMB Mezzanine PROMs+FPGA JTAG chain
-  // (through the bootstrap register)
-  setup_jtag(ChainTmbMezz);
-  //
-  // Bring the Test Access Port (TAP) state to Run-Test-Idle
-  RestoreIdle();
-  //
-  if (this->slot() < 22) {
-    short unsigned int BootReg;
-    tmb_get_boot_reg(&BootReg);
-    tmb_set_boot_reg(BootReg & 0xff7f);     //give the JTAG chain back to the FPGA 
+  // Bring the Test Access Port (TAP) state to Run-Test-Idle for each JTAG chain
+  for (int chain=0; chain<4; chain++) {
+    int data_word;
+    int chain_address;
+    //
+    if (chain == 0) {
+      chain_address = tmb_mezz_chain;
+    } else if (chain == 1) {
+      chain_address = alct_jtag_chain;
+    } else if (chain == 2) {
+      chain_address = tmb_user_chain;
+    } else if (chain == 3) {
+      chain_address = tmb_fpga_chain;
+    }
+    //
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_up;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    //
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_up;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    //
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_up;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    //
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_up;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    //
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_up;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_up | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    //
+    data_word = chain_address | tms_dn | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_dn | tck_up;
+    tmb_set_boot_reg(data_word);     
+    data_word = chain_address | tms_dn | tck_dn;
+    tmb_set_boot_reg(data_word);     
+    //
   }
+  //
+  //give the JTAG chain back to the FPGA 
+  tmb_set_boot_reg(0);     
   //
   return;
 }
