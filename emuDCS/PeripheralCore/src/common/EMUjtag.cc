@@ -2195,6 +2195,14 @@ void EMUjtag::ParseXSDRTDO_() {
       tmb_->scan(DATA_REGISTER, tdi_in_bytes_, xdr_length_, tdo_in_bytes_, NO_READ_BACK);
     }
     //
+    // Uncomment the following lines to print out the TDO which is pushed out of the chip:
+    //    Logfile_ << " TDO read back = ";
+    //    for (int byte=number_of_bytes-1; byte>=0; byte--) 
+    //      Logfile_ << std::hex 
+    //	       << (int) ( (tdo_in_bytes_[byte]>>4) &0xf )
+    //	       << (int) ( tdo_in_bytes_[byte]&0xf );
+    //    Logfile_ << std::endl;
+    //
     if(debug_){
       std::cout << " expect    = ";
       for (int byte=number_of_bytes-1; byte>=0; byte--) 
@@ -2423,19 +2431,14 @@ void EMUjtag::CheckUserProm() {
 //
 void EMUjtag::ProgramTMBProms() {
   //
-  // N.B. we assume there is no JTAG verify done when programming the proms....
-  //
-  std::cout << "EMUjtag: Programming TMB Proms..." << std::endl;
-  //
-  time_t starttime = time (NULL);
+  std::cout << "EMUjtag: Communicating with TMB Mezzanine Proms..." << std::endl;
   //
   SetWriteToDevice_(true);
   //
   // Select the JTAG chain (puts the bootstrap register in control of the JTAG chain)
   setup_jtag(ChainTmbMezz);
   //
-  // Default when programming prom is to write a logfile:
-  ReadXsvfFile_(true);
+  this->ProgramProms_();
   //
   if (tmb_->slot() < 22) {
     short unsigned int BootReg;
@@ -2443,11 +2446,36 @@ void EMUjtag::ProgramTMBProms() {
     tmb_->tmb_set_boot_reg(BootReg & 0xff7f);     //give the JTAG chain back to the FPGA 
   }
   //
+  return;
+}
+//
+void EMUjtag::ProgramALCTProms() {
+  //
+  std::cout << "EMUjtag: Communicating with ALCT Fast Control PROMs..." << std::endl;
+  //
+  SetWriteToDevice_(true);
+  //
+  // Select the JTAG chain
+  setup_jtag(ChainAlctFastMezz);
+  //
+  this->ProgramProms_();
+  //
+  return;
+}
+//
+void EMUjtag::ProgramProms_() {
+  //
+  //
+  time_t starttime = time (NULL);
+  //
+  // Default when programming prom is to write a logfile:
+  ReadXsvfFile_(true);
+  //
   time_t endtime = time (NULL);
   //
   int time_elapsed = endtime - starttime;
   //
-  std::cout << "EMUjtag: TMB Programming complete in " 
+  std::cout << "EMUjtag: JTAG communication complete in " 
 	       << std::dec << time_elapsed << " seconds"
 	       << std::endl;  
   //

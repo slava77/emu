@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.36 2008/08/13 11:30:53 geurts Exp $
+// $Id: ALCTController.h,v 3.37 2008/11/18 17:03:17 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.37  2008/11/18 17:03:17  rakness
+// include ALCT PROM readback
+//
 // Revision 3.36  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -648,7 +651,8 @@ class ALCTController : public EmuLogger
   //
   // Methods used to program ALCT prom:
   int CheckFirmwareConfiguration();
-  int SVFLoad(int *, const char *, int);
+  void ProgramALCTProms();
+  int SVFLoad(int *, const char *, int);  //this method is to be deprecated...
   //
 protected:
   //

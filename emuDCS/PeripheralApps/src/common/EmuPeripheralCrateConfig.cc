@@ -30,17 +30,39 @@ const std::string       VMECC_FIRMWARE_DIR = "vcc";
 // In other words:  9 April 2007 firmware should reside in YEARMONTHDAY=20070409
 //
 // The XXX in the ALCT firmware specification corresponds to the following structure:
-const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf";//
+const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf"; //
+const std::string ALCT_READBACK_FILENAME_ME11 = "readback-192-288-384";//
+//
 const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn.svf";//
+const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE = "readback-192-288-384";   //
+//
 const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp.svf";//
+const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE = "readback-192-288-384";   //
+//
 const std::string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp.svf";//
-const std::string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384.svf";//
-const std::string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192.svf";//
+const std::string ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE  = "readback-192-288-384";   //
+//
+const std::string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384.svf"; //
+const std::string ALCT_READBACK_FILENAME_ME12 = "readback-192-288-384";//
+//
+const std::string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192.svf"; //
+const std::string ALCT_READBACK_FILENAME_ME13 = "readback-192-288-384";//
+//
 const std::string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672.svf";//
-const std::string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf";//
+const std::string ALCT_READBACK_FILENAME_ME21 = "readback-576-672";   //
+//
+const std::string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf"; //
+const std::string ALCT_READBACK_FILENAME_ME22 = "readback-192-288-384";//
+//
 const std::string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";//
+const std::string ALCT_READBACK_FILENAME_ME31 = "readback-576-672";               //
+//
 const std::string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";//
+const std::string ALCT_READBACK_FILENAME_ME32 = "readback-192-288-384";           //
+//
 const std::string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror.svf";//
+const std::string ALCT_READBACK_FILENAME_ME41 = "readback-576-672";               //
+//
 //
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
@@ -121,10 +143,10 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTimeSinceHardReset,"CheckTimeSinceHardReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesConfiguration, "CheckCratesConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CheckCratesFirmware, "CheckCratesFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::PowerOnFixCFEB, "PowerOnFixCFEB");
   xgi::bind(this,&EmuPeripheralCrateConfig::FixCFEB, "FixCFEB");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadbackALCTFirmware, "ReadbackALCTFirmware");
   //
   //------------------------------
   // bind crate utilities
@@ -232,7 +254,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CCBHardResetFromTMBPage, "CCBHardResetFromTMBPage");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTMBFirmware, "CheckTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
-  xgi::bind(this,&EmuPeripheralCrateConfig::UnjamTMB, "UnjamTMB");
+  xgi::bind(this,&EmuPeripheralCrateConfig::UnjamTMB, "UnjamTMB");  
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadCrateALCTFirmware, "LoadCrateALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadRATFirmware, "LoadRATFirmware");
@@ -503,17 +525,14 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
 
-  std::cout << " PowerOnFixCFEB " << std::endl;
   *out << cgicc::td();
   std::string PowerOnFixCFEB = toolbox::toString("/%s/PowerOnFixCFEB",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",PowerOnFixCFEB) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Power On Fix CFEBs").set("style","color:blue") << std::endl ;
-  *out << cgicc::form() << std::endl ;
+  *out << cgicc::a("[Firmware Check]").set("href",PowerOnFixCFEB) << std::endl;
   *out << cgicc::td();
 
   *out << cgicc::td();
   std::string CheckConfigurationPage = toolbox::toString("/%s/CheckConfigurationPage",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::a("[Check Configuration]").set("href",CheckConfigurationPage) << std::endl;
+  *out << cgicc::a("[Configuration Check]").set("href",CheckConfigurationPage) << std::endl;
   *out << cgicc::td();
 
   *out << cgicc::table();
@@ -3028,19 +3047,6 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
-  *out << cgicc::td();
-  std::string CheckCratesFirmware = toolbox::toString("/%s/CheckCratesFirmware",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",CheckCratesFirmware) << std::endl ;
-  if (crates_firmware_ok == 1) {
-    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:green") << std::endl ;
-  } else if (crates_firmware_ok == 0) {
-    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:red") << std::endl ;
-  } else if (crates_firmware_ok == -1) {
-    *out << cgicc::input().set("type","submit").set("value","Check firmware in system").set("style","color:blue") << std::endl ;
-  }
-  *out << cgicc::form() << std::endl ;
-  *out << cgicc::td();
-  //
   *out << cgicc::table();
   //
   *out << cgicc::fieldset();
@@ -3072,117 +3078,6 @@ void EmuPeripheralCrateConfig::CheckConfigurationPage(xgi::Input * in, xgi::Outp
   //
   *out << cgicc::fieldset();
   //
-  //
-  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-  *out << cgicc::legend("Firmware Status").set("style","color:blue") << cgicc::p() << std::endl ;
-  //
-  if (crates_firmware_ok >= 0) {
-    //
-    for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
-      //
-      SetCurrentCrate(crate_number);
-      //
-      *out << crateVector[crate_number]->GetLabel() << std::endl ;
-      //
-      if (crate_firmware_ok[current_crate_] == 0) {
-	//
-	*out << cgicc::br() << cgicc::span().set("style","color:red");
-	//
-        if (ccb_firmware_ok[current_crate_] == 0) *out << " CCB firmware incorrect " << cgicc::br() << std::endl ;
-        if (mpc_firmware_ok[current_crate_] == 0) *out << " MPC firmware incorrect " << cgicc::br() << std::endl ;
-        //
-	bool alct_ok = true;
-	bool tmb_ok = true;
-	bool dmb_vme_ok = true;
-	bool dmb_control_ok = true;
-	bool cfeb_ok = true;
-	//
-	for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-	  if (alct_firmware_ok[current_crate_][chamber_index] == 0) alct_ok = false;
-	  if (tmb_firmware_ok[current_crate_][chamber_index] == 0)  tmb_ok = false;
-	  if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0)  dmb_vme_ok = false;
-	  if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0)  dmb_control_ok = false;
-	  //
-	  std::vector<emu::pc::CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	  typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
-	  for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-	      int cfeb_index = (*cfebItr).number();
-	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0)  cfeb_ok = false;
-	  }
-	}
-	//
-	if (!alct_ok) {
-	  //
-	  *out << " ALCT firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (alct_firmware_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!tmb_ok) {
-	  //
-	  *out << " TMB firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (tmb_firmware_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!dmb_vme_ok) {
-	  //
-	  *out << " DMB VME firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!dmb_control_ok) {
-	  //
-	  *out << " DMB Control FPGA firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
-	    if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0) 
-	      *out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << ", ";
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-	if (!cfeb_ok) {
-	  //
-	  *out << " CFEB firmware incorrect: " ;
-	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-	    //
-	    std::vector<emu::pc::CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
-	    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-	      int cfeb_index = (*cfebItr).number();
-	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0) 
-		*out << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() << " CFEB " << cfeb_index << ", ";
-	    }
-	  }
-	  //
-	  *out << cgicc::br() << std::endl ;
-	}
-	//
-      } else if (crate_firmware_ok[current_crate_] == 1) {
-	//
-	*out << cgicc::span().set("style","color:green");
-	*out << " firmware OK" << cgicc::br();
-      } else if (crate_firmware_ok[current_crate_] == -1) {
-	//
-	*out << cgicc::span().set("style","color:blue");
-	*out << " firmware not checked" << cgicc::br();
-      }
-      *out << cgicc::span() << std::endl ;
-    }
-  }
-  //
-  //
-  *out << cgicc::fieldset();
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   *out << cgicc::legend("Configuration Status").set("style","color:blue") << cgicc::p() << std::endl ;
@@ -3295,8 +3190,8 @@ void EmuPeripheralCrateConfig::CheckTimeSinceHardReset(xgi::Input * in, xgi::Out
 
   SetCurrentCrate(initialcrate);	
 
-  if(cgiEnvi.getReferrer().find("CheckConfigurationPage") != std::string::npos)
-    this->CheckConfigurationPage(in, out);
+  //  if(cgiEnvi.getReferrer().find("CheckConfigurationPage") != std::string::npos)
+  this->CheckConfigurationPage(in, out);
 
  /* 
   if(cgiEnvi.getReferrer().find("CheckCratesConfiguration") != std::string::npos) {
@@ -3393,37 +3288,6 @@ void EmuPeripheralCrateConfig::CheckCrateConfiguration(xgi::Input * in, xgi::Out
   CheckPeripheralCrateConfiguration();
   //
   this->Default(in, out);
-}
-//
-void EmuPeripheralCrateConfig::CheckCratesFirmware(xgi::Input * in, xgi::Output * out )
-  throw (xgi::exception::Exception) {
-  //
-  std::cout << "Button:  Check CSC Firmware of All Active Crates" << std::endl;
-  //
-  if(total_crates_<=0) return;
-  //
-  int initialcrate=current_crate_;
-  //
-  crates_firmware_ok = 1;
-  //
-  for(unsigned i=0; i< crateVector.size(); i++) {
-    //
-    if ( crateVector[i]->IsAlive() ) {
-      //
-      SetCurrentCrate(i);	
-      //
-      CheckPeripheralCrateFirmware();
-      //
-      crates_firmware_ok &= crate_firmware_ok[i];
-    } else {
-      //
-      crate_firmware_ok[i] = -1;
-    }
-  }
-  //
-  SetCurrentCrate(initialcrate);
-  //
-  this->CheckConfigurationPage(in, out);
 }
 //
 void EmuPeripheralCrateConfig::CheckCrateFirmware(xgi::Input * in, xgi::Output * out )
@@ -3533,13 +3397,15 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
 
 void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
+  //
   int cur18a[5]={1,1,1,2,2};
   int cur18b[5]={1,4,7,2,5};
   int slot2num[22]={0,0,0,0,0,1,0,2,0,3,0,4,0,0,0,5,0,6,0,7,0,8};
 
-  MyHeader(in,out,"Power On Fix Erased CFEB Proms");
+  MyHeader(in,out,"Check System Firmware");
 
-  *out << cgicc::table().set("border","0");
+  *out << "CFEB FPGAs not programmed " << std::endl;
+  *out << cgicc::table().set("border","1");
   *out << cgicc::tr();
   *out << cgicc::td();
   *out << " Chamber ";
@@ -3559,38 +3425,58 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
   *out << cgicc::td();
   *out << " " ;
   *out << cgicc::td();
+  *out << cgicc::td();
+  *out << " " ;
+  *out << cgicc::td();
   *out << cgicc::tr()<<std::endl;
+  //
   // std::cout << " LSD: crate size " << crateVector.size() << std::endl;
+  //
+  int initial_crate = current_crate_;
+
   for(unsigned i=0; i< crateVector.size(); i++){
+    //
     // std::cout << "LSD: Crate: " << crateVector[i]->GetLabel() << std::endl;
+    //
     int  this_crate_no_=i;
     SetCurrentCrate(this_crate_no_);
+    if (!thisCrate->IsAlive()) continue;
+    //
     int CSRA3=0x04;
     thisCCB->ReadRegister(CSRA3);
+    //
     for (unsigned int k=0; k<dmbVector.size(); k++) {
       emu::pc::DAQMB * thisDMB = dmbVector[k];
       int slot = thisDMB->slot();
       if(slot<22){
         int dmbcfg= thisCCB->GetReadDMBConfigDone(slot2num[slot]);
         emu::pc::Chamber *thisChamber = chamberVector[k];
-        // std::cout << " LSD: slot: " << slot << " " << " k: " << k << " slot2num " << slot2num[slot] << "daqcfg " << dmbcfg << " chamber " << thisChamber->GetLabel() << std::endl;
+        // std::cout << " LSD: slot: " << slot << " " << " k: " << k << " slot2num " 
+	// << slot2num[slot] << "daqcfg " << dmbcfg << " chamber " << thisChamber->GetLabel() << std::endl;
         std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
         for(unsigned int j=0;j<thisCFEBs.size();j++){
           int numcfeb;
           for(unsigned int jj=0;jj<thisCFEBs.size();jj++){
             if(j==(unsigned int)thisCFEBs[jj].number())numcfeb=jj;
           }
-          std::cout << " LSD febpromid " << " " << thisChamber->GetLabel() << ":" << numcfeb << " " << std::hex << thisDMB->febpromid(thisCFEBs[numcfeb]) << std::dec << std::endl;
+	  //          std::cout << " LSD febpromid " << " " << thisChamber->GetLabel() << ":" 
+	  //		    << numcfeb << " " << std::hex << thisDMB->febpromid(thisCFEBs[numcfeb]) 
+	  //		    << std::dec << std::endl;
         }
         if(dmbcfg==0){
+	  //
           for(unsigned int j=0;j<thisCFEBs.size();j++){
             int numcfeb;
             for(unsigned int jj=0;jj<thisCFEBs.size();jj++){
               if(j==(unsigned int)thisCFEBs[jj].number())numcfeb=jj;
             }
-            // std::cout << " LSD febpromid " << j << " " << thisChamber->GetLabel() << " " << std::hex << thisDMB->febpromid(thisCFE\Bs[numcfeb]) << std::dec << std::endl;
+            // std::cout << " LSD febpromid " << j << " " << thisChamber->GetLabel() 
+	    // << " " << std::hex << thisDMB->febpromid(thisCFEBs[numcfeb]) << std::dec << std::endl;
+	    //	    unsigned int mbid = thisDMB->mbfpgaid();
+	    //	    std::cout << "LSD:DMB Problem " << thisChamber << " mbfpgaid " << mbid << std::endl;  
+	    //
             float current=thisDMB->lowv_adc(cur18a[j],cur18b[j])/1000.;
-            if(current<0.81&&current>0.01){
+            if(current<0.85&&current>0.01){
               *out << cgicc::tr();
               *out << cgicc::td();
               *out << thisChamber->GetLabel();
@@ -3605,12 +3491,12 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
               *out << "CFEB"<<j+1;
               *out << cgicc::td();
               *out << cgicc::td();
-              *out << current;
+              *out << std::setprecision(2) << current;
               *out << cgicc::td();
               *out << cgicc::td();
               std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
               *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
-              *out << cgicc::input().set("type","submit").set("value","Fix CFEB").set("style","color:red") << std::endl ;
+              *out << cgicc::input().set("type","submit").set("value","Hard Reset").set("style","color:blue") << std::endl ;
               char buf[20];
               sprintf(buf,"%d",i);
               *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
@@ -3618,6 +3504,23 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
               *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
               sprintf(buf,"%d",numcfeb);
               *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+              int numcmd=1;
+              sprintf(buf,"%d",numcmd);
+              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
+              *out << cgicc::form() << std::endl ;
+              *out << cgicc::td();
+              *out << cgicc::td();
+              *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
+              *out << cgicc::input().set("type","submit").set("value","Pgrm Prom").set("style","color:red") << std::endl ;
+              sprintf(buf,"%d",i);
+              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+              sprintf(buf,"%d",k);
+              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
+              sprintf(buf,"%d",numcfeb);
+              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+              numcmd=2;
+              sprintf(buf,"%d",numcmd);
+              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
               *out << cgicc::form() << std::endl ;
               *out << cgicc::td();
               *out << cgicc::tr() << std::endl;
@@ -3631,8 +3534,11 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 
   // now ALCTs
   *out << "ALCT FPGAs not programmed " << std::endl;
-  *out << cgicc::table().set("border","0");
+  *out << cgicc::table().set("border","1");
   *out << cgicc::tr();
+  *out << cgicc::td();
+  *out << " Chamber ";
+  *out << cgicc::td();
   *out << cgicc::td();
   *out << " Crate ";
   *out << cgicc::td();
@@ -3646,8 +3552,11 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 
   for(unsigned i=0; i< crateVector.size(); i++){
     // std::cout << "LSD: Crate: " << crateVector[i]->GetLabel() << std::endl;
+    //
     int  this_crate_no_=i;
     SetCurrentCrate(this_crate_no_);
+    if (!thisCrate->IsAlive()) continue;
+    //
     int CSRA2=0x02;
     thisCCB->ReadRegister(CSRA2);
     for (unsigned int k=0; k<tmbVector.size(); k++) {
@@ -3657,26 +3566,35 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
         emu::pc::DAQMB * thisDMB = dmbVector[k2];
         int dslot = thisDMB->slot();
         emu::pc::Chamber *thisChamber = chamberVector[slot2num[dslot]];
-        if(dslot+1==tslot){
-          int alctcfg=thisCCB->GetReadALCTConfigDone(slot2num[dslot]);
+        if( (dslot-1)==tslot ){
           float current=thisDMB->lowv_adc(3,0)/1000.;
-          if(current<0.2 && current>0.001 && alctcfg==0) {
-            // emu::pc::ALCTController  * thisALCT = thisTMB->alctController();
-	    // thisALCT->ReadSlowControlId();
-            std::cout << "ALCT " << thisChamber->GetLabel() << ", alct cfg=" << std::hex <<  alctcfg << std::dec << ", current=" << current << std::endl;
+          if(current<0.2 && current>0.05) {
+	    //
+	    int alctcfg=thisCCB->GetReadALCTConfigDone(slot2num[dslot]);
+            std::cout << "ALCT Problem:  " << thisChamber->GetLabel() 
+		      << ", alct cfg=" << std::hex << alctcfg 
+		      << ", expected alct cfg=" << thisCCB->GetExpectedALCTConfigDone()
+		      << ", current="  << std::dec << std::setprecision(2) << current << std::endl;
+	    //
             *out << cgicc::tr();
-            *out << cgicc::td();
-            *out << thisChamber->GetLabel();
-            *out << cgicc::td();
-            *out << cgicc::td();
-            *out <<  crateVector[i]->GetLabel();
-            *out << cgicc::td();
-            *out << cgicc::td();
-            *out << tslot;
-            *out << cgicc::td();
-            *out << cgicc::td();
-            *out << current << std::endl;
-            *out << cgicc::td();
+	    //
+            *out << cgicc::td(); *out << thisChamber->GetLabel();                      *out << cgicc::td();
+            *out << cgicc::td(); *out << crateVector[i]->GetLabel();                   *out << cgicc::td();
+            *out << cgicc::td(); *out << tslot;                                        *out << cgicc::td();
+            *out << cgicc::td(); *out << std::setprecision(2) << current << std::endl; *out << cgicc::td();
+	    //
+	    *out << cgicc::td();
+	    std::string ReadbackALCTFirmware = toolbox::toString("/%s/ReadbackALCTFirmware",getApplicationDescriptor()->getURN().c_str());
+	    *out << cgicc::form().set("method","GET").set("action",ReadbackALCTFirmware) << std::endl ;
+	    *out << cgicc::input().set("type","submit").set("value","Readback ALCT PROM").set("style","color:blue") << std::endl ;
+	    char buf[20];
+	    sprintf(buf,"%d",i);
+	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+	    sprintf(buf,"%d",k);
+	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ntmb"); 
+	    *out << cgicc::form() << std::endl ;
+	    *out << cgicc::td();
+	    //
             *out << cgicc::tr();
           }
         }
@@ -3684,6 +3602,216 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
     }
   }
   *out << cgicc::table() << std::endl;
+  // 
+   *out << "DAQMB FPGAs not programmed " << std::endl;
+   *out << cgicc::table().set("border","1");
+   *out << cgicc::tr();
+   *out << cgicc::td();
+   *out << " Chamber ";
+   *out << cgicc::td();
+   *out << cgicc::td();
+   *out << " Crate ";
+   *out << cgicc::td();
+   *out << cgicc::td();
+   *out << " Slot ";
+   *out << cgicc::td();
+   *out << cgicc::td();
+   *out << " MBFPGA ";
+   *out << cgicc::td();
+   *out << cgicc::td();
+   *out << " "; 
+   *out << cgicc::td();
+   *out << cgicc::tr();
+   for(unsigned i=0; i< crateVector.size(); i++){
+     int  this_crate_no_=i;
+     SetCurrentCrate(this_crate_no_); 
+     int CSRA3=0x04;
+     thisCCB->ReadRegister(CSRA3);
+     for (unsigned int k=0; k<dmbVector.size(); k++) {
+       emu::pc::DAQMB * thisDMB = dmbVector[k];
+       emu::pc::Chamber *thisChamber = chamberVector[k];
+       int slot = thisDMB->slot();
+       if(slot<22){
+         int dmbcfg = thisCCB->GetReadDMBConfigDone(slot2num[slot]);
+         if(dmbcfg==0){
+           // unsigned int vmeid = thisDMB->vmefpgaid();
+           unsigned long int mbid = thisDMB->mbfpgaid();
+           std::cout << "LSD:DMB Problem " << thisChamber << " mbfpgaid " << mbid << std::endl;
+           if(mbid!=0x1020093){
+             *out << cgicc::tr();
+             *out << cgicc::td();
+             *out << thisChamber->GetLabel() ;
+             *out << cgicc::td();
+             *out << cgicc::td();
+             *out <<  crateVector[i]->GetLabel();
+             *out << cgicc::td();
+             *out << cgicc::td();
+             *out << slot;
+             *out << cgicc::td();
+             *out << cgicc::td();
+             *out << std::hex << mbid << std::dec;
+             *out << cgicc::td();
+	     *out << cgicc::td();
+	     std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
+	     *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
+	     *out << cgicc::input().set("type","submit").set("value","Pgrm Prom").set("style","color:red") << std::endl ;
+             char buf[20];
+	     sprintf(buf,"%d",i);
+	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+	     sprintf(buf,"%d",k);
+	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
+             int dummy=99;
+	     sprintf(buf,"%d",dummy);
+	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+	     int numcmd=3;
+	     sprintf(buf,"%d",numcmd);
+	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd");
+	     *out << cgicc::form() << std::endl ;
+	     *out << cgicc::td();
+             *out << cgicc::tr();
+	     // thisDMB->restoreIdle(RESET);
+             // thisDMB->restoreIdle(MPROM);
+             // usleep(500000);
+             // thisCCB->hardReset();
+           }
+         }
+       }
+     }
+   }
+   *out << cgicc::table() << std::endl;
+   //
+   crates_firmware_ok = 0;
+   //
+   for(unsigned i=0; i< crateVector.size(); i++) {
+     //
+     if ( crateVector[i]->IsAlive() ) {
+       //
+       SetCurrentCrate(i);	
+       //
+       CheckPeripheralCrateFirmware();
+       //
+       crates_firmware_ok &= crate_firmware_ok[i];
+     } else {
+       //
+       crate_firmware_ok[i] = -1;
+     }
+   }
+   //
+   SetCurrentCrate(initial_crate);
+   //
+   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+   *out << cgicc::legend("Firmware Version Readback Does Not Match Expected").set("style","color:blue") << cgicc::p() << std::endl ;
+   //
+   if (crates_firmware_ok >= 0) {
+     //
+     for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
+      //
+      SetCurrentCrate(crate_number);
+      //
+      if (crate_firmware_ok[current_crate_] == 0) {
+	//
+	*out << cgicc::span().set("style","color:black");
+	//
+	//
+        if (ccb_firmware_ok[current_crate_] == 0) *out << crateVector[crate_number]->GetLabel() <<" CCB " << cgicc::br() << std::endl ;
+        if (mpc_firmware_ok[current_crate_] == 0) *out << crateVector[crate_number]->GetLabel() <<" MPC " << cgicc::br() << std::endl ;
+        //
+	bool alct_ok = true;
+	bool tmb_ok = true;
+	bool dmb_vme_ok = true;
+	bool dmb_control_ok = true;
+	bool cfeb_ok = true;
+	//
+	for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	  if (alct_firmware_ok[current_crate_][chamber_index] == 0) alct_ok = false;
+	  if (tmb_firmware_ok[current_crate_][chamber_index] == 0)  tmb_ok = false;
+	  if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0)  dmb_vme_ok = false;
+	  if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0)  dmb_control_ok = false;
+	  //
+	  std::vector<emu::pc::CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	  typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+	  for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+	      int cfeb_index = (*cfebItr).number();
+	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0)  cfeb_ok = false;
+	  }
+	}
+	//
+	if (!alct_ok) {
+	  //
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (alct_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << crateVector[crate_number]->GetLabel() << " " 
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << " ALCT" << cgicc::br() << std::endl;
+	}
+	//
+	if (!tmb_ok) {
+	  //
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (tmb_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << crateVector[crate_number]->GetLabel() << " " 
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << " TMB" << cgicc::br() << std::endl;
+	}
+	//
+	if (!dmb_vme_ok) {
+	  //
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << crateVector[crate_number]->GetLabel() << " " 
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << " DMB VME" << cgicc::br() << std::endl;
+	}
+	//
+	if (!dmb_control_ok) {
+	  //
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) 
+	    if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0) 
+	      *out << crateVector[crate_number]->GetLabel() << " " 
+		   << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		   << " DMB Control" << cgicc::br() << std::endl;
+	}
+	//
+	if (!cfeb_ok) {
+	  //
+	  for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
+	    //
+	    bool multiple_cfebs = false;
+	    std::vector<emu::pc::CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+	    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+	      int cfeb_index = (*cfebItr).number();
+	      if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0) 
+		if (!multiple_cfebs) {
+		  *out << crateVector[crate_number]->GetLabel() << " " 
+		       << thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str() 
+		       << " CFEB " << cfeb_index+1;
+		  multiple_cfebs = true;
+		} else {
+		  *out << ", " << cfeb_index+1;
+		}
+	    }
+	    if (multiple_cfebs)
+	      *out << cgicc::br() << std::endl ;
+	  }
+	  //
+	}
+	*out << cgicc::span() << std::endl ;
+	//
+      } else if (crate_firmware_ok[current_crate_] == -1) {
+	//
+	*out << crateVector[crate_number]->GetLabel() << std::endl ;
+	//
+	*out << cgicc::span().set("style","color:blue");
+	*out << " firmware not checked" << cgicc::br();
+	*out << cgicc::span() << std::endl ;
+      }
+
+    }
+  }
+  //
+  //
+  *out << cgicc::fieldset();
   //
 }
 //
@@ -3719,38 +3847,133 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
     std::cout << "Not ncfeb" << std::endl ;
     ncfeb=-1;
   }
-  if(ncrt>-1&&ndmb>-1&&ncfeb>-1){
+  cgicc::form_iterator name4 = cgi.getElement("ncmd");
+  int ncmd;
+  if(name4 != cgi.getElements().end()) {
+    ncmd = cgi["ncmd"]->getIntegerValue();
+    std::cout << "ncnd " << ncmd << std::endl;
+  } else {
+    std::cout << "Not ncmd" << std::endl ;
+    ncmd=-1;
+  }
+
+  if(ncrt>-1&&ndmb>-1&&ncfeb>-1&&ncmd>-1){
     SetCurrentCrate(ncrt);
     emu::pc::DAQMB * thisDMB = dmbVector[ndmb];
     std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
     emu::pc::CFEB thisCFEB = thisCFEBs[ncfeb];
 
-    // now readback bit contents of prom
-    char * outp;             ;   // recast dword
-    thisDMB->epromload_verify(thisCFEB.promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
-    std::cout << " time calculation " << std::endl;
-    time_t rawtime;
-    time(&rawtime);
-    std::string buf;
-    std::string time_dump = ctime(&rawtime);
-    std::string time = time_dump.substr(0,time_dump.length()-1);
-    while( time.find(" ",0) != std::string::npos ) {
-      int thispos = time.find(" ",0);
-      time.replace(thispos,1,"_");
+    if(ncmd==1){
+      thisDMB->lowv_onoff(0x20);
+      usleep(500000);
+      thisDMB->lowv_onoff(0x3f);
     }
-    std::cout << "time " << time << std::endl;
-    std::string temp = toolbox::toString("mv eprom.bit /tmp/verify_%s_slot%d_cfeb%d_%s.bit",crateVector[ncrt]->GetLabel().c_str(),thisDMB->slot(),thisCFEB.number()+1,time.c_str());
-    std::cout  << temp << std::endl;
-    system(temp.c_str());
 
-    // now reprogram the prom
-    unsigned short int dword[2];
-    dword[0]=thisDMB->febpromuser(thisCFEB);
-    char * outp2=(char *)dword;   // recast dword
-    thisDMB->epromload(thisCFEB.promDevice(),CFEBFirmware_.toString().c_str(),1,outp2);
-    // now do a hard reset
-    thisCCB->hardReset();
+    if(ncmd==2){
+      // now readback bit contents of prom
+      char * outp;             ;   // recast dword
+      thisDMB->epromload_verify(thisCFEB.promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
+      std::cout << " time calculation " << std::endl;
+      time_t rawtime;
+      time(&rawtime);
+      std::string buf;
+      std::string time_dump = ctime(&rawtime);
+      std::string time = time_dump.substr(0,time_dump.length()-1);
+      while( time.find(" ",0) != std::string::npos ) {
+        int thispos = time.find(" ",0);
+        time.replace(thispos,1,"_");
+      }
+      std::cout << "time " << time << std::endl;
+      std::string temp = toolbox::toString("mv eprom.bit /tmp/verify_%s_slot%d_cfeb%d_%s.bit",crateVector[ncrt]->GetLabel().c_str(),thisDMB->slot(),thisCFEB.number()+1,time.c_str());
+      std::cout  << temp << std::endl;
+      system(temp.c_str());
+
+      // now reprogram the prom
+      unsigned short int dword[2];
+      dword[0]=thisDMB->febpromuser(thisCFEB);
+      char * outp2=(char *)dword;   // recast dword
+      thisDMB->epromload(thisCFEB.promDevice(),CFEBFirmware_.toString().c_str(),1,outp2);
+      // now do a hard reset
+      thisDMB->lowv_onoff(0x20);
+      usleep(500000);
+      thisDMB->lowv_onoff(0x3f);
+ 
+    }
+
+    if(ncmd==3){
+      thisCCB->hardReset(); 
+    }
   }
+  this->PowerOnFixCFEB(in,out);
+}
+//
+void EmuPeripheralCrateConfig::ReadbackALCTFirmware(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Readback ALCT..." << std::endl;
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name1 = cgi.getElement("ncrt");
+  int ncrt;
+  if(name1 != cgi.getElements().end()) {
+    ncrt = cgi["ncrt"]->getIntegerValue();
+    std::cout << "ncrt " << ncrt << std::endl;
+  } else {
+    std::cout << "No ncrt specified, taking the current crate..." << std::endl ;
+    ncrt=current_crate_;
+  }
+  //
+  cgicc::form_iterator name2 = cgi.getElement("ntmb");
+  int tmb;
+  if(name2 != cgi.getElements().end()) {
+    tmb = cgi["ntmb"]->getIntegerValue();
+    std::cout << "TMB " << tmb << std::endl;
+  } else {
+    std::cout << "No TMB" << std::endl ;
+    tmb=-1;
+  }
+  //
+  int initial_crate = current_crate_;
+  //
+  if(ncrt>-1 && tmb>-1){
+    //
+    SetCurrentCrate(ncrt);
+    emu::pc::TMB * thisTMB = tmbVector[tmb];
+    emu::pc::ALCTController * thisALCT = thisTMB->alctController();
+    //
+    if (thisTMB->slot() < 22) {
+      //
+      // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
+      thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
+      //
+      std::cout <<  "Reading back ALCT firmware from slot " << thisTMB->slot() 
+		<< ", using " << ALCTReadback_[tmb].toString() 
+		<< " in 5 seconds...  Current firmware types are:" << std::endl;
+      //
+      thisALCT->ReadSlowControlId();
+      thisALCT->PrintSlowControlId();
+      //
+      thisALCT->ReadFastControlId();
+      thisALCT->PrintFastControlId();
+      //
+      ::sleep(5);
+      //
+      thisTMB->disableAllClocks();
+      //
+      thisTMB->SetXsvfFilename(ALCTReadback_[tmb].toString().c_str());
+      thisALCT->ProgramALCTProms();
+      thisTMB->ClearXsvfFilename();
+      //
+      thisTMB->enableAllClocks();
+      //
+      // Put CCB back into DLOG mode to listen to TTC commands...
+      thisCCB->setCCBMode(emu::pc::CCB::DLOG);
+      //
+    }
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
   this->PowerOnFixCFEB(in,out);
 }
 
@@ -3758,7 +3981,7 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 // Another method which would be better in another class... let's make it work, first....
 void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
   //
-  std::cout << "Firmware check for " << thisCrate->GetLabel() << std::endl;
+  //  std::cout << "Firmware check for " << thisCrate->GetLabel() << std::endl;
   //
   crate_firmware_ok[current_crate_] = 1;
   //
@@ -3770,12 +3993,12 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     //	
-    emu::pc::Chamber * thisChamber     = chamberVector[chamber_index];
     emu::pc::TMB * thisTMB             = tmbVector[chamber_index];
     emu::pc::ALCTController * thisALCT = thisTMB->alctController();
     emu::pc::DAQMB * thisDMB           = dmbVector[chamber_index];
     //
-    std::cout << "Firmware check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
+    //    emu::pc::Chamber * thisChamber     = chamberVector[chamber_index];
+    //    std::cout << "Firmware check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
     //
     tmb_firmware_ok[current_crate_][chamber_index]      = (int) thisTMB->CheckFirmwareDate();
     crate_firmware_ok[current_crate_] &= tmb_firmware_ok[current_crate_][chamber_index];
@@ -11812,19 +12035,36 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
   //
-  *out << cgicc::br() << std::endl;
-  //
-  std::string UnjamTMB = toolbox::toString("/%s/UnjamTMB",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",UnjamTMB) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Unjam TMB FPGA") << std::endl ;
-  sprintf(buf,"%d",tmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  *out << cgicc::form() << std::endl ;
-  //
   //--------------------------------------------------------
   *out << cgicc::table().set("border","0");
   //
   ////////////////////////////////////////
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "FPGA/JTAG tools";
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string UnjamTMB = toolbox::toString("/%s/UnjamTMB",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",UnjamTMB) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Unjam TMB JTAG chains") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  //  *out << cgicc::td().set("ALIGN","left");
+  //  std::string ReadbackALCTFirmware = toolbox::toString("/%s/ReadbackALCTFirmware",getApplicationDescriptor()->getURN().c_str());
+  //  *out << cgicc::form().set("method","GET").set("action",ReadbackALCTFirmware) << std::endl ;
+  //  *out << cgicc::input().set("type","submit").set("value","Readback ALCT PROM").set("style","color:blue") << std::endl ;
+  //  sprintf(buf,"%d",tmb);
+  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ntmb"); 
+  //  *out << cgicc::form() << std::endl ;
+  //  *out << cgicc::td();
+  //
+  ////////////////////////////////////////
+  *out << cgicc::tr();
+  //
   *out << cgicc::td().set("ALIGN","left");
   *out << "TMB Counters";
   *out << cgicc::td();
@@ -12131,40 +12371,55 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     //	  expected_day_ones);
     //
     std::ostringstream ALCTFirmware;
+    std::ostringstream ALCTReadback;
     ALCTFirmware << FirmwareDir_ << "alct/" << date << "/";
+    ALCTReadback << FirmwareDir_ << "alct/readback/";
     //
     if ( (thisALCT->GetChamberType()).find("ME11") != std::string::npos ) {
       //
       if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
 	  thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE;
+	ALCTReadback << ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE;
       } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
 		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE;
+	ALCTReadback << ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE;
       } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE &&
 		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE;
+	ALCTReadback << ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE;
       } else {
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11;
+	ALCTReadback << ALCT_READBACK_FILENAME_ME11;
       }
     } else if ( (thisALCT->GetChamberType()).find("ME12") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME12;
+      ALCTReadback << ALCT_READBACK_FILENAME_ME12;
     } else if ( (thisALCT->GetChamberType()).find("ME13") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME13;
+      ALCTReadback << ALCT_READBACK_FILENAME_ME13;
     } else if ( (thisALCT->GetChamberType()).find("ME21") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME21;
+      ALCTReadback << ALCT_READBACK_FILENAME_ME21;
     } else if ( (thisALCT->GetChamberType()).find("ME22") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME22;
+      ALCTReadback << ALCT_READBACK_FILENAME_ME22;
     } else if ( (thisALCT->GetChamberType()).find("ME31") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME31;
+      ALCTReadback << ALCT_READBACK_FILENAME_ME31;
     } else if ( (thisALCT->GetChamberType()).find("ME32") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME32;
+      ALCTReadback << ALCT_READBACK_FILENAME_ME32;
     } else if ( (thisALCT->GetChamberType()).find("ME41") != std::string::npos ) {
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME41;
+      ALCTReadback << ALCT_READBACK_FILENAME_ME41;
     } 
     //
     ALCTFirmware_[tmb] = ALCTFirmware.str();
+    ALCTReadback_[tmb] = ALCTReadback.str();
     //    std::cout << "ALCT " << tmb << " load " << ALCTFirmware_[tmb].toString() << std::endl;
+    //    std::cout << "ALCT " << tmb << " read " << ALCTReadback_[tmb].toString() << std::endl;
     //
     sprintf(date,"%4u%02u%02u",
 	    thisTMB->GetExpectedRatFirmwareYear() ,
@@ -12376,9 +12631,7 @@ void EmuPeripheralCrateConfig::UnjamTMB(xgi::Input * in, xgi::Output * out )
   //
   emu::pc::TMB * thisTMB = tmbVector[tmb];
   //
-  if (thisTMB->slot() < 22) {
-    thisTMB->UnjamFPGA();
-  }
+  thisTMB->UnjamFPGA();
   //
   this->TMBUtils(in,out);
   //
@@ -12427,6 +12680,11 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   ::sleep(5);
   //
   thisTMB->disableAllClocks();
+  //
+  // programming with xsvf file (svf file programming to be deprecated, since it cannot verify)
+  //  thisALCT->SetXsvfFilename(ALCTFirmware_[tmb].toString().c_str());
+  //  thisALCT->ProgramALCTProms();
+  //  thisALCT->ClearXsvfFilename();
   //
   int debugMode(0);
   int jch(3);
@@ -12492,6 +12750,11 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     ::sleep(5);
     //
     thisTMB->disableAllClocks();
+    //
+    // programming with xsvf file (svf file programming to be deprecated, since it cannot verify)
+    //  thisALCT->SetXsvfFilename(ALCTFirmware_[tmb].toString().c_str());
+    //  thisALCT->ProgramALCTProms();
+    //  thisALCT->ClearXsvfFilename();
     //
     int debugMode(0);
     int jch(3);

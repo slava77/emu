@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.55 2008/08/13 11:30:53 geurts Exp $
+// $Id: ALCTController.cc,v 3.56 2008/11/18 17:03:18 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.56  2008/11/18 17:03:18  rakness
+// include ALCT PROM readback
+//
 // Revision 3.55  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -4216,6 +4219,20 @@ int ALCTController::SVFLoad(int * arg1, const char * arg2, int arg3) {
   //
   return check_value;
   //
+}
+//
+void ALCTController::ProgramALCTProms() { 
+  //
+  int check_value = CheckFirmwareConfiguration();
+  //
+  if ( check_value ==  1 ||
+       check_value == -1 ) {
+    //
+    tmb_->ProgramALCTProms(); 
+    //
+  } 
+  //
+  return;
 }
 //
 int ALCTController::CheckFirmwareConfiguration() {
