@@ -133,6 +133,7 @@ public:
   //------------------------------------------------  
   void ProgramUserProm();                             //program user proms with filename.xsvf 
   void ProgramTMBProms();                             //program TMB mezzanine proms with filename.xsvf 
+  void ProgramALCTProms();                            //program ALCT Fast Control proms with filename.xsvf 
   //
   void CheckUserProm();                               //compare program in SetWhichUserProm(device) with filename.dat 
   //
@@ -281,6 +282,7 @@ private:
   //-------------------
   // program_prom 
   //-------------------
+  void ProgramProms_();
   int verify_error_;
   //
   int xdr_length_;

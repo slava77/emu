@@ -85,6 +85,7 @@ protected:
   xdata::String DMBVmeFirmware_;
   xdata::String RATFirmware_[10];
   xdata::String ALCTFirmware_[10];
+  xdata::String ALCTReadback_[10];
   xdata::String CFEBFirmware_;
   xdata::String CFEBVerify_;
   std::string FirmwareDir_ ;
@@ -506,11 +507,11 @@ private:
   void CheckTimeSinceHardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCratesConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void CheckCratesFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrateFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   void PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   void FixCFEB(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
+  void ReadbackALCTFirmware(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   //
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
