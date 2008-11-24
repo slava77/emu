@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.56 2008/11/17 08:26:59 rakness Exp $
+// $Id: TMB.h,v 3.57 2008/11/24 17:50:40 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.57  2008/11/24 17:50:40  rakness
+// update for TMB version 18 Nov 2008
+//
 // Revision 3.56  2008/11/17 08:26:59  rakness
 // add unjam TMB
 //
@@ -1018,6 +1021,11 @@ public:
   inline void SetHsPretrigThresh(int hit_thresh) { hit_thresh_ = hit_thresh; }
   inline int  GetHsPretrigThresh() { return hit_thresh_; }
   //
+  //!aff_thresh = [0-6] = minimum number of hits needed on CLCT pretrigger pattern to send Active FEB Flag to DMB
+  inline void SetActiveFebFlagThresh(int aff_thresh) { aff_thresh_ = aff_thresh; } 
+  inline int  GetActiveFebFlagThresh() { return aff_thresh_; } 
+  inline int  GetReadActiveFebFlagThresh() { return read_aff_thresh_; } 
+  //
   //!min_hits_pattern = minimum number of layers needed to match for pattern trigger
   inline void SetMinHitsPattern(int min_hits_pattern){ min_hits_pattern_ = min_hits_pattern; }
   inline int  GetMinHitsPattern() { return min_hits_pattern_ ;}
@@ -1399,10 +1407,10 @@ public:
   inline int  GetClctPatternIdThresh() { return clct_pattern_id_thresh_; } 
   inline int  GetReadClctPatternIdThresh() { return read_clct_pattern_id_thresh_; } 
   //
-  //!aff_thresh = [0-6] = minimum number of hits needed on CLCT pretrigger pattern to send Active FEB Flag to DMB
-  inline void SetActiveFebFlagThresh(int aff_thresh) { aff_thresh_ = aff_thresh; } 
-  inline int  GetActiveFebFlagThresh() { return aff_thresh_; } 
-  inline int  GetReadActiveFebFlagThresh() { return read_aff_thresh_; } 
+  //!clct_pattern_id_thresh_postdrift = [0-8] = minimum pattern ID value for CLCT post drift-delay
+  inline void SetClctPatternIdThreshPostDrift(int clct_pattern_id_thresh_postdrift) { clct_pattern_id_thresh_postdrift_ = clct_pattern_id_thresh_postdrift; } 
+  inline int  GetClctPatternIdThreshPostDrift() { return clct_pattern_id_thresh_postdrift_; } 
+  inline int  GetReadClctPatternIdThreshPostDrift() { return read_clct_pattern_id_thresh_postdrift_; } 
   //
   //!adjacent_cfeb_distance = [0-31] = Distance from key on CFEBn to CFEBn+1 to set Active FEB Flag on CFEBn+1 for DMB
   //... setting to 5 enables hs0,1,2,3,4 and hs31,30,29,28,27
@@ -1554,7 +1562,7 @@ private:
   int ALCT1_data_;
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
-  static const int MaxCounter = 48;
+  static const int MaxCounter = 64;
   long int FinalCounter[MaxCounter+2];
   //
   //-- TMB and ALCT data in raw hits VME readout --//
@@ -1926,12 +1934,14 @@ private:
   //------------------------------------------------------------------
   int triad_persist_;
   int hit_thresh_;
+  int aff_thresh_;
   int min_hits_pattern_;
   int drift_delay_;
   int pretrigger_halt_;
   //
   int read_triad_persist_;
   int read_hit_thresh_;
+  int read_aff_thresh_;
   int read_min_hits_pattern_;
   int read_drift_delay_;
   int read_pretrigger_halt_;
@@ -2007,6 +2017,13 @@ private:
   int read_mpc_sel_ttc_bx0_;
   int read_mpc_idle_blank_;
   int read_mpc_output_enable_;
+  //
+  //------------------------------------------------------------------
+  //0X98 = ADR_SCP_CTRL:  Scope control
+  //------------------------------------------------------------------
+  int scope_in_readout_;
+  //
+  int read_scope_in_readout_;
   //
   //------------------------------------------------------------------
   //0XA8 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM Control
@@ -2261,13 +2278,13 @@ private:
   int clct_blanking_;
   int clct_stagger_;
   int clct_pattern_id_thresh_;
-  int aff_thresh_;
+  int clct_pattern_id_thresh_postdrift_;
   int adjacent_cfeb_distance_;
   //
   int read_clct_blanking_;
   int read_clct_stagger_;
   int read_clct_pattern_id_thresh_;
-  int read_aff_thresh_;
+  int read_clct_pattern_id_thresh_postdrift_;
   int read_adjacent_cfeb_distance_;
   //
   //---------------------------------------------------------------------

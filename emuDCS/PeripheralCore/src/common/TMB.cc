@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.77 2008/11/18 16:57:41 rakness Exp $
+// $Id: TMB.cc,v 3.78 2008/11/24 17:50:40 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.78  2008/11/24 17:50:40  rakness
+// update for TMB version 18 Nov 2008
+//
 // Revision 3.77  2008/11/18 16:57:41  rakness
 // make unjam TMB more simple and robust
 //
@@ -454,21 +457,6 @@
 //
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
-//
-// greg, you need to make the config_ok agree with the
-// xml file and all configuration registers written...
-//
-// pretrigger parameters:
-//   clct_stagger
-//   triad_persistence
-//   clct_halfstrip_pretrig_thresh (= hit_thresh)
-//   clct_pattern_id_thresh
-//   enableCFEBInputs_reg42
-//   aff_thresh 
-//   adjacent_cfeb_distance  <-- added today
-//
-// pattern finder parameters:
-//   
 //
 //-----------------------------------------------------------------------
 #include "TMB.h"
@@ -1334,66 +1322,77 @@ std::string TMB::CounterName(int counter){
   if( counter == 4 ) name = "ALCT: raw hits readout - CRC error                      ";
   //
   if( counter == 5 ) name = "CLCT: Pretrigger                                        ";
-  if( counter == 6 ) name = "CLCT: Pretrigger discarded - no write buffer available  ";
-  if( counter == 7 ) name = "CLCT: Pretrigger discarded - no alct in window          ";
-  if( counter == 8 ) name = "CLCT: CLCT discarded, clct0 invalid pattern             ";
-  if( counter == 9 ) name = "CLCT: Bx pretrigger machine waited for triads           ";
+  if( counter == 6 ) name = "CLCT: Pretrigger on ME1A CFEB 4 only                    ";
+  if( counter == 7 ) name = "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 ";
+  if( counter == 8 ) name = "CLCT: Discarded, no wrbuf available, buffer stalled     ";
+  if( counter == 9 ) name = "CLCT: Discarded, no ALCT in window                      ";
+  if( counter == 10) name = "CLCT: Discarded, CLCT0 invalid pattern after drift      ";
+  if( counter == 11) name = "CLCT: CLCT0 pass hit thresh, fail pid_thresh_postdrift  ";
+  if( counter == 12) name = "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  ";
+  if( counter == 13) name = "CLCT: BX pretrig waiting for triads to dissipate        ";
   //
-  if( counter == 10) name = "CLCT: clct0 sent to TMB matching section                ";
-  if( counter == 11) name = "CLCT: clct1 sent to TMB matching section                ";
+  if( counter == 14) name = "CLCT: clct0 sent to TMB matching section                ";
+  if( counter == 15) name = "CLCT: clct1 sent to TMB matching section                ";
   //
-  if( counter == 12) name = "TMB:  TMB accepted alct*clct, alct-only, or clct-only   ";
-  if( counter == 13) name = "TMB:  TMB clct*alct matched trigger                     ";
-  if( counter == 14) name = "TMB:  TMB alct-only trigger                             ";
-  if( counter == 15) name = "TMB:  TMB clct-only trigger                             ";
+  if( counter == 16) name = "TMB:  TMB accepted alct*clct, alct-only, or clct-only   ";
+  if( counter == 17) name = "TMB:  TMB clct*alct matched trigger                     ";
+  if( counter == 18) name = "TMB:  TMB alct-only trigger                             ";
+  if( counter == 19) name = "TMB:  TMB clct-only trigger                             ";
   //
-  if( counter == 16) name = "TMB:  TMB matching rejected event                       ";
-  if( counter == 17) name = "TMB:  TMB matching discarded an ALCT                    ";
-  if( counter == 18) name = "TMB:  TMB matching discarded a CLCT                     ";
+  if( counter == 20) name = "TMB:  TMB match reject event                            ";
+  if( counter == 21) name = "TMB:  TMB match reject event, queued for nontrig readout";
+  if( counter == 22) name = "TMB:  TMB matching discarded an ALCT pair               ";
+  if( counter == 23) name = "TMB:  TMB matching discarded a CLCT pair                ";
+  if( counter == 24) name = "TMB:  TMB matching discarded CLCT0 from ME1A            ";
+  if( counter == 25) name = "TMB:  TMB matching discarded CLCT1 from ME1A            ";
   //
-  if( counter == 19) name = "TMB:  Matching found no ALCT                            ";
-  if( counter == 20) name = "TMB:  Matching found no CLCT                            ";
-  if( counter == 21) name = "TMB:  Matching found one ALCT                           ";
-  if( counter == 22) name = "TMB:  Matching found one CLCT                           ";
-  if( counter == 23) name = "TMB:  Matching found two ALCTs                          ";
-  if( counter == 24) name = "TMB:  Matching found two CLCTs                          ";
+  if( counter == 26) name = "TMB:  Matching found no ALCT                            ";
+  if( counter == 27) name = "TMB:  Matching found no CLCT                            ";
+  if( counter == 28) name = "TMB:  Matching found one ALCT                           ";
+  if( counter == 29) name = "TMB:  Matching found one CLCT                           ";
+  if( counter == 30) name = "TMB:  Matching found two ALCTs                          ";
+  if( counter == 31) name = "TMB:  Matching found two CLCTs                          ";
   //
-  if( counter == 25) name = "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           ";
-  if( counter == 26) name = "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           ";
-  if( counter == 27) name = "TMB:  LCT1 has higher quality than LCT0 (ranking error) ";
+  if( counter == 32) name = "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           ";
+  if( counter == 33) name = "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           ";
+  if( counter == 34) name = "TMB:  LCT1 has higher quality than LCT0 (ranking error) ";
   //
-  if( counter == 28) name = "TMB:  Transmitted LCT0 to MPC                           ";
-  if( counter == 29) name = "TMB:  Transmitted LCT1 to MPC                           ";
+  if( counter == 35) name = "TMB:  Transmitted LCT0 to MPC                           ";
+  if( counter == 36) name = "TMB:  Transmitted LCT1 to MPC                           ";
   //
-  if( counter == 30) name = "TMB:  MPC accepted LCT0                                 ";
-  if( counter == 31) name = "TMB:  MPC accepted LCT1                                 ";
-  if( counter == 32) name = "TMB:  MPC rejected both LCT0 and LCT1                   ";
+  if( counter == 37) name = "TMB:  MPC accepted LCT0                                 ";
+  if( counter == 38) name = "TMB:  MPC accepted LCT1                                 ";
+  if( counter == 39) name = "TMB:  MPC rejected both LCT0 and LCT1                   ";
   //
-  if( counter == 33) name = "L1A:  L1A received                                      ";
-  if( counter == 34) name = "L1A:  L1A received, TMB in L1A window                   ";
-  if( counter == 35) name = "L1A:  L1A received, no TMB in window                    ";
-  if( counter == 36) name = "L1A:  TMB triggered, no L1A in window                   ";
-  if( counter == 37) name = "L1A:  TMB readouts completed                            ";
+  if( counter == 40) name = "L1A:  L1A received                                      ";
+  if( counter == 41) name = "L1A:  L1A received, TMB in L1A window                   ";
+  if( counter == 42) name = "L1A:  L1A received, no TMB in window                    ";
+  if( counter == 43) name = "L1A:  TMB triggered, no L1A in window                   ";
+  if( counter == 44) name = "L1A:  TMB readouts completed                            ";
   //
-  if( counter == 38) name = "STAT: CLCT Triads skipped                               ";
-  if( counter == 39) name = "STAT: Raw hits buffer had to be reset                   ";
-  if( counter == 40) name = "STAT: TTC Resyncs received                              ";
+  if( counter == 45) name = "STAT: CLCT Triads skipped                               ";
+  if( counter == 46) name = "STAT: Raw hits buffer had to be reset                   ";
+  if( counter == 47) name = "STAT: TTC Resyncs received                              ";
+  if( counter == 48) name = "STAT: Sync Error, BC0/BXN=offset mismatch               ";
+  if( counter == 49) name = "STAT: Parity Error in CFEB or RPC raw hits RAM          ";
   //
   // The following are not cleared via VME
-  if( counter == 41) name = "HDR:  Pretrigger counter                                ";
-  if( counter == 42) name = "HDR:  CLCT counter                                      ";
-  if( counter == 43) name = "HDR:  TMB trigger counter                               ";
-  if( counter == 44) name = "HDR:  ALCTs received counter                            ";
-  if( counter == 45) name = "HDR:  L1As received counter (12 bits)                   ";
-  if( counter == 46) name = "HDR:  Readout counter (12 bits)                         ";
-  if( counter == 47) name = "HDR:  Orbit counter                                     ";
+  if( counter == 50) name = "HDR:  Pretrigger counter                                ";
+  if( counter == 51) name = "HDR:  CLCT counter                                      ";
+  if( counter == 52) name = "HDR:  TMB trigger counter                               ";
+  if( counter == 53) name = "HDR:  ALCTs received counter                            ";
+  if( counter == 54) name = "HDR:  L1As received counter (12 bits)                   ";
+  if( counter == 55) name = "HDR:  Readout counter (12 bits)                         ";
+  if( counter == 56) name = "HDR:  Orbit counter                                     ";
   //
-  // temporary counters
-  //  if( counter == 48) name = "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 ";
-  //  if( counter == 49) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ";
-  //  if( counter == 50) name = "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ";
-  //  if( counter == 51) name = "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ";
-  //  if( counter == 52) name = "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct1vpf=1 ";
+  if( counter == 57) name = "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 ";
+  if( counter == 58) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ";
+  if( counter == 59) name = "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ";
+  if( counter == 60) name = "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ";
+  if( counter == 61) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 ";
+  //
+  if( counter == 62) name = "CCB:  TTCrx lock lost                                   ";
+  if( counter == 63) name = "CCB:  qPLL lock lost                                    ";
   //
   return name;
 }
@@ -6000,6 +5999,9 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(hcm423_adr);  //0x64 distrip hot channel mask CFEB 4 layers 2,3 
   TMBConfigurationRegister.push_back(hcm445_adr);  //0x66 distrip hot channel mask CFEB 4 layers 4,5 
   //
+  // Not put into xml file, but may want to enable scope for test runs...
+  //  TMBConfigurationRegister.push_back(scp_ctrl_adr);         //0x98 scope control
+  //
   // Removed from configuration list as per UCLA request December 2006...
   //*****  TMBConfigurationRegister.push_back(vme_ratctrl_adr);      //0x1e RAT control 
   //
@@ -6146,6 +6148,7 @@ void TMB::SetTMBRegisterDefaults_() {
   //------------------------------------------------------------------
   triad_persist_    = triad_persist_default   ;
   hit_thresh_       = hit_thresh_default      ;
+  aff_thresh_       = aff_thresh_default      ; 
   min_hits_pattern_ = min_hits_pattern_default;
   drift_delay_      = drift_delay_default     ;
   pretrigger_halt_  = pretrigger_halt_default ;
@@ -6182,6 +6185,11 @@ void TMB::SetTMBRegisterDefaults_() {
   mpc_sel_ttc_bx0_     = mpc_sel_ttc_bx0_default    ;
   mpc_idle_blank_      = mpc_idle_blank_default     ;
   mpc_output_enable_   = mpc_output_enable_default  ;
+  //
+  //------------------------------------------------------------------
+  //0X98 = ADR_SCP_CTRL:  Scope control
+  //------------------------------------------------------------------
+  scope_in_readout_  =  scope_in_readout_default;
   //
   //------------------------------------------------------------------
   //0XA8 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control
@@ -6270,11 +6278,11 @@ void TMB::SetTMBRegisterDefaults_() {
   //---------------------------------------------------------------------
   //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
   //---------------------------------------------------------------------
-  clct_blanking_          = clct_blanking_default         ; 
-  clct_stagger_           = clct_stagger_default          ; 
-  clct_pattern_id_thresh_ = clct_pattern_id_thresh_default; 
-  aff_thresh_             = aff_thresh_default            ; 
-  adjacent_cfeb_distance_ = adjacent_cfeb_distance_default;
+  clct_blanking_                    = clct_blanking_default                   ; 
+  clct_stagger_                     = clct_stagger_default                    ; 
+  clct_pattern_id_thresh_           = clct_pattern_id_thresh_default          ; 
+  clct_pattern_id_thresh_postdrift_ = clct_pattern_id_thresh_postdrift_default; 
+  adjacent_cfeb_distance_           = adjacent_cfeb_distance_default          ;
   //
   //---------------------------------------------------------------------
   //0XF6 = ADR_TEMP1:  CLCT separation
@@ -6514,6 +6522,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //------------------------------------------------------------------
     read_triad_persist_    = ExtractValueFromData(data,triad_persist_bitlo   ,triad_persist_bithi   );
     read_hit_thresh_       = ExtractValueFromData(data,hit_thresh_bitlo      ,hit_thresh_bithi      );
+    read_aff_thresh_       = ExtractValueFromData(data,aff_thresh_bitlo      ,aff_thresh_bithi      );
     read_min_hits_pattern_ = ExtractValueFromData(data,min_hits_pattern_bitlo,min_hits_pattern_bithi);
     read_drift_delay_      = ExtractValueFromData(data,drift_delay_bitlo     ,drift_delay_bithi     );
     read_pretrigger_halt_  = ExtractValueFromData(data,pretrigger_halt_bitlo ,pretrigger_halt_bithi );
@@ -6574,6 +6583,12 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_mpc_sel_ttc_bx0_     = ExtractValueFromData(data,mpc_sel_ttc_bx0_bitlo    ,mpc_sel_ttc_bx0_bithi    );
     read_mpc_idle_blank_      = ExtractValueFromData(data,mpc_idle_blank_bitlo     ,mpc_idle_blank_bithi     );
     read_mpc_output_enable_   = ExtractValueFromData(data,mpc_output_enable_bitlo  ,mpc_output_enable_bithi  );
+    //
+  } else if ( address == scp_ctrl_adr ) {
+    //------------------------------------------------------------------
+    //0X98 = ADR_SCP_CTRL:  Scope Control
+    //------------------------------------------------------------------
+    read_scope_in_readout_   = ExtractValueFromData(data,scope_in_readout_bitlo,scope_in_readout_bithi);
     //
   } else if ( address == alctfifo1_adr ) {
     //------------------------------------------------------------------
@@ -6795,11 +6810,11 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //---------------------------------------------------------------------
     //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
     //---------------------------------------------------------------------
-    read_clct_blanking_          = ExtractValueFromData(data,clct_blanking_bitlo         ,clct_blanking_bithi         );
-    read_clct_stagger_           = ExtractValueFromData(data,clct_stagger_bitlo          ,clct_stagger_bithi          );
-    read_clct_pattern_id_thresh_ = ExtractValueFromData(data,clct_pattern_id_thresh_bitlo,clct_pattern_id_thresh_bithi);
-    read_aff_thresh_             = ExtractValueFromData(data,aff_thresh_bitlo            ,aff_thresh_bithi            );
-    read_adjacent_cfeb_distance_ = ExtractValueFromData(data,adjacent_cfeb_distance_bitlo,adjacent_cfeb_distance_bithi);
+    read_clct_blanking_                    = ExtractValueFromData(data,clct_blanking_bitlo                   ,clct_blanking_bithi                   );
+    read_clct_stagger_                     = ExtractValueFromData(data,clct_stagger_bitlo                    ,clct_stagger_bithi                    );
+    read_clct_pattern_id_thresh_           = ExtractValueFromData(data,clct_pattern_id_thresh_bitlo          ,clct_pattern_id_thresh_bithi          );
+    read_clct_pattern_id_thresh_postdrift_ = ExtractValueFromData(data,clct_pattern_id_thresh_postdrift_bitlo,clct_pattern_id_thresh_postdrift_bithi);
+    read_adjacent_cfeb_distance_           = ExtractValueFromData(data,adjacent_cfeb_distance_bitlo          ,adjacent_cfeb_distance_bithi          );
     //
   } else if ( address == clct_separation_adr ) {    
     //---------------------------------------------------------------------
@@ -7130,11 +7145,12 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     //0X70 = ADR_SEQ_CLCT:  Sequencer CLCT configuration
     //------------------------------------------------------------------
     (*MyOutput_) << " ->Sequencer CLCT configuration register:" << std::endl;
-    (*MyOutput_) << "    Triad 1-shot persistence          = 0x" << std::hex << read_triad_persist_    << std::endl;
-    (*MyOutput_) << "    1/2-strip pretrigger thresh       = "   << std::dec << read_hit_thresh_       << std::endl;
-    (*MyOutput_) << "    min pattern hits for valid pattern= "   << std::dec << read_min_hits_pattern_ << std::endl;
-    (*MyOutput_) << "    drift delay                       = "   << std::dec << read_drift_delay_      << std::endl;
-    (*MyOutput_) << "    pretrigger then halt until unhalt = "   << std::hex << read_pretrigger_halt_  << std::endl;
+    (*MyOutput_) << "    Triad 1-shot persistence                                  = 0x" << std::hex << read_triad_persist_    << std::endl;
+    (*MyOutput_) << "    1/2-strip pretrigger thresh                               = "   << std::dec << read_hit_thresh_       << std::endl;
+    (*MyOutput_) << "    Minimum layers in pattern to send Active FEB Flag to DMB  = "   << std::dec << read_aff_thresh_       << std::endl; 
+    (*MyOutput_) << "    min pattern hits for valid pattern                        = "   << std::dec << read_min_hits_pattern_ << std::endl;
+    (*MyOutput_) << "    drift delay                                               = "   << std::dec << read_drift_delay_      << std::endl;
+    (*MyOutput_) << "    pretrigger then halt until unhalt                         = "   << std::hex << read_pretrigger_halt_  << std::endl;
     //
   } else if ( address == seq_fifo_adr ) {
     //------------------------------------------------------------------
@@ -7192,6 +7208,13 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    MPC gets bx0 from TTC                        = " << std::dec << read_mpc_sel_ttc_bx0_     << std::endl;
     (*MyOutput_) << "    blank MPC data and bx0 except when triggered = " << std::hex << read_mpc_idle_blank_      << std::endl;
     (*MyOutput_) << "    enable outputs to MPC                        = " << std::hex << read_mpc_output_enable_   << std::endl;
+    //
+  } else if ( address == scp_ctrl_adr ) {    
+    //------------------------------------------------------------------
+    //0X98 = ADR_SCP_CTRL:  Scope Control
+    //------------------------------------------------------------------
+    (*MyOutput_) << " ->Scope Control register:" << std::endl;
+    (*MyOutput_) << "    Scope in Readout       = " << std::hex << read_scope_in_readout_ << std::endl;
     //
   } else if ( address == seqmod_adr ) {
     //------------------------------------------------------------------
@@ -7392,11 +7415,11 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
     //---------------------------------------------------------------------
     (*MyOutput_) << " ->CLCT Pattern Finder pretrigger configuration register:" << std::endl;
-    (*MyOutput_) << "    Blank CLCT output if no valid pattern flag                = " << std::dec << read_clct_blanking_           << std::endl; 
-    (*MyOutput_) << "    Stagger CLCT layers                                       = " << std::dec << read_clct_stagger_            << std::endl; 
-    (*MyOutput_) << "    Minimum pattern ID value for CLCT pretrig                 = " << std::dec << read_clct_pattern_id_thresh_  << std::endl; 
-    (*MyOutput_) << "    Minimum layers in pattern to send Active FEB Flag to DMB  = " << std::dec << read_aff_thresh_              << std::endl; 
-    (*MyOutput_) << "    Distance from key on CFEBn to CFEBn+1 to set AFF for n+1  = " << std::dec << read_adjacent_cfeb_distance_  << std::endl; 
+    (*MyOutput_) << "    Blank CLCT output if no valid pattern flag                = " << std::dec << read_clct_blanking_                     << std::endl; 
+    (*MyOutput_) << "    Stagger CLCT layers                                       = " << std::dec << read_clct_stagger_                      << std::endl; 
+    (*MyOutput_) << "    Minimum pattern ID value for CLCT pretrig                 = " << std::dec << read_clct_pattern_id_thresh_            << std::endl; 
+    (*MyOutput_) << "    Minimum pattern ID value for CLCT pattern trigger         = " << std::dec << read_clct_pattern_id_thresh_postdrift_  << std::endl; 
+    (*MyOutput_) << "    Distance from key on CFEBn to CFEBn+1 to set AFF for n+1  = " << std::dec << read_adjacent_cfeb_distance_            << std::endl; 
     //
   } else if ( address == clct_separation_adr ) {
     //---------------------------------------------------------------------
@@ -7418,7 +7441,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
 //
 void TMB::PrintFirmwareDate() {
   //
-  (*MyOutput_) << "-> TMB Firmware date: " << std::hex 
+  (*MyOutput_) << "-> TMB Firmware date: " << std::dec 
 	       << ((GetReadTmbFirmwareMonth() >>  4) & 0xf)
 	       << ((GetReadTmbFirmwareMonth() >>  0) & 0xf)
 	       << ((GetReadTmbFirmwareDay()   >>  4) & 0xf)
@@ -7644,6 +7667,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     InsertValueIntoDataWord(triad_persist_   ,triad_persist_bithi   ,triad_persist_bitlo   ,&data_word);
     InsertValueIntoDataWord(hit_thresh_      ,hit_thresh_bithi      ,hit_thresh_bitlo      ,&data_word);
+    InsertValueIntoDataWord(aff_thresh_      ,aff_thresh_bithi      ,aff_thresh_bitlo      ,&data_word);
     InsertValueIntoDataWord(min_hits_pattern_,min_hits_pattern_bithi,min_hits_pattern_bitlo,&data_word);
     InsertValueIntoDataWord(drift_delay_     ,drift_delay_bithi     ,drift_delay_bitlo     ,&data_word);
     InsertValueIntoDataWord(pretrigger_halt_ ,pretrigger_halt_bithi ,pretrigger_halt_bitlo ,&data_word);
@@ -7684,6 +7708,12 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(mpc_sel_ttc_bx0_    ,mpc_sel_ttc_bx0_bithi    ,mpc_sel_ttc_bx0_bitlo    ,&data_word);
     InsertValueIntoDataWord(mpc_idle_blank_     ,mpc_idle_blank_bithi     ,mpc_idle_blank_bitlo     ,&data_word);
     InsertValueIntoDataWord(mpc_output_enable_  ,mpc_output_enable_bithi  ,mpc_output_enable_bitlo  ,&data_word);
+    //
+  } else if ( address == scp_ctrl_adr ) {
+    //------------------------------------------------------------------
+    //0X98 = ADR_SCP_CTRL:  Scope Control
+    //------------------------------------------------------------------
+    InsertValueIntoDataWord(scope_in_readout_,scope_in_readout_bithi,scope_in_readout_bitlo,&data_word);
     //
   } else if ( address == alctfifo1_adr ) {
     //------------------------------------------------------------------
@@ -7796,11 +7826,10 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
     //---------------------------------------------------------------------
-    InsertValueIntoDataWord(clct_blanking_         ,clct_blanking_bithi         ,clct_blanking_bitlo         ,&data_word);
-    InsertValueIntoDataWord(clct_stagger_          ,clct_stagger_bithi          ,clct_stagger_bitlo          ,&data_word);
-    InsertValueIntoDataWord(clct_pattern_id_thresh_,clct_pattern_id_thresh_bithi,clct_pattern_id_thresh_bitlo,&data_word);
-    InsertValueIntoDataWord(aff_thresh_            ,aff_thresh_bithi            ,aff_thresh_bitlo            ,&data_word);
-    InsertValueIntoDataWord(adjacent_cfeb_distance_,adjacent_cfeb_distance_bithi,adjacent_cfeb_distance_bitlo,&data_word);
+    InsertValueIntoDataWord(clct_blanking_                   ,clct_blanking_bithi                   ,clct_blanking_bitlo                   ,&data_word);
+    InsertValueIntoDataWord(clct_pattern_id_thresh_          ,clct_pattern_id_thresh_bithi          ,clct_pattern_id_thresh_bitlo          ,&data_word);
+    InsertValueIntoDataWord(clct_pattern_id_thresh_postdrift_,clct_pattern_id_thresh_postdrift_bithi,clct_pattern_id_thresh_postdrift_bitlo,&data_word);
+    InsertValueIntoDataWord(adjacent_cfeb_distance_          ,adjacent_cfeb_distance_bithi          ,adjacent_cfeb_distance_bitlo          ,&data_word);
     //
   } else if ( address == clct_separation_adr ) {
     //---------------------------------------------------------------------
@@ -8029,6 +8058,7 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //------------------------------------------------------------------
     config_ok &= compareValues("TMB triad_persistence"               ,read_triad_persist_   ,triad_persist_   , print_errors);
     config_ok &= compareValues("TMB clct_halfstrip_pretrig_threshold",read_hit_thresh_      ,hit_thresh_      , print_errors);
+    config_ok &= compareValues("TMB aff_thresh"                      ,read_aff_thresh_      ,aff_thresh_      , print_errors);
     config_ok &= compareValues("TMB clct_pattern_thresh"             ,read_min_hits_pattern_,min_hits_pattern_, print_errors);
     config_ok &= compareValues("TMB clct_drift_delay"                ,read_drift_delay_     ,drift_delay_     , print_errors);
     config_ok &= compareValues("TMB halt and wait (not in xml)"      ,read_pretrigger_halt_ ,pretrigger_halt_ , print_errors);
@@ -8065,6 +8095,11 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     config_ok &= compareValues("TMB MPC gets TTC BX0 (not in xml)",read_mpc_sel_ttc_bx0_    ,mpc_sel_ttc_bx0_    , print_errors);
     config_ok &= compareValues("TMB mpc_idle_blank"               ,read_mpc_idle_blank_     ,mpc_idle_blank_     , print_errors);
     config_ok &= compareValues("TMB mpc_output_enable"            ,read_mpc_output_enable_  ,mpc_output_enable_  , print_errors);
+    //
+    //------------------------------------------------------------------
+    //0X98 = ADR_SCP_CTRL:  Scope Control
+    //------------------------------------------------------------------
+    config_ok &= compareValues("TMB scope in readout (not in xml)",read_scope_in_readout_,scope_in_readout_, print_errors);
     //
     //------------------------------------------------------------------
     //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
@@ -8140,11 +8175,11 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //---------------------------------------------------------------------
     //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
     //---------------------------------------------------------------------
-    config_ok &= compareValues("TMB clct_blanking"         ,read_clct_blanking_         ,clct_blanking_         , print_errors);
-    config_ok &= compareValues("TMB clct_stagger"          ,read_clct_stagger_          ,clct_stagger_          , print_errors);
-    config_ok &= compareValues("TMB clct_pattern_id_thresh",read_clct_pattern_id_thresh_,clct_pattern_id_thresh_, print_errors);
-    config_ok &= compareValues("TMB aff_thresh"            ,read_aff_thresh_            ,aff_thresh_            , print_errors);
-    config_ok &= compareValues("TMB adjacent_cfeb_distance",read_adjacent_cfeb_distance_,adjacent_cfeb_distance_, print_errors);
+    config_ok &= compareValues("TMB clct_blanking"          ,read_clct_blanking_                   ,clct_blanking_                   , print_errors);
+    //    config_ok &= compareValues("TMB clct_stagger"           ,read_clct_stagger_                    ,clct_stagger_                    , print_errors);
+    config_ok &= compareValues("TMB clct_pid_thresh_pretrig",read_clct_pattern_id_thresh_          ,clct_pattern_id_thresh_          , print_errors);
+    config_ok &= compareValues("TMB clct_pid_thresh_pattern",read_clct_pattern_id_thresh_postdrift_,clct_pattern_id_thresh_postdrift_, print_errors);
+    config_ok &= compareValues("TMB adjacent_cfeb_distance" ,read_adjacent_cfeb_distance_          ,adjacent_cfeb_distance_          , print_errors);
     //
     //---------------------------------------------------------------------
     //0XF6 = ADR_TEMP1:  CLCT separation
