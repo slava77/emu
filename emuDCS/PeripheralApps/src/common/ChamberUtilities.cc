@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.13 2008/08/25 09:36:16 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.14 2008/11/24 17:50:39 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.14  2008/11/24 17:50:39  rakness
+// update for TMB version 18 Nov 2008
+//
 // Revision 1.13  2008/08/25 09:36:16  rakness
 // specify precisely position of L1A in ALCT receipt window
 //
@@ -2105,7 +2108,7 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
     //
     thisTMB->GetCounters();      // read counter values
     //
-    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter(34);
+    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter(41);
     alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter(3);
     //
     if (debug_) {
@@ -2232,7 +2235,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max){
     //
     thisTMB->GetCounters();      // read counter values
     //
-    tmb_in_l1a_window[delay] = thisTMB->GetCounter(34);
+    tmb_in_l1a_window[delay] = thisTMB->GetCounter(41);
     //
     if (debug_) std::cout << ", TMB in L1A window =  " << std::dec << tmb_in_l1a_window[delay] << std::endl;
     //

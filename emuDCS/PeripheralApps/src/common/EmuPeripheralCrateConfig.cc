@@ -23,7 +23,7 @@ const std::string       VMECC_FIRMWARE_DIR = "vcc";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
-//    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/tmb.xsvf   <-- N.B. xsvf format for TMB
+//    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/type[A,C,D]/tmb.xsvf   <-- N.B. xsvf format for TMB
 //    RAT  ->  $HOME/firmware/rat/YEARMONTHDAY/rat.svf
 //    ALCT ->  $HOME/firmware/alct/YEARMONTHDAY/alctXXX/alctXXX.svf
 // with the zero-values filled in with 0's.  
@@ -3401,6 +3401,13 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
   int cur18a[5]={1,1,1,2,2};
   int cur18b[5]={1,4,7,2,5};
   int slot2num[22]={0,0,0,0,0,1,0,2,0,3,0,4,0,0,0,5,0,6,0,7,0,8};
+  int me11_odd[5]={3,1,0,2,4};
+  int me11_even[5]={1,3,4,2,0};
+  int misscable[3][6]={
+    {+14,1,4,3,2,0},
+    {+21,3,0,1,2,4},
+    {+29,3,0,1,2,4}
+  };
 
   MyHeader(in,out,"Check System Firmware");
 
@@ -3474,8 +3481,25 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 	    // << " " << std::hex << thisDMB->febpromid(thisCFEBs[numcfeb]) << std::dec << std::endl;
 	    //	    unsigned int mbid = thisDMB->mbfpgaid();
 	    //	    std::cout << "LSD:DMB Problem " << thisChamber << " mbfpgaid " << mbid << std::endl;  
-	    //
-            float current=thisDMB->lowv_adc(cur18a[j],cur18b[j])/1000.;
+	    // fix me11 cabling problem
+            int lv=j;
+            int ts,tr,tc;
+            sscanf(thisChamber->GetLabel().c_str(),"ME%d/%d/%d",&ts,&tr,&tc);
+            int tus=ts;
+            if(ts<0)tus=-tus;
+            if(tus==1&&tr==1){
+              if(tc%2==0){
+                lv=me11_even[j]; 
+              }else{
+                lv=me11_odd[j]; 
+              }
+              for(int t=0;t<3;t++){
+                if(ts*tc==misscable[t][0]){
+                  lv=misscable[t][j+1];
+                }
+              } 
+            }
+            float current=thisDMB->lowv_adc(cur18a[lv],cur18b[lv])/1000.;
             if(current<0.85&&current>0.01){
               *out << cgicc::tr();
               *out << cgicc::td();
@@ -3625,6 +3649,7 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
    for(unsigned i=0; i< crateVector.size(); i++){
      int  this_crate_no_=i;
      SetCurrentCrate(this_crate_no_); 
+     if (!thisCrate->IsAlive()) continue;
      int CSRA3=0x04;
      thisCCB->ReadRegister(CSRA3);
      for (unsigned int k=0; k<dmbVector.size(); k++) {
@@ -3654,7 +3679,7 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 	     *out << cgicc::td();
 	     std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
 	     *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
-	     *out << cgicc::input().set("type","submit").set("value","Pgrm Prom").set("style","color:red") << std::endl ;
+	     *out << cgicc::input().set("type","submit").set("value","Hard Reset").set("style","color:blue") << std::endl ;
              char buf[20];
 	     sprintf(buf,"%d",i);
 	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
@@ -12336,23 +12361,18 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     emu::pc::TMB * thisTMB = tmbVector[tmb];
     emu::pc::ALCTController  * thisALCT = tmbVector[tmb]->alctController();
     //
-    char date[8];
-    sprintf(date,"%04u%02u%02u",
+    char tmbdate[8];
+    sprintf(tmbdate,"%04u%02u%02u",
 	    thisTMB->GetExpectedTmbFirmwareYear(),
 	    thisTMB->GetExpectedTmbFirmwareMonth(),
 	    thisTMB->GetExpectedTmbFirmwareDay());
-    //
-    std::ostringstream TMBFirmware;
-    TMBFirmware << FirmwareDir_ << "tmb/" << date << "/tmb";   // ".xsvf" is added in SetXsvfFilename
-    //
-    TMBFirmware_[tmb] = TMBFirmware.str();
-    //    std::cout << "TMB " << tmb << " load " << TMBFirmware_[tmb].toString() << std::endl;
     //
     int alct_expected_year  = thisALCT->GetExpectedFastControlYear() ;
     int alct_expected_month = thisALCT->GetExpectedFastControlMonth();
     int alct_expected_day   = thisALCT->GetExpectedFastControlDay()  ;
     //
-    sprintf(date,"%4u%02u%02u",
+    char alctdate[8];
+    sprintf(alctdate,"%4u%02u%02u",
 	    alct_expected_year,
 	    alct_expected_month,
 	    alct_expected_day);
@@ -12363,64 +12383,86 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     //  int expected_month_ones = (thisALCT->GetExpectedFastControlMonth()>>0) & 0xf;
     //  int expected_day_tens   = (thisALCT->GetExpectedFastControlDay()  >>4) & 0xf;
     //  int expected_day_ones   = (thisALCT->GetExpectedFastControlDay()  >>0) & 0xf;
-    //  sprintf(date,"%4x%1x%1x%1x%1x",
+    //  sprintf(alctdate,"%4x%1x%1x%1x%1x",
     //	  expected_year,
     //	  expected_month_tens,
     //	  expected_month_ones,
     //	  expected_day_tens,
     //	  expected_day_ones);
     //
+    std::ostringstream TMBFirmware;
+    TMBFirmware << FirmwareDir_ << "tmb/" << tmbdate;
+    //
     std::ostringstream ALCTFirmware;
     std::ostringstream ALCTReadback;
-    ALCTFirmware << FirmwareDir_ << "alct/" << date << "/";
+    ALCTFirmware << FirmwareDir_ << "alct/" << alctdate << "/";
     ALCTReadback << FirmwareDir_ << "alct/readback/";
     //
     if ( (thisALCT->GetChamberType()).find("ME11") != std::string::npos ) {
       //
       if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
 	  thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
+	TMBFirmware << "/typeC";
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE;
 	ALCTReadback << ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE;
+	//
       } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
 		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+	TMBFirmware << "/typeD";
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE;
 	ALCTReadback << ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE;
+	//
       } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE &&
 		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+	TMBFirmware << "/typeC";
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE;
 	ALCTReadback << ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE;
+	//
       } else {
+	TMBFirmware << "/typeD";
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11;
 	ALCTReadback << ALCT_READBACK_FILENAME_ME11;
       }
     } else if ( (thisALCT->GetChamberType()).find("ME12") != std::string::npos ) {
+      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME12;
       ALCTReadback << ALCT_READBACK_FILENAME_ME12;
     } else if ( (thisALCT->GetChamberType()).find("ME13") != std::string::npos ) {
+      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME13;
       ALCTReadback << ALCT_READBACK_FILENAME_ME13;
     } else if ( (thisALCT->GetChamberType()).find("ME21") != std::string::npos ) {
+      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME21;
       ALCTReadback << ALCT_READBACK_FILENAME_ME21;
     } else if ( (thisALCT->GetChamberType()).find("ME22") != std::string::npos ) {
+      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME22;
       ALCTReadback << ALCT_READBACK_FILENAME_ME22;
     } else if ( (thisALCT->GetChamberType()).find("ME31") != std::string::npos ) {
+      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME31;
       ALCTReadback << ALCT_READBACK_FILENAME_ME31;
     } else if ( (thisALCT->GetChamberType()).find("ME32") != std::string::npos ) {
+      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME32;
       ALCTReadback << ALCT_READBACK_FILENAME_ME32;
     } else if ( (thisALCT->GetChamberType()).find("ME41") != std::string::npos ) {
+      TMBFirmware << "/typeA";                  
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME41;
       ALCTReadback << ALCT_READBACK_FILENAME_ME41;
     } 
+    //
+    TMBFirmware << "/tmb";    // ".xsvf" is added in SetXsvfFilename
+    TMBFirmware_[tmb] = TMBFirmware.str();
+    //    std::cout << "TMB " << tmb << " load " << TMBFirmware_[tmb].toString() << std::endl;
     //
     ALCTFirmware_[tmb] = ALCTFirmware.str();
     ALCTReadback_[tmb] = ALCTReadback.str();
     //    std::cout << "ALCT " << tmb << " load " << ALCTFirmware_[tmb].toString() << std::endl;
     //    std::cout << "ALCT " << tmb << " read " << ALCTReadback_[tmb].toString() << std::endl;
     //
+    char date[8];
     sprintf(date,"%4u%02u%02u",
 	    thisTMB->GetExpectedRatFirmwareYear() ,
 	    thisTMB->GetExpectedRatFirmwareMonth(),
@@ -12527,6 +12569,21 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
     tmb = TMB_;
   }
   //
+  bool typeA_only = true;
+  int ntmb_typea = 0;
+  //
+  // if there is only typeA chambers in this crate, then a single broadcast will suffice...
+  //
+  for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? 9 : tmbVector.size());ntmb++) {
+    //
+    if (tmbVector[ntmb]->GetClctStagger()) {
+      ntmb_typea = ntmb;
+    }
+    typeA_only &= tmbVector[ntmb]->GetClctStagger();
+    //
+    //    std::cout << "TMB[" << ntmb << "] csc_stagger = " << tmbVector[ntmb]->GetClctStagger() << std::endl;
+  }
+  //
   // Create a TMB which all TMB's within a crate will listen to....
   //
   emu::pc::Chamber * thisChamber = chamberVector[tmb];
@@ -12537,14 +12594,28 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
   thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
   //
-  std::cout << "Broadcast TMB firmware to slot " << thisTMB->slot() << " in 5 seconds..." << std::endl;
-  //
+  std::cout << "Broadcast TMB firmware " << TMBFirmware_[ntmb_typea].toString()
+	    << " to slot " << thisTMB->slot() << " in 5 seconds..." << std::endl;
   ::sleep(5);
   //
-  thisTMB->SetXsvfFilename(TMBFirmware_[tmb].toString().c_str());
+  thisTMB->SetXsvfFilename(TMBFirmware_[ntmb_typea].toString().c_str());
   thisTMB->ProgramTMBProms();
   thisTMB->ClearXsvfFilename();
   //
+  if (!typeA_only) {
+    for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? 9 : tmbVector.size());ntmb++) {
+      //
+      if (!tmbVector[ntmb]->GetClctStagger()) {
+	std::cout << "Loading TMB firmware " << TMBFirmware_[ntmb].toString()
+		  << " to slot " << tmbVector[ntmb]->slot() << " in 5 seconds..." << std::endl;
+	::sleep(5);
+	//
+	tmbVector[ntmb]->SetXsvfFilename(TMBFirmware_[ntmb].toString().c_str());
+	tmbVector[ntmb]->ProgramTMBProms();
+	tmbVector[ntmb]->ClearXsvfFilename();
+      }
+    }
+  }
   std::cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< std::endl;
   //
   // Put CCB back into DLOG mode to listen to TTC commands...

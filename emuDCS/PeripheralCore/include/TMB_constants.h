@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.17 2008/08/13 11:30:53 geurts Exp $
+// $Id: TMB_constants.h,v 3.18 2008/11/24 17:50:40 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.18  2008/11/24 17:50:40  rakness
+// update for TMB version 18 Nov 2008
+//
 // Revision 3.17  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -197,7 +200,7 @@ static const unsigned long int  rpc_tbins_adr           = 0x0000C4;
 static const unsigned long int  rpc0_hcm_adr            = 0x0000C6;
 static const unsigned long int  rpc1_hcm_adr            = 0x0000C8;
 static const unsigned long int  bx0_delay_adr           = 0x0000CA;
-static const unsigned long int  rpc3_hcm_adr            = 0x0000CC;
+static const unsigned long int  non_trig_readout_adr    = 0x0000CC;
 static const unsigned long int  scp_trig_adr            = 0x0000CE;
 //
 static const unsigned long int  cnt_ctrl_adr            = 0x0000D0;
@@ -554,6 +557,7 @@ const int internal_l1a_delay_vme_bithi   = 15;
 const int internal_l1a_delay_vme_default =0x72;
 //
 //
+// greg, this needs address 2E added for monitors
 //------------------------------------------------------------------
 //0X30 = ADR_ALCT_CFG:  ALCT Configuration
 //------------------------------------------------------------------
@@ -617,6 +621,7 @@ const int alct_inj_delay_bithi    =  7;
 const int alct_inj_delay_default  =0xd;                  //TMB documentation says this should be 0x8
 //
 //
+// greg, need to add address 0x38 for 08/12/2008 firmware version 
 //------------------------------------------------------------------
 //0X3A = ADR_ALCT0_RCD:  ALCT 1st Muon received by TMB
 //------------------------------------------------------------------
@@ -929,6 +934,11 @@ const int hit_thresh_bitlo          =  4;
 const int hit_thresh_bithi          =  6;
 const int hit_thresh_default        =  4;
 //
+const int aff_thresh_vmereg         =  seq_clct_adr;
+const int aff_thresh_bitlo          =  7;
+const int aff_thresh_bithi          =  9;
+const int aff_thresh_default        =  4; 
+//
 const int min_hits_pattern_vmereg   =  seq_clct_adr;
 const int min_hits_pattern_bitlo    = 10;
 const int min_hits_pattern_bithi    = 12;
@@ -1099,6 +1109,15 @@ const int mpc_output_enable_vmereg    =  tmb_trig_adr;
 const int mpc_output_enable_bitlo     = 15;
 const int mpc_output_enable_bithi     = 15;
 const int mpc_output_enable_default   =  1;
+//
+//
+//------------------------------------------------------------------
+//0X98 = ADR_SCP_CTRL:  Scope control
+//------------------------------------------------------------------
+const int scope_in_readout_vmereg    =  scp_ctrl_adr;
+const int scope_in_readout_bitlo     =  3;
+const int scope_in_readout_bithi     =  3;
+const int scope_in_readout_default   =  0;
 //
 //
 //------------------------------------------------------------------
@@ -1381,6 +1400,24 @@ const int alct_bx0_enable_bithi   =  8;
 const int alct_bx0_enable_default =  1;
 //
 //
+//-----------------------------------------------------------------------------
+//0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
+//-----------------------------------------------------------------------------
+const int tmb_allow_alct_nontrig_readout_vmereg   = non_trig_readout_adr ;
+const int tmb_allow_alct_nontrig_readout_bitlo    =  0;
+const int tmb_allow_alct_nontrig_readout_bithi    =  0;
+const int tmb_allow_alct_nontrig_readout_default  =  0;
+//
+const int tmb_allow_clct_nontrig_readout_vmereg   = non_trig_readout_adr ;
+const int tmb_allow_clct_nontrig_readout_bitlo    =  1;
+const int tmb_allow_clct_nontrig_readout_bithi    =  1;
+const int tmb_allow_clct_nontrig_readout_default  =  0;
+//
+const int tmb_allow_match_nontrig_readout_vmereg   = non_trig_readout_adr ;
+const int tmb_allow_match_nontrig_readout_bitlo    =  1;
+const int tmb_allow_match_nontrig_readout_bithi    =  1;
+const int tmb_allow_match_nontrig_readout_default  =  0;
+//
 //------------------------------------------------------------------
 //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
 //------------------------------------------------------------------
@@ -1392,6 +1429,7 @@ const int jtag_state_machine_sreset_vmereg        =  jtag_sm_ctrl_adr;
 const int jtag_state_machine_sreset_bitlo         =  1;
 const int jtag_state_machine_sreset_bithi         =  1;
 //
+// greg, this needs to be changed to allow selection of ALCT userPROM format
 const int jtag_state_machine_autostart_vmereg     =  jtag_sm_ctrl_adr;
 const int jtag_state_machine_autostart_bitlo      =  2;
 const int jtag_state_machine_autostart_bithi      =  2;
@@ -1455,6 +1493,7 @@ const int jtag_state_machine_word_count_bithi  = 15;
 //
 //------------------------------------------------------------------
 //0XD8 = ADR_JTAGSM2:  JTAG State Machine Checksum
+// greg, add bits 12-15 for firmware 07/09/2008
 //------------------------------------------------------------------
 const int jtag_state_machine_check_sum_vmereg =  jtag_sm_cksum_adr;
 const int jtag_state_machine_check_sum_bitlo  =  0;
@@ -1535,6 +1574,8 @@ const int vme_state_machine_word_count_bithi  = 15;
 //
 //------------------------------------------------------------------
 //0XDE = ADR_VMESM2:  VME State Machine Checksum
+// greg, this needs to have bits [14:13] added for 07/09/2008 firmware
+// greg, this needs to be updated for ALCT prom format updates
 //------------------------------------------------------------------
 const int vme_state_machine_check_sum_vmereg                       =  vme_sm_cksum_adr;
 const int vme_state_machine_check_sum_bitlo                        =  0;
@@ -1568,6 +1609,7 @@ const int vme_state_machine_error_word_count_overflow_expected     =  0; //expec
 //
 //------------------------------------------------------------------
 //0XE0 = ADR_VMESM3:  Number of VME addresses written by VMESM
+// greg, this needs state machine and data format state machine vector for 07/09/2008 firmware
 //------------------------------------------------------------------
 const int vme_state_machine_number_of_vme_writes_vmereg =  num_vme_sm_adr_adr;
 const int vme_state_machine_number_of_vme_writes_bitlo  =  0;
@@ -1602,6 +1644,7 @@ const int rpc3_rat_delay_default =  0;
 //0XEA = ADR_BDSTATUS:  Board Status Summary (copy of raw-hits header)
 //N.B. these values are tied directly to the VME state machine and 
 //     JTAG state machine status words
+// greg, this needs jtag state-machine tck count added
 //---------------------------------------------------------------------
 const int bdstatus_ok_vmereg       =  tmb_stat_adr;
 const int bdstatus_ok_bitlo        =  0;
@@ -1706,30 +1749,31 @@ const int clct_throttle_default     =  0;
 //---------------------------------------------------------------------
 //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
 //---------------------------------------------------------------------
-const int clct_blanking_vmereg           =  pattern_find_pretrg_adr;
-const int clct_blanking_bitlo            =  0;
-const int clct_blanking_bithi            =  0;
-const int clct_blanking_default          =  1; 
+const int clct_blanking_vmereg                     =  pattern_find_pretrg_adr;
+const int clct_blanking_bitlo                      =  0;
+const int clct_blanking_bithi                      =  0;
+const int clct_blanking_default                    =  1; 
 //
-const int clct_stagger_vmereg            =  pattern_find_pretrg_adr;
-const int clct_stagger_bitlo             =  1;
-const int clct_stagger_bithi             =  1;
-const int clct_stagger_default           =  1; 
+// Although this is a read-only bit, we set it in the xml file to define what TMB firmware type to expect
+const int clct_stagger_vmereg                      =  pattern_find_pretrg_adr;
+const int clct_stagger_bitlo                       =  1;
+const int clct_stagger_bithi                       =  1;
+const int clct_stagger_default                     =  1; 
 //
-const int clct_pattern_id_thresh_vmereg  =  pattern_find_pretrg_adr;
-const int clct_pattern_id_thresh_bitlo   =  2;
-const int clct_pattern_id_thresh_bithi   =  5;
-const int clct_pattern_id_thresh_default =  0; 
+const int clct_pattern_id_thresh_vmereg            =  pattern_find_pretrg_adr;
+const int clct_pattern_id_thresh_bitlo             =  2;
+const int clct_pattern_id_thresh_bithi             =  5;
+const int clct_pattern_id_thresh_default           =  0; 
 //
-const int aff_thresh_vmereg              =  pattern_find_pretrg_adr;
-const int aff_thresh_bitlo               =  6;
-const int aff_thresh_bithi               =  8;
-const int aff_thresh_default             =  4; 
+const int clct_pattern_id_thresh_postdrift_vmereg  =  pattern_find_pretrg_adr;
+const int clct_pattern_id_thresh_postdrift_bitlo   =  6;
+const int clct_pattern_id_thresh_postdrift_bithi   =  9;
+const int clct_pattern_id_thresh_postdrift_default =  0; 
 //
-const int adjacent_cfeb_distance_vmereg  =  pattern_find_pretrg_adr;
-const int adjacent_cfeb_distance_bitlo   =  9;
-const int adjacent_cfeb_distance_bithi   = 14;
-const int adjacent_cfeb_distance_default =  5; 
+const int adjacent_cfeb_distance_vmereg            =  pattern_find_pretrg_adr;
+const int adjacent_cfeb_distance_bitlo             = 10;
+const int adjacent_cfeb_distance_bithi             = 15;
+const int adjacent_cfeb_distance_default           =  5; 
 //
 //
 //---------------------------------------------------------------------
@@ -1750,12 +1794,15 @@ const int clct_separation_ram_adr_bitlo            =  2;
 const int clct_separation_ram_adr_bithi            =  5;
 const int clct_separation_ram_adr_default          =  0; 
 //
+// greg, this needs bit-6 to add A or B separataion RAM data readback (or not?)
 const int min_clct_separation_vmereg               =  clct_separation_adr;
 const int min_clct_separation_bitlo                =  8;
 const int min_clct_separation_bithi                = 15;
 const int min_clct_separation_default              = 10; 
 //
 //
+// greg this needs 0xfA added (SEU error status) for 08/28/2008
+// greg this needs 0xfc added (CCB TTC lock status) for 08/28/2008
 //////////////////////////////////////////////
 // Bit mapping for TMB Raw Hits
 //////////////////////////////////////////////
