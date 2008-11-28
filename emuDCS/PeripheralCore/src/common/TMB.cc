@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.78 2008/11/24 17:50:40 rakness Exp $
+// $Id: TMB.cc,v 3.79 2008/11/28 09:49:28 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.79  2008/11/28 09:49:28  rakness
+// include ME1/1 TMB firmware compilation specification into xml file
+//
 // Revision 3.78  2008/11/24 17:50:40  rakness
 // update for TMB version 18 Nov 2008
 //
@@ -504,6 +507,11 @@ TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   SetTMBRegisterDefaults_();
   DefineTMBConfigurationRegisters_();
   //
+  alct_sent_to_tmb_counter_index_  = ALCT_SENT_TO_TMB_COUNTER_INDEX  ;
+  clct_pretrigger_counter_index_   = CLCT_PRETRIGGER_COUNTER_INDEX   ;
+  lct_sent_to_mpc_counter_index_   = LCT_SENT_TO_MPC_COUNTER_INDEX   ; 
+  l1a_in_tmb_window_counter_index_ = L1A_IN_TMB_WINDOW_COUNTER_INDEX ; 
+  //
   tmb_configuration_status_  = -1;
   vme_state_machine_status_  = -1;
   jtag_state_machine_status_ = -1;
@@ -653,9 +661,7 @@ int TMB::ConvertToHexAscii(int value_to_convert) {
 //
 int TMB::FirmwareDate(){
   //
-  tmb_vme(VME_READ,vme_idreg1_adr,sndbuf,rcvbuf,NOW);
-  //
-  int data = (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
+  int data = ReadRegister(vme_idreg1_adr);
   //
   read_tmb_firmware_day_   = data & 0xff;
   read_tmb_firmware_month_ = ((data >> 8) & 0xff);
@@ -686,6 +692,8 @@ bool TMB::CheckFirmwareDate() {
   // read the registers:
   FirmwareDate();
   FirmwareYear();
+  ReadRegister(non_trig_readout_adr);
+  //
   //
   bool date_ok = true;
   //
@@ -693,6 +701,7 @@ bool TMB::CheckFirmwareDate() {
   date_ok &= ( GetReadTmbFirmwareDay()   == GetExpectedTmbFirmwareDay()   );
   date_ok &= ( GetReadTmbFirmwareMonth() == GetExpectedTmbFirmwareMonth() );
   date_ok &= ( GetReadTmbFirmwareYear()  == GetExpectedTmbFirmwareYear()  );
+  date_ok &= ( read_tmb_firmware_compile_type_ == expected_tmb_firmware_compile_type_ );
   //
   return date_ok;
 }
@@ -1312,6 +1321,9 @@ void TMB::PrintCounters(int counter){
 }
 //
 std::string TMB::CounterName(int counter){
+  //
+  // Note to TMB software developer:  When modifying the counters, do not forget to modify the 
+  // index tags in TMB_constants.h...
   //
   std::string name = "Not defined";
   //
@@ -5963,8 +5975,9 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(tmb_trig_adr);   //0x86 TMB trigger configuration/MPC accept, delays
   //
   // TMB/RPC readout:
-  TMBConfigurationRegister.push_back(seq_fifo_adr );   //0x72 sequencer fifo configuration
-  TMBConfigurationRegister.push_back(rpc_tbins_adr);   //0xC4 RPC FIFO time bins    
+  TMBConfigurationRegister.push_back(seq_fifo_adr );         //0x72 sequencer fifo configuration
+  TMBConfigurationRegister.push_back(rpc_tbins_adr);         //0xC4 RPC FIFO time bins    
+  TMBConfigurationRegister.push_back(non_trig_readout_adr);  //0xCC Readout of non-triggering data, ME1/1 firmware tags
   //
   // L1A/BX0 receipt:
   TMBConfigurationRegister.push_back(seq_l1a_adr   );    //0x74 L1A accept window width/delay
@@ -6257,6 +6270,16 @@ void TMB::SetTMBRegisterDefaults_() {
   clct_bx0_delay_  = clct_bx0_delay_default  ;
   alct_bx0_enable_ = alct_bx0_enable_default;
   //
+  //-----------------------------------------------------------------------------
+  //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
+  //-----------------------------------------------------------------------------
+  tmb_allow_alct_nontrig_readout_   =  tmb_allow_alct_nontrig_readout_default   ;
+  tmb_allow_clct_nontrig_readout_   =  tmb_allow_clct_nontrig_readout_default   ;
+  tmb_allow_match_nontrig_readout_  =  tmb_allow_match_nontrig_readout_default  ;
+  mpc_block_me1a_                   =  mpc_block_me1a_default                   ;
+  clct_pretrigger_counter_non_me11_ =  clct_pretrigger_counter_non_me11_default ;
+  SetTMBFirmwareCompileType(tmb_firmware_compile_type_default);
+  //
   //------------------------------------------------------------------
   //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
   //------------------------------------------------------------------
@@ -6279,7 +6302,6 @@ void TMB::SetTMBRegisterDefaults_() {
   //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
   //---------------------------------------------------------------------
   clct_blanking_                    = clct_blanking_default                   ; 
-  clct_stagger_                     = clct_stagger_default                    ; 
   clct_pattern_id_thresh_           = clct_pattern_id_thresh_default          ; 
   clct_pattern_id_thresh_postdrift_ = clct_pattern_id_thresh_postdrift_default; 
   adjacent_cfeb_distance_           = adjacent_cfeb_distance_default          ;
@@ -6291,6 +6313,61 @@ void TMB::SetTMBRegisterDefaults_() {
   clct_separation_ram_write_enable_ = clct_separation_ram_write_enable_default; 
   clct_separation_ram_adr_          = clct_separation_ram_adr_default         ; 
   min_clct_separation_              = min_clct_separation_default             ; 
+  //
+  return;
+}
+//
+void TMB::SetTMBFirmwareCompileType(int tmb_firmware_compile_type) {
+  //
+  tmb_firmware_compile_type_ = tmb_firmware_compile_type;
+  //
+  if (tmb_firmware_compile_type == 0xa) {
+    csc_me11_        = 0;
+    clct_stagger_    = 1;
+    reverse_stagger_ = 0;
+    reverse_me1a_    = 0;
+    reverse_me1b_    = 0;
+    expected_tmb_firmware_compile_type_ = TMB_FIRMWARE_TYPE_A;
+    //
+  } else if (tmb_firmware_compile_type == 0xb) {
+    csc_me11_        = 0;
+    clct_stagger_    = 0;
+    reverse_stagger_ = 1;
+    reverse_me1a_    = 0;
+    reverse_me1b_    = 0;
+    expected_tmb_firmware_compile_type_ = TMB_FIRMWARE_TYPE_B;
+    //
+  } else if (tmb_firmware_compile_type == 0xc) {
+    csc_me11_        = 1;
+    clct_stagger_    = 0;
+    reverse_stagger_ = 0;
+    reverse_me1a_    = 1;
+    reverse_me1b_    = 0;
+    expected_tmb_firmware_compile_type_ = TMB_FIRMWARE_TYPE_C;
+    //
+  } else if (tmb_firmware_compile_type == 0xd) {
+    csc_me11_        = 1;
+    clct_stagger_    = 0;
+    reverse_stagger_ = 0;
+    reverse_me1a_    = 0;
+    reverse_me1b_    = 1;
+    expected_tmb_firmware_compile_type_ = TMB_FIRMWARE_TYPE_D;
+    //
+  } else {
+    csc_me11_        = 0;
+    clct_stagger_    = 0;
+    reverse_stagger_ = 0;
+    reverse_me1a_    = 0;
+    reverse_me1b_    = 0;
+    expected_tmb_firmware_compile_type_ = 0;
+    //
+    //    std::ostringstream toerror;
+    //    toerror << "TMB slot " << this->slot() << " -> compile type = " << GetTMBFirmwareCompileType() << "not allowed" << std::endl;
+    std::cout << "ERROR:  TMB slot " << this->slot() << " -> compile type = " << GetTMBFirmwareCompileType() << " is not valid" << std::endl;
+    //    ReportCheck(toerror.str(),false);
+    //
+  }
+  //  std::cout << "TMB slot " << this->slot() << " -> compile type = " << GetTMBFirmwareCompileType() << std::endl;
   //
   return;
 }
@@ -6691,6 +6768,22 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_alct_bx0_delay_  = ExtractValueFromData(data,alct_bx0_delay_bitlo ,alct_bx0_delay_bithi );
     read_clct_bx0_delay_  = ExtractValueFromData(data,clct_bx0_delay_bitlo ,clct_bx0_delay_bithi );
     read_alct_bx0_enable_ = ExtractValueFromData(data,alct_bx0_enable_bitlo,alct_bx0_enable_bithi);
+    //
+  } else if ( address == non_trig_readout_adr ) {
+    //-----------------------------------------------------------------------------
+    //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
+    //-----------------------------------------------------------------------------
+    read_tmb_allow_alct_nontrig_readout_   = ExtractValueFromData(data,tmb_allow_alct_nontrig_readout_bitlo  ,tmb_allow_alct_nontrig_readout_bithi  );
+    read_tmb_allow_clct_nontrig_readout_   = ExtractValueFromData(data,tmb_allow_clct_nontrig_readout_bitlo  ,tmb_allow_clct_nontrig_readout_bithi  );
+    read_tmb_allow_match_nontrig_readout_  = ExtractValueFromData(data,tmb_allow_match_nontrig_readout_bitlo ,tmb_allow_match_nontrig_readout_bithi );
+    read_mpc_block_me1a_                   = ExtractValueFromData(data,mpc_block_me1a_bitlo                  ,mpc_block_me1a_bithi                  );
+    read_clct_pretrigger_counter_non_me11_ = ExtractValueFromData(data,clct_pretrigger_counter_non_me11_bitlo,clct_pretrigger_counter_non_me11_bithi);
+    read_csc_me11_                         = ExtractValueFromData(data,csc_me11_bitlo                        ,csc_me11_bithi                        );
+    read_clct_stagger_                     = ExtractValueFromData(data,clct_stagger_bitlo                    ,clct_stagger_bithi                    );
+    read_reverse_stagger_                  = ExtractValueFromData(data,reverse_stagger_bitlo                 ,reverse_stagger_bithi                 );
+    read_reverse_me1a_                     = ExtractValueFromData(data,reverse_me1a_bitlo                    ,reverse_me1a_bithi                    );
+    read_reverse_me1b_                     = ExtractValueFromData(data,reverse_me1b_bitlo                    ,reverse_me1b_bithi                    );
+    read_tmb_firmware_compile_type_        = ExtractValueFromData(data,tmb_firmware_compile_type_bitlo       ,tmb_firmware_compile_type_bithi       );
     //
   } else if ( address == jtag_sm_ctrl_adr ) {
     //------------------------------------------------------------------
@@ -7293,6 +7386,23 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    CLCT BX0 delay to MPC transmitter           = "   << std::dec << read_clct_bx0_delay_  << std::endl; 
     (*MyOutput_) << "    Enable ALCT BX0 (0 = use CLCT BX0 for ALCT) = "   << std::dec << read_alct_bx0_enable_ << std::endl; 
     //
+  } else if ( address == non_trig_readout_adr ) {
+    //-----------------------------------------------------------------------------
+    //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
+    //-----------------------------------------------------------------------------
+    (*MyOutput_) << " ->Non-triggering Event Enable + ME11A/B reversal register:" << std::endl;
+    (*MyOutput_) << "    Allow ALCT-only non-triggering readout           =   " << std::hex << read_tmb_allow_alct_nontrig_readout_   << std::endl;
+    (*MyOutput_) << "    Allow CLCT-only non-triggering readout           =   " << std::hex << read_tmb_allow_clct_nontrig_readout_   << std::endl;
+    (*MyOutput_) << "    Allow ALCT*CLCT non-triggering readout           =   " << std::hex << read_tmb_allow_match_nontrig_readout_  << std::endl;
+    (*MyOutput_) << "    Block ME1/1A LCTs from MPC                       =   " << std::hex << read_mpc_block_me1a_                   << std::endl;
+    (*MyOutput_) << "    Allow CLCT pretrigger counter to count non ME1/1 =   " << std::hex << read_clct_pretrigger_counter_non_me11_ << std::endl;
+    (*MyOutput_) << "    TMB firmware type is ME1/1                       =   " << std::hex << read_csc_me11_                         << std::endl;
+    (*MyOutput_) << "    CLCT stagger 1/2-strips                          =   " << std::hex << read_clct_stagger_                     << std::endl;
+    (*MyOutput_) << "    Reverse CLCT (for staggered)                     =   " << std::hex << read_reverse_stagger_                  << std::endl;
+    (*MyOutput_) << "    Reverse ME1/1A 1/2-strips                        =   " << std::hex << read_reverse_me1a_                     << std::endl;
+    (*MyOutput_) << "    Reverse ME1/1B 1/2-strips                        =   " << std::hex << read_reverse_me1b_                     << std::endl;
+    (*MyOutput_) << "    TMB firmware compile type                        = 0x" << std::hex << read_tmb_firmware_compile_type_        << std::endl;
+    //
   } else if ( address == jtag_sm_ctrl_adr ) {
     //------------------------------------------------------------------
     //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
@@ -7789,6 +7899,16 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(clct_bx0_delay_ ,clct_bx0_delay_bithi ,clct_bx0_delay_bitlo ,&data_word);
     InsertValueIntoDataWord(alct_bx0_enable_,alct_bx0_enable_bithi,alct_bx0_enable_bitlo,&data_word);
     //
+  } else if ( address == non_trig_readout_adr ) {
+    //-----------------------------------------------------------------------------
+    //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
+    //-----------------------------------------------------------------------------
+    InsertValueIntoDataWord(tmb_allow_alct_nontrig_readout_   ,tmb_allow_alct_nontrig_readout_bithi  ,tmb_allow_alct_nontrig_readout_bitlo  ,&data_word);
+    InsertValueIntoDataWord(tmb_allow_clct_nontrig_readout_   ,tmb_allow_clct_nontrig_readout_bithi  ,tmb_allow_clct_nontrig_readout_bitlo  ,&data_word);
+    InsertValueIntoDataWord(tmb_allow_match_nontrig_readout_  ,tmb_allow_match_nontrig_readout_bithi ,tmb_allow_match_nontrig_readout_bitlo ,&data_word);
+    InsertValueIntoDataWord(mpc_block_me1a_                   ,mpc_block_me1a_bithi                  ,mpc_block_me1a_bitlo                  ,&data_word);
+    InsertValueIntoDataWord(clct_pretrigger_counter_non_me11_ ,clct_pretrigger_counter_non_me11_bithi,clct_pretrigger_counter_non_me11_bitlo,&data_word);
+    //
   } else if ( address == jtag_sm_ctrl_adr ) {
     //------------------------------------------------------------------
     //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
@@ -8099,7 +8219,7 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //------------------------------------------------------------------
     //0X98 = ADR_SCP_CTRL:  Scope Control
     //------------------------------------------------------------------
-    config_ok &= compareValues("TMB scope in readout (not in xml)",read_scope_in_readout_,scope_in_readout_, print_errors);
+    //    config_ok &= compareValues("TMB scope in readout (not in xml)",read_scope_in_readout_,scope_in_readout_, print_errors);
     //
     //------------------------------------------------------------------
     //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
@@ -8159,6 +8279,21 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     config_ok &= compareValues("TMB clct_bx0_delay" ,read_clct_bx0_delay_ ,clct_bx0_delay_ , print_errors);
     config_ok &= compareValues("TMB alct_bx0_enable",read_alct_bx0_enable_,alct_bx0_enable_, print_errors);
     //
+    //-----------------------------------------------------------------------------
+    //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
+    //-----------------------------------------------------------------------------
+    config_ok &= compareValues("TMB alct_readout_without_trig"   ,read_tmb_allow_alct_nontrig_readout_   ,tmb_allow_alct_nontrig_readout_    , print_errors);
+    config_ok &= compareValues("TMB clct_readout_without_trig"   ,read_tmb_allow_clct_nontrig_readout_   ,tmb_allow_clct_nontrig_readout_    , print_errors);
+    config_ok &= compareValues("TMB match_readout_without_trig"  ,read_tmb_allow_match_nontrig_readout_  ,tmb_allow_match_nontrig_readout_   , print_errors);
+    config_ok &= compareValues("TMB mpc_block_me1a"              ,read_mpc_block_me1a_                   ,mpc_block_me1a_                    , print_errors);
+    //config_ok &= compareValues("TMB counter_clct_non_me11"       ,read_clct_pretrigger_counter_non_me11_ ,clct_pretrigger_counter_non_me11_  , print_errors);
+    config_ok &= compareValues("TMB csc_me11 (not in xml)"       ,read_csc_me11_                         ,csc_me11_                          , print_errors);
+    config_ok &= compareValues("TMB clct_stagger (not in xml)"   ,read_clct_stagger_                     ,clct_stagger_                      , print_errors);
+    config_ok &= compareValues("TMB reverse_stagger (not in xml)",read_reverse_stagger_                  ,reverse_stagger_                   , print_errors);
+    config_ok &= compareValues("TMB reverse_me1a (not in xml)"   ,read_reverse_me1a_                     ,reverse_me1a_                      , print_errors);
+    config_ok &= compareValues("TMB reverse_me1b (not in xml)"   ,read_reverse_me1b_                     ,reverse_me1b_                      , print_errors);
+    config_ok &= compareValues("TMB tmb_firmware_compile_type"   ,read_tmb_firmware_compile_type_        ,expected_tmb_firmware_compile_type_, print_errors);
+    //
     //------------------------------------------------------------------
     //0XE6 = ADR_DDDR0:  RAT 3D3444 RPC Delays, 1 step = 2ns
     //------------------------------------------------------------------
@@ -8176,7 +8311,6 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
     //---------------------------------------------------------------------
     config_ok &= compareValues("TMB clct_blanking"          ,read_clct_blanking_                   ,clct_blanking_                   , print_errors);
-    //    config_ok &= compareValues("TMB clct_stagger"           ,read_clct_stagger_                    ,clct_stagger_                    , print_errors);
     config_ok &= compareValues("TMB clct_pid_thresh_pretrig",read_clct_pattern_id_thresh_          ,clct_pattern_id_thresh_          , print_errors);
     config_ok &= compareValues("TMB clct_pid_thresh_pattern",read_clct_pattern_id_thresh_postdrift_,clct_pattern_id_thresh_postdrift_, print_errors);
     config_ok &= compareValues("TMB adjacent_cfeb_distance" ,read_adjacent_cfeb_distance_          ,adjacent_cfeb_distance_          , print_errors);

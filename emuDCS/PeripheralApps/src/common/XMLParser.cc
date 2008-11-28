@@ -520,6 +520,13 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("clct_bx0_delay" ,value)) { tmb_->SetClctBx0Delay(value);  }
     if (fillInt("alct_bx0_enable",value)) { tmb_->SetAlctBx0Enable(value); }
     //
+    //0XCC
+    if (fillInt("alct_readout_without_trig" ,value)) { tmb_->SetAllowAlctNontrigReadout(value);   }
+    if (fillInt("clct_readout_without_trig" ,value)) { tmb_->SetAllowClctNontrigReadout(value);   }
+    if (fillInt("match_readout_without_trig",value)) { tmb_->SetAllowMatchNontrigReadout(value);  }
+    if (fillInt("mpc_block_me1a"            ,value)) { tmb_->SetBlockME1aToMPC(value);            }
+    //if (fillInt("counter_clct_non_me11"     ,value)) { tmb_->SetClctPretriggerCounterME11(value); }
+    if (fillIntX("tmb_firmware_compile_type" ,value)) { tmb_->SetTMBFirmwareCompileType(value);    }
     //0XE6
     if (fillInt("rpc0_rat_delay",value)) { tmb_->SetRpc0RatDelay(value); }
     if (fillInt("rpc1_rat_delay",value)) { tmb_->SetRpc1RatDelay(value); }
@@ -533,7 +540,6 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //
     //0XF4
     if (fillInt("clct_blanking"          ,value)) { tmb_->SetClctBlanking(value);        }
-    if (fillInt("clct_stagger"           ,value)) { tmb_->SetClctStagger(value);         }
     if (fillInt("clct_pid_thresh_pretrig",value)) { tmb_->SetClctPatternIdThresh(value); }
     if (fillInt("aff_thresh"             ,value)) { tmb_->SetActiveFebFlagThresh(value); }
     if (fillInt("adjacent_cfeb_distance" ,value)) { tmb_->SetAdjacentCfebDistance(value);}
