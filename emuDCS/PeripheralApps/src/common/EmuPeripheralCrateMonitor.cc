@@ -1614,7 +1614,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
       // chamber name
       *out << crateVector[idx]->GetChamber(myVector[tmb])->GetLabel() << cgicc::br();
       // ALCT: LCT sent to TMB
-      int dc=myVector[tmb]->GetCounter(0);
+      int dc=myVector[tmb]->GetCounter(myVector[tmb]->GetALCTSentToTMBCounterIndex());
       if (dc == 0x3fffffff || dc < 0 ) dc = -1;
       if(dc<0) 
       {  *out << cgicc::span().set("style","color:magenta");
@@ -1629,7 +1629,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
       else
          *out << "A: " << dc <<"; ";
       // CLCT pretrigger 
-      dc=myVector[tmb]->GetCounter(5);
+      dc=myVector[tmb]->GetCounter(myVector[tmb]->GetCLCTPretriggerCounterIndex());
       if (dc == 0x3fffffff || dc < 0 ) dc = -1;
       if(dc<0) 
       {  *out << cgicc::span().set("style","color:magenta");
@@ -1645,7 +1645,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
          *out << "C: " << dc;
       *out << cgicc::br();
       // trig allowed, xmit to MPC
-      dc=myVector[tmb]->GetCounter(28);
+      dc=myVector[tmb]->GetCounter(myVector[tmb]->GetLCTSentToMPCCounterIndex());
       if (dc == 0x3fffffff || dc < 0 ) dc = -1;
       if(dc<0) 
       {  *out << cgicc::span().set("style","color:magenta");
@@ -1660,7 +1660,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
       else
          *out << "T: " << dc << "; ";
       // L1A: TMB triggered, TMB in L1A window
-      dc=myVector[tmb]->GetCounter(34);
+      dc=myVector[tmb]->GetCounter(myVector[tmb]->GetL1AInTMBWindowCounterIndex());
       if (dc == 0x3fffffff || dc < 0 ) dc = -1;
       if(dc<0) 
       {  *out << cgicc::span().set("style","color:magenta");
