@@ -11561,13 +11561,17 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   thisTMB->FirmwareYear();
   thisTMB->FirmwareVersion();
   thisTMB->FirmwareRevCode();
+  thisTMB->ReadRegister(0xCC);
   //
   // output the register information to the screen in a nice way:
   //
-  sprintf(buf,"TMB Firmware date (month/day/year) : (%02d/%02d/%04d)",
-	  thisTMB->GetReadTmbFirmwareMonth(),
-	  thisTMB->GetReadTmbFirmwareDay(),
-	  thisTMB->GetReadTmbFirmwareYear());
+  int month        = thisTMB->GetReadTmbFirmwareMonth();
+  int day          = thisTMB->GetReadTmbFirmwareDay();
+  int year         = thisTMB->GetReadTmbFirmwareYear();
+  int compile_type = thisTMB->GetReadTMBFirmwareCompileType();
+  //  std::cout << " compile type = " << std::hex << compile_type << " or... " <<  thisTMB->GetReadTMBFirmwareCompileType() << std::endl;
+  //
+  sprintf(buf,"TMB Firmware version (month/day/year - compile type) : (%02d/%02d/%04d - %01x)",month,day,year,compile_type);
   //
   if ( thisTMB->CheckFirmwareDate() ) {
     *out << cgicc::span().set("style","color:green");
@@ -11577,10 +11581,12 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   } else {
     *out << cgicc::span().set("style","color:red");
     *out << buf;
-    *out << "--->> BAD <<---, should be ("
-	 << thisTMB->GetExpectedTmbFirmwareMonth()
+    *out << "--->> BAD <<--- should be ("
+	 << std::dec << thisTMB->GetExpectedTmbFirmwareMonth()
 	 << "/"      << thisTMB->GetExpectedTmbFirmwareDay()
 	 << "/"      << thisTMB->GetExpectedTmbFirmwareYear()
+	 << " - "   
+	 << std::hex << thisTMB->GetTMBFirmwareCompileType() 
 	 << ")";
 
     *out << cgicc::span();
@@ -11588,52 +11594,65 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br();
   //
   //
-  if ( thisTMB->GetReadTmbFirmwareType() == thisTMB->GetExpectedTmbFirmwareType() ) {
+  int firmware_type = thisTMB->GetReadTmbFirmwareType();
+  //
+  sprintf(buf,"Firmware Type             : %01x",firmware_type);       
+  //
+  if ( firmware_type == thisTMB->GetExpectedTmbFirmwareType() ) {
     *out << cgicc::span().set("style","color:green");
+    *out << buf;
+    *out << cgicc::span();
   } else {
     *out << cgicc::span().set("style","color:red");
+    *out << buf;
+    *out << "--->> BAD <<--- should be " << std::hex << thisTMB->GetExpectedTmbFirmwareType();
+    *out << cgicc::span();
   }
-  sprintf(buf,"Firmware Type             : %01x ",
-	  thisTMB->GetReadTmbFirmwareType());       
-  *out << buf;
-  *out << cgicc::span();
   *out << cgicc::br();
   //
   //
-  if ( thisTMB->GetReadTmbFirmwareVersion() == thisTMB->GetExpectedTmbFirmwareVersion() ){
+  int firmware_version = thisTMB->GetReadTmbFirmwareVersion();
+  //
+  if ( firmware_version == thisTMB->GetExpectedTmbFirmwareVersion() ){
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
   }
-  sprintf(buf,"Firmware Version Code     : %01x ",
-	  thisTMB->GetReadTmbFirmwareVersion());       
+  sprintf(buf,"Firmware Version Code     : %01x ",firmware_version);
   *out << buf ;
   *out << cgicc::span();
   *out << cgicc::br();
   //
   //
-  if ( ((thisTMB->FirmwareVersion()>>8)&0x1f) == thisTMB->slot() ){
+  int slot_number = ((thisTMB->FirmwareVersion()>>8)&0x1f);
+  //
+  if ( slot_number == thisTMB->slot() ){
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
   }
-  sprintf(buf,"Geographic Address        : %02d ",((thisTMB->FirmwareVersion()>>8)&0x1f));       
+  sprintf(buf,"Geographic Address        : %02d ",slot_number);       
   *out << buf ;
   *out << cgicc::span();
   //
   *out << cgicc::br();
   //
-  sprintf(buf,"Firmware Revision Code    : %04x ",thisTMB->GetReadTmbFirmwareRevcode());       
+  //
+  int firmware_revcode = thisTMB->GetReadTmbFirmwareRevcode();       
+  //
+  sprintf(buf,"Firmware Revision Code    : %04x ",firmware_revcode);
   *out << buf ;
   *out << cgicc::br();
   //
   //
-  if ( (thisTMB->PowerComparator())&0x1f == 0x1f ) {
+  int power_status = thisTMB->PowerComparator() & 0x1f;
+  //
+  if ( power_status == 0x1f ) {
     *out << cgicc::span().set("style","color:green");
   } else {
     *out << cgicc::span().set("style","color:red");
   }
-  sprintf(buf,"Power Comparator          : %02x ",((thisTMB->PowerComparator())&0x1f));       
+  sprintf(buf,"Power Comparator          : %02x ",power_status);       
   *out << buf ;
   *out << cgicc::span();
   //
@@ -12353,29 +12372,44 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
   //
   //create filename for TMB, ALCT, and RAT firmware based on expected dates...
   for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
-
+    
     // must skip those broadcast slots. added by Liu, May 09 2008 
     if((tmbVector[tmb]->slot())>21) continue;   
-
+    
     //
     emu::pc::TMB * thisTMB = tmbVector[tmb];
+    //
+    int year  = thisTMB->GetExpectedTmbFirmwareYear();
+    int month = thisTMB->GetExpectedTmbFirmwareMonth();
+    int day   = thisTMB->GetExpectedTmbFirmwareDay();
+    char tmbdate[8];
+    sprintf(tmbdate,"%04u%02u%02u",year,month,day);
+    //
+    std::ostringstream TMBFirmware;
+    TMBFirmware << FirmwareDir_ << "tmb/" << tmbdate;
+    //
+    if (thisTMB->GetTMBFirmwareCompileType() == 0xa ) { 
+      TMBFirmware << "/typeA";
+    } else if (thisTMB->GetTMBFirmwareCompileType() == 0xc ) {
+      TMBFirmware << "/typeC";
+    } else if (thisTMB->GetTMBFirmwareCompileType() == 0xd ) {
+      TMBFirmware << "/typeD";
+    } else {
+      std::cout << " = no type determined" << std::endl;
+    }
+    TMBFirmware << "/tmb";    // ".xsvf" is added in SetXsvfFilename
+    TMBFirmware_[tmb] = TMBFirmware.str();
+    //    std::cout << "TMB " << tmb << " load " << TMBFirmware_[tmb].toString() << std::endl;
+    //
+    //
     emu::pc::ALCTController  * thisALCT = tmbVector[tmb]->alctController();
     //
-    char tmbdate[8];
-    sprintf(tmbdate,"%04u%02u%02u",
-	    thisTMB->GetExpectedTmbFirmwareYear(),
-	    thisTMB->GetExpectedTmbFirmwareMonth(),
-	    thisTMB->GetExpectedTmbFirmwareDay());
-    //
-    int alct_expected_year  = thisALCT->GetExpectedFastControlYear() ;
-    int alct_expected_month = thisALCT->GetExpectedFastControlMonth();
-    int alct_expected_day   = thisALCT->GetExpectedFastControlDay()  ;
+    year  = thisALCT->GetExpectedFastControlYear() ;
+    month = thisALCT->GetExpectedFastControlMonth();
+    day   = thisALCT->GetExpectedFastControlDay()  ;
     //
     char alctdate[8];
-    sprintf(alctdate,"%4u%02u%02u",
-	    alct_expected_year,
-	    alct_expected_month,
-	    alct_expected_day);
+    sprintf(alctdate,"%4u%02u%02u",year,month,day);
     //
     // pre-DAQ06 format
     //  int expected_year       = thisALCT->GetExpectedFastControlYear() & 0xffff;
@@ -12390,9 +12424,6 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     //	  expected_day_tens,
     //	  expected_day_ones);
     //
-    std::ostringstream TMBFirmware;
-    TMBFirmware << FirmwareDir_ << "tmb/" << tmbdate;
-    //
     std::ostringstream ALCTFirmware;
     std::ostringstream ALCTReadback;
     ALCTFirmware << FirmwareDir_ << "alct/" << alctdate << "/";
@@ -12402,61 +12433,45 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
       //
       if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
 	  thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
-	TMBFirmware << "/typeC";
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE;
 	ALCTReadback << ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE;
 	//
       } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
 		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
-	TMBFirmware << "/typeD";
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE;
 	ALCTReadback << ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE;
 	//
       } else if (thisALCT->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE &&
 		 thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
-	TMBFirmware << "/typeC";
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE;
 	ALCTReadback << ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE;
 	//
       } else {
-	TMBFirmware << "/typeD";
 	ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME11;
 	ALCTReadback << ALCT_READBACK_FILENAME_ME11;
       }
     } else if ( (thisALCT->GetChamberType()).find("ME12") != std::string::npos ) {
-      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME12;
       ALCTReadback << ALCT_READBACK_FILENAME_ME12;
     } else if ( (thisALCT->GetChamberType()).find("ME13") != std::string::npos ) {
-      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME13;
       ALCTReadback << ALCT_READBACK_FILENAME_ME13;
     } else if ( (thisALCT->GetChamberType()).find("ME21") != std::string::npos ) {
-      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME21;
       ALCTReadback << ALCT_READBACK_FILENAME_ME21;
     } else if ( (thisALCT->GetChamberType()).find("ME22") != std::string::npos ) {
-      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME22;
       ALCTReadback << ALCT_READBACK_FILENAME_ME22;
     } else if ( (thisALCT->GetChamberType()).find("ME31") != std::string::npos ) {
-      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME31;
       ALCTReadback << ALCT_READBACK_FILENAME_ME31;
     } else if ( (thisALCT->GetChamberType()).find("ME32") != std::string::npos ) {
-      TMBFirmware << "/typeA";
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME32;
       ALCTReadback << ALCT_READBACK_FILENAME_ME32;
     } else if ( (thisALCT->GetChamberType()).find("ME41") != std::string::npos ) {
-      TMBFirmware << "/typeA";                  
       ALCTFirmware << ALCT_FIRMWARE_FILENAME_ME41;
       ALCTReadback << ALCT_READBACK_FILENAME_ME41;
     } 
-    //
-    TMBFirmware << "/tmb";    // ".xsvf" is added in SetXsvfFilename
-    TMBFirmware_[tmb] = TMBFirmware.str();
-    //    std::cout << "TMB " << tmb << " load " << TMBFirmware_[tmb].toString() << std::endl;
-    //
     ALCTFirmware_[tmb] = ALCTFirmware.str();
     ALCTReadback_[tmb] = ALCTReadback.str();
     //    std::cout << "ALCT " << tmb << " load " << ALCTFirmware_[tmb].toString() << std::endl;

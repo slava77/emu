@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.57 2008/11/24 17:50:40 rakness Exp $
+// $Id: TMB.h,v 3.58 2008/11/28 09:49:27 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.58  2008/11/28 09:49:27  rakness
+// include ME1/1 TMB firmware compilation specification into xml file
+//
 // Revision 3.57  2008/11/24 17:50:40  rakness
 // update for TMB version 18 Nov 2008
 //
@@ -512,6 +515,10 @@ public:
   void PrintCounters(int counter=-1);   /// print counter value (-1 means print all)
   std::string CounterName(int counter); /// return counter label
   inline int GetMaxCounter() { return MaxCounter; }
+  inline int GetALCTSentToTMBCounterIndex()  { return alct_sent_to_tmb_counter_index_;  }
+  inline int GetCLCTPretriggerCounterIndex() { return clct_pretrigger_counter_index_;   }
+  inline int GetLCTSentToMPCCounterIndex()   { return lct_sent_to_mpc_counter_index_;   }
+  inline int GetL1AInTMBWindowCounterIndex() { return l1a_in_tmb_window_counter_index_; }
   //
   void FireALCTInjector();
   void FireCLCTInjector();
@@ -1357,6 +1364,61 @@ public:
   inline void SetAlctBx0Enable(int alct_bx0_enable) { alct_bx0_enable_ = alct_bx0_enable; }
   inline int  GetAlctBx0Enable() { return alct_bx0_enable_; }
   //
+  //-----------------------------------------------------------------------------
+  //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
+  //-----------------------------------------------------------------------------
+  //!tmb_allow_alct_nontrig_readout = 1/0 = do/don't allow ALCT-only non-triggering readout
+  inline void SetAllowAlctNontrigReadout(int tmb_allow_alct_nontrig_readout) { tmb_allow_alct_nontrig_readout_ = tmb_allow_alct_nontrig_readout; } 
+  inline int  GetAllowAlctNontrigReadout() { return tmb_allow_alct_nontrig_readout_; } 
+  inline int  GetReadAllowAlctNontrigReadout() { return read_tmb_allow_alct_nontrig_readout_; } 
+  //
+  //!tmb_allow_clct_nontrig_readout = 1/0 = do/don't allow CLCT-only non-triggering readout
+  inline void SetAllowClctNontrigReadout(int tmb_allow_clct_nontrig_readout) { tmb_allow_clct_nontrig_readout_ = tmb_allow_clct_nontrig_readout; } 
+  inline int  GetAllowClctNontrigReadout() { return tmb_allow_clct_nontrig_readout_; } 
+  inline int  GetReadAllowClctNontrigReadout() { return read_tmb_allow_clct_nontrig_readout_; } 
+  //
+  //!tmb_allow_match_nontrig_readout = 1/0 = do/don't allow ALCT*CLCT non-triggering readout
+  inline void SetAllowMatchNontrigReadout(int tmb_allow_match_nontrig_readout) { tmb_allow_match_nontrig_readout_ = tmb_allow_match_nontrig_readout; } 
+  inline int  GetAllowMatchNontrigReadout() { return tmb_allow_match_nontrig_readout_; } 
+  inline int  GetReadAllowMatchNontrigReadout() { return read_tmb_allow_match_nontrig_readout_; } 
+  //
+  //!mpc_block_me1a = 1/0 = do/don't block ME1A LCT's from going to MPC (still queue data for readout)
+  inline void SetBlockME1aToMPC(int mpc_block_me1a) { mpc_block_me1a_ = mpc_block_me1a; } 
+  inline int  GetBlockME1aToMPC() { return mpc_block_me1a_; } 
+  inline int  GetReadBlockME1aToMPC() { return read_mpc_block_me1a_; } 
+  //
+  //!clct_pretrigger_counter_non_me11 = 1/0 = do/don't allow CLCT pretrigger Counter to count non-ME1A/B
+  inline void SetClctPretriggerCounterME11(int clct_pretrigger_counter_non_me11) { clct_pretrigger_counter_non_me11_ = clct_pretrigger_counter_non_me11; } 
+  inline int  GetClctPretriggerCounterME11() { return clct_pretrigger_counter_non_me11_; } 
+  inline int  GetReadClctPretriggerCounterME11() { return read_clct_pretrigger_counter_non_me11_; } 
+  //
+  //!csc_me11 = 1/0 = TMB firmware compile type is/isn't for ME1/1 (setting based on tmb_firmware_compile_type)
+  inline int  GetCSCME11() { return csc_me11_; } 
+  inline int  GetReadCSCME11() { return read_csc_me11_; } 
+  //
+  //!clct_stagger = 1/0 = do/don't stagger strip layers (setting based on tmb_firmware_compile_type)
+  inline int  GetClctStagger() { return clct_stagger_; } 
+  inline int  GetReadClctStagger() { return read_clct_stagger_; } 
+  //
+  //!reverse_stagger = 1/0 = do/don't reverse and stagger strips (setting based on tmb_firmware_compile_type)
+  inline int  GetReverseStagger() { return reverse_stagger_; } 
+  inline int  GetReadReverseStagger() { return read_reverse_stagger_; } 
+  //
+  //!reverse_me1a = 1/0 = do/don't reverse me1a 1/2-strips (setting based on tmb_firmware_compile_type)
+  inline int  GetReverseME1a() { return reverse_me1a_; } 
+  inline int  GetReadReverseME1a() { return read_reverse_me1a_; } 
+  //
+  //!reverse_me1b = 1/0 = do/don't reverse me1b 1/2-strips (setting based on tmb_firmware_compile_type)
+  inline int  GetReverseMe1b() { return reverse_me1b_; } 
+  inline int  GetReadReverseMe1b() { return read_reverse_me1b_; } 
+  //
+  // Although the following are read-only bits, we set it in the xml file to define what TMB firmware type to expect...
+  // The software Setters and Getters do not necessarily correspond to the actual bits which are read from address 0xCC.  
+  //!tmb_firmware_compile_type = 0xa,0xb,0xc,0xd = type of firmware specifying the 1/2-strip ordering and ME1/1 CFEB arrangement.
+  void SetTMBFirmwareCompileType(int tmb_firmware_compile_type);  
+  inline int GetTMBFirmwareCompileType() { return tmb_firmware_compile_type_; } 
+  inline int GetReadTMBFirmwareCompileType() { return read_tmb_firmware_compile_type_; }
+  //
   //------------------------------------------------------------------
   //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
   //------------------------------------------------------------------
@@ -1396,11 +1458,6 @@ public:
   inline void SetClctBlanking(int clct_blanking) { clct_blanking_ = clct_blanking; } 
   inline int  GetClctBlanking() { return clct_blanking_; } 
   inline int  GetReadClctBlanking() { return read_clct_blanking_; } 
-  //
-  //!clct_stagger = 1/0 = do/don't stagger strip layers (staggering needed for ME1/1)
-  inline void SetClctStagger(int clct_stagger) { clct_stagger_ = clct_stagger; } 
-  inline int  GetClctStagger() { return clct_stagger_; } 
-  inline int  GetReadClctStagger() { return read_clct_stagger_; } 
   //
   //!clct_pattern_id_thresh = [0-8] = minimum pattern ID value for CLCT pretrigger
   inline void SetClctPatternIdThresh(int clct_pattern_id_thresh) { clct_pattern_id_thresh_ = clct_pattern_id_thresh; } 
@@ -1564,6 +1621,10 @@ private:
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
   static const int MaxCounter = 64;
   long int FinalCounter[MaxCounter+2];
+  int alct_sent_to_tmb_counter_index_;
+  int clct_pretrigger_counter_index_;
+  int lct_sent_to_mpc_counter_index_; 
+  int l1a_in_tmb_window_counter_index_; 
   //
   //-- TMB and ALCT data in raw hits VME readout --//
   std::vector< std::bitset<16> > tmb_data_;
@@ -2158,6 +2219,34 @@ private:
   int read_clct_bx0_delay_ ;
   int read_alct_bx0_enable_;
   //
+  //-----------------------------------------------------------------------------
+  //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
+  //-----------------------------------------------------------------------------
+  int tmb_allow_alct_nontrig_readout_  ;
+  int tmb_allow_clct_nontrig_readout_  ;
+  int tmb_allow_match_nontrig_readout_ ;
+  int mpc_block_me1a_                  ;
+  int clct_pretrigger_counter_non_me11_;
+  int csc_me11_                        ;
+  int clct_stagger_                    ;
+  int reverse_stagger_                 ;
+  int reverse_me1a_                    ;
+  int reverse_me1b_                    ;
+  int tmb_firmware_compile_type_       ;
+  //
+  int read_tmb_allow_alct_nontrig_readout_  ;
+  int read_tmb_allow_clct_nontrig_readout_  ;
+  int read_tmb_allow_match_nontrig_readout_ ;
+  int read_mpc_block_me1a_                  ;
+  int read_clct_pretrigger_counter_non_me11_;
+  int read_csc_me11_                        ;
+  int read_clct_stagger_                    ;
+  int read_reverse_stagger_                 ;
+  int read_reverse_me1a_                    ;
+  int read_reverse_me1b_                    ;
+  int read_tmb_firmware_compile_type_       ;
+  int expected_tmb_firmware_compile_type_   ; //this is the value we expect to readback from the hardware
+  //
   //------------------------------------------------------------------
   //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
   //------------------------------------------------------------------
@@ -2276,13 +2365,11 @@ private:
   //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
   //---------------------------------------------------------------------
   int clct_blanking_;
-  int clct_stagger_;
   int clct_pattern_id_thresh_;
   int clct_pattern_id_thresh_postdrift_;
   int adjacent_cfeb_distance_;
   //
   int read_clct_blanking_;
-  int read_clct_stagger_;
   int read_clct_pattern_id_thresh_;
   int read_clct_pattern_id_thresh_postdrift_;
   int read_adjacent_cfeb_distance_;

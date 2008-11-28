@@ -1024,6 +1024,7 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   std::string ALCT_CLEAR("ALCT_CLEAR");
   std::string ALCT_CLOCK_EN_USE_CCB("ALCT_CLOCK_EN_USE_CCB");
   std::string ALCT_PRETRIG_ENABLE("ALCT_PRETRIG_ENABLE");
+  std::string ALCT_READOUT_WITHOUT_TRIG("ALCT_READOUT_WITHOUT_TRIG");
   std::string ALCT_RX_CLOCK_DELAY("ALCT_RX_CLOCK_DELAY");
   std::string ALCT_TRIG_ENABLE("ALCT_TRIG_ENABLE");
   std::string ALCT_TX_CLOCK_DELAY("ALCT_TX_CLOCK_DELAY");
@@ -1046,7 +1047,8 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   std::string CLCT_NPLANES_HIT_PRETRIG("CLCT_NPLANES_HIT_PRETRIG");
   std::string CLCT_PID_THRESH_PRETRIG("CLCT_PID_THRESH_PRETRIG");
   std::string CLCT_PRETRIG_ENABLE("CLCT_PRETRIG_ENABLE");
-  std::string CLCT_STAGGER("CLCT_STAGGER");
+  std::string CLCT_READOUT_WITHOUT_TRIG("CLCT_READOUT_WITHOUT_TRIG");
+  //  std::string CLCT_STAGGER("CLCT_STAGGER");   // obsolete
   std::string CLCT_THROTTLE("CLCT_THROTTLE");
   std::string CLCT_TRIG_ENABLE("CLCT_TRIG_ENABLE");
   std::string CSC_CONFIG_ID("CSC_CONFIG_ID");
@@ -1073,9 +1075,11 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   std::string MATCH_PRETRIG_ALCT_DELAY("MATCH_PRETRIG_ALCT_DELAY");
   std::string MATCH_PRETRIG_ENABLE("MATCH_PRETRIG_ENABLE");
   std::string MATCH_PRETRIG_WINDOW_SIZE("MATCH_PRETRIG_WINDOW_SIZE");
+  std::string MATCH_READOUT_WITHOUT_TRIG("MATCH_READOUT_WITHOUT_TRIG");
   std::string MATCH_TRIG_ALCT_DELAY("MATCH_TRIG_ALCT_DELAY");
   std::string MATCH_TRIG_ENABLE("MATCH_TRIG_ENABLE");
   std::string MATCH_TRIG_WINDOW_SIZE("MATCH_TRIG_WINDOW_SIZE");
+  std::string MPC_BLOCK_ME1A("MPC_BLOCK_ME1A");
   std::string MPC_IDLE_BLANK("MPC_IDLE_BLANK");
   std::string MPC_OUTPUT_ENABLE("MPC_OUTPUT_ENABLE");
   std::string MPC_RX_DELAY("MPC_RX_DELAY");
@@ -1102,6 +1106,7 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   std::string TMB_CONFIG_ID("TMB_CONFIG_ID");
   std::string TMB_FIFO_NO_RAW_HITS("TMB_FIFO_NO_RAW_HITS");
   std::string TMB_FIFO_MODE("TMB_FIFO_MODE");
+  std::string TMB_FIRMWARE_COMPILE_TYPE("TMB_FIRMWARE_COMPILE_TYPE");
   std::string TMB_FIRMWARE_DAY("TMB_FIRMWARE_DAY");
   std::string TMB_FIRMWARE_MONTH("TMB_FIRMWARE_MONTH");
   std::string TMB_FIRMWARE_REVCODE("TMB_FIRMWARE_REVCODE");
@@ -1123,6 +1128,7 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   xdata::UnsignedShort     _alct_clear                    = TStore_thisTMB->GetAlctClear();
   xdata::UnsignedShort     _alct_clock_en_use_ccb         = TStore_thisTMB->GetEnableAlctUseCcbClock();
   xdata::UnsignedShort     _alct_pretrig_enable           = TStore_thisTMB->GetAlctPatternTrigEnable();
+  xdata::UnsignedShort     _alct_readout_without_trig     = TStore_thisTMB->GetAllowAlctNontrigReadout();
   xdata::UnsignedShort     _alct_rx_clock_delay           = TStore_thisTMB->GetALCTrxPhase();
   xdata::UnsignedShort     _alct_trig_enable              = TStore_thisTMB->GetTmbAllowAlct();
   xdata::UnsignedShort     _alct_tx_clock_delay           = TStore_thisTMB->GetALCTtxPhase();
@@ -1145,7 +1151,8 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   xdata::UnsignedShort     _clct_nplanes_hit_pretrig      = TStore_thisTMB->GetHsPretrigThresh();
   xdata::UnsignedShort     _clct_pid_thresh_pretrig       = TStore_thisTMB->GetClctPatternIdThresh();
   xdata::UnsignedShort     _clct_pretrig_enable           = TStore_thisTMB->GetClctPatternTrigEnable();
-  xdata::UnsignedShort     _clct_stagger                  = TStore_thisTMB->GetClctStagger();
+  xdata::UnsignedShort     _clct_readout_without_trig     = TStore_thisTMB->GetAllowClctNontrigReadout();
+  //  xdata::UnsignedShort     _clct_stagger                  = TStore_thisTMB->GetClctStagger();    // obsolete
   xdata::UnsignedShort     _clct_throttle                 = TStore_thisTMB->GetClctThrottle();
   xdata::UnsignedShort     _clct_trig_enable              = TStore_thisTMB->GetTmbAllowClct();
   xdata::UnsignedShort     _dmb_tx_delay                  = TStore_thisTMB->GetDmbTxDelay();
@@ -1176,9 +1183,11 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   xdata::UnsignedShort     _match_pretrig_alct_delay      = TStore_thisTMB->GetAlctPretrigDelay();
   xdata::UnsignedShort     _match_pretrig_enable          = TStore_thisTMB->GetMatchPatternTrigEnable();
   xdata::UnsignedShort     _match_pretrig_window_size     = TStore_thisTMB->GetAlctClctPretrigWidth();
+  xdata::UnsignedShort     _match_readout_without_trig    = TStore_thisTMB->GetAllowMatchNontrigReadout();
   xdata::UnsignedShort     _match_trig_alct_delay         = TStore_thisTMB->GetAlctVpfDelay();
   xdata::UnsignedShort     _match_trig_enable             = TStore_thisTMB->GetTmbAllowMatch();
   xdata::UnsignedShort     _match_trig_window_size        = TStore_thisTMB->GetAlctMatchWindowSize();
+  xdata::UnsignedShort     _mpc_block_me1a                = TStore_thisTMB->GetBlockME1aToMPC();
   xdata::UnsignedShort     _mpc_idle_blank                = TStore_thisTMB->GetMpcIdleBlank();
   xdata::UnsignedShort     _mpc_output_enable             = TStore_thisTMB->GetMpcOutputEnable();
   xdata::UnsignedShort     _mpc_rx_delay                  = TStore_thisTMB->GetMpcRxDelay();
@@ -1205,6 +1214,8 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   xdata::UnsignedInteger64 _tmb_config_id                 = csc_config_id + 2000;
   xdata::UnsignedShort     _tmb_fifo_mode                 = TStore_thisTMB->GetFifoMode();
   xdata::UnsignedShort     _tmb_fifo_no_raw_hits          = TStore_thisTMB->GetFifoNoRawHits();
+  convertToHex(valueInHex,"%x",TStore_thisTMB->GetTMBFirmwareCompileType());
+  xdata::String            _tmb_firmware_compile_type     = valueInHex;
   xdata::UnsignedShort     _tmb_firmware_day              = TStore_thisTMB->GetExpectedTmbFirmwareDay();
   xdata::UnsignedShort     _tmb_firmware_month            = TStore_thisTMB->GetExpectedTmbFirmwareMonth();
   xdata::UnsignedShort     _tmb_firmware_revcode          = TStore_thisTMB->GetExpectedTmbFirmwareRevcode();
@@ -1229,6 +1240,7 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   newRows.setValueAt(rowId, ALCT_CLEAR,                    _alct_clear);
   newRows.setValueAt(rowId, ALCT_CLOCK_EN_USE_CCB,         _alct_clock_en_use_ccb);
   newRows.setValueAt(rowId, ALCT_PRETRIG_ENABLE,           _alct_pretrig_enable);
+  newRows.setValueAt(rowId, ALCT_READOUT_WITHOUT_TRIG,     _alct_readout_without_trig);
   newRows.setValueAt(rowId, ALCT_RX_CLOCK_DELAY,           _alct_rx_clock_delay);
   newRows.setValueAt(rowId, ALCT_TRIG_ENABLE,              _alct_trig_enable);
   newRows.setValueAt(rowId, ALCT_TX_CLOCK_DELAY,           _alct_tx_clock_delay);
@@ -1251,7 +1263,8 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   newRows.setValueAt(rowId, CLCT_NPLANES_HIT_PRETRIG,      _clct_nplanes_hit_pretrig);
   newRows.setValueAt(rowId, CLCT_PID_THRESH_PRETRIG,       _clct_pid_thresh_pretrig);
   newRows.setValueAt(rowId, CLCT_PRETRIG_ENABLE,           _clct_pretrig_enable);
-  newRows.setValueAt(rowId, CLCT_STAGGER,                  _clct_stagger);
+  newRows.setValueAt(rowId, CLCT_READOUT_WITHOUT_TRIG,     _clct_readout_without_trig);
+  //  newRows.setValueAt(rowId, CLCT_STAGGER,                  _clct_stagger);    //obsolete
   newRows.setValueAt(rowId, CLCT_THROTTLE,                 _clct_throttle);
   newRows.setValueAt(rowId, CLCT_TRIG_ENABLE,              _clct_trig_enable);
   newRows.setValueAt(rowId, CSC_CONFIG_ID,                 csc_config_id);
@@ -1278,9 +1291,11 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   newRows.setValueAt(rowId, MATCH_PRETRIG_ALCT_DELAY,      _match_pretrig_alct_delay);
   newRows.setValueAt(rowId, MATCH_PRETRIG_ENABLE,          _match_pretrig_enable);
   newRows.setValueAt(rowId, MATCH_PRETRIG_WINDOW_SIZE,     _match_pretrig_window_size);
+  newRows.setValueAt(rowId, MATCH_READOUT_WITHOUT_TRIG,    _match_readout_without_trig);
   newRows.setValueAt(rowId, MATCH_TRIG_ALCT_DELAY,         _match_trig_alct_delay);
   newRows.setValueAt(rowId, MATCH_TRIG_ENABLE,             _match_trig_enable);
   newRows.setValueAt(rowId, MATCH_TRIG_WINDOW_SIZE,        _match_trig_window_size);
+  newRows.setValueAt(rowId, MPC_BLOCK_ME1A,                _mpc_block_me1a);
   newRows.setValueAt(rowId, MPC_IDLE_BLANK,                _mpc_idle_blank);
   newRows.setValueAt(rowId, MPC_OUTPUT_ENABLE,             _mpc_output_enable);
   newRows.setValueAt(rowId, MPC_RX_DELAY,                  _mpc_rx_delay);
@@ -1307,6 +1322,7 @@ void EmuTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedIntege
   newRows.setValueAt(rowId, TMB_CONFIG_ID,                 _tmb_config_id);
   newRows.setValueAt(rowId, TMB_FIFO_MODE,                 _tmb_fifo_mode);
   newRows.setValueAt(rowId, TMB_FIFO_NO_RAW_HITS,          _tmb_fifo_no_raw_hits);
+  newRows.setValueAt(rowId, TMB_FIRMWARE_COMPILE_TYPE,     _tmb_firmware_compile_type);
   newRows.setValueAt(rowId, TMB_FIRMWARE_DAY,              _tmb_firmware_day);
   newRows.setValueAt(rowId, TMB_FIRMWARE_MONTH,            _tmb_firmware_month);
   newRows.setValueAt(rowId, TMB_FIRMWARE_REVCODE,          _tmb_firmware_revcode);
@@ -1995,6 +2011,10 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
       if (*column == "TMB_FIRMWARE_VERSION"         ) {tmb_->SetExpectedTmbFirmwareVersion(IntValue);}
       if (*column == "TMB_FIRMWARE_REVCODE"         ) {tmb_->SetExpectedTmbFirmwareRevcode(IntValue);}
       if (*column == "TMB_FIRMWARE_TYPE"            ) {tmb_->SetExpectedTmbFirmwareType(IntValue);   }
+      if (*column == "TMB_FIRMWARE_COMPILE_TYPE") {                   // saved as string in Oracle since there is no Hex support
+	sscanf(StrgValue.c_str(), "%x", &IntValue);
+	tmb_->SetTMBFirmwareCompileType(IntValue);
+      }
       if (*column == "RAT_FIRMWARE_MONTH"           ) {tmb_->SetExpectedRatFirmwareMonth(IntValue);  }
       if (*column == "RAT_FIRMWARE_DAY"             ) {tmb_->SetExpectedRatFirmwareDay(IntValue);    }
       if (*column == "RAT_FIRMWARE_YEAR"            ) {tmb_->SetExpectedRatFirmwareYear(IntValue);   }
@@ -2036,9 +2056,13 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
       if (*column == "ALCT_TRIG_ENABLE"             ) {tmb_->SetTmbAllowAlct(IntValue);              }
       if (*column == "CLCT_TRIG_ENABLE"             ) {tmb_->SetTmbAllowClct(IntValue);              }
       if (*column == "MATCH_TRIG_ENABLE"            ) {tmb_->SetTmbAllowMatch(IntValue);             }
+      if (*column == "ALCT_READOUT_WITHOUT_TRIG"    ) {tmb_->SetAllowAlctNontrigReadout(IntValue);   }
+      if (*column == "CLCT_READOUT_WITHOUT_TRIG"    ) {tmb_->SetAllowClctNontrigReadout(IntValue);   }
+      if (*column == "MATCH_READOUT_WITHOUT_TRIG"   ) {tmb_->SetAllowMatchNontrigReadout(IntValue);  }
       if (*column == "MPC_RX_DELAY"                 ) {tmb_->SetMpcRxDelay(IntValue);                }
       if (*column == "MPC_IDLE_BLANK"               ) {tmb_->SetMpcIdleBlank(IntValue);              }
       if (*column == "MPC_OUTPUT_ENABLE"            ) {tmb_->SetMpcOutputEnable(IntValue);           }
+      if (*column == "MPC_BLOCK_ME1A"               ) {tmb_->SetBlockME1aToMPC(IntValue);            }
       if (*column == "WRITE_BUFFER_REQUIRED"        ) {tmb_->SetWriteBufferRequired(IntValue);       }
       if (*column == "VALID_CLCT_REQUIRED"          ) {tmb_->SetRequireValidClct(IntValue);          }
       if (*column == "L1A_ALLOW_MATCH"              ) {tmb_->SetL1aAllowMatch(IntValue);             }
@@ -2048,7 +2072,7 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
       if (*column == "LAYER_TRIG_ENABLE"            ) {tmb_->SetEnableLayerTrigger(IntValue);        }
       if (*column == "LAYER_TRIG_THRESH"            ) {tmb_->SetLayerTriggerThreshold(IntValue);     }
       if (*column == "CLCT_BLANKING"                ) {tmb_->SetClctBlanking(IntValue);              }
-      if (*column == "CLCT_STAGGER"                 ) {tmb_->SetClctStagger(IntValue);               }
+      //      if (*column == "CLCT_STAGGER"                 ) {tmb_->SetClctStagger(IntValue);               }  // obsolete
       if (*column == "CLCT_PID_THRESH_PRETRIG"      ) {tmb_->SetClctPatternIdThresh(IntValue);       }
       if (*column == "AFF_THRESH"                   ) {tmb_->SetActiveFebFlagThresh(IntValue);       }
       if (*column == "CLCT_MIN_SEPARATION"          ) {tmb_->SetMinClctSeparation(IntValue);         }

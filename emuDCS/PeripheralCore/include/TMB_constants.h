@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.18 2008/11/24 17:50:40 rakness Exp $
+// $Id: TMB_constants.h,v 3.19 2008/11/28 09:49:27 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.19  2008/11/28 09:49:27  rakness
+// include ME1/1 TMB firmware compilation specification into xml file
+//
 // Revision 3.18  2008/11/24 17:50:40  rakness
 // update for TMB version 18 Nov 2008
 //
@@ -229,6 +232,12 @@ static const unsigned long int  clct_separation_ram_adr = 0x0000F8;
 //
 static const int LARGEST_VME_ADDRESS = clct_separation_ram_adr;
 //
+// TMB counter indices:
+const int ALCT_SENT_TO_TMB_COUNTER_INDEX  =  0;
+const int CLCT_PRETRIGGER_COUNTER_INDEX   =  5;
+const int LCT_SENT_TO_MPC_COUNTER_INDEX   = 35; 
+const int L1A_IN_TMB_WINDOW_COUNTER_INDEX = 41; 
+  //
 //
 /////////////////////////////////////////////////////////////////////////////////////
 // Bit mappings for VME registers
@@ -1403,20 +1412,63 @@ const int alct_bx0_enable_default =  1;
 //-----------------------------------------------------------------------------
 //0XCC = ADR_NON_TRIG_RO:  Non-Triggering Event Enables + ME1/1A(1B) reversal 
 //-----------------------------------------------------------------------------
-const int tmb_allow_alct_nontrig_readout_vmereg   = non_trig_readout_adr ;
-const int tmb_allow_alct_nontrig_readout_bitlo    =  0;
-const int tmb_allow_alct_nontrig_readout_bithi    =  0;
-const int tmb_allow_alct_nontrig_readout_default  =  0;
+const int tmb_allow_alct_nontrig_readout_vmereg    = non_trig_readout_adr ;
+const int tmb_allow_alct_nontrig_readout_bitlo     =  0;
+const int tmb_allow_alct_nontrig_readout_bithi     =  0;
+const int tmb_allow_alct_nontrig_readout_default   =  0;
 //
-const int tmb_allow_clct_nontrig_readout_vmereg   = non_trig_readout_adr ;
-const int tmb_allow_clct_nontrig_readout_bitlo    =  1;
-const int tmb_allow_clct_nontrig_readout_bithi    =  1;
-const int tmb_allow_clct_nontrig_readout_default  =  0;
+const int tmb_allow_clct_nontrig_readout_vmereg    = non_trig_readout_adr ;
+const int tmb_allow_clct_nontrig_readout_bitlo     =  1;
+const int tmb_allow_clct_nontrig_readout_bithi     =  1;
+const int tmb_allow_clct_nontrig_readout_default   =  0;
 //
 const int tmb_allow_match_nontrig_readout_vmereg   = non_trig_readout_adr ;
-const int tmb_allow_match_nontrig_readout_bitlo    =  1;
-const int tmb_allow_match_nontrig_readout_bithi    =  1;
-const int tmb_allow_match_nontrig_readout_default  =  0;
+const int tmb_allow_match_nontrig_readout_bitlo    =  2;
+const int tmb_allow_match_nontrig_readout_bithi    =  2;
+const int tmb_allow_match_nontrig_readout_default  =  1;
+//
+const int mpc_block_me1a_vmereg                    = non_trig_readout_adr ;
+const int mpc_block_me1a_bitlo                     =  3;
+const int mpc_block_me1a_bithi                     =  3;
+const int mpc_block_me1a_default                   =  1;
+//
+const int clct_pretrigger_counter_non_me11_vmereg  = non_trig_readout_adr ;
+const int clct_pretrigger_counter_non_me11_bitlo   =  4;
+const int clct_pretrigger_counter_non_me11_bithi   =  4;
+const int clct_pretrigger_counter_non_me11_default =  1;
+//
+const int csc_me11_vmereg                          = non_trig_readout_adr ;
+const int csc_me11_bitlo                           =  5;
+const int csc_me11_bithi                           =  5;
+//
+const int clct_stagger_vmereg                      = non_trig_readout_adr;
+const int clct_stagger_bitlo                       =  6;
+const int clct_stagger_bithi                       =  6;
+//
+const int reverse_stagger_vmereg                   = non_trig_readout_adr ;
+const int reverse_stagger_bitlo                    =  7;
+const int reverse_stagger_bithi                    =  7;
+//
+const int reverse_me1a_vmereg                      = non_trig_readout_adr ;
+const int reverse_me1a_bitlo                       =  8;
+const int reverse_me1a_bithi                       =  8;
+//
+const int reverse_me1b_vmereg                      = non_trig_readout_adr ;
+const int reverse_me1b_bitlo                       =  9;
+const int reverse_me1b_bithi                       =  9;
+//
+// Although these are read-only bits, we set it in the xml file to define what TMB firmware type to expect
+const int tmb_firmware_compile_type_vmereg         = non_trig_readout_adr ;
+const int tmb_firmware_compile_type_bitlo          = 12;
+const int tmb_firmware_compile_type_bithi          = 15;
+const int tmb_firmware_compile_type_default        = 0xa;
+//
+// These are the bits in register CC which are readout according to the following firmware compile types:
+const int TMB_FIRMWARE_TYPE_A = 0xa;
+const int TMB_FIRMWARE_TYPE_B = 0xb;
+const int TMB_FIRMWARE_TYPE_C = 0xc;
+const int TMB_FIRMWARE_TYPE_D = 0xd;
+//
 //
 //------------------------------------------------------------------
 //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
@@ -1753,12 +1805,6 @@ const int clct_blanking_vmereg                     =  pattern_find_pretrg_adr;
 const int clct_blanking_bitlo                      =  0;
 const int clct_blanking_bithi                      =  0;
 const int clct_blanking_default                    =  1; 
-//
-// Although this is a read-only bit, we set it in the xml file to define what TMB firmware type to expect
-const int clct_stagger_vmereg                      =  pattern_find_pretrg_adr;
-const int clct_stagger_bitlo                       =  1;
-const int clct_stagger_bithi                       =  1;
-const int clct_stagger_default                     =  1; 
 //
 const int clct_pattern_id_thresh_vmereg            =  pattern_find_pretrg_adr;
 const int clct_pattern_id_thresh_bitlo             =  2;
