@@ -22,6 +22,7 @@ CSCDIGI   = $(CMSSW)/DataFormats/CSCDigi
 SRCDIGI_PATH   = $(CSCDIGI)/src
 SRCDETID_PATH = $(CMSSW)/DataFormats/DetId/src
 SRCMUONID_PATH = $(CMSSW)/DataFormats/MuonDetId/src
+SRCFEDRAW_PATH = $(CMSSW)/DataFormats/FEDRawData/src
 SRCCOND_PATH = $(CMSSW)/CondFormats/CSCObjects/src
 SRCFWUTIL_PATH = $(CMSSW)/FWCore/Utilities/src
 SRCS_DIGI      = $(SRCDIGI_PATH)/CSCALCTDigi.cc $(SRCDIGI_PATH)/CSCCLCTDigi.cc\
@@ -34,7 +35,7 @@ SRCS_DIGI      = $(SRCDIGI_PATH)/CSCALCTDigi.cc $(SRCDIGI_PATH)/CSCCLCTDigi.cc\
 	$(SRCDETID_PATH)/DetId.cc $(SRCMUONID_PATH)/CSCDetId.cc \
 	$(SRCCOND_PATH)/CSCReadoutMapping.cc $(SRCCOND_PATH)/CSCReadoutMappingForSliceTest.cc \
 	$(SRCCOND_PATH)/CSCCrateMap.cc \
-	$(SRCFWUTIL_PATH)/Exception.cc
+	$(SRCFWUTIL_PATH)/Exception.cc $(SRCFEDRAW_PATH)/FEDHeader.cc
 
 #SRCS_DIGI      = $(SRCDIGI_PATH)/CSCALCTDigi.cc $(SRCDIGI_PATH)/CSCCLCTDigi.cc\
             $(SRCDIGI_PATH)/CSCWireDigi.cc $(SRCDIGI_PATH)/CSCComparatorDigi.cc \
@@ -43,22 +44,21 @@ SRCS_DIGI      = $(SRCDIGI_PATH)/CSCALCTDigi.cc $(SRCDIGI_PATH)/CSCCLCTDigi.cc\
 OBJS_DIGI      = $(addprefix $(ODIR)/, $(notdir $(SRCS_DIGI:%.cc=%.o)))
 
 
-# CMSSW EventFilter/CSCRawToDigi
 CSCRAW   = $(CMSSW)/EventFilter/CSCRawToDigi
 SRCRAW_PATH    = $(CSCRAW)/src
-SRCS_RAW      = \
-	$(SRCRAW_PATH)/CSCDCCExaminer.cc \
-	$(SRCRAW_PATH)/CSCDCCHeader.cc\
-	$(SRCRAW_PATH)/CSCDDUEventData.cc $(SRCRAW_PATH)/CSCDCCEventData.cc\
-	$(SRCRAW_PATH)/CSCDDUHeader.cc $(SRCRAW_PATH)/bitset_append.cc \
+SRCS_RAW      = $(SRCRAW_PATH)/bitset_append.cc \
+	$(SRCRAW_PATH)/CSCDCCExaminer.cc $(SRCRAW_PATH)/CSCDCCHeader.cc $(SRCRAW_PATH)/CSCDCCEventData.cc\
+	$(SRCRAW_PATH)/CSCDDUHeader.cc $(SRCRAW_PATH)/CSCDDUEventData.cc \
 	$(SRCRAW_PATH)/CSCDMBHeader.cc $(SRCRAW_PATH)/CSCEventData.cc\
 	$(SRCRAW_PATH)/CSCCFEBData.cc $(SRCRAW_PATH)/CSCCFEBTimeSlice.cc \
-	$(SRCRAW_PATH)/CSCTMBHeader.cc $(SRCRAW_PATH)/CSCALCTHeader.cc \
+	$(SRCRAW_PATH)/CSCALCTHeader.cc $(SRCRAW_PATH)/CSCALCTHeader2006.cc \
+	$(SRCRAW_PATH)/CSCAnodeData.cc $(SRCRAW_PATH)/CSCAnodeData2006.cc $(SRCRAW_PATH)/CSCAnodeData2007.cc \
 	$(SRCRAW_PATH)/CSCALCTTrailer.cc \
-	$(SRCRAW_PATH)/CSCCLCTData.cc $(SRCRAW_PATH)/CSCAnodeData.cc \
-	$(SRCRAW_PATH)/CSCTMBScope.cc $(SRCRAW_PATH)/CSCTMBData.cc \
-	$(SRCRAW_PATH)/CSCBadCFEBWord.cc $(SRCRAW_PATH)/CSCBadCFEBTimeSlice.cc \
-	$(SRCRAW_PATH)/CSCRPCData.cc $(SRCRAW_PATH)/CSCTMBTrailer.cc
+	$(SRCRAW_PATH)/CSCTMBHeader.cc $(SRCRAW_PATH)/CSCTMBHeader2006.cc \
+	$(SRCRAW_PATH)/CSCTMBHeader2007.cc $(SRCRAW_PATH)/CSCTMBHeader2007_rev0x50c3.cc \
+	$(SRCRAW_PATH)/CSCTMBScope.cc $(SRCRAW_PATH)/CSCTMBData.cc $(SRCRAW_PATH)/CSCTMBTrailer.cc \
+	$(SRCRAW_PATH)/CSCCLCTData.cc $(SRCRAW_PATH)/CSCBadCFEBWord.cc $(SRCRAW_PATH)/CSCBadCFEBTimeSlice.cc \
+	$(SRCRAW_PATH)/CSCRPCData.cc 
 OBJS_RAW      = $(addprefix $(ODIR)/, $(notdir $(SRCS_RAW:%.cc=%.o)))
 
 # CMSSW DQMServices/QualityTests
@@ -80,10 +80,13 @@ OBJS_QLTY      = $(addprefix $(ODIR)/, $(notdir $(SRCS_QLTY:%.cc=%.o)))
 
 
 # CMSSW DQM/CSCMonitorModule
-DQM   = $(CMSSW)/DQM/CSCMonitorModule
+DQM_MODULE   = $(CMSSW)/DQM/CSCMonitorModule
+DQM   = $(CMSSW)/DQM/RenderPlugins
+
 SRCDQM_PATH    = $(QLTY)/src
-SRCS_DQM     = $(SRCDQM_PATH)/CSCDetector.cc \
-        $(SRCDQM_PATH)/CSCSummary.cc
+SRCS_DQM     = $(SRCDQM_PATH)/CSCDQM_Detector.cc \
+	$(SRCDQM_PATH)/CSCUtility.cc $(SRCDQM_PATH)/CSCRenderPlugin_ChamberMap.cc $(SRCDQM_PATH)/CSCRenderPlugin_SummaryMap.cc \
+        $(DQM_MODULE)/src/CSCDQM_Summary.cc
 OBJS_DQM      = $(addprefix $(ODIR)/, $(notdir $(SRCS_DQM:%.cc=%.o)))
 
 
@@ -102,6 +105,8 @@ $(ODIR)/%.o: $(SRCCOND_PATH)/%.cc
 $(ODIR)/%.o: $(SRCFWUTIL_PATH)/%.cc
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(INCLUDES) $< -o $@
 
+$(ODIR)/%.o: $(SRCFEDRAW_PATH)/%.cc
+	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(INCLUDES) $< -o $@
 
 
 $(ODIR)/%.o: $(CSCRAW)/src/%.cc 
@@ -112,6 +117,9 @@ $(ODIR)/%.o: $(QLTY)/src/%.cc
 
 $(ODIR)/%.o: $(DQM)/src/%.cc
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(ROOTCFLAGS) $(INCLUDES) $< -o $@
+
+$(ODIR)/%.o: $(DQM_MODULE)/src/%.cc
+	 $(CXX) -c $(CXXFLAGS) $(DEFINES) $(ROOTCFLAGS) $(INCLUDES) $< -o $@
 
 
 all: libs 
