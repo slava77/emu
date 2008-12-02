@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.58 2008/11/28 09:49:27 rakness Exp $
+// $Id: TMB.h,v 3.59 2008/12/02 09:21:47 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.59  2008/12/02 09:21:47  rakness
+// set default values to be correct for VME register 0xCC
+//
 // Revision 3.58  2008/11/28 09:49:27  rakness
 // include ME1/1 TMB firmware compilation specification into xml file
 //
@@ -1387,7 +1390,7 @@ public:
   inline int  GetBlockME1aToMPC() { return mpc_block_me1a_; } 
   inline int  GetReadBlockME1aToMPC() { return read_mpc_block_me1a_; } 
   //
-  //!clct_pretrigger_counter_non_me11 = 1/0 = do/don't allow CLCT pretrigger Counter to count non-ME1A/B
+  //!clct_pretrigger_counter_non_me11 = 1/0 = do/don't allow CLCT pretrigger Counters 6 and 7 to count non-ME1A/B.  If 1-> they should equal counter 5
   inline void SetClctPretriggerCounterME11(int clct_pretrigger_counter_non_me11) { clct_pretrigger_counter_non_me11_ = clct_pretrigger_counter_non_me11; } 
   inline int  GetClctPretriggerCounterME11() { return clct_pretrigger_counter_non_me11_; } 
   inline int  GetReadClctPretriggerCounterME11() { return read_clct_pretrigger_counter_non_me11_; } 
