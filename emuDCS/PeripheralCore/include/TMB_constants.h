@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.19 2008/11/28 09:49:27 rakness Exp $
+// $Id: TMB_constants.h,v 3.20 2008/12/02 09:21:47 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.20  2008/12/02 09:21:47  rakness
+// set default values to be correct for VME register 0xCC
+//
 // Revision 3.19  2008/11/28 09:49:27  rakness
 // include ME1/1 TMB firmware compilation specification into xml file
 //
@@ -1435,7 +1438,7 @@ const int mpc_block_me1a_default                   =  1;
 const int clct_pretrigger_counter_non_me11_vmereg  = non_trig_readout_adr ;
 const int clct_pretrigger_counter_non_me11_bitlo   =  4;
 const int clct_pretrigger_counter_non_me11_bithi   =  4;
-const int clct_pretrigger_counter_non_me11_default =  1;
+const int clct_pretrigger_counter_non_me11_default =  0;
 //
 const int csc_me11_vmereg                          = non_trig_readout_adr ;
 const int csc_me11_bitlo                           =  5;
