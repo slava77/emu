@@ -72,43 +72,43 @@ void Test_CFEB02::initCSC(std::string cscID) {
   // R02 - Overall noise
   cscdata["R02"]=cfebdata;
 
-  // R03 - P12 pedestal
+  // R03 - RMS of SCA pedestals
   cscdata["R03"]=cfebdata;
 
-  // R04 - P12 noise
+  // R04 - P12 pedestal
   cscdata["R04"]=cfebdata;
 
-  // R05 - P345 pedestal
+  // R05 - P12 noise
   cscdata["R05"]=cfebdata;
 
-  // R06 - P345 noise
+  // R06 - P345 pedestal
   cscdata["R06"]=cfebdata;
   
-  // R07 - C(12)(12) covariance matrix element
+  // R07 - P345 Noise
   cscdata["R07"]=cfebdata;
   
-  // R08 - C(12)3 covariance matrix element
+  // R08 - C(12)(12) covariance matrix element
   cscdata["R08"]=cfebdata;
  
-  // R09 - C(12)4 covariance matrix element
+  // R09 - C(12)3 covariance matrix element
   cscdata["R09"]=cfebdata;
   
-  // R10 - C(12)5 covariance matrix element
+  // R10 - C(12)4 covariance matrix element
   cscdata["R10"]=cfebdata;
 
-  // R11 - C33 covariance matrix element
+  // R11 - C(12)5 covariance matrix element
   cscdata["R11"]=cfebdata;
 
-  // R12 - C34 covariance matrix element
+  // R12 - C33 covariance matrix element
   cscdata["R12"]=cfebdata;
 
-  // R13 - C35 covariance matrix element
+  // R13 - C34 covariance matrix element
   cscdata["R13"]=cfebdata;
 
-  // R14 - C44 covariance matrix element
+  // R14 - C35 covariance matrix element
   cscdata["R14"]=cfebdata;
 
-  // R15 - C45 covariance matrix element
+  // R15 - C44 covariance matrix element
   cscdata["R15"]=cfebdata;
 
   // R16 - C45 covariance matrix element
@@ -117,22 +117,22 @@ void Test_CFEB02::initCSC(std::string cscID) {
   // R17 - C55 covariance matrix element
   cscdata["R17"]=cfebdata;
 
-  // R17 - C46 covariance matrix element
+  // R18 - C46 covariance matrix element
   cscdata["R18"]=cfebdata;
 
-  // R17 - C56 covariance matrix element
+  // R19 - C56 covariance matrix element
   cscdata["R19"]=cfebdata;
 
-  // R17 - C66 covariance matrix element
+  // R20 - C66 covariance matrix element
   cscdata["R20"]=cfebdata;
 
-  // R17 - C57 covariance matrix element
+  // R21 - C57 covariance matrix element
   cscdata["R21"]=cfebdata;
 
-  // R17 - C67 covariance matrix element
+  // R22 - C67 covariance matrix element
   cscdata["R22"]=cfebdata;
 
-  // R17 - C77 covariance matrix element
+  // R23 - C77 covariance matrix element
   cscdata["R23"]=cfebdata;
 
   tdata[cscID] = cscdata;;

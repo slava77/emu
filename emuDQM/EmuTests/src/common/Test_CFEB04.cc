@@ -341,21 +341,25 @@ void Test_CFEB04::finishCSC(std::string cscID)
       int first_strip_index=mapitem.stripIndex;
       int strips_per_layer=mapitem.strips;
 
-
-      bool fValid=true;
+      double avg_gain=0;
+      int avg_gain_cnt=0;
+      //      bool fValid=true;
 
       for (unsigned int layer = 1; layer <= 6; layer++){
 	for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
 	  for(int strip = 1; strip <=16  ; ++strip) { // loop over cfeb strip	
+
+	    bool fValid=true;
 	    for (int dac=0; dac<DAC_STEPS; dac++) {
 
+	      bool fValidDAC=true;
+	      
 	      dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
 
 	      double max=0;
 	      double max_rms=0;
 	      int cnt=0;
 	      int peak_time=0;
-
 	      for (int itime=0; itime < NSAMPLES-1; itime++) {
 
 		dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][itime];
@@ -363,8 +367,9 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 		if (cval.cnt<13) {
 		  LOG4CPLUS_DEBUG(logger, cscID << ":" << layer << ":" << (icfeb*16+strip) 
-			    << " Error> dac=" << dac << " , sample=" << itime << ", cnt="<< cval.cnt);
-		  fValid=false;
+				  << " Error> dac=" << dac << " , sample=" << itime << ", cnt="<< cval.cnt);
+		  if (dac<10) fValid=false;
+		  fValidDAC=false;
 		} else {
 		  cval.mv /=cval.cnt;
 		  double rms= sqrt((cval.rms/cval.cnt)-pow(cval.mv,2));
@@ -384,11 +389,11 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	      val.cnt = cnt;
 
 	      if (v01) { v01->Fill(dac,cnt);}
-	      if (!fValid) {
+	      if (!fValidDAC) {
 		rcodes["V01"] = 4;
 	      }
 
-	      if (cnt>0 && fValid) {
+	      if (cnt>0 && fValidDAC) {
 
 		pulse_fit& fit = gaindata.fit[dac][layer-1][icfeb*16+strip-1];
 
@@ -418,121 +423,123 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 		val.s = pow(max_rms,2) + pow((0.01*max), 2);
 
-		LOG4CPLUS_DEBUG(logger, cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
-			  << ", mv=" << val.mv << ", rms=" << val.rms 
-			  << ", max=" << val.max << ", peak_tbin=" << peak_time
-			  << ", s=" << val.s << ", x=" << (11.2+28.0*dac) << ", corr_peak_amp=" << pulse_fit.value << ", corr_peak_time=" << pulse_fit.tbin 
-			  << ", left:" << fit.left.value << ":" << fit.left.tbin 
-			  << " peak:" << fit.max.value << ":" << fit.max.tbin 
-			  << " right:" << fit.right.value << ":" << fit.right.tbin); 
+		/*	LOG4CPLUS_DEBUG(logger, cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " dac=" << dac << ", cnt=" << val.cnt 
+			<< ", mv=" << val.mv << ", rms=" << val.rms 
+			<< ", max=" << val.max << ", peak_tbin=" << peak_time
+			<< ", s=" << val.s << ", x=" << (11.2+28.0*dac) << ", corr_peak_amp=" << pulse_fit.value << ", corr_peak_time=" << pulse_fit.tbin 
+			<< ", left:" << fit.left.value << ":" << fit.left.tbin 
+			<< " peak:" << fit.max.value << ":" << fit.max.tbin 
+			<< " right:" << fit.right.value << ":" << fit.right.tbin); 
+		*/
 	      }
 
 	    }
-	  }
-	}
-      }
 
-      if (fValid) {
+	    if (fValid) 
+	      {
 
-	double avg_gain=0;
-	int avg_gain_cnt=0;
-	for (unsigned int layer = 1; layer <= 6; layer++){
-	  for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
-	    for(int strip = 1; strip <= 16; ++strip) { // loop over cfeb strip
+		double X=0, XX=0, Y=0, YY=0, XY=0, S=0, x=0, y=0, s=0; 
+		double a=0, b=0, ksi=0;
+		bool fValidStrip=true;
 
-	      double X=0, XX=0, Y=0, YY=0, XY=0, S=0, x=0, y=0, s=0; 
-	      double a=0, b=0, ksi=0;
-	      bool fValidStrip=true;
-
-	      for (int dac=0; dac<10; dac++) {
-		dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
-		//	y=val.mv;
+		for (int dac=0; dac<10; dac++) {
+		  dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+		  //	y=val.mv;
 		
-		x=11.2 +(28.0*dac);
-		s=val.s;
+		  x=11.2 +(28.0*dac);
+		  s=val.s;
 
-		if (s==0) { fValidStrip = false; break; }
+		  if (s==0) { fValidStrip = false; break; }
 
-		time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]); 
-		if (v06 && dac==5) {v06->Fill(pulse_fit.tbin);}
-	        y = pulse_fit.value;	
-		X+=x/s;
-		XX+=(x*x)/s;
-		Y+=y/s;
-		YY+=(y*y)/s;
-		XY+=(y*x)/s;
-		S+=1/s;
+		  time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]); 
+		  if (v06 && dac==5) {v06->Fill(pulse_fit.tbin);}
+		  y = pulse_fit.value;	
+		  X+=x/s;
+		  XX+=(x*x)/s;
+		  Y+=y/s;
+		  YY+=(y*y)/s;
+		  XY+=(y*x)/s;
+		  S+=1/s;
+		}
+
+		if (fValidStrip) {
+		  a=(XY*S-X*Y)/(XX*S-X*X); // for 2 parameters fit
+		  //a=XY/XX;
+		  b=(Y-a*X)/S;
+		  //b=0;
+		  // avg_gain+=1/a;
+		  // avg_gain_cnt++;
+		  // ksi=YY+a*a*XX-2*a*XY;
+		  ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X; // for 2-parameters fit
+		} else {
+		  a = -999;
+		  b = -999;
+		  ksi = -999;
+		}
+
+		for (int dac=0; dac<10; dac++) {
+
+		  x=11.2 +(28.0*dac);
+
+		  // dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
+		  // y=val.mv;
+
+		  time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]);
+		  y = pulse_fit.value;
+
+		  double residual = y-a*x-b;
+		  if (v05) v05->Fill(dac, residual);
+		}
+		if (a>999.) a=999.;
+		if (a<-999.) a=-999.;
+		if (ksi>999.) ksi=999.;
+		if (ksi<-999.) ksi=-999.;
+
+		if ((a<100) & (a>0)) {
+		  avg_gain+=1/a;
+                  avg_gain_cnt++;
+		}
+
+		LOG4CPLUS_DEBUG(logger, cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi);
+		double gain=a;
+
+		r01.content[layer-1][icfeb*16+strip-1] = gain;
+		//r02.content[layer-1][icfeb*16+strip-1] = b;
+		r03.content[layer-1][icfeb*16+strip-1] = ksi;
 	      }
-
-	      if (fValidStrip) {
-	      	a=(XY*S-X*Y)/(XX*S-X*X); // for 2 parameters fit
-		//a=XY/XX;
-	        b=(Y-a*X)/S;
-		//b=0;
-	      	avg_gain+=1/a;
-	      	avg_gain_cnt++;
-	    	// ksi=YY+a*a*XX-2*a*XY;
-	      	ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X; // for 2-parameters fit
-	      } else {
-		a = -999;
-		b = -999;
-		ksi = -999;
-	      }
-
-	      for (int dac=0; dac<10; dac++) {
-
-                x=11.2 +(28.0*dac);
-
-		// dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
-		// y=val.mv;
-
-		time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]);
-		y = pulse_fit.value;
-
-		double residual = y-a*x-b;
-		if (v05) v05->Fill(dac, residual);
-              }
-	      if (a>999.) a=999.;
-	      if (a<-999.) a=-999.;
-	      if (ksi>999.) ksi=999.;
-	      if (ksi<-999.) ksi=-999.;
-
-	      LOG4CPLUS_DEBUG(logger, cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi);
-	      double gain=a;
-
-              r01.content[layer-1][icfeb*16+strip-1] = gain;
-	      //r02.content[layer-1][icfeb*16+strip-1] = b;
-	      r03.content[layer-1][icfeb*16+strip-1] = ksi;
-	    }
-	  }
+	    
+	  } // strip
 	}
-
-	avg_gain/=avg_gain_cnt;
-	for (unsigned int layer = 1; layer <= 6; layer++){
-	  for (int strip=0; strip<getNumStrips(cscID);strip++) { // loop over cfebs in a given chamber
-	    r05.content[layer-1][strip]=1/(r01.content[layer-1][strip]*avg_gain);
-	  }
-	}
-
-	// == Save results to text files
-	std::string rpath = "Test_"+testID+"/"+outDir;
-	std::string path = rpath+"/"+cscID+"/";
-
-
-	//	if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
-	// == Save results for database transfer of gain slopes, intercepts, non-linearity and normalized gains
-	std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
-
-	for (int layer=0; layer<NLAYERS; layer++) {
-	  for (int strip=0; strip<strips_per_layer; strip++) {
-	    res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-		    << r01.content[layer][strip]  << "  " 
-	      /* << r02.content[layer][strip] << "  " */
-		    << r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
-	  }
-	}
-	res_out.close();
       }
+
+
+      avg_gain/=avg_gain_cnt;
+      for (unsigned int layer = 1; layer <= 6; layer++){
+	for (int strip=0; strip<getNumStrips(cscID);strip++) { // loop over cfebs in a given chamber
+	  
+	  r05.content[layer-1][strip]=1/(r01.content[layer-1][strip]*avg_gain);
+	}
+      }
+
+      // == Save results to text files
+      std::string rpath = "Test_"+testID+"/"+outDir;
+      std::string path = rpath+"/"+cscID+"/";
+
+
+      //	if (checkResults(cscID)) { // Check if 20% of channels pedestals and rms are bad
+      // == Save results for database transfer of gain slopes, intercepts, non-linearity and normalized gains
+      std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
+
+      for (int layer=0; layer<NLAYERS; layer++) {
+	for (int strip=0; strip<strips_per_layer; strip++) {
+	  res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+		  << r01.content[layer][strip]  << "  " 
+	    /* << r02.content[layer][strip] << "  " */
+		  << r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
+	}
+      }
+      res_out.close();
+
 
 
     } else {
