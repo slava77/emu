@@ -1017,7 +1017,7 @@ void Test_Generic::finish() {
 	  cnv->Draw();
 	  cnv->SetCanvasSize(imgW, imgH);
 	  cnv->SaveAs(path+cscID+"_"+testID+"_"+subtestID+".png");
-	  cnv->Write();	
+	  // cnv->Write();	
 	  if (emucnvs[subtestID] != NULL) {
 	    TestCanvas_1h* emucnv = dynamic_cast<TestCanvas_1h*>(emucnvs[subtestID]);
 	    emucnv->GetHisto()->Add(cnv->GetHisto());
@@ -1112,7 +1112,7 @@ void Test_Generic::finish() {
 	cnv->SaveAs((path+cscID+"_"+testID+"_"+subtestID+".png").c_str());
 	//	cnv->Print((path+cscID+"_"+testID+"_"+subtestID+".png").c_str());
 	m_itr->second->Write();
-	cnv->Write();
+	// cnv->Write();
 	delete cnv;
 	defStyle.cd();
       }
@@ -1147,7 +1147,7 @@ void Test_Generic::finish() {
       cnv->Draw();
       cnv->SetCanvasSize(imgW, imgH);
       cnv->SaveAs(path+"sum_"+testID+"_"+subtestID+".png");
-      cnv->Write();
+      // cnv->Write();
       cnv->GetHisto()->Write();
 	  
     }
@@ -1177,7 +1177,7 @@ void Test_Generic::finish() {
       cnv->Draw();
       cnv->SaveAs((path+"sum_"+testID+"_"+subtestID+".png").c_str());
       h_itr->second->Write();
-      cnv->Write();
+      // cnv->Write();
       delete cnv;
 
     }
