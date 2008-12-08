@@ -2061,9 +2061,9 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
   //  int counter_idx[30]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
   //                       10,11,12,16,17,18,19, 20,21,22,
   //                       23,24,33};
-  int counter_idx[23]={ 0 ,  2,  3,  4,  5,  8,  9, 10, 12, 13,
-			16, 25, 26, 27, 28, 30, 33, 34, 36, 39,
-			40, 47, 48};
+  int counter_idx[23]={ 0 ,  1,  3,  5,  9, 13, 14, 17, 18, 19, 
+			20, 25, 26, 27, 28, 30, 33, 34, 36, 40,
+			45, 47, 48};
 
   std::ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
@@ -2285,7 +2285,7 @@ void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out
 void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
 
-  unsigned int TOTAL_TMB_COUNTERS=49;
+  unsigned int TOTAL_TMB_COUNTERS=65;
   std::vector<emu::pc::TMB*> myVector;
   int o_value, n_value, i_value;
   xdata::InfoSpace * is;
@@ -2344,9 +2344,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+17];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+17];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1
 
@@ -2355,9 +2355,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+34];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+40];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+34];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+40];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // counter error, set it to -1:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
@@ -2398,13 +2398,13 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << n_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+17];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+34];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+40];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
@@ -2466,7 +2466,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
-  unsigned int TOTAL_TMB_COUNTERS=49;
+  unsigned int TOTAL_TMB_COUNTERS=65;
   std::vector<emu::pc::TMB*> myVector;
   xdata::InfoSpace * is;
 
@@ -2497,9 +2497,9 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
         int ring = std::atoi(chname.substr(5,1).c_str());
         int chnumb = std::atoi(chname.substr(7,2).c_str());
 
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+17];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+13];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+17];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, set it to 0 here and in the following:
         d_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
@@ -2902,6 +2902,86 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     DCounterName.clear();
     OCounterName.clear();    
     //
+    TCounterName.push_back( "ALCT: alct0 valid pattern flag received                 "); // 0
+    TCounterName.push_back( "ALCT: alct1 valid pattern flag received                 ");
+    TCounterName.push_back( "ALCT: alct data structure error                         ");
+    TCounterName.push_back( "ALCT: raw hits readout                                  ");
+    TCounterName.push_back( "ALCT: raw hits readout - CRC error                      ");
+
+    TCounterName.push_back( "CLCT: Pretrigger                                        "); // 5
+    TCounterName.push_back( "CLCT: Pretrigger on ME1A CFEB 4 only                    ");
+    TCounterName.push_back( "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 ");
+    TCounterName.push_back( "CLCT: Discarded, no wrbuf available, buffer stalled     ");
+    TCounterName.push_back( "CLCT: Discarded, no ALCT in window                      ");
+
+    TCounterName.push_back( "CLCT: Discarded, CLCT0 invalid pattern after drift      "); // 10
+    TCounterName.push_back( "CLCT: CLCT0 pass hit thresh, fail pid_thresh_postdrift  ");
+    TCounterName.push_back( "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  ");
+    TCounterName.push_back( "CLCT: BX pretrig waiting for triads to dissipate        ");
+    TCounterName.push_back( "CLCT: clct0 sent to TMB matching section                ");
+    TCounterName.push_back( "CLCT: clct1 sent to TMB matching section                "); // 15
+
+    TCounterName.push_back( "TMB:  TMB accepted alct*clct, alct-only, or clct-only   "); // 16
+    TCounterName.push_back( "TMB:  TMB clct*alct matched trigger                     "); // 17
+    TCounterName.push_back( "TMB:  TMB alct-only trigger                             ");
+    TCounterName.push_back( "TMB:  TMB clct-only trigger                             ");
+
+    TCounterName.push_back( "TMB:  TMB match reject event                            "); // 20
+    TCounterName.push_back( "TMB:  TMB match reject event, queued for nontrig readout");
+    TCounterName.push_back( "TMB:  TMB matching discarded an ALCT pair               ");
+    TCounterName.push_back( "TMB:  TMB matching discarded a CLCT pair                ");
+    TCounterName.push_back( "TMB:  TMB matching discarded CLCT0 from ME1A            ");
+    TCounterName.push_back( "TMB:  TMB matching discarded CLCT1 from ME1A            "); // 25
+
+    TCounterName.push_back( "TMB:  Matching found no ALCT                            ");
+    TCounterName.push_back( "TMB:  Matching found no CLCT                            ");
+    TCounterName.push_back( "TMB:  Matching found one ALCT                           ");
+    TCounterName.push_back( "TMB:  Matching found one CLCT                           ");
+    TCounterName.push_back( "TMB:  Matching found two ALCTs                          "); // 30
+    TCounterName.push_back( "TMB:  Matching found two CLCTs                          ");
+
+    TCounterName.push_back( "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           ");
+    TCounterName.push_back( "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           ");
+    TCounterName.push_back( "TMB:  LCT1 has higher quality than LCT0 (ranking error) ");
+
+    TCounterName.push_back( "TMB:  Transmitted LCT0 to MPC                           "); // 35
+    TCounterName.push_back( "TMB:  Transmitted LCT1 to MPC                           ");
+
+    TCounterName.push_back( "TMB:  MPC accepted LCT0                                 "); // 37
+    TCounterName.push_back( "TMB:  MPC accepted LCT1                                 ");
+    TCounterName.push_back( "TMB:  MPC rejected both LCT0 and LCT1                   ");
+
+    TCounterName.push_back( "L1A:  L1A received                                      "); // 40
+    TCounterName.push_back( "L1A:  L1A received, TMB in L1A window                   ");
+    TCounterName.push_back( "L1A:  L1A received, no TMB in window                    ");
+    TCounterName.push_back( "L1A:  TMB triggered, no L1A in window                   ");
+    TCounterName.push_back( "L1A:  TMB readouts completed                            ");
+
+    TCounterName.push_back( "STAT: CLCT Triads skipped                               "); // 45
+    TCounterName.push_back( "STAT: Raw hits buffer had to be reset                   ");
+    TCounterName.push_back( "STAT: TTC Resyncs received                              ");
+    TCounterName.push_back( "STAT: Sync Error, BC0/BXN=offset mismatch               ");
+    TCounterName.push_back( "STAT: Parity Error in CFEB or RPC raw hits RAM          ");
+
+    TCounterName.push_back( "HDR:  Pretrigger counter                                "); // 50
+    TCounterName.push_back( "HDR:  CLCT counter                                      ");
+    TCounterName.push_back( "HDR:  TMB trigger counter                               ");
+    TCounterName.push_back( "HDR:  ALCTs received counter                            ");
+    TCounterName.push_back( "HDR:  L1As received counter (12 bits)                   ");
+    TCounterName.push_back( "HDR:  Readout counter (12 bits)                         "); // 55
+    TCounterName.push_back( "HDR:  Orbit counter                                     ");
+
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 "); // 57
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ");
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ");
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 "); // 60
+    TCounterName.push_back( "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 ");
+
+    TCounterName.push_back( "CCB:  TTCrx lock lost                                   "); //62
+    TCounterName.push_back( "CCB:  qPLL lock lost                                    "); //63
+    TCounterName.push_back( "TMB: Time since last Hard Reset                         "); //44
+
+#if 0
     //
     TCounterName.push_back( "ALCT: alct0 valid pattern flag received                 "); //0
     //
@@ -2962,41 +3042,8 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "HDR:  Readout counter (12 bits)                         ");
     TCounterName.push_back( "HDR:  Orbit counter                                     "); //47
     TCounterName.push_back( "TMB: Time since last Hard Reset                         "); //48
-    //
-    //    TCounterName.push_back( "ALCT: CRC error                                        "); // 0
-    //    TCounterName.push_back( "ALCT: LCT sent to TMB                                  ");
-    //    TCounterName.push_back( "ALCT: LCT received data error                          ");
-    //    TCounterName.push_back( "ALCT: L1A readout                                      ");
-    //    TCounterName.push_back( "CLCT: Pretrigger                                       ");
-    //    TCounterName.push_back( "CLCT: Pretrig but no wbuf available                    ");
-    //    TCounterName.push_back( "CLCT: Invalid pattern after drift                      ");
-    //    TCounterName.push_back( "CLCT: TMB matching rejected event                      ");
-    //    TCounterName.push_back( "TMB: CLCT,ALCT,or both trigger                         ");
-    //    TCounterName.push_back( "TMB: CLCT,ALCT,or both trigger, trig allowed, xmit MPC ");
-    //    TCounterName.push_back( "TMB: CLCT and ALCT matched in time                     "); // 10
-    //    TCounterName.push_back( "TMB: ALCT-only trigger                                 ");
-    //    TCounterName.push_back( "TMB: CLCT-only trigger                                 ");
-    //    TCounterName.push_back( "TMB: No trig pulse response (TMB internal logic check) ");
-    //    TCounterName.push_back( "TMB: No MPC transmission (TMB internal logic check)    ");
-    //    TCounterName.push_back( "TMB: No MPC response FF pulse (TMB internal logic ck)  ");
-    //    TCounterName.push_back( "TMB: MPC accepted LCT0                                 ");
-    //    TCounterName.push_back( "TMB: MPC accepted LCT1                                 ");
-    //    TCounterName.push_back( "L1A: L1A received                                      ");
-    //    TCounterName.push_back( "L1A: TMB triggered, TMB in L1A window                  ");
-    //    TCounterName.push_back( "L1A: L1A received, no TMB in window                    "); // 20
-    //    TCounterName.push_back( "L1A: TMB triggered, no L1A received                    ");
-    //    TCounterName.push_back( "L1A: TMB readout                                       ");
-    //    TCounterName.push_back( "CLCT: Triad skipped                                    ");
-    //    TCounterName.push_back( "TMB: Raw Hits Buffer Reset due to overflow             ");
-    //    TCounterName.push_back( "TMB: No ALCT in trigger                                ");
-    //    TCounterName.push_back( "TMB: One ALCT in trigger                               ");
-    //    TCounterName.push_back( "TMB: One CLCT in trigger                               ");
-    //    TCounterName.push_back( "TMB: Two ALCTs in trigger                              ");
-    //    TCounterName.push_back( "TMB: Two CLCTs in trigger                              ");
-    //    TCounterName.push_back( "TMB: ALCT0 copied to ALCT1 to make 2nd LCT             "); // 30
-    //    TCounterName.push_back( "TMB: CLCT0 copied to CLCT1 to make 2nd LCT             ");
-    //    TCounterName.push_back( "TMB: LCT1 has higher quality than LCT0 (ranking error) ");
-    //    TCounterName.push_back( "TMB: Time since last Hard Reset                        "); // 33
+
+#endif
 
     DCounterName.push_back( "L1A to LCT delay");  // 0
     DCounterName.push_back( "CFEB DAV delay  ");
