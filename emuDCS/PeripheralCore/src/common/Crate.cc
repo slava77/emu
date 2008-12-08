@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.47 2008/10/06 11:26:06 liu Exp $
+// $Id: Crate.cc,v 3.48 2008/12/08 16:59:20 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.48  2008/12/08 16:59:20  liu
+// new TMB counters
+//
 // Revision 3.47  2008/10/06 11:26:06  liu
 // update
 //
@@ -545,7 +548,7 @@ void Crate::MonitorCCB(int cycle, char * buf)
 
 void Crate::MonitorTMB(int cycle, char * buf) 
 {
-  int TOTAL_TMB_COUNTERS=49;
+  int TOTAL_TMB_COUNTERS=65;
   int * countbuf, *buf4;
   short *buf2;
  
