@@ -10,7 +10,7 @@
 #  define MODULE
 #endif
 
-#include <linux/config.h>
+// #include <linux/config.h>
 
 #include <linux/module.h>
 
@@ -34,7 +34,7 @@
 #include <linux/etherdevice.h> // eth_xxx()
 
 #include <asm/io.h>
-#include <linux/bigphysarea.h>
+// #include <linux/bigphysarea.h>
 
 #include "schar.h"
 
@@ -139,8 +139,8 @@ static unsigned short int proc_tbytesH;
 
 
 /* module parameters and descriptions */
-MODULE_PARM(schar_name, "s");
-MODULE_PARM_DESC(schar_name, "Name of device");
+// MODULE_PARM(schar_name, "s");
+// MODULE_PARM_DESC(schar_name, "Name of device");
 MODULE_LICENSE("GPL");
 
 MODULE_DESCRIPTION("schar, Sample character with ethernet hook");

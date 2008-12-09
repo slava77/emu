@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.53 2008/10/06 11:25:46 liu Exp $
+// $Id: VMEController.cc,v 3.54 2008/12/09 14:58:13 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.54  2008/12/09 14:58:13  liu
+// SLC5 compatibility
+//
 // Revision 3.53  2008/10/06 11:25:46  liu
 // avoid malloc in eth_write
 //
@@ -289,9 +292,9 @@
 
 #define SCHAR_IOCTL_BASE	0xbb
 #define SCHAR_RESET     	_IO(SCHAR_IOCTL_BASE, 0)
-#define SCHAR_END		_IOR(SCHAR_IOCTL_BASE, 1, 0)
+#define SCHAR_END		_IOR(SCHAR_IOCTL_BASE, 1, int)
 
-#define SCHAR_INQR              _IOR(SCHAR_IOCTL_BASE, 6, 0)
+#define SCHAR_INQR              _IOR(SCHAR_IOCTL_BASE, 6, int)
 #define SCHAR_READ_TIMEOUT	_IOW(SCHAR_IOCTL_BASE, 2, unsigned int)
 
 
