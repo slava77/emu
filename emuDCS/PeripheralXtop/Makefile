@@ -19,7 +19,9 @@ Sources=\
         LOAD.cc \
         EmuDim.cc
 
-IncludeDirs = 
+IncludeDirs = \
+        $(XDAQ_ROOT)/include \
+        $(BUILD_HOME)/emu/cscSV/include
 
 LibraryDirs = 
 
