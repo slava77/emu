@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.3 2008/11/03 20:00:13 liu Exp $
+// $Id: EmuDim.h,v 1.4 2008/12/09 16:08:14 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -114,7 +114,7 @@ public:
   
 private:
 
-  LOAD *MyLoader;
+  LOAD *MyLoader, *XmasStart, *XmasStop;
   bool inited;
   Chamber chamb[TOTAL_CHAMBERS];
 

@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.7 2008/11/12 17:13:35 liu Exp $
+// $Id: EmuDim.cc,v 1.8 2008/12/09 16:08:14 liu Exp $
 
 #include "EmuDim.h"
 
@@ -256,8 +256,16 @@ void EmuDim::Setup()
    else
       std::cout << "ERROR in read file " << fn << " DIM services cannot start." << std::endl;
    MyLoader = new LOAD();
-   std::string url=XmasDcsUrl_;
-   MyLoader->init(url.c_str());
+   XmasStart = new LOAD();
+   XmasStop = new LOAD();
+   std::string url_root=XmasDcsUrl_;
+   std::string url_load=url_root + "/DCSOutput";
+   std::string url_start=url_root + "/MonitorStart";
+   std::string url_stop=url_root + "/MonitorStop";
+
+   MyLoader->init(url_load.c_str());
+   XmasStart->init(url_start.c_str());
+   XmasStop->init(url_stop.c_str());
    inited=true;
 }
 
@@ -449,10 +457,12 @@ void EmuDim::CheckCommand()
       std::cout << "Dim Command:" << cmnd << std::endl;
       if(cmnd.substr(0,10)=="STOP_SLOW_")
       {
+         XmasStop->reload();
          Suspended_ = true;
       }
       else if(cmnd.substr(0,12)=="RESUME_SLOW_")
       {
+         XmasStart->reload();
          Suspended_ = false;
       }
       else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
