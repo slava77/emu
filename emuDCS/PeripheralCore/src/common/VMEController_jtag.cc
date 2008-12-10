@@ -38,7 +38,7 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
   char kbypass;
   int ppnt,pcmd,pow2;
   int idev,i,k,m;
-  int ncmd2,nbcmd2,nbuf2;
+  int ncmd2=0,nbcmd2,nbuf2=0;
   int init;
   int ififo;
   int nbyte;
@@ -1335,7 +1335,7 @@ void VMEController::new_devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,cons
   char kbypass;
   int ppnt,pcmd,pow2;
   int idev,i,k,m;
-  int ncmd2,nbcmd2,nbuf2;
+  int ncmd2=0,nbcmd2,nbuf2=0;
   int init;
   int ififo;
   int nbyte;

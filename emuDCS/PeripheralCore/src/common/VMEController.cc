@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.54 2008/12/09 14:58:13 liu Exp $
+// $Id: VMEController.cc,v 3.55 2008/12/10 18:08:49 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.55  2008/12/10 18:08:49  liu
+// fix GCC4 warnings
+//
 // Revision 3.54  2008/12/09 14:58:13  liu
 // SLC5 compatibility
 //
@@ -778,10 +781,9 @@ void VMEController::sdly()
 {
   char tmp[1]={0x00};
   unsigned short int tmp2[2]={0,0};
-  unsigned short int *ptr;
   tmp2[0]=50;  // 50x16=800ns delay
   //  cout <<" sdly() called "<<endl;
-  vme_controller(6,ptr,tmp2,tmp);
+  vme_controller(6,NULL,tmp2,tmp);
 }
 
 
@@ -791,13 +793,12 @@ void  VMEController::sleep_vme(const char *outbuf)   // time in usec
   unsigned long tmp_time;
   char tmp[1]={0x00};
   unsigned short int tmp2[2]={0,0};
-  unsigned short int *ptr;
   time = (unsigned short int *) outbuf;
   tmp_time=time[0]*1000+15; // in nsec
   tmp_time >>= 4; // in 16 nsec
   tmp2[0]=tmp_time & 0xffff;
   tmp2[1]=(tmp_time >> 16) & 0xffff;
-  vme_controller(6,ptr,tmp2,tmp);
+  vme_controller(6,NULL,tmp2,tmp);
 }
 
 void  VMEController::sleep_vme(int time) // time in usec
@@ -805,11 +806,10 @@ void  VMEController::sleep_vme(int time) // time in usec
   unsigned long tmp_time;
   char tmp[1]={0x00};
   unsigned short int tmp2[2]={0,0};
-  unsigned short int *ptr;
   tmp_time=((time+1)/2)*125;   // in 16ns
   tmp2[0]=tmp_time & 0xffff;
   tmp2[1]=(tmp_time >> 16) & 0xffff;
-  vme_controller(6,ptr,tmp2,tmp);
+  vme_controller(6,NULL,tmp2,tmp);
 }
 
 void VMEController::handshake_vme()
@@ -1304,7 +1304,7 @@ int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sho
 
   int LRG_read_flag;
   static unsigned int LRG_read_pnt=0;
-  int actual_return;
+  int actual_return=0;
 
   static int nvme;
   static int nread=0;

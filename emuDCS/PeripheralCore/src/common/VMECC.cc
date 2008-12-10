@@ -739,7 +739,7 @@ std::string VMECC::print_routines()
 void  VMECC::rd_back_prom(const char* fn)
 {
   int i,n,wc,naddr,wcntr,prtd,npkt;
-  unsigned int faddr,chksum;
+  unsigned int faddr,chksum=0;
   unsigned short addr[2048];
   int ptyp;
   union {
@@ -834,7 +834,7 @@ void VMECC::send_ver_prom_data()
 {
   int i,j,n,nw,pktnum,nsend,tot_bytes;
   int lp,cdwrd,send,pause,abort;
-  int addr,pnum,bi;
+  int addr,pnum,bi=0;
   int ptyp;
   int ack;
   VERIFY_t ver_dat[147];
