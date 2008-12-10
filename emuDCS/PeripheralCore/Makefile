@@ -55,7 +55,7 @@ TestLibraries =
 # Compile the source files and create a shared library
 #
 DynamicLibrary= EmuPeripheralCore
-StaticLibrary= EmuPeripheralCore
+StaticLibrary= 
 
 Executables=
 TestExecutables= 
