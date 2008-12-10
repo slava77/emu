@@ -60,7 +60,7 @@ TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer 
 # Compile the source files and create a shared library
 #
 DynamicLibrary= EmuPeripheralApps
-StaticLibrary= EmuPeripheralApps
+StaticLibrary= 
 
 Executables=
 TestExecutables= \

@@ -43,7 +43,7 @@ TestLibraries =
 # Compile the source files and create a shared library
 #
 DynamicLibrary= EmuPeripheralXtop
-StaticLibrary= EmuPeripheralXtop
+StaticLibrary= 
 
 Executables=
 TestExecutables= 
