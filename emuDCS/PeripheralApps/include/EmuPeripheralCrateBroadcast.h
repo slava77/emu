@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.18 2008/11/14 11:46:22 bylsma Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.19 2009/01/27 14:19:14 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -164,10 +164,7 @@ private:
   int number_of_layers_pretrig_;
   int number_of_layers_pattern_;
   //
-  // for monitoring
-  bool Monitor_On_, Monitor_Ready_, In_Monitor_, In_Broadcast_;
-  toolbox::task::Timer * timer_;
-  xdata::UnsignedShort fastloop, slowloop, extraloop;
+  bool In_Broadcast_;
   int current_state_;
 };
 

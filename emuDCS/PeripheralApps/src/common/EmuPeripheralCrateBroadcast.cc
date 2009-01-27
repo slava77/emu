@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.36 2008/11/18 16:58:12 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.37 2009/01/27 14:19:14 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -106,90 +106,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateBroadcastXmlFile_);
   brddb= new emu::db::BoardsDB();
 
-  // everything below for Monitoring
-  timer_ = toolbox::task::getTimerFactory()->createTimer("EmuMonitorTimer");
-  timer_->stop();
-  Monitor_On_ = false;
-  Monitor_Ready_ = false;
-  In_Monitor_ = false;
-  In_Broadcast_ = false;
-  fastloop=0;
-  slowloop=0;
-  extraloop=0;
-  this->getApplicationInfoSpace()->fireItemAvailable("FastLoop", &fastloop);
-  this->getApplicationInfoSpace()->fireItemAvailable("SlowLoop", &slowloop);
-  this->getApplicationInfoSpace()->fireItemAvailable("ExtraLoop", &extraloop);
-  xoap::bind(this, &EmuPeripheralCrateBroadcast::MonitorStart, "MonitorStart", XDAQ_NS_URI);
-  xoap::bind(this, &EmuPeripheralCrateBroadcast::MonitorStop, "MonitorStop", XDAQ_NS_URI);
-
-}  
-
-xoap::MessageReference EmuPeripheralCrateBroadcast::MonitorStart (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) 
-{
-     if(!Monitor_Ready_)
-     {
-         toolbox::TimeInterval interval1, interval2, interval3;
-         toolbox::TimeVal startTime;
-         startTime = toolbox::TimeVal::gettimeofday();
-
-         timer_->start(); // must activate timer before submission, abort otherwise!!!
-         if(fastloop) 
-         {   interval1.sec((time_t)fastloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval1, 0, "EmuPCrateFast" );
-             std::cout << "fast scheduled" << std::endl;
-         }
-         if(slowloop) 
-         {   interval2.sec((time_t)slowloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval2, 0, "EmuPCrateSlow" );
-             std::cout << "slow scheduled" << std::endl;
-         }
-         if(extraloop) 
-         {   interval3.sec((time_t)extraloop);
-             timer_->scheduleAtFixedRate(startTime,this, interval3, 0, "EmuPCrateExtra" );
-             std::cout << "extra scheduled" << std::endl;
-         }
-         Monitor_Ready_=true;
-     }
-     Monitor_On_=true;
-     time_t thistime = ::time(NULL);
-     std::cout<< "Monitor Started " << ::ctime(&thistime) << std::endl;
-     return createReply(message);
 }
-
-xoap::MessageReference EmuPeripheralCrateBroadcast::MonitorStop (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) 
-{
-     if(Monitor_On_)
-     {
-         Monitor_On_=false;
-#if 0
-         if(fastloop) timer_->remove("EmuPCrateFast" );
-         if(slowloop) timer_->remove("EmuPCrateSlow" );
-         if(extraloop) timer_->remove("EmuPCrateExtra" );
-         timer_->stop(); 
-#endif
-         time_t thistime = ::time(NULL);
-         std::cout << "Monitor stopped " << ::ctime(&thistime) << std::endl;
-     }
-     return createReply(message);
-}
-
-void EmuPeripheralCrateBroadcast::timeExpired (toolbox::task::TimerEvent& e)
-{
-
-     if(! Monitor_On_ ) return;
-     if( In_Monitor_  || In_Broadcast_) return;
-     In_Monitor_ = true;
-     std::string name = e.getTimerTask()->name;
-     // std::cout << "timeExpired: " << name << std::endl;
-     if(strncmp(name.c_str(),"EmuPCrateFast",13)==0)  PCsendCommand("FastLoop","EmuPeripheralCrateMonitor");
-     else if(strncmp(name.c_str(),"EmuPCrateSlow",13)==0) PCsendCommand("SlowLoop","EmuPeripheralCrateMonitor");
-     else if(strncmp(name.c_str(),"EmuPCrateExtra",14)==0) PCsendCommand("ExtraLoop","EmuPeripheralCrateMonitor");
-     In_Monitor_ = false;
-}
-//
-// everything above is for Monitoring
 
 //
 void EmuPeripheralCrateBroadcast::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
