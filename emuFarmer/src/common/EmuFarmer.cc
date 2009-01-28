@@ -356,11 +356,12 @@ void EmuFarmer::defaultWebPage(xgi::Input *in, xgi::Output *out)
 
   string message = processForm(in, out);
 
-  *out << "<html>"                                                        << endl;
+//   *out << "<html>"                << endl;
+  *out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">"                << endl;
 
-  *out << "<head>"                                                        << endl;
+  *out << "<head>"                                                       << endl;
 
-  *out << "<title>EmuFarmer</title>"                                        << endl;
+  *out << "<title>EmuFarmer</title>"                                     << endl;
 
 //   *out << "<link type=\"text/css\" rel=\"stylesheet\"";
 //   *out << " href=\"/" 
@@ -368,7 +369,8 @@ void EmuFarmer::defaultWebPage(xgi::Input *in, xgi::Output *out)
 //        << "/EmuFarmer.css\"/>"                                            << endl;
 
   *out << "<link type=\"text/css\" rel=\"stylesheet\"";
-  *out << " href=\"/emu/emuFarmer/html/EmuFarmer.css\"/>"                    << endl;
+  *out << " href=\"/emu/emuFarmer/html/EmuFarmer.css\"/>"       << endl
+       << "</link>"                                             << endl;
 
 //   *out << "<script language=\"JavaScript\" type=\"text/javascript\" "
 //        << "src=\"/"
@@ -376,7 +378,8 @@ void EmuFarmer::defaultWebPage(xgi::Input *in, xgi::Output *out)
 //        << "/EmuFarmer.js\"/>"                                             << endl;
 
   *out << "<script language=\"JavaScript\" type=\"text/javascript\" "
-       << "src=\"/emu/emuFarmer/html/EmuFarmer.js\"/>"                   << endl;
+       << "src=\"/emu/emuFarmer/html/EmuFarmer.js\">"                   << endl
+       << "</script>"                                                   << endl;
 
   *out << "</head>"                                                       << endl;
 
