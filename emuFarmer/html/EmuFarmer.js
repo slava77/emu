@@ -12,23 +12,24 @@ function appsVisible(e){
 }
 
 function changeRowColor(){
-    // changes color of the (un)checked row
-    var inputs=document.getElementsByTagName('input');
-    for (i=0; i<inputs.length; i++){
-	if ( inputs.item(i).name.indexOf( ':', 0 ) > 0 ){
-	    var tds = inputs.item(i).parentNode.parentNode.childNodes;
-	    for (j=0; j<tds.length; j++){
-		if ( tds.item(j).nodeName == 'TD' ){
-		    var styleValue='';
-		    if ( inputs.item(i).checked ){
-			styleValue='background-color:#554d30';
-		    }
-		    tds.item(j).setAttribute('style',styleValue);
-		}
-	    }
+  // changes color of the (un)checked row
+  var inputs=document.getElementsByTagName('input');
+  for (i=0; i<inputs.length; i++){
+    if ( inputs.item(i).name.indexOf( ':', 0 ) > 0 ){
+      var tds = inputs.item(i).parentNode.parentNode.childNodes;
+      for (j=0; j<tds.length; j++){
+	if ( tds.item(j).nodeName == 'TD' ){
+	  var styleValue='';
+	  if ( inputs.item(i).checked ){
+	    styleValue='background-color:#554d30';
+	  }
+	  tds.item(j).setAttribute('style',styleValue);
 	}
+      }
     }
+  }
 }
+
 
 function multiCheck(e){
     // checks or unchecks all checkboxes in this table
