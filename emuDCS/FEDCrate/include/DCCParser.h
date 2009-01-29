@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCCParser.h,v 3.7 2008/09/19 16:53:51 paste Exp $
+* $Id: DCCParser.h,v 3.8 2009/01/29 15:31:22 paste Exp $
 *
 * $Log: DCCParser.h,v $
+* Revision 3.8  2009/01/29 15:31:22  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.7  2008/09/19 16:53:51  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -16,27 +19,36 @@
 #ifndef __DCCPARSER_H__
 #define __DCCPARSER_H__
 
-#include <xercesc/dom/DOM.hpp>
-
-#include "EmuParser.h"
+#include "Parser.h"
+#include "FEDException.h"
 
 namespace emu {
 	namespace fed {
 
 		class DCC;
-		
-		class DCCParser: public EmuParser
+
+		/** @class DCCParser A parser that builds DCC objects to be loaded into a FEDCrate.
+		*	@sa DCC
+		**/
+		class DCCParser: public Parser
 		{
 		
 		public:
-			DCCParser(){}
-			explicit DCCParser(xercesc::DOMElement *pNode);
+
+			/** Default constructor.
+			*
+			*	@param pNode the XML DOM element node to parse.
+			**/
+			explicit DCCParser(xercesc::DOMElement *pNode)
+			throw (ParseException);
 				
-			/// the last one parsed
+			/** @returns a pointer to the parsed DCC object. **/
 			inline DCC *getDCC() { return dcc_; }
 		
 		private:
-			DCC *dcc_;//last one parsed
+
+			/// A DCC object built from the parsed attributes of the DOM node.
+			DCC *dcc_;
 		};
 
 	}

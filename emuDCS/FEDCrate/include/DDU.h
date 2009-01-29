@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 3.24 2008/11/14 09:34:31 paste Exp $
+* $Id: DDU.h,v 3.25 2009/01/29 15:31:22 paste Exp $
 *
 * $Log: DDU.h,v $
+* Revision 3.25  2009/01/29 15:31:22  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.24  2008/11/14 09:34:31  paste
 * Updated IRQ thread handling to fix and abstract FMM enabling and disabling.
 *
@@ -45,505 +48,417 @@ namespace emu {
 
 		class Chamber;
 
+		/** @class DDU A class representing the Detector-Dependent Unit boards in the EMU FED Crates. **/
 		class DDU: public VMEModule
 		{
 			friend class DDUParser;
 			friend class FEDCrateParser;
 
 		public:
-		
+
+			/** @param slot the slot of the board for VME addressing purposes. **/
 			DDU(int mySlot);
+
+			/** Default destructor. **/
 			virtual ~DDU();
 
-			inline unsigned int getKillFiber() { return killfiber_; }
-			inline unsigned int getGbEPrescale() { return gbe_prescale_; }
+			/** @returns the KillFiber bit-mask (LS 15 bits) and the options bits (MS 5 bits). **/
+			inline uint16_t getKillFiber() { return killfiber_; }
 
-			/// from the BOARDTYPE enum
-			//virtual inline unsigned int boardType() const {return DDU_ENUM;}
-			/* virtual void end(); */
+			/** @returns the GBEPrescale setting. **/
+			inline uint16_t getGbEPrescale() { return gbe_prescale_; }
+
+			/** Configures the DDU. **/
+			void configure()
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 			
-			void configure();
-		
-		// DDU commands initialization/reset
-			/* void ddu_init(); */
-			/* void ddu_reset(); */
-			/* void ddu_l1calonoff(); */
-			/* void ddu_vmel1a(); */
-		// DDU register control
-			/* void ddu_shfttst(int tst); */
-			/* void ddu_lowfpgastat(); */
-			/* void ddu_hifpgastat(); */
-			/* unsigned int ddu_checkFIFOa(); */
-			/* unsigned int ddu_checkFIFOb(); */
-			/* unsigned int ddu_checkFIFOc(); */
-			/* void ddu_rdfibererr(); */
-			/* void ddu_rdfiberok(); */
-			/* long unsigned int ddu_rdkillfiber(); */
-			/* void ddu_loadkillfiber(long int regval); */
-			/* int ddu_rdcrcerr(); */
-			/* void ddu_rdl1aerr(); */
-			/* int ddu_rdxmiterr(); */
-			/* void ddu_rdtimesterr(); */
-			/* void ddu_rdtimeewerr(); */
-			/* void ddu_rdtimeeaerr(); */
-			/* int ddu_rddmberr(); */
-			/* int ddu_rdtmberr(); */
-			/* int ddu_rdlieerr(); */
-			/* void ddu_rdliderr(); */
-			/* void ddu_rdpaferr(); */
-			/* int ddu_rdfferr(); */
-			/* unsigned int ddu_rderareg(); */
-			/* unsigned int ddu_rderbreg(); */
-			/* unsigned int ddu_rdercreg(); */
-			/* unsigned int ddu_InRDstat(); */
-			/* unsigned long int  ddu_InC_Hist(); */
-			/* int  ddu_dmblive(); */
-			/* int  ddu_pdmblive(); */
-			/* int  ddu_rd_WarnMon(); */
-			/* void ddu_rd_verr_cnt(); */
-			/* void ddu_rd_cons_cnt(); */
-			/* void ddu_fifo0verr_cnt(); */
-			/* void ddu_fifo1verr_cnt(); */
-			/* void ddu_earlyVerr_cnt(); */
-			/* void ddu_verr23cnt(); */
-			/* void ddu_verr55cnt(); */
-			/* unsigned int ddu_rdostat(); */
-			/* void ddu_rdempty(); */
-			/* void ddu_rdstuckbuf(); */
-			/* unsigned long int ddu_rdscaler(); */
-			/* unsigned long int ddu_int_rdscaler(); */
-			/* int ddu_rdalcterr(); */
-			/* void ddu_loadbxorbit(int regval); */
-			/* int ddu_rdbxorbit(); */
-			/* void ddu_lvl1onoff(); */
-			/* unsigned int ddu_rd_boardID(); */
-			/* unsigned long int ddu_fpgastat(); */
-			/* std::vector<unsigned long int> ddu_occmon(); */
-			/* std::vector<unsigned long int> ddu_fpgatrap(); */
-			//  void ddu_trap_decode();
-			/* void ddu_maxTimeCount(); */
-			//unsigned short int ddu_code0,ddu_code1,ddu_shift0;
-		
-
-		
-			// PGK Failed attempt at simplified DDUFPGA commands
-
-		
-			// INFPGA register control
-			/* void infpga_shfttst(enum DEVTYPE dv,int tst); */
-			/* void infpga_reset(enum DEVTYPE dv); */
-			/* unsigned long int infpga_rdscaler(enum DEVTYPE dv); */
-			/* unsigned long int infpga_rd1scaler(enum DEVTYPE dv); */
-			/* void infpga_lowstat(enum DEVTYPE dv); */
-			/* void infpga_histat(enum DEVTYPE dv); */
-			/* unsigned long int infpgastat(enum DEVTYPE dv); */
-			/* int infpga_CheckFiber(enum DEVTYPE dv); */
-			/* int infpga_int_CheckFiber(enum DEVTYPE dv); */
-			/* void infpga_DMBsync(enum DEVTYPE dv); */
-			/* void infpga_FIFOstatus(enum DEVTYPE dv); */
-			/* void infpga_FIFOfull(enum DEVTYPE dv); */
-			/* void infpga_RxErr(enum DEVTYPE dv); */
-			/* void infpga_Timeout(enum DEVTYPE dv); */
-			/* void infpga_XmitErr(enum DEVTYPE dv); */
-			/* int infpga_WrMemActive(enum DEVTYPE dv,int ifiber); */
-			/* int infpga_DMBwarn(enum DEVTYPE dv); */
-			/* unsigned long int infpga_MemAvail(enum DEVTYPE dv); */
-			/* unsigned long int infpga_Min_Mem(enum DEVTYPE dv); */
-			/* void infpga_LostErr(enum DEVTYPE dv); */
-			/* unsigned long int infpga_CcodeStat(enum DEVTYPE dv); */
-			/* void infpga_StatA(enum DEVTYPE dv); */
-			/* void infpga_StatB(enum DEVTYPE dv); */
-			/* void infpga_StatC(enum DEVTYPE dv); */
-			/* void infpga_FiberDiagA(enum DEVTYPE dv); */
-			/* void infpga_FiberDiagB(enum DEVTYPE dv); */
-			/* std::vector<unsigned long int> infpga_trap(enum DEVTYPE dv); */
-			//unsigned short int infpga_code0,infpga_code1,infpga_shift0;
-			//unsigned long int fpga_lcode[10];
-		
-			// DDU Status Decode
-			/*
-			void ddu_status_decode(int long code);
-			void ddu_ostatus_decode(int long code);
-			void ddu_era_decode(int long code);
-			void ddu_erb_decode(int long code);
-			void ddu_erc_decode(int long code);
-			void ddu5status_decode(int long code);
-			void ddu5ostatus_decode(int long code);
-			void ddu5begin_decode(int long code);
-			void ddu5vmestat_decode(int long code);
-			void in_Ccode_decode(int long code);
-			void in_stat_decode(int long code);
-			
-			// DDU FPGA id/user codes
-			unsigned long int ddufpga_idcode();
-			unsigned long int infpga_idcode0();
-			unsigned long int infpga_idcode1();
-			unsigned long int ddufpga_usercode();
-			unsigned long int infpga_usercode0();
-			unsigned long int infpga_usercode1();
-			unsigned long int inprom_idcode0();
-			unsigned long int inprom_idcode1();
-			unsigned long int vmeprom_idcode();
-			unsigned long int dduprom_idcode0();
-			unsigned long int dduprom_idcode1();
-			
-			unsigned long int inprom_usercode0();
-			unsigned long int inprom_usercode1();
-			unsigned long int vmeprom_usercode();
-			
-			unsigned long int dduprom_usercode0();
-			unsigned long int dduprom_usercode1();
-			void all_chip_info();
-			*/
-
-			// DDU parallel
-			/*
-			unsigned short int vmepara_busy();
-			unsigned short int vmepara_fullwarn();
-			unsigned short int vmepara_CSCstat();
-			unsigned short int vmepara_lostsync();
-			unsigned short int vmepara_error();
-			unsigned short int  vmepara_switch();
-			unsigned short int vmepara_status();
-			unsigned short int vmepara_rd_inreg0();
-			unsigned short int vmepara_rd_inreg1();
-			unsigned short int vmepara_rd_inreg2();
-			void vmepara_wr_inreg(unsigned short int par_val);
-			void  vmepara_wr_fmmreg(unsigned short int par_val);
-			unsigned short int  vmepara_rd_fmmreg();
-			void vmepara_wr_fakel1reg(unsigned short int par_val);
-			unsigned short int vmepara_rd_fakel1reg();
-			void vmepara_wr_GbEprescale(unsigned short int par_val);
-			unsigned short int vmepara_rd_GbEprescale();
-			unsigned short int vmepara_rd_testreg0();
-			unsigned short int vmepara_rd_testreg1();
-			unsigned short int vmepara_rd_testreg2();
-			unsigned short int vmepara_rd_testreg3();
-			unsigned short int vmepara_rd_testreg4();
-			unsigned short int vmepara_busyhist();
-			unsigned short int vmepara_warnhist();
-			*/
-
-		
-			// DDU serial
-			/*
-			int read_status();
-			int read_int_page1();
-			int read_page1();
-			void write_page1();
-			int read_page3();
-			void write_page3();
-			void read_page4();
-			void write_page4();
-			std::vector<int> read_page5();
-			void write_page5();
-			int read_page7();
-			void write_page7();
-			void read_vmesd0();
-			void read_vmesd1();
-			void read_vmesd2();
-			void read_vmesd3();
-			void write_vmesdF();
-			char snd_serial[6];
-			char rcv_serial[6];
-			*/
-
-			// Voltages and Thermometers
-			/*
-			float adcplus(int ichp,int ichn);
-			float adcminus(int ichp,int ichn);
-			float readthermx(int it);
-			unsigned int readADC(int ireg, int ichn);
-			*/
-			/*
-			void read_therm();
-			void read_voltages();
-			*/
-
-			// Unpack characters to integers
-			/* unsigned int unpack_ival(); */
-			
-			// EPROM reprogramming (EXPERTS ONLY !)
-			/*
-			void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
-			void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum,int ipass); // for broadcast
-			void Parse(char *buf,int *Count,char **Word);
-			*/
-			
-			// PGK Chamber routines
+			/** Part of the suite of chamber methods.
+			*	@returns a vector of chambers in fiber-order.
+			**/
 			std::vector<Chamber *> getChambers();
-			Chamber *getChamber(unsigned int fiberNumber);
-			void addChamber(Chamber *chamber, unsigned int fiberNumber);
-			void setChambers(std::vector<Chamber *> chamberVector);
+
+			/** Part of the suite of chamber methods.
+			*	@param fiberNumber runs from 0-14.
+			*	@returns the chamber at the given fiber input number.
+			**/
+			Chamber *getChamber(unsigned int fiberNumber)
+			throw (OutOfBoundsException);
+
+			/** Adds a chamber object to the DDU.
+			*	@param chamber is the chamber being added.
+			*	@param fiberNumber is the fiber slot of the chamber.
+			**/
+			void addChamber(Chamber *chamber, unsigned int fiberNumber)
+			throw (OutOfBoundsException);
+
+			/** Sets the vector of chamber objects in the DDU to some vector.
+			*	@param chamberVector is a vector of chambers to copy to the internal vector.
+			**/
+			void setChambers(std::vector<Chamber *> chamberVector)
+			throw (OutOfBoundsException);
 
 			// PGK New interface
 			// Read VME Parallel registers
-
+			/** @returns the FMM register. **/
 			uint16_t readFMM()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the combined error status of each fiber. **/
 			uint16_t readCSCStatus()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the FMM busy status of each fiber. **/
 			uint16_t readFMMBusy()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the FMM warning status of each fiber. **/
 			uint16_t readFMMFullWarning()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the FMM sync lost status of each fiber. **/
 			uint16_t readFMMLostSync()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the FMM error status of each fiber. **/
 			uint16_t readFMMError()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the status of the hardware switches on-board. **/
 			uint16_t readSwitches()
-				throw (FEDException);
-			
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns the VME parallel status register. **/
 			uint16_t readParallelStatus()
-				throw (FEDException);
-			
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns the value of a given parallel input register. **/
 			uint16_t readInputRegister(uint8_t iReg)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the value of the fake L1 register. **/
 			uint16_t readFakeL1()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the value of the GbE prescale register. **/
 			uint16_t readGbEPrescale()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the value of one of the (unused) test registers. **/
 			uint16_t readTestRegister(uint8_t iReg)
-				throw (FEDException);
-			
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which fibers have experienced a busy status since the last resync. **/
 			uint16_t readBusyHistory()
-				throw (FEDException);
-			
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which fibers have experienced a warning status since the last resync. **/
 			uint16_t readWarningHistory()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Write VME Parallel registers
 
+			/** Writes a value to the FMM register (useful for TTS tests). **/
 			void writeFMM(uint16_t value)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** Writes a value to the fake L1 register. **/
 			void writeFakeL1(uint16_t value)
-				throw (FEDException);
-			
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** Writes to the GbE prescale register. **/
 			void writeGbEPrescale(uint8_t value)
-				throw (FEDException);
-			
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** Writes to one of the parallel input registers (for flash writing). **/
 			void writeInputRegister(uint16_t value)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Read VME Serial/Flash registers
-			
+
+			/** @returns the status of the serial path. **/
 			uint8_t readSerialStatus()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns reads back the kill fiber setting stored in flash. **/
 			uint16_t readFlashKillFiber()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the board ID stored in flash. **/
 			uint16_t readFlashBoardID()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the board RUI stored in flash. **/
 			uint16_t readFlashRUI()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the GbE FIFO thresholds stored in flash. **/
 			std::vector<uint16_t> readFlashGbEFIFOThresholds()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Write VME Serial/Flash registers
 
+			/** Writes a value to the kill fiber flash register. **/
 			void writeFlashKillFiber(uint16_t value)
-				throw (FEDException);
-			
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** Writes a value to the board ID flash register. **/
 			void writeFlashBoardID(uint16_t value)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** Writes a value to the board RUI flash register. **/
 			void writeFlashRUI(uint16_t value)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** Writes a value to the GbE FIFO threshold flash register. **/
 			void writeFlashGbEFIFOThresholds(std::vector<uint16_t> values)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Read SADC registers
 
+			/** @returns the calculated temperature of a given SADC sensor. **/
 			float readTemperature(uint8_t sensor)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the calculated coltage of a given SADC sensor. **/
 			float readVoltage(uint8_t sensor)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Read DDUFPGA JTAG registers
 
+			/** @returns the status of the DDUFPGA output to the INFPGAs. **/
 			uint16_t readOutputStatus()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the status of a given DDUFPGA input FIFO. **/
 			uint16_t readFIFOStatus(uint8_t fifo)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers are experiencing a FIFO-full error. **/
 			uint16_t readFFError()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers are experiencing a CRC error. **/
 			uint16_t readCRCError()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers are experiencing a transmit error. **/
 			uint16_t readXmitError()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the kill fiber mask that is loaded into the DDUFPGA. **/
 			uint32_t readKillFiber()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers report corruption in the DMB data. **/
 			uint16_t readDMBError()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers report corruption in the TMB data. **/
 			uint16_t readTMBError()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers report corruption in the ALCT data. **/
 			uint16_t readALCTError()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers are experiencing a lost-in-event error. **/
 			uint16_t readLIEError()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the status of the paths out to the INFPGAs. **/
 			uint16_t readInRDStat()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers have ever experineced input corruption (?). **/
 			uint16_t readInCHistory()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the infamous "Error B" register. **/
 			uint16_t readEBRegister(uint8_t reg)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers report communication with the DMB. **/
 			uint16_t readDMBLive()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers reported communication with the DMB when the first L1A came though. **/
 			uint16_t readDMBLiveAtFirstEvent()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns which fibers report a warning status. **/
 			uint16_t readWarningMonitor()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the maximum timeout between the L1A and the data sent from the DMBs. **/
 			uint16_t readMaxTimeoutCount()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the bunch-crossing orbit setting. **/
 			uint16_t readBXOrbit()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** Magically toggles the L1 calibration setting. **/
 			void toggleL1Calibration()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the board RUI stored in the DDUFPGA. **/
 			uint16_t readRUI()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** Magically sends a fake L1A through the DDU. **/
 			void sendFakeL1A()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the occupancies of the fiber it is point to, then increments its internal pointer to point at the next fiber. **/
 			std::vector<uint32_t> readOccupancyMonitor()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns some errors that escaped the DDUFPGA previously. **/
 			uint16_t readAdvancedFiberErrors()
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Write DDUFPGA JTAG registers
 
+			/** Writes to the kill fiber register on the DDUFPGA. **/
 			void writeKillFiber(uint32_t value)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** Writes to the bunch-crossing orbit register on the DDUFPGA. **/
 			void writeBXOrbit(uint16_t value)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Read INFPGA JTAG registers
 
+			/** @returns the LS 32 bits of the L1 scaler. **/
 			uint32_t readL1Scaler1(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readFiberStatus(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readDMBSync(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readFIFOStatus(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readFIFOFull(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readRxError(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readTimeout(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readTxError(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readActiveWriteMemory(enum DEVTYPE dev,uint8_t iFiber)
-				throw (FEDException);
-			
-			uint16_t readAvailableMemory(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readMinMemory(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t readLostError(enum DEVTYPE dev)
-				throw (FEDException);
-			
-			uint16_t  readCCodeStatus(enum DEVTYPE dev)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the combined status of the fibers connected to the INFPGA. **/
+			uint16_t readFiberStatus(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns the DMB sync status of the fibers connected to the INFPGA. **/
+			uint16_t readDMBSync(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns the combined input FIFO status of a given INFPGA. **/
+			uint16_t readFIFOStatus(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which fibers on a given INFPGA have a full input FIFO. **/
+			uint16_t readFIFOFull(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which fibers on a given INFPGA have a receiving error. **/
+			uint16_t readRxError(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which fibers on a given INFPGA have a timeout error. **/
+			uint16_t readTimeout(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which fibers on a given INFPGA have a transmit error. **/
+			uint16_t readTxError(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which memory modules are being written by a given fiber on a given INFPGA. **/
+			uint16_t readActiveWriteMemory(enum DEVTYPE dev, uint8_t iFiber)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns how many memory modules are available for a given INFPGA. **/
+			uint16_t readAvailableMemory(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns the minimum number of memory modules an INFPGA has had to use since the last resync. **/
+			uint16_t readMinMemory(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which fibers on a given INFPGA have a lost-in-event error (?). **/
+			uint16_t readLostError(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns the infamous "C-Code" register. **/
+			uint16_t  readCCodeStatus(enum DEVTYPE dev)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns which fibers on a given INFPGA are experiencing a DMB warning condition. **/
 			uint16_t readDMBWarning(enum DEVTYPE dev)
-				throw (FEDException);
-			
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** @returns the fiber diagnostic register on a given INFPGA. **/
 			uint32_t readFiberDiagnostics(enum DEVTYPE dev, uint8_t iDiagnostic)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// User and ID code reading
 
+			/** @returns the user code of the given device. **/
 			uint32_t readUserCode(enum DEVTYPE dev)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the ID code of the given device. **/
 			uint32_t readIDCode(enum DEVTYPE dev)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Reset FPGAs
 
+			/** Sends a reset command to the given FPGA. **/
 			void resetFPGA(enum DEVTYPE dev)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
 			// Read Universal FPGA JTAG registers
 
+			/** @returns the status register of a given FPGA. **/
 			uint32_t readFPGAStatus(enum DEVTYPE dev)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the L1 scaler register of a given FPGA. **/
 			uint32_t readL1Scaler(enum DEVTYPE dev)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
+			/** @returns the debug trap from a given FPGA. **/
 			std::vector<uint16_t> readDebugTrap(enum DEVTYPE dev)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
-            // Misc. routines
+			// Misc. routines
 
-            void disableFMM()
-                throw (FEDException);
+			/** Loads the proper value in the FMM register to disable sending FMM signals. **/
+			void disableFMM()
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
-            void enableFMM()
-                throw (FEDException);
+			/** Loads the proper value in the FMM register to enable sending FMM signals for a short time. **/
+			void enableFMM()
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 			
 		protected:
-		
-			std::vector<Chamber *> chamberVector_;
-			int gbe_prescale_;
-			unsigned long int killfiber_;
 
 			// PGK New interface
+			/** Reads an arbitrary number of bits from a given register on a given device.
+			*
+			*	@param dev is the device from which to read.
+			*	@param myReg is the register on the device from which to read.
+			*	@param @nBits is the number of bits to read.
+			**/
 			std::vector<uint16_t> readRegister(enum DEVTYPE dev, int myReg, unsigned int nBits)
-				throw (FEDException);
-			
-			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, int myReg, unsigned int nBits, std::vector<uint16_t>)
-				throw (FEDException);
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/** Writes an arbitrary number of bits to a given register on a given device.
+			*
+			*	@param dev is the device to which to write.
+			*	@param myReg is the register on the device to which to write.
+			*	@param @nBits is the number of bits to write.
+			*	@param @myData is the data to write.
+			**/
+			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, int myReg, unsigned int nBits, std::vector<uint16_t> myData)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
+
+			/// The chambers that are plugged into this DDU, in fiber-order.
+			std::vector<Chamber *> chamberVector_;
+
+			/// The GbE prescale code as read from the configuration XML.
+			int gbe_prescale_;
+
+			/// The kill fiber mask as read from the configuration XML.
+			unsigned long int killfiber_;
 			
 		};
 

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.h,v 1.17 2008/10/09 11:21:19 paste Exp $
+* $Id: EmuFCrateManager.h,v 1.18 2009/01/29 15:31:22 paste Exp $
 *
 * $Log: EmuFCrateManager.h,v $
+* Revision 1.18  2009/01/29 15:31:22  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 1.17  2008/10/09 11:21:19  paste
 * Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
 *
@@ -21,84 +24,86 @@
 
 #include <string>
 
-#include "xoap/MessageReference.h"
-#include "xdata/Integer.h"
-#include "xdata/Table.h"
+#include "Application.h"
 
-#include "EmuFEDApplication.h"
+namespace emu {
+	namespace fed {
+		/** @class EmuFCrateManager An XDAq application class that relays commands from the CSCSupervisor class
+		*	to the individual EmuFCrate classes.
+		**/
+		class EmuFCrateManager: public emu::fed::Application
+		{
 
-class EmuFCrateManager: public EmuFEDApplication
-{
+		public:
+			XDAQ_INSTANTIATOR();
 
-public:
+			/** Default constructor **/
+			EmuFCrateManager(xdaq::ApplicationStub *stub);
 
-	XDAQ_INSTANTIATOR();
+			// HyperDAQ pages
+			/** Default HyperDAQ page **/
+			void webDefault(xgi::Input *in, xgi::Output *out);
 
-	xdata::String ConfigureState_;
-	xdata::Table table_;
+			// FSM transition call-back functions
+			/** Send the 'Configure' command to the EmuFCrate applications **/
+			void configureAction(toolbox::Event::Reference event)
+			throw (toolbox::fsm::exception::Exception);
 
-	EmuFCrateManager(xdaq::ApplicationStub * s);
+			/** Send the 'Enable' command to the EmuFCrate applications **/
+			void enableAction(toolbox::Event::Reference event)
+			throw (toolbox::fsm::exception::Exception);
 
-	void webDefault(xgi::Input * in, xgi::Output * out )
-		throw (xgi::exception::Exception);
-	void webFire(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
-	
-	void configureAction(toolbox::Event::Reference e)
-		throw (toolbox::fsm::exception::Exception);
-	void enableAction(toolbox::Event::Reference e) 
-		throw (toolbox::fsm::exception::Exception);
-	void disableAction(toolbox::Event::Reference e) 
-		throw (toolbox::fsm::exception::Exception);
-	void haltAction(toolbox::Event::Reference e) 
-		throw (toolbox::fsm::exception::Exception);
+			/** Send the 'Disable' command to the EmuFCrate applications **/
+			void disableAction(toolbox::Event::Reference event)
+			throw (toolbox::fsm::exception::Exception);
 
-	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-		throw (toolbox::fsm::exception::Exception);
+			/** Send the 'Halt' command to the EmuFCrate applications **/
+			void haltAction(toolbox::Event::Reference event)
+			throw (toolbox::fsm::exception::Exception);
 
-	xoap::MessageReference onConfigure (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onEnable (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onDisable (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onHalt (xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	
-	xoap::MessageReference onSetTTSBits(xoap::MessageReference message) 
-		throw (xoap::exception::Exception);
-	
-	xoap::MessageReference PCcreateCommandSOAP(std::string command);
+			/** Transition into an unknown FSM state because the underlying EmuFCrate applications' FSM states do not agree **/
+			void unknownAction(toolbox::Event::Reference event);
 
-	xoap::MessageReference killAllMessage();
-	xoap::MessageReference QueryLTCInfoSpace();
-	xoap::MessageReference QueryJobControlInfoSpace();
-	xoap::MessageReference ExecuteCommandMessage(std::string port);
+			// FSM state change call-back function
+			/** Decault FSM state change call-back function **/
+			void inline stateChanged(toolbox::fsm::FiniteStateMachine &fsm) { return emu::fed::Application::stateChanged(fsm); }
 
-	void CheckEmuFCrateState();
+			// SOAP call-back functions that send FSM transitions
+			/** Start the FSM 'Configure' transition **/
+			DEFINE_DEFAULT_SOAP2FSM_ACTION(Configure);
 
-private:
+			/** Start the FSM 'Enable' transition **/
+			DEFINE_DEFAULT_SOAP2FSM_ACTION(Enable);
 
-	xdata::UnsignedInteger tts_id_;
-	xdata::UnsignedInteger tts_crate_;
-	xdata::UnsignedInteger tts_slot_;
-	xdata::UnsignedInteger tts_bits_;
+			/** Start the FSM 'Disable' transition **/
+			DEFINE_DEFAULT_SOAP2FSM_ACTION(Disable);
 
-	void sendCommand(std::string command, std::string klass, int instance)
-		throw (xoap::exception::Exception, xdaq::exception::Exception);
-	void sendCommand(std::string command, std::string klass) 
-		throw (xoap::exception::Exception, xdaq::exception::Exception);
+			/** Start the FSM 'Halt' transition **/
+			DEFINE_DEFAULT_SOAP2FSM_ACTION(Halt);
 
-	xoap::MessageReference createCommandSOAP(std::string command);
+			// Other SOAP call-back functions
+			/** Set the TTS bits on the underlying EmuFCrate applications as defined by members ttsID_ and ttsBits_ **/
+			xoap::MessageReference onSetTTSBits(xoap::MessageReference message);
 
-	void webRedirect(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
+		private:
 
-	bool soapConfigured_;
-	bool soapLocal_;
+			/** Get the combined FSM states of the underlying EmuFCrate applications.
+			*
+			*	@returns a string containing the state of the EmuFCrates if they are consistant, "Unknown" if they are inconsistant, and "Failed" if at least one is in a "Failed" state.
+			**/
+			std::string getUnderlyingStates();
 
-};
+			/// The TTS ID with which to communicate (sent from above) for FMM tests.
+			xdata::Integer ttsID_;
+
+			/// The target TTS bits to set for FMM tests.
+			xdata::Integer ttsBits_;
+
+			/// Whether or not the application has been configured via SOAP or via a web action.
+			bool soapConfigured_;
+
+		};
+	}
+}
 
 #endif

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.19 2008/10/22 20:23:57 paste Exp $
+* $Id: VMEModule.h,v 3.20 2009/01/29 15:31:23 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.20  2009/01/29 15:31:23  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.19  2008/10/22 20:23:57  paste
 * Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
 *
@@ -57,18 +60,7 @@
 #include "JTAG_constants.h"
 #include "FEDException.h"
 
-#include "EmuFEDLoggable.h"
 #include "JTAGElement.h"
-
-/* VMEModule is a virtual class for DCC and DDU classes.
- * A VMEModule should be apathetic to the controller and crate,
- * and although this breaks down at the program execution level (where
- * any given read/write from/to the DCC and DDU requires access of the
- * controller), it shouldn't break down at the object level.
- * Therefore, I removed or modified all public methods that referenced
- * the crate or controller.  Use the FEDCrate and VMEController objects
- * for those methods, not the DDU and DCC objects.
- */
 
 namespace emu {
 
@@ -77,33 +69,38 @@ namespace emu {
 		class VMEController;
 	
 		struct JTAGElement;
-		
-		class VMEModule: public EmuFEDLoggable
+
+		/** @class VMEModule A inherited class for DCC and DDU classes.
+		*	A VMEModule should be ignorant of the controller and crate, just as how a hardware board
+		*	doesn't really care into which crate it is inserted.  In other words, a VMEModule does not
+		*	own a VMEController or a VMECrate.
+		*/
+		class VMEModule
 		{
 		public:
-			//enum {MAXLINE = 70000};
-			
+
+			/** Default constructor.
+			*
+			*	@param mySlot is the board's slot number in the crate (needed for proper VME communication.)
+			**/
 			VMEModule(int mySlot);
+
 			virtual ~VMEModule() {};
-			inline const int slot() {return slot_;}
 
-			/*
-			// should automatically start().  Here's what you do if
-			// you want to end() by hand
-			void endDevice();
+			/** @returns the slot number. **/
+			inline const unsigned int slot() {return slot_;}
 
-			
-			virtual void start();
-			virtual void end();
-			
-			enum BOARDTYPE { DDU_ENUM=0, DCC_ENUM };
-			virtual unsigned int boardType() const = 0;
-			
-			void setController(VMEController *controller);
-			*/
-			// Phil's new commands
+			/** Sets the appropriate BHandle for proper CAEN communication.
+			*
+			*	@param myHandle is the new BHandle to use.
+			**/
 			inline void setBHandle(int16_t myHandle) { BHandle_ = myHandle; }
+
+			/** @returns the current BHandle. **/
 			inline int16_t getBHandle() { return BHandle_; }
+
+			/** Call the appropriate methods to configure the board. **/
+			virtual void configure() = 0;
 
 			/** Parses and loads a given .svf file into a given PROM.
 			 *
@@ -111,103 +108,113 @@ namespace emu {
 			 * @param fileName the name on the local disk of the .svf file.
 			 * @param startString if set will cause the loader to ignore all instructions until the line after the one matching it.
 			 * @param stopString if set will cause the loader to stop immidately if it is found in the current line being read.  The line will not be loaded.
+			 *
+			 * @returns zero if no errors occurred, a positive int for warnings, a negative int for errors.
 			 **/
-			void loadPROM(enum DEVTYPE dev, char *fileName, std::string startString = "", std::string stopString = "")
-				throw (FEDException);
+			int loadPROM(enum DEVTYPE dev, char *fileName, std::string startString = "", std::string stopString = "")
+			throw (OutOfBoundsException, FileException, CAENException, DevTypeException);
 
-			void loadPROM(enum DEVTYPE dev, const char *fileName, std::string startString = "", std::string stopString = "")
-				throw (FEDException) {
+			int loadPROM(enum DEVTYPE dev, const char *fileName, std::string startString = "", std::string stopString = "")
+			throw (OutOfBoundsException, FileException, CAENException, DevTypeException)
+			{
+				try {
 					return loadPROM(dev, (char *) fileName, startString, stopString);
+				} catch (...) {
+					throw;
 				}
+			}
 
-			void loadPROM(enum DEVTYPE dev, std::string fileName, std::string startString = "", std::string stopString = "")
-				throw (FEDException) {
+			int loadPROM(enum DEVTYPE dev, std::string fileName, std::string startString = "", std::string stopString = "")
+			throw (OutOfBoundsException, FileException, CAENException, DevTypeException)
+			{
+				try {
 					return loadPROM(dev, fileName.c_str(), startString, stopString);
+				} catch (...) {
+					throw;
 				}
+			}
 
+			/** Writes some data to a particular JTAG device.
+			*
+			*	@param dev the JTAG device to which the data will be sent
+			*	@param nbits the number of bits to write
+			*	@param myData the data to write, with the first element of the vector being the LSB
+			*	@param noRead if true, will read back the data shifted out of the JTAG device and return it
+			**/
 			std::vector<uint16_t> jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<uint16_t> myData, bool noRead = false)
-				throw(FEDException);
+			throw(OutOfBoundsException, CAENException, DevTypeException);
+
+			/** Reads data from a particular JTAG device.
+			*
+			*	@param dev the JTAG device from which the data will be read
+			*	@param nbits the number of bits to read
+			**/
 			std::vector<uint16_t> jtagRead(enum DEVTYPE dev, unsigned int nBits)
-				throw(FEDException);
+			throw(OutOfBoundsException, CAENException, DevTypeException);
 		
 		protected:
 
-			/*
-			void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
-			void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
-			//void RestoreIdle();
-			void InitJTAG(int port);
-			void CloseJTAG();
-			void send_last();
-			//void RestoreIdle_reset();
-			void  scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
-			void  sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
-			//void  sleep_vme2(unsigned short int time); // time in usec
-			//void  long_sleep_vme2(float time);   // time in usec
-			void handshake_vme();
-			void flush_vme();
-			void vmeser(const char *cmd,const char *snd,char *rcv);
-			void vmepara(const char *cmd,const char *snd,char *rcv);
-			void dcc(const char *cmd,char *rcv);
-			void vme_adc(int ichp,int ichn,char *rcv);
-			//void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
-			//void CAEN_close(void);
-			//int CAEN_reset(void);
-			int CAEN_read(unsigned long Address,unsigned short int *data);
-			int CAEN_write(unsigned long Address,unsigned short int *data);
-		
-			//void sdly();
-			//void initDevice(int a);
-			/// used for calls to do_vme
-			//enum FCN { VME_READ=1, VME_WRITE=2 };
-			//enum WRT { LATER, NOW };
-			//int theSlot;
-		
-			/// required for DDU/DCC communications
-			char sndbuf[4096];
-			char rcvbuf[4096];
-			char rcvbuf2[4096];
-			char cmd[4096];
-			*/
+			/** Sends a JTAG command cycle to a given JTAG device.
+			*	@param dev the JTAG device to which the command will be sent
+			*	@param myCommand the command code to send
+			**/
+			void commandCycle(enum DEVTYPE dev, uint16_t myCommand)
+			throw (OutOfBoundsException, CAENException, DevTypeException);
 
-			// Phil's new commands.
+			/** Reads 16 bits from a given VME address.
+			*
+			*	@param myAddress the address from which to read the data.
+			*
+			*	@note The slot number should NOT be encoded in myAddress.
+			**/
+			uint16_t readVME(uint32_t myAddress)
+			throw (CAENException);
 
+			/** Writes 16 bits to a given VME address.
+			*
+			*	@param myAddress the address to which to send the data.
+			*	@param myData the data to send.
+			*
+			*	@note The slot number should NOT be encoded in myAddress.
+			**/
+			void writeVME(uint32_t myAddress, uint16_t myData)
+			throw (CAENException);
+
+			/** Reads any arbitrary number of bits from a given VME address.
+			*
+			*	@param myAddress the address from which to read the data.
+			*	@param nBits the number of bits to read.
+			*
+			*	@note The slot number should NOT be encoded in myAddress.
+			**/
+			std::vector<uint16_t> readCycle(uint32_t myAddress, unsigned int nBits)
+			throw(CAENException);
+
+			/** Writes any arbitrary number of bits to a given VME address.
+			*
+			*	@param myAddress the address to which the data will be sent.
+			*	@param nBits the number of bits to send.
+			*
+			*	@note The slot number should NOT be encoded in myAddress.
+			**/
+			void writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData)
+			throw(CAENException);
+
+			/// A map of JTAG chains on this device.
 			std::map<enum DEVTYPE, JTAGChain> JTAGMap;
 
-			void commandCycle(enum DEVTYPE dev, uint16_t myCommand)
-				throw (FEDException);
-			
-			uint16_t readVME(uint32_t myAddress)
-				throw (FEDException);
-			
-			void writeVME(uint32_t myAddress, uint16_t myData)
-				throw (FEDException);
-
-			std::vector<uint16_t> readCycle(uint32_t myAddress, unsigned int nBits)
-				throw(FEDException);
-
-			void writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData)
-				throw(FEDException);
-			
-			/** @deprecated Uses usleep instead **/
-			void bogoDelay(uint64_t time);
-
 		private:
-			int slot_;
-			//int idevo_;
-			
-			//VMEController *controller_;
 
-			/*
-			inline int pows(int n, int m) { int ret = 1; for (int i=0; i<m; i++) ret *= n; return ret; }
-			inline void udelay(long int itim) { for (long int j=0; j<itim; j++) for (long int i=0; i<200; i++); }
-			*/
-			
-			// Phil's new commands.
+			/// The slot number of the device (its location within it respective VME crate).
+			unsigned int slot_;
+
+			/// The CAEN BHandle used to communicate to the controller of the crate containing this device.
 			int16_t BHandle_;
+
+			/// The base address of the device as calculated from the slot number.
 			uint32_t vmeAddress_;
 
-			// Each board will be able to mutex out the other boards from reading and writing
+			/// Mutex so that communication to and from the board is atomic.
 			pthread_mutex_t mutex_;
 			
 		};

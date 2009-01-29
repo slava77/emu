@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUParser.h,v 3.8 2008/09/19 16:53:51 paste Exp $
+* $Id: DDUParser.h,v 3.9 2009/01/29 15:31:22 paste Exp $
 *
 * $Log: DDUParser.h,v $
+* Revision 3.9  2009/01/29 15:31:22  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.8  2008/09/19 16:53:51  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -16,30 +19,42 @@
 #ifndef __DDUPARSER_H__
 #define __DDUPARSER_H__
 
-#include <xercesc/dom/DOM.hpp>
-
-#include "EmuParser.h"
+#include "Parser.h"
+#include "FEDException.h"
 
 namespace emu {
 
 	namespace fed {
 
 		class DDU;
-		
-		class DDUParser: public EmuParser
+
+		/** @class DDUParser A parser that builds DDU objects to be loaded into a FEDCrate.
+		*	@sa DDU
+		**/
+		class DDUParser: public Parser
 		{
 		
 		public:
-			//explicit DDUParser(xercesc::DOMNode * pNode, int crate=0, char *fileName=0);
-			explicit DDUParser(xercesc::DOMElement *pNode);
+
+			/** Default constructor.
+			*
+			*	@param pNode the XML DOM element node to parse.
+			**/
+			explicit DDUParser(xercesc::DOMElement *pNode)
+			throw (ParseException);
 		
-			/// the last one parsed
+			/** @returns a pointer to the parsed DDU object. **/
 			inline DDU *getDDU() { return ddu_; }
+
+			/** @returns the parsed options. **/
 			inline int getOptions() { return options_; }
 		
 		private:
-			DDU *ddu_;//last one parsed
-			int slot_;
+
+			/// A DDU object built from the parsed attributes of the DOM node.
+			DDU *ddu_;
+
+			/// The parsed options.
 			int options_;
 		};
 

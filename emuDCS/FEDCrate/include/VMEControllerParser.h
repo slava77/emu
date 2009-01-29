@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEControllerParser.h,v 3.5 2008/09/19 16:53:51 paste Exp $
+* $Id: VMEControllerParser.h,v 3.6 2009/01/29 15:31:23 paste Exp $
 *
 * $Log: VMEControllerParser.h,v $
+* Revision 3.6  2009/01/29 15:31:23  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.5  2008/09/19 16:53:51  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -16,24 +19,35 @@
 #ifndef __VMECONTROLLERPARSER_H__
 #define __VMECONTROLLERPARSER_H__
 
-#include <xercesc/dom/DOM.hpp>
-
-#include "EmuParser.h"
+#include "Parser.h"
+#include "FEDException.h"
 
 namespace emu {
 	namespace fed {
 
 		class VMEController;
 
-		class VMEControllerParser : public EmuParser
+		/** @class DDUParser A parser that builds DDU objects to be loaded into a FEDCrate.
+		*	@sa VMEController
+		**/
+		class VMEControllerParser : public Parser
 		{
 		
 		public:
-			explicit VMEControllerParser(xercesc::DOMElement *pNode);
-			
+
+			/** Default constructor.
+			*
+			*	@param pNode the XML DOM element node to parse.
+			**/
+			explicit VMEControllerParser(xercesc::DOMElement *pNode)
+			throw (ParseException);
+
+			/** @returns a pointer to the parsed VMEController object. **/
 			inline VMEController *getController() { return vmeController_; }
 		
 		private:
+
+			/// A VMEController object built from the parsed attributes of the DOM node.
 			VMEController *vmeController_;
 		};
 

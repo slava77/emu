@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.h,v 3.20 2008/10/22 20:23:57 paste Exp $
+* $Id: EmuFCrate.h,v 3.21 2009/01/29 15:31:22 paste Exp $
 *
 * $Log: EmuFCrate.h,v $
+* Revision 3.21  2009/01/29 15:31:22  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.20  2008/10/22 20:23:57  paste
 * Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
 *
@@ -28,113 +31,125 @@
 #ifndef __EMUFCRATE_H__
 #define __EMUFCRATE_H__
 
-#include "EmuFEDApplication.h"
+#include "Application.h"
 
-#include "xdata/String.h"
-#include "xdata/Vector.h"
+#include "xdata/xdata.h"
 #include <vector>
 #include <string>
 
 #include "FEDCrate.h"
 #include "IRQThreadManager.h"
 
-class EmuFCrate : public EmuFEDApplication
-{
 
-public:
-	XDAQ_INSTANTIATOR();
+namespace emu {
+	namespace fed {
+		/** @class EmuFCrate A class that is directly responsible for hardware communication with the FED Crates. **/
+		class EmuFCrate : public emu::fed::Application
+		{
 
-	EmuFCrate(xdaq::ApplicationStub *s);
+		public:
+			XDAQ_INSTANTIATOR();
 
-	// SOAP call-back methods
-	xoap::MessageReference onConfigure(xoap::MessageReference message)
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onEnable(xoap::MessageReference message)
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onDisable(xoap::MessageReference message)
-		throw (xoap::exception::Exception);
-	xoap::MessageReference onHalt(xoap::MessageReference message)
-		throw (xoap::exception::Exception);
+			/** Default constructor **/
+			EmuFCrate(xdaq::ApplicationStub *stub);
 
-	xoap::MessageReference onSetTTSBits(xoap::MessageReference message)
-		throw (xoap::exception::Exception);
-	//xoap::MessageReference onUpdateFlash(xoap::MessageReference message)
-	//	throw (xoap::exception::Exception);
-	//xoap::MessageReference onGetParameters(xoap::MessageReference message)
-	//	throw (xoap::exception::Exception);
+			// HyperDAQ pages
+			/** Default HyperDAQ page **/
+			void webDefault(xgi::Input *in, xgi::Output *out);
 
-	// Ugly, but it must be done.
-	xoap::MessageReference onGetParameters(xoap::MessageReference message)
-		throw (xoap::exception::Exception);
+			// FSM transition call-back functions
+			/** Send the 'Configure' command to the EmuFCrate applications **/
+			void configureAction(toolbox::Event::Reference event)
+			throw (toolbox::fsm::exception::Exception);
 
-	// Action methods called at state transitions.
-	void configureAction(toolbox::Event::Reference e)
-		throw (toolbox::fsm::exception::Exception);
-	void enableAction(toolbox::Event::Reference e)
-		throw (toolbox::fsm::exception::Exception);
-	void disableAction(toolbox::Event::Reference e)
-		throw (toolbox::fsm::exception::Exception);
-	void haltAction(toolbox::Event::Reference e)
-		throw (toolbox::fsm::exception::Exception);
+			/** Send the 'Enable' command to the EmuFCrate applications **/
+			void enableAction(toolbox::Event::Reference event)
+			throw (toolbox::fsm::exception::Exception);
 
-	//void setTTSBitsAction(toolbox::Event::Reference e)
-	//	throw (toolbox::fsm::exception::Exception);
-	//void updateFlashAction(toolbox::Event::Reference e)
-	//	throw (toolbox::fsm::exception::Exception);
+			/** Send the 'Disable' command to the EmuFCrate applications **/
+			void disableAction(toolbox::Event::Reference event)
+			throw (toolbox::fsm::exception::Exception);
 
-	// HyperDAQ pages
+			/** Send the 'Halt' command to the EmuFCrate applications **/
+			void haltAction(toolbox::Event::Reference event)
+			throw (toolbox::fsm::exception::Exception);
 
-	void webDefault(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
+			// FSM state change call-back function
+			/** Decault FSM state change call-back function **/
+			void inline stateChanged(toolbox::fsm::FiniteStateMachine &fsm) { return emu::fed::Application::stateChanged(fsm); }
 
-	void webFire(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
+				// SOAP call-back functions that send FSM transitions
+			/** Start the FSM 'Configure' transition **/
+			DEFINE_DEFAULT_SOAP2FSM_ACTION(Configure);
 
-	void webConfigure(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
+			/** Start the FSM 'Enable' transition **/
+			DEFINE_DEFAULT_SOAP2FSM_ACTION(Enable);
 
-	//void webSetTTSBits(xgi::Input *in, xgi::Output *out)
-	//	throw (xgi::exception::Exception);
+			/** Start the FSM 'Disable' transition **/
+			DEFINE_DEFAULT_SOAP2FSM_ACTION(Disable);
 
-	// Copied over from EmuFController, now defunct
-	void writeTTSBits(int crate, int slot, unsigned int bits);
-	unsigned int readTTSBits(int crate, int slot);
-	
+			/** Start the FSM 'Halt' transition **/
+			DEFINE_DEFAULT_SOAP2FSM_ACTION(Halt);
 
-private:
-	//
-	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-		throw (toolbox::fsm::exception::Exception);
-	//
-	void webRedirect(xgi::Input *in, xgi::Output *out)
-		throw (xgi::exception::Exception);
+			// Other SOAP call-back functions
+			/** Sets TTS bits defined by ttsBits_ on the crate ttsCrate_, slot ttsSlot_, but only if that crate and slot are under the command of this instance of the EmuFCrate application **/
+			xoap::MessageReference onSetTTSBits(xoap::MessageReference message);
 
-	//
-	std::string getCGIParameter(xgi::Input *in, std::string name);
+			/** Serializes the appropriate variables to send to whatever application requests them. **/
+			//xoap::MessageReference onGetParameters(xoap::MessageReference message);
 
-	xdata::String xmlFile_;
-	xdata::String errorChambers_;
-	xdata::String BHandles_;
+		private:
 
-	xdata::UnsignedInteger ttsID_;
-	xdata::UnsignedInteger ttsCrate_;
-	xdata::UnsignedInteger ttsSlot_;
-	xdata::UnsignedInteger ttsBits_;
+			/** Sets the TTS (FMM) bits on a given board.
+			*
+			*	@param crate is the crate on which to set the bits
+			*	@param slot is the slot number on which to set the bits
+			*	@param bits are the bits to set
+			*
+			*	@note This method will not set bits if the crate/slot combination is not under the command of this instance of the EmuFCrate application. **/
+			void writeTTSBits(unsigned int crate, unsigned int slot, int bits)
+			throw (emu::fed::TTSException);
 
-	emu::fed::IRQThreadManager *TM;
+			/** Reads back the RSS (FMM) bits from a given board.
+			*
+			*	@param crate is the crate on which to sread the bits
+			*	@param slot is the slot number on which to read the bits
+			*
+			*	@note This method will not read bits if the crate/slot combination is not under the command of this instance of the EmuFCrate application. **/
+			int readTTSBits(unsigned int crate, unsigned int slot)
+			throw (emu::fed::TTSException);
+			
+			/// The XML configuration file name.
+			xdata::String xmlFile_;
+			
+			//xdata::String errorChambers_;
+			
+			/// The target crate for TTS tests.
+			xdata::UnsignedInteger ttsCrate_;
+			
+			/// The target slot for TTS tests.
+			xdata::UnsignedInteger ttsSlot_;
+			
+			/// The target FMM bits for TTS tests.
+			xdata::Integer ttsBits_;
+			
+			/// A manager that takes care of FMM interrupt handling.
+			IRQThreadManager *TM_;
+			
+			/// Whether or not the application has been configured via SOAP or via the web interface.
+			bool soapConfigured_;
+			
+			//xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > dccInOut_;
+			//xdata::Vector<xdata::UnsignedInteger> dduNumbers_;
+			//xdata::Vector<xdata::UnsignedInteger> dccNumbers_;
+			//xdata::Vector<xdata::UnsignedInteger> cscNumbers_;
+			
+			/// The crates that this application controls.
+			std::vector<FEDCrate *> crateVector_;
 
-	bool soapConfigured_;
-	bool soapLocal_;
+		};
+	}
+}
 
-	xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > dccInOut_;
-	xdata::Vector<xdata::UnsignedInteger> dduNumbers_;
-	xdata::Vector<xdata::UnsignedInteger> dccNumbers_;
-	xdata::Vector<xdata::UnsignedInteger> cscNumbers_;
-	xdata::soap::Serializer serializer; // This makes SOAP so much easier!
+#endif
 
-	std::vector<emu::fed::FEDCrate *> crateVector; // Very useful, just like in EFCHD
-
-};
-
-#endif  // ifndef _EmuFCrate_h_
-// vim: set sw=4 ts=4:

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Chamber.h,v 1.9 2008/09/19 16:53:51 paste Exp $
+* $Id: Chamber.h,v 1.10 2009/01/29 15:31:22 paste Exp $
 *
 * $Log: Chamber.h,v $
+* Revision 1.10  2009/01/29 15:31:22  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 1.9  2008/09/19 16:53:51  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -28,46 +31,47 @@ namespace emu {
 		class Chamber
 		{
 		public:
-			friend class ChamberParser; // Friends can access my private members.
 		
+			friend class ChamberParser;
+
+			/** Default constructor **/
 			Chamber();
-			~Chamber();
-		
-			/// The endcap where the chamber is located.  Is either "+" or "-"
-			std::string endcap;
 
-			/// The station where the chamber is located.  Is a number 1, 2, 3, or 4.
-			int station;
-
-			/// The "type" of the chamber, or on which annulus it is located.  Is a number 1, 2, or 3.
-			int type;
-
-			/// The chamber number.  The combination of endcap, station, type, and number uniquely defines each chamber.
-			int number;
-		
-			/// @returns a human-readable string naming the chamber, like "+1/2/33".
+			/** @returns a human-readable string naming the chamber, like "+1/2/33". **/
 			std::string name();
 
-			/// @returns a human-readable string naming the peripheral crate where the DMB reading out the chamber is located, like "VMEp1_2"
+			/** @returns a human-readable string naming the peripheral crate where the DMB reading out the chamber is located, like "VMEp1_2".  **/
 			std::string peripheralCrate();
+		
+			/// The endcap where the chamber is located.  Is either "+" or "-".
+			std::string endcap;
 
-			/*
-			/// @returns a human-readable string naming the fiber cassette where the DMB-to-DDU fiber is connected, like "1/2/c"
-			std::string fiberCassette();
-			*/
+			/// The endcap where the chamber is located.  Is either +1 or -1.
+			int plusMinus;
+
+			/// The station where the chamber is located.  Is a number 1, 2, 3, or 4.
+			unsigned int station;
+
+			/// The "type" of the chamber, or on which annulus it is located.  Is a number 1, 2, or 3.
+			unsigned int type;
+
+			/// The chamber number.  The combination of endcap, station, type, and number uniquely defines each chamber.
+			unsigned int number;
+			
+			// @returns a human-readable string naming the fiber cassette where the DMB-to-DDU fiber is connected, like "1/2/c"
+			//std::string fiberCassette();
 			
 		private:
 
-			/* PGK We might need to make these visible to the outside world at some point.
-			For now, though I don't see why they can't be private. */
-			/*
-			int fiberCassetteCrate_;
-			int fiberCassettePos_;
-			std::string fiberCassetteSocket_;
-			*/
+			//int fiberCassetteCrate_;
+			//int fiberCassettePos_;
+			//std::string fiberCassetteSocket_;
 			
 			//int peripheralCrateId_;
-			int peripheralCrateVMECrate_;
+
+			/// The peripheral crate ID number where this chamber is connected.
+			unsigned int peripheralCrateVMECrate_;
+			
 			//int peripheralCrateVMESlot_;
 		
 		};

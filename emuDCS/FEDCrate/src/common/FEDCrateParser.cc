@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrateParser.cc,v 3.13 2008/09/22 14:31:54 paste Exp $
+* $Id: FEDCrateParser.cc,v 3.14 2009/01/29 15:31:24 paste Exp $
 *
 * $Log: FEDCrateParser.cc,v $
+* Revision 3.14  2009/01/29 15:31:24  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.13  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -22,10 +25,7 @@
 
 #include "FEDCrateParser.h"
 
-#include <iostream>
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/framework/XMLPScanToken.hpp>
-#include <xercesc/dom/DOM.hpp>
+#include <sstream>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 
 #include "DDUParser.h"
@@ -35,102 +35,82 @@
 #include "VMEControllerParser.h"
 #include "FEDCrate.h"
 
-void emu::fed::FEDCrateParser::parseFile(const char* name){ 
-	//PGK: clear the crateVector
-	//std::cout << " durkin: entered parser " << std::endl;
-	crateVector_.clear();
-	
-	/// Initialize XML4C system
+emu::fed::FEDCrateParser::FEDCrateParser(const char *fileName)
+throw (emu::fed::ParseException, emu::fed::FileException)
+{ 
+	// Initialize XML4C system
 	try {
 		xercesc::XMLPlatformUtils::Initialize();
-	} catch(const xercesc::XMLException& toCatch) {
-		std::cerr << "Error during Xerces-c Initialization.\n"
-			<< "  Exception message:"
-			<< xercesc::XMLString::transcode(toCatch.getMessage()) << std::endl;
-		return ;
+	} catch (xercesc::XMLException &e) {
+		std::ostringstream error;
+		error << "Error during Xerces-c Initialization: " << xercesc::XMLString::transcode(e.getMessage());
+		XCEPT_RAISE(ParseException, error.str());
 	}
  
-	//  Create our parser, then attach an error handler to the parser.
-	//  The parser will call back to methods of the ErrorHandler if it
-	//  discovers errors during the course of parsing the XML document.
-	//
+	// Create our parser
 	xercesc::XercesDOMParser *parser = new xercesc::XercesDOMParser();
 	parser->setValidationScheme(xercesc::XercesDOMParser::Val_Auto);
 	parser->setDoNamespaces(false);
 	parser->setCreateEntityReferenceNodes(false);
 	//parser->setToCreateXMLDeclTypeNode(true);
+	parser->setCreateCommentNodes(false);
 
-	//  Parse the XML file, catching any XML exceptions that might propogate
-	//  out of it.
-	//
+	// Parse the XML file, catching any XML exceptions that might propogate
+	// out of it.
 	try {
-		parser->parse(name);
-	}
-  
-	catch (const xercesc::XMLException& e) {
-		std::cerr << "An error occured during parsing\n   Message: "
-			<< xercesc::XMLString::transcode(e.getMessage()) << std::endl;
-		//errorsOccured = true;
-		throw;
-	}
-
- 
-	catch (const xercesc::DOMException& e){
-		std::cerr << "An error occured during parsing\n   Message: "
-			<< xercesc::XMLString::transcode(e.msg) << std::endl;
-		//errorsOccured = true;
-		throw;
-	}
-
-	catch (...) {
-		std::cerr << "An error occured during parsing\n " << std::endl;
-		//errorsOccured = true;
-		throw;
+		parser->parse(fileName);
+	} catch (xercesc::XMLException& e) {
+		std::ostringstream error;
+		error << "Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
+		XCEPT_RAISE(XMLException, error.str());
+	} catch (xercesc::DOMException& e) {
+		std::ostringstream error;
+		error << "Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
+		XCEPT_RAISE(XMLException, error.str());
+	} catch (...) {
+		XCEPT_RAISE(ParseException, "Unknown error during parsing");
 	}
 
 	// If the parse was successful, output the document data from the DOM tree
-
 	xercesc::DOMNode *pDoc = parser->getDocument();
 	xercesc::DOMElement *pEmuSystem = (xercesc::DOMElement *) pDoc->getFirstChild();
 
+	// Trick to ignore comments
 	while (pEmuSystem->getNodeType() == xercesc::DOMNode::COMMENT_NODE) {
 		pEmuSystem = (xercesc::DOMElement *) pEmuSystem->getNextSibling();
 	}
 
 	if (pEmuSystem == NULL) {
-
-		std::cerr << "No elements in file " << name << std::endl;
-		return;
+		std::ostringstream error;
+		error << "Could not find a top-node in the XML document " << fileName;
+		XCEPT_RAISE(XMLException, error.str());
 	}
 
-	if ( strcmp(xercesc::XMLString::transcode(pEmuSystem->getTagName()),"EmuSystem") ) {
-		std::cerr << "No EmuSystem elements in file " << name << std::endl;
-		return;
+	if ( strcmp(xercesc::XMLString::transcode(pEmuSystem->getTagName()), "EmuSystem") ) {
+		std::ostringstream error;
+		error << "The top-node in the XML document " << fileName << " was not named 'EmuSystem'";
+		XCEPT_RAISE(XMLException, error.str());
 	}
 	
-	//std::cout << xercesc::XMLString::transcode(pEmuSystem->getTagName()) << std::endl;
-
 	// Let's get the system name
 	std::string tempName(xercesc::XMLString::transcode(pEmuSystem->getAttribute( xercesc::XMLString::transcode("Name"))));
-	name_ = tempName;
+	name_ = tempName; // If unnamed, this will be an empty string.
 
-	// Get FEDCrates and parse
+	// Get Crates and parse
 	xercesc::DOMNodeList *pFEDCrates = pEmuSystem->getElementsByTagName(xercesc::XMLString::transcode("FEDCrate"));
 
 	if (pFEDCrates == NULL) {
-		std::cerr << "No FEDCrate tags defined in file " << name << std::endl;
-		return;
+		std::ostringstream error;
+		error << "No FEDCrate elements in the XML document " << fileName;
+		XCEPT_RAISE(XMLException, error.str());
 	}
 
 	for (unsigned int iFEDCrate = 0; iFEDCrate < pFEDCrates->getLength(); iFEDCrate++) {
 
 		xercesc::DOMElement *pFEDCrate = (xercesc::DOMElement *) pFEDCrates->item(iFEDCrate);
 
-		// Report!
-		//std::cout << " " << xercesc::XMLString::transcode(pFEDCrate->getTagName()) << std::endl;
-
 		// Make the FEDCrate.  Get the number first.
-		int crateNumber = atoi(xercesc::XMLString::transcode(pFEDCrate->getAttribute( xercesc::XMLString::transcode("Number"))));
+		int crateNumber = atoi(xercesc::XMLString::transcode(pFEDCrate->getAttribute( xercesc::XMLString::transcode("Number")))); // If unnumbered, will be zero
 		
 		FEDCrate *newCrate = new FEDCrate(crateNumber);
 
@@ -138,108 +118,98 @@ void emu::fed::FEDCrateParser::parseFile(const char* name){
 		xercesc::DOMNodeList *pVMEControllers = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("VMEController"));
 		
 		if (pVMEControllers->getLength() != 1) {
-			std::cerr << "Exactly one VMEController not defined in a FEDCrate in file " << name << std::endl;
-			return;
+			std::ostringstream error;
+			error << "Exactly one VMEController element must exist as a child element of every FEDCrate element in the XML document " << fileName;
+			XCEPT_RAISE(XMLException, error.str());
 		}
 
-		// Report!
 		xercesc::DOMElement *pVMEController = (xercesc::DOMElement *) pVMEControllers->item(0);
-		//std::cout << "  " << xercesc::XMLString::transcode(pVMEController->getTagName()) << std::endl;
 
 		// Parse the attributes and make the controller.
-		VMEControllerParser vmeParser = VMEControllerParser(pVMEController);
-		newCrate->setController(vmeParser.getController());
+		VMEControllerParser *vmeParser;
+		try {
+			vmeParser = new VMEControllerParser(pVMEController);
+		} catch (ParseException &e) {
+			XCEPT_RETHROW(ParseException, "Exception in parsing VMEController element", e);
+		}
+		newCrate->setController(vmeParser->getController());
 
-		// Get DDUs
+		// Get DDUs.  If there are none, then there are none.
 		xercesc::DOMNodeList *pDDUs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DDU"));
 
 		for (unsigned int iDDU = 0; iDDU < pDDUs->getLength(); iDDU++) {
 			
 			xercesc::DOMElement *pDDU = (xercesc::DOMElement *) pDDUs->item(iDDU);
-			
-			// Report!
-			//std::cout << "  " << xercesc::XMLString::transcode(pDDU->getTagName()) << std::endl;
 
 			// Parse and store killed fiber high 5 bits:
-			DDUParser dduParser = DDUParser(pDDU);
+			DDUParser *dduParser;
+			try {
+				dduParser = new DDUParser(pDDU);
+			} catch (ParseException &e) {
+				XCEPT_RETHROW(ParseException, "Exception in parsing DDU element", e);
+			}
 			
-			DDU *newDDU = dduParser.getDDU();
-			unsigned long int killfiber = (dduParser.getOptions()) << 15;
+			DDU *newDDU = dduParser->getDDU();
+			unsigned long int killfiber = (dduParser->getOptions()) << 15;
 
-			// Get Chambers
+			// Get Chambers.  OK if there are none.
 			xercesc::DOMNodeList *pChambers = pDDU->getElementsByTagName(xercesc::XMLString::transcode("Chamber"));
 			
 			for (unsigned int iChamber = 0; iChamber < pChambers->getLength(); iChamber++) {
 				
 				xercesc::DOMElement *pChamber = (xercesc::DOMElement *) pChambers->item(iChamber);
-				
-				// Report!
-				//std::cout << "   " << xercesc::XMLString::transcode(pChamber->getTagName()) << std::endl;
 
 				// Parse and add to the DDU.
-				ChamberParser chamberParser = ChamberParser(pChamber);
+				ChamberParser *chamberParser;
+				try {
+					chamberParser = new ChamberParser(pChamber);
+				} catch (ParseException &e) {
+					XCEPT_RETHROW(ParseException, "Exception in parsing Chamber element", e);
+				}
 
-				//std::cout << "I have a chamber!  Fiber " << chamberParser.getFiber() << " killed " << chamberParser.isKilled() << std::endl;
-				newDDU->addChamber(chamberParser.getChamber(), chamberParser.getFiber());
-				//std::cout << "Added to DDU!" << std::endl;
+				newDDU->addChamber(chamberParser->getChamber(), chamberParser->getFiber());
 				
 				// Alter the killfiber now.
-				if (!chamberParser.isKilled()) {
-					killfiber |= (1 << chamberParser.getFiber());
-					//std::cout << "   Fiber " << chamberParser.getFiber() << " Alive" << std::endl;
-				} else {
-					//std::cout << "   Fiber " << chamberParser.getFiber() << " Killed" << std::endl;
+				if (!chamberParser->isKilled()) {
+					killfiber |= (1 << chamberParser->getFiber());
 				}
 
 			}
 
-			//std::cout << "   Loading killfiber " << std::hex << killfiber << std::dec << std::endl;
 			newDDU->killfiber_ = killfiber;
 
 			// Add the DDU to the crate.
-			newCrate->addDDU(newDDU);
+			newCrate->addBoard((VMEModule *) newDDU);
 		}
 
-		// Get DCCs
+		// Get DCCs.  OK if there are none.
 		xercesc::DOMNodeList *pDCCs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DCC"));
 		
 		for (unsigned int iDCC = 0; iDCC < pDCCs->getLength(); iDCC++) {
 			
 			xercesc::DOMElement *pDCC = (xercesc::DOMElement *) pDCCs->item(iDCC);
 			
-			// Report!
-			//std::cout << "  " << xercesc::XMLString::transcode(pDCC->getTagName()) << std::endl;
-
 			// Parse
-			DCCParser dccParser = DCCParser(pDCC);
+			DCCParser *dccParser;
+			try {
+				dccParser = new DCCParser(pDCC);
+			} catch (ParseException &e) {
+				XCEPT_RETHROW(ParseException, "Exception in parsing DCC element", e);
+			}
 
 			// Add the DCC to the crate.
-			newCrate->addDCC(dccParser.getDCC());
+			newCrate->addBoard((VMEModule *) dccParser->getDCC());
 		}
 
-		// Done:  push the FEDCrate back.
+		// Done:  push the Crate back.
 		crateVector_.push_back(newCrate);
 	}
 
-	//std::cout << "Done parsing file " << name << std::endl;
-	//
-	//  Clean up the error handler. The parser does not adopt handlers
-	//  since they could be many objects or one object installed for multiple
-	//  handlers.
-	//
-
-	//  Delete the parser itself.  Must be done prior to calling Terminate, below.
+	// Delete the parser itself.  Must be done prior to calling Terminate, below.
 	delete parser;
-	
 
 	// And call the termination method
 	xercesc::XMLPlatformUtils::Terminate();
-	// DomMemDebug().print();
-		
-	//
-	//  The DOM document and its contents are reference counted, and need
-	//  no explicit deletion.
-	//
-  
+
 }
 

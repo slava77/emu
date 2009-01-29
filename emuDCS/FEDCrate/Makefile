@@ -19,20 +19,19 @@ Package=emuDCS/FEDCrate
 
 Sources=\
 	FEDVersion.cc \
-	EmuFEDLoggable.cc \
 	VMEModule.cc \
 	Chamber.cc \
 	DDU.cc \
 	DCC.cc \
 	VMEController.cc \
 	FEDCrate.cc \
-	EmuParser.cc \
+	Parser.cc \
 	ChamberParser.cc \
 	DDUParser.cc \
 	DCCParser.cc \
 	VMEControllerParser.cc \
 	FEDCrateParser.cc \
-	EmuFEDApplication.cc \
+	Application.cc \
 	EmuFCrateManager.cc \
 	IRQThreadManager.cc \
 	EmuFCrate.cc \
@@ -45,7 +44,6 @@ Sources=\
 IncludeDirs = \
 	$(XDAQ_ROOT)/include \
 	$(XDAQ_ROOT)/include/xdaq \
-	$(BUILD_HOME)/emu/cscSV/include \
 	./include
 
 LibraryDirs = \
@@ -64,7 +62,6 @@ TestLibraryDirs = \
 	$(DIMDIR)/$(XDAQ_OS) \
 	$(DCSDIR)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
         $(XDAQ_ROOT)/emu/emuDCS/FEDCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/emu/cscSV/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib
 
 UserCFlags  = 
 UserCCFlags = -pipe -O2 -DOSUcc -fPIC -DLINUX  -s

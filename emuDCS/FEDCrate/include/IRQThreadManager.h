@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 3.8 2008/09/30 08:32:40 paste Exp $
+* $Id: IRQThreadManager.h,v 3.9 2009/01/29 15:31:22 paste Exp $
 *
 * $Log: IRQThreadManager.h,v $
+* Revision 3.9  2009/01/29 15:31:22  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.8  2008/09/30 08:32:40  paste
 * Updated IRQ Threads so that the endcap name is mentioned in the log filename
 *
@@ -19,7 +22,7 @@
 #include <queue>
 #include <pthread.h>
 
-#include "EmuFEDLoggable.h"
+#include "FEDException.h"
 
 namespace emu {
 	namespace fed {
@@ -27,7 +30,7 @@ namespace emu {
 		class FEDCrate;
 		class IRQData;
 
-		class IRQThreadManager: public EmuFEDLoggable {
+		class IRQThreadManager {
 		
 		public:
 		
@@ -35,8 +38,10 @@ namespace emu {
 			~IRQThreadManager();
 			
 			void attachCrate(FEDCrate *crate);
-			void startThreads(unsigned long int runNumber = 0);
-			void endThreads();
+			void startThreads(unsigned long int runNumber = 0)
+			throw (emu::fed::FMMThreadException);
+			void endThreads()
+			throw (emu::fed::FMMThreadException);
 			
 			inline void setEndcap(std::string myEndcap) { endcap_ = myEndcap; }
 		
