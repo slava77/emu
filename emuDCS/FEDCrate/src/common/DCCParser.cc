@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCCParser.cc,v 3.6 2008/09/19 16:53:52 paste Exp $
+* $Id: DCCParser.cc,v 3.7 2009/01/29 15:31:23 paste Exp $
 *
 * $Log: DCCParser.cc,v $
+* Revision 3.7  2009/01/29 15:31:23  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.6  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -12,23 +15,33 @@
 \*****************************************************************************/
 #include "DCCParser.h"
 
-#include <iostream>
+#include <sstream>
 
 #include "DCC.h"
 
 emu::fed::DCCParser::DCCParser(xercesc::DOMElement *pNode)
+throw (emu::fed::ParseException):
+Parser(pNode)
 {
-	parseNode(pNode);
-	
-	int slot = 0;
-	fillInt("Slot", slot);
-	if(slot == 0) {
-		std::cerr << "No slot specified for DCC! " << std::endl;
-	} else { 
-		dcc_ = new DCC(slot);
-		fillHex("FIFO_in_use", dcc_->fifoinuse_);
-		//fillHex("softwareswitch", dcc_->softsw_);
+	int slot;
+	try {
+		slot = extract<int>("Slot");
+	} catch (emu::fed::ParseException &e) {
+		std::ostringstream error;
+		error << "Unable to parse slot number from element";
+		XCEPT_RETHROW(emu::fed::ParseException, error.str(), e);
 	}
+	
+	dcc_ = new DCC(slot);
+	
+	try {
+		dcc_->fifoinuse_ = extract<int>("FIFO_in_use", std::ios::hex);
+	} catch (emu::fed::ParseException &e) {
+		std::ostringstream error;
+		error << "Unable to parse FIFO-in-use from element";
+		XCEPT_RETHROW(emu::fed::ParseException, error.str(), e);
+	}
+
 }
 
 

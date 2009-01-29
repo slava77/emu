@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 3.10 2008/09/22 14:31:54 paste Exp $
+* $Id: DDUParser.cc,v 3.11 2009/01/29 15:31:24 paste Exp $
 *
 * $Log: DDUParser.cc,v $
+* Revision 3.11  2009/01/29 15:31:24  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 3.10  2008/09/22 14:31:54  paste
 * /tmp/cvsY7EjxV
 *
@@ -21,34 +24,32 @@
 \*****************************************************************************/
 #include "DDUParser.h"
 
-#include <iostream>
+#include <sstream>
 
-//#include "ChamberParser.h"
 #include "DDU.h"
 
-emu::fed::DDUParser::DDUParser(xercesc::DOMElement *pNode):
-	slot_(0)
+emu::fed::DDUParser::DDUParser(xercesc::DOMElement *pNode)
+throw (emu::fed::ParseException):
+Parser(pNode)
 {
-
-	parseNode(pNode);
-
-	fillInt("Slot", slot_);
+	unsigned int slot;
+	try {
+		slot = extract<unsigned int>("Slot");
+	} catch (emu::fed::ParseException &e) {
+		std::ostringstream error;
+		error << "Unable to parse slot number from element";
+		XCEPT_RETHROW(emu::fed::ParseException, error.str(), e);
+	}
 	
-	if(slot_ == 0) {
-		std::cerr << "No slot specified for DDU! " << std::endl;
-	} else {
+	ddu_ = new DDU(slot);
 
-		ddu_ = new DDU(slot_);
-		//fillInt("skip_vme_load", ddu_->skip_vme_load_);
-
-		fillHex("GbE_prescale", (int &) ddu_->gbe_prescale_);
-		//fillHex("killfiber", (int &) ddu_->killfiber_);
-
-		// Kill Fiber is a little more complicated now.
-		fillHex("Options", options_);
-
-		//ChamberParser CP = ChamberParser(fileName, crate, slot_);
-		//ddu_->setChambers(CP.getChambers());
+	try {
+		ddu_->gbe_prescale_ = extract<int>("GbE_prescale", std::ios::hex);
+		options_ = extract<int>("Options", std::ios::hex);
+	} catch (emu::fed::ParseException &e) {
+		std::ostringstream error;
+		error << "Unable to parse GbE prescale or options from element";
+		XCEPT_RETHROW(emu::fed::ParseException, error.str(), e);
 	}
 }
 

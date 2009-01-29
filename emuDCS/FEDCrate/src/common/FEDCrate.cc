@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: FEDCrate.cc,v 1.10 2008/09/24 18:38:38 paste Exp $
+* $Id: FEDCrate.cc,v 1.11 2009/01/29 15:31:24 paste Exp $
 *
 * $Log: FEDCrate.cc,v $
+* Revision 1.11  2009/01/29 15:31:24  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 1.10  2008/09/24 18:38:38  paste
 * Completed new VME communication protocols.
 *
@@ -24,103 +27,44 @@
 \*****************************************************************************/
 #include "FEDCrate.h"
 
-#include <iostream>
+#include <sstream>
 
-#include "VMEModule.h"
 #include "VMEController.h"
-#include "DDU.h"
-#include "DCC.h"
 
-emu::fed::FEDCrate::FEDCrate(int myNumber):
-	number_(myNumber)
+emu::fed::FEDCrate::FEDCrate(unsigned int myNumber):
+number_(myNumber)
 {
-	dduVector_.reserve(14);
-	dccVector_.reserve(2);
+	boardVector_.reserve(18);
 
-	broadcastDDU_ = new DDU(28); // Slot > 21 => broadcast slot.
+	broadcastDDU_ = new DDU(28); // broadcast slot.
 }
 
 
-emu::fed::FEDCrate::~FEDCrate() {
-	for(unsigned int iDDU = 0; iDDU < dduVector_.size(); iDDU++) {
-		delete dduVector_[iDDU];
-	}
-	for(unsigned int iDCC = 0; iDCC < dccVector_.size(); iDCC++) {
-		delete dccVector_[iDCC];
-	}
-	delete vmeController_;
-}
 
-/*
-void emu::fed::FEDCrate::addModule(VMEModule *module) {
-	module->setController(vmeController_);
-	module->setBHandle(vmeController_->getBHandle());
-	moduleVector_[module->slot()] = module;
-}
-*/
-void emu::fed::FEDCrate::addDDU(DDU *myDDU) {
-	//myDDU->setController(vmeController_);
+void emu::fed::FEDCrate::addBoard(VMEModule *myBoard)
+{
 	if (vmeController_ != NULL) {
-		myDDU->setBHandle(vmeController_->getBHandle());
+		myBoard->setBHandle(vmeController_->getBHandle());
 	}
-	dduVector_.push_back(myDDU);
-}
-
-
-
-void emu::fed::FEDCrate::addDCC(DCC *myDCC) {
-	//myDCC->setController(vmeController_);
-	if (vmeController_ != NULL) {
-		myDCC->setBHandle(vmeController_->getBHandle());
-	}
-	dccVector_.push_back(myDCC);
+	boardVector_.push_back(myBoard);
 }
 
 
 
 void emu::fed::FEDCrate::setController(VMEController *controller) {
-	if (vmeController_ != NULL) {
-		std::cout << "WARNING: Trying change the VMEController of crate " << number_ << std::endl;
-	}
 
 	vmeController_ = controller;
-	//vmeController_->setCrate(number_);
 
-	//broadcastDDU_->setController(vmeController_); // Will be removed later.
 	broadcastDDU_->setBHandle(vmeController_->getBHandle());
 	
-	for(std::vector<DDU *>::iterator iDDU = dduVector_.begin(); iDDU != dduVector_.end(); iDDU++) {
-		//(*iDDU)->setController(vmeController_);
-		(*iDDU)->setBHandle(vmeController_->getBHandle());
-	}
-	for(std::vector<DCC *>::iterator iDCC = dccVector_.begin(); iDCC != dccVector_.end(); iDCC++) {
-		//(*iDCC)->setController(vmeController_);
-		(*iDCC)->setBHandle(vmeController_->getBHandle());
-	}
-}
-
-
-void emu::fed::FEDCrate::setBHandle(int32_t BHandle) {
-	if (vmeController_->getBHandle() != -1) {
-		std::cout << "WARNING: Trying change the BHandle of crate " << number_ << std::endl;
-	}
-	std::cout << "Setting BHandle in crate " << number_ << std::endl;
-	vmeController_->setBHandle(BHandle);
-	//vmeController_->setCrate(number_);
-	
-	broadcastDDU_->setBHandle(vmeController_->getBHandle());
-	
-	for(std::vector<DDU *>::iterator iDDU = dduVector_.begin(); iDDU != dduVector_.end(); iDDU++) {
-		(*iDDU)->setBHandle(vmeController_->getBHandle());
-	}
-	for(std::vector<DCC *>::iterator iDCC = dccVector_.begin(); iDCC != dccVector_.end(); iDCC++) {
-		(*iDCC)->setBHandle(vmeController_->getBHandle());
+	for(std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
+		(*iBoard)->setBHandle(vmeController_->getBHandle());
 	}
 }
 
 
 
-int emu::fed::FEDCrate::getRUI(int slot) {
+int emu::fed::FEDCrate::getRUI(const int slot) {
 	// TF is special.
 	if (number_ == 5) return 192;
 	// Test crate is special
@@ -136,23 +80,18 @@ int emu::fed::FEDCrate::getRUI(int slot) {
 
 
 
-//
-void emu::fed::FEDCrate::configure() {
-// JRG, downloads to all boards, then starts the IRQ handler.
-	//printf(" ********   emu::fed::FEDCrate::configure is called with run number %u \n",(unsigned int) runnumber);
-	for(std::vector<DDU *>::iterator iDDU = dduVector_.begin(); iDDU != dduVector_.end(); iDDU++) {
-		(*iDDU)->configure();
+void emu::fed::FEDCrate::configure()
+throw (ConfigurationException)
+{
+	for(std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
+		try {
+			(*iBoard)->configure();
+		} catch (emu::fed::Exception &e) {
+			std::ostringstream error;
+			error << "Configuration of board in crate " << number_ << " slot " << (*iBoard)->slot() << " has failed";
+			XCEPT_RETHROW(ConfigurationException, error.str(), e);
+		}
 	}
-	for(std::vector<DCC *>::iterator iDCC = dccVector_.begin(); iDCC != dccVector_.end(); iDCC++) {
-		(*iDCC)->configure();
-	}
-
-// LSD, move IRQ start to Init phase:
-// JRG, we probably want to keep IRQ clear/reset here (End, then Start):
-// PGK, new objects (IRQThread) in town.  Use these instead.
-// PGK, better yet, just call init.
-//	std::cout << " ********   emu::fed::FEDCrate::configure complete, running init..." << std::endl;
-//	this->init(runnumber);
 }
 
 

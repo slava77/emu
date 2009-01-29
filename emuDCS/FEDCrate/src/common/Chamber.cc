@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Chamber.cc,v 1.8 2008/09/19 16:53:52 paste Exp $
+* $Id: Chamber.cc,v 1.9 2009/01/29 15:31:23 paste Exp $
 *
 * $Log: Chamber.cc,v $
+* Revision 1.9  2009/01/29 15:31:23  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 1.8  2008/09/19 16:53:52  paste
 * Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
 *
@@ -15,31 +18,22 @@
 \*****************************************************************************/
 #include "Chamber.h"
 
-#include <iostream>
-#include <vector>
 #include <sstream>
 #include <iomanip>
 
 emu::fed::Chamber::Chamber():
-	endcap(""),
-	station(0),
-	type(0),
-	number(0),
+endcap(""),
+station(0),
+type(0),
+number(0),
 //fiberCassetteCrate_(0),
 //fiberCassettePos_(0),
 //fiberCassetteSocket_(""),
 //peripheralCrateId_(0),
-	peripheralCrateVMECrate_(0)
+peripheralCrateVMECrate_(0)
 //peripheralCrateVMESlot_(0)
 {
 	// All that for nothing...
-}
-
-
-
-emu::fed::Chamber::~Chamber()
-{
-	// Nothing.
 }
 
 

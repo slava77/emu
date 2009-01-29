@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DataTable.h,v 1.10 2008/10/13 11:56:40 paste Exp $
+* $Id: DataTable.h,v 1.11 2009/01/29 15:31:22 paste Exp $
 *
 * $Log: DataTable.h,v $
+* Revision 1.11  2009/01/29 15:31:22  paste
+* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
+*
 * Revision 1.10  2008/10/13 11:56:40  paste
 * Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
 *
@@ -23,6 +26,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include "cgicc/HTMLClasses.h"
 
 #include "FEDException.h"
 
@@ -42,35 +46,45 @@ namespace emu {
 			/** Standard constructor.
 			*
 			*	@param myValue is the value of the pacticular element.
-			*	@param className is the class of the particular element.
 			**/
-			DataElement(std::stringstream myValue, std::string className = "none");
+			DataElement(std::stringstream myValue, std::string myClass = "");
 		
 			/** Standard constructor with std::strings.
 			*
 			*	@param myValue is the value of the pacticular element.
 			*	@param className is the class of the particular element.
 			**/
-			DataElement(std::string myValue = "", std::string klass = "none");
+			DataElement(std::string myValue = "", std::string myClass = "");
 
 			/** Copy constructor, for the stupid stringstream **/
 			DataElement(const DataElement &myElement);
 
+			/** Standard defining operator **/
 			DataElement &operator= (const DataElement &myElement);
-		
-			~DataElement() {}
-		
-			/** Set the CSS class. **/
-			inline void setClass(std::string className) { class_ = className; }
-		
-			/** @returns CSS class. **/
+
+			/** Arrow operator for accessing the cgicc element stored within **/
+			inline cgicc::td *operator-> () { return &element_; }
+
+			/** Set the class of the HTML \<td\> element.  This is required because the HTMLAttributeList
+			*	class does not allow for reading back of already set attributes (a SERIOUSLY short-sighted
+			*	maneuver if you ask me).
+			*
+			*	@param myClass is new class name of the element.
+			*	@returns itself so that this can be chained with other method calls.
+			**/
+			DataElement &setClass(const std::string &myClass);
+
+			/** Get the stored class of the element **/
 			inline std::string getClass() { return class_; }
 		
 			/** Display as an HTML table element \<td\>. **/
-			std::string toHTML(bool breaks = false);
+			std::string toHTML();
 		
 		private:
+		
+			cgicc::td element_;
 			std::string class_;
+			
 		};
 		
 	
@@ -78,49 +92,26 @@ namespace emu {
 		class DataRow: public std::vector<DataElement>
 		{
 			friend class DataTable;
+			
 		public:
 			/** Standard constructor.
 			*
-			*	@param myName is the name of the row, or the "title" of the element of data to be displayed.
-			*	@param cols is the number of columns in the row to begin with.  Can be dynamically updated later.
-			*	@param breaks is a set of bits with each high bit corresponding to placing a break in the table after that column.
+			*	@param cols is the number of columns in the row to begin with.
+			*	@param myElement is the default DataElement object that will be used as a template for the elements of the row.
 			**/
-			DataRow(std::stringstream myName, unsigned int cols = 3, unsigned long int breaks = 0)
-				throw (FEDException);
-		
-			/** Standard constructor with std::strings. **/
-			DataRow(std::string myName, unsigned int cols = 3, unsigned long int breaks = 0)
-				throw (FEDException);
-		
-			~DataRow() {}
+			DataRow(unsigned int cols = 0, DataElement myElement = DataElement());
 		
 			/** Access a given element.  Expand the vector as needed.  **/
-			DataElement &operator[] (unsigned int element)
-				throw (FEDException);
-		
-			/** Set which elements to draw a line after (using borders). 
-			*
-			*	@param breaks is a set of bits with each high bit corresponding to placing a break in the table after that column.
-			**/
-			inline void setBreaks(unsigned long int breaks) { breaks_ = breaks; }
-		
-			/** Set the CSS class name of the \e second element.
-			*	The second element is sometimes used as the data value, so it might be
-			*	important to have an easy way to set its class.
-			**/
-			inline void setClass(std::string className)
-				throw (FEDException)
-			{
-				if (size() < 2) XCEPT_RAISE(FEDException, "DataRow::getClass assumes that the second element is the data element.  You need at least two elements in the DataRow to call this method.");
-				(*this)[1].setClass(className);
-			}
+			DataElement &operator[] (unsigned int element);
+
+			/** Arrow operator for accessing the cgicc element stored within **/
+			inline cgicc::tr *operator-> () { return &element_; }
 		
 			/** @returns a string representing the row in and HTML table row \<tr\>.
-			
-				@sa @class DataElement method toHTML.
+			*	@sa DataElement method toHTML.
 			**/
 			std::string toHTML();
-		
+
 			/** Make a form for editing the present value.
 			*
 			*	@param target is the target URL of the form
@@ -129,29 +120,28 @@ namespace emu {
 			*	@param val is the legacy index number for DDU/DCCTextLoad to parse.
 			*	@param buttonText is the text you want to appear in the submit button.
 			**/
-			std::string makeForm(std::string target, unsigned int crate, unsigned int ddu, unsigned int val, std::string buttonText = "Load")
-				throw (FEDException);
+			//std::string makeForm(std::string target, unsigned int crate, unsigned int ddu, unsigned int val, std::string buttonText = "Load");
 		
 		private:
 			//std::vector< DataElement > elements_;
-			unsigned long int breaks_;
+			//unsigned long int breaks_;
+			cgicc::tr element_;
 		};
 		
 		/** @class DataTable A class for building, maintaining, and easily displaying tables of data
 		*	used in the EmuFCrateHyperDAQ application.
 		*
-		*	@sa @class EmuFCrateHyperDAQ
+		*	@sa EmuFCrateHyperDAQ
 		**/
 		class DataTable: public std::vector<DataRow>
 		{
 		public:
 			/** Standard constructor.
 			*
-			*	@param id the HTML id tag of the table.  Should be unique.
+			*	@param row is the number of rows the table will begin with.
+			*	@param myRow is the default DataRow object that will be used as a template for the rows of the table.
 			**/
-			DataTable(std::string id);
-		
-			~DataTable() {};
+			DataTable(unsigned int rows = 0, DataRow myRow = DataRow());
 		
 			/** Access a given DataRow.  Increase the DataRow vector as needed.  **/
 			DataRow &operator[] (unsigned int row);
@@ -163,35 +153,24 @@ namespace emu {
 			*	@param col the DataElement in that row to access.
 			**/
 			DataElement &operator() (unsigned int row, unsigned int col);
-		
-			/** Add a column to the table.  Will expand the DataRows as needed.
-			*
-			*	@param title the title of the column to appear at the top of the HTML version of the table.
-			**/
-			void addColumn(std::string title);
-		
-			/** Put a border-defined break to the right of the last defined column. **/
-			void addBreak()
-				throw (FEDException);
-		
-			/** Add a pre-constructed DataRow to the table. **/
-			void addRow(DataRow row);
-			
-			/** @return the number of DaraRows in the table. **/
-			inline unsigned int countRows() { return size(); }
+
+			/** Arrow operator for accessing the cgicc element stored within **/
+			cgicc::table &getElement() { return element_; }
+			cgicc::table *operator->() { return &element_; }
 		
 			/** @return the table formatted as an HTML table \<table\>.
 			*
 			*	@param tableTags if true will display the table with the opening and closing \<table\> tags.  Useful if you want to combine tables under the same set of tags.
 			**/
-			std::string toHTML(bool tableTags = true);
+			std::string toHTML();
 		
-			/** @return the number of times a particular class name appears in the classes
+			/** @return a map of the the number of times a particular class name appears in the classes
 			*	of the DataElements.
 			*
 			*	@param className the CSS class name for which to search.
+			*	@returns a class-name/multiplicity map
 			**/
-			unsigned int countClass(std::string className);
+			std::map<std::string, unsigned int> countClasses();
 		
 			/** @returns a string summarizing the classes of the table in the format
 			*	"#withClassName1/#Elements ClassName1 #withClassName2/#Elements ClassName2..."
@@ -201,23 +180,9 @@ namespace emu {
 			**/
 			std::string printSummary();
 		
-			/** @returns whether or not the table is set to not display (via the HTML
-			*	parameter style="display: none;".
-			**/
-			inline bool isHidden() { return hidden_; }
-			
-			/** Sets whether or not the table is set to not display (via the HTML
-			*	parameter style="display: none;".
-			**/
-			inline void setHidden(bool hidden) { hidden_ = hidden; }
-		
 		private:
-			//std::vector< DataRow > rows_;
-			std::vector< std::string > headers_;
-			unsigned int cols_;
-			std::string id_;
-			bool hidden_;
-			unsigned long int breaks_;
+			cgicc::table element_;
+
 		};
 
 	}
