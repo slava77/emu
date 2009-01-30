@@ -1,0 +1,48 @@
+<?xml version='1.0'?>
+<xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+
+	<!-- This is an example configuration file for the EmuFCrateManager Application.  Modify things as appropriate to the particular hardware and XDAq environment. -->
+	<xc:Context url="http://FULL-NAME-OF-FEDMANAGER-MACHINE:PORT">		
+		<xc:Application class="emu::fed::EmuFCrateManager" id="30" instance="0" service="emufcrate" network="local"> 
+			<properties xmlns="urn:xdaq-application:EmuFCrateManager" xsi:type="soapenc:Struct" />
+		</xc:Application>
+		<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+		<xc:Module>${BUILD_HOME}/emu/emuDCS/FEDCrate/lib/linux/${XDAQ_PLATFORM}/libEmuFEDCrate.so</xc:Module>        
+	</xc:Context>
+
+	<!-- This is an example configuration file for the EmuFCrate and EmuFCrateHyperDAQ Applications.  Modify things as appropriate to the particular hardware and XDAq environment. -->
+	<xc:Context url="http://FULL-NAME-OF-PLUS-SIDE-FEDCRATE-MACHINE:PORT">		
+		<xc:Application class="emu::fed::EmuFCrate" id="33" instance="0" service="emufcrate" network="local"> 
+			<properties xmlns="urn:xdaq-application:EmuFCrate" xsi:type="soapenc:Struct">
+				<xmlFileName xsi:type="xsd:string">${BUILD_HOME}/emu/emuDCS/FEDCrate/xml/config_c12.xml</xmlFileName>
+			</properties>
+		</xc:Application>
+		<xc:Application class="emu::fed::EmuFCrateHyperDAQ" id="43" instance="0" service="emufcrate" network="local"> 
+			<properties xmlns="urn:xdaq-application:EmuFCrateHyperDAQ" xsi:type="soapenc:Struct">
+				<xmlFileName xsi:type="xsd:string">${BUILD_HOME}/emu/emuDCS/FEDCrate/xml/config_c12.xml</xmlFileName>
+			</properties>
+		</xc:Application>
+		<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+		<xc:Module>${BUILD_HOME}/emu/emuDCS/FEDCrate/lib/linux/x86/libEmuFEDCrate.so</xc:Module>        
+		<xc:Module>${XDAQ_ROOT}/lib/libCAENVME.so</xc:Module>        
+	</xc:Context>
+	
+	<xc:Context url="http://FULL-NAME-OF-MINUS-SIDE-FEDCRATE-MACHINE:PORT">
+		<xc:Application class="emu::fed::EmuFCrate" id="34" instance="1" service="emufcrate" network="local"> 
+			<properties xmlns="urn:xdaq-application:EmuFCrate" xsi:type="soapenc:Struct">
+				<xmlFileName xsi:type="xsd:string">${BUILD_HOME}/emu/emuDCS/FEDCrate/xml/config_c34.xml</xmlFileName>
+			</properties>
+		</xc:Application>
+		<xc:Application class="emu::fed::EmuFCrateHyperDAQ" id="44" instance="1" service="emufcrate" network="local"> 
+			<properties xmlns="urn:xdaq-application:EmuFCrateHyperDAQ" xsi:type="soapenc:Struct">
+				<xmlFileName xsi:type="xsd:string">${BUILD_HOME}/emu/emuDCS/FEDCrate/xml/config_c34.xml</xmlFileName>
+			</properties>
+		</xc:Application>
+		<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+		<xc:Module>${BUILD_HOME}/emu/emuDCS/FEDCrate/lib/linux/x86/libEmuFEDCrate.so</xc:Module>        
+		<xc:Module>${XDAQ_ROOT}/lib/libCAENVME.so</xc:Module>        
+	</xc:Context>
+
+</xc:Partition>
+
+<!-- vim: set sw=2 ts=2: -->

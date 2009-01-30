@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 3.1 2009/01/29 15:31:23 paste Exp $
+* $Id: Application.cc,v 3.2 2009/01/30 19:14:16 paste Exp $
 *
 * $Log: Application.cc,v $
+* Revision 3.2  2009/01/30 19:14:16  paste
+* New emu::base namespace and emu::base::Supervised inheritance added.
+*
 * Revision 3.1  2009/01/29 15:31:23  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -44,18 +47,11 @@
 #include "log4cplus/configurator.h"
 
 emu::fed::Application::Application(xdaq::ApplicationStub *stub):
-xdaq::WebApplication(stub),
+emu::base::Supervised(stub),
 runNumber_(0),
 endcap_("?"),
-state_(""),
 soapLocal_(false)
 {
-	fsm_.setFailedStateTransitionAction(this, &emu::fed::Application::transitionFailed);
-	fsm_.setFailedStateTransitionChanged(this, &emu::fed::Application::stateChanged);
-	fsm_.setStateName('F', "Failed");
-	
-	getApplicationInfoSpace()->fireItemAvailable("State", &state_);
-	getApplicationInfoSpace()->fireItemAvailable("stateName", &state_);
 	getApplicationInfoSpace()->fireItemAvailable("endcap", &endcap_);
 
 	xoap::bind(this, &emu::fed::Application::onGetParameters, "GetParameters", XDAQ_NS_URI);
@@ -63,6 +59,7 @@ soapLocal_(false)
 	// PGK Making these available on the ApplicationInfoSpace will allow
 	//  the CSCSV to set them with the "ParameterSet" SOAP command.
 	getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
+	
 	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
 
 	xgi::bind(this,&emu::fed::Application::webFire, "Fire");
@@ -367,15 +364,15 @@ std::string emu::fed::Application::dumpEnvironment(xgi::Input *in)
 }
 
 
-
+/*
 void emu::fed::Application::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 {
 	state_ = fsm.getStateName(fsm.getCurrentState());
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "StateChanged: " << state_.toString());
 }
+*/
 
-
-
+/*
 void emu::fed::Application::transitionFailed(toolbox::Event::Reference event)
 {
 	toolbox::fsm::FailedEvent &failed = dynamic_cast<toolbox::fsm::FailedEvent &>(*event);
@@ -386,9 +383,9 @@ void emu::fed::Application::transitionFailed(toolbox::Event::Reference event)
 	XCEPT_DECLARE_NESTED(emu::fed::FSMException, e, error.str(), failed.getException());
 	notifyQualified("FATAL", e);
 }
+*/
 
-
-
+/*
 void emu::fed::Application::fireEvent(std::string name)
 {
 	toolbox::Event::Reference event((new toolbox::Event(name, this)));
@@ -402,9 +399,9 @@ void emu::fed::Application::fireEvent(std::string name)
 		notifyQualified("FATAL", e2);
 	}
 }
+*/
 
-
-
+/*
 xoap::MessageReference emu::fed::Application::createSOAPReply(xoap::MessageReference message)
 {
 	std::string command = "";
@@ -435,7 +432,7 @@ xoap::MessageReference emu::fed::Application::createSOAPReply(xoap::MessageRefer
 
 	return reply;
 }
-
+*/
 
 
 void emu::fed::Application::webFire(xgi::Input *in, xgi::Output *out)
@@ -480,6 +477,7 @@ void emu::fed::Application::webRedirect(xgi::Input *in, xgi::Output *out, std::s
 	header.getReasonPhrase("See Other");
 	header.addHeader("Location", url);
 }
+
 
 
 xoap::MessageReference emu::fed::Application::createSOAPCommand(std::string command)

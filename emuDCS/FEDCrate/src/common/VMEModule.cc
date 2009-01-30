@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 3.22 2009/01/29 15:31:24 paste Exp $
+* $Id: VMEModule.cc,v 3.23 2009/01/30 19:14:16 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 3.23  2009/01/30 19:14:16  paste
+* New emu::base namespace and emu::base::Supervised inheritance added.
+*
 * Revision 3.22  2009/01/29 15:31:24  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -64,8 +67,8 @@
 #include "CAENVMEtypes.h"
 #include "VMEController.h"
 
-emu::fed::VMEModule::VMEModule(int mySlot):
-	slot_(mySlot)
+emu::fed::VMEModule::VMEModule(unsigned int mySlot):
+slot_(mySlot)
 {
 	// Initialize mutexes
 	pthread_mutex_init(&mutex_, NULL);

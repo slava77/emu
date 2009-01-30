@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Application.h,v 3.1 2009/01/29 15:31:22 paste Exp $
+* $Id: Application.h,v 3.2 2009/01/30 19:14:16 paste Exp $
 *
 * $Log: Application.h,v $
+* Revision 3.2  2009/01/30 19:14:16  paste
+* New emu::base namespace and emu::base::Supervised inheritance added.
+*
 * Revision 3.1  2009/01/29 15:31:22  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -34,9 +37,7 @@
 #ifndef __EMUFEDAPPLICATION_H__
 #define __EMUFEDAPPLICATION_H__
 
-#include "xdaq/WebApplication.h"
-// Later
-//#include "Supervised.h"
+#include "emu/base/Supervised.h"
 #include "FEDException.h"
 
 #include <string>
@@ -59,7 +60,7 @@ xoap::MessageReference on ##COMMAND(xoap::MessageReference message) \
 { \
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM state change requested:  " #COMMAND); \
 	fireEvent(#COMMAND); \
-	return createSOAPReply(message); \
+	return createReply(message); \
 }
 
 #define BIND_DEFAULT_SOAP2FSM_ACTION( CLASS, COMMAND ) xoap::bind(this, &CLASS::on ##COMMAND, #COMMAND, XDAQ_NS_URI);
@@ -67,9 +68,7 @@ xoap::MessageReference on ##COMMAND(xoap::MessageReference message) \
 namespace emu {
 	namespace fed {
 		
-		class Application: public xdaq::WebApplication {
-		// Later
-		//class EmuFEDApplication: public emu::base::Supervised {
+		class Application: public emu::base::Supervised {
 
 		public:
 
@@ -236,25 +235,25 @@ namespace emu {
 			*
 			*	@param fsm is the finite state machine that just transitioned stated
 			**/
-			void stateChanged(toolbox::fsm::FiniteStateMachine &fsm);
+			//void stateChanged(toolbox::fsm::FiniteStateMachine &fsm);
 
 			/** Method used as a general call-back when the FSM transitions to the Failed state.
 			*
 			*	@param event is the event (exception) that caused the failure
 			**/
-			void transitionFailed(toolbox::Event::Reference event);
+			//void transitionFailed(toolbox::Event::Reference event);
 
 			/** Method that will cause the FSM to perform a transition bound to a given event if it exists.
 			*
 			*	@param event is the named transition that the FSM will attempt to perform.
 			**/
-			void fireEvent(std::string event);
+			//void fireEvent(std::string event);
 
 			/** Creates a simple reply to a SOAP command.
 			*
 			*	@param message is the message to which a reply is generated
 			**/
-			xoap::MessageReference createSOAPReply(xoap::MessageReference message);
+			//xoap::MessageReference createSOAPReply(xoap::MessageReference message);
 
 			/** Fire a FSM transition command from a CGI GET parameter.
 			*

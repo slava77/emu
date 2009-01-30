@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: ChamberParser.cc,v 1.8 2009/01/29 15:31:23 paste Exp $
+* $Id: ChamberParser.cc,v 1.9 2009/01/30 19:14:16 paste Exp $
 *
 * $Log: ChamberParser.cc,v $
+* Revision 1.9  2009/01/30 19:14:16  paste
+* New emu::base namespace and emu::base::Supervised inheritance added.
+*
 * Revision 1.8  2009/01/29 15:31:23  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -43,7 +46,7 @@ Parser(pNode)
 		XCEPT_RETHROW(emu::fed::ParseException, error.str(), e);
 	}
 
-	if (!sscanf(chamberName.c_str(), "%*c%1d/%1d/%02d", &(chamber_->station), &(chamber_->type), &(chamber_->number))) {
+	if (sscanf(chamberName.c_str(), "%*c%1d/%1d/%02d", &(chamber_->station), &(chamber_->type), &(chamber_->number)) != 3) {
 		std::ostringstream error;
 		error << "Unable to parse chamber station, type, and number from '" << chamberName << "'";
 		XCEPT_RAISE(emu::fed::ParseException, error.str());

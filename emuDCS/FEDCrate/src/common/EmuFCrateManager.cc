@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.27 2009/01/29 15:31:24 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.28 2009/01/30 19:14:16 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.28  2009/01/30 19:14:16  paste
+* New emu::base namespace and emu::base::Supervised inheritance added.
+*
 * Revision 1.27  2009/01/29 15:31:24  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -794,7 +797,7 @@ xoap::MessageReference emu::fed::EmuFCrateManager::onSetTTSBits(xoap::MessageRef
 		XCEPT_DECLARE(emu::fed::OutOfBoundsException, e, error.str());
 		notifyQualified("WARN", e);
 		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		return createSOAPReply(message);
+		return createReply(message);
 	}
 
 	try {
@@ -815,7 +818,7 @@ xoap::MessageReference emu::fed::EmuFCrateManager::onSetTTSBits(xoap::MessageRef
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 	}
 	
-	return createSOAPReply(message);
+	return createReply(message);
 	
 }
 
