@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 3.20 2009/01/29 15:31:23 paste Exp $
+* $Id: VMEModule.h,v 3.21 2009/01/30 19:14:16 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 3.21  2009/01/30 19:14:16  paste
+* New emu::base namespace and emu::base::Supervised inheritance added.
+*
 * Revision 3.20  2009/01/29 15:31:23  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -83,12 +86,12 @@ namespace emu {
 			*
 			*	@param mySlot is the board's slot number in the crate (needed for proper VME communication.)
 			**/
-			VMEModule(int mySlot);
+			VMEModule(unsigned int mySlot);
 
 			virtual ~VMEModule() {};
 
 			/** @returns the slot number. **/
-			inline const unsigned int slot() {return slot_;}
+			inline unsigned int slot() {return slot_;}
 
 			/** Sets the appropriate BHandle for proper CAEN communication.
 			*

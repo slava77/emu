@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.33 2009/01/29 15:31:24 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.34 2009/01/30 19:14:16 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.34  2009/01/30 19:14:16  paste
+* New emu::base namespace and emu::base::Supervised inheritance added.
+*
 * Revision 3.33  2009/01/29 15:31:24  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -382,7 +385,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		// In which slot did the error occur?  Get the DDU that matches.
 		DDU *myDDU = NULL;
 		for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-			if ((*iDDU)->slot() == ((errorData & 0x1f00) >> 8)) {
+			if ((*iDDU)->slot() == (unsigned int) ((errorData & 0x1f00) >> 8)) {
 				locdata->lastDDU[crateNumber] = (*iDDU);
 				myDDU = (*iDDU);
 				break;

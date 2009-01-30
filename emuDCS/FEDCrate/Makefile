@@ -44,7 +44,8 @@ Sources=\
 IncludeDirs = \
 	$(XDAQ_ROOT)/include \
 	$(XDAQ_ROOT)/include/xdaq \
-	./include
+	$(BUILD_HOME)/emu/base/include \
+	$(BUILD_HOME)/emu/emuDCS/FEDCrate/include
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/lib
@@ -65,25 +66,22 @@ TestLibraryDirs = \
 
 UserCFlags  = 
 UserCCFlags = -pipe -O2 -DOSUcc -fPIC -DLINUX  -s
-//UserDynamicLinkFlags = -l CAENVME
 UserStaticLinkFlags =
-UserExecutableLinkFlags =-D_REENTRAN -pthread
+UserExecutableLinkFlags = -D_REENTRAN -pthread
 
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
 Libraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer CAENVME
-TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer \
-                mimetic xmlappender udpappender \
-	        EmuFEDCrate CAENVME
+TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer mimetic xmlappender udpappender EmuFEDCrate CAENVME
 
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary= EmuFEDCrate
-StaticLibrary= 
+DynamicLibrary = EmuFEDCrate
+StaticLibrary = 
 
-Executables=
-TestExecutables=  
+Executables =
+TestExecutables =
 
 include $(XDAQ_ROOT)/config/Makefile.rules

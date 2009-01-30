@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrate.cc,v 3.54 2009/01/29 15:31:24 paste Exp $
+* $Id: EmuFCrate.cc,v 3.55 2009/01/30 19:14:16 paste Exp $
 *
 * $Log: EmuFCrate.cc,v $
+* Revision 3.55  2009/01/30 19:14:16  paste
+* New emu::base namespace and emu::base::Supervised inheritance added.
+*
 * Revision 3.54  2009/01/29 15:31:24  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -172,7 +175,7 @@ xoap::MessageReference emu::fed::EmuFCrate::onSetTTSBits(xoap::MessageReference 
 	
 	if (!found) {
 		LOG4CPLUS_INFO(getApplicationLogger(), "ttsCrate_=" << ttsCrate_.toString() << ", ttsSlot_=" << ttsSlot_.toString() << " is not commanded by this application");
-		return createSOAPReply(message);
+		return createReply(message);
 	} else {
 		LOG4CPLUS_INFO(getApplicationLogger(), "Writing ttsCrate_=" << ttsCrate_.toString() << " ttsSlot_=" << ttsSlot_.toString() << " ttsBits_=" << ttsBits_.toString());
 	}
@@ -190,7 +193,7 @@ xoap::MessageReference emu::fed::EmuFCrate::onSetTTSBits(xoap::MessageReference 
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 		XCEPT_DECLARE_NESTED(emu::fed::TTSException, e2, error.str(), e);
 		notifyQualified("ERROR", e2);
-		return createSOAPReply(message);
+		return createReply(message);
 	}
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "Read back ttsBits_=" << ttsBits_.toString());
@@ -204,7 +207,7 @@ xoap::MessageReference emu::fed::EmuFCrate::onSetTTSBits(xoap::MessageReference 
 	}
 
 	// PGK Remember:  you can always steal the TTSBits status via SOAP if you really, really want it.
-	return createSOAPReply(message);
+	return createReply(message);
 }
 
 
@@ -1026,7 +1029,7 @@ xoap::MessageReference emu::fed::EmuFCrate::onGetParameters(xoap::MessageReferen
 	
 	return reply;
 	
-	//return createSOAPReply(message);
+	//return createReply(message);
 
 }
 */
