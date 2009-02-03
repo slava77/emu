@@ -2063,7 +2063,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
   //                       23,24,33};
   int counter_idx[23]={ 0 ,  1,  3,  5,  9, 13, 14, 17, 18, 19, 
 			20, 25, 26, 27, 28, 30, 33, 34, 36, 40,
-			45, 47, 48};
+			45, 47, 64};
 
   std::ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
@@ -2979,7 +2979,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
 
     TCounterName.push_back( "CCB:  TTCrx lock lost                                   "); //62
     TCounterName.push_back( "CCB:  qPLL lock lost                                    "); //63
-    TCounterName.push_back( "TMB: Time since last Hard Reset                         "); //44
+    TCounterName.push_back( "TMB: Time since last Hard Reset                         "); //64
 
 #if 0
     //
