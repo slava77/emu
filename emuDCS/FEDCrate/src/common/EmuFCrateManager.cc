@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateManager.cc,v 1.28 2009/01/30 19:14:16 paste Exp $
+* $Id: EmuFCrateManager.cc,v 1.29 2009/02/04 18:28:11 paste Exp $
 *
 * $Log: EmuFCrateManager.cc,v $
+* Revision 1.29  2009/02/04 18:28:11  paste
+* Updated for 6.10 release.  Fixed some obvious bugs.  Still problems with EmuFCrateHyperDAQ display.
+*
 * Revision 1.28  2009/01/30 19:14:16  paste
 * New emu::base namespace and emu::base::Supervised inheritance added.
 *
@@ -191,7 +194,7 @@ void emu::fed::EmuFCrateManager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("class","legend") << std::endl;
 
 	std::set<xdaq::ApplicationDescriptor * > descriptors =
-		getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuFCrate");
+		getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("emu::fed::EmuFCrate");
 
 	std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptors.begin(); itDescriptor != descriptors.end(); itDescriptor++ ) {
@@ -495,7 +498,7 @@ throw (toolbox::fsm::exception::Exception)
 	}
 
 	try{
-		sendSOAPCommand("Configure","EmuFCrate");
+		sendSOAPCommand("Configure","emu::fed::EmuFCrate");
 	} catch (emu::fed::Exception &e) {
 		std::ostringstream error;
 		error << "Exception in configuring EmuFCrateManager";
@@ -558,8 +561,10 @@ throw (toolbox::fsm::exception::Exception)
 		notifyQualified("ERROR", e2);
 	}
 
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "After runNumber sent, sending Enable command");
+	
 	try{
-		sendSOAPCommand("Enable","EmuFCrate");
+		sendSOAPCommand("Enable","emu::fed::EmuFCrate");
 	} catch (emu::fed::SOAPException &e) {
 		std::ostringstream error;
 		error << "Exception in enabling EmuFCrates";
@@ -611,7 +616,7 @@ throw (toolbox::fsm::exception::Exception)
 	} else {
 
 		try{
-			sendSOAPCommand("Disable","EmuFCrate");
+			sendSOAPCommand("Disable","emu::fed::EmuFCrate");
 		} catch (emu::fed::SOAPException &e) {
 			std::ostringstream error;
 			error << "Exception in disabling EmuFCrates";
@@ -653,7 +658,7 @@ throw (toolbox::fsm::exception::Exception)
 	soapConfigured_ = false;
 
 	try{
-		sendSOAPCommand("Halt","EmuFCrate");
+		sendSOAPCommand("Halt","emu::fed::EmuFCrate");
 	} catch (emu::fed::SOAPException &e) {
 		std::ostringstream error;
 		error << "Exception in halting EmuFCrates";
@@ -705,7 +710,7 @@ std::string emu::fed::EmuFCrateManager::getUnderlyingStates()
 	// Check to see if I should fail based on the statuses of the EmuFCrates.
 	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
-		apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors("EmuFCrate");
+		apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors("emu::fed::EmuFCrate");
 	} catch (xdaq::exception::ApplicationDescriptorNotFound &e) {
 		std::ostringstream error;
 		error << "EmuFCrate applications not found";
@@ -808,7 +813,7 @@ xoap::MessageReference emu::fed::EmuFCrateManager::onSetTTSBits(xoap::MessageRef
 		setParameter("EmuFCrate", "ttsBits", "xsd:int", ttsBits_.toString());
 		
 		// The EmuFCrate applications will decide if they should do anything based on the crates they conmmand.
-		sendSOAPCommand("SetTTSBits", "EmuFCrate");
+		sendSOAPCommand("SetTTSBits", "emu::fed::EmuFCrate");
 		
 	} catch (emu::fed::SoftwareException &e) {
 		std::ostringstream error;

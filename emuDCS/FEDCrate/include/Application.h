@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Application.h,v 3.2 2009/01/30 19:14:16 paste Exp $
+* $Id: Application.h,v 3.3 2009/02/04 18:28:11 paste Exp $
 *
 * $Log: Application.h,v $
+* Revision 3.3  2009/02/04 18:28:11  paste
+* Updated for 6.10 release.  Fixed some obvious bugs.  Still problems with EmuFCrateHyperDAQ display.
+*
 * Revision 3.2  2009/01/30 19:14:16  paste
 * New emu::base namespace and emu::base::Supervised inheritance added.
 *
@@ -247,7 +250,7 @@ namespace emu {
 			*
 			*	@param event is the named transition that the FSM will attempt to perform.
 			**/
-			//void fireEvent(std::string event);
+			void fireEvent(std::string event);
 
 			/** Creates a simple reply to a SOAP command.
 			*
@@ -292,17 +295,11 @@ namespace emu {
 
 		protected:
 
-			/// The finite state machine!
-			toolbox::fsm::FiniteStateMachine fsm_;
-
 			/// The run number of the current run.  Useful for log files.
 			xdata::UnsignedLong runNumber_;
 
 			/// The "endcap" for the application.  This is just some name that can be used to distinguish differently-configured applications from each other.
 			xdata::String endcap_;
-
-			/// The text string that represents the current FSM state.
-			xdata::String state_;
 
 			/// Whether or not the current state has been transitioned to via SOAP or via a web request.
 			bool soapLocal_;

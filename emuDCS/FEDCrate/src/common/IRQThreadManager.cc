@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 3.34 2009/01/30 19:14:16 paste Exp $
+* $Id: IRQThreadManager.cc,v 3.35 2009/02/04 18:28:11 paste Exp $
 *
 * $Log: IRQThreadManager.cc,v $
+* Revision 3.35  2009/02/04 18:28:11  paste
+* Updated for 6.10 release.  Fixed some obvious bugs.  Still problems with EmuFCrateHyperDAQ display.
+*
 * Revision 3.34  2009/01/30 19:14:16  paste
 * New emu::base namespace and emu::base::Supervised inheritance added.
 *
@@ -122,7 +125,7 @@ throw (emu::fed::FMMThreadException)
 	// mother program.
 	data_ = new IRQData();
 
-	char datebuf[15];
+	char datebuf[32];
 	//char filebuf[255];
 	std::stringstream fileName;
 	time_t theTime = time(NULL);
@@ -574,8 +577,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		}
 	}
 	//std::cout << " IRQ_Int call pthread_exit" << std::endl;
-	int returnValue = 0; // This may be more useful later.  I don't know.
-	pthread_exit((void *) &returnValue);
+	pthread_exit(NULL);
 }
 
 

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Parser.h,v 3.1 2009/01/29 15:31:22 paste Exp $
+* $Id: Parser.h,v 3.2 2009/02/04 18:28:11 paste Exp $
 *
 * $Log: Parser.h,v $
+* Revision 3.2  2009/02/04 18:28:11  paste
+* Updated for 6.10 release.  Fixed some obvious bugs.  Still problems with EmuFCrateHyperDAQ display.
+*
 * Revision 3.1  2009/01/29 15:31:22  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -52,7 +55,7 @@ namespace emu {
 					XCEPT_RAISE(XMLException, xercesc::XMLString::transcode(e.getMessage()));
 				}
 				std::stringstream scan;
-				scan.exceptions(std::stringstream::eofbit | std::stringstream::failbit | std::stringstream::badbit);
+				scan.exceptions(std::stringstream::failbit | std::stringstream::badbit);
 				scan << xercesc::XMLString::transcode(pAttributeNode->getNodeValue());
 				T target;
 				try {
