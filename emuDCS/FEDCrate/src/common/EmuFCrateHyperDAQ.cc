@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.60 2009/01/29 15:31:24 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.61 2009/02/04 18:28:11 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.61  2009/02/04 18:28:11  paste
+* Updated for 6.10 release.  Fixed some obvious bugs.  Still problems with EmuFCrateHyperDAQ display.
+*
 * Revision 3.60  2009/01/29 15:31:24  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -119,7 +122,6 @@ xmlFile_("/home/cscdev/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml")
 	xgi::bind(this,&emu::fed::EmuFCrateHyperDAQ::DDUVoltMon,"DDUVoltMon");
 
 	getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
-	getApplicationInfoSpace()->fireItemAvailable("endcap", &endcap_);
 
 }
 
@@ -159,8 +161,11 @@ void emu::fed::EmuFCrateHyperDAQ::webDefault(xgi::Input *in, xgi::Output *out)
 	}
 
 	if (crateVector_.size() != 0) {
-		
-		return webRedirect(out,"mainPage");
+	    
+		std::ostringstream redirect;
+		redirect << "mainPage?crate=" << crateVector_[0]->number();
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Redirecting to " << redirect.str());
+		return webRedirect(out, redirect.str());	
 		
 	} else {
 		*out << cgicc::div("No crates could be found.  This is probably due to a bad configuration file.  Check your configuration file (" + xmlFile_.toString() + "), then try reloading this page.")
@@ -184,6 +189,8 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		cgicc::Cgicc cgi(in);
 
 		// First, I need a crate.
+		// Note:  for the main page only, if this throws an exception,
+		// try some sensible default.
 		std::pair<unsigned int, FEDCrate *> cratePair = getCGICrate(cgi);
 		unsigned int cgiCrate = cratePair.first;
 		FEDCrate *myCrate = cratePair.second;
@@ -603,6 +610,31 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 		}
 
 
+		// DCC buttons.
+		if (myCrate->getDCCs().size()) {
+
+			// Broadcast Firmware
+			*out << cgicc::span() << std::endl;
+			std::ostringstream crateVal;
+			crateVal << cgiCrate;
+			location.str("");
+			location << "/" << getApplicationDescriptor()->getURN() << "/DCCBroadcast";
+			*out << cgicc::form()
+				.set("method","GET")
+				.set("action",location.str()) << std::endl;
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("name","crate")
+				.set("value",crateVal.str());
+			*out << cgicc::input()
+				.set("type","submit")
+				.set("value","DCC Firmware Management") << std::endl;
+			*out << cgicc::form() << std::endl;
+			*out << cgicc::span() << std::endl;
+
+		}
+
+
 		*out << cgicc::fieldset() << std::endl;
 
 		*out << cgicc::br() << std::endl;
@@ -985,7 +1017,7 @@ throw (emu::fed::ParseException)
 		std::ostringstream error;
 		error << "Error parsing file " << xmlFile_.toString();
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_RAISE(emu::fed::ParseException, error.str());
+		XCEPT_RETHROW(emu::fed::ParseException, error.str(), e);
 	}
 
 }

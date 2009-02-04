@@ -1,8 +1,11 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 3.22 2009/01/29 15:31:24 paste Exp $
+* $Id: VMEController.cc,v 3.23 2009/02/04 18:28:11 paste Exp $
 *
 * $Log: VMEController.cc,v $
+* Revision 3.23  2009/02/04 18:28:11  paste
+* Updated for 6.10 release.  Fixed some obvious bugs.  Still problems with EmuFCrateHyperDAQ display.
+*
 * Revision 3.22  2009/01/29 15:31:24  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -68,14 +71,14 @@ BHandle_(-1)
 	CVErrorCodes err = CAENVME_Init(VMEBoard, Device_, Link_, &BHandle);
 
 	// Check to see if the board has been initialized.
-	if (err == cvBusError) {
+	if (err == cvGenericError) {
 		// If this failed, then maybe some other process has already opened the device.
 		// There should be a file that has the BHandle in it.
 		std::ostringstream fileName;
 		fileName << "CAEN_" << Device_ << "_" << Link_ << ".BHandle";
 		std::ifstream inFile(fileName.str().c_str());
 		if (inFile.is_open()) {
-			inFile.exceptions(std::ifstream::eofbit);
+			inFile.exceptions(std::ifstream::badbit | std::ifstream::failbit);
 			try {
 				inFile >> BHandle_;
 			} catch (std::ifstream::failure &e) {

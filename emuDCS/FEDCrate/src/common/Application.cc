@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 3.2 2009/01/30 19:14:16 paste Exp $
+* $Id: Application.cc,v 3.3 2009/02/04 18:28:11 paste Exp $
 *
 * $Log: Application.cc,v $
+* Revision 3.3  2009/02/04 18:28:11  paste
+* Updated for 6.10 release.  Fixed some obvious bugs.  Still problems with EmuFCrateHyperDAQ display.
+*
 * Revision 3.2  2009/01/30 19:14:16  paste
 * New emu::base namespace and emu::base::Supervised inheritance added.
 *
@@ -65,7 +68,7 @@ soapLocal_(false)
 	xgi::bind(this,&emu::fed::Application::webFire, "Fire");
 	
 	// Appender file name
-	char datebuf[19];
+	char datebuf[32];
 	char filebuf[255];
 	std::time_t theTime = time(NULL);
 	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
@@ -185,6 +188,10 @@ throw (emu::fed::SOAPException)
 				message->writeTo(temp);
 				error << "Error in posting SOAP message with contents: " << temp;
 				XCEPT_RETHROW(emu::fed::SOAPException, error.str(), e);
+			} catch (xoap::exception::Exception &e) {
+				LOG4CPLUS_ERROR(getApplicationLogger(), "What the?");
+			} catch (...) {
+				LOG4CPLUS_ERROR(getApplicationLogger(), "Fuck me!");
 			}
 			// Analysis here, if debugging needed.
 			if (instance >= 0) break;
@@ -208,7 +215,7 @@ std::string emu::fed::Application::Header(std::string myTitle, std::vector<std::
 	*out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
 	*out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
 	*out << cgicc::head() << std::endl;
-	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/tmp/emu/emuDCS/FEDCrate/css/Application.css\" />" << std::endl;
+	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/tmp/emu/emuDCS/FEDCrate/css/EmuFEDApplication.css\" />" << std::endl;
 	
 	*out << cgicc::title(myTitle) << std::endl;
 
@@ -385,7 +392,7 @@ void emu::fed::Application::transitionFailed(toolbox::Event::Reference event)
 }
 */
 
-/*
+
 void emu::fed::Application::fireEvent(std::string name)
 {
 	toolbox::Event::Reference event((new toolbox::Event(name, this)));
@@ -399,7 +406,7 @@ void emu::fed::Application::fireEvent(std::string name)
 		notifyQualified("FATAL", e2);
 	}
 }
-*/
+
 
 /*
 xoap::MessageReference emu::fed::Application::createSOAPReply(xoap::MessageReference message)
@@ -501,9 +508,9 @@ throw (emu::fed::SOAPException)
 	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
 		if (instance == -1) {
-			apps.insert(getApplicationContext()->getDefaultZone()->getApplicationDescriptor(klass, instance));
-		} else {
 			apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
+		} else {
+			apps.insert(getApplicationContext()->getDefaultZone()->getApplicationDescriptor(klass, instance));
 		}
 	} catch (xdaq::exception::ApplicationDescriptorNotFound &e) {
 		std::ostringstream error;
