@@ -42,17 +42,35 @@ public:
   inline void SetProblemDescription(std::string problem_description){problem_description_ = problem_description;}
   inline std::string GetProblemDescription(){return problem_description_;}
   //
-  // define the following bitmask for the chamber's problem mask:
-  // bit 0 = ALCT (i.e., least significant bit)
-  // bit 1 = TMB
-  // bit 2 = CFEB 1
-  // bit 3 = CFEB 2
-  // bit 4 = CFEB 3
-  // bit 5 = CFEB 4
-  // bit 6 = CFEB 5
-  // bit 7 = DMB
-  inline void SetProblemMask(int problem_mask){problem_mask_ = problem_mask;}
+  /// define the following bitmask for expected configuration problems for this chamber:
+  ///  bit[0,1,...7] = ALCT, TMB, CFEB1, CFEB2, CFEB3, CFEB4, CFEB5, DMB
+  void SetProblemMask(int problem_mask);
   inline int GetProblemMask(){return problem_mask_;}
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the ALCT
+  inline int GetExpectedConfigProblemALCT()  { return expected_config_problem_alct_ ; }
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the TMB
+  inline int GetExpectedConfigProblemTMB()   { return expected_config_problem_tmb_  ; }
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the CFEB1
+  inline int GetExpectedConfigProblemCFEB1() { return expected_config_problem_cfeb1_; }
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the CFEB2
+  inline int GetExpectedConfigProblemCFEB2() { return expected_config_problem_cfeb2_; }
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the CFEB3
+  inline int GetExpectedConfigProblemCFEB3() { return expected_config_problem_cfeb3_; }
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the CFEB4
+  inline int GetExpectedConfigProblemCFEB4() { return expected_config_problem_cfeb4_; }
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the CFEB5
+  inline int GetExpectedConfigProblemCFEB5() { return expected_config_problem_cfeb5_; }
+  //
+  ///From the problem_mask, we expect to see a configuration problem from the DMB
+  inline int GetExpectedConfigProblemDMB()   { return expected_config_problem_dmb_  ; }
+  //
   //
 private:
   //
@@ -66,6 +84,14 @@ private:
   std::string label_;
   std::string problem_description_;
   int problem_mask_;
+  int expected_config_problem_alct_ ;
+  int expected_config_problem_tmb_  ;
+  int expected_config_problem_cfeb1_;
+  int expected_config_problem_cfeb2_;
+  int expected_config_problem_cfeb3_;
+  int expected_config_problem_cfeb4_;
+  int expected_config_problem_cfeb5_;
+  int expected_config_problem_dmb_  ;
   //
   std::vector <TMB> tmbs_;
   std::vector <CFEB> cfebs_;
