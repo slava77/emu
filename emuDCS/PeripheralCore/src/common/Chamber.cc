@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.6 2008/08/13 11:30:54 geurts Exp $
+// $Id: Chamber.cc,v 3.7 2009/02/04 12:53:21 rakness Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.7  2009/02/04 12:53:21  rakness
+// update configuration and firmware checking
+//
 // Revision 3.6  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -86,6 +89,15 @@ namespace emu {
 Chamber::Chamber(Crate * csc):
   crate_(csc), label_("new_csc"), problem_mask_(0)
 {
+  expected_config_problem_alct_  = 0;
+  expected_config_problem_tmb_   = 0;
+  expected_config_problem_cfeb1_ = 0;
+  expected_config_problem_cfeb2_ = 0;
+  expected_config_problem_cfeb3_ = 0;
+  expected_config_problem_cfeb4_ = 0;
+  expected_config_problem_cfeb5_ = 0;
+  expected_config_problem_dmb_   = 0;
+  //
   csc->AddChamber(this);
 }
 //
@@ -99,6 +111,19 @@ Chamber::~Chamber(){
      alct = myTMB->alctController();
   }
 
+    void Chamber::SetProblemMask(int problem_mask) {
+      //
+      expected_config_problem_alct_  = (problem_mask >> 0) & 0x01;
+      expected_config_problem_tmb_   = (problem_mask >> 1) & 0x01;
+      expected_config_problem_cfeb1_ = (problem_mask >> 2) & 0x01;
+      expected_config_problem_cfeb2_ = (problem_mask >> 3) & 0x01;
+      expected_config_problem_cfeb3_ = (problem_mask >> 4) & 0x01;
+      expected_config_problem_cfeb4_ = (problem_mask >> 5) & 0x01;
+      expected_config_problem_cfeb5_ = (problem_mask >> 6) & 0x01;
+      expected_config_problem_dmb_   = (problem_mask >> 7) & 0x01;
+      //
+      return;
+    }
 
   } // namespace emu::pc
   } // namespace emu

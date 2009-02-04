@@ -130,6 +130,7 @@ protected:
   std::ostringstream OutputDMBTests[10][30];
   std::ostringstream OutputTMBTests[10][30];
   std::ostringstream OutputCheckConfiguration;
+  std::ostringstream OutputCheckFirmware;
   std::vector <float> ChartData[100];
   int TMBTriggerAlct0Key[120][9];
   int TMBTriggerAlct1Key[120][9];
@@ -554,6 +555,9 @@ private:
   int dmb_vme_firmware_ok[60][9];
   int dmb_control_firmware_ok[60][9];
   int cfeb_firmware_ok[60][9][5];
+  //
+  bool print_stuff;
+  char date_and_time_[13];
   //
   xoap::MessageReference PCcreateCommandSOAP(std::string command);
   void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
