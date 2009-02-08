@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 3.61 2009/02/04 18:28:11 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 3.62 2009/02/08 19:40:18 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 3.62  2009/02/08 19:40:18  paste
+* Fixed obvious bug in DDU firmware uploading.
+*
 * Revision 3.61  2009/02/04 18:28:11  paste
 * Updated for 6.10 release.  Fixed some obvious bugs.  Still problems with EmuFCrateHyperDAQ display.
 *
@@ -1217,6 +1220,12 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 			diskTable(iprom + 1,2) << cgicc::input().set("type","hidden")
 				.set("name","svftype")
 				.set("value",dduPROMNames[iprom]) << std::endl;
+			std::ostringstream crateVal;
+			crateVal << cgiCrate;
+			diskTable(iprom + 1,2) << cgicc::input()
+				.set("type","hidden")
+				.set("name","crate")
+				.set("value",crateVal.str()) << std::endl;
 			diskTable(iprom + 1,2) << cgicc::form() << std::endl;
 		}	
 
@@ -1347,8 +1356,6 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::span("PROM/FPGA mismatch").set("class","questionable") << cgicc::div() << std::endl;
 
 		*out << cgicc::div("DO NOT BROADCAST UNLESS THE CONFIGURATION FILE CONTAINS ALL THE BOARDS PRESENT IN THE CRATE!") << std::endl;
-
-		*out << cgicc::div() << std::endl;
 
 		*out << cgicc::fieldset() << std::endl;
 
@@ -5009,6 +5016,12 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 			diskTable(iprom + 1,2) << cgicc::input().set("type","hidden")
 				.set("name","svftype")
 				.set("value",dccPROMNames[iprom]) << std::endl;
+			std::ostringstream crateVal;
+			crateVal << cgiCrate;
+			diskTable(iprom + 1,2) << cgicc::input()
+				.set("type","hidden")
+				.set("name","crate")
+				.set("value",crateVal.str()) << std::endl;
 			diskTable(iprom + 1,2) << cgicc::form() << std::endl;
 		}
 		
