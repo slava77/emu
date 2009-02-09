@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.19 2009/01/27 14:19:14 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.20 2009/02/09 16:23:27 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -73,8 +73,7 @@
 
 
 //class EmuPeripheralCrateBroadcast: public xdaq::Application
-class EmuPeripheralCrateBroadcast: public EmuApplication,
-       public toolbox::task::TimerListener
+class EmuPeripheralCrateBroadcast: public EmuApplication
 {
   
 public:
@@ -142,10 +141,6 @@ public:
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void dummyAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
-  // for Monitoring
-  xoap::MessageReference  MonitorStart(xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference  MonitorStop(xoap::MessageReference message) throw (xoap::exception::Exception);
-  void timeExpired (toolbox::task::TimerEvent& e);
 
 private:
 
