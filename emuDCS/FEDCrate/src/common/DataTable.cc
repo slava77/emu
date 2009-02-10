@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DataTable.cc,v 1.4 2009/01/29 15:31:24 paste Exp $
+* $Id: DataTable.cc,v 1.5 2009/02/10 21:08:55 paste Exp $
 *
 * $Log: DataTable.cc,v $
+* Revision 1.5  2009/02/10 21:08:55  paste
+* Fixed a memory leak in EmuFCrateHyperDAQ's use of the DataTable class
+*
 * Revision 1.4  2009/01/29 15:31:24  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -79,7 +82,7 @@ std::string emu::fed::DataElement::toHTML()
 
 
 
-emu::fed::DataRow::DataRow(unsigned int cols, DataElement myElement)
+emu::fed::DataRow::DataRow(unsigned int cols, DataElement *myElement)
 {
 	for (unsigned int ielement = 0; ielement < cols; ielement++) {
 		push_back(myElement);
@@ -90,13 +93,13 @@ emu::fed::DataRow::DataRow(unsigned int cols, DataElement myElement)
 
 emu::fed::DataElement &emu::fed::DataRow::operator[] (unsigned int element)
 {
-	if (element < size()) return at(element);
+	if (element < size()) return *(at(element));
 	else {
 		for (unsigned int ielement = size(); ielement <= element; ielement++) {
-			DataElement newElement;
+			DataElement *newElement = new DataElement();
 			push_back(newElement);
 		}
-		return at(element);
+		return *(at(element));
 	}
 }
 
@@ -106,8 +109,8 @@ std::string emu::fed::DataRow::toHTML()
 {
 	std::stringstream out;
 	out << element_ << std::endl;
-	for (std::vector<DataElement>::iterator iElement = begin(); iElement != end(); iElement++) {
-		out << (*iElement).toHTML();
+	for (std::vector<DataElement *>::iterator iElement = begin(); iElement != end(); iElement++) {
+		out << (*iElement)->toHTML();
 	}
 	out << cgicc::tr() << std::endl;
 	return out.str();
@@ -163,7 +166,7 @@ std::string emu::fed::DataRow::makeForm(std::string target, unsigned int crate, 
 */
 
 
-emu::fed::DataTable::DataTable(unsigned int rows, DataRow myRow)
+emu::fed::DataTable::DataTable(unsigned int rows, DataRow *myRow)
 {
 	for (unsigned int irow = 0; irow < rows; irow++) {
 		push_back(myRow);
@@ -174,13 +177,13 @@ emu::fed::DataTable::DataTable(unsigned int rows, DataRow myRow)
 
 emu::fed::DataRow &emu::fed::DataTable::operator[] (unsigned int row)
 {
-	if (row < size()) return at(row);
+	if (row < size()) return *(at(row));
 	else {
 		for (unsigned int irow = size(); irow <= row; irow++) {
-			DataRow newRow;
+			DataRow *newRow = new DataRow();
 			push_back(newRow);
 		}
-		return at(row);
+		return *(at(row));
 	}
 }
 
@@ -196,8 +199,8 @@ emu::fed::DataElement &emu::fed::DataTable::operator() (unsigned int row, unsign
 std::string emu::fed::DataTable::toHTML() {
 	std::stringstream out;
 	out << element_ << std::endl;
-	for (std::vector<DataRow>::iterator iRow = begin(); iRow != end(); iRow++) {
-		out << (*iRow).toHTML();
+	for (std::vector<DataRow *>::iterator iRow = begin(); iRow != end(); iRow++) {
+		out << (*iRow)->toHTML();
 	}
 	out << cgicc::table() << std::endl;
 
@@ -208,9 +211,9 @@ std::string emu::fed::DataTable::toHTML() {
 
 std::map<std::string, unsigned int> emu::fed::DataTable::countClasses() {
 	std::map<std::string, unsigned int> classNameCounts;
-	for (std::vector<DataRow>::iterator iRow = begin(); iRow != end(); iRow++) {
-		for (std::vector<DataElement>::iterator iElement = (*iRow).begin(); iElement != (*iRow).end(); iElement++) {
-			classNameCounts[(*iElement).getClass()]++;
+	for (std::vector<DataRow *>::iterator iRow = begin(); iRow != end(); iRow++) {
+		for (std::vector<DataElement *>::iterator iElement = (*iRow)->begin(); iElement != (*iRow)->end(); iElement++) {
+			classNameCounts[(*iElement)->getClass()]++;
 		}
 	}
 	return classNameCounts;
