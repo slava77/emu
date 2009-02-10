@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DataTable.h,v 1.11 2009/01/29 15:31:22 paste Exp $
+* $Id: DataTable.h,v 1.12 2009/02/10 21:08:55 paste Exp $
 *
 * $Log: DataTable.h,v $
+* Revision 1.12  2009/02/10 21:08:55  paste
+* Fixed a memory leak in EmuFCrateHyperDAQ's use of the DataTable class
+*
 * Revision 1.11  2009/01/29 15:31:22  paste
 * Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
 *
@@ -19,8 +22,8 @@
 *
 *
 \*****************************************************************************/
-#ifndef __DATATABLE_H__
-#define __DATATABLE_H__
+#ifndef __EMU_FED_DATATABLE_H__
+#define __EMU_FED_DATATABLE_H__
 
 #include <string>
 #include <vector>
@@ -28,7 +31,7 @@
 #include <sstream>
 #include "cgicc/HTMLClasses.h"
 
-#include "FEDException.h"
+#include "emu/fed/Exception.h"
 
 namespace emu {
 	namespace fed {
@@ -89,7 +92,7 @@ namespace emu {
 		
 	
 		/** @class DataRow An individual row of a DataTable object.  These contain DataElements. **/
-		class DataRow: public std::vector<DataElement>
+		class DataRow: public std::vector<DataElement *>
 		{
 			friend class DataTable;
 			
@@ -99,7 +102,7 @@ namespace emu {
 			*	@param cols is the number of columns in the row to begin with.
 			*	@param myElement is the default DataElement object that will be used as a template for the elements of the row.
 			**/
-			DataRow(unsigned int cols = 0, DataElement myElement = DataElement());
+			DataRow(unsigned int cols = 0, DataElement *myElement = new DataElement());
 		
 			/** Access a given element.  Expand the vector as needed.  **/
 			DataElement &operator[] (unsigned int element);
@@ -133,7 +136,7 @@ namespace emu {
 		*
 		*	@sa EmuFCrateHyperDAQ
 		**/
-		class DataTable: public std::vector<DataRow>
+		class DataTable: public std::vector<DataRow *>
 		{
 		public:
 			/** Standard constructor.
@@ -141,7 +144,7 @@ namespace emu {
 			*	@param row is the number of rows the table will begin with.
 			*	@param myRow is the default DataRow object that will be used as a template for the rows of the table.
 			**/
-			DataTable(unsigned int rows = 0, DataRow myRow = DataRow());
+			DataTable(unsigned int rows = 0, DataRow *myRow = new DataRow());
 		
 			/** Access a given DataRow.  Increase the DataRow vector as needed.  **/
 			DataRow &operator[] (unsigned int row);
@@ -155,8 +158,7 @@ namespace emu {
 			DataElement &operator() (unsigned int row, unsigned int col);
 
 			/** Arrow operator for accessing the cgicc element stored within **/
-			cgicc::table &getElement() { return element_; }
-			cgicc::table *operator->() { return &element_; }
+			inline cgicc::table *operator->() { return &element_; }
 		
 			/** @return the table formatted as an HTML table \<table\>.
 			*
