@@ -47,7 +47,7 @@ void Test_CFEB04::initCSC(std::string cscID) {
   }
 
   for (int i=0; i<TEST_DATA2D_NLAYERS; i++)
-    for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=-999.;
+    for (int j=0; j<TEST_DATA2D_NBINS;j++) cfebdata.content[i][j]=0.;
 
   // R01 - Gain slope A
   cscdata["R01"]=cfebdata;
