@@ -63,6 +63,9 @@ typedef ConsumerCanvas MonitoringCanvas;
 #define MAX_STRIPS 80
 #define SCA_CELLS 96
 
+// Invalid Value for constants
+#define INVAL -999.0
+
 typedef std::map<std::string, TestData2D> TestData;
 typedef std::map<std::string, TestData> cscTestData;
 typedef std::map<std::string, TH1*> MonHistos;
