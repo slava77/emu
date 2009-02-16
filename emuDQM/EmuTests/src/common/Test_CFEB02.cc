@@ -308,8 +308,8 @@ void Test_CFEB02::analyzeCSC(const CSCEventData& data) {
 	    bool fEventValid = true;
 	    double mv0 = _mv0.content[layer-1][icfeb*16+strip-1];
 	    double rms0 = _rms0.content[layer-1][icfeb*16+strip-1];
-	    // == Check that charges in first 5 timebins satisfy |Qi - mv0| < 3*rms0
-	    for (int itime=0;itime<5;itime++){
+	    // == Check that charges in all timebins satisfy |Qi - mv0| < 3*rms0
+	    for (int itime=0;itime<nTimeSamples;itime++){
 	      CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,strip);
 	      int ADC = (int) ((timeSample->adcCounts)&0xFFF);
 	      //= Three-sigma cut
@@ -566,6 +566,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
       CSCMapItem::MapItem mapitem = cratemap->item(id);
       int first_strip_index=mapitem.stripIndex;
       int strips_per_layer=mapitem.strips;
+      std::cout << cscID << " " << first_strip_index << std::endl;
    
       // int strips_per_layer = getNumStrips(cscID);
       double rms = 0.;
