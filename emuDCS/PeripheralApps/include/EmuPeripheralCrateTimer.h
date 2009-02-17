@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.h,v 1.1 2008/10/13 13:11:07 liu Exp $
+// $Id: EmuPeripheralCrateTimer.h,v 1.2 2009/02/17 14:55:24 liu Exp $
 
 #ifndef _EmuPeripheralCrateTimer_h_
 #define _EmuPeripheralCrateTimer_h_
@@ -46,9 +46,12 @@
 #include "toolbox/task/TimerFactory.h"
 #include "toolbox/TimeInterval.h"
 
-#include "EmuApplication.h"
+#include "emu/base/Supervised.h"
 
-class EmuPeripheralCrateTimer: public EmuApplication,
+namespace emu {
+  namespace pc {
+  
+class EmuPeripheralCrateTimer: public emu::base::Supervised,
        public toolbox::task::TimerListener
 {
   
@@ -87,4 +90,7 @@ private:
   int current_state_;
 };
 
+  } // namespace emu::pc
+} // namespace emu
+  
 #endif

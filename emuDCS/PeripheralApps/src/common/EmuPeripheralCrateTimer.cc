@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.2 2008/11/11 13:23:34 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.3 2009/02/17 14:55:24 liu Exp $
 
 #include "EmuPeripheralCrateTimer.h"
 
@@ -13,7 +13,10 @@
 #include <iomanip>
 #include <time.h>
 
-EmuPeripheralCrateTimer::EmuPeripheralCrateTimer(xdaq::ApplicationStub * s): EmuApplication(s)
+namespace emu {
+  namespace pc {
+
+EmuPeripheralCrateTimer::EmuPeripheralCrateTimer(xdaq::ApplicationStub * s): emu::base::Supervised(s)
 {	
   //
   xoap::bind(this, &EmuPeripheralCrateTimer::onEnable,    "Enable",    XDAQ_NS_URI);
@@ -187,7 +190,7 @@ xoap::MessageReference EmuPeripheralCrateTimer::PCcreateCommandSOAP(std::string 
 
 void EmuPeripheralCrateTimer::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
-  EmuApplication::stateChanged(fsm);
+  emu::base::Supervised::stateChanged(fsm);
 }
 
 void EmuPeripheralCrateTimer::dummyAction(toolbox::Event::Reference e)
@@ -217,8 +220,11 @@ xoap::MessageReference EmuPeripheralCrateTimer::onHalt (xoap::MessageReference m
   return createReply(message);
 }
 
+ }  // namespace emu::pc
+}  // namespace emu
+
 //
 // provides factory method for instantion of SimpleSOAPSender application
 //
-XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateTimer)
+XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPeripheralCrateTimer)
 //

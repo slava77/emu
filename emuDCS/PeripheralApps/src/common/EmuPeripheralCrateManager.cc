@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.10 2008/11/03 20:21:05 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.11 2009/02/17 14:55:24 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -29,7 +29,7 @@
 namespace emu {
   namespace pc {
 
-EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s): EmuApplication(s)
+EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s): emu::base::Supervised(s)
 {	
   xgi::bind(this,&EmuPeripheralCrateManager::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateManager::MainPage, "MainPage");
@@ -326,7 +326,7 @@ void EmuPeripheralCrateManager::haltAction(toolbox::Event::Reference e)
 //
 void EmuPeripheralCrateManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   throw (toolbox::fsm::exception::Exception) {
-  EmuApplication::stateChanged(fsm);
+  emu::base::Supervised::stateChanged(fsm);
 }
 //
 void EmuPeripheralCrateManager::MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) 
@@ -398,8 +398,8 @@ xoap::MessageReference EmuPeripheralCrateManager::QueryPeripheralCrateInfoSpace(
 xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   std::cout << "Get SOAP message ConfigCalCFEB " << std::endl;
-  PCsendCommand("MonitorStop","EmuPeripheralCrateMonitor");
-  PCsendCommand("ConfigCalCFEB","EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
+  PCsendCommand("ConfigCalCFEB","emu::pc::EmuPeripheralCrateBroadcast");
    //
   std::cout << "SOAP message ConfigCalCFEB relayed to Broadcast" << std::endl;
 //   ::sleep(1);
@@ -408,28 +408,28 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::Message
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  PCsendCommand("EnableCalCFEBCrossTalk","EmuPeripheralCrateBroadcast");
+  PCsendCommand("EnableCalCFEBCrossTalk","emu::pc::EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBSCAPed (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  PCsendCommand("EnableCalCFEBSCAPed","EmuPeripheralCrateBroadcast");
+  PCsendCommand("EnableCalCFEBSCAPed","emu::pc::EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGains (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  PCsendCommand("EnableCalCFEBGains","EmuPeripheralCrateBroadcast");
+  PCsendCommand("EnableCalCFEBGains","emu::pc::EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  PCsendCommand("EnableCalCFEBComparator","EmuPeripheralCrateBroadcast");
+  PCsendCommand("EnableCalCFEBComparator","emu::pc::EmuPeripheralCrateBroadcast");
   //
   fireEvent("Enable");
   return createReply(message);
@@ -441,9 +441,9 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageRefe
   time_t thistime = ::time(NULL);
   std::cout << "SOAP message Configure: " << ::ctime(&thistime) << std::endl;
   //
-  PCsendCommand("MonitorStop","EmuPeripheralCrateMonitor");
-  PCsendCommand("Configure","EmuPeripheralCrateCommand");
-  PCsendCommand("Configure","EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
+  PCsendCommand("Configure","emu::pc::EmuPeripheralCrateCommand");
+  PCsendCommand("Configure","emu::pc::EmuPeripheralCrateBroadcast");
   //
   fireEvent("Configure");
   //
@@ -457,9 +457,9 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReferen
   time_t thistime = ::time(NULL);
   std::cout << "SOAP message Enable: " << ::ctime(&thistime) << std::endl;
   //
-  PCsendCommand("Enable","EmuPeripheralCrateCommand");
-  PCsendCommand("Enable","EmuPeripheralCrateBroadcast");
-  PCsendCommand("MonitorStart","EmuPeripheralCrateMonitor");
+  PCsendCommand("Enable","emu::pc::EmuPeripheralCrateCommand");
+  PCsendCommand("Enable","emu::pc::EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStart","emu::pc::EmuPeripheralCrateMonitor");
   //
   fireEvent("Enable");
   //
@@ -472,9 +472,9 @@ xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageRefere
   time_t thistime = ::time(NULL);
   std::cout << "SOAP message Disable: " << ::ctime(&thistime) << std::endl;
   //
-  PCsendCommand("Disable","EmuPeripheralCrateCommand");
-  PCsendCommand("Disable","EmuPeripheralCrateBroadcast");
-  PCsendCommand("MonitorStop","EmuPeripheralCrateMonitor");
+  PCsendCommand("Disable","emu::pc::EmuPeripheralCrateCommand");
+  PCsendCommand("Disable","emu::pc::EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
   //
   fireEvent("Disable");
   //
@@ -487,9 +487,9 @@ xoap::MessageReference EmuPeripheralCrateManager::onHalt (xoap::MessageReference
   time_t thistime = ::time(NULL);
   std::cout << "SOAP message Halt: " << ::ctime(&thistime) << std::endl;
   //
-  PCsendCommand("Halt","EmuPeripheralCrateCommand");
-  PCsendCommand("Halt","EmuPeripheralCrateBroadcast");
-  PCsendCommand("MonitorStop","EmuPeripheralCrateMonitor");
+  PCsendCommand("Halt","emu::pc::EmuPeripheralCrateCommand");
+  PCsendCommand("Halt","emu::pc::EmuPeripheralCrateBroadcast");
+  PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
   //
   fireEvent("Halt");
   //
@@ -754,10 +754,11 @@ xoap::MessageReference EmuPeripheralCrateManager::PCcreateCommandSOAP(string com
   //
   return message;
 }
+
+  } // namespace emu::pc
+} // namespace emu
 //
 //
 // provides factory method for instantion of SimpleSOAPSender application
 //
-XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateManager)
-  } // namespace emu::pc
-  } // namespace emu
+XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPeripheralCrateManager)

@@ -12,10 +12,13 @@
 #include <iomanip>
 #include <time.h>
 
+namespace emu {
+  namespace pc {
+
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
 /////////////////////////////////////////////////////////////////////
-EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s): EmuApplication(s)
+EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s): emu::base::Supervised(s)
 {	
   //
   DisplayRatio_ = false;
@@ -134,7 +137,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
 
 void EmuPeripheralCrateMonitor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
-  EmuApplication::stateChanged(fsm);
+  emu::base::Supervised::stateChanged(fsm);
 }
 
 void EmuPeripheralCrateMonitor::dummyAction(toolbox::Event::Reference e)
@@ -152,7 +155,7 @@ void EmuPeripheralCrateMonitor::ReadingOn()
              CreateEmuInfospace();
              Monitor_Ready_=true;
          }
-         PCsendCommand("MonitorStart","EmuPeripheralCrateTimer");
+         PCsendCommand("MonitorStart","emu::pc::EmuPeripheralCrateTimer");
          Monitor_On_=true;
          std::cout<< "Monitor Reading On" << std::endl;
      }
@@ -163,7 +166,7 @@ void EmuPeripheralCrateMonitor::ReadingOff()
 {
      if(Monitor_On_)
      {
-         PCsendCommand("MonitorStop","EmuPeripheralCrateTimer");
+         PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateTimer");
          Monitor_On_=false;
          std::cout << "Monitor Reading Off" << std::endl;
      }
@@ -277,7 +280,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
    //           2  slow loop (e.g. temps/voltages)
    //           3  extra loop (e.g. CCB MPC TTC status)
 
-      emu::pc::Crate * now_crate;
+      Crate * now_crate;
       xdata::InfoSpace * is;
       char buf[8000];
       xdata::UnsignedInteger32 *counter32;
@@ -1040,7 +1043,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
   //
   Page=cgiEnvi.getQueryString();
   std::string cham_name=Page.substr(0,Page.find("=", 0) );
-  std::vector<emu::pc::DAQMB*> myVector;
+  std::vector<DAQMB*> myVector;
   int mycrate=0, mychamb=0;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
@@ -1203,7 +1206,7 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
-  std::vector<emu::pc::DAQMB*> myVector;
+  std::vector<DAQMB*> myVector;
   int mycrate=0;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
@@ -1291,7 +1294,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
-  std::vector<emu::pc::DAQMB*> myVector;
+  std::vector<DAQMB*> myVector;
   int mycrate=0;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
@@ -1381,7 +1384,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
   //
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
-  std::vector<emu::pc::DAQMB*> myVector;
+  std::vector<DAQMB*> myVector;
   int mycrate=0;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
@@ -1495,7 +1498,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
       delete MyController ;
     }
     //
-    MyController = new emu::pc::EmuController();
+    MyController = new EmuController();
 
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
@@ -1593,7 +1596,7 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
   //
   *out <<cgicc::tr();
   //
-  std::vector<emu::pc::TMB*> myVector;
+  std::vector<TMB*> myVector;
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
     myVector = crateVector[idx]->tmbs();
     //
@@ -1882,7 +1885,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
   //
   *out <<cgicc::tr();
   //
-  std::vector<emu::pc::TMB*> myVector;
+  std::vector<TMB*> myVector;
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
     myVector = crateVector[idx]->tmbs();
     //
@@ -1993,7 +1996,7 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
   //
   *out <<cgicc::tr();
   //
-  std::vector<emu::pc::DAQMB*> myVector;
+  std::vector<DAQMB*> myVector;
   for (unsigned int idx=0; idx<crateVector.size(); idx++) {
     myVector = crateVector[idx]->daqmbs();
     //
@@ -2078,8 +2081,8 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  emu::pc::Crate *myCrate;
-  std::vector<emu::pc::TMB*> myVector;
+  Crate *myCrate;
+  std::vector<TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel())
@@ -2170,8 +2173,8 @@ void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * 
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  emu::pc::Crate *myCrate;
-  std::vector<emu::pc::DAQMB*> myVector;
+  Crate *myCrate;
+  std::vector<DAQMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel())
@@ -2240,7 +2243,7 @@ void EmuPeripheralCrateMonitor::ResetAllCounters(xgi::Input * in, xgi::Output * 
   std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
-  std::vector<emu::pc::TMB*> myVector;
+  std::vector<TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->tmbs();
@@ -2259,7 +2262,7 @@ void EmuPeripheralCrateMonitor::FullResetTMBC(xgi::Input * in, xgi::Output * out
   xdata::InfoSpace * is;
   xdata::Vector<xdata::UnsignedInteger32> *tmbdata;
   xdata::Vector<xdata::UnsignedInteger32> *otmbdata;
-  std::vector<emu::pc::TMB*> myVector;
+  std::vector<TMB*> myVector;
 
   if(!Monitor_Ready_) return;
 
@@ -2286,7 +2289,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
 
   unsigned int TOTAL_TMB_COUNTERS=65;
-  std::vector<emu::pc::TMB*> myVector;
+  std::vector<TMB*> myVector;
   int o_value, n_value, i_value;
   xdata::InfoSpace * is;
 
@@ -2422,7 +2425,7 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   unsigned int readtime;
   unsigned short crateok;
   float val;
-  std::vector<emu::pc::DAQMB*> myVector;
+  std::vector<DAQMB*> myVector;
   int TOTAL_DCS_COUNTERS=48;
   xdata::InfoSpace * is;
   std::string mac;
@@ -2467,7 +2470,7 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
 
   unsigned int TOTAL_TMB_COUNTERS=65;
-  std::vector<emu::pc::TMB*> myVector;
+  std::vector<TMB*> myVector;
   xdata::InfoSpace * is;
 
   long long int me_total[5][4], out_total=0, total=0, out_total_i=0, total_i=0;
@@ -3149,7 +3152,10 @@ xoap::MessageReference EmuPeripheralCrateMonitor::PCcreateCommandSOAP(std::strin
   return message;
 }
 
+ }  // namespace emu::pc
+}  // namespace emu
+
 // provides factory method for instantion of HellWorld application
 //
-XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateMonitor)
+XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPeripheralCrateMonitor)
 //
