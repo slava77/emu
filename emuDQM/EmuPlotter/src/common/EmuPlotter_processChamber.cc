@@ -61,7 +61,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int iendcap = -1;
   int istation = -1;
   // TODO: Add actual Map conversion
-  int id = cscMapping.chamber(iendcap, istation, crateID, dmbID, -1);
+  uint32_t id = cscMapping.chamber(iendcap, istation, crateID, dmbID, -1);
   if (id==0) {
     LOG4CPLUS_ERROR(logger_, eTag << "Can not find map entry for CSC: " << cscTag << ". Skipping");
     return;
@@ -89,17 +89,19 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     LOG4CPLUS_DEBUG(logger_, 
 		    "Booking Histos for " << cscTag);
     fBusy = true;
-    MEs[cscTag] = bookChamber(ChamberID);
-    MECanvases[cscTag] = bookChamberCanvases(ChamberID);
+    MEs[cscTag] = bookMEs("CSC",cscTag);
+    MECanvases[cscTag] = bookMECanvases("CSC", cscTag, Form(" Crate ID = %02d. DMB ID = %02d", crateID, dmbID));
+    cscCounters[cscTag] = bookCounters(); 
     // printMECollection(MEs[cscTag]);
     fBusy = false;
   }
 
+  LOG4CPLUS_WARN(logger_, eTag << cscName << " " << cid.rawId() << " " << cid.endcap() << ":" << cid.ring() << ":" << cid.station());
   ME_List& nodeME = MEs[nodeTag];
   // ME_List& dduME = MEs[dduTag];
   ME_List& cscME = MEs[cscTag];
 
-  CSCCounters& trigCnts = cscCntrs[cscTag];
+  CSCCounters& trigCnts = cscCounters[cscTag];
   trigCnts["DMB"] = nDMBEvents[cscTag];
 
  /* 

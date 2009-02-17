@@ -1172,14 +1172,14 @@ int EmuPlotter::save_CSCCounters(std::string rootfile, std::string path, std::st
 
 
   std::ostringstream strout;
-  cscCntrs.clear();
+  cscCounters.clear();
   MonitorElement* mes = findME("EMU", "DMB_Format_Errors",  sourcedir); 
   TH2F* hs = dynamic_cast<TH2F*>(mes);
   // == Perform per Chamber Checks
   for (uint32_t i=0; i<CSC_folders.size(); i++) {
     int crate=0, slot =0; 
     std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
-    CSCCounters& trigCnts = cscCntrs[CSC_folders[i]];
+    CSCCounters& trigCnts = cscCounters[CSC_folders[i]];
 
     
     MonitorElement* me = findME(CSC_folders[i], "Actual_DMB_FEB_DAV_Rate",  sourcedir);
@@ -1209,9 +1209,9 @@ int EmuPlotter::save_CSCCounters(std::string rootfile, std::string path, std::st
   fout << "var CSC_COUNTERS=[" << std::endl;
   fout << "['Run: "<< runname <<"'," << std::endl;
 
-  if (!cscCntrs.empty()) {
+  if (!cscCounters.empty()) {
     std::map<std::string, CSCCounters>::iterator citr;
-    for (citr=cscCntrs.begin(); citr != cscCntrs.end(); ++citr) {
+    for (citr=cscCounters.begin(); citr != cscCounters.end(); ++citr) {
       fout << "['" << citr->first << "',[";
       CSCCounters::iterator itr;
       for (itr=citr->second.begin(); itr != citr->second.end(); ++itr) { // == Loop and Output Counters

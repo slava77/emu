@@ -60,8 +60,8 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	  }
 	  if (MEs.size() == 0 || ((itr = MEs.find(name)) == MEs.end())) {
 	    LOG4CPLUS_WARN(logger_, "List of MEs for " << name << " not found. Booking...");
-	    MEs[name] = bookDDU(dduID);
-	    MECanvases[name] = bookDDUCanvases(dduID);
+	    MEs[name] = bookMEs("DDU", name);
+            MECanvases[name] = bookMECanvases("DDU",name, Form(" DDU = %02d", dduID));
 	    printMECollection(MEs[name]);
 	  }
 
@@ -75,8 +75,8 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	  // std::cout << ChamberID << std::endl;
 	  if (itr == MEs.end() || (MEs.size()==0)) {
 	    LOG4CPLUS_WARN(logger_, "List of Histos for " << name <<  " not found. Booking...");
-	    MEs[name] = bookChamber(ChamberID);
-	    MECanvases[name] = bookChamberCanvases(ChamberID); 
+            MEs[name] = bookMEs("CSC",name);
+            MECanvases[name] = bookMECanvases("CSC", name, Form(" Crate ID = %02d. DMB ID = %02d", crate, slot));
 	    printMECollection(MEs[name]);
 	  }
 
@@ -90,8 +90,8 @@ int EmuPlotter::convertROOTToImages(std::string rootfile, std::string path, std:
 	  */
 	  if (MEs.size() == 0 || ((itr = MEs.find(name)) == MEs.end())) {
 	    LOG4CPLUS_WARN(logger_, "List of MEs for " << name << " not found. Booking...");
-	    MEs[name] = bookCommon(nodeID);
-	    MECanvases[name] = bookCommonCanvases(nodeID);
+            MEs[name] = bookMEs("EMU","EMU_Summary");
+            MECanvases[name] = bookMECanvases("EMU","EMU");
 	    printMECollection(MEs[name]);
 	  }
 	}

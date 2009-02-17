@@ -170,6 +170,8 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 		{
 		  folder = f_itr->getValue();
 		  // == Find object folder in MEs list
+		  xoap::SOAPElement folderElement = monitorElement.addChildElement(folderTag);
+		  folderElement.addTextNode(folder);
 		  std::map<std::string, ME_List >::iterator melist_itr = MEs.find(folder);
 		  if (melist_itr != MEs.end()) 
 		    {
@@ -181,10 +183,22 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 		      for (std::vector<xoap::SOAPElement>::iterator o_itr = objectElement.begin();
 			   o_itr != objectElement.end(); ++o_itr) 
 			{
+
 			  objname = o_itr->getValue();
+			  xoap::SOAPName nameTag ("Name","","");
+			  
 			  // == Find object in MEs list
 			  ME_List_const_iterator meobj_itr = melist_itr->second.find(objname);			  
 			  if (meobj_itr != melist_itr->second.end()) {
+			    xoap::SOAPElement objectElement = folderElement.addChildElement(objectTag);
+			    objectElement.addAttribute(nameTag, objname);
+			    std::map<std::string, std::string>::iterator param_itr; 
+			    std::map<std::string, std::string> params = meobj_itr->second->getParameters();
+			    for (param_itr = params.begin(); param_itr != params.end(); ++param_itr) {
+			       xoap::SOAPName paramTag (param_itr->first, "", "");
+			       xoap::SOAPElement paramElement = objectElement.addChildElement(paramTag);
+			       paramElement.addTextNode(param_itr->second);
+			    }
 			    // Check and Update detector efficiency histograms
 			    if (objname.find("EMU_Status") != std::string::npos) plotter_->updateEfficiencyHistos();
 			    TMessage buf(kMESS_OBJECT);

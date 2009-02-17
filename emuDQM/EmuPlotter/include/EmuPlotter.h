@@ -165,7 +165,7 @@ public:
   MonitorElement* findME(std::string tag, std::string name, TDirectory* rootfolder);
   std::map<std::string, ME_List >&  GetMEs() { return MEs;};
   std::map<std::string, MECanvases_List >&  GetMECanvases() { return MECanvases;};
-  std::map<std::string, CSCCounters >& GetCSCCounters() { return cscCntrs;}
+  std::map<std::string, CSCCounters >& GetCSCCounters() { return cscCounters;}
  
   uint32_t getUnpackedDMBCount() const {return unpackedDMBcount;}
   uint32_t getTotalEvents() const {return nEvents;}
@@ -182,13 +182,9 @@ public:
 
 protected:
 
-  ME_List bookChamber(int chamberID);
-  ME_List bookCommon(int nodeNumber);
-  ME_List bookDDU(int dduNumber);
-
-  MECanvases_List bookChamberCanvases(int chamberID);
-  MECanvases_List bookCommonCanvases(int nodeNumber);
-  MECanvases_List bookDDUCanvases(int dduNumber);
+  ME_List bookMEs(std::string factoryID, std::string prefix);
+  MECanvases_List bookMECanvases(std::string factoryID, std::string prefix, std::string title="");
+  CSCCounters bookCounters();
 
   void init(); 
   std::string getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
@@ -265,7 +261,7 @@ private:
   CSCReadoutMappingFromFile cscMapping;
   std::map<std::string, int> tmap;
   std::string eTag;
-  std::map<std::string, CSCCounters> cscCntrs;
+  std::map<std::string, CSCCounters> cscCounters;
  
   /** CSC summary map */
   cscdqm::Summary summary;

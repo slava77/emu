@@ -46,7 +46,7 @@ void EmuPlotter::reset()
 
   nDMBEvents.clear();
   L1ANumbers.clear();
-  cscCntrs.clear();
+  cscCounters.clear();
 
   clearCanvasesCollection(MECanvases);
   clearMECollection(MEs);
@@ -166,8 +166,8 @@ void EmuPlotter::book() {
       if (MEs.size() == 0 || ((itr = MEs.find("EMU")) == MEs.end())) {
 	//  LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << nodeTag << " not found. Booking...");
 	fBusy = true;
-	MEs["EMU"] = bookCommon(0);
-	MECanvases["EMU"] = bookCommonCanvases(0);
+	MEs["EMU"] = bookMEs("EMU","EMU_Summary");
+	MECanvases["EMU"] = bookMECanvases("EMU","EMU");
 	// printMECollection(MEs[nodeTag]);
 	fBusy = false;
       }
@@ -176,6 +176,9 @@ void EmuPlotter::book() {
     }
 
 }
+
+
+
 
 void EmuPlotter::setCSCMapFile(std::string filename)
 {
@@ -281,4 +284,54 @@ bool EmuPlotter::isMEvalid(ME_List& MEs, std::string name, EmuMonitoringObject*&
   }
   
 } 
+
+ME_List EmuPlotter::bookMEs(std::string factoryID, std::string prefix)
+{
+        ME_List mes;
+        ME_List_iterator itr;
+
+        std::map<std::string, ME_List >::iterator f_itr = MEFactories.find(factoryID);
+        if (f_itr != MEFactories.end()) {
+                ME_List& factory = f_itr->second;
+                for (itr = factory.begin(); itr != factory.end(); ++itr) {
+                        EmuMonitoringObject * obj = new EmuMonitoringObject(*itr->second);
+                        obj->setPrefix(prefix);
+                        mes[obj->getName()] = obj;
+                }
+        }
+        return  mes;
+}
+
+CSCCounters EmuPlotter::bookCounters()
+{
+        CSCCounters trigCnts;
+        trigCnts["ALCT"] = 0;
+        trigCnts["CLCT"] = 0;
+        trigCnts["CFEB"] = 0;
+        trigCnts["DMB"] = 0;
+        trigCnts["BAD"] = 0;
+        return trigCnts;
+}
+
+
+
+MECanvases_List EmuPlotter::bookMECanvases(std::string factoryID, std::string prefix, std::string title)
+{
+        MECanvases_List mes;
+        MECanvases_List_iterator itr;
+
+        std::map<std::string, MECanvases_List >::iterator f_itr = MECanvasFactories.find(factoryID);
+        if (f_itr != MECanvasFactories.end()) {
+                MECanvases_List& factory = f_itr->second;
+                for (itr = factory.begin(); itr != factory.end(); ++itr) {
+                        EmuMonitoringCanvas * obj = new EmuMonitoringCanvas(*itr->second);
+                        obj->setPrefix(prefix);
+                        std::string new_title = obj->getTitle() + title;
+                        obj->setTitle(new_title);
+                        mes[obj->getName()] = obj;
+                }
+        }
+        return  mes;
+}
+
 

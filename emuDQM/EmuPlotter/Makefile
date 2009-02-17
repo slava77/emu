@@ -27,8 +27,6 @@ Package=emuDQM/EmuPlotter
 Sources=\
 	EmuPlotter.cc \
 	EmuPlotter_generateLayout.cc \
-	EmuPlotter_bookHistograms.cc \
-	EmuPlotter_bookCanvases.cc \
 	EmuPlotter_loadXMLBookingInfo.cc \
 	EmuPlotter_loadXMLCanvasesInfo.cc \
 	EmuPlotter_loadFromROOTFile.cc \
