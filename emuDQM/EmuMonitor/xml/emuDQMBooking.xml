@@ -11,7 +11,7 @@
 	<Histogram>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
-                <Name>Summary_ME1</Name>
+                <Name>Physics_ME1</Name>
                 <SetOption>colz</SetOption>
                 <XMin>1</XMin>
                 <XMax>16</XMax>
@@ -29,7 +29,7 @@
 	<Histogram>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
-                <Name>Summary_ME2</Name>
+                <Name>Physics_ME2</Name>
                 <SetOption>colz</SetOption>
                 <XMin>1</XMin>
                 <XMax>16</XMax>
@@ -48,7 +48,7 @@
 <Histogram>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
-                <Name>Summary_ME3</Name>
+                <Name>Physics_ME3</Name>
                 <SetOption>colz</SetOption>
                 <XMin>1</XMin>
                 <XMax>16</XMax>
@@ -66,7 +66,7 @@
 <Histogram>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
-                <Name>Summary_ME4</Name>
+                <Name>Physics_ME4</Name>
                 <SetOption>colz</SetOption>
                 <XMin>1</XMin>
                 <XMax>16</XMax>
@@ -84,7 +84,7 @@
 	<Histogram>
                 <Type>h2</Type>
                 <Prefix>EMU</Prefix>
-                <Name>reportSummaryMap</Name>
+                <Name>Physics_EMU</Name>
                 <SetOption>colz</SetOption>
                 <XMin>1</XMin>
                 <XMax>100</XMax>
@@ -1249,7 +1249,6 @@
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
-		<SetLogz>1</SetLogz>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -1481,7 +1480,6 @@
 		<YTitle>Number of Events</YTitle>
 		<SetOptStat>emro</SetOptStat>
 		<Title>DDU Buffer Size</Title>
-		<SetLogy>1</SetLogy>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -1705,7 +1703,6 @@
 		<YTitle>Number of Events</YTitle>
 		<SetOptStat>emuo</SetOptStat>
 		<Title>DDU Word (64 bits) Count</Title>
-		<SetLogy>1</SetLogy>
 	</Histogram>
 
 <!-- ========================================================================================
