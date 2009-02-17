@@ -21,7 +21,7 @@ Sources=\
 
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
-        $(BUILD_HOME)/emu/cscSV/include
+        $(BUILD_HOME)/emu/base/include
 
 LibraryDirs = 
 

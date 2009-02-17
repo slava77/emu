@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.8 2008/12/09 16:08:14 liu Exp $
+// $Id: EmuDim.cc,v 1.9 2009/02/17 13:13:41 liu Exp $
 
 #include "EmuDim.h"
 
@@ -17,7 +17,7 @@
 namespace emu {
   namespace e2p {
 
-EmuDim::EmuDim(xdaq::ApplicationStub * s): EmuApplication(s)
+EmuDim::EmuDim(xdaq::ApplicationStub * s): emu::base::Supervised(s)
 {
   HomeDir_     = getenv("HOME");
   ConfigDir_   = HomeDir_+"/config/";
@@ -520,7 +520,7 @@ xoap::MessageReference EmuDim::PCcreateCommandSOAP(std::string command) {
 
 void EmuDim::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
-  EmuApplication::stateChanged(fsm);
+  emu::base::Supervised::stateChanged(fsm);
 }
 
 void EmuDim::dummyAction(toolbox::Event::Reference e)
