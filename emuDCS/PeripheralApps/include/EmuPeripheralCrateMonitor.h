@@ -60,9 +60,12 @@
 #include "EmuEndcap.h"
 #include "BoardsDB.h"
 //
-#include "EmuApplication.h"
+#include "emu/base/Supervised.h"
 
-class EmuPeripheralCrateMonitor: public EmuApplication, xdata::ActionListener
+namespace emu {
+  namespace pc {  
+  
+class EmuPeripheralCrateMonitor: public emu::base::Supervised, xdata::ActionListener
 {
   //
 protected:
@@ -89,21 +92,21 @@ protected:
   bool AutoRefresh_;
   //
   std::string xmlFile;
-  emu::pc::EmuController * MyController;
+  EmuController * MyController;
   //
-  emu::pc::CCB* thisCCB ;
-  emu::pc::ALCTController *alct ;
-  emu::pc::RAT * rat;
-  emu::pc::MPC * thisMPC;
+  CCB* thisCCB ;
+  ALCTController *alct ;
+  RAT * rat;
+  MPC * thisMPC;
   //
   int tmb_vme_ready;
   //
-  std::vector<emu::pc::TMB*>   tmbVector;
-  std::vector<emu::pc::TMBTester>   tmbTestVector;
-  std::vector<emu::pc::DAQMB*> dmbVector;
-  std::vector<emu::pc::Crate*> crateVector;
-  std::vector<emu::pc::Chamber*> chamberVector;
-  emu::pc::Crate *thisCrate;
+  std::vector<TMB*>   tmbVector;
+  std::vector<TMBTester>   tmbTestVector;
+  std::vector<DAQMB*> dmbVector;
+  std::vector<Crate*> crateVector;
+  std::vector<Chamber*> chamberVector;
+  Crate *thisCrate;
   std::string RunNumber_;
 
   int parsed;
@@ -135,7 +138,7 @@ protected:
   std::vector< std::string> LVCounterName;
   std::vector< std::string> TECounterName;
   //
-  emu::pc::EmuEndcap * emuEndcap_;
+  EmuEndcap * emuEndcap_;
   //
   // for beam monitor
   long long int total_min, total_max;
@@ -210,4 +213,7 @@ private:
     
 };
 
+  } // namespace emu::pc
+} // namespace emu
+  
 #endif
