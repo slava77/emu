@@ -23,7 +23,7 @@ namespace emu {
 	  xoap::MessageReference msg = createParameterGetSOAPMsg(appClass, paramName, paramType);
 
 	  xoap::MessageReference reply =
-            appContext_->postSOAP(msg, *appSrcDescriptor, *appDescriptor);
+            appContext_->postSOAP(msg, (*appSrcDescriptor), (*appDescriptor));
 
 	  // Check if the reply indicates a fault occurred
 	  xoap::SOAPBody replyBody =
@@ -109,6 +109,63 @@ namespace emu {
 	}
     }
 
+xoap::MessageReference createParameterGetSOAPMsg
+(
+    const std::string appClass,
+    const std::string paramName,
+    const std::string paramType
+)
+throw (emu::dqm::exception::Exception)
+{
+    std::string appNamespace = "urn:xdaq-application:" + appClass;
+    std::string paramXsdType = "xsd:" + paramType;
+
+    try
+    {
+        xoap::MessageReference message = xoap::createMessage();
+        xoap::SOAPPart soapPart = message->getSOAPPart();
+        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("xsi",
+            "http://www.w3.org/2001/XMLSchema-instance");
+        envelope.addNamespaceDeclaration("xsd",
+            "http://www.w3.org/2001/XMLSchema");
+        envelope.addNamespaceDeclaration("soapenc",
+            "http://schemas.xmlsoap.org/soap/encoding/");
+        xoap::SOAPBody body = envelope.getBody();
+        xoap::SOAPName cmdName =
+            envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+        xoap::SOAPBodyElement cmdElement =
+            body.addBodyElement(cmdName);
+        xoap::SOAPName propertiesName =
+            envelope.createName("properties", "xapp", appNamespace);
+        xoap::SOAPElement propertiesElement =
+            cmdElement.addChildElement(propertiesName);
+        xoap::SOAPName propertiesTypeName =
+            envelope.createName("type", "xsi",
+             "http://www.w3.org/2001/XMLSchema-instance");
+        propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
+        xoap::SOAPName propertyName =
+            envelope.createName(paramName, "xapp", appNamespace);
+        xoap::SOAPElement propertyElement =
+            propertiesElement.addChildElement(propertyName);
+        xoap::SOAPName propertyTypeName =
+             envelope.createName("type", "xsi",
+             "http://www.w3.org/2001/XMLSchema-instance");
+
+        propertyElement.addAttribute(propertyTypeName, paramXsdType);
+
+        return message;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emu::dqm::exception::Exception,
+            "Failed to create ParameterGet SOAP message for parameter " +
+            paramName + " of type " + paramType, e);
+    }
+}
+
+/*
+
     xoap::MessageReference createParameterGetSOAPMsg
     (
      const std::string appClass,
@@ -163,7 +220,7 @@ namespace emu {
 			paramName + " of type " + paramType, e);
 	}
     }
-
+*/
 
     xoap::MessageReference createParameterSetSOAPMsg
     (
@@ -257,6 +314,55 @@ namespace emu {
 		  "Failed to find node with local name: " + nodeLocalName);
 
     }
+
+    
+   std::vector< xdaq::ApplicationDescriptor* > getAppDescriptors
+(
+    xdaq::Zone             *zone,
+    const std::string           appClass
+)
+throw (emu::dqm::exception::Exception)
+{
+    std::vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
+    std::set< xdaq::ApplicationDescriptor* > descriptors;
+    int nbApps = 0;
+
+    try
+    {
+        descriptors = zone->getApplicationDescriptors(appClass);
+    }
+    catch(xdaq::exception::ApplicationDescriptorNotFound e)
+    {
+        std::string s;
+
+        s = "Failed to get application descriptors for class: " + appClass;
+
+        XCEPT_RETHROW(emu::dqm::exception::Exception, s, e);
+    }
+
+    nbApps = descriptors.size();
+
+    // Fill application descriptors in instance order allowing non-contiguous numbering
+    while( !descriptors.empty() ){
+      // Find app with smallest instance number
+      unsigned int minInstance = 99999;
+      std::set< xdaq::ApplicationDescriptor* >::iterator adOfSmallest;
+      std::set< xdaq::ApplicationDescriptor* >::iterator ad;
+      for ( ad=descriptors.begin(); ad!=descriptors.end(); ++ad )
+        if ( (*ad)->getInstance() < minInstance ){
+          adOfSmallest = ad;
+          minInstance  = (*ad)->getInstance();
+        }
+      // Append it to the ordered vector
+      orderedDescriptors.push_back( *adOfSmallest );
+      // Remove it from the unordered vector
+      descriptors.erase( adOfSmallest );
+    }
+
+    return orderedDescriptors;
+}
+
+
 
     void sendFSMEventToApp
     (

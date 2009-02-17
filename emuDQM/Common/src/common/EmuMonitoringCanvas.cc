@@ -205,7 +205,7 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height, bool useDraw
 	      	summaryMap->drawDetector(tmp);
 	    } else if ((drawtype.find("SummaryStationMap") != std::string::npos) && (summaryMap!=NULL)) {
 	      std::string station_str = obj->second->getName();
-	      REREPLACE(".*Summary_ME([1234])$", station_str, "$1");
+	      REREPLACE(".*Physics_ME([1234])$", station_str, "$1");
 	      TH2* tmp = dynamic_cast<TH2*>(obj->second->getObject());
 	      summaryMap->drawStation(tmp, atoi(station_str.c_str()));
 	    } else {
@@ -360,35 +360,35 @@ int EmuMonitoringCanvas::parseDOMNode(DOMNode* info)
       // std::string typestr = itr->second;
       objname += itr->second;
       type = itr->second;
-      obj_info.erase("Type");
+//      obj_info.erase("Type");
 		
     }
     if ((itr = obj_info.find("Prefix")) != obj_info.end()) {
       objname += itr->second;
       prefix = itr->second;
-      obj_info.erase("Prefix");		
+//      obj_info.erase("Prefix");		
     }
     if ((itr = obj_info.find("Name")) != obj_info.end()) {
       objname += itr->second;
       name = itr->second;
-      obj_info.erase("Name");
+//      obj_info.erase("Name");
     }
     if ((itr = obj_info.find("DisplayInWeb")) != obj_info.end()) {
       objname += itr->second;
       displayInWeb = (bool) atoi(itr->second.c_str());
-      obj_info.erase("DisplayInWeb");
+//      obj_info.erase("DisplayInWeb");
     }
     if ((itr = obj_info.find("Folder")) != obj_info.end()) {
       objname += itr->second;
       folder = itr->second;
-      obj_info.erase("Folder");
+//      obj_info.erase("Folder");
     }
     // name = objname;
 	  
     // == Get Monitoring Canvas Title
     if ((itr = obj_info.find("Title")) != obj_info.end()) {
       title = itr->second;
-      obj_info.erase("Title");
+//      obj_info.erase("Title");
     }
 
 

@@ -1,6 +1,9 @@
 #ifndef EmuDQM_AppParameters_h
 #define EmuDQM_AppParameters_h
 
+#include <vector>
+#include <set>
+
 #include "xdaq.h"
 #include "toolbox.h"
 #include "xdata.h"
@@ -110,6 +113,13 @@ namespace emu {
         xdaq::ApplicationDescriptor* appDescriptor
     )
     throw (emu::dqm::exception::Exception);
+
+   std::vector< xdaq::ApplicationDescriptor* > getAppDescriptors
+	(
+    	xdaq::Zone             *zone,
+    	const std::string           appClass
+	)
+	throw (emu::dqm::exception::Exception);
 
       /**
      * Creates a simple SOAP message representing a command with no
