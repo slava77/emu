@@ -12,22 +12,22 @@
 #include <time.h>
 
 /*
-std::string now()
-{
+  std::string now()
+  {
   char buf[255];
   time_t now=time(NULL);
   const struct tm * timeptr = localtime(&now);
   strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", timeptr);
   std::string time = std::string(buf);
   if (time.find("\n",0) != std::string::npos) 
-        time = time.substr(0,time.find("\n",0));
+  time = time.substr(0,time.find("\n",0));
   else { 
-	if (time.length() == 0)
-	        time = "---";
+  if (time.length() == 0)
+  time = "---";
   }
   return time;
 
-};
+  };
 */
 
 std::string getDateTime(){
@@ -95,6 +95,9 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   bindCGIcallbacks();
 
   appTid_ = this->getApplicationDescriptor()->getInstance();
+  appDescriptor_   = getApplicationDescriptor();
+  appContext_      = getApplicationContext();
+  zone_   = appContext_->getDefaultZone();
   if (!gApplication)
     TApplication::CreateApplication();
 
@@ -103,20 +106,20 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
 
 EmuMonitor::~EmuMonitor() 
 {
-/*
-	destroyDeviceReader();
-	if (plotter_) delete plotter_;
-	if (timer_) {
-		if (timer_->isActive()) timer_->kill();
-		delete timer_;
-	}
-	if (pmeter_) delete pmeter_;
-	if (pmeterCSC_) delete pmeterCSC_;
-	if (rateMeter) {
-		if (rateMeter->isActive()) rateMeter->kill();
-		delete rateMeter;
-	}
-*/
+  /*
+    destroyDeviceReader();
+    if (plotter_) delete plotter_;
+    if (timer_) {
+    if (timer_->isActive()) timer_->kill();
+    delete timer_;
+    }
+    if (pmeter_) delete pmeter_;
+    if (pmeterCSC_) delete pmeterCSC_;
+    if (rateMeter) {
+    if (rateMeter->isActive()) rateMeter->kill();
+    delete rateMeter;
+    }
+  */
 
 }
 
@@ -517,22 +520,22 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         {
 	  nDAQEvents_ = 0;
 	  /*
-	  std::set<xdaq::ApplicationDescriptor*>::iterator pos;
-	  for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
+	    std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+	    for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
 	    xdata::UnsignedLong count;
 	    try
-	      {
-		count.fromString(emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nEventsRead","unsignedLong"));
+	    {
+	    count.fromString(emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nEventsRead","unsignedLong"));
 
-	      }
+	    }
 	    catch(xcept::Exception e)
-	      {
-		count    = 0;
-		LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get event count from EmuRUI" << (*pos)->getInstance()
-			       << " : " << xcept::stdformat_exception_history(e));
-	      }
+	    {
+	    count    = 0;
+	    LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get event count from EmuRUI" << (*pos)->getInstance()
+	    << " : " << xcept::stdformat_exception_history(e));
+	    }
 	    nDAQEvents_ = nDAQEvents_ + count;	
-          }
+	    }
 	  */
         }
 
@@ -673,7 +676,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
 
     }
-   appBSem_.give();
+  appBSem_.give();
 }
 
 std::string EmuMonitor::getROOTFileName() 
@@ -698,13 +701,13 @@ std::string EmuMonitor::getROOTFileName()
       std::ostringstream st;
       st.clear();
       st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << serversClassName_.toString();
-	st << std::setw(2) << std::setfill('0') << appTid_ << "_" << getDateTime();
+      st << std::setw(2) << std::setfill('0') << appTid_ << "_" << getDateTime();
       /*
 	std::set<xdaq::ApplicationDescriptor*>::iterator pos;
-      for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
+	for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
 	st << "_" << (*pos)->getInstance();
-      }
-	*/
+	}
+      */
       histofile = st.str();
     }
   }
@@ -788,26 +791,95 @@ void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fs
 {
   if (fsm_.getCurrentState() == 'E') doStop();
 
+  //  startATCP();
   doConfigure();
   LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
+void EmuMonitor::startATCP()
+  throw (emu::dqm::monitor::exception::Exception)
+{
+  // configure and enable all pt::atcp::PeerTransportATCP
+
+  // std::cout << "In emu::dqm::csc::monitor::Application::startATCP()" << std::endl;
+
+  vector < xdaq::ApplicationDescriptor* > atcpDescriptors;
+  try{
+    atcpDescriptors = emu::dqm::getAppDescriptors(zone_, "pt::atcp::PeerTransportATCP");
+  }
+  catch(emu::dqm::monitor::exception::Exception e){
+    LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get atcp descriptors : "
+                   + xcept::stdformat_exception_history(e) );
+    atcpDescriptors.clear();
+  }
+
+  // std::cout << atcpDescriptors.size() << " atcpDescriptors" << std::endl;
+
+  vector < xdaq::ApplicationDescriptor* >::iterator atcpd;
+  for ( atcpd = atcpDescriptors.begin(); atcpd != atcpDescriptors.end(); ++atcpd ){
+
+    // std::cout << appDescriptor_->getContextDescriptor()->getURL() << "         "
+    //          << (*atcpd)->getContextDescriptor()->getURL() << std::endl;
+
+    // Handle only the pt::atcp::PeerTransportATCP that's in the same Context
+    if ( (*atcpd)->getContextDescriptor() == appDescriptor_->getContextDescriptor() ){
+
+      // ATCP may already have been started. Check its state.
+      std::string atcpState="";
+      try{
+        atcpState = emu::dqm::getScalarParam( appContext_, appDescriptor_, (*atcpd), "stateName", "string" );
+      }
+      catch(emu::dqm::exception::Exception e)
+        {
+          stringstream oss;
+          oss << "Failed to get state of " << (*atcpd)->getClassName() << (*atcpd)->getInstance();
+          XCEPT_RETHROW(emu::dqm::exception::Exception, oss.str(), e);
+        }
+
+      if ( atcpState != "Halted" ) continue;
+      // Configure ATCP
+      try{
+        emu::dqm::sendFSMEventToApp("Configure", appContext_, appDescriptor_, *atcpd);
+      }
+      catch(xcept::Exception e){
+        stringstream oss;
+        oss << "Failed to configure " << (*atcpd)->getClassName() << (*atcpd)->getInstance();
+        XCEPT_RETHROW(emu::dqm::monitor::exception::Exception, oss.str(), e);
+      }
+
+      // Enable ATCP
+      try{
+        emu::dqm::sendFSMEventToApp("Enable", appContext_, appDescriptor_ , *atcpd);
+      }
+      catch(xcept::Exception e){
+        stringstream oss;
+        oss << "Failed to enable " << (*atcpd)->getClassName() << (*atcpd)->getInstance();
+        XCEPT_RETHROW(emu::dqm::monitor::exception::Exception, oss.str(), e);
+      }
+
+    }
+
+  }
+
+}
+
+
 void EmuMonitor::doStop()
 {
   appBSem_.take(&bsem_tout);
   if (plotter_ != NULL && isReadoutActive) {
-/* 
-    if (timer_ != NULL && timer_->isActive())
-      timer_->kill();	
-*/
+    /* 
+       if (timer_ != NULL && timer_->isActive())
+       timer_->kill();	
+    */
     if (rateMeter != NULL && rateMeter->isActive()) {
-	rateMeter->kill();
-	// rateMeter->stop();
-	}
+      rateMeter->kill();
+      // rateMeter->stop();
+    }
     if (fSaveROOTFile_ == xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0))) {
-    disableReadout();
-//    usleep(500000);
+      disableReadout();
+      //    usleep(500000);
 	
       if (timer_ != NULL) {
 	timer_->setPlotter(plotter_);
@@ -821,16 +893,16 @@ void EmuMonitor::doStop()
           usleep(1000000);
           timeout++;
           LOG4CPLUS_INFO (getApplicationLogger(),
-                        "Waiting to start saving of results... " << timeout);
+			  "Waiting to start saving of results... " << timeout);
         }
       }
 
-//    disableReadout();	      
-//      plotter_->saveToROOTFile(getROOTFileName());
+      //    disableReadout();	      
+      //      plotter_->saveToROOTFile(getROOTFileName());
     }
    
   }
-//  disableReadout();
+  //  disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
   appBSem_.give();
@@ -849,18 +921,18 @@ void EmuMonitor::doConfigure()
     if (xmlCfgFile_ != "" && plotter_ != NULL) plotter_->setXMLCfgFile(xmlCfgFile_.toString());
     if (plotter_ != NULL) plotter_->book(appTid_);
   */
-/*
-  if (timer_ != NULL && timer_->isActive()) {
+  /*
+    if (timer_ != NULL && timer_->isActive()) {
     int timeout=0;
     while (timer_->isActive() && timeout < 10) {
-	usleep(1000000);
-	timeout++;
-	LOG4CPLUS_WARN (getApplicationLogger(),
-                      "Waiting to finish saving of results... " << timeout);
+    usleep(1000000);
+    timeout++;
+    LOG4CPLUS_WARN (getApplicationLogger(),
+    "Waiting to finish saving of results... " << timeout);
     } 
     timer_->kill();
-  }
-*/
+    }
+  */
   setupPlotter();
   if (plotter_ != NULL) {
     // timer_->setPlotter(plotter_);
@@ -888,6 +960,13 @@ void EmuMonitor::doConfigure()
     }
   */
   configureReadout();
+  try{
+    startATCP();
+  }
+  catch(xcept::Exception e){
+    XCEPT_RETHROW(emu::dqm::monitor::exception::Exception, "Failed to start ATCP ", e);
+  }
+
   appBSem_.give();
 
 }
@@ -907,15 +986,15 @@ void  EmuMonitor::doStart()
   //    configureReadout();
   // if (plotter_ != NULL) timer_->activate();
   /*
-  if (timer_ != NULL && timer_->isActive())
+    if (timer_ != NULL && timer_->isActive())
     timer_->kill();
   */
   enableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
   if (rateMeter != NULL) {
-        rateMeter->init();
-        rateMeter->activate();
+    rateMeter->init();
+    rateMeter->activate();
   }
   appBSem_.give();
   // bindI2Ocallbacks();
@@ -933,7 +1012,7 @@ void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::
   if (fsm_.getCurrentState() == 'E') return;
   if (fsm_.getCurrentState() == 'H') doConfigure();
   doStart();
-//  doStart();
+  //  doStart();
   LOG4CPLUS_INFO(getApplicationLogger(), e->type() << " from " 
                  << fsm_.getStateName(fsm_.getCurrentState()));
 }
@@ -1022,53 +1101,53 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   uint32_t status = 0;
 
   if ((runNumber_ != msg->runNumber) || (runStartUTC_ != msg->runStartUTC)) {
-	LOG4CPLUS_INFO(getApplicationLogger(),"Detected Run Number switch. Resetting Monitor...");
-//" from " << runNumber_ << " to " << msg->runNumber<< ". Resetting Monitor...");
-	if (plotter_ != NULL) {
-		if (fSaveROOTFile_== xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)) ) {
-			plotter_->saveToROOTFile(getROOTFileName());
-		}
-	    	sessionEvents_=0;
-		cscUnpacked_ = 0;
-		plotter_->reset();
-    	}
+    LOG4CPLUS_INFO(getApplicationLogger(),"Detected Run Number switch. Resetting Monitor...");
+    //" from " << runNumber_ << " to " << msg->runNumber<< ". Resetting Monitor...");
+    if (plotter_ != NULL) {
+      if (fSaveROOTFile_== xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)) ) {
+	plotter_->saveToROOTFile(getROOTFileName());
+      }
+      sessionEvents_=0;
+      cscUnpacked_ = 0;
+      plotter_->reset();
+    }
   }
   runNumber_ = msg->runNumber;
   runStartUTC_ = msg->runStartUTC;
 
-  if( errorFlag==EmuFileReader::Type2 ) status |= 0x8000;
-  if( errorFlag==EmuFileReader::Type3 ) status |= 0x4000;
-  if( errorFlag==EmuFileReader::Type4 ) status |= 0x2000;
-  if( errorFlag==EmuFileReader::Type5 ) status |= 0x1000;
-  if( errorFlag==EmuFileReader::Type6 ) status |= 0x0800;
+  if( errorFlag==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
+  if( errorFlag==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
+  if( errorFlag==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
+  if( errorFlag==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
+  if( errorFlag==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
   
-/*
-  if (eventsReceived_%200 == 0) {
+  /*
+    if (eventsReceived_%200 == 0) {
     time_t nowmark=time(NULL);
     averageRate_ = sessionEvents_/(nowmark-startmark);
-  }
-*/
+    }
+  */
  
   if (eventsReceived_%1000 == 0) { 
     LOG4CPLUS_DEBUG(getApplicationLogger(),
-		   // "Received " << bufRef->getDataSize() <<
-		   "Received evt#" << eventsReceived_ << " (req: " << eventsRequested_ << ")" <<
-		   sizeOfPayload << " bytes, run " << msg->runNumber << ", start time " << msg->runStartUTC << 
-		   ", errorFlag 0x"  << std::hex << status << std::dec <<
-		   " from " << serversClassName_.toString() <<
-		   ":" << serverTID <<
-		   ", still holding " << creditsHeld_ << " event credits, " <<
-		   "pool size " << dataMessages_.size());
-/*
-    LOG4CPLUS_INFO(getApplicationLogger(),
-		   "==> Average rate: " << averageRate_ << " evt/sec");
-    LOG4CPLUS_INFO(getApplicationLogger(),
-		   "==> Current rate: " << pmeter_->rate() << " evt/sec");
-*/
+		    // "Received " << bufRef->getDataSize() <<
+		    "Received evt#" << eventsReceived_ << " (req: " << eventsRequested_ << ")" <<
+		    sizeOfPayload << " bytes, run " << msg->runNumber << ", start time " << msg->runStartUTC << 
+		    ", errorFlag 0x"  << std::hex << status << std::dec <<
+		    " from " << serversClassName_.toString() <<
+		    ":" << serverTID <<
+		    ", still holding " << creditsHeld_ << " event credits, " <<
+		    "pool size " << dataMessages_.size());
+    /*
+      LOG4CPLUS_INFO(getApplicationLogger(),
+      "==> Average rate: " << averageRate_ << " evt/sec");
+      LOG4CPLUS_INFO(getApplicationLogger(),
+      "==> Current rate: " << pmeter_->rate() << " evt/sec");
+    */
   }
 
-//  if (status == 0) 
-	processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, appTid_);
+  //  if (status == 0) 
+  processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, appTid_);
 
   // Free the Emu data message
   bufRef->release();
@@ -1118,9 +1197,9 @@ int EmuMonitor::sendDataRequest(uint32_t last)
 
           ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
           LOG4CPLUS_DEBUG(getApplicationLogger(),
-			 "Sending credit #" << creditMsgsSent_ << " to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
-			 //                                   << ". maxFrameSize=" << maxFrameSize_
-			 );
+			  "Sending credit #" << creditMsgsSent_ << " to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
+			  //                                   << ". maxFrameSize=" << maxFrameSize_
+			  );
           getApplicationContext()->postFrame(ref, this->getApplicationDescriptor(), (*pos));
         }
       catch (toolbox::mem::exception::Exception & me)
@@ -1129,7 +1208,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
           return 1; // error
         }
       catch (xdaq::exception::Exception & e)
-//      catch (pt::tcp::exception::Exception & e)
+	//      catch (pt::tcp::exception::Exception & e)
         {
           // Retry 3 times
           bool retryOK = false;
@@ -1209,8 +1288,8 @@ void EmuMonitor::createDeviceReader()
 
       // Create reader
       int inputDataFormatInt_ = -1;
-      if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = EmuReader::DDU;
-      else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = EmuReader::DCC;
+      if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = emu::daq::reader::Base::DDU;
+      else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = emu::daq::reader::Base::DCC;
       else     LOG4CPLUS_ERROR(getApplicationLogger(),
 			       "No such data format: " << inputDataFormat_.toString() <<
 			       "Use \"DDU\" or \"DCC\"");
@@ -1222,17 +1301,17 @@ void EmuMonitor::createDeviceReader()
 	// == Check if file exists
 	struct stat stats;
         if (stat((inputDeviceName_.toString()).c_str(), &stats)<0) {
-                LOG4CPLUS_FATAL(getApplicationLogger(), inputDeviceType_.toString() << ": " <<
-                        strerror(errno));
+	  LOG4CPLUS_FATAL(getApplicationLogger(), inputDeviceType_.toString() << ": " <<
+			  strerror(errno));
         } else { 
-		if      ( inputDeviceType_ == "spy"  )
-	 	 deviceReader_ = new EmuSpyReader(  inputDeviceName_.toString(), inputDataFormatInt_ );
-		else if ( inputDeviceType_ == "file" )
-		  deviceReader_ = new EmuFileReader( inputDeviceName_.toString(), inputDataFormatInt_ );
-		// TODO: slink
-		else     LOG4CPLUS_ERROR(getApplicationLogger(),
-					 "Bad device type: " << inputDeviceType_.toString() <<
-					 "Use \"file\", \"spy\", or \"slink\"");
+	  if      ( inputDeviceType_ == "spy"  )
+	    deviceReader_ = new emu::daq::reader::Spy(  inputDeviceName_.toString(), inputDataFormatInt_ );
+	  else if ( inputDeviceType_ == "file" )
+	    deviceReader_ = new emu::daq::reader::RawDataFile( inputDeviceName_.toString(), inputDataFormatInt_ );
+	  // TODO: slink
+	  else     LOG4CPLUS_ERROR(getApplicationLogger(),
+				   "Bad device type: " << inputDeviceType_.toString() <<
+				   "Use \"file\", \"spy\", or \"slink\"");
 	}
       }
       catch(char* e){
@@ -1293,28 +1372,28 @@ int EmuMonitor::svc()
 	    } else {
 	      uint32_t errorFlag = deviceReader_->getErrorFlag();
 	      uint32_t status=0;
-	      if( errorFlag==EmuFileReader::Type2 ) status |= 0x8000;
-	      if( errorFlag==EmuFileReader::Type3 ) status |= 0x4000;
-              if( errorFlag==EmuFileReader::Type4 ) status |= 0x2000;
-              if( errorFlag==EmuFileReader::Type5 ) status |= 0x1000;
-              if( errorFlag==EmuFileReader::Type6 ) status |= 0x0800;
+	      if( errorFlag==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
+	      if( errorFlag==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
+              if( errorFlag==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
+              if( errorFlag==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
+              if( errorFlag==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
 	      appBSem_.take(&bsem_tout);      
 	      processEvent(deviceReader_->data(), deviceReader_->dataLength(), status, appTid_);
 	      appBSem_.give();
-	/*
-	      if ((sessionEvents_ % 100) == 1) {
+	      /*
+		if ((sessionEvents_ % 100) == 1) {
 	       	time_t nowmark=time(NULL);	      	      
 	        averageRate_ = sessionEvents_/(nowmark-startmark);
-	      } 
-	*/
+		} 
+	      */
 	    }
 
         } else {
-	   if (!readValid && loopFileReadout_) {
-		destroyDeviceReader();
-	 	createDeviceReader();	
-		readValid=true;
-	   }
+	  if (!readValid && loopFileReadout_) {
+	    destroyDeviceReader();
+	    createDeviceReader();	
+	    readValid=true;
+	  }
         }
         
       
@@ -1344,15 +1423,15 @@ int EmuMonitor::svc()
 	  LOG4CPLUS_DEBUG (getApplicationLogger(), "Missed " << (eventsRequested_ - eventsReceived_) << " events");
 	  
 	  /*
-          time_t nowmark=time(NULL);
-          averageRate_ = sessionEvents_/(nowmark-startmark);
+	    time_t nowmark=time(NULL);
+	    averageRate_ = sessionEvents_/(nowmark-startmark);
 	  */
-/*
-          if ((eventsRequested_ - eventsReceived_) >= nEventCredits_) {
+	  /*
+	    if ((eventsRequested_ - eventsReceived_) >= nEventCredits_) {
             // nEventCredits_ = ((nEventCredits_-10)>1)? nEventCredits_-10: 1;
             continue;
-          }
-*/
+	    }
+	  */
 	  eventsRequested_ = eventsReceived_;
 	  
 	}
@@ -1362,17 +1441,17 @@ int EmuMonitor::svc()
 	if (!pool_->isHighThresholdExceeded())
 	  {
 	    try {
-	    // Stop if there is an error in sending
-	    if (this->sendDataRequest(0) == 1)
-	      {
-		LOG4CPLUS_FATAL (getApplicationLogger(), toolbox::toString("Error in frameSend. Stopping client."));
-		// return 1;
-	      };
+	      // Stop if there is an error in sending
+	      if (this->sendDataRequest(0) == 1)
+		{
+		  LOG4CPLUS_FATAL (getApplicationLogger(), toolbox::toString("Error in frameSend. Stopping client."));
+		  // return 1;
+		};
 	    } 
-           catch (pt::tcp::exception::Exception & e)
-        {
-              LOG4CPLUS_FATAL (getApplicationLogger(), xcept::stdformat_exception_history(e));
-        }
+	    catch (pt::tcp::exception::Exception & e)
+	      {
+		LOG4CPLUS_FATAL (getApplicationLogger(), xcept::stdformat_exception_history(e));
+	      }
 
 	  } else
 	    {
@@ -1398,8 +1477,8 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
     totalEvents_++;
     sessionEvents_++;
     if (sessionEvents_ % 5000 == 0) {
-    LOG4CPLUS_INFO(getApplicationLogger(), "Evt# " << sessionEvents_.toString() << ": Readout rate: " << rateMeter->getRate("averageRate") << " Evts/sec;  Unpack rate: "<< rateMeter->getRate("cscRate") << " CSCs/sec" ) ; 
-//		   << " (Total processed: " << totalEvents_.toString() << ")"); 
+      LOG4CPLUS_INFO(getApplicationLogger(), "Evt# " << sessionEvents_.toString() << ": Readout rate: " << rateMeter->getRate("averageRate") << " Evts/sec;  Unpack rate: "<< rateMeter->getRate("cscRate") << " CSCs/sec" ) ; 
+      //		   << " (Total processed: " << totalEvents_.toString() << ")"); 
     }
     plotter_->processEvent(data, dataSize, errorFlag, node);
     pmeter_->addSample(dataSize);

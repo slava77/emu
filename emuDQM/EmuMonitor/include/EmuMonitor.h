@@ -32,9 +32,14 @@
 
 #include "i2oEmuMonitorMsg.h"
 
+#include "emu/dqm/monitor/exception/Exception.h"
+#include "emu/daq/reader/RawDataFile.h"
+#include "emu/daq/reader/Spy.h"
+
+/*
 #include "EmuFileReader.h"
 #include "EmuSpyReader.h"
-
+*/
 
 #include "EmuPlotter.h"
 
@@ -170,6 +175,8 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   void bindI2Ocallbacks();
   void bindSOAPcallbacks();
   void bindCGIcallbacks();
+  void startATCP()
+	throw (emu::dqm::monitor::exception::Exception);;
 
   void getDataServers(xdata::String className);
   void getCollectors(xdata::String className);
@@ -236,7 +243,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::Boolean	loopFileReadout_;
 
 
-  EmuReader*         	deviceReader_;         // device reader
+  emu::daq::reader::Base*         	deviceReader_;         // device reader
   xdata::String         inputDeviceName_;      // input device name (file path or board number)
   xdata::String         inputDeviceType_;      // spy, slink or file
   xdata::String         inputDataFormat_;      // "DDU" or "DCC"
@@ -266,6 +273,16 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::UnsignedInteger        averageRate_;
  
 
+  // Used to access the application's descriptor without a function call.
+    xdaq::ApplicationDescriptor *appDescriptor_;
+
+  //    Used to access the application's context without a function call.
+    xdaq::ApplicationContext *appContext_;
+
+  // Used to access the application's zone without a function call.
+    xdaq::Zone *zone_;
+
+
   // == Vector of all external data servers tids
   std::set<xdaq::ApplicationDescriptor*> dataservers_;
   // == Vector of all collectors tids
@@ -288,6 +305,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   toolbox::fsm::FiniteStateMachine fsm_; 
   // == Web dialog state machine
   xgi::WSM wsm_;
+
 
   time_t startmark;
   int sTimeout; // Timeout (in secs) waiting for plotter's busy flag to clear

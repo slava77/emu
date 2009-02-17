@@ -88,13 +88,13 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
         long errs = bin_checker.errorsForDDU(*ddu_itr);
         int dduID = (*ddu_itr)&0xFF;
 
-	std::string dduTag = Form("DDU_%d",dduID);
+	std::string dduTag = Form("DDU_%02d",dduID);
 
         if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
 	  LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
 	  fBusy = true;
-	  MEs[dduTag] = bookDDU(dduID);
-	  MECanvases[dduTag] = bookDDUCanvases(dduID);
+	  MEs[dduTag] = bookMEs("DDU", dduTag);
+	  MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
 	  // printMECollection(MEs[dduTag]);
 	  fBusy = false;
 	  L1ANumbers[dduID] = 0;
@@ -115,13 +115,13 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
     /* Temporary tweak for cases when there were no DDU errors  */
     if (bin_checker.errors() == 0) {
       int dduID = bin_checker.dduSourceID() & 0xFF;
-      std::string dduTag = Form("DDU_%d",dduID);
+      std::string dduTag = Form("DDU_%02d",dduID);
 
       if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
 	LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
 	fBusy = true;
-	MEs[dduTag] = bookDDU(dduID);
-	MECanvases[dduTag] = bookDDUCanvases(dduID);
+	MEs[dduTag] = bookMEs("DDU",dduTag);
+	MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
 	// printMECollection(MEs[dduTag]);
 	fBusy = false;
 	L1ANumbers[dduID] = 0;
@@ -226,13 +226,13 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
 
 
 
-  std::string dduTag = Form("DDU_%d",dduID);
+  std::string dduTag = Form("DDU_%02d",dduID);
 
   if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
     LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << dduTag << " not found. Booking...");
     fBusy = true;
-    MEs[dduTag] = bookDDU(dduID);
-    MECanvases[dduTag] = bookDDUCanvases(dduID);
+    MEs[dduTag] = bookMEs("DDU",dduTag);
+    MECanvases[dduTag] = bookMECanvases("DDU",dduTag, Form(" DDU = %02d", dduID));
     // printMECollection(MEs[dduTag]);
     fBusy = false;
     L1ANumbers[dduID] = 0;
@@ -520,8 +520,9 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 	LOG4CPLUS_DEBUG(logger_,
 			"Booking Histos for " << cscTag);
 	fBusy = true;
-	MEs[cscTag] = bookChamber(ChamberID);
-	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
+	MEs[cscTag] = bookMEs("CSC",cscTag);
+	MECanvases[cscTag] = bookMECanvases("CSC", cscTag, Form(" Crate ID = %02d. DMB ID = %02d", CrateID, DMBSlot));
+	cscCounters[cscTag] = bookCounters();
 	// printMECollection(MEs[cscTag]);
 	fBusy = false;
       }
@@ -529,7 +530,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 
       // === Update counters
       nDMBEvents[cscTag]++;
-      CSCCounters& trigCnts = cscCntrs[cscTag];
+      CSCCounters& trigCnts = cscCounters[cscTag];
       trigCnts["DMB"] = nDMBEvents[cscTag];
 
 
@@ -749,8 +750,9 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 	LOG4CPLUS_DEBUG(logger_,
 			"Booking Histos for " << cscTag);
 	fBusy = true;
-	MEs[cscTag] = bookChamber(ChamberID);
-	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
+	MEs[cscTag] = bookMEs("CSC",cscTag);
+	MECanvases[cscTag] = bookMECanvases("CSC", cscTag, Form(" Crate ID = %02d. DMB ID = %02d", CrateID, DMBSlot));
+	cscCounters[cscTag] = bookCounters();
 	// printMECollection(MEs[cscTag]);
 	fBusy = false;
       }
@@ -832,8 +834,10 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 	LOG4CPLUS_DEBUG(logger_,
 			"Booking Histos for " << cscTag);
 	fBusy = true;
-	MEs[cscTag] = bookChamber(ChamberID);
-	MECanvases[cscTag] = bookChamberCanvases(ChamberID);
+	MEs[cscTag] = bookMEs("CSC", cscTag);
+	MECanvases[cscTag] = bookMECanvases("CSC", cscTag, Form(" Crate ID = %02d. DMB ID = %02d", CrateID, DMBSlot));
+	cscCounters[cscTag] = bookCounters();
+
 	// printMECollection(MEs[cscTag]);
 	fBusy = false;
       }
@@ -841,7 +845,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
 
       if ((chamber->second & binCheckMask) != 0) {
 	//	nDMBEvents[cscTag]++;	
-	CSCCounters& trigCnts = cscCntrs[cscTag];
+	CSCCounters& trigCnts = cscCounters[cscTag];
 	trigCnts["BAD"]++; 
       }
 

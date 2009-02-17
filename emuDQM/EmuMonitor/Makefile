@@ -25,7 +25,7 @@ Sources=\
 	version.cc
 
 
-Executables = runEmuMonitor.cc
+Executables = 
 
 TestLibraries =  
 TestExecutables = 
@@ -37,6 +37,8 @@ ExternalObjects = \
 	../EmuPlotter/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuPlotter.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
+	$(BUILD_HOME)/emu/daq/server/include \
+        $(BUILD_HOME)/emu/daq/reader/include \
 	../CMSSWLibs \
 	../Common/include \
 	../../emuDAQ/emuReadout/include \
@@ -50,7 +52,7 @@ IncludeDirs = $(XdaqIncludeDirs) \
 
 LibraryDirs = $(XdaqLibraryDirs) \
 	../EmuPlotter/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/ \
-	../../emuDAQ/emuReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/ 
+	$(BUILD_HOME)/emu/daq/reader/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/ 
 
 
 UserSourcePath = 
@@ -64,7 +66,7 @@ UserExecutableLinkFlags += $(ROOTGLIBS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) EmuReadout  EmuPlotter
+Libraries = $(XdaqLibraries) emudaqreader  EmuPlotter
 
 #
 # Compile the source files and create a shared library
