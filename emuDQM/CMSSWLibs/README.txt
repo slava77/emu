@@ -1,3 +1,7 @@
+Installation:
+untar provided CMSSW_X_X_X.tgz distribution into desired folder (ex $HOME)
+ln -s CMSSW_X_X_X CMSSW
+
 Compilation:
 set CMMSW env variable in emuDQM/config/site.mk pointing to CMSSW/src installation
 set BOOST env variable on emuDQM/config/site.mk pointing to include directory of BOOST C++ Library
