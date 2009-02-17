@@ -11,7 +11,7 @@
                 <Title>EMU Status00 - Overall EMU Physics Efficiency</Title>
                 <NumPadsX>1</NumPadsX>
                 <NumPadsY>1</NumPadsY>
-                <Pad1>reportSummaryMap</Pad1>
+                <Pad1>Physics_EMU</Pad1>
         </Canvas>
 
 
@@ -22,10 +22,10 @@
                 <Title>EMU Status01 - EMU Stations Physics Efficiency</Title>
                 <NumPadsX>2</NumPadsX>
                 <NumPadsY>2</NumPadsY>
-                <Pad1>Summary_ME1</Pad1>
-		<Pad2>Summary_ME2</Pad2>
-                <Pad3>Summary_ME3</Pad3>
-                <Pad4>Summary_ME4</Pad4>
+                <Pad1>Physics_ME1</Pad1>
+		<Pad2>Physics_ME2</Pad2>
+                <Pad3>Physics_ME3</Pad3>
+                <Pad4>Physics_ME4</Pad4>
         </Canvas>
 
 	<Canvas>
