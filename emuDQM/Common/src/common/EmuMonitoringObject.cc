@@ -561,29 +561,29 @@ int EmuMonitoringObject::parseDOMNode(DOMNode* info)
 
       objname += itr->second;
       type = itr->second;
-      obj_info.erase("Type");
+    //  obj_info.erase("Type");
 		
     }
     if ((itr = obj_info.find("Prefix")) != obj_info.end()) {
       objname += itr->second;
       prefix = itr->second;
-      obj_info.erase("Prefix");		
+    //   obj_info.erase("Prefix");		
     }
     if ((itr = obj_info.find("Name")) != obj_info.end()) {
       objname += itr->second;
       name = itr->second;
-      obj_info.erase("Name");
+   //   obj_info.erase("Name");
     }
 	  
     // == Get Monitoring Object Title
     if ((itr = obj_info.find("Title")) != obj_info.end()) {
       title = itr->second;
-      obj_info.erase("Title");
+    //   obj_info.erase("Title");
     }
 
     if ((itr = obj_info.find("Folder")) != obj_info.end()) {
       folder = itr->second;
-      obj_info.erase("Folder");
+  //    obj_info.erase("Folder");
     }
 
     // == Create Monitoring Object Parameters map

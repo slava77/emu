@@ -27,9 +27,8 @@ Sources=\
 	EmuDQM_AppParameters.cc \
 	EmuMonitoringObject.cc \
 	EmuMonitoringCanvas.cc \
-	CSCReadoutMappingFromFile.cc \
-	CSCDrawChamberMap.cc \
-	CSCDrawSummaryMap.cc
+	EmuMonObjectsProvider.cc \
+	CSCReadoutMappingFromFile.cc 
 
 
 Executables =
