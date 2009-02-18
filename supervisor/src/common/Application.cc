@@ -191,7 +191,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   
   state_ = fsm_.getStateName(fsm_.getCurrentState());
   
-  state_table_.addApplication("EmuFCrateManager");
+  state_table_.addApplication("emu::fed::EmuFCrateManager");
   state_table_.addApplication("EmuPeripheralCrateManager");
   state_table_.addApplication("emu::daq::manager::Application");
   state_table_.addApplication("TTCciControl");
@@ -199,7 +199,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   
   // last_log_.size(N_LOG_MESSAGES);
   
-  LOG4CPLUS_INFO(logger_, "emu::supervisor::Application constructed");
+  LOG4CPLUS_INFO(logger_, "emu::supervisor::Application constructed for " << state_table_ );
 }
 
 xoap::MessageReference emu::supervisor::Application::onConfigure(xoap::MessageReference message)
@@ -658,7 +658,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
     }   
        
-    sendCommand("Configure", "EmuFCrateManager");
+    sendCommand("Configure", "emu::fed::EmuFCrateManager");
     
     waitForDAQToExecute("Configure", 10, true);
        
@@ -697,11 +697,11 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
   
   try {
     state_table_.refresh();
-      setParameter("EmuFCrateManager",
+      setParameter("emu::fed::EmuFCrateManager",
 		   "runNumber", "xsd:unsignedLong", run_number_.toString());
-      setParameter("EmuFCrateManager",
+      setParameter("emu::fed::EmuFCrateManager",
 		   "runType", "xsd:string", run_type_.toString());
-    sendCommand("Enable", "EmuFCrateManager");
+    sendCommand("Enable", "emu::fed::EmuFCrateManager");
     
     if (!isCalibrationMode()) {
       sendCommand("Enable", "EmuPeripheralCrateManager");
@@ -773,7 +773,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     } catch (xcept::Exception ignored) {}
     
     writeRunInfo( true, false );
-    sendCommand("Disable", "EmuFCrateManager");
+    sendCommand("Disable", "emu::fed::EmuFCrateManager");
     sendCommand("Disable", "EmuPeripheralCrateManager");
     sendCommand("Configure", "TTCciControl");
     sendCommand("Configure", "LTCControl");
@@ -802,7 +802,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     if (state_table_.getState("TTCciControl", 0) != "Halted") {
       sendCommand("Halt", "TTCciControl");
     }
-    sendCommand("Halt", "EmuFCrateManager");
+    sendCommand("Halt", "emu::fed::EmuFCrateManager");
     sendCommand("Halt", "EmuPeripheralCrateManager");
     
     try {
@@ -835,7 +835,7 @@ void emu::supervisor::Application::setTTSAction(toolbox::Event::Reference evt)
 {
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   
-  const string fed_app = "EmuFCrateManager";
+  const string fed_app = "emu::fed::EmuFCrateManager";
   
   try {
     setParameter(fed_app, "ttsID",   "xsd:unsignedInt", tts_id_.toString());
@@ -2345,9 +2345,9 @@ xoap::MessageReference emu::supervisor::Application::createParameterSetSOAP(
 	xoap::SOAPName command = envelope.createName(
 			"ParameterSet", "xdaq", XDAQ_NS_URI);
 	xoap::SOAPName properties = envelope.createName(
-			"properties", klass, "urn:xdaq-application:" + klass);
+			"properties", "xapp", "urn:xdaq-application:" + klass);
 	xoap::SOAPName parameter = envelope.createName(
-			name, klass, "urn:xdaq-application:" + klass);
+			name, "xapp", "urn:xdaq-application:" + klass);
 	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
 
 	xoap::SOAPElement properties_e = envelope.getBody()
@@ -2372,9 +2372,9 @@ xoap::MessageReference emu::supervisor::Application::createParameterGetSOAP(
 	xoap::SOAPName command = envelope.createName(
 			"ParameterGet", "xdaq", XDAQ_NS_URI);
 	xoap::SOAPName properties = envelope.createName(
-			"properties", klass, "urn:xdaq-application:" + klass);
+			"properties", "xapp", "urn:xdaq-application:" + klass);
 	xoap::SOAPName parameter = envelope.createName(
-			name, klass, "urn:xdaq-application:" + klass);
+			name, "xapp", "urn:xdaq-application:" + klass);
 	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
 
 	xoap::SOAPElement properties_e = envelope.getBody()
@@ -2399,7 +2399,7 @@ xoap::MessageReference emu::supervisor::Application::createParameterGetSOAP(
 	xoap::SOAPName command = envelope.createName(
 			"ParameterGet", "xdaq", XDAQ_NS_URI);
 	xoap::SOAPName properties = envelope.createName(
-			"properties", klass, "urn:xdaq-application:" + klass);
+			"properties", "xapp", "urn:xdaq-application:" + klass);
 	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
 
 	xoap::SOAPElement properties_e = envelope.getBody()
@@ -2410,7 +2410,7 @@ xoap::MessageReference emu::supervisor::Application::createParameterGetSOAP(
 	std::map<string, string>::iterator i;
 	for (i = name_type.begin(); i != name_type.end(); ++i) {
 		xoap::SOAPName n = envelope.createName(
-				(*i).first, klass, "urn:xdaq-application:" + klass);
+				(*i).first, "xapp", "urn:xdaq-application:" + klass);
 		xoap::SOAPElement e = properties_e.addChildElement(n);
 		e.addAttribute(xsitype, (*i).second);
 		e.addTextNode("");
@@ -2940,9 +2940,9 @@ xoap::MessageReference emu::supervisor::Application::StateTable::createStateSOAP
 	xoap::SOAPName command = envelope.createName(
 			"ParameterGet", "xdaq", XDAQ_NS_URI);
 	xoap::SOAPName properties = envelope.createName(
-			"properties", klass, "urn:xdaq-application:" + klass);
+			"properties", "xapp", "urn:xdaq-application:" + klass);
 	xoap::SOAPName parameter = envelope.createName(
-			"stateName", klass, "urn:xdaq-application:" + klass);
+			"stateName", "xapp", "urn:xdaq-application:" + klass);
 	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
 
 	xoap::SOAPElement properties_e = envelope.getBody()
