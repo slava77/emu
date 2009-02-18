@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.3 2009/02/17 14:55:24 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.4 2009/02/18 15:48:51 liu Exp $
 
 #include "EmuPeripheralCrateTimer.h"
 
@@ -119,9 +119,9 @@ void EmuPeripheralCrateTimer::timeExpired (toolbox::task::TimerEvent& e)
      In_Monitor_ = true;
      std::string name = e.getTimerTask()->name;
      // std::cout << "timeExpired: " << name << std::endl;
-     if(strncmp(name.c_str(),"EmuPCrateFast",13)==0)  PCsendCommand("FastLoop","EmuPeripheralCrateMonitor");
-     else if(strncmp(name.c_str(),"EmuPCrateSlow",13)==0) PCsendCommand("SlowLoop","EmuPeripheralCrateMonitor");
-     else if(strncmp(name.c_str(),"EmuPCrateExtra",14)==0) PCsendCommand("ExtraLoop","EmuPeripheralCrateMonitor");
+     if(strncmp(name.c_str(),"EmuPCrateFast",13)==0)  PCsendCommand("FastLoop","emu::pc::EmuPeripheralCrateMonitor");
+     else if(strncmp(name.c_str(),"EmuPCrateSlow",13)==0) PCsendCommand("SlowLoop","emu::pc::EmuPeripheralCrateMonitor");
+     else if(strncmp(name.c_str(),"EmuPCrateExtra",14)==0) PCsendCommand("ExtraLoop","emu::pc::EmuPeripheralCrateMonitor");
      In_Monitor_ = false;
 }
 //
