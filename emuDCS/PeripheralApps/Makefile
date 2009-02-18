@@ -34,13 +34,13 @@ IncludeDirs = \
         $(XDAQ_ROOT)/include \
         $(BUILD_HOME)/emu/emuDCS/PeripheralCore/include \
 	$(BUILD_HOME)/emu/emuDCS/OnlineDB/include \
-        $(BUILD_HOME)/emu/cscSV/include
+        $(BUILD_HOME)/emu/base/include
 
 TestLibraryDirs = \
 	$(XDAQ_ROOT)/lib \
         $(BUILD_HOME)/emu/emuDCS/PeripheralCore/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
         $(BUILD_HOME)/emu/emuDCS/PeripheralApps/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-        $(BUILD_HOME)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+        $(BUILD_HOME)/emu/base/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags  = 
 UserCCFlags = 

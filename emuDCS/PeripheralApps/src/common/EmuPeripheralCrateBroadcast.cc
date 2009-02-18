@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.37 2009/01/27 14:19:14 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.38 2009/02/18 15:44:32 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -24,9 +24,12 @@
 #include <time.h>
 #include "EmuEndcap.h"
 
+namespace emu {
+  namespace pc {
+
 const std::string       VMECC_FIRMWARE_DIR = "vcc"; 
 
-EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuApplication(s)
+EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): emu::base::Supervised(s)
 {	
   broadcastCrate = 0;
   HomeDir_     = getenv("HOME");
@@ -263,10 +266,10 @@ void EmuPeripheralCrateBroadcast::DefineBroadcastCrate() {
     std::cout <<" Broadcast crate has not been defined yet"<<std::endl;
     std::cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_.toString() << std::endl;
     //
-    MyController = new emu::pc::EmuController();
+    MyController = new EmuController();
     MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_.toString().c_str());
     MyController->init();
-    std::vector<emu::pc::Crate *> tmpcrate=MyController->GetEmuEndcap()->broadcast_crate();
+    std::vector<Crate *> tmpcrate=MyController->GetEmuEndcap()->broadcast_crate();
     broadcastCrate = tmpcrate[0];
     unsigned int ib=(broadcastCrate->daqmbs()).size()-1;
     broadcastDMB = (broadcastCrate->daqmbs())[ib];
@@ -383,14 +386,14 @@ void EmuPeripheralCrateBroadcast::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::O
   std::cout <<"         This is the DMB board number"<<std::endl;
   //
   //SOAP message to read back the DMB board ID:
-  PCsendCommand("ReadVmePromUserid","EmuPeripheralCrateConfig");
+  PCsendCommand("ReadVmePromUserid","emu::pc::EmuPeripheralCrateConfig");
   //
   std::cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<std::endl;
   broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,1);
   //
   std::cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<std::endl;
   //SOAP message to individual crates to program the PROM_USERCODE
-  PCsendCommand("LoadVmePromUserid","EmuPeripheralCrateConfig");
+  PCsendCommand("LoadVmePromUserid","emu::pc::EmuPeripheralCrateConfig");
   //
   std::cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<std::endl;
   broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,3);
@@ -449,7 +452,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit);
   for(unsigned int j=0;j<limit;j++){
-    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
     int slott=broadcastDMB0->slot();
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
@@ -476,7 +479,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit1=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit1);
   for(unsigned int j=0;j<limit1;j++){
-    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
     int slott=broadcastDMB0->slot();
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
@@ -504,7 +507,7 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit2=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit2);
   for(unsigned int j=0;j<limit2;j++){
-    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
     int slott=broadcastDMB0->slot();
     printf(" %d slott %d \n",j,slott);
     // now globally pole the DMB in slot 1
@@ -531,9 +534,9 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit3=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit3);
   for(unsigned int j=0;j<limit3;j++){
-    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
-    std::vector<emu::pc::CFEB> cfebs = broadcastDMB0->cfebs() ;
-    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febfpgauser(*cfebItr);
@@ -562,9 +565,9 @@ void EmuPeripheralCrateBroadcast::VMECCTestBcast(xgi::Input * in, xgi::Output * 
   unsigned int limit4=(broadcastCrate->daqmbs()).size()-1;
   printf(" limit %d \n",limit4);
   for(unsigned int j=0;j<limit4;j++){
-    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
-    std::vector<emu::pc::CFEB> cfebs = broadcastDMB0->cfebs() ;
-    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febpromuser(*cfebItr);
@@ -629,9 +632,9 @@ void EmuPeripheralCrateBroadcast::VMECCTestSkewClear(xgi::Input * in,xgi::Output
   printf(" limit %d \n",limit);
   *out << " ****CFEB ON-OFF REGISTER SET " << std::hex << onoff[iof] << std::dec << " Only CFEB" << ionoff[iof] << " will return usercode "<< std::endl;
   for(unsigned int j=0;j<limit;j++){
-    emu::pc::DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
-    std::vector<emu::pc::CFEB> cfebs = broadcastDMB0->cfebs() ;
-    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+    DAQMB *broadcastDMB0 = (broadcastCrate->daqmbs())[j];
+    std::vector<CFEB> cfebs = broadcastDMB0->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
         int slott=broadcastDMB0->slot();
         broadcastDMB0->febfpgauser(*cfebItr);
@@ -671,14 +674,14 @@ void EmuPeripheralCrateBroadcast::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Out
   std::cout <<" Step 1: Sending SOAP message to all the crates to readback the CFEB_PROM_ID"<<std::endl;
   std::cout <<"         This is the CFEB board number"<<std::endl;
   //SOAP message to read back the CFEB board ID:
-  PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrateConfig");
+  PCsendCommand("ReadCfebPromUserid","emu::pc::EmuPeripheralCrateConfig");
   //
   std::cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<std::endl;
   broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,1);
   //
   std::cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<std::endl;
   //SOAP message to individual crates to program the CFEB PROM_USERCODE
-  PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrateConfig");
+  PCsendCommand("LoadCfebPromUserid","emu::pc::EmuPeripheralCrateConfig");
   //
   std::cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<std::endl;
   broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,3);
@@ -1083,7 +1086,7 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::PCcreateCommandSOAP(std::str
 
 void EmuPeripheralCrateBroadcast::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
-  EmuApplication::stateChanged(fsm);
+  emu::base::Supervised::stateChanged(fsm);
 }
 
 void EmuPeripheralCrateBroadcast::dummyAction(toolbox::Event::Reference e)
@@ -1134,8 +1137,11 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onHalt (xoap::MessageReferen
   return createReply(message);
 }
 
+ }  // namespace emu::pc
+}  // namespace emu
+
 //
 // provides factory method for instantion of SimpleSOAPSender application
 //
-XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateBroadcast)
+XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPeripheralCrateBroadcast)
 //
