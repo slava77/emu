@@ -59,10 +59,12 @@
 #include "BoardsDB.h"
 #include "EmuTStore.h"
 //
-#include "EmuApplication.h"
+#include "emu/base/Supervised.h"
 
-
-class EmuPeripheralCrateCommand: public EmuApplication, xdata::ActionListener
+namespace emu {
+  namespace pc {
+  
+class EmuPeripheralCrateCommand: public emu::base::Supervised, xdata::ActionListener
 {
   //
 protected:
@@ -210,4 +212,7 @@ private:
     
 };
 
+  } // namespace emu::pc
+} // namespace emu
+  
 #endif

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.20 2009/02/09 16:23:27 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.21 2009/02/18 15:44:32 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -56,7 +56,6 @@
 #include "toolbox/task/TimerFactory.h"
 #include "toolbox/TimeInterval.h"
 
-#include "EmuApplication.h"
 #include "EmuController.h"
 #include "VMEController.h"
 #include "Crate.h"
@@ -70,10 +69,13 @@
 #include "VMECC.h"
 #include "ConnectionsDB.h"
 #include "BoardsDB.h"
+#include "emu/base/Supervised.h"
 
-
+namespace emu {
+  namespace pc {
+  
 //class EmuPeripheralCrateBroadcast: public xdaq::Application
-class EmuPeripheralCrateBroadcast: public EmuApplication
+class EmuPeripheralCrateBroadcast: public emu::base::Supervised
 {
   
 public:
@@ -162,5 +164,8 @@ private:
   bool In_Broadcast_;
   int current_state_;
 };
+
+  } // namespace emu::pc
+} // namespace emu
 
 #endif

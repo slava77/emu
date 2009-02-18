@@ -61,9 +61,12 @@
 #include "BoardsDB.h"
 #include "EmuTStore.h"
 //
-#include "EmuApplication.h"
+#include "emu/base/Supervised.h"
 
-class EmuPeripheralCrateConfig: public EmuApplication, xdata::ActionListener
+namespace emu {
+  namespace pc {
+
+class EmuPeripheralCrateConfig: public emu::base::Supervised, xdata::ActionListener
 {
   //
 protected:
@@ -563,4 +566,8 @@ private:
   void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
     
 };
+
+  } // namespace emu::pc
+} // namespace emu
+  
 #endif

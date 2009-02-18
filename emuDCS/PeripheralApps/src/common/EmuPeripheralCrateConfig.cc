@@ -13,6 +13,9 @@
 #include <time.h>
 #include "CCB.h"
 
+namespace emu {
+  namespace pc {
+
 const std::string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
 const std::string       CFEB_VERIFY_FILENAME = "cfeb/cfeb_verify.svf";
 //
@@ -67,7 +70,7 @@ const std::string ALCT_READBACK_FILENAME_ME41 = "readback-576-672";             
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
 /////////////////////////////////////////////////////////////////////
-EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): EmuApplication(s)
+EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): emu::base::Supervised(s)
 {	
   //
   FirmwareDir_ = getenv("HOME");
@@ -946,7 +949,7 @@ void EmuPeripheralCrateConfig::haltAction(toolbox::Event::Reference e)
 
 void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   throw (toolbox::fsm::exception::Exception) {
-  EmuApplication::stateChanged(fsm);
+  emu::base::Supervised::stateChanged(fsm);
 }
 
 void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
@@ -1078,7 +1081,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
       delete MyController ;
     }
     //
-    MyController = new emu::pc::EmuController();
+    MyController = new EmuController();
 
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
@@ -1092,7 +1095,7 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
   {
     // from TStore    
     // std::cout << "We are in db" << std::endl;
-    myTStore = new emu::pc::EmuTStore(this);
+    myTStore = new EmuTStore(this);
     if(!myTStore)
     {  std::cout << "Can't create object EmuTStore" << std::endl;
        return false;  
@@ -1209,15 +1212,15 @@ lsd */
   // This one came from CrateUtils class which no longer exist. 
   // Better put into another class. Leave it here for now. 
   // Liu Dec.25, 2007
-  std::vector<emu::pc::TMBTester> EmuPeripheralCrateConfig::InitTMBTests(emu::pc::Crate *MyCrate_)
+  std::vector<TMBTester> EmuPeripheralCrateConfig::InitTMBTests(Crate *MyCrate_)
   {
-    std::vector<emu::pc::TMB *>       tmbVector = MyCrate_->tmbs();
-    emu::pc::CCB * MyCCB_ = MyCrate_->ccb();
-    std::vector<emu::pc::TMBTester>   result;
+    std::vector<TMB *>       tmbVector = MyCrate_->tmbs();
+    CCB * MyCCB_ = MyCrate_->ccb();
+    std::vector<TMBTester>   result;
   //
     for( unsigned i=0; i< tmbVector.size(); i++) {
     //
-       emu::pc::TMBTester tmp;
+       TMBTester tmp;
        tmp.setTMB(tmbVector[i]);
        tmp.setCCB(MyCCB_);
        tmp.setRAT(tmbVector[i]->getRAT());
@@ -1978,7 +1981,7 @@ void EmuPeripheralCrateConfig::CrateStatus(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::CalibrationALCTThresholdScan(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.ALCTThresholdScan();
   //
@@ -1989,7 +1992,7 @@ void EmuPeripheralCrateConfig::CalibrationALCTThresholdScan(xgi::Input * in, xgi
 void EmuPeripheralCrateConfig::CalibrationALCTConnectivity(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.ALCTConnectivity();
   //
@@ -2000,7 +2003,7 @@ void EmuPeripheralCrateConfig::CalibrationALCTConnectivity(xgi::Input * in, xgi:
 void EmuPeripheralCrateConfig::CalibrationCFEBConnectivity(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.CFEBConnectivity();
   //
@@ -2011,7 +2014,7 @@ void EmuPeripheralCrateConfig::CalibrationCFEBConnectivity(xgi::Input * in, xgi:
 void EmuPeripheralCrateConfig::FindLv1aDelayComparator(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.FindL1aDelayComparator();
   //
@@ -2022,7 +2025,7 @@ void EmuPeripheralCrateConfig::FindLv1aDelayComparator(xgi::Input * in, xgi::Out
 void EmuPeripheralCrateConfig::FindLv1aDelayALCT(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.FindL1aDelayALCT();
   //
@@ -2033,7 +2036,7 @@ void EmuPeripheralCrateConfig::FindLv1aDelayALCT(xgi::Input * in, xgi::Output * 
 void EmuPeripheralCrateConfig::CalibrationCFEBGain(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.gainCFEB();
   //
@@ -2044,7 +2047,7 @@ void EmuPeripheralCrateConfig::CalibrationCFEBGain(xgi::Input * in, xgi::Output 
 void EmuPeripheralCrateConfig::CalibrationCFEBSaturation(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.CFEBSaturationTest();
   //
@@ -2055,7 +2058,7 @@ void EmuPeripheralCrateConfig::CalibrationCFEBSaturation(xgi::Input * in, xgi::O
 void EmuPeripheralCrateConfig::CalibrationCFEBXtalk(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.timeCFEB();
   //
@@ -2066,7 +2069,7 @@ void EmuPeripheralCrateConfig::CalibrationCFEBXtalk(xgi::Input * in, xgi::Output
 void EmuPeripheralCrateConfig::CalibrationComparatorPulse(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   calib.pulseComparatorPulse();
   //
@@ -2077,7 +2080,7 @@ void EmuPeripheralCrateConfig::CalibrationComparatorPulse(xgi::Input * in, xgi::
 void EmuPeripheralCrateConfig::CalibrationCFEBPedestal(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  emu::pc::CalibDAQ calib(emuEndcap_);
+  CalibDAQ calib(emuEndcap_);
   //
   //calib.loadConstants();
   //
@@ -2119,7 +2122,7 @@ void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Outpu
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  std::vector<emu::pc::TMB*> myVector;
+  std::vector<TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->tmbs();
@@ -2201,7 +2204,7 @@ void EmuPeripheralCrateConfig::CrateDMBCounters(xgi::Input * in, xgi::Output * o
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  std::vector<emu::pc::DAQMB*> myVector;
+  std::vector<DAQMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->daqmbs();
@@ -2536,7 +2539,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Ou
   //
   std::cout << "MenuMonitor " << MenuMonitor_ << std::endl;
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   int oldValue=0;
   //
@@ -3397,10 +3400,10 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
   //
   // perform the checks on the hardware
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-    emu::pc::Chamber * thisChamber     = chamberVector[chamber_index];
-    emu::pc::TMB * thisTMB             = tmbVector[chamber_index];
-    emu::pc::ALCTController * thisALCT = thisTMB->alctController();
-    emu::pc::DAQMB * thisDMB           = dmbVector[chamber_index];
+    Chamber * thisChamber     = chamberVector[chamber_index];
+    TMB * thisTMB             = tmbVector[chamber_index];
+    ALCTController * thisALCT = thisTMB->alctController();
+    DAQMB * thisDMB           = dmbVector[chamber_index];
     //
     std::cout << "Hardware configuration check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
     OutputCheckConfiguration << "Hardware configuration check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << "..." << std::endl;
@@ -3432,7 +3435,7 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
   // = 4 = FPGA not programmed
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-    emu::pc::Chamber * thisChamber     = chamberVector[chamber_index];
+    Chamber * thisChamber     = chamberVector[chamber_index];
     //
     if(!(tmb_check_ok[current_crate_][chamber_index])) {
       tmb_check_ok[current_crate_][chamber_index] = 1;
@@ -3584,14 +3587,14 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
     thisCCB->ReadRegister(CSRA3);
     //
     for (unsigned int k=0; k<dmbVector.size(); k++) {
-      emu::pc::DAQMB * thisDMB = dmbVector[k];
+      DAQMB * thisDMB = dmbVector[k];
       int slot = thisDMB->slot();
       if(slot<22){
         int dmbcfg= thisCCB->GetReadDMBConfigDone(slot2num[slot]);
-        emu::pc::Chamber *thisChamber = chamberVector[k];
+        Chamber *thisChamber = chamberVector[k];
         // std::cout << " LSD: slot: " << slot << " " << " k: " << k << " slot2num " 
 	// << slot2num[slot] << "daqcfg " << dmbcfg << " chamber " << thisChamber->GetLabel() << std::endl;
-        std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
+        std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
         for(unsigned int j=0;j<thisCFEBs.size();j++){
           int numcfeb;
           for(unsigned int jj=0;jj<thisCFEBs.size();jj++){
@@ -3715,12 +3718,12 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
     int CSRA2=0x02;
     thisCCB->ReadRegister(CSRA2);
     for (unsigned int k=0; k<tmbVector.size(); k++) {
-      emu::pc::TMB * thisTMB = tmbVector[k];
+      TMB * thisTMB = tmbVector[k];
       int tslot = thisTMB->slot();
       for (unsigned int k2=0; k2<dmbVector.size(); k2++) {
-        emu::pc::DAQMB * thisDMB = dmbVector[k2];
+        DAQMB * thisDMB = dmbVector[k2];
         int dslot = thisDMB->slot();
-        emu::pc::Chamber *thisChamber = chamberVector[slot2num[dslot]];
+        Chamber *thisChamber = chamberVector[slot2num[dslot]];
         if( (dslot-1)==tslot ){
           float current=thisDMB->lowv_adc(3,0)/1000.;
           if(current<0.2 && current>0.05) {
@@ -3784,8 +3787,8 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
      int CSRA3=0x04;
      thisCCB->ReadRegister(CSRA3);
      for (unsigned int k=0; k<dmbVector.size(); k++) {
-       emu::pc::DAQMB * thisDMB = dmbVector[k];
-       emu::pc::Chamber *thisChamber = chamberVector[k];
+       DAQMB * thisDMB = dmbVector[k];
+       Chamber *thisChamber = chamberVector[k];
        int slot = thisDMB->slot();
        if(slot<22){
          int dmbcfg = thisCCB->GetReadDMBConfigDone(slot2num[slot]);
@@ -3917,8 +3920,8 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 	  if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0)  dmb_vme_ok = false;
 	  if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0)  dmb_control_ok = false;
 	  //
-	  std::vector<emu::pc::CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	  typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+	  std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	  typedef std::vector<CFEB>::iterator CFEBItr;
 	  for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
 	    int cfeb_index = (*cfebItr).number();
 	    if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0)  cfeb_ok[cfeb_index] = false;
@@ -3962,8 +3965,8 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
 	      OutputCheckFirmware << ", "; 
 	    }	      
 	    //
-	    std::vector<emu::pc::CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+	    std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
+	    typedef std::vector<CFEB>::iterator CFEBItr;
 	    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
 	      int cfeb_index = (*cfebItr).number();
 	      if (!cfeb_ok[cfeb_index]) { 
@@ -4059,9 +4062,9 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 
   if(ncrt>-1&&ndmb>-1&&ncfeb>-1&&ncmd>-1){
     SetCurrentCrate(ncrt);
-    emu::pc::DAQMB * thisDMB = dmbVector[ndmb];
-    std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
-    emu::pc::CFEB thisCFEB = thisCFEBs[ncfeb];
+    DAQMB * thisDMB = dmbVector[ndmb];
+    std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
+    CFEB thisCFEB = thisCFEBs[ncfeb];
 
     if(ncmd==1){
       thisDMB->lowv_onoff(0x20);
@@ -4138,13 +4141,13 @@ void EmuPeripheralCrateConfig::ReadbackALCTFirmware(xgi::Input * in, xgi::Output
   if(ncrt>-1 && tmb>-1){
     //
     SetCurrentCrate(ncrt);
-    emu::pc::TMB * thisTMB = tmbVector[tmb];
-    emu::pc::ALCTController * thisALCT = thisTMB->alctController();
+    TMB * thisTMB = tmbVector[tmb];
+    ALCTController * thisALCT = thisTMB->alctController();
     //
     if (thisTMB->slot() < 22) {
       //
       // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
-      thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
+      thisCCB->setCCBMode(CCB::VMEFPGA);
       //
       std::cout <<  "Reading back ALCT firmware from slot " << thisTMB->slot() 
 		<< ", using " << ALCTReadback_[tmb].toString() 
@@ -4167,7 +4170,7 @@ void EmuPeripheralCrateConfig::ReadbackALCTFirmware(xgi::Input * in, xgi::Output
       thisTMB->enableAllClocks();
       //
       // Put CCB back into DLOG mode to listen to TTC commands...
-      thisCCB->setCCBMode(emu::pc::CCB::DLOG);
+      thisCCB->setCCBMode(CCB::DLOG);
       //
     }
   }
@@ -4193,11 +4196,11 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     //	
-    emu::pc::TMB * thisTMB             = tmbVector[chamber_index];
-    emu::pc::ALCTController * thisALCT = thisTMB->alctController();
-    emu::pc::DAQMB * thisDMB           = dmbVector[chamber_index];
+    TMB * thisTMB             = tmbVector[chamber_index];
+    ALCTController * thisALCT = thisTMB->alctController();
+    DAQMB * thisDMB           = dmbVector[chamber_index];
     //
-    //    emu::pc::Chamber * thisChamber     = chamberVector[chamber_index];
+    //    Chamber * thisChamber     = chamberVector[chamber_index];
     //    std::cout << "Firmware check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
     //
     tmb_firmware_ok[current_crate_][chamber_index]      = (int) thisTMB->CheckFirmwareDate();
@@ -4212,8 +4215,8 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateFirmware() {
     dmb_control_firmware_ok[current_crate_][chamber_index] = (int) thisDMB->CheckControlFirmwareVersion();
     crate_firmware_ok[current_crate_] &= dmb_control_firmware_ok[current_crate_][chamber_index];
     //
-    std::vector<emu::pc::CFEB> cfebs = thisDMB->cfebs() ;
-    typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+    std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+    typedef std::vector<CFEB>::iterator CFEBItr;
     //
     for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
       //
@@ -4267,7 +4270,7 @@ void EmuPeripheralCrateConfig::InitChamber(xgi::Input * in, xgi::Output * out )
   MyTest[tmb][current_crate_].InitSystem();          // Init chamber
   //
   // Comment out dangerous next line....
-  //  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+  //  thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
   //
   this->ChamberTests(in,out);
   //
@@ -4349,9 +4352,9 @@ void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out )
     dmb = DMB_;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
-  emu::pc::Chamber * thisChamber = chamberVector[dmb];
+  Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
   sprintf(Name,"%s DMB tests, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
@@ -4562,7 +4565,7 @@ void EmuPeripheralCrateConfig::DMBTestAll(xgi::Input * in, xgi::Output * out )
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   OutputDMBTests[dmb][current_crate_] << "DMB TestAll" << std::endl ;
   //
@@ -4596,7 +4599,7 @@ void EmuPeripheralCrateConfig::DMBTest3(xgi::Input * in, xgi::Output * out )
   //
   OutputDMBTests[dmb][current_crate_] << "DMB Test3" << std::endl ;
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test3();
@@ -4620,7 +4623,7 @@ void EmuPeripheralCrateConfig::DMBTest4(xgi::Input * in, xgi::Output * out )
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   OutputDMBTests[dmb][current_crate_] << "DMB Test4" << std::endl ;
   //
@@ -4646,7 +4649,7 @@ void EmuPeripheralCrateConfig::DMBTest5(xgi::Input * in, xgi::Output * out )
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   OutputDMBTests[dmb][current_crate_] << "DMB Test5" << std::endl ;
   //
@@ -4674,7 +4677,7 @@ void EmuPeripheralCrateConfig::DMBTest6(xgi::Input * in, xgi::Output * out )
   //
   OutputDMBTests[dmb][current_crate_] << "DMB Test6" << std::endl ;
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test6();
@@ -4700,7 +4703,7 @@ void EmuPeripheralCrateConfig::DMBTest8(xgi::Input * in, xgi::Output * out )
   //
   OutputDMBTests[dmb][current_crate_] << "DMB Test8" << std::endl ;
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test8();
@@ -4725,7 +4728,7 @@ void EmuPeripheralCrateConfig::DMBTest9(xgi::Input * in, xgi::Output * out )
   //
   OutputDMBTests[dmb][current_crate_] << "DMB Test9" << std::endl ;
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test9();
@@ -4750,7 +4753,7 @@ void EmuPeripheralCrateConfig::DMBTest10(xgi::Input * in, xgi::Output * out )
   //
   OutputDMBTests[dmb][current_crate_] << "DMB Test10" << std::endl ;
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test10();
@@ -4775,7 +4778,7 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
   //
   OutputDMBTests[dmb][current_crate_] << "DMB Test11" << std::endl ;
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&std::cout);
   thisDMB->test11();
@@ -4806,7 +4809,7 @@ void EmuPeripheralCrateConfig::InitSystem(xgi::Input * in, xgi::Output * out )
     navigator = cgi["navigator"]->getIntegerValue();
     std::cout << "Navigator " << navigator << std::endl;
     if ( navigator == 1 ) {
-      thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+      thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
       this->ChamberTests(in,out);
     }
   } else {
@@ -4847,11 +4850,11 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  TMB * thisTMB = tmbVector[tmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   alct = thisTMB->alctController();
   //
-  emu::pc::Chamber * thisChamber = chamberVector[tmb];
+  Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s synchronization, crate=%s, TMBslot=%d, DMBslot=%d",
@@ -5371,7 +5374,7 @@ void EmuPeripheralCrateConfig::TMBStartTrigger(xgi::Input * in, xgi::Output * ou
     std::cout << "No tmb" << std::endl;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->StartTTC();
   //
@@ -5408,13 +5411,13 @@ void EmuPeripheralCrateConfig::EnableL1aRequest(xgi::Input * in, xgi::Output * o
     std::cout << "No tmb" << std::endl;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  DAQMB * thisDMB = dmbVector[dmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   std::cout << "DMB slot " << thisDMB->slot() << " TMB slot " << thisTMB->slot() << std::endl;
   //
   thisTMB->EnableL1aRequest();
-  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
+  thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   this->ChamberTests(in,out);
   //
@@ -6269,8 +6272,8 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
     dmb = DMB_;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
-  emu::pc::Chamber * thisChamber = chamberVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
+  Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
   sprintf(Name,"%s CFEB status, crate=%s, DMBslot=%d",
@@ -6285,9 +6288,9 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   //
   char buf[200];
   //
-  std::vector<emu::pc::CFEB> cfebs = thisDMB->cfebs() ;
+  std::vector<CFEB> cfebs = thisDMB->cfebs() ;
   //
-  typedef std::vector<emu::pc::CFEB>::iterator CFEBItr;
+  typedef std::vector<CFEB>::iterator CFEBItr;
   //
   for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
     //
@@ -6341,9 +6344,9 @@ void EmuPeripheralCrateConfig::DMBUtils(xgi::Input * in, xgi::Output * out )
     dmb = DMB_;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
-  emu::pc::Chamber * thisChamber = chamberVector[dmb];
+  Chamber * thisChamber = chamberVector[dmb];
   //
   char Name[100];
   sprintf(Name,"%s DMB utilities, crate=%s, slot=%d",(thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisDMB->slot());
@@ -6495,7 +6498,7 @@ void EmuPeripheralCrateConfig::DMBTurnOff(xgi::Input * in, xgi::Output * out )
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   std::cout << "DMBTurnOff" << std::endl;
   //
@@ -6523,7 +6526,7 @@ void EmuPeripheralCrateConfig::DMBLoadFirmware(xgi::Input * in, xgi::Output * ou
   //
   thisCCB->hardReset();
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   if (thisDMB) {
     //
@@ -6560,7 +6563,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmware(xgi::Input * in, xgi::Output *
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   int mindmb = dmb;
   int maxdmb = dmb+1;
@@ -6626,7 +6629,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi:
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   if (thisDMB->slot() == 25) { 
     std::cout <<" The emergency load is NOT available for DMB slot25"<<std::endl;
@@ -6690,7 +6693,7 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   int mindmb = dmb;
   int maxdmb = dmb+1;
   if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each cfeb
@@ -6707,7 +6710,7 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
     //
     if (thisDMB) {
       //
-      std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
+      std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
       //
       ::sleep(1);
       //
@@ -6771,7 +6774,7 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   int mindmb = dmb;
   int maxdmb = dmb+1;
   if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each cfeb
@@ -6788,7 +6791,7 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
     //
     if (thisDMB) {
       //
-      std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
+      std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
       //
       ::sleep(1);
       //
@@ -6865,7 +6868,7 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmwareID(xgi::Input * in, xgi::Output *
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   if ((thisDMB->slot() >21) || (thisDMB->slot() <3)){
     std::cout<<" Invalid DMB slot for CFEB Number reloading "<<thisDMB->slot()<<std::endl;
     return;
@@ -6877,7 +6880,7 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmwareID(xgi::Input * in, xgi::Output *
   //
   if (thisDMB) {
     //
-    std::vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
+    std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
     //
     ::sleep(1);
     //
@@ -6919,7 +6922,7 @@ void EmuPeripheralCrateConfig::DMBTurnOn(xgi::Input * in, xgi::Output * out )
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   std::cout << "DMBTurnOn" << std::endl;
   //
@@ -6945,7 +6948,7 @@ void EmuPeripheralCrateConfig::DMBCheckConfiguration(xgi::Input * in, xgi::Outpu
     DMB_ = dmb;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   thisDMB->RedirectOutput(&OutputStringDMBStatus[dmb]);
   thisDMB->checkDAQMBXMLValues();
@@ -6974,7 +6977,7 @@ void EmuPeripheralCrateConfig::TMBPrintCounters(xgi::Input * in, xgi::Output * o
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "Start PrintCounters");
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
@@ -7001,7 +7004,7 @@ void EmuPeripheralCrateConfig::TMBResetCounters(xgi::Input * in, xgi::Output * o
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->ResetCounters();
   //
   this->TMBUtils(in,out);
@@ -7028,7 +7031,7 @@ void EmuPeripheralCrateConfig::TMBCounterForFixedTime(xgi::Input * in, xgi::Outp
   //
   std::cout << "Read TMB " << tmb << " counters over " << wait_time << " seconds" << std::endl;
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->ResetCounters();
   //
   ::sleep(wait_time);
@@ -7056,7 +7059,7 @@ void EmuPeripheralCrateConfig::TriggerTestInjectALCT(xgi::Input * in, xgi::Outpu
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->TriggerTestInjectALCT();
   thisTMB->RedirectOutput(&std::cout);
@@ -7079,7 +7082,7 @@ void EmuPeripheralCrateConfig::armScope(xgi::Input * in, xgi::Output * out )
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->scope(1,0,29);
   thisTMB->RedirectOutput(&std::cout);
@@ -7102,7 +7105,7 @@ void EmuPeripheralCrateConfig::forceScope(xgi::Input * in, xgi::Output * out )
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->ForceScopeTrigger();
   thisTMB->RedirectOutput(&std::cout);
@@ -7125,7 +7128,7 @@ void EmuPeripheralCrateConfig::readoutScope(xgi::Input * in, xgi::Output * out )
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->ClearScintillatorVeto();
   thisTMB->scope(0,1);
@@ -7149,7 +7152,7 @@ void EmuPeripheralCrateConfig::TriggerTestInjectCLCT(xgi::Input * in, xgi::Outpu
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->TriggerTestInjectCLCT();
   thisTMB->RedirectOutput(&std::cout);
@@ -7172,7 +7175,7 @@ void EmuPeripheralCrateConfig::TMBDumpAllRegisters(xgi::Input * in, xgi::Output 
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->DumpAllRegisters();
   thisTMB->RedirectOutput(&std::cout);
@@ -7194,7 +7197,7 @@ void EmuPeripheralCrateConfig::TMBClearUserProms(xgi::Input * in, xgi::Output * 
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromTMBClear);
   thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromALCTClear);
@@ -7217,8 +7220,8 @@ void EmuPeripheralCrateConfig::TMBConfigure(xgi::Input * in, xgi::Output * out )
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
-  emu::pc::ALCTController * alct = thisTMB->alctController();
+  TMB * thisTMB = tmbVector[tmb];
+  ALCTController * alct = thisTMB->alctController();
   thisTMB->configure();
   alct->configure();
   //
@@ -7240,8 +7243,8 @@ void EmuPeripheralCrateConfig::TMBReadConfiguration(xgi::Input * in, xgi::Output
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
-  emu::pc::ALCTController * alct = thisTMB->alctController();
+  TMB * thisTMB = tmbVector[tmb];
+  ALCTController * alct = thisTMB->alctController();
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   alct->RedirectOutput(&OutputStringTMBStatus[tmb]);
@@ -7272,8 +7275,8 @@ void EmuPeripheralCrateConfig::TMBCheckConfiguration(xgi::Input * in, xgi::Outpu
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
-  emu::pc::ALCTController * alct = thisTMB->alctController();
+  TMB * thisTMB = tmbVector[tmb];
+  ALCTController * alct = thisTMB->alctController();
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   alct->RedirectOutput(&OutputStringTMBStatus[tmb]);
@@ -7302,7 +7305,7 @@ void EmuPeripheralCrateConfig::TMBReadStateMachines(xgi::Input * in, xgi::Output
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   //
@@ -7335,7 +7338,7 @@ void EmuPeripheralCrateConfig::TMBRawHits(xgi::Input * in, xgi::Output * out )
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->TMBRawhits();
@@ -7359,7 +7362,7 @@ void EmuPeripheralCrateConfig::ALCTRawHits(xgi::Input * in, xgi::Output * out )
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   thisTMB->ALCTRawhits();
@@ -7383,7 +7386,7 @@ void EmuPeripheralCrateConfig::TMBCheckStateMachines(xgi::Input * in, xgi::Outpu
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
   //
@@ -7414,9 +7417,9 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  emu::pc::ALCTController * alct = tmbVector[tmb]->alctController();
+  ALCTController * alct = tmbVector[tmb]->alctController();
   //
-  emu::pc::Chamber * thisChamber = chamberVector[tmb];
+  Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s ALCT status, crate=%s, TMBslot=%d",
@@ -7656,9 +7659,9 @@ void EmuPeripheralCrateConfig::RATStatus(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  emu::pc::RAT * rat = tmbVector[tmb]->getRAT();
+  RAT * rat = tmbVector[tmb]->getRAT();
   //
-  emu::pc::Chamber * thisChamber = chamberVector[tmb];
+  Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s RAT status, crate=%s, TMBslot=%d",
@@ -7759,13 +7762,13 @@ void EmuPeripheralCrateConfig::CCBStatus(xgi::Input * in, xgi::Output * out )
   *out << cgicc::br() << "CCB Mode = ";
   int ccb_mode = thisCCB->GetCCBmode();
   switch(ccb_mode) {
-  case emu::pc::CCB::TTCrqFPGA:
+  case CCB::TTCrqFPGA:
     *out << "TTCrgFPGA" << std::endl;
     break;
-  case emu::pc::CCB::VMEFPGA:
+  case CCB::VMEFPGA:
     *out << "VMEFPGA" << std::endl;
     break;
-  case emu::pc::CCB::DLOG:
+  case CCB::DLOG:
     *out << "DLOG" << std::endl;
     break;
   default:
@@ -7825,7 +7828,7 @@ void EmuPeripheralCrateConfig::ControllerUtils_Xfer(xgi::Input * in, xgi::Output
 void EmuPeripheralCrateConfig::ControllerUtils(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
 
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   static bool first = true;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
@@ -8331,7 +8334,7 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
   int n,i;
   char *cc;
 
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   std::cout<<" entered VCC_CMNTSK_DO"<<std::endl;
@@ -8358,7 +8361,7 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
     }
   }
   if(cmntsk_vccsn != cgi.getElements().end()) {
-    emu::pc::SN_t sn = vmecc->rd_ser_num();
+    SN_t sn = vmecc->rd_ser_num();
     if(sn.status == 0){
       sprintf(ctemp,"VCC%02d",sn.sn);
       VCC_UTIL_cmn_tsk_sn = ctemp;
@@ -8379,8 +8382,8 @@ void EmuPeripheralCrateConfig::VCC_CMNTSK_DO(xgi::Input * in, xgi::Output * out 
     }
   }
   if(cmntsk_ldfrmw != cgi.getElements().end()) {
-    vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
-    vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL);
+    vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
+    vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
     std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
     std::cout << "Path = " << PROM_Path << "\nVer = " << vmecc->VCC_frmw_ver << std::endl;
     vmecc->prg_vcc_prom_ver(PROM_Path.c_str(),vmecc->VCC_frmw_ver.c_str());
@@ -8424,7 +8427,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_VME_access(xgi::Input * in, xgi::Output 
   static std::vector<std::string> board_opt,rw_opt,rw_opt_lbl;
   unsigned int opt;
 
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   if(first){
@@ -8644,7 +8647,7 @@ void EmuPeripheralCrateConfig::VCC_VME_DO(xgi::Input * in, xgi::Output * out )
   } vcmd,*cur,*last;
 
 
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
@@ -8852,12 +8855,12 @@ void EmuPeripheralCrateConfig::VCC_VME_DO(xgi::Input * in, xgi::Output * out )
       VCC_UTIL_VME_msg_data = "";
       VCC_UTIL_VME_rbk_data = "";
       while((pkt_type=vmecc->rd_pkt())>=0){
-        if(pkt_type>emu::pc::INFO_PKT){
+        if(pkt_type>INFO_PKT){
           std::cout << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
           VCC_UTIL_VME_msg_data += vmecc->dcode_msg_pkt(vmecc->rbuf);
           VCC_UTIL_VME_msg_data += "\n";
 	}
-        else if (pkt_type==emu::pc::VMED16_PKT){
+        else if (pkt_type==VMED16_PKT){
           int nw = ((vmecc->rbuf[WRD_CNT_OFF]&0xff)<<8)|(vmecc->rbuf[WRD_CNT_OFF+1]&0xff);
 	  for(i=0;i<nw;i++){
 	    sprintf(ctemp,"0x%02X%02X\n",vmecc->rbuf[2*i+DATA_OFF]&0xFF,vmecc->rbuf[2*i+DATA_OFF+1]&0xFF);
@@ -8877,7 +8880,7 @@ void EmuPeripheralCrateConfig::VCC_VME_DO(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::VMECCGUI_firmware_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
@@ -8979,9 +8982,9 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
   char ctemp[256];
   char *cptemp;
   int i,ptyp,ack;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
-  emu::pc::CNFG_ptr rbk_cp;
+  CNFG_ptr rbk_cp;
   vmecc=lccc->vmecc();
     std::cout<<" entered VCC_FRMUTIL_DO"<<std::endl;
     cgicc::Cgicc cgi(in);
@@ -9134,36 +9137,36 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
       if(VCC_UTIL_PROM_file_init){
 	int pktnum = 0;
         rbk_cp = vmecc->read_crs();
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL);
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
+        vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
+        vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
 	vmecc->program_prom_cmd();
 	vmecc->send_prg_prom_data();
 	vmecc->send_uc_cc_data(VCC_UTIL_Frmw_rbk_[7].c_str());
 	while((n=vmecc->eth_read())>6){
 	  pktnum++;
 	  ptyp = vmecc->rbuf[PKT_TYP_OFF]&0xff;
-	  if(ptyp>=emu::pc::INFO_PKT){
+	  if(ptyp>=INFO_PKT){
             std::cout << "pktnum B" << pktnum << ": " << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
 	  } else {
             std::cout << "pktnum B" << pktnum << ": ";
 	    ack = AK_STATUS(vmecc->rbuf); 
 	    switch(ack){
-	    case emu::pc::NO_ACK:
+	    case NO_ACK:
 	      std::cout << "Non message or no acknowledge packet received" << std::endl;
 	      break;
-	    case emu::pc::CC_S:
+	    case CC_S:
 	      std::cout << "Command completed successfully" << std::endl;
 	      break;
-	    case emu::pc::CC_W:
+	    case CC_W:
 	      std::cout << "Command completed with a warning" << std::endl;
 	      break;
-	    case emu::pc::CC_E:
+	    case CC_E:
 	      std::cout << "Command  completed with an error" << std::endl;
 	      break;
-	    case emu::pc::CE_I:
+	    case CE_I:
 	      std::cout << "Command execution finished incomplete" << std::endl;
 	      break;
-	    case emu::pc::CIP_W: case emu::pc::CIP_E:
+	    case CIP_W: case CIP_E:
 	      std::cout << "Command in progress with an error or warning" << std::endl;
 	      break;
 	    default:
@@ -9172,7 +9175,7 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
 	    }
 	  }
 	}
-        vmecc->wrt_crs(emu::pc::RST_MISC, rbk_cp);
+        vmecc->wrt_crs(RST_MISC, rbk_cp);
         free(rbk_cp);
       }
       else {
@@ -9181,9 +9184,9 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     }
     if(prgver_name != cgi.getElements().end()) {
       if(VCC_UTIL_PROM_file_init){
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL);
-        emu::pc::CNFG_ptr cp=vmecc->read_crs();
+        vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
+        vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
+        CNFG_ptr cp=vmecc->read_crs();
         vmecc->print_crs(cp);
         free(cp);
         std::string PROM_Path = FirmwareDir_+VMECC_FIRMWARE_DIR;
@@ -9196,10 +9199,10 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     }
     if(custom_name != cgi.getElements().end()) {
       vmecc->ld_rtn_base_addr(0x180);
-      vmecc->exec_routine(emu::pc::JC_Custom_Rtn);
+      vmecc->exec_routine(JC_Custom_Rtn);
       while((n=vmecc->eth_read())>6){
         ptyp = vmecc->rbuf[PKT_TYP_OFF]&0xff;
-	if(ptyp>=emu::pc::INFO_PKT){
+	if(ptyp>=INFO_PKT){
 	  printf("%s",vmecc->dcode_msg_pkt(vmecc->rbuf));
 	} else {
           printf("Rtn_Pkt: ");
@@ -9213,7 +9216,7 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
       FILE *fp=fopen(MCS_mem_file.c_str(),"w");
       for(i=0;i<0x80000;i++){
         if(i!=0 && i%8==0)fprintf(fp,"\n");
-        fprintf(fp,"%04hX",emu::pc::prm_dat[i]);
+        fprintf(fp,"%04hX",prm_dat[i]);
       }
       fprintf(fp,"\n");
       fclose(fp);
@@ -9225,11 +9228,11 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
     if(verify_name != cgi.getElements().end()) {
       if(VCC_UTIL_PROM_file_init){
         rbk_cp = vmecc->read_crs();
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL);
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
+        vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL);
+        vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
         vmecc->verify_prom_cmd();
         vmecc->send_ver_prom_data();
-        vmecc->wrt_crs(emu::pc::RST_MISC, rbk_cp);
+        vmecc->wrt_crs(RST_MISC, rbk_cp);
         free(rbk_cp);
       }
       else {
@@ -9248,7 +9251,7 @@ void EmuPeripheralCrateConfig::VCC_FRMUTIL_DO(xgi::Input * in, xgi::Output * out
 void EmuPeripheralCrateConfig::VMECCGUI_cnfg_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
@@ -9386,10 +9389,10 @@ void EmuPeripheralCrateConfig::VCC_CNFG_DO(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
   char ctemp[256];
-  emu::pc::CNFG_ptr rbk_cp;
+  CNFG_ptr rbk_cp;
   unsigned int temp;
   char *pch =(char *) &VCC_UTIL_CR_wrt_[0];
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
     std::cout<<" entered VCC_CNFG_DO"<<std::endl;
@@ -9572,7 +9575,7 @@ void EmuPeripheralCrateConfig::VCC_CNFG_DO(xgi::Input * in, xgi::Output * out )
       }
     }
     if(rd_ser_num_name != cgi.getElements().end()) {
-      emu::pc::SN_t sn = vmecc->rd_ser_num();
+      SN_t sn = vmecc->rd_ser_num();
       if(sn.status == 0){
         sprintf(ctemp,"VCC%02d",sn.sn);
         VCC_UTIL_CR_ser_num = ctemp;
@@ -9589,7 +9592,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_MAC_utils(xgi::Input * in, xgi::Output *
 {
   static bool first = true;
   std::string ena_dis;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
@@ -9680,12 +9683,12 @@ void EmuPeripheralCrateConfig::VCC_MAC_DO(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
   char ctemp[256];
-  emu::pc::CNFG_ptr rbk_cp;
-  emu::pc::CNFG_t wrt_mac;
+  CNFG_ptr rbk_cp;
+  CNFG_t wrt_mac;
   std::string stemp;
   unsigned int temp[6];
 
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
@@ -9783,9 +9786,9 @@ void EmuPeripheralCrateConfig::VCC_MAC_DO(xgi::Input * in, xgi::Output * out )
 
 void EmuPeripheralCrateConfig::VMECCGUI_FIFO_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
-  emu::pc::CNFG_ptr rbk_cp;
+  CNFG_ptr rbk_cp;
   static bool first = true;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   if(first){
@@ -9940,7 +9943,7 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
   char *pch = (char *) &VCC_UTIL_FIFO_wrt_data;
   std::string stemp;
 
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
@@ -9966,31 +9969,31 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 
     if(fifo_mode != cgi.getElements().end()) {
       if(VCC_UTIL_FIFO_mode == "Test"){
-        vmecc->set_clr_bits(emu::pc::CLR, emu::pc::EXTFIFO, ~FIFO_CR_TST);
+        vmecc->set_clr_bits(CLR, EXTFIFO, ~FIFO_CR_TST);
         VCC_UTIL_FIFO_mode = "VME";
       }
       else {
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::EXTFIFO, FIFO_CR_TST);
+        vmecc->set_clr_bits(SET, EXTFIFO, FIFO_CR_TST);
         VCC_UTIL_FIFO_mode = "Test";
       }
     }
     if(err_inj != cgi.getElements().end()) {
       if(VCC_UTIL_FIFO_inj == "On"){
-        vmecc->set_clr_bits(emu::pc::CLR, emu::pc::EXTFIFO, ~FIFO_CR_INJ);
+        vmecc->set_clr_bits(CLR, EXTFIFO, ~FIFO_CR_INJ);
         VCC_UTIL_FIFO_inj = "Off";
       }
       else {
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::EXTFIFO, FIFO_CR_INJ);
+        vmecc->set_clr_bits(SET, EXTFIFO, FIFO_CR_INJ);
         VCC_UTIL_FIFO_inj = "On";
       }
     }
     if(ecc_state != cgi.getElements().end()) {
       if(VCC_UTIL_FIFO_ecc == "Ena"){
-        vmecc->set_clr_bits(emu::pc::CLR, emu::pc::EXTFIFO, ~FIFO_CR_ECC);
+        vmecc->set_clr_bits(CLR, EXTFIFO, ~FIFO_CR_ECC);
         VCC_UTIL_FIFO_ecc = "Dis";
       }
       else {
-        vmecc->set_clr_bits(emu::pc::SET, emu::pc::EXTFIFO, FIFO_CR_ECC);
+        vmecc->set_clr_bits(SET, EXTFIFO, FIFO_CR_ECC);
         VCC_UTIL_FIFO_ecc = "Ena";
       }
     }
@@ -10097,12 +10100,12 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 	  }
 	}
         while((pkt_type=vmecc->rd_pkt())>=0){
-          if(pkt_type>emu::pc::INFO_PKT){
+          if(pkt_type>INFO_PKT){
             std::cout << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
             VCC_UTIL_FIFO_msg_data += vmecc->dcode_msg_pkt(vmecc->rbuf);
             VCC_UTIL_FIFO_msg_data += "\n";
 	  }
-          else if (pkt_type==emu::pc::EXFIFO_PKT){
+          else if (pkt_type==EXFIFO_PKT){
             int nw = ((vmecc->rbuf[WRD_CNT_OFF]&0xff)<<8)|(vmecc->rbuf[WRD_CNT_OFF+1]&0xff);
 	    for(i=0;i<nw;i++){
 	      sprintf(ctemp,"0x%02X%02X\n",vmecc->rbuf[2*i+DATA_OFF]&0xFF,vmecc->rbuf[2*i+DATA_OFF+1]&0xFF);
@@ -10124,7 +10127,7 @@ void EmuPeripheralCrateConfig::VCC_FIFO_DO(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateConfig::VMECCGUI_pkt_send(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   static bool first = true;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   if(first){
     first = false;
@@ -10203,7 +10206,7 @@ void EmuPeripheralCrateConfig::VCC_PKTSND_DO(xgi::Input * in, xgi::Output * out 
   char *pch1 = (char *) &VCC_UTIL_PKTSND_cmnd;
   char *pch2 = (char *) &VCC_UTIL_PKTSND_data;
 
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
@@ -10264,7 +10267,7 @@ void EmuPeripheralCrateConfig::VMECCGUI_pkt_rcv(xgi::Input * in, xgi::Output * o
 {
   char ctemp[256];
   static bool first = true;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   if(first){
@@ -10398,9 +10401,9 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
   int i,n;
   int pkt,pkt_type,wc;
   std::string save1,save2;
-  union emu::pc::hdr_stat hdr;
+  union hdr_stat hdr;
   bool new_pkt;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
@@ -10464,7 +10467,7 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
 	  wc = DAT_WRD_CNT(vmecc->rbuf);
           sprintf(ctemp,"%d",((vmecc->rbuf[PKT_LEN_OFF]&0xff)<<8)|(vmecc->rbuf[PKT_LEN_OFF+1]&0xff));
 	  VCC_UTIL_PKTRCV_pkt_len = ctemp;
-	  if(pkt_type>emu::pc::INFO_PKT){
+	  if(pkt_type>INFO_PKT){
 	    std::cout << vmecc->dcode_msg_pkt(vmecc->rbuf) << std::endl;
 	    VCC_UTIL_PKTRCV_rbk_data += vmecc->dcode_msg_pkt(vmecc->rbuf);
 	    VCC_UTIL_PKTRCV_rbk_data += "\n";
@@ -10532,7 +10535,7 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
           int ack_stat = AK_STATUS(vmecc->rbuf);
           sprintf(ctemp,"%d",ack_stat);
  	  VCC_UTIL_PKTRCV_ack_num = ctemp;
- 	  VCC_UTIL_PKTRCV_ack_stat = emu::pc::ak_status[ack_stat].mnem;
+ 	  VCC_UTIL_PKTRCV_ack_stat = ak_status[ack_stat].mnem;
           if(WITH_DATA(vmecc->rbuf)==1){
             strcpy(ctemp," with data");
 	  }
@@ -10544,55 +10547,55 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
           sprintf(ctemp,"%d",pkt_type);
  	  VCC_UTIL_PKTRCV_pkt_typ_num = ctemp;
           switch(pkt_type){
-          case emu::pc::LPBCK_PKT:
+          case LPBCK_PKT:
             strcpy(ctemp,"LPBCK");
             break;
-          case emu::pc::TXNWRDS_PKT:
+          case TXNWRDS_PKT:
             strcpy(ctemp,"TXNWRDS");
             break;
-	  case emu::pc::EXFIFO_PKT:
+	  case EXFIFO_PKT:
             strcpy(ctemp,"EXFIFO");
             break;
-	  case emu::pc::VMED08_PKT:
+	  case VMED08_PKT:
             strcpy(ctemp,"VME_D08");
             break;
-	  case emu::pc::VMED16_PKT:
+	  case VMED16_PKT:
             strcpy(ctemp,"VME_D16");
             break;
-	  case emu::pc::VMED32_PKT:
+	  case VMED32_PKT:
             strcpy(ctemp,"VME_D32");
             break;
-	  case emu::pc::VMED64_PKT:
+	  case VMED64_PKT:
             strcpy(ctemp,"VME_D64");
             break;
-	  case emu::pc::JTAG_MOD_PKT:
+	  case JTAG_MOD_PKT:
             strcpy(ctemp,"JTAG_MOD");
             break;
-	  case emu::pc::CNFG_MOD_PKT:
+	  case CNFG_MOD_PKT:
             strcpy(ctemp,"CNFG_MOD");
             break;
-	  case emu::pc::FLSH_RBK_PKT:
+	  case FLSH_RBK_PKT:
             strcpy(ctemp,"FLSH_RBK");
             break;
-	  case emu::pc::ETH_NET_PKT:
+	  case ETH_NET_PKT:
             strcpy(ctemp,"ETH_NET");
             break;
-	  case emu::pc::IHD08_STAT_ID_PKT:
+	  case IHD08_STAT_ID_PKT:
             strcpy(ctemp,"IH_D08");
             break;
-	  case emu::pc::IHD16_STAT_ID_PKT:
+	  case IHD16_STAT_ID_PKT:
             strcpy(ctemp,"IH_D16");
             break;
-	  case emu::pc::IHD32_STAT_ID_PKT:
+	  case IHD32_STAT_ID_PKT:
             strcpy(ctemp,"IH_D32");
             break;
-	  case emu::pc::INFO_PKT:
+	  case INFO_PKT:
             strcpy(ctemp,"INFO");
             break;
-	  case emu::pc::WARN_PKT:
+	  case WARN_PKT:
             strcpy(ctemp,"WARN");
             break;
-	  case emu::pc::ERR_PKT:
+	  case ERR_PKT:
             strcpy(ctemp,"ERROR");
             break;
 	  default:
@@ -10628,11 +10631,11 @@ void EmuPeripheralCrateConfig::VCC_PKTRCV_DO(xgi::Input * in, xgi::Output * out 
 
 void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
-  emu::pc::CNFG_ptr rbk_cp;
+  CNFG_ptr rbk_cp;
   int msglvl;
   char ctemp[256];
   static bool first = true;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
   if(first){
@@ -10804,10 +10807,10 @@ void EmuPeripheralCrateConfig::VMECCGUI_misc_utils(xgi::Input * in, xgi::Output 
 void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
 {
-  emu::pc::CNFG_ptr rbk_cp;
+  CNFG_ptr rbk_cp;
   char ctemp[256];
   int msglvl;
-  emu::pc::Crate *lccc;
+  Crate *lccc;
   lccc = VCC_UTIL_curr_crate;
   vmecc=lccc->vmecc();
 
@@ -10853,17 +10856,17 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
       VCC_UTIL_misc_strtup = "Disabled";
     }
     if(misc_spont_ena != cgi.getElements().end()) {
-      vmecc->set_clr_bits(emu::pc::SET, emu::pc::ETHER, ETH_CR_SPONT);
+      vmecc->set_clr_bits(SET, ETHER, ETH_CR_SPONT);
       VCC_UTIL_misc_spont = "Enabled";
     }
     if(misc_spont_dis != cgi.getElements().end()) {
-      vmecc->set_clr_bits(emu::pc::CLR, emu::pc::ETHER, ~ETH_CR_SPONT);
+      vmecc->set_clr_bits(CLR, ETHER, ~ETH_CR_SPONT);
       VCC_UTIL_misc_spont = "Disabled";
     }
     if(misc_msglvl != cgi.getElements().end()) {
       msglvl = cgi["rd_msglvl"]->getIntegerValue();
-      vmecc->set_clr_bits(emu::pc::CLR, emu::pc::RST_MISC, ~RST_CR_MSGLVL);
-      vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, RST_CR_MSGLVL & (msglvl<<8));
+      vmecc->set_clr_bits(CLR, RST_MISC, ~RST_CR_MSGLVL);
+      vmecc->set_clr_bits(SET, RST_MISC, RST_CR_MSGLVL & (msglvl<<8));
       sprintf(ctemp,"%d",msglvl);
       VCC_UTIL_misc_wrt_msglvl = ctemp;
       rbk_cp = vmecc->read_crs();
@@ -10889,8 +10892,8 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
       if(misc_jtag_chk != cgi.getElements().end()) {
         val |= RST_CR_JTAG;
       }
-      vmecc->set_clr_bits(emu::pc::CLR, emu::pc::RST_MISC, ~(0x1F));
-      vmecc->set_clr_bits(emu::pc::SET, emu::pc::RST_MISC, val);
+      vmecc->set_clr_bits(CLR, RST_MISC, ~(0x1F));
+      vmecc->set_clr_bits(SET, RST_MISC, val);
     }
     if(misc_rst_src_rd != cgi.getElements().end() || misc_refresh != cgi.getElements().end()) {
       rbk_cp = vmecc->read_crs();
@@ -10951,7 +10954,7 @@ void EmuPeripheralCrateConfig::VCC_MISC_DO(xgi::Input * in, xgi::Output * out )
       vmecc->reload_fpga();
     }
     if(misc_sysrst != cgi.getElements().end()) {
-      vmecc->set_clr_bits(emu::pc::SET, emu::pc::VME, VME_CR_FRC_SRST);
+      vmecc->set_clr_bits(SET, VME, VME_CR_FRC_SRST);
     }
     this->VMECCGUI_misc_utils(in,out);
 }
@@ -11171,9 +11174,9 @@ void EmuPeripheralCrateConfig::TMBTests(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
-  emu::pc::Chamber * thisChamber = chamberVector[tmb];
+  Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s TMB tests, %s slot=%d",
@@ -11690,7 +11693,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   alct = thisTMB->alctController();
   rat  = thisTMB->getRAT();
@@ -11711,7 +11714,7 @@ void EmuPeripheralCrateConfig::TMBStatus(xgi::Input * in, xgi::Output * out )
     //
   }
   //
-  emu::pc::Chamber * thisChamber = chamberVector[tmb];
+  Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s TMB status, crate=%s, slot=%d",
@@ -12046,9 +12049,9 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
-  emu::pc::Chamber * thisChamber = chamberVector[tmb];
+  Chamber * thisChamber = chamberVector[tmb];
   //
   char Name[100];
   sprintf(Name,"%s TMB utilities, crate=%s slot=%d",
@@ -12552,7 +12555,7 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     if((tmbVector[tmb]->slot())>21) continue;   
     
     //
-    emu::pc::TMB * thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     int year  = thisTMB->GetExpectedTmbFirmwareYear();
     int month = thisTMB->GetExpectedTmbFirmwareMonth();
@@ -12577,7 +12580,7 @@ void EmuPeripheralCrateConfig::DefineFirmwareFilenames() {
     //    std::cout << "TMB " << tmb << " load " << TMBFirmware_[tmb].toString() << std::endl;
     //
     //
-    emu::pc::ALCTController  * thisALCT = tmbVector[tmb]->alctController();
+    ALCTController  * thisALCT = tmbVector[tmb]->alctController();
     //
     year  = thisALCT->GetExpectedFastControlYear() ;
     month = thisALCT->GetExpectedFastControlMonth();
@@ -12694,12 +12697,12 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
     tmb = TMB_;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   tmb_vme_ready = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
-  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
+  thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   int number_of_verify_errors = 0;
   //
@@ -12737,7 +12740,7 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
   } 
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(emu::pc::CCB::DLOG);
+  thisCCB->setCCBMode(CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -12776,13 +12779,13 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   //
   // Create a TMB which all TMB's within a crate will listen to....
   //
-  emu::pc::Chamber * thisChamber = chamberVector[tmb];
-  emu::pc::TMB * thisTMB = new emu::pc::TMB(thisCrate, thisChamber, 26);
+  Chamber * thisChamber = chamberVector[tmb];
+  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26);
   //
   tmb_vme_ready = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
-  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
+  thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   std::cout << "Broadcast TMB firmware " << TMBFirmware_[ntmb_typea].toString()
 	    << " to slot " << thisTMB->slot() << " in 5 seconds..." << std::endl;
@@ -12809,7 +12812,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   std::cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< std::endl;
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(emu::pc::CCB::DLOG);
+  thisCCB->setCCBMode(CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -12833,7 +12836,7 @@ void EmuPeripheralCrateConfig::CheckTMBFirmware(xgi::Input * in, xgi::Output * o
   //
   for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
     //
-    emu::pc::TMB * thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     if (thisTMB->slot() < 22) {
       short unsigned int BootReg;
@@ -12856,7 +12859,7 @@ void EmuPeripheralCrateConfig::ClearTMBBootReg(xgi::Input * in, xgi::Output * ou
     //
     for (unsigned tmb=0; tmb<tmbVector.size(); tmb++) {
       //
-      emu::pc::TMB * thisTMB = tmbVector[tmb];
+      TMB * thisTMB = tmbVector[tmb];
       //
       if (thisTMB->slot() < 22) {
 	short unsigned int BootReg;
@@ -12890,7 +12893,7 @@ void EmuPeripheralCrateConfig::UnjamTMB(xgi::Input * in, xgi::Output * out )
     TMB_ = tmb;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   thisTMB->UnjamFPGA();
   //
@@ -12915,8 +12918,8 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
     tmb = TMB_;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
-  emu::pc::ALCTController  * thisALCT = thisTMB->alctController();
+  TMB * thisTMB = tmbVector[tmb];
+  ALCTController  * thisALCT = thisTMB->alctController();
   //
   if (!thisALCT) {
     std::cout << "This ALCT not defined" << std::endl;
@@ -12924,7 +12927,7 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   }
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
-  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
+  thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
   //
@@ -12962,7 +12965,7 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   }
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(emu::pc::CCB::DLOG);
+  thisCCB->setCCBMode(CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -12985,11 +12988,11 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
   }
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
-  thisCCB->setCCBMode(emu::pc::CCB::VMEFPGA);
+  thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   for (unsigned i=0; i<tmbVector.size(); i++) {
-    emu::pc::TMB * thisTMB = tmbVector[i];
-    emu::pc::ALCTController  * thisALCT = thisTMB->alctController();
+    TMB * thisTMB = tmbVector[i];
+    ALCTController  * thisALCT = thisTMB->alctController();
     //
     if (!thisALCT) {
       std::cout << "This ALCT not defined" << std::endl;
@@ -13033,7 +13036,7 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
   }
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
-  thisCCB->setCCBMode(emu::pc::CCB::DLOG);
+  thisCCB->setCCBMode(CCB::DLOG);
   //
   this->TMBUtils(in,out);
   //
@@ -13055,7 +13058,7 @@ void EmuPeripheralCrateConfig::LoadRATFirmware(xgi::Input * in, xgi::Output * ou
     tmb = TMB_;
   }
   //
-  emu::pc::TMB * thisTMB = tmbVector[tmb];
+  TMB * thisTMB = tmbVector[tmb];
   //
   std::cout << "Loading RAT firmware " << std::endl;
   //
@@ -13256,21 +13259,21 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
     dmb = DMB_;
   }
   //
-  emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+  DAQMB * thisDMB = dmbVector[dmb];
   //
   bool isME13 = false;
-  emu::pc::TMB * thisTMB   = tmbVector[dmb];
-  emu::pc::ALCTController * thisALCT;
+  TMB * thisTMB   = tmbVector[dmb];
+  ALCTController * thisALCT;
   if (thisTMB) 
     thisALCT = thisTMB->alctController();
   if (thisALCT) 
     if ( (thisALCT->GetChamberType()).find("ME13") != std::string::npos )
       isME13 = true;
   //
-  emu::pc::Chamber * thisChamber = chamberVector[dmb];
+  Chamber * thisChamber = chamberVector[dmb];
       std::string chamber=thisChamber->GetLabel();
       unsigned long int cfebID[5], cfebIDread[5];
-      std::vector <emu::pc::CFEB> thisCFEBs=thisDMB->cfebs();
+      std::vector <CFEB> thisCFEBs=thisDMB->cfebs();
       //
       for (unsigned i=0;i<thisCFEBs.size();i++) {
         cfebIDread[i]=thisDMB->febpromuser(thisCFEBs[i]);
@@ -14153,7 +14156,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       DMB_ = dmb;
     }
     //
-    emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     thisDMB->RedirectOutput(&std::cout);
     thisDMB->PrintCounters(1);
@@ -14199,7 +14202,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     return;
     }
     //
-    emu::pc::DAQMB * thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     std::cout << DMBBoardID_[dmb] << std::endl ;
     //
@@ -14307,8 +14310,8 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       //      LogFile << std::endl;
       //
       //      for (unsigned int dmbctr=0; dmbctr<(dmbVector.size()<9?dmbVector.size():9) ; dmbctr++) {
-      //      emu::pc::DAQMB * thisDMB = dmbVector[dmbctr];
-      //      vector<emu::pc::CFEB> thisCFEBs = thisDMB->cfebs();
+      //      DAQMB * thisDMB = dmbVector[dmbctr];
+      //      vector<CFEB> thisCFEBs = thisDMB->cfebs();
       //      for (unsigned int cfebctr=0; cfebctr<thisCFEBs.size(); cfebctr++) {
       //	LogFile << "CFEBid " << std::setw(5) << dmbctr 
       //		<< std::setw(5) << cfebctr 
@@ -14336,7 +14339,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
 
       for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
 	//	
-	emu::pc::Chamber * thisChamber = chamberVector[i];
+	Chamber * thisChamber = chamberVector[i];
 	//
 	LogFile << "slot                 " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
@@ -14521,7 +14524,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       //
     }
     //
-    emu::pc::TMB * thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     std::cout << TMBBoardID_[tmb] << std::endl ;
     //
@@ -14577,7 +14580,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       //
     }
     //
-    emu::pc::TMB * thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     std::cout << TMBBoardID_[tmb] << std::endl ;
     //
@@ -14647,7 +14650,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllVmePromUserid (xoap::Mes
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
-      emu::pc::DAQMB * thisDMB=dmbVector[idmb];
+      DAQMB * thisDMB=dmbVector[idmb];
       unsigned long int boardnumber=thisDMB->mbpromuser(0);
       DMBBoardNumber[cv][idmb]=boardnumber;
       std::cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<std::endl;
@@ -14678,7 +14681,7 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllVmePromUserid (xoap::Mes
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
-      emu::pc::DAQMB * thisDMB=dmbVector[idmb];
+      DAQMB * thisDMB=dmbVector[idmb];
       unsigned long int boardnumber=DMBBoardNumber[cv][idmb];
       char prombrdname[4];
       //	if (idmb==0) boardnumber = 0xdb00000c;
@@ -14739,11 +14742,11 @@ xoap::MessageReference EmuPeripheralCrateConfig::ReadAllCfebPromUserid (xoap::Me
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
-      emu::pc::DAQMB * thisDMB=dmbVector[idmb];
+      DAQMB * thisDMB=dmbVector[idmb];
       std::cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<std::endl;
       //loop over the cfebs
       //define CFEBs
-      std::vector <emu::pc::CFEB> thisCFEBs=thisDMB->cfebs();
+      std::vector <CFEB> thisCFEBs=thisDMB->cfebs();
       //
       for (unsigned i=0;i<thisCFEBs.size();i++) {
 	CFEBBoardNumber[cv][idmb][i]=thisDMB->febpromuser(thisCFEBs[i]);
@@ -14776,12 +14779,12 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
   for (unsigned idmb=0;idmb<dmbVector.size();idmb++) {
     //
     if ((dmbVector[idmb]->slot())<22) {
-      emu::pc::DAQMB * thisDMB=dmbVector[idmb];
-      emu::pc::Chamber * thisChamber=chamberVector[idmb];
+      DAQMB * thisDMB=dmbVector[idmb];
+      Chamber * thisChamber=chamberVector[idmb];
       std::cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<std::endl;
       //loop over the cfebs
       //define CFEBs
-      std::vector <emu::pc::CFEB> thisCFEBs=thisDMB->cfebs();
+      std::vector <CFEB> thisCFEBs=thisDMB->cfebs();
       //
       for (unsigned i=0;i<thisCFEBs.size();i++) {
 	char promid[4];
@@ -14884,7 +14887,10 @@ xoap::MessageReference EmuPeripheralCrateConfig::PCcreateCommandSOAP(std::string
   return message;
 }
 
+ }  // namespace emu::pc
+}  // namespace emu
+
 // provides factory method for instantion of HellWorld application
 //
-XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateConfig)
+XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPeripheralCrateConfig)
 //

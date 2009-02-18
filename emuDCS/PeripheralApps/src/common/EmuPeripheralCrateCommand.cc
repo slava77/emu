@@ -15,11 +15,13 @@
 //using namespace cgicc;
 //using namespace std;
 
+namespace emu {
+  namespace pc {
 
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
 /////////////////////////////////////////////////////////////////////
-EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s): EmuApplication(s)
+EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s): emu::base::Supervised(s)
 {	
   //
   MyController = 0;
@@ -401,7 +403,7 @@ void EmuPeripheralCrateCommand::haltAction(toolbox::Event::Reference e)
 
 void EmuPeripheralCrateCommand::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   throw (toolbox::fsm::exception::Exception) {
-  EmuApplication::stateChanged(fsm);
+  emu::base::Supervised::stateChanged(fsm);
 }
 
 void EmuPeripheralCrateCommand::actionPerformed (xdata::Event& e) {
@@ -436,7 +438,7 @@ bool EmuPeripheralCrateCommand::ParsingXML(){
       delete MyController ;
     }
     //
-    MyController = new emu::pc::EmuController();
+    MyController = new EmuController();
 
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
@@ -450,7 +452,7 @@ bool EmuPeripheralCrateCommand::ParsingXML(){
   {
     // from TStore    
     // std::cout << "We are in db" << std::endl;
-    myTStore = new emu::pc::EmuTStore(this);
+    myTStore = new EmuTStore(this);
     if(!myTStore)
     {  std::cout << "Can't create object EmuTStore" << std::endl;
        return false;  
@@ -617,10 +619,10 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     //	
-    emu::pc::Chamber * thisChamber     = chamberVector[chamber_index];
-    emu::pc::TMB * thisTMB             = tmbVector[chamber_index];
-    emu::pc::ALCTController * thisALCT = thisTMB->alctController();
-    emu::pc::DAQMB * thisDMB           = dmbVector[chamber_index];
+    Chamber * thisChamber     = chamberVector[chamber_index];
+    TMB * thisTMB             = tmbVector[chamber_index];
+    ALCTController * thisALCT = thisTMB->alctController();
+    DAQMB * thisDMB           = dmbVector[chamber_index];
     //
     std::cout << "Configuration check for " << thisCrate->GetLabel() << ", " << (thisChamber->GetLabel()).c_str() << std::endl;
     //
@@ -709,7 +711,10 @@ xoap::MessageReference EmuPeripheralCrateCommand::PCcreateCommandSOAP(std::strin
   return message;
 }
 
+ }  // namespace emu::pc
+}  // namespace emu
+
 // provides factory method for instantion of HellWorld application
 //
-XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrateCommand)
+XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPeripheralCrateCommand)
 //
