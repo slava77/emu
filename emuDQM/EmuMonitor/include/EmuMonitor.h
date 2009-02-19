@@ -46,7 +46,6 @@
 #include "TMessage.h"
 
 #include "EmuDQM_AppParameters.h"
-#include "EmuDQM_SOAPCommands.h"
 #include "EmuDQM_Utils.h"
 
 #include "RateMeter.h"
