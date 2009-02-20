@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.9 2009/02/17 13:13:41 liu Exp $
+// $Id: EmuDim.cc,v 1.10 2009/02/20 10:33:13 liu Exp $
 
 #include "EmuDim.h"
 
@@ -225,6 +225,10 @@ void EmuDim::MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception
      *out << cgicc::input().set("type","submit").set("value","Turn On Monitor") << std::endl ;
      *out << cgicc::form() << std::endl ;
   }
+  if(Suspended_) 
+  {  *out << cgicc::span().set("style","color:yellow")
+          << cgicc::b("XMAS suspended") << cgicc::span() << std::endl;
+  }
   //
 }
 //
@@ -415,8 +419,8 @@ void EmuDim::StartDim(int chs)
    ::ctime_r(&thistime, cbuf);
    cbuf[24]=0;
    std::cout << total << " DIM serives";
-   if(pref!="") std::cout << " ( with prefix " << pref << " ) ";
-   std::cout << "started at " << cbuf << std::endl;
+   if(pref!="") std::cout << " ( with prefix " << pref << " )";
+   std::cout << " started at " << cbuf << std::endl;
 }
 
 int EmuDim::UpdateDim(int ch)
@@ -450,11 +454,15 @@ void EmuDim::UpdateAllDim()
 
 void EmuDim::CheckCommand()
 {
+   char cbuf[30];
    if(LV_1_Command==NULL) return;
    while(LV_1_Command->getNext())
    {
       std::string cmnd = LV_1_Command->getString();
-      std::cout << "Dim Command:" << cmnd << std::endl;
+      time_t thistime = ::time(NULL);
+      ::ctime_r(&thistime, cbuf);
+      cbuf[24]=0;
+      std::cout << "Dim Command:" << cmnd << " " << cbuf << std::endl;
       if(cmnd.substr(0,10)=="STOP_SLOW_")
       {
          XmasStop->reload();
