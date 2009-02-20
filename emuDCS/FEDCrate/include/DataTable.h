@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DataTable.h,v 1.12 2009/02/10 21:08:55 paste Exp $
+* $Id: DataTable.h,v 1.13 2009/02/20 15:25:46 paste Exp $
 *
 * $Log: DataTable.h,v $
+* Revision 1.13  2009/02/20 15:25:46  paste
+* Fixed include path problem with DataTable.
+*
 * Revision 1.12  2009/02/10 21:08:55  paste
 * Fixed a memory leak in EmuFCrateHyperDAQ's use of the DataTable class
 *
@@ -31,7 +34,7 @@
 #include <sstream>
 #include "cgicc/HTMLClasses.h"
 
-#include "emu/fed/Exception.h"
+#include "FEDException.h"
 
 namespace emu {
 	namespace fed {
