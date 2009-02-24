@@ -74,7 +74,7 @@ UserExecutableLinkFlags += $(ROOTGLIBS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) EmuReadout
+Libraries = $(XdaqLibraries) emudaqreader
 
 #
 # Compile the source files and create a shared library
