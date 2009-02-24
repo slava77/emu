@@ -24,8 +24,15 @@
 
 // Application include section
 
-#include "EmuFileReader.h"
-#include "EmuSpyReader.h"
+// emu/emuDAQ - based readout for XDAQ6
+// #include "EmuFileReader.h"
+// #include "EmuSpyReader.h"
+
+// emu/daq - based readout for XDAQ7
+#include "emu/daq/reader/RawDataFile.h"
+#include "emu/daq/reader/Spy.h"
+
+
 #include "EmuPlotter.h"
 
 // System include section
@@ -295,7 +302,8 @@ int main(int argc, char **argv) {
     if(isData){
 
       // Creating EMU Raw File Reader and Opening File
-      EmuFileReader ddu(datafile.c_str(), EmuReader::DDU);
+      emu::daq::reader::RawDataFile ddu(datafile.c_str(), emu::daq::reader::Base::DDU);
+//      EmuFileReader ddu(datafile.c_str(), EmuReader::DDU);
       ddu.open(datafile.c_str());
       LOG4CPLUS_INFO (logger, "Opened data file " << datafile);
     
@@ -314,11 +322,18 @@ int main(int argc, char **argv) {
 
         // Check the status of the reader. If something goes wrong - skip event
         int status = 0;
+	if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
+        if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
+        if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
+        if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
+        if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
+/*
         if( ddu.getErrorFlag()==EmuFileReader::Type2 ) status |= 0x8000;
         if( ddu.getErrorFlag()==EmuFileReader::Type3 ) status |= 0x4000;
         if( ddu.getErrorFlag()==EmuFileReader::Type4 ) status |= 0x2000;
         if( ddu.getErrorFlag()==EmuFileReader::Type5 ) status |= 0x1000;
         if( ddu.getErrorFlag()==EmuFileReader::Type6 ) status |= 0x0800;
+*/
         if(status) continue;
 
         // Fill in histograms if appropriate
