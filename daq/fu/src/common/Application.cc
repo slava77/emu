@@ -1152,7 +1152,7 @@ throw (toolbox::fsm::exception::Exception)
     startATCP();
   }
   catch(xcept::Exception e){
-    XCEPT_RETHROW(emu::daq::fu::exception::Exception, "Failed to start ATCP ", e);
+    XCEPT_RETHROW(toolbox::fsm::exception::Exception, "Failed to start ATCP ", e);
   }
 
     releaseSuperFragment();
