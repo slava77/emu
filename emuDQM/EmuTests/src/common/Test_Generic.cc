@@ -44,8 +44,8 @@ int Test_Generic::getNumStrips(std::string cscID)
 Test_Generic::Test_Generic(std::string dfile): dataFile(dfile), logger(Logger::getInstance("Generic")) {
   binCheckMask=0xFFFFFFFF;
   cratemap = new CSCCrateMap();
-  fillCrateMap(cratemap);
-  init();
+  // fillCrateMap(cratemap);
+  // init();
 }
 
 Test_Generic::~Test_Generic() 
@@ -99,10 +99,113 @@ std::map<std::string, int> getCSCTypeToBinMap()
 
 }
 
-
-void Test_Generic::fillCrateMap(CSCCrateMap* mapobj)
+void Test_Generic::fillCrateMap(CSCCrateMap* mapobj) 
 {
-  LOG4CPLUS_DEBUG(logger, "Filling CSCCrateMap");
+  if (!fillCrateMapSQLite(mapobj)) fillCrateMapOracle(mapobj);
+}
+
+bool Test_Generic::fillCrateMapSQLite(CSCCrateMap* mapobj)
+{
+  LOG4CPLUS_DEBUG(logger, "Trying to fill CSCCrateMap using SQLite from " << SQLiteDB);
+  CSCMapItem::MapItem item;
+  sqlite3 *db;
+  //  char *zErrMsg = 0;
+  int rc;
+  int          col_cnt, row_cnt;
+  const char   *sqst_end;
+  sqlite3_stmt *sqst;
+
+  std::string sql_st = "SELECT * FROM csc_map;";
+
+  rc = sqlite3_open_v2(SQLiteDB.c_str(), &db, SQLITE_OPEN_READONLY, NULL);
+  if( rc ){
+    LOG4CPLUS_ERROR (logger,"Can't open database: " << sqlite3_errmsg(db));
+    sqlite3_close(db);
+    return false;
+  }
+
+
+  /*Compile the SQL.*/
+  rc = sqlite3_prepare_v2(db, sql_st.c_str(), -1, &sqst, &sqst_end);
+  if (rc != SQLITE_OK) {
+    LOG4CPLUS_ERROR (logger,"SQL compile error: " << sqlite3_errmsg(db));
+    return false;
+  }  /*if*/
+
+  /*Execute the SQL.  It could be busy.  Count busy polls to break
+    a deadlock.  When busy reset the current step, pause and relaunch it.*/
+
+  /*Count columns in statement and access declared types.*/
+  col_cnt = sqlite3_column_count(sqst);
+
+  bool finished = false;
+  while (!finished) {
+    rc = sqlite3_step(sqst);
+    switch (rc) {
+    case SQLITE_DONE:     /*Execution finished.*/
+      finished = true;
+      sqlite3_reset(sqst);  /*Resets the compiled statement for re-use.*/
+
+      /*Execute logic for end of data set.*/
+      /*!!!*/
+      break;
+    case SQLITE_ROW:      /*We have a row.*/
+      if (row_cnt == 0) {
+	/*Execute code for start of data set*/
+	/*!!!!*/
+      }
+
+      item.chamberId = sqlite3_column_int(sqst, 0);
+      item.chamberLabel = (const char *)sqlite3_column_text(sqst, 1);
+      item.endcap = sqlite3_column_int(sqst, 2);
+      item.station = sqlite3_column_int(sqst, 3);
+      item.ring = sqlite3_column_int(sqst, 4);
+      item.chamber = sqlite3_column_int(sqst, 5);
+      item.cscIndex = sqlite3_column_int(sqst, 6);
+      item.layerIndex = sqlite3_column_int(sqst, 7);
+      item.stripIndex = sqlite3_column_int(sqst, 8);
+      item.anodeIndex = sqlite3_column_int(sqst, 9);
+      item.strips = sqlite3_column_int(sqst, 10);
+      item.anodes = sqlite3_column_int(sqst, 11);
+      item.crateLabel = (const char *)sqlite3_column_text(sqst, 12);
+      item.crateid  = sqlite3_column_int(sqst, 13);
+      item.sector = sqlite3_column_int(sqst, 14);
+      item.trig_sector = sqlite3_column_int(sqst, 15);
+      item.dmb = sqlite3_column_int(sqst, 16);
+      item.cscid = sqlite3_column_int(sqst, 17);
+      item.ddu = sqlite3_column_int(sqst, 18);
+      item.ddu_input = sqlite3_column_int(sqst, 19);
+      item.slink = sqlite3_column_int(sqst, 20);
+      item.fed_crate = sqlite3_column_int(sqst, 21);
+      item.ddu_slot = sqlite3_column_int(sqst, 22);
+      item.dcc_fifo = (const char *)sqlite3_column_text(sqst, 23);
+      item.fiber_crate = sqlite3_column_int(sqst, 24);
+      item.fiber_pos = sqlite3_column_int(sqst, 25);
+      item.fiber_socket = (const char *)sqlite3_column_text(sqst, 26);
+
+      if (mapobj) mapobj->crate_map[item.crateid*10+item.cscid] = item;
+
+      row_cnt++;
+      break;
+    default:    /*A nasty error.*/
+      sqlite3_finalize(sqst);
+      LOG4CPLUS_ERROR (logger,"fatal SQL EXEC error: " << sqlite3_errmsg(db));
+      // wrapup("9: Fatal SQL EXEC error");
+      break;
+    }  /*switch*/
+  }    /*while*/
+
+  
+  sqlite3_close(db);
+  LOG4CPLUS_DEBUG(logger, "CSCCrateMap filled using SQLite");
+
+  return true;
+}
+
+
+bool Test_Generic::fillCrateMapOracle(CSCCrateMap* mapobj)
+{
+  LOG4CPLUS_DEBUG(logger, "Trying to CSCCrateMap using Oracle");
   cscmap1 *map = new cscmap1 ();
   CSCMapItem::MapItem item;
 
@@ -111,7 +214,7 @@ void Test_Generic::fillCrateMap(CSCCrateMap* mapobj)
   int count=0;
   int chamberid;
   int crate_cscid;
-
+ 
   /* This is version for 540 chambers. */
   for(i=1;i<=2;++i){
     for(j=1;j<=4;++j){
@@ -134,6 +237,7 @@ void Test_Generic::fillCrateMap(CSCCrateMap* mapobj)
     }
   }
   delete map;
+  return true;
 }
 
 
@@ -153,7 +257,7 @@ void Test_Generic::init() {
   tmap = getCSCTypeToBinMap();
   //  map = new cscmap1();
   //  cratemap = new CSCCrateMap();
-  //  fillCrateMap(cratemap);
+  fillCrateMap(cratemap);
 }
 
 
@@ -909,7 +1013,7 @@ void Test_Generic::doBinCheck() {
 
     if (isCSCError) { 
       LOG4CPLUS_WARN(logger, "Evt#" << std::dec << nTotalEvents << "> " << cscID 
-	<< ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << chamber->second << std::dec);
+		     << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << chamber->second << std::dec);
       nCSCBadEvents[cscID]++;
     }
     chamber++;

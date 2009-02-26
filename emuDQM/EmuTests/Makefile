@@ -16,8 +16,8 @@ include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 #DebugFlags=
-#CFlags+= -O2
-#CCFlags= -O2 -Wall
+CFlags+= 
+CCFlags= -g -O1 -Wall
 #
 # Packages to be built
 #
@@ -53,10 +53,11 @@ IncludeDirs = $(XdaqIncludeDirs) \
         ../../emuDAQ/emuReadout/ORCA \
 	$(CMSSW) \
 	$(BOOST) \
-	$(ORA_DIR)/include
+	$(ORA_DIR)/include \
+	$(SQLITE)/include
 
 
-LibraryDirs = $(XdaqLibraryDirs) 
+LibraryDirs = $(XdaqLibraryDirs) $(SQLITE)/lib
 
 
 UserSourcePath = 
@@ -70,13 +71,13 @@ UserExecutableLinkFlags += $(ROOTGLIBS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries) EmuReadout cscmap1 occi clntsh nnz10 Minuit
+Libraries = $(XdaqLibraries) emudaqreader cscmap1 occi clntsh nnz10 Minuit sqlite3
 
 
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary = EmuTests
+DynamicLibrary = EmuTests 
 StaticLibrary = 
 
 

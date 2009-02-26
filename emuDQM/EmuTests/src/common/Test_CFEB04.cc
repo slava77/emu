@@ -2,25 +2,43 @@
 
 using namespace XERCES_CPP_NAMESPACE;
 
-Test_CFEB04::Test_CFEB04(std::string dfile): Test_Generic(dfile) {
+/**
+ * @brief Constructor for Test CFEB04: Amplifier Gain
+ * @param dfile Events Data file name
+ */
+Test_CFEB04::Test_CFEB04(std::string dfile): 
+  Test_Generic(dfile) 
+{
+
   testID = "CFEB04";
-  nExpectedEvents = 8000;
+  nExpectedEvents = 8000; // Number of expected events for this test
   dduID=0;
-  binCheckMask=0x1FFB7BF6;
+  binCheckMask=0x1FFB7BF6; /// Examiner mask 
   ltc_bug=2;
+
+  gdata.clear();
+  htree.clear();
 
   logger = Logger::getInstance(testID);
 
 }
 
-
+/*
+ * @brief Initialization of CSC data
+ * @param cscID CSC ID string "ME+1.1.01"
+ */
 void Test_CFEB04::initCSC(std::string cscID) {
+
   nCSCEvents[cscID]=0;
+
+  // Initialize internal data structire for Gains analysis
   GainData gaindata;
+
   gaindata.Nbins = getNumStrips(cscID);
   gaindata.Nlayers = 6;
   memset(gaindata.content, 0, sizeof (gaindata.content));
-  
+  memset(gaindata.fit, 0, sizeof (gaindata.fit));
+
   gdata[cscID] = gaindata;
 
   TestData cscdata;
@@ -69,9 +87,19 @@ void Test_CFEB04::initCSC(std::string cscID) {
   bookTestsForCSC(cscID);
 }
 
-void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber) {
+/*
+ * @brief Event analyzer
+ * @param data pointer to event data buffer
+ * @param dataSize event buffer size
+ * @param errorStat buffer check status from DDU reader
+ * @param nodeNumber RUI number
+ */
+void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber) 
+{
+
   nTotalEvents++;
 
+  // Perform Examiner binary checks
   const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
   bin_checker.setMask( binCheckMask);
   if( bin_checker.check(tmp,dataSize/sizeof(short)) < 0 ){
@@ -97,34 +125,36 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
   if((bin_checker.errors() & binCheckMask)!= 0) {
     // std::cout << "Evt#" << std::dec << nTotalEvents << ": Nonzero Binary Errors Status is observed: 0x"<< std::hex << bin_checker.errors() << std::endl;
     doBinCheck();
-
   }
 
+  // Unpack DDU event
   CSCDDUEventData dduData((uint16_t *) data, &bin_checker);
  
+  // Extract L1A 
   currL1A=(int)(dduData.header().lvl1num());
   if (DDUstats[dduID].evt_cntr ==1) {
     DDUstats[dduID].first_l1a = currL1A;
     LOG4CPLUS_DEBUG(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " First L1A:" << DDUstats[dduID].first_l1a);
+		    << " First L1A:" << DDUstats[dduID].first_l1a);
   } else if (DDUstats[dduID].first_l1a==-1) {
     DDUstats[dduID].first_l1a = currL1A-DDUstats[dduID].evt_cntr+1;
     LOG4CPLUS_DEBUG(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " First L1A :" << DDUstats[dduID].first_l1a << " after " 
-	      << currL1A-DDUstats[dduID].evt_cntr << " bad events");
+		    << " First L1A :" << DDUstats[dduID].first_l1a << " after " 
+		    << currL1A-DDUstats[dduID].evt_cntr << " bad events");
   }
 
   DDUstats[dduID].l1a_cntr=currL1A;
 
+  // Detect if DDU L1A de-synchronization
   if ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) != (DDUstats[dduID].evt_cntr-1)) {
     LOG4CPLUS_WARN(logger, "DDUEvt#" << std::dec << nTotalEvents << ": DDU#" << dduID 
-	      << " Desynched L1A: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)));
+		   << " Desynched L1A: " << ((DDUstats[dduID].l1a_cntr-DDUstats[dduID].first_l1a) - (DDUstats[dduID].evt_cntr-1)));
   }
   
+  // Vector of unpacked CSC blocks
   std::vector<CSCEventData> chamberDatas;
   chamberDatas = dduData.cscData();
 
-  fSwitch=false;
 
   if (chamberDatas.size() >0) {
     DDUstats[dduID].csc_evt_cntr++;
@@ -162,6 +192,7 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
     }
   }
 
+  // Loop over CSCs and do preliminary analysis/fill data structures
   for(std::vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin();
       chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
     analyzeCSC(*chamberDataItr);
@@ -171,22 +202,28 @@ void Test_CFEB04::analyze(const char * data, int32_t dataSize, uint32_t errorSta
 	
 }
 
-
+/**
+ * @brief Event analyzer for single CSC
+ * @param data CSCEventData object
+ */
 void Test_CFEB04::analyzeCSC(const CSCEventData& data) 
 {
 
+  // == Check for presence of DMB Header and Trailer
   const CSCDMBHeader* dmbHeader = data.dmbHeader();
   const CSCDMBTrailer* dmbTrailer = data.dmbTrailer();
   if (!dmbHeader && !dmbTrailer) {
     return;
   }
 
+  // == Get CSC ID string
   int csctype=0, cscposition=0; 
   std::string cscID = getCSCFromMap(dmbHeader->crateID(), dmbHeader->dmbID(), csctype, cscposition); 
 
   // == Do not process unmapped CSCs
   if (cscID == "") return;
 
+  // == Init CSC if it's not in the list
   cscTestData::iterator td_itr = tdata.find(cscID);
   if ( (td_itr == tdata.end()) || (tdata.size() == 0) ) {
     LOG4CPLUS_INFO(logger, "Found " << cscID);
@@ -210,15 +247,8 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
   int curr_dac = DDUstats[dduID].dac;
   int curr_strip =  DDUstats[dduID].strip;
  
-
-  if (fSwitch) {
-    //	std::cout << "DDUEvt#" << std::dec << nTotalEvents << " " << nCSCEvents[cscID] << " " << cscID << " " 
-    //               << " ("<< tstep.evt_cnt << ") "<< nCSCBadEvents[cscID] << std::endl;
-    //	tstep.evt_cnt=0;
-  }
   tstep.evt_cnt++;
   
-
   TH2F* v02 = reinterpret_cast<TH2F*>(cschistos["V02"]);
   TH2F* v03 = reinterpret_cast<TH2F*>(cschistos["V03"]);
   TH1F* v04 = reinterpret_cast<TH1F*>(cschistos["V04"]);
@@ -226,20 +256,21 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
   unsigned int l1a_cnt = dmbHeader->l1a();
   if (l1a_cnt < l1a_cntrs[cscID]) l1a_cnt+=256;
 
+  // == L1A increment 
   if (v04) v04->Fill(l1a_cnt-l1a_cntrs[cscID]);
 
   l1a_cntrs[cscID]=dmbHeader->l1a(); 
 
   // == Check if CFEB Data Available 
   if (dmbHeader->cfebAvailable()){
+
     for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
+
       CSCCFEBData * cfebData =  data.cfebData(icfeb);
-      if (!cfebData || !cfebData->check()) {
-	 
-	continue;
-      }
+      if (!cfebData || !cfebData->check()) continue;     
       
       for (unsigned int layer = 1; layer <= 6; layer++){ // loop over layers in a given chamber
+
 	int nTimeSamples= cfebData->nTimeSamples();
 	double Qmax=gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max;
 
@@ -247,6 +278,8 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 	  LOG4CPLUS_WARN(logger, cscID << " CRC check failed for time sample 1 and 2");
 	  continue;
 	}
+	
+	// == Calculate pedestal
         double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
 		    + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
 
@@ -254,10 +287,11 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 
 	  if (!(cfebData->timeSlice(itime)->checkCRC())) {
 	    LOG4CPLUS_WARN(logger,"Evt#" << std::dec << nCSCEvents[cscID] << ": " << cscID 
-	<< " CRC failed, cfeb" << icfeb << ", layer" << layer << ", strip" << curr_strip 
-	<< ", dac" << curr_dac << ", time sample " << itime);
+			   << " CRC failed, cfeb" << icfeb << ", layer" << layer << ", strip" << curr_strip 
+			   << ", dac" << curr_dac << ", time sample " << itime);
 	    // continue; 
 	  }
+
 	  CSCCFEBDataWord* timeSample=(cfebData->timeSlice(itime))->timeSample(layer,curr_strip);
 	  
           int Qi = (int) ((timeSample->adcCounts)&0xFFF);
@@ -268,15 +302,19 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 	
 	  if (Qi-Q12>Qmax) {
             Qmax=Qi-Q12;
-            if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi;
+
+            if (curr_dac==DAC_STEPS-1) r04.content[layer-1][icfeb*16+curr_strip-1] = Qi; // Saturation
+
             gaindata.content[curr_dac][layer-1][icfeb*16+curr_strip-1][NSAMPLES-1].max=Qmax;
           }
 
 
         }
 
+	// == Calibration curve 
         if (v03) {v03->Fill(curr_dac, Qmax);}
 
+	// == Signal line shape at 6th DAC step
 	if (curr_dac==5) {
 	  double Q12=((cfebData->timeSlice(0))->timeSample(layer,curr_strip)->adcCounts
 		      + (cfebData->timeSlice(1))->timeSample(layer,curr_strip)->adcCounts)/2.;
@@ -289,18 +327,20 @@ void Test_CFEB04::analyzeCSC(const CSCEventData& data)
 	}
 	
 
-      } 
-    }
+      } // layers loop end
+    } // cfebs loop end
 
 
   } // CFEB data available
   
 }
 
-
+/**
+ * @brief finalize analysis for single CSC
+ * @param cscID CSC ID string
+ */
 void Test_CFEB04::finishCSC(std::string cscID) 
 {
-
   /* 
      if (nCSCEvents[cscID] < nExpectedEvents/2) {
      std::cout << Form("%s: Not enough events for test analysis (%d events)", cscID.c_str(), nCSCEvents[cscID] ) << std::endl;
@@ -308,15 +348,17 @@ void Test_CFEB04::finishCSC(std::string cscID)
      return;
      }
   */
+
+  // == Look for CSC in the list
   cscTestData::iterator td_itr =  tdata.find(cscID);
-  if (td_itr != tdata.end()) {
+  if (td_itr != tdata.end()) { // if CSC present in the list
   
     TestData& cscdata= td_itr->second;
 
-    // TestData2D& mask = cscdata["_MASK"];
+    TestData2D& mask = cscdata["_MASK"];
   
     TestData2D& r01 = cscdata["R01"];
-    // TestData2D& r02 = cscdata["R02"];
+    // TestData2D& r02 = cscdata["R02"]; // Removed gain intercept results
     TestData2D& r03 = cscdata["R03"];
     TestData2D& r05 = cscdata["R05"];
 
@@ -343,13 +385,12 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
       double avg_gain=0;
       int avg_gain_cnt=0;
-      //      bool fValid=true;
 
       for (unsigned int layer = 1; layer <= 6; layer++){
 	for (int icfeb=0; icfeb<getNumStrips(cscID)/16;icfeb++) { // loop over cfebs in a given chamber
 	  for(int strip = 1; strip <=16  ; ++strip) { // loop over cfeb strip	
 
-	    bool fValid=true;
+	    bool fValidStripData=true;
 	    for (int dac=0; dac<DAC_STEPS; dac++) {
 
 	      bool fValidDAC=true;
@@ -360,6 +401,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 	      double max_rms=0;
 	      int cnt=0;
 	      int peak_time=0;
+
 	      for (int itime=0; itime < NSAMPLES-1; itime++) {
 
 		dac_step& cval = gaindata.content[dac][layer-1][icfeb*16+strip-1][itime];
@@ -368,11 +410,12 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		if (cval.cnt<13) {
 		  LOG4CPLUS_DEBUG(logger, cscID << ":" << layer << ":" << (icfeb*16+strip) 
 				  << " Error> dac=" << dac << " , sample=" << itime << ", cnt="<< cval.cnt);
-		  if (dac<10) fValid=false;
-		  fValidDAC=false;
+		  if (dac<10) fValidStripData=false;
+		    fValidDAC=false;
 		} else {
 		  cval.mv /=cval.cnt;
-		  double rms= sqrt((cval.rms/cval.cnt)-pow(cval.mv,2));
+		  // double rms= sqrt((cval.rms/cval.cnt)-pow(cval.mv,2));
+                  double rms= (cval.rms/cval.cnt)-pow(cval.mv,2);
 		  cval.rms = rms;
 		  if (cval.mv > max) {
 		    peak_time = itime;
@@ -418,7 +461,7 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		  fit.right.value = 0;
 		}
 
-		time_sample pulse_fit  = CalculateCorrectedPulseAmplitude(fit);
+		// time_sample pulse_fit  = CalculateCorrectedPulseAmplitude(fit);
 		// if (v06) {v06->Fill(pulse_fit.tbin);}
 
 		val.s = pow(max_rms,2) + pow((0.01*max), 2);
@@ -435,16 +478,15 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
 	    }
 
-	    if (fValid) 
+	    if (fValidStripData) 
 	      {
 
 		double X=0, XX=0, Y=0, YY=0, XY=0, S=0, x=0, y=0, s=0; 
-		double a=0, b=0, ksi=0;
+		double a=0, b=0, chi2=0;
 		bool fValidStrip=true;
 
 		for (int dac=0; dac<10; dac++) {
 		  dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
-		  //	y=val.mv;
 		
 		  x=11.2 +(28.0*dac);
 		  s=val.s;
@@ -454,58 +496,44 @@ void Test_CFEB04::finishCSC(std::string cscID)
 		  time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]); 
 		  if (v06 && dac==5) {v06->Fill(pulse_fit.tbin);}
 		  y = pulse_fit.value;	
+
 		  X+=x/s;
 		  XX+=(x*x)/s;
 		  Y+=y/s;
 		  YY+=(y*y)/s;
 		  XY+=(y*x)/s;
 		  S+=1/s;
-		}
-
-		if (fValidStrip) {
-		  a=(XY*S-X*Y)/(XX*S-X*X); // for 2 parameters fit
-		  //a=XY/XX;
-		  b=(Y-a*X)/S;
-		  //b=0;
-		  // avg_gain+=1/a;
-		  // avg_gain_cnt++;
-		  // ksi=YY+a*a*XX-2*a*XY;
-		  ksi=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X; // for 2-parameters fit
-		} else {
-		  a = -999;
-		  b = -999;
-		  ksi = -999;
-		}
-
-		for (int dac=0; dac<10; dac++) {
-
-		  x=11.2 +(28.0*dac);
-
-		  // dac_step& val= gaindata.content[dac][layer-1][icfeb*16+strip-1][NSAMPLES-1];
-		  // y=val.mv;
-
-		  time_sample pulse_fit = CalculateCorrectedPulseAmplitude(gaindata.fit[dac][layer-1][icfeb*16+strip-1]);
-		  y = pulse_fit.value;
 
 		  double residual = y-a*x-b;
 		  if (v05) v05->Fill(dac, residual);
 		}
+
+		if (fValidStrip) {
+		  a=(XY*S-X*Y)/(XX*S-X*X); // Gain Slope for 2 parameters fit
+		  b=(Y-a*X)/S; // Gain Intercept
+		  chi2=YY+a*a*XX+b*b*S-2*a*XY-2*b*Y+2*a*b*X; // Chi squared for 2-parameters fit
+		} else {
+		  a = -999;
+		  b = -999;
+		  chi2 = -999;
+		}
+
 		if (a>999.) a=999.;
 		if (a<-999.) a=-999.;
-		if (ksi>999.) ksi=999.;
-		if (ksi<-999.) ksi=-999.;
+		if (chi2>999.) chi2=999.;
+		if (chi2<-999.) chi2=-999.;
 
-		if ((a<100) & (a>0)) {
+		if ((a<MAX_VALID_SLOPE) && (a>MIN_VALID_SLOPE)) {
 		  avg_gain+=1/a;
                   avg_gain_cnt++;
 		}
 
-		LOG4CPLUS_DEBUG(logger, cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", g=" << 1/a << ", b=" << b << ", ksi=" << ksi);
+		LOG4CPLUS_DEBUG(logger, cscID << ":" << std::dec << layer << ":" << (icfeb*16+strip) << " a=" << a << ", b=" << b << ", chi2=" << chi2);
 		double gain=a;
 
 		r01.content[layer-1][icfeb*16+strip-1] = gain;
 		//r02.content[layer-1][icfeb*16+strip-1] = b;
-		r03.content[layer-1][icfeb*16+strip-1] = ksi;
+		r03.content[layer-1][icfeb*16+strip-1] = chi2;
 	      }
 	    
 	  } // strip
@@ -513,13 +541,22 @@ void Test_CFEB04::finishCSC(std::string cscID)
       }
 
 
-      avg_gain/=avg_gain_cnt;
+      if (avg_gain_cnt) {
+	avg_gain /= avg_gain_cnt;
+      } else {
+	avg_gain = 0;
+      }
       for (unsigned int layer = 1; layer <= 6; layer++){
 	for (int strip=0; strip<getNumStrips(cscID);strip++) { // loop over cfebs in a given chamber
-	  
-	  r05.content[layer-1][strip]=1/(r01.content[layer-1][strip]*avg_gain);
+	  double a = r01.content[layer-1][strip];
+	  if ((a<MAX_VALID_SLOPE) && (a>MIN_VALID_SLOPE) && (avg_gain>0) ) {
+	    r05.content[layer-1][strip]=1/(a*avg_gain);
+	  } else {
+	    r05.content[layer-1][strip] = -1;
+	  }
 	}
       }
+      
 
       // == Save results to text files
       std::string rpath = "Test_"+testID+"/"+outDir;
@@ -532,10 +569,11 @@ void Test_CFEB04::finishCSC(std::string cscID)
 
       for (int layer=0; layer<NLAYERS; layer++) {
 	for (int strip=0; strip<strips_per_layer; strip++) {
-	  res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+	  res_out << std::fixed << std::setprecision(6) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
 		  << r01.content[layer][strip]  << "  " 
 	    /* << r02.content[layer][strip] << "  " */
-		  << r03.content[layer][strip] <<"  " << r05.content[layer][strip] << std::endl;
+		  << r03.content[layer][strip] <<"  " << r05.content[layer][strip] 
+		  << "  " << (int)(mask.content[layer][strip]) << std::endl;
 	}
       }
       res_out.close();
@@ -562,19 +600,19 @@ bool Test_CFEB04::checkResults(std::string cscID)
     //TestData2D& r02 = cscdata["R02"];
 
     int badChannels=0;
-    // Check pedestals
+    // Check Slopes
     for (int i=0; i<r01.Nlayers; i++) {
       for (int j=0; j<r01.Nbins; j++) {
-	if ((r01.content[i][j] > 10) || (r01.content[i][j] < 3)) badChannels++;
+	if ((r01.content[i][j] >= MAX_VALID_SLOPE) || (r01.content[i][j] <= MIN_VALID_SLOPE)) badChannels++;
       }
     }
     if (badChannels/(float(r01.Nlayers*r01.Nbins)) >=0.2) {
       isValid=false;
-      LOG4CPLUS_WARN(logger,cscID << ": 20% of channels have bad Gain");
+      LOG4CPLUS_WARN(logger,cscID << ": 20% of channels have bad Gain Slope");
     }
     /*
       badChannels=0;
-      // Check noise
+      // Check Intercepts
       for (int i=0; i<r02.Nlayers; i++) {
       for (int j=0; j<r02.Nbins; j++) {
       if ((r02.content[i][j] > 50) || (r02.content[i][j] < -50)) badChannels++;
@@ -582,7 +620,7 @@ bool Test_CFEB04::checkResults(std::string cscID)
       }
       if (badChannels/(float(r02.Nlayers*r01.Nbins)) >=0.2) {
       isValid=false;
-      LOG4CPLUS_WARN(logger, cscID << ": 20% of channels have bad Intercept");
+      LOG4CPLUS_WARN(logger, cscID << ": 20% of channels have bad Gain Intercept");
       }
     */
   }
