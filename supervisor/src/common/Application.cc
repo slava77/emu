@@ -192,7 +192,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   state_ = fsm_.getStateName(fsm_.getCurrentState());
   
   state_table_.addApplication("emu::fed::EmuFCrateManager");
-  state_table_.addApplication("EmuPeripheralCrateManager");
+  state_table_.addApplication("emu::pc::EmuPeripheralCrateManager");
   state_table_.addApplication("emu::daq::manager::Application");
   state_table_.addApplication("TTCciControl");
   state_table_.addApplication("LTCControl");
@@ -570,7 +570,7 @@ bool emu::supervisor::Application::calibrationAction(toolbox::task::WorkLoop *wl
     LOG4CPLUS_DEBUG(logger_,
 		    "calibrationAction: " << step_counter_);
     
-    sendCommand(command, "EmuPeripheralCrateManager");
+    sendCommand(command, "emu::pc::EmuPeripheralCrateManager");
     sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
     sleep(delay);
   }
@@ -636,7 +636,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     string str = trim(getCrateConfig("PC", run_type_.toString()));
     if (!str.empty()) {
       setParameter(
-		   "EmuPeripheralCrateManager", "xmlFileName", "xsd:string", str);
+		   "emu::pc::EmuPeripheralCrateManager", "xmlFileName", "xsd:string", str);
     }
 
 
@@ -653,9 +653,9 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
     sendCommand("Configure", "LTCControl");
 
     if (!isCalibrationMode()) {
-      sendCommand("Configure", "EmuPeripheralCrateManager");
+      sendCommand("Configure", "emu::pc::EmuPeripheralCrateManager");
     } else {
-      sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
+      sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
     }   
        
     sendCommand("Configure", "emu::fed::EmuFCrateManager");
@@ -697,14 +697,16 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
   
   try {
     state_table_.refresh();
+
       setParameter("emu::fed::EmuFCrateManager",
 		   "runNumber", "xsd:unsignedLong", run_number_.toString());
-      setParameter("emu::fed::EmuFCrateManager",
+/*      setParameter("emu::fed::EmuFCrateManager",
 		   "runType", "xsd:string", run_type_.toString());
+*/
     sendCommand("Enable", "emu::fed::EmuFCrateManager");
     
     if (!isCalibrationMode()) {
-      sendCommand("Enable", "EmuPeripheralCrateManager");
+      sendCommand("Enable", "emu::pc::EmuPeripheralCrateManager");
     }
     
     try {
@@ -774,7 +776,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     
     writeRunInfo( true, false );
     sendCommand("Disable", "emu::fed::EmuFCrateManager");
-    sendCommand("Disable", "EmuPeripheralCrateManager");
+    sendCommand("Disable", "emu::pc::EmuPeripheralCrateManager");
     sendCommand("Configure", "TTCciControl");
     sendCommand("Configure", "LTCControl");
   } catch (xoap::exception::Exception e) {
@@ -803,7 +805,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
       sendCommand("Halt", "TTCciControl");
     }
     sendCommand("Halt", "emu::fed::EmuFCrateManager");
-    sendCommand("Halt", "EmuPeripheralCrateManager");
+    sendCommand("Halt", "emu::pc::EmuPeripheralCrateManager");
     
     try {
       sendCommand("Halt", "emu::daq::manager::Application");
