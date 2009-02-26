@@ -8,10 +8,13 @@
 #  Author: Holger Stoeck
 #  Modifications:
 #
-#  $Id: site.mk,v 1.4 2006/10/19 20:12:24 barvic Exp $
+#  $Id: site.mk,v 1.5 2009/02/26 14:15:34 barvic Exp $
 #
 #  Revision History
 #  $Log: site.mk,v $
+#  Revision 1.5  2009/02/26 14:15:34  barvic
+#  Changes for makefile configurations
+#
 #  Revision 1.4  2006/10/19 20:12:24  barvic
 #  changed default path to BOOST libs to /usr/include. boost and boost-devel RPMs should be installed
 #
@@ -47,23 +50,11 @@
 #################################################################
 
 
-EMU_ROOT = $(HOME)
-ORCA_DIR = $(HOME)/ORCA
 CMSSW	 = $(HOME)/CMSSW/src
 BOOST    = /usr/include
 XDAQDIR    = $(XDAQ_DIR)
-XERDIR     = $(XER_DIR)
-HALDIR     = $(HAL_DIR)
-VMEDIR     = $(VME_DIR)
-ORCADIR    = $(ORCA_DIR)
-EMUDIR     = $(EMUDAQ)
 ROOTDIR    = $(ROOTSYS)
-
-VMEADAPTER = ADAPTER_$(VME_ADAPTER)
-SBSVERSION = $(SBS_VERSION)
-
-FPGAMETHOD = FPGA_$(FPGA_METHOD)
-BOARDTYPE  = BOARD_$(BOARD_TYPE)
+SQLITE	 = $(HOME)/sqlite
 
 
 #################################################################
