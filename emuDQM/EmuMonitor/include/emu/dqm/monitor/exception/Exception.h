@@ -49,7 +49,7 @@ namespace emu { namespace dqm {
 	    {
             public:
 
-	      Exception(std::string name,
+	      I2O(std::string name,
 			std::string message,
 			std::string module,
 			int line,
@@ -58,7 +58,7 @@ namespace emu { namespace dqm {
 		{
 		}
 
-	      Exception(std::string name,
+	      I2O(std::string name,
 			std::string message,
 			std::string module,
 			int line,
