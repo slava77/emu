@@ -181,7 +181,7 @@ public class MyEventHandler extends UserStateNotificationHandler {
 			_myUtil.renderMainGui();
 			
 			functionManager.xdaqSupervisor = new XdaqApplicationContainer(
-					functionManager.containerXdaqApplication.getApplicationsOfClass("CSCSupervisor"));
+					functionManager.containerXdaqApplication.getApplicationsOfClass("emu::supervisor::Application"));
 
 			// go to HALT
 			functionManager.fireEvent( MyInputs.SETHALT );
