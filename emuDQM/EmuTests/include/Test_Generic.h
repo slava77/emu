@@ -40,6 +40,8 @@
 #include "CondFormats/CSCObjects/interface/CSCMapItem.h"
 #include "CondFormats/CSCObjects/interface/CSCCrateMap.h"
 
+#include <sqlite3.h>
+
 
 #include "ConsumerCanvas.hh"
 typedef ConsumerCanvas MonitoringCanvas;
@@ -148,6 +150,8 @@ typedef struct pulse_fit {
 typedef struct GainData{
         int Nbins;
         int Nlayers;
+//	dac_step content[2][2][2][2];
+//        pulse_fit fit[2][2][2];       
         dac_step content[DAC_STEPS][NLAYERS][MAX_STRIPS][NSAMPLES];
         pulse_fit fit[DAC_STEPS][NLAYERS][MAX_STRIPS];
 } GainData;
@@ -194,6 +198,7 @@ class Test_Generic
 	void setRootFile(std::string rootfn) {rootFile=rootfn;}
 	void setConfigFile(std::string cfgfile) {configFile=cfgfile; loadTestCfg();}
 	void setMasksFile(std::string mfile) {masksFile = mfile;loadMasks();}
+        void setSQLiteDBName(std::string filename) {SQLiteDB = filename;}
 
 	time_sample CalculateCorrectedPulseAmplitude(pulse_fit& fit);
 
@@ -208,6 +213,8 @@ class Test_Generic
 	virtual void bookTestsForCSC(std::string cscID);
 	virtual void bookCommonHistos();
         void fillCrateMap(CSCCrateMap* mapobj);
+        bool fillCrateMapSQLite(CSCCrateMap* mapobj);
+        bool fillCrateMapOracle(CSCCrateMap* mapobj);
 	void addCSCtoMap(std::string, int, int);
 
 	int loadTestCfg();
@@ -244,6 +251,7 @@ class Test_Generic
 	std::string rootFile;
 	std::string configFile;
 	std::string masksFile;
+        std::string SQLiteDB;
 	uint32_t imgW, imgH;
 
 	std::map<std::string, TH2F*> hFormatErrors;

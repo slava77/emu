@@ -1,5 +1,11 @@
-#include "EmuFileReader.h"
-#include "EmuSpyReader.h"
+// emu/emuDAQ - based readout for XDAQ6
+// #include "EmuFileReader.h"
+// #include "EmuSpyReader.h"
+
+// emu/daq - based readout for XDAQ7
+#include "emu/daq/reader/RawDataFile.h"
+#include "emu/daq/reader/Spy.h"
+
 #include "Test_Generic.h"
 #include "Test_CFEB02.h"
 #include "Test_CFEB03.h"
@@ -78,6 +84,7 @@ int main(int argc, char **argv) {
         std::string masksCfg = "file://" + cfgDir + "emuChanMasks.xml";
 	std::string datafile = "";
   	std::string histofile = "dqm_results.root";
+        std::string SQLiteDB = cfgDir+"csc_map.db";
 
 	std::string plotsdir = "images";	// Output images path
 	std::string imgFormat = "png"; 	// Output image format
@@ -106,7 +113,9 @@ int main(int argc, char **argv) {
 			strerror(errno));
 		exit(-1);	
 	}
-	EmuFileReader ddu(datafile.c_str(), EmuReader::DDU);
+
+	emu::daq::reader::RawDataFile ddu(datafile.c_str(), emu::daq::reader::Base::DDU);
+//	EmuFileReader ddu(datafile.c_str(), EmuReader::DDU);
         ddu.open(datafile.c_str());
         LOG4CPLUS_INFO (logger, "Opened data file " << datafile);
 
@@ -145,6 +154,7 @@ int main(int argc, char **argv) {
 	}
 
 
+	test_analyzer->setSQLiteDBName(SQLiteDB);
 	test_analyzer->init();
 	test_analyzer->setCSCMapFile(cscMapFile);
 	test_analyzer->setConfigFile(xmlTestCfg);
@@ -214,11 +224,19 @@ int main(int argc, char **argv) {
 	while (ddu.readNextEvent()) {
 		cnt++;
 		int status = 0;
+		if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type2 ) status |= 0x8000;
+	        if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type3 ) status |= 0x4000;
+        	if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type4 ) status |= 0x2000;
+	        if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type5 ) status |= 0x1000;
+	        if( ddu.getErrorFlag()==emu::daq::reader::RawDataFile::Type6 ) status |= 0x0800;
+/*
                 if( ddu.getErrorFlag()==EmuFileReader::Type2 ) status |= 0x8000;
                 if( ddu.getErrorFlag()==EmuFileReader::Type3 ) status |= 0x4000;
                 if( ddu.getErrorFlag()==EmuFileReader::Type4 ) status |= 0x2000;
                 if( ddu.getErrorFlag()==EmuFileReader::Type5 ) status |= 0x1000;
                 if( ddu.getErrorFlag()==EmuFileReader::Type6 ) status |= 0x0800;
+*/
+
 		if(status) continue;
 
 		if ((cnt>=startEvent) && (cnt<=(startEvent+NumberOfEvents))) { 

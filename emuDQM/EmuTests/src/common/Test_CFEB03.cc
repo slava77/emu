@@ -78,7 +78,7 @@ void Test_CFEB03::initCSC(std::string cscID) {
   // R08 - Rleft(t) RMS
   cscdata["R08"]=cfebdata;
 
-  // R09 - Rright(t) slpe
+  // R09 - Rright(t) slope
   cscdata["R09"]=cfebdata;
 
   // R10 - Rright(t) intercept
@@ -806,10 +806,10 @@ void Test_CFEB03::finishCSC(std::string cscID)
 
       for (int layer=0; layer<NLAYERS; layer++) {
 	for (int strip=0; strip<strips_per_layer; strip++) {
-	  res_out << std::fixed << std::setprecision(5) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-		  << r06.content[layer][strip]  << "  " << r07.content[layer][strip] << "  "  
-		  << r09.content[layer][strip] << "  " << r10.content[layer][strip] 
-		  << "  " << (int)(mask.content[layer][strip]) << std::endl;
+	  res_out << std::fixed <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
+		  << r06.content[layer][strip]  << "  " << r07.content[layer][strip] << "  " << r08.content[layer][strip] << "  " 
+		  << r09.content[layer][strip] << "  " << r10.content[layer][strip] << r11.content[layer][strip] << "  "
+		   << (int)(mask.content[layer][strip]) << std::endl;
 	}
       }
       res_out.close();

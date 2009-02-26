@@ -566,7 +566,6 @@ void Test_CFEB02::finishCSC(std::string cscID)
       CSCMapItem::MapItem mapitem = cratemap->item(id);
       int first_strip_index=mapitem.stripIndex;
       int strips_per_layer=mapitem.strips;
-      std::cout << cscID << " " << first_strip_index << std::endl;
    
       // int strips_per_layer = getNumStrips(cscID);
       double rms = 0.;
