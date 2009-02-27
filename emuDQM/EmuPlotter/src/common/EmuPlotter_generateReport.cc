@@ -899,7 +899,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     int nStrips = getNumStrips(cscName);
     int nWireGroups = getNumWireGroups(cscName);
     int deadCFEBs[5];
-    int deadALCT=0;
+    // int deadALCT=0;
 
 
     // -- CFEBs DAV checks
@@ -907,7 +907,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     me2 = findME(CSC_folders[i], "Actual_DMB_CFEB_DAV_Rate",  sourcedir);
     if (me && me2) {
       TH1F* h = dynamic_cast<TH1F*>(me);
-      TH1F* h1 = dynamic_cast<TH1F*>(me2);
+      // TH1F* h1 = dynamic_cast<TH1F*>(me2);
 
       if  ( h->GetEntries() > nCFEBs) {
 	for (int icfeb=0; icfeb< nCFEBs; icfeb++) {
@@ -1185,18 +1185,18 @@ int EmuPlotter::save_CSCCounters(std::string rootfile, std::string path, std::st
     MonitorElement* me = findME(CSC_folders[i], "Actual_DMB_FEB_DAV_Rate",  sourcedir);
     if (me) {
       //      TH1F* h = dynamic_cast<TH1F*>(me);
-      trigCnts["ALCT"] =  me->GetBinContent(1);
-      trigCnts["CLCT"] =  me->GetBinContent(2);
-      trigCnts["CFEB"] =  me->GetBinContent(3);
+      trigCnts["ALCT"] =  (uint32_t)me->GetBinContent(1);
+      trigCnts["CLCT"] =  (uint32_t)me->GetBinContent(2);
+      trigCnts["CFEB"] =  (uint32_t)me->GetBinContent(3);
     }
 
     me = findME(CSC_folders[i], "Actual_DMB_FEB_DAV_Frequency",  sourcedir);
     if (me) {
       // TH1F* h = dynamic_cast<TH1F*>(me);
-      trigCnts["DMB"] =  me->GetEntries();
+      trigCnts["DMB"] =  (uint32_t)me->GetEntries();
     }
 
-    trigCnts["BAD"] = hs->GetBinContent(crate, slot);
+    trigCnts["BAD"] = (uint32_t)hs->GetBinContent(crate, slot);
     
   }
   

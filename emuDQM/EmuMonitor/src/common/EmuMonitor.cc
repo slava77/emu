@@ -8,27 +8,8 @@
  *************************************************************************/
 
 #include "EmuMonitor.h"
-
 #include <time.h>
 
-/*
-  std::string now()
-  {
-  char buf[255];
-  time_t now=time(NULL);
-  const struct tm * timeptr = localtime(&now);
-  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", timeptr);
-  std::string time = std::string(buf);
-  if (time.find("\n",0) != std::string::npos) 
-  time = time.substr(0,time.find("\n",0));
-  else { 
-  if (time.length() == 0)
-  time = "---";
-  }
-  return time;
-
-  };
-*/
 
 std::string getDateTime(){
   time_t t;
@@ -59,6 +40,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
     ,appBSem_(BSem::FULL)
     ,isReadoutActive(false)
 {
+
   LOG4CPLUS_INFO(this->getApplicationLogger(),"Constructor called");
   
   /*  
@@ -321,19 +303,19 @@ void EmuMonitor::setMemoryPool()
   }
   try
     {
-      LOG4CPLUS_INFO (getApplicationLogger(), "Committed pool size is " << (uint32_t) committedPoolSize_);
+      LOG4CPLUS_INFO (this->getApplicationLogger(), "Committed pool size is " << (uint32_t) committedPoolSize_);
       toolbox::mem::CommittedHeapAllocator* a = new toolbox::mem::CommittedHeapAllocator(committedPoolSize_);
       toolbox::net::URN urn ("toolbox-mem-pool", "EmuMonitor_EMU_MsgPool");
       pool_ = toolbox::mem::getMemoryPoolFactory()->createPool(urn, a);
-      //            LOG4CPLUS_INFO (getApplicationLogger(), "Set high watermark to 90% and low watermark to 70%");
-      LOG4CPLUS_INFO (getApplicationLogger(), "Set event credit message buffer's high watermark to 70%");
+      //            LOG4CPLUS_INFO (this->getApplicationLogger(), "Set high watermark to 90% and low watermark to 70%");
+      LOG4CPLUS_INFO (this->getApplicationLogger(), "Set event credit message buffer's high watermark to 70%");
       pool_->setHighThreshold ( (uint32_t) (committedPoolSize_ * 0.7));
       //            pool_->setLowThreshold ((uint32_t) (committedPoolSize_ * 0.7));
       //  hasSet_committedPoolSize_ = true;
     }
   catch(toolbox::mem::exception::Exception & e)
     {
-      LOG4CPLUS_FATAL (getApplicationLogger(), toolbox::toString("Could not set up memory pool, %s (exiting thread)", e.what()));
+      LOG4CPLUS_FATAL (this->getApplicationLogger(), toolbox::toString("Could not set up memory pool, %s (exiting thread)", e.what()));
       return;
     }
 	
@@ -349,7 +331,7 @@ void EmuMonitor::setupPlotter()
       while (timer_->isActive() && timeout < 10) {
         usleep(1000000);
         timeout++;
-        LOG4CPLUS_WARN (getApplicationLogger(),
+        LOG4CPLUS_WARN (this->getApplicationLogger(),
 			"Waiting to finish saving of results... " << timeout);
       }
       timer_->kill();
@@ -360,8 +342,8 @@ void EmuMonitor::setupPlotter()
     plotter_ = NULL;
   }
 
-  plotter_ = new EmuPlotter(this->getApplicationLogger());
-  //   plotter_ = new EmuPlotter();
+  // plotter_ = new EmuPlotter(this->getApplicationLogger());
+  plotter_ = new EmuPlotter();
   plotter_->setLogLevel(ERROR_LOG_LEVEL);
   plotter_->setUnpackingLogLevel(OFF_LOG_LEVEL);
   if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
@@ -422,10 +404,13 @@ xoap::MessageReference EmuMonitor::fireEvent (xoap::MessageReference msg) throw 
 
 	  try
 	    {
+	      LOG4CPLUS_INFO(this->getApplicationLogger(), "Received FSM Command : " << commandName);
 	      toolbox::Event::Reference e(new toolbox::Event(commandName, this));
 	      fsm_.fireEvent(e);
 	      // Synchronize Web state machine
 	      wsm_.setInitialState(fsm_.getCurrentState());
+		
+	   LOG4CPLUS_INFO(this->getApplicationLogger(), "Current FSM State : " << fsm_.getStateName(fsm_.getCurrentState()));
 	      stateChangeTime_ = emu::dqm::utils::now();
 	    }
 	  catch (toolbox::fsm::exception::Exception & e)
@@ -548,13 +533,13 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
 
       if ( item == "readoutMode")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(), "Readout Mode : " << readoutMode_.toString());
+          LOG4CPLUS_INFO(this->getApplicationLogger(), "Readout Mode : " << readoutMode_.toString());
 	  disableReadout();
 	  configureReadout();
         }
       else if ( item == "committedPoolSize")
         {
-          LOG4CPLUS_INFO(getApplicationLogger(),
+          LOG4CPLUS_INFO(this->getApplicationLogger(),
                          toolbox::toString("EmuMonitor's Tid: %d",
                                            i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor())) );
 	  setMemoryPool();
@@ -960,13 +945,16 @@ void EmuMonitor::doConfigure()
     }
   */
   configureReadout();
-  try{
-    startATCP();
-  }
-  catch(xcept::Exception e){
-    XCEPT_RETHROW(emu::dqm::monitor::exception::Exception, "Failed to start ATCP ", e);
-  }
 
+  /// Try to start ATCP only if readoutMode is set to External
+  if (readoutMode_.toString() == "external") { 
+    try{
+      startATCP();
+    }
+    catch(xcept::Exception e){
+      XCEPT_RETHROW(emu::dqm::monitor::exception::Exception, "Failed to start ATCP ", e);
+    }
+  }
   appBSem_.give();
 
 }
@@ -1477,7 +1465,7 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
     totalEvents_++;
     sessionEvents_++;
     if (sessionEvents_ % 5000 == 0) {
-      LOG4CPLUS_INFO(getApplicationLogger(), "Evt# " << sessionEvents_.toString() << ": Readout rate: " << rateMeter->getRate("averageRate") << " Evts/sec;  Unpack rate: "<< rateMeter->getRate("cscRate") << " CSCs/sec" ) ; 
+      LOG4CPLUS_DEBUG(getApplicationLogger(), "Evt# " << sessionEvents_.toString() << ": Readout rate: " << rateMeter->getRate("averageRate") << " Evts/sec;  Unpack rate: "<< rateMeter->getRate("cscRate") << " CSCs/sec" ) ; 
       //		   << " (Total processed: " << totalEvents_.toString() << ")"); 
     }
     plotter_->processEvent(data, dataSize, errorFlag, node);
