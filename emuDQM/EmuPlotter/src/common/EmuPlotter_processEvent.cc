@@ -505,8 +505,6 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
   std::map<int,long> payloads = bin_checker.payloadDetailed();
   for(std::map<int,long>::const_iterator chamber=payloads.begin(); chamber!=payloads.end(); chamber++)
     {
-      int ChamberID = chamber->first;
-
       int CrateID = (chamber->first>>4) & 0xFF;
       int DMBSlot = chamber->first & 0xF;
       std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
@@ -735,8 +733,6 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
   std::map<int,long> statuses = bin_checker.statusDetailed();
   for(std::map<int,long>::const_iterator chamber=statuses.begin(); chamber!=statuses.end(); chamber++)
     {
-      int ChamberID = chamber->first;
-
       int CrateID = (chamber->first>>4) & 0xFF;
       int DMBSlot = chamber->first & 0xF;
       std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
@@ -813,7 +809,6 @@ void EmuPlotter::fillChamberBinCheck(int32_t node, bool isEventDenied) {
   std::map<int,long> checkerErrors = bin_checker.errorsDetailed();
   for(std::map<int,long>::const_iterator chamber=checkerErrors.begin(); chamber!=checkerErrors.end(); chamber++)
     {
-      int ChamberID     = chamber->first;
       int CrateID = (chamber->first>>4) & 0xFF;
       int DMBSlot = chamber->first & 0xF;
 

@@ -45,8 +45,6 @@ int EmuPlotter::loadFromROOTFile(std::string rootfile, bool fReset)
 	    LOG4CPLUS_WARN(logger_,"Found CSC crate" << crate << "/slot" << slot);
 	  }
           
-	  int ChamberID     = (((crate) << 4) + slot) & 0xFFF;
-	  // std::cout << ChamberID << std::endl;
 	  if (itr == MEs.end() || (MEs.size()==0)) {
 	    LOG4CPLUS_WARN(logger_, "List of Histos for " << name <<  " not found. Booking...");
 	    MEs[name] = bookMEs("CSC",name);
@@ -55,13 +53,6 @@ int EmuPlotter::loadFromROOTFile(std::string rootfile, bool fReset)
 	    printMECollection(MEs[name]);
 	  }
 	} else if (name.find("EMU") != std::string::npos) {
-	  int nodeID=0;
-	  /*
-	  int nodeID = -1;
-	  if (sscanf(name.c_str(), "EMU_%d", &nodeID) == 1) {
-	    LOG4CPLUS_WARN(logger_,"Found Global Node with ID " << nodeID);
-	  }
-	  */
 	  if (MEs.size() == 0 || ((itr = MEs.find(name)) == MEs.end())) {
 	    LOG4CPLUS_WARN(logger_, "List of MEs for " << name << " not found. Booking...");
 	    MEs[name] = bookMEs("EMU","EMU_Summary");

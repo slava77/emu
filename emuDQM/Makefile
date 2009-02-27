@@ -12,7 +12,7 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 Project=emu
 
-ifeq ($(Set),framework)
+#ifeq ($(Set),framework)
 Packages=\
 	emuDQM/CMSSWLibs \
 	emuDQM/Common \
@@ -23,7 +23,7 @@ Packages=\
 	emuDQM/emuDisplayClient \
 	emuDQM/dduBinExaminer \
 	emuDQM/EmuROOTDisplayServer
-endif
+#endif
 
 ifeq ($(Set),emuMonitor)
 Packages= emuDQM/emuMonitor
