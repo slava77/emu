@@ -685,7 +685,8 @@ std::string EmuMonitor::getROOTFileName()
     if (serversClassName_.toString() != "") { 
       std::ostringstream st;
       st.clear();
-      st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << serversClassName_.toString();
+//      st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << serversClassName_.toString();
+      st << "online_" << std::setw(8) << std::setfill('0') << runNumber_ << "_" << "EmuRUI";
       st << std::setw(2) << std::setfill('0') << appTid_ << "_" << getDateTime();
       /*
 	std::set<xdaq::ApplicationDescriptor*>::iterator pos;
