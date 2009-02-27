@@ -96,7 +96,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     fBusy = false;
   }
 
-  LOG4CPLUS_WARN(logger_, eTag << cscName << " " << cid.rawId() << " " << cid.endcap() << ":" << cid.ring() << ":" << cid.station());
+//  LOG4CPLUS_WARN(logger_, eTag << cscName << " " << cid.rawId() << " " << cid.endcap() << ":" << cid.ring() << ":" << cid.station());
+
   ME_List& nodeME = MEs[nodeTag];
   // ME_List& dduME = MEs[dduTag];
   ME_List& cscME = MEs[cscTag];
