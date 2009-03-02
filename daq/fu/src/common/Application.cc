@@ -23,8 +23,6 @@
 // EMu-specific stuff
 #include "toolbox/mem/CommittedHeapAllocator.h"
 #include "toolbox/net/URL.h"
-#include "emu/daq/reader/RawDataFile.h"
-#include "emu/daq/reader/Spy.h"
 #include "emu/daq/server/I2O.h"
 #include "emu/daq/server/SOAP.h"
 #include <sstream>
