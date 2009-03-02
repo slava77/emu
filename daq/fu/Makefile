@@ -21,7 +21,7 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/include \
 	$(XDAQ_ROOT)/include/$(XDAQ_OS) \
 	$(BUILD_HOME)/emu/daq/server/include \
-	$(BUILD_HOME)/emu/daq/reader/include
+	$(BUILD_HOME)/emu/daq/writer/include
 
 
 LibraryDirs = $(XDAQ_ROOT)/lib
