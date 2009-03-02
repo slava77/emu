@@ -459,10 +459,10 @@ throw (xgi::exception::Exception)
     getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
 
     if ( daqState_.toString() == "Enabled" )
-      *out << " (Started at " << runStartTime << ")"                   << endl;
+      *out << "<br/>Started at " << runStartTime                       << endl;
     if ( daqState_.toString() == "Halted" ){
-      *out << " (Started at " << runStartTime 
-	   << ", stopped at " << runStopTime << ")"                    << endl;
+      *out << "<br/>Started at " << runStartTime 
+	   << "<br/>Stopped at " << runStopTime                        << endl;
     }
     *out << "<br/>"                                                    << endl;
 
@@ -806,8 +806,8 @@ void emu::daq::manager::Application::governorForm(xgi::Input *in, xgi::Output *o
   *out << "  <td align=\"left\">"                                    << endl;
   *out << " Select who should configure, start and stop the CSC local run: "    << endl;
   *out << "<select name=\"governor\" title=\"Whose commands are to be obeyed.\">"<< endl;
-  *out << " <option value=\"global\">Central Run Control automatically</option>"<< endl;
-  *out << " <option value=\"local\">CSC Shift manually</option>"                << endl;
+  *out << " <option value=\"global\">[ Supervisor | FM | Central RC ] (<em>supervised mode</em>)</option>"<< endl;
+  *out << " <option value=\"local\">CSC Shift from this page (<em>unsupervised mode</em>)</option>"                << endl;
   *out << "</select>"                                                           << endl;
   *out << "  </td>"                                                  << endl;
 
@@ -861,9 +861,9 @@ throw (xgi::exception::Exception)
 	    if ( !configuredInGlobalMode_.value_ ){
 	      // Warn him if we are in a locally configured run.
 	      warningsToDisplay_ = "<p><span style=\"color:#ff0000; font-weight:bold; text-decoration:blink\">Warning</span>:";
-	      warningsToDisplay_ += "You have handed over the control to Central Run Control in a run configured by CSC Shift. ";
-	      warningsToDisplay_ += "Only CSC Shift can start or stop such runs. ";
-	      warningsToDisplay_ += "Consider going back to CSC Shift Control.</p>";
+	      warningsToDisplay_ += "You have chosen <em>supervised mode</em> (i.e., handed over the control to [CSC Supervisor | CSC Function Manager | Central Run Control]) in a run configured in <em>unsupervised mode</em> (i.e., by CSC Shift from this web page). ";
+	      warningsToDisplay_ += "Such runs can only be stopped in <em>unsupervised mode</em>. ";
+	      warningsToDisplay_ += "Consider going back to <em>unsupervised mode</em>.</p>";
 	    }
 	    else{
 	      warningsToDisplay_ = "";
@@ -874,9 +874,9 @@ throw (xgi::exception::Exception)
 	    // Warn the user when he wants to take control back from central RC...
 	    if ( globalMode_.value_ && !userWantsGlobal && configuredInGlobalMode_.value_ && daqState_.toString() != "Halted" ){
 	      warningsToDisplay_  = "<p><span style=\"color:#ff0000; font-weight:bold; text-decoration:blink\">Warning</span>:";
-	      warningsToDisplay_ += "You have taken back the control to CSC Shift in a run configured by Central Run Control. ";
-	      warningsToDisplay_ += "It is preferable that such runs be started and stopped by Central Run Control. ";
-	      warningsToDisplay_ += "Consider going back to Central Run Control.</p>";
+	      warningsToDisplay_ += "You have chosen <em>unsupervised mode</em> (i.e., control by CSC Shift from this web page) in a run run configured in <em>supervised mode</em> (i.e., by [CSC Supervisor | CSC Function Manager | Central Run Control]).";
+	      warningsToDisplay_ += "It is preferable that such runs be started and stopped in <em>supervised mode</em>. ";
+	      warningsToDisplay_ += "Consider going back to <em>supervised mode</em>.</p>";
 	    }
 	    // ...but do as he requested.
 	    globalMode_ = userWantsGlobal;
@@ -1090,10 +1090,10 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
 
 
     if ( daqState_.toString() == "Enabled" )
-      *out << " (Started at " << runStartTime << ")"                   << endl;
+      *out << "<br/>Started at " << runStartTime                       << endl;
     if ( daqState_.toString() == "Halted" ){
-      *out << " (Started at " << runStartTime 
-	   << ", stopped at " << runStopTime << ")"                    << endl;
+      *out << "<br/>Started at " << runStartTime 
+	   << "<br/>Stopped at " << runStopTime                        << endl;
     }
     *out << "<br/>"                                                    << endl;
 
@@ -1533,8 +1533,8 @@ throw (xgi::exception::Exception)
 		buildEvents_ = true;
 		break;
 	      }
-	    // Emu: set run number to 0. If booking is successful, it will be replaced by the booked one.
-	    runNumber_ = 0;
+	    // Emu: set run number to 1. If booking is successful, it will be replaced by the booked one.
+	    runNumber_ = 1;
 
 	    cgicc::form_iterator maxEvtElement = cgi.getElement("maxevents");
 	    if( maxEvtElement != cgi.getElements().end() ){
@@ -2107,8 +2107,8 @@ void emu::daq::manager::Application::printDAQState( xgi::Output *out, string sta
   *out << "</span>";
   *out << "</a> state, ";
   *out << ( globalMode_.value_ ? 
-	    "controlled automatically by <span style=\"font-weight:bold; border-color:#000000; border-style:solid; border-width:thin; padding:2px\">Central Run Control</span>." : 
-	    " controlled manually by  <span style=\"font-weight:bold; border-color:#000000; border-style:solid; border-width:thin; padding:2px\">CSC Shift</span>." ) << endl;
+	    "<em>supervised</em> mode (controlled by <span style=\"font-weight:bold; border-color:#000000; border-style:solid; border-width:thin; padding:2px\">Supervisor | Function Manager | Central Run Control</span>)." : 
+	    "<em>unsupervised</em> mode (controlled from this page by  <span style=\"font-weight:bold; border-color:#000000; border-style:solid; border-width:thin; padding:2px\">CSC Shift</span>)." ) << endl;
 }
 
 
@@ -2295,7 +2295,7 @@ void emu::daq::manager::Application::configureDAQ()
     bool busDropEvents              = fuDescriptors_.size()  == 0;
 
     // Forget previous run number.
-    runNumber_ = 0;
+    runNumber_ = 1;
 
     globalRunNumber_ = "";
     // If run number is booked, it will be on "Enable". For the time being, it's not booked.
@@ -4587,7 +4587,7 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable( "configuredInGlobalMode",  &configuredInGlobalMode_  );
 
   postToELog_   = true;
-  curlHost_     = "cmsusr3.cms";
+  curlHost_     = "cmsusr1.cms";
   curlCommand_  = "curl";
   curlCookies_  = ".curlCookies";
   CMSUserFile_  = "";
@@ -4612,7 +4612,7 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable( "runDbUserFile",       &runDbUserFile_       );
 
 
-    runNumber_         = 0;
+    runNumber_         = 1;
     maxNumberOfEvents_ = 0;
     runType_           = "Monitor";
     buildEvents_       = false;

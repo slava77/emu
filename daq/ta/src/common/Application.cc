@@ -278,7 +278,7 @@ vector< pair<string, xdata::Serializable*> > emu::daq::ta::Application::initAndG
     // Emu specific
     runStartTime_ = "YYMMDD_hhmmss_UTC";
     runStopTime_  = "YYMMDD_hhmmss_UTC";
-    runNumber_    = 0;
+    runNumber_    = 1;
     isBookedRunNumber_ = false;
     maxNumTriggers_ = -1;
     params.push_back(pair<string,xdata::Serializable *>

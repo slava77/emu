@@ -151,7 +151,7 @@ emu::daq::writer::RawDataFile::RawDataFile(const unsigned int maxFileSize,
   ,runStartTime_        ("")
   ,runStopTime_         ("")
   ,runType_             ("")
-  ,runNumber_           (0)
+  ,runNumber_           (1)
   ,isBookedRunNumber_   (false)
   ,bytesInFileCounter_  (0)
   ,eventsInFileCounter_ (0)
@@ -172,8 +172,8 @@ void emu::daq::writer::RawDataFile::startNewRun( const int runNumber,
   /// To be called when a new run starts.
   runNumber_          = runNumber;
   isBookedRunNumber_  = isBookedRunNumber;
-  // Run number 0 cannot possibly have been booked:
-  if ( runNumber_ == 0 ) isBookedRunNumber_ = false;
+  // Run number 0 or 1 cannot possibly have been booked:
+  if ( runNumber_ == 0 || runNumber_ == 1 ) isBookedRunNumber_ = false;
   runStartTime_       = runStartTime;
   runType_            = runType;
   bytesInRunCounter_  = 0;
