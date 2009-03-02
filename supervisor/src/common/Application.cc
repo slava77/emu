@@ -73,7 +73,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   throw (xdaq::exception::Exception) :
   emu::base::Supervised(stub),
   logger_(Logger::getInstance("emu::supervisor::Application")),
-  run_type_("Monitor"), run_number_(0), runSequenceNumber_(0),
+  run_type_("Monitor"), run_number_(1), runSequenceNumber_(0),
   daq_mode_(""), trigger_config_(""), ttc_source_(""),
   rcmsStateNotifier_(getApplicationLogger(), getApplicationDescriptor(), getApplicationContext()),
   wl_semaphore_(toolbox::BSem::EMPTY), quit_calibration_(false),
@@ -81,7 +81,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   nevents_(-1),
   step_counter_(0),
   error_message_(""), keep_refresh_(false), hide_tts_control_(true),
-  curlHost_("cmsusr3.cms"),
+  curlHost_("cmsusr1.cms"),
   runInfo_(NULL),
   runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
   runDbWritingCommand_( "java -jar runinfowriter.jar" ),
@@ -205,7 +205,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
 xoap::MessageReference emu::supervisor::Application::onConfigure(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
-  run_number_ = 0;
+  run_number_ = 1;
   nevents_ = -1;
   
   submit(configure_signature_);
@@ -437,7 +437,7 @@ void emu::supervisor::Application::webConfigure(xgi::Input *in, xgi::Output *out
   if (value.empty()) { error_message_ += "Please select run type.\n"; }
   run_type_ = value;
   
-  run_number_ = 0;
+  run_number_ = 1;
   nevents_ = -1;
   
   if (error_message_.empty()) {
