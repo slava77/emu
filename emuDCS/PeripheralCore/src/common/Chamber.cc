@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.7 2009/02/04 12:53:21 rakness Exp $
+// $Id: Chamber.cc,v 3.8 2009/03/03 14:34:48 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.8  2009/03/03 14:34:48  liu
+// fix problem_mask for TStore
+//
 // Revision 3.7  2009/02/04 12:53:21  rakness
 // update configuration and firmware checking
 //
@@ -113,6 +116,7 @@ Chamber::~Chamber(){
 
     void Chamber::SetProblemMask(int problem_mask) {
       //
+      problem_mask_ = problem_mask;
       expected_config_problem_alct_  = (problem_mask >> 0) & 0x01;
       expected_config_problem_tmb_   = (problem_mask >> 1) & 0x01;
       expected_config_problem_cfeb1_ = (problem_mask >> 2) & 0x01;
