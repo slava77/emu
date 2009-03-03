@@ -195,9 +195,9 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 			    std::map<std::string, std::string>::iterator param_itr; 
 			    std::map<std::string, std::string> params = meobj_itr->second->getParameters();
 			    for (param_itr = params.begin(); param_itr != params.end(); ++param_itr) {
-			       xoap::SOAPName paramTag (param_itr->first, "", "");
-			       xoap::SOAPElement paramElement = objectElement.addChildElement(paramTag);
-			       paramElement.addTextNode(param_itr->second);
+			      xoap::SOAPName paramTag (param_itr->first, "", "");
+			      xoap::SOAPElement paramElement = objectElement.addChildElement(paramTag);
+			      paramElement.addTextNode(param_itr->second);
 			    }
 			    // Check and Update detector efficiency histograms
 			    if (objname.find("EMU_Status") != std::string::npos) plotter_->updateEfficiencyHistos();
@@ -393,9 +393,14 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 			    LOG4CPLUS_DEBUG (getApplicationLogger(), "Sending "<<  cnv->getFullName());
 			    delete []attch_buf;
 			    // delete cnv;
+			  } else {
+			    LOG4CPLUS_WARN (getApplicationLogger(), "Can not find canvas object: " << objname);
 			  }
 			}
+		    } else {
+		      LOG4CPLUS_WARN (getApplicationLogger(), "Con not find folder: " << folder);
 		    }
+		  
 		}
 	    }
 	}
@@ -449,9 +454,9 @@ xoap::MessageReference EmuMonitor::requestCSCCounters(xoap::MessageReference nod
 	    xdata::UnsignedInteger value = c_itr->second;
 	    // LOG4CPLUS_INFO (getApplicationLogger(), csc.toString() << ": " << name.toString() << "=" << value.toString());	
 	   
-	      xoap::SOAPName cntrName = envelope.createName(name, "", "");
-	      xoap::SOAPElement cntElement = cscElement.addChildElement(cntrName);
-	      cntElement.addTextNode(value.toString());
+	    xoap::SOAPName cntrName = envelope.createName(name, "", "");
+	    xoap::SOAPElement cntElement = cscElement.addChildElement(cntrName);
+	    cntElement.addTextNode(value.toString());
 	   
 	  }
       
