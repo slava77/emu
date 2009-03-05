@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.1 2009/03/05 16:18:24 paste Exp $
+* $Id: Application.cc,v 1.2 2009/03/05 18:35:52 paste Exp $
 *
 * $Log: Application.cc,v $
+* Revision 1.2  2009/03/05 18:35:52  paste
+* * Changed the name of the log files to avoid colons in file names
+*
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -73,8 +76,11 @@ soapLocal_(false)
 	char datebuf[32];
 	char filebuf[255];
 	std::time_t theTime = time(NULL);
-	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H:%M:%S", localtime(&theTime));
+	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H-%M-%S", localtime(&theTime));
 	std::string fileName = getApplicationDescriptor()->getClassName() + "-%s.log";
+	// Get rid of the emu::fed:: crap
+	if (fileName.substr(0,10) == "emu::fed::") fileName = "emu-" + fileName.substr(10);
+	//fileName = "testing" + fileName.substr(10);
 	std::sprintf(filebuf, fileName.c_str(), datebuf);
 	log4cplus::SharedAppenderPtr myAppender = new log4cplus::FileAppender(filebuf);
 	myAppender->setName(getApplicationDescriptor()->getClassName() + "Appender");
