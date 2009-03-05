@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: DCCParser.cc,v 1.1 2009/03/05 16:07:52 paste Exp $
+* $Id: DCCParser.cc,v 1.2 2009/03/05 18:23:07 paste Exp $
 *
 * $Log: DCCParser.cc,v $
+* Revision 1.2  2009/03/05 18:23:07  paste
+* * Added parsing for new attribute in DCC tag:  Software_Switch.  This is a required attribute, which means an update in XML file format is required.
+*
 * Revision 1.1  2009/03/05 16:07:52  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -31,7 +34,7 @@ Parser(pNode)
 {
 	int slot;
 	try {
-		slot = extract<int>("Slot");
+		slot = extract<unsigned int>("Slot");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse slot number from element";
@@ -41,10 +44,18 @@ Parser(pNode)
 	dcc_ = new DCC(slot);
 	
 	try {
-		dcc_->fifoinuse_ = extract<int>("FIFO_in_use", std::ios::hex);
+		dcc_->fifoinuse_ = extract<unsigned int>("FIFO_in_use", std::ios::hex);
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse FIFO-in-use from element";
+		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
+	}
+	
+	try {
+		dcc_->softsw_ = extract<unsigned int>("Software_Switch", std::ios::hex);
+	} catch (emu::fed::exception::ParseException &e) {
+		std::ostringstream error;
+		error << "Unable to parse Software Switch from element";
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 
