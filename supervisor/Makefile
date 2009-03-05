@@ -11,6 +11,17 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 Project = emu
 Package = supervisor
+PackageName=supervisor
+Description="Emu (CSC) Supervisor"
+Summary="Emu (CSC) Supervisor"
+Authors="Ichiro Suzuki, Karoly Banicz, Jinghua Liu"
+Link=""
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=00
+PACKAGE_VER_PATCH=00
+
+include $(XDAQ_ROOT)/config/Makefile.rules
+include $(XDAQ_ROOT)/config/mfRPM.rules
 
 Sources = \
 	Application.cc \
@@ -45,7 +56,3 @@ StaticLibrary =
 TestLibraries=
 TestExecutables=
 
-include $(XDAQ_ROOT)/config/Makefile.rules
-
-installcss:
-	$(Install) -p html/emusupervisor.css $(LibInstallDir)/
