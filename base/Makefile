@@ -11,6 +11,17 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 Project = emu
 Package = base
+PackageName=emubase
+Description="The Emu (CSC) application base class"
+Summary="The Emu (CSC) application base class"
+Authors="Ichiro Suzuki, Karoly Banicz"
+Link=""
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=00
+PACKAGE_VER_PATCH=00
+
+include $(XDAQ_ROOT)/config/Makefile.rules
+include $(XDAQ_ROOT)/config/mfRPM.rules
 
 Sources = \
         Supervised.cc \
@@ -47,3 +58,4 @@ TestLibraries=
 TestExecutables=
 
 include $(XDAQ_ROOT)/config/Makefile.rules
+include $(XDAQ_ROOT)/config/mfRPM.rules
