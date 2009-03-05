@@ -769,7 +769,7 @@ void EmuTStore::uploadCSC(const std::string &connectionID, xdata::UnsignedIntege
   xdata::UnsignedInteger64 _csc_config_id;
   xdata::String _label;
   xdata::String _known_problem;
-  xdata::UnsignedInteger64 _problem_mask;
+  xdata::UnsignedShort _problem_mask;
   
   for(unsigned j = 0; j < TStore_allChambers.size(); ++j) {
     if(TStore_allChambers[j]) {      
