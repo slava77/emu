@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.3 2009/03/05 18:48:55 paste Exp $
+* $Id: AppsVersion.h,v 1.4 2009/03/05 22:04:09 paste Exp $
 *
 * $Log: AppsVersion.h,v $
-* Revision 1.3  2009/03/05 18:48:55  paste
-* * Interface beautification, removal of explicit check for file in /tmp/
+* Revision 1.4  2009/03/05 22:04:09  paste
+* * Fixed a minor bug involving DCC Expert commands
 *
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
@@ -21,7 +21,7 @@
 
 namespace emufedapps {
 	const std::string package     = "emufedapps";
-	const std::string versions    = "07.00.02";
+	const std::string versions    = "07.00.03";
 	const std::string description = "Emu (CSC) FED crate XDAq applications";
 
 	const std::string summary     = "A collection of XDAq applications for controlling end-cap muon CSC FED VME hardware.";

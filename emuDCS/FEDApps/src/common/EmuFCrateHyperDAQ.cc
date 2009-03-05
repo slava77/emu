@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.1 2009/03/05 16:18:24 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.2 2009/03/05 22:04:09 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 1.2  2009/03/05 22:04:09  paste
+* * Fixed a minor bug involving DCC Expert commands
+*
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -6422,7 +6425,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input *in, xgi::Output *out)
 			std::stringstream location;
 			location << "crate=" << cgiCrate << "&slot=" << cgiDCC;
 			//webRedirect(out,"DCCExpert?"+location.str());
-			return webRedirect(out,"DCCCommands?"+location.str());
+			return webRedirect(out,"DCCExpert?"+location.str());
 		}
 
 
@@ -6467,7 +6470,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input *in, xgi::Output *out)
 
 		std::ostringstream backLocation;
 		//backLocation << "DCCExpert?crate=" << cgiCrate << "&slot=" << cgiDCC;
-		backLocation << "DCCCommands?crate=" << cgiCrate << "&slot=" << cgiDCC;
+		backLocation << "DCCExpert?crate=" << cgiCrate << "&slot=" << cgiDCC;
 		return webRedirect(out,backLocation.str());
 		
 	} catch (xcept::Exception &e) {
