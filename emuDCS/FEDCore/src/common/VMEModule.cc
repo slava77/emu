@@ -1,8 +1,14 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.1 2009/03/05 16:02:14 paste Exp $
+* $Id: VMEModule.cc,v 1.2 2009/03/05 21:57:55 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 1.2  2009/03/05 21:57:55  paste
+* * CAEN Bus Errors no longer throw exceptions.
+* This is a temporary fix to a problem where the DCC does not send a DTACK on certain register writes,
+* causing the controller to time out and set a bus error.  The write does not fail, so this is not
+* actually an exception.
+*
 * Revision 1.1  2009/03/05 16:02:14  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -530,7 +536,7 @@ throw (emu::fed::exception::CAENException)
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in readVME(Address=" << Address << "): " << CAENVME_DecodeError(err);
-		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+		if (err != cvBusError) XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
 	}
 
 	return data;
@@ -560,7 +566,7 @@ throw (emu::fed::exception::CAENException)
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in writeVME(Address=" << Address << ", data=" << data << "): " << CAENVME_DecodeError(err);
-		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+		if (err != cvBusError) XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
 	}
 	
 	return;
