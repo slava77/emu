@@ -1,5 +1,9 @@
 /* CSS Stylesheet for FEDApps software */
 
+body {
+	background-color: #999;
+}
+
 div.title {
 	width: 80%;
 	margin: 20px auto 20px auto;
@@ -24,13 +28,16 @@ fieldset.header {
 }
 
 fieldset.footer {
-	width: 95%;
+	width: 25%;
 	margin: 20px auto 5px auto;
 	padding: 2px 2px 2px 2px;
-	font-size: 9pt;
+	font-size: 70%;
 	font-style: italic;
-	border: 0px solid #555;
 	text-align: center;
+	background-color: #000;
+	opacity: 0.7;
+	color: #FFF;
+	border: 1px solid #FFF;
 }
 
 fieldset.fieldset, fieldset.normal, fieldset.expert {

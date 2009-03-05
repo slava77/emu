@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.2 2009/03/05 18:35:52 paste Exp $
+* $Id: Application.cc,v 1.3 2009/03/05 18:48:55 paste Exp $
 *
 * $Log: Application.cc,v $
-* Revision 1.2  2009/03/05 18:35:52  paste
-* * Changed the name of the log files to avoid colons in file names
+* Revision 1.3  2009/03/05 18:48:55  paste
+* * Interface beautification, removal of explicit check for file in /tmp/
 *
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
@@ -238,14 +238,7 @@ std::string emu::fed::Application::Header(std::string myTitle, std::vector<std::
 	*out << cgicc::head() << std::endl;
 
 	// Dynamic backgrounds
-	std::string endcapBackground = "/emu/emuDCS/FEDApps/images/Background-" + endcap_.toString() + ".png";
-	std::ifstream checkBackground(endcapBackground.c_str());
-	if (!checkBackground) {
-		endcapBackground = "/emu/emuDCS/FEDApps/images/Background-Default.png";
-	} else {
-		checkBackground.close();
-	}
-	*out << "<body background=\"" << endcapBackground << "\">" << std::endl;
+	*out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + endcap_.toString() + ".png);\">" << std::endl;
 
 	*out << cgicc::fieldset()
 		.set("class","header") << std::endl;

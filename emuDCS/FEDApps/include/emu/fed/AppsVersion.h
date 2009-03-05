@@ -1,9 +1,9 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.2 2009/03/05 18:35:52 paste Exp $
+* $Id: AppsVersion.h,v 1.3 2009/03/05 18:48:55 paste Exp $
 *
 * $Log: AppsVersion.h,v $
-* Revision 1.2  2009/03/05 18:35:52  paste
-* * Changed the name of the log files to avoid colons in file names
+* Revision 1.3  2009/03/05 18:48:55  paste
+* * Interface beautification, removal of explicit check for file in /tmp/
 *
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
@@ -21,7 +21,7 @@
 
 namespace emufedapps {
 	const std::string package     = "emufedapps";
-	const std::string versions    = "07.00.01";
+	const std::string versions    = "07.00.02";
 	const std::string description = "Emu (CSC) FED crate XDAq applications";
 
 	const std::string summary     = "A collection of XDAq applications for controlling end-cap muon CSC FED VME hardware.";
