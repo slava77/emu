@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: UtilsVersion.h,v 1.1 2009/03/05 16:07:52 paste Exp $
+* $Id: UtilsVersion.h,v 1.2 2009/03/05 18:23:07 paste Exp $
 *
 * $Log: UtilsVersion.h,v $
+* Revision 1.2  2009/03/05 18:23:07  paste
+* * Added parsing for new attribute in DCC tag:  Software_Switch.  This is a required attribute, which means an update in XML file format is required.
+*
 * Revision 1.1  2009/03/05 16:07:52  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -17,7 +20,7 @@
 
 namespace emufedutils {
 	const std::string package     = "emufedutils";
-	const std::string versions    = "07.00.00";
+	const std::string versions    = "07.00.01";
 	const std::string description = "Emu (CSC) FED crate utility libraries";
 
 	const std::string summary     = "A collection of libraries for making programming for end-cap muon CSC FED VME hardware easier.";
