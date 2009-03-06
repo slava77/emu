@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.59 2008/12/02 09:21:47 rakness Exp $
+// $Id: TMB.h,v 3.60 2009/03/06 16:45:28 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.60  2009/03/06 16:45:28  rakness
+// add methods for ALCT-TMB loopback
+//
 // Revision 3.59  2008/12/02 09:21:47  rakness
 // set default values to be correct for VME register 0xCC
 //
@@ -366,13 +369,7 @@ public:
   //
   // from the BOARDTYPE enum
   unsigned int boardType() const {return TMB_ENUM;}
-  // ucla_start was always called with a dev and a slot
-  void start();
-  void end();
-  // ALCTs need to go to lower scan level, whatever that means
-  void start(int,int jtagSource=jtagSourceBoot);
-  // does start(1)
-  void tmb_vme(char fcn, char vme, const char *snd,char *rcv, int wrt);      
+  //
   int  GetWordCount();
   void StartTTC();
   void DumpRegister(int);
@@ -727,6 +724,37 @@ public:
   inline int  GetCFEB4delay() { return cfeb4delay_; }
   //
   //------------------------------------------------------------------
+  //0X2A = ADR_CCB_CFG:  CCB Configuration
+  //------------------------------------------------------------------
+  //!ignore_ccb_rx = 1 = ignore feceived CCB backplane inputs
+  inline void SetIgnoreCCBRx(int ignore_ccb_rx) { ignore_ccb_rx_ = ignore_ccb_rx; }
+  inline int  GetIgnoreCCBRx() { return ignore_ccb_rx_; }
+  //
+  //!disable_ccb_tx = 1 = Disable transmitted CCB backplane outputs
+  inline void SetDisableCCBTx(int disable_ccb_tx) { disable_ccb_tx_ = disable_ccb_tx; }
+  inline int  GetDisableCCBTx() { return disable_ccb_tx_; }
+  //
+  //!enable_internal_l1a = 1 = Enable internal L1A emulator
+  inline void SetEnableInternalL1A(int enable_internal_l1a) { enable_internal_l1a_ = enable_internal_l1a ; }
+  inline int  GetEnableInternalL1A() { return enable_internal_l1a_; }
+  //
+  //!enable_alctclct_status_to_ccb = 1 = Enable ALCT or CLCT status to CCB front panel
+  inline void SetEnableALCTorCLCTStatusToCCB(int enable_alctclct_status_to_ccb) { enable_alctclct_status_to_ccb_ = enable_alctclct_status_to_ccb; }
+  inline int  GetEnableALCTorCLCTStatusToCCB() { return enable_alctclct_status_to_ccb_; }
+  //
+  //!enable_alct_status_to_ccb = 1 = Enable ALCT status GTL outputs (requires EnableALCTorCLCTStatusToCCB = 1)
+  inline void SetALCTStatusEnableToCCB(int enable_alct_status_to_ccb) { enable_alct_status_to_ccb_ = enable_alct_status_to_ccb; }
+  inline int  GetALCTStatusEnableToCCB() { return enable_alct_status_to_ccb_; }
+  //
+  //!enable_clct_status_to_ccb = 1 = Enable CLCT status GTL outputs (requires EnableALCTorCLCTStatusToCCB = 1)
+  inline void SetCLCTStatusEnableToCCB(int enable_clct_status_to_ccb) { enable_clct_status_to_ccb_ = enable_clct_status_to_ccb; }
+  inline int  GetCLCTStatusEnableToCCB() { return enable_clct_status_to_ccb_; }
+  //
+  //!fire_l1a_oneshot_ = 1 = Fire CCB L1-Accept oneshot
+  inline void SetFireL1AOneshot(int fire_l1a_oneshot) { fire_l1a_oneshot_ = fire_l1a_oneshot; }
+  inline int  GetFireL1AOneshot() { return fire_l1a_oneshot_ ; }
+  //
+  //------------------------------------------------------------------
   //0X2C = ADR_CCB_TRIG:  CCB Trigger Control
   //------------------------------------------------------------------
   //!alct_ext_trig_l1aen = 1 = request CCB L1A on alct_ext_trig
@@ -784,7 +812,7 @@ public:
   inline void SetAlctExtInject(int cfg_alct_ext_inject) { cfg_alct_ext_inject_ = cfg_alct_ext_inject; }
   inline int  GetAlctExtInject() { return cfg_alct_ext_inject_; }
   //
-  //!alct_seq_cmd = [0-7]
+  //!alct_seq_cmd = [0-15]
   inline void SetAlctSequencerCommand(int alct_seq_cmd) { alct_seq_cmd_ = alct_seq_cmd; }
   inline int  GetAlctSequencerCommand() { return alct_seq_cmd_; }
   //
@@ -1180,6 +1208,7 @@ public:
   inline void SetAlctDemuxMode(int alct_demux_mode) { alct_demux_mode_ = alct_demux_mode; }
   inline int  GetAlctDemuxMode() { return alct_demux_mode_; }
   //
+  //
   //------------------------------------------------------------------
   //0XAA = ADR_ALCTFIFO2:  ALCT Raw Hits RAM control
   //------------------------------------------------------------------
@@ -1486,6 +1515,67 @@ public:
   inline int  GetMinClctSeparation() { return min_clct_separation_; } 
   inline int  GetReadMinClctSeparation() { return read_min_clct_separation_; } 
   //
+  //---------------------------------------------------------------------
+  //0XFC = ADR_CCB_STAT1:  CCB Status Register (cont. from 0x2E)
+  //---------------------------------------------------------------------
+  //!read_ccb_ttcrx_lock_never = 1 = TTCrx lock never achieved
+  inline int GetReadTTCrxLockNever() { return read_ccb_ttcrx_lock_never_; }
+  //
+  //!read_ccb_ttcrx_lost_ever = 1 = TTCrx lock lost at least once
+  inline int GetReadTTCrxLostEver() { return read_ccb_ttcrx_lost_ever_; }
+  //
+  //!read_ccb_qpll_lock_never = 1 = QPLL lock never achieved
+  inline int GetReadQPLLLockNever() { return read_ccb_qpll_lock_never_; }
+  //
+  //!read_ccb_qpll_lost_ever = 1 = QPLL lock lost at least once
+  inline int GetReadQPLLLostEver() { return read_ccb_qpll_lost_ever_; }
+  //
+  //---------------------------------------------------------------------
+  //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
+  //---------------------------------------------------------------------
+  //!alct_sync_rxdata_dly = sync mode delay pointer to valid data
+  inline void SetALCTSyncRxDataDelay(int alct_sync_rxdata_dly) { alct_sync_rxdata_dly_ = alct_sync_rxdata_dly; }
+  inline int  GetALCTSyncRxDataDelay() { return alct_sync_rxdata_dly_; }
+  inline int  GetReadALCTSyncRxDataDelay() { return read_alct_sync_rxdata_dly_; }
+  //
+  //!alct_sync_tx_random = 1 = TMB transmits random data to ALCT
+  inline void SetALCTSyncTXRandom(int alct_sync_tx_random) { alct_sync_tx_random_ = alct_sync_tx_random; }
+  inline int  SetALCTSyncTXRandom() { return alct_sync_tx_random_; }
+  inline int  SetReadALCTSyncTXRandom() { return read_alct_sync_tx_random_; }
+  //
+  //!alct_sync_clear_errors = 1 = ALCT sync mode clear rng errors FF's
+  inline void SetALCTSyncClearErrors(int alct_sync_clear_errors) { alct_sync_clear_errors_ = alct_sync_clear_errors; }
+  inline int  GetALCTSyncClearErrors() { return alct_sync_clear_errors_; }
+  inline int  GetReadALCTSyncClearErrors() { return read_alct_sync_clear_errors_; }
+  // 
+  //!alct_sync_1st_error = 1st in time match OK, ALCT-to-TMB
+  inline int GetReadALCTSync1stError() { return read_alct_sync_1st_error_; }
+  //
+  //!alct_sync_2nd_error = 2nd in time match OK, ALCT-to-TMB
+  inline int GetReadALCTSync2ndError() { return read_alct_sync_2nd_error_; }
+  //
+  //!alct_sync_1st_error_latched = 1st in time match OK, ALCT-to-TMB, latched
+  inline int GetReadALCTSync1stErrorLatched() { return read_alct_sync_1st_error_latched_; }
+  //
+  //!alct_sync_2nd_error_latched = 2nd in time match OK, ALCT-to-TMB, latched
+  inline int GetReadALCTSync2ndErrorLatched() { return read_alct_sync_2nd_error_latched_; }
+  //
+  //---------------------------------------------------------------------
+  //0X106 = ADR_ALCT_SYNC_TXDATA_1ST:  ALCT Sync Mode Transmit Data 1st
+  //---------------------------------------------------------------------
+  //!alct_sync_txdata_1st = sync mode data to send for loopback 1st in time
+  inline void SetALCTSyncTxData1st(int alct_sync_txdata_1st) { alct_sync_txdata_1st_ = alct_sync_txdata_1st; }
+  inline int  GetALCTSyncTxData1st() { return alct_sync_txdata_1st_; }
+  inline int  GetReadALCTSyncTxData1st() { return read_alct_sync_txdata_1st_; }
+  //
+  //---------------------------------------------------------------------
+  //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
+  //---------------------------------------------------------------------
+  //!alct_sync_txdata_2nd = sync mode data to send for loopback 2nd in time
+  inline void SetALCTSyncTxData2nd(int alct_sync_txdata_2nd) { alct_sync_txdata_2nd_ = alct_sync_txdata_2nd; }
+  inline int  GetALCTSyncTxData2nd() { return alct_sync_txdata_2nd_; }
+  inline int  GetReadALCTSyncTxData2nd() { return read_alct_sync_txdata_2nd_; }
+  //
   //
   // **********************************************************************************
   //
@@ -1590,6 +1680,16 @@ private:
   Chamber * csc_;
   int tmb_idcode_[7];
   //
+  // VME access methods which should never be called except from within TMB...
+  // ucla_start was always called with a dev and a slot
+  void start();
+  void end();
+  // ALCTs need to go to lower scan level, whatever that means
+  void start(int,int jtagSource=jtagSourceBoot);
+  // does start(1)
+  void tmb_vme(char fcn, char vme, const char *snd,char *rcv, int wrt);      
+  void tmb_vme_new(char fcn, unsigned vme, unsigned short data, char *rcv, int when);
+
   bool debug_;
   //
   int number_of_configuration_reads_;
@@ -1813,6 +1913,25 @@ private:
   int read_rpc_sync_;
   int read_shift_rpc_;
   int read_rat_dsn_en_;
+  //
+  //------------------------------------------------------------------
+  //0X2A = ADR_CCB_CFG:  CCB Configuration
+  //------------------------------------------------------------------
+  int ignore_ccb_rx_                ;
+  int disable_ccb_tx_               ;
+  int enable_internal_l1a_          ;
+  int enable_alctclct_status_to_ccb_;
+  int enable_alct_status_to_ccb_    ;
+  int enable_clct_status_to_ccb_    ;
+  int fire_l1a_oneshot_             ;
+  //
+  int read_ignore_ccb_rx_                ;
+  int read_disable_ccb_tx_               ;
+  int read_enable_internal_l1a_          ;
+  int read_enable_alctclct_status_to_ccb_;
+  int read_enable_alct_status_to_ccb_    ;
+  int read_enable_clct_status_to_ccb_    ;
+  int read_fire_l1a_oneshot_             ;
   //
   //------------------------------------------------------------------
   //0X2C = ADR_CCB_TRIG:  CCB Trigger Control
@@ -2389,6 +2508,44 @@ private:
   int read_clct_separation_ram_write_enable_;
   int read_clct_separation_ram_adr_;
   int read_min_clct_separation_;
+  //
+  //---------------------------------------------------------------------
+  //0XFC = ADR_CCB_STAT1:  CCB Status Register (cont. from 0x2E)
+  //---------------------------------------------------------------------
+  int read_ccb_ttcrx_lock_never_;
+  int read_ccb_ttcrx_lost_ever_ ;
+  int read_ccb_qpll_lock_never_ ;
+  int read_ccb_qpll_lost_ever_  ;
+  //
+  //---------------------------------------------------------------------
+  //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
+  //---------------------------------------------------------------------
+  int alct_sync_rxdata_dly_       ;
+  int alct_sync_tx_random_        ;
+  int alct_sync_clear_errors_     ;
+  //
+  int read_alct_sync_rxdata_dly_       ;
+  int read_alct_sync_tx_random_        ;
+  int read_alct_sync_clear_errors_     ;
+  int read_alct_sync_1st_error_        ;
+  int read_alct_sync_2nd_error_        ;
+  int read_alct_sync_1st_error_latched_;
+  int read_alct_sync_2nd_error_latched_;
+  //
+  //---------------------------------------------------------------------
+  //0X106 = ADR_ALCT_SYNC_TXDATA_1ST:  ALCT Sync Mode Transmit Data 1st
+  //---------------------------------------------------------------------
+  int alct_sync_txdata_1st_;
+  //
+  int read_alct_sync_txdata_1st_;
+  //
+  //---------------------------------------------------------------------
+  //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
+  //---------------------------------------------------------------------
+  int alct_sync_txdata_2nd_;
+  //
+  int read_alct_sync_txdata_2nd_;
+  //
   //
   //*******************************************************************
   // TMB Raw Hits header words

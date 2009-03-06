@@ -56,6 +56,17 @@ public:
   void RpcRatDelayScan();       //rpc=0
   void RpcRatDelayScan(int rpc);
   //
+  void ALCT_TMB_Loopback();
+  //
+  int  Find_alct_tx_with_ALCT_to_TMB_evenodd(int number_of_passes);
+  /// same as above, but with "default number of passes...
+  int  Find_alct_tx_with_ALCT_to_TMB_evenodd();
+  //
+  int  Find_alct_rx_with_TMB_to_ALCT_evenodd(int number_of_passes);
+  /// same as above, but with "default number of passes...
+  int  Find_alct_rx_with_TMB_to_ALCT_evenodd();
+  //
+  //
   //-----
   /// number of microseconds to wait between data reads
   inline void setPauseBetweenDataReads(int pause) { pause_between_data_reads_ = pause; }
