@@ -1,0 +1,244 @@
+#!/bin/zsh
+
+
+function printHelp(){
+cat <<EOF
+feedEmuToIguana periodically gets an event (or event fragment) from the running 
+                Emu local DAQ and writes it into a fifo called 'emuData.fifo' 
+                to be read by Iguana event display
+
+Usage: 
+------
+    feedEmuToIguana [-a server_app] [-h server_host] [-i server_app_instance]
+                    [-p server_port] [-P period]
+
+  option   meaning                            default
+  ------   -------                            -------
+      -a   server application                 emu::daq::rui
+      -i   server application instance        0 (autocycle 1 through 36)
+      -p   server port                        20301
+      -h   server host                        csc-daq01.cms
+      -P   period of polling [seconds]        1 sec
+
+  Once feedEmuToIguana is running, type [ rui | fu ] to poll emu::daq::rui or emu::daq::fu,
+  or [1-36] to poll that instance number, and hit <RETURN>.
+
+
+Examples
+--------
+    To read events from emu::daq::rui 1 on csc-daq01.cms:20301 as often as the
+    transfer speed permits:
+        feedEmuToIguana -a emu::daq::rui -P 0
+
+    To do the same from a machine outside the .cms network:
+        ssh -L 20301:csc-daq01.cms:20301 YOURID@GATEWAYNODE
+        feedEmuToIguana -a emu::daq::rui -P 0 -h localhost
+EOF
+}
+
+function parseMIME(){
+    # Parse multipart MIME containing the SOAP message and the data in binary attachment.
+    #     Argument 1: the MIME
+
+    # Get the attachment
+    EMUDATA=$(echo -E -n $1 | ./emuDataMIMEParser.py -a)
+
+    if [[ ${#EMUDATA} -gt 48 ]]; then
+	echo "Data length: [34m${#EMUDATA}[m" >&2
+	echo -E -n $EMUDATA
+        # Get and parse the SOAP part
+	SERVER_PARAMS=( $(echo -E -n $1 | ./emuDataMIMEParser.py -s | xsltproc emuDataSOAPParser.xsl -) )
+	[ ${#SERVER_PARAMS} -gt 0 ] && echo "Fed data from ( [34m${(kv)SERVER_PARAMS}[m ) into fifo" >&2
+    else
+	echo "Data length: ${#EMUDATA}" >&2
+    fi
+
+    return 0
+}
+
+function getEmuData(){
+    # Get data from the SOAP server of an emu::daq::rui or emu::daq::fu instance.
+    #    Argument 1: server's host
+    #    Argument 2: server's port
+    #    Argument 3: server's application name (emu::daq::rui or emu::daq::fu)
+    #    Argument 4: server's instance number
+
+    local CLIENTNAME=IguanaFeeder@$(hostname)
+    local CREDITS=1
+    local PRESCALINGFACTOR=1
+
+    HEADER="\"SOAPAction: urn:xdaq-application:class=$SERVERAPP,instance=$SERVERAPPINSTANCE\""
+
+    MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/' xmlns:xsd='http://www.w3.org/1999/XMLSchema' xmlns:xsi='http://www.w3.org/1999/XMLSchema-instance'><soap-env:Header/><soap-env:Body><xdaq:onClientCreditMessage soap-env:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:xdaq='urn:xdaq-soap:3.0'><clientName xsi:type='xsd:string'>$CLIENTNAME</clientName><clientInstance xsi:type='xsd:string'>0</clientInstance><nEventCredits xsi:type='xsd:int'>$CREDITS</nEventCredits><prescalingFactor xsi:type='xsd:int'>$PRESCALINGFACTOR</prescalingFactor></xdaq:onClientCreditMessage></soap-env:Body></soap-env:Envelope>\""
+
+    eval curl -H $HEADER http://$SERVERHOST:$SERVERPORT -d $MESSAGE # >&1 >&2
+}
+
+function createMIMEParser(){
+    # Write a python script to parse the MIME reply from server:
+
+    [ -f emuDataMIMEParser.py ] || cat > emuDataMIMEParser.py <<EOF
+#!/usr/bin/python
+import email
+import sys
+
+if __name__ == "__main__":
+
+    if sys.argv[1] == '-s': # SOAP
+        requestedPartIndex = 1
+        nBytesToStrip      = 0
+    elif sys.argv[1] == '-a': # attachment
+        requestedPartIndex = 2
+        nBytesToStrip      = 2 # carriage return, line feed
+
+    # Make it a multipart/mixed MIME to make pythons email happy:
+    data='''Content-type: multipart/mixed; boundary="XDAQ_Boundary"
+    
+'''
+    # Read from stdout:
+    while 1:
+        c = sys.stdin.read(1)
+        if c != '' : data+=c
+        else       : break
+    # Parse message and get attachment:
+    attachment=''
+    msg = email.message_from_string(data)
+    partcount=0
+    requestedPart=''
+    for part in msg.walk():
+        if partcount==requestedPartIndex : requestedPart = part.get_payload()
+        partcount+=1
+    # Write it to stdout
+    sys.stdout.write( requestedPart[0:len(requestedPart)-nBytesToStrip] )
+EOF
+    [ -f emuDataMIMEParser.py ] && chmod 744 emuDataMIMEParser.py
+}
+
+function createXSLT(){
+    # Write an XSLT file to parse SOAP body of reply from server:
+
+    [ -f emuDataSOAPParser.xsl ] || cat > emuDataSOAPParser.xsl <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xdaq="urn:xdaq-soap:3.0">
+
+  <xsl:output method="text" encoding="UTF-8" indent="no"/>
+
+  <xsl:template match="soap-env:Envelope">
+    <xsl:apply-templates select="soap-env:Body/xdaq:onEmuDataMessage[runNumber]"/>
+  </xsl:template>
+
+   <xsl:template match="xdaq:onEmuDataMessage">
+     <xsl:text> serverInstance </xsl:text><xsl:value-of select="serverInstance"/>
+     <xsl:text> serverName </xsl:text><xsl:value-of select="serverName"/>
+     <xsl:text> runNumber </xsl:text><xsl:value-of select="runNumber"/>
+     <xsl:text> nEventCreditsHeld </xsl:text><xsl:value-of select="nEventCreditsHeld"/>
+     <xsl:text> runStartUTC </xsl:text><xsl:value-of select="runStartUTC"/>
+   </xsl:template>
+</xsl:transform>
+EOF
+}
+
+function updateURL(){
+    # Increment application instance if autocycling and
+    # set host and port corresponding to the new application instance.
+
+    if [[ $CYCLEINSTANCE == "true" ]]; then
+	# Increment application instance:
+	((SERVERAPPINSTANCE++))
+	# Application instance must wrap around:
+	((SERVERAPPINSTANCE=(SERVERAPPINSTANCE-1)%36+1))
+	# Set corresponding URL
+	SERVERPORT=203${(l:2::0:)SERVERAPPINSTANCE}
+	((HOSTNUMBER=($SERVERAPPINSTANCE-1)/4+1))
+	SERVERHOST=csc-daq${(l:2::0:)HOSTNUMBER}.cms
+    fi
+}
+
+function getUserInput(){
+    local USERINPUT
+    # Get what the user types into the terminal window.
+    sysread -t 0 USERINPUT
+    # Strip input of new line.
+    USERINPUT=${USERINPUT%
+}
+
+    if [[ ${#USERINPUT} -ne 0 ]]; then
+	case $USERINPUT in
+	    ( 0 ) # user wants instance number to autocycle
+	    SERVERAPPINSTANCE=0
+	    CYCLEINSTANCE="true"
+	    ;;
+	    ( <1-36> ) # user wants a particular instance number
+	    SERVERAPPINSTANCE=$USERINPUT
+	    CYCLEINSTANCE="false"
+	    ;;
+	    ( f* | F* ) # user wants to poll emu::daq::fu
+	    SERVERAPP=emu::daq::fu
+	    ;;
+	    ( r* | R* ) # user wants to poll emu::daq::rui
+	    SERVERAPP=emu::daq::rui
+	    ;;
+	esac
+    fi
+}
+
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+
+# For sysread:
+zmodload zsh/system
+
+# Default parameters:
+SERVERAPP=emu::daq::rui
+SERVERAPPINSTANCE=0
+SERVERPORT=20301
+SERVERHOST=csc-daq01.cms
+PERIOD=1
+CYCLEINSTANCE="true"
+
+# User's options:
+while [[ $1 = -* ]]; do
+    case $1 in 
+	-a ) SERVERAPP=$2
+	    shift ;;
+	-i ) SERVERAPPINSTANCE=$2
+	    shift ;;
+	-p ) SERVERPORT=$2
+	    shift ;;
+	-h ) SERVERHOST=$2
+	    shift ;;
+	-P ) PERIOD=$2
+	    shift ;;
+	*  ) printHelp
+	    exit 1
+    esac
+    shift
+done
+
+# Create python script for parsing MIME:
+createMIMEParser
+# Create XSLT for parsing SOAP part:
+createXSLT
+
+# An associative array for the parameters extracted from the body of the SOAP reply.
+typeset -A SERVER_PARAMS
+
+# Check FIFO:
+[ -p emuData.fifo ] || { echo "emuData.fifo does not exist. Please 'mkfifo emuData.fifo' first."; exit 1 }
+
+# Start infinite loop to periodically get data and feed it into the fifo
+{
+    while true; do
+	getUserInput
+	updateURL
+	echo "===============================================================================" >&2
+	echo "Polling [34m$SERVERAPP $SERVERAPPINSTANCE[m. Type [ rui | fu | 0-36 ] <RETURN> to change." >&2
+	D=$(getEmuData)
+	parseMIME $D
+	sleep $PERIOD
+    done
+} >> emuData.fifo
+#od -Ad -tx8z -w8
+
