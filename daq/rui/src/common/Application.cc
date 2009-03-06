@@ -118,6 +118,7 @@ applicationBSem_(toolbox::BSem::FULL)
     //
     deviceReader_          = NULL;
     fileWriter_            = NULL;
+    rateLimiter_           = NULL;
     badEventsFileWriter_   = NULL;
     nReadingPassesInEvent_ = 0;
     insideEvent_           = false;
@@ -987,6 +988,12 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     params.push_back(pair<string,xdata::Serializable *>
 		     ("runType", &runType_));
     
+    fileWritingRateLimitInHz_  =  2000;
+    fileWritingRateSampleSize_ = 10000;
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("fileWritingRateLimitInHz", &fileWritingRateLimitInHz_ ));
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("fileWritingRateSampleSize", &fileWritingRateSampleSize_ ));
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
       clientName_.push_back("");
@@ -1036,6 +1043,10 @@ vector< pair<string, xdata::Serializable*> > emu::daq::rui::Application::initAnd
     persistentDDUError_ = "";
     params.push_back(pair<string,xdata::Serializable *>
 		     ("persistentDDUError", &persistentDDUError_));
+
+    fileWritingVetoed_ = false;
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("fileWritingVetoed", &fileWritingVetoed_ ));
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ){ 
       creditsHeld_.push_back(0);
@@ -1918,6 +1929,11 @@ throw (toolbox::fsm::exception::Exception)
       delete badEventsFileWriter_;
       badEventsFileWriter_ = NULL;
     }
+    // Destroy rate limiter, too.
+    if ( rateLimiter_ ){
+      delete rateLimiter_;
+      rateLimiter_ = NULL;
+    }
 
 }
 
@@ -2287,7 +2303,7 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 	  break;
         default:
             // Should never get here
-            LOG4CPLUS_FATAL(logger_,
+            LOG4CPLUS_ERROR(logger_,
                 "emu::daq::rui::Application" << instance_ << " is in an undefined state");
         }
 
@@ -2295,20 +2311,18 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 
 	if ( pauseForOtherThreads > 0 ) usleep( (unsigned int) pauseForOtherThreads );
 
-        // Reschedule this action code
-        return isToBeRescheduled;
     }
     catch(xcept::Exception e)
     {
 	applicationBSem_.give();
 
-        LOG4CPLUS_FATAL(logger_,
+        LOG4CPLUS_WARN(logger_,
             "Failed to execute \"self-driven\" behaviour"
             << " : " << xcept::stdformat_exception_history(e));
-
-        // Do not reschedule this action code as the application has failed
-        return false;
     }
+
+    // Reschedule this action code
+    return isToBeRescheduled;
 }
 
 
@@ -2415,6 +2429,13 @@ void emu::daq::rui::Application::createFileWriters(){
 	delete badEventsFileWriter_;
 	badEventsFileWriter_ = NULL;
       }
+    // Destroy rate limiter, too, if any.
+    if ( rateLimiter_ )
+      {
+	delete rateLimiter_;
+	rateLimiter_ = NULL;
+      }
+
 	  // create new writers if path is not empty
 	  if ( pathToDataOutFile_ != string("") && 
 	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
@@ -2423,6 +2444,12 @@ void emu::daq::rui::Application::createFileWriters(){
 	      fileWriter_ = new emu::daq::writer::RawDataFile( 1000000*fileSizeInMegaBytes_, 
 							       pathToDataOutFile_.toString(), 
 							       u.getHost(), "EmuRUI", instance_, emudaqrui::versions, &logger_ );
+	      // Create a rate limiter, but not for calibration or STEP runs.
+	      if ( runType_.toString() == "Monitor" ||
+		   runType_.toString() == "Debug"      ){
+		rateLimiter_ = new emu::daq::writer::RateLimiter( fileWritingRateLimitInHz_, fileWritingRateSampleSize_ );
+		fileWritingVetoed_ = false;
+	      }
 	    }
 	  else if ( runType_.toString() != "Monitor" &&
 		    runType_.toString() != "Debug"      ) // must be a calibration or STEP run...
@@ -2468,8 +2495,11 @@ void emu::daq::rui::Application::createFileWriters(){
 void emu::daq::rui::Application::writeDataToFile(  char* const data, const int dataLength, const bool newEvent ){
   if ( fileWriter_ ){
     try{
-      if ( newEvent ) fileWriter_->startNewEvent();
-      fileWriter_->writeData( data, dataLength );
+      if ( newEvent ){
+	fileWriter_->startNewEvent();
+	fileWritingVetoed_ = ! rateLimiter_->acceptEvent();
+      }
+      if ( ! fileWritingVetoed_.value_ ) fileWriter_->writeData( data, dataLength );
     } catch(string e) {
       LOG4CPLUS_FATAL( logger_, e );
       moveToFailedState();
