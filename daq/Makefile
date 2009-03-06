@@ -26,6 +26,7 @@ Packages= \
           daq/fu \
           daq/manager
 
+include $(XDAQ_ROOT)/config/Makefile.rules
 
 .PHONY: _rpmall
 _rpmall: spec_update spec_local_update makerpm
