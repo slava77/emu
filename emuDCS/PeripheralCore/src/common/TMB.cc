@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.79 2008/11/28 09:49:28 rakness Exp $
+// $Id: TMB.cc,v 3.80 2009/03/06 16:45:28 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.80  2009/03/06 16:45:28  rakness
+// add methods for ALCT-TMB loopback
+//
 // Revision 3.79  2008/11/28 09:49:28  rakness
 // include ME1/1 TMB firmware compilation specification into xml file
 //
@@ -567,9 +570,13 @@ void TMB::DumpRegister(int reg){
 //
 int TMB::ReadRegister(int reg){
   //
-  tmb_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
+  //  tmb_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
+  //  int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
-  int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
+  unsigned value_to_write = (sndbuf[1]&0xff) | (sndbuf[0]&0xff)<<8;
+  tmb_vme_new(VME_READ,reg,value_to_write,rcvbuf,NOW);
+  //
+  int value = ((rcvbuf[1]&0xff)<<8)|(rcvbuf[0]&0xff);
   //
   DecodeTMBRegister_(reg,value);
   //
@@ -807,7 +814,9 @@ void TMB::WriteRegister(int reg, int value){
   sndbuf[0] = (value>>8)&0xff;
   sndbuf[1] = value&0xff;
   //
-  tmb_vme(VME_WRITE,reg,sndbuf,rcvbuf,NOW);
+  //  std::cout << "write register " << std::hex << reg << " with " << value << "... " << std::endl;
+  //  tmb_vme(VME_WRITE,reg,sndbuf,rcvbuf,NOW);
+  tmb_vme_new(VME_WRITE,reg,value,rcvbuf,NOW);
   //
 }
 //
@@ -965,7 +974,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     unsigned short vpf      = 1;         
     unsigned short sync_err = 0;
-    unsigned short qual1;
+    unsigned short qual1    = 0;
     unsigned short qual2;
     unsigned short BC0 = 0;  //this value should be equal for the same event in all slots...
     ReadRegister(seq_id_adr);
@@ -2775,7 +2784,7 @@ bool TMB::ReadALCTRawhits_() {
     // Least Significant Bits:
     data = ReadRegister(alctfifo2_adr);
     long int alct_rdata = (GetReadAlctRawDataLeastSignificantBits() & 0xffff);
-    //    if (debug_) (*MyOutput_) << "Register 0xA4 -> Read=" << std::hex << data << std::endl;
+    //    if (debug_) (*MyOutput_) << "Register 0xAA -> Read=" << std::hex << data << std::endl;
     //
     // Add on the most significant bits:
     data = ReadRegister(alct_fifo_adr);
@@ -3735,6 +3744,14 @@ void TMB::tmb_vme(char fcn, char vme, const char *snd,char *rcv, int wrt) {
   do_vme(fcn, vme, snd, rcv, wrt);
 }
 //
+void TMB::tmb_vme_new(char fcn, unsigned vme, unsigned short data, char *rcv, int when) {
+  //
+  OkVmeWrite(vme);  
+  start(1);
+  //  std::cout << "new_vme " << std::hex << vme << " with " << data << "... " << std::endl;
+  new_vme(fcn, vme, data, rcv, when);
+}
+//
 void TMB::start() {
   //
   //(*MyOutput_) << "starting to talk to TMB, device " << ucla_ldev << std::endl;
@@ -3920,7 +3937,7 @@ void TMB::UnjamFPGA() {
   // Bring the Test Access Port (TAP) state to Run-Test-Idle for each JTAG chain
   for (int chain=0; chain<4; chain++) {
     int data_word;
-    int chain_address;
+    int chain_address = 0;
     //
     if (chain == 0) {
       chain_address = tmb_mezz_chain;
@@ -6065,6 +6082,17 @@ void TMB::SetTMBRegisterDefaults_() {
   rat_dsn_en_ = rat_dsn_en_default;
   //
   //------------------------------------------------------------------
+  //0X2A = ADR_CCB_CFG:  CCB Configuration
+  //------------------------------------------------------------------
+  ignore_ccb_rx_                 = ignore_ccb_rx_default                ;
+  disable_ccb_tx_                = disable_ccb_tx_default               ;
+  enable_internal_l1a_           = enable_internal_l1a_default          ;
+  enable_alctclct_status_to_ccb_ = enable_alctclct_status_to_ccb_default;
+  enable_alct_status_to_ccb_     = enable_alct_status_to_ccb_default    ;
+  enable_clct_status_to_ccb_     = enable_clct_status_to_ccb_default    ;
+  fire_l1a_oneshot_              = fire_l1a_oneshot_default             ;
+  //
+  //------------------------------------------------------------------
   //0X2C = ADR_CCB_TRIG:  CCB Trigger Control
   //------------------------------------------------------------------
   alct_ext_trig_l1aen_    = alct_ext_trig_l1aen_default   ;
@@ -6314,6 +6342,23 @@ void TMB::SetTMBRegisterDefaults_() {
   clct_separation_ram_adr_          = clct_separation_ram_adr_default         ; 
   min_clct_separation_              = min_clct_separation_default             ; 
   //
+  //---------------------------------------------------------------------
+  //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
+  //---------------------------------------------------------------------
+  alct_sync_rxdata_dly_   = alct_sync_rxdata_dly_default  ;
+  alct_sync_tx_random_    = alct_sync_tx_random_default   ;
+  alct_sync_clear_errors_ = alct_sync_clear_errors_default;
+  //
+  //---------------------------------------------------------------------
+  //0X106 = ADR_ALCT_SYNC_TXDATA_1ST:  ALCT Sync Mode Transmit Data 1st
+  //---------------------------------------------------------------------
+  alct_sync_txdata_1st_ = alct_sync_txdata_1st_default;
+  //
+  //---------------------------------------------------------------------
+  //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
+  //---------------------------------------------------------------------
+  alct_sync_txdata_2nd_ = alct_sync_txdata_2nd_default;
+  //
   return;
 }
 //
@@ -6456,6 +6501,18 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_rpc_sync_   = ExtractValueFromData(data,rpc_sync_bitlo  ,rpc_sync_bithi  );
     read_shift_rpc_  = ExtractValueFromData(data,shift_rpc_bitlo ,shift_rpc_bithi );
     read_rat_dsn_en_ = ExtractValueFromData(data,rat_dsn_en_bitlo,rat_dsn_en_bithi);
+    //
+  } else if ( address == ccb_cfg_adr ) {
+    //------------------------------------------------------------------
+    //0X2A = ADR_CCB_CFG:  CCB Configuration
+    //------------------------------------------------------------------
+    read_ignore_ccb_rx_                 = ExtractValueFromData(data,ignore_ccb_rx_bitlo                ,ignore_ccb_rx_bithi                );
+    read_disable_ccb_tx_                = ExtractValueFromData(data,disable_ccb_tx_bitlo               ,disable_ccb_tx_bithi               );
+    read_enable_internal_l1a_           = ExtractValueFromData(data,enable_internal_l1a_bitlo          ,enable_internal_l1a_bithi          );
+    read_enable_alctclct_status_to_ccb_ = ExtractValueFromData(data,enable_alctclct_status_to_ccb_bitlo,enable_alctclct_status_to_ccb_bithi);
+    read_enable_alct_status_to_ccb_     = ExtractValueFromData(data,enable_alct_status_to_ccb_bitlo    ,enable_alct_status_to_ccb_bithi    );
+    read_enable_clct_status_to_ccb_     = ExtractValueFromData(data,enable_clct_status_to_ccb_bitlo    ,enable_clct_status_to_ccb_bithi    );
+    read_fire_l1a_oneshot_              = ExtractValueFromData(data,fire_l1a_oneshot_bitlo             ,fire_l1a_oneshot_bithi             );
     //
   } else if ( address == ccb_trig_adr ) {
     //------------------------------------------------------------------
@@ -6677,7 +6734,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //
   } else if ( address == alctfifo2_adr ) {
     //------------------------------------------------------------------
-    //0XA4 = ADR_ALCTFIFO2:  ALCT Raw Hits RAM data 
+    //0XAA = ADR_ALCTFIFO2:  ALCT Raw Hits RAM data 
     //------------------------------------------------------------------
     read_alct_raw_lsbs_ = ExtractValueFromData(data,alct_raw_lsbs_bitlo,alct_raw_lsbs_bithi);
     //
@@ -6918,6 +6975,39 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_clct_separation_ram_adr_          = ExtractValueFromData(data,clct_separation_ram_adr_bitlo         ,clct_separation_ram_adr_bithi         );
     read_min_clct_separation_              = ExtractValueFromData(data,min_clct_separation_bitlo             ,min_clct_separation_bithi             );
     //
+  } else if ( address == clock_status_adr ) {    
+    //---------------------------------------------------------------------
+    //0XFC = ADR_CCB_STAT1:  CCB Status Register (cont. from 0x2E)
+    //---------------------------------------------------------------------
+    read_ccb_ttcrx_lock_never_ = ExtractValueFromData(data,ccb_ttcrx_lock_never_bitlo,ccb_ttcrx_lock_never_bithi);
+    read_ccb_ttcrx_lost_ever_  = ExtractValueFromData(data,ccb_ttcrx_lost_ever_bitlo ,ccb_ttcrx_lost_ever_bithi );
+    read_ccb_qpll_lock_never_  = ExtractValueFromData(data,ccb_qpll_lock_never_bitlo ,ccb_qpll_lock_never_bithi );
+    read_ccb_qpll_lost_ever_   = ExtractValueFromData(data,ccb_qpll_lost_ever_bitlo  ,ccb_qpll_lost_ever_bithi  );
+    //
+  } else if ( address == alct_sync_ctrl_adr ) {    
+    //---------------------------------------------------------------------
+    //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
+    //---------------------------------------------------------------------
+    read_alct_sync_rxdata_dly_        = ExtractValueFromData(data,alct_sync_rxdata_dly_bitlo       ,alct_sync_rxdata_dly_bithi       );
+    read_alct_sync_tx_random_         = ExtractValueFromData(data,alct_sync_tx_random_bitlo        ,alct_sync_tx_random_bithi        );
+    read_alct_sync_clear_errors_      = ExtractValueFromData(data,alct_sync_clear_errors_bitlo     ,alct_sync_clear_errors_bithi     );
+    read_alct_sync_1st_error_         = ExtractValueFromData(data,alct_sync_1st_error_bitlo        ,alct_sync_1st_error_bithi        );
+    read_alct_sync_2nd_error_         = ExtractValueFromData(data,alct_sync_2nd_error_bitlo        ,alct_sync_2nd_error_bithi        );
+    read_alct_sync_1st_error_latched_ = ExtractValueFromData(data,alct_sync_1st_error_latched_bitlo,alct_sync_1st_error_latched_bithi);
+    read_alct_sync_2nd_error_latched_ = ExtractValueFromData(data,alct_sync_2nd_error_latched_bitlo,alct_sync_2nd_error_latched_bithi);
+    //
+  } else if ( address == alct_sync_txdata_1st_adr ) {    
+    //---------------------------------------------------------------------
+    //0X106 = ADR_ALCT_SYNC_TXDATA_1ST:  ALCT Sync Mode Transmit Data 1st
+    //---------------------------------------------------------------------
+    read_alct_sync_txdata_1st_ = ExtractValueFromData(data,alct_sync_txdata_1st_bitlo,alct_sync_txdata_1st_bithi);
+    //
+  } else if ( address == alct_sync_txdata_2nd_adr ) {    
+    //---------------------------------------------------------------------
+    //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
+    //---------------------------------------------------------------------
+    read_alct_sync_txdata_2nd_ = ExtractValueFromData(data,alct_sync_txdata_2nd_bitlo,alct_sync_txdata_2nd_bithi);
+    //
   } 
   //
   // combinations of bits which say which trgmode_ we are using....
@@ -7138,6 +7228,19 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    RPC 80MHz sync mode = " << std::hex << read_rpc_sync_   << std::endl;
     (*MyOutput_) << "    RPC shift 1/2 cycle = " << std::hex << read_shift_rpc_  << std::endl;
     (*MyOutput_) << "    enable RAT DSN read = " << std::hex << read_rat_dsn_en_ << std::endl;
+    //
+  } else if ( address == ccb_cfg_adr ) {
+    //------------------------------------------------------------------
+    //0X2A =  ADR_CCB_CFG:  CCB Configuration
+    //------------------------------------------------------------------
+    (*MyOutput_) << " ->CCB configuration register:" << std::endl;
+    (*MyOutput_) << "    Ignore received CCB backplane inputs          = " << std::hex << read_ignore_ccb_rx_                 << std::endl;                
+    (*MyOutput_) << "    Disable transmitted CCB backplane outputs     = " << std::hex << read_disable_ccb_tx_                << std::endl;               
+    (*MyOutput_) << "    Enable internal L1A emulator                  = " << std::hex << read_enable_internal_l1a_           << std::endl;          
+    (*MyOutput_) << "    Enable ALCT or CLCT status to CCB front panel = " << std::hex << read_enable_alctclct_status_to_ccb_ << std::endl;
+    (*MyOutput_) << "    Enable ALCT status GTL outputs                = " << std::hex << read_enable_alct_status_to_ccb_     << std::endl;    
+    (*MyOutput_) << "    Enable CLCT status GTL outputs                = " << std::hex << read_enable_clct_status_to_ccb_     << std::endl;    
+    (*MyOutput_) << "    Fire CCB L1A oneshot                          = " << std::hex << read_fire_l1a_oneshot_              << std::endl;             
     //
   } else if ( address == ccb_trig_adr ) {
     //------------------------------------------------------------------
@@ -7541,6 +7644,43 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    CLCT separation RAM address       = " << std::dec << read_clct_separation_ram_adr_           << std::endl; 
     (*MyOutput_) << "    Minimum 1/2-strip CLCT separation = " << std::dec << read_min_clct_separation_               << std::endl; 
     //
+  } else if ( address == clock_status_adr ) {
+    //---------------------------------------------------------------------
+    //0XFC = ADR_CCB_STAT1:  CCB Status Register (cont. from 0x2E)
+    //--------------------------------------------------------------------- 
+    (*MyOutput_) << " ->Clock status register:" << std::endl;
+    (*MyOutput_) << "    TTCrx lock never achieved     = " << std::hex << read_ccb_ttcrx_lock_never_ << std::endl;
+    (*MyOutput_) << "    TTCrx lock lost at least once = " << std::hex << read_ccb_ttcrx_lost_ever_  << std::endl;
+    (*MyOutput_) << "    QPLL lock never achieved      = " << std::hex << read_ccb_qpll_lock_never_  << std::endl;
+    (*MyOutput_) << "    QPLL lock lost at least once  = " << std::hex << read_ccb_qpll_lost_ever_   << std::endl;
+    //
+  } else if ( address == alct_sync_ctrl_adr ) {
+    //---------------------------------------------------------------------
+    //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->ALCT sync mode control register:" << std::endl;
+    (*MyOutput_) << "    Sync mode:  delay pointer to valid data       = 0x" << std::hex << read_alct_sync_rxdata_dly_        << std::endl;
+    (*MyOutput_) << "    Sync mode:  TMB transmits random data to ALCT = "   << std::hex << read_alct_sync_tx_random_         << std::endl;
+    (*MyOutput_) << "    ALCT sync mode:  clear rng error FFs          = "   << std::hex << read_alct_sync_clear_errors_      << std::endl;
+    (*MyOutput_) << "    ALCT to TMB:  1st-in-time match OK            = "   << std::hex << read_alct_sync_1st_error_         << std::endl;
+    (*MyOutput_) << "    ALCT to TMB:  2nd-in-time match OK            = "   << std::hex << read_alct_sync_2nd_error_         << std::endl;
+    (*MyOutput_) << "    ALCT to TMB:  1st-in-time match OK, latched   = "   << std::hex << read_alct_sync_1st_error_latched_ << std::endl;
+    (*MyOutput_) << "    ALCT to TMB:  2nd-in-time match OK, latched   = "   << std::hex << read_alct_sync_2nd_error_latched_ << std::endl;
+    //
+  } else if ( address == alct_sync_txdata_1st_adr ) {
+    //---------------------------------------------------------------------
+    //0X106 = ADR_ALCT_SYNC_TXDATA_1ST:  ALCT Sync Mode Transmit Data 1st
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->ALCT sync mode Transmit Data 1st frame:" << std::endl;
+    (*MyOutput_) << "    Sync mode data to send for loopback 1st frame = 0x" << std::hex << read_alct_sync_txdata_1st_ << std::endl;
+    //
+  } else if ( address == alct_sync_txdata_2nd_adr ) {
+    //---------------------------------------------------------------------
+    //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->ALCT sync mode Transmit Data 2nd frame:" << std::endl;
+    (*MyOutput_) << "    Sync mode data to send for loopback 2nd frame = 0x" << std::hex << read_alct_sync_txdata_2nd_ << std::endl;
+    //
   } else {
     //
     (*MyOutput_) << " -> Unable to decode register: PLEASE DEFINE" << std::endl;
@@ -7663,6 +7803,18 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(rpc_sync_  ,rpc_sync_bithi  ,rpc_sync_bitlo  ,&data_word);
     InsertValueIntoDataWord(shift_rpc_ ,shift_rpc_bithi ,shift_rpc_bitlo ,&data_word);
     InsertValueIntoDataWord(rat_dsn_en_,rat_dsn_en_bithi,rat_dsn_en_bitlo,&data_word);
+    //
+  } else if ( address == ccb_cfg_adr ) {
+    //------------------------------------------------------------------
+    //0X2A = ADR_CCB_CFG:  CCB Configuration
+    //------------------------------------------------------------------
+    InsertValueIntoDataWord(ignore_ccb_rx_                 ,ignore_ccb_rx_bithi                ,ignore_ccb_rx_bitlo                ,&data_word);
+    InsertValueIntoDataWord(disable_ccb_tx_                ,disable_ccb_tx_bithi               ,disable_ccb_tx_bitlo               ,&data_word);
+    InsertValueIntoDataWord(enable_internal_l1a_           ,enable_internal_l1a_bithi          ,enable_internal_l1a_bitlo          ,&data_word);
+    InsertValueIntoDataWord(enable_alctclct_status_to_ccb_ ,enable_alctclct_status_to_ccb_bithi,enable_alctclct_status_to_ccb_bitlo,&data_word);
+    InsertValueIntoDataWord(enable_alct_status_to_ccb_     ,enable_alct_status_to_ccb_bithi    ,enable_alct_status_to_ccb_bitlo    ,&data_word);
+    InsertValueIntoDataWord(enable_clct_status_to_ccb_     ,enable_clct_status_to_ccb_bithi    ,enable_clct_status_to_ccb_bitlo    ,&data_word);
+    InsertValueIntoDataWord(fire_l1a_oneshot_              ,fire_l1a_oneshot_bithi             ,fire_l1a_oneshot_bitlo             ,&data_word);
     //
   } else if ( address == ccb_trig_adr ) {
     //------------------------------------------------------------------
@@ -7959,6 +8111,26 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(clct_separation_ram_write_enable_,clct_separation_ram_write_enable_bithi,clct_separation_ram_write_enable_bitlo,&data_word);
     InsertValueIntoDataWord(clct_separation_ram_adr_         ,clct_separation_ram_adr_bithi         ,clct_separation_ram_adr_bitlo         ,&data_word);
     InsertValueIntoDataWord(min_clct_separation_             ,min_clct_separation_bithi             ,min_clct_separation_bitlo             ,&data_word);
+    //
+  } else if ( address == alct_sync_ctrl_adr ) {    
+    //---------------------------------------------------------------------
+    //0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(alct_sync_rxdata_dly_  ,alct_sync_rxdata_dly_bithi  ,alct_sync_rxdata_dly_bitlo  ,&data_word);
+    InsertValueIntoDataWord(alct_sync_tx_random_   ,alct_sync_tx_random_bithi   ,alct_sync_tx_random_bitlo   ,&data_word);
+    InsertValueIntoDataWord(alct_sync_clear_errors_,alct_sync_clear_errors_bithi,alct_sync_clear_errors_bitlo,&data_word);
+    //
+  } else if ( address == alct_sync_txdata_1st_adr ) {    
+    //---------------------------------------------------------------------
+    //0X106 = ADR_ALCT_SYNC_TXDATA_1ST:  ALCT Sync Mode Transmit Data 1st
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(alct_sync_txdata_1st_,alct_sync_txdata_1st_bithi,alct_sync_txdata_1st_bitlo,&data_word);
+    //
+  } else if ( address == alct_sync_txdata_2nd_adr ) {    
+    //---------------------------------------------------------------------
+    //0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(alct_sync_txdata_2nd_,alct_sync_txdata_2nd_bithi,alct_sync_txdata_2nd_bitlo,&data_word);
     //
   } else {
     //

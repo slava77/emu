@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.20 2008/12/02 09:21:47 rakness Exp $
+// $Id: TMB_constants.h,v 3.21 2009/03/06 16:46:03 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.21  2009/03/06 16:46:03  rakness
+// add methods for ALCT-TMB loopback
+//
 // Revision 3.20  2008/12/02 09:21:47  rakness
 // set default values to be correct for VME register 0xCC
 //
@@ -232,8 +235,17 @@ static const unsigned long int  ise_version_adr         = 0x0000F2;
 static const unsigned long int  pattern_find_pretrg_adr = 0x0000F4;
 static const unsigned long int  clct_separation_adr     = 0x0000F6;
 static const unsigned long int  clct_separation_ram_adr = 0x0000F8;
+static const unsigned long int  seu_parity_errors_adr   = 0x0000FA;
+static const unsigned long int  clock_status_adr        = 0x0000FC;
+static const unsigned long int  clct_bxn_at_l1a_adr     = 0x0000FE;
 //
-static const int LARGEST_VME_ADDRESS = clct_separation_ram_adr;
+static const unsigned long int  l1a_lookback_adr        = 0x000100;
+static const unsigned long int  seq_debug_adr           = 0x000102;
+static const unsigned long int  alct_sync_ctrl_adr      = 0x000104;
+static const unsigned long int  alct_sync_txdata_1st_adr= 0x000106;
+static const unsigned long int  alct_sync_txdata_2nd_adr= 0x000108;
+//
+static const int LARGEST_VME_ADDRESS = alct_sync_txdata_2nd_adr;
 //
 // TMB counter indices:
 const int ALCT_SENT_TO_TMB_COUNTER_INDEX  =  0;
@@ -521,6 +533,45 @@ const int rat_dsn_en_default =  0;
 //
 //
 //------------------------------------------------------------------
+//0X2A = ADR_CCB_CFG:  CCB Configuration
+//------------------------------------------------------------------
+const int ignore_ccb_rx_vmereg                  =  ccb_cfg_adr;
+const int ignore_ccb_rx_bitlo                   =  0;
+const int ignore_ccb_rx_bithi                   =  0;
+const int ignore_ccb_rx_default                 =  0;
+//
+const int disable_ccb_tx_vmereg                 =  ccb_cfg_adr;
+const int disable_ccb_tx_bitlo                  =  1;
+const int disable_ccb_tx_bithi                  =  1;
+const int disable_ccb_tx_default                =  0;
+//
+const int enable_internal_l1a_vmereg            =  ccb_cfg_adr;
+const int enable_internal_l1a_bitlo             =  2;
+const int enable_internal_l1a_bithi             =  2;
+const int enable_internal_l1a_default           =  0;
+//
+const int enable_alctclct_status_to_ccb_vmereg  =  ccb_cfg_adr;
+const int enable_alctclct_status_to_ccb_bitlo   =  3;
+const int enable_alctclct_status_to_ccb_bithi   =  3;
+const int enable_alctclct_status_to_ccb_default =  0;
+//
+const int enable_alct_status_to_ccb_vmereg      =  ccb_cfg_adr;
+const int enable_alct_status_to_ccb_bitlo       =  4;
+const int enable_alct_status_to_ccb_bithi       =  4;
+const int enable_alct_status_to_ccb_default     =  0;
+//
+const int enable_clct_status_to_ccb_vmereg      =  ccb_cfg_adr;
+const int enable_clct_status_to_ccb_bitlo       =  5;
+const int enable_clct_status_to_ccb_bithi       =  5;
+const int enable_clct_status_to_ccb_default     =  0;
+//
+const int fire_l1a_oneshot_vmereg               =  ccb_cfg_adr;
+const int fire_l1a_oneshot_bitlo                =  6;
+const int fire_l1a_oneshot_bithi                =  6;
+const int fire_l1a_oneshot_default              =  0;
+//
+//
+//------------------------------------------------------------------
 //0X2C = ADR_CCB_TRIG:  CCB Trigger Control
 //------------------------------------------------------------------
 const int alct_ext_trig_l1aen_vmereg     =  ccb_trig_adr;
@@ -595,8 +646,17 @@ const int cfg_alct_ext_inject_default    =  0;
 //
 const int alct_seq_cmd_vmereg            =  alct_cfg_adr;
 const int alct_seq_cmd_bitlo             =  4;
-const int alct_seq_cmd_bithi             =  6;
+const int alct_seq_cmd_bithi             =  7;
 const int alct_seq_cmd_default           =  0;            
+//
+// Decode the ALCT sequencer commands.  
+const int NORMAL_MODE                        = 0x0; 
+const int SEND_EVENODD                       = 0x5;
+const int LOOPBACK_BITS_IN_ALCT_BANK_0       = 0x1;
+const int LOOPBACK_BITS_IN_ALCT_BANK_1       = 0x3;
+const int LOOPBACK_BITS_IN_ALCT_BANK_2       = 0x9;
+const int LOOPBACK_RANDOM                    = 0x2;
+const int SEND_RANDOM                        = 0xb; 
 //
 const int alct_clock_en_use_ccb_vmereg   =  alct_cfg_adr;
 const int alct_clock_en_use_ccb_bitlo    = 12;
@@ -1145,16 +1205,13 @@ const int alct_raw_read_address_bitlo   =  1;
 const int alct_raw_read_address_bithi   = 11;
 const int alct_raw_read_address_default =  0;
 //
-const int alct_raw_sync_vmereg          =  alctfifo1_adr;
-const int alct_raw_sync_bitlo           = 12;
-const int alct_raw_sync_bithi           = 12;
-const int alct_raw_sync_default         =  0;
-//
 const int alct_demux_mode_vmereg        =  alctfifo1_adr;
 const int alct_demux_mode_bitlo         = 13;
 const int alct_demux_mode_bithi         = 13;
 const int alct_demux_mode_default       =  0;
 //
+const int RAM_DATA   = 0x0;
+const int DEMUX_DATA = 0x1;
 //
 //------------------------------------------------------------------
 //0XAA = ADR_ALCTFIFO2:  ALCT Raw Hits RAM data LSBs
@@ -1850,8 +1907,82 @@ const int min_clct_separation_bithi                = 15;
 const int min_clct_separation_default              = 10; 
 //
 //
-// greg this needs 0xfA added (SEU error status) for 08/28/2008
-// greg this needs 0xfc added (CCB TTC lock status) for 08/28/2008
+// greg this needs 0xFA added (SEU error status) for 08/28/2008
+//
+//
+//---------------------------------------------------------------------
+//0XFC = ADR_CCB_STAT1:  CCB Status Register (cont. from 0x2E)
+//---------------------------------------------------------------------
+const int ccb_ttcrx_lock_never_vmereg =  clock_status_adr;
+const int ccb_ttcrx_lock_never_bitlo  =  0;
+const int ccb_ttcrx_lock_never_bithi  =  0;
+//
+const int ccb_ttcrx_lost_ever_vmereg  =  clock_status_adr;
+const int ccb_ttcrx_lost_ever_bitlo   =  1;
+const int ccb_ttcrx_lost_ever_bithi   =  1;
+//
+const int ccb_qpll_lock_never_vmereg  =  clock_status_adr;
+const int ccb_qpll_lock_never_bitlo   =  2;
+const int ccb_qpll_lock_never_bithi   =  2;
+//
+const int ccb_qpll_lost_ever_vmereg   =  clock_status_adr;
+const int ccb_qpll_lost_ever_bitlo    =  3;
+const int ccb_qpll_lost_ever_bithi    =  3;
+//
+//
+//---------------------------------------------------------------------
+//0X104 = ADR_ALCT_SYNC_CTRL:  ALCT Sync Mode Control
+//---------------------------------------------------------------------
+const int alct_sync_rxdata_dly_vmereg        =  alct_sync_ctrl_adr;
+const int alct_sync_rxdata_dly_bitlo         =  0;
+const int alct_sync_rxdata_dly_bithi         =  3;
+const int alct_sync_rxdata_dly_default       =  0; 
+//
+const int alct_sync_tx_random_vmereg         =  alct_sync_ctrl_adr;
+const int alct_sync_tx_random_bitlo          =  4;
+const int alct_sync_tx_random_bithi          =  4;
+const int alct_sync_tx_random_default        =  0; 
+//
+const int alct_sync_clear_errors_vmereg      =  alct_sync_ctrl_adr;
+const int alct_sync_clear_errors_bitlo       =  5;
+const int alct_sync_clear_errors_bithi       =  5;
+const int alct_sync_clear_errors_default     =  0; 
+//
+const int alct_sync_1st_error_vmereg         =  alct_sync_ctrl_adr;
+const int alct_sync_1st_error_bitlo          =  6;
+const int alct_sync_1st_error_bithi          =  6;
+//
+const int alct_sync_2nd_error_vmereg         =  alct_sync_ctrl_adr;
+const int alct_sync_2nd_error_bitlo          =  7;
+const int alct_sync_2nd_error_bithi          =  7;
+//
+const int alct_sync_1st_error_latched_vmereg =  alct_sync_ctrl_adr;
+const int alct_sync_1st_error_latched_bitlo  =  8;
+const int alct_sync_1st_error_latched_bithi  =  8;
+//
+const int alct_sync_2nd_error_latched_vmereg =  alct_sync_ctrl_adr;
+const int alct_sync_2nd_error_latched_bitlo  =  9;
+const int alct_sync_2nd_error_latched_bithi  =  9;
+//
+//
+//---------------------------------------------------------------------
+//0X106 = ADR_ALCT_SYNC_TXDATA_1ST:  ALCT Sync Mode Transmit Data 1st
+//---------------------------------------------------------------------
+const int alct_sync_txdata_1st_vmereg        =  alct_sync_txdata_1st_adr;
+const int alct_sync_txdata_1st_bitlo         =  0;
+const int alct_sync_txdata_1st_bithi         =  9;
+const int alct_sync_txdata_1st_default       =  0; 
+//
+//
+//---------------------------------------------------------------------
+//0X108 = ADR_ALCT_SYNC_TXDATA_2ND:  ALCT Sync Mode Transmit Data 2nd
+//---------------------------------------------------------------------
+const int alct_sync_txdata_2nd_vmereg        =  alct_sync_txdata_2nd_adr;
+const int alct_sync_txdata_2nd_bitlo         =  0;
+const int alct_sync_txdata_2nd_bithi         =  9;
+const int alct_sync_txdata_2nd_default       =  0; 
+//
+//
 //////////////////////////////////////////////
 // Bit mapping for TMB Raw Hits
 //////////////////////////////////////////////
