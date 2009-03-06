@@ -2262,7 +2262,6 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
 {
     try
     {
-      bool isToBeRescheduled = true;
       int  pauseForOtherThreads = 0;
 
       applicationBSem_.take();
@@ -2322,7 +2321,7 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
     }
 
     // Reschedule this action code
-    return isToBeRescheduled;
+    return true;
 }
 
 
