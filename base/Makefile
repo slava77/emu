@@ -20,9 +20,6 @@ PACKAGE_VER_MAJOR=07
 PACKAGE_VER_MINOR=00
 PACKAGE_VER_PATCH=00
 
-include $(XDAQ_ROOT)/config/Makefile.rules
-include $(XDAQ_ROOT)/config/mfRPM.rules
-
 Sources = \
         Supervised.cc \
 	version.cc
