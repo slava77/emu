@@ -23,6 +23,7 @@
 #include "emu/daq/server/Base.h"
 #include "emu/daq/server/i2oMsg.h"
 #include "emu/daq/writer/RawDataFile.h"
+#include "emu/daq/writer/RateLimiter.h"
 #include "emu/daq/rui/i2oFirstEventNumberMsg.h"
 #include "emu/daq/rui/STEPEventCounter.h"
 
@@ -153,6 +154,12 @@ private:
   int                                 nReadingPassesInEvent_;
   bool                                insideEvent_;
   unsigned short                      errorFlag_;
+  // file writing rate limiter
+  emu::daq::writer::RateLimiter       *rateLimiter_;
+  xdata::UnsignedLong                 fileWritingRateLimitInHz_;
+  xdata::UnsignedLong                 fileWritingRateSampleSize_;
+  xdata::Boolean                      fileWritingVetoed_;
+
   // In STEP runs, count on each DDU input the number of events it's contributed to with data
   bool                                isSTEPRun_;
   emu::daq::rui::STEPEventCounter     STEPEventCounter_;
