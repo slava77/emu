@@ -1,30 +1,34 @@
 #ifndef __WEBREPORTER_H__
 #define __WEBREPORTER_H__
 
+#include "emu/base/WebReportItem.h"
+
 #include "xdaq/WebApplication.h"
 #include "xgi/Method.h"
 
 #include <string>
-#include <map>
+#include <vector>
 
 namespace emu { namespace base {
 
-class WebReporter : public virtual xdaq::WebApplication
-{
-public:
-  XDAQ_INSTANTIATOR();
+  using namespace std;
 
-  WebReporter(xdaq::ApplicationStub *stub)
-    throw (xdaq::exception::Exception);
-  
-protected:
-  void ForEmuPage1(xgi::Input *in, xgi::Output *out)
-    throw (xgi::exception::Exception);
+  class WebReporter : public virtual xdaq::WebApplication
+  {
+  public:
+    XDAQ_INSTANTIATOR();
 
-  std::string getDateTime();
+    WebReporter(xdaq::ApplicationStub *stub)
+      throw (xdaq::exception::Exception);
   
-  virtual std::map<std::string,std::string> materialToReportOnPage1()=0;
-};
+  protected:
+    void ForEmuPage1(xgi::Input *in, xgi::Output *out)
+      throw (xgi::exception::Exception);
+
+    string getLocalDateTime();
+  
+    virtual vector<emu::base::WebReportItem> materialToReportOnPage1()=0;
+  };
 
 }} // namespace emu::base
 
