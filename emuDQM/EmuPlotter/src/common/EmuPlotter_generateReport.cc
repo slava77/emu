@@ -1581,7 +1581,7 @@ void EmuPlotter::saveReportJSON(std::string filename)
       std::string scope = "CSC";
       out << "{\"objID\": \"" << itr->first << "\", \"name\": \"" << itr->first << "\", \"list\": [" << std::endl;
       for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-        out << "\t\{"testID\": \"" << err_itr->testID
+        out << "\t{\"testID\": \"" << err_itr->testID
                 << "\", \"scope\": \"" << scope
                 << "\", \"descr\": \"" << err_itr->descr
                 << "\", \"severity\": \"" << err_itr->severity << "\"}";
