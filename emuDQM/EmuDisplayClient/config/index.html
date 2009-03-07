@@ -351,6 +351,15 @@ var CSC_TYPES = [
 	]
 ];
 
+function addPadding(num,count,pad)
+{
+	var numStr = num + '';
+	while(numStr.length < count) {
+	numStr = pad + numStr;
+	}
+	return numStr;
+}
+
 function loadPlot() {
 	// var imgurl = Folder+"/"+Canvas;
 	// var objname = Canvas.substr(Canvas.search("/"), Canvas.length);
@@ -590,9 +599,10 @@ function showCSCTable(id)
 
 							for (var k=1; k<= num_cscs; k++) {
 								if (num_cscs==18) 
-									out += "<td class='me_csc' id='"+(csctype+"/"+k)+"' colspan='2'>"+k+"</td>";
+									out += "<td class='me_csc' id='"+(csctype+"/"+addPadding(k,2,'0'))+"' colspan='2'>"+k+"</td>";
 								else 
-									out += "<td class='me_csc' id='"+(csctype+"/"+k)+"'>"+k+"</td>";
+									out += "<td class='me_csc' id='"+(csctype+"/"+addPadding(k,2,'0'))+"'>"+k+"</td>";
+								
 							}
 							if (j>0) out += "</tr>";
 						}
@@ -1471,13 +1481,13 @@ function showCSCCounters()
 					bcolor='white';
 					color="black";
 					badclr='#FFD0D0';
-					if ((100*alct/(dmb-bad))<50) { color="red"; bcolor=badclr; cnt_bad_alct++;}
+					if ((100*alct/(dmb-bad))<30) { color="red"; cnt_bad_alct++;}
 					stats_out+="A:<font color='"+color+"'>"+(100*(alct/(dmb-bad))).toFixed(1)+"</font>;";
 					color="black";
-					if ((100*clct/(dmb-bad))<50) { color="red"; bcolor=badclr; cnt_bad_clct++;}
+					if ((100*clct/(dmb-bad))<30) { color="red"; cnt_bad_clct++;}
 					stats_out+="T:<font color='"+color+"'>"+(100*(clct/(dmb-bad))).toFixed(1)+"</font>;";
 					color="black";
-					if ((100*cfeb/(dmb-bad))<50) { color="red"; bcolor=badclr; cnt_bad_cfeb++;}
+					if ((100*cfeb/(dmb-bad))<30) { color="red"; cnt_bad_cfeb++;}
 					stats_out+="C:<font color='"+color+"'>"+(100*(cfeb/(dmb-bad))).toFixed(1)+"</font>";// ;Bad:"+bad;
 				
 					color="black";
