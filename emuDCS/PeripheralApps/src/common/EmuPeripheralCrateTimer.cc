@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.4 2009/02/18 15:48:51 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.5 2009/03/07 11:44:24 liu Exp $
 
 #include "EmuPeripheralCrateTimer.h"
 
@@ -16,7 +16,7 @@
 namespace emu {
   namespace pc {
 
-EmuPeripheralCrateTimer::EmuPeripheralCrateTimer(xdaq::ApplicationStub * s): emu::base::Supervised(s)
+EmuPeripheralCrateTimer::EmuPeripheralCrateTimer(xdaq::ApplicationStub * s): EmuPeripheralCrateBase(s)
 {	
   //
   xoap::bind(this, &EmuPeripheralCrateTimer::onEnable,    "Enable",    XDAQ_NS_URI);
@@ -141,51 +141,6 @@ void EmuPeripheralCrateTimer::MainPage(xgi::Input * in, xgi::Output * out ) thro
   //
   return;
   //
-}
-//
-//
-////////////////////////////////////////////////////////////////////
-// sending and receiving soap commands
-////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateTimer::PCsendCommand(std::string command, std::string klass)
-  throw (xoap::exception::Exception, xdaq::exception::Exception){
-  //
-  // find applications
-  std::set<xdaq::ApplicationDescriptor *> apps;
-  //
-  try {
-    apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
-  }
-  // 
-  catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    return; // Do nothing if the target doesn't exist
-  }
-  //
-  // prepare a SOAP message
-  xoap::MessageReference message = PCcreateCommandSOAP(command);
-  xoap::MessageReference reply;
-  xdaq::ApplicationDescriptor *ori=this->getApplicationDescriptor();
-  //
-  // send the message one-by-one
-  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-  for (; i != apps.end(); ++i) {
-    // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *ori, *(*i));
-    //
-    //      PCanalyzeReply(message, reply, *i);
-  }
-}
-//
-xoap::MessageReference EmuPeripheralCrateTimer::PCcreateCommandSOAP(std::string command) {
-  //
-  //This is copied from CSCSupervisor::createCommandSOAP
-  //
-  xoap::MessageReference message = xoap::createMessage();
-  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  xoap::SOAPName name = envelope.createName(command, "xdaq", "urn:xdaq-soap:3.0");
-  envelope.getBody().addBodyElement(name);
-  //
-  return message;
 }
 
 void EmuPeripheralCrateTimer::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)

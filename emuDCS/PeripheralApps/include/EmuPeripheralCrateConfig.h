@@ -61,12 +61,12 @@
 #include "BoardsDB.h"
 #include "EmuTStore.h"
 //
-#include "emu/base/Supervised.h"
+#include "EmuPeripheralCrateBase.h"
 
 namespace emu {
   namespace pc {
 
-class EmuPeripheralCrateConfig: public emu::base::Supervised, xdata::ActionListener
+class EmuPeripheralCrateConfig: public EmuPeripheralCrateBase
 {
   //
 protected:
@@ -302,7 +302,6 @@ public:
   XDAQ_INSTANTIATOR();
   //
   EmuPeripheralCrateConfig(xdaq::ApplicationStub * s);
-  void actionPerformed (xdata::Event& e);
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MainPage(xgi::Input * in, xgi::Output * out );
 
@@ -562,8 +561,6 @@ private:
   bool print_stuff;
   char date_and_time_[13];
   //
-  xoap::MessageReference PCcreateCommandSOAP(std::string command);
-  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
     
 };
 

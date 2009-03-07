@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.3 2009/02/17 14:55:23 liu Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.4 2009/03/07 11:44:24 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -47,7 +47,7 @@
 #include <xdata/UnsignedLong.h>
 #include <xdata/Table.h>
 
-#include "emu/base/Supervised.h"
+#include "EmuPeripheralCrateBase.h"
 #include "EmuController.h"
 #include "Crate.h"
 #include "CrateUtilities.h"
@@ -58,8 +58,7 @@ using namespace std;
 namespace emu {
   namespace pc {
   
-//class EmuPeripheralCrateManager: public xdaq::Application
-class EmuPeripheralCrateManager: public emu::base::Supervised
+class EmuPeripheralCrateManager: public EmuPeripheralCrateBase
 {
   
 public:
@@ -69,20 +68,12 @@ public:
   xdata::UnsignedLong runNumber_;
   xdata::String ConfigureState_;
   xdata::Table table_;                            
-  int LTCDone;
   //
   //
   EmuPeripheralCrateManager(xdaq::ApplicationStub * s);
   //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void CheckEmuPeripheralCrateState(xgi::Input * in, xgi::Output * out );
-  int CompareEmuPeripheralCrateCalibrationState(std::string state_compare);
-  void UploadDB(xgi::Input * in, xgi::Output * out );
-  void AddRow(int Row,xdata::Table & table, std::vector< std::string> NewColumn);
-  int CompareEmuPeripheralCrateState(std::string state_compare);
-  //
-  void CheckEmuPeripheralCrateCalibrationState(xgi::Input * in, xgi::Output * out );
   //
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
@@ -91,13 +82,8 @@ public:
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception);
   //
-  string extractCalibrationState(xoap::MessageReference message);
-  string extractState(xoap::MessageReference message);
-  string extractRunNumber(xoap::MessageReference message);
-  //
   // What to do when we receive soap messages
   //
-  xoap::MessageReference LTCResponse (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
@@ -109,34 +95,6 @@ public:
   xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
 
 //
-  // Sending soap messages
-  //
-  xoap::MessageReference PCcreateCommandSOAP(string command);
-  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
-  //
-  void relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception);
-  std::vector < std::vector< std::string > > ConvertTable(xdata::Table thisTable) throw (xgi::exception::Exception);
-  std::string MIMETypeFromXdataType(std::string xdataType);
-  void addAttachment(xoap::MessageReference message,xdata::Serializable &data,std::string contentId);
-  void SetRandomDataTable(xdata::Table & table,int Row);
-  void OutputTable(xgi::Input * in, xgi::Output * out,xdata::Table &results);
-  void SendSOAPMessageOpenFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void SendSOAPMessageExecuteSequence(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void SendSOAPMessageXRelaySimple(std::string command,std::string setting);
-  void SendSOAPMessageXRelayBroadcast(std::string command,std::string setting);
-  void SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void SendSOAPMessageCalibrationXRelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  //  void PCanalyzeReply(xoap::MessageReference message, xoap::MessageReference reply,xdaq::ApplicationDescriptor *app);
-
-  xoap::MessageReference killAllMessage();
-  xoap::MessageReference QueryPeripheralCrateInfoSpace();
-  xoap::MessageReference QueryLTCInfoSpace();
-  xoap::MessageReference QueryJobControlInfoSpace();
-  xoap::MessageReference ExecuteCommandMessage(std::string port);
-  xoap::MessageReference createXRelayMessage(const std::string & command, const std::string & setting,
-                                             std::set<xdaq::ApplicationDescriptor * > descriptor );
-  //
 };
 
   } // namespace emu::pc

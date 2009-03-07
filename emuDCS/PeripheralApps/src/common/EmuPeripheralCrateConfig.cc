@@ -11,7 +11,6 @@
 #include <cstdlib>
 #include <iomanip>
 #include <time.h>
-#include "CCB.h"
 
 namespace emu {
   namespace pc {
@@ -70,7 +69,7 @@ const std::string ALCT_READBACK_FILENAME_ME41 = "readback-576-672";             
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
 /////////////////////////////////////////////////////////////////////
-EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): emu::base::Supervised(s)
+EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): EmuPeripheralCrateBase(s)
 {	
   //
   FirmwareDir_ = getenv("HOME");
@@ -950,19 +949,6 @@ void EmuPeripheralCrateConfig::haltAction(toolbox::Event::Reference e)
 void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   throw (toolbox::fsm::exception::Exception) {
   emu::base::Supervised::stateChanged(fsm);
-}
-
-void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
-  //
-  if (e.type() == "ItemRetrieveEvent") {
-    xdata::InfoSpace * is = xdata::InfoSpace::get("urn:xdaq-monitorable:EmuPeripheralCrateData");
-    is->lock();
-    std::string item = dynamic_cast<xdata::ItemRetrieveEvent&>(e).itemName();
-    if ( item == "myCounter")
-      myCounter_ = "meydev:Done" ;
-    std::cout << "Getting myCounter" << std::endl;
-    is->unlock();
-  }
 }
 
   void EmuPeripheralCrateConfig::CrateSelection(xgi::Input * in, xgi::Output * out ) 
@@ -14837,54 +14823,6 @@ xoap::MessageReference EmuPeripheralCrateConfig::LoadAllCfebPromUserid (xoap::Me
   SetCurrentCrate(this_crate_no_);
 
   return createReply(message);
-}
-// sending and receiving soap commands
-////////////////////////////////////////////////////////////////////
-    void EmuPeripheralCrateConfig::PCsendCommand(std::string command, std::string klass)
-  throw (xoap::exception::Exception, xdaq::exception::Exception){
-  //
-  //This is copied from CSCSupervisor::sendcommand;
-  //
-  // Exceptions:
-  // xoap exceptions are thrown by analyzeReply() for SOAP faults.
-  // xdaq exceptions are thrown by postSOAP() for socket level errors.
-  //
-  // find applications
-  std::set<xdaq::ApplicationDescriptor *> apps;
-  //
-  try {
-    apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
-  }
-  // 
-  catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    return; // Do nothing if the target doesn't exist
-  }
-  //
-  // prepare a SOAP message
-  xoap::MessageReference message = PCcreateCommandSOAP(command);
-  xoap::MessageReference reply;
-  xdaq::ApplicationDescriptor *ori=this->getApplicationDescriptor();
-  //
-  // send the message one-by-one
-  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-  for (; i != apps.end(); ++i) {
-    // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *ori, *(*i));
-    //
-    //      PCanalyzeReply(message, reply, *i);
-  }
-}
-
-xoap::MessageReference EmuPeripheralCrateConfig::PCcreateCommandSOAP(std::string command) {
-  //
-  //This is copied from CSCSupervisor::createCommandSOAP
-  //
-  xoap::MessageReference message = xoap::createMessage();
-  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  xoap::SOAPName name = envelope.createName(command, "xdaq", "urn:xdaq-soap:3.0");
-  envelope.getBody().addBodyElement(name);
-  //
-  return message;
 }
 
  }  // namespace emu::pc

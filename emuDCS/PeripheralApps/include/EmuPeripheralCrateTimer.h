@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.h,v 1.2 2009/02/17 14:55:24 liu Exp $
+// $Id: EmuPeripheralCrateTimer.h,v 1.3 2009/03/07 11:44:24 liu Exp $
 
 #ifndef _EmuPeripheralCrateTimer_h_
 #define _EmuPeripheralCrateTimer_h_
@@ -46,12 +46,12 @@
 #include "toolbox/task/TimerFactory.h"
 #include "toolbox/TimeInterval.h"
 
-#include "emu/base/Supervised.h"
+#include "EmuPeripheralCrateBase.h"
 
 namespace emu {
   namespace pc {
   
-class EmuPeripheralCrateTimer: public emu::base::Supervised,
+class EmuPeripheralCrateTimer: public EmuPeripheralCrateBase,
        public toolbox::task::TimerListener
 {
   
@@ -69,10 +69,6 @@ public:
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
-  // Sending soap messages
-  //
-  xoap::MessageReference PCcreateCommandSOAP(std::string command);
-  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
   //
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);

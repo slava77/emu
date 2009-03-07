@@ -23,6 +23,7 @@ Sources=\
         EmuTStore.cc \
         EmuPCrateConfigTStore.cc \
         EmuController.cc \
+        EmuPeripheralCrateBase.cc \
 	EmuPeripheralCrateBroadcast.cc \
         EmuPeripheralCrateConfig.cc \
         EmuPeripheralCrateCommand.cc \

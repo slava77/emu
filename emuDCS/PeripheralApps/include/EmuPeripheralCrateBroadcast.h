@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.21 2009/02/18 15:44:32 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.22 2009/03/07 11:44:23 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -69,13 +69,12 @@
 #include "VMECC.h"
 #include "ConnectionsDB.h"
 #include "BoardsDB.h"
-#include "emu/base/Supervised.h"
+#include "EmuPeripheralCrateBase.h"
 
 namespace emu {
   namespace pc {
   
-//class EmuPeripheralCrateBroadcast: public xdaq::Application
-class EmuPeripheralCrateBroadcast: public emu::base::Supervised
+class EmuPeripheralCrateBroadcast: public EmuPeripheralCrateBase
 {
   
 public:
@@ -135,10 +134,6 @@ public:
   xoap::MessageReference onEnableCalCFEBCrossTalk (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBSCAPed (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
-  // Sending soap messages
-  //
-  xoap::MessageReference PCcreateCommandSOAP(std::string command);
-  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
   //
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);

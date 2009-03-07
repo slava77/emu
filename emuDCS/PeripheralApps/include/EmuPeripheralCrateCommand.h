@@ -59,12 +59,12 @@
 #include "BoardsDB.h"
 #include "EmuTStore.h"
 //
-#include "emu/base/Supervised.h"
+#include "EmuPeripheralCrateBase.h"
 
 namespace emu {
   namespace pc {
   
-class EmuPeripheralCrateCommand: public emu::base::Supervised, xdata::ActionListener
+class EmuPeripheralCrateCommand: public EmuPeripheralCrateBase
 {
   //
 protected:
@@ -160,11 +160,6 @@ protected:
   int tmb_check_ok[60][9];
   int dmb_check_ok[60][9];
   //
-  std::vector<int> L1aLctCounter_;
-  std::vector<int> CfebDavCounter_;
-  std::vector<int> TmbDavCounter_;
-  std::vector<int> AlctDavCounter_;
-  //
   emu::pc::EmuEndcap * emuEndcap_;
   //
 public:
@@ -172,7 +167,6 @@ public:
   XDAQ_INSTANTIATOR();
   //
   EmuPeripheralCrateCommand(xdaq::ApplicationStub * s);
-  void actionPerformed (xdata::Event& e);
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MainPage(xgi::Input * in, xgi::Output * out );
 
@@ -206,9 +200,6 @@ private:
   void SetCurrentCrate(int crate);
   void CheckPeripheralCrateConfiguration();
   void CheckControllers();
-  //
-  xoap::MessageReference PCcreateCommandSOAP(std::string command);
-  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
     
 };
 
