@@ -46,6 +46,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::ResetAllCounters, "ResetAllCounters");
   xgi::bind(this,&EmuPeripheralCrateMonitor::FullResetTMBC, "FullResetTMBC");
   xgi::bind(this,&EmuPeripheralCrateMonitor::XmlOutput, "XmlOutput");
+  xgi::bind(this,&EmuPeripheralCrateMonitor::SwitchBoard, "SwitchBoard");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateStatus, "CrateStatus");
   xgi::bind(this,&EmuPeripheralCrateMonitor::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateMonitor::TCounterSelection, "TCounterSelection");
@@ -113,6 +114,13 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
 
   Monitor_On_ = false;
   Monitor_Ready_ = false;
+  fast_on = true;
+  slow_on = true;
+  extra_on = true;
+  reload_vcc = true;
+  fast_count = 0;
+  slow_count = 0;
+  extra_count = 0;
 
   global_config_states[0]="UnConfiged";
   global_config_states[1]="Configuring";
@@ -211,7 +219,8 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onFastLoop (xoap::MessageRefer
   throw (xoap::exception::Exception) 
 {
   // std::cout << "SOAP Fast Loop" << std::endl;
-  PublishEmuInfospace(1);
+  fast_count++;
+  if(fast_on) PublishEmuInfospace(1);
   return createReply(message);
 }
 
@@ -219,7 +228,8 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onSlowLoop (xoap::MessageRefer
   throw (xoap::exception::Exception) 
 {
   // std::cout << "SOAP Slow Loop" << std::endl;
-  PublishEmuInfospace(2);
+  slow_count++;
+  if(slow_on) PublishEmuInfospace(2);
   return createReply(message);
 }
 
@@ -227,7 +237,8 @@ xoap::MessageReference EmuPeripheralCrateMonitor::onExtraLoop (xoap::MessageRefe
   throw (xoap::exception::Exception) 
 {
   // std::cout << "SOAP Extra Loop" << std::endl;
-  PublishEmuInfospace(3);
+  extra_count++;
+  if(extra_on) PublishEmuInfospace(3);
   return createReply(message);
 }
 
@@ -241,6 +252,7 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
         //Create infospaces for monitoring
         monitorables_.clear();
         vcc_reset.clear();
+        crate_off.clear();
         for ( unsigned int i = 0; i < crateVector.size(); i++ )
         {
                 toolbox::net::URN urn = this->createQualifiedInfoSpace("EMu_"+(crateVector[i]->GetLabel())+"_PCrate");
@@ -250,6 +262,7 @@ void EmuPeripheralCrateMonitor::CreateEmuInfospace()
 
             // for VCC
                 vcc_reset.push_back(0);
+                crate_off.push_back(false);
 
             // for CCB, MPC, TTC etc.
                 is->fireItemAvailable("CCBcounter",new xdata::Vector<xdata::UnsignedShort>());
@@ -294,20 +307,33 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
       //update infospaces
       for ( unsigned int i = 0; i < crateVector.size(); i++ )
       {
+          if(crate_off[i]) continue;
           is = xdata::getInfoSpaceFactory()->get(monitorables_[i]);
           now_crate=crateVector[i];
-          if(cycle==3 && now_crate && !(now_crate->IsAlive()))
+
+          // begin: reload VCC's FPGA (F9)
+          if(cycle==3 && now_crate && reload_vcc && !(now_crate->IsAlive()))
           {
-             bool cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
-             if(!cr)
-             {   
-                now_crate->vmeController()->reset();
-                ::sleep(1);
-                vcc_reset[i] = vcc_reset[i] + 1;
-                cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
+             if (now_crate->vmeController()->SelfTest())
+             {
+                bool cr = now_crate->vmeController()->exist(13);
+                if (cr)
+                {  now_crate->SetLife( cr ); 
+                }
+                else 
+                {
+                   now_crate->vmeController()->reset();
+                   vcc_reset[i] = vcc_reset[i] + 1;
+                   // ::sleep(1);
+                   // cr = (now_crate->vmeController()->SelfTest()) && (now_crate->vmeController()->exist(13));
+                   // now_crate->SetLife( cr );
+                   now_crate->SetLife( true );
+                   continue;  // skip this round of reading if the VCC has been reloaded
+                }
              }
-             now_crate->SetLife( cr );
           }
+          // end: reload
+
           if(now_crate && now_crate->IsAlive()) 
           {
              if(cycle==3)
@@ -2687,6 +2713,48 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
     *out << cgicc::input().set("type","submit").set("value","Reset Whole Endcap") << std::endl ;
     *out << cgicc::form() << std::endl ;
 
+}
+
+void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception)
+{
+  cgicc::CgiEnvironment cgiEnvi(in);
+  //
+  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+  Page=cgiEnvi.getQueryString();
+  std::string command_name=Page.substr(0,Page.find("=", 0) );
+  std::string command_argu=Page.substr(Page.find("=", 0)+1);
+
+  if (command_name=="CRATEOFF")
+  {
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(command_argu==crateVector[i]->GetLabel()) crate_off[i] = true;
+        std::cout << "SwitchBoard: disable crate " << command_argu << std::endl;
+     }
+  }
+  else if (command_name=="CRATEON")
+  {
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(command_argu==crateVector[i]->GetLabel()) crate_off[i] = false;
+        std::cout << "SwitchBoard: enable crate " << command_argu << std::endl;
+     }
+  }
+  else if (command_name=="LOOPOFF")
+  {
+     if (command_argu=="FAST") fast_on = false;
+     else if (command_argu=="SLOW") slow_on = false;
+     else if (command_argu=="EXTRA") extra_on = false;
+     std::cout << "SwitchBoard: " << command_argu << " LOOP disabled" << std::endl;
+  }
+  else if (command_name=="LOOPON")
+  {
+     if (command_argu=="FAST") fast_on = true;
+     else if (command_argu=="SLOW") slow_on = true;
+     else if (command_argu=="EXTRA") extra_on = true;
+     std::cout << "SwitchBoard: " << command_argu << " LOOP enabled" << std::endl;
+  }
 }
 
 void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out ) 
