@@ -285,19 +285,19 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  if (fract > 1.2) {
 	    std::string diag=Form("Hot readout DDU: %d events, %.f times more than average DDU events counter (avg events=%d)",
 				  stats_itr->second, fract, ddu_avg_events);
-	    dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "HOT_DDU_IN_READOUT"));
+	    dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "ALL_HOT_DDU_IN_READOUT"));
 	    hot_ddus++;
 	  } else if (fract < 0.8) {
 	    std::string diag=Form("Low readout DDU: %d events, %f fraction of average DDU events counter (avg events=%d)",
 				  stats_itr->second, fract, ddu_avg_events);
-	    dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "LOW_DDU_IN_READOUT"));
+	    dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "ALL_LOW_DDU_IN_READOUT"));
 	    low_ddus++;
 	  }
 	}
       }
       
     } else {
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with data", ddu_cntr),CRITICAL,"NO_DDU_IN_READOUT"));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with data", ddu_cntr),CRITICAL,"ALL_NO_DDU_IN_READOUT"));
       //      report["EMU Summary"].push_back(Form("%d DDUs with data [critical]", ddu_cntr));
     }
   } else {
