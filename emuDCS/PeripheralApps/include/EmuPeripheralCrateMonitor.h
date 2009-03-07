@@ -127,10 +127,13 @@ protected:
   
   std::vector< std::string> monitorables_;
   bool Monitor_On_, Monitor_Ready_;
+  bool fast_on, slow_on, extra_on, reload_vcc;
+  int fast_count, slow_count, extra_count;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   toolbox::task::Timer * timer_;
   //
   std::vector<int> vcc_reset;
+  std::vector<bool> crate_off;
   //
   std::vector< std::string> TCounterName;
   std::vector< std::string> DCounterName;
@@ -178,6 +181,7 @@ private:
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void SwitchBoard(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   // define states
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void dummyAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
