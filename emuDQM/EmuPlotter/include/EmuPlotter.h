@@ -152,7 +152,9 @@ public:
   int save_CSCCounters(std::string rootfile,std::string path,std::string runname="");
   void showReport();
   void saveReport(std::string filename);
-   
+  void saveReportJSON(std::string filename);
+     
+ 
   bool isListModified() { return fListModified;}
   bool isBusy() { return fBusy;};
   void setListModified(bool flag) { fListModified = flag;}
