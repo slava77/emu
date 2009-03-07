@@ -274,8 +274,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     if (ddu_cntr) {
       int hot_ddus = 0;
       int low_ddus = 0;
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs in Readout", ddu_cntr),NONE));
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of DDU events: %d ", ddu_evt_cntr),NONE));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs in Readout", ddu_cntr),NONE,"ALL_DDU_IN_READOUT"));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of DDU events: %d ", ddu_evt_cntr),NONE,"ALL_DDU_EVENTS_COUNTER"));
       ddu_avg_events=ddu_evt_cntr/ddu_cntr;
       dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Average number of events per DDU: %d ", ddu_avg_events),NONE));
       if (ddu_avg_events >= 500) { // Detect different efficiency DDUs if average number of events is reasonable (>500)
@@ -285,19 +285,19 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  if (fract > 1.2) {
 	    std::string diag=Form("Hot readout DDU: %d events, %.f times more than average DDU events counter (avg events=%d)",
 				  stats_itr->second, fract, ddu_avg_events);
-	    dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "All_DDUs_in_Readout","EMU_Test01_DDUs_in_Readout"));
+	    dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "HOT_DDU_IN_READOUT"));
 	    hot_ddus++;
 	  } else if (fract < 0.8) {
 	    std::string diag=Form("Low readout DDU: %d events, %f fraction of average DDU events counter (avg events=%d)",
 				  stats_itr->second, fract, ddu_avg_events);
-	    dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "All_DDUs_in_Readout","EMU_Test01_DDUs_in_Readout"));
+	    dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "LOW_DDU_IN_READOUT"));
 	    low_ddus++;
 	  }
 	}
       }
       
     } else {
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with data", ddu_cntr),CRITICAL,"All_DDUs_in_Readout","EMU_Test01_DDUs_in_Readout"));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with data", ddu_cntr),CRITICAL,"NO_DDU_IN_READOUT"));
       //      report["EMU Summary"].push_back(Form("%d DDUs with data [critical]", ddu_cntr));
     }
   } else {
@@ -327,9 +327,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       }
     if (ddu_with_errs) {
       dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with Trailer Error Status", ddu_with_errs), 
-							  NONE, "All_DDUs_Trailer_Errors", "EMU_Test03_DDU_Reported_Errors"));
+							  NONE, "ALL_DDU_WITH_TRAILER_ERRORS"));
       dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of DDU events with Trailer Error Status: %d ", ddu_err_cntr), 
-							  NONE, "All_DDUs_Trailer_Errors", "EMU_Test03_DDU_Reported_Errors"));
+							  NONE, "ALL_DDU_WITH_TRAILER_ERRORS"));
       if (ddu_avg_events >= 500) { // Detect DDUs with Trailer Errors Status if average number of events is reasonable (>500)
 	for (stats_itr=ddu_err_stats.begin(); stats_itr != ddu_err_stats.end(); ++stats_itr) {	  
 	  std::string dduName=stats_itr->first;
@@ -342,7 +342,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  else severity=MINOR;
 	  std::string diag=Form("DDU Trailer Error Status: %d events, (%f%%)",
 				stats_itr->second, fract);
-	  dqm_report.addEntry(dduName, entry.fillEntry(diag, severity, "All_DDUs_Trailer_Errors", "EMU_Test03_DDU_Reported_Errors"));
+	  dqm_report.addEntry(dduName, entry.fillEntry(diag, severity, "DDU_WITH_TRAILER_ERRORS"));
 	}
       }
       
@@ -375,8 +375,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	}
       }
     if (ddu_with_fmt_errs) {
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with detected Format Errors", ddu_with_fmt_errs), NONE));
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of DDU events with detected Format Errors: %d ", ddu_fmt_err_cntr), NONE));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDUs with detected Format Errors", ddu_with_fmt_errs), NONE,"ALL_DDU_WITH_FORMAT_ERRORS"));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of DDU events with detected Format Errors: %d ", ddu_fmt_err_cntr), NONE,"ALL_DDU_WITH_FORMAT_ERRORS"));
       if (ddu_avg_events >= 500) { // Detect DDUs with Format Errors if average number of events is reasonable (>500)
 	for (stats_itr=ddu_fmt_err_stats.begin(); stats_itr != ddu_fmt_err_stats.end(); ++stats_itr) {	  
 	  std::string dduName=stats_itr->first;
@@ -389,7 +389,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  else severity=MINOR;
 	  std::string diag=Form("DDU Detected Format Errors: %d events, (%f%%)",
 				stats_itr->second, fract);
-	  dqm_report.addEntry(dduName, entry.fillEntry(diag, severity,"All_DDUs_Format_Errors", "EMU_Test04_DDU_Format_Errors" ));
+	  dqm_report.addEntry(dduName, entry.fillEntry(diag, severity,"DDU_WITH_FORMAT_ERRORS"));
 	}
       }
       
@@ -419,7 +419,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  }
 
 	}
-    dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Live Inputs detected", ddu_live_inputs)));
+    dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Live Inputs detected", ddu_live_inputs),NONE,"ALL_DDU_WITH_LIVE_INPUTS"));
       
     delete me;
   } else {
@@ -446,7 +446,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  }
 
 	}
-    dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Inputs with Data detected", ddu_inp_w_data)));
+    dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Inputs with Data detected", ddu_inp_w_data),NONE,"ALL_DDU_WITH_DATA"));
     if (ddu_avg_events >= 500) {
       for (stats_itr= ddu_inp_data_stats.begin(); stats_itr !=  ddu_inp_data_stats.end(); ++stats_itr) {	  
 	std::string dduName=stats_itr->first;
@@ -457,7 +457,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	    if ( ((live_inputs>>i) & 0x1) && !((with_data>>i) & 0x01))
 	      {
 		std::string diag=Form("DDU Input #%d: No Data",i+1);
-		dqm_report.addEntry(dduName, entry.fillEntry(diag, NONE, "All_DDUs_Inputs_with_Data", "EMU_Test05_DDU_Inputs_Status"));
+		dqm_report.addEntry(dduName, entry.fillEntry(diag, NONE, "DDU_NO_INPUT_DATA"));
 
 	      }
 	  }
@@ -492,7 +492,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
 	}
     if (ddu_inp_w_errors) {
-     dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Inputs in ERROR state detected on %d DDUs", ddu_inp_w_errors, ddu_inp_w_errors_stats.size())));
+     dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d DDU Inputs in ERROR state detected on %d DDUs", ddu_inp_w_errors, ddu_inp_w_errors_stats.size()),NONE, "ALL_DDU_INPUT_IN_ERROR_STATE"));
       if (ddu_avg_events >= 500) { // Detect DDUs Inputs in ERROR state if average number of events is reasonable (>500)
 	for (stats_itr= ddu_inp_w_errors_stats.begin(); stats_itr !=  ddu_inp_w_errors_stats.end(); ++stats_itr) {	  
 	  std::string dduName=stats_itr->first;
@@ -502,7 +502,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	      if ( (err_inputs>>i) & 0x1)
 		{
 		  std::string diag=Form("DDU Input #%d: detected ERROR state",i+1);
-		  dqm_report.addEntry(dduName, entry.fillEntry(diag, NONE, "All_DDUs_Inputs_Errors", "EMU_Test06_DDU_Inputs_in_Error_State"));
+		  dqm_report.addEntry(dduName, entry.fillEntry(diag, NONE, "DDU_INPUT_IN_ERROR_STATE" ));
 
 		}
 	    }
@@ -535,7 +535,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
 	}
     if (ddu_inp_w_warn) {
-      dqm_report.addEntry("EMU Summary",entry.fillEntry(Form("%d DDU Inputs in WARNING state detected on %d DDUs", ddu_inp_w_warn, ddu_inp_w_warn_stats.size())));
+      dqm_report.addEntry("EMU Summary",entry.fillEntry(Form("%d DDU Inputs in WARNING state detected on %d DDUs", ddu_inp_w_warn, ddu_inp_w_warn_stats.size()), NONE, "ALL_DDU_INPUT_IN_WARNING_STATE"));
       if (ddu_avg_events >= 500) { // Detect DDUs Inputs in ERROR state if average number of events is reasonable (>500)
 	for (stats_itr= ddu_inp_w_warn_stats.begin(); stats_itr !=  ddu_inp_w_warn_stats.end(); ++stats_itr) {	  
 	  std::string dduName=stats_itr->first;
@@ -545,7 +545,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	      if ( (warn_inputs>>i) & 0x1)
 		{
 		  std::string diag=Form("DDU Input #%d: detected WARNING state",i+1);
-		  dqm_report.addEntry(dduName, entry.fillEntry(diag));
+		  dqm_report.addEntry(dduName, entry.fillEntry(diag, NONE, "DDU_INPUT_IN_WARNING_STATE"));
 
 		}
 	    }
@@ -595,23 +595,23 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  if (fract >= 5.) {
 	    std::string diag=Form("Hot chamber: %d events, %.f times more than average events counter (avg events=%d)",
 				  stats_itr->second, fract, csc_avg_events);
-	    dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE));
+	    dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE, "CSC_HOT_CHAMBER"));
 	    hot_cscs++;
 	  } else if (fract < 0.05) {
 	    std::string diag=Form("Low efficiency chamber: %d events, %f fraction of average events counter (avg events=%d)",
 				  stats_itr->second, fract, csc_avg_events);
-	    dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE));
+	    dqm_report.addEntry(cscName, entry.fillEntry(diag, SEVERE, "CSC_LOW_EFF_CHAMBER"));
 	    low_cscs++;
 	  }
 	}
       }
       
-      if (hot_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Hot CSCs", hot_cscs), CRITICAL));
-      if (low_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Low Efficiency CSCs", low_cscs), SEVERE));
+      if (hot_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Hot CSCs", hot_cscs), CRITICAL, "ALL_HOT_CHAMBERS"));
+      if (low_cscs) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d Low Efficiency CSCs", low_cscs), SEVERE, "ALL_LOW_EFF_CHAMBERS"));
 
 
     } else {
-      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr), CRITICAL));
+      dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with data", csc_cntr), CRITICAL, "ALL_CHAMBERS_WITHOUT_DATA"));
     }
   } else {
     LOG4CPLUS_WARN(logger_,"Can not find " << hname);
@@ -651,7 +651,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 		else if (fract > 1.) severity=TOLERABLE;
 		else severity=MINOR;
 		std::string diag=Form("Format Errors: %d events (%.3f%%))",events, fract);
-		dqm_report.addEntry(cscName,entry.fillEntry(diag,severity));
+		dqm_report.addEntry(cscName,entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
 
 
 		// --- Get Format Errors Details
@@ -670,10 +670,15 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 			{
 			  uint32_t events = uint32_t(h4->GetBinContent(1, err));
 			  float fract=z*100;
+			  DQM_SEVERITY severity=NONE;
+	               		 if (fract >= 80.) severity=CRITICAL;
+        	       		 else if (fract >= 10.) severity=SEVERE;
+                		else if (fract > 1.) severity=TOLERABLE;
+                		else severity=MINOR;
 			  std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
 			  std::string diag=std::string(Form("\tFormat Errors: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
 			  // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
-			  dqm_report.addEntry(cscName, entry.fillEntry(diag));
+			  dqm_report.addEntry(cscName, entry.fillEntry(diag,severity,"CSC_WITH_FORMAT_ERRORS"));
 			}
 		    }
 		  }
@@ -681,7 +686,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
 	      }
 	  }
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with Format Errors", csc_cntr)));
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with Format Errors", csc_cntr),NONE,"ALL_CHAMBERS_WITH_FORMAT_ERRORS"));
     } else {
       LOG4CPLUS_WARN(logger_,"Can not find " << hname);
     }
@@ -714,7 +719,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 		else if (fract > 1.) severity=TOLERABLE;
 		else severity=MINOR;
 		std::string diag=Form("DMB-Input FIFO Full: %d events (%.3f%%)",events, fract);
-		dqm_report.addEntry(cscName, entry.fillEntry(diag, severity));
+		dqm_report.addEntry(cscName, entry.fillEntry(diag, severity,"CSC_WITH_INPUT_FIFO_FULL"));
 
 
 		// --- Get Format Errors Details
@@ -733,10 +738,15 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 			{
 			  uint32_t events = uint32_t(h4->GetBinContent(1, err));
 			  float fract=z*100;
+			  DQM_SEVERITY severity=NONE;
+                if (fract >= 80.) severity=CRITICAL;
+                else if (fract >= 10.) severity=SEVERE;
+                else if (fract > 1.) severity=TOLERABLE;
+                else severity=MINOR;
 			  std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
 			  std::string diag=std::string(Form("DMB-Input FIFO Full: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
 			  // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
-			  dqm_report.addEntry(cscName, entry.fillEntry(diag));
+			  dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_INPUT_FIFO_FULL"));
 			}
 		    }
 		  }
@@ -744,7 +754,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
 	      }
 	  }
-       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with DMB-Input FIFO Full", csc_cntr)));
+       if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with DMB-Input FIFO Full", csc_cntr),NONE,"ALL_CHAMBERS_WITH_INPUT_FIFO_FULL"));
     }
 
      // == Check for chambers with DMB-Input Timeout 
@@ -774,7 +784,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 		else if (fract > 1.) severity=TOLERABLE;
 		else severity=MINOR;
 		std::string diag=Form("DMB-Input Timeout: %d events (%.3f%%)",events, fract);
-		dqm_report.addEntry(cscName, entry.fillEntry(diag,severity));
+		dqm_report.addEntry(cscName, entry.fillEntry(diag,severity, "CSC_WITH_INPUT_TIMEOUT"));
 
 
 		// --- Get Format Errors Details
@@ -793,10 +803,15 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 			{
 			  uint32_t events = uint32_t(h4->GetBinContent(1, err));
 			  float fract=z*100;
+			    DQM_SEVERITY severity=NONE;
+	                if (fract >= 80.) severity=CRITICAL;
+        	        else if (fract >= 10.) severity=SEVERE;
+                	else if (fract > 1.) severity=TOLERABLE;
+               		 else severity=MINOR;
 			  std::string error_type = std::string(h3->GetYaxis()->GetBinLabel(err));
 			  std::string diag=std::string(Form("DMB-Input Timeout: %s %d events (%.3f%%)",error_type.c_str(), events, fract));
 			  // LOG4CPLUS_WARN(logger_, cscTag << ": "<< diag);
-			  dqm_report.addEntry(cscName, entry.fillEntry(diag));
+			  dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_INPUT_TIMEOUT" ));
 			}
 		    }
 		  }
@@ -804,7 +819,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
 	      }
 	  }
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with DMB-Input Timeouts", csc_cntr)));
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with DMB-Input Timeouts", csc_cntr), NONE, "ALL_CHAMBERS_WITH_INPUT_TIMEOUT"));
     }
 	
   // == Check for missing ALCT data blocks
@@ -823,11 +838,11 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	    float fract=z*100;
 	    std::string diag=Form("No ALCT Data: %.1f%%",fract);
 
-	    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+	    dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_WITHOUT_ALCT"));
 	  }
 
 	}
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without ALCT data", csc_cntr)));
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without ALCT data", csc_cntr), NONE, "ALL_CHAMBERS_WITHOUT_ALCT"));
     }
 
   // == Check for missing CLCT data blocks
@@ -846,11 +861,11 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	    float fract=z*100;
 	    std::string diag=Form("No CLCT Data: %.1f%%",fract);
 
-	    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+	    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CLCT"));
 	  }
 
 	}
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without CLCT data", csc_cntr)));
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without CLCT data", csc_cntr), NONE, "ALL_CHAMBERS_WITHOUT_CLCT"));
     }
 
   // == Check for missing CFEB data blocks
@@ -869,11 +884,11 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	    float fract=z*100;
 	    std::string diag=Form("No CFEB Data: %.1f%%",fract);
 
-	    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+	    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITHOUT_CFEB"));
 	  }
 
 	}
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without CFEB data", csc_cntr)));
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs without CFEB data", csc_cntr),NONE,"ALL_CHAMBERS_WITHOUT_CFEB"));
     }
 
 
@@ -902,7 +917,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
 	    std::string diag=Form("L1A out of sync: %d events (%.3f%%)",events, fract);
 
-	    dqm_report.addEntry(cscName, entry.fillEntry(diag,severity));
+	    dqm_report.addEntry(cscName, entry.fillEntry(diag,severity, "CSC_WITH_L1A_OUT_OF_SYNC"));
 
 	    MonitorElement* me3 = 0;
 
@@ -923,7 +938,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 		if (h3->GetMean() != 0) {
 		  diag=Form("L1A out of sync: %s",(l1a_histos[k].first).c_str());
 
-		  dqm_report.addEntry(cscName, entry.fillEntry(diag));
+		  dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_L1A_OUT_OF_SYNC"));
 		}
 	      }
 
@@ -932,7 +947,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  }
 
 	}
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with L1A out of sync", csc_cntr)));
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with L1A out of sync", csc_cntr),NONE,"ALL_CHAMBERS_WITH_L1A_OUT_OF_SYNC"));
     }
 
   // == Perform per Chamber Checks
@@ -941,7 +956,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     //    std::cout << getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition) << std::endl;
     std::string cscName = getCSCName(CSC_folders[i], crate, slot, CSCtype, CSCposition);
     int nCFEBs = getNumCFEBs(cscName);
-    int nStrips = getNumStrips(cscName);
+    // int nStrips = getNumStrips(cscName);
     int nWireGroups = getNumWireGroups(cscName);
     std::vector<int> deadCFEBs(5,0);
     std::vector<int> lowEffCFEBs(5,0);
@@ -972,7 +987,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	    badCFEBs[icfeb]=1;
 	    nbadCFEBs ++;
 	    
-	    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+	    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_WITH_LOW_CFEB_DAV_EFF"));
 	  }
 	}
       }
@@ -1020,7 +1035,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 			if (cfeb_sca_sum == 0)
 			  {	  
 			    std::string diag=Form("CFEB No SCA Data: CFEB%d Layer%d", icfeb+1, ilayer);	  
-			    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+			    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL,"CSC_CFEB_NO_SCA_DATA"));
 			    noSCAs++;
 			    // std::cout << cscName << " " << diag << std::endl;
 			  }
@@ -1044,18 +1059,18 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 		  
 				if ( (SCAsums[icfeb] < low_sca_thresh*avg_sca_occupancy) && (lowEffCFEBs[icfeb] != 1))
 				  {
-				    std::string diag=Form("CFEB Low SCA Occupancy: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
+				    std::string diag=Form("CFEB Low SCA Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
 							  (SCAsums[icfeb]/avg_sca_occupancy)*100., low_sca_thresh*100 );	  
-				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+				    dqm_report.addEntry(cscName, entry.fillEntry(diag, CRITICAL, "CSC_CFEB_SCA_LOW_EFF"));
 				    // std::cout << cscName << " "  << diag << std::endl;
 				    isLowEff = true;
 				  } 
 
 				if ( SCAsums[icfeb] >= high_sca_thresh*avg_sca_occupancy )
 				  {
-				    std::string diag=Form("CFEB Noisy CFEB SCAs: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,  
+				    std::string diag=Form("CFEB Noisy/Hot CFEB SCAs: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,  
 							  SCAsums[icfeb]/avg_sca_occupancy, high_sca_thresh);	  
-				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_SCA_NOISY"));
 				    // std::cout << cscName << " " << diag << std::endl;
 				  }
 
@@ -1066,7 +1081,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 				      {
 					std::string diag = Form("CFEB Hot/Noisy SCA channel: CFEB%d Layer%d Ch#%d (occupancy %.1f times > average)", icfeb+1, ilayer, ch+icfeb*16, 
 								ch_val/avg_sca_ch_occupancy);
-					dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE));
+					dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_SCA_NOISY_CHANNEL"));
 					//					std::cout << cscName << " " << diag << std::endl;
 				      }
 				    /*
@@ -1126,7 +1141,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 		      if (cfeb_comp_sum == 0 && (lowEffCFEBs[icfeb] != 1)) {
 	  
 			std::string diag=Form("CFEB No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);	  
-			dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+			dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_NO_COMPARATORS_DATA"));
 			noComps++;
 			// std::cout << cscName << " " << diag << std::endl;
 		      }	    
@@ -1151,9 +1166,9 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 		  
 				if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
 				  {
-				    std::string diag=Form("CFEB Low Comparators Occupancy: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
+				    std::string diag=Form("CFEB Low Comparators Efficiency: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
 							  (Compsums[icfeb]/avg_comp_occupancy)*100., low_comp_thresh*100 );	  
-				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_COMPARATORS_LOW_EFF"));
 				    // std::cout << cscName << " "  << diag << std::endl;
 				  } 
 
@@ -1161,7 +1176,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 				  {
 				    std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,  
 							  Compsums[icfeb]/avg_comp_occupancy, high_comp_thresh);	  
-				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_CFEB_COMPARATORS_NOISY"));
 				    //  std::cout << cscName << " " << diag << std::endl;
 				  }
 
@@ -1173,7 +1188,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 					std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)", 
 								icfeb+1, ilayer, ch+icfeb*32, 
 								ch_val/avg_comp_ch_occupancy);
-					dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE));
+					dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_CFEB_COMPARATORS_NOISY_CHANNEL"));
 					// std::cout << cscName << " " << diag << std::endl;
 				      }
 				    /*
@@ -1195,47 +1210,6 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  }
       } // expecting active CFEBs
 
-      /*      
-      // -- CFEB Comparators Occupancies Checks      
-      for (int ilayer=1; ilayer<=6; ilayer++) {
-	std::string name = Form("CLCT_Ly%d_Efficiency",ilayer);
-
-	me = findME(CSC_folders[i], name , sourcedir);
-	if (me) {
-	  TH1F* h = dynamic_cast<TH1F*>(me);
-	  int nentries = (int)h->GetEntries();
-	  double allCompsum = h->Integral(); 
-	  std::vector<double> Compsums;
-	  Compsums.clear();
-	  int noComps = 0;
-	  double low_comp_thresh = 0.2;
-	  double high_comp_thresh = 2.5;
-	  // std::cout << cscName << ": " << ilayer << " "  << allCompsum << std::endl;
-
-	  // if (h->GetEntries() > nStrips) {
-	  if (h->GetMaximum() > 0.1) {
-
-	    for (int icfeb=0; icfeb < nCFEBs; icfeb++) {
-	      if (deadCFEBs[icfeb] ==1) { 
-		Compsums.push_back(0.0);
-		continue; 
-	      }// Skip dead CFEBs
-
-	      double cfeb_comp_sum = h->Integral(icfeb*16+1, (icfeb+1)*16);
-	      Compsums.push_back(cfeb_comp_sum);
-	      if (cfeb_comp_sum == 0) {
-	  
-		std::string diag=Form("No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);	  
-		dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
-		noComps++;
-		std::cout << cscName << " " << diag << std::endl;
-	      }	    
-	    }
-	  }
-	  delete me;
-	}
-      }
-      */
     
     // -- Anode Occupancies and HV Segments Checks
     for (int ilayer=1; ilayer<=6; ilayer++) {
@@ -1250,14 +1224,14 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	    if (h->Integral(iseg*8+1, (iseg+1)*8) == 0) {
 	      int afeb = iseg*3+(ilayer+1)/2;
 	      std::string diag=Form("ALCT No Anode Data: AFEB%d Layer%d", afeb, ilayer);
-	      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+	      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_ALCT_NO_ANODE_DATA"));
 	    }
 	  }
 	  
 	  for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++) {
 	    if (h->Integral(hvSegMap[hvseg].first, hvSegMap[hvseg].second) == 0) {
 	      std::string diag=Form("No HV: Segment%d Layer%d", hvseg+1, ilayer);
-	      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE));
+	      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_NO_HV_SEGMENT"));
 	      // std::cout << cscName << " " << diag << std::endl;
 	    }
 	  }
@@ -1296,11 +1270,11 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 
 	    std::string diag=Form("CFEB B-Words: %d events (%.3f%%)",events, fract);
 
-	    dqm_report.addEntry(cscName, entry.fillEntry(diag, severity));
+	    dqm_report.addEntry(cscName, entry.fillEntry(diag, severity, "CSC_WITH_BWORDS"));
 	  }
 
 	}
-      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CFEB B-Words", csc_cntr)));
+      if (csc_cntr) dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("%d CSCs with CFEB B-Words", csc_cntr), NONE, "ALL_CHAMBERS_WITH_BWORDS"));
     }
 
   int csc_w_problems=0;
@@ -1316,6 +1290,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
   showReport();
   path = (path.size()?path+"/":"");
   saveReport(path+"dqm_report.txt");
+  saveReportJSON(path+"dqm_report.js");
   return 0;
 }
 
@@ -1495,6 +1470,8 @@ int EmuPlotter::save_CSCCounters(std::string rootfile, std::string path, std::st
 }
 
 
+
+
 // == Save DQM Report to file
 void EmuPlotter::saveReport(std::string filename)
 {
@@ -1514,7 +1491,7 @@ void EmuPlotter::saveReport(std::string filename)
     if (itr->first.find("EMU") == 0) {
       out << "<--- " <<itr->first << " --->" << std::endl;
       for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-	out <<"\t" <<err_itr->text;
+	out <<"\t" <<err_itr->descr;
 	if (err_itr->severity != NONE) 
 	  out << " [" << DQM_SEVERITY_STR[err_itr->severity]<< "] ";
 	out << std::endl;
@@ -1528,7 +1505,7 @@ void EmuPlotter::saveReport(std::string filename)
     if (itr->first.find("DDU") == 0) {
       out << "[= " <<itr->first << " =]" << std::endl;
       for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-	out <<"\t" <<err_itr->text;
+	out <<"\t" <<err_itr->descr;
 	if (err_itr->severity != NONE) 
 	  out << " [" << DQM_SEVERITY_STR[err_itr->severity]<< "] ";
 	out << std::endl;
@@ -1542,7 +1519,7 @@ void EmuPlotter::saveReport(std::string filename)
     if (itr->first.find("ME") == 0) {
       out << "[= " <<itr->first << " =]" << std::endl;
       for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-	out <<"\t" <<err_itr->text;
+	out <<"\t" <<err_itr->descr;
 	if (err_itr->severity != NONE) 
 	  out << " [" << DQM_SEVERITY_STR[err_itr->severity]<< "] ";
 	out << std::endl;
@@ -1552,6 +1529,102 @@ void EmuPlotter::saveReport(std::string filename)
   }
 
 }
+
+// == Save DQM Report to file
+void EmuPlotter::saveReportJSON(std::string filename)
+{
+  T_DQMReport::iterator itr;
+  vector<ReportEntry>::iterator err_itr;
+
+
+  T_DQMReport& report = dqm_report.getReport();
+
+  std::ofstream out(filename.c_str());
+  LOG4CPLUS_INFO(logger_, " Saving JSON DQM report to " << filename);
+  out << "var DQM_REPORT = { \"report\":\n[" << std::endl; 
+
+
+  for (itr = report.begin(); itr != report.end(); ++itr) {
+    if (itr->first.find("EMU") == 0) {
+      std::string scope = "EMU";
+      out << "{\"objID\": \"" << scope << "\", \"name\": \"" << itr->first << "\", \"list\": [" << std::endl;
+      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
+        out << "\t\"testID\": \"" << err_itr->testID 
+		<< "\", \"scope\": \"" << scope 
+		<< "\", \"descr\": \"" << err_itr->descr 
+		<< "\", \"severity\": \"" << err_itr->severity << "\"}";
+		if ((err_itr+1) != itr->second.end()) out << ",";
+		out << std::endl;
+      }
+      out << "]}," << std::endl;
+    }
+  }
+
+  for (itr = report.begin(); itr != report.end(); ++itr) {
+    if (itr->first.find("DDU") == 0) {
+      std::string scope = "DDU";
+      out << "{\"objID\": \"" << itr->first << "\", \"name\": \"" << itr->first << "\", \"list\": [" << std::endl;
+      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
+        out << "\t\"testID\": \"" << err_itr->testID 
+                << "\", \"scope\": \"" << scope
+                << "\", \"descr\": \"" << err_itr->descr
+                << "\", \"severity\": \"" << err_itr->severity << "\"}";
+                if ((err_itr+1) != itr->second.end()) out << ",";
+                out << std::endl;
+      }
+      out << "]}," << std::endl;
+    }
+  }
+
+  for (itr = report.begin(); itr != report.end(); ++itr) {
+    if (itr->first.find("ME") == 0) {
+      std::string scope = "CSC";
+      out << "{\"objID\": \"" << itr->first << "\", \"name\": \"" << itr->first << "\", \"list\": [" << std::endl;
+      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
+        out << "\t\"testID\": \"" << err_itr->testID
+                << "\", \"scope\": \"" << scope
+                << "\", \"descr\": \"" << err_itr->descr
+                << "\", \"severity\": \"" << err_itr->severity << "\"}";
+                if ((err_itr+1) != itr->second.end()) out << ",";
+                out << std::endl;
+      }
+      out << "]}" << std::endl;
+    }
+  }
+
+/*
+  out << std::endl;
+  for (itr = report.begin(); itr != report.end(); ++itr) {
+    if (itr->first.find("DDU") == 0) {
+      out << "[= " <<itr->first << " =]" << std::endl;
+      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
+        out <<"\t" <<err_itr->descr;
+        if (err_itr->severity != NONE)
+          out << " [" << DQM_SEVERITY_STR[err_itr->severity]<< "] ";
+        out << std::endl;
+      }
+    }
+  }
+
+  out << std::endl;
+  for (itr = report.begin(); itr != report.end(); ++itr) {
+    if (itr->first.find("ME") == 0) {
+      out << "[= " <<itr->first << " =]" << std::endl;
+      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
+        out <<"\t" <<err_itr->descr;
+        if (err_itr->severity != NONE)
+          out << " [" << DQM_SEVERITY_STR[err_itr->severity]<< "] ";
+        out << std::endl;
+
+      }
+    }
+  }
+*/
+  out << "]\n};" << std::endl;
+
+
+}
+
 
 
 /*
