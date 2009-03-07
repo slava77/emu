@@ -22,6 +22,7 @@ PACKAGE_VER_PATCH=00
 
 Sources = \
         Supervised.cc \
+	WebReporter.cc \
 	version.cc
 
 IncludeDirs = \
