@@ -79,7 +79,52 @@ int getNumWireGroups(std::string cscID)
   else return 64;
 }
 
+std::vector< std::pair<int,int> > getHVSegmentsMap(std::string cscID)
+{
+  std::vector< std::pair<int,int> > hvSegMap;
+  hvSegMap.clear();
+  if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )) {
+    hvSegMap.push_back(make_pair(1,48));
+  }  
+  else if ( (cscID.find("ME+1/2") == 0) || (cscID.find("ME-1/2") ==0)) {
+    hvSegMap.push_back(make_pair(1,24));
+    hvSegMap.push_back(make_pair(25,48));
+    hvSegMap.push_back(make_pair(49,64));
+  }
+  else if ( (cscID.find("ME+1/3") == 0) || (cscID.find("ME-1/3") ==0)) {
+    hvSegMap.push_back(make_pair(1,12));
+    hvSegMap.push_back(make_pair(13,22));
+    hvSegMap.push_back(make_pair(23,32));
+  } 
+  else if ( (cscID.find("ME+2/1") == 0) || (cscID.find("ME-2/1") ==0)) {
+    hvSegMap.push_back(make_pair(1,44));
+    hvSegMap.push_back(make_pair(45,80));
+    hvSegMap.push_back(make_pair(81,112));
+  } 
+  else if ( (cscID.find("ME+3/1") == 0) || (cscID.find("ME-3/1") ==0) 
+	    ||  (cscID.find("ME+4/1") == 0) || (cscID.find("ME-4/1") ==0 ) ) {
+    hvSegMap.push_back(make_pair(1,32));
+    hvSegMap.push_back(make_pair(33,64));
+    hvSegMap.push_back(make_pair(65,96));
+  } 
+  else if ( (cscID.find("ME+2/2") == 0) || (cscID.find("ME-2/2") ==0)
+	    ||  (cscID.find("ME+3/2") == 0) || (cscID.find("ME-3/2") ==0 ) ) {
+    hvSegMap.push_back(make_pair(1,16));
+    hvSegMap.push_back(make_pair(17,28));
+    hvSegMap.push_back(make_pair(29,40));
+    hvSegMap.push_back(make_pair(41,52));
+    hvSegMap.push_back(make_pair(53,64));
+  } 
+  
+  return hvSegMap;
 
+}
+
+bool isME11(std::string cscID) {
+   if ((cscID.find("ME+1/1") == 0) || (cscID.find("ME-1/1") ==0 )) {
+     return true;
+   } else return false;
+}
 
 std::string EmuPlotter::getCSCName(std::string cscID, int& crate, int& slot, int& CSCtype, int& CSCposition ) {
   //  int crate=0, slot=0;
@@ -898,7 +943,13 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
     int nCFEBs = getNumCFEBs(cscName);
     int nStrips = getNumStrips(cscName);
     int nWireGroups = getNumWireGroups(cscName);
-    int deadCFEBs[5];
+    std::vector<int> deadCFEBs(5,0);
+    std::vector<int> lowEffCFEBs(5,0);
+    std::vector<int> badCFEBs(5,0);
+    int nbadCFEBs = 0;
+    std::vector< std::pair<int,int> > hvSegMap = getHVSegmentsMap(cscName);
+    //    bool isme11 = isME11(cscName);
+
     // int deadALCT=0;
 
 
@@ -912,12 +963,15 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       if  ( h->GetEntries() > nCFEBs) {
 	for (int icfeb=0; icfeb< nCFEBs; icfeb++) {
 	  double z =  h->GetBinContent(icfeb+1);
-	  if (z < 5) {
+	  if (z < 10) {
 	    //	    uint32_t events = uint32_t(h1->GetBinContent(icfeb+1));
 	  
 	    std::string diag=Form("CFEB Dead/Low efficiency: CFEB%d DAV %.3f%%", icfeb+1, z);
-	    if (z==0) deadCFEBs[icfeb]=1; // Mark this CFEB as dead
-	  
+	    if (z==0) { deadCFEBs[icfeb]=1;} // Mark this CFEB as dead
+	    else { lowEffCFEBs[icfeb]=1;}
+	    badCFEBs[icfeb]=1;
+	    nbadCFEBs ++;
+	    
 	    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
 	  }
 	}
@@ -926,57 +980,264 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       delete me2;
     }
 
-    
-    // -- CFEB SCA Occupancies Checks
-    for (int ilayer=1; ilayer<=6; ilayer++) {
-      std::string name = Form("CFEB_ActiveStrips_Ly%d",ilayer);
+    int nActiveCFEBs = nCFEBs-nbadCFEBs;
 
-      me = findME(CSC_folders[i], name , sourcedir);
-      if (me) {
-	TH1F* h = dynamic_cast<TH1F*>(me);
-	if (h->GetEntries() > nStrips) {
-	  for (int icfeb=0; icfeb < nCFEBs; icfeb++) {
-            if (deadCFEBs[icfeb]) continue; // Skip dead CFEBs
-	    if (h->Integral(icfeb*16+1, (icfeb+1)*16) == 0) {
-	  
-	      std::string diag=Form("No SCA Data: CFEB%d Layer%d", icfeb+1, ilayer);
-	  
-	      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
-	    }
-	    
+    if  (nActiveCFEBs > 0)
+      { // Expecting active CFEBs
+
+	// -- CFEB SCA Occupancies Checks
+	for (int ilayer=1; ilayer<=6; ilayer++) 
+	  {
+	    std::string name = Form("CFEB_ActiveStrips_Ly%d",ilayer);
+
+	    me = findME(CSC_folders[i], name , sourcedir);
+	    if (me) 
+	      {
+		TH1F* h = dynamic_cast<TH1F*>(me);
+		int nentries = (int)h->GetEntries();
+		double allSCAsum = h->Integral(); 
+		std::vector<double> SCAsums;
+		SCAsums.clear();
+		int noSCAs = 0;
+		double low_sca_thresh = 0.2;
+		double high_sca_thresh = 2.5;
+
+		if ( nentries >= (2*16*nActiveCFEBs) ) 
+		  {
+		    // -- Check for dead SCAs CFEBs
+		    for (int icfeb=0; icfeb < nCFEBs; icfeb++) 
+		      {
+
+			if (badCFEBs[icfeb] == 1)
+			  { 
+			    SCAsums.push_back(0.0);
+			    continue; // Skip already known bad CFEBs
+			  }
+
+			double cfeb_sca_sum = h->Integral(icfeb*16+1, (icfeb+1)*16);
+			SCAsums.push_back(cfeb_sca_sum);
+
+			if (cfeb_sca_sum == 0)
+			  {	  
+			    std::string diag=Form("CFEB No SCA Data: CFEB%d Layer%d", icfeb+1, ilayer);	  
+			    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+			    noSCAs++;
+			    // std::cout << cscName << " " << diag << std::endl;
+			  }
+		      }
+		  }
+
+		if ( nentries >= (10*16*nActiveCFEBs) ) 
+		  {
+		    if (nActiveCFEBs - noSCAs > 0)
+		      { // Check that still active CFEBs present
+			double avg_sca_occupancy = allSCAsum/(nActiveCFEBs-noSCAs);
+			double avg_sca_ch_occupancy = avg_sca_occupancy/16;
+			// std::cout << cscName << "> avg SCA: " << avg_sca_occupancy << ", ";
+			for (int icfeb=0; icfeb < nCFEBs; icfeb++)
+			  {
+			    //		std::cout << "CFEB"<< (icfeb+1) << ": " << (double(SCAsums[icfeb])) << ", ";
+			    // Avg. strip SCA occupancy > 5.		
+			    bool isLowEff = false;
+			    if (SCAsums[icfeb])
+			      {
+		  
+				if ( (SCAsums[icfeb] < low_sca_thresh*avg_sca_occupancy) && (lowEffCFEBs[icfeb] != 1))
+				  {
+				    std::string diag=Form("CFEB Low SCA Occupancy: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
+							  (SCAsums[icfeb]/avg_sca_occupancy)*100., low_sca_thresh*100 );	  
+				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+				    // std::cout << cscName << " "  << diag << std::endl;
+				    isLowEff = true;
+				  } 
+
+				if ( SCAsums[icfeb] >= high_sca_thresh*avg_sca_occupancy )
+				  {
+				    std::string diag=Form("CFEB Noisy CFEB SCAs: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,  
+							  SCAsums[icfeb]/avg_sca_occupancy, high_sca_thresh);	  
+				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+				    // std::cout << cscName << " " << diag << std::endl;
+				  }
+
+				for (int ch=1; ch <=16; ch++)
+				  {
+				    double ch_val = h->GetBinContent(ch+icfeb*16);
+				    if (ch_val > 4*avg_sca_ch_occupancy)
+				      {
+					std::string diag = Form("CFEB Hot/Noisy SCA channel: CFEB%d Layer%d Ch#%d (occupancy %.1f times > average)", icfeb+1, ilayer, ch+icfeb*16, 
+								ch_val/avg_sca_ch_occupancy);
+					dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE));
+					//					std::cout << cscName << " " << diag << std::endl;
+				      }
+				    /*
+				      if (ch_val == 0 && !isLowEff && (lowEffCFEBs[icfeb] != 1)) {
+				      std::string diag = Form("Dead SCA channel: CFEB%d Layer%d Ch#%d", icfeb+1, ilayer, ch);
+				      dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE));
+				      std::cout << cscName << " " << diag << std::endl;
+				      }
+				    */
+				  }
+			      }
+			  }
+			// std::cout << std::endl;
+		      } 	    		  
+		    delete me;
+		  }
+	      }
+
 	  }
-      
-	}
-	delete me;
       }
-    }
 
-    // -- CFEB Comparators Occupancies Checks
-    for (int ilayer=1; ilayer<=6; ilayer++) {
-      std::string name = Form("CLCT_Ly%d_Efficiency",ilayer);
+    if  (nActiveCFEBs > 0)
+      { // Expecting active CFEBs
+	// -- CFEB Comparators Occupancies Checks      
+	for (int ilayer=1; ilayer<=6; ilayer++)
+	  {
+	    std::string name = Form("CLCT_Ly%d_Rate",ilayer);
 
-      me = findME(CSC_folders[i], name , sourcedir);
-      if (me) {
-	TH1F* h = dynamic_cast<TH1F*>(me);
-	// if (h->GetEntries() > nStrips) {
-	 if (h->GetMaximum() > 0.1) {
-	  for (int icfeb=0; icfeb < nCFEBs; icfeb++) {
-	    if (deadCFEBs[icfeb]) continue; // Skip dead CFEBs
-	    if (h->Integral(icfeb*32+1, (icfeb+1)*32) == 0) {
+	    me = findME(CSC_folders[i], name , sourcedir);
+	    if (me) 
+	      {
+		TH1F* h = dynamic_cast<TH1F*>(me);
+		int nentries = (int)h->GetEntries();
+		double allCompsum = h->Integral(); 
+		std::vector<double> Compsums;
+		Compsums.clear();
+		int noComps = 0;
+		double low_comp_thresh = 0.2;
+		double high_comp_thresh = 2.5;
+		// std::cout << cscName << ": " << ilayer << " "  << allCompsum << std::endl;
+
+		if ( nentries >= (32*nActiveCFEBs) )
+		  {
+		    //	  if (h->GetMaximum() > 0.1) {
+
+		    // std::cout << cscName << " " << allCompsum << ", ";
+		    for (int icfeb=0; icfeb < nCFEBs; icfeb++) {
+
+		      if (badCFEBs[icfeb] ==1 ) { 
+			Compsums.push_back(0.0);
+			continue; 
+		      }// Skip dead CFEBs
+
+		      double cfeb_comp_sum = h->Integral(icfeb*32+1, (icfeb+1)*32);
+		      Compsums.push_back(cfeb_comp_sum);
+		      // std::cout << "CFEB" << (icfeb+1) << ": " << cfeb_comp_sum << ", ";
+		      if (cfeb_comp_sum == 0 && (lowEffCFEBs[icfeb] != 1)) {
 	  
-	      std::string diag=Form("No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);
-	  
-	      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
-	    }
-	    
+			std::string diag=Form("CFEB No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);	  
+			dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+			noComps++;
+			// std::cout << cscName << " " << diag << std::endl;
+		      }	    
+
+		    }
+		    // std::cout << std::endl;
+		  }
+
+
+		
+		if ( nentries >= (5*32*nActiveCFEBs) ) 
+		  {
+		    if (nActiveCFEBs - noComps > 0)
+		      { // Check that still active CFEBs present
+			double avg_comp_occupancy = allCompsum/(nActiveCFEBs-noComps);
+			double avg_comp_ch_occupancy = avg_comp_occupancy/16;
+			// std::cout << cscName << "> avg SCA: " << avg_sca_occupancy << ", ";
+			for (int icfeb=0; icfeb < nCFEBs; icfeb++)
+			  {
+			    if (Compsums[icfeb])
+			      {
+		  
+				if ( (Compsums[icfeb] < low_comp_thresh*avg_comp_occupancy) && (lowEffCFEBs[icfeb] != 1))
+				  {
+				    std::string diag=Form("CFEB Low Comparators Occupancy: CFEB%d Layer%d (%.3f%% < %.1f%% from average)", icfeb+1, ilayer,
+							  (Compsums[icfeb]/avg_comp_occupancy)*100., low_comp_thresh*100 );	  
+				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+				    // std::cout << cscName << " "  << diag << std::endl;
+				  } 
+
+				if ( Compsums[icfeb] >= high_comp_thresh*avg_comp_occupancy )
+				  {
+				    std::string diag=Form("CFEB Hot/Noisy CFEB Comparators: CFEB%d Layer%d (%.1f > %.1f times from average)", icfeb+1, ilayer,  
+							  Compsums[icfeb]/avg_comp_occupancy, high_comp_thresh);	  
+				    dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+				    //  std::cout << cscName << " " << diag << std::endl;
+				  }
+
+				for (int ch=1; ch <=32; ch++)
+				  {
+				    double ch_val = h->GetBinContent(ch+icfeb*32);
+				    if (ch_val > 5*avg_comp_ch_occupancy)
+				      {
+					std::string diag = Form("CFEB Hot/Noisy Comparator channel: CFEB%d Layer%d HStrip%d (occupancy %.1f times > average)", 
+								icfeb+1, ilayer, ch+icfeb*32, 
+								ch_val/avg_comp_ch_occupancy);
+					dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE));
+					// std::cout << cscName << " " << diag << std::endl;
+				      }
+				    /*
+				      if (ch_val == 0 && !isLowEff && (lowEffCFEBs[icfeb] != 1)) {
+				      std::string diag = Form("Dead SCA channel: CFEB%d Layer%d Ch#%d", icfeb+1, ilayer, ch);
+				      dqm_report.addEntry(cscName, entry.fillEntry(diag,TOLERABLE));
+				      std::cout << cscName << " " << diag << std::endl;
+				      }
+				    */
+				  }
+			      }
+			  }
+			// std::cout << std::endl;
+		      } 	    		  
+		  }
+
+		delete me;
+	      }
 	  }
-      
+      } // expecting active CFEBs
+
+      /*      
+      // -- CFEB Comparators Occupancies Checks      
+      for (int ilayer=1; ilayer<=6; ilayer++) {
+	std::string name = Form("CLCT_Ly%d_Efficiency",ilayer);
+
+	me = findME(CSC_folders[i], name , sourcedir);
+	if (me) {
+	  TH1F* h = dynamic_cast<TH1F*>(me);
+	  int nentries = (int)h->GetEntries();
+	  double allCompsum = h->Integral(); 
+	  std::vector<double> Compsums;
+	  Compsums.clear();
+	  int noComps = 0;
+	  double low_comp_thresh = 0.2;
+	  double high_comp_thresh = 2.5;
+	  // std::cout << cscName << ": " << ilayer << " "  << allCompsum << std::endl;
+
+	  // if (h->GetEntries() > nStrips) {
+	  if (h->GetMaximum() > 0.1) {
+
+	    for (int icfeb=0; icfeb < nCFEBs; icfeb++) {
+	      if (deadCFEBs[icfeb] ==1) { 
+		Compsums.push_back(0.0);
+		continue; 
+	      }// Skip dead CFEBs
+
+	      double cfeb_comp_sum = h->Integral(icfeb*16+1, (icfeb+1)*16);
+	      Compsums.push_back(cfeb_comp_sum);
+	      if (cfeb_comp_sum == 0) {
+	  
+		std::string diag=Form("No Comparators Data: CFEB%d Layer%d", icfeb+1, ilayer);	  
+		dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
+		noComps++;
+		std::cout << cscName << " " << diag << std::endl;
+	      }	    
+	    }
+	  }
+	  delete me;
 	}
-	 delete me;
       }
-    }
+      */
     
-    // -- Anode Occupancies Checks
+    // -- Anode Occupancies and HV Segments Checks
     for (int ilayer=1; ilayer<=6; ilayer++) {
       std::string name = Form("ALCT_Ly%d_Efficiency",ilayer);
 
@@ -985,21 +1246,27 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	TH1F* h = dynamic_cast<TH1F*>(me);
 	// if (h->GetEntries() > nWireGroups) {
 	if (h->GetMaximum() > 0.1) {  
-	  for (int iseg=0; iseg < nWireGroups/8; iseg++) {
+	  for (int32_t iseg=0; iseg < nWireGroups/8; iseg++) {
 	    if (h->Integral(iseg*8+1, (iseg+1)*8) == 0) {
-	      int afeb = iseg*3+ilayer/2+1;
-	      std::string diag=Form("No Anode Data: AFEB%d Layer%d", afeb, ilayer);
-
+	      int afeb = iseg*3+(ilayer+1)/2;
+	      std::string diag=Form("ALCT No Anode Data: AFEB%d Layer%d", afeb, ilayer);
 	      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL));
-	  
 	    }
-	    
 	  }
-      
+	  
+	  for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++) {
+	    if (h->Integral(hvSegMap[hvseg].first, hvSegMap[hvseg].second) == 0) {
+	      std::string diag=Form("No HV: Segment%d Layer%d", hvseg+1, ilayer);
+	      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE));
+	      // std::cout << cscName << " " << diag << std::endl;
+	    }
+	  }
+
 	}
 	delete me;
       }
     }
+
 
   }
 

@@ -160,7 +160,7 @@ void EmuPlotter::book() {
     {
       reset();
       loadXMLCanvasesInfo(xmlCanvasesCfgFile);
-
+/*
       // == Check and book global node specific histos
       std::map<std::string, ME_List >::iterator itr;
       if (MEs.size() == 0 || ((itr = MEs.find("EMU")) == MEs.end())) {
@@ -171,7 +171,7 @@ void EmuPlotter::book() {
 	// printMECollection(MEs[nodeTag]);
 	fBusy = false;
       }
-
+*/
 
     }
 

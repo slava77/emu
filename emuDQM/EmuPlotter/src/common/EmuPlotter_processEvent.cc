@@ -24,17 +24,17 @@ void EmuPlotter::processEvent(const char * data, int32_t evtSize, uint32_t error
  
   nEvents++;
   eTag=Form("Evt# %d: ", nEvents); 
-/*
+
   // == Check and book global node specific histos
   if (MEs.size() == 0 || ((itr = MEs.find(nodeTag)) == MEs.end())) {
     LOG4CPLUS_WARN(logger_, eTag << "List of MEs for " << nodeTag << " not found. Booking...");
     fBusy = true;
-    MEs[nodeTag] = bookCommon(node);
-    MECanvases[nodeTag] = bookCommonCanvases(node);
+    MEs["EMU"] = bookMEs("EMU","EMU_Summary");
+    MECanvases["EMU"] = bookMECanvases("EMU","EMU");
     // printMECollection(MEs[nodeTag]);
     fBusy = false;
   }
-*/	
+	
   ME_List& nodeME = MEs[nodeTag]; // === Global histos specific for this emuMonitor node
 
   
