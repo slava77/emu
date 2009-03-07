@@ -21,7 +21,7 @@ namespace emu {
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
 /////////////////////////////////////////////////////////////////////
-EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s): emu::base::Supervised(s)
+EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s): EmuPeripheralCrateBase(s)
 {	
   //
   MyController = 0;
@@ -96,13 +96,6 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   EMU_config_ID_ = "1000002";
   xmlFile_ = "config.xml" ;
   GlobalRun_=0;   
- //
-  for(unsigned int dmb=0; dmb<9; dmb++) {
-    L1aLctCounter_.push_back(0);
-    CfebDavCounter_.push_back(0);
-    TmbDavCounter_.push_back(0);
-    AlctDavCounter_.push_back(0);
-  }
   //
   CCBRegisterValue_ = -1;
   Operator_ = "Operator";
@@ -406,10 +399,6 @@ void EmuPeripheralCrateCommand::stateChanged(toolbox::fsm::FiniteStateMachine &f
   emu::base::Supervised::stateChanged(fsm);
 }
 
-void EmuPeripheralCrateCommand::actionPerformed (xdata::Event& e) {
-  //
-}
-
 bool EmuPeripheralCrateCommand::ParsingXML(){
   //
   LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
@@ -661,55 +650,6 @@ void EmuPeripheralCrateCommand::CheckPeripheralCrateConfiguration() {
   return;
 }
 //
-
-// sending and receiving soap commands
-////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateCommand::PCsendCommand(std::string command, std::string klass)
-  throw (xoap::exception::Exception, xdaq::exception::Exception){
-  //
-  //This is copied from CSCSupervisor::sendcommand;
-  //
-  // Exceptions:
-  // xoap exceptions are thrown by analyzeReply() for SOAP faults.
-  // xdaq exceptions are thrown by postSOAP() for socket level errors.
-  //
-  // find applications
-  std::set<xdaq::ApplicationDescriptor *> apps;
-  //
-  try {
-    apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
-  }
-  // 
-  catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    return; // Do nothing if the target doesn't exist
-  }
-  //
-  // prepare a SOAP message
-  xoap::MessageReference message = PCcreateCommandSOAP(command);
-  xoap::MessageReference reply;
-  xdaq::ApplicationDescriptor *ori=this->getApplicationDescriptor();
-  //
-  // send the message one-by-one
-  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-  for (; i != apps.end(); ++i) {
-    // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *ori, *(*i));
-    //
-    //      PCanalyzeReply(message, reply, *i);
-  }
-}
-
-xoap::MessageReference EmuPeripheralCrateCommand::PCcreateCommandSOAP(std::string command) {
-  //
-  //This is copied from CSCSupervisor::createCommandSOAP
-  //
-  xoap::MessageReference message = xoap::createMessage();
-  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  xoap::SOAPName name = envelope.createName(command, "xdaq", "urn:xdaq-soap:3.0");
-  envelope.getBody().addBodyElement(name);
-  //
-  return message;
-}
 
  }  // namespace emu::pc
 }  // namespace emu

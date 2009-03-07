@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.38 2009/02/18 15:44:32 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.39 2009/03/07 11:44:24 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -29,7 +29,7 @@ namespace emu {
 
 const std::string       VMECC_FIRMWARE_DIR = "vcc"; 
 
-EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): emu::base::Supervised(s)
+EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s): EmuPeripheralCrateBase(s)
 {	
   broadcastCrate = 0;
   HomeDir_     = getenv("HOME");
@@ -1034,55 +1034,6 @@ void EmuPeripheralCrateBroadcast::SetNumberOfLayersInTrigger(xgi::Input * in, xg
 //  //
 //}
 //
-////////////////////////////////////////////////////////////////////
-// sending and receiving soap commands
-////////////////////////////////////////////////////////////////////
-void EmuPeripheralCrateBroadcast::PCsendCommand(std::string command, std::string klass)
-  throw (xoap::exception::Exception, xdaq::exception::Exception){
-  //
-  //This is copied from CSCSupervisor::sendcommand;
-  //
-  // Exceptions:
-  // xoap exceptions are thrown by analyzeReply() for SOAP faults.
-  // xdaq exceptions are thrown by postSOAP() for socket level errors.
-  //
-  // find applications
-  std::set<xdaq::ApplicationDescriptor *> apps;
-  //
-  try {
-    apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
-  }
-  // 
-  catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    return; // Do nothing if the target doesn't exist
-  }
-  //
-  // prepare a SOAP message
-  xoap::MessageReference message = PCcreateCommandSOAP(command);
-  xoap::MessageReference reply;
-  xdaq::ApplicationDescriptor *ori=this->getApplicationDescriptor();
-  //
-  // send the message one-by-one
-  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-  for (; i != apps.end(); ++i) {
-    // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *ori, *(*i));
-    //
-    //      PCanalyzeReply(message, reply, *i);
-  }
-}
-//
-xoap::MessageReference EmuPeripheralCrateBroadcast::PCcreateCommandSOAP(std::string command) {
-  //
-  //This is copied from CSCSupervisor::createCommandSOAP
-  //
-  xoap::MessageReference message = xoap::createMessage();
-  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  xoap::SOAPName name = envelope.createName(command, "xdaq", "urn:xdaq-soap:3.0");
-  envelope.getBody().addBodyElement(name);
-  //
-  return message;
-}
 
 void EmuPeripheralCrateBroadcast::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
@@ -1093,6 +1044,7 @@ void EmuPeripheralCrateBroadcast::dummyAction(toolbox::Event::Reference e)
     throw (toolbox::fsm::exception::Exception) {
   // currently do nothing
 }
+
 //
 xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigure (xoap::MessageReference message)
   throw (xoap::exception::Exception) {
