@@ -9,7 +9,7 @@
 
 namespace emu { namespace base {
 
-class Supervised : public xdaq::WebApplication  
+class Supervised : public virtual xdaq::WebApplication  
 {
 public:
 	XDAQ_INSTANTIATOR();
