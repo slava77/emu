@@ -21,18 +21,30 @@ static const char* DQM_SEVERITY_STR[CRITICAL+1] = {
 };
 
 typedef std::string ReportObjID;
+
+typedef class ReportEntryDetails {
+public:
+	ReportEntryDetails() {init();};
+private:
+	void init() {scope="NONE"; board="NONE", chan=-1;}
+	std::string scope;
+	std::string board;
+	int32_t chan;
+} ReportEntryDetails;
+
 typedef class ReportEntry{
 public:
 	ReportEntry() {clearEntry();}
-	ReportEntry& fillEntry(std::string t="", DQM_SEVERITY sev=NONE, std::string r_histo = "", std::string r_test="") {
-		text=t; severity=sev; rel_histo=r_histo; rel_test=r_test; return *this;
+	ReportEntry& fillEntry(std::string t="", DQM_SEVERITY sev=NONE, std::string r_test="", std::string r_histo = "") {
+		descr=t; severity=sev; rel_histo=r_histo; testID=r_test; return *this;
 	}
-	void clearEntry() {text=""; rel_histo="", rel_test="", severity=NONE;}
-	std::string text;
+	void clearEntry() {descr=""; rel_histo="", testID="", severity=NONE;}
+	std::string descr;
 	std::string rel_histo;
-	std::string rel_test;
+	std::string testID;
 	DQM_SEVERITY severity;
 } ReportEntry;
+
 
 
 typedef std::map<ReportObjID, std::vector<ReportEntry> > T_DQMReport;
