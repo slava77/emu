@@ -151,8 +151,8 @@ public:
   int save_ALCT_CLCT_Match_Data(std::string rootfile,std::string path,std::string runname="");
   int save_CSCCounters(std::string rootfile,std::string path,std::string runname="");
   void showReport();
-  void saveReport(std::string filename);
-  void saveReportJSON(std::string filename);
+  void saveReport(std::string filename, std::string runname="");
+  void saveReportJSON(std::string filename, std::string runname="");
      
  
   bool isListModified() { return fListModified;}

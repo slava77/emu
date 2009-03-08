@@ -457,7 +457,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	    if ( ((live_inputs>>i) & 0x1) && !((with_data>>i) & 0x01))
 	      {
 		std::string diag=Form("DDU Input #%d: No Data",i+1);
-		dqm_report.addEntry(dduName, entry.fillEntry(diag, NONE, "DDU_NO_INPUT_DATA"));
+		dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "DDU_NO_INPUT_DATA"));
 
 	      }
 	  }
@@ -502,7 +502,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	      if ( (err_inputs>>i) & 0x1)
 		{
 		  std::string diag=Form("DDU Input #%d: detected ERROR state",i+1);
-		  dqm_report.addEntry(dduName, entry.fillEntry(diag, NONE, "DDU_INPUT_IN_ERROR_STATE" ));
+		  dqm_report.addEntry(dduName, entry.fillEntry(diag, TOLERABLE, "DDU_INPUT_IN_ERROR_STATE" ));
 
 		}
 	    }
@@ -545,7 +545,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	      if ( (warn_inputs>>i) & 0x1)
 		{
 		  std::string diag=Form("DDU Input #%d: detected WARNING state",i+1);
-		  dqm_report.addEntry(dduName, entry.fillEntry(diag, NONE, "DDU_INPUT_IN_WARNING_STATE"));
+		  dqm_report.addEntry(dduName, entry.fillEntry(diag, MINOR, "DDU_INPUT_IN_WARNING_STATE"));
 
 		}
 	    }
@@ -588,7 +588,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
       dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Total number of CSC events: %d ", csc_evt_cntr)));
       csc_avg_events=csc_evt_cntr/csc_cntr;
       dqm_report.addEntry("EMU Summary", entry.fillEntry(Form("Average number of events per CSC: %d ", csc_avg_events)));
-      if (csc_avg_events >= 500) { // Detect Hot/Low eff chambers if average number of events is reasonable (>500)
+      if (csc_avg_events >= 300) { // Detect Hot/Low eff chambers if average number of events is reasonable (>500)
 	for (stats_itr=csc_stats.begin(); stats_itr != csc_stats.end(); ++stats_itr) {
 	  double fract=((double)stats_itr->second)/csc_avg_events;
 	  std::string cscName=stats_itr->first;
@@ -1289,8 +1289,8 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
   
   showReport();
   path = (path.size()?path+"/":"");
-  saveReport(path+"dqm_report.txt");
-  saveReportJSON(path+"dqm_report.js");
+  saveReport(path+"dqm_report.txt", runname);
+  saveReportJSON(path+"dqm_report.js", runname);
   return 0;
 }
 
@@ -1473,7 +1473,7 @@ int EmuPlotter::save_CSCCounters(std::string rootfile, std::string path, std::st
 
 
 // == Save DQM Report to file
-void EmuPlotter::saveReport(std::string filename)
+void EmuPlotter::saveReport(std::string filename, std::string runname)
 {
   T_DQMReport::iterator itr;
   vector<ReportEntry>::iterator err_itr;
@@ -1531,7 +1531,7 @@ void EmuPlotter::saveReport(std::string filename)
 }
 
 // == Save DQM Report to file
-void EmuPlotter::saveReportJSON(std::string filename)
+void EmuPlotter::saveReportJSON(std::string filename, std::string runname)
 {
   T_DQMReport::iterator itr;
   vector<ReportEntry>::iterator err_itr;
@@ -1541,7 +1541,7 @@ void EmuPlotter::saveReportJSON(std::string filename)
 
   std::ofstream out(filename.c_str());
   LOG4CPLUS_INFO(logger_, " Saving JSON DQM report to " << filename);
-  out << "var DQM_REPORT = { \"report\":\n[" << std::endl; 
+  out << "var DQM_REPORT = { \"run\": \"" << runname << "\", \"genDate\": \"" << emu::dqm::utils::now() <<  "\", \"report\":\n[" << std::endl; 
 
 
   for (itr = report.begin(); itr != report.end(); ++itr) {
@@ -1588,87 +1588,14 @@ void EmuPlotter::saveReportJSON(std::string filename)
                 if ((err_itr+1) != itr->second.end()) out << ",";
                 out << std::endl;
       }
-      out << "]}" << std::endl;
+      out << "]},";
+      out << std::endl;
     }
   }
 
-/*
-  out << std::endl;
-  for (itr = report.begin(); itr != report.end(); ++itr) {
-    if (itr->first.find("DDU") == 0) {
-      out << "[= " <<itr->first << " =]" << std::endl;
-      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-        out <<"\t" <<err_itr->descr;
-        if (err_itr->severity != NONE)
-          out << " [" << DQM_SEVERITY_STR[err_itr->severity]<< "] ";
-        out << std::endl;
-      }
-    }
-  }
-
-  out << std::endl;
-  for (itr = report.begin(); itr != report.end(); ++itr) {
-    if (itr->first.find("ME") == 0) {
-      out << "[= " <<itr->first << " =]" << std::endl;
-      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-        out <<"\t" <<err_itr->descr;
-        if (err_itr->severity != NONE)
-          out << " [" << DQM_SEVERITY_STR[err_itr->severity]<< "] ";
-        out << std::endl;
-
-      }
-    }
-  }
-*/
   out << "]\n};" << std::endl;
 
 
 }
 
 
-
-/*
-// == Save DQM Report to file
-void EmuPlotter::saveReport(std::string filename)
-{
-  std::map<std::string, std::vector<std::string> >::iterator itr;
-  std::vector<std::string>::iterator err_itr;
-  
-  std::ofstream out(filename.c_str());
-  LOG4CPLUS_INFO(logger_, " Saving DQM report to " << filename);
-  out << "<=== Automatically generated at " << emu::dqm::utils::now() << " DQM Report ===>" << std::endl;
-
-  out << std::endl;
-  for (itr = report.begin(); itr != report.end(); ++itr) {
-    if (itr->first.find("EMU") == 0) {
-      out << "<--- " <<itr->first << " --->" << std::endl;
-      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-	out <<"\t" <<*err_itr << std::endl;
-      }
-    }
-  }
-
-  out << std::endl;
-  out << "<--- DDUs Detailed Report --->" << std::endl;
-  for (itr = report.begin(); itr != report.end(); ++itr) {
-    if (itr->first.find("DDU") == 0) {
-      out << "[= " <<itr->first << " =]" << std::endl;
-      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-	out <<"\t" <<*err_itr << std::endl;
-      }
-    }
-  }
-
-  out << std::endl;
-  out << "<--- CSCs Detailed Report --->" << std::endl;
-  for (itr = report.begin(); itr != report.end(); ++itr) {
-    if (itr->first.find("ME") == 0) {
-      out << "[= " <<itr->first << " =]" << std::endl;
-      for (err_itr = itr->second.begin(); err_itr != itr->second.end(); ++err_itr) {
-	out <<"\t" <<*err_itr << std::endl;
-      }
-    }	
-  }
-
-}
-*/
