@@ -6,7 +6,7 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
 
   std::string url = "/";
   url += getApplicationDescriptor()->getURN();
-  url += "/getImage";
+  url += "/getPlot";
 
   *out << "var TREE_ITEMS = [\n['"<< runName << "','getEMUSystemView',"<< std::endl;
   std::set<xdaq::ApplicationDescriptor*>::iterator pos;
@@ -26,7 +26,7 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
 	*out << "    ['" << itr->first << "',''," << std::endl;
 	std::list<std::string>::iterator i_itr;
 	for (i_itr = itr->second.begin(); i_itr != itr->second.end(); ++i_itr) {
-	  *out << "     ['" << *i_itr << "', 'getImage?nodeID="<< (*pos)->getLocalId()
+	  *out << "     ['" << *i_itr << "', 'getPlot?nodeID="<< (*pos)->getLocalId()
 	       << "&folderName=" << itr->first 
 	       << "&objectName="<< *i_itr 
 	       << "&autoUpdate=on']," << std::endl;
@@ -41,8 +41,8 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
 
   /*
    *out << "var TREE_ITEMS = [\n" 
-   << "    ['RunNumber" << runNumber << "', 'getImage?objectName=test'," << endl;
-   *out << "                    ['Histo','getImage?objectName=Histo']," << endl;
+   << "    ['RunNumber" << runNumber << "', 'getPlot?objectName=test'," << endl;
+   *out << "                    ['Histo','getPlot?objectName=Histo']," << endl;
    */
   
   /*
