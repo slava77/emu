@@ -308,6 +308,7 @@ var folderSListIdx=0;
 var fOpenExternal=false;
 var loopFoldersFirst = true;
 var fAutoUpdatePlot = false;
+var fShowReference = false;
 var selFolder="";
 var selNode="";
 
@@ -360,14 +361,16 @@ function addPadding(num,count,pad)
 	return numStr;
 }
 
+
 function loadPlot() {
 	// var imgurl = Folder+"/"+Canvas;
 	// var objname = Canvas.substr(Canvas.search("/"), Canvas.length);
 	var objname = Canvas.substr(0, Canvas.search(".png"));
 	if (objname.search("/") >=0) objname = objname.substr(objname.search("/")+1, objname.length);
 	var timestamp=new Date()
-	var imgurl=baseURL+"genImage?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&timestamp="+timestamp.getTime();
-	var zoomimage=baseURL+"genImage?objectName="+objname+"&folder="+Folder+"&imageWidth="+1600+"&imageHeight="+1200+"&timestamp="+timestamp.getTime();
+	var imgurl=baseURL+"genPlot?objectName="+objname+"&folder="+Folder+"&imageWidth="+imgWidth+"&imageHeight="+imgHeight+"&timestamp="+timestamp.getTime();
+	var zoomimage=baseURL+"genPlot?objectName="+objname+"&folder="+Folder+"&imageWidth="+1600+"&imageHeight="+1200+"&timestamp="+timestamp.getTime();
+	var ref_imgurl = "getRefPlot?folder="+Folder+"&plot="+Canvas;
 	var out = "";
 	var title = "Plots";
 	// addlog(Folder +"/"+objname, "info"); 
@@ -408,6 +411,30 @@ function loadPlot() {
 					}
 				} else {
 					out += "<a target=blank href=\'"+zoomimage+"\'><IMAGE NAME='test' SRC='"+imgurl+"'></a>";
+				}
+				
+				if (fShowReference) {
+					try {
+						var generator=window.open('','ref_name','height=640,width=800,resizable=true');
+						if (window.focus) {generator.focus()}
+						var ref_title = "Reference Plots: " +Folder+"/"+Canvas;
+						generator.document.write('<html><head><title>'+ref_title+'</title>');
+						generator.document.write("<style>body {color: #000000; background-color: #90FF90;margin: 2px;font-family:Arial;	overflow: auto;}"+
+						"span.winTitle {	margin: 0;font-size: 12px;font-weight: bold;text-decoration: none;color: #000000;}"+
+						"fieldset {background-color: #ddd;	border-style: solid;border-width: 1px;border-color: black;margin: 2px;padding: 2px;}"+
+						"legend {border-style: solid;border-width: 1px;background-color:  #C0FFC0;}</style>");
+						generator.document.write('</head><body>');
+						generator.document.write("<fieldset><legend><span class='winTitle'>"+ref_title+"</span></legend>");
+						generator.document.write("<span style='color: #FF0000'><blink>Warning: These Reference Plots are not certified yet!!!</blink></span><br>");
+						generator.document.write("<IMAGE width=100% NAME='test' SRC='"+ref_imgurl+"'>");
+						generator.document.write("</fieldset>");
+						// generator.document.write('<p><a href="javascript:self.close()">Close</a> the popup.</p>');
+						generator.document.write('</body></html>');
+						generator.document.close();
+					} 
+					catch (exc){
+					}
+					
 				}
 				
 			}else {
@@ -1768,6 +1795,18 @@ function selectPlotMode()
 	}
 }
 
+function selectShowReferenceMode()
+{
+	var obj = document.getElementById("showReference");
+	if (obj) {
+		if (obj.checked) {
+			fShowReference=true;
+		} else {
+			fShowReference=false;
+		}
+	}
+}
+
 function selectUpdateMode()
 {
 	var obj = document.getElementById("autoUpdateMode");
@@ -2202,6 +2241,11 @@ get_element = document.all ?
 				<tr>
 				  <td>
 					<label>Open in External Window</label></label> <input type=checkbox id="openExternal" onclick="selectPlotMode()">  
+				  </td>
+			   </tr>
+			   <tr>
+				  <td>
+					<label>Show Reference Plots</label></label> <input type=checkbox id="showReference" onclick="selectShowReferenceMode()">  
 				  </td>
 			   </tr>
 			   <tr>

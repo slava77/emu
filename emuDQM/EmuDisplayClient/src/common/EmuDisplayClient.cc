@@ -43,6 +43,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
       viewOnly_(true),
       debug(false),
       BaseDir("/csc_data/dqm"),
+      refImagePath("ref.plots"),
       appBSem_(BSem::FULL)
 {
 
@@ -72,7 +73,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
 
   // Bind CGI callbacks
   xgi::bind(this, &EmuDisplayClient::dispatch, "dispatch");
-  xgi::bind(this, &EmuDisplayClient::getImagePage, "getImage");
+  xgi::bind(this, &EmuDisplayClient::getPlotPage, "getPlot");
+  xgi::bind(this, &EmuDisplayClient::getRefPlot, "getRefPlot");
   xgi::bind(this, &EmuDisplayClient::getEMUSystemViewPage, "getEMUSystemView");
   xgi::bind(this, &EmuDisplayClient::headerPage, "header");
   xgi::bind(this, &EmuDisplayClient::getNodesStatus, "getNodesStatus");
@@ -81,7 +83,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   xgi::bind(this, &EmuDisplayClient::getVMEMapping, "getVMEMapping");
   xgi::bind(this, &EmuDisplayClient::getCSCList, "getCSCList");
   xgi::bind(this, &EmuDisplayClient::getTestsList, "getTestsList");
-  xgi::bind(this, &EmuDisplayClient::genImage, "genImage");
+  xgi::bind(this, &EmuDisplayClient::genPlot, "genPlot");
   xgi::bind(this, &EmuDisplayClient::getCSCCounters, "getCSCCounters");
   xgi::bind(this, &EmuDisplayClient::controlDQM, "controlDQM");
 
@@ -766,7 +768,7 @@ TCanvas* EmuDisplayClient::getMergedCanvas(std::vector<TObject*>& canvases)
   return cnv;
 }
 
-void EmuDisplayClient::genImage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
+void EmuDisplayClient::genPlot (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
 
   appBSem_.take(&bsem_tout);
@@ -906,6 +908,57 @@ void EmuDisplayClient::genImage (xgi::Input * in, xgi::Output * out)  throw (xgi
   appBSem_.give();
 }
 
+void EmuDisplayClient::getRefPlot (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
+{
+  appBSem_.take(&bsem_tout);
+  cgicc::Cgicc cgi(in);
+  std::string plot = "";
+  std::string folder = "";
+
+  std::string user_host = in->getenv("REMOTE_HOST");
+
+  cgicc::const_form_iterator stateInputElement = cgi.getElement("plot");
+  if (stateInputElement != cgi.getElements().end()) {
+    plot = (*stateInputElement).getValue();
+  }
+
+  stateInputElement = cgi.getElement("folder");
+  if (stateInputElement != cgi.getElements().end()) {
+    folder = (*stateInputElement).getValue();  
+  }
+
+  TImage *img = TImage::Create ();
+  char   *data = 0;
+  int    size = 0;
+
+  if (folder.find("CSC_") ==0) { // Convert CSC_XXX_YY to crateX/slotX string
+    int crate=0, slot=0;
+    int n = sscanf(folder.c_str(), "CSC_%03d_%02d", &crate, &slot);
+    if (n==2) folder = Form("crate%d/slot%d",crate,slot);
+  }
+
+  std::string plotpath=BaseDir.toString()+"/"+refImagePath.toString()+"/"+folder+"/"+plot;
+  struct stat stats;
+  if (stat(plotpath.c_str(), &stats)<0) {
+    LOG4CPLUS_WARN(getApplicationLogger(), plotpath << ": " <<
+		    strerror(errno));
+  } else {
+    img->ReadImage(plotpath.c_str());
+  }
+
+  img->Gray(false);
+  img->GetImageBuffer(&data, &size, TImage::kPng);
+
+  (out->getHTTPResponseHeader()).addHeader("Content-Type ","image/png");
+  out->write(data, size);
+
+  LOG4CPLUS_DEBUG (getApplicationLogger(), "Show Reference plot: \"" << folder << "/" << plot << "\" for " << user_host);
+  free (data);
+  delete img;
+
+  appBSem_.give();
+
+}
 
 
 
@@ -946,7 +999,7 @@ void EmuDisplayClient::getEMUSystemViewPage (xgi::Input * in, xgi::Output * out)
   *out << cgicc::html();
 }
 
-void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
+void EmuDisplayClient::getPlotPage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
 {
   cgicc::Cgicc cgi(in);
   //const cgicc::CgiEnvironment& env = cgi.getEnvironment();
@@ -1009,7 +1062,7 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
   imgurl += imagePath_.toString()+"/"+imgname;
   std::string url = "/";
   url += getApplicationDescriptor()->getURN();
-  url += "/getImage";
+  url += "/getPlot";
 
   *out << "<body onload=\"countSeconds()\">" << std::endl;
   *out << cgicc::form().set("name","params").set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;

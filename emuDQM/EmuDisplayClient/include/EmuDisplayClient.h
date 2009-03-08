@@ -93,7 +93,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   void createTreePage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void createTreeEngine(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void createTreeTemplate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void getImagePage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void getPlotPage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getEMUSystemViewPage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void headerPage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void dispatch (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
@@ -105,7 +105,8 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   void getVMEMapping (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getCSCList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getTestsList (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
-  void genImage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void genPlot (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void getRefPlot (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void getCSCCounters (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void controlDQM (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   
@@ -149,6 +150,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   xdata::Boolean viewOnly_;
   xdata::Boolean debug;
   xdata::String BaseDir;
+  xdata::String refImagePath;
   FoldersMap foldersMap; // === Associate DDUs and CSCs with Monitoring nodes
   CSCCounters cscCounters; // == CSC Counters from EmuMonitor nodes
   BSem appBSem_;
