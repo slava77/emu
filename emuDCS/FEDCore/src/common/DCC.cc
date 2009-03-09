@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.1 2009/03/05 16:02:14 paste Exp $
+* $Id: DCC.cc,v 1.2 2009/03/09 23:12:44 paste Exp $
 *
 * $Log: DCC.cc,v $
+* Revision 1.2  2009/03/09 23:12:44  paste
+* * Fixed a minor bug in DCC MPROM ID/Usercode reading
+* * Fixed a major bug in RESET path firmware loading
+* * Added debug mode for CAEN reading/writing
+*
 * Revision 1.1  2009/03/05 16:02:14  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -87,7 +92,7 @@ softsw_(0)
 
 	// The RESET path is one element.
 	JTAGChain chainRESET;
-	JTAGElement *elementRESET = new JTAGElement("RESET", RESET, 12, PROM_BYPASS, 8, 0x0000fffe, false);
+	JTAGElement *elementRESET = new JTAGElement("RESET", RESET, 12, PROM_BYPASS, 16, 0x0000fffe, false);
 	chainRESET.push_back(elementRESET);
 
 	JTAGMap[RESET] = chainRESET;
@@ -333,7 +338,7 @@ throw (emu::fed::exception::DCCException)
 {
 	uint16_t command = 0;
 	if (dev == MPROM) {
-		command = ((MPROM_IDCODE_H << 8) & 0xff00) | (MPROM_IDCODE_L & 0xff);
+		command = (uint16_t) (MPROM_IDCODE_H << 8) | (MPROM_IDCODE_L);
 	} else if (dev == INPROM) {
 		command = PROM_IDCODE & 0xff;
 	} else {
@@ -357,7 +362,7 @@ throw (emu::fed::exception::DCCException)
 {
 	uint16_t command = 0;
 	if (dev == MPROM) {
-		command = ((MPROM_USERCODE_H << 8) & 0xff00) | (MPROM_USERCODE_L & 0xff);
+		command = (uint16_t) (MPROM_USERCODE_H << 8) | (MPROM_USERCODE_L);
 	} else if (dev == INPROM) {
 		command = PROM_USERCODE & 0xff;
 	} else {
@@ -583,9 +588,10 @@ throw (emu::fed::exception::DCCException)
 
 
 
-std::vector<uint16_t> emu::fed::DCC::readRegister(enum DEVTYPE dev, char myRegister, unsigned int nBits)
+std::vector<uint16_t> emu::fed::DCC::readRegister(enum DEVTYPE dev, uint16_t myRegister, unsigned int nBits, bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
+
 	// The information about the element being written is stored in the chain.
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
 		std::ostringstream error;
@@ -605,21 +611,21 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 			//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 			
-			return readCycle(myAddress,nBits);
+			return readCycle(myAddress,nBits,debug);
 			
 		} else {
 			// Everything else is a JTAG command, and may or may not
 			// be part of a chain.
 			
 			// Open the appropriate register with an initialization command.
-			commandCycle(dev, myRegister);
+			commandCycle(dev, myRegister,debug);
 			
 			// Shove in (and read out)
-			std::vector<uint16_t> result = jtagRead(dev, nBits);
+			std::vector<uint16_t> result = jtagRead(dev, nBits, debug);
 			
 			// Finally, set the bypass.  All bypass commands in the chain are equal.
 			// That is part of the definition of JTAG.
-			commandCycle(dev, chain.front()->bypassCommand);
+			commandCycle(dev, chain.front()->bypassCommand,debug);
 			
 			return result;
 			
@@ -634,7 +640,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::DCC::writeRegister(enum DEVTYPE dev, char myRegister, unsigned int nBits, std::vector<uint16_t> myData)
+std::vector<uint16_t> emu::fed::DCC::writeRegister(enum DEVTYPE dev, uint16_t myRegister, unsigned int nBits, std::vector<uint16_t> myData, bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	
@@ -660,7 +666,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 			//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 			
-			writeCycle(myAddress, nBits, myData);
+			writeCycle(myAddress, nBits, myData, debug);
 			
 			// This sort of write does not read back, so return an empty vector.
 			std::vector<uint16_t> bogoBits;
@@ -670,13 +676,13 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		} else {
 			
 			// Open the appropriate register with an initialization command.
-			commandCycle(dev, myRegister);
+			commandCycle(dev, myRegister, debug);
 			
 			// Shove in (and read out)
-			std::vector<uint16_t> result = jtagWrite(dev, nBits, myData);
+			std::vector<uint16_t> result = jtagWrite(dev, nBits, myData, false, debug);
 			
 			// Finally, set the bypass
-			commandCycle(dev, chain.front()->bypassCommand);
+			commandCycle(dev, chain.front()->bypassCommand, debug);
 			
 			return result; // The value that used to be in the register.
 			

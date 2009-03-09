@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.1 2009/03/05 16:02:14 paste Exp $
+* $Id: VMEModule.h,v 1.2 2009/03/09 23:12:44 paste Exp $
 *
 * $Log: VMEModule.h,v $
+* Revision 1.2  2009/03/09 23:12:44  paste
+* * Fixed a minor bug in DCC MPROM ID/Usercode reading
+* * Fixed a major bug in RESET path firmware loading
+* * Added debug mode for CAEN reading/writing
+*
 * Revision 1.1  2009/03/05 16:02:14  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -120,24 +125,24 @@ namespace emu {
 			 *
 			 * @returns zero if no errors occurred, a positive int for warnings, a negative int for errors.
 			 **/
-			int loadPROM(enum DEVTYPE dev, char *fileName, std::string startString = "", std::string stopString = "")
+			int loadPROM(enum DEVTYPE dev, char *fileName, std::string startString = "", std::string stopString = "", bool debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
-			int loadPROM(enum DEVTYPE dev, const char *fileName, std::string startString = "", std::string stopString = "")
+			int loadPROM(enum DEVTYPE dev, const char *fileName, std::string startString = "", std::string stopString = "", bool debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 			{
 				try {
-					return loadPROM(dev, (char *) fileName, startString, stopString);
+					return loadPROM(dev, (char *) fileName, startString, stopString, debug);
 				} catch (...) {
 					throw;
 				}
 			}
 
-			int loadPROM(enum DEVTYPE dev, std::string fileName, std::string startString = "", std::string stopString = "")
+			int loadPROM(enum DEVTYPE dev, std::string fileName, std::string startString = "", std::string stopString = "", bool debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 			{
 				try {
-					return loadPROM(dev, fileName.c_str(), startString, stopString);
+					return loadPROM(dev, fileName.c_str(), startString, stopString, debug);
 				} catch (...) {
 					throw;
 				}
@@ -150,7 +155,7 @@ namespace emu {
 			*	@param myData the data to write, with the first element of the vector being the LSB
 			*	@param noRead if true, will read back the data shifted out of the JTAG device and return it
 			**/
-			std::vector<uint16_t> jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<uint16_t> myData, bool noRead = false)
+			std::vector<uint16_t> jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<uint16_t> myData, bool noRead = false, bool debug = false)
 			throw(emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Reads data from a particular JTAG device.
@@ -158,7 +163,7 @@ namespace emu {
 			*	@param dev the JTAG device from which the data will be read
 			*	@param nbits the number of bits to read
 			**/
-			std::vector<uint16_t> jtagRead(enum DEVTYPE dev, unsigned int nBits)
+			std::vector<uint16_t> jtagRead(enum DEVTYPE dev, unsigned int nBits, bool debug = false)
 			throw(emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 		
 		protected:
@@ -167,7 +172,7 @@ namespace emu {
 			*	@param dev the JTAG device to which the command will be sent
 			*	@param myCommand the command code to send
 			**/
-			void commandCycle(enum DEVTYPE dev, uint16_t myCommand)
+			void commandCycle(enum DEVTYPE dev, uint16_t myCommand, bool debug = false)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Reads 16 bits from a given VME address.
@@ -176,7 +181,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			uint16_t readVME(uint32_t myAddress)
+			uint16_t readVME(uint32_t myAddress, bool debug = false)
 			throw (emu::fed::exception::CAENException);
 
 			/** Writes 16 bits to a given VME address.
@@ -186,7 +191,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			void writeVME(uint32_t myAddress, uint16_t myData)
+			void writeVME(uint32_t myAddress, uint16_t myData, bool debug = false)
 			throw (emu::fed::exception::CAENException);
 
 			/** Reads any arbitrary number of bits from a given VME address.
@@ -196,7 +201,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			std::vector<uint16_t> readCycle(uint32_t myAddress, unsigned int nBits)
+			std::vector<uint16_t> readCycle(uint32_t myAddress, unsigned int nBits, bool debug = false)
 			throw(emu::fed::exception::CAENException);
 
 			/** Writes any arbitrary number of bits to a given VME address.
@@ -206,7 +211,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			void writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData)
+			void writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData, bool debug = false)
 			throw(emu::fed::exception::CAENException);
 
 			/// A map of JTAG chains on this device.
