@@ -16,6 +16,7 @@
 #include "emu/supervisor/RunInfo.h"
 #include "emu/supervisor/ELog.h"
 #include "emu/base/Supervised.h"
+#include "emu/base/WebReporter.h"
 #include "xdata/ItemEvent.h"
 
 #include "toolbox/task/WorkLoop.h"
@@ -29,8 +30,8 @@ using namespace std;
 namespace emu { namespace daq { namespace manager {
 
 class Application :
-// public xdaq::WebApplication,
 public emu::base::Supervised,
+public emu::base::WebReporter,
 public xdata::ActionListener
 {
 
@@ -201,6 +202,8 @@ private:
      */
     void controlWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
+
+  vector<emu::base::WebReportItem> materialToReportOnPage1();
 
   void governorForm(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
