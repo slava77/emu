@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.1 2009/03/05 16:18:25 paste Exp $
+* $Id: Monitor.cc,v 1.2 2009/03/09 16:03:17 paste Exp $
 *
 * $Log: Monitor.cc,v $
+* Revision 1.2  2009/03/09 16:03:17  paste
+* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
+* * Updated inheritance in wake of changes to emu::base::Supervised
+* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+*
 * Revision 1.1  2009/03/05 16:18:25  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -33,6 +38,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::Monitor)
 
 
 emu::fed::Monitor::Monitor(xdaq::ApplicationStub *stub):
+xdaq::WebApplication(stub),
 Application(stub)
 {
 	// Variables that are to be made available to other applications

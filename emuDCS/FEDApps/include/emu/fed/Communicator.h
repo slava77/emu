@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.1 2009/03/05 16:18:24 paste Exp $
+* $Id: Communicator.h,v 1.2 2009/03/09 16:03:16 paste Exp $
 *
 * $Log: Communicator.h,v $
+* Revision 1.2  2009/03/09 16:03:16  paste
+* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
+* * Updated inheritance in wake of changes to emu::base::Supervised
+* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+*
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -39,6 +44,7 @@
 #define __EMU_FED_COMMUNICATOR_H__
 
 #include "Application.h"
+#include "Supervised.h"
 
 #include "xdata/xdata.h"
 #include <vector>
@@ -51,7 +57,7 @@
 namespace emu {
 	namespace fed {
 		/** @class Communicator A class that is directly responsible for hardware communication with the FED Crates. **/
-		class Communicator : public emu::fed::Application
+		class Communicator : public emu::fed::Application, public emu::fed::Supervised
 		{
 
 		public:
@@ -83,7 +89,7 @@ namespace emu {
 
 			// FSM state change call-back function
 			/** Decault FSM state change call-back function **/
-			void inline stateChanged(toolbox::fsm::FiniteStateMachine &fsm) { return emu::fed::Application::stateChanged(fsm); }
+			void inline stateChanged(toolbox::fsm::FiniteStateMachine &fsm) { return emu::fed::Supervised::stateChanged(fsm); }
 
 				// SOAP call-back functions that send FSM transitions
 			/** Start the FSM 'Configure' transition **/
@@ -142,9 +148,6 @@ namespace emu {
 			
 			/// A manager that takes care of FMM interrupt handling.
 			IRQThreadManager *TM_;
-			
-			/// Whether or not the application has been configured via SOAP or via the web interface.
-			bool soapConfigured_;
 			
 			//xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > dccInOut_;
 			//xdata::Vector<xdata::UnsignedInteger> dduNumbers_;

@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.1 2009/03/05 16:18:25 paste Exp $
+* $Id: Manager.cc,v 1.2 2009/03/09 16:03:17 paste Exp $
 *
 * $Log: Manager.cc,v $
+* Revision 1.2  2009/03/09 16:03:17  paste
+* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
+* * Updated inheritance in wake of changes to emu::base::Supervised
+* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+*
 * Revision 1.1  2009/03/05 16:18:25  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -53,8 +58,13 @@
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Manager)
 
 emu::fed::Manager::Manager(xdaq::ApplicationStub *stub):
-Application(stub),
-soapConfigured_(false)
+xdaq::WebApplication(stub),
+emu::base::Supervised(stub),
+emu::fed::Application(stub),
+emu::fed::Supervised(stub),
+emu::base::WebReporter(stub),
+ttsID_(0),
+ttsBits_(0)
 {
 	// The name of the "endcap," which determines certain file names
 	endcap_ = "Manager";
@@ -66,7 +76,6 @@ soapConfigured_(false)
 
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Manager::webDefault, "Default");
-	xgi::bind(this, &emu::fed::Manager::forPageOne, "PageOne");
 
 	// SOAP call-back functions which fire the transitions to the FSM
 	BIND_DEFAULT_SOAP2FSM_ACTION(Manager, Configure);
@@ -477,27 +486,109 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 
 
 
-void emu::fed::Manager::forPageOne(xgi::Input *in, xgi::Output *out)
+std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1()
 {
-	// Headers
-	*out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
-	*out << "<?xml-stylesheet type=\"text/xml\" href=\"EmuPage1_XSL.xml\"?>" << std::endl;
+	std::vector<emu::base::WebReportItem> report;
 	
-	// Date and time
-	char datebuf[32];
-	std::time_t theTime = time(NULL);
-	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d %H:%M:%S", localtime(&theTime));
-	std::string dateString(datebuf);
-	*out << "<ForEmuPage1 from=”FED” dateTime=\"" << dateString << "\">" << std::endl;
+	std::ostringstream managerURL;
+	managerURL << getApplicationDescriptor()->getContextDescriptor()->getURL() << "/" << getApplicationDescriptor()->getURN();
 	
 	// FSM state
 	std::string underlyingStates = getUnderlyingStates(state_.toString());
-	*out << "<monitorable name=\"State\" value=\"" << underlyingStates << "\"/>" << std::endl;
+	report.push_back(emu::base::WebReportItem("State", underlyingStates, "Current state of the FED finite state machine", "", "", managerURL.str()));
 	
-	// FMM errors
-	*out << "<monitorable name=\"FMM Count\" value=\"0\"/>" << std::endl;
+	// FMM errors per endcap
+	std::set<xdaq::ApplicationDescriptor * > communicatorDescriptors = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("emu::fed::Communicator");
 	
-	*out << "</ForEmuPage1>" << std::endl;
+	std::set<xdaq::ApplicationDescriptor * > monitorDescriptors = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("emu::fed::Monitor");
+	
+	std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+	for ( itDescriptor = communicatorDescriptors.begin(); itDescriptor != communicatorDescriptors.end(); itDescriptor++ ) {
+		
+		// Ping the Communicators for their information.
+		xoap::MessageReference reply;
+		try {
+			reply = getParameters((*itDescriptor));
+		} catch (emu::fed::exception::SOAPException &e) {
+			std::ostringstream error;
+			error << "Unable to get parameters from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+			notifyQualified("ERROR", e2);
+		}
+		
+		xdata::String endcap = "Unknown";
+		try {
+			endcap = readParameter<xdata::String>(reply,"endcap");
+		} catch (emu::fed::exception::SOAPException &e) {
+			std::ostringstream error;
+			error << "Unable to read parameter 'endcap' from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
+			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+			notifyQualified("WARN", e2);
+		}
+		
+		xdata::UnsignedInteger chambersWithErrors = 0;
+		try {
+			chambersWithErrors = readParameter<xdata::UnsignedInteger>(reply,"chambersWithErrors");
+		} catch (emu::fed::exception::SOAPException &e) {
+			std::ostringstream error;
+			error << "Unable to read parameter 'chambersWithErrors' from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
+			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+			notifyQualified("WARN", e2);
+			continue;
+		}
+		
+		// Figure out which monitor matches this communicator
+		std::string monitorURL;
+		std::set <xdaq::ApplicationDescriptor *>::iterator jDescriptor;
+		for ( jDescriptor = monitorDescriptors.begin(); jDescriptor != monitorDescriptors.end(); jDescriptor++ ) {
+			// Ping the Monitors for their information.
+			xoap::MessageReference monitorReply;
+			try {
+				monitorReply = getParameters((*jDescriptor));
+			} catch (emu::fed::exception::SOAPException &e) {
+				std::ostringstream error;
+				error << "Unable to get parameters from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
+				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+				XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+				notifyQualified("WARN", e2);
+				continue;
+			}
+			
+			xdata::String monitorEndcap = "Unknown";
+			try {
+				monitorEndcap = readParameter<xdata::String>(monitorReply,"endcap");
+			} catch (emu::fed::exception::SOAPException &e) {
+				std::ostringstream error;
+				error << "Unable to read parameter 'endcap' from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
+				LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+				XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+				notifyQualified("WARN", e2);
+				continue;
+			}
+			
+			if (monitorEndcap == endcap) {
+				std::ostringstream monitorURLStream;
+				monitorURLStream << (*jDescriptor)->getContextDescriptor()->getURL() << "/" << (*jDescriptor)->getURN();
+				monitorURL = monitorURLStream.str();
+			}
+		}
+		
+		std::string problem = "";
+		if (chambersWithErrors) {
+			problem = "Errors reported";
+			if (monitorURL != "") {
+				problem += ":  click to view the appropriate Monitor application";
+			}
+		}
+		
+		report.push_back(emu::base::WebReportItem("Chamber Error Count (" + endcap.toString() + " Endcap)", chambersWithErrors.toString(), "Number of chambers reporting errors since the last resync", problem, "", monitorURL));
+		
+	}
+	
+	return report;
 }
 
 

@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.3 2009/03/05 18:48:55 paste Exp $
+* $Id: Application.cc,v 1.4 2009/03/09 16:03:17 paste Exp $
 *
 * $Log: Application.cc,v $
+* Revision 1.4  2009/03/09 16:03:17  paste
+* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
+* * Updated inheritance in wake of changes to emu::base::Supervised
+* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+*
 * Revision 1.3  2009/03/05 18:48:55  paste
 * * Interface beautification, removal of explicit check for file in /tmp/
 *
@@ -47,30 +52,20 @@
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
 #include "xoap/SOAPBody.h"
-#include "xgi/Method.h"
-#include "toolbox/fsm/FailedEvent.h"
 #include "log4cplus/logger.h"
 #include "log4cplus/fileappender.h"
 #include "log4cplus/configurator.h"
 #include "emu/fed/DataTable.h"
 
 emu::fed::Application::Application(xdaq::ApplicationStub *stub):
-emu::base::Supervised(stub),
-runNumber_(0),
-endcap_("?"),
-soapLocal_(false)
+xdaq::WebApplication(stub),
+endcap_("?")
 {
 	getApplicationInfoSpace()->fireItemAvailable("endcap", &endcap_);
 
 	xoap::bind(this, &emu::fed::Application::onGetParameters, "GetParameters", XDAQ_NS_URI);
 
-	// PGK Making these available on the ApplicationInfoSpace will allow
-	//  the CSCSV to set them with the "ParameterSet" SOAP command.
-	getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
-	
 	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
-
-	xgi::bind(this,&emu::fed::Application::webFire, "Fire");
 	
 	// Appender file name
 	char datebuf[32];
@@ -373,43 +368,6 @@ std::string emu::fed::Application::dumpEnvironment(xgi::Input *in)
 
 
 /*
-void emu::fed::Application::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-{
-	state_ = fsm.getStateName(fsm.getCurrentState());
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "StateChanged: " << state_.toString());
-}
-*/
-
-/*
-void emu::fed::Application::transitionFailed(toolbox::Event::Reference event)
-{
-	toolbox::fsm::FailedEvent &failed = dynamic_cast<toolbox::fsm::FailedEvent &>(*event);
-
-	std::ostringstream error;
-	error <<  "Failure occurred when performing transition from " << failed.getFromState() << " to " << failed.getToState() << ", exception: " << failed.getException().what();
-	LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-	XCEPT_DECLARE_NESTED(emu::fed::exception::FSMException, e, error.str(), failed.getException());
-	notifyQualified("FATAL", e);
-}
-*/
-
-
-void emu::fed::Application::fireEvent(std::string name)
-{
-	toolbox::Event::Reference event((new toolbox::Event(name, this)));
-	try {
-		fsm_.fireEvent(event);
-	} catch (toolbox::fsm::exception::Exception &e) {
-		std::ostringstream error;
-		error << "Exception caught firing event named " << name << " to application " << getApplicationDescriptor()->getClassName() << " instance " << getApplicationDescriptor()->getInstance();
-		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-		XCEPT_DECLARE_NESTED(emu::fed::exception::FSMException, e2, error.str(), e);
-		notifyQualified("FATAL", e2);
-	}
-}
-
-
-/*
 xoap::MessageReference emu::fed::Application::createSOAPReply(xoap::MessageReference message)
 {
 	std::string command = "";
@@ -441,32 +399,6 @@ xoap::MessageReference emu::fed::Application::createSOAPReply(xoap::MessageRefer
 	return reply;
 }
 */
-
-
-void emu::fed::Application::webFire(xgi::Input *in, xgi::Output *out)
-{
-	cgicc::Cgicc cgi(in);
-	soapLocal_ = true;
-
-	std::string action = "";
-	cgicc::form_iterator name = cgi.getElement("action");
-	if (name != cgi.getElements().end()) {
-		action = cgi["action"]->getValue();
-		LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM state change from web requested: " << action);
-		try {
-			fireEvent(action);
-		} catch (emu::fed::exception::FSMException &e) {
-			std::ostringstream error;
-			error << "Error in FSM state change from web with action " << action;
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::FSMException, e2, error.str(), e);
-			notifyQualified("FATAL", e2);
-		}
-	}
-
-	webRedirect(in, out);
-}
-
 
 
 void emu::fed::Application::webRedirect(xgi::Input *in, xgi::Output *out, std::string location)

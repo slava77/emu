@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.4 2009/03/05 22:04:09 paste Exp $
+* $Id: AppsVersion.h,v 1.5 2009/03/09 16:03:16 paste Exp $
 *
 * $Log: AppsVersion.h,v $
+* Revision 1.5  2009/03/09 16:03:16  paste
+* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
+* * Updated inheritance in wake of changes to emu::base::Supervised
+* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+*
 * Revision 1.4  2009/03/05 22:04:09  paste
 * * Fixed a minor bug involving DCC Expert commands
 *
@@ -21,7 +26,7 @@
 
 namespace emufedapps {
 	const std::string package     = "emufedapps";
-	const std::string versions    = "07.00.03";
+	const std::string versions    = "07.00.04";
 	const std::string description = "Emu (CSC) FED crate XDAq applications";
 
 	const std::string summary     = "A collection of XDAq applications for controlling end-cap muon CSC FED VME hardware.";

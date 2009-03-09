@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.1 2009/03/05 16:18:24 paste Exp $
+* $Id: Application.h,v 1.2 2009/03/09 16:03:16 paste Exp $
 *
 * $Log: Application.h,v $
+* Revision 1.2  2009/03/09 16:03:16  paste
+* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
+* * Updated inheritance in wake of changes to emu::base::Supervised
+* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+*
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -41,7 +46,7 @@
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
 
-#include "emu/base/Supervised.h"
+#include "xdaq/WebApplication.h"
 #include "emu/fed/Exception.h"
 
 #include <string>
@@ -58,20 +63,15 @@
 #include "xgi/Input.h"
 #include "xoap/Method.h"
 
-#define DEFINE_DEFAULT_SOAP2FSM_ACTION( COMMAND ) \
-xoap::MessageReference on ##COMMAND(xoap::MessageReference message) \
-{ \
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM state change requested:  " #COMMAND); \
-	fireEvent(#COMMAND); \
-	return createReply(message); \
-}
-
-#define BIND_DEFAULT_SOAP2FSM_ACTION( CLASS, COMMAND ) xoap::bind(this, &CLASS::on ##COMMAND, #COMMAND, XDAQ_NS_URI);
-
 namespace emu {
 	namespace fed {
 		
-		class Application: public emu::base::Supervised {
+		/** @class Application A class from which all FED XDAQ web applications should inherit.
+		*	Includes routines for display, logging, SOAP communication, and useful pre-defined members.
+		*
+		*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
+		**/
+		class Application: public virtual xdaq::WebApplication {
 
 		public:
 
@@ -234,38 +234,11 @@ namespace emu {
 			**/
 			xoap::MessageReference onGetParameters(xoap::MessageReference message);
 
-			/** Method used as a general call-back from FSM state changes.
-			*
-			*	@param fsm is the finite state machine that just transitioned stated
-			**/
-			//void stateChanged(toolbox::fsm::FiniteStateMachine &fsm);
-
-			/** Method used as a general call-back when the FSM transitions to the Failed state.
-			*
-			*	@param event is the event (exception) that caused the failure
-			**/
-			//void transitionFailed(toolbox::Event::Reference event);
-
-			/** Method that will cause the FSM to perform a transition bound to a given event if it exists.
-			*
-			*	@param event is the named transition that the FSM will attempt to perform.
-			**/
-			void fireEvent(std::string event);
-
-			/** Creates a simple reply to a SOAP command.
+			/* Creates a simple reply to a SOAP command.
 			*
 			*	@param message is the message to which a reply is generated
 			**/
 			//xoap::MessageReference createSOAPReply(xoap::MessageReference message);
-
-			/** Fire a FSM transition command from a CGI GET parameter.
-			*
-			*	@param in is the standard XGI input.  Requires a field named "action" with a string corresponding to the requested transition
-			*	@param out is the standard XGI output
-			*
-			*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
-			**/
-			void webFire(xgi::Input *in, xgi::Output *out);
 
 			/** Redirect the browser to the default page.
 			*
@@ -304,14 +277,9 @@ namespace emu {
 
 		protected:
 
-			/// The run number of the current run.  Useful for log files.
-			xdata::UnsignedLong runNumber_;
-
 			/// The "endcap" for the application.  This is just some name that can be used to distinguish differently-configured applications from each other.
 			xdata::String endcap_;
 
-			/// Whether or not the current state has been transitioned to via SOAP or via a web request.
-			bool soapLocal_;
 
 		};
 	}
