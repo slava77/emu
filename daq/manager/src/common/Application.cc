@@ -37,9 +37,9 @@
 
 emu::daq::manager::Application::Application(xdaq::ApplicationStub *s)
 throw (xdaq::exception::Exception) :
-// xdaq::WebApplication(s),
+xdaq::WebApplication(s),
 emu::base::Supervised(s),
-
+emu::base::WebReporter(s),
 logger_(Logger::getInstance(generateLoggerName())),
 runInfo_(0)
 {
@@ -1313,6 +1313,23 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
     *out << "</body>"                                                    << endl;
 
     *out << "</html>"                                                    << endl;
+}
+
+vector<emu::base::WebReportItem> 
+emu::daq::manager::Application::materialToReportOnPage1(){
+  vector<emu::base::WebReportItem> items;
+  string state = getDAQState();
+  string valueTip;
+  string controlURL = getHref( appDescriptor_ ) + "/control";
+  if ( ! ( state == "Enabled" || state == "Ready" || state == "Halted" ) ) 
+    valueTip = "Local DAQ needs attention. Click to control it manually.";
+  items.push_back( emu::base::WebReportItem( "state",
+                                             state,
+                                             "The overall state of local DAQ.",
+                                             valueTip,
+                                             "",
+                                             controlURL ) );
+  return items;
 }
 
 void emu::daq::manager::Application::setParametersForGlobalMode(){
