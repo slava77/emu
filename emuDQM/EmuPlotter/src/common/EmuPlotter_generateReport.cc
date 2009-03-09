@@ -1221,7 +1221,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	// if (h->GetEntries() > nWireGroups) {
 	if (h->GetMaximum() > 0.1) {  
 	  for (int32_t iseg=0; iseg < nWireGroups/8; iseg++) {
-	    if (h->Integral(iseg*8+1, (iseg+1)*8) == 0) {
+	    if (h->Integral(iseg*8+1+1, (iseg+1)*8+1) == 0) {
 	      int afeb = iseg*3+(ilayer+1)/2;
 	      std::string diag=Form("ALCT No Anode Data: AFEB%d Layer%d", afeb, ilayer);
 	      dqm_report.addEntry(cscName, entry.fillEntry(diag,CRITICAL, "CSC_ALCT_NO_ANODE_DATA"));
@@ -1229,7 +1229,7 @@ int EmuPlotter::generateReport(std::string rootfile, std::string path, std::stri
 	  }
 	  
 	  for (uint32_t hvseg=0; hvseg < hvSegMap.size(); hvseg++) {
-	    if (h->Integral(hvSegMap[hvseg].first, hvSegMap[hvseg].second) == 0) {
+	    if (h->Integral(hvSegMap[hvseg].first+1, hvSegMap[hvseg].second+1) == 0) {
 	      std::string diag=Form("No HV: Segment%d Layer%d", hvseg+1, ilayer);
 	      dqm_report.addEntry(cscName, entry.fillEntry(diag,SEVERE, "CSC_NO_HV_SEGMENT"));
 	      // std::cout << cscName << " " << diag << std::endl;
