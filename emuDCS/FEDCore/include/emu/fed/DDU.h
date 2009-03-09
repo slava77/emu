@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.1 2009/03/05 16:02:14 paste Exp $
+* $Id: DDU.h,v 1.2 2009/03/09 23:12:44 paste Exp $
 *
 * $Log: DDU.h,v $
+* Revision 1.2  2009/03/09 23:12:44  paste
+* * Fixed a minor bug in DCC MPROM ID/Usercode reading
+* * Fixed a major bug in RESET path firmware loading
+* * Added debug mode for CAEN reading/writing
+*
 * Revision 1.1  2009/03/05 16:02:14  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -452,7 +457,7 @@ namespace emu {
 			*	@param myReg is the register on the device from which to read.
 			*	@param @nBits is the number of bits to read.
 			**/
-			std::vector<uint16_t> readRegister(enum DEVTYPE dev, int myReg, unsigned int nBits)
+			std::vector<uint16_t> readRegister(enum DEVTYPE dev, uint16_t myReg, unsigned int nBits)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Writes an arbitrary number of bits to a given register on a given device.
@@ -462,7 +467,7 @@ namespace emu {
 			*	@param @nBits is the number of bits to write.
 			*	@param @myData is the data to write.
 			**/
-			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, int myReg, unsigned int nBits, std::vector<uint16_t> myData)
+			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, uint16_t myReg, unsigned int nBits, std::vector<uint16_t> myData)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/// The chambers that are plugged into this DDU, in fiber-order.

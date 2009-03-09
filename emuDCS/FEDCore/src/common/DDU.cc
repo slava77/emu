@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.1 2009/03/05 16:02:14 paste Exp $
+* $Id: DDU.cc,v 1.2 2009/03/09 23:12:44 paste Exp $
 *
 * $Log: DDU.cc,v $
+* Revision 1.2  2009/03/09 23:12:44  paste
+* * Fixed a minor bug in DCC MPROM ID/Usercode reading
+* * Fixed a major bug in RESET path firmware loading
+* * Added debug mode for CAEN reading/writing
+*
 * Revision 1.1  2009/03/05 16:02:14  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -1543,7 +1548,7 @@ throw (emu::fed::exception::DDUException)
 // Private methods
 ///////////////////////////////////////////////////////////////////////////////
 
-std::vector<uint16_t> emu::fed::DDU::readRegister(enum DEVTYPE dev, int myRegister, unsigned int nBits)
+std::vector<uint16_t> emu::fed::DDU::readRegister(enum DEVTYPE dev, uint16_t myRegister, unsigned int nBits)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// The information about the element being written
@@ -1689,7 +1694,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::DDU::writeRegister(enum DEVTYPE dev, int myRegister, unsigned int nBits, std::vector<uint16_t> myData)
+std::vector<uint16_t> emu::fed::DDU::writeRegister(enum DEVTYPE dev, uint16_t myRegister, unsigned int nBits, std::vector<uint16_t> myData)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	

@@ -1,8 +1,13 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.2 2009/03/05 21:57:55 paste Exp $
+* $Id: VMEModule.cc,v 1.3 2009/03/09 23:12:44 paste Exp $
 *
 * $Log: VMEModule.cc,v $
+* Revision 1.3  2009/03/09 23:12:44  paste
+* * Fixed a minor bug in DCC MPROM ID/Usercode reading
+* * Fixed a major bug in RESET path firmware loading
+* * Added debug mode for CAEN reading/writing
+*
 * Revision 1.2  2009/03/05 21:57:55  paste
 * * CAEN Bus Errors no longer throw exceptions.
 * This is a temporary fix to a problem where the DCC does not send a DTACK on certain register writes,
@@ -74,6 +79,8 @@
 #include <sstream>
 #include <fstream>
 #include <unistd.h>
+#include <iostream>
+#include <sys/time.h>
 
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
@@ -90,7 +97,7 @@ slot_(mySlot)
 
 
 
-void emu::fed::VMEModule::writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData)
+void emu::fed::VMEModule::writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData, bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// What I really need is the number of words and remainder bits.
@@ -107,7 +114,7 @@ throw (emu::fed::exception::CAENException)
 		if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
 
 		try {
-			writeVME(myAddress,myData[iWord] & bitMask);
+			writeVME(myAddress,myData[iWord] & bitMask, debug);
 		} catch (emu::fed::exception::CAENException &e) {
 			pthread_mutex_unlock(&mutex_);
 			std::ostringstream error;
@@ -122,7 +129,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::readCycle(uint32_t myAddress, unsigned int nBits)
+std::vector<uint16_t> emu::fed::VMEModule::readCycle(uint32_t myAddress, unsigned int nBits, bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// What I really need is the number of words and remainder bits.
@@ -141,7 +148,7 @@ throw (emu::fed::exception::CAENException)
 		uint16_t bitMask = 0xffff;
 		if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
 		try {
-			result.push_back(readVME(myAddress) & bitMask);
+			result.push_back(readVME(myAddress, debug) & bitMask);
 		} catch (emu::fed::exception::CAENException &e) {
 			pthread_mutex_unlock(&mutex_);
 			std::ostringstream error;
@@ -155,7 +162,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::commandCycle(enum DEVTYPE dev, uint16_t myCommand)
+void emu::fed::VMEModule::commandCycle(enum DEVTYPE dev, uint16_t myCommand, bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -172,19 +179,45 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 	try {
 		// The RESET command is very straight forward
-		if (dev == RESET || dev == RESET1 || dev == RESET2) {
+		if (dev == RESET) {
 
 			// Some fake vectors for sending data.
 			std::vector<uint16_t> bogoData0(1,0);
 			std::vector<uint16_t> bogoData1(1,1);
+			std::vector<uint16_t> bogoData2(1,2);
+			std::vector<uint16_t> bogoData3(1,3);
+			
+			// The number of bits in the command
+			// Note:  the RESET path is always the first element.
+			unsigned int nBits = chain.front()->cmdBits;
 
 			// Send the reset command pattern
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
+			writeCycle(myAddress, 2, bogoData0, debug);
+			writeCycle(myAddress, 2, bogoData0, debug);
+			writeCycle(myAddress, 2, bogoData1, debug);
+			writeCycle(myAddress, 2, bogoData1, debug);
+			writeCycle(myAddress, 2, bogoData0, debug);
+			writeCycle(myAddress, 2, bogoData0, debug);
+			
+			// Send each bit in turn.
+			// The 2nd bit of the data is the value of the bit,
+			// the 1st bit ends the write.
+			for (unsigned int iBit = 0; iBit < nBits; iBit++) {
+				
+				if (iBit == nBits - 1) { // last bit
+					// Check if the bit is high/low
+					if (myCommand & (1 << iBit)) writeCycle(myAddress, 2, bogoData3, debug);
+					else writeCycle(myAddress, 2, bogoData1, debug);
+				} else { // not last bit
+					// Check if the bit is high/low
+					if (myCommand & (1 << iBit)) writeCycle(myAddress, 2, bogoData2, debug);
+					else writeCycle(myAddress, 2, bogoData0, debug);
+				}
+			}
+			
+			// End the reset command
+			writeCycle(myAddress, 2, bogoData1, debug);
+			writeCycle(myAddress, 2, bogoData0, debug);
 
 			return;
 		}
@@ -235,7 +268,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		myAddress |= 0x0000001c | ((nBits - 1) << 8);
 
 		// Send the command
-		writeCycle(myAddress, nBits, commands);
+		writeCycle(myAddress, nBits, commands, debug);
 
 	} catch (emu::fed::exception::CAENException &e) {
 		std::ostringstream error;
@@ -249,7 +282,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<uint16_t> myData, bool noRead)
+std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<uint16_t> myData, bool noRead, bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// Get the chain.  Very important to know.
@@ -282,7 +315,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 	}
 
 	// The RESET command writes things bit-by-bit.
-	if (dev == RESET || dev == RESET2) {
+	if (dev == RESET) {
 
 		try {
 
@@ -293,11 +326,11 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			std::vector<uint16_t> bogoData3(1,3);
 
 			// Send the write command pattern
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
-			writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
+			writeCycle(myAddress, 2, bogoData0, debug);
+			writeCycle(myAddress, 2, bogoData0, debug);
+			writeCycle(myAddress, 2, bogoData1, debug);
+			writeCycle(myAddress, 2, bogoData0, debug);
+			writeCycle(myAddress, 2, bogoData0, debug);
 
 			// Send each bit in turn.
 			// The 2nd bit of the data is the value of the bit,
@@ -310,14 +343,19 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 				if (iBit == nBits + extraBits - 1) { // last bit
 					// Check if the bit is high/low
-					if (myData[iWord] & (1 << remainderBits)) writeCycle(myAddress, chain.front()->cmdBits, bogoData3);
-					else writeCycle(myAddress, chain.front()->cmdBits, bogoData1);
+					if (myData[iWord] & (1 << remainderBits)) writeCycle(myAddress, 2, bogoData3, debug);
+					else writeCycle(myAddress, 2, bogoData1, debug);
 				} else { // not last bit
 					// Check if the bit is high/low
-					if (myData[iWord] & (1 << remainderBits)) writeCycle(myAddress, chain.front()->cmdBits, bogoData2);
-					else writeCycle(myAddress, chain.front()->cmdBits, bogoData0);
+					if (myData[iWord] & (1 << remainderBits)) writeCycle(myAddress, 2, bogoData2, debug);
+					else writeCycle(myAddress, 2, bogoData0, debug);
 				}
 			}
+			
+			// End the reset command
+			writeCycle(myAddress, 2, bogoData1, debug);
+			writeCycle(myAddress, 2, bogoData0, debug);
+			
 		} catch (emu::fed::exception::CAENException &e) {
 			std::ostringstream error;
 			error << "Exception in jtagWrite(dev=" << dev << ", nBits=" << nBits << ", myData=" << &myData << ", noRead=" << noRead << ")";
@@ -360,12 +398,12 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		
 		// Do the write command first, as this is required for every read-back.
 		try {
-			writeVME(address,myData[iWord] & bitMask);
+			writeVME(address, myData[iWord] & bitMask, debug);
 
 			// Read now and store it for later.
 			if (!noRead) {
 				address = myAddress | 0x14;
-				uint16_t tempResult = readVME(address);
+				uint16_t tempResult = readVME(address, debug);
 
 				// Do some bit manipulations if this is the remainder.
 				if (iWord == nWords - 1 && remainderBits) {
@@ -404,7 +442,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::jtagRead(enum DEVTYPE dev, unsigned int nBits)
+std::vector<uint16_t> emu::fed::VMEModule::jtagRead(enum DEVTYPE dev, unsigned int nBits, bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// Get the chain.  Very important to know.
@@ -463,11 +501,11 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		// Do the write command first, as this is required for every read-back.
 		uint16_t tempResult = 0;
 		try {
-			writeVME(address, 0xffff);
+			writeVME(address, 0xffff, debug);
 
 			// Read now and store it for later.
 			address = myAddress | 0x14;
-			tempResult = readVME(address) & bitMask;
+			tempResult = readVME(address, debug) & bitMask;
 			//std::cerr << "tempResult is " << std::hex << tempResult << " mask " << bitMask << std::endl;
 		} catch (emu::fed::exception::CAENException &e) {
 			pthread_mutex_unlock(&mutex_);
@@ -508,7 +546,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-uint16_t emu::fed::VMEModule::readVME(uint32_t Address)
+uint16_t emu::fed::VMEModule::readVME(uint32_t Address, bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// The address always has the board slot encoded.
@@ -525,18 +563,14 @@ throw (emu::fed::exception::CAENException)
 	//uint64_t *data;
 
 	// Read and return error code
-	#ifdef CAEN_DEBUG
-	std::clog << std::hex << "New Read  BHandle_(" << BHandle_ << ") Address(" << Address << ") " << std::flush;
-	#endif
+	if (debug) std::cerr << std::hex << "Read BHandle_(" << BHandle_ << ") Address(" << Address << ") " << std::flush;
 	CVErrorCodes err = CAENVME_ReadCycle(BHandle_, Address, &data, AM, DW);
-	#ifdef CAEN_DEBUG
-	std::clog << std::hex << "data(" << data << ")" << std::flush << std::endl;
-	#endif
+	if (debug) std::cerr << std::hex << "data(" << data << ") err(" << err << ")" << std::flush << std::endl;
 
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in readVME(Address=" << Address << "): " << CAENVME_DecodeError(err);
-		if (err != cvBusError) XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
 	}
 
 	return data;
@@ -544,7 +578,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::writeVME(uint32_t Address, uint16_t data)
+void emu::fed::VMEModule::writeVME(uint32_t Address, uint16_t data, bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// The address always has the board slot encoded.
@@ -557,16 +591,14 @@ throw (emu::fed::exception::CAENException)
 	CVDataWidth DW = cvD16;
 	
 	// Write and return error code
-	CVErrorCodes err = cvSuccess;
-	#ifdef CAEN_DEBUG
-	std::clog << std::hex << "New Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << data << ")" << std::flush << std::endl;
-	#else
-	err = CAENVME_WriteCycle(BHandle_, Address, &data, AM, DW);
-	#endif
+	if (debug) std::cerr << std::hex << "Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << data << ")" << std::flush;
+	CVErrorCodes err = CAENVME_WriteCycle(BHandle_, Address, &data, AM, DW);
+	if (debug) std::cerr << std::hex << " err(" << err << ")" << std::endl << std::flush;
+
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in writeVME(Address=" << Address << ", data=" << data << "): " << CAENVME_DecodeError(err);
-		if (err != cvBusError) XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
 	}
 	
 	return;
@@ -574,7 +606,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-int emu::fed::VMEModule::loadPROM(enum DEVTYPE dev, char *fileName, std::string startString, std::string stopString)
+int emu::fed::VMEModule::loadPROM(enum DEVTYPE dev, char *fileName, std::string startString, std::string stopString, bool debug)
 throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	
@@ -654,7 +686,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 				myLine += nextLine;
 			}
 
-			std::cerr << myLine << std::flush << std::endl;
+			if (debug) std::cerr << myLine << std::flush << std::endl;
 
 			// Wipe out that troublesome semicolon now.
 			myLine = myLine.substr(0,myLine.find(';'));
@@ -712,13 +744,12 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 				std::vector<uint8_t> bogoData;
 				bogoData.reserve(nBytes);
 				for (unsigned long int iByte = 0; iByte < nBytes; iByte++) {
-					uint8_t byte;
-					std::istringstream parser(value.substr(iByte * 2, 2));
-					parser >> std::hex >> byte;
-					//sscanf(value.substr(iByte * 2, 2).c_str(), "%2hhx", &byte);
+					unsigned int byte;
+					//std::istringstream parser(value.substr(iByte * 2, 2));
+					//parser >> std::hex >> byte;
+					sscanf(value.substr(iByte * 2, 2).c_str(), "%2x", &byte);
 					// Be careful!  This is in reverse order!
-					bogoData.push_back(byte & 0xff);
-					//std::cerr << "bogoData " << iByte << " " << (int) bogoData[iByte] << std::endl;
+					bogoData.push_back((uint8_t) (byte & 0xff));
 				}
 
 				// Make the data into a vector we can use.
@@ -747,7 +778,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 					*/
 					// The number of bits matches that of the command bus.
 					//std::clog << "Attempting commandCycle with dev " << dev << " data " << myData[0] << std::endl;
-					commandCycle(dev, myData[0]);
+					commandCycle(dev, myData[0], debug);
 
 					continue;
 
@@ -759,7 +790,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 					// You can do something with the result here if you want.
 
 					// The "true" at the end means write-only and don't read back.
-					jtagWrite(dev, nBits, myData, true);
+					jtagWrite(dev, nBits, myData, true, debug);
 
 					continue;
 				}
@@ -771,11 +802,9 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 				unsigned long int time;
 				myLineStream >> time;
 
-				#ifdef CAEN_DEBUG
 				timeval startTime;
 				timeval endTime;
-				gettimeofday(&startTime,NULL);
-				#endif
+				if (debug) gettimeofday(&startTime,NULL);
 
 				// Only use usleep if the number of microseconds is greater than 50.
 				// Below that, we don't have the kind of resolution we need to be accurate,
@@ -784,11 +813,11 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 					usleep(time);
 				}
 
-				#ifdef CAEN_DEBUG
-				gettimeofday(&endTime,NULL);
-				unsigned long int diffTime = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
-				std::clog << "--usleep time: " << diffTime << " microseconds" << std::endl;
-				#endif
+				if (debug) {
+					gettimeofday(&endTime,NULL);
+					unsigned long int diffTime = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
+					std::cerr << "--usleep time: " << std::dec << diffTime << " microseconds" << std::endl;
+				}
 
 				continue;
 
@@ -809,7 +838,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 				// Now we reset idle, clearly.
 
-				if (dev == RESET || dev == RESET1 || dev == RESET2) {
+				if (dev == RESET) {
 
 					uint32_t myAddress = element->bitCode;
 
@@ -817,11 +846,11 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 					std::vector<uint16_t> bogoBits(1,1);
 
 					// Send it 5 times.
-					writeCycle(myAddress, element->cmdBits, bogoBits);
-					writeCycle(myAddress, element->cmdBits, bogoBits);
-					writeCycle(myAddress, element->cmdBits, bogoBits);
-					writeCycle(myAddress, element->cmdBits, bogoBits);
-					writeCycle(myAddress, element->cmdBits, bogoBits);
+					writeCycle(myAddress, 2, bogoBits, debug);
+					writeCycle(myAddress, 2, bogoBits, debug);
+					writeCycle(myAddress, 2, bogoBits, debug);
+					writeCycle(myAddress, 2, bogoBits, debug);
+					writeCycle(myAddress, 2, bogoBits, debug);
 
 					continue;
 
@@ -832,7 +861,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 					// Fake data to send.
 					std::vector<uint16_t> bogoBits(1,0x0);
 
-					writeCycle(myAddress, element->cmdBits, bogoBits);
+					writeCycle(myAddress, element->cmdBits, bogoBits, debug);
 				}
 				continue;
 
