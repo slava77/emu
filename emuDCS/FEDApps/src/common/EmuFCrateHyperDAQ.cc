@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.2 2009/03/05 22:04:09 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.3 2009/03/09 16:03:17 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 1.3  2009/03/09 16:03:17  paste
+* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
+* * Updated inheritance in wake of changes to emu::base::Supervised
+* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+*
 * Revision 1.2  2009/03/05 22:04:09  paste
 * * Fixed a minor bug involving DCC Expert commands
 *
@@ -94,6 +99,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::EmuFCrateHyperDAQ)
 
 
 emu::fed::EmuFCrateHyperDAQ::EmuFCrateHyperDAQ(xdaq::ApplicationStub *stub):
+xdaq::WebApplication(stub),
 Application(stub)
 {
 	

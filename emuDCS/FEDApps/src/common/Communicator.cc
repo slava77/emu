@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.1 2009/03/05 16:18:24 paste Exp $
+* $Id: Communicator.cc,v 1.2 2009/03/09 16:03:17 paste Exp $
 *
 * $Log: Communicator.cc,v $
+* Revision 1.2  2009/03/09 16:03:17  paste
+* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
+* * Updated inheritance in wake of changes to emu::base::Supervised
+* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+*
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -89,11 +94,13 @@
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Communicator)
 
 emu::fed::Communicator::Communicator(xdaq::ApplicationStub *stub):
-Application(stub),
+xdaq::WebApplication(stub),
+emu::base::Supervised(stub),
+emu::fed::Application(stub),
+emu::fed::Supervised(stub),
 ttsCrate_(0),
 ttsSlot_(0),
 ttsBits_(0),
-soapConfigured_(false),
 chambersWithErrors_(0)
 {
 
