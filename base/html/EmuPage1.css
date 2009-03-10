@@ -1,0 +1,15 @@
+table { width: 100%; }
+td, th { color:#000000; border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px;}
+th { background-color:#dddddd; width:20%; }
+td { background-color:#eeeeee; text-align:center; }
+td.time { font-size:70%; }
+td.Halted { background-color:#2222ff; }
+td.Ready { background-color:#ffff22; }
+td.Enabled { background-color:#22ff22; }
+td.Failed { background-color:#ff2222; }
+a:link,a:active,a:visited { color:#333333; }
+a:hover { color:#00FFFF; font-weight:bold; }
+.fresh { opacity:1.0; }
+.aging { opacity:0.5; }
+.stale { opacity:0.3; }
+table.stale td.time { text-decoration:blink; }
