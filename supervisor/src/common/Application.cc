@@ -71,6 +71,7 @@ void emu::supervisor::Application::CalibParam::registerFields(xdata::Bag<CalibPa
 
 emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   throw (xdaq::exception::Exception) :
+  xdaq::WebApplication(stub),
   emu::base::Supervised(stub),
   logger_(Logger::getInstance("emu::supervisor::Application")),
   run_type_("Monitor"), run_number_(1), runSequenceNumber_(0),
