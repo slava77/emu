@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xsl:output method="html" encoding="UTF-8" indent="no"/>
+
+  <xsl:template match="ForEmuPage1">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+        <title>Report for EmuPage1 from <xsl:value-of select="@from"/> at <xsl:value-of select="@dateTime"/></title>
+	<link rel="stylesheet" type="text/css" href="/emu/base/html/EmuPage1.css"/>
+	<script type="text/javascript" src="/emu/base/html/EmuPage1.js"/>
+      </head>
+      <xsl:variable name="TABLEID">table_<xsl:value-of select="@application"/></xsl:variable>
+      <xsl:variable name="ONLOAD">onLoad('<xsl:value-of select="@application"/>')</xsl:variable>
+      <body onload="{$ONLOAD}">
+	<table class="fresh" id="{$TABLEID}">
+	  <tr><th colspan="2"><xsl:value-of select="@application"/></th></tr>
+<!-- 	  <tr><td class="time" id="td_ageOfPage"/><td class="time" id="td_localDateTime"><xsl:value-of select="@localDateTime"/></td></tr> -->
+	  <tr><td class="time"><span style="float:left;" id="td_ageOfPage"/></td><td class="time"><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	  <xsl:if test="@application = 'emu::daq::manager::Application' or @application = 'emu::fed::Communicator'"><xsl:apply-templates mode="DAQ"/></xsl:if>
+	</table>
+      </body>
+    </html>
+  </xsl:template>
+
+  <xsl:template mode="DAQ" match="monitorable">
+    <xsl:variable name="STATE"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <xsl:variable name="CLASSES"><xsl:value-of select="$STATE"/></xsl:variable>
+    <tr>
+      <th>
+	<xsl:attribute name="id">th_<xsl:value-of select="@name"/></xsl:attribute>
+	<a class="with_popup">
+	  <xsl:attribute name="id">a_<xsl:value-of select="@name"/></xsl:attribute>
+	  <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
+	  <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
+	  <xsl:value-of select="@name"/>
+	  <!-- 	  <span class="popup"> -->
+	  <!-- 	    <xsl:value-of select="@nameDescription"/> -->
+	  <!-- 	  </span> -->
+	</a>
+      </th>
+      <td class="{$CLASSES}">
+	<xsl:attribute name="id">td_value_of_<xsl:value-of select="@name"/></xsl:attribute>
+	<a class="with_popup">
+	  <xsl:attribute name="id">a_value_of_<xsl:value-of select="@name"/></xsl:attribute>
+	  <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
+	  <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
+	  <xsl:value-of select="@value"/>
+	  <!-- 	  <span class="popup"> -->
+	  <!-- 	    <xsl:value-of select="@valueDescription"/> -->
+	  <!-- 	  </span> -->
+	</a>
+      </td>
+    </tr>
+  </xsl:template>
+
+</xsl:transform>

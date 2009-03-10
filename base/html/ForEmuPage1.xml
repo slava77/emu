@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- <?xml-stylesheet type="text/xml" href="/emu/base/html/EmuPage1_XSL.xml"?> -->
+<?xml-stylesheet type="text/xml" href="EmuPage1_XSL.xml"?>
+<ForEmuPage1 application="emu::supervisor::Application" url="http://emudaq02.cern.ch:20000" localDateTime="2009-03-07 21:54:01">
+  <monitorable name="name1" value="value1" nameDescription="A most informative parameter. Click for documentation." valueDescription="Looks OK." nameURL="https://twiki.cern.ch/twiki/bin/view/CMS/CSCName1" valueURL=""/>
+  <monitorable name="name2" value="value2" nameDescription="An extremely important parameter. Click for documentation." valueDescription="Something's wrong. Click to find out what exactly." nameURL="https://twiki.cern.ch/twiki/bin/view/CMS/CSCName2" valueURL="http://host:port/urn:xdaq-application:lid=42"/>
+  <monitorable name="state" value="Halted" nameDescription="FSM state. Click for documentation." valueDescription="Something's wrong. Click to find out what exactly." nameURL="https://twiki.cern.ch/twiki/bin/view/CMS/CSCName2" valueURL="http://host:port/urn:xdaq-application:lid=42"/>
+</ForEmuPage1>
