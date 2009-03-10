@@ -11,10 +11,15 @@
 #include "xgi/Method.h"
 #include "xdata/Integer.h"
 #include "xdata/Float.h"
+#include "xdata/Double.h"
 #include "xdata/UnsignedShort.h"
 #include "xdata/UnsignedInteger64.h"
 #include "xdata/String.h"
 #include "xdata/TimeVal.h"
+#include "xdata/UnsignedLong.h"
+#include "xdata/UnsignedInteger.h"
+#include "xdata/UnsignedInteger32.h"
+#include "xdata/SimpleType.h"
 #include "XMLParser.h"
 
 #include "xercesc/dom/DOMNode.hpp"
@@ -39,13 +44,17 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::synchronizeToFromDB, "sync");
   xgi::bind(this,&EmuPCrateConfigTStore::SelectConfFile, "SelectConfFile");
   xgi::bind(this,&EmuPCrateConfigTStore::SetTypeDesc, "SetTypeDesc");
-
+  xgi::bind(this,&EmuPCrateConfigTStore::incrementValue, "incrementValue");
+  xgi::bind(this,&EmuPCrateConfigTStore::setValue, "setValue");
+  
   std::string HomeDir_ =getenv("HOME");
-  xmlpath_    = HomeDir_ + "/config/pc/";
+  xmlpath_    = HomeDir_ + "/config/pc/"; //xml file chosen must be in this directory. If you choose something in another directory then it will look for it in here and fail.
   xmlfile_    = "";
   dbUserFile_ = HomeDir_ + "/dbuserfile.txt";
   config_type_ = "GLOBAL";
   config_desc_ = "manual entry";
+  
+
 }
 
 void EmuPCrateConfigTStore::outputHeader(xgi::Output * out) {
@@ -61,9 +70,77 @@ void EmuPCrateConfigTStore::outputHeader(xgi::Output * out) {
 			    "/hyperdaq/images/HyperDAQ.jpg"
 			    );
 }
-//
+
+//displays the table with name \a configName and identifier \a identifier
+//\a index is just used to determine whether to also display the controls to edit all instances of that table
+//(it displays them if index is 0, otherwise it doesn't.)
+//this should probably be changed to a boolean displayEditControls parameter or outputTableEditControls should
+//be called separately.
+void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::string &configName,unsigned int index,const std::string &identifier) {
+  	xdata::Table &currentTable=getCachedTable(configName,identifier);
+    *out << configName << std::endl;
+  	if (index==0) outputTableEditControls(out,currentTable,configName);
+  	outputTable(out,currentTable);
+}
+
+//displays all tables with name \a configName which are related to the crate with ID \a crateID
+//this works because they all use a table identifier beginning with the crate ID
+void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::string &configName,unsigned int index,int crateID) {
+  	//displayConfiguration(out,configName,index,to_string(crateID));
+  	if (currentTables.count(configName)) {
+  		std::map<std::string,xdata::Table> &tables=currentTables[configName];
+  		std::map<std::string,xdata::Table>::iterator table;
+  		//loop through all tables whose key begins with the crateID
+  		//all keys begin with the appropriate crateID
+   		for (table=tables.lower_bound(crateIdentifierString(crateID));table!=tables.lower_bound(crateIdentifierString(crateID+1));++table) {
+  			displayConfiguration(out,configName,index,(*table).first);
+  		}
+  	}
+
+}
 
 void EmuPCrateConfigTStore::outputFooter(xgi::Output * out) {
+  	//*out << "let's see whether we got TStore_myEndcap_" << std::endl;
+  if (TStore_myEndcap_) {
+  	//*out << "got TStore_myEndcap_" << std::endl;
+     std::vector<Crate *> myCrates;
+  	myCrates.clear();
+  	myCrates = TStore_myEndcap_->AllCrates();
+  	if (myCrates.size()) {
+    	for(unsigned i = 0; i < myCrates.size(); ++i) {
+    		*out << "Crate " << myCrates[i]->CrateID() << std::endl;
+    		//todo: change this to just loop through an array of table names and display each one
+  			displayConfiguration(out,(std::string)"mpc",i,myCrates[i]->CrateID());
+  			displayConfiguration(out,(std::string)"vcc",i,myCrates[i]->CrateID());
+  			displayConfiguration(out,(std::string)"ccb",i,myCrates[i]->CrateID());
+  			displayConfiguration(out,(std::string)"csc",i,myCrates[i]->CrateID());
+  			displayConfiguration(out,(std::string)"daqmb",i,myCrates[i]->CrateID());
+  			displayConfiguration(out,(std::string)"cfeb",i,myCrates[i]->CrateID());
+  			displayConfiguration(out,(std::string)"tmb",i,myCrates[i]->CrateID());
+  			displayConfiguration(out,(std::string)"alct",i,myCrates[i]->CrateID());
+  			displayConfiguration(out,(std::string)"anodechannel",i,myCrates[i]->CrateID());
+  			/*
+  			We can explicitly loop through different chambers, which would allow more intuitive titles, 
+  			but it's easier/more reliable to do as above and just display all tables relevant to a particular crate.
+
+  			std::vector<Chamber *> chambers=myCrates[i]->chambers();
+  			for(unsigned chamberIndex = 0; chamberIndex < chambers.size(); ++chamberIndex) {
+    			if(chambers[chamberIndex]) {
+    				//actually, should just loop over each of the entries in the mapping,
+    				//from/to crate ID, the same way it will be done for the 'just do it for this chamber' thing.
+    				//assuming everything is named hierarchically.
+    				//then we don't need to know the internal structure to print things out.
+    				displayConfiguration(out,"csc",i,chamberID(myCrates[i]->CrateID(),chambers[chamberIndex]->GetLabel()));
+    				std::string DAQMBIdentifier=DAQMBID(chamber,dmb->slot());
+    				displayConfiguration(out,"daqmb",i,DAQMBIdentifier);
+					//displayConfiguration(out,"tmb",i,chamberID(myCrates[i]->CrateID(),chambers[chamberIndex]->GetLabel()));
+  					displayConfiguration(out,"cfeb",i,DAQMBIdentifier);
+    			}
+    		}*/
+  		}
+  	}
+  }
+
   *out << cgicc::fieldset() << cgicc::html();
 //  xgi::Utils::getPageFooter(*out);
 }
@@ -73,7 +150,148 @@ void EmuPCrateConfigTStore::outputException(xgi::Output * out,xcept::Exception &
   std::cout << e.message() << std::endl;
   *out << "<p>" << e.message() << "</p>" << std::endl;
 }
-//
+
+//this needs to be changed to prevent people from changing columns which are
+//used as identifiers in currentTables, or else if those should be editable,
+//different identifiers should be used.
+bool EmuPCrateConfigTStore::canChangeColumn(const std::string &columnName) {
+	//can't edit ID columns, which all have _CONFIG_ID in their names
+	return columnName.find("CONFIG_ID")==std::string::npos;
+}
+
+bool EmuPCrateConfigTStore::isNumericType(const std::string &xdataType) {
+	std::string numericTypesC[]={
+		(std::string)"float",
+		(std::string)"double",
+		(std::string)"int",
+		(std::string)"int 32",
+		(std::string)"int 64",
+		(std::string)"unsigned long",
+		(std::string)"unsigned int",
+		(std::string)"unsigned int 32",
+		(std::string)"unsigned int 64",
+		(std::string)"unsigned short"
+	};
+	std::vector<std::string> numericTypes(numericTypesC,numericTypesC+(sizeof(numericTypesC)/sizeof(numericTypesC[0])));
+	return std::find(numericTypes.begin(),numericTypes.end(),xdataType)!=numericTypes.end();
+}
+
+void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,xdata::Table &results,const std::string &tableName) {
+	std::vector<std::string> columns=results.getColumns();
+	std::vector<std::string>::iterator column;
+	
+	//increment controls
+	*out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/incrementValue",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+	*out << cgicc::input().set("type","hidden").set("name","table").set("value",tableName);
+	*out << "table " << tableName << cgicc::br();
+	*out << "increment all " << cgicc::select().set("name","fieldName");//<< cgicc::input().set("type","text").set("name","view").set("value",view) << std::endl;
+	for (column=columns.begin(); column!=columns.end(); column++) {
+		if (canChangeColumn(*column)) {
+			if (isNumericType(results.getColumnType(*column))) {
+				*out << cgicc::option().set("value",*column) << *column << cgicc::option() << std::endl;
+			}
+		}
+	}
+	*out << cgicc::select() << " fields by " << cgicc::input().set("type","text").set("name","amount");
+	*out << cgicc::input().set("type","submit").set("value","Increment")  << std::endl;
+	*out << cgicc::form() << cgicc::br() << std::endl;	
+	
+	//set controls
+	*out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/setValue",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+	*out << cgicc::input().set("type","hidden").set("name","table").set("value",tableName);
+	*out << "set all " << cgicc::select().set("name","fieldName");//<< cgicc::input().set("type","text").set("name","view").set("value",view) << std::endl;
+	for (column=columns.begin(); column!=columns.end(); column++) {
+		if (canChangeColumn(*column)) {
+			*out << cgicc::option().set("value",*column) << *column << cgicc::option() << std::endl;
+		}
+	}
+	*out << cgicc::select() << " to " << cgicc::input().set("type","text").set("name","newValue");
+	*out << cgicc::input().set("type","submit").set("value","Set")  << std::endl;
+	*out << cgicc::form() << std::endl;	
+}
+
+//basic function to output current values
+//will be changed to be arranged more vertically and make individual fields editable
+void EmuPCrateConfigTStore::outputTable(xgi::Output * out,xdata::Table &results) {
+	//this uses raw HTML tags because cgicc can't handle any nested tags, which makes it pretty much useless
+	std::vector<std::string> columns=results.getColumns();
+	std::vector<std::string>::iterator columnIterator;
+	int rowCount=results.getRowCount();
+	*out << "<table border=\"0\">";
+	for(columnIterator=columns.begin(); columnIterator!=columns.end(); ++columnIterator) {
+		if (canChangeColumn(*columnIterator)) {
+			std::string columnType=results.getColumnType(*columnIterator);
+			*out << "<tr><td>" << *columnIterator << /*(" << columnType << ")" << */ ":</td><td>";
+			if (rowCount>1) {
+				*out << "<table border=\"2\">";
+			}
+			unsigned long rowIndex;
+			for (rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
+				if (rowCount>1) *out << "<tr><td>";
+				if (columnType=="table") {
+					outputTable(out,*static_cast<xdata::Table *>(results.getValueAt(rowIndex,*columnIterator)));
+				} else if (columnType=="mime") {
+					//xdata::Mime *mime=static_cast<xdata::Mime *>(results.getValueAt(rowIndex,*columnIterator));
+					*out << "mime";
+					//output some other data.
+				} else {
+					*out << results.getValueAt(rowIndex,*columnIterator)->toString();
+				}
+				if (rowCount>1) *out << "</td></tr>";
+			}
+			if (rowCount>1) *out << "</table>";
+			*out << "</tr>";
+		}
+	}
+	*out << "</table>";
+	//this way prints everything as a table, with column names across the top
+	//it looks better when there are multiple rows but when there's only a single row
+	//it means a lot of horizontal scrolling.
+	/*std::vector<std::string> columns=results.getColumns();
+	std::vector<std::string>::iterator columnIterator;
+	*out << results.getRowCount() << " rows";
+
+	*out << "<table border=\"2\">";
+	*out << "<tr>";
+	for(columnIterator=columns.begin(); columnIterator!=columns.end(); ++columnIterator) {
+		*out << "<td>" << *columnIterator << " (" << results.getColumnType(*columnIterator) << ")" << "</td>";
+	}
+	*out << "</tr>";
+	unsigned long rowIndex;
+	for (rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
+		*out << "<tr>";
+		for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++) {
+			*out << "<td>";
+			if (results.getColumnType(*columnIterator)=="table") {
+				outputTable(out,*static_cast<xdata::Table *>(results.getValueAt(rowIndex,*columnIterator)));
+			} else if (results.getColumnType(*columnIterator)=="mime") {
+				//xdata::Mime *mime=static_cast<xdata::Mime *>(results.getValueAt(rowIndex,*columnIterator));
+				*out << "mime";
+				//output some other data.
+			} else {
+				*out << results.getValueAt(rowIndex,*columnIterator)->toString();
+			}
+			*out << "</td>";
+
+		}
+		*out << "</tr>";
+	}
+	*out << "</table>";*/
+}
+
+void EmuPCrateConfigTStore::getTableDefinitionsIfNecessary() throw () {
+	try {
+		std::map<std::string, std::string, xdata::Table::ci_less> definition=tableDefinition_emu_configuration.getTableDefinition();
+		if (definition.size()==0) {
+   			std::string connectionID=connect();
+  			// get table definitions (they are used for the web interface as well as for uploading to the db, so do it here.)
+			getTableDefinitions(connectionID);
+  			disconnect(connectionID);
+  		}
+  	} catch (xcept::Exception &e) {
+  		LOG4CPLUS_WARN(this->getApplicationLogger(),xcept::stdformat_exception_history(e));
+  	}
+}
 
 void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
 
@@ -140,7 +358,7 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::form() << std::endl ;
 
   *out << cgicc::fieldset() << cgicc::br();
-  //
+  
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   *out << std::endl;
   //
@@ -188,6 +406,150 @@ void EmuPCrateConfigTStore::SelectConfFile(xgi::Input * in, xgi::Output * out )
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
       }
   }
+  
+  
+template <class xdataType>
+void set(xdata::Serializable *originalValue,const std::string &newValue) {
+	xdataType *original=dynamic_cast<xdataType *>(originalValue);
+	if (original) {
+		original->fromString(newValue);
+	}
+}
+  
+template <class xdataType, typename simpleType>
+void add(xdata::Serializable *originalValue,const std::string &addend) {
+	xdataType *original=dynamic_cast<xdataType *>(originalValue);
+	if (original) {
+		xdataType amountToAdd;
+		amountToAdd.fromString(addend);
+		std::cout << "addend=" << addend << " amountToAdd=" << amountToAdd << " simply " << (simpleType)amountToAdd << std::endl;
+		std::cout << "original=" << *original << " simply " << (simpleType)*original << std::endl;
+		simpleType sum=(simpleType)*original+(simpleType)amountToAdd;
+		std::cout << "sum=" << sum << std::endl;
+		//*originalValue=(xdataType)sum;
+		*original=sum;
+		std::cout << "new value=" << originalValue->toString() << std::endl;
+	}
+}
+  
+  
+  
+void EmuPCrateConfigTStore::setValue(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+  	cgicc::Cgicc cgi(in);
+  	std::string tableName=**cgi["table"];
+  	std::string fieldName=**cgi["fieldName"];
+  	std::string newValue=**cgi["newValue"];
+  	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"there are "+to_string(currentTables.count(tableName))+ " tables with the name "+tableName);
+
+  	if (currentTables.count(tableName)) {
+  		std::map<std::string,xdata::Table> &tables=currentTables[tableName];
+  		std::map<std::string,xdata::Table>::iterator table;
+  		for (table=tables.begin();table!=tables.end();++table) {
+		  	std::string columnType=(*table).second.getColumnType(fieldName);
+  			try {
+		  		int rowCount=(*table).second.getRowCount();
+		  		for (int rowIndex=0;rowIndex<rowCount;rowIndex++) {
+		  			xdata::Serializable *value=((*table).second.getValueAt(rowIndex,fieldName));
+			  		/*
+			  		Aarrghh, this doesn't work because we need to know the template type for the SimpleType.
+			  		So much for polymorphism.
+			  		xdata::SimpleType *value;
+			  		value=dynamic_cast<xdata::SimpleType *>((*table).second.getValueAt(rowIndex,fieldName));
+			  		if (value) value->fromString(newValue);*/
+			  		if (columnType=="int") {
+						set<xdata::Integer>(value,newValue);
+					} else if (columnType=="unsigned long") {
+						set<xdata::UnsignedLong>(value,newValue);
+					} else if (columnType=="float") {
+						set<xdata::Float>(value,newValue);
+					} else if (columnType=="double") {
+						set<xdata::Double>(value,newValue);
+					} else if (columnType=="unsigned int") {
+						set<xdata::UnsignedInteger>(value,newValue);
+					} else if (columnType=="unsigned int 32") {
+						set<xdata::UnsignedInteger32>(value,newValue);
+					} else if (columnType=="unsigned int 64") {
+						set<xdata::UnsignedInteger64>(value,newValue);
+					} else if (columnType=="unsigned short") {
+						set<xdata::UnsignedShort>(value,newValue);
+			  		} else if (columnType=="string") {
+						set<xdata::String>(value,newValue);
+			  		} else if (columnType=="time") {
+						set<xdata::TimeVal>(value,newValue);
+			  		} /*else if (columnType=="bool") { //booleans are not used elsewhere in the file, so I assume they don't exist in the configuration
+						set<xdata::Boolean>(value,newValue);
+			  		} */
+			  	}
+		  	} catch (xdata::exception::Exception &e) {
+		  		XCEPT_RETHROW(xgi::exception::Exception,"Value "+newValue+" could not be converted to the data type "+columnType,e);
+		  	}
+		}
+  	}
+ 	outputHeader(out);
+  	outputStandardInterface(out);
+  	outputFooter(out);
+ }
+  
+ void EmuPCrateConfigTStore::incrementValue(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+  	cgicc::Cgicc cgi(in);
+  	std::string tableName=**cgi["table"];
+  	std::string fieldName=**cgi["fieldName"];
+  	std::string amountToAdd=**cgi["amount"];
+  	
+  	//when it is only for a specific chamber, we look only at tables with a key that contains that chamber number
+  	//std::string chamber=**cgi["chamber"];
+  	//note this whne looping through tables (maybe there is an iterator which only iterates over certain keys)
+  	//yep, lower_bound and upper_bound
+  	
+  	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"there are "+to_string(currentTables.count(tableName))+ " tables with the name "+tableName);
+
+  	if (currentTables.count(tableName)) {
+  		std::map<std::string,xdata::Table> &tables=currentTables[tableName];
+  		std::map<std::string,xdata::Table>::iterator table;
+  		for (table=tables.begin();table!=tables.end();++table) {
+		  	std::string columnType=(*table).second.getColumnType(fieldName);
+  			try {
+		  		if (isNumericType(columnType)) { //also need to check whether it has such a column
+		  			//in the 'set' method, we could use fromString here.
+		  			
+			  		int rowCount=(*table).second.getRowCount();
+			  		for (int rowIndex=0;rowIndex<rowCount;rowIndex++) {
+				  		xdata::Serializable *value=(*table).second.getValueAt(rowIndex,fieldName);
+				  		LOG4CPLUS_DEBUG(this->getApplicationLogger(),"adding "+amountToAdd+ " to "+columnType+" "+value->toString());
+				  		if (columnType=="int") {
+							add<xdata::Integer,xdata::IntegerT>(value,amountToAdd);
+						} else if (columnType=="unsigned long") {
+							add<xdata::UnsignedLong,xdata::UnsignedLongT>(value,amountToAdd);
+						} else if (columnType=="float") {
+							add<xdata::Float,xdata::FloatT>(value,amountToAdd);
+						} else if (columnType=="double") {
+							add<xdata::Double,xdata::DoubleT>(value,amountToAdd);
+						} else if (columnType=="unsigned int") {
+							add<xdata::UnsignedInteger,xdata::UnsignedIntegerT>(value,amountToAdd);
+						} else if (columnType=="unsigned int 32") {
+							add<xdata::UnsignedInteger32,xdata::UnsignedInteger32T>(value,amountToAdd);
+						} else if (columnType=="unsigned int 64") {
+							add<xdata::UnsignedInteger64,xdata::UnsignedInteger64T>(value,amountToAdd);
+						} else if (columnType=="unsigned short") {
+							add<xdata::UnsignedShort,xdata::UnsignedShortT>(value,amountToAdd);
+				  		}
+				  		LOG4CPLUS_DEBUG(this->getApplicationLogger(),"result is "+value->toString());
+				  		(*table).second.setValueAt(rowIndex,fieldName,*value);
+				  	}
+		  		}
+			} catch (xdata::exception::Exception &e) {
+		  		XCEPT_RETHROW(xgi::exception::Exception,"Value "+amountToAdd+" could not be converted to the data type "+columnType,e);
+		  	}
+		}
+  	}
+ 	outputHeader(out);
+  	outputStandardInterface(out);
+  	outputFooter(out);
+ }
 
   void EmuPCrateConfigTStore::SetTypeDesc(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -212,7 +574,6 @@ void EmuPCrateConfigTStore::SelectConfFile(xgi::Input * in, xgi::Output * out )
     this->Default(in,out);
     //
   }
-  //
 
 void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
     try {
@@ -226,11 +587,13 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
  {
     std::string xmlname = xmlpath_ + xmlfile_;
     std::cout << "XML full name " << xmlname << std::endl;
+    std::cout << "Parsing of the peripheral crate config XML file into DOM tree ..." << std::endl;
     *out << "Parsing of the peripheral crate config XML file into DOM tree ..." << std::endl;
     time_t rawtime;
     struct tm * timeinfo;
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
+    std::cout << "Parsing started at: " << asctime (timeinfo) << std::endl;
     *out << "<br>Parsing started at: " << asctime (timeinfo) << std::endl;
     
     XMLParser TStore_emuparser;
@@ -239,14 +602,64 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
     
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-    if(TStore_myEndcap_)
+    if(TStore_myEndcap_) {
+       std::cout << "Parsing ended at: " << asctime (timeinfo) << std::endl;
       *out << "<br>Parsing ended at: " << asctime (timeinfo) << std::endl;
-    else
+    } else {
+      std::cout << "ERROR.....Parser failed." <<std::endl;
       *out << "<br>ERROR.....Parser failed." <<std::endl;
- }    
+     }
+ 	//rather than converting to and from EmuEndcap etc. all the time, we will keep the values in xdata::Tables
+ 	//for editing, and only convert back to the custom classes when/if necessary (which would be if it needs to be
+ 	//output as XML.) This way the editing interface can be generic for all tables.
+ 	//copyEndcapToTables(); 
+ 	std::vector<Crate *> myCrates = TStore_myEndcap_->AllCrates();
+  	xdata::Table dataAsTable;
+  	  getTableDefinitionsIfNecessary();
+  	if (myCrates.size()) {
+    	for(unsigned i = 0; i < myCrates.size(); ++i) {
+    		copyCCBToTable(dataAsTable,myCrates[i]);
+  			setCachedTable("ccb",myCrates[i]->CrateID(),dataAsTable);
+  			copyMPCToTable(dataAsTable,myCrates[i]);
+  			setCachedTable("mpc",myCrates[i]->CrateID(),dataAsTable);
+  			copyVMECCToTable(dataAsTable,myCrates[i]);
+  			setCachedTable("vcc",myCrates[i]->CrateID(),dataAsTable);
+  			std::vector<Chamber *> chambers=myCrates[i]->chambers();
+  			for(unsigned chamberIndex = 0; chamberIndex < chambers.size(); ++chamberIndex) {
+    			if(chambers[chamberIndex]) {
+  					copyCSCToTable(dataAsTable,chambers[chamberIndex]);
+  					std::string chamber=chamberID(myCrates[i]->CrateID(),chambers[chamberIndex]->GetLabel());
+  					setCachedTable("csc",chamber,dataAsTable);
+  					DAQMB *dmb=chambers[chamberIndex]->GetDMB();
+  					if (dmb) {
+  						std::string cacheIdentifier=DAQMBID(chamber,dmb->slot());
+  						copyDAQMBToTable(dataAsTable,dmb);
+  						setCachedTable("daqmb",cacheIdentifier,dataAsTable);
+  						copyCFEBToTable(dataAsTable,dmb);
+  						setCachedTable("cfeb",cacheIdentifier,dataAsTable);
+  					}
+  					TMB *tmb=chambers[chamberIndex]->GetTMB();
+  					if (tmb) {
+  						std::string cacheIdentifier=DAQMBID(chamber,tmb->slot());
+  						copyTMBToTable(dataAsTable,tmb);
+  						setCachedTable("tmb",cacheIdentifier,dataAsTable);
+						 ALCTController * thisALCT = tmb->alctController();
+						copyALCTToTable(dataAsTable,thisALCT);
+  						setCachedTable("alct",cacheIdentifier,dataAsTable);
+						copyAnodeChannelToTable(dataAsTable,thisALCT);
+  						setCachedTable("anodechannel",cacheIdentifier,dataAsTable);
+  					}
+  				}
+  			}
+  		}
+  	}
     outputFooter(out);
+ }    
   } catch (xcept::Exception &e) {
     outputException(out,e);
+  } catch (...) {
+  	//todo: change this to do something more useful. I only added it to prevent crashing
+  	std::cout << "unknown thing thrown" << std::endl;
   }
 
 }
@@ -284,21 +697,35 @@ void EmuPCrateConfigTStore::readConfigFromDB(xgi::Input * in, xgi::Output * out 
     outputHeader(out);
     outputStandardInterface(out);
 
+  	  getTableDefinitionsIfNecessary();
     // get this from e.g. a HyperDAQ page text field
     //*out << "<br>You clicked Read from DB<br>" << std::endl;
     std::string connectionID=connect();
 
-    std::string endcap_side="plus";
+  	/*std::vector<Crate *> myCrates;
+  	myCrates.clear();
+  	myCrates = TStore_myEndcap_->AllCrates();
+  	std::string endcap_side=getEndcapSide(myCrates);*/
+
+	//Which endcap should we load? This was checking both config IDs but only loading the minus side.
+	//Should it load both, into separate EmuEndcap instance variables?
+	//Should it check which one has already been loaded (if any) using getEndcapSide?
+	//Should it be an option on the web interface?
+    std::string endcap_side="minus";
     std::string emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side).toString();
     *out << "<br>max of EMU_CONFIG_ID for " << endcap_side << " side = " << emu_config_id << "<br>" << std::endl;
-    endcap_side="minus";
+    endcap_side="plus";
     emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side).toString();
     *out << "<br>max of EMU_CONFIG_ID for " << endcap_side << " side = " << emu_config_id << "<br>" << std::endl;
 
     disconnect(connectionID);
   
-//    EmuEndcap * myEndcap;
-//    myEndcap = getConfiguredEndcap(emu_config_id);
+    //EmuEndcap * myEndcap;
+    //myEndcap = 
+    
+  	//*out << "TStore_myEndcap_=getConfiguredEndcap(" << emu_config_id << ")" << std::endl;
+    TStore_myEndcap_=getConfiguredEndcap(emu_config_id);
+    //*out << "TStore_myEndcap_==" << (TStore_myEndcap_?"NOT NULL":"NULL") << std::endl;
 
     outputFooter(out);
   } catch (xcept::Exception &e) {
@@ -319,10 +746,10 @@ void EmuPCrateConfigTStore::synchronizeToFromDB(xgi::Input * in, xgi::Output * o
     std::string syncPattern = "^EMU_.*$";
 
 // LIU 8-22-2008. disable this function. For creating new database tables only 
-    *out << "<br>This function is for creating new database tables only." << std::endl;
+    //*out << "<br>This function is for creating new database tables only." << std::endl;
 
-    // synchronize(connectionID,syncMode,syncPattern);
-    // *out << "<br>Synchronization to DB has finished.<br>" << std::endl;
+     synchronize(connectionID,syncMode,syncPattern);
+     *out << "<br>Synchronization to DB has finished.<br>" << std::endl;
 
     outputFooter(out);
   } catch (xcept::Exception &e) {
@@ -360,14 +787,14 @@ xdata::UnsignedInteger64 EmuPCrateConfigTStore::getConfigId(const std::string &d
   
 }
 //
-
+#define debugV
 
 xoap::MessageReference EmuPCrateConfigTStore::sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception) {
 	xoap::MessageReference reply;
 	
 #ifdef debugV
-	std::cout << "Message: " << std::endl;
-	message->writeTo(std::cout);
+	//std::cout << "Message: " << std::endl;
+	//message->writeTo(std::cout);
 	std::cout << std::endl;
 #endif
 	
@@ -384,8 +811,8 @@ xoap::MessageReference EmuPCrateConfigTStore::sendSOAPMessage(xoap::MessageRefer
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 		
 #ifdef debugV
-	std::cout << std::endl << "Response: " << std::endl;
-	reply->writeTo(std::cout);
+	//std::cout << std::endl << "Response: " << std::endl;
+	//reply->writeTo(std::cout);
 	std::cout << std::endl;
 #endif
 
@@ -658,6 +1085,41 @@ void EmuPCrateConfigTStore::getDbUserData(){
 }
 //
 
+void EmuPCrateConfigTStore::getTableDefinitions(const std::string &connectionID) {
+//todo: change this to loop through an array of table names
+  getDefinition(connectionID,"configuration",tableDefinition_emu_configuration);
+  getDefinition(connectionID,"peripheralcrate",tableDefinition_emu_peripheralcrate);
+  getDefinition(connectionID,"ccb",tableDefinition_emu_ccb);
+  std::cout << "definition type of CCB_CONFIG_ID" << tableDefinition_emu_ccb.getColumnType("CCB_CONFIG_ID") << std::endl;
+  getDefinition(connectionID,"mpc",tableDefinition_emu_mpc);
+  getDefinition(connectionID,"vcc",tableDefinition_emu_vcc);
+  getDefinition(connectionID,"csc",tableDefinition_emu_csc);
+  getDefinition(connectionID,"daqmb",tableDefinition_emu_daqmb);
+  getDefinition(connectionID,"cfeb",tableDefinition_emu_cfeb);
+  getDefinition(connectionID,"tmb",tableDefinition_emu_tmb);
+  getDefinition(connectionID,"alct",tableDefinition_emu_alct);
+  getDefinition(connectionID,"anodechannel",tableDefinition_emu_anodechannel);
+  std::cout << "got table definitions" << std::endl;
+}
+
+std::string EmuPCrateConfigTStore::getEndcapSide(std::vector<Crate *> &myCrates) throw (xcept::Exception) {
+    
+  // get peripheral crate data from DOM tree
+  if(myCrates.size()<=0) {   
+     XCEPT_RAISE(xcept::Exception,"No crate found.");
+  }
+  std::string crate_label = myCrates[0]->GetLabel();
+  std::string endcap_side;
+  if(strncmp(crate_label.c_str(),"VMEp",4)==0)
+  {   endcap_side="plus";   }
+  else if(strncmp(crate_label.c_str(),"VMEm",4)==0)
+  {   endcap_side="minus";  }
+  else
+  {   
+  	XCEPT_RAISE(xcept::Exception,"Unknown crate label '"+crate_label+"', should be 'VMEp' or 'VMEm'.");
+  }
+  return endcap_side;
+}
 
 // ######################
 // #   Uploading data   #
@@ -672,48 +1134,35 @@ void EmuPCrateConfigTStore::startUpload() throw (xcept::Exception) {
     std::cout << "<br>EmuEndcap is not loaded into memory. First run ParseXML!<br>" << std::endl;
     return;
   }
-    
-  // get peripheral crate data from DOM tree
+
+	try {
   std::vector<Crate *> myCrates;
   myCrates.clear();
   myCrates = TStore_myEndcap_->AllCrates();
-  if(myCrates.size()<=0)
-  {   std::cout << "No crate found. Stop loading to database..." << std::endl;
-      return;
-  }
-  std::string crate_lable = myCrates[0]->GetLabel();
-  std::string endcap_side;
-  if(strncmp(crate_lable.c_str(),"VMEp",4)==0)
-  {   endcap_side="plus";   }
-  else if(strncmp(crate_lable.c_str(),"VMEm",4)==0)
-  {   endcap_side="minus";  }
-  else
-  {   std::cout << "Unknown crate lable(s). Stop loading to database..." << std::endl;
-      return;
-  }
+  std::string endcap_side=getEndcapSide(myCrates);
 
   std::string connectionID=connect();
 
   // get table definitions
-  getDefinition(connectionID,"configuration",tableDefinition_emu_configuration);
-  getDefinition(connectionID,"peripheralcrate",tableDefinition_emu_peripheralcrate);
-  getDefinition(connectionID,"ccb",tableDefinition_emu_ccb);
-  getDefinition(connectionID,"mpc",tableDefinition_emu_mpc);
-  getDefinition(connectionID,"vcc",tableDefinition_emu_vcc);
-  getDefinition(connectionID,"csc",tableDefinition_emu_csc);
-  getDefinition(connectionID,"daqmb",tableDefinition_emu_daqmb);
-  getDefinition(connectionID,"cfeb",tableDefinition_emu_cfeb);
-  getDefinition(connectionID,"tmb",tableDefinition_emu_tmb);
-  getDefinition(connectionID,"alct",tableDefinition_emu_alct);
-  getDefinition(connectionID,"anodechannel",tableDefinition_emu_anodechannel);
+	getTableDefinitions(connectionID);
 
   uploadConfiguration(connectionID, endcap_side);
   uploadPeripheralCrate(connectionID, myCrates);
 
   disconnect(connectionID);
+  } catch (xcept::Exception &e) {
+  	 LOG4CPLUS_WARN(this->getApplicationLogger(),e.what()+(std::string)" Stop loading to database...");
+  	 XCEPT_RETHROW(xcept::Exception,"Problem uploading data to database",e);
+  }
   
 }
 //
+
+//this was to fix a problem with column types which I have since fixed in a better way
+//still, leave the function here in case there is ever a need to change the way config IDs are set.
+void EmuPCrateConfigTStore::setConfigID(xdata::Table &newRows,size_t rowId,const std::string &columnName,xdata::UnsignedInteger64 &id) {
+	newRows.setValueAt(rowId, columnName, id);
+}
 
 void EmuPCrateConfigTStore::uploadConfiguration(const std::string &connectionID, const std::string endcap_side) throw (xcept::Exception) {
 
@@ -749,8 +1198,9 @@ void EmuPCrateConfigTStore::uploadConfiguration(const std::string &connectionID,
 
   newRows = tableDefinition_emu_configuration;
 
+	
   newRows.setValueAt(rowId, DESCRIPTION,     _description); 
-  newRows.setValueAt(rowId, EMU_CONFIG_ID,   emu_config_id);
+  setConfigID(newRows,rowId,EMU_CONFIG_ID,   emu_config_id);
   newRows.setValueAt(rowId, EMU_CONFIG_TIME, _emu_config_time);
   newRows.setValueAt(rowId, EMU_CONFIG_TYPE, _emu_config_type);
   newRows.setValueAt(rowId, EMU_ENDCAP_SIDE, _emu_endcap_side);
@@ -779,7 +1229,8 @@ void EmuPCrateConfigTStore::uploadPeripheralCrate(const std::string &connectionI
 
       xdata::UnsignedInteger64 _periph_config_id = emu_config_id_ * 100000000 + (i+1)*1000000;
 
-      xdata::UnsignedShort _crateid = TStore_allCrates[i]->CrateID();
+	int crateID=TStore_allCrates[i]->CrateID();
+      xdata::UnsignedShort _crateid = crateID;
       xdata::String _label = TStore_allCrates[i]->GetLabel();
 
 #ifdef debugV
@@ -792,23 +1243,22 @@ void EmuPCrateConfigTStore::uploadPeripheralCrate(const std::string &connectionI
       newRows.clear();
       newRows = tableDefinition_emu_peripheralcrate;
 
-      newRows.setValueAt(rowId, EMU_CONFIG_ID,    emu_config_id_);
+      setConfigID(newRows,rowId, EMU_CONFIG_ID,    emu_config_id_);
       newRows.setValueAt(rowId, CRATEID,          _crateid);
       newRows.setValueAt(rowId, LABEL,            _label);
-      newRows.setValueAt(rowId, PERIPH_CONFIG_ID, _periph_config_id);
+      setConfigID(newRows,rowId, PERIPH_CONFIG_ID, _periph_config_id);
 
       insert(connectionID,insertViewName,newRows);
 
-      CCB * thisCCB = TStore_allCrates[i]->ccb();
-      uploadCCB(connectionID, _periph_config_id, thisCCB);
+      //CCB * thisCCB = TStore_allCrates[i]->ccb();
+      uploadCCB(connectionID, _periph_config_id, /*thisCCB*/crateID);
 	
-      MPC * thisMPC = TStore_allCrates[i]->mpc();
-      uploadMPC(connectionID, _periph_config_id, thisMPC);
+      uploadMPC(connectionID, _periph_config_id, /*thisMPC*/crateID);
       
-      uploadVMECC(connectionID, _periph_config_id, TStore_allCrates[i]);
+      uploadVMECC(connectionID, _periph_config_id, /*TStore_allCrates[i]*/crateID);
 
       std::vector<Chamber *> allChambers = TStore_allCrates[i]->chambers();
-      uploadCSC(connectionID, _periph_config_id, allChambers);
+      uploadCSC(connectionID, _periph_config_id, allChambers,crateID);
       
 
     } // end of if
@@ -817,25 +1267,23 @@ void EmuPCrateConfigTStore::uploadPeripheralCrate(const std::string &connectionI
 }
 //
 
-void EmuPCrateConfigTStore::uploadCCB(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, CCB * TStore_thisCCB) throw (xcept::Exception) {
-  
-  std::string insertViewName="ccb";
-  xdata::Table newRows;
-  
+void EmuPCrateConfigTStore::copyCCBToTable(xdata::Table &newRows,Crate * TStore_thisCrate) {
+	newRows = tableDefinition_emu_ccb;
+  std::cout << "copy to table type of CCB_CONFIG_ID" << tableDefinition_emu_ccb.getColumnType("CCB_CONFIG_ID") << std::endl;
+
+   
   size_t rowId(0);
   std::string CCBMODE("CCBMODE");
-  std::string CCB_CONFIG_ID("CCB_CONFIG_ID");
   std::string CCB_FIRMWARE_DAY("CCB_FIRMWARE_DAY");
   std::string CCB_FIRMWARE_MONTH("CCB_FIRMWARE_MONTH");
   std::string CCB_FIRMWARE_YEAR("CCB_FIRMWARE_YEAR");
-  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
   std::string L1ADELAY("L1ADELAY");
-  std::string PERIPH_CONFIG_ID("PERIPH_CONFIG_ID");
   std::string TTCRXCOARSEDELAY("TTCRXCOARSEDELAY");
   std::string TTCRXFINEDELAY("TTCRXFINEDELAY");
   std::string TTCRXID("TTCRXID");
+	
+	CCB *TStore_thisCCB=TStore_thisCrate->ccb();
 
-  xdata::UnsignedInteger64 _ccb_config_id      = periph_config_id + 110000;
   xdata::UnsignedShort     _ccbmode            = TStore_thisCCB->GetCCBmode();
   xdata::UnsignedShort     _ccb_firmware_day   = TStore_thisCCB->GetExpectedFirmwareDay();
   xdata::UnsignedShort     _ccb_firmware_month = TStore_thisCCB->GetExpectedFirmwareMonth();
@@ -844,99 +1292,91 @@ void EmuPCrateConfigTStore::uploadCCB(const std::string &connectionID, xdata::Un
   xdata::UnsignedShort     _ttcrxcoarsedelay   = TStore_thisCCB->GetTTCrxCoarseDelay();
   xdata::UnsignedShort     _ttcrxfinedelay     = TStore_thisCCB->GetTTCrxFineDelay();
   xdata::UnsignedShort     _ttcrxid            = TStore_thisCCB->GetTTCrxID();
-
-#ifdef debugV
-  std::cout << "-- CCB emu_config_id -------- " << emu_config_id_.toString()      << std::endl;
-  std::cout << "-- CCB ccb_config_id -------- " << _ccb_config_id.toString()      << std::endl;
-  std::cout << "-- CCB ccbmode -------------- " << _ccbmode.toString()            << std::endl;
-  std::cout << "-- CCB ccb_firmware_day ----- " << _ccb_firmware_day.toString()   << std::endl;
-  std::cout << "-- CCB ccb_firmware_month --- " << _ccb_firmware_month.toString() << std::endl;
-  std::cout << "-- CCB ccb_firmware_year ---- " << _ccb_firmware_year.toString()  << std::endl;
-  std::cout << "-- CCB l1adelay ------------- " << _l1adelay.toString()           << std::endl;
-  std::cout << "-- CCB ttcrxcoarsedelay ----- " << _ttcrxcoarsedelay.toString()   << std::endl;
-  std::cout << "-- CCB ttcrxfinedelay ------- " << _ttcrxfinedelay.toString()     << std::endl;
-  std::cout << "-- CCB ttcrxid--------------- " << _ttcrxid.toString()            << std::endl;
-#endif
-
-  newRows.clear();
-  newRows = tableDefinition_emu_ccb;
- 
+  
   newRows.setValueAt(rowId, CCBMODE,            _ccbmode);
-  newRows.setValueAt(rowId, CCB_CONFIG_ID,      _ccb_config_id);
   newRows.setValueAt(rowId, CCB_FIRMWARE_DAY,   _ccb_firmware_day);
   newRows.setValueAt(rowId, CCB_FIRMWARE_MONTH, _ccb_firmware_month);
   newRows.setValueAt(rowId, CCB_FIRMWARE_YEAR,  _ccb_firmware_year);
-  newRows.setValueAt(rowId, EMU_CONFIG_ID,      emu_config_id_);
   newRows.setValueAt(rowId, L1ADELAY,           _l1adelay);
-  newRows.setValueAt(rowId, PERIPH_CONFIG_ID,   periph_config_id);
   newRows.setValueAt(rowId, TTCRXCOARSEDELAY,   _ttcrxcoarsedelay);
   newRows.setValueAt(rowId, TTCRXFINEDELAY,     _ttcrxfinedelay);
   newRows.setValueAt(rowId, TTCRXID,            _ttcrxid);
+}
+
+void EmuPCrateConfigTStore::uploadCCB(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, int crateID) throw (xcept::Exception) {
+  
+  std::string insertViewName="ccb";
+  std::string CCB_CONFIG_ID("CCB_CONFIG_ID");
+  std::string PERIPH_CONFIG_ID("PERIPH_CONFIG_ID");
+  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
+  
+  size_t rowId(0);
+
+  xdata::UnsignedInteger64 _ccb_config_id      = periph_config_id + 110000;
+
+  xdata::Table &newRows=getCachedTable(/*,TStore_thisCrate*/insertViewName/*,_vcc_config_id*/,crateID); 
+ std::cout << "upload type of CCB_CONFIG_ID" << newRows.getColumnType("CCB_CONFIG_ID") << std::endl;
+
+  setConfigID(newRows,rowId, CCB_CONFIG_ID,      _ccb_config_id);
+  setConfigID(newRows,rowId, EMU_CONFIG_ID,      emu_config_id_);
+  setConfigID(newRows,rowId, PERIPH_CONFIG_ID,   periph_config_id);
+  
+  std::cout << "set emu_config_id to " << emu_config_id_ << std::endl;
+  std::cout << "emu_config_id is " << newRows.getValueAt(rowId, EMU_CONFIG_ID) << std::endl;
   
   insert(connectionID,insertViewName,newRows);
 
 }
-//
-
-void EmuPCrateConfigTStore::uploadMPC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, MPC * TStore_thisMPC) throw (xcept::Exception) {
-
-  std::string insertViewName="mpc";
-  xdata::Table newRows;
-  
+void EmuPCrateConfigTStore::copyMPCToTable(xdata::Table &newRows,Crate * TStore_thisCrate) {
   size_t rowId(0);
-  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
-  std::string MPC_CONFIG_ID("MPC_CONFIG_ID");
+  
+	MPC * TStore_thisMPC = TStore_thisCrate->mpc();
   std::string MPC_FIRMWARE_DAY("MPC_FIRMWARE_DAY");
   std::string MPC_FIRMWARE_MONTH("MPC_FIRMWARE_MONTH");
   std::string MPC_FIRMWARE_YEAR("MPC_FIRMWARE_YEAR");
-  std::string PERIPH_CONFIG_ID("PERIPH_CONFIG_ID");
   std::string SERIALIZERMODE("SERIALIZERMODE");
   std::string TRANSPARENTMODE("TRANSPARENTMODE");
-
-  xdata::UnsignedInteger64 _mpc_config_id      = periph_config_id + 120000;
+  
   xdata::UnsignedShort     _mpc_firmware_day   = TStore_thisMPC->GetExpectedFirmwareDay();
   xdata::UnsignedShort     _mpc_firmware_month = TStore_thisMPC->GetExpectedFirmwareMonth();
   xdata::UnsignedShort     _mpc_firmware_year  = TStore_thisMPC->GetExpectedFirmwareYear();
   xdata::UnsignedShort     _transparentmode    = TStore_thisMPC->GetTransparentMode();
   xdata::UnsignedShort     _serializermode     = TStore_thisMPC->GetSerializerMode();
-
-#ifdef debugV
-  std::cout << "-- MPC emu_config_id -------- " << emu_config_id_.toString()      << std::endl;
-  std::cout << "-- MPC mpc_config_id -------- " << _mpc_config_id.toString()      << std::endl;
-  std::cout << "-- MPC mpc_firmware_day ----- " << _mpc_firmware_day.toString()   << std::endl;
-  std::cout << "-- MPC mpc_firmware_month --- " << _mpc_firmware_month.toString() << std::endl;
-  std::cout << "-- MPC mpc_firmware_year ---- " << _mpc_firmware_year.toString()  << std::endl;
-  std::cout << "-- MPC transparentmode ------ " << _transparentmode.toString()    << std::endl;
-  std::cout << "-- MPC serializermode ------- " << _serializermode.toString()     << std::endl;
-#endif 
-
-  newRows.clear();
+  
   newRows = tableDefinition_emu_mpc;
-
-  newRows.setValueAt(rowId, EMU_CONFIG_ID,      emu_config_id_);  
-  newRows.setValueAt(rowId, MPC_CONFIG_ID,      _mpc_config_id);
   newRows.setValueAt(rowId, MPC_FIRMWARE_DAY,   _mpc_firmware_day);
   newRows.setValueAt(rowId, MPC_FIRMWARE_MONTH, _mpc_firmware_month);
   newRows.setValueAt(rowId, MPC_FIRMWARE_YEAR,  _mpc_firmware_year);
-  newRows.setValueAt(rowId, PERIPH_CONFIG_ID,   periph_config_id);
   newRows.setValueAt(rowId, SERIALIZERMODE,     _serializermode);
   newRows.setValueAt(rowId, TRANSPARENTMODE,    _transparentmode);
+}
+
+void EmuPCrateConfigTStore::uploadMPC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, /*MPC * TStore_thisMPC*/int crateID) throw (xcept::Exception) {
+
+  size_t rowId(0);
+  std::string insertViewName="mpc";
+  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
+  std::string MPC_CONFIG_ID("MPC_CONFIG_ID");
+  std::string PERIPH_CONFIG_ID("PERIPH_CONFIG_ID");
+
+  xdata::UnsignedInteger64 _mpc_config_id      = periph_config_id + 120000;
+
+	xdata::Table &newRows=getCachedTable(insertViewName,crateID);
+
+  setConfigID(newRows,rowId, EMU_CONFIG_ID,      emu_config_id_);  
+  setConfigID(newRows,rowId, MPC_CONFIG_ID,      _mpc_config_id);
+  setConfigID(newRows,rowId, PERIPH_CONFIG_ID,   periph_config_id);
 
   insert(connectionID,insertViewName,newRows);
 
 }
 //
 
-void EmuPCrateConfigTStore::uploadVMECC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, Crate * TStore_thisCrate) throw (xcept::Exception) {
-
-  std::string insertViewName="vcc";
-  xdata::Table newRows;
-  
-  size_t rowId(0);
+void EmuPCrateConfigTStore::copyVMECCToTable(xdata::Table &newRows,Crate * TStore_thisCrate) {
+ size_t rowId(0);
   std::string BGTO("BGTO");
   std::string BTO("BTO");
   std::string DFLT_SRV_MAC("DFLT_SRV_MAC");
-  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
   std::string ETH_PORT("ETH_PORT");
   std::string ETHERNET_CR("ETHERNET_CR");
   std::string EXT_FIFO_CR("EXT_FIFO_CR");
@@ -945,10 +1385,8 @@ void EmuPCrateConfigTStore::uploadVMECC(const std::string &connectionID, xdata::
   std::string MCAST_2("MCAST_2");
   std::string MCAST_3("MCAST_3");
   std::string MSG_LVL("MSG_LVL");
-  std::string PERIPH_CONFIG_ID("PERIPH_CONFIG_ID");
   std::string PKT_ON_STARTUP("PKT_ON_STARTUP");
   std::string RST_MISC_CR("RST_MISC_CR");
-  std::string VCC_CONFIG_ID("VCC_CONFIG_ID");
   std::string VCC_FRMW_VER("VCC_FRMW_VER");
   std::string VME_CR("VME_CR");
   std::string WARN_ON_SHTDWN("WARN_ON_SHTDWN");
@@ -966,15 +1404,14 @@ void EmuPCrateConfigTStore::uploadVMECC(const std::string &connectionID, xdata::
   xdata::UnsignedShort     _msg_lvl         = TStore_thisCrate->vmeController()->GetMsg_Lvl();
   xdata::String            _pkt_on_startup  = TStore_thisCrate->vmeController()->GetPkt_On_Startup();
   xdata::String            _rst_misc_cr     = TStore_thisCrate->vmeController()->GetCR(2);
-  xdata::UnsignedInteger64 _vcc_config_id   = periph_config_id + 130000; 
   xdata::String            _vcc_frmw_ver    = TStore_thisCrate->vmecc()->GetVCC_frmw_ver();
   xdata::String            _vme_cr          = TStore_thisCrate->vmeController()->GetCR(3);
   xdata::String            _warn_on_shtdwn  = TStore_thisCrate->vmeController()->GetWarn_On_Shtdwn();
 
 #ifdef debugV
-  std::cout << "-- VCC emu_config_id -------- " << emu_config_id_.toString()    << std::endl;
-  std::cout << "-- VCC periph_config_id ----- " << periph_config_id.toString()  << std::endl;
-  std::cout << "-- VCC vcc_config_id -------- " << _vcc_config_id.toString()    << std::endl;
+  //std::cout << "-- VCC emu_config_id -------- " << emu_config_id_.toString()    << std::endl;
+  //std::cout << "-- VCC periph_config_id ----- " << periph_config_id.toString()  << std::endl;
+  //std::cout << "-- VCC vcc_config_id -------- " << _vcc_config_id.toString()    << std::endl;
   std::cout << "-- VCC bgto ----------------- " <<_bgto.toString()              << std::endl;
   std::cout << "-- VCC bto ------------------ " <<_bto.toString()               << std::endl;
   std::cout << "-- VCC dflt_srv_mac --------- " <<_dflt_srv_mac.toString()      << std::endl;
@@ -992,87 +1429,149 @@ void EmuPCrateConfigTStore::uploadVMECC(const std::string &connectionID, xdata::
   std::cout << "-- VCC vme_cr --------------- " <<_vme_cr.toString()            << std::endl;
   std::cout << "-- VCC warn_on_shtdwn ------- " <<_warn_on_shtdwn.toString()    << std::endl;
 #endif
+try {
+	  newRows.clear(); //get a std::length_exception the second time this is called.
+	  newRows = tableDefinition_emu_vcc;
+	  std::cout << "hek" << std::endl;
+	  newRows.setValueAt(rowId, BGTO,             _bgto);
+	  newRows.setValueAt(rowId, BTO,              _bto);
+	  newRows.setValueAt(rowId, DFLT_SRV_MAC,     _dflt_srv_mac);
+	  newRows.setValueAt(rowId, ETH_PORT,         _eth_port);
+	  newRows.setValueAt(rowId, ETHERNET_CR,      _ethernet_cr);
+	  newRows.setValueAt(rowId, EXT_FIFO_CR,      _ext_fifo_cr);
+	  newRows.setValueAt(rowId, MAC_ADDR,         _mac_addr);
+	  newRows.setValueAt(rowId, MCAST_1,          _mcast_1);
+	  newRows.setValueAt(rowId, MCAST_2,          _mcast_2);
+	  newRows.setValueAt(rowId, MCAST_3,          _mcast_3);
+	  newRows.setValueAt(rowId, MSG_LVL,          _msg_lvl);
+	  newRows.setValueAt(rowId, PKT_ON_STARTUP,   _pkt_on_startup);
+	  newRows.setValueAt(rowId, RST_MISC_CR,      _rst_misc_cr);
+	  newRows.setValueAt(rowId, VCC_FRMW_VER,     _vcc_frmw_ver);
+	  newRows.setValueAt(rowId, VME_CR,           _vme_cr);
+	  newRows.setValueAt(rowId, WARN_ON_SHTDWN,   _warn_on_shtdwn);
+	  std::cout << " got here " << std::endl;
+  } catch (std::exception &e) {
+  	XCEPT_RAISE(xcept::Exception,e.what());
+  }
 
-  newRows.clear();
-  newRows = tableDefinition_emu_vcc;
+}
 
-  newRows.setValueAt(rowId, BGTO,             _bgto);
-  newRows.setValueAt(rowId, BTO,              _bto);
-  newRows.setValueAt(rowId, DFLT_SRV_MAC,     _dflt_srv_mac);
-  newRows.setValueAt(rowId, EMU_CONFIG_ID,    emu_config_id_);
-  newRows.setValueAt(rowId, ETH_PORT,         _eth_port);
-  newRows.setValueAt(rowId, ETHERNET_CR,      _ethernet_cr);
-  newRows.setValueAt(rowId, EXT_FIFO_CR,      _ext_fifo_cr);
-  newRows.setValueAt(rowId, MAC_ADDR,         _mac_addr);
-  newRows.setValueAt(rowId, MCAST_1,          _mcast_1);
-  newRows.setValueAt(rowId, MCAST_2,          _mcast_2);
-  newRows.setValueAt(rowId, MCAST_3,          _mcast_3);
-  newRows.setValueAt(rowId, MSG_LVL,          _msg_lvl);
-  newRows.setValueAt(rowId, PERIPH_CONFIG_ID, periph_config_id);
-  newRows.setValueAt(rowId, PKT_ON_STARTUP,   _pkt_on_startup);
-  newRows.setValueAt(rowId, RST_MISC_CR,      _rst_misc_cr);
-  newRows.setValueAt(rowId, VCC_CONFIG_ID,    _vcc_config_id);
-  newRows.setValueAt(rowId, VCC_FRMW_VER,     _vcc_frmw_ver);
-  newRows.setValueAt(rowId, VME_CR,           _vme_cr);
-  newRows.setValueAt(rowId, WARN_ON_SHTDWN,   _warn_on_shtdwn);
+void EmuPCrateConfigTStore::setCachedTable(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception) {
+	std::cout << "setting cached " << insertViewName << " table " << identifier << std::endl;
+	currentTables[insertViewName][identifier]=table;
+}
 
+void EmuPCrateConfigTStore::setCachedTable(const std::string &insertViewName,int crateID,xdata::Table &table/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
+	std::string identifier=crateIdentifierString(crateID);
+	setCachedTable(insertViewName,identifier,table);
+}
+
+xdata::Table &EmuPCrateConfigTStore::getCachedTable(const std::string &insertViewName,const std::string &identifier/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
+
+	if (currentTables.count(insertViewName)) {
+		if (currentTables[insertViewName].count(identifier)) {
+			std::cout << "getting cached " << insertViewName << " table " << identifier << std::endl;
+			return currentTables[insertViewName][identifier];
+		}
+	}
+	XCEPT_RAISE(xcept::Exception,"No "+insertViewName+" configuration loaded for crate "+identifier);
+}
+
+std::string EmuPCrateConfigTStore::crateIdentifierString(int crateID) {
+	return to_string(crateID)+"c"; //add c to the end so that when looping over keys beginning with this crate ID, we don't confuse e.g. 1 with 11
+}
+
+xdata::Table &EmuPCrateConfigTStore::getCachedTable(const std::string &insertViewName,int crateID/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
+	std::string identifier=crateIdentifierString(crateID);
+	return getCachedTable(insertViewName,identifier);
+}
+
+void EmuPCrateConfigTStore::uploadVMECC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, /*Crate * TStore_thisCrate*/int crateID) throw (xcept::Exception) {
+
+  std::string insertViewName="vcc";
+  size_t rowId(0);
+  std::string PERIPH_CONFIG_ID("PERIPH_CONFIG_ID");
+  std::string VCC_CONFIG_ID("VCC_CONFIG_ID");
+  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
+  //copyVMECCToTable(newRows,TStore_thisCrate);
+  xdata::UnsignedInteger64 _vcc_config_id   = periph_config_id + 130000;
+  xdata::Table &newRows=getCachedTable(/*,TStore_thisCrate*/insertViewName/*,_vcc_config_id*/,/*TStore_thisCrate->CrateID()*/crateID); 
+  std::cout << "newRows.getColumnType(PERIPH_CONFIG_ID)=" << newRows.getColumnType(PERIPH_CONFIG_ID) << std::endl;
+  setConfigID(newRows,rowId, PERIPH_CONFIG_ID, periph_config_id);
+  std::cout << periph_config_id.toString() << std::endl;
+  std::cout << newRows.getValueAt(rowId, PERIPH_CONFIG_ID)->toString() << std::endl;
+  std::cout << "newRows.getColumnType(VCC_CONFIG_ID)=" << newRows.getColumnType(VCC_CONFIG_ID) << std::endl;
+  setConfigID(newRows,rowId, VCC_CONFIG_ID,    _vcc_config_id);
+  setConfigID(newRows,rowId, EMU_CONFIG_ID,    emu_config_id_);
+  std::cout << "emu config id " << newRows.getValueAt(rowId, EMU_CONFIG_ID)->toString() << std::endl;
+ 
+	//currentTable_emu_vcc=newRows;
   insert(connectionID,insertViewName,newRows);
 
 }
-//
 
-void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, const std::vector<Chamber *> &TStore_allChambers) throw (xcept::Exception) {
+void EmuPCrateConfigTStore::copyCSCToTable(xdata::Table &newRows,Chamber * chamber) {
+
+  size_t rowId(0);
+      newRows = tableDefinition_emu_csc;
+  std::string LABEL("LABEL");
+  std::string KNOWN_PROBLEM("KNOWN_PROBLEM");
+  std::string PROBLEM_MASK("PROBLEM_MASK");
+  
+  xdata::String _label;
+  xdata::String _known_problem;
+  xdata::UnsignedInteger64 _problem_mask;
+  
+       _label = chamber->GetLabel();
+      _known_problem = chamber->GetProblemDescription();
+      _problem_mask = chamber->GetProblemMask();
+      
+      newRows.setValueAt(rowId, LABEL,            _label);
+      newRows.setValueAt(rowId, KNOWN_PROBLEM,    _known_problem);
+      newRows.setValueAt(rowId, PROBLEM_MASK,     _problem_mask);
+
+}
+
+std::string EmuPCrateConfigTStore::chamberID(int crateID,const std::string &chamberLabel) {
+	return crateIdentifierString(crateID)+"_"+chamberLabel;
+}
+
+std::string EmuPCrateConfigTStore::DAQMBID(const std::string &chamber,int slot) {
+	return /*chamberID(crateID,chamberLabel)*/chamber+"_"+to_string(slot);
+}
+
+
+void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, const std::vector<Chamber *> &TStore_allChambers,int crateID) throw (xcept::Exception) {
   
   std::string insertViewName="csc";
-  xdata::Table newRows;
   
   size_t rowId(0);
   std::string CSC_CONFIG_ID("CSC_CONFIG_ID");
   std::string PERIPH_CONFIG_ID("PERIPH_CONFIG_ID");
   std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
-  std::string LABEL("LABEL");
-  std::string KNOWN_PROBLEM("KNOWN_PROBLEM");
-  std::string PROBLEM_MASK("PROBLEM_MASK");
 
   xdata::UnsignedInteger64 _csc_config_id;
   xdata::String _label;
   xdata::String _known_problem;
-  xdata::UnsignedShort _problem_mask;
+  xdata::UnsignedInteger64 _problem_mask;
   
   for(unsigned j = 0; j < TStore_allChambers.size(); ++j) {
     if(TStore_allChambers[j]) {      
       _csc_config_id = periph_config_id + (j+1)*10000;
-      _label = TStore_allChambers[j]->GetLabel();
-      _known_problem = TStore_allChambers[j]->GetProblemDescription();
-      _problem_mask = TStore_allChambers[j]->GetProblemMask();
+		std::string chamber=chamberID(crateID,TStore_allChambers[j]->GetLabel());
+		xdata::Table &newRows=getCachedTable(insertViewName,chamber);
 
-#ifdef debugV
-      std::cout << "-- CSC emu_config_id ------ " << emu_config_id_.toString()   << std::endl;
-      std::cout << "-- CSC periph_config_id --- " << periph_config_id.toString() << std::endl;
-      std::cout << "-- CSC csc_config_id ------ " << _csc_config_id.toString()   << std::endl;
-      std::cout << "-- CSC label -------------- " << _label.toString()           << std::endl;
-      std::cout << "-- CSC known_problem ------ " << _known_problem.toString()   << std::endl;
-      std::cout << "-- CSC problem_mask ------- " << _problem_mask.toString()    << std::endl;
-      std::cout << "-- ######################## " << std::endl;
-#endif
-
-      newRows.clear();
-      newRows = tableDefinition_emu_csc;
-
-      newRows.setValueAt(rowId, CSC_CONFIG_ID,    _csc_config_id);
+      setConfigID(newRows,rowId, CSC_CONFIG_ID,    _csc_config_id);
       newRows.setValueAt(rowId, EMU_CONFIG_ID,    emu_config_id_);
-      newRows.setValueAt(rowId, LABEL,            _label);
-      newRows.setValueAt(rowId, KNOWN_PROBLEM,    _known_problem);
-      newRows.setValueAt(rowId, PROBLEM_MASK,     _problem_mask);
       newRows.setValueAt(rowId, PERIPH_CONFIG_ID, periph_config_id);
 
       insert(connectionID,insertViewName,newRows);
 
       DAQMB * thisDAQMB = TStore_allChambers[j]->GetDMB();
-      uploadDAQMB(connectionID, _csc_config_id, thisDAQMB);
+      uploadDAQMB(connectionID, _csc_config_id,thisDAQMB/*this parameter is to be removed*/,thisDAQMB->slot(),chamber);
       
       TMB * thisTMB = TStore_allChambers[j]->GetTMB();
-      uploadTMB(connectionID, _csc_config_id, thisTMB);
+      uploadTMB(connectionID, _csc_config_id, thisTMB,thisTMB->slot(),chamber);
       
     } // end of if
   } // end of loop over TStore_myChambers[j]
@@ -1080,14 +1579,8 @@ void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::Un
 }
 //
 
-
-void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::UnsignedInteger64 &csc_config_id, DAQMB * &TStore_thisDAQMB) throw (xcept::Exception) {
-  
-  std::string insertViewName="daqmb";
-  xdata::Table newRows;
-  std::string valueInHex;
-  
-  size_t rowId(0);
+void EmuPCrateConfigTStore::copyDAQMBToTable(xdata::Table &newRows,DAQMB * TStore_thisDAQMB) {
+  newRows = tableDefinition_emu_daqmb;
   std::string ALCT_DAV_CABLE_DELAY("ALCT_DAV_CABLE_DELAY");
   std::string CALIBRATION_L1ACC_DELAY("CALIBRATION_L1ACC_DELAY");
   std::string CALIBRATION_LCT_DELAY("CALIBRATION_LCT_DELAY");
@@ -1095,11 +1588,8 @@ void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::
   std::string CFEB_DAV_CABLE_DELAY("CFEB_DAV_CABLE_DELAY");
   std::string myCOMP_MODE("COMP_MODE");
   std::string COMP_TIMING("COMP_TIMING");
-  std::string CSC_CONFIG_ID("CSC_CONFIG_ID");
-  std::string DAQMB_CONFIG_ID("DAQMB_CONFIG_ID");
   std::string DMB_CNTL_FIRMWARE_TAG("DMB_CNTL_FIRMWARE_TAG");
   std::string DMB_VME_FIRMWARE_TAG("DMB_VME_FIRMWARE_TAG");
-  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
   std::string FEB_CLOCK_DELAY("FEB_CLOCK_DELAY");
   std::string INJ_DAC_SET("INJ_DAC_SET");
   std::string INJECT_DELAY("INJECT_DELAY");
@@ -1112,7 +1602,7 @@ void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::
   std::string TMB_LCT_CABLE_DELAY("TMB_LCT_CABLE_DELAY");
   std::string XFINELATENCY("XFINELATENCY");
   std::string XLATENCY("XLATENCY");
-
+  
   xdata::UnsignedShort     _alct_dav_cable_delay    = TStore_thisDAQMB->GetAlctDavCableDelay(); 
   xdata::UnsignedShort     _calibration_l1acc_delay = TStore_thisDAQMB->GetCalibrationL1aDelay(); 
   xdata::UnsignedShort     _calibration_lct_delay   = TStore_thisDAQMB->GetCalibrationLctDelay(); 
@@ -1120,8 +1610,8 @@ void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::
   xdata::UnsignedShort     _cfeb_dav_cable_delay    = TStore_thisDAQMB->GetCfebDavCableDelay(); 
   xdata::UnsignedShort     _comp_mode               = TStore_thisDAQMB->GetCompMode(); 
   xdata::UnsignedShort     _comp_timing             = TStore_thisDAQMB->GetCompTiming(); 
-  xdata::UnsignedInteger64 _daqmb_config_id         = csc_config_id + 1000;
-  xdata::String            _dmb_cntl_firmware_tag;
+   xdata::String            _dmb_cntl_firmware_tag;
+  std::string valueInHex;
   convertToHex(valueInHex,"%lx",TStore_thisDAQMB->GetExpectedControlFirmwareTag());
   _dmb_cntl_firmware_tag = valueInHex;
   xdata::UnsignedShort     _dmb_vme_firmware_tag    = TStore_thisDAQMB->GetExpectedVMEFirmwareTag();
@@ -1137,37 +1627,8 @@ void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::
   xdata::UnsignedShort     _tmb_lct_cable_delay     = TStore_thisDAQMB->GetTmbLctCableDelay(); 
   xdata::UnsignedShort     _xfinelatency            = TStore_thisDAQMB->GetxFineLatency(); 
   xdata::UnsignedShort     _xlatency                = TStore_thisDAQMB->GetxLatency();
-
-#ifdef debugV
-  std::cout << "-- DAQMB emu_config_id -------------- " << emu_config_id_.toString()           << std::endl;
-  std::cout << "-- DAQMB periph_config_id ----------- " << csc_config_id.toString()            << std::endl;
-  std::cout << "-- DAQMB daqmb_config_id ------------ " << _daqmb_config_id.toString()         << std::endl;
-  std::cout << "-- DAQMB alct_dav_cable_delay ------- " << _alct_dav_cable_delay.toString()    << std::endl;
-  std::cout << "-- DAQMB calibration_l1acc_delay ---- " << _calibration_l1acc_delay.toString() << std::endl;
-  std::cout << "-- DAQMB calibration_lct_delay ------ " << _calibration_lct_delay.toString()   << std::endl;
-  std::cout << "-- DAQMB cfeb_cable_delay ----------- " << _cfeb_cable_delay.toString()        << std::endl;
-  std::cout << "-- DAQMB cfeb_dav_cable_delay ------- " << _cfeb_dav_cable_delay.toString()    << std::endl;
-  std::cout << "-- DAQMB comp_mode ------------------ " << _comp_mode.toString()               << std::endl;
-  std::cout << "-- DAQMB comp_timing ---------------- " << _comp_timing.toString()             << std::endl;
-  std::cout << "-- DAQMB dmb_cntl_firmware_tag ------ " << _dmb_cntl_firmware_tag.toString()   << std::endl;
-  std::cout << "-- DAQMB dmb_vme_firmware_tag ------- " << _dmb_vme_firmware_tag.toString()    << std::endl;
-  std::cout << "-- DAQMB feb_clock_delay ------------ " << _feb_clock_delay.toString()         << std::endl;
-  std::cout << "-- DAQMB inj_dac_set ---------------- " << _inj_dac_set.toString()             << std::endl;
-  std::cout << "-- DAQMB inject_delay --------------- " << _inject_delay.toString()            << std::endl;
-  std::cout << "-- DAQMB kill_input ----------------- " << _kill_input.toString()              << std::endl;
-  std::cout << "-- DAQMB pre_block_end -------------- " << _pre_block_end.toString()           << std::endl;
-  std::cout << "-- DAQMB pul_dac_set ---------------- " << _pul_dac_set.toString()             << std::endl;
-  std::cout << "-- DAQMB pulse_delay----------------- " << _pulse_delay.toString()             << std::endl;
-  std::cout << "-- DAQMB set_comp_tresh ------------- " << _set_comp_tresh.toString()          << std::endl;
-  std::cout << "-- DAQMB slot ----------------------- " << _slot.toString()                    << std::endl;
-  std::cout << "-- DAQMB tmb_lct_cable_delay -------- " << _tmb_lct_cable_delay.toString()     << std::endl;
-  std::cout << "-- DAQMB xfinelatency --------------- " << _xfinelatency.toString()            << std::endl;
-  std::cout << "-- DAQMB xlatency ------------------- " << _xlatency.toString()                << std::endl;
-#endif
-
-  newRows.clear();
-  newRows = tableDefinition_emu_daqmb; 
- 
+  
+  size_t rowId(0);
   newRows.setValueAt(rowId, ALCT_DAV_CABLE_DELAY,    _alct_dav_cable_delay);
   newRows.setValueAt(rowId, CALIBRATION_L1ACC_DELAY, _calibration_l1acc_delay);
   newRows.setValueAt(rowId, CALIBRATION_LCT_DELAY,   _calibration_lct_delay);
@@ -1175,11 +1636,8 @@ void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::
   newRows.setValueAt(rowId, CFEB_DAV_CABLE_DELAY,    _cfeb_dav_cable_delay);
   newRows.setValueAt(rowId, myCOMP_MODE,             _comp_mode);
   newRows.setValueAt(rowId, COMP_TIMING,             _comp_timing);
-  newRows.setValueAt(rowId, CSC_CONFIG_ID,           csc_config_id);
-  newRows.setValueAt(rowId, DAQMB_CONFIG_ID,         _daqmb_config_id);
   newRows.setValueAt(rowId, DMB_CNTL_FIRMWARE_TAG,   _dmb_cntl_firmware_tag);
   newRows.setValueAt(rowId, DMB_VME_FIRMWARE_TAG,    _dmb_vme_firmware_tag);
-  newRows.setValueAt(rowId, EMU_CONFIG_ID,           emu_config_id_);
   newRows.setValueAt(rowId, FEB_CLOCK_DELAY,         _feb_clock_delay);
   newRows.setValueAt(rowId, INJ_DAC_SET,             _inj_dac_set);
   newRows.setValueAt(rowId, INJECT_DELAY,            _inject_delay);
@@ -1192,40 +1650,52 @@ void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::
   newRows.setValueAt(rowId, TMB_LCT_CABLE_DELAY,     _tmb_lct_cable_delay); 
   newRows.setValueAt(rowId, XFINELATENCY,            _xfinelatency);
   newRows.setValueAt(rowId, XLATENCY,                _xlatency); 
-
-  insert(connectionID,insertViewName,newRows);
-
-  uploadCFEB(connectionID, _daqmb_config_id, TStore_thisDAQMB);
-
 }
-//
 
-void EmuPCrateConfigTStore::uploadCFEB(const std::string &connectionID, xdata::UnsignedInteger64 &daqmb_config_id, DAQMB * &TStore_thisDAQMB) throw (xcept::Exception) {
+void EmuPCrateConfigTStore::uploadDAQMB(const std::string &connectionID, xdata::UnsignedInteger64 &csc_config_id, DAQMB * &TStore_thisDAQMB,/*int crateID,const std::string &chamberLabel,*/int slot,const std::string &chamber) throw (xcept::Exception) {
   
-  std::string insertViewName="cfeb";
-  xdata::Table newRows;
-  std::string valueInHex;
-
-  newRows = tableDefinition_emu_cfeb;
-
+  std::string insertViewName="daqmb";
+  std::string identifier=DAQMBID(chamber,slot);
+  xdata::Table &newRows=getCachedTable(insertViewName,identifier);
+  
   size_t rowId(0);
-  std::string CFEB_CONFIG_ID("CFEB_CONFIG_ID");
-  std::string CFEB_FIRMWARE_TAG("CFEB_FIRMWARE_TAG");
-  std::string CFEB_NUMBER("CFEB_NUMBER");
+  std::string CSC_CONFIG_ID("CSC_CONFIG_ID");
   std::string DAQMB_CONFIG_ID("DAQMB_CONFIG_ID");
   std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
+
+
+  xdata::UnsignedInteger64 _daqmb_config_id         = csc_config_id + 1000;
+
+  //copyDAQMBToTable(newRows,TStore_thisDAQMB);
+ 
+  setConfigID(newRows,rowId, CSC_CONFIG_ID,           csc_config_id);
+  setConfigID(newRows,rowId, DAQMB_CONFIG_ID,         _daqmb_config_id);
+  setConfigID(newRows,rowId, EMU_CONFIG_ID,           emu_config_id_);
+  
+  insert(connectionID,insertViewName,newRows);
+
+  uploadCFEB(connectionID, _daqmb_config_id,identifier);
+
+}
+
+void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows,DAQMB * TStore_thisDAQMB) {
+  std::string valueInHex;
+	size_t rowId(0);
+  newRows = tableDefinition_emu_cfeb;
+  
+  std::string CFEB_FIRMWARE_TAG("CFEB_FIRMWARE_TAG");
+  std::string CFEB_NUMBER("CFEB_NUMBER");
   std::string KILL_CHIP0("KILL_CHIP0");
   std::string KILL_CHIP1("KILL_CHIP1");
   std::string KILL_CHIP2("KILL_CHIP2");
   std::string KILL_CHIP3("KILL_CHIP3");
   std::string KILL_CHIP4("KILL_CHIP4");
   std::string KILL_CHIP5("KILL_CHIP5");
-
+  
   std::vector<CFEB> TStore_allCFEBs = TStore_thisDAQMB->cfebs();
 
   for(unsigned j = 0; j < TStore_allCFEBs.size(); ++j) {
-
-    xdata::UnsignedShort      _cfeb_number       = TStore_allCFEBs[j].number();
+   xdata::UnsignedShort      _cfeb_number       = TStore_allCFEBs[j].number();
     convertToHex(valueInHex,"%lx",TStore_thisDAQMB->GetExpectedCFEBFirmwareTag(_cfeb_number));
     xdata::String _cfeb_firmware_tag = valueInHex;
     convertToHex(valueInHex,"%x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 0));
@@ -1240,12 +1710,8 @@ void EmuPCrateConfigTStore::uploadCFEB(const std::string &connectionID, xdata::U
     xdata::String _kill_chip4 = valueInHex;
     convertToHex(valueInHex,"%x",TStore_thisDAQMB->GetKillChip(_cfeb_number, 5));
     xdata::String _kill_chip5 = valueInHex;
-    xdata::UnsignedInteger64  _cfeb_config_id    = daqmb_config_id + _cfeb_number;
-
-#ifdef debugV
-    std::cout << "-- CFEB emu_config_id ---------- " << emu_config_id_.toString()       << std::endl;
-    std::cout << "-- CFEB periph_config_id ------- " << daqmb_config_id.toString()      << std::endl;
-    std::cout << "-- CFEB cfeb_config_id --------- " << _cfeb_config_id.toString()      << std::endl;
+    
+    #ifdef debugV
     std::cout << "-- CFEB cfeb_number ------------ " << _cfeb_number.toString()         << std::endl;
     std::cout << "-- CFEB cfeb_firmware_tag ------ " << _cfeb_firmware_tag.toString()   << std::endl;
     std::cout << "-- CFEB kill_chip0 ------------- " << _kill_chip0.toString()          << std::endl;
@@ -1254,19 +1720,48 @@ void EmuPCrateConfigTStore::uploadCFEB(const std::string &connectionID, xdata::U
     std::cout << "-- CFEB kill_chip3 ------------- " << _kill_chip3.toString()          << std::endl;
     std::cout << "-- CFEB kill_chip4 ------------- " << _kill_chip4.toString()          << std::endl;
     std::cout << "-- CFEB kill_chip5 ------------- " << _kill_chip5.toString()          << std::endl;
-#endif
+	#endif
     
-    newRows.setValueAt(rowId, CFEB_CONFIG_ID,    _cfeb_config_id);
     newRows.setValueAt(rowId, CFEB_FIRMWARE_TAG, _cfeb_firmware_tag);
     newRows.setValueAt(rowId, CFEB_NUMBER,       _cfeb_number);
-    newRows.setValueAt(rowId, DAQMB_CONFIG_ID,   daqmb_config_id);
-    newRows.setValueAt(rowId, EMU_CONFIG_ID,     emu_config_id_);
+    
     newRows.setValueAt(rowId, KILL_CHIP0,        _kill_chip0);
     newRows.setValueAt(rowId, KILL_CHIP1,        _kill_chip1);
     newRows.setValueAt(rowId, KILL_CHIP2,        _kill_chip2);
     newRows.setValueAt(rowId, KILL_CHIP3,        _kill_chip3);
     newRows.setValueAt(rowId, KILL_CHIP4,        _kill_chip4);
     newRows.setValueAt(rowId, KILL_CHIP5,        _kill_chip5);
+    rowId++;
+  }
+
+}
+
+void EmuPCrateConfigTStore::uploadCFEB(const std::string &connectionID, xdata::UnsignedInteger64 &daqmb_config_id,const std::string &identifier) throw (xcept::Exception) {
+  
+  std::string insertViewName="cfeb";
+  xdata::Table &newRows=getCachedTable(insertViewName,identifier);
+  std::string valueInHex;
+
+  size_t rowId(0);
+  std::string CFEB_CONFIG_ID("CFEB_CONFIG_ID");
+  std::string DAQMB_CONFIG_ID("DAQMB_CONFIG_ID");
+  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
+
+	for (unsigned rowIndex=0;rowIndex<newRows.getRowCount();rowIndex++ ) {
+
+   xdata::UnsignedShort      *_cfeb_number       = dynamic_cast<xdata::UnsignedShort *>(newRows.getValueAt(rowIndex,"CFEB_NUMBER"));//TStore_allCFEBs[j].number();
+	if (_cfeb_number) {
+		xdata::UnsignedInteger64  _cfeb_config_id    = daqmb_config_id + *_cfeb_number;
+	#ifdef debugV
+	    std::cout << "-- CFEB emu_config_id ---------- " << emu_config_id_.toString()       << std::endl;
+	    std::cout << "-- CFEB periph_config_id ------- " << daqmb_config_id.toString()      << std::endl;
+	    std::cout << "-- CFEB cfeb_config_id --------- " << _cfeb_config_id.toString()      << std::endl;
+	#endif
+	    
+	    setConfigID(newRows,rowId, CFEB_CONFIG_ID,    _cfeb_config_id);
+	    setConfigID(newRows,rowId, DAQMB_CONFIG_ID,   daqmb_config_id);
+	    setConfigID(newRows,rowId, EMU_CONFIG_ID,     emu_config_id_);
+	}
     rowId++;
   }
   
@@ -1276,14 +1771,10 @@ void EmuPCrateConfigTStore::uploadCFEB(const std::string &connectionID, xdata::U
 //
 
 
-void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedInteger64 &csc_config_id, TMB * &TStore_thisTMB) throw (xcept::Exception) {
-  
-  std::string insertViewName="tmb";
-  xdata::Table newRows;
-  std::string valueInHex;
-
+void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_thisTMB) {
   size_t rowId(0);
-  std::string ADJACENT_CFEB_DISTANCE("ADJACENT_CFEB_DISTANCE");
+    newRows = tableDefinition_emu_tmb; 
+    std::string ADJACENT_CFEB_DISTANCE("ADJACENT_CFEB_DISTANCE");
   std::string AFF_THRESH("AFF_THRESH");
   std::string ALCT_BX0_DELAY("ALCT_BX0_DELAY");
   std::string ALCT_BX0_ENABLE("ALCT_BX0_ENABLE");
@@ -1317,9 +1808,7 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   //  std::string CLCT_STAGGER("CLCT_STAGGER");   // obsolete
   std::string CLCT_THROTTLE("CLCT_THROTTLE");
   std::string CLCT_TRIG_ENABLE("CLCT_TRIG_ENABLE");
-  std::string CSC_CONFIG_ID("CSC_CONFIG_ID");
   std::string DMB_TX_DELAY("DMB_TX_DELAY");
-  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
   std::string ENABLE_ALCT_RX("ENABLE_ALCT_RX");
   std::string ENABLE_ALCT_TX("ENABLE_ALCT_TX");
   std::string ENABLECLCTINPUTS_REG42("ENABLECLCTINPUTS_REG42");
@@ -1369,7 +1858,6 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   std::string RPC_READ_ENABLE("RPC_READ_ENABLE");
   std::string SLOT("SLOT");
   std::string TMB_BXN_OFFSET("TMB_BXN_OFFSET");
-  std::string TMB_CONFIG_ID("TMB_CONFIG_ID");
   std::string TMB_FIFO_NO_RAW_HITS("TMB_FIFO_NO_RAW_HITS");
   std::string TMB_FIFO_MODE("TMB_FIFO_MODE");
   std::string TMB_FIRMWARE_COMPILE_TYPE("TMB_FIRMWARE_COMPILE_TYPE");
@@ -1386,6 +1874,8 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   std::string WRITE_BUFFER_AUTOCLEAR("WRITE_BUFFER_AUTOCLEAR");
   std::string WRITE_BUFFER_CONTINOUS_ENABLE("WRITE_BUFFER_CONTINOUS_ENABLE");
   std::string WRITE_BUFFER_REQUIRED("WRITE_BUFFER_REQUIRED");
+  
+  
 
   xdata::UnsignedShort     _adjacent_cfeb_distance        = TStore_thisTMB->GetAdjacentCfebDistance();
   xdata::UnsignedShort     _aff_thresh                    = TStore_thisTMB->GetActiveFebFlagThresh();
@@ -1431,6 +1921,7 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   xdata::UnsignedShort     _l1a_allow_match               = TStore_thisTMB->GetL1aAllowMatch();
   xdata::UnsignedShort     _l1a_allow_nol1a               = TStore_thisTMB->GetL1aAllowNoL1a();
   xdata::UnsignedShort     _l1a_allow_notmb               = TStore_thisTMB->GetL1aAllowNoTmb();
+  std::string valueInHex;
   convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(0));
   xdata::String            _layer0_distrip_hot_chann_mask = valueInHex;
   convertToHex(valueInHex,"%Lx",TStore_thisTMB->GetDistripHotChannelMask(1));
@@ -1477,7 +1968,6 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   xdata::UnsignedShort     _rpc_read_enable               = TStore_thisTMB->GetRpcReadEnable();
   xdata::UnsignedShort     _slot                          = TStore_thisTMB->slot();
   xdata::UnsignedShort     _tmb_bxn_offset                = TStore_thisTMB->GetBxnOffset();
-  xdata::UnsignedInteger64 _tmb_config_id                 = csc_config_id + 2000;
   xdata::UnsignedShort     _tmb_fifo_mode                 = TStore_thisTMB->GetFifoMode();
   xdata::UnsignedShort     _tmb_fifo_no_raw_hits          = TStore_thisTMB->GetFifoNoRawHits();
   convertToHex(valueInHex,"%x",TStore_thisTMB->GetTMBFirmwareCompileType());
@@ -1495,11 +1985,8 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   xdata::UnsignedShort     _write_buffer_required         = TStore_thisTMB->GetWriteBufferRequired();
   xdata::UnsignedShort     _write_buffer_autoclear        = TStore_thisTMB->GetWriteBufferAutoclear();
   xdata::UnsignedShort     _write_buffer_continous_enable = TStore_thisTMB->GetClctWriteContinuousEnable();
-
-  newRows.clear();
-  newRows = tableDefinition_emu_tmb; 
   
-  newRows.setValueAt(rowId, ADJACENT_CFEB_DISTANCE,        _adjacent_cfeb_distance); 
+    newRows.setValueAt(rowId, ADJACENT_CFEB_DISTANCE,        _adjacent_cfeb_distance); 
   newRows.setValueAt(rowId, AFF_THRESH,                    _aff_thresh);
   newRows.setValueAt(rowId, ALCT_BX0_DELAY,                _alct_bx0_delay);
   newRows.setValueAt(rowId, ALCT_BX0_ENABLE,               _alct_bx0_enable);
@@ -1533,9 +2020,7 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   //  newRows.setValueAt(rowId, CLCT_STAGGER,                  _clct_stagger);   // obsolete
   newRows.setValueAt(rowId, CLCT_THROTTLE,                 _clct_throttle);
   newRows.setValueAt(rowId, CLCT_TRIG_ENABLE,              _clct_trig_enable);
-  newRows.setValueAt(rowId, CSC_CONFIG_ID,                 csc_config_id);
   newRows.setValueAt(rowId, DMB_TX_DELAY,                  _dmb_tx_delay);
-  newRows.setValueAt(rowId, EMU_CONFIG_ID,                 emu_config_id_);
   newRows.setValueAt(rowId, ENABLE_ALCT_RX,                _enable_alct_rx);
   newRows.setValueAt(rowId, ENABLE_ALCT_TX,                _enable_alct_tx);
   newRows.setValueAt(rowId, ENABLECLCTINPUTS_REG42,        _enableclctinputs_reg42);
@@ -1585,7 +2070,6 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   newRows.setValueAt(rowId, RPC_READ_ENABLE,               _rpc_read_enable);
   newRows.setValueAt(rowId, SLOT,                          _slot);
   newRows.setValueAt(rowId, TMB_BXN_OFFSET,                _tmb_bxn_offset);
-  newRows.setValueAt(rowId, TMB_CONFIG_ID,                 _tmb_config_id);
   newRows.setValueAt(rowId, TMB_FIFO_MODE,                 _tmb_fifo_mode);
   newRows.setValueAt(rowId, TMB_FIFO_NO_RAW_HITS,          _tmb_fifo_no_raw_hits);
   newRows.setValueAt(rowId, TMB_FIRMWARE_COMPILE_TYPE,     _tmb_firmware_compile_type);
@@ -1602,27 +2086,45 @@ void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::Un
   newRows.setValueAt(rowId, WRITE_BUFFER_REQUIRED,         _write_buffer_required);
   newRows.setValueAt(rowId, WRITE_BUFFER_AUTOCLEAR,        _write_buffer_autoclear);
   newRows.setValueAt(rowId, WRITE_BUFFER_CONTINOUS_ENABLE, _write_buffer_continous_enable);
+}
+
+void EmuPCrateConfigTStore::uploadTMB(const std::string &connectionID, xdata::UnsignedInteger64 &csc_config_id, TMB * &TStore_thisTMB,int slot,const std::string &chamber) throw (xcept::Exception) {
+  
+  std::string insertViewName="tmb";
+  std::string identifier=DAQMBID(chamber,slot);
+  xdata::Table &newRows=getCachedTable(insertViewName,identifier);
+  std::string valueInHex;
+  
+  size_t rowId(0);
+
+  std::string CSC_CONFIG_ID("CSC_CONFIG_ID");
+  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
+  std::string TMB_CONFIG_ID("TMB_CONFIG_ID");
+  xdata::UnsignedInteger64 _tmb_config_id                 = csc_config_id + 2000;
+
+
+  
+
+  setConfigID(newRows,rowId, CSC_CONFIG_ID,                 csc_config_id);
+  setConfigID(newRows,rowId, EMU_CONFIG_ID,                 emu_config_id_);
+  setConfigID(newRows,rowId, TMB_CONFIG_ID,                 _tmb_config_id);
 
   insert(connectionID,insertViewName,newRows);
 
   ALCTController * thisALCT = TStore_thisTMB->alctController();
-  uploadALCT(connectionID, _tmb_config_id, thisALCT);
+  uploadALCT(connectionID, _tmb_config_id, thisALCT,identifier);
 
 }
 //
 
-void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::UnsignedInteger64 &tmb_config_id, ALCTController * &TStore_thisALCT) throw (xcept::Exception) {
-  
-  std::string insertViewName="alct";
-  xdata::Table newRows;
 
-  size_t rowId(0);
+void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows,ALCTController * &TStore_thisALCT) {
+	size_t rowId(0);
   std::string ALCT_ACCEL_MODE("ALCT_ACCEL_MODE");
   std::string ALCT_NPLANES_HIT_ACCEL_PATTERN("ALCT_NPLANES_HIT_ACCEL_PATTERN");
   std::string ALCT_NPLANES_HIT_ACCEL_PRETRIG("ALCT_NPLANES_HIT_ACCEL_PRETRIG");
   std::string ALCT_BXN_OFFSET("ALCT_BXN_OFFSET");
   std::string ALCT_CCB_ENABLE("ALCT_CCB_ENABLE");
-  std::string ALCT_CONFIG_ID("ALCT_CONFIG_ID");
   std::string ALCT_CONFIG_IN_READOUT("ALCT_CONFIG_IN_READOUT");
   std::string ALCT_DRIFT_DELAY("ALCT_DRIFT_DELAY");
   std::string ALCT_EXT_TRIG_ENABLE("ALCT_EXT_TRIG_ENABLE");
@@ -1649,15 +2151,14 @@ void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::U
   std::string ALCT_TRIG_INFO_EN("ALCT_TRIG_INFO_EN");
   std::string ALCT_TRIG_MODE("ALCT_TRIG_MODE");
   std::string CHAMBER_TYPE("CHAMBER_TYPE");
-  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
-  std::string TMB_CONFIG_ID("TMB_CONFIG_ID");
-
+  
   xdata::UnsignedShort     _alct_accel_mode                = TStore_thisALCT->GetWriteAlctAmode();
   xdata::UnsignedShort     _alct_nplanes_hit_accel_pattern = TStore_thisALCT->GetWriteAcceleratorPatternThresh();
   xdata::UnsignedShort     _alct_nplanes_hit_accel_pretrig = TStore_thisALCT->GetWriteAcceleratorPretrigThresh();
   xdata::UnsignedShort     _alct_bxn_offset                = TStore_thisALCT->GetWriteBxcOffset();
   xdata::UnsignedShort     _alct_ccb_enable                = TStore_thisALCT->GetWriteCcbEnable();
-  xdata::UnsignedInteger64 _alct_config_id                 = tmb_config_id + 100;
+	
+	
   xdata::UnsignedShort     _alct_config_in_readout         = TStore_thisALCT->GetWriteConfigInReadout();
   xdata::UnsignedShort     _alct_drift_delay               = TStore_thisALCT->GetWriteDriftDelay();
   xdata::UnsignedShort     _alct_ext_trig_enable           = TStore_thisALCT->GetWriteExtTrigEnable();
@@ -1684,11 +2185,9 @@ void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::U
   xdata::UnsignedShort     _alct_trig_info_en              = TStore_thisALCT->GetWriteTriggerInfoEnable();
   xdata::UnsignedShort     _alct_trig_mode                 = TStore_thisALCT->GetWriteTriggerMode();
   xdata::String            _chamber_type                   = TStore_thisALCT->GetChamberType();
-
-#ifdef debugV
-  std::cout << "-- ALCT emu_config_id --------------------- " << emu_config_id_.toString()                  << std::endl;
-  std::cout << "-- ALCT tmb_config_id --------------------- " << tmb_config_id.toString()                   << std::endl;
-  std::cout << "-- ALCT alct_config_id -------------------- " << _alct_config_id.toString()                 << std::endl;
+  
+  #ifdef debugV
+  
   std::cout << "-- ALCT alct_accel_mode ------------------- " << _alct_accel_mode.toString()                << std::endl;
   std::cout << "-- ALCT alct_nplanes_hit_accel_pattern ---- " << _alct_nplanes_hit_accel_pattern.toString() << std::endl;
   std::cout << "-- ALCT alct_nplanes_hit_accel_pretrig ---- " << _alct_nplanes_hit_accel_pretrig.toString() << std::endl;
@@ -1722,7 +2221,6 @@ void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::U
   std::cout << "-- ALCT chamber_type ---------------------- " << _chamber_type.toString()                   << std::endl;
 #endif
 
-  newRows.clear();
   newRows = tableDefinition_emu_alct;
   
   newRows.setValueAt(rowId, ALCT_ACCEL_MODE,                _alct_accel_mode);
@@ -1730,7 +2228,6 @@ void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::U
   newRows.setValueAt(rowId, ALCT_NPLANES_HIT_ACCEL_PRETRIG, _alct_nplanes_hit_accel_pretrig);
   newRows.setValueAt(rowId, ALCT_BXN_OFFSET,                _alct_bxn_offset);
   newRows.setValueAt(rowId, ALCT_CCB_ENABLE,                _alct_ccb_enable);
-  newRows.setValueAt(rowId, ALCT_CONFIG_ID,                 _alct_config_id);
   newRows.setValueAt(rowId, ALCT_CONFIG_IN_READOUT,         _alct_config_in_readout);
   newRows.setValueAt(rowId, ALCT_DRIFT_DELAY,               _alct_drift_delay);
   newRows.setValueAt(rowId, ALCT_EXT_TRIG_ENABLE,           _alct_ext_trig_enable);
@@ -1757,28 +2254,68 @@ void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::U
   newRows.setValueAt(rowId, ALCT_TRIG_INFO_EN,              _alct_trig_info_en);
   newRows.setValueAt(rowId, ALCT_TRIG_MODE,                 _alct_trig_mode);
   newRows.setValueAt(rowId, CHAMBER_TYPE,                   _chamber_type);
-  newRows.setValueAt(rowId, EMU_CONFIG_ID,                  emu_config_id_);
-  newRows.setValueAt(rowId, TMB_CONFIG_ID,                  tmb_config_id);
+}
 
+void EmuPCrateConfigTStore::uploadALCT(const std::string &connectionID, xdata::UnsignedInteger64 &tmb_config_id, ALCTController * &TStore_thisALCT,const std::string &identifier) throw (xcept::Exception) {
+  
+  std::string insertViewName="alct";
+  xdata::Table &newRows=getCachedTable(insertViewName,identifier);
+
+  size_t rowId(0);
+  std::string ALCT_CONFIG_ID("ALCT_CONFIG_ID");
+  std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
+  std::string TMB_CONFIG_ID("TMB_CONFIG_ID");
+
+  xdata::UnsignedInteger64 _alct_config_id                 = tmb_config_id + 100;
+
+#ifdef debugV
+  std::cout << "-- ALCT emu_config_id --------------------- " << emu_config_id_.toString()                  << std::endl;
+  std::cout << "-- ALCT tmb_config_id --------------------- " << tmb_config_id.toString()                   << std::endl;
+  std::cout << "-- ALCT alct_config_id -------------------- " << _alct_config_id.toString()                 << std::endl;
+#endif
+
+  setConfigID(newRows,rowId, ALCT_CONFIG_ID,                 _alct_config_id);
+  setConfigID(newRows,rowId, EMU_CONFIG_ID,                  emu_config_id_);
+  setConfigID(newRows,rowId, TMB_CONFIG_ID,                  tmb_config_id);
   insert(connectionID,insertViewName,newRows);
 
-  uploadAnodeChannel(connectionID, _alct_config_id, TStore_thisALCT);
+  uploadAnodeChannel(connectionID, _alct_config_id, TStore_thisALCT,identifier);
 
 }
 //
 
-void EmuPCrateConfigTStore::uploadAnodeChannel(const std::string &connectionID, xdata::UnsignedInteger64 &alct_config_id, ALCTController * &TStore_thisALCT) throw (xcept::Exception) {
-  
-  std::string insertViewName="anodechannel";
-  xdata::Table newRows;
-  
-  newRows = tableDefinition_emu_anodechannel;
-
-  size_t rowId(0);
-  std::string AFEB_CONFIG_ID("AFEB_CONFIG_ID");
+void EmuPCrateConfigTStore::copyAnodeChannelToTable(xdata::Table &newRows,ALCTController * &TStore_thisALCT) {
+ newRows = tableDefinition_emu_anodechannel;
+ int maxUserIndex = TStore_thisALCT->MaximumUserIndex();
   std::string AFEB_FINE_DELAY("AFEB_FINE_DELAY");
   std::string AFEB_NUMBER("AFEB_NUMBER");
   std::string AFEB_THRESHOLD("AFEB_THRESHOLD");
+  size_t rowId(0);
+
+  for(int afeb = 0; afeb <= maxUserIndex; afeb++) {
+    xdata::UnsignedShort     _afeb_fine_delay = TStore_thisALCT->GetWriteAsicDelay(afeb);
+    xdata::UnsignedShort     _afeb_number     = afeb+1;  // in XML it starts with 1 but the setter function uses 'number-1'; this way the XML file and the DB are consistent
+    xdata::UnsignedShort     _afeb_threshold  = TStore_thisALCT->GetAfebThresholdDAC(afeb);
+
+#ifdef debugV
+    std::cout << "-- AFEB afeb_fine_delay -------- " << _afeb_fine_delay.toString()    << std::endl;
+    std::cout << "-- AFEB afeb_number ------------ " << _afeb_number.toString()        << std::endl;
+    std::cout << "-- AFEB afeb_threshold --------- " << _afeb_threshold.toString()     << std::endl;
+#endif
+    newRows.setValueAt(rowId, AFEB_FINE_DELAY, _afeb_fine_delay); 
+    newRows.setValueAt(rowId, AFEB_NUMBER,     _afeb_number); 
+    newRows.setValueAt(rowId, AFEB_THRESHOLD,  _afeb_threshold); 
+    rowId++;
+  }
+}
+
+void EmuPCrateConfigTStore::uploadAnodeChannel(const std::string &connectionID, xdata::UnsignedInteger64 &alct_config_id, ALCTController * &TStore_thisALCT,const std::string &identifier) throw (xcept::Exception) {
+  
+  std::string insertViewName="anodechannel";
+  xdata::Table &newRows=getCachedTable(insertViewName,identifier);
+
+  size_t rowId(0);
+  std::string AFEB_CONFIG_ID("AFEB_CONFIG_ID");
   std::string ALCT_CONFIG_ID("ALCT_CONFIG_ID");
   std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
   int maxUserIndex = TStore_thisALCT->MaximumUserIndex();
@@ -1798,12 +2335,9 @@ void EmuPCrateConfigTStore::uploadAnodeChannel(const std::string &connectionID, 
     std::cout << "-- AFEB afeb_threshold --------- " << _afeb_threshold.toString()     << std::endl;
 #endif
   
-    newRows.setValueAt(rowId, AFEB_CONFIG_ID,  _afeb_config_id);  
-    newRows.setValueAt(rowId, AFEB_FINE_DELAY, _afeb_fine_delay); 
-    newRows.setValueAt(rowId, AFEB_NUMBER,     _afeb_number); 
-    newRows.setValueAt(rowId, AFEB_THRESHOLD,  _afeb_threshold); 
-    newRows.setValueAt(rowId, ALCT_CONFIG_ID,  alct_config_id);
-    newRows.setValueAt(rowId, EMU_CONFIG_ID,   emu_config_id_);
+    setConfigID(newRows,rowId, AFEB_CONFIG_ID,  _afeb_config_id);  
+    setConfigID(newRows,rowId, ALCT_CONFIG_ID,  alct_config_id);
+    setConfigID(newRows,rowId, EMU_CONFIG_ID,   emu_config_id_);
     rowId++;
   }
 
@@ -1817,7 +2351,7 @@ void EmuPCrateConfigTStore::uploadAnodeChannel(const std::string &connectionID, 
 // ########################
 
 EmuEndcap * EmuPCrateConfigTStore::getConfiguredEndcap(const std::string &emu_config_id) throw (xcept::Exception) {
-
+try {
   EmuEndcap * endcap = new EmuEndcap();
   std::cout << "######## Empty EmuEndcap is created." << std::endl;
   
@@ -1829,12 +2363,15 @@ EmuEndcap * EmuPCrateConfigTStore::getConfiguredEndcap(const std::string &emu_co
   disconnect(connectionID);
   
   return endcap;
+  } catch (std::exception &e) {
+  	XCEPT_RAISE(xcept::Exception,e.what());
+  }
 
 }
 //
 
 void EmuPCrateConfigTStore::readConfiguration(const std::string &connectionID, const std::string &emu_config_id, EmuEndcap * endcap) throw (xcept::Exception) {
-
+  try {
   std::string queryViewName="configuration";
   xdata::Table results;
   query(connectionID, queryViewName, emu_config_id, results);
@@ -1853,6 +2390,9 @@ void EmuPCrateConfigTStore::readConfiguration(const std::string &connectionID, c
 
   std::cout << "EMU Configuration - END" << std::endl;
     
+  } catch (std::exception &e) {
+  	XCEPT_RAISE(xcept::Exception,e.what());
+  }
 }
 //
 
@@ -1875,8 +2415,11 @@ void EmuPCrateConfigTStore::readPeripheralCrate(const std::string &connectionID,
       if (*column == "PERIPH_CONFIG_ID"){periph_config_id = StrgValue;}
       if (*column == "CRATEID")
       {  xdata::Serializable  * value = results.getValueAt(rowIndex,*column);
-         xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
-         crateid = (int)*i;
+      	std::cout << "crateid is of type " << value->type() << std::endl;
+      	if (value->type()=="int") {
+         	xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
+         	if (i) crateid = (int)*i;
+         }
       }
       if (*column == "LABEL"){label = StrgValue;}
       std::cout << *column + ": " + StrgValue << std::endl;
@@ -1910,6 +2453,7 @@ void EmuPCrateConfigTStore::readVCC(const std::string &connectionID, const std::
 
   query(connectionID, queryViewName, emu_config_id, periph_config_id, results);
   
+  
   std::cout << "VCC  " << std::endl;
   std::cout << "=========================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
@@ -1918,7 +2462,7 @@ void EmuPCrateConfigTStore::readVCC(const std::string &connectionID, const std::
     VMECC * vcc = new VMECC(theCrate, 1);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
       StrgValue=value->toString();
 
       if (*column == "MAC_ADDR"){
@@ -1963,6 +2507,13 @@ void EmuPCrateConfigTStore::readVCC(const std::string &connectionID, const std::
     
   }
   std::cout << "######## VCC is created." << std::endl;
+  
+  copyVMECCToTable(results,theCrate); //this is because the results from TStore have the wrong column types
+  setCachedTable(queryViewName,theCrate->CrateID(),results);
+  //currentTables[queryViewName][emu_config_id+periph_config_id]=results;
+  //keep a copy of the latest Table form so that we can output it with
+  //outputTable
+  //(there will also be an outputTableEditable)
 }
 //
 
@@ -1986,7 +2537,7 @@ void EmuPCrateConfigTStore::readCSC(const std::string &connectionID, const std::
     Chamber * csc_ = new Chamber(theCrate);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
       StrgValue=value->toString();
 
       if (*column == "LABEL")        {csc_->SetLabel(StrgValue);}
@@ -1995,10 +2546,11 @@ void EmuPCrateConfigTStore::readCSC(const std::string &connectionID, const std::
       if (*column == "CSC_CONFIG_ID"){csc_config_id = StrgValue;}
       std::cout << *column + ": " + StrgValue << std::endl;
     }
+    copyCSCToTable(results,csc_);
+    setCachedTable(queryViewName,chamberID(theCrate->CrateID(),csc_->GetLabel()),results);
     readDAQMB(connectionID, emu_config_id, csc_config_id, theCrate, csc_);
     readTMB(connectionID, emu_config_id, csc_config_id, theCrate, csc_);
   }
-    
 }
 //
 
@@ -2022,7 +2574,7 @@ void EmuPCrateConfigTStore::readCCB(const std::string &connectionID, const std::
     CCB * ccb_ = new CCB(theCrate, slot);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
       StrgValue=value->toString();
 
       if (*column == "CCBMODE")           {ccb_->SetTTCmode(IntValue);}
@@ -2035,7 +2587,9 @@ void EmuPCrateConfigTStore::readCCB(const std::string &connectionID, const std::
       if (*column == "CCB_FIRMWARE_DAY")  {ccb_->SetExpectedFirmwareDay(IntValue);}
       std::cout << *column + ": " + StrgValue << std::endl;
     }
-  }   
+  }
+	copyCCBToTable(results,theCrate); //this is because the results from TStore have the wrong column types
+  setCachedTable(queryViewName,theCrate->CrateID(),results);   
 }
 //
 
@@ -2060,7 +2614,7 @@ void EmuPCrateConfigTStore::readMPC(const std::string &connectionID, const std::
     mpc_->SetBoardID(theCrate->CrateID());
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
       StrgValue=value->toString();
 
       if (*column == "SERIALIZERMODE")    {mpc_->SetTLK2501TxMode(IntValue);}
@@ -2072,9 +2626,9 @@ void EmuPCrateConfigTStore::readMPC(const std::string &connectionID, const std::
       std::cout << *column + ": " + StrgValue << std::endl;
     }
   }
-    
+  copyMPCToTable(results,theCrate); //this is because the results from TStore have the wrong column types
+  setCachedTable(queryViewName,theCrate->CrateID(),results); 
 }
-//
 
 void EmuPCrateConfigTStore::readDAQMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception) {
 
@@ -2100,7 +2654,7 @@ void EmuPCrateConfigTStore::readDAQMB(const std::string &connectionID, const std
       if (*column == "SLOT"){
 	value = results.getValueAt(rowIndex,*column);
 	xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
-	slot = (int)*i;
+	if (i) slot = (int)*i;
       }
     }
     DAQMB * daqmb_ = new DAQMB(theCrate,theChamber,slot);
@@ -2108,8 +2662,8 @@ void EmuPCrateConfigTStore::readDAQMB(const std::string &connectionID, const std
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
       //std::cout << *column + "[" + results.getColumnType(*column) + "]" + " ==> " + value->toString() << std::endl;     
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
-      if (results.getColumnType(*column)=="float")          {xdata::Float * f = dynamic_cast<xdata::Float *>(value); FloatValue=(float)*f;}
+      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="float")          {xdata::Float * f = dynamic_cast<xdata::Float *>(value); if (f) FloatValue=(float)*f;}
       StrgValue=value->toString();
 
       if (*column == "CALIBRATION_LCT_DELAY")  {daqmb_->SetCalibrationLctDelay(IntValue);}
@@ -2153,18 +2707,21 @@ void EmuPCrateConfigTStore::readDAQMB(const std::string &connectionID, const std
       if (*column == "DAQMB_CONFIG_ID"){daqmb_config_id_ = StrgValue;}
       std::cout << *column + ": " + StrgValue << std::endl;
     }
-    readCFEB(connectionID, emu_config_id, daqmb_config_id_, daqmb_);
+    std::string identifier=DAQMBID(chamberID(theCrate->CrateID(),theChamber->GetLabel()),slot);
+    readCFEB(connectionID, emu_config_id, daqmb_config_id_, daqmb_,identifier);
+    copyDAQMBToTable(results,daqmb_); //this is because the results from TStore have the wrong column types
+  	setCachedTable(queryViewName,identifier,results);
   }
 }
 //
 
-void EmuPCrateConfigTStore::readCFEB(const std::string &connectionID, const std::string &emu_config_id, const std::string &daqmb_config_id, DAQMB * theDaqmb) throw (xcept::Exception) {
+void EmuPCrateConfigTStore::readCFEB(const std::string &connectionID, const std::string &emu_config_id, const std::string &daqmb_config_id, DAQMB * theDaqmb,const std::string &cacheIdentifier) throw (xcept::Exception) {
 
   std::string queryViewName="cfeb";
   xdata::Table results;
 
   xdata::Serializable  * value;
-  int IntValue;
+  int IntValue=0;
   long int LongIntValue;
   std::string StrgValue;
 
@@ -2179,14 +2736,14 @@ void EmuPCrateConfigTStore::readCFEB(const std::string &connectionID, const std:
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
       if (*column == "CFEB_NUMBER"){number = IntValue;}
     }
     std::cout << "CFEB cfeb( " + to_string(number) << " )" << std::endl;
     CFEB cfeb(number);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
       StrgValue=value->toString();
       if (*column == "CFEB_FIRMWARE_TAG"){                                      // saved as string in Oracle since there is no Hex support
 	sscanf(StrgValue.c_str(), "%lx", &LongIntValue);
@@ -2233,10 +2790,11 @@ void EmuPCrateConfigTStore::readCFEB(const std::string &connectionID, const std:
     //
     theDaqmb->cfebs_.push_back(cfeb);
   }
-
+  copyCFEBToTable(results,theDaqmb);
+  setCachedTable(queryViewName,cacheIdentifier,results);
+  //currentTables[queryViewName]=results;
 }
 //
-
 
 void EmuPCrateConfigTStore::readTMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception) {
 
@@ -2261,14 +2819,14 @@ void EmuPCrateConfigTStore::readTMB(const std::string &connectionID, const std::
       if (*column == "SLOT"){
 	value = results.getValueAt(rowIndex,*column);
 	xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
-	slot = (int)*i;
+	if (i) slot = (int)*i;
       }
     }
     TMB * tmb_ = new TMB(theCrate, theChamber, slot);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int"  ) {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
-      if (results.getColumnType(*column)=="float"           ) {xdata::Float * f = dynamic_cast<xdata::Float *>(value); FloatValue=(float)*f;}
+      if (results.getColumnType(*column)=="int"  ) {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="float"           ) {xdata::Float * f = dynamic_cast<xdata::Float *>(value); if (f) FloatValue=(float)*f;}
       StrgValue=value->toString();
       
       if (*column == "TMB_FIRMWARE_MONTH"           ) {tmb_->SetExpectedTmbFirmwareMonth(IntValue);  }
@@ -2395,12 +2953,15 @@ void EmuPCrateConfigTStore::readTMB(const std::string &connectionID, const std::
 
       std::cout << *column + ": " + StrgValue << std::endl;
     }
-    readALCT(connectionID, emu_config_id, tmb_config_id_, tmb_);
+      std::string identifier=DAQMBID(chamberID(theCrate->CrateID(),theChamber->GetLabel()),slot);
+    readALCT(connectionID, emu_config_id, tmb_config_id_, tmb_,identifier);
+	copyTMBToTable(results,tmb_); //this is because the results from TStore have the wrong column types
+  	setCachedTable(queryViewName,identifier,results);
   }
 }
 //
 
-void EmuPCrateConfigTStore::readALCT(const std::string &connectionID, const std::string &emu_config_id, const std::string &tmb_config_id, TMB * theTmb) throw (xcept::Exception) {
+void EmuPCrateConfigTStore::readALCT(const std::string &connectionID, const std::string &emu_config_id, const std::string &tmb_config_id, TMB * theTmb,const std::string &identifier) throw (xcept::Exception) {
 
   std::string queryViewName="alct";
   xdata::Table results;
@@ -2426,7 +2987,13 @@ void EmuPCrateConfigTStore::readALCT(const std::string &connectionID, const std:
     theTmb->SetRat(rat_); //store rat_  in theTmb
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int"  ) {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+      if (results.getColumnType(*column)=="int"  ) {
+      	xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+      	if (i) IntValue=(int)*i;
+      	else {
+      		std::cout << "argh" << std::endl;
+      	}
+      }
       if (results.getColumnType(*column)=="string"          ) {StrgValue=value->toString();}
       StrgValue=value->toString();
       
@@ -2464,12 +3031,19 @@ void EmuPCrateConfigTStore::readALCT(const std::string &connectionID, const std:
       
       std::cout << *column + ": " + StrgValue << std::endl;
     }
-    readAnodeChannel(connectionID, emu_config_id, alct_config_id_, alct_);
+    readAnodeChannel(connectionID, emu_config_id, alct_config_id_, alct_,identifier);
+    if (rowIndex==0) copyALCTToTable(results,alct_); //this is because the results from TStore have the wrong column types
+	else { //as far as I can tell, there can only be one ALCT per TMB 
+		XCEPT_RAISE(xcept::Exception,"More than one ALCT for TMB");
+	}
+	
+	setCachedTable(queryViewName,identifier,results);
   }
-}
+
+  }
 //
 
-void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct) throw (xcept::Exception) {
+void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct,const std::string &identifier) throw (xcept::Exception) {
 
   std::string queryViewName="anodechannel";
   xdata::Table results;
@@ -2479,7 +3053,7 @@ void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, co
   std::string StrgValue;
   int afeb_number;
 
-  query(connectionID, queryViewName, emu_config_id, alct_config_id, results);
+  query(connectionID, queryViewName/*"EMU_ANODECHANNEL"*/, emu_config_id, alct_config_id, results);
 
   std::cout << "ANODECHANNEL  " << std::endl;
   std::cout << "=========================================" << std::endl;
@@ -2487,16 +3061,23 @@ void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, co
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       if (*column == "AFEB_NUMBER") {
-	value = results.getValueAt(rowIndex,*column);
-	std::cout << *column + ": " + value->toString() << std::endl;
-	xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
-	afeb_number = (int)*i;
+		value = results.getValueAt(rowIndex,*column);
+		std::cout << *column + ": " + value->toString() << std::endl;
+		std::cout << "type: " << results.getColumnType(*column) << std::endl;
+      	if (results.getColumnType(*column)=="int"  ) {
+			xdata::Integer * i = dynamic_cast<xdata::Integer *>(value);
+			if (i) afeb_number = (int)*i;
+		}
       }
     }
     theAlct->SetStandbyRegister_(afeb_number-1,ON);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
-      if (results.getColumnType(*column)=="int"  ) {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); IntValue=(int)*i;}
+		std::cout << "type: " << results.getColumnType(*column) << std::endl;
+      if (results.getColumnType(*column)=="int"  ) {
+      	xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); 
+      	if (i) IntValue=(int)*i;
+      }
       StrgValue=value->toString();
       
       if (*column == "AFEB_FINE_DELAY") {theAlct->SetAsicDelay(afeb_number-1,IntValue);    }
@@ -2505,7 +3086,11 @@ void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, co
       std::cout << *column + ": " + StrgValue << std::endl;
     }   
   }
+  copyAnodeChannelToTable(results,theAlct); //this is because the results from TStore have the wrong column types
+	setCachedTable(queryViewName,identifier,results);
 }
 //
-    }
+    //currentTables[queryViewName]=results;
+  } 
   }
+//  }
