@@ -1,11 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.3 2009/03/09 16:03:17 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.4 2009/03/12 14:29:58 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
-* Revision 1.3  2009/03/09 16:03:17  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
+* Revision 1.4  2009/03/12 14:29:58  paste
+* * Fixed image display bug in Monitor
+* * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
 *
 * Revision 1.2  2009/03/05 22:04:09  paste
 * * Fixed a minor bug involving DCC Expert commands
@@ -1137,7 +1136,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 
 		// Get the version number from the on-disk file
 		// Open the file and read up until the usercode.
-		std::string fileName = "Current" + dduPROMNames[iprom] + ".svf";
+		std::string fileName = "/tmp/Current" + dduPROMNames[iprom] + ".svf";
 		std::ifstream inFile(fileName.c_str(), std::ifstream::in);
 
 		unsigned long int diskVersion = 0;
@@ -1472,7 +1471,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDULoadBroadcast(xgi::Input *in, xgi::Output *
 			return webRedirect(out,backLocation.str());
 		}
 
-		std::string filename = "Current" + type + ".svf";
+		std::string filename = "/tmp/Current" + type + ".svf";
 		std::ofstream outfile;
 		outfile.open(filename.c_str(),std::ios::trunc);
 		if (!outfile.is_open()) {
@@ -1651,7 +1650,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *
 				//LOG4CPLUS_DEBUG(getApplicationLogger(),"Loading firmware to prom " << (iProm+1) << " of " << (to - from + 1) << "...");
 
 				// Get the name of the file we want to load.  It's a standard name.
-				std::string fileName = "Current" + promName[iProm] + ".svf";
+				std::string fileName = "/tmp/Current" + promName[iProm] + ".svf";
 
 				LOG4CPLUS_INFO(getApplicationLogger(),"Loading file " << fileName << " (version " << std::hex << version[iProm] << std::dec << ") to DDU slot " << (*iDDU)->slot() << "...");
 
@@ -4926,7 +4925,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 			// Best mashup of perl EVER!
 			//std::ostringstream systemCall;
 			//std::string diskVersion;
-			std::string fileName = "Current" + dccPROMNames[iprom] + ".svf";
+			std::string fileName = "/tmp/Current" + dccPROMNames[iprom] + ".svf";
 
 			std::ifstream inFile(fileName.c_str(), std::ifstream::in);
 			
@@ -5234,7 +5233,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCLoadBroadcast(xgi::Input *in, xgi::Output *
 			return webRedirect(out,backLocation.str());
 		}
 		
-		std::string filename = "Current" + type + ".svf";
+		std::string filename = "/tmp/Current" + type + ".svf";
 		std::ofstream outfile;
 		outfile.open(filename.c_str(),std::ios::trunc);
 		if (!outfile.is_open()) {
@@ -5364,11 +5363,11 @@ void emu::fed::EmuFCrateHyperDAQ::DCCSendBroadcast(xgi::Input *in, xgi::Output *
 
 			LOG4CPLUS_DEBUG(getApplicationLogger(),"Loading firmware to prom " << type << "...");
 			
-			std::string filename = "Current" + promName[type] + ".svf";
+			std::string filename = "/tmp/Current" + promName[type] + ".svf";
 
 			LOG4CPLUS_INFO(getApplicationLogger(),"Loading file " << filename << " (v " << std::hex << version[type] << std::dec << ") to DCC slot " << (*iDCC)->slot() << "...");
 			
-			(*iDCC)->loadPROM(devType[type],(char *) filename.c_str());
+			(*iDCC)->loadPROM(devType[type],(char *) filename.c_str(), "", "");
 
 			// Check the usercode.
 			if (devType[type] != RESET) {

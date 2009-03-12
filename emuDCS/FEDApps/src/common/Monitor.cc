@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.2 2009/03/09 16:03:17 paste Exp $
+* $Id: Monitor.cc,v 1.3 2009/03/12 14:29:58 paste Exp $
 *
 * $Log: Monitor.cc,v $
+* Revision 1.3  2009/03/12 14:29:58  paste
+* * Fixed image display bug in Monitor
+* * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
+*
 * Revision 1.2  2009/03/09 16:03:17  paste
 * * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
 * * Updated inheritance in wake of changes to emu::base::Supervised
@@ -79,7 +83,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 
 	// Starting and stopping monitoring
 	*out << cgicc::button().set("id", "start_stop") << std::endl;
-	*out << cgicc::img().set("src", "/emu/images/playarrow.png")
+	*out << cgicc::img().set("src", "/emu/emuDCS/FEDApps/images/playarrow.png")
 		.set("width", "59")
 		.set("height", "67")
 		.set("style", "vertical-align: middle;") << "Start Monitoring" << cgicc::button() << std::endl;
