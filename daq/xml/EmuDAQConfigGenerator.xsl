@@ -48,13 +48,13 @@
     <i2o:protocol xmlns:i2o="http://xdaq.web.cern.ch/xdaq/xsd/2004/I2OConfiguration-30">
 
       <i2o:target tid="2000" instance="0" class="rubuilder::evm::Application"></i2o:target>
-      <i2o:target tid="2001" instance="0" class="EmuTA"></i2o:target>
+      <i2o:target tid="2001" instance="0" class="emu::daq::ta::Application"></i2o:target>
 
       <i2o:target tid="1450" instance="0" class="EmuDisplayClient"></i2o:target>
 
       <xsl:if test="$SIDE!='M'">
 	<xsl:comment>RUI 0 (TF)</xsl:comment>
-	<i2o:target tid="1000" instance="0" class="EmuRUI"></i2o:target>
+	<i2o:target tid="1000" instance="0" class="emu::daq::rui::Application"></i2o:target>
 	<i2o:target tid="1001" instance="0" class="rubuilder::ru::Application"></i2o:target>
       </xsl:if>
 
@@ -67,10 +67,10 @@
 	  <xsl:variable name="DAQ_TID1"><xsl:value-of select="1000+10*number(@instance)+1"/></xsl:variable>
 	  <xsl:variable name="DAQ_TID2"><xsl:value-of select="1000+10*number(@instance)+2"/></xsl:variable>
 	  <xsl:variable name="DAQ_TID3"><xsl:value-of select="1000+10*number(@instance)+3"/></xsl:variable>
-	  <i2o:target tid="{$DAQ_TID0}" instance="{@instance}" class="EmuRUI"></i2o:target>
+	  <i2o:target tid="{$DAQ_TID0}" instance="{@instance}" class="emu::daq::rui::Application"></i2o:target>
 	  <i2o:target tid="{$DAQ_TID1}" instance="{@instance}" class="rubuilder::ru::Application"></i2o:target>
 	  <i2o:target tid="{$DAQ_TID2}" instance="{@instance}" class="rubuilder::bu::Application"></i2o:target>
-	  <i2o:target tid="{$DAQ_TID3}" instance="{@instance}" class="EmuFU"></i2o:target>
+	  <i2o:target tid="{$DAQ_TID3}" instance="{@instance}" class="emu::daq::fu::Application"></i2o:target>
 
 	  <xsl:variable name="DQM_TID"><xsl:value-of select="1400+number(@instance)"/></xsl:variable>
 	  <i2o:target tid="{$DQM_TID}" instance="{@instance}" class="EmuMonitor"></i2o:target>
@@ -80,24 +80,16 @@
     </i2o:protocol>
   </xsl:template>
 
-<!-- Generate contexts for EmuDAQManager -->
+<!-- Generate contexts for emu::daq::manager -->
   <xsl:template name="DAQManager">
-    <xsl:comment>EmuDAQManager</xsl:comment>
+    <xsl:comment>emu::daq::manager</xsl:comment>
     <xsl:variable name="HTTP_PORT"><xsl:if test="$SIDE='B' or $SIDE=''">20200</xsl:if><xsl:if test="$SIDE='P'">20210</xsl:if><xsl:if test="$SIDE='M'">20220</xsl:if></xsl:variable>
     <xsl:variable name="I2O_PORT"><xsl:value-of select="number($HTTP_PORT)+50"/></xsl:variable>
     <xc:Context url="http://csc-daq00.cms:{$HTTP_PORT}">
-	<xc:Endpoint hostname="csc-daq00.cms" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="tcp1"></xc:Endpoint>
-      <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="21">
-	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:PeerTransportTCP">
-	  <autoSize xsi:type="xsd:boolean">true</autoSize>
-	  <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
-	</properties>
-      </xc:Application>
-      <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module>
+      <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libCSCSupervisor.so</xc:Module>
-      <xc:Application instance="0" class="EmuDAQManager" network="tcp1" id="12">
-	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:EmuDAQManager">
+      <xc:Application instance="0" class="emu::daq::manager::Application" network="local" id="12" service="emudaqmanager">
+	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::manager::Application">
 	  <runTypes xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[24]">
 	    <item xsi:type="xsd:string" soapenc:position="[0]">Monitor</item>
 	    <item xsi:type="xsd:string" soapenc:position="[1]">SCA_Pedestals</item>
@@ -141,14 +133,15 @@
 	  <!-- <eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/Test</eLogURL> -->
 	  <postToELog xsi:type="xsd:boolean">true</postToELog>
 	  <controlDQM xsi:type="xsd:boolean">false</controlDQM>
-	  <hardwareMapping xsi:type="xsd:string">emu/config/EmuDAQ/RUI-to-chamber_mapping.xml</hardwareMapping>
+	  <hardwareMapping xsi:type="xsd:string">/emu/daq/xml/RUI-to-chamber_mapping.xml</hardwareMapping>
 	  <TF_FM_URL xsi:type="xsd:string">http://UNKNOWN.cms:12000</TF_FM_URL>
 	  <CSC_FM_URL xsi:type="xsd:string">http://cmsrc-csc.cms:12000</CSC_FM_URL>
 	  <RegexMatchingTFConfigName xsi:type="xsd:string">UNKNOWN</RegexMatchingTFConfigName>
 	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*/Local/.*|.*/Global/.*</RegexMatchingCSCConfigName>
 	</properties>
       </xc:Application>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuDAQManager.so</xc:Module>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqmanager.so</xc:Module>
     </xc:Context>
   </xsl:template>
   
@@ -156,28 +149,41 @@
 
 <!-- Generate contexts for EVM and EmuTA -->
   <xsl:template name="EVM_and_TA">
-    <xsl:comment >EVM and EmuTA</xsl:comment>
+    <xsl:comment >rubuilder::evm and emu::daq::ta</xsl:comment>
     <xsl:variable name="HTTP_PORT"><xsl:if test="$SIDE='B' or $SIDE=''">20201</xsl:if><xsl:if test="$SIDE='P'">20211</xsl:if><xsl:if test="$SIDE='M'">20221</xsl:if></xsl:variable>
     <xsl:variable name="I2O_PORT"><xsl:value-of select="number($HTTP_PORT)+50"/></xsl:variable>
     <xc:Context url="http://csc-daq00.cms:{$HTTP_PORT}">
-      <xc:Endpoint hostname="csc-daq00.cms" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="tcp1"></xc:Endpoint>
+
+      <xc:Endpoint hostname="csc-daq00.cms" protocol="atcp" port="{$I2O_PORT}" service="i2o" network="atcp1"></xc:Endpoint>
+<!--       <xc:Endpoint hostname="csc-daq00.cms" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="atcp1"></xc:Endpoint> -->
+
       <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
-      <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="21">
-	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:PeerTransportTCP">
+
+      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
+	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	  <autoSize xsi:type="xsd:boolean">true</autoSize>
 	  <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	  <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	</properties>
       </xc:Application>
-      <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module>
-      <xc:Application instance="0" class="rubuilder::evm::Application" network="tcp1" id="13">
+      <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
+<!--     <xc:Application network="atcp1" class="pt::tcp::PeerTransportTCP" id="21"> -->
+<!--       <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct"> -->
+<!--         <autoSize xsi:type="xsd:boolean">true</autoSize> -->
+<!--         <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize> -->
+<!--       </properties> -->
+<!--     </xc:Application> -->
+<!--     <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module> -->
+
+      <xc:Application instance="0" class="rubuilder::evm::Application" network="atcp1" id="13">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:rubuilder::evm::Application">
-	  <taClass xsi:type="xsd:string">EmuTA</taClass>
+	  <taClass xsi:type="xsd:string">emu::daq::ta::Application</taClass>
 	</properties>
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderevm.so</xc:Module>
-      <xc:Application instance="0" class="EmuTA" network="tcp1" id="17"/>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuTA.so</xc:Module>
+      <xc:Application instance="0" class="emu::daq::ta::Application" network="atcp1" id="17"/>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqta.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -193,32 +199,49 @@
     <xsl:comment >RUI 0 (TF)</xsl:comment>
 
     <xc:Context url="http://{$HTTP_HOST}:{$HTTP_PORT}">
-      <xc:Endpoint hostname="{$I2O_HOST}" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="tcp1"></xc:Endpoint>
+
+      <xc:Endpoint hostname="{$I2O_HOST}" protocol="atcp" port="{$I2O_PORT}" service="i2o" network="atcp1"></xc:Endpoint>
+<!--       <xc:Endpoint hostname="{$I2O_HOST}" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="atcp1"></xc:Endpoint> -->
+
       <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
-      <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="20">
-	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:PeerTransportTCP">
+
+      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
+	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	  <autoSize xsi:type="xsd:boolean">true</autoSize>
 	  <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	  <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	</properties>
       </xc:Application>
-      <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuReadout.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuServer.so</xc:Module>
-      <xc:Application instance="0" class="rubuilder::ru::Application" network="tcp1" id="14">
+      <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
+<!--     <xc:Application network="atcp1" class="pt::tcp::PeerTransportTCP" id="21"> -->
+<!--       <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct"> -->
+<!--         <autoSize xsi:type="xsd:boolean">true</autoSize> -->
+<!--         <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize> -->
+<!--       </properties> -->
+<!--     </xc:Application> -->
+<!--     <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module> -->
+
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqserver.so</xc:Module>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqwriter.so</xc:Module>
+      <xc:Application instance="0" class="rubuilder::ru::Application" network="atcp1" id="14">
 	<properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
 	  <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
 	</properties>
       </xc:Application>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderru.so</xc:Module>
-      <xc:Application instance="0" class="EmuRUI" network="tcp1" id="18">
-	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:EmuRUI">
+      <xc:Application instance="0" class="emu::daq::rui::Application" network="atcp1" id="18">
+	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::rui::Application">
 	  <passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
 	  <inputDeviceType xsi:type="xsd:string">spy</inputDeviceType>
 	  <inputDeviceName xsi:type="xsd:string">/dev/schar<xsl:value-of select="//RUI[@instance='0']/@schar"/></inputDeviceName>
+	  <!-- 	  <inputDeviceType xsi:type="xsd:string">file</inputDeviceType> -->
+	  <!-- 	  <inputDeviceName xsi:type="xsd:string">/nfshome0/cscdaq/tmp/csc_00076100_EmuRUI29_Monitor_000.raw</inputDeviceName> -->
 	  <hardwareMnemonic xsi:type="xsd:string">TF</hardwareMnemonic>
 	  <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	  <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
+	  <!-- 	  <pathToRUIDataOutFile xsi:type="xsd:string">/tmp</pathToRUIDataOutFile> -->
 	  <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
 	  <pathToBadEventsFile xsi:type="xsd:string"></pathToBadEventsFile>
 	  <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
@@ -229,7 +252,7 @@
 	  </clientsInstance>
 	</properties>
       </xc:Application>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuRUI.so</xc:Module>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqrui.so</xc:Module>
     </xc:Context>
     
   </xsl:template>
@@ -247,43 +270,61 @@
 	<xsl:comment >RUI <xsl:value-of select="@instance"/></xsl:comment>
 	
 	<xc:Context url="http://{$HTTP_HOST}:{$HTTP_PORT}">
-	  <xc:Endpoint hostname="{$I2O_HOST}" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="tcp1"></xc:Endpoint>
+
+	  <xc:Endpoint hostname="{$I2O_HOST}" protocol="atcp" port="{$I2O_PORT}" service="i2o" network="atcp1"></xc:Endpoint>
+<!-- 	  <xc:Endpoint hostname="{$I2O_HOST}" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="atcp1"></xc:Endpoint> -->
+
 	  <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
-	  <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="21">
-	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:PeerTransportTCP">
+
+	  <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
+	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	      <autoSize xsi:type="xsd:boolean">true</autoSize>
 	      <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	      <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuReadout.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuServer.so</xc:Module>
-	  <xc:Application instance="{@instance}" class="rubuilder::ru::Application" network="tcp1" id="14">
+	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
+<!--     <xc:Application network="atcp1" class="pt::tcp::PeerTransportTCP" id="21"> -->
+<!--       <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct"> -->
+<!--         <autoSize xsi:type="xsd:boolean">true</autoSize> -->
+<!--         <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize> -->
+<!--       </properties> -->
+<!--     </xc:Application> -->
+<!--     <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module> -->
+
+
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqserver.so</xc:Module>
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqwriter.so</xc:Module>
+	  <xc:Application instance="{@instance}" class="rubuilder::ru::Application" network="atcp1" id="14">
 	    <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
 	      <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
 	  <xc:Module>${XDAQ_ROOT}/lib/librubuilderru.so</xc:Module>
-	  <xc:Application instance="{@instance}" class="rubuilder::bu::Application" network="tcp1" id="15"></xc:Application>
+	  <xc:Application instance="{@instance}" class="rubuilder::bu::Application" network="atcp1" id="15"></xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/librubuilderbu.so</xc:Module>
-	  <xc:Application instance="{@instance}" class="EmuFU" network="tcp1" id="16">
-	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:EmuFU">
+	  <xc:Application instance="{@instance}" class="emu::daq::fu::Application" network="atcp1" id="16">
+	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::fu::Application">
 	      <buInstNb xsi:type="xsd:unsignedLong"><xsl:value-of select="@instance"/></buInstNb>
 	      <pathToDataOutFile xsi:type="xsd:string">/data</pathToDataOutFile>
 	      <fileSizeInMegaBytes xsi:type="xsd:unsignedLong">200</fileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]"></clientsClassName>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuFU.so</xc:Module>
-	  <xc:Application instance="{@instance}" class="EmuRUI" network="tcp1" id="18">
-	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:EmuRUI">
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqfu.so</xc:Module>
+	  <xc:Application instance="{@instance}" class="emu::daq::rui::Application" network="atcp1" id="18">
+	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::rui::Application">
 	      <passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
 	      <inputDeviceType xsi:type="xsd:string">spy</inputDeviceType>
 	      <inputDeviceName xsi:type="xsd:string">/dev/schar<xsl:value-of select="@schar"/></inputDeviceName>
+	      <!-- 	      <inputDeviceType xsi:type="xsd:string">file</inputDeviceType> -->
+	      <!-- 	      <inputDeviceName xsi:type="xsd:string">/nfshome0/cscdaq/tmp/csc_00076100_EmuRUI29_Monitor_000.raw</inputDeviceName> -->
 	      <hardwareMnemonic xsi:type="xsd:string">chambers</hardwareMnemonic>
 	      <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	      <pathToRUIDataOutFile xsi:type="xsd:string">/data</pathToRUIDataOutFile>
+	      <!-- 	      <pathToRUIDataOutFile xsi:type="xsd:string">/tmp</pathToRUIDataOutFile> -->
 	      <pathToBadEventsFile xsi:type="xsd:string"></pathToBadEventsFile>
 	      <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
@@ -297,7 +338,7 @@
 	      </poolSizeForClient>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuRUI.so</xc:Module>
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqrui.so</xc:Module>
 	</xc:Context>
 
       </xsl:if>
@@ -335,16 +376,28 @@
 	<xsl:comment >EmuMonitor <xsl:value-of select="@instance"/></xsl:comment>
 
 	<xc:Context url="http://{$HTTP_HOST}:{$HTTP_PORT}">
-	  <xc:Endpoint hostname="{$I2O_HOST}" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="tcp1"/>
-	  <xc:Application network="tcp1" class="pt::tcp::PeerTransportTCP" id="21">
-	    <properties xmlns="urn:xdaq-application:pt::tcp::PeerTransportTCP" xsi:type="soapenc:Struct">
+
+	  <xc:Endpoint hostname="{$I2O_HOST}" protocol="atcp" port="{$I2O_PORT}" service="i2o" network="atcp1"/>
+<!-- 	  <xc:Endpoint hostname="{$I2O_HOST}" protocol="tcp" port="{$I2O_PORT}" service="i2o" network="atcp1"/> -->
+
+	  <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
+	    <properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
 	      <autoSize xsi:type="xsd:boolean">true</autoSize>
 	      <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	      <connectAtFirstSend xsi:type="xsd:boolean">true</connectAtFirstSend>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuReadout.so</xc:Module>
-	  <xc:Application instance="{@instance}" class="EmuMonitor" id="{$APP_ID}" network="tcp1" group="dqm">
+	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
+<!--     <xc:Application network="atcp1" class="pt::tcp::PeerTransportTCP" id="21"> -->
+<!--       <properties xmlns="urn:xdaq-application:pt::tcp::PeerTransportTCP" xsi:type="soapenc:Struct"> -->
+<!--         <autoSize xsi:type="xsd:boolean">true</autoSize> -->
+<!--         <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize> -->
+<!--       </properties> -->
+<!--     </xc:Application> -->
+<!--     <xc:Module>${XDAQ_ROOT}/lib/libpttcp.so</xc:Module> -->
+
+	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
+	  <xc:Application instance="{@instance}" class="EmuMonitor" id="{$APP_ID}" network="atcp1" group="dqm">
 	    <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct">
 	      <readoutMode xsi:type="xsd:string">external</readoutMode>
 	      <inputDeviceType xsi:type="xsd:string">file</inputDeviceType>
@@ -352,7 +405,7 @@
 	      <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
 	      <nEventCredits xsi:type="xsd:unsignedInt">200</nEventCredits>
 	      <prescalingFactor xsi:type="xsd:unsignedInt">1</prescalingFactor>
-	      <serversClassName xsi:type="xsd:string">EmuRUI</serversClassName>
+	      <serversClassName xsi:type="xsd:string">emu::daq::rui::Application</serversClassName>
 	      <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
 		<item xsi:type="xsd:unsignedInt" soapenc:position="[0]"><xsl:value-of select="$SERVER_TID"/></item>
 	      </serverTIDs>

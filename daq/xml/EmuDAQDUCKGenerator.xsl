@@ -20,12 +20,15 @@
   <!-- It's either DAQ or DQM or DQM_Display-->
   <xsl:param name="FARM"/>
 
-  <xsl:param name="CONFIG_FILE">/nfshome0/cscdaq/config/merged/<xsl:value-of select="$NAME"/>.xml</xsl:param>
+  <xsl:param name="CONFIG_FILE">/nfshome0/cscdaq/config/daq/<xsl:value-of select="$NAME"/>.xml</xsl:param>
   <xsl:param name="FM_CONFIG_PATH">
     <xsl:if test="$FARM='DAQ'">DAQ/<xsl:value-of select="$NAME"/></xsl:if>
     <xsl:if test="$FARM='DQM'">DQM/DQM<xsl:if test="$SIDE='P' or $SIDE='M'">_side<xsl:value-of select="$SIDE"/></xsl:if></xsl:if>
     <xsl:if test="$FARM='DQM_Display'">DQM/DQM_Display</xsl:if>
   </xsl:param>
+  <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param>
+  <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/var/log/emu BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu PATH=/bin:/usr/bin</xsl:param>
+  <xsl:param name="DQM_ENVIRONMENTSTRING">HOME=/nfshome0/cscdqm LD_LIBRARY_PATH=/nfshome0/cscdqm/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/var/log/emu BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu ROOTSYS=/nfshome0/cscdqm/root</xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 
@@ -57,22 +60,22 @@
     </Configuration>
   </xsl:template>
 
-  <!-- EmuDAQManager -->
+  <!-- emu::daq::manager -->
   <xsl:template name="DAQManager">
-    <xsl:comment>EmuDAQManager</xsl:comment>
+    <xsl:comment>emu::daq::manager</xsl:comment>
     <xsl:variable name="HTTP_PORT"><xsl:if test="$SIDE='B' or $SIDE=''">20200</xsl:if><xsl:if test="$SIDE='P'">20210</xsl:if><xsl:if test="$SIDE='M'">20220</xsl:if></xsl:variable>
     <XdaqExecutive hostname="csc-daq00.cms" port="{$HTTP_PORT}"
 		   urn="urn:xdaq-application:lid=0"
 		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
 		   instance="0"
-		   pathToExecutive="/opt/xdaq/bin/xdaq.exe"
+		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdaq"
 		   logLevel="WARN"
-		   logURL="file:/tmp/xdaq-daqmanager-cscdaq.log"
-		   environmentString="HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux PATH=/bin:/usr/bin">
+		   logURL="file:/var/log/emu/xdaq-daqmanager-cscdaq.log"
+		   environmentString="{$DAQ_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
-    <XdaqApplication className="EmuDAQManager" hostname="csc-daq00.cms" port="{$HTTP_PORT}"
+    <XdaqApplication className="emu::daq::manager::Application" hostname="csc-daq00.cms" port="{$HTTP_PORT}"
 		     urn="urn:xdaq-application:lid=12"
 		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
 		     instance="0" />
@@ -86,11 +89,11 @@
 		   urn="urn:xdaq-application:lid=0"
 		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
 		   instance="0"
-		   pathToExecutive="/opt/xdaq/bin/xdaq.exe"
+		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdaq"
 		   logLevel="WARN"
-		   logURL="file:/tmp/xdaq-evm_ta-cscdaq.log"
-		   environmentString="HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux">
+		   logURL="file:/var/log/emu/xdaq-evm_ta-cscdaq.log"
+		   environmentString="{$DAQ_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
   </xsl:template>
@@ -102,11 +105,11 @@
 		   urn="urn:xdaq-application:lid=0"
 		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
 		   instance="0"
-		   pathToExecutive="/opt/xdaq/bin/xdaq.exe"
+		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdaq"
 		   logLevel="WARN"
-		   logURL="file:/tmp/xdaq-rui0-cscdaq.log"
-		   environmentString="HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux">
+		   logURL="file:/var/log/emu/xdaq-rui0-cscdaq.log"
+		   environmentString="{$DAQ_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
   </xsl:template>
@@ -121,11 +124,11 @@
 		       urn="urn:xdaq-application:lid=0"
 		       qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
 		       instance="0"
-		       pathToExecutive="/opt/xdaq/bin/xdaq.exe"
+		       pathToExecutive="{$PATHTOEXECUTIVE}"
 		       unixUser="cscdaq"
 		       logLevel="WARN"
-		       logURL="file:/tmp/xdaq-rui{@instance}-cscdaq.log"
-		       environmentString="HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux">
+		       logURL="file:/var/log/emu/xdaq-rui{@instance}-cscdaq.log"
+		       environmentString="{$DAQ_ENVIRONMENTSTRING}">
 	  <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
 	</XdaqExecutive>
 
@@ -140,11 +143,11 @@
 		   urn="urn:xdaq-application:lid=0"
 		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
 		   instance="0"
-		   pathToExecutive="/opt/xdaq/bin/xdaq.exe"
+		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdqm"
 		   logLevel="INFO"
-		   logURL="file:/tmp/xdaq-rui0-cscdqm.log"
-		   environmentString="HOME=/nfshome0/cscdqm ROOTSYS=/nfshome0/cscdqm/root LD_LIBRARY_PATH=/nfshome0/cscdqm/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux">
+		   logURL="file:/var/log/emu/xdaq-rui0-cscdqm.log"
+		   environmentString="{$DQM_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
 
@@ -161,11 +164,11 @@
 		       urn="urn:xdaq-application:lid=0"
 		       qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
 		       instance="0"
-		       pathToExecutive="/opt/xdaq/bin/xdaq.exe"
+		       pathToExecutive="{$PATHTOEXECUTIVE}"
 		       unixUser="cscdqm"
 		       logLevel="WARN"
-		       logURL="file:/tmp/xdaq-rui{@instance}-cscdqm.log"
-		       environmentString="HOME=/nfshome0/cscdqm ROOTSYS=/nfshome0/cscdqm/root LD_LIBRARY_PATH=/nfshome0/cscdqm/root/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq BUILD_HOME=/nfshome0/cscdqm/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux">
+		       logURL="file:/var/log/emu/xdaq-rui{@instance}-cscdqm.log"
+		       environmentString="{$DQM_ENVIRONMENTSTRING}">
 	  <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
 	</XdaqExecutive>
 
@@ -176,12 +179,12 @@
   <!-- JobControls -->
   <xsl:template name="JobControls">
     <xsl:comment>JobControls</xsl:comment>
-    <xsl:for-each select="//RUI[not(../@alias = preceding::RUI/../@alias) and not(string-length(../@alias)=0)]">
-      <Service name="JobControl" hostname="{../@alias}" port="39999" urn="urn:xdaq-application:lid=10" qualifiedResourceType="rcms.fm.resource.qualifiedresource.JobControl"/>
+    <xsl:for-each select="//RUI[not(../@alias = preceding::RUI/../@alias) and not(string-length(../@alias)=0) and not(../@alias = document('')//XdaqExecutive/@hostname)]">
+      <Service name="JobControl" hostname="{../@alias}" port="9999" urn="urn:xdaq-application:lid=10" qualifiedResourceType="rcms.fm.resource.qualifiedresource.JobControl"/>
     </xsl:for-each>
     <xsl:for-each select="document('')//XdaqExecutive[not(@hostname = preceding::XdaqExecutive/@hostname)]">
       <xsl:if test="not(contains(@hostname,'{'))">
-      <Service name="JobControl" hostname="{@hostname}" port="39999" urn="urn:xdaq-application:lid=10" qualifiedResourceType="rcms.fm.resource.qualifiedresource.JobControl"/>
+      <Service name="JobControl" hostname="{@hostname}" port="9999" urn="urn:xdaq-application:lid=10" qualifiedResourceType="rcms.fm.resource.qualifiedresource.JobControl"/>
       </xsl:if>
     </xsl:for-each>
   </xsl:template>
