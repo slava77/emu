@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: monitor.js,v 1.1 2009/03/05 16:18:23 paste Exp $
+* $Id: monitor.js,v 1.2 2009/03/12 14:29:58 paste Exp $
 *
 * $Log: monitor.js,v $
+* Revision 1.2  2009/03/12 14:29:58  paste
+* * Fixed image display bug in Monitor
+* * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
+*
 * Revision 1.1  2009/03/05 16:18:23  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -42,13 +46,13 @@ function ajaxCrates(pe) {
 	if (!monitor) {
 		pe.stop();
 		$("start_stop").update("Start Monitoring");
-		var image = new Element("img", {"src": "/emu/images/playarrow.png", "width": "59", "height": "67", "style": "vertical-align: middle"});
+		var image = new Element("img", {"src": "/emu/emuDCS/FEDApps/images/playarrow.png", "width": "59", "height": "67", "style": "vertical-align: middle"});
 		$("start_stop").insert({"top": image});
 		enabled = true;
 		return;
 	}
 	$("start_stop").update("Stop Monitoring");
-	var image = new Element("img", {"src": "/emu/images/pausebars.png", "width": "59", "height": "67", "style": "vertical-align: middle"});
+	var image = new Element("img", {"src": "/emu/emuDCS/FEDApps/images/pausebars.png", "width": "59", "height": "67", "style": "vertical-align: middle"});
 	$("start_stop").insert({"top": image});
 	enabled = true;
 	
