@@ -10,9 +10,9 @@ Description="The Emu (CSC) local DAQ"
 Summary="The Emu (CSC) local DAQ"
 Authors="Steven Murray, Karoly banicz"
 Link=""
-PACKAGE_VER_MAJOR=1
-PACKAGE_VER_MINOR=16
-PACKAGE_VER_PATCH=2
+PACKAGE_VER_MAJOR=7
+PACKAGE_VER_MINOR=0
+PACKAGE_VER_PATCH=0
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 include $(XDAQ_ROOT)/config/mfRPM.rules
