@@ -59,7 +59,7 @@ __description__
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/{bin,lib,include,etc}
 mkdir -p $RPM_BUILD_ROOT/%{_prefix}/include/%{_package}/linux
-mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_package}/{images,xml,html}
+#mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml
 
 for x in %{_packages}; do
         install -m 655 %{_packagedir}/../$x/lib/%{_os}/%{_platform}/*.so $RPM_BUILD_ROOT/%{_prefix}/lib/
@@ -70,19 +70,25 @@ for x in %{_packages}; do
         mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/$x/images
         ( cd %{_packagedir}/../$x/images;
           find ./ \( -name "*.gif" -o -name "*.jpg" -o -name "*.png" \) \
-            -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/$x/images/{} \;
+            -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/$x/images/{} \;
         )
         mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/$x/html
         ( cd %{_packagedir}/../$x/html;
           find ./ \( -name "*.html" -o -name "*.xml" -o -name "*.css" -o -name "*.js" \) \
-            -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/$x/html/{} \;
+            -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/$x/html/{} \;
         )
         mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/$x/xml
         ( cd %{_packagedir}/../$x/xml;
           find ./ \( -name "*.xml" \) \
-            -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/$x/xml/{} \;
+            -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/$x/xml/{} \;
         )
 done
+
+mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml
+( cd %{_packagedir}/xml;
+  find ./ \( -name "*.xml" \) \
+    -exec install -m 655 -D {} $RPM_BUILD_ROOT/%{_prefix}/htdocs/%{_project}/%{_package}/xml/{} \;
+)
 
 if [ -e %{_packagedir}/ChangeLog ]; then
 	install -m 655 %{_packagedir}/ChangeLog %{_packagedir}/rpm/RPMBUILD/BUILD/ChangeLog
@@ -120,7 +126,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/bin
 %{_prefix}/lib
 %{_prefix}/etc
-%{_prefix}/htdocs/%{_package}/*/images
+%{_prefix}/htdocs/%{_project}/%{_package}/*/images
+# %{_prefix}/htdocs/%{_project}/%{_package}/*/html
+# %{_prefix}/htdocs/%{_project}/%{_package}/*/xml
+%{_prefix}/htdocs/%{_project}/%{_package}/xml
 
 #
 # Files that go in the devel RPM
