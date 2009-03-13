@@ -56,9 +56,10 @@ public:
   void outputException(xgi::Output * out,xcept::Exception &e);
   void outputStandardInterface(xgi::Output * out);
   
-  void displayConfiguration(xgi::Output * out,const std::string &configName,unsigned int index,const std::string &identifier);
-  void displayConfiguration(xgi::Output * out,const std::string &configName,unsigned int index,int crateID);
-  void outputTableEditControls(xgi::Output * out,xdata::Table &results,const std::string &tableName);
+  void displayConfiguration(xgi::Output * out,const std::string &configName,const std::string &identifier);
+  void displayConfiguration(xgi::Output * out,const std::string &configName,int crateID);
+  void outputTableEditControls(xgi::Output * out,xdata::Table &results,const std::string &tableName,const std::string &prefix="");
+  void outputSingleValue(xgi::Output * out,xdata::Serializable *value);
   void outputTable(xgi::Output * out,xdata::Table &results);
   
   // Actions
@@ -77,7 +78,7 @@ public:
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, xdata::Table &results) throw (xcept::Exception);
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, const std::string &xxx_config_id, xdata::Table &results) throw (xcept::Exception);
   void queryMaxId(const std::string &connectionID,const std::string &queryViewName, const std::string &dbTable, const std::string &dbColumn, const std::string endcap_side, xdata::Table &results) throw (xcept::Exception);
-  void getDefinition(const std::string &connectionID, const std::string &insertViewName, xdata::Table &results) throw (xcept::Exception);
+  void getDefinition(const std::string &connectionID, const std::string &insertViewName) throw (xcept::Exception);
   void insert(const std::string &connectionID, const std::string &insertViewName, xdata::Table &newRows) throw (xcept::Exception);
   void synchronize(const std::string &connectionID, const std::string &syncMode, const std::string &syncPattern) throw (xcept::Exception);
   void getConfiguration(const std::string &xpath) throw (xcept::Exception);
@@ -115,6 +116,7 @@ public:
   void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct,const std::string &identifier) throw (xcept::Exception);
 
 private:
+	void getRangeOfTables(const cgicc::Cgicc &cgi,std::map<std::string,xdata::Table> &tables,std::map<std::string,xdata::Table>::iterator &firstTable,std::map<std::string,xdata::Table>::iterator &lastTable);
 	void setConfigID(xdata::Table &newRows,size_t rowId,const std::string &columnName,xdata::UnsignedInteger64 &id);
 	std::string crateIdentifierString(int crateID);
 	std::string chamberID(int crateID,const std::string &chamberLabel);
@@ -147,18 +149,6 @@ private:
   EmuEndcap * TStore_myEndcap_;
   xdata::UnsignedInteger64 emu_config_id_;
   
-  xdata::Table tableDefinition_emu_configuration;
-  xdata::Table tableDefinition_emu_peripheralcrate;
-  xdata::Table tableDefinition_emu_ccb;
-  xdata::Table tableDefinition_emu_mpc;
-  xdata::Table tableDefinition_emu_vcc;
-  xdata::Table tableDefinition_emu_csc;
-  xdata::Table tableDefinition_emu_daqmb;
-  xdata::Table tableDefinition_emu_cfeb;
-  xdata::Table tableDefinition_emu_tmb;
-  xdata::Table tableDefinition_emu_alct;
-  xdata::Table tableDefinition_emu_anodechannel;
-  
   //the data is kept as tables in memory, to allow a common interface for changing values
   //the most recent data is always in these tables.
   //the key in the first map is the table name as passed to TStore (e.g. "vcc", "tmb")
@@ -168,6 +158,8 @@ private:
   //it is named hierarchically beginning with the crate identifier so that it's easy to loop through
   //just the tables relating to a particular crate or chamber to change the values.
   std::map<std::string,std::map<std::string,xdata::Table> > currentTables;
+  
+  std::map<std::string,xdata::Table> tableDefinitions;
 
 };
 
