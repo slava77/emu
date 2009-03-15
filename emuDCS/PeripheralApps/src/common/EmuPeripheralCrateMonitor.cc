@@ -1769,7 +1769,7 @@ void EmuPeripheralCrateMonitor::CrateView(xgi::Input * in, xgi::Output * out )
     // retrieve data from inforspace
     xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[idx]);
     xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
-    unsigned short csra1,csra2,csra3,csrm0,brstr,dtstr;
+    unsigned short csra1=0,csra2=0,csra3=0,csrm0=0,brstr=0,dtstr=0;
     if(!ccbdata) continue;
     if(ccbdata->size()>12)
     {
@@ -2109,7 +2109,7 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  Crate *myCrate;
+  Crate *myCrate=0;
   std::vector<TMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
@@ -2201,7 +2201,7 @@ void EmuPeripheralCrateMonitor::CrateDMBCounters(xgi::Input * in, xgi::Output * 
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  Crate *myCrate;
+  Crate *myCrate=0;
   std::vector<DAQMB*> myVector;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
@@ -2773,7 +2773,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   Page=cgiEnvi.getQueryString();
   std::string crate_name=Page.substr(0,Page.find("=", 0) );
   *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  int mycrate;
+  int mycrate=0;
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
      if(crate_name==crateVector[i]->GetLabel()) mycrate = i;
