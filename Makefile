@@ -16,20 +16,12 @@ Packages=\
         supervisor \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
-	emuDCS/e2p \
+	emuDCS/PeripheralXtop \
 	emuDCS/OnlineDB \
 	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCore \
 	emuDCS/FEDUtils \
 	emuDCS/FEDApps \
-	emuDAQ/emuReadout \
-	emuDAQ/emuFU \
-	emuDAQ/emuRUI \
-	emuDAQ/emuTA \
-	emuDAQ/emuDAQManager \
-	emuDAQ/emuClient \
-	emuDAQ/emuUtil \
-	emuDAQ/drivers
 endif
 
 ### specific package target builds
@@ -37,7 +29,7 @@ ifeq ($(Set),emuDCS)
 Packages= \
         emuDCS/PeripheralCore \
         emuDCS/PeripheralApps \
-	emuDCS/e2p \
+	emuDCS/PeripheralXtop \
 	emuDCS/OnlineDB \
 	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCore \
