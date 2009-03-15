@@ -12,13 +12,16 @@ Project=emu
 ### this will include other packages, like DAQ and DQM
 ifeq ($(Set),framework)
 Packages=\
-	cscSV \
+	base \
+        supervisor \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
 	emuDCS/e2p \
 	emuDCS/OnlineDB \
 	emuDCS/drivers/gbit-vme \
-	emuDCS/FEDCrate \
+	emuDCS/FEDCore \
+	emuDCS/FEDUtils \
+	emuDCS/FEDApps \
 	emuDAQ/emuReadout \
 	emuDAQ/emuFU \
 	emuDAQ/emuRUI \
@@ -37,7 +40,9 @@ Packages= \
 	emuDCS/e2p \
 	emuDCS/OnlineDB \
 	emuDCS/drivers/gbit-vme \
-	emuDCS/FEDCrate 
+	emuDCS/FEDCore \
+	emuDCS/FEDUtils \
+	emuDCS/FEDApps
 endif
 
 ifeq ($(Set),emuDAQ)
@@ -56,8 +61,10 @@ ifeq ($(Set),emuDQM)
 Packages=
 endif
 
-ifeq ($(Set),cscSV) 
-Packages= cscSV
+ifeq ($(Set),supervisor) 
+Packages= \
+          base \
+          supervisor
 endif 
 
 ifeq ($(Set),drivers)
