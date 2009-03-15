@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: AppsVersion.cc,v 1.1 2009/03/05 16:18:24 paste Exp $
+* $Id: AppsVersion.cc,v 1.2 2009/03/15 14:53:58 liu Exp $
 *
 * $Log: AppsVersion.cc,v $
+* Revision 1.2  2009/03/15 14:53:58  liu
+* fix include path
+*
 * Revision 1.1  2009/03/05 16:18:24  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -11,7 +14,7 @@
 *
 \*****************************************************************************/
 
-#include "AppsVersion.h"
+#include "emu/fed/AppsVersion.h"
 #include "emu/base/version.h"
 #include "emu/fed/CoreVersion.h"
 #include "emu/fed/UtilsVersion.h"
