@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.51 2008/10/27 08:52:58 gujh Exp $
+// $Id: DAQMB.cc,v 3.52 2009/03/15 13:58:54 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.52  2009/03/15 13:58:54  liu
+// fix compiler warnings
+//
 // Revision 3.51  2008/10/27 08:52:58  gujh
 // Put the CFEB PROM firmware readback capability
 //   ---- GU, Oct. 27, 2008
@@ -5467,7 +5470,7 @@ int DAQMB::readfifox_123chk(enum DEVTYPE devnum)
 int DAQMB::memchk(int fifo)
 {
   static int fifosize=16380;
-  int err,err1;
+  int err,err1=0;
   char *sndfifo;
   char *rcvfifo;
   sndfifo=(char *)malloc(33000);
@@ -5601,8 +5604,8 @@ int DAQMB::test5()
   int f1[5]={3,3,4,4,5};
   int f2[5]={4,7,2,5,0};
   float value;
-  unsigned int ival;
-  char c;
+  unsigned int ival=0;
+  char c=0;
   //
   ierr=0;  
   itog=0;
@@ -5904,7 +5907,7 @@ int DAQMB::test10()
 //
 int  DAQMB::test11()
 {  
-  enum DEVTYPE dv;
+  // enum DEVTYPE dv;
   int i,j,itog;
   int nmtch;
   char pat[36],chk[32];
@@ -5951,7 +5954,7 @@ int  DAQMB::test11()
        ierr=ierr+1;}
      printf(" nmtch %d \n",nmtch);
      for(i=0;i<36;i++)printf("%02x",pat[i]&0xff);printf("\n");
-     printf("*Bad CFEB %d",dv); for(i=0;i<36;i++)printf("%02x",pat[i]&0xff);printf("\n");
+     printf("*Bad CFEB %d",brd); for(i=0;i<36;i++)printf("%02x",pat[i]&0xff);printf("\n");
    }
    if(j==2)goto ENDR;
    goto LOOP;
@@ -5968,7 +5971,7 @@ int  DAQMB::test11()
 int DAQMB::DCSreadAll(char *data)
 {
   unsigned short n, m;
-  int retn;
+  int retn=0;
 
   for(int i=1; i<6; i++)
   {

@@ -291,7 +291,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
 {
   // dealing with global values
   int Global_alct_pretrig_thresh;
-  bool got_alct_pretrig_thresh;
+  bool got_alct_pretrig_thresh=false;
 
   if (pNodeGlobal) 
   {

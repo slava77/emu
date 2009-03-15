@@ -314,7 +314,7 @@ void EMUjtag::ShfDR_(const int selected_chip,
   int iframe = 0;                              //reset frame counter
   //
   // ** Shift in the data bits for the selected chip, BYPASS code for others **
-  int offset;
+  int offset = 0;
   //
   for (int idevice=0; idevice<devices_in_chain_; idevice++) {  // loop over all of the chips in this chain
     //
