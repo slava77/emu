@@ -211,6 +211,9 @@ private:
   void DCSCrateTemp(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void DCSChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
+  // for EmuPage1
+  //
+  void ForEmuPage1(xgi::Input *in, xgi::Output *out) throw (xgi::exception::Exception);
 };
 
   } // namespace emu::pc

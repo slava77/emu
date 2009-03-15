@@ -70,6 +70,8 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSChamSel, "DCSChamSel");
   xgi::bind(this,&EmuPeripheralCrateMonitor::DCSCrateSel, "DCSCrateSel");
   //
+  xgi::bind(this,&EmuPeripheralCrateMonitor::ForEmuPage1, "ForEmuPage1");
+  //
   // SOAP for Monitor controll
     xoap::bind(this,&EmuPeripheralCrateMonitor::onMonitorStart      ,"MonitorStart",XDAQ_NS_URI);
     xoap::bind(this,&EmuPeripheralCrateMonitor::onMonitorStop      ,"MonitorStop",XDAQ_NS_URI);
@@ -3165,6 +3167,34 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TECounterName.push_back( "CFEB5 Temp");  // 5
     TECounterName.push_back( "ALCT  Temp");  // 
     TECounterName.push_back( "TMB Temp  ");  // 7
+}
+
+void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
+  throw (xgi::exception::Exception)
+{
+  *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
+       << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << std::endl
+       << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
+       <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
+       <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << std::endl;
+
+    *out << "  <monitorable name=\"" << "VME Access"
+         <<            "\" value=\"" << (std::string)((Monitor_On_)?"ON":"OFF")
+         <<  "\" nameDescription=\"" << " "
+         << "\" valueDescription=\"" << " "
+         <<          "\" nameURL=\"" << " "
+         <<         "\" valueURL=\"" << " "
+         << "\"/>" << std::endl;
+
+    *out << "  <monitorable name=\"" << "Heart Beat"
+         <<            "\" value=\"" << fast_count
+         <<  "\" nameDescription=\"" << " "
+         << "\" valueDescription=\"" << " "
+         <<          "\" nameURL=\"" << " "
+         <<         "\" valueURL=\"" << " "
+         << "\"/>" << std::endl;
+
+  *out << "</ForEmuPage1>" << std::endl;
 }
 
  }  // namespace emu::pc
