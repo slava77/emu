@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.h,v 1.2 2009/03/15 12:32:14 liu Exp $
+// $Id: EmuPeripheralCrateBase.h,v 1.3 2009/03/15 13:21:58 liu Exp $
 
 #ifndef _EmuPeripheralCrateBase_h_
 #define _EmuPeripheralCrateBase_h_
@@ -48,6 +48,7 @@ protected:
   xoap::MessageReference PCcreateCommandSOAP(std::string command);
   int PCsendCommand(std::string command, std::string klass, int instance = -1) 
                         throw (xoap::exception::Exception, xdaq::exception::Exception);
+  std::string getLocalDateTime();
   //
   toolbox::fsm::FiniteStateMachine fsm_;
   xdata::String state_;
