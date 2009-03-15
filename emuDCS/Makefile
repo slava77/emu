@@ -19,7 +19,9 @@ Packages=\
         emuDCS/PCSwitches \
 	emuDCS/OnlineDB \
 	emuDCS/drivers/gbit-vme \
-	emuDCS/FEDCrate
+	emuDCS/FEDCore \
+	emuDCS/FEDUtils \
+	emuDCS/FEDApps
 endif
 
 ifeq ($(Set),PeripheralApps)
@@ -31,7 +33,10 @@ Packages= \
 endif
 
 ifeq ($(Set),FEDCrate)
-Packages= emuDCS/FEDCrate
+Packages= \
+        emuDCS/FEDCore \
+	emuDCS/FEDUtils \
+	emuDCS/FEDApps
 endif
 
 include $(XDAQ_ROOT)/config/Makefile.rules
