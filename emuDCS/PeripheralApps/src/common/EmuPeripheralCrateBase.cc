@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.2 2009/03/15 12:32:14 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.3 2009/03/15 13:21:58 liu Exp $
 
 #include "EmuPeripheralCrateBase.h"
 
@@ -9,6 +9,9 @@
 #include "xoap/SOAPBody.h"
 #include "xoap/domutils.h"  // XMLCh2String()
 #include "toolbox/fsm/FailedEvent.h"
+#include <time.h>
+#include <iomanip>
+#include <sstream>
 
 namespace emu {
   namespace pc {
@@ -134,6 +137,24 @@ xoap::MessageReference EmuPeripheralCrateBase::PCcreateCommandSOAP(std::string c
   envelope.getBody().addBodyElement(name);
   //
   return message;
+}
+
+std::string EmuPeripheralCrateBase::getLocalDateTime(){
+  time_t t;
+  struct tm *tm;
+
+  time( &t );
+  tm = localtime( &t );
+
+  std::stringstream ss;
+  ss << std::setfill('0') << std::setw(4) << tm->tm_year+1900 << "-"
+     << std::setfill('0') << std::setw(2) << tm->tm_mon+1     << "-"
+     << std::setfill('0') << std::setw(2) << tm->tm_mday      << " "
+     << std::setfill('0') << std::setw(2) << tm->tm_hour      << ":"
+     << std::setfill('0') << std::setw(2) << tm->tm_min       << ":"
+     << std::setfill('0') << std::setw(2) << tm->tm_sec;
+
+  return ss.str();
 }
 
  }  // namespace emu::pc
