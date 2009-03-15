@@ -948,7 +948,7 @@ void EmuPeripheralCrateConfig::haltAction(toolbox::Event::Reference e)
 
 void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   throw (toolbox::fsm::exception::Exception) {
-  emu::base::Supervised::stateChanged(fsm);
+  changeState(fsm);
 }
 
   void EmuPeripheralCrateConfig::CrateSelection(xgi::Input * in, xgi::Output * out ) 

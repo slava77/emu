@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.5 2009/03/07 11:44:24 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.6 2009/03/15 12:32:14 liu Exp $
 
 #include "EmuPeripheralCrateTimer.h"
 
@@ -145,7 +145,7 @@ void EmuPeripheralCrateTimer::MainPage(xgi::Input * in, xgi::Output * out ) thro
 
 void EmuPeripheralCrateTimer::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
-  emu::base::Supervised::stateChanged(fsm);
+  changeState(fsm);
 }
 
 void EmuPeripheralCrateTimer::dummyAction(toolbox::Event::Reference e)

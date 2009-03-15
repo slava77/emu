@@ -396,7 +396,7 @@ void EmuPeripheralCrateCommand::haltAction(toolbox::Event::Reference e)
 
 void EmuPeripheralCrateCommand::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   throw (toolbox::fsm::exception::Exception) {
-  emu::base::Supervised::stateChanged(fsm);
+  changeState(fsm);
 }
 
 bool EmuPeripheralCrateCommand::ParsingXML(){
