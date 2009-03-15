@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.39 2009/03/07 11:44:24 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.40 2009/03/15 12:32:14 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1037,7 +1037,7 @@ void EmuPeripheralCrateBroadcast::SetNumberOfLayersInTrigger(xgi::Input * in, xg
 
 void EmuPeripheralCrateBroadcast::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
-  emu::base::Supervised::stateChanged(fsm);
+  changeState(fsm);
 }
 
 void EmuPeripheralCrateBroadcast::dummyAction(toolbox::Event::Reference e)

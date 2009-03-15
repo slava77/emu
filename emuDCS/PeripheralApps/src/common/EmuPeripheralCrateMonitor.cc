@@ -145,7 +145,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
 
 void EmuPeripheralCrateMonitor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception) {
-  emu::base::Supervised::stateChanged(fsm);
+  changeState(fsm);
 }
 
 void EmuPeripheralCrateMonitor::dummyAction(toolbox::Event::Reference e)

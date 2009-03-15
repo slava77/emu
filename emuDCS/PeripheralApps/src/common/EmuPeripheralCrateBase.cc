@@ -1,14 +1,85 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.1 2009/03/07 11:46:01 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.2 2009/03/15 12:32:14 liu Exp $
 
 #include "EmuPeripheralCrateBase.h"
+
+#include "xdaq/NamespaceURI.h"  // XDAQ_NS_URI
+#include "xoap/MessageFactory.h"  // createMessage()
+#include "xoap/SOAPPart.h"
+#include "xoap/SOAPEnvelope.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/domutils.h"  // XMLCh2String()
+#include "toolbox/fsm/FailedEvent.h"
 
 namespace emu {
   namespace pc {
 
-EmuPeripheralCrateBase::EmuPeripheralCrateBase(xdaq::ApplicationStub * s): emu::base::Supervised(s)
+EmuPeripheralCrateBase::EmuPeripheralCrateBase(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
 {	
+        fsm_.setFailedStateTransitionAction(this, &EmuPeripheralCrateBase::transitionFailed);
+        fsm_.setFailedStateTransitionChanged(this, &EmuPeripheralCrateBase::changeState);
+        fsm_.setStateName('F', "Failed");
 
+        state_ = "";
+        getApplicationInfoSpace()->fireItemAvailable("State", &state_);
+        getApplicationInfoSpace()->fireItemAvailable("stateName", &state_);
+
+        LOG4CPLUS_INFO(getApplicationLogger(), "Supervised");
 }  
+
+void EmuPeripheralCrateBase::changeState(toolbox::fsm::FiniteStateMachine &fsm)
+        throw (toolbox::fsm::exception::Exception)
+{
+    state_ = fsm.getStateName(fsm.getCurrentState());
+
+    LOG4CPLUS_DEBUG(getApplicationLogger(), "StateChanged: " << (std::string)state_);
+}
+
+void EmuPeripheralCrateBase::transitionFailed(toolbox::Event::Reference event)
+        throw (toolbox::fsm::exception::Exception)
+{
+	toolbox::fsm::FailedEvent &failed =
+			dynamic_cast<toolbox::fsm::FailedEvent &>(*event);
+
+	LOG4CPLUS_INFO(getApplicationLogger(),
+			"Failure occurred when performing transition"
+			<< " from: " << failed.getFromState()
+			<< " to: " << failed.getToState()
+			<< " exception: " << failed.getException().what());
+}
+
+void EmuPeripheralCrateBase::fireEvent(std::string name)
+		throw (toolbox::fsm::exception::Exception)
+{
+	toolbox::Event::Reference event((new toolbox::Event(name, this)));
+
+	fsm_.fireEvent(event);
+}
+
+xoap::MessageReference EmuPeripheralCrateBase::createReply(xoap::MessageReference message)
+		throw (xoap::exception::Exception)
+{
+	std::string command = "";
+
+	DOMNodeList *elements =
+			message->getSOAPPart().getEnvelope().getBody()
+			.getDOMNode()->getChildNodes();
+
+	for (unsigned int i = 0; i < elements->getLength(); i++) {
+		DOMNode *e = elements->item(i);
+		if (e->getNodeType() == DOMNode::ELEMENT_NODE) {
+			command = xoap::XMLCh2String(e->getLocalName());
+			break;
+		}
+	}
+
+	xoap::MessageReference reply = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+	xoap::SOAPName responseName = envelope.createName(
+			command + "Response", "xdaq", XDAQ_NS_URI);
+	envelope.getBody().addBodyElement(responseName);
+
+	return reply;
+}
 
 //
 ////////////////////////////////////////////////////////////////////

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.12 2009/03/07 11:44:24 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.13 2009/03/15 12:32:14 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -110,7 +110,7 @@ void EmuPeripheralCrateManager::haltAction(toolbox::Event::Reference e)
 //
 void EmuPeripheralCrateManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   throw (toolbox::fsm::exception::Exception) {
-  emu::base::Supervised::stateChanged(fsm);
+  changeState(fsm);
 }
 //
 void EmuPeripheralCrateManager::MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) 
