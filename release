@@ -4,7 +4,7 @@ supervisor
 emuDCS/Makefile
 emuDCS/PeripheralCore
 emuDCS/PeripheralApps
-emuDCS/e2p
+emuDCS/PeripheralXtop
 emuDCS/OnlineDB
 emuDCS/drivers/gbit-vme
 emuDCS/FEDCore
