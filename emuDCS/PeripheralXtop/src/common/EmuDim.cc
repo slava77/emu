@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.10 2009/02/20 10:33:13 liu Exp $
+// $Id: EmuDim.cc,v 1.11 2009/03/15 15:28:08 liu Exp $
 
 #include "EmuDim.h"
 
@@ -17,7 +17,7 @@
 namespace emu {
   namespace e2p {
 
-EmuDim::EmuDim(xdaq::ApplicationStub * s): emu::base::Supervised(s)
+EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s), emu::base::Supervised(s)
 {
   HomeDir_     = getenv("HOME");
   ConfigDir_   = HomeDir_+"/config/";
