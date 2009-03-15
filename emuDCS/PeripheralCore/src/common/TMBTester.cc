@@ -493,7 +493,7 @@ bool TMBTester::testPROMpath(){
   //
   (*MyOutput_) << "TMBTester: Checking User PROM Data Path" << std::endl;
   //
-  int pat_expect1, pat_expect2;
+  int pat_expect1=0, pat_expect2=0;
   //
   bool temptest=true;
   //
@@ -1130,7 +1130,7 @@ void TMBTester::computeBER(int rpc){
   const float numbits = 15;    //RPC sending 12 bits of random data+2bxn+parity bit
   const int sleepval = 60;     //seconds between each read
   //
-  float numberRpcs;
+  float numberRpcs = 0.0;
   //
   if (rpc == 0 || rpc == 1) numberRpcs = 1.;
   if (rpc == 2) numberRpcs = 2;
