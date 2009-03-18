@@ -192,7 +192,7 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   
   state_ = fsm_.getStateName(fsm_.getCurrentState());
   
-  state_table_.addApplication("emu::fed::EmuFCrateManager");
+  state_table_.addApplication("emu::fed::Manager");
   state_table_.addApplication("emu::pc::EmuPeripheralCrateManager");
   state_table_.addApplication("emu::daq::manager::Application");
   state_table_.addApplication("TTCciControl");
@@ -659,7 +659,7 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
       sendCommand("ConfigCalCFEB", "emu::pc::EmuPeripheralCrateManager");
     }   
        
-    sendCommand("Configure", "emu::fed::EmuFCrateManager");
+    sendCommand("Configure", "emu::fed::Manager");
     
     waitForDAQToExecute("Configure", 10, true);
        
@@ -699,12 +699,12 @@ void emu::supervisor::Application::startAction(toolbox::Event::Reference evt)
   try {
     state_table_.refresh();
 
-      setParameter("emu::fed::EmuFCrateManager",
+      setParameter("emu::fed::Manager",
 		   "runNumber", "xsd:unsignedLong", run_number_.toString());
-/*      setParameter("emu::fed::EmuFCrateManager",
+/*      setParameter("emu::fed::Manager",
 		   "runType", "xsd:string", run_type_.toString());
 */
-    sendCommand("Enable", "emu::fed::EmuFCrateManager");
+    sendCommand("Enable", "emu::fed::Manager");
     
     if (!isCalibrationMode()) {
       sendCommand("Enable", "emu::pc::EmuPeripheralCrateManager");
@@ -776,7 +776,7 @@ void emu::supervisor::Application::stopAction(toolbox::Event::Reference evt)
     } catch (xcept::Exception ignored) {}
     
     writeRunInfo( true, false );
-    sendCommand("Disable", "emu::fed::EmuFCrateManager");
+    sendCommand("Disable", "emu::fed::Manager");
     sendCommand("Disable", "emu::pc::EmuPeripheralCrateManager");
     sendCommand("Configure", "TTCciControl");
     sendCommand("Configure", "LTCControl");
@@ -805,7 +805,7 @@ void emu::supervisor::Application::haltAction(toolbox::Event::Reference evt)
     if (state_table_.getState("TTCciControl", 0) != "Halted") {
       sendCommand("Halt", "TTCciControl");
     }
-    sendCommand("Halt", "emu::fed::EmuFCrateManager");
+    sendCommand("Halt", "emu::fed::Manager");
     sendCommand("Halt", "emu::pc::EmuPeripheralCrateManager");
     
     try {
@@ -838,7 +838,7 @@ void emu::supervisor::Application::setTTSAction(toolbox::Event::Reference evt)
 {
   LOG4CPLUS_DEBUG(logger_, evt->type() << "(begin)");
   
-  const string fed_app = "emu::fed::EmuFCrateManager";
+  const string fed_app = "emu::fed::Manager";
   
   try {
     setParameter(fed_app, "ttsID",   "xsd:unsignedInt", tts_id_.toString());
