@@ -132,7 +132,7 @@ protected:
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   toolbox::task::Timer * timer_;
   //
-  std::vector<int> vcc_reset;
+  std::vector<int> vcc_reset, dcs_mask, tmb_mask, dmb_mask;
   std::vector<bool> crate_off;
   //
   std::vector< std::string> TCounterName;
@@ -140,6 +140,7 @@ protected:
   std::vector< std::string> OCounterName;
   std::vector< std::string> LVCounterName;
   std::vector< std::string> TECounterName;
+  std::vector<int> IsErrCounter;
   //
   EmuEndcap * emuEndcap_;
   //
