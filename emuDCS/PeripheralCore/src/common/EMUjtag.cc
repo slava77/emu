@@ -381,8 +381,8 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 			  const int size_of_register, 
 			  const int * write_data) {
   //
-  // Enable ability to fill user prom with data:
-  tmb_->OkVmeWrite(vme_usr_jtag_adr);    
+  // Enable ability to fill the address vectors with data:
+  tmb_->SetALCTOkVMEWriteAddress(true);    
   //
   // Enable communication with the physical device:
   SetWriteToDevice_(true);
@@ -392,6 +392,9 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   //
   // ** Second JTAG operation is to shift tdi into and tdo out of the data register...
   ShfDR_(selected_chip,size_of_register,write_data);
+  //
+  // Finish allowing fillling of address vectors:
+  tmb_->SetALCTOkVMEWriteAddress(false);    
   //
   return;
 }
@@ -573,13 +576,18 @@ void EMUjtag::CheckAndProgramProm(int which_prom) {
   CreateUserPromFile();
   //
   CheckUserProm();          //is the prom already programmed with this configuration?
-  //    
-  while ( GetNumberOfVerifyErrors() != 0 ) { 
+  //
+  int number_of_attempts = 0;
+  //
+  while ( GetNumberOfVerifyErrors() != 0 && number_of_attempts<3) { 
+    number_of_attempts++;
     CreateXsvfFile();
     ProgramUserProm();
     verify_error_ = 0;
     if ( tmb_->slot()<22 ) CheckUserProm();
   }
+  if (number_of_attempts == 3) 
+    std::cout << "EMUjtag ERROR:  Unable to write to userPROM" << std::endl;
   //
   delete read_ascii_prom_image_;
   delete write_ascii_prom_image_;
@@ -602,9 +610,9 @@ void EMUjtag::CreateUserPromFile() {
     //
     // VME state machine on TMB requires the data to be written into the prom in the following format:
     //
-    TmbUserVmeAddress = tmb_->GetVecVmeAddress();
-    TmbUserDataLsb = tmb_->GetVecDataLsb();
-    TmbUserDataMsb = tmb_->GetVecDataMsb();
+    TmbUserVmeAddress = tmb_->GetTMBVecVmeAddress();
+    TmbUserDataLsb = tmb_->GetTMBVecDataLsb();
+    TmbUserDataMsb = tmb_->GetTMBVecDataMsb();
     //
     for (unsigned int data_counter=0; data_counter<TmbUserVmeAddress.size(); data_counter++) {
       data_to_prom[address_counter++] = TmbUserVmeAddress.at(data_counter);
@@ -618,7 +626,7 @@ void EMUjtag::CreateUserPromFile() {
     //
     // JTAG state machine on TMB requires the data to be written into the prom in the following format:
     //
-    AlctUserDataLsb = tmb_->GetVecDataLsb();
+    AlctUserDataLsb = tmb_->GetALCTVecDataLsb();
     //
     for (unsigned int data_counter=0; data_counter<AlctUserDataLsb.size(); data_counter++) 
       data_to_prom[address_counter++] = (int) (AlctUserDataLsb.at(data_counter) & 0x7f);
