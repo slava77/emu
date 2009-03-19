@@ -1947,10 +1947,10 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
          *out << "-1";
          *out << cgicc::span();
       }
-      else if ( value==0 )
+      else if ( (IsErrCounter[this_tcounter_]>0 && value>0) || (IsErrCounter[this_tcounter_]==0 && value==0) )
       {
          *out << cgicc::span().set("style","color:red");
-         *out << "0";
+         *out << value;
          *out << cgicc::span();
       }
       else 
@@ -2092,9 +2092,9 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
   //  int counter_idx[30]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
   //                       10,11,12,16,17,18,19, 20,21,22,
   //                       23,24,33};
-  int counter_idx[23]={ 0 ,  1,  3,  5,  9, 13, 14, 17, 18, 19, 
-			20, 25, 26, 27, 28, 30, 33, 34, 36, 40,
-			45, 47, 64};
+  int counter_idx[23]={ 0 ,  1,  3,  4,  5, 13, 14, 17, 20, 28, 
+                        29, 30, 31, 34, 35, 37, 40, 41, 44, 45,
+                        48, 49, 64};
 
   std::ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
@@ -2167,10 +2167,10 @@ void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * 
          output << "-1";
          output << cgicc::span();
       }
-      else if ( value==0 )
+      else if ( (IsErrCounter[count]>0 && value>0) || (IsErrCounter[count]==0 && value==0) )
       {
          output << cgicc::span().set("style","color:red");
-         output << "0";
+         output << value;
          output << cgicc::span();
       }
      else
@@ -2435,7 +2435,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << n_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+40];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+41];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
@@ -2970,12 +2970,13 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.clear();
     DCounterName.clear();
     OCounterName.clear();    
+    IsErrCounter.clear();
     //
     TCounterName.push_back( "ALCT: alct0 valid pattern flag received                 "); // 0
     TCounterName.push_back( "ALCT: alct1 valid pattern flag received                 ");
-    TCounterName.push_back( "ALCT: alct data structure error                         ");
+    TCounterName.push_back( "ALCT: alct data structure Error                         ");
     TCounterName.push_back( "ALCT: raw hits readout                                  ");
-    TCounterName.push_back( "ALCT: raw hits readout - CRC error                      ");
+    TCounterName.push_back( "ALCT: raw hits readout - CRC Error                      ");
 
     TCounterName.push_back( "CLCT: Pretrigger                                        "); // 5
     TCounterName.push_back( "CLCT: Pretrigger on ME1A CFEB 4 only                    ");
@@ -3011,7 +3012,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
 
     TCounterName.push_back( "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           ");
     TCounterName.push_back( "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           ");
-    TCounterName.push_back( "TMB:  LCT1 has higher quality than LCT0 (ranking error) ");
+    TCounterName.push_back( "TMB:  LCT1 has higher quality than LCT0 (Ranking Error) ");
 
     TCounterName.push_back( "TMB:  Transmitted LCT0 to MPC                           "); // 35
     TCounterName.push_back( "TMB:  Transmitted LCT1 to MPC                           ");
@@ -3027,7 +3028,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "L1A:  TMB readouts completed                            ");
 
     TCounterName.push_back( "STAT: CLCT Triads skipped                               "); // 45
-    TCounterName.push_back( "STAT: Raw hits buffer had to be reset                   ");
+    TCounterName.push_back( "STAT: Raw hits buffer had to be reset Error             ");
     TCounterName.push_back( "STAT: TTC Resyncs received                              ");
     TCounterName.push_back( "STAT: Sync Error, BC0/BXN=offset mismatch               ");
     TCounterName.push_back( "STAT: Parity Error in CFEB or RPC raw hits RAM          ");
@@ -3167,6 +3168,21 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TECounterName.push_back( "CFEB5 Temp");  // 5
     TECounterName.push_back( "ALCT  Temp");  // 
     TECounterName.push_back( "TMB Temp  ");  // 7
+    for(unsigned i=0; i<TCounterName.size(); i++)
+    { 
+      if( TCounterName[i].find("Error") < 100 || TCounterName[i].find("lost")< 100 )
+      {   IsErrCounter.push_back(1);
+      }
+      else
+      {   IsErrCounter.push_back(0);
+      }
+    }
+    IsErrCounter[8]=1;
+    IsErrCounter[9]=1;
+    IsErrCounter[11]=1;
+    IsErrCounter[12]=1;
+    IsErrCounter[26]=1;
+    IsErrCounter[27]=1;
 }
 
 void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
