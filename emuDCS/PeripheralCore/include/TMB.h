@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.60 2009/03/06 16:45:28 rakness Exp $
+// $Id: TMB.h,v 3.61 2009/03/19 13:29:41 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.61  2009/03/19 13:29:41  rakness
+// clean up functionality in writing to userPROMs for TMB and ALCT.  This is to fix bug introduced in TMB v3.80 by using tmb_vme_new
+//
 // Revision 3.60  2009/03/06 16:45:28  rakness
 // add methods for ALCT-TMB loopback
 //
@@ -1599,14 +1602,39 @@ public:
   inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }
   //  inline int SizeOfClockedOutPromImage() { return clocked_out_prom_image_.size(); }
   //
-  void OkVmeWrite(char vme_address);                    // allowed to write this address into user prom?
-  void ClearVmeWriteVecs();                             
-  void SetFillVmeWriteVecs(bool fill_vectors_or_not);   // put the vme information into vectors to put into user prom?
-  bool GetFillVmeWriteVecs();
-  std::vector<int> GetVecVmeAddress();               // vme write information
-  std::vector<int> GetVecDataLsb();                  // vme write information
-  std::vector<int> GetVecDataMsb();                  // vme write information
+  bool OkTMBVmeWrite(unsigned vme_address);                    // allowed to write this address into user prom?
   //
+  // put the vme information into vectors to put into user prom?
+  inline void SetTMBFillVmeWriteVecs(bool fill_vectors_or_not)  { tmb_fill_write_vme_vectors_ = fill_vectors_or_not; }
+  inline bool GetTMBFillVmeWriteVecs() { return tmb_fill_write_vme_vectors_; }
+  //
+  // access to vectors of information to go into the userPROM
+  inline std::vector<int> GetTMBVecVmeAddress() { return tmb_write_vme_address_; }   
+  inline std::vector<int> GetTMBVecDataLsb() { return tmb_write_data_lsb_; }         
+  inline std::vector<int> GetTMBVecDataMsb() { return tmb_write_data_msb_; }         
+  //
+  // clear vectors of information to go into the userPROM
+  void ClearTMBVmeWriteVecs();                            
+  //
+  //---------------------------------------------------------------------
+  // The following would be better out of VMEController... 
+  // Leave them there now because EMUjtag uses "scan" to do its VME commands
+  //
+  // allow EMUjtag to tell VMEController to fill up the vector of addresses/commands
+  void SetALCTOkVMEWriteAddress(bool address_ok);
+  //
+  // put the vme information into vectors to put into user prom?
+  void SetALCTFillVmeWriteVecs(bool fill_vectors_or_not);
+  bool GetALCTFillVmeWriteVecs();
+  //
+  // access to vectors of information to go into the userPROM
+  std::vector<int> GetALCTVecVmeAddress();
+  std::vector<int> GetALCTVecDataLsb();
+  std::vector<int> GetALCTVecDataMsb();
+  //
+  // clear vectors of information to go into the userPROM
+  void ClearALCTVmeWriteVecs();                            
+  //---------------------------------------------------------------------
   //
   //-- read groups of TMB registers --//
   void DumpAllRegisters();
@@ -1741,6 +1769,14 @@ private:
   //
   //-- program in user prom --//
   std::vector<int> clocked_out_prom_image_;
+  std::vector<int> tmb_write_vme_address_;
+  std::vector<int> tmb_write_data_lsb_;
+  std::vector<int> tmb_write_data_msb_;
+  //
+  //-- controls for which registers to allow writing into the userPROM --//
+  bool tmb_ok_vme_write_;
+  bool tmb_fill_write_vme_vectors_;
+  //
   //
   //-- TMB status values --//
   int tmb_configuration_status_;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.56 2008/11/18 17:03:18 rakness Exp $
+// $Id: ALCTController.cc,v 3.57 2009/03/19 13:29:42 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.57  2009/03/19 13:29:42  rakness
+// clean up functionality in writing to userPROMs for TMB and ALCT.  This is to fix bug introduced in TMB v3.80 by using tmb_vme_new
+//
 // Revision 3.56  2008/11/18 17:03:18  rakness
 // include ALCT PROM readback
 //
@@ -941,7 +944,7 @@ void ALCTController::CheckALCTConfiguration(int max_number_of_reads) {
 //
 void ALCTController::SetFillVmeWriteVecs(bool fill_vectors_or_not) {
   //
-  tmb_->SetFillVmeWriteVecs(fill_vectors_or_not);
+  tmb_->SetALCTFillVmeWriteVecs(fill_vectors_or_not);
   //
   return;
   //
@@ -949,13 +952,13 @@ void ALCTController::SetFillVmeWriteVecs(bool fill_vectors_or_not) {
 //
 bool ALCTController::GetFillVmeWriteVecs() {
   //
-  return tmb_->GetFillVmeWriteVecs();
+  return tmb_->GetALCTFillVmeWriteVecs();
   //
 }
 //
 void ALCTController::ClearVmeWriteVecs() {
   //
-  tmb_->ClearVmeWriteVecs();
+  tmb_->ClearALCTVmeWriteVecs();
   //
   return;
   //

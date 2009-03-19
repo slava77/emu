@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.80 2009/03/06 16:45:28 rakness Exp $
+// $Id: TMB.cc,v 3.81 2009/03/19 13:29:42 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.81  2009/03/19 13:29:42  rakness
+// clean up functionality in writing to userPROMs for TMB and ALCT.  This is to fix bug introduced in TMB v3.80 by using tmb_vme_new
+//
 // Revision 3.80  2009/03/06 16:45:28  rakness
 // add methods for ALCT-TMB loopback
 //
@@ -857,12 +860,12 @@ void TMB::configure(int c) {
   // c = 2 = do not write configuration to userPROM
   //
   if (c == 2) { 
-    SetFillVmeWriteVecs(false);     //do not write configuration to user PROM
+    SetTMBFillVmeWriteVecs(false);     //do not write configuration to user PROM
   } else {
-    SetFillVmeWriteVecs(true);     //write configuration to user PROM
+    SetTMBFillVmeWriteVecs(true);     //write configuration to user PROM
   }
   //
-  ClearVmeWriteVecs();
+  ClearTMBVmeWriteVecs();
   //
   std::ostringstream dump;
   std::ostringstream dump2;
@@ -876,9 +879,6 @@ void TMB::configure(int c) {
     //
     unsigned long int address = TMBConfigurationRegister.at(index);
     //
-    //don't write to the user FPGA JTAG address, since it is used for ALCT configuration:
-    if ( address == vme_usr_jtag_adr ) continue;
-    //
     WriteRegister(address);
     //
   }
@@ -886,17 +886,17 @@ void TMB::configure(int c) {
   // When configuring with VME, the 3d3444 state machine needs to be 
   // started and stopped appropriately in order for the delay values 
   // to be set correctly:
-  if ( !GetFillVmeWriteVecs() ) {
+  if ( !GetTMBFillVmeWriteVecs() ) {
     WriteRegister(vme_dddsm_adr,0x20);
     WriteRegister(vme_dddsm_adr,0x21);
     WriteRegister(vme_dddsm_adr,0x20);
   }
   //
   // The flag to fill the VME register vector is set => program the user PROM:
-  if ( GetFillVmeWriteVecs() )      
+  if ( GetTMBFillVmeWriteVecs() )      
     CheckAndProgramProm(ChipLocationTmbUserPromTMB);
   //
-  SetFillVmeWriteVecs(false);    //give VME back to the user (default)
+  SetTMBFillVmeWriteVecs(false);    //give VME back to the user (default)
   //
   if (this->slot()<22)           //broadcast read will not work, so only check configuration if it is a normal VME slot
     CheckTMBConfiguration();  
@@ -3739,14 +3739,34 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
 
 void TMB::tmb_vme(char fcn, char vme, const char *snd,char *rcv, int wrt) {
   //
-  OkVmeWrite(vme);  
   start(1);
   do_vme(fcn, vme, snd, rcv, wrt);
 }
 //
 void TMB::tmb_vme_new(char fcn, unsigned vme, unsigned short data, char *rcv, int when) {
   //
-  OkVmeWrite(vme);  
+  //  std::cout << "GetTMBFillVmeWriteVecs() = " << GetTMBFillVmeWriteVecs()
+  //  	    << ", OkTMBVmeWriteVme(" << std::hex << vme << ") = " << OkTMBVmeWrite(vme)
+  //  	    << ", fcn = " << (int) fcn << std::endl;
+  //
+  if (GetTMBFillVmeWriteVecs() &&    // Are you filling up the vectors to write to the userPROM?
+      OkTMBVmeWrite(vme)       &&    // Are you allowed to write to this register?
+      fcn == VME_WRITE      ) {     // Are you performing a "write" command?
+    //
+    //    std::cout << "CTL address, data = " << std::hex 
+    //    	      << vme                  << " " 
+    //    	      << (int)( (data>>12) & 0xf )
+    //    	      << (int)( (data>> 8) & 0xf )
+    //    	      << (int)( (data>> 4) & 0xf )
+    //    	      << (int)(  data      & 0xf ) 
+    //	      << std::endl;
+    //
+    tmb_write_vme_address_.push_back( vme );
+    tmb_write_data_lsb_.push_back( (data & 0xff) );
+    tmb_write_data_msb_.push_back( ((data>>8) & 0xff) );
+    //    ::sleep(1);
+  }
+  //
   start(1);
   //  std::cout << "new_vme " << std::hex << vme << " with " << data << "... " << std::endl;
   new_vme(fcn, vme, data, rcv, when);
@@ -5744,10 +5764,10 @@ void TMB::ClockOutPromProgram(int prom,
     //
     clocked_out_prom_image_.push_back((int) (ReadRegister(vme_prom_adr) & 0xff));
     //    (*MyOutput_) << "VME address " << std::hex << vme_prom_adr
-    //		 << ", read prom " << enabledProm 
-    //    		 << ", address " << prom_adr 
-    //    		 << ", data = " << clocked_out_prom_image_.at(prom_adr) 
-    //    		 << std::endl;
+    //    		 << ", read prom " << enabledProm 
+    //		 << ", address " << prom_adr 
+    //		 << ", data = " << clocked_out_prom_image_.at(prom_adr) 
+    //		 << std::endl;
     //
     // ** Toggle the clock to advance the address **
     prom_clk[enabledProm]=1;
@@ -5794,59 +5814,86 @@ void TMB::ClockOutPromProgram(int prom,
   return;
 }
 //
-void TMB::ClearVmeWriteVecs() {
+void TMB::ClearTMBVmeWriteVecs() {
   //
-  theController->Clear_VmeWriteVecs();
+  //  theController->Clear_VmeWriteVecs();
+  //
+  // Clear the vectors which hold the information to be written to the userPROM
+  tmb_write_vme_address_.clear();
+  tmb_write_data_lsb_.clear();
+  tmb_write_data_msb_.clear();
   //
   return;
 }
 //
-void TMB::SetFillVmeWriteVecs(bool fill_vectors_or_not) {
+bool TMB::OkTMBVmeWrite(unsigned vme) {
+  //
+  bool ok_to_write_to_this_register = false;
+  //
+  // Allow writes from user prom only to specific VME addresses:
+  for (unsigned int index=0; index<TMBConfigurationRegister.size(); index++) {
+    //
+    //    std::cout << "register " << index << " to write to = " << TMBConfigurationRegister.at(index) << std::endl;
+    //
+    if ( (vme & 0xfff) == (TMBConfigurationRegister.at(index) & 0xfff)) {
+      ok_to_write_to_this_register = true;      
+      break;
+    }
+    //
+  } 
+  //
+  return ok_to_write_to_this_register;
+}
+//
+//---------------------------------------------------------------------
+// The following would be better out of VMEController... 
+// Leave them there now because EMUjtag uses "scan" to do its VME commands
+//
+void TMB::SetALCTOkVMEWriteAddress(bool address_ok) {
+  //
+  theController->Set_OkVmeWriteAddress(address_ok);
+  //
+  return;
+}
+//
+void TMB::SetALCTFillVmeWriteVecs(bool fill_vectors_or_not) {
   //
   theController->Set_FillVmeWriteVecs(fill_vectors_or_not);
   //
   return;
 }
 //
-bool TMB::GetFillVmeWriteVecs() {
+bool TMB::GetALCTFillVmeWriteVecs() {
   //
   return theController->Get_FillVmeWriteVecs();
   //
 }
 //
-std::vector<int> TMB::GetVecVmeAddress() { 
+std::vector<int> TMB::GetALCTVecVmeAddress() { 
   //
   return theController->Get_VecVmeAddress(); 
   //
 }
 //
-std::vector<int> TMB::GetVecDataLsb() { 
+std::vector<int> TMB::GetALCTVecDataLsb() { 
   //
   return theController->Get_VecDataLsb(); 
   //
 }
-std::vector<int> TMB::GetVecDataMsb() { 
+//
+std::vector<int> TMB::GetALCTVecDataMsb() { 
   //
   return theController->Get_VecDataMsb(); 
   //
 }
 //
-void TMB::OkVmeWrite(char vme) {
+void TMB::ClearALCTVmeWriteVecs() {
   //
-  theController->Set_OkVmeWriteAddress(false);
-  //
-  // Allow writes from user prom only to specific VME addresses:
-  for (unsigned int index=0; index<TMBConfigurationRegister.size(); index++) {
-    //
-    if ( vme == (char) (TMBConfigurationRegister.at(index) & 0xff) ) {
-      theController->Set_OkVmeWriteAddress(true);      
-      break;
-    }
-    //
-  } 
+  theController->Clear_VmeWriteVecs();
   //
   return;
 }
+//---------------------------------------------------------------------
 //
 ////////////////////////////////////////////////////////////////////////////
 // Read TMB registers
@@ -5955,13 +6002,6 @@ void TMB::ReadDDDStateMachine() {
 void TMB::DefineTMBConfigurationRegisters_(){ 
   //
   TMBConfigurationRegister.clear();
-  //
-  // Register used for ALCT configuration... 
-  // N.B.  Do not write to this register during TMB configuration.  
-  //       Included in TMBConfigurationRegister vector to allow writing of
-  //       its data to the user prom.
-  TMBConfigurationRegister.push_back(vme_usr_jtag_adr);     //0x10 ALCT JTAG address
-  //
   //
   // Registers used for TMB configuration....
   //
