@@ -2324,7 +2324,7 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
   if(!Monitor_Ready_) return;
   //
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
-  *out << "<?xml-stylesheet type=\"text/xml\" href=\"/tmp/counterMonitor/counterMonitor_XSL.xml\"?>" << std::endl;
+  *out << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/pc/counterMonitor_XSL.xml\"?>" << std::endl;
   *out << "<emuCounters dateTime=\"";
   toolbox::TimeVal currentTime;
   xdata::TimeVal now_time = (xdata::TimeVal)currentTime.gettimeofday();
@@ -2386,9 +2386,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+40];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+41];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+40];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+41];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // counter error, set it to -1:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
