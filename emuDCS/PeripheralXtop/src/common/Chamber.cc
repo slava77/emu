@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.4 2008/11/03 20:00:13 liu Exp $
+// $Id: Chamber.cc,v 1.5 2009/03/20 13:08:14 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.5  2009/03/20 13:08:14  liu
+// move include files to include/emu/pc
+//
 // Revision 1.4  2008/11/03 20:00:13  liu
 // do not update timestamp for all-zero chamber
 //
@@ -14,7 +17,7 @@
 // new release of e2p code
 //
 
-#include "Chamber.h"
+#include "emu/pc/Chamber.h"
 
 namespace emu {
   namespace e2p {

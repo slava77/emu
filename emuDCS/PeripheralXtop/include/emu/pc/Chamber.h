@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "DcsDimStructures.h"
+#include "emu/pc/DcsDimStructures.h"
 
 namespace emu {
   namespace e2p {
