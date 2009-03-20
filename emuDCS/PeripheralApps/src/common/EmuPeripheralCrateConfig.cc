@@ -3422,6 +3422,10 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
   //
   for (unsigned int chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
     Chamber * thisChamber     = chamberVector[chamber_index];
+    TMB * thisTMB             = tmbVector[chamber_index];
+    //													
+    // The following mapping is needed when the crate is not full...
+    const int slot_to_ccb_index_mapping[21] = {22, 22, 0, 22, 1, 22, 2, 22, 3, 22, 4, 22, 22, 22, 5, 22, 6, 22, 7, 22, 8};    
     //
     if(!(tmb_check_ok[current_crate_][chamber_index])) {
       tmb_check_ok[current_crate_][chamber_index] = 1;
@@ -3435,7 +3439,8 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
       tmb_check_ok[current_crate_][chamber_index] = 0;
     }
     //
-    if( thisCrate->ccb()->GetReadTMBConfigDone(chamber_index) != thisCrate->ccb()->GetExpectedTMBConfigDone() ) {
+    if( thisCrate->ccb()->GetReadTMBConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) != 
+	thisCrate->ccb()->GetExpectedTMBConfigDone() ) {
       tmb_check_ok[current_crate_][chamber_index] = 4;
       //
       if(thisChamber->GetExpectedConfigProblemTMB()) 
@@ -3455,7 +3460,8 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
       alct_check_ok[current_crate_][chamber_index] = 0;
     }
     //
-    if( thisCrate->ccb()->GetReadALCTConfigDone(chamber_index) != thisCrate->ccb()->GetExpectedALCTConfigDone() ) {
+    if( thisCrate->ccb()->GetReadALCTConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) !=  
+	thisCrate->ccb()->GetExpectedALCTConfigDone() ) {
       alct_check_ok[current_crate_][chamber_index] = 4;
       //
       if(thisChamber->GetExpectedConfigProblemALCT()) 
@@ -3491,7 +3497,8 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
     }
 
     //
-    if( (thisCrate->ccb()->GetReadDMBConfigDone(chamber_index) != thisCrate->ccb()->GetExpectedDMBConfigDone()) &&  
+    if( (thisCrate->ccb()->GetReadDMBConfigDone(slot_to_ccb_index_mapping[thisTMB->slot()]) !=  
+	 thisCrate->ccb()->GetExpectedDMBConfigDone()) &&  
 	(chamberName.find("1/3/")==std::string::npos) ) {           // this is because ME1/3 chambers do not have CFEB4) 
       dmb_check_ok[current_crate_][chamber_index] = 4;
       //
