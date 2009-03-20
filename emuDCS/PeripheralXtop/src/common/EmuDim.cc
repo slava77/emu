@@ -1,6 +1,6 @@
-// $Id: EmuDim.cc,v 1.11 2009/03/15 15:28:08 liu Exp $
+// $Id: EmuDim.cc,v 1.12 2009/03/20 13:08:14 liu Exp $
 
-#include "EmuDim.h"
+#include "emu/pc/EmuDim.h"
 
 #include <stdio.h>
 #include <stdlib.h>
