@@ -56,12 +56,13 @@ public:
   void outputException(xgi::Output * out,xcept::Exception &e);
   void outputStandardInterface(xgi::Output * out);
   
+  void displayChildConfiguration(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier);
   void displayConfiguration(xgi::Output * out,const std::string &configName,const std::string &identifier);
   void displayConfiguration(xgi::Output * out,const std::string &configName,int crateID);
-  void outputTableEditControls(xgi::Output * out,xdata::Table &results,const std::string &tableName,const std::string &prefix="");
-  void outputSingleValue(xgi::Output * out,xdata::Serializable *value);
-  void outputTable(xgi::Output * out,xdata::Table &results);
-  
+  void outputTableEditControls(xgi::Output * out,const std::string &tableName,const std::string &prefix="");
+  void outputSingleValue(xgi::Output * out,xdata::Serializable *value,const std::string &tableName="",const std::string &identifier="",const std::string &column="",int rowIndex=0);
+  void outputTable(xgi::Output * out,xdata::Table &results,const std::string &tableName="",const std::string &identifier="");
+
   // Actions
   void parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void uploadConfigToDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -71,6 +72,7 @@ public:
   void SetTypeDesc(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void incrementValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void setValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void changeSingleValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   // Communication with TStore
   xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception);
   std::string connect() throw (xcept::Exception);
@@ -116,6 +118,9 @@ public:
   void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct,const std::string &identifier) throw (xcept::Exception);
 
 private:
+	
+	bool tableHasColumn(xdata::Table &table,const std::string &column);
+	void setValueFromString(xdata::Serializable *value,const std::string &newValue);
 	void getRangeOfTables(const cgicc::Cgicc &cgi,std::map<std::string,xdata::Table> &tables,std::map<std::string,xdata::Table>::iterator &firstTable,std::map<std::string,xdata::Table>::iterator &lastTable);
 	void setConfigID(xdata::Table &newRows,size_t rowId,const std::string &columnName,xdata::UnsignedInteger64 &id);
 	std::string crateIdentifierString(int crateID);
@@ -160,6 +165,7 @@ private:
   std::map<std::string,std::map<std::string,xdata::Table> > currentTables;
   
   std::map<std::string,xdata::Table> tableDefinitions;
+  std::map<std::string,std::vector<std::string> > tableNames;
 
 };
 
