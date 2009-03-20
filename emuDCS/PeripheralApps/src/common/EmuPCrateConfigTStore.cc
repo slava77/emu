@@ -46,6 +46,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::SetTypeDesc, "SetTypeDesc");
   xgi::bind(this,&EmuPCrateConfigTStore::incrementValue, "incrementValue");
   xgi::bind(this,&EmuPCrateConfigTStore::setValue, "setValue");
+  xgi::bind(this,&EmuPCrateConfigTStore::changeSingleValue, "changeSingleValue");
   
   std::string HomeDir_ =getenv("HOME");
   xmlpath_    = HomeDir_ + "/config/pc/"; //xml file chosen must be in this directory. If you choose something in another directory then it will look for it in here and fail.
@@ -54,6 +55,21 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   config_type_ = "GLOBAL";
   config_desc_ = "manual entry";
   
+/*this allows some structure in the way values are displayed and manipulated; several tables are
+'child' tables of a CSC so they should be grouped together and have the possibility of being manipulated on a per-chamber basis.
+There is more structure than this in the XML files but it is not important since there is usually only one possible parent node anyway.*/
+std::vector<std::string> emptyVector;
+tableNames["vmecc"]=emptyVector;
+tableNames["csc"]=emptyVector;
+tableNames["csc"].push_back("tmb");
+tableNames["csc"].push_back("alct");
+tableNames["csc"].push_back("anodechannel");
+tableNames["csc"].push_back("daqmb");
+tableNames["csc"].push_back("cfeb");
+	tableNames["ccb"]=emptyVector;
+	tableNames["mpc"]=emptyVector;
+
+
 
 }
 
@@ -75,22 +91,40 @@ void EmuPCrateConfigTStore::outputHeader(xgi::Output * out) {
 void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::string &configName,const std::string &identifier) {
   	xdata::Table &currentTable=getCachedTable(configName,identifier);
     *out << configName << std::endl;
-  	outputTable(out,currentTable);
+  	outputTable(out,currentTable,configName,identifier);
+	//perhaps also output subtables, e.g.
+	//for each configName.children,
+	//look for instances of that table with child keys of identifier
 }
 
 //displays all tables with name \a configName which are related to the crate with ID \a crateID
 //this works because they all use a table identifier beginning with the crate ID
-void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::string &configName,int crateID) {
-  	//displayConfiguration(out,configName,index,to_string(crateID));
-  	if (currentTables.count(configName)) {
+void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::string &configName,int crateID) {			
+	displayChildConfiguration(out,configName,crateIdentifierString(crateID));
+}
+
+void EmuPCrateConfigTStore::displayChildConfiguration(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier) {
+   	if (currentTables.count(configName)) {
+		*out << "<p/><table border=\"2\" cellpadding=\"10\">";
+    		*out << "<tr><td bgcolor=\"#FFCCFF\">" << configName << " of " << parentIdentifier << "</td></tr><tr><td>"  << std::endl;
+ 
   		std::map<std::string,xdata::Table> &tables=currentTables[configName];
   		std::map<std::string,xdata::Table>::iterator table;
-  		outputTableEditControls(out,tableDefinitions[configName],configName,crateIdentifierString(crateID));
+  		outputTableEditControls(out,configName,parentIdentifier);
   		//loop through all tables whose key begins with the crateID
   		//all keys begin with the appropriate crateID
-   		for (table=tables.lower_bound(crateIdentifierString(crateID));table!=tables.lower_bound(crateIdentifierString(crateID+1));++table) {
+   		for (table=tables.lower_bound(parentIdentifier);table!=tables.lower_bound(parentIdentifier+"~");++table) {
   			displayConfiguration(out,configName,(*table).first);
+			if (tableNames.count(configName)) {
+				std::vector<std::string> &subTables=tableNames[configName];
+				for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) { 			
+					//*out << "crate subtable, showing " << (*subTable) << " of " << (*table).first << std::endl;
+	 
+					displayChildConfiguration(out,*subTable,(*table).first);
+				}
+			}
   		}
+		*out << "</tr></td></table>";
   	}
 
 }
@@ -102,37 +136,20 @@ void EmuPCrateConfigTStore::outputFooter(xgi::Output * out) {
   	myCrates.clear();
   	myCrates = TStore_myEndcap_->AllCrates();
   	if (myCrates.size()) {
-  		*out << "<table border=\"2\"><tr><td>Update all crates</td></tr><tr><td>";
-  		for (std::map<std::string,xdata::Table>::iterator tableDefinition=tableDefinitions.begin();tableDefinition!=tableDefinitions.end();++tableDefinition) {
-  			outputTableEditControls(out,(*tableDefinition).second,(*tableDefinition).first);
+  		*out << "<table border=\"2\" cellpadding=\"10\"><tr><td>Update all crates</td></tr><tr><td>";
+		for (std::map<std::string,xdata::Table>::iterator tableDefinition=tableDefinitions.begin();tableDefinition!=tableDefinitions.end();++tableDefinition) {
+			outputTableEditControls(out,(*tableDefinition).first);
   		}
   		*out << "</tr></td></table>";
-    	for(unsigned i = 0; i < myCrates.size(); ++i) {
-  		*out << "<p/><table border=\"2\">";
-    		*out << "<tr><td bgcolor=\"#FFFFCC\">Crate " << myCrates[i]->CrateID() << "</td></tr><tr><td>"  << std::endl;
-    		//todo: change this to just loop through an array of table names and display each one
-    		for (std::map<std::string,xdata::Table>::iterator tableDefinition=tableDefinitions.begin();tableDefinition!=tableDefinitions.end();++tableDefinition) {
-			displayConfiguration(out,(*tableDefinition).first,myCrates[i]->CrateID());
-		}
-		*out << "</tr></td></table>";
-  			/*
-  			We can explicitly loop through different chambers, which would allow more intuitive titles, 
-  			but it's easier/more reliable to do as above and just display all tables relevant to a particular crate.
-
-  			std::vector<Chamber *> chambers=myCrates[i]->chambers();
-  			for(unsigned chamberIndex = 0; chamberIndex < chambers.size(); ++chamberIndex) {
-    			if(chambers[chamberIndex]) {
-    				//actually, should just loop over each of the entries in the mapping,
-    				//from/to crate ID, the same way it will be done for the 'just do it for this chamber' thing.
-    				//assuming everything is named hierarchically.
-    				//then we don't need to know the internal structure to print things out.
-    				displayConfiguration(out,"csc",i,chamberID(myCrates[i]->CrateID(),chambers[chamberIndex]->GetLabel()));
-    				std::string DAQMBIdentifier=DAQMBID(chamber,dmb->slot());
-    				displayConfiguration(out,"daqmb",i,DAQMBIdentifier);
-					//displayConfiguration(out,"tmb",i,chamberID(myCrates[i]->CrateID(),chambers[chamberIndex]->GetLabel()));
-  					displayConfiguration(out,"cfeb",i,DAQMBIdentifier);
-    			}
-    		}*/
+		for(unsigned i = 0; i < myCrates.size(); ++i) {
+			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
+			*out << "<tr><td bgcolor=\"#FFFFCC\">Crate " << myCrates[i]->CrateID() << "</td></tr><tr><td>"  << std::endl;
+			//todo: change this to just loop through an array of table names and display each one
+			for (std::map<std::string,std::vector<std::string> >::iterator tableName=tableNames.begin();tableName!=tableNames.end();++tableName) {
+				//*out << "top level, showing " << (*tableName).first << " of crate " << myCrates[i]->CrateID() << std::endl;
+				displayConfiguration(out,(*tableName).first,myCrates[i]->CrateID());
+			}
+			*out << "</tr></td></table>";
   		}
   	}
   }
@@ -172,19 +189,20 @@ bool EmuPCrateConfigTStore::isNumericType(const std::string &xdataType) {
 	return std::find(numericTypes.begin(),numericTypes.end(),xdataType)!=numericTypes.end();
 }
 
-void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,xdata::Table &results,const std::string &tableName,const std::string &prefix) {
-	std::vector<std::string> columns=results.getColumns();
+void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,const std::string &tableName,const std::string &prefix) {
+	xdata::Table &definition=tableDefinitions[tableName];
+	std::vector<std::string> columns=definition.getColumns();
 	std::vector<std::string>::iterator column;
 	
 	//increment controls
 	*out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/incrementValue",getApplicationDescriptor()->getURN().c_str())) << std::endl;
 	*out << cgicc::input().set("type","hidden").set("name","table").set("value",tableName);
 	*out << cgicc::input().set("type","hidden").set("name","prefix").set("value",prefix);
-	*out << "table " << tableName << cgicc::br();
+	//*out << "table " << tableName << cgicc::br();
 	*out << "increment all " << cgicc::select().set("name","fieldName");//<< cgicc::input().set("type","text").set("name","view").set("value",view) << std::endl;
 	for (column=columns.begin(); column!=columns.end(); column++) {
 		if (canChangeColumn(*column)) {
-			if (isNumericType(results.getColumnType(*column))) {
+			if (isNumericType(definition.getColumnType(*column))) {
 				*out << cgicc::option().set("value",*column) << *column << cgicc::option() << std::endl;
 			}
 		}
@@ -208,7 +226,10 @@ void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,xdata::Tab
 	*out << cgicc::form() << std::endl;	
 }
 
-void EmuPCrateConfigTStore::outputSingleValue(xgi::Output * out,xdata::Serializable *value) {
+//outputs the value of \a value to *out. If the last three parameters are filled in (to indicate where the value comes from, so how to change it) then
+//and the column is of a type that can be edited and a column name which does not seem to be a config ID,
+//it will be in an editable text field with a change button which called changeSingleValue.
+void EmuPCrateConfigTStore::outputSingleValue(xgi::Output * out,xdata::Serializable *value,const std::string &tableName,const std::string &identifier,const std::string &column,int rowIndex) {
 	std::string columnType=value->type();
 	if (columnType=="table") {
 		outputTable(out,*static_cast<xdata::Table *>(value));
@@ -217,32 +238,38 @@ void EmuPCrateConfigTStore::outputSingleValue(xgi::Output * out,xdata::Serializa
 		*out << "mime";
 		//output some other data.
 	} else {
-		*out << value->toString();
+		if (canChangeColumn(column) && !tableName.empty() && !identifier.empty()) {
+			  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("changeSingleValue",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+			*out << cgicc::input().set("type","hidden").set("name","table").set("value",tableName);
+			*out << cgicc::input().set("type","hidden").set("name","identifier").set("value",identifier);
+			*out << cgicc::input().set("type","hidden").set("name","fieldName").set("value",column);
+			*out << cgicc::input().set("type","hidden").set("name","row").set("value",to_string(rowIndex));
+			*out << cgicc::input().set("type","text").set("name","newValue").set("size","11").set("value",value->toString());
+
+			*out << cgicc::input().set("type","submit").set("value","Change") << std::endl;
+			*out << cgicc::form() << std::endl;
+		} else {
+			*out << value->toString();
+		}
 	}
 }
 
 //basic function to output current values
 //will be changed to be arranged more vertically and make individual fields editable
-void EmuPCrateConfigTStore::outputTable(xgi::Output * out,xdata::Table &results) {
+void EmuPCrateConfigTStore::outputTable(xgi::Output * out,xdata::Table &results,const std::string &tableName,const std::string &identifier) {
 	//this uses raw HTML tags because cgicc can't handle any nested tags, which makes it pretty much useless
 	std::vector<std::string> columns=results.getColumns();
 	std::vector<std::string>::iterator columnIterator;
 	int rowCount=results.getRowCount();
 	if (rowCount==1) {
-		*out << "<table border=\"0\">";
+		*out << "<table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">";
 		for(columnIterator=columns.begin(); columnIterator!=columns.end(); ++columnIterator) {
 			if (canChangeColumn(*columnIterator)) {
 				*out << "<tr><td>" << *columnIterator << /*(" << columnType << ")" << */ ":</td><td>";
-				if (rowCount>1) {
-					*out << "<table border=\"2\">";
-				}
 				unsigned long rowIndex;
 				for (rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
-					if (rowCount>1) *out << "<tr><td>";
-					outputSingleValue(out,results.getValueAt(rowIndex,*columnIterator));
-					if (rowCount>1) *out << "</td></tr>";
+					outputSingleValue(out,results.getValueAt(rowIndex,*columnIterator),tableName,identifier,*columnIterator,rowIndex);
 				}
-				if (rowCount>1) *out << "</table>";
 				*out << "</tr>";
 			}
 		}
@@ -250,7 +277,7 @@ void EmuPCrateConfigTStore::outputTable(xgi::Output * out,xdata::Table &results)
 	} else {
 		*out << rowCount << " rows";
 
-		*out << "<table border=\"2\">";
+		*out << "<table border=\"2\" cellpadding=\"2\">";
 		*out << "<tr>";
 		for(columnIterator=columns.begin(); columnIterator!=columns.end(); ++columnIterator) {
 			*out << "<td>" << *columnIterator << " (" << results.getColumnType(*columnIterator) << ")" << "</td>";
@@ -261,7 +288,7 @@ void EmuPCrateConfigTStore::outputTable(xgi::Output * out,xdata::Table &results)
 			*out << "<tr>";
 			for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++) {
 				*out << "<td>";
-				outputSingleValue(out,results.getValueAt(rowIndex,*columnIterator));
+				outputSingleValue(out,results.getValueAt(rowIndex,*columnIterator),tableName,identifier,*columnIterator,rowIndex);
 				*out << "</td>";
 
 			}
@@ -423,7 +450,38 @@ void add(xdata::Serializable *originalValue,const std::string &addend) {
 	}
 }
   
-  
+void EmuPCrateConfigTStore::setValueFromString(xdata::Serializable *value,const std::string &newValue) {
+	std::string columnType=value->type();
+/*
+	Aarrghh, this doesn't work because we need to know the template type for the SimpleType.
+	So much for polymorphism.
+	xdata::SimpleType *value;
+	value=dynamic_cast<xdata::SimpleType *>((*table).second.getValueAt(rowIndex,fieldName));
+	if (value) value->fromString(newValue);*/
+	if (columnType=="int") {
+		set<xdata::Integer>(value,newValue);
+	} else if (columnType=="unsigned long") {
+		set<xdata::UnsignedLong>(value,newValue);
+	} else if (columnType=="float") {
+		set<xdata::Float>(value,newValue);
+	} else if (columnType=="double") {
+		set<xdata::Double>(value,newValue);
+	} else if (columnType=="unsigned int") {
+		set<xdata::UnsignedInteger>(value,newValue);
+	} else if (columnType=="unsigned int 32") {
+		set<xdata::UnsignedInteger32>(value,newValue);
+	} else if (columnType=="unsigned int 64") {
+		set<xdata::UnsignedInteger64>(value,newValue);
+	} else if (columnType=="unsigned short") {
+		set<xdata::UnsignedShort>(value,newValue);
+	} else if (columnType=="string") {
+		set<xdata::String>(value,newValue);
+	} else if (columnType=="time") {
+		set<xdata::TimeVal>(value,newValue);
+	} /*else if (columnType=="bool") { //booleans are not used elsewhere in the file, so I assume they don't exist in the configuration
+		set<xdata::Boolean>(value,newValue);
+	} */
+}
   
 void EmuPCrateConfigTStore::setValue(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -447,35 +505,7 @@ void EmuPCrateConfigTStore::setValue(xgi::Input * in, xgi::Output * out )
 		  		int rowCount=(*table).second.getRowCount();
 		  		for (int rowIndex=0;rowIndex<rowCount;rowIndex++) {
 		  			xdata::Serializable *value=((*table).second.getValueAt(rowIndex,fieldName));
-			  		/*
-			  		Aarrghh, this doesn't work because we need to know the template type for the SimpleType.
-			  		So much for polymorphism.
-			  		xdata::SimpleType *value;
-			  		value=dynamic_cast<xdata::SimpleType *>((*table).second.getValueAt(rowIndex,fieldName));
-			  		if (value) value->fromString(newValue);*/
-			  		if (columnType=="int") {
-						set<xdata::Integer>(value,newValue);
-					} else if (columnType=="unsigned long") {
-						set<xdata::UnsignedLong>(value,newValue);
-					} else if (columnType=="float") {
-						set<xdata::Float>(value,newValue);
-					} else if (columnType=="double") {
-						set<xdata::Double>(value,newValue);
-					} else if (columnType=="unsigned int") {
-						set<xdata::UnsignedInteger>(value,newValue);
-					} else if (columnType=="unsigned int 32") {
-						set<xdata::UnsignedInteger32>(value,newValue);
-					} else if (columnType=="unsigned int 64") {
-						set<xdata::UnsignedInteger64>(value,newValue);
-					} else if (columnType=="unsigned short") {
-						set<xdata::UnsignedShort>(value,newValue);
-			  		} else if (columnType=="string") {
-						set<xdata::String>(value,newValue);
-			  		} else if (columnType=="time") {
-						set<xdata::TimeVal>(value,newValue);
-			  		} /*else if (columnType=="bool") { //booleans are not used elsewhere in the file, so I assume they don't exist in the configuration
-						set<xdata::Boolean>(value,newValue);
-			  		} */
+					setValueFromString(value,newValue);
 			  	}
 		  	} catch (xdata::exception::Exception &e) {
 		  		XCEPT_RETHROW(xgi::exception::Exception,"Value "+newValue+" could not be converted to the data type "+columnType,e);
@@ -486,6 +516,43 @@ void EmuPCrateConfigTStore::setValue(xgi::Input * in, xgi::Output * out )
   	outputStandardInterface(out);
   	outputFooter(out);
  }
+ 
+ 
+ void EmuPCrateConfigTStore::changeSingleValue(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception) {
+  	cgicc::Cgicc cgi(in);
+  	std::string tableName=**cgi["table"];
+  	std::string identifier=**cgi["identifier"];
+  	std::string fieldName=**cgi["fieldName"];
+  	std::string rowString=**cgi["row"];
+  	std::string newValue=**cgi["newValue"];
+	if (currentTables.count(tableName)) {
+		std::map<std::string,xdata::Table> &tables=currentTables[tableName];
+		if (tables.count(identifier)) {
+			xdata::Table &table=tables[identifier];
+			unsigned int rowIndex;
+			std::istringstream myStream(rowString);
+			if ((myStream>>rowIndex) && table.getRowCount()>=rowIndex) {
+				if (tableHasColumn(table,fieldName) && canChangeColumn(fieldName)) {
+					xdata::Serializable *value=table.getValueAt(rowIndex,fieldName);
+					std::cout << "changing value from " << value->toString() << " to " << newValue << std::endl;
+					setValueFromString(value,newValue);
+				} else {
+					XCEPT_RAISE(xgi::exception::Exception,"Column "+fieldName+" does not exist or is not editable in the specified table");
+				}
+			} else {
+				XCEPT_RAISE(xgi::exception::Exception,"There is no row number "+rowString+" in the specified table");
+			}
+		} else {
+			XCEPT_RAISE(xgi::exception::Exception,"No "+tableName+" configuration loaded for "+identifier);
+		}
+	} else {
+		XCEPT_RAISE(xgi::exception::Exception,"No such table: "+tableName);
+	}
+ 	outputHeader(out);
+  	outputStandardInterface(out);
+  	outputFooter(out);
+    }
  
  void EmuPCrateConfigTStore::getRangeOfTables(const cgicc::Cgicc &cgi,std::map<std::string,xdata::Table> &tables,std::map<std::string,xdata::Table>::iterator &firstTable,std::map<std::string,xdata::Table>::iterator &lastTable) {
   	std::string prefix=**cgi["prefix"];
@@ -498,6 +565,11 @@ void EmuPCrateConfigTStore::setValue(xgi::Input * in, xgi::Output * out )
 	}
  }
   
+ bool EmuPCrateConfigTStore::tableHasColumn(xdata::Table &table,const std::string &column) {
+	 std::vector<std::string> columns=table.getColumns();
+	 return std::find(columns.begin(),columns.end(),column)!=columns.end();
+ }
+ 
  void EmuPCrateConfigTStore::incrementValue(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -516,39 +588,39 @@ void EmuPCrateConfigTStore::setValue(xgi::Input * in, xgi::Output * out )
 		getRangeOfTables(cgi,tables,firstTable,lastTable);
 
   		for (table=firstTable;table!=lastTable;++table) {
-		  	std::string columnType=(*table).second.getColumnType(fieldName);
-  			try {
-		  		if (isNumericType(columnType)) { //also need to check whether it has such a column
-		  			//in the 'set' method, we could use fromString here.
-		  			
-			  		int rowCount=(*table).second.getRowCount();
-			  		for (int rowIndex=0;rowIndex<rowCount;rowIndex++) {
-				  		xdata::Serializable *value=(*table).second.getValueAt(rowIndex,fieldName);
-				  		LOG4CPLUS_DEBUG(this->getApplicationLogger(),"adding "+amountToAdd+ " to "+columnType+" "+value->toString());
-				  		if (columnType=="int") {
-							add<xdata::Integer,xdata::IntegerT>(value,amountToAdd);
-						} else if (columnType=="unsigned long") {
-							add<xdata::UnsignedLong,xdata::UnsignedLongT>(value,amountToAdd);
-						} else if (columnType=="float") {
-							add<xdata::Float,xdata::FloatT>(value,amountToAdd);
-						} else if (columnType=="double") {
-							add<xdata::Double,xdata::DoubleT>(value,amountToAdd);
-						} else if (columnType=="unsigned int") {
-							add<xdata::UnsignedInteger,xdata::UnsignedIntegerT>(value,amountToAdd);
-						} else if (columnType=="unsigned int 32") {
-							add<xdata::UnsignedInteger32,xdata::UnsignedInteger32T>(value,amountToAdd);
-						} else if (columnType=="unsigned int 64") {
-							add<xdata::UnsignedInteger64,xdata::UnsignedInteger64T>(value,amountToAdd);
-						} else if (columnType=="unsigned short") {
-							add<xdata::UnsignedShort,xdata::UnsignedShortT>(value,amountToAdd);
-				  		}
-				  		LOG4CPLUS_DEBUG(this->getApplicationLogger(),"result is "+value->toString());
-				  		(*table).second.setValueAt(rowIndex,fieldName,*value);
-				  	}
-		  		}
-			} catch (xdata::exception::Exception &e) {
-		  		XCEPT_RETHROW(xgi::exception::Exception,"Value "+amountToAdd+" could not be converted to the data type "+columnType,e);
-		  	}
+			if (tableHasColumn((*table).second,fieldName)) {
+				std::string columnType=(*table).second.getColumnType(fieldName);
+				try {
+					if (isNumericType(columnType)) {
+						int rowCount=(*table).second.getRowCount();
+						for (int rowIndex=0;rowIndex<rowCount;rowIndex++) {
+							xdata::Serializable *value=(*table).second.getValueAt(rowIndex,fieldName);
+							LOG4CPLUS_DEBUG(this->getApplicationLogger(),"adding "+amountToAdd+ " to "+columnType+" "+value->toString());
+							if (columnType=="int") {
+								add<xdata::Integer,xdata::IntegerT>(value,amountToAdd);
+							} else if (columnType=="unsigned long") {
+								add<xdata::UnsignedLong,xdata::UnsignedLongT>(value,amountToAdd);
+							} else if (columnType=="float") {
+								add<xdata::Float,xdata::FloatT>(value,amountToAdd);
+							} else if (columnType=="double") {
+								add<xdata::Double,xdata::DoubleT>(value,amountToAdd);
+							} else if (columnType=="unsigned int") {
+								add<xdata::UnsignedInteger,xdata::UnsignedIntegerT>(value,amountToAdd);
+							} else if (columnType=="unsigned int 32") {
+								add<xdata::UnsignedInteger32,xdata::UnsignedInteger32T>(value,amountToAdd);
+							} else if (columnType=="unsigned int 64") {
+								add<xdata::UnsignedInteger64,xdata::UnsignedInteger64T>(value,amountToAdd);
+							} else if (columnType=="unsigned short") {
+								add<xdata::UnsignedShort,xdata::UnsignedShortT>(value,amountToAdd);
+							}
+							LOG4CPLUS_DEBUG(this->getApplicationLogger(),"result is "+value->toString());
+							(*table).second.setValueAt(rowIndex,fieldName,*value);
+						}
+					}
+				} catch (xdata::exception::Exception &e) {
+					XCEPT_RETHROW(xgi::exception::Exception,"Value "+amountToAdd+" could not be converted to the data type "+columnType,e);
+				}
+			}
 		}
   	}
  	outputHeader(out);
@@ -791,7 +863,7 @@ xdata::UnsignedInteger64 EmuPCrateConfigTStore::getConfigId(const std::string &d
   
 }
 //
-#define debugV
+//#define debugV
 
 xoap::MessageReference EmuPCrateConfigTStore::sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception) {
 	xoap::MessageReference reply;
@@ -1466,7 +1538,7 @@ try {
 }
 
 void EmuPCrateConfigTStore::setCachedTable(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception) {
-	std::cout << "setting cached " << insertViewName << " table " << identifier << std::endl;
+	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"setting cached "+insertViewName+" table "+identifier);
 	currentTables[insertViewName][identifier]=table;
 }
 
@@ -1479,7 +1551,7 @@ xdata::Table &EmuPCrateConfigTStore::getCachedTable(const std::string &insertVie
 
 	if (currentTables.count(insertViewName)) {
 		if (currentTables[insertViewName].count(identifier)) {
-			std::cout << "getting cached " << insertViewName << " table " << identifier << std::endl;
+			LOG4CPLUS_DEBUG(this->getApplicationLogger(),"getting cached "+insertViewName+" table "+identifier);
 			return currentTables[insertViewName][identifier];
 		}
 	}
@@ -1505,16 +1577,12 @@ void EmuPCrateConfigTStore::uploadVMECC(const std::string &connectionID, xdata::
   //copyVMECCToTable(newRows,TStore_thisCrate);
   xdata::UnsignedInteger64 _vcc_config_id   = periph_config_id + 130000;
   xdata::Table &newRows=getCachedTable(/*,TStore_thisCrate*/insertViewName/*,_vcc_config_id*/,/*TStore_thisCrate->CrateID()*/crateID); 
-  std::cout << "newRows.getColumnType(PERIPH_CONFIG_ID)=" << newRows.getColumnType(PERIPH_CONFIG_ID) << std::endl;
+  //std::cout << "newRows.getColumnType(PERIPH_CONFIG_ID)=" << newRows.getColumnType(PERIPH_CONFIG_ID) << std::endl;
   setConfigID(newRows,rowId, PERIPH_CONFIG_ID, periph_config_id);
-  std::cout << periph_config_id.toString() << std::endl;
-  std::cout << newRows.getValueAt(rowId, PERIPH_CONFIG_ID)->toString() << std::endl;
-  std::cout << "newRows.getColumnType(VCC_CONFIG_ID)=" << newRows.getColumnType(VCC_CONFIG_ID) << std::endl;
+  //std::cout << "newRows.getColumnType(VCC_CONFIG_ID)=" << newRows.getColumnType(VCC_CONFIG_ID) << std::endl;
   setConfigID(newRows,rowId, VCC_CONFIG_ID,    _vcc_config_id);
   setConfigID(newRows,rowId, EMU_CONFIG_ID,    emu_config_id_);
-  std::cout << "emu config id " << newRows.getValueAt(rowId, EMU_CONFIG_ID)->toString() << std::endl;
  
-	//currentTable_emu_vcc=newRows;
   insert(connectionID,insertViewName,newRows);
 
 }
