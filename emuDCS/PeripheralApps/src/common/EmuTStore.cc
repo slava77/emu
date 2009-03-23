@@ -376,9 +376,7 @@ void EmuTStore::readConfiguration(const std::string &connectionID, const std::st
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       std::string StrgValue=results.getValueAt(rowIndex,*column)->toString();
-#ifdef debugV
       std::cout << *column + ": " + StrgValue << std::endl;
-#endif
     }
   }
 
@@ -439,7 +437,7 @@ void EmuTStore::readVCC(const std::string &connectionID, const std::string &emu_
 
   xdata::Serializable  * value;
   std::string StrgValue;
-  int IntValue;
+  int IntValue=0;
 
   query(connectionID, queryViewName, emu_config_id, periph_config_id, results);
   
