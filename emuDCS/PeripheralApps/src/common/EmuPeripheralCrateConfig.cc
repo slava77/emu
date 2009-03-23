@@ -2451,7 +2451,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerRedirect(xgi::Input * in, xgi::O
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
   } else {
@@ -2516,7 +2516,7 @@ void EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Ou
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
   } else {
@@ -3600,7 +3600,7 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
         if(dmbcfg==0){
 	  //
           for(unsigned int j=0;j<thisCFEBs.size();j++){
-            int numcfeb;
+            int numcfeb=0;
             for(unsigned int jj=0;jj<thisCFEBs.size();jj++){
               if(j==(unsigned int)thisCFEBs[jj].number())numcfeb=jj;
             }
@@ -4067,7 +4067,7 @@ void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
 
     if(ncmd==2){
       // now readback bit contents of prom
-      char * outp;             ;   // recast dword
+      char * outp="....";    // recast dword
       thisDMB->epromload_verify(thisCFEB.promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
       std::cout << " time calculation " << std::endl;
       time_t rawtime;
@@ -4551,7 +4551,7 @@ void EmuPeripheralCrateConfig::DMBTestAll(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
     //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMB " << dmb << std::endl;
@@ -4583,7 +4583,7 @@ void EmuPeripheralCrateConfig::DMBTest3(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "Test3 DMB " << dmb << std::endl;
@@ -4609,7 +4609,7 @@ void EmuPeripheralCrateConfig::DMBTest4(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "Test4 DMB " << dmb << std::endl;
@@ -4635,7 +4635,7 @@ void EmuPeripheralCrateConfig::DMBTest5(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "Test5 DMB " << dmb << std::endl;
@@ -4661,7 +4661,7 @@ void EmuPeripheralCrateConfig::DMBTest6(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "Test6 DMB " << dmb << std::endl;
@@ -4687,7 +4687,7 @@ void EmuPeripheralCrateConfig::DMBTest8(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "Test8 DMB " << dmb << std::endl;
@@ -4712,7 +4712,7 @@ void EmuPeripheralCrateConfig::DMBTest9(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "Test9 DMB " << dmb << std::endl;
@@ -4737,7 +4737,7 @@ void EmuPeripheralCrateConfig::DMBTest10(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "Test10 DMB " << dmb << std::endl;
@@ -4762,7 +4762,7 @@ void EmuPeripheralCrateConfig::DMBTest11(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "Test11 DMB " << dmb << std::endl;
@@ -5345,7 +5345,7 @@ void EmuPeripheralCrateConfig::TMBStartTrigger(xgi::Input * in, xgi::Output * ou
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
@@ -5382,7 +5382,7 @@ void EmuPeripheralCrateConfig::EnableL1aRequest(xgi::Input * in, xgi::Output * o
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
@@ -5424,7 +5424,7 @@ void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
@@ -5464,7 +5464,7 @@ void EmuPeripheralCrateConfig::CFEBTiming(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
@@ -5504,7 +5504,7 @@ void EmuPeripheralCrateConfig::Automatic(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb;
+  int tmb=0;
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
@@ -5839,7 +5839,7 @@ void EmuPeripheralCrateConfig::ALCTvpf(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb;
+  int tmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
@@ -5878,7 +5878,7 @@ void EmuPeripheralCrateConfig::ALCTScan(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
@@ -5916,7 +5916,7 @@ void EmuPeripheralCrateConfig::CFEBScan(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
@@ -5953,7 +5953,7 @@ void EmuPeripheralCrateConfig::FindDistripHotChannel(xgi::Input * in, xgi::Outpu
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
@@ -5991,7 +5991,7 @@ void EmuPeripheralCrateConfig::FindWinner(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
@@ -6030,7 +6030,7 @@ void EmuPeripheralCrateConfig::AlctDavCableDelay(xgi::Input * in, xgi::Output * 
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
@@ -6072,7 +6072,7 @@ void EmuPeripheralCrateConfig::CfebDavCableDelay(xgi::Input * in, xgi::Output * 
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
@@ -6123,7 +6123,7 @@ void EmuPeripheralCrateConfig::TmbLctCableDelay(xgi::Input * in, xgi::Output * o
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
@@ -6164,7 +6164,7 @@ void EmuPeripheralCrateConfig::PrintDmbValuesAndScopes(xgi::Input * in, xgi::Out
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb, dmb;
+  int tmb=0, dmb=0;
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
@@ -6204,7 +6204,7 @@ void EmuPeripheralCrateConfig::RatTmbTiming(xgi::Input * in, xgi::Output * out )
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "RatTmbTiming:  TMB " << tmb << std::endl;
@@ -6229,7 +6229,7 @@ void EmuPeripheralCrateConfig::RpcRatTiming(xgi::Input * in, xgi::Output * out )
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "RpcRatTiming:  TMB " << tmb << std::endl;
@@ -6255,7 +6255,7 @@ void EmuPeripheralCrateConfig::CFEBStatus(xgi::Input * in, xgi::Output * out )
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMB " << dmb << std::endl;
@@ -6484,7 +6484,7 @@ void EmuPeripheralCrateConfig::DMBTurnOff(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMBTurnOff:  DMB " << dmb << std::endl;
@@ -6510,7 +6510,7 @@ void EmuPeripheralCrateConfig::DMBLoadFirmware(xgi::Input * in, xgi::Output * ou
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMBLoadFirmware:  DMB " << dmb << std::endl;
@@ -6549,7 +6549,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmware(xgi::Input * in, xgi::Output *
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMBVmeLoadFirmware:  DMB " << dmb << std::endl;
@@ -6615,7 +6615,7 @@ void EmuPeripheralCrateConfig::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi:
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMB " << dmb << std::endl;
@@ -6679,7 +6679,7 @@ void EmuPeripheralCrateConfig::CFEBReadFirmware(xgi::Input * in, xgi::Output * o
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMB " << dmb << std::endl;
@@ -6760,7 +6760,7 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmware(xgi::Input * in, xgi::Output * o
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMB " << dmb << std::endl;
@@ -6854,7 +6854,7 @@ void EmuPeripheralCrateConfig::CFEBLoadFirmwareID(xgi::Input * in, xgi::Output *
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMB " << dmb << std::endl;
@@ -6908,7 +6908,7 @@ void EmuPeripheralCrateConfig::DMBTurnOn(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMB " << dmb << std::endl;
@@ -6934,7 +6934,7 @@ void EmuPeripheralCrateConfig::DMBCheckConfiguration(xgi::Input * in, xgi::Outpu
   //
   cgicc::form_iterator name = cgi.getElement("dmb");
   //
-  int dmb;
+  int dmb=0;
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
     std::cout << "DMBCheckConfiguration  DMB " << dmb << std::endl;
@@ -6963,7 +6963,7 @@ void EmuPeripheralCrateConfig::TMBPrintCounters(xgi::Input * in, xgi::Output * o
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -6990,7 +6990,7 @@ void EmuPeripheralCrateConfig::TMBResetCounters(xgi::Input * in, xgi::Output * o
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7011,7 +7011,7 @@ void EmuPeripheralCrateConfig::TMBCounterForFixedTime(xgi::Input * in, xgi::Outp
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     TMB_ = tmb;
@@ -7045,7 +7045,7 @@ void EmuPeripheralCrateConfig::TriggerTestInjectALCT(xgi::Input * in, xgi::Outpu
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7068,7 +7068,7 @@ void EmuPeripheralCrateConfig::armScope(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7091,7 +7091,7 @@ void EmuPeripheralCrateConfig::forceScope(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7114,7 +7114,7 @@ void EmuPeripheralCrateConfig::readoutScope(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7138,7 +7138,7 @@ void EmuPeripheralCrateConfig::TriggerTestInjectCLCT(xgi::Input * in, xgi::Outpu
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7161,7 +7161,7 @@ void EmuPeripheralCrateConfig::TMBDumpAllRegisters(xgi::Input * in, xgi::Output 
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7183,7 +7183,7 @@ void EmuPeripheralCrateConfig::TMBClearUserProms(xgi::Input * in, xgi::Output * 
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7206,7 +7206,7 @@ void EmuPeripheralCrateConfig::TMBConfigure(xgi::Input * in, xgi::Output * out )
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "Configure:  TMB " << tmb << std::endl;
@@ -7229,7 +7229,7 @@ void EmuPeripheralCrateConfig::TMBReadConfiguration(xgi::Input * in, xgi::Output
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7261,7 +7261,7 @@ void EmuPeripheralCrateConfig::TMBCheckConfiguration(xgi::Input * in, xgi::Outpu
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7291,7 +7291,7 @@ void EmuPeripheralCrateConfig::TMBReadStateMachines(xgi::Input * in, xgi::Output
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7324,7 +7324,7 @@ void EmuPeripheralCrateConfig::TMBRawHits(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMBRawHits:  TMB " << tmb << std::endl;
@@ -7348,7 +7348,7 @@ void EmuPeripheralCrateConfig::ALCTRawHits(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "ALCTRawHits:  TMB " << tmb << std::endl;
@@ -7372,7 +7372,7 @@ void EmuPeripheralCrateConfig::TMBCheckStateMachines(xgi::Input * in, xgi::Outpu
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -7400,7 +7400,7 @@ void EmuPeripheralCrateConfig::ALCTStatus(xgi::Input * in, xgi::Output * out )
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -11577,7 +11577,7 @@ void EmuPeripheralCrateConfig::testTMB(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "testTMB:  TMB " << tmb << std::endl;
@@ -11586,7 +11586,7 @@ void EmuPeripheralCrateConfig::testTMB(xgi::Input * in, xgi::Output * out )
   //
   name = cgi.getElement("tmbTestid");
   //
-  int tmbTestid;
+  int tmbTestid=0;
   if(name != cgi.getElements().end()) {
     tmbTestid = cgi["tmbTestid"]->getIntegerValue();
     std::cout << "tmbTestid " << tmbTestid << std::endl;
@@ -12879,7 +12879,7 @@ void EmuPeripheralCrateConfig::UnjamTMB(xgi::Input * in, xgi::Output * out )
   //
   cgicc::form_iterator name = cgi.getElement("tmb");
   //
-  int tmb;
+  int tmb=0;
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
     std::cout << "TMB " << tmb << std::endl;
@@ -13256,7 +13256,7 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
   //
   bool isME13 = false;
   TMB * thisTMB   = tmbVector[dmb];
-  ALCTController * thisALCT;
+  ALCTController * thisALCT=0;
   if (thisTMB) 
     thisALCT = thisTMB->alctController();
   if (thisALCT) 
@@ -14142,7 +14142,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     //
     cgicc::form_iterator name = cgi.getElement("dmb");
     //
-    int dmb;
+    int dmb=0;
     if(name != cgi.getElements().end()) {
       dmb = cgi["dmb"]->getIntegerValue();
       std::cout << "DMB " << dmb << std::endl;
@@ -14170,7 +14170,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     cgicc::form_iterator name = cgi.getElement("dmb");
     //
     //
-    int dmb;
+    int dmb=0;
     if(name != cgi.getElements().end()) {
       dmb = cgi["dmb"]->getIntegerValue();
       std::cout << "DMB " << dmb << std::endl;
