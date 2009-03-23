@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.81 2009/03/19 13:29:42 rakness Exp $
+// $Id: TMB.cc,v 3.82 2009/03/23 11:10:45 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.82  2009/03/23 11:10:45  liu
+// remove compiler warnings
+//
 // Revision 3.81  2009/03/19 13:29:42  rakness
 // clean up functionality in writing to userPROMs for TMB and ALCT.  This is to fix bug introduced in TMB v3.80 by using tmb_vme_new
 //
@@ -1456,7 +1459,7 @@ int * TMB::GetCounters(){
       //
       // Combine lsbs+msbs
       //
-      int cnt_lsb, cnt_msb;
+      int cnt_lsb=0, cnt_msb;
       long int cnt_full;
       //
       if( odd_even == 0 ) { 
@@ -1648,8 +1651,8 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
   unsigned long int runstop;
   //unsigned long int force_trig;
   //unsigned long int ch_source;
-  unsigned long int ram_sel;
-  unsigned long int Auto;
+  unsigned long int ram_sel=0;
+  unsigned long int Auto=0;
   //unsigned long int nowrite;
   //unsigned long int ready;
   //unsigned long int trig_done;
@@ -3218,7 +3221,11 @@ void TMB::PrintTMBRawHits() {
 //
   return;
 }
+
 //
+// disable obsolete code below, Liu Mar.23,2009
+//
+#if 0
 void TMB::decode() {
   //
   unsigned long int base_adr;
@@ -3505,6 +3512,10 @@ void TMB::decode() {
   //return 0;
 
 } //main
+//
+#endif
+// above code disabled by Liu Mar.23,2009
+
 //
 void TMB::init_alct(int choice)
 {
@@ -4834,7 +4845,7 @@ void TMB::TriggerTestInjectCLCT(){
 //
 int TMB::tmb_read_delays(int device) {
 
-  int data;
+  int data=0;
 
   // device = 0  = CFEB 0 Clock
   //        = 1  = CFEB 1 clock
@@ -5292,7 +5303,7 @@ std::bitset<64> TMB::dsnRead(int type) {
   //
   int wr_data, rd_data;
   //
-  int initial_state;
+  int initial_state=0;
   // ** need to specifically enable RAT to read back DSN **
   if (type == 2) {  
     initial_state = ReadRegister(vme_ratctrl_adr);  //initial RAT state
@@ -5669,7 +5680,7 @@ int TMB::smb_io(int smb_adr, int cmd, int module) {
   sda_bit[19]= 0;                                // Stop
   //
   int d[20];
-  int sda_value;
+  int sda_value=0;
   //
   nclks = 79;
   //
