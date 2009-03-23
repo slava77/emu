@@ -56,26 +56,10 @@ public:
   void queryMaxId(const std::string &connectionID,const std::string &queryViewName, const std::string &dbTable, const std::string &dbColumn, const std::string endcap_side, xdata::Table &results) throw (xcept::Exception);
   void getDefinition(const std::string &connectionID, const std::string &insertViewName, xdata::Table &results) throw (xcept::Exception);
   void insert(const std::string &connectionID, const std::string &insertViewName, xdata::Table &newRows) throw (xcept::Exception);
-  void synchronize(const std::string &connectionID, const std::string &syncMode, const std::string &syncPattern) throw (xcept::Exception);
   void getConfiguration(const std::string &xpath) throw (xcept::Exception);
 
   //
   void getDbUserData();
-
-  // XML Data Uploads
-  void startUpload() throw (xcept::Exception);
-  xdata::UnsignedInteger64 getConfigId(const std::string &dbTable, const std::string &dbColumn, const std::string endcap_side) throw (xcept::Exception);
-  void uploadConfiguration(const std::string &connectionID, const std::string endcap_side) throw (xcept::Exception);
-  void uploadPeripheralCrate(const std::string &connectionID, const std::vector<Crate *> &TStore_allCrates) throw (xcept::Exception);
-  void uploadCCB(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, CCB * TStore_thisCCB) throw (xcept::Exception);
-  void uploadMPC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, MPC * TStore_thisMPC) throw (xcept::Exception);
-  void uploadVMECC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, Crate * TStore_thisCrate) throw (xcept::Exception);
-  void uploadCSC(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, const std::vector<Chamber *> &TStore_allChambers) throw (xcept::Exception);
-  void uploadDAQMB(const std::string &connectionID, xdata::UnsignedInteger64 &csc_config_id, DAQMB * &TStore_thisDAQMB) throw (xcept::Exception);
-  void uploadTMB(const std::string &connectionID, xdata::UnsignedInteger64 &csc_config_id, TMB * &TStore_thisTMB) throw (xcept::Exception);
-  void uploadALCT(const std::string &connectionID, xdata::UnsignedInteger64 &tmb_config_id, ALCTController * &TStore_thisALCT) throw (xcept::Exception);
-  void uploadAnodeChannel(const std::string &connectionID, xdata::UnsignedInteger64 &alct_config_id, ALCTController * &TStore_thisALCT) throw (xcept::Exception);
-  void uploadCFEB(const std::string &connectionID, xdata::UnsignedInteger64 &daqmb_config_id, DAQMB * &TStore_thisDAQMB) throw (xcept::Exception);
 
   // DB Data Reads
   EmuEndcap * getConfiguredEndcap(const std::string &emu_config_id) throw (xcept::Exception);
