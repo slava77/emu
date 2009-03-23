@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.40 2009/03/15 12:32:14 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.41 2009/03/23 13:45:44 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -93,9 +93,16 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   //
   fsm_.addStateTransition('H', 'C', "Configure", this, &EmuPeripheralCrateBroadcast::dummyAction);
   fsm_.addStateTransition('C', 'C', "Configure", this, &EmuPeripheralCrateBroadcast::dummyAction);
+  fsm_.addStateTransition('E', 'E', "Configure", this, &EmuPeripheralCrateBroadcast::dummyAction); // invalid, do nothing
+
+  fsm_.addStateTransition('H', 'H', "Enable",    this, &EmuPeripheralCrateBroadcast::dummyAction); // invalid, do nothing
   fsm_.addStateTransition('C', 'E', "Enable",    this, &EmuPeripheralCrateBroadcast::dummyAction);
   fsm_.addStateTransition('E', 'E', "Enable",    this, &EmuPeripheralCrateBroadcast::dummyAction);
+
+  fsm_.addStateTransition('H', 'H', "Disable",   this, &EmuPeripheralCrateBroadcast::dummyAction); // invalid, do nothing
+  fsm_.addStateTransition('C', 'C', "Disable",   this, &EmuPeripheralCrateBroadcast::dummyAction);
   fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuPeripheralCrateBroadcast::dummyAction);
+
   fsm_.addStateTransition('C', 'H', "Halt",      this, &EmuPeripheralCrateBroadcast::dummyAction);
   fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuPeripheralCrateBroadcast::dummyAction);
   fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuPeripheralCrateBroadcast::dummyAction);

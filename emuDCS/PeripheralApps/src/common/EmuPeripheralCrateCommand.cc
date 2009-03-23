@@ -73,12 +73,19 @@ EmuPeripheralCrateCommand::EmuPeripheralCrateCommand(xdaq::ApplicationStub * s):
   //
   fsm_.addStateTransition('H', 'C', "Configure", this, &EmuPeripheralCrateCommand::configureAction);
   fsm_.addStateTransition('C', 'C', "Configure", this, &EmuPeripheralCrateCommand::reConfigureAction);
+  fsm_.addStateTransition('E', 'E', "Configure", this, &EmuPeripheralCrateCommand::reConfigureAction); // invalid, do nothing
+
+  fsm_.addStateTransition('H', 'H', "Enable",    this, &EmuPeripheralCrateCommand::enableAction); // invalid, do nothing
   fsm_.addStateTransition('C', 'E', "Enable",    this, &EmuPeripheralCrateCommand::enableAction);
   fsm_.addStateTransition('E', 'E', "Enable",    this, &EmuPeripheralCrateCommand::enableAction);
+
+  fsm_.addStateTransition('H', 'H', "Disable",   this, &EmuPeripheralCrateCommand::disableAction); // invalid, do nothing
+  fsm_.addStateTransition('C', 'C', "Disable",   this, &EmuPeripheralCrateCommand::disableAction);
   fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuPeripheralCrateCommand::disableAction);
+
+  fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuPeripheralCrateCommand::haltAction);
   fsm_.addStateTransition('C', 'H', "Halt",      this, &EmuPeripheralCrateCommand::haltAction);
   fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuPeripheralCrateCommand::haltAction);
-  fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuPeripheralCrateCommand::haltAction);
   //
   fsm_.setInitialState('H');
   fsm_.reset();    
