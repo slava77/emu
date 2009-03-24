@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.6 2009/03/12 14:29:58 paste Exp $
+* $Id: AppsVersion.h,v 1.7 2009/03/24 19:11:08 paste Exp $
 *
 * $Log: AppsVersion.h,v $
+* Revision 1.7  2009/03/24 19:11:08  paste
+* Fixed a bug that made Manager always return a Failed state after Disable command
+*
 * Revision 1.6  2009/03/12 14:29:58  paste
 * * Fixed image display bug in Monitor
 * * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
@@ -29,11 +32,11 @@
 #include "config/PackageInfo.h"
 
 namespace emufedapps {
-	const std::string package     = "emufedapps";
-	const std::string versions    = "07.00.05";
-	const std::string description = "Emu (CSC) FED crate XDAq applications";
+	const std::string package     = "FEDApps";
+	const std::string versions    = "07.01.00";
+	const std::string description = "Emu (CSC) FED XDAQ Applications";
 
-	const std::string summary     = "A collection of XDAq applications for controlling end-cap muon CSC FED VME hardware.";
+	const std::string summary     = "Applications to control and monitor the Front End Device (FED) crates for the CMS Emu (CSC) subdetector";
 	const std::string authors     = "Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu";
 	const std::string link        = "http://www.physics.ohio-state.edu/~cms";
 

@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.2 2009/03/09 16:03:17 paste Exp $
+* $Id: Communicator.cc,v 1.3 2009/03/24 19:11:08 paste Exp $
 *
 * $Log: Communicator.cc,v $
+* Revision 1.3  2009/03/24 19:11:08  paste
+* Fixed a bug that made Manager always return a Failed state after Disable command
+*
 * Revision 1.2  2009/03/09 16:03:17  paste
 * * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
 * * Updated inheritance in wake of changes to emu::base::Supervised
@@ -641,7 +644,7 @@ throw (toolbox::fsm::exception::Exception)
 	// PGK We now have the run number from CSCSV
 	try {
 		TM_->startThreads(runNumber_);
-	} catch (emu::fed::exception::FMMThreadException &e) {
+	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "FMM monitoring threads not started";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
@@ -661,7 +664,7 @@ throw (toolbox::fsm::exception::Exception)
 
 	try {
 		TM_->endThreads();
-	} catch (emu::fed::exception::FMMThreadException &e) {
+	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Error in stopping FMM monitoring threads";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
@@ -683,7 +686,7 @@ throw (toolbox::fsm::exception::Exception)
 
 	try {
 		TM_->endThreads();
-	} catch (emu::fed::exception::FMMThreadException &e) {
+	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Error in stopping FMM monitoring threads";
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());

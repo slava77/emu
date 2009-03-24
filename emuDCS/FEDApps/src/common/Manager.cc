@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.2 2009/03/09 16:03:17 paste Exp $
+* $Id: Manager.cc,v 1.3 2009/03/24 19:11:08 paste Exp $
 *
 * $Log: Manager.cc,v $
+* Revision 1.3  2009/03/24 19:11:08  paste
+* Fixed a bug that made Manager always return a Failed state after Disable command
+*
 * Revision 1.2  2009/03/09 16:03:17  paste
 * * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
 * * Updated inheritance in wake of changes to emu::base::Supervised
@@ -743,7 +746,7 @@ throw (toolbox::fsm::exception::Exception)
 		}
 	}
 
-	std::string underlyingStates = getUnderlyingStates("Halted");
+	std::string underlyingStates = getUnderlyingStates("Configured");
 	if (underlyingStates == "Failed") {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
