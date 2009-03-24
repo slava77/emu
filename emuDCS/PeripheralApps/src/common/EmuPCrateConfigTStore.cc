@@ -47,6 +47,8 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::incrementValue, "incrementValue");
   xgi::bind(this,&EmuPCrateConfigTStore::setValue, "setValue");
   xgi::bind(this,&EmuPCrateConfigTStore::changeSingleValue, "changeSingleValue");
+  xgi::bind(this,&EmuPCrateConfigTStore::showTable, "Show");
+  xgi::bind(this,&EmuPCrateConfigTStore::hideTable, "Hide");
   
   std::string HomeDir_ =getenv("HOME");
   xmlpath_    = HomeDir_ + "/config/pc/"; //xml file chosen must be in this directory. If you choose something in another directory then it will look for it in here and fail.
@@ -87,14 +89,39 @@ void EmuPCrateConfigTStore::outputHeader(xgi::Output * out) {
 			    );
 }
 
+std::string EmuPCrateConfigTStore::fullTableID(const std::string &configName,const std::string &identifier) {
+	return configName+"_"+identifier;
+}
+
+bool EmuPCrateConfigTStore::shouldDisplayConfiguration(const std::string &configName,const std::string &identifier) {
+	std::string key=fullTableID(configName,identifier);
+	if (tablesToDisplay.count(key)) {
+		return tablesToDisplay[key];
+	}
+	return false;
+}
+
+void EmuPCrateConfigTStore::outputShowHideButton(xgi::Output * out,const std::string &configName,const std::string &identifier) {
+	std::string key=fullTableID(configName,identifier);
+	std::string action;
+	if (shouldDisplayConfiguration(configName,identifier)) action="Hide";
+	else action="Show";
+	*out << cgicc::form().set("method","POST").set("action", toolbox::toString("/%s/%s",getApplicationDescriptor()->getURN().c_str(),action.c_str())) << std::endl;
+	*out << cgicc::input().set("type","hidden").set("name","table").set("value",key) << std::endl;
+
+	*out << cgicc::input().set("type","submit").set("value",action) << std::endl;
+	*out << cgicc::form() << std::endl;
+	
+}
+
 //displays the table with name \a configName and identifier \a identifier
 void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::string &configName,const std::string &identifier) {
-  	xdata::Table &currentTable=getCachedTable(configName,identifier);
-    *out << configName << std::endl;
-  	outputTable(out,currentTable,configName,identifier);
-	//perhaps also output subtables, e.g.
-	//for each configName.children,
-	//look for instances of that table with child keys of identifier
+	outputShowHideButton(out,configName,identifier);
+	if (shouldDisplayConfiguration(configName,identifier)) {
+		xdata::Table &currentTable=getCachedTable(configName,identifier);
+	    *out << configName << std::endl;
+		outputTable(out,currentTable,configName,identifier);
+	}
 }
 
 //displays all tables with name \a configName which are related to the crate with ID \a crateID
@@ -426,6 +453,23 @@ void EmuPCrateConfigTStore::SelectConfFile(xgi::Input * in, xgi::Output * out )
   }
   
   
+  
+ void EmuPCrateConfigTStore::showTable(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception) {
+	cgicc::Cgicc cgi(in);
+  	std::string tableName=**cgi["table"];
+	tablesToDisplay[tableName]=true;
+	Default(in,out);
+    }
+    
+     void EmuPCrateConfigTStore::hideTable(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception) {
+	cgicc::Cgicc cgi(in);
+  	std::string tableName=**cgi["table"];
+	tablesToDisplay[tableName]=false;
+	Default(in,out);
+    }
+    
 template <class xdataType>
 void set(xdata::Serializable *originalValue,const std::string &newValue) {
 	xdataType *original=dynamic_cast<xdataType *>(originalValue);
@@ -694,46 +738,52 @@ void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * ou
   	xdata::Table dataAsTable;
   	  getTableDefinitionsIfNecessary();
   	if (myCrates.size()) {
-    	for(unsigned i = 0; i < myCrates.size(); ++i) {
-    		copyCCBToTable(dataAsTable,myCrates[i]);
-  			setCachedTable("ccb",myCrates[i]->CrateID(),dataAsTable);
-  			copyMPCToTable(dataAsTable,myCrates[i]);
-  			setCachedTable("mpc",myCrates[i]->CrateID(),dataAsTable);
-  			copyVMECCToTable(dataAsTable,myCrates[i]);
-  			setCachedTable("vcc",myCrates[i]->CrateID(),dataAsTable);
-  			std::vector<Chamber *> chambers=myCrates[i]->chambers();
-  			for(unsigned chamberIndex = 0; chamberIndex < chambers.size(); ++chamberIndex) {
-    			if(chambers[chamberIndex]) {
-  					copyCSCToTable(dataAsTable,chambers[chamberIndex]);
-  					std::string chamber=chamberID(myCrates[i]->CrateID(),chambers[chamberIndex]->GetLabel());
-  					setCachedTable("csc",chamber,dataAsTable);
-  					DAQMB *dmb=chambers[chamberIndex]->GetDMB();
-  					if (dmb) {
-  						std::string cacheIdentifier=DAQMBID(chamber,dmb->slot());
-  						copyDAQMBToTable(dataAsTable,dmb);
-  						setCachedTable("daqmb",cacheIdentifier,dataAsTable);
-  						copyCFEBToTable(dataAsTable,dmb);
-  						setCachedTable("cfeb",cacheIdentifier,dataAsTable);
-  					}
-  					TMB *tmb=chambers[chamberIndex]->GetTMB();
-  					if (tmb) {
-  						std::string cacheIdentifier=DAQMBID(chamber,tmb->slot());
-  						copyTMBToTable(dataAsTable,tmb);
-  						setCachedTable("tmb",cacheIdentifier,dataAsTable);
-						 ALCTController * thisALCT = tmb->alctController();
-						copyALCTToTable(dataAsTable,thisALCT);
-  						setCachedTable("alct",cacheIdentifier,dataAsTable);
-						copyAnodeChannelToTable(dataAsTable,thisALCT);
-  						setCachedTable("anodechannel",cacheIdentifier,dataAsTable);
-  					}
-  				}
-  			}
-  		}
+		for(unsigned i = 0; i < myCrates.size(); ++i) {
+			if (myCrates[i]) {
+				copyCCBToTable(dataAsTable,myCrates[i]);
+				setCachedTable("ccb",myCrates[i]->CrateID(),dataAsTable);
+				copyMPCToTable(dataAsTable,myCrates[i]);
+				setCachedTable("mpc",myCrates[i]->CrateID(),dataAsTable);
+				copyVMECCToTable(dataAsTable,myCrates[i]);
+				setCachedTable("vcc",myCrates[i]->CrateID(),dataAsTable);
+				std::vector<Chamber *> chambers=myCrates[i]->chambers();
+				for(unsigned chamberIndex = 0; chamberIndex < chambers.size(); ++chamberIndex) {
+				if(chambers[chamberIndex]) {
+						copyCSCToTable(dataAsTable,chambers[chamberIndex]);
+						std::string chamber=chamberID(myCrates[i]->CrateID(),chambers[chamberIndex]->GetLabel());
+						setCachedTable("csc",chamber,dataAsTable);
+						DAQMB *dmb=chambers[chamberIndex]->GetDMB();
+						if (dmb) {
+							std::string cacheIdentifier=DAQMBID(chamber,dmb->slot());
+							copyDAQMBToTable(dataAsTable,dmb);
+							setCachedTable("daqmb",cacheIdentifier,dataAsTable);
+							copyCFEBToTable(dataAsTable,dmb);
+							setCachedTable("cfeb",cacheIdentifier,dataAsTable);
+						}
+						TMB *tmb=chambers[chamberIndex]->GetTMB();
+						if (tmb) {
+							std::string cacheIdentifier=DAQMBID(chamber,tmb->slot());
+							copyTMBToTable(dataAsTable,tmb);
+							setCachedTable("tmb",cacheIdentifier,dataAsTable);
+							 ALCTController * thisALCT = tmb->alctController();
+							copyALCTToTable(dataAsTable,thisALCT);
+							setCachedTable("alct",cacheIdentifier,dataAsTable);
+							copyAnodeChannelToTable(dataAsTable,thisALCT);
+							setCachedTable("anodechannel",cacheIdentifier,dataAsTable);
+						}
+					}
+				}
+			}
+		}
   	}
     outputFooter(out);
  }    
   } catch (xcept::Exception &e) {
     outputException(out,e);
+  } catch (std::exception &e) {
+    std::cout << e.what() << std::endl;
+  } catch (std::string &e) {
+     std::cout << "string thrown: " << e << std::endl;
   } catch (...) {
   	//todo: change this to do something more useful. I only added it to prevent crashing
   	std::cout << "unknown thing thrown" << std::endl;
@@ -1364,24 +1414,25 @@ void EmuPCrateConfigTStore::copyCCBToTable(xdata::Table &newRows,Crate * TStore_
   std::string TTCRXID("TTCRXID");
 	
 	CCB *TStore_thisCCB=TStore_thisCrate->ccb();
-
-  xdata::UnsignedShort     _ccbmode            = TStore_thisCCB->GetCCBmode();
-  xdata::UnsignedShort     _ccb_firmware_day   = TStore_thisCCB->GetExpectedFirmwareDay();
-  xdata::UnsignedShort     _ccb_firmware_month = TStore_thisCCB->GetExpectedFirmwareMonth();
-  xdata::UnsignedShort     _ccb_firmware_year  = TStore_thisCCB->GetExpectedFirmwareYear();
-  xdata::UnsignedShort     _l1adelay           = TStore_thisCCB->Getl1adelay();
-  xdata::UnsignedShort     _ttcrxcoarsedelay   = TStore_thisCCB->GetTTCrxCoarseDelay();
-  xdata::UnsignedShort     _ttcrxfinedelay     = TStore_thisCCB->GetTTCrxFineDelay();
-  xdata::UnsignedShort     _ttcrxid            = TStore_thisCCB->GetTTCrxID();
-  
-  newRows.setValueAt(rowId, CCBMODE,            _ccbmode);
-  newRows.setValueAt(rowId, CCB_FIRMWARE_DAY,   _ccb_firmware_day);
-  newRows.setValueAt(rowId, CCB_FIRMWARE_MONTH, _ccb_firmware_month);
-  newRows.setValueAt(rowId, CCB_FIRMWARE_YEAR,  _ccb_firmware_year);
-  newRows.setValueAt(rowId, L1ADELAY,           _l1adelay);
-  newRows.setValueAt(rowId, TTCRXCOARSEDELAY,   _ttcrxcoarsedelay);
-  newRows.setValueAt(rowId, TTCRXFINEDELAY,     _ttcrxfinedelay);
-  newRows.setValueAt(rowId, TTCRXID,            _ttcrxid);
+	if (TStore_thisCCB) {
+		  xdata::UnsignedShort     _ccbmode            = TStore_thisCCB->GetCCBmode();
+		  xdata::UnsignedShort     _ccb_firmware_day   = TStore_thisCCB->GetExpectedFirmwareDay();
+		  xdata::UnsignedShort     _ccb_firmware_month = TStore_thisCCB->GetExpectedFirmwareMonth();
+		  xdata::UnsignedShort     _ccb_firmware_year  = TStore_thisCCB->GetExpectedFirmwareYear();
+		  xdata::UnsignedShort     _l1adelay           = TStore_thisCCB->Getl1adelay();
+		  xdata::UnsignedShort     _ttcrxcoarsedelay   = TStore_thisCCB->GetTTCrxCoarseDelay();
+		  xdata::UnsignedShort     _ttcrxfinedelay     = TStore_thisCCB->GetTTCrxFineDelay();
+		  xdata::UnsignedShort     _ttcrxid            = TStore_thisCCB->GetTTCrxID();
+		  
+		  newRows.setValueAt(rowId, CCBMODE,            _ccbmode);
+		  newRows.setValueAt(rowId, CCB_FIRMWARE_DAY,   _ccb_firmware_day);
+		  newRows.setValueAt(rowId, CCB_FIRMWARE_MONTH, _ccb_firmware_month);
+		  newRows.setValueAt(rowId, CCB_FIRMWARE_YEAR,  _ccb_firmware_year);
+		  newRows.setValueAt(rowId, L1ADELAY,           _l1adelay);
+		  newRows.setValueAt(rowId, TTCRXCOARSEDELAY,   _ttcrxcoarsedelay);
+		  newRows.setValueAt(rowId, TTCRXFINEDELAY,     _ttcrxfinedelay);
+		  newRows.setValueAt(rowId, TTCRXID,            _ttcrxid);
+	}
 }
 
 void EmuPCrateConfigTStore::uploadCCB(const std::string &connectionID, xdata::UnsignedInteger64 &periph_config_id, int crateID) throw (xcept::Exception) {
@@ -1540,6 +1591,8 @@ try {
 void EmuPCrateConfigTStore::setCachedTable(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception) {
 	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"setting cached "+insertViewName+" table "+identifier);
 	currentTables[insertViewName][identifier]=table;
+	LOG4CPLUS_DEBUG(this->getApplicationLogger(),"set cached "+insertViewName+" table "+identifier);
+
 }
 
 void EmuPCrateConfigTStore::setCachedTable(const std::string &insertViewName,int crateID,xdata::Table &table/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception) {
@@ -1597,7 +1650,7 @@ void EmuPCrateConfigTStore::copyCSCToTable(xdata::Table &newRows,Chamber * chamb
   
   xdata::String _label;
   xdata::String _known_problem;
-  xdata::UnsignedInteger64 _problem_mask;
+  xdata::UnsignedShort _problem_mask;
   
        _label = chamber->GetLabel();
       _known_problem = chamber->GetProblemDescription();
@@ -1630,7 +1683,7 @@ void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::Un
   xdata::UnsignedInteger64 _csc_config_id;
   xdata::String _label;
   xdata::String _known_problem;
-  xdata::UnsignedInteger64 _problem_mask;
+  xdata::UnsignedShort _problem_mask;
   
   for(unsigned j = 0; j < TStore_allChambers.size(); ++j) {
     if(TStore_allChambers[j]) {      
@@ -1769,7 +1822,7 @@ void EmuPCrateConfigTStore::copyCFEBToTable(xdata::Table &newRows,DAQMB * TStore
   std::string KILL_CHIP4("KILL_CHIP4");
   std::string KILL_CHIP5("KILL_CHIP5");
   
-  std::vector<CFEB> TStore_allCFEBs = TStore_thisDAQMB->cfebs();
+  std::vector<CFEB> &TStore_allCFEBs = TStore_thisDAQMB->cfebs_;//was using TStore_thisDAQMB->cfebs();, but this means copying the whole thing, which results in a bad_alloc if there is something uninitialised, making it harder to diagnose problems
 
   for(unsigned j = 0; j < TStore_allCFEBs.size(); ++j) {
    xdata::UnsignedShort      _cfeb_number       = TStore_allCFEBs[j].number();

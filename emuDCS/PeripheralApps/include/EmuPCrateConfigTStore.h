@@ -62,7 +62,7 @@ public:
   void outputTableEditControls(xgi::Output * out,const std::string &tableName,const std::string &prefix="");
   void outputSingleValue(xgi::Output * out,xdata::Serializable *value,const std::string &tableName="",const std::string &identifier="",const std::string &column="",int rowIndex=0);
   void outputTable(xgi::Output * out,xdata::Table &results,const std::string &tableName="",const std::string &identifier="");
-
+void outputShowHideButton(xgi::Output * out,const std::string &configName,const std::string &identifier);
   // Actions
   void parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void uploadConfigToDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -73,6 +73,8 @@ public:
   void incrementValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void setValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void changeSingleValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void showTable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void hideTable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   // Communication with TStore
   xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception);
   std::string connect() throw (xcept::Exception);
@@ -118,7 +120,8 @@ public:
   void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct,const std::string &identifier) throw (xcept::Exception);
 
 private:
-	
+	bool shouldDisplayConfiguration(const std::string &configName,const std::string &identifier);
+	std::string fullTableID(const std::string &configName,const std::string &identifier);
 	bool tableHasColumn(xdata::Table &table,const std::string &column);
 	void setValueFromString(xdata::Serializable *value,const std::string &newValue);
 	void getRangeOfTables(const cgicc::Cgicc &cgi,std::map<std::string,xdata::Table> &tables,std::map<std::string,xdata::Table>::iterator &firstTable,std::map<std::string,xdata::Table>::iterator &lastTable);
@@ -163,6 +166,7 @@ private:
   //it is named hierarchically beginning with the crate identifier so that it's easy to loop through
   //just the tables relating to a particular crate or chamber to change the values.
   std::map<std::string,std::map<std::string,xdata::Table> > currentTables;
+  std::map<std::string,bool> tablesToDisplay;
   
   std::map<std::string,xdata::Table> tableDefinitions;
   std::map<std::string,std::vector<std::string> > tableNames;
