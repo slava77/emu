@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: UtilsVersion.h,v 1.2 2009/03/05 18:23:07 paste Exp $
+* $Id: UtilsVersion.h,v 1.3 2009/03/24 19:13:44 paste Exp $
 *
 * $Log: UtilsVersion.h,v $
+* Revision 1.3  2009/03/24 19:13:44  paste
+* Fixed crashing when ending threads after an IRQ
+* Made threads more robust by using slot numbers instead of DDU pointers as map indices
+*
 * Revision 1.2  2009/03/05 18:23:07  paste
 * * Added parsing for new attribute in DCC tag:  Software_Switch.  This is a required attribute, which means an update in XML file format is required.
 *
@@ -19,11 +23,11 @@
 #include "config/PackageInfo.h"
 
 namespace emufedutils {
-	const std::string package     = "emufedutils";
-	const std::string versions    = "07.00.01";
-	const std::string description = "Emu (CSC) FED crate utility libraries";
+	const std::string package     = "FEDUtils";
+	const std::string versions    = "07.01.00";
+	const std::string description = "Emu (CSC) FED Utility Libraries";
 
-	const std::string summary     = "A collection of libraries for making programming for end-cap muon CSC FED VME hardware easier.";
+	const std::string summary     = "Utility libraries used by the Front End Device (FED) crate XDAQ applications (FEDApps) for the CMS Emu (CSC) subdetector";
 	const std::string authors     = "Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu";
 	const std::string link        = "http://www.physics.ohio-state.edu/~cms";
 
