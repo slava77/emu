@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.61 2009/03/19 13:29:41 rakness Exp $
+// $Id: TMB.h,v 3.62 2009/03/24 17:41:12 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.62  2009/03/24 17:41:12  rakness
+// Sufficient set of ALCT-TMB Loopback tests to determine alct_rx/tx_phase_delay
+//
 // Revision 3.61  2009/03/19 13:29:41  rakness
 // clean up functionality in writing to userPROMs for TMB and ALCT.  This is to fix bug introduced in TMB v3.80 by using tmb_vme_new
 //
@@ -1543,8 +1546,8 @@ public:
   //
   //!alct_sync_tx_random = 1 = TMB transmits random data to ALCT
   inline void SetALCTSyncTXRandom(int alct_sync_tx_random) { alct_sync_tx_random_ = alct_sync_tx_random; }
-  inline int  SetALCTSyncTXRandom() { return alct_sync_tx_random_; }
-  inline int  SetReadALCTSyncTXRandom() { return read_alct_sync_tx_random_; }
+  inline int  GetALCTSyncTXRandom() { return alct_sync_tx_random_; }
+  inline int  GetReadALCTSyncTXRandom() { return read_alct_sync_tx_random_; }
   //
   //!alct_sync_clear_errors = 1 = ALCT sync mode clear rng errors FF's
   inline void SetALCTSyncClearErrors(int alct_sync_clear_errors) { alct_sync_clear_errors_ = alct_sync_clear_errors; }

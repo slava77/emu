@@ -172,6 +172,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateConfiguration, "CrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateTests, "CrateTests");
   xgi::bind(this,&EmuPeripheralCrateConfig::ChamberTests, "ChamberTests");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ALCT_TMB_communication, "ALCT_TMB_communication");
   xgi::bind(this,&EmuPeripheralCrateConfig::ConfigAllCrates, "ConfigAllCrates");
   xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this,&EmuPeripheralCrateConfig::FastConfigOne, "FastConfigOne");
@@ -285,6 +286,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //----------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::LogChamberTestsOutput, "LogChamberTestsOutput");
   xgi::bind(this,&EmuPeripheralCrateConfig::LogCrateTestsOutput, "LogCrateTestsOutput");
+  xgi::bind(this,&EmuPeripheralCrateConfig::LogALCT_TMB_communicationOutput, "LogALCT_TMB_communicationOutput");
   xgi::bind(this,&EmuPeripheralCrateConfig::Operator, "Operator");
   xgi::bind(this,&EmuPeripheralCrateConfig::RunNumber, "RunNumber");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateChassisID, "CrateChassisID");
@@ -308,6 +310,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //----------------------------------------------
   xgi::bind(this,&EmuPeripheralCrateConfig::InitChamber, "InitChamber");                            //should be deprecated
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTTiming, "ALCTTiming");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ALCT_TMB_Loopback, "ALCT_TMB_Loopback");
+  xgi::bind(this,&EmuPeripheralCrateConfig::TMB_to_ALCT_walking_ones, "TMB_to_ALCT_walking_ones");
   xgi::bind(this,&EmuPeripheralCrateConfig::CFEBTiming, "CFEBTiming");
   xgi::bind(this,&EmuPeripheralCrateConfig::FindDistripHotChannel, "FindDistripHotChannel");
   xgi::bind(this,&EmuPeripheralCrateConfig::setupCoincidencePulsing, "setupCoincidencePulsing");
@@ -4904,22 +4908,12 @@ void EmuPeripheralCrateConfig::ChamberTests(xgi::Input * in, xgi::Output * out )
   //  *out << "   b) Push the following buttons:" << std::endl;
   //  *out << cgicc::pre();
   //
-  std::string ALCTTiming = toolbox::toString("/%s/ALCTTiming",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",ALCTTiming) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Scan ALCT tx/rx phases") << std::endl ;
+  std::string ALCT_TMB_communication = toolbox::toString("/%s/ALCT_TMB_communication",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCT_TMB_communication) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Test ALCT-TMB communication") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  sprintf(buf,"%d",dmb);
-  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
   *out << cgicc::form() << std::endl ;
-  //
-  *out << "alct_rx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTrxPhaseTest() 
-       <<  " (" << MyTest[tmb][current_crate_].GetALCTrxPhase() << ") " << std::endl;
-  *out << cgicc::br();
-  *out << "alct_tx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTtxPhaseTest() 
-       <<  " (" << MyTest[tmb][current_crate_].GetALCTtxPhase() << ") " << std::endl;
-  *out << cgicc::br();
-  *out << cgicc::br();
   //
   //
   std::string CFEBTiming = toolbox::toString("/%s/CFEBTiming",getApplicationDescriptor()->getURN().c_str());
@@ -5416,6 +5410,163 @@ void EmuPeripheralCrateConfig::EnableL1aRequest(xgi::Input * in, xgi::Output * o
   //
 }
 //
+////////////////////////////////////////////////////////////////
+// Tests relevant to checking ALCT cable and rx/tx timing
+////////////////////////////////////////////////////////////////
+void EmuPeripheralCrateConfig::ALCT_TMB_communication(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb = 99;
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if( name != cgi.getElements().end() ) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "ALCT_TMB_communication:  TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "ALCT_TMB_communication:  No tmb" << std::endl;
+    tmb = TMB_;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  alct = thisTMB->alctController();
+  //
+  Chamber * thisChamber = chamberVector[tmb];
+  //
+  char Name[100];
+  sprintf(Name,"%s ALCT-TMB communication, crate=%s, TMBslot=%d",
+	  (thisChamber->GetLabel()).c_str(), ThisCrateID_.c_str(),thisTMB->slot());
+  //
+  MyHeader(in,out,Name);
+  //
+  char buf[20];
+  //
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  //
+  *out << cgicc::legend("New tests").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  std::string ALCT_TMB_Loopback = toolbox::toString("/%s/ALCT_TMB_Loopback",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCT_TMB_Loopback) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Full set of ALCT-TMB loopback tests") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << "alct_rx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTrxPhaseTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetALCTrxPhase() << ") " << std::endl;
+  *out << cgicc::br();
+  *out << "alct_tx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTtxPhaseTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetALCTtxPhase() << ") " << std::endl;
+  *out << cgicc::br();
+  *out << cgicc::br();
+  //
+  std::string TMB_to_ALCT_walking_ones = toolbox::toString("/%s/TMB_to_ALCT_walking_ones",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMB_to_ALCT_walking_ones) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check ALCT-TMB cable") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::fieldset() << std::endl;
+  //
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
+  //
+  *out << cgicc::legend("Old tests").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  std::string ALCTTiming = toolbox::toString("/%s/ALCTTiming",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCTTiming) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Scan ALCT tx/rx phases") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << "alct_rx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTrxPhaseTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetALCTrxPhase() << ") " << std::endl;
+  *out << cgicc::br();
+  *out << "alct_tx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTtxPhaseTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetALCTtxPhase() << ") " << std::endl;
+  *out << cgicc::br();
+  *out << cgicc::br();
+  //
+  *out << cgicc::fieldset() << std::endl;
+  //
+  //
+  *out << cgicc::form().set("method","GET") << std::endl ;
+  *out << cgicc::textarea().set("name","ChamberTestOutput").set("WRAP","OFF").set("rows","20").set("cols","100");
+  *out << ALCT_TMB_communicationOutput[tmb][current_crate_].str() << std::endl ;
+  *out << cgicc::textarea();
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string LogALCT_TMB_communicationOutput = toolbox::toString("/%s/LogALCT_TMB_communicationOutput",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",LogALCT_TMB_communicationOutput) << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::input().set("type","submit").set("value","Log output").set("name","LogALCT_TMB_communicationOutput") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Clear").set("name","ClearALCT_TMB_communicationOutput") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+}
+//
+void EmuPeripheralCrateConfig::ALCT_TMB_Loopback(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "ALCT_TMB_Loopback" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "ALCT_TMB_Loopback");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb = TMB_;
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "ALCT_TMB_Loopback:  TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "ALCT_TMB_Loopback: No tmb" << std::endl;
+  }
+  //
+  MyTest[tmb][current_crate_].RedirectOutput(&ALCT_TMB_communicationOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].ALCT_TMB_Loopback();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+  //
+  this->ALCT_TMB_communication(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::TMB_to_ALCT_walking_ones(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "TMB_to_ALCT_walking_ones" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "TMB_to_ALCT_walking_ones");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb = TMB_;
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "TMB_to_ALCT_walking_ones:  TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "TMB_to_ALCT_walking_ones: No tmb" << std::endl;
+  }
+  //
+  MyTest[tmb][current_crate_].RedirectOutput(&ALCT_TMB_communicationOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].TMB_to_ALCT_walking_ones();
+  MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
+  //
+  this->ALCT_TMB_communication(in,out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -5424,20 +5575,9 @@ void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out )
   //
   cgicc::Cgicc cgi(in);
   //
-  int tmb=0, dmb=0;
+  int tmb = TMB_;
   //
-  cgicc::form_iterator name = cgi.getElement("dmb");
-  //
-  if(name != cgi.getElements().end()) {
-    dmb = cgi["dmb"]->getIntegerValue();
-    std::cout << "ALCTTiming:  DMB " << dmb << std::endl;
-    DMB_ = dmb;
-  } else {
-    std::cout << "ALCTTiming:  No dmb" << std::endl;
-    dmb = DMB_;
-  }
-  //
-  name = cgi.getElement("tmb");
+  cgicc::form_iterator name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
@@ -5448,11 +5588,11 @@ void EmuPeripheralCrateConfig::ALCTTiming(xgi::Input * in, xgi::Output * out )
     tmb = TMB_;
   }
   //
-  MyTest[tmb][current_crate_].RedirectOutput(&ChamberTestsOutput[tmb][current_crate_]);
+  MyTest[tmb][current_crate_].RedirectOutput(&ALCT_TMB_communicationOutput[tmb][current_crate_]);
   MyTest[tmb][current_crate_].ALCTTiming();
   MyTest[tmb][current_crate_].RedirectOutput(&std::cout);
   //
-  this->ChamberTests(in,out);
+  this->ALCT_TMB_communication(in,out);
   //
 }
 //
@@ -14471,6 +14611,7 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
       for (unsigned int i=0; i<tmbVector.size(); i++) {
 	LogFile << OutputTMBTests[i][current_crate_].str() ;
 	LogFile << ChamberTestsOutput[i][current_crate_].str() ;
+	LogFile << ALCT_TMB_communicationOutput[i][current_crate_].str() ;
       }
       for (unsigned int i=0; i<dmbVector.size(); i++) {
 	LogFile << OutputDMBTests[i][current_crate_].str() ;
@@ -14588,6 +14729,59 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
     ChamberTestsOutput[tmb][current_crate_].str("");
     //
     this->ChamberTests(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrateConfig::LogALCT_TMB_communicationOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "LogALCT_TMB_communicationOutput" << std::endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      std::cout << "TMB " << tmb << std::endl;
+      TMB_ = tmb;
+    } else {
+      std::cout << "Not tmb" << std::endl ;
+      tmb = TMB_;
+    }
+    //
+    cgicc::form_iterator name2 = cgi.getElement("ClearALCT_TMB_communicationOutput");
+    //
+    if(name2 != cgi.getElements().end()) {
+      std::cout << "Clear..." << std::endl;
+      std::cout << cgi["ClearALCT_TMB_communicationOutput"]->getValue() << std::endl ;
+      ALCT_TMB_communicationOutput[tmb][current_crate_].str("");
+      ALCT_TMB_communicationOutput[tmb][current_crate_] << "Chamber-Crate Phases " 
+					      << thisCrate->GetChamber(tmbVector[tmb]->slot())->GetLabel().c_str() 
+					      << " output:" << std::endl;
+      //
+      this->ALCT_TMB_communication(in,out);
+      return ;
+      //
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    //
+    std::cout << TMBBoardID_[tmb] << std::endl ;
+    //
+    char buf[20];
+    sprintf(buf,"ALCT_TMB_communicationLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
+    //
+    std::ofstream ALCT_TMB_communicationLogFile;
+    ALCT_TMB_communicationLogFile.open(buf);
+    ALCT_TMB_communicationLogFile << ALCT_TMB_communicationOutput[tmb][current_crate_].str() ;
+    ALCT_TMB_communicationLogFile.close();
+    //
+    ALCT_TMB_communicationOutput[tmb][current_crate_].str("");
+    //
+    this->ALCT_TMB_communication(in,out);
     //
   }
   //

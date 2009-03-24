@@ -128,6 +128,7 @@ protected:
   std::stringstream CrateTestsOutput;
   emu::pc::ChamberUtilities MyTest[10][30];
   std::ostringstream ChamberTestsOutput[10][30];
+  std::ostringstream ALCT_TMB_communicationOutput[10][30];
   std::ostringstream OutputStringDMBStatus[10];
   std::ostringstream OutputStringTMBStatus[10];
   std::ostringstream OutputDMBTests[10][30];
@@ -384,7 +385,6 @@ private:
   void setupCoincidencePulsing(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBStartTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void EnableL1aRequest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void ALCTTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setTMBCounterReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setDataReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void Automatic(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -503,6 +503,7 @@ private:
   void LogOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogTMBTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogChamberTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+
   void LogCrateTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CheckCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
@@ -531,7 +532,12 @@ private:
   void StopPRBS(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetHighRateTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void SetNormRateTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-
+  //
+  void ALCT_TMB_communication(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ALCT_TMB_Loopback(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void TMB_to_ALCT_walking_ones(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ALCTTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void LogALCT_TMB_communicationOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
   void DefineFirmwareFilenames();
   //
