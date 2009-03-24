@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: CoreVersion.h,v 1.3 2009/03/09 23:12:44 paste Exp $
+* $Id: CoreVersion.h,v 1.4 2009/03/24 19:16:30 paste Exp $
 *
 * $Log: CoreVersion.h,v $
+* Revision 1.4  2009/03/24 19:16:30  paste
+* Version bump
+*
 * Revision 1.3  2009/03/09 23:12:44  paste
 * * Fixed a minor bug in DCC MPROM ID/Usercode reading
 * * Fixed a major bug in RESET path firmware loading
@@ -27,11 +30,11 @@
 #include "config/PackageInfo.h"
 
 namespace emufedcore {
-	const std::string package     = "emufedcore";
-	const std::string versions    = "07.00.02";
-	const std::string description = "Emu (CSC) FED crate core libraries";
+	const std::string package     = "FEDCore";
+	const std::string versions    = "07.01.00";
+	const std::string description = "Emu (CSC) FED Core Libraries";
 
-	const std::string summary     = "A collection of libraries for controlling end-cap muon CSC FED VME hardware.";
+	const std::string summary     = "Core libraries for controlling Front End Device (FED) crates for the CMS Emu (CSC) subdetector";
 	const std::string authors     = "Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu";
 	const std::string link        = "http://www.physics.ohio-state.edu/~cms";
 
