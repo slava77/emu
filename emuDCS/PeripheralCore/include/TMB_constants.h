@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.21 2009/03/06 16:46:03 rakness Exp $
+// $Id: TMB_constants.h,v 3.22 2009/03/24 17:41:12 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.22  2009/03/24 17:41:12  rakness
+// Sufficient set of ALCT-TMB Loopback tests to determine alct_rx/tx_phase_delay
+//
 // Revision 3.21  2009/03/06 16:46:03  rakness
 // add methods for ALCT-TMB loopback
 //
@@ -655,7 +658,7 @@ const int SEND_EVENODD                       = 0x5;
 const int LOOPBACK_BITS_IN_ALCT_BANK_0       = 0x1;
 const int LOOPBACK_BITS_IN_ALCT_BANK_1       = 0x3;
 const int LOOPBACK_BITS_IN_ALCT_BANK_2       = 0x9;
-const int LOOPBACK_RANDOM                    = 0x2;
+const int LOOPBACK_RANDOM                    = 0x4;
 const int SEND_RANDOM                        = 0xb; 
 //
 const int alct_clock_en_use_ccb_vmereg   =  alct_cfg_adr;

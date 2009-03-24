@@ -59,12 +59,14 @@ public:
   void ALCT_TMB_Loopback();
   //
   int  Find_alct_tx_with_ALCT_to_TMB_evenodd(int number_of_passes);
+  int  Find_alct_rx_with_TMB_to_ALCT_evenodd(int number_of_passes);
+  int  TMB_to_ALCT_walking_ones(int number_of_passes);
+  //
   /// same as above, but with "default number of passes...
   int  Find_alct_tx_with_ALCT_to_TMB_evenodd();
-  //
-  int  Find_alct_rx_with_TMB_to_ALCT_evenodd(int number_of_passes);
-  /// same as above, but with "default number of passes...
   int  Find_alct_rx_with_TMB_to_ALCT_evenodd();
+  int  TMB_to_ALCT_walking_ones();
+  int ALCT_TMB_TimingUsingRandomLoopback();
   //
   //
   //-----
