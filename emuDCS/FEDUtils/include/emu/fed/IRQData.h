@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.1 2009/03/05 16:07:52 paste Exp $
+* $Id: IRQData.h,v 1.2 2009/03/24 19:13:44 paste Exp $
 *
 * $Log: IRQData.h,v $
+* Revision 1.2  2009/03/24 19:13:44  paste
+* Fixed crashing when ending threads after an IRQ
+* Made threads more robust by using slot numbers instead of DDU pointers as map indices
+*
 * Revision 1.1  2009/03/05 16:07:52  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -104,14 +108,14 @@ namespace emu {
 			
 			// "Local" variables -- each thread tries to increment only its own.
 			std::map<unsigned int, unsigned long int> errorCount;
-			std::map<unsigned int,DDU *> lastDDU;
-			std::map<unsigned int,unsigned long int> ticks;
+			std::map<unsigned int, unsigned int> lastDDU;
+			std::map<unsigned int, unsigned long int> ticks;
 			// Changed these to strings because right-shifting a time_t constant
 			// in a map sometimes crashes.
-			std::map<unsigned int,std::string> tickTime;
-			std::map<unsigned int,std::string> startTime;
+			std::map<unsigned int, std::string> tickTime;
+			std::map<unsigned int, std::string> startTime;
 		
-			std::map<unsigned int,std::vector<IRQError *> > errorVectors;
+			std::map<unsigned int, std::vector<IRQError *> > errorVectors;
 			
 		};
 
