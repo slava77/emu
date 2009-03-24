@@ -2496,7 +2496,7 @@ void emu::daq::rui::Application::writeDataToFile(  char* const data, const int d
     try{
       if ( newEvent ){
 	fileWriter_->startNewEvent();
-	fileWritingVetoed_ = ! rateLimiter_->acceptEvent();
+	if ( rateLimiter_ ) fileWritingVetoed_ = ! rateLimiter_->acceptEvent();
       }
       if ( ! fileWritingVetoed_.value_ ) fileWriter_->writeData( data, dataLength );
     } catch(string e) {
