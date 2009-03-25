@@ -3,12 +3,12 @@
 #include <iostream>
 #include <unistd.h> 
 #include <string>
-#include "Crate.h"
-#include "CCB.h"
-#include "DAQMB.h"
-#include "TMB.h"
-#include "VMEController.h"
-#include "EmuEndcap.h"
+#include "emu/pc/Crate.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/EmuEndcap.h"
 
 namespace emu {
   namespace pc {

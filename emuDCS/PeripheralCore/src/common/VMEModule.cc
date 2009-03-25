@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.21 2008/09/30 14:26:03 liu Exp $
+// $Id: VMEModule.cc,v 3.22 2009/03/25 10:19:42 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.22  2009/03/25 10:19:42  liu
+// move header files to include/emu/pc
+//
 // Revision 3.21  2008/09/30 14:26:03  liu
 // remove EMU_JTAG_constants from VMEModule
 //
@@ -148,16 +151,16 @@
 //
 //
 //----------------------------------------------------------------------
-#include "VMEModule.h"
-#include "VMEController.h"
-#include "Crate.h"
+#include "emu/pc/VMEModule.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/Crate.h"
 
 #include <cmath>
 #include <string>
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h> // read and write
-// #include "EMU_JTAG_constants.h"
+// #include "emu/pc/EMU_JTAG_constants.h"
 
 #ifndef debugV //silent mode
 #define PRINT(x) 

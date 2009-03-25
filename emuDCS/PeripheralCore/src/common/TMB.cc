@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.82 2009/03/23 11:10:45 liu Exp $
+// $Id: TMB.cc,v 3.83 2009/03/25 10:19:41 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.83  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 3.82  2009/03/23 11:10:45  liu
 // remove compiler warnings
 //
@@ -471,9 +474,9 @@
 // *** empty log message ***
 //
 //-----------------------------------------------------------------------
-#include "TMB.h"
-#include "JTAG_constants.h"
-#include "VMEController.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/JTAG_constants.h"
+#include "emu/pc/VMEController.h"
 #include <unistd.h>
 #include <iostream>
 #include <iomanip>
@@ -481,10 +484,10 @@
 #include <sstream>
 #include<math.h>
 
-#include "TMB_constants.h"
-#include "ALCTController.h"
-#include "RAT.h"
-#include "Chamber.h"
+#include "emu/pc/TMB_constants.h"
+#include "emu/pc/ALCTController.h"
+#include "emu/pc/RAT.h"
+#include "emu/pc/Chamber.h"
 
 // the VME addresses here are defined in
 // http://www-collider.physics.ucla.edu/cms/trigger/tmb2001/tmb2001_spec.pdf

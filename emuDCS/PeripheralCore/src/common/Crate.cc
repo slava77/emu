@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.48 2008/12/08 16:59:20 liu Exp $
+// $Id: Crate.cc,v 3.49 2009/03/25 10:19:41 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.49  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 3.48  2008/12/08 16:59:20  liu
 // new TMB counters
 //
@@ -196,22 +199,22 @@
 //
 //
 //-----------------------------------------------------------------------
-#include "Crate.h"
+#include "emu/pc/Crate.h"
 #include <unistd.h> // for sleep
 #include <iostream>
 #include <sstream>
 #include <vector> 
 #include <string.h> 
-#include "VMEModule.h"
-#include "VMEController.h"
-#include "DAQMB.h"
-#include "TMB.h"
-#include "MPC.h"
-#include "CCB.h"
-#include "RAT.h"
-#include "ALCTController.h"
-#include "Chamber.h"
-#include "VMECC.h"
+#include "emu/pc/VMEModule.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/MPC.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/RAT.h"
+#include "emu/pc/ALCTController.h"
+#include "emu/pc/Chamber.h"
+#include "emu/pc/VMECC.h"
 
 namespace emu {
   namespace pc {

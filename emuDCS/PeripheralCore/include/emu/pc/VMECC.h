@@ -1,7 +1,7 @@
 #ifndef VMECC_h
 #define VMECC_h
 
-#include "VMEModule.h"
+#include "emu/pc/VMEModule.h"
 #include <iostream>
 #include <vector>
 #include <string>

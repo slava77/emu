@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.cc,v 3.1 2008/08/13 11:30:54 geurts Exp $
+// $Id: CFEB.cc,v 3.2 2009/03/25 10:19:41 liu Exp $
 // $Log: CFEB.cc,v $
+// Revision 3.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 3.1  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -19,7 +22,7 @@
 //
 //
 //-----------------------------------------------------------------------
-#include "CFEB.h"
+#include "emu/pc/CFEB.h"
 
 namespace emu {
   namespace pc {

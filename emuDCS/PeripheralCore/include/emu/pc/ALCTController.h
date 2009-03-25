@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 1.1 2009/03/25 10:07:42 liu Exp $
+// $Id: ALCTController.h,v 1.2 2009/03/25 10:19:41 liu Exp $
 // $Log: ALCTController.h,v $
+// Revision 1.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 1.1  2009/03/25 10:07:42  liu
 // move header files to include/emu/pc
 //
@@ -203,8 +206,8 @@
 #define ALCTController_h
 //
 #include <string>
-#include "EMU_JTAG_constants.h"
-#include "EmuLogger.h"
+#include "emu/pc/EMU_JTAG_constants.h"
+#include "emu/pc/EmuLogger.h"
 //
 
 namespace emu {

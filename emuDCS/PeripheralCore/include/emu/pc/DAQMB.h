@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 1.1 2009/03/25 10:07:42 liu Exp $
+// $Id: DAQMB.h,v 1.2 2009/03/25 10:19:41 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 1.1  2009/03/25 10:07:42  liu
 // move header files to include/emu/pc
 //
@@ -208,11 +211,11 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "VMEModule.h"
-#include "JTAG_constants.h"
-#include "CFEB.h"
-#include "Chamber.h"
-#include "EmuLogger.h"
+#include "emu/pc/VMEModule.h"
+#include "emu/pc/JTAG_constants.h"
+#include "emu/pc/CFEB.h"
+#include "emu/pc/Chamber.h"
+#include "emu/pc/EmuLogger.h"
 
 
 namespace emu {

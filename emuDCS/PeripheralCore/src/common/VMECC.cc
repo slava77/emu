@@ -1,5 +1,5 @@
-#include "VMECC.h"
-#include "VMEController.h"
+#include "emu/pc/VMECC.h"
+#include "emu/pc/VMEController.h"
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <iomanip>
 
-#include "EMU_CC_constants.h"
+#include "emu/pc/EMU_CC_constants.h"
 
 namespace emu {
   namespace pc {

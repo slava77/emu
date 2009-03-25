@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.22 2009/03/07 11:44:23 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.1 2009/03/25 10:22:43 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *

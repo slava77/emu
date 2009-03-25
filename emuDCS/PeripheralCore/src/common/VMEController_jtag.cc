@@ -3,10 +3,10 @@
 #include <iostream>
 #include <stdio.h>
 #include <unistd.h> 
-#include "VMEController.h"
-#include "VMEModule.h"
-#include "geom.h"
-#include "Crate.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/VMEModule.h"
+#include "emu/pc/geom.h"
+#include "emu/pc/Crate.h"
 #include <cmath>
 #include <string>
 #include <stdio.h>
@@ -20,7 +20,7 @@
 
 #include <unistd.h>
 
-#include "vme_cmd.h"
+#include "emu/pc/vme_cmd.h"
 
 #define debugV 0
 

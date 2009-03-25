@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.15 2008/08/13 11:30:54 geurts Exp $
+// $Id: MPC.cc,v 3.16 2009/03/25 10:19:41 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.16  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 3.15  2008/08/13 11:30:54  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -153,9 +156,9 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include "MPC.h"
-#include "VMEController.h"
-#include "EmuLogger.h"
+#include "emu/pc/MPC.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/EmuLogger.h"
 
 namespace emu {
   namespace pc {

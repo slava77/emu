@@ -4,11 +4,11 @@
 #include<string>
 #include<unistd.h> // for sleep()
 #include <stdlib.h>
-#include "TMBTester.h"
-#include "TMB.h"
-#include "CCB.h"
-#include "RAT.h"
-#include "TMB_constants.h"
+#include "emu/pc/TMBTester.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/RAT.h"
+#include "emu/pc/TMB_constants.h"
 
 #ifndef debugV //silent mode
 #define PRINT(x)

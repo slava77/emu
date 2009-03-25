@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.57 2009/03/19 13:29:42 rakness Exp $
+// $Id: ALCTController.cc,v 3.58 2009/03/25 10:19:41 liu Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.58  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 3.57  2009/03/19 13:29:42  rakness
 // clean up functionality in writing to userPROMs for TMB and ALCT.  This is to fix bug introduced in TMB v3.80 by using tmb_vme_new
 //
@@ -336,11 +339,11 @@
 #include <string>
 #include <cstdlib>
 //
-#include "Crate.h"
-#include "Chamber.h"
-#include "VMEController.h"
-#include "ALCTController.h"
-#include "TMB.h"
+#include "emu/pc/Crate.h"
+#include "emu/pc/Chamber.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/ALCTController.h"
+#include "emu/pc/TMB.h"
 //
 //
 

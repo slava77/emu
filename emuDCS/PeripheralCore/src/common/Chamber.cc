@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.8 2009/03/03 14:34:48 liu Exp $
+// $Id: Chamber.cc,v 3.9 2009/03/25 10:19:41 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.9  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 3.8  2009/03/03 14:34:48  liu
 // fix problem_mask for TStore
 //
@@ -75,14 +78,14 @@
 #include <unistd.h> 
 #include <string>
 //
-#include "Chamber.h"
-#include "DAQMB.h"
-#include "TMB.h"
-#include "CCB.h"
-#include "MPC.h"
-#include "ALCTController.h"
-#include "CFEB.h"
-#include "Crate.h"
+#include "emu/pc/Chamber.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/MPC.h"
+#include "emu/pc/ALCTController.h"
+#include "emu/pc/CFEB.h"
+#include "emu/pc/Crate.h"
 //
 
 namespace emu {

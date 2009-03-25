@@ -6,7 +6,7 @@
 #include <string>
 #include <math.h>
 //
-#include "EmuLogger.h"
+#include "emu/pc/EmuLogger.h"
 //
 
 namespace emu {

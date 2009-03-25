@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.1 2009/03/25 10:07:42 liu Exp $
+// $Id: TMB.h,v 1.2 2009/03/25 10:19:41 liu Exp $
 // $Log: TMB.h,v $
+// Revision 1.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 1.1  2009/03/25 10:07:42  liu
 // move header files to include/emu/pc
 //
@@ -343,14 +346,14 @@
 #ifndef TMB_h
 #define TMB_h
 
-#include "VMEModule.h"
+#include "emu/pc/VMEModule.h"
 #include <cstdio>
 #include <vector>
 #include <string>
 #include <bitset>
 
-#include "EMUjtag.h"
-#include "EmuLogger.h"
+#include "emu/pc/EMUjtag.h"
+#include "emu/pc/EmuLogger.h"
 
 namespace emu {
   namespace pc {
