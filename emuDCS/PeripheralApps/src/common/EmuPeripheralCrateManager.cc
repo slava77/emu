@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.14 2009/03/23 13:45:44 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.15 2009/03/25 11:37:22 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -10,7 +10,7 @@
  * For the list of contributors see CREDITS.   			         *
  *************************************************************************/
 
-#include "EmuPeripheralCrateManager.h"
+#include "emu/pc/EmuPeripheralCrateManager.h"
 
 #include <string>
 #include <vector>

@@ -1,4 +1,4 @@
-#include "XMLParser.h"
+#include "emu/pc/XMLParser.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -7,18 +7,18 @@
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 
-#include "CCB.h"
-#include "MPC.h"
-#include "VMEController.h"
-#include "TMB.h"
-#include "ALCTController.h"
-#include "RAT.h"
-#include "DAQMB.h"
-#include "CFEB.h"
-#include "Chamber.h"
-#include "Crate.h"
-#include "EmuEndcap.h"
-#include "VMECC.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/MPC.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/ALCTController.h"
+#include "emu/pc/RAT.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/CFEB.h"
+#include "emu/pc/Chamber.h"
+#include "emu/pc/Crate.h"
+#include "emu/pc/EmuEndcap.h"
+#include "emu/pc/VMECC.h"
 
 namespace emu {
   namespace pc {

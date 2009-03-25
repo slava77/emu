@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateTimer.h,v 1.1 2009/03/25 10:22:43 liu Exp $
+// $Id: EmuPeripheralCrateTimer.h,v 1.2 2009/03/25 11:37:22 liu Exp $
 
 #ifndef _EmuPeripheralCrateTimer_h_
 #define _EmuPeripheralCrateTimer_h_
@@ -46,7 +46,7 @@
 #include "toolbox/task/TimerFactory.h"
 #include "toolbox/TimeInterval.h"
 
-#include "EmuPeripheralCrateBase.h"
+#include "emu/pc/EmuPeripheralCrateBase.h"
 
 namespace emu {
   namespace pc {

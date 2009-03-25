@@ -40,26 +40,25 @@
 
 // My Stuff
 
-#include "EmuController.h"
-#include "VMEController.h"
-#include "Crate.h"
-#include "DAQMB.h"
-#include "TMB.h"
-#include "TMBTester.h"
-#include "CCB.h"
-#include "MPC.h"
-#include "TMBTester.h"
-#include "ALCTController.h"
-#include "RAT.h"
-#include "ChamberUtilities.h"
-//#include "geom.h"
-#include "CrateUtilities.h"
-#include "CalibDAQ.h"
-#include "EmuEndcap.h"
-#include "BoardsDB.h"
-#include "EmuTStore.h"
+#include "emu/pc/EmuController.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/Crate.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/TMBTester.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/MPC.h"
+#include "emu/pc/TMBTester.h"
+#include "emu/pc/ALCTController.h"
+#include "emu/pc/RAT.h"
+#include "emu/pc/ChamberUtilities.h"
+//#include "emu/pc/geom.h"
+#include "emu/pc/CrateUtilities.h"
+#include "emu/pc/CalibDAQ.h"
+#include "emu/pc/EmuEndcap.h"
+#include "emu/pc/EmuTStore.h"
 //
-#include "EmuPeripheralCrateBase.h"
+#include "emu/pc/EmuPeripheralCrateBase.h"
 
 namespace emu {
   namespace pc {
@@ -109,7 +108,6 @@ protected:
   emu::pc::ALCTController *alct ;
   emu::pc::RAT * rat;
   emu::pc::MPC * thisMPC;
-  emu::db::BoardsDB *brddb;
   emu::pc::CrateUtilities myCrateTest;
   std::ostringstream CrateTestsOutput;
   emu::pc::ChamberUtilities MyTest[10][30];

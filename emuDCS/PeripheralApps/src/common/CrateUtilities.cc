@@ -4,13 +4,13 @@
 #include <string>
 #include <sstream>
 //
-#include "CrateUtilities.h"
-#include "MPC.h"
-#include "TMB.h"
-#include "ALCTController.h"
-#include "DAQMB.h"
-#include "CCB.h"
-#include "VMEController.h"
+#include "emu/pc/CrateUtilities.h"
+#include "emu/pc/MPC.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/ALCTController.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/VMEController.h"
 //
 namespace emu {
   namespace pc {

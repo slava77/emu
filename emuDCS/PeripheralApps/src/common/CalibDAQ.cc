@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 1.2 2008/08/13 11:30:52 geurts Exp $
+// $Id: CalibDAQ.cc,v 1.3 2009/03/25 11:37:22 liu Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 1.3  2009/03/25 11:37:22  liu
+// move header files to include/emu/pc
+//
 // Revision 1.2  2008/08/13 11:30:52  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
@@ -200,13 +203,13 @@
 #include <iomanip>
 #include <unistd.h> // for sleep
 #include <string>
-#include "CalibDAQ.h"
-#include "Crate.h"
-#include "DAQMB.h"
-#include "CCB.h"
-#include "JTAG_constants.h"
-#include "ChamberUtilities.h"
-#include "EmuEndcap.h"
+#include "emu/pc/CalibDAQ.h"
+#include "emu/pc/Crate.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/JTAG_constants.h"
+#include "emu/pc/ChamberUtilities.h"
+#include "emu/pc/EmuEndcap.h"
 
 namespace emu {
   namespace pc {

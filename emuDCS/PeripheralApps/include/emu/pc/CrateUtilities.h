@@ -5,7 +5,7 @@
 #include <fstream>
 
 
-#include "Crate.h"
+#include "emu/pc/Crate.h"
 
 namespace emu {
   namespace pc {

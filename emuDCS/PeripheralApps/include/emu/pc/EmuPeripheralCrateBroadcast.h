@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.1 2009/03/25 10:22:43 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.2 2009/03/25 11:37:22 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -56,20 +56,18 @@
 #include "toolbox/task/TimerFactory.h"
 #include "toolbox/TimeInterval.h"
 
-#include "EmuController.h"
-#include "VMEController.h"
-#include "Crate.h"
-#include "CrateUtilities.h"
-#include "TMB.h"
-#include "DAQMB.h"
-#include "CCB.h"
-#include "ALCTController.h"
-#include "MPC.h"
-#include "RAT.h"
-#include "VMECC.h"
-#include "ConnectionsDB.h"
-#include "BoardsDB.h"
-#include "EmuPeripheralCrateBase.h"
+#include "emu/pc/EmuController.h"
+#include "emu/pc/VMEController.h"
+#include "emu/pc/Crate.h"
+#include "emu/pc/CrateUtilities.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/ALCTController.h"
+#include "emu/pc/MPC.h"
+#include "emu/pc/RAT.h"
+#include "emu/pc/VMECC.h"
+#include "emu/pc/EmuPeripheralCrateBase.h"
 
 namespace emu {
   namespace pc {
@@ -94,9 +92,6 @@ public:
   std::string RATFirmwareFile_;
   std::string CCBFirmwareFile_;
   std::string MPCFirmwareFile_;
-  //
-  emu::db::BoardsDB *brddb;
-  emu::db::ConnectionsDB *condb;
   //
   EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s);
   //

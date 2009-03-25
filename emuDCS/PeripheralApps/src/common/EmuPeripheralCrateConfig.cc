@@ -1,6 +1,6 @@
 // $Id: EmuPeripheralCrateConfig.cc
 
-#include "EmuPeripheralCrateConfig.h"
+#include "emu/pc/EmuPeripheralCrateConfig.h"
 
 #include <string>
 #include <vector>
