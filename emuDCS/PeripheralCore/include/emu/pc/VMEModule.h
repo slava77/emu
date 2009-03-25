@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.11 2008/08/13 11:30:53 geurts Exp $
+// $Id: VMEModule.h,v 1.1 2009/03/25 10:07:43 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.1  2009/03/25 10:07:43  liu
+// move header files to include/emu/pc
+//
 // Revision 3.11  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit

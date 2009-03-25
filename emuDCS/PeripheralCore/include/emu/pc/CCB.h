@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.17 2008/08/18 12:15:13 rakness Exp $
+// $Id: CCB.h,v 1.1 2009/03/25 10:07:42 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.1  2009/03/25 10:07:42  liu
+// move header files to include/emu/pc
+//
 // Revision 3.17  2008/08/18 12:15:13  rakness
 // add FPGA configuration done reads and accessors
 //

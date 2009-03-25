@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.37 2008/11/18 17:03:17 rakness Exp $
+// $Id: ALCTController.h,v 1.1 2009/03/25 10:07:42 liu Exp $
 // $Log: ALCTController.h,v $
+// Revision 1.1  2009/03/25 10:07:42  liu
+// move header files to include/emu/pc
+//
 // Revision 3.37  2008/11/18 17:03:17  rakness
 // include ALCT PROM readback
 //

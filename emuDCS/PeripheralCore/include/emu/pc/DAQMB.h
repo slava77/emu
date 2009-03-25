@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.33 2008/10/27 08:51:51 gujh Exp $
+// $Id: DAQMB.h,v 1.1 2009/03/25 10:07:42 liu Exp $
 // $Log: DAQMB.h,v $
+// Revision 1.1  2009/03/25 10:07:42  liu
+// move header files to include/emu/pc
+//
 // Revision 3.33  2008/10/27 08:51:51  gujh
 // Put the CFEB PROM firmware readback capability
 //    ---- GU, Oct. 27, 2008

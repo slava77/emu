@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: JTAG_constants.h,v 3.3 2006/10/12 17:51:54 mey Exp $
+// $Id: JTAG_constants.h,v 1.1 2009/03/25 10:07:42 liu Exp $
 // $Log: JTAG_constants.h,v $
+// Revision 1.1  2009/03/25 10:07:42  liu
+// move header files to include/emu/pc
+//
 // Revision 3.3  2006/10/12 17:51:54  mey
 // Update
 //
