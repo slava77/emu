@@ -26,7 +26,7 @@
 #include "cgicc/HTMLClasses.h"
 #include "cgicc/FormFile.h"
 
-#include "ConnectionsDB.h"
+#include "emu/db/ConnectionsDB.h"
 
 
 class SetKillFibersGUI: public xdaq::Application

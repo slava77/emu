@@ -8,7 +8,7 @@ parse and use xml board data bases.
 ***********************************/
 
 
-#include "BoardsDB.h"
+#include "emu/db/BoardsDB.h"
 
 #include <string>
 #include <vector>
