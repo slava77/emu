@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.2 2009/03/20 13:08:14 liu Exp $
+// $Id: EmuDim.h,v 1.1 2009/03/25 12:02:15 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
