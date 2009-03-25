@@ -10,7 +10,7 @@ not crate and slot in their GUIs
 ***********************************/
 
 
-#include "ConnectionsDB.h"
+#include "emu/db/ConnectionsDB.h"
 
 #include <string>
 #include <vector>

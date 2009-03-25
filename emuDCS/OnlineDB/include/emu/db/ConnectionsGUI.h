@@ -25,7 +25,7 @@
 #include "cgicc/HTMLClasses.h"
 #include "cgicc/FormFile.h"
 
-#include "ConnectionsDB.h"
+#include "emu/db/ConnectionsDB.h"
 
 class ConnectionsGUI: public xdaq::Application
 {
