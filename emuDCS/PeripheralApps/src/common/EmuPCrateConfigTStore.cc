@@ -2579,7 +2579,7 @@ void EmuPCrateConfigTStore::readVCC(const std::string &connectionID, const std::
 
   xdata::Serializable  * value;
   std::string StrgValue;
-  int IntValue;
+  int IntValue=0;
 
   query(connectionID, queryViewName, emu_config_id, periph_config_id, results);
   
@@ -2650,7 +2650,7 @@ void EmuPCrateConfigTStore::readCSC(const std::string &connectionID, const std::
 
   xdata::Serializable  * value;
   std::string StrgValue;
-  int IntValue;
+  int IntValue=0;
 
   std::string csc_config_id;
 
@@ -2687,7 +2687,7 @@ void EmuPCrateConfigTStore::readCCB(const std::string &connectionID, const std::
 
   xdata::Serializable  * value;
   std::string StrgValue;
-  int IntValue;
+  int IntValue=0;
 
   int slot=13;
 
@@ -2726,7 +2726,7 @@ void EmuPCrateConfigTStore::readMPC(const std::string &connectionID, const std::
 
   xdata::Serializable  * value;
   std::string StrgValue;
-  int IntValue;
+  int IntValue=0;
 
   int slot=12;
 
@@ -2762,9 +2762,9 @@ void EmuPCrateConfigTStore::readDAQMB(const std::string &connectionID, const std
   xdata::Table results;
 
   xdata::Serializable  * value;
-  int IntValue;
+  int IntValue=0;
   long int LongIntValue;
-  float FloatValue;
+  float FloatValue=0.0;
   std::string StrgValue;
 
   int slot = 0;
@@ -3092,7 +3092,7 @@ void EmuPCrateConfigTStore::readALCT(const std::string &connectionID, const std:
   xdata::Table results;
 
   xdata::Serializable  * value;
-  int IntValue;
+  int IntValue=0;
   std::string StrgValue;
   std::string chamberType;
   std::string alct_config_id_;
@@ -3170,9 +3170,9 @@ void EmuPCrateConfigTStore::readAnodeChannel(const std::string &connectionID, co
   xdata::Table results;
 
   xdata::Serializable  * value;
-  int IntValue;
+  int IntValue=0;
   std::string StrgValue;
-  int afeb_number;
+  int afeb_number=0;
 
   query(connectionID, queryViewName/*"EMU_ANODECHANNEL"*/, emu_config_id, alct_config_id, results);
 
