@@ -1,7 +1,7 @@
-#include "emu/pc/LOAD.h"
+#include "emu/x2p/LOAD.h"
 
 namespace emu {
-  namespace e2p {
+  namespace x2p {
 
 LOAD::LOAD()
 {
@@ -82,6 +82,6 @@ void LOAD::end()
   curl_global_cleanup();
 }
 
-  } // namespace emu::e2p
+  } // namespace emu::x2p
 } // namespace emu
 

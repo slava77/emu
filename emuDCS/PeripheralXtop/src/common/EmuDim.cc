@@ -1,6 +1,6 @@
-// $Id: EmuDim.cc,v 1.12 2009/03/20 13:08:14 liu Exp $
+// $Id: EmuDim.cc,v 1.13 2009/03/25 12:06:24 liu Exp $
 
-#include "emu/pc/EmuDim.h"
+#include "emu/x2p/EmuDim.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +15,7 @@
 #include <time.h>
 
 namespace emu {
-  namespace e2p {
+  namespace x2p {
 
 EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s), emu::base::Supervised(s)
 {
@@ -557,10 +557,10 @@ xoap::MessageReference EmuDim::onHalt (xoap::MessageReference message)
   return createReply(message);
 }
 
-  }  // namespace emu::e2p
+  }  // namespace emu::x2p
 }  // namespace emu
 
 //
 // provides factory method for instantion of XDAQ application
 //
-XDAQ_INSTANTIATOR_IMPL(emu::e2p::EmuDim)
+XDAQ_INSTANTIATOR_IMPL(emu::x2p::EmuDim)

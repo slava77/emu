@@ -13,7 +13,7 @@
 #include <iostream>
 
 namespace emu {
-  namespace e2p {
+  namespace x2p {
 
 class LOAD
 {  
@@ -39,7 +39,7 @@ private:
   size_t getit(void *ptr, size_t size);
 };
 
-  } // namespace emu::e2p
+  } // namespace emu::x2p
 } // namespace emu
 
 #endif
