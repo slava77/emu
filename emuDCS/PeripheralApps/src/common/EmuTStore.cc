@@ -1,5 +1,5 @@
-#include "EmuTStore.h"
-#include "TStoreRequest.h"
+#include "emu/pc/EmuTStore.h"
+#include "emu/pc/TStoreRequest.h"
 
 #include <time.h>
 #include "toolbox/TimeInterval.h"

@@ -1,6 +1,6 @@
 // $Id: EmuPeripheralCrateMonitor.cc
 
-#include "EmuPeripheralCrateMonitor.h"
+#include "emu/pc/EmuPeripheralCrateMonitor.h"
 
 #include <string>
 #include <vector>

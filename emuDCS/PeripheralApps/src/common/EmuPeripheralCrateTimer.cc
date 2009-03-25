@@ -1,6 +1,6 @@
-// $Id: EmuPeripheralCrateTimer.cc,v 1.6 2009/03/15 12:32:14 liu Exp $
+// $Id: EmuPeripheralCrateTimer.cc,v 1.7 2009/03/25 11:37:22 liu Exp $
 
-#include "EmuPeripheralCrateTimer.h"
+#include "emu/pc/EmuPeripheralCrateTimer.h"
 
 #include <string>
 #include <vector>

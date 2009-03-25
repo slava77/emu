@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.16 2009/03/24 17:41:13 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.17 2009/03/25 11:37:22 liu Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.17  2009/03/25 11:37:22  liu
+// move header files to include/emu/pc
+//
 // Revision 1.16  2009/03/24 17:41:13  rakness
 // Sufficient set of ALCT-TMB Loopback tests to determine alct_rx/tx_phase_delay
 //
@@ -303,8 +306,8 @@
 #include <unistd.h> 
 #include <string>
 //
-#include "ChamberUtilities.h"
-#include "TMB_constants.h"
+#include "emu/pc/ChamberUtilities.h"
+#include "emu/pc/TMB_constants.h"
 //
 namespace emu {
   namespace pc {

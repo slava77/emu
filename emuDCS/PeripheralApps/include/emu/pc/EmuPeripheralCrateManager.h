@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.1 2009/03/25 10:22:43 liu Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.2 2009/03/25 11:37:22 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -47,10 +47,10 @@
 #include <xdata/UnsignedLong.h>
 #include <xdata/Table.h>
 
-#include "EmuPeripheralCrateBase.h"
-#include "EmuController.h"
-#include "Crate.h"
-#include "CrateUtilities.h"
+#include "emu/pc/EmuPeripheralCrateBase.h"
+#include "emu/pc/EmuController.h"
+#include "emu/pc/Crate.h"
+#include "emu/pc/CrateUtilities.h"
 
 using namespace cgicc;
 using namespace std;

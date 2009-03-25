@@ -5,12 +5,12 @@
 #include <fstream>
 
 
-#include "DAQMB.h"
-#include "TMB.h"
-#include "CCB.h"
-#include "MPC.h"
-#include "RAT.h"
-#include "ALCTController.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/MPC.h"
+#include "emu/pc/RAT.h"
+#include "emu/pc/ALCTController.h"
 
 
 namespace emu {

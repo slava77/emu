@@ -1,6 +1,6 @@
-// $Id: EmuPeripheralCrateBase.cc,v 1.3 2009/03/15 13:21:58 liu Exp $
+// $Id: EmuPeripheralCrateBase.cc,v 1.4 2009/03/25 11:37:22 liu Exp $
 
-#include "EmuPeripheralCrateBase.h"
+#include "emu/pc/EmuPeripheralCrateBase.h"
 
 #include "xdaq/NamespaceURI.h"  // XDAQ_NS_URI
 #include "xoap/MessageFactory.h"  // createMessage()

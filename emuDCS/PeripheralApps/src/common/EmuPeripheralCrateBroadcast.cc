@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.41 2009/03/23 13:45:44 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.42 2009/03/25 11:37:22 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -10,7 +10,7 @@
  * For the list of contributors see CREDITS.   			         *
  *************************************************************************/
 
-#include "EmuPeripheralCrateBroadcast.h"
+#include "emu/pc/EmuPeripheralCrateBroadcast.h"
 
 #include <string>
 #include <vector>
@@ -22,7 +22,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <time.h>
-#include "EmuEndcap.h"
+#include "emu/pc/EmuEndcap.h"
 
 namespace emu {
   namespace pc {
@@ -114,7 +114,6 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
 
   current_state_ = 0;
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateBroadcastXmlFile_);
-  brddb= new emu::db::BoardsDB();
 
 }
 

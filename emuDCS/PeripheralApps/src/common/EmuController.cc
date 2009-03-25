@@ -1,11 +1,11 @@
 #include <iostream>
 #include <unistd.h> // for sleep
 #include <string>
-#include "EmuController.h"
-#include "EmuEndcap.h"
-#include "Crate.h"
-#include "XMLParser.h"
-#include "VMEController.h"
+#include "emu/pc/EmuController.h"
+#include "emu/pc/EmuEndcap.h"
+#include "emu/pc/Crate.h"
+#include "emu/pc/XMLParser.h"
+#include "emu/pc/VMEController.h"
 
 
 namespace emu {
