@@ -4,10 +4,10 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "emu/pc/DcsDimStructures.h"
+#include "emu/x2p/DcsDimStructures.h"
 
 namespace emu {
-  namespace e2p {
+  namespace x2p {
 
 class Chamber {
   //
@@ -52,6 +52,6 @@ private:
 };
 
 
-  } // namespace emu::e2p
+  } // namespace emu::x2p
 } // namespace emu
 #endif

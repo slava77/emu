@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.1 2009/03/25 12:02:15 liu Exp $
+// $Id: EmuDim.h,v 1.2 2009/03/25 12:06:24 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -46,14 +46,14 @@
 
 #include "dim/dis.hxx"
 
-#include "emu/pc/LOAD.h"
-#include "emu/pc/Chamber.h"
+#include "emu/x2p/LOAD.h"
+#include "emu/x2p/Chamber.h"
 #include "emu/base/Supervised.h"
 
 #define TOTAL_CHAMBERS 235
 
 namespace emu {
-  namespace e2p {
+  namespace x2p {
 
 //class EmuPeripheralCrateDim: public xdaq::Application
 class EmuDim: public emu::base::Supervised,
@@ -131,7 +131,7 @@ private:
   int current_state_;
 };
 
-  } // namespace emu::e2p
+  } // namespace emu::x2p
 } // namespace emu
 
 #endif

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.5 2009/03/20 13:08:14 liu Exp $
+// $Id: Chamber.cc,v 1.6 2009/03/25 12:06:24 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.6  2009/03/25 12:06:24  liu
+// change namespace from emu::e2p:: to emu::x2p::
+//
 // Revision 1.5  2009/03/20 13:08:14  liu
 // move include files to include/emu/pc
 //
@@ -17,10 +20,10 @@
 // new release of e2p code
 //
 
-#include "emu/pc/Chamber.h"
+#include "emu/x2p/Chamber.h"
 
 namespace emu {
-  namespace e2p {
+  namespace x2p {
 
 //
 Chamber::Chamber():
@@ -178,5 +181,5 @@ void Chamber::GetDimTEMP(int hint, TEMP_1_DimBroker *dim_temp )
    sprintf(dim_temp->VCCMAC+15, "%02X", (states_bk[2]&0xFF));
 }
 
-  } // namespace emu::e2p
+  } // namespace emu::x2p
 } // namespace emu
