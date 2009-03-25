@@ -20,7 +20,7 @@
 #include "xdata/UnsignedInteger.h"
 #include "xdata/UnsignedInteger32.h"
 #include "xdata/SimpleType.h"
-#include "XMLParser.h"
+#include "emu/pc/XMLParser.h"
 
 #include "xercesc/dom/DOMNode.hpp"
 
