@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.32 2008/10/06 11:25:46 liu Exp $
+// $Id: VMEController.h,v 1.1 2009/03/25 10:07:43 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 1.1  2009/03/25 10:07:43  liu
+// move header files to include/emu/pc
+//
 // Revision 3.32  2008/10/06 11:25:46  liu
 // avoid malloc in eth_write
 //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 3.7 2008/08/13 11:30:53 geurts Exp $
+// $Id: RAT.h,v 1.1 2009/03/25 10:07:42 liu Exp $
 // $Log: RAT.h,v $
+// Revision 1.1  2009/03/25 10:07:42  liu
+// move header files to include/emu/pc
+//
 // Revision 3.7  2008/08/13 11:30:53  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit
