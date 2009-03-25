@@ -15,7 +15,7 @@
 #include "xdata/UnsignedInteger64.h"
 #include "xdata/String.h"
 #include "xdata/TimeVal.h"
-#include "XMLParser.h"
+#include "emu/pc/XMLParser.h"
 
 #include "xercesc/dom/DOMNode.hpp"
 
