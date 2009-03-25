@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: GenDATA.h,v 1.1 2009/03/25 10:07:42 liu Exp $
+// $Id: GenDATA.h,v 1.2 2009/03/25 10:19:41 liu Exp $
 // $Log: GenDATA.h,v $
+// Revision 1.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 1.1  2009/03/25 10:07:42  liu
 // move header files to include/emu/pc
 //
@@ -21,7 +24,7 @@
 #define MXWIDGET 100
 #define SAMPLESIZE 16
 #define NFPGA 4
-#include "JTAG_constants.h"
+#include "emu/pc/JTAG_constants.h"
 
 typedef struct Data{
   enum { CONFIG, EMACS, PRGFPGA, PRGCPLD, PRGPROM, MPRGPROM, PRGVTX,MPRGPROM2,UCLAPRGPROM, ALCTPRGPROM  } fsel_funct;

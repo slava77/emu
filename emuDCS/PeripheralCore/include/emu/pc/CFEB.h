@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.h,v 1.1 2009/03/25 10:07:42 liu Exp $
+// $Id: CFEB.h,v 1.2 2009/03/25 10:19:41 liu Exp $
 // $Log: CFEB.h,v $
+// Revision 1.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 1.1  2009/03/25 10:07:42  liu
 // move header files to include/emu/pc
 //
@@ -18,8 +21,8 @@
 //-----------------------------------------------------------------------
 #ifndef CFEB_h
 #define CFEB_h
-#include "JTAG_constants.h"
-#include "BuckeyeChip.h"
+#include "emu/pc/JTAG_constants.h"
+#include "emu/pc/BuckeyeChip.h"
 #include <vector>
 
 namespace emu {

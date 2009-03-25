@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.h,v 1.4 2008/08/13 11:30:51 geurts Exp $
+// $Id: EmuController.h,v 1.1 2009/03/25 10:22:43 liu Exp $
 // $Log: EmuController.h,v $
+// Revision 1.1  2009/03/25 10:22:43  liu
+// move header files to include/emu/pc
+//
 // Revision 1.4  2008/08/13 11:30:51  geurts
 // introduce emu::pc:: namespaces
 // remove any occurences of "using namespace" and make std:: references explicit

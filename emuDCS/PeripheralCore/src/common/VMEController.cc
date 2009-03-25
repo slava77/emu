@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.55 2008/12/10 18:08:49 liu Exp $
+// $Id: VMEController.cc,v 3.56 2009/03/25 10:19:42 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.56  2009/03/25 10:19:42  liu
+// move header files to include/emu/pc
+//
 // Revision 3.55  2008/12/10 18:08:49  liu
 // fix GCC4 warnings
 //
@@ -274,7 +277,7 @@
 //
 //
 //----------------------------------------------------------------------
-#include "VMEController.h"
+#include "emu/pc/VMEController.h"
 #include <cmath>
 #include <string>
 #include <stdio.h>

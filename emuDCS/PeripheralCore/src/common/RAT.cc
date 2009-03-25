@@ -4,9 +4,9 @@
 #include <vector>
 #include <string>
 //
-#include "RAT.h"
-#include "TMB.h"
-#include "TMB_constants.h"
+#include "emu/pc/RAT.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/TMB_constants.h"
 //
 //
 

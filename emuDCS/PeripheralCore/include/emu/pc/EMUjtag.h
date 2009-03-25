@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include "EMU_JTAG_constants.h"
+#include "emu/pc/EMU_JTAG_constants.h"
 
 namespace emu {
   namespace pc {

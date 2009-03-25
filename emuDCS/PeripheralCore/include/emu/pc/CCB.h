@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 1.1 2009/03/25 10:07:42 liu Exp $
+// $Id: CCB.h,v 1.2 2009/03/25 10:19:41 liu Exp $
 // $Log: CCB.h,v $
+// Revision 1.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 1.1  2009/03/25 10:07:42  liu
 // move header files to include/emu/pc
 //
@@ -142,8 +145,8 @@
 #ifndef CCB_h
 #define CCB_h
 
-#include "VMEModule.h"
-#include "EmuLogger.h"
+#include "emu/pc/VMEModule.h"
+#include "emu/pc/EmuLogger.h"
 #include <string>
 #include <bitset>
 

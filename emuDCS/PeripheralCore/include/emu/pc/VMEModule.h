@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.1 2009/03/25 10:07:43 liu Exp $
+// $Id: VMEModule.h,v 1.2 2009/03/25 10:19:41 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 1.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 1.1  2009/03/25 10:07:43  liu
 // move header files to include/emu/pc
 //
@@ -108,7 +111,7 @@
 
 #include <vector>
 #include <iostream>
-#include "JTAG_constants.h"
+#include "emu/pc/JTAG_constants.h"
 
 
 namespace emu {

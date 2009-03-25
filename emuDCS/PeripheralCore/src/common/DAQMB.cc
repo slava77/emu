@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.52 2009/03/15 13:58:54 liu Exp $
+// $Id: DAQMB.cc,v 3.53 2009/03/25 10:19:41 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.53  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 3.52  2009/03/15 13:58:54  liu
 // fix compiler warnings
 //
@@ -374,15 +377,15 @@
 //
 //-----------------------------------------------------------------------
 /* New motherboard VTX2 not VTX  so MCTRL,6  not MCTRL,5 */
-#include "DAQMB.h"
-#include "VMEController.h"
+#include "emu/pc/DAQMB.h"
+#include "emu/pc/VMEController.h"
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
 #include <cmath>
 #include <unistd.h>
 #include <iomanip>
-#include "geom.h"
+#include "emu/pc/geom.h"
 
 
 #ifndef debugV //silent mode

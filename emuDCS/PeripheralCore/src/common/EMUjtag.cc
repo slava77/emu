@@ -1,4 +1,4 @@
-#include "EMUjtag.h"
+#include "emu/pc/EMUjtag.h"
 //
 #include <iostream>
 #include <iomanip>
@@ -9,9 +9,9 @@
 #include <sstream>
 #include <time.h>
 //
-#include "TMB.h"
-#include "TMB_constants.h"
-#include "VMEController.h"
+#include "emu/pc/TMB.h"
+#include "emu/pc/TMB_constants.h"
+#include "emu/pc/VMEController.h"
 //
 //
 //EMUjtag::EMUjtag(){

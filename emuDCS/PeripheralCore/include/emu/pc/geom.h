@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: geom.h,v 1.1 2009/03/25 10:07:43 liu Exp $
+// $Id: geom.h,v 1.2 2009/03/25 10:19:41 liu Exp $
 // $Log: geom.h,v $
+// Revision 1.2  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 1.1  2009/03/25 10:07:43  liu
 // move header files to include/emu/pc
 //
@@ -15,7 +18,7 @@
 #ifndef geom_h
 #define geom_h
 
-#include "JTAG_constants.h"
+#include "emu/pc/JTAG_constants.h"
 
 struct GEOM {
     char *nam;

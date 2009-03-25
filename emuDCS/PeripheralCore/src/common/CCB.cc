@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.36 2008/08/18 12:15:13 rakness Exp $
+// $Id: CCB.cc,v 3.37 2009/03/25 10:19:41 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.37  2009/03/25 10:19:41  liu
+// move header files to include/emu/pc
+//
 // Revision 3.36  2008/08/18 12:15:13  rakness
 // add FPGA configuration done reads and accessors
 //
@@ -272,8 +275,8 @@
 //
 //
 //-----------------------------------------------------------------------
-#include "CCB.h"
-#include "VMEController.h"
+#include "emu/pc/CCB.h"
+#include "emu/pc/VMEController.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -281,7 +284,7 @@
 #include <vector>
 #include <string>
 #include <math.h>
-#include "Crate.h"
+#include "emu/pc/Crate.h"
 //
 //
 
