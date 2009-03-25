@@ -106,11 +106,15 @@ void EmuPCrateConfigTStore::outputShowHideButton(xgi::Output * out,const std::st
 	std::string action;
 	if (shouldDisplayConfiguration(configName,identifier)) action="Hide";
 	else action="Show";
-	*out << cgicc::form().set("method","POST").set("action", toolbox::toString("/%s/%s",getApplicationDescriptor()->getURN().c_str(),action.c_str())) << std::endl;
+	std::string anchor=key;
+	anchor.erase( anchor.find_last_not_of(" ") + 1); //remove spaces from the end, because these are stripped from the URL and then it doesn't match the anchor
+	*out << cgicc::a().set("name",anchor); //add an anchor so we can scroll immediately to the thing we just hid or showed
+	*out << cgicc::form().set("method","POST").set("action", toolbox::toString("/%s/%s#%s",getApplicationDescriptor()->getURN().c_str(),action.c_str(),anchor.c_str())) << std::endl;
 	*out << cgicc::input().set("type","hidden").set("name","table").set("value",key) << std::endl;
 
 	*out << cgicc::input().set("type","submit").set("value",action) << std::endl;
 	*out << cgicc::form() << std::endl;
+	*out << cgicc::a();
 	
 }
 
@@ -131,27 +135,44 @@ void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::st
 }
 
 void EmuPCrateConfigTStore::displayChildConfiguration(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier) {
-   	if (currentTables.count(configName)) {
-		*out << "<p/><table border=\"2\" cellpadding=\"10\">";
-    		*out << "<tr><td bgcolor=\"#FFCCFF\">" << configName << " of " << parentIdentifier << "</td></tr><tr><td>"  << std::endl;
- 
+   	if (currentTables.count(configName)) {		
   		std::map<std::string,xdata::Table> &tables=currentTables[configName];
   		std::map<std::string,xdata::Table>::iterator table;
-  		outputTableEditControls(out,configName,parentIdentifier);
+		
+		std::vector<std::string> subTables;
+		if (tableNames.count(configName)) {
+			subTables=tableNames[configName];
+		}
+		//if this configuration has any child configurations (e.g. it is csc and there are various other configurations per csc)
+		//then show controls for editing those values for the entire crate
+		if (!subTables.empty()) {
+			*out << "<table border=\"2\" cellpadding=\"10\"><tr><td>Update all " << configName << "s in " << parentIdentifier <<"</td></tr><tr><td>";
+				std::vector<std::string> &subTables=tableNames[configName];
+				for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) { 			
+				*out << "table " << *subTable;
+				outputTableEditControls(out,*subTable,parentIdentifier);
+			}
+			*out << "</tr></td></table>";
+		}
   		//loop through all tables whose key begins with the crateID
   		//all keys begin with the appropriate crateID
    		for (table=tables.lower_bound(parentIdentifier);table!=tables.lower_bound(parentIdentifier+"~");++table) {
-  			displayConfiguration(out,configName,(*table).first);
-			if (tableNames.count(configName)) {
-				std::vector<std::string> &subTables=tableNames[configName];
-				for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) { 			
-					//*out << "crate subtable, showing " << (*subTable) << " of " << (*table).first << std::endl;
-	 
-					displayChildConfiguration(out,*subTable,(*table).first);
-				}
+			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
+			std::string heading;
+			if (!subTables.empty()) heading=(*table).first;
+			else heading=parentIdentifier; //there is no need to specify which one since there should be only one
+			*out << "<tr><td bgcolor=\"#FFCCFF\">" << configName << " of " << heading << "</td></tr><tr><td>"  << std::endl;
+			
+			outputTableEditControls(out,configName,(*table).first);
+			displayConfiguration(out,configName,(*table).first);
+			
+			for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) { 			
+				//*out << "crate subtable, showing " << (*subTable) << " of " << (*table).first << std::endl;
+ 
+				displayChildConfiguration(out,*subTable,(*table).first);
 			}
+			*out << "</tr></td></table>";
   		}
-		*out << "</tr></td></table>";
   	}
 
 }
@@ -165,16 +186,19 @@ void EmuPCrateConfigTStore::outputFooter(xgi::Output * out) {
   	if (myCrates.size()) {
   		*out << "<table border=\"2\" cellpadding=\"10\"><tr><td>Update all crates</td></tr><tr><td>";
 		for (std::map<std::string,xdata::Table>::iterator tableDefinition=tableDefinitions.begin();tableDefinition!=tableDefinitions.end();++tableDefinition) {
+			*out << "table " << (*tableDefinition).first;
 			outputTableEditControls(out,(*tableDefinition).first);
   		}
   		*out << "</tr></td></table>";
 		for(unsigned i = 0; i < myCrates.size(); ++i) {
 			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
 			*out << "<tr><td bgcolor=\"#FFFFCC\">Crate " << myCrates[i]->CrateID() << "</td></tr><tr><td>"  << std::endl;
-			//todo: change this to just loop through an array of table names and display each one
-			for (std::map<std::string,std::vector<std::string> >::iterator tableName=tableNames.begin();tableName!=tableNames.end();++tableName) {
-				//*out << "top level, showing " << (*tableName).first << " of crate " << myCrates[i]->CrateID() << std::endl;
-				displayConfiguration(out,(*tableName).first,myCrates[i]->CrateID());
+			outputShowHideButton(out,"wholecrate",crateIdentifierString(myCrates[i]->CrateID()));
+			if (shouldDisplayConfiguration("wholecrate",crateIdentifierString(myCrates[i]->CrateID()))) {
+				for (std::map<std::string,std::vector<std::string> >::iterator tableName=tableNames.begin();tableName!=tableNames.end();++tableName) {
+					//*out << "top level, showing " << (*tableName).first << " of crate " << myCrates[i]->CrateID() << std::endl;
+					displayConfiguration(out,(*tableName).first,myCrates[i]->CrateID());
+				}
 			}
 			*out << "</tr></td></table>";
   		}
@@ -357,7 +381,13 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::td();
   *out << cgicc::td().set("style", "width:130px;");
   *out << cgicc::form().set("method","GET").set("action", toolbox::toString("read",getApplicationDescriptor()->getURN().c_str())) << std::endl;
-  *out << cgicc::input().set("type","submit").set("value","Read from DB").set("style", "width:120px;") << std::endl;
+ 
+
+	*out << cgicc::select().set("name","side");
+	*out << cgicc::option().set("value","minus") << "minus" << cgicc::option() << std::endl;
+	*out << cgicc::option().set("value","plus") << "plus" << cgicc::option() << std::endl;
+	*out << cgicc::select();
+	*out << cgicc::input().set("type","submit").set("value","Read from DB").set("style", "width:120px;") << std::endl;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();
   *out << cgicc::td().set("style", "width:130px;");
@@ -821,6 +851,8 @@ void EmuPCrateConfigTStore::uploadConfigToDB(xgi::Input * in, xgi::Output * out 
 
 void EmuPCrateConfigTStore::readConfigFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
     try {
+	    
+	cgicc::Cgicc cgi(in);
     outputHeader(out);
     outputStandardInterface(out);
 
@@ -837,13 +869,13 @@ void EmuPCrateConfigTStore::readConfigFromDB(xgi::Input * in, xgi::Output * out 
 	//Should it load both, into separate EmuEndcap instance variables?
 	//Should it check which one has already been loaded (if any) using getEndcapSide?
 	//Should it be an option on the web interface?
-    std::string endcap_side="minus";
+    std::string endcap_side=**cgi["side"]; //"plus";
     std::string emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side).toString();
     *out << "<br>max of EMU_CONFIG_ID for " << endcap_side << " side = " << emu_config_id << "<br>" << std::endl;
-    endcap_side="plus";
-    emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side).toString();
+    /*endcap_side="minus";
+    std::string emu_config_id = getConfigId("EMU_CONFIGURATION", "EMU_CONFIG_ID", endcap_side).toString();
     *out << "<br>max of EMU_CONFIG_ID for " << endcap_side << " side = " << emu_config_id << "<br>" << std::endl;
-
+*/
     disconnect(connectionID);
   
     //EmuEndcap * myEndcap;
