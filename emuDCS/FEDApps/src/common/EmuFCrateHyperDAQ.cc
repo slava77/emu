@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.4 2009/03/12 14:29:58 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.5 2009/03/26 20:19:08 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 1.5  2009/03/26 20:19:08  paste
+* Fixed DDUFPGA Diagnostic Trap display to show all 192 bits correctly
+*
 * Revision 1.4  2009/03/12 14:29:58  paste
 * * Fixed image display bug in Monitor
 * * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
@@ -2440,12 +2443,12 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 			std::stringstream diagCode;
 			diagCode << std::setfill('0');
 			diagCode << std::hex;
-			diagCode << std::setw(8) << lcode[5] << " ";
-			diagCode << std::setw(8) << lcode[4] << " ";
-			diagCode << std::setw(8) << lcode[3] << " ";
-			diagCode << std::setw(8) << lcode[2] << " ";
-			diagCode << std::setw(8) << lcode[1] << " ";
-			diagCode << std::setw(8) << lcode[0];
+			diagCode << std::setw(4) << lcode[11] << lcode[10] << " ";
+			diagCode << std::setw(4) << lcode[9] << lcode[8] << " ";
+			diagCode << std::setw(4) << lcode[7] << lcode[6] << " ";
+			diagCode << std::setw(4) << lcode[5] << lcode[4] << " ";
+			diagCode << std::setw(4) << lcode[3] << lcode[2] << " ";
+			diagCode << std::setw(4) << lcode[1] << lcode[0];
 
 			// Don't tell anybody, but a div with display: inline is just another
 			//  name for a span.  I do this to solve a problem with cgicc and the

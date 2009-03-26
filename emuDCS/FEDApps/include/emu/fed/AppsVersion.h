@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.7 2009/03/24 19:11:08 paste Exp $
+* $Id: AppsVersion.h,v 1.8 2009/03/26 20:19:08 paste Exp $
 *
 * $Log: AppsVersion.h,v $
+* Revision 1.8  2009/03/26 20:19:08  paste
+* Fixed DDUFPGA Diagnostic Trap display to show all 192 bits correctly
+*
 * Revision 1.7  2009/03/24 19:11:08  paste
 * Fixed a bug that made Manager always return a Failed state after Disable command
 *
@@ -33,7 +36,7 @@
 
 namespace emufedapps {
 	const std::string package     = "FEDApps";
-	const std::string versions    = "07.01.00";
+	const std::string versions    = "07.01.01";
 	const std::string description = "Emu (CSC) FED XDAQ Applications";
 
 	const std::string summary     = "Applications to control and monitor the Front End Device (FED) crates for the CMS Emu (CSC) subdetector";
