@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.2 2009/03/25 12:06:24 liu Exp $
+// $Id: EmuDim.h,v 1.3 2009/03/27 17:25:29 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -71,6 +71,7 @@ public:
   xdata::String PeripheralCrateDimFile_;
   xdata::String BadChamberFile_;
   xdata::String XmasDcsUrl_;
+  xdata::String BlueDcsUrl_;
   xdata::String TestPrefix_;
   xdata::Integer OpMode_;
   //
@@ -97,7 +98,7 @@ public:
   xoap::MessageReference  SoapStop(xoap::MessageReference message) throw (xoap::exception::Exception);
   void ButtonStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ButtonStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void Command(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void SwitchBoard(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void timeExpired (toolbox::task::TimerEvent& e);
   void Start();
   void Stop();
@@ -111,10 +112,11 @@ public:
   int ParseTXT(char *buff, int buffsize, int source);
   int FillChamber(char *buff, int source);
   int ChnameToNumber(const char *chname);
+  std::string getLocalDateTime();
   
 private:
 
-  LOAD *MyLoader, *XmasStart, *XmasStop;
+  LOAD *XmasLoader, *BlueLoader;
   bool inited;
   Chamber chamb[TOTAL_CHAMBERS];
 
@@ -129,6 +131,10 @@ private:
   toolbox::task::Timer * timer_;
   xdata::UnsignedShort fastloop, slowloop, extraloop;
   int current_state_;
+
+  std::string xmas_root, xmas_load, xmas_start, xmas_stop, xmas_info;
+  std::string blue_root, blue_info;
+             
 };
 
   } // namespace emu::x2p

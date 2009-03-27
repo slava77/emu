@@ -71,6 +71,22 @@ int LOAD::reload()
   return cont_size;
 }
 
+int LOAD::reload(std::string url)
+{
+  if(!inited_) return 0;
+  /* discard the old content */
+  cont_size=0;
+
+ /* change URL to get */
+  curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
+  URL_ = url;
+
+  /* get it! */
+  curl_easy_perform(curl_handle);
+
+  return cont_size;
+}
+
 void LOAD::end()
 {
   /* cleanup curl stuff */
