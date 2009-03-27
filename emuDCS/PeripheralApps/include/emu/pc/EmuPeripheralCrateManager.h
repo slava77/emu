@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.2 2009/03/25 11:37:22 liu Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.3 2009/03/27 13:12:34 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -22,38 +22,14 @@
 #include "xdaq/ApplicationStub.h"
 #include "xdaq/exception/Exception.h"
 
-
 #include "xdaq/NamespaceURI.h"
-
-#include "xoap/MessageReference.h"
-#include "xoap/MessageFactory.h"
-#include "xoap/SOAPEnvelope.h"
-#include "xoap/SOAPBody.h"
-#include "xoap/Method.h"
 
 #include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTMLClasses.h"
 
-#include "xdata/exdr/FixedSizeInputStreamBuffer.h"
-#include "xdata/exdr/AutoSizeOutputStreamBuffer.h"
-#include "xdata/exdr/Serializer.h"
-#include <xdata/String.h>
-#include <xdata/Float.h>
-#include <xdata/Double.h>
-#include <xdata/Integer.h>
-#include <xdata/Boolean.h>
-#include <xdata/UnsignedLong.h>
-#include <xdata/Table.h>
-
 #include "emu/pc/EmuPeripheralCrateBase.h"
-#include "emu/pc/EmuController.h"
-#include "emu/pc/Crate.h"
-#include "emu/pc/CrateUtilities.h"
-
-using namespace cgicc;
-using namespace std;
 
 namespace emu {
   namespace pc {
@@ -65,15 +41,12 @@ public:
   
   XDAQ_INSTANTIATOR();
   
-  xdata::UnsignedLong runNumber_;
-  xdata::String ConfigureState_;
-  xdata::Table table_;                            
-  //
   //
   EmuPeripheralCrateManager(xdaq::ApplicationStub * s);
   //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void ForEmuPage1(xgi::Input *in, xgi::Output *out) throw (xgi::exception::Exception);
   //
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
