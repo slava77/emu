@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.3 2009/03/24 19:11:08 paste Exp $
+* $Id: Manager.cc,v 1.4 2009/03/27 17:02:02 paste Exp $
 *
 * $Log: Manager.cc,v $
+* Revision 1.4  2009/03/27 17:02:02  paste
+* Shortened names of monitors reported from Manager to PageOne.
+* Fixed DDU KillFiber checking between XML and FPGA.
+* Fixed Monitor to correctly decode DCC FIFO status.
+*
 * Revision 1.3  2009/03/24 19:11:08  paste
 * Fixed a bug that made Manager always return a Failed state after Disable command
 *
@@ -587,7 +592,11 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 			}
 		}
 		
-		report.push_back(emu::base::WebReportItem("Chamber Error Count (" + endcap.toString() + " Endcap)", chambersWithErrors.toString(), "Number of chambers reporting errors since the last resync", problem, "", monitorURL));
+		std::string shortEndcap = "?";
+		if (endcap.toString() == "Plus-Side") shortEndcap = "ME+";
+		else if (endcap.toString() == "Minus-Side") shortEndcap = "ME-";
+		else if (endcap.toString() == "Track-Finder") shortEndcap = "TF";
+		report.push_back(emu::base::WebReportItem(shortEndcap + " Errors", chambersWithErrors.toString(), "Number of fibers reporting errors since the last resync on the " + endcap.toString(), problem, "", monitorURL));
 		
 	}
 	

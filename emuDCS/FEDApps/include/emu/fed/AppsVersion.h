@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.8 2009/03/26 20:19:08 paste Exp $
+* $Id: AppsVersion.h,v 1.9 2009/03/27 17:02:02 paste Exp $
 *
 * $Log: AppsVersion.h,v $
+* Revision 1.9  2009/03/27 17:02:02  paste
+* Shortened names of monitors reported from Manager to PageOne.
+* Fixed DDU KillFiber checking between XML and FPGA.
+* Fixed Monitor to correctly decode DCC FIFO status.
+*
 * Revision 1.8  2009/03/26 20:19:08  paste
 * Fixed DDUFPGA Diagnostic Trap display to show all 192 bits correctly
 *
@@ -36,7 +41,7 @@
 
 namespace emufedapps {
 	const std::string package     = "FEDApps";
-	const std::string versions    = "07.01.01";
+	const std::string versions    = "07.01.02";
 	const std::string description = "Emu (CSC) FED XDAQ Applications";
 
 	const std::string summary     = "Applications to control and monitor the Front End Device (FED) crates for the CMS Emu (CSC) subdetector";
