@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.3 2009/03/12 14:29:58 paste Exp $
+* $Id: Monitor.cc,v 1.4 2009/03/27 17:02:02 paste Exp $
 *
 * $Log: Monitor.cc,v $
+* Revision 1.4  2009/03/27 17:02:02  paste
+* Shortened names of monitors reported from Manager to PageOne.
+* Fixed DDU KillFiber checking between XML and FPGA.
+* Fixed Monitor to correctly decode DCC FIFO status.
+*
 * Revision 1.3  2009/03/12 14:29:58  paste
 * * Fixed image display bug in Monitor
 * * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
@@ -352,10 +357,10 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 					json << "{";
 					json << "\"slot\":" << iSlot << ",";
 					json << "\"rate\":" << rate << ",";
-					if (fifoStatus & (1 << (fifo + 3))) {
+					if (!(fifoStatus & (1 << (fifo + 3)))) {
 						json << "\"status\":\"error\",";
 						json << "\"message\":\"full\"";
-					} else if (fifo < 3 && (fifoStatus & (1 << fifo))) {
+					} else if (fifo < 3 && !(fifoStatus & (1 << fifo))) {
 						json << "\"status\":\"warning\",";
 						json << "\"message\":\"1/2 full\"";
 					} else {

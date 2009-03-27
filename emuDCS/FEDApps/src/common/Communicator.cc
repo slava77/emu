@@ -1,7 +1,12 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.3 2009/03/24 19:11:08 paste Exp $
+* $Id: Communicator.cc,v 1.4 2009/03/27 17:02:02 paste Exp $
 *
 * $Log: Communicator.cc,v $
+* Revision 1.4  2009/03/27 17:02:02  paste
+* Shortened names of monitors reported from Manager to PageOne.
+* Fixed DDU KillFiber checking between XML and FPGA.
+* Fixed Monitor to correctly decode DCC FIFO status.
+*
 * Revision 1.3  2009/03/24 19:11:08  paste
 * Fixed a bug that made Manager always return a Failed state after Disable command
 *
@@ -270,88 +275,6 @@ throw (toolbox::fsm::exception::Exception)
 	}
 
 
-	
-	// First, we must make a system to parse out strings.  String-fu!
-	// Strings looke like this:  "Crate# BHandle# Crate# BHandle# Crate# BHandle#..."
-	/*
-	std::map< int, int > BHandles;
-	
-	LOG4CPLUS_DEBUG(getApplicationLogger(),"Got old handles: " << BHandles_.toString());
-
-	// Parse out the string into handles (if they have already been opened by HyperDAQ)
-	std::stringstream sHandles(BHandles_.toString());
-	int buffer;
-	while (sHandles >> buffer) {
-		int crateNumber = buffer;
-		sHandles >> buffer;
-		if (!sHandles.good()) {
-			std::ostringstream error;
-			error << "Unable to properly parse BHandle data (" << BHandles_.toString() << ")";
-			XCEPT_DECLARE(emu::fed::exception::ParseException, e, error.str());
-			notifyQualified("WARN", e);
-			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		}
-		int BHandle = buffer;
-		
-		BHandles[crateNumber] = BHandle;
-	}
-
-	// Now we have to see if we need new handles from the crate vector.
-	std::ostringstream newHandles;
-
-	for (std::vector< Crate * >::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-		// The controller knows its handle.
-		VMEController *myController = (*iCrate)->getController();
-
-		// A handle of -1 means that opening of the handle failed, so someone has
-		// already opened it (HyperDAQ)
-		if (myController->getBHandle() == -1) {
-			LOG4CPLUS_DEBUG(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has already been opened by someone else.  Looking for the BHandle...");
-
-			// If that is the case, we can look up the handle.  Handles are stored by
-			// create NUMBER (not index), so we need to check against our crate number.
-			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
-				
-				if (iHandle->first != (*iCrate)->number()) continue;
-				LOG4CPLUS_DEBUG(getApplicationLogger(),"Found handle " << iHandle->second);
-				(*iCrate)->setBHandle(iHandle->second);
-
-				// In this case, just copy the old handle information to our new string.
-				newHandles << iHandle->first << " " << iHandle->second << " ";
-				
-				break;
-			}
-		} else {
-
-			// If the handle is a reasonable number, we assume that we created it.  Use it.
-			LOG4CPLUS_DEBUG(getApplicationLogger(),"Controller in crate " << (*iCrate)->number() << " has been first opened by this application.  Saving the BHandle...");
-			
-			bool replaced = false;
-
-			// It may be the case that the handle was opened at some point in the past,
-			// then closed.  If that is the case, we need to reset the handle in the string.
-			for (std::map<int,int>::iterator iHandle = BHandles.begin(); iHandle != BHandles.end(); iHandle++) {
-				
-				if (iHandle->first != (*iCrate)->number()) continue;
-				LOG4CPLUS_DEBUG(getApplicationLogger(),"Resetting handle (was " << iHandle->second << ")");
-				replaced = true;
-				newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
-			}
-
-			// If nothing was replaced (we didn't find the crate number in the previous
-			// string), then we write a new one.
-			if (!replaced) newHandles << (*iCrate)->number() << " " << myController->getBHandle() << " ";
-			
-		}
-
-	}
-	
-	LOG4CPLUS_DEBUG(getApplicationLogger(),"Saving new handles: " << newHandles.str());
-	
-	BHandles_ = newHandles.str();
-	*/
-
-
 	// PGK No hard reset or sync reset is coming any time soon, so we should
 	//  do it ourselves.
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
@@ -439,7 +362,7 @@ throw (toolbox::fsm::exception::Exception)
 					}
 				}
 				
-				if (fpgaKillFiber != xmlKillFiber) {
+				if ((fpgaKillFiber & 0x7fff) != (xmlKillFiber & 0x7fff)) {
 					LOG4CPLUS_INFO(getApplicationLogger(),"FPGA and XML killFiber for DDU in crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot() << " disagree:  reloading FPGA");
 					(*iDDU)->writeKillFiber(xmlKillFiber);
 					
