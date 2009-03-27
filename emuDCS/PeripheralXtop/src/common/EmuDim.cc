@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.13 2009/03/25 12:06:24 liu Exp $
+// $Id: EmuDim.cc,v 1.14 2009/03/27 17:25:29 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <iomanip>
 #include <time.h>
+#include <iomanip>
+#include <sstream>
 
 namespace emu {
   namespace x2p {
@@ -25,6 +27,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s), emu::base::S
   PeripheralCrateDimFile_  = "";
   BadChamberFile_ = "";
   XmasDcsUrl_ = "";
+  BlueDcsUrl_ = "";
   TestPrefix_ = "";
   OpMode_ = 0;
 
@@ -53,6 +56,7 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s), emu::base::S
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateDimFile_);
   getApplicationInfoSpace()->fireItemAvailable("BadChamberFileName", &BadChamberFile_);
   getApplicationInfoSpace()->fireItemAvailable("XmasDcsUrl", &XmasDcsUrl_ );
+  getApplicationInfoSpace()->fireItemAvailable("BlueDcsUrl", &BlueDcsUrl_ );
   getApplicationInfoSpace()->fireItemAvailable("TestPrefix", &TestPrefix_ );
   getApplicationInfoSpace()->fireItemAvailable("OperationMode", &OpMode_ );
 
@@ -67,14 +71,14 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s), emu::base::S
   fastloop=0;
   slowloop=0;
   extraloop=0;
-  this->getApplicationInfoSpace()->fireItemAvailable("FastLoop", &fastloop);
-  this->getApplicationInfoSpace()->fireItemAvailable("SlowLoop", &slowloop);
-  this->getApplicationInfoSpace()->fireItemAvailable("ExtraLoop", &extraloop);
+  getApplicationInfoSpace()->fireItemAvailable("FastLoop", &fastloop);
+  getApplicationInfoSpace()->fireItemAvailable("SlowLoop", &slowloop);
+  getApplicationInfoSpace()->fireItemAvailable("ExtraLoop", &extraloop);
   xoap::bind(this, &EmuDim::SoapStart, "SoapStart", XDAQ_NS_URI);
   xoap::bind(this, &EmuDim::SoapStop, "SoapStop", XDAQ_NS_URI);
   xgi::bind(this,&EmuDim::ButtonStart      ,"ButtonStart");
   xgi::bind(this,&EmuDim::ButtonStop      ,"ButtonStop");
-  xgi::bind(this,&EmuDim::Command      ,"Command");
+  xgi::bind(this,&EmuDim::SwitchBoard      ,"SwitchBoard");
 
 }  
 
@@ -141,11 +145,7 @@ void EmuDim::Start ()
          Monitor_Ready_=true;
      }
      Monitor_On_=true;
-     char cbuf[30];
-     time_t thistime = ::time(NULL);
-     ::ctime_r(&thistime, cbuf);
-     cbuf[24]=0;
-     std::cout<< "EmuDim Started " << cbuf << std::endl;
+     std::cout<< getLocalDateTime() << " EmuDim Started " << std::endl;
 }
 
 void EmuDim::Stop () 
@@ -153,11 +153,7 @@ void EmuDim::Stop ()
      if(Monitor_On_)
      {
          Monitor_On_=false;
-         char cbuf[30];
-         time_t thistime = ::time(NULL);
-         ::ctime_r(&thistime, cbuf);
-         cbuf[24]=0;
-         std::cout << "EmuDim stopped " << cbuf << std::endl;
+         std::cout << getLocalDateTime() << " EmuDim stopped " << std::endl;
      }
 }
 
@@ -173,7 +169,7 @@ void EmuDim::ButtonStop(xgi::Input * in, xgi::Output * out ) throw (xgi::excepti
      this->Default(in,out);
 }
 
-void EmuDim::Command(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+void EmuDim::SwitchBoard(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
     cgicc::CgiEnvironment cgiEnvi(in);
     std::string Page, Cmnd, Param;
@@ -211,18 +207,18 @@ void EmuDim::MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception
   if(Monitor_On_)
   {
      *out << cgicc::span().set("style","color:green");
-     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
+     *out << cgicc::b(cgicc::i("X2P Status: On")) << cgicc::span() << std::endl ;
      std::string TurnOffMonitor = toolbox::toString("/%s/ButtonStop",getApplicationDescriptor()->getURN().c_str());
      *out << cgicc::form().set("method","GET").set("action",TurnOffMonitor) << std::endl ;
-     *out << cgicc::input().set("type","submit").set("value","Turn Off Monitor") << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","Turn Off X2P") << std::endl ;
      *out << cgicc::form() << std::endl ;
   } else
   {
      *out << cgicc::span().set("style","color:red");
-     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
+     *out << cgicc::b(cgicc::i("X2P Status: Off")) << cgicc::span() << std::endl ;
      std::string TurnOnMonitor = toolbox::toString("/%s/ButtonStart",getApplicationDescriptor()->getURN().c_str());
      *out << cgicc::form().set("method","GET").set("action",TurnOnMonitor) << std::endl ;
-     *out << cgicc::input().set("type","submit").set("value","Turn On Monitor") << std::endl ;
+     *out << cgicc::input().set("type","submit").set("value","Turn On X2P") << std::endl ;
      *out << cgicc::form() << std::endl ;
   }
   if(Suspended_) 
@@ -259,17 +255,19 @@ void EmuDim::Setup()
       StartDim(ch);
    else
       std::cout << "ERROR in read file " << fn << " DIM services cannot start." << std::endl;
-   MyLoader = new LOAD();
-   XmasStart = new LOAD();
-   XmasStop = new LOAD();
-   std::string url_root=XmasDcsUrl_;
-   std::string url_load=url_root + "/DCSOutput";
-   std::string url_start=url_root + "/MonitorStart";
-   std::string url_stop=url_root + "/MonitorStop";
+   XmasLoader = new LOAD();
+   BlueLoader = new LOAD();
 
-   MyLoader->init(url_load.c_str());
-   XmasStart->init(url_start.c_str());
-   XmasStop->init(url_stop.c_str());
+   xmas_root=XmasDcsUrl_;
+   xmas_load=xmas_root + "/DCSOutput";
+   xmas_start=xmas_root + "/MonitorStart";
+   xmas_stop=xmas_root + "/MonitorStop";
+   xmas_info=xmas_root + "/SwitchBoard";
+   XmasLoader->init(xmas_load.c_str());
+
+   blue_root=BlueDcsUrl_;
+   blue_info=blue_root + "/SwitchBoard";
+   BlueLoader->init(blue_info.c_str());
    inited=true;
 }
 
@@ -297,14 +295,11 @@ int EmuDim::ReadFromXmas()
 {
   int ch=0;
    // read
-   MyLoader->reload();
+   XmasLoader->reload(xmas_load);
+
    // then fill the structure
-   ch=ParseTXT(MyLoader->Content(), MyLoader->Content_Size(), 0);
-   char cbuf[30];
-   time_t thistime = ::time(NULL);
-   ::ctime_r(&thistime, cbuf);
-   cbuf[24]=0;
-   std::cout << ch << " Chambers read at " << cbuf << std::endl;
+   ch=ParseTXT(XmasLoader->Content(), XmasLoader->Content_Size(), 0);
+   std::cout << ch << " Chambers read at " << getLocalDateTime() << std::endl;
    // 
    return ch;
 }
@@ -414,13 +409,9 @@ void EmuDim::StartDim(int chs)
    LV_1_Command = new DimCommand( dim_command.c_str(),"C");
    dim_server = pref + "Emu-Dcs Dim Server";
    DimServer::start(dim_server.c_str());
-   char cbuf[30];
-   time_t thistime = ::time(NULL);
-   ::ctime_r(&thistime, cbuf);
-   cbuf[24]=0;
    std::cout << total << " DIM serives";
    if(pref!="") std::cout << " ( with prefix " << pref << " )";
-   std::cout << " started at " << cbuf << std::endl;
+   std::cout << " started at " << getLocalDateTime() << std::endl;
 }
 
 int EmuDim::UpdateDim(int ch)
@@ -454,23 +445,19 @@ void EmuDim::UpdateAllDim()
 
 void EmuDim::CheckCommand()
 {
-   char cbuf[30];
    if(LV_1_Command==NULL) return;
    while(LV_1_Command->getNext())
    {
       std::string cmnd = LV_1_Command->getString();
-      time_t thistime = ::time(NULL);
-      ::ctime_r(&thistime, cbuf);
-      cbuf[24]=0;
-      std::cout << "Dim Command:" << cmnd << " " << cbuf << std::endl;
+      std::cout << getLocalDateTime() << " Dim Command:" << cmnd << std::endl;
       if(cmnd.substr(0,10)=="STOP_SLOW_")
       {
-         XmasStop->reload();
+         XmasLoader->reload(xmas_stop);
          Suspended_ = true;
       }
       else if(cmnd.substr(0,12)=="RESUME_SLOW_")
       {
-         XmasStart->reload();
+         XmasLoader->reload(xmas_start);
          Suspended_ = false;
       }
       else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
@@ -555,6 +542,24 @@ xoap::MessageReference EmuDim::onHalt (xoap::MessageReference message)
   fireEvent("Halt");
   //
   return createReply(message);
+}
+
+std::string EmuDim::getLocalDateTime(){
+  time_t t;
+  struct tm *tm;
+
+  time( &t );
+  tm = localtime( &t );
+
+  std::stringstream ss;
+  ss << std::setfill('0') << std::setw(4) << tm->tm_year+1900 << "-"
+     << std::setfill('0') << std::setw(2) << tm->tm_mon+1     << "-"
+     << std::setfill('0') << std::setw(2) << tm->tm_mday      << " "
+     << std::setfill('0') << std::setw(2) << tm->tm_hour      << ":"
+     << std::setfill('0') << std::setw(2) << tm->tm_min       << ":"
+     << std::setfill('0') << std::setw(2) << tm->tm_sec;
+
+  return ss.str();
 }
 
   }  // namespace emu::x2p

@@ -23,8 +23,10 @@ public:
   
   inline char *Content() { return buffmem; }
   inline int Content_Size() { return cont_size; }
+  inline std::string Url() { return URL_; }
   void init(std::string url);
   int reload();
+  int reload(std::string url);
   void end();
 
 private:
