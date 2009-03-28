@@ -1321,17 +1321,54 @@ void emu::daq::manager::Application::commandWebPage(xgi::Input *in, xgi::Output 
 vector<emu::base::WebReportItem> 
 emu::daq::manager::Application::materialToReportOnPage1(){
   vector<emu::base::WebReportItem> items;
+
+  // State
   string state = getDAQState();
   string valueTip;
   string controlURL = getHref( appDescriptor_ ) + "/control";
   if ( ! ( state == "Enabled" || state == "Ready" || state == "Halted" ) ) 
-    valueTip = "Local DAQ needs attention. Click to control it manually.";
+    valueTip = "Local DAQ may need attention. Click to control it manually.";
   items.push_back( emu::base::WebReportItem( "state",
                                              state,
                                              "The overall state of local DAQ.",
                                              valueTip,
-                                             "",
+                                             controlURL,
                                              controlURL ) );
+
+  // Min and max RUI counts
+  int maxCount = -1;
+  int minCount = 2000000000;
+  int minCountIndex = -1;
+  int maxCountIndex = -1;
+  vector< map< string,string > > counts = getRUIEventCounts();
+  for ( unsigned int iRUI=0; iRUI<counts.size(); ++iRUI ){
+    stringstream ss;
+    ss << counts.at(iRUI)["count"];
+    int count;
+    ss >> count;
+    if ( count < minCount ) { minCount = count; minCountIndex = iRUI; }
+    if ( count > maxCount ) { maxCount = count; maxCountIndex = iRUI; }
+  }
+  try{
+    stringstream nss;
+    nss << "Events read from " << counts.at(minCountIndex)["hwName"] << " by RUI " << counts.at(minCountIndex)["appInst"] << ".";
+    items.push_back( emu::base::WebReportItem( "min events",
+					       counts.at(minCountIndex)["count"],
+					       "The lowest number of events read by an RUI. It should remain close to 'max events read'.",
+					       nss.str(),
+					       "", "" ) );
+    stringstream xss;
+    xss << "Events read from " << counts.at(maxCountIndex)["hwName"] << " by RUI " << counts.at(maxCountIndex)["appInst"] << ".";
+    items.push_back( emu::base::WebReportItem( "max events",
+					       counts.at(maxCountIndex)["count"],
+					       "The highest number of events read by an RUI.",
+					       xss.str(),
+					       "", "" ) );
+  }
+  catch( const std::exception& e ){
+    LOG4CPLUS_WARN(logger_, "Failed to report min and max number of events to Page 1 : " << e.what() );
+  }
+  
   return items;
 }
 
