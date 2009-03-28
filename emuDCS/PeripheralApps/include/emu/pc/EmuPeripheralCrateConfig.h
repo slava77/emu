@@ -314,18 +314,7 @@ public:
 
 private:
 
-  xoap::MessageReference onCalibration(xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
-  void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
-  void configureFail(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
-  void reConfigureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void postToELog( std::string subject, std::string body );
-  void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
-  void disableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
-  void haltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception); 
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception); 
   void VCCHeader(xgi::Input * in, xgi::Output * out, std::string title, std::string heading ) throw (xgi::exception::Exception); 
@@ -345,12 +334,6 @@ private:
   void CalibrationCFEBPedestal(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateDumpConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CrateStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void CrateDMBCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void CrateTMBCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void LaunchMonitor(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void MonitorFrameRight(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
-  void MonitorFrameLeft(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
   void MonitorTMBTrigger(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
   void MonitorTMBTriggerRedirect(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
   void MenuMonitorTMBTrigger(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
@@ -359,8 +342,6 @@ private:
   void MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
   void CreateMonitorUnit(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception); 
   void Display(xgi::Input * in, xgi::Output * out, int counter ) throw (xgi::exception::Exception); 
-  void SetUnsetRatio(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void SetUnsetAutoRefresh(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ResetAllCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void InitChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
