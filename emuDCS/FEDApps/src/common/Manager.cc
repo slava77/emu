@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.4 2009/03/27 17:02:02 paste Exp $
+* $Id: Manager.cc,v 1.5 2009/03/28 16:16:40 paste Exp $
 *
 * $Log: Manager.cc,v $
+* Revision 1.5  2009/03/28 16:16:40  paste
+* Changed the name of Manager state "Undefined" to "Indefinite".
+*
 * Revision 1.4  2009/03/27 17:02:02  paste
 * Shortened names of monitors reported from Manager to PageOne.
 * Fixed DDU KillFiber checking between XML and FPGA.
@@ -98,7 +101,7 @@ ttsBits_(0)
 	fsm_.addState('H', "Halted", this, &emu::fed::Manager::stateChanged);
 	fsm_.addState('C', "Configured", this, &emu::fed::Manager::stateChanged);
 	fsm_.addState('E', "Enabled", this, &emu::fed::Manager::stateChanged);
-	fsm_.addState('U', "Undefined", this, &emu::fed::Manager::stateChanged);
+	fsm_.addState('U', "Indefinite", this, &emu::fed::Manager::stateChanged);
 
 	// FSM transition definitions
 	fsm_.addStateTransition('H', 'C', "Configure", this, &emu::fed::Manager::configureAction); // valid
@@ -596,7 +599,7 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 		if (endcap.toString() == "Plus-Side") shortEndcap = "ME+";
 		else if (endcap.toString() == "Minus-Side") shortEndcap = "ME-";
 		else if (endcap.toString() == "Track-Finder") shortEndcap = "TF";
-		report.push_back(emu::base::WebReportItem(shortEndcap + " Errors", chambersWithErrors.toString(), "Number of fibers reporting errors since the last resync on the " + endcap.toString(), problem, "", monitorURL));
+		report.push_back(emu::base::WebReportItem(shortEndcap + " Errors", chambersWithErrors.toString(), "Number of chambers currently reporting errors (since the last reset or resync)", problem, "", monitorURL));
 		
 	}
 	
