@@ -2172,90 +2172,80 @@ throw (xgi::exception::Exception)
 
 }
 
+
 bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
 {
-    try
+  bool isToBeRescheduled    = true;
+  int  pauseForOtherThreads = 0;
+  applicationBSem_.take();
+
+  toolbox::fsm::State state = fsm_.getCurrentState();
+
+  switch(state)
     {
-      bool isToBeRescheduled    = true;
-      int  pauseForOtherThreads = 0;
-        applicationBSem_.take();
+    case 'H':  // Halted
+    case 'F':  // Failed
+    case 'R':  // Ready
+      // Pause or else this thread will hog the CPU like an idle loop.
+      pauseForOtherThreads = 5000;
+      break;
+    case 'E':  // Enabled
 
-        toolbox::fsm::State state = fsm_.getCurrentState();
+      // Read out data (and pass it on to RU if events are built):
+      try {
+	pauseForOtherThreads = processAndCommunicate();
+	isToBeRescheduled    = ( pauseForOtherThreads >= 0 );
+      }
+      catch (xcept::Exception e) {
+	LOG4CPLUS_FATAL(logger_, "Failed to execute \"self-driven\" behaviour"
+			<< " : " << xcept::stdformat_exception_history(e));
+	    
+	try {
+	  // Move to the failed state
+	  toolbox::Event::Reference evtRef(new toolbox::Event("Fail", this));
+	  fsm_.fireEvent(evtRef);
+	  applicationBSem_.give();
+	}
+	catch(xcept::Exception e) {
+	  applicationBSem_.give();
+	  LOG4CPLUS_FATAL(logger_, "Failed to move to the Failed state : "
+			  << xcept::stdformat_exception_history(e));
+	}
+	// Do not reschedule this action code as the application has failed
+	applicationBSem_.give();
+	return false;
+      }
 
-        switch(state)
-        {
-        case 'H':  // Halted
-        case 'F':  // Failed
-        case 'R':  // Ready
-	  // Pause or else this thread will hog the CPU like an idle loop.
-	  pauseForOtherThreads = 5000;
-	  break;
-        case 'E':  // Enabled
-// 	  // DEBUG START
-// 	  visitCount_rwl++;
-// 	  if ( ec_rwl->timeIsUp() ){
-// 	    std::cout << "  " << workLoopName_.toString()
-// 		      << "   readout loop: " << visitCount_rwl
-// 		      << "   server loop: " << visitCount_swl
-// 		      << std::endl << std::flush;
-// 	    LOG4CPLUS_INFO(logger_,
-// 			   "  " << workLoopName_.toString()
-// 			   << "   readout loop: " << visitCount_rwl
-// 			   << "   server loop: " << visitCount_swl
-// 			   );
-// 	  }
-// 	  // DEBUG END
-	  pauseForOtherThreads = processAndCommunicate();
-	  isToBeRescheduled    = ( pauseForOtherThreads >= 0 );
-
-	  // Run the servers too in the readout thread.
-	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
-	    // Service only I2O clients here in the readout loop as I2O messages
-	    // are non-blocking (fire & forget).
-	    if ( clientProtocol_.elementAt( iClient )->toString() == "I2O" ){
-	      clients_[iClient]->server->sendData();
-	    }
+      // Pass data on to clients
+      try {
+	// Run the servers too in the readout thread.
+	for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	  // Service only I2O clients here in the readout loop as I2O messages
+	  // are non-blocking (fire & forget).
+	  if ( clientProtocol_.elementAt( iClient )->toString() == "I2O" ){
+	    clients_[iClient]->server->sendData();
 	  }
+	}
+      }
+      catch(xcept::Exception e) {
+	LOG4CPLUS_WARN(logger_, "emu::daq::rui::Application" << instance_ 
+		       << " failed to send data to its client via I2O: "
+		       << " : " << xcept::stdformat_exception_history(e));
+      }
 
-	  break;
-        default:
-	  // Should never get here
-	  LOG4CPLUS_FATAL(logger_,
-			  "emu::daq::rui::Application" << instance_ << " is in an undefined state");
-        }
-
-        applicationBSem_.give();
-
-	if ( pauseForOtherThreads > 0 ) usleep( (unsigned int) pauseForOtherThreads );
-
-        // Reschedule this action code
-        return isToBeRescheduled;
+      break;
+    default:
+      // Should never get here
+      LOG4CPLUS_FATAL(logger_,
+		      "emu::daq::rui::Application" << instance_ << " is in an undefined state");
     }
-    catch(xcept::Exception e)
-    {
-        LOG4CPLUS_FATAL(logger_,
-            "Failed to execute \"self-driven\" behaviour"
-            << " : " << xcept::stdformat_exception_history(e));
 
-        try
-        {
-            // Move to the failed state
-            toolbox::Event::Reference evtRef(new toolbox::Event("Fail", this));
-            fsm_.fireEvent(evtRef);
-            applicationBSem_.give();
-        }
-        catch(xcept::Exception e)
-        {
-            applicationBSem_.give();
+  applicationBSem_.give();
 
-            LOG4CPLUS_FATAL(logger_,
-                "Failed to move to the Failed state : "
-                << xcept::stdformat_exception_history(e));
-        }
+  if ( pauseForOtherThreads > 0 ) usleep( (unsigned int) pauseForOtherThreads );
 
-        // Do not reschedule this action code as the application has failed
-        return false;
-    }
+  // Reschedule this action code
+  return isToBeRescheduled;
 }
 
 bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
