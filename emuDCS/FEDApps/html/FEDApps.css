@@ -92,7 +92,7 @@ table.data td {
 	padding: 1px 8px 1px 8px;
 }
 
-.Halted, .Enabled, .Disabled, .Configured, .Failed, .Unknown {
+.Halted, .Enabled, .Disabled, .Configured, .Failed, .Unknown, .Indefinite {
 	padding: 2px;
 	background-color: #000;
 	font-family: monospace;
