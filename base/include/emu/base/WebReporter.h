@@ -8,6 +8,8 @@
 
 #include <string>
 #include <vector>
+#include <utility>
+#include <time.h>
 
 namespace emu { namespace base {
 
@@ -25,7 +27,7 @@ namespace emu { namespace base {
     void ForEmuPage1(xgi::Input *in, xgi::Output *out)
       throw (xgi::exception::Exception);
 
-    string getLocalDateTime();
+    pair<time_t,string> getLocalDateTime();
   
     virtual vector<emu::base::WebReportItem> materialToReportOnPage1()=0;
   };
