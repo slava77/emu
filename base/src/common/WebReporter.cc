@@ -1,6 +1,5 @@
 #include "emu/base/WebReporter.h"
 
-#include <time.h>
 #include <iomanip>
 #include <sstream>
 
@@ -15,25 +14,28 @@ emu::base::WebReporter::WebReporter(xdaq::ApplicationStub *stub)
 void 
 emu::base::WebReporter::ForEmuPage1(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception){
+  pair<time_t,string> timePair = getLocalDateTime();
   vector<emu::base::WebReportItem> items = materialToReportOnPage1();
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << endl
        << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << endl
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
        <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
-       <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << endl;
+       <<         "\" localUnixTime=\"" << timePair.first 
+       <<         "\" localDateTime=\"" << timePair.second 
+       << "\">" << endl;
   for ( vector<WebReportItem>::const_iterator i = items.begin(); i != items.end(); ++i ){
     *out << "  <monitorable name=\"" << i->getName()
 	 <<            "\" value=\"" << i->getValue()
 	 <<  "\" nameDescription=\"" << i->getNameDescription()
 	 << "\" valueDescription=\"" << i->getValueDescription()
-	 <<          "\" nameURL=\"" << i->getNameURL()
-	 <<         "\" valueURL=\"" << i->getValueURL()
+	 <<          "\" nameURL=\"" << ( i->getNameURL().find_first_not_of(" ")  == string::npos ? "/" : i->getNameURL()  )
+	 <<         "\" valueURL=\"" << ( i->getValueURL().find_first_not_of(" ") == string::npos ? "/" : i->getValueURL() )
 	 << "\"/>" << endl;
   }
   *out << "</ForEmuPage1>" << endl;
 }
 
-string 
+pair<time_t,string> 
 emu::base::WebReporter::getLocalDateTime(){
   time_t t;
   struct tm *tm;
@@ -49,5 +51,5 @@ emu::base::WebReporter::getLocalDateTime(){
      << setfill('0') << setw(2) << tm->tm_min       << ":"
      << setfill('0') << setw(2) << tm->tm_sec;
     
-  return ss.str();
+  return make_pair( t, ss.str() );
 }
