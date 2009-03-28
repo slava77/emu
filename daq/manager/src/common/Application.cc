@@ -1,5 +1,6 @@
 #include "emu/daq/manager/Application.h"
 #include "emu/daq/manager/version.h"
+//#include "emu/base/Alarm.h"
 #include "emu/daq/rui/STEPEventCounter.h"
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTTPPlainHeader.h"
@@ -29,6 +30,8 @@
 #include "pt/PeerTransportSender.h"
 #include "pt/SOAPMessenger.h"
 
+// #include "emu/daq/manager/exception/Alarm.h"
+// #include "sentinel/utils/Alarm.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -1750,7 +1753,7 @@ throw (emu::daq::manager::exception::Exception)
 
     try
     {
-        eventNb = getScalarParam(evmDescriptor, "eventNumberFromTrigger", "unsignedInt");
+        eventNb = getScalarParam(evmDescriptor, "lastEventNumberFromTrigger", "unsignedInt");
     }
     catch(xcept::Exception e)
     {
@@ -4677,7 +4680,7 @@ void emu::daq::manager::Application::exportParams(xdata::InfoSpace *s)
     s->fireItemAvailable("STEPFinished",&STEPFinished_);
     s->addItemRetrieveListener("STEPFinished",this);
 
-    hardwareMapping_ = "/emu/EmuDAQ/xml/RUI-to-chamber_mapping.xml";
+    hardwareMapping_ = "/emu/daq/xml/RUI-to-chamber_mapping.xml";
     s->fireItemAvailable("hardwareMapping",&hardwareMapping_);
 }
 
