@@ -157,12 +157,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCSafeWindowScan, "MPCSafeWindowScan");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrates, "CheckCrates");
-  //lsdxgi::bind(this,&EmuPeripheralCrateConfig::CheckSwitch,"CheckSwitch");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateConfig::setRawConfFile, "setRawConfFile");
   xgi::bind(this,&EmuPeripheralCrateConfig::UploadConfFile, "UploadConfFile");
-  xgi::bind(this,&EmuPeripheralCrateConfig::SetUnsetRatio, "SetUnsetRatio");
-  xgi::bind(this,&EmuPeripheralCrateConfig::SetUnsetAutoRefresh, "SetUnsetAutoRefresh");
   xgi::bind(this,&EmuPeripheralCrateConfig::DefineConfiguration, "DefineConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadCCBRegister, "ReadCCBRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
@@ -279,7 +276,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBCheckStateMachines, "TMBCheckStateMachines");
   xgi::bind(this,&EmuPeripheralCrateConfig::TMBRawHits, "TMBRawHits");
   xgi::bind(this,&EmuPeripheralCrateConfig::ALCTRawHits, "ALCTRawHits");
-  //  xgi::bind(this,&EmuPeripheralCrateConfig::PowerUp,  "PowerUp");
   //
   //----------------------------
   // Bind logging methods
@@ -350,56 +346,29 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   //----------------------------
   // Bind monitoring methods
   //----------------------------
-  xgi::bind(this,&EmuPeripheralCrateConfig::LaunchMonitor, "LaunchMonitor");
   xgi::bind(this,&EmuPeripheralCrateConfig::MonitorTMBTrigger, "MonitorTMBTrigger");
   xgi::bind(this,&EmuPeripheralCrateConfig::MonitorTMBTriggerRedirect, "MonitorTMBTriggerRedirect");
   xgi::bind(this,&EmuPeripheralCrateConfig::MenuMonitorTMBTrigger, "MenuMonitorTMBTrigger");
   xgi::bind(this,&EmuPeripheralCrateConfig::AlctKey, "AlctKey");
   xgi::bind(this,&EmuPeripheralCrateConfig::ClctKey, "ClctKey");
   xgi::bind(this,&EmuPeripheralCrateConfig::MonitorTMBTriggerDisplay, "MonitorTMBTriggerDisplay");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CrateTMBCounters, "CrateTMBCounters");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CrateDMBCounters, "CrateDMBCounters");
-  xgi::bind(this,&EmuPeripheralCrateConfig::CrateTMBCountersRight, "CrateTMBCountersRight");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateStatus, "CrateStatus");
   xgi::bind(this,&EmuPeripheralCrateConfig::CrateDumpConfiguration, "CrateDumpConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CreateMonitorUnit, "CreateMonitorUnit");
-  xgi::bind(this,&EmuPeripheralCrateConfig::MonitorFrameLeft, "MonitorFrameLeft");
-  xgi::bind(this,&EmuPeripheralCrateConfig::MonitorFrameRight, "MonitorFrameRight");
   xgi::bind(this,&EmuPeripheralCrateConfig::ResetAllCounters, "ResetAllCounters");
   //
   // SOAP call-back functions, which relays to *Action method.
   //-----------------------------------------------------------
-  xoap::bind(this, &EmuPeripheralCrateConfig::onConfigure, "Configure", XDAQ_NS_URI);
-  xoap::bind(this, &EmuPeripheralCrateConfig::onEnable,    "Enable",    XDAQ_NS_URI);
-  xoap::bind(this, &EmuPeripheralCrateConfig::onDisable,   "Disable",   XDAQ_NS_URI);
-  xoap::bind(this, &EmuPeripheralCrateConfig::onHalt,      "Halt",      XDAQ_NS_URI);
-  //
-  xoap::bind(this, &EmuPeripheralCrateConfig::onCalibration,"Calibration",XDAQ_NS_URI);
   //
   xoap::bind(this,&EmuPeripheralCrateConfig::ReadAllVmePromUserid ,"ReadVmePromUserid" ,XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::LoadAllVmePromUserid ,"LoadVmePromUserid" ,XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::ReadAllCfebPromUserid,"ReadCfebPromUserid",XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::LoadAllCfebPromUserid,"LoadCfebPromUserid",XDAQ_NS_URI);
   //
-  // SOAP for Monitor controll
-//  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStart      ,"MonitorStart",XDAQ_NS_URI);
-//  xoap::bind(this,&EmuPeripheralCrateConfig::MonitorStop      ,"MonitorStop",XDAQ_NS_URI);
-  //
   //-------------------------------------------------------------
   // fsm_ is defined in EmuApplication
   //-------------------------------------------------------------
   fsm_.addState('H', "Halted",     this, &EmuPeripheralCrateConfig::stateChanged);
-  fsm_.addState('C', "Configured", this, &EmuPeripheralCrateConfig::stateChanged);
-  fsm_.addState('E', "Enabled",    this, &EmuPeripheralCrateConfig::stateChanged);
-  //
-  fsm_.addStateTransition('H', 'C', "Configure", this, &EmuPeripheralCrateConfig::configureAction);
-  fsm_.addStateTransition('C', 'C', "Configure", this, &EmuPeripheralCrateConfig::reConfigureAction);
-  fsm_.addStateTransition('C', 'E', "Enable",    this, &EmuPeripheralCrateConfig::enableAction);
-  fsm_.addStateTransition('E', 'E', "Enable",    this, &EmuPeripheralCrateConfig::enableAction);
-  fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuPeripheralCrateConfig::disableAction);
-  fsm_.addStateTransition('C', 'H', "Halt",      this, &EmuPeripheralCrateConfig::haltAction);
-  fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuPeripheralCrateConfig::haltAction);
-  fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuPeripheralCrateConfig::haltAction);
   //
   fsm_.setInitialState('H');
   fsm_.reset();    
@@ -501,13 +470,6 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   if( active_crates <= total_crates_) 
      *out << cgicc::b(" Active Crates: ") << active_crates << cgicc::br() << std::endl ;
  
- // Crate Status
-  *out << cgicc::span().set("style","color:blue");
-  *out << cgicc::b(cgicc::i("System Status: ")) ;
-  *out << global_config_states[current_config_state_] << "  ";
-  *out << global_run_states[current_run_state_]<< cgicc::br() << std::endl ;
-  *out << cgicc::span() << std::endl ;
-  //
   *out << cgicc::table().set("border","0");
     //
   *out << cgicc::td();
@@ -569,9 +531,7 @@ void EmuPeripheralCrateConfig::MainPage(xgi::Input * in, xgi::Output * out )
   }
   *out << cgicc::td();
 
-  *out << cgicc::table();
-
-  *out << cgicc::br() << std::endl ;
+  *out << cgicc::table() << std::endl ;
   //
   *out << cgicc::br() << cgicc::hr() <<std::endl;
 
@@ -818,137 +778,6 @@ void EmuPeripheralCrateConfig::Default(xgi::Input * in, xgi::Output * out )
 // SOAP Callback  
 /////////////////////////////////////////////////////////////////////
 //
-xoap::MessageReference EmuPeripheralCrateConfig::onCalibration(xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  LOG4CPLUS_INFO(getApplicationLogger(), "Calibration");
-  //
-  ::sleep(1);
-  //
-  std::cout<<"soap Apr.11, 2007 "<<std::endl;
-  std::cout<<"Entered the EMUPERIPHERALCRATE.cc "<<std::endl;
-  printf(" LSD: Entered Calibration \n"); 
-  std::ostringstream test;
-  message->writeTo(test);
-  std::cout << test.str() << std::endl;
-  printf(" Print calibtype \n");
-  std::string junk = CalibType_;
-  std::cout << junk << std::endl;
-  printf(" Print calibnumber \n");
-  std::cout << CalibNumber_ << std::endl;
-  //
-  //CalibrationState_ = setting;
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::onConfigure (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP Configure" << std::endl;
-  //
-  fireEvent("Configure");
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::onEnable (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP Enable" << std::endl;
-  //
-  current_run_state_ = 1;
-  fireEvent("Enable");
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::onDisable (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP Disable" << std::endl;
-  //
-  current_run_state_ = 0;
-  fireEvent("Disable");
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrateConfig::onHalt (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP Halt" << std::endl;
-  //
-  fireEvent("Halt");
-  //
-  return createReply(message);
-}
-//
-void EmuPeripheralCrateConfig::configureAction(toolbox::Event::Reference e) 
-  throw (toolbox::fsm::exception::Exception) {
-  //
-  printf(" LSD: comment out ConfigureInit for now \n");
-  //
-  ConfigureInit();
-  //
-  std::cout << "Configure" << std::endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Configure");
-  //
-  std::cout << xmlFile_.toString() << std::endl;
-  LOG4CPLUS_INFO(getApplicationLogger(), xmlFile_.toString());
-  //
-  std::cout << "Received Message Configure" << std::endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Configure");
-  //
-  std::cout << "Done!" << std::endl;
-  //
-}
-//
-void EmuPeripheralCrateConfig::configureFail(toolbox::Event::Reference e) 
-  throw (toolbox::fsm::exception::Exception) {
-  //
-  // currently do nothing
-  //
-  LOG4CPLUS_INFO(getApplicationLogger(), "Failed");
-  //
-}
-//
-void EmuPeripheralCrateConfig::reConfigureAction(toolbox::Event::Reference e) 
-  throw (toolbox::fsm::exception::Exception) {
-  //
-  // MyController->configure();
-  //
-  LOG4CPLUS_INFO(getApplicationLogger(), "reConfigure");
-  std::cout << "reConfigure" << std::endl ;
-  //
-}
-//
-void EmuPeripheralCrateConfig::enableAction(toolbox::Event::Reference e) 
-  throw (toolbox::fsm::exception::Exception) {
-  //
-  // currently do nothing
-  //
-  //MyController->init();
-  //
-  //MyController->configure();
-  //
-  std::cout << "Received Message Enable" << std::endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Enable");
-}
-//
-void EmuPeripheralCrateConfig::disableAction(toolbox::Event::Reference e) 
-  throw (toolbox::fsm::exception::Exception) {
-  //
-  // currently do nothing
-  //
-  std::cout << "Received Message Disable" << std::endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Disable");
-}  
-//
-void EmuPeripheralCrateConfig::haltAction(toolbox::Event::Reference e) 
-  throw (toolbox::fsm::exception::Exception) {
-  //
-  // currently do nothing
-  // 
-  std::cout << "Received Message Halt" << std::endl ;
-  LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Halt");
-}  
 
 void EmuPeripheralCrateConfig::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
   throw (toolbox::fsm::exception::Exception) {
@@ -1181,22 +1010,6 @@ bool EmuPeripheralCrateConfig::ParsingXML(){
 
     this->Default(in, out);
   }
-
-/*lsd
-void EmuPeripheralCrateConfig::CheckSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
-  //
-  char Name[50] ;
-  sprintf(Name,"Crate Statistics");
-  //
-  MyHeader(in,out,Name);
-  pcswitch.fill_switch_statistics();
-  pcswitch.fill_ping();
-  *out << pcswitch.html_ping();
-  *out << pcswitch.html_port_status();
-  pcswitch.copy_stats_new2old();
-}
-lsd */
-
 
 //
   // This one came from CrateUtils class which no longer exist. 
@@ -2091,354 +1904,6 @@ void EmuPeripheralCrateConfig::CrateDumpConfiguration(xgi::Input * in, xgi::Outp
   this->Default(in,out);
 }
 //
-///////////////////////////////////////////////////////
-// Counters displays
-///////////////////////////////////////////////////////
-void EmuPeripheralCrateConfig::CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  std::ostringstream output;
-  output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  output << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-  //
-  cgicc::CgiEnvironment cgiEnvi(in);
-  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-  //
-  if (AutoRefresh_) {
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"3; URL=/"
-	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
-  }
-  //
-  Page=cgiEnvi.getQueryString();
-  std::string crate_name=Page.substr(0,Page.find("=", 0) );
-  *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  std::vector<TMB*> myVector;
-  for ( unsigned int i = 0; i < crateVector.size(); i++ )
-  {
-     if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->tmbs();
-  }
-  if(Monitor_On_)
-  {
-     *out << cgicc::span().set("style","color:green");
-     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
-  } else 
-  { 
-     *out << cgicc::span().set("style","color:red");
-     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
-  }
-
-  output << cgicc::table().set("border","1");
-  //
-  output <<cgicc::td();
-  //
-  output <<cgicc::td();
-  //
-  for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
-// TMB counters are read in the monitoring FastLoop
-//    myVector[tmb]->GetCounters();
-    //
-    output <<cgicc::td();
-    output << "Slot = " <<myVector[tmb]->slot();
-    output <<cgicc::td();
-    //
-  }
-  //
-  output <<cgicc::tr();
-  //
-  for (int count=0; count<25; count++) {
-    //
-    for(unsigned int tmb=0; tmb<myVector.size(); tmb++) {
-      //
-      output <<cgicc::td();
-      //
-      if(tmb==0) {
-	output << myVector[tmb]->CounterName(count) ;
-	output <<cgicc::td();
-	output <<cgicc::td();
-      }
-      if (DisplayRatio_) {
-	 if ( myVector[tmb]->GetCounter(16) > 0 )
-	    output << ((float)(myVector[tmb]->GetCounter(count))/(myVector[tmb]->GetCounter(16)));
-	 else 
-	    output << "-1";
-      } 
-      else {
-        if ( myVector[tmb]->GetCounter(count) == 0x3fffffff )
-           output << "-1";
-        else 
-   	   output << myVector[tmb]->GetCounter(count);
-      }
-      output <<cgicc::td();
-    }
-    output <<cgicc::tr();
-  }
-  //
-  output << cgicc::table();
-  //
-  *out << output.str()<<std::endl;
-  //
-}
-//
-void EmuPeripheralCrateConfig::CrateDMBCounters(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-  //
-  cgicc::CgiEnvironment cgiEnvi(in);
-  //
-  std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
-  //
-  *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"5; URL=/" <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<std::endl;
-  //
-  Page=cgiEnvi.getQueryString();
-  std::string crate_name=Page.substr(0,Page.find("=", 0) );
-  *out << cgicc::b("Crate: "+crate_name) << std::endl;
-  std::vector<DAQMB*> myVector;
-  for ( unsigned int i = 0; i < crateVector.size(); i++ )
-  {
-     if(crate_name==crateVector[i]->GetLabel()) myVector = crateVector[i]->daqmbs();
-  }
-  if(Monitor_On_)
-  {
-     *out << cgicc::span().set("style","color:green");
-     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
-  } else 
-  { 
-     *out << cgicc::span().set("style","color:red");
-     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
-  }
-  *out << cgicc::table().set("border","1");
-  //
-  *out <<cgicc::td();
-  *out <<cgicc::td();
-  //
-// DMB counters are read in the monitoring FastLoop
-// 
-//  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-//    myVector[dmb]->readtimingCounter();
-//    myVector[dmb]->readtimingScope();
-//  }
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    *out <<cgicc::td();
-    *out << "Slot = " <<myVector[dmb]->slot();
-    *out <<cgicc::td();
-  }
-  //
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(0);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( myVector[dmb]->GetL1aLctCounter() > 0 ) {
-      L1aLctCounter_[dmb] = myVector[dmb]->GetL1aLctCounter();
-    }
-    *out << L1aLctCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(1);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( myVector[dmb]->GetCfebDavCounter() > 0 ) CfebDavCounter_[dmb] = myVector[dmb]->GetCfebDavCounter();
-    *out << CfebDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(2);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( myVector[dmb]->GetTmbDavCounter() > 0 ) TmbDavCounter_[dmb] = myVector[dmb]->GetTmbDavCounter();
-    *out << TmbDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(3);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    if ( myVector[dmb]->GetAlctDavCounter() > 0 ) AlctDavCounter_[dmb] = myVector[dmb]->GetAlctDavCounter();
-    *out << AlctDavCounter_[dmb] <<std::endl;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(4);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetL1aLctScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::tr();
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(5);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetCfebDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(6);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetTmbDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-    //
-  }
-  *out <<cgicc::tr();
-  //
-  *out <<cgicc::td();
-  *out << myVector[0]->CounterName(7);
-  *out <<cgicc::td();
-  //
-  for(unsigned int dmb=0; dmb<myVector.size(); dmb++) {
-    //
-    *out <<cgicc::td();
-    for( int i=4; i>-1; i--) *out << ((myVector[dmb]->GetAlctDavScope()>>i)&0x1) ;
-    *out <<cgicc::td();
-  }
-  *out <<cgicc::tr();
-  //
-  *out << cgicc::table();
-  //
-}
-//
-void EmuPeripheralCrateConfig::CrateTMBCounters(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  cgicc::CgiEnvironment cgiEnvi(in);
-  //
-  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-  //
-  std::string MonitorFrameLeft      = toolbox::toString("/%s/MonitorFrameLeft",getApplicationDescriptor()->getURN().c_str());
-  std::string CrateTMBCountersRight = toolbox::toString("/%s/CrateTMBCountersRight",getApplicationDescriptor()->getURN().c_str());
-  //
-  *out << cgicc::frameset().set("cols","200,*");
-  *out << cgicc::frame().set("src",MonitorFrameLeft);
-  *out << cgicc::frame().set("src",CrateTMBCountersRight);
-  *out << cgicc::frameset() ;
-  //
-}
-//
-void EmuPeripheralCrateConfig::LaunchMonitor(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-  //
-  std::string MonitorFrameLeft  = toolbox::toString("/%s/MonitorFrameLeft",getApplicationDescriptor()->getURN().c_str());
-  std::string MonitorFrameRight = toolbox::toString("/%s/MonitorFrameRight",getApplicationDescriptor()->getURN().c_str());
-  //
-  *out << cgicc::frameset().set("cols","200,*");
-  *out << cgicc::frame().set("src",MonitorFrameLeft);
-  *out << cgicc::frame().set("src",MonitorFrameRight);
-  *out << cgicc::frameset() ;
-  //
-  //
-  //std::string ResetAllCounters =
-  //toolbox::toString("/%s/ResetAllCounters",getApplicationDescriptor()->getURN().c_str());
-  //
-  //*out << cgicc::form().set("method","GET").set("action",ResetAllCounters) << std::endl ;
-  //*out << cgicc::input().set("type","submit").set("value","Reset All Counters") << std::endl ;
-  //*out << cgicc::form() << std::endl ;
-  //
-  //::sleep(1);
-  //
-  //this->LaunchMonitor(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::MonitorFrameRight(xgi::Input * in, xgi::Output * out) 
-  throw (xgi::exception::Exception) {
-  //
-  MyHeader(in,out,"Monitor");
-  //
-  for(int counter=0; counter<22; counter++) {
-    Counter_ = counter;
-    //
-    std::string CreateMonitorUnit = toolbox::toString("/%s/CreateMonitorUnit?counter=%d",getApplicationDescriptor()->getURN().c_str(),counter);
-    //
-    this->CreateMonitorUnit(in,out);
-  }
-  //
-}
-//
-void EmuPeripheralCrateConfig::MonitorFrameLeft(xgi::Input * in, xgi::Output * out) 
-  throw (xgi::exception::Exception) {
-  //
-  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-  //
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-  //
-  std::string ResetAllCounters = toolbox::toString("/%s/ResetAllCounters",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",ResetAllCounters) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Reset All Counters") << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  //
-  std::string SetUnsetRatio = toolbox::toString("/%s/SetUnsetRatio",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",SetUnsetRatio) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Set/Unset Ratio Display") << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  //
-  std::string SetUnsetAutoRefresh = toolbox::toString("/%s/SetUnsetAutoRefresh",getApplicationDescriptor()->getURN().c_str());
-  *out << cgicc::form().set("method","GET").set("action",SetUnsetAutoRefresh) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Set/Unset AutoRefresh") << std::endl ;
-  *out << cgicc::form() << std::endl ;
-  //
-  if(Monitor_On_)
-  {
-     *out << cgicc::span().set("style","color:green");
-     *out << cgicc::b(cgicc::i("Monitor Status: On")) << cgicc::span() << std::endl ;
-  } else 
-  { 
-     *out << cgicc::span().set("style","color:red");
-     *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
-  }
-
-  this->LaunchMonitor(in,out);
-  //
-}
-//
 void EmuPeripheralCrateConfig::MonitorTMBTrigger(xgi::Input * in, xgi::Output * out) 
   throw (xgi::exception::Exception) {
   //
@@ -2965,32 +2430,6 @@ void EmuPeripheralCrateConfig::Display(xgi::Input * in, xgi::Output * out, int c
     //
 }
 
-void EmuPeripheralCrateConfig::SetUnsetRatio(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  if ( DisplayRatio_ == false ) {
-    DisplayRatio_ = true;
-  } else {
-    DisplayRatio_ = false;
-  }
-  //
-  this->MonitorFrameLeft(in,out);
-  //
-}
-//
-void EmuPeripheralCrateConfig::SetUnsetAutoRefresh(xgi::Input * in, xgi::Output * out ) 
-  throw (xgi::exception::Exception) {
-  //
-  if ( AutoRefresh_ == false ) {
-    AutoRefresh_ = true;
-  } else {
-    AutoRefresh_ = false;
-  }      
-  //
-  this->MonitorFrameLeft(in,out);
-  //
-}
-//
 void EmuPeripheralCrateConfig::ResetAllCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
