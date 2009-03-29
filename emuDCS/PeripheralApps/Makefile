@@ -29,7 +29,8 @@ Sources=\
         EmuPeripheralCrateCommand.cc \
         EmuPeripheralCrateMonitor.cc \
         EmuPeripheralCrateTimer.cc \
-        EmuPeripheralCrateManager.cc
+        EmuPeripheralCrateManager.cc \
+        EmuPeripheralCrateService.cc
 
 IncludeDirs = \
         $(XDAQ_ROOT)/include \
