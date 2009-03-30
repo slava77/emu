@@ -9,10 +9,11 @@
 
 #define TEST_DATA1D_NBINS 112
 
-struct TestData1D{
-	int Nbins;    ///< Number of bins
-	double content[TEST_DATA1D_NBINS]; ///< Data content of structure
-	int cnts[TEST_DATA1D_NBINS]; ///< Array of counters
+struct TestData1D
+{
+  int Nbins;    ///< Number of bins
+  double content[TEST_DATA1D_NBINS]; ///< Data content of structure
+  int cnts[TEST_DATA1D_NBINS]; ///< Array of counters
 };
 
 #endif
