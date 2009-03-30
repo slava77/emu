@@ -21,7 +21,7 @@ Packages=\
 	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCore \
 	emuDCS/FEDUtils \
-	emuDCS/FEDApps \
+	emuDCS/FEDApps 
 endif
 
 ### specific package target builds
