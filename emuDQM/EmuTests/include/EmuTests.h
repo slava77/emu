@@ -75,7 +75,8 @@
 #include "EmuMonitoringCanvas.h"
 #include "CSCReadoutMappingFromFile.h"
 
-class EmuTests {
+class EmuTests
+{
 public:
 
   EmuTests();
@@ -92,55 +93,122 @@ public:
   void processChamber(const CSCEventData& data,int32_t nodeID, int32_t dduID);
   void fillChamberBinCheck(int32_t nodeNumber);
 
-  void setHistoFile(std::string hfile) {HistoFile = hfile;};
+  void setHistoFile(std::string hfile)
+  {
+    HistoFile = hfile;
+  };
 
-  void setDDUCheckMask(uint32_t mask) { dduCheckMask = mask;}
-  uint32_t getDDUCheckMask() const { return dduCheckMask;}
-  void setBinCheckMask(uint32_t mask) { binCheckMask = mask;}
-  uint32_t getBinCheckMask() const { return binCheckMask;}
-   void setXMLHistosBookingCfgFile(std::string filename) {xmlHistosBookingCfgFile = filename;}
-  std::string GetXMLHistosBookingCfgFile() const {return xmlHistosBookingCfgFile;}
-  void setXMLCanvasesCfgFile(std::string filename) {xmlCanvasesCfgFile = filename;}
-  std::string GetXMLCanvasesCfgFile() const {return xmlCanvasesCfgFile;}
+  void setDDUCheckMask(uint32_t mask)
+  {
+    dduCheckMask = mask;
+  }
+  uint32_t getDDUCheckMask() const
+  {
+    return dduCheckMask;
+  }
+  void setBinCheckMask(uint32_t mask)
+  {
+    binCheckMask = mask;
+  }
+  uint32_t getBinCheckMask() const
+  {
+    return binCheckMask;
+  }
+  void setXMLHistosBookingCfgFile(std::string filename)
+  {
+    xmlHistosBookingCfgFile = filename;
+  }
+  std::string GetXMLHistosBookingCfgFile() const
+  {
+    return xmlHistosBookingCfgFile;
+  }
+  void setXMLCanvasesCfgFile(std::string filename)
+  {
+    xmlCanvasesCfgFile = filename;
+  }
+  std::string GetXMLCanvasesCfgFile() const
+  {
+    return xmlCanvasesCfgFile;
+  }
   void setCSCMapFile(std::string filename);
-  std::string getCSCMapFile() const {return cscMapFile;}
+  std::string getCSCMapFile() const
+  {
+    return cscMapFile;
+  }
 
-/*
-  void saveHistos() {};
+  /*
+    void saveHistos() {};
 
-  void saveToROOTFile(std::string filename);
-  void saveCanvasesToROOTFile(std::string filename);
-  void saveImages(std::string path, 
-	std::string format=DEFAULT_IMAGE_FORMAT, 
-	int width=DEFAULT_CANVAS_WIDTH, 
-	int height=DEFAULT_CANVAS_HEIGHT,
-	std::string runname="");
-  void saveCanvasImages(std::string path, 
-        std::string format=DEFAULT_IMAGE_FORMAT, 
-        int width=DEFAULT_CANVAS_WIDTH, 
-        int height=DEFAULT_CANVAS_HEIGHT,
-	std::string runname="");
-*/
+    void saveToROOTFile(std::string filename);
+    void saveCanvasesToROOTFile(std::string filename);
+    void saveImages(std::string path,
+  	std::string format=DEFAULT_IMAGE_FORMAT,
+  	int width=DEFAULT_CANVAS_WIDTH,
+  	int height=DEFAULT_CANVAS_HEIGHT,
+  	std::string runname="");
+    void saveCanvasImages(std::string path,
+          std::string format=DEFAULT_IMAGE_FORMAT,
+          int width=DEFAULT_CANVAS_WIDTH,
+          int height=DEFAULT_CANVAS_HEIGHT,
+  	std::string runname="");
+  */
   // void generateCanvasesListFile(std::string filename="canvases_list.js", std::string imgformat="png");
   // void generateLayout(std::string filename, std::string rootfolder);
-   
-  bool isListModified() { return fListModified;}
-  bool isBusy() { return fBusy;};
-  void setListModified(bool flag) { fListModified = flag;}
 
-  void setLogLevel(int level) {logger_.setLogLevel(level);}
-  void setUnpackingLogLevel(int level) {Logger::getInstance("CSCRawUnpacking").setLogLevel(level);}
-  void setUnpackingDebug(bool flag) {/*CSCDDUEventData::setDebug(flag);*/}
+  bool isListModified()
+  {
+    return fListModified;
+  }
+  bool isBusy()
+  {
+    return fBusy;
+  };
+  void setListModified(bool flag)
+  {
+    fListModified = flag;
+  }
+
+  void setLogLevel(int level)
+  {
+    logger_.setLogLevel(level);
+  }
+  void setUnpackingLogLevel(int level)
+  {
+    Logger::getInstance("CSCRawUnpacking").setLogLevel(level);
+  }
+  void setUnpackingDebug(bool flag)
+  {/*CSCDDUEventData::setDebug(flag);*/}
 
   bool isMEvalid(ME_List&, std::string, EmuMonitoringObject* & );
-  std::map<std::string, ME_List >  GetMEs() { return MEs;};
-  std::map<std::string, MECanvases_List >  GetMECanvases() { return MECanvases;};
- 
-  uint32_t getUnpackedDMBCount() const {return unpackedDMBcount;}
-  uint32_t getTotalEvents() const {return nEvents;}
-  uint32_t getTotalUnpackedCSCs() const {return nCSCEvents;}
-  uint32_t getGoodEventsCount() const {return nGoodEvents;}
-  uint32_t getBadEventsCount() const {return nBadEvents;}
+  std::map<std::string, ME_List >  GetMEs()
+  {
+    return MEs;
+  };
+  std::map<std::string, MECanvases_List >  GetMECanvases()
+  {
+    return MECanvases;
+  };
+
+  uint32_t getUnpackedDMBCount() const
+  {
+    return unpackedDMBcount;
+  }
+  uint32_t getTotalEvents() const
+  {
+    return nEvents;
+  }
+  uint32_t getTotalUnpackedCSCs() const
+  {
+    return nCSCEvents;
+  }
+  uint32_t getGoodEventsCount() const
+  {
+    return nGoodEvents;
+  }
+  uint32_t getBadEventsCount() const
+  {
+    return nBadEvents;
+  }
 
 
 protected:
@@ -154,7 +222,7 @@ protected:
   MECanvases_List bookDDUCanvases(int dduNumber);
 
 
-  void init(); 
+  void init();
   void reset();
   void getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
   // int loadXMLBookingInfo(std::string xmlFile);
@@ -163,7 +231,7 @@ protected:
   void printMECollection(ME_List &collection);
   void clearCanvasesCollection(MECanvases_List &collection);
   void printCanvasesCollection(MECanvases_List &collection);
-  // EmuMonitoringObject* createME(DOMNode* MEInfo);  
+  // EmuMonitoringObject* createME(DOMNode* MEInfo);
 
   // void createHTMLNavigation(std::string path);
   // void createTreeTemplate(std::string path);
@@ -174,7 +242,7 @@ protected:
   std::string getCSCTypeLabel(int endcap, int station, int ring );
 
 private:
-  // == list of Monitored Elements 
+  // == list of Monitored Elements
   std::map<std::string, ME_List > MEs;
   std::map<std::string, MECanvases_List > MECanvases;
 
@@ -213,14 +281,14 @@ private:
   int fStopTimer;
   bool fBusy;
   bool fFirstEvent;
-  
+
   std::string xmlHistosBookingCfgFile;
   std::string xmlCanvasesCfgFile;
   std::string cscMapFile;
 
   CSCReadoutMappingFromFile cscMapping;
   std::map<std::string, int> tmap;
-  std::string eTag; 
+  std::string eTag;
 
 };
 

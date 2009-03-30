@@ -10,11 +10,12 @@
 #define TEST_DATA2D_NLAYERS 6
 #define TEST_DATA2D_NBINS 112
 
-struct TestData2D{
-	int Nlayers; ///< Number of layers
-	int Nbins;     ///< Number of bins
-	double content[TEST_DATA2D_NLAYERS][TEST_DATA2D_NBINS]; ///< Data content of structure
-	int cnts[TEST_DATA2D_NLAYERS][TEST_DATA2D_NBINS]; ///< Array of counters
+struct TestData2D
+{
+  int Nlayers; ///< Number of layers
+  int Nbins;     ///< Number of bins
+  double content[TEST_DATA2D_NLAYERS][TEST_DATA2D_NBINS]; ///< Data content of structure
+  int cnts[TEST_DATA2D_NLAYERS][TEST_DATA2D_NBINS]; ///< Array of counters
 };
 
 #endif
