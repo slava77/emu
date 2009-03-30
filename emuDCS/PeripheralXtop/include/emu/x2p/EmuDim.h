@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.3 2009/03/27 17:25:29 liu Exp $
+// $Id: EmuDim.h,v 1.4 2009/03/30 15:27:12 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -6,6 +6,7 @@
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
 
+#include "xdaq/WebApplication.h"
 #include "xdaq/Application.h"
 #include "xdaq/ApplicationGroup.h"
 #include "xdaq/ApplicationContext.h"
@@ -20,6 +21,7 @@
 #include "xoap/SOAPEnvelope.h"
 #include "xoap/SOAPBody.h"
 #include "xoap/Method.h"
+#include "xoap/domutils.h"  // XMLCh2String()
 
 #include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
@@ -48,15 +50,13 @@
 
 #include "emu/x2p/LOAD.h"
 #include "emu/x2p/Chamber.h"
-#include "emu/base/Supervised.h"
 
 #define TOTAL_CHAMBERS 235
 
 namespace emu {
   namespace x2p {
 
-//class EmuPeripheralCrateDim: public xdaq::Application
-class EmuDim: public emu::base::Supervised,
+class EmuDim: public xdaq::WebApplication,
        public toolbox::task::TimerListener
 {
   
@@ -82,20 +82,12 @@ public:
   //
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception);
   //
-  xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
-  // Sending soap messages
+  // for Soap messaging
   //
-  xoap::MessageReference PCcreateCommandSOAP(std::string command);
-  void PCsendCommand(std::string command, std::string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
-  //
-  // define states
-  void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
-  void dummyAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
-  // for Monitoring
   xoap::MessageReference  SoapStart(xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference  SoapStop(xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference  createReply(xoap::MessageReference message) throw (xoap::exception::Exception);
+
   void ButtonStart(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ButtonStop(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SwitchBoard(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -112,6 +104,8 @@ public:
   int ParseTXT(char *buff, int buffsize, int source);
   int FillChamber(char *buff, int source);
   int ChnameToNumber(const char *chname);
+  int CrateToNumber(const char *chname);
+  int PowerUp();
   std::string getLocalDateTime();
   
 private:
@@ -135,6 +129,8 @@ private:
   std::string xmas_root, xmas_load, xmas_start, xmas_stop, xmas_info;
   std::string blue_root, blue_info;
              
+  int crate_state[30];
+  std::string crate_name[30];
 };
 
   } // namespace emu::x2p

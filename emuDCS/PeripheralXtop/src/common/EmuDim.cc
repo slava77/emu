@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.14 2009/03/27 17:25:29 liu Exp $
+// $Id: EmuDim.cc,v 1.15 2009/03/30 15:27:13 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -19,7 +19,7 @@
 namespace emu {
   namespace x2p {
 
-EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s), emu::base::Supervised(s)
+EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s)
 {
   HomeDir_     = getenv("HOME");
   ConfigDir_   = HomeDir_+"/config/";
@@ -31,27 +31,9 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s), emu::base::S
   TestPrefix_ = "";
   OpMode_ = 0;
 
-  // Bind SOAP callback
-  //
-  xoap::bind(this, &EmuDim::onEnable,    "Enable",    XDAQ_NS_URI);
-  xoap::bind(this, &EmuDim::onHalt,      "Halt",      XDAQ_NS_URI);
-
   xgi::bind(this,&EmuDim::Default, "Default");
   xgi::bind(this,&EmuDim::MainPage, "MainPage");
   //
-  fsm_.addState('H', "Halted", this, &EmuDim::stateChanged);
-  fsm_.addState('E', "Enabled",    this, &EmuDim::stateChanged);
-  //
-  fsm_.addStateTransition('H', 'E', "Enable",    this, &EmuDim::dummyAction);
-  fsm_.addStateTransition('E', 'E', "Enable",    this, &EmuDim::dummyAction);
-  fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuDim::dummyAction);
-  fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuDim::dummyAction);
-  //
-  fsm_.setInitialState('H');
-  fsm_.reset();
-
-  state_ = fsm_.getStateName(fsm_.getCurrentState());
-
   current_state_ = 0;
   getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &PeripheralCrateDimFile_);
   getApplicationInfoSpace()->fireItemAvailable("BadChamberFileName", &BadChamberFile_);
@@ -80,6 +62,10 @@ EmuDim::EmuDim(xdaq::ApplicationStub * s): xdaq::WebApplication(s), emu::base::S
   xgi::bind(this,&EmuDim::ButtonStop      ,"ButtonStop");
   xgi::bind(this,&EmuDim::SwitchBoard      ,"SwitchBoard");
 
+  for(int i=0; i<30; i++) 
+  {  crate_state[i]=0; 
+     crate_name[i]=""; 
+  }
 }  
 
 xoap::MessageReference EmuDim::SoapStart (xoap::MessageReference message) 
@@ -145,6 +131,7 @@ void EmuDim::Start ()
          Monitor_Ready_=true;
      }
      Monitor_On_=true;
+     Suspended_ = false;
      std::cout<< getLocalDateTime() << " EmuDim Started " << std::endl;
 }
 
@@ -381,6 +368,23 @@ int EmuDim::ChnameToNumber(const char *chname)
    }
 }
 
+int EmuDim::CrateToNumber(const char *chname)
+{
+   if(strlen(chname)<7) return -1;
+   if(strncmp(chname,"VME",2)) return -2;
+   int station = std::atoi(chname+4);
+   int chnumb = std::atoi(chname+6);
+   if(chnumb>12 || chnumb<1) return -3;
+
+   if (station >4 || station<1) return -4;
+   else if (station==1) return chnumb-1;
+   else
+   {  int cr=station*6 + chnumb-1;
+      if(crate_name[cr]=="") crate_name[cr] = chname;
+      return cr;
+   }
+}
+
 void EmuDim::StartDim(int chs)
 {
    int total=0, i=0;
@@ -446,6 +450,7 @@ void EmuDim::UpdateAllDim()
 void EmuDim::CheckCommand()
 {
    if(LV_1_Command==NULL) return;
+   bool start_powerup=false;
    while(LV_1_Command->getNext())
    {
       std::string cmnd = LV_1_Command->getString();
@@ -454,94 +459,66 @@ void EmuDim::CheckCommand()
       {
          XmasLoader->reload(xmas_stop);
          Suspended_ = true;
+         start_powerup=false;
       }
       else if(cmnd.substr(0,12)=="RESUME_SLOW_")
       {
          XmasLoader->reload(xmas_start);
          Suspended_ = false;
+         start_powerup=false;
       }
       else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
       {
          int ch=ChnameToNumber(cmnd.c_str());
          UpdateDim(ch);
       }
+      else if(cmnd.substr(0,13)=="PREPARE_POWER")
+      {
+         int cr=CrateToNumber(cmnd.substr(17).c_str());
+         crate_state[cr] = 1;
+      }
+      else if(cmnd.substr(0,13)=="EXECUTE_POWER")
+      {
+         start_powerup=true;
+      }
       // all other commands are ignored
    }
+   if(start_powerup) PowerUp();
 }
 
-////////////////////////////////////////////////////////////////////
-// sending and receiving soap commands
-////////////////////////////////////////////////////////////////////
-void EmuDim::PCsendCommand(std::string command, std::string klass)
-  throw (xoap::exception::Exception, xdaq::exception::Exception){
-  //
-  // find applications
-  std::set<xdaq::ApplicationDescriptor *> apps;
-  //
-  try {
-    apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(klass);
-  }
-  // 
-  catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    return; // Do nothing if the target doesn't exist
-  }
-  //
-  // prepare a SOAP message
-  xoap::MessageReference message = PCcreateCommandSOAP(command);
-  xoap::MessageReference reply;
-  xdaq::ApplicationDescriptor *ori=this->getApplicationDescriptor();
-  //
-  // send the message one-by-one
-  std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
-  for (; i != apps.end(); ++i) {
-    // postSOAP() may throw an exception when failed.
-    reply = getApplicationContext()->postSOAP(message, *ori, *(*i));
-    //
-    //      PCanalyzeReply(message, reply, *i);
-  }
-}
-//
-xoap::MessageReference EmuDim::PCcreateCommandSOAP(std::string command) {
-  //
-  //This is copied from CSCSupervisor::createCommandSOAP
-  //
-  xoap::MessageReference message = xoap::createMessage();
-  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-  xoap::SOAPName name = envelope.createName(command, "xdaq", "urn:xdaq-soap:3.0");
-  envelope.getBody().addBodyElement(name);
-  //
-  return message;
+int EmuDim::PowerUp()
+{
+   for(int i=0; i<30; i++)
+   {  
+      if(crate_state[i]==1) BlueLoader->reload(blue_info+"?POWERUP="+crate_name[i]);
+   }
+   return 0;
 }
 
-void EmuDim::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-    throw (toolbox::fsm::exception::Exception) {
-  emu::base::Supervised::stateChanged(fsm);
-}
+xoap::MessageReference EmuDim::createReply(xoap::MessageReference message)
+                throw (xoap::exception::Exception)
+{
+        std::string command = "";
 
-void EmuDim::dummyAction(toolbox::Event::Reference e)
-    throw (toolbox::fsm::exception::Exception) {
-  // currently do nothing
-}
-//
-xoap::MessageReference EmuDim::onEnable (xoap::MessageReference message)
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP Enable" << std::endl;
-  //
-  current_state_ = 2;
-  fireEvent("Enable");
-  //
-  return createReply(message);
-}
+        DOMNodeList *elements =
+                        message->getSOAPPart().getEnvelope().getBody()
+                        .getDOMNode()->getChildNodes();
 
-//
-xoap::MessageReference EmuDim::onHalt (xoap::MessageReference message)
-  throw (xoap::exception::Exception) {
-  std::cout << "SOAP Halt" << std::endl;
-  //
-  current_state_ = 0;
-  fireEvent("Halt");
-  //
-  return createReply(message);
+        for (unsigned int i = 0; i < elements->getLength(); i++) {
+                DOMNode *e = elements->item(i);
+                if (e->getNodeType() == DOMNode::ELEMENT_NODE) {
+                        command = xoap::XMLCh2String(e->getLocalName());
+                        break;
+                }
+        }
+
+        xoap::MessageReference reply = xoap::createMessage();
+        xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+        xoap::SOAPName responseName = envelope.createName(
+                        command + "Response", "xdaq", XDAQ_NS_URI);
+        envelope.getBody().addBodyElement(responseName);
+
+        return reply;
 }
 
 std::string EmuDim::getLocalDateTime(){
