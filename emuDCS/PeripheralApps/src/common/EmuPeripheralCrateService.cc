@@ -430,20 +430,9 @@ bool EmuPeripheralCrateService::ParsingXML(){
   void EmuPeripheralCrateService::check_controllers()
   {
     if(total_crates_<=0) return;
-    bool cr;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-        cr = crateVector[i]->vmeController()->SelfTest();
-        if(!cr) 
-        {  std::cout << "Exclude Crate " << crateVector[i]->GetLabel() 
-                     << "--Dead Controller " << std::endl;
-        }
-        else
-        {  cr=crateVector[i]->vmeController()->exist(13);
-           if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel() 
-                     << "--No VME access " << std::endl;
-        }
-        crateVector[i]->SetLife( cr );
+        crateVector[i]->CheckController();
     }
     crates_checked = 1;
   }

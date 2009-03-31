@@ -504,27 +504,16 @@ bool EmuPeripheralCrateCommand::ParsingXML(){
     throw (xgi::exception::Exception)
   {  
     std::cout << "Button: Check Crate Controllers" << std::endl;
-    CheckControllers();
+    check_controllers();
     this->Default(in, out);
   }
 
-void EmuPeripheralCrateCommand::CheckControllers()
+void EmuPeripheralCrateCommand::check_controllers()
 {
     if(total_crates_<=0) return;
-    bool cr;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-        cr = crateVector[i]->vmeController()->SelfTest();
-        if(!cr)
-        {  std::cout << "Exclude Crate " << crateVector[i]->GetLabel()
-                     << "--Dead Controller " << std::endl;
-        }
-        else
-        {  cr=crateVector[i]->vmeController()->exist(13);
-           if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel()
-                     << "--No VME access " << std::endl;
-        }
-        crateVector[i]->SetLife( cr );
+        crateVector[i]->CheckController();
     }
     controller_checked_ = true;
 }
@@ -545,7 +534,7 @@ int EmuPeripheralCrateCommand::VerifyCratesConfiguration()
   if(!parsed) ParsingXML();
 
   if(total_crates_<=0) return 0;
-  if(!controller_checked_) CheckControllers();
+  if(!controller_checked_) check_controllers();
   //
   OutputCheckConfiguration.str(""); //clear the output string
   int initialcrate=current_crate_;

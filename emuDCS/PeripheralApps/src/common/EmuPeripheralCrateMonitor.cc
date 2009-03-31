@@ -316,13 +316,8 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
           // begin: reload VCC's FPGA (F9)
           if(cycle==3 && now_crate && reload_vcc && !(now_crate->IsAlive()))
           {
-             if (now_crate->vmeController()->SelfTest())
-             {
-                bool cr = now_crate->vmeController()->exist(13);
-                if (cr)
-                {  now_crate->SetLife( cr ); 
-                }
-                else 
+                int cr = now_crate->CheckController();
+                if (cr==1)
                 {
                    now_crate->vmeController()->reset();
                    vcc_reset[i] = vcc_reset[i] + 1;
@@ -332,7 +327,6 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                    now_crate->SetLife( true );
                    continue;  // skip this round of reading if the VCC has been reloaded
                 }
-             }
           }
           // end: reload
 
@@ -2940,28 +2934,17 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
   {  
     std::cout << "Button: Check Crate Controllers" << std::endl;
-    CheckControllers();
+    check_controllers();
     this->Default(in, out);
   }
 
-void EmuPeripheralCrateMonitor::CheckControllers()
+void EmuPeripheralCrateMonitor::check_controllers()
 {
     if(total_crates_<=0) return;
-    bool cr;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-       cr = crateVector[i]->vmeController()->SelfTest();
-        if(!cr)
-        {  std::cout << "Exclude Crate " << crateVector[i]->GetLabel()
-                     << "--Dead Controller " << std::endl;
-        }
-        else
-        {  cr=crateVector[i]->vmeController()->exist(13);
-           if(!cr) std::cout << "Exclude Crate " << crateVector[i]->GetLabel()
-                     << "--No VME access " << std::endl;
-        }
-        crateVector[i]->SetLife( cr );
-      }
+        crateVector[i]->CheckController();
+    }
     controller_checked_ = true;
 }
 
