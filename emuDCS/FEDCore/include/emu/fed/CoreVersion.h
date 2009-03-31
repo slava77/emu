@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: CoreVersion.h,v 1.4 2009/03/24 19:16:30 paste Exp $
+* $Id: CoreVersion.h,v 1.5 2009/03/31 22:14:08 paste Exp $
 *
 * $Log: CoreVersion.h,v $
+* Revision 1.5  2009/03/31 22:14:08  paste
+* Version bump.
+*
 * Revision 1.4  2009/03/24 19:16:30  paste
 * Version bump
 *
@@ -31,7 +34,7 @@
 
 namespace emufedcore {
 	const std::string package     = "FEDCore";
-	const std::string versions    = "07.01.00";
+	const std::string versions    = "07.02.00";
 	const std::string description = "Emu (CSC) FED Core Libraries";
 
 	const std::string summary     = "Core libraries for controlling Front End Device (FED) crates for the CMS Emu (CSC) subdetector";
