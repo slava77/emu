@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.49 2009/03/25 10:19:41 liu Exp $
+// $Id: Crate.cc,v 3.50 2009/03/31 16:24:20 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.50  2009/03/31 16:24:20  liu
+// move check controller to Crate class
+//
 // Revision 3.49  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -493,6 +496,31 @@ void Crate::init() {
   //  
   if(mpc) mpc->init();
   //
+}
+
+int Crate::CheckController()
+{
+// return 0  good
+//        1  no VME access
+//        2  dead controller
+
+        int rn = 0;
+        bool cr = theController->SelfTest();
+        if(!cr)
+        {  std::cout << "Exclude Crate " << label_
+                     << "--Dead Controller " << std::endl;
+           rn = 2;
+        }
+        else
+        {  cr = theController->exist(13);
+           if(!cr) 
+           {   std::cout << "Exclude Crate " << label_
+                         << "--No VME access " << std::endl;
+               rn = 1;
+           }
+        }
+        alive_ = cr ;
+        return rn;
 }
 //
   Chamber * Crate::GetChamber(int slotN)

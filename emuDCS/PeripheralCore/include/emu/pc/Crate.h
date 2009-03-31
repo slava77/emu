@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.1 2009/03/25 10:07:42 liu Exp $
+// $Id: Crate.h,v 1.2 2009/03/31 16:24:20 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.2  2009/03/31 16:24:20  liu
+// move check controller to Crate class
+//
 // Revision 1.1  2009/03/25 10:07:42  liu
 // move header files to include/emu/pc
 //
@@ -113,6 +116,7 @@ public:
   void addModule(VMEModule * module);
   void AddChamber(Chamber * chamber);
   void DumpConfiguration();
+  int CheckController();
   //
   std::string GetLabel() {return label_;}
   inline void SetLabel(std::string label ) {label_ = label;}
