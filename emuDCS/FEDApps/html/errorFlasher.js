@@ -1,7 +1,13 @@
 /*****************************************************************************\
-* $Id: errorFlasher.js,v 1.1 2009/03/05 16:18:23 paste Exp $
+* $Id: errorFlasher.js,v 1.2 2009/03/31 22:12:02 paste Exp $
 *
 * $Log: errorFlasher.js,v $
+* Revision 1.2  2009/03/31 22:12:02  paste
+* Version bump.
+* Reduced demand on client-side browser by changing Monitor javascript functions.
+* Added update countdown timer to Monitor.
+* Made updates on changing of Monitor selection instantaneous.
+*
 * Revision 1.1  2009/03/05 16:18:23  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -19,12 +25,19 @@ new PeriodicalExecuter(function(pe) {
 
 	// Get all the elements with the class "error"
 	var toBlack = $$(".error");
+	var toBlackBorder = $$(".errorOutline");
 	var toRed = $$(".error_black");
+	var toRedBorder = $$(".error_blackOutline");
 	toBlack.each(function(element) {
 		element.removeClassName("error").addClassName("error_black");
 	});
 	toRed.each(function(element) {
 		element.removeClassName("error_black").addClassName("error");
 	});
-	
+	toBlackBorder.each(function(element) {
+		element.removeClassName("errorOutline").addClassName("error_blackOutline");
+	});
+	toRed.each(function(element) {
+		element.removeClassName("error_blackOutline").addClassName("errorOutline");
+	});
 }, 1);

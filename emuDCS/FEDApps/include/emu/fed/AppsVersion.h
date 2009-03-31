@@ -1,7 +1,13 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.10 2009/03/28 16:16:40 paste Exp $
+* $Id: AppsVersion.h,v 1.11 2009/03/31 22:12:02 paste Exp $
 *
 * $Log: AppsVersion.h,v $
+* Revision 1.11  2009/03/31 22:12:02  paste
+* Version bump.
+* Reduced demand on client-side browser by changing Monitor javascript functions.
+* Added update countdown timer to Monitor.
+* Made updates on changing of Monitor selection instantaneous.
+*
 * Revision 1.10  2009/03/28 16:16:40  paste
 * Changed the name of Manager state "Undefined" to "Indefinite".
 *
@@ -44,7 +50,7 @@
 
 namespace emufedapps {
 	const std::string package     = "FEDApps";
-	const std::string versions    = "07.01.03";
+	const std::string versions    = "07.02.00";
 	const std::string description = "Emu (CSC) FED XDAQ Applications";
 
 	const std::string summary     = "Applications to control and monitor the Front End Device (FED) crates for the CMS Emu (CSC) subdetector";

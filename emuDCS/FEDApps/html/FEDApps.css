@@ -164,6 +164,30 @@ table.data td {
 	color: #333;
 }
 
+.errorOutline {
+	border-color: #F00;
+}
+
+.error_blackOutline, .noneOutline, .okOutline, .killedOutline {
+	border-color: #000;
+}
+
+.warningOutline {
+	border-color: #F60;
+}
+
+.cautionOutline {
+	border-color: #FF6;
+}
+
+.questionableOutline {
+	border-color: #66F;
+}
+
+.undefinedOutline {
+	border-color: #CCC;
+}
+
 .red {
 	color: #900;
 }
@@ -306,4 +330,14 @@ button#start_stop {
 
 button#start_stop img {
 	margin-right: 10px;
+}
+
+div#countdown {
+	width: 200px;
+	background-color: #FFF;
+	text-align: center;
+	margin: 5px auto 5px auto;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border: 2px solid #000;
 }

@@ -1,7 +1,13 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.4 2009/03/27 17:02:02 paste Exp $
+* $Id: Monitor.cc,v 1.5 2009/03/31 22:12:02 paste Exp $
 *
 * $Log: Monitor.cc,v $
+* Revision 1.5  2009/03/31 22:12:02  paste
+* Version bump.
+* Reduced demand on client-side browser by changing Monitor javascript functions.
+* Added update countdown timer to Monitor.
+* Made updates on changing of Monitor selection instantaneous.
+*
 * Revision 1.4  2009/03/27 17:02:02  paste
 * Shortened names of monitors reported from Manager to PageOne.
 * Fixed DDU KillFiber checking between XML and FPGA.
@@ -97,7 +103,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::div(drawCrate(*iCrate)).set("class", "crate") << std::endl;
 	}
 
-	//*out << cgicc::textarea().set("id", "debug") << cgicc::textarea();
+	// *out << cgicc::textarea().set("id", "debug") << cgicc::textarea();
 	
 	*out << Footer() << std::endl;
 	
@@ -107,7 +113,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 {
-	
+
 	cgicc::Cgicc cgi(in);
 	unsigned int myNumber = 0;
 	cgicc::form_iterator name = cgi.getElement("number");
@@ -117,11 +123,22 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 		// FIXME
 		return;
 	}
-
+	
 	// Need some header information to be able to return JSON
-	cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
-	jsonHeader.addHeader("Content-type", "application/json");
-	out->setHTTPResponseHeader(jsonHeader);
+	unsigned int myDebug = 0;
+	cgicc::form_iterator debug = cgi.getElement("debug");
+	if (debug != cgi.getElements().end()) {
+		myDebug = cgi["debug"]->getIntegerValue();
+		if (myDebug != 1) {
+			cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+			jsonHeader.addHeader("Content-type", "application/json");
+			out->setHTTPResponseHeader(jsonHeader);
+		}
+	} else {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
 	
 	std::ostringstream json;
 
@@ -178,71 +195,100 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 			}
 			json << ",";
 			json << "\"L1A\":";
-			uint32_t l1aScaler = 0;
+			int32_t l1aScaler = 0;
 			try {
 				l1aScaler = (*iDDU)->readL1Scaler(emu::fed::DDUFPGA);
 				json << l1aScaler;
 			} catch (emu::fed::exception::DDUException &e) {
 				// FIXME
-				json << "\"undefined\"";
+				json << "\"READ ERROR\"";
+				l1aScaler = -1;
 			}
 			json << ",";
 
 			if (what == "temperatures") {
 				json << "\"temperatures\":[";
-				try {
-					for (unsigned int iTemp = 0; iTemp < 4; iTemp++) {
+				for (unsigned int iTemp = 0; iTemp < 4; iTemp++) {
+					try {
 						float temperature = (*iDDU)->readTemperature(iTemp);
 						std::pair<std::string, std::string> debugged = DDUDebugger::Temperature(temperature);
+						
 						json << "{";
-						json << "\"name\":\"temp " << iTemp << "\",";
+						json << "\"number\":" << iTemp << ",";
 						json << "\"temperature\":\"" << std::fixed << std::setprecision(2) << temperature << "\",";
 						json << "\"status\":\"" << debugged.second << "\",";
 						json << "\"message\":\"" << debugged.first << "\"";
 						json << "}";
-						if (iTemp != 3) json << ",";
+					} catch (emu::fed::exception::DDUException &e) {
+						json << "{";
+						json << "\"number\":" << iTemp << ",";
+						json << "\"temperature\":\"???\",";
+						json << "\"status\":\"undefined\",";
+						json << "\"message\":\"READ ERROR\"";
+						json << "}";
 					}
-				} catch (emu::fed::exception::DDUException &e) {
-					// FIXME
-					json << "Unable to read temperatures";
+					
+					if (iTemp != 3) json << ",";
 				}
 				json << "]";
 				
 			} else if (what == "voltages") {
 				json << "\"voltages\":[";
-				try {
-					for (unsigned int iVolt = 0; iVolt < 4; iVolt++) {
+				for (unsigned int iVolt = 0; iVolt < 4; iVolt++) {
+					try {
 						float voltage = (*iDDU)->readVoltage(iVolt);
 						std::pair<std::string, std::string> debugged = DDUDebugger::Voltage(iVolt, voltage);
 						json << "{";
-						if (iVolt == 0) json << "\"name\":\"1.5V\",";
-						else if (iVolt == 3) json << "\"name\":\"3.3V\",";
-						else json << "\"name\":\"2.5V\",";
+						json << "\"number\":" << iVolt << ",";
 						json << "\"voltage\":\"" << std::fixed << std::setprecision(0) << voltage << "\",";
 						json << "\"status\":\"" << debugged.second << "\",";
 						json << "\"message\":\"" << debugged.first << "\"";
 						json << "}";
-						if (iVolt != 3) json << ",";
+					
+					} catch (emu::fed::exception::DDUException &e) {
+						json << "{";
+						json << "\"number\":" << iVolt << ",";
+						json << "\"voltage\":\"???\",";
+						json << "\"status\":\"undefined\",";
+						json << "\"message\":\"READ ERROR\"";
+						json << "}";
 					}
-				} catch (emu::fed::exception::DDUException &e) {
-					// FIXME
-					json << "\"Unable to read voltage\"";
+					if (iVolt != 3) json << ",";
 				}
 				json << "]";
 			
 			} else if (what == "counts") {
 				json << "\"counts\":[";
-				try {
+				if (l1aScaler >= 0) {
 					json << "{\"name\":\"DDUFPGA\",\"count\":" << l1aScaler << "},";
-					json << "{\"name\":\"INFPGA0 (0-3)\",\"count\":" << (*iDDU)->readL1Scaler(emu::fed::INFPGA0) << "},";
-					json << "{\"name\":\"INFPGA0 (4-7)\",\"count\":" << (*iDDU)->readL1Scaler1(emu::fed::INFPGA0) << "},";
-					json << "{\"name\":\"INFPGA1 (8-11)\",\"count\":" << (*iDDU)->readL1Scaler(emu::fed::INFPGA1) << "},";
-					json << "{\"name\":\"INFPGA1 (12-15)\",\"count\":" << (*iDDU)->readL1Scaler1(emu::fed::INFPGA1) << "}";
-
-				} catch (emu::fed::exception::DDUException &e) {
-					// FIXME
-					json << "\"Unable to read L1A scalers\"";
+				} else {
+					json << "{\"name\":\"DDUFPGA\",\"count\":\"READ ERROR\"},";
 				}
+				try {
+					unsigned int count = (*iDDU)->readL1Scaler(emu::fed::INFPGA0);
+					json << "{\"name\":\"INFPGA01\",\"count\":" << count << "},";
+				} catch (emu::fed::exception::DDUException &e) {
+					json << "{\"name\":\"INFPGA01\",\"count\":\"READ ERROR\"},";
+				}
+				try {
+					unsigned int count = (*iDDU)->readL1Scaler1(emu::fed::INFPGA0);
+					json << "{\"name\":\"INFPGA02\",\"count\":" << count << "},";
+				} catch (emu::fed::exception::DDUException &e) {
+					json << "{\"name\":\"INFPGA02\",\"count\":\"READ ERROR\"},";
+				}
+				try {
+					unsigned int count = (*iDDU)->readL1Scaler(emu::fed::INFPGA1);
+					json << "{\"name\":\"INFPGA11\",\"count\":" << count << "},";
+				} catch (emu::fed::exception::DDUException &e) {
+					json << "{\"name\":\"INFPGA11\",\"count\":\"READ ERROR\"},";
+				}
+				try {
+					unsigned int count = (*iDDU)->readL1Scaler1(emu::fed::INFPGA1);
+					json << "{\"name\":\"INFPGA12\",\"count\":" << count << "}";
+				} catch (emu::fed::exception::DDUException &e) {
+					json << "{\"name\":\"INFPGA12\",\"count\":\"READ ERROR\"}";
+				}
+
 				json << "]";
 
 			} else if (what == "fibers") {
@@ -273,8 +319,15 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 						if (iFiber != 14) json << ",";
 					}
 				} catch (emu::fed::exception::DDUException &e) {
-					// FIXME
-					json << "\"Unable to read fiber status\"";
+					for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+						json << "{";
+						json << "\"fiber\":" << iFiber << ",";
+						json << "\"name\":\"" << (*iDDU)->getChamber(iFiber)->name() << "\",";
+						json << "\"status\":\"undefined\",";
+						json << "\"message\":\"READ ERROR\"";
+						json << "}";
+						if (iFiber != 14) json << ",";
+					}
 				}
 				json << "]";
 			
@@ -283,24 +336,25 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 				for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 					json << "{";
 					json << "\"fiber\":" << iFiber << ",";
+					json << "\"name\":\"" << (*iDDU)->getChamber(iFiber)->name() << "\",";
 					try {
-						json << "\"name\":\"" << (*iDDU)->getChamber(iFiber)->name() << "\",";
 						std::vector<uint32_t> occupancies = (*iDDU)->readOccupancyMonitor();
 						uint32_t dmbCount = (occupancies[0] & 0x0fffffff);
 						uint32_t alctCount = (occupancies[1] & 0x0fffffff);
 						uint32_t tmbCount = (occupancies[2] & 0x0fffffff);
 						uint32_t cfebCount = (occupancies[3] & 0x0fffffff);
-						json << "\"DMBcount\":" << dmbCount << ",";
-						json << "\"DMBpercent\":\"" << std::fixed << std::setprecision(3) << ((float) dmbCount * 100 / (float) l1aScaler) << "%\",";
-						json << "\"ALCTcount\":" << alctCount << ",";
-						json << "\"ALCTpercent\":\"" << std::fixed << std::setprecision(3) << ((float) alctCount * 100 / (float) dmbCount) << "%\",";
-						json << "\"TMBcount\":" << tmbCount << ",";
-						json << "\"TMBpercent\":\"" << std::fixed << std::setprecision(3) << ((float) tmbCount * 100 / (float) dmbCount) << "%\",";
-						json << "\"CFEBcount\":" << cfebCount << ",";
-						json << "\"CFEBpercent\":\"" << std::fixed << std::setprecision(3) << ((float) alctCount * 100 / (float) cfebCount) << "%\"";
+						json << "\"numbers\":[";
+						json << "{\"type\":\"DMB\",\"count\":" << dmbCount << ",\"percent\":\"" << std::fixed << std::setprecision(3) << ((float) dmbCount * 100 / (float) l1aScaler) << "%\"},";
+						json << "{\"type\":\"ALCT\",\"count\":" << alctCount << ",\"percent\":\"" << std::fixed << std::setprecision(3) << ((float) alctCount * 100 / (float) dmbCount) << "%\"},";
+						json << "{\"type\":\"TMB\",\"count\":" << dmbCount << ",\"percent\":\"" << std::fixed << std::setprecision(3) << ((float) tmbCount * 100 / (float) dmbCount) << "%\"},";
+						json << "{\"type\":\"CFEB\",\"count\":" << dmbCount << ",\"percent\":\"" << std::fixed << std::setprecision(3) << ((float) alctCount * 100 / (float) cfebCount) << "%\"}]";
+
 					} catch (emu::fed::exception::DDUException &e) {
-						// FIXME
-						json << "\"Unable to read occupancies\"";
+						json << "\"numbers\":[";
+						json << "{\"type\":\"DMB\",\"count\":\"???\",\"percent\":\"READ ERROR\"},";
+						json << "{\"type\":\"ALCT\",\"count\":\"???\",\"percent\":\"READ ERROR\"},";
+						json << "{\"type\":\"TMB\",\"count\":\"???\",\"percent\":\"READ ERROR\"},";
+						json << "{\"type\":\"CFEB\",\"count\":\"???\",\"percent\":\"READ ERROR\"}]";
 					}
 					json << "}";
 					if (iFiber != 14) json << ",";
@@ -308,7 +362,7 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 				json << "]";
 
 			} else {
-				json << "\"\"";
+				//json << "\"\"";
 			}
 			
 			json << "}";
@@ -341,23 +395,32 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 			json << ",";
 
 			json << "\"ddurates\":[";
-			unsigned int fifoStatus = 0;
+			int fifoStatus = 0;
 			try {
 				fifoStatus = ((*iDCC)->readStatusHigh() & 0x0ff0) >> 4;
 			} catch (emu::fed::exception::DCCException &e) {
-				// FIXME
+				fifoStatus = -1;
 			}
 			for (unsigned int iSlot = 3; iSlot <= 20; iSlot++) {
+				// There is no fifo 0 or 6, but that screws up the encoding.
+				unsigned int fifo = 0;
+				try {
+					fifo = (*iDCC)->getFIFOFromDDUSlot(iSlot) - 1;
+				} catch (emu::fed::exception::OutOfBoundsException &e) {
+					// Not a proper slot for this DCC
+					continue;
+				}
+				if (fifo > 5) fifo--;
+				fifo = fifo/2;
 				try {
 					uint16_t rate = (*iDCC)->readDDURate(iSlot);
-					// There is no fifo 0 or 6, but that screws up the encoding.
-					unsigned int fifo = (*iDCC)->getFIFOFromDDUSlot(iSlot) - 1;
-					if (fifo > 5) fifo--;
-					fifo = fifo/2;
 					json << "{";
 					json << "\"slot\":" << iSlot << ",";
 					json << "\"rate\":" << rate << ",";
-					if (!(fifoStatus & (1 << (fifo + 3)))) {
+					if (fifoStatus < 0) {
+						json << "\"status\":\"undefined\",";
+						json << "\"message\":\"READ ERROR\"";
+					} else if (!(fifoStatus & (1 << (fifo + 3)))) {
 						json << "\"status\":\"error\",";
 						json << "\"message\":\"full\"";
 					} else if (fifo < 3 && !(fifoStatus & (1 << fifo))) {
@@ -368,19 +431,26 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 						json << "\"message\":\"bits/s\"";
 					}
 					json << "}";
-					if (!(iSlot == 13 && (*iDCC)->slot() == 8) && !(iSlot == 20 && (*iDCC)->slot() == 17)) json << ",";
-				} catch (emu::fed::exception::Exception &e) {
-					// FIXME
+					
+				} catch (emu::fed::exception::DCCException &e) {
+					json << "{";
+					json << "\"slot\":" << iSlot << ",";
+					json << "\"rate\":\"???\",";
+					json << "\"status\":\"undefined\",";
+					json << "\"message\":\"READ ERROR\"";
+					json << "}";
 				}
+				
+				if (!(iSlot == 13 && (*iDCC)->slot() == 8) && !(iSlot == 20 && (*iDCC)->slot() == 17)) json << ",";
 			}
 			json << "],";
 			
 			json << "\"slinkrates\":[";
-			unsigned int slinkStatus = 0;
+			int slinkStatus = 0;
 			try {
 				slinkStatus = (*iDCC)->readStatusHigh() & 0xf;
 			} catch (emu::fed::exception::DCCException &e) {
-				// FIXME
+				slinkStatus = -1;
 			}
 			for (unsigned int iLink = 1; iLink <= 2; iLink++) {
 				try {
@@ -388,7 +458,10 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 					json << "{";
 					json << "\"slink\":" << iLink << ",";
 					json << "\"rate\":" << rate << ",";
-					if (!(slinkStatus & (1 << (iLink * 2 - 1)))) {
+					if (slinkStatus < 0) {
+						json << "\"status\":\"undefined\",";
+						json << "\"message\":\"READ ERROR\"";
+					} else if (!(slinkStatus & (1 << (iLink * 2 - 1)))) {
 						json << "\"status\":\"error\",";
 						json << "\"message\":\"inactive\"";
 					} else if (!(slinkStatus & (1 << ((iLink - 1) * 2 )))) {
@@ -399,10 +472,17 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 						json << "\"message\":\"bits/s\"";
 					}
 					json << "}";
-					if (iLink != 2) json << ",";
+					
 				} catch (emu::fed::exception::Exception &e) {
-					// FIXME
+					json << "{";
+					json << "\"slink\":" << iLink << ",";
+					json << "\"rate\":\"???\",";
+					json << "\"status\":\"undefined\",";
+					json << "\"message\":\"READ ERROR\"";
+					json << "}";
 				}
+				
+				if (iLink != 2) json << ",";
 			}
 			json << "]";
 
@@ -464,31 +544,35 @@ std::string emu::fed::Monitor::drawCrate(Crate *myCrate)
 	std::ostringstream crateNumber;
 	crateNumber << myCrate->number();
 	crateTable->set("id", "crate_" + crateNumber.str());
+	crateTable->set("crate", crateNumber.str());
 	
 	// Draw the header
 	crateTable(0,0) << "Crate " << myCrate->number();
 	crateTable(0,0)->set("colspan", "4");
 	crateTable[0]->set("class", "crate_name");
 	
-	crateTable(1,1) << "slot";
-	crateTable(1,2) << "board" << cgicc::br() << "#L1A";
-	crateTable(1,3) << cgicc::form().set("class", "crate_form")
+	crateTable(1,0) << "slot";
+	crateTable(1,1) << "board" << cgicc::br() << "#L1A";
+	crateTable(1,2) << cgicc::form().set("class", "crate_form")
 		.set("id", "crate_" + crateNumber.str() + "_form")
 		.set("action", "getAJAX")
 		.set("method", "get");
-	crateTable(1,3) << cgicc::input().set("type", "hidden")
+	crateTable(1,2) << cgicc::input().set("type", "hidden")
 		.set("name", "number")
 		.set("value", crateNumber.str());
-	crateTable(1,3) << cgicc::select().set("name", "selection");
-	crateTable(1,3) << cgicc::option("fiber status").set("value", "fibers");
-	crateTable(1,3) << cgicc::option("L1A counts").set("value", "counts");
-	crateTable(1,3) << cgicc::option("occupancies").set("value", "occupancies");
-	crateTable(1,3) << cgicc::option("temperatures").set("value", "temperatures");
-	crateTable(1,3) << cgicc::option("voltages").set("value", "voltages");
-	crateTable(1,3) << cgicc::select();
+	crateTable(1,2) << cgicc::select().set("name", "selection")
+		.set("class", "crateSelection")
+		.set("crate", crateNumber.str())
+		.set("id", "crate_" + crateNumber.str() + "_selection");
+	crateTable(1,2) << cgicc::option("fiber status").set("value", "fibers");
+	crateTable(1,2) << cgicc::option("L1A counts").set("value", "counts");
+	crateTable(1,2) << cgicc::option("occupancies").set("value", "occupancies");
+	crateTable(1,2) << cgicc::option("temperatures").set("value", "temperatures");
+	crateTable(1,2) << cgicc::option("voltages").set("value", "voltages");
+	crateTable(1,2) << cgicc::select();
 	// FIXME
 	//crateTable(1,3) << cgicc::input().set("type", "submit");
-	crateTable(1,3) << cgicc::form();
+	crateTable(1,2) << cgicc::form();
 	crateTable[1]->set("class", "headers");
 	
 	std::vector<DDU *> myDDUs = myCrate->getDDUs();
@@ -497,17 +581,20 @@ std::string emu::fed::Monitor::drawCrate(Crate *myCrate)
 		std::ostringstream slotText;
 		slotText << (*iDDU)->slot();
 		crateTable[iRow]->set("class", "board ddu");
-		crateTable(iRow, 0)->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_status");
-		crateTable(iRow, 1).setClass("slot");
-		crateTable(iRow, 1) << slotText.str();
-		crateTable(iRow, 2).setClass("name");
-		crateTable(iRow, 2) << "RUI " << myCrate->getRUI((*iDDU)->slot()) << cgicc::br();
-		crateTable(iRow, 2) << cgicc::span(" ")
+		crateTable[iRow]->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str());
+		crateTable(iRow, 0).setClass("slot");
+		crateTable(iRow, 0)->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_slot");
+		crateTable(iRow, 0) << slotText.str();
+		crateTable(iRow, 1).setClass("name");
+		crateTable(iRow, 1) << "RUI " << myCrate->getRUI((*iDDU)->slot()) << cgicc::br();
+		crateTable(iRow, 1) << cgicc::div(" ")
 			.set("class", "l1a")
 			.set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_l1a");
-		crateTable(iRow, 3)->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_data");
-		crateTable(iRow, 3).setClass("data");
-		crateTable(iRow, 3) << "Awaiting data....";
+		crateTable(iRow, 2)->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_data");
+		crateTable(iRow, 2).setClass("data");
+		crateTable(iRow, 2)->set("crate", crateNumber.str());
+		crateTable(iRow, 2)->set("slot", slotText.str());
+		crateTable(iRow, 2) << "Awaiting data....";
 	}
 	
 	iRow = 2 + myDDUs.size();
@@ -516,17 +603,20 @@ std::string emu::fed::Monitor::drawCrate(Crate *myCrate)
 		std::ostringstream slotText;
 		slotText << (*iDCC)->slot();
 		crateTable[iRow]->set("class", "board dcc");
-		crateTable(iRow, 0)->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_status");
-		crateTable(iRow, 1).setClass("slot");
-		crateTable(iRow, 1) << slotText.str();
-		crateTable(iRow, 2).setClass("name");
-		crateTable(iRow, 2) << "DCC" << cgicc::br();
-		crateTable(iRow, 2) << cgicc::span(" ")
+		crateTable[iRow]->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str());
+		crateTable(iRow, 0).setClass("slot");
+		crateTable(iRow, 0)->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_slot");
+		crateTable(iRow, 0) << slotText.str();
+		crateTable(iRow, 1).setClass("name");
+		crateTable(iRow, 1) << "DCC" << cgicc::br();
+		crateTable(iRow, 1) << cgicc::span(" ")
 			.set("class", "l1a")
 			.set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_l1a");
-		crateTable(iRow, 3)->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_data");
-		crateTable(iRow, 3).setClass("data");
-		crateTable(iRow, 3) << "Awaiting data....";
+		crateTable(iRow, 2)->set("id", "crate_" + crateNumber.str() + "_slot_" + slotText.str() + "_data");
+		crateTable(iRow, 2).setClass("data");
+		crateTable(iRow, 2)->set("crate", crateNumber.str());
+		crateTable(iRow, 2)->set("slot", slotText.str());
+		crateTable(iRow, 2) << "Awaiting data....";
 	}
 	
 	out << crateTable.toHTML();
