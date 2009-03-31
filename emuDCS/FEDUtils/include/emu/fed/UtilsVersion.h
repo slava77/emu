@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: UtilsVersion.h,v 1.3 2009/03/24 19:13:44 paste Exp $
+* $Id: UtilsVersion.h,v 1.4 2009/03/31 22:15:04 paste Exp $
 *
 * $Log: UtilsVersion.h,v $
+* Revision 1.4  2009/03/31 22:15:04  paste
+* Version bump.
+*
 * Revision 1.3  2009/03/24 19:13:44  paste
 * Fixed crashing when ending threads after an IRQ
 * Made threads more robust by using slot numbers instead of DDU pointers as map indices
@@ -24,7 +27,7 @@
 
 namespace emufedutils {
 	const std::string package     = "FEDUtils";
-	const std::string versions    = "07.01.00";
+	const std::string versions    = "07.02.00";
 	const std::string description = "Emu (CSC) FED Utility Libraries";
 
 	const std::string summary     = "Utility libraries used by the Front End Device (FED) crate XDAQ applications (FEDApps) for the CMS Emu (CSC) subdetector";
