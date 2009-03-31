@@ -197,7 +197,7 @@ private:
   bool ParsingXML();
   void SetCurrentCrate(int crate);
   void CheckPeripheralCrateConfiguration();
-  void CheckControllers();
+  void check_controllers();
     
 };
 

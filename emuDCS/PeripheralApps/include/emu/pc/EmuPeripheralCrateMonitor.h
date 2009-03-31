@@ -193,7 +193,7 @@ private:
   void BeamView(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void InitCounterNames();
       
-  void CheckControllers();
+  void check_controllers();
   bool ParsingXML();
   void SetCurrentCrate(int crate);
   int current_crate_;
