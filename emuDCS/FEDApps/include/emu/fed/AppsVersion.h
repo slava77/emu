@@ -1,46 +1,5 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.11 2009/03/31 22:12:02 paste Exp $
-*
-* $Log: AppsVersion.h,v $
-* Revision 1.11  2009/03/31 22:12:02  paste
-* Version bump.
-* Reduced demand on client-side browser by changing Monitor javascript functions.
-* Added update countdown timer to Monitor.
-* Made updates on changing of Monitor selection instantaneous.
-*
-* Revision 1.10  2009/03/28 16:16:40  paste
-* Changed the name of Manager state "Undefined" to "Indefinite".
-*
-* Revision 1.9  2009/03/27 17:02:02  paste
-* Shortened names of monitors reported from Manager to PageOne.
-* Fixed DDU KillFiber checking between XML and FPGA.
-* Fixed Monitor to correctly decode DCC FIFO status.
-*
-* Revision 1.8  2009/03/26 20:19:08  paste
-* Fixed DDUFPGA Diagnostic Trap display to show all 192 bits correctly
-*
-* Revision 1.7  2009/03/24 19:11:08  paste
-* Fixed a bug that made Manager always return a Failed state after Disable command
-*
-* Revision 1.6  2009/03/12 14:29:58  paste
-* * Fixed image display bug in Monitor
-* * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
-*
-* Revision 1.5  2009/03/09 16:03:16  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
-* Revision 1.4  2009/03/05 22:04:09  paste
-* * Fixed a minor bug involving DCC Expert commands
-*
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
+* $Id: AppsVersion.h,v 1.12 2009/04/01 21:08:24 paste Exp $
 \*****************************************************************************/
 
 #ifndef __EMU_FED_APPSVERSION_H__
@@ -50,7 +9,7 @@
 
 namespace emufedapps {
 	const std::string package     = "FEDApps";
-	const std::string versions    = "07.02.00";
+	const std::string versions    = "07.02.01";
 	const std::string description = "Emu (CSC) FED XDAQ Applications";
 
 	const std::string summary     = "Applications to control and monitor the Front End Device (FED) crates for the CMS Emu (CSC) subdetector";

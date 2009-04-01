@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.5 2009/03/26 20:19:08 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.6 2009/04/01 21:08:24 paste Exp $
 *
 * $Log: EmuFCrateHyperDAQ.cc,v $
+* Revision 1.6  2009/04/01 21:08:24  paste
+* Added skeleton Commander application to replace EmuFCrateHyperDAQ.
+* Added FPGA Usercode reading in EmuFCrateHyperDAQ.
+*
 * Revision 1.5  2009/03/26 20:19:08  paste
 * Fixed DDUFPGA Diagnostic Trap display to show all 192 bits correctly
 *
@@ -2035,6 +2039,21 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 			generalTable(7,2) << cgicc::div(iComment->first)
 				.set("class",iComment->second);
 		}
+		
+		generalTable(8,0) << "DDU PROM 0 User Code";
+		dduValue = myDDU->readUserCode(DDUPROM0);
+		generalTable(8,1) << std::showbase << std::hex << dduValue;
+		generalTable(8,1).setClass("none");
+		
+		generalTable(9,0) << "DDU PROM 1 User Code";
+		dduValue = myDDU->readUserCode(DDUPROM1);
+		generalTable(9,1) << std::showbase << std::hex << dduValue;
+		generalTable(9,1).setClass("none");
+		
+		generalTable(10,0) << "DDU FPGA User Code";
+		dduValue = myDDU->readUserCode(DDUFPGA);
+		generalTable(10,1) << std::showbase << std::hex << dduValue;
+		generalTable(10,1).setClass("none");
 
 		*out << generalTable.printSummary() << std::endl;
 
@@ -2684,9 +2703,11 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 		generalTable(0,4) << "Decoded Status";
 		generalTable[0]->set("class", "header");
 		
-		generalTable(2,0) << "InFPGA status (32-bit)";
+		generalTable(2,0) << "Input FPGA0/1 Status (32-bit)";
 		generalTable(3,0) << "L1 Event Scaler0/2 (24-bit)";
 		generalTable(4,0) << "L1 Event Scaler1/3 (24-bit)";
+		generalTable(5,0) << "Input PROM0/1 User Code";
+		generalTable(6,0) << "Input FPGA0/1 User Code";
 		
 		generalTable(1,1)->set("colspan", "2").set("style", "font-weight: bold; text-align: center; border-right: 3px double #000;");
 		generalTable(1,1) << devNames[0];
@@ -2697,6 +2718,8 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 		generalTable(2,2)->set("style", "border-right: double 3px #000;");
 		generalTable(3,2)->set("style", "border-right: double 3px #000;");
 		generalTable(4,2)->set("style", "border-right: double 3px #000;");
+		generalTable(5,2)->set("style", "border-right: double 3px #000;");
+		generalTable(6,2)->set("style", "border-right: double 3px #000;");
 
 		for (unsigned int iDevType = 0; iDevType < 2; iDevType++) {
 			enum DEVTYPE dt = devTypes[iDevType];
@@ -2726,6 +2749,14 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			//unsigned long int L1Scaler1 = myDDU->readL1Scaler1(dt);
 			unsigned long int L1Scaler1 = myDDU->readL1Scaler1(dt);
 			generalTable(4,iDevType*2+1) << L1Scaler1;
+			
+			unsigned long int promcode = (iDevType == 0) ? myDDU->readUserCode(INPROM0) : myDDU->readUserCode(INPROM1);
+			generalTable(5,iDevType*2+1) << std::showbase << std::hex << promcode;
+			generalTable(5,iDevType*2+1).setClass("none");
+			
+			unsigned long int fpgacode = myDDU->readUserCode(dt);
+			generalTable(6,iDevType*2+1) << std::showbase << std::hex << fpgacode;
+			generalTable(6,iDevType*2+1).setClass("none");
 
 		}
 		
