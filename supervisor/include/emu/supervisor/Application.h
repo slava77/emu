@@ -246,6 +246,7 @@ private: // XDAQ parameters
 	bool keep_refresh_;
 	bool hide_tts_control_;
 
+        xdata::String tf_key_;       // Track Finder Key
 	xdata::String curlHost_;            // host on which to execute the curl command
 	xdata::String curlCommand_;         // the curl command's full path
 	xdata::String curlCookies_;         // file for cookies
