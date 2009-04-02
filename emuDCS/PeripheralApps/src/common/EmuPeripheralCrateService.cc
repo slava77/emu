@@ -27,6 +27,8 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
     crate_check_ok[i] = 0;
     crate_state[i] = 0;
   }
+  last_msg=0;
+  total_msg=0;
   //
   //
   xgi::bind(this,&EmuPeripheralCrateService::Default, "Default");
@@ -37,7 +39,6 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   xgi::bind(this,&EmuPeripheralCrateService::CheckCrates, "CheckCrates");
   xgi::bind(this,&EmuPeripheralCrateService::CrateSelection, "CrateSelection");
   xgi::bind(this,&EmuPeripheralCrateService::HardReset, "HardReset");
-  xgi::bind(this,&EmuPeripheralCrateService::ConfigAllCrates, "ConfigAllCrates");
   xgi::bind(this,&EmuPeripheralCrateService::FastConfigCrates, "FastConfigCrates");
   xgi::bind(this,&EmuPeripheralCrateService::FastConfigOne, "FastConfigOne");
   xgi::bind(this,&EmuPeripheralCrateService::ForEmuPage1, "ForEmuPage1");
@@ -89,15 +90,20 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
 
 void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out ) 
 {
+  if(!parsed) ParsingXML();
+
   //
   std::string LoggerName = getApplicationLogger().getName() ;
   std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate ready");
   //
-  MyHeader(in,out,"EmuPeripheralCrateService");
-
-  if(!parsed) ParsingXML();
+  if(endcap_side==1)
+     MyHeader(in,out,"EmuPeripheralCrateService -- Plus Endcap");
+  else if(endcap_side==-1)
+     MyHeader(in,out,"EmuPeripheralCrateService -- Minus Endcap");
+  else
+     MyHeader(in,out,"EmuPeripheralCrateService -- Stand-alone");
 
   *out << "Total Crates : " << total_crates_ << cgicc::br() << std::endl ;
 
@@ -158,11 +164,11 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
   std::string CrateName;
   for (int i = 0; i < n_keys; ++i) {
     if(crate_state[i]==0)
-      CrateName = crateVector[i]->GetLabel() + "  UN ";
+      CrateName = crateVector[i]->GetLabel() + " -- ";
     else if(crate_state[i]>0)
-      CrateName = crateVector[i]->GetLabel() + "  YES";
+      CrateName = crateVector[i]->GetLabel() + " UP ";
     else if(crate_state[i]<0)
-      CrateName = crateVector[i]->GetLabel() + "  NO ";
+      CrateName = crateVector[i]->GetLabel() + " DN ";
 
     if(!(crateVector[i]->IsAlive()))
       CrateName = CrateName + "  NG";
@@ -215,13 +221,20 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
     *out << cgicc::fieldset() << cgicc::hr() << std::endl;
     //
   }
-  *out << cgicc::br() << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << cgicc::br() << cgicc::b("Last Received Commands") << std::endl;
+  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial; color: yellow; background-color:blue");
   *out << std::endl;
-  //
-  *out << cgicc::span().set("style","color:blue");
-  *out << cgicc::b(cgicc::i("Last Received Messages:<br>")) ;
-  *out << cgicc::span() << std::endl ;
-
+  if(total_msg > 0)
+  {
+     // commands display
+     int idx=last_msg;    
+     int max_display = (total_msg < 15) ? total_msg : 15;
+     for(int i=0; i< max_display; i++)
+     {
+        *out << command_msg[idx--] << cgicc::br() << std::endl;
+        if(idx < 0) idx += MAX_MESSAGES;
+     }
+  }
   *out << cgicc::fieldset() << std::endl;
   *out << cgicc::br() << cgicc::br() << std::endl; 
 
@@ -286,41 +299,39 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
      this->Default(in,out);
   }
 
-  void EmuPeripheralCrateService::ConfigAllCrates(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-     std::cout << "Button: ConfigAllCrates" << std::endl;
-     ConfigureInit();
-//     fireEvent("Configure");
-     this->Default(in,out);
-  }
-
   void EmuPeripheralCrateService::FastConfigCrates(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-     std::cout << "Button: FastConfigCrates" << std::endl;
+     if(!parsed) ParsingXML();
+
+     msgHandler("Button: Power-Up-Init All Crates");
+
      ConfigureInit(2);
-//     fireEvent("Configure");
      this->Default(in,out);
   }
 
   void EmuPeripheralCrateService::FastConfigOne(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
+     if(!parsed) ParsingXML();
+
+     msgHandler("Button: Power-Up-Init Crate " + ThisCrateID_);
+
      thisCrate->configure(2);
+     crate_state[current_crate_] = 1;
      this->Default(in,out);
   }
 
   void EmuPeripheralCrateService::ConfigureInit(int c)
   {
-
-    if(!parsed) ParsingXML();
-    
     if(total_crates_<=0) return;
     current_config_state_=1;
     for(unsigned i=0; i< crateVector.size(); i++)
     {
-        if(crateVector[i] && crateVector[i]->IsAlive()) crateVector[i]->configure(c);
+        if(crateVector[i] && crateVector[i]->IsAlive())
+        {   crateVector[i]->configure(c);
+            crate_state[i] = 1;
+        }
     }
     current_config_state_=2;
     //
@@ -393,6 +404,11 @@ bool EmuPeripheralCrateService::ParsingXML(){
 
     SetCurrentCrate(this_crate_no_);
     //
+    std::string endcap_name=crateVector[0]->GetLabel();
+    endcap_side = 0;
+    if (endcap_name.substr(3,1)=="p") endcap_side = 1;
+    if (endcap_name.substr(3,1)=="m") endcap_side = -1;
+     //
     std::cout << "Parser Done" << std::endl ;
     //
     parsed=1;
@@ -422,7 +438,9 @@ bool EmuPeripheralCrateService::ParsingXML(){
   void EmuPeripheralCrateService::CheckCrates(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
   {  
-    std::cout << "Button: Check Crates" << std::endl;
+    if(!parsed) ParsingXML();
+
+    msgHandler("Button: Check Crate Controllers");
     check_controllers();
     this->Default(in, out);
   }
@@ -440,14 +458,25 @@ bool EmuPeripheralCrateService::ParsingXML(){
   void EmuPeripheralCrateService::HardReset(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    //
-    std::cout << "HardReset crate " << ThisCrateID_ << std::endl;
+     if(!parsed) ParsingXML();
+
+     msgHandler("Button: Hard-Reset Crate " + ThisCrateID_);
     //
     thisCCB->hardReset();
     //
     this->Default(in,out);
     //
   }
+
+void EmuPeripheralCrateService::msgHandler(std::string msg)
+{
+     std::string logmsg = getLocalDateTime() + " " + msg;
+     total_msg++;
+     last_msg++;
+     if(last_msg >= MAX_MESSAGES) last_msg=0;
+     command_msg[last_msg] = logmsg;
+     std::cout << logmsg << std::endl;
+}
 
 void EmuPeripheralCrateService::ForEmuPage1(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception)
@@ -457,6 +486,14 @@ void EmuPeripheralCrateService::ForEmuPage1(xgi::Input *in, xgi::Output *out)
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
        <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
        <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << std::endl;
+
+    *out << "  <monitorable name=\"" << "title"
+         <<            "\" value=\"" << "PCrate Service " + (std::string)((endcap_side==1)?"Plus":"Minus")
+         <<  "\" nameDescription=\"" << " "
+         << "\" valueDescription=\"" << " "
+         <<          "\" nameURL=\"" << " "
+         <<         "\" valueURL=\"" << " "
+         << "\"/>" << std::endl;
 
     *out << "  <monitorable name=\"" << "Status"
          <<            "\" value=\"" << "ON"
@@ -479,20 +516,64 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
   std::string command_name=Page.substr(0,Page.find("=", 0) );
   std::string command_argu=Page.substr(Page.find("=", 0)+1);
 
-  if (command_name=="CRATEOFF")
+  if(!parsed) ParsingXML();
+
+  if (command_name=="STATUS")
   {
+     *out << "Crate Status " << crateVector.size() << " ";
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
-        if(command_argu==crateVector[i]->GetLabel()) crate_state[i] = -1;
-        std::cout << "SwitchBoard: TURN OFF crate " << command_argu << std::endl;
+        char ans;
+        switch(crate_state[i])
+        { 
+           case 1: 
+              ans='U'; break;
+           case -1: 
+              ans='D'; break;
+           case -2: 
+              ans='N'; break;
+           default: 
+              ans='-'; break;
+        }
+        *out << ans;
+     }
+     *out << std::endl;
+     msgHandler("Message: Status Query");
+  }
+  else if (command_name=="CRATEOFF")
+  {
+     if(command_argu=="ALL")
+     {
+        for ( unsigned int i = 0; i < crateVector.size(); i++) crate_state[i]=-1;
+        *out << "Switch Off Successful " <<  command_argu << std::endl;
+        msgHandler("Message: Switch Off All Crates");
+     }
+     else for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(command_argu==crateVector[i]->GetLabel()) 
+        {  crate_state[i] = -1;
+           *out << "Switch Off Successful " <<  command_argu << std::endl;
+           msgHandler("Message: Switch Off Crate " + command_argu);
+        }
      }
   }
-  else if (command_name=="CRATEON")
+  else if (command_name=="POWERUP")
   {
-     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     if(command_argu=="ALL")
      {
-        if(command_argu==crateVector[i]->GetLabel()) crate_state[i] = 1;
-        std::cout << "SwitchBoard: TURN ON crate " << command_argu << std::endl;
+        ConfigureInit(2);
+        *out << "Power Up Successful " <<  command_argu << std::endl;
+        msgHandler("Message: Power-Up-Init All Crates");
+     }
+     else for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        if(command_argu==crateVector[i]->GetLabel()) 
+        {  crate_state[i] = 1;
+           crateVector[i]->configure(2);
+           *out << "Power Up Successful " <<  command_argu << std::endl;
+           msgHandler("Message: Power-Up-Init Crate " + command_argu);
+
+        }
      }
   }
 }
@@ -501,4 +582,3 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
 }  // namespace emu
 
 XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPeripheralCrateService)
-

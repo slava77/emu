@@ -46,6 +46,8 @@
 namespace emu {
   namespace pc {
 
+const int MAX_MESSAGES=20;
+
 class EmuPeripheralCrateService: public EmuPeripheralCrateBase
 {
   //
@@ -83,6 +85,7 @@ protected:
   int current_crate_;
   std::string ThisCrateID_;
   
+  int endcap_side;
   bool Monitor_On_, Monitor_Ready_;
   //
   emu::pc::EmuEndcap * emuEndcap_;
@@ -107,18 +110,21 @@ private:
   void ForEmuPage1(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   //
   void CrateSelection(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void ConfigAllCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FastConfigCrates(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FastConfigOne(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigureInit(int c=0);
   bool ParsingXML();
   void SetCurrentCrate(int crate);
   void check_controllers();
-
+  void msgHandler(std::string msg);
+  
   int all_crates_ok;
   int crates_checked;
   int crate_check_ok[60];
   int crate_state[60];
+  int last_msg;
+  int total_msg;
+  std::string command_msg[MAX_MESSAGES];
 
 };
 
