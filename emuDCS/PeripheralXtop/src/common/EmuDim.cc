@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.15 2009/03/30 15:27:13 liu Exp $
+// $Id: EmuDim.cc,v 1.16 2009/04/02 14:42:15 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -377,9 +377,9 @@ int EmuDim::CrateToNumber(const char *chname)
    if(chnumb>12 || chnumb<1) return -3;
 
    if (station >4 || station<1) return -4;
-   else if (station==1) return chnumb-1;
    else
-   {  int cr=station*6 + chnumb-1;
+   {  int cr = chnumb-1;
+      if (station>1) cr += station*6;
       if(crate_name[cr]=="") crate_name[cr] = chname;
       return cr;
    }
@@ -413,6 +413,10 @@ void EmuDim::StartDim(int chs)
    LV_1_Command = new DimCommand( dim_command.c_str(),"C");
    dim_server = pref + "Emu-Dcs Dim Server";
    DimServer::start(dim_server.c_str());
+
+   std::string confirm_cmd = pref + "LV_1_COMMAND_CONFIRMATION";
+   DimClient::sendCommand( confirm_cmd.c_str(), "SOFT_START");
+
    std::cout << total << " DIM serives";
    if(pref!="") std::cout << " ( with prefix " << pref << " )";
    std::cout << " started at " << getLocalDateTime() << std::endl;
@@ -488,9 +492,19 @@ void EmuDim::CheckCommand()
 
 int EmuDim::PowerUp()
 {
+   std::string pref = TestPrefix_;
+   std::string confirm_cmd = pref + "LV_1_COMMAND_CONFIRMATION";
+   std::cout << "Start Power Up" << std::endl;
    for(int i=0; i<30; i++)
    {  
-      if(crate_state[i]==1) BlueLoader->reload(blue_info+"?POWERUP="+crate_name[i]);
+      if(crate_state[i]==1) 
+      {  BlueLoader->reload(blue_info+"?POWERUP="+crate_name[i]);
+         std::cout << i << " send crate:" << blue_info+"?POWERUP="+crate_name[i] << std::endl;
+         // check return message
+         crate_state[i] = 0;
+         std::string confirm = "INIT_IS_DONE;" + crate_name[i];
+         DimClient::sendCommand(confirm_cmd.c_str(), confirm.c_str());
+      }
    }
    return 0;
 }

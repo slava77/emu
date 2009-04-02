@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.4 2009/03/30 15:27:12 liu Exp $
+// $Id: EmuDim.h,v 1.5 2009/04/02 14:42:14 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -47,6 +47,7 @@
 #include "toolbox/TimeInterval.h"
 
 #include "dim/dis.hxx"
+#include "dim/dic.hxx"
 
 #include "emu/x2p/LOAD.h"
 #include "emu/x2p/Chamber.h"
