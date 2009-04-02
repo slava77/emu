@@ -124,6 +124,7 @@ protected:
   std::string DCS_ThisCrateID_;
 
   
+  int endcap_side;
   std::vector< std::string> monitorables_;
   bool Monitor_On_, Monitor_Ready_;
   bool fast_on, slow_on, extra_on, reload_vcc;

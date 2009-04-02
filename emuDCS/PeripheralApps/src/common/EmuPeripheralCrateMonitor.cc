@@ -426,16 +426,25 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
 
 void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out ) 
 {
+  if(!parsed) ParsingXML();
   //
   std::string LoggerName = getApplicationLogger().getName() ;
   std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
   //
   LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate ready");
   //
-  MyHeader(in,out,"EmuPeripheralCrateMonitor");
-
-  if(!parsed) ParsingXML();
-
+  if(endcap_side==1)
+  {
+     MyHeader(in,out,"EmuPeripheralCrateMonitor -- Plus Endcap");
+  }
+  else if(endcap_side==-1)
+  {
+     MyHeader(in,out,"EmuPeripheralCrateMonitor -- Minus Endcap");
+  }
+  else
+  {
+     MyHeader(in,out,"EmuPeripheralCrateMonitor -- Stand-alone");
+  }
   *out << "Total Crates : ";
   *out << total_crates_ << cgicc::br() << std::endl ;
   unsigned int active_crates=0;
@@ -751,24 +760,26 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception)
 {
        int n_keys, selected_index;
-       bool plus_side;
        std::string CounterName, current_ch_name, endcap_name, dcs_chamber_name;
        std::string station_name[8]={"1/1","1/2","1/3","2/1","2/2","3/1","3/2","4/1"};
        int         station_size[8]={ 36,   36,   36,   18,   36,  18,    36,   18  };
        xdata::UnsignedShort xchamber;
 
   if(!parsed) ParsingXML();
-  endcap_name=crateVector[0]->GetLabel();
-  plus_side = (endcap_name.substr(3,1)=="p");
 
-  if(plus_side)
+  if(endcap_side==1)
   {
-     MyHeader(in,out,"EmuPeripheralCrateMonitor--DCS Plus Endcap");
+     MyHeader(in,out,"EmuPeripheralCrateMonitor -- DCS Plus Endcap");
      endcap_name="ME+";
+  }
+  else if(endcap_side==-1)
+  {
+     MyHeader(in,out,"EmuPeripheralCrateMonitor -- DCS Minus Endcap");
+     endcap_name="ME-";
   }
   else
   {
-     MyHeader(in,out,"EmuPeripheralCrateMonitor--DCS Minus Endcap");
+     MyHeader(in,out,"EmuPeripheralCrateMonitor -- DCS Stand-alone");
      endcap_name="ME-";
   }
 
@@ -1535,6 +1546,11 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
     this_crate_no_=0;
 
     SetCurrentCrate(this_crate_no_);
+    //
+    std::string endcap_name=crateVector[0]->GetLabel();
+    endcap_side = 0;
+    if (endcap_name.substr(3,1)=="p") endcap_side = 1;
+    if (endcap_name.substr(3,1)=="m") endcap_side = -1;
     //
     std::cout << "Parser Done" << std::endl ;
     //
@@ -3176,6 +3192,14 @@ void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
        <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
        <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << std::endl;
+
+    *out << "  <monitorable name=\"" << "title"
+         <<            "\" value=\"" << "PCrate Monitor " + (std::string)((endcap_side==1)?"Plus":"Minus")
+         <<  "\" nameDescription=\"" << " "
+         << "\" valueDescription=\"" << " "
+         <<          "\" nameURL=\"" << " "
+         <<         "\" valueURL=\"" << " "
+         << "\"/>" << std::endl;
 
     *out << "  <monitorable name=\"" << "VME Access"
          <<            "\" value=\"" << (std::string)((Monitor_On_)?"ON":"OFF")
