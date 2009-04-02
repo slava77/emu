@@ -113,7 +113,11 @@ emu::supervisor::Application::Application(xdaq::ApplicationStub *stub)
   
   i->fireItemAvailable("ttsID", &tts_id_);
   i->fireItemAvailable("ttsBits", &tts_bits_);
-  
+
+  // Track Finder Key
+  tf_key_ = "310309";   // default key as of 31/03/2009
+  i->fireItemAvailable("TrackFinderKey", &tf_key_);  
+
   i->fireItemAvailable( "curlHost",       &curlHost_     );
   i->fireItemAvailable( "curlCommand",    &curlCommand_  );
   i->fireItemAvailable( "curlCookies", 	&curlCookies_  );
@@ -1030,8 +1034,9 @@ void emu::supervisor::Application::sendCommandCellOpInit(string klass, int insta
   std::string urn="NULL";
   std::string url="NULL";
   std::map<std::string, xdata::Serializable*> param;
-  std::string mnumb="201108";
-  param["KEY"] = new xdata::String(mnumb);
+//  std::string mnumb="310309";
+//  param["KEY"] = new xdata::String(mnumb);
+  param["KEY"] = new xdata::String(tf_key_);
   std::string ns="urn:ts-soap:3.0";
   std::string opId="MTCCIIConfiguration";
   bool async=false;
@@ -1106,8 +1111,9 @@ void emu::supervisor::Application::sendCommandCell(string command, string klass,
   std::string urn="";
   std::string url="";
   std::map<std::string, xdata::Serializable*> param;
-  std::string mnumb="201108";
-  param["KEY"] = new xdata::String(mnumb);
+//  std::string mnumb="310309";
+//  param["KEY"] = new xdata::String(mnumb);
+  param["KEY"] = new xdata::String(tf_key_);
   std::string ns="urn:ts-soap:3.0";
   std::string opid="MTCCIIConfiguration";
   bool async=false;
