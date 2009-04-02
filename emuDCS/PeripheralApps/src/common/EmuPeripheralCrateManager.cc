@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.16 2009/03/27 13:12:34 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.17 2009/04/02 14:06:14 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -272,6 +272,14 @@ void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
        <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
        <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << std::endl;
+
+    *out << "  <monitorable name=\"" << "title"
+         <<            "\" value=\"" << "PCrate Manager"
+         <<  "\" nameDescription=\"" << " "
+         << "\" valueDescription=\"" << " "
+         <<          "\" nameURL=\"" << " "
+         <<         "\" valueURL=\"" << " "
+         << "\"/>" << std::endl;
 
     *out << "  <monitorable name=\"" << "Status"
          <<            "\" value=\"" << "ON"
