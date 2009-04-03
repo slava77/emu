@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.16 2009/04/02 14:42:15 liu Exp $
+// $Id: EmuDim.cc,v 1.17 2009/04/03 13:14:08 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -186,10 +186,6 @@ void EmuDim::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception:
 void EmuDim::MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
   //
   MyHeader(in,out,"EmuDim");
-  //
-  LOG4CPLUS_INFO(getApplicationLogger(), "Main Page");
-  //
-  if(current_state_==2) return;
   //
   if(Monitor_On_)
   {
@@ -474,12 +470,12 @@ void EmuDim::CheckCommand()
       else if(cmnd.substr(cmnd.length()-8,8)=="get_data")
       {
          int ch=ChnameToNumber(cmnd.c_str());
-         UpdateDim(ch);
+         if(ch>=0 && ch<TOTAL_CHAMBERS) UpdateDim(ch);
       }
       else if(cmnd.substr(0,13)=="PREPARE_POWER")
       {
          int cr=CrateToNumber(cmnd.substr(17).c_str());
-         crate_state[cr] = 1;
+         if(cr>=0 && cr<TOTAL_CRATES) crate_state[cr] = 1;
       }
       else if(cmnd.substr(0,13)=="EXECUTE_POWER")
       {
@@ -495,15 +491,21 @@ int EmuDim::PowerUp()
    std::string pref = TestPrefix_;
    std::string confirm_cmd = pref + "LV_1_COMMAND_CONFIRMATION";
    std::cout << "Start Power Up" << std::endl;
-   for(int i=0; i<30; i++)
+   for(int i=0; i<TOTAL_CRATES; i++)
    {  
       if(crate_state[i]==1) 
       {  BlueLoader->reload(blue_info+"?POWERUP="+crate_name[i]);
          std::cout << i << " send crate:" << blue_info+"?POWERUP="+crate_name[i] << std::endl;
          // check return message
-         crate_state[i] = 0;
-         std::string confirm = "INIT_IS_DONE;" + crate_name[i];
-         DimClient::sendCommand(confirm_cmd.c_str(), confirm.c_str());
+         if(BlueLoader->Content_Size() > 27)
+         {
+           if(strncmp(BlueLoader->Content(), "Power Up Successful",19)==0)
+           {
+              crate_state[i] = 0;
+              std::string confirm = "INIT_IS_DONE;" + crate_name[i];
+              DimClient::sendCommand(confirm_cmd.c_str(), confirm.c_str());
+           }
+         }
       }
    }
    return 0;

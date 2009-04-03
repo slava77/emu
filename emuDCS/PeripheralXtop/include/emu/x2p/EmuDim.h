@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.5 2009/04/02 14:42:14 liu Exp $
+// $Id: EmuDim.h,v 1.6 2009/04/03 13:14:07 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -53,6 +53,7 @@
 #include "emu/x2p/Chamber.h"
 
 #define TOTAL_CHAMBERS 235
+#define TOTAL_CRATES 30
 
 namespace emu {
   namespace x2p {
@@ -130,8 +131,8 @@ private:
   std::string xmas_root, xmas_load, xmas_start, xmas_stop, xmas_info;
   std::string blue_root, blue_info;
              
-  int crate_state[30];
-  std::string crate_name[30];
+  int crate_state[TOTAL_CRATES];
+  std::string crate_name[TOTAL_CRATES];
 };
 
   } // namespace emu::x2p
