@@ -62,6 +62,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   XML_or_DB_ = "xml";
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
+  Simulation_ = false;
   //
   RunNumber_= "-1";
   //
@@ -92,12 +93,6 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
 {
   if(!parsed) ParsingXML();
 
-  //
-  std::string LoggerName = getApplicationLogger().getName() ;
-  std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
-  //
-  LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate ready");
-  //
   if(endcap_side==1)
      MyHeader(in,out,"EmuPeripheralCrateService -- Plus Endcap");
   else if(endcap_side==-1)
@@ -105,6 +100,9 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
   else
      MyHeader(in,out,"EmuPeripheralCrateService -- Stand-alone");
 
+  *out << cgicc::table().set("border","0");
+    //
+  *out << cgicc::td();
   *out << "Total Crates : " << total_crates_ << cgicc::br() << std::endl ;
 
   unsigned int active_crates=0;
@@ -118,7 +116,15 @@ void EmuPeripheralCrateService::MainPage(xgi::Input * in, xgi::Output * out )
      if(crate_state[i]==1) inited_crates++;
   if( inited_crates <= total_crates_) 
      *out << cgicc::b(" Initialized Crates: ") << inited_crates << std::endl ;
- 
+  *out << cgicc::td();
+  if (Simulation_)
+  {  *out << cgicc::td();
+     *out << cgicc::span().set("style","color:red") << cgicc::h2("Simulation ON");
+     *out << cgicc::span();
+     *out << cgicc::td();
+  }
+  *out << cgicc::table() << std::endl;
+
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:blue");
   *out << std::endl;
   *out << cgicc::table().set("border","0");
@@ -259,9 +265,6 @@ void EmuPeripheralCrateService::MyHeader(xgi::Input * in, xgi::Output * out, std
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
   *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
   //
-  //*out << cgicc::title(title) << std::endl;
-  //*out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
-  //
   std::string myUrn = getApplicationDescriptor()->getURN().c_str();
   xgi::Utils::getPageHeader(out,title,myUrn,"","");
   //
@@ -317,7 +320,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
 
      msgHandler("Button: Power-Up-Init Crate " + ThisCrateID_);
 
-     thisCrate->configure(2);
+     if(!Simulation_) thisCrate->configure(2);
      crate_state[current_crate_] = 1;
      this->Default(in,out);
   }
@@ -329,7 +332,7 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
     for(unsigned i=0; i< crateVector.size(); i++)
     {
         if(crateVector[i] && crateVector[i]->IsAlive())
-        {   crateVector[i]->configure(c);
+        {   if(!Simulation_) crateVector[i]->configure(c);
             crate_state[i] = 1;
         }
     }
@@ -337,9 +340,46 @@ void EmuPeripheralCrateService::stateChanged(toolbox::fsm::FiniteStateMachine &f
     //
   }
 
+  void EmuPeripheralCrateService::CheckCrates(xgi::Input * in, xgi::Output * out )
+    throw (xgi::exception::Exception)
+  {  
+    if(!parsed) ParsingXML();
+
+    msgHandler("Button: Check Crate Controllers");
+    check_controllers();
+    this->Default(in, out);
+  }
+
+  void EmuPeripheralCrateService::check_controllers()
+  {
+    if(total_crates_<=0) return;
+    for(unsigned i=0; i< crateVector.size(); i++)
+    {
+        if(!Simulation_) crateVector[i]->CheckController();
+    }
+    crates_checked = 1;
+  }
+
+  void EmuPeripheralCrateService::HardReset(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+     if(!parsed) ParsingXML();
+
+     msgHandler("Button: Hard-Reset Crate " + ThisCrateID_);
+    //
+    if(!Simulation_) thisCCB->hardReset();
+    //
+    this->Default(in,out);
+    //
+  }
+
 bool EmuPeripheralCrateService::ParsingXML(){
   //
-  LOG4CPLUS_INFO(getApplicationLogger(),"Parsing Configuration XML");
+  Logger logger_ = getApplicationLogger();
+  //
+  LOG4CPLUS_INFO(logger_, "EmuPeripheralCrateService starts...");
+  //
+  LOG4CPLUS_INFO(logger_, "Parsing Configuration XML");
     //
   std::cout << "XML_or_DB: " << XML_or_DB_.toString() << std::endl;
   if(XML_or_DB_.toString() == "xml" || XML_or_DB_.toString() == "XML")
@@ -353,7 +393,7 @@ bool EmuPeripheralCrateService::ParsingXML(){
 	filename.close();
       }
       else {
-	LOG4CPLUS_ERROR(getApplicationLogger(), "Filename doesn't exist");
+	LOG4CPLUS_ERROR(logger_, "Filename doesn't exist");
 	XCEPT_RAISE (toolbox::fsm::exception::Exception, "Filename doesn't exist");
 	return false;
       }
@@ -361,7 +401,7 @@ bool EmuPeripheralCrateService::ParsingXML(){
     //
     //cout <<"Start Parsing"<<endl;
     if ( MyController != 0 ) {
-      LOG4CPLUS_INFO(getApplicationLogger(), "Delete existing controller");
+      LOG4CPLUS_INFO(logger_, "Delete existing controller");
       delete MyController ;
     }
     //
@@ -433,39 +473,6 @@ bool EmuPeripheralCrateService::ParsingXML(){
     chamberVector = thisCrate->chambers();
     //  
     current_crate_ = cr;
-  }
-
-  void EmuPeripheralCrateService::CheckCrates(xgi::Input * in, xgi::Output * out )
-    throw (xgi::exception::Exception)
-  {  
-    if(!parsed) ParsingXML();
-
-    msgHandler("Button: Check Crate Controllers");
-    check_controllers();
-    this->Default(in, out);
-  }
-
-  void EmuPeripheralCrateService::check_controllers()
-  {
-    if(total_crates_<=0) return;
-    for(unsigned i=0; i< crateVector.size(); i++)
-    {
-        crateVector[i]->CheckController();
-    }
-    crates_checked = 1;
-  }
-
-  void EmuPeripheralCrateService::HardReset(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-     if(!parsed) ParsingXML();
-
-     msgHandler("Button: Hard-Reset Crate " + ThisCrateID_);
-    //
-    thisCCB->hardReset();
-    //
-    this->Default(in,out);
-    //
   }
 
 void EmuPeripheralCrateService::msgHandler(std::string msg)
@@ -561,7 +568,7 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
   {
      if(command_argu=="ALL")
      {
-        ConfigureInit(2);
+        if(!Simulation_) ConfigureInit(2);
         *out << "Power Up Successful " <<  command_argu << std::endl;
         msgHandler("Message: Power-Up-Init All Crates");
      }
@@ -569,12 +576,28 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
      {
         if(command_argu==crateVector[i]->GetLabel()) 
         {  crate_state[i] = 1;
-           crateVector[i]->configure(2);
+           if(!Simulation_) crateVector[i]->configure(2);
            *out << "Power Up Successful " <<  command_argu << std::endl;
            msgHandler("Message: Power-Up-Init Crate " + command_argu);
-
         }
      }
+  }
+  else if (command_name=="SIMULATION")
+  {
+     if(command_argu=="ON" || command_argu=="on")
+     {   Simulation_ = true;
+         msgHandler("Message: SIMULATION ON; no hardware access");
+     }
+     else if (command_argu=="OFF" || command_argu=="off")
+     {   Simulation_ = false;
+         msgHandler("Message: SIMULATION OFF; real hardware access");
+     }
+     *out << "Simulation Status: " <<  Simulation_ << std::endl;
+  }
+  else
+  {
+     *out << "Unknown command" << std::endl;
+     std::cout << "Unknown command: " << command_name << " " << command_argu << std::endl;
   }
 }
 

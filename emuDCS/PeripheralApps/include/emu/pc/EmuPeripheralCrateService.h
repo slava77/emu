@@ -118,6 +118,7 @@ private:
   void check_controllers();
   void msgHandler(std::string msg);
   
+  bool Simulation_;
   int all_crates_ok;
   int crates_checked;
   int crate_check_ok[60];
