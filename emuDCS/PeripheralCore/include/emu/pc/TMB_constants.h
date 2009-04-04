@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.1 2009/03/25 10:07:43 liu Exp $
+// $Id: TMB_constants.h,v 1.2 2009/04/04 10:44:51 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.2  2009/04/04 10:44:51  rakness
+// Update for TMB firmware 2009 March 16
+//
 // Revision 1.1  2009/03/25 10:07:43  liu
 // move header files to include/emu/pc
 //
@@ -254,10 +257,12 @@ static const unsigned long int  alct_sync_txdata_2nd_adr= 0x000108;
 static const int LARGEST_VME_ADDRESS = alct_sync_txdata_2nd_adr;
 //
 // TMB counter indices:
-const int ALCT_SENT_TO_TMB_COUNTER_INDEX  =  0;
-const int CLCT_PRETRIGGER_COUNTER_INDEX   =  5;
-const int LCT_SENT_TO_MPC_COUNTER_INDEX   = 35; 
-const int L1A_IN_TMB_WINDOW_COUNTER_INDEX = 41; 
+const int ALCT_SENT_TO_TMB_COUNTER_INDEX      =  0;
+const int ALCT_RAW_HITS_READOUT_COUNTER_INDEX =  9;
+const int CLCT_PRETRIGGER_COUNTER_INDEX       = 12;
+const int LCT_SENT_TO_MPC_COUNTER_INDEX       = 47; 
+const int LCT_ACCEPTED_BY_MPC_COUNTER_INDEX   = 49; 
+const int L1A_IN_TMB_WINDOW_COUNTER_INDEX     = 53; 
   //
 //
 /////////////////////////////////////////////////////////////////////////////////////
@@ -453,7 +458,7 @@ const int ddd_state_machine_clock_rpc_lock_bithi      = 15;
 const int alct_tx_clock_delay_vmereg  =  vme_ddd0_adr;
 const int alct_tx_clock_delay_bitlo   =  0;
 const int alct_tx_clock_delay_bithi   =  3;
-const int alct_tx_clock_delay_default =  5;               //TMB documentation says this should be 8
+const int alct_tx_clock_delay_default = 11;               //TMB documentation says this should be 8
 //
 const int alct_rx_clock_delay_vmereg  =  vme_ddd0_adr;
 const int alct_rx_clock_delay_bitlo   =  4;
@@ -699,7 +704,36 @@ const int alct_inj_delay_bithi    =  7;
 const int alct_inj_delay_default  =0xd;                  //TMB documentation says this should be 0x8
 //
 //
-// greg, need to add address 0x38 for 08/12/2008 firmware version 
+//------------------------------------------------------------------
+//0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
+//------------------------------------------------------------------
+const int alct_cfg_done_vmereg       =  alct_stat_adr;
+const int alct_cfg_done_bitlo        =  0;
+const int alct_cfg_done_bithi        =  0;
+//
+const int alct_seq_status_vmereg     =  alct_stat_adr;
+const int alct_seq_status_bitlo      =  1;
+const int alct_seq_status_bithi      =  2;
+//
+const int alct_seu_status_vmereg     =  alct_stat_adr;
+const int alct_seu_status_bitlo      =  3;
+const int alct_seu_status_bithi      =  4;
+//
+const int alct_sync_ecc_err_vmereg   =  alct_stat_adr;
+const int alct_sync_ecc_err_bitlo    =  9;
+const int alct_sync_ecc_err_bithi    = 10;
+//
+const int alct_ecc_en_vmereg         =  alct_stat_adr;
+const int alct_ecc_en_bitlo          = 11;
+const int alct_ecc_en_bithi          = 11;
+const int alct_ecc_en_default        =  0;      // this needs to change once the ALCT firmware has been updated
+//
+const int alct_txdata_delay_vmereg   =  alct_stat_adr;
+const int alct_txdata_delay_bitlo    = 12;
+const int alct_txdata_delay_bithi    = 15;
+const int alct_txdata_delay_default  =  0;
+//
+//
 //------------------------------------------------------------------
 //0X3A = ADR_ALCT0_RCD:  ALCT 1st Muon received by TMB
 //------------------------------------------------------------------

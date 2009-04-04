@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: TMB.h,v 1.3 2009/04/04 10:44:51 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.3  2009/04/04 10:44:51  rakness
+// Update for TMB firmware 2009 March 16
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -528,8 +531,10 @@ public:
   std::string CounterName(int counter); /// return counter label
   inline int GetMaxCounter() { return MaxCounter; }
   inline int GetALCTSentToTMBCounterIndex()  { return alct_sent_to_tmb_counter_index_;  }
+  inline int GetALCTRawHitsReadoutCounterIndex()  { return alct_raw_hits_readout_counter_index_;  }
   inline int GetCLCTPretriggerCounterIndex() { return clct_pretrigger_counter_index_;   }
   inline int GetLCTSentToMPCCounterIndex()   { return lct_sent_to_mpc_counter_index_;   }
+  inline int GetLCTAcceptedByMPCCounterIndex()   { return lct_accepted_by_mpc_counter_index_;   }
   inline int GetL1AInTMBWindowCounterIndex() { return l1a_in_tmb_window_counter_index_; }
   //
   void FireALCTInjector();
@@ -853,6 +858,31 @@ public:
   //
   inline void SetAlctInjectorDelay(int alct_inj_delay) { alct_inj_delay_ = alct_inj_delay; }
   inline int  GetAlctInjectorDelay() { return alct_inj_delay_; }
+  //
+  //------------------------------------------------------------------
+  //0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
+  //------------------------------------------------------------------
+  //! alct_cfg_done = 1 = ALCT FPGA Configuration done
+  inline int GetReadALCTConfigDone() {return read_alct_cfg_done_; }
+  //
+  //! alct_seq_status = ALCT sequencer status
+  inline int GetReadALCTSequencerStatus() { return read_alct_seq_status_; }
+  //
+  //! alct_seu_status = ALCT single event upset status
+  inline int GetReadALCTSingleEventUpsetStatus() { return read_alct_seu_status_; }
+  //
+  //! alct_sync_ecc_err = ALCT sync-mode ECC error code
+  inline int GetReadALCTSyncModeECCErrorCode() { return read_alct_sync_ecc_err_; }
+  //
+  //! alct_ecc_en = 1 = ALCT Error Correction Code Trigger data correction enable
+  inline void SetALCTErrorCorrectionCodeEnable(int alct_ecc_en) { alct_ecc_en_ = alct_ecc_en; }
+  inline int  GetALCTErrorCorrectionCodeEnable() { return alct_ecc_en_; }
+  inline int  GetReadALCTErrorCorrectionCodeEnable() { return read_alct_ecc_en_; }
+  //
+  //! alct_txdata_delay = Delay of ALCT tx data before 80MHz tx mux
+  inline void SetALCTTxDataDelay(int alct_txdata_delay) { alct_txdata_delay_ = alct_txdata_delay; }
+  inline int  GetALCTTxDataDelay() { return alct_txdata_delay_; }
+  inline int  GetReadALCTTxDataDelay() { return read_alct_txdata_delay_; }
   //
   //------------------------------------------------------------------
   //0X3A = ADR_ALCT0_RCD:  ALCT 1st Muon received by TMB
@@ -1759,12 +1789,15 @@ private:
   int ALCT1_data_;
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
-  static const int MaxCounter = 64;
+  static const int MaxCounter = 76;
   long int FinalCounter[MaxCounter+2];
   int alct_sent_to_tmb_counter_index_;
+  int alct_raw_hits_readout_counter_index_;  
   int clct_pretrigger_counter_index_;
   int lct_sent_to_mpc_counter_index_; 
+  int lct_accepted_by_mpc_counter_index_;
   int l1a_in_tmb_window_counter_index_; 
+  //
   //
   //-- TMB and ALCT data in raw hits VME readout --//
   std::vector< std::bitset<16> > tmb_data_;
@@ -2032,6 +2065,19 @@ private:
   int read_alct_inject_mux_;
   int read_alct_sync_clct_;
   int read_alct_inj_delay_;
+  //
+  //------------------------------------------------------------------
+  //0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
+  //------------------------------------------------------------------
+  int alct_ecc_en_      ;
+  int alct_txdata_delay_;
+  //
+  int read_alct_cfg_done_    ;
+  int read_alct_seq_status_  ;
+  int read_alct_seu_status_  ;
+  int read_alct_sync_ecc_err_;
+  int read_alct_ecc_en_      ;
+  int read_alct_txdata_delay_;
   //
   //------------------------------------------------------------------
   //0X3A = ADR_ALCT0_RCD:  ALCT 1st Muon received by TMB
