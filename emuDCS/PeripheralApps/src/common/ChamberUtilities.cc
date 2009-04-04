@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.17 2009/03/25 11:37:22 liu Exp $
+// $Id: ChamberUtilities.cc,v 1.18 2009/04/04 10:44:51 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.18  2009/04/04 10:44:51  rakness
+// Update for TMB firmware 2009 March 16
+//
 // Revision 1.17  2009/03/25 11:37:22  liu
 // move header files to include/emu/pc
 //
@@ -2368,7 +2371,7 @@ int ChamberUtilities::FindWinner(){
     ::sleep(getPauseAtEachSetting());
     //
     thisTMB->GetCounters();
-    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter(30);
+    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter( thisTMB->GetLCTAcceptedByMPCCounterIndex() );
     //
     if (debug_) {
       std::cout << ", number of MPC winner bits accepted = " 
@@ -3042,8 +3045,8 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
     //
     thisTMB->GetCounters();      // read counter values
     //
-    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter(41);
-    alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter(3);
+    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter( thisTMB->GetL1AInTMBWindowCounterIndex() );
+    alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex()  );
     //
     if (debug_) {
       std::cout << "Set tmb_l1a_delay  = " << std::dec << tmb_delay_value;
@@ -3169,7 +3172,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max){
     //
     thisTMB->GetCounters();      // read counter values
     //
-    tmb_in_l1a_window[delay] = thisTMB->GetCounter(41);
+    tmb_in_l1a_window[delay] = thisTMB->GetCounter( thisTMB->GetL1AInTMBWindowCounterIndex() );
     //
     if (debug_) std::cout << ", TMB in L1A window =  " << std::dec << tmb_in_l1a_window[delay] << std::endl;
     //
@@ -3263,7 +3266,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
     //
     thisTMB->GetCounters();
     //
-    ALCT_l1a_accepted[delay] = thisTMB->GetCounter(3);
+    ALCT_l1a_accepted[delay] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex() );
     //
     if (debug_) std::cout << ", ALCT in L1A window =  " << std::dec << ALCT_l1a_accepted[delay] << std::endl;
     //
@@ -3681,7 +3684,7 @@ void ChamberUtilities::FindDistripHotChannels(){
   ::usleep(usec_wait);
   thisTMB->GetCounters();
   //
-  int clct_pretrigger_counts = thisTMB->GetCounter(4);
+  int clct_pretrigger_counts = thisTMB->GetCounter( thisTMB->GetCLCTPretriggerCounterIndex() );
   if (debug_) std::cout << "---> CLCT pretrigger rate = " << clct_pretrigger_counts << std::endl;
   float clct_pretrigger_rate = ( ((float) clct_pretrigger_counts) / ((float) usec_wait) ) * 1000000.;  // rate in Hz
   //
@@ -3721,7 +3724,7 @@ void ChamberUtilities::FindDistripHotChannels(){
       ::usleep(usec_wait);
       thisTMB->GetCounters();
       //
-      clct_pretrigger_counts = thisTMB->GetCounter(4);
+      clct_pretrigger_counts = thisTMB->GetCounter( thisTMB->GetCLCTPretriggerCounterIndex() );
       if (debug_) std::cout << "---> CLCT pretrigger rate = " << clct_pretrigger_counts << std::endl;
       //
       clct_pretrigger_rate = ( ((float) clct_pretrigger_counts) / ((float) usec_wait) ) * 1000000.;  // rate in Hz
