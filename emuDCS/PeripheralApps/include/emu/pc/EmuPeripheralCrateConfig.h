@@ -361,6 +361,8 @@ private:
   void DMBTest9(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBTest10(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBTest11(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void RTRGlow(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void RTRGhigh(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBPrintCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ChamberTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setupCoincidencePulsing(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
