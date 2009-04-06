@@ -1525,7 +1525,7 @@ void emu::daq::manager::Application::getTriggerSources()
     }
 
   if ( appDescriptors.size() >= 1 ){
-    if ( appDescriptors.size() > 1 )
+    if ( appDescriptors.size() > 1 ){
       LOG4CPLUS_WARN(logger_, "The embarassement of riches: " << 
 		      appDescriptors.size() << 
 		      " TTCciControl instances found. Trying first one.");
@@ -1535,6 +1535,7 @@ void emu::daq::manager::Application::getTriggerSources()
 		      " TTCciControl instances found. Trying first one.";
       XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss14.str() );
       this->notifyQualified( "warn", eObj );
+    }
     map <string,string> namesAndTypes;
     namesAndTypes["ClockSource"  ] = "string";
     namesAndTypes["OrbitSource"  ] = "string";
@@ -1607,7 +1608,7 @@ void emu::daq::manager::Application::getTriggerMode()
     }
 
   if ( appDescriptors.size() >= 1 ){
-    if ( appDescriptors.size() > 1 )
+    if ( appDescriptors.size() > 1 ){
       LOG4CPLUS_WARN(logger_, "The embarassement of riches: " << 
 		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.");
       stringstream ss19;
@@ -1615,6 +1616,7 @@ void emu::daq::manager::Application::getTriggerMode()
 		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.";
       XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss19.str() );
       this->notifyQualified( "warn", eObj );
+    }
     try{
       TF_triggerMode_ = getScalarParam(appDescriptors[0],"triggerMode","string");
       LOG4CPLUS_INFO(logger_, "Got trigger mode from TF_hyperDAQ: " 
