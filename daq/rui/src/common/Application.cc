@@ -785,7 +785,7 @@ throw (emu::daq::rui::exception::Exception)
   string mn="";
   string br="";
   if ( taDescriptors.size() >= 1 ){
-    if ( taDescriptors.size() > 1 )
+    if ( taDescriptors.size() > 1 ){
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
 		      taDescriptors.size() << " emuTA instances found. Trying first one.");
       stringstream ss7;
@@ -793,6 +793,7 @@ throw (emu::daq::rui::exception::Exception)
 		      taDescriptors.size() << " emuTA instances found. Trying first one.";
       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss7.str() );
       this->notifyQualified( "error", eObj );
+    }
     rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
     mn = getScalarParam(taDescriptors[0],"maxNumTriggers","integer");
@@ -1509,7 +1510,7 @@ void emu::daq::rui::Application::createServers(){
 	createI2OServer( clientName_.elementAt(iClient)->toString(), clientInstance );
       else if ( clientProtocol_.elementAt(iClient)->toString() == "SOAP" )
 	createSOAPServer( clientName_.elementAt(iClient)->toString(), clientInstance );
-      else
+      else{
 	LOG4CPLUS_ERROR(logger_, "Unknown protocol \"" <<
 			clientProtocol_.elementAt(iClient)->toString() << 
 			"\" for client " <<
@@ -1527,6 +1528,7 @@ void emu::daq::rui::Application::createServers(){
 			". Please use \"I2O\" or \"SOAP\".";
 	XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss22.str() );
 	this->notifyQualified( "error", eObj );
+      }
     }
   }
 }
