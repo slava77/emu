@@ -1055,7 +1055,7 @@ void emu::daq::fu::Application::createServers(){
 	createI2OServer( clientName_.elementAt(iClient)->toString(), clientInstance );
       else if ( clientProtocol_.elementAt(iClient)->toString() == "SOAP" )
 	createSOAPServer( clientName_.elementAt(iClient)->toString(), clientInstance );
-      else
+      else{
 	LOG4CPLUS_ERROR(logger_, "Unknown protocol \"" <<
 			clientProtocol_.elementAt(iClient)->toString() << 
 			"\" for client " <<
@@ -1073,6 +1073,7 @@ void emu::daq::fu::Application::createServers(){
 			". Please use \"I2O\" or \"SOAP\".";
 	XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss12.str() );
 	this->notifyQualified( "error", eObj );
+      }
     }
   }
 }
@@ -2553,7 +2554,7 @@ throw (emu::daq::fu::exception::Exception)
   string mn="";
   string br="";
   if ( taDescriptors_.size() >= 1 ){
-    if ( taDescriptors_.size() > 1 )
+    if ( taDescriptors_.size() > 1 ){
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
 		      taDescriptors_.size() << " emu::daq::ta::Application instances found. Trying first one.");
       stringstream ss29;
@@ -2561,6 +2562,7 @@ throw (emu::daq::fu::exception::Exception)
 		      taDescriptors_.size() << " emu::daq::ta::Application instances found. Trying first one.";
       XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss29.str() );
       this->notifyQualified( "error", eObj );
+    }
     rn = getScalarParam(*taDescriptors_.begin(),"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emu::daq::ta::Application: " + rn );
     br = getScalarParam(*taDescriptors_.begin(),"isBookedRunNumber","boolean");
