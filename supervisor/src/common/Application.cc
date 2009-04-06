@@ -45,6 +45,10 @@
 #include "xdata/Double.h" 
 #include "xdata/Boolean.h"
 
+#include "emu/supervisor/exception/Exception.h"
+#include "emu/supervisor/alarm/Alarm.h"
+#include "emu/base/Alarm.h"
+
 using namespace std;
 using namespace cgicc;
 
@@ -679,11 +683,21 @@ void emu::supervisor::Application::configureAction(toolbox::Event::Reference evt
   } catch (xoap::exception::Exception e) {
     LOG4CPLUS_ERROR(logger_,
 		    "Exception in " << evt->type() << ": " << e.what());
+    stringstream ss0;
+    ss0 << 
+		    "Exception in " << evt->type() << ": " << e.what();
+    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss0.str() );
+    this->notifyQualified( "error", eObj );
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "SOAP fault was returned", e);
   } catch (xdaq::exception::Exception e) {
     LOG4CPLUS_ERROR(logger_,
 		    "Exception in " << evt->type() << ": " << e.what());
+    stringstream ss1;
+    ss1 << 
+		    "Exception in " << evt->type() << ": " << e.what();
+    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss1.str() );
+    this->notifyQualified( "error", eObj );
     XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		  "Failed to send a command", e);
 	}
@@ -882,6 +896,10 @@ void emu::supervisor::Application::stateChanged(toolbox::fsm::FiniteStateMachine
     {
       LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control."
 		      << xcept::stdformat_exception_history(e));
+      stringstream ss2;
+      ss2 << "Failed to notify state change to Run Control.";
+      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss2.str(), e );
+      this->notifyQualified( "error", eObj );
       std::cout << "rcmsFailed to notify state change to Run Control:" << std::endl;
     }
   
@@ -902,6 +920,10 @@ void emu::supervisor::Application::transitionFailed(toolbox::Event::Reference ev
   } catch(xcept::Exception &e) {
     LOG4CPLUS_ERROR(getApplicationLogger(), "Failed to notify state change to Run Control : "
 		    << xcept::stdformat_exception_history(e));
+    stringstream ss3;
+    ss3 << "Failed to notify state change to Run Control : ";
+    XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss3.str(), e );
+    this->notifyQualified( "error", eObj );
   }
   
   LOG4CPLUS_INFO(getApplicationLogger(),
@@ -2456,6 +2478,10 @@ void emu::supervisor::Application::analyzeReply(
 	error << reply_str << endl;
 
 	LOG4CPLUS_ERROR(logger_, error.str());
+	stringstream ss4;
+	ss4 <<  error.str();
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss4.str() );
+	this->notifyQualified( "error", eObj );
 	XCEPT_RAISE(xoap::exception::Exception, "SOAP fault: \n" + reply_str);
 
 	return;
@@ -2583,6 +2609,10 @@ string emu::supervisor::Application::getDAQMode()
 		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 			LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ mode. "
 					<< xcept::stdformat_exception_history(e));
+			stringstream ss5;
+			ss5 <<  "Failed to get local DAQ mode. ";
+			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss5.str(), e );
+			this->notifyQualified( "error", eObj );
 			return result; // Do nothing if the target doesn't exist
 		}
 
@@ -2603,9 +2633,11 @@ string emu::supervisor::Application::getDAQMode()
 	    
 	    result = extractParameter(reply, "globalMode");
 	    result = (result == "true") ? "global" : "local";
+	    REVOKE_ALARM( "noLocalDAQ", NULL );
 	  } catch (xdaq::exception::Exception e) {
-	    LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ mode. "
+	    LOG4CPLUS_INFO(logger_, "Failed to get local DAQ mode. "
 			    << xcept::stdformat_exception_history(e));
+	    RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
 	    result = "Unknown";
 	  }
 
@@ -2625,6 +2657,10 @@ string emu::supervisor::Application::getLocalDAQState()
 		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 			LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ state. "
 					<< xcept::stdformat_exception_history(e));
+			stringstream ss6;
+			ss6 <<  "Failed to get local DAQ state. ";
+			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss6.str(), e );
+			this->notifyQualified( "error", eObj );
 			result = "Unknown";
 		}
 	}
@@ -2641,11 +2677,12 @@ string emu::supervisor::Application::getLocalDAQState()
 		try {
 			reply = getApplicationContext()->postSOAP(daq_param, *appDescriptor_, *daq_descr_);
 			analyzeReply(daq_param, reply, daq_descr_);
-
 			result = extractParameter(reply, "daqState");
+			REVOKE_ALARM( "noLocalDAQ", NULL );
 		} catch (xdaq::exception::Exception e) {
-			LOG4CPLUS_ERROR(logger_, "Failed to get local DAQ state. "
+			LOG4CPLUS_INFO(logger_, "Failed to get local DAQ state. "
 					<< xcept::stdformat_exception_history(e));
+			RAISE_ALARM( emu::supervisor::alarm::NoLocalDAQ, "noLocalDAQ", "warn", "Local DAQ is in down or inaccessible.", "", &logger_ );
 			result = "Unknown";
 		}
 	}
@@ -2730,6 +2767,11 @@ bool emu::supervisor::Application::isDAQConfiguredInGlobal()
 		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInGlobalMode\" from emu::daq::manager::Application. "
 					<< xcept::stdformat_exception_history(e));
+			stringstream ss7;
+			ss7 <<  "Failed to get \"configuredInGlobalMode\" from emu::daq::manager::Application. "
+					;
+			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss7.str(), e );
+			this->notifyQualified( "error", eObj );
 			result = "Unknown";
 		}
 	}
@@ -2751,6 +2793,11 @@ bool emu::supervisor::Application::isDAQConfiguredInGlobal()
 		} catch (xdaq::exception::Exception e) {
 			LOG4CPLUS_ERROR(logger_, "Failed to get \"configuredInGlobalMode\" from emu::daq::manager::Application. "
 					<< xcept::stdformat_exception_history(e));
+			stringstream ss8;
+			ss8 <<  "Failed to get \"configuredInGlobalMode\" from emu::daq::manager::Application. "
+					;
+			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss8.str(), e );
+			this->notifyQualified( "error", eObj );
 			result = "Unknown";
 		}
 	}
@@ -2778,6 +2825,10 @@ bool emu::supervisor::Application::waitForDAQToExecute( const string command, co
     if ( localDAQState != "Halted"  && localDAQState != "Ready" && 
 	 localDAQState != "Enabled" && localDAQState != "INDEFINITE" ){
       LOG4CPLUS_ERROR( logger_, "Local DAQ is in " << localDAQState << " state. Please destroy and recreate local DAQ." );
+      stringstream ss9;
+      ss9 <<  "Local DAQ is in " << localDAQState << " state. Please destroy and recreate local DAQ." ;
+      XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss9.str() );
+      this->notifyQualified( "error", eObj );
       return false;
     }
     if ( localDAQState == expectedState ){ return true; }
@@ -2788,6 +2839,11 @@ bool emu::supervisor::Application::waitForDAQToExecute( const string command, co
 
   LOG4CPLUS_ERROR( logger_, "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
 		   << ". It is in " << localDAQState << " state." );
+  stringstream ss10;
+  ss10 <<  "Timeout after waiting " << seconds << " sec for local DAQ to get " << expectedState 
+		   << ". It is in " << localDAQState << " state." ;
+  XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss10.str() );
+  this->notifyQualified( "error", eObj );
   return false;
 }
 
@@ -2796,8 +2852,13 @@ bool emu::supervisor::Application::isDAQManagerControlled(string command)
 	// No point in sending any command when DAQ is in an irregular state (failed, indefinite, ...)
         string localDAQState = getLocalDAQState();
 	if ( localDAQState != "Halted" && localDAQState != "Ready" && localDAQState != "Enabled" ){
-	  LOG4CPLUS_ERROR( logger_, "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
-			   << localDAQState << " state. Please destroy and recreate local DAQ." );
+	  LOG4CPLUS_WARN( logger_, "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
+			  << localDAQState << " state. Please destroy and recreate local DAQ." );
+	  stringstream ss11;
+	  ss11 <<  "No command \"" << command << "\" sent to emu::daq::manager::Application because local DAQ is in " 
+			   << localDAQState << " state. Please destroy and recreate local DAQ." ;
+	  XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss11.str() );
+	  this->notifyQualified( "warn", eObj );
 	  return false;
 	}
 
@@ -2856,13 +2917,26 @@ void emu::supervisor::Application::StateTable::refresh()
 			i->second = STATE_UNKNOWN;
 			LOG4CPLUS_ERROR(app_->logger_, "Exception when trying to get state of "
 					<< klass << ": " << xcept::stdformat_exception_history(e));
+			stringstream ss12;
+			ss12 << "Exception when trying to get state of "
+			     << klass << ": " ;
+			XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss12.str(), e );
+			app_->notifyQualified( "error", eObj );
 		} catch (...) {
 			LOG4CPLUS_ERROR(app_->logger_, "Unknown exception when trying to get state of " << klass);
+			stringstream ss13;
+			ss13 << "Unknown exception when trying to get state of " << klass;
+			XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss13.str() );
+			app_->notifyQualified( "error", eObj );
 			i->second = STATE_UNKNOWN;
 		}
 
 		if (klass == "emu::daq::manager::Application" && i->second == STATE_UNKNOWN) {
 			LOG4CPLUS_WARN(app_->logger_, "State of emu::daq::manager::Application will be unknown.");
+			stringstream ss14;
+			ss14 << "State of emu::daq::manager::Application will be unknown.";
+			XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss14.str() );
+			app_->notifyQualified( "warn", eObj );
 		}
 	}
 }
@@ -3111,6 +3185,11 @@ vector< vector<string> > emu::supervisor::Application::getFUEventCounts()
   if ( EmuFUs.size() == 0 ){  
     LOG4CPLUS_WARN(logger_, 
 		   "Failed to get application descriptors for EmuFUs");
+    stringstream ss15;
+    ss15 <<  
+		   "Failed to get application descriptors for EmuFUs";
+    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss15.str() );
+    this->notifyQualified( "warn", eObj );
     vector<string> svt;
     svt.push_back( "Total" );
     svt.push_back( "UNKNOWN" );
@@ -3144,6 +3223,12 @@ vector< vector<string> > emu::supervisor::Application::getFUEventCounts()
       LOG4CPLUS_WARN(logger_,
 			"Failed to get event count of " << name.str()
 			<< " : " << xcept::stdformat_exception_history(e));
+      stringstream ss16;
+      ss16 << 
+			"Failed to get event count of " << name.str()
+			<< " : " ;
+      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss16.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
     vector<string> sv;
     sv.push_back( name.str() );
@@ -3174,6 +3259,11 @@ vector< vector<string> > emu::supervisor::Application::getRUIEventCounts()
   if ( EmuRUIs.size() == 0 ) {
     LOG4CPLUS_WARN(logger_, 
 		    "Failed to get application descriptors for EmuRUIs");
+    stringstream ss17;
+    ss17 <<  
+		    "Failed to get application descriptors for EmuRUIs";
+    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss17.str() );
+    this->notifyQualified( "warn", eObj );
     return ec;
   }
 
@@ -3202,6 +3292,14 @@ vector< vector<string> > emu::supervisor::Application::getRUIEventCounts()
 			<< "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance()
 			<< " [" << mnemonic << "]"
 		    << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss18;
+      ss18 << 
+			"Failed to get event count of "
+			<< "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance()
+			<< " [" << mnemonic << "]"
+		    << " : " ;
+      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss18.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
     vector<string> sv;
     sv.push_back( name.str() );
@@ -3225,7 +3323,11 @@ void emu::supervisor::Application::postToELog( string subject, string body, vect
 			      eLogURL_.toString());
     }
   catch( string e ){
-    LOG4CPLUS_ERROR(logger_, e);
+    LOG4CPLUS_WARN(logger_, e);
+    stringstream ss19;
+    ss19 <<  e;
+    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss19.str() );
+    this->notifyQualified( "warn", eObj );
     eel = 0;
   }
   if ( eel ) {
@@ -3267,6 +3369,10 @@ void emu::supervisor::Application::bookRunNumber(){
   catch( string e )
     {
       LOG4CPLUS_ERROR(logger_, e);
+      stringstream ss20;
+      ss20 <<  e;
+      XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss20.str() );
+      this->notifyQualified( "error", eObj );
     }
 
   if ( runInfo_ ){
@@ -3286,11 +3392,21 @@ void emu::supervisor::Application::bookRunNumber(){
       LOG4CPLUS_INFO(logger_, "Booked run rumber " << run_number_.toString() <<
 		     " (" << sequence << " " << runSequenceNumber_.toString() << ")");
     }
-    else LOG4CPLUS_ERROR(logger_,
-			 "Failed to book run number: " 
-			 <<  runInfo_->errorMessage()
-			 << " ==> Falling back to run number " << run_number_.toString() 
-			 << " specified by user." );
+    else{
+      LOG4CPLUS_ERROR(logger_,
+		      "Failed to book run number: " 
+		      <<  runInfo_->errorMessage()
+		      << " ==> Falling back to run number " << run_number_.toString() 
+		      << " specified by user." );
+      stringstream ss21;
+      ss21 << 
+		      "Failed to book run number: " 
+		      <<  runInfo_->errorMessage()
+		      << " ==> Falling back to run number " << run_number_.toString() 
+		      << " specified by user." ;
+      XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss21.str() );
+      this->notifyQualified( "error", eObj );
+    }
   } // if ( runInfo_ ){
 
 }
@@ -3304,11 +3420,21 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
   // emu::daq::manager::Application's FSM is asynchronous. Wait for it.
   if ( ! waitForDAQToExecute("Halt", 10, true ) ){
     LOG4CPLUS_WARN(logger_, "Nothing written to run database as local DAQ has not stopped.");
+    stringstream ss22;
+    ss22 <<  "Nothing written to run database as local DAQ has not stopped.";
+    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss22.str() );
+    this->notifyQualified( "warn", eObj );
     return;
   }
 
   // If it's not a debug run, it should normally have been booked. If not, inform the user that it somehow wasn't.
-  if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
+  if ( toDatabase && !isBookedRunNumber_ ){
+    LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
+    stringstream ss23;
+    ss23 <<  "Nothing written to run database as no run number was booked.";
+    XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss23.str() );
+    this->notifyQualified( "warn", eObj );
+  }
 
     stringstream subjectToELog;
     stringstream htmlMessageToELog;
@@ -3352,10 +3478,18 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
       serializer.import( &rui_instances, n );
     }
     catch (xoap::exception::Exception& e){
-      LOG4CPLUS_ERROR( logger_, "Failed to parse run summary: " << xcept::stdformat_exception_history(e) );
+      LOG4CPLUS_WARN( logger_, "Failed to parse run summary: " << xcept::stdformat_exception_history(e) );
+      stringstream ss24;
+      ss24 <<  "Failed to parse run summary: "  ;
+      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss24.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
     catch( xcept::Exception e ){
-      LOG4CPLUS_ERROR( logger_, "Run summary unknown: " << xcept::stdformat_exception_history(e) );
+      LOG4CPLUS_WARN( logger_, "Run summary unknown: " << xcept::stdformat_exception_history(e) );
+      stringstream ss25;
+      ss25 <<  "Run summary unknown: "  ;
+      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss25.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
     
     string runNumber;
@@ -3386,12 +3520,23 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << run_type_.toString() << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss26;
+	ss26 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss26.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
 
     //
@@ -3402,24 +3547,46 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << value << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString()  <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString()  <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss27;
+	ss27 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString()  <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss27.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
     name      = "stop_time";
     value     = stop_time.toString();
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString()  <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString()  <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss28;
+	ss28 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString()  <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss28.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
 
     xdaq::ApplicationDescriptor *app;
@@ -3452,10 +3619,18 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
       LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 2: " << 
 		      xcept::stdformat_exception_history(e) );
+      stringstream ss29;
+      ss29 << "Failed to get trigger sources from TTCciControl 2: ";
+      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss29.str(), e );
+      this->notifyQualified( "error", eObj );
     }
     catch(xcept::Exception e){
       LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl 2: " << 
 		      xcept::stdformat_exception_history(e) );
+      stringstream ss30;
+      ss30 << "Failed to get trigger sources from TTCciControl 2: ";
+      XCEPT_DECLARE_NESTED( emu::supervisor::exception::Exception, eObj, ss30.str(), e );
+      this->notifyQualified( "error", eObj );
     }
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci</td>";
     htmlMessageToELog << "<td><table>";
@@ -3472,44 +3647,87 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
     value = ClockSource;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss31;
+	ss31 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss31.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
     name  = "orbit_source";
     value = OrbitSource;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss32;
+	ss32 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss32.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
     name  = "trigger_source";
     value = TriggerSource;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() );
+	stringstream ss33;
+	ss33 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() ;
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss33.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
     name  = "BGO_source";
     value = BGOSource;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss34;
+	ss34 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss34.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
 
     //
@@ -3520,12 +3738,23 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
       htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
-	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				       nameSpace << ":" << name << " = " << value ); }
-	else          { LOG4CPLUS_ERROR(logger_,
-					"Failed to write " << nameSpace << ":" << name << 
-					" to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+	if ( success ){
+	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+			 nameSpace << ":" << name << " = " << value );
+	}
+	else{
+	  LOG4CPLUS_ERROR(logger_,
+			  "Failed to write " << nameSpace << ":" << name << 
+			  " to run database " << runDbAddress_.toString() <<
+			  " : " << runInfo_->errorMessage() );
+	  stringstream ss35;
+	  ss35 << 
+			  "Failed to write " << nameSpace << ":" << name << 
+			  " to run database " << runDbAddress_.toString() <<
+			  " : " << runInfo_->errorMessage() ;
+	  XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss35.str() );
+	  this->notifyQualified( "error", eObj );
+	}
       }
 
     //
@@ -3538,12 +3767,23 @@ void emu::supervisor::Application::writeRunInfo( bool toDatabase, bool toELog ){
       htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
-	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				       nameSpace << ":" << name << " = " << value ); }
-	else          { LOG4CPLUS_ERROR(logger_,
-					"Failed to write " << nameSpace << ":" << name << 
-					" to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+	if ( success ){
+	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				       nameSpace << ":" << name << " = " << value );
+	}
+	else{
+	  LOG4CPLUS_ERROR(logger_,
+			  "Failed to write " << nameSpace << ":" << name << 
+			  " to run database " << runDbAddress_.toString() <<
+			  " : " << runInfo_->errorMessage() );
+	  stringstream ss36;
+	  ss36 << 
+			  "Failed to write " << nameSpace << ":" << name << 
+			  " to run database " << runDbAddress_.toString() <<
+			  " : " << runInfo_->errorMessage() ;
+	  XCEPT_DECLARE( emu::supervisor::exception::Exception, eObj, ss36.str() );
+	  this->notifyQualified( "error", eObj );
+	}
       }
     }
     htmlMessageToELog << "</table>";
