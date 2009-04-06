@@ -943,10 +943,10 @@ throw (xgi::exception::Exception)
     *out << warningsToDisplay_;
 
     if ( globalMode_.value_ ){
-      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warn", "Local DAQ is in unsupervised mode.", "", &logger_ );
+      REVOKE_ALARM( "unsupervised", NULL );
     }
     else {
-      REVOKE_ALARM( "unsupervised", NULL );
+      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warn", "Local DAQ is in unsupervised mode.", "", &logger_ );
     }
 
     if ( globalMode_.value_ ) setParametersForGlobalMode();
@@ -6367,10 +6367,10 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
     warningsToDisplay_ = "";
 
     if ( globalMode_.value_ ){
-      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warn", "Local DAQ is in unsupervised mode.", "", &logger_ );
+      REVOKE_ALARM( "unsupervised", NULL );
     }
     else {
-      REVOKE_ALARM( "unsupervised", NULL );
+      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warn", "Local DAQ is in unsupervised mode.", "", &logger_ );
     }
 
     try
