@@ -184,8 +184,16 @@ throw (emu::daq::fu::exception::Exception)
 	istringstream ssi(clientInstance);
 	int ci;
 	ssi >> ci;
-	if ( ci >= 0 ) instance = ci;
-	else LOG4CPLUS_ERROR(logger_, "Instance of SOAP client " << clientName << "is negative." );
+	if ( ci >= 0 ){
+	  instance = ci;
+	}
+	else{
+	  LOG4CPLUS_ERROR(logger_, "Instance of SOAP client " << clientName << "is negative." );
+	 stringstream ss0;
+	 ss0 <<  "Instance of SOAP client " << clientName << "is negative." ;
+	 XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss0.str() );
+	 this->notifyQualified( "error", eObj );
+	}
 
 	istringstream ssc(sc);
 	int ic;
@@ -310,6 +318,11 @@ xoap::MessageReference emu::daq::fu::Application::onSOAPClientCreditMsg( xoap::M
         default:
 	  LOG4CPLUS_ERROR(logger_,
 			  "emu::daq::fu::Application in undefined state");
+	  stringstream ss1;
+	  ss1 << 
+			  "emu::daq::fu::Application in undefined state";
+	  XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss1.str() );
+	  this->notifyQualified( "error", eObj );
         }
     }
   catch(xcept::Exception e)
@@ -317,11 +330,22 @@ xoap::MessageReference emu::daq::fu::Application::onSOAPClientCreditMsg( xoap::M
       LOG4CPLUS_ERROR(logger_,
 		      "Failed to process client credit message : "
 		      << stdformat_exception_history(e));
+      stringstream ss2;
+      ss2 << 
+		      "Failed to process client credit message : "
+		      ;
+      XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss2.str(), e );
+      this->notifyQualified( "error", eObj );
     }
   catch(...)
     {
       LOG4CPLUS_ERROR(logger_,
 		      "Failed to process client credit message : Unknown exception");
+      stringstream ss3;
+      ss3 << 
+		      "Failed to process client credit message : Unknown exception";
+      XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss3.str() );
+      this->notifyQualified( "error", eObj );
     }
   
   
@@ -372,6 +396,11 @@ void emu::daq::fu::Application::onI2OClientCreditMsg(toolbox::mem::Reference *bu
         default:
 	  LOG4CPLUS_ERROR(logger_,
 			  "emu::daq::fu::Application in undefined state");
+	  stringstream ss4;
+	  ss4 << 
+			  "emu::daq::fu::Application in undefined state";
+	  XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss4.str() );
+	  this->notifyQualified( "error", eObj );
         }
     }
     catch(xcept::Exception e)
@@ -379,11 +408,22 @@ void emu::daq::fu::Application::onI2OClientCreditMsg(toolbox::mem::Reference *bu
         LOG4CPLUS_ERROR(logger_,
             "Failed to process client credit message : "
              << stdformat_exception_history(e));
+        stringstream ss5;
+        ss5 << 
+            "Failed to process client credit message : "
+             ;
+        XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss5.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     catch(...)
     {
         LOG4CPLUS_ERROR(logger_,
             "Failed to process client credit message : Unknown exception");
+        stringstream ss6;
+        ss6 << 
+            "Failed to process client credit message : Unknown exception";
+        XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss6.str() );
+        this->notifyQualified( "error", eObj );
     }
 
     // Free the client's event credit message
@@ -748,6 +788,12 @@ void emu::daq::fu::Application::moveToFailedState(){ // Emu-specific
       LOG4CPLUS_FATAL(logger_,
 		      "Failed to move to the Failed state : "
 		      << xcept::stdformat_exception_history(e));
+      stringstream ss7;
+      ss7 << 
+		      "Failed to move to the Failed state : "
+		      ;
+      XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss7.str(), e );
+      this->notifyQualified( "fatal", eObj );
     }
 }
 
@@ -768,6 +814,11 @@ throw (xoap::exception::Exception)
 
         LOG4CPLUS_ERROR(logger_,
             s << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss8;
+        ss8 << 
+            s << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss8.str(), e );
+        this->notifyQualified( "error", eObj );
         XCEPT_RETHROW(xoap::exception::Exception, s, e);
     }
 
@@ -786,6 +837,11 @@ throw (xoap::exception::Exception)
 
         LOG4CPLUS_ERROR(logger_,
             s << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss9;
+        ss9 << 
+            s << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss9.str(), e );
+        this->notifyQualified( "error", eObj );
         XCEPT_RETHROW(xoap::exception::Exception, s, e);
     }
     catch(...)
@@ -798,6 +854,10 @@ throw (xoap::exception::Exception)
         s = oss.str();
 
         LOG4CPLUS_ERROR(logger_, s);
+        stringstream ss10;
+        ss10 <<  s;
+        XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss10.str() );
+        this->notifyQualified( "error", eObj );
         XCEPT_RAISE(xoap::exception::Exception, s);
     }
 }
@@ -972,6 +1032,11 @@ bool emu::daq::fu::Application::createSOAPServer( string clientName,  unsigned i
   else 
     LOG4CPLUS_WARN(logger_, 
 		   "Maximum number of clients exceeded. Cannot create server for " << clientName );
+    stringstream ss11;
+    ss11 <<  
+		   "Maximum number of clients exceeded. Cannot create server for " << clientName ;
+    XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss11.str() );
+    this->notifyQualified( "warn", eObj );
   return created;
 }
 
@@ -998,6 +1063,16 @@ void emu::daq::fu::Application::createServers(){
 			" instance " <<
 			clientInstance <<
 			". Please use \"I2O\" or \"SOAP\".");
+	stringstream ss12;
+	ss12 <<  "Unknown protocol \"" <<
+			clientProtocol_.elementAt(iClient)->toString() << 
+			"\" for client " <<
+			clientName_.elementAt(iClient)->toString() << 
+			" instance " <<
+			clientInstance <<
+			". Please use \"I2O\" or \"SOAP\".";
+	XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss12.str() );
+	this->notifyQualified( "error", eObj );
     }
   }
 }
@@ -1087,6 +1162,11 @@ emu::daq::fu::Application::startATCP()
   catch(emu::daq::fu::exception::Exception e){
     LOG4CPLUS_WARN(logger_, "Failed to get atcp descriptors : " 
 		   + xcept::stdformat_exception_history(e) );
+    stringstream ss13;
+    ss13 <<  "Failed to get atcp descriptors : " 
+		    ;
+    XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss13.str(), e );
+    this->notifyQualified( "warn", eObj );
     atcpDescriptors.clear();
   }
 
@@ -1221,6 +1301,10 @@ throw (toolbox::fsm::exception::Exception)
     if ( fileWriter_ )
       {
 	LOG4CPLUS_WARN( logger_, "Terminating leftover file writer." );
+	stringstream ss14;
+	ss14 <<  "Terminating leftover file writer." ;
+	XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss14.str() );
+	this->notifyQualified( "warn", eObj );
 	fileWriter_->endRun();
 	delete fileWriter_;
 	fileWriter_ = NULL;
@@ -1342,6 +1426,10 @@ throw (toolbox::fsm::exception::Exception)
   }
   catch( emu::daq::fu::exception::Exception e ){
     LOG4CPLUS_WARN(logger_, "Run stop time will be unknown: " << xcept::stdformat_exception_history(e) );
+    stringstream ss15;
+    ss15 <<  "Run stop time will be unknown: "  ;
+    XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss15.str(), e );
+    this->notifyQualified( "warn", eObj );
   }
 
   // Close data file
@@ -1378,10 +1466,18 @@ throw (toolbox::fsm::exception::Exception)
         s = oss.str();
 
         LOG4CPLUS_FATAL(logger_, s);
+        stringstream ss16;
+        ss16 <<  s;
+        XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss16.str() );
+        this->notifyQualified( "fatal", eObj );
     }
     catch(bad_cast)
     {
         LOG4CPLUS_FATAL(logger_, "Moving to Failed state");
+        stringstream ss17;
+        ss17 <<  "Moving to Failed state";
+        XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss17.str() );
+        this->notifyQualified( "fatal", eObj );
     }
 }
 
@@ -1433,6 +1529,11 @@ bool emu::daq::fu::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
             // Should never get here
             LOG4CPLUS_FATAL(logger_,
                 "emu::daq::fu::Application" << instance_ << " is in an undefined state");
+            stringstream ss18;
+            ss18 << 
+                "emu::daq::fu::Application" << instance_ << " is in an undefined state";
+            XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss18.str() );
+            this->notifyQualified( "fatal", eObj );
         }
 
 	bSem_.give();
@@ -1447,6 +1548,12 @@ bool emu::daq::fu::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
         LOG4CPLUS_FATAL(logger_,
             "Failed to execute \"self-driven\" behaviour"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss19;
+        ss19 << 
+            "Failed to execute \"self-driven\" behaviour"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss19.str(), e );
+        this->notifyQualified( "fatal", eObj );
 
         // Do not reschedule this action code as the application has failed
         return false;
@@ -1664,10 +1771,16 @@ void emu::daq::fu::Application::I2O_FU_TAKE_Callback(toolbox::mem::Reference *bu
         bufRef->release();
         break;
     case 'R': // Ready
-        LOG4CPLUS_ERROR(logger_,
-            "Received a data block whilst in the Ready state");
-        bufRef->release();
-        break;
+      {
+	LOG4CPLUS_ERROR(logger_,
+			"Received a data block whilst in the Ready state");
+	stringstream ss20;
+	ss20 << "Received a data block whilst in the Ready state";
+	XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss20.str() );
+	this->notifyQualified( "error", eObj );
+	bufRef->release();
+      }
+      break;
     case 'E': // Enabled
         if(faultDetected_)
         {
@@ -1694,6 +1807,12 @@ void emu::daq::fu::Application::I2O_FU_TAKE_Callback(toolbox::mem::Reference *bu
                     LOG4CPLUS_ERROR(logger_,
                         "Failed to process data block"
                         << " : " << xcept::stdformat_exception_history(e));
+                    stringstream ss21;
+                    ss21 << 
+                        "Failed to process data block"
+                        << " : " ;
+                    XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss21.str(), e );
+                    this->notifyQualified( "error", eObj );
                 }
 
                 // Move to the next block (could be 0!)
@@ -1702,8 +1821,14 @@ void emu::daq::fu::Application::I2O_FU_TAKE_Callback(toolbox::mem::Reference *bu
         }
         break;
     default:
+      {
         LOG4CPLUS_ERROR(logger_, "Unknown application state");
+        stringstream ss22;
+        ss22 <<  "Unknown application state";
+        XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss22.str() );
+        this->notifyQualified( "error", eObj );
         bufRef->release();
+      }
     }
 
 
@@ -1756,6 +1881,10 @@ throw (emu::daq::fu::exception::Exception)
 	      }
 	      catch(string e){
 		LOG4CPLUS_FATAL( logger_, e );
+		stringstream ss23;
+		ss23 <<  e ;
+		XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss23.str() );
+		this->notifyQualified( "fatal", eObj );
 		moveToFailedState();
 	      }
 	    }
@@ -1764,6 +1893,10 @@ throw (emu::daq::fu::exception::Exception)
 	    }
 	    catch(string e){
 	      LOG4CPLUS_FATAL( logger_, e );
+	      stringstream ss24;
+	      ss24 <<  e ;
+	      XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss24.str() );
+	      this->notifyQualified( "fatal", eObj );
 	      moveToFailedState();
 	    }
 	  }
@@ -1783,6 +1916,10 @@ throw (emu::daq::fu::exception::Exception)
 	}
 	catch(string e){
 	  LOG4CPLUS_FATAL( logger_, e );
+	  stringstream ss25;
+	  ss25 <<  e ;
+	  XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss25.str() );
+	  this->notifyQualified( "fatal", eObj );
 	  moveToFailedState();
 	}
       }
@@ -1798,6 +1935,10 @@ throw (emu::daq::fu::exception::Exception)
 	  }
 	  catch(string e){
 	    LOG4CPLUS_FATAL( logger_, e );
+	    stringstream ss26;
+	    ss26 <<  e ;
+	    XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss26.str() );
+	    this->notifyQualified( "fatal", eObj );
 	    moveToFailedState();
 	  }
 	}
@@ -1842,6 +1983,10 @@ throw (emu::daq::fu::exception::Exception)
 	  } 
 	  catch(string e){
 	    LOG4CPLUS_FATAL( logger_, e );
+	    stringstream ss27;
+	    ss27 <<  e ;
+	    XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss27.str() );
+	    this->notifyQualified( "fatal", eObj );
 	    moveToFailedState();
 	  }
 	}
@@ -2193,6 +2338,11 @@ bool emu::daq::fu::Application::onI2oException(xcept::Exception &exception, void
 {
     LOG4CPLUS_ERROR(logger_,
         " : " << xcept::stdformat_exception_history(exception));
+    stringstream ss28;
+    ss28 << 
+        " : " ;
+    XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss28.str(), exception );
+    this->notifyQualified( "error", eObj );
 
     return true;
 }
@@ -2406,6 +2556,11 @@ throw (emu::daq::fu::exception::Exception)
     if ( taDescriptors_.size() > 1 )
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
 		      taDescriptors_.size() << " emu::daq::ta::Application instances found. Trying first one.");
+      stringstream ss29;
+      ss29 <<  "The embarassement of riches: " << 
+		      taDescriptors_.size() << " emu::daq::ta::Application instances found. Trying first one.";
+      XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss29.str() );
+      this->notifyQualified( "error", eObj );
     rn = getScalarParam(*taDescriptors_.begin(),"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emu::daq::ta::Application: " + rn );
     br = getScalarParam(*taDescriptors_.begin(),"isBookedRunNumber","boolean");
@@ -2416,6 +2571,10 @@ throw (emu::daq::fu::exception::Exception)
   }
   else{
     LOG4CPLUS_ERROR(logger_, "Did not find emu::daq::ta::Application. ==> Run number and start time are unknown.");
+    stringstream ss30;
+    ss30 <<  "Did not find emu::daq::ta::Application. ==> Run number and start time are unknown.";
+    XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss30.str() );
+    this->notifyQualified( "error", eObj );
   }
 
   unsigned int  irn(0);
@@ -2442,6 +2601,11 @@ xoap::MessageReference emu::daq::fu::Application::onReset(xoap::MessageReference
       
       LOG4CPLUS_ERROR(logger_,
 		      s << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss31;
+      ss31 << 
+		      s << " : " ;
+      XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss31.str(), e );
+      this->notifyQualified( "error", eObj );
       XCEPT_RETHROW(xoap::exception::Exception, s, e);
     }
   
