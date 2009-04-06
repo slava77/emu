@@ -223,6 +223,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTest9, "DMBTest9");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTest10, "DMBTest10");
   xgi::bind(this,&EmuPeripheralCrateConfig::DMBTest11, "DMBTest11");
+  xgi::bind(this,&EmuPeripheralCrateConfig::RTRGlow, "RTRGlow");
+  xgi::bind(this,&EmuPeripheralCrateConfig::RTRGhigh, "RTRGhigh");
+
   //
   //-----------------------------------------------
   // DMB utilities
@@ -1292,7 +1295,7 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
   *out << std::endl;
   //
-  for(int ii=1; ii<22; ii++) {
+  for(int ii=1; ii<28; ii++) {
     //
     *out << cgicc::table().set("border","1");
     //
@@ -3933,6 +3936,28 @@ void EmuPeripheralCrateConfig::DMBTests(xgi::Input * in, xgi::Output * out )
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
+  *out << cgicc::tr();   //change line
+  //
+  *out << cgicc::td();
+  std::string RTRGlow = toolbox::toString("/%s/RTRGlow",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",RTRGlow) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Toggle Random Trigger Low").set("style","color:green") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  //
+  *out << cgicc::td();
+  std::string RTRGhigh = toolbox::toString("/%s/RTRGhigh",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",RTRGhigh) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Toggle Random Trigger High").set("style","color:green") << std::endl ;
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+
   //
   /*
    *out << cgicc::td();
@@ -4181,6 +4206,66 @@ void EmuPeripheralCrateConfig::DMBTest10(xgi::Input * in, xgi::Output * out )
   //
   thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
   thisDMB->test10();
+  thisDMB->RedirectOutput(&std::cout);
+  //
+  this->DMBTests(in,out);
+}
+//
+//
+void EmuPeripheralCrateConfig::RTRGlow(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "Toggle Randowm Trigger Low, DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  OutputDMBTests[dmb][current_crate_] << "Toggle Random Trigger Low" << std::endl ;
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  //
+  thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
+
+  // load random trigger rate (10 KHz per CFEBs and L1A) --> 
+  thisDMB->set_rndmtrg_rate(0x9249);
+  thisDMB->toggle_rndmtrg_start();
+
+  thisDMB->RedirectOutput(&std::cout);
+  //
+  this->DMBTests(in,out);
+}
+//
+//
+void EmuPeripheralCrateConfig::RTRGhigh(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  int dmb=0;
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "Toggle Randowm Trigger High, DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  }
+  //
+  OutputDMBTests[dmb][current_crate_] << "Toggle Random Trigger High" << std::endl ;
+  //
+  DAQMB * thisDMB = dmbVector[dmb];
+  //
+  thisDMB->RedirectOutput(&OutputDMBTests[dmb][current_crate_]);
+
+  // load random trigger rate (10 KHz per CFEBs and L1A) --> 
+  thisDMB->set_rndmtrg_rate(0x2db6d);
+  thisDMB->toggle_rndmtrg_start();
+
   thisDMB->RedirectOutput(&std::cout);
   //
   this->DMBTests(in,out);
