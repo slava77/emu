@@ -203,9 +203,16 @@ throw (emu::daq::rui::exception::Exception)
 	istringstream ssi(clientInstance);
 	int ci;
 	ssi >> ci;
-	if ( ci >= 0 ) instance = ci;
-	else LOG4CPLUS_ERROR(logger_, "Instance of SOAP client " << clientName << "is negative." );
-
+	if ( ci >= 0 ){
+	  instance = ci;
+	}
+	else{
+	  LOG4CPLUS_ERROR(logger_, "Instance of SOAP client " << clientName << "is negative." );
+	  stringstream ss0;
+	  ss0 <<  "Instance of SOAP client " << clientName << "is negative." ;
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss0.str() );
+	  this->notifyQualified( "error", eObj );
+	}
 	istringstream ssc(sc);
 	int ic;
 	ssc >> ic;
@@ -329,6 +336,11 @@ xoap::MessageReference emu::daq::rui::Application::onSOAPClientCreditMsg( xoap::
         default:
 	  LOG4CPLUS_ERROR(logger_,
 			  "emu::daq::rui::Application in undefined state");
+	  stringstream ss1;
+	  ss1 << 
+			  "emu::daq::rui::Application in undefined state";
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss1.str() );
+	  this->notifyQualified( "error", eObj );
         }
     }
   catch(xcept::Exception e)
@@ -336,11 +348,22 @@ xoap::MessageReference emu::daq::rui::Application::onSOAPClientCreditMsg( xoap::
       LOG4CPLUS_ERROR(logger_,
 		      "Failed to process SOAP client credit message : "
 		      << stdformat_exception_history(e));
+      stringstream ss2;
+      ss2 << 
+		      "Failed to process SOAP client credit message : "
+		      ;
+      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss2.str(), e );
+      this->notifyQualified( "error", eObj );
     }
   catch(...)
     {
       LOG4CPLUS_ERROR(logger_,
 		      "Failed to process SOAP client credit message : Unknown exception");
+      stringstream ss3;
+      ss3 << 
+		      "Failed to process SOAP client credit message : Unknown exception";
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss3.str() );
+      this->notifyQualified( "error", eObj );
     }
   
   
@@ -391,6 +414,11 @@ void emu::daq::rui::Application::onI2OClientCreditMsg(toolbox::mem::Reference *b
         default:
 	  LOG4CPLUS_ERROR(logger_,
 			  "emu::daq::rui::Application in undefined state");
+	  stringstream ss4;
+	  ss4 << 
+			  "emu::daq::rui::Application in undefined state";
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss4.str() );
+	  this->notifyQualified( "error", eObj );
         }
     }
     catch(xcept::Exception e)
@@ -398,11 +426,22 @@ void emu::daq::rui::Application::onI2OClientCreditMsg(toolbox::mem::Reference *b
         LOG4CPLUS_ERROR(logger_,
             "Failed to process I2O client credit message : "
              << stdformat_exception_history(e));
+        stringstream ss5;
+        ss5 << 
+            "Failed to process I2O client credit message : "
+             ;
+        XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss5.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     catch(...)
     {
         LOG4CPLUS_ERROR(logger_,
             "Failed to process I2O client credit message : Unknown exception");
+        stringstream ss6;
+        ss6 << 
+            "Failed to process I2O client credit message : Unknown exception";
+        XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss6.str() );
+        this->notifyQualified( "error", eObj );
     }
 
     // Free the client's event credit message
@@ -749,6 +788,11 @@ throw (emu::daq::rui::exception::Exception)
     if ( taDescriptors.size() > 1 )
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
 		      taDescriptors.size() << " emuTA instances found. Trying first one.");
+      stringstream ss7;
+      ss7 <<  "The embarassement of riches: " << 
+		      taDescriptors.size() << " emuTA instances found. Trying first one.";
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss7.str() );
+      this->notifyQualified( "error", eObj );
     rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
     mn = getScalarParam(taDescriptors[0],"maxNumTriggers","integer");
@@ -761,6 +805,10 @@ throw (emu::daq::rui::exception::Exception)
   }
   else{
     LOG4CPLUS_ERROR(logger_, "Did not find emu::daq::ta::Application. ==> Run number, start time, and maximum number of events are unknown.");
+    stringstream ss8;
+    ss8 <<  "Did not find emu::daq::ta::Application. ==> Run number, start time, and maximum number of events are unknown.";
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss8.str() );
+    this->notifyQualified( "error", eObj );
   }
 
   unsigned int  irn(0);
@@ -1129,6 +1177,11 @@ throw (xoap::exception::Exception)
 
         LOG4CPLUS_ERROR(logger_,
             s << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss9;
+        ss9 << 
+            s << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss9.str(), e );
+        this->notifyQualified( "error", eObj );
         XCEPT_RETHROW(xoap::exception::Exception, s, e);
     }
 
@@ -1147,6 +1200,11 @@ throw (xoap::exception::Exception)
 
         LOG4CPLUS_ERROR(logger_,
             s << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss10;
+        ss10 << 
+            s << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss10.str(), e );
+        this->notifyQualified( "error", eObj );
         XCEPT_RETHROW(xoap::exception::Exception, s, e);
     }
     catch(...)
@@ -1159,6 +1217,10 @@ throw (xoap::exception::Exception)
         s = oss.str();
 
         LOG4CPLUS_ERROR(logger_, s);
+        stringstream ss11;
+        ss11 <<  s;
+        XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss11.str() );
+        this->notifyQualified( "error", eObj );
         XCEPT_RAISE(xoap::exception::Exception, s);
     }
 }
@@ -1292,6 +1354,10 @@ void emu::daq::rui::Application::createDeviceReader(){
 	oss << "No such data format: " << inputDataFormat_.toString() << 
 	  "Use \"DDU\" or \"DCC\"";
 // 	LOG4CPLUS_FATAL(logger_, oss.str());
+// 	stringstream ss12;
+// 	ss12 <<  oss.str();
+// 	XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss12.str() );
+// 	this->notifyQualified( "fatal", eObj );
 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
   }
 
@@ -1303,6 +1369,10 @@ void emu::daq::rui::Application::createDeviceReader(){
       oss << "Bad device type: " << inputDeviceType_.toString() << 
 	"Use \"file\", \"spy\", or \"slink\"";
 //       LOG4CPLUS_FATAL(logger_, oss.str());
+//       stringstream ss13;
+//       ss13 <<  oss.str();
+//       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss13.str() );
+//       this->notifyQualified( "fatal", eObj );
       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
     try {
@@ -1319,6 +1389,10 @@ void emu::daq::rui::Application::createDeviceReader(){
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": "                << e.what();
 //       LOG4CPLUS_FATAL(logger_, oss.str());
+//       stringstream ss14;
+//       ss14 <<  oss.str();
+//       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss14.str() );
+//       this->notifyQualified( "fatal", eObj );
       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
     catch(...){
@@ -1327,6 +1401,10 @@ void emu::daq::rui::Application::createDeviceReader(){
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": unknown exception.";
 //       LOG4CPLUS_FATAL(logger_, oss.str());
+//       stringstream ss15;
+//       ss15 <<  oss.str();
+//       XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss15.str() );
+//       this->notifyQualified( "fatal", eObj );
       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
 
@@ -1336,77 +1414,6 @@ void emu::daq::rui::Application::createDeviceReader(){
 
 }
 
-// void emu::daq::rui::Application::createDeviceReaders(){
-//   // Version with multiple devices
-
-//   // Count devices
-//   nInputDevices_ = 0;
-//   for( unsigned int iDev=0; iDev<maxDevices_; ++iDev )
-//     if ( inputDeviceNames_.at(iDev).toString() != "" ) nInputDevices_++;
-
-//   if ( nInputDevices_.value_ == (unsigned int) 0 ) {
-// 	stringstream oss;
-// 	oss << "Number of input devices is zero?!";
-// 	LOG4CPLUS_FATAL(logger_, oss.str());
-// 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-//   }
-
-//   // Create readers
-//   int inputDataFormatInt_ = -1;
-//   if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = emu::daq::reader::Base::DDU;
-//   else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = emu::daq::reader::Base::DCC;
-//   else{
-// 	stringstream oss;
-// 	oss << "No such data format: " << inputDataFormat_.toString() << 
-// 	  "Use \"DDU\" or \"DCC\"";
-// 	LOG4CPLUS_FATAL(logger_, oss.str());
-// 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-//   }
-
-//   for( unsigned int iDev=0; iDev<nInputDevices_; ++iDev ){
-//     LOG4CPLUS_INFO(logger_, "Creating " << inputDeviceType_.toString() << 
-// 		   " reader for " << inputDeviceNames_.at(iDev).toString());
-//     deviceReaders_.push_back(NULL);
-//     if ( inputDeviceType_ != "spy" && inputDeviceType_ != "file" ){
-//       stringstream oss;
-//       oss << "Bad device type: " << inputDeviceType_.toString() << 
-// 	"Use \"file\", \"spy\", or \"slink\"";
-//       LOG4CPLUS_FATAL(logger_, oss.str());
-//       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-//     }
-//     try {
-//       if      ( inputDeviceType_ == "spy"  )
-// 	deviceReaders_[iDev] = new emu::daq::reader::Spy(  inputDeviceNames_.at(iDev).toString(), inputDataFormatInt_ );
-//       else if ( inputDeviceType_ == "file" )
-// 	deviceReaders_[iDev] = new emu::daq::reader::RawDataFile( inputDeviceNames_.at(iDev).toString(), inputDataFormatInt_ );
-//       // TODO: slink
-//     }
-//     catch(std::runtime_error e){
-
-//       stringstream oss;
-//       oss << "Failed to create " << inputDeviceType_.toString()
-// 	  << " reader for "      << inputDeviceNames_.at(iDev).toString()
-// 	  << ": "                << e.what();
-//       LOG4CPLUS_FATAL(logger_, oss.str());
-	
-//       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-//     }
-//     catch(...){
-//       stringstream oss;
-//       oss << "Failed to create " << inputDeviceType_.toString()
-// 	  << " reader for "      << inputDeviceNames_.at(iDev).toString()
-// 	  << ": unknown exception.";
-//       LOG4CPLUS_FATAL(logger_, oss.str());
-//       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-//     }
-
-//     if ( deviceReaders_[iCurrentDeviceReader_]->getLogMessage().length() > 0 )
-//       LOG4CPLUS_INFO(logger_, deviceReaders_[iCurrentDeviceReader_]->getLogMessage());
-
-//   }
-
-//   iCurrentDeviceReader_ = 0;
-// }
 
 void emu::daq::rui::Application::destroyServers(){
   std::vector<Client*>::iterator c;
@@ -1479,6 +1486,11 @@ bool emu::daq::rui::Application::createSOAPServer( string clientName,  unsigned 
   else 
     LOG4CPLUS_WARN(logger_, 
 		   "Maximum number of clients exceeded. Cannot create server for " << clientName );
+    stringstream ss21;
+    ss21 <<  
+		   "Maximum number of clients exceeded. Cannot create server for " << clientName ;
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss21.str() );
+    this->notifyQualified( "warn", eObj );
   return created;
 }
 
@@ -1505,6 +1517,16 @@ void emu::daq::rui::Application::createServers(){
 			" instance " <<
 			clientInstance <<
 			". Please use \"I2O\" or \"SOAP\".");
+	stringstream ss22;
+	ss22 <<  "Unknown protocol \"" <<
+			clientProtocol_.elementAt(iClient)->toString() << 
+			"\" for client " <<
+			clientName_.elementAt(iClient)->toString() << 
+			" instance " <<
+			clientInstance <<
+			". Please use \"I2O\" or \"SOAP\".";
+	XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss22.str() );
+	this->notifyQualified( "error", eObj );
     }
   }
 }
@@ -1594,6 +1616,11 @@ emu::daq::rui::Application::startATCP()
   catch(emu::daq::rui::exception::Exception e){
     LOG4CPLUS_WARN(logger_, "Failed to get atcp descriptors : " 
 		   + xcept::stdformat_exception_history(e) );
+    stringstream ss23;
+    ss23 <<  "Failed to get atcp descriptors : " 
+		    ;
+    XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss23.str(), e );
+    this->notifyQualified( "warn", eObj );
     atcpDescriptors.clear();
   }
 
@@ -1706,6 +1733,10 @@ throw (toolbox::fsm::exception::Exception)
       getTidOfEmuTA();
     } catch( xcept::Exception e ) {
       LOG4CPLUS_WARN(logger_,"Failed to get i2o target id of emu::daq::ta::Application: " +  xcept::stdformat_exception_history(e));
+      stringstream ss24;
+      ss24 << "Failed to get i2o target id of emu::daq::ta::Application: " ;
+      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss24.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
 
     nReadingPassesInEvent_ = 0;
@@ -1915,6 +1946,10 @@ throw (toolbox::fsm::exception::Exception)
     }
     catch( emu::daq::rui::exception::Exception e ){
       LOG4CPLUS_WARN(logger_, "Run stop time will be unknown: " << xcept::stdformat_exception_history(e) );
+      stringstream ss25;
+      ss25 <<  "Run stop time will be unknown: "  ;
+      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss25.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
 
     // Close data file
@@ -1959,10 +1994,18 @@ throw (toolbox::fsm::exception::Exception)
         s = oss.str();
 
         LOG4CPLUS_FATAL(logger_, s);
+        stringstream ss26;
+        ss26 <<  s;
+        XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss26.str() );
+        this->notifyQualified( "fatal", eObj );
     }
     catch(bad_cast)
     {
         LOG4CPLUS_FATAL(logger_, "Caught bad_cast exception while moving to Failed state." );
+        stringstream ss27;
+        ss27 <<  "Caught bad_cast exception while moving to Failed state." ;
+        XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss27.str() );
+        this->notifyQualified( "fatal", eObj );
     }
 }
 
@@ -1990,6 +2033,12 @@ void emu::daq::rui::Application::moveToFailedState(){
       LOG4CPLUS_FATAL(logger_,
 		      "Failed to move to the Failed state : "
 		      << xcept::stdformat_exception_history(e));
+      stringstream ss28;
+      ss28 << 
+		      "Failed to move to the Failed state : "
+		      ;
+      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss28.str(), e );
+      this->notifyQualified( "fatal", eObj );
     }
 }
 
@@ -2199,6 +2248,11 @@ bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
       catch (xcept::Exception e) {
 	LOG4CPLUS_FATAL(logger_, "Failed to execute \"self-driven\" behaviour"
 			<< " : " << xcept::stdformat_exception_history(e));
+	stringstream ss29;
+	ss29 <<  "Failed to execute \"self-driven\" behaviour"
+			<< " : " ;
+	XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss29.str(), e );
+	this->notifyQualified( "fatal", eObj );
 	    
 	try {
 	  // Move to the failed state
@@ -2210,6 +2264,11 @@ bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
 	  applicationBSem_.give();
 	  LOG4CPLUS_FATAL(logger_, "Failed to move to the Failed state : "
 			  << xcept::stdformat_exception_history(e));
+	  stringstream ss30;
+	  ss30 <<  "Failed to move to the Failed state : "
+			  ;
+	  XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss30.str(), e );
+	  this->notifyQualified( "fatal", eObj );
 	}
 	// Do not reschedule this action code as the application has failed
 	applicationBSem_.give();
@@ -2231,6 +2290,12 @@ bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
 	LOG4CPLUS_WARN(logger_, "emu::daq::rui::Application" << instance_ 
 		       << " failed to send data to its client via I2O: "
 		       << " : " << xcept::stdformat_exception_history(e));
+	stringstream ss31;
+	ss31 <<  "emu::daq::rui::Application" << instance_ 
+		       << " failed to send data to its client via I2O: "
+		       << " : " ;
+	XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss31.str(), e );
+	this->notifyQualified( "warn", eObj );
       }
 
       break;
@@ -2238,6 +2303,11 @@ bool emu::daq::rui::Application::workLoopAction(toolbox::task::WorkLoop *wl)
       // Should never get here
       LOG4CPLUS_FATAL(logger_,
 		      "emu::daq::rui::Application" << instance_ << " is in an undefined state");
+      stringstream ss32;
+      ss32 << 
+		      "emu::daq::rui::Application" << instance_ << " is in an undefined state";
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss32.str() );
+      this->notifyQualified( "fatal", eObj );
     }
 
   applicationBSem_.give();
@@ -2294,6 +2364,11 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
             // Should never get here
             LOG4CPLUS_ERROR(logger_,
                 "emu::daq::rui::Application" << instance_ << " is in an undefined state");
+            stringstream ss33;
+            ss33 << 
+                "emu::daq::rui::Application" << instance_ << " is in an undefined state";
+            XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss33.str() );
+            this->notifyQualified( "error", eObj );
         }
 
 	applicationBSem_.give();
@@ -2308,6 +2383,12 @@ bool emu::daq::rui::Application::serverLoopAction(toolbox::task::WorkLoop *wl)
         LOG4CPLUS_WARN(logger_,
             "Failed to execute \"self-driven\" behaviour"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss34;
+        ss34 << 
+            "Failed to execute \"self-driven\" behaviour"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss34.str(), e );
+        this->notifyQualified( "warn", eObj );
     }
 
     // Reschedule this action code
@@ -2348,6 +2429,12 @@ int emu::daq::rui::Application::processAndCommunicate()
             LOG4CPLUS_WARN(logger_,
                 "Failed to send data block to RU" << instance_ << "."
                 << "Will try again later");
+            stringstream ss35;
+            ss35 << 
+                "Failed to send data block to RU" << instance_ << "."
+                << "Will try again later";
+            XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss35.str() );
+            this->notifyQualified( "warn", eObj );
         }
     }
     else
@@ -2362,6 +2449,12 @@ int emu::daq::rui::Application::processAndCommunicate()
             LOG4CPLUS_ERROR(logger_,
                 "Failed to contnue construction of super-fragment"
                 << " : " << stdformat_exception_history(e));
+            stringstream ss36;
+            ss36 << 
+                "Failed to contnue construction of super-fragment"
+                << " : " ;
+            XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss36.str(), e );
+            this->notifyQualified( "error", eObj );
         }
     }
 
@@ -2406,6 +2499,10 @@ void emu::daq::rui::Application::createFileWriters(){
     if ( fileWriter_ )
       {
 	LOG4CPLUS_WARN( logger_, "Terminating leftover file writer." );
+	stringstream ss37;
+	ss37 <<  "Terminating leftover file writer." ;
+	XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss37.str() );
+	this->notifyQualified( "warn", eObj );
 	fileWriter_->endRun();
 	delete fileWriter_;
 	fileWriter_ = NULL;
@@ -2413,6 +2510,10 @@ void emu::daq::rui::Application::createFileWriters(){
     if ( badEventsFileWriter_ )
       {
 	LOG4CPLUS_WARN( logger_, "Terminating leftover bad event file writer." );
+	stringstream ss38;
+	ss38 <<  "Terminating leftover bad event file writer." ;
+	XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss38.str() );
+	this->notifyQualified( "warn", eObj );
 	badEventsFileWriter_->endRun();
 	if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
 	delete badEventsFileWriter_;
@@ -2444,6 +2545,10 @@ void emu::daq::rui::Application::createFileWriters(){
 		    runType_.toString() != "Debug"      ) // must be a calibration or STEP run...
 	    {
 	      LOG4CPLUS_FATAL( logger_, "A calibration run or a STEP run has been started without specifying a directory and/or maximum size for data files. Please set \"pathToRUIDataOutFile\" and \"ruiFileSizeInMegaBytes\" to nonzero values in the XML configuration file." );
+	      stringstream ss39;
+	      ss39 <<  "A calibration run or a STEP run has been started without specifying a directory and/or maximum size for data files. Please set \"pathToRUIDataOutFile\" and \"ruiFileSizeInMegaBytes\" to nonzero values in the XML configuration file." ;
+	      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss39.str() );
+	      this->notifyQualified( "fatal", eObj );
 	      moveToFailedState();
 	    }
 
@@ -2456,6 +2561,10 @@ void emu::daq::rui::Application::createFileWriters(){
 	  }
 	  catch(string e){
 	    LOG4CPLUS_FATAL( logger_, e );
+	    stringstream ss40;
+	    ss40 <<  e ;
+	    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss40.str() );
+	    this->notifyQualified( "fatal", eObj );
 	    moveToFailedState();
 	  }
 	  if ( pathToBadEventsFile_ != string("") && 
@@ -2476,6 +2585,10 @@ void emu::daq::rui::Application::createFileWriters(){
 	    }
 	    catch(string e){
 	      LOG4CPLUS_ERROR( logger_, e );
+	      stringstream ss41;
+	      ss41 <<  e ;
+	      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss41.str() );
+	      this->notifyQualified( "error", eObj );
 	      // Don't moveToFailedState, bad events file is not worth stopping the run for.
 	    }
 	  }
@@ -2491,6 +2604,10 @@ void emu::daq::rui::Application::writeDataToFile(  char* const data, const int d
       if ( ! fileWritingVetoed_.value_ ) fileWriter_->writeData( data, dataLength );
     } catch(string e) {
       LOG4CPLUS_FATAL( logger_, e );
+      stringstream ss42;
+      ss42 <<  e ;
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss42.str() );
+      this->notifyQualified( "fatal", eObj );
       moveToFailedState();
     }
   }
@@ -2531,6 +2648,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": "                << e.what();
       LOG4CPLUS_FATAL(logger_, oss.str());
+      stringstream ss43;
+      ss43 <<  oss.str();
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss43.str() );
+      this->notifyQualified( "fatal", eObj );
       moveToFailedState();
       // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
@@ -2540,6 +2661,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": unknown exception.";
       LOG4CPLUS_FATAL(logger_, oss.str());
+      stringstream ss44;
+      ss44 <<  oss.str();
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss44.str() );
+      this->notifyQualified( "fatal", eObj );
       moveToFailedState();
       // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
@@ -2557,6 +2682,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
     oss << "Failed to read from " << inputDeviceName_.toString()
 	<< ": unknown exception.";
     LOG4CPLUS_ERROR(logger_, oss.str());
+    stringstream ss45;
+    ss45 <<  oss.str();
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss45.str() );
+    this->notifyQualified( "error", eObj );
   }
 
   if ( deviceReader_->getLogMessage().length() > 0 )
@@ -2577,6 +2706,12 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
     LOG4CPLUS_ERROR(logger_, 
 		    " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
 		    " read " << nBytesRead << " bytes only.");
+    stringstream ss46;
+    ss46 <<  
+		    " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
+		    " read " << nBytesRead << " bytes only.";
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss46.str() );
+    this->notifyQualified( "error", eObj );
   }
 
   nReadingPassesInEvent_++;
@@ -2592,6 +2727,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
       sendEventNumberToTA( deviceReader_->eventNumber() );
     } catch( xcept::Exception e ) {
       LOG4CPLUS_WARN(logger_,"Failed to inform emuTA about the L1A number of the first event read: " +  xcept::stdformat_exception_history(e));
+      stringstream ss47;
+      ss47 << "Failed to inform emuTA about the L1A number of the first event read: " ;
+      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss47.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
 
   }
@@ -2630,6 +2769,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 	     << (errorFlag_ & emu::daq::reader::Spy::BufferOverwrite ? "BufferOverwrite " : "" )
 	     << (errorFlag_ & emu::daq::reader::Spy::Oversized ? "Oversized" : "" );
 	  LOG4CPLUS_WARN(logger_, ss.str());
+	  stringstream ss48;
+	  ss48 <<  ss.str();
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss48.str() );
+	  this->notifyQualified( "warn", eObj );
 	}
 // 	else{
 // 	  LOG4CPLUS_INFO(logger_, ss.str());
@@ -2648,6 +2791,14 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 			  " ("             << nEventsRead_ <<
 			  " so far) from " << inputDeviceName_.toString() <<
 			  ", size: "       << dataLength );
+	  stringstream ss49;
+	  ss49 <<  
+			  "No trailer in event " << eventNumber_ << 
+			  " ("             << nEventsRead_ <<
+			  " so far) from " << inputDeviceName_.toString() <<
+			  ", size: "       << dataLength ;
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss49.str() );
+	  this->notifyQualified( "warn", eObj );
 	  // Prepare the old block(s) to be sent out. 
 	  // They will be assumed to belong to the previous known event number.
 	  if ( passDataOnToRUBuilder_.value_ ) finalizeSuperFragment();
@@ -2671,6 +2822,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 	  }
 	  else { 
 	    LOG4CPLUS_WARN(logger_, "Event fragment dropped. (EmuRUI-to-RU memory pool's high threshold exceeded.)");
+	    stringstream ss50;
+	    ss50 <<  "Event fragment dropped. (EmuRUI-to-RU memory pool's high threshold exceeded.)";
+	    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss50.str() );
+	    this->notifyQualified( "warn", eObj );
 	  }
 	}
 
@@ -2694,6 +2849,14 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 			  " ("             << nEventsRead_ <<
 			  " so far) from " << inputDeviceName_.toString() <<
 			  ", size: "       << dataLength );
+	  stringstream ss51;
+	  ss51 <<  
+			  "No header in event " << eventNumber_ << 
+			  " ("             << nEventsRead_ <<
+			  " so far) from " << inputDeviceName_.toString() <<
+			  ", size: "       << dataLength ;
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss51.str() );
+	  this->notifyQualified( "warn", eObj );
 	}
 
 	writeDataToFile( data, dataLength, header || trailer );
@@ -2715,6 +2878,10 @@ int emu::daq::rui::Application::continueConstructionOfSuperFrag()
 	  }
 	  else { 
 	    LOG4CPLUS_WARN(logger_, "Event fragment dropped. (EmuRUI-to-RU memory pool's high threshold exceeded.)");
+	    stringstream ss52;
+	    ss52 <<  "Event fragment dropped. (EmuRUI-to-RU memory pool's high threshold exceeded.)";
+	    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss52.str() );
+	    this->notifyQualified( "warn", eObj );
 	  }
 	}
 	insideEvent_ = true;
@@ -2783,6 +2950,10 @@ int emu::daq::rui::Application::continueSTEPRun()
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": "                << e.what();
       LOG4CPLUS_FATAL(logger_, oss.str());
+      stringstream ss53;
+      ss53 <<  oss.str();
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss53.str() );
+      this->notifyQualified( "fatal", eObj );
       moveToFailedState();
     }
     catch(...){
@@ -2791,6 +2962,10 @@ int emu::daq::rui::Application::continueSTEPRun()
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": unknown exception.";
       LOG4CPLUS_FATAL(logger_, oss.str());
+      stringstream ss54;
+      ss54 <<  oss.str();
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss54.str() );
+      this->notifyQualified( "fatal", eObj );
       moveToFailedState();
       // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
@@ -2808,6 +2983,10 @@ int emu::daq::rui::Application::continueSTEPRun()
     oss << "Failed to read from " << inputDeviceName_.toString()
 	<< ": unknown exception.";
     LOG4CPLUS_ERROR(logger_, oss.str());
+    stringstream ss55;
+    ss55 <<  oss.str();
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss55.str() );
+    this->notifyQualified( "error", eObj );
   }
 
   if ( deviceReader_->getLogMessage().length() > 0 )
@@ -2828,6 +3007,12 @@ int emu::daq::rui::Application::continueSTEPRun()
     LOG4CPLUS_ERROR(logger_, 
 		    " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
 		    " read " << nBytesRead << " bytes only.");
+    stringstream ss56;
+    ss56 <<  
+		    " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
+		    " read " << nBytesRead << " bytes only.";
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss56.str() );
+    this->notifyQualified( "error", eObj );
   }
 
   nReadingPassesInEvent_++;
@@ -2843,6 +3028,10 @@ int emu::daq::rui::Application::continueSTEPRun()
       sendEventNumberToTA( deviceReader_->eventNumber() );
     } catch( xcept::Exception e ) {
       LOG4CPLUS_WARN(logger_,"Failed to inform emuTA about the L1A number of the first event read: " +  xcept::stdformat_exception_history(e));
+      stringstream ss57;
+      ss57 << "Failed to inform emuTA about the L1A number of the first event read: " ;
+      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss57.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
 
   }
@@ -2894,6 +3083,10 @@ int emu::daq::rui::Application::continueSTEPRun()
 	     << (errorFlag_ & emu::daq::reader::Spy::BufferOverwrite ? "BufferOverwrite " : "" )
 	     << (errorFlag_ & emu::daq::reader::Spy::Oversized ? "Oversized" : "" );
 	  LOG4CPLUS_WARN(logger_, ss.str());
+	  stringstream ss58;
+	  ss58 <<  ss.str();
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss58.str() );
+	  this->notifyQualified( "warn", eObj );
 	}
 	else{
 	  LOG4CPLUS_INFO(logger_, ss.str());
@@ -2918,6 +3111,14 @@ int emu::daq::rui::Application::continueSTEPRun()
 			 " ("             << nEventsRead_ <<
 			 " so far) from " << inputDeviceName_.toString() <<
 			 ", size: "       << dataLength );
+	  stringstream ss59;
+	  ss59 <<  
+			 "No trailer in event " << eventNumber_ << 
+			 " ("             << nEventsRead_ <<
+			 " so far) from " << inputDeviceName_.toString() <<
+			 ", size: "       << dataLength ;
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss59.str() );
+	  this->notifyQualified( "warn", eObj );
 	  // Mark the last block for clients
 	  makeClientsLastBlockCompleteEvent();
 	  insideEvent_ = false;
@@ -2946,6 +3147,14 @@ int emu::daq::rui::Application::continueSTEPRun()
 			 " ("             << nEventsRead_ <<
 			 " so far) from " << inputDeviceName_.toString() <<
 			 ", size: "       << dataLength );
+	  stringstream ss60;
+	  ss60 <<  
+			 "No trailer in event " << eventNumber_ << 
+			 " ("             << nEventsRead_ <<
+			 " so far) from " << inputDeviceName_.toString() <<
+			 ", size: "       << dataLength ;
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss60.str() );
+	  this->notifyQualified( "warn", eObj );
 	  // Mark the last block for clients
 	  makeClientsLastBlockCompleteEvent();
 	  if ( STEPEventCounter_.isNeededEvent( data ) ){
@@ -2970,6 +3179,14 @@ int emu::daq::rui::Application::continueSTEPRun()
 			  " ("             << nEventsRead_ <<
 			  " so far) from " << inputDeviceName_.toString() <<
 			  ", size: "       << dataLength );
+	  stringstream ss61;
+	  ss61 <<  
+			  "No header in event after " << eventNumber_ << 
+			  " ("             << nEventsRead_ <<
+			  " so far) from " << inputDeviceName_.toString() <<
+			  ", size: "       << dataLength ;
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss61.str() );
+	  this->notifyQualified( "warn", eObj );
 	} // if ( !header && !trailer )
 
 	else if ( header && !trailer ){
@@ -2991,6 +3208,14 @@ int emu::daq::rui::Application::continueSTEPRun()
 			  " ("             << nEventsRead_ <<
 			  " so far) from " << inputDeviceName_.toString() <<
 			  ", size: "       << dataLength );
+	  stringstream ss62;
+	  ss62 <<  
+			  "No header in event after " << eventNumber_ << 
+			  " ("             << nEventsRead_ <<
+			  " so far) from " << inputDeviceName_.toString() <<
+			  ", size: "       << dataLength ;
+	  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss62.str() );
+	  this->notifyQualified( "warn", eObj );
 	} // if ( !header && trailer )
 
 	else if ( header && trailer ){
@@ -3049,10 +3274,18 @@ void emu::daq::rui::Application::ensureContiguousEventNumber(){
     }
     else{
       LOG4CPLUS_ERROR(logger_, "event number = previous event number = " << eventNumber_ );
+      stringstream ss63;
+      ss63 <<  "event number = previous event number = " << eventNumber_ ;
+      XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss63.str() );
+      this->notifyQualified( "error", eObj );
     }
   }
   catch( emu::daq::rui::exception::Exception e ){
     LOG4CPLUS_ERROR(logger_, "Failed to insert empty super-fragments: " << stdformat_exception_history(e));
+    stringstream ss64;
+    ss64 <<  "Failed to insert empty super-fragments: " ;
+    XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss64.str(), e );
+    this->notifyQualified( "error", eObj );
   }
 }
 
@@ -3064,6 +3297,11 @@ void emu::daq::rui::Application::insertEmptySuperFragments( const unsigned long 
 
   LOG4CPLUS_WARN(logger_, "Inserting " << toEventNumber-fromEventNumber+1 
 		 << " empty events (" << fromEventNumber << " through " << toEventNumber << ")");  
+  stringstream ss65;
+  ss65 <<  "Inserting " << toEventNumber-fromEventNumber+1 
+		 << " empty events (" << fromEventNumber << " through " << toEventNumber << ")";  
+  XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss65.str() );
+  this->notifyQualified( "warn", eObj );
 
   for ( unsigned long eventNumber = fromEventNumber; eventNumber <= toEventNumber; ++eventNumber ){
     appendNewBlockToSuperFrag( data, dataLength, eventNumber );
@@ -3220,6 +3458,14 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
 //        << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
 //        << deviceReader_->eventNumber()
 //        << " (" << nEventsRead_+1 << " read)");
+//     stringstream ss66;
+//     ss66 <<  "Critical DDU error in "
+//        << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
+//        << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
+//        << deviceReader_->eventNumber()
+//        << " (" << nEventsRead_+1 << " read)";
+//     XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss66.str() );
+//     this->notifyQualified( "error", eObj );
     // << " FED_OutOfSync: " << short(trailerShortWord[8] & FED_OutOfSync)
     // << " FED_Error: " << short(trailerShortWord[8] & FED_Error) 
     // << " DDU Trailer-1 bit 47: " << short(trailerShortWord[6] & 0x8000) );
@@ -3233,6 +3479,15 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
 // 		    << ". (bit T-1:46) Event "
 // 		    << deviceReader_->eventNumber()
 // 		    << " (" << nEventsRead_ << " read)");
+//     stringstream ss67;
+//     ss67 << 
+// 		    "DDU error: bad event read from " 
+// 		    << deviceReader_->getName()
+// 		    << ". (bit T-1:46) Event "
+// 		    << deviceReader_->eventNumber()
+// 		    << " (" << nEventsRead_ << " read)";
+//     XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss67.str() );
+//     this->notifyQualified( "error", eObj );
     foundError = true;
   }
   // 3)
@@ -3244,6 +3499,15 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
 // 		   << ". (bit T:4|T-1:31) Event "
 // 		   << deviceReader_->eventNumber()
 // 		   << " (" << nEventsRead_ << " read)");
+//     stringstream ss68;
+//     ss68 << 
+// 		   "DDU buffer near Full in "
+// 		   << deviceReader_->getName() 
+// 		   << ". (bit T:4|T-1:31) Event "
+// 		   << deviceReader_->eventNumber()
+// 		   << " (" << nEventsRead_ << " read)";
+//     XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss68.str() );
+//     this->notifyQualified( "warn", eObj );
     foundError = true;
   }
   // 4)
@@ -3254,6 +3518,15 @@ bool emu::daq::rui::Application::interestingDDUErrorBitPattern(char* const data,
 // 		   << ". (bit T-1:45) Event "
 // 		   << deviceReader_->eventNumber()
 // 		   << " (" << nEventsRead_ << " read)");
+//     stringstream ss69;
+//     ss69 << 
+// 		   "DDU special warning in "
+// 		   << deviceReader_->getName() 
+// 		   << ". (bit T-1:45) Event "
+// 		   << deviceReader_->eventNumber()
+// 		   << " (" << nEventsRead_ << " read)";
+//     XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss69.str() );
+//     this->notifyQualified( "warn", eObj );
     foundError = true;
   }
 
@@ -3446,6 +3719,10 @@ bool emu::daq::rui::Application::onI2oException(xcept::Exception &exception, voi
 {
 
     LOG4CPLUS_ERROR(logger_, "I2O excpetion: " << xcept::stdformat_exception_history(exception));
+    stringstream ss70;
+    ss70 <<  "I2O excpetion: " ;
+    XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss70.str(), exception );
+    this->notifyQualified( "error", eObj );
 
     return true;
 }
@@ -3489,6 +3766,11 @@ xoap::MessageReference emu::daq::rui::Application::onReset(xoap::MessageReferenc
       
       LOG4CPLUS_ERROR(logger_,
 		      s << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss71;
+      ss71 << 
+		      s << " : " ;
+      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss71.str(), e );
+      this->notifyQualified( "error", eObj );
       XCEPT_RETHROW(xoap::exception::Exception, s, e);
     }
   
@@ -3525,6 +3807,10 @@ void emu::daq::rui::Application::getTidOfEmuTA()
 
   if ( taDescriptors_.size() >= 2 ){
     LOG4CPLUS_WARN(logger_,"Got more than one application descriptors for class emu::daq::ta::Application. Using the first one.");
+    stringstream ss72;
+    ss72 << "Got more than one application descriptors for class emu::daq::ta::Application. Using the first one.";
+    XCEPT_DECLARE( emu::daq::rui::exception::Exception, eObj, ss72.str() );
+    this->notifyQualified( "warn", eObj );
   }
   
   // Now the Tid
@@ -3576,6 +3862,10 @@ void emu::daq::rui::Application::sendEventNumberToTA( unsigned long firstEventNu
     {
       LOG4CPLUS_WARN(logger_, "Tried to send first event number to emu::daq::ta::Application: " + 
 		     xcept::stdformat_exception_history(e));
+      stringstream ss73;
+      ss73 <<  "Tried to send first event number to emu::daq::ta::Application: ";
+      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss73.str(), e );
+      this->notifyQualified( "warn", eObj );
       // Retry 3 times
       bool retryOK = false;
       for (int k = 0; k < 3; k++)
@@ -3590,6 +3880,10 @@ void emu::daq::rui::Application::sendEventNumberToTA( unsigned long firstEventNu
 	    {
 	      LOG4CPLUS_WARN(logger_, "Retried to send first event number to emu::daq::ta::Application: " + 
 			     xcept::stdformat_exception_history(re));
+	      stringstream ss74;
+	      ss74 <<  "Retried to send first event number to emu::daq::ta::Application: ";
+	      XCEPT_DECLARE_NESTED( emu::daq::rui::exception::Exception, eObj, ss74.str(), re );
+	      this->notifyQualified( "warn", eObj );
 	    }
 	}
       

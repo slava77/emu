@@ -1,6 +1,7 @@
 #include "emu/daq/manager/Application.h"
 #include "emu/daq/manager/version.h"
-//#include "emu/base/Alarm.h"
+#include "emu/daq/manager/alarm/Alarm.h"
+#include "emu/base/Alarm.h"
 #include "emu/daq/rui/STEPEventCounter.h"
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTTPPlainHeader.h"
@@ -148,6 +149,12 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         LOG4CPLUS_ERROR(logger_,
             "Failed to get application descriptors for class EVM"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss0;
+        ss0 << 
+            "Failed to get application descriptors for class EVM"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss0.str(), e );
+        this->notifyQualified( "error", eObj );
     }
 
     try
@@ -162,6 +169,12 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         LOG4CPLUS_ERROR(logger_,
             "Failed to get application descriptors for class RU"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss1;
+        ss1 << 
+            "Failed to get application descriptors for class RU"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss1.str(), e );
+        this->notifyQualified( "error", eObj );
     }
 
     try
@@ -176,6 +189,12 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         LOG4CPLUS_ERROR(logger_,
             "Failed to get application descriptors for class BU"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss2;
+        ss2 << 
+            "Failed to get application descriptors for class BU"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss2.str(), e );
+        this->notifyQualified( "error", eObj );
     }
 
     try
@@ -190,6 +209,12 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         LOG4CPLUS_WARN(logger_,
             "Failed to get application descriptors for class emu::daq::ta::Application"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss3;
+        ss3 << 
+            "Failed to get application descriptors for class emu::daq::ta::Application"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss3.str(), e );
+        this->notifyQualified( "warn", eObj );
     }
 
     try
@@ -204,6 +229,12 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         LOG4CPLUS_WARN(logger_,
             "Failed to get application descriptors for class emu::daq::rui::Application"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss4;
+        ss4 << 
+            "Failed to get application descriptors for class emu::daq::rui::Application"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss4.str(), e );
+        this->notifyQualified( "warn", eObj );
     }
 
     try
@@ -218,6 +249,12 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         LOG4CPLUS_WARN(logger_,
             "Failed to get application descriptors for class emu::daq::fu::Application"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss5;
+        ss5 << 
+            "Failed to get application descriptors for class emu::daq::fu::Application"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss5.str(), e );
+        this->notifyQualified( "warn", eObj );
     }
 
     try
@@ -232,6 +269,12 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         LOG4CPLUS_WARN(logger_,
             "Failed to get application descriptors for class EmuMonitor"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss6;
+        ss6 << 
+            "Failed to get application descriptors for class EmuMonitor"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss6.str(), e );
+        this->notifyQualified( "warn", eObj );
     }
 
     vector< xdaq::ApplicationDescriptor* > dqmTFMonitorDescriptors_; // There's only one, but anyway
@@ -247,6 +290,12 @@ void emu::daq::manager::Application::getAllAppDescriptors()
         LOG4CPLUS_WARN(logger_,
             "Failed to get application descriptors for class EmuTFMonitor"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss7;
+        ss7 << 
+            "Failed to get application descriptors for class EmuTFMonitor"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss7.str(), e );
+        this->notifyQualified( "warn", eObj );
     }
 
     // Append EmuTFMonitor's descriptor to EmuTFMonitors'
@@ -893,6 +942,13 @@ throw (xgi::exception::Exception)
     
     *out << warningsToDisplay_;
 
+    if ( globalMode_.value_ ){
+      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warn", "Local DAQ is in unsupervised mode.", "", &logger_ );
+    }
+    else {
+      REVOKE_ALARM( "unsupervised", NULL );
+    }
+
     if ( globalMode_.value_ ) setParametersForGlobalMode();
 
 }
@@ -1367,6 +1423,10 @@ emu::daq::manager::Application::materialToReportOnPage1(){
   }
   catch( const std::exception& e ){
     LOG4CPLUS_WARN(logger_, "Failed to report min and max number of events to Page 1 : " << e.what() );
+    stringstream ss8;
+    ss8 <<  "Failed to report min and max number of events to Page 1 : " << e.what() ;
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss8.str() );
+    this->notifyQualified( "warn", eObj );
   }
   
   return items;
@@ -1387,6 +1447,11 @@ void emu::daq::manager::Application::getRunInfoFromTA( string* runnum, string* m
       if ( taDescriptors_.size() > 1 ){
 	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
 		       " TA instances found. Will use TA0.");
+	stringstream ss9;
+	ss9 << "The embarassment of riches: " << taDescriptors_.size() <<
+		       " TA instances found. Will use TA0.";
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss9.str() );
+	this->notifyQualified( "warn", eObj );
       }
 
       map <string,string> namesAndTypes;
@@ -1408,15 +1473,27 @@ void emu::daq::manager::Application::getRunInfoFromTA( string* runnum, string* m
 	{
 	  LOG4CPLUS_ERROR(logger_,"Failed to get run info from TA0: " << 
 			  xcept::stdformat_exception_history(e) );
+	  stringstream ss10;
+	  ss10 << "Failed to get run info from TA0: ";
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss10.str(), e );
+	  this->notifyQualified( "error", eObj );
 	}
       catch(...)
 	{
 	  LOG4CPLUS_ERROR(logger_,"Failed to get run info from TA0.");
+	  stringstream ss11;
+	  ss11 << "Failed to get run info from TA0.";
+	  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss11.str() );
+	  this->notifyQualified( "error", eObj );
 	}
 
     }
     else{
       LOG4CPLUS_ERROR(logger_,"No TA found.");
+      stringstream ss12;
+      ss12 << "No TA found.";
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss12.str() );
+      this->notifyQualified( "error", eObj );
     }
 }
 
@@ -1439,6 +1516,12 @@ void emu::daq::manager::Application::getTriggerSources()
       LOG4CPLUS_WARN(logger_,
 		      "Failed to get application descriptors for class TTCciControl: "
 		      << stdformat_exception_history(e));
+      stringstream ss13;
+      ss13 << 
+		      "Failed to get application descriptors for class TTCciControl: "
+		      ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss13.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
 
   if ( appDescriptors.size() >= 1 ){
@@ -1446,6 +1529,12 @@ void emu::daq::manager::Application::getTriggerSources()
       LOG4CPLUS_WARN(logger_, "The embarassement of riches: " << 
 		      appDescriptors.size() << 
 		      " TTCciControl instances found. Trying first one.");
+      stringstream ss14;
+      ss14 <<  "The embarassement of riches: " << 
+		      appDescriptors.size() << 
+		      " TTCciControl instances found. Trying first one.";
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss14.str() );
+      this->notifyQualified( "warn", eObj );
     map <string,string> namesAndTypes;
     namesAndTypes["ClockSource"  ] = "string";
     namesAndTypes["OrbitSource"  ] = "string";
@@ -1469,15 +1558,27 @@ void emu::daq::manager::Application::getTriggerSources()
 	{
 	  LOG4CPLUS_WARN(logger_,"Failed to get trigger sources from TTCciControl: " << 
 			  xcept::stdformat_exception_history(e) );
+	  stringstream ss15;
+	  ss15 << "Failed to get trigger sources from TTCciControl: ";
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss15.str(), e );
+	  this->notifyQualified( "warn", eObj );
 	}
       catch(...)
 	{
 	  LOG4CPLUS_WARN(logger_,"Failed to get trigger sources from TTCciControl."); 
+	  stringstream ss16;
+	  ss16 << "Failed to get trigger sources from TTCciControl."; 
+	  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss16.str() );
+	  this->notifyQualified( "warn", eObj );
 	}
     
   }
   else{
     LOG4CPLUS_WARN(logger_, "Did not find TTCciControl. ==> Trigger sources are unknown.");
+    stringstream ss17;
+    ss17 <<  "Did not find TTCciControl. ==> Trigger sources are unknown.";
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss17.str() );
+    this->notifyQualified( "warn", eObj );
   }
 }
 
@@ -1497,12 +1598,23 @@ void emu::daq::manager::Application::getTriggerMode()
       LOG4CPLUS_WARN(logger_,
 		      "Failed to get application descriptors for class TF_hyperDAQ"
 		      << stdformat_exception_history(e));
+      stringstream ss18;
+      ss18 << 
+		      "Failed to get application descriptors for class TF_hyperDAQ"
+		      ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss18.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
 
   if ( appDescriptors.size() >= 1 ){
     if ( appDescriptors.size() > 1 )
       LOG4CPLUS_WARN(logger_, "The embarassement of riches: " << 
 		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.");
+      stringstream ss19;
+      ss19 <<  "The embarassement of riches: " << 
+		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.";
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss19.str() );
+      this->notifyQualified( "warn", eObj );
     try{
       TF_triggerMode_ = getScalarParam(appDescriptors[0],"triggerMode","string");
       LOG4CPLUS_INFO(logger_, "Got trigger mode from TF_hyperDAQ: " 
@@ -1513,10 +1625,21 @@ void emu::daq::manager::Application::getTriggerMode()
 		     << appDescriptors[0]->getClassName()
 		     << appDescriptors[0]->getInstance() << " "
 		     << xcept::stdformat_exception_history(e) );
+      stringstream ss20;
+      ss20 <<  "Failed to get trigger mode from " 
+		     << appDescriptors[0]->getClassName()
+		     << appDescriptors[0]->getInstance() << " "
+		      ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss20.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
   }
   else{
     LOG4CPLUS_WARN(logger_, "Did not find TF_hyperDAQ. ==> Trigger mode is unknown.");
+    stringstream ss21;
+    ss21 <<  "Did not find TF_hyperDAQ. ==> Trigger mode is unknown.";
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss21.str() );
+    this->notifyQualified( "warn", eObj );
   }
 }
 
@@ -1577,6 +1700,10 @@ throw (xgi::exception::Exception)
 		// cgicc::form_iterator runTypeElement = cgi.getElement("runtype");
 		if ( fe->isEmpty() ){
 		  LOG4CPLUS_ERROR(logger_, "Failed to get run type from http form");
+		  stringstream ss22;
+		  ss22 <<  "Failed to get run type from http form";
+		  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss22.str() );
+		  this->notifyQualified( "error", eObj );
 		}
 		else{
 		  runType_.fromString( fe->getValue() );
@@ -1635,6 +1762,10 @@ throw (xgi::exception::Exception)
 // 			    "Failed to reset FSM: ", e);
 	      LOG4CPLUS_ERROR(logger_, "Failed to reset FSM: " << 
 			      xcept::stdformat_exception_history(e) );
+	      stringstream ss23;
+	      ss23 <<  "Failed to reset FSM: ";
+	      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss23.str(), e );
+	      this->notifyQualified( "error", eObj );
 	    }
 	    fireEvent("Halt");
 	  }
@@ -1850,6 +1981,11 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
 
         LOG4CPLUS_ERROR(logger_, "Failed to get state"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss24;
+        ss24 <<  "Failed to get state"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss24.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     stats.push_back(pair<string,string>("state", s));
 
@@ -1866,6 +2002,11 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
 
         LOG4CPLUS_ERROR(logger_, "Failed to get deltaT"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss25;
+        ss25 <<  "Failed to get deltaT"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss25.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     stats.push_back(pair<string,string>("deltaT", s));
 
@@ -1882,6 +2023,11 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
 
         LOG4CPLUS_ERROR(logger_, "Failed to get deltaN"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss26;
+        ss26 <<  "Failed to get deltaN"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss26.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     stats.push_back(pair<string,string>("deltaN", s));
 
@@ -1899,6 +2045,11 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
 
         LOG4CPLUS_ERROR(logger_, "Failed to get deltaSumOfSquares"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss27;
+        ss27 <<  "Failed to get deltaSumOfSquares"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss27.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     stats.push_back(pair<string,string>("deltaSumOfSquares", s));
 
@@ -1915,6 +2066,11 @@ vector< pair<string,string> > emu::daq::manager::Application::getStats
 
         LOG4CPLUS_ERROR(logger_, "Failed to get deltaSumOfSizes"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss28;
+        ss28 <<  "Failed to get deltaSumOfSizes"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss28.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     stats.push_back(pair<string,string>("deltaSumOfSizes", s));
 
@@ -2081,6 +2237,11 @@ void emu::daq::manager::Application::queryAppStates( vector< pair<xdaq::Applicat
 	s = "UNKNOWN";
 	LOG4CPLUS_WARN(logger_, "Failed to get state"
 			<< " : " << xcept::stdformat_exception_history(e));
+	stringstream ss29;
+	ss29 <<  "Failed to get state"
+			<< " : " ;
+	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss29.str(), e );
+	this->notifyQualified( "warn", eObj );
       }
     as->second = s;
   }
@@ -2412,6 +2573,11 @@ void emu::daq::manager::Application::configureDAQ()
       if ( taDescriptors_.size() > 1 ){
 	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
 		       " TA instances found. Will use TA0.");
+	stringstream ss30;
+	ss30 << "The embarassment of riches: " << taDescriptors_.size() <<
+		       " TA instances found. Will use TA0.";
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss30.str() );
+	this->notifyQualified( "warn", eObj );
       }
       string runNumber    = runNumber_.toString();
       try
@@ -2468,6 +2634,10 @@ void emu::daq::manager::Application::configureDAQ()
     }
     else{
       LOG4CPLUS_ERROR(logger_,"No TA found.");
+      stringstream ss31;
+      ss31 << "No TA found.";
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss31.str() );
+      this->notifyQualified( "error", eObj );
     }
 
     if ( buildEvents_.value_ ){
@@ -3130,6 +3300,12 @@ throw (xcept::Exception)
 	  LOG4CPLUS_ERROR(logger_, "Failed to set CSC configuration id in " + app.str() 
 			  + " to " + CSCConfigId_.toString() + 
 			  " : <![CDATA[" + xcept::stdformat_exception_history(e) + "]]>");
+	  stringstream ss32;
+	  ss32 <<  "Failed to set CSC configuration id in " + app.str() 
+			  + " to " + CSCConfigId_.toString() + 
+			  " : <![CDATA["  + "]]>";
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss32.str(), e );
+	  this->notifyQualified( "error", eObj );
 	}
 
       try
@@ -3145,6 +3321,12 @@ throw (xcept::Exception)
 	  LOG4CPLUS_ERROR(logger_, "Failed to set TF configuration id in " + app.str() 
 			  + " to " + TFConfigId_.toString() + 
 			  " : <![CDATA[" + xcept::stdformat_exception_history(e) + "]]>");
+	  stringstream ss33;
+	  ss33 <<  "Failed to set TF configuration id in " + app.str() 
+			  + " to " + TFConfigId_.toString() + 
+			  " : <![CDATA["  + "]]>";
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss33.str(), e );
+	  this->notifyQualified( "error", eObj );
 	}
 
 
@@ -3333,6 +3515,12 @@ void emu::daq::manager::Application::controlDQM( const string action )
 	LOG4CPLUS_ERROR(logger_, "Failed to " << action << " " 
 			<< (*mon)->getClassName() << (*mon)->getInstance() << " "
 			<< xcept::stdformat_exception_history(e));
+	stringstream ss34;
+	ss34 <<  "Failed to " << action << " " 
+			<< (*mon)->getClassName() << (*mon)->getInstance() << " "
+			;
+	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss34.str(), e );
+	this->notifyQualified( "error", eObj );
       }
   }
  
@@ -3358,6 +3546,10 @@ throw (emu::daq::manager::exception::Exception)
 //                 "Failed to reset emu::daq::rui::Applications", e);
             oss << " Failed to reset emu::daq::rui::Applications: " << xcept::stdformat_exception_history(e);
 	    LOG4CPLUS_ERROR(logger_, "Failed to reset emu::daq::rui::Applications: " << xcept::stdformat_exception_history(e) );
+	    stringstream ss35;
+	    ss35 <<  "Failed to reset emu::daq::rui::Applications: "  ;
+	    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss35.str(), e );
+	    this->notifyQualified( "error", eObj );
         }
     }
 
@@ -3374,6 +3566,10 @@ throw (emu::daq::manager::exception::Exception)
 	  //             "Failed to stop RU builder", e);
 	  oss << " Failed to stop RU builder: " << xcept::stdformat_exception_history(e);
 	  LOG4CPLUS_ERROR(logger_, "Failed to stop RU builder: " << xcept::stdformat_exception_history(e) );
+	  stringstream ss36;
+	  ss36 <<  "Failed to stop RU builder: "  ;
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss36.str(), e );
+	  this->notifyQualified( "error", eObj );
 	}
     }
 
@@ -3391,6 +3587,10 @@ throw (emu::daq::manager::exception::Exception)
 //                 "Failed to stop trigger", e);
 	  oss << " Failed to stop emu::daq::ta::Application: " << xcept::stdformat_exception_history(e);
 	  LOG4CPLUS_ERROR(logger_, "Failed to stop emu::daq::ta::Application: " << xcept::stdformat_exception_history(e) );
+	  stringstream ss37;
+	  ss37 <<  "Failed to stop emu::daq::ta::Application: "  ;
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss37.str(), e );
+	  this->notifyQualified( "error", eObj );
         }
     }
 
@@ -3410,6 +3610,10 @@ throw (emu::daq::manager::exception::Exception)
 	      //                 "Failed to reset emu::daq::fu::Applications", e);
 	      oss << " Failed to reset emu::daq::fu::Applications: " << xcept::stdformat_exception_history(e);
 	      LOG4CPLUS_ERROR(logger_, "Failed to reset emu::daq::fu::Applications: " << xcept::stdformat_exception_history(e) );
+	      stringstream ss38;
+	      ss38 <<  "Failed to reset emu::daq::fu::Applications: "  ;
+	      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss38.str(), e );
+	      this->notifyQualified( "error", eObj );
 	    }
 	}
     }
@@ -3442,6 +3646,13 @@ void emu::daq::manager::Application::resetApps( vector< xdaq::ApplicationDescrip
 			    << (*pos)->getClassName() 
 			    << (*pos)->getInstance() << " "
 			    << xcept::stdformat_exception_history(e) );
+	    stringstream ss39;
+	    ss39 <<  "Failed to reset " 
+			    << (*pos)->getClassName() 
+			    << (*pos)->getInstance() << " "
+			     ;
+	    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss39.str(), e );
+	    this->notifyQualified( "error", eObj );
         }
     }
 
@@ -3471,6 +3682,10 @@ throw (emu::daq::manager::exception::Exception)
 //             "Failed to halt EVM", e);
 	// Don't raise exception here. Go on to try to stop the others.
 	LOG4CPLUS_ERROR(logger_, "Failed to halt EVM : " << xcept::stdformat_exception_history(e));
+	stringstream ss40;
+	ss40 <<  "Failed to halt EVM : " ;
+	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss40.str(), e );
+	this->notifyQualified( "error", eObj );
     }
 
 
@@ -3496,6 +3711,10 @@ throw (emu::daq::manager::exception::Exception)
 //             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
 	    // Don't raise exception here. Go on to try to stop the others.
 	    LOG4CPLUS_ERROR(logger_, s << " : " << xcept::stdformat_exception_history(e));
+	    stringstream ss41;
+	    ss41 <<  s << " : " ;
+	    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss41.str(), e );
+	    this->notifyQualified( "error", eObj );
         }
     }
 
@@ -3522,6 +3741,10 @@ throw (emu::daq::manager::exception::Exception)
 //             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
 	    // Don't raise exception here. Go on to try to stop the others.
 	    LOG4CPLUS_ERROR(logger_, s << " : " << xcept::stdformat_exception_history(e));
+	    stringstream ss42;
+	    ss42 <<  s << " : " ;
+	    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss42.str(), e );
+	    this->notifyQualified( "error", eObj );
         }
     }
 }
@@ -3557,6 +3780,10 @@ throw (emu::daq::manager::exception::Exception)
 //             XCEPT_RETHROW(emu::daq::manager::exception::Exception, s, e);
 	    // Don't raise exception here. Go on to try to stop the others first.
 	    LOG4CPLUS_ERROR(logger_, s );
+	    stringstream ss43;
+	    ss43 <<  s ;
+	    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss43.str() );
+	    this->notifyQualified( "error", eObj );
 
 	    oss_all << " | " << s << " : " << xcept::stdformat_exception_history(e);
         }
@@ -4257,10 +4484,20 @@ xoap::MessageReference emu::daq::manager::Application::makeTAGenerateRunStopTime
       {
 	LOG4CPLUS_WARN(logger_, "Failed to make emu::daq::ta::Application generate run stop time: Received fault reply: " 
 		       << replyBody.getFault().getFaultString() );
+	stringstream ss44;
+	ss44 <<  "Failed to make emu::daq::ta::Application generate run stop time: Received fault reply: " 
+		       << replyBody.getFault().getFaultString() ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss44.str() );
+	this->notifyQualified( "warn", eObj );
       }
   } catch(xcept::Exception e){
     LOG4CPLUS_WARN(logger_, "Failed to make emu::daq::ta::Application generate run stop time: " 
 		   << xcept::stdformat_exception_history(e));
+    stringstream ss45;
+    ss45 <<  "Failed to make emu::daq::ta::Application generate run stop time: " 
+		   ;
+    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss45.str(), e );
+    this->notifyQualified( "warn", eObj );
 
   }
 
@@ -4550,12 +4787,25 @@ void emu::daq::manager::Application::getIdsOfRunningConfigurationsFromFM(){
 		     << RegexMatchingCSCConfigName_.toString()
 		     << "\" in state \"Configur*\"."
 		     << " ==> CSC configuarion id will be 0. ]]>" );
+      stringstream ss46;
+      ss46 <<  "<![CDATA[ Found in CSC FM no CSC configuration matching \""
+		     << RegexMatchingCSCConfigName_.toString()
+		     << "\" in state \"Configur*\"."
+		     << " ==> CSC configuarion id will be 0. ]]>" ;
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss46.str() );
+      this->notifyQualified( "warn", eObj );
     }
   }
   catch(emu::daq::manager::exception::Exception &e){
     LOG4CPLUS_WARN(logger_,
 		   "Failed to get unique id of CSC configuration from CSC FM"
 		   << " : " << xcept::stdformat_exception_history(e));
+    stringstream ss47;
+    ss47 << 
+		   "Failed to get unique id of CSC configuration from CSC FM"
+		   << " : " ;
+    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss47.str(), e );
+    this->notifyQualified( "warn", eObj );
   }
 
   // From Track Finder Cell: TODO
@@ -4591,6 +4841,12 @@ throw (xgi::exception::Exception)
         LOG4CPLUS_ERROR(logger_,
             "Failed to get monitoringInfo parameter from EVM"
             << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss48;
+        ss48 << 
+            "Failed to get monitoringInfo parameter from EVM"
+            << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss48.str(), e );
+        this->notifyQualified( "error", eObj );
     }
 
     *out << "EVM0," << monitoringInfo << endl;
@@ -4609,6 +4865,12 @@ throw (xgi::exception::Exception)
             LOG4CPLUS_ERROR(logger_,
                 "Failed to get monitoringInfo parameter from RU" << i
                 << " : " << xcept::stdformat_exception_history(e));
+            stringstream ss49;
+            ss49 << 
+                "Failed to get monitoringInfo parameter from RU" << i
+                << " : " ;
+            XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss49.str(), e );
+            this->notifyQualified( "error", eObj );
         }
 
         *out << "RU" << i << "," << monitoringInfo << endl;
@@ -4628,6 +4890,12 @@ throw (xgi::exception::Exception)
             LOG4CPLUS_ERROR(logger_,
                 "Failed to get monitoringInfo parameter from BU" << i
                 << " : " << xcept::stdformat_exception_history(e));
+            stringstream ss50;
+            ss50 << 
+                "Failed to get monitoringInfo parameter from BU" << i
+                << " : " ;
+            XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss50.str(), e );
+            this->notifyQualified( "error", eObj );
         }
 
         *out << "BU" << i << "," << monitoringInfo << endl;
@@ -4771,6 +5039,11 @@ vector< map< string,string > > emu::daq::manager::Application::getRUIEventCounts
       dduError = "";
       LOG4CPLUS_WARN(logger_, "Failed to get event count of emu::daq::rui::Application." << appInst.str()
 		     << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss51;
+      ss51 <<  "Failed to get event count of emu::daq::rui::Application." << appInst.str()
+		     << " : " ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss51.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
     map< string,string > sm;
     sm[ "appName"  ] = "emu::daq::rui::Application";
@@ -4813,6 +5086,11 @@ vector< map< string,string > > emu::daq::manager::Application::getFUEventCounts(
       count = "UNKNOWN";
       LOG4CPLUS_WARN(logger_, "Failed to get event count of emu::daq::fu::Application." << appInst.str()
 		     << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss52;
+      ss52 <<  "Failed to get event count of emu::daq::fu::Application." << appInst.str()
+		     << " : " ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss52.str(), e );
+      this->notifyQualified( "warn", eObj );
     }
     map< string,string > sm;
     sm[ "appName"  ] = "emu::daq::fu::Application";
@@ -5028,11 +5306,23 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
 		      << (*rui)->getClassName() << (*rui)->getInstance() 
 		      << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss53;
+      ss53 <<  "Failed to get STEP info from " 
+		      << (*rui)->getClassName() << (*rui)->getInstance() 
+		      << " : " ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss53.str(), e );
+      this->notifyQualified( "warn", eObj );
       isFinished = false;
     } catch (xoap::exception::Exception& e){
       LOG4CPLUS_WARN( logger_, "Failed to parse STEP info from reply from " 
 		      << (*rui)->getClassName() << (*rui)->getInstance() 
 		      << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss54;
+      ss54 <<  "Failed to parse STEP info from reply from " 
+		      << (*rui)->getClassName() << (*rui)->getInstance() 
+		      << " : " ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss54.str(), e );
+      this->notifyQualified( "warn", eObj );
       isFinished = false;
     }
     
@@ -5193,11 +5483,23 @@ bool emu::daq::manager::Application::isSTEPFinished(){
       LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
 		      << (*pos)->getClassName() << (*pos)->getInstance() 
 		      << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss55;
+      ss55 <<  "Failed to get STEP info from " 
+		      << (*pos)->getClassName() << (*pos)->getInstance() 
+		      << " : " ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss55.str(), e );
+      this->notifyQualified( "warn", eObj );
       isFinished = false;
     } catch (xoap::exception::Exception& e){
       LOG4CPLUS_WARN( logger_, "Failed to parse STEP info from reply from " 
 		      << (*pos)->getClassName() << (*pos)->getInstance() 
 		      << " : " << xcept::stdformat_exception_history(e));
+      stringstream ss56;
+      ss56 <<  "Failed to parse STEP info from reply from " 
+		      << (*pos)->getClassName() << (*pos)->getInstance() 
+		      << " : " ;
+      XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss56.str(), e );
+      this->notifyQualified( "warn", eObj );
       isFinished = false;
     }
 
@@ -5267,6 +5569,10 @@ void emu::daq::manager::Application::sendDDUInputMask( const bool               
     if ( (*rui)->getInstance() == ruiInstance ) ruiDescriptor = (*rui);
   if ( ruiDescriptor == NULL ){
     LOG4CPLUS_ERROR(logger_, "Failed to get descriptor of emu::daq::rui::Application instance " << ruiInstance );
+    stringstream ss57;
+    ss57 <<  "Failed to get descriptor of emu::daq::rui::Application instance " << ruiInstance ;
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss57.str() );
+    this->notifyQualified( "error", eObj );
     return;
   }
 
@@ -5306,20 +5612,44 @@ void emu::daq::manager::Application::sendDDUInputMask( const bool               
       LOG4CPLUS_ERROR(logger_, 
 		      "Received fault reply to DDU input mask command from emu::daq::rui::Application instance " 
 		      << ruiInstance << ": " << replyBody.getFault().getFaultString() );
+      stringstream ss58;
+      ss58 <<  
+		      "Received fault reply to DDU input mask command from emu::daq::rui::Application instance " 
+		      << ruiInstance << ": " << replyBody.getFault().getFaultString() ;
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss58.str() );
+      this->notifyQualified( "error", eObj );
     }
 
   } catch( xdaq::exception::Exception e ){
     LOG4CPLUS_ERROR(logger_,
 		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
 		    << ": " << xcept::stdformat_exception_history(e) );
+    stringstream ss59;
+    ss59 << 
+		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
+		    << ": "  ;
+    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss59.str(), e );
+    this->notifyQualified( "error", eObj );
   } catch( xoap::exception::Exception e ){
     LOG4CPLUS_ERROR(logger_,
 		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
 		    << ": " << xcept::stdformat_exception_history(e) );
+    stringstream ss60;
+    ss60 << 
+		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
+		    << ": "  ;
+    XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss60.str(), e );
+    this->notifyQualified( "error", eObj );
   } catch( ... ){
     LOG4CPLUS_ERROR(logger_,
 		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
 		    << ": Unknown exception." );
+    stringstream ss61;
+    ss61 << 
+		    "Failed to mask DDU inputs in emu::daq::rui::Application instance " << ruiInstance 
+		    << ": Unknown exception." ;
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss61.str() );
+    this->notifyQualified( "error", eObj );
   }
   
   return;
@@ -5366,6 +5696,12 @@ void emu::daq::manager::Application::getMnemonicNames(){
 	  LOG4CPLUS_ERROR(logger_,
 			  "Failed to get mnemonic name from " << app.str() << ": " 
 			  << xcept::stdformat_exception_history(e) );
+	  stringstream ss62;
+	  ss62 << 
+			  "Failed to get mnemonic name from " << app.str() << ": " 
+			   ;
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss62.str(), e );
+	  this->notifyQualified( "error", eObj );
 	}
     }
 }
@@ -5412,6 +5748,10 @@ void emu::daq::manager::Application::bookRunNumber(){
   catch( string e )
     {
       LOG4CPLUS_ERROR(logger_, e);
+      stringstream ss63;
+      ss63 <<  e;
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss63.str() );
+      this->notifyQualified( "error", eObj );
     }
 
   if ( runInfo_ ){
@@ -5430,6 +5770,13 @@ void emu::daq::manager::Application::bookRunNumber(){
 // 		   runDbBookingCommand_.toString() << " at " <<
 // 		   runDbAddress_.toString()  << " for " << sequence << ": "
 // 		   << runInfo_->errorMessage() );
+//     stringstream ss64;
+//     ss64 <<  "Booking run number with " << runInfo_ << " " <<
+// 		   runDbBookingCommand_.toString() << " at " <<
+// 		   runDbAddress_.toString()  << " for " << sequence << ": "
+// 		   << runInfo_->errorMessage() ;
+//     XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss64.str() );
+//     this->notifyQualified( "warn", eObj );
     
     if ( success ){
       isBookedRunNumber_ = true;
@@ -5443,6 +5790,13 @@ void emu::daq::manager::Application::bookRunNumber(){
 		      "<![CDATA[ Failed to book run number: " 
 		      <<  runInfo_->errorMessage()
 		      << " ==> Falling back to run number " << runNumber_.value_ << " ]]>" );
+      stringstream ss65;
+      ss65 << 
+		      "<![CDATA[ Failed to book run number: " 
+		      <<  runInfo_->errorMessage()
+		      << " ==> Falling back to run number " << runNumber_.value_ << " ]]>" ;
+      XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss65.str() );
+      this->notifyQualified( "error", eObj );
     }
   } // if ( runInfo_ ){
 
@@ -5458,7 +5812,13 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
   if ( abortedRun_ ) return;
 
   // If it's not a debug run, it should normally have been booked. Inform the user that it somehow wasn't.
-  if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
+  if ( toDatabase && !isBookedRunNumber_ ){ 
+    LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
+    stringstream ss66;
+    ss66 <<  "Nothing written to run database as no run number was booked.";
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss66.str() );
+    this->notifyQualified( "warn", eObj );
+  }
 
     stringstream subjectToELog;
     subjectToELog << "Emu local run " << runNumber_.value_
@@ -5486,12 +5846,23 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << runType_.value_ << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss67;
+	ss67 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss67.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
 
     //
@@ -5507,18 +5878,33 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
       {
 	LOG4CPLUS_ERROR(logger_,"Failed to get time of run start from TA0: " << 
 			xcept::stdformat_exception_history(e) );
+	stringstream ss68;
+	ss68 << "Failed to get time of run start from TA0: ";
+	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss68.str(), e );
+	this->notifyQualified( "error", eObj );
       }
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << runStartTime << "</td></tr>";
     name      = "start_time";
     value     = runStartTime;
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString()  <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString()  <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss69;
+	ss69 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString()  <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss69.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
     
     //
@@ -5534,18 +5920,33 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
       {
 	LOG4CPLUS_ERROR(logger_,"Failed to get time of stopping the run from TA0: " << 
 			xcept::stdformat_exception_history(e) );
+	stringstream ss70;
+	ss70 << "Failed to get time of stopping the run from TA0: ";
+	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss70.str(), e );
+	this->notifyQualified( "error", eObj );
       }
     name      = "stop_time";
     value     = runStopTime;
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString()  <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString()  <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss71;
+	ss71 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString()  <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss71.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
 
 
@@ -5574,6 +5975,13 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
 // 				      "Failed to write " << nameSpace << ":" << name << 
 // 				      " to run database " << runDbAddress_.toString() <<
 // 				      " : " << runInfo_->errorMessage() ); }
+//       else          { stringstream ss72;
+//       else          { ss72 << 
+// 				      "Failed to write " << nameSpace << ":" << name << 
+// 				      " to run database " << runDbAddress_.toString() <<
+// 				      " : " << runInfo_->errorMessage() ; }
+//       else          { XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss72.str() );
+//       else          { this->notifyQualified( "error", eObj );
 //     }
 
     //
@@ -5595,44 +6003,87 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     value = TTCci_ClockSource_.toString();
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss73;
+	ss73 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss73.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
     name  = "orbit_source";
     value = TTCci_OrbitSource_.toString();
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{ 
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss74;
+	ss74 << 
+	  "Failed to write " << nameSpace << ":" << name << 
+	  " to run database " << runDbAddress_.toString() <<
+	  " : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss74.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
     name  = "trigger_source";
     value = TTCci_TriggerSource_.toString();
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() );
+	stringstream ss75;
+	ss75 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss75.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
     name  = "BGO_source";
     value = TTCci_BGOSource_.toString();
     if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
-      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				     nameSpace << ":" << name << " = " << value ); }
-      else          { LOG4CPLUS_ERROR(logger_,
-				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+      if ( success ){
+	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+		       nameSpace << ":" << name << " = " << value );
+      }
+      else{
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() );
+	stringstream ss76;
+	ss76 << 
+			"Failed to write " << nameSpace << ":" << name << 
+			" to run database " << runDbAddress_.toString() <<
+			" : " << runInfo_->errorMessage() ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss76.str() );
+	this->notifyQualified( "error", eObj );
+      }
     }
 
     //
@@ -5646,12 +6097,23 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
       htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
-	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				       nameSpace << ":" << name << " = " << value ); }
-	else          { LOG4CPLUS_ERROR(logger_,
-					"Failed to write " << nameSpace << ":" << name << 
-					" to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+	if ( success ){
+	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+			 nameSpace << ":" << name << " = " << value );
+	}
+	else{
+	  LOG4CPLUS_ERROR(logger_,
+			  "Failed to write " << nameSpace << ":" << name << 
+			  " to run database " << runDbAddress_.toString() <<
+			  " : " << runInfo_->errorMessage() );
+	  stringstream ss77;
+	  ss77 << 
+			  "Failed to write " << nameSpace << ":" << name << 
+			  " to run database " << runDbAddress_.toString() <<
+			  " : " << runInfo_->errorMessage() ;
+	  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss77.str() );
+	  this->notifyQualified( "error", eObj );
+	}
       }
     }
 
@@ -5668,12 +6130,23 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
       htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
-	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
-				       nameSpace << ":" << name << " = " << value ); }
-	else          { LOG4CPLUS_ERROR(logger_,
-					"Failed to write " << nameSpace << ":" << name << 
-					" to run database " << runDbAddress_.toString() <<
-				      " : " << runInfo_->errorMessage() ); }
+	if ( success ){
+	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+			 nameSpace << ":" << name << " = " << value );
+	}
+	else{
+	  LOG4CPLUS_ERROR(logger_,
+			  "Failed to write " << nameSpace << ":" << name << 
+			  " to run database " << runDbAddress_.toString() <<
+			  " : " << runInfo_->errorMessage() );
+	  stringstream ss78;
+	  ss78 << 
+			  "Failed to write " << nameSpace << ":" << name << 
+			  " to run database " << runDbAddress_.toString() <<
+			  " : " << runInfo_->errorMessage() ;
+	  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss78.str() );
+	  this->notifyQualified( "error", eObj );
+	}
       }
     }
     htmlMessageToELog << "</table>";
@@ -5710,6 +6183,10 @@ void emu::daq::manager::Application::postToELog( string subject, string body, ve
     }
   catch( string e ){
     LOG4CPLUS_ERROR(logger_, e);
+    stringstream ss79;
+    ss79 <<  e;
+    XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss79.str() );
+    this->notifyQualified( "error", eObj );
     eel = 0;
   }
   if ( eel ) {
@@ -5887,6 +6364,13 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
 
     warningsToDisplay_ = "";
 
+    if ( globalMode_.value_ ){
+      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warn", "Local DAQ is in unsupervised mode.", "", &logger_ );
+    }
+    else {
+      REVOKE_ALARM( "unsupervised", NULL );
+    }
+
     try
       {
 	configureDAQ();
@@ -5918,6 +6402,12 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
 	LOG4CPLUS_ERROR(logger_, 
 		       "Failed to get mnemonic names from emu::daq::rui::Applications: " 
 		       << xcept::stdformat_exception_history(ex) );
+	stringstream ss80;
+	ss80 <<  
+		       "Failed to get mnemonic names from emu::daq::rui::Applications: " 
+		        ;
+	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss80.str(), ex );
+	this->notifyQualified( "error", eObj );
       }
 
     // Successfully configured in global mode.
@@ -5944,6 +6434,12 @@ void emu::daq::manager::Application::enableAction(toolbox::Event::Reference e)
 	  LOG4CPLUS_ERROR(logger_,
 			  "<![CDATA[ Failed to book run number. ==> Falling back to run number " 
 			  << runNumber_.value_ << " ]]>" );
+	  stringstream ss81;
+	  ss81 << 
+			  "<![CDATA[ Failed to book run number. ==> Falling back to run number " 
+			  << runNumber_.value_ << " ]]>" ;
+	  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss81.str() );
+	  this->notifyQualified( "error", eObj );
 	}
     }
 
@@ -6004,6 +6500,11 @@ void emu::daq::manager::Application::haltAction(toolbox::Event::Reference e)
       {
 	LOG4CPLUS_ERROR(logger_,
 			"Failed to update run info database and/or to post to e-log" );
+	stringstream ss82;
+	ss82 << 
+			"Failed to update run info database and/or to post to e-log" ;
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss82.str() );
+	this->notifyQualified( "error", eObj );
       }
 
     if ( controlDQM_.value_ ){
@@ -6057,6 +6558,12 @@ void emu::daq::manager::Application::noAction(toolbox::Event::Reference e)
   LOG4CPLUS_WARN(getApplicationLogger(), e->type() 
 		 << " attempted when already " 
 		 << fsm_.getStateName(fsm_.getCurrentState()));
+  stringstream ss83;
+  ss83 << e->type() 
+       << " attempted when already " 
+       << fsm_.getStateName(fsm_.getCurrentState());
+  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss83.str() );
+  this->notifyQualified( "warn", eObj );
 }
 
 void emu::daq::manager::Application::resetAction()
@@ -6073,6 +6580,10 @@ void emu::daq::manager::Application::resetAction()
 	ss << "Failed to reset EmuDAQ: " << xcept::stdformat_exception_history(ex);
 // 	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
 	LOG4CPLUS_ERROR(logger_, ss.str());
+	stringstream ss84;
+	ss84 <<  ss.str();
+	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss84.str() );
+	this->notifyQualified( "error", eObj );
       }
 
     if ( controlDQM_.value_ ){
@@ -6087,6 +6598,10 @@ void emu::daq::manager::Application::resetAction()
 // 			"Failed to configure the EmuMonitors of DQM", ex);
 	  LOG4CPLUS_ERROR(logger_, "Failed to configure the EmuMonitors of DQM" <<
 			  xcept::stdformat_exception_history(ex) );
+	  stringstream ss85;
+	  ss85 <<  "Failed to configure the EmuMonitors of DQM";
+	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss85.str(), ex );
+	  this->notifyQualified( "error", eObj );
 	}
     }
 

@@ -645,6 +645,11 @@ throw (xoap::exception::Exception)
 
         LOG4CPLUS_ERROR(logger_,
             s << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss0;
+        ss0 << 
+            s << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::ta::exception::Exception, eObj, ss0.str(), e );
+        this->notifyQualified( "error", eObj );
         XCEPT_RETHROW(xoap::exception::Exception, s, e);
     }
 
@@ -663,6 +668,11 @@ throw (xoap::exception::Exception)
 
         LOG4CPLUS_ERROR(logger_,
             s << " : " << xcept::stdformat_exception_history(e));
+        stringstream ss1;
+        ss1 << 
+            s << " : " ;
+        XCEPT_DECLARE_NESTED( emu::daq::ta::exception::Exception, eObj, ss1.str(), e );
+        this->notifyQualified( "error", eObj );
         XCEPT_RETHROW(xoap::exception::Exception, s, e);
     }
     catch(...)
@@ -675,6 +685,10 @@ throw (xoap::exception::Exception)
         s = oss.str();
 
         LOG4CPLUS_ERROR(logger_, s);
+        stringstream ss2;
+        ss2 <<  s;
+        XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss2.str() );
+        this->notifyQualified( "error", eObj );
         XCEPT_RAISE(xoap::exception::Exception, s);
     }
 }
@@ -880,6 +894,11 @@ emu::daq::ta::Application::startATCP()
   catch(emu::daq::ta::exception::Exception e){
     LOG4CPLUS_WARN(logger_, "Failed to get atcp descriptors : " 
 		   + xcept::stdformat_exception_history(e) );
+    stringstream ss3;
+    ss3 <<  "Failed to get atcp descriptors : " 
+		    ;
+    XCEPT_DECLARE_NESTED( emu::daq::ta::exception::Exception, eObj, ss3.str(), e );
+    this->notifyQualified( "warn", eObj );
     atcpDescriptors.clear();
   }
 
@@ -1079,10 +1098,18 @@ throw (toolbox::fsm::exception::Exception)
         s = oss.str();
 
         LOG4CPLUS_FATAL(logger_, s);
+        stringstream ss4;
+        ss4 <<  s;
+        XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss4.str() );
+        this->notifyQualified( "fatal", eObj );
     }
     catch(bad_cast)
     {
         LOG4CPLUS_FATAL(logger_, "Moving to Failed state");
+        stringstream ss5;
+        ss5 <<  "Moving to Failed state";
+        XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss5.str() );
+        this->notifyQualified( "fatal", eObj );
     }
 }
 
@@ -1225,20 +1252,37 @@ void emu::daq::ta::Application::taCreditMsg(toolbox::mem::Reference *bufRef)
             nbCreditsHeld_.value_ += msg->nbCredits;  // Hold credits
             break;
         default:
+	  {
             LOG4CPLUS_ERROR(logger_,
-                "emu::daq::ta::Application in undefined state");
-        }
+			    "emu::daq::ta::Application in undefined state");
+            stringstream ss6;
+            ss6 << "emu::daq::ta::Application in undefined state";
+            XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss6.str() );
+            this->notifyQualified( "error", eObj );
+	  }
+	}
     }
     catch(xcept::Exception e)
     {
         LOG4CPLUS_ERROR(logger_,
             "Failed to process trigger credit message : "
              << stdformat_exception_history(e));
+        stringstream ss7;
+        ss7 << 
+            "Failed to process trigger credit message : "
+             ;
+        XCEPT_DECLARE_NESTED( emu::daq::ta::exception::Exception, eObj, ss7.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     catch(...)
     {
         LOG4CPLUS_ERROR(logger_,
             "Failed to process trigger credit message : Unknown exception");
+        stringstream ss8;
+        ss8 << 
+            "Failed to process trigger credit message : Unknown exception";
+        XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss8.str() );
+        this->notifyQualified( "error", eObj );
     }
 
     bSem_.give();
@@ -1290,6 +1334,11 @@ void emu::daq::ta::Application::firstEventNumberMsg(toolbox::mem::Reference *buf
 	  else{
 	    LOG4CPLUS_ERROR(logger_,"Got more votes (" << nVotesForFirstEventNumber_ 
 			    << ") for first event number than there are EmuRUIs (" << nEmuRUIs_ << ")?!" );
+	    stringstream ss9;
+	    ss9 << "Got more votes (" << nVotesForFirstEventNumber_ 
+			    << ") for first event number than there are EmuRUIs (" << nEmuRUIs_ << ")?!" ;
+	    XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss9.str() );
+	    this->notifyQualified( "error", eObj );
 	  }
 
 	  break;
@@ -1299,6 +1348,11 @@ void emu::daq::ta::Application::firstEventNumberMsg(toolbox::mem::Reference *buf
         default:
             LOG4CPLUS_ERROR(logger_,
                 "emu::daq::ta::Application in undefined state");
+            stringstream ss10;
+            ss10 << 
+                "emu::daq::ta::Application in undefined state";
+            XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss10.str() );
+            this->notifyQualified( "error", eObj );
         }
     }
     catch(xcept::Exception e)
@@ -1306,11 +1360,22 @@ void emu::daq::ta::Application::firstEventNumberMsg(toolbox::mem::Reference *buf
         LOG4CPLUS_ERROR(logger_,
             "Failed to process first event number message : "
              << stdformat_exception_history(e));
+        stringstream ss11;
+        ss11 << 
+            "Failed to process first event number message : "
+             ;
+        XCEPT_DECLARE_NESTED( emu::daq::ta::exception::Exception, eObj, ss11.str(), e );
+        this->notifyQualified( "error", eObj );
     }
     catch(...)
     {
         LOG4CPLUS_ERROR(logger_,
             "Failed to process first event number message : Unknown exception");
+        stringstream ss12;
+        ss12 << 
+            "Failed to process first event number message : Unknown exception";
+        XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss12.str() );
+        this->notifyQualified( "error", eObj );
     }
 
     bSem_.give();
@@ -1337,6 +1402,11 @@ bool emu::daq::ta::Application::onI2oException(xcept::Exception &exception, void
 {
     LOG4CPLUS_ERROR(logger_,
         " I2O excpetion: " << xcept::stdformat_exception_history(exception));
+    stringstream ss13;
+    ss13 << 
+        " I2O excpetion: " ;
+    XCEPT_DECLARE_NESTED( emu::daq::ta::exception::Exception, eObj, ss13.str(), exception );
+    this->notifyQualified( "error", eObj );
 
     return true;
 }
