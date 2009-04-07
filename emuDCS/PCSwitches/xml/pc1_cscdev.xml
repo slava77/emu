@@ -9,6 +9,7 @@
                         <properties xmlns="urn:xdaq-application:SwitchGUI" xsi:type="soapenc:Struct">
                                 <xmlFileName xsi:type="xsd:string">/nfshome0/cscdev/TriDAS/emu/emuDCS/PCSwitches/xml/PlusSwitches.xml</xmlFileName>
                                 <switchTelnet xsi:type="xsd:string">/nfshome0/cscdev/TriDAS/emu/emuDCS/PCSwitches/bin/switch_telnet.pl</switchTelnet>
+                                <upsTelnet xsi:type="xsd:string">/nfshome0/cscdev/TriDAS/emu/emuDCS/PCSwitches/bin/ups_telnet.pl</upsTelnet>
                                 <shutdownPort xsi:type="xsd:string">/nfshome0/cscdev/TriDAS/emu/emuDCS/PCSwitches/bin/shutdown-port.pl</shutdownPort>
                                 <backupDirectory xsi:type="xsd:string">/nfshome0/cscdev/TriDAS/emu/emuDCS/PCSwitches/scr</backupDirectory>
 
