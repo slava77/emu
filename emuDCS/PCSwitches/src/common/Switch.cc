@@ -45,6 +45,20 @@ namespace emu{
       ::sleep(40);
   }
 
+  void Switch::PowerSwitch(std::string upsTelnet, std::string switchNum, std::string switchOperation){
+    std::string command;
+    command = upsTelnet + " " + switchOperation + " " + switchNum;
+    if(toolbox::net::getHostName() == "vmepcS2G18-09.cms") {
+      printf("%s\n", command.c_str());
+      int ierr=system(command.c_str());
+//      ::sleep(75);
+    } else {
+      printf("%s\n", command.c_str());
+    }
+  }
+
+
+
   void Switch::BackupSwitch(std::string switchTelnet, std::string BackupDir){
     std::cout << "BackupDir = " <<  BackupDir << std::endl;
     time_t rawtime;

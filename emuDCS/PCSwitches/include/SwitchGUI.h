@@ -52,6 +52,7 @@ class SwitchGUI: public xdaq::Application {
 	void GotoMain(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
 	void BackupSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);	
 	void ResetSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);	
+	void PowerSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);	
 	void ResetCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
 	void CLRcounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
 	void Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);	
@@ -82,6 +83,7 @@ class SwitchGUI: public xdaq::Application {
 	xdata::UnsignedLong slt_;
 	xdata::String xmlFileName_;
 	xdata::String switchTelnet_;
+    xdata::String upsTelnet_;
 	xdata::String shutdownPort_;
 	xdata::String backupDir_;
 };
