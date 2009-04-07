@@ -1,7 +1,9 @@
 #include "emu/base/WebReporter.h"
+#include "xcept/tools.h"
 
 #include <iomanip>
 #include <sstream>
+#include <exception>
 
 using namespace std;
 
@@ -14,16 +16,38 @@ emu::base::WebReporter::WebReporter(xdaq::ApplicationStub *stub)
 void 
 emu::base::WebReporter::ForEmuPage1(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception){
-  pair<time_t,string> timePair = getLocalDateTime();
-  vector<emu::base::WebReportItem> items = materialToReportOnPage1();
+
+  try{
+    // Update only if more than 5 seconds have passed since last update
+    pair<time_t,string> timeNow = getLocalDateTime();
+    if ( timeNow.first > latestTime_.first + 5 ){
+      vector<emu::base::WebReportItem> items = materialToReportOnPage1();
+      latestItems_ = materialToReportOnPage1();
+      latestTime_ = timeNow;
+    }
+  }
+  catch( xcept::Exception e ){
+    LOG4CPLUS_WARN( getApplicationLogger(), "Failed to get report for Page 1 : " << xcept::stdformat_exception_history(e) );
+    XCEPT_RETHROW( xgi::exception::Exception, "Failed to get report for Page 1 : ", e );
+  }
+  catch( const std::exception& e ){
+    LOG4CPLUS_WARN( getApplicationLogger(), "Failed to get report for Page 1 : " << e.what() );
+    XCEPT_DECLARE( xcept::Exception, ex, string("std::exception caught: ") +  e.what() );
+    XCEPT_RETHROW( xgi::exception::Exception, "Failed to get report for Page 1 : ", ex );
+  }
+  catch(...){
+    LOG4CPLUS_WARN( getApplicationLogger(), "Failed to get report for Page 1 : Unexpected exception." );
+    XCEPT_RAISE( xgi::exception::Exception, "Failed to get report for Page 1 : Unexpected exception." );
+  }
+
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << endl
        << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << endl
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
        <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
-       <<         "\" localUnixTime=\"" << timePair.first 
-       <<         "\" localDateTime=\"" << timePair.second 
+       <<         "\" localUnixTime=\"" << latestTime_.first 
+       <<         "\" localDateTime=\"" << latestTime_.second 
        << "\">" << endl;
-  for ( vector<WebReportItem>::const_iterator i = items.begin(); i != items.end(); ++i ){
+  for ( vector<WebReportItem>::const_iterator i = latestItems_.begin(); i != latestItems_.end(); ++i ){
     *out << "  <monitorable name=\"" << i->getName()
 	 <<            "\" value=\"" << i->getValue()
 	 <<  "\" nameDescription=\"" << i->getNameDescription()

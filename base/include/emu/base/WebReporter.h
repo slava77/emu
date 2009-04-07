@@ -30,6 +30,11 @@ namespace emu { namespace base {
     pair<time_t,string> getLocalDateTime();
   
     virtual vector<emu::base::WebReportItem> materialToReportOnPage1()=0;
+
+  private:
+    vector<emu::base::WebReportItem> latestItems_;
+    pair<time_t,string> latestTime_;
+
   };
 
 }} // namespace emu::base
