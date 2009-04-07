@@ -18,6 +18,7 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
   xgi::bind(this,&SwitchGUI::Maintenance, "Maintenance");
   xgi::bind(this,&SwitchGUI::BackupSwitch, "BackupSwitch");
   xgi::bind(this,&SwitchGUI::ResetSwitch, "ResetSwitch");
+  xgi::bind(this,&SwitchGUI::PowerSwitch, "PowerSwitch");
   xgi::bind(this,&SwitchGUI::ResetCounters, "ResetCounters");
   xgi::bind(this,&SwitchGUI::MacGUI, "MacGUI");
   xgi::bind(this,&SwitchGUI::CLRcounters,"CLRcounters");
@@ -28,6 +29,7 @@ SwitchGUI::SwitchGUI(xdaq::ApplicationStub * s)throw (xdaq::exception::Exception
   this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFileName_);
   this->getApplicationInfoSpace()->fireItemAvailable("backupDirectory", &backupDir_);
   this->getApplicationInfoSpace()->fireItemAvailable("switchTelnet", &switchTelnet_);
+  this->getApplicationInfoSpace()->fireItemAvailable("upsTelnet", &upsTelnet_);
   this->getApplicationInfoSpace()->fireItemAvailable("shutdownPort", &shutdownPort_);
 
 }
@@ -132,6 +134,17 @@ void SwitchGUI::ResetSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
   this->Default(in,out);
 }
 
+void SwitchGUI::PowerSwitch(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
+  cgicc::Cgicc cgi(in);
+  std::string switchOperation_, switchNum_;
+  switchOperation_ = cgi["switchOperation"]->getValue();
+  switchNum_ = cgi["switchNum"]->getValue();
+  S->PowerSwitch(upsTelnet_, switchNum_, switchOperation_);
+  this->Default(in,out);
+}
+
+
+
 void SwitchGUI::ResetCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
   cgicc::Cgicc cgi(in);
   switch_ = cgi["switch"]->getIntegerValue();
@@ -163,6 +176,7 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
   *out << cgicc::input().set("type","submit").set("value","Go to Main") << std::endl ;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();
+  *out << cgicc::td();
   std::string BackupSwitch = toolbox::toString("/%s/BackupSwitch",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",BackupSwitch) << std::endl ;
   if(S->sidelabel=="PLUS") *out << cgicc::input().set("type","submit").set("value","Backup Plus Switches") << std::endl ;
@@ -178,6 +192,32 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
   *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td() << std::endl;
+  *out << cgicc::tr() << std::endl;
+  *out << cgicc::table() << std::endl;
+  *out << cgicc::table() << std::endl;
+  std::string PowerSwitch = toolbox::toString("/%s/PowerSwitch",getApplicationDescriptor()->getURN().c_str());
+  
+  for(int i=0;i<3;i++) {
+    *out << cgicc::tr() << std::endl;
+    for(int j=0;j<8;j++) {
+      char switchNumChar[2];
+      switch(i) {
+        case 0:
+          *out << cgicc::td() << "Switch " << j+1 << cgicc::td() << std::endl;
+          break;
+        case 1:
+          sprintf(switchNumChar, "%d", j);
+          *out << cgicc::td() << cgicc::form().set("method","GET").set("action",PowerSwitch) << cgicc::input().set("type", "hidden").set("name", "switchNum").set("value",switchNumChar) << cgicc::input().set("type", "hidden").set("name", "switchOperation").set("value","on") << cgicc::input().set("type","submit").set("value","Power On/Off") << cgicc::form() << cgicc::td() << std::endl;
+          break;
+        default:
+          sprintf(switchNumChar, "%d", j);
+          *out << cgicc::td() << cgicc::form().set("method","GET").set("action",PowerSwitch) << cgicc::input().set("type", "hidden").set("name", "switchNum").set("value",switchNumChar) << cgicc::input().set("type", "hidden").set("name", "switchOperation").set("value","reboot") << cgicc::input().set("type","submit").set("value","Power Cycle") << cgicc::form() << cgicc::td() << std::endl;
+          break;
+      }
+    }
+    *out << cgicc::tr() << std::endl;
+  }
+
   *out << cgicc::tr() << std::endl;
   *out << cgicc::table() << std::endl;
   *out << cgicc::hr() << std::endl;
