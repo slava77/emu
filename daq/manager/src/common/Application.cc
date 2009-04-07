@@ -1378,12 +1378,20 @@ vector<emu::base::WebReportItem>
 emu::daq::manager::Application::materialToReportOnPage1(){
   vector<emu::base::WebReportItem> items;
 
+  // Title
+  items.push_back( emu::base::WebReportItem( "title",
+                                             "Local DAQ",
+                                             "",
+                                             "Click to visit the local DAQ Manager page.",
+                                             "",
+                                             "" ) );
+
   // State
   string state = getDAQState();
   string valueTip;
   string controlURL = getHref( appDescriptor_ ) + "/control";
   if ( ! ( state == "Enabled" || state == "Ready" || state == "Halted" ) ) 
-    valueTip = "Local DAQ may need attention. Click to control it manually.";
+    valueTip = "Local DAQ may need attention. Recreate it, or click to control it manually.";
   items.push_back( emu::base::WebReportItem( "state",
                                              state,
                                              "The overall state of local DAQ.",
@@ -1410,14 +1418,14 @@ emu::daq::manager::Application::materialToReportOnPage1(){
     nss << "Events read from " << counts.at(minCountIndex)["hwName"] << " by RUI " << counts.at(minCountIndex)["appInst"] << ".";
     items.push_back( emu::base::WebReportItem( "min events",
 					       counts.at(minCountIndex)["count"],
-					       "The lowest number of events read by an RUI. It should remain close to 'max events read'.",
+					       "The lowest number of events read by any RUI. It should remain close to 'max'.",
 					       nss.str(),
 					       "", "" ) );
     stringstream xss;
     xss << "Events read from " << counts.at(maxCountIndex)["hwName"] << " by RUI " << counts.at(maxCountIndex)["appInst"] << ".";
     items.push_back( emu::base::WebReportItem( "max events",
 					       counts.at(maxCountIndex)["count"],
-					       "The highest number of events read by an RUI.",
+					       "The highest number of events read by any RUI.",
 					       xss.str(),
 					       "", "" ) );
   }
