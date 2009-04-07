@@ -3,55 +3,323 @@
 
   <xsl:output method="html" encoding="UTF-8" indent="no"/>
 
+  <xsl:template name="pageParameters">
+    <application name="emu::daq::manager::Application"     pageRefreshPeriodInMSec= "9000" graph="show"/>
+    <application name="emu::fed::Manager"                  pageRefreshPeriodInMSec="10000" graph="show"/>
+    <application name="emu::pc::EmuPeripheralCrateMonitor" pageRefreshPeriodInMSec="13000" graph="show"/>
+    <application name="emu::pc::EmuPeripheralCrateManager" pageRefreshPeriodInMSec="10000" graph="none"/>
+    <!--     <application name="DQM" pageRefreshPeriodInMSec="?"/> -->
+  </xsl:template>
+
   <xsl:template match="ForEmuPage1">
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
         <title>Report for EmuPage1 from <xsl:value-of select="@from"/> at <xsl:value-of select="@dateTime"/></title>
 	<link rel="stylesheet" type="text/css" href="/emu/base/html/EmuPage1.css"/>
 	<script type="text/javascript" src="/emu/base/html/EmuPage1.js"/>
+<!-- 	<link rel="stylesheet" type="text/css" href="EmuPage1.css"/> -->
+<!-- 	<script type="text/javascript" src="EmuPage1.js"/> -->
       </head>
-      <xsl:variable name="TABLEID">table_<xsl:value-of select="@application"/></xsl:variable>
-      <xsl:variable name="ONLOAD">onLoad('<xsl:value-of select="@application"/>')</xsl:variable>
-      <body onload="{$ONLOAD}">
-	<table class="fresh" id="{$TABLEID}">
-	  <tr><th colspan="2"><xsl:value-of select="@application"/></th></tr>
-<!-- 	  <tr><td class="time" id="td_ageOfPage"/><td class="time" id="td_localDateTime"><xsl:value-of select="@localDateTime"/></td></tr> -->
-	  <tr><td class="time"><span style="float:left;" id="td_ageOfPage"/></td><td class="time"><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
-	  <xsl:if test="@application = 'emu::daq::manager::Application' or @application = 'emu::fed::Communicator'"><xsl:apply-templates mode="DAQ"/></xsl:if>
+      <xsl:variable name="APPLICATION"><xsl:value-of select="@application"/></xsl:variable>
+      <xsl:variable name="REFRESH_PERIOD"><xsl:value-of select="document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@pageRefreshPeriodInMSec"/></xsl:variable>
+    <xsl:variable name="TITLEID">a_value_<xsl:value-of select="count(//monitorable[@name='title']/preceding::monitorable)"/></xsl:variable>
+
+      <body onload="onLoad({$REFRESH_PERIOD})">
+
+	<table class="root" rules="all"><tr><td>
+
+	<table class="fresh" rules="all" id="fadingTable">
+
+	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateMonitor' or @application = 'emu::pc::EmuPeripheralCrateManager'">
+	    <tr><th colspan="2">
+	      <xsl:if test="monitorable[@name='title']">
+		<a id="{$TITLEID}" class="with_popup" target="_blank">
+		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
+		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
+		  <xsl:value-of select="monitorable[@name='title']/@value"/>
+		</a>
+	      </xsl:if>
+	      <xsl:if test="not(monitorable[@name='title'])">
+		<xsl:value-of select="@application"/>
+	      </xsl:if>
+	    </th></tr>
+	    <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	    <xsl:apply-templates mode="PC" select="monitorable"/>
+	  </xsl:if>
+
+	  <xsl:if test="@application = 'emu::fed::Manager'">
+	    <tr><th colspan="7">
+	      <xsl:if test="monitorable[@name='title']">
+		<a id="{$TITLEID}" class="with_popup" target="_blank">
+		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
+		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
+		  <xsl:value-of select="monitorable[@name='title']/@value"/>
+		</a>
+	      </xsl:if>
+	      <xsl:if test="not(monitorable[@name='title'])">
+		<xsl:value-of select="@application"/>
+	      </xsl:if>
+	    </th></tr>
+	    <tr><td colspan="7" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	    <xsl:apply-templates mode="FED" select="monitorable[@name='State']"/>
+	    <tr>
+	      <th>Errors</th>
+	      <xsl:apply-templates mode="FED" select="monitorable[substring-after(@name,' ')='Errors']"/>
+	    </tr>
+	  </xsl:if>
+
+	  <xsl:if test="@application = 'emu::daq::manager::Application'">
+	    <tr><th colspan="5">
+	      <xsl:if test="monitorable[@name='title']">
+		<a id="{$TITLEID}" class="with_popup" target="_blank">
+		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
+		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
+		  <xsl:value-of select="monitorable[@name='title']/@value"/>
+		</a>
+	      </xsl:if>
+	      <xsl:if test="not(monitorable[@name='title'])">
+		<xsl:value-of select="@application"/>
+	      </xsl:if>
+	    </th></tr>
+	    <tr><td colspan="5" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	    <xsl:apply-templates mode="DAQ" select="monitorable[not(substring-after(@name,' ')='events') and not(@name='title')]"/>
+	    <tr>
+	      <th>events</th>
+	      <xsl:apply-templates mode="DAQ" select="monitorable[substring-after(@name,' ')='events']"/>
+	    </tr>
+	  </xsl:if>
+
 	</table>
+
+	</td></tr>
+
+	<xsl:if test="document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@graph = 'show'">
+	  <tr><td style="padding: 0px 0px 0px 0px;">
+	    
+	    <xsl:call-template name="graph"/>
+	    
+	  </td></tr>
+	</xsl:if>
+	</table>
+
       </body>
     </html>
   </xsl:template>
 
-  <xsl:template mode="DAQ" match="monitorable">
+  <xsl:template mode="PC" match="monitorable[not(@name = 'title')]">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
     <xsl:variable name="STATE"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
     <xsl:variable name="CLASSES"><xsl:value-of select="$STATE"/></xsl:variable>
     <tr>
       <th>
-	<xsl:attribute name="id">th_<xsl:value-of select="@name"/></xsl:attribute>
-	<a class="with_popup">
-	  <xsl:attribute name="id">a_<xsl:value-of select="@name"/></xsl:attribute>
+	<xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<a class="with_popup" target="_blank">
+	  <xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
 	  <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
 	  <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
 	  <xsl:value-of select="@name"/>
-	  <!-- 	  <span class="popup"> -->
-	  <!-- 	    <xsl:value-of select="@nameDescription"/> -->
-	  <!-- 	  </span> -->
 	</a>
       </th>
       <td class="{$CLASSES}">
-	<xsl:attribute name="id">td_value_of_<xsl:value-of select="@name"/></xsl:attribute>
-	<a class="with_popup">
-	  <xsl:attribute name="id">a_value_of_<xsl:value-of select="@name"/></xsl:attribute>
+	<xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<a class="with_popup" target="_blank">
+	  <xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
 	  <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
 	  <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
 	  <xsl:value-of select="@value"/>
-	  <!-- 	  <span class="popup"> -->
-	  <!-- 	    <xsl:value-of select="@valueDescription"/> -->
-	  <!-- 	  </span> -->
 	</a>
       </td>
     </tr>
+  </xsl:template>
+
+  <xsl:template mode="FED" match="monitorable[@name = 'State']">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <tr>
+      <th>
+	<xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<a class="with_popup" target="_blank">
+	  <xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	  <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
+	  <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
+	  <xsl:value-of select="@name"/>
+	</a>
+      </th>
+      <td colspan="6">
+	<xsl:attribute name="class"><xsl:value-of select="@value"/></xsl:attribute>
+	<xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<a class="with_popup" target="_blank">
+	  <xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	  <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
+	  <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
+	  <xsl:value-of select="@value"/>
+	</a>
+      </td>
+    </tr>
+  </xsl:template>
+
+  <xsl:template mode="FED" match="monitorable[not(@name='title') and not(@name='State')]">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <th>
+      <xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+      <a class="with_popup" target="_blank">
+	<xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
+	<xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
+	<xsl:value-of select="@name"/>
+      </a>
+    </th>
+    <td>
+      <xsl:attribute name="class"><xsl:value-of select="@value"/></xsl:attribute>
+      <xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+      <a class="with_popup" target="_blank">
+	<xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
+	<xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
+	<xsl:value-of select="@value"/>
+      </a>
+    </td>
+  </xsl:template>
+
+
+  <xsl:template mode="DAQ" match="monitorable[not(@name = 'title')]">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <xsl:variable name="STATE"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <xsl:variable name="CLASSES"><xsl:value-of select="$STATE"/></xsl:variable>
+    <tr>
+      <th>
+	<xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<a class="with_popup" target="_blank">
+	  <xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	  <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
+	  <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
+	  <xsl:value-of select="@name"/>
+	</a>
+      </th>
+      <td  colspan="4" class="{$CLASSES}">
+	<xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<a class="with_popup" target="_blank">
+	  <xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	  <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
+	  <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
+	  <xsl:value-of select="@value"/>
+	</a>
+      </td>
+    </tr>
+  </xsl:template>
+
+  <xsl:template mode="DAQ" match="monitorable[substring-after(@name,' ')='events']">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <th>
+      <xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+      <a class="with_popup" target="_blank">
+	<xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
+	<xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
+	<xsl:value-of select="@name"/>
+      </a>
+    </th>
+    <td>
+      <xsl:attribute name="class"><xsl:value-of select="@value"/></xsl:attribute>
+      <xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+      <a class="with_popup" target="_blank">
+	<xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
+	<xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
+	<xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
+	<xsl:value-of select="@value"/>
+      </a>
+    </td>
+  </xsl:template>
+
+
+  <xsl:template name="graph">
+	<!-- 	viewBox not working in FF 2... :-(  -->
+<!-- 	<svg:svg id="svgRoot" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="150" viewBox="0 0 12000 6000" preserveAspectRatio="none"> -->
+<!-- 	  <svg:g id="transformer" transform="translate(6200 ,3000)"> -->
+
+<!-- 	<svg:svg id="svgRoot" xmlns="http://www.w3.org/2000/svg" version="1.1" width="600" height="300" preserveAspectRatio="none"> -->
+<!-- 	  <svg:g id="scaler" transform="scale(.05, .05) translate(6200 ,3000)"> -->
+
+	<svg:svg id="svgRoot" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="300" height="150" preserveAspectRatio="none">
+	  <svg:g id="scaler" transform="scale(.025, .025) translate(6200 ,3000)">
+	    <svg:g id="vGrid">
+	      <svg:line x1="-5000" y1= "1000" x2="5000" y2= "1000" stroke="#333333" stroke-width="10"/>
+	      <svg:line x1="-5000" y1=    "0" x2="5000" y2=    "0" stroke="#333333" stroke-width="10"/>
+	      <svg:line x1="-5000" y1="-1000" x2="5000" y2="-1000" stroke="#333333" stroke-width="10"/>
+	    </svg:g>
+	    <svg:g id="hGrid">
+	      <svg:line x1="-2500" y1="-2000" x2="-2500" y2="2000" stroke="#333333" stroke-width="10"/>
+	      <svg:line x1=    "0" y1="-2000" x2=    "0" y2="2000" stroke="#333333" stroke-width="10"/>
+	      <svg:line x1= "2500" y1="-2000" x2= "2500" y2="2000" stroke="#333333" stroke-width="10"/>
+	    </svg:g>
+	    <svg:rect id="pad" title="left click to pan, mouse wheel to zoom, Alt-left mouse wheel to zoom in time" class="" x="-5000" y="-2000" width="10000" height="4000" fill="white" opacity="0.8" transform=""/>
+<!-- 	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="20" points="0,3000 500,2000 1000,1500 1500,2500 2000,500 2500,1000 3000,2500 3500,500"/> -->
+<!-- 	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="50" points="-500,-500 -500,500 500,500 500,-500"/> -->
+	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="50" points=""/>
+	    <svg:path d="M -6200 -3000 v 6000 h 12000 v -6000 z M -5000 -2000 v 4000 h 10000 v -4000 z" stroke="black" stroke-width="10" fill="#eeeeff" fill-rule="evenodd"/>
+	    <svg:g id="xAxis">
+	      <svg:text transform="translate(-5000, 2400)" text-anchor="middle" font-size="350" fill="black">date</svg:text>
+	      <svg:text transform="translate(-2500, 2400)" text-anchor="middle" font-size="350" fill="black">date</svg:text>
+	      <svg:text transform="translate(    0, 2400)" text-anchor="middle" font-size="350" fill="black">date</svg:text>
+	      <svg:text transform="translate( 2500, 2400)" text-anchor="middle" font-size="350" fill="black">date</svg:text>
+	      <svg:text transform="translate( 5000, 2400)" text-anchor="middle" font-size="350" fill="black">date</svg:text>
+
+	      <svg:text transform="translate(-5000, 2800)" text-anchor="middle" font-size="350" fill="#bbbbbb">time</svg:text>
+	      <svg:text transform="translate(-2500, 2800)" text-anchor="middle" font-size="350" fill="#bbbbbb">time</svg:text>
+	      <svg:text transform="translate(    0, 2800)" text-anchor="middle" font-size="350" fill="#bbbbbb">time</svg:text>
+	      <svg:text transform="translate( 2500, 2800)" text-anchor="middle" font-size="350" fill="#bbbbbb">time</svg:text>
+	      <svg:text transform="translate( 5000, 2800)" text-anchor="middle" font-size="350" fill="#bbbbbb">time</svg:text>
+	    </svg:g>
+	    <svg:g id="yAxis">
+	      <svg:text transform="translate(-5100, 2000)" text-anchor="end" font-size="350" fill="black">Y</svg:text>
+	      <svg:text transform="translate(-5100, 1000)" text-anchor="end" font-size="350" fill="black">Y</svg:text>
+	      <svg:text transform="translate(-5100,    0)" text-anchor="end" font-size="350" fill="black">Y</svg:text>
+	      <svg:text transform="translate(-5100,-1000)" text-anchor="end" font-size="350" fill="black">Y</svg:text>
+	      <svg:text transform="translate(-5100,-2000)" text-anchor="end" font-size="350" fill="black">Y</svg:text>
+	    </svg:g>
+	    <svg:g id="vTicks">
+	      <svg:line x1="-5050" y1= "2000" x2="-4950" y2= "2000" stroke="#000000" stroke-width="10"/>
+	      <svg:line x1="-5050" y1= "1000" x2="-4950" y2= "1000" stroke="#000000" stroke-width="10"/>
+	      <svg:line x1="-5050" y1=    "0" x2="-4950" y2=    "0" stroke="#000000" stroke-width="10"/>
+	      <svg:line x1="-5050" y1="-1000" x2="-4950" y2="-1000" stroke="#000000" stroke-width="10"/>
+	      <svg:line x1="-5050" y1="-2000" x2="-4950" y2="-2000" stroke="#000000" stroke-width="10"/>
+	    </svg:g>
+	    <svg:g id="hTicks">
+	      <svg:line x1="-5000" y1="2050" x2="-5000" y2="1950" stroke="#000000" stroke-width="10"/>
+	      <svg:line x1="-2500" y1="2050" x2="-2500" y2="1950" stroke="#000000" stroke-width="10"/>
+	      <svg:line x1=    "0" y1="2050" x2=    "0" y2="1950" stroke="#000000" stroke-width="10"/>
+	      <svg:line x1= "2500" y1="2050" x2= "2500" y2="1950" stroke="#000000" stroke-width="10"/>
+	      <svg:line x1= "5000" y1="2050" x2= "5000" y2="1950" stroke="#000000" stroke-width="10"/>
+	    </svg:g>
+	    <svg:text id="pointerCoords" transform="translate(0, -2100)" text-anchor="middle" font-size="350" fill="black">(time, value) at cursor</svg:text>
+	    <svg:text id="title" transform="translate(-5000, -2500)" text-anchor="start" font-size="500" fill="black">
+	    Title
+	    <svg:tspan id="lastValue" dx="500" fill="blue">last value</svg:tspan>
+	    </svg:text>
+	    <svg:text id="ageOfGraph" transform="translate(5000, -2500)" text-anchor="end" font-size="500" fill="black">ago</svg:text>
+	    <svg:g id="follow" transform="translate(5400,-1100) rotate(-90)">
+	      <svg:path id="follow_edge1" d="M -900 -250 v  500 h  1800 z" fill="#888888"/>
+	      <svg:path id="follow_edge2" d="M  900  250 v -500 h -1800 z" fill="#ffffff"/>
+	      <svg:rect id="follow_rect" title="click to stop following last point" x="-850" y="-200" width="1700" height="400" fill="#dddddd"/>
+	      <svg:text id="follow_text" title="click to stop following last point" x="0" y="110" font-size="350" fill="black" text-anchor="middle" >freeze</svg:text>
+	    </svg:g>
+	    <svg:g id="zoom" transform="translate(5400,1000) rotate(-90)">
+	      <svg:path d="M -1000 -250 v  500 h  2000 z" fill="#888888"/>
+	      <svg:path d="M  1000  250 v -500 h -2000 z" fill="#ffffff"/>
+	      <svg:rect id="zoom_rect" title="click to fix zoom" x="-950" y="-200" width="1900" height="400" fill="#dddddd"/>
+	      <svg:text id="zoom_text" title="click to fix zoom" x="0" y="110" font-size="350" fill="black" text-anchor="middle" >fix zoom</svg:text>
+	    </svg:g>
+	  </svg:g>
+	</svg:svg>
+<!-- 	<table><tr> -->
+<!-- 	    <td><span id="span1"><xsl:value-of select="name()"/></span></td> -->
+<!-- 	    <td><span id="span2">axisTransform</span></td> -->
+<!-- 	    <td><span id="span3">axisTransform</span></td> -->
+<!-- 	</tr></table> -->
   </xsl:template>
 
 </xsl:transform>
