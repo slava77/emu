@@ -2738,16 +2738,20 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
   {
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
-        if(command_argu==crateVector[i]->GetLabel()) crate_off[i] = true;
-        std::cout << "SwitchBoard: disable crate " << command_argu << std::endl;
+        if(command_argu==crateVector[i]->GetLabel())
+        {   crate_off[i] = true;
+            std::cout << "SwitchBoard: disable crate " << command_argu << std::endl;
+        }
      }
   }
   else if (command_name=="CRATEON")
   {
      for ( unsigned int i = 0; i < crateVector.size(); i++ )
      {
-        if(command_argu==crateVector[i]->GetLabel()) crate_off[i] = false;
-        std::cout << "SwitchBoard: enable crate " << command_argu << std::endl;
+        if(command_argu==crateVector[i]->GetLabel())
+        {   crate_off[i] = false;
+            std::cout << "SwitchBoard: enable crate " << command_argu << std::endl;
+        }
      }
   }
   else if (command_name=="LOOPOFF")
@@ -2764,12 +2768,18 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      else if (command_argu=="EXTRA") extra_on = true;
      std::cout << "SwitchBoard: " << command_argu << " LOOP enabled" << std::endl;
   }
+  else if (command_name=="VCCRESET")
+  {
+     if (command_argu=="ON" || command_argu=="on") reload_vcc = true;
+     else if (command_argu=="OFF" || command_argu=="off") reload_vcc = false;
+     std::cout << "SwitchBoard: VCC Reset " << command_argu << std::endl;
+  }
 }
 
 void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
-  MyHeader(in,out,"Crate Status");
+  MyHeader(in,out,"Crate Configuration Status");
   //
   cgicc::CgiEnvironment cgiEnvi(in);
   //
@@ -2795,9 +2805,6 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
      *out << cgicc::b(cgicc::i("Monitor Status: Off")) << cgicc::span() << std::endl ;
   }
   //
-  *out << cgicc::h3("Configuration done for Crate  ");
-  *out << cgicc::br();
-  //
   xdata::InfoSpace * is = xdata::getInfoSpaceFactory()->get(monitorables_[mycrate]);
   xdata::Vector<xdata::UnsignedShort> *ccbdata = dynamic_cast<xdata::Vector<xdata::UnsignedShort> *>(is->find("CCBcounter"));
   if(ccbdata==NULL || ccbdata->size()==0) return;
@@ -2818,13 +2825,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
     *out << cgicc::span();
   }
   *out << cgicc::br();
-  *out << cgicc::fieldset();
-  //
-  // int read = (thisCCB->ReadRegister(0x4))&0xffff;
-  //
-  //
-  *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << "CCB  slot = 13 FPGA cfg       " << ((csra3>>12)&0x1);
+  *out << "CCB cfg       " << ((csra3>>12)&0x1);
   //
   if(((csra3>>12)&0x1) == 1) {
     *out << cgicc::span().set("style","color:green");
@@ -2869,9 +2870,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   // read = (thisCCB->ReadRegister(0x2))&0xffff;
   //
   *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-  *out << cgicc::span().set("style","color:blue");
-  *out << "MPC slot = 12 cfg             " << (csra2&0x1);
-  *out << cgicc::span();
+  *out << "MPC cfg             " << (csra2&0x1);
   *out << cgicc::br();
   *out << cgicc::fieldset() ;
   //
@@ -2981,7 +2980,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "ALCT: raw hits readout                                  ");
 
     TCounterName.push_back( "ALCT: raw hits readout - CRC Error                      "); //10
-    TCounterName.push_back( "                                                        ");
+    TCounterName.push_back( "RESERVED                                                ");
     TCounterName.push_back( "CLCT: Pretrigger                                        "); //12 --
     TCounterName.push_back( "CLCT: Pretrigger on CFEB0                               ");
     TCounterName.push_back( "CLCT: Pretrigger on CFEB1                               ");
@@ -3204,12 +3203,16 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
       {   IsErrCounter.push_back(0);
       }
     }
-    IsErrCounter[8]=1;
-    IsErrCounter[9]=1;
     IsErrCounter[11]=1;
-    IsErrCounter[12]=1;
-    IsErrCounter[26]=1;
-    IsErrCounter[27]=1;
+    IsErrCounter[20]=1;
+    IsErrCounter[21]=1;
+    IsErrCounter[22]=1;
+    IsErrCounter[23]=1;
+    IsErrCounter[24]=1;
+    IsErrCounter[51]=1;
+    IsErrCounter[54]=1;
+    IsErrCounter[74]=1;
+    IsErrCounter[75]=1;
 }
 
 void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
