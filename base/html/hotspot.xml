@@ -1,0 +1,881 @@
+<setup id="Emu">
+
+  <service name="las">
+    <url host="csc-daq.cms" port="9941" service="las" description="soap services"/>
+  </service>
+  <service name="spotlight">
+    <url host="csc-daq.cms" port="9979" service="sentinel-spotlight" description="alarm db"/>
+    <!-- 		<url host="emuslice02.cern.ch" port="9979" service="sentinel-spotlight" description="alarm db"/> -->
+  </service>
+
+  <service name="wseventing">
+    <url host="csc-daq.cms" port="9988" service="ws-eventing" description="monitoring ws-eventing"/>
+    <url host="csc-daq.cms" port="9989" service="ws-eventing" description="exception ws-eventing"/>
+    <!-- 		<url host="emuslice02.cern.ch" port="9988" service="ws-eventing" description="monitoring ws-eventing"/> -->
+    <!-- 		<url host="emuslice02.cern.ch" port="9989" service="ws-eventing" description="exception ws-eventing"/> -->
+  </service>
+  
+  <service name="heartbeat">
+    <url host="csc-daq.cms" port="9959" service="pulser"  description="pulser and heartbeat"/>
+    <!-- 		<url host="emuslice02.cern.ch" port="9959" service="pulser"  description="pulser and heartbeat"/> -->
+  </service>
+
+
+  <view label="Applications" image="http://xdaq.web.cern.ch/xdaq/setup/images/Application.gif">
+    <view label="Services">
+      <guard label="jobcontrol" service="jobcontrol" tag="^" image="http://xdaq.web.cern.ch/xdaq/setup/images/JobControl.gif"/>
+      <guard label="ws-eventing" service="ws-eventing" image="http://xdaq.web.cern.ch/xdaq/setup/images/wseventing_32x32.png"/>
+      <guard label="sentinel" service="sentinel" image="http://xdaq.web.cern.ch/xdaq/setup/images/sentinel_32x32.png"/>
+      <guard label="sensor" service="sensor" image="http://xdaq.web.cern.ch/xdaq/setup/images/sensor_32x32.png"/>
+      <guard label="las" service="las" image="http://xdaq.web.cern.ch/xdaq/setup/images/las_32x32.png"/>
+      <!-- 		<guard label="psx" service="psx"/> -->
+      <!-- 		<guard label="tstore" service="tstore"/> -->
+    </view>
+    <view label="Run Control" image="http://xdaq.web.cern.ch/xdaq/setup/images/Application.gif">
+      <guard label="Function Manager" notifier="^http://cmsrc-csc"/> 
+      <guard label="Supervisor" type="^emu::supervisor"/> 
+    </view>
+    <view label="Local DAQ" image="http://xdaq.web.cern.ch/xdaq/setup/images/Application.gif">
+      <guard label="Manager" type="^emu::daq::manager"/> 
+      <guard label="EVM" type="^rubuilder::evm"/> 
+      <guard label="TA" type="^emu::daq::ta"/> 
+      <view label="RUI">
+	<guard label="RUI 00" type="^emu::daq::rui" instance="^0$"/> 
+	<guard label="RUI 01" type="^emu::daq::rui" instance="^1$"/> 
+	<guard label="RUI 02" type="^emu::daq::rui" instance="^2$"/> 
+	<guard label="RUI 03" type="^emu::daq::rui" instance="^3$"/> 
+	<guard label="RUI 04" type="^emu::daq::rui" instance="^4$"/> 
+	<guard label="RUI 05" type="^emu::daq::rui" instance="^5$"/> 
+	<guard label="RUI 06" type="^emu::daq::rui" instance="^6$"/> 
+	<guard label="RUI 07" type="^emu::daq::rui" instance="^7$"/> 
+	<guard label="RUI 08" type="^emu::daq::rui" instance="^8$"/> 
+	<guard label="RUI 09" type="^emu::daq::rui" instance="^9$"/> 
+	<guard label="RUI 10" type="^emu::daq::rui" instance="^10$"/> 
+	<guard label="RUI 11" type="^emu::daq::rui" instance="^11$"/> 
+	<guard label="RUI 12" type="^emu::daq::rui" instance="^12$"/> 
+	<guard label="RUI 13" type="^emu::daq::rui" instance="^13$"/> 
+	<guard label="RUI 14" type="^emu::daq::rui" instance="^14$"/> 
+	<guard label="RUI 15" type="^emu::daq::rui" instance="^15$"/> 
+	<guard label="RUI 16" type="^emu::daq::rui" instance="^16$"/> 
+	<guard label="RUI 17" type="^emu::daq::rui" instance="^17$"/> 
+	<guard label="RUI 18" type="^emu::daq::rui" instance="^18$"/> 
+	<guard label="RUI 19" type="^emu::daq::rui" instance="^19$"/> 
+	<guard label="RUI 20" type="^emu::daq::rui" instance="^20$"/> 
+	<guard label="RUI 21" type="^emu::daq::rui" instance="^21$"/> 
+	<guard label="RUI 22" type="^emu::daq::rui" instance="^22$"/> 
+	<guard label="RUI 23" type="^emu::daq::rui" instance="^23$"/> 
+	<guard label="RUI 24" type="^emu::daq::rui" instance="^24$"/> 
+	<guard label="RUI 25" type="^emu::daq::rui" instance="^25$"/> 
+	<guard label="RUI 26" type="^emu::daq::rui" instance="^26$"/> 
+	<guard label="RUI 27" type="^emu::daq::rui" instance="^27$"/> 
+	<guard label="RUI 28" type="^emu::daq::rui" instance="^28$"/> 
+	<guard label="RUI 29" type="^emu::daq::rui" instance="^29$"/> 
+	<guard label="RUI 30" type="^emu::daq::rui" instance="^30$"/> 
+	<guard label="RUI 31" type="^emu::daq::rui" instance="^31$"/> 
+	<guard label="RUI 32" type="^emu::daq::rui" instance="^32$"/> 
+	<guard label="RUI 33" type="^emu::daq::rui" instance="^33$"/> 
+	<guard label="RUI 34" type="^emu::daq::rui" instance="^34$"/> 
+	<guard label="RUI 35" type="^emu::daq::rui" instance="^35$"/> 
+	<guard label="RUI 36" type="^emu::daq::rui" instance="^36$"/> 
+      </view> 
+      <view label="RU">
+	<guard label="RU 00" type="^rubuilder::ru" instance="^0$"/> 
+	<guard label="RU 01" type="^rubuilder::ru" instance="^1$"/> 
+	<guard label="RU 02" type="^rubuilder::ru" instance="^2$"/> 
+	<guard label="RU 03" type="^rubuilder::ru" instance="^3$"/> 
+	<guard label="RU 04" type="^rubuilder::ru" instance="^4$"/> 
+	<guard label="RU 05" type="^rubuilder::ru" instance="^5$"/> 
+	<guard label="RU 06" type="^rubuilder::ru" instance="^6$"/> 
+	<guard label="RU 07" type="^rubuilder::ru" instance="^7$"/> 
+	<guard label="RU 08" type="^rubuilder::ru" instance="^8$"/> 
+	<guard label="RU 09" type="^rubuilder::ru" instance="^9$"/> 
+	<guard label="RU 10" type="^rubuilder::ru" instance="^10$"/> 
+	<guard label="RU 11" type="^rubuilder::ru" instance="^11$"/> 
+	<guard label="RU 12" type="^rubuilder::ru" instance="^12$"/> 
+	<guard label="RU 13" type="^rubuilder::ru" instance="^13$"/> 
+	<guard label="RU 14" type="^rubuilder::ru" instance="^14$"/> 
+	<guard label="RU 15" type="^rubuilder::ru" instance="^15$"/> 
+	<guard label="RU 16" type="^rubuilder::ru" instance="^16$"/> 
+	<guard label="RU 17" type="^rubuilder::ru" instance="^17$"/> 
+	<guard label="RU 18" type="^rubuilder::ru" instance="^18$"/> 
+	<guard label="RU 19" type="^rubuilder::ru" instance="^19$"/> 
+	<guard label="RU 20" type="^rubuilder::ru" instance="^20$"/> 
+	<guard label="RU 21" type="^rubuilder::ru" instance="^21$"/> 
+	<guard label="RU 22" type="^rubuilder::ru" instance="^22$"/> 
+	<guard label="RU 23" type="^rubuilder::ru" instance="^23$"/> 
+	<guard label="RU 24" type="^rubuilder::ru" instance="^24$"/> 
+	<guard label="RU 25" type="^rubuilder::ru" instance="^25$"/> 
+	<guard label="RU 26" type="^rubuilder::ru" instance="^26$"/> 
+	<guard label="RU 27" type="^rubuilder::ru" instance="^27$"/> 
+	<guard label="RU 28" type="^rubuilder::ru" instance="^28$"/> 
+	<guard label="RU 29" type="^rubuilder::ru" instance="^29$"/> 
+	<guard label="RU 30" type="^rubuilder::ru" instance="^30$"/> 
+	<guard label="RU 31" type="^rubuilder::ru" instance="^31$"/> 
+	<guard label="RU 32" type="^rubuilder::ru" instance="^32$"/> 
+	<guard label="RU 33" type="^rubuilder::ru" instance="^33$"/> 
+	<guard label="RU 34" type="^rubuilder::ru" instance="^34$"/> 
+	<guard label="RU 35" type="^rubuilder::ru" instance="^35$"/> 
+	<guard label="RU 36" type="^rubuilder::ru" instance="^36$"/> 
+      </view> 
+      <view label="BU">
+	<guard label="BU 00" type="^rubuilder::bu" instance="^0$"/> 
+	<guard label="BU 01" type="^rubuilder::bu" instance="^1$"/> 
+	<guard label="BU 02" type="^rubuilder::bu" instance="^2$"/> 
+	<guard label="BU 03" type="^rubuilder::bu" instance="^3$"/> 
+	<guard label="BU 04" type="^rubuilder::bu" instance="^4$"/> 
+	<guard label="BU 05" type="^rubuilder::bu" instance="^5$"/> 
+	<guard label="BU 06" type="^rubuilder::bu" instance="^6$"/> 
+	<guard label="BU 07" type="^rubuilder::bu" instance="^7$"/> 
+	<guard label="BU 08" type="^rubuilder::bu" instance="^8$"/> 
+	<guard label="BU 09" type="^rubuilder::bu" instance="^9$"/> 
+	<guard label="BU 10" type="^rubuilder::bu" instance="^10$"/> 
+	<guard label="BU 11" type="^rubuilder::bu" instance="^11$"/> 
+	<guard label="BU 12" type="^rubuilder::bu" instance="^12$"/> 
+	<guard label="BU 13" type="^rubuilder::bu" instance="^13$"/> 
+	<guard label="BU 14" type="^rubuilder::bu" instance="^14$"/> 
+	<guard label="BU 15" type="^rubuilder::bu" instance="^15$"/> 
+	<guard label="BU 16" type="^rubuilder::bu" instance="^16$"/> 
+	<guard label="BU 17" type="^rubuilder::bu" instance="^17$"/> 
+	<guard label="BU 18" type="^rubuilder::bu" instance="^18$"/> 
+	<guard label="BU 19" type="^rubuilder::bu" instance="^19$"/> 
+	<guard label="BU 20" type="^rubuilder::bu" instance="^20$"/> 
+	<guard label="BU 21" type="^rubuilder::bu" instance="^21$"/> 
+	<guard label="BU 22" type="^rubuilder::bu" instance="^22$"/> 
+	<guard label="BU 23" type="^rubuilder::bu" instance="^23$"/> 
+	<guard label="BU 24" type="^rubuilder::bu" instance="^24$"/> 
+	<guard label="BU 25" type="^rubuilder::bu" instance="^25$"/> 
+	<guard label="BU 26" type="^rubuilder::bu" instance="^26$"/> 
+	<guard label="BU 27" type="^rubuilder::bu" instance="^27$"/> 
+	<guard label="BU 28" type="^rubuilder::bu" instance="^28$"/> 
+	<guard label="BU 29" type="^rubuilder::bu" instance="^29$"/> 
+	<guard label="BU 30" type="^rubuilder::bu" instance="^30$"/> 
+	<guard label="BU 31" type="^rubuilder::bu" instance="^31$"/> 
+	<guard label="BU 32" type="^rubuilder::bu" instance="^32$"/> 
+	<guard label="BU 33" type="^rubuilder::bu" instance="^33$"/> 
+	<guard label="BU 34" type="^rubuilder::bu" instance="^34$"/> 
+	<guard label="BU 35" type="^rubuilder::bu" instance="^35$"/> 
+	<guard label="BU 36" type="^rubuilder::bu" instance="^36$"/> 
+      </view> 
+      <view label="FU">
+	<guard label="FU 00" type="^emu::daq::fu" instance="^0$"/> 
+	<guard label="FU 01" type="^emu::daq::fu" instance="^1$"/> 
+	<guard label="FU 02" type="^emu::daq::fu" instance="^2$"/> 
+	<guard label="FU 03" type="^emu::daq::fu" instance="^3$"/> 
+	<guard label="FU 04" type="^emu::daq::fu" instance="^4$"/> 
+	<guard label="FU 05" type="^emu::daq::fu" instance="^5$"/> 
+	<guard label="FU 06" type="^emu::daq::fu" instance="^6$"/> 
+	<guard label="FU 07" type="^emu::daq::fu" instance="^7$"/> 
+	<guard label="FU 08" type="^emu::daq::fu" instance="^8$"/> 
+	<guard label="FU 09" type="^emu::daq::fu" instance="^9$"/> 
+	<guard label="FU 10" type="^emu::daq::fu" instance="^10$"/> 
+	<guard label="FU 11" type="^emu::daq::fu" instance="^11$"/> 
+	<guard label="FU 12" type="^emu::daq::fu" instance="^12$"/> 
+	<guard label="FU 13" type="^emu::daq::fu" instance="^13$"/> 
+	<guard label="FU 14" type="^emu::daq::fu" instance="^14$"/> 
+	<guard label="FU 15" type="^emu::daq::fu" instance="^15$"/> 
+	<guard label="FU 16" type="^emu::daq::fu" instance="^16$"/> 
+	<guard label="FU 17" type="^emu::daq::fu" instance="^17$"/> 
+	<guard label="FU 18" type="^emu::daq::fu" instance="^18$"/> 
+	<guard label="FU 19" type="^emu::daq::fu" instance="^19$"/> 
+	<guard label="FU 20" type="^emu::daq::fu" instance="^20$"/> 
+	<guard label="FU 21" type="^emu::daq::fu" instance="^21$"/> 
+	<guard label="FU 22" type="^emu::daq::fu" instance="^22$"/> 
+	<guard label="FU 23" type="^emu::daq::fu" instance="^23$"/> 
+	<guard label="FU 24" type="^emu::daq::fu" instance="^24$"/> 
+	<guard label="FU 25" type="^emu::daq::fu" instance="^25$"/> 
+	<guard label="FU 26" type="^emu::daq::fu" instance="^26$"/> 
+	<guard label="FU 27" type="^emu::daq::fu" instance="^27$"/> 
+	<guard label="FU 28" type="^emu::daq::fu" instance="^28$"/> 
+	<guard label="FU 29" type="^emu::daq::fu" instance="^29$"/> 
+	<guard label="FU 30" type="^emu::daq::fu" instance="^30$"/> 
+	<guard label="FU 31" type="^emu::daq::fu" instance="^31$"/> 
+	<guard label="FU 32" type="^emu::daq::fu" instance="^32$"/> 
+	<guard label="FU 33" type="^emu::daq::fu" instance="^33$"/> 
+	<guard label="FU 34" type="^emu::daq::fu" instance="^34$"/> 
+	<guard label="FU 35" type="^emu::daq::fu" instance="^35$"/> 
+	<guard label="FU 36" type="^emu::daq::fu" instance="^36$"/> 
+      </view> 
+    </view> 
+    <view label="Local DQM" image="http://xdaq.web.cern.ch/xdaq/setup/images/Application.gif">  
+      <guard label="Display Client" type="^EmuDisplayClient"/> 
+      <view label="Monitors">
+	<guard label="Monitor 00" type="^EmuMonitor" instance="^0$"/> 
+	<guard label="Monitor 01" type="^EmuMonitor" instance="^1$"/> 
+	<guard label="Monitor 02" type="^EmuMonitor" instance="^2$"/> 
+	<guard label="Monitor 03" type="^EmuMonitor" instance="^3$"/> 
+	<guard label="Monitor 04" type="^EmuMonitor" instance="^4$"/> 
+	<guard label="Monitor 05" type="^EmuMonitor" instance="^5$"/> 
+	<guard label="Monitor 06" type="^EmuMonitor" instance="^6$"/> 
+	<guard label="Monitor 07" type="^EmuMonitor" instance="^7$"/> 
+	<guard label="Monitor 08" type="^EmuMonitor" instance="^8$"/> 
+	<guard label="Monitor 09" type="^EmuMonitor" instance="^9$"/> 
+	<guard label="Monitor 10" type="^EmuMonitor" instance="^10$"/> 
+	<guard label="Monitor 11" type="^EmuMonitor" instance="^11$"/> 
+	<guard label="Monitor 12" type="^EmuMonitor" instance="^12$"/> 
+	<guard label="Monitor 13" type="^EmuMonitor" instance="^13$"/> 
+	<guard label="Monitor 14" type="^EmuMonitor" instance="^14$"/> 
+	<guard label="Monitor 15" type="^EmuMonitor" instance="^15$"/> 
+	<guard label="Monitor 16" type="^EmuMonitor" instance="^16$"/> 
+	<guard label="Monitor 17" type="^EmuMonitor" instance="^17$"/> 
+	<guard label="Monitor 18" type="^EmuMonitor" instance="^18$"/> 
+	<guard label="Monitor 19" type="^EmuMonitor" instance="^19$"/> 
+	<guard label="Monitor 20" type="^EmuMonitor" instance="^20$"/> 
+	<guard label="Monitor 21" type="^EmuMonitor" instance="^21$"/> 
+	<guard label="Monitor 22" type="^EmuMonitor" instance="^22$"/> 
+	<guard label="Monitor 23" type="^EmuMonitor" instance="^23$"/> 
+	<guard label="Monitor 24" type="^EmuMonitor" instance="^24$"/> 
+	<guard label="Monitor 25" type="^EmuMonitor" instance="^25$"/> 
+	<guard label="Monitor 26" type="^EmuMonitor" instance="^26$"/> 
+	<guard label="Monitor 27" type="^EmuMonitor" instance="^27$"/> 
+	<guard label="Monitor 28" type="^EmuMonitor" instance="^28$"/> 
+	<guard label="Monitor 29" type="^EmuMonitor" instance="^29$"/> 
+	<guard label="Monitor 30" type="^EmuMonitor" instance="^30$"/> 
+	<guard label="Monitor 31" type="^EmuMonitor" instance="^31$"/> 
+	<guard label="Monitor 32" type="^EmuMonitor" instance="^32$"/> 
+	<guard label="Monitor 33" type="^EmuMonitor" instance="^33$"/> 
+	<guard label="Monitor 34" type="^EmuMonitor" instance="^34$"/> 
+	<guard label="Monitor 35" type="^EmuMonitor" instance="^35$"/> 
+	<guard label="Monitor 36" type="^EmuMonitor" instance="^36$"/> 
+      </view> 
+    </view> 
+    <view label="FED Crate" image="http://xdaq.web.cern.ch/xdaq/setup/images/Application.gif">  
+      <guard label="Manager" type="emu::fed::Manager"/> 
+      <view label="Communicator">
+	<guard label="Communicator +" type="emu::fed::Communicator" notifier="^http://csc-fed1"/> 
+	<guard label="Communicator -" type="emu::fed::Communicator" notifier="^http://csc-fed2"/> 
+      </view>
+      <view label="Monitor">
+	<guard label="Monitor +" type="emu::fed::Monitor" notifier="^http://csc-fed1"/> 
+	<guard label="Monitor -" type="emu::fed::Monitor" notifier="^http://csc-fed2"/> 
+      </view>
+    </view> 
+    <view label="Peripheral Crate" image="http://xdaq.web.cern.ch/xdaq/setup/images/Application.gif">  
+      <guard label="Manager" type="emu::pc::EmuPeripheralCrateManager"/> 
+      <view label="Command">
+	<guard label="Command +" type="emu::pc::EmuPeripheralCrateCommand" notifier="^http://csc-pc1"/>
+	<guard label="Command -" type="emu::pc::EmuPeripheralCrateCommand" notifier="^http://csc-pc2"/>
+      </view>
+      <!-- 	     <view label=""> -->
+      <!-- 	       <guard label="" type=""/>  -->
+      <!-- 	     </view> -->
+      <!-- 	     <view label=""> -->
+      <!-- 	       <guard label="" type=""/>  -->
+      <!-- 	     </view> -->
+      <view label="Timer">
+	<guard label="Timer +" type="emu::pc::EmuPeripheralCrateTimer" notifier="^http://csc-dcs-pc1"/>/> 
+	<guard label="Timer -" type="emu::pc::EmuPeripheralCrateTimer" notifier="^http://csc-dcs-pc2"/>/> 
+      </view>
+      <view label="Monitor">
+	<guard label="Monitor +" type="emu::pc::EmuPeripheralCrateMonitor" notifier="^http://csc-dcs-pc1"/> 
+	<guard label="Monitor -" type="emu::pc::EmuPeripheralCrateMonitor" notifier="^http://csc-dcs-pc2"/> 
+      </view>
+      <!-- 	     <guard label="ME+" type=""  notifier="" tag=""/> -->
+      <!-- 	     <guard label="ME-" type="" instance=""  class="executive" context="" /> -->
+    </view>
+  </view>
+
+  <view label="Chambers">
+    <view label="Endcap +">
+      <view label="Station 1">
+	<view label="Ring 1">
+	  <guard label="ME+1/1/01" tag="chamber[ ]+ME\+1/1/01"/> 
+	  <guard label="ME+1/1/02" tag="chamber[ ]+ME\+1/1/02"/> 
+	  <guard label="ME+1/1/03" tag="chamber[ ]+ME\+1/1/03"/> 
+	  <guard label="ME+1/1/04" tag="chamber[ ]+ME\+1/1/04"/> 
+	  <guard label="ME+1/1/05" tag="chamber[ ]+ME\+1/1/05"/> 
+	  <guard label="ME+1/1/06" tag="chamber[ ]+ME\+1/1/06"/> 
+	  <guard label="ME+1/1/07" tag="chamber[ ]+ME\+1/1/07"/> 
+	  <guard label="ME+1/1/08" tag="chamber[ ]+ME\+1/1/08"/> 
+	  <guard label="ME+1/1/09" tag="chamber[ ]+ME\+1/1/09"/> 
+	  <guard label="ME+1/1/10" tag="chamber[ ]+ME\+1/1/10"/> 
+	  <guard label="ME+1/1/11" tag="chamber[ ]+ME\+1/1/11"/> 
+	  <guard label="ME+1/1/12" tag="chamber[ ]+ME\+1/1/12"/> 
+	  <guard label="ME+1/1/13" tag="chamber[ ]+ME\+1/1/13"/> 
+	  <guard label="ME+1/1/14" tag="chamber[ ]+ME\+1/1/14"/> 
+	  <guard label="ME+1/1/15" tag="chamber[ ]+ME\+1/1/15"/> 
+	  <guard label="ME+1/1/16" tag="chamber[ ]+ME\+1/1/16"/> 
+	  <guard label="ME+1/1/17" tag="chamber[ ]+ME\+1/1/17"/> 
+	  <guard label="ME+1/1/18" tag="chamber[ ]+ME\+1/1/18"/> 
+	  <guard label="ME+1/1/19" tag="chamber[ ]+ME\+1/1/19"/> 
+	  <guard label="ME+1/1/20" tag="chamber[ ]+ME\+1/1/20"/> 
+	  <guard label="ME+1/1/21" tag="chamber[ ]+ME\+1/1/21"/> 
+	  <guard label="ME+1/1/22" tag="chamber[ ]+ME\+1/1/22"/> 
+	  <guard label="ME+1/1/23" tag="chamber[ ]+ME\+1/1/23"/> 
+	  <guard label="ME+1/1/24" tag="chamber[ ]+ME\+1/1/24"/> 
+	  <guard label="ME+1/1/25" tag="chamber[ ]+ME\+1/1/25"/> 
+	  <guard label="ME+1/1/26" tag="chamber[ ]+ME\+1/1/26"/> 
+	  <guard label="ME+1/1/27" tag="chamber[ ]+ME\+1/1/27"/> 
+	  <guard label="ME+1/1/28" tag="chamber[ ]+ME\+1/1/28"/> 
+	  <guard label="ME+1/1/29" tag="chamber[ ]+ME\+1/1/29"/> 
+	  <guard label="ME+1/1/30" tag="chamber[ ]+ME\+1/1/30"/> 
+	  <guard label="ME+1/1/31" tag="chamber[ ]+ME\+1/1/31"/> 
+	  <guard label="ME+1/1/32" tag="chamber[ ]+ME\+1/1/32"/> 
+	  <guard label="ME+1/1/33" tag="chamber[ ]+ME\+1/1/33"/> 
+	  <guard label="ME+1/1/34" tag="chamber[ ]+ME\+1/1/34"/> 
+	  <guard label="ME+1/1/35" tag="chamber[ ]+ME\+1/1/35"/> 
+	  <guard label="ME+1/1/36" tag="chamber[ ]+ME\+1/1/36"/> 
+	</view>
+	<view label="Ring 2">
+	  <guard label="ME+1/2/01" tag="chamber[ ]+ME\+1/2/01"/> 
+	  <guard label="ME+1/2/02" tag="chamber[ ]+ME\+1/2/02"/> 
+	  <guard label="ME+1/2/03" tag="chamber[ ]+ME\+1/2/03"/> 
+	  <guard label="ME+1/2/04" tag="chamber[ ]+ME\+1/2/04"/> 
+	  <guard label="ME+1/2/05" tag="chamber[ ]+ME\+1/2/05"/> 
+	  <guard label="ME+1/2/06" tag="chamber[ ]+ME\+1/2/06"/> 
+	  <guard label="ME+1/2/07" tag="chamber[ ]+ME\+1/2/07"/> 
+	  <guard label="ME+1/2/08" tag="chamber[ ]+ME\+1/2/08"/> 
+	  <guard label="ME+1/2/09" tag="chamber[ ]+ME\+1/2/09"/> 
+	  <guard label="ME+1/2/10" tag="chamber[ ]+ME\+1/2/10"/> 
+	  <guard label="ME+1/2/11" tag="chamber[ ]+ME\+1/2/11"/> 
+	  <guard label="ME+1/2/12" tag="chamber[ ]+ME\+1/2/12"/> 
+	  <guard label="ME+1/2/13" tag="chamber[ ]+ME\+1/2/13"/> 
+	  <guard label="ME+1/2/14" tag="chamber[ ]+ME\+1/2/14"/> 
+	  <guard label="ME+1/2/15" tag="chamber[ ]+ME\+1/2/15"/> 
+	  <guard label="ME+1/2/16" tag="chamber[ ]+ME\+1/2/16"/> 
+	  <guard label="ME+1/2/17" tag="chamber[ ]+ME\+1/2/17"/> 
+	  <guard label="ME+1/2/18" tag="chamber[ ]+ME\+1/2/18"/> 
+	  <guard label="ME+1/2/19" tag="chamber[ ]+ME\+1/2/19"/> 
+	  <guard label="ME+1/2/20" tag="chamber[ ]+ME\+1/2/20"/> 
+	  <guard label="ME+1/2/21" tag="chamber[ ]+ME\+1/2/21"/> 
+	  <guard label="ME+1/2/22" tag="chamber[ ]+ME\+1/2/22"/> 
+	  <guard label="ME+1/2/23" tag="chamber[ ]+ME\+1/2/23"/> 
+	  <guard label="ME+1/2/24" tag="chamber[ ]+ME\+1/2/24"/> 
+	  <guard label="ME+1/2/25" tag="chamber[ ]+ME\+1/2/25"/> 
+	  <guard label="ME+1/2/26" tag="chamber[ ]+ME\+1/2/26"/> 
+	  <guard label="ME+1/2/27" tag="chamber[ ]+ME\+1/2/27"/> 
+	  <guard label="ME+1/2/28" tag="chamber[ ]+ME\+1/2/28"/> 
+	  <guard label="ME+1/2/29" tag="chamber[ ]+ME\+1/2/29"/> 
+	  <guard label="ME+1/2/30" tag="chamber[ ]+ME\+1/2/30"/> 
+	  <guard label="ME+1/2/31" tag="chamber[ ]+ME\+1/2/31"/> 
+	  <guard label="ME+1/2/32" tag="chamber[ ]+ME\+1/2/32"/> 
+	  <guard label="ME+1/2/33" tag="chamber[ ]+ME\+1/2/33"/> 
+	  <guard label="ME+1/2/34" tag="chamber[ ]+ME\+1/2/34"/> 
+	  <guard label="ME+1/2/35" tag="chamber[ ]+ME\+1/2/35"/> 
+	  <guard label="ME+1/2/36" tag="chamber[ ]+ME\+1/2/36"/> 
+	</view>
+	<view label="Ring 3">
+	  <guard label="ME+1/3/01" tag="chamber[ ]+ME\+1/3/01"/> 
+	  <guard label="ME+1/3/02" tag="chamber[ ]+ME\+1/3/02"/> 
+	  <guard label="ME+1/3/03" tag="chamber[ ]+ME\+1/3/03"/> 
+	  <guard label="ME+1/3/04" tag="chamber[ ]+ME\+1/3/04"/> 
+	  <guard label="ME+1/3/05" tag="chamber[ ]+ME\+1/3/05"/> 
+	  <guard label="ME+1/3/06" tag="chamber[ ]+ME\+1/3/06"/> 
+	  <guard label="ME+1/3/07" tag="chamber[ ]+ME\+1/3/07"/> 
+	  <guard label="ME+1/3/08" tag="chamber[ ]+ME\+1/3/08"/> 
+	  <guard label="ME+1/3/09" tag="chamber[ ]+ME\+1/3/09"/> 
+	  <guard label="ME+1/3/10" tag="chamber[ ]+ME\+1/3/10"/> 
+	  <guard label="ME+1/3/11" tag="chamber[ ]+ME\+1/3/11"/> 
+	  <guard label="ME+1/3/12" tag="chamber[ ]+ME\+1/3/12"/> 
+	  <guard label="ME+1/3/13" tag="chamber[ ]+ME\+1/3/13"/> 
+	  <guard label="ME+1/3/14" tag="chamber[ ]+ME\+1/3/14"/> 
+	  <guard label="ME+1/3/15" tag="chamber[ ]+ME\+1/3/15"/> 
+	  <guard label="ME+1/3/16" tag="chamber[ ]+ME\+1/3/16"/> 
+	  <guard label="ME+1/3/17" tag="chamber[ ]+ME\+1/3/17"/> 
+	  <guard label="ME+1/3/18" tag="chamber[ ]+ME\+1/3/18"/> 
+	  <guard label="ME+1/3/19" tag="chamber[ ]+ME\+1/3/19"/> 
+	  <guard label="ME+1/3/20" tag="chamber[ ]+ME\+1/3/20"/> 
+	  <guard label="ME+1/3/21" tag="chamber[ ]+ME\+1/3/21"/> 
+	  <guard label="ME+1/3/22" tag="chamber[ ]+ME\+1/3/22"/> 
+	  <guard label="ME+1/3/23" tag="chamber[ ]+ME\+1/3/23"/> 
+	  <guard label="ME+1/3/24" tag="chamber[ ]+ME\+1/3/24"/> 
+	  <guard label="ME+1/3/25" tag="chamber[ ]+ME\+1/3/25"/> 
+	  <guard label="ME+1/3/26" tag="chamber[ ]+ME\+1/3/26"/> 
+	  <guard label="ME+1/3/27" tag="chamber[ ]+ME\+1/3/27"/> 
+	  <guard label="ME+1/3/28" tag="chamber[ ]+ME\+1/3/28"/> 
+	  <guard label="ME+1/3/29" tag="chamber[ ]+ME\+1/3/29"/> 
+	  <guard label="ME+1/3/30" tag="chamber[ ]+ME\+1/3/30"/> 
+	  <guard label="ME+1/3/31" tag="chamber[ ]+ME\+1/3/31"/> 
+	  <guard label="ME+1/3/32" tag="chamber[ ]+ME\+1/3/32"/> 
+	  <guard label="ME+1/3/33" tag="chamber[ ]+ME\+1/3/33"/> 
+	  <guard label="ME+1/3/34" tag="chamber[ ]+ME\+1/3/34"/> 
+	  <guard label="ME+1/3/35" tag="chamber[ ]+ME\+1/3/35"/> 
+	  <guard label="ME+1/3/36" tag="chamber[ ]+ME\+1/3/36"/> 
+	</view>
+      </view>
+      <view label="Station 2">
+	<view label="Ring 1">
+	  <guard label="ME+2/1/01" tag="chamber[ ]+ME\+2/1/01"/> 
+	  <guard label="ME+2/1/02" tag="chamber[ ]+ME\+2/1/02"/> 
+	  <guard label="ME+2/1/03" tag="chamber[ ]+ME\+2/1/03"/> 
+	  <guard label="ME+2/1/04" tag="chamber[ ]+ME\+2/1/04"/> 
+	  <guard label="ME+2/1/05" tag="chamber[ ]+ME\+2/1/05"/> 
+	  <guard label="ME+2/1/06" tag="chamber[ ]+ME\+2/1/06"/> 
+	  <guard label="ME+2/1/07" tag="chamber[ ]+ME\+2/1/07"/> 
+	  <guard label="ME+2/1/08" tag="chamber[ ]+ME\+2/1/08"/> 
+	  <guard label="ME+2/1/09" tag="chamber[ ]+ME\+2/1/09"/> 
+	  <guard label="ME+2/1/10" tag="chamber[ ]+ME\+2/1/10"/> 
+	  <guard label="ME+2/1/11" tag="chamber[ ]+ME\+2/1/11"/> 
+	  <guard label="ME+2/1/12" tag="chamber[ ]+ME\+2/1/12"/> 
+	  <guard label="ME+2/1/13" tag="chamber[ ]+ME\+2/1/13"/> 
+	  <guard label="ME+2/1/14" tag="chamber[ ]+ME\+2/1/14"/> 
+	  <guard label="ME+2/1/15" tag="chamber[ ]+ME\+2/1/15"/> 
+	  <guard label="ME+2/1/16" tag="chamber[ ]+ME\+2/1/16"/> 
+	  <guard label="ME+2/1/17" tag="chamber[ ]+ME\+2/1/17"/> 
+	  <guard label="ME+2/1/18" tag="chamber[ ]+ME\+2/1/18"/> 
+	</view>
+	<view label="Ring 2">
+	  <guard label="ME+2/2/01" tag="chamber[ ]+ME\+2/2/01"/> 
+	  <guard label="ME+2/2/02" tag="chamber[ ]+ME\+2/2/02"/> 
+	  <guard label="ME+2/2/03" tag="chamber[ ]+ME\+2/2/03"/> 
+	  <guard label="ME+2/2/04" tag="chamber[ ]+ME\+2/2/04"/> 
+	  <guard label="ME+2/2/05" tag="chamber[ ]+ME\+2/2/05"/> 
+	  <guard label="ME+2/2/06" tag="chamber[ ]+ME\+2/2/06"/> 
+	  <guard label="ME+2/2/07" tag="chamber[ ]+ME\+2/2/07"/> 
+	  <guard label="ME+2/2/08" tag="chamber[ ]+ME\+2/2/08"/> 
+	  <guard label="ME+2/2/09" tag="chamber[ ]+ME\+2/2/09"/> 
+	  <guard label="ME+2/2/10" tag="chamber[ ]+ME\+2/2/10"/> 
+	  <guard label="ME+2/2/11" tag="chamber[ ]+ME\+2/2/11"/> 
+	  <guard label="ME+2/2/12" tag="chamber[ ]+ME\+2/2/12"/> 
+	  <guard label="ME+2/2/13" tag="chamber[ ]+ME\+2/2/13"/> 
+	  <guard label="ME+2/2/14" tag="chamber[ ]+ME\+2/2/14"/> 
+	  <guard label="ME+2/2/15" tag="chamber[ ]+ME\+2/2/15"/> 
+	  <guard label="ME+2/2/16" tag="chamber[ ]+ME\+2/2/16"/> 
+	  <guard label="ME+2/2/17" tag="chamber[ ]+ME\+2/2/17"/> 
+	  <guard label="ME+2/2/18" tag="chamber[ ]+ME\+2/2/18"/> 
+	  <guard label="ME+2/2/19" tag="chamber[ ]+ME\+2/2/19"/> 
+	  <guard label="ME+2/2/20" tag="chamber[ ]+ME\+2/2/20"/> 
+	  <guard label="ME+2/2/21" tag="chamber[ ]+ME\+2/2/21"/> 
+	  <guard label="ME+2/2/22" tag="chamber[ ]+ME\+2/2/22"/> 
+	  <guard label="ME+2/2/23" tag="chamber[ ]+ME\+2/2/23"/> 
+	  <guard label="ME+2/2/24" tag="chamber[ ]+ME\+2/2/24"/> 
+	  <guard label="ME+2/2/25" tag="chamber[ ]+ME\+2/2/25"/> 
+	  <guard label="ME+2/2/26" tag="chamber[ ]+ME\+2/2/26"/> 
+	  <guard label="ME+2/2/27" tag="chamber[ ]+ME\+2/2/27"/> 
+	  <guard label="ME+2/2/28" tag="chamber[ ]+ME\+2/2/28"/> 
+	  <guard label="ME+2/2/29" tag="chamber[ ]+ME\+2/2/29"/> 
+	  <guard label="ME+2/2/30" tag="chamber[ ]+ME\+2/2/30"/> 
+	  <guard label="ME+2/2/31" tag="chamber[ ]+ME\+2/2/31"/> 
+	  <guard label="ME+2/2/32" tag="chamber[ ]+ME\+2/2/32"/> 
+	  <guard label="ME+2/2/33" tag="chamber[ ]+ME\+2/2/33"/> 
+	  <guard label="ME+2/2/34" tag="chamber[ ]+ME\+2/2/34"/> 
+	  <guard label="ME+2/2/35" tag="chamber[ ]+ME\+2/2/35"/> 
+	  <guard label="ME+2/2/36" tag="chamber[ ]+ME\+2/2/36"/> 
+	</view>
+      </view>
+      <view label="Station 3">
+	<view label="Ring 1">
+	  <guard label="ME+3/1/01" tag="chamber[ ]+ME\+3/1/01"/> 
+	  <guard label="ME+3/1/02" tag="chamber[ ]+ME\+3/1/02"/> 
+	  <guard label="ME+3/1/03" tag="chamber[ ]+ME\+3/1/03"/> 
+	  <guard label="ME+3/1/04" tag="chamber[ ]+ME\+3/1/04"/> 
+	  <guard label="ME+3/1/05" tag="chamber[ ]+ME\+3/1/05"/> 
+	  <guard label="ME+3/1/06" tag="chamber[ ]+ME\+3/1/06"/> 
+	  <guard label="ME+3/1/07" tag="chamber[ ]+ME\+3/1/07"/> 
+	  <guard label="ME+3/1/08" tag="chamber[ ]+ME\+3/1/08"/> 
+	  <guard label="ME+3/1/09" tag="chamber[ ]+ME\+3/1/09"/> 
+	  <guard label="ME+3/1/10" tag="chamber[ ]+ME\+3/1/10"/> 
+	  <guard label="ME+3/1/11" tag="chamber[ ]+ME\+3/1/11"/> 
+	  <guard label="ME+3/1/12" tag="chamber[ ]+ME\+3/1/12"/> 
+	  <guard label="ME+3/1/13" tag="chamber[ ]+ME\+3/1/13"/> 
+	  <guard label="ME+3/1/14" tag="chamber[ ]+ME\+3/1/14"/> 
+	  <guard label="ME+3/1/15" tag="chamber[ ]+ME\+3/1/15"/> 
+	  <guard label="ME+3/1/16" tag="chamber[ ]+ME\+3/1/16"/> 
+	  <guard label="ME+3/1/17" tag="chamber[ ]+ME\+3/1/17"/> 
+	  <guard label="ME+3/1/18" tag="chamber[ ]+ME\+3/1/18"/> 
+	</view>
+	<view label="Ring 2">
+	  <guard label="ME+3/2/01" tag="chamber[ ]+ME\+3/2/01"/> 
+	  <guard label="ME+3/2/02" tag="chamber[ ]+ME\+3/2/02"/> 
+	  <guard label="ME+3/2/03" tag="chamber[ ]+ME\+3/2/03"/> 
+	  <guard label="ME+3/2/04" tag="chamber[ ]+ME\+3/2/04"/> 
+	  <guard label="ME+3/2/05" tag="chamber[ ]+ME\+3/2/05"/> 
+	  <guard label="ME+3/2/06" tag="chamber[ ]+ME\+3/2/06"/> 
+	  <guard label="ME+3/2/07" tag="chamber[ ]+ME\+3/2/07"/> 
+	  <guard label="ME+3/2/08" tag="chamber[ ]+ME\+3/2/08"/> 
+	  <guard label="ME+3/2/09" tag="chamber[ ]+ME\+3/2/09"/> 
+	  <guard label="ME+3/2/10" tag="chamber[ ]+ME\+3/2/10"/> 
+	  <guard label="ME+3/2/11" tag="chamber[ ]+ME\+3/2/11"/> 
+	  <guard label="ME+3/2/12" tag="chamber[ ]+ME\+3/2/12"/> 
+	  <guard label="ME+3/2/13" tag="chamber[ ]+ME\+3/2/13"/> 
+	  <guard label="ME+3/2/14" tag="chamber[ ]+ME\+3/2/14"/> 
+	  <guard label="ME+3/2/15" tag="chamber[ ]+ME\+3/2/15"/> 
+	  <guard label="ME+3/2/16" tag="chamber[ ]+ME\+3/2/16"/> 
+	  <guard label="ME+3/2/17" tag="chamber[ ]+ME\+3/2/17"/> 
+	  <guard label="ME+3/2/18" tag="chamber[ ]+ME\+3/2/18"/> 
+	  <guard label="ME+3/2/19" tag="chamber[ ]+ME\+3/2/19"/> 
+	  <guard label="ME+3/2/20" tag="chamber[ ]+ME\+3/2/20"/> 
+	  <guard label="ME+3/2/21" tag="chamber[ ]+ME\+3/2/21"/> 
+	  <guard label="ME+3/2/22" tag="chamber[ ]+ME\+3/2/22"/> 
+	  <guard label="ME+3/2/23" tag="chamber[ ]+ME\+3/2/23"/> 
+	  <guard label="ME+3/2/24" tag="chamber[ ]+ME\+3/2/24"/> 
+	  <guard label="ME+3/2/25" tag="chamber[ ]+ME\+3/2/25"/> 
+	  <guard label="ME+3/2/26" tag="chamber[ ]+ME\+3/2/26"/> 
+	  <guard label="ME+3/2/27" tag="chamber[ ]+ME\+3/2/27"/> 
+	  <guard label="ME+3/2/28" tag="chamber[ ]+ME\+3/2/28"/> 
+	  <guard label="ME+3/2/29" tag="chamber[ ]+ME\+3/2/29"/> 
+	  <guard label="ME+3/2/30" tag="chamber[ ]+ME\+3/2/30"/> 
+	  <guard label="ME+3/2/31" tag="chamber[ ]+ME\+3/2/31"/> 
+	  <guard label="ME+3/2/32" tag="chamber[ ]+ME\+3/2/32"/> 
+	  <guard label="ME+3/2/33" tag="chamber[ ]+ME\+3/2/33"/> 
+	  <guard label="ME+3/2/34" tag="chamber[ ]+ME\+3/2/34"/> 
+	  <guard label="ME+3/2/35" tag="chamber[ ]+ME\+3/2/35"/> 
+	  <guard label="ME+3/2/36" tag="chamber[ ]+ME\+3/2/36"/> 
+	</view>
+      </view>
+      <view label="Station 4">
+	<view label="Ring 1">
+	  <guard label="ME+4/1/01" tag="chamber[ ]+ME\+4/1/01"/> 
+	  <guard label="ME+4/1/02" tag="chamber[ ]+ME\+4/1/02"/> 
+	  <guard label="ME+4/1/03" tag="chamber[ ]+ME\+4/1/03"/> 
+	  <guard label="ME+4/1/04" tag="chamber[ ]+ME\+4/1/04"/> 
+	  <guard label="ME+4/1/05" tag="chamber[ ]+ME\+4/1/05"/> 
+	  <guard label="ME+4/1/06" tag="chamber[ ]+ME\+4/1/06"/> 
+	  <guard label="ME+4/1/07" tag="chamber[ ]+ME\+4/1/07"/> 
+	  <guard label="ME+4/1/08" tag="chamber[ ]+ME\+4/1/08"/> 
+	  <guard label="ME+4/1/09" tag="chamber[ ]+ME\+4/1/09"/> 
+	  <guard label="ME+4/1/10" tag="chamber[ ]+ME\+4/1/10"/> 
+	  <guard label="ME+4/1/11" tag="chamber[ ]+ME\+4/1/11"/> 
+	  <guard label="ME+4/1/12" tag="chamber[ ]+ME\+4/1/12"/> 
+	  <guard label="ME+4/1/13" tag="chamber[ ]+ME\+4/1/13"/> 
+	  <guard label="ME+4/1/14" tag="chamber[ ]+ME\+4/1/14"/> 
+	  <guard label="ME+4/1/15" tag="chamber[ ]+ME\+4/1/15"/> 
+	  <guard label="ME+4/1/16" tag="chamber[ ]+ME\+4/1/16"/> 
+	  <guard label="ME+4/1/17" tag="chamber[ ]+ME\+4/1/17"/> 
+	  <guard label="ME+4/1/18" tag="chamber[ ]+ME\+4/1/18"/> 
+	</view>
+	<view label="Ring 2">
+	  <guard label="ME+4/2/01" tag="chamber[ ]+ME\+4/2/01"/> 
+	  <guard label="ME+4/2/02" tag="chamber[ ]+ME\+4/2/02"/> 
+	  <guard label="ME+4/2/03" tag="chamber[ ]+ME\+4/2/03"/> 
+	  <guard label="ME+4/2/04" tag="chamber[ ]+ME\+4/2/04"/> 
+	  <guard label="ME+4/2/05" tag="chamber[ ]+ME\+4/2/05"/> 
+	  <guard label="ME+4/2/06" tag="chamber[ ]+ME\+4/2/06"/> 
+	  <guard label="ME+4/2/07" tag="chamber[ ]+ME\+4/2/07"/> 
+	  <guard label="ME+4/2/08" tag="chamber[ ]+ME\+4/2/08"/> 
+	  <guard label="ME+4/2/09" tag="chamber[ ]+ME\+4/2/09"/> 
+	  <guard label="ME+4/2/10" tag="chamber[ ]+ME\+4/2/10"/> 
+	  <guard label="ME+4/2/11" tag="chamber[ ]+ME\+4/2/11"/> 
+	  <guard label="ME+4/2/12" tag="chamber[ ]+ME\+4/2/12"/> 
+	  <guard label="ME+4/2/13" tag="chamber[ ]+ME\+4/2/13"/> 
+	  <guard label="ME+4/2/14" tag="chamber[ ]+ME\+4/2/14"/> 
+	  <guard label="ME+4/2/15" tag="chamber[ ]+ME\+4/2/15"/> 
+	  <guard label="ME+4/2/16" tag="chamber[ ]+ME\+4/2/16"/> 
+	  <guard label="ME+4/2/17" tag="chamber[ ]+ME\+4/2/17"/> 
+	  <guard label="ME+4/2/18" tag="chamber[ ]+ME\+4/2/18"/> 
+	  <guard label="ME+4/2/19" tag="chamber[ ]+ME\+4/2/19"/> 
+	  <guard label="ME+4/2/20" tag="chamber[ ]+ME\+4/2/20"/> 
+	  <guard label="ME+4/2/21" tag="chamber[ ]+ME\+4/2/21"/> 
+	  <guard label="ME+4/2/22" tag="chamber[ ]+ME\+4/2/22"/> 
+	  <guard label="ME+4/2/23" tag="chamber[ ]+ME\+4/2/23"/> 
+	  <guard label="ME+4/2/24" tag="chamber[ ]+ME\+4/2/24"/> 
+	  <guard label="ME+4/2/25" tag="chamber[ ]+ME\+4/2/25"/> 
+	  <guard label="ME+4/2/26" tag="chamber[ ]+ME\+4/2/26"/> 
+	  <guard label="ME+4/2/27" tag="chamber[ ]+ME\+4/2/27"/> 
+	  <guard label="ME+4/2/28" tag="chamber[ ]+ME\+4/2/28"/> 
+	  <guard label="ME+4/2/29" tag="chamber[ ]+ME\+4/2/29"/> 
+	  <guard label="ME+4/2/30" tag="chamber[ ]+ME\+4/2/30"/> 
+	  <guard label="ME+4/2/31" tag="chamber[ ]+ME\+4/2/31"/> 
+	  <guard label="ME+4/2/32" tag="chamber[ ]+ME\+4/2/32"/> 
+	  <guard label="ME+4/2/33" tag="chamber[ ]+ME\+4/2/33"/> 
+	  <guard label="ME+4/2/34" tag="chamber[ ]+ME\+4/2/34"/> 
+	  <guard label="ME+4/2/35" tag="chamber[ ]+ME\+4/2/35"/> 
+	  <guard label="ME+4/2/36" tag="chamber[ ]+ME\+4/2/36"/> 
+	</view>
+      </view>
+    </view>
+    <view label="Endcap -">
+      <view label="Station 1">
+	<view label="Ring 1">
+	  <guard label="ME-1/1/01" tag="chamber[ ]+ME\-1/1/01"/> 
+	  <guard label="ME-1/1/02" tag="chamber[ ]+ME\-1/1/02"/> 
+	  <guard label="ME-1/1/03" tag="chamber[ ]+ME\-1/1/03"/> 
+	  <guard label="ME-1/1/04" tag="chamber[ ]+ME\-1/1/04"/> 
+	  <guard label="ME-1/1/05" tag="chamber[ ]+ME\-1/1/05"/> 
+	  <guard label="ME-1/1/06" tag="chamber[ ]+ME\-1/1/06"/> 
+	  <guard label="ME-1/1/07" tag="chamber[ ]+ME\-1/1/07"/> 
+	  <guard label="ME-1/1/08" tag="chamber[ ]+ME\-1/1/08"/> 
+	  <guard label="ME-1/1/09" tag="chamber[ ]+ME\-1/1/09"/> 
+	  <guard label="ME-1/1/10" tag="chamber[ ]+ME\-1/1/10"/> 
+	  <guard label="ME-1/1/11" tag="chamber[ ]+ME\-1/1/11"/> 
+	  <guard label="ME-1/1/12" tag="chamber[ ]+ME\-1/1/12"/> 
+	  <guard label="ME-1/1/13" tag="chamber[ ]+ME\-1/1/13"/> 
+	  <guard label="ME-1/1/14" tag="chamber[ ]+ME\-1/1/14"/> 
+	  <guard label="ME-1/1/15" tag="chamber[ ]+ME\-1/1/15"/> 
+	  <guard label="ME-1/1/16" tag="chamber[ ]+ME\-1/1/16"/> 
+	  <guard label="ME-1/1/17" tag="chamber[ ]+ME\-1/1/17"/> 
+	  <guard label="ME-1/1/18" tag="chamber[ ]+ME\-1/1/18"/> 
+	  <guard label="ME-1/1/19" tag="chamber[ ]+ME\-1/1/19"/> 
+	  <guard label="ME-1/1/20" tag="chamber[ ]+ME\-1/1/20"/> 
+	  <guard label="ME-1/1/21" tag="chamber[ ]+ME\-1/1/21"/> 
+	  <guard label="ME-1/1/22" tag="chamber[ ]+ME\-1/1/22"/> 
+	  <guard label="ME-1/1/23" tag="chamber[ ]+ME\-1/1/23"/> 
+	  <guard label="ME-1/1/24" tag="chamber[ ]+ME\-1/1/24"/> 
+	  <guard label="ME-1/1/25" tag="chamber[ ]+ME\-1/1/25"/> 
+	  <guard label="ME-1/1/26" tag="chamber[ ]+ME\-1/1/26"/> 
+	  <guard label="ME-1/1/27" tag="chamber[ ]+ME\-1/1/27"/> 
+	  <guard label="ME-1/1/28" tag="chamber[ ]+ME\-1/1/28"/> 
+	  <guard label="ME-1/1/29" tag="chamber[ ]+ME\-1/1/29"/> 
+	  <guard label="ME-1/1/30" tag="chamber[ ]+ME\-1/1/30"/> 
+	  <guard label="ME-1/1/31" tag="chamber[ ]+ME\-1/1/31"/> 
+	  <guard label="ME-1/1/32" tag="chamber[ ]+ME\-1/1/32"/> 
+	  <guard label="ME-1/1/33" tag="chamber[ ]+ME\-1/1/33"/> 
+	  <guard label="ME-1/1/34" tag="chamber[ ]+ME\-1/1/34"/> 
+	  <guard label="ME-1/1/35" tag="chamber[ ]+ME\-1/1/35"/> 
+	  <guard label="ME-1/1/36" tag="chamber[ ]+ME\-1/1/36"/> 
+	</view>
+	<view label="Ring 2">
+	  <guard label="ME-1/2/01" tag="chamber[ ]+ME\-1/2/01"/> 
+	  <guard label="ME-1/2/02" tag="chamber[ ]+ME\-1/2/02"/> 
+	  <guard label="ME-1/2/03" tag="chamber[ ]+ME\-1/2/03"/> 
+	  <guard label="ME-1/2/04" tag="chamber[ ]+ME\-1/2/04"/> 
+	  <guard label="ME-1/2/05" tag="chamber[ ]+ME\-1/2/05"/> 
+	  <guard label="ME-1/2/06" tag="chamber[ ]+ME\-1/2/06"/> 
+	  <guard label="ME-1/2/07" tag="chamber[ ]+ME\-1/2/07"/> 
+	  <guard label="ME-1/2/08" tag="chamber[ ]+ME\-1/2/08"/> 
+	  <guard label="ME-1/2/09" tag="chamber[ ]+ME\-1/2/09"/> 
+	  <guard label="ME-1/2/10" tag="chamber[ ]+ME\-1/2/10"/> 
+	  <guard label="ME-1/2/11" tag="chamber[ ]+ME\-1/2/11"/> 
+	  <guard label="ME-1/2/12" tag="chamber[ ]+ME\-1/2/12"/> 
+	  <guard label="ME-1/2/13" tag="chamber[ ]+ME\-1/2/13"/> 
+	  <guard label="ME-1/2/14" tag="chamber[ ]+ME\-1/2/14"/> 
+	  <guard label="ME-1/2/15" tag="chamber[ ]+ME\-1/2/15"/> 
+	  <guard label="ME-1/2/16" tag="chamber[ ]+ME\-1/2/16"/> 
+	  <guard label="ME-1/2/17" tag="chamber[ ]+ME\-1/2/17"/> 
+	  <guard label="ME-1/2/18" tag="chamber[ ]+ME\-1/2/18"/> 
+	  <guard label="ME-1/2/19" tag="chamber[ ]+ME\-1/2/19"/> 
+	  <guard label="ME-1/2/20" tag="chamber[ ]+ME\-1/2/20"/> 
+	  <guard label="ME-1/2/21" tag="chamber[ ]+ME\-1/2/21"/> 
+	  <guard label="ME-1/2/22" tag="chamber[ ]+ME\-1/2/22"/> 
+	  <guard label="ME-1/2/23" tag="chamber[ ]+ME\-1/2/23"/> 
+	  <guard label="ME-1/2/24" tag="chamber[ ]+ME\-1/2/24"/> 
+	  <guard label="ME-1/2/25" tag="chamber[ ]+ME\-1/2/25"/> 
+	  <guard label="ME-1/2/26" tag="chamber[ ]+ME\-1/2/26"/> 
+	  <guard label="ME-1/2/27" tag="chamber[ ]+ME\-1/2/27"/> 
+	  <guard label="ME-1/2/28" tag="chamber[ ]+ME\-1/2/28"/> 
+	  <guard label="ME-1/2/29" tag="chamber[ ]+ME\-1/2/29"/> 
+	  <guard label="ME-1/2/30" tag="chamber[ ]+ME\-1/2/30"/> 
+	  <guard label="ME-1/2/31" tag="chamber[ ]+ME\-1/2/31"/> 
+	  <guard label="ME-1/2/32" tag="chamber[ ]+ME\-1/2/32"/> 
+	  <guard label="ME-1/2/33" tag="chamber[ ]+ME\-1/2/33"/> 
+	  <guard label="ME-1/2/34" tag="chamber[ ]+ME\-1/2/34"/> 
+	  <guard label="ME-1/2/35" tag="chamber[ ]+ME\-1/2/35"/> 
+	  <guard label="ME-1/2/36" tag="chamber[ ]+ME\-1/2/36"/> 
+	</view>
+	<view label="Ring 3">
+	  <guard label="ME-1/3/01" tag="chamber[ ]+ME\-1/3/01"/> 
+	  <guard label="ME-1/3/02" tag="chamber[ ]+ME\-1/3/02"/> 
+	  <guard label="ME-1/3/03" tag="chamber[ ]+ME\-1/3/03"/> 
+	  <guard label="ME-1/3/04" tag="chamber[ ]+ME\-1/3/04"/> 
+	  <guard label="ME-1/3/05" tag="chamber[ ]+ME\-1/3/05"/> 
+	  <guard label="ME-1/3/06" tag="chamber[ ]+ME\-1/3/06"/> 
+	  <guard label="ME-1/3/07" tag="chamber[ ]+ME\-1/3/07"/> 
+	  <guard label="ME-1/3/08" tag="chamber[ ]+ME\-1/3/08"/> 
+	  <guard label="ME-1/3/09" tag="chamber[ ]+ME\-1/3/09"/> 
+	  <guard label="ME-1/3/10" tag="chamber[ ]+ME\-1/3/10"/> 
+	  <guard label="ME-1/3/11" tag="chamber[ ]+ME\-1/3/11"/> 
+	  <guard label="ME-1/3/12" tag="chamber[ ]+ME\-1/3/12"/> 
+	  <guard label="ME-1/3/13" tag="chamber[ ]+ME\-1/3/13"/> 
+	  <guard label="ME-1/3/14" tag="chamber[ ]+ME\-1/3/14"/> 
+	  <guard label="ME-1/3/15" tag="chamber[ ]+ME\-1/3/15"/> 
+	  <guard label="ME-1/3/16" tag="chamber[ ]+ME\-1/3/16"/> 
+	  <guard label="ME-1/3/17" tag="chamber[ ]+ME\-1/3/17"/> 
+	  <guard label="ME-1/3/18" tag="chamber[ ]+ME\-1/3/18"/> 
+	  <guard label="ME-1/3/19" tag="chamber[ ]+ME\-1/3/19"/> 
+	  <guard label="ME-1/3/20" tag="chamber[ ]+ME\-1/3/20"/> 
+	  <guard label="ME-1/3/21" tag="chamber[ ]+ME\-1/3/21"/> 
+	  <guard label="ME-1/3/22" tag="chamber[ ]+ME\-1/3/22"/> 
+	  <guard label="ME-1/3/23" tag="chamber[ ]+ME\-1/3/23"/> 
+	  <guard label="ME-1/3/24" tag="chamber[ ]+ME\-1/3/24"/> 
+	  <guard label="ME-1/3/25" tag="chamber[ ]+ME\-1/3/25"/> 
+	  <guard label="ME-1/3/26" tag="chamber[ ]+ME\-1/3/26"/> 
+	  <guard label="ME-1/3/27" tag="chamber[ ]+ME\-1/3/27"/> 
+	  <guard label="ME-1/3/28" tag="chamber[ ]+ME\-1/3/28"/> 
+	  <guard label="ME-1/3/29" tag="chamber[ ]+ME\-1/3/29"/> 
+	  <guard label="ME-1/3/30" tag="chamber[ ]+ME\-1/3/30"/> 
+	  <guard label="ME-1/3/31" tag="chamber[ ]+ME\-1/3/31"/> 
+	  <guard label="ME-1/3/32" tag="chamber[ ]+ME\-1/3/32"/> 
+	  <guard label="ME-1/3/33" tag="chamber[ ]+ME\-1/3/33"/> 
+	  <guard label="ME-1/3/34" tag="chamber[ ]+ME\-1/3/34"/> 
+	  <guard label="ME-1/3/35" tag="chamber[ ]+ME\-1/3/35"/> 
+	  <guard label="ME-1/3/36" tag="chamber[ ]+ME\-1/3/36"/> 
+	</view>
+      </view>
+      <view label="Station 2">
+	<view label="Ring 1">
+	  <guard label="ME-2/1/01" tag="chamber[ ]+ME\-2/1/01"/> 
+	  <guard label="ME-2/1/02" tag="chamber[ ]+ME\-2/1/02"/> 
+	  <guard label="ME-2/1/03" tag="chamber[ ]+ME\-2/1/03"/> 
+	  <guard label="ME-2/1/04" tag="chamber[ ]+ME\-2/1/04"/> 
+	  <guard label="ME-2/1/05" tag="chamber[ ]+ME\-2/1/05"/> 
+	  <guard label="ME-2/1/06" tag="chamber[ ]+ME\-2/1/06"/> 
+	  <guard label="ME-2/1/07" tag="chamber[ ]+ME\-2/1/07"/> 
+	  <guard label="ME-2/1/08" tag="chamber[ ]+ME\-2/1/08"/> 
+	  <guard label="ME-2/1/09" tag="chamber[ ]+ME\-2/1/09"/> 
+	  <guard label="ME-2/1/10" tag="chamber[ ]+ME\-2/1/10"/> 
+	  <guard label="ME-2/1/11" tag="chamber[ ]+ME\-2/1/11"/> 
+	  <guard label="ME-2/1/12" tag="chamber[ ]+ME\-2/1/12"/> 
+	  <guard label="ME-2/1/13" tag="chamber[ ]+ME\-2/1/13"/> 
+	  <guard label="ME-2/1/14" tag="chamber[ ]+ME\-2/1/14"/> 
+	  <guard label="ME-2/1/15" tag="chamber[ ]+ME\-2/1/15"/> 
+	  <guard label="ME-2/1/16" tag="chamber[ ]+ME\-2/1/16"/> 
+	  <guard label="ME-2/1/17" tag="chamber[ ]+ME\-2/1/17"/> 
+	  <guard label="ME-2/1/18" tag="chamber[ ]+ME\-2/1/18"/> 
+	</view>
+	<view label="Ring 2">
+	  <guard label="ME-2/2/01" tag="chamber[ ]+ME\-2/2/01"/> 
+	  <guard label="ME-2/2/02" tag="chamber[ ]+ME\-2/2/02"/> 
+	  <guard label="ME-2/2/03" tag="chamber[ ]+ME\-2/2/03"/> 
+	  <guard label="ME-2/2/04" tag="chamber[ ]+ME\-2/2/04"/> 
+	  <guard label="ME-2/2/05" tag="chamber[ ]+ME\-2/2/05"/> 
+	  <guard label="ME-2/2/06" tag="chamber[ ]+ME\-2/2/06"/> 
+	  <guard label="ME-2/2/07" tag="chamber[ ]+ME\-2/2/07"/> 
+	  <guard label="ME-2/2/08" tag="chamber[ ]+ME\-2/2/08"/> 
+	  <guard label="ME-2/2/09" tag="chamber[ ]+ME\-2/2/09"/> 
+	  <guard label="ME-2/2/10" tag="chamber[ ]+ME\-2/2/10"/> 
+	  <guard label="ME-2/2/11" tag="chamber[ ]+ME\-2/2/11"/> 
+	  <guard label="ME-2/2/12" tag="chamber[ ]+ME\-2/2/12"/> 
+	  <guard label="ME-2/2/13" tag="chamber[ ]+ME\-2/2/13"/> 
+	  <guard label="ME-2/2/14" tag="chamber[ ]+ME\-2/2/14"/> 
+	  <guard label="ME-2/2/15" tag="chamber[ ]+ME\-2/2/15"/> 
+	  <guard label="ME-2/2/16" tag="chamber[ ]+ME\-2/2/16"/> 
+	  <guard label="ME-2/2/17" tag="chamber[ ]+ME\-2/2/17"/> 
+	  <guard label="ME-2/2/18" tag="chamber[ ]+ME\-2/2/18"/> 
+	  <guard label="ME-2/2/19" tag="chamber[ ]+ME\-2/2/19"/> 
+	  <guard label="ME-2/2/20" tag="chamber[ ]+ME\-2/2/20"/> 
+	  <guard label="ME-2/2/21" tag="chamber[ ]+ME\-2/2/21"/> 
+	  <guard label="ME-2/2/22" tag="chamber[ ]+ME\-2/2/22"/> 
+	  <guard label="ME-2/2/23" tag="chamber[ ]+ME\-2/2/23"/> 
+	  <guard label="ME-2/2/24" tag="chamber[ ]+ME\-2/2/24"/> 
+	  <guard label="ME-2/2/25" tag="chamber[ ]+ME\-2/2/25"/> 
+	  <guard label="ME-2/2/26" tag="chamber[ ]+ME\-2/2/26"/> 
+	  <guard label="ME-2/2/27" tag="chamber[ ]+ME\-2/2/27"/> 
+	  <guard label="ME-2/2/28" tag="chamber[ ]+ME\-2/2/28"/> 
+	  <guard label="ME-2/2/29" tag="chamber[ ]+ME\-2/2/29"/> 
+	  <guard label="ME-2/2/30" tag="chamber[ ]+ME\-2/2/30"/> 
+	  <guard label="ME-2/2/31" tag="chamber[ ]+ME\-2/2/31"/> 
+	  <guard label="ME-2/2/32" tag="chamber[ ]+ME\-2/2/32"/> 
+	  <guard label="ME-2/2/33" tag="chamber[ ]+ME\-2/2/33"/> 
+	  <guard label="ME-2/2/34" tag="chamber[ ]+ME\-2/2/34"/> 
+	  <guard label="ME-2/2/35" tag="chamber[ ]+ME\-2/2/35"/> 
+	  <guard label="ME-2/2/36" tag="chamber[ ]+ME\-2/2/36"/> 
+	</view>
+      </view>
+      <view label="Station 3">
+	<view label="Ring 1">
+	  <guard label="ME-3/1/01" tag="chamber[ ]+ME\-3/1/01"/> 
+	  <guard label="ME-3/1/02" tag="chamber[ ]+ME\-3/1/02"/> 
+	  <guard label="ME-3/1/03" tag="chamber[ ]+ME\-3/1/03"/> 
+	  <guard label="ME-3/1/04" tag="chamber[ ]+ME\-3/1/04"/> 
+	  <guard label="ME-3/1/05" tag="chamber[ ]+ME\-3/1/05"/> 
+	  <guard label="ME-3/1/06" tag="chamber[ ]+ME\-3/1/06"/> 
+	  <guard label="ME-3/1/07" tag="chamber[ ]+ME\-3/1/07"/> 
+	  <guard label="ME-3/1/08" tag="chamber[ ]+ME\-3/1/08"/> 
+	  <guard label="ME-3/1/09" tag="chamber[ ]+ME\-3/1/09"/> 
+	  <guard label="ME-3/1/10" tag="chamber[ ]+ME\-3/1/10"/> 
+	  <guard label="ME-3/1/11" tag="chamber[ ]+ME\-3/1/11"/> 
+	  <guard label="ME-3/1/12" tag="chamber[ ]+ME\-3/1/12"/> 
+	  <guard label="ME-3/1/13" tag="chamber[ ]+ME\-3/1/13"/> 
+	  <guard label="ME-3/1/14" tag="chamber[ ]+ME\-3/1/14"/> 
+	  <guard label="ME-3/1/15" tag="chamber[ ]+ME\-3/1/15"/> 
+	  <guard label="ME-3/1/16" tag="chamber[ ]+ME\-3/1/16"/> 
+	  <guard label="ME-3/1/17" tag="chamber[ ]+ME\-3/1/17"/> 
+	  <guard label="ME-3/1/18" tag="chamber[ ]+ME\-3/1/18"/> 
+	</view>
+	<view label="Ring 2">
+	  <guard label="ME-3/2/01" tag="chamber[ ]+ME\-3/2/01"/> 
+	  <guard label="ME-3/2/02" tag="chamber[ ]+ME\-3/2/02"/> 
+	  <guard label="ME-3/2/03" tag="chamber[ ]+ME\-3/2/03"/> 
+	  <guard label="ME-3/2/04" tag="chamber[ ]+ME\-3/2/04"/> 
+	  <guard label="ME-3/2/05" tag="chamber[ ]+ME\-3/2/05"/> 
+	  <guard label="ME-3/2/06" tag="chamber[ ]+ME\-3/2/06"/> 
+	  <guard label="ME-3/2/07" tag="chamber[ ]+ME\-3/2/07"/> 
+	  <guard label="ME-3/2/08" tag="chamber[ ]+ME\-3/2/08"/> 
+	  <guard label="ME-3/2/09" tag="chamber[ ]+ME\-3/2/09"/> 
+	  <guard label="ME-3/2/10" tag="chamber[ ]+ME\-3/2/10"/> 
+	  <guard label="ME-3/2/11" tag="chamber[ ]+ME\-3/2/11"/> 
+	  <guard label="ME-3/2/12" tag="chamber[ ]+ME\-3/2/12"/> 
+	  <guard label="ME-3/2/13" tag="chamber[ ]+ME\-3/2/13"/> 
+	  <guard label="ME-3/2/14" tag="chamber[ ]+ME\-3/2/14"/> 
+	  <guard label="ME-3/2/15" tag="chamber[ ]+ME\-3/2/15"/> 
+	  <guard label="ME-3/2/16" tag="chamber[ ]+ME\-3/2/16"/> 
+	  <guard label="ME-3/2/17" tag="chamber[ ]+ME\-3/2/17"/> 
+	  <guard label="ME-3/2/18" tag="chamber[ ]+ME\-3/2/18"/> 
+	  <guard label="ME-3/2/19" tag="chamber[ ]+ME\-3/2/19"/> 
+	  <guard label="ME-3/2/20" tag="chamber[ ]+ME\-3/2/20"/> 
+	  <guard label="ME-3/2/21" tag="chamber[ ]+ME\-3/2/21"/> 
+	  <guard label="ME-3/2/22" tag="chamber[ ]+ME\-3/2/22"/> 
+	  <guard label="ME-3/2/23" tag="chamber[ ]+ME\-3/2/23"/> 
+	  <guard label="ME-3/2/24" tag="chamber[ ]+ME\-3/2/24"/> 
+	  <guard label="ME-3/2/25" tag="chamber[ ]+ME\-3/2/25"/> 
+	  <guard label="ME-3/2/26" tag="chamber[ ]+ME\-3/2/26"/> 
+	  <guard label="ME-3/2/27" tag="chamber[ ]+ME\-3/2/27"/> 
+	  <guard label="ME-3/2/28" tag="chamber[ ]+ME\-3/2/28"/> 
+	  <guard label="ME-3/2/29" tag="chamber[ ]+ME\-3/2/29"/> 
+	  <guard label="ME-3/2/30" tag="chamber[ ]+ME\-3/2/30"/> 
+	  <guard label="ME-3/2/31" tag="chamber[ ]+ME\-3/2/31"/> 
+	  <guard label="ME-3/2/32" tag="chamber[ ]+ME\-3/2/32"/> 
+	  <guard label="ME-3/2/33" tag="chamber[ ]+ME\-3/2/33"/> 
+	  <guard label="ME-3/2/34" tag="chamber[ ]+ME\-3/2/34"/> 
+	  <guard label="ME-3/2/35" tag="chamber[ ]+ME\-3/2/35"/> 
+	  <guard label="ME-3/2/36" tag="chamber[ ]+ME\-3/2/36"/> 
+	</view>
+      </view>
+      <view label="Station 4">
+	<view label="Ring 1">
+	  <guard label="ME-4/1/01" tag="chamber[ ]+ME\-4/1/01"/> 
+	  <guard label="ME-4/1/02" tag="chamber[ ]+ME\-4/1/02"/> 
+	  <guard label="ME-4/1/03" tag="chamber[ ]+ME\-4/1/03"/> 
+	  <guard label="ME-4/1/04" tag="chamber[ ]+ME\-4/1/04"/> 
+	  <guard label="ME-4/1/05" tag="chamber[ ]+ME\-4/1/05"/> 
+	  <guard label="ME-4/1/06" tag="chamber[ ]+ME\-4/1/06"/> 
+	  <guard label="ME-4/1/07" tag="chamber[ ]+ME\-4/1/07"/> 
+	  <guard label="ME-4/1/08" tag="chamber[ ]+ME\-4/1/08"/> 
+	  <guard label="ME-4/1/09" tag="chamber[ ]+ME\-4/1/09"/> 
+	  <guard label="ME-4/1/10" tag="chamber[ ]+ME\-4/1/10"/> 
+	  <guard label="ME-4/1/11" tag="chamber[ ]+ME\-4/1/11"/> 
+	  <guard label="ME-4/1/12" tag="chamber[ ]+ME\-4/1/12"/> 
+	  <guard label="ME-4/1/13" tag="chamber[ ]+ME\-4/1/13"/> 
+	  <guard label="ME-4/1/14" tag="chamber[ ]+ME\-4/1/14"/> 
+	  <guard label="ME-4/1/15" tag="chamber[ ]+ME\-4/1/15"/> 
+	  <guard label="ME-4/1/16" tag="chamber[ ]+ME\-4/1/16"/> 
+	  <guard label="ME-4/1/17" tag="chamber[ ]+ME\-4/1/17"/> 
+	  <guard label="ME-4/1/18" tag="chamber[ ]+ME\-4/1/18"/> 
+	</view>
+	<view label="Ring 2">
+	  <guard label="ME-4/2/01" tag="chamber[ ]+ME\-4/2/01"/> 
+	  <guard label="ME-4/2/02" tag="chamber[ ]+ME\-4/2/02"/> 
+	  <guard label="ME-4/2/03" tag="chamber[ ]+ME\-4/2/03"/> 
+	  <guard label="ME-4/2/04" tag="chamber[ ]+ME\-4/2/04"/> 
+	  <guard label="ME-4/2/05" tag="chamber[ ]+ME\-4/2/05"/> 
+	  <guard label="ME-4/2/06" tag="chamber[ ]+ME\-4/2/06"/> 
+	  <guard label="ME-4/2/07" tag="chamber[ ]+ME\-4/2/07"/> 
+	  <guard label="ME-4/2/08" tag="chamber[ ]+ME\-4/2/08"/> 
+	  <guard label="ME-4/2/09" tag="chamber[ ]+ME\-4/2/09"/> 
+	  <guard label="ME-4/2/10" tag="chamber[ ]+ME\-4/2/10"/> 
+	  <guard label="ME-4/2/11" tag="chamber[ ]+ME\-4/2/11"/> 
+	  <guard label="ME-4/2/12" tag="chamber[ ]+ME\-4/2/12"/> 
+	  <guard label="ME-4/2/13" tag="chamber[ ]+ME\-4/2/13"/> 
+	  <guard label="ME-4/2/14" tag="chamber[ ]+ME\-4/2/14"/> 
+	  <guard label="ME-4/2/15" tag="chamber[ ]+ME\-4/2/15"/> 
+	  <guard label="ME-4/2/16" tag="chamber[ ]+ME\-4/2/16"/> 
+	  <guard label="ME-4/2/17" tag="chamber[ ]+ME\-4/2/17"/> 
+	  <guard label="ME-4/2/18" tag="chamber[ ]+ME\-4/2/18"/> 
+	  <guard label="ME-4/2/19" tag="chamber[ ]+ME\-4/2/19"/> 
+	  <guard label="ME-4/2/20" tag="chamber[ ]+ME\-4/2/20"/> 
+	  <guard label="ME-4/2/21" tag="chamber[ ]+ME\-4/2/21"/> 
+	  <guard label="ME-4/2/22" tag="chamber[ ]+ME\-4/2/22"/> 
+	  <guard label="ME-4/2/23" tag="chamber[ ]+ME\-4/2/23"/> 
+	  <guard label="ME-4/2/24" tag="chamber[ ]+ME\-4/2/24"/> 
+	  <guard label="ME-4/2/25" tag="chamber[ ]+ME\-4/2/25"/> 
+	  <guard label="ME-4/2/26" tag="chamber[ ]+ME\-4/2/26"/> 
+	  <guard label="ME-4/2/27" tag="chamber[ ]+ME\-4/2/27"/> 
+	  <guard label="ME-4/2/28" tag="chamber[ ]+ME\-4/2/28"/> 
+	  <guard label="ME-4/2/29" tag="chamber[ ]+ME\-4/2/29"/> 
+	  <guard label="ME-4/2/30" tag="chamber[ ]+ME\-4/2/30"/> 
+	  <guard label="ME-4/2/31" tag="chamber[ ]+ME\-4/2/31"/> 
+	  <guard label="ME-4/2/32" tag="chamber[ ]+ME\-4/2/32"/> 
+	  <guard label="ME-4/2/33" tag="chamber[ ]+ME\-4/2/33"/> 
+	  <guard label="ME-4/2/34" tag="chamber[ ]+ME\-4/2/34"/> 
+	  <guard label="ME-4/2/35" tag="chamber[ ]+ME\-4/2/35"/> 
+	  <guard label="ME-4/2/36" tag="chamber[ ]+ME\-4/2/36"/> 
+	</view>
+      </view>
+    </view>
+  </view>
+
+  <view label="Peripheral Crates" image="http://xdaq.web.cern.ch/xdaq/setup/images/FRLController.png">		
+  </view>
+
+  <view label="FED Crates" image="http://xdaq.web.cern.ch/xdaq/setup/images/FRLController.png">		
+  </view>
+</setup>
