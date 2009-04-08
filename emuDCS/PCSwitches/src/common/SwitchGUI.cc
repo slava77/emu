@@ -168,6 +168,10 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
   std::string myUrn = getApplicationDescriptor()->getURN().c_str();
   xgi::Utils::getPageHeader(out,"SwitchGUI: VME Gigabit Switch Maintenance",myUrn,"","");
 
+  std::stringstream sTitle;
+  sTitle << "SwitchGUI: " << S->sidelabel << " Side Maintenance";
+  *out << Header(sTitle.str(),false);
+
   *out << cgicc::table();
   *out << cgicc::tr();
   *out << cgicc::td();
@@ -194,6 +198,7 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
   *out << cgicc::td() << std::endl;
   *out << cgicc::tr() << std::endl;
   *out << cgicc::table() << std::endl;
+  if(toolbox::net::getHostName() == "vmepcS2G18-09.cms") {
   *out << cgicc::table() << std::endl;
   std::string PowerSwitch = toolbox::toString("/%s/PowerSwitch",getApplicationDescriptor()->getURN().c_str());
   
@@ -217,6 +222,7 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
     }
     *out << cgicc::tr() << std::endl;
   }
+}
 
   *out << cgicc::tr() << std::endl;
   *out << cgicc::table() << std::endl;
@@ -228,6 +234,10 @@ void SwitchGUI::MacGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exceptio
   cgicc::Cgicc cgi(in);
 
   S->fill_switch_macs(switchTelnet_);
+
+  std::stringstream sTitle;
+  sTitle << "SwitchGUI: " << S->sidelabel << " Side MAC Addresses";
+  *out << Header(sTitle.str(),false);
 
 //  *out<<Header("VME Gigabit Switch MAC Tables",false);
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
@@ -275,6 +285,9 @@ void SwitchGUI::GotoMacGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exce
 void SwitchGUI::ProblemsGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
   cgicc::Cgicc cgi(in);
 //  *out<<Header("VME Problem Tables",false);
+  std::stringstream sTitle;
+  sTitle << "SwitchGUI: " << S->sidelabel << " Side VME Problem Tables";
+  *out << Header(sTitle.str(),false);
 
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
   *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -320,6 +333,10 @@ void SwitchGUI::ProblemsGUI(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
 void SwitchGUI::html_port_status(xgi::Input * in, xgi::Output * out ) {
   cgicc::Cgicc cgi(in);
   int crate,swt,prt,slt;
+  std::stringstream sTitle;
+  sTitle << "SwitchGUI: " << S->sidelabel << " Side Port Statuses";
+  *out << Header(sTitle.str(),false);
+
   *out << "<table cellpadding=6 rules=groups frame=box>";
   *out << "<thead>" << std::endl << "<tr><th>crate</th><th>switch</th><th>port</th><th>link</th><th>rx</th><th>rx_error</th><th>tx</th><th>tx_error</th></tr>" << std::endl << "</tr>" << std::endl <<  "<tbody>" << std::endl;
 
