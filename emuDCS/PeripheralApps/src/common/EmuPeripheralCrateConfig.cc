@@ -1295,7 +1295,7 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
   *out << std::endl;
   //
-  for(int ii=1; ii<28; ii++) {
+  for(int ii=1; ii<22; ii++) {
     //
     *out << cgicc::table().set("border","1");
     //
