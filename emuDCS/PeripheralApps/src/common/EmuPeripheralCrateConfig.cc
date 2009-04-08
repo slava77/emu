@@ -27,43 +27,77 @@ const std::string       VMECC_FIRMWARE_DIR = "vcc";
 //the firmware needs to reside in directories in the form:
 //    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/type[A,C,D]/tmb.xsvf   <-- N.B. xsvf format for TMB
 //    RAT  ->  $HOME/firmware/rat/YEARMONTHDAY/rat.svf
-//    ALCT ->  $HOME/firmware/alct/YEARMONTHDAY/alctXXX/alctXXX.svf
+//    ALCT ->  $HOME/firmware/alct/YEARMONTHDAY/alctXXX/alctXXX.xsvf
 // with the zero-values filled in with 0's.  
 // In other words:  9 April 2007 firmware should reside in YEARMONTHDAY=20070409
 //
 // The XXX in the ALCT firmware specification corresponds to the following structure:
-const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf"; //
-const std::string ALCT_READBACK_FILENAME_ME11 = "readback-192-288-384";//
+const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288";
+const std::string ALCT_READBACK_FILENAME_ME11 = "alct288/alct288_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn.svf";//
-const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE = "readback-192-288-384";   //
+const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn";
+const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp.svf";//
-const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE = "readback-192-288-384";   //
+const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp";
+const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp.svf";//
-const std::string ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE  = "readback-192-288-384";   //
+const std::string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp";
+const std::string ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384.svf"; //
-const std::string ALCT_READBACK_FILENAME_ME12 = "readback-192-288-384";//
+const std::string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384"; 
+const std::string ALCT_READBACK_FILENAME_ME12 = "alct384/alct384_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192.svf"; //
-const std::string ALCT_READBACK_FILENAME_ME13 = "readback-192-288-384";//
+const std::string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192"; 
+const std::string ALCT_READBACK_FILENAME_ME13 = "alct192/alct192_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672.svf";//
-const std::string ALCT_READBACK_FILENAME_ME21 = "readback-576-672";   //
+const std::string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672";
+const std::string ALCT_READBACK_FILENAME_ME21 = "alct672/alct672_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf"; //
-const std::string ALCT_READBACK_FILENAME_ME22 = "readback-192-288-384";//
+const std::string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384";
+const std::string ALCT_READBACK_FILENAME_ME22 = "alct384/alct384_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";//
-const std::string ALCT_READBACK_FILENAME_ME31 = "readback-576-672";               //
+const std::string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror";
+const std::string ALCT_READBACK_FILENAME_ME31 = "alct576mirror/alct576mirror_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";//
-const std::string ALCT_READBACK_FILENAME_ME32 = "readback-192-288-384";           //
+const std::string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror";
+const std::string ALCT_READBACK_FILENAME_ME32 = "alct384mirror/alct384mirror_verify";
 //
-const std::string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror.svf";//
-const std::string ALCT_READBACK_FILENAME_ME41 = "readback-576-672";               //
+const std::string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror";
+const std::string ALCT_READBACK_FILENAME_ME41 = "alct576mirror/alct576mirror_verify";
+//
+// Old svf files (to be deprecated once it is verified that the xsvf firmware is working...
+//const std::string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf"; //
+//const std::string ALCT_READBACK_FILENAME_ME11 = "readback-192-288-384";//
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn.svf";//
+//const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_NEGATIVE = "readback-192-288-384";   //
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp.svf";//
+//const std::string ALCT_READBACK_FILENAME_ME11_BACKWARD_POSITIVE = "readback-192-288-384";   //
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp.svf";//
+//const std::string ALCT_READBACK_FILENAME_ME11_FORWARD_POSITIVE  = "readback-192-288-384";   //
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384.svf"; //
+//const std::string ALCT_READBACK_FILENAME_ME12 = "readback-192-288-384";//
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192.svf"; //
+//const std::string ALCT_READBACK_FILENAME_ME13 = "readback-192-288-384";//
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672.svf";//
+//const std::string ALCT_READBACK_FILENAME_ME21 = "readback-576-672";   //
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf"; //
+//const std::string ALCT_READBACK_FILENAME_ME22 = "readback-192-288-384";//
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";//
+//const std::string ALCT_READBACK_FILENAME_ME31 = "readback-576-672";               //
+//
+//const std::string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";//
+//const std::string ALCT_READBACK_FILENAME_ME32 = "readback-192-288-384";           //
+//  
+//const std::string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror.svf";//
+//const std::string ALCT_READBACK_FILENAME_ME41 = "readback-576-672";               //
 //
 //
 /////////////////////////////////////////////////////////////////////
@@ -12590,21 +12624,22 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   //
   thisTMB->disableAllClocks();
   //
-  // programming with xsvf file (svf file programming to be deprecated, since it cannot verify)
-  //  thisALCT->SetXsvfFilename(ALCTFirmware_[tmb].toString().c_str());
-  //  thisALCT->ProgramALCTProms();
-  //  thisALCT->ClearXsvfFilename();
+  thisTMB->SetXsvfFilename(ALCTFirmware_[tmb].toString().c_str());
+  thisALCT->ProgramALCTProms();
+  thisTMB->ClearXsvfFilename();
+  int status = thisTMB->GetNumberOfVerifyErrors();
   //
-  int debugMode(0);
-  int jch(3);
-  int status = thisALCT->SVFLoad(&jch,ALCTFirmware_[tmb].toString().c_str(),debugMode);
+  // programming with svf file to be deprecated, since it cannot verify...
+  //  int debugMode(0);
+  //  int jch(3);
+  //  int status = thisALCT->SVFLoad(&jch,ALCTFirmware_[tmb].toString().c_str(),debugMode);
   //
   thisTMB->enableAllClocks();
   //
   if (status >= 0){
     LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
     std::cout << "=== Programming finished"<< std::endl;
-    //	cout << "=== " << status << " Verify Errors  occured" << std::endl;
+    std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
   } else {
     std::cout << "=== Fatal Error. Exiting with " << status << std::endl;
   }
@@ -12660,21 +12695,22 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     //
     thisTMB->disableAllClocks();
     //
-    // programming with xsvf file (svf file programming to be deprecated, since it cannot verify)
-    //  thisALCT->SetXsvfFilename(ALCTFirmware_[tmb].toString().c_str());
-    //  thisALCT->ProgramALCTProms();
-    //  thisALCT->ClearXsvfFilename();
+    thisTMB->SetXsvfFilename(ALCTFirmware_[tmb].toString().c_str());
+    thisALCT->ProgramALCTProms();
+    thisTMB->ClearXsvfFilename();
+    int status = thisTMB->GetNumberOfVerifyErrors();
     //
-    int debugMode(0);
-    int jch(3);
-    int status = thisALCT->SVFLoad(&jch,ALCTFirmware_[i].toString().c_str(),debugMode);
+    // programming with svf file to be deprecated, since it cannot verify...
+    //    int debugMode(0);
+    //    int jch(3);
+    //    int status = thisALCT->SVFLoad(&jch,ALCTFirmware_[i].toString().c_str(),debugMode);
     //
     thisTMB->enableAllClocks();
     //
     if (status >= 0){
       LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
       std::cout << "=== Programming finished"<< std::endl;
-      //	cout << "=== " << status << " Verify Errors  occured" << std::endl;
+      std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
     } else {
       std::cout << "=== Fatal Error. Exiting with " << status << std::endl;
     }
