@@ -1,17 +1,5 @@
 /*****************************************************************************\
-* $Id: JTAGElement.h,v 1.1 2009/03/05 16:02:14 paste Exp $
-*
-* $Log: JTAGElement.h,v $
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.2  2008/09/24 18:42:28  paste
-* Fixing JTAGElement double-checkin problem.
-*
-*
+* $Id: JTAGElement.h,v 1.2 2009/04/14 17:50:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_JTAGELEMENT_H__
 #define __EMU_FED_JTAGELEMENT_H__
@@ -43,9 +31,9 @@ namespace emu {
 				bitCode(myBitCode),
 				directVME(myDirectVME)
 			{}
-			
+
 			~JTAGElement() {}
-			
+
 			/// The human-readable name of the element
 			std::string name;
 
@@ -54,7 +42,7 @@ namespace emu {
 
 			/// Part of the VME address
 			int channel;
-			
+
 			/// The command used to bypass this element if need be
 			int16_t bypassCommand;
 
@@ -66,11 +54,11 @@ namespace emu {
 
 			/// Is this device accessable through a direct VME read?
 			bool directVME;
-			
+
 		};
 
 		typedef std::list<JTAGElement *> JTAGChain;
-	
+
 	}
 
 }

@@ -1,38 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEController.h,v 1.1 2009/03/05 16:02:14 paste Exp $
-*
-* $Log: VMEController.h,v $
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.16  2009/01/29 15:31:23  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.15  2008/10/01 14:10:03  paste
-* Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
-*
-* Revision 3.14  2008/09/29 08:36:26  paste
-* Removed references to extinct JTAGDevice.h
-*
-* Revision 3.13  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.12  2008/09/03 17:52:58  paste
-* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
-*
-* Revision 3.11  2008/08/19 14:51:02  paste
-* Update to make VMEModules more independent of VMEControllers.
-*
-* Revision 3.10  2008/08/15 16:14:50  paste
-* Fixed threads (hopefully).
-*
-* Revision 3.9  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: VMEController.h,v 1.2 2009/04/14 17:50:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMECONTROLLER_H__
 #define __EMU_FED_VMECONTROLLER_H__
@@ -72,7 +39,7 @@ namespace emu {
 
 			/** @returns the CAEN BHandle, **/
 			inline int32_t getBHandle() { return BHandle_; }
-			
+
 			/** Set the IRQ enabled and wait until an interrupt comes through.
 			*
 			*	@param mSecs the number of milliseconds to wait for an
@@ -82,14 +49,14 @@ namespace emu {
 			**/
 			bool waitIRQ(unsigned int mSecs = 5000)
 			throw (emu::fed::exception::CAENException);
-			
+
 			/** Read the VME IRQ channel
 			*
 			*	@returns the 16-bits read from the IRQ channel.
 			**/
 			uint16_t readIRQ()
 			throw (emu::fed::exception::CAENException);
-			
+
 			/**	I am doing something smart here.  Instead of making the BHandles extern,
 			*	I am going to have the original constructor set its own BHanlde to a
 			*	crazy value in case of an error.  Thus, if the device is already open, I

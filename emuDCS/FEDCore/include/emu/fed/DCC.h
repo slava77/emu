@@ -1,49 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.2 2009/03/09 23:12:44 paste Exp $
-*
-* $Log: DCC.h,v $
-* Revision 1.2  2009/03/09 23:12:44  paste
-* * Fixed a minor bug in DCC MPROM ID/Usercode reading
-* * Fixed a major bug in RESET path firmware loading
-* * Added debug mode for CAEN reading/writing
-*
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.24  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.23  2008/10/22 20:23:57  paste
-* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
-*
-* Revision 3.22  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
-*
-* Revision 3.21  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.20  2008/09/19 16:53:51  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.19  2008/09/07 22:25:35  paste
-* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
-*
-* Revision 3.18  2008/08/26 13:40:08  paste
-* Updating and adding documentation
-*
-* Revision 3.17  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.16  2008/08/15 10:40:20  paste
-* Working on fixing CAEN controller opening problems
-*
-* Revision 3.14  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: DCC.h,v 1.3 2009/04/14 17:50:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -64,13 +20,13 @@ namespace emu {
 		{
 		public:
 			friend class DCCParser;
-		
+
 			/** @param slot the slot of the board for VME addressing purposes. **/
 			DCC(int slot);
 
 			/** Default destructor. **/
 			virtual ~DCC();
-		
+
 			/** @return the FIFOInUse parameter. **/
 			inline int getFIFOInUse() { return fifoinuse_; }
 
@@ -97,7 +53,7 @@ namespace emu {
 			 * FIFO n is being read in.
 			 *
 			 * @note There are only 10 fifos, but the first 11 bits are not ignored.
-			 * 
+			 *
 			 * @sa getDDUSlotFromFIFO
 			 **/
 			uint16_t readFIFOInUse()
@@ -148,7 +104,7 @@ namespace emu {
 			/** Set the omni-purpose software switch.
 			 *
 			 * @param value the value to which to set the software switch.
-			 * 
+			 *
 			 * @sa readSoftwareSwitch()
 			 **/
 			void writeSoftwareSwitch(uint16_t value)
@@ -214,7 +170,7 @@ namespace emu {
 			 **/
 			uint32_t readUserCode(enum DEVTYPE dev)
 			throw (emu::fed::exception::DCCException);
-				
+
 			/** Resets an FPGA through the given PROM.
 			*
 			*	@param dev the PROM through which the signal should be sent.
@@ -223,52 +179,52 @@ namespace emu {
 			**/
 			void resetPROM(enum DEVTYPE dev)
 			throw (emu::fed::exception::DCCException);
-				
+
 			// Misc routines
-			
+
 			/** Hard reset the crate through a TTC-override command. **/
 			void crateHardReset()
 			throw (emu::fed::exception::DCCException);
-			
+
 			/** Sync reset the crate through a TTC-override command. **/
 			void crateResync()
 			throw (emu::fed::exception::DCCException);
-			
+
 			/** @returns the slot number of the DDU corresponding to the given input FIFO
 			*
 			* @param fifo the input FIFO number from which to calculate the DDU slot
 			**/
 			unsigned int getDDUSlotFromFIFO(unsigned int fifo)
 			throw (emu::fed::exception::OutOfBoundsException);
-			
+
 			/** @returns the FIFO number corresponding to the given input DDU slot number
 			*
 			* @param myDlot the DDU slot number from which to calculate the FIFO number
 			**/
 			unsigned int getFIFOFromDDUSlot(unsigned int mySlot)
 			throw (emu::fed::exception::OutOfBoundsException);
-			
+
 			/** @returns the SLink number corresponding to the given output FIFO
 			*
 			* @param fifo the output FIFO number from which to calculate the SLink number
 			**/
 			unsigned int getSLinkFromFIFO(unsigned int fifo)
 			throw (emu::fed::exception::OutOfBoundsException);
-			
+
 			/** @returns the FIFO number corresponding to the given SLink number
 			*
 			* @param slink the SLink number from which to calculate the output FIFO number
 			**/
 			unsigned int getFIFOFromSLink(unsigned int slink)
 			throw (emu::fed::exception::OutOfBoundsException);
-			
+
 			/** @returns the current read-in data rate (in bytes/sec) of the given DDU.
 			*
 			* @param mySlot is the slot number from which to read the data rate.
 			**/
 			uint16_t readDDURate(unsigned int mySlot)
 			throw (emu::fed::exception::DCCException);
-			
+
 			/** @returns the current read-out data rate (in bytes/sec) of the given SLink.
 			*
 			* @param slink is the SLink number from which to read the data rate.
@@ -276,7 +232,7 @@ namespace emu {
 			uint16_t readSLinkRate(unsigned int slink)
 			throw (emu::fed::exception::DCCException);
 
-			
+
 		protected:
 
 			// PGK New interface

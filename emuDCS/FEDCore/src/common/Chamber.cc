@@ -1,26 +1,5 @@
 /*****************************************************************************\
-* $Id: Chamber.cc,v 1.1 2009/03/05 16:02:14 paste Exp $
-*
-* $Log: Chamber.cc,v $
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.9  2009/01/29 15:31:23  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 1.8  2008/09/19 16:53:52  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 1.7  2008/08/26 13:09:02  paste
-* Documentation update.
-*
-* Revision 1.6  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: Chamber.cc,v 1.2 2009/04/14 17:50:51 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Chamber.h"
 

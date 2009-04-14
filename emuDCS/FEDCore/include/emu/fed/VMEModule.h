@@ -1,70 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.2 2009/03/09 23:12:44 paste Exp $
-*
-* $Log: VMEModule.h,v $
-* Revision 1.2  2009/03/09 23:12:44  paste
-* * Fixed a minor bug in DCC MPROM ID/Usercode reading
-* * Fixed a major bug in RESET path firmware loading
-* * Added debug mode for CAEN reading/writing
-*
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.21  2009/01/30 19:14:16  paste
-* New emu::base namespace and emu::base::Supervised inheritance added.
-*
-* Revision 3.20  2009/01/29 15:31:23  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.19  2008/10/22 20:23:57  paste
-* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
-*
-* Revision 3.18  2008/10/01 07:49:38  paste
-* Removed busyloop waiting in favor of less accurate but more resource-friendly usleep.
-*
-* Revision 3.17  2008/09/29 08:36:26  paste
-* Removed references to extinct JTAGDevice.h
-*
-* Revision 3.16  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.15  2008/09/22 14:31:53  paste
-* /tmp/cvsY7EjxV
-*
-* Revision 3.14  2008/09/19 16:53:51  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.13  2008/09/07 22:25:35  paste
-* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
-*
-* Revision 3.12  2008/09/03 17:52:58  paste
-* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
-*
-* Revision 3.11  2008/09/02 08:39:52  paste
-* Better handling and display of new features in the DDU firmware.
-*
-* Revision 3.10  2008/09/01 23:46:24  paste
-* Trying to fix what I broke...
-*
-* Revision 3.9  2008/08/31 21:18:27  paste
-* Moved buffers from VMEController class to VMEModule class for more rebust communication.
-*
-* Revision 3.8  2008/08/30 14:49:04  paste
-* Attempts to make VME work under the new design model where VMEModules take over for the VMEController.
-*
-* Revision 3.7  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.6  2008/08/19 14:51:02  paste
-* Update to make VMEModules more independent of VMEControllers.
-*
-* Revision 3.5  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: VMEModule.h,v 1.3 2009/04/14 17:50:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMEMODULE_H__
 #define __EMU_FED_VMEMODULE_H__
@@ -79,9 +14,9 @@
 namespace emu {
 
 	namespace fed {
-		
+
 		class VMEController;
-	
+
 		struct JTAGElement;
 
 		/** @class VMEModule A inherited class for DCC and DDU classes.
@@ -165,7 +100,7 @@ namespace emu {
 			**/
 			std::vector<uint16_t> jtagRead(enum DEVTYPE dev, unsigned int nBits, bool debug = false)
 			throw(emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
-		
+
 		protected:
 
 			/** Sends a JTAG command cycle to a given JTAG device.
@@ -230,7 +165,7 @@ namespace emu {
 
 			/// Mutex so that communication to and from the board is atomic.
 			pthread_mutex_t mutex_;
-			
+
 		};
 
 	}

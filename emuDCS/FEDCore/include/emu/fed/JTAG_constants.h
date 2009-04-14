@@ -1,17 +1,5 @@
 /*****************************************************************************\
-* $Id: JTAG_constants.h,v 1.1 2009/03/05 16:02:14 paste Exp $
-*
-* $Log: JTAG_constants.h,v $
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.2  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: JTAG_constants.h,v 1.2 2009/04/14 17:50:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_JTAG_CONSTANTS_H__
 #define __EMU_FED_JTAG_CONSTANTS_H__
