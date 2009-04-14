@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.2 2009/04/04 10:44:51 rakness Exp $
+// $Id: TMB_constants.h,v 1.3 2009/04/14 13:40:02 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.3  2009/04/14 13:40:02  rakness
+// add alct_posneg bit to enhance alct communications
+//
 // Revision 1.2  2009/04/04 10:44:51  rakness
 // Update for TMB firmware 2009 March 16
 //
@@ -678,6 +681,11 @@ const int alct_clock_en_use_vme_vmereg   =  alct_cfg_adr;
 const int alct_clock_en_use_vme_bitlo    = 13;
 const int alct_clock_en_use_vme_bithi    = 13;
 const int alct_clock_en_use_vme_default  =  0;            
+//
+const int alct_posneg_vmereg             =  alct_cfg_adr;
+const int alct_posneg_bitlo              = 14;
+const int alct_posneg_bithi              = 14;
+const int alct_posneg_default            =  0;            
 //
 //
 //------------------------------------------------------------------

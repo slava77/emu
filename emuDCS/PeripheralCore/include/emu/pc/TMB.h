@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.3 2009/04/04 10:44:51 rakness Exp $
+// $Id: TMB.h,v 1.4 2009/04/14 13:40:02 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.4  2009/04/14 13:40:02  rakness
+// add alct_posneg bit to enhance alct communications
+//
 // Revision 1.3  2009/04/04 10:44:51  rakness
 // Update for TMB firmware 2009 March 16
 //
@@ -840,6 +843,10 @@ public:
   //!alct_clock_en_use_vme = [0,1] = alct_clock_en scsi signal if GetEnableAlctUseCcbClock() = 0;
   inline void SetAlctClockVme(int alct_clock_en_use_vme) { alct_clock_en_use_vme_ = alct_clock_en_use_vme; }
   inline int  GetAlctClockVme() { return alct_clock_en_use_vme_; }
+  //
+  //!alct_posneg = [0,1] = latch the ALCT inter-stage flip-flops on the [rising,falling] edge of the alct_rx clock
+  inline void SetAlctPosNeg(int alct_posneg) { alct_posneg_ = alct_posneg; }
+  inline int  GetAlctPosNeg() { return alct_posneg_; }
   //
   //----------------------------------------------------------------
   //0X32 = ADR_ALCT_INJ:  ALCT Injector Control:
@@ -2044,6 +2051,7 @@ private:
   int alct_seq_cmd_;         
   int alct_clock_en_use_ccb_;
   int alct_clock_en_use_vme_;
+  int alct_posneg_;
   //
   int read_cfg_alct_ext_trig_en_;  
   int read_cfg_alct_ext_inject_en_;
@@ -2052,6 +2060,7 @@ private:
   int read_alct_seq_cmd_;         
   int read_alct_clock_en_use_ccb_;
   int read_alct_clock_en_use_vme_;
+  int read_alct_posneg_;
   //
   //------------------------------------------------------------------
   //0X32 = ADR_ALCT_INJ:  ALCT Injector Control
