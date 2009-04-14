@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: UtilsVersion.h,v 1.4 2009/03/31 22:15:04 paste Exp $
+* $Id: UtilsVersion.h,v 1.5 2009/04/14 22:59:13 paste Exp $
 *
 * $Log: UtilsVersion.h,v $
+* Revision 1.5  2009/04/14 22:59:13  paste
+* Version bump.
+* Added proper reporting of hardware with "tag" exception property.
+*
 * Revision 1.4  2009/03/31 22:15:04  paste
 * Version bump.
 *
@@ -27,7 +31,7 @@
 
 namespace emufedutils {
 	const std::string package     = "FEDUtils";
-	const std::string versions    = "07.02.00";
+	const std::string versions    = "07.03.00";
 	const std::string description = "Emu (CSC) FED Utility Libraries";
 
 	const std::string summary     = "Utility libraries used by the Front End Device (FED) crate XDAQ applications (FEDApps) for the CMS Emu (CSC) subdetector";
@@ -35,12 +39,12 @@ namespace emufedutils {
 	const std::string link        = "http://www.physics.ohio-state.edu/~cms";
 
 	config::PackageInfo getPackageInfo();
-	
+
 	void checkPackageDependencies()
 	throw (config::PackageInfo::VersionException);
-	
+
 	std::set<std::string, std::less<std::string> > getPackageDependencies();
 }
 
-#endif 
+#endif
 
