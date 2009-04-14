@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.84 2009/04/04 10:44:51 rakness Exp $
+// $Id: TMB.cc,v 3.85 2009/04/14 13:40:01 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.85  2009/04/14 13:40:01  rakness
+// add alct_posneg bit to enhance alct communications
+//
 // Revision 3.84  2009/04/04 10:44:51  rakness
 // Update for TMB firmware 2009 March 16
 //
@@ -6154,6 +6157,7 @@ void TMB::SetTMBRegisterDefaults_() {
   alct_seq_cmd_           = alct_seq_cmd_default          ;         
   alct_clock_en_use_ccb_  = alct_clock_en_use_ccb_default ;
   alct_clock_en_use_vme_  = alct_clock_en_use_vme_default ;
+  alct_posneg_            = alct_posneg_default           ;
   //
   //------------------------------------------------------------------
   //0X32 = ADR_ALCT_INJ:  ALCT Injector Control
@@ -6584,6 +6588,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_alct_seq_cmd_           = ExtractValueFromData(data,alct_seq_cmd_bitlo          ,alct_seq_cmd_bithi          ); 
     read_alct_clock_en_use_ccb_  = ExtractValueFromData(data,alct_clock_en_use_ccb_bitlo ,alct_clock_en_use_ccb_bithi ); 
     read_alct_clock_en_use_vme_  = ExtractValueFromData(data,alct_clock_en_use_vme_bitlo ,alct_clock_en_use_vme_bithi ); 
+    read_alct_posneg_            = ExtractValueFromData(data,alct_posneg_bitlo           ,alct_posneg_bithi           ); 
     //
   } else if ( address == alct_inj_adr ) {
     //------------------------------------------------------------------
@@ -7325,6 +7330,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    ALCT sequencer command                   =0x" << std::hex << read_alct_seq_cmd_           << std::endl;         
     (*MyOutput_) << "    alct_clock_en_vme=ccb_clock40_enable      = " << std::hex << read_alct_clock_en_use_ccb_  << std::endl;
     (*MyOutput_) << "    set alct_clock_en scsi signal if above=0  = " << std::hex << read_alct_clock_en_use_vme_  << std::endl;
+    (*MyOutput_) << "    latch ALCT data on falling edge           = " << std::hex << read_alct_posneg_            << std::endl;
     //
   } else if ( address == alct_inj_adr ) {
     //------------------------------------------------------------------
@@ -7909,6 +7915,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(alct_seq_cmd_          ,alct_seq_cmd_bithi          ,alct_seq_cmd_bitlo          ,&data_word);
     InsertValueIntoDataWord(alct_clock_en_use_ccb_ ,alct_clock_en_use_ccb_bithi ,alct_clock_en_use_ccb_bitlo ,&data_word);
     InsertValueIntoDataWord(alct_clock_en_use_vme_ ,alct_clock_en_use_vme_bithi ,alct_clock_en_use_vme_bitlo ,&data_word);
+    InsertValueIntoDataWord(alct_posneg_           ,alct_posneg_bithi           ,alct_posneg_bitlo           ,&data_word);
     //
   } else if ( address == alct_inj_adr ) {
     //------------------------------------------------------------------
@@ -8346,6 +8353,7 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     config_ok &= compareValues("TMB ALCT sequencer command (not in xml)" 	            ,read_alct_seq_cmd_        ,alct_seq_cmd_          , print_errors);
     config_ok &= compareValues("TMB alct_clock_en_use_ccb"                                ,read_alct_clock_en_use_ccb_ ,alct_clock_en_use_ccb_ , print_errors);
     config_ok &= compareValues("TMB set alct_clock_en scsi signal if above=0 (not in xml)",read_alct_clock_en_use_vme_ ,alct_clock_en_use_vme_ , print_errors);
+    config_ok &= compareValues("TMB alct_posneg"                                          ,read_alct_posneg_           ,alct_posneg_           , print_errors);
     //
     //------------------------------------------------------------------
     //0X32 = ADR_ALCT_INJ:  ALCT Injector Control
