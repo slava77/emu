@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: ChamberParser.cc,v 1.1 2009/03/05 16:07:52 paste Exp $
+* $Id: ChamberParser.cc,v 1.2 2009/04/14 22:59:13 paste Exp $
 *
 * $Log: ChamberParser.cc,v $
+* Revision 1.2  2009/04/14 22:59:13  paste
+* Version bump.
+* Added proper reporting of hardware with "tag" exception property.
+*
 * Revision 1.1  2009/03/05 16:07:52  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -38,9 +42,9 @@ Parser(pNode)
 {
 
 	chamber_ = new Chamber();
-	
+
 	std::string chamberName, pCrateName;
-	
+
 	try {
 		fiber_ = extract<unsigned int>("Fiber");
 		killed_ = (extract<int>("Killed")) ? true : false;
@@ -63,7 +67,7 @@ Parser(pNode)
 	}
 
 
-	if (sscanf(chamberName.c_str(), "%*c%1u/%1u/%02u", &(chamber_->station), &(chamber_->type), &(chamber_->number)) != 3) {
+	if (sscanf(chamberName.c_str(), "%*c%1u/%1u/%02u", &(chamber_->station), &(chamber_->ring), &(chamber_->number)) != 3) {
 		std::ostringstream error;
 		error << "Unable to parse chamber station, type, and number from '" << chamberName << "'";
 		XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
@@ -78,7 +82,11 @@ Parser(pNode)
 	if (!sscanf(pCrateName.c_str(), "VME%*c%*u_%u", &(chamber_->peripheralCrateVMECrate_))) {
 		std::ostringstream error;
 		error << "Unable to parse chamber peripheral crate from '" << pCrateName << "'";
-		XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
+		XCEPT_DECLARE(emu::fed::exception::ParseException, e2, error.str());
+		std::ostringstream tag;
+		tag << "chamber:" << chamber_->name();
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 }

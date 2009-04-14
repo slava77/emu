@@ -1,7 +1,11 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 1.1 2009/03/05 16:07:52 paste Exp $
+* $Id: DDUParser.cc,v 1.2 2009/04/14 22:59:13 paste Exp $
 *
 * $Log: DDUParser.cc,v $
+* Revision 1.2  2009/04/14 22:59:13  paste
+* Version bump.
+* Added proper reporting of hardware with "tag" exception property.
+*
 * Revision 1.1  2009/03/05 16:07:52  paste
 * * Shuffled FEDCrate libraries to new locations
 * * Updated libraries for XDAQ7
@@ -46,7 +50,7 @@ Parser(pNode)
 		error << "Unable to parse slot number from element";
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
-	
+
 	ddu_ = new DDU(slot);
 
 	try {
@@ -55,7 +59,11 @@ Parser(pNode)
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse GbE prescale or options from element";
-		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
+		XCEPT_DECLARE_NESTED(emu::fed::exception::ParseException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "slot:" << slot << ",board:DDU";
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
 }
 
