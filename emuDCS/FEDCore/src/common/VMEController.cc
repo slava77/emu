@@ -1,51 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.1 2009/03/05 16:02:14 paste Exp $
-*
-* $Log: VMEController.cc,v $
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.22  2009/01/29 15:31:24  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.21  2008/10/01 14:10:04  paste
-* Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
-*
-* Revision 3.20  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.19  2008/09/22 14:31:54  paste
-* /tmp/cvsY7EjxV
-*
-* Revision 3.18  2008/09/19 16:53:52  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.17  2008/09/07 22:25:36  paste
-* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
-*
-* Revision 3.16  2008/09/03 17:52:59  paste
-* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
-*
-* Revision 3.15  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.14  2008/08/19 14:51:02  paste
-* Update to make VMEModules more independent of VMEControllers.
-*
-* Revision 3.13  2008/08/15 16:14:51  paste
-* Fixed threads (hopefully).
-*
-* Revision 3.12  2008/08/15 10:40:20  paste
-* Working on fixing CAEN controller opening problems
-*
-* Revision 3.11  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: VMEController.cc,v 1.2 2009/04/14 17:50:51 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -88,23 +43,35 @@ BHandle_(-1)
 				inFile.close();
 				std::ostringstream error;
 				error << "Failure extracting pre-opened BHandle from file " << fileName;
-				XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+				XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+				std::ostringstream tag;
+				tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+				e2.setProperty("tag", tag.str());
+				throw e2;
 			}
 			inFile.close();
 		} else {
 			std::ostringstream error;
 			error << "Encountered CAEN bus error, but no open BHandles detected in file " << fileName;
-			XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+			XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+			std::ostringstream tag;
+			tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
 		}
-		
+
 	} else if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "error " << err << ": " << CAENVME_DecodeError(err);
-		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
-		
+		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+		std::ostringstream tag;
+		tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+
 	} else {
 		BHandle_ = BHandle;
-		
+
 		// Now that you own the BHandle, make a file that shows this
 		std::ostringstream fileName;
 		fileName << "CAEN_" << Device_ << "_" << Link_ << ".BHandle";
@@ -115,7 +82,11 @@ BHandle_(-1)
 		} else {
 			std::ostringstream error;
 			error << "Unable to save BHandle information to external file " << fileName;
-			XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+			XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+			std::ostringstream tag;
+			tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
 		}
 	}
 
@@ -136,17 +107,21 @@ throw (emu::fed::exception::CAENException)
 {
 	// If the BHandle is not set properly, just return a good signal (true)
 	if (BHandle_ < 0) return true;
-	
+
 	pthread_mutex_lock(&mutex_);
 	CVErrorCodes err = CAENVME_IRQEnable(BHandle_, cvIRQ1);
 	pthread_mutex_unlock(&mutex_);
-	
+
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in waitIRQ: " << CAENVME_DecodeError(err);
-		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+		std::ostringstream tag;
+		tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	pthread_mutex_lock(&mutex_);
 	bool status = CAENVME_IRQWait(BHandle_, cvIRQ1, mSecs);
 	pthread_mutex_unlock(&mutex_);
@@ -160,19 +135,23 @@ throw (emu::fed::exception::CAENException)
 {
 	// If the BHandle is not set properly, return nothing
 	if (BHandle_ < 0) return 0;
-	
+
 	uint16_t errorData;
-	
+
 	pthread_mutex_lock(&mutex_);
 	CVErrorCodes err = CAENVME_IACKCycle(BHandle_, cvIRQ1, &errorData, cvD16);
 	pthread_mutex_unlock(&mutex_);
-	
+
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in readIRQ: " << CAENVME_DecodeError(err);
-		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+		std::ostringstream tag;
+		tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	return errorData;
 }
 

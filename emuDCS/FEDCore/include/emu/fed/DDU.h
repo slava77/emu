@@ -1,46 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.2 2009/03/09 23:12:44 paste Exp $
-*
-* $Log: DDU.h,v $
-* Revision 1.2  2009/03/09 23:12:44  paste
-* * Fixed a minor bug in DCC MPROM ID/Usercode reading
-* * Fixed a major bug in RESET path firmware loading
-* * Added debug mode for CAEN reading/writing
-*
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.25  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.24  2008/11/14 09:34:31  paste
-* Updated IRQ thread handling to fix and abstract FMM enabling and disabling.
-*
-* Revision 3.23  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.22  2008/09/22 14:31:53  paste
-* /tmp/cvsY7EjxV
-*
-* Revision 3.20  2008/09/07 22:25:35  paste
-* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
-*
-* Revision 3.19  2008/09/01 11:30:32  paste
-* Added features to DDU, IRQThreads corresponding to new DDU firmware.
-*
-* Revision 3.18  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.17  2008/08/15 10:40:20  paste
-* Working on fixing CAEN controller opening problems
-*
-* Revision 3.15  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: DDU.h,v 1.3 2009/04/14 17:50:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -82,7 +41,7 @@ namespace emu {
 			/** Configures the DDU. **/
 			void configure()
 			throw (emu::fed::exception::DDUException);
-			
+
 			/** Part of the suite of chamber methods.
 			*	@returns a vector of chambers in fiber-order.
 			**/
@@ -439,15 +398,15 @@ namespace emu {
 			/** Loads the proper value in the FMM register to enable sending FMM signals for a short time. **/
 			void enableFMM()
 			throw (emu::fed::exception::DDUException);
-			
+
 			/** @returns a bit-mask of which fibers are present and alive. **/
 			uint16_t readLiveFibers()
 			throw (emu::fed::exception::DDUException);
-			
+
 			/** @returns a bit-mask of which fibers have errors (an OR of CSCStatus and AdvancedFiberStatus). **/
 			uint16_t readFiberErrors()
 			throw (emu::fed::exception::DDUException);
-			
+
 		protected:
 
 			// PGK New interface
@@ -478,7 +437,7 @@ namespace emu {
 
 			/// The kill fiber mask as read from the configuration XML.
 			unsigned long int killfiber_;
-			
+
 		};
 
 	}

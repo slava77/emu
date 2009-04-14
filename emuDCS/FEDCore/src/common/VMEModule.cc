@@ -1,77 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.3 2009/03/09 23:12:44 paste Exp $
-*
-* $Log: VMEModule.cc,v $
-* Revision 1.3  2009/03/09 23:12:44  paste
-* * Fixed a minor bug in DCC MPROM ID/Usercode reading
-* * Fixed a major bug in RESET path firmware loading
-* * Added debug mode for CAEN reading/writing
-*
-* Revision 1.2  2009/03/05 21:57:55  paste
-* * CAEN Bus Errors no longer throw exceptions.
-* This is a temporary fix to a problem where the DCC does not send a DTACK on certain register writes,
-* causing the controller to time out and set a bus error.  The write does not fail, so this is not
-* actually an exception.
-*
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.23  2009/01/30 19:14:16  paste
-* New emu::base namespace and emu::base::Supervised inheritance added.
-*
-* Revision 3.22  2009/01/29 15:31:24  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.21  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
-*
-* Revision 3.20  2008/10/04 18:44:06  paste
-* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
-*
-* Revision 3.19  2008/10/01 14:10:04  paste
-* Fixed phantom reset bug in IRQ threads and shifted IRQ handling functions to VMEController object.
-*
-* Revision 3.17  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.16  2008/09/22 14:31:54  paste
-* /tmp/cvsY7EjxV
-*
-* Revision 3.15  2008/09/19 16:53:52  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.14  2008/09/07 22:25:36  paste
-* Second attempt at updating the low-level communication routines to dodge common-buffer bugs.
-*
-* Revision 3.13  2008/09/03 17:52:59  paste
-* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
-*
-* Revision 3.12  2008/09/01 23:46:24  paste
-* Trying to fix what I broke...
-*
-* Revision 3.11  2008/09/01 11:30:32  paste
-* Added features to DDU, IRQThreads corresponding to new DDU firmware.
-*
-* Revision 3.10  2008/08/31 21:18:27  paste
-* Moved buffers from VMEController class to VMEModule class for more rebust communication.
-*
-* Revision 3.9  2008/08/30 14:49:04  paste
-* Attempts to make VME work under the new design model where VMEModules take over for the VMEController.
-*
-* Revision 3.8  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.7  2008/08/19 14:51:03  paste
-* Update to make VMEModules more independent of VMEControllers.
-*
-* Revision 3.6  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: VMEModule.cc,v 1.4 2009/04/14 17:50:51 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -91,7 +20,7 @@ slot_(mySlot)
 {
 	// Initialize mutexes
 	pthread_mutex_init(&mutex_, NULL);
-	
+
 	vmeAddress_ = slot_ << 19;
 }
 
@@ -119,11 +48,15 @@ throw (emu::fed::exception::CAENException)
 			pthread_mutex_unlock(&mutex_);
 			std::ostringstream error;
 			error << "Exception in writeCycle(myAddress=" << myAddress << ", nBits=" << nBits << ", myData=" << &myData << ")";
-			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
+			std::ostringstream tag;
+			tag << "slot:" << slot_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
 		}
 	}
 	pthread_mutex_unlock(&mutex_);
-	
+
 	return;
 }
 
@@ -140,7 +73,7 @@ throw (emu::fed::exception::CAENException)
 	// Reserving speeds things up and helps prevent memory fragmentation.
 	std::vector<uint16_t> result;
 	result.reserve(nWords);
-	
+
 	// Now, I start the reading process...
 	pthread_mutex_lock(&mutex_);
 	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
@@ -153,7 +86,11 @@ throw (emu::fed::exception::CAENException)
 			pthread_mutex_unlock(&mutex_);
 			std::ostringstream error;
 			error << "Exception in readCycle(myAddress=" << myAddress << ", nBits=" << nBits << ")";
-			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
+			std::ostringstream tag;
+			tag << "slot:" << slot_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
 		}
 	}
 	pthread_mutex_unlock(&mutex_);
@@ -169,11 +106,15 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 	// Address encoded in the JTAG channel, and is the same for all elements of the chain.
 	// This is part of the definition of JTAG.
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
-		std::ostringstream oss;
-		oss << "JTAGChain not defined for dev=" << dev;
-		XCEPT_RAISE(emu::fed::exception::DevTypeException, oss.str());
+		std::ostringstream error;
+		error << "JTAGChain not defined for dev=" << dev;
+		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	JTAGChain chain = JTAGMap[dev];
 	uint32_t myAddress = chain.front()->bitCode;
 
@@ -186,7 +127,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			std::vector<uint16_t> bogoData1(1,1);
 			std::vector<uint16_t> bogoData2(1,2);
 			std::vector<uint16_t> bogoData3(1,3);
-			
+
 			// The number of bits in the command
 			// Note:  the RESET path is always the first element.
 			unsigned int nBits = chain.front()->cmdBits;
@@ -198,12 +139,12 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			writeCycle(myAddress, 2, bogoData1, debug);
 			writeCycle(myAddress, 2, bogoData0, debug);
 			writeCycle(myAddress, 2, bogoData0, debug);
-			
+
 			// Send each bit in turn.
 			// The 2nd bit of the data is the value of the bit,
 			// the 1st bit ends the write.
 			for (unsigned int iBit = 0; iBit < nBits; iBit++) {
-				
+
 				if (iBit == nBits - 1) { // last bit
 					// Check if the bit is high/low
 					if (myCommand & (1 << iBit)) writeCycle(myAddress, 2, bogoData3, debug);
@@ -214,7 +155,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 					else writeCycle(myAddress, 2, bogoData0, debug);
 				}
 			}
-			
+
 			// End the reset command
 			writeCycle(myAddress, 2, bogoData1, debug);
 			writeCycle(myAddress, 2, bogoData0, debug);
@@ -273,9 +214,13 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 	} catch (emu::fed::exception::CAENException &e) {
 		std::ostringstream error;
 		error << "Exception in commandCycle(dev=" << dev << ", myCommand=" << myCommand << ")";
-		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+		XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	// Nothing to return
 	return;
 }
@@ -287,11 +232,15 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 {
 	// Get the chain.  Very important to know.
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
-		std::ostringstream oss;
-		oss << "JTAGChain not defined for dev=" << dev;
-		XCEPT_RAISE(emu::fed::exception::DevTypeException, oss.str());
+		std::ostringstream error;
+		error << "JTAGChain not defined for dev=" << dev;
+		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	JTAGChain chain = JTAGMap[dev];
 
 	// Set up the return value.
@@ -351,21 +300,25 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 					else writeCycle(myAddress, 2, bogoData0, debug);
 				}
 			}
-			
+
 			// End the reset command
 			writeCycle(myAddress, 2, bogoData1, debug);
 			writeCycle(myAddress, 2, bogoData0, debug);
-			
+
 		} catch (emu::fed::exception::CAENException &e) {
 			std::ostringstream error;
 			error << "Exception in jtagWrite(dev=" << dev << ", nBits=" << nBits << ", myData=" << &myData << ", noRead=" << noRead << ")";
-			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
+			std::ostringstream tag;
+			tag << "slot:" << slot_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
 		}
-		
+
 		// Return nothing.
 		return result;
 	}
-	
+
 	// What I really need is the number of words and remainder bits.
 	// These are incomplete words, a sort of ceiling function for unsigned ints
 	unsigned int nWords = (nBits + extraBits == 0) ? 0 : (nBits + extraBits - 1)/16 + 1;
@@ -376,14 +329,14 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 	while (myData.size() < nWords) {
 		myData.push_back(0xffff);
 	}
-	
+
 	// Now, I start the sending process...
 	pthread_mutex_lock(&mutex_);
 	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
 
 		// If this is the last thing I am writing, be sure to use a bitmask.
 		uint16_t bitMask = 0xffff;
-		
+
 		// Check to see if this is the first word and flag appropriately.
 		uint32_t address = myAddress & 0xfffff0ff;
 		if (iWord == 0) address |= 0x4; // first
@@ -395,7 +348,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		}
 		else address |= 0x0f00;
 
-		
+
 		// Do the write command first, as this is required for every read-back.
 		try {
 			writeVME(address, myData[iWord] & bitMask, debug);
@@ -431,11 +384,15 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			pthread_mutex_unlock(&mutex_);
 			std::ostringstream error;
 			error << "Exception in jtagWrite(dev=" << dev << ", nBits=" << nBits << ", myData=" << &myData << ", noRead=" << noRead << ")";
-			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
+			std::ostringstream tag;
+			tag << "slot:" << slot_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
 		}
 	}
 	pthread_mutex_unlock(&mutex_);
-	
+
 	return result;
 
 }
@@ -447,21 +404,25 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 {
 	// Get the chain.  Very important to know.
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
-		std::ostringstream oss;
-		oss << "JTAGChain not defined for dev=" << dev;
-		XCEPT_RAISE(emu::fed::exception::DevTypeException, oss.str());
+		std::ostringstream error;
+		error << "JTAGChain not defined for dev=" << dev;
+		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	JTAGChain chain = JTAGMap[dev];
-	
+
 	// Set up the return value.
 	std::vector<uint16_t> result;
 	result.reserve(nBits/16 + 1);
-	
+
 	// The address is encoded in the JTAG channel.  The address is the same for all
 	// elements in the chain (part of the definition of JTAG).
 	uint32_t myAddress = chain.front()->bitCode;
-	
+
 	// The number of bits you have to send increases by one for each JTAG element
 	// in the chain _before_ this element.  Count those now.
 	unsigned int extraBits = 0;
@@ -472,16 +433,16 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			break;
 		}
 	}
-	
+
 	// What I really need is the number of words and remainder bits.
 	// These are incomplete words, a sort of ceiling function for unsigned ints
 	unsigned int nWords = (nBits + extraBits == 0) ? 0 : (nBits + extraBits - 1)/16 + 1;
 	unsigned int remainderBits = (nBits + extraBits) % 16;
-	
+
 	// Now, I start the sending process...
 	pthread_mutex_lock(&mutex_);
 	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
-		
+
 		// If this is the last thing I am reading, be sure to use a bitmask.
 		uint16_t bitMask = 0xffff;
 
@@ -496,8 +457,8 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			bitMask = bitMask << (16 - remainderBits);
 		}
 		else address |= 0x0f00;
-		
-		
+
+
 		// Do the write command first, as this is required for every read-back.
 		uint16_t tempResult = 0;
 		try {
@@ -511,7 +472,11 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			pthread_mutex_unlock(&mutex_);
 			std::ostringstream error;
 			error << "Exception in jtagRead(dev=" << dev << ", nBits=" << nBits << ")";
-			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
+			std::ostringstream tag;
+			tag << "slot:" << slot_;
+			e2.setProperty("tag", tag.str());
+			throw e2;
 		}
 
 		// Do some bit manipulations if this is the remainder.
@@ -539,9 +504,9 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		result.push_back(tempResult);
 	}
 	pthread_mutex_unlock(&mutex_);
-	
+
 	return result;
-	
+
 }
 
 
@@ -551,7 +516,7 @@ throw (emu::fed::exception::CAENException)
 {
 	// The address always has the board slot encoded.
 	Address |= vmeAddress_;
-	
+
 	// The address modifier for talking to other boards
 	CVAddressModifier AM = cvA24_U_DATA;
 
@@ -570,7 +535,11 @@ throw (emu::fed::exception::CAENException)
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in readVME(Address=" << Address << "): " << CAENVME_DecodeError(err);
-		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
 
 	return data;
@@ -583,13 +552,13 @@ throw (emu::fed::exception::CAENException)
 {
 	// The address always has the board slot encoded.
 	Address |= vmeAddress_;
-	
+
 	// The address modifier for talking to other boards
 	CVAddressModifier AM = cvA24_U_DATA;
-	
+
 	// 16-bit data width
 	CVDataWidth DW = cvD16;
-	
+
 	// Write and return error code
 	if (debug) std::cerr << std::hex << "Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << data << ")" << std::flush;
 	CVErrorCodes err = CAENVME_WriteCycle(BHandle_, Address, &data, AM, DW);
@@ -598,9 +567,13 @@ throw (emu::fed::exception::CAENException)
 	if (err != cvSuccess) {
 		std::ostringstream error;
 		error << "Exception in writeVME(Address=" << Address << ", data=" << data << "): " << CAENVME_DecodeError(err);
-		XCEPT_RAISE(emu::fed::exception::CAENException, error.str());
+		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	return;
 }
 
@@ -609,14 +582,18 @@ throw (emu::fed::exception::CAENException)
 int emu::fed::VMEModule::loadPROM(enum DEVTYPE dev, char *fileName, std::string startString, std::string stopString, bool debug)
 throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
-	
+
 	// The element in the chain that I am using
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
-		std::ostringstream oss;
-		oss << "JTAGChain not defined for dev=" << dev;
-		XCEPT_RAISE(emu::fed::exception::DevTypeException, oss.str());
+		std::ostringstream error;
+		error << "JTAGChain not defined for dev=" << dev;
+		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	JTAGChain chain = JTAGMap[dev];
 	JTAGElement *element = NULL;
 	for (JTAGChain::iterator iElement = chain.begin(); iElement != chain.end(); iElement++) {
@@ -625,15 +602,19 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 			break;
 		}
 	}
-	
+
 	// Now we open the file and being parsing.
 	std::ifstream inFile(fileName, std::ifstream::in);
-	
+
 	// Can't have bogus files
 	if (!inFile.is_open()) {
 		std::stringstream error;
 		error << "Cannot open file " << fileName;
-		XCEPT_RAISE(emu::fed::exception::FileException, error.str());
+		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
 
 	try {
@@ -867,13 +848,17 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 			}
 		}
-		
+
 	} catch (emu::fed::exception::CAENException &e) {
 		std::ostringstream error;
 		error << "Exception in loadPROM(dev=" << dev << ", fileName=" << fileName << ", startString=" << startString << ", stopString=" << stopString << ")";
-		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+		XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "slot:" << slot_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
 	}
-	
+
 	inFile.close();
 	return 0;
 }

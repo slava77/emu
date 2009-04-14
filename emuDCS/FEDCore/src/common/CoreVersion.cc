@@ -1,13 +1,5 @@
 /*****************************************************************************\
-* $Id: CoreVersion.cc,v 1.1 2009/03/05 16:02:14 paste Exp $
-*
-* $Log: CoreVersion.cc,v $
-* Revision 1.1  2009/03/05 16:02:14  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
+* $Id: CoreVersion.cc,v 1.2 2009/04/14 17:50:51 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/CoreVersion.h"
