@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.18 2009/04/04 10:44:51 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.19 2009/04/14 13:38:44 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.19  2009/04/14 13:38:44  rakness
+// check 40M events in alct rx/tx scan
+//
 // Revision 1.18  2009/04/04 10:44:51  rakness
 // Update for TMB firmware 2009 March 16
 //
@@ -1437,6 +1440,8 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	  alct_tx_rx_depth[rx_value][tx_value][pipe_depth] = (thisTMB->GetReadALCTSync1stErrorLatched() + thisTMB->GetReadALCTSync2ndErrorLatched());
 	  //
 	  if (alct_tx_rx_depth[rx_value][tx_value][pipe_depth]) break;  // no sense to continue counting when there is an error found...
+	  //
+	  ::usleep(1000);
 	}
 	//
 	if (debug_>5) {   // Read TMB received demux data just to see what is going on...
