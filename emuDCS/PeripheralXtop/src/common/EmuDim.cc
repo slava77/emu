@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.17 2009/04/03 13:14:08 liu Exp $
+// $Id: EmuDim.cc,v 1.18 2009/04/20 11:47:14 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -330,7 +330,7 @@ int EmuDim::FillChamber(char *buff, int source)
    label=buff;
 //   std::cout << "Found chamber " << label << " with number " << chnumb << std::endl; 
    content = endstr+1;
-   if(strlen(content)>400) std::cout<< label << " WARNING " << content << std::endl;
+   if(strlen(content)>430) std::cout<< label << " WARNING " << content << std::endl;
    if(chnumb>=0 && chnumb <TOTAL_CHAMBERS)
    {   if(source) chamb[chnumb].SetLabel(label);
        chamb[chnumb].Fill(content, source);
