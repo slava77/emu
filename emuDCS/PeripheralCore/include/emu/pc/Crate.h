@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 1.2 2009/03/31 16:24:20 liu Exp $
+// $Id: Crate.h,v 1.3 2009/04/21 13:23:49 liu Exp $
 // $Log: Crate.h,v $
+// Revision 1.3  2009/04/21 13:23:49  liu
+// introduce dead channel masks in monitoring
+//
 // Revision 1.2  2009/03/31 16:24:20  liu
 // move check controller to Crate class
 //
@@ -111,7 +114,7 @@ public:
   
   void enable();
   void disable();
-  void configure(int c=0);
+  int configure(int c=0);
   void init();
   void addModule(VMEModule * module);
   void AddChamber(Chamber * chamber);
@@ -140,9 +143,9 @@ public:
   TMB * GetTMB(unsigned int slot);
   DAQMB * GetDAQMB(unsigned int slot);
   void MonitorCCB(int cycle, char * buf);
-  void MonitorTMB(int cycle, char * buf);
-  void MonitorDMB(int cycle, char * buf);
-  void MonitorDCS(int cycle, char * buf);
+  void MonitorTMB(int cycle, char * buf, unsigned mask=0);
+  void MonitorDMB(int cycle, char * buf, unsigned mask=0);
+  void MonitorDCS(int cycle, char * buf, unsigned mask=0);
 
 private:
 

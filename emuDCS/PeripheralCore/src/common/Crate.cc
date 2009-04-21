@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.50 2009/03/31 16:24:20 liu Exp $
+// $Id: Crate.cc,v 3.51 2009/04/21 13:23:49 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.51  2009/04/21 13:23:49  liu
+// introduce dead channel masks in monitoring
+//
 // Revision 3.50  2009/03/31 16:24:20  liu
 // move check controller to Crate class
 //
@@ -386,11 +389,11 @@ void Crate::DumpConfiguration() {
   //
 }
 //
-void Crate::configure(int c) {
+int Crate::configure(int c) {
   //
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
-  if(!ccb) return;
+  if(!ccb) return -2;
   std::cout << label_ << " Crate Configuring, Mode: " << c << std::endl; 
   
   std::vector<DAQMB*> myDmbs = this->daqmbs();
@@ -403,7 +406,7 @@ void Crate::configure(int c) {
 	      << " turn ON chamber..." << std::endl;
     if(!IsAlive())
     {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
-       return;
+       return -1;
     }
     myDmbs[dmb]->lowv_onoff(0x3f);
     //
@@ -418,19 +421,19 @@ void Crate::configure(int c) {
   //
   if(!IsAlive())
   {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
-     return;
+     return -1;
   }
   ccb->configure();
   //
   if(!IsAlive())
   {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
-     return;
+     return -1;
   }
   if(mpc) mpc->configure();
   //
 
   // c>1: FAST configure, only doing configure for CCB & MPC
-  if(c>1) return; 
+  if(c>1) return 0; 
 
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
@@ -438,7 +441,7 @@ void Crate::configure(int c) {
       //
       if(!IsAlive())
       {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
-         return;
+         return -1;
       }
 
       myTmbs[i]->configure();
@@ -466,13 +469,14 @@ void Crate::configure(int c) {
     if (myDmbs[i]->slot()<22){
       if(!IsAlive())
       {  std::cout << "ERROR: Crate dead, stop!!" << std::endl;
-         return;
+         return -1;
       }
       myDmbs[i]->restoreCFEBIdle();
       myDmbs[i]->restoreMotherboardIdle();
       myDmbs[i]->configure();
     }
-    }
+  }
+  return 0;
   //  
 }
 //
@@ -577,9 +581,9 @@ void Crate::MonitorCCB(int cycle, char * buf)
   if(rb>0)  buf2[0]=TOTAL_CCB_COUNTERS;
 }
 
-void Crate::MonitorTMB(int cycle, char * buf) 
+void Crate::MonitorTMB(int cycle, char * buf, unsigned mask) 
 {
-  int TOTAL_TMB_COUNTERS=65;
+  int TOTAL_TMB_COUNTERS=76;
   int * countbuf, *buf4;
   short *buf2;
  
@@ -590,7 +594,7 @@ void Crate::MonitorTMB(int cycle, char * buf)
   vmeController()->SetUseDelay(true);
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
-    if(IsAlive())
+    if(IsAlive() && (mask & (1<<i))==0 )
     {  countbuf=myTmbs[i]->NewCounters();
        if(countbuf) memcpy(buf+4+i*4*TOTAL_TMB_COUNTERS, countbuf, 4*TOTAL_TMB_COUNTERS);
     }
@@ -599,7 +603,7 @@ void Crate::MonitorTMB(int cycle, char * buf)
   return;
 }
 
-void Crate::MonitorDMB(int cycle, char * buf) 
+void Crate::MonitorDMB(int cycle, char * buf, unsigned mask) 
 {
   int TOTAL_DMB_COUNTERS=12; // aligned at 4 bytes (integer)
   char * countbuf;
@@ -610,7 +614,7 @@ void Crate::MonitorDMB(int cycle, char * buf)
   vmeController()->SetUseDelay(true);
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
-    if(IsAlive())
+    if(IsAlive() && (mask & (1<<i))==0)
     {  countbuf=myDmbs[i]->GetCounters();
        if(countbuf) memcpy(buf+4+i*TOTAL_DMB_COUNTERS, countbuf, TOTAL_DMB_COUNTERS);
     }
@@ -619,7 +623,7 @@ void Crate::MonitorDMB(int cycle, char * buf)
   return;
 }
 
-void Crate::MonitorDCS(int cycle, char * buf) 
+void Crate::MonitorDCS(int cycle, char * buf, unsigned mask) 
 {
   int rn, TOTAL_DCS_COUNTERS=48; // aligned at 4 bytes (integer)
   short *buf2;
@@ -631,7 +635,7 @@ void Crate::MonitorDCS(int cycle, char * buf)
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
-    if(IsAlive())
+    if(IsAlive() && (mask & (1<<i))==0)
     {  
         rn=myDmbs[i]->DCSreadAll(buf+4+i*2*TOTAL_DCS_COUNTERS);
        // if ( rn<0 ) error condition
