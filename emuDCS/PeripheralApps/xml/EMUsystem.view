@@ -13,7 +13,7 @@
 	
 		select 'oldconfig.'||column_name||' "'||substr(column_name,0,20)||' $OLD_EMU_CONFIG_ID",newconfig.'||column_name||' "'||substr(column_name,0,20)||' $NEW_EMU_CONFIG_ID",' from user_tab_cols
 		where table_name='<your table name>'
-		and column_name not like '%_CONFIG_ID' --here you could also add any other columns which can not be changed
+		and column_name not like '%_CONFIG_ID'
 		order by column_name;
 
 	Create the part of the where condition which selects only records which have been changed (this should all be in parentheses):
@@ -21,11 +21,12 @@
 		select 'oldconfig.'||substr(column_name,0,22)||'!=newconfig.'||column_name||' or '
 		from user_tab_cols
 		where table_name='<your table name>'
-		and column_name not like '%_CONFIG_ID' --here you could also add any other columns which can not be changed
+		and column_name not like '%_CONFIG_ID'
 		order by column_name
 		
-	You will need to remove a trailing comma or " or " from the results of these queries, but apart from that you
-	can paste them into a query similar to the existing ones.
+	You will need to remove a trailing comma or " or " from the results of these queries, and you also might 
+	want to remove other columns which cannot be edited. Apart from that you
+	can paste them into a query similar to the existing ones. 
 -->
   <tstore:view id="urn:tstore-view-SQL:EMUsystem">
     <tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>
