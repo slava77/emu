@@ -51,18 +51,26 @@ public:
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   
   // HyperDAQ interface
-  void outputHeader(xgi::Output * out);
-  void outputFooter(xgi::Output * out);
-  void outputException(xgi::Output * out,xcept::Exception &e);
-  void outputStandardInterface(xgi::Output * out);
-  
-  void displayChildConfiguration(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier);
-  void displayConfiguration(xgi::Output * out,const std::string &configName,const std::string &identifier);
-  void displayConfiguration(xgi::Output * out,const std::string &configName,int crateID);
-  void outputTableEditControls(xgi::Output * out,const std::string &tableName,const std::string &prefix="");
-  void outputSingleValue(xgi::Output * out,xdata::Serializable *value,const std::string &tableName="",const std::string &identifier="",const std::string &column="",int rowIndex=0);
-  void outputTable(xgi::Output * out,xdata::Table &results,const std::string &tableName="",const std::string &identifier="");
-void outputShowHideButton(xgi::Output * out,const std::string &configName,const std::string &identifier);
+	void outputHeader(xgi::Output * out);
+	void outputCurrentConfiguration(xgi::Output * out);
+	void outputFooter(xgi::Output * out);
+	void outputException(xgi::Output * out,xcept::Exception &e);
+	void outputStandardInterface(xgi::Output * out);
+	void displayChildDiff(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier);
+	bool displayCommonTableElements(xgi::Output * out,const std::string &configName,const std::string &identifier,xdata::Table &currentTable,const std::string &display="config");
+	void displayDiff(xgi::Output * out,const std::string &configName,const std::string &identifier) ;
+	void displayDiff(xgi::Output * out,const std::string &configName,int crateID);
+	void displayChildConfiguration(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier);
+	void displayConfiguration(xgi::Output * out,const std::string &configName,const std::string &identifier);
+	void displayConfiguration(xgi::Output * out,const std::string &configName,int crateID);
+	void outputTableEditControls(xgi::Output * out,const std::string &tableName,const std::string &prefix="");
+	void outputSingleValue(xgi::Output * out,xdata::Serializable *value,const std::string &tableName="",const std::string &identifier="",const std::string &column="",int rowIndex=0);
+	void outputCurrentDiff(xgi::Output * out);
+	std::string withoutVersionNumber(const std::string &columnName);
+ void outputDiff(xgi::Output * out,xdata::Table &results); 
+ void outputTable(xgi::Output * out,xdata::Table &results,const std::string &tableName="",const std::string &identifier="");
+void outputShowHideButton(xgi::Output * out,const std::string &configName,const std::string &identifier,const std::string &display="config");
+  void outputEndcapSelector(xgi::Output * out);
   // Actions
   void parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void uploadConfigToDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -73,12 +81,21 @@ void outputShowHideButton(xgi::Output * out,const std::string &configName,const 
   void incrementValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void setValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void changeSingleValue(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void showHideTable(xgi::Input * in, xgi::Output * out,bool show ) throw (xgi::exception::Exception);
   void showTable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void hideTable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  //select two versions for diff
+  void selectVersions(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  //select one version for read
+  void selectVersion(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void compareVersions(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void EmuPCrateConfigTStore::getConfigIds(std::vector<std::string> &configIDs,const std::string endcap_side) throw (xcept::Exception);
   // Communication with TStore
   xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message) throw (xcept::Exception);
   std::string connect() throw (xcept::Exception);
   void disconnect(const std::string &connectionID) throw (xcept::Exception);
+  void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &new_emu_config_id,xdata::Table &results) throw (xcept::Exception);
+  void diff(const std::string &connectionID, const std::string &queryViewName, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,xdata::Table &results) throw (xcept::Exception);
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, xdata::Table &results) throw (xcept::Exception);
   void query(const std::string &connectionID, const std::string &queryViewName, const std::string &emu_config_id, const std::string &xxx_config_id, xdata::Table &results) throw (xcept::Exception);
   void queryMaxId(const std::string &connectionID,const std::string &queryViewName, const std::string &dbTable, const std::string &dbColumn, const std::string endcap_side, xdata::Table &results) throw (xcept::Exception);
@@ -106,20 +123,36 @@ void outputShowHideButton(xgi::Output * out,const std::string &configName,const 
   void uploadCFEB(const std::string &connectionID, xdata::UnsignedInteger64 &daqmb_config_id,const std::string &identifier) throw (xcept::Exception);
 
   // DB Data Reads
+  int readCrateID(xdata::Table &results,unsigned rowIndex) throw (xcept::Exception);
   EmuEndcap * getConfiguredEndcap(const std::string &emu_config_id) throw (xcept::Exception);
   void readConfiguration(const std::string &connectionID, const std::string &emu_config_id, EmuEndcap * endcap) throw (xcept::Exception);
-  void readPeripheralCrate(const std::string &connectionID, const std::string &emu_config_id, EmuEndcap * endcap) throw (xcept::Exception);
+void diffPeripheralCrate(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &new_emu_config_id) throw (xcept::Exception); 
+ void readPeripheralCrate(const std::string &connectionID, const std::string &emu_config_id, EmuEndcap * endcap) throw (xcept::Exception);
+void simpleDiff(const std::string &queryViewName,const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_xxx_config_id, const std::string &new_emu_config_id, const std::string &new_xxx_config_id,const std::string &identifier) throw (xcept::Exception);
+void simpleCrateDiff(const std::string &queryViewName,const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_periph_config_id, const std::string &new_emu_config_id, const std::string &new_periph_config_id,int crateID) throw (xcept::Exception);
+//void diffVCC(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_periph_config_id, const std::string &new_emu_config_id, const std::string &new_periph_config_id,int crateID) throw (xcept::Exception);
   void readVCC(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
   void readCCB(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
   void readMPC(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
-  void readCSC(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
-  void readDAQMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception);
-  void readCFEB(const std::string &connectionID, const std::string &emu_config_id, const std::string &daqmb_config_id, DAQMB * theDaqmb,const std::string &cacheIdentifier) throw (xcept::Exception);
-  void readTMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception);
-  void readALCT(const std::string &connectionID, const std::string &emu_config_id, const std::string &tmb_config_id, TMB * theTmb,const std::string &identifier) throw (xcept::Exception);
-  void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct,const std::string &identifier) throw (xcept::Exception);
+void EmuPCrateConfigTStore::diffCSC(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_periph_config_id, const std::string &new_emu_config_id, const std::string &new_periph_config_id,int crateID) throw (xcept::Exception); 
+ void readCSC(const std::string &connectionID, const std::string &emu_config_id, const std::string &periph_config_id, Crate * theCrate) throw (xcept::Exception);
+void diffDAQMB(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_csc_config_id, const std::string &new_emu_config_id, const std::string &new_csc_config_id,const std::string &chamberID) throw (xcept::Exception);
+void readDAQMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception);
+void diffCFEB(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_daqmb_config_id,const std::string &new_emu_config_id, const std::string &new_daqmb_config_id,const std::string &cacheIdentifier) throw (xcept::Exception); 
+ void readCFEB(const std::string &connectionID, const std::string &emu_config_id, const std::string &daqmb_config_id, DAQMB * theDaqmb,const std::string &cacheIdentifier) throw (xcept::Exception);
+void diffTMB(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_csc_config_id, const std::string &new_emu_config_id, const std::string &new_csc_config_id,const std::string &chamber) throw (xcept::Exception); 
+ void readTMB(const std::string &connectionID, const std::string &emu_config_id, const std::string &csc_config_id, Crate * theCrate, Chamber * theChamber) throw (xcept::Exception);
+void diffALCT(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_tmb_config_id, const std::string &new_emu_config_id, const std::string &new_tmb_config_id,const std::string &chamber) throw (xcept::Exception);
+ void readALCT(const std::string &connectionID, const std::string &emu_config_id, const std::string &tmb_config_id, TMB * theTmb,const std::string &identifier) throw (xcept::Exception);
+void diffAnodeChannel(const std::string &connectionID, const std::string &old_emu_config_id, const std::string &old_alct_config_id,const std::string &new_emu_config_id, const std::string &new_alct_config_id, const std::string &cacheIdentifier) throw (xcept::Exception);
+void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct,const std::string &identifier) throw (xcept::Exception);
 
 private:
+	std::string configIDOptions(std::vector<std::string> &configIDs);
+	void outputCompareVersionsForm(xgi::Output * out,const std::string &endcap_side);
+	std::string newCell(xdata::Serializable *newValue,xdata::Serializable *oldValue);
+	bool getNextColumn(std::vector<std::string>::iterator &nextColumn,std::string &columnWithoutVersionNumber,const std::vector<std::string>::iterator &currentColumn,const std::vector<std::string>::iterator &end);
+	void outputDiffRow(xgi::Output * out,xdata::Table &results,int rowIndex,bool vertical) ;
 	bool shouldDisplayConfiguration(const std::string &configName,const std::string &identifier);
 	std::string fullTableID(const std::string &configName,const std::string &identifier);
 	bool tableHasColumn(xdata::Table &table,const std::string &column);
@@ -130,12 +163,23 @@ private:
 	std::string chamberID(int crateID,const std::string &chamberLabel);
 	std::string DAQMBID(const std::string &chamber,int slot);
 	std::string getEndcapSide(std::vector<Crate *> &myCrates) throw (xcept::Exception);
+
+	xdata::Table &getCachedTableFrom(std::map<std::string,std::map<std::string,xdata::Table> > &cache,const std::string &insertViewName,const std::string &identifier/*,xdata::UnsignedInteger64 &_vcc_config_id*//*,Crate *thisCrate*/) throw (xcept::Exception);
+
+	void clearCachedDiff();
+	xdata::Table &getCachedDiff(const std::string &insertViewName,const std::string &identifier) throw (xcept::Exception);
+	void setCachedDiff(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception);
+	xdata::Table &getCachedDiff(const std::string &insertViewName,int crateIndex) throw (xcept::Exception);
+	void setCachedDiff(const std::string &insertViewName,int crateIndex,xdata::Table &table) throw (xcept::Exception);
+
+	void clearCachedTables();
 	xdata::Table &getCachedTable(const std::string &insertViewName,const std::string &identifier) throw (xcept::Exception);
 	void setCachedTable(const std::string &insertViewName,const std::string &identifier,xdata::Table &table) throw (xcept::Exception);
-
 	xdata::Table &getCachedTable(const std::string &insertViewName,int crateIndex) throw (xcept::Exception);
 	void setCachedTable(const std::string &insertViewName,int crateIndex,xdata::Table &table) throw (xcept::Exception);
+
 	bool canChangeColumn(const std::string &columnName);
+	bool canChangeColumnGlobally(const std::string &columnName);
 	bool isNumericType(const std::string &xdataType);
 	void getTableDefinitionsIfNecessary() throw ();
 	void getTableDefinitions(const std::string &connectionID);
@@ -148,6 +192,7 @@ private:
 	void copyMPCToTable(xdata::Table &newRows,Crate * TStore_thisCrate);
 	void copyCCBToTable(xdata::Table &newRows,Crate * TStore_thisCrate);
 	void copyVMECCToTable(xdata::Table &newRows,Crate * TStore_thisCrate);
+	bool moreThanOneChildConfigurationExists(const std::string &configName,const std::string &parentIdentifier);
   std::string config_type_;
   std::string config_desc_;
   std::string xmlpath_;
@@ -156,7 +201,8 @@ private:
   std::string dbUserAndPassword_;
   EmuEndcap * TStore_myEndcap_;
   xdata::UnsignedInteger64 emu_config_id_;
-  
+  xdata::Table configIDs;
+  std::vector<int> crateIDsInDiff;
   //the data is kept as tables in memory, to allow a common interface for changing values
   //the most recent data is always in these tables.
   //the key in the first map is the table name as passed to TStore (e.g. "vcc", "tmb")
@@ -166,10 +212,20 @@ private:
   //it is named hierarchically beginning with the crate identifier so that it's easy to loop through
   //just the tables relating to a particular crate or chamber to change the values.
   std::map<std::string,std::map<std::string,xdata::Table> > currentTables;
+  
+  //these are not changed in memory but should be kept in memory so that they don't have to be reloaded every time you show or hide something.
+  std::map<std::string,std::map<std::string,xdata::Table> > currentDiff;
+  
+  //maps the keys used in currentDiff and currentTables to the titles of those tables on the display
+  //std::map<std::string,std::string> titles;
+  
   std::map<std::string,bool> tablesToDisplay;
   
   std::map<std::string,xdata::Table> tableDefinitions;
+  //this stores the hierarchical structure the tables should be displayed in
   std::map<std::string,std::vector<std::string> > tableNames;
+  //and this is just a list of the 'top level' tables which are immediately in the crate.
+  std::vector<std::string> topLevelTables;
 
 };
 
