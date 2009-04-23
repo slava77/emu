@@ -38,7 +38,9 @@
 
 namespace emu {
   namespace pc {
-
+	typedef std::map<std::string,unsigned int> TableChangeSummary;
+	  typedef std::map<std::string,TableChangeSummary > ChangeSummary;
+	  
 class EmuPCrateConfigTStore: public xdaq::Application
 {
 
@@ -56,20 +58,24 @@ public:
 	void outputFooter(xgi::Output * out);
 	void outputException(xgi::Output * out,xcept::Exception &e);
 	void outputStandardInterface(xgi::Output * out);
-	void displayChildDiff(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier);
-	bool displayCommonTableElements(xgi::Output * out,const std::string &configName,const std::string &identifier,xdata::Table &currentTable,const std::string &display="config");
-	void displayDiff(xgi::Output * out,const std::string &configName,const std::string &identifier) ;
-	void displayDiff(xgi::Output * out,const std::string &configName,int crateID);
+	void displayChildDiff(std::ostream * out,const std::string &configName,const std::string &parentIdentifier,ChangeSummary &changes);
+	bool displayCommonTableElements(std::ostream * out,const std::string &configName,const std::string &identifier,xdata::Table &currentTable,const std::string &display="config");
+	void displayDiff(std ::ostream* out,const std::string &configName,const std::string &identifier,ChangeSummary &changes) ;
+	void displayDiff(std::ostream * out,const std::string &configName,int crateID,ChangeSummary &changes);
 	void displayChildConfiguration(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier);
 	void displayConfiguration(xgi::Output * out,const std::string &configName,const std::string &identifier);
 	void displayConfiguration(xgi::Output * out,const std::string &configName,int crateID);
 	void outputTableEditControls(xgi::Output * out,const std::string &tableName,const std::string &prefix="");
-	void outputSingleValue(xgi::Output * out,xdata::Serializable *value,const std::string &tableName="",const std::string &identifier="",const std::string &column="",int rowIndex=0);
+	void outputSingleValue(std::ostream * out,xdata::Serializable *value,const std::string &tableName="",const std::string &identifier="",const std::string &column="",int rowIndex=0);
 	void outputCurrentDiff(xgi::Output * out);
 	std::string withoutVersionNumber(const std::string &columnName);
- void outputDiff(xgi::Output * out,xdata::Table &results); 
- void outputTable(xgi::Output * out,xdata::Table &results,const std::string &tableName="",const std::string &identifier="");
-void outputShowHideButton(xgi::Output * out,const std::string &configName,const std::string &identifier,const std::string &display="config");
+	
+void sumChanges(TableChangeSummary &allChanges,TableChangeSummary &changesToThisTable);
+void outputDiffSummary(std::ostream *out,TableChangeSummary &changes);
+void outputDiffSummary(std::ostream *out,ChangeSummary &changes);
+void outputDiff(std::ostream *out,xdata::Table &results,TableChangeSummary &changes);
+ void outputTable(std::ostream * out,xdata::Table &results,const std::string &tableName="",const std::string &identifier="");
+void outputShowHideButton(std::ostream * out,const std::string &configName,const std::string &identifier,const std::string &display="config");
   void outputEndcapSelector(xgi::Output * out);
   // Actions
   void parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -152,7 +158,7 @@ private:
 	void outputCompareVersionsForm(xgi::Output * out,const std::string &endcap_side);
 	std::string newCell(xdata::Serializable *newValue,xdata::Serializable *oldValue);
 	bool getNextColumn(std::vector<std::string>::iterator &nextColumn,std::string &columnWithoutVersionNumber,const std::vector<std::string>::iterator &currentColumn,const std::vector<std::string>::iterator &end);
-	void outputDiffRow(xgi::Output * out,xdata::Table &results,int rowIndex,bool vertical) ;
+	void outputDiffRow(std::ostream * out,xdata::Table &results,int rowIndex,bool vertical,TableChangeSummary &changes) ;
 	bool shouldDisplayConfiguration(const std::string &configName,const std::string &identifier);
 	std::string fullTableID(const std::string &configName,const std::string &identifier);
 	bool tableHasColumn(xdata::Table &table,const std::string &column);
