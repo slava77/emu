@@ -118,7 +118,7 @@ bool EmuPCrateConfigTStore::shouldDisplayConfiguration(const std::string &config
 	return false;
 }
 
-void EmuPCrateConfigTStore::outputShowHideButton(xgi::Output * out,const std::string &configName,const std::string &identifier,const std::string &display) {
+void EmuPCrateConfigTStore::outputShowHideButton(std::ostream * out,const std::string &configName,const std::string &identifier,const std::string &display) {
 	std::string key=fullTableID(configName,identifier);
 	std::string action;
 	if (shouldDisplayConfiguration(configName,identifier)) action="Hide";
@@ -146,11 +146,22 @@ void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::st
 	}
 }
 
-void EmuPCrateConfigTStore::displayDiff(xgi::Output * out,const std::string &configName,const std::string &identifier) {
+void EmuPCrateConfigTStore::sumChanges(TableChangeSummary &allChanges, TableChangeSummary &changesToThisTable) {
+	for (TableChangeSummary::iterator column=changesToThisTable.begin();column!=changesToThisTable.end();++column) {
+		allChanges[(*column).first]+=(*column).second;
+	}
+}
+
+void EmuPCrateConfigTStore::displayDiff(std::ostream * out,const std::string &configName,const std::string &identifier,ChangeSummary &changes) {
 	try {
 		xdata::Table &currentTable=getCachedDiff(configName,identifier);
+		std::ostringstream diffDisplay;
+		TableChangeSummary changesToThisTable;
+		outputDiff(&diffDisplay,currentTable,changesToThisTable);
+		outputDiffSummary(out,changesToThisTable);
+		sumChanges(changes[configName],changesToThisTable);
 		if (displayCommonTableElements(out,configName,identifier,currentTable,"diff")) {
-			outputDiff(out,currentTable);
+			*out << diffDisplay.str();
 		}
 	} catch (xcept::Exception &e) {
   		LOG4CPLUS_WARN(this->getApplicationLogger(),"could not display diff of "+configName+": "+e.what());
@@ -160,7 +171,7 @@ void EmuPCrateConfigTStore::displayDiff(xgi::Output * out,const std::string &con
 
 //displays either the hide/show button and the table name, or "no rows" if the table is empty. Returns whether the table should be shown.
 //\a display is either "diff" or "config" depending on what should be displayed when a show/hide button is pressed. Config is the default.
-bool EmuPCrateConfigTStore::displayCommonTableElements(xgi::Output * out,const std::string &configName,const std::string &identifier,xdata::Table &currentTable,const std::string &display) {
+bool EmuPCrateConfigTStore::displayCommonTableElements(std::ostream * out,const std::string &configName,const std::string &identifier,xdata::Table &currentTable,const std::string &display) {
 	if (currentTable.getRowCount()) {
 		outputShowHideButton(out,configName,identifier,display);
 		if (shouldDisplayConfiguration(configName,identifier)) {
@@ -180,11 +191,11 @@ void EmuPCrateConfigTStore::displayConfiguration(xgi::Output * out,const std::st
 	displayChildConfiguration(out,configName,crateIdentifierString(crateID));
 }
 
-void EmuPCrateConfigTStore::displayDiff(xgi::Output * out,const std::string &configName,int crateID) {
-	displayChildDiff(out,configName,crateIdentifierString(crateID));
+void EmuPCrateConfigTStore::displayDiff(std::ostream * out,const std::string &configName,int crateID,ChangeSummary &changes) {
+	displayChildDiff(out,configName,crateIdentifierString(crateID),changes);
 }
 
-void EmuPCrateConfigTStore::displayChildDiff(xgi::Output * out,const std::string &configName,const std::string &parentIdentifier) {
+void EmuPCrateConfigTStore::displayChildDiff(std::ostream * out,const std::string &configName,const std::string &parentIdentifier,ChangeSummary &changes) {
    	if (currentDiff.count(configName)) {		
   		std::map<std::string,xdata::Table> &tables=currentDiff[configName];
   		std::map<std::string,xdata::Table>::iterator table;
@@ -200,10 +211,10 @@ void EmuPCrateConfigTStore::displayChildDiff(xgi::Output * out,const std::string
 			if (!subTables.empty()) heading=(*table).first;
 			else heading=parentIdentifier; //there is no need to specify which one since there should be only one
 			*out << "<tr><td bgcolor=\"#FFCCFF\">" << configName << " of " << heading << "</td></tr><tr><td>"  << std::endl;
-			displayDiff(out,configName,(*table).first);
+			displayDiff(out,configName,(*table).first,changes);
 			
 			for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) { 
-				displayChildDiff(out,*subTable,(*table).first);
+				displayChildDiff(out,*subTable,(*table).first,changes);
 			}
 			*out << "</tr></td></table>";
   		}
@@ -280,12 +291,17 @@ void EmuPCrateConfigTStore::displayChildConfiguration(xgi::Output * out,const st
 void EmuPCrateConfigTStore::outputCurrentDiff(xgi::Output * out) {
 		for(std::vector<int>::iterator crateID=crateIDsInDiff.begin(); crateID!=crateIDsInDiff.end(); ++crateID) {
 			*out << "<p/><table border=\"2\" cellpadding=\"10\">";
+			//should probably select the crate labels as well so that this can show it
 			*out << "<tr><td bgcolor=\"#FFFFCC\">Crate " << *crateID << "</td></tr><tr><td>"  << std::endl;
+			ChangeSummary changes;
+			std::ostringstream diffDisplay;
+			for (std::vector<std::string>::iterator tableName=topLevelTables.begin();tableName!=topLevelTables.end();++tableName) {
+				displayDiff(&diffDisplay,(*tableName),*crateID,changes);
+			}
+			outputDiffSummary(out,changes);
 			outputShowHideButton(out,"wholecrate",crateIdentifierString(*crateID),"diff");
 			if (shouldDisplayConfiguration("wholecrate",crateIdentifierString(*crateID))) {
-				for (std::vector<std::string>::iterator tableName=topLevelTables.begin();tableName!=topLevelTables.end();++tableName) {
-					displayDiff(out,(*tableName),*crateID);
-				}
+				*out << diffDisplay.str();
 			}
 			*out << "</tr></td></table>";
   		}
@@ -420,7 +436,7 @@ void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,const std:
 //outputs the value of \a value to *out. If the last three parameters are filled in (to indicate where the value comes from, so how to change it) then
 //and the column is of a type that can be edited and a column name which does not seem to be a config ID,
 //it will be in an editable text field with a change button which called changeSingleValue.
-void EmuPCrateConfigTStore::outputSingleValue(xgi::Output * out,xdata::Serializable *value,const std::string &tableName,const std::string &identifier,const std::string &column,int rowIndex) {
+void EmuPCrateConfigTStore::outputSingleValue(std::ostream * out,xdata::Serializable *value,const std::string &tableName,const std::string &identifier,const std::string &column,int rowIndex) {
 	std::string columnType=value->type();
 	if (columnType=="table") {
 		outputTable(out,*static_cast<xdata::Table *>(value));
@@ -476,7 +492,7 @@ bool EmuPCrateConfigTStore::getNextColumn(std::vector<std::string>::iterator &ne
 	return false;
 }
 
-void EmuPCrateConfigTStore::outputDiffRow(xgi::Output * out,xdata::Table &results,int rowIndex,bool vertical) {
+void EmuPCrateConfigTStore::outputDiffRow(std::ostream * out,xdata::Table &results,int rowIndex,bool vertical,TableChangeSummary &changes) {
 	std::vector<std::string> columns=results.getColumns();
 	std::vector<std::string>::iterator column;
 	std::vector<std::string>::iterator nextColumn;
@@ -487,6 +503,7 @@ void EmuPCrateConfigTStore::outputDiffRow(xgi::Output * out,xdata::Table &result
 			xdata::Serializable *oldValue=results.getValueAt(rowIndex,*column);
 			xdata::Serializable *newValue=results.getValueAt(rowIndex,*nextColumn);
 			std::string tableCellTag=newCell(oldValue,newValue);
+			if (!oldValue->equals(*newValue)) changes[columnWithoutVersionNumber]++;
 			*out << tableCellTag;
 			outputSingleValue(out,oldValue);
 			*out << "</td>";
@@ -499,7 +516,27 @@ void EmuPCrateConfigTStore::outputDiffRow(xgi::Output * out,xdata::Table &result
 	}
 }
 
-void EmuPCrateConfigTStore::outputDiff(xgi::Output * out,xdata::Table &results) {
+void EmuPCrateConfigTStore::outputDiffSummary(std::ostream *out,TableChangeSummary &changes) {
+	for (TableChangeSummary::iterator column=changes.begin();column!=changes.end();++column) {
+		*out << (*column).second << " change" << (((*column).second>1)?"s":"") << " to " << (*column).first << "<br/>";
+	}
+}
+
+void EmuPCrateConfigTStore::outputDiffSummary(std::ostream *out,ChangeSummary &changes) {
+	bool changesFound=false;
+	for (ChangeSummary::iterator table=changes.begin();table!=changes.end();++table) {
+		if (!(*table).second.empty()) {
+			*out << cgicc::dt() << "table " << (*table).first << cgicc::dt() << cgicc::dd();
+			outputDiffSummary(out,(*table).second);
+			*out << cgicc::dd();
+			changesFound=true;
+		}
+	}
+	if (!changesFound) *out << "no changes";
+}
+
+//template <class OutputStream>
+void EmuPCrateConfigTStore::outputDiff(std::ostream * out,xdata::Table &results,TableChangeSummary &changes) {
 	//this uses raw HTML tags because cgicc can't handle any nested tags, which makes it pretty much useless
 	std::vector<std::string> columns=results.getColumns();
 	int rowCount=results.getRowCount();
@@ -517,7 +554,7 @@ void EmuPCrateConfigTStore::outputDiff(xgi::Output * out,xdata::Table &results) 
 	if (rowCount==1) {
 		*out << "<table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">";
 		*out << "<tr><td></td><td> configuration " << oldConfigID << "</td><td> configuration " << newConfigID << "</td>";
-		outputDiffRow(out,results,0,true);
+		outputDiffRow(out,results,0,true,changes);
 		*out << "</table>";
 	} else {
 		*out << rowCount << " rows";
@@ -534,7 +571,7 @@ void EmuPCrateConfigTStore::outputDiff(xgi::Output * out,xdata::Table &results) 
 		unsigned long rowIndex;
 		for (rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
 			*out << "<tr>";
-			outputDiffRow(out,results,rowIndex,false);
+			outputDiffRow(out,results,rowIndex,false,changes);
 
 			*out << "</tr>";
 		}
@@ -542,7 +579,7 @@ void EmuPCrateConfigTStore::outputDiff(xgi::Output * out,xdata::Table &results) 
 	}
 }
 
-void EmuPCrateConfigTStore::outputTable(xgi::Output * out,xdata::Table &results,const std::string &tableName,const std::string &identifier) {
+void EmuPCrateConfigTStore::outputTable(std::ostream * out,xdata::Table &results,const std::string &tableName,const std::string &identifier) {
 	//this uses raw HTML tags because cgicc can't handle any nested tags, which makes it pretty much useless
 	std::vector<std::string> columns=results.getColumns();
 	std::vector<std::string>::iterator columnIterator;
