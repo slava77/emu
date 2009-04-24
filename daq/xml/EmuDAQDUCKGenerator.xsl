@@ -146,11 +146,14 @@
 		   pathToExecutive="{$PATHTOEXECUTIVE}"
 		   unixUser="cscdqm"
 		   logLevel="INFO"
-		   logURL="file:/var/log/emu/xdaq-rui0-cscdqm.log"
+		   logURL="file:/var/log/emu/xdaq-display-cscdqm.log"
 		   environmentString="{$DQM_ENVIRONMENTSTRING}">
       <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
     </XdaqExecutive>
-
+    <XdaqApplication className="EmuDisplayClient" hostname="csc-dqm.cms" port="20550"
+		     urn="urn:xdaq-application:lid=1450"
+		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
+		     instance="0" />
   </xsl:template>
 
   <!-- DQM Monitors -->
