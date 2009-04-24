@@ -13,8 +13,8 @@ sideName=( \
 )
 
 # .duck for DQM_Display:
-echo "xsltproc --stringparam SIDE B --stringparam FARM DQM_Display --stringparam NAME DAQ_side${SIDE}_writeN_buildN EmuDAQDUCKGenerator.xsl RUI-to-computer_mapping.xml > $OUTDIR/DQM_Display_side${SIDE}.duck"
-xsltproc --stringparam SIDE B --stringparam FARM DQM_Display --stringparam NAME DAQ_writeN_buildN EmuDAQDUCKGenerator.xsl RUI-to-computer_mapping.xml > $OUTDIR/DQM_Display.duck
+echo "xsltproc --stringparam FARM DQM_Display EmuDAQDUCKGenerator.xsl RUI-to-computer_mapping.xml > $OUTDIR/DQM_Display.duck"
+xsltproc --stringparam FARM DQM_Display --stringparam NAME DAQ_writeN_buildN EmuDAQDUCKGenerator.xsl RUI-to-computer_mapping.xml > $OUTDIR/DQM_Display.duck
 
 # loop over plus, minus and both sides:
 for SIDE in ${(k)sideName}; do
