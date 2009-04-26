@@ -196,6 +196,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::UploadConfFile, "UploadConfFile");
   xgi::bind(this,&EmuPeripheralCrateConfig::DefineConfiguration, "DefineConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadCCBRegister, "ReadCCBRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::WriteCCBRegister, "WriteCCBRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::ReadMPCRegister, "ReadMPCRegister");
+  xgi::bind(this,&EmuPeripheralCrateConfig::WriteMPCRegister, "WriteMPCRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadTTCRegister, "ReadTTCRegister");
   xgi::bind(this,&EmuPeripheralCrateConfig::HardReset, "HardReset");
   xgi::bind(this,&EmuPeripheralCrateConfig::testTMB, "testTMB");
@@ -430,7 +433,15 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
     AlctDavCounter_.push_back(0);
   }
   //
+  CCBRegisterRead_ = -1;
   CCBRegisterValue_ = -1;
+  CCBRegisterWrite_ = -1;
+  CCBWriteValue_ = -1;
+  MPCRegisterRead_ = -1;
+  MPCRegisterValue_ = -1;
+  MPCRegisterWrite_ = -1;
+  MPCWriteValue_ = -1;
+
   Operator_ = "Operator";
   RunNumber_= "-1";
   CalibrationState_ = "None";
@@ -10646,6 +10657,7 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
   char Name[100];
+  char buf[200];
   sprintf(Name,"CCB utilities, crate=%s, slot=%d",ThisCrateID_.c_str(),thisCCB->slot());
   //
   MyHeader(in,out,Name);
@@ -10661,10 +10673,24 @@ void EmuPeripheralCrateConfig::CCBUtils(xgi::Input * in, xgi::Output * out )
   std::string ReadCCBRegister = 
     toolbox::toString("/%s/ReadCCBRegister",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ReadCCBRegister) << std::endl ;
-  *out << "Read Register (hex)..." << std::endl;
-  *out << cgicc::input().set("type","text").set("value","0").set("name","CCBRegister") << std::endl ;
-  *out << "Register value : (hex) " << std::hex << CCBRegisterValue_ << std::endl;
+  *out << "Read Register (hex) " << std::endl;
+  sprintf(buf, "%04X", CCBRegisterRead_);  
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","CCBRegister") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Read CCB") << std::endl ;
+  *out << " Register value (hex): " << std::hex << CCBRegisterValue_ << std::endl;
   *out << cgicc::form() << std::endl ;
+  //
+  std::string WriteCCBRegister = 
+    toolbox::toString("/%s/WriteCCBRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",WriteCCBRegister) << std::endl ;
+  *out << "Write Register (hex) " << std::endl;
+  sprintf(buf, "%04X", CCBRegisterWrite_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","CCBRegister") << std::endl ;
+  *out << "Register value (hex) " << std::endl;
+  sprintf(buf, "%04X", CCBWriteValue_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","CCBValue") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Write CCB") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
   //
   std::string HardReset =
     toolbox::toString("/%s/HardReset",getApplicationDescriptor()->getURN().c_str());
@@ -10787,6 +10813,7 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
   char Name[100];
+  char buf[200];
   sprintf(Name,"MPC utilities, crate=%s, slot=%d",
 	  ThisCrateID_.c_str(),thisMPC->slot());
   //
@@ -10798,6 +10825,28 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
   //
   *out << cgicc::legend("MPC Utils").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  std::string ReadMPCRegister = 
+    toolbox::toString("/%s/ReadMPCRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadMPCRegister) << std::endl ;
+  *out << "Read Register (hex) " << std::endl;
+  sprintf(buf, "%04X", MPCRegisterRead_);  
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","MPCRegister") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Read MPC") << std::endl ;
+  *out << " Register value (hex): " << std::hex << MPCRegisterValue_ << std::endl;
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string WriteMPCRegister = 
+    toolbox::toString("/%s/WriteMPCRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",WriteMPCRegister) << std::endl ;
+  *out << "Write Register (hex) " << std::endl;
+  sprintf(buf, "%04X", MPCRegisterWrite_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","MPCRegister") << std::endl ;
+  *out << "Register value (hex) " << std::endl;
+  sprintf(buf, "%04X", MPCWriteValue_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","MPCValue") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Write MPC") << std::endl ;
+  *out << cgicc::form() << cgicc::br() << std::endl ;
   //
   MPCFirmware_ = FirmwareDir_+"mpc/"+"mpc2004_102706.svf";
   //
@@ -13785,19 +13834,48 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
     cgicc::Cgicc cgi(in);
     //
     cgicc::form_iterator name2 = cgi.getElement("CCBRegister");
-    int registerValue = -1;
+    int CCBregister = -1;
     if(name2 != cgi.getElements().end()) {
-      registerValue = strtol(cgi["CCBregister"]->getValue().c_str(),NULL,16);
-      std::cout << "Register " << registerValue << std::endl;
-      //
-      CCBRegisterValue_ = thisCCB->ReadRegister(registerValue);
-      //
+      CCBregister = strtol(cgi["CCBRegister"]->getValue().c_str(),NULL,16);
     }
+    if(CCBregister != -1)  
+    {  CCBRegisterRead_ = CCBregister;
+       std::cout << "CCB read Register: " << std::hex << CCBregister << std::dec << std::endl;
+       CCBRegisterValue_ = thisCCB->ReadRegister(CCBregister);
+    }    
     //
     this->CCBUtils(in,out);
     //
   }
   //
+  void EmuPeripheralCrateConfig::WriteCCBRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name2 = cgi.getElement("CCBRegister");
+    cgicc::form_iterator value2 = cgi.getElement("CCBValue");
+    int CCBregister = -1;
+    int CCBvalue = -1;
+    if(name2 != cgi.getElements().end()) {
+      CCBregister = strtol(cgi["CCBRegister"]->getValue().c_str(),NULL,16);
+    }
+    if(value2 != cgi.getElements().end()) {
+      CCBvalue = strtol(cgi["CCBValue"]->getValue().c_str(),NULL,16);
+    }
+    if( CCBregister != -1 && CCBvalue != -1)  
+    {  CCBRegisterWrite_ = CCBregister;
+       CCBWriteValue_ = CCBvalue;
+       std::cout << "CCB write Register: " << std::hex << CCBregister
+                 << ", Value: " << CCBvalue << std::dec << std::endl;
+       thisCCB->WriteRegister(CCBregister, CCBvalue);
+    }
+    //
+    this->CCBUtils(in,out);
+    //
+  }
+
   void EmuPeripheralCrateConfig::ReadTTCRegister(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -13823,6 +13901,55 @@ void EmuPeripheralCrateConfig::DMBStatus(xgi::Input * in, xgi::Output * out )
     //
   }
   //
+  void EmuPeripheralCrateConfig::ReadMPCRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name2 = cgi.getElement("MPCRegister");
+    int MPCregister = -1;
+    if(name2 != cgi.getElements().end()) {
+      MPCregister = strtol(cgi["MPCRegister"]->getValue().c_str(),NULL,16);
+    }
+    if(MPCregister != -1)  
+    {  MPCRegisterRead_ = MPCregister;
+       std::cout << "MPC read Register: " << std::hex << MPCregister << std::dec << std::endl;
+       MPCRegisterValue_ = thisMPC->ReadRegister(MPCregister);
+    }    
+    //
+    this->MPCUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrateConfig::WriteMPCRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name2 = cgi.getElement("MPCRegister");
+    cgicc::form_iterator value2 = cgi.getElement("MPCValue");
+    int MPCregister = -1;
+    int MPCvalue = -1;
+    if(name2 != cgi.getElements().end()) {
+      MPCregister = strtol(cgi["MPCRegister"]->getValue().c_str(),NULL,16);
+    }
+    if(value2 != cgi.getElements().end()) {
+      MPCvalue = strtol(cgi["MPCValue"]->getValue().c_str(),NULL,16);
+    }
+    if( MPCregister != -1 && MPCvalue != -1)  
+    {  MPCRegisterWrite_ = MPCregister;
+       MPCWriteValue_ = MPCvalue;
+       std::cout << "MPC write Register: " << std::hex << MPCregister
+                 << ", Value: " << MPCvalue << std::dec << std::endl;
+       thisMPC->WriteRegister(MPCregister, MPCvalue);
+    }
+    //
+    this->MPCUtils(in,out);
+    //
+  }
+
 void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
     //
