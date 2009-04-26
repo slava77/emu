@@ -144,7 +144,8 @@ protected:
   int tmb_vme_ready;
   int crate_controller_status;
   //
-  int CCBRegisterValue_;
+  int CCBRegisterRead_, CCBRegisterValue_, CCBRegisterWrite_, CCBWriteValue_;
+  int MPCRegisterRead_, MPCRegisterValue_, MPCRegisterWrite_, MPCWriteValue_;
   std::vector<emu::pc::TMB*>   tmbVector;
   std::vector<emu::pc::TMBTester>   tmbTestVector;
   std::vector<emu::pc::DAQMB*> dmbVector;
@@ -476,6 +477,9 @@ private:
   void LoadCrateALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadCCBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void WriteCCBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ReadMPCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void WriteMPCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadTTCRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void HardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
