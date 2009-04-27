@@ -11,6 +11,11 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 Project=emu
 Package=emuDCS/PeripheralApps
+PackageName=PeripheralApps
+Description="XDAQ Application libraries for Peripheral Crates"
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=03
+PACKAGE_VER_PATCH=00
 
 
 Sources=\
@@ -82,3 +87,4 @@ TestExecutables= \
 	testtmbmain.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
+include $(XDAQ_ROOT)/config/mfRPM.rules

@@ -12,6 +12,11 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 Project=emu
 Package=emuDCS/PeripheralCore
+PackageName=PeripheralCore
+Description="Core libraries for Peripheral Crates"
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=03
+PACKAGE_VER_PATCH=00
 
 Sources=\
 	CoreVersion.cc \
@@ -61,3 +66,4 @@ Executables=
 TestExecutables= 
 
 include $(XDAQ_ROOT)/config/Makefile.rules
+include $(XDAQ_ROOT)/config/mfRPM.rules

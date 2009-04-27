@@ -11,6 +11,11 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 Project=emu
 Package=emuDCS/OnlineDB
+PackageName=OnlineDB
+Description="Hardware ID libraries for DMBs and CFEBs in Peripheral Crates"
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=03
+PACKAGE_VER_PATCH=00
 
 
 Sources=\
@@ -50,3 +55,4 @@ Executables=
 TestExecutables=
 
 include $(XDAQ_ROOT)/config/Makefile.rules
+include $(XDAQ_ROOT)/config/mfRPM.rules
