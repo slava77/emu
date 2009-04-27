@@ -354,7 +354,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                       for(unsigned ii=0; ii<buf2[0]; ii++) dmbdata->push_back(0.);
                    for(unsigned ii=0; ii<buf2[0]; ii++)
                    {   unsigned short rdv = buf2[ii+2];
-                       if(rdv > 0xFFF) rdv = 0;
+                       if(rdv >= 0xFFF) rdv = 0;
                        if((ii%48)<40)
                           (*dmbdata)[ii] = 10.0/4096.0*rdv;
                        else if((ii%48)<46)
