@@ -5,7 +5,7 @@
 
     namespace EmuPeripheralApps {
 	const std::string package  =  "EmuPeripheralApps";
-	const std::string versions =  "7.2";
+	const std::string versions =  "7.3";
 	const std::string summary = "emu/emuDCS/PeripheralApps";
 	const std::string description = "Emu Peripheral Crate Application Library";
 	const std::string authors = "Jinghua Liu for cms-emu-onlinesoftware";
