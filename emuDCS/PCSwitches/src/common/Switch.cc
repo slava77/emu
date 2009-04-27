@@ -50,7 +50,7 @@ namespace emu{
     command = upsTelnet + " " + switchOperation + " " + switchNum;
     if(toolbox::net::getHostName() == "vmepcS2G18-09.cms") {
       printf("%s\n", command.c_str());
-      int ierr=system(command.c_str());
+      system(command.c_str());
 //      ::sleep(75);
     } else {
       printf("%s\n", command.c_str());
@@ -461,7 +461,7 @@ std::string Switch::html_pc_status(){
     char line[256];
     char name[50];
     char num[12];
-    int ntline;
+    int ntline=0;
     int tn[25];
     char tline[25][50];
     int n;

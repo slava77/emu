@@ -187,7 +187,7 @@ void SwitchGUI::Maintenance(xgi::Input * in, xgi::Output * out ) throw (xgi::exc
   if(S->sidelabel=="MINUS") *out << cgicc::input().set("type","submit").set("value","Backup Minus Switches") << std::endl ;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td() << std::endl;
-  char *buf;
+  char *buf=0;
   if(S->sidelabel=="PLUS")buf="Reload Plus Switches";
   if(S->sidelabel=="MINUS")buf="Reload Minus Switches";
   *out << cgicc::td();
