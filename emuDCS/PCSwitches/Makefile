@@ -11,6 +11,11 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 Project=emu
 Package=emuDCS/PCSwitches
+PackageName=PCSwitches
+Description="Application libraries for Peripheral Crate Gigabit Switches"
+PACKAGE_VER_MAJOR=07
+PACKAGE_VER_MINOR=03
+PACKAGE_VER_PATCH=00
 
 Sources=\
 	SwitchGUI.cc \
@@ -56,3 +61,4 @@ TestExecutables= \
    helloworld.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
+include $(XDAQ_ROOT)/config/mfRPM.rules
