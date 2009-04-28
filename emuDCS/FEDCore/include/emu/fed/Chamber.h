@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Chamber.h,v 1.2 2009/04/14 17:50:50 paste Exp $
+* $Id: Chamber.h,v 1.3 2009/04/28 02:05:19 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CHAMBER_H__
 #define __EMU_FED_CHAMBER_H__
@@ -34,8 +34,8 @@ namespace emu {
 			/// The station where the chamber is located.  Is a number 1, 2, 3, or 4.
 			unsigned int station;
 
-			/// The "type" of the chamber, or on which annulus it is located.  Is a number 1, 2, or 3.
-			unsigned int type;
+			/// The "ring" of the chamber, or on which annulus it is located.  Is a number 1, 2, or 3.
+			unsigned int ring;
 
 			/// The chamber number.  The combination of endcap, station, type, and number uniquely defines each chamber.
 			unsigned int number;

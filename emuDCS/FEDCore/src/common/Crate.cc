@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.cc,v 1.2 2009/04/14 17:50:51 paste Exp $
+* $Id: Crate.cc,v 1.3 2009/04/28 02:05:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Crate.h"
 
@@ -28,12 +28,11 @@ void emu::fed::Crate::addBoard(VMEModule *myBoard)
 
 
 void emu::fed::Crate::setController(VMEController *controller) {
-
 	vmeController_ = controller;
 
 	broadcastDDU_->setBHandle(vmeController_->getBHandle());
 
-	for(std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
+	for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
 		(*iBoard)->setBHandle(vmeController_->getBHandle());
 	}
 }

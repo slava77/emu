@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Chamber.cc,v 1.2 2009/04/14 17:50:51 paste Exp $
+* $Id: Chamber.cc,v 1.3 2009/04/28 02:05:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Chamber.h"
 
@@ -9,7 +9,7 @@
 emu::fed::Chamber::Chamber():
 endcap(""),
 station(0),
-type(0),
+ring(0),
 number(0),
 //fiberCassetteCrate_(0),
 //fiberCassettePos_(0),
@@ -27,7 +27,7 @@ std::string emu::fed::Chamber::name()
 {
 	std::stringstream nameStream;
 	//nameStream << "ME" << endcap << station << "/" << type << "/" << number;
-	nameStream << endcap << station << "/" << type << "/" << std::setw(2) << std::setfill('0') << number;
+	nameStream << endcap << station << "/" << ring << "/" << std::setw(2) << std::setfill('0') << number;
 	return nameStream.str();
 }
 
