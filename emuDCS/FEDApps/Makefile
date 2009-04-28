@@ -22,8 +22,8 @@ Summary="Emu (CSC) FED XDAQ Applications"
 Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=02
-PACKAGE_VER_PATCH=01
+PACKAGE_VER_MINOR=03
+PACKAGE_VER_PATCH=00
 
 Sources=\
 	AppsVersion.cc \
@@ -45,9 +45,9 @@ IncludeDirs = \
 LibraryDirs = \
 	$(XDAQ_ROOT)/lib
 
-UserCFlags = 
+UserCFlags =
 UserCCFlags = -pipe -DLINUX -g -Wall -pedantic-errors -Wno-long-long -isystem $(XDAQ_ROOT)/include
-UserStaticLinkFlags = 
+UserStaticLinkFlags =
 UserExecutableLinkFlags = -D_REENTRAN -pthread -pedantic-errors
 
 # These libraries can be platform specific and
@@ -60,7 +60,7 @@ ExternalObjects =
 # Compile the source files and create a shared library
 #
 DynamicLibrary = EmuFEDApps
-StaticLibrary = 
+StaticLibrary =
 
 Executables =
 TestExecutables =
