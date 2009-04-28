@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.3 2009/04/14 17:50:51 paste Exp $
+* $Id: DDU.cc,v 1.4 2009/04/28 02:05:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -1739,7 +1739,17 @@ throw (emu::fed::exception::DDUException)
 		ucCommand = PROM_USERCODE;
 	}
 
-	commandCycle(dev, ucCommand);
+	try {
+		commandCycle(dev, ucCommand);
+	} catch (emu::fed::exception::CAENException &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "slot:" << slot() << ",board:DDU";
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
 
 	// Now this path is open.  We can read the usercode out.
 	// Shove in (and read out)
@@ -1755,7 +1765,17 @@ throw (emu::fed::exception::DDUException)
 		bypassCommand = PROM_BYPASS;
 	}
 
-	commandCycle(dev, bypassCommand);
+	try {
+		commandCycle(dev, bypassCommand);
+	} catch (emu::fed::exception::CAENException &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "slot:" << slot() << ",board:DDU";
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
 
 	return (result[0] & 0xffff) | (result[1] << 16);
 
@@ -1778,7 +1798,17 @@ throw (emu::fed::exception::DDUException)
 		ucCommand = PROM_IDCODE;
 	}
 
-	commandCycle(dev, ucCommand);
+	try {
+		commandCycle(dev, ucCommand);
+	} catch (emu::fed::exception::CAENException &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "slot:" << slot() << ",board:DDU";
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
 
 	// Now this path is open.  We can read the usercode out.
 
@@ -1795,7 +1825,17 @@ throw (emu::fed::exception::DDUException)
 		bypassCommand = PROM_BYPASS;
 	}
 
-	commandCycle(dev, bypassCommand);
+	try {
+		commandCycle(dev, bypassCommand);
+	} catch (emu::fed::exception::CAENException &e) {
+		std::ostringstream error;
+		error << "Exception communicating with DDU";
+		XCEPT_DECLARE_NESTED(emu::fed::exception::DDUException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "slot:" << slot() << ",board:DDU";
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
 
 	return (result[0] & 0xffff) | (result[1] << 16);
 
