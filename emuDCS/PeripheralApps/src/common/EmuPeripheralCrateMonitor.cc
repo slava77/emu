@@ -1051,7 +1051,7 @@ void EmuPeripheralCrateMonitor::DCSMain(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_TMB_COUNTERS=48;
+  int TOTAL_DCS_COUNTERS=48;
   float temp_max[8]={40., 40., 40., 40., 40., 40., 40., 40.};
   float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
   float cv_max[3]={3.5, 5.4, 6.5};
@@ -1134,7 +1134,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      *out <<cgicc::td() << "CFEB " << feb+1 << cgicc::td();
      for(int cnt=0; cnt<3; cnt++)
      {
-        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+19+3*feb+cnt];
+        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+19+3*feb+cnt];
         *out << cgicc::td();
         if(val<0.)    
            *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1143,7 +1143,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
         else 
            *out << val;  
         *out << cgicc::td();
-        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+3*feb+cnt];
+        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+3*feb+cnt];
         *out <<cgicc::td() << val << cgicc::td();
      }
      *out << cgicc::tr() << std::endl;
@@ -1167,7 +1167,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      *out <<cgicc::td() << "ALCT" << cgicc::td();
      for(int cnt=0; cnt<4; cnt++)
      {
-        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+19+15+cnt];
+        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+19+15+cnt];
         *out <<cgicc::td();
         if(val<0.)    
            *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1176,7 +1176,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
         else 
            *out << val;  
         *out << cgicc::td();
-        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+15+cnt];
+        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+15+cnt];
         *out <<cgicc::td() << val << cgicc::td();
      }
      *out << cgicc::tr() << std::endl;
@@ -1201,7 +1201,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
      for(int cnt=0; cnt<7; cnt++)
      {
         if(cfebs<5 && cnt==5) continue;
-        val=(*dcsdata)[mychamb*TOTAL_TMB_COUNTERS+40+cnt];
+        val=(*dcsdata)[mychamb*TOTAL_DCS_COUNTERS+40+cnt];
         *out <<cgicc::td();
         if(val<0.)    
            *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
@@ -1221,7 +1221,7 @@ void EmuPeripheralCrateMonitor::DCSChamber(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_TMB_COUNTERS=48, Total_count=19;
+  int TOTAL_DCS_COUNTERS=48, Total_count=19;
   float lv_max[19]={3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 2.0, 6.0, 6.0};
   float lv_min[19]={3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 1.6, 5.0, 5.0};
   float val;
@@ -1290,7 +1290,7 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
 	*out <<cgicc::td() << cgicc::td();
       }
       *out << std::setprecision(4);
-      val=(*dcsdata)[dmb*TOTAL_TMB_COUNTERS+19+count];
+      val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+19+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
       else if(val > lv_max[count] || val < lv_min[count])
@@ -1309,7 +1309,7 @@ void EmuPeripheralCrateMonitor::DCSCrateLV(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_TMB_COUNTERS=48, Total_count=19;
+  int TOTAL_DCS_COUNTERS=48, Total_count=19;
 //  float lv_max[19]={3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 5.4, 6.5, 3.5, 2.0, 6.0, 6.0};
 //  float lv_min[19]={3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 4.6, 5.5, 3.1, 1.6, 5.0, 5.0};
   float val;
@@ -1377,7 +1377,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
 	*out <<cgicc::td() << cgicc::td();
       }
       *out << std::setprecision(4);
-      val=(*dcsdata)[dmb*TOTAL_TMB_COUNTERS+count];
+      val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
 //
@@ -1399,7 +1399,7 @@ void EmuPeripheralCrateMonitor::DCSCrateCUR(xgi::Input * in, xgi::Output * out )
 void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  int TOTAL_TMB_COUNTERS=48, Total_Temps=7;
+  int TOTAL_DCS_COUNTERS=48, Total_Temps=7;
   float temp_max[8]={40., 40., 40., 40., 40., 40., 40., 40.};
   float temp_min[8]={ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.};
   float val;
@@ -1468,7 +1468,7 @@ void EmuPeripheralCrateMonitor::DCSCrateTemp(xgi::Input * in, xgi::Output * out 
 	*out <<cgicc::td() << cgicc::td();
       }
       *out << std::setprecision(4);
-      val=(*dcsdata)[dmb*TOTAL_TMB_COUNTERS+40+count];
+      val=(*dcsdata)[dmb*TOTAL_DCS_COUNTERS+40+count];
       if(val<0.)    
          *out << cgicc::span().set("style","color:magenta") << val << cgicc::span();
       else if(val > temp_max[count] || val < temp_min[count])
@@ -2099,9 +2099,15 @@ void EmuPeripheralCrateMonitor::TCounterSelection(xgi::Input * in, xgi::Output *
 void EmuPeripheralCrateMonitor::CrateTMBCounters(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+#if 0
   int counter_idx[23]={ 0 ,  1,  2, 10, 12, 13, 14, 15, 16, 17, 
                         25, 29, 30, 31, 34, 40, 41, 47, 49, 53,
                         56, 61, 76};
+#endif
+
+  int counter_idx[23]={ 0 ,  1,  3,  4,  5, 13, 14, 17, 20, 28,
+                        29, 30, 31, 34, 35, 37, 40, 41, 44, 45,
+                        48, 49, 64};
 
   std::ostringstream output;
   output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
@@ -2371,9 +2377,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         if(i_value<-1) i_value=-1;
         *out << i_value;
         *out << "\" clct=\"";
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+12];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+5];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+12];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+5];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1
 
@@ -2382,9 +2388,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+29];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+17];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+29];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+17];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, should be -1
 
@@ -2393,9 +2399,9 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << i_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+53];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+41];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+53];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+41];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // counter error, set it to -1:
         i_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(-1));
@@ -2430,19 +2436,19 @@ void EmuPeripheralCrateMonitor::XmlOutput(xgi::Input * in, xgi::Output * out )
         *out << n_value;
         *out << "\" clct=\"";
 //        *out << myVector[j]->GetCounter(5);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+12];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+5];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" lct=\"";
 //        *out << myVector[j]->GetCounter(13);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+29];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+17];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
         *out << "\" l1a=\"";
 //        *out << myVector[j]->GetCounter(34);
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+53];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+41];
         // counter error, set it to -1 here:
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         *out << n_value;
@@ -2535,9 +2541,9 @@ void EmuPeripheralCrateMonitor::BeamView(xgi::Input * in, xgi::Output * out )
         int ring = std::atoi(chname.substr(5,1).c_str());
         int chnumb = std::atoi(chname.substr(7,2).c_str());
 
-        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+29];
+        o_value = (*otmbdata)[j*TOTAL_TMB_COUNTERS+17];
         if(o_value == 0x3FFFFFFF || o_value <0) o_value = -1;
-        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+29];
+        n_value = (*tmbdata)[j*TOTAL_TMB_COUNTERS+17];
         if(n_value == 0x3FFFFFFF || n_value <0) n_value = -1;
         // when a counter has error, set it to 0 here and in the following:
         d_value = ((o_value>=0 && n_value>=0)?(n_value-o_value):(0));
@@ -2967,6 +2973,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     OCounterName.clear();    
     IsErrCounter.clear();
     //
+#if 0
     TCounterName.push_back( "ALCT: alct0 valid pattern flag received                 "); // 0 --
     TCounterName.push_back( "ALCT: alct1 valid pattern flag received                 ");
     TCounterName.push_back( "ALCT: alct data structure Error                         ");
@@ -3059,15 +3066,15 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
 
     TCounterName.push_back( "CCB:  qPLL lock lost                                    "); //75
     TCounterName.push_back( "TMB: Time since last Hard Reset                         "); 
+#endif
 
-#if 0
-    TCounterName.push_back( "ALCT: alct0 valid pattern flag received                 "); // 0
+    TCounterName.push_back( "ALCT: alct0 valid pattern flag received                 "); // 0 --
     TCounterName.push_back( "ALCT: alct1 valid pattern flag received                 ");
     TCounterName.push_back( "ALCT: alct data structure Error                         ");
     TCounterName.push_back( "ALCT: raw hits readout                                  ");
     TCounterName.push_back( "ALCT: raw hits readout - CRC Error                      ");
 
-    TCounterName.push_back( "CLCT: Pretrigger                                        "); // 5
+    TCounterName.push_back( "CLCT: Pretrigger                                        "); // 5 --
     TCounterName.push_back( "CLCT: Pretrigger on ME1A CFEB 4 only                    ");
     TCounterName.push_back( "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 ");
     TCounterName.push_back( "CLCT: Discarded, no wrbuf available, buffer stalled     ");
@@ -3081,7 +3088,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "CLCT: clct1 sent to TMB matching section                "); // 15
 
     TCounterName.push_back( "TMB:  TMB accepted alct*clct, alct-only, or clct-only   "); // 16
-    TCounterName.push_back( "TMB:  TMB clct*alct matched trigger                     "); // 17
+    TCounterName.push_back( "TMB:  TMB clct*alct matched trigger                     "); // 17 --
     TCounterName.push_back( "TMB:  TMB alct-only trigger                             ");
     TCounterName.push_back( "TMB:  TMB clct-only trigger                             ");
 
@@ -3111,7 +3118,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "TMB:  MPC rejected both LCT0 and LCT1                   ");
 
     TCounterName.push_back( "L1A:  L1A received                                      "); // 40
-    TCounterName.push_back( "L1A:  L1A received, TMB in L1A window                   ");
+    TCounterName.push_back( "L1A:  L1A received, TMB in L1A window                   "); // 41 --
     TCounterName.push_back( "L1A:  L1A received, no TMB in window                    ");
     TCounterName.push_back( "L1A:  TMB triggered, no L1A in window                   ");
     TCounterName.push_back( "L1A:  TMB readouts completed                            ");
@@ -3139,7 +3146,6 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "CCB:  TTCrx lock lost                                   "); //62
     TCounterName.push_back( "CCB:  qPLL lock lost                                    "); //63
     TCounterName.push_back( "TMB: Time since last Hard Reset                         "); //64
-#endif
 
     DCounterName.push_back( "L1A to LCT delay");  // 0
     DCounterName.push_back( "CFEB DAV delay  ");
@@ -3203,6 +3209,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
       {   IsErrCounter.push_back(0);
       }
     }
+#if 0
     IsErrCounter[11]=1;
     IsErrCounter[20]=1;
     IsErrCounter[21]=1;
@@ -3213,6 +3220,15 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     IsErrCounter[54]=1;
     IsErrCounter[74]=1;
     IsErrCounter[75]=1;
+#endif
+
+    IsErrCounter[8]=1;
+    IsErrCounter[9]=1;
+    IsErrCounter[11]=1;
+    IsErrCounter[12]=1;
+    IsErrCounter[26]=1;
+    IsErrCounter[27]=1;
+
 }
 
 void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)

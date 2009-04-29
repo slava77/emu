@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.51 2009/04/21 13:23:49 liu Exp $
+// $Id: Crate.cc,v 3.52 2009/04/29 11:31:12 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.52  2009/04/29 11:31:12  liu
+// back to Nov.2008 TMB firmware
+//
 // Revision 3.51  2009/04/21 13:23:49  liu
 // introduce dead channel masks in monitoring
 //
@@ -583,7 +586,8 @@ void Crate::MonitorCCB(int cycle, char * buf)
 
 void Crate::MonitorTMB(int cycle, char * buf, unsigned mask) 
 {
-  int TOTAL_TMB_COUNTERS=76;
+//  int TOTAL_TMB_COUNTERS=76;
+  int TOTAL_TMB_COUNTERS=65;
   int * countbuf, *buf4;
   short *buf2;
  
