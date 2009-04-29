@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.20 2009/04/16 12:33:07 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.21 2009/04/29 17:16:36 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.21  2009/04/29 17:16:36  rakness
+// roll back for Nov 2008 TMB firmware
+//
 // Revision 1.20  2009/04/16 12:33:07  rakness
 // make alct rx-tx scan faster, display statistics, flag problems, include maximization of total number of delay values around the good value
 //
@@ -2441,7 +2444,8 @@ int ChamberUtilities::FindWinner(){
     ::sleep(getPauseAtEachSetting());
     //
     thisTMB->GetCounters();
-    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter( thisTMB->GetLCTAcceptedByMPCCounterIndex() );
+    //to be updated    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter( thisTMB->GetLCTAcceptedByMPCCounterIndex() );
+    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter(37);
     //
     if (debug_) {
       std::cout << ", number of MPC winner bits accepted = " 
@@ -3115,8 +3119,10 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
     //
     thisTMB->GetCounters();      // read counter values
     //
-    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter( thisTMB->GetL1AInTMBWindowCounterIndex() );
-    alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex()  );
+    //to be updated    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter( thisTMB->GetL1AInTMBWindowCounterIndex() );
+    //to be updated    alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex()  );
+    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter(41);
+    alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter(3);
     //
     if (debug_) {
       std::cout << "Set tmb_l1a_delay  = " << std::dec << tmb_delay_value;
@@ -3336,7 +3342,8 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
     //
     thisTMB->GetCounters();
     //
-    ALCT_l1a_accepted[delay] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex() );
+    //to be updated    ALCT_l1a_accepted[delay] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex() );
+    ALCT_l1a_accepted[delay] = thisTMB->GetCounter(3);
     //
     if (debug_) std::cout << ", ALCT in L1A window =  " << std::dec << ALCT_l1a_accepted[delay] << std::endl;
     //
