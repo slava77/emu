@@ -372,6 +372,11 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                               (*dmbdata)[ii] =100.0*(Vout-0.75)+25.0;
                           else
                               (*dmbdata)[ii] = -500.0;
+                          if(rdv==0 || rdv>1023)
+                          {  std::cout << "ALCT Temperature ERROR: " << now_crate->GetLabel()
+                                       << " slot " << ii/48+2 << " read back " << std::hex << rdv << std::dec
+                                       << " at " << getLocalDateTime() << std::endl; 
+                          }
                        }
                    }
                    counter16 = dynamic_cast<xdata::UnsignedShort *>(is->find("DCScrate"));
