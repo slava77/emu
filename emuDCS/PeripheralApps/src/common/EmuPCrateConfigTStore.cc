@@ -168,7 +168,6 @@ void EmuPCrateConfigTStore::displayDiff(std::ostream * out,const std::string &co
 	}
 }
 
-
 //displays either the hide/show button and the table name, or "no rows" if the table is empty. Returns whether the table should be shown.
 //\a display is either "diff" or "config" depending on what should be displayed when a show/hide button is pressed. Config is the default.
 bool EmuPCrateConfigTStore::displayCommonTableElements(std::ostream * out,const std::string &configName,const std::string &identifier,xdata::Table &currentTable,const std::string &display) {
@@ -646,27 +645,27 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
 
   *out << cgicc::tr();
   *out << cgicc::td().set("style", "width:130px;");
-  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("parse",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/parse",getApplicationDescriptor()->getURN().c_str())) << std::endl;
   *out << cgicc::input().set("type","submit").set("value","Parse XML file").set("style", "width:120px;") << std::endl;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();
 	
   *out << cgicc::td().set("style", "width:130px;");
-  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("upload",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/upload",getApplicationDescriptor()->getURN().c_str())) << std::endl;
   *out << cgicc::input().set("type","submit").set("value","Upload to DB").set("style", "width:120px;") << std::endl;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();
-	
+	/*
   *out << cgicc::td().set("style", "width:130px;");
-  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("read",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/read",getApplicationDescriptor()->getURN().c_str())) << std::endl;
 	  *out << "<table border=\"1\"><tr><td>";
  	outputEndcapSelector(out);
 
 	*out << "</td><td>" << cgicc::input().set("type","submit").set("value","Read from DB").set("style", "width:120px;") << "</td></tr></table>" << std::endl;
-  *out << cgicc::form() << cgicc::td() << std::endl;
+  *out << cgicc::form() << cgicc::td() << std::endl;*/
   
    *out << cgicc::td().set("style", "width:130px;");
-  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("selectVersion",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/selectVersion",getApplicationDescriptor()->getURN().c_str())) << std::endl;
 	  *out << "<table border=\"1\"><tr><td>";
  	outputEndcapSelector(out);
 
@@ -1295,6 +1294,9 @@ void EmuPCrateConfigTStore::readConfigFromDB(xgi::Input * in, xgi::Output * out 
     
     getTableDefinitionsIfNecessary();
     clearCachedTables();
+    if (TStore_myEndcap_) {
+	    delete TStore_myEndcap_;
+    }
   	//*out << "TStore_myEndcap_=getConfiguredEndcap(" << emu_config_id << ")" << std::endl;
     TStore_myEndcap_=getConfiguredEndcap(emu_config_id);
     //*out << "TStore_myEndcap_==" << (TStore_myEndcap_?"NOT NULL":"NULL") << std::endl;
