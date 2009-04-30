@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.58 2009/03/25 10:19:41 liu Exp $
+// $Id: ALCTController.cc,v 3.59 2009/04/30 14:23:15 liu Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.59  2009/04/30 14:23:15  liu
+// fix Get_InvertPulse()
+//
 // Revision 3.58  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -2182,6 +2185,7 @@ void ALCTController::SetInvertPulse_(int mask) {
 //
 void ALCTController::Set_InvertPulse(std::string invert_pulse) {
   //
+  given_invert_pulse_ = invert_pulse;
   if (invert_pulse == "on") {
     SetInvertPulse_(ON);
   } else if (invert_pulse == "off") {
@@ -2192,6 +2196,8 @@ void ALCTController::Set_InvertPulse(std::string invert_pulse) {
 //
 std::string ALCTController::Get_InvertPulse() {
   //
+  return given_invert_pulse_;
+#if 0
   std::string return_value = "NoSetting";
   //
   if ( GetInvertPulse_() == ON )
@@ -2201,6 +2207,7 @@ std::string ALCTController::Get_InvertPulse() {
     return_value = "off";
   //
   return return_value;
+#endif
 }
 //
 int ALCTController::GetPulseTriggerSource_() {
