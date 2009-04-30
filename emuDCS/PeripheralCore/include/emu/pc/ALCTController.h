@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 1.2 2009/03/25 10:19:41 liu Exp $
+// $Id: ALCTController.h,v 1.3 2009/04/30 14:23:15 liu Exp $
 // $Log: ALCTController.h,v $
+// Revision 1.3  2009/04/30 14:23:15  liu
+// fix Get_InvertPulse()
+//
 // Revision 1.2  2009/03/25 10:19:41  liu
 // move header files to include/emu/pc
 //
@@ -909,6 +912,7 @@ private:
   int read_invert_pulse_;
   //
   int pulse_direction_;
+  std::string given_invert_pulse_;
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
   // DELAY LINE CONTROL REGISTER - Control which group of chips has its delays and patterns written/read
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
