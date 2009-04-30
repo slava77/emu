@@ -5,7 +5,7 @@
 
 namespace emubase {
 	const std::string package     = "emubase";
-	const std::string versions    = "07.02.00";
+	const std::string versions    = "07.03.00";
 	const std::string description = "Emu (CSC) applications' base classes";
 
 	const std::string summary     = "emu/base";
