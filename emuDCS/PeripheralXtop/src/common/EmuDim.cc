@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.18 2009/04/20 11:47:14 liu Exp $
+// $Id: EmuDim.cc,v 1.19 2009/05/04 13:30:13 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -405,14 +405,18 @@ void EmuDim::StartDim(int chs)
       }
       i++;
    }
+   Confirmation_Service = new DimService("LV_CONFIRMATION_SERVICE","C:80", (void *)&pvssrespond, sizeof(pvssrespond));
+
    dim_command = pref + "LV_1_COMMAND";
    LV_1_Command = new DimCommand( dim_command.c_str(),"C");
    dim_server = pref + "Emu-Dcs Dim Server";
    DimServer::start(dim_server.c_str());
 
-   std::string confirm_cmd = pref + "LV_1_COMMAND_CONFIRMATION";
-   DimClient::sendCommand( confirm_cmd.c_str(), "SOFT_START");
-
+//   std::string confirm_cmd = pref + "LV_1_COMMAND_CONFIRMATION";
+//   DimClient::sendCommand( confirm_cmd.c_str(), "SOFT_START");
+   strcpy(pvssrespond.command, "SOFT_START");
+   Confirmation_Service->updateService();
+ 
    std::cout << total << " DIM serives";
    if(pref!="") std::cout << " ( with prefix " << pref << " )";
    std::cout << " started at " << getLocalDateTime() << std::endl;
@@ -502,8 +506,9 @@ int EmuDim::PowerUp()
            if(strncmp(BlueLoader->Content(), "Power Up Successful",19)==0)
            {
               crate_state[i] = 0;
-              std::string confirm = "INIT_IS_DONE;" + crate_name[i];
-              DimClient::sendCommand(confirm_cmd.c_str(), confirm.c_str());
+              std::string confirm = "INIT_IS_DONE;" + crate_name[i];              
+              strcpy(pvssrespond.command, confirm.c_str());
+              Confirmation_Service->updateService();
            }
          }
       }

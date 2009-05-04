@@ -1,4 +1,4 @@
-// $Id: EmuDim.h,v 1.6 2009/04/03 13:14:07 liu Exp $
+// $Id: EmuDim.h,v 1.7 2009/05/04 13:30:12 liu Exp $
 
 #ifndef _EmuDim_h_
 #define _EmuDim_h_
@@ -120,6 +120,15 @@ private:
   TEMP_1_DimBroker EmuDim_temp[TOTAL_CHAMBERS];
   DimService *LV_1_Service[TOTAL_CHAMBERS], *TEMP_1_Service[TOTAL_CHAMBERS];
   DimCommand *LV_1_Command;
+//
+// below for return commands to PVSS:
+//
+  DimService *Confirmation_Service;
+
+  struct
+  {
+     char command[80];
+  } pvssrespond;
   
   //
   // for monitoring
