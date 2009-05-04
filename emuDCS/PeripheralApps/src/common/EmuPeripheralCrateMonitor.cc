@@ -367,15 +367,25 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
                        }
                        else
                        {  /* ALCT Temps */
+                          rdv = rdv & 0x3FF;
                           float Vout= (float)(rdv)*1.225/1023.0;
                           if(Vout<1.225)
                               (*dmbdata)[ii] =100.0*(Vout-0.75)+25.0;
                           else
                               (*dmbdata)[ii] = -500.0;
-                          if(rdv==0 || rdv>1023)
-                          {  std::cout << "ALCT Temperature ERROR: " << now_crate->GetLabel()
-                                       << " slot " << ii/48+2 << " read back " << std::hex << rdv << std::dec
+                          int tmbslot=(ii/48)*2+2;
+                          if(tmbslot>10) tmbslot += 2;
+                          std::string cratename=now_crate->GetLabel();
+                          if(cratename.substr(4,1)=="4" && tmbslot>6)
+                          { // nothing for empty slots
+                          }
+                          else
+                          {
+                             if((ii%48)==46 && (rdv==0 || rdv>=1023))
+                             {  std::cout << "ALCT Temperature ERROR: " << cratename
+                                       << " slot " << tmbslot << " read back " << std::hex << rdv << std::dec
                                        << " at " << getLocalDateTime() << std::endl; 
+                             }
                           }
                        }
                    }
