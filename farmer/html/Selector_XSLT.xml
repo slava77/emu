@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+
+  <xsl:output method="html" encoding="UTF-8" indent="no"/>
+
+  <xsl:template match="selector">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+	<style type="text/css">
+	  a{text-decoration: underline;}
+	  a:link{
+	  color: #e8dcb1;
+	  }
+	  a:visited{
+	  color: #e8dcb1;
+	  }
+	  a:active, a:hover{
+	  color: #ffff00;
+	  }
+	  body
+	  {
+	  background-color: #9b916d;
+	  font-size: small;
+	  }
+	  table.selector{
+	  padding: 5px 5px 5px 5px;
+	  }
+	  h2,th { color: #444422;}
+	  span.current { color:#222200; font-size:large; }
+	  input.action { color:#dddddd; float:left; font-size:large; }
+	</style>
+	<title>Selector</title>
+      </head>
+      <body>
+	<a class="header" href="Default" title="Go to main page.">Main</a>|<a class="header" href="Editor" title="Edit (and generate) DAQ/DQM configuration.">Generator</a>|<span class="current">Selector</span>|<a class="header" href="Dispatcher" title="Check and try out the selected .duck file.">Dispatcher</a>
+	<hr/>
+	<h2>Select .duck file</h2>
+	<form method="post">
+	  <table class="selector">
+	    <tr>
+	      <td colspan="3">
+		<select name="duck">
+		  <xsl:attribute name="size"><xsl:value-of select="count(duckList/duck)"/></xsl:attribute>
+		  <xsl:apply-templates select="duckList/duck"/>
+		</select>
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>
+		<input type="submit" name="Action" value="Try..."
+		       title="Try it before uploading."
+		       class="action"
+		       style="background-color:#444477; border-color:#333355;"/>
+		</td><td>
+		<input type="submit" name="Action" value="Upload"
+		       title="Upload selected configuration to RS3 database."
+		       class="action"
+		       style="background-color:#888822; border-color:#555500;"/>
+		</td><td>
+		<input type="submit" name="Action" value="Upload All"
+		       title="Upload all configurations to RS3 database."
+		       class="action"
+		       style="background-color:#888822; border-color:#555500;"/>
+	      </td>
+	    </tr>
+	  </table>
+	</form>
+	<xsl:if test="string-length(stdout)&gt;0">
+	  <table><tr>
+	    <th>Output of uploading command</th>
+	    </tr><tr>
+	    <td><textarea rows="30" cols="120"><xsl:value-of select="stdout"/></textarea></td>
+	  </tr></table>
+	</xsl:if>
+      </body>	  
+    </html>
+  </xsl:template>
+
+  <xsl:template match="duck">
+    <xsl:variable name="INDEX"><xsl:value-of select="count(preceding-sibling::duck)"/></xsl:variable>
+    <option value="{$INDEX}"><xsl:value-of select="@time"/><xsl:text> </xsl:text><b><xsl:value-of select="@file"/></b></option>
+  </xsl:template>
+
+</xsl:transform>
