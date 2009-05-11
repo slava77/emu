@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+  <xsl:template name="head">
+      <head>
+	<style type="text/css">
+	  body{
+	  background-color: #333333;
+	  font-size: small
+	  }
+
+	  table {
+	  //border: 2px solid  #999999;
+	  //border-collapse: collapse;
+	  margin: 2px 2px 2px 2px;
+	  }
+
+	  th, td{
+	  padding: 0px 2px 0px 2px;
+	  }
+
+	  #Create  {color:#dddddd; background-color:#669966; border-color:#447744; font-size:large; margin: 5px 20px 5px 20px }
+	  #Destroy {color:#dddddd; background-color:#996666; border-color:#774444; font-size:large; margin: 5px 20px 5px 20px }
+	  #Poll    {color:#dddddd; background-color:#666699; border-color:#444477; font-size:large; margin: 5px 20px 5px 20px }
+	  table.operate {
+	  background-color: #f0f0c0;
+	  }
+	  table.operate th {
+	  background-color: #c8c080;
+	  }
+	  table.operate th.unselected {
+	  opacity:0.6;
+	  }
+	  td.Halted     { text-align: center; background-color:#4444dd; }
+	  td.Ready      { text-align: center; background-color:#dddd44; }
+	  td.Configured { text-align: center; background-color:#dddd44; }
+	  td.Enabled    { text-align: center; background-color:#44dd44; }
+	  td.ON         { text-align: center; background-color:#44dd44; }
+	  td.Initial    { text-align: center; background-color:#4444aa; }
+	  td.Failed     { text-align: center; background-color:#dd4444; }
+	  td.UNKNOWN    { text-align: center; background-color:transparent; }
+	  td.Unknown    { text-align: center; background-color:#dd4444; }
+	  td.INDEFINITE { text-align: center; background-color:#dd4444; }
+	  td.Indefinite { text-align: center; background-color:#dd4444; }
+	  td.OFF        { text-align: center; background-color:#dd4444; }
+
+
+	  table.config {
+	  background-color: #f0f0c0;
+	  }
+	  table.config th {
+	  background-color: #c8c080;
+	  }
+	  
+	  table.FM {
+	  background-color: #d0d090;
+	  }
+	  table.FM th {
+	  background-color: #a0a050;
+	  }
+	  
+	  table.executive {
+	  background-color: #d8d8e0;
+	  }
+	  table.executive th {
+	  background-color: #b0b0d0;
+	  }
+	  
+	  table.application {
+	  background-color: #d8c0c0;
+	  }
+	  table.application th {
+	  background-color: #d08080;
+	  }
+	  
+	  table.service {
+	  background-color: #dbd1ad;
+	  }
+	  table.service th {
+	  background-color: #9b916d;
+	  }
+	  
+	  a {text-decoration: none;}
+	  a:link{
+	  color: #0000aa;
+	  }
+	  a:visited{
+	  color: #0000ff;
+	  }
+	  a:active, a:hover{
+	  color: #ffff00;
+	  }
+
+	  span.current { color:#f0f0c0; font-size:large; }
+	  span.toggler { color:#0000aa; }
+	</style>
+	<script>
+	  function toggleOpacity(event){
+	  var thInSameRow = event.target.parentNode.parentNode.getElementsByTagName('th').item(0);
+	  if ( event.target.checked ) thInSameRow.style.opacity = 1.0;
+	  else                        thInSameRow.style.opacity = 0.6;
+	  }
+	  function toggleAll( checked ){
+	  var inputs=document.getElementsByTagName('input');
+	  //alert( inputs.length+'  '+checked );
+	  for (i=0; i&lt;inputs.length; i++){
+	  if ( inputs.item(i).type == 'checkbox' ){
+	  inputs.item(i).checked = checked;
+	  var thInSameRow = inputs.item(i).parentNode.parentNode.getElementsByTagName('th').item(0);
+	  if ( inputs.item(i).checked ) thInSameRow.style.opacity = 1.0;
+	  else                          thInSameRow.style.opacity = 0.6;
+	  }
+	  }
+	  }
+	</script>
+	<title>Dispatcher for <xsl:value-of select="/Configuration/@path"/> of user <xsl:value-of select="/Configuration/@user"/></title>
+      </head>
+  </xsl:template>
+
+  
+  <xsl:template name="Operate">
+    <form method="post" action="Dispatcher">
+      <table class="operate">
+	<tr>
+	  <th colspan='4'>
+	    <input type="submit" name="Action" value="Create"  id="Create"  title="Create the selected executives." />
+	    <input type="submit" name="Action" value="Destroy" id="Destroy" title="Destroy the selected executives."/>
+	    <input type="submit" name="Action" value="Poll"    id="Poll"    title="Poll all processes."/>
+	  </th>
+	</tr>
+	<tr><th>Name</th><th>URL</th><th>State</th><th><span class="toggler" title="Click to select all executives." onclick="toggleAll('checked')">all</span>|<span class="toggler"  title="Click to select no executives." onclick="toggleAll('')">none</span></th></tr>
+	<xsl:for-each select="//XdaqExecutive">
+	  <xsl:sort select = "@hostname"/>
+	  <xsl:sort select = "@port"/>
+	  <xsl:variable name="SELECTED">
+	    <xsl:choose>
+	      <xsl:when test="child::status"><xsl:value-of select="./status/@selected"/></xsl:when>
+	      <xsl:otherwise>true</xsl:otherwise>
+	    </xsl:choose>
+	  </xsl:variable>
+	  <xsl:variable name="STATE">
+	    <xsl:choose>
+	      <xsl:when test="child::status"><xsl:value-of select="./status/@state"/></xsl:when>
+	      <xsl:otherwise>UNKNOWN</xsl:otherwise>
+	    </xsl:choose>
+	  </xsl:variable>
+	  <tr>
+	    <th>
+	      <xsl:if test="$SELECTED = 'false'"><xsl:attribute name="class">unselected</xsl:attribute></xsl:if>
+	      <a title="Click for details."><xsl:attribute name="href">#<xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/></xsl:attribute>Executive</a>
+	    </th>
+	    <td><xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/></td>
+	    <td class="{$STATE}"><xsl:value-of select="$STATE"/></td>
+	    <td style="text-align: center;">
+	      <input type="checkbox" title="Check to operate on this executive." onchange="toggleOpacity(event)">
+		<xsl:attribute name="name"><xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/>/<xsl:value-of select="@urn"/></xsl:attribute>
+		<xsl:if test="$SELECTED = 'true'"><xsl:attribute name="checked">checked</xsl:attribute></xsl:if>
+	      </input>
+	    </td>
+	  </tr>
+	</xsl:for-each>
+	<xsl:for-each select="//XdaqApplication">
+	  <xsl:sort select = "@className"/>
+	  <xsl:sort select = "@instance"/>
+	  <xsl:variable name="STATE">
+	    <xsl:choose>
+	      <xsl:when test="child::status"><xsl:value-of select="./status/@state"/></xsl:when>
+	      <xsl:otherwise>UNKNOWN</xsl:otherwise>
+	    </xsl:choose>
+	  </xsl:variable>
+	  <tr>
+	    <th class="unselected">
+	      <a title="Click for details.">
+		<xsl:attribute name="href">#<xsl:value-of select="@className"/>.<xsl:value-of select="@instance"/></xsl:attribute>
+		<xsl:value-of select="@className"/>.<xsl:value-of select="@instance"/>
+	      </a>
+	    </th>
+	    <td><xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/></td>
+	    <td class="{$STATE}"><xsl:value-of select="$STATE"/></td>
+	    <td></td>
+	  </tr>
+	</xsl:for-each>
+	<xsl:for-each select="//Service">
+	  <xsl:sort select = "@hostname"/>
+	  <xsl:sort select = "@port"/>
+	  <xsl:variable name="STATE">
+	    <xsl:choose>
+	      <xsl:when test="child::status"><xsl:value-of select="./status/@state"/></xsl:when>
+	      <xsl:otherwise>UNKNOWN</xsl:otherwise>
+	    </xsl:choose>
+	  </xsl:variable>
+	  <tr>
+	    <th class="unselected">
+	      <a title="Click for details.">
+		<xsl:attribute name="href">#<xsl:value-of select="@name"/>.<xsl:value-of select="@hostname"/></xsl:attribute>
+		<xsl:value-of select="@name"/>
+	      </a>
+	    </th>
+	    <td><xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/></td>
+	    <td class="{$STATE}"><xsl:value-of select="$STATE"/></td>
+	    <td></td>
+	  </tr>
+	</xsl:for-each>
+      </table>
+    </form>
+  </xsl:template>
+
+  <xsl:template match="Configuration">
+    <html>
+      <xsl:call-template name="head"/>
+      <body>
+	<a class="header" href="Default" title="Go to main page.">Main</a>|<a class="header" href="Editor" title="Edit (and generate) DAQ/DQM configuration.">Generator</a>|<a class="header" href="Selector" title="Select .duck file.">Selector</a>|<span class="current">Dispatcher</span>
+	<hr/>
+	<h4 style="color:#666666;"><xsl:value-of select="//comment()[1]"/></h4>
+	<xsl:call-template name="Operate"/>
+	<br/>
+	<br/>
+	<table class="config">
+	  <tr>
+	    <th colspan='2'>Configuration</th>
+	    </tr><tr>
+	    <th>user</th><td><xsl:value-of select="/Configuration/@user"/></td>
+	    </tr><tr>
+	    <th>path</th><td><xsl:value-of select="/Configuration/@path"/></td>
+	    </tr><tr>
+	    <td colspan='2'><xsl:apply-templates/></td>
+	  </tr>
+	</table>
+      </body>
+    </html>
+  </xsl:template>
+
+  <xsl:template match="FunctionManager">
+    <table class="FM">
+      <tr>
+	<th>
+	  <xsl:attribute name="rowspan">
+	    <xsl:value-of select="count(attribute::*)+1"/>
+	  </xsl:attribute> 
+	  <a class="" target="_blank">
+	    <xsl:attribute name="href">http://<xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/>/rcms</xsl:attribute>
+	    <xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/>
+	  </a>
+ 	</th>
+	<th colspan='2'>Function Manager</th>
+      </tr>
+      <xsl:for-each select="./@*">
+	<xsl:sort select = "name()"/>
+	<tr>
+	  <th><xsl:value-of select="name()"/></th>
+	  <td><xsl:value-of select="."/></td>
+	</tr>
+      </xsl:for-each>
+
+      <tr><td colspan='3'>
+	<xsl:apply-templates select="XdaqExecutive"/>
+	<xsl:apply-templates select="XdaqApplication"/>
+	<xsl:apply-templates select="Service"/>
+      </td></tr>
+    </table>
+  </xsl:template>
+
+  <xsl:template match="XdaqExecutive">
+    <a><xsl:attribute name="name"><xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/></xsl:attribute></a>
+    <table class="executive">
+      <tr>
+	<th>
+	  <xsl:attribute name="rowspan">
+	    <xsl:value-of select="count(attribute::*)+count(child::configFile)-1"/>
+	  </xsl:attribute> 
+	  <a class="" target="_blank">
+	    <xsl:attribute name="href">http://<xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/></xsl:attribute>
+	    <xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/>
+	  </a>
+ 	</th>
+	<th colspan='2'>XDAQ Executive</th>
+      </tr>
+      <tr>
+	<th>configFile</th>
+	<td>
+	  <a class="" target="_blank">
+	    <xsl:attribute name="href">Display?file=<xsl:value-of select="configFile"/></xsl:attribute>
+	    <xsl:value-of select="configFile"/>
+	  </a>
+	</td>
+      </tr>
+      <xsl:for-each select="./@*[name()!='hostname' and name()!='port']">
+	<xsl:sort select = "name()"/>
+	<tr>
+	  <th><xsl:value-of select="name()"/></th>
+	  <td><xsl:value-of select="."/></td>
+	</tr>
+      </xsl:for-each>
+    </table>
+  </xsl:template>
+
+  <xsl:template match="XdaqApplication">
+    <a><xsl:attribute name="name"><xsl:value-of select="@className"/>.<xsl:value-of select="@instance"/></xsl:attribute></a>
+    <table class="application">
+      <tr>
+	<th>
+	  <xsl:attribute name="rowspan">
+	    <xsl:value-of select="count(attribute::*)-1"/>
+	  </xsl:attribute> 
+	  <a class="" target="_blank">
+	    <xsl:attribute name="href">http://<xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/>/<xsl:value-of select="@urn"/></xsl:attribute>
+	    <xsl:value-of select="@className"/>.<xsl:value-of select="@instance"/>
+	  </a>
+ 	</th>
+	<th colspan='2'>XDAQ Application</th>
+      </tr>
+      <xsl:for-each select="./@*[name()!='className' and name()!='instance']">
+	<xsl:sort select = "name()"/>
+	<tr>
+	  <th><xsl:value-of select="name()"/></th>
+	  <td><xsl:value-of select="."/></td>
+	</tr>
+      </xsl:for-each>
+    </table>
+  </xsl:template>
+
+  <xsl:template match="Service">
+    <a><xsl:attribute name="name"><xsl:value-of select="@name"/>.<xsl:value-of select="@hostname"/></xsl:attribute></a>
+    <table class="service">
+      <tr>
+	<th>
+	  <xsl:attribute name="rowspan">
+	    <xsl:value-of select="count(attribute::*)"/>
+	  </xsl:attribute> 
+	  <a class="" target="_blank">
+	    <xsl:attribute name="href">http://<xsl:value-of select="@hostname"/>:<xsl:value-of select="@port"/>/<xsl:value-of select="@urn"/></xsl:attribute>
+	    <xsl:value-of select="@hostname"/>
+	  </a>
+ 	</th>
+	<th colspan='2'>Service</th>
+      </tr>
+      <xsl:for-each select="./@*[name()!='hostname']">
+	<xsl:sort select = "name()"/>
+	<tr>
+	  <th><xsl:value-of select="name()"/></th>
+	  <td><xsl:value-of select="."/></td>
+	</tr>
+      </xsl:for-each>
+    </table>
+  </xsl:template>
+
+
+</xsl:stylesheet>
