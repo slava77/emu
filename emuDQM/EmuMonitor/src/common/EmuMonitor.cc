@@ -1103,6 +1103,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
       cscUnpacked_ = 0;
       cscDetected_ = 0;
       plotter_->reset();
+      plotter_->book();
     }
   }
   runNumber_ = msg->runNumber;

@@ -398,7 +398,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 			  }
 			}
 		    } else {
-		      LOG4CPLUS_WARN (getApplicationLogger(), "Con not find folder: " << folder);
+		      LOG4CPLUS_WARN (getApplicationLogger(), "Can not find folder: " << folder);
 		    }
 		  
 		}
