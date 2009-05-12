@@ -2084,6 +2084,78 @@ std::string EmuDisplayClient::getDQMQuality()
   return dqmQuality;
 }
 
+std::string EmuDisplayClient::getDQMUnpackingRate()
+{
+
+  std::string cscRate = "";
+  uint32_t sum_cscRate = 0;
+  
+  std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
+  if (!monitors.empty())
+    {
+      std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+      for (pos=monitors.begin(); pos!=monitors.end(); ++pos)
+        {
+          if ((*pos) == NULL) continue;
+          try
+            {
+              cscRate  = emu::dqm::getScalarParam(getApplicationContext(),
+                        getApplicationDescriptor(), (*pos),
+                        "cscRate","unsignedInt");
+              int value = 0;
+              if ( (cscRate != "") && (sscanf(cscRate.c_str(), "%d",&value) == 1) )
+                {
+                      sum_cscRate += value;
+                }
+            }
+          catch (xcept::Exception e)
+            {
+              if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+            }
+        }
+    }
+
+  cscRate = Form("%d", sum_cscRate);
+  return cscRate;
+}
+
+
+std::string EmuDisplayClient::getDQMEventsRate()
+{
+
+  std::string cscRate = "";
+  uint32_t sum_cscRate = 0;
+
+  std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
+  if (!monitors.empty())
+    {
+      std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+      for (pos=monitors.begin(); pos!=monitors.end(); ++pos)
+        {
+          if ((*pos) == NULL) continue;
+          try
+            {
+              cscRate  = emu::dqm::getScalarParam(getApplicationContext(),
+                        getApplicationDescriptor(), (*pos),
+                        "averageRate","unsignedInt");
+              int value = 0;
+              if ( (cscRate != "") && (sscanf(cscRate.c_str(), "%d",&value) == 1) )
+                {
+                      sum_cscRate += value;
+                }
+            }
+          catch (xcept::Exception e)
+            {
+              if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+            }
+        }
+    }
+
+  cscRate = Form("%d", sum_cscRate);
+  return cscRate;
+}
+
+
 std::string EmuDisplayClient::getHref(xdaq::ApplicationDescriptor *appDescriptor)
 {
   std::string href;
@@ -2099,6 +2171,8 @@ std::vector<emu::base::WebReportItem> EmuDisplayClient::materialToReportOnPage1(
   std::vector<emu::base::WebReportItem> items;
   std::string state = getDQMState();
   std::string valueTip;
+  std::string title = "Local DQM";
+  
   std::string controlURL = getHref( getApplicationDescriptor() );
   if ( ! ( state == "Enabled" || state == "Ready" || state == "Halted" ) )
     valueTip = "Local DQM needs attention. Click to control it manually.";
@@ -2118,6 +2192,32 @@ std::vector<emu::base::WebReportItem> EmuDisplayClient::materialToReportOnPage1(
                    "",
                    "" ) );
 
+  items.push_back( emu::base::WebReportItem( "title",
+                   title,
+                   "Summary Local DQM",
+                   "",
+                   "",
+                   "" ) );
+
+  
+  std::string cscrate = getDQMUnpackingRate();
+  valueTip = "Local DQM Events Unpacking Rate";
+  items.push_back( emu::base::WebReportItem( "cscrate",
+                   cscrate,
+                   "The Overall DQM Events Unpacking Rate",
+                   valueTip,
+                   "",
+                   "" ) );
+ 
+  std::string evtrate = getDQMEventsRate();
+  valueTip = "Local DQM Events Readout Rate";
+  items.push_back( emu::base::WebReportItem( "evtrate",
+                   cscrate,
+                   "The Overall DQM Events Readout Rate",
+                   valueTip,
+                   "",
+                   "" ) );
+ 
   appBSem_.give();
   return items;
 }

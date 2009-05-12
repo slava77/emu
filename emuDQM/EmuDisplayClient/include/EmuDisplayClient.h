@@ -140,6 +140,8 @@ class EmuDisplayClient :
   std::vector<emu::base::WebReportItem> materialToReportOnPage1();
   std::string getDQMState();
   std::string getDQMQuality();
+  std::string getDQMUnpackingRate();
+  std::string getDQMEventsRate();
 
 
  private:
