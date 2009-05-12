@@ -32,7 +32,7 @@
     <tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>
     <!-- <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/> -->
     <!-- QUERY TO GET CONFIG IDs -->
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="getconfigids">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="getconfigids" expectedRows="1">
       <sql:parameter name="TABLE">
         <![CDATA[]]>
       </sql:parameter>
@@ -64,13 +64,13 @@
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate">
       <sql:table name="EMU_PERIPHERALCRATE"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate" expectedRows="30">
       <sql:parameter name="EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
       <![CDATA[select * from EMU_PERIPHERALCRATE where EMU_CONFIG_ID=$EMU_CONFIG_ID]]>
     </sql:query>
-      <sql:query xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate_diff">
+      <sql:query xmlns:sql="urn:tstore-view-SQL" name="peripheralcrate_diff" expectedRows="30">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -90,7 +90,7 @@ and oldconfig.crateid=newconfig.crateID]]>
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="ccb">
       <sql:table name="EMU_CCB"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="ccb">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="ccb" expectedRows="1">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -100,7 +100,7 @@ and oldconfig.crateid=newconfig.crateID]]>
       <![CDATA[select * from EMU_CCB where EMU_CONFIG_ID=$EMU_CONFIG_ID and PERIPH_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="ccb_diff">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="ccb_diff" expectedRows="1">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -142,7 +142,7 @@ oldconfig.TTCRXID!=newconfig.TTCRXID)
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="mpc">
       <sql:table name="EMU_MPC"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="mpc">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="mpc" expectedRows="1">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -152,7 +152,7 @@ oldconfig.TTCRXID!=newconfig.TTCRXID)
       <![CDATA[select * from EMU_MPC where EMU_CONFIG_ID=$EMU_CONFIG_ID and PERIPH_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-        <sql:query xmlns:sql="urn:tstore-view-SQL" name="mpc_diff">
+        <sql:query xmlns:sql="urn:tstore-view-SQL" name="mpc_diff" expectedRows="1">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -188,7 +188,7 @@ oldconfig.TRANSPARENTMODE!=newconfig.TRANSPARENTMODE)
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="vcc">
       <sql:table name="EMU_VCC"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="vcc">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="vcc" expectedRows="1">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -198,7 +198,7 @@ oldconfig.TRANSPARENTMODE!=newconfig.TRANSPARENTMODE)
       <![CDATA[select * from EMU_VCC where EMU_CONFIG_ID=$EMU_CONFIG_ID and PERIPH_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="vcc_diff">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="vcc_diff" expectedRows="1">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -254,7 +254,7 @@ oldconfig.WARN_ON_SHTDWN!=newconfig.WARN_ON_SHTDWN)]]>
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="csc">
       <sql:table name="EMU_CSC"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="csc">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="csc" expectedRows="9">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -264,7 +264,7 @@ oldconfig.WARN_ON_SHTDWN!=newconfig.WARN_ON_SHTDWN)]]>
       <![CDATA[select * from EMU_CSC where EMU_CONFIG_ID=$EMU_CONFIG_ID and PERIPH_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-<sql:query xmlns:sql="urn:tstore-view-SQL" name="csc_diff">
+<sql:query xmlns:sql="urn:tstore-view-SQL" name="csc_diff" expectedRows="9">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -293,7 +293,7 @@ and newconfig.label=oldconfig.label]]>
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="daqmb">
       <sql:table name="EMU_DAQMB"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="daqmb">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="daqmb" expectedRows="1">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -303,7 +303,7 @@ and newconfig.label=oldconfig.label]]>
       <![CDATA[select * from EMU_DAQMB where EMU_CONFIG_ID=$EMU_CONFIG_ID and CSC_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-       <sql:query xmlns:sql="urn:tstore-view-SQL" name="daqmb_diff">
+       <sql:query xmlns:sql="urn:tstore-view-SQL" name="daqmb_diff" expectedRows="1">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -388,7 +388,7 @@ or exists (
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="cfeb">
       <sql:table name="EMU_CFEB"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="cfeb">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="cfeb" expectedRows="5">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -398,7 +398,7 @@ or exists (
       <![CDATA[select * from EMU_CFEB where EMU_CONFIG_ID=$EMU_CONFIG_ID and DAQMB_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-      <sql:query xmlns:sql="urn:tstore-view-SQL" name="cfeb_diff">
+      <sql:query xmlns:sql="urn:tstore-view-SQL" name="cfeb_diff" expectedRows="5">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -440,7 +440,7 @@ oldconfig.KILL_CHIP5!=newconfig.KILL_CHIP5
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="tmb">
       <sql:table name="EMU_TMB"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="tmb">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="tmb" expectedRows="1">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -450,7 +450,7 @@ oldconfig.KILL_CHIP5!=newconfig.KILL_CHIP5
       <![CDATA[select * from EMU_TMB where EMU_CONFIG_ID=$EMU_CONFIG_ID and CSC_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-         <sql:query xmlns:sql="urn:tstore-view-SQL" name="tmb_diff">
+         <sql:query xmlns:sql="urn:tstore-view-SQL" name="tmb_diff" expectedRows="1">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -654,7 +654,7 @@ and (oldconfig.ADJACENT_CFEB_DISTANCE!=newconfig.ADJACENT_CFEB_DISTANCE or
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="alct">
       <sql:table name="EMU_ALCT"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="alct">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="alct" expectedRows="1">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -664,7 +664,7 @@ and (oldconfig.ADJACENT_CFEB_DISTANCE!=newconfig.ADJACENT_CFEB_DISTANCE or
       <![CDATA[select * from EMU_ALCT where EMU_CONFIG_ID=$EMU_CONFIG_ID and TMB_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-       <sql:query xmlns:sql="urn:tstore-view-SQL" name="alct_diff">
+       <sql:query xmlns:sql="urn:tstore-view-SQL" name="alct_diff" expectedRows="1">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
@@ -765,7 +765,7 @@ exists (
     <sql:insert xmlns:sql="urn:tstore-view-SQL" name="anodechannel">
       <sql:table name="EMU_ANODECHANNEL"/>
     </sql:insert>
-    <sql:query xmlns:sql="urn:tstore-view-SQL" name="anodechannel">
+    <sql:query xmlns:sql="urn:tstore-view-SQL" name="anodechannel" expectedRows="20">
       <sql:parameter name="EMU_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
@@ -775,7 +775,7 @@ exists (
       <![CDATA[select * from EMU_ANODECHANNEL where EMU_CONFIG_ID=$EMU_CONFIG_ID and ALCT_CONFIG_ID=$XXX_CONFIG_ID]]>
     </sql:query>
     
-<sql:query xmlns:sql="urn:tstore-view-SQL" name="anodechannel_diff">
+<sql:query xmlns:sql="urn:tstore-view-SQL" name="anodechannel_diff" expectedRows="20">
       <sql:parameter name="OLD_EMU_CONFIG_ID">
         <![CDATA[]]>
       </sql:parameter>
