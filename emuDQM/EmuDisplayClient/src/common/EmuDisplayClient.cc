@@ -36,6 +36,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   EmuDisplayClient::EmuDisplayClient(xdaq::ApplicationStub* stub)
   throw (xdaq::exception::Exception)
     : xdaq::WebApplication(stub),
+      emu::base::WebReporter(stub),
       monitorClass_("EmuMonitor"),
       iconsURL_("http://cms-dqm03.phys.ufl.edu/dqm/results/"),
       imageFormat_("png"),
@@ -2043,5 +2044,135 @@ std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::Stri
     }
 
   return applist;
+}
+
+
+std::string EmuDisplayClient::getDQMQuality()
+{
+
+  int maxCSCs = 468; // !!! Move it from here
+  std::string dqmQuality = "1.00";
+  float all_cscUnpacked = 0.0;
+  std::string cscDetected = "0";
+
+  std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
+  if (!monitors.empty())
+    {
+      std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+      for (pos=monitors.begin(); pos!=monitors.end(); ++pos)
+        {
+          if ((*pos) == NULL) continue;
+          try
+            {
+              cscDetected   = emu::dqm::getScalarParam(getApplicationContext(),
+                        getApplicationDescriptor(), (*pos),
+                        "cscDetected","unsignedInt");
+              int value = 0;
+              if ( (cscDetected != "") && (sscanf(cscDetected.c_str(), "%d",&value) == 1) )
+                {
+                      all_cscUnpacked += value;
+                }
+            }
+          catch (xcept::Exception e)
+            {
+              if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+            }
+        }
+    }
+
+  dqmQuality = Form("%.2f", all_cscUnpacked/maxCSCs);
+  return dqmQuality;
+}
+
+std::string EmuDisplayClient::getHref(xdaq::ApplicationDescriptor *appDescriptor)
+{
+  std::string href;
+  href  = appDescriptor->getContextDescriptor()->getURL();
+  href += "/";
+  href += appDescriptor->getURN();
+  return href;
+}
+
+std::vector<emu::base::WebReportItem> EmuDisplayClient::materialToReportOnPage1()
+{
+  appBSem_.take();
+  std::vector<emu::base::WebReportItem> items;
+  std::string state = getDQMState();
+  std::string valueTip;
+  std::string controlURL = getHref( getApplicationDescriptor() );
+  if ( ! ( state == "Enabled" || state == "Ready" || state == "Halted" ) )
+    valueTip = "Local DQM needs attention. Click to control it manually.";
+  items.push_back( emu::base::WebReportItem( "state",
+                   state,
+                   "The overall state of local DQM.",
+                   valueTip,
+                   "",
+                   controlURL ) );
+
+  std::string quality = getDQMQuality();
+  valueTip = "Calculated as number of reported CSCs / max number of CSCs (468)";
+  items.push_back( emu::base::WebReportItem( "quality",
+                   quality,
+                   "The overall DQM quaility",
+                   valueTip,
+                   "",
+                   "" ) );
+
+  appBSem_.give();
+  return items;
+}
+
+
+
+std::string EmuDisplayClient::getDQMState()
+{
+
+  // Combine states:
+  // If one is failed, the combined state will also be failed.
+  // Else, if one is unknown, the combined state will also be unknown.
+  // Else, if all are known but not the same, the combined state will be indefinite.
+  std::string combinedState("UNKNOWN");
+  std::string state = "";
+  std::set<xdaq::ApplicationDescriptor*>  monitors = getAppsList(monitorClass_);
+  if (!monitors.empty())
+    {
+      std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+      for (pos=monitors.begin(); pos!=monitors.end(); ++pos)
+        {
+          if ((*pos) == NULL) continue;
+          try
+            {
+              state =  emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"stateName","string");
+              if (state == "") state = "UNKNOWN";
+              if (state == "Failed" )
+                {
+                  combinedState = state;
+                  break;
+                }
+              else if ( state == "UNKNOWN" )
+                {
+                  combinedState = state;
+                  break;
+                }
+              else if ( state != combinedState && combinedState != "UNKNOWN" )
+                {
+                  combinedState = "INDEFINITE";
+                  break;
+                }
+              else
+                {
+                  combinedState = state;
+                }
+            }
+          catch (xcept::Exception e)
+            {
+              combinedState = "UNKNOWN";
+              if (debug) LOG4CPLUS_WARN(getApplicationLogger(), xcept::stdformat_exception_history(e));
+              break;
+            }
+        }
+    }
+
+  return combinedState;
 }
 
