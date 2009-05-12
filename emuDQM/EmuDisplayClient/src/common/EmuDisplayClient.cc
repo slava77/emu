@@ -2051,7 +2051,7 @@ std::string EmuDisplayClient::getDQMQuality()
 {
 
   int maxCSCs = 468; // !!! Move it from here
-  std::string dqmQuality = "1.00";
+  std::string dqmQuality = "1.000";
   float all_cscUnpacked = 0.0;
   std::string cscDetected = "0";
 
@@ -2080,7 +2080,7 @@ std::string EmuDisplayClient::getDQMQuality()
         }
     }
 
-  dqmQuality = Form("%.2f", all_cscUnpacked/maxCSCs);
+  dqmQuality = Form("%.3f", all_cscUnpacked/maxCSCs);
   return dqmQuality;
 }
 
