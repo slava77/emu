@@ -18,7 +18,6 @@ Packages=\
 	emuDCS/PeripheralApps \
 	emuDCS/PeripheralXtop \
 	emuDCS/OnlineDB \
-	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCore \
 	emuDCS/FEDUtils \
 	emuDCS/FEDApps 
@@ -31,7 +30,6 @@ Packages= \
         emuDCS/PeripheralApps \
 	emuDCS/PeripheralXtop \
 	emuDCS/OnlineDB \
-	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCore \
 	emuDCS/FEDUtils \
 	emuDCS/FEDApps
