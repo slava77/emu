@@ -141,6 +141,7 @@ void EmuMonitor::initProperties()
   eventsRequested_ = 0;
   eventsReceived_ = 0;
   cscUnpacked_ = 0;
+  cscDetected_          = 0;
   runNumber_ = 0;
   nEventCredits_ = defEventCredits_;
 
@@ -184,6 +185,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("averageRate",&averageRate_);
   getApplicationInfoSpace()->fireItemAvailable("cscRate",&cscRate_);
   getApplicationInfoSpace()->fireItemAvailable("cscUnpacked",&cscUnpacked_);
+  getApplicationInfoSpace()->fireItemAvailable("cscDetected",&cscDetected_);
   getApplicationInfoSpace()->fireItemAvailable("runNumber",&runNumber_);
 
   getApplicationInfoSpace()->fireItemAvailable("readoutMode",&readoutMode_);
@@ -969,6 +971,7 @@ void  EmuMonitor::doStart()
   eventsRequested_ = 0;
   eventsReceived_ = 0;
   cscUnpacked_ = 0;
+  cscDetected_ = 0;
   runNumber_ = 0;
   nEventCredits_ = defEventCredits_;
   
@@ -1098,6 +1101,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
       }
       sessionEvents_=0;
       cscUnpacked_ = 0;
+      cscDetected_ = 0;
       plotter_->reset();
     }
   }
@@ -1472,6 +1476,7 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
     plotter_->processEvent(data, dataSize, errorFlag, node);
     pmeter_->addSample(dataSize);
     cscUnpacked_ = cscUnpacked_ + plotter_->getUnpackedDMBCount();
+    cscDetected_ = plotter_->getDetectedCSCsCount();
     for (unsigned i=0; i< plotter_->getUnpackedDMBCount(); i++) {
       pmeterCSC_->addSample(1);
     }
