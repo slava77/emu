@@ -9,9 +9,9 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 # Packages to be built
 #
-Project = emu
-Package = base
-PackageName=emubase
+Project=emu
+Package=base
+PackageName=base
 Description="The Emu (CSC) application base class"
 Summary="The Emu (CSC) application base class"
 Authors="Ichiro Suzuki, Karoly Banicz"

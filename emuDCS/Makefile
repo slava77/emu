@@ -18,7 +18,6 @@ Packages=\
         emuDCS/PeripheralXtop \
         emuDCS/PCSwitches \
 	emuDCS/OnlineDB \
-	emuDCS/drivers/gbit-vme \
 	emuDCS/FEDCore \
 	emuDCS/FEDUtils \
 	emuDCS/FEDApps
@@ -29,7 +28,6 @@ Packages= \
 	emuDCS/PeripheralCore \
 	emuDCS/PeripheralApps \
 	emuDCS/OnlineDB \
-	emuDCS/drivers/gbit-vme
 endif
 
 ifeq ($(Set),FEDCrate)
