@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 #include <list>
+#include <vector>
 
 #include "xdaq.h"
 #include "xdata.h"
@@ -27,6 +28,8 @@
 #include <TClass.h>
 #include <TImage.h>
 #include "THStack.h"
+
+#include "emu/base/WebReporter.h"
 
 #include "ConsumerCanvas.hh"
 
@@ -61,7 +64,9 @@ class CSCCounters: public Counters {
 
 using namespace toolbox;
 
-class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
+class EmuDisplayClient : 
+	public emu::base::WebReporter,
+	xdata::ActionListener
 {
  public:
 
@@ -130,6 +135,12 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   
  protected:
   TCanvas* getMergedCanvas(std::vector<TObject*>& canvases);
+  std::string getHref(xdaq::ApplicationDescriptor *appDescriptor);
+
+  std::vector<emu::base::WebReportItem> materialToReportOnPage1();
+  std::string getDQMState();
+  std::string getDQMQuality();
+
 
  private:
   
