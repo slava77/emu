@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.42 2009/03/25 11:37:22 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.43 2009/05/12 11:08:03 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -41,7 +41,7 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   DmbVmeFPGAFirmwareFile_           = FirmwareDir_+"dmb/dmb6vme_pro.svf";
   CfebFPGAFirmwareFile_             = FirmwareDir_+"cfeb/cfeb_pro.svf";
   CCBFirmwareFile_                  = FirmwareDir_+"ccb/ccb2004p_030507.svf";
-  MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_102706.svf";
+  MPCFirmwareFile_                  = FirmwareDir_+"mpc/mpc2004_100808.svf";
   //
   number_of_layers_pretrig_ = 2;
   number_of_layers_pattern_ = 4;

@@ -10848,7 +10848,7 @@ void EmuPeripheralCrateConfig::MPCUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::input().set("type","submit").set("value","Write MPC") << std::endl ;
   *out << cgicc::form() << cgicc::br() << std::endl ;
   //
-  MPCFirmware_ = FirmwareDir_+"mpc/"+"mpc2004_102706.svf";
+  MPCFirmware_ = FirmwareDir_+"mpc/"+"mpc2004_100808.svf";
   //
   std::string MPCLoadFirmware = toolbox::toString("/%s/MPCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",MPCLoadFirmware) << std::endl ;
