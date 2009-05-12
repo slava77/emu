@@ -334,6 +334,7 @@
         <viewOnly xsi:type="xsd:boolean">false</viewOnly>
 	</properties>
       </xc:Application>
+      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
       <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuDisplayClient.so</xc:Module>
     </xc:Context>
   </xsl:template>
