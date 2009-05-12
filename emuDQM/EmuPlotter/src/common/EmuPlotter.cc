@@ -31,6 +31,7 @@ void EmuPlotter::reset()
   nBadEvents = 0;
   nGoodEvents = 0;
   nCSCEvents = 0;
+  nDetectedCSCs = 0;
   L1ANumber = 0;
   BXN = 0;
   eTag = "";
@@ -310,6 +311,7 @@ CSCCounters EmuPlotter::bookCounters()
         trigCnts["CFEB"] = 0;
         trigCnts["DMB"] = 0;
         trigCnts["BAD"] = 0;
+        nDetectedCSCs++;
         return trigCnts;
 }
 

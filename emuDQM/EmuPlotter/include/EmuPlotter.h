@@ -174,6 +174,11 @@ public:
   uint32_t getTotalUnpackedCSCs() const {return nCSCEvents;}
   uint32_t getGoodEventsCount() const {return nGoodEvents;}
   uint32_t getBadEventsCount() const {return nBadEvents;}
+  uint32_t getDetectedCSCsCount() const
+  {
+    return nDetectedCSCs;
+  }
+
   void cleanup();
   void updateFractionHistos();
   void updateEfficiencyHistos();
@@ -236,6 +241,7 @@ private:
   uint32_t nGoodEvents;
   uint32_t nBadEvents;
   uint32_t nCSCEvents;
+  uint32_t nDetectedCSCs;
 
   Logger logger_;
 
