@@ -234,6 +234,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::String 	dataRate_;
   xdata::UnsignedInteger   cscRate_;
   xdata::UnsignedInteger   cscUnpacked_;
+  xdata::UnsignedInteger   cscDetected_;
   xdata::UnsignedInteger   runNumber_;
   xdata::UnsignedInteger   runStartUTC_;
 
