@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.2 2009/04/14 17:50:51 paste Exp $
+* $Id: VMEController.cc,v 1.3 2009/05/13 06:52:00 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -8,6 +8,8 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
@@ -79,6 +81,8 @@ BHandle_(-1)
 		if (outFile.is_open()) {
 			outFile << BHandle_;
 			outFile.close();
+			
+			chmod(fileName.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 		} else {
 			std::ostringstream error;
 			error << "Unable to save BHandle information to external file " << fileName;
