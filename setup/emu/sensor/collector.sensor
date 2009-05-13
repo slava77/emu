@@ -1,0 +1,162 @@
+<?xml version='1.0'?>
+<xmas:sensor xmlns:xmas="http://xdaq.web.cern.ch/xdaq/xsd/2006/xmas-10">
+	<!-- xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/diskInfo.flash#urn:xdaq-flashlist:diskInfo"/>
+		<xmas:sampler tag="collection-las1" type="urn:xmas-sampler:hash" every="PT120S" hashkey="context"/>
+	</xmas:monitor -->
+
+	<!-- LAS 1 (FMM, FBO) -->
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/fbo.flash#urn:xdaq-flashlist:fbo"/>
+		<xmas:sampler tag="collection-las-1" type="urn:xmas-sampler:hash" every="PT3S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/FMMInput.flash#urn:xdaq-flashlist:FMMInput"/>
+		<xmas:sampler tag="collection-las-1" type="urn:xmas-sampler:hash" every="PT5S" hashkey="hostname,geoslot,io"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/FMMStatus.flash#urn:xdaq-flashlist:FMMStatus"/>
+		<xmas:sampler tag="collection-las-1" type="urn:xmas-sampler:hash" every="PT5S" hashkey="hostname,geoslot"/>
+	</xmas:monitor>
+
+	<!-- LAS 2 (EVB) -->
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/EVMOccupancy.flash#urn:xdaq-flashlist:EVMOccupancy"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT10S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/EVMPerformance.flash#urn:xdaq-flashlist:EVMPerformance"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/EVMStatus.flash#urn:xdaq-flashlist:EVMStatus"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT10S" hashkey="context,lid"/>
+	</xmas:monitor>
+	
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/RUEventNumber.flash#urn:xdaq-flashlist:RUEventNumber"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,instance"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/RUOccupancy.flash#urn:xdaq-flashlist:RUOccupancy"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT10S" hashkey="context,instance"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/RUPerformance.flash#urn:xdaq-flashlist:RUPerformance"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,instance"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/RUStatus.flash#urn:xdaq-flashlist:RUStatus"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT10S" hashkey="context,instance"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/BUEventNumber.flash#urn:xdaq-flashlist:BUEventNumber"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,instance"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/BUOccupancy.flash#urn:xdaq-flashlist:BUOccupancy"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT10S" hashkey="context,instance"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/BUPerformance.flash#urn:xdaq-flashlist:BUPerformance"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,instance"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/BUStatus.flash#urn:xdaq-flashlist:BUStatus"/>
+		<xmas:sampler tag="collection-las-2" type="urn:xmas-sampler:hash" every="PT10S" hashkey="context,instance"/>
+	</xmas:monitor>
+
+	<!-- LAS 3 (FRL) -->
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/frlcontrollerCard.flash#urn:xdaq-flashlist:frlcontrollerCard"/>
+		<xmas:sampler tag="collection-las-3" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,slotNumber"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/frlHisto.flash#urn:xdaq-flashlist:frlHisto"/>
+		<xmas:sampler tag="collection-las-3,highest" type="urn:xmas-sampler:hash" every="PT60S" hashkey="context,slotNumber,linkNumber"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/frlcontrollerLink.flash#urn:xdaq-flashlist:frlcontrollerLink"/>
+		<xmas:sampler tag="collection-las-3" type="urn:xmas-sampler:hash" every="PT3S" hashkey="context,slotNumber,linkNumber"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/frlcontrollerStatus.flash#urn:xdaq-flashlist:frlcontrollerStatus"/>
+		<xmas:sampler tag="collection-las-3" type="urn:xmas-sampler:hash" every="PT15S" hashkey="context,slotNumber"/>
+	</xmas:monitor>
+
+	<!-- LAS 4 (Jobcontrol & Storagemanager) -->
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/jobcontrol.flash#urn:xdaq-flashlist:jobcontrol"/>
+		<xmas:sampler tag="collection-las-4" type="urn:xmas-sampler:hash" every="PT10S" hashkey="context"/>
+	</xmas:monitor>
+
+	<!-- LAS 5 (Filter) -->
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/EventProcessorStatusAlt.flash#urn:xdaq-flashlist:EventProcessorStatusAlt"/>
+		<xmas:sampler tag="collection-las-5" type="urn:xmas-sampler:hash" every="PT2S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/EventProcessorLegend.flash#urn:xdaq-flashlist:EventProcessorLegend"/>
+		<xmas:sampler tag="collection-las-5" type="urn:xmas-sampler:hash" every="PT120S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/EVMEventNumber.flash#urn:xdaq-flashlist:EVMEventNumber"/>
+		<xmas:sampler tag="collection-las-5" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	<!-- LAS 6 (RCMS) -->
+
+	<!-- xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/processInfo.flash#urn:xdaq-flashlist:processInfo"/>
+		<xmas:sampler tag="collection-las4" type="urn:xmas-sampler:hash" every="PT30S" hashkey="context"/>
+	</xmas:monitor -->
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/ResourceBrokerPerformance.flash#urn:xdaq-flashlist:ResourceBrokerPerformance"/>
+		<xmas:sampler tag="collection-las-6" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/ResourceBrokerRate.flash#urn:xdaq-flashlist:ResourceBrokerRate"/>
+		<xmas:sampler tag="collection-las-6" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/StorageManagerPerformance.flash#urn:xdaq-flashlist:StorageManagerPerformance"/>
+		<xmas:sampler tag="collection-las3" type="urn:xmas-sampler:hash" every="PT5S" hashkey="context,lid"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/levelZeroFM_dynamic.flash#urn:xdaq-flashlist:levelZeroFM_dynamic"/>
+		<xmas:sampler tag="collection-las4" type="urn:xmas-sampler:hash" every="PT30S" hashkey="FMURL"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/levelZeroFM_static.flash#urn:xdaq-flashlist:levelZeroFM_static"/>
+		<xmas:sampler tag="collection-las1" type="urn:xmas-sampler:hash" every="PT30S" hashkey="FMURL"/>
+	</xmas:monitor>
+
+	<xmas:monitor  xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/subsystemStatus.flash#urn:xdaq-flashlist:subsystemStatus"/>
+		<xmas:sampler tag="collection-las2" type="urn:xmas-sampler:hash" every="PT30S" hashkey="FMURL"/>
+	</xmas:monitor>
+</xmas:sensor>
+

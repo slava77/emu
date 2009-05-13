@@ -1,0 +1,13 @@
+<?xml version='1.0'?>
+<!-- Order of specification will determine the sequence of installation. all modules are loaded prior instantiation of plugins -->
+<xm:Profile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+	xmlns:xm="http://xdaq.web.cern.ch/xdaq/xsd/2007/ServicesMap-10">
+	
+	<xm:Service from="40000" to="40009" profile="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/profile/bu.profile" configuration=""/>
+	<xm:Service from="40010" to="40019" profile="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/profile/ru.profile" configuration=""/>
+	<xm:Service from="40020" to="40029" profile="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/profile/evm.profile" configuration=""/>
+	<xm:Service from="40030" to="40039" profile="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/profile/fu.profile" configuration=""/>
+			
+	<xm:Default profile="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/profile/base.profile" configuration=""/>
+	
+</xm:Profile>

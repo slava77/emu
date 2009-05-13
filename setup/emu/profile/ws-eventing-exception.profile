@@ -30,4 +30,29 @@
 	<!-- HyperDAQ -->
 	<xp:Application class="hyperdaq::Application" id="3"  service="hyperdaq" network="local"/>
 	<xp:Module>${XDAQ_ROOT}/lib/libhyperdaq.so</xp:Module>	
+		
+	<!-- XPlore requires the installation of Power Pack  -->
+	<xp:Application class="xplore::Application" id="9"  network="local">
+	 	<properties xmlns="urn:xdaq-application:xplore::Application" xsi:type="soapenc:Struct">
+			<settings xsi:type="xsd:string">${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/xplore/shortcuts.xml</settings>
+			<republishInterval xsi:type="xsd:string">60</republishInterval>
+                </properties>
+	</xp:Application>	
+	<xp:Module>/lib/libslp.so</xp:Module>
+	<xp:Module>${XDAQ_ROOT}/lib/libxslp.so</xp:Module>
+	<xp:Module>${XDAQ_ROOT}/lib/libxploreutils.so</xp:Module>
+	<xp:Module>${XDAQ_ROOT}/lib/libxplore.so</xp:Module>  		
+	
+	<!-- WS-eventing -->
+	<xp:Application class="ws::service::Eventing" id="400"  publish="true" network="local" group="exception,init0" service="ws-eventing">
+	 	<properties xmlns="urn:xdaq-application:ws::service::Eventing" xsi:type="soapenc:Struct">
+                </properties>
+        </xp:Application>
+	<xp:Module>${XDAQ_EXTERN_LIBRARY_PATH}/libxalanMsg.so</xp:Module>
+	<xp:Module>${XDAQ_EXTERN_LIBRARY_PATH}/libxalan-c.so</xp:Module>
+	<xp:Module>${XDAQ_ROOT}/lib/libxoapfilter.so</xp:Module>
+	<xp:Module>${XDAQ_ROOT}/lib/libwsaddressing.so</xp:Module>
+	<xp:Module>${XDAQ_ROOT}/lib/libwseventing.so</xp:Module>
+	<xp:Module>${XDAQ_ROOT}/lib/libwsutils.so</xp:Module>
+	<xp:Module>${XDAQ_ROOT}/lib/libwsserviceeventing.so</xp:Module>
 </xp:Profile>

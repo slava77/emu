@@ -1,0 +1,11 @@
+<?xml version='1.0'?>
+<xmas:flash xmlns:xmas="http://xdaq.web.cern.ch/xdaq/xsd/2006/xmas-10" id="urn:xdaq-flashlist:emudaqmanager" version="$Revision: 1.1 $" key="timestamp,context,lid">
+	<xmas:item name="sessionid"		function="session()" type="string"/>
+	<xmas:item name="timestamp"		function="systime()" type="time"/>
+	<xmas:item name="context"		function="context()" type="string"/>
+	<xmas:item name="instance"		infospace="urn:emu::daq::manager::Application:" type="string" source="$instance"/>
+	<xmas:item name="runNumber"		infospace="urn:emu::daq::manager::Application:" type="unsigned int 32"/>
+	<xmas:item name="daqState"		infospace="urn:emu::daq::manager::Application:" type="string"/>
+<!-- 	<xmas:item name="runNumber"		infospace="urn:xdaq-application:lid=12" type="string"/> -->
+<!-- 	<xmas:item name="stateName"		infospace="urn:emu::daq::manager::Application:" type="string"/> -->
+</xmas:flash>

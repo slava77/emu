@@ -1,0 +1,59 @@
+##
+# Description:
+#
+# hostname:row:nodetype:domain:service
+#
+#
+#-----------------------------------------------------------------------------------------------------
+# Dedicated to DA discovery service
+#-----------------------------------------------------------------------------------------------------
+srv-c2c03-20.cms:c2c03:systemheadnode:directory-agent
+#-----------------------------------------------------------------------------------------------------
+# Services
+#-----------------------------------------------------------------------------------------------------
+# lowercase and with .cms
+# xdaqd doesn't work with aliases... 
+#   csc-daq.cms:c2d07:service:monitoring:jobcontrol ws-eventing pulser ws-eventing-exception spotlight las
+#   csc-daq01.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq02.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq03.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq04.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq05.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq06.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq07.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq08.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq09.cms:c2d07:service:monitoring:jobcontrol
+#   csc-daq10.cms:c2d07:service:monitoring:jobcontrol
+#   csc-dqm.cms:c2d07:service:monitoring:jobcontrol
+#   csc-sv.cms:s2g19:service:monitoring:jobcontrol
+#   csc-ttc.cms:s2b16:service:monitoring:jobcontrol
+#   csc-fed1.cms:s2g18:service:monitoring:jobcontrol
+#   csc-fed2.cms:s2g18:service:monitoring:jobcontrol
+#   csc-pc1.cms:s2g18:service:monitoring:jobcontrol
+#   csc-pc2.cms:s2g18:service:monitoring:jobcontrol
+#   csc-dcs-pc1.cms:s2g19:service:monitoring:jobcontrol
+#   csc-dcs-pc2.cms:s2g19:service:monitoring:jobcontrol
+
+# Used this command to get replace aliases with host names (then needed to downcase host names):
+# for HA in $(sed -n -e 's/^\(csc-.*\.cms\):.*:.*:.*:.*$/\1/p' /nfshome0/cscdaq/TriDAS/emu/setup/emu/hosts.setup); do H=$(host $HA | grep alias | sed -n -e 's/^.* \([^ ]*\)\.$/\1/p'); sed -i -e "s/^$HA/$H/" /nfshome0/cscdaq/TriDAS/emu/setup/emu/hosts.setup; done
+
+csc-c2d07-08.cms:c2d07:service:monitoring:jobcontrol ws-eventing pulser ws-eventing-exception spotlight las
+csc-c2d07-03.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-04.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-05.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-07.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-09.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-10.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-11.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-12.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-13.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-02.cms:c2d07:service:monitoring:jobcontrol
+csc-c2d07-06.cms:c2d07:service:monitoring:jobcontrol
+vmepcs2g19-12.cms:s2g19:service:monitoring:jobcontrol
+vmepcs2b16-08.cms:s2b16:service:monitoring:jobcontrol
+vmepcs2g18-07.cms:s2g18:service:monitoring:jobcontrol
+vmepcs2g18-06.cms:s2g18:service:monitoring:jobcontrol
+vmepcs2g18-09.cms:s2g18:service:monitoring:jobcontrol
+vmepcs2g18-08.cms:s2g18:service:monitoring:jobcontrol
+dcspcs2g19-10.cms:s2g19:service:monitoring:jobcontrol
+dcspcs2g19-11.cms:s2g19:service:monitoring:jobcontrol
