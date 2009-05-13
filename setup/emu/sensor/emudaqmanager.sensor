@@ -1,0 +1,7 @@
+<?xml version='1.0'?>
+<xmas:sensor xmlns:xmas="http://xdaq.web.cern.ch/xdaq/xsd/2006/xmas-10">
+	<xmas:monitor xmlns:xlink="http://www.w3.org/1999/xlink">
+		<xmas:flash xlink:type="locator" xlink:href="${XDAQ_SETUP_ROOT}/${XDAQ_ZONE}/flash/emudaqmanager.flash#urn:xdaq-flashlist:emudaqmanager"/>
+		<xmas:sampler tag="emu-metric" type="urn:xmas-sampler:instant" every="PT5S"/>
+	</xmas:monitor>
+</xmas:sensor>

@@ -10,7 +10,7 @@ HOSTNAME=`hostname -i`
 sed -i.bak 's/\(;\)*\(net.slp.interfaces = \).*/\2'"$HOSTNAME"'/' /etc/slp.conf
 #sed -i.bak 's/;net.slp.interfaces = 192.168.0.1/net.slp.interfaces = '"$HOSTNAME"'/' /etc/slp.conf
 
-ZONE_SETUP_DIR=/opt/xdaq/share/emu/scripts
+ZONE_SETUP_DIR=/opt/xdaq/share/`cat /etc/xdaq.zone`/scripts
 
 #
 # loop over all DA addresses
