@@ -1,0 +1,136 @@
+%define _package __package__
+%define _packagename __packagename__
+%define _version __version__
+%define _release __release__
+%define _prefix  __prefix__
+%define _tmppath /tmp
+%define _packagedir __packagedir__
+%define _os __os__
+%define _platform __platform__
+%define _project __project__
+%define _author __author__
+%define _summary __summary__
+%define _url __url__
+%define _buildarch __buildarch__
+
+%define _unpackaged_files_terminate_build 0
+
+#
+# Binary RPM specified attributed (lib and bin)
+#
+Summary: %{_summary}
+Name: %{_project}-%{_packagename}
+Version: %{_version}
+Release: %{_release}
+Packager: %{_author}
+#BuildArch: %{_buildarch}
+License: BSD
+Group: Applications/extern
+URL: %{_url}
+BuildRoot: %{_tmppath}/%{_packagename}-%{_version}-%{_release}-buildroot
+Prefix: %{_prefix}
+
+%description
+__description__
+
+
+%pre
+exists=`/sbin/chkconfig --list | grep xdaqd`
+if [ x"$exists" != x ] ; then
+/sbin/chkconfig --del xdaqd  > /dev/null 2>&1
+fi
+
+#%setup 
+
+#%build
+
+#
+# Prepare the list of files that are the input to the binary and devel RPMs
+#
+%install
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/{broker,conf,flash,netflow,pulser,sensor,profile,xplore,store,scripts}
+mkdir -p $RPM_BUILD_ROOT/etc
+mkdir -p $RPM_BUILD_ROOT/etc/init.d
+mkdir -p $RPM_BUILD_ROOT/%{_prefix}/bin
+mkdir -p $RPM_BUILD_ROOT/%{_prefix}/htdocs
+
+install -m 755 %{_packagedir}/crossdomain.xml $RPM_BUILD_ROOT/%{_prefix}/htdocs
+
+if [ -s %{_packagedir}/%{_packagename}.setup ]; then
+	install -m 755 %{_packagedir}/%{_packagename}.setup $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}
+fi
+
+if [ -s %{_packagedir}/xdaqd ]; then 
+	install -m 755 %{_packagedir}/xdaqd $RPM_BUILD_ROOT/etc/init.d
+fi
+if [ -d %{_packagedir}/scripts ]; then 
+	install -m 755 %{_packagedir}/scripts/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/scripts
+fi
+if [ -d %{_packagedir}/broker ]; then 
+	install -m 655 %{_packagedir}/broker/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/broker
+fi
+if [ -d %{_packagedir}/conf ]; then 
+	find %{_packagedir}/conf -name "*.*" -exec cp {} $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/conf \;
+fi
+if [ -d %{_packagedir}/etc ]; then 
+	install -m 655 %{_packagedir}/etc/*.* $RPM_BUILD_ROOT/etc
+fi
+if [ -d %{_packagedir}/flash ]; then 
+	install -m 655 %{_packagedir}/flash/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/flash
+fi
+if [ -d %{_packagedir}/netflow ]; then 
+	install -m 655 %{_packagedir}/netflow/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/netflow
+fi
+if [ -d %{_packagedir}/store ]; then 
+	install -m 655 %{_packagedir}/store/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/store
+fi
+if [ -d %{_packagedir}/store ]; then 
+	install -m 655 %{_packagedir}/store/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/store
+fi
+if [ -d %{_packagedir}/pulser ]; then 
+	install -m 655 %{_packagedir}/pulser/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/pulser
+fi
+if [ -d %{_packagedir}/sensor ]; then 
+	install -m 655 %{_packagedir}/sensor/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/sensor
+fi
+if [ -d %{_packagedir}/profile ]; then
+	find %{_packagedir}/profile -name "*.*" -exec cp {} $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/profile \;
+fi
+if [ -d %{_packagedir}/xplore ]; then 
+	install -m 655 %{_packagedir}/xplore/*.* $RPM_BUILD_ROOT/%{_prefix}/share/%{_packagename}/xplore
+fi
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+#
+# Files that go in the binary RPM
+#
+%files
+%defattr(-,root,root,-)
+%{_prefix}/htdocs
+/etc/init.d/xdaqd
+/etc/*.zone
+/etc/*.services
+
+%dir
+%{_prefix}/share
+
+#%changelog
+
+# As quattor requires
+#%doc MAINTAINER ChangeLog README
+
+%post
+/sbin/chkconfig --add xdaqd 
+
+%preun
+if [ "$1" = "0" ] ; then # last uninstall
+exists=`/sbin/chkconfig --list | grep xdaqd`
+if [ x"$exists" != x ] ; then
+/sbin/chkconfig --del xdaqd  > /dev/null 2>&1
+fi
+
+fi
+
