@@ -38,7 +38,7 @@
   </xsl:template>
 
   <xsl:template mode="graphics" match="input">
-    <xsl:variable name="CHAMBER_NAME">ME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/>/<xsl:value-of select="Chamber/@number"/></xsl:variable>
+    <xsl:variable name="CHAMBER_NAME">ME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/>/<xsl:if test="string-length(Chamber/@number)=1">0</xsl:if><xsl:value-of select="Chamber/@number"/></xsl:variable>
     <xsl:variable name="RING_NAME">ME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/></xsl:variable>
     <xsl:variable name="PHI"><xsl:value-of select="number(document('RUI-to-chamber_mapping_XSLT.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[attribute::name=$RING_NAME]/@phiOffset)+number(Chamber/@number)*number(document('RUI-to-chamber_mapping_XSLT.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[attribute::name=$RING_NAME]/@deltaPhi)"/></xsl:variable>
     <xsl:variable name="CHAMBER_CORNERS"><xsl:value-of select="document('RUI-to-chamber_mapping_XSLT.xml')/xsl:transform/xsl:template[@name='geoContainer']/CSC_rings/ring[@name=$RING_NAME]/@chamberCorners"></xsl:value-of></xsl:variable>
@@ -99,16 +99,63 @@
 
   
   <xsl:template name="mapping_table">
-    <table class="mapping">
-      <xsl:apply-templates mode="table"/>
+    <table>
+      <tr><td>
+	<table class="mapping">
+	  <xsl:apply-templates mode="table" select="RUI[@instance='0']"/>
+	</table>
+      </td></tr>
+      <tr><td>
+	<table class="mapping">
+	  <xsl:apply-templates mode="table" select="RUI[@instance!='0']"/>
+	</table>
+      </td></tr>
     </table>
   </xsl:template>
 
 
-  <xsl:template mode="table" match="RUI">
+  <xsl:template mode="table" match="RUI[@instance='0']">
+    <tr>
+      <th class="RUI">RUI<a><xsl:attribute name="name">row_RUI.<xsl:value-of select="@instance"/></xsl:attribute></a></th>
+      <th class="computer" colspan="3">computer</th>
+      <th class="SP" colspan="6">Sector Processor</th>
+      <th class="DDU" colspan="3">DDU</th>
+    </tr>
+    <tr>
+      <th class="RUI">instance</th>
+      <th class="computer">host</th>
+      <th class="computer">alias</th>
+      <th class="computer">schar</th>
+      <th class="SP">&#160;&#160;id&#160;&#160;</th>
+      <th class="SP" colspan="5">VME crates</th>
+      <th class="DDU">crate</th>
+      <th class="DDU">slot</th>
+      <th class="DDU">input</th>
+    </tr>
+    <xsl:apply-templates mode="table"/>
+    <tr>
+      <th class="RUI">instance</th>
+      <th class="computer">host</th>
+      <th class="computer">alias</th>
+      <th class="computer">schar</th>
+      <th class="SP">&#160;&#160;id&#160;&#160;</th>
+      <th class="SP" colspan="5">VME crates</th>
+      <th class="DDU">crate</th>
+      <th class="DDU">slot</th>
+      <th class="DDU">input</th>
+    </tr>
+    <tr>
+      <th class="RUI">RUI<a><xsl:attribute name="name">row_RUI.<xsl:value-of select="@instance"/></xsl:attribute></a></th>
+      <th class="computer" colspan="3">computer</th>
+      <th class="SP" colspan="6">Sector Processor</th>
+      <th class="DDU" colspan="3">DDU</th>
+    </tr>
+  </xsl:template>
+
+  <xsl:template mode="table" match="RUI[@instance!='0']">
       <tr>
 	<th class="RUI">RUI<a><xsl:attribute name="name">row_RUI.<xsl:value-of select="@instance"/></xsl:attribute></a></th>
-	<th class="computer" colspan="4">computer</th>
+	<th class="computer" colspan="3">computer</th>
 	<th class="DCC" colspan="2">DCC</th>
 	<th class="DDU" colspan="3">DDU</th>
 	<th class="fiber" colspan="3">fiber cassette</th>
@@ -119,7 +166,6 @@
 	<th class="RUI">instance</th>
 	<th class="computer">host</th>
 	<th class="computer">alias</th>
-	<th class="computer">port</th>
 	<th class="computer">schar</th>
 	<th class="DCC">fifo</th>
 	<th class="DCC">S-link</th>
@@ -141,7 +187,6 @@
 	<th class="RUI">instance</th>
 	<th class="computer">host</th>
 	<th class="computer">alias</th>
-	<th class="computer">port</th>
 	<th class="computer">schar</th>
 	<th class="DCC">fifo</th>
 	<th class="DCC">S-link</th>
@@ -159,7 +204,7 @@
       </tr>
       <tr>
 	<th class="RUI">RUI</th>
-	<th class="computer" colspan="4">computer</th>
+	<th class="computer" colspan="3">computer</th>
 	<th class="DCC" colspan="2">DCC</th>
 	<th class="DDU" colspan="3">DDU</th>
 	<th class="fiber" colspan="3">fiber cassette</th>
@@ -174,10 +219,33 @@
     <xsl:apply-templates mode="table"/>
   </xsl:template>
 
+  <!-- TF DDU input -->
+  <xsl:template mode="table" match="input[ancestor::RUI/@instance='0']">
+    <xsl:variable name="RUI_INSTANCE"><xsl:value-of select="../../@instance"/></xsl:variable>
+    <tr>
+      <td class="RUI"><xsl:value-of select="../../@instance"/></td>
+      <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/../@host"/></td>
+      <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/../@alias"/></td>
+      <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/@schar"/></td>
+      <td class="SP"><xsl:value-of select="SectorProcessor/@id"/></td>
+      <xsl:for-each select="SectorProcessor/PeripheralCrate">
+	<xsl:variable name="PC_NAME">VME<xsl:value-of select="@endcap"/><xsl:value-of select="@station"/>/<xsl:value-of select="@VMEcrate"/></xsl:variable>
+	<xsl:variable name="PC_NAME_PRETTY">VME<xsl:if test="@endcap='-'">&#8211;</xsl:if><xsl:if test="@endcap='+'">+</xsl:if><xsl:value-of select="@station"/>/<xsl:value-of select="@VMEcrate"/></xsl:variable>
+	<td class="SP name">
+	  <xsl:attribute name="onmousedown">colorTriggerSector('<xsl:value-of select="$PC_NAME"/>')</xsl:attribute>
+	  <xsl:if test="@*"><a href="#graphics"><xsl:value-of select="$PC_NAME_PRETTY"/></a><xsl:if test="string-length(@VMEcrate)=1">&#160;</xsl:if></xsl:if>&#160;&#160;&#160;
+	</td>
+      </xsl:for-each>
+      <td class="DDU"><xsl:value-of select="../@crate"/></td>
+      <td class="DDU"><xsl:value-of select="../@slot"/></td>
+      <td class="DDU"><xsl:value-of select="@id"/></td>
+    </tr>
+  </xsl:template>
 
-  <xsl:template mode="table" match="input">
-    <xsl:variable name="CHAMBER_NAME">ME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/>/<xsl:value-of select="Chamber/@number"/></xsl:variable>
-    <xsl:variable name="CHAMBER_NAME_PRETTY">ME<xsl:if test="Chamber/@endcap='-'">&#8211;</xsl:if><xsl:if test="Chamber/@endcap='+'">+</xsl:if><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/>/<xsl:value-of select="Chamber/@number"/></xsl:variable>
+  <!-- Chamber DDU input -->
+  <xsl:template mode="table" match="input[ancestor::RUI/@instance!='0']">
+    <xsl:variable name="CHAMBER_NAME">ME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/>/<xsl:if test="string-length(Chamber/@number)=1">0</xsl:if><xsl:value-of select="Chamber/@number"/></xsl:variable>
+    <xsl:variable name="CHAMBER_NAME_PRETTY">ME<xsl:if test="Chamber/@endcap='-'">&#8211;</xsl:if><xsl:if test="Chamber/@endcap='+'">+</xsl:if><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="Chamber/@type"/>/<xsl:if test="string-length(Chamber/@number)=1">0</xsl:if><xsl:value-of select="Chamber/@number"/></xsl:variable>
     <xsl:variable name="PC_NAME">VME<xsl:value-of select="Chamber/@endcap"/><xsl:value-of select="Chamber/@station"/>/<xsl:value-of select="PeripheralCrate/@VMEcrate"/></xsl:variable>
     <xsl:variable name="RUI_INSTANCE"><xsl:value-of select="../../@instance"/></xsl:variable>
     <tr>
@@ -190,7 +258,6 @@
       </td>
       <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/../@host"/></td>
       <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/../@alias"/></td>
-      <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/@port"/></td>
       <td class="computer"><xsl:value-of select="document('RUI-to-computer_mapping.xml')//RUI[@instance=$RUI_INSTANCE]/@schar"/></td>
       <td class="DCC"><xsl:value-of select="../../DCC/@fifo"/></td>
       <td class="DCC"><xsl:value-of select="../../DCC/@slink"/></td>
@@ -221,7 +288,7 @@
     <table class="mapping" id="table_for_highlighted_chamber" style="visibility: hidden;">
       <tr>
 	<th class="RUI">RUI</th>
-	<th class="computer" colspan="4">computer</th>
+	<th class="computer" colspan="3">computer</th>
 	<th class="DCC" colspan="2">DCC</th>
 	<th class="DDU" colspan="3">DDU</th>
 	<th class="fiber" colspan="3">fiber cassette</th>
@@ -232,7 +299,6 @@
 	<th class="RUI">instance</th>
 	<th class="computer">host</th>
 	<th class="computer">alias</th>
-	<th class="computer">port</th>
 	<th class="computer">schar</th>
 	<th class="DCC">fifo</th>
 	<th class="DCC">S-link</th>
@@ -259,11 +325,11 @@
 	<style>
 	  table.mapping td, th { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; color:#99BBFF; }
 	  table.mapping { background-color: #2A3B90; }
-	  table.mapping td.RUI,td.DCC,td.fiber,td.chamber { background-color: #334499; }
+	  table.mapping td.RUI,td.DCC,td.fiber,td.chamber,td.SP { background-color: #334499; }
 	  table.mapping td.computer,td.DDU,td.PC { background-color: #223388; }
-	  table.mapping th.RUI,th.DCC,th.fiber,th.chamber { background-color: #112277; }
+	  table.mapping th.RUI,th.DCC,th.fiber,th.chamber,th.SP { background-color: #112277; }
 	  table.mapping th.computer,th.DDU,th.PC { background-color: #001177; }
-	  table.mapping td.RUI,td.DCC,td.DDU,td.PC,td.computer,td.fiber {  text-align:center; }
+	  table.mapping td.RUI,td.DCC,td.DDU,td.PC,td.computer,td.fiber,td.SP {  text-align:center; }
 	  table.mapping td.name {  text-align:left; }
 	  table.mapping a:link,a:active,a:visited { color:#99BBFF; }
 	  table.mapping a:hover { color:#FFFF00; font-weight:bold; }
