@@ -1,6 +1,146 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <?xml-stylesheet type="text/xml" href="RUI-to-chamber_mapping_XSLT.xml"?>
 <RUI-to-chamber_mapping date="2007-11-08">
+  <RUI instance="0">
+    <DDU crate="5" slot="2">
+      <input id= "0">
+	<SectorProcessor id= "5">
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="10"/>
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="11"/>
+	  <PeripheralCrate endcap="+" station="2" VMEcrate="5"/>
+	  <PeripheralCrate endcap="+" station="3" VMEcrate="5"/>
+	  <PeripheralCrate endcap="+" station="4" VMEcrate="5"/>
+	</SectorProcessor>
+      </input>
+      <input id= "1">
+	<SectorProcessor id= "2">
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="4"/>
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="5"/>
+	  <PeripheralCrate endcap="+" station="2" VMEcrate="2"/>
+	  <PeripheralCrate endcap="+" station="3" VMEcrate="2"/>
+	  <PeripheralCrate endcap="+" station="4" VMEcrate="2"/>
+	</SectorProcessor>
+      </input>
+      <input id= "2">
+	<SectorProcessor id= "4">
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="8"/>
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="9"/>
+	  <PeripheralCrate endcap="+" station="2" VMEcrate="4"/>
+	  <PeripheralCrate endcap="+" station="3" VMEcrate="4"/>
+	  <PeripheralCrate endcap="+" station="4" VMEcrate="4"/>
+	</SectorProcessor>
+      </input>
+      <input id= "3">
+	<SectorProcessor id= "3">
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="6"/>
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="7"/>
+	  <PeripheralCrate endcap="+" station="2" VMEcrate="3"/>
+	  <PeripheralCrate endcap="+" station="3" VMEcrate="3"/>
+	  <PeripheralCrate endcap="+" station="4" VMEcrate="3"/>
+	</SectorProcessor>
+      </input>
+      <input id= "4">
+	<SectorProcessor id= "6">
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="12"/>
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="1"/>
+	  <PeripheralCrate endcap="+" station="2" VMEcrate="6"/>
+	  <PeripheralCrate endcap="+" station="3" VMEcrate="6"/>
+	  <PeripheralCrate endcap="+" station="4" VMEcrate="6"/>
+	</SectorProcessor>
+      </input>
+      <input id= "5">
+	<SectorProcessor id= "1">
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="2"/>
+	  <PeripheralCrate endcap="+" station="1" VMEcrate="3"/>
+	  <PeripheralCrate endcap="+" station="2" VMEcrate="1"/>
+	  <PeripheralCrate endcap="+" station="3" VMEcrate="1"/>
+	  <PeripheralCrate endcap="+" station="4" VMEcrate="1"/>
+	</SectorProcessor>
+      </input>
+      <input id= "6">
+	<SectorProcessor id="">
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	</SectorProcessor>
+      </input>
+      <input id= "7">
+	<SectorProcessor id="">
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	</SectorProcessor>
+      </input>
+      <input id= "8">
+	<SectorProcessor id="">
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	  <PeripheralCrate/>
+	</SectorProcessor>
+      </input>
+      <input id= "9">
+	<SectorProcessor id="10">
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="8"/>
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="9"/>
+	  <PeripheralCrate endcap="-" station="2" VMEcrate="4"/>
+	  <PeripheralCrate endcap="-" station="3" VMEcrate="4"/>
+	  <PeripheralCrate endcap="-" station="4" VMEcrate="4"/>
+	</SectorProcessor>
+      </input>
+      <input id="10">
+	<SectorProcessor id="11">
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="10"/>
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="11"/>
+	  <PeripheralCrate endcap="-" station="2" VMEcrate="5"/>
+	  <PeripheralCrate endcap="-" station="3" VMEcrate="5"/>
+	  <PeripheralCrate endcap="-" station="4" VMEcrate="5"/>
+	</SectorProcessor>
+      </input>
+      <input id="11">
+	<SectorProcessor id="12">
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="12"/>
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="1"/>
+	  <PeripheralCrate endcap="-" station="2" VMEcrate="6"/>
+	  <PeripheralCrate endcap="-" station="3" VMEcrate="6"/>
+	  <PeripheralCrate endcap="-" station="4" VMEcrate="6"/>
+	</SectorProcessor>
+      </input>
+      <input id="12">
+	<SectorProcessor id= "8">
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="4"/>
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="5"/>
+	  <PeripheralCrate endcap="-" station="2" VMEcrate="2"/>
+	  <PeripheralCrate endcap="-" station="3" VMEcrate="2"/>
+	  <PeripheralCrate endcap="-" station="4" VMEcrate="2"/>
+	</SectorProcessor>
+      </input>
+      <input id="13">
+	<SectorProcessor id= "9">
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="6"/>
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="7"/>
+	  <PeripheralCrate endcap="-" station="2" VMEcrate="3"/>
+	  <PeripheralCrate endcap="-" station="3" VMEcrate="3"/>
+	  <PeripheralCrate endcap="-" station="4" VMEcrate="3"/>
+	</SectorProcessor>
+      </input>
+      <input id="14">
+	<SectorProcessor id= "7">
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="2"/>
+	  <PeripheralCrate endcap="-" station="1" VMEcrate="3"/>
+	  <PeripheralCrate endcap="-" station="2" VMEcrate="1"/>
+	  <PeripheralCrate endcap="-" station="3" VMEcrate="1"/>
+	  <PeripheralCrate endcap="-" station="4" VMEcrate="1"/>
+	</SectorProcessor>
+      </input>
+    </DDU>
+  </RUI>
+
   <RUI instance="1">
     <DDU crate="1" slot="4">
       <input id="0"><FiberCassette crate="1" pos="1" socket="f"/><PeripheralCrate id="2" VMEcrate="2" VMEslot="7"/><Chamber endcap="+" station="1" type="1" number="5"/></input>
