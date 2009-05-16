@@ -1036,7 +1036,7 @@ bool emu::daq::fu::Application::createSOAPServer( string clientName,  unsigned i
     ss11 <<  
 		   "Maximum number of clients exceeded. Cannot create server for " << clientName ;
     XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss11.str() );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
   return created;
 }
 
@@ -1167,7 +1167,7 @@ emu::daq::fu::Application::startATCP()
     ss13 <<  "Failed to get atcp descriptors : " 
 		    ;
     XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss13.str(), e );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
     atcpDescriptors.clear();
   }
 
@@ -1305,7 +1305,7 @@ throw (toolbox::fsm::exception::Exception)
 	stringstream ss14;
 	ss14 <<  "Terminating leftover file writer." ;
 	XCEPT_DECLARE( emu::daq::fu::exception::Exception, eObj, ss14.str() );
-	this->notifyQualified( "warn", eObj );
+	this->notifyQualified( "warning", eObj );
 	fileWriter_->endRun();
 	delete fileWriter_;
 	fileWriter_ = NULL;
@@ -1430,7 +1430,7 @@ throw (toolbox::fsm::exception::Exception)
     stringstream ss15;
     ss15 <<  "Run stop time will be unknown: "  ;
     XCEPT_DECLARE_NESTED( emu::daq::fu::exception::Exception, eObj, ss15.str(), e );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
   }
 
   // Close data file

@@ -898,7 +898,7 @@ emu::daq::ta::Application::startATCP()
     ss3 <<  "Failed to get atcp descriptors : " 
 		    ;
     XCEPT_DECLARE_NESTED( emu::daq::ta::exception::Exception, eObj, ss3.str(), e );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
     atcpDescriptors.clear();
   }
 
