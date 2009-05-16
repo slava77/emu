@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Chamber.h,v 1.3 2009/04/28 02:05:19 paste Exp $
+* $Id: Chamber.h,v 1.4 2009/05/16 18:54:26 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CHAMBER_H__
 #define __EMU_FED_CHAMBER_H__
@@ -18,43 +18,56 @@ namespace emu {
 
 			/** Default constructor **/
 			Chamber();
+			
+			/** Constructor used to set all the variables **/
+			Chamber(unsigned int plusMinus, unsigned int station, unsigned int ring, unsigned int number, unsigned int pCrateTriggerSector = 0);
+			
+			/** Constructor with a string for the endcap **/
+			Chamber(std::string endcap, unsigned int station, unsigned int ring, unsigned int number, unsigned int pCrateTriggerSector = 0);
 
 			/** @returns a human-readable string naming the chamber, like "+1/2/33". **/
-			std::string name();
+			inline std::string name() { return name_; }
 
 			/** @returns a human-readable string naming the peripheral crate where the DMB reading out the chamber is located, like "VMEp1_2".  **/
-			std::string peripheralCrate();
+			inline std::string peripheralCrateName() { return peripheralCrateName_; }
 
 			/// The endcap where the chamber is located.  Is either "+" or "-".
-			std::string endcap;
+			inline std::string getEndcap() { return endcap_; }
 
-			/// The endcap where the chamber is located.  Is either +1 or -1.
-			int plusMinus;
+			/// The endcap where the chamber is located.  Is either 1 or 2.
+			inline unsigned int getPlusMinus() { return plusMinus_; }
 
 			/// The station where the chamber is located.  Is a number 1, 2, 3, or 4.
-			unsigned int station;
+			inline unsigned int getStation() { return station_; }
 
 			/// The "ring" of the chamber, or on which annulus it is located.  Is a number 1, 2, or 3.
-			unsigned int ring;
+			inline unsigned int getRing() { return ring_; }
 
 			/// The chamber number.  The combination of endcap, station, type, and number uniquely defines each chamber.
-			unsigned int number;
-
-			// @returns a human-readable string naming the fiber cassette where the DMB-to-DDU fiber is connected, like "1/2/c"
-			//std::string fiberCassette();
+			inline unsigned int getNumber() { return number_; }
 
 		private:
+		
+			/// The name of the chamber (so I don't have to regenerate it every time)
+			std::string name_;
 
-			//int fiberCassetteCrate_;
-			//int fiberCassettePos_;
-			//std::string fiberCassetteSocket_;
-
-			//int peripheralCrateId_;
-
-			/// The peripheral crate ID number where this chamber is connected.
-			unsigned int peripheralCrateVMECrate_;
-
-			//int peripheralCrateVMESlot_;
+			/// The name of the peripheral crate
+			std::string peripheralCrateName_;
+			
+			/// The endcap (+ or -)
+			std::string endcap_;
+			
+			/// Whether this is the plus or minus side (1 or 2, matching CMSSW's notation)
+			unsigned int plusMinus_;
+			
+			/// The station
+			unsigned int station_;
+			
+			/// The ring
+			unsigned int ring_;
+			
+			/// The chamber number
+			unsigned int number_;
 
 		};
 

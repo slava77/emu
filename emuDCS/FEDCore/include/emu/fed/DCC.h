@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.3 2009/04/14 17:50:50 paste Exp $
+* $Id: DCC.h,v 1.4 2009/05/16 18:54:26 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -20,6 +20,9 @@ namespace emu {
 		{
 		public:
 			friend class DCCParser;
+			friend class AutoConfigurator;
+			friend class XMLConfigurator;
+			friend class DBConfigurator;
 
 			/** @param slot the slot of the board for VME addressing purposes. **/
 			DCC(int slot);

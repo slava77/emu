@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.4 2009/04/28 02:05:19 paste Exp $
+* $Id: DDU.cc,v 1.5 2009/05/16 18:54:26 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -11,10 +11,10 @@
 #include "emu/fed/JTAGElement.h"
 
 emu::fed::DDU::DDU(int mySlot):
-	VMEModule(mySlot),
-	chamberVector_(15, new Chamber()),
-	gbe_prescale_(0),
-	killfiber_(0xf7fff)
+VMEModule(mySlot),
+chamberVector_(15, new Chamber()),
+gbe_prescale_(0),
+killfiber_(0xf7fff)
 {
 
 	// Build the JTAG chains

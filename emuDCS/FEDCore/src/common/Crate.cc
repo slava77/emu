@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.cc,v 1.3 2009/04/28 02:05:19 paste Exp $
+* $Id: Crate.cc,v 1.4 2009/05/16 18:54:26 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Crate.h"
 
@@ -64,7 +64,7 @@ throw (emu::fed::exception::ConfigurationException)
 		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
 			error << "Configuration of board in crate " << number_ << " slot " << (*iBoard)->slot() << " has failed";
-			XCEPT_DECLARE_NESTED(emu::fed::exception::OutOfBoundsException, e2, error.str(), e);
+			XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
 			std::ostringstream tag;
 			tag << "crate:" << number_ << ",slot:" << (*iBoard)->slot();
 			e2.setProperty("tag", tag.str());
