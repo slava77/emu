@@ -1,34 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.5 2009/03/31 22:12:02 paste Exp $
-*
-* $Log: Monitor.cc,v $
-* Revision 1.5  2009/03/31 22:12:02  paste
-* Version bump.
-* Reduced demand on client-side browser by changing Monitor javascript functions.
-* Added update countdown timer to Monitor.
-* Made updates on changing of Monitor selection instantaneous.
-*
-* Revision 1.4  2009/03/27 17:02:02  paste
-* Shortened names of monitors reported from Manager to PageOne.
-* Fixed DDU KillFiber checking between XML and FPGA.
-* Fixed Monitor to correctly decode DCC FIFO status.
-*
-* Revision 1.3  2009/03/12 14:29:58  paste
-* * Fixed image display bug in Monitor
-* * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
-*
-* Revision 1.2  2009/03/09 16:03:17  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
-* Revision 1.1  2009/03/05 16:18:25  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
+* $Id: Monitor.cc,v 1.6 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -39,8 +10,11 @@
 
 #include "xgi/Method.h"
 #include "cgicc/HTMLClasses.h"
+#include "emu/base/Alarm.h"
 #include "emu/fed/Crate.h"
-#include "emu/fed/CrateParser.h"
+#include "emu/fed/XMLConfigurator.h"
+#include "emu/fed/DBConfigurator.h"
+#include "emu/fed/AutoConfigurator.h"
 #include "emu/fed/DDU.h"
 #include "emu/fed/DCC.h"
 #include "emu/fed/DataTable.h"
@@ -58,6 +32,8 @@ Application(stub)
 {
 	// Variables that are to be made available to other applications
 	getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
+	getApplicationInfoSpace()->fireItemAvailable("dbUsername", &dbUsername_);
+	getApplicationInfoSpace()->fireItemAvailable("dbPassword", &dbPassword_);
 	
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Monitor::webDefault, "Default");
@@ -73,19 +49,18 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 	if (!crateVector_.size()) {
 		try {
 			configure();
-		} catch (emu::fed::exception::SoftwareException &e) {
+		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
 			error << "Exception caught while configuring";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
-			notifyQualified("FATAL", e2);
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			notifyQualified("FATAL", e);
 
-			*out << printException(e2);
+			*out << printException(e);
 		}
 	}
 	
 	std::stringstream sTitle;
-	sTitle << "FED Crate Monitor (" << endcap_.toString() << ")";
+	sTitle << "FED Crate Monitor (" << systemName_.toString() << ")";
 	std::vector<std::string> jsFileNames;
 	//jsFileNames.push_back("reload.js");
 	jsFileNames.push_back("errorFlasher.js");
@@ -505,32 +480,60 @@ void emu::fed::Monitor::getAJAX(xgi::Input *in, xgi::Output *out)
 
 
 void emu::fed::Monitor::configure()
-throw (emu::fed::exception::SoftwareException)
+throw (emu::fed::exception::ConfigurationException)
 {
-	// PGK Easier parsing.  Less confusing.
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "configure using XML file " << xmlFile_.toString());
+	
+	// For now, try the XML file first (will be removed in later versions)
 	try {
-		CrateParser *parser = new CrateParser(xmlFile_.toString().c_str());
-		// From the parser, set the crates.
-		crateVector_ = parser->getCrates();
-		// Get the name of this endcap from the parser, too.  This is specified in the XML
-		// for convenience.
-		endcap_ = parser->getName();
-	} catch (emu::fed::exception::ParseException &e) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "XML configuration using file " << xmlFile_.toString());
+		XMLConfigurator *configurator = new XMLConfigurator(xmlFile_.toString());
+
+		crateVector_ = configurator->setupCrates();
+		systemName_ = configurator->getSystemName();
+		REVOKE_ALARM("MonitorConfigure", NULL);
+		
+		return;
+
+	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
-		error << "Unable to create FED objects by parsing";
-		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-		XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
-		notifyQualified("FATAL", e2);
-		throw e2;
-	} catch (emu::fed::exception::FileException &e) {
-		std::ostringstream error;
-		error << "Unable to create FED objects due to file exception";
-		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-		XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
-		notifyQualified("FATAL", e2);
-		throw e2;
+		error << "Unable to create FED objects by parsing file " << xmlFile_.toString();
+		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorConfigure", "WARN", error.str(), e.getProperty("tag"), NULL, e);
 	}
+		
+	try {
+		DBConfigurator *configurator = new DBConfigurator(this, dbUsername_.toString(), dbPassword_.toString());
+	
+		crateVector_ = configurator->setupCrates();
+		systemName_ = configurator->getSystemName();
+		REVOKE_ALARM("MonitorConfigure", NULL);
+		
+		return;
+		
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to create FED objects using the online database";
+		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorConfigure", "WARN", error.str(), e.getProperty("tag"), NULL, e);
+	}
+	
+	try {
+		AutoConfigurator *configurator = new AutoConfigurator();
+	
+		crateVector_ = configurator->setupCrates();
+		systemName_ = configurator->getSystemName();
+		REVOKE_ALARM("MonitorConfigure", NULL);
+		
+		return;
+		
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to create FED objects using automatic configuration";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorConfigure", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
+	}
+
 }
 
 

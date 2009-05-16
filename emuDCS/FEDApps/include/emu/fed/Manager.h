@@ -1,35 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.h,v 1.2 2009/03/09 16:03:16 paste Exp $
-*
-* $Log: Manager.h,v $
-* Revision 1.2  2009/03/09 16:03:16  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
-* Revision 1.18  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 1.17  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
-*
-* Revision 1.16  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 1.15  2008/08/15 10:40:20  paste
-* Working on fixing CAEN controller opening problems
-*
-* Revision 1.13  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: Manager.h,v 1.3 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MANAGER_H__
 #define __EMU_FED_MANAGER_H__
@@ -40,6 +10,7 @@
 #include "Application.h"
 #include "Supervised.h"
 #include "emu/base/WebReporter.h"
+#include "emu/fed/JSONSpiritValue.h"
 
 namespace emu {
 	namespace fed {
@@ -58,6 +29,9 @@ namespace emu {
 			// HyperDAQ pages
 			/** Default HyperDAQ page **/
 			void webDefault(xgi::Input *in, xgi::Output *out);
+			
+			/** Get the status of the child Communicator applications and report in JSON **/
+			void webGetStatus(xgi::Input *in, xgi::Output *out);
 			
 			/** Combines information from the Communicators and gives to CSCPageOne **/
 			std::vector<emu::base::WebReportItem> materialToReportOnPage1();
@@ -109,9 +83,39 @@ namespace emu {
 			*
 			*	@param targetState the state that you home the underlying Communicator applications are in.
 			*
-			*	@returns a string containing the state of the Communicators if they are consistant, "Unknown" if they are inconsistant, and "Failed" if at least one is in a "Failed" state.
+			*	@returns a string containing the state of the Communicators if they are consistant, "Indefinite" if they are inconsistant, and "Failed" if at least one is in a "Failed" state.
 			**/
-			std::string getUnderlyingStates(std::string targetState);
+			std::string getManagerState(std::string targetState, JSONSpirit::Array underlyingStatus);
+			
+			/** Get the status of the underlying Communicator applications
+			*
+			*	@returns a JSON array of application object containing things such as the state of the Communicator, its URL, the associated monitor's URL, etc.
+			**/
+			JSONSpirit::Array getUnderlyingStatus();
+			
+			/** Convert an xdata parameter from a "getParameters" message into a "string":"value" JSON pair.
+			*
+			* @param message the response from the "getParameters" message
+			* @param name the name of the variable to extract
+			* @param defaultValue the default value for the parameter to take if everything fails
+			*
+			* @author Phillip Killewald
+			**/
+			template<typename T, typename V>
+			JSONSpirit::Pair toJSONPair(xoap::MessageReference message, std::string name, V defaultValue)
+			{
+				V value = defaultValue;
+				try {
+					value = readParameter<T>(message, name);
+				} catch (emu::fed::exception::SOAPException &e) {
+					std::ostringstream error;
+					error << "Unable to read parameter '" << name << "'";
+					LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+					XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+					notifyQualified("WARN", e2);
+				}
+				return JSONSpirit::Pair(name, value);
+			}
 
 			/// The TTS ID with which to communicate (sent from above) for FMM tests.
 			xdata::Integer ttsID_;

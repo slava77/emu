@@ -1,39 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 1.1 2009/03/05 16:18:24 paste Exp $
-*
-* $Log: EmuFCrateHyperDAQ.h,v $
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
-* Revision 3.55  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.54  2008/10/29 16:01:43  paste
-* Updated interoperability with primative DCC commands, added new xdata variables for future use.
-*
-* Revision 3.53  2008/10/22 20:23:57  paste
-* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
-*
-* Revision 3.52  2008/10/04 18:44:04  paste
-* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
-*
-* Revision 3.51  2008/09/22 14:31:53  paste
-* /tmp/cvsY7EjxV
-*
-* Revision 3.50  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.49  2008/08/15 10:40:20  paste
-* Working on fixing CAEN controller opening problems
-*
-* Revision 3.47  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: EmuFCrateHyperDAQ.h,v 1.2 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_EMUFCRATEHYPERDAQ_H__
 #define __EMU_FED_EMUFCRATEHYPERDAQ_H__
@@ -178,7 +144,7 @@ namespace emu {
 			*
 			**/
 			void Configuring()
-			throw (emu::fed::exception::ParseException);
+			throw (emu::fed::exception::ConfigurationException);
 
 			/** My patented Select-a-crate/board
 			*

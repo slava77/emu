@@ -1,20 +1,5 @@
 /*****************************************************************************\
-* $Id: Parser.h,v 1.1 2009/03/05 16:07:52 paste Exp $
-*
-* $Log: Parser.h,v $
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.1  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.3  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: Parser.h,v 1.2 2009/05/16 18:55:20 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_PARSER_H__
 #define __EMU_FED_PARSER_H__
@@ -51,12 +36,14 @@ namespace emu {
 			throw (emu::fed::exception::ParseException)
 			{
 				XMLCh *name = xercesc::XMLString::transcode(item);
-				xercesc::DOMAttr *pAttributeNode;
-				try {
-					pAttributeNode = (xercesc::DOMAttr *) pAttributes_->getNamedItem(name);
-				} catch (xercesc::DOMException &e) {
-					XCEPT_RAISE(emu::fed::exception::ParseException, xercesc::XMLString::transcode(e.getMessage()));
+				xercesc::DOMAttr *pAttributeNode = (xercesc::DOMAttr *) pAttributes_->getNamedItem(name);
+				
+				if (pAttributeNode == NULL) {
+					std::ostringstream error;
+					error << "Attribute " << item << " does not appear to exist";
+					XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
 				}
+
 				std::stringstream scan;
 				scan.exceptions(std::stringstream::failbit | std::stringstream::badbit);
 				scan << xercesc::XMLString::transcode(pAttributeNode->getNodeValue());

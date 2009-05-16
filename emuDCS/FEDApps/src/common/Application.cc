@@ -1,47 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.4 2009/03/09 16:03:17 paste Exp $
-*
-* $Log: Application.cc,v $
-* Revision 1.4  2009/03/09 16:03:17  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
-* Revision 1.3  2009/03/05 18:48:55  paste
-* * Interface beautification, removal of explicit check for file in /tmp/
-*
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
-* Revision 3.1  2009/01/29 15:31:23  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 1.7  2008/11/15 13:59:15  paste
-* Added initial support for AJAX communication.
-*
-* Revision 1.6  2008/11/03 23:33:47  paste
-* Modifications to fix "missing stylesheet/javascript" problem.
-*
-* Revision 1.5  2008/10/29 16:01:44  paste
-* Updated interoperability with primative DCC commands, added new xdata variables for future use.
-*
-* Revision 1.4  2008/10/13 11:56:41  paste
-* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
-*
-* Revision 1.3  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
-*
-* Revision 1.2  2008/10/04 18:44:06  paste
-* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
-*
-* Revision 1.1  2008/08/25 13:33:31  paste
-* Forgot this one...
-*
-*
+* $Id: Application.cc,v 1.5 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -59,9 +17,10 @@
 
 emu::fed::Application::Application(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
-endcap_("?")
+systemName_("unnamed")
 {
-	getApplicationInfoSpace()->fireItemAvailable("endcap", &endcap_);
+
+	getApplicationInfoSpace()->fireItemAvailable("systemName", &systemName_);
 
 	xoap::bind(this, &emu::fed::Application::onGetParameters, "GetParameters", XDAQ_NS_URI);
 
@@ -233,7 +192,7 @@ std::string emu::fed::Application::Header(std::string myTitle, std::vector<std::
 	*out << cgicc::head() << std::endl;
 
 	// Dynamic backgrounds
-	*out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + endcap_.toString() + ".png);\">" << std::endl;
+	*out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + systemName_.toString() + ".png);\">" << std::endl;
 
 	*out << cgicc::fieldset()
 		.set("class","header") << std::endl;
@@ -252,7 +211,8 @@ std::string emu::fed::Application::Header(std::string myTitle, std::vector<std::
 		.set("style","float: right; width: 100px; height: 100px") << std::endl;
 
 	*out << cgicc::div(myTitle)
-		.set("class","title") << std::endl;
+		.set("class","title")
+		.set("id", "application_title") << std::endl;
 
 	*out << cgicc::div()
 		.set("class","expert_names") << std::endl;
@@ -505,3 +465,4 @@ std::string emu::fed::Application::printException(xcept::Exception &myException)
 	
 	return out.str();
 }
+

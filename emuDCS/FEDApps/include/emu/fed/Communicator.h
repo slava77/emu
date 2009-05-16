@@ -1,44 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.2 2009/03/09 16:03:16 paste Exp $
-*
-* $Log: Communicator.h,v $
-* Revision 1.2  2009/03/09 16:03:16  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
-* Revision 3.21  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.20  2008/10/22 20:23:57  paste
-* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
-*
-* Revision 3.19  2008/10/13 11:56:40  paste
-* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
-*
-* Revision 3.18  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.17  2008/08/18 08:30:14  paste
-* Update to fix error propagation from IRQ threads to CommunicatorManager.
-*
-* Revision 3.15  2008/08/15 16:14:50  paste
-* Fixed threads (hopefully).
-*
-* Revision 3.14  2008/08/15 10:40:20  paste
-* Working on fixing CAEN controller opening problems
-*
-* Revision 3.12  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: Communicator.h,v 1.3 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -69,6 +30,15 @@ namespace emu {
 			// HyperDAQ pages
 			/** Default HyperDAQ page **/
 			void webDefault(xgi::Input *in, xgi::Output *out);
+			
+			/** Get the status of the application and report in JSON **/
+			void webGetStatus(xgi::Input *in, xgi::Output *out);
+			
+			/** Change the type of configuration being used **/
+			void webChangeConfigMode(xgi::Input *in, xgi::Output *out);
+			
+			/** Change the name of the XML file used in configuring **/
+			void webChangeXMLFile(xgi::Input *in, xgi::Output *out);
 
 			// FSM transition call-back functions
 			/** Send the 'Configure' command to the crates **/
@@ -135,6 +105,12 @@ namespace emu {
 			/// The XML configuration file name.
 			xdata::String xmlFile_;
 			
+			/// The username for database communication.
+			xdata::String dbUsername_;
+			
+			/// The password for database communication.
+			xdata::String dbPassword_;
+			
 			//xdata::String errorChambers_;
 			
 			/// The target crate for TTS tests.
@@ -146,6 +122,9 @@ namespace emu {
 			/// The target FMM bits for TTS tests.
 			xdata::Integer ttsBits_;
 			
+			/// The way this application is set to be configured
+			xdata::String configMode_;
+			
 			/// A manager that takes care of FMM interrupt handling.
 			IRQThreadManager *TM_;
 			
@@ -154,8 +133,14 @@ namespace emu {
 			//xdata::Vector<xdata::UnsignedInteger> dccNumbers_;
 			//xdata::Vector<xdata::UnsignedInteger> cscNumbers_;
 			
-			/// Number of chambers with errors (for PageOne)
-			xdata::UnsignedInteger chambersWithErrors_;
+			/// Number of chambers with errors (for Page One)
+			xdata::UnsignedInteger fibersWithErrors_;
+			
+			/// The current DDU to DCC input rates (averaged across all DCCs and enabled FIFOs)
+			xdata::Float averageDCCInputRate_;
+			
+			/// The current DCC to S-Link output rates (averaged across all DCCs and S-Links)
+			xdata::Float averageDCCOutputRate_;
 			
 			/// The crates that this application controls.
 			std::vector<Crate *> crateVector_;

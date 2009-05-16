@@ -1,30 +1,12 @@
 /*****************************************************************************\
-* $Id: CrateParser.h,v 1.1 2009/03/05 16:07:52 paste Exp $
-*
-* $Log: CrateParser.h,v $
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.9  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.8  2008/09/19 16:53:51  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.7  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: CrateParser.h,v 1.2 2009/05/16 18:55:20 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATEPARSER_H__
 #define __EMU_FED_CRATEPARSER_H__
 
 #include <vector>
 #include <string>
-
+#include "emu/fed/Parser.h"
 #include "emu/fed/Exception.h"
 
 namespace emu {
@@ -32,34 +14,29 @@ namespace emu {
 
 		class Crate;
 
-		/** @class CrateParser A utility class that will parse a FED configuration XML file and build
-		*	from it a vector of FEDCrates.
+		/** @class CrateParser A utility class that will parse a FED configuration XML node and build from it a FED Crate object.
 		*	@sa Crate
 		**/
-		class CrateParser {
+		class CrateParser: public Parser
+		{
 		
 		public:
 
 			/** Default constructor.
 			*
-			*	@param fileName the name of the XML file to parse.
+			*	@param pNode the name of the XML file to parse.
 			**/
-			explicit CrateParser(const char* fileName)
-			throw (emu::fed::exception::ParseException, emu::fed::exception::FileException);
+			CrateParser(xercesc::DOMElement *pNode)
+			throw (emu::fed::exception::ParseException);
 
 			/** @returns a vector of the crates parsed from the XML file. **/
-			inline std::vector<Crate *> getCrates() { return crateVector_; }
-
-			/** @returns the name of this collection of FED crates parsed from the file. **/
-			inline std::string getName() { return name_; }
+			inline Crate *getCrate() { return crate_; }
 		
 		private:
 
 			/// The crates as parsed from the XML file, filled with the appropriate objects.
-			std::vector<Crate *> crateVector_;
+			Crate *crate_;
 
-			/// The name of the collection of FEDCrates from the XML file (typically the endcap).
-			std::string name_;
 		};
 
 	}

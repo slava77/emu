@@ -1,33 +1,5 @@
 /*****************************************************************************\
-* $Id: ChamberParser.cc,v 1.2 2009/04/14 22:59:13 paste Exp $
-*
-* $Log: ChamberParser.cc,v $
-* Revision 1.2  2009/04/14 22:59:13  paste
-* Version bump.
-* Added proper reporting of hardware with "tag" exception property.
-*
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.9  2009/01/30 19:14:16  paste
-* New emu::base namespace and emu::base::Supervised inheritance added.
-*
-* Revision 1.8  2009/01/29 15:31:23  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 1.7  2008/09/19 16:53:52  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 1.6  2008/08/26 13:09:02  paste
-* Documentation update.
-*
-* Revision 1.5  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: ChamberParser.cc,v 1.3 2009/05/16 18:55:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/ChamberParser.h"
 
@@ -40,8 +12,6 @@ emu::fed::ChamberParser::ChamberParser(xercesc::DOMElement *pNode)
 throw (emu::fed::exception::ParseException):
 Parser(pNode)
 {
-
-	chamber_ = new Chamber();
 
 	std::string chamberName, pCrateName;
 
@@ -66,27 +36,28 @@ Parser(pNode)
 		pCrateName = "VMEp0_0";
 	}
 
+	std::string endcap = "?";
+	unsigned int station = 0;
+	unsigned int ring = 0;
+	unsigned int number = 0;
 
-	if (sscanf(chamberName.c_str(), "%*c%1u/%1u/%02u", &(chamber_->station), &(chamber_->ring), &(chamber_->number)) != 3) {
+	if (sscanf(chamberName.c_str(), "%*c%1u/%1u/%02u", &station, &ring, &number) != 3) {
 		std::ostringstream error;
-		error << "Unable to parse chamber station, type, and number from '" << chamberName << "'";
+		error << "Unable to parse chamber station, ring, and number from '" << chamberName << "'";
 		XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
 	}
 
-	std::string endcapString(chamberName.substr(0,1));
-	chamber_->endcap = endcapString;
+	endcap = chamberName.substr(0,1);
+	
+	unsigned int pCrateTriggerSector = 0;
 
-	if (endcapString == "-") chamber_->plusMinus = -1;
-	else chamber_->plusMinus = 1;
-
-	if (!sscanf(pCrateName.c_str(), "VME%*c%*u_%u", &(chamber_->peripheralCrateVMECrate_))) {
+	if (!sscanf(pCrateName.c_str(), "VME%*c%*u_%u", &pCrateTriggerSector)) {
 		std::ostringstream error;
 		error << "Unable to parse chamber peripheral crate from '" << pCrateName << "'";
-		XCEPT_DECLARE(emu::fed::exception::ParseException, e2, error.str());
-		std::ostringstream tag;
-		tag << "chamber:" << chamber_->name();
-		e2.setProperty("tag", tag.str());
-		throw e2;
+		XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
 	}
+	
+	// Set names now.
+	chamber_ = new Chamber(endcap, station, ring, number, pCrateTriggerSector);
 
 }

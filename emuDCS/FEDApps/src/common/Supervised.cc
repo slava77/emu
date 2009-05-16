@@ -18,11 +18,14 @@ emu::fed::Supervised::Supervised(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
 emu::base::Supervised(stub),
 runNumber_(0),
-soapLocal_(false),
-soapConfigured_(false)
+ignoreSOAP_(false),
+fromSOAP_(true)
 {
 	getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
+	getApplicationInfoSpace()->fireItemAvailable("state", &state_); // lower case for me
+	getApplicationInfoSpace()->fireItemAvailable("ignoreSOAP", &ignoreSOAP_);
 	xgi::bind(this, &emu::fed::Supervised::webFire, "Fire");
+	xgi::bind(this, &emu::fed::Supervised::webIgnoreSOAP, "IgnoreSOAP");
 }
 
 
@@ -50,6 +53,19 @@ void emu::fed::Supervised::transitionFailed(toolbox::Event::Reference event)
 
 void emu::fed::Supervised::fireEvent(std::string name)
 {
+	if (fromSOAP_) {
+		if (ignoreSOAP_) {
+			std::ostringstream error;
+			error << "Ignoring SOAP event named " << name << " to application " << getApplicationDescriptor()->getClassName() << " instance " << getApplicationDescriptor()->getInstance();
+			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+			XCEPT_DECLARE(emu::fed::exception::FSMException, e2, error.str());
+			notifyQualified("WARN", e2);
+			return;
+		}
+	} else {
+		fromSOAP_ = true;
+	}
+	
 	toolbox::Event::Reference event((new toolbox::Event(name, this)));
 	try {
 		fsm_.fireEvent(event);
@@ -67,12 +83,10 @@ void emu::fed::Supervised::fireEvent(std::string name)
 void emu::fed::Supervised::webFire(xgi::Input *in, xgi::Output *out)
 {
 	cgicc::Cgicc cgi(in);
-	soapLocal_ = true;
+	fromSOAP_ = false;
 	
-	std::string action = "";
-	cgicc::form_iterator name = cgi.getElement("action");
-	if (name != cgi.getElements().end()) {
-		action = cgi["action"]->getValue();
+	if (cgi.getElement("action") != cgi.getElements().end()) {
+		std::string action = cgi["action"]->getValue();
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM state change from web requested: " << action);
 		try {
 			fireEvent(action);
@@ -85,13 +99,36 @@ void emu::fed::Supervised::webFire(xgi::Input *in, xgi::Output *out)
 		}
 	}
 	
-	std::string url = in->getenv("PATH_TRANSLATED");
-	url = url.substr(0, url.find("/" + in->getenv("PATH_INFO")));
+	if (cgi.getElement("ajax") != cgi.getElements().end() && cgi["ajax"]->getIntegerValue() == 1) {
 	
-	cgicc::HTTPResponseHeader &header = out->getHTTPResponseHeader();
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
 	
-	header.getStatusCode(303);
-	header.getReasonPhrase("See Other");
-	header.addHeader("Location", url);
+	} else {
+	
+		std::string url = in->getenv("PATH_TRANSLATED");
+		url = url.substr(0, url.find("/" + in->getenv("PATH_INFO")));
+		
+		cgicc::HTTPResponseHeader &header = out->getHTTPResponseHeader();
+		
+		header.getStatusCode(303);
+		header.getReasonPhrase("See Other");
+		header.addHeader("Location", url);
+	
+	}
+}
+
+
+
+void emu::fed::Supervised::webIgnoreSOAP(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	if (cgi.getElement("ignoreSOAP") != cgi.getElements().end()) {
+		ignoreSOAP_ = (cgi["ignoreSOAP"]->getIntegerValue() == 1 ? true : false);
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Ignore SOAP changed to " << ignoreSOAP_);
+	}
+
 }
 

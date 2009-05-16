@@ -1,17 +1,5 @@
 /*****************************************************************************\
-* $Id: AppsVersion.cc,v 1.2 2009/03/15 14:53:58 liu Exp $
-*
-* $Log: AppsVersion.cc,v $
-* Revision 1.2  2009/03/15 14:53:58  liu
-* fix include path
-*
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
+* $Id: AppsVersion.cc,v 1.3 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AppsVersion.h"
