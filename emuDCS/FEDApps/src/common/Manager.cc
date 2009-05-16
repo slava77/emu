@@ -1,61 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.5 2009/03/28 16:16:40 paste Exp $
-*
-* $Log: Manager.cc,v $
-* Revision 1.5  2009/03/28 16:16:40  paste
-* Changed the name of Manager state "Undefined" to "Indefinite".
-*
-* Revision 1.4  2009/03/27 17:02:02  paste
-* Shortened names of monitors reported from Manager to PageOne.
-* Fixed DDU KillFiber checking between XML and FPGA.
-* Fixed Monitor to correctly decode DCC FIFO status.
-*
-* Revision 1.3  2009/03/24 19:11:08  paste
-* Fixed a bug that made Manager always return a Failed state after Disable command
-*
-* Revision 1.2  2009/03/09 16:03:17  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
-* Revision 1.1  2009/03/05 16:18:25  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
-* Revision 1.27  2009/01/29 15:31:24  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 1.26  2008/11/03 23:33:47  paste
-* Modifications to fix "missing stylesheet/javascript" problem.
-*
-* Revision 1.25  2008/10/29 16:01:44  paste
-* Updated interoperability with primative DCC commands, added new xdata variables for future use.
-*
-* Revision 1.24  2008/10/22 20:23:58  paste
-* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
-*
-* Revision 1.23  2008/10/15 00:46:56  paste
-* Attempt to solve certain crashes on Enable/Disable commands.
-*
-* Revision 1.22  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to Manager page for future GUI use.
-*
-* Revision 1.21  2008/10/04 18:44:06  paste
-* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
-*
-* Revision 1.20  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 1.19  2008/08/18 08:30:15  paste
-* Update to fix error propagation from IRQ threads to Manager.
-*
-* Revision 1.18  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: Manager.cc,v 1.6 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -65,6 +9,8 @@
 #include "xgi/Method.h"
 #include "cgicc/HTMLClasses.h"
 #include "xdaq2rc/RcmsStateNotifier.h"
+#include "emu/base/Alarm.h"
+#include "emu/fed/JSONSpiritWriter.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Manager)
 
@@ -78,7 +24,7 @@ ttsID_(0),
 ttsBits_(0)
 {
 	// The name of the "endcap," which determines certain file names
-	endcap_ = "Manager";
+	systemName_ = "Manager";
 
 	// Variables that are to be made available to other applications
 	xdata::InfoSpace *infoSpace = getApplicationInfoSpace();
@@ -87,6 +33,7 @@ ttsBits_(0)
 
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Manager::webDefault, "Default");
+	xgi::bind(this, &emu::fed::Manager::webGetStatus, "GetStatus");
 
 	// SOAP call-back functions which fire the transitions to the FSM
 	BIND_DEFAULT_SOAP2FSM_ACTION(Manager, Configure);
@@ -146,353 +93,202 @@ ttsBits_(0)
 void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 {
 	
-	// This header manipulation will make inline SVG possible, I think.
-	/*
-	cgicc::HTTPResponseHeader newHeader("HTTP/1.1",200,"OK");
-	newHeader.addHeader("Content-Type","application/xhtml+xml");
-	out->setHTTPResponseHeader(newHeader);
-	*/
-
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("errorFlasher.js");
-	jsFileNames.push_back("reload.js");
+	jsFileNames.push_back("common.js");
+	jsFileNames.push_back("manager.js");
 	*out << Header("FED Crate Manager", jsFileNames);
 
-	// Manual state changing
+	
+	// Current condition of the FED system
+	*out << cgicc::div()
+		.set("class", "titlebar")
+		.set("id", "FED_System_Status_titlebar") << std::endl;
+	*out << cgicc::div("FED System Status")
+		.set("class", "titletext") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "statusbar")
+		.set("id", "FED_System_Status_statusbar") << std::endl;
+	*out << cgicc::div("Time since last update:")
+		.set("class", "timetext") << std::endl;
+	*out << cgicc::div("0:00")
+		.set("class", "loadtime")
+		.set("id", "FED_System_Status_loadtime") << std::endl;
+	*out << cgicc::img()
+		.set("class", "loadicon")
+		.set("id", "FED_System_Status_loadicon")
+		.set("src", "/emu/emuDCS/FEDApps/images/empty.gif")
+		.set("alt", "Loading...") << std::endl;
+	*out << cgicc::br()
+		.set("class", "clear") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << std::endl;
-	*out << cgicc::div("Manual state changes")
-		.set("class","legend") << std::endl;
-
-	*out << cgicc::div();
-	*out << "Present state: ";
-	*out << cgicc::span(state_.toString())
-		.set("class",state_.toString()) << std::endl;
+		.set("class", "dialog")
+		.set("id", "FED_System_Status_dialog") << std::endl;
+	
+	*out << cgicc::img()
+		.set("id", "statusicon")
+		.set("src", "/emu/emuDCS/FEDApps/images/dialog-warning.png")
+		.set("alt", "Status Icon") << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "category") << std::endl;
+	*out << "Current state: ";
+	*out << cgicc::span("Unknown")
+		.set("class", "Unknown")
+		.set("id", "manager_state") << std::endl;
 	*out << cgicc::div() << std::endl;
-
-	// PGK You can't change states if you have been configured from above.
+	
+	*out << cgicc::div()
+		.set("class", "description")
+		.set("id", "status_description") << std::endl;
+	*out << "The Manager has not yet contacted the Communicator applications.  Until that happens, the system will be in an unknown state." << std::endl;
 	*out << cgicc::div() << std::endl;
-	if (!soapConfigured_) {
-		*out << cgicc::form()
-			.set("style","display: inline;")
-			.set("action","/" + getApplicationDescriptor()->getURN() + "/Fire")
-			.set("method","GET") << std::endl;
-		if (state_.toString() == "Halted" || state_.toString() == "Configured") {
-			*out << cgicc::input()
-				.set("name","action")
-				.set("type","submit")
-				.set("value","Configure") << std::endl;
-		}
-		if (state_.toString() == "Configured") {
-			*out << cgicc::input()
-				.set("name","action")
-				.set("type","submit")
-				.set("value","Enable") << std::endl;
-		}
-		if (state_.toString() == "Enabled") {
-			*out << cgicc::input()
-				.set("name","action")
-				.set("type","submit")
-				.set("value","Disable") << std::endl;
-		}
-		*out << cgicc::input()
-			.set("name","action")
-			.set("type","submit")
-			.set("value","Halt") << std::endl;
-		*out << cgicc::form() << std::endl;
-
-	} else {
-		*out << "Manager has been configured through SOAP." << std::endl;
-		*out << cgicc::br() << "Send the Halt signal through SOAP to manually change states." << std::endl;
-	}
+	
+	*out << cgicc::div()
+		.set("class", "description") << std::endl;
+	cgicc::input checkBox;
+	checkBox.set("type", "checkbox")
+		.set("id", "enable_buttons")
+		.set("name", "enable_buttons");
+	std::string disableButtons = "true";
+	if (ignoreSOAP_) checkBox.set("checked", "true");
+	*out << checkBox << std::endl;
+	*out << cgicc::label()
+		.set("for", "enable_buttons") << std::endl;
+	*out << "Enable manual state changes (not recommended)" << std::endl;
+	*out << cgicc::label() << std::endl;
 	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::button()
+		.set("class", "left button statechange")
+		.set("id", "halt_button")
+		.set("command", "Halt")
+		.set("disabled", "true")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("id", "halt_icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/process-stop.png");
+	*out << "Halt" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
+	*out << cgicc::button()
+		.set("class", "right button statechange")
+		.set("id", "enable_button")
+		.set("command", "Enable")
+		.set("disabled", "true")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("id", "previous_icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/go-next.png");
+	*out << "Enable" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
+	*out << cgicc::button()
+		.set("class", "right button statechange")
+		.set("id", "disable_button")
+		.set("command", "Disable")
+		.set("disabled", "true")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("id", "next_icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/go-previous.png");
+	*out << "Disable" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
+	*out << cgicc::button()
+		.set("class", "right button statechange")
+		.set("id", "configure_button")
+		.set("command", "Configure")
+		.set("disabled", "true")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("id", "next_icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
+	*out << "Configure" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
 	*out << cgicc::fieldset() << std::endl;
-
-
-	// Communicator states
+	
+	
+	// Current condition of the individual Communicator systems
+	*out << cgicc::div()
+		.set("class", "titlebar")
+		.set("id", "FED_Communicator_Status_titlebar") << std::endl;
+	*out << cgicc::div("FED Communicator Application Status")
+		.set("class", "titletext");
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "statusbar")
+		.set("id", "FED_Communicator_Status_statusbar") << std::endl;
+	*out << cgicc::div("Time since last update:")
+		.set("class", "timetext") << std::endl;
+	*out << cgicc::div("0:00")
+		.set("class", "loadtime")
+		.set("id", "FED_Communicator_Status_loadtime") << std::endl;
+	*out << cgicc::img()
+		.set("class", "loadicon")
+		.set("id", "FED_Communicator_Status_loadicon")
+		.set("src", "/emu/emuDCS/FEDApps/images/empty.gif")
+		.set("alt", "Loading...") << std::endl;
+	*out << cgicc::br()
+		.set("class", "clear") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
 	*out << cgicc::fieldset()
-		.set("class","fieldset") << std::endl;
-	*out << cgicc::div("Communicator states")
-		.set("class","legend") << std::endl;
-
-	std::set<xdaq::ApplicationDescriptor * > descriptors =
-	getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("emu::fed::Communicator");
-
-	std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
-    for ( itDescriptor = descriptors.begin(); itDescriptor != descriptors.end(); itDescriptor++ ) {
-
-		// PGK ping the Communicators for their informations.
-		//  This will be used from here on out instead of the status table.
-		xoap::MessageReference reply;
-		try {
-			reply = getParameters((*itDescriptor));
-		} catch (emu::fed::exception::SOAPException &e) {
-			std::ostringstream error;
-			error << "Unable to get parameters from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-			notifyQualified("ERROR", e2);
-		}
-
-		xdata::String endcap = "?";
-		try {
-			endcap = readParameter<xdata::String>(reply,"endcap");
-		} catch (emu::fed::exception::SOAPException &e) {
-			std::ostringstream error;
-			error << "Unable to read parameter 'endcap' from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
-			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-			notifyQualified("WARN", e2);
-		}
+		.set("class", "dialog")
+		.set("id", "FED_Communicator_Status_dialog") << std::endl;
 		
-		std::stringstream className;
-		className << (*itDescriptor)->getClassName() << "(" << (*itDescriptor)->getInstance() << ") " << endcap.toString();
-		std::stringstream url;
-		url << (*itDescriptor)->getContextDescriptor()->getURL() << "/" << (*itDescriptor)->getURN();
-
-		*out << cgicc::div()
-			.set("style","clear: both");
-
-		*out << cgicc::a(className.str())
-			.set("href",url.str()) << std::endl;
-
-		*out << " Present state: " << std::endl;
-		xdata::String currentState = "Unknown";
-		try {
-			currentState = readParameter<xdata::String>(reply,"State");
-		} catch (emu::fed::exception::SOAPException &e) {
-			std::ostringstream error;
-			error << "Unable to read parameter 'State' from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
-			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-			notifyQualified("WARN", e2);
-		}
-		*out << cgicc::span(currentState)
-			.set("class",currentState) << std::endl;
-
-		xdata::String xmlFileName = "?";
-		try {
-			xmlFileName = readParameter<xdata::String>(reply,"xmlFileName");
-		} catch (emu::fed::exception::SOAPException &e) {
-			std::ostringstream error;
-			error << "Unable to read parameter 'xmlFileName' from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
-			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-			notifyQualified("WARN", e2);
-		}
-		*out << cgicc::br() << std::endl;
-		*out << cgicc::span("Configuration located at " + xmlFileName.toString())
-		.set("style","color: #A00; font-size: 10pt;") << std::endl;
-		*out << cgicc::br() << std::endl;
-
-		*out << cgicc::div();
-
-		// Print a table of all the DCC input and output rates.
-		/*
-		if (currentState == "Enabled") {
-
-			xdata::String errorChambers = readParameter<xdata::String>(reply,"errorChambers");
-
-			//LOG4CPLUS_DEBUG(getApplicationLogger(),"I think that there are " << errorChambers.size() << " errors to read out.");
-
-			if (errorChambers != "") {
-				*out << cgicc::div()
-					<< "Chambers in an error state: " << std::endl;
-				*out << cgicc::span()
-					.set("class","error") << std::endl;
-				*out << errorChambers.toString();
-				*out << cgicc::span() << std::endl;
-				*out << cgicc::div() << std::endl;
-			}
-
-			// PGK The reply is a std::vector of std::vectors of integers.
-			// The outer std::vector is indexed by crates.
-			// The inner std::vector contains the data from the DCC, with element [0]
-			//  being the crate number,
-			//  element [1] being the Slink output,
-			//  elements [2] through [7] being the fiber inputs to the DCC.
-			//
-			// The math here is wicked-squiggly, so don't try to follow it.
-			//  I should probably clean it up.
-			xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > dccInOut = readParameter<xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > >(reply,"dccInOut");
-
-			xdata::Vector<xdata::Vector<xdata::UnsignedInteger> >::iterator iCrate;
-			for (iCrate = dccInOut.begin(); iCrate != dccInOut.end(); iCrate++) {
-				std::stringstream style;
-				style << "margin: 10px auto 10px auto; width: 45%; float: " << ((*iCrate)[0] % 2 ? "left;" : "right;");
-				*out << cgicc::div()
-					.set("style", style.str()) << std::endl;
-				*out << cgicc::table()
-					.set("style","border-collapse: collapse; border: solid 2px #000; width: 100%;") << std::endl;
-				*out << cgicc::tr()
-					.set("style","background-color: #000; color: #FFF; text-align: center; border-bottom: solid 1px #000; font-size: 14pt; font-weight: bold;")  << std::endl;
-				*out << cgicc::td()
-					.set("colspan","5") << std::endl;
-				*out << "Data Rates for Crate " << (*iCrate)[0] << cgicc::td() << std::endl;
-				*out << cgicc::tr() << std::endl;
-				*out << cgicc::tr() << std::endl;
-				for (unsigned int i=2; i<7; i++) {
-					unsigned int slot = (i % 2) ? 15 - (i+1)/2 : i/2 + 2;
-					*out << cgicc::td()
-						.set("style","border: solid 1px #000; background-color: #FFF;") << std::endl;
-					*out << "Slot " << slot << cgicc::br() << (*iCrate)[i] << std::endl;
-					*out << cgicc::td() << std::endl;
-				}
-				*out << cgicc::tr() << std::endl;
-				*out << cgicc::tr()
-					.set("style","background-color: #FFF; text-align: center; border-bottom: solid 1px #000; font-weight: bold;") << std::endl;
-				*out << cgicc::td()
-					.set("colspan","5") << std::endl;
-				*out << "Slink Output 1: " << (*iCrate)[1] << cgicc::td() << cgicc::tr() << std::endl;
-				*out << cgicc::tr() << std::endl;
-				for (unsigned int i=8; i<13; i++) {
-					unsigned int slot = (i % 2) ? (i-1)/2 + 2 : 15 - i/2;
-					*out << cgicc::td()
-						.set("style","border: solid 1px #000; background-color: #FFF;") << std::endl;
-					*out << "Slot " << slot << cgicc::br() << (*iCrate)[i] << std::endl;
-					*out << cgicc::td() << std::endl;
-				}
-				*out << cgicc::tr() << std::endl;
-				*out << cgicc::tr()
-					.set("style","background-color: #FFF; text-align: center; border-bottom: solid 1px #000; font-weight: bold;") << std::endl;
-				*out << cgicc::td()
-					.set("colspan","5") << std::endl;
-				*out << "Slink Output 2: " << (*iCrate)[7] << cgicc::td() << cgicc::tr() << std::endl;
-				*out << cgicc::table() << std::endl;
-				*out << cgicc::div() << std::endl;
-			}
-		}
-		*/
-		
-		*out << cgicc::br() << std::endl;
-	}
-
+	*out << cgicc::div("Waiting for data from the Communicator applications...")
+		.set("class", "description deleteme") << std::endl;
+	
 	*out << cgicc::fieldset() << std::endl;
+	
+	*out << cgicc::textarea()
+		.set("id", "debug")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::textarea() << std::endl;
 
-	// Testing SVG
-	/*
-	// Radius of an individual station in px
-	unsigned int stationRadius = 100;
-	
-	// Spacing between stations (and sides of SVG canvas) in px
-	unsigned int stationSpacing = 10;
-	
-	// Proportions of chamber sizes in "normal" stations, inside out
-	std::vector<float> normalSizes;
-	normalSizes.push_back(0.8);
-	normalSizes.push_back(1);
-	
-	// Proportions of chamber sizes in ME1/1 stations, inside out
-	std::vector<float> me11Sizes;
-	me11Sizes.push_back(0.8);
-	me11Sizes.push_back(0.9);
-	me11Sizes.push_back(1);
-	
-	// Proportions of misc. other things
-	float centerSize = 0.5;
-	float ringSpacing = 0.05;
-	
-	// Draw the canvas
-	*out << "<!--svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" << (4 * stationRadius * 2 + 5 * stationSpacing) << "\" height=\"" << (4 * stationRadius + 3 * stationSpacing) << "\" style=\"margin: 5px auto 5px auto;\">" << std::endl;
-	
-	// Loop over endcaps
-	for (unsigned int iEndcap = 1; iEndcap <= 2; iEndcap++) {
-		
-		// Loop over stations
-		for (unsigned int iStation = 1; iStation <= 4; iStation++) {
-			
-			// Draw the ring itself
-			unsigned int centerX = (stationRadius * 2 + stationSpacing) * iStation - stationRadius;
-			unsigned int centerY = (stationRadius * 2 + stationSpacing) * iEndcap - stationRadius;
-			
-			*out << "<circle cx=\"" << centerX << "\" cy=\"" << centerY << "\" r=\"" << stationRadius << "\" stroke=\"#000\" stroke-width=\"3\" fill=\"#FFF\" />" << std::endl;
-			
-			// Calculate sizes of things
-			std::vector<float> radii;
-			
-			// Station 1 is different
-			std::vector<float> sizes;
-			if (iStation == 1) sizes = me11Sizes;
-			else sizes = normalSizes;
-			
-			float total = 0;
-			for (std::vector<float>::iterator iSize = sizes.begin(); iSize != sizes.end(); iSize++) {
-				total += (*iSize);
-			}
-			
-			float totalSizes = centerSize + ringSpacing * (sizes.size() - 1) + total;
-			
-			float radiusCache = centerSize/totalSizes * stationRadius;
-			
-			for (std::vector<float>::iterator iSize = sizes.begin(); iSize != sizes.end(); iSize++) {
+	*out << Footer() << std::endl;
 
-				radii.push_back(radiusCache);
-				radii.push_back(radiusCache + (*iSize)/totalSizes * stationRadius);
-				
-				radiusCache += ringSpacing/totalSizes * stationRadius + (*iSize)/totalSizes * stationRadius;
-			}
-			
-			// Start drawing chambers
-			for (unsigned int iRing = 1; iRing <= sizes.size(); iRing++) {
-				
-				// Number of chambers in this ring.
-				unsigned int nChambers = 18;
-				if (iStation == 1 || iRing == 2) {
-					nChambers = 36;
-				}
-				
-				// The verticies of the trapizoid
-				std::vector<float> xPoints(1,0);
-				std::vector<float> yPoints(1,0);
-				xPoints.reserve(4);
-				yPoints.reserve(4);
-				
-				xPoints.push_back(cos(3.14159265/nChambers) * sin(3.14159265/nChambers) * 2 * radii[2 * (iRing - 1) + 1]);
-				yPoints.push_back(sin(3.14159265/nChambers) * sin(3.14159265/nChambers) * 2 * radii[2 * (iRing - 1) + 1]);
-				
-				xPoints.push_back(cos(3.14159265/nChambers) * sin(3.14159265/nChambers) * 2 * radii[2 * (iRing - 1)]);
-				yPoints.push_back(sin(3.14159265/nChambers) * sin(3.14159265/nChambers) * 2 * radii[2 * (iRing - 1)] + radii[2 * (iRing - 1) + 1] - radii[2 * (iRing - 1)]);
-				
-				xPoints.push_back(0);
-				yPoints.push_back(radii[2 * (iRing - 1) + 1] - radii[2 * (iRing - 1)]);
-				
-				// The starting angle for chamber 1
-				float angularOffset = 90;
-				if (nChambers == 18) {
-					angularOffset -= 10;
-				}
-				
-				// Draw the chamber and move it to the appropriate location
-				for (unsigned int iChamber = 1; iChamber <= nChambers; iChamber++) {
-					
-					// Set the status
-					std::string status = "killed";
-					if (iStation == 4 && iRing == 2) {
-						status = "undefined";
-					}
-					
-					float angle = angularOffset - (360/nChambers * (iChamber - 1));
-					
-					// Rotate and move the group
-					*out << "<g transform=\"rotate(" << angle << " " << centerX << " " << centerY << ") translate(" << centerX << " " << ((stationRadius * 2 + stationSpacing) * iEndcap - stationRadius - radii[2 * (iRing - 1) + 1]) << ")\" >" << std::endl;
-					
-					// Draw the chamber
-					*out << "<polygon id=\"" << (iEndcap == 1 ? "p" : "m") << iStation << "_" << iRing << "_" << iChamber << "\" stroke=\"#000\" stroke-width=\"1\" class=\"" << status << "\" points=\"";
-					for (unsigned int iPoint = 0; iPoint < 4; iPoint++) {
-						*out << xPoints[iPoint] << "," << yPoints[iPoint] << " ";
-					}
-					*out << "\" />" << std::endl;
-					*out << "</g>" << std::endl;
-				}
-			}
-		}
-		
+}
+
+
+
+void emu::fed::Manager::webGetStatus(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
 	}
 	
-	*out << "</svg-->" << std::endl;
-	*/
-	*out << Footer();
-
+	// Make a JSON output object
+	JSONSpirit::Object output;
+	
+	// First get the info from the underlying states
+	JSONSpirit::Array underlyingStatus = getUnderlyingStatus();
+	
+	// Calculate my state
+	std::string myState = getManagerState(state_.toString(), underlyingStatus);
+	
+	// Add that to the JSON output
+	output.push_back(JSONSpirit::Pair("state", myState));
+	output.push_back(JSONSpirit::Pair("communicators", underlyingStatus));
+	
+	// And now return everything as JSON
+	*out << JSONSpirit::write(output);
 }
 
 
@@ -504,104 +300,72 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 	std::ostringstream managerURL;
 	managerURL << getApplicationDescriptor()->getContextDescriptor()->getURL() << "/" << getApplicationDescriptor()->getURN();
 	
-	// FSM state
-	std::string underlyingStates = getUnderlyingStates(state_.toString());
-	report.push_back(emu::base::WebReportItem("State", underlyingStates, "Current state of the FED finite state machine", "", "", managerURL.str()));
+	// Application title
+	report.push_back(emu::base::WebReportItem("title", "FED System", "", "", "", managerURL.str()));
 	
-	// FMM errors per endcap
-	std::set<xdaq::ApplicationDescriptor * > communicatorDescriptors = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("emu::fed::Communicator");
+	// States of underlying Communicators
+	JSONSpirit::Array underlyingStatus = getUnderlyingStatus();
 	
-	std::set<xdaq::ApplicationDescriptor * > monitorDescriptors = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("emu::fed::Monitor");
+	// Calculate my state
+	report.push_back(emu::base::WebReportItem("State", getManagerState(state_.toString(), underlyingStatus), "Current state of the FED finite state machine", "", "", managerURL.str()));
 	
-	std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
-	for ( itDescriptor = communicatorDescriptors.begin(); itDescriptor != communicatorDescriptors.end(); itDescriptor++ ) {
+	float dccInRate = 0;
+	float dccOutRate = 0;
+	
+	// So I can average out my systems
+	unsigned int nSystems = 0;
+	
+	for (JSONSpirit::Array::const_iterator iApp = underlyingStatus.begin(); iApp != underlyingStatus.end(); iApp++) {
 		
-		// Ping the Communicators for their information.
-		xoap::MessageReference reply;
-		try {
-			reply = getParameters((*itDescriptor));
-		} catch (emu::fed::exception::SOAPException &e) {
-			std::ostringstream error;
-			error << "Unable to get parameters from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-			notifyQualified("ERROR", e2);
-		}
-		
-		xdata::String endcap = "Unknown";
-		try {
-			endcap = readParameter<xdata::String>(reply,"endcap");
-		} catch (emu::fed::exception::SOAPException &e) {
-			std::ostringstream error;
-			error << "Unable to read parameter 'endcap' from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
-			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-			notifyQualified("WARN", e2);
-		}
-		
-		xdata::UnsignedInteger chambersWithErrors = 0;
-		try {
-			chambersWithErrors = readParameter<xdata::UnsignedInteger>(reply,"chambersWithErrors");
-		} catch (emu::fed::exception::SOAPException &e) {
-			std::ostringstream error;
-			error << "Unable to read parameter 'chambersWithErrors' from application '" << (*itDescriptor)->getClassName() << "' instance " << (*itDescriptor)->getInstance();
-			LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-			notifyQualified("WARN", e2);
-			continue;
-		}
-		
-		// Figure out which monitor matches this communicator
-		std::string monitorURL;
-		std::set <xdaq::ApplicationDescriptor *>::iterator jDescriptor;
-		for ( jDescriptor = monitorDescriptors.begin(); jDescriptor != monitorDescriptors.end(); jDescriptor++ ) {
-			// Ping the Monitors for their information.
-			xoap::MessageReference monitorReply;
-			try {
-				monitorReply = getParameters((*jDescriptor));
-			} catch (emu::fed::exception::SOAPException &e) {
-				std::ostringstream error;
-				error << "Unable to get parameters from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
-				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-				XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-				notifyQualified("WARN", e2);
-				continue;
+		std::string systemName = "?";
+		std::string fmmErrors = "0";
+		std::string url = "";
+
+		JSONSpirit::Object appObject = (*iApp).get_obj();
+		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
+			
+			// System name
+			if (iPair->name_ == "systemName") {
+				if (iPair->value_.get_str() == "Track-Finder") systemName = "TF";
+				else if (iPair->value_.get_str() == "Plus-Side") {
+					systemName = "ME+";
+					nSystems++;
+				} else if (iPair->value_.get_str() == "Minus-Side") {
+					systemName = "ME-";
+					nSystems++;
+				}
+			}
+	
+			// FMM errors per endcap
+			else if (iPair->name_ == "fibersWithErrors") {
+				std::ostringstream fiberStream;
+				fiberStream << iPair->value_.get_int();
+				fmmErrors = fiberStream.str();
 			}
 			
-			xdata::String monitorEndcap = "Unknown";
-			try {
-				monitorEndcap = readParameter<xdata::String>(monitorReply,"endcap");
-			} catch (emu::fed::exception::SOAPException &e) {
-				std::ostringstream error;
-				error << "Unable to read parameter 'endcap' from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
-				LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-				XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
-				notifyQualified("WARN", e2);
-				continue;
-			}
+			// Sum up dcc input/output averages
+			else if (iPair->name_ == "averageDCCInputRate") dccInRate += iPair->value_.get_real();
+			else if (iPair->name_ == "averageDCCOutputRate") dccOutRate += iPair->value_.get_real();
 			
-			if (monitorEndcap == endcap) {
-				std::ostringstream monitorURLStream;
-				monitorURLStream << (*jDescriptor)->getContextDescriptor()->getURL() << "/" << (*jDescriptor)->getURN();
-				monitorURL = monitorURLStream.str();
-			}
+			// Figure out my monitor's URL
+			else if (iPair->name_ == "monitorURL") url = iPair->value_.get_str();
 		}
 		
-		std::string problem = "";
-		if (chambersWithErrors) {
-			problem = "Errors reported";
-			if (monitorURL != "") {
-				problem += ":  click to view the appropriate Monitor application";
-			}
-		}
-		
-		std::string shortEndcap = "?";
-		if (endcap.toString() == "Plus-Side") shortEndcap = "ME+";
-		else if (endcap.toString() == "Minus-Side") shortEndcap = "ME-";
-		else if (endcap.toString() == "Track-Finder") shortEndcap = "TF";
-		report.push_back(emu::base::WebReportItem(shortEndcap + " Errors", chambersWithErrors.toString(), "Number of chambers currently reporting errors (since the last reset or resync)", problem, "", monitorURL));
-		
+		// Push back the report for the system
+		report.push_back(emu::base::WebReportItem(systemName + " Errors", fmmErrors, "Number of fiber inputs currently reporting errors (since the last reset or resync)", "", "", url));
 	}
+	
+	// Push back the heartbeats
+	if (nSystems > 1) {
+		dccInRate /= nSystems;
+		dccOutRate /= nSystems;
+	}
+	std::ostringstream inRateStream;
+	inRateStream << dccInRate;
+	std::ostringstream outRateStream;
+	outRateStream << dccOutRate;
+	report.push_back(emu::base::WebReportItem("DCC Average Input Rate", inRateStream.str(), "DCC input rate averaged over all DDUs", "", "", ""));
+	report.push_back(emu::base::WebReportItem("Dcc Average Output Rate", outRateStream.str(), "DCC output rate averaged over all S-Links", "", "", ""));
 	
 	return report;
 }
@@ -612,13 +376,6 @@ void emu::fed::Manager::configureAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Configure");
-
-	if (soapLocal_) {
-		soapLocal_ = false;
-		soapConfigured_ = false;
-	} else {
-		soapConfigured_ = true;
-	}
 
 	if (state_.toString() != "Halted") {
 		std::ostringstream error;
@@ -641,7 +398,7 @@ throw (toolbox::fsm::exception::Exception)
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e2);
 	}
 
-	std::string underlyingStates = getUnderlyingStates("Configured");
+	std::string underlyingStates = getManagerState("Configured", getUnderlyingStatus());
 	if (underlyingStates == "Failed") {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
@@ -668,7 +425,6 @@ void emu::fed::Manager::enableAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Enable");
-	soapLocal_ = false;
 
 	if (state_.toString() != "Configured") {
 		std::ostringstream error;
@@ -705,7 +461,7 @@ throw (toolbox::fsm::exception::Exception)
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e2);
 	}
 
-	std::string underlyingStates = getUnderlyingStates("Enabled");
+	std::string underlyingStates = getManagerState("Enabled", getUnderlyingStatus());
 	if (underlyingStates == "Failed") {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
@@ -732,7 +488,6 @@ void emu::fed::Manager::disableAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transtion received:  Disable");
-	soapLocal_ = false;
 
 	if (state_.toString() != "Enabled") {
 		std::ostringstream error;
@@ -758,7 +513,7 @@ throw (toolbox::fsm::exception::Exception)
 		}
 	}
 
-	std::string underlyingStates = getUnderlyingStates("Configured");
+	std::string underlyingStates = getManagerState("Configured", getUnderlyingStatus());
 	if (underlyingStates == "Failed") {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
@@ -785,8 +540,6 @@ void emu::fed::Manager::haltAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Halt");
-	soapLocal_ = false;
-	soapConfigured_ = false;
 
 	try{
 		sendSOAPCommand("Halt","emu::fed::Communicator");
@@ -799,7 +552,7 @@ throw (toolbox::fsm::exception::Exception)
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e2);
 	}
 
-	std::string underlyingStates = getUnderlyingStates("Halted");
+	std::string underlyingStates = getManagerState("Halted", getUnderlyingStatus());
 	if (underlyingStates == "Failed") {
 		std::ostringstream error;
 		error << "Failure in achieving consistant underlying FSM states";
@@ -829,55 +582,38 @@ void emu::fed::Manager::unknownAction(toolbox::Event::Reference event)
 	LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 	XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
 	notifyQualified("WARN", e);
-	
-	soapLocal_ = false;
-	soapConfigured_ = false;
 }
 
 
 
-std::string emu::fed::Manager::getUnderlyingStates(std::string targetState)
+std::string emu::fed::Manager::getManagerState(std::string targetState, JSONSpirit::Array underlyingStatus)
 {
-	// Check to see if I should fail based on the statuses of the Communicators.
-	std::set<xdaq::ApplicationDescriptor *> apps;
-	try {
-		apps = getApplicationContext()->getDefaultZone()->getApplicationDescriptors("emu::fed::Communicator");
-	} catch (xdaq::exception::ApplicationDescriptorNotFound &e) {
-		std::ostringstream error;
-		error << "Communicator applications not found";
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
-		notifyQualified("WARN", e2);
-		return state_.toString();
-	}
 	
 	// This map is to make sure everybody is in the same state.
 	std::map<std::string, unsigned int> stateMap;
-	for (std::set<xdaq::ApplicationDescriptor *>::iterator iApp = apps.begin(); iApp != apps.end(); iApp++) {
-		xdata::String currentState = "";
-		try {
-			xoap::MessageReference reply = getParameters((*iApp));
-			currentState = readParameter<xdata::String>(reply,"State");
-		} catch (emu::fed::exception::SOAPException &e) {
-			std::ostringstream error;
-			error << "Error in reading state from one or more Communicator application";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
-			notifyQualified("FATAL", e2);
-			return "Failed";
+	
+	for (JSONSpirit::Array::const_iterator iApp = underlyingStatus.begin(); iApp != underlyingStatus.end(); iApp++) {
+		
+		JSONSpirit::Object appObject = (*iApp).get_obj();
+		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
+			if (iPair->name_ == "state") {
+				std::string state = iPair->value_.get_str();
+				LOG4CPLUS_DEBUG(getApplicationLogger(), "State of underlying Communicator: " << state);
+				
+				if (state == "Failed" || state == "Unknown") {
+					std::ostringstream error;
+					error << "One or more Communicator application is in a Failed or Unknown state";
+					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+					XCEPT_DECLARE(emu::fed::exception::SoftwareException, e, error.str());
+					notifyQualified("FATAL", e);
+					return "Failed";
+				}
+				
+				stateMap[state]++;
+				break;
+			}
 		}
 		
-		LOG4CPLUS_DEBUG(getApplicationLogger(),(*iApp)->getClassName() << "(" << (*iApp)->getInstance() << ") shows status: " << currentState.toString());
-		stateMap[currentState.toString()]++;
-		
-		if (currentState == "Failed") {
-			std::ostringstream error;
-			error << "One or more Communicator application is in a failed state";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			XCEPT_DECLARE(emu::fed::exception::SoftwareException, e, error.str());
-			notifyQualified("FATAL", e);
-			return "Failed";
-		}
 	}
 	
 	if (stateMap.size() > 1) {
@@ -890,7 +626,7 @@ std::string emu::fed::Manager::getUnderlyingStates(std::string targetState)
 	}
 
 	if (stateMap.size() == 0 || stateMap.begin()->first != targetState) {
-	std::ostringstream error;
+		std::ostringstream error;
 		error << "Communicator applications are not in the target state of " << targetState;
 		XCEPT_DECLARE(emu::fed::exception::SoftwareException, e, error.str());
 		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
@@ -900,6 +636,79 @@ std::string emu::fed::Manager::getUnderlyingStates(std::string targetState)
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "All Communicator applications are in the target state of " << targetState);
 	return targetState;
+}
+
+
+
+JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
+{
+	
+	JSONSpirit::Array returnMe;
+	
+	std::set<xdaq::ApplicationDescriptor *> descriptors = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("emu::fed::Communicator");
+	
+	for (std::set<xdaq::ApplicationDescriptor *>::iterator iDescriptor = descriptors.begin(); iDescriptor != descriptors.end(); iDescriptor++) {
+	
+		JSONSpirit::Object applicationObject;
+		
+		applicationObject.push_back(JSONSpirit::Pair("instance", (int) (*iDescriptor)->getInstance()));
+		
+		std::ostringstream urlStream;
+		urlStream << (*iDescriptor)->getContextDescriptor()->getURL() << "/" << (*iDescriptor)->getURN();
+		applicationObject.push_back(JSONSpirit::Pair("url", urlStream.str()));
+		
+		// Ping the Communicators for their information.
+		xoap::MessageReference reply;
+		try {
+			reply = getParameters((*iDescriptor));
+			REVOKE_ALARM("ManagerGetStatus", NULL);
+		} catch (emu::fed::exception::SOAPException &e) {
+			std::ostringstream error;
+			error << "Unable to get parameters from application '" << (*iDescriptor)->getClassName() << "' instance " << (*iDescriptor)->getInstance();
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::SOAPException, "ManagerGetStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+			continue;
+		}
+		
+		JSONSpirit::Pair systemNamePair = toJSONPair<xdata::String, std::string>(reply, "systemName", "(unnamed instance)");
+		applicationObject.push_back(systemNamePair);
+		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "state", "Unknown"));
+		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "configMode", "Unknown"));
+		applicationObject.push_back(toJSONPair<xdata::Boolean, bool>(reply, "ignoreSOAP", false));
+		applicationObject.push_back(toJSONPair<xdata::UnsignedInteger, int>(reply, "fibersWithErrors", 0));
+		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "averageDCCInputRate", 0));
+		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "averageDCCOutputRate", 0));
+		
+		// Get the Monitor URL that matches this application
+		// Figure out which monitor matches this communicator
+		std::string monitorURL;
+		try {
+			xdaq::ApplicationDescriptor *monitorApp = findMatchingApplication<xdata::String, std::string>("emu::fed::Monitor", "systemName", systemNamePair.value_.get_str());
+			std::ostringstream monitorStream;
+			monitorStream << monitorApp->getContextDescriptor()->getURL() << "/" << monitorApp->getURN();
+			monitorURL = monitorStream.str();
+		} catch (emu::fed::exception::SoftwareException &e) {
+			// do nothing
+		}
+		applicationObject.push_back(JSONSpirit::Pair("monitorURL", monitorURL));
+		
+		// Do the same for the Commander applications
+		std::string commanderURL;
+		try {
+			xdaq::ApplicationDescriptor *commanderApp = findMatchingApplication<xdata::String, std::string>("emu::fed::Commander", "systemName", systemNamePair.value_.get_str());
+			std::ostringstream commanderStream;
+			commanderStream << commanderApp->getContextDescriptor()->getURL() << "/" << commanderApp->getURN();
+			commanderURL = commanderStream.str();
+		} catch (emu::fed::exception::SoftwareException &e) {
+			// do nothing
+		}
+		applicationObject.push_back(JSONSpirit::Pair("commanderURL", commanderURL));
+		
+		returnMe.push_back(applicationObject);
+	}
+	
+	return returnMe;
+	
 }
 
 

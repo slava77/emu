@@ -1,47 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.2 2009/03/09 16:03:16 paste Exp $
-*
-* $Log: Application.h,v $
-* Revision 1.2  2009/03/09 16:03:16  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
-* Revision 3.1  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.11  2008/11/15 13:59:14  paste
-* Added initial support for AJAX communication.
-*
-* Revision 3.10  2008/10/29 16:01:43  paste
-* Updated interoperability with primative DCC commands, added new xdata variables for future use.
-*
-* Revision 3.9  2008/10/13 11:56:40  paste
-* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
-*
-* Revision 3.8  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
-*
-* Revision 3.7  2008/10/04 18:44:05  paste
-* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
-*
-* Revision 3.6  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.5  2008/08/15 16:14:50  paste
-* Fixed threads (hopefully).
-*
-* Revision 3.4  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: Application.h,v 1.3 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -193,6 +151,58 @@ namespace emu {
 				}
 				return thingToGet;
 			}
+			
+			/** Find the application with a given value for a SOAP parameter.
+			*
+			* @param myClass the class of the applications to search
+			* @param parameter the name of the parameter to match
+			* @param value the value of the parameter to match
+			*
+			* @returns the application descriptor of the matching application
+			**/
+			template<typename T, typename V>
+			xdaq::ApplicationDescriptor *findMatchingApplication(std::string myClass, std::string parameter, V value)
+			throw (emu::fed::exception::SoftwareException)
+			{
+				
+				std::set<xdaq::ApplicationDescriptor *> descriptors = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors(myClass);
+				
+				for (std::set<xdaq::ApplicationDescriptor *>::iterator jDescriptor = descriptors.begin(); jDescriptor != descriptors.end(); jDescriptor++) {
+
+					xoap::MessageReference reply;
+					try {
+						reply = getParameters((*jDescriptor));
+					} catch (emu::fed::exception::SOAPException &e) {
+						std::ostringstream error;
+						error << "Unable to get parameters from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
+						LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+						XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+						notifyQualified("WARN", e2);
+						continue;
+					}
+					
+					V myValue = V();
+					try {
+						myValue = readParameter<T>(reply, parameter);
+					} catch (emu::fed::exception::SOAPException &e) {
+						std::ostringstream error;
+						error << "Unable to read parameter '" << parameter << "' from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
+						LOG4CPLUS_WARN(getApplicationLogger(), error.str());
+						XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
+						notifyQualified("WARN", e2);
+						continue;
+					}
+					
+					if (myValue == value) {
+						return (*jDescriptor);
+					}
+				}
+				
+				std::ostringstream error;
+				error << "Unable to find an application of class '" << myClass << "' with a parameter '" << parameter << "' matching '" << value << "'";
+				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+				XCEPT_RAISE(emu::fed::exception::SoftwareException, error.str());
+			}
 
 			/** Returns a standard Header for the EmuFCrate pages.  Displays a title,
 			*	 the experts (with links), and some cool pictures.
@@ -274,11 +284,12 @@ namespace emu {
 			* @author Phillip Killewald
 			**/
 			std::string printException(xcept::Exception &myException);
+			
 
 		protected:
 
-			/// The "endcap" for the application.  This is just some name that can be used to distinguish differently-configured applications from each other.
-			xdata::String endcap_;
+			/// The system name for the application.  This is just some name that can be used to distinguish differently-configured applications from each other.
+			xdata::String systemName_;
 
 
 		};

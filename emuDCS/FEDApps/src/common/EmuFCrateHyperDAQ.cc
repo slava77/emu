@@ -1,86 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.6 2009/04/01 21:08:24 paste Exp $
-*
-* $Log: EmuFCrateHyperDAQ.cc,v $
-* Revision 1.6  2009/04/01 21:08:24  paste
-* Added skeleton Commander application to replace EmuFCrateHyperDAQ.
-* Added FPGA Usercode reading in EmuFCrateHyperDAQ.
-*
-* Revision 1.5  2009/03/26 20:19:08  paste
-* Fixed DDUFPGA Diagnostic Trap display to show all 192 bits correctly
-*
-* Revision 1.4  2009/03/12 14:29:58  paste
-* * Fixed image display bug in Monitor
-* * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
-*
-* Revision 1.2  2009/03/05 22:04:09  paste
-* * Fixed a minor bug involving DCC Expert commands
-*
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
-* Revision 3.60  2009/01/29 15:31:24  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.59  2008/11/04 00:51:09  paste
-* Fixed problems with DDU firmware uploading and broadcasting.
-*
-* Revision 3.57  2008/10/30 12:58:52  paste
-* Fixed a minor display bug in EmuFCrateHyperDAQ.
-*
-* Revision 3.56  2008/10/29 16:01:44  paste
-* Updated interoperability with primative DCC commands, added new xdata variables for future use.
-*
-* Revision 3.55  2008/10/22 20:23:58  paste
-* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
-*
-* Revision 3.54  2008/10/13 11:56:40  paste
-* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
-*
-* Revision 3.53  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
-*
-* Revision 3.51  2008/09/30 08:12:24  paste
-* Fixed a bug in DDU and DCC Expert Controls
-*
-* Revision 3.50  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.49  2008/09/22 14:31:54  paste
-* /tmp/cvsY7EjxV
-*
-* Revision 3.48  2008/09/19 16:53:52  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.47  2008/09/03 17:52:59  paste
-* Rebuilt the VMEController and VMEModule classes from the EMULIB_V6_4 tagged versions and backported important changes in attempt to fix "high-bits" bug.
-*
-* Revision 3.46  2008/09/02 08:39:53  paste
-* Better handling and display of new features in the DDU firmware.
-*
-* Revision 3.45  2008/09/01 11:30:32  paste
-* Added features to DDU, IRQThreads corresponding to new DDU firmware.
-*
-* Revision 3.44  2008/08/31 21:18:27  paste
-* Moved buffers from VMEController class to VMEModule class for more rebust communication.
-*
-* Revision 3.43  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.42  2008/08/19 14:51:02  paste
-* Update to make VMEModules more independent of VMEControllers.
-*
-* Revision 3.41  2008/08/15 16:14:51  paste
-* Fixed threads (hopefully).
-*
-* Revision 3.40  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: EmuFCrateHyperDAQ.cc,v 1.7 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -91,7 +10,7 @@
 #include "emu/fed/DDUDebugger.h"
 #include "emu/fed/DCCDebugger.h"
 #include "emu/fed/DataTable.h"
-#include "emu/fed/CrateParser.h"
+#include "emu/fed/XMLConfigurator.h"
 #include "emu/fed/Crate.h"
 #include "emu/fed/DDU.h"
 #include "emu/fed/Chamber.h"
@@ -1015,25 +934,25 @@ void emu::fed::EmuFCrateHyperDAQ::uploadConfFile(xgi::Input *in, xgi::Output *ou
 
 
 void emu::fed::EmuFCrateHyperDAQ::Configuring()
-throw (emu::fed::exception::ParseException)
+throw (emu::fed::exception::ConfigurationException)
 {
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "Parsing file " << xmlFile_.toString());
 	
 	try {
-		CrateParser parser(xmlFile_.toString().c_str());
+		XMLConfigurator *configurator = new XMLConfigurator(xmlFile_.toString());
 		
-		crateVector_ = parser.getCrates();
+		crateVector_ = configurator->setupCrates();
 		
 		// Get the name of this endcap from the parser, too.  This is specified in the XML
 		// for convenience.
-		endcap_ = parser.getName();
+		systemName_ = configurator->getSystemName();
 		
-	} catch (emu::fed::exception::SoftwareException &e) {
+	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Error parsing file " << xmlFile_.toString();
 		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
+		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 	}
 
 }

@@ -1,93 +1,13 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.4 2009/03/27 17:02:02 paste Exp $
-*
-* $Log: Communicator.cc,v $
-* Revision 1.4  2009/03/27 17:02:02  paste
-* Shortened names of monitors reported from Manager to PageOne.
-* Fixed DDU KillFiber checking between XML and FPGA.
-* Fixed Monitor to correctly decode DCC FIFO status.
-*
-* Revision 1.3  2009/03/24 19:11:08  paste
-* Fixed a bug that made Manager always return a Failed state after Disable command
-*
-* Revision 1.2  2009/03/09 16:03:17  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
-* Revision 3.54  2009/01/29 15:31:24  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.53  2008/11/14 09:34:31  paste
-* Updated IRQ thread handling to fix and abstract FMM enabling and disabling.
-*
-* Revision 3.52  2008/10/30 12:56:11  paste
-* Fixing more map-related bugs in IRQData
-* Changing IRQ FMM threshold to > 8 chambers (from > 1 chamber)
-*
-* Revision 3.51  2008/10/29 16:01:44  paste
-* Updated interoperability with primative DCC commands, added new xdata variables for future use.
-*
-* Revision 3.50  2008/10/22 20:23:58  paste
-* Fixes for random FED software crashes attempted.  DCC communication and display reverted to ancient (pointer-based communication) version at the request of Jianhui.
-*
-* Revision 3.49  2008/10/15 00:46:56  paste
-* Attempt to solve certain crashes on Enable/Disable commands.
-*
-* Revision 3.48  2008/10/13 11:56:40  paste
-* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
-*
-* Revision 3.47  2008/10/04 18:44:05  paste
-* Fixed bugs in DCC firmware loading, altered locations of files and updated javascript/css to conform to WC3 XHTML standards.
-*
-* Revision 3.46  2008/09/30 08:32:40  paste
-* Updated IRQ Threads so that the endcap name is mentioned in the log filename
-*
-* Revision 3.45  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 3.44  2008/09/22 14:31:54  paste
-* /tmp/cvsY7EjxV
-*
-* Revision 3.43  2008/09/19 23:13:59  paste
-* Fixed a small bug in disabling of error reporting, added missing file.
-*
-* Revision 3.42  2008/09/19 16:53:52  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.41  2008/08/31 21:18:27  paste
-* Moved buffers from VMEController class to VMEModule class for more rebust communication.
-*
-* Revision 3.40  2008/08/26 13:09:02  paste
-* Documentation update.
-*
-* Revision 3.39  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 3.38  2008/08/18 08:30:15  paste
-* Update to fix error propagation from IRQ threads to CommunicatorManager.
-*
-* Revision 3.35  2008/08/15 16:14:51  paste
-* Fixed threads (hopefully).
-*
-* Revision 3.34  2008/08/15 09:59:22  paste
-* Fixed bug where transitions to Halted state while threads were not active caused a crash.
-*
-* Revision 3.33  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: Communicator.cc,v 1.5 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
 #include <sstream>
+#include <stdlib.h>
+#include "boost/filesystem/path.hpp"
+#include "boost/filesystem/operations.hpp"
+#include "boost/algorithm/string/case_conv.hpp"
 
 #include "xgi/Method.h"
 #include "cgicc/HTMLClasses.h"
@@ -98,6 +18,11 @@
 #include "emu/fed/IRQData.h"
 #include "emu/fed/VMEController.h"
 #include "emu/fed/CrateParser.h"
+#include "emu/fed/JSONSpiritWriter.h"
+#include "emu/fed/AutoConfigurator.h"
+#include "emu/fed/XMLConfigurator.h"
+#include "emu/fed/DBConfigurator.h"
+#include "emu/base/Alarm.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Communicator)
 
@@ -109,18 +34,29 @@ emu::fed::Supervised(stub),
 ttsCrate_(0),
 ttsSlot_(0),
 ttsBits_(0),
-chambersWithErrors_(0)
+configMode_("XML"),
+fibersWithErrors_(0),
+averageDCCInputRate_(0),
+averageDCCOutputRate_(0)
 {
 
 	// Variables that are to be made available to other applications
 	getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
+	getApplicationInfoSpace()->fireItemAvailable("dbUsername", &dbUsername_);
+	getApplicationInfoSpace()->fireItemAvailable("dbPassword", &dbPassword_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsCrate", &ttsCrate_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsSlot",  &ttsSlot_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsBits",  &ttsBits_);
-	getApplicationInfoSpace()->fireItemAvailable("chambersWithErrors", &chambersWithErrors_);
+	getApplicationInfoSpace()->fireItemAvailable("configMode",  &configMode_);
+	getApplicationInfoSpace()->fireItemAvailable("fibersWithErrors", &fibersWithErrors_);
+	getApplicationInfoSpace()->fireItemAvailable("averageDCCInputRate", &averageDCCInputRate_);
+	getApplicationInfoSpace()->fireItemAvailable("averageDCCOutputRate", &averageDCCOutputRate_);
 
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Communicator::webDefault, "Default");
+	xgi::bind(this, &emu::fed::Communicator::webGetStatus, "GetStatus");
+	xgi::bind(this, &emu::fed::Communicator::webChangeConfigMode, "ChangeConfigMode");
+	xgi::bind(this, &emu::fed::Communicator::webChangeXMLFile, "ChangeXMLFile");
 
 	// SOAP call-back functions which fire the transitions to the FSM
 	BIND_DEFAULT_SOAP2FSM_ACTION(Communicator, Configure);
@@ -164,71 +100,382 @@ chambersWithErrors_(0)
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
 	// Other initializations
-	TM_ = new IRQThreadManager(endcap_);
+	TM_ = new IRQThreadManager(systemName_);
 
 }
 
 
 
-xoap::MessageReference emu::fed::Communicator::onSetTTSBits(xoap::MessageReference message)
+// HyperDAQ pages
+void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP command: SetTTSBits");
-	
-	// Check to see if this instance is in command of the given crate number and slot
-	bool found = false;
-	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-		if ((*iCrate)->number() != ttsCrate_) continue;
-		
-		for (std::vector<DDU *>::iterator iDDU = (*iCrate)->getDDUs().begin(); iDDU != (*iCrate)->getDDUs().end(); iDDU++) {
-			if ((*iDDU)->slot() == ttsSlot_) {
-				found = true;
-				break;
-			}
-		}
-		if (found) break;
-		for (std::vector<DCC *>::iterator iDCC = (*iCrate)->getDCCs().begin(); iDCC != (*iCrate)->getDCCs().end(); iDCC++) {
-			if ((*iDCC)->slot() == ttsSlot_) {
-				found = true;
-				break;
-			}
-		}
-	}
-	
-	if (!found) {
-		LOG4CPLUS_INFO(getApplicationLogger(), "ttsCrate_=" << ttsCrate_.toString() << ", ttsSlot_=" << ttsSlot_.toString() << " is not commanded by this application");
-		return createReply(message);
-	} else {
-		LOG4CPLUS_INFO(getApplicationLogger(), "Writing ttsCrate_=" << ttsCrate_.toString() << " ttsSlot_=" << ttsSlot_.toString() << " ttsBits_=" << ttsBits_.toString());
-	}
 
-	// cache TTS bits
-	xdata::Integer cachedBits = ttsBits_;
+	
+	std::vector<std::string> jsFileNames;
+	jsFileNames.push_back("errorFlasher.js");
+	jsFileNames.push_back("common.js");
+	jsFileNames.push_back("communicator.js");
+	*out << Header("FED Crate Communicator (" + systemName_.toString() + ")", jsFileNames);
+	
+	// Current condition of the Communicator
+	*out << cgicc::div()
+		.set("class", "titlebar")
+		.set("id", "FED_Communicator_Status_titlebar") << std::endl;
+	*out << cgicc::div("FED Communicator Status")
+		.set("class", "titletext") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "statusbar")
+		.set("id", "FED_Communicator_Status_statusbar") << std::endl;
+	*out << cgicc::div("Time since last update:")
+		.set("class", "timetext") << std::endl;
+	*out << cgicc::div("0:00")
+		.set("class", "loadtime")
+		.set("id", "FED_Communicator_Status_loadtime") << std::endl;
+	*out << cgicc::img()
+		.set("class", "loadicon")
+		.set("id", "FED_Communicator_Status_loadicon")
+		.set("src", "/emu/emuDCS/FEDApps/images/empty.gif")
+		.set("alt", "Loading...") << std::endl;
+	*out << cgicc::br()
+		.set("class", "clear") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::fieldset()
+		.set("class", "dialog")
+		.set("id", "FED_Communicator_Status_dialog") << std::endl;
+	
+	*out << cgicc::img()
+		.set("id", "statusicon")
+		.set("src", "/emu/emuDCS/FEDApps/images/dialog-warning.png")
+		.set("alt", "Status Icon") << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "category") << std::endl;
+	*out << "Current state: ";
+	*out << cgicc::span("Unknown")
+		.set("class", "Unknown")
+		.set("id", "communicator_state") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "description")
+		.set("id", "status_description") << std::endl;
+	*out << "The Communicator has yet to update the displayed status.  Please be patient." << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::table()
+		.set("class", "noborder dialog tier2") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::td("Commander URL: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::a("none found")
+		.set("id", "commanderURL") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::td("Monitor URL: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::a("none found")
+		.set("id", "monitorURL") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::table() << std::endl; 
+	
+	*out << cgicc::div()
+		.set("class", "description") << std::endl;
+	cgicc::input checkBox;
+	checkBox.set("type", "checkbox")
+		.set("id", "enable_buttons")
+		.set("name", "enable_buttons");
+	std::string disableButtons = "true";
+	if (ignoreSOAP_) checkBox.set("checked", "true");
+	*out << checkBox << std::endl;
+	*out << cgicc::label()
+		.set("for", "enable_buttons") << std::endl;
+	*out << "Enable manual state changes (not recommended)" << std::endl;
+	*out << cgicc::label() << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::button()
+		.set("class", "left button statechange")
+		.set("id", "halt_button")
+		.set("command", "Halt")
+		.set("disabled", "true")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("id", "halt_icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/process-stop.png");
+	*out << "Halt" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
+	*out << cgicc::button()
+		.set("class", "right button statechange")
+		.set("id", "enable_button")
+		.set("command", "Enable")
+		.set("disabled", "true")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("id", "previous_icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/go-next.png");
+	*out << "Enable" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
+	*out << cgicc::button()
+		.set("class", "right button statechange")
+		.set("id", "disable_button")
+		.set("command", "Disable")
+		.set("disabled", "true")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("id", "next_icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/go-previous.png");
+	*out << "Disable" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
+	*out << cgicc::button()
+		.set("class", "right button statechange")
+		.set("id", "configure_button")
+		.set("command", "Configure")
+		.set("disabled", "true")
+		.set("style", "display: none") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("id", "next_icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
+	*out << "Configure" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+
+
+	// Advanced configuration options
+	*out << cgicc::div()
+		.set("class", "titlebar")
+		.set("id", "FED_Communicator_Configuration_titlebar") << std::endl;
+	*out << cgicc::div("FED Communicator Configuration Options")
+		.set("class", "titletext") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "statusbar")
+		.set("id", "FED_Communicator_Configuration_statusbar") << std::endl;
+	*out << cgicc::div("Time since last update:")
+		.set("class", "timetext") << std::endl;
+	*out << cgicc::div("0:00")
+		.set("class", "loadtime")
+		.set("id", "FED_Communicator_Configuration_loadtime") << std::endl;
+	*out << cgicc::img()
+		.set("class", "loadicon")
+		.set("id", "FED_Communicator_Configuration_loadicon")
+		.set("src", "/emu/emuDCS/FEDApps/images/empty.gif")
+		.set("alt", "Loading...") << std::endl;
+	*out << cgicc::br()
+		.set("class", "clear") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::fieldset()
+		.set("class", "dialog")
+		.set("id", "FED_Communicator_Configuration_dialog") << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "category tier1") << std::endl;
+	*out << cgicc::input().set("type", "radio")
+		.set("class", "config_type")
+		.set("name", "config_type")
+		.set("id", "config_type_database")
+		.set("value", "Database") << std::endl;
+	*out << cgicc::label("Database")
+		.set("for", "config_type_database") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "category tier1") << std::endl;
+	*out << cgicc::input()
+		.set("type", "radio")
+		.set("class", "config_type")
+		.set("name", "config_type")
+		.set("id", "config_type_xml")
+		.set("value", "XML") << std::endl;
+	*out << cgicc::label("XML")
+		.set("for", "config_type_xml") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	// To access the available files, we need a few directories.
+	std::string homeDir(getenv("HOME"));
+	boost::filesystem::path configPath(homeDir + "/config/fed/");
+	
+	// Use boost to get all the xml files in this directory
+	std::vector<std::string> xmlFiles;
+	
+	if (boost::filesystem::exists(configPath)) {
+		// The default iterator is the end iterator.
+		boost::filesystem::directory_iterator end;
+		for (boost::filesystem::directory_iterator iFile(configPath); iFile != end; iFile++) {
+			std::string lastThree;
+			try {
+				std::string name = iFile->native_file_string();
+				lastThree = name.substr(name.length() - 3);
+			} catch (...) {
+				// Don't do anything with file names shorter than 3 characters
+				continue;
+			}
+			boost::algorithm::to_lower(lastThree);
+			if (lastThree == "xml") xmlFiles.push_back(iFile->native_file_string());
+		}
+	}
+	
+	*out << cgicc::table()
+		.set("class", "noborder dialog tier2") << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::td("XML file name: ") << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::select()
+		.set("id", "xml_file_select")
+		.set("name", "xml_file_select")
+		.set("disabled", "true") << std::endl;
+	for (std::vector<std::string>::const_iterator iFile = xmlFiles.begin(); iFile != xmlFiles.end(); iFile++) {
+		cgicc::option opt(*iFile);
+		opt.set("value", *iFile);
+		if (xmlFile_ == *iFile) opt.set("selected", "true");
+		*out << opt << std::endl;
+	}
+	*out << cgicc::select() << std::endl;
+	*out << cgicc::td() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::table() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "category tier1") << std::endl;
+	*out << cgicc::input().set("type", "radio")
+		.set("class", "config_type")
+		.set("name", "config_type")
+		.set("id", "config_type_autodetect")
+		.set("value", "Autodetect") << std::endl;
+	*out << cgicc::label("Autodetect")
+		.set("for", "config_type_autodetect") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+
+	*out << Footer() << std::endl;
+}
+
+
+
+void emu::fed::Communicator::webGetStatus(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make a JSON output object
+	JSONSpirit::Object output;
+
+	// Get my state
+	output.push_back(JSONSpirit::Pair("state", state_.toString()));
+	
+	// Other useful variables
+	output.push_back(JSONSpirit::Pair("configMode", configMode_.toString()));
+	output.push_back(JSONSpirit::Pair("xmlFile", xmlFile_.toString()));
+	
+	// Find the Monitor and Commander applications that match me
+	std::string monitorURL = "none found";
+	std::string commanderURL = "none found";
 	try {
-		// set TTS bits
-		writeTTSBits(ttsCrate_, ttsSlot_, ttsBits_);
-		// read back TTS bits
-		ttsBits_ = readTTSBits(ttsCrate_, ttsSlot_);
-	} catch (emu::fed::exception::TTSException &e) {
-		std::ostringstream error;
-		error << "Set TTS bits in crate " << ttsCrate_.toString() << ", slot " << ttsSlot_.toString() << " has failed";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_DECLARE_NESTED(emu::fed::exception::TTSException, e2, error.str(), e);
-		notifyQualified("ERROR", e2);
-		return createReply(message);
+		xdaq::ApplicationDescriptor *monitorApp = findMatchingApplication<xdata::String, std::string>("emu::fed::Monitor", "systemName", systemName_.toString());
+		std::ostringstream monitorStream;
+		monitorStream << monitorApp->getContextDescriptor()->getURL() << "/" << monitorApp->getURN();
+		monitorURL = monitorStream.str();
+	} catch (emu::fed::exception::SoftwareException &e) {
+		// do nothing.
 	}
-
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "Read back ttsBits_=" << ttsBits_.toString());
 	
-	if (ttsBits_ != cachedBits) {
-		std::ostringstream error;
-		error << "Read back ttsBits_=" << ttsBits_.toString() << " from ttsCrate_=" << ttsCrate_.toString() << ", ttsSlot_=" << ttsSlot_.toString() << ", should have been " << cachedBits.toString();
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_DECLARE(emu::fed::exception::TTSException, e, error.str());
-		notifyQualified("ERROR", e);
+	try {
+		xdaq::ApplicationDescriptor *commanderApp = findMatchingApplication<xdata::String, std::string>("emu::fed::Commander", "systemName", systemName_.toString());
+		std::ostringstream commanderStream;
+		commanderStream << commanderApp->getContextDescriptor()->getURL() << "/" << commanderApp->getURN();
+		commanderURL = commanderStream.str();
+	} catch (emu::fed::exception::SoftwareException &e) {
+		// do nothing.
 	}
+	output.push_back(JSONSpirit::Pair("monitorURL", monitorURL));
+	output.push_back(JSONSpirit::Pair("commanderURL", commanderURL));
+	
+	// And now return everything as JSON
+	*out << JSONSpirit::write(output);
+}
 
-	// PGK Remember:  you can always steal the TTSBits status via SOAP if you really, really want it.
-	return createReply(message);
+
+
+void emu::fed::Communicator::webChangeConfigMode(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make a JSON output object
+	JSONSpirit::Object output;
+	
+	if (cgi.getElement("configMode") != cgi.getElements().end()) {
+		configMode_ = cgi["configMode"]->getValue();
+		if (configMode_ != "XML" && configMode_ != "Database" && configMode_ != "Autodetect") configMode_ = "Autodetect";
+		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuration Mode changed to " << configMode_.toString());
+	}
+	
+	output.push_back(JSONSpirit::Pair("configMode", configMode_.toString()));
+	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::Communicator::webChangeXMLFile(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make a JSON output object
+	JSONSpirit::Object output;
+	
+	if (cgi.getElement("xmlFile") != cgi.getElements().end()) {
+		std::string oldXMLFile = xmlFile_;
+		xmlFile_ = cgi["xmlFile"]->getValue();
+		// Make sure the file exists and, if not, return to the previous value
+		if (!boost::filesystem::exists(xmlFile_.toString())) {
+			std::ostringstream error;
+			error << "Configuration XML file " << xmlFile_.toString() << " doesn't exist, falling back to " << oldXMLFile;
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			XCEPT_DECLARE(emu::fed::exception::FileException, e2, error.str());
+			notifyQualified("ERROR", e2);
+			xmlFile_ = oldXMLFile;
+			return;
+		} else {
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuration XML file changed to " << xmlFile_.toString());
+		}
+	}
+	
+	output.push_back(JSONSpirit::Pair("xmlFile", xmlFile_.toString()));
+	*out << JSONSpirit::write(output);
 }
 
 
@@ -238,40 +485,57 @@ throw (toolbox::fsm::exception::Exception)
 {
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Configure");
+	
+	LOG4CPLUS_INFO(getApplicationLogger(), "Configuring Communicator appliction using mode " << configMode_.toString());
+	
+	if (configMode_ == "Autodetect") {
+		AutoConfigurator *configurator = new AutoConfigurator();
+		
+		try {
+			crateVector_ = configurator->setupCrates();
+			systemName_ = configurator->getSystemName();
+			REVOKE_ALARM("CommunicatorConfigure", NULL);
+		} catch (emu::fed::exception::Exception &e) {
+			std::ostringstream error;
+			error << "Unable to autodetect FED objects";
+			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigure", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+		}
+		
+	} else if (configMode_ == "XML") {
 
-	// Determine whether this is a local configure or a configure from SOAP
-	if (soapLocal_) {
-		soapLocal_ = false;
-		soapConfigured_ = false;
-	} else {
-		soapConfigured_ = true;
-	}
-
-	// JRG: note that the HardReset & Resync should already be done by this point!
-
-	// PGK Easier parsing.  Less confusing.
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "configureAction using XML file " << xmlFile_.toString());
-	try {
-		CrateParser *parser = new CrateParser(xmlFile_.toString().c_str());
-		// From the parser, set the crates.
-		crateVector_ = parser->getCrates();
-		// Get the name of this endcap from the parser, too.  This is specified in the XML
-		// for convenience.
-		endcap_ = parser->getName();
-	} catch (emu::fed::exception::ParseException &e) {
-		std::ostringstream error;
-		error << "Unable to create FED objects by parsing";
-		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-		XCEPT_DECLARE_NESTED(emu::fed::exception::ParseException, e2, error.str(), e);
-		notifyQualified("FATAL", e2);
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e2);
-	} catch (emu::fed::exception::FileException &e) {
-		std::ostringstream error;
-		error << "Unable to create FED objects due to file exception";
-		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-		XCEPT_DECLARE_NESTED(emu::fed::exception::ParseException, e2, error.str(), e);
-		notifyQualified("FATAL", e2);
-		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e2);
+		// PGK Easier parsing.  Less confusing.
+		LOG4CPLUS_INFO(getApplicationLogger(), "XML configuration using file " << xmlFile_.toString());
+		XMLConfigurator *configurator = new XMLConfigurator(xmlFile_.toString());
+		
+		try {
+			crateVector_ = configurator->setupCrates();
+			systemName_ = configurator->getSystemName();
+			REVOKE_ALARM("CommunicatorConfigure", NULL);
+		} catch (emu::fed::exception::Exception &e) {
+			std::ostringstream error;
+			error << "Unable to create FED objects by parsing file " << xmlFile_.toString();
+			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigure", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+		}
+		
+	} else if (configMode_ == "Database") {
+		
+		DBConfigurator *configurator = new DBConfigurator(this, dbUsername_.toString(), dbPassword_.toString());
+		
+		try {
+			crateVector_ = configurator->setupCrates();
+			systemName_ = configurator->getSystemName();
+			REVOKE_ALARM("CommunicatorConfigure", NULL);
+		} catch (emu::fed::exception::Exception &e) {
+			std::ostringstream error;
+			error << "Unable to create FED objects using the online database";
+			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigure", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+		}
 	}
 
 
@@ -302,7 +566,7 @@ throw (toolbox::fsm::exception::Exception)
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuring crate " << (*iCrate)->number());
 		try {
 			(*iCrate)->configure();
-		} catch (emu::fed::exception::ConfigurationException &e) {
+		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
 			error << "Configuration of crate " << (*iCrate)->number() << " has failed";
 			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
@@ -534,7 +798,6 @@ void emu::fed::Communicator::enableAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Enable");
-	soapLocal_ = false;
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "The run number is " << runNumber_.toString());
 
@@ -559,7 +822,7 @@ throw (toolbox::fsm::exception::Exception)
 
 	// PGK You have to wipe the thread manager and start over.
 	delete TM_;
-	TM_ = new IRQThreadManager(endcap_);
+	TM_ = new IRQThreadManager(systemName_);
 	for (unsigned int i=0; i<crateVector_.size(); i++) {
 		if (crateVector_[i]->number() > 4) continue;
 		TM_->attachCrate(crateVector_[i]);
@@ -583,7 +846,6 @@ void emu::fed::Communicator::disableAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Disable");
-	soapLocal_ = false;
 
 	try {
 		TM_->endThreads();
@@ -604,8 +866,6 @@ void emu::fed::Communicator::haltAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Halt");
-	soapConfigured_ = false;
-	soapLocal_ = false;
 
 	try {
 		TM_->endThreads();
@@ -622,275 +882,129 @@ throw (toolbox::fsm::exception::Exception)
 
 
 
-// HyperDAQ pages
-void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
-{
-
-	std::stringstream sTitle;
-	sTitle << "FED Crate Communicator (" << endcap_.toString() << ")";
-	std::vector<std::string> jsFileNames;
-	jsFileNames.push_back("reload.js");
-	jsFileNames.push_back("errorFlasher.js");
-	*out << Header(sTitle.str(), jsFileNames);
-
-	// Manual state changing
-	*out << cgicc::fieldset()
-		.set("class","fieldset") << std::endl;
-	*out << cgicc::div("Manual state changes")
-		.set("class","legend") << std::endl;
-
-	*out << cgicc::div();
-	*out << "Present state: ";
-	*out << cgicc::span(state_.toString())
-		.set("class",state_.toString()) << std::endl;
-	*out << cgicc::div();
-
-	*out << cgicc::div() << std::endl;
-	if (!soapConfigured_) {
-		*out << cgicc::form()
-			.set("style","display: inline;")
-			.set("action","/" + getApplicationDescriptor()->getURN() + "/Fire")
-			.set("method","GET") << std::endl;
-		if (state_.toString() == "Halted" || state_.toString() == "Configured") {
-			*out << cgicc::input()
-				.set("name","action")
-				.set("type","submit")
-				.set("value","Configure") << std::endl;
-		}
-		if (state_.toString() == "Configured") {
-			*out << cgicc::input()
-				.set("name","action")
-				.set("type","submit")
-				.set("value","Enable") << std::endl;
-		}
-		if (state_.toString() == "Enabled") {
-			*out << cgicc::input()
-				.set("name","action")
-				.set("type","submit")
-				.set("value","Disable") << std::endl;
-		}
-		*out << cgicc::input()
-			.set("name","action")
-			.set("type","submit")
-			.set("value","Halt") << std::endl;
-		*out << cgicc::form() << std::endl;
-
-	} else {
-		*out << "Communicator has been configured through SOAP." << std::endl;
-		*out << cgicc::br() << "Send the Halt signal through SOAP to manually change states." << std::endl;
-	}
-	*out << cgicc::div() << std::endl;
-	*out << cgicc::span("Configuration located at " + xmlFile_.toString())
-		.set("style","color: #A00; font-size: 10pt;") << std::endl;
-
-	*out << cgicc::fieldset() << std::endl;
-
-	// HyperDAQ?
-	std::set<xdaq::ApplicationDescriptor * > hddescriptors =
-		getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("CommunicatorHyperDAQ");
-
-	if (hddescriptors.size()) {
-
-		*out << cgicc::fieldset()
-			.set("class","fieldset") << std::endl;
-		*out << cgicc::div("CommunicatorHyperDAQ")
-			.set("class","legend") << std::endl;
-
-		std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
-		for ( itDescriptor = hddescriptors.begin(); itDescriptor != hddescriptors.end(); itDescriptor++ ) {
-			if ((*itDescriptor)->getInstance() != getApplicationDescriptor()->getInstance()) continue;
-			std::stringstream className;
-			className << (*itDescriptor)->getClassName() << "(" << (*itDescriptor)->getInstance() << ")";
-			std::stringstream url;
-			url << (*itDescriptor)->getContextDescriptor()->getURL() << "/" << (*itDescriptor)->getURN();
-
-			*out << cgicc::a(className.str())
-				.set("href",url.str()) << std::endl;
-
-		}
-
-		*out << cgicc::fieldset() << std::endl;
-	}
-
-	// IRQ Monitoring
-	// Hide the TrackFinder...
-	/*
-	if (endcap_.toString() != "TrackFinder") {
-		*out << cgicc::fieldset()
-			.set("class","fieldset") << std::endl;
-
-		if (state_.toString() == "Enabled") {
-			*out << cgicc::div("IRQ Monitoring Enabled")
-				.set("class","legend") << std::endl;
-
-			for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-
-				int crateNumber = (*iCrate)->number();
-
-				// Status table
-				*out << cgicc::table()
-					.set("style","width: 90%; margin: 10px auto 10px auto; border: solid 2px #009; border-collapse: collapse;") << std::endl;
-
-				*out << cgicc::tr()
-					.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 12pt; font-weight: bold;") << std::endl;
-
-				*out << cgicc::td()
-					.set("colspan","6") << std::endl;
-				*out << "Crate " << crateNumber << std::endl;
-				*out << cgicc::td() << std::endl;
-
-				*out << cgicc::tr() << std::endl;
-
-				*out << cgicc::tr()
-					.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold;") << std::endl;
-
-				*out << cgicc::td()
-					.set("colspan","6") << std::endl;
-
-				*out << "Thread started " << TM_->data()->startTime[crateNumber] << cgicc::br();
-				*out << TM_->data()->ticks[crateNumber] << " ticks, ";
-				*out << "last tick " << TM_->data()->tickTime[crateNumber] << std::endl;
-				*out << cgicc::td() << std::endl;
-				*out << cgicc::tr() << std::endl;
-
-				*out << cgicc::tr()
-					.set("style","background-color: #009; color: #FFF; text-align: center; font-size: 10pt; font-weight: bold; border: solid 1px #000") << std::endl;
-				*out << cgicc::td("Time of error") << std::endl;
-				*out << cgicc::td("Slot") << std::endl;
-				*out << cgicc::td("RUI") << std::endl;
-				*out << cgicc::td("Fiber(s)") << std::endl;
-				*out << cgicc::td("Chamber(s)") << std::endl;
-				*out << cgicc::td("Action taken") << std::endl;
-				*out << cgicc::tr() << std::endl;
-
-				std::vector<IRQError *> errorVector = TM_->data()->errorVectors[crateNumber];
-				// Print something pretty if there is no error
-				if (errorVector.size() == 0) {
-					*out << cgicc::tr() << std::endl;
-					*out << cgicc::td()
-						.set("colspan","6")
-						.set("style","border: 1px solid #000;")
-						.set("class","undefined") << std::endl;
-					*out << "No errors detected (yet)" << std::endl;
-					*out << cgicc::td() << std::endl;
-					*out << cgicc::tr() << std::endl;
-				} else {
-
-					for (std::vector<IRQError *>::reverse_iterator iError = errorVector.rbegin(); iError != errorVector.rend(); iError++) {
-						// Mark the error as grey if there has been a reset.
-						std::string errorClass = "";
-						std::string chamberClass = "error";
-						if ((*iError)->reset) {
-							errorClass = "undefined";
-							chamberClass = "undefined";
-						}
-
-						*out << cgicc::tr() << std::endl;
-						
-						// Time
-						*out << cgicc::td()
-							.set("class",errorClass)
-							.set("style","border: 1px solid #000;") << std::endl;
-						time_t interruptTime = (*iError)->errorTime;
-						struct tm* interruptTimeInfo = localtime(&interruptTime);
-						*out << asctime(interruptTimeInfo) << std::endl;
-						*out << cgicc::td() << std::endl;
-
-						// Slot
-						*out << cgicc::td()
-							.set("class",errorClass)
-							.set("style","border: 1px solid #000;") << std::endl;
-						*out << (*iError)->ddu->slot() << std::endl;
-						*out << cgicc::td() << std::endl;
-
-						// RUI
-						*out << cgicc::td()
-							.set("class",errorClass)
-							.set("style","border: 1px solid #000;") << std::endl;
-						*out << (*iCrate)->getRUI((*iError)->ddu->slot()) << std::endl;
-						*out << cgicc::td() << std::endl;
-
-						// Fibers
-						*out << cgicc::td()
-							.set("class",errorClass)
-							.set("style","border: 1px solid #000;") << std::endl;
-						for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
-							if ((*iError)->fibers & (1<<iFiber)) *out << iFiber << " ";
-						}
-						*out << cgicc::td() << std::endl;
-
-						// Chambers
-						*out << cgicc::td()
-							.set("class",chamberClass)
-							.set("style","border: 1px solid #000;") << std::endl;
-						for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
-							if ((*iError)->fibers & (1<<iFiber)) {
-								if (iFiber == 15) *out << "DDU ";
-								else *out << (*iError)->ddu->getChamber(iFiber)->name() << " ";
-								// Pointer-foo!
-							}
-						}
-						*out << cgicc::td() << std::endl;
-
-						// Action performed
-						*out << cgicc::td()
-							.set("class",errorClass)
-							.set("style","border: 1px solid #000;") << std::endl;
-						*out << (*iError)->action << std::endl;
-						*out << cgicc::td() << std::endl;
-						
-						*out << cgicc::tr() << std::endl;
-					}
-				}
-
-				*out << cgicc::table() << std::endl;
-
-			}
-
-		} else {
-			*out << cgicc::div("IRQ Monitoring Disabled")
-				.set("class","legend") << std::endl;
-			*out << cgicc::span("Set state to \"Enabled\" to begin IRQ monitoring threads.")
-				.set("style","color: #A00; font-size: 11pt;") << std::endl;
-		}
-
-		*out << cgicc::fieldset() << std::endl;
-	} // End hiding from TrackFinder.
-	*/
-
-	*out << Footer() << std::endl;
-}
-
-
-
 // PGK Ugly, but it must be done.  We have to update the parameters that the
 //  Manager asks for or else they won't be updated!
 xoap::MessageReference emu::fed::Communicator::onGetParameters(xoap::MessageReference message)
 {
-	chambersWithErrors_ = 0;
-	if (state_.toString() == "Enabled") {
-		// Report only the number of chambers in an error state
+	fibersWithErrors_ = 0;
+	averageDCCInputRate_ = 0;
+	averageDCCOutputRate_ = 0;
 	
+	unsigned int nDDUs = 0;
+	unsigned int nSlinks = 0;
+	
+	if (state_.toString() == "Enabled") {
+	
+		// Report only the number of chambers in an error state
 		for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
 			std::vector<IRQError *> errorVector = TM_->data()->errorVectors[(*iCrate)->number()];
-			for (std::vector<IRQError *>::iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
+			for (std::vector<IRQError *>::const_iterator iError = errorVector.begin(); iError != errorVector.end(); iError++) {
 				// Skip things that have already been reset (we think)
 				if ((*iError)->reset) continue;
 				// Report the chamber names and RUI names that are in an error state.
 				for (unsigned int iFiber = 0; iFiber < 16; iFiber++) {
 					if ((*iError)->fibers & (1<<iFiber)) {
 						if (iFiber != 15) { // Not the RUI itself
-							chambersWithErrors_++;
+							fibersWithErrors_++;
 						}
+					}
+				}
+			}
+			
+			// Average the input/output rates from the DCCs
+			nDDUs += (*iCrate)->getDDUs().size();
+			nSlinks += (*iCrate)->getDCCs().size() * 2;
+			
+			std::vector<DCC *> dccVector = (*iCrate)->getDCCs();
+			for (std::vector<DCC *>::const_iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
+				// DDU input FIFOs are 1-5 and 7-11, S-Links are 0 and 6
+				for (unsigned int iFIFO = 0; iFIFO < 12; iFIFO++) {
+					switch (iFIFO) {
+					
+					case 0:
+					case 6:
+						averageDCCOutputRate_ = averageDCCOutputRate_ + (*iDCC)->readRate(iFIFO);
+						break;
+					default:
+						averageDCCInputRate_ = averageDCCInputRate_ + (*iDCC)->readRate(iFIFO);
+						break;
 					}
 				}
 			}
 		}
 	}
-	// PGK Following is just what EmuFEDApplication does.
+	
+	if (nSlinks > 1) averageDCCOutputRate_ = averageDCCOutputRate_ / nSlinks;
+	if (nDDUs > 1) averageDCCInputRate_ = averageDCCInputRate_ / nDDUs;
+	
 	return emu::fed::Application::onGetParameters(message);
 
 }
+
+
+
+
+xoap::MessageReference emu::fed::Communicator::onSetTTSBits(xoap::MessageReference message)
+{
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Remote SOAP command: SetTTSBits");
+	
+	// Check to see if this instance is in command of the given crate number and slot
+	bool found = false;
+	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
+		if ((*iCrate)->number() != ttsCrate_) continue;
+		
+		for (std::vector<DDU *>::iterator iDDU = (*iCrate)->getDDUs().begin(); iDDU != (*iCrate)->getDDUs().end(); iDDU++) {
+			if ((*iDDU)->slot() == ttsSlot_) {
+				found = true;
+				break;
+			}
+		}
+		if (found) break;
+		for (std::vector<DCC *>::iterator iDCC = (*iCrate)->getDCCs().begin(); iDCC != (*iCrate)->getDCCs().end(); iDCC++) {
+			if ((*iDCC)->slot() == ttsSlot_) {
+				found = true;
+				break;
+			}
+		}
+	}
+	
+	if (!found) {
+		LOG4CPLUS_INFO(getApplicationLogger(), "ttsCrate_=" << ttsCrate_.toString() << ", ttsSlot_=" << ttsSlot_.toString() << " is not commanded by this application");
+		return createReply(message);
+	} else {
+		LOG4CPLUS_INFO(getApplicationLogger(), "Writing ttsCrate_=" << ttsCrate_.toString() << " ttsSlot_=" << ttsSlot_.toString() << " ttsBits_=" << ttsBits_.toString());
+	}
+
+	// cache TTS bits
+	xdata::Integer cachedBits = ttsBits_;
+	try {
+		// set TTS bits
+		writeTTSBits(ttsCrate_, ttsSlot_, ttsBits_);
+		// read back TTS bits
+		ttsBits_ = readTTSBits(ttsCrate_, ttsSlot_);
+	} catch (emu::fed::exception::TTSException &e) {
+		std::ostringstream error;
+		error << "Set TTS bits in crate " << ttsCrate_.toString() << ", slot " << ttsSlot_.toString() << " has failed";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_DECLARE_NESTED(emu::fed::exception::TTSException, e2, error.str(), e);
+		notifyQualified("ERROR", e2);
+		return createReply(message);
+	}
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "Read back ttsBits_=" << ttsBits_.toString());
+	
+	if (ttsBits_ != cachedBits) {
+		std::ostringstream error;
+		error << "Read back ttsBits_=" << ttsBits_.toString() << " from ttsCrate_=" << ttsCrate_.toString() << ", ttsSlot_=" << ttsSlot_.toString() << ", should have been " << cachedBits.toString();
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_DECLARE(emu::fed::exception::TTSException, e, error.str());
+		notifyQualified("ERROR", e);
+	}
+
+	// PGK Remember:  you can always steal the TTSBits status via SOAP if you really, really want it.
+	return createReply(message);
+}
+
 
 
 // Stolen from the now-defunct EmuFController

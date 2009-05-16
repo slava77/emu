@@ -1,7 +1,10 @@
 /*****************************************************************************\
-* $Id: Supervised.h,v 1.1 2009/03/09 16:03:16 paste Exp $
+* $Id: Supervised.h,v 1.2 2009/05/16 18:53:10 paste Exp $
 *
 * $Log: Supervised.h,v $
+* Revision 1.2  2009/05/16 18:53:10  paste
+* Massive update to prepare for online database configuration.
+*
 * Revision 1.1  2009/03/09 16:03:16  paste
 * * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
 * * Updated inheritance in wake of changes to emu::base::Supervised
@@ -79,18 +82,23 @@ namespace emu {
 			*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 			**/
 			void webFire(xgi::Input *in, xgi::Output *out);
+			
+			/** Tells the application to ignore SOAP commands 
+			*
+			*	@note Looks for an input paramter "ignoreSOAP" with an integer value, 1 = ignore, 0 = do not ignore.
+			**/
+			void webIgnoreSOAP(xgi::Input *in, xgi::Output *out);
 
 		protected:
 			
 			/// The run number of the current run.  Useful for log files.
 			xdata::UnsignedLong runNumber_;
 			
-			/// Whether or not the current state has been transitioned to via SOAP or via a web request.
-			bool soapLocal_;
+			/// Whether or not to ignore SOAP state changes.
+			xdata::Boolean ignoreSOAP_;
 			
-			/// Whether or not the application has been configured via SOAP or via the web interface.
-			bool soapConfigured_;
-			
+			/// Whether or not the command is coming from SOAP.
+			bool fromSOAP_;
 
 		};
 	}

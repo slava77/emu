@@ -1,24 +1,5 @@
 /*****************************************************************************\
-* $Id: monitor.js,v 1.3 2009/03/31 22:12:02 paste Exp $
-*
-* $Log: monitor.js,v $
-* Revision 1.3  2009/03/31 22:12:02  paste
-* Version bump.
-* Reduced demand on client-side browser by changing Monitor javascript functions.
-* Added update countdown timer to Monitor.
-* Made updates on changing of Monitor selection instantaneous.
-*
-* Revision 1.2  2009/03/12 14:29:58  paste
-* * Fixed image display bug in Monitor
-* * Set the firmware routines to explicitly use /tmp instead of relying on the running directory being writable
-*
-* Revision 1.1  2009/03/05 16:18:23  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
+* $Id: monitor.js,v 1.4 2009/05/16 18:53:09 paste Exp $
 \*****************************************************************************/
 
 // Make a variable in global scope that tells us whether we should or shouldn't monitor

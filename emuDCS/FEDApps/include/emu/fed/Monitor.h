@@ -1,14 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.h,v 1.1 2009/03/05 16:18:24 paste Exp $
-*
-* $Log: Monitor.h,v $
-* Revision 1.1  2009/03/05 16:18:24  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-* * Added ForPageOne functionality to the Manager
-*
+* $Id: Monitor.h,v 1.2 2009/05/16 18:53:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MONITOR_H__
 #define __EMU_FED_MONITOR_H__
@@ -56,7 +47,7 @@ namespace emu {
 			
 			/** Configures the software using the XML configuration file. **/
 			void configure()
-			throw(emu::fed::exception::SoftwareException);
+			throw(emu::fed::exception::ConfigurationException);
 			
 		private:
 			/** Draws a basic crate.
@@ -72,6 +63,12 @@ namespace emu {
 			
 			/// The XML configuration file name.
 			xdata::String xmlFile_;
+			
+			/// The database username
+			xdata::String dbUsername_;
+			
+			/// The database password
+			xdata::String dbPassword_;
 			
 		};
 		

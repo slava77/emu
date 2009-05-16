@@ -22,8 +22,8 @@ Summary="Emu (CSC) FED Utility Libraries"
 Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=03
-PACKAGE_VER_PATCH=00
+PACKAGE_VER_MINOR=04
+PACKAGE_VER_PATCH=01
 
 Sources=\
 	UtilsVersion.cc \
@@ -33,10 +33,24 @@ Sources=\
 	DCCParser.cc \
 	VMEControllerParser.cc \
 	CrateParser.cc \
+	TStoreRequest.cc \
+	DBAgent.cc \
+	SystemDBAgent.cc \
+	CrateDBAgent.cc \
+	VMEControllerDBAgent.cc \
+	VMEModuleDBAgent.cc \
+	DDUDBAgent.cc \
+	DCCDBAgent.cc \
+	FiberDBAgent.cc \
+	FIFODBAgent.cc \
+	DBConfigurator.cc \
+	XMLConfigurator.cc \
+	AutoConfigurator.cc \
 	IRQThreadManager.cc \
 	DDUDebugger.cc \
 	DCCDebugger.cc \
-	DataTable.cc
+	DataTable.cc \
+	JSONSpiritWriter.cc
 
 IncludeDirs = \
 	$(BUILD_HOME)/emu/emuDCS/FEDCore/include \

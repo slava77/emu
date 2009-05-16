@@ -1,30 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCParser.cc,v 1.3 2009/04/14 22:59:13 paste Exp $
-*
-* $Log: DCCParser.cc,v $
-* Revision 1.3  2009/04/14 22:59:13  paste
-* Version bump.
-* Added proper reporting of hardware with "tag" exception property.
-*
-* Revision 1.2  2009/03/05 18:23:07  paste
-* * Added parsing for new attribute in DCC tag:  Software_Switch.  This is a required attribute, which means an update in XML file format is required.
-*
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.7  2009/01/29 15:31:23  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 3.6  2008/09/19 16:53:52  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.5  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: DCCParser.cc,v 1.4 2009/05/16 18:55:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCCParser.h"
 
