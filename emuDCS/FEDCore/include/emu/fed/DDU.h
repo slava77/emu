@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.3 2009/04/14 17:50:50 paste Exp $
+* $Id: DDU.h,v 1.4 2009/05/16 18:54:26 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -22,6 +22,9 @@ namespace emu {
 		class DDU: public VMEModule
 		{
 			friend class DDUParser;
+			friend class AutoConfigurator;
+			friend class XMLConfigurator;
+			friend class DBConfigurator;
 			friend class CrateParser;
 
 		public:

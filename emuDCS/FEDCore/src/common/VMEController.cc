@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.3 2009/05/13 06:52:00 paste Exp $
+* $Id: VMEController.cc,v 1.4 2009/05/16 18:54:26 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -44,10 +44,10 @@ BHandle_(-1)
 			} catch (std::ifstream::failure &e) {
 				inFile.close();
 				std::ostringstream error;
-				error << "Failure extracting pre-opened BHandle from file " << fileName;
+				error << "Failure extracting pre-opened BHandle from file " << fileName.str();
 				XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 				std::ostringstream tag;
-				tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+				tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
 				e2.setProperty("tag", tag.str());
 				throw e2;
 			}
@@ -57,7 +57,7 @@ BHandle_(-1)
 			error << "Encountered CAEN bus error, but no open BHandles detected in file " << fileName;
 			XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 			std::ostringstream tag;
-			tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+			tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
@@ -67,7 +67,7 @@ BHandle_(-1)
 		error << "error " << err << ": " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		std::ostringstream tag;
-		tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+		tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 
@@ -85,7 +85,7 @@ BHandle_(-1)
 			chmod(fileName.str().c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 		} else {
 			std::ostringstream error;
-			error << "Unable to save BHandle information to external file " << fileName;
+			error << "Unable to save BHandle information to external file " << fileName.str();
 			XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 			std::ostringstream tag;
 			tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
@@ -121,7 +121,7 @@ throw (emu::fed::exception::CAENException)
 		error << "Exception in waitIRQ: " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		std::ostringstream tag;
-		tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+		tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -151,7 +151,7 @@ throw (emu::fed::exception::CAENException)
 		error << "Exception in readIRQ: " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		std::ostringstream tag;
-		tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
+		tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
