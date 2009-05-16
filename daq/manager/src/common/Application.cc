@@ -214,7 +214,7 @@ void emu::daq::manager::Application::getAllAppDescriptors()
             "Failed to get application descriptors for class emu::daq::ta::Application"
             << " : " ;
         XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss3.str(), e );
-        this->notifyQualified( "warn", eObj );
+        this->notifyQualified( "warning", eObj );
     }
 
     try
@@ -234,7 +234,7 @@ void emu::daq::manager::Application::getAllAppDescriptors()
             "Failed to get application descriptors for class emu::daq::rui::Application"
             << " : " ;
         XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss4.str(), e );
-        this->notifyQualified( "warn", eObj );
+        this->notifyQualified( "warning", eObj );
     }
 
     try
@@ -254,7 +254,7 @@ void emu::daq::manager::Application::getAllAppDescriptors()
             "Failed to get application descriptors for class emu::daq::fu::Application"
             << " : " ;
         XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss5.str(), e );
-        this->notifyQualified( "warn", eObj );
+        this->notifyQualified( "warning", eObj );
     }
 
     try
@@ -274,7 +274,7 @@ void emu::daq::manager::Application::getAllAppDescriptors()
             "Failed to get application descriptors for class EmuMonitor"
             << " : " ;
         XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss6.str(), e );
-        this->notifyQualified( "warn", eObj );
+        this->notifyQualified( "warning", eObj );
     }
 
     vector< xdaq::ApplicationDescriptor* > dqmTFMonitorDescriptors_; // There's only one, but anyway
@@ -295,7 +295,7 @@ void emu::daq::manager::Application::getAllAppDescriptors()
             "Failed to get application descriptors for class EmuTFMonitor"
             << " : " ;
         XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss7.str(), e );
-        this->notifyQualified( "warn", eObj );
+        this->notifyQualified( "warning", eObj );
     }
 
     // Append EmuTFMonitor's descriptor to EmuTFMonitors'
@@ -946,7 +946,7 @@ throw (xgi::exception::Exception)
       REVOKE_ALARM( "unsupervised", NULL );
     }
     else {
-      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warn", "Local DAQ is in unsupervised mode.", "", &logger_ );
+      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warning", "Local DAQ is in unsupervised mode.", "", &logger_ );
     }
 
     if ( globalMode_.value_ ) setParametersForGlobalMode();
@@ -1434,7 +1434,7 @@ emu::daq::manager::Application::materialToReportOnPage1(){
     stringstream ss8;
     ss8 <<  "Failed to report min and max number of events to Page 1 : " << e.what() ;
     XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss8.str() );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
   }
   
   return items;
@@ -1459,7 +1459,7 @@ void emu::daq::manager::Application::getRunInfoFromTA( string* runnum, string* m
 	ss9 << "The embarassment of riches: " << taDescriptors_.size() <<
 		       " TA instances found. Will use TA0.";
 	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss9.str() );
-	this->notifyQualified( "warn", eObj );
+	this->notifyQualified( "warning", eObj );
       }
 
       map <string,string> namesAndTypes;
@@ -1529,7 +1529,7 @@ void emu::daq::manager::Application::getTriggerSources()
 		      "Failed to get application descriptors for class TTCciControl: "
 		      ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss13.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
     }
 
   if ( appDescriptors.size() >= 1 ){
@@ -1542,7 +1542,7 @@ void emu::daq::manager::Application::getTriggerSources()
 		      appDescriptors.size() << 
 		      " TTCciControl instances found. Trying first one.";
       XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss14.str() );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
     }
     map <string,string> namesAndTypes;
     namesAndTypes["ClockSource"  ] = "string";
@@ -1570,7 +1570,7 @@ void emu::daq::manager::Application::getTriggerSources()
 	  stringstream ss15;
 	  ss15 << "Failed to get trigger sources from TTCciControl: ";
 	  XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss15.str(), e );
-	  this->notifyQualified( "warn", eObj );
+	  this->notifyQualified( "warning", eObj );
 	}
       catch(...)
 	{
@@ -1578,7 +1578,7 @@ void emu::daq::manager::Application::getTriggerSources()
 	  stringstream ss16;
 	  ss16 << "Failed to get trigger sources from TTCciControl."; 
 	  XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss16.str() );
-	  this->notifyQualified( "warn", eObj );
+	  this->notifyQualified( "warning", eObj );
 	}
     
   }
@@ -1587,7 +1587,7 @@ void emu::daq::manager::Application::getTriggerSources()
     stringstream ss17;
     ss17 <<  "Did not find TTCciControl. ==> Trigger sources are unknown.";
     XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss17.str() );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
   }
 }
 
@@ -1612,7 +1612,7 @@ void emu::daq::manager::Application::getTriggerMode()
 		      "Failed to get application descriptors for class TF_hyperDAQ"
 		      ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss18.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
     }
 
   if ( appDescriptors.size() >= 1 ){
@@ -1623,7 +1623,7 @@ void emu::daq::manager::Application::getTriggerMode()
       ss19 <<  "The embarassement of riches: " << 
 		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.";
       XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss19.str() );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
     }
     try{
       TF_triggerMode_ = getScalarParam(appDescriptors[0],"triggerMode","string");
@@ -1641,7 +1641,7 @@ void emu::daq::manager::Application::getTriggerMode()
 		     << appDescriptors[0]->getInstance() << " "
 		      ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss20.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
     }
   }
   else{
@@ -1649,7 +1649,7 @@ void emu::daq::manager::Application::getTriggerMode()
     stringstream ss21;
     ss21 <<  "Did not find TF_hyperDAQ. ==> Trigger mode is unknown.";
     XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss21.str() );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
   }
 }
 
@@ -2251,7 +2251,7 @@ void emu::daq::manager::Application::queryAppStates( vector< pair<xdaq::Applicat
 	ss29 <<  "Failed to get state"
 			<< " : " ;
 	XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss29.str(), e );
-	this->notifyQualified( "warn", eObj );
+	this->notifyQualified( "warning", eObj );
       }
     as->second = s;
   }
@@ -2587,7 +2587,7 @@ void emu::daq::manager::Application::configureDAQ()
 	ss30 << "The embarassment of riches: " << taDescriptors_.size() <<
 		       " TA instances found. Will use TA0.";
 	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss30.str() );
-	this->notifyQualified( "warn", eObj );
+	this->notifyQualified( "warning", eObj );
       }
       string runNumber    = runNumber_.toString();
       try
@@ -4498,7 +4498,7 @@ xoap::MessageReference emu::daq::manager::Application::makeTAGenerateRunStopTime
 	ss44 <<  "Failed to make emu::daq::ta::Application generate run stop time: Received fault reply: " 
 		       << replyBody.getFault().getFaultString() ;
 	XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss44.str() );
-	this->notifyQualified( "warn", eObj );
+	this->notifyQualified( "warning", eObj );
       }
   } catch(xcept::Exception e){
     LOG4CPLUS_WARN(logger_, "Failed to make emu::daq::ta::Application generate run stop time: " 
@@ -4507,7 +4507,7 @@ xoap::MessageReference emu::daq::manager::Application::makeTAGenerateRunStopTime
     ss45 <<  "Failed to make emu::daq::ta::Application generate run stop time: " 
 		   ;
     XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss45.str(), e );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
 
   }
 
@@ -4803,7 +4803,7 @@ void emu::daq::manager::Application::getIdsOfRunningConfigurationsFromFM(){
 		     << "\" in state \"Configur*\"."
 		     << " ==> CSC configuarion id will be 0. ]]>" ;
       XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss46.str() );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
     }
   }
   catch(emu::daq::manager::exception::Exception &e){
@@ -4815,7 +4815,7 @@ void emu::daq::manager::Application::getIdsOfRunningConfigurationsFromFM(){
 		   "Failed to get unique id of CSC configuration from CSC FM"
 		   << " : " ;
     XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss47.str(), e );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
   }
 
   // From Track Finder Cell: TODO
@@ -5053,7 +5053,7 @@ vector< map< string,string > > emu::daq::manager::Application::getRUIEventCounts
       ss51 <<  "Failed to get event count of emu::daq::rui::Application." << appInst.str()
 		     << " : " ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss51.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
     }
     map< string,string > sm;
     sm[ "appName"  ] = "emu::daq::rui::Application";
@@ -5100,7 +5100,7 @@ vector< map< string,string > > emu::daq::manager::Application::getFUEventCounts(
       ss52 <<  "Failed to get event count of emu::daq::fu::Application." << appInst.str()
 		     << " : " ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss52.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
     }
     map< string,string > sm;
     sm[ "appName"  ] = "emu::daq::fu::Application";
@@ -5321,7 +5321,7 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 		      << (*rui)->getClassName() << (*rui)->getInstance() 
 		      << " : " ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss53.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
       isFinished = false;
     } catch (xoap::exception::Exception& e){
       LOG4CPLUS_WARN( logger_, "Failed to parse STEP info from reply from " 
@@ -5332,7 +5332,7 @@ bool emu::daq::manager::Application::printSTEPCountsTable( stringstream& out, bo
 		      << (*rui)->getClassName() << (*rui)->getInstance() 
 		      << " : " ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss54.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
       isFinished = false;
     }
     
@@ -5498,7 +5498,7 @@ bool emu::daq::manager::Application::isSTEPFinished(){
 		      << (*pos)->getClassName() << (*pos)->getInstance() 
 		      << " : " ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss55.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
       isFinished = false;
     } catch (xoap::exception::Exception& e){
       LOG4CPLUS_WARN( logger_, "Failed to parse STEP info from reply from " 
@@ -5509,7 +5509,7 @@ bool emu::daq::manager::Application::isSTEPFinished(){
 		      << (*pos)->getClassName() << (*pos)->getInstance() 
 		      << " : " ;
       XCEPT_DECLARE_NESTED( emu::daq::manager::exception::Exception, eObj, ss56.str(), e );
-      this->notifyQualified( "warn", eObj );
+      this->notifyQualified( "warning", eObj );
       isFinished = false;
     }
 
@@ -5786,7 +5786,7 @@ void emu::daq::manager::Application::bookRunNumber(){
 // 		   runDbAddress_.toString()  << " for " << sequence << ": "
 // 		   << runInfo_->errorMessage() ;
 //     XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss64.str() );
-//     this->notifyQualified( "warn", eObj );
+//     this->notifyQualified( "warning", eObj );
     
     if ( success ){
       isBookedRunNumber_ = true;
@@ -5827,7 +5827,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     stringstream ss66;
     ss66 <<  "Nothing written to run database as no run number was booked.";
     XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss66.str() );
-    this->notifyQualified( "warn", eObj );
+    this->notifyQualified( "warning", eObj );
   }
 
     stringstream subjectToELog;
@@ -6378,7 +6378,7 @@ void emu::daq::manager::Application::configureAction(toolbox::Event::Reference e
       REVOKE_ALARM( "unsupervised", NULL );
     }
     else {
-      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warn", "Local DAQ is in unsupervised mode.", "", &logger_ );
+      RAISE_ALARM( emu::daq::manager::alarm::Unsupervised, "unsupervised", "warning", "Local DAQ is in unsupervised mode.", "", &logger_ );
     }
 
     try
@@ -6573,7 +6573,7 @@ void emu::daq::manager::Application::noAction(toolbox::Event::Reference e)
        << " attempted when already " 
        << fsm_.getStateName(fsm_.getCurrentState());
   XCEPT_DECLARE( emu::daq::manager::exception::Exception, eObj, ss83.str() );
-  this->notifyQualified( "warn", eObj );
+  this->notifyQualified( "warning", eObj );
 }
 
 void emu::daq::manager::Application::resetAction()
