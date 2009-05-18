@@ -91,6 +91,7 @@ void outputShowHideButton(std::ostream * out,const std::string &configName,const
   void showHideTable(xgi::Input * in, xgi::Output * out,bool show ) throw (xgi::exception::Exception);
   void showTable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void hideTable(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void viewValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //select two versions for diff
   void selectVersions(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //select one version for read
