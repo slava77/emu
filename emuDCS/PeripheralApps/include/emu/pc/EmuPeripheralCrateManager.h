@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.3 2009/03/27 13:12:34 liu Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.4 2009/05/18 13:34:50 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -36,6 +36,9 @@ namespace emu {
   
 class EmuPeripheralCrateManager: public EmuPeripheralCrateBase
 {
+protected:
+  int page1_state_;
+  std::vector< std::string> Page1States;
   
 public:
   
