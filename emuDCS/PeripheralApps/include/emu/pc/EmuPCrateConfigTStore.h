@@ -66,7 +66,7 @@ public:
 	void displayConfiguration(xgi::Output * out,const std::string &configName,const std::string &identifier);
 	void displayConfiguration(xgi::Output * out,const std::string &configName,int crateID);
 	void outputTableEditControls(xgi::Output * out,const std::string &tableName,const std::string &prefix="");
-	void outputSingleValue(std::ostream * out,xdata::Serializable *value,const std::string &tableName="",const std::string &identifier="",const std::string &column="",int rowIndex=0);
+	void outputSingleValue(std::ostream * out,xdata::Serializable *value,const std::string &column,const std::string &tableName="",const std::string &identifier="",int rowIndex=0);
 	void outputCurrentDiff(xgi::Output * out);
 	std::string withoutVersionNumber(const std::string &columnName);
 	
@@ -79,6 +79,7 @@ void outputShowHideButton(std::ostream * out,const std::string &configName,const
   void outputEndcapSelector(xgi::Output * out);
   // Actions
   void parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void exportAsXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void uploadConfigToDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void readConfigFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void synchronizeToFromDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -154,6 +155,15 @@ void diffAnodeChannel(const std::string &connectionID, const std::string &old_em
 void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct,const std::string &identifier) throw (xcept::Exception);
 
 private:
+	bool shouldDisplayInHex(const std::string &columnName);
+	std::string valueToString(xdata::Serializable *value,const std::string &columnName);
+	std::string xdataToHex(xdata::Serializable *xdataValue);
+	DOMNode *DOMOfCurrentTables(); 
+	std::string fixColumnName(const std::string &column);
+	std::string fixCaseOfTableName(const std::string &column);
+
+	void addChildNodes(DOMElement *parentElement,const std::string &configName,const std::string &parentIdentifier);
+	void addNode(DOMElement *crateElement,const std::string &configName,int crateID);
 	std::string configIDOptions(std::vector<std::string> &configIDs);
 	void outputCompareVersionsForm(xgi::Output * out,const std::string &endcap_side);
 	std::string newCell(xdata::Serializable *newValue,xdata::Serializable *oldValue);
@@ -184,6 +194,7 @@ private:
 	xdata::Table &getCachedTable(const std::string &insertViewName,int crateIndex) throw (xcept::Exception);
 	void setCachedTable(const std::string &insertViewName,int crateIndex,xdata::Table &table) throw (xcept::Exception);
 
+	bool columnIsDatabaseOnly(const std::string &columnName);
 	bool canChangeColumn(const std::string &columnName);
 	bool canChangeColumnGlobally(const std::string &columnName);
 	bool isNumericType(const std::string &xdataType);
