@@ -47,6 +47,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::SetTypeDesc, "SetTypeDesc");
   xgi::bind(this,&EmuPCrateConfigTStore::incrementValue, "incrementValue");
   xgi::bind(this,&EmuPCrateConfigTStore::setValue, "setValue");
+  xgi::bind(this,&EmuPCrateConfigTStore::viewValues, "viewValues");
   xgi::bind(this,&EmuPCrateConfigTStore::changeSingleValue, "changeSingleValue");
   xgi::bind(this,&EmuPCrateConfigTStore::showTable, "Show");
   xgi::bind(this,&EmuPCrateConfigTStore::hideTable, "Hide");
@@ -457,7 +458,7 @@ void EmuPCrateConfigTStore::outputCurrentConfiguration(xgi::Output * out) {
   	if (myCrates.size()) {
   		*out << "<table border=\"2\" cellpadding=\"10\"><tr><td>Update all crates</td></tr><tr><td>";
 		for (std::map<std::string,xdata::Table>::iterator tableDefinition=tableDefinitions.begin();tableDefinition!=tableDefinitions.end();++tableDefinition) {
-			//*out << "table " << (*tableDefinition).first;
+			if (tableDefinition!=tableDefinitions.begin() && (*tableDefinition).first!="peripheralcrate") *out << cgicc::br() << cgicc::hr() << cgicc::br();
 			outputTableEditControls(out,(*tableDefinition).first);
   		}
   		*out << "</tr></td></table>";
@@ -527,10 +528,14 @@ void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,const std:
 	std::vector<std::string> columns=definition.getColumns();
 	std::vector<std::string>::iterator column;
 	
-	std::ostringstream increment;
-	std::ostringstream set;
 	bool fieldsToIncrement=false;
+	std::ostringstream increment;
+	
 	bool fieldsToSet=false;
+	std::ostringstream set;
+	
+	bool fieldsToView=false;
+	std::ostringstream view;
 	
 	std::string anchor=tableName+prefix+"edit";
 	increment << cgicc::form().set("method","POST").set("action", toolbox::toString("/%s/incrementValue#%s",getApplicationDescriptor()->getURN().c_str(),anchor.c_str())) << std::endl;
@@ -554,7 +559,7 @@ void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,const std:
 	set << cgicc::form().set("method","POST").set("action", toolbox::toString("/%s/setValue#%s",getApplicationDescriptor()->getURN().c_str(),anchor.c_str())) << std::endl;
 	set << cgicc::input().set("type","hidden").set("name","table").set("value",tableName);
 	set << cgicc::input().set("type","hidden").set("name","prefix").set("value",prefix);
-	set << "set all " << cgicc::select().set("name","fieldName");//<< cgicc::input().set("type","text").set("name","view").set("value",view) << std::endl;
+	set << "set all " << cgicc::select().set("name","fieldName");
 	for (column=columns.begin(); column!=columns.end(); column++) {
 		if (canChangeColumnGlobally(*column)) {
 			set << cgicc::option().set("value",*column) << *column << cgicc::option() << std::endl;
@@ -565,9 +570,28 @@ void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,const std:
 	set << cgicc::input().set("type","submit").set("value","Set")  << std::endl;
 	set << cgicc::form() << std::endl;	
 	
-	if (fieldsToIncrement || fieldsToSet) {
+	//view all
+	view << cgicc::form().set("method","POST").set("action", toolbox::toString("/%s/viewValues",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+	view << cgicc::input().set("type","hidden").set("name","table").set("value",tableName);
+	view << cgicc::input().set("type","hidden").set("name","prefix").set("value",prefix);
+	view << "view all " << cgicc::select().set("name","fieldName");
+	for (column=columns.begin(); column!=columns.end(); column++) {
+		if (!columnIsDatabaseOnly(*column)) { //we want to be able to show all even when we can't change all
+			view << cgicc::option().set("value",*column) << *column << cgicc::option() << std::endl;
+			fieldsToView=true;
+		}
+	}
+	view << cgicc::select();
+	view << cgicc::input().set("type","submit").set("value","View")  << std::endl;
+	view << cgicc::form() << cgicc::br() << std::endl;	
+	
+	if (fieldsToIncrement || fieldsToSet /*|| fieldsToView*/) { 
+		//the only one with fieldsToView but no fieldsToSet is peripheralcrate, and it doesn't work for that anyway since I don't cache the values 
+		//I probably should, it would further decouple a few things from the device classes, although it's not really necessary since they can't be changed in memory.
+		//in any case, I doubt anybody wants to view all crate labels, so it should be okay to have it like this for now.
 		//*out << "table " << tableName << cgicc::br();
 		*out << cgicc::a().set("name",anchor) << "table " << tableName;
+		if (fieldsToView) *out << view.str();
 		if (fieldsToIncrement) *out << increment.str();
 		if (fieldsToSet) *out << set.str();
 		*out << cgicc::a();
@@ -1079,11 +1103,76 @@ void EmuPCrateConfigTStore::selectVersion(xgi::Input * in, xgi::Output * out )
 		*out << "read version " << cgicc::select().set("name","configID") << configIDOptions(configIDs) << cgicc::select();
 		*out << cgicc::input().set("type","submit").set("value","Read") << std::endl;
 		*out << cgicc::form();
-	
+		outputFooter(out);
 	} catch (xcept::Exception &e) {
 		XCEPT_RETHROW(xgi::exception::Exception,"Could not fetch available config IDs to load. ",e);
 	}
 }
+
+
+void EmuPCrateConfigTStore::viewValues(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception) {
+  	cgicc::Cgicc cgi(in);
+  	std::string tableName=**cgi["table"];
+  	std::string fieldName=**cgi["fieldName"];
+	outputHeader(out);
+	outputStandardInterface(out);
+	if (currentTables.count(tableName)) {
+  		std::map<std::string,xdata::Table> &tables=currentTables[tableName];
+  		std::map<std::string,xdata::Table>::iterator table;
+  		std::map<std::string,xdata::Table>::iterator firstTable;
+  		std::map<std::string,xdata::Table>::iterator lastTable;
+		getRangeOfTables(cgi,tables,firstTable,lastTable);
+		xdata::Table allTables;
+		std::map<std::string,unsigned int> differentValues;
+  		for (table=firstTable;table!=lastTable;++table) {
+  			try {
+				xdata::Table relevantColumns=(*table).second;
+				std::vector<std::string> columns=(*table).second.getColumns();
+				for (std::vector<std::string>::iterator column=columns.begin();column!=columns.end();++column) {
+					if (*column!=fieldName) {
+						if (*column!="LABEL" && *column!="CFEB_NUMBER" && *column!="AFEB_NUMBER")  {
+							relevantColumns.removeColumn(*column);
+						}
+					}
+				}
+				std::string contextColumnName="Crate/chamber";
+				relevantColumns.addColumn(contextColumnName,"string");
+		  		int rowCount=(*table).second.getRowCount();
+		  		for (int rowIndex=0;rowIndex<rowCount;rowIndex++) {
+					xdata::String context=(*table).first;
+		  			relevantColumns.setValueAt(rowIndex,contextColumnName,context);
+					xdata::Serializable *value=relevantColumns.getValueAt(rowIndex,fieldName);
+					differentValues[value->toString()]++;
+			  	}
+				if (allTables.getRowCount()==0) allTables=relevantColumns;
+				else allTables.merge(&allTables,&relevantColumns);
+		  	} catch (xdata::exception::Exception &e) {
+		  		XCEPT_RETHROW(xgi::exception::Exception,"Could not get all values",e);
+		  	}
+		}
+		std::string qualifier="";
+		if (!cgi("prefix").empty()) {
+			qualifier=" of "+ cgi("prefix");
+		}
+		if (differentValues.size()==1) {
+			std::map<std::string,unsigned int>::iterator onlyValue=differentValues.begin();
+			*out << "All " << fieldName << " values" << qualifier << " are " << (*onlyValue).first;
+		} else {
+			if (differentValues.size()<allTables.getRowCount()/2) { //if there isn't a different value for almost every row, show the counts of different values
+				std::multimap<unsigned int, std::string> valuesByCount; //insert the values into this with the key and value swapped, so that we can have them sorted by the number of times each value is used
+				for (std::map<std::string,unsigned int>::iterator value=differentValues.begin();value!=differentValues.end();++value) {
+					valuesByCount.insert(std::pair<unsigned int, std::string>((*value).second,(*value).first));
+				}
+				for (std::multimap <unsigned int, std::string>::reverse_iterator count=valuesByCount.rbegin();count!=valuesByCount.rend();++count) {
+					*out << (*count).first << " " << fieldName << " values" << qualifier << " are " << (*count).second << cgicc::br();
+				}
+			}
+			outputTable(out,allTables);
+		}
+  	}
+	outputFooter(out);
+    }
     
 template <class xdataType>
 void set(xdata::Serializable *originalValue,const std::string &newValue) {
@@ -1214,7 +1303,7 @@ void EmuPCrateConfigTStore::setValue(xgi::Input * in, xgi::Output * out )
     }
  
  void EmuPCrateConfigTStore::getRangeOfTables(const cgicc::Cgicc &cgi,std::map<std::string,xdata::Table> &tables,std::map<std::string,xdata::Table>::iterator &firstTable,std::map<std::string,xdata::Table>::iterator &lastTable) {
-  	std::string prefix=**cgi["prefix"];
+  	std::string prefix=cgi("prefix");
 	if (prefix.empty()) {
 		firstTable=tables.begin();
 		lastTable=tables.end();
@@ -2387,7 +2476,7 @@ std::string EmuPCrateConfigTStore::chamberID(int crateID,const std::string &cham
 }
 
 std::string EmuPCrateConfigTStore::DAQMBID(const std::string &chamber,int slot) {
-	return /*chamberID(crateID,chamberLabel)*/chamber+"_"+to_string(slot);
+	return /*chamberID(crateID,chamberLabel)*/chamber;//+"_"+to_string(slot);
 }
 
 
