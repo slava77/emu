@@ -21,6 +21,7 @@
 #include "xdata/UnsignedInteger32.h"
 #include "xdata/SimpleType.h"
 #include "emu/pc/XMLParser.h"
+#include "xoap/domutils.h"
 
 #include "xercesc/dom/DOMNode.hpp"
 
@@ -52,6 +53,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::selectVersions, "selectVersions"); //select two versions to compare
   xgi::bind(this,&EmuPCrateConfigTStore::compareVersions, "compareVersions");
   xgi::bind(this,&EmuPCrateConfigTStore::selectVersion, "selectVersion"); //select one version to load
+  xgi::bind(this,&EmuPCrateConfigTStore::exportAsXML, "exportAsXML"); //select one version to load
   
   std::string HomeDir_ =getenv("HOME");
   xmlpath_    = HomeDir_ + "/config/pc/"; //xml file chosen must be in this directory. If you choose something in another directory then it will look for it in here and fail.
@@ -167,6 +169,144 @@ void EmuPCrateConfigTStore::displayDiff(std::ostream * out,const std::string &co
   		LOG4CPLUS_WARN(this->getApplicationLogger(),"could not display diff of "+configName+": "+e.what());
 	}
 }
+
+std::string EmuPCrateConfigTStore::fixCaseOfTableName(const std::string &tableName) {
+	if (tableName=="anodechannel") return "AnodeChannel";
+	return toolbox::toupper(tableName);
+}
+
+
+std::string EmuPCrateConfigTStore::fixColumnName(const std::string &column) {
+	static std::map<std::string,std::string> columnNames;
+	if (columnNames.empty()) {
+	std::string columnNamesArray[]={
+		"MAC_addr","MCAST_1","MCAST_2","MCAST_3","Dflt_Srv_MAC","VCC_frmw_ver","Ethernet_CR","Ext_FIFO_CR",
+		"Rst_Misc_CR","VME_CR","BTO","BGTO","Msg_Lvl","Warn_On_Shtdwn","Pkt_On_Startup","xLatency",
+		"xFineLatency","calibration_LCT_delay","enableCLCTInputs_reg42","enableCLCTInputs_reg68","l1aDelay",
+		"CCBmode","TTCrxID","TTCrxCoarseDelay","TTCrxFineDelay"};
+		for (size_t columnIndex=0;columnIndex<sizeof(columnNamesArray)/sizeof(columnNamesArray[0]);columnIndex++) {
+			columnNames[toolbox::tolower(columnNamesArray[columnIndex])]=columnNamesArray[columnIndex];
+		}
+	}
+	std::string lowerCaseName=toolbox::tolower(column);
+	if (columnNames.count(lowerCaseName)) {
+		return columnNames[lowerCaseName];
+	}
+	if (lowerCaseName=="problem_mask") return "problem_location_mask";
+	return lowerCaseName;
+}
+
+std::string EmuPCrateConfigTStore::xdataToHex(xdata::Serializable *xdataValue) {
+	//this is slower but it's easier than having code for each numeric subclass, and speed is not important here
+	std::string valueAsString=xdataValue->toString();
+	std::istringstream stream(valueAsString);
+	long long int intValue;
+	stream >> intValue;
+	std::string hexValue;
+	convertToHex(hexValue,"%Lx",intValue);
+	//std::cout << "converted " << valueAsString << " to " << intValue << " to " << hexValue << std::endl;
+	return hexValue;
+}
+
+//some values are read from the XML as hex values, and should be exported to XML as hex
+///and displayed in hex on the web interface.
+bool EmuPCrateConfigTStore::shouldDisplayInHex(const std::string &columnName) {
+	/*std::string hexColumns[]={"TMB_FIRMWARE_COMPILE_TYPE",
+						"PROBLEM_MASK",
+						"DMB_CNTL_FIRMWARE_TAG",
+						"CFEB_FIRMWARE_TAG",
+						"LAYER0_DISTRIP_HOT_CHANN_MASK",
+						"LAYER1_DISTRIP_HOT_CHANN_MASK",
+						"LAYER2_DISTRIP_HOT_CHANN_MASK",
+						"LAYER3_DISTRIP_HOT_CHANN_MASK",
+						"LAYER4_DISTRIP_HOT_CHANN_MASK",
+						"LAYER5_DISTRIP_HOT_CHANN_MASK"}; 
+	if (columnName.find("KILL_CHIP")!=std::string::npos) return true;
+	std::string *lastElement=&hexColumns[sizeof hexColumns/sizeof hexColumns[0]];
+	return (std::find(&hexColumns[0],lastElement,columnName)!=lastElement);*/
+	
+	//the other ones are stored as strings anyway, so there is no point converting them from hex strings to numbers and then back into hex strings, except to validate input.
+	return toolbox::toupper(columnName)=="PROBLEM_MASK";
+}
+
+void EmuPCrateConfigTStore::addChildNodes(DOMElement *parentElement,const std::string &configName,const std::string &parentIdentifier) {	
+	DOMDocument* doc = parentElement->getOwnerDocument();
+	if (currentTables.count(configName)) {		
+  		std::map<std::string,xdata::Table> &tables=currentTables[configName];
+  		std::map<std::string,xdata::Table>::iterator table;
+		
+		std::vector<std::string> subTables;
+		if (tableNames.count(configName)) {
+			subTables=tableNames[configName];
+		}
+  		//loop through all tables whose key begins with the parent ID
+  		//all keys begin with the appropriate parent ID
+   		for (table=tables.lower_bound(parentIdentifier);table!=tables.lower_bound(parentIdentifier+"~");++table) {
+			//for each row, add an element with the name configName, add it to parentElement
+			//for each column, add an attribute.
+			std::vector<std::string> columns=(*table).second.getColumns();
+			unsigned int rowCount=(*table).second.getRowCount();
+			for (unsigned rowIndex=0; rowIndex<rowCount; rowIndex++ ) {
+				std::cout << "adding element with name "<< configName << std::endl;
+				DOMElement *newElement=doc->createElement(xoap::XStr(fixCaseOfTableName(configName)));
+				for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
+					xdata::Serializable *xdataValue=(*table).second.getValueAt(rowIndex,*column);
+					std::string value;
+					if (!columnIsDatabaseOnly(*column)) {
+						value=valueToString(xdataValue,*column);
+						newElement->setAttribute(xoap::XStr(fixColumnName(*column)),xoap::XStr(value));
+						std::cout << "adding attribute with name " << *column << std::endl;
+					}
+				}
+				parentElement->appendChild(newElement);
+				for (std::vector<std::string>::iterator subTable=subTables.begin();subTable!=subTables.end();++subTable) { 			
+					std::cout << "crate subtable, showing " << (*subTable) << " of " << (*table).first << std::endl;
+	 
+					addChildNodes(newElement,*subTable,(*table).first);
+				}
+			}
+  		}
+  	} else std::cout << "no tables of type " << configName << std::endl;
+}
+
+void EmuPCrateConfigTStore::addNode(DOMElement *crateElement,const std::string &configName,int crateID) {			
+	addChildNodes(crateElement,configName,crateIdentifierString(crateID));
+}
+
+DOMNode *EmuPCrateConfigTStore::DOMOfCurrentTables() {
+	try {
+	     std::vector<Crate *> myCrates;
+		myCrates = TStore_myEndcap_->AllCrates();
+		DOMImplementation *impl = DOMImplementationRegistry::getDOMImplementation(xoap::XStr("LS"));
+			DOMDocument* doc = impl->createDocument(
+				   xoap::XStr(""),                    // root element namespace URI.
+				   xoap::XStr("EmuSystem"),         // root element name
+				   0);                   // document type object (DTD).
+		for(unsigned i = 0; i < myCrates.size(); ++i) {
+			DOMElement *crateElement=doc->createElement(xoap::XStr("PeripheralCrate"));
+			crateElement->setAttribute(xoap::XStr("crateID"),xoap::XStr(to_string(myCrates[i]->CrateID())));
+			crateElement->setAttribute(xoap::XStr("label"),xoap::XStr(to_string(myCrates[i]->GetLabel())));
+			doc->getDocumentElement()->appendChild(crateElement);
+			for (std::vector<std::string>::iterator tableName=topLevelTables.begin();tableName!=topLevelTables.end();++tableName) {
+				std::cout << " adding nodes for crate "<< myCrates[i]->CrateID() << " table name " << *tableName << std::endl;
+				addNode(crateElement,*tableName,myCrates[i]->CrateID());
+			}
+		}
+		return doc;
+	} catch (DOMException &e) {
+		XCEPT_RAISE(xgi::exception::Exception,xoap::XMLCh2String(e.msg));
+	}
+}
+
+void EmuPCrateConfigTStore::exportAsXML(xgi::Input * in, xgi::Output * out )  throw (xgi::exception::Exception) {
+	DOMNode *pDoc=DOMOfCurrentTables();
+	std::string XML=tstoreclient::writeXML(pDoc);
+	outputHeader(out);
+	outputStandardInterface(out);
+	*out << cgicc::textarea().set("name","config").set("cols","60").set("rows","15") << XML << cgicc::textarea();
+	outputFooter(out);
+}
+
 
 //displays either the hide/show button and the table name, or "no rows" if the table is empty. Returns whether the table should be shown.
 //\a display is either "diff" or "config" depending on what should be displayed when a show/hide button is pressed. Config is the default.
@@ -354,13 +494,15 @@ bool EmuPCrateConfigTStore::canChangeColumnGlobally(const std::string &columnNam
 	return canChangeColumn(columnName);
 }
 
+bool EmuPCrateConfigTStore::columnIsDatabaseOnly(const std::string &columnName) {
+	return columnName.find("CONFIG_ID")!=std::string::npos;
+}
 
 bool EmuPCrateConfigTStore::canChangeColumn(const std::string &columnName) {
 	if (columnName=="CRATEID") return false;
 	if (columnName=="CFEB_NUMBER") return false;
 	if (columnName=="LABEL") return false;
-	//can't edit ID columns, which all have _CONFIG_ID in their names
-	return columnName.find("CONFIG_ID")==std::string::npos;
+	return !columnIsDatabaseOnly(columnName);
 }
 
 bool EmuPCrateConfigTStore::isNumericType(const std::string &xdataType) {
@@ -432,10 +574,17 @@ void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,const std:
 	}
 }
 
+std::string EmuPCrateConfigTStore::valueToString(xdata::Serializable *value,const std::string &columnName) {
+	if (shouldDisplayInHex(columnName)) {
+		return xdataToHex(value);
+	}
+	else return value->toString();
+}
+
 //outputs the value of \a value to *out. If the last three parameters are filled in (to indicate where the value comes from, so how to change it) then
 //and the column is of a type that can be edited and a column name which does not seem to be a config ID,
 //it will be in an editable text field with a change button which called changeSingleValue.
-void EmuPCrateConfigTStore::outputSingleValue(std::ostream * out,xdata::Serializable *value,const std::string &tableName,const std::string &identifier,const std::string &column,int rowIndex) {
+void EmuPCrateConfigTStore::outputSingleValue(std::ostream * out,xdata::Serializable *value,const std::string &column,const std::string &tableName,const std::string &identifier,int rowIndex) {
 	std::string columnType=value->type();
 	if (columnType=="table") {
 		outputTable(out,*static_cast<xdata::Table *>(value));
@@ -444,6 +593,8 @@ void EmuPCrateConfigTStore::outputSingleValue(std::ostream * out,xdata::Serializ
 		*out << "mime";
 		//output some other data.
 	} else {
+		std::string displayValue=valueToString(value,column);
+		if (shouldDisplayInHex(column)) displayValue="0x"+displayValue; //display with 0x so that it's clear to the user and also so it can be correctly parsed after they make changes
 		if (canChangeColumn(column) && !tableName.empty() && !identifier.empty()) {
 			std::string anchor=tableName+identifier+column+to_string(rowIndex);
 			*out << cgicc::a().set("name",anchor); //add an anchor so we can scroll immediately to the thing we just hid or showed
@@ -452,13 +603,13 @@ void EmuPCrateConfigTStore::outputSingleValue(std::ostream * out,xdata::Serializ
 			*out << cgicc::input().set("type","hidden").set("name","identifier").set("value",identifier);
 			*out << cgicc::input().set("type","hidden").set("name","fieldName").set("value",column);
 			*out << cgicc::input().set("type","hidden").set("name","row").set("value",to_string(rowIndex));
-			*out << cgicc::input().set("type","text").set("name","newValue").set("size","11").set("value",value->toString());
+			*out << cgicc::input().set("type","text").set("name","newValue").set("size","11").set("value",displayValue);
 
 			*out << cgicc::input().set("type","submit").set("value","Change") << std::endl;
 			*out << cgicc::form() << std::endl;
 			*out << cgicc::a() << std::endl;
 		} else {
-			*out << value->toString();
+			*out << displayValue;
 		}
 	}
 }
@@ -504,10 +655,10 @@ void EmuPCrateConfigTStore::outputDiffRow(std::ostream * out,xdata::Table &resul
 			std::string tableCellTag=newCell(oldValue,newValue);
 			if (!oldValue->equals(*newValue)) changes[columnWithoutVersionNumber]++;
 			*out << tableCellTag;
-			outputSingleValue(out,oldValue);
+			outputSingleValue(out,oldValue,columnWithoutVersionNumber);
 			*out << "</td>";
 			*out << tableCellTag;
-			outputSingleValue(out,newValue);
+			outputSingleValue(out,newValue,columnWithoutVersionNumber);
 			column=nextColumn;
 			*out << "</td>";
 			if (vertical) *out << "</tr>";
@@ -588,7 +739,7 @@ void EmuPCrateConfigTStore::outputTable(std::ostream * out,xdata::Table &results
 		for(columnIterator=columns.begin(); columnIterator!=columns.end(); ++columnIterator) {
 			if (canChangeColumn(*columnIterator)) {
 				*out << "<tr><td>" << *columnIterator << /*(" << columnType << ")" << */ ":</td><td>";
-				outputSingleValue(out,results.getValueAt(0,*columnIterator),tableName,identifier,*columnIterator,0);
+				outputSingleValue(out,results.getValueAt(0,*columnIterator),*columnIterator,tableName,identifier,0);
 				*out << "</tr>";
 			}
 		}
@@ -607,7 +758,7 @@ void EmuPCrateConfigTStore::outputTable(std::ostream * out,xdata::Table &results
 			*out << "<tr>";
 			for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++) {
 				*out << "<td>";
-				outputSingleValue(out,results.getValueAt(rowIndex,*columnIterator),tableName,identifier,*columnIterator,rowIndex);
+				outputSingleValue(out,results.getValueAt(rowIndex,*columnIterator),*columnIterator,tableName,identifier,rowIndex);
 				*out << "</td>";
 
 			}
@@ -650,6 +801,13 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();
 	
+
+  *out << cgicc::td().set("style", "width:130px;");
+  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/exportAsXML",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+  *out << cgicc::input().set("type","submit").set("value","Export as XML").set("style", "width:120px;") << std::endl;
+  *out << cgicc::form() << std::endl;
+  *out << cgicc::td();
+	
   *out << cgicc::td().set("style", "width:130px;");
   *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/upload",getApplicationDescriptor()->getURN().c_str())) << std::endl;
   *out << cgicc::input().set("type","submit").set("value","Upload to DB").set("style", "width:120px;") << std::endl;
@@ -682,9 +840,10 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
 	*out << cgicc::form() << std::endl;
   
   *out << cgicc::td();
+  
+  //This recreates the tables in the database, it only needs to be done for the initial setup and if the database structure changes,
+  //so we don't want to do it by accident.
   /*
-  This recreates the tables in the database, it only needs to be done for the initial setup and if the database structure changes,
-  so we don't want to do it by accident.
   *out << cgicc::td().set("style", "width:130px;");
   *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/sync",getApplicationDescriptor()->getURN().c_str())) << std::endl;
   *out << cgicc::input().set("type","submit").set("value","Sync to DB").set("style", "width:120px;") << std::endl;
@@ -882,14 +1041,18 @@ std::string EmuPCrateConfigTStore::configIDOptions(std::vector<std::string> &con
 }
     
 void EmuPCrateConfigTStore::outputCompareVersionsForm(xgi::Output * out,const std::string &endcap_side) {
-	std::vector<std::string> configIDs;
-	getConfigIds(configIDs,endcap_side);
-	*out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/compareVersions",getApplicationDescriptor()->getURN().c_str())) << std::endl;
-	std::string menu=configIDOptions(configIDs);
-	*out << "compare version " << cgicc::select().set("name","oldConfigID") << menu << cgicc::select();
-	*out << "with version " << cgicc::select().set("name","newConfigID") << menu << cgicc::select();
-	*out << cgicc::input().set("type","submit").set("value","Compare") << std::endl;
-	*out << cgicc::form();
+	try {
+		std::vector<std::string> configIDs;
+		getConfigIds(configIDs,endcap_side);
+		*out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/compareVersions",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+		std::string menu=configIDOptions(configIDs);
+		*out << "compare version " << cgicc::select().set("name","oldConfigID") << menu << cgicc::select();
+		*out << "with version " << cgicc::select().set("name","newConfigID") << menu << cgicc::select();
+		*out << cgicc::input().set("type","submit").set("value","Compare") << std::endl;
+		*out << cgicc::form();
+	} catch (xcept::Exception &e) {
+		XCEPT_RETHROW(xgi::exception::Exception,"Could not fetch available config IDs to compare. ",e);
+	}
 }
 
 void EmuPCrateConfigTStore::selectVersions(xgi::Input * in, xgi::Output * out ) 
@@ -899,22 +1062,28 @@ void EmuPCrateConfigTStore::selectVersions(xgi::Input * in, xgi::Output * out )
 	outputHeader(out);
 	outputStandardInterface(out);
 	outputCompareVersionsForm(out,endcap_side);
+	outputFooter(out);
     }
     
 void EmuPCrateConfigTStore::selectVersion(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception) {
-  	cgicc::Cgicc cgi(in);
-	std::string endcap_side=**cgi["side"];
-	std::vector<std::string> configIDs;
-	getConfigIds(configIDs,endcap_side);
-	outputHeader(out);
-	outputStandardInterface(out);
+	try {
+		cgicc::Cgicc cgi(in);
+		std::string endcap_side=**cgi["side"];
+		std::vector<std::string> configIDs;
+		getConfigIds(configIDs,endcap_side);
+		outputHeader(out);
+		outputStandardInterface(out);
+		
+		*out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/read",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+		*out << "read version " << cgicc::select().set("name","configID") << configIDOptions(configIDs) << cgicc::select();
+		*out << cgicc::input().set("type","submit").set("value","Read") << std::endl;
+		*out << cgicc::form();
 	
-	*out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/read",getApplicationDescriptor()->getURN().c_str())) << std::endl;
-	*out << "read version " << cgicc::select().set("name","configID") << configIDOptions(configIDs) << cgicc::select();
-	*out << cgicc::input().set("type","submit").set("value","Read") << std::endl;
-	*out << cgicc::form();
-    }
+	} catch (xcept::Exception &e) {
+		XCEPT_RETHROW(xgi::exception::Exception,"Could not fetch available config IDs to load. ",e);
+	}
+}
     
 template <class xdataType>
 void set(xdata::Serializable *originalValue,const std::string &newValue) {
@@ -2206,11 +2375,11 @@ void EmuPCrateConfigTStore::copyCSCToTable(xdata::Table &newRows,Chamber * chamb
        _label = chamber->GetLabel();
       _known_problem = chamber->GetProblemDescription();
       _problem_mask = chamber->GetProblemMask();
-      
+      std::cout << "problem mask=" << _problem_mask << std::endl;
       newRows.setValueAt(rowId, LABEL,            _label);
       newRows.setValueAt(rowId, KNOWN_PROBLEM,    _known_problem);
       newRows.setValueAt(rowId, PROBLEM_MASK,     _problem_mask);
-
+	std::cout << "problem_mask refetched="  << newRows.getValueAt(rowId, PROBLEM_MASK)->toString();
 }
 
 std::string EmuPCrateConfigTStore::chamberID(int crateID,const std::string &chamberLabel) {
@@ -2232,9 +2401,6 @@ void EmuPCrateConfigTStore::uploadCSC(const std::string &connectionID, xdata::Un
   std::string EMU_CONFIG_ID("EMU_CONFIG_ID");
 
   xdata::UnsignedInteger64 _csc_config_id;
-  xdata::String _label;
-  xdata::String _known_problem;
-  xdata::UnsignedShort _problem_mask;
   
   for(unsigned j = 0; j < TStore_allChambers.size(); ++j) {
     if(TStore_allChambers[j]) {      
@@ -2863,6 +3029,7 @@ void EmuPCrateConfigTStore::copyALCTToTable(xdata::Table &newRows,ALCTController
   xdata::UnsignedShort     _alct_testpulse_amplitude       = TStore_thisALCT->GetTestpulseAmplitude();
   xdata::String            _alct_testpulse_direction       = TStore_thisALCT->Get_PulseDirection();
   xdata::String            _alct_testpulse_invert          = TStore_thisALCT->Get_InvertPulse();
+  //std::cout << "ALCT_TESTPULSE_INVERT read: " << _alct_testpulse_invert << std::endl;
   xdata::UnsignedShort     _alct_trig_info_en              = TStore_thisALCT->GetWriteTriggerInfoEnable();
   xdata::UnsignedShort     _alct_trig_mode                 = TStore_thisALCT->GetWriteTriggerMode();
   xdata::String            _chamber_type                   = TStore_thisALCT->GetChamberType();
@@ -3250,11 +3417,14 @@ void EmuPCrateConfigTStore::readCSC(const std::string &connectionID, const std::
   std::cout << results.getRowCount() << " Chambers  in crate " << theCrate->CrateID() <<std::endl;
   std::cout << "==================================================" << std::endl;
   std::vector<std::string> columns=results.getColumns();
+  unsigned short ShortValue=0;
   for (unsigned rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
     Chamber * csc_ = new Chamber(theCrate);
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
       value = results.getValueAt(rowIndex,*column);
       if (results.getColumnType(*column)=="int") {xdata::Integer * i = dynamic_cast<xdata::Integer *>(value); if (i) IntValue=(int)*i;}
+      else if (results.getColumnType(*column)=="unsigned short") {xdata::UnsignedShort * s= dynamic_cast<xdata::UnsignedShort *>(value); if (s) ShortValue=(unsigned short)*s;}
+
       StrgValue=value->toString();
 
       if (*column == "LABEL")        {csc_->SetLabel(StrgValue);}
@@ -3834,7 +4004,10 @@ void EmuPCrateConfigTStore::readALCT(const std::string &connectionID, const std:
       if (*column == "ALCT_TRIG_INFO_EN"             ) {alct_->SetTriggerInfoEnable(IntValue);                    }
       if (*column == "ALCT_SN_SELECT"                ) {alct_->SetSnSelect(IntValue);                             }
       if (*column == "ALCT_TESTPULSE_AMPLITUDE"      ) {alct_->SetTestpulseAmplitude(IntValue);                   }
-      if (*column == "ALCT_TESTPULSE_INVERT"         ) {alct_->Set_InvertPulse(StrgValue);                        }
+      if (*column == "ALCT_TESTPULSE_INVERT"         ) {alct_->Set_InvertPulse(StrgValue);                     
+	//std::cout << "ALCT_TESTPULSE_INVERT set to: " << StrgValue << std::endl;      
+	//std::cout << "ALCT_TESTPULSE_INVERT read as: " << alct_->Get_InvertPulse() << std::endl;
+	      }
       if (*column == "ALCT_TESTPULSE_DIRECTION"      ) {alct_->Set_PulseDirection(StrgValue);                     }
       if (*column == "ALCT_CONFIG_ID"                ) {alct_config_id_ = StrgValue;                              }
       
