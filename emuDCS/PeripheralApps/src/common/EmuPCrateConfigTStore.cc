@@ -591,6 +591,13 @@ void EmuPCrateConfigTStore::outputTableEditControls(xgi::Output * out,const std:
 		//in any case, I doubt anybody wants to view all crate labels, so it should be okay to have it like this for now.
 		//*out << "table " << tableName << cgicc::br();
 		*out << cgicc::a().set("name",anchor) << "table " << tableName;
+		
+		if (!prefix.empty()) {
+			std::string key=fullTableID(tableName,prefix);
+			//do not show the 'change all' controls of a given table without also showing the data which would be changing.
+			tablesToDisplay[key]=true;
+		}
+		
 		if (fieldsToView) *out << view.str();
 		if (fieldsToIncrement) *out << increment.str();
 		if (fieldsToSet) *out << set.str();
@@ -964,9 +971,8 @@ void EmuPCrateConfigTStore::SelectConfFile(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception) {
 	cgicc::Cgicc cgi(in);	
   	std::string tableName=**cgi["table"];
-	tablesToDisplay[tableName]=show;
+	tablesToDisplay[tableName]=show;	    
   	std::string display=**cgi["display"]; //"diff" if we want to display the current diff, "config" otherwise
-	
 	outputHeader(out);
 	outputStandardInterface(out);
 	if (display=="diff") outputCurrentDiff(out);
