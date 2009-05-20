@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.3 2009/05/16 18:53:10 paste Exp $
+* $Id: Communicator.h,v 1.4 2009/05/20 18:18:38 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -136,11 +136,14 @@ namespace emu {
 			/// Number of chambers with errors (for Page One)
 			xdata::UnsignedInteger fibersWithErrors_;
 			
-			/// The current DDU to DCC input rates (averaged across all DCCs and enabled FIFOs)
-			xdata::Float averageDCCInputRate_;
+			/// The current DDU to DCC input rates
+			xdata::Float totalDCCInputRate_;
 			
-			/// The current DCC to S-Link output rates (averaged across all DCCs and S-Links)
-			xdata::Float averageDCCOutputRate_;
+			/// The current DCC to S-Link output rates
+			xdata::Float totalDCCOutputRate_;
+			
+			/// The threshold number of chambers required to be in an error state before sending an FMM
+			xdata::UnsignedInteger fmmErrorThreshold_;
 			
 			/// The crates that this application controls.
 			std::vector<Crate *> crateVector_;

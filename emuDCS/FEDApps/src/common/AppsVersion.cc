@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AppsVersion.cc,v 1.3 2009/05/16 18:53:10 paste Exp $
+* $Id: AppsVersion.cc,v 1.4 2009/05/20 18:18:38 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AppsVersion.h"
@@ -7,23 +7,23 @@
 #include "emu/fed/CoreVersion.h"
 #include "emu/fed/UtilsVersion.h"
 
-GETPACKAGEINFO(emufedapps)
+GETPACKAGEINFO(emuFEDApps)
 
-void emufedapps::checkPackageDependencies()
+void emuFEDApps::checkPackageDependencies()
 throw (config::PackageInfo::VersionException)
 {
 	CHECKDEPENDENCY(emubase);
-	CHECKDEPENDENCY(emufedcore);
-	CHECKDEPENDENCY(emufedutils);
+	CHECKDEPENDENCY(emuFEDCore);
+	CHECKDEPENDENCY(emuFEDUtils);
 }
 
-std::set<std::string, std::less<std::string> > emufedapps::getPackageDependencies()
+std::set<std::string, std::less<std::string> > emuFEDApps::getPackageDependencies()
 {
 	std::set<std::string, std::less<std::string> > dependencies;
 	
 	ADDDEPENDENCY(dependencies, emubase);
-	ADDDEPENDENCY(dependencies, emufedcore);
-	ADDDEPENDENCY(dependencies, emufedutils);
+	ADDDEPENDENCY(dependencies, emuFEDCore);
+	ADDDEPENDENCY(dependencies, emuFEDUtils);
 	
 	return dependencies;
 }

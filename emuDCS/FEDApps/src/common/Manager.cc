@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.6 2009/05/16 18:53:10 paste Exp $
+* $Id: Manager.cc,v 1.7 2009/05/20 18:18:38 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -312,9 +312,6 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 	float dccInRate = 0;
 	float dccOutRate = 0;
 	
-	// So I can average out my systems
-	unsigned int nSystems = 0;
-	
 	for (JSONSpirit::Array::const_iterator iApp = underlyingStatus.begin(); iApp != underlyingStatus.end(); iApp++) {
 		
 		std::string systemName = "?";
@@ -329,10 +326,8 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 				if (iPair->value_.get_str() == "Track-Finder") systemName = "TF";
 				else if (iPair->value_.get_str() == "Plus-Side") {
 					systemName = "ME+";
-					nSystems++;
 				} else if (iPair->value_.get_str() == "Minus-Side") {
 					systemName = "ME-";
-					nSystems++;
 				}
 			}
 	
@@ -344,8 +339,8 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 			}
 			
 			// Sum up dcc input/output averages
-			else if (iPair->name_ == "averageDCCInputRate") dccInRate += iPair->value_.get_real();
-			else if (iPair->name_ == "averageDCCOutputRate") dccOutRate += iPair->value_.get_real();
+			else if (iPair->name_ == "totalDCCInputRate") dccInRate += iPair->value_.get_real();
+			else if (iPair->name_ == "totalDCCOutputRate") dccOutRate += iPair->value_.get_real();
 			
 			// Figure out my monitor's URL
 			else if (iPair->name_ == "monitorURL") url = iPair->value_.get_str();
@@ -356,16 +351,12 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 	}
 	
 	// Push back the heartbeats
-	if (nSystems > 1) {
-		dccInRate /= nSystems;
-		dccOutRate /= nSystems;
-	}
 	std::ostringstream inRateStream;
 	inRateStream << dccInRate;
 	std::ostringstream outRateStream;
 	outRateStream << dccOutRate;
-	report.push_back(emu::base::WebReportItem("DCC Average Input Rate", inRateStream.str(), "DCC input rate averaged over all DDUs", "", "", ""));
-	report.push_back(emu::base::WebReportItem("Dcc Average Output Rate", outRateStream.str(), "DCC output rate averaged over all S-Links", "", "", ""));
+	report.push_back(emu::base::WebReportItem("DCC Total Input Rate", inRateStream.str(), "DCC input rate totaled over all DDUs", "", "", ""));
+	report.push_back(emu::base::WebReportItem("Dcc Total Output Rate", outRateStream.str(), "DCC output rate totaled over all S-Links", "", "", ""));
 	
 	return report;
 }
