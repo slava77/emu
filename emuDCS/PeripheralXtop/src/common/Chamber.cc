@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.6 2009/03/25 12:06:24 liu Exp $
+// $Id: Chamber.cc,v 1.7 2009/05/20 11:00:05 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.7  2009/05/20 11:00:05  liu
+// update
+//
 // Revision 1.6  2009/03/25 12:06:24  liu
 // change namespace from emu::e2p:: to emu::x2p::
 //
@@ -37,6 +40,10 @@ Chamber::~Chamber()
 
 void Chamber::Fill(char *buffer, int source)
 {
+//
+// source==0  from Xmas
+//       ==1  from file
+//
    int idx=0, i;
    char *start = buffer, *item, *sep = " ";
    char *last=NULL;
@@ -62,11 +69,17 @@ void Chamber::Fill(char *buffer, int source)
        idx++;
        item=strtok_r(NULL, sep, &last);
    };
-   if(source && idx==51) 
+   if(idx==51) 
    {   
-       old_time_lv = states_bk[1];
-       old_time_temp = states_bk[1];
-       ready_ = true;
+       if(source) 
+       {
+          old_time_lv = states_bk[1];
+          old_time_temp = states_bk[1];
+       }
+       else
+       {   // "Ready" only when the real readings available
+          ready_ = true;
+       }
    }
    if(idx!=51 || values[47]!=(-50.))
    {   std::cout << "BAD...total " << idx << " last one " << values[47] << std::endl;
