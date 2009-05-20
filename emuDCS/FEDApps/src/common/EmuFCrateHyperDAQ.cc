@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.7 2009/05/16 18:53:10 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.8 2009/05/20 18:18:38 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -13,7 +13,7 @@
 #include "emu/fed/XMLConfigurator.h"
 #include "emu/fed/Crate.h"
 #include "emu/fed/DDU.h"
-#include "emu/fed/Chamber.h"
+#include "emu/fed/Fiber.h"
 #include "emu/fed/DCC.h"
 #include "emu/fed/VMEController.h"
 #include "emu/fed/JTAG_constants.h"
@@ -325,16 +325,16 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			
 			// Loop through the chambers.  They should be in fiber-order.
 			for (unsigned int iFiber=0; iFiber<15; iFiber++) {
-				Chamber *thisChamber = (*iDDU)->getChamber(iFiber);
-				// DDU::getChamber will return a null pointer if there is
+				Fiber *thisFiber = (*iDDU)->getFiber(iFiber);
+				// DDU::getFiber will return a null pointer if there is
 				//  no chamber at that fiber position.
 				std::string chamberClass = "ok";
-				if (thisChamber != NULL) {
+				if (thisFiber != NULL) {
 					if (!(killFiber & (1<<iFiber))) chamberClass = "none";
 					else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
 					else if ((fibersWithErrors | advancedErrors) & (1<<iFiber)) chamberClass = "bad";
 
-					*out << cgicc::td(thisChamber->name())
+					*out << cgicc::td(thisFiber->getName())
 						.set("class",chamberClass)
 						.set("style","border: 1px solid #000; border-top-width: 0px; font-size: 8pt; width: 6%;") << std::endl;
 				} else {
@@ -2079,7 +2079,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		fiberTable(1,1).setClass("none");
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (dduValue & (1<<iFiber)) {
-				fiberTable(1,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fiberTable(1,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","none");
 			}
 		}
@@ -2090,7 +2090,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		fiberTable(2,1).setClass("none");
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (dduValue & (1<<iFiber)) {
-				fiberTable(2,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fiberTable(2,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","none");
 			}
 		}
@@ -2102,7 +2102,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		else fiberTable(3,1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (dduValue & (1<<iFiber)) {
-				fiberTable(3,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fiberTable(3,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 				//fibersWithErrors |= 1<<iFiber;
 			}
@@ -2115,7 +2115,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		else fiberTable(4,1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (dduValue & (1<<iFiber)) {
-				fiberTable(4,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fiberTable(4,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 				//fibersWithErrors |= 1<<iFiber;
 			}
@@ -2128,7 +2128,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		else fiberTable(5,1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (dduValue & (1<<iFiber)) {
-				fiberTable(5,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fiberTable(5,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 				//fibersWithErrors |= 1<<iFiber;
 			}
@@ -2141,7 +2141,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		else fiberTable(6,1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (dduValue & (1<<iFiber)) {
-				fiberTable(6,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fiberTable(6,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 				//fibersWithErrors |= 1<<iFiber;
 			}
@@ -2154,7 +2154,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		else fiberTable(7,1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (dduValue & (1<<iFiber)) {
-				fiberTable(7,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fiberTable(7,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 				//fibersWithErrors |= 1<<iFiber;
 			}
@@ -2167,7 +2167,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 		else fiberTable(8,1).setClass("ok");
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (dduValue & (1<<iFiber)) {
-				fiberTable(8,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fiberTable(8,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 				//fibersWithErrors |= 1<<iFiber;
 			}
@@ -2464,12 +2464,12 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 			unsigned long int CFEBval = lcode[3] & 0x0fffffff;
 
 			occuTable(iFiber + 1,0) << iFiber;
-			Chamber *thisChamber = myDDU->getChamber(iFiber);
+			Fiber *thisFiber = myDDU->getFiber(iFiber);
 
 			std::string chamberClass = "ok";
 
-			if (thisChamber != NULL) {
-				occuTable(iFiber + 1,1) << thisChamber->name();
+			if (thisFiber != NULL) {
+				occuTable(iFiber + 1,1) << thisFiber->getName();
 				if (!(killFiber & (1<<iFiber))) chamberClass = "none";
 				else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
 				else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
@@ -2761,7 +2761,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readDMBWarning >> 8) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(2,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(2,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -2771,7 +2771,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			else fiberTable(3,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readDMBWarning) & 0xff) & (1<<iFiber)) {
-					fiberTable(3,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(3,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","orange");
 				}
 			}
@@ -2783,7 +2783,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((checkFiber >> 8) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(4,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(4,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -2792,7 +2792,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			fiberTable(5,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((checkFiber) & 0xff) & (1<<iFiber)) {
-					fiberTable(5,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(5,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","none");
 				}
 			}
@@ -2804,7 +2804,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readDMBSync >> 8) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(6,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(6,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -2814,7 +2814,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			else fiberTable(7,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readDMBSync) & 0xff) & (1<<iFiber)) {
-					fiberTable(7,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(7,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","orange");
 				}
 			}
@@ -2825,7 +2825,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			else fiberTable(8,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readRxError >> 8) & 0xff) & (1<<iFiber)) {
-					fiberTable(8,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(8,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","blue");
 				}
 			}
@@ -2836,7 +2836,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readRxError) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(9,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(9,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -2848,7 +2848,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readTimeout >> 8) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(20,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(20,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -2859,7 +2859,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readTimeout) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(11,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(11,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -2869,7 +2869,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			fiberTable(12,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readTxError >> 8) & 0xff) & (1<<iFiber)) {
-					fiberTable(12,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(12,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","none");
 				}
 			}
@@ -2880,7 +2880,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readTxError) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(13,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(13,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -2891,7 +2891,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			else fiberTable(14,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readLostError >> 8) & 0xff) & (1<<iFiber)) {
-					fiberTable(14,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(14,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","orange");
 				}
 			}
@@ -2902,7 +2902,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readLostError) & 0xff) & (1<<iFiber)) {
 					//fibersWithErrors |= (1<<(iFiber + fiberOffset));
-					fiberTable(15,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					fiberTable(15,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -2971,7 +2971,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			otherTable(2,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readFIFOStat >> 8) & 0xff) & (1<<iFiber)) {
-					otherTable(20,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					otherTable(20,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","none");
 				}
 			}
@@ -2993,7 +2993,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			else otherTable(4,iDevType*2+1).setClass("ok");
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				if (((readFIFOFull) & 0xff) & (1<<iFiber)) {
-					otherTable(4,iDevType*2+2) << cgicc::div(myDDU->getChamber(iFiber + fiberOffset)->name())
+					otherTable(4,iDevType*2+2) << cgicc::div(myDDU->getFiber(iFiber + fiberOffset)->getName())
 						.set("class","red");
 				}
 			}
@@ -3394,16 +3394,16 @@ void emu::fed::EmuFCrateHyperDAQ::DDUExpert(xgi::Input *in, xgi::Output *out)
 		
 		// Loop through the chambers.  They should be in fiber-order.
 		for (unsigned int iFiber=0; iFiber<15; iFiber++) {
-			Chamber *thisChamber = myDDU->getChamber(iFiber);
-			// DDU::getChamber will return a null pointer if there is
+			Fiber *thisFiber = myDDU->getFiber(iFiber);
+			// DDU::getFiber will return a null pointer if there is
 			//  no chamber at that fiber position.
 			std::string chamberClass = "ok";
-			if (thisChamber != NULL) {
+			if (thisFiber != NULL) {
 				if (!(killFiber & (1<<iFiber))) chamberClass = "none";
 				else if (!(liveFibers & (1<<iFiber))) chamberClass = "undefined";
 				else if (fibersWithErrors & (1<<iFiber)) chamberClass = "bad";
 
-				*out << cgicc::td(thisChamber->name())
+				*out << cgicc::td(thisFiber->getName())
 					.set("class",chamberClass)
 					.set("style","border: 1px solid #000; border-top-width: 0px; width: 6%; font-weight: bold;") << std::endl;
 			} else {
@@ -4286,7 +4286,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 		fmmTable(1,1) << std::showbase << std::hex << cscStat;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (cscStat & (1<<iFiber)) {
-				fmmTable(1,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fmmTable(1,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 			}
 		}
@@ -4298,7 +4298,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 		fmmTable(2,1) << std::showbase << std::hex << cscBusy;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (cscBusy & (1<<iFiber)) {
-				fmmTable(2,2) << cgicc::div(myDDU->getChamber(iFiber)->name());
+				fmmTable(2,2) << cgicc::div(myDDU->getFiber(iFiber)->getName());
 			}
 		}
 		fmmTable(2,1).setClass("ok");
@@ -4308,7 +4308,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 		fmmTable(3,1) << std::showbase << std::hex << cscWarn;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (cscWarn & (1<<iFiber)) {
-				fmmTable(3,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fmmTable(3,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","orange");
 			}
 		}
@@ -4320,7 +4320,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 		fmmTable(4,1) << std::showbase << std::hex << cscLS;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (cscLS & (1<<iFiber)) {
-				fmmTable(4,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fmmTable(4,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 			}
 		}
@@ -4332,7 +4332,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 		fmmTable(5,1) << std::showbase << std::hex << cscError;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (cscError & (1<<iFiber)) {
-				fmmTable(5,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fmmTable(5,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","red");
 			}
 		}
@@ -4344,7 +4344,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 		fmmTable(6,1) << std::showbase << std::hex << cscWH;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (cscWH & (1<<iFiber)) {
-				fmmTable(6,2) << cgicc::div(myDDU->getChamber(iFiber)->name())
+				fmmTable(6,2) << cgicc::div(myDDU->getFiber(iFiber)->getName())
 					.set("class","orange");
 			}
 		}
@@ -4354,7 +4354,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 		fmmTable(7,1) << std::showbase << std::hex << cscBH;
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (cscBH & (1<<iFiber)) {
-				fmmTable(7,2) << cgicc::div(myDDU->getChamber(iFiber)->name());
+				fmmTable(7,2) << cgicc::div(myDDU->getFiber(iFiber)->getName());
 			}
 		}
 
@@ -5455,7 +5455,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 		debugMap = DCCDebugger::InFIFOStat((dccValue & 0x0ff0) >> 4);
 		for (std::map<std::string, std::string>::iterator iDebug = debugMap.begin(); iDebug != debugMap.end(); iDebug++) {
 			generalTable(2,2) << cgicc::div(iDebug->first)
-			.set("class",iDebug->second);
+				.set("class",iDebug->second);
 		}
 		if (dccValue & 0x0f80) {
 			generalTable(2,1).setClass("bad");

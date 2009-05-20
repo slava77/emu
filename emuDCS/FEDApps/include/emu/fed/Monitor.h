@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.h,v 1.2 2009/05/16 18:53:10 paste Exp $
+* $Id: Monitor.h,v 1.3 2009/05/20 18:18:38 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MONITOR_H__
 #define __EMU_FED_MONITOR_H__
@@ -9,6 +9,7 @@
 
 #include "Application.h"
 #include "emu/fed/Exception.h"
+#include "emu/fed/JSONSpiritValue.h"
 
 
 
@@ -37,26 +38,40 @@ namespace emu {
 			*	@param *out is the xgi output (basically, a stream that outputs to the
 			*	browser window.)
 			*
-			*	@note The *in and *out parameters are common to all xgi-bound functions, and will herein not be
-			*	included in the documentation.
+			*	@note The *in and *out parameters are common to all xgi-bound functions, and will herein not be included in the documentation.
 			**/
 			void webDefault(xgi::Input *in, xgi::Output *out);
 
-			/** Returns whatever information is being asked of it in an AJAX form. **/
-			void getAJAX(xgi::Input *in, xgi::Output *out);
+			/** Returns DDU temperatures in an AJAX form. **/
+			void webGetTemperatures(xgi::Input *in, xgi::Output *out);
+			
+			/** Returns DDU voltages in an AJAX form. **/
+			void webGetVoltages(xgi::Input *in, xgi::Output *out);
+			
+			/** Returns DDU occupancies in an AJAX form. **/
+			void webGetOccupancies(xgi::Input *in, xgi::Output *out);
+			
+			/** Returns DDU L1A counts in an AJAX form. **/
+			void webGetCounts(xgi::Input *in, xgi::Output *out);
+			
+			/** Returns DDU fiber status in an AJAX form. **/
+			void webGetFiberStatus(xgi::Input *in, xgi::Output *out);
+			
+			/** Returns common DDU status information **/
+			void webGetDDUStatus(xgi::Input *in, xgi::Output *out);
+			
+			/** Returns DCC rate information in an AJAX form. **/
+			void webGetDCCStatus(xgi::Input *in, xgi::Output *out);
+			
+			/** Diggs out a crate from the input xgi stream. **/
+			Crate *parseCrate(xgi::Input *in)
+			throw (emu::fed::exception::ParseException);
 			
 			/** Configures the software using the XML configuration file. **/
 			void configure()
-			throw(emu::fed::exception::ConfigurationException);
+			throw (emu::fed::exception::ConfigurationException);
 			
 		private:
-			/** Draws a basic crate.
-			*
-			*	@param myCrate is a pointer to the crate you want to draw.
-			*
-			*	@returns a string containing an HTML table representing the crate.
-			**/
-			std::string drawCrate(Crate *myCrate);
 			
 			/// The ever-useful crate vector.
 			std::vector<Crate *> crateVector_;
