@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.19 2009/05/04 13:30:13 liu Exp $
+// $Id: EmuDim.cc,v 1.20 2009/05/20 11:00:05 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -289,6 +289,10 @@ int EmuDim::ReadFromXmas()
 
 int EmuDim::ParseTXT(char *buff, int buffsize, int source)
 {
+//
+// source==0  from Xmas
+//       ==1  from file
+//
    int chmbs=0;
    bool more_line = true;
    char * start = buff;
@@ -499,7 +503,6 @@ int EmuDim::PowerUp()
    {  
       if(crate_state[i]==1) 
       {  BlueLoader->reload(blue_info+"?POWERUP="+crate_name[i]);
-         std::cout << i << " send crate:" << blue_info+"?POWERUP="+crate_name[i] << std::endl;
          // check return message
          if(BlueLoader->Content_Size() > 27)
          {
