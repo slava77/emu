@@ -1,23 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.h,v 1.1 2009/03/05 16:07:52 paste Exp $
-*
-* $Log: DDUDebugger.h,v $
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.10  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 1.9  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 1.8  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: DDUDebugger.h,v 1.2 2009/05/21 15:30:48 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDUDEBUGGER_H__
 #define __EMU_FED_DDUDEBUGGER_H__

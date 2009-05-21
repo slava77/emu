@@ -1,31 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQData.h,v 1.2 2009/03/24 19:13:44 paste Exp $
-*
-* $Log: IRQData.h,v $
-* Revision 1.2  2009/03/24 19:13:44  paste
-* Fixed crashing when ending threads after an IRQ
-* Made threads more robust by using slot numbers instead of DDU pointers as map indices
-*
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 3.10  2008/10/30 12:56:10  paste
-* Fixing more map-related bugs in IRQData
-* Changing IRQ FMM threshold to > 8 chambers (from > 1 chamber)
-*
-* Revision 3.9  2008/10/15 00:46:56  paste
-* Attempt to solve certain crashes on Enable/Disable commands.
-*
-* Revision 3.8  2008/09/19 16:53:51  paste
-* Hybridized version of new and old software.  New VME read/write functions in place for all DCC communication, some DDU communication.  New XML files required.
-*
-* Revision 3.7  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: IRQData.h,v 1.3 2009/05/21 15:30:48 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQDATA_H__
 #define __EMU_FED_IRQDATA_H__
@@ -39,6 +13,8 @@
 #include <string>
 #include <pthread.h> // For mutexes
 
+#include "xdaq/WebApplication.h"
+
 
 /** All of the information we need to know per IRQ error. **/
 namespace emu {
@@ -47,48 +23,18 @@ namespace emu {
 		class Crate;
 		class DDU;
 
-		class IRQError {
-		
-		public:
-		
-			IRQError(Crate *myCrate, DDU *myDDU):
-				crate(myCrate),
-				ddu(myDDU),
-				fibers(0),
-				errorTime(0),
-				errorEvent(0),
-				reset(0),
-				action("")
-			{
-				// Store the time when the error was recorded immediately.
-				time(&errorTime);
-
-			}
-		
-			~IRQError() {}
-		
-			// All public members for ease of access.
-			
-			Crate *crate;
-			DDU *ddu;
-			unsigned int fibers;
-			time_t errorTime;
-			unsigned long int errorEvent;
-			unsigned long int reset;
-			std::string action;
-		
-		};
-		
-		
+	
 		/** The data that are handed off between the IRQ threads and the mother
 		*	program.
 		**/
 		class IRQData {
 		
 		public:
-			IRQData(unsigned long int runNumber = 0):
+			IRQData(xdaq::WebApplication *myApplication):
 			exit(true),
-			runNumber(runNumber)
+			runNumber(0),
+			fmmErrorThreshold(0),
+			application(myApplication)
 			{
 				pthread_mutex_init(&crateQueueMutex, NULL);
 			}
@@ -106,6 +52,9 @@ namespace emu {
 			bool exit;
 			unsigned long int runNumber;
 			
+			/// Threshold number of chambers before releasing the FMM signal
+			unsigned int fmmErrorThreshold;
+			
 			// "Local" variables -- each thread tries to increment only its own.
 			std::map<unsigned int, unsigned long int> errorCount;
 			std::map<unsigned int, unsigned int> lastDDU;
@@ -114,8 +63,9 @@ namespace emu {
 			// in a map sometimes crashes.
 			std::map<unsigned int, std::string> tickTime;
 			std::map<unsigned int, std::string> startTime;
-		
-			std::map<unsigned int, std::vector<IRQError *> > errorVectors;
+			
+			/// The application from which to send SOAP messages
+			xdaq::WebApplication *application;
 			
 		};
 
