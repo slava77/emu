@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.3 2009/04/14 17:50:51 paste Exp $
+* $Id: DCC.cc,v 1.4 2009/05/21 15:33:44 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -8,11 +8,16 @@
 //#include <cmath>
 
 #include "emu/fed/JTAGElement.h"
+#include "emu/fed/FIFO.h"
 
 emu::fed::DCC::DCC(int slot):
 VMEModule(slot),
+fifoVector_(10, new FIFO()),
 fifoinuse_(0x3fe),
-softsw_(0)
+softsw_(0),
+fmm_id_(0),
+slink1_id_(0),
+slink2_id_(0)
 {
 	// Build the JTAG chains
 
@@ -43,9 +48,71 @@ softsw_(0)
 }
 
 
+
 emu::fed::DCC::~DCC()
 {
 	// std::cout << "Killing DCC" << std::endl;
+}
+
+
+
+emu::fed::FIFO *emu::fed::DCC::getFIFO(unsigned int fifoNumber)
+throw (emu::fed::exception::OutOfBoundsException)
+{
+	if (fifoNumber >= fifoVector_.size()) {
+		std::ostringstream error;
+		error << "FIFO vector overflow, fifoNumber=" << fifoNumber;
+		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot " << slot() << " board DCC";
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+	return fifoVector_[fifoNumber];
+}
+
+
+
+void emu::fed::DCC::addFIFO(emu::fed::FIFO *fifo, unsigned int fifoNumber, bool isUsed)
+throw (emu::fed::exception::OutOfBoundsException)
+{
+	if (fifoNumber > 9) {
+		std::ostringstream error;
+		error << "FIFO vector overflow, fifoNumber=" << fifoNumber;
+		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot " << slot() << " board DCC";
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+	fifoVector_[fifoNumber] = fifo;
+	
+	// Set the FIFO in use appropriately
+	if (!isUsed) fifoinuse_ &= ~(1 << fifoNumber);
+	else fifoinuse_ |= (1 << fifoNumber);
+}
+
+
+
+void emu::fed::DCC::setFIFOs(std::vector<emu::fed::FIFO *> fifoVector, uint16_t fifoInUse)
+throw (emu::fed::exception::OutOfBoundsException)
+{
+	if (fifoVector.size() > 10) {
+		std::ostringstream error;
+		error << "FIFO vector overflow, new fifoVector.size()=" << fifoVector.size();
+		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
+		std::ostringstream tag;
+		tag << "slot " << slot() << " board DCC";
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	} else if (fifoVector.size() < 10) {
+		// Resize the new vector just in case
+		fifoVector.resize(10, new FIFO());
+	}
+	fifoVector_ = fifoVector;
+	
+	// Set the FIFO in use appropriately
+	fifoinuse_ = fifoInUse;
 }
 
 

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.h,v 1.2 2009/04/14 17:50:50 paste Exp $
+* $Id: Crate.h,v 1.3 2009/05/21 15:33:43 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATE_H__
 #define __EMU_FED_CRATE_H__
@@ -65,8 +65,8 @@ namespace emu {
 			//inline DCC *getBroadcastDCC() { return broadcastDCC_; }
 
 			/** @returns the calculated RUI for the given DDU slot number in this crate. **/
-			int getRUI(const int slot);
-			int getRUI(DDU *const myDDU) {
+			uint16_t getRUI(const int slot);
+			uint16_t getRUI(DDU *const myDDU) {
 				return getRUI(myDDU->slot());
 			}
 

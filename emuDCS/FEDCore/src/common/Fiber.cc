@@ -1,16 +1,15 @@
 /*****************************************************************************\
-* $Id: Chamber.cc,v 1.4 2009/05/16 18:54:26 paste Exp $
+* $Id: Fiber.cc,v 1.1 2009/05/21 15:33:44 paste Exp $
 \*****************************************************************************/
-#include "emu/fed/Chamber.h"
+#include "emu/fed/Fiber.h"
 
 #include <sstream>
 #include <iomanip>
 
 
 
-emu::fed::Chamber::Chamber():
+emu::fed::Fiber::Fiber():
 name_("???"),
-peripheralCrateName_("???"),
 endcap_("?"),
 plusMinus_(0),
 station_(0),
@@ -22,9 +21,8 @@ number_(0)
 
 
 
-emu::fed::Chamber::Chamber(unsigned int plusMinus, unsigned int station, unsigned int ring, unsigned int number, unsigned int pCrateTriggerSector):
+emu::fed::Fiber::Fiber(unsigned int plusMinus, unsigned int station, unsigned int ring, unsigned int number):
 name_("???"),
-peripheralCrateName_("???"),
 endcap_("?"),
 plusMinus_(plusMinus),
 station_(station),
@@ -34,23 +32,20 @@ number_(number)
 	if (plusMinus == 1) endcap_ = "+";
 	else if (plusMinus == 2) endcap_ = "-";
 	// Generate the name, but only if it makes sense
+	// Check for a sensible normal chamber name first, then an SP
 	if (endcap_ != "?" && (station_ > 0 && station_ <= 4) && (ring_ > 0 && ring_ <= 4) && (number_ > 0 && number_ <= 36)) {
 		std::ostringstream nameStream;
 		nameStream << endcap_ << station_ << "/" << ring_ << "/" << std::setw(2) << std::setfill('0') << number_;
-		
-		// Generate the peripheral crate name only if it makes sense
-		if (pCrateTriggerSector > 0 && pCrateTriggerSector <= 6) {
-			std::stringstream nameStream;
-			nameStream << "VME" << (endcap_ == "+" ? "p" : "m") << station_ << "_" << pCrateTriggerSector;
-		}
+	} else if (endcap_ != "?" && station_ == 0 && ring_ == 0 && number_ != 0) {
+		std::ostringstream nameStream;
+		nameStream << "SP" << std::setw(2) << std::setfill('0') << number_;
 	}
 }
 
 
 
-emu::fed::Chamber::Chamber(std::string endcap, unsigned int station, unsigned int ring, unsigned int number, unsigned int pCrateTriggerSector):
+emu::fed::Fiber::Fiber(std::string endcap, unsigned int station, unsigned int ring, unsigned int number):
 name_("???"),
-peripheralCrateName_("???"),
 endcap_(endcap),
 plusMinus_(0),
 station_(station),
@@ -61,14 +56,12 @@ number_(number)
 	else if (endcap == "-") plusMinus_ = 2;
 	else endcap = "?";
 	// Generate the name, but only if it makes sense
+	// Check for a sensible normal chamber name first, then an SP
 	if (endcap_ != "?" && (station_ > 0 && station_ <= 4) && (ring_ > 0 && ring_ <= 4) && (number_ > 0 && number_ <= 36)) {
 		std::ostringstream nameStream;
 		nameStream << endcap_ << station_ << "/" << ring_ << "/" << std::setw(2) << std::setfill('0') << number_;
-		
-		// Generate the peripheral crate name only if it makes sense
-		if (pCrateTriggerSector > 0 && pCrateTriggerSector <= 6) {
-			std::stringstream nameStream;
-			nameStream << "VME" << (endcap_ == "+" ? "p" : "m") << station_ << "_" << pCrateTriggerSector;
-		}
+	} else if (endcap_ != "?" && station_ == 0 && ring_ == 0 && number_ != 0) {
+		std::ostringstream nameStream;
+		nameStream << "SP" << std::setw(2) << std::setfill('0') << number_;
 	}
 }

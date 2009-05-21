@@ -23,13 +23,14 @@ Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
 PACKAGE_VER_MINOR=04
-PACKAGE_VER_PATCH=00
+PACKAGE_VER_PATCH=03
 
 Sources=\
 	CoreVersion.cc \
 	VMEModule.cc \
-	Chamber.cc \
+	Fiber.cc \
 	DDU.cc \
+	FIFO.cc \
 	DCC.cc \
 	VMEController.cc \
 	Crate.cc

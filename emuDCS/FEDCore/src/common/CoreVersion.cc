@@ -1,17 +1,17 @@
 /*****************************************************************************\
-* $Id: CoreVersion.cc,v 1.2 2009/04/14 17:50:51 paste Exp $
+* $Id: CoreVersion.cc,v 1.3 2009/05/21 15:33:44 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/CoreVersion.h"
 
-GETPACKAGEINFO(emufedcore)
+GETPACKAGEINFO(emuFEDCore)
 
-void emufedcore::checkPackageDependencies()
+void emuFEDCore::checkPackageDependencies()
 throw (config::PackageInfo::VersionException)
 {
 }
 
-std::set<std::string, std::less<std::string> > emufedcore::getPackageDependencies()
+std::set<std::string, std::less<std::string> > emuFEDCore::getPackageDependencies()
 {
 	std::set<std::string, std::less<std::string> > dependencies;
 	return dependencies;

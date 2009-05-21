@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.cc,v 1.4 2009/05/16 18:54:26 paste Exp $
+* $Id: Crate.cc,v 1.5 2009/05/21 15:33:44 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Crate.h"
 
@@ -39,13 +39,13 @@ void emu::fed::Crate::setController(VMEController *controller) {
 
 
 
-int emu::fed::Crate::getRUI(const int slot) {
+uint16_t emu::fed::Crate::getRUI(const int slot) {
 	// TF is special.
 	if (number_ == 5) return 192;
 	// Test crate is special
 	if (number_ < 1 || number_ > 5) return 0;
 
-	unsigned int rui = 9 * number_ + slot - 3;
+	uint16_t rui = 9 * number_ + slot - 3;
 	if (slot > 8) rui--;  // Correct for the DCC slot.
 	if (number_ > 0) rui -= 9; // Correct for the First FED Crate = Crate 1, but the Test FED Crate (0) will act like FED Crate 1 in this case.
 	if (number_ > 4) rui = 0; // This is the TF DDU.
