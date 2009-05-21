@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.7 2009/05/20 18:18:38 paste Exp $
+* $Id: Manager.cc,v 1.8 2009/05/21 15:29:44 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -667,8 +667,8 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 		applicationObject.push_back(toJSONPair<xdata::String, std::string>(reply, "configMode", "Unknown"));
 		applicationObject.push_back(toJSONPair<xdata::Boolean, bool>(reply, "ignoreSOAP", false));
 		applicationObject.push_back(toJSONPair<xdata::UnsignedInteger, int>(reply, "fibersWithErrors", 0));
-		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "averageDCCInputRate", 0));
-		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "averageDCCOutputRate", 0));
+		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "totalDCCInputRate", 0));
+		applicationObject.push_back(toJSONPair<xdata::Float, double>(reply, "totalDCCOutputRate", 0));
 		
 		// Get the Monitor URL that matches this application
 		// Figure out which monitor matches this communicator

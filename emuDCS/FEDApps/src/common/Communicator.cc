@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.6 2009/05/20 18:18:38 paste Exp $
+* $Id: Communicator.cc,v 1.7 2009/05/21 15:29:44 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -621,19 +621,19 @@ throw (toolbox::fsm::exception::Exception)
 
 				LOG4CPLUS_DEBUG(getApplicationLogger(), "Checking XML, FPGA, and flash values for DDU in crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot());
 
-				uint32_t flashKillFiber = (*iDDU)->readFlashKillFiber();
+				uint16_t flashKillFiber = (*iDDU)->readFlashKillFiber();
 				uint32_t fpgaKillFiber = (*iDDU)->readKillFiber();
 				uint32_t xmlKillFiber = (*iDDU)->getKillFiber();
 
 				LOG4CPLUS_DEBUG(getApplicationLogger(), "killFiber for DDU in crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot() << ": XML(" << std::hex << xmlKillFiber << std::dec << ") FPGA(" << std::hex << fpgaKillFiber << std::dec << ") flash(" << std::hex << flashKillFiber << std::dec << ")");
 
-				if ((flashKillFiber & 0x7fff) != (xmlKillFiber & 0x7fff)) {
+				if ((flashKillFiber & 0x7fff) != (uint16_t) (xmlKillFiber & 0x7fff)) {
 					LOG4CPLUS_INFO(getApplicationLogger(),"Flash and XML killFiber for DDU in crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot() << " disagree:  reloading flash");
 					(*iDDU)->writeFlashKillFiber(xmlKillFiber & 0x7fff);
 					
 					// Check again.
-					uint32_t newFlashKillFiber = (*iDDU)->readFlashKillFiber();
-					if ((newFlashKillFiber & 0x7fff) != (xmlKillFiber & 0x7fff)) {
+					uint16_t newFlashKillFiber = (*iDDU)->readFlashKillFiber();
+					if ((newFlashKillFiber & 0x7fff) != (uint16_t) (xmlKillFiber & 0x7fff)) {
 						std::ostringstream error;
 						error << "Flash (" << std::hex << newFlashKillFiber << ") and XML (" << xmlKillFiber << ") killFiber for DDU in crate " << std::dec << (*iCrate)->number() << ", slot " << (*iDDU)->slot() << " disagree after an attempt was made to reload the flash.";
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
@@ -669,7 +669,7 @@ throw (toolbox::fsm::exception::Exception)
 				
 				if ((fpgaGbEPrescale & 0xf) != xmlGbEPrescale) {
 					LOG4CPLUS_INFO(getApplicationLogger(),"FPGA and XML GbEPrescale for DDU in crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot() << " disagree:  reloading FPGA");
-					(*iDDU)->writeGbEPrescale(xmlGbEPrescale);
+					(*iDDU)->writeGbEPrescale(xmlGbEPrescale & 0xf);
 					
 					// Check again.
 					uint16_t newGbEPrescale = (*iDDU)->readGbEPrescale();
@@ -688,9 +688,9 @@ throw (toolbox::fsm::exception::Exception)
 
 				// Now we should check if the RUI matches the flash value and
 				//  update it as needed.
-				uint16_t flashRUI = (*iDDU)->readFlashRUI();
+				uint32_t flashRUI = (*iDDU)->readFlashRUI();
 				uint16_t calculatedRUI = (*iCrate)->getRUI((*iDDU)->slot());
-				uint16_t targetRUI = (*iCrate)->getRUI((*iDDU)->slot());
+				uint16_t targetRUI = (*iDDU)->getRUI();
 
 				LOG4CPLUS_DEBUG(getApplicationLogger(),"RUI: XML(" << targetRUI << ") flash(" << flashRUI << ") calculated(" << calculatedRUI << ")");
 				
@@ -880,7 +880,7 @@ throw (toolbox::fsm::exception::Exception)
 					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(),tag.str(), NULL);
 					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 				}
-				if (status != 0x2fff) {
+				if (status != 0x2ff5) {
 					std::ostringstream error;
 					error << "Status for DCC in crate " << std::dec << (*iCrate)->number() << ", slot " << (*iDCC)->slot() << " not reset";
 					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
