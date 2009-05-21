@@ -23,13 +23,14 @@ Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
 PACKAGE_VER_MINOR=04
-PACKAGE_VER_PATCH=01
+PACKAGE_VER_PATCH=04
 
 Sources=\
 	UtilsVersion.cc \
 	Parser.cc \
-	ChamberParser.cc \
+	FiberParser.cc \
 	DDUParser.cc \
+	FIFOParser.cc \
 	DCCParser.cc \
 	VMEControllerParser.cc \
 	CrateParser.cc \
@@ -54,6 +55,7 @@ Sources=\
 
 IncludeDirs = \
 	$(BUILD_HOME)/emu/emuDCS/FEDCore/include \
+	$(BUILD_HOME)/emu/base/include \
 	$(XDAQ_ROOT)/include \
 	$(XDAQ_ROOT)/include/xdaq
 

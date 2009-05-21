@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.cc,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: XMLConfigurator.cc,v 1.2 2009/05/21 15:30:49 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/XMLConfigurator.h"
@@ -9,8 +9,10 @@
 #include "emu/fed/DDUParser.h"
 #include "emu/fed/DDU.h"
 #include "emu/fed/Crate.h"
-#include "emu/fed/ChamberParser.h"
+#include "emu/fed/FiberParser.h"
 #include "emu/fed/DCCParser.h"
+#include "emu/fed/DDU.h"
+#include "emu/fed/FIFOParser.h"
 #include "emu/fed/VMEControllerParser.h"
 #include "emu/fed/CrateParser.h"
 
@@ -61,33 +63,33 @@ throw (emu::fed::exception::ConfigurationException)
 	
 	// If the parse was successful, output the document data from the DOM tree
 	xercesc::DOMNode *pDoc = parser->getDocument();
-	xercesc::DOMElement *pEmuSystem = (xercesc::DOMElement *) pDoc->getFirstChild();
+	xercesc::DOMElement *pFEDSystem = (xercesc::DOMElement *) pDoc->getFirstChild();
 	
 	// Trick to ignore comments
-	while (pEmuSystem->getNodeType() == xercesc::DOMNode::COMMENT_NODE) {
-		pEmuSystem = (xercesc::DOMElement *) pEmuSystem->getNextSibling();
+	while (pFEDSystem->getNodeType() == xercesc::DOMNode::COMMENT_NODE) {
+		pFEDSystem = (xercesc::DOMElement *) pFEDSystem->getNextSibling();
 	}
 	
-	if (pEmuSystem == NULL) {
+	if (pFEDSystem == NULL) {
 		std::ostringstream error;
 		error << "Could not find a top-node in the XML document " << filename_;
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
 	
-	if ( strcmp(xercesc::XMLString::transcode(pEmuSystem->getTagName()), "EmuSystem") ) {
+	if ( strcmp(xercesc::XMLString::transcode(pFEDSystem->getTagName()), "FEDSystem") ) {
 		std::ostringstream error;
-		error << "The top-node in the XML document " << filename_ << " was not named 'EmuSystem'";
+		error << "The top-node in the XML document " << filename_ << " was not named 'FEDSystem'";
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
 	
 	// Let's get the system name
-	std::string tempName(xercesc::XMLString::transcode(pEmuSystem->getAttribute( xercesc::XMLString::transcode("Name"))));
+	std::string tempName(xercesc::XMLString::transcode(pFEDSystem->getAttribute( xercesc::XMLString::transcode("NAME"))));
 	systemName_ = (tempName == "" ? "unnamed" : tempName);
 	
 	// Parse everything one element at a time.
 	
 	// Get Crates and parse
-	xercesc::DOMNodeList *pFEDCrates = pEmuSystem->getElementsByTagName(xercesc::XMLString::transcode("FEDCrate"));
+	xercesc::DOMNodeList *pFEDCrates = pFEDSystem->getElementsByTagName(xercesc::XMLString::transcode("FEDCrate"));
 	
 	if (pFEDCrates == NULL) {
 		std::ostringstream error;
@@ -128,14 +130,14 @@ throw (emu::fed::exception::ConfigurationException)
 		}
 		newCrate->setController(vmeParser->getController());
 		
-		// Get DDUs.  If there are none, then there are none.
+		// Get DDUs.  If there are none, then that is a valid crate anyway (even though it doesn't make sense).
 		xercesc::DOMNodeList *pDDUs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DDU"));
 		
 		for (unsigned int iDDU = 0; iDDU < pDDUs->getLength(); iDDU++) {
 			
 			xercesc::DOMElement *pDDU = (xercesc::DOMElement *) pDDUs->item(iDDU);
 			
-			// Parse and store killed fiber high 5 bits:
+			// Parse and figure out high 5 bits of killfiber, gbe prescale, etc.
 			DDUParser *dduParser;
 			try {
 				dduParser = new DDUParser(pDDU);
@@ -146,26 +148,22 @@ throw (emu::fed::exception::ConfigurationException)
 			DDU *newDDU = dduParser->getDDU();
 			
 			// Get Chambers.  OK if there are none.
-			xercesc::DOMNodeList *pChambers = pDDU->getElementsByTagName(xercesc::XMLString::transcode("Chamber"));
+			xercesc::DOMNodeList *pFibers = pDDU->getElementsByTagName(xercesc::XMLString::transcode("Fiber"));
 			
-			for (unsigned int iChamber = 0; iChamber < pChambers->getLength(); iChamber++) {
+			for (unsigned int iFiber = 0; iFiber < pFibers->getLength(); iFiber++) {
 				
-				xercesc::DOMElement *pChamber = (xercesc::DOMElement *) pChambers->item(iChamber);
+				xercesc::DOMElement *pFiber = (xercesc::DOMElement *) pFibers->item(iFiber);
 				
 				// Parse and add to the DDU.
-				ChamberParser *chamberParser;
+				FiberParser *fiberParser;
 				try {
-					chamberParser = new ChamberParser(pChamber);
+					fiberParser = new FiberParser(pFiber);
 				} catch (emu::fed::exception::ParseException &e) {
-					XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing Chamber element", e);
+					XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing Fiber element", e);
 				}
 				
-				newDDU->addChamber(chamberParser->getChamber(), chamberParser->getFiber());
-				
-				// Alter the killfiber now.
-				if (!chamberParser->isKilled()) {
-					newDDU->killfiber_ |= (1 << chamberParser->getFiber());
-				}
+				// This alters the killfiber, too.
+				newDDU->addFiber(fiberParser->getFiber(), fiberParser->getNumber(), fiberParser->isKilled());
 				
 			}
 			
@@ -188,8 +186,30 @@ throw (emu::fed::exception::ConfigurationException)
 				XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing DCC element", e);
 			}
 			
+			DCC *newDCC = dccParser->getDCC();
+			
+			// Get FIFOs.  OK if there are none.
+			xercesc::DOMNodeList *pFIFOs = pDCC->getElementsByTagName(xercesc::XMLString::transcode("FIFO"));
+			
+			for (unsigned int iFIFO = 0; iFIFO < pFIFOs->getLength(); iFIFO++) {
+				
+				xercesc::DOMElement *pFIFO = (xercesc::DOMElement *) pFIFOs->item(iFIFO);
+				
+				// Parse and add to the DDU.
+				FIFOParser *fifoParser;
+				try {
+					fifoParser = new FIFOParser(pFIFO);
+				} catch (emu::fed::exception::ParseException &e) {
+					XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing FIFO element", e);
+				}
+				
+				// This alters the fifos in use, too.
+				newDCC->addFIFO(fifoParser->getFIFO(), fifoParser->getNumber(), fifoParser->isUsed());
+				
+			}
+			
 			// Add the DCC to the crate.
-			newCrate->addBoard((VMEModule *) dccParser->getDCC());
+			newCrate->addBoard((VMEModule *) newDCC);
 		}
 		
 		crateVector_.push_back(newCrate);

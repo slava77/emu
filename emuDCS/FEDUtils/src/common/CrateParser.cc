@@ -1,7 +1,6 @@
 /*****************************************************************************\
-* $Id: CrateParser.cc,v 1.2 2009/05/16 18:55:20 paste Exp $
+* $Id: CrateParser.cc,v 1.3 2009/05/21 15:30:49 paste Exp $
 \*****************************************************************************/
-
 #include "emu/fed/CrateParser.h"
 
 #include <sstream>
@@ -15,10 +14,10 @@ Parser(pNode)
 
 	unsigned int number;
 	try {
-		number = extract<unsigned int>("Number");
+		number = extract<unsigned int>("CRATE_NUMBER");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
-		error << "Unable to parse crate number from element";
+		error << "Unable to parse CRATE_NUMBER from element";
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 

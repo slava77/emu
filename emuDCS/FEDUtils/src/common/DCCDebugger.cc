@@ -1,20 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDebugger.cc,v 1.1 2009/03/05 16:07:52 paste Exp $
-*
-* $Log: DCCDebugger.cc,v $
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.6  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
-*
-* Revision 1.5  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: DCCDebugger.cc,v 1.2 2009/05/21 15:30:49 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCCDebugger.h"
 

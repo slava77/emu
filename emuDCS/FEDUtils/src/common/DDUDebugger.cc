@@ -1,23 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.1 2009/03/05 16:07:52 paste Exp $
-*
-* $Log: DDUDebugger.cc,v $
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.11  2008/09/24 18:38:38  paste
-* Completed new VME communication protocols.
-*
-* Revision 1.10  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 1.9  2008/08/15 08:35:51  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: DDUDebugger.cc,v 1.2 2009/05/21 15:30:49 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -26,7 +8,7 @@
 #include <sstream>
 
 #include "emu/fed/DDU.h"
-#include "emu/fed/Chamber.h"
+#include "emu/fed/Fiber.h"
 
 std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(unsigned long int stat)
 {
@@ -476,7 +458,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		outStream << "FMM errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (CSCStat & (1<<iFiber)) {
-				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getFiber(iFiber)->getName() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -491,7 +473,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		outStream << "DMB errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (DMBError & (1<<iFiber)) {
-				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getFiber(iFiber)->getName() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -503,7 +485,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		outStream << "TMB errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (TMBError & (1<<iFiber)) {
-				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getFiber(iFiber)->getName() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -515,7 +497,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		outStream << "ALCT errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (ALCTError & (1<<iFiber)) {
-				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getFiber(iFiber)->getName() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -527,7 +509,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		outStream << "Transmit errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
 			if (XmitError & (1<<iFiber)) {
-				outStream << std::dec << iFiber << " (" << thisDDU->getChamber(iFiber)->name() << ") ";
+				outStream << std::dec << iFiber << " (" << thisDDU->getFiber(iFiber)->getName() << ") ";
 			}
 		}
 		out.push_back(outStream.str());
@@ -574,7 +556,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 				unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
-					outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+					outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 				}
 			}
 			out.push_back(outStream.str());
@@ -591,7 +573,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 				unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
-					outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+					outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 				}
 			}
 			out.push_back(outStream.str());
@@ -608,7 +590,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 				unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
-					outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+					outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 				}
 			}
 			out.push_back(outStream.str());
@@ -694,7 +676,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 					unsigned int realFiber = iFiber + iDev*8;
 					if ((fiberCheck >> 8) & (1<<iFiber)) {
-						outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+						outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 					}
 				}
 				out.push_back(outStream.str());
@@ -766,7 +748,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][7]) & (1<<iFiber)) {
-								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -777,7 +759,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if (((inTrap[iDev][8] >> 8) | inTrap[iDev][8]) & (1<<iFiber)) {
-								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -791,7 +773,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][4] >> 8) & (1<<iFiber)) {
-								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -806,7 +788,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if (fiberCheck & (1<<iFiber)) {
-								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -855,7 +837,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
 							unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][5]) & (1<<iFiber)) {
-								outStream << std::dec << realFiber << " (" << thisDDU->getChamber(realFiber)->name() << ") ";
+								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
 						}
 						out.push_back(outStream.str());
@@ -1611,8 +1593,8 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(int stat)
 std::pair<std::string, std::string> emu::fed::DDUDebugger::Temperature(float temp)
 {
 
-	if (temp > 90) return std::make_pair("> 90", "warning");
-	else if (temp > 100) return std::make_pair("> 100", "error");
+	if (temp > 90) return std::make_pair("&gt; 90&deg;F", "warning");
+	else if (temp > 100) return std::make_pair("&gt; 100&deg;F", "error");
 
 	return std::make_pair("&deg;F", "green");
 }
@@ -1631,19 +1613,19 @@ std::pair<std::string, std::string> emu::fed::DDUDebugger::Voltage(uint8_t senso
 		return std::make_pair("???", "questionable");
 	} else if (voltage > targetVoltage*1.05) {
 		std::ostringstream targetText;
-		targetText << "> " << targetVoltage*1.05;
+		targetText << "&gt; " << targetVoltage*1.05 << " mV";
 		return std::make_pair(targetText.str(), "error");
 	} else if (voltage < targetVoltage*.95) {
 		std::ostringstream targetText;
-		targetText << "< " << targetVoltage*.95;
+		targetText << "&lt; " << targetVoltage*.95 << " mV";
 		return std::make_pair(targetText.str(), "error");
 	} else if (voltage > targetVoltage*1.025) {
 		std::ostringstream targetText;
-		targetText << "> " << targetVoltage*1.025;
+		targetText << "&gt; " << targetVoltage*1.025 << " mV";
 		return std::make_pair(targetText.str(), "warning");
 	} else if (voltage < targetVoltage*.975) {
 		std::ostringstream targetText;
-		targetText << "< " << targetVoltage*.975;
+		targetText << "&lt; " << targetVoltage*.975 << " mV";
 		return std::make_pair(targetText.str(), "warning");
 	}
 	
