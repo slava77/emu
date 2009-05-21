@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.5 2009/05/16 18:54:26 paste Exp $
+* $Id: DDU.cc,v 1.6 2009/05/21 15:33:44 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -7,14 +7,16 @@
 #include <iomanip>
 #include <sstream>
 
-#include "emu/fed/Chamber.h"
+#include "emu/fed/Fiber.h"
 #include "emu/fed/JTAGElement.h"
 
 emu::fed::DDU::DDU(int mySlot):
 VMEModule(mySlot),
-chamberVector_(15, new Chamber()),
+fiberVector_(15, new Fiber()),
 gbe_prescale_(0),
-killfiber_(0xf7fff)
+killfiber_(0xf7fff),
+rui_(0),
+fmm_id_(0)
 {
 
 	// Build the JTAG chains
@@ -114,63 +116,63 @@ throw (emu::fed::exception::DDUException)
 
 
 
-std::vector<emu::fed::Chamber *> emu::fed::DDU::getChambers()
-{
-	return chamberVector_;
-}
-
-
-
-emu::fed::Chamber *emu::fed::DDU::getChamber(unsigned int fiberNumber)
+emu::fed::Fiber *emu::fed::DDU::getFiber(unsigned int fiberNumber)
 throw (emu::fed::exception::OutOfBoundsException)
 {
-	if (fiberNumber >= chamberVector_.size()) {
+	if (fiberNumber >= fiberVector_.size()) {
 		std::ostringstream error;
-		error << "Chamber vector overflow, fiberNumber=" << fiberNumber;
+		error << "Fiber vector overflow, fiberNumber=" << fiberNumber;
 		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DDU";
+		tag << "slot " << slot() << " board DDU";
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
-	return chamberVector_[fiberNumber];
+	return fiberVector_[fiberNumber];
 }
 
 
 
-void emu::fed::DDU::addChamber(emu::fed::Chamber* chamber, unsigned int fiberNumber)
+void emu::fed::DDU::addFiber(emu::fed::Fiber *fiber, unsigned int fiberNumber, bool isKilled)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (fiberNumber > 14) {
 		std::ostringstream error;
-		error << "Chamber vector overflow, fiberNumber=" << fiberNumber;
+		error << "Fiber vector overflow, fiberNumber=" << fiberNumber;
 		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DDU";
+		tag << "slot " << slot() << " board DDU";
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
-	chamberVector_[fiberNumber] = chamber;
+	fiberVector_[fiberNumber] = fiber;
+	
+	// Set the kill fiber appropriately
+	if (isKilled) killfiber_ &= ~(1 << fiberNumber);
+	else killfiber_ |= (1 << fiberNumber);
 }
 
 
 
-void emu::fed::DDU::setChambers(std::vector<emu::fed::Chamber *> chamberVector)
+void emu::fed::DDU::setFibers(std::vector<emu::fed::Fiber *> fiberVector, uint16_t killFiber)
 throw (emu::fed::exception::OutOfBoundsException)
 {
-	if (chamberVector.size() > 15) {
+	if (fiberVector.size() > 15) {
 		std::ostringstream error;
-		error << "Chamber vector overflow, new chamberVector.size()=" << chamberVector.size();
+		error << "Fiber vector overflow, new fiberVector.size()=" << fiberVector.size();
 		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DDU";
+		tag << "slot " << slot() << " board DDU";
 		e2.setProperty("tag", tag.str());
 		throw e2;
-	} else if (chamberVector.size() < 15) {
+	} else if (fiberVector.size() < 15) {
 		// Resize the new vector just in case
-		chamberVector.resize(15, new Chamber());
+		fiberVector.resize(15, new Fiber());
 	}
-	chamberVector_ = chamberVector;
+	fiberVector_ = fiberVector;
+	
+	// Set the kill fiber appropriately
+	killfiber_ = killFiber;
 }
 
 
@@ -633,6 +635,8 @@ throw (emu::fed::exception::DDUException)
 		// Bogus data for sending to the VMESERI path.
 		std::vector<uint16_t> bogoData(1,0);
 		writeRegister(VMESERI, 0x0904, 16, bogoData);
+		// Flash needs to sleep after writing
+		usleep(100000);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
@@ -655,6 +659,8 @@ throw (emu::fed::exception::DDUException)
 		// Bogus data for sending to the VMESERI path.
 		std::vector<uint16_t> bogoData(1,0);
 		writeRegister(VMESERI, 0x0b04, 16, bogoData);
+		// Flash needs to sleep after writing
+		usleep(100000);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
@@ -677,6 +683,8 @@ throw (emu::fed::exception::DDUException)
 		// Bogus data for sending to the VMESERI path.
 		std::vector<uint16_t> bogoData(1,0);
 		writeRegister(VMESERI, 0x0f04, 16, bogoData);
+		// Flash needs to sleep after writing
+		usleep(100000);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
@@ -710,6 +718,8 @@ throw (emu::fed::exception::DDUException)
 		// Bogus data for sending to the VMESERI path.
 		std::vector<uint16_t> bogoData(1,0);
 		writeRegister(VMESERI, 0x0d04, 16, bogoData);
+		// Flash needs to sleep after writing
+		usleep(100000);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";

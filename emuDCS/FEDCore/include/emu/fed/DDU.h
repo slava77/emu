@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.4 2009/05/16 18:54:26 paste Exp $
+* $Id: DDU.h,v 1.5 2009/05/21 15:33:43 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -16,16 +16,14 @@ namespace emu {
 
 	namespace fed {
 
-		class Chamber;
+		class Fiber;
 
 		/** @class DDU A class representing the Detector-Dependent Unit boards in the EMU FED Crates. **/
 		class DDU: public VMEModule
 		{
 			friend class DDUParser;
 			friend class AutoConfigurator;
-			friend class XMLConfigurator;
-			friend class DBConfigurator;
-			friend class CrateParser;
+			friend class DDUDBAgent;
 
 		public:
 
@@ -34,40 +32,47 @@ namespace emu {
 
 			/** Default destructor. **/
 			virtual ~DDU();
-
-			/** @returns the KillFiber bit-mask (LS 15 bits) and the options bits (MS 5 bits). **/
-			inline uint16_t getKillFiber() { return killfiber_; }
-
-			/** @returns the GBEPrescale setting. **/
+			
+			/** @returns the GbEPrescale setting from the configuration. **/
 			inline uint16_t getGbEPrescale() { return gbe_prescale_; }
+			
+			/** @returns the KillFiber bit-mask (LS 15 bits) and the options bits (MS 5 bits) from the configuration. **/
+			inline uint32_t getKillFiber() { return killfiber_; }
+			
+			/** @returns the RUI from the configuration **/
+			inline uint16_t getRUI() { return rui_; }
+			
+			/** @returns the FMM ID from the configuration **/
+			inline uint16_t getFMMID() { return fmm_id_; }
 
 			/** Configures the DDU. **/
 			void configure()
 			throw (emu::fed::exception::DDUException);
 
-			/** Part of the suite of chamber methods.
-			*	@returns a vector of chambers in fiber-order.
+			/** Part of the suite of fiber methods.
+			*	@returns a vector of fibers in fiber-order.
 			**/
-			std::vector<Chamber *> getChambers();
+			inline std::vector<Fiber *> getFibers() { return fiberVector_; }
 
-			/** Part of the suite of chamber methods.
+			/** Part of the suite of fiber methods.
 			*	@param fiberNumber runs from 0-14.
-			*	@returns the chamber at the given fiber input number.
+			*	@returns the fiber at the given fiber input number.
 			**/
-			Chamber *getChamber(unsigned int fiberNumber)
+			Fiber *getFiber(unsigned int fiberNumber)
 			throw (emu::fed::exception::OutOfBoundsException);
 
-			/** Adds a chamber object to the DDU.
-			*	@param chamber is the chamber being added.
+			/** Adds a fiber object to the DDU.
+			*	@param fiber is the fiber being added.
 			*	@param fiberNumber is the fiber slot of the chamber.
+			*	@param isKilled is a boolean stating whether or not the fiber should be killed
 			**/
-			void addChamber(Chamber *chamber, unsigned int fiberNumber)
+			void addFiber(Fiber *fiber, unsigned int fiberNumber, bool isKilled = false)
 			throw (emu::fed::exception::OutOfBoundsException);
 
-			/** Sets the vector of chamber objects in the DDU to some vector.
-			*	@param chamberVector is a vector of chambers to copy to the internal vector.
+			/** Sets the vector of fiber objects in the DDU to some vector.
+			*	@param fiberVector is a vector of chambers to copy to the internal vector.
 			**/
-			void setChambers(std::vector<Chamber *> chamberVector)
+			void setFibers(std::vector<Fiber *> fiberVector, uint16_t killFiber = 0x7fff)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			// PGK New interface
@@ -432,14 +437,20 @@ namespace emu {
 			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, uint16_t myReg, unsigned int nBits, std::vector<uint16_t> myData)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
-			/// The chambers that are plugged into this DDU, in fiber-order.
-			std::vector<Chamber *> chamberVector_;
+			/// The fibers that are plugged into this DDU, in fiber-order.
+			std::vector<Fiber *> fiberVector_;
 
-			/// The GbE prescale code as read from the configuration XML.
-			int gbe_prescale_;
+			/// The GbE prescale code as read from the configuration.
+			uint16_t gbe_prescale_;
 
-			/// The kill fiber mask as read from the configuration XML.
-			unsigned long int killfiber_;
+			/// The kill fiber mask as read from the configuration.
+			uint32_t killfiber_;
+			
+			/// The RUI from the configuration
+			uint16_t rui_;
+			
+			/// The FMM ID from the configuration
+			uint16_t fmm_id_;
 
 		};
 

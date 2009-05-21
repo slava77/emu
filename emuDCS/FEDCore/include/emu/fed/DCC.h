@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.4 2009/05/16 18:54:26 paste Exp $
+* $Id: DCC.h,v 1.5 2009/05/21 15:33:43 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -14,6 +14,8 @@
 namespace emu {
 
 	namespace fed {
+	
+		class FIFO;
 
 		/** @class DCC A class for talking to DCC boards. **/
 		class DCC: public VMEModule
@@ -21,8 +23,7 @@ namespace emu {
 		public:
 			friend class DCCParser;
 			friend class AutoConfigurator;
-			friend class XMLConfigurator;
-			friend class DBConfigurator;
+			friend class DCCDBAgent;
 
 			/** @param slot the slot of the board for VME addressing purposes. **/
 			DCC(int slot);
@@ -30,12 +31,53 @@ namespace emu {
 			/** Default destructor. **/
 			virtual ~DCC();
 
-			/** @return the FIFOInUse parameter. **/
-			inline int getFIFOInUse() { return fifoinuse_; }
+			/** @return the FIFOInUse parameter from configuration **/
+			inline uint16_t getFIFOInUse() { return fifoinuse_; }
+			
+			/** @return the Software switch parameter from configuration **/
+			inline uint16_t getSoftwareSwitch() { return softsw_; }
+			
+			/** @return the FMM ID parameter from configuration **/
+			inline uint16_t getFMMID() { return fmm_id_; }
+			
+			/** @return the S-Link parameter from configuration **/
+			inline uint16_t getSLinkID(unsigned short int iSlink)
+			throw (emu::fed::exception::OutOfBoundsException)
+			{ 
+				if (iSlink == 1) return slink1_id_;
+				else if (iSlink == 2) return slink2_id_;
+				else XCEPT_RAISE(emu::fed::exception::OutOfBoundsException, "Parameter must be either 1 or 2");
+			}
 
 			/** Configure the DCC by loading the FIFOInUse and SoftwareSwitch variables to the PROMs. **/
 			void configure()
 			throw (emu::fed::exception::DCCException);
+
+			/** Part of the suite of FIFO methods.
+			*	@returns a vector of FIFOs in FIFO-order.
+			**/
+			inline std::vector<FIFO *> getFIFOs() { return fifoVector_; }
+			
+			/** Part of the suite of fiber methods.
+			*	@param fifoNumber runs from 0-14.
+			*	@returns the fifo at the given fifo input number.
+			**/
+			FIFO *getFIFO(unsigned int fifoNumber)
+			throw (emu::fed::exception::OutOfBoundsException);
+			
+			/** Adds a FIFO object to the DCC.
+			*	@param fifo is the FIFO being added.
+			*	@param fifoNumber is the FIFO number.
+			*	@param isUsed is a boolean stating whether or not the FIFO should be used.
+			**/
+			void addFIFO(FIFO *fifo, unsigned int fifoNumber, bool isUsed = true)
+			throw (emu::fed::exception::OutOfBoundsException);
+			
+			/** Sets the vector of FIFO objects in the DCC to some vector.
+			*	@param fifoVector is a vector of FIFOs to copy to the internal vector.
+			**/
+			void setFIFOs(std::vector<FIFO *> fifoVector, uint16_t fifoInUse = 0x3ff)
+			throw (emu::fed::exception::OutOfBoundsException);
 
 			// PGK New interface
 
@@ -257,12 +299,24 @@ namespace emu {
 			**/
 			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, uint16_t myReg, unsigned int nBits, std::vector<uint16_t> myData, bool debug = false)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
+			
+			/// The FIFOs that are associated with this DCC, in FIFO (NOT slot)-order.
+			std::vector<FIFO *> fifoVector_;
 
 			/// The FIFO-in-use parameter from the configuration.
-			int fifoinuse_;
+			uint16_t fifoinuse_;
 
 			/// The software switch setting from the configuration.
-			int softsw_;
+			uint16_t softsw_;
+			
+			/// The FMM ID from the configuration
+			uint16_t fmm_id_;
+			
+			/// The first S-Link ID (should be the same as the FMM ID) from the configuration
+			uint16_t slink1_id_;
+			
+			/// The second S-Link ID (should be the same as the FMM ID + 1) from the configuration
+			uint16_t slink2_id_;
 
 		};
 
