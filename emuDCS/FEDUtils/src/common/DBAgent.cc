@@ -1,16 +1,49 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: DBAgent.cc,v 1.2 2009/05/22 11:25:25 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
+#include <sstream>
+
 #include "emu/fed/TStoreRequest.h"
 #include "toolbox/TimeInterval.h"
+#include "tstore/client/Client.h"
+#include "tstore/client/AttachmentUtils.h"
 
 
-emu::fed::DBAgent::DBAgent(xdaq::WebApplication *application):
+emu::fed::DBAgent::DBAgent(xdaq::WebApplication *application)
+throw (emu::fed::exception::DBException):
 application_(application)
 {
-
+	// This is to read the configuration from the view file
+	
+	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+	TStoreRequest request("getConfiguration", viewClass);
+	
+	//add the view ID
+	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUsystem");
+	
+	//add view specific parameter
+	// This is a standard location
+	request.addTStoreParameter("path", "/opt/xdaq/htdocs/emu/emuDCS/FEDUtils/xml/TStoreConfiguration.xml");
+	
+	xoap::MessageReference message = request.toSOAP();
+	xoap::MessageReference response;
+	try {
+		response = sendSOAPMessage(message, "tstore::TStore");
+	} catch (emu::fed::exception::SOAPException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
+	}
+	
+	if (response->getSOAPPart().getEnvelope().getBody().hasFault()) {
+		XCEPT_RAISE(emu::fed::exception::DBException, "Error attempting to set configuration file");
+	}
+	
+	/*
+	DOMNode *configNode=tstoreclient::getNodeNamed(response,"getConfigurationResponse");
+	//configNode contains the requested configuration.
+	std::cout << "configuration corresponding to xpath " << xpath << " is: " << tstoreclient::writeXML(configNode) << std::endl;
+	*/
 }
 
 void emu::fed::DBAgent::connect(const std::string &username, const std::string &password)
@@ -28,7 +61,7 @@ throw (emu::fed::exception::DBException)
 	request.addTStoreParameter("credentials", username + "/" + password);
 	
 	//connection will time out after 10 minutes
-	toolbox::TimeInterval timeout(600,0); 
+	toolbox::TimeInterval timeout(600, 0); 
 	request.addTStoreParameter("timeout", timeout.toString("xs:duration"));
 	
 	xoap::MessageReference message = request.toSOAP();
@@ -36,20 +69,121 @@ throw (emu::fed::exception::DBException)
 	xoap::MessageReference response;
 	
 	try {
-		response = sendSOAPMessage(message, "");
+		response = sendSOAPMessage(message, "tstore::TStore");
 	} catch (emu::fed::exception::SOAPException &e) {
-		
-		
-		
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
 	}
 	
 	//use the TStore client library to extract the response from the reply
 	try {
-		//connectionID_ = tstoreclient::connectionID(response);
+		connectionID_ = tstoreclient::connectionID(response);
 	} catch (xcept::Exception &e) {
-		
-		
-		
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Unable to parse connection ID", e);
+	}
+}
+
+
+
+void emu::fed::DBAgent::disconnect()
+throw (emu::fed::exception::DBException) {
+	TStoreRequest request("disconnect");
+	
+	//add the connection ID
+	request.addTStoreParameter("connectionID", connectionID_);
+	
+	xoap::MessageReference message = request.toSOAP();
+	
+	try {
+		sendSOAPMessage(message, "tstore::Tstore");
+	} catch (emu::fed::exception::SOAPException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
+	}
+}
+
+
+
+xdata::Table emu::fed::DBAgent::query(const std::string &queryViewName, const std::map<std::string, std::string> &queryParameters)
+throw (emu::fed::exception::DBException) {
+	//for a query, we need to send some parameters which are specific to SQLView.
+	//these use the namespace tstore-view-SQL. 
+	
+	//In general, you might have the view name in a variable, so you won't know the view class. In this
+	//case you can find out the view class using the TStore client library:
+	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+	
+	//If we give the name of the view class when constructing the TStoreRequest, 
+	//it will automatically use that namespace for
+	//any view specific parameters we add.
+	TStoreRequest request("query", viewClass);
+	
+	//add the connection ID
+	request.addTStoreParameter("connectionID", connectionID_);
+	
+	//for an SQLView, the name parameter refers to the name of a query section in the configuration
+	request.addViewSpecificParameter("name", queryViewName);
+	
+	// add parameter names and values
+	for (std::map<std::string, std::string>::const_iterator iPair = queryParameters.begin(); iPair != queryParameters.end(); iPair++) {
+		request.addViewSpecificParameter(iPair->first, iPair->second);
+	}
+	
+	xoap::MessageReference message = request.toSOAP();
+	xoap::MessageReference response;
+	try {
+		xoap::MessageReference response = sendSOAPMessage(message, "tstore::TStore");
+	} catch (emu::fed::exception::SOAPException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
+	}
+	
+	//use the TStore client library to extract the first attachment of type "table"
+	//from the SOAP response
+	xdata::Table results;
+	if (!tstoreclient::getFirstAttachmentOfType(response, results)) {
+		XCEPT_RAISE (emu::fed::exception::DBException, "Server returned no data");
+	}
+	
+	return results;
+}
+
+
+
+void emu::fed::DBAgent::insert(const std::string &insertViewName, xdata::Table &newRows)
+throw (emu::fed::exception::DBException) {
+
+	//for a query, we need to send some parameters which are specific to SQLView.
+	//these use the namespace tstore-view-SQL. 
+	
+	//In general, you might have the view name in a variable, so you won't know the view class. In this
+	//case you can find out the view class using the TStore client library:
+	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+	
+	//If we give the name of the view class when constructing the TStoreRequest, 
+	//it will automatically use that namespace for
+	//any view specific parameters we add.
+	TStoreRequest request("insert", viewClass);
+	
+	//add the connection ID
+	request.addTStoreParameter("connectionID", connectionID_);
+	
+	//for an SQLView, the name parameter refers to the name of a query section in the configuration
+	//We'll use the "test" one.
+	request.addViewSpecificParameter("name", insertViewName);
+	
+	xoap::MessageReference message = request.toSOAP();
+	
+	//add our new rows as an attachment to the SOAP message
+	//the last parameter is the ID of the attachment. The SQLView does not mind what it is, as there should only be one attachment per message.
+	tstoreclient::addAttachment(message, newRows, "whatever");
+	
+	xoap::MessageReference response;
+	try {
+		response = sendSOAPMessage(message, "tstore::TStore");
+	} catch (emu::fed::exception::SOAPException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error sending SOAP message", e);
+	}
+	
+	if (response->getSOAPPart().getEnvelope().getBody().hasFault()) {
+		XCEPT_RAISE(emu::fed::exception::DBException, "Error inserting data into database");
 	}
 }
 
