@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <tstore:configuration xmlns:tstore="urn:xdaq-tstore:1.0">
 
-	<tstore:view id="urn:tstore-view-SQL:EMUsystem">
+	<tstore:view id="urn:tstore-view-SQL:EMUFEDsystem">
 		<tstore:connection dbname="cms_rcms" xmlns:tstore="urn:xdaq-tstore:1.0"/>
 		<!-- <tstore:connection dbname="devdb10" xmlns:tstore="urn:xdaq-tstore:1.0"/> -->
 		
@@ -18,12 +18,20 @@
 			<![CDATA[select EMU_FED_SYSTEMS.ID, EMU_FED_SYSTEMS.NAME from EMU_FED_SYSTEMS where EMU_FED_SYSTEMS.KEY = $KEY and EMU_FED_SYSTEMS.HOSTNAME = $HOSTNAME]]>
 		</sql:query>
 		
-		<!-- Select the crates/controllers on a certain system given a certain system ID -->
+		<!-- Select the crates on a certain system given a certain system ID -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_crates">
 			<sql:parameter name="SYSTEM_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
-			<![CDATA[select EMU_FED_CRATES.ID, EMU_FED_CRATES.CRATE_NUMBER, EMU_FED_CONTROLLERS.CAEN_DEVICE, EMU_FED_CONTROLLERS.CAEN_LINK from EMU_FED_SYSTEMS inner join EMU_FED_CRATES on (EMU_FED_CRATES.KEY = EMU_FED_SYSTEMS.KEY) inner join EMU_FED_CONTROLLERS on (EMU_FED_CRATES.CRATE_NUMBER = EMU_FED_CONTROLLERS.CRATE_NUMBER and EMU_FED_CRATES.KEY = EMU_FED_CONTROLLERS.KEY) where EMU_FED_SYSTEMS.ID = $SYSTEM_ID]]>
+			<![CDATA[select EMU_FED_CRATES.ID, EMU_FED_CRATES.CRATE_NUMBER from EMU_FED_SYSTEMS inner join EMU_FED_CRATES on (EMU_FED_CRATES.KEY = EMU_FED_SYSTEMS.KEY) where EMU_FED_SYSTEMS.ID = $SYSTEM_ID]]>
+		</sql:query>
+		
+		<!-- Select the controller in a certain crate given a certain crate ID -->
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_controller">
+			<sql:parameter name="CRATE_ID" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<![CDATA[select EMU_FED_CONTROLLERS.ID, EMU_FED_CONTROLLERS.CAEN_DEVICE, EMU_FED_CONTROLLERS.CAEN_LINK from EMU_FED_CRATES inner join EMU_FED_CONTROLLERS on (EMU_FED_CRATES.CRATE_NUMBER = EMU_FED_CONTROLLERS.CRATE_NUMBER and EMU_FED_CRATES.KEY = EMU_FED_CONTROLLERS.KEY) where EMU_FED_CRATES.ID = $CRATE_ID]]>
 		</sql:query>
 		
 		<!-- Select the DDUs on a certain system given a certain crate ID -->
@@ -79,18 +87,21 @@
 			<![CDATA[select * from $TABLE where ID = $ID]]>
 		</sql:query>
 		
+		<!-- Select everything from a given table specified by a configuration key -->
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_all_by_key">
+			<sql:parameter name="TABLE">
+				<![CDATA[]]>
+			</sql:parameter>
+			<sql:parameter name="KEY" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<![CDATA[select * from $TABLE where KEY = $KEY]]>
+		</sql:query>
+		
 		<!-- Add a new configuration -->
 		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_configuration">
 			<sql:table name="EMU_CONFIGURATION" />
 		</sql:insert>
-		
-		<!-- Select systems given a configuration key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_systems_by_key">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select * from EMU_FED_SYSTEMS where KEY = $KEY]]>
-		</sql:query>
 		
 		<!-- Select systems given a configuration key and a hostname -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_systems_by_key_hostname">
@@ -103,18 +114,18 @@
 			<![CDATA[select * from EMU_FED_SYSTEMS where KEY = $KEY and HOSTNAME = $HOSTNAME]]>
 		</sql:query>
 		
+		<!-- Select latest system given a hostname -->
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_systems_by_hostname">
+			<sql:parameter name="HOSTNAME" bind="yes">
+				<![CDATA[]]>
+			</sql:parameter>
+			<![CDATA[select EMU_FED_SYSTEMS.* from EMU_FED_SYSTEMS right join EMU_FED_CONFIGURATIONS on (EMU_FED_CONFIGURATIONS.KEY = EMU_FED_SYSTEMS.KEY) where EMU_FED_SYSTEMS.HOSTNAME = $HOSTNAME order by EMU_FED_CONFIGURATIONS.TIMESTAMP desc limit 1]]>
+		</sql:query>
+		
 		<!-- Add a new system -->
 		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="addsystem">
 			<sql:table name="EMU_FED_SYSTEMS" />
 		</sql:insert>
-		
-		<!-- Select crates given a configuration key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_crates_by_key">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select * from EMU_FED_CRATES where KEY = $KEY]]>
-		</sql:query>
 		
 		<!-- Select crates given a configuration key and a crate number -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_crates_by_key_number">
@@ -132,16 +143,8 @@
 			<sql:table name="EMU_FED_CRATES" />
 		</sql:insert>
 		
-		<!-- Select controllers given a configuration key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_controllers_by_key">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select * from EMU_FED_CONTROLLERS where KEY = $KEY]]>
-		</sql:query>
-		
 		<!-- Select controllers given a configuration key and a crate number -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_controllers_by_key_crate">
+		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_controller_by_key_crate">
 			<sql:parameter name="KEY" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
@@ -155,14 +158,6 @@
 		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_controller">
 			<sql:table name="EMU_FED_CONTROLLERS" />
 		</sql:insert>
-		
-		<!-- Select DDUs given a configuration key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_ddus_by_key">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select * from EMU_FED_DDUS where KEY = $KEY]]>
-		</sql:query>
 		
 		<!-- Select DDUs given a configuration key and an RUI -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_ddus_by_key_rui">
@@ -180,15 +175,7 @@
 			<sql:table name="EMU_FED_DDUS" />
 		</sql:insert>
 		
-		<!-- Select DCCs given a configuration key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_dccs_by_key">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select * from EMU_FED_DCCS where KEY = $KEY]]>
-		</sql:query>
-		
-		<!-- Select DCCs given a configuration key -->
+		<!-- Select DCCs given a configuration key and an FMM ID -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_dccs_by_key_fmmid">
 			<sql:parameter name="KEY" bind="yes">
 				<![CDATA[]]>
@@ -203,14 +190,6 @@
 		<sql:insert xmlns:sql="urn:tstore-view-SQL" name="add_dcc">
 			<sql:table name="EMU_FED_DCCS" />
 		</sql:insert>
-		
-		<!-- Select DDU fibers given a configuration key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_fibers_by_key">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select * from EMU_FED_DDU_FIBERS where KEY = $KEY]]>
-		</sql:query>
 		
 		<!-- Select DDU fibers given a configuration key and RUI -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_fibers_by_key_rui">
@@ -242,15 +221,7 @@
 			<sql:table name="EMU_FED_DDU_FIBERS" />
 		</sql:insert>
 		
-		<!-- Select DCC fifos given a configuration key -->
-		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_fifos_by_key">
-			<sql:parameter name="KEY" bind="yes">
-				<![CDATA[]]>
-			</sql:parameter>
-			<![CDATA[select * from EMU_FED_DCC_FIFOS where KEY = $KEY]]>
-		</sql:query>
-		
-		<!-- Select DCC fifos given a configuration key -->
+		<!-- Select DCC fifos given a configuration key and DCC FMM ID -->
 		<sql:query xmlns:sql="urn:tstore-view-SQL" name="get_fifos_by_key_fmmid">
 			<sql:parameter name="KEY" bind="yes">
 				<![CDATA[]]>

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.h,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: FiberDBAgent.h,v 1.2 2009/05/22 19:25:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBERDBAGENT_H__
 #define __EMU_FED_FIBERDBAGENT_H__
@@ -7,12 +7,14 @@
 #include "emu/fed/DBAgent.h"
 
 #include <vector>
-#include <string>
+#include "xdata/UnsignedShort.h"
 
 #include "emu/fed/Exception.h"
 
 namespace emu {
 	namespace fed {
+	
+		class Fiber;
 
 		/** @class FiberDBAgent A utility class that will download a Controller configuration from the database and properly configure DDU fibers based on that information.
 		**/
@@ -20,11 +22,27 @@ namespace emu {
 		
 		public:
 
-			/** Default constructor.
-			**/
-			FiberDBAgent(xdaq::WebApplication *application);
+			/** Default constructor **/
+			FiberDBAgent(xdaq::WebApplication *application)
+			throw (emu::fed::exception::DBException);
+			
+			/** Build a bunch of Fibers corresponding to a DDU ID **/
+			std::pair<uint32_t, std::vector<emu::fed::Fiber *> > getFibers(xdata::UnsignedInteger64 id)
+			throw (emu::fed::exception::DBException);
+			
+			/** Build a bunch of Fiber objects corresponding to a configuration key and an RUI **/
+			std::pair<uint32_t, std::vector<emu::fed::Fiber *> > getFibers(xdata::UnsignedInteger64 key, xdata::UnsignedShort rui)
+			throw (emu::fed::exception::DBException);
+			
+			/** Build a bunch of Fiber objects corresponding to a configuration key and an RUI and a fiber number **/
+			std::pair<uint32_t, std::vector<emu::fed::Fiber *> > getFibers(xdata::UnsignedInteger64 key, xdata::UnsignedShort rui, xdata::UnsignedShort number)
+			throw (emu::fed::exception::DBException);
 
 		private:
+		
+			/** Build the crates from the table returned **/
+			std::pair<uint32_t, std::vector<emu::fed::Fiber *> > buildFibers(xdata::Table table)
+			throw (emu::fed::exception::DBException);
 
 		};
 
