@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.2 2009/05/22 11:25:25 paste Exp $
+* $Id: DBAgent.cc,v 1.3 2009/05/22 19:25:51 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -17,11 +17,11 @@ application_(application)
 {
 	// This is to read the configuration from the view file
 	
-	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUFEDsystem");
 	TStoreRequest request("getConfiguration", viewClass);
 	
 	//add the view ID
-	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUsystem");
+	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUFEDsystem");
 	
 	//add view specific parameter
 	// This is a standard location
@@ -52,7 +52,7 @@ throw (emu::fed::exception::DBException)
 	TStoreRequest request("connect");
 	
 	// Add view ID
-	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUsystem");
+	request.addTStoreParameter("id", "urn:tstore-view-SQL:EMUFEDsystem");
 	
 	// This parameter is mandatory. "basic" is the only value allowed at the moment
 	request.addTStoreParameter("authentication", "basic");
@@ -109,7 +109,7 @@ throw (emu::fed::exception::DBException) {
 	
 	//In general, you might have the view name in a variable, so you won't know the view class. In this
 	//case you can find out the view class using the TStore client library:
-	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUFEDsystem");
 	
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
@@ -155,7 +155,7 @@ throw (emu::fed::exception::DBException) {
 	
 	//In general, you might have the view name in a variable, so you won't know the view class. In this
 	//case you can find out the view class using the TStore client library:
-	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUsystem");
+	std::string viewClass = tstoreclient::classNameForView("urn:tstore-view-SQL:EMUFEDsystem");
 	
 	//If we give the name of the view class when constructing the TStoreRequest, 
 	//it will automatically use that namespace for
@@ -184,6 +184,63 @@ throw (emu::fed::exception::DBException) {
 	
 	if (response->getSOAPPart().getEnvelope().getBody().hasFault()) {
 		XCEPT_RAISE(emu::fed::exception::DBException, "Error inserting data into database");
+	}
+}
+
+
+
+xdata::Table emu::fed::DBAgent::getAll()
+throw (emu::fed::exception::DBException)
+{
+	// Push back the table name
+	std::map<std::string, std::string> parameters;
+	parameters["TABLE"] = table_;
+	
+	// Return the results of the query
+	try {
+		return query("get_all", parameters);
+	} catch (emu::fed::exception::DBException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
+	}
+}
+
+
+
+xdata::Table emu::fed::DBAgent::getByID(xdata::UnsignedInteger64 id)
+throw (emu::fed::exception::DBException)
+{
+	// Push back the table name
+	std::map<std::string, std::string> parameters;
+	parameters["TABLE"] = table_;
+	
+	// Push back the ID
+	parameters["ID"] = id.toString();
+	
+	// Return the results of the query
+	try {
+		return query("get_all_by_id", parameters);
+	} catch (emu::fed::exception::DBException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
+	}
+}
+
+
+
+xdata::Table emu::fed::DBAgent::getByKey(xdata::UnsignedInteger64 key)
+throw (emu::fed::exception::DBException)
+{
+	// Push back the table name
+	std::map<std::string, std::string> parameters;
+	parameters["TABLE"] = table_;
+	
+	// Push back the key
+	parameters["KEY"] = key.toString();
+	
+	// Return the results of the query
+	try {
+		return query("get_all_by_key", parameters);
+	} catch (emu::fed::exception::DBException &e) {
+		XCEPT_RETHROW(emu::fed::exception::DBException, "Error posting query", e);
 	}
 }
 

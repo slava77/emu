@@ -39,7 +39,6 @@ Sources=\
 	SystemDBAgent.cc \
 	CrateDBAgent.cc \
 	VMEControllerDBAgent.cc \
-	VMEModuleDBAgent.cc \
 	DDUDBAgent.cc \
 	DCCDBAgent.cc \
 	FiberDBAgent.cc \

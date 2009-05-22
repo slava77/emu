@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.h,v 1.2 2009/05/22 11:25:25 paste Exp $
+* $Id: DBAgent.h,v 1.3 2009/05/22 19:25:50 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBAGENT_H__
 #define __EMU_FED_DBAGENT_H__
@@ -11,6 +11,7 @@
 #include "xoap/MessageReference.h"
 #include "emu/fed/Exception.h"
 #include "xdata/Table.h"
+#include "xdata/UnsignedInteger64.h"
 
 namespace emu {
 	namespace fed {
@@ -51,8 +52,28 @@ namespace emu {
 			**/
 			void insert(const std::string &insertViewName, xdata::Table &newRows)
 			throw (emu::fed::exception::DBException);
+			
+			/** Get all rows from the table this agent accesses. **/
+			xdata::Table getAll()
+			throw (emu::fed::exception::DBException);
+			
+			/** Get a particular row from the table given that row's ID. **/
+			xdata::Table getByID(xdata::UnsignedInteger64 id)
+			throw (emu::fed::exception::DBException);
+			
+			/** Get all matching rows from the table given a configuration key. **/
+			xdata::Table getByKey(xdata::UnsignedInteger64 key)
+			throw (emu::fed::exception::DBException);
 
 		protected:
+		
+			/** Required to make maps with xdata::UnsignedInteger64 keys. 
+			*
+			*	@note Seriously?  Who is responsibile for defining special comparison operators without defining const versions of the same?  Good thing I'm a c++ ninja, or this would end me.
+			**/
+			struct comp {
+				bool operator() (const xdata::UnsignedInteger64 &lhs, const xdata::UnsignedInteger64 &rhs) const { return *(const_cast<xdata::UnsignedInteger64 *>(&lhs)) < *(const_cast<xdata::UnsignedInteger64 *>(&rhs)); }
+			};
 			
 			/** Send a SOAP message to the given application **/
 			xoap::MessageReference sendSOAPMessage(xoap::MessageReference message, std::string klass, int instance = -1)
@@ -67,6 +88,9 @@ namespace emu {
 
 			/// The ID recieved from the database after connecting for future requests
 			std::string connectionID_;
+			
+			/// The name of the table this agent accesses
+			std::string table_;
 
 		private:
 		
