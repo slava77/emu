@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.7 2009/05/21 15:29:44 paste Exp $
+* $Id: Communicator.cc,v 1.8 2009/05/26 11:59:56 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -14,7 +14,6 @@
 #include "emu/fed/Crate.h"
 #include "emu/fed/DDU.h"
 #include "emu/fed/Fiber.h"
-#include "emu/fed/Chamber.h"
 #include "emu/fed/DCC.h"
 #include "emu/fed/IRQData.h"
 #include "emu/fed/VMEController.h"
