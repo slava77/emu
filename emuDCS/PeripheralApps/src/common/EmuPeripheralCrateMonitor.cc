@@ -2795,6 +2795,20 @@ void EmuPeripheralCrateMonitor::SwitchBoard(xgi::Input * in, xgi::Output * out )
      else if (command_argu=="OFF" || command_argu=="off") reload_vcc = false;
      std::cout << "SwitchBoard: VCC Reset " << command_argu << std::endl;
   }
+  else if (command_name=="STATUS")
+  {
+     *out << "Monitor " << (std::string)((Monitor_On_)?"ON":"OFF");
+     *out << " Heartbeat " << fast_count;
+     *out << " Crates " << crateVector.size() << " ";
+     for ( unsigned int i = 0; i < crateVector.size(); i++ )
+     {
+        char ans;
+        if(crate_off[i])  ans='D';
+        else              ans='N';
+        *out << ans;
+     }
+     *out << std::endl;
+  }
 }
 
 void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out ) 
@@ -3271,7 +3285,7 @@ void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
          <<         "\" valueURL=\"" << " "
          << "\"/>" << std::endl;
 
-    *out << "  <monitorable name=\"" << "Heart Beat"
+    *out << "  <monitorable name=\"" << "Heartbeat"
          <<            "\" value=\"" << fast_count
          <<  "\" nameDescription=\"" << " "
          << "\" valueDescription=\"" << " "
