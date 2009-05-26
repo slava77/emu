@@ -14,7 +14,7 @@ Package=emuDCS/PeripheralApps
 PackageName=PeripheralApps
 Description="XDAQ Application libraries for Peripheral Crates"
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=03
+PACKAGE_VER_MINOR=04
 PACKAGE_VER_PATCH=00
 
 
