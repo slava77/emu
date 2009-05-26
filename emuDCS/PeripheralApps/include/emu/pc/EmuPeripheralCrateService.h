@@ -119,6 +119,7 @@ private:
   void msgHandler(std::string msg);
   
   bool Simulation_;
+  bool GuiButton_;
   int all_crates_ok;
   int crates_checked;
   int crate_check_ok[60];

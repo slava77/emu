@@ -63,6 +63,7 @@ EmuPeripheralCrateService::EmuPeripheralCrateService(xdaq::ApplicationStub * s):
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
   Simulation_ = false;
+  GuiButton_ = true;
   //
   RunNumber_= "-1";
   //
@@ -593,6 +594,18 @@ void EmuPeripheralCrateService::SwitchBoard(xgi::Input * in, xgi::Output * out )
          msgHandler("Message: SIMULATION OFF; real hardware access");
      }
      *out << "Simulation Status: " <<  Simulation_ << std::endl;
+  }
+  else if (command_name=="BUTTON")
+  {
+     if(command_argu=="ON" || command_argu=="on")
+     {   GuiButton_ = true;
+         msgHandler("Message: BUTTON ON; GUI action enabled");
+     }
+     else if (command_argu=="OFF" || command_argu=="off")
+     {   GuiButton_ = false;
+         msgHandler("Message: BUTTON OFF; GUI action disabled");
+     }
+     *out << "Button Status: " <<  GuiButton_ << std::endl;
   }
   else
   {
