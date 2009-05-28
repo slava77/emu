@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.85 2009/04/14 13:40:01 rakness Exp $
+// $Id: TMB.cc,v 3.86 2009/05/28 16:36:10 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.86  2009/05/28 16:36:10  rakness
+// update for May 2009 TMB and ALCT firmware versions
+//
 // Revision 3.85  2009/04/14 13:40:01  rakness
 // add alct_posneg bit to enhance alct communications
 //
@@ -525,12 +528,15 @@ TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   SetTMBRegisterDefaults_();
   DefineTMBConfigurationRegisters_();
   //
-  alct_sent_to_tmb_counter_index_      = ALCT_SENT_TO_TMB_COUNTER_INDEX      ;
-  alct_raw_hits_readout_counter_index_ = ALCT_RAW_HITS_READOUT_COUNTER_INDEX ;
-  clct_pretrigger_counter_index_       = CLCT_PRETRIGGER_COUNTER_INDEX       ;
-  lct_sent_to_mpc_counter_index_       = LCT_SENT_TO_MPC_COUNTER_INDEX       ; 
-  lct_accepted_by_mpc_counter_index_   = LCT_ACCEPTED_BY_MPC_COUNTER_INDEX   ;
-  l1a_in_tmb_window_counter_index_     = L1A_IN_TMB_WINDOW_COUNTER_INDEX     ; 
+  alct_sent_to_tmb_counter_index_                      = ALCT_SENT_TO_TMB_COUNTER_INDEX                     ;
+  ecc_trigger_path_one_error_counter_index_            = ECC_TRIGGER_PATH_ONE_ERROR_COUNTER_INDEX           ;
+  ecc_trigger_path_two_errors_counter_index_           = ECC_TRIGGER_PATH_TWO_ERRORS_COUNTER_INDEX          ;
+  ecc_trigger_path_more_than_two_errors_counter_index_ = ECC_TRIGGER_PATH_MORE_THAN_TWO_ERRORS_COUNTER_INDEX;
+  alct_raw_hits_readout_counter_index_                 = ALCT_RAW_HITS_READOUT_COUNTER_INDEX                ;
+  clct_pretrigger_counter_index_                       = CLCT_PRETRIGGER_COUNTER_INDEX                      ;
+  lct_sent_to_mpc_counter_index_                       = LCT_SENT_TO_MPC_COUNTER_INDEX                      ; 
+  lct_accepted_by_mpc_counter_index_                   = LCT_ACCEPTED_BY_MPC_COUNTER_INDEX                  ;
+  l1a_in_tmb_window_counter_index_                     = L1A_IN_TMB_WINDOW_COUNTER_INDEX                    ; 
   //
   //
   tmb_configuration_status_  = -1;
@@ -1354,93 +1360,96 @@ std::string TMB::CounterName(int counter){
   if( counter == 0 ) name = "ALCT: alct0 valid pattern flag received                 ";
   if( counter == 1 ) name = "ALCT: alct1 valid pattern flag received                 ";
   if( counter == 2 ) name = "ALCT: alct data structure error                         ";
-  if( counter == 3 ) name = "ALCT: trigger path ECC; 1 bit error corrected          ";
-  if( counter == 4 ) name = "ALCT: trigger path ECC; 2 bit error uncorrected        ";
-  if( counter == 5 ) name = "ALCT: trigger path ECC; > 2 bit error uncorrected      ";
-  if( counter == 6 ) name = "ALCT: alct replied ECC; 1 bit error corrected          ";
-  if( counter == 7 ) name = "ALCT: alct replied ECC; 2 bit error uncorrected        ";
-  if( counter == 8 ) name = "ALCT: alct replied ECC; > 2 bit error uncorrected      ";
-  if( counter == 9 ) name = "ALCT: raw hits readout                                  ";
-  if( counter == 10) name = "ALCT: raw hits readout - CRC error                      ";
+  if( counter == 3 ) name = "ALCT: trigger path ECC; 1 bit error corrected           ";
+  if( counter == 4 ) name = "ALCT: trigger path ECC; 2 bit error uncorrected         ";
+  if( counter == 5 ) name = "ALCT: trigger path ECC; > 2 bit error uncorrected       ";
+  if( counter == 6 ) name = "ALCT: trigger path ECC; > 2 bit error blanked           ";
   //
-  if( counter == 11) name = "                                                        ";
-  if( counter == 12) name = "CLCT: Pretrigger                                        ";
-  if( counter == 13) name = "CLCT: Pretrigger on CFEB0                               ";
-  if( counter == 14) name = "CLCT: Pretrigger on CFEB1                               ";
-  if( counter == 15) name = "CLCT: Pretrigger on CFEB2                               ";
-  if( counter == 16) name = "CLCT: Pretrigger on CFEB3                               ";
-  if( counter == 17) name = "CLCT: Pretrigger on CFEB4                               ";
-  if( counter == 18) name = "CLCT: Pretrigger on ME1A CFEB 4 only                    ";
-  if( counter == 19) name = "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 ";
-  if( counter == 20) name = "CLCT: Discarded, no wrbuf available, buffer stalled     ";
-  if( counter == 21) name = "CLCT: Discarded, no ALCT in window                      ";
-  if( counter == 22) name = "CLCT: Discarded, CLCT0 invalid pattern after drift      ";
-  if( counter == 23) name = "CLCT: CLCT0 pass hit thresh, fail pid_thresh_postdrift  ";
-  if( counter == 24) name = "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  ";
-  if( counter == 25) name = "CLCT: BX pretrig waiting for triads to dissipate        ";
+  if( counter == 7 ) name = "ALCT: alct replied ECC; 1 bit error corrected           ";
+  if( counter == 8 ) name = "ALCT: alct replied ECC; 2 bit error uncorrected         ";
+  if( counter == 9 ) name = "ALCT: alct replied ECC; > 2 bit error uncorrected       ";
+  if( counter == 10) name = "ALCT: raw hits readout                                  ";
+  if( counter == 11) name = "ALCT: raw hits readout - CRC error                      ";
+  if( counter == 12) name = "                                                        ";
   //
-  if( counter == 26) name = "CLCT: clct0 sent to TMB matching section                ";
-  if( counter == 27) name = "CLCT: clct1 sent to TMB matching section                ";
+  if( counter == 13) name = "CLCT: Pretrigger                                        ";
+  if( counter == 14) name = "CLCT: Pretrigger on CFEB0                               ";
+  if( counter == 15) name = "CLCT: Pretrigger on CFEB1                               ";
+  if( counter == 16) name = "CLCT: Pretrigger on CFEB2                               ";
+  if( counter == 17) name = "CLCT: Pretrigger on CFEB3                               ";
+  if( counter == 18) name = "CLCT: Pretrigger on CFEB4                               ";
   //
-  if( counter == 28) name = "TMB:  TMB accepted alct*clct, alct-only, or clct-only   ";
-  if( counter == 29) name = "TMB:  TMB clct*alct matched trigger                     ";
-  if( counter == 30) name = "TMB:  TMB alct-only trigger                             ";
-  if( counter == 31) name = "TMB:  TMB clct-only trigger                             ";
+  if( counter == 19) name = "CLCT: Pretrigger on ME1A CFEB 4 only                    ";
+  if( counter == 20) name = "CLCT: Pretrigger on ME1B CFEBs 0-3 only                 ";
+  if( counter == 21) name = "CLCT: Discarded, no wrbuf available, buffer stalled     ";
+  if( counter == 22) name = "CLCT: Discarded, no ALCT in window                      ";
+  if( counter == 23) name = "CLCT: Discarded, CLCT0 invalid pattern after drift      ";
+  if( counter == 24) name = "CLCT: CLCT0 pass hit thresh, fail pid_thresh_postdrift  ";
+  if( counter == 25) name = "CLCT: CLCT1 pass hit thresh, fail pid_thresh_postdrift  ";
+  if( counter == 26) name = "CLCT: BX pretrig waiting for triads to dissipate        ";
   //
-  if( counter == 32) name = "TMB:  TMB match reject event                            ";
-  if( counter == 33) name = "TMB:  TMB match reject event, queued for nontrig readout";
-  if( counter == 34) name = "TMB:  TMB matching discarded an ALCT pair               ";
-  if( counter == 35) name = "TMB:  TMB matching discarded a CLCT pair                ";
-  if( counter == 36) name = "TMB:  TMB matching discarded CLCT0 from ME1A            ";
-  if( counter == 37) name = "TMB:  TMB matching discarded CLCT1 from ME1A            ";
+  if( counter == 27) name = "CLCT: clct0 sent to TMB matching section                ";
+  if( counter == 28) name = "CLCT: clct1 sent to TMB matching section                ";
   //
-  if( counter == 38) name = "TMB:  Matching found no ALCT                            ";
-  if( counter == 39) name = "TMB:  Matching found no CLCT                            ";
-  if( counter == 40) name = "TMB:  Matching found one ALCT                           ";
-  if( counter == 41) name = "TMB:  Matching found one CLCT                           ";
-  if( counter == 42) name = "TMB:  Matching found two ALCTs                          ";
-  if( counter == 43) name = "TMB:  Matching found two CLCTs                          ";
+  if( counter == 29) name = "TMB:  TMB accepted alct*clct, alct-only, or clct-only   ";
+  if( counter == 30) name = "TMB:  TMB clct*alct matched trigger                     ";
+  if( counter == 31) name = "TMB:  TMB alct-only trigger                             ";
+  if( counter == 32) name = "TMB:  TMB clct-only trigger                             ";
   //
-  if( counter == 44) name = "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           ";
-  if( counter == 45) name = "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           ";
-  if( counter == 46) name = "TMB:  LCT1 has higher quality than LCT0 (ranking error) ";
+  if( counter == 33) name = "TMB:  TMB match reject event                            ";
+  if( counter == 34) name = "TMB:  TMB match reject event, queued for nontrig readout";
+  if( counter == 35) name = "TMB:  TMB matching discarded an ALCT pair               ";
+  if( counter == 36) name = "TMB:  TMB matching discarded a CLCT pair                ";
+  if( counter == 37) name = "TMB:  TMB matching discarded CLCT0 from ME1A            ";
+  if( counter == 38) name = "TMB:  TMB matching discarded CLCT1 from ME1A            ";
   //
-  if( counter == 47) name = "TMB:  Transmitted LCT0 to MPC                           ";
-  if( counter == 48) name = "TMB:  Transmitted LCT1 to MPC                           ";
+  if( counter == 39) name = "TMB:  Matching found no ALCT                            ";
+  if( counter == 40) name = "TMB:  Matching found no CLCT                            ";
+  if( counter == 41) name = "TMB:  Matching found one ALCT                           ";
+  if( counter == 42) name = "TMB:  Matching found one CLCT                           ";
+  if( counter == 43) name = "TMB:  Matching found two ALCTs                          ";
+  if( counter == 44) name = "TMB:  Matching found two CLCTs                          ";
   //
-  if( counter == 49) name = "TMB:  MPC accepted LCT0                                 ";
-  if( counter == 50) name = "TMB:  MPC accepted LCT1                                 ";
-  if( counter == 51) name = "TMB:  MPC rejected both LCT0 and LCT1                   ";
+  if( counter == 45) name = "TMB:  ALCT0 copied into ALCT1 to make 2nd LCT           ";
+  if( counter == 46) name = "TMB:  CLCT0 copied into CLCT1 to make 2nd LCT           ";
+  if( counter == 47) name = "TMB:  LCT1 has higher quality than LCT0 (ranking error) ";
   //
-  if( counter == 52) name = "L1A:  L1A received                                      ";
-  if( counter == 53) name = "L1A:  L1A received, TMB in L1A window                   ";
-  if( counter == 54) name = "L1A:  L1A received, no TMB in window                    ";
-  if( counter == 55) name = "L1A:  TMB triggered, no L1A in window                   ";
-  if( counter == 56) name = "L1A:  TMB readouts completed                            ";
+  if( counter == 48) name = "TMB:  Transmitted LCT0 to MPC                           ";
+  if( counter == 49) name = "TMB:  Transmitted LCT1 to MPC                           ";
   //
-  if( counter == 57) name = "STAT: CLCT Triads skipped                               ";
-  if( counter == 58) name = "STAT: Raw hits buffer had to be reset                   ";
-  if( counter == 59) name = "STAT: TTC Resyncs received                              ";
-  if( counter == 60) name = "STAT: Sync Error, BC0/BXN=offset mismatch               ";
-  if( counter == 61) name = "STAT: Parity Error in CFEB or RPC raw hits RAM          ";
+  if( counter == 50) name = "TMB:  MPC accepted LCT0                                 ";
+  if( counter == 51) name = "TMB:  MPC accepted LCT1                                 ";
+  if( counter == 52) name = "TMB:  MPC rejected both LCT0 and LCT1                   ";
+  //
+  if( counter == 53) name = "L1A:  L1A received                                      ";
+  if( counter == 54) name = "L1A:  L1A received, TMB in L1A window                   ";
+  if( counter == 55) name = "L1A:  L1A received, no TMB in window                    ";
+  if( counter == 56) name = "L1A:  TMB triggered, no L1A in window                   ";
+  if( counter == 57) name = "L1A:  TMB readouts completed                            ";
+  //
+  if( counter == 58) name = "STAT: CLCT Triads skipped                               ";
+  if( counter == 59) name = "STAT: Raw hits buffer had to be reset                   ";
+  if( counter == 60) name = "STAT: TTC Resyncs received                              ";
+  if( counter == 61) name = "STAT: Sync Error, BC0/BXN=offset mismatch               ";
+  if( counter == 62) name = "STAT: Parity Error in CFEB or RPC raw hits RAM          ";
   //
   // The following are not cleared via VME
-  if( counter == 62) name = "HDR:  Pretrigger counter                                ";
-  if( counter == 63) name = "HDR:  CLCT counter                                      ";
-  if( counter == 64) name = "HDR:  TMB trigger counter                               ";
-  if( counter == 65) name = "HDR:  ALCTs received counter                            ";
-  if( counter == 66) name = "HDR:  L1As received counter (12 bits)                   ";
-  if( counter == 67) name = "HDR:  Readout counter (12 bits)                         ";
-  if( counter == 68) name = "HDR:  Orbit counter                                     ";
+  if( counter == 63) name = "HDR:  Pretrigger counter                                ";
+  if( counter == 64) name = "HDR:  CLCT counter                                      ";
+  if( counter == 65) name = "HDR:  TMB trigger counter                               ";
+  if( counter == 66) name = "HDR:  ALCTs received counter                            ";
+  if( counter == 67) name = "HDR:  L1As received counter (12 bits)                   ";
+  if( counter == 68) name = "HDR:  Readout counter (12 bits)                         ";
+  if( counter == 69) name = "HDR:  Orbit counter                                     ";
   //
-  if( counter == 69) name = "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 ";
-  if( counter == 70) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ";
-  if( counter == 71) name = "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ";
-  if( counter == 72) name = "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ";
-  if( counter == 73) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=1 ";
+  if( counter == 70) name = "ALCT:Struct Error, expect ALCT0[10:1]=0 when alct0vpf=0 ";
+  if( counter == 71) name = "ALCT:Struct Error, expect ALCT1[10:1]=0 when alct1vpf=0 ";
+  if( counter == 72) name = "ALCT:Struct Error, expect ALCT0vpf=1 when alct1vpf=1    ";
+  if( counter == 73) name = "ALCT:Struct Error, expect ALCT0[10:1]>0 when alct0vpf=1 ";
+  if( counter == 74) name = "ALCT:Struct Error, expect ALCT1[10:1]>0 when alct1vpf=1 ";
   //
-  if( counter == 74) name = "CCB:  TTCrx lock lost                                   ";
-  if( counter == 75) name = "CCB:  qPLL lock lost                                    ";
+  if( counter == 75) name = "CCB:  TTCrx lock lost                                   ";
+  if( counter == 76) name = "CCB:  qPLL lock lost                                    ";
   //
   return name;
 }
@@ -2766,7 +2775,7 @@ bool TMB::ReadALCTRawhits_() {
   for(int i=0;i<alct_wdcnt;i++) {
     //
     //Write RAM read address to TMB
-    SetAlctDemuxMode(0);         //set to enable alctfifo2 address to contain raw hits
+    SetAlctDemuxMode(RAM_DATA);         //set to enable alctfifo2 address to contain raw hits
     SetAlctRawReadAddress(i);
     WriteRegister(alctfifo1_adr);
     int data = ReadRegister(alctfifo1_adr);
@@ -6007,17 +6016,16 @@ void TMB::DefineTMBConfigurationRegisters_(){
   // Registers used for TMB configuration....
   //
   // Enable/configure inputs and injectors:
-  TMBConfigurationRegister.push_back(vme_loopbk_adr);       //0x0e enable ALCT LVDS rx/tx
-  TMBConfigurationRegister.push_back(alct_inj_adr  );       //0x32 mask ALCT
-  TMBConfigurationRegister.push_back(alct_stat_adr );       //0x38 ALCT error correction code
-  TMBConfigurationRegister.push_back(cfeb_inj_adr  );       //0x42 enable CFEB inputs
-  TMBConfigurationRegister.push_back(rpc_cfg_adr   );       //0xB6 enable RPC 
-  TMBConfigurationRegister.push_back(rpc_inj_adr   );       //0xBC mask RPC
+  TMBConfigurationRegister.push_back(vme_loopbk_adr);       //0x0e enable ALCT LVDS rx/tx 
+  TMBConfigurationRegister.push_back(alct_inj_adr  );       //0x32 mask ALCT 
+  //  TMBConfigurationRegister.push_back(alct_stat_adr );       //0x38 ECC enable --> to be removed when ECC is working in ALCT
+  TMBConfigurationRegister.push_back(cfeb_inj_adr  );       //0x42 enable CFEB inputs  
+  TMBConfigurationRegister.push_back(rpc_cfg_adr   );       //0xB6 enable RPC  
+  TMBConfigurationRegister.push_back(rpc_inj_adr   );       //0xBC mask RPC  
   //
   // trigger and signal delays:
-  TMBConfigurationRegister.push_back(seq_trig_dly0_adr);    //0x6A ALCT*CLCT pretrigger source delays
-  TMBConfigurationRegister.push_back(rpc_raw_delay_adr);    //0xBA RPC Raw Hits delay
-  //  TMBConfigurationRegister.push_back(seq_trig_dly1_adr);    //0x6C External and Layer-Trigger source delays
+  TMBConfigurationRegister.push_back(seq_trig_dly0_adr);    //0x6A ALCT*CLCT pretrigger source delays  
+  TMBConfigurationRegister.push_back(rpc_raw_delay_adr);    //0xBA RPC Raw Hits delay  
   //
   // (CLCT) pretrigger configuration:
   TMBConfigurationRegister.push_back(seq_trig_en_adr   );   //0x68 sequencer trigger source enables
@@ -6044,9 +6052,8 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(bx0_delay_adr );    //0xCA BX0 delay
   //
   // special modifiers:
-  TMBConfigurationRegister.push_back(ccb_trig_adr);         //0x2c configure request l1a from CCB 
-  TMBConfigurationRegister.push_back(alct_cfg_adr);         //0x30 configure ALCT
-  //  TMBConfigurationRegister.push_back(seq_id_adr  );         //0x6E board, csc ID 
+  TMBConfigurationRegister.push_back(ccb_trig_adr);         //0x2c configure request l1a from CCB  
+  TMBConfigurationRegister.push_back(alct_cfg_adr);         //0x30 configure ALCT   
   //
   // clock (communication) phases:
   TMBConfigurationRegister.push_back(vme_ddd0_adr     );    //0x16 phases: RAT/TMB, DMBtx, ALCTrx, ALCTtx
@@ -6073,9 +6080,6 @@ void TMB::DefineTMBConfigurationRegisters_(){
   //
   // Not put into xml file, but may want to enable scope for test runs...
   //  TMBConfigurationRegister.push_back(scp_ctrl_adr);         //0x98 scope control
-  //
-  // Removed from configuration list as per UCLA request December 2006...
-  //*****  TMBConfigurationRegister.push_back(vme_ratctrl_adr);      //0x1e RAT control 
   //
   return;
 }
@@ -6170,8 +6174,9 @@ void TMB::SetTMBRegisterDefaults_() {
   //------------------------------------------------------------------
   //0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
   //------------------------------------------------------------------
-  alct_ecc_en_       = alct_ecc_en_default      ;
-  alct_txdata_delay_ = alct_txdata_delay_default;
+  alct_ecc_en_        = alct_ecc_en_default       ;
+  alct_ecc_err_blank_ = alct_ecc_err_blank_default;
+  alct_txdata_delay_  = alct_txdata_delay_default ;
   //
   //------------------------------------------------------------------
   //0X42 = ADR_CFEB_INJ:  CFEB Injector Control
@@ -6603,12 +6608,11 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //------------------------------------------------------------------
     //0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
     //------------------------------------------------------------------
-    read_alct_cfg_done_       = ExtractValueFromData(data,alct_cfg_done_bitlo    ,alct_cfg_done_bithi    );
-    read_alct_seq_status_     = ExtractValueFromData(data,alct_seq_status_bitlo  ,alct_seq_status_bithi  );
-    read_alct_seu_status_     = ExtractValueFromData(data,alct_seu_status_bitlo  ,alct_seu_status_bithi  );
-    read_alct_sync_ecc_err_   = ExtractValueFromData(data,alct_sync_ecc_err_bitlo,alct_sync_ecc_err_bithi);
-    read_alct_ecc_en_         = ExtractValueFromData(data,alct_ecc_en_bitlo      ,alct_ecc_en_bithi      );
-    read_alct_txdata_delay_   = ExtractValueFromData(data,alct_txdata_delay_bitlo,alct_txdata_delay_bithi);
+    read_alct_cfg_done_       = ExtractValueFromData(data,alct_cfg_done_bitlo     ,alct_cfg_done_bithi     );
+    read_alct_ecc_en_         = ExtractValueFromData(data,alct_ecc_en_bitlo       ,alct_ecc_en_bithi       );    
+    read_alct_ecc_err_blank_  = ExtractValueFromData(data,alct_ecc_err_blank_bitlo,alct_ecc_err_blank_bithi);
+    read_alct_sync_ecc_err_   = ExtractValueFromData(data,alct_sync_ecc_err_bitlo ,alct_sync_ecc_err_bithi );
+    read_alct_txdata_delay_   = ExtractValueFromData(data,alct_txdata_delay_bitlo ,alct_txdata_delay_bithi );
     //
   } else if ( address == alct_alct0_adr ) {
     //------------------------------------------------------------------
@@ -7347,11 +7351,10 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     //0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
     //------------------------------------------------------------------
     (*MyOutput_) << " ->ALCT sequencer control status:" << std::endl;
-    (*MyOutput_) << "    ALCT FPGA configuration done              = " << std::hex << read_alct_cfg_done_     << std::endl;
-    (*MyOutput_) << "    ALCT sequencer status                     = " << std::hex << read_alct_seq_status_   << std::endl;
-    (*MyOutput_) << "    ALCT single-event upset status            = " << std::hex << read_alct_seu_status_   << std::endl;
-    (*MyOutput_) << "    ALCT sync-mode ECC error code             = " << std::hex << read_alct_sync_ecc_err_ << std::endl;
-    (*MyOutput_) << "    ALCT ECC trigger data correction enable   = " << std::hex << read_alct_ecc_en_       << std::endl;
+    (*MyOutput_) << "    ALCT FPGA configuration done              = " << std::hex << read_alct_cfg_done_       << std::endl;
+    (*MyOutput_) << "    ALCT ECC trigger data correction enable   = " << std::hex << read_alct_ecc_en_         << std::endl;
+    (*MyOutput_) << "    Blank ALCTs with uncorrected ECC errors   = " << std::hex << read_alct_ecc_err_blank_  << std::endl;
+    (*MyOutput_) << "    ALCT sync-mode ECC error code             = " << std::hex << read_alct_sync_ecc_err_   << std::endl;
     (*MyOutput_) << "    Delay of ALCT tx data before 80MHz tx mux = 0x" << std::hex << read_alct_txdata_delay_ << std::endl;
     //
   } else if ( address == cfeb_inj_adr ) {
@@ -7930,8 +7933,9 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     //0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
     //------------------------------------------------------------------
-    InsertValueIntoDataWord(alct_ecc_en_      ,alct_ecc_en_bithi      ,alct_ecc_en_bitlo      ,&data_word);
-    InsertValueIntoDataWord(alct_txdata_delay_,alct_txdata_delay_bithi,alct_txdata_delay_bitlo,&data_word);
+    InsertValueIntoDataWord(alct_ecc_en_       ,alct_ecc_en_bithi       ,alct_ecc_en_bitlo       ,&data_word);
+    InsertValueIntoDataWord(alct_ecc_err_blank_,alct_ecc_err_blank_bithi,alct_ecc_err_blank_bitlo,&data_word);
+    InsertValueIntoDataWord(alct_txdata_delay_ ,alct_txdata_delay_bithi ,alct_txdata_delay_bitlo ,&data_word);
     //
   } else if ( address == cfeb_inj_adr ) {
     //------------------------------------------------------------------
@@ -8366,8 +8370,9 @@ void TMB::CheckTMBConfiguration(int max_number_of_reads) {
     //------------------------------------------------------------------
     //0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
     //------------------------------------------------------------------
-    config_ok &= compareValues("TMB alct_ecc_enable (not in xml)"  ,read_alct_ecc_en_      ,alct_ecc_en_      , print_errors);
-    config_ok &= compareValues("TMB ALCT txdata delay (not in xml)",read_alct_txdata_delay_,alct_txdata_delay_, print_errors);
+    //    config_ok &= compareValues("TMB alct_ecc_enable (not in xml)"     ,read_alct_ecc_en_       ,alct_ecc_en_       , print_errors);
+    //    config_ok &= compareValues("TMB alct_ecc_error_blank (not in xml)",read_alct_ecc_err_blank_,alct_ecc_err_blank_, print_errors);
+    //    config_ok &= compareValues("TMB ALCT txdata delay (not in xml)"   ,read_alct_txdata_delay_ ,alct_txdata_delay_ , print_errors);
     //
     //------------------------------------------------------------------
     //0X42 = ADR_CFEB_INJ:  CFEB Injector Control
