@@ -413,7 +413,7 @@ or exists (
       </sql:parameter>
       <![CDATA[select
 oldconfig.CFEB_FIRMWARE_TAG "CFEB_FIRMWARE_TAG $OLD_EMU_CONFIG_ID",newconfig.CFEB_FIRMWARE_TAG "CFEB_FIRMWARE_TAG $NEW_EMU_CONFIG_ID",
-oldconfig.CFEB_NUMBER "CFEB_NUMBER $OLD_EMU_CONFIG_ID",newconfig.CFEB_NUMBER "CFEB_NUMBER $NEW_EMU_CONFIG_ID",
+oldconfig.CFEB_NUMBER,
 oldconfig.KILL_CHIP0 "KILL_CHIP0 $OLD_EMU_CONFIG_ID",newconfig.KILL_CHIP0 "KILL_CHIP0 $NEW_EMU_CONFIG_ID",
 oldconfig.KILL_CHIP1 "KILL_CHIP1 $OLD_EMU_CONFIG_ID",newconfig.KILL_CHIP1 "KILL_CHIP1 $NEW_EMU_CONFIG_ID",
 oldconfig.KILL_CHIP2 "KILL_CHIP2 $OLD_EMU_CONFIG_ID",newconfig.KILL_CHIP2 "KILL_CHIP2 $NEW_EMU_CONFIG_ID",
@@ -788,7 +788,7 @@ exists (
      <sql:parameter name="NEW_XXX_CONFIG_ID" bind="yes">
         <![CDATA[]]>
       </sql:parameter>
-      <![CDATA[select oldconfig.afeb_threshold "afeb_threshold $OLD_EMU_CONFIG_ID",newconfig.afeb_threshold "afeb_threshold $NEW_EMU_CONFIG_ID",oldconfig.afeb_fine_delay "afeb_fine_delay $OLD_EMU_CONFIG_ID",newconfig.afeb_fine_delay "afeb_fine_delay $NEW_EMU_CONFIG_ID" 
+      <![CDATA[select oldconfig.afeb_number,oldconfig.afeb_threshold "afeb_threshold $OLD_EMU_CONFIG_ID",newconfig.afeb_threshold "afeb_threshold $NEW_EMU_CONFIG_ID",oldconfig.afeb_fine_delay "afeb_fine_delay $OLD_EMU_CONFIG_ID",newconfig.afeb_fine_delay "afeb_fine_delay $NEW_EMU_CONFIG_ID" 
 from EMU_ANODECHANNEL oldconfig,EMU_ANODECHANNEL newconfig where
 oldconfig.EMU_CONFIG_ID=$OLD_EMU_CONFIG_ID and oldconfig.ALCT_CONFIG_ID=$OLD_XXX_CONFIG_ID
 and newconfig.EMU_CONFIG_ID=$NEW_EMU_CONFIG_ID and newconfig.ALCT_CONFIG_ID=$NEW_XXX_CONFIG_ID
