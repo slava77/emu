@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.21 2009/04/29 17:16:36 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.22 2009/05/28 16:36:10 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.22  2009/05/28 16:36:10  rakness
+// update for May 2009 TMB and ALCT firmware versions
+//
 // Revision 1.21  2009/04/29 17:16:36  rakness
 // roll back for Nov 2008 TMB firmware
 //
@@ -354,6 +357,7 @@ ChamberUtilities::ChamberUtilities(){
     CFEBrxPhase_[i] = -1;
   ALCTtxPhase_       = -1;
   ALCTrxPhase_       = -1;
+  ALCTPosNeg_        = -1;
   RatTmbDelay_       = -1;
   for(int i=0; i<2;i++) 
     RpcRatDelay_[i] = -1;
@@ -838,8 +842,8 @@ int ChamberUtilities::Find_alct_tx_with_ALCT_to_TMB_evenodd(int number_of_passes
   //
   ALCTtxPhase_ = window_analysis(nbad,13);
   //
-  (*MyOutput_) << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl << std::endl;
-  std::cout    << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl << std::endl;
+  (*MyOutput_) << "alternating 1/0 value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl << std::endl;
+  std::cout    << "alternating 1/0 value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl << std::endl;
   //
   //  
   // Display bad bits vs delay
@@ -949,12 +953,16 @@ int ChamberUtilities::Find_alct_rx_with_TMB_to_ALCT_evenodd(int number_of_passes
   int alct_sync_2nd_err_ff[13] = {};
   //
   // expected patterns:
-  const int alct_1st_expect = 0x2AA;	//1st-in-time: Teven = 10'b10 1010 1010
-  const int alct_2nd_expect = 0x155;	//2nd-in-time: Todd  = 10'b01 0101 0101
+  const int alct_1st_expect = 0xAA;	//1st-in-time: Teven = 10'b10 1010 1010
+  const int alct_2nd_expect = 0x55;	//2nd-in-time: Todd  = 10'b01 0101 0101
   //
   // data to fill the TMB data banks:
-  int data_to_loopback_1st[3] = {alct_1st_expect, 0, 0};   
-  int data_to_loopback_2nd[3] = {alct_2nd_expect, 0, 0};   
+  int data_to_loopback_1st[3] = {0,0,alct_1st_expect};   
+  int data_to_loopback_2nd[3] = {0,0,alct_2nd_expect};   
+  //
+  // data which will be coming out of ALCT (if working correctly)
+  int alct_1st_expect_fulldataword = alct_1st_expect << 20;
+  int alct_2nd_expect_fulldataword = alct_2nd_expect << 20;
   //
   for (int ipass=0; ipass<number_of_passes; ipass++) {
     for (int ddd_delay=0; ddd_delay<=12; ddd_delay++) {
@@ -1028,20 +1036,21 @@ int ChamberUtilities::Find_alct_rx_with_TMB_to_ALCT_evenodd(int number_of_passes
       if (ipass==0 && debug_) {
 	printf("Teven/Todd: ddd_delay=%2i ",ddd_delay);
 	printf("rxdata_1st=%8.8X rxdata_2nd=%8.8X ",alct_sync_rxdata_1st,alct_sync_rxdata_2nd);
+	printf("expect_1st=%8.8X expect_2nd=%8.8X ",alct_sync_expect_1st,alct_sync_expect_2nd);
 	printf("1st_err/latched=%1i/%1i 2nd_err=%1i/%1i\n",
 	       alct_sync_1st_err,alct_sync_1st_err_ff[ddd_delay],
 	       alct_sync_2nd_err,alct_sync_2nd_err_ff[ddd_delay]);
       }
       //
       // Compare received bits to expected pattern
-      if (alct_sync_expect_1st != alct_1st_expect) {
+      if (alct_sync_expect_1st != alct_1st_expect_fulldataword) {
 	(*MyOutput_) << "TMB internal error: 1st frame expected =" << std::hex << alct_1st_expect 
 		     << " not equal 1st frame in firmware = " << alct_sync_expect_1st << std::endl;
 	std::cout    << "TMB internal error: 1st frame expected =" << std::hex << alct_1st_expect 
 		     << " not equal 1st frame in firmware = " << alct_sync_expect_1st << std::endl;
       }
       //
-      if (alct_sync_expect_2nd != alct_2nd_expect) {
+      if (alct_sync_expect_2nd != alct_2nd_expect_fulldataword) {
 	(*MyOutput_) << "TMB internal error: 2nd frame expected =" << std::hex << alct_2nd_expect 
 		     << " not equal 2nd frame in firmware = " << alct_sync_expect_2nd << std::endl;
 	std::cout    << "TMB internal error: 2nd frame expected =" << std::hex << alct_2nd_expect 
@@ -1050,8 +1059,8 @@ int ChamberUtilities::Find_alct_rx_with_TMB_to_ALCT_evenodd(int number_of_passes
       //
       // Compare them bit-by-bit
       for (int ibit=0; ibit<=27; ibit++) {
-	int ibit_1st_expected = (alct_1st_expect	>> ibit) & 0x1;
-	int ibit_2nd_expected = (alct_2nd_expect	>> ibit) & 0x1;
+	int ibit_1st_expected = (alct_1st_expect_fulldataword	>> ibit) & 0x1;
+	int ibit_2nd_expected = (alct_2nd_expect_fulldataword	>> ibit) & 0x1;
 	int ibit_1st_received = (alct_sync_rxdata_1st	>> ibit) & 0x1;
 	int ibit_2nd_received = (alct_sync_rxdata_2nd	>> ibit) & 0x1;
 	if ((ibit_1st_expected !=  ibit_1st_received) || (ibit_2nd_expected !=  ibit_2nd_received)) alct_rx_bad[ddd_delay][ibit]++;
@@ -1081,8 +1090,8 @@ int ChamberUtilities::Find_alct_rx_with_TMB_to_ALCT_evenodd(int number_of_passes
   //
   ALCTrxPhase_ = window_analysis(nbad,13);
   //
-  (*MyOutput_) << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl << std::endl;
-  std::cout    << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl << std::endl;
+  (*MyOutput_) << "alternating 1/0 value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl << std::endl;
+  std::cout    << "alternating 1/0 value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl << std::endl;
   //
   //  
   // Display bad bits vs delay
@@ -1188,27 +1197,37 @@ int ChamberUtilities::TMB_to_ALCT_walking_ones(int number_of_passes) {
   int alct_walking1_err[28][2][28] = {};
   int alct_walking1_hit[28][2][28][2] = {};
   //
+  // expected patterns:
+  int alct_1st_expect = 0;
+  int alct_2nd_expect = 0;
+  //
   for (int ipass=0; ipass<number_of_passes; ipass++) {
     for (int ifirstsecond=0; ifirstsecond<2; ifirstsecond++) {
       for (int itransmit=0; itransmit<28; itransmit++) {
+	//    for (int ifirstsecond=0; ifirstsecond<1; ifirstsecond++) {
+	//      for (int itransmit=0; itransmit<21; itransmit+=10) {
 	//
 	// expected patterns:
-	int alct_1st_expect = (1 << itransmit) * (ifirstsecond==0);
-	int alct_2nd_expect = (1 << itransmit) * (ifirstsecond==1);
+	alct_1st_expect = (1 << itransmit) * (ifirstsecond==0);
+	alct_2nd_expect = (1 << itransmit) * (ifirstsecond==1);
 	//
 	// Fill data banks with the above data...
+	//
+	// Since there are so many fewer TMB->ALCT data bits than ALCT->TMB,
+	// the following mapping is used to tell ALCT which bits to send the
+	// data back on (defined by AlctSequencerCommand(int register_address), below):
 	//
 	// bank = 0 holds bits 0-9; bank = 1 holds bit 10-19; bank = 2 holds bit 20-27
 	int ibit  = itransmit % 10;
 	int ibank = itransmit / 10;
 	//
-	// "1st_bank" holds the stuff transmitted/received in first 80MHz phase
-	int alct_1st_bank[3] = {};
-	alct_1st_bank[ibank] = (1 << ibit) * (ifirstsecond==0);
+	// "1st_phase" holds the stuff received in first 80MHz phase
+	int alct_1st_phase[3] = {};
+	alct_1st_phase[ibank] = (1 << ibit) * (ifirstsecond==0);
 	//
-	// "2nd_bank" holds the stuff transmitted/received in second 80MHz phase
-	int alct_2nd_bank[3] = {};
-	alct_2nd_bank[ibank] = (1 << ibit) * (ifirstsecond==1);
+	// "2nd_phase" holds the stuff received in second 80MHz phase
+	int alct_2nd_phase[3] = {};
+	alct_2nd_phase[ibank] = (1 << ibit) * (ifirstsecond==1);
 	//
 	int register_address = 0;
 	//
@@ -1222,12 +1241,20 @@ int ChamberUtilities::TMB_to_ALCT_walking_ones(int number_of_passes) {
 	  thisTMB->WriteRegister(alct_cfg_adr);
 	  //
 	  // first 80MHz frame
-	  thisTMB->SetALCTSyncTxData1st(alct_1st_bank[bank]);
+	  thisTMB->SetALCTSyncTxData1st(alct_1st_phase[bank]);
 	  thisTMB->WriteRegister(alct_sync_txdata_1st_adr);
 	  //
 	  // second 80MHz frame
-	  thisTMB->SetALCTSyncTxData2nd(alct_2nd_bank[bank]);
+	  thisTMB->SetALCTSyncTxData2nd(alct_2nd_phase[bank]);
 	  thisTMB->WriteRegister(alct_sync_txdata_2nd_adr);
+	  //
+	  //	  std::cout << "pattern = " << std::hex << alct_1st_expect 
+	  //		    << ", data in Bank "        << bank
+	  //		    << " = "                    << alct_1st_phase[bank]     
+	  //		    << " using seq_cmd = "      << register_address 
+	  //		    << std::endl; 
+	  //	  ::sleep(30);
+	  //
 	}
 	//
 	// Read TMB received demux data
@@ -1254,7 +1281,7 @@ int ChamberUtilities::TMB_to_ALCT_walking_ones(int number_of_passes) {
 	int alct_sync_expect_2nd = alct_demux_rd[6] | (alct_demux_rd[7] << 14);
 	//      
 	//	
-	if (ipass==0 && debug_>5) {
+	if (ipass==0 && debug_>=5) {
 	  char dash1[2]={'-','1'};
 	  printf("\t%1i %2i tx",ifirstsecond,itransmit);
 	  printf("\t1st "); for (int i=0; i<=27; ++i) printf("%1c",dash1[(i==itransmit)*(ifirstsecond==0)]);
@@ -1263,6 +1290,10 @@ int ChamberUtilities::TMB_to_ALCT_walking_ones(int number_of_passes) {
 	  printf("\t     rx");
 	  printf(" 1st "); for (int i=0; i<=27; ++i) printf("%1c",dash1[(alct_sync_rxdata_1st >> i) & 0x1]);
 	  printf(" 2nd "); for (int i=0; i<=27; ++i) printf("%1c",dash1[(alct_sync_rxdata_2nd >> i) & 0x1]);
+	  printf("\n");
+	  printf("\t In TMB");
+	  printf(" 1st "); for (int i=0; i<=27; ++i) printf("%1c",dash1[(alct_sync_expect_1st >> i) & 0x1]);
+	  printf(" 2nd "); for (int i=0; i<=27; ++i) printf("%1c",dash1[(alct_sync_expect_2nd >> i) & 0x1]);
 	  printf("\n");
 	}
 	//
@@ -1315,37 +1346,37 @@ int ChamberUtilities::TMB_to_ALCT_walking_ones(int number_of_passes) {
       std::cout   << "80MHz phase=" << std::setw(2) << std::dec << ifirstsecond <<", cable pair= " << std::setw(2) << itransmit << " ";
       //
       for (int ibit=0; ibit<=27; ++ibit) {
-	if ( alct_walking1_hit[itransmit][ifirstsecond][ibit][0]!=0 ) {
-	  (*MyOutput_) << "1";
-	  std::cout    << "1";
-	} else {
-	  (*MyOutput_) << "-";
-	  std::cout    << "-";
-	}
+  	if ( alct_walking1_hit[itransmit][ifirstsecond][ibit][0]!=0 ) {
+  	  (*MyOutput_) << "1";
+  	  std::cout    << "1";
+  	} else {
+  	  (*MyOutput_) << "-";
+  	  std::cout    << "-";
+  	}
       }
       for (int ibit=0; ibit<=27; ++ibit) {
-	if ( alct_walking1_hit[itransmit][ifirstsecond][ibit][1]!=0 ) {
-	  (*MyOutput_) << "1";
-	  std::cout    << "1";
-	} else {
-	  (*MyOutput_) << "-";
-	  std::cout    << "-";
-	}
+  	if ( alct_walking1_hit[itransmit][ifirstsecond][ibit][1]!=0 ) {
+  	  (*MyOutput_) << "1";
+  	  std::cout    << "1";
+  	} else {
+  	  (*MyOutput_) << "-";
+  	  std::cout    << "-";
+  	}
       }
       //
       int nbad=0;
       for (int ibit=0; ibit<=27; ++ibit) {nbad=nbad+alct_walking1_err[itransmit][ifirstsecond][ibit];}
       if ( nbad!=0 ) {
-	(*MyOutput_) << " Fail" << std::endl;
-	std::cout    << " Fail" << std::endl;
+  	(*MyOutput_) << " Fail" << std::endl;
+  	std::cout    << " Fail" << std::endl;
       } else {
-	(*MyOutput_) << " Pass" << std::endl;
-	std::cout    << " Pass" << std::endl;
+  	(*MyOutput_) << " Pass" << std::endl;
+  	std::cout    << " Pass" << std::endl;
       }
       total_bad_bits += nbad;
     }
   }
-  //
+  //  
   (*MyOutput_) << "Total number of bad bits = " << total_bad_bits << std::endl;
   std::cout    << "Total number of bad bits = " << total_bad_bits << std::endl;
   //
@@ -1382,6 +1413,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   // Get initial values
   int initial_alct_tx_phase      = thisTMB->GetAlctTXclockDelay();
   int initial_alct_rx_phase      = thisTMB->GetAlctRXclockDelay();
+  int initial_alct_posneg        = thisTMB->GetAlctPosNeg();
   //
   int initial_fire_l1a_oneshot  = thisTMB->GetFireL1AOneshot();
   int initial_ignore_ccb_rx     = thisTMB->GetIgnoreCCBRx();
@@ -1409,57 +1441,141 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   //
   int good_depth = -999;
   int n_pipe_depth = 0;
+  int n_attempts = 0;   //avoid infinite loops
   //
-  for (int pipe_depth=0; pipe_depth<16; pipe_depth++) {
+  int temp_display[13][13] = {};
+  //
+  while (n_pipe_depth != 1 && n_attempts < 2) {
     //
-    std::cout << "Scanning at pipeline depth = " << pipe_depth;
-    int good_data = 0;
+    std::cout    << "Using alct_posneg = " << thisTMB->GetAlctPosNeg() << std::endl;
+    (*MyOutput_) << "Using alct_posneg = " << thisTMB->GetAlctPosNeg() << std::endl;
     //
-    for (int rx_value=0; rx_value<13; rx_value++) {
-      thisTMB->tmb_clk_delays(rx_value,5);
+    n_attempts++;
+    n_pipe_depth = 0;
+    //
+    for (int pipe_depth=0; pipe_depth<16; pipe_depth++) {
       //
-      for (int tx_value=0; tx_value<13; tx_value++) {
-	thisTMB->tmb_clk_delays(tx_value,6);
+      std::cout << "Scanning at pipeline depth = " << pipe_depth;
+      int good_data = 0;
+      //
+      for (int rx_value=0; rx_value<13; rx_value++) {
+	thisTMB->tmb_clk_delays(rx_value,5);
 	//
-	//Set depth where to look for the data
-	thisTMB->SetALCTSyncRxDataDelay(pipe_depth);
-	//
-	thisTMB->SetALCTSyncTXRandom(1);
-	//
-	// Clear TMB data check flipflops
-	thisTMB->SetALCTSyncClearErrors(1);
-	thisTMB->WriteRegister(alct_sync_ctrl_adr);
-	//
-	// Unclear error flipflops, after this write, the errors are being tallied by TMB firmware
-	thisTMB->SetALCTSyncClearErrors(0);
-	thisTMB->WriteRegister(alct_sync_ctrl_adr);
-	//
-	// Read TMB data check flipflops
-	thisTMB->ReadRegister(alct_sync_ctrl_adr);
-	//
-	if ( thisTMB->GetReadALCTSync1stErrorLatched()==0 && thisTMB->GetReadALCTSync2ndErrorLatched()==0 ) good_data++; 
-	//
+	for (int tx_value=0; tx_value<13; tx_value++) {
+	  thisTMB->tmb_clk_delays(tx_value,6);
+	  //
+	  //Set depth where to look for the data
+	  thisTMB->SetALCTSyncRxDataDelay(pipe_depth);
+	  //
+	  thisTMB->SetALCTSyncTXRandom(1);
+	  //
+	  // Clear TMB data check flipflops
+	  thisTMB->SetALCTSyncClearErrors(1);
+	  thisTMB->WriteRegister(alct_sync_ctrl_adr);
+	  //
+	  // wait for a short time for errors to accumulate...
+	  ::usleep(10);
+	  //
+	  // Unclear error flipflops, after this write, the errors are being tallied by TMB firmware
+	  thisTMB->SetALCTSyncClearErrors(0);
+	  thisTMB->WriteRegister(alct_sync_ctrl_adr);
+	  //
+	  // Read TMB data check flipflops
+	  thisTMB->ReadRegister(alct_sync_ctrl_adr);
+	  //
+	  if ( thisTMB->GetReadALCTSync1stErrorLatched()==0 && thisTMB->GetReadALCTSync2ndErrorLatched()==0 ) {
+	    good_data++; 
+	    temp_display[rx_value][tx_value] = pipe_depth;
+	  }
+	  //
+	}
+      }
+      std::cout << "... Number of good spots = " << good_data << std::endl;
+      //
+      if (good_data > 0) {
+	good_depth = pipe_depth;
+	n_pipe_depth++;
       }
     }
-    std::cout << "... Number of good spots = " << good_data << std::endl;
-    //
-    if (good_data > 0) {
-      good_depth = pipe_depth;
-      n_pipe_depth++;
+    if (n_pipe_depth > 1 || good_depth < 0) {
+      (*MyOutput_) << "Result (tx vs. rx)   tx ----> " << std::endl;
+      std::cout    << "Result (tx vs. rx)   tx ----> " << std::endl;
+      (*MyOutput_) << "         00   01   02   03   04   05   06   07   08   09   10   11   12" << std::endl;
+      std::cout    << "         00   01   02   03   04   05   06   07   08   09   10   11   12" << std::endl;
+      (*MyOutput_) << "        ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ====" << std::endl; 
+      std::cout    << "        ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ==== ====" << std::endl; 
+      //
+      for (int rx_value=0; rx_value<13; ++rx_value) {
+	//
+	(*MyOutput_) << " rx =" << std::dec << std::setw(2) << rx_value << " " ; 
+	std::cout    << " rx =" << std::dec << std::setw(2) << rx_value << " " ; 
+	//
+	for (int tx_value=0; tx_value<13; ++tx_value) {
+	  //
+	  (*MyOutput_) << std::dec << std::setw(4) << temp_display[rx_value][tx_value] << " ";
+	  std::cout    << std::dec << std::setw(4) << temp_display[rx_value][tx_value] << " ";
+	  //
+	}
+	(*MyOutput_) << std::endl;    
+	std::cout    << std::endl;    
+      }
+      //
+      int new_ALCTPosNeg = ((thisTMB->GetAlctPosNeg()+1)%2);
+      std::cout    << "ERROR:  Multiple or no pipe depths with good data, switch to alct_posneg=" << new_ALCTPosNeg << std::endl;
+      (*MyOutput_) << "ERROR:  Multiple or no pipe depths with good data, switch to alct_posneg=" << new_ALCTPosNeg << std::endl;
+      thisTMB->SetAlctPosNeg(new_ALCTPosNeg);
+      thisTMB->WriteRegister(alct_cfg_adr);
     }
   }
   //
   if (n_pipe_depth > 1) {
-    std::cout << "ERROR:  Two pipe depths with good data.  Need to set alct_posneg differently on this chamber" << std::endl;
+    std::cout    << "ERROR:  Multiple pipe depths with good data." << std::endl;
+    (*MyOutput_) << "ERROR:  Multiple pipe depths with good data." << std::endl;
     ALCTtxPhase_ = -900;
     ALCTrxPhase_ = -900;
+    ALCTPosNeg_  = -900;
+    // return back to previous conditions
+    thisTMB->SetFireL1AOneshot(initial_fire_l1a_oneshot);
+    thisTMB->SetIgnoreCCBRx(initial_ignore_ccb_rx);
+    thisTMB->WriteRegister(ccb_cfg_adr);
+    //
+    thisTMB->SetALCTSyncRxDataDelay(initial_alct_sync_rx_data_delay);
+    thisTMB->SetALCTSyncTXRandom(initial_alct_sync_tx_random);
+    thisTMB->WriteRegister(alct_sync_ctrl_adr);
+    //
+    thisTMB->SetAlctSequencerCommand(initial_sequencer_command);
+    thisTMB->WriteRegister(alct_cfg_adr);
+    //
+    thisTMB->SetAlctDemuxMode(initial_demux_mode);
+    thisTMB->SetAlctRawReadAddress(initial_ALCT_read_address);
+    thisTMB->WriteRegister(alctfifo1_adr);
+    //
     return -1;
   }
   //
   if (good_depth < 0) {
-    std::cout << "ERROR:  No pipe depths with good data." << std::endl;
+    std::cout    << "ERROR:  No pipe depths with good data." << std::endl;
+    (*MyOutput_) << "ERROR:  No pipe depths with good data." << std::endl;
     ALCTtxPhase_ = -900;
     ALCTrxPhase_ = -900;
+    ALCTPosNeg_  = -900;
+    //
+    // return back to previous conditions
+    thisTMB->SetFireL1AOneshot(initial_fire_l1a_oneshot);
+    thisTMB->SetIgnoreCCBRx(initial_ignore_ccb_rx);
+    thisTMB->WriteRegister(ccb_cfg_adr);
+    //
+    thisTMB->SetALCTSyncRxDataDelay(initial_alct_sync_rx_data_delay);
+    thisTMB->SetALCTSyncTXRandom(initial_alct_sync_tx_random);
+    thisTMB->WriteRegister(alct_sync_ctrl_adr);
+    //
+    thisTMB->SetAlctSequencerCommand(initial_sequencer_command);
+    thisTMB->WriteRegister(alct_cfg_adr);
+    //
+    thisTMB->SetAlctDemuxMode(initial_demux_mode);
+    thisTMB->SetAlctRawReadAddress(initial_ALCT_read_address);
+    thisTMB->WriteRegister(alctfifo1_adr);
+    //
     return -1;
   }
   //
@@ -1569,7 +1685,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
     std::cout    << std::endl;    
   }
   //
-  //  if (debug_>5) {  
+  if (debug_>5) {  
     // Display the analyzed data
     //
     std::cout << "analyzed data..." << std::endl;
@@ -1586,9 +1702,13 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
       //
       std::cout    << std::endl;    
     }
-    //  }
+  }
   //
   ALCT_phase_analysis(alct_tx_rx_analyze);
+  //
+  ALCTPosNeg_ = thisTMB->GetAlctPosNeg();
+  std::cout    << "Best value is alct_posneg = " << ALCTPosNeg_ << std::endl;
+  (*MyOutput_) << "Best value is alct_posneg = " << ALCTPosNeg_ << std::endl;
   //
   if (use_measured_values_) { 
     (*MyOutput_) << "Setting alct_rx/tx_clock_delays to measured values..." << std::endl;
@@ -1606,6 +1726,9 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
     //
     thisTMB->SetAlctRXclockDelay(initial_alct_rx_phase);
     thisTMB->tmb_clk_delays(initial_alct_rx_phase,5);
+    //
+    thisTMB->SetAlctPosNeg(initial_alct_posneg);
+    thisTMB->WriteRegister(alct_cfg_adr);
   }
   //
   // return back to previous conditions
@@ -1630,6 +1753,263 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   return ALCTtxPhase_;
 }
 //
+//
+int ChamberUtilities::ALCT_TMB_TimingUsingErrorCorrectionCode() {
+  //
+  if (debug_) {
+    std::cout << "**********************************************************" << std::endl;
+    std::cout << "Find alct_[rx,tx]_phase_delay using Error Correction Code" << std::endl;
+    std::cout << "**********************************************************" << std::endl;
+  }
+  (*MyOutput_) << "**********************************************************" << std::endl;
+  (*MyOutput_) << "Find alct_[rx,tx]_phase_delay using Error Correction Code" << std::endl;
+  (*MyOutput_) << "**********************************************************" << std::endl;
+  //
+  // send output to std::cout except for the essential information 
+  thisTMB->RedirectOutput(&std::cout);
+  alct->RedirectOutput(&std::cout);
+  //
+  // Get initial values
+  int initial_alct_tx_phase      = thisTMB->GetAlctTXclockDelay();
+  int initial_alct_rx_phase      = thisTMB->GetAlctRXclockDelay();
+  int initial_alct_posneg        = thisTMB->GetAlctPosNeg();
+  //
+  int initial_fire_l1a_oneshot  = thisTMB->GetFireL1AOneshot();
+  int initial_ignore_ccb_rx     = thisTMB->GetIgnoreCCBRx();
+  //
+  int initial_ecc_enable          = thisTMB->GetALCTErrorCorrectionCodeEnable();
+  int initial_sequencer_command   = thisTMB->GetAlctSequencerCommand();
+  //
+  int initial_alct_sync_rx_data_delay = thisTMB->GetALCTSyncRxDataDelay();
+  int initial_alct_sync_tx_random     = thisTMB->GetALCTSyncTXRandom();
+  //
+  int initial_demux_mode        = thisTMB->GetAlctDemuxMode();
+  int initial_ALCT_read_address = thisTMB->GetAlctRawReadAddress();
+  //
+  // Set up for this test:
+  // turn off the CCB inputs...
+  thisTMB->SetFireL1AOneshot(0);
+  thisTMB->SetIgnoreCCBRx(1);
+  thisTMB->WriteRegister(ccb_cfg_adr);
+  //
+  // Turn on the error correction code in the TMB
+  thisTMB->SetALCTErrorCorrectionCodeEnable(1);
+  thisTMB->WriteRegister(alct_stat_adr);
+  //
+  //
+  int good_depth = -999;
+  //
+  // A display (statistics) array...
+  int alct_tx_rx_display[13][13] = {};
+  //
+  // The analysis array...
+  int alct_tx_rx_analyze[13][13] = {};
+  //
+  for (int pipe_depth=0; pipe_depth<16; pipe_depth++) {
+    //
+    std::cout << "pipe_depth = " << pipe_depth << std::endl;
+    //
+    thisTMB->SetALCTSyncRxDataDelay(pipe_depth);
+    thisTMB->SetALCTSyncTXRandom(0);
+    thisTMB->WriteRegister(alct_sync_ctrl_adr);
+    //
+    for (int rx_value=0; rx_value<13; rx_value++) {
+      thisTMB->tmb_clk_delays(rx_value,5);
+      //
+      std::cout << "Scanning tx values at rx = " << rx_value << std::endl;
+      //
+      for (int tx_value=0; tx_value<13; tx_value++) {
+	thisTMB->tmb_clk_delays(tx_value,6);
+	//
+	// Put the ALCT into normal running mode to turn off its Linear Feedback Shift Register 
+	thisTMB->SetAlctSequencerCommand(NORMAL_MODE);
+	thisTMB->WriteRegister(alct_cfg_adr);	
+	//
+	// Tell ALCT to send 49-bits of random data (+ 7-bit Error Correction Code data)
+	thisTMB->SetAlctSequencerCommand(SEND_RANDOM);
+	thisTMB->WriteRegister(alct_cfg_adr);	
+	//
+	// Clear TMB data check flipflops and stop random data from going from TMB
+	thisTMB->SetALCTSyncClearErrors(1);
+	thisTMB->WriteRegister(alct_sync_ctrl_adr);
+	//
+	// Unclear error flipflops (start tallying errors), and set depth where to look for the data
+  	thisTMB->SetALCTSyncClearErrors(0);
+  	thisTMB->WriteRegister(alct_sync_ctrl_adr);
+  	//
+  	thisTMB->ResetCounters();
+  	//
+	bool go_quick = false;
+	//
+	int number_of_latch_errors = 0;
+	//
+  	for (int check_loop=0; check_loop<10; check_loop++) {
+  	  //
+  	  // Unclear error flipflops, after this write, the errors are being tallied by TMB firmware
+  	  thisTMB->SetALCTSyncClearErrors(0);
+  	  thisTMB->WriteRegister(alct_sync_ctrl_adr);
+  	  //
+  	  if (!go_quick) ::usleep(1000);
+  	  //
+  	  // Read TMB data check flipflops
+  	  thisTMB->ReadRegister(alct_sync_ctrl_adr);
+  	  //      
+  	  number_of_latch_errors += (thisTMB->GetReadALCTSync1stErrorLatched() | thisTMB->GetReadALCTSync2ndErrorLatched());
+  	  //
+  	  // no sense wasting time on this rx,tx value.  It has badness...
+  	  if (thisTMB->GetReadALCTSync1stErrorLatched() || thisTMB->GetReadALCTSync2ndErrorLatched()) go_quick = true;
+  	  //
+  	  // OK for this read:  read it again, slowly...
+  	  if (!thisTMB->GetReadALCTSync1stErrorLatched() && !thisTMB->GetReadALCTSync2ndErrorLatched()) go_quick = false;
+	  //
+        }
+        //
+	thisTMB->GetCounters();
+	int tx_one_bit_errors           = thisTMB->GetCounter( thisTMB->GetECCTriggerPathOneErrorCounterIndex() );
+	int tx_two_bit_errors           = thisTMB->GetCounter( thisTMB->GetECCTriggerPathTwoErrorsCounterIndex() );
+	int tx_more_than_two_bit_errors = thisTMB->GetCounter( thisTMB->GetECCTriggerPathMoreThanTwoErrorsCounterIndex() );
+	//
+	alct_tx_rx_display[rx_value][tx_value] =  tx_one_bit_errors + tx_two_bit_errors + tx_more_than_two_bit_errors ;
+	//
+	//	std::cout << "(rx,tx) = (" << rx_value << "," << tx_value 
+	//		  << ") -> number of errors = " << alct_tx_rx_display[rx_value][tx_value];
+	//
+        if ( number_of_latch_errors == 0 ) {
+	  //	  std::cout << " ----> OK <----" << std::endl;
+	  alct_tx_rx_analyze[rx_value][tx_value] = pipe_depth;
+	} 
+	//	else {
+	//	  std::cout << " ***** BAD *****" << std::endl;
+	//	}
+        //
+        if (debug_>5) {   // Read TMB received demux data just to see what is going on...
+	  //
+	  int alct_demux_rd[8] = {};
+	  //
+	  // Tell TMB that it should be receiving DEMUX data (i.e., 1's and 0's) rather than RAW data (anything)
+	  thisTMB->SetAlctDemuxMode(DEMUX_DATA);
+	  //
+	  // loop over 1st/2nd demux words
+	  for (int i=0; i<8; i++) { 
+	    //
+	    thisTMB->SetAlctRawReadAddress(i);
+	    thisTMB->WriteRegister(alctfifo1_adr);
+	    //
+	    thisTMB->ReadRegister(alctfifo2_adr);
+	    alct_demux_rd[i] = thisTMB->GetReadAlctDemuxData();
+	  }
+	  // assemble the readback data from the ALCT Raw Hits address
+	  int alct_sync_rxdata_1st = alct_demux_rd[0] | (alct_demux_rd[1] << 14);
+	  int alct_sync_rxdata_2nd = alct_demux_rd[2] | (alct_demux_rd[3] << 14);
+	  //
+	  // This is the data which the TMB firmware is comparing with and storing the non-matches in the flip-flop
+	  int alct_sync_expect_1st = alct_demux_rd[4] | (alct_demux_rd[5] << 14);
+	  int alct_sync_expect_2nd = alct_demux_rd[6] | (alct_demux_rd[7] << 14);
+	  //      
+	  printf("Latch OK=%8i depth=%2i ddd_delay_tx=%2i ddd_delay_rx=%2i", alct_tx_rx_display[rx_value][tx_value],good_depth,tx_value,rx_value);
+	  printf("  read 1st=%8.8X 2nd=%8.8X ", alct_sync_rxdata_1st,alct_sync_rxdata_2nd);
+	  printf("expect 1st=%8.8X 2nd=%8.8X\n",alct_sync_expect_1st,alct_sync_expect_2nd);
+        }
+      }
+    }
+  }
+  //
+  //
+  // Display the statistics:
+  (*MyOutput_) << "Result (tx vs. rx)   tx ----> " << std::endl;
+  std::cout    << "Result (tx vs. rx)   tx ----> " << std::endl;
+  (*MyOutput_) << "           00      01      02      03      04      05      06      07      08      09      10      11      12"   << std::endl;
+  (*MyOutput_) << "         ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======" << std::endl; 
+  std::cout    << "           00      01      02      03      04      05      06      07      08      09      10      11      12"   << std::endl;
+  std::cout    << "         ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======" << std::endl; 
+
+  //
+  for (int rx_value=0; rx_value<13; ++rx_value) {
+    //
+    (*MyOutput_) << " rx =" << std::dec << std::setw(2) << rx_value << " " ; 
+    std::cout    << " rx =" << std::dec << std::setw(2) << rx_value << " " ; 
+    //
+    for (int tx_value=0; tx_value<13; ++tx_value) {
+      //
+      (*MyOutput_) << std::dec << std::setw(7) << alct_tx_rx_display[rx_value][tx_value] << " ";
+      std::cout    << std::dec << std::setw(7) << alct_tx_rx_display[rx_value][tx_value] << " ";
+      //
+    }
+    (*MyOutput_) << std::endl;    
+    std::cout    << std::endl;    
+  }
+  //
+  if (debug_) {  
+    // Display the analyzed data
+    //
+    std::cout << "analyzed data..." << std::endl;
+    //
+    std::cout    << "Result (tx vs. rx)   tx ----> " << std::endl;
+    std::cout    << "           00      01      02      03      04      05      06      07      08      09      10      11      12" << std::endl;
+    std::cout    << "         ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======  ======" << std::endl; 
+    //
+    for (int rx_value=0; rx_value<13; ++rx_value) {
+      std::cout    << " rx =" << std::dec << std::setw(2) << rx_value << " " ; 
+      //
+      for (int tx_value=0; tx_value<13; ++tx_value) 
+  	std::cout    << std::dec << std::setw(7) << alct_tx_rx_analyze[rx_value][tx_value] << " ";
+      //
+      std::cout    << std::endl;    
+    }
+  }
+  //
+  ALCT_phase_analysis(alct_tx_rx_analyze);
+  //
+  ALCTPosNeg_ = thisTMB->GetAlctPosNeg();
+  std::cout    << "Best value is alct_posneg = " << ALCTPosNeg_ << std::endl;
+  (*MyOutput_) << "Best value is alct_posneg = " << ALCTPosNeg_ << std::endl;
+  //
+  if (use_measured_values_) { 
+    (*MyOutput_) << "Setting alct_rx/tx_clock_delays to measured values..." << std::endl;
+    std::cout    << "Setting alct_rx/tx_clock_delays to measured values..." << std::endl;
+    thisTMB->SetAlctTXclockDelay(ALCTtxPhase_);
+    thisTMB->tmb_clk_delays(ALCTtxPhase_,6);
+    //
+    thisTMB->SetAlctRXclockDelay(ALCTrxPhase_);
+    thisTMB->tmb_clk_delays(ALCTrxPhase_,5);
+  } else {
+    (*MyOutput_) << "Reverting back to original alct_rx/tx_clock_delay values..." << std::endl;
+    std::cout    << "Reverting back to original alct_rx/tx_clock_delay values..." << std::endl;
+    thisTMB->SetAlctTXclockDelay(initial_alct_tx_phase);
+    thisTMB->tmb_clk_delays(initial_alct_tx_phase,6);
+    //
+    thisTMB->SetAlctRXclockDelay(initial_alct_rx_phase);
+    thisTMB->tmb_clk_delays(initial_alct_rx_phase,5);
+    //
+    thisTMB->SetAlctPosNeg(initial_alct_posneg);
+    thisTMB->WriteRegister(alct_cfg_adr);
+  }
+  //
+  // return back to previous conditions
+  thisTMB->SetFireL1AOneshot(initial_fire_l1a_oneshot);
+  thisTMB->SetIgnoreCCBRx(initial_ignore_ccb_rx);
+  thisTMB->WriteRegister(ccb_cfg_adr);
+  //
+  thisTMB->SetALCTSyncRxDataDelay(initial_alct_sync_rx_data_delay);
+  thisTMB->SetALCTSyncTXRandom(initial_alct_sync_tx_random);
+  thisTMB->WriteRegister(alct_sync_ctrl_adr);
+  //
+  thisTMB->SetAlctSequencerCommand(initial_sequencer_command);
+  thisTMB->WriteRegister(alct_cfg_adr);
+  //
+  thisTMB->SetALCTErrorCorrectionCodeEnable(initial_ecc_enable);
+  thisTMB->WriteRegister(alct_stat_adr);
+  //
+  thisTMB->SetAlctDemuxMode(initial_demux_mode);
+  thisTMB->SetAlctRawReadAddress(initial_ALCT_read_address);
+  thisTMB->WriteRegister(alctfifo1_adr);
+  //
+  thisTMB->RedirectOutput(MyOutput_);
+  alct->RedirectOutput(MyOutput_);
+  //
+  return 0;
+}
+//
 void ChamberUtilities::ALCT_TMB_Loopback() {
   //
   bool initial_use_measured_values = use_measured_values_;
@@ -1643,13 +2023,6 @@ void ChamberUtilities::ALCT_TMB_Loopback() {
   ::sleep(2);
   //
   if (Find_alct_rx_with_TMB_to_ALCT_evenodd() < 0) {
-    PropagateMeasuredValues(initial_use_measured_values);
-    return;
-  }
-  ::sleep(2);
-  //
-  // Now check the cable to make sure all pins are transmitting data OK
-  if (TMB_to_ALCT_walking_ones() < 0) {
     PropagateMeasuredValues(initial_use_measured_values);
     return;
   }
@@ -2444,8 +2817,7 @@ int ChamberUtilities::FindWinner(){
     ::sleep(getPauseAtEachSetting());
     //
     thisTMB->GetCounters();
-    //to be updated    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter( thisTMB->GetLCTAcceptedByMPCCounterIndex() );
-    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter(37);
+    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter( thisTMB->GetLCTAcceptedByMPCCounterIndex() );
     //
     if (debug_) {
       std::cout << ", number of MPC winner bits accepted = " 
@@ -3119,10 +3491,8 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
     //
     thisTMB->GetCounters();      // read counter values
     //
-    //to be updated    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter( thisTMB->GetL1AInTMBWindowCounterIndex() );
-    //to be updated    alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex()  );
-    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter(41);
-    alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter(3);
+    tmb_in_l1a_window[tmb_delay_value]   = thisTMB->GetCounter( thisTMB->GetL1AInTMBWindowCounterIndex() );
+    alct_in_l1a_window[alct_delay_value] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex()  );
     //
     if (debug_) {
       std::cout << "Set tmb_l1a_delay  = " << std::dec << tmb_delay_value;
@@ -3163,9 +3533,9 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
   // The L1A receipt window is truncated in firmware to be an even number of bx wide.  Thus,
   // in order to make sure we are on the LEFT (low) side of the average value, use the following
   // method for rounding off...
-  ALCTL1aDelay_ = RoundOffForEvenWindowWidths(alct_average);
+  //  ALCTL1aDelay_ = RoundOffForEvenWindowWidths(alct_average);
   //
-  //  ALCTL1aDelay_ = RoundOff(alct_average);
+  ALCTL1aDelay_ = RoundOff(alct_average);
   //
   (*MyOutput_) << " Best value is alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
   (*MyOutput_) << "-----------------------------------------------" << std::endl;
@@ -3342,8 +3712,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
     //
     thisTMB->GetCounters();
     //
-    //to be updated    ALCT_l1a_accepted[delay] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex() );
-    ALCT_l1a_accepted[delay] = thisTMB->GetCounter(3);
+    ALCT_l1a_accepted[delay] = thisTMB->GetCounter( thisTMB->GetALCTRawHitsReadoutCounterIndex() );
     //
     if (debug_) std::cout << ", ALCT in L1A window =  " << std::dec << ALCT_l1a_accepted[delay] << std::endl;
     //
@@ -3359,9 +3728,9 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   // The L1A receipt window is truncated in firmware to be an even number of bx wide.  Thus,
   // in order to make sure we are on the LEFT (low) side of the average value, use the following
   // method for rounding off...
-  ALCTL1aDelay_ = RoundOffForEvenWindowWidths(average);
+  //  ALCTL1aDelay_ = RoundOffForEvenWindowWidths(average);
   //
-  //  ALCTL1aDelay_ = RoundOff(average);
+  ALCTL1aDelay_ = RoundOff(average);
   //
   (*MyOutput_) << " Best value is alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
   (*MyOutput_) << "-----------------------------------------------" << std::endl;
@@ -4420,9 +4789,8 @@ void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
     std::cout << "nmin_best =  " << nmin_best << "  and ntot_best =  " << ntot_best << std::endl;
   }
   if (debug_) {
-    std::cout << "best element is: " << std::endl;
-    std::cout << "rx =  " << best_element_row << "    tx =  " << best_element_col << std::endl;
-    std::cout << std::endl;
+    std::cout << "The best values are " << std::endl;
+    std::cout << "alct_rx_clock_delay =  " << best_element_row << ", alct_tx_clock_delay =  " << best_element_col << std::endl;
   }
   //
   ALCTrxPhase_ = best_element_row ;
@@ -4430,6 +4798,8 @@ void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
   //
   (*MyOutput_) << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
   (*MyOutput_) << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
+  std::cout    << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
+  std::cout    << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
   //
   return;
 }	

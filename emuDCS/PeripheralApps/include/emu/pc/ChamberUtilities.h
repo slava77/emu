@@ -67,6 +67,7 @@ public:
   int  Find_alct_rx_with_TMB_to_ALCT_evenodd();
   int  TMB_to_ALCT_walking_ones();
   int ALCT_TMB_TimingUsingRandomLoopback();
+  int ALCT_TMB_TimingUsingErrorCorrectionCode();
   //
   //
   //-----
@@ -184,6 +185,7 @@ public:
   inline int  GetCFEBrxPhase(int CFEB)           { return thisTMB->GetCFEBrxPhase(CFEB); }
   inline int  GetALCTrxPhase()                   { return thisTMB->GetALCTrxPhase(); }
   inline int  GetALCTtxPhase()                   { return thisTMB->GetALCTtxPhase(); }
+  inline int  GetAlctPosNeg()                    { return thisTMB->GetAlctPosNeg(); }
   inline int  GetRatTmbDelay()                   { return thisTMB->GetRatTmbDelay() ; }
   inline int  GetRpcRatDelay()                   { return thisTMB->GetRpc0RatDelay(); }
   inline int  GetMPCdelay()                      { return thisTMB->GetMpcRxDelay(); }
@@ -200,6 +202,7 @@ public:
   inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB] ; }
   inline int  GetALCTrxPhaseTest()         { return ALCTrxPhase_ ; }
   inline int  GetALCTtxPhaseTest()         { return ALCTtxPhase_ ; }
+  inline int  GetAlctPosNegTest()          { return ALCTPosNeg_ ; }
   inline int  GetRatTmbDelayTest()         { return RatTmbDelay_ ; }
   inline int  GetRpcRatDelayTest()         { return GetRpcRatDelayTest(0); }
   inline int  GetRpcRatDelayTest(int rpc)  { return RpcRatDelay_[rpc] ; }
@@ -233,6 +236,7 @@ public:
   inline void SetCFEBrxPhaseTest(int CFEB, int value) { CFEBrxPhase_[CFEB] = value ; }
   inline void SetALCTrxPhaseTest(int value)           { ALCTrxPhase_ = value ; }
   inline void SetALCTtxPhaseTest(int value)           { ALCTtxPhase_ = value ; }
+  inline void SetAlctPosNegTest(int value)            { ALCTPosNeg_ = value ; }
   inline void SetRatTmbDelayTest(int value)           { RatTmbDelay_ = value ; }
   inline void SetRpcRatDelayTest(int rpc, int value)  { RpcRatDelay_[rpc] = value ; }
   inline void SetMatchTrigAlctDelayTest(int value)    { measured_match_trig_alct_delay_ = value; }
@@ -284,6 +288,7 @@ private:
   int CFEBrxPhase_[5];
   int ALCTtxPhase_;
   int ALCTrxPhase_;
+  int ALCTPosNeg_;
   int RatTmbDelay_;
   int RpcRatDelay_[2];
   int ALCTvpf_;

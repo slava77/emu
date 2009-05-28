@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 1.4 2009/04/14 13:40:02 rakness Exp $
+// $Id: TMB.h,v 1.5 2009/05/28 16:36:10 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 1.5  2009/05/28 16:36:10  rakness
+// update for May 2009 TMB and ALCT firmware versions
+//
 // Revision 1.4  2009/04/14 13:40:02  rakness
 // add alct_posneg bit to enhance alct communications
 //
@@ -534,6 +537,9 @@ public:
   std::string CounterName(int counter); /// return counter label
   inline int GetMaxCounter() { return MaxCounter; }
   inline int GetALCTSentToTMBCounterIndex()  { return alct_sent_to_tmb_counter_index_;  }
+  inline int GetECCTriggerPathOneErrorCounterIndex()  { return ecc_trigger_path_one_error_counter_index_;  }
+  inline int GetECCTriggerPathTwoErrorsCounterIndex()  { return ecc_trigger_path_two_errors_counter_index_;  }
+  inline int GetECCTriggerPathMoreThanTwoErrorsCounterIndex()  { return ecc_trigger_path_more_than_two_errors_counter_index_;  }
   inline int GetALCTRawHitsReadoutCounterIndex()  { return alct_raw_hits_readout_counter_index_;  }
   inline int GetCLCTPretriggerCounterIndex() { return clct_pretrigger_counter_index_;   }
   inline int GetLCTSentToMPCCounterIndex()   { return lct_sent_to_mpc_counter_index_;   }
@@ -872,19 +878,18 @@ public:
   //! alct_cfg_done = 1 = ALCT FPGA Configuration done
   inline int GetReadALCTConfigDone() {return read_alct_cfg_done_; }
   //
-  //! alct_seq_status = ALCT sequencer status
-  inline int GetReadALCTSequencerStatus() { return read_alct_seq_status_; }
-  //
-  //! alct_seu_status = ALCT single event upset status
-  inline int GetReadALCTSingleEventUpsetStatus() { return read_alct_seu_status_; }
-  //
-  //! alct_sync_ecc_err = ALCT sync-mode ECC error code
-  inline int GetReadALCTSyncModeECCErrorCode() { return read_alct_sync_ecc_err_; }
-  //
   //! alct_ecc_en = 1 = ALCT Error Correction Code Trigger data correction enable
   inline void SetALCTErrorCorrectionCodeEnable(int alct_ecc_en) { alct_ecc_en_ = alct_ecc_en; }
   inline int  GetALCTErrorCorrectionCodeEnable() { return alct_ecc_en_; }
   inline int  GetReadALCTErrorCorrectionCodeEnable() { return read_alct_ecc_en_; }
+  //
+  //! alct_ecc_err_blank = 1 = Blanks ALCTs with uncorrected ECC errors
+  inline void SetALCTErrorCorrectionCodeErrorBlank(int alct_ecc_err_blank) { alct_ecc_err_blank_ = alct_ecc_err_blank; }
+  inline int  GetALCTErrorCorrectionCodeErrorBlank() { return alct_ecc_err_blank_; }
+  inline int  GetReadALCTErrorCorrectionCodeErrorBlank() { return read_alct_ecc_err_blank_; }
+  //
+  //! alct_sync_ecc_err = ALCT sync-mode ECC error code
+  inline int GetReadALCTSyncModeECCErrorCode() { return read_alct_sync_ecc_err_; }
   //
   //! alct_txdata_delay = Delay of ALCT tx data before 80MHz tx mux
   inline void SetALCTTxDataDelay(int alct_txdata_delay) { alct_txdata_delay_ = alct_txdata_delay; }
@@ -1796,9 +1801,12 @@ private:
   int ALCT1_data_;
   //
   // The following is actually the MaxCounter in TMB + 1 (i.e., they count from 0)
-  static const int MaxCounter = 76;
+  static const int MaxCounter = 77;
   long int FinalCounter[MaxCounter+2];
   int alct_sent_to_tmb_counter_index_;
+  int ecc_trigger_path_one_error_counter_index_;
+  int ecc_trigger_path_two_errors_counter_index_;
+  int ecc_trigger_path_more_than_two_errors_counter_index_;
   int alct_raw_hits_readout_counter_index_;  
   int clct_pretrigger_counter_index_;
   int lct_sent_to_mpc_counter_index_; 
@@ -2078,15 +2086,15 @@ private:
   //------------------------------------------------------------------
   //0X38 = ADR_ALCT_STAT:  ALCT Sequencer Control/Status
   //------------------------------------------------------------------
-  int alct_ecc_en_      ;
-  int alct_txdata_delay_;
+  int alct_ecc_en_       ;
+  int alct_ecc_err_blank_;
+  int alct_txdata_delay_ ;
   //
-  int read_alct_cfg_done_    ;
-  int read_alct_seq_status_  ;
-  int read_alct_seu_status_  ;
-  int read_alct_sync_ecc_err_;
-  int read_alct_ecc_en_      ;
-  int read_alct_txdata_delay_;
+  int read_alct_cfg_done_     ;
+  int read_alct_ecc_en_       ;
+  int read_alct_ecc_err_blank_;
+  int read_alct_sync_ecc_err_ ;
+  int read_alct_txdata_delay_ ;
   //
   //------------------------------------------------------------------
   //0X3A = ADR_ALCT0_RCD:  ALCT 1st Muon received by TMB

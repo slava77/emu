@@ -5008,7 +5008,7 @@ void EmuPeripheralCrateConfig::ALCT_TMB_communication(xgi::Input * in, xgi::Outp
   //
   std::string ALCT_TMB_Loopback = toolbox::toString("/%s/ALCT_TMB_Loopback",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",ALCT_TMB_Loopback) << std::endl ;
-  *out << cgicc::input().set("type","submit").set("value","Full set of ALCT-TMB loopback tests") << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Scan ALCT tx/rx phases") << std::endl ;
   sprintf(buf,"%d",tmb);
   *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
   *out << cgicc::form() << std::endl ;
@@ -5018,6 +5018,9 @@ void EmuPeripheralCrateConfig::ALCT_TMB_communication(xgi::Input * in, xgi::Outp
   *out << cgicc::br();
   *out << "alct_tx_clock_phase = " << MyTest[tmb][current_crate_].GetALCTtxPhaseTest() 
        <<  " (" << MyTest[tmb][current_crate_].GetALCTtxPhase() << ") " << std::endl;
+  *out << cgicc::br();
+  *out << "alct_posneg = " << MyTest[tmb][current_crate_].GetAlctPosNegTest() 
+       <<  " (" << MyTest[tmb][current_crate_].GetAlctPosNeg() << ") " << std::endl;
   *out << cgicc::br();
   *out << cgicc::br();
   //
@@ -10804,6 +10807,10 @@ void EmuPeripheralCrateConfig::MPCStatus(xgi::Input * in, xgi::Output * out )
   thisMPC->RedirectOutput(&std::cout);
   //
   *out << cgicc::br() << "CSR0 = " << std::hex << thisMPC->ReadRegister(0) << std::endl;
+  *out << cgicc::br() << "CSR1 = " << std::hex << thisMPC->ReadRegister(0xAA) << std::endl;
+  *out << cgicc::br() << "CSR2 = " << std::hex << thisMPC->ReadRegister(0xAC) << std::endl;
+  *out << cgicc::br() << "CSR3 = " << std::hex << thisMPC->ReadRegister(0xAC) << std::endl;
+  *out << cgicc::br() << "CSR4 = " << std::hex << thisMPC->ReadRegister(0xB8) << std::endl;
   //
   *out << cgicc::fieldset();
   //
@@ -14149,83 +14156,87 @@ void EmuPeripheralCrateConfig::DMBPrintCounters(xgi::Input * in, xgi::Output * o
 	//	
 	Chamber * thisChamber = chamberVector[i];
 	//
-	LogFile << "slot                 " 
+	LogFile << "slot                  " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << tmbVector[i]->slot()
 		<< std::endl;
-	LogFile << "cfeb0delay           " 
+	LogFile << "cfeb0delay            " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(0)
 		<< std::endl;
-	LogFile << "cfeb1delay           " 
+	LogFile << "cfeb1delay            " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(1)
 		<< std::endl;
-	LogFile << "cfeb2delay           " 
+	LogFile << "cfeb2delay            " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(2)
 		<< std::endl;
-	LogFile << "cfeb3delay           " 
+	LogFile << "cfeb3delay            " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(3)
 		<< std::endl;
-	LogFile << "cfeb4delay           " 
+	LogFile << "cfeb4delay            " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetCFEBrxPhaseTest(4)
 		<< std::endl;
-	LogFile << "alct_tx_clock_delay  " 
+	LogFile << "alct_tx_clock_delay   " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetALCTtxPhaseTest()
 		<< std::endl;
-	LogFile << "alct_rx_clock_delay  " 
+	LogFile << "alct_rx_clock_delay   " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetALCTrxPhaseTest()
 		<< std::endl;
-	LogFile << "rat_tmb_delay        " 
+	LogFile << "alct_posneg           " 
+		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
+		<< std::setw(5) << MyTest[i][current_crate_].GetAlctPosNegTest()
+		<< std::endl;
+	LogFile << "rat_tmb_delay         " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetRatTmbDelayTest()
 		<< std::endl;
-	LogFile << "match_trig_alct_delay" 
+	LogFile << "match_trig_alct_delay " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetMatchTrigAlctDelayTest()
 		<< std::endl;
-	LogFile << "mpc_tx_delay         " 
+	LogFile << "mpc_tx_delay          " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetMpcTxDelayTest()
 		<< std::endl;
-	LogFile << "mpc_rx_delay         " 
+	LogFile << "mpc_rx_delay          " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetMpcRxDelayTest()
 		<< std::endl;
-	LogFile << "tmb_lct_cable_delay  " 
+	LogFile << "tmb_lct_cable_delay   " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetTmbLctCableDelayTest()
 		<< std::endl;
-	LogFile << "alct_dav_cable_delay " 
+	LogFile << "alct_dav_cable_delay  " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetAlctDavCableDelayTest()
 		<< std::endl;
-	LogFile << "cfeb_dav_cable_delay " 
+	LogFile << "cfeb_dav_cable_delay  " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetCfebDavCableDelayTest()
 		<< std::endl;
-	LogFile << "tmb_l1a_delay        " 
+	LogFile << "tmb_l1a_delay         " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetTmbL1aDelayTest()
 		<< std::endl;
-	LogFile << "alct_l1a_delay       " 
+	LogFile << "alct_l1a_delay        " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetAlctL1aDelayTest()
 		<< std::endl;
-	LogFile << "rpc0_rat_delay       " 
+	LogFile << "rpc0_rat_delay        " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << MyTest[i][current_crate_].GetRpcRatDelayTest(0)
 		<< std::endl;
-	LogFile << "TTCrxID              " 
+	LogFile << "TTCrxID               " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(5) << thisCCB->GetReadTTCrxID() 
 		<< std::endl;
-	LogFile << "best_avg_aff_to_l1a  " 
+	LogFile << "best_avg_aff_to_l1a      " 
 		<< std::setw(10) << (thisChamber->GetLabel()).c_str()
 		<< std::setw(10) << MyTest[i][current_crate_].GetBestAverageAFFtoL1A()
 		<< std::endl;

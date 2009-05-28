@@ -351,9 +351,6 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("cfeb3delay",value)) { tmb_->SetCFEB3delay(value); }
     if (fillInt("cfeb4delay",value)) { tmb_->SetCFEB4delay(value); }
     //
-    //0X1C
-    // put int ddd_oe...
-    //
     //0X2C
     //if (fillInt("alct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnAlctExtTrig(value); }
     //if (fillInt("clct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnClctExtTrig(value); }
@@ -373,6 +370,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //if (fillInt("alct_seq_cmd"          ,value)) { tmb_->SetAlctSequencerCommand(value);  }
     if (fillInt("alct_clock_en_use_ccb" ,value)) { tmb_->SetEnableAlctUseCcbClock(value); }
     //if (fillInt("alct_clock_en_use_vme" ,value)) { tmb_->SetAlctClockVme(value);          }
+    if (fillInt("alct_posneg"           ,value)) { tmb_->SetAlctPosNeg(value);            }
     //
     //0X32:
     if (fillInt("alct_clear"     ,value)) { tmb_->SetAlctClear(value);                  }
@@ -444,6 +442,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //0X70:
     if (fillInt("clct_hit_persist"        ,value)) { tmb_->SetTriadPersistence(value); }
     if (fillInt("clct_nplanes_hit_pretrig",value)) { tmb_->SetHsPretrigThresh(value);  }
+    if (fillInt("aff_thresh"              ,value)) { tmb_->SetActiveFebFlagThresh(value); }
     if (fillInt("clct_nplanes_hit_pattern",value)) { tmb_->SetMinHitsPattern(value);   }
     if (fillInt("clct_drift_delay"        ,value)) { tmb_->SetDriftDelay(value);       }
     //if (fillInt("pretrigger_halt"              ,value)) { tmb_->SetPretriggerHalt(value);   }
@@ -541,7 +540,6 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //0XF4
     if (fillInt("clct_blanking"          ,value)) { tmb_->SetClctBlanking(value);        }
     if (fillInt("clct_pid_thresh_pretrig",value)) { tmb_->SetClctPatternIdThresh(value); }
-    if (fillInt("aff_thresh"             ,value)) { tmb_->SetActiveFebFlagThresh(value); }
     if (fillInt("adjacent_cfeb_distance" ,value)) { tmb_->SetAdjacentCfebDistance(value);}
     //
     //0XF6

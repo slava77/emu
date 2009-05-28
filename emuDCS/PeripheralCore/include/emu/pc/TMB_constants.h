@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 1.3 2009/04/14 13:40:02 rakness Exp $
+// $Id: TMB_constants.h,v 1.4 2009/05/28 16:36:10 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 1.4  2009/05/28 16:36:10  rakness
+// update for May 2009 TMB and ALCT firmware versions
+//
 // Revision 1.3  2009/04/14 13:40:02  rakness
 // add alct_posneg bit to enhance alct communications
 //
@@ -260,13 +263,16 @@ static const unsigned long int  alct_sync_txdata_2nd_adr= 0x000108;
 static const int LARGEST_VME_ADDRESS = alct_sync_txdata_2nd_adr;
 //
 // TMB counter indices:
-const int ALCT_SENT_TO_TMB_COUNTER_INDEX      =  0;
-const int ALCT_RAW_HITS_READOUT_COUNTER_INDEX =  9;
-const int CLCT_PRETRIGGER_COUNTER_INDEX       = 12;
-const int LCT_SENT_TO_MPC_COUNTER_INDEX       = 47; 
-const int LCT_ACCEPTED_BY_MPC_COUNTER_INDEX   = 49; 
-const int L1A_IN_TMB_WINDOW_COUNTER_INDEX     = 53; 
-  //
+const int ALCT_SENT_TO_TMB_COUNTER_INDEX                      = 0;
+const int ECC_TRIGGER_PATH_ONE_ERROR_COUNTER_INDEX            = 3;
+const int ECC_TRIGGER_PATH_TWO_ERRORS_COUNTER_INDEX           = 4;
+const int ECC_TRIGGER_PATH_MORE_THAN_TWO_ERRORS_COUNTER_INDEX = 5;
+const int ALCT_RAW_HITS_READOUT_COUNTER_INDEX                 = 10;
+const int CLCT_PRETRIGGER_COUNTER_INDEX                       = 13;
+const int LCT_SENT_TO_MPC_COUNTER_INDEX                       = 48; 
+const int LCT_ACCEPTED_BY_MPC_COUNTER_INDEX                   = 50; 
+const int L1A_IN_TMB_WINDOW_COUNTER_INDEX                     = 54; 
+//
 //
 /////////////////////////////////////////////////////////////////////////////////////
 // Bit mappings for VME registers
@@ -719,22 +725,19 @@ const int alct_cfg_done_vmereg       =  alct_stat_adr;
 const int alct_cfg_done_bitlo        =  0;
 const int alct_cfg_done_bithi        =  0;
 //
-const int alct_seq_status_vmereg     =  alct_stat_adr;
-const int alct_seq_status_bitlo      =  1;
-const int alct_seq_status_bithi      =  2;
+const int alct_ecc_en_vmereg         =  alct_stat_adr;
+const int alct_ecc_en_bitlo          =  1;
+const int alct_ecc_en_bithi          =  1;
+const int alct_ecc_en_default        =  1;
 //
-const int alct_seu_status_vmereg     =  alct_stat_adr;
-const int alct_seu_status_bitlo      =  3;
-const int alct_seu_status_bithi      =  4;
+const int alct_ecc_err_blank_vmereg =  alct_stat_adr;
+const int alct_ecc_err_blank_bitlo   =  2;
+const int alct_ecc_err_blank_bithi   =  2;
+const int alct_ecc_err_blank_default =  1;
 //
 const int alct_sync_ecc_err_vmereg   =  alct_stat_adr;
-const int alct_sync_ecc_err_bitlo    =  9;
-const int alct_sync_ecc_err_bithi    = 10;
-//
-const int alct_ecc_en_vmereg         =  alct_stat_adr;
-const int alct_ecc_en_bitlo          = 11;
-const int alct_ecc_en_bithi          = 11;
-const int alct_ecc_en_default        =  0;      // this needs to change once the ALCT firmware has been updated
+const int alct_sync_ecc_err_bitlo    =  3;
+const int alct_sync_ecc_err_bithi    =  4;
 //
 const int alct_txdata_delay_vmereg   =  alct_stat_adr;
 const int alct_txdata_delay_bitlo    = 12;
