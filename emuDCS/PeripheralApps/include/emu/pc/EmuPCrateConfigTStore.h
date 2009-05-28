@@ -68,6 +68,7 @@ public:
 	void outputTableEditControls(xgi::Output * out,const std::string &tableName,const std::string &prefix="");
 	void outputSingleValue(std::ostream * out,xdata::Serializable *value,const std::string &column,const std::string &tableName="",const std::string &identifier="",int rowIndex=0);
 	void outputCurrentDiff(xgi::Output * out);
+	bool getVersionNumber(const std::string &columnName,std::string &versionNumber);
 	std::string withoutVersionNumber(const std::string &columnName);
 	
 void sumChanges(TableChangeSummary &allChanges,TableChangeSummary &changesToThisTable);

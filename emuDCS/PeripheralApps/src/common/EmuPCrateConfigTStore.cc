@@ -502,6 +502,7 @@ bool EmuPCrateConfigTStore::columnIsDatabaseOnly(const std::string &columnName) 
 bool EmuPCrateConfigTStore::canChangeColumn(const std::string &columnName) {
 	if (columnName=="CRATEID") return false;
 	if (columnName=="CFEB_NUMBER") return false;
+	if (columnName=="AFEB_NUMBER") return false;
 	if (columnName=="LABEL") return false;
 	return !columnIsDatabaseOnly(columnName);
 }
@@ -651,6 +652,16 @@ std::string EmuPCrateConfigTStore::withoutVersionNumber(const std::string &colum
 	return columnName;
 }
 
+bool EmuPCrateConfigTStore::getVersionNumber(const std::string &columnName,std::string &versionNumber) {
+	size_t space=columnName.find(' ');
+	if (space!=std::string::npos) {
+		versionNumber=columnName.substr(space);
+		return true;
+	}
+	versionNumber="";
+	return false;
+}
+
 //returns the HTML to open a new table cell, with the appearance depending on whether the two values are the same.
 //I guess this would ne nicer usimg CSS styles, but this is easiest for now
 std::string EmuPCrateConfigTStore::newCell(xdata::Serializable *newValue,xdata::Serializable *oldValue) {
@@ -663,7 +674,7 @@ bool EmuPCrateConfigTStore::getNextColumn(std::vector<std::string>::iterator &ne
 	if (canChangeColumn(columnWithoutVersionNumber)) {
 		if (currentColumn!=end) {
 			nextColumn=currentColumn;
-			nextColumn++;
+			++nextColumn;
 			std::string newColumnWithoutVersionNumber=withoutVersionNumber(*nextColumn);
 			if (columnWithoutVersionNumber==newColumnWithoutVersionNumber) {
 				return true;
@@ -675,6 +686,7 @@ bool EmuPCrateConfigTStore::getNextColumn(std::vector<std::string>::iterator &ne
 
 void EmuPCrateConfigTStore::outputDiffRow(std::ostream * out,xdata::Table &results,int rowIndex,bool vertical,TableChangeSummary &changes) {
 	std::vector<std::string> columns=results.getColumns();
+	std::sort(columns.begin(),columns.end());
 	std::vector<std::string>::iterator column;
 	std::vector<std::string>::iterator nextColumn;
 	for(column=columns.begin(); column!=columns.end(); ++column) {
@@ -693,6 +705,20 @@ void EmuPCrateConfigTStore::outputDiffRow(std::ostream * out,xdata::Table &resul
 			column=nextColumn;
 			*out << "</td>";
 			if (vertical) *out << "</tr>";
+		} else if (!columnIsDatabaseOnly(*column)) {
+			//if there is no matching column, then it is probably something that can't be changed, which was only selected
+			//so we could tell which row is which.
+			//std::cout << "column without new version: " << *column << std::endl;
+			xdata::Serializable *value=results.getValueAt(rowIndex,*column);
+			if (vertical) {
+				*out << "<tr><td>" << columnWithoutVersionNumber << "</td><td colspan=\"2\">";
+				outputSingleValue(out,value,columnWithoutVersionNumber);
+				*out << "</td></tr>";
+			} else {
+				*out << "<td>";
+				outputSingleValue(out,value,columnWithoutVersionNumber);
+				*out << "</td>";
+			}
 		}
 	}
 }
@@ -716,19 +742,23 @@ void EmuPCrateConfigTStore::outputDiffSummary(std::ostream *out,ChangeSummary &c
 	if (!changesFound) *out << "no changes";
 }
 
-//template <class OutputStream>
 void EmuPCrateConfigTStore::outputDiff(std::ostream * out,xdata::Table &results,TableChangeSummary &changes) {
 	//this uses raw HTML tags because cgicc can't handle any nested tags, which makes it pretty much useless
 	std::vector<std::string> columns=results.getColumns();
 	int rowCount=results.getRowCount();
 	std::vector<std::string>::iterator column;
 	std::sort(columns.begin(),columns.end());
-	if (columns.size()<2 || columns[0].find(' ')==std::string::npos || columns[1].find(' ')==std::string::npos) {
+	
+	std::string oldConfigID;
+	std::string newConfigID;
+	//find the first two adjacent column names which have config IDs
+	for (std::vector<std::string>::iterator column=columns.begin();column!=columns.end();++column) {
+		if (getVersionNumber(*column,oldConfigID) && getVersionNumber(*++column,newConfigID)) break; 
+	}
+	
+	if (columns.size()<2 || oldConfigID.empty() || newConfigID.empty()) {
 		XCEPT_RAISE(xcept::Exception,"Columns returned do not seem to be a valid diff.");
 	}
-	std::cout << columns[0] << " | " << columns[1] << std::endl;
-	std::string oldConfigID=columns[0].substr(columns[0].find(' '));
-	std::string newConfigID=columns[1].substr(columns[1].find(' '));
 	
 	std::vector<std::string>::iterator nextColumn;
 	std::string columnWithoutVersionNumber;
@@ -743,10 +773,15 @@ void EmuPCrateConfigTStore::outputDiff(std::ostream * out,xdata::Table &results,
 		*out << "<table border=\"2\" cellpadding=\"2\">";
 		*out << "<tr>";
 		for(column=columns.begin(); column!=columns.end(); ++column) {
+			if (!columnIsDatabaseOnly(withoutVersionNumber(*column))) {
+				*out << "<td>" << *column << "</td>";
+			}
+			/*this version only shows the matched columns, but in fact we also want to see any columns which have no version number because they are
+			identifiers that are the same for both versions
 			if (getNextColumn(nextColumn,columnWithoutVersionNumber,column,columns.end())) {
 				*out << "<td>" << *column << "</td><td>" << *nextColumn << "</td>";
 				column=nextColumn;
-			}
+			}*/
 		}
 		*out << "</tr>";
 		unsigned long rowIndex;
@@ -1019,6 +1054,7 @@ void EmuPCrateConfigTStore::diffPeripheralCrate(const std::string &connectionID,
   std::vector<std::string> columns=results.getColumns();
   std::string old_periph_config_id;
   std::string new_periph_config_id;
+crateIDsInDiff.clear();
   for (unsigned rowIndex=0; rowIndex<results.getRowCount(); rowIndex++ ) {
     for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
 	      std::string StrgValue=results.getValueAt(rowIndex,*column)->toString();
