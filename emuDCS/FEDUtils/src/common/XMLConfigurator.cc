@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.cc,v 1.2 2009/05/21 15:30:49 paste Exp $
+* $Id: XMLConfigurator.cc,v 1.3 2009/05/29 11:25:09 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/XMLConfigurator.h"
@@ -163,7 +163,7 @@ throw (emu::fed::exception::ConfigurationException)
 				}
 				
 				// This alters the killfiber, too.
-				newDDU->addFiber(fiberParser->getFiber(), fiberParser->getNumber(), fiberParser->isKilled());
+				newDDU->addFiber(fiberParser->getFiber(), fiberParser->getNumber());
 				
 			}
 			
@@ -204,7 +204,7 @@ throw (emu::fed::exception::ConfigurationException)
 				}
 				
 				// This alters the fifos in use, too.
-				newDCC->addFIFO(fifoParser->getFIFO(), fifoParser->getNumber(), fifoParser->isUsed());
+				newDCC->addFIFO(fifoParser->getFIFO(), fifoParser->getNumber());
 				
 			}
 			

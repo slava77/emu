@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberParser.h,v 1.1 2009/05/21 15:30:48 paste Exp $
+* $Id: FiberParser.h,v 1.2 2009/05/29 11:25:09 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBERPARSER_H__
 #define __EMU_FED_FIBERPARSER_H__
@@ -30,9 +30,6 @@ namespace emu {
 			/** @returns a pointer to the parsed Fiber object. **/
 			inline Fiber *getFiber() { return fiber_; }
 
-			/** @returns whether or not the chamber is marked to be masked off (killed) at the DDU. **/
-			inline const bool isKilled() { return killed_; }
-
 			/** @returns the parsed fiber number of the chamber. **/
 			inline const unsigned int getNumber() { return number_; }
 		
@@ -40,9 +37,6 @@ namespace emu {
 
 			/// A Fiber object built from the parsed attributes of the DOM node.
 			Fiber *fiber_;
-
-			/// Whether or not the fiber is killed.
-			bool killed_;
 
 			/// The fiber number of the chamber.
 			unsigned int number_;
