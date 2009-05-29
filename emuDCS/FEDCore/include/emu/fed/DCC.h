@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.5 2009/05/21 15:33:43 paste Exp $
+* $Id: DCC.h,v 1.6 2009/05/29 11:23:17 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -62,21 +62,20 @@ namespace emu {
 			*	@param fifoNumber runs from 0-14.
 			*	@returns the fifo at the given fifo input number.
 			**/
-			FIFO *getFIFO(unsigned int fifoNumber)
+			FIFO *getFIFO(size_t fifoNumber)
 			throw (emu::fed::exception::OutOfBoundsException);
 			
 			/** Adds a FIFO object to the DCC.
 			*	@param fifo is the FIFO being added.
 			*	@param fifoNumber is the FIFO number.
-			*	@param isUsed is a boolean stating whether or not the FIFO should be used.
 			**/
-			void addFIFO(FIFO *fifo, unsigned int fifoNumber, bool isUsed = true)
+			void addFIFO(FIFO *fifo, size_t fifoNumber)
 			throw (emu::fed::exception::OutOfBoundsException);
 			
 			/** Sets the vector of FIFO objects in the DCC to some vector.
 			*	@param fifoVector is a vector of FIFOs to copy to the internal vector.
 			**/
-			void setFIFOs(std::vector<FIFO *> fifoVector, uint16_t fifoInUse = 0x3ff)
+			void setFIFOs(std::vector<FIFO *> fifoVector)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			// PGK New interface
@@ -279,6 +278,12 @@ namespace emu {
 
 
 		protected:
+		
+			/** Reloads the used members of the owned FIFOs based on the supplied FIFO-in-use setting
+			*
+			*	@param fifoInUse is the FIFO-in-use setting to parse into used bits for the FIFOs
+			**/
+			void reloadFIFOUsedBits(uint16_t fifoInUse);
 
 			// PGK New interface
 			/** Reads an arbitrary number of bits from a given register on a given device.

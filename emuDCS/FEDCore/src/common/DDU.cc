@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.6 2009/05/21 15:33:44 paste Exp $
+* $Id: DDU.cc,v 1.7 2009/05/29 11:23:18 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -116,7 +116,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-emu::fed::Fiber *emu::fed::DDU::getFiber(unsigned int fiberNumber)
+emu::fed::Fiber *emu::fed::DDU::getFiber(size_t fiberNumber)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (fiberNumber >= fiberVector_.size()) {
@@ -133,7 +133,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-void emu::fed::DDU::addFiber(emu::fed::Fiber *fiber, unsigned int fiberNumber, bool isKilled)
+void emu::fed::DDU::addFiber(emu::fed::Fiber *fiber, size_t fiberNumber)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (fiberNumber > 14) {
@@ -148,13 +148,13 @@ throw (emu::fed::exception::OutOfBoundsException)
 	fiberVector_[fiberNumber] = fiber;
 	
 	// Set the kill fiber appropriately
-	if (isKilled) killfiber_ &= ~(1 << fiberNumber);
+	if (fiber->isKilled()) killfiber_ &= ~(1 << fiberNumber);
 	else killfiber_ |= (1 << fiberNumber);
 }
 
 
 
-void emu::fed::DDU::setFibers(std::vector<emu::fed::Fiber *> fiberVector, uint16_t killFiber)
+void emu::fed::DDU::setFibers(std::vector<emu::fed::Fiber *> fiberVector)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (fiberVector.size() > 15) {
@@ -172,7 +172,10 @@ throw (emu::fed::exception::OutOfBoundsException)
 	fiberVector_ = fiberVector;
 	
 	// Set the kill fiber appropriately
-	killfiber_ = killFiber;
+	killfiber_ &= ~(0x00007fff);
+	for (size_t iFiber = 0; iFiber < fiberVector.size(); iFiber++) {
+		if (!(fiberVector[iFiber]->isKilled())) killfiber_ |= (1 << iFiber);
+	}
 }
 
 
@@ -1252,6 +1255,10 @@ throw (emu::fed::exception::DDUException)
 		bogoBits.push_back( (value & 0xffff) );
 		bogoBits.push_back( ((value & 0xf0000) >> 16) );
 		writeRegister(DDUFPGA, 14, 20, bogoBits);
+		
+		// Set the killed bit on the owned fibers for convenience
+		reloadFiberKillBits(value & 0x7fff);
+
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
@@ -2043,6 +2050,14 @@ throw (emu::fed::exception::DDUException)
 ///////////////////////////////////////////////////////////////////////////////
 // Private methods
 ///////////////////////////////////////////////////////////////////////////////
+
+void emu::fed::DDU::reloadFiberKillBits(uint16_t killfiber)
+{
+	for (size_t iFiber = 0; iFiber < fiberVector_.size(); iFiber++) {
+		fiberVector_[iFiber]->killed_ = (killfiber & (1 << iFiber));
+	}
+}
+
 
 std::vector<uint16_t> emu::fed::DDU::readRegister(enum DEVTYPE dev, uint16_t myRegister, unsigned int nBits)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)

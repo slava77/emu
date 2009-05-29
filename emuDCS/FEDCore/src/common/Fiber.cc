@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.cc,v 1.1 2009/05/21 15:33:44 paste Exp $
+* $Id: Fiber.cc,v 1.2 2009/05/29 11:23:18 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Fiber.h"
 
@@ -14,20 +14,22 @@ endcap_("?"),
 plusMinus_(0),
 station_(0),
 ring_(0),
-number_(0)
+number_(0),
+killed_(false)
 {
 
 }
 
 
 
-emu::fed::Fiber::Fiber(unsigned int plusMinus, unsigned int station, unsigned int ring, unsigned int number):
+emu::fed::Fiber::Fiber(unsigned int plusMinus, unsigned int station, unsigned int ring, unsigned int number, bool killed):
 name_("???"),
 endcap_("?"),
 plusMinus_(plusMinus),
 station_(station),
 ring_(ring),
-number_(number)
+number_(number),
+killed_(killed)
 {
 	if (plusMinus == 1) endcap_ = "+";
 	else if (plusMinus == 2) endcap_ = "-";
@@ -44,13 +46,14 @@ number_(number)
 
 
 
-emu::fed::Fiber::Fiber(std::string endcap, unsigned int station, unsigned int ring, unsigned int number):
+emu::fed::Fiber::Fiber(std::string endcap, unsigned int station, unsigned int ring, unsigned int number, bool killed):
 name_("???"),
 endcap_(endcap),
 plusMinus_(0),
 station_(station),
 ring_(ring),
-number_(number)
+number_(number),
+killed_(killed)
 {
 	if (endcap == "+") plusMinus_ = 1;
 	else if (endcap == "-") plusMinus_ = 2;
