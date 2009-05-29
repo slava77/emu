@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.h,v 1.1 2009/05/21 15:33:43 paste Exp $
+* $Id: Fiber.h,v 1.2 2009/05/29 11:23:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBER_H__
 #define __EMU_FED_FIBER_H__
@@ -15,15 +15,16 @@ namespace emu {
 		public:
 
 			friend class FiberParser;
+			friend class DDU;
 
 			/** Default constructor **/
 			Fiber();
 			
 			/** Constructor used to set all the variables **/
-			Fiber(unsigned int plusMinus, unsigned int station, unsigned int ring, unsigned int number);
+			Fiber(unsigned int plusMinus, unsigned int station, unsigned int ring, unsigned int number, bool killed = false);
 			
 			/** Constructor with a string for the endcap **/
-			Fiber(std::string endcap, unsigned int station, unsigned int ring, unsigned int number);
+			Fiber(std::string endcap, unsigned int station, unsigned int ring, unsigned int number, bool killed = false);
 
 			/** @returns a human-readable string naming the chamber, like "+1/2/33". **/
 			inline std::string getName() { return name_; }
@@ -42,6 +43,9 @@ namespace emu {
 
 			/// The chamber number.  The combination of endcap, station, type, and number uniquely defines each chamber.
 			inline unsigned int getNumber() { return number_; }
+			
+			/** Returns whether or not the owning DDU should be configured to kill this fiber **/
+			inline bool isKilled() { return killed_; }
 
 		private:
 		
@@ -62,6 +66,9 @@ namespace emu {
 			
 			/// The chamber/SP number
 			unsigned int number_;
+			
+			/// Whether or not this fiber is killed
+			bool killed_;
 
 		};
 

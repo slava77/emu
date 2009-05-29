@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.4 2009/05/21 15:33:44 paste Exp $
+* $Id: DCC.cc,v 1.5 2009/05/29 11:23:18 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -56,7 +56,7 @@ emu::fed::DCC::~DCC()
 
 
 
-emu::fed::FIFO *emu::fed::DCC::getFIFO(unsigned int fifoNumber)
+emu::fed::FIFO *emu::fed::DCC::getFIFO(size_t fifoNumber)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (fifoNumber >= fifoVector_.size()) {
@@ -73,7 +73,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-void emu::fed::DCC::addFIFO(emu::fed::FIFO *fifo, unsigned int fifoNumber, bool isUsed)
+void emu::fed::DCC::addFIFO(emu::fed::FIFO *fifo, size_t fifoNumber)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (fifoNumber > 9) {
@@ -88,13 +88,13 @@ throw (emu::fed::exception::OutOfBoundsException)
 	fifoVector_[fifoNumber] = fifo;
 	
 	// Set the FIFO in use appropriately
-	if (!isUsed) fifoinuse_ &= ~(1 << fifoNumber);
+	if (!fifo->isUsed()) fifoinuse_ &= ~(1 << fifoNumber);
 	else fifoinuse_ |= (1 << fifoNumber);
 }
 
 
 
-void emu::fed::DCC::setFIFOs(std::vector<emu::fed::FIFO *> fifoVector, uint16_t fifoInUse)
+void emu::fed::DCC::setFIFOs(std::vector<emu::fed::FIFO *> fifoVector)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (fifoVector.size() > 10) {
@@ -112,7 +112,10 @@ throw (emu::fed::exception::OutOfBoundsException)
 	fifoVector_ = fifoVector;
 	
 	// Set the FIFO in use appropriately
-	fifoinuse_ = fifoInUse;
+	fifoinuse_ = 0;
+	for (size_t iFIFO = 0; iFIFO < fifoVector.size(); iFIFO++) {
+		if (fifoVector[iFIFO]->isUsed()) fifoinuse_ |= (1 << iFIFO);
+	}
 }
 
 
@@ -196,6 +199,9 @@ throw (emu::fed::exception::DCCException)
 	try {
 		std::vector<uint16_t> myData(1,value & 0x07FF);
 		writeRegister(MCTRL, 0x03, 16, myData);
+		
+		// Set the used bit on the owned FIFOs for convenience
+		reloadFIFOUsedBits(value & 0x03FF);
 		return;
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
@@ -740,6 +746,15 @@ throw (emu::fed::exception::DCCException)
 		tag << "slot:" << slot() << ",board:DCC";
 		e2.setProperty("tag", tag.str());
 		throw e2;
+	}
+}
+
+
+
+void emu::fed::DCC::reloadFIFOUsedBits(uint16_t fifoInUse)
+{
+	for (size_t iFIFO = 0; iFIFO < fifoVector_.size(); iFIFO++) {
+		fifoVector_[iFIFO]->used_ = (fifoInUse & (1 << iFIFO));
 	}
 }
 

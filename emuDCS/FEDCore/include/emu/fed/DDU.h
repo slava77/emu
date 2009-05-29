@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.5 2009/05/21 15:33:43 paste Exp $
+* $Id: DDU.h,v 1.6 2009/05/29 11:23:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -58,7 +58,7 @@ namespace emu {
 			*	@param fiberNumber runs from 0-14.
 			*	@returns the fiber at the given fiber input number.
 			**/
-			Fiber *getFiber(unsigned int fiberNumber)
+			Fiber *getFiber(size_t fiberNumber)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** Adds a fiber object to the DDU.
@@ -66,13 +66,13 @@ namespace emu {
 			*	@param fiberNumber is the fiber slot of the chamber.
 			*	@param isKilled is a boolean stating whether or not the fiber should be killed
 			**/
-			void addFiber(Fiber *fiber, unsigned int fiberNumber, bool isKilled = false)
+			void addFiber(Fiber *fiber, size_t fiberNumber)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** Sets the vector of fiber objects in the DDU to some vector.
 			*	@param fiberVector is a vector of chambers to copy to the internal vector.
 			**/
-			void setFibers(std::vector<Fiber *> fiberVector, uint16_t killFiber = 0x7fff)
+			void setFibers(std::vector<Fiber *> fiberVector)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			// PGK New interface
@@ -416,6 +416,12 @@ namespace emu {
 			throw (emu::fed::exception::DDUException);
 
 		protected:
+		
+			/** Reloads the killed members of the owned fibers based on the supplied killfiber setting
+			*
+			*	@param killfiber is the killfiber setting to parse into killed bits for the fibers
+			**/
+			void reloadFiberKillBits(uint16_t killfiber);
 
 			// PGK New interface
 			/** Reads an arbitrary number of bits from a given register on a given device.
