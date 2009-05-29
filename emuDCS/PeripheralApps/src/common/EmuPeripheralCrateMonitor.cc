@@ -104,6 +104,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   XML_or_DB_ = "xml";
   EMU_config_ID_ = "1000001";
   xmlFile_ = "config.xml" ;
+  main_url_ = "";
   //
   RunNumber_= "-1";
   //
@@ -462,6 +463,7 @@ void EmuPeripheralCrateMonitor::PublishEmuInfospace(int cycle)
 void EmuPeripheralCrateMonitor::MainPage(xgi::Input * in, xgi::Output * out ) 
 {
   if(!parsed) ParsingXML();
+  main_url_ = getApplicationDescriptor()->getContextDescriptor()->getURL();
   //
   std::string LoggerName = getApplicationLogger().getName() ;
   std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
@@ -2507,7 +2509,12 @@ void EmuPeripheralCrateMonitor::DCSOutput(xgi::Input * in, xgi::Output * out )
   std::string mac;
   int ip, slot;
 
-  if(!Monitor_Ready_) return;
+  if(!Monitor_Ready_)
+  {  //  X2P will trigger the start of monitoring.
+     //   if monitoring already started but VME access stopped by a button, X2P will not do anything
+     ReadingOn();
+     return;
+  }
 
   for ( unsigned int i = 0; i < crateVector.size(); i++ )
   {
@@ -3030,7 +3037,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "ALCT: trigger path ECC; 2 bit Error uncorrected         ");
 
     TCounterName.push_back( "ALCT: trigger path ECC; > 2 bit Error uncorrected       "); // 5
-    TCounterName.push_back( "ALCT: trigger path ECC; > 2 bit Error blanked           ")
+    TCounterName.push_back( "ALCT: trigger path ECC; > 2 bit Error blanked           ");
     TCounterName.push_back( "ALCT: alct replied ECC; 1 bit Error corrected           ");
     TCounterName.push_back( "ALCT: alct replied ECC; 2 bit Error uncorrected         ");
     TCounterName.push_back( "ALCT: alct replied ECC; > 2 bit Error uncorrected       ");
@@ -3197,6 +3204,7 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TCounterName.push_back( "CCB:  TTCrx lock lost                                   "); //62
     TCounterName.push_back( "CCB:  qPLL lock lost                                    "); //63
     TCounterName.push_back( "TMB: Time since last Hard Reset                         "); //64
+#endif
 
     DCounterName.push_back( "L1A to LCT delay");  // 0
     DCounterName.push_back( "CFEB DAV delay  ");
@@ -3251,7 +3259,6 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     TECounterName.push_back( "CFEB5 Temp");  // 5
     TECounterName.push_back( "ALCT  Temp");  // 
     TECounterName.push_back( "TMB Temp  ");  // 7
-#endif
 
     for(unsigned i=0; i<TCounterName.size(); i++)
     { 
@@ -3262,25 +3269,26 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
       {   IsErrCounter.push_back(0);
       }
     }
-#if 0
-    IsErrCounter[11]=1;
-    IsErrCounter[20]=1;
     IsErrCounter[21]=1;
     IsErrCounter[22]=1;
     IsErrCounter[23]=1;
     IsErrCounter[24]=1;
-    IsErrCounter[51]=1;
-    IsErrCounter[54]=1;
-    IsErrCounter[74]=1;
+    IsErrCounter[25]=1;
+    IsErrCounter[39]=1;
+    IsErrCounter[40]=1;
+    IsErrCounter[52]=1;
+    IsErrCounter[55]=1;
     IsErrCounter[75]=1;
-#endif
+    IsErrCounter[76]=1;
 
+#if 0
     IsErrCounter[8]=1;
     IsErrCounter[9]=1;
     IsErrCounter[11]=1;
     IsErrCounter[12]=1;
     IsErrCounter[26]=1;
     IsErrCounter[27]=1;
+#endif
 
 }
 
@@ -3290,7 +3298,7 @@ void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
        << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << std::endl
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
-       <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
+       <<                   "\" url=\"" << main_url_
        <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << std::endl;
 
     *out << "  <monitorable name=\"" << "title"

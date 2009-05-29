@@ -122,7 +122,7 @@ protected:
   int this_ocounter_;
   int DCS_this_crate_no_;
   std::string DCS_ThisCrateID_;
-
+  std::string main_url_;
   
   int endcap_side;
   std::vector< std::string> monitorables_;
