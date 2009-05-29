@@ -75,7 +75,9 @@ attlist.MPC &=
    attribute serializermode { xsd:unsignedInt }
 CSC = element CSC { attlist.CSC, TMB, DAQMB }
 attlist.CSC &=
-   attribute label { text }
+   attribute label { text },
+   attribute known_problem { text },
+   attribute problem_location_mask { xsd:hexBinary }
 TMB = element TMB { attlist.TMB, ALCT }
 attlist.TMB &=
    attribute slot { xsd:unsignedInt },
@@ -85,12 +87,14 @@ attlist.TMB &=
    attribute tmb_firmware_version { xsd:unsignedInt },
    attribute tmb_firmware_revcode { xsd:unsignedInt },
    attribute tmb_firmware_type { xsd:unsignedInt },
+   attribute tmb_firmware_compile_type { text },
    attribute rat_firmware_month { xsd:unsignedByte { minInclusive="1" maxInclusive="12" } },
    attribute rat_firmware_day { xsd:unsignedByte { minInclusive="1" maxInclusive="31" } },
    attribute rat_firmware_year { xsd:gYear },
    attribute clct_hit_persist { xsd:unsignedInt },
    attribute alct_tx_clock_delay { xsd:unsignedInt },
    attribute alct_rx_clock_delay { xsd:unsignedInt },
+   attribute alct_posneg { xsd:unsignedInt },
    attribute cfeb0delay { xsd:unsignedInt },
    attribute cfeb1delay { xsd:unsignedInt },
    attribute cfeb2delay { xsd:unsignedInt },
@@ -104,6 +108,9 @@ attlist.TMB &=
    attribute clct_trig_enable { xsd:unsignedInt },
    attribute alct_trig_enable { xsd:unsignedInt },
    attribute match_trig_enable { xsd:unsignedInt },
+   attribute alct_readout_without_trig { xsd:unsignedInt },
+   attribute clct_readout_without_trig { xsd:unsignedInt },
+   attribute match_readout_without_trig { xsd:unsignedInt },
    attribute match_trig_alct_delay { xsd:unsignedInt },
    attribute match_trig_window_size { xsd:unsignedInt },
    attribute mpc_tx_delay { xsd:unsignedInt },
@@ -127,8 +134,8 @@ attlist.TMB &=
    attribute enableCLCTInputs_reg42 { xsd:unsignedInt },
    attribute rpc0_rat_delay { xsd:unsignedInt },
    attribute ignore_ccb_startstop { xsd:unsignedInt },
-   attribute clct_stagger { xsd:unsignedInt },
    attribute mpc_output_enable { xsd:unsignedInt },
+   attribute mpc_block_me1a { xsd:unsignedInt },
    attribute layer0_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
    attribute layer1_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
    attribute layer2_distrip_hot_chann_mask { xsd:hexBinary { length = "5" } },
