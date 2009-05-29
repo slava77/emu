@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.2 2009/05/22 19:25:51 paste Exp $
+* $Id: FiberDBAgent.cc,v 1.3 2009/05/29 11:25:09 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -155,7 +155,7 @@ throw (emu::fed::exception::DBException)
 		}
 		
 		// Set names now.
-		returnMe[fiber_number] = new Fiber(endcap, station, ring, number);
+		returnMe[fiber_number] = new Fiber(endcap, station, ring, number, killed);
 		if (!killed) killfiber |= (1 << fiber_number);
 	}
 	

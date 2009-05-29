@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.cc,v 1.2 2009/05/22 19:25:51 paste Exp $
+* $Id: FIFODBAgent.cc,v 1.3 2009/05/29 11:25:09 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FIFODBAgent.h"
@@ -142,7 +142,7 @@ throw (emu::fed::exception::DBException)
 		if ((unsigned int) fifo_number > 9) XCEPT_RAISE(emu::fed::exception::DBException, "FIFO number is too large");
 		
 		// Set names now.
-		returnMe[fifo_number] = new FIFO(rui);
+		returnMe[fifo_number] = new FIFO(rui, used);
 		if (used) fifoinuse |= (1 << fifo_number);
 	}
 	

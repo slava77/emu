@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFOParser.cc,v 1.1 2009/05/21 15:30:49 paste Exp $
+* $Id: FIFOParser.cc,v 1.2 2009/05/29 11:25:09 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/FIFOParser.h"
 
@@ -21,8 +21,9 @@ Parser(pNode)
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 	
+	bool used;
 	try {
-		used_ = (extract<int>("USED")) ? true : false;
+		used = (extract<int>("USED")) ? true : false;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse USED from element";
@@ -38,6 +39,6 @@ Parser(pNode)
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 	
-	fifo_ = new FIFO(rui);
+	fifo_ = new FIFO(rui, used);
 
 }

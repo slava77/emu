@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFOParser.h,v 1.1 2009/05/21 15:30:48 paste Exp $
+* $Id: FIFOParser.h,v 1.2 2009/05/29 11:25:09 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIFOPARSER_H__
 #define __EMU_FED_FIFOPARSER_H__
@@ -30,9 +30,6 @@ namespace emu {
 			/** @returns a pointer to the parsed FIFO object. **/
 			inline FIFO *getFIFO() { return fifo_; }
 
-			/** @returns whether or not the FIFO is marked to be used at the DCC. **/
-			inline const bool isUsed() { return used_; }
-
 			/** @returns the parsed FIFO number. **/
 			inline const unsigned int getNumber() { return number_; }
 		
@@ -40,9 +37,6 @@ namespace emu {
 
 			/// A FIFO object built from the parsed attributes of the DOM node.
 			FIFO *fifo_;
-
-			/// Whether or not the fifo is used.
-			bool used_;
 
 			/// The FIFO number.
 			unsigned int number_;
