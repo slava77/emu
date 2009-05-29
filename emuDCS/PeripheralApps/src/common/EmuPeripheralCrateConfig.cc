@@ -453,6 +453,8 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
    {  DMBBoardID_[i] = "-2" ; 
       TMBBoardID_[i] = "-2" ; 
       RATBoardID_[i] = "-2" ;
+      number_of_tmb_firmware_errors[i] = -1;
+      number_of_alct_firmware_errors[i] = -1;
    }
   for (int i=0; i<9; i++) 
     for (int j=0; j<5; j++)
@@ -11870,6 +11872,17 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::table();
   //
+  for (unsigned i=0; i<tmbVector.size(); i++) {
+    //
+    if (number_of_tmb_firmware_errors[i] < 1) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
+    *out << "number of TMB firmware verification errors for slot" << tmbVector[i]->slot() << " = " 
+	 << number_of_tmb_firmware_errors[i] << cgicc::br() << std::endl;
+    *out << cgicc::span() << std::endl ;
+  }
   //
   std::string CCBHardResetFromTMBPage = toolbox::toString("/%s/CCBHardResetFromTMBPage",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
@@ -11920,6 +11933,16 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
       }
       *out << "firmware version for slot " << tmbVector[i]->slot() << " = " << ALCTFirmware_[i].toString() << cgicc::br() << std::endl;
       *out << cgicc::span() << std::endl ;
+      //
+      if (number_of_tmb_firmware_errors[i] < 1) {
+	*out << cgicc::span().set("style","color:black");
+      } else {
+	*out << cgicc::span().set("style","color:red");
+      }
+      *out << "number of ALCT firmware verification errors for slot" << tmbVector[i]->slot() << " = " 
+	   << number_of_alct_firmware_errors[i] << cgicc::br() << std::endl;
+      *out << cgicc::span() << std::endl ;
+
     }
     //
     *out << cgicc::br() << std::endl;
@@ -12436,10 +12459,10 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
   //
   tmb_vme_ready = -1;
   //
+  number_of_tmb_firmware_errors[tmb]=-1;
+  //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during TMB downloading...
   thisCCB->setCCBMode(CCB::VMEFPGA);
-  //
-  int number_of_verify_errors = 0;
   //
   if (thisTMB->slot() < 22) {
     std::cout << "Loading TMB firmware to slot " << thisTMB->slot() 
@@ -12452,18 +12475,18 @@ void EmuPeripheralCrateConfig::LoadTMBFirmware(xgi::Input * in, xgi::Output * ou
     thisTMB->ProgramTMBProms();
     thisTMB->ClearXsvfFilename();
     //
-    number_of_verify_errors = thisTMB->GetNumberOfVerifyErrors();
+    number_of_tmb_firmware_errors[tmb] = thisTMB->GetNumberOfVerifyErrors();
     std::cout << "=== Programming TMB firmware finished for slot " << thisTMB->slot() << std::endl;
-    std::cout << "=== " << number_of_verify_errors << " Verify Errors occured" << std::endl;
+    std::cout << "=== " << number_of_tmb_firmware_errors[tmb] << " Verify Errors occured" << std::endl;
     //
-    if (number_of_verify_errors < 0) {
+    if (number_of_tmb_firmware_errors[tmb] < 0) {
       std::cout << "File does not exist, programming did not occur..."<< std::endl;
       //
-    } else if (number_of_verify_errors == 0) {
+    } else if (number_of_tmb_firmware_errors[tmb] == 0) {
       std::cout << "Please perform a TTC/CCB hard reset to Load FPGA"<< std::endl;
       //
     } else {
-      std::cout << "ERROR!! -> Number of errors = " << number_of_verify_errors << " not equal to 0!!" << std::endl;
+      std::cout << "ERROR!! -> Number of errors = " << number_of_tmb_firmware_errors[tmb] << " not equal to 0!!" << std::endl;
       std::cout << std::endl;
       std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl;
       std::cout << "!!!!     IF you are BROADCASTING TO CRATE, this is OK     !!!! " << std::endl;
@@ -12500,6 +12523,9 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   bool typeA_only = true;
   int ntmb_typea = 0;
   //
+  for (int i=0; i<9;i++) 
+    number_of_tmb_firmware_errors[i]=-1;
+  //
   // if there is only typeA chambers in this crate, then a single broadcast will suffice...
   //
   for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? 9 : tmbVector.size());ntmb++) {
@@ -12534,6 +12560,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
     for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? 9 : tmbVector.size());ntmb++) {
       //
       if (!tmbVector[ntmb]->GetClctStagger()) {
+	number_of_tmb_firmware_errors[ntmb]=-1;
 	std::cout << "Loading TMB firmware " << TMBFirmware_[ntmb].toString()
 		  << " to slot " << tmbVector[ntmb]->slot() << " in 5 seconds..." << std::endl;
 	::sleep(5);
@@ -12541,6 +12568,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
 	tmbVector[ntmb]->SetXsvfFilename(TMBFirmware_[ntmb].toString().c_str());
 	tmbVector[ntmb]->ProgramTMBProms();
 	tmbVector[ntmb]->ClearXsvfFilename();
+	number_of_tmb_firmware_errors[ntmb] = thisTMB->GetNumberOfVerifyErrors();
       }
     }
   }
@@ -12655,6 +12683,7 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   //
   TMB * thisTMB = tmbVector[tmb];
   ALCTController  * thisALCT = thisTMB->alctController();
+  number_of_alct_firmware_errors[tmb]=-1;
   //
   if (!thisALCT) {
     std::cout << "This ALCT not defined" << std::endl;
@@ -12683,7 +12712,7 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   thisTMB->SetXsvfFilename(ALCTFirmware_[tmb].toString().c_str());
   thisALCT->ProgramALCTProms();
   thisTMB->ClearXsvfFilename();
-  int status = thisTMB->GetNumberOfVerifyErrors();
+  number_of_alct_firmware_errors[tmb] = thisTMB->GetNumberOfVerifyErrors();
   //
   // programming with svf file to be deprecated, since it cannot verify...
   //  int debugMode(0);
@@ -12692,12 +12721,12 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
   //
   thisTMB->enableAllClocks();
   //
-  if (status >= 0){
+  if (number_of_alct_firmware_errors[tmb] >= 0){
     LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
     std::cout << "=== Programming finished"<< std::endl;
-    std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
+    std::cout << "=== " << number_of_alct_firmware_errors[tmb] << " Verify Errors  occured" << std::endl;
   } else {
-    std::cout << "=== Fatal Error. Exiting with " << status << std::endl;
+    std::cout << "=== Fatal Error. Exiting with " << number_of_alct_firmware_errors[tmb] << std::endl;
   }
   //
   // Put CCB back into DLOG mode to listen to TTC commands...
@@ -12709,6 +12738,9 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
 //
 void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
+  //
+  for (int j=0;j<9;j++)
+    number_of_alct_firmware_errors[j]=-1;
   //
   cgicc::Cgicc cgi(in);
   //
@@ -12751,10 +12783,10 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     //
     thisTMB->disableAllClocks();
     //
-    thisTMB->SetXsvfFilename(ALCTFirmware_[tmb].toString().c_str());
+    thisTMB->SetXsvfFilename(ALCTFirmware_[i].toString().c_str());
     thisALCT->ProgramALCTProms();
     thisTMB->ClearXsvfFilename();
-    int status = thisTMB->GetNumberOfVerifyErrors();
+    number_of_alct_firmware_errors[i] = thisTMB->GetNumberOfVerifyErrors();
     //
     // programming with svf file to be deprecated, since it cannot verify...
     //    int debugMode(0);
@@ -12763,12 +12795,12 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     //
     thisTMB->enableAllClocks();
     //
-    if (status >= 0){
+    if (number_of_alct_firmware_errors[i] >= 0){
       LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
       std::cout << "=== Programming finished"<< std::endl;
-      std::cout << "=== " << status << " Verify Errors  occured" << std::endl;
+      std::cout << "=== " << number_of_alct_firmware_errors[i] << " Verify Errors  occured" << std::endl;
     } else {
-      std::cout << "=== Fatal Error. Exiting with " << status << std::endl;
+      std::cout << "=== Fatal Error. Exiting with " << number_of_alct_firmware_errors[i] << std::endl;
     }
   }
   //

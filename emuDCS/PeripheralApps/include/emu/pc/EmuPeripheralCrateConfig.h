@@ -551,6 +551,9 @@ private:
   int dmb_control_firmware_ok[60][9];
   int cfeb_firmware_ok[60][9][5];
   //
+  int number_of_alct_firmware_errors[9];
+  int number_of_tmb_firmware_errors[9];
+  //
   bool print_stuff;
   char date_and_time_[13];
   //
