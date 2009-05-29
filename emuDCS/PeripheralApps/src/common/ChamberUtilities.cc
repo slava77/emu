@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.22 2009/05/28 16:36:10 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.23 2009/05/29 16:53:19 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.23  2009/05/29 16:53:19  rakness
+// some bug fixes for rx/tx scans and downloading firmware
+//
 // Revision 1.22  2009/05/28 16:36:10  rakness
 // update for May 2009 TMB and ALCT firmware versions
 //
@@ -346,9 +349,9 @@ ChamberUtilities::ChamberUtilities(){
   //
   pause_at_each_setting_    = 1;     // default number of seconds to wait at each delay value
   min_alct_l1a_delay_value_ = 134;
-  max_alct_l1a_delay_value_ = 148;
+  max_alct_l1a_delay_value_ = 158;
   min_tmb_l1a_delay_value_  = 115; 
-  max_tmb_l1a_delay_value_  = 129; 
+  max_tmb_l1a_delay_value_  = 139; 
   //
   MyOutput_ = &std::cout ;
   //
@@ -1441,22 +1444,23 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
   //
   int good_depth = -999;
   int n_pipe_depth = 0;
-  int n_attempts = 0;   //avoid infinite loops
   //
   int temp_display[13][13] = {};
   //
-  while (n_pipe_depth != 1 && n_attempts < 2) {
+  int good_data[2][16] = {};
+  //
+  for (int posneg=0; posneg<2; posneg++) {
+    //
+    thisTMB->SetAlctPosNeg(posneg);
+    thisTMB->WriteRegister(alct_cfg_adr);
     //
     std::cout    << "Using alct_posneg = " << thisTMB->GetAlctPosNeg() << std::endl;
     (*MyOutput_) << "Using alct_posneg = " << thisTMB->GetAlctPosNeg() << std::endl;
     //
-    n_attempts++;
-    n_pipe_depth = 0;
-    //
     for (int pipe_depth=0; pipe_depth<16; pipe_depth++) {
       //
       std::cout << "Scanning at pipeline depth = " << pipe_depth;
-      int good_data = 0;
+      good_data[posneg][pipe_depth] = 0; 
       //
       for (int rx_value=0; rx_value<13; rx_value++) {
 	thisTMB->tmb_clk_delays(rx_value,5);
@@ -1484,19 +1488,20 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	  thisTMB->ReadRegister(alct_sync_ctrl_adr);
 	  //
 	  if ( thisTMB->GetReadALCTSync1stErrorLatched()==0 && thisTMB->GetReadALCTSync2ndErrorLatched()==0 ) {
-	    good_data++; 
+	    good_data[posneg][pipe_depth]++; 
 	    temp_display[rx_value][tx_value] = pipe_depth;
 	  }
 	  //
 	}
       }
-      std::cout << "... Number of good spots = " << good_data << std::endl;
+      std::cout << "... Number of good spots = " << good_data[posneg][pipe_depth] << std::endl;
       //
-      if (good_data > 0) {
+      if (good_data[posneg][pipe_depth] > 0) {
 	good_depth = pipe_depth;
 	n_pipe_depth++;
       }
     }
+    //
     if (n_pipe_depth > 1 || good_depth < 0) {
       (*MyOutput_) << "Result (tx vs. rx)   tx ----> " << std::endl;
       std::cout    << "Result (tx vs. rx)   tx ----> " << std::endl;
@@ -1519,38 +1524,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	(*MyOutput_) << std::endl;    
 	std::cout    << std::endl;    
       }
-      //
-      int new_ALCTPosNeg = ((thisTMB->GetAlctPosNeg()+1)%2);
-      std::cout    << "ERROR:  Multiple or no pipe depths with good data, switch to alct_posneg=" << new_ALCTPosNeg << std::endl;
-      (*MyOutput_) << "ERROR:  Multiple or no pipe depths with good data, switch to alct_posneg=" << new_ALCTPosNeg << std::endl;
-      thisTMB->SetAlctPosNeg(new_ALCTPosNeg);
-      thisTMB->WriteRegister(alct_cfg_adr);
     }
-  }
-  //
-  if (n_pipe_depth > 1) {
-    std::cout    << "ERROR:  Multiple pipe depths with good data." << std::endl;
-    (*MyOutput_) << "ERROR:  Multiple pipe depths with good data." << std::endl;
-    ALCTtxPhase_ = -900;
-    ALCTrxPhase_ = -900;
-    ALCTPosNeg_  = -900;
-    // return back to previous conditions
-    thisTMB->SetFireL1AOneshot(initial_fire_l1a_oneshot);
-    thisTMB->SetIgnoreCCBRx(initial_ignore_ccb_rx);
-    thisTMB->WriteRegister(ccb_cfg_adr);
-    //
-    thisTMB->SetALCTSyncRxDataDelay(initial_alct_sync_rx_data_delay);
-    thisTMB->SetALCTSyncTXRandom(initial_alct_sync_tx_random);
-    thisTMB->WriteRegister(alct_sync_ctrl_adr);
-    //
-    thisTMB->SetAlctSequencerCommand(initial_sequencer_command);
-    thisTMB->WriteRegister(alct_cfg_adr);
-    //
-    thisTMB->SetAlctDemuxMode(initial_demux_mode);
-    thisTMB->SetAlctRawReadAddress(initial_ALCT_read_address);
-    thisTMB->WriteRegister(alctfifo1_adr);
-    //
-    return -1;
   }
   //
   if (good_depth < 0) {
@@ -1579,8 +1553,32 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
     return -1;
   }
   //
+  int best_posneg   =-1;
+  int best_pipedepth=-1;
   //
-  std::cout << "More thorough scan at pipeline depth = " << good_depth << std::endl;
+  std::cout    << "Picking the combination with the maximum number of good spots...";
+  (*MyOutput_) << "Picking the combination with the maximum number of good spots..."; 
+  //
+  int max_good = 0;
+  for(int pipedepth=0; pipedepth<16; pipedepth++) {
+    for(int posneg=0; posneg<2; posneg++) {
+      if (good_data[posneg][pipedepth]>max_good) {
+	best_posneg = posneg;
+	best_pipedepth = pipedepth;
+	max_good = good_data[posneg][pipedepth];
+      }
+    }
+  }
+  std::cout    << " posneg = " << best_posneg << ", pipedepth = " << best_pipedepth  << std::endl;
+  (*MyOutput_) << " posneg = " << best_posneg << ", pipedepth = " << best_pipedepth  << std::endl;
+  thisTMB->SetAlctPosNeg(best_posneg);
+  thisTMB->WriteRegister(alct_cfg_adr);
+  //
+  thisTMB->SetALCTSyncRxDataDelay(best_pipedepth);
+  thisTMB->WriteRegister(alct_sync_ctrl_adr);
+  //
+  //
+  std::cout << "More thorough scan at pipeline depth = " << best_pipedepth << std::endl;
   //
   // A display (statistics) array...
   int alct_tx_rx_display[13][13] = {};
@@ -1597,8 +1595,6 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
       thisTMB->tmb_clk_delays(tx_value,6);
       //
       //Set depth where to look for the data
-      thisTMB->SetALCTSyncRxDataDelay(good_depth);
-      //
       thisTMB->SetALCTSyncTXRandom(1);
       //
       bool go_quick = false;
@@ -1607,6 +1603,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	//
 	// Clear TMB data check flipflops
 	thisTMB->SetALCTSyncClearErrors(1);
+	//
 	thisTMB->WriteRegister(alct_sync_ctrl_adr);
 	//
 	// Unclear error flipflops, after this write, the errors are being tallied by TMB firmware
@@ -2016,13 +2013,13 @@ void ChamberUtilities::ALCT_TMB_Loopback() {
   PropagateMeasuredValues(true);
   //
   // Find a "good enough" value of the alct_tx_clock_delay with alternating 1's and 0's
-  if (Find_alct_tx_with_ALCT_to_TMB_evenodd() < 0) {
+  if (Find_alct_tx_with_ALCT_to_TMB_evenodd(100) < 0) {
     PropagateMeasuredValues(initial_use_measured_values);
     return;
   }
   ::sleep(2);
   //
-  if (Find_alct_rx_with_TMB_to_ALCT_evenodd() < 0) {
+  if (Find_alct_rx_with_TMB_to_ALCT_evenodd(100) < 0) {
     PropagateMeasuredValues(initial_use_measured_values);
     return;
   }
