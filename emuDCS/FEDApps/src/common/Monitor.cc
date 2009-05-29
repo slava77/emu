@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.7 2009/05/20 18:18:38 paste Exp $
+* $Id: Monitor.cc,v 1.8 2009/05/29 11:21:39 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -21,6 +21,7 @@
 #include "emu/fed/DDUDebugger.h"
 #include "emu/fed/DCCDebugger.h"
 #include "emu/fed/Fiber.h"
+#include "emu/fed/FIFO.h"
 #include "emu/fed/JSONSpiritWriter.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Monitor)
@@ -656,13 +657,15 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 		JSONSpirit::Array fiberArray;
 		
 		uint16_t fiberStatus = 0;
+		uint16_t liveFibers = 0;
 		try {
 			fiberStatus = (*iDDU)->readCSCStatus() | (*iDDU)->readAdvancedFiberErrors();
+			liveFibers = (*iDDU)->readLiveFibers();
 		} catch (emu::fed::exception::DDUException &e) {
 			dduObject.push_back(JSONSpirit::Pair("exception", "Error reading fiber status"));
 		}
 		
-		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
+		for (size_t iFiber = 0; iFiber < 15; iFiber++) {
 		
 			JSONSpirit::Object fiberObject;
 			fiberObject.push_back(JSONSpirit::Pair("number", (int) iFiber));
@@ -670,10 +673,24 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 			fiberObject.push_back(JSONSpirit::Pair("name", (*iDDU)->getFiber(iFiber)->getName()));
 			
 			std::string status = "ok";
-			std::string message;
-			if (fiberStatus & (1 << iFiber)) {
+			std::string message = "ok";
+			
+			Fiber *fiber = new Fiber();
+			try {
+				fiber = (*iDDU)->getFiber(iFiber);
+			} catch (emu::fed::exception::OutOfBoundsException &e) {
+				fiberObject.push_back(JSONSpirit::Pair("exception", "Error reading fiber status"));
+			}
+
+			if (fiber->isKilled()) { // Killed fibers first
+				status = "killed";
+				message = "killed";
+			} else if (!(liveFibers & (1 << iFiber))) { // Dead fibers second
+				status = "undefined";
+				message = "no link";
+			} else if (fiberStatus & (1 << iFiber)) {
 				status = "error";
-				// what should the message be?
+				// TODO what should the message be?
 			}
 			
 			fiberObject.push_back(JSONSpirit::Pair("status", status));
@@ -762,37 +779,44 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		} catch (emu::fed::exception::DCCException &e) {
 			dccObject.push_back(JSONSpirit::Pair("exception", "Unable to read DCC FIFO status"));
 		}
-		for (unsigned int iSlot = 3; iSlot <= 20; iSlot++) {
+		for (size_t iFIFO = 0; iFIFO <= 9; iFIFO++) {
 			JSONSpirit::Object fifoObject;
+			
+			unsigned int iSlot = 0;
+			try {
+				iSlot = (*iDCC)->getDDUSlotFromFIFO(iFIFO);
+			} catch (emu::fed::exception::OutOfBoundsException &e) {
+				// Not a valid FIFO number?
+				fifoObject.push_back(JSONSpirit::Pair("exception", "Unable to read DCC FIFO status"));
+			}
 			fifoObject.push_back(JSONSpirit::Pair("slot", (int) iSlot));
 			
-			unsigned int fifo = 0;
-			try {
-				fifo = (*iDCC)->getFIFOFromDDUSlot(iSlot) - 1;
-			} catch (emu::fed::exception::OutOfBoundsException &e) {
-				// Not a proper slot for this DCC
-				continue;
-			}
-			
-			// There is no fifo 0 or 6
-			if (fifo >= 5) fifo--;
-			
 			// Each bit corresponds to two FIFOs
-			fifo = fifo/2;
+			unsigned int jFIFO = iFIFO/2;
 			
 			uint16_t rate = 0;
-			std::string status;
-			std::string message;
+			std::string status = "green";
+			std::string message = "OK";
 			try {
 				rate = (*iDCC)->readDDURate(iSlot);
 			} catch (emu::fed::exception::DCCException &e) {
 				fifoObject.push_back(JSONSpirit::Pair("exception", "Error reading FIFO rate"));
 			}
 			
-			if (!(fifoStatus & (1 << (fifo + 3)))) {
+			FIFO *fifo = new FIFO();
+			try {
+				fifo = (*iDCC)->getFIFO(iFIFO);
+			} catch (emu::fed::exception::OutOfBoundsException &e) {
+				fifoObject.push_back(JSONSpirit::Pair("exception", "Error reading FIFO status"));
+			}
+			
+			if (!fifo->isUsed()) {
+				status = "undefined";
+				message = "not used";
+			} else if (!(fifoStatus & (1 << (jFIFO + 3)))) {
 				status = "error";
 				message = "full";
-			} else if (fifo < 3 && !(fifoStatus & (1 << fifo))) {
+			} else if (jFIFO < 3 && !(fifoStatus & (1 << jFIFO))) {
 				status = "warning";
 				message = "1/2 full";
 			} else {
@@ -832,7 +856,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			}
 
 			if (!(slinkStatus & (1 << (iLink * 2 - 1)))) {
-				status = "error";
+				status = "undefined";
 				message = "inactive";
 			} else if (!(slinkStatus & (1 << ((iLink - 1) * 2 )))) {
 				status = "warning";
