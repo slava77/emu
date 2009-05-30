@@ -15,7 +15,7 @@ Package=emuDCS/PeripheralCore
 PackageName=PeripheralCore
 Description="Core libraries for Peripheral Crates"
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=04
+PACKAGE_VER_MINOR=05
 PACKAGE_VER_PATCH=00
 
 Sources=\
