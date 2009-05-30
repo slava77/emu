@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.7 2009/05/20 11:00:05 liu Exp $
+// $Id: Chamber.cc,v 1.8 2009/05/30 09:14:44 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.8  2009/05/30 09:14:44  liu
+// update
+//
 // Revision 1.7  2009/05/20 11:00:05  liu
 // update
 //
@@ -63,7 +66,7 @@ void Chamber::Fill(char *buffer, int source)
        else if(idx<52)
        {  
            y=strtof(item,NULL);
-           if(source) values_bk[idx-3]=y;
+           if(source) values_bk[idx-3]=0.0;
            values[idx-3]=y;
        }
        idx++;
@@ -81,7 +84,10 @@ void Chamber::Fill(char *buffer, int source)
           ready_ = true;
        }
    }
-   if(idx!=51 || values[47]!=(-50.))
+   if(source)
+   {   corruption = true;
+   }
+   else if(idx!=51 || values[47]!=(-50.))
    {   std::cout << "BAD...total " << idx << " last one " << values[47] << std::endl;
        corruption = true;
    }
@@ -124,6 +130,7 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->cfeb.c60[i] = data[ 2+3*i];
       this_st=info[0];
       if(data[19+3*i]==0. && data[20+3*i]==0. && data[21+3*i]==0.) this_st=0;
+      if(corruption) this_st=0;
       dim_lv->cfeb.status[i] = this_st;
       total_st += this_st;
    }
@@ -137,6 +144,7 @@ void Chamber::GetDimLV(int hint, LV_1_DimBroker *dim_lv )
       dim_lv->alct.c56 = data[18];
       this_st=info[0];
       if(data[34]==0. && data[35]==0. && data[36]==0. && data[37]==0. ) this_st=0;
+      if(corruption) this_st=0;
       dim_lv->alct.status = this_st;
       total_st += this_st;
    
