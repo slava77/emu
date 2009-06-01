@@ -18,6 +18,9 @@
   <!-- If it is set to 'Y', events will be built; if 'N', events will not be built. -->
   <xsl:param name="BUILD"/>
 
+<!--   <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param> -->
+  <xsl:param name="EMULIBDIR">${XDAQ_ROOT}/lib</xsl:param>
+
   <xsl:output method="xml" indent="yes"/>
 
 <!-- Generate config file for EmuDAQ -->
@@ -131,15 +134,15 @@
 	  <!-- <eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/Test</eLogURL> -->
 	  <postToELog xsi:type="xsd:boolean">true</postToELog>
 	  <controlDQM xsi:type="xsd:boolean">false</controlDQM>
-	  <hardwareMapping xsi:type="xsd:string">/emu/daq/xml/RUI-to-chamber_mapping.xml</hardwareMapping>
+	  <hardwareMapping xsi:type="xsd:string">/emu/farmer/xml/RUI-to-chamber_mapping.xml</hardwareMapping>
 	  <TF_FM_URL xsi:type="xsd:string">http://UNKNOWN.cms:12000</TF_FM_URL>
 	  <CSC_FM_URL xsi:type="xsd:string">http://cmsrc-csc.cms:12000</CSC_FM_URL>
 	  <RegexMatchingTFConfigName xsi:type="xsd:string">UNKNOWN</RegexMatchingTFConfigName>
 	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*/Local/.*|.*/Global/.*</RegexMatchingCSCConfigName>
 	</properties>
       </xc:Application>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqmanager.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqmanager.so</xc:Module>
     </xc:Context>
   </xsl:template>
   
@@ -173,7 +176,7 @@
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderevm.so</xc:Module>
       <xc:Application instance="0" class="emu::daq::ta::Application" network="atcp1" id="17"/>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqta.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqta.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -205,9 +208,9 @@
 	</xc:Application>
 	<xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
 	
-	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqserver.so</xc:Module>
-	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqwriter.so</xc:Module>
+	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
+	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqserver.so</xc:Module>
+	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
 	<xc:Application instance="0" class="rubuilder::ru::Application" network="atcp1" id="14">
 	  <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
 	    <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
@@ -236,7 +239,7 @@
 	    </clientsInstance>
 	  </properties>
 	</xc:Application>
-	<xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqrui.so</xc:Module>
+	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqrui.so</xc:Module>
       </xc:Context>
       
     </xsl:if>
@@ -270,9 +273,9 @@
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
 
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqserver.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqwriter.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqserver.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="rubuilder::ru::Application" network="atcp1" id="14">
 	    <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
 	      <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
@@ -290,7 +293,7 @@
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]"></clientsClassName>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqfu.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqfu.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="emu::daq::rui::Application" network="atcp1" id="18">
 	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::rui::Application">
 	      <passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
@@ -315,7 +318,7 @@
 	      </poolSizeForClient>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqrui.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqrui.so</xc:Module>
 	</xc:Context>
 
       </xsl:if>
@@ -334,8 +337,8 @@
         <viewOnly xsi:type="xsd:boolean">false</viewOnly>
 	</properties>
       </xc:Application>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemubase.so</xc:Module>
-      <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuDisplayClient.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libEmuDisplayClient.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -363,7 +366,7 @@
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemudaqreader.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="EmuMonitor" id="{$APP_ID}" network="atcp1" group="dqm">
 	    <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct">
 	      <readoutMode xsi:type="xsd:string">external</readoutMode>
@@ -387,8 +390,8 @@
               <binCheckMask xsi:type="xsd:unsignedInt">0xF7FB7BF6</binCheckMask>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuPlotter.so</xc:Module>
-          <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libEmuMonitor.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libEmuPlotter.so</xc:Module>
+          <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libEmuMonitor.so</xc:Module>
 	</xc:Context>
 	
       </xsl:if>
