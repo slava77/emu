@@ -16,7 +16,8 @@
 	<executiveClass  xsi:type="xsd:string">executive::Application</executiveClass>
       </properties>
     </xc:Application>
-    <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemufarmer.so</xc:Module>
+    <!--     <xc:Module>${BUILD_HOME}/${XDAQ_PLATFORM}/lib/libemufarmer.so</xc:Module> -->
+    <xc:Module>${XDAQ_ROOT}/lib/libemufarmer.so</xc:Module>
 
   </xc:Context>
 
