@@ -45,7 +45,7 @@ xdaq::WebApplication(s),
 emu::base::Supervised(s),
 emu::base::WebReporter(s),
 logger_(Logger::getInstance(generateLoggerName())),
-runInfo_(0)
+runInfo_(NULL)
 {
     i2oAddressMap_ = i2o::utils::getAddressMap();
     poolFactory_   = toolbox::mem::getMemoryPoolFactory();
@@ -5745,7 +5745,7 @@ void emu::daq::manager::Application::bookRunNumber(){
   // Just in case it's left over from the previuos run:
   if ( runInfo_ ) {
     delete runInfo_; 
-    runInfo_ = 0;
+    runInfo_ = NULL;
   }
 
   try
@@ -6011,7 +6011,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     htmlMessageToELog << "</table></td></tr>";
     name  = "clock_source";
     value = TTCci_ClockSource_.toString();
-    if ( toDatabase && isBookedRunNumber_ ){
+    if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6033,7 +6033,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     }
     name  = "orbit_source";
     value = TTCci_OrbitSource_.toString();
-    if ( toDatabase && isBookedRunNumber_ ){
+    if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6055,7 +6055,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     }
     name  = "trigger_source";
     value = TTCci_TriggerSource_.toString();
-    if ( toDatabase && isBookedRunNumber_ ){
+    if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6075,7 +6075,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
     }
     name  = "BGO_source";
     value = TTCci_BGOSource_.toString();
-    if ( toDatabase && isBookedRunNumber_ ){
+    if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){
 	LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6105,7 +6105,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
       name      = "built_events";
       value     = counts.at(nFUs)["count"]; // the last element is the sum of all FUs' event counts
       htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
-      if ( toDatabase && isBookedRunNumber_ ){
+      if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
 	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -6138,7 +6138,7 @@ void emu::daq::manager::Application::writeRunInfo( bool toDatabase, bool toELog 
       name  = "EmuRUI"+counts.at(rui)["appInst"];
       value = counts.at(rui)["count"];
       htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
-      if ( toDatabase && isBookedRunNumber_ ){
+      if ( toDatabase && isBookedRunNumber_ && runInfo_ != NULL ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){
 	  LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
