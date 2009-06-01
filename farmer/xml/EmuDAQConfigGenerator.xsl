@@ -156,7 +156,7 @@
 
       <xc:Module>${XDAQ_ROOT}/lib/libxdaq2rc.so</xc:Module>
 
-      <xc:Application instance="37" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
+      <xc:Application instance="50" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	<properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP">
 	  <autoSize xsi:type="xsd:boolean">true</autoSize>
 	  <maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
