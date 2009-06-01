@@ -5,10 +5,12 @@
 
   <xsl:template name="pageParameters">
     <application name="emu::daq::manager::Application"     pageRefreshPeriodInMSec= "9000" graph="show"/>
+    <application name="xmas::las::Application"             pageRefreshPeriodInMSec="10000" graph="none"/>
     <application name="emu::fed::Manager"                  pageRefreshPeriodInMSec="10000" graph="show"/>
-    <application name="emu::pc::EmuPeripheralCrateMonitor" pageRefreshPeriodInMSec="13000" graph="show"/>
-    <application name="emu::pc::EmuPeripheralCrateManager" pageRefreshPeriodInMSec="10000" graph="none"/>
-    <!--     <application name="DQM" pageRefreshPeriodInMSec="?"/> -->
+    <application name="emu::pc::EmuPeripheralCrateMonitor" pageRefreshPeriodInMSec="13000" graph="none"/>
+    <application name="emu::pc::EmuPeripheralCrateManager" pageRefreshPeriodInMSec="15000" graph="none"/>
+    <application name="emu::pc::EmuPeripheralCrateService" pageRefreshPeriodInMSec="15000" graph="none"/>
+    <application name="EmuDisplayClient"                   pageRefreshPeriodInMSec="17000" graph="show"/>
   </xsl:template>
 
   <xsl:template match="ForEmuPage1">
@@ -17,20 +19,22 @@
         <title>Report for EmuPage1 from <xsl:value-of select="@from"/> at <xsl:value-of select="@dateTime"/></title>
 	<link rel="stylesheet" type="text/css" href="/emu/base/html/EmuPage1.css"/>
 	<script type="text/javascript" src="/emu/base/html/EmuPage1.js"/>
+        <xsl:if test="@application = 'xmas::las::Application'"><script type="text/javascript" src="/emu/base/html/jquery-1.3.2.js"/></xsl:if>
 <!-- 	<link rel="stylesheet" type="text/css" href="EmuPage1.css"/> -->
 <!-- 	<script type="text/javascript" src="EmuPage1.js"/> -->
       </head>
       <xsl:variable name="APPLICATION"><xsl:value-of select="@application"/></xsl:variable>
       <xsl:variable name="REFRESH_PERIOD"><xsl:value-of select="document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@pageRefreshPeriodInMSec"/></xsl:variable>
+      <xsl:variable name="DATA_URL"><xsl:if test="@application != 'xmas::las::Application'">document.URL</xsl:if><xsl:if test="child::monitorable[@name='title' and @value='Local DAQ disks']">"http://csc-daq00.cms:9941/urn:xdaq-application:lid=100/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:diskInfo"</xsl:if></xsl:variable>
     <xsl:variable name="TITLEID">a_value_<xsl:value-of select="count(//monitorable[@name='title']/preceding::monitorable)"/></xsl:variable>
 
-      <body onload="onLoad({$REFRESH_PERIOD})">
+      <body onload="onLoad({$REFRESH_PERIOD}, {$DATA_URL})">
 
 	<table class="root" rules="all"><tr><td>
 
 	<table class="fresh" rules="all" id="fadingTable">
 
-	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateMonitor' or @application = 'emu::pc::EmuPeripheralCrateManager'">
+	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateMonitor' or @application = 'emu::pc::EmuPeripheralCrateManager' or @application = 'emu::pc::EmuPeripheralCrateService' or @application = 'EmuDisplayClient'">
 	    <tr><th colspan="2">
 	      <xsl:if test="monitorable[@name='title']">
 		<a id="{$TITLEID}" class="with_popup" target="_blank">
@@ -87,6 +91,45 @@
 	      <th>events</th>
 	      <xsl:apply-templates mode="DAQ" select="monitorable[substring-after(@name,' ')='events']"/>
 	    </tr>
+	  </xsl:if>
+
+	  <xsl:if test="@application = 'xmas::las::Application'">
+	    <tr><th colspan="2">
+	      <xsl:if test="monitorable[@name='title']">
+		<a id="a_value_title" class="with_popup" target="_blank">
+		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
+		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
+		  <xsl:value-of select="monitorable[@name='title']/@value"/>
+		</a>
+	      </xsl:if>
+	      <xsl:if test="not(monitorable[@name='title'])">
+		<xsl:value-of select="@application"/>
+	      </xsl:if>
+	    </th></tr>
+	    <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	    <xsl:for-each select="monitorable[@name!='title']">
+	      <tr>
+		<th>
+		  <xsl:attribute name="id">th_name_0</xsl:attribute>
+		  <a class="with_popup" target="_blank">
+		    <xsl:attribute name="id">a_name_0</xsl:attribute>
+		    <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
+		    <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
+		    <xsl:value-of select="@name"/>
+		  </a>
+		</th>
+		<td>
+		  <xsl:attribute name="id">td_value_0</xsl:attribute>
+		  <a class="with_popup" target="_blank">
+		    <xsl:attribute name="id">a_value_0</xsl:attribute>
+		    <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
+		    <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
+		    <xsl:value-of select="@value"/>
+		    <div id="div_value_0" class="popup">blabla</div>
+		  </a>
+		</td>
+	      </tr>
+	    </xsl:for-each>
 	  </xsl:if>
 
 	</table>
@@ -238,14 +281,18 @@
 
   <xsl:template name="graph">
 	<!-- 	viewBox not working in FF 2... :-(  -->
-<!-- 	<svg:svg id="svgRoot" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="150" viewBox="0 0 12000 6000" preserveAspectRatio="none"> -->
+<!-- 	<svg:svg id="svgRoot" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="300" height="150" viewBox="0 0 12000 6000" preserveAspectRatio="none"> -->
 <!-- 	  <svg:g id="transformer" transform="translate(6200 ,3000)"> -->
 
-<!-- 	<svg:svg id="svgRoot" xmlns="http://www.w3.org/2000/svg" version="1.1" width="600" height="300" preserveAspectRatio="none"> -->
+	<svg:svg id="svgRoot" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="315" height="150" viewBox="0 0 12600 6000" preserveAspectRatio="none">
+	  <svg:g id="transformer" transform="translate(6700 ,3000)">
+
+<!-- 	<svg:svg id="svgRoot" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="600" height="300" preserveAspectRatio="none"> -->
 <!-- 	  <svg:g id="scaler" transform="scale(.05, .05) translate(6200 ,3000)"> -->
 
-	<svg:svg id="svgRoot" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="300" height="150" preserveAspectRatio="none">
-	  <svg:g id="scaler" transform="scale(.025, .025) translate(6200 ,3000)">
+<!-- 	<svg:svg id="svgRoot" xmlns:svg="http://www.w3.org/2000/svg" version="1.1" width="300" height="150" preserveAspectRatio="none"> -->
+<!-- 	  <svg:g id="scaler" transform="scale(.025, .025) translate(6200 ,3000)"> -->
+
 	    <svg:g id="vGrid">
 	      <svg:line x1="-5000" y1= "1000" x2="5000" y2= "1000" stroke="#333333" stroke-width="10"/>
 	      <svg:line x1="-5000" y1=    "0" x2="5000" y2=    "0" stroke="#333333" stroke-width="10"/>
@@ -260,7 +307,8 @@
 <!-- 	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="20" points="0,3000 500,2000 1000,1500 1500,2500 2000,500 2500,1000 3000,2500 3500,500"/> -->
 <!-- 	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="50" points="-500,-500 -500,500 500,500 500,-500"/> -->
 	    <svg:polyline id="graph" fill="none" stroke="blue" stroke-width="50" points=""/>
-	    <svg:path d="M -6200 -3000 v 6000 h 12000 v -6000 z M -5000 -2000 v 4000 h 10000 v -4000 z" stroke="black" stroke-width="10" fill="#eeeeff" fill-rule="evenodd"/>
+<!-- 	    <svg:path d="M -6200 -3000 v 6000 h 12000 v -6000 z M -5000 -2000 v 4000 h 10000 v -4000 z" stroke="black" stroke-width="10" fill="#eeeeff" fill-rule="evenodd"/> -->
+	    <svg:path d="M -6700 -3000 v 6000 h 12600 v -6000 z M -5000 -2000 v 4000 h 10000 v -4000 z" stroke="black" stroke-width="10" fill="#eeeeee" fill-rule="evenodd"/>
 	    <svg:g id="xAxis">
 	      <svg:text transform="translate(-5000, 2400)" text-anchor="middle" font-size="350" fill="black">date</svg:text>
 	      <svg:text transform="translate(-2500, 2400)" text-anchor="middle" font-size="350" fill="black">date</svg:text>
@@ -296,22 +344,22 @@
 	      <svg:line x1= "5000" y1="2050" x2= "5000" y2="1950" stroke="#000000" stroke-width="10"/>
 	    </svg:g>
 	    <svg:text id="pointerCoords" transform="translate(0, -2100)" text-anchor="middle" font-size="350" fill="black">(time, value) at cursor</svg:text>
-	    <svg:text id="title" transform="translate(-5000, -2500)" text-anchor="start" font-size="500" fill="black">
+	    <svg:text id="title" transform="translate(-6500, -2500)" text-anchor="start" font-size="500" fill="black">
 	    Title
 	    <svg:tspan id="lastValue" dx="500" fill="blue">last value</svg:tspan>
 	    </svg:text>
-	    <svg:text id="ageOfGraph" transform="translate(5000, -2500)" text-anchor="end" font-size="500" fill="black">ago</svg:text>
-	    <svg:g id="follow" transform="translate(5400,-1100) rotate(-90)">
-	      <svg:path id="follow_edge1" d="M -900 -250 v  500 h  1800 z" fill="#888888"/>
-	      <svg:path id="follow_edge2" d="M  900  250 v -500 h -1800 z" fill="#ffffff"/>
-	      <svg:rect id="follow_rect" title="click to stop following last point" x="-850" y="-200" width="1700" height="400" fill="#dddddd"/>
+	    <svg:text id="ageOfGraph" transform="translate(5700, -2500)" text-anchor="end" font-size="500" fill="black">ago</svg:text>
+	    <svg:g id="follow" transform="translate(5400,-1200) rotate(-90)">
+	      <svg:path id="follow_edge1" d="M -800 -250 v  500 h  1600 z" fill="#888888"/>
+	      <svg:path id="follow_edge2" d="M  800  250 v -500 h -1600 z" fill="#ffffff"/>
+	      <svg:rect id="follow_rect" title="click to stop following last point" x="-750" y="-200" width="1500" height="400" fill="#dddddd"/>
 	      <svg:text id="follow_text" title="click to stop following last point" x="0" y="110" font-size="350" fill="black" text-anchor="middle" >freeze</svg:text>
 	    </svg:g>
-	    <svg:g id="zoom" transform="translate(5400,1000) rotate(-90)">
-	      <svg:path d="M -1000 -250 v  500 h  2000 z" fill="#888888"/>
-	      <svg:path d="M  1000  250 v -500 h -2000 z" fill="#ffffff"/>
-	      <svg:rect id="zoom_rect" title="click to fix zoom" x="-950" y="-200" width="1900" height="400" fill="#dddddd"/>
-	      <svg:text id="zoom_text" title="click to fix zoom" x="0" y="110" font-size="350" fill="black" text-anchor="middle" >fix zoom</svg:text>
+	    <svg:g id="zoom" transform="translate(5400,900) rotate(-90)">
+	      <svg:path d="M -1100 -250 v  500 h  2200 z" fill="#888888"/>
+	      <svg:path d="M  1100  250 v -500 h -2200 z" fill="#ffffff"/>
+	      <svg:rect id="zoom_rect" title="click to fix vertical range" x="-1050" y="-200" width="2100" height="400" fill="#dddddd"/>
+	      <svg:text id="zoom_text" title="click to fix vertical range" x="0" y="110" font-size="350" fill="black" text-anchor="middle" >fix range</svg:text>
 	    </svg:g>
 	  </svg:g>
 	</svg:svg>

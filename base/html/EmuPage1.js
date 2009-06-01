@@ -20,6 +20,7 @@ var following   = true;
 var autoZooming = true;
 var oldTransform;
 var previousPoint = { time:null, value:null };
+var monitorables = null;
 
 var xAxis;
 var yAxis;
@@ -29,12 +30,14 @@ XmlDoc.addEventListener("load", xmlDocLoaded, false);
 
 var Clock     = null;
 var Subsystem = null;
-var XmlUrl    = document.URL;
+// var XmlUrl    = document.URL;
+var DataURL   = null; // = document.URL;
 
-function onLoad( refreshPeriod ) {
+function onLoad( refreshPeriod, dataURL ) {
 
   //alert('onLoad');
   pageRefreshPeriod = refreshPeriod;
+  DataURL = dataURL;
 
   try{ span1_element = document.getElementById("span1"); } catch(ex){}
   try{ span2_element = document.getElementById("span2"); } catch(ex){}
@@ -68,7 +71,7 @@ function onLoad( refreshPeriod ) {
     } catch(ex) {}
 
     try{	
-      xAxis = new Axis( t-180000, t+30000, 5, true,
+      xAxis = new Axis( t-150000, t+150000, 5, true,
 			Number(pad_element.getAttribute('x')),
 			Number(pad_element.getAttribute('x'))+Number(pad_element.getAttribute('width')),
 			1./svg_element.getScreenCTM().a/xScale );
@@ -78,14 +81,16 @@ function onLoad( refreshPeriod ) {
 			1./svg_element.getScreenCTM().d/yScale );
       redrawAxes();
     } catch(ex) {
-      alert( ex );
+      //alert( ex );
     }
 
     attachListeners();
   }
 
   ageOfPageClock(0);
-  autoReloadXmlDoc();
+
+  if ( DataURL.search('fmt=json') > 0 ) autoReloadJsonDoc();
+  else                                  autoReloadXmlDoc();
 }
 
 function attachListeners(){
@@ -142,15 +147,15 @@ function onMouseDownOnZoomButton(){
     var zoom_text = document.getElementById("zoom_text");
     if ( autoZooming ){
 	// Disable automatic zoom
-	zoom_text.setAttribute( 'title', 'click to adjust zoom automatically' );
-	zoom_rect.setAttribute( 'title', 'click to adjust zoom automatically' );
-	zoom_text.firstChild.nodeValue = 'auto zoom'
+	zoom_text.setAttribute( 'title', 'click to let vertical range adjust automatically' );
+	zoom_rect.setAttribute( 'title', 'click to let vertical range adjust automatically' );
+	zoom_text.firstChild.nodeValue = 'auto range'
 	autoZooming = false;
     } else {
 	// Enable automatic zoom
-	zoom_text.setAttribute( 'title', 'click to fix zoom' );
-	zoom_rect.setAttribute( 'title', 'click to fix zoom' );
-	zoom_text.firstChild.nodeValue = 'fix zoom'
+	zoom_text.setAttribute( 'title', 'click to fix vertical range' );
+	zoom_rect.setAttribute( 'title', 'click to fix vertical range' );
+	zoom_text.firstChild.nodeValue = 'fix range'
 	autoZooming = true;
     }
 }
@@ -207,7 +212,7 @@ function mouseMove(ev){
 	try{
 	    redrawAxes();
 	} catch(ex) {
-	    alert( ex );
+	  //alert( ex );
 	}
 	var msg = 'mousemove: ';
 	msg += ' readout: ' + graph_element.getAttribute("transform") + ' or ' + printTransforms( graph_element.transform.baseVal ) +'   ' + printTransforms( graph_element.transform.animVal );
@@ -267,7 +272,7 @@ function scale( xFactor, yFactor ){
     if ( graph_element.transform.animVal.numberOfItems ){
 	graph_element.transform.baseVal.consolidate();
 	graph_element.transform.animVal.consolidate();
-	try{ var matrix = graph_element.transform.animVal.getItem(0).matrix; } catch(ex) { alert(ex); }
+	try{ var matrix = graph_element.transform.animVal.getItem(0).matrix; } catch(ex){}// { alert(ex); }
 	xToOrigin = matrix.e/matrix.a;
 	yToOrigin = matrix.f/matrix.d;
     }
@@ -299,9 +304,10 @@ function displayAxes(){
 }
 
 function redrawAxes(){
+  if ( graph_element ){
     graph_element.transform.baseVal.consolidate();
     graph_element.transform.animVal.consolidate();
-    if ( graph_element.transform.animVal.numberOfItems){
+    if ( graph_element.transform.animVal.numberOfItems ){
 	var matrix = graph_element.transform.animVal.getItem(0).matrix
 	xAxis.transform( matrix );
 	yAxis.transform( matrix );
@@ -310,6 +316,7 @@ function redrawAxes(){
 	yAxis.transform( null ); // just for updating everything (will do identity transformation)
     }
     displayAxes();
+  }
 }
 
 function printSvgSvg(){
@@ -330,6 +337,10 @@ function printSvgSvg(){
 
 function followLastPoint( xSVGLastPoint ){
     if ( xSVGLastPoint > xAxis.hiSVG ) translate( xAxis.hiSVG-xSVGLastPoint, 0 );
+}
+
+function centerXAxisOnValue( xSVG ){
+  translate( 0.5*(xAxis.loSVG+xAxis.hiSVG) - xSVG, 0 );
 }
 
 function transformYToFit(){
@@ -506,34 +517,23 @@ function Label(value,isTime){
     this.setValue( value );
 }
 
-function calculateRate( time, value ){
-    if ( !previousPoint.time ) return 0;
-    if ( time == previousPoint.time ) return 0;
-    return ( value - previousPoint.value ) * 1000 / ( time - previousPoint.time ); // ms --> s
-}
-
-function appendPoint( p, asRate ){
+function appendPoint( p ){
     if ( !graph_element ) return;
 
     var xSVG = xAxis.toSVG( p.time );
     var ySVG;
-    if ( asRate ){
-	var rate = calculateRate( p.time, p.value );
-	ySVG = yAxis.toSVG( rate );
-	title_element.firstChild.nodeValue = p.name+' rate';
-	value_element.firstChild.nodeValue = Number( rate ).toFixed(4);
-    }
-    else {
-        ySVG = yAxis.toSVG( p.value );
-	title_element.firstChild.nodeValue = p.name;
-	value_element.firstChild.nodeValue = Number( p.value ).toFixed(4);
-    }
+    ySVG = yAxis.toSVG( p.value );
+    title_element.firstChild.nodeValue = p.name;
+    value_element.firstChild.nodeValue = Number( p.value ).toFixed(4);
+
     var oldPoints = graph_element.getAttribute("points");
     if ( oldPoints ) graph_element.setAttribute("points", oldPoints+' '+xSVG+','+ySVG );
     else             graph_element.setAttribute("points", xSVG+','+ySVG );
-    var newPoints = graph_element.getAttribute("points");
+    //var newPoints = graph_element.getAttribute("points");
     previousPoint.time  = p.time;
     previousPoint.value = p.value;
+    // Jump to the first point (in case the client's clock is not set correctly or is in another time zone):
+    if ( oldPoints.length == 0 ) centerXAxisOnValue( xSVG );
     if ( following ) followLastPoint( xSVG );
     if ( autoZooming ) transformYToFit();
 }
@@ -551,107 +551,37 @@ function toUnixTime( dateTime ){
 }
 
 
-//============
-// Data access
-//============
+function Monitorable( time, name, value, nameDescr, valueDescr, nameURL, valueURL ){
+  this.time       = time;
+  this.name       = name;
+  this.value      = value;
+  this.nameDescr  = nameDescr;
+  this.valueDescr = valueDescr;
+  this.nameURL    = nameURL;
+  this.valueURL   = valueURL;
+  
+  this.previousTime  = this.time;
+  this.previousValue = this.value;
+  
+  this.set = function( time, name, value, nameDescr, valueDescr, nameURL, valueURL ){
+    this.previousTime  = this.time;
+    this.previousValue = this.value;
 
+    this.time       = time;
+    this.value      = value;
+    this.nameDescr  = nameDescr;
+    this.valueDescr = valueDescr;
+    this.nameURL    = nameURL;
+    this.valueURL   = valueURL;
+  };
 
-function autoReloadXmlDoc(){
-    XmlDoc.load( XmlUrl );
-    setTimeout('autoReloadXmlDoc()', pageRefreshPeriod);
+  this.rate = function(){
+    if ( this.time == this.previousTime ) return 0;
+    return ( this.value - this.previousValue ) * 1000 / ( this.time - this.previousTime ); // ms --> s
+  };
+
 }
 
-function xmlDocLoaded(e){
-    //alert('xmlDocLoaded: event type '+e.type+' target '+e.target);
-    var xmlIsOK = false;
-    try{
-	xmlIsOK = valuesFromXmlToGraph();
-    } catch(e) {
-      alert('Caught exception thrown from valuesFromXmlToGraph: '+e.message);
-    }
-    if ( xmlIsOK ){
-	clearTimeout(Clock);
-	ageOfPageClock(0);
-	redrawAxes();
-    }
-}
-
-function valuesFromXmlToGraph(){
-    var rootElement = XmlDoc.getElementsByTagName('ForEmuPage1');
-    if ( !rootElement.length ) return false;
-    document.getElementById('td_localDateTime').innerHTML = rootElement[0].getAttribute('localDateTime');
-    var time;
-    if ( rootElement[0].getAttribute('localUnixTime') ) time = Number( rootElement[0].getAttribute('localUnixTime') ) * 1000; // ms in JavaScript! 
-    else time = toUnixTime( rootElement[0].getAttribute('localDateTime') );
-    var monitorables = XmlDoc.getElementsByTagName('monitorable');
-    if ( !monitorables.length ) return false;
-    var graphPoint = { name:'', time:time, value:Number(0) };
-    var plotAsRate = false;
-    for ( i=0; i<monitorables.length; i++ ){
-        var m = { name:      monitorables[i].getAttribute('name'),            value:      monitorables[i].getAttribute('value'),
-		  nameDescr: monitorables[i].getAttribute('nameDescription'), valueDescr: monitorables[i].getAttribute('valueDescription'),
-		  nameURL:   monitorables[i].getAttribute('nameURL'),         valueURL:   monitorables[i].getAttribute('valueURL') };
-        // Graph:
-	if ( m.name == 'max events' || m.name == 'Heart Beat' ){
-	  graphPoint.name  = m.name;
-	  graphPoint.value = m.value;
-	  plotAsRate = true;
-	}
-	if ( m.name == 'TF Errors'  || m.name == 'ME- Errors' || m.name == 'ME+ Errors' ){
-	  graphPoint.name   = 'all errors'
-	  graphPoint.value += Number(m.value);
-	}
-// 	// Table:
-// 	// name
-// 	var th_name = document.getElementById( 'th_'+m.name );
-// 	if ( th_name ) th_name.className = m.name;
-// 	var a_name = document.getElementById( 'a_'+m.name );
-// 	if ( a_name ){
-// 	  a_name.href = m.nameURL;
-// 	  a_name.title = m.nameDescr;
-// 	  a_name.innerHTML = m.name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) Errors$/,'$1').replace(/ /g,'&#160;');
-// 	}
-// 	// value
-// 	var td_value = document.getElementById( 'td_value_of_'+m.name );
-// 	if ( td_value ){
-// 	  td_value.className = m.value;
-// 	    if ( ( m.name == 'TF Errors'  || m.name == 'ME- Errors' || m.name == 'ME+ Errors' ) && m.value > 0 )
-// 		td_value.className += ' WARN';
-// 	}
-// 	var a_value = document.getElementById( 'a_value_of_'+m.name );
-// 	if ( a_value ){
-// 	  a_value.href = m.valueURL;
-// 	  a_value.title = m.valueDescr;
-// 	  a_value.innerHTML = m.value;
-// 	}
-	// Table:
-	// name
-	var th_name = document.getElementById( 'th_name_'+i );
-	if ( th_name ) th_name.className = m.name;
-	var a_name = document.getElementById( 'a_name_'+i );
-	if ( a_name ){
-	  a_name.href = m.nameURL;
-	  a_name.title = m.nameDescr;
-	  a_name.innerHTML = m.name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) Errors$/,'$1').replace(/^([^ ]*) events$/,'$1').replace(/ /g,'&#160;');
-	}
-	// value
-	var td_value = document.getElementById( 'td_value_'+i );
-	if ( td_value ){
-	  td_value.className = m.value;
-	    if ( ( m.name == 'TF Errors'  || m.name == 'ME- Errors' || m.name == 'ME+ Errors' ) && m.value > 0 )
-		td_value.className += ' WARN';
-	}
-	var a_value = document.getElementById( 'a_value_'+i );
-	if ( a_value ){
-	  a_value.href = m.valueURL;
-	  a_value.title = m.valueDescr;
-	  a_value.innerHTML = m.value;
-	}
-    }
-    // Append point to graph
-    appendPoint( graphPoint, plotAsRate );
-    return true;
-}
 
 function ageOfPageClock(ageOfPage){
     hours=Math.floor(ageOfPage/3600);
@@ -673,7 +603,192 @@ function ageOfPageClock(ageOfPage){
 	if      ( ageOfPage < 0.003 * pageRefreshPeriod ) mainTableElem.className = 'fresh';
 	else if ( ageOfPage < 0.010 * pageRefreshPeriod ) mainTableElem.className = 'aging';
 	else                                              mainTableElem.className = 'stale';
-    } catch(ex) { alert(ex); }
+    } catch(ex){}// { alert(ex); }
     ageOfPage=ageOfPage+1;
     Clock = setTimeout('ageOfPageClock('+ageOfPage+')',1000);
+}
+
+
+//================
+// XML data access
+//================
+
+
+function autoReloadXmlDoc(){
+    XmlDoc.load( DataURL );
+    setTimeout('autoReloadXmlDoc()', pageRefreshPeriod);
+}
+
+function xmlDocLoaded(e){
+    //alert('xmlDocLoaded: event type '+e.type+' target '+e.target);
+    var xmlIsOK = false;
+    try{
+	xmlIsOK = valuesFromXmlToGraph();
+    } catch(e) {
+      //alert('Caught exception thrown from valuesFromXmlToGraph: '+e.message);
+    }
+    if ( xmlIsOK ){
+	clearTimeout(Clock);
+	ageOfPageClock(0);
+	redrawAxes();
+    }
+}
+
+
+function valuesFromXmlToGraph(){
+    var rootElement = XmlDoc.getElementsByTagName('ForEmuPage1');
+    if ( !rootElement.length ) return false;
+    document.getElementById('td_localDateTime').innerHTML = rootElement[0].getAttribute('localDateTime');
+    var time;
+
+    if ( rootElement[0].getAttribute('localUnixTime') ) time = Number( rootElement[0].getAttribute('localUnixTime') ) * 1000; // ms in JavaScript! 
+    else time = toUnixTime( rootElement[0].getAttribute('localDateTime') );
+
+    var mElements = XmlDoc.getElementsByTagName('monitorable');
+    //alert( mElements.length );
+    if ( !mElements.length ) return false;
+
+    var graphPoint = { name:'', time:time, value:Number(0) };
+
+    if ( monitorables == null ) monitorables = new Array( mElements.length );
+
+    for ( i=0; i<mElements.length; i++ ){
+      if ( monitorables[i] == null ) monitorables[i] = new Monitorable( time,
+									mElements[i].getAttribute('name'),
+									mElements[i].getAttribute('value'),
+									mElements[i].getAttribute('nameDescription'),
+									mElements[i].getAttribute('valueDescription'),
+									mElements[i].getAttribute('nameURL'),
+									mElements[i].getAttribute('valueURL') );
+      else                          monitorables[i].set( time,
+							 mElements[i].getAttribute('name'),
+							 mElements[i].getAttribute('value'),
+							 mElements[i].getAttribute('nameDescription'),
+							 mElements[i].getAttribute('valueDescription'),
+							 mElements[i].getAttribute('nameURL'),
+							 mElements[i].getAttribute('valueURL') );
+
+
+        // Graph:
+	if ( monitorables[i].name == 'max events' || monitorables[i].name == 'Heartbeat' ){
+	  graphPoint.name  = monitorables[i].name + ' rate [Hz]';
+	  graphPoint.value = monitorables[i].rate();
+	}
+	else if ( monitorables[i].name == 'quality' ){
+	  graphPoint.name  = monitorables[i].name;
+	  graphPoint.value = monitorables[i].value;
+	}
+	else if ( monitorables[i].name == 'TF Errors'  || monitorables[i].name == 'ME- Errors' || monitorables[i].name == 'ME+ Errors' ){
+	  graphPoint.name   = 'all errors'
+	  graphPoint.value += Number(monitorables[i].value);
+	}
+	// Table:
+	// name
+	var th_name = document.getElementById( 'th_name_'+i );
+	if ( th_name ) th_name.className = monitorables[i].name;
+	var a_name = document.getElementById( 'a_name_'+i );
+	if ( a_name ){
+	  a_name.href = monitorables[i].nameURL;
+	  a_name.title = monitorables[i].nameDescr;
+	  a_name.innerHTML = monitorables[i].name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) Errors$/,'$1').replace(/^([^ ]*) events$/,'$1').replace(/ /g,'&#160;');
+	}
+	// value
+	var td_value = document.getElementById( 'td_value_'+i );
+	if ( td_value ){
+	  td_value.className = monitorables[i].value;
+	  //if ( ( monitorables[i].name == 'TF Errors'  || monitorables[i].name == 'ME- Errors' || monitorables[i].name == 'ME+ Errors' ) && monitorables[i].value > 0 ) td_value.className += ' WARN';
+	  if ( monitorables[i].name == 'Heartbeat' ) td_value.className += ( monitorables[i].rate() == 0 ? ' WARN' : ' ON' );
+	}
+	var a_value = document.getElementById( 'a_value_'+i );
+	if ( a_value ){
+	  a_value.href = monitorables[i].valueURL;
+	  a_value.title = monitorables[i].valueDescr;
+	  if ( monitorables[i].name == 'Heartbeat' ) a_value.innerHTML = monitorables[i].rate().toFixed(4) + ' Hz';
+	  else                                        a_value.innerHTML = monitorables[i].value;
+	}
+    }
+    // Append point to graph
+    appendPoint( graphPoint );
+    return true;
+}
+
+//=================
+// JSON data access
+//=================
+
+function autoReloadJsonDoc(){
+  valuesFromJsonToGraph();
+  setTimeout('autoReloadJsonDoc()', pageRefreshPeriod);
+}
+
+// function byContext( a, b ){
+//   return a.context > b.context;
+// }
+
+// function valuesFromJsonToGraph(){
+
+//   $(document).ready(function() {
+//     $.getJSON( DataURL, function(json) {
+//       $.each( json.table.rows.sort(byContext), function(i,contextRow){
+// 	if ( contextRow.context.lastIndexOf(':9999') > 0 ){
+// 	  $.each( contextRow.diskUsage.rows, function(j,fsRow){ 
+// 	    if ( fsRow.fileSystem == '/data' ){
+// 	      $('table').append('<tr><th>' + contextRow.context.match('^http://([^:]+):[0-9]+')[1] + '</th><td>' + fsRow.fileSystem + '</td><td>' + fsRow.usePercent + '</td></tr>');
+// 	    }
+// 	  });
+// 	}
+//       });
+//     });
+//   });
+  
+// }
+
+function Disk( host, mount, time, state, usage, free ){
+  this.host  = host ;
+  this.mount = mount;
+  this.time  = time ;
+  this.state = state;
+  this.usage = usage; // [%]
+  this.free  = free ; // [MB]
+}
+
+function byUsage( a, b ){
+  return a.usage < b.usage;
+}
+
+function byHost( a, b ){
+  return a.host > b.host;
+}
+
+function valuesFromJsonToGraph(){
+  //alert( 'valuesFromJsonToGraph' );
+
+
+  // Get data disk info
+  $.getJSON( DataURL, function(json) {
+    $('#td_localDateTime').text( json.table.properties.LastUpdate );
+    var disks  = new Array();
+    $.each( json.table.rows, function(i,contextRow){
+      if ( contextRow.context.lastIndexOf(':9999') > 0 ){
+	$.each( contextRow.diskUsage.rows, function(j,fsRow){ 
+	  if ( fsRow.fileSystem == '/data' ){
+	    var host = contextRow.context.match('^http://([^:]+):[0-9]+')[1];
+	    disks.push( new Disk( host, '/data', fsRow.sampleTime, fsRow.state, 
+				  fsRow.usePercent, (1.-0.01*fsRow.usePercent)*fsRow.totalMB ) );
+	  }
+	});
+      }
+    });
+    // Display disk of highest usage
+    var d = disks.sort(byUsage)[0];
+    var klass = 'ON';
+    if      ( d.usage > 80 ) klass = 'WARN';
+    else if ( d.usage > 95 ) klass = 'OFF';
+    $('#td_value_0').attr('class',klass);
+    $('#a_value_0').attr('title',d.host+':'+d.mount+' has '+d.free.toFixed(0)+' MB free left at '+d.time+'.').text(d.usage.toFixed(0)+' %');
+
+    clearTimeout(Clock);
+    ageOfPageClock(0);
+  });
+
 }

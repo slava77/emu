@@ -1,5 +1,4 @@
 table { width: 100%; background-color:#ffffff; border-collapse: separate; }
-//td.WARN { background-color:#ffff22; }
 td, th { color:#000000; font-size:90%; }
 th { background-color:#dddddd; width:20%; }
 td { background-color:#eeeeee; text-align:center; }

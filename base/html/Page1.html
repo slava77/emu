@@ -2,18 +2,26 @@
   <head>
     <title>Emu Page 1</title>
   </head>
-  <frameset cols="320,*" border="1">
+  <frameset cols="320,*">
 
     <!--     <frameset cols="25%,25%,25%,25%" frameborder="no"> -->
-    <frameset rows="8%,23%,23%,23%,23%" border="1">
-      <frame name="PCMgr" marginwidth="0px" marginheight="0px" src="http://csc-sv.cms:20010/urn:xdaq-application:lid=60/ForEmuPage1"/>
+    <!--     <frameset rows="10%,10%,28%,26%,26%" border="1"> -->
+    <frameset rows="10%,10%,24%,8%,24%,24%" border="1">
       <frame name="PCMon1" marginwidth="0px" marginheight="0px" src="http://csc-dcs-pc1.cms:20040/urn:xdaq-application:lid=30/ForEmuPage1"/>
       <frame name="PCMon2" marginwidth="0px" marginheight="0px" src="http://csc-dcs-pc2.cms:20040/urn:xdaq-application:lid=30/ForEmuPage1"/>
       <frame name="FED" marginwidth="0px" marginheight="0px" src="http://csc-sv.cms:20101/urn:xdaq-application:lid=66/ForEmuPage1"/>
+      <frame name="Disks" marginwidth="0px" marginheight="0px" src="http://csc-daq00.cms:9941/emu/base/html/DAQ_Disks.xml"/>
       <frame name="DAQ" marginwidth="0px" marginheight="0px" src="http://csc-daq00.cms:20200/urn:xdaq-application:class=emu::daq::manager::Application,instance=0/ForEmuPage1"/>
+      <frame name="DQM" marginwidth="0px" marginheight="0px" src="http://csc-dqm.cms:20550/urn:xdaq-application:lid=1450/ForEmuPage1"/>
     </frameset>
 
-    <frame name="Hotspot" marginwidth="0px" marginheight="0px" src="https://xdaq.web.cern.ch/xdaq/xmas/hotspot"/>
-    <!-- <frame name="FED" marginwidth="0px" marginheight="0px" src="http://csc-sv.cms:20101/urn:xdaq-application:lid=66/ForEmuPage1"/> -->
+    <frameset rows="8%,*">
+      <frameset cols="33%,33%,*" border="1">
+	<frame name="PCMgr" marginwidth="0px" marginheight="0px" src="http://csc-sv.cms:20010/urn:xdaq-application:lid=60/ForEmuPage1"/>
+	<frame name="PCSrv1" marginwidth="0px" marginheight="0px" src="http://csc-dcs-pc1.cms:20070/urn:xdaq-application:lid=70/ForEmuPage1"/>
+	<frame name="PCSrv2" marginwidth="0px" marginheight="0px" src="http://csc-dcs-pc2.cms:20070/urn:xdaq-application:lid=70/ForEmuPage1"/>
+      </frameset>
+      <frame name="Hotspot" marginwidth="0px" marginheight="0px" src="https://xdaq.web.cern.ch/xdaq/xmas/hotspot"/>
+    </frameset>
   </frameset>
 </html>
