@@ -58,4 +58,10 @@
     <RUI instance="35" schar="4" status='in'/>
     <RUI instance="36" schar="5" status='in'/>
   </computer>
+  <computer host="csc-c2d07-14.cms" alias="csc-c2d07-14.cms">
+    <RUI instance="37" schar="2" status='out'/>
+    <RUI instance="38" schar="3" status='out'/>
+    <RUI instance="39" schar="4" status='out'/>
+    <RUI instance="40" schar="5" status='out'/>
+  </computer>
 </RUI-to-computer_mapping>
