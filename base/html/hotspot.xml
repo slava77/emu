@@ -361,7 +361,7 @@
     </view>
   </view>
 
-  <view label="Chambers" image="http://csc-c2d07-08.cms:9999/emu/base/html/CSC.png">
+  <view label="Chambers" image="http://csc-c2d07-08.cms:9999/emu/base/images/CSC.png">
     <view label="Endcap +">
       <view label="Station 1">
 	<view label="Ring 1">
