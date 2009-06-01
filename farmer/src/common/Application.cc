@@ -782,7 +782,7 @@ void emu::farmer::Application::editorWebPage(xgi::Input *in, xgi::Output *out)
 	//for ( map<string,string>::const_iterator nv = nameValue.begin(); nv != nameValue.end(); ++nv )
 	//  cout << nv->first << " " << nv->second << endl;
 	editedMapping_ = recreateMapping( fev );
- 	*out << setProcessingInstruction( editedMapping_, "/emu/farmer/html/RUI-to-computer_mapping_XSLT.xml" );
+ 	*out << setProcessingInstruction( editedMapping_, "/emu/farmer/html/RUI-to-computer_mapping_Verify_XSLT.xml" );
 	return;
       }
       else if ( actionNameValue["Action"] == "Reset" ){
@@ -816,7 +816,7 @@ void emu::farmer::Application::editorWebPage(xgi::Input *in, xgi::Output *out)
       }
       else{
 	// Unknown action; just display in the current mapping.
- 	*out << setProcessingInstruction( editedMapping_, "/emu/farmer/html/RUI-to-computer_mapping_XSLT.xml" );
+ 	*out << setProcessingInstruction( editedMapping_, "/emu/farmer/html/RUI-to-computer_mapping_Verify_XSLT.xml" );
 	return;
       }
     }
