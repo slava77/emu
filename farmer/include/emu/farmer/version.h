@@ -5,12 +5,12 @@
 
 namespace emufarmer {
 	const std::string package     = "emufarmer";
-	const std::string versions    = "07.00.00";
+	const std::string versions    = "07.05.00";
 	const std::string description = "Emu (CSC) Farmer";
 
-	const std::string summary     = "emu/supervisor";
+	const std::string summary     = "emu/farmer";
 	const std::string authors     = "K. Banicz";
-	const std::string link        = "http://localhost:20399/";
+	const std::string link        = "http://host:20399/";
 
 	config::PackageInfo getPackageInfo();
 	void checkPackageDependencies()
