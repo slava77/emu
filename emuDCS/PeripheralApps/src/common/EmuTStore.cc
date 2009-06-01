@@ -900,6 +900,7 @@ void EmuTStore::readTMB(const std::string &connectionID, const std::string &emu_
       if (*column == "REQUEST_L1A"                  ) {tmb_->SetRequestL1a(IntValue);                }
       if (*column == "IGNORE_CCB_STARTSTOP"         ) {tmb_->SetIgnoreCcbStartStop(IntValue);        }
       if (*column == "ALCT_CLOCK_EN_USE_CCB"        ) {tmb_->SetEnableAlctUseCcbClock(IntValue);     }
+      if (*column == "ALCT_POSNEG"                  ) {tmb_->SetAlctPosNeg(IntValue);                }
       if (*column == "ALCT_TX_CLOCK_DELAY"          ) {tmb_->SetAlctTXclockDelay(IntValue);          }
       if (*column == "ALCT_RX_CLOCK_DELAY"          ) {tmb_->SetAlctRXclockDelay(IntValue);          }
       if (*column == "DMB_TX_DELAY"                 ) {tmb_->SetDmbTxDelay(IntValue);                }
