@@ -1076,43 +1076,45 @@ throw (toolbox::fsm::exception::Exception)
     nbCreditsHeld_ = 0;
 }
 
-
 void emu::daq::ta::Application::failAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
     try
     {
+      if ( typeid(*event) == typeid(toolbox::fsm::FailedEvent) ){
         toolbox::fsm::FailedEvent &failedEvent =
             dynamic_cast<toolbox::fsm::FailedEvent&>(*event);
         xcept::Exception exception = failedEvent.getException();
 
         stringstream oss;
-        string       s;
+        oss << "Failure occurred when performing transition from "
+	    << failedEvent.getFromState() << " to " << failedEvent.getToState()
+	    << "; Exception history: " << xcept::stdformat_exception_history(exception);
 
-        oss << "Failure occurred when performing transition from: ";
-        oss << failedEvent.getFromState();
-        oss <<  " to: ";
-        oss << failedEvent.getToState();
-        oss << " exception history: ";
-        oss << xcept::stdformat_exception_history(exception);
-        s = oss.str();
-
-        LOG4CPLUS_FATAL(logger_, s);
-        stringstream ss4;
-        ss4 <<  s;
-        XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss4.str() );
+        LOG4CPLUS_FATAL(logger_, oss.str() );
+        XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, oss.str() );
         this->notifyQualified( "fatal", eObj );
-    }
-    catch(bad_cast)
-    {
-        LOG4CPLUS_FATAL(logger_, "Moving to Failed state");
-        stringstream ss5;
-        ss5 <<  "Moving to Failed state";
-        XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss5.str() );
-        this->notifyQualified( "fatal", eObj );
+      }
+    }catch( xcept::Exception& e ){
+      stringstream ss27;
+      ss27 <<  "Caught exception while moving to Failed state: " << xcept::stdformat_exception_history(e);
+      LOG4CPLUS_FATAL(logger_, ss27.str() );
+      XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss27.str() );
+      this->notifyQualified( "fatal", eObj );
+    }catch( std::exception& e ){
+      stringstream ss27;
+      ss27 <<  "Caught exception while moving to Failed state: " << e.what();
+      LOG4CPLUS_FATAL(logger_, ss27.str() );
+      XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss27.str() );
+      this->notifyQualified( "fatal", eObj );
+    }catch(...){
+      stringstream ss27;
+      ss27 <<  "Caught an unknown exception while moving to Failed state.";
+      LOG4CPLUS_FATAL(logger_, ss27.str() );
+      XCEPT_DECLARE( emu::daq::ta::exception::Exception, eObj, ss27.str() );
+      this->notifyQualified( "fatal", eObj );
     }
 }
-
 
 void emu::daq::ta::Application::sendNTriggers(const unsigned int n)
 throw (emu::daq::ta::exception::Exception)
