@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.4 2009/05/21 15:30:49 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.5 2009/06/03 09:05:11 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -266,20 +266,25 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		locdata->tickTime[crateNumber] = tickText;
 
 		// Enable the IRQ and wait for something to happen for 5 seconds...
-		bool allClear;
-		try {
-			allClear = myCrate->getController()->waitIRQ(5000);
-			MY_REVOKE_ALARM("IRQThreadWait");
-		} catch (emu::fed::exception::CAENException &e) {
-			std::ostringstream error;
-			error << "Exception waiting for IRQ in crate number " << crateNumber;
-			LOG4CPLUS_FATAL(logger, error.str());
-			std::ostringstream tag;
-			tag << "FEDcrate " << myCrate->number();
-			MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadWait", "ERROR", error.str(), tag.str(), e);
-			XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-			e2.setProperty("tag", tag.str());
-			pthread_exit((void *) &e2);
+		bool allClear = true;
+		
+		if (myCrate->number() != 5) { // The regular crates will just use the IRQ as normal
+			try {
+				allClear = myCrate->getController()->waitIRQ(5000);
+				MY_REVOKE_ALARM("IRQThreadWait");
+			} catch (emu::fed::exception::CAENException &e) {
+				std::ostringstream error;
+				error << "Exception waiting for IRQ in crate number " << crateNumber;
+				LOG4CPLUS_FATAL(logger, error.str());
+				std::ostringstream tag;
+				tag << "FEDcrate " << myCrate->number();
+				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadWait", "ERROR", error.str(), tag.str(), e);
+				XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
+				e2.setProperty("tag", tag.str());
+				pthread_exit((void *) &e2);
+			}
+		} else { // The TF crate will, for now, fake the IRQ and just sleep
+			sleep((unsigned int) 5);
 		}
 
 
@@ -408,32 +413,39 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 				
 			}
 			
-			continue;
+			// This is the end of non-TF checks, but the TF has to fake the IRQ data for now
+			if (myCrate->number() != 5) continue;
 		}
 
 		// We have an error!
 
 		// Read out the error information into a local variable.
 		uint16_t errorData = 0;
-		try {
-			errorData = myCrate->getController()->readIRQ();
-			MY_REVOKE_ALARM("IRQThreadReadIRQ");
-		} catch (emu::fed::exception::CAENException &e) {
-			std::ostringstream error;
-			error << "Exception reading IRQ for crate number " << crateNumber;
-			LOG4CPLUS_FATAL(logger, error.str());
-			std::ostringstream tag;
-			tag << "FEDcrate " << crateNumber;
-			MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadReadIRQ", "ERROR", error.str(), tag.str(), e);
-			XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
-			e2.setProperty("tag", tag.str());
-			pthread_exit((void *) &e2);
+		
+		if (myCrate->number() == 5) { // Only try to read the IRQ for normal FED crates
+			try {
+				errorData = myCrate->getController()->readIRQ();
+				MY_REVOKE_ALARM("IRQThreadReadIRQ");
+			} catch (emu::fed::exception::CAENException &e) {
+				std::ostringstream error;
+				error << "Exception reading IRQ for crate number " << crateNumber;
+				LOG4CPLUS_FATAL(logger, error.str());
+				std::ostringstream tag;
+				tag << "FEDcrate " << crateNumber;
+				MY_RAISE_ALARM_NESTED(emu::fed::exception::FMMThreadException, "IRQThreadReadIRQ", "ERROR", error.str(), tag.str(), e);
+				XCEPT_DECLARE_NESTED(emu::fed::exception::FMMThreadException, e2, error.str(), e);
+				e2.setProperty("tag", tag.str());
+				pthread_exit((void *) &e2);
+			}
+		} else { // The TF crate has to fake this data for now
+			errorData = (2 << 8);
 		}
 
 		// In which slot did the error occur?  Get the DDU that matches.
 		DDU *myDDU = NULL;
+		unsigned int targetSlot = ((errorData & 0x1f00) >> 8);
 		for (std::vector<DDU *>::iterator iDDU = dduVector.begin(); iDDU != dduVector.end(); iDDU++) {
-			if ((*iDDU)->slot() == (unsigned int) ((errorData & 0x1f00) >> 8)) {
+			if ((*iDDU)->slot() == targetSlot) {
 				locdata->lastDDU[crateNumber] = (*iDDU)->slot();
 				myDDU = (*iDDU);
 				break;
@@ -452,6 +464,12 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 			unsigned int cscStatus = myDDU->readCSCStatus();
 			unsigned int advStatus = myDDU->readAdvancedFiberErrors();
 			unsigned int xorStatus = (cscStatus | advStatus)^lastError[myDDU->slot()];
+			
+			// Moved this up and got rid of report so that the TF log doesn't explode
+			if (!xorStatus) {
+				//LOG4CPLUS_INFO(logger, "No CSC or DDU errors detected...  Ignoring interrupt");
+				continue;
+			}
 
 			// What type of error did I see?
 			bool hardError = (errorData & 0x8000);
@@ -496,11 +514,6 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 
 			LOG4CPLUS_INFO(logger, cscsWithHardError << " CSCs on this DDU have hard errors");
 			LOG4CPLUS_INFO(logger, cscsWithSyncError << " CSCs on this DDU have sync errors");
-
-			if (!xorStatus) {
-				LOG4CPLUS_INFO(logger, "No CSC or DDU errors detected...  Ignoring interrupt");
-				continue;
-			}
 
 			std::vector<std::string> trapInfo = DDUDebugger::DDUDebugTrap(myDDU->readDebugTrap(DDUFPGA), myDDU);
 			std::ostringstream trapStream;
