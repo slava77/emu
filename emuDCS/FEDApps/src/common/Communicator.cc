@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.8 2009/05/26 11:59:56 paste Exp $
+* $Id: Communicator.cc,v 1.9 2009/06/03 09:18:34 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -939,9 +939,9 @@ throw (toolbox::fsm::exception::Exception)
 	delete TM_;
 	TM_ = new IRQThreadManager(this, fmmErrorThreshold_);
 	TM_->setSystemName(systemName_);
-	for (unsigned int i=0; i<crateVector_.size(); i++) {
-		if (crateVector_[i]->number() > 4) continue; // Don't monitor TF crates!
-		TM_->attachCrate(crateVector_[i]);
+	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
+		//if ((*iCrate)->number() > 4) continue; // Don't monitor TF crates!
+		TM_->attachCrate(*iCrate);
 	}
 	// PGK We now have the run number from CSCSV
 	try {
