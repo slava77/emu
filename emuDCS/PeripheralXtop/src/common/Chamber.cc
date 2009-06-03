@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.8 2009/05/30 09:14:44 liu Exp $
+// $Id: Chamber.cc,v 1.9 2009/06/03 01:37:50 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.9  2009/06/03 01:37:50  liu
+// don't send data if can't read the crate or chamber
+//
 // Revision 1.8  2009/05/30 09:14:44  liu
 // update
 //
@@ -78,10 +81,11 @@ void Chamber::Fill(char *buffer, int source)
        {
           old_time_lv = states_bk[1];
           old_time_temp = states_bk[1];
+          ready_ = true;
        }
        else
-       {   // "Ready" only when the real readings available
-          ready_ = true;
+       {
+          ready_ = states[0];
        }
    }
    if(source)
