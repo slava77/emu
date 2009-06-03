@@ -215,6 +215,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsAndDAVsForChamber,"MeasureL1AsAndDAVsForChamber");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureL1AsForCrate,"MeasureL1AsForCrate");
   xgi::bind(this,&EmuPeripheralCrateConfig::MeasureDAVsForCrate,"MeasureDAVsForCrate");
+  xgi::bind(this,&EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForCrate,"MeasureALCTTMBRxTxForCrate");
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::MPCLoadFirmware, "MPCLoadFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::StartPRBS, "StartPRBS");
@@ -295,6 +296,7 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckTMBFirmware, "CheckTMBFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::ClearTMBBootReg, "ClearTMBBootReg");
   xgi::bind(this,&EmuPeripheralCrateConfig::UnjamTMB, "UnjamTMB");  
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckAbilityToLoadALCT, "CheckAbilityToLoadALCT");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadALCTFirmware, "LoadALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadCrateALCTFirmware, "LoadCrateALCTFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::LoadRATFirmware, "LoadRATFirmware");
@@ -441,7 +443,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MPCRegisterValue_ = -1;
   MPCRegisterWrite_ = -1;
   MPCWriteValue_ = -1;
-
+  //
+  able_to_load_alct = -1;
+  //
   Operator_ = "Operator";
   RunNumber_= "-1";
   CalibrationState_ = "None";
@@ -1660,6 +1664,13 @@ void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output *
   std::string MeasureDAVsForCrate = toolbox::toString("/%s/MeasureDAVsForCrate",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",MeasureDAVsForCrate) << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Find DAV delays for crate") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string MeasureALCTTMBRxTxForCrate = toolbox::toString("/%s/MeasureALCTTMBRxTxForCrate",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",MeasureALCTTMBRxTxForCrate) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Find ALCT rx/tx for crate") << std::endl ;
   *out << cgicc::form() << std::endl ;
   *out << cgicc::td();
   //
@@ -5333,6 +5344,28 @@ void EmuPeripheralCrateConfig::MeasureDAVsForCrate(xgi::Input * in, xgi::Output 
     MyTest[i][current_crate_].SetupRadioactiveTriggerConditions();
     MyTest[i][current_crate_].FindDAVDelays();
     MyTest[i][current_crate_].ReturnToInitialTriggerConditions();
+    MyTest[i][current_crate_].RedirectOutput(&std::cout);
+  }
+  //
+  this->CrateConfiguration(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::MeasureALCTTMBRxTxForCrate(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Find ALCT rx/tx phase delays for Crate" << std::endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Find ALCT rx/tx phase delays for the crate");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
+    //
+    
+    std::cout << "crate = " << current_crate_ << ", TMB " << i << std::endl;
+    //
+    MyTest[i][current_crate_].RedirectOutput(&ALCT_TMB_communicationOutput[i][current_crate_]);
+    MyTest[i][current_crate_].ALCT_TMB_Loopback();
     MyTest[i][current_crate_].RedirectOutput(&std::cout);
   }
   //
@@ -11872,16 +11905,23 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::table();
   //
-  for (unsigned i=0; i<tmbVector.size(); i++) {
-    //
-    if (number_of_tmb_firmware_errors[i] < 1) {
-      *out << cgicc::span().set("style","color:black");
-    } else {
-      *out << cgicc::span().set("style","color:red");
+  bool print_it = false;
+  for (int j=0;j<9;j++) 
+    if (number_of_tmb_firmware_errors[j] >= 0) 
+      print_it = true;
+  //
+  if (print_it) {
+    for (unsigned i=0; i<tmbVector.size(); i++) {
+      //
+      if (number_of_tmb_firmware_errors[i] < 1) {
+	*out << cgicc::span().set("style","color:black");
+      } else {
+	*out << cgicc::span().set("style","color:red");
+      }
+      *out << "Number of firmware verify errors for TMB in slot " << tmbVector[i]->slot() 
+	   << " = " << number_of_tmb_firmware_errors[i] << cgicc::br() << std::endl;
+      *out << cgicc::span() << std::endl ;
     }
-    *out << "number of TMB firmware verification errors for slot" << tmbVector[i]->slot() << " = " 
-	 << number_of_tmb_firmware_errors[i] << cgicc::br() << std::endl;
-    *out << cgicc::span() << std::endl ;
   }
   //
   std::string CCBHardResetFromTMBPage = toolbox::toString("/%s/CCBHardResetFromTMBPage",getApplicationDescriptor()->getURN().c_str());
@@ -11916,45 +11956,31 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   //
   if (alct) {
     *out << "ALCT: " << cgicc::br() << std::endl;
-    //    int i = tmb;
-    for (unsigned i=0; i<tmbVector.size(); i++) {
-      //
-      int check_value = tmbVector[i]->alctController()->CheckFirmwareConfiguration();
-      //
-      if (check_value == 1) {
-	*out << cgicc::span().set("style","color:black");
-      } else if (check_value == 0) {
-	*out << cgicc::span().set("style","color:red");
-	*out << "Note:  Firmware database check FAILED....  Hence, the button below will not load " << std::endl;
-      } else if (check_value == -1) {
-	*out << cgicc::span().set("style","color:blue");
-      } else {
-	*out << cgicc::span().set("style","color:green");
-      }
-      *out << "firmware version for slot " << tmbVector[i]->slot() << " = " << ALCTFirmware_[i].toString() << cgicc::br() << std::endl;
-      *out << cgicc::span() << std::endl ;
-      //
-      if (number_of_tmb_firmware_errors[i] < 1) {
-	*out << cgicc::span().set("style","color:black");
-      } else {
-	*out << cgicc::span().set("style","color:red");
-      }
-      *out << "number of ALCT firmware verification errors for slot" << tmbVector[i]->slot() << " = " 
-	   << number_of_alct_firmware_errors[i] << cgicc::br() << std::endl;
-      *out << cgicc::span() << std::endl ;
-
-    }
+  *out << "firmware version = " << ALCTFirmware_[tmb].toString() << ".xsvf" << cgicc::br() << std::endl;
     //
     *out << cgicc::br() << std::endl;
     //
     *out << "Step 1)  Disable DCS monitoring to crates" << cgicc::br() << std::endl;
+    //
+    std::string CheckAbilityToLoadALCT = toolbox::toString("/%s/CheckAbilityToLoadALCT",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CheckAbilityToLoadALCT) << std::endl ;
+    //
+    if ( able_to_load_alct < 0 ) {
+      *out << cgicc::input().set("type","submit").set("value","Step 2) ALCT firmware loading check").set("style","color:blue");
+    } else if ( able_to_load_alct == 0 ) {
+      *out << cgicc::input().set("type","submit").set("value","Step 2) ALCT firmware loading check").set("style","color:green");
+    } else {
+      *out << cgicc::input().set("type","submit").set("value","Step 2) ALCT firmware loading check").set("style","color:red");
+    }
+    *out << cgicc::form() << std::endl ;
+    //
     //
     *out << cgicc::table().set("border","0");
     //
     *out << cgicc::td().set("ALIGN","left");
     std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
-    sprintf(buf,"Step 2) Load Firmware for ALCT in slot %d",tmbVector[tmb]->slot());
+    sprintf(buf,"Step 3) Load Firmware for ALCT in slot %d",tmbVector[tmb]->slot());
     *out << cgicc::input().set("type","submit").set("value",buf) << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
@@ -11968,15 +11994,33 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
     *out << cgicc::td().set("ALIGN","left");
     std::string LoadCrateALCTFirmware = toolbox::toString("/%s/LoadCrateALCTFirmware",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",LoadCrateALCTFirmware) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Step 2) Load firmware (serially) to all ALCTs in this crate") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Step 3) Load firmware (serially) to all ALCTs in this crate") << std::endl ;
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     *out << cgicc::td();
     //
     *out << cgicc::table();
     //
+    print_it = false;
+    for (int j=0;j<9;j++) 
+      if (number_of_alct_firmware_errors[j] >= 0) 
+	print_it = true;
+    //
+    if (print_it) {
+      for (unsigned i=0; i<tmbVector.size(); i++) {
+	if (number_of_alct_firmware_errors[i] < 1) {
+	  *out << cgicc::span().set("style","color:black");
+	} else {
+	  *out << cgicc::span().set("style","color:red");
+	}
+	*out << "Number of firmware verify errors for ALCT in slot " << tmbVector[i]->slot() 
+	     << " = " << number_of_alct_firmware_errors[i] << cgicc::br() << std::endl;
+	*out << cgicc::span() << std::endl ;
+      }
+    }
+    //
     *out << cgicc::form().set("method","GET").set("action",CCBHardResetFromTMBPage) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Step 3) CCB hard reset") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Step 4) CCB hard reset") << std::endl ;
     *out << cgicc::form() << std::endl ;
   }
   //
@@ -12247,29 +12291,29 @@ void EmuPeripheralCrateConfig::TMBUtils(xgi::Input * in, xgi::Output * out )
   *out << cgicc::td();
   //
   //////////////////////////////////////////////
-  //  *out << cgicc::tr();
-  //  //
-  //  *out << cgicc::td().set("ALIGN","left");
-  //  *out << "Raw Hits";
-  //  *out << cgicc::td();
-  //  //
-  //  *out << cgicc::td().set("ALIGN","left");
-  //  std::string TMBRawHits = toolbox::toString("/%s/TMBRawHits",getApplicationDescriptor()->getURN().c_str());
-  //  *out << cgicc::form().set("method","GET").set("action",TMBRawHits) ;
-  //  *out << cgicc::input().set("type","submit").set("value","Read TMB Raw Hits") ;
-  //  sprintf(buf,"%d",tmb);
-  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  //  *out << cgicc::form() << std::endl ;
-  //  *out << cgicc::td();
-  //  //
-  //  *out << cgicc::td().set("ALIGN","left");
-  //  std::string ALCTRawHits = toolbox::toString("/%s/ALCTRawHits",getApplicationDescriptor()->getURN().c_str());
-  //  *out << cgicc::form().set("method","GET").set("action",ALCTRawHits) ;
-  //  *out << cgicc::input().set("type","submit").set("value","Read ALCT Raw Hits") ;
-  //  sprintf(buf,"%d",tmb);
-  //  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-  //  *out << cgicc::form() << std::endl ;
-  //  *out << cgicc::td();
+  *out << cgicc::tr();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  *out << "Raw Hits";
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string TMBRawHits = toolbox::toString("/%s/TMBRawHits",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBRawHits) ;
+  *out << cgicc::input().set("type","submit").set("value","Read TMB Raw Hits") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td().set("ALIGN","left");
+  std::string ALCTRawHits = toolbox::toString("/%s/ALCTRawHits",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ALCTRawHits) ;
+  *out << cgicc::input().set("type","submit").set("value","Read ALCT Raw Hits") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
   //
   //--------------------------------------------------------
   *out << cgicc::table();
@@ -12556,11 +12600,12 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   thisTMB->ProgramTMBProms();
   thisTMB->ClearXsvfFilename();
   //
+  delete thisTMB;
+  //
   if (!typeA_only) {
     for (unsigned ntmb=0;ntmb<(tmbVector.size()<9 ? 9 : tmbVector.size());ntmb++) {
       //
       if (!tmbVector[ntmb]->GetClctStagger()) {
-	number_of_tmb_firmware_errors[ntmb]=-1;
 	std::cout << "Loading TMB firmware " << TMBFirmware_[ntmb].toString()
 		  << " to slot " << tmbVector[ntmb]->slot() << " in 5 seconds..." << std::endl;
 	::sleep(5);
@@ -12568,7 +12613,7 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
 	tmbVector[ntmb]->SetXsvfFilename(TMBFirmware_[ntmb].toString().c_str());
 	tmbVector[ntmb]->ProgramTMBProms();
 	tmbVector[ntmb]->ClearXsvfFilename();
-	number_of_tmb_firmware_errors[ntmb] = thisTMB->GetNumberOfVerifyErrors();
+	number_of_tmb_firmware_errors[ntmb] = tmbVector[ntmb]->GetNumberOfVerifyErrors();
       }
     }
   }
@@ -12665,6 +12710,35 @@ void EmuPeripheralCrateConfig::UnjamTMB(xgi::Input * in, xgi::Output * out )
 }
 //
 //
+void EmuPeripheralCrateConfig::CheckAbilityToLoadALCT(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "Check ability to load firmware for all ALCTs in this crate..." << std::endl;
+  //
+  able_to_load_alct = 0;
+  int check_value[10] = {};
+  //
+  for (unsigned i=0; i<tmbVector.size(); i++) 
+    check_value[i] = tmbVector[i]->alctController()->CheckFirmwareConfiguration();
+  //
+  // print out the results
+  //
+  for (unsigned i=0; i<tmbVector.size(); i++) {
+    //
+    std::cout << "TMB in slot " << tmbVector[i]->slot() << " ... ";
+    if (check_value[i] == 1) {
+      std::cout << "OK";
+    } else if (check_value[i] == 0) {
+      able_to_load_alct += 1;
+      std::cout << " ---> FAIL <---";
+    }
+    std::cout << std::endl;
+  }
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
 void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -12689,6 +12763,16 @@ void EmuPeripheralCrateConfig::LoadALCTFirmware(xgi::Input * in, xgi::Output * o
     std::cout << "This ALCT not defined" << std::endl;
     return;
   }
+  if (able_to_load_alct != 0) {
+    std::cout << "----------------------------------------------------------------" << std::endl;
+    std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
+    std::cout << "---- Firmware database check did not pass for this crate. ------" << std::endl;
+    std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
+    std::cout << "----------------------------------------------------------------" << std::endl;
+    return;
+  }
+  // reset the ALCT check button
+  able_to_load_alct = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
   thisCCB->setCCBMode(CCB::VMEFPGA);
@@ -12754,6 +12838,17 @@ void EmuPeripheralCrateConfig::LoadCrateALCTFirmware(xgi::Input * in, xgi::Outpu
     std::cout << "No ALCT defined to load... taking default = " << TMB_ << std::endl ;
     tmb = TMB_;
   }
+  //
+  if (able_to_load_alct != 0) {
+    std::cout << "----------------------------------------------------------------" << std::endl;
+    std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
+    std::cout << "---- Firmware database check did not pass for this crate. ------" << std::endl;
+    std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
+    std::cout << "----------------------------------------------------------------" << std::endl;
+    return;
+  }
+  // reset the ALCT check button
+  able_to_load_alct = -1;
   //
   // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
   thisCCB->setCCBMode(CCB::VMEFPGA);

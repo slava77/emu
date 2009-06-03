@@ -459,6 +459,7 @@ private:
   void MeasureL1AsAndDAVsForChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureL1AsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MeasureDAVsForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void MeasureALCTTMBRxTxForCrate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void testTMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -473,6 +474,7 @@ private:
   void CCBHardResetFromTMBPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);  
   void CheckTMBFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ClearTMBBootReg(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CheckAbilityToLoadALCT(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadCrateALCTFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LoadRATFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -553,6 +555,7 @@ private:
   //
   int number_of_alct_firmware_errors[9];
   int number_of_tmb_firmware_errors[9];
+  int able_to_load_alct;
   //
   bool print_stuff;
   char date_and_time_[13];
