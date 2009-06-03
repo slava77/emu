@@ -120,7 +120,7 @@ EmuPeripheralCrateMonitor::EmuPeripheralCrateMonitor(xdaq::ApplicationStub * s):
   fast_on = true;
   slow_on = true;
   extra_on = true;
-  reload_vcc = true;
+  reload_vcc = false;
   fast_count = 0;
   slow_count = 0;
   extra_count = 0;
