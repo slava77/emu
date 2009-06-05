@@ -12584,8 +12584,8 @@ void EmuPeripheralCrateConfig::LoadCrateTMBFirmware(xgi::Input * in, xgi::Output
   //
   // Create a TMB which all TMB's within a crate will listen to....
   //
-  Chamber * thisChamber = chamberVector[tmb];
-  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26);
+  Chamber * thisChamber = new Chamber(thisCrate);  // a dummy chamber
+  TMB * thisTMB = new TMB(thisCrate, thisChamber, 26); // must use a dummy chamber, not a real one
   //
   tmb_vme_ready = -1;
   //
