@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.8 2009/05/21 15:29:44 paste Exp $
+* $Id: Manager.cc,v 1.9 2009/06/08 19:20:53 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -355,8 +355,8 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 	inRateStream << dccInRate;
 	std::ostringstream outRateStream;
 	outRateStream << dccOutRate;
-	report.push_back(emu::base::WebReportItem("DCC Total Input Rate", inRateStream.str(), "DCC input rate totaled over all DDUs", "", "", ""));
-	report.push_back(emu::base::WebReportItem("Dcc Total Output Rate", outRateStream.str(), "DCC output rate totaled over all S-Links", "", "", ""));
+	report.push_back(emu::base::WebReportItem("DCC Total Input Rate", inRateStream.str(), "DCC input rate totaled over all DDUs (in bytes/s)", "", "", ""));
+	report.push_back(emu::base::WebReportItem("DCC Total Output Rate", outRateStream.str(), "DCC output rate totaled over all S-Links (in bytes/s)", "", "", ""));
 	
 	return report;
 }
