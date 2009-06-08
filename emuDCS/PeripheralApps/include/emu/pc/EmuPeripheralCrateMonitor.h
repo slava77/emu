@@ -47,16 +47,9 @@
 #include "emu/pc/Crate.h"
 #include "emu/pc/DAQMB.h"
 #include "emu/pc/TMB.h"
-#include "emu/pc/TMBTester.h"
 #include "emu/pc/CCB.h"
 #include "emu/pc/MPC.h"
-#include "emu/pc/TMBTester.h"
-#include "emu/pc/ALCTController.h"
-#include "emu/pc/RAT.h"
-#include "emu/pc/ChamberUtilities.h"
-//#include "emu/pc/geom.h"
-#include "emu/pc/CrateUtilities.h"
-#include "emu/pc/CalibDAQ.h"
+// #include "emu/pc/ALCTController.h"
 #include "emu/pc/EmuEndcap.h"
 //
 #include "emu/pc/EmuPeripheralCrateBase.h"
@@ -101,7 +94,6 @@ protected:
   int tmb_vme_ready;
   //
   std::vector<TMB*>   tmbVector;
-  std::vector<TMBTester>   tmbTestVector;
   std::vector<DAQMB*> dmbVector;
   std::vector<Crate*> crateVector;
   std::vector<Chamber*> chamberVector;
@@ -215,6 +207,7 @@ private:
   // for EmuPage1
   //
   void ForEmuPage1(xgi::Input *in, xgi::Output *out) throw (xgi::exception::Exception);
+  void msgHandler(std::string msg, int msglevel=0);
 };
 
   } // namespace emu::pc

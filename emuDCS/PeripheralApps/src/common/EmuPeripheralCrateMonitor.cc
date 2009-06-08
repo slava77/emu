@@ -168,7 +168,7 @@ void EmuPeripheralCrateMonitor::ReadingOn()
          }
          PCsendCommand("MonitorStart","emu::pc::EmuPeripheralCrateTimer");
          Monitor_On_=true;
-         std::cout<< "Monitor Reading On" << std::endl;
+         msgHandler("Monitor Reading On", 1);
      }
      fireEvent("Enable");
 }
@@ -179,7 +179,7 @@ void EmuPeripheralCrateMonitor::ReadingOff()
      {
          PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateTimer");
          Monitor_On_=false;
-         std::cout << "Monitor Reading Off" << std::endl;
+         msgHandler("Monitor Reading Off", 1);
      }
      fireEvent("Halt");
 }
@@ -3007,7 +3007,7 @@ void EmuPeripheralCrateMonitor::CrateStatus(xgi::Input * in, xgi::Output * out )
   void EmuPeripheralCrateMonitor::CheckCrates(xgi::Input * in, xgi::Output * out )
     throw (xgi::exception::Exception)
   {  
-    std::cout << "Button: Check Crate Controllers" << std::endl;
+    msgHandler("Button: Check Crate Controllers", 0);
     check_controllers();
     this->Default(in, out);
   }
@@ -3290,6 +3290,13 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     IsErrCounter[27]=1;
 #endif
 
+}
+
+void EmuPeripheralCrateMonitor::msgHandler(std::string msg, int msglevel)
+{
+     std::string logmsg = getLocalDateTime() + " " + msg;
+     if(msglevel>0) LOG4CPLUS_INFO(getApplicationLogger(), logmsg);
+     std::cout << logmsg << std::endl;
 }
 
 void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)

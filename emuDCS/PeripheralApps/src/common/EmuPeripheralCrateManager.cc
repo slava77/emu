@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.18 2009/05/18 13:34:50 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.19 2009/06/08 13:55:33 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -143,9 +143,7 @@ void EmuPeripheralCrateManager::MyHeader(xgi::Input * in, xgi::Output * out, std
 xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message ConfigCalCFEB";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message ConfigCalCFEB");
   page1_state_ = 1;
 
   PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
@@ -158,9 +156,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::Message
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message EnableCalCFEBCrossTalk";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message EnableCalCFEBCrossTalk");
   page1_state_ = 3;
 
   PCsendCommand("EnableCalCFEBCrossTalk","emu::pc::EmuPeripheralCrateBroadcast");
@@ -172,9 +168,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBSCAPed (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message EnableCalCFEBSCAPed";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message EnableCalCFEBSCAPed");
   page1_state_ = 3;
 
   PCsendCommand("EnableCalCFEBSCAPed","emu::pc::EmuPeripheralCrateBroadcast");
@@ -186,9 +180,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBSCAPed (xoap::M
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGains (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message EnableCalCFEBGains";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message EnableCalCFEBGains");
   page1_state_ = 3;
 
   PCsendCommand("EnableCalCFEBGains","emu::pc::EmuPeripheralCrateBroadcast");
@@ -200,9 +192,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGains (xoap::Me
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message EnableCalCFEBComparator";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message EnableCalCFEBComparator");
   page1_state_ = 3;
 
   PCsendCommand("EnableCalCFEBComparator","emu::pc::EmuPeripheralCrateBroadcast");
@@ -214,9 +204,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoa
 xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message Configure";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message Configure");
   page1_state_ = 1;
 
   PCsendCommand("MonitorStop","emu::pc::EmuPeripheralCrateMonitor");
@@ -232,9 +220,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageRefe
 xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message Enable";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message Enable");
   page1_state_ = 2;
 
   PCsendCommand("Enable","emu::pc::EmuPeripheralCrateCommand");
@@ -249,9 +235,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReferen
 xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message Disable";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message Disable");
   page1_state_ = 1;
 
   PCsendCommand("Disable","emu::pc::EmuPeripheralCrateCommand");
@@ -266,9 +250,7 @@ xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageRefere
 xoap::MessageReference EmuPeripheralCrateManager::onHalt (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
 
-  std::string logmessage=getLocalDateTime() + " Get SOAP message Halt";
-  LOG4CPLUS_INFO(getApplicationLogger(), logmessage);
-  std::cout << logmessage << std::endl;
+  msgHandler("Get SOAP message Halt");
   page1_state_ = 0;
 
   PCsendCommand("Halt","emu::pc::EmuPeripheralCrateCommand");
@@ -278,6 +260,13 @@ xoap::MessageReference EmuPeripheralCrateManager::onHalt (xoap::MessageReference
   fireEvent("Halt");
   //
   return createReply(message);
+}
+
+void EmuPeripheralCrateManager::msgHandler(std::string msg)
+{
+     std::string logmsg = getLocalDateTime() + " " + msg;
+     LOG4CPLUS_INFO(getApplicationLogger(), logmsg);
+     std::cout << logmsg << std::endl;
 }
 
 void EmuPeripheralCrateManager::ForEmuPage1(xgi::Input *in, xgi::Output *out)

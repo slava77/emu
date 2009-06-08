@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.4 2009/05/18 13:34:50 liu Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.5 2009/06/08 13:55:32 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -50,6 +50,7 @@ public:
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void ForEmuPage1(xgi::Input *in, xgi::Output *out) throw (xgi::exception::Exception);
+  void msgHandler(std::string msg);
   //
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
