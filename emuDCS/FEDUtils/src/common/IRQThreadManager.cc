@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.5 2009/06/03 09:05:11 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.6 2009/06/08 11:07:24 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -422,7 +422,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		// Read out the error information into a local variable.
 		uint16_t errorData = 0;
 		
-		if (myCrate->number() == 5) { // Only try to read the IRQ for normal FED crates
+		if (myCrate->number() != 5) { // Only try to read the IRQ for normal FED crates
 			try {
 				errorData = myCrate->getController()->readIRQ();
 				MY_REVOKE_ALARM("IRQThreadReadIRQ");
