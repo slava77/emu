@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.6 2009/06/08 11:07:24 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.7 2009/06/08 17:08:52 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -266,7 +266,7 @@ void *emu::fed::IRQThreadManager::IRQThread(void *data)
 		locdata->tickTime[crateNumber] = tickText;
 
 		// Enable the IRQ and wait for something to happen for 5 seconds...
-		bool allClear = true;
+		bool allClear = false;
 		
 		if (myCrate->number() != 5) { // The regular crates will just use the IRQ as normal
 			try {
