@@ -1,9 +1,10 @@
 /*****************************************************************************\
-* $Id: FiberParser.cc,v 1.2 2009/05/29 11:25:09 paste Exp $
+* $Id: FiberParser.cc,v 1.3 2009/06/08 19:17:14 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/FiberParser.h"
 
 #include <sstream>
+#include <boost/regex.hpp>
 
 #include "emu/fed/Fiber.h"
 
@@ -45,11 +46,26 @@ Parser(pNode)
 	unsigned int number = 0;
 
 	// Check normal station name first
-	if (sscanf(chamberName.c_str(), "%*c%1u/%1u/%02u", &station, &ring, &number) == 3) {
-		endcap = chamberName.substr(0,1);
-	// Else it's probably an SP, so check that
-	} else if (sscanf(chamberName.c_str(), "SP%02u", &number) == 1) {
-		endcap = (number <= 6) ? "+" : "-";
+	boost::regex chamberRegex("([+\\-])(\\d)/(\\d)/(\\d{2})");
+	boost::smatch chamberMatch;
+	if (boost::regex_match(chamberName, chamberMatch, chamberRegex)) {
+		// Parse the text as numbers
+		endcap = chamberMatch[1];
+		std::istringstream parseMe(chamberMatch[2]);
+		parseMe >> station;
+		parseMe.str(chamberMatch[3]);
+		parseMe >> ring;
+		parseMe.str(chamberMatch[4]);
+		parseMe >> number;
+	} else {
+		// Now check SPs
+		boost::regex spRegex("SP[+\\-]?(\\d{2})");
+		boost::smatch spMatch;
+		if (boost::regex_match(chamberName, spMatch, spRegex)) {
+			std::istringstream parseMe(spMatch[1]);
+			parseMe >> number;
+			endcap = (number <= 6) ? "+" : "-";
+		}
 	}
 	
 	// Set names now.
