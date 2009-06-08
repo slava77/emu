@@ -39,7 +39,7 @@
 			<sql:parameter name="CRATE_ID" bind="yes">
 				<![CDATA[]]>
 			</sql:parameter>
-			<![CDATA[select EMU_FED_DDUS.ID, EMU_FED_DDUS.SLOT, EMU_FED_DDUS.RUI, EMU_FED_DDUS.FMM_ID, EMU_FED_DDUS.ENABLE_FORCE_CHECKS, EMU_FED_DDUS.FORCE_ALCT_CHECKS, EMU_FED_DDUS.FORCE_TMB_CHECKS, EMU_FED_DDUS.FORCE_CFEB_CHECKS, EMU_FED_DDUS.FORCE_NORMAL_DMB, EMU_FED_DDUS.GBE_PRESCALE from EMU_FED_CRATES inner join EMU_FED_DDUS on (EMU_FED_DDUS.KEY = EMU_FED_CRATES.KEY and EMU_FED_DDUS.CRATE_NUMBER = EMU_FED_CRATES.CRATE_NUMBER) where EMU_FED_CRATES.ID = $CRATE_ID]]>
+			<![CDATA[select EMU_FED_DDUS.ID, EMU_FED_DDUS.SLOT, EMU_FED_DDUS.RUI, EMU_FED_DDUS.FMM_ID, EMU_FED_DDUS.ENABLE_FORCE_CHECKS, EMU_FED_DDUS.FORCE_ALCT_CHECKS, EMU_FED_DDUS.FORCE_TMB_CHECKS, EMU_FED_DDUS.FORCE_CFEB_CHECKS, EMU_FED_DDUS.FORCE_NORMAL_DMB, EMU_FED_DDUS.GBE_PRESCALE, EMU_FED_DDUS.INVERT_CCB_COMMAND_SIGNALS from EMU_FED_CRATES inner join EMU_FED_DDUS on (EMU_FED_DDUS.KEY = EMU_FED_CRATES.KEY and EMU_FED_DDUS.CRATE_NUMBER = EMU_FED_CRATES.CRATE_NUMBER) where EMU_FED_CRATES.ID = $CRATE_ID]]>
 		</sql:query>
 		
 		<!-- Select the fibers/CSCs on a certain DDU given a certain DDU ID -->
@@ -302,6 +302,7 @@
 			<tstore:column name="FORCE_CFEB_CHECKS" type="bool"/>
 			<tstore:column name="FORCE_NORMAL_DMB" type="bool"/>
 			<tstore:column name="GBE_PRESCALE" type="unsigned short"/>
+			<tstore:column name="INVERT_CCB_COMMAND_SIGNALS" type="bool"/>
 			<tstore:column name="KEY" type="unsigned int 64"/>
 			<tstore:foreignkey references="EMU_FED_CONFIGURATIONS">
 				<tstore:keycolumn column="KEY" references="ID"/>

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 1.3 2009/05/21 15:30:49 paste Exp $
+* $Id: DDUParser.cc,v 1.4 2009/06/08 19:17:14 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUParser.h"
 
@@ -25,10 +25,20 @@ Parser(pNode)
 	ddu_ = new DDU(slot);
 	
 	try {
-		ddu_->rui_ = extract<uint16_t>("RUI");
+		ddu_->rui_ = extract<uint16_t>("RUI") & 0x3f;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse RUI from element";
+		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
+	}
+	
+	try {
+		if (extract<int>("INVERT_CCB_COMMAND_SIGNALS")) {
+			ddu_->rui_ = 0xc0;
+		}
+	} catch (emu::fed::exception::ParseException &e) {
+		std::ostringstream error;
+		error << "Unable to parse INVERT_CCB_COMMAND_SIGNALS from element";
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 	

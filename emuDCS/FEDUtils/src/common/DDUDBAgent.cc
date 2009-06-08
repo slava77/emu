@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDBAgent.cc,v 1.2 2009/05/22 19:25:51 paste Exp $
+* $Id: DDUDBAgent.cc,v 1.3 2009/06/08 19:17:14 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DDUDBAgent.h"
@@ -104,6 +104,7 @@ throw (emu::fed::exception::DBException)
 		xdata::Boolean bit17;
 		xdata::Boolean bit18;
 		xdata::Boolean bit19;
+		xdata::Boolean invert_ccb_signals;
 		try {
 			id.setValue(*(iRow->getField("ID"))); // only way to get a serializable to something else
 			slot.setValue(*(iRow->getField("SLOT"))); // only way to get a serializable to something else
@@ -115,12 +116,13 @@ throw (emu::fed::exception::DBException)
 			bit17.setValue(*(iRow->getField("FORCE_TMB_CHECKS"))); // only way to get a serializable to something else
 			bit18.setValue(*(iRow->getField("FORCE_CFEB_CHECKS"))); // only way to get a serializable to something else
 			bit19.setValue(*(iRow->getField("FORCE_NORMAL_DMB"))); // only way to get a serializable to something else
+			invert_ccb_signals.setValue(*(iRow->getField("INVERT_CCB_COMMAND_SIGNALS"))); // only way to get a serializable to something else
 		} catch (xdata::exception::Exception &e) {
 			XCEPT_RETHROW(emu::fed::exception::DBException, "Error finding columns", e);
 		}
 		
 		DDU *newDDU = new DDU(slot);
-		newDDU->rui_ = rui;
+		newDDU->rui_ = rui & 0x3f;
 		newDDU->fmm_id_ = fmm_id;
 		newDDU->gbe_prescale_ = gbe_prescale;
 		if (bit15) newDDU->killfiber_ |= (1 << 15);
@@ -128,6 +130,7 @@ throw (emu::fed::exception::DBException)
 		if (bit17) newDDU->killfiber_ |= (1 << 17);
 		if (bit18) newDDU->killfiber_ |= (1 << 18);
 		if (bit19) newDDU->killfiber_ |= (1 << 19);
+		if (invert_ccb_signals) newDDU->rui_ = 0xc0;
 		returnMe[id] = newDDU;
 	}
 	
