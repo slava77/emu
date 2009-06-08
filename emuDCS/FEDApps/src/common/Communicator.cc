@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.9 2009/06/03 09:18:34 paste Exp $
+* $Id: Communicator.cc,v 1.10 2009/06/08 19:20:53 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -578,6 +578,24 @@ throw (toolbox::fsm::exception::Exception)
 			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigure", "ERROR", error.str(),tag.str(), NULL, e);
 			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 		}
+		
+		// Resync now to get rid of any DCC status we might have.
+		// Don't reset crate 5 (TF)
+		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
+			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!");
+			try {
+				dccs[0]->crateResync();
+				REVOKE_ALARM("CommunicatorConfigureDCCResync", NULL);
+			} catch (emu::fed::exception::DCCException &e) {
+				std::ostringstream error;
+				error << "Resync through DCC in crate " << (*iCrate)->number() << " slot " << dccs[0]->slot() << " has failed";
+				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+				std::ostringstream tag;
+				tag << "FEDCrate " << (*iCrate)->number() << " FMM " << dccs[0]->getFMMID(); 
+				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCCResync", "ERROR", error.str(),tag.str(), NULL, e);
+				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+			}
+		}
 	}
 
 	// JRG, add loop over all DDUs in the FED Crates
@@ -886,7 +904,8 @@ throw (toolbox::fsm::exception::Exception)
 					std::ostringstream tag;
 					tag << "FEDCrate " << (*iCrate)->number() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
 					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(),tag.str(), NULL);
-					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
+					//FIXME for local running, if S-Link is not ignored, this will probably fail
+					//XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 				}
 
 			} catch (emu::fed::exception::DCCException &e) {

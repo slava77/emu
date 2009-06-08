@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.8 2009/05/29 11:21:39 paste Exp $
+* $Id: Monitor.cc,v 1.9 2009/06/08 19:20:53 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -820,7 +820,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 				status = "warning";
 				message = "1/2 full";
 			} else {
-				message = "bits/s";
+				message = "bytes/s";
 			}
 			
 			fifoObject.push_back(JSONSpirit::Pair("rate", rate));
@@ -862,7 +862,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 				status = "warning";
 				message = "backpressure";
 			} else {
-				message = "bits/s";
+				message = "bytes/s";
 			}
 				
 			slinkObject.push_back(JSONSpirit::Pair("rate", rate));

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AppsVersion.h,v 1.20 2009/06/03 09:18:34 paste Exp $
+* $Id: AppsVersion.h,v 1.21 2009/06/08 19:20:53 paste Exp $
 \*****************************************************************************/
 
 #ifndef __EMU_FED_APPSVERSION_H__
@@ -9,7 +9,7 @@
 
 namespace emuFEDApps {
 	const std::string package     = "FEDApps";
-	const std::string versions    = "07.05.01";
+	const std::string versions    = "07.05.02";
 	const std::string description = "Emu (CSC) FED XDAQ Applications";
 
 	const std::string summary     = "Applications to control and monitor the Front End Device (FED) crates for the CMS Emu (CSC) subdetector";
