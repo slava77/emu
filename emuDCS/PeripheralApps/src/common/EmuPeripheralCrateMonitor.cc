@@ -776,8 +776,10 @@ void EmuPeripheralCrateMonitor::MyHeader(xgi::Input * in, xgi::Output * out, std
   //*out << cgicc::title(title) << std::endl;
   //*out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
   //
+  std::string myUrl = getApplicationDescriptor()->getContextDescriptor()->getURL();
   std::string myUrn = getApplicationDescriptor()->getURN().c_str();
-  xgi::Utils::getPageHeader(out,title,myUrn,"","");
+  main_url_ = myUrl + "/" + myUrn + "/MainPage";
+  xgi::Utils::getPageHeader(out,title,myUrl,myUrn,"");
   //
 }
 //
@@ -1684,9 +1686,11 @@ void EmuPeripheralCrateMonitor::ChamberView(xgi::Input * in, xgi::Output * out )
 	*out <<cgicc::td();
 	*out <<cgicc::td();
 
-        if(crateVector[idx]->IsAlive()) *out << "On ";
-        else * out << "Off";
-        *out <<cgicc::td();
+        if(crateVector[idx]->IsAlive()) 
+           *out << cgicc::span().set("style","color:green") << "On " << cgicc::span();
+        else
+           *out << cgicc::span().set("style","color:red") << "Off" << cgicc::span();
+         *out <<cgicc::td();
         *out <<cgicc::td();
       }
       // chamber name
@@ -3305,7 +3309,7 @@ void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
   *out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
        << "<?xml-stylesheet type=\"text/xml\" href=\"/emu/base/html/EmuPage1_XSL.xml\"?>" << std::endl
        << "<ForEmuPage1 application=\"" << getApplicationDescriptor()->getClassName()
-       <<                   "\" url=\"" << main_url_
+       <<                   "\" url=\"" << getApplicationDescriptor()->getContextDescriptor()->getURL()
        <<         "\" localDateTime=\"" << getLocalDateTime() << "\">" << std::endl;
 
     *out << "  <monitorable name=\"" << "title"
@@ -3313,7 +3317,7 @@ void EmuPeripheralCrateMonitor::ForEmuPage1(xgi::Input *in, xgi::Output *out)
          <<  "\" nameDescription=\"" << " "
          << "\" valueDescription=\"" << " "
          <<          "\" nameURL=\"" << " "
-         <<         "\" valueURL=\"" << " "
+         <<         "\" valueURL=\"" << main_url_
          << "\"/>" << std::endl;
 
     *out << "  <monitorable name=\"" << "VME Access"
