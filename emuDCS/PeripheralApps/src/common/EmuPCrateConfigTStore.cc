@@ -45,6 +45,7 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::synchronizeToFromDB, "sync");
   xgi::bind(this,&EmuPCrateConfigTStore::SelectConfFile, "SelectConfFile");
   xgi::bind(this,&EmuPCrateConfigTStore::SetTypeDesc, "SetTypeDesc");
+  xgi::bind(this,&EmuPCrateConfigTStore::SelectTestSummaryFile, "SelectTestSummaryFile");
   xgi::bind(this,&EmuPCrateConfigTStore::incrementValue, "incrementValue");
   xgi::bind(this,&EmuPCrateConfigTStore::setValue, "setValue");
   xgi::bind(this,&EmuPCrateConfigTStore::viewValues, "viewValues");
@@ -54,8 +55,9 @@ XDAQ_INSTANTIATOR_IMPL(emu::pc::EmuPCrateConfigTStore)
   xgi::bind(this,&EmuPCrateConfigTStore::selectVersions, "selectVersions"); //select two versions to compare
   xgi::bind(this,&EmuPCrateConfigTStore::compareVersions, "compareVersions");
   xgi::bind(this,&EmuPCrateConfigTStore::selectVersion, "selectVersion"); //select one version to load
-  xgi::bind(this,&EmuPCrateConfigTStore::exportAsXML, "exportAsXML"); //select one version to load
-  
+  xgi::bind(this,&EmuPCrateConfigTStore::exportAsXML, "exportAsXML"); 
+  xgi::bind(this,&EmuPCrateConfigTStore::parseTestSummary, "parseTestSummary"); 
+  xgi::bind(this,&EmuPCrateConfigTStore::applyTestSummary, "applyTestSummary"); 	
   std::string HomeDir_ =getenv("HOME");
   xmlpath_    = HomeDir_ + "/config/pc/"; //xml file chosen must be in this directory. If you choose something in another directory then it will look for it in here and fail.
   xmlfile_    = "";
@@ -803,7 +805,8 @@ void EmuPCrateConfigTStore::outputTable(std::ostream * out,xdata::Table &results
 	if (rowCount==1) {
 		*out << "<table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">";
 		for(columnIterator=columns.begin(); columnIterator!=columns.end(); ++columnIterator) {
-			if (canChangeColumn(*columnIterator)) {
+			std::string stringValue=results.getValueAt(0,*columnIterator)->toString();
+			if (canChangeColumn(*columnIterator) && stringValue!="NaN") {
 				*out << "<tr><td>" << *columnIterator << /*(" << columnType << ")" << */ ":</td><td>";
 				outputSingleValue(out,results.getValueAt(0,*columnIterator),*columnIterator,tableName,identifier,0);
 				*out << "</tr>";
@@ -867,6 +870,12 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();
 	
+  *out << cgicc::td().set("style", "width:130px;");
+  *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/parseTestSummary",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+  *out << cgicc::input().set("type","submit").set("value","Parse Timing Scan") << std::endl;
+  *out << cgicc::form() << std::endl;
+  *out << cgicc::td();
+
 
   *out << cgicc::td().set("style", "width:130px;");
   *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/exportAsXML",getApplicationDescriptor()->getURN().c_str())) << std::endl;
@@ -951,6 +960,16 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   *out << cgicc::input().set("type","text").set("value","").set("name","ConfigDesc") << std::endl ;
   *out << cgicc::input().set("type","submit").set("value","Set Description") << std::endl ;
   *out << cgicc::form() << std::endl ;
+  
+  *out << cgicc::fieldset() << cgicc::br();
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << cgicc::legend("Timing Scan").set("style","color:blue") << std::endl ;
+
+  *out << cgicc::form().set("method","POST").set("enctype","multipart/form-data").set("action",toolbox::toString("/%s/SelectTestSummaryFile",getApplicationDescriptor()->getURN().c_str())) << std::endl ;
+  *out << cgicc::input().set("type","file").set("name","testSummaryFile").set("size","90") << std::endl;
+  *out << cgicc::input().set("type","submit").set("value","Read") << std::endl ;
+  *out << cgicc::form() << std::endl ;
 
   *out << cgicc::fieldset() << cgicc::br();
   
@@ -975,7 +994,31 @@ void EmuPCrateConfigTStore::Default(xgi::Input * in, xgi::Output * out ) throw (
     outputException(out,e);
   }
 }
-// 
+
+void EmuPCrateConfigTStore::SelectTestSummaryFile(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    try
+      {
+	std::cout << "Button: Select crate test file" << std::endl ;
+	//
+	cgicc::Cgicc cgi(in);
+	//
+	cgicc::const_file_iterator file;
+	file = cgi.getFile("testSummaryFile");
+	//
+	if(file != cgi.getFiles().end()) {
+	  testSummary_=(*file).getData();
+          std::cout << "Select Crate test file " << testSummary_ << std::endl;
+	}
+	this->Default(in,out);
+	//
+      }
+    catch (const std::exception & e )
+      {
+	XCEPT_RAISE(xgi::exception::Exception, e.what());
+      }
+  }
 
 void EmuPCrateConfigTStore::SelectConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -998,7 +1041,7 @@ void EmuPCrateConfigTStore::SelectConfFile(xgi::Input * in, xgi::Output * out )
       }
     catch (const std::exception & e )
       {
-	//XECPT_RAISE(xgi::exception::Exception, e.what());
+	XCEPT_RAISE(xgi::exception::Exception, e.what());
       }
   }
   
@@ -1445,7 +1488,180 @@ void EmuPCrateConfigTStore::setValue(xgi::Input * in, xgi::Output * out )
     this->Default(in,out);
     //
   }
+  
+//reads up to the first occurrence of \a delimiter in \a input,
+//and checks that the value read is equal to \a expectedValue.
+//throws an exception if the value is not as expected.
+//\a delimiter defaults to \n
+void EmuPCrateConfigTStore::checkLine(std::istream &input,const std::string &expectedValue,char delimiter) throw (xdaq::exception::Exception) {
+	std::string line;
+	std::getline(input,line,delimiter);
+	if (line!=expectedValue && !expectedValue.empty()) {
+		XCEPT_RAISE(xdaq::exception::Exception,"File format does not seem to be valid. Expected '"+expectedValue+"', read '"+line+"'");
+	}
+}
 
+//parses all the values for a single chamber
+//returns whether there is another chamber
+bool EmuPCrateConfigTStore::parseTestSummaryChamber(std::istringstream &testSummary, xdata::Table &tmbChanges,int &TTCrxID,std::string &chamberName) throw (xdaq::exception::Exception) {
+	getTableDefinitionsIfNecessary();
+		tmbChanges=tableDefinitions["tmb"];
+		std::vector<std::string> columns=tmbChanges.getColumns();
+		for (std::vector<std::string>::iterator column=columns.begin();column!=columns.end();++column) {
+			if (!isNumericType(tmbChanges.getColumnType(*column))) {
+				tmbChanges.removeColumn(*column);
+			}
+		}
+		tmbChanges.append();
+		chamberName="";
+		while (true) {
+			int beginningOfLine=testSummary.tellg();
+			std::string column;
+			std::getline(testSummary,column,' ');
+			column=toolbox::toupper(toolbox::trim(column));
+			if (column=="++++++++++++++++++++") {
+				checkLine(testSummary,"Timing scans : "); //we already read the space in front of it
+				checkLine(testSummary,"--------------------");
+				return true;
+			}
+			checkLine(testSummary,"",'M');
+			std::string chamber;
+			std::getline(testSummary,chamber,' ');
+			chamber=std::string("M")+chamber;
+			if (chamberName.empty()) chamberName=chamber;
+			else if (chamberName!=chamber) {
+				//std::cout << "old chamber was " << chamberName << ", new chamber is " << chamber << std::endl;
+				testSummary.seekg(beginningOfLine);
+				return (chamber!="M");
+			}
+			signed int value;
+			testSummary >> value;
+			//std::cout << "value of " << column << " in " << chamber << " is " << value << std::endl;
+			//set the value of this column if value is positive (usually it is -1 if the value does not need to be changed, but it can be -998)
+			if (value>0)  {
+				if (column=="TTCRXID") {
+					TTCrxID=value;
+				} else if (tableHasColumn(tmbChanges,column)) {
+					tmbChanges.getValueAt(0,column)->fromString(toolbox::toString("%d",value));
+				}
+			}
+		}
+}
+
+//looks for a key in \a haystack which contains the string \a needle, and returns the corresponding value.
+//throws an exception if none is found.
+//the functionality is pretty generic, but it is only used from applyTestSummary to find configuration relating a specific chamber when the crate is not known
+//and the wording of the exception it throws if the value can not be found specifically refers to that
+//if it is used in any other contexts then the exception would have to be changed.
+xdata::Table &EmuPCrateConfigTStore::valueForKeyContaining(std::map<std::string,xdata::Table> &haystack,const std::string &needle) 
+throw (xdaq::exception::Exception) {
+	return haystack[keyContaining(haystack,needle)];
+}
+
+std::string EmuPCrateConfigTStore::keyContaining(std::map<std::string,xdata::Table> &haystack,const std::string &needle) 
+throw (xdaq::exception::Exception) {
+	for (std::map<std::string,xdata::Table>::iterator table=haystack.begin();table!=haystack.end();++table) {
+		std::string key=table->first;
+		std::string::size_type foundAt=key.rfind(needle);
+		if (foundAt!=std::string::npos && foundAt+needle.size()==key.size()-1) { //make sure it is at the end of the key, in case we are looking for 1//1/1 and we find 1/1/10
+			//std::cout << key << " contains " << needle << " rfind+needlesize=" << key.rfind(needle)+needle.size() << " keysize=" << key.size() << std::endl;
+			return key;
+		}
+	}
+	XCEPT_RAISE(xdaq::exception::Exception,"No data loaded for chamber "+needle+".");
+}
+
+void EmuPCrateConfigTStore::applyTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
+	outputHeader(out);
+	outputStandardInterface(out);
+	try {
+		for (std::map<std::string,xdata::Table>::iterator chamber=currentTestSummary.begin();chamber!=currentTestSummary.end();++chamber) {
+			std::map<std::string,xdata::Table> &tmbTables=currentTables["tmb"];
+			xdata::Table &tmbTableToChange=valueForKeyContaining(tmbTables,chamber->first);
+			xdata::Table &changes=chamber->second;
+			std::vector<std::string> columns=changes.getColumns();
+			for (std::vector<std::string>::iterator column=columns.begin(); column!=columns.end(); ++column) {
+				xdata::Serializable *newValue=changes.getValueAt(0,*column);
+				if (newValue->toString()!="NaN") {
+					tmbTableToChange.setValueAt(0,*column,*newValue);
+				}
+			}
+		}
+		
+		for (std::map<std::string,signed int>::iterator rxID=TTCrxIDs.begin();rxID!=TTCrxIDs.end();++rxID)  {
+			xdata::Table &ccbTableToChange=getCachedTable("ccb",rxID->first);//valueForKeyContaining(currentTables["ccb"],rxID->first);
+			ccbTableToChange.getValueAt(0,"TTCRXID")->fromString(toolbox::toString("%d",rxID->second));
+		}
+		outputCurrentConfiguration(out);
+	} catch (xdaq::exception::Exception &e) {
+		XCEPT_RETHROW(xgi::exception::Exception,"Could not apply changes.",e);
+	}
+}
+
+std::string EmuPCrateConfigTStore::crateForChamber(const std::string &chamberName) throw (xdaq::exception::Exception) {
+	std::string chamberKey=keyContaining(currentTables["csc"],chamberName);
+	//std::cout << "crateForChamber " << chamberName << " is " << chamberKey.substr(0,chamberKey.length()-chamberName.length()-10) << "(from " << chamberKey << ")" << std::endl;
+	return chamberKey.substr(0,chamberKey.length()-chamberName.length()-10);
+}
+
+void EmuPCrateConfigTStore::parseTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
+	outputHeader(out);
+	outputStandardInterface(out);
+	try {
+		TTCrxIDs.clear();
+		std::istringstream testSummary(testSummary_);
+		checkLine(testSummary," *** Output : Test Summary *** ");
+		checkLine(testSummary,"");
+		checkLine(testSummary,"Operator ",':');
+		std::string operatorName;
+		std::getline(testSummary,operatorName);
+		checkLine(testSummary,"Time     ",':');
+		std::string time;
+		std::getline(testSummary,time);
+		checkLine(testSummary,"");
+		checkLine(testSummary,"XML File ",':');
+		std::string expectedXMLFile;
+		std::getline(testSummary,expectedXMLFile);
+		checkLine(testSummary,"++++++++++++++++++++");
+		checkLine(testSummary," Timing scans : ");
+		checkLine(testSummary,"--------------------");
+		*out << "Operator: " << operatorName << cgicc::br() << "Time: " << time << cgicc::br() << "XML file:" << expectedXMLFile << cgicc::br();
+		bool readChamber=false;
+		do {
+			xdata::Table changes;
+			std::string chamberName;
+			int TTCrxID=-1;
+			readChamber=parseTestSummaryChamber(testSummary,changes,TTCrxID,chamberName);
+			if (readChamber) {
+				*out << "changes to " << chamberName << cgicc::br();
+				if (TTCrxID>-1) {
+					*out << "TTCrxID=" << TTCrxID << cgicc::br();
+					std::string crateName=crateForChamber(chamberName);
+					*out << "crate " << crateName << cgicc::br();
+					if (TTCrxIDs.count(crateName)) {
+						if (TTCrxIDs[crateName]!=TTCrxID) {
+							std::ostringstream errorMessage;
+							errorMessage << "Conflicting values for TTCrxID of " << crateName << ". Already set to " << TTCrxIDs[crateName] << ", new value: " << TTCrxID;
+							XCEPT_RAISE(xdaq::exception::Exception,errorMessage.str());
+						}
+					}
+					TTCrxIDs[crateName]=TTCrxID;
+				}
+				outputTable(out,changes);
+				currentTestSummary[chamberName]=changes;
+			}
+		} while (readChamber);
+		
+	} catch (xdaq::exception::Exception &e) {
+		XCEPT_RETHROW(xgi::exception::Exception,"Could not parse test summary file. " ,e);
+	}
+
+	*out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/applyTestSummary",getApplicationDescriptor()->getURN().c_str())) << std::endl;
+	*out << cgicc::input().set("type","submit").set("value","Apply").set("style", "width:120px;") << std::endl;
+	*out << cgicc::form() << std::endl;
+	outputFooter(out);
+}
+  
 void EmuPCrateConfigTStore::parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
     try {
  outputHeader(out);
