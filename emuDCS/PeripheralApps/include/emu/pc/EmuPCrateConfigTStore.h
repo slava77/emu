@@ -18,6 +18,7 @@
 #include "cgicc/Cgicc.h"
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTMLClasses.h"
+#include "xdata/TableIterator.h"
 #include "xdata/Table.h"
 #include "xdata/UnsignedInteger64.h"
 
@@ -79,6 +80,10 @@ void outputDiff(std::ostream *out,xdata::Table &results,TableChangeSummary &chan
 void outputShowHideButton(std::ostream * out,const std::string &configName,const std::string &identifier,const std::string &display="config");
   void outputEndcapSelector(xgi::Output * out);
   // Actions
+  
+void EmuPCrateConfigTStore::SelectTestSummaryFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void EmuPCrateConfigTStore::parseTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void EmuPCrateConfigTStore::applyTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void parseConfigFromXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void exportAsXML(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void uploadConfigToDB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -157,12 +162,15 @@ void diffAnodeChannel(const std::string &connectionID, const std::string &old_em
 void readAnodeChannel(const std::string &connectionID, const std::string &emu_config_id, const std::string &alct_config_id, ALCTController * theAlct,const std::string &identifier) throw (xcept::Exception);
 
 private:
+	bool EmuPCrateConfigTStore::parseTestSummaryChamber(std::istringstream &testSummary, xdata::Table &changes,int &TTCrxID,std::string &chamberName) throw (xdaq::exception::Exception);
 	bool shouldDisplayInHex(const std::string &columnName);
 	std::string valueToString(xdata::Serializable *value,const std::string &columnName);
 	std::string xdataToHex(xdata::Serializable *xdataValue);
 	DOMNode *DOMOfCurrentTables(); 
 	std::string fixColumnName(const std::string &column);
 	std::string fixCaseOfTableName(const std::string &column);
+	void checkLine(std::istream &input,const std::string &expectedValue,char delimiter='\n') throw (xdaq::exception::Exception);
+
 
 	void addChildNodes(DOMElement *parentElement,const std::string &configName,const std::string &parentIdentifier);
 	void addNode(DOMElement *crateElement,const std::string &configName,int crateID);
@@ -212,10 +220,14 @@ private:
 	void copyCCBToTable(xdata::Table &newRows,Crate * TStore_thisCrate);
 	void copyVMECCToTable(xdata::Table &newRows,Crate * TStore_thisCrate);
 	bool moreThanOneChildConfigurationExists(const std::string &configName,const std::string &parentIdentifier);
+	std::string crateForChamber(const std::string &chamberName) throw (xdaq::exception::Exception);
+	std::string keyContaining(std::map<std::string,xdata::Table> &haystack,const std::string &needle) throw (xdaq::exception::Exception);
+	xdata::Table &valueForKeyContaining(std::map<std::string,xdata::Table> &haystack,const std::string &needle) throw (xdaq::exception::Exception);
   std::string config_type_;
   std::string config_desc_;
   std::string xmlpath_;
   std::string xmlfile_;
+  std::string testSummary_;
   std::string dbUserFile_;
   std::string dbUserAndPassword_;
   EmuEndcap * TStore_myEndcap_;
@@ -235,6 +247,8 @@ private:
   //these are not changed in memory but should be kept in memory so that they don't have to be reloaded every time you show or hide something.
   std::map<std::string,std::map<std::string,xdata::Table> > currentDiff;
   
+  std::map<std::string,xdata::Table> currentTestSummary;
+  std::map<std::string,signed int> TTCrxIDs;
   //maps the keys used in currentDiff and currentTables to the titles of those tables on the display
   //std::map<std::string,std::string> titles;
   
