@@ -918,12 +918,13 @@ void EmuPCrateConfigTStore::outputStandardInterface(xgi::Output * out) {
   
   //This recreates the tables in the database, it only needs to be done for the initial setup and if the database structure changes,
   //so we don't want to do it by accident.
-  /*
+/*  
   *out << cgicc::td().set("style", "width:130px;");
   *out << cgicc::form().set("method","GET").set("action", toolbox::toString("/%s/sync",getApplicationDescriptor()->getURN().c_str())) << std::endl;
   *out << cgicc::input().set("type","submit").set("value","Sync to DB").set("style", "width:120px;") << std::endl;
   *out << cgicc::form() << std::endl;
   *out << cgicc::td();*/
+  
   *out << cgicc::tr();
 
   *out << cgicc::table();
@@ -2979,7 +2980,9 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   std::string ALCT_RX_CLOCK_DELAY("ALCT_RX_CLOCK_DELAY");
   std::string ALCT_TRIG_ENABLE("ALCT_TRIG_ENABLE");
   std::string ALCT_TX_CLOCK_DELAY("ALCT_TX_CLOCK_DELAY");
+  std::string ALCT_POSNEG("ALCT_POSNEG");
   std::string ALL_CFEB_ACTIVE("ALL_CFEB_ACTIVE");
+
   std::string CFEB0DELAY("CFEB0DELAY");
   std::string CFEB1DELAY("CFEB1DELAY");
   std::string CFEB2DELAY("CFEB2DELAY");
@@ -3082,6 +3085,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   xdata::UnsignedShort     _alct_rx_clock_delay           = TStore_thisTMB->GetALCTrxPhase();
   xdata::UnsignedShort     _alct_trig_enable              = TStore_thisTMB->GetTmbAllowAlct();
   xdata::UnsignedShort     _alct_tx_clock_delay           = TStore_thisTMB->GetALCTtxPhase();
+  xdata::UnsignedShort     _alct_posneg		           = TStore_thisTMB->GetAlctPosNeg();
   xdata::UnsignedShort     _all_cfeb_active               = TStore_thisTMB->GetEnableAllCfebsActive();
   xdata::UnsignedShort     _cfeb0delay                    = TStore_thisTMB->GetCFEB0delay();
   xdata::UnsignedShort     _cfeb1delay                    = TStore_thisTMB->GetCFEB1delay();
@@ -3191,6 +3195,7 @@ void EmuPCrateConfigTStore::copyTMBToTable(xdata::Table &newRows,TMB * TStore_th
   newRows.setValueAt(rowId, ALCT_RX_CLOCK_DELAY,           _alct_rx_clock_delay);
   newRows.setValueAt(rowId, ALCT_TRIG_ENABLE,              _alct_trig_enable);
   newRows.setValueAt(rowId, ALCT_TX_CLOCK_DELAY,           _alct_tx_clock_delay);
+  newRows.setValueAt(rowId, ALCT_POSNEG,           _alct_posneg);
   newRows.setValueAt(rowId, ALL_CFEB_ACTIVE,               _all_cfeb_active);
   newRows.setValueAt(rowId, CFEB0DELAY,                    _cfeb0delay);
   newRows.setValueAt(rowId, CFEB1DELAY,                    _cfeb1delay);
@@ -4145,6 +4150,7 @@ void EmuPCrateConfigTStore::readTMB(const std::string &connectionID, const std::
       if (*column == "RAT_FIRMWARE_YEAR"            ) {tmb_->SetExpectedRatFirmwareYear(IntValue);   }
       if (*column == "ENABLE_ALCT_TX"               ) {tmb_->SetEnableAlctTx(IntValue);              }
       if (*column == "ENABLE_ALCT_RX"               ) {tmb_->SetAlctInput(IntValue);                 }
+      if (*column == "ALCT_POSNEG"               ) {tmb_->SetAlctPosNeg(IntValue);                 }
       if (*column == "ALCT_CLEAR"                   ) {tmb_->SetAlctClear(IntValue);                 }
       if (*column == "ENABLECLCTINPUTS_REG42"       ) {tmb_->SetEnableCLCTInputs(IntValue);          }
       if (*column == "RPC_EXISTS"                   ) {tmb_->SetRpcExist(IntValue);                  }

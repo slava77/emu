@@ -477,6 +477,7 @@ oldconfig.ALCT_READOUT_WITHOUT_TRIG "ALCT_READOUT_WITHOUT_T $OLD_EMU_CONFIG_ID",
 oldconfig.ALCT_RX_CLOCK_DELAY "ALCT_RX_CLOCK_DELAY $OLD_EMU_CONFIG_ID",newconfig.ALCT_RX_CLOCK_DELAY "ALCT_RX_CLOCK_DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_TRIG_ENABLE "ALCT_TRIG_ENABLE $OLD_EMU_CONFIG_ID",newconfig.ALCT_TRIG_ENABLE "ALCT_TRIG_ENABLE $NEW_EMU_CONFIG_ID",
 oldconfig.ALCT_TX_CLOCK_DELAY "ALCT_TX_CLOCK_DELAY $OLD_EMU_CONFIG_ID",newconfig.ALCT_TX_CLOCK_DELAY "ALCT_TX_CLOCK_DELAY $NEW_EMU_CONFIG_ID",
+oldconfig.ALCT_POSNEG "ALCT_POSNEG $OLD_EMU_CONFIG_ID",newconfig.ALCT_POSNEG "ALCT_POSNEG $NEW_EMU_CONFIG_ID",
 oldconfig.ALL_CFEB_ACTIVE "ALL_CFEB_ACTIVE $OLD_EMU_CONFIG_ID",newconfig.ALL_CFEB_ACTIVE "ALL_CFEB_ACTIVE $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB0DELAY "CFEB0DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB0DELAY "CFEB0DELAY $NEW_EMU_CONFIG_ID",
 oldconfig.CFEB1DELAY "CFEB1DELAY $OLD_EMU_CONFIG_ID",newconfig.CFEB1DELAY "CFEB1DELAY $NEW_EMU_CONFIG_ID",
@@ -580,6 +581,7 @@ and (oldconfig.ADJACENT_CFEB_DISTANCE!=newconfig.ADJACENT_CFEB_DISTANCE or
 	oldconfig.ALCT_RX_CLOCK_DELAY!=newconfig.ALCT_RX_CLOCK_DELAY or
 	oldconfig.ALCT_TRIG_ENABLE!=newconfig.ALCT_TRIG_ENABLE or
 	oldconfig.ALCT_TX_CLOCK_DELAY!=newconfig.ALCT_TX_CLOCK_DELAY or
+	oldconfig.ALCT_POSNEG!=newconfig.ALCT_POSNEG or
 	oldconfig.ALL_CFEB_ACTIVE!=newconfig.ALL_CFEB_ACTIVE or
 	oldconfig.CFEB0DELAY!=newconfig.CFEB0DELAY or
 	oldconfig.CFEB1DELAY!=newconfig.CFEB1DELAY or
@@ -1021,6 +1023,7 @@ and (oldconfig.afeb_fine_delay!=newconfig.afeb_fine_delay
       <tstore:column name="ALCT_RX_CLOCK_DELAY" type="unsigned short"/>
       <tstore:column name="ALCT_TRIG_ENABLE" type="unsigned short"/>
       <tstore:column name="ALCT_TX_CLOCK_DELAY" type="unsigned short"/>
+      <tstore:column name="ALCT_POSNEG" type="unsigned short"/>
       <tstore:column name="ALL_CFEB_ACTIVE" type="unsigned short"/>
       <tstore:column name="CFEB0DELAY" type="unsigned short"/>
       <tstore:column name="CFEB1DELAY" type="unsigned short"/>
