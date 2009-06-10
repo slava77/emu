@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.cc,v 1.2 2009/05/29 11:23:18 paste Exp $
+* $Id: Fiber.cc,v 1.3 2009/06/10 08:04:41 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Fiber.h"
 
@@ -38,9 +38,11 @@ killed_(killed)
 	if (endcap_ != "?" && (station_ > 0 && station_ <= 4) && (ring_ > 0 && ring_ <= 4) && (number_ > 0 && number_ <= 36)) {
 		std::ostringstream nameStream;
 		nameStream << endcap_ << station_ << "/" << ring_ << "/" << std::setw(2) << std::setfill('0') << number_;
+		name_ = nameStream.str();
 	} else if (endcap_ != "?" && station_ == 0 && ring_ == 0 && number_ != 0) {
 		std::ostringstream nameStream;
 		nameStream << "SP" << std::setw(2) << std::setfill('0') << number_;
+		name_ = nameStream.str();
 	}
 }
 
@@ -63,8 +65,10 @@ killed_(killed)
 	if (endcap_ != "?" && (station_ > 0 && station_ <= 4) && (ring_ > 0 && ring_ <= 4) && (number_ > 0 && number_ <= 36)) {
 		std::ostringstream nameStream;
 		nameStream << endcap_ << station_ << "/" << ring_ << "/" << std::setw(2) << std::setfill('0') << number_;
+		name_ = nameStream.str();
 	} else if (endcap_ != "?" && station_ == 0 && ring_ == 0 && number_ != 0) {
 		std::ostringstream nameStream;
 		nameStream << "SP" << std::setw(2) << std::setfill('0') << number_;
+		name_ = nameStream.str();
 	}
 }
