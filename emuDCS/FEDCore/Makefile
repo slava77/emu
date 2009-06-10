@@ -23,7 +23,7 @@ Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
 PACKAGE_VER_MINOR=05
-PACKAGE_VER_PATCH=00
+PACKAGE_VER_PATCH=01
 
 Sources=\
 	CoreVersion.cc \
