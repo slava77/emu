@@ -3278,6 +3278,9 @@ void EmuPeripheralCrateMonitor::InitCounterNames()
     IsErrCounter[23]=1;
     IsErrCounter[24]=1;
     IsErrCounter[25]=1;
+    IsErrCounter[31]=1;
+    IsErrCounter[32]=1;
+    IsErrCounter[35]=1;
     IsErrCounter[39]=1;
     IsErrCounter[40]=1;
     IsErrCounter[52]=1;
