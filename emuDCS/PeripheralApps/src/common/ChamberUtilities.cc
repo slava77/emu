@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.23 2009/05/29 16:53:19 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.24 2009/06/11 08:40:10 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.24  2009/06/11 08:40:10  rakness
+// make rx/tx scan faster (10M events checked instead of 40M)
+//
 // Revision 1.23  2009/05/29 16:53:19  rakness
 // some bug fixes for rx/tx scans and downloading firmware
 //
@@ -1478,7 +1481,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
 	  thisTMB->WriteRegister(alct_sync_ctrl_adr);
 	  //
 	  // wait for a short time for errors to accumulate...
-	  ::usleep(10);
+	  ::usleep(5);
 	  //
 	  // Unclear error flipflops, after this write, the errors are being tallied by TMB firmware
 	  thisTMB->SetALCTSyncClearErrors(0);
@@ -1599,7 +1602,7 @@ int ChamberUtilities::ALCT_TMB_TimingUsingRandomLoopback() {
       //
       bool go_quick = false;
       //
-      for (int check_loop=0; check_loop<1000; check_loop++) {
+      for (int check_loop=0; check_loop<250; check_loop++) {
 	//
 	// Clear TMB data check flipflops
 	thisTMB->SetALCTSyncClearErrors(1);
