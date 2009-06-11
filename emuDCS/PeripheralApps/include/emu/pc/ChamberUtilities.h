@@ -153,6 +153,7 @@ public:
   // analysis methods
   void ZeroTmbHistograms();
   void ZeroDmbHistograms();
+  void ALCT_phase_analysis_old(int rxtxtiming[13][13]);
   void ALCT_phase_analysis(int rxtxtiming[13][13]);
   int window_analysis(int * data, const int length);
   int DelayWhichGivesDesiredValue(float * vector_of_values_with_delay_index, 

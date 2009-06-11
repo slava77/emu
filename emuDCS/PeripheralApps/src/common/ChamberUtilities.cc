@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.24 2009/06/11 08:40:10 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.25 2009/06/11 12:20:59 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.25  2009/06/11 12:20:59  rakness
+// revamp rx/tx delay scan window algorithm
+//
 // Revision 1.24  2009/06/11 08:40:10  rakness
 // make rx/tx scan faster (10M events checked instead of 40M)
 //
@@ -323,6 +326,7 @@
 #include <cmath>
 #include <unistd.h> 
 #include <string>
+#include <vector>
 //
 #include "emu/pc/ChamberUtilities.h"
 #include "emu/pc/TMB_constants.h"
@@ -4708,7 +4712,7 @@ void ChamberUtilities::ZeroDmbHistograms() {
   return;
 }
 //
-void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
+void ChamberUtilities::ALCT_phase_analysis_old(int rxtx_timing[13][13]) {
   int i, j, k, p;  
   //
   if (debug_>=5) {
@@ -4795,6 +4799,164 @@ void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
   //
   ALCTrxPhase_ = best_element_row ;
   ALCTtxPhase_ = best_element_col ;
+  //
+  (*MyOutput_) << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
+  (*MyOutput_) << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
+  std::cout    << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
+  std::cout    << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
+  //
+  return;
+}	
+//
+void ChamberUtilities::ALCT_phase_analysis(int rxtx_timing[13][13]) {
+  //
+  // rxtx_timing[][] should have a diamond of non-zero values somewhere in it.
+  // This algorithm tries to find the center of this diamond, with the further criteria
+  // that this center must have at least one index on all sides with non-zero values.  In
+  // other words, for this diamond
+  //   0 0 0 0 0 
+  //   0 1 0 0 0 
+  //   0 1 1 0 0 
+  //   0 1 1 1 0 
+  //   0 1 1 1 0 
+  //   0 0 1 1 0 
+  //   0 0 0 1 0
+  //   0 0 0 0 0
+  //
+  // idea:  scan over the values at each (rx,tx) index.  For each (rx,tx) index, see if this index is 
+  // 1) non-zero
+  // 2
+  //
+  if (debug_>=5) {
+    std::cout << "The input array is:" << std::endl;
+    std::cout << std::endl;
+    for (int rx = 0; rx < 13; rx++) {
+      for (int tx = 0; tx < 13; tx++) {
+	std::cout << std::setw(5) << rxtx_timing[rx][tx] << " ";
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  // create an array which is larger by one row/column in each direction to catch the wrap-around
+  int analysis_array[15][15];
+  //
+  // fill in the center of the analysis array with the original array:
+  for (int rx=1; rx<14; rx++) 
+    for (int tx=1; tx<14; tx++) 
+      analysis_array[rx][tx] = rxtx_timing[rx-1][tx-1];
+  //
+  // now put in the wrapped around values on the edges:
+  for (int tx=1;tx<14; tx++) {
+    analysis_array[0][tx]  = rxtx_timing[12][tx-1];
+    analysis_array[14][tx] = rxtx_timing[0][tx-1];
+  }
+  for (int rx=1;rx<14; rx++) {
+    analysis_array[rx][0]  = rxtx_timing[rx-1][12];
+    analysis_array[rx][14] = rxtx_timing[rx-1][0];
+  }
+  // here are the corners:
+  analysis_array[0][0]   = rxtx_timing[12][12];
+  analysis_array[0][14]  = rxtx_timing[12][0];  
+  analysis_array[14][0]  = rxtx_timing[0][12];  
+  analysis_array[14][14] = rxtx_timing[0][0];
+  //
+  //
+  if (debug_>=5) {
+    std::cout << "The analysis array is:" << std::endl;
+    std::cout << std::endl;
+    for (int rx = 0; rx < 15; rx++) {
+      for (int tx = 0; tx < 15; tx++) {
+	std::cout << std::setw(5) << analysis_array[rx][tx] << " ";
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  // look over the (rx,tx) values on the inner part of the analysis array (i.e., the original array), 
+  // and look around the rx,tx value to see if this is OK.
+  //
+  int number_of_surrounding_good_values[13][13] = {};
+  //
+  std::vector<int> good_rx;    //keep track of which index is "good" so we can pick the one in the center (i.e., in the center of the diamond...)
+  std::vector<int> good_tx;    //keep track of which index is "good" so we can pick the one in the center (i.e., in the center of the diamond...)
+  //
+  for (int rx=1; rx<14; rx++) {
+    for (int tx=1; tx<14; tx++) { 
+      //
+      //      std::cout << "(rx,tx) = (" << rx << "," << tx << ") = " << analysis_array[rx][tx] << " surrounded by... " << std::endl;
+      //
+      if (analysis_array[rx][tx] > 0 ) {  // this one is good, look around it...
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx-1][tx-1];
+	if (analysis_array[rx-1][tx-1] > 0) number_of_surrounding_good_values[rx-1][tx-1]++;  	// above-left
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx-1][tx];
+	if (analysis_array[rx-1][tx]   > 0) number_of_surrounding_good_values[rx-1][tx-1]++;  	// above
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx-1][tx+1] << std::endl; 
+	if (analysis_array[rx-1][tx+1] > 0) number_of_surrounding_good_values[rx-1][tx-1]++;  	// above-right
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx][tx-1];
+	if (analysis_array[rx]  [tx-1] > 0) number_of_surrounding_good_values[rx-1][tx-1]++;  	// left
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx][tx];
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx][tx+1] << std::endl;
+	//
+	if (analysis_array[rx]  [tx+1] > 0) number_of_surrounding_good_values[rx-1][tx-1]++;  	// right
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx+1][tx-1];
+	if (analysis_array[rx+1][tx-1] > 0) number_of_surrounding_good_values[rx-1][tx-1]++;  	// below-left
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx+1][tx];
+	if (analysis_array[rx+1][tx]   > 0) number_of_surrounding_good_values[rx-1][tx-1]++;  	// below
+	//
+	//	std::cout << std::setw(4) << analysis_array[rx+1][tx+1] << std::endl;
+	if (analysis_array[rx+1][tx+1] > 0) number_of_surrounding_good_values[rx-1][tx-1]++;  	// below-right
+	//
+      }
+      //      std::cout << number_of_surrounding_good_values[rx-1][tx-1] << std::endl;
+      if (number_of_surrounding_good_values[rx-1][tx-1] == 8) {
+	good_rx.push_back(rx-1);
+	good_tx.push_back(tx-1);
+      }
+    }
+  }
+  //
+  if (debug_>=5) {
+    std::cout << "The goodness of each array index is:" << std::endl;
+    std::cout << std::endl;
+    for (int rx = 0; rx < 13; rx++) {
+      for (int tx = 0; tx < 13; tx++) {
+	std::cout << std::setw(5) << number_of_surrounding_good_values[rx][tx] << " ";
+      }
+      std::cout << std::endl;
+    }
+  }
+  //
+  if (good_rx.size() == 0) {
+    (*MyOutput_) << "WARNING:  There is no array value which is surrounded with good values.  Experts should look at this." << std::endl;
+    std::cout    << "WARNING:  There is no array value which is surrounded with good values.  Experts should look at this." << std::endl;
+    ALCTrxPhase_ = -999 ;
+    ALCTtxPhase_ = -999 ;
+    //
+  } else {
+    (*MyOutput_) << "Candidate good values are..." << std::endl;
+    std::cout    << "Candidate good values are..." << std::endl;
+    for (unsigned i=0; i<good_rx.size(); i++) {
+      (*MyOutput_) << "index " << i << " -> (rx,tx) = (" << std::dec << good_rx[i] << "," << good_tx[i] << ")" << std::endl;
+      std::cout    << "index " << i << " -> (rx,tx) = (" << std::dec << good_rx[i] << "," << good_tx[i] << ")" << std::endl;
+    }
+    //
+    int best_index = (int) good_rx.size()/2;  // pick the "best" to be the one in the middle of the good ones...
+    //
+    (*MyOutput_) << "... picking index = " << best_index << std::endl;
+    std::cout    << "... picking index = " << best_index << std::endl;
+    //
+    ALCTrxPhase_ = good_rx[best_index];
+    ALCTtxPhase_ = good_tx[best_index];
+  } 
   //
   (*MyOutput_) << "Best value is alct_rx_clock_delay = " << std::dec << ALCTrxPhase_ << std::endl;
   (*MyOutput_) << "Best value is alct_tx_clock_delay = " << std::dec << ALCTtxPhase_ << std::endl;
