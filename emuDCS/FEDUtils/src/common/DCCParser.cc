@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCParser.cc,v 1.5 2009/05/21 15:30:49 paste Exp $
+* $Id: DCCParser.cc,v 1.6 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCCParser.h"
 
@@ -11,7 +11,7 @@ emu::fed::DCCParser::DCCParser(xercesc::DOMElement *pNode)
 throw (emu::fed::exception::ParseException):
 Parser(pNode)
 {
-	int slot;
+	unsigned int slot;
 	try {
 		slot = extract<unsigned int>("SLOT");
 	} catch (emu::fed::exception::ParseException &e) {
@@ -50,7 +50,7 @@ Parser(pNode)
 	dcc_->softsw_ = 0;
 
 	try {
-		dcc_->softsw_ |= (extract<int>("ENABLE_SW_SWITCH") == 0) ? 0 : 0x200;
+		dcc_->softsw_ |= (extract<bool>("ENABLE_SW_SWITCH") == 0) ? 0 : 0x200;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse ENABLE_SW_SWITCH from element";
@@ -58,7 +58,7 @@ Parser(pNode)
 	}
 	
 	try {
-		dcc_->softsw_ |= (extract<int>("TTCRX_NOT_READY") == 0) ? 0 : 0x1000;
+		dcc_->softsw_ |= (extract<bool>("TTCRX_NOT_READY") == 0) ? 0 : 0x1000;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse TTCRX_NOT_READY from element";
@@ -66,7 +66,7 @@ Parser(pNode)
 	}
 	
 	try {
-		dcc_->softsw_ |= (extract<int>("SW_BIT4") == 0) ? 0 : 0x10;
+		dcc_->softsw_ |= (extract<bool>("SW_BIT4") == 0) ? 0 : 0x10;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse SW_BIT4 from element";
@@ -74,7 +74,7 @@ Parser(pNode)
 	}
 	
 	try {
-		dcc_->softsw_ |= (extract<int>("SW_BIT5") == 0) ? 0 : 0x20;
+		dcc_->softsw_ |= (extract<bool>("SW_BIT5") == 0) ? 0 : 0x20;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse SW_BIT5 from element";
@@ -84,7 +84,7 @@ Parser(pNode)
 	bool ignoreBackpressure = false;
 	bool ignorePresent = false;
 	try {
-		ignoreBackpressure = extract<int>("IGNORE_SLINK_BACKPRESSURE");
+		ignoreBackpressure = extract<bool>("IGNORE_SLINK_BACKPRESSURE");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse IGNORE_SLINK_BACKPRESSURE from element";
@@ -92,7 +92,7 @@ Parser(pNode)
 	}
 	
 	try {
-		ignorePresent = extract<int>("IGNORE_SLINK_NOT_PRESENT");
+		ignorePresent = extract<bool>("IGNORE_SLINK_NOT_PRESENT");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse IGNORE_SLINK_NOT_PRESENT from element";
@@ -106,27 +106,6 @@ Parser(pNode)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+emu::fed::DCCParser::~DCCParser() {
+	//delete dcc_;
+}

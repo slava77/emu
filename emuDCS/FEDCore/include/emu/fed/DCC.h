@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.h,v 1.6 2009/05/29 11:23:17 paste Exp $
+* $Id: DCC.h,v 1.7 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCC_H__
 #define __EMU_FED_DCC_H__
@@ -26,7 +26,7 @@ namespace emu {
 			friend class DCCDBAgent;
 
 			/** @param slot the slot of the board for VME addressing purposes. **/
-			DCC(int slot);
+			DCC(const unsigned int slot);
 
 			/** Default destructor. **/
 			virtual ~DCC();
@@ -41,7 +41,7 @@ namespace emu {
 			inline uint16_t getFMMID() { return fmm_id_; }
 			
 			/** @return the S-Link parameter from configuration **/
-			inline uint16_t getSLinkID(unsigned short int iSlink)
+			inline uint16_t getSLinkID(const unsigned short int &iSlink)
 			throw (emu::fed::exception::OutOfBoundsException)
 			{ 
 				if (iSlink == 1) return slink1_id_;
@@ -62,20 +62,20 @@ namespace emu {
 			*	@param fifoNumber runs from 0-14.
 			*	@returns the fifo at the given fifo input number.
 			**/
-			FIFO *getFIFO(size_t fifoNumber)
+			FIFO *getFIFO(const unsigned int &fifoNumber)
 			throw (emu::fed::exception::OutOfBoundsException);
 			
 			/** Adds a FIFO object to the DCC.
 			*	@param fifo is the FIFO being added.
 			*	@param fifoNumber is the FIFO number.
 			**/
-			void addFIFO(FIFO *fifo, size_t fifoNumber)
+			void addFIFO(FIFO *fifo)
 			throw (emu::fed::exception::OutOfBoundsException);
 			
 			/** Sets the vector of FIFO objects in the DCC to some vector.
 			*	@param fifoVector is a vector of FIFOs to copy to the internal vector.
 			**/
-			void setFIFOs(std::vector<FIFO *> fifoVector)
+			void setFIFOs(const std::vector<FIFO *> &fifoVector)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			// PGK New interface
@@ -111,7 +111,7 @@ namespace emu {
 			 *
 			 * @sa getDDUSlotFromFIFO
 			 **/
-			void writeFIFOInUse(uint16_t value)
+			void writeFIFOInUse(const uint16_t value)
 			throw (emu::fed::exception::DCCException);
 
 			/** @returns the current read-in or read-out data rate (in bytes/sec) of
@@ -122,7 +122,7 @@ namespace emu {
 			 * 1-5, fifo==6 corresponds to S-Link 1, and fifo==[7,11] correspond to
 			 * the DDU input FIFOs 6-10.
 			 **/
-			uint16_t readRate(unsigned int fifo)
+			uint16_t readRate(const unsigned int fifo)
 			throw (emu::fed::exception::DCCException);
 
 			/** @returns the current setting of the omni-purpose software switch.
@@ -151,7 +151,7 @@ namespace emu {
 			 *
 			 * @sa readSoftwareSwitch()
 			 **/
-			void writeSoftwareSwitch(uint16_t value)
+			void writeSoftwareSwitch(const uint16_t value)
 			throw (emu::fed::exception::DCCException);
 
 			/** @return the value of the FMM register. **/
@@ -164,7 +164,7 @@ namespace emu {
 			 *
 			 * @note useful for TTS tests.
 			 **/
-			void writeFMM(uint16_t value)
+			void writeFMM(const uint16_t value)
 			throw (emu::fed::exception::DCCException);
 
 			/** @return the last TTC command sent. **/
@@ -182,7 +182,7 @@ namespace emu {
 			 * of the TTC command byte for the user.  These 2 bits can be sent using
 			 * the commands resetBX() and resetEvents().
 			 **/
-			void writeTTCCommand(uint8_t value)
+			void writeTTCCommand(const uint8_t value)
 			throw (emu::fed::exception::DCCException);
 
 			/** Send the TTC command to reset BX values in the FED crate. **/
@@ -198,21 +198,21 @@ namespace emu {
 			 * @param value the low 8 bits are used to set the number of L1As to generate,
 			 * the high 8 bits are used to set the rate at which they are generated.
 			 **/
-			void writeFakeL1A(uint16_t value)
+			void writeFakeL1A(const uint16_t value)
 			throw (emu::fed::exception::DCCException);
 
 			/** @return the ID code from the given PROM chip.
 			 *
 			 * @param dev the device from which to read the ID code.
 			 **/
-			uint32_t readIDCode(enum DEVTYPE dev)
+			uint32_t readIDCode(const enum DEVTYPE dev)
 			throw (emu::fed::exception::DCCException);
 
 			/** @return the User code programmed into the given PROM chip.
 			 *
 			 * @param dev the device from which to read the User code.
 			 **/
-			uint32_t readUserCode(enum DEVTYPE dev)
+			uint32_t readUserCode(const enum DEVTYPE dev)
 			throw (emu::fed::exception::DCCException);
 
 			/** Resets an FPGA through the given PROM.
@@ -221,7 +221,7 @@ namespace emu {
 			*
 			*	@note The RESET device will reset the MCTRL FPGA.
 			**/
-			void resetPROM(enum DEVTYPE dev)
+			void resetPROM(const enum DEVTYPE dev)
 			throw (emu::fed::exception::DCCException);
 
 			// Misc routines
@@ -238,42 +238,42 @@ namespace emu {
 			*
 			* @param fifo the input FIFO number from which to calculate the DDU slot
 			**/
-			unsigned int getDDUSlotFromFIFO(unsigned int fifo)
+			unsigned int getDDUSlotFromFIFO(const unsigned int fifo)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** @returns the FIFO number corresponding to the given input DDU slot number
 			*
 			* @param myDlot the DDU slot number from which to calculate the FIFO number
 			**/
-			unsigned int getFIFOFromDDUSlot(unsigned int mySlot)
+			unsigned int getFIFOFromDDUSlot(const unsigned int mySlot)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** @returns the SLink number corresponding to the given output FIFO
 			*
 			* @param fifo the output FIFO number from which to calculate the SLink number
 			**/
-			unsigned int getSLinkFromFIFO(unsigned int fifo)
+			unsigned int getSLinkFromFIFO(const unsigned int fifo)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** @returns the FIFO number corresponding to the given SLink number
 			*
 			* @param slink the SLink number from which to calculate the output FIFO number
 			**/
-			unsigned int getFIFOFromSLink(unsigned int slink)
+			unsigned int getFIFOFromSLink(const unsigned int slink)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** @returns the current read-in data rate (in bytes/sec) of the given DDU.
 			*
 			* @param mySlot is the slot number from which to read the data rate.
 			**/
-			uint16_t readDDURate(unsigned int mySlot)
+			uint16_t readDDURate(const unsigned int mySlot)
 			throw (emu::fed::exception::DCCException);
 
 			/** @returns the current read-out data rate (in bytes/sec) of the given SLink.
 			*
 			* @param slink is the SLink number from which to read the data rate.
 			**/
-			uint16_t readSLinkRate(unsigned int slink)
+			uint16_t readSLinkRate(const unsigned int slink)
 			throw (emu::fed::exception::DCCException);
 
 
@@ -283,7 +283,7 @@ namespace emu {
 			*
 			*	@param fifoInUse is the FIFO-in-use setting to parse into used bits for the FIFOs
 			**/
-			void reloadFIFOUsedBits(uint16_t fifoInUse);
+			void reloadFIFOUsedBits(const uint16_t fifoInUse);
 
 			// PGK New interface
 			/** Reads an arbitrary number of bits from a given register on a given device.
@@ -292,7 +292,7 @@ namespace emu {
 			*	@param myReg is the register on the device from which to read.
 			*	@param @nBits is the number of bits to read.
 			**/
-			std::vector<uint16_t> readRegister(enum DEVTYPE dev, uint16_t myReg, unsigned int nBits, bool debug = false)
+			std::vector<uint16_t> readRegister(const enum DEVTYPE dev, const uint16_t myReg, const unsigned int nBits, const bool debug = false)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Writes an arbitrary number of bits to a given register on a given device.
@@ -302,7 +302,7 @@ namespace emu {
 			*	@param @nBits is the number of bits to write.
 			*	@param @myData is the data to write.
 			**/
-			std::vector<uint16_t> writeRegister(enum DEVTYPE dev, uint16_t myReg, unsigned int nBits, std::vector<uint16_t> myData, bool debug = false)
+			std::vector<uint16_t> writeRegister(const enum DEVTYPE dev, const uint16_t myReg, const unsigned int nBits, std::vector<uint16_t> myData, const bool debug = false)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 			
 			/// The FIFOs that are associated with this DCC, in FIFO (NOT slot)-order.

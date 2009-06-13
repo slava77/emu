@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: TStoreRequest.h,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: TStoreRequest.h,v 1.2 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_TSTOREREQUEST_H__
 #define __EMU_FED_TSTOREREQUEST_H__
@@ -21,7 +21,7 @@ namespace emu {
 			*	@param commandName the name of the command to send TStore.
 			*	@param viewClass the SQL view to use to send the command.
 			**/
-			TStoreRequest(const std::string &commandName, const std::string &viewClass="");
+			TStoreRequest(const std::string &commandName, const std::string &viewClass = "");
 
 			/** Add a parameter to the request with a name and a value.
 			*	@param parameterName the parameter name to add.

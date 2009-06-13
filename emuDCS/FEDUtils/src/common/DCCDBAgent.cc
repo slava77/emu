@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.cc,v 1.2 2009/05/22 19:25:51 paste Exp $
+* $Id: DCCDBAgent.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DCCDBAgent.h"
@@ -17,7 +17,7 @@ DBAgent(application)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> emu::fed::DCCDBAgent::getDCCs(xdata::UnsignedInteger64 id)
+std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> emu::fed::DCCDBAgent::getDCCs(xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -50,7 +50,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> emu::fed::DCCDBAgent::getDCCs(xdata::UnsignedInteger64 key, xdata::UnsignedInteger fmm_id)
+std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> emu::fed::DCCDBAgent::getDCCs(xdata::UnsignedInteger64 &key, xdata::UnsignedInteger &fmm_id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -87,7 +87,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> emu::fed::DCCDBAgent::buildDCCs(xdata::Table table)
+std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> emu::fed::DCCDBAgent::buildDCCs(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
 	std::map<xdata::UnsignedInteger64, DCC *, DBAgent::comp> returnMe;

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: communicator.js,v 1.1 2009/05/16 18:53:09 paste Exp $
+* $Id: communicator.js,v 1.2 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 
 var reloadElements = ["FED_Communicator_Status", "FED_Communicator_Configuration"];
@@ -10,7 +10,7 @@ Event.observe(window, "load", function(event) {
 	// enable buttons with check-box
 	$("enable_buttons").observe("change", function(ev) {
 		var element = ev.element();
-		if (element.checked && confirm("Enabling manual state changes will cause this FED Communicator application to ignore any SOAP messages it receives from the FED Manager.  If this FED Communicator application is involved in a global run, this may result in the run crashing.\n\nClick \"OK\" if you are certain you want to ignore SOAP messages.  Otherwise, click \"Cancel\".")) {
+		if (element.checked && confirm("Enabling manual state changes will cause this FED Communicator application to ignore any SOAP messages it receives from the FED Manager.  If this FED Communicator application is involved in a global run, this will result in the run crashing.\n\nClick \"OK\" if you are certain you want to ignore SOAP messages.  Otherwise, click \"Cancel\".")) {
 			ignoreSOAP(true);
 		} else if (element.checked) {
 			element.checked = false;

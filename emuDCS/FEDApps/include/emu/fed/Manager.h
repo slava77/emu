@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.h,v 1.3 2009/05/16 18:53:10 paste Exp $
+* $Id: Manager.h,v 1.4 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MANAGER_H__
 #define __EMU_FED_MANAGER_H__
@@ -85,7 +85,7 @@ namespace emu {
 			*
 			*	@returns a string containing the state of the Communicators if they are consistant, "Indefinite" if they are inconsistant, and "Failed" if at least one is in a "Failed" state.
 			**/
-			std::string getManagerState(std::string targetState, JSONSpirit::Array underlyingStatus);
+			std::string getManagerState(const std::string &targetState, const JSONSpirit::Array &underlyingStatus);
 			
 			/** Get the status of the underlying Communicator applications
 			*
@@ -102,7 +102,7 @@ namespace emu {
 			* @author Phillip Killewald
 			**/
 			template<typename T, typename V>
-			JSONSpirit::Pair toJSONPair(xoap::MessageReference message, std::string name, V defaultValue)
+			JSONSpirit::Pair toJSONPair(xoap::MessageReference message, const std::string &name, V defaultValue)
 			{
 				V value = defaultValue;
 				try {

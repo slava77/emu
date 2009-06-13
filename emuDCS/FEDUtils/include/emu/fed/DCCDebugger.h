@@ -1,20 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDebugger.h,v 1.1 2009/03/05 16:07:52 paste Exp $
-*
-* $Log: DCCDebugger.h,v $
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.6  2008/10/09 11:21:19  paste
-* Attempt to fix DCC MPROM load.  Added debugging for "Global SOAP death" bug.  Changed the debugging interpretation of certain DCC registers.  Added inline SVG to EmuFCrateManager page for future GUI use.
-*
-* Revision 1.5  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: DCCDebugger.h,v 1.2 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCCDEBUGGER_H__
 #define __EMU_FED_DCCDEBUGGER_H__
@@ -38,13 +23,13 @@ namespace emu {
 		{
 		
 			/** Reads from method DCC::readStatusHigh(DDUFPGA) **/
-			std::map<std::string, std::string> FMMStat(short int stat);
+			std::map<std::string, std::string> FMMStat(const uint8_t stat);
 		
 			/** Reads from method DCC::readStatusHigh(DDUFPGA) **/
-			std::map<std::string, std::string> SLinkStat(short int stat);
+			std::map<std::string, std::string> SLinkStat(const uint8_t stat);
 			
 			/** Reads from method DCC::readStatusHigh(DDUFPGA) **/
-			std::map<std::string, std::string> InFIFOStat(short int stat);
+			std::map<std::string, std::string> InFIFOStat(const uint8_t stat);
 		}
 
 	}

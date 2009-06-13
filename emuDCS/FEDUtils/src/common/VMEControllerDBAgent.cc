@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerDBAgent.cc,v 1.2 2009/05/22 19:25:51 paste Exp $
+* $Id: VMEControllerDBAgent.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/VMEControllerDBAgent.h"
@@ -14,7 +14,7 @@ DBAgent(application)
 
 
 
-emu::fed::VMEController *emu::fed::VMEControllerDBAgent::getController(xdata::UnsignedInteger64 id)
+emu::fed::VMEController *emu::fed::VMEControllerDBAgent::getController(xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -50,7 +50,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-emu::fed::VMEController *emu::fed::VMEControllerDBAgent::getController(xdata::UnsignedInteger64 key, xdata::UnsignedShort number)
+emu::fed::VMEController *emu::fed::VMEControllerDBAgent::getController(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -87,7 +87,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-emu::fed::VMEController *emu::fed::VMEControllerDBAgent::buildController(xdata::Table table)
+emu::fed::VMEController *emu::fed::VMEControllerDBAgent::buildController(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
 	// Parse out the CAEN device and link numbers

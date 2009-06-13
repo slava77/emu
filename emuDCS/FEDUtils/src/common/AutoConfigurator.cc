@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.cc,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: AutoConfigurator.cc,v 1.2 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AutoConfigurator.h"
@@ -62,6 +62,7 @@ throw (emu::fed::exception::ConfigurationException)
 						testCrate->addBoard(testDDU);
 						continue;
 					}
+					delete testDDU;
 					
 					DCC *testDCC = new DCC(iSlot);
 					testDCC->setBHandle(testController->getBHandle());
@@ -75,6 +76,7 @@ throw (emu::fed::exception::ConfigurationException)
 						testCrate->addBoard(testDCC);
 						continue;
 					}
+					delete testDCC;
 					
 				} catch (emu::fed::exception::Exception &e) {
 					// probe failed
@@ -85,7 +87,6 @@ throw (emu::fed::exception::ConfigurationException)
 			
 			// Save the crate
 			crateVector_.push_back(testCrate);
-			
 		}
 	}
 	

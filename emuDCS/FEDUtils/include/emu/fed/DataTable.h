@@ -1,29 +1,5 @@
 /*****************************************************************************\
-* $Id: DataTable.h,v 1.1 2009/03/05 16:07:52 paste Exp $
-*
-* $Log: DataTable.h,v $
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.11  2009/01/29 15:31:22  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 1.10  2008/10/13 11:56:40  paste
-* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
-*
-* Revision 1.9  2008/08/26 13:40:08  paste
-* Updating and adding documentation
-*
-* Revision 1.7  2008/08/25 12:25:49  paste
-* Major updates to VMEController/VMEModule handling of CAEN instructions.  Also, added version file for future RPMs.
-*
-* Revision 1.6  2008/08/15 08:35:50  paste
-* Massive update to finalize namespace introduction and to clean up stale log messages in the code.
-*
-*
+* $Id: DataTable.h,v 1.2 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DATATABLE_H__
 #define __EMU_FED_DATATABLE_H__
@@ -53,14 +29,14 @@ namespace emu {
 			*
 			*	@param myValue is the value of the pacticular element.
 			**/
-			DataElement(std::stringstream myValue, std::string myClass = "");
+			DataElement(std::stringstream &myValue, const std::string &myClass = "");
 		
 			/** Standard constructor with std::strings.
 			*
 			*	@param myValue is the value of the pacticular element.
 			*	@param className is the class of the particular element.
 			**/
-			DataElement(std::string myValue = "", std::string myClass = "");
+			DataElement(const std::string &myValue = "", const std::string &myClass = "");
 
 			/** Copy constructor, for the stupid stringstream **/
 			DataElement(const DataElement &myElement);
@@ -105,10 +81,10 @@ namespace emu {
 			*	@param cols is the number of columns in the row to begin with.
 			*	@param myElement is the default DataElement object that will be used as a template for the elements of the row.
 			**/
-			DataRow(unsigned int cols = 0, DataElement *myElement = new DataElement());
+			DataRow(const unsigned int cols = 0, DataElement *myElement = new DataElement());
 		
 			/** Access a given element.  Expand the vector as needed.  **/
-			DataElement &operator[] (unsigned int element);
+			DataElement &operator[] (const unsigned int element);
 
 			/** Arrow operator for accessing the cgicc element stored within **/
 			inline cgicc::tr *operator-> () { return &element_; }
@@ -147,10 +123,10 @@ namespace emu {
 			*	@param row is the number of rows the table will begin with.
 			*	@param myRow is the default DataRow object that will be used as a template for the rows of the table.
 			**/
-			DataTable(unsigned int rows = 0, DataRow *myRow = new DataRow());
+			DataTable(const unsigned int rows = 0, DataRow *myRow = new DataRow());
 		
 			/** Access a given DataRow.  Increase the DataRow vector as needed.  **/
-			DataRow &operator[] (unsigned int row);
+			DataRow &operator[] (const unsigned int row);
 		
 			/** Access a given DataElement.  Will automatically expand DataRows with
 			*	new DataElements and expand with more DataRows as needed.
@@ -158,7 +134,7 @@ namespace emu {
 			*	@param row the DataRow to access.
 			*	@param col the DataElement in that row to access.
 			**/
-			DataElement &operator() (unsigned int row, unsigned int col);
+			DataElement &operator() (const unsigned int row, const unsigned int col);
 
 			/** Arrow operator for accessing the cgicc element stored within **/
 			inline cgicc::table *operator->() { return &element_; }

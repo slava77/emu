@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.3 2009/05/22 19:25:51 paste Exp $
+* $Id: DBAgent.cc,v 1.4 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -9,6 +9,7 @@
 #include "toolbox/TimeInterval.h"
 #include "tstore/client/Client.h"
 #include "tstore/client/AttachmentUtils.h"
+
 
 
 emu::fed::DBAgent::DBAgent(xdaq::WebApplication *application)
@@ -45,6 +46,8 @@ application_(application)
 	std::cout << "configuration corresponding to xpath " << xpath << " is: " << tstoreclient::writeXML(configNode) << std::endl;
 	*/
 }
+
+
 
 void emu::fed::DBAgent::connect(const std::string &username, const std::string &password)
 throw (emu::fed::exception::DBException)
@@ -206,7 +209,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-xdata::Table emu::fed::DBAgent::getByID(xdata::UnsignedInteger64 id)
+xdata::Table emu::fed::DBAgent::getByID(xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Push back the table name
@@ -226,7 +229,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-xdata::Table emu::fed::DBAgent::getByKey(xdata::UnsignedInteger64 key)
+xdata::Table emu::fed::DBAgent::getByKey(xdata::UnsignedInteger64 &key)
 throw (emu::fed::exception::DBException)
 {
 	// Push back the table name
@@ -246,7 +249,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(xoap::MessageReference message, std::string klass, int instance)
+xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(xoap::MessageReference &message, const std::string &klass, const int instance)
 throw (emu::fed::exception::SOAPException)
 {
 	
@@ -273,7 +276,7 @@ throw (emu::fed::exception::SOAPException)
 }
 
 
-xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(xoap::MessageReference message, xdaq::ApplicationDescriptor *app)
+xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(xoap::MessageReference &message, xdaq::ApplicationDescriptor *app)
 throw (emu::fed::exception::SOAPException)
 {
 	// postSOAP() may throw an exception when failed.

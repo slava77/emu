@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.5 2009/05/29 11:23:18 paste Exp $
+* $Id: DCC.cc,v 1.6 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -10,9 +10,8 @@
 #include "emu/fed/JTAGElement.h"
 #include "emu/fed/FIFO.h"
 
-emu::fed::DCC::DCC(int slot):
+emu::fed::DCC::DCC(const unsigned int slot):
 VMEModule(slot),
-fifoVector_(10, new FIFO()),
 fifoinuse_(0x3fe),
 softsw_(0),
 fmm_id_(0),
@@ -23,27 +22,22 @@ slink2_id_(0)
 
 	// MPROM is one element
 	JTAGChain chainMPROM;
-	JTAGElement *elementMPROM = new JTAGElement("MPROM", MPROM, 2, MPROM_BYPASS_L | (MPROM_BYPASS_H << 8), 16, 0x00002000, false);
-	chainMPROM.push_back(elementMPROM);
+	chainMPROM.push_back(new JTAGElement("MPROM", MPROM, 2, MPROM_BYPASS_L | (MPROM_BYPASS_H << 8), 16, 0x00002000, false));
 	JTAGMap[MPROM] = chainMPROM;
 
 	// INPROM is one element
 	JTAGChain chainINPROM;
-	JTAGElement *elementINPROM = new JTAGElement("INPROM", INPROM, 3, PROM_BYPASS, 8, 0x00003000, false);
-	chainINPROM.push_back(elementINPROM);
+	chainINPROM.push_back(new JTAGElement("INPROM", INPROM, 3, PROM_BYPASS, 8, 0x00003000, false));
 	JTAGMap[INPROM] = chainINPROM;
 
 	// MCTRL is one element
 	JTAGChain chainMCTRL;
-	JTAGElement *elementMCTRL = new JTAGElement("MCTRL", MCTRL, 11, PROM_BYPASS, 10, 0x00000000, true);
-	chainMCTRL.push_back(elementMCTRL);
+	chainMCTRL.push_back(new JTAGElement("MCTRL", MCTRL, 11, PROM_BYPASS, 10, 0x00000000, true));
 	JTAGMap[MCTRL] = chainMCTRL;
 
 	// The RESET path is one element.
 	JTAGChain chainRESET;
-	JTAGElement *elementRESET = new JTAGElement("RESET", RESET, 12, PROM_BYPASS, 16, 0x0000fffe, false);
-	chainRESET.push_back(elementRESET);
-
+	chainRESET.push_back(new JTAGElement("RESET", RESET, 12, PROM_BYPASS, 16, 0x0000fffe, false));
 	JTAGMap[RESET] = chainRESET;
 }
 
@@ -51,70 +45,67 @@ slink2_id_(0)
 
 emu::fed::DCC::~DCC()
 {
-	// std::cout << "Killing DCC" << std::endl;
+	for (size_t iFIFO = 0; iFIFO < fifoVector_.size(); iFIFO++) {
+		delete fifoVector_[iFIFO];
+	}
 }
 
 
 
-emu::fed::FIFO *emu::fed::DCC::getFIFO(size_t fifoNumber)
+emu::fed::FIFO *emu::fed::DCC::getFIFO(const unsigned int &fifoNumber)
 throw (emu::fed::exception::OutOfBoundsException)
 {
-	if (fifoNumber >= fifoVector_.size()) {
-		std::ostringstream error;
-		error << "FIFO vector overflow, fifoNumber=" << fifoNumber;
-		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot " << slot() << " board DCC";
-		e2.setProperty("tag", tag.str());
-		throw e2;
+	for (std::vector<FIFO *>::iterator iFIFO = fifoVector_.begin(); iFIFO != fifoVector_.end(); iFIFO++) {
+		if ((*iFIFO)->number() == fifoNumber) return (*iFIFO);
 	}
-	return fifoVector_[fifoNumber];
-}
-
-
-
-void emu::fed::DCC::addFIFO(emu::fed::FIFO *fifo, size_t fifoNumber)
-throw (emu::fed::exception::OutOfBoundsException)
-{
-	if (fifoNumber > 9) {
-		std::ostringstream error;
-		error << "FIFO vector overflow, fifoNumber=" << fifoNumber;
-		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot " << slot() << " board DCC";
-		e2.setProperty("tag", tag.str());
-		throw e2;
-	}
-	fifoVector_[fifoNumber] = fifo;
 	
-	// Set the FIFO in use appropriately
-	if (!fifo->isUsed()) fifoinuse_ &= ~(1 << fifoNumber);
-	else fifoinuse_ |= (1 << fifoNumber);
+	return new FIFO(fifoNumber);
 }
 
 
 
-void emu::fed::DCC::setFIFOs(std::vector<emu::fed::FIFO *> fifoVector)
+void emu::fed::DCC::addFIFO(emu::fed::FIFO *fifo)
+throw (emu::fed::exception::OutOfBoundsException)
+{
+	if (fifoVector_.size() == 10) {
+		std::ostringstream error;
+		error << "The physical limitations of the DCC mean only 10 FIFOs can be added.";
+		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
+		std::ostringstream tag;
+		tag << "FMM " << fmm_id_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+	fifoVector_.push_back(fifo);
+
+	// Set the FIFO in use appropriately
+	if (!fifo->isUsed()) fifoinuse_ &= ~(1 << fifo->number());
+	else fifoinuse_ |= (1 << fifo->number());
+}
+
+
+
+void emu::fed::DCC::setFIFOs(const std::vector<emu::fed::FIFO *> &fifoVector)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (fifoVector.size() > 10) {
 		std::ostringstream error;
-		error << "FIFO vector overflow, new fifoVector.size()=" << fifoVector.size();
+		error << "The physical limitations of the DCC mean only 10 fibers can be added.";
 		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot " << slot() << " board DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
-	} else if (fifoVector.size() < 10) {
-		// Resize the new vector just in case
-		fifoVector.resize(10, new FIFO());
+	}
+	for (size_t iFIFO = 0; iFIFO < fifoVector_.size(); iFIFO++) {
+		delete fifoVector_[iFIFO];
 	}
 	fifoVector_ = fifoVector;
 	
 	// Set the FIFO in use appropriately
 	fifoinuse_ = 0;
-	for (size_t iFIFO = 0; iFIFO < fifoVector.size(); iFIFO++) {
-		if (fifoVector[iFIFO]->isUsed()) fifoinuse_ |= (1 << iFIFO);
+	for (std::vector<FIFO *>::const_iterator iFIFO = fifoVector_.begin(); iFIFO != fifoVector.end(); iFIFO++) {
+		if ((*iFIFO)->isUsed()) fifoinuse_ |= (1 << (*iFIFO)->number());
 	}
 }
 
@@ -131,7 +122,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -149,7 +140,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -167,7 +158,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -185,7 +176,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -193,11 +184,11 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeFIFOInUse(uint16_t value)
+void emu::fed::DCC::writeFIFOInUse(const uint16_t value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
-		std::vector<uint16_t> myData(1,value & 0x07FF);
+		std::vector<uint16_t> myData(1, value & 0x07FF);
 		writeRegister(MCTRL, 0x03, 16, myData);
 		
 		// Set the used bit on the owned FIFOs for convenience
@@ -208,7 +199,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -216,7 +207,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-uint16_t emu::fed::DCC::readRate(unsigned int fifo)
+uint16_t emu::fed::DCC::readRate(const unsigned int fifo)
 throw (emu::fed::exception::DCCException)
 {
 	if (fifo > 11) {
@@ -224,7 +215,7 @@ throw (emu::fed::exception::DCCException)
 		error << "there are only 12 FIFOs to check [0-11]";
 		XCEPT_DECLARE(emu::fed::exception::DCCException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -235,7 +226,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -253,7 +244,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -261,7 +252,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeSoftwareSwitch(uint16_t value)
+void emu::fed::DCC::writeSoftwareSwitch(const uint16_t value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -273,7 +264,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -291,7 +282,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -299,7 +290,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeFMM(uint16_t value)
+void emu::fed::DCC::writeFMM(const uint16_t value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -311,7 +302,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -329,7 +320,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -337,7 +328,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeTTCCommand(uint8_t value)
+void emu::fed::DCC::writeTTCCommand(const uint8_t value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -350,7 +341,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -370,7 +361,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -390,7 +381,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -398,7 +389,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeFakeL1A(uint16_t value)
+void emu::fed::DCC::writeFakeL1A(const uint16_t value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -410,7 +401,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -418,7 +409,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-uint32_t emu::fed::DCC::readIDCode(enum DEVTYPE dev)
+uint32_t emu::fed::DCC::readIDCode(const enum DEVTYPE dev)
 throw (emu::fed::exception::DCCException)
 {
 	uint16_t command = 0;
@@ -431,7 +422,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Must supply a PROM device as an argument";
 		XCEPT_DECLARE(emu::fed::exception::DCCException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -444,7 +435,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -452,7 +443,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-uint32_t emu::fed::DCC::readUserCode(enum DEVTYPE dev)
+uint32_t emu::fed::DCC::readUserCode(const enum DEVTYPE dev)
 throw (emu::fed::exception::DCCException)
 {
 	uint16_t command = 0;
@@ -465,7 +456,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Must supply a PROM device as an argument";
 		XCEPT_DECLARE(emu::fed::exception::DCCException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -478,7 +469,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -486,7 +477,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::resetPROM(enum DEVTYPE dev)
+void emu::fed::DCC::resetPROM(const enum DEVTYPE dev)
 throw (emu::fed::exception::DCCException)
 {
 	if (dev != INPROM && dev != MPROM && dev != RESET) {
@@ -494,7 +485,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Must supply a PROM device as an argument";
 		XCEPT_DECLARE(emu::fed::exception::DCCException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -511,7 +502,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -519,7 +510,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-unsigned int emu::fed::DCC::getDDUSlotFromFIFO(unsigned int fifo)
+unsigned int emu::fed::DCC::getDDUSlotFromFIFO(const unsigned int fifo)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (slot() == 8) {
@@ -539,7 +530,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 			error << "FIFO " << fifo << " does not correspond to a DDU for DCC in slot " << slot();
 			XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 			std::ostringstream tag;
-			tag << "slot:" << slot() << ",board:DCC";
+			tag << "FMM " << fmm_id_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 			break;
@@ -557,7 +548,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 			error << "FIFO " << fifo << " does not correspond to a DDU for DCC in slot " << slot();
 			XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 			std::ostringstream tag;
-			tag << "slot:" << slot() << ",board:DCC";
+			tag << "FMM " << fmm_id_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 			break;
@@ -567,7 +558,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 		error << "FIFO mapping is not known for a DCC in slot " << slot();
 		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -575,7 +566,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-unsigned int emu::fed::DCC::getFIFOFromDDUSlot(unsigned int mySlot)
+unsigned int emu::fed::DCC::getFIFOFromDDUSlot(const unsigned int mySlot)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (slot() == 8) {
@@ -595,7 +586,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 			error << "DDU in slot " << mySlot << " does not input to DCC in slot " << slot();
 			XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 			std::ostringstream tag;
-			tag << "slot:" << slot() << ",board:DCC";
+			tag << "FMM " << fmm_id_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 			break;
@@ -613,7 +604,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 			error << "DDU in slot " << mySlot << " does not input to DCC in slot " << slot();
 			XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 			std::ostringstream tag;
-			tag << "slot:" << slot() << ",board:DCC";
+			tag << "FMM " << fmm_id_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 			break;
@@ -623,7 +614,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 		error << "FIFO mapping is not known for a DCC in slot " << slot();
 		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -631,7 +622,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-unsigned int emu::fed::DCC::getSLinkFromFIFO(unsigned int fifo)
+unsigned int emu::fed::DCC::getSLinkFromFIFO(const unsigned int fifo)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	switch (fifo) {
@@ -642,7 +633,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 		error << "FIFO " << fifo << " does not correspond to an SLink output";
 		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 		break;
@@ -651,7 +642,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-unsigned int emu::fed::DCC::getFIFOFromSLink(unsigned int slink)
+unsigned int emu::fed::DCC::getFIFOFromSLink(const unsigned int slink)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	switch (slink) {
@@ -662,7 +653,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 		error << "SLink " << slink << " does not correspond to an output FIFO";
 		XCEPT_DECLARE(emu::fed::exception::OutOfBoundsException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 		break;
@@ -671,7 +662,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-uint16_t emu::fed::DCC::readDDURate(unsigned int mySlot)
+uint16_t emu::fed::DCC::readDDURate(const unsigned int mySlot)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -681,7 +672,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Unable to read data rate for DDU slot " << mySlot;
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -689,7 +680,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-uint16_t emu::fed::DCC::readSLinkRate(unsigned int slink)
+uint16_t emu::fed::DCC::readSLinkRate(const unsigned int slink)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -699,7 +690,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Unable to read data rate for SLink " << slink;
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -721,7 +712,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -743,7 +734,7 @@ throw (emu::fed::exception::DCCException)
 		error << "Exception communicating with DCC";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::DCCException, e2, error.str(), e);
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -751,7 +742,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::reloadFIFOUsedBits(uint16_t fifoInUse)
+void emu::fed::DCC::reloadFIFOUsedBits(const uint16_t fifoInUse)
 {
 	for (size_t iFIFO = 0; iFIFO < fifoVector_.size(); iFIFO++) {
 		fifoVector_[iFIFO]->used_ = (fifoInUse & (1 << iFIFO));
@@ -760,7 +751,7 @@ void emu::fed::DCC::reloadFIFOUsedBits(uint16_t fifoInUse)
 
 
 
-std::vector<uint16_t> emu::fed::DCC::readRegister(enum DEVTYPE dev, uint16_t myRegister, unsigned int nBits, bool debug)
+std::vector<uint16_t> emu::fed::DCC::readRegister(const enum DEVTYPE dev, const uint16_t myRegister, const unsigned int nBits, const bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -770,7 +761,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		error << "JTAGChain not defined for dev=" << dev;
 		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -784,10 +775,10 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			// Direct VME reads are always one element, and are not JTAG commands.
 
 			// The address of the read is stored in the chain.
-			uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
+			const uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 			//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 
-			return readCycle(myAddress,nBits,debug);
+			return readCycle(myAddress, nBits, debug);
 
 		} else {
 			// Everything else is a JTAG command, and may or may not
@@ -801,7 +792,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 			// Finally, set the bypass.  All bypass commands in the chain are equal.
 			// That is part of the definition of JTAG.
-			commandCycle(dev, chain.front()->bypassCommand,debug);
+			commandCycle(dev, chain.front()->bypassCommand, debug);
 
 			return result;
 
@@ -811,7 +802,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		error << "Exception in readRegister(dev=" << dev << ", myRegister=" << myRegister << ", nBits=" << nBits << ")";
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -820,7 +811,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::DCC::writeRegister(enum DEVTYPE dev, uint16_t myRegister, unsigned int nBits, std::vector<uint16_t> myData, bool debug)
+std::vector<uint16_t> emu::fed::DCC::writeRegister(const enum DEVTYPE dev, const uint16_t myRegister, const unsigned int nBits, std::vector<uint16_t> myData, const bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -830,7 +821,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		error << "JTAGChain not defined for dev=" << dev;
 		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
@@ -847,7 +838,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		if (chain.front()->directVME) {
 
 			// The address for MCTRL is special, as it also contains the command code.
-			uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
+			const uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 			//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 
 			writeCycle(myAddress, nBits, myData, debug);
@@ -876,7 +867,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		error << "Exception in writeRegister(dev=" << dev << ", myRegister=" << myRegister << ", nBits=" << nBits << ", myData=" << &myData << ")";
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		std::ostringstream tag;
-		tag << "slot:" << slot() << ",board:DCC";
+		tag << "FMM " << fmm_id_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateDBAgent.cc,v 1.2 2009/05/22 19:25:51 paste Exp $
+* $Id: CrateDBAgent.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/CrateDBAgent.h"
@@ -15,7 +15,7 @@ DBAgent(application)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::getCrates(xdata::UnsignedInteger64 id)
+std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::getCrates(xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -48,7 +48,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::getCrates(xdata::UnsignedInteger64 key, xdata::UnsignedShort number)
+std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::getCrates(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -85,7 +85,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::buildCrates(xdata::Table table)
+std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> emu::fed::CrateDBAgent::buildCrates(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
 	std::map<xdata::UnsignedInteger64, Crate *, DBAgent::comp> returnMe;

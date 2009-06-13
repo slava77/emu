@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 1.2 2009/05/16 18:53:10 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 1.3 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_EMUFCRATEHYPERDAQ_H__
 #define __EMU_FED_EMUFCRATEHYPERDAQ_H__
@@ -37,6 +37,9 @@ namespace emu {
 
 			/** Default Constructor **/
 			EmuFCrateHyperDAQ(xdaq::ApplicationStub *stub);
+			
+			/** Default destructor **/
+			~EmuFCrateHyperDAQ();
 
 			/** Default page when XDAQ loads.  Sets configuration if required and
 			*	bounces the user to the main page.
@@ -108,7 +111,7 @@ namespace emu {
 			/** Page for VEM Serial register reading/writing. **/
 			void VMESERI(xgi::Input *in, xgi::Output *out);
 
-			/** Load data into the DDU from text (?) **/
+			/** Load data into the DDU **/
 			void DDUTextLoad(xgi::Input *in, xgi::Output *out);
 
 			/** Starts/stops/monitors the IRQ interrupt handler. **/
@@ -131,7 +134,7 @@ namespace emu {
 			/** Page for reading and setting expert registers on the DCC. **/
 			void DCCExpert(xgi::Input *in, xgi::Output *out);
 
-			/** Load data into the DCC from text (?) **/
+			/** Load data into the DCC **/
 			void DCCTextLoad(xgi::Input *in, xgi::Output *out);
 
 			/** Live DDU voltage monitoring page. **/
@@ -150,7 +153,7 @@ namespace emu {
 			*
 			*	@author Phillip Killewald
 			**/
-			std::string selectACrate(std::string location, std::string what, unsigned int index, unsigned int crateIndex = 0);
+			std::string selectACrate(const std::string &location, const std::string &what, const unsigned int index, const unsigned int crateIndex = 0);
 
 			/** A way to easily get the selected crate from the CGI variables
 			*
@@ -160,7 +163,7 @@ namespace emu {
 			*
 			* @author Phillip Killewald
 			**/
-			std::pair<unsigned int, Crate *> getCGICrate(cgicc::Cgicc cgi)
+			std::pair<unsigned int, Crate *> getCGICrate(const cgicc::Cgicc &cgi)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** A way to easily get the selected DDU/DCC from the CGI variables
@@ -172,7 +175,7 @@ namespace emu {
 			* @author Phillip Killewald
 			**/
 			template<class T>
-			std::pair<unsigned int, T *> getCGIBoard(cgicc::Cgicc cgi)
+			std::pair<unsigned int, T *> getCGIBoard(const cgicc::Cgicc &cgi)
 			throw (emu::fed::exception::OutOfBoundsException)
 			{
 
@@ -189,7 +192,7 @@ namespace emu {
 				Crate *crate = cratePair.second;
 
 				// Then get the slot number
-				cgicc::form_iterator name = cgi.getElement("slot");
+				cgicc::const_form_iterator name = cgi.getElement("slot");
 				unsigned int cgiSlot = 0;
 				if (name != cgi.getElements().end()) {
 					cgiSlot = cgi["slot"]->getIntegerValue();

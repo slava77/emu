@@ -1,12 +1,12 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.cc,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: DBConfigurator.cc,v 1.2 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DBConfigurator.h"
 
 
 
-emu::fed::DBConfigurator::DBConfigurator(xdaq::WebApplication *application, std::string username, std::string password):
+emu::fed::DBConfigurator::DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password):
 application_(application),
 dbUsername_(username),
 dbPassword_(password)

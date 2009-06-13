@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.3 2009/05/16 18:53:10 paste Exp $
+* $Id: Application.h,v 1.4 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -57,7 +57,7 @@ namespace emu {
 			*
 			*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 			**/
-			xoap::MessageReference getParameters(std::string applicationName, unsigned int instance)
+			xoap::MessageReference getParameters(const std::string &applicationName, const unsigned int instance)
 			throw (emu::fed::exception::SOAPException);
 
 			/** Sets a parameter in a remote application.  I don't know where the
@@ -81,7 +81,7 @@ namespace emu {
 			*
 			*	@author Phillip Killewald (stolen from Laria's CSCSupervisor.cc)
 			**/
-			void setParameter(std::string klass, std::string name, std::string type, std::string value, int instance = -1)
+			void setParameter(const std::string &klass, const std::string &name, const std::string &type, const std::string &value, const int instance = -1)
 			throw (emu::fed::exception::SOAPException);
 
 			/** Reads a reply from onGetParameters and returns a named parameter from
@@ -98,7 +98,7 @@ namespace emu {
 			*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 			**/
 			template<typename T>
-			T readParameter(xoap::MessageReference message, std::string parameterName)
+			T readParameter(xoap::MessageReference &message, const std::string &parameterName)
 			throw (emu::fed::exception::SOAPException)
 			{
 				T thingToGet;
@@ -117,7 +117,9 @@ namespace emu {
 				xercesc::DOMDocument *doc;
 				try {
 					doc = parser->parse(messageStr);
+					delete parser;
 				} catch (xoap::exception::Exception &e) {
+					delete parser;
 					std::ostringstream error;
 					error << "Unable to parse SOAP message: " << messageStr;
 					XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
@@ -125,25 +127,27 @@ namespace emu {
 
 				//xoap::SOAPElement sInfoSpace = message->getSOAPPart().getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("GetParametersResponse", "", "")))[0];
 
-				xoap::SOAPName *name = new xoap::SOAPName(parameterName, "xdaq", XDAQ_NS_URI);
+				xoap::SOAPName name(parameterName, "xdaq", XDAQ_NS_URI);
 				//std::cout << "Looking for " << name->getQualifiedName() << ", " << name->getURI() << std::endl;
 
-
-				xercesc::DOMNodeList *dataNode = doc->getElementsByTagNameNS(xoap::XStr(XDAQ_NS_URI), xoap::XStr("data"));
-				xercesc::DOMNodeList *dataElements = dataNode->item(0)->getChildNodes();
-
 				bool found = false;
-				for (unsigned int j = 0; j < dataElements->getLength(); j++) {
-					xercesc::DOMNode *n = dataElements->item(j);
-					if (n->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
-						std::string nodeName = xoap::XMLCh2String(n->getNodeName());
-						if (nodeName == name->getQualifiedName()) {
-							serializer.import (&thingToGet, n);
-							found = true;
-							break;
+				
+				xercesc::DOMNodeList *dataNode = doc->getElementsByTagNameNS(xoap::XStr(XDAQ_NS_URI), xoap::XStr("data"));
+				if (dataNode->item(0)) {
+					xercesc::DOMNodeList *dataElements = dataNode->item(0)->getChildNodes();
+					for (unsigned int j = 0; j < dataElements->getLength(); j++) {
+						xercesc::DOMNode *n = dataElements->item(j);
+						if (n->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+							std::string nodeName = xoap::XMLCh2String(n->getNodeName());
+							if (nodeName == name.getQualifiedName()) {
+								serializer.import (&thingToGet, n);
+								found = true;
+								break;
+							}
 						}
 					}
 				}
+				
 				if (!found) {
 					std::ostringstream error;
 					error << "Unable to find parameter " << parameterName;
@@ -161,7 +165,7 @@ namespace emu {
 			* @returns the application descriptor of the matching application
 			**/
 			template<typename T, typename V>
-			xdaq::ApplicationDescriptor *findMatchingApplication(std::string myClass, std::string parameter, V value)
+			xdaq::ApplicationDescriptor *findMatchingApplication(const std::string &myClass, const std::string &parameter, const V &value)
 			throw (emu::fed::exception::SoftwareException)
 			{
 				
@@ -181,9 +185,11 @@ namespace emu {
 						continue;
 					}
 					
-					V myValue = V();
 					try {
-						myValue = readParameter<T>(reply, parameter);
+						V myValue = readParameter<T>(reply, parameter);
+						if (myValue == value) {
+							return (*jDescriptor);
+						}
 					} catch (emu::fed::exception::SOAPException &e) {
 						std::ostringstream error;
 						error << "Unable to read parameter '" << parameter << "' from application '" << (*jDescriptor)->getClassName() << "' instance " << (*jDescriptor)->getInstance();
@@ -192,14 +198,10 @@ namespace emu {
 						notifyQualified("WARN", e2);
 						continue;
 					}
-					
-					if (myValue == value) {
-						return (*jDescriptor);
-					}
 				}
 				
 				std::ostringstream error;
-				error << "Unable to find an application of class '" << myClass << "' with a parameter '" << parameter << "' matching '" << value << "'";
+				//error << "Unable to find an application of class '" << myClass << "' with a parameter '" << parameter << "' matching '" << value << "'";
 				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 				XCEPT_RAISE(emu::fed::exception::SoftwareException, error.str());
 			}
@@ -214,8 +216,8 @@ namespace emu {
 			*	@returns a huge std::string that is basically the header of the page in
 			*	 HTML.  Good for outputting straight to the xgi::Output.
 			**/
-			virtual std::string Header(std::string myTitle, std::vector<std::string> jsFileNames);
-			virtual inline std::string Header(std::string myTitle)
+			virtual std::string Header(const std::string &myTitle, const std::vector<std::string> &jsFileNames);
+			virtual inline std::string Header(const std::string &myTitle)
 			{
 				std::vector<std::string> fileNames;
 				return Header(myTitle, fileNames);
@@ -258,14 +260,14 @@ namespace emu {
 			*
 			*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 			**/
-			void webRedirect(xgi::Input *in, xgi::Output *out, std::string location = "");
-			inline void webRedirect (xgi::Output *out, std::string location = "") { return webRedirect(new xgi::Input("", 0), out, location); }
+			void webRedirect(xgi::Input *in, xgi::Output *out, const std::string &location = "");
+			inline void webRedirect (xgi::Output *out, const std::string &location = "") { return webRedirect(new xgi::Input("", 0), out, location); }
 
 			/** Create a simple SOAP command for FSM transitions.
 			*
 			*	@param command is the FSM transition command
 			**/
-			xoap::MessageReference createSOAPCommand(std::string command);
+			xoap::MessageReference createSOAPCommand(const std::string &command);
 
 			/** Send a SOAP command to a given application or applications
 			*
@@ -273,7 +275,7 @@ namespace emu {
 			*	@param klass is the name of the class to which the command should be sent
 			*	@param instance is the instance of the given class to which the command should be sent.  A -1 value means send to all instances of the given class.
 			**/
-			void sendSOAPCommand(std::string command, std::string klass, int instance = -1)
+			void sendSOAPCommand(const std::string &command, const std::string &klass, const int instance = -1)
 			throw (emu::fed::exception::SOAPException);
 			
 			/** Print all the exceptions in the history of a given exception.

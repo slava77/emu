@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.h,v 1.3 2009/05/21 15:33:43 paste Exp $
+* $Id: Crate.h,v 1.4 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATE_H__
 #define __EMU_FED_CRATE_H__
@@ -24,13 +24,18 @@ namespace emu {
 			*
 			*	@param myNumber the identification number of the crate.
 			**/
-			Crate(unsigned int myNumber);
+			Crate(const unsigned int myNumber);
+			
+			/** Default destructor.**/
+			~Crate();
 
 			/** @returns the identification number of the crate. **/
-			unsigned int number() {return number_;}
+			const unsigned int number() {return number_;}
+			const unsigned int getNumber() {return number_;}
 
 			/** Adds a VMEModule to the crate. **/
-			void addBoard(VMEModule* myBoard);
+			void addBoard(VMEModule* myBoard)
+			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** Sets the VMEController in the crate. **/
 			void setController(VMEController* controller);

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.h,v 1.3 2009/05/22 19:25:50 paste Exp $
+* $Id: DBAgent.h,v 1.4 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBAGENT_H__
 #define __EMU_FED_DBAGENT_H__
@@ -58,11 +58,11 @@ namespace emu {
 			throw (emu::fed::exception::DBException);
 			
 			/** Get a particular row from the table given that row's ID. **/
-			xdata::Table getByID(xdata::UnsignedInteger64 id)
+			xdata::Table getByID(xdata::UnsignedInteger64 &id)
 			throw (emu::fed::exception::DBException);
 			
 			/** Get all matching rows from the table given a configuration key. **/
-			xdata::Table getByKey(xdata::UnsignedInteger64 key)
+			xdata::Table getByKey(xdata::UnsignedInteger64 &key)
 			throw (emu::fed::exception::DBException);
 
 		protected:
@@ -76,11 +76,11 @@ namespace emu {
 			};
 			
 			/** Send a SOAP message to the given application **/
-			xoap::MessageReference sendSOAPMessage(xoap::MessageReference message, std::string klass, int instance = -1)
+			xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message, const std::string &klass, const int instance = -1)
 			throw (emu::fed::exception::SOAPException);
 
 			/** Send a SOAP message to the given application **/
-			xoap::MessageReference sendSOAPMessage(xoap::MessageReference message, xdaq::ApplicationDescriptor *app)
+			xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message, xdaq::ApplicationDescriptor *app)
 			throw (emu::fed::exception::SOAPException);
 			
 			/// The application context from which to send the SOAP messages

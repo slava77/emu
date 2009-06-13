@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.5 2009/05/16 18:53:10 paste Exp $
+* $Id: Application.cc,v 1.6 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -60,7 +60,7 @@ throw (emu::fed::exception::SOAPException)
 
 	try {
 		return getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *applicationDescriptor);
-	} catch (xdaq::exception::Exception &e) {
+	} catch (xcept::Exception &e) {
 		std::ostringstream error;
 		std::string temp;
 		message->writeTo(temp);
@@ -72,7 +72,7 @@ throw (emu::fed::exception::SOAPException)
 
 
 
-xoap::MessageReference emu::fed::Application::getParameters(std::string applicationName, unsigned int instance)
+xoap::MessageReference emu::fed::Application::getParameters(const std::string &applicationName, const unsigned int instance)
 throw (emu::fed::exception::SOAPException)
 {
 
@@ -87,7 +87,7 @@ throw (emu::fed::exception::SOAPException)
 		XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
 	}
 
-	std::set<xdaq::ApplicationDescriptor *>::iterator iAD;
+	std::set<xdaq::ApplicationDescriptor *>::const_iterator iAD;
 	for (iAD = apps.begin(); iAD != apps.end(); iAD++) {
 		if ((*iAD)->getInstance() != instance) continue;
 		return getParameters(*iAD);
@@ -101,7 +101,7 @@ throw (emu::fed::exception::SOAPException)
 
 
 
-void emu::fed::Application::setParameter(std::string klass, std::string name, std::string type, std::string value, int instance)
+void emu::fed::Application::setParameter(const std::string &klass, const std::string &name, const std::string &type, const std::string &value, const int instance)
 throw (emu::fed::exception::SOAPException)
 {
 
@@ -165,93 +165,93 @@ throw (emu::fed::exception::SOAPException)
 
 
 
-std::string emu::fed::Application::Header(std::string myTitle, std::vector<std::string> jsFileNames)
+std::string emu::fed::Application::Header(const std::string &myTitle, const std::vector<std::string> &jsFileNames)
 {
-	std::stringstream *out = new std::stringstream();
+	std::stringstream out;
 
-	// *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+	// out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
 	// This installation of CGICC is ancient and does not understand
 	// the XHTML Doctype.  Make my own.
-	*out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
-	*out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
-	*out << cgicc::head() << std::endl;
-	*out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/emu/emuDCS/FEDApps/html/FEDApps.css\" />" << std::endl;
+	out << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" << std::endl;
+	out << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << std::endl;
+	out << cgicc::head() << std::endl;
+	out << "<link rel=\"stylesheet\" type=\"text/css\" href=\"/emu/emuDCS/FEDApps/html/FEDApps.css\" />" << std::endl;
 	
-	*out << cgicc::title(myTitle) << std::endl;
+	out << cgicc::title(myTitle) << std::endl;
 
 
 	// Include the javascript files
 	// This is a universal global that I want to always have around.
-	*out << "<script type=\"text/javascript\">var URL = \"" << getApplicationDescriptor()->getContextDescriptor()->getURL() << "/" << getApplicationDescriptor()->getURN() << "\";</script>";
+	out << "<script type=\"text/javascript\">var URL = \"" << getApplicationDescriptor()->getContextDescriptor()->getURL() << "/" << getApplicationDescriptor()->getURN() << "\";</script>";
 	// Always include prototype
-	*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/prototype.js\"></script>" << std::endl;
-	for (std::vector<std::string>::iterator iFile = jsFileNames.begin(); iFile != jsFileNames.end(); iFile++) {
-		*out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/" << (*iFile) << "\"></script>" << std::endl;
+	out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/prototype.js\"></script>" << std::endl;
+	for (std::vector<std::string>::const_iterator iFile = jsFileNames.begin(); iFile != jsFileNames.end(); iFile++) {
+		out << "<script type=\"text/javascript\" src=\"/emu/emuDCS/FEDApps/html/" << (*iFile) << "\"></script>" << std::endl;
 	}
 
-	*out << cgicc::head() << std::endl;
+	out << cgicc::head() << std::endl;
 
 	// Dynamic backgrounds
-	*out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + systemName_.toString() + ".png);\">" << std::endl;
+	out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + systemName_.toString() + ".png);\">" << std::endl;
 
-	*out << cgicc::fieldset()
+	out << cgicc::fieldset()
 		.set("class","header") << std::endl;
 
-	*out << cgicc::a()
+	out << cgicc::a()
 		.set("href","/"+getApplicationDescriptor()->getURN()+"/") << std::endl;
 
-	*out << cgicc::img()
+	out << cgicc::img()
 	.set("src","/emu/emuDCS/FEDApps/images/EmuFEDSeal.png")
 		.set("style","float: left; width: 100px; height: 100px") << std::endl;
 
-	*out << cgicc::a() << std::endl;
+	out << cgicc::a() << std::endl;
 
-	*out << cgicc::img()
+	out << cgicc::img()
 	.set("src","/emu/emuDCS/FEDApps/images/OSUCMS.png")
 		.set("style","float: right; width: 100px; height: 100px") << std::endl;
 
-	*out << cgicc::div(myTitle)
+	out << cgicc::div(myTitle)
 		.set("class","title")
 		.set("id", "application_title") << std::endl;
 
-	*out << cgicc::div()
+	out << cgicc::div()
 		.set("class","expert_names") << std::endl;
-	*out << cgicc::span("Experts ")
+	out << cgicc::span("Experts ")
 		.set("style","font-weight: bold") << std::endl;
-	*out << cgicc::a("Stan Durkin")
+	out << cgicc::a("Stan Durkin")
 		.set("href","mailto:durkin@mps.ohio-state.edu") << ", " << std::endl;
-	*out << cgicc::a("Jason Gilmore")
+	out << cgicc::a("Jason Gilmore")
 		.set("href","mailto:gilmore@mps.ohio-state.edu") << ", " << std::endl;
-	*out << cgicc::a("Jianhui Gu")
+	out << cgicc::a("Jianhui Gu")
 		.set("href","mailto:gujh@mps.ohio-state.edu") << ", " << std::endl;
-	*out << cgicc::a("Phillip Killewald")
+	out << cgicc::a("Phillip Killewald")
 		.set("href","mailto:paste@mps.ohio-state.edu") << std::endl;
-	*out << cgicc::div() << std::endl;
+	out << cgicc::div() << std::endl;
 
-	*out << cgicc::fieldset() << std::endl;
+	out << cgicc::fieldset() << std::endl;
 
-	*out << cgicc::br()
+	out << cgicc::br()
 		.set("style","clear: both;") << std::endl;
 
-	return out->str();
+	return out.str();
 }
 
 
 
 std::string emu::fed::Application::Footer()
 {
-	std::stringstream *out = new std::stringstream();
+	std::stringstream out;
 
-	*out << cgicc::fieldset()
+	out << cgicc::fieldset()
 		.set("class","footer") << std::endl;
-	*out << "Built on " << __DATE__ << " at " << __TIME__ << "." << cgicc::br() << std::endl;
-	*out << "Eddie the Emu thanks you." << std::endl;
-	*out << cgicc::fieldset() << std::endl;
+	out << "Built on " << __DATE__ << " at " << __TIME__ << "." << cgicc::br() << std::endl;
+	out << "Eddie the Emu thanks you." << std::endl;
+	out << cgicc::fieldset() << std::endl;
 
-	*out << "</body>" << std::endl;
-	*out << "</html>" << std::endl;
+	out << "</body>" << std::endl;
+	out << "</html>" << std::endl;
 
-	return out->str();
+	return out.str();
 }
 
 
@@ -292,7 +292,7 @@ std::string emu::fed::Application::dumpEnvironment(xgi::Input *in)
 {
 	std::ostringstream dump;
 	cgicc::Cgicc cgi(in);
-	const cgicc::CgiEnvironment& env = cgi.getEnvironment();
+	const cgicc::CgiEnvironment &env = cgi.getEnvironment();
 
 	dump << "Dumping CGI environment..." << std::endl;
 
@@ -361,7 +361,7 @@ xoap::MessageReference emu::fed::Application::createSOAPReply(xoap::MessageRefer
 */
 
 
-void emu::fed::Application::webRedirect(xgi::Input *in, xgi::Output *out, std::string location)
+void emu::fed::Application::webRedirect(xgi::Input *in, xgi::Output *out, const std::string &location)
 {
 	std::string url;
 	if (location == "") {
@@ -380,7 +380,7 @@ void emu::fed::Application::webRedirect(xgi::Input *in, xgi::Output *out, std::s
 
 
 
-xoap::MessageReference emu::fed::Application::createSOAPCommand(std::string command)
+xoap::MessageReference emu::fed::Application::createSOAPCommand(const std::string &command)
 {
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -392,7 +392,7 @@ xoap::MessageReference emu::fed::Application::createSOAPCommand(std::string comm
 
 
 
-void emu::fed::Application::sendSOAPCommand(std::string command, std::string klass, int instance)
+void emu::fed::Application::sendSOAPCommand(const std::string &command, const std::string &klass, const int instance)
 throw (emu::fed::exception::SOAPException)
 {
 
@@ -418,27 +418,23 @@ throw (emu::fed::exception::SOAPException)
 	// send the message
 	// postSOAP() may throw an exception when failed.
 	for (std::set<xdaq::ApplicationDescriptor *>::iterator iApp = apps.begin(); iApp != apps.end(); iApp++) {
-		unsigned int iTries = 5;
-		while (iTries > 0) {
+		for (unsigned int iTries = 5; iTries > 0; iTries--) {
 			try {
 				getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *(*iApp));
-				break;
+				return;
 			} catch (xcept::Exception &e) {
 				std::ostringstream error;
 				std::string messageOut;
 				message->writeTo(messageOut);
 				error << "sendCommand failed sending command=" << command << " to klass=" << klass << ", instance=" << instance << ": message " << messageOut;
 				LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-				iTries--;
 			}
 		}
 
-		if (iTries == 0) {
-			std::ostringstream error;
-			error << "sendCommand reached the maximum number of retries";
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-			XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
-		}
+		std::ostringstream error;
+		error << "sendCommand reached the maximum number of retries";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
 	}
 
 }

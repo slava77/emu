@@ -1,15 +1,5 @@
 /*****************************************************************************\
-* $Id: Supervised.h,v 1.2 2009/05/16 18:53:10 paste Exp $
-*
-* $Log: Supervised.h,v $
-* Revision 1.2  2009/05/16 18:53:10  paste
-* Massive update to prepare for online database configuration.
-*
-* Revision 1.1  2009/03/09 16:03:16  paste
-* * Updated "ForPage1" routine in Manager with new routines from emu::base::WebReporter
-* * Updated inheritance in wake of changes to emu::base::Supervised
-* * Added Supervised class to separate XDAQ web-based applications and those with a finite state machine
-*
+* $Id: Supervised.h,v 1.3 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SUPERVISED_H__
 #define __EMU_FED_SUPERVISED_H__

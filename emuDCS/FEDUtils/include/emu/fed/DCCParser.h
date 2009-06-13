@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCParser.h,v 1.2 2009/05/16 18:55:20 paste Exp $
+* $Id: DCCParser.h,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCCPARSER_H__
 #define __EMU_FED_DCCPARSER_H__
@@ -26,7 +26,10 @@ namespace emu {
 			**/
 			explicit DCCParser(xercesc::DOMElement *pNode)
 			throw (emu::fed::exception::ParseException);
-				
+			
+			/** Default destructor **/
+			~DCCParser();
+			
 			/** @returns a pointer to the parsed DCC object. **/
 			inline DCC *getDCC() { return dcc_; }
 		

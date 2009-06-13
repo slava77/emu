@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Parser.h,v 1.2 2009/05/16 18:55:20 paste Exp $
+* $Id: Parser.h,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_PARSER_H__
 #define __EMU_FED_PARSER_H__
@@ -53,14 +53,14 @@ namespace emu {
 					scan >> target;
 				} catch (std::stringstream::failure &e) {
 					std::ostringstream error;
-					error << "Unable to read " << item << "=" << xercesc::XMLString::transcode(pAttributeNode->getNodeValue()) << ": " << e.what();
+					error << "Unable to parse " << item << "=" << xercesc::XMLString::transcode(pAttributeNode->getNodeValue()) << ": " << e.what();
 					XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
 				}
 				return target;
 			}
 			
 			template<class T>
-			T extract(const std::string item, std::ios_base::fmtflags flags = std::ios::dec)
+			T extract(const std::string &item, std::ios_base::fmtflags flags = std::ios::dec)
 			throw (emu::fed::exception::ParseException)
 			{
 				try {

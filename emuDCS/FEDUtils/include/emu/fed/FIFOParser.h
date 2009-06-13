@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFOParser.h,v 1.2 2009/05/29 11:25:09 paste Exp $
+* $Id: FIFOParser.h,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIFOPARSER_H__
 #define __EMU_FED_FIFOPARSER_H__
@@ -26,20 +26,17 @@ namespace emu {
 			**/
 			explicit FIFOParser(xercesc::DOMElement *pNode)
 			throw (emu::fed::exception::ParseException);
+			
+			/** Default destructor **/
+			~FIFOParser();
 
 			/** @returns a pointer to the parsed FIFO object. **/
 			inline FIFO *getFIFO() { return fifo_; }
-
-			/** @returns the parsed FIFO number. **/
-			inline const unsigned int getNumber() { return number_; }
 		
 		private:
 
 			/// A FIFO object built from the parsed attributes of the DOM node.
 			FIFO *fifo_;
-
-			/// The FIFO number.
-			unsigned int number_;
 		};
 
 	}

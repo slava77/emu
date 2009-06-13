@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.9 2009/06/08 19:20:53 paste Exp $
+* $Id: Manager.cc,v 1.10 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -577,7 +577,7 @@ void emu::fed::Manager::unknownAction(toolbox::Event::Reference event)
 
 
 
-std::string emu::fed::Manager::getManagerState(std::string targetState, JSONSpirit::Array underlyingStatus)
+std::string emu::fed::Manager::getManagerState(const std::string &targetState, const JSONSpirit::Array &underlyingStatus)
 {
 	
 	// This map is to make sure everybody is in the same state.
@@ -589,7 +589,7 @@ std::string emu::fed::Manager::getManagerState(std::string targetState, JSONSpir
 		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
 			if (iPair->name_ == "state") {
 				std::string state = iPair->value_.get_str();
-				LOG4CPLUS_DEBUG(getApplicationLogger(), "State of underlying Communicator: " << state);
+				//LOG4CPLUS_DEBUG(getApplicationLogger(), "State of underlying Communicator: " << state);
 				
 				if (state == "Failed" || state == "Unknown") {
 					std::ostringstream error;
@@ -625,7 +625,7 @@ std::string emu::fed::Manager::getManagerState(std::string targetState, JSONSpir
 		return "Failed";
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "All Communicator applications are in the target state of " << targetState);
+	//LOG4CPLUS_DEBUG(getApplicationLogger(), "All Communicator applications are in the target state of " << targetState);
 	return targetState;
 }
 

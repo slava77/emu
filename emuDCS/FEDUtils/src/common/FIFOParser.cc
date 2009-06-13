@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFOParser.cc,v 1.2 2009/05/29 11:25:09 paste Exp $
+* $Id: FIFOParser.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/FIFOParser.h"
 
@@ -12,9 +12,9 @@ emu::fed::FIFOParser::FIFOParser(xercesc::DOMElement *pNode)
 throw (emu::fed::exception::ParseException):
 Parser(pNode)
 {
-
+	unsigned int number = 0;
 	try {
-		number_ = extract<unsigned int>("FIFO_NUMBER");
+		number = extract<unsigned int>("FIFO_NUMBER");
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse FIFO_NUMBER from element";
@@ -39,6 +39,13 @@ Parser(pNode)
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 	
-	fifo_ = new FIFO(rui, used);
+	fifo_ = new FIFO(number, rui, used);
 
+}
+
+
+
+emu::fed::FIFOParser::~FIFOParser()
+{
+	//delete fifo_;
 }

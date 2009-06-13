@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.7 2009/06/08 17:08:52 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.8 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -23,7 +23,7 @@
 
 
 
-emu::fed::IRQThreadManager::IRQThreadManager(xdaq::WebApplication *application, unsigned int fmmErrorThreshold):
+emu::fed::IRQThreadManager::IRQThreadManager(xdaq::WebApplication *application, const unsigned int fmmErrorThreshold):
 systemName_(""),
 fmmErrorThreshold_(fmmErrorThreshold),
 application_(application)
@@ -36,9 +36,12 @@ application_(application)
 
 emu::fed::IRQThreadManager::~IRQThreadManager()
 {
-
-	//endThreads();
-
+	try {
+		endThreads();
+	} catch (...) {
+		// I don't care if this doesn't work.  Zombies will all die eventually.
+	}
+	delete data_;
 }
 
 
@@ -53,7 +56,7 @@ void emu::fed::IRQThreadManager::attachCrate(Crate *crate)
 
 
 
-void emu::fed::IRQThreadManager::startThreads(unsigned long int runNumber)
+void emu::fed::IRQThreadManager::startThreads(const unsigned long int runNumber)
 throw (emu::fed::exception::FMMThreadException)
 {
 
@@ -209,7 +212,6 @@ throw (emu::fed::exception::FMMThreadException)
 	
 	MY_REVOKE_ALARM("IRQThreadEnd");
 
-	data_ = new IRQData(application_);
 	threadVector_.clear();
 }
 
