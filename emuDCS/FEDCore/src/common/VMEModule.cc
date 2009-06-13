@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.4 2009/04/14 17:50:51 paste Exp $
+* $Id: VMEModule.cc,v 1.5 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -15,7 +15,7 @@
 #include "CAENVMEtypes.h"
 //#include "emu/fed/VMEController.h"
 
-emu::fed::VMEModule::VMEModule(unsigned int mySlot):
+emu::fed::VMEModule::VMEModule(const unsigned int mySlot):
 slot_(mySlot)
 {
 	// Initialize mutexes
@@ -26,13 +26,13 @@ slot_(mySlot)
 
 
 
-void emu::fed::VMEModule::writeCycle(uint32_t myAddress, unsigned int nBits, std::vector<uint16_t> myData, bool debug)
+void emu::fed::VMEModule::writeCycle(const uint32_t myAddress, const unsigned int nBits, const std::vector<uint16_t> &myData, const bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// What I really need is the number of words and remainder bits.
 	// These are incomplete words, a sort of ceiling function for unsigned ints
-	unsigned int nWords = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
-	unsigned int remainderBits = nBits % 16;
+	const unsigned int nWords = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
+	const unsigned int remainderBits = nBits % 16;
 
 
 	// Now, I start the sending process...
@@ -49,9 +49,6 @@ throw (emu::fed::exception::CAENException)
 			std::ostringstream error;
 			error << "Exception in writeCycle(myAddress=" << myAddress << ", nBits=" << nBits << ", myData=" << &myData << ")";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			std::ostringstream tag;
-			tag << "slot:" << slot_;
-			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
 	}
@@ -62,13 +59,13 @@ throw (emu::fed::exception::CAENException)
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::readCycle(uint32_t myAddress, unsigned int nBits, bool debug)
+std::vector<uint16_t> emu::fed::VMEModule::readCycle(const uint32_t myAddress, const unsigned int nBits, const bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// What I really need is the number of words and remainder bits.
 	// These are incomplete words, a sort of ceiling function for unsigned ints
-	unsigned int nWords = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
-	unsigned int remainderBits = nBits % 16;
+	const unsigned int nWords = (nBits == 0) ? 0 : (nBits - 1)/16 + 1;
+	const unsigned int remainderBits = nBits % 16;
 
 	// Reserving speeds things up and helps prevent memory fragmentation.
 	std::vector<uint16_t> result;
@@ -87,9 +84,6 @@ throw (emu::fed::exception::CAENException)
 			std::ostringstream error;
 			error << "Exception in readCycle(myAddress=" << myAddress << ", nBits=" << nBits << ")";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			std::ostringstream tag;
-			tag << "slot:" << slot_;
-			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
 	}
@@ -99,7 +93,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::commandCycle(enum DEVTYPE dev, uint16_t myCommand, bool debug)
+void emu::fed::VMEModule::commandCycle(const enum DEVTYPE dev, const uint16_t myCommand, const bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -109,9 +103,6 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		std::ostringstream error;
 		error << "JTAGChain not defined for dev=" << dev;
 		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
@@ -123,14 +114,14 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		if (dev == RESET) {
 
 			// Some fake vectors for sending data.
-			std::vector<uint16_t> bogoData0(1,0);
-			std::vector<uint16_t> bogoData1(1,1);
-			std::vector<uint16_t> bogoData2(1,2);
-			std::vector<uint16_t> bogoData3(1,3);
+			const std::vector<uint16_t> bogoData0(1,0);
+			const std::vector<uint16_t> bogoData1(1,1);
+			const std::vector<uint16_t> bogoData2(1,2);
+			const std::vector<uint16_t> bogoData3(1,3);
 
 			// The number of bits in the command
 			// Note:  the RESET path is always the first element.
-			unsigned int nBits = chain.front()->cmdBits;
+			const unsigned int nBits = chain.front()->cmdBits;
 
 			// Send the reset command pattern
 			writeCycle(myAddress, 2, bogoData0, debug);
@@ -215,9 +206,6 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		std::ostringstream error;
 		error << "Exception in commandCycle(dev=" << dev << ", myCommand=" << myCommand << ")";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
@@ -227,7 +215,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(enum DEVTYPE dev, unsigned int nBits, std::vector<uint16_t> myData, bool noRead, bool debug)
+std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(const enum DEVTYPE dev, const unsigned int nBits, std::vector<uint16_t> &myData, const bool noRead, const bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// Get the chain.  Very important to know.
@@ -235,9 +223,6 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		std::ostringstream error;
 		error << "JTAGChain not defined for dev=" << dev;
 		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
@@ -249,7 +234,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 	// The address is encoded in the JTAG channel.  The address is the same for all
 	// elements in the chain (part of the definition of JTAG).
-	uint32_t myAddress = chain.front()->bitCode;
+	const uint32_t myAddress = chain.front()->bitCode;
 
 	// The number of bits you have to send increases by one for each JTAG element
 	// in the chain _after_ this element.  Count those now.
@@ -269,10 +254,10 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		try {
 
 			// Some fake vectors for sending data.
-			std::vector<uint16_t> bogoData0(1,0);
-			std::vector<uint16_t> bogoData1(1,1);
-			std::vector<uint16_t> bogoData2(1,2);
-			std::vector<uint16_t> bogoData3(1,3);
+			const std::vector<uint16_t> bogoData0(1,0);
+			const std::vector<uint16_t> bogoData1(1,1);
+			const std::vector<uint16_t> bogoData2(1,2);
+			const std::vector<uint16_t> bogoData3(1,3);
 
 			// Send the write command pattern
 			writeCycle(myAddress, 2, bogoData0, debug);
@@ -309,9 +294,6 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			std::ostringstream error;
 			error << "Exception in jtagWrite(dev=" << dev << ", nBits=" << nBits << ", myData=" << &myData << ", noRead=" << noRead << ")";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			std::ostringstream tag;
-			tag << "slot:" << slot_;
-			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
 
@@ -321,8 +303,8 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 	// What I really need is the number of words and remainder bits.
 	// These are incomplete words, a sort of ceiling function for unsigned ints
-	unsigned int nWords = (nBits + extraBits == 0) ? 0 : (nBits + extraBits - 1)/16 + 1;
-	unsigned int remainderBits = (nBits + extraBits) % 16;
+	const unsigned int nWords = (nBits + extraBits == 0) ? 0 : (nBits + extraBits - 1)/16 + 1;
+	const unsigned int remainderBits = (nBits + extraBits) % 16;
 
 	// We have to push extra bits through, so be sure that we have enough in myData
 	// to actually push through.
@@ -370,7 +352,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 					// Make sure the bits I shift off the end carry to the previous value.
 					if (iWord > 0) {
-						uint16_t carryValue = tempResult << (16 - extraBits);
+						const uint16_t carryValue = tempResult << (16 - extraBits);
 						result[iWord - 1] |= carryValue;
 					}
 
@@ -385,9 +367,6 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			std::ostringstream error;
 			error << "Exception in jtagWrite(dev=" << dev << ", nBits=" << nBits << ", myData=" << &myData << ", noRead=" << noRead << ")";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			std::ostringstream tag;
-			tag << "slot:" << slot_;
-			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
 	}
@@ -399,7 +378,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::jtagRead(enum DEVTYPE dev, unsigned int nBits, bool debug)
+std::vector<uint16_t> emu::fed::VMEModule::jtagRead(const enum DEVTYPE dev, const unsigned int nBits, const bool debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// Get the chain.  Very important to know.
@@ -407,9 +386,6 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		std::ostringstream error;
 		error << "JTAGChain not defined for dev=" << dev;
 		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
@@ -421,7 +397,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 	// The address is encoded in the JTAG channel.  The address is the same for all
 	// elements in the chain (part of the definition of JTAG).
-	uint32_t myAddress = chain.front()->bitCode;
+	const uint32_t myAddress = chain.front()->bitCode;
 
 	// The number of bits you have to send increases by one for each JTAG element
 	// in the chain _before_ this element.  Count those now.
@@ -436,8 +412,8 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 	// What I really need is the number of words and remainder bits.
 	// These are incomplete words, a sort of ceiling function for unsigned ints
-	unsigned int nWords = (nBits + extraBits == 0) ? 0 : (nBits + extraBits - 1)/16 + 1;
-	unsigned int remainderBits = (nBits + extraBits) % 16;
+	const unsigned int nWords = (nBits + extraBits == 0) ? 0 : (nBits + extraBits - 1)/16 + 1;
+	const unsigned int remainderBits = (nBits + extraBits) % 16;
 
 	// Now, I start the sending process...
 	pthread_mutex_lock(&mutex_);
@@ -473,9 +449,6 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			std::ostringstream error;
 			error << "Exception in jtagRead(dev=" << dev << ", nBits=" << nBits << ")";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			std::ostringstream tag;
-			tag << "slot:" << slot_;
-			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
 
@@ -491,7 +464,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 			// Make sure the bits I shift off the end carry to the previous value.
 			if (iWord > 0) {
-				uint16_t carryValue = tempResult << (16 - extraBits);
+				const uint16_t carryValue = tempResult << (16 - extraBits);
 				result[iWord - 1] |= carryValue;
 			}
 
@@ -511,7 +484,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-uint16_t emu::fed::VMEModule::readVME(uint32_t Address, bool debug)
+uint16_t emu::fed::VMEModule::readVME(uint32_t Address, const bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// The address always has the board slot encoded.
@@ -536,9 +509,6 @@ throw (emu::fed::exception::CAENException)
 		std::ostringstream error;
 		error << "Exception in readVME(Address=" << Address << "): " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
@@ -547,7 +517,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::writeVME(uint32_t Address, uint16_t data, bool debug)
+void emu::fed::VMEModule::writeVME(uint32_t Address, uint16_t data, const bool debug)
 throw (emu::fed::exception::CAENException)
 {
 	// The address always has the board slot encoded.
@@ -568,9 +538,6 @@ throw (emu::fed::exception::CAENException)
 		std::ostringstream error;
 		error << "Exception in writeVME(Address=" << Address << ", data=" << data << "): " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
@@ -579,7 +546,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-int emu::fed::VMEModule::loadPROM(enum DEVTYPE dev, char *fileName, std::string startString, std::string stopString, bool debug)
+int emu::fed::VMEModule::loadPROM(const enum DEVTYPE dev, const char *fileName, std::string startString, const std::string &stopString, const bool debug)
 throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -588,9 +555,6 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		std::ostringstream error;
 		error << "JTAGChain not defined for dev=" << dev;
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
@@ -611,9 +575,6 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		std::stringstream error;
 		error << "Cannot open file " << fileName;
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
@@ -694,7 +655,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 				// It will be imporant to know how many words and bytes this is.
 				// Use the magic ceiling...
 				//unsigned long int nWords = (nBits == 0) ? 0 : (nBits - 1) / 16 + 1;
-				unsigned long int nBytes = (nBits == 0) ? 0 : (nBits - 1) / 8 + 1;
+				const unsigned long int nBytes = (nBits == 0) ? 0 : (nBits - 1) / 8 + 1;
 
 				// The next instruction should be "TDI".  If not, it's not useful to us.
 				std::string nextCommand;
@@ -796,7 +757,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 				if (debug) {
 					gettimeofday(&endTime,NULL);
-					unsigned long int diffTime = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
+					const unsigned long int diffTime = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
 					std::cerr << "--usleep time: " << std::dec << diffTime << " microseconds" << std::endl;
 				}
 
@@ -821,10 +782,10 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 				if (dev == RESET) {
 
-					uint32_t myAddress = element->bitCode;
+					const uint32_t myAddress = element->bitCode;
 
 					// Real data to send.
-					std::vector<uint16_t> bogoBits(1,1);
+					const std::vector<uint16_t> bogoBits(1,1);
 
 					// Send it 5 times.
 					writeCycle(myAddress, 2, bogoBits, debug);
@@ -837,10 +798,10 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 				} else {
 
-					uint32_t myAddress = element->bitCode | 0x00000018;
+					const uint32_t myAddress = element->bitCode | 0x00000018;
 
 					// Fake data to send.
-					std::vector<uint16_t> bogoBits(1,0x0);
+					const std::vector<uint16_t> bogoBits(1,0x0);
 
 					writeCycle(myAddress, element->cmdBits, bogoBits, debug);
 				}
@@ -853,9 +814,6 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		std::ostringstream error;
 		error << "Exception in loadPROM(dev=" << dev << ", fileName=" << fileName << ", startString=" << startString << ", stopString=" << stopString << ")";
 		XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-		std::ostringstream tag;
-		tag << "slot:" << slot_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 

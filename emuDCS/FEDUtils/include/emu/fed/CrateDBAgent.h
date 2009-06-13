@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateDBAgent.h,v 1.2 2009/05/22 19:25:50 paste Exp $
+* $Id: CrateDBAgent.h,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATEDBAGENT_H__
 #define __EMU_FED_CRATEDBAGENT_H__
@@ -28,17 +28,17 @@ namespace emu {
 			throw (emu::fed::exception::DBException);
 			
 			/** Build a bunch of crate objects corresponding to a system ID **/
-			std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> getCrates(xdata::UnsignedInteger64 id)
+			std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> getCrates(xdata::UnsignedInteger64 &id)
 			throw (emu::fed::exception::DBException);
 			
 			/** Build a bunch of crate objects corresponding to a configuration key and a crate number **/
-			std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> getCrates(xdata::UnsignedInteger64 key, xdata::UnsignedShort number)
+			std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> getCrates(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &number)
 			throw (emu::fed::exception::DBException);
 
 		private:
 		
 			/** Build the crates from the table returned **/
-			std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> buildCrates(xdata::Table table)
+			std::map<xdata::UnsignedInteger64, emu::fed::Crate *, emu::fed::DBAgent::comp> buildCrates(xdata::Table &table)
 			throw (emu::fed::exception::DBException);
 
 		};

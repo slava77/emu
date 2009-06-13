@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 1.4 2009/06/08 19:17:14 paste Exp $
+* $Id: DDUParser.cc,v 1.5 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUParser.h"
 
@@ -33,7 +33,7 @@ Parser(pNode)
 	}
 	
 	try {
-		if (extract<int>("INVERT_CCB_COMMAND_SIGNALS")) {
+		if (extract<bool>("INVERT_CCB_COMMAND_SIGNALS")) {
 			ddu_->rui_ = 0xc0;
 		}
 	} catch (emu::fed::exception::ParseException &e) {
@@ -69,7 +69,7 @@ Parser(pNode)
 	for (unsigned int iOption = 0; iOption < optionNames.size(); iOption++) {
 		std::string optionName = optionNames[iOption];
 		try {
-			ddu_->killfiber_ |= (extract<int>(optionName) == 0 ? 0 : 1) << (15 + iOption);
+			ddu_->killfiber_ |= (extract<bool>(optionName) ? 0 : 1) << (15 + iOption);
 		} catch (emu::fed::exception::ParseException &e) {
 			std::ostringstream error;
 			error << "Unable to parse " << optionName << " from element";
@@ -80,3 +80,8 @@ Parser(pNode)
 }
 
 
+
+emu::fed::DDUParser::~DDUParser()
+{
+	//delete ddu_;
+}

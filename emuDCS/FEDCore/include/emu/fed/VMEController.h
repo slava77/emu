@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEController.h,v 1.2 2009/04/14 17:50:50 paste Exp $
+* $Id: VMEController.h,v 1.3 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMECONTROLLER_H__
 #define __EMU_FED_VMECONTROLLER_H__
@@ -25,7 +25,7 @@ namespace emu {
 			*	@param Device the PCI device number.
 			*	@param Link the position of the target controller in a daisy chain.
 			**/
-			VMEController(int Device, int Link)
+			VMEController(const int Device, const int Link)
 			throw (emu::fed::exception::CAENException);
 
 			/** Default destructor. **/
@@ -47,7 +47,7 @@ namespace emu {
 			*
 			*	@returns false if there was an interrupt set, true otherwise.
 			**/
-			bool waitIRQ(unsigned int mSecs = 5000)
+			bool waitIRQ(const unsigned int mSecs = 5000)
 			throw (emu::fed::exception::CAENException);
 
 			/** Read the VME IRQ channel
@@ -63,7 +63,7 @@ namespace emu {
 			*	will be able to check the BHandle to figure that out, then simply replace
 			*	the BHandle with the correct value once I know it.
 			**/
-			inline void setBHandle(int32_t BHandle) { BHandle_ = BHandle; }
+			inline void setBHandle(const int32_t BHandle) { BHandle_ = BHandle; }
 
 		private:
 

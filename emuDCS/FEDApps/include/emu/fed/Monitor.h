@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.h,v 1.3 2009/05/20 18:18:38 paste Exp $
+* $Id: Monitor.h,v 1.4 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MONITOR_H__
 #define __EMU_FED_MONITOR_H__
@@ -30,6 +30,9 @@ namespace emu {
 			
 			/** Default Constructor **/
 			Monitor(xdaq::ApplicationStub *stub);
+			
+			/** Default destructor **/
+			~Monitor();
 			
 			/** Default web page that displays simple crate statuses.
 			*

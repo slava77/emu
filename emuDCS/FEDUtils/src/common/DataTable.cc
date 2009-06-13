@@ -1,26 +1,5 @@
 /*****************************************************************************\
-* $Id: DataTable.cc,v 1.1 2009/03/05 16:07:52 paste Exp $
-*
-* $Log: DataTable.cc,v $
-* Revision 1.1  2009/03/05 16:07:52  paste
-* * Shuffled FEDCrate libraries to new locations
-* * Updated libraries for XDAQ7
-* * Added RPM building and installing
-* * Various bug fixes
-*
-* Revision 1.4  2009/01/29 15:31:24  paste
-* Massive update to properly throw and catch exceptions, improve documentation, deploy new namespaces, and prepare for Sentinel messaging.
-*
-* Revision 1.3  2008/11/03 23:33:47  paste
-* Modifications to fix "missing stylesheet/javascript" problem.
-*
-* Revision 1.2  2008/10/13 11:56:40  paste
-* Cleaned up some of the XML config files and scripts, added more SVG, changed the DataTable object to inherit from instead of contain stdlib objects (experimental)
-*
-* Revision 1.1  2008/08/25 13:35:26  paste
-* Missed another one...
-*
-*
+* $Id: DataTable.cc,v 1.2 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DataTable.h"
 
@@ -28,7 +7,7 @@
 
 #include "cgicc/Cgicc.h"
 
-emu::fed::DataElement::DataElement(std::stringstream myValue, std::string className):
+emu::fed::DataElement::DataElement(std::stringstream &myValue, const std::string &className):
 class_(className)
 {
 	(*this) << myValue.str();
@@ -37,7 +16,7 @@ class_(className)
 
 
 
-emu::fed::DataElement::DataElement(std::string myValue, std::string className):
+emu::fed::DataElement::DataElement(const std::string &myValue, const std::string &className):
 class_(className)
 {
 	(*this) << myValue;
@@ -85,7 +64,7 @@ std::string emu::fed::DataElement::toHTML()
 
 
 
-emu::fed::DataRow::DataRow(unsigned int cols, DataElement *myElement)
+emu::fed::DataRow::DataRow(const unsigned int cols, DataElement *myElement)
 {
 	for (unsigned int ielement = 0; ielement < cols; ielement++) {
 		push_back(myElement);
@@ -94,7 +73,7 @@ emu::fed::DataRow::DataRow(unsigned int cols, DataElement *myElement)
 
 
 
-emu::fed::DataElement &emu::fed::DataRow::operator[] (unsigned int element)
+emu::fed::DataElement &emu::fed::DataRow::operator[] (const unsigned int element)
 {
 	if (element < size()) return *(at(element));
 	else {
@@ -169,7 +148,7 @@ std::string emu::fed::DataRow::makeForm(std::string target, unsigned int crate, 
 */
 
 
-emu::fed::DataTable::DataTable(unsigned int rows, DataRow *myRow)
+emu::fed::DataTable::DataTable(const unsigned int rows, DataRow *myRow)
 {
 	for (unsigned int irow = 0; irow < rows; irow++) {
 		push_back(myRow);
@@ -178,7 +157,7 @@ emu::fed::DataTable::DataTable(unsigned int rows, DataRow *myRow)
 
 
 
-emu::fed::DataRow &emu::fed::DataTable::operator[] (unsigned int row)
+emu::fed::DataRow &emu::fed::DataTable::operator[] (const unsigned int row)
 {
 	if (row < size()) return *(at(row));
 	else {
@@ -192,7 +171,7 @@ emu::fed::DataRow &emu::fed::DataTable::operator[] (unsigned int row)
 
 
 
-emu::fed::DataElement &emu::fed::DataTable::operator() (unsigned int row, unsigned int col)
+emu::fed::DataElement &emu::fed::DataTable::operator() (const unsigned int row, const unsigned int col)
 {
 	return (*this)[row][col];
 }
@@ -231,7 +210,7 @@ std::string emu::fed::DataTable::printSummary() {
 	std::map<std::string, unsigned int> classes = countClasses();
 
 	// Print "OK" first:
-	std::map<std::string,unsigned int>::iterator iFound = classes.find("ok");
+	std::map<std::string, unsigned int>::iterator iFound = classes.find("ok");
 	if (iFound != classes.end()) {
 		out << cgicc::span()
 			.set("class", iFound->first);
@@ -239,7 +218,7 @@ std::string emu::fed::DataTable::printSummary() {
 		out << cgicc::span() << std::endl;
 	}
 	
-	std::map<std::string,unsigned int>::iterator iClass;
+	std::map<std::string, unsigned int>::iterator iClass;
 	for (iClass = classes.begin(); iClass != classes.end(); iClass++) {
 		if (iClass->first == "ok") continue;
 		out << cgicc::span()

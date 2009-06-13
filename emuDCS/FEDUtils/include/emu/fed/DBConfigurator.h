@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.h,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: DBConfigurator.h,v 1.2 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBCONFIGURATOR_H__
 #define __EMU_FED_DBCONFIGURATOR_H__
@@ -23,7 +23,7 @@ namespace emu {
 			*	@param username The database username.
 			*	@param password The database password.
 			**/
-			DBConfigurator(xdaq::WebApplication *application, std::string username, std::string password);
+			DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password);
 
 			/** Configure the crates and return them **/
 			std::vector<emu::fed::Crate *> setupCrates()

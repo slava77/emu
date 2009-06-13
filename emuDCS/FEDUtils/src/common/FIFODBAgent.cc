@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFODBAgent.cc,v 1.3 2009/05/29 11:25:09 paste Exp $
+* $Id: FIFODBAgent.cc,v 1.4 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FIFODBAgent.h"
@@ -17,7 +17,7 @@ DBAgent(application)
 
 
 
-std::pair<uint16_t, std::vector<emu::fed::FIFO *> > emu::fed::FIFODBAgent::getFIFOs(xdata::UnsignedInteger64 id)
+std::vector<emu::fed::FIFO *> emu::fed::FIFODBAgent::getFIFOs(xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -50,7 +50,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<uint16_t, std::vector<emu::fed::FIFO *> > emu::fed::FIFODBAgent::getFIFOs(xdata::UnsignedInteger64 key, xdata::UnsignedShort fmm_id)
+std::vector<emu::fed::FIFO *> emu::fed::FIFODBAgent::getFIFOs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &fmm_id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -84,7 +84,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<uint16_t, std::vector<emu::fed::FIFO *> > emu::fed::FIFODBAgent::getFIFOs(xdata::UnsignedInteger64 key, xdata::UnsignedShort fmm_id, xdata::UnsignedShort number)
+std::vector<emu::fed::FIFO *> emu::fed::FIFODBAgent::getFIFOs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &fmm_id, xdata::UnsignedShort &number)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -119,11 +119,10 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<uint16_t, std::vector<emu::fed::FIFO *> > emu::fed::FIFODBAgent::buildFIFOs(xdata::Table table)
+std::vector<emu::fed::FIFO *> emu::fed::FIFODBAgent::buildFIFOs(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
-	std::vector<emu::fed::FIFO *> returnMe(10, new FIFO());
-	uint16_t fifoinuse = 0;
+	std::vector<emu::fed::FIFO *> returnMe;
 	
 	for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); iRow++) {
 		// Parse out all needed elements
@@ -142,9 +141,8 @@ throw (emu::fed::exception::DBException)
 		if ((unsigned int) fifo_number > 9) XCEPT_RAISE(emu::fed::exception::DBException, "FIFO number is too large");
 		
 		// Set names now.
-		returnMe[fifo_number] = new FIFO(rui, used);
-		if (used) fifoinuse |= (1 << fifo_number);
+		returnMe.push_back(new FIFO(fifo_number, rui, used));
 	}
 	
-	return make_pair(fifoinuse, returnMe);
+	return returnMe;
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDBAgent.cc,v 1.3 2009/06/08 19:17:14 paste Exp $
+* $Id: DDUDBAgent.cc,v 1.4 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/DDUDBAgent.h"
@@ -17,7 +17,7 @@ DBAgent(application)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> emu::fed::DDUDBAgent::getDDUs(xdata::UnsignedInteger64 id)
+std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> emu::fed::DDUDBAgent::getDDUs(xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -50,7 +50,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> emu::fed::DDUDBAgent::getDDUs(xdata::UnsignedInteger64 key, xdata::UnsignedShort rui)
+std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> emu::fed::DDUDBAgent::getDDUs(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -87,7 +87,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> emu::fed::DDUDBAgent::buildDDUs(xdata::Table table)
+std::map<xdata::UnsignedInteger64, emu::fed::DDU *, emu::fed::DBAgent::comp> emu::fed::DDUDBAgent::buildDDUs(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
 	std::map<xdata::UnsignedInteger64, DDU *, DBAgent::comp> returnMe;
@@ -132,6 +132,7 @@ throw (emu::fed::exception::DBException)
 		if (bit19) newDDU->killfiber_ |= (1 << 19);
 		if (invert_ccb_signals) newDDU->rui_ = 0xc0;
 		returnMe[id] = newDDU;
+		delete newDDU;
 	}
 	
 	return returnMe;

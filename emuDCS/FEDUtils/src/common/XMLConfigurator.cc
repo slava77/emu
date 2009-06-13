@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.cc,v 1.3 2009/05/29 11:25:09 paste Exp $
+* $Id: XMLConfigurator.cc,v 1.4 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/XMLConfigurator.h"
@@ -16,7 +16,7 @@
 #include "emu/fed/VMEControllerParser.h"
 #include "emu/fed/CrateParser.h"
 
-emu::fed::XMLConfigurator::XMLConfigurator(std::string filename):
+emu::fed::XMLConfigurator::XMLConfigurator(const std::string &filename):
 filename_(filename)
 {
 	systemName_ = "unnamed";
@@ -28,7 +28,6 @@ filename_(filename)
 std::vector<emu::fed::Crate *> emu::fed::XMLConfigurator::setupCrates()
 throw (emu::fed::exception::ConfigurationException)
 {
-	
 	// Initialize XML4C system
 	try {
 		xercesc::XMLPlatformUtils::Initialize();
@@ -37,7 +36,7 @@ throw (emu::fed::exception::ConfigurationException)
 		error << "Error during Xerces-c Initialization: " << xercesc::XMLString::transcode(e.getMessage());
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
- 
+	
 	// Create our parser
 	xercesc::XercesDOMParser *parser = new xercesc::XercesDOMParser();
 	parser->setValidationScheme(xercesc::XercesDOMParser::Val_Auto);
@@ -94,21 +93,19 @@ throw (emu::fed::exception::ConfigurationException)
 	if (pFEDCrates == NULL) {
 		std::ostringstream error;
 		error << "No FEDCrate elements in the XML document " << filename_;
-		XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
+		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
 	
 	for (unsigned int iFEDCrate = 0; iFEDCrate < pFEDCrates->getLength(); iFEDCrate++) {
 		
 		xercesc::DOMElement *pFEDCrate = (xercesc::DOMElement *) pFEDCrates->item(iFEDCrate);
 		
-		CrateParser *crateParser;
+		Crate *newCrate;
 		try {
-			crateParser = new CrateParser(pFEDCrate);
+			newCrate = CrateParser(pFEDCrate).getCrate();
 		} catch (emu::fed::exception::ParseException &e) {
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing Crate element", e);
 		}
-		
-		Crate *newCrate = crateParser->getCrate();
 		
 		// Get VMEController
 		xercesc::DOMNodeList *pVMEControllers = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("VMEController"));
@@ -116,55 +113,44 @@ throw (emu::fed::exception::ConfigurationException)
 		if (pVMEControllers->getLength() != 1) {
 			std::ostringstream error;
 			error << "Exactly one VMEController element must exist as a child element of every FEDCrate element in the XML document " << filename_;
-			XCEPT_RAISE(emu::fed::exception::ParseException, error.str());
+			XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 		}
 		
 		xercesc::DOMElement *pVMEController = (xercesc::DOMElement *) pVMEControllers->item(0);
 		
 		// Parse the attributes and make the controller.
-		VMEControllerParser *vmeParser;
 		try {
-			vmeParser = new VMEControllerParser(pVMEController);
+			newCrate->setController(VMEControllerParser(pVMEController).getController());
 		} catch (emu::fed::exception::ParseException &e) {
-			XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing VMEController element", e);
+			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing VMEController element", e);
 		}
-		newCrate->setController(vmeParser->getController());
 		
 		// Get DDUs.  If there are none, then that is a valid crate anyway (even though it doesn't make sense).
 		xercesc::DOMNodeList *pDDUs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DDU"));
 		
 		for (unsigned int iDDU = 0; iDDU < pDDUs->getLength(); iDDU++) {
-			
 			xercesc::DOMElement *pDDU = (xercesc::DOMElement *) pDDUs->item(iDDU);
 			
 			// Parse and figure out high 5 bits of killfiber, gbe prescale, etc.
-			DDUParser *dduParser;
+			DDU *newDDU;
 			try {
-				dduParser = new DDUParser(pDDU);
+				newDDU = DDUParser(pDDU).getDDU();
 			} catch (emu::fed::exception::ParseException &e) {
-				XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing DDU element", e);
+				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing DDU element", e);
 			}
-			
-			DDU *newDDU = dduParser->getDDU();
 			
 			// Get Chambers.  OK if there are none.
 			xercesc::DOMNodeList *pFibers = pDDU->getElementsByTagName(xercesc::XMLString::transcode("Fiber"));
 			
 			for (unsigned int iFiber = 0; iFiber < pFibers->getLength(); iFiber++) {
-				
 				xercesc::DOMElement *pFiber = (xercesc::DOMElement *) pFibers->item(iFiber);
-				
-				// Parse and add to the DDU.
-				FiberParser *fiberParser;
+				// Parse and add to the Fiber.
 				try {
-					fiberParser = new FiberParser(pFiber);
-				} catch (emu::fed::exception::ParseException &e) {
-					XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing Fiber element", e);
+					FiberParser fiberParser = FiberParser(pFiber);
+					newDDU->addFiber(fiberParser.getFiber());
+				} catch (emu::fed::exception::Exception &e) {
+					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing Fiber element", e);
 				}
-				
-				// This alters the killfiber, too.
-				newDDU->addFiber(fiberParser->getFiber(), fiberParser->getNumber());
-				
 			}
 			
 			// Add the DDU to the crate.
@@ -175,18 +161,15 @@ throw (emu::fed::exception::ConfigurationException)
 		xercesc::DOMNodeList *pDCCs = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("DCC"));
 		
 		for (unsigned int iDCC = 0; iDCC < pDCCs->getLength(); iDCC++) {
-			
 			xercesc::DOMElement *pDCC = (xercesc::DOMElement *) pDCCs->item(iDCC);
 			
 			// Parse
-			DCCParser *dccParser;
+			DCC *newDCC;
 			try {
-				dccParser = new DCCParser(pDCC);
+				newDCC = DCCParser(pDCC).getDCC();
 			} catch (emu::fed::exception::ParseException &e) {
-				XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing DCC element", e);
+				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing DCC element", e);
 			}
-			
-			DCC *newDCC = dccParser->getDCC();
 			
 			// Get FIFOs.  OK if there are none.
 			xercesc::DOMNodeList *pFIFOs = pDCC->getElementsByTagName(xercesc::XMLString::transcode("FIFO"));
@@ -195,20 +178,18 @@ throw (emu::fed::exception::ConfigurationException)
 				
 				xercesc::DOMElement *pFIFO = (xercesc::DOMElement *) pFIFOs->item(iFIFO);
 				
-				// Parse and add to the DDU.
-				FIFOParser *fifoParser;
+				// Parse and add to the FIFO.
 				try {
-					fifoParser = new FIFOParser(pFIFO);
+					FIFOParser fifoParser = FIFOParser(pFIFO);
+					// This alters the fifos in use, too.
+					newDCC->addFIFO(fifoParser.getFIFO());
 				} catch (emu::fed::exception::ParseException &e) {
-					XCEPT_RETHROW(emu::fed::exception::ParseException, "Exception in parsing FIFO element", e);
+					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing FIFO element", e);
 				}
-				
-				// This alters the fifos in use, too.
-				newDCC->addFIFO(fifoParser->getFIFO(), fifoParser->getNumber());
-				
 			}
 			
 			// Add the DCC to the crate.
+
 			newCrate->addBoard((VMEModule *) newDCC);
 		}
 		

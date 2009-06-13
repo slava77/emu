@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.10 2009/06/08 19:20:53 paste Exp $
+* $Id: Communicator.cc,v 1.11 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -101,8 +101,18 @@ totalDCCOutputRate_(0)
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
 	// Other initializations
-	TM_ = new IRQThreadManager(this);
+	TM_ = new IRQThreadManager(this, fmmErrorThreshold_);
 
+}
+
+
+
+emu::fed::Communicator::~Communicator()
+{
+	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
+		delete crateVector_[iCrate];
+	}
+	delete TM_;
 }
 
 
@@ -489,12 +499,16 @@ throw (toolbox::fsm::exception::Exception)
 	
 	LOG4CPLUS_INFO(getApplicationLogger(), "Configuring Communicator appliction using mode " << configMode_.toString());
 	
+	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
+		delete crateVector_[iCrate];
+	}
+	
 	if (configMode_ == "Autodetect") {
-		AutoConfigurator *configurator = new AutoConfigurator();
+		AutoConfigurator configurator;
 		
 		try {
-			crateVector_ = configurator->setupCrates();
-			systemName_ = configurator->getSystemName();
+			crateVector_ = configurator.setupCrates();
+			systemName_ = configurator.getSystemName();
 			REVOKE_ALARM("CommunicatorConfigurator", NULL);
 		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
@@ -508,11 +522,11 @@ throw (toolbox::fsm::exception::Exception)
 
 		// PGK Easier parsing.  Less confusing.
 		LOG4CPLUS_INFO(getApplicationLogger(), "XML configuration using file " << xmlFile_.toString());
-		XMLConfigurator *configurator = new XMLConfigurator(xmlFile_.toString());
+		XMLConfigurator configurator(xmlFile_.toString());
 		
 		try {
-			crateVector_ = configurator->setupCrates();
-			systemName_ = configurator->getSystemName();
+			crateVector_ = configurator.setupCrates();
+			systemName_ = configurator.getSystemName();
 			REVOKE_ALARM("CommunicatorConfigurator", NULL);
 		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
@@ -524,11 +538,11 @@ throw (toolbox::fsm::exception::Exception)
 		
 	} else if (configMode_ == "Database") {
 		
-		DBConfigurator *configurator = new DBConfigurator(this, dbUsername_.toString(), dbPassword_.toString());
+		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString());
 		
 		try {
-			crateVector_ = configurator->setupCrates();
-			systemName_ = configurator->getSystemName();
+			crateVector_ = configurator.setupCrates();
+			systemName_ = configurator.getSystemName();
 			REVOKE_ALARM("CommunicatorConfigureator", NULL);
 		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
@@ -746,12 +760,13 @@ throw (toolbox::fsm::exception::Exception)
 				LOG4CPLUS_DEBUG(getApplicationLogger(), "Checking status of DDU in crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot());
 				
 				uint16_t fmmReg = (*iDDU)->readFMM();
-				if (fmmReg != (0xFED0)) {
+				if ((*iCrate)->number() != 5 && fmmReg != (0xFED0)) {
 					std::ostringstream error;
 					error << "FMM register is wrong.  Got " << std::hex << fmmReg << ", shoud be FED0 for DDU in crate " << std::dec << (*iCrate)->number() << ", slot " << (*iDDU)->slot();
 					LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 					XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
 					notifyQualified("ERROR", e);
+					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 				}
 				
 				uint32_t CSCStat = (*iDDU)->readCSCStatus() | (*iDDU)->readAdvancedFiberErrors();
@@ -962,6 +977,7 @@ throw (toolbox::fsm::exception::Exception)
 		//if ((*iCrate)->number() > 4) continue; // Don't monitor TF crates!
 		TM_->attachCrate(*iCrate);
 	}
+	
 	// PGK We now have the run number from CSCSV
 	try {
 		TM_->startThreads(runNumber_);
@@ -1128,7 +1144,7 @@ xoap::MessageReference emu::fed::Communicator::onSetTTSBits(xoap::MessageReferen
 
 
 // Stolen from the now-defunct EmuFController
-void emu::fed::Communicator::writeTTSBits(unsigned int crate, unsigned int slot, int bits)
+void emu::fed::Communicator::writeTTSBits(const unsigned int crate, const unsigned int slot, const int bits)
 throw (emu::fed::exception::TTSException)
 {
 
@@ -1168,7 +1184,7 @@ throw (emu::fed::exception::TTSException)
 
 
 // Stolen from the now-defunct EmuFController
-int emu::fed::Communicator::readTTSBits(unsigned int crate, unsigned int slot)
+int emu::fed::Communicator::readTTSBits(const unsigned int crate, const unsigned int slot)
 throw (emu::fed::exception::TTSException)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "Reading TTS bits on crate " << crate << ", slot " << slot);

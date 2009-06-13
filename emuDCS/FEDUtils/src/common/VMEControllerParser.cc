@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerParser.cc,v 1.2 2009/05/21 15:30:49 paste Exp $
+* $Id: VMEControllerParser.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEControllerParser.h"
 
@@ -29,4 +29,11 @@ Parser(pNode)
 		XCEPT_RETHROW(emu::fed::exception::ParseException, error.str(), e);
 	}
 	
+}
+
+
+
+emu::fed::VMEControllerParser::~VMEControllerParser()
+{
+	//delete vmeController_;
 }

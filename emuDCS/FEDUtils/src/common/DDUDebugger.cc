@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.2 2009/05/21 15:30:49 paste Exp $
+* $Id: DDUDebugger.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -10,7 +10,7 @@
 #include "emu/fed/DDU.h"
 #include "emu/fed/Fiber.h"
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(unsigned long int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(const uint32_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -74,7 +74,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(unsigned l
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -122,7 +122,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -166,7 +166,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -210,7 +210,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -257,7 +257,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -279,7 +279,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -300,7 +300,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -334,7 +334,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -357,7 +357,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(int stat)
 }
 
 
-std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16_t> lcode, DDU *thisDDU)
+std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(const std::vector<uint16_t> &lcode, DDU *thisDDU)
 {
 
 	std::vector<std::string> out;
@@ -453,7 +453,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 // 	*out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 
 	// Next, spit out the funky fiber information.
-	unsigned long int CSCStat = thisDDU->readCSCStatus();
+	const unsigned long int CSCStat = thisDDU->readCSCStatus();
 	if (CSCStat & 0x7fff) {
 		outStream << "FMM errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -468,7 +468,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		out.push_back("DDU is in an FMM error condition");
 	}
 
-	unsigned int DMBError = thisDDU->readDMBError();
+	const unsigned int DMBError = thisDDU->readDMBError();
 	if (DMBError & 0x7fff) {
 		outStream << "DMB errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -480,7 +480,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		outStream.str("");
 	}
 	
-	unsigned int TMBError = thisDDU->readTMBError();
+	const unsigned int TMBError = thisDDU->readTMBError();
 	if (TMBError & 0x7fff) {
 		outStream << "TMB errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -492,7 +492,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		outStream.str("");
 	}
 	
-	unsigned int ALCTError = thisDDU->readALCTError();
+	const unsigned int ALCTError = thisDDU->readALCTError();
 	if (ALCTError & 0x7fff) {
 		outStream << "ALCT errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -504,7 +504,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		outStream.str("");
 	}
 	
-	unsigned int XmitError = thisDDU->readXmitError();
+	const unsigned int XmitError = thisDDU->readXmitError();
 	if (XmitError & 0x7fff) {
 		outStream << "Transmit errors detected on fiber(s) ";
 		for (unsigned int iFiber = 0; iFiber < 15; iFiber++) {
@@ -528,7 +528,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 	
 	//unsigned long int ddustat = (0xffffffff & lcode[0]);
 
-	unsigned long int erastat = (0x0000ffff & lcode[1]);
+	const unsigned long int erastat = (0x0000ffff & lcode[1]);
 
 	// INFPGAs in order.
 	enum DEVTYPE devType[2] = {
@@ -540,7 +540,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		"INFPGA1"
 	};
 
-	for (int iDev = 0; iDev < 2; iDev++) {
+	for (unsigned int iDev = 0; iDev < 2; iDev++) {
 		
 		inStat[iDev] = thisDDU->readFPGAStatus(devType[iDev]);
 		
@@ -550,11 +550,11 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 			solved = true;
 			
 		} else if (inStat[iDev]&0x00000004) {     // Fiber Change
-			unsigned int fiberCheck = thisDDU->readFiberStatus(devType[iDev]);
+			const unsigned int fiberCheck = thisDDU->readFiberStatus(devType[iDev]);
 			outStream << devName[iDev] << ": Fiber connection error detected on fiber(s) ";
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-				unsigned int realFiber = iFiber + iDev*8;
+				const unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
 					outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 				}
@@ -567,11 +567,11 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 			solved = true;
 			
 		} else if (inStat[iDev]&0x00000800) {   // GT-Rx Error
-			unsigned int fiberCheck = thisDDU->readRxError(devType[iDev]);
+			const unsigned int fiberCheck = thisDDU->readRxError(devType[iDev]);
 			outStream << devName[iDev] << ": GT-Rx error detected on fiber(s) ";
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-				unsigned int realFiber = iFiber + iDev*8;
+				const unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
 					outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 				}
@@ -583,12 +583,12 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 			solved = true;
 
 		} else if (lcode[1]&0x00010000 && inStat[iDev]&0x00880000) {  // DMB-Full
-			unsigned int fiberCheck = thisDDU->readDMBWarning(devType[iDev]);
+			const unsigned int fiberCheck = thisDDU->readDMBWarning(devType[iDev]);
 			out.push_back(devName[iDev] + ": ");
 			outStream << devName[iDev] << ": Confirmed DMB full on fiber(s) ";
 			for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-				unsigned int realFiber = iFiber + iDev*8;
+				const unsigned int realFiber = iFiber + iDev*8;
 				if ((fiberCheck >> 8) & (1<<iFiber)) {
 					outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 				}
@@ -618,7 +618,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		out.push_back("DDUFPGA: DDU FIFO full");
 		if (lcode[5]&0x0000000f) {	// Ext.FIFO
 			outStream << "DDUFPGA: [Memory error for DDU external fifo(s) ";
-			for (int iFIFO=0; iFIFO < 4; iFIFO++) {
+			for (unsigned int iFIFO=0; iFIFO < 4; iFIFO++) {
 				if (lcode[5] & (1<<iFIFO)) outStream << std::dec << iFIFO;
 			}
 			out.push_back(outStream.str() + "]");
@@ -670,11 +670,11 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		for (unsigned int iDev = 0; iDev < 2; iDev++) {
 			if (inStat[iDev] & 0x40000000) { // Filler=64bit-misalign
 				iFill |= (1 << iDev);
-				unsigned int fiberCheck = thisDDU->readTxError(devType[iDev]);
+				const unsigned int fiberCheck = thisDDU->readTxError(devType[iDev]);
 				outStream << devName[iDev] << ": 64-bit align error detected on fiber(s) ";
 				for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-					unsigned int realFiber = iFiber + iDev*8;
+					// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+					const unsigned int realFiber = iFiber + iDev*8;
 					if ((fiberCheck >> 8) & (1<<iFiber)) {
 						outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 					}
@@ -738,7 +738,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 	//        Timeout/StuckDat/MultXmit/MemErr/MultL1A
 	if (!solved && lcode[0]&0x00400000) {
 		//    *out << "-debug> inside 5>" << std::endl;
-		for (int iDev = 0; iDev < 2; iDev++) {
+		for (unsigned int iDev = 0; iDev < 2; iDev++) {
 			if (inTrapSet[iDev]) {  // got_i0trap;
 				//      *out << "-debug> inside 6>" << std::endl;
 				if (inTrap[iDev][0]&0x0040) {
@@ -746,7 +746,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 						outStream << devName[iDev] << ": Start timeout for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-							unsigned int realFiber = iFiber + iDev*8;
+							const unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][7]) & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
@@ -757,7 +757,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 						outStream << devName[iDev] << ": End timeout for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-							unsigned int realFiber = iFiber + iDev*8;
+							const unsigned int realFiber = iFiber + iDev*8;
 							if (((inTrap[iDev][8] >> 8) | inTrap[iDev][8]) & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
@@ -770,8 +770,8 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 					} else if (inTrap[iDev][0]&0x0080) {  // StuckData
 						outStream << devName[iDev] << ": stuck data for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
-				// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-							unsigned int realFiber = iFiber + iDev*8;
+							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
+							const unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][4] >> 8) & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
@@ -782,11 +782,11 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 						if (iFill & (1 << iDev)) out.push_back("(may have caused 64-bit align error for " + devName[iDev] + ")");
 						solved = true;
 					} else if (inTrap[iDev][0]&0x0010) {  // Multi-Xmit error
-						unsigned int fiberCheck = thisDDU->readTxError(devType[iDev]);
+						const unsigned int fiberCheck = thisDDU->readTxError(devType[iDev]);
 						outStream << devName[iDev] << ": Multiple SpecialWord bit errors for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-							unsigned int realFiber = iFiber + iDev*8;
+							const unsigned int realFiber = iFiber + iDev*8;
 							if (fiberCheck & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
@@ -835,7 +835,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 						outStream << devName[iDev] << ": Multiple L1A errors for fiber(s) ";
 						for (unsigned int iFiber = 0; iFiber < 8; iFiber++) {
 							// INFPGA0 looks at fibers 0-7, INFPGA1 looks at 8-15
-							unsigned int realFiber = iFiber + iDev*8;
+							const unsigned int realFiber = iFiber + iDev*8;
 							if ((inTrap[iDev][5]) & (1<<iFiber)) {
 								outStream << std::dec << realFiber << " (" << thisDDU->getFiber(realFiber)->getName() << ") ";
 							}
@@ -858,7 +858,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 			out.push_back("DDU FIFO full detected");
 			if (lcode[5]&0x000000f0) {  // InRd Mem
 				outStream << "[Memory error for DDU detected in ";
-				for (int iReg = 0; iReg < 4; iReg++) {
+				for (unsigned int iReg = 0; iReg < 4; iReg++) {
 					if ((lcode[5] >> 4) & (1<<iReg)) outStream << "InRd" << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + "]");
@@ -916,7 +916,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 			out.push_back("[Timeout error detected]");
 			if (lcode[4]&0x00f00000) {
 				outStream << "(Start timeout for external FIFO(s) ";
-				for (int iReg = 0; iReg < 4; iReg++) {
+				for (unsigned int iReg = 0; iReg < 4; iReg++) {
 					if ((lcode[3] >> 20) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + ")");
@@ -924,7 +924,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 			}
 			if (lcode[4]&0x0f000000) {
 				outStream << "(End-wait timeout for external FIFO(s) ";
-				for (int iReg = 0; iReg < 4; iReg++) {
+				for (unsigned int iReg = 0; iReg < 4; iReg++) {
 					if ((lcode[3] >> 24) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + ")");
@@ -932,7 +932,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 			}
 			if (lcode[4]&0xf0000000) {
 				outStream << "(End-busy timeout for external FIFO(s) ";
-				for (int iReg = 0; iReg < 4; iReg++) {
+				for (unsigned int iReg = 0; iReg < 4; iReg++) {
 					if ((lcode[3] >> 28) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + ")");
@@ -943,7 +943,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 		}
 		if (lcode[0]&0x02000000) {  // DDUctrl StuckDat error
 			outStream << "[Stuck data error detected for external FIFO(s) ";
-			for (int iReg = 0; iReg < 4; iReg++) {
+			for (unsigned int iReg = 0; iReg < 4; iReg++) {
 				if ((lcode[3] >> 28) & (1<<iReg)) outStream << std::dec << iReg << " ";
 			}
 			out.push_back(outStream.str() + "]");
@@ -996,7 +996,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 			
 			if ((lcode[0]&0x90400fff) == 0x0000000a && lcode[4]&0x00008000) {
 				outStream << "[DDU C-code L1A error detected for external FIFO(s) ";
-				for (int iReg = 0; iReg < 4; iReg++) {
+				for (unsigned int iReg = 0; iReg < 4; iReg++) {
 					if ((lcode[3] >> 20) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + "]");
@@ -1012,7 +1012,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 				
 			} else if ((lcode[0]&0x9fc00dff) == 0x0040000a) {
 				outStream << "[DMB L1A mismatch error (from InFPGA) detected for external FIFO(s) ";
-				for (int iReg = 0; iReg < 4; iReg++) {
+				for (unsigned int iReg = 0; iReg < 4; iReg++) {
 					if ((lcode[3] >> 20) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + "]");
@@ -1023,7 +1023,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 				
 			} else if (lcode[0]&0x00000002) {
 				outStream << "[Likely caused by DMB L1A mismatch, other errors too for external FIFO(s) ";
-				for (int iReg = 0; iReg < 4; iReg++) {
+				for (unsigned int iReg = 0; iReg < 4; iReg++) {
 					if ((lcode[3] >> 20) & (1<<iReg)) outStream << std::dec << iReg << " ";
 				}
 				out.push_back(outStream.str() + "]");
@@ -1091,7 +1091,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(std::vector<uint16
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(long int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(const uint32_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1107,11 +1107,11 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(long int sta
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(enum DEVTYPE dt, unsigned long int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(const enum DEVTYPE dt, const uint32_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
-	unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
+	const unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	//*out << "<blockquote><font size=-1 color=red face=arial>";
 	if (stat&0xF0000000) {
 		if (0x80000000&stat) returnValues["DLL2 Lock Error"] = "red";
@@ -1205,7 +1205,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(enum DEVTYP
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(const enum DEVTYPE dt, const uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1235,7 +1235,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(enum DEVTYPE 
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(const enum DEVTYPE dt, const uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1259,7 +1259,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(enum DEVTYPE 
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(enum DEVTYPE dt, int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(const enum DEVTYPE dt, const uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1296,11 +1296,11 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(enum DEVTYPE
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FiberDiagnostics(enum DEVTYPE dt, int reg, unsigned long int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FiberDiagnostics(const enum DEVTYPE dt, const uint16_t reg, const uint32_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
-	unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
+	const unsigned int fiberOffset = (dt == INFPGA0 ? 0 : 8);
 	if (0x1f000000&stat) {
 		std::stringstream fiber;
 		fiber << "Fiber " << (3 + fiberOffset + 4*reg) << ": " << ((0x1f000000&stat) >> 24);
@@ -1329,7 +1329,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FiberDiagnostics(enum 
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(enum DEVTYPE dt, int iFiber, int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(enum DEVTYPE dt, const uint16_t iFiber, const uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1360,7 +1360,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(enum
 
 
 
-std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(std::vector<uint16_t> lcode, enum DEVTYPE dt)
+std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const std::vector<uint16_t> &lcode, const enum DEVTYPE dt)
 {
 	std::vector<std::string> out;
 	std::ostringstream outStream;
@@ -1495,7 +1495,7 @@ std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(std::vector<uint
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStat(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStat(const uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1529,7 +1529,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FMM(uint16_t stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(const uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1541,7 +1541,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(int stat)
 	if (reg0 == reg2 && reg1 == reg3 && reg0 + reg1 == 0xF) {
 		if ((0x7&stat) == 0x7) returnValues["Transmitting never"] = "none";
 		else {
-			unsigned int prescale = 1 << reg0;
+			const unsigned int prescale = 1 << reg0;
 			std::stringstream prescaleText;
 			prescaleText << "1:" << prescale;
 			returnValues["Transmitting "+prescaleText.str()+" events"] = "green";
@@ -1556,7 +1556,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(const uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1578,7 +1578,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(int stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(int stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(const uint16_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1590,7 +1590,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(int stat)
 
 
 
-std::pair<std::string, std::string> emu::fed::DDUDebugger::Temperature(float temp)
+std::pair<std::string, std::string> emu::fed::DDUDebugger::Temperature(const float temp)
 {
 
 	if (temp > 90) return std::make_pair("&gt; 90&deg;F", "warning");
@@ -1601,7 +1601,7 @@ std::pair<std::string, std::string> emu::fed::DDUDebugger::Temperature(float tem
 
 
 
-std::pair<std::string, std::string> emu::fed::DDUDebugger::Voltage(uint8_t sensor, float voltage)
+std::pair<std::string, std::string> emu::fed::DDUDebugger::Voltage(const uint8_t sensor, const float voltage)
 {
 
 	unsigned int targetVoltage = 0;

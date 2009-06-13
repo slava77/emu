@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.4 2009/05/20 18:18:38 paste Exp $
+* $Id: Communicator.h,v 1.5 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
@@ -26,6 +26,9 @@ namespace emu {
 
 			/** Default constructor **/
 			Communicator(xdaq::ApplicationStub *stub);
+			
+			/** Default destructor **/
+			~Communicator();
 
 			// HyperDAQ pages
 			/** Default HyperDAQ page **/
@@ -61,7 +64,7 @@ namespace emu {
 			/** Decault FSM state change call-back function **/
 			void inline stateChanged(toolbox::fsm::FiniteStateMachine &fsm) { return emu::fed::Supervised::stateChanged(fsm); }
 
-				// SOAP call-back functions that send FSM transitions
+			// SOAP call-back functions that send FSM transitions
 			/** Start the FSM 'Configure' transition **/
 			DEFINE_DEFAULT_SOAP2FSM_ACTION(Configure);
 
@@ -90,7 +93,7 @@ namespace emu {
 			*	@param bits are the bits to set
 			*
 			*	@note This method will not set bits if the crate/slot combination is not under the command of this instance of the Communicator application. **/
-			void writeTTSBits(unsigned int crate, unsigned int slot, int bits)
+			void writeTTSBits(const unsigned int crate, const unsigned int slot, const int bits)
 			throw (emu::fed::exception::TTSException);
 
 			/** Reads back the RSS (FMM) bits from a given board.
@@ -99,7 +102,7 @@ namespace emu {
 			*	@param slot is the slot number on which to read the bits
 			*
 			*	@note This method will not read bits if the crate/slot combination is not under the command of this instance of the Communicator application. **/
-			int readTTSBits(unsigned int crate, unsigned int slot)
+			int readTTSBits(const unsigned int crate, const unsigned int slot)
 			throw (emu::fed::exception::TTSException);
 			
 			/// The XML configuration file name.

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FIFO.cc,v 1.2 2009/05/29 11:23:18 paste Exp $
+* $Id: FIFO.cc,v 1.3 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/FIFO.h"
 
@@ -8,7 +8,8 @@
 
 
 
-emu::fed::FIFO::FIFO(unsigned int rui, bool used):
+emu::fed::FIFO::FIFO(const unsigned int fifoNumber, const unsigned int rui, const bool used):
+fifoNumber_(fifoNumber),
 rui_(rui),
 used_(used)
 {

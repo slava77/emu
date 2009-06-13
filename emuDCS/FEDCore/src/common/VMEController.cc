@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.4 2009/05/16 18:54:26 paste Exp $
+* $Id: VMEController.cc,v 1.5 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -15,7 +15,7 @@
 #include "CAENVMEtypes.h"
 #include "emu/fed/VMEModule.h"
 
-emu::fed::VMEController::VMEController(int Device, int Link)
+emu::fed::VMEController::VMEController(const int Device, const int Link)
 throw (emu::fed::exception::CAENException):
 Device_(Device),
 Link_(Link),
@@ -46,9 +46,6 @@ BHandle_(-1)
 				std::ostringstream error;
 				error << "Failure extracting pre-opened BHandle from file " << fileName.str();
 				XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-				std::ostringstream tag;
-				tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
-				e2.setProperty("tag", tag.str());
 				throw e2;
 			}
 			inFile.close();
@@ -56,9 +53,6 @@ BHandle_(-1)
 			std::ostringstream error;
 			error << "Encountered CAEN bus error, but no open BHandles detected in file " << fileName;
 			XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-			std::ostringstream tag;
-			tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
-			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
 
@@ -66,9 +60,6 @@ BHandle_(-1)
 		std::ostringstream error;
 		error << "error " << err << ": " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-		std::ostringstream tag;
-		tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 
 	} else {
@@ -87,9 +78,6 @@ BHandle_(-1)
 			std::ostringstream error;
 			error << "Unable to save BHandle information to external file " << fileName.str();
 			XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-			std::ostringstream tag;
-			tag << "device:" << Device_ << ",link:" << Link_ << ",bhandle:" << BHandle_;
-			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
 	}
@@ -106,7 +94,7 @@ emu::fed::VMEController::~VMEController() {
 
 
 
-bool emu::fed::VMEController::waitIRQ(unsigned int mSecs)
+bool emu::fed::VMEController::waitIRQ(const unsigned int mSecs)
 throw (emu::fed::exception::CAENException)
 {
 	// If the BHandle is not set properly, just return a good signal (true)
@@ -120,14 +108,11 @@ throw (emu::fed::exception::CAENException)
 		std::ostringstream error;
 		error << "Exception in waitIRQ: " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-		std::ostringstream tag;
-		tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 
 	pthread_mutex_lock(&mutex_);
-	bool status = CAENVME_IRQWait(BHandle_, cvIRQ1, mSecs);
+	const bool status = CAENVME_IRQWait(BHandle_, cvIRQ1, mSecs);
 	pthread_mutex_unlock(&mutex_);
 	return status;
 }
@@ -150,9 +135,6 @@ throw (emu::fed::exception::CAENException)
 		std::ostringstream error;
 		error << "Exception in readIRQ: " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
-		std::ostringstream tag;
-		tag << "device " << Device_ << " link " << Link_ << " bhandle " << BHandle_;
-		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
 

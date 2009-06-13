@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.4 2009/06/08 19:17:14 paste Exp $
+* $Id: FiberDBAgent.cc,v 1.5 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -19,7 +19,7 @@ DBAgent(application)
 
 
 
-std::pair<uint32_t, std::vector<emu::fed::Fiber *> > emu::fed::FiberDBAgent::getFibers(xdata::UnsignedInteger64 id)
+std::vector<emu::fed::Fiber *> emu::fed::FiberDBAgent::getFibers(xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -52,7 +52,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<uint32_t, std::vector<emu::fed::Fiber *> > emu::fed::FiberDBAgent::getFibers(xdata::UnsignedInteger64 key, xdata::UnsignedShort rui)
+std::vector<emu::fed::Fiber *> emu::fed::FiberDBAgent::getFibers(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -86,7 +86,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<uint32_t, std::vector<emu::fed::Fiber *> > emu::fed::FiberDBAgent::getFibers(xdata::UnsignedInteger64 key, xdata::UnsignedShort rui, xdata::UnsignedShort number)
+std::vector<emu::fed::Fiber *> emu::fed::FiberDBAgent::getFibers(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui, xdata::UnsignedShort &number)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -104,13 +104,7 @@ throw (emu::fed::exception::DBException)
 	}
 	
 	// Did we match anything
-	switch (result.getRowCount()) {
-		case 0: 
-			XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
-			break;
-		default:
-			break;
-	}
+	if (!result.getRowCount()) XCEPT_RAISE(emu::fed::exception::DBException, "No matching rows found");
 	
 	try {
 		return buildFibers(result);
@@ -121,11 +115,10 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<uint32_t, std::vector<emu::fed::Fiber *> > emu::fed::FiberDBAgent::buildFibers(xdata::Table table)
+std::vector<emu::fed::Fiber *> emu::fed::FiberDBAgent::buildFibers(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
-	std::vector<emu::fed::Fiber *> returnMe(15, new Fiber());
-	uint32_t killfiber = 0;
+	std::vector<emu::fed::Fiber *> returnMe;
 	
 	for (xdata::Table::iterator iRow = table.begin(); iRow != table.end(); iRow++) {
 		// Parse out all needed elements
@@ -143,38 +136,24 @@ throw (emu::fed::exception::DBException)
 		// Don't want to kill myself here
 		if ((unsigned int) fiber_number > 14) XCEPT_RAISE(emu::fed::exception::DBException, "Fiber number is too large");
 		
+		std::string chamberName = chamber.toString();
 		std::string endcap = "?";
 		unsigned int station = 0;
 		unsigned int ring = 0;
 		unsigned int number = 0;
 		
 		// Check normal station name first
-		boost::regex chamberRegex("([+\\-])(\\d)/(\\d)/(\\d{2})");
-		boost::smatch chamberMatch;
-		if (boost::regex_match(chamber.toString(), chamberMatch, chamberRegex)) {
-			// Parse the text as numbers
-			endcap = chamberMatch[1];
-			std::istringstream parseMe(chamberMatch[2]);
-			parseMe >> station;
-			parseMe.str(chamberMatch[3]);
-			parseMe >> ring;
-			parseMe.str(chamberMatch[4]);
-			parseMe >> number;
-		} else {
-			// Now check SPs
-			boost::regex spRegex("SP[+\\-]?(\\d{2})");
-			boost::smatch spMatch;
-			if (boost::regex_match(chamber.toString(), spMatch, spRegex)) {
-				std::istringstream parseMe(spMatch[1]);
-				parseMe >> number;
-				endcap = (number <= 6) ? "+" : "-";
-			}
+		if (sscanf(chamberName.c_str(), "%*c%1u/%1u/%02u", &station, &ring, &number) == 3) {
+			endcap = chamberName.substr(0,1);
+			// Else it's probably an SP, so check that
+		} else if (sscanf(chamberName.c_str(), "SP%02u", &number) == 1) {
+			endcap = (number <= 6) ? "+" : "-";
 		}
 		
 		// Set names now.
-		returnMe[fiber_number] = new Fiber(endcap, station, ring, number, killed);
-		if (!killed) killfiber |= (1 << fiber_number);
+		returnMe.push_back(new Fiber(fiber_number, endcap, station, ring, number, killed));
 	}
 	
-	return make_pair(killfiber, returnMe);
+	return returnMe;
+	
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDebugger.cc,v 1.2 2009/05/21 15:30:49 paste Exp $
+* $Id: DCCDebugger.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCCDebugger.h"
 
@@ -9,7 +9,7 @@
 
 
 
-std::map<std::string, std::string> emu::fed::DCCDebugger::FMMStat(short int stat)
+std::map<std::string, std::string> emu::fed::DCCDebugger::FMMStat(const uint8_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -25,7 +25,7 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::FMMStat(short int stat
 
 
 
-std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(short int stat)
+std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(const uint8_t stat)
 {
 	std::map<std::string, std::string> returnValues;
 	for (int iLink = 0; iLink < 2; iLink++) {
@@ -51,7 +51,7 @@ std::map<std::string, std::string> emu::fed::DCCDebugger::SLinkStat(short int st
 
 
 
-std::map<std::string, std::string> emu::fed::DCCDebugger::InFIFOStat(short int stat) {
+std::map<std::string, std::string> emu::fed::DCCDebugger::InFIFOStat(const uint8_t stat) {
 	std::map<std::string, std::string> returnValues;
 	for (unsigned int iBit = 0; iBit < 3; iBit++) {
 		if (!(stat & (1 << iBit))) {

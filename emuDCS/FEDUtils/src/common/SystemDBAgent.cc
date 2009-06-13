@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: SystemDBAgent.cc,v 1.2 2009/05/22 19:25:51 paste Exp $
+* $Id: SystemDBAgent.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/SystemDBAgent.h"
@@ -14,7 +14,7 @@ DBAgent(application)
 
 
 
-std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::getSystem(std::string hostname, xdata::UnsignedInteger64 key)
+std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::getSystem(const std::string &hostname, xdata::UnsignedInteger64 &key)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -52,7 +52,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::getSystem(std::string hostname)
+std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::getSystem(const std::string &hostname)
 throw (emu::fed::exception::DBException)
 {
 	// Set up parameters
@@ -88,7 +88,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::buildSystem(xdata::Table table)
+std::pair<xdata::UnsignedInteger64, std::string> emu::fed::SystemDBAgent::buildSystem(xdata::Table &table)
 throw (emu::fed::exception::DBException)
 {
 	// Parse out the ID and system name

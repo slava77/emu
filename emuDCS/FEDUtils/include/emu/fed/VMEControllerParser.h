@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEControllerParser.h,v 1.2 2009/05/22 19:25:50 paste Exp $
+* $Id: VMEControllerParser.h,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMECONTROLLERPARSER_H__
 #define __EMU_FED_VMECONTROLLERPARSER_H__
@@ -26,6 +26,9 @@ namespace emu {
 			**/
 			explicit VMEControllerParser(xercesc::DOMElement *pNode)
 			throw (emu::fed::exception::ParseException);
+			
+			/** Default destructor **/
+			~VMEControllerParser();
 
 			/** @returns a pointer to the parsed VMEController object. **/
 			inline VMEController *getController() { return vmeController_; }

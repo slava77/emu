@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.3 2009/05/16 18:53:10 paste Exp $
+* $Id: Commander.cc,v 1.4 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -24,6 +24,15 @@ Application(stub)
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Commander::webDefault, "Default");
 	//xgi::bind(this, &emu::fed::Commander::getAJAX, "getAJAX");
+}
+
+
+
+emu::fed::Commander::~Commander()
+{
+	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
+		delete crateVector_[iCrate];
+	}
 }
 
 

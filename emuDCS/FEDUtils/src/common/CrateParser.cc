@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateParser.cc,v 1.3 2009/05/21 15:30:49 paste Exp $
+* $Id: CrateParser.cc,v 1.4 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/CrateParser.h"
 
@@ -22,4 +22,11 @@ Parser(pNode)
 	}
 
 	crate_ = new Crate(number);
+}
+
+
+
+emu::fed::CrateParser::~CrateParser()
+{
+	//delete crate_;
 }

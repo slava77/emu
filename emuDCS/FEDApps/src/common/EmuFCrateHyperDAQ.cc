@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.cc,v 1.8 2009/05/20 18:18:38 paste Exp $
+* $Id: EmuFCrateHyperDAQ.cc,v 1.9 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/EmuFCrateHyperDAQ.h"
 
@@ -64,6 +64,14 @@ Application(stub)
 
 
 
+emu::fed::EmuFCrateHyperDAQ::~EmuFCrateHyperDAQ()
+{
+	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
+		delete crateVector_[iCrate];
+	}
+}
+
+
 
 void emu::fed::EmuFCrateHyperDAQ::webDefault(xgi::Input *in, xgi::Output *out)
 {
@@ -122,7 +130,7 @@ void emu::fed::EmuFCrateHyperDAQ::mainPage(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 
 		// First, I need a crate.
 		// This is the main page, so don't die if there actually are crates from which to choose.
@@ -767,7 +775,7 @@ void emu::fed::EmuFCrateHyperDAQ::setRawConfFile(xgi::Input *in, xgi::Output *ou
 	try {
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Saving input as a raw configuration file");
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 
 		cgicc::const_form_iterator fileData = cgi["Text"];
 		
@@ -830,7 +838,7 @@ void emu::fed::EmuFCrateHyperDAQ::setConfFile(xgi::Input *in, xgi::Output *out)
 	try {
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Setting a new configuration file for use");
 		
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 
 		cgicc::const_form_iterator fileName = cgi["xmlFileName"];
 
@@ -878,7 +886,7 @@ void emu::fed::EmuFCrateHyperDAQ::uploadConfFile(xgi::Input *in, xgi::Output *ou
 	try {
 		LOG4CPLUS_DEBUG(getApplicationLogger(), "Uploading a new configuration file for use");
 		
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		cgicc::const_file_iterator file = cgi.getFile("xmlFileNameUpload");
 
@@ -936,17 +944,20 @@ void emu::fed::EmuFCrateHyperDAQ::uploadConfFile(xgi::Input *in, xgi::Output *ou
 void emu::fed::EmuFCrateHyperDAQ::Configuring()
 throw (emu::fed::exception::ConfigurationException)
 {
+	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
+		delete crateVector_[iCrate];
+	}
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "Parsing file " << xmlFile_.toString());
 	
 	try {
-		XMLConfigurator *configurator = new XMLConfigurator(xmlFile_.toString());
+		XMLConfigurator configurator(xmlFile_.toString());
 		
-		crateVector_ = configurator->setupCrates();
+		crateVector_ = configurator.setupCrates();
 		
 		// Get the name of this endcap from the parser, too.  This is specified in the XML
 		// for convenience.
-		systemName_ = configurator->getSystemName();
+		systemName_ = configurator.getSystemName();
 		
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
@@ -968,7 +979,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		return Default(in,out);
 	}
 
-	cgicc::Cgicc cgi(in);
+	const cgicc::Cgicc cgi(in);
 	
 	// First, I need a crate.
 	unsigned int cgiCrate = 0;
@@ -1363,7 +1374,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDULoadBroadcast(xgi::Input *in, xgi::Output *
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -1458,7 +1469,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -1702,7 +1713,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -1756,7 +1767,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCReset(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 		
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -1808,7 +1819,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUDebug(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -2550,7 +2561,7 @@ void emu::fed::EmuFCrateHyperDAQ::InFpga(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -3276,7 +3287,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUExpert(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -4172,7 +4183,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMEPARA(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -4403,7 +4414,7 @@ void emu::fed::EmuFCrateHyperDAQ::VMESERI(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -4602,7 +4613,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -4615,7 +4626,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input *in, xgi::Output *out)
 
 		// The command that is intended to be sent to the DDU.
 		unsigned int command = 0;
-		cgicc::form_iterator name = cgi.getElement("command");
+		cgicc::const_form_iterator name = cgi.getElement("command");
 		if(name != cgi.getElements().end()) {
 			command = cgi["command"]->getIntegerValue();
 		}
@@ -4814,7 +4825,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCBroadcast(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 		
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -5152,7 +5163,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCLoadBroadcast(xgi::Input *in, xgi::Output *
 			return Default(in,out);
 		}
 		
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -5246,7 +5257,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCSendBroadcast(xgi::Input *in, xgi::Output *
 			return Default(in,out);
 		}
 		
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -5380,7 +5391,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCDebug(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -5598,7 +5609,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCExpert(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -6339,7 +6350,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -6352,7 +6363,7 @@ void emu::fed::EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input *in, xgi::Output *out)
 
 		// The command that is intended to be sent to the DDU.
 		unsigned int command = 0;
-		cgicc::form_iterator name = cgi.getElement("command");
+		cgicc::const_form_iterator name = cgi.getElement("command");
 		if(name != cgi.getElements().end()) {
 			command = cgi["command"]->getIntegerValue();
 		}
@@ -6467,7 +6478,7 @@ void emu::fed::EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input *in, xgi::Output *out)
 			return Default(in,out);
 		}
 
-		cgicc::Cgicc cgi(in);
+		const cgicc::Cgicc cgi(in);
 		
 		// First, I need a crate.
 		std::pair<unsigned int, Crate *> cratePair = getCGICrate(cgi);
@@ -6663,12 +6674,12 @@ void emu::fed::EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input *in, xgi::Output *out)
 
 
 
-std::string emu::fed::EmuFCrateHyperDAQ::selectACrate(std::string location, std::string what, unsigned int index, unsigned int crateIndex)
+std::string emu::fed::EmuFCrateHyperDAQ::selectACrate(const std::string& location, const std::string &what, const unsigned int index, const unsigned int crateIndex)
 {
-	std::ostringstream *out = new std::ostringstream();
+	std::ostringstream out;
 	
 	for (std::vector<Crate *>::iterator iCrate = crateVector_.begin(); iCrate != crateVector_.end(); iCrate++) {
-		*out << cgicc::table()
+		out << cgicc::table()
 			.set("style","width: 100%; border: 1px solid #000; border-collapse: collapse; text-align: center; font-size: 10pt; margin-bottom: 10px;") << std::endl;
 		
 		std::ostringstream columns;
@@ -6681,24 +6692,24 @@ std::string emu::fed::EmuFCrateHyperDAQ::selectACrate(std::string location, std:
 		crateName << "Crate " << (*iCrate)->number();
 		
 		// For crate-specific pages, link the crates.
-		*out << cgicc::tr() << std::endl;
-		*out << cgicc::td()
+		out << cgicc::tr() << std::endl;
+		out << cgicc::td()
 			.set("style",selectedCrate+" border: 1px solid #000;")
 			.set("colspan",columns.str()) << std::endl;
 
 		std::ostringstream locationCrate;
 		if (what == "crate") {
 			locationCrate << "/" << getApplicationDescriptor()->getURN() << "/" << location << "?crate=" << (*iCrate)->number();
-			*out << cgicc::a(crateName.str())
+			out << cgicc::a(crateName.str())
 				.set("href",locationCrate.str()) << std::endl;
 		} else {
-			*out << crateName.str() << std::endl;
+			out << crateName.str() << std::endl;
 		}
-		*out << cgicc::td() << std::endl;
-		*out << cgicc::tr() << std::endl;
+		out << cgicc::td() << std::endl;
+		out << cgicc::tr() << std::endl;
 
 		// For board-specific pages, link the board.
-		*out << cgicc::tr() << std::endl;
+		out << cgicc::tr() << std::endl;
 		std::vector<DDU *> myDDUs = (*iCrate)->getDDUs();
 		for (std::vector<DDU *>::iterator iDDU = myDDUs.begin(); iDDU != myDDUs.end(); iDDU++) {
 
@@ -6708,18 +6719,18 @@ std::string emu::fed::EmuFCrateHyperDAQ::selectACrate(std::string location, std:
 			std::ostringstream boardName;
 			boardName << "DDU Slot " << (*iDDU)->slot() << ": RUI #" << (*iCrate)->getRUI((*iDDU)->slot());
 
-			*out << cgicc::td()
+			out << cgicc::td()
 				.set("style",selectedBoard+" border: 1px solid #000;") << std::endl;
 
 			std::ostringstream locationBoard;
 			if (what == "ddu") {
 				locationBoard << "/" << getApplicationDescriptor()->getURN() << "/" << location << "?crate=" << (*iCrate)->number() << "&slot=" << (*iDDU)->slot();
-				*out << cgicc::a(boardName.str())
+				out << cgicc::a(boardName.str())
 					.set("href",locationBoard.str()) << std::endl;
 			} else {
-				*out << boardName.str() << std::endl;
+				out << boardName.str() << std::endl;
 			}
-			*out << cgicc::td() << std::endl;
+			out << cgicc::td() << std::endl;
 		}
 		
 		std::vector<DCC *> myDCCs = (*iCrate)->getDCCs();
@@ -6731,34 +6742,34 @@ std::string emu::fed::EmuFCrateHyperDAQ::selectACrate(std::string location, std:
 			std::ostringstream boardName;
 			boardName << "DCC Slot " << (*iDCC)->slot();
 			
-			*out << cgicc::td()
+			out << cgicc::td()
 				.set("style",selectedBoard+" border: 1px solid #000;") << std::endl;
 
 			std::ostringstream locationBoard;
 			if (what == "dcc") {
 				locationBoard << "/" << getApplicationDescriptor()->getURN() << "/" << location << "?crate=" << (*iCrate)->number() << "&slot=" << (*iDCC)->slot();
-				*out << cgicc::a(boardName.str())
+				out << cgicc::a(boardName.str())
 					.set("href",locationBoard.str()) << std::endl;
 			} else {
-				*out << boardName.str() << std::endl;
+				out << boardName.str() << std::endl;
 			}
-			*out << cgicc::td() << std::endl;
+			out << cgicc::td() << std::endl;
 		}
-		*out << cgicc::tr() << std::endl;
-		*out << cgicc::table() << std::endl;
+		out << cgicc::tr() << std::endl;
+		out << cgicc::table() << std::endl;
 	}
 	
-	return out->str();
+	return out.str();
 }
 
 
 
-std::pair<unsigned int, emu::fed::Crate *> emu::fed::EmuFCrateHyperDAQ::getCGICrate(cgicc::Cgicc cgi)
+std::pair<unsigned int, emu::fed::Crate *> emu::fed::EmuFCrateHyperDAQ::getCGICrate(const cgicc::Cgicc &cgi)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 
 	// get the crate number
-	cgicc::form_iterator name = cgi.getElement("crate");
+	cgicc::const_form_iterator name = cgi.getElement("crate");
 	unsigned int cgiCrate = 0;
 	if (name != cgi.getElements().end()) {
 		cgiCrate = cgi["crate"]->getIntegerValue();
@@ -6780,6 +6791,3 @@ throw (emu::fed::exception::OutOfBoundsException)
 	XCEPT_RAISE(emu::fed::exception::OutOfBoundsException, error.str());
 
 }
-
-
-

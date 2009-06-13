@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.cc,v 1.5 2009/05/21 15:33:44 paste Exp $
+* $Id: Crate.cc,v 1.6 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Crate.h"
 
@@ -7,7 +7,7 @@
 
 #include "emu/fed/VMEController.h"
 
-emu::fed::Crate::Crate(unsigned int myNumber):
+emu::fed::Crate::Crate(const unsigned int myNumber):
 number_(myNumber)
 {
 	boardVector_.reserve(18);
@@ -17,8 +17,26 @@ number_(myNumber)
 
 
 
-void emu::fed::Crate::addBoard(VMEModule *myBoard)
+emu::fed::Crate::~Crate()
 {
+	delete broadcastDDU_;
+	delete vmeController_;
+}
+
+
+
+void emu::fed::Crate::addBoard(VMEModule *myBoard)
+throw (emu::fed::exception::OutOfBoundsException)
+{
+	if (boardVector_.size() == 18) {
+		std::ostringstream error;
+		error << "The physical limitations of FED crates limit the number of boards to 18";
+		XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e2, error.str());
+		std::ostringstream tag;
+		tag << "FEDCrate " << number_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
 	if (vmeController_ != NULL) {
 		myBoard->setBHandle(vmeController_->getBHandle());
 	}
@@ -66,7 +84,7 @@ throw (emu::fed::exception::ConfigurationException)
 			error << "Configuration of board in crate " << number_ << " slot " << (*iBoard)->slot() << " has failed";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
 			std::ostringstream tag;
-			tag << "crate:" << number_ << ",slot:" << (*iBoard)->slot();
+			tag << "FEDCrate " << number_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 		}

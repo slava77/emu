@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.9 2009/06/08 19:20:53 paste Exp $
+* $Id: Monitor.cc,v 1.10 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -46,6 +46,15 @@ Application(stub)
 	xgi::bind(this, &emu::fed::Monitor::webGetFiberStatus, "GetFiberStatus");
 	xgi::bind(this, &emu::fed::Monitor::webGetDDUStatus, "GetDDUStatus");
 	xgi::bind(this, &emu::fed::Monitor::webGetDCCStatus, "GetDCCStatus");
+}
+
+
+
+emu::fed::Monitor::~Monitor()
+{
+	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
+		delete crateVector_[iCrate];
+	}
 }
 
 
@@ -301,7 +310,6 @@ void emu::fed::Monitor::webGetTemperatures(xgi::Input *in, xgi::Output *out)
 	output.push_back(JSONSpirit::Pair("ddus", dduArray));
 	
 	*out << JSONSpirit::write(output);
-	
 }
 
 
@@ -675,10 +683,11 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 			std::string status = "ok";
 			std::string message = "ok";
 			
-			Fiber *fiber = new Fiber();
+			Fiber *fiber;
 			try {
 				fiber = (*iDDU)->getFiber(iFiber);
 			} catch (emu::fed::exception::OutOfBoundsException &e) {
+				fiber = new Fiber(iFiber);
 				fiberObject.push_back(JSONSpirit::Pair("exception", "Error reading fiber status"));
 			}
 
@@ -690,6 +699,7 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 				message = "no link";
 			} else if (fiberStatus & (1 << iFiber)) {
 				status = "error";
+				message = "error";
 				// TODO what should the message be?
 			}
 			
@@ -758,7 +768,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			std::map<std::string, std::string> debugged = DCCDebugger::FMMStat(fmmStatus);
 			statusDecoded = debugged.begin()->second;
 		} catch (emu::fed::exception::DCCException &e) {
-			dccObject.push_back(JSONSpirit::Pair("exception", "Unable to read DCC FMM status"));
+			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		dccObject.push_back(JSONSpirit::Pair("fmmStatus", statusDecoded));
 		
@@ -767,7 +777,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		try {
 			dccL1A = (*iDCC)->readStatusLow();
 		} catch (emu::fed::exception::DCCException &e) {
-			dccObject.push_back(JSONSpirit::Pair("exception", "Unable to read DCC L1A"));
+			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		dccObject.push_back(JSONSpirit::Pair("L1A", (int) dccL1A));
 		
@@ -777,17 +787,19 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		try {
 			fifoStatus = ((*iDCC)->readStatusHigh() & 0x0ff0) >> 4;
 		} catch (emu::fed::exception::DCCException &e) {
-			dccObject.push_back(JSONSpirit::Pair("exception", "Unable to read DCC FIFO status"));
+			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		for (size_t iFIFO = 0; iFIFO <= 9; iFIFO++) {
 			JSONSpirit::Object fifoObject;
 			
 			unsigned int iSlot = 0;
+			unsigned int realFIFO = iFIFO + 1;
+			if (realFIFO >= 6) realFIFO++;
 			try {
-				iSlot = (*iDCC)->getDDUSlotFromFIFO(iFIFO);
+				iSlot = (*iDCC)->getDDUSlotFromFIFO(realFIFO);
 			} catch (emu::fed::exception::OutOfBoundsException &e) {
 				// Not a valid FIFO number?
-				fifoObject.push_back(JSONSpirit::Pair("exception", "Unable to read DCC FIFO status"));
+				fifoObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			fifoObject.push_back(JSONSpirit::Pair("slot", (int) iSlot));
 			
@@ -800,14 +812,15 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			try {
 				rate = (*iDCC)->readDDURate(iSlot);
 			} catch (emu::fed::exception::DCCException &e) {
-				fifoObject.push_back(JSONSpirit::Pair("exception", "Error reading FIFO rate"));
+				fifoObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			
-			FIFO *fifo = new FIFO();
+			FIFO *fifo;
 			try {
 				fifo = (*iDCC)->getFIFO(iFIFO);
 			} catch (emu::fed::exception::OutOfBoundsException &e) {
-				fifoObject.push_back(JSONSpirit::Pair("exception", "Error reading FIFO status"));
+				fifo = new FIFO(iFIFO);
+				fifoObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			
 			if (!fifo->isUsed()) {
@@ -837,7 +850,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 		try {
 			slinkStatus = (*iDCC)->readStatusHigh() & 0xf;
 		} catch (emu::fed::exception::DCCException &e) {
-			dccObject.push_back(JSONSpirit::Pair("exception", "Unable to read DCC SLink status"));
+			dccObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		for (unsigned int iLink = 1; iLink <= 2; iLink++) {
 			
@@ -852,7 +865,7 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			try {
 				rate = (*iDCC)->readSLinkRate(iLink);
 			} catch (emu::fed::exception::DCCException &e) {
-				slinkObject.push_back(JSONSpirit::Pair("exception", "Error reading FIFO rate"));
+				slinkObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 
 			if (!(slinkStatus & (1 << (iLink * 2 - 1)))) {
@@ -992,10 +1005,10 @@ throw (emu::fed::exception::ConfigurationException)
 	// For now, try the XML file first (will be removed in later versions)
 	try {
 		LOG4CPLUS_INFO(getApplicationLogger(), "XML configuration using file " << xmlFile_.toString());
-		XMLConfigurator *configurator = new XMLConfigurator(xmlFile_.toString());
+		XMLConfigurator configurator(xmlFile_.toString());
 
-		crateVector_ = configurator->setupCrates();
-		systemName_ = configurator->getSystemName();
+		crateVector_ = configurator.setupCrates();
+		systemName_ = configurator.getSystemName();
 		REVOKE_ALARM("MonitorConfigure", NULL);
 		
 		return;
@@ -1008,10 +1021,10 @@ throw (emu::fed::exception::ConfigurationException)
 	}
 		
 	try {
-		DBConfigurator *configurator = new DBConfigurator(this, dbUsername_.toString(), dbPassword_.toString());
+		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString());
 	
-		crateVector_ = configurator->setupCrates();
-		systemName_ = configurator->getSystemName();
+		crateVector_ = configurator.setupCrates();
+		systemName_ = configurator.getSystemName();
 		REVOKE_ALARM("MonitorConfigure", NULL);
 		
 		return;
@@ -1024,10 +1037,10 @@ throw (emu::fed::exception::ConfigurationException)
 	}
 	
 	try {
-		AutoConfigurator *configurator = new AutoConfigurator();
+		AutoConfigurator configurator;
 	
-		crateVector_ = configurator->setupCrates();
-		systemName_ = configurator->getSystemName();
+		crateVector_ = configurator.setupCrates();
+		systemName_ = configurator.getSystemName();
 		REVOKE_ALARM("MonitorConfigure", NULL);
 		
 		return;

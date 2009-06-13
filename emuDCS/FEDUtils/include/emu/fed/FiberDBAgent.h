@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.h,v 1.2 2009/05/22 19:25:50 paste Exp $
+* $Id: FiberDBAgent.h,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBERDBAGENT_H__
 #define __EMU_FED_FIBERDBAGENT_H__
@@ -27,21 +27,21 @@ namespace emu {
 			throw (emu::fed::exception::DBException);
 			
 			/** Build a bunch of Fibers corresponding to a DDU ID **/
-			std::pair<uint32_t, std::vector<emu::fed::Fiber *> > getFibers(xdata::UnsignedInteger64 id)
+			std::vector<emu::fed::Fiber *> getFibers(xdata::UnsignedInteger64 &id)
 			throw (emu::fed::exception::DBException);
 			
 			/** Build a bunch of Fiber objects corresponding to a configuration key and an RUI **/
-			std::pair<uint32_t, std::vector<emu::fed::Fiber *> > getFibers(xdata::UnsignedInteger64 key, xdata::UnsignedShort rui)
+			std::vector<emu::fed::Fiber *> getFibers(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui)
 			throw (emu::fed::exception::DBException);
 			
 			/** Build a bunch of Fiber objects corresponding to a configuration key and an RUI and a fiber number **/
-			std::pair<uint32_t, std::vector<emu::fed::Fiber *> > getFibers(xdata::UnsignedInteger64 key, xdata::UnsignedShort rui, xdata::UnsignedShort number)
+			std::vector<emu::fed::Fiber *> getFibers(xdata::UnsignedInteger64 &key, xdata::UnsignedShort &rui, xdata::UnsignedShort &number)
 			throw (emu::fed::exception::DBException);
 
 		private:
 		
 			/** Build the crates from the table returned **/
-			std::pair<uint32_t, std::vector<emu::fed::Fiber *> > buildFibers(xdata::Table table)
+			std::vector<emu::fed::Fiber *> buildFibers(xdata::Table &table)
 			throw (emu::fed::exception::DBException);
 
 		};

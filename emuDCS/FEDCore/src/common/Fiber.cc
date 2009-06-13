@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.cc,v 1.3 2009/06/10 08:04:41 paste Exp $
+* $Id: Fiber.cc,v 1.4 2009/06/13 17:59:28 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Fiber.h"
 
@@ -9,6 +9,7 @@
 
 
 emu::fed::Fiber::Fiber():
+fiberNumber_(0),
 name_("???"),
 endcap_("?"),
 plusMinus_(0),
@@ -22,7 +23,8 @@ killed_(false)
 
 
 
-emu::fed::Fiber::Fiber(unsigned int plusMinus, unsigned int station, unsigned int ring, unsigned int number, bool killed):
+emu::fed::Fiber::Fiber(const unsigned int fiberNumber, const unsigned int plusMinus, const unsigned int station, const unsigned int ring, const unsigned int number, const bool killed):
+fiberNumber_(fiberNumber),
 name_("???"),
 endcap_("?"),
 plusMinus_(plusMinus),
@@ -48,7 +50,8 @@ killed_(killed)
 
 
 
-emu::fed::Fiber::Fiber(std::string endcap, unsigned int station, unsigned int ring, unsigned int number, bool killed):
+emu::fed::Fiber::Fiber(const unsigned int fiberNumber, const std::string &endcap, const unsigned int station, const unsigned int ring, const unsigned int number, const bool killed):
+fiberNumber_(fiberNumber),
 name_("???"),
 endcap_(endcap),
 plusMinus_(0),
@@ -59,7 +62,7 @@ killed_(killed)
 {
 	if (endcap == "+") plusMinus_ = 1;
 	else if (endcap == "-") plusMinus_ = 2;
-	else endcap = "?";
+	else endcap_ = "?";
 	// Generate the name, but only if it makes sense
 	// Check for a sensible normal chamber name first, then an SP
 	if (endcap_ != "?" && (station_ > 0 && station_ <= 4) && (ring_ > 0 && ring_ <= 4) && (number_ > 0 && number_ <= 36)) {

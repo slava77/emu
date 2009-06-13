@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCDBAgent.h,v 1.2 2009/05/22 19:25:50 paste Exp $
+* $Id: DCCDBAgent.h,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DCCDBAGENT_H__
 #define __EMU_FED_DCCDBAGENT_H__
@@ -28,17 +28,17 @@ namespace emu {
 			throw (emu::fed::exception::DBException);
 			
 			/** Build a bunch of DCCs corresponding to a crate ID **/
-			std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> getDCCs(xdata::UnsignedInteger64 id)
+			std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> getDCCs(xdata::UnsignedInteger64 &id)
 			throw (emu::fed::exception::DBException);
 			
 			/** Build a bunch of DCC objects corresponding to a configuration key and an RUI **/
-			std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> getDCCs(xdata::UnsignedInteger64 key, xdata::UnsignedInteger fmm_id)
+			std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> getDCCs(xdata::UnsignedInteger64 &key, xdata::UnsignedInteger &fmm_id)
 			throw (emu::fed::exception::DBException);
 
 		private:
 		
 			/** Build the crates from the table returned **/
-			std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> buildDCCs(xdata::Table table)
+			std::map<xdata::UnsignedInteger64, emu::fed::DCC *, emu::fed::DBAgent::comp> buildDCCs(xdata::Table &table)
 			throw (emu::fed::exception::DBException);
 
 		};

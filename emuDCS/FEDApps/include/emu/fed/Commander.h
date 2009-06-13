@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.1 2009/04/01 21:08:24 paste Exp $
+* $Id: Commander.h,v 1.2 2009/06/13 17:59:08 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
@@ -24,6 +24,9 @@ namespace emu {
 			
 			/** Default Constructor **/
 			Commander(xdaq::ApplicationStub *stub);
+			
+			/** Default destructor **/
+			~Commander();
 			
 			/** Default web page that displays the main Commander interface.
 			*

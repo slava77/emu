@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: CrateParser.h,v 1.2 2009/05/16 18:55:20 paste Exp $
+* $Id: CrateParser.h,v 1.3 2009/06/13 17:59:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATEPARSER_H__
 #define __EMU_FED_CRATEPARSER_H__
@@ -28,6 +28,9 @@ namespace emu {
 			**/
 			CrateParser(xercesc::DOMElement *pNode)
 			throw (emu::fed::exception::ParseException);
+			
+			/** Default destructor **/
+			~CrateParser();
 
 			/** @returns a vector of the crates parsed from the XML file. **/
 			inline Crate *getCrate() { return crate_; }
