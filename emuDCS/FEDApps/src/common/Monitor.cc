@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.10 2009/06/13 17:59:08 paste Exp $
+* $Id: Monitor.cc,v 1.11 2009/06/13 18:30:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -291,7 +291,7 @@ void emu::fed::Monitor::webGetTemperatures(xgi::Input *in, xgi::Output *out)
 				status = debugged.second;
 				message = debugged.first;
 			} catch (emu::fed::exception::DDUException &e) {
-				tempObject.push_back(JSONSpirit::Pair("exception", "Temperature read error"));
+				tempObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			std::ostringstream tempStream;
 			tempStream << std::fixed << std::setprecision(2) << temperature;
@@ -368,7 +368,7 @@ void emu::fed::Monitor::webGetVoltages(xgi::Input *in, xgi::Output *out)
 				status = debugged.second;
 				message = debugged.first;
 			} catch (emu::fed::exception::DDUException &e) {
-				voltObject.push_back(JSONSpirit::Pair("exception", "Voltage read error"));
+				voltObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			std::ostringstream voltStream;
 			voltStream << std::fixed << std::setprecision(0) << voltage;
@@ -436,7 +436,7 @@ void emu::fed::Monitor::webGetOccupancies(xgi::Input *in, xgi::Output *out)
 		try {
 			l1aScaler = (*iDDU)->readL1Scaler(emu::fed::DDUFPGA);
 		} catch (emu::fed::exception::DDUException &e) {
-			dduObject.push_back(JSONSpirit::Pair("exception", "Unable to read DDU L1A count"));
+			dduObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		
 		JSONSpirit::Array fiberArray;
@@ -453,7 +453,7 @@ void emu::fed::Monitor::webGetOccupancies(xgi::Input *in, xgi::Output *out)
 			try {
 				occupancies = (*iDDU)->readOccupancyMonitor();
 			} catch (emu::fed::exception::DDUException &e) {
-				fiberObject.push_back(JSONSpirit::Pair("exception", "Error reading occupancies"));
+				fiberObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			
 			uint32_t dmbCount = (occupancies[0] & 0x0fffffff);
@@ -560,7 +560,7 @@ void emu::fed::Monitor::webGetCounts(xgi::Input *in, xgi::Output *out)
 		try {
 			scaler = (*iDDU)->readL1Scaler(emu::fed::DDUFPGA);
 		} catch (emu::fed::exception::DDUException &e) {
-			ddufpgaObject.push_back(JSONSpirit::Pair("exception", "Error reading L1As from DDUFPGA"));
+			ddufpgaObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		ddufpgaObject.push_back(JSONSpirit::Pair("count", (int) scaler));
 		countsArray.push_back(ddufpgaObject);
@@ -571,7 +571,7 @@ void emu::fed::Monitor::webGetCounts(xgi::Input *in, xgi::Output *out)
 		try {
 			scaler = (*iDDU)->readL1Scaler(emu::fed::INFPGA0);
 		} catch (emu::fed::exception::DDUException &e) {
-			infpga01Object.push_back(JSONSpirit::Pair("exception", "Error reading L1As from INFPGA0"));
+			infpga01Object.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		infpga01Object.push_back(JSONSpirit::Pair("count", (int) scaler));
 		countsArray.push_back(infpga01Object);
@@ -582,7 +582,7 @@ void emu::fed::Monitor::webGetCounts(xgi::Input *in, xgi::Output *out)
 		try {
 			scaler = (*iDDU)->readL1Scaler1(emu::fed::INFPGA0);
 		} catch (emu::fed::exception::DDUException &e) {
-			infpga02Object.push_back(JSONSpirit::Pair("exception", "Error reading L1As from INFPGA0"));
+			infpga02Object.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		infpga02Object.push_back(JSONSpirit::Pair("count", (int) scaler));
 		countsArray.push_back(infpga02Object);
@@ -593,7 +593,7 @@ void emu::fed::Monitor::webGetCounts(xgi::Input *in, xgi::Output *out)
 		try {
 			scaler = (*iDDU)->readL1Scaler(emu::fed::INFPGA1);
 		} catch (emu::fed::exception::DDUException &e) {
-			infpga11Object.push_back(JSONSpirit::Pair("exception", "Error reading L1As from INFPGA1"));
+			infpga11Object.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		infpga11Object.push_back(JSONSpirit::Pair("count", (int) scaler));
 		countsArray.push_back(infpga11Object);
@@ -604,7 +604,7 @@ void emu::fed::Monitor::webGetCounts(xgi::Input *in, xgi::Output *out)
 		try {
 			scaler = (*iDDU)->readL1Scaler1(emu::fed::INFPGA1);
 		} catch (emu::fed::exception::DDUException &e) {
-			infpga12Object.push_back(JSONSpirit::Pair("exception", "Error reading L1As from INFPGA1"));
+			infpga12Object.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		infpga12Object.push_back(JSONSpirit::Pair("count", (int) scaler));
 		countsArray.push_back(infpga12Object);
@@ -670,7 +670,7 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 			fiberStatus = (*iDDU)->readCSCStatus() | (*iDDU)->readAdvancedFiberErrors();
 			liveFibers = (*iDDU)->readLiveFibers();
 		} catch (emu::fed::exception::DDUException &e) {
-			dduObject.push_back(JSONSpirit::Pair("exception", "Error reading fiber status"));
+			dduObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		
 		for (size_t iFiber = 0; iFiber < 15; iFiber++) {
@@ -688,7 +688,7 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 				fiber = (*iDDU)->getFiber(iFiber);
 			} catch (emu::fed::exception::OutOfBoundsException &e) {
 				fiber = new Fiber(iFiber);
-				fiberObject.push_back(JSONSpirit::Pair("exception", "Error reading fiber status"));
+				fiberObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 
 			if (fiber->isKilled()) { // Killed fibers first
@@ -917,7 +917,7 @@ void emu::fed::Monitor::webGetDDUStatus(xgi::Input *in, xgi::Output *out)
 	try {
 		myCrate = parseCrate(in);
 	} catch (emu::fed::exception::ParseException &e) {
-		output.push_back(JSONSpirit::Pair("exception", e.message()));
+		output.push_back(JSONSpirit::Pair("exception", e.what()));
 		*out << JSONSpirit::write(output);
 		return;
 	}
@@ -943,7 +943,7 @@ void emu::fed::Monitor::webGetDDUStatus(xgi::Input *in, xgi::Output *out)
 			uint8_t fmmStatus = ((*iDDU)->readParallelStatus() >> 8) & 0x000F;
 			statusDecoded = DDUDebugger::FMM(fmmStatus).begin()->second;
 		} catch (emu::fed::exception::DDUException &e) {
-			dduObject.push_back(JSONSpirit::Pair("exception", "Unable to read DDU FMM status"));
+			dduObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		dduObject.push_back(JSONSpirit::Pair("fmmStatus", statusDecoded));
 		
@@ -952,7 +952,7 @@ void emu::fed::Monitor::webGetDDUStatus(xgi::Input *in, xgi::Output *out)
 		try {
 			l1aScaler = (*iDDU)->readL1Scaler(emu::fed::DDUFPGA);
 		} catch (emu::fed::exception::DDUException &e) {
-			dduObject.push_back(JSONSpirit::Pair("exception", "Unable to read DDU L1A count"));
+			dduObject.push_back(JSONSpirit::Pair("exception", e.what()));
 		}
 		dduObject.push_back(JSONSpirit::Pair("L1A", (int) l1aScaler));
 		
