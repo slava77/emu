@@ -8,7 +8,7 @@
 
     <xc:Application id="12" instance="0" class="emu::farmer::Application" network="local">
       <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::farmer::Application">
-	<generatingCommand xsi:type="xsd:string">cd /opt/xdaq/htdocs/emu/farmer/xml &amp;&amp; ./generateConfigs.sh</generatingCommand>
+	<generatingCommand xsi:type="xsd:string">cd /opt/xdaq/htdocs/emu/farmer/xml &amp;&amp; ./generateConfigs.sh RUI-to-computer_mapping.xml</generatingCommand>
 	<uploadingCommand  xsi:type="xsd:string">RCMS_HOME=/nfshome0/cscpro/RunControl /nfshome0/cscpro/bin/duckLoader --usc55 </uploadingCommand>
 	<outputDir xsi:type="xsd:string">/nfshome0/cscdaq/config/farmer/out</outputDir>
 	<rs3UserFile xsi:type="xsd:string">/nfshome0/cscdaq/config/.rs3User</rs3UserFile>
