@@ -1,11 +1,11 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.cc,v 1.4 2009/06/13 17:59:45 paste Exp $
+* $Id: XMLConfigurator.cc,v 1.5 2009/06/15 17:27:00 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/XMLConfigurator.h"
 
 #include <sstream>
-#include <xercesc/parsers/XercesDOMParser.hpp>
+#include "xercesc/parsers/XercesDOMParser.hpp"
 #include "emu/fed/DDUParser.h"
 #include "emu/fed/DDU.h"
 #include "emu/fed/Crate.h"
@@ -49,14 +49,20 @@ throw (emu::fed::exception::ConfigurationException)
 	try {
 		parser->parse(filename_.c_str());
 	} catch (xercesc::XMLException& e) {
+		delete parser;
+		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
 		error << "Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	} catch (xercesc::DOMException& e) {
+		delete parser;
+		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
 		error << "Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	} catch (...) {
+		delete parser;
+		xercesc::XMLPlatformUtils::Terminate();
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, "Unknown error during parsing");
 	}
 	
@@ -70,12 +76,16 @@ throw (emu::fed::exception::ConfigurationException)
 	}
 	
 	if (pFEDSystem == NULL) {
+		delete parser;
+		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
 		error << "Could not find a top-node in the XML document " << filename_;
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
 	
 	if ( strcmp(xercesc::XMLString::transcode(pFEDSystem->getTagName()), "FEDSystem") ) {
+		delete parser;
+		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
 		error << "The top-node in the XML document " << filename_ << " was not named 'FEDSystem'";
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
@@ -91,6 +101,8 @@ throw (emu::fed::exception::ConfigurationException)
 	xercesc::DOMNodeList *pFEDCrates = pFEDSystem->getElementsByTagName(xercesc::XMLString::transcode("FEDCrate"));
 	
 	if (pFEDCrates == NULL) {
+		delete parser;
+		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
 		error << "No FEDCrate elements in the XML document " << filename_;
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
@@ -104,6 +116,8 @@ throw (emu::fed::exception::ConfigurationException)
 		try {
 			newCrate = CrateParser(pFEDCrate).getCrate();
 		} catch (emu::fed::exception::ParseException &e) {
+			delete parser;
+			xercesc::XMLPlatformUtils::Terminate();
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing Crate element", e);
 		}
 		
@@ -111,6 +125,8 @@ throw (emu::fed::exception::ConfigurationException)
 		xercesc::DOMNodeList *pVMEControllers = pFEDCrate->getElementsByTagName(xercesc::XMLString::transcode("VMEController"));
 		
 		if (pVMEControllers->getLength() != 1) {
+			delete parser;
+			xercesc::XMLPlatformUtils::Terminate();
 			std::ostringstream error;
 			error << "Exactly one VMEController element must exist as a child element of every FEDCrate element in the XML document " << filename_;
 			XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
@@ -122,6 +138,8 @@ throw (emu::fed::exception::ConfigurationException)
 		try {
 			newCrate->setController(VMEControllerParser(pVMEController).getController());
 		} catch (emu::fed::exception::ParseException &e) {
+			delete parser;
+			xercesc::XMLPlatformUtils::Terminate();
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing VMEController element", e);
 		}
 		
@@ -136,6 +154,8 @@ throw (emu::fed::exception::ConfigurationException)
 			try {
 				newDDU = DDUParser(pDDU).getDDU();
 			} catch (emu::fed::exception::ParseException &e) {
+				delete parser;
+				xercesc::XMLPlatformUtils::Terminate();
 				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing DDU element", e);
 			}
 			
@@ -149,6 +169,8 @@ throw (emu::fed::exception::ConfigurationException)
 					FiberParser fiberParser = FiberParser(pFiber);
 					newDDU->addFiber(fiberParser.getFiber());
 				} catch (emu::fed::exception::Exception &e) {
+					delete parser;
+					xercesc::XMLPlatformUtils::Terminate();
 					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing Fiber element", e);
 				}
 			}
@@ -168,6 +190,8 @@ throw (emu::fed::exception::ConfigurationException)
 			try {
 				newDCC = DCCParser(pDCC).getDCC();
 			} catch (emu::fed::exception::ParseException &e) {
+				delete parser;
+				xercesc::XMLPlatformUtils::Terminate();
 				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing DCC element", e);
 			}
 			
@@ -184,6 +208,8 @@ throw (emu::fed::exception::ConfigurationException)
 					// This alters the fifos in use, too.
 					newDCC->addFIFO(fifoParser.getFIFO());
 				} catch (emu::fed::exception::ParseException &e) {
+					delete parser;
+					xercesc::XMLPlatformUtils::Terminate();
 					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing FIFO element", e);
 				}
 			}
