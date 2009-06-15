@@ -49,14 +49,13 @@
 	<xsl:if test="$FARM='DAQ'">
 	  <xsl:call-template name="DAQManager"/>
 	  <xsl:call-template name="EVM_and_TA"/>
-	  <xsl:call-template name="TF"/>
 	  <xsl:call-template name="RUIs"/>
 	</xsl:if>
 	<xsl:if test="$FARM='DQM'">
 	  <xsl:call-template name="Monitors"/>
 	</xsl:if>
 	<xsl:if test="$FARM='DQM_Display'">
-	  <xsl:call-template name="DisplayClient"/>
+	  <xsl:call-template name="DisplayClients"/>
 	</xsl:if>
       </FunctionManager>
     </Configuration>
@@ -100,28 +99,10 @@
     </XdaqExecutive>
   </xsl:template>
 
-  <!-- Track Finder's RUI -->
-  <xsl:template name="TF">
-    <xsl:if test="//RUI[@instance='0' and @status = 'in']">
-      <xsl:comment >RUI 0 (TF)</xsl:comment>
-      <XdaqExecutive hostname="{//RUI[@instance='0']/../@alias}" port="20300"
-		     urn="urn:xdaq-application:lid=0"
-		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
-		     instance="0"
-		     pathToExecutive="{$PATHTOEXECUTIVE}"
-		     unixUser="cscdaq"
-		     logLevel="WARN"
-		     logURL="file:/var/log/emu/xdaq-rui0-cscdaq.log"
-		     environmentString="{$DAQ_ENVIRONMENTSTRING}">
-	<configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
-      </XdaqExecutive>
-    </xsl:if>
-  </xsl:template>
-
   <!-- RUIs -->
   <xsl:template name="RUIs">
-    <xsl:for-each select="//RUI[@instance!='0' and @status = 'in']">
-      <xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
+    <xsl:for-each select="//RUI[@status = 'in']">
+      <xsl:if test="number(@instance)=0 or ($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
 	
 	<xsl:comment >RUI <xsl:value-of select="@instance"/></xsl:comment>
 	<XdaqExecutive hostname="{../@alias}" port="{20300+number(@instance)}"
@@ -141,7 +122,7 @@
   </xsl:template>
 
   <!-- DQM Display Client -->
-  <xsl:template name="DisplayClient">
+  <xsl:template name="DisplayClients">
     <xsl:comment >DQM Display Client</xsl:comment>
     <XdaqExecutive hostname="csc-dqm.cms" port="20550"
 		   urn="urn:xdaq-application:lid=0"
@@ -158,12 +139,29 @@
 		     urn="urn:xdaq-application:lid=1450"
 		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
 		     instance="0" />
+
+    <xsl:comment >TF DQM Display Client</xsl:comment>
+    <XdaqExecutive hostname="csc-dqm.cms" port="20570"
+		   urn="urn:xdaq-application:lid=0"
+		   qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
+		   instance="0"
+		   pathToExecutive="{$PATHTOEXECUTIVE}"
+		   unixUser="cscdqm"
+		   logLevel="INFO"
+		   logURL="file:/var/log/emu/xdaq-tf-display-cscdqm.log"
+		   environmentString="{$DQM_ENVIRONMENTSTRING}">
+      <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
+    </XdaqExecutive>
+    <XdaqApplication className="EmuTFDisplayClient" hostname="csc-dqm.cms" port="20570"
+		     urn="urn:xdaq-application:lid=1450"
+		     qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
+		     instance="0" />
   </xsl:template>
 
   <!-- DQM Monitors -->
   <xsl:template name="Monitors">
     <xsl:for-each select="//RUI[@status = 'in']">
-      <xsl:if test="($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
+      <xsl:if test="number(@instance)=0 or ($SIDE!='P' and $SIDE!='M') or $SIDE='B' or ($SIDE='P' and number(@instance)&lt;=18) or ($SIDE='M' and number(@instance)&gt;18)">
 
 	<xsl:variable name="PORT"><xsl:value-of select="20500+number(@instance)"/></xsl:variable>
 	<xsl:comment >DQM Monitor <xsl:value-of select="@instance"/></xsl:comment>
@@ -174,7 +172,7 @@
 		       pathToExecutive="{$PATHTOEXECUTIVE}"
 		       unixUser="cscdqm"
 		       logLevel="WARN"
-		       logURL="file:/var/log/emu/xdaq-rui{@instance}-cscdqm.log"
+		       logURL="file:/var/log/emu/xdaq-monitor{@instance}-cscdqm.log"
 		       environmentString="{$DQM_ENVIRONMENTSTRING}">
 	  <configFile location="file"><xsl:value-of select="$CONFIG_FILE"/></configFile>
 	</XdaqExecutive>

@@ -18,8 +18,8 @@
   <!-- If it is set to 'Y', events will be built; if 'N', events will not be built. -->
   <xsl:param name="BUILD"/>
 
-<!--   <xsl:param name="EMULIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param> -->
-  <xsl:param name="EMULIBDIR">${XDAQ_ROOT}/lib</xsl:param>
+  <xsl:param name="OLDLIBDIR">${BUILD_HOME}/${XDAQ_PLATFORM}/lib</xsl:param>
+  <xsl:param name="LIBDIR">${XDAQ_ROOT}/lib</xsl:param>
 
   <xsl:output method="xml" indent="yes"/>
 
@@ -37,7 +37,9 @@
       <xsl:call-template name="EVM_and_TA"/>
       <xsl:call-template name="TF"/>
       <xsl:call-template name="RUIs"/>
+      <xsl:call-template name="EmuTFDisplayClient"/>
       <xsl:call-template name="EmuDisplayClient"/>
+      <xsl:call-template name="EmuTFMonitor"/>
       <xsl:call-template name="EmuMonitors"/>
       <xsl:call-template name="TTCciControl"/>
 
@@ -51,12 +53,11 @@
       <i2o:target tid="2000" instance="0" class="rubuilder::evm::Application"></i2o:target>
       <i2o:target tid="2001" instance="0" class="emu::daq::ta::Application"></i2o:target>
 
-      <i2o:target tid="1450" instance="0" class="EmuDisplayClient"></i2o:target>
-
       <xsl:if test="//RUI[@instance='0' and @status = 'in']">
 	<xsl:comment>RUI 0 (TF)</xsl:comment>
-	<i2o:target tid="1000" instance="0" class="emu::daq::rui::Application"></i2o:target>
-	<i2o:target tid="1001" instance="0" class="rubuilder::ru::Application"></i2o:target>
+	<i2o:target tid="3000" instance="0" class="emu::daq::rui::Application"></i2o:target>
+	<i2o:target tid="3001" instance="0" class="rubuilder::ru::Application"></i2o:target>
+	<i2o:target tid="1400" instance="0" class="EmuTFMonitor"></i2o:target>
       </xsl:if>
 
       <xsl:for-each select="//RUI[@instance!='0' and @status = 'in']"> 
@@ -64,10 +65,10 @@
 
 	  <xsl:comment >RUI <xsl:value-of select="@instance"/></xsl:comment>
 
-	  <xsl:variable name="DAQ_TID0"><xsl:value-of select="1000+10*number(@instance)+0"/></xsl:variable>
-	  <xsl:variable name="DAQ_TID1"><xsl:value-of select="1000+10*number(@instance)+1"/></xsl:variable>
-	  <xsl:variable name="DAQ_TID2"><xsl:value-of select="1000+10*number(@instance)+2"/></xsl:variable>
-	  <xsl:variable name="DAQ_TID3"><xsl:value-of select="1000+10*number(@instance)+3"/></xsl:variable>
+	  <xsl:variable name="DAQ_TID0"><xsl:value-of select="3000+10*number(@instance)+0"/></xsl:variable>
+	  <xsl:variable name="DAQ_TID1"><xsl:value-of select="3000+10*number(@instance)+1"/></xsl:variable>
+	  <xsl:variable name="DAQ_TID2"><xsl:value-of select="3000+10*number(@instance)+2"/></xsl:variable>
+	  <xsl:variable name="DAQ_TID3"><xsl:value-of select="3000+10*number(@instance)+3"/></xsl:variable>
 	  <i2o:target tid="{$DAQ_TID0}" instance="{@instance}" class="emu::daq::rui::Application"></i2o:target>
 	  <i2o:target tid="{$DAQ_TID1}" instance="{@instance}" class="rubuilder::ru::Application"></i2o:target>
 	  <i2o:target tid="{$DAQ_TID2}" instance="{@instance}" class="rubuilder::bu::Application"></i2o:target>
@@ -141,8 +142,8 @@
 	  <RegexMatchingCSCConfigName xsi:type="xsd:string">.*/Local/.*|.*/Global/.*</RegexMatchingCSCConfigName>
 	</properties>
       </xc:Application>
-      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
-      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqmanager.so</xc:Module>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqmanager.so</xc:Module>
     </xc:Context>
   </xsl:template>
   
@@ -176,7 +177,7 @@
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderutils.so</xc:Module>
       <xc:Module>${XDAQ_ROOT}/lib/librubuilderevm.so</xc:Module>
       <xc:Application instance="0" class="emu::daq::ta::Application" network="atcp1" id="17"/>
-      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqta.so</xc:Module>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqta.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -208,9 +209,9 @@
 	</xc:Application>
 	<xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
 	
-	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
-	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqserver.so</xc:Module>
-	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
+	<xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqreader.so</xc:Module>
+	<xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqserver.so</xc:Module>
+	<xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqwriter.so</xc:Module>
 	<xc:Application instance="0" class="rubuilder::ru::Application" network="atcp1" id="14">
 	  <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
 	    <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
@@ -232,14 +233,14 @@
 	    <ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong"><xsl:if test="$WRITE='N'">0</xsl:if><xsl:if test="$WRITE='Y'">200</xsl:if></ruiFileSizeInMegaBytes>
 	    <pathToBadEventsFile xsi:type="xsd:string"></pathToBadEventsFile>
 	    <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
-	      <item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
+	      <item xsi:type="xsd:string" soapenc:position="[0]">EmuTFMonitor</item>
 	    </clientsClassName>
 	    <clientsInstance xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 	      <item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0</item>
 	    </clientsInstance>
 	  </properties>
 	</xc:Application>
-	<xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqrui.so</xc:Module>
+	<xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqrui.so</xc:Module>
       </xc:Context>
       
     </xsl:if>
@@ -273,9 +274,9 @@
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
 
-	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
-	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqserver.so</xc:Module>
-	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqwriter.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqreader.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqserver.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqwriter.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="rubuilder::ru::Application" network="atcp1" id="14">
 	    <properties xmlns="urn:xdaq-application:rubuilder::ru::Application" xsi:type="soapenc:Struct">
 	      <tolerateCSCFaults xsi:type="xsd:boolean">true</tolerateCSCFaults>
@@ -293,7 +294,7 @@
 	      <clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]"></clientsClassName>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqfu.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqfu.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="emu::daq::rui::Application" network="atcp1" id="18">
 	    <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:emu::daq::rui::Application">
 	      <passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
@@ -318,11 +319,28 @@
 	      </poolSizeForClient>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqrui.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqrui.so</xc:Module>
 	</xc:Context>
 
       </xsl:if>
     </xsl:for-each>
+  </xsl:template>
+
+<!-- Generate context for EmuTFDisplayClient -->
+  <xsl:template name="EmuTFDisplayClient">
+    <xsl:comment >EmuTFDisplayClient</xsl:comment>
+    <xc:Context url="http://csc-dqm.cms:20570">
+      <xc:Application class="EmuTFDisplayClient" id="1450" instance="0" network="local">
+	<properties xmlns="urn:xdaq-application:EmuTFDisplayClient" xsi:type="soapenc:Struct">
+	  <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
+	  <imageFormat xsi:type="xsd:string">png</imageFormat>
+	  <baseDir xsi:type="xsd:string">/nfshome0/cscdqm/config/tfdqm</baseDir>
+	  <viewOnly xsi:type="xsd:boolean">false</viewOnly>
+	</properties>
+      </xc:Application>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuTFDisplayClient.so</xc:Module>
+    </xc:Context>
   </xsl:template>
 
 <!-- Generate context for EmuDisplayClient -->
@@ -337,8 +355,51 @@
         <viewOnly xsi:type="xsd:boolean">false</viewOnly>
 	</properties>
       </xc:Application>
-      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemubase.so</xc:Module>
-      <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libEmuDisplayClient.so</xc:Module>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libemubase.so</xc:Module>
+      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuDisplayClient.so</xc:Module>
+    </xc:Context>
+  </xsl:template>
+
+<!--Generate context for EmuTFMonitor-->
+  <xsl:template name="EmuTFMonitor">
+    <xsl:comment >EmuTFMonitor</xsl:comment>
+    <xc:Context url="http://csc-daq10:20500">
+      <xc:Endpoint hostname="csc-daq10" protocol="atcp" port="20570" service="i2o" network="atcp1"/>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libxdaq2rc.so</xc:Module>
+      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
+	<properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
+	<autoSize xsi:type="xsd:boolean">true</autoSize>
+	<maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
+	</properties>
+      </xc:Application>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libptatcp.so</xc:Module>
+      <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqreader.so</xc:Module>
+      <xc:Application instance="0" class="EmuTFMonitor" id="1400" network="atcp1" group="dqm">
+	<properties xmlns="urn:xdaq-application:EmuTFMonitor" xsi:type="soapenc:Struct">
+	  <readoutMode xsi:type="xsd:string">external</readoutMode>
+	  <inputDeviceType xsi:type="xsd:string">file</inputDeviceType>
+	  <!-- inputDeviceName xsi:type="xsd:string">/csc_data/csc_00070088_EmuRUI01_Monitor_000.raw</inputDeviceName-->
+	  <inputDeviceName xsi:type="xsd:string">/data/dqm/csc_00097780_EmuRUI00_Monitor.raw</inputDeviceName>
+	  <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
+	  <nEventCredits xsi:type="xsd:unsignedInt">200</nEventCredits>
+	  <prescalingFactor xsi:type="xsd:unsignedInt">1</prescalingFactor>
+	  <serversClassName xsi:type="xsd:string">emu::daq::rui::Application</serversClassName>
+	  <serverTIDs xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
+	    <item xsi:type="xsd:unsignedInt" soapenc:position="[0]">3000</item>
+	  </serverTIDs>
+	  <xmlCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/xml/CSCTF_histograms.xml</xmlCfgFile>
+	  <xmlCanvasesCfgFile xsi:type="xsd:string">/nfshome0/cscdqm/TriDAS/emu/emuDQM/EmuTFMonitor/xml/CSCTF_canvases.xml</xmlCanvasesCfgFile>
+	  <cscMapFile xsi:type="xsd:string">/nfshome0/cscdqm/config/csc_map.txt</cscMapFile>
+	  <fSaveROOTFile xsi:type="xsd:boolean">true</fSaveROOTFile>
+	  <outputROOTFile xsi:type="xsd:string">/data/dqm/</outputROOTFile>
+	  <outputImagesPath xsi:type="xsd:string">/tmp/images/</outputImagesPath>
+	  <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
+	  <dduCheckMask xsi:type="xsd:unsignedInt">0xFFFFDFFF</dduCheckMask>
+	  <binCheckMask xsi:type="xsd:unsignedInt">0xFFFB7BF6</binCheckMask>
+	</properties>
+      </xc:Application>
+      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuTFPlotter.so</xc:Module>
+      <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuTFMonitor.so</xc:Module>
     </xc:Context>
   </xsl:template>
 
@@ -351,7 +412,7 @@
 	<xsl:variable name="HTTP_PORT"><xsl:value-of select="20500+number(@instance)"/></xsl:variable>
 	<xsl:variable name="I2O_HOST"><xsl:value-of select="$HTTP_HOST"/></xsl:variable>
 	<xsl:variable name="I2O_PORT"><xsl:value-of select="number($HTTP_PORT)+100"/></xsl:variable>
-	<xsl:variable name="SERVER_TID"><xsl:value-of select="1000+10*number(@instance)+0"/></xsl:variable>
+	<xsl:variable name="SERVER_TID"><xsl:value-of select="3000+10*number(@instance)+0"/></xsl:variable>
 	<xsl:variable name="APP_ID"><xsl:value-of select="1400+number(@instance)"/></xsl:variable>
 	
 	<xsl:comment >EmuMonitor <xsl:value-of select="@instance"/></xsl:comment>
@@ -366,7 +427,7 @@
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/lib/libptatcp.so</xc:Module>
-	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libemudaqreader.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqreader.so</xc:Module>
 	  <xc:Application instance="{@instance}" class="EmuMonitor" id="{$APP_ID}" network="atcp1" group="dqm">
 	    <properties xmlns="urn:xdaq-application:EmuMonitor" xsi:type="soapenc:Struct">
 	      <readoutMode xsi:type="xsd:string">external</readoutMode>
@@ -390,8 +451,8 @@
               <binCheckMask xsi:type="xsd:unsignedInt">0xF7FB7BF6</binCheckMask>
 	    </properties>
 	  </xc:Application>
-	  <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libEmuPlotter.so</xc:Module>
-          <xc:Module><xsl:value-of select="$EMULIBDIR"/>/libEmuMonitor.so</xc:Module>
+	  <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuPlotter.so</xc:Module>
+          <xc:Module><xsl:value-of select="$OLDLIBDIR"/>/libEmuMonitor.so</xc:Module>
 	</xc:Context>
 	
       </xsl:if>
