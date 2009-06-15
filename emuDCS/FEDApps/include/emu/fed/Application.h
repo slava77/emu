@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.4 2009/06/13 17:59:08 paste Exp $
+* $Id: Application.h,v 1.5 2009/06/15 17:25:45 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -11,6 +11,8 @@
 #include <vector>
 
 #include "xoap/DOMParser.h"
+#include "xoap/DOMParserFactory.h"
+#include "xercesc/parsers/XercesDOMParser.hpp"
 #include "xoap/MessageReference.h"
 #include "xdata/soap/Serializer.h"
 #include "xoap/SOAPName.h"
@@ -35,6 +37,9 @@ namespace emu {
 
 			/** Default constructor. **/
 			Application(xdaq::ApplicationStub *stub);
+			
+			/** Default destructor **/
+			~Application();
 
 			/** Sends the GetParameters SOAP command to a target application.
 			*
@@ -57,7 +62,7 @@ namespace emu {
 			*
 			*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 			**/
-			xoap::MessageReference getParameters(const std::string &applicationName, const unsigned int instance)
+			xoap::MessageReference getParameters(const std::string &applicationName, const unsigned int &instance)
 			throw (emu::fed::exception::SOAPException);
 
 			/** Sets a parameter in a remote application.  I don't know where the
@@ -81,7 +86,7 @@ namespace emu {
 			*
 			*	@author Phillip Killewald (stolen from Laria's CSCSupervisor.cc)
 			**/
-			void setParameter(const std::string &klass, const std::string &name, const std::string &type, const std::string &value, const int instance = -1)
+			void setParameter(const std::string &klass, const std::string &name, const std::string &type, const std::string &value, const int &instance = -1)
 			throw (emu::fed::exception::SOAPException);
 
 			/** Reads a reply from onGetParameters and returns a named parameter from
@@ -103,35 +108,32 @@ namespace emu {
 			{
 				T thingToGet;
 				xdata::soap::Serializer serializer;
-				xoap::DOMParser *parser;
-				try {
-					parser = new xoap::DOMParser();
-				} catch (xoap::exception::Exception &e) {
-					std::ostringstream error;
-					error << "Unable to construct xoap DOMParser";
-					XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
-				}
 
 				std::string messageStr;
 				message->writeTo(messageStr);
+				
+				xoap::DOMParser *parser;
+				try {
+					parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
+				} catch (xoap::exception::Exception &e) {
+					std::ostringstream error;
+					error << "Unable to create DOMParser";
+					XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
+				}
+				
 				xercesc::DOMDocument *doc;
 				try {
 					doc = parser->parse(messageStr);
-					delete parser;
 				} catch (xoap::exception::Exception &e) {
-					delete parser;
+					xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 					std::ostringstream error;
 					error << "Unable to parse SOAP message: " << messageStr;
 					XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
 				}
-
-				//xoap::SOAPElement sInfoSpace = message->getSOAPPart().getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("GetParametersResponse", "", "")))[0];
+				xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 
 				xoap::SOAPName name(parameterName, "xdaq", XDAQ_NS_URI);
-				//std::cout << "Looking for " << name->getQualifiedName() << ", " << name->getURI() << std::endl;
-
 				bool found = false;
-				
 				xercesc::DOMNodeList *dataNode = doc->getElementsByTagNameNS(xoap::XStr(XDAQ_NS_URI), xoap::XStr("data"));
 				if (dataNode->item(0)) {
 					xercesc::DOMNodeList *dataElements = dataNode->item(0)->getChildNodes();
@@ -140,14 +142,13 @@ namespace emu {
 						if (n->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
 							std::string nodeName = xoap::XMLCh2String(n->getNodeName());
 							if (nodeName == name.getQualifiedName()) {
-								serializer.import (&thingToGet, n);
+								serializer.import(&thingToGet, n);
 								found = true;
 								break;
 							}
 						}
 					}
 				}
-				
 				if (!found) {
 					std::ostringstream error;
 					error << "Unable to find parameter " << parameterName;
@@ -292,7 +293,6 @@ namespace emu {
 
 			/// The system name for the application.  This is just some name that can be used to distinguish differently-configured applications from each other.
 			xdata::String systemName_;
-
 
 		};
 	}

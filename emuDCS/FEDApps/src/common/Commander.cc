@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.4 2009/06/13 17:59:08 paste Exp $
+* $Id: Commander.cc,v 1.5 2009/06/15 17:25:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -11,6 +11,7 @@
 #include "emu/fed/DDU.h"
 #include "emu/fed/DCC.h"
 #include "emu/fed/Crate.h"
+#include "cgicc/HTMLClasses.h"
 
 XDAQ_INSTANTIATOR_IMPL(emu::fed::Commander)
 
@@ -41,7 +42,14 @@ void emu::fed::Commander::webDefault(xgi::Input *in, xgi::Output *out)
 {
 	
 	configure();
+	std::vector<std::string> jsFiles;
+	jsFiles.push_back("commander.js");
+	*out << Header("Test Commander", jsFiles);
 	
+	*out << cgicc::div().set("id", "updateMe");
+	*out << cgicc::div() << std::endl;
+	
+	*out << Footer();
 }
 
 

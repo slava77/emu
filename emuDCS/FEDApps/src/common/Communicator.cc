@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.11 2009/06/13 17:59:08 paste Exp $
+* $Id: Communicator.cc,v 1.12 2009/06/15 17:25:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -1049,7 +1049,6 @@ xoap::MessageReference emu::fed::Communicator::onGetParameters(xoap::MessageRefe
 			fibersWithErrors_ = fibersWithErrors_ + TM_->getData()->errorCount[(*iCrate)->number()];
 			
 			// Average the input/output rates from the DCCs
-			
 			std::vector<DCC *> dccVector = (*iCrate)->getDCCs();
 			for (std::vector<DCC *>::const_iterator iDCC = dccVector.begin(); iDCC != dccVector.end(); iDCC++) {
 				// DDU input FIFOs are 1-5 and 7-11, S-Links are 0 and 6

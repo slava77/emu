@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.10 2009/06/13 17:59:08 paste Exp $
+* $Id: Manager.cc,v 1.11 2009/06/15 17:25:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -318,7 +318,7 @@ std::vector<emu::base::WebReportItem> emu::fed::Manager::materialToReportOnPage1
 		std::string fmmErrors = "0";
 		std::string url = "";
 
-		JSONSpirit::Object appObject = (*iApp).get_obj();
+		JSONSpirit::Object appObject = iApp->get_obj();
 		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
 			
 			// System name
@@ -581,11 +581,11 @@ std::string emu::fed::Manager::getManagerState(const std::string &targetState, c
 {
 	
 	// This map is to make sure everybody is in the same state.
-	std::map<std::string, unsigned int> stateMap;
+	std::map<const std::string, unsigned int> stateMap;
 	
 	for (JSONSpirit::Array::const_iterator iApp = underlyingStatus.begin(); iApp != underlyingStatus.end(); iApp++) {
 		
-		JSONSpirit::Object appObject = (*iApp).get_obj();
+		JSONSpirit::Object appObject = iApp->get_obj();
 		for (JSONSpirit::Object::const_iterator iPair = appObject.begin(); iPair != appObject.end(); iPair++) {
 			if (iPair->name_ == "state") {
 				std::string state = iPair->value_.get_str();
@@ -624,7 +624,7 @@ std::string emu::fed::Manager::getManagerState(const std::string &targetState, c
 		notifyQualified("FATAL", e);
 		return "Failed";
 	}
-
+	
 	//LOG4CPLUS_DEBUG(getApplicationLogger(), "All Communicator applications are in the target state of " << targetState);
 	return targetState;
 }
@@ -694,6 +694,7 @@ JSONSpirit::Array emu::fed::Manager::getUnderlyingStatus()
 			// do nothing
 		}
 		applicationObject.push_back(JSONSpirit::Pair("commanderURL", commanderURL));
+		
 		
 		returnMe.push_back(applicationObject);
 	}
