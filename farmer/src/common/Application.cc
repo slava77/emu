@@ -100,7 +100,7 @@ void emu::farmer::Application::exportParams(){
 
   outputDir_         = "/tmp/farmer/out";
   rs3UserFile_       = "/nfshome0/cscdaq/config/.rs3User";
-  generatingCommand_ = "cd /opt/xdaq/htdocs/emu/farmer/xml && ./generateConfigs.sh";
+  generatingCommand_ = "cd /opt/xdaq/htdocs/emu/farmer/xml && ./generateConfigs.sh RUI-to-computer_mapping.xml";
   uploadingCommand_  = "RCMS_HOME=/nfshome0/cscpro/RunControl /nfshome0/cscpro/bin/duckLoader --usc55 ";
   jobControlClass_   = "jobcontrol::Application";
   executiveClass_    = "executive::Application";
@@ -276,9 +276,7 @@ emu::farmer::Application::generateConfigFilesWithScript()
   // Xalan doesn't seem to handle the function "document('')" properly for the XSL to process itself. 
   // Use the old script instead, which invokes the proven "xsltproc" stand-alone program.
   stringstream stdout;
-  string command = generatingCommand_.toString() + " " 
-    + outputDir_.toString() + "/RUI-to-computer_mapping.xml " 
-    + outputDir_.toString() + " 2>&1";
+  string command = generatingCommand_.toString() + " " + outputDir_.toString() + " 2>&1";
   vector<string> replyLines = emu::farmer::utils::execShellCommand( command );
   copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(stdout, "\n") );
   return stdout.str();
