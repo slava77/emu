@@ -254,7 +254,7 @@ table.crate_table td.name {
 }
 
 table.crate_table td.data {
-	width: 88%
+	width: 88%;
 	margin: 0px;
 	padding: 0px;
 }

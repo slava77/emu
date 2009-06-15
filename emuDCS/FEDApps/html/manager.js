@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: manager.js,v 1.2 2009/06/13 17:59:08 paste Exp $
+* $Id: manager.js,v 1.3 2009/06/15 17:25:44 paste Exp $
 \*****************************************************************************/
 
 var reloadElements = ["FED_System_Status", "FED_Communicator_Status"];
@@ -30,7 +30,40 @@ Event.observe(window, "load", function(event) {
 			doCommand(ev.element().readAttribute("command"));
 		});
 	});
+	
+	testForPage1();
 });
+/*
+var errors = 0;
+var trial = 0;
+
+function testForPage1() {
+	
+	if (errors >= 5) return;
+	trial++;
+	
+	var url = URL + "/ForEmuPage1";
+	new Ajax.Request(url, {
+		method: "get",
+		onSuccess: updateTestForPage1,
+		onFailure: reportErrorPage1
+	});
+}
+
+function reportErrorPage1(transport) {
+	errors++;
+	$("updateMe").update(new Element("div").update("Trial " + trial + ": Error " + errors + " " + transport.status + ": " + transport.statusText));
+	testForPage1();
+}
+
+function updateTestForPage1(transport) {
+	if (!transport.responseText || transport.responseText == "") reportErrorPage1(transport);
+	errors = 0;
+	$("updateMe").update(new Element("div").update("Trial " + trial + ": " + transport.status + ": " + transport.statusText));
+	testForPage1();
+}
+*/
+
 
 function updateStates(transport) {
 	var data = transport.responseJSON;

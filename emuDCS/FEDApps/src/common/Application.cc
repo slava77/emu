@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.6 2009/06/13 17:59:08 paste Exp $
+* $Id: Application.cc,v 1.7 2009/06/15 17:25:45 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -39,10 +39,17 @@ systemName_("unnamed")
 	log4cplus::SharedAppenderPtr myAppender = new log4cplus::FileAppender(filebuf);
 	myAppender->setName(getApplicationDescriptor()->getClassName() + "Appender");
 	
-	//Appender Layout
+	// Appender Layout
 	std::auto_ptr<Layout> myLayout = std::auto_ptr<Layout>(new log4cplus::PatternLayout("%D{%m/%d/%Y %j-%H:%M:%S.%q} %-5p %c, %m%n"));
 	myAppender->setLayout( myLayout );
 	getApplicationLogger().addAppender(myAppender);
+	
+}
+
+
+
+emu::fed::Application::~Application()
+{
 }
 
 
@@ -72,7 +79,7 @@ throw (emu::fed::exception::SOAPException)
 
 
 
-xoap::MessageReference emu::fed::Application::getParameters(const std::string &applicationName, const unsigned int instance)
+xoap::MessageReference emu::fed::Application::getParameters(const std::string &applicationName, const unsigned int &instance)
 throw (emu::fed::exception::SOAPException)
 {
 
@@ -101,7 +108,7 @@ throw (emu::fed::exception::SOAPException)
 
 
 
-void emu::fed::Application::setParameter(const std::string &klass, const std::string &name, const std::string &type, const std::string &value, const int instance)
+void emu::fed::Application::setParameter(const std::string &klass, const std::string &name, const std::string &type, const std::string &value, const int &instance)
 throw (emu::fed::exception::SOAPException)
 {
 
@@ -259,21 +266,20 @@ std::string emu::fed::Application::Footer()
 xoap::MessageReference emu::fed::Application::onGetParameters(xoap::MessageReference message)
 {
 	xdata::soap::Serializer serializer;
-
+	
 	xoap::MessageReference reply = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
 	xoap::SOAPBody body = envelope.getBody();
-
+	
 	xoap::SOAPName bodyElementName = envelope.createName("data", "xdaq", XDAQ_NS_URI);
-	xoap::SOAPBodyElement bodyElement = body.addBodyElement ( bodyElementName );
-
-	std::map<std::string, xdata::Serializable *>::iterator iParam;
+	xoap::SOAPBodyElement bodyElement = body.addBodyElement(bodyElementName);
+	std::map<const std::string, xdata::Serializable *>::const_iterator iParam;
 	try {
 		for (iParam = getApplicationInfoSpace()->begin(); iParam != getApplicationInfoSpace()->end(); iParam++) {
-			std::string name = (*iParam).first;
+			const std::string name = iParam->first;
 			xoap::SOAPName elementName = envelope.createName(name, "xdaq", XDAQ_NS_URI);
 			xoap::SOAPElement element = bodyElement.addChildElement(elementName);
-			serializer.exportAll((*iParam).second, dynamic_cast<DOMElement *>(element.getDOMNode()), true);
+			serializer.exportAll(iParam->second, dynamic_cast<DOMElement *>(element.getDOMNode()), true);
 		}
 	} catch (xcept::Exception &e) {
 		std::ostringstream error;
@@ -282,7 +288,6 @@ xoap::MessageReference emu::fed::Application::onGetParameters(xoap::MessageRefer
 		XCEPT_DECLARE_NESTED(emu::fed::exception::SOAPException, e2, error.str(), e);
 		notifyQualified("ERROR", e2);
 	}
-
 	return reply;
 }
 
@@ -326,39 +331,6 @@ std::string emu::fed::Application::dumpEnvironment(xgi::Input *in)
 	return dump.str();
 }
 
-
-/*
-xoap::MessageReference emu::fed::Application::createSOAPReply(xoap::MessageReference message)
-{
-	std::string command = "";
-	DOMNodeList *elements = message->getSOAPPart().getEnvelope().getBody().getDOMNode()->getChildNodes();
-
-	for (unsigned int i = 0; i < elements->getLength(); i++) {
-		DOMNode *e = elements->item(i);
-		if (e->getNodeType() == DOMNode::ELEMENT_NODE) {
-			command = xoap::XMLCh2String(e->getLocalName());
-			break;
-		}
-	}
-
-	if (command == "") {
-		std::ostringstream error;
-		std::string temp;
-		message->writeTo(temp);
-		error <<  "Cannot create reply for SOAP message: " << temp;
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_DECLARE(emu::fed::exception::FSMException, e, error.str());
-		notifyQualified("ERROR", e);
-	}
-
-	xoap::MessageReference reply = xoap::createMessage();
-	xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
-	xoap::SOAPName responseName = envelope.createName(command + "Response", "xdaq", XDAQ_NS_URI);
-	envelope.getBody().addBodyElement(responseName);
-
-	return reply;
-}
-*/
 
 
 void emu::fed::Application::webRedirect(xgi::Input *in, xgi::Output *out, const std::string &location)
