@@ -332,7 +332,7 @@
     <xc:Context url="http://csc-dqm.cms:20570">
       <xc:Application class="EmuTFDisplayClient" id="1450" instance="0" network="local">
 	<properties xmlns="urn:xdaq-application:EmuTFDisplayClient" xsi:type="soapenc:Struct">
-	  <monitorClass xsi:type="xsd:string">EmuMonitor</monitorClass>
+	  <monitorClass xsi:type="xsd:string">EmuTFMonitor</monitorClass>
 	  <imageFormat xsi:type="xsd:string">png</imageFormat>
 	  <baseDir xsi:type="xsd:string">/nfshome0/cscdqm/config/tfdqm</baseDir>
 	  <viewOnly xsi:type="xsd:boolean">false</viewOnly>
@@ -364,9 +364,9 @@
   <xsl:template name="EmuTFMonitor">
     <xsl:comment >EmuTFMonitor</xsl:comment>
     <xc:Context url="http://csc-daq10:20500">
-      <xc:Endpoint hostname="csc-daq10" protocol="atcp" port="20570" service="i2o" network="atcp1"/>
+      <xc:Endpoint hostname="csc-daq10" protocol="atcp" port="20600" service="i2o" network="atcp1"/>
       <xc:Module><xsl:value-of select="$LIBDIR"/>/libxdaq2rc.so</xc:Module>
-      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="21">
+      <xc:Application instance="0" network="atcp1" class="pt::atcp::PeerTransportATCP" id="31">
 	<properties xmlns="urn:xdaq-application:pt::atcp::PeerTransportATCP" xsi:type="soapenc:Struct">
 	<autoSize xsi:type="xsd:boolean">true</autoSize>
 	<maxPacketSize xsi:type="xsd:unsignedInt">131072</maxPacketSize>
