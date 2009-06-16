@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.5 2009/06/15 17:25:45 paste Exp $
+* $Id: Application.h,v 1.6 2009/06/16 06:36:55 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -149,6 +149,7 @@ namespace emu {
 						}
 					}
 				}
+				doc->release();
 				if (!found) {
 					std::ostringstream error;
 					error << "Unable to find parameter " << parameterName;
