@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: FiberDBAgent.cc,v 1.5 2009/06/13 17:59:45 paste Exp $
+* $Id: FiberDBAgent.cc,v 1.6 2009/06/17 15:58:24 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/FiberDBAgent.h"
@@ -8,7 +8,6 @@
 #include "xdata/String.h"
 #include "xdata/TableIterator.h"
 #include <sstream>
-#include <boost/regex.hpp>
 
 emu::fed::FiberDBAgent::FiberDBAgent(xdaq::WebApplication *application)
 throw (emu::fed::exception::DBException):
