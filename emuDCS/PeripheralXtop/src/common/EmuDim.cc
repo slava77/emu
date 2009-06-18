@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.20 2009/05/20 11:00:05 liu Exp $
+// $Id: EmuDim.cc,v 1.21 2009/06/18 13:41:49 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -159,19 +159,41 @@ void EmuDim::ButtonStop(xgi::Input * in, xgi::Output * out ) throw (xgi::excepti
 void EmuDim::SwitchBoard(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
     cgicc::CgiEnvironment cgiEnvi(in);
-    std::string Page, Cmnd, Param;
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     Page=cgiEnvi.getQueryString();
-    int equ=Page.find("=", 0);
-    if(equ>=0 && equ < (int) Page.length())
-    {   Cmnd=Page.substr(0,equ);
-        Param=Page.substr(equ+1);
+    std::string command_name=Page.substr(0,Page.find("=", 0) );
+    std::string command_argu=Page.substr(Page.find("=", 0)+1);
+
+    if (command_name=="STATUS")
+    {
+       if(Monitor_On_) *out << "ON ";
+       else *out << "OFF ";
+
+       if(Suspended_) *out << "SUSPENDED" << std::endl;
+       else *out << "READING" << std::endl;
+
+    }
+    else if (command_name=="READING")
+    {
+       if(command_argu=="ON" || command_argu=="on")
+       {   
+           XmasLoader->reload(xmas_start);
+           Suspended_ = false;
+           start_powerup=false;
+           std::cout << getLocalDateTime() << " SwitchBoard: Resume Reading" << std::endl;
+       }
+       else if (command_argu=="OFF" || command_argu=="off")
+       { 
+           XmasLoader->reload(xmas_stop);
+           Suspended_ = true;
+           start_powerup=false;
+           std::cout << getLocalDateTime() << " SwitchBoard: Stop Reading" << std::endl;
+       }
     }
     else
     {
-        Cmnd=Page;
-        Param="";
+       std::cout << getLocalDateTime() << " Unknown command: " << command_name << " " << command_argu << std::endl;
     }
-   // std::cout << "Command " << Cmnd << " with " << Param.length() << std::endl;
 }
 
 void EmuDim::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -512,6 +534,11 @@ int EmuDim::PowerUp()
               std::string confirm = "INIT_IS_DONE;" + crate_name[i];              
               strcpy(pvssrespond.command, confirm.c_str());
               Confirmation_Service->updateService();
+              std::cout << getLocalDateTime() << " Return: " << confirm << std::endl;
+           }
+           else
+           {
+              std::cout << getLocalDateTime() << " Init failed: " << crate_name[i] << std::endl;
            }
          }
       }
