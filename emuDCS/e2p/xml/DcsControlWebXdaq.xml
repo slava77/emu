@@ -1,7 +1,0 @@
-<?xml version='1.0'?>
-<xc:Partition xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
-        <xc:Context id = "0" url="http://emuslice03:1972">              
-                <xc:Application class="DcsControlWebXdaq" id="30" instance="0" network="local"/>           
-                <xc:Module>/home/dcs/v3.2/TriDAS/emu/emuDCS/e2p/lib/linux/x86/libdcscontrol.so</xc:Module>
-        </xc:Context>
-</xc:Partition>
