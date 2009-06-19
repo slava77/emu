@@ -1,7 +1,0 @@
-#!/bin/sh
-echo "Loading the DDU Gbit/BigPhys drivers"
-echo -n "Please give the root "
-/bin/su -c "cd $XDAQ_ROOT/emu/emuDAQ/drivers/bigphysarea_xxxx/bin; ./eth_reset_mm2"
-echo "BigPhys Driver is loaded."
-/usr/bin/wall "DDU Gbit/BigPhys driver (re-)loaded"
-
