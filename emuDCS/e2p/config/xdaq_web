@@ -1,5 +1,0 @@
-#!/bin/bash
-
-
-#/home/dcs/v3.2/TriDAS/daq/xdaq/bin/linux/x86/xdaq.sh -c /home/dcs/v3.2/TriDAS/emu/emuDCS/e2p/xml/DcsControlWebXdaq.xml
-$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -c $XDAQ_ROOT/emu/emuDCS/e2p/xml/DcsControlWebXdaq.xml
