@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" user="ichiro" path="CSC/level1">
-		<FunctionManager name="level1" hostname="localhost" port="8080" qualifiedResourceType="rcms.fm.resource.qualifiedresource.FunctionManager" sourceURL="http://localhost:8080/functionmanagers/cscFM.jar" className="rcms.fm.app.csc.Level1FunctionManager">
-		</FunctionManager>
-</Configuration>
