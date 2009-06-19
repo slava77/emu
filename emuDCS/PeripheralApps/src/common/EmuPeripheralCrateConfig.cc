@@ -1333,6 +1333,10 @@ void EmuPeripheralCrateConfig::CalibrationRuns(xgi::Input * in, xgi::Output * ou
 void EmuPeripheralCrateConfig::CrateConfiguration(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
+  if(!parsed)
+  {  this->Default(in,out);
+     return;
+  }
   std::cout << "CrateConfiguration: " << ThisCrateID_ << std::endl;
   MyHeader(in,out,"CrateConfiguration");
   //
