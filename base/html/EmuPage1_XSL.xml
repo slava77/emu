@@ -5,7 +5,7 @@
 
   <xsl:template name="pageParameters">
     <application name="emu::daq::manager::Application"     pageRefreshPeriodInMSec= "9000" graph="show"/>
-    <application name="xmas::las::Application"             pageRefreshPeriodInMSec="10000" graph="none"/>
+    <application name="xmas::las::Application"             pageRefreshPeriodInMSec="20000" graph="none"/>
     <application name="emu::fed::Manager"                  pageRefreshPeriodInMSec="10000" graph="show"/>
     <application name="emu::pc::EmuPeripheralCrateMonitor" pageRefreshPeriodInMSec="13000" graph="none"/>
     <application name="emu::pc::EmuPeripheralCrateManager" pageRefreshPeriodInMSec="15000" graph="none"/>
@@ -25,7 +25,11 @@
       </head>
       <xsl:variable name="APPLICATION"><xsl:value-of select="@application"/></xsl:variable>
       <xsl:variable name="REFRESH_PERIOD"><xsl:value-of select="document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@pageRefreshPeriodInMSec"/></xsl:variable>
-      <xsl:variable name="DATA_URL"><xsl:if test="@application != 'xmas::las::Application'">document.URL</xsl:if><xsl:if test="child::monitorable[@name='title' and @value='Local DAQ disks']">"http://csc-daq00.cms:9941/urn:xdaq-application:lid=100/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:diskInfo"</xsl:if></xsl:variable>
+      <xsl:variable name="DATA_URL">
+	<xsl:if test="@application != 'xmas::las::Application'">document.URL</xsl:if>
+	<xsl:if test="child::monitorable[@name='title' and @value='Local DAQ disks']">"http://csc-daq00.cms:9941/urn:xdaq-application:lid=100/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:diskInfo"</xsl:if>
+	<xsl:if test="child::monitorable[@name='title' and @value='CSC Track Finder']">"http://csc-tf.cms:5005/urn:xdaq-application:service=las/retrieveCollection?fmt=json&amp;flash=urn:xdaq-flashlist:emupageone"</xsl:if>
+      </xsl:variable>
     <xsl:variable name="TITLEID">a_value_<xsl:value-of select="count(//monitorable[@name='title']/preceding::monitorable)"/></xsl:variable>
 
       <body onload="onLoad({$REFRESH_PERIOD}, {$DATA_URL})">
@@ -34,10 +38,10 @@
 
 	<table class="fresh" rules="all" id="fadingTable">
 
-	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateMonitor' or @application = 'emu::pc::EmuPeripheralCrateManager' or @application = 'emu::pc::EmuPeripheralCrateService' or @application = 'EmuDisplayClient'">
-	    <tr><th colspan="2">
+	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateManager' or @application = 'emu::pc::EmuPeripheralCrateService' or @application = 'EmuDisplayClient'">
+	    <tr><th colspan="2" class="title">
 	      <xsl:if test="monitorable[@name='title']">
-		<a id="{$TITLEID}" class="with_popup" target="_blank">
+		<a id="{$TITLEID}" target="_blank">
 		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
 		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
 		  <xsl:value-of select="monitorable[@name='title']/@value"/>
@@ -51,31 +55,10 @@
 	    <xsl:apply-templates mode="PC" select="monitorable"/>
 	  </xsl:if>
 
-	  <xsl:if test="@application = 'emu::fed::Manager'">
-	    <tr><th colspan="7">
+	  <xsl:if test="@application = 'emu::pc::EmuPeripheralCrateMonitor'">
+	    <tr><th colspan="5" class="title">
 	      <xsl:if test="monitorable[@name='title']">
-		<a id="{$TITLEID}" class="with_popup" target="_blank">
-		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
-		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
-		  <xsl:value-of select="monitorable[@name='title']/@value"/>
-		</a>
-	      </xsl:if>
-	      <xsl:if test="not(monitorable[@name='title'])">
-		<xsl:value-of select="@application"/>
-	      </xsl:if>
-	    </th></tr>
-	    <tr><td colspan="7" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
-	    <xsl:apply-templates mode="FED" select="monitorable[@name='State']"/>
-	    <tr>
-	      <th>Errors</th>
-	      <xsl:apply-templates mode="FED" select="monitorable[substring-after(@name,' ')='Errors']"/>
-	    </tr>
-	  </xsl:if>
-
-	  <xsl:if test="@application = 'emu::daq::manager::Application'">
-	    <tr><th colspan="5">
-	      <xsl:if test="monitorable[@name='title']">
-		<a id="{$TITLEID}" class="with_popup" target="_blank">
+		<a id="{$TITLEID}" target="_blank">
 		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
 		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
 		  <xsl:value-of select="monitorable[@name='title']/@value"/>
@@ -86,17 +69,15 @@
 	      </xsl:if>
 	    </th></tr>
 	    <tr><td colspan="5" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
-	    <xsl:apply-templates mode="DAQ" select="monitorable[not(substring-after(@name,' ')='events') and not(@name='title')]"/>
 	    <tr>
-	      <th>events</th>
-	      <xsl:apply-templates mode="DAQ" select="monitorable[substring-after(@name,' ')='events']"/>
+	      <xsl:apply-templates mode="PCMon" select="monitorable"/>
 	    </tr>
 	  </xsl:if>
 
-	  <xsl:if test="@application = 'xmas::las::Application'">
-	    <tr><th colspan="2">
+	  <xsl:if test="@application = 'emu::fed::Manager'">
+	    <tr><th colspan="7" class="title">
 	      <xsl:if test="monitorable[@name='title']">
-		<a id="a_value_title" class="with_popup" target="_blank">
+		<a id="{$TITLEID}" target="_blank">
 		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
 		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
 		  <xsl:value-of select="monitorable[@name='title']/@value"/>
@@ -107,36 +88,101 @@
 	      </xsl:if>
 	    </th></tr>
 	    <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
-	    <xsl:for-each select="monitorable[@name!='title']">
+	    <xsl:apply-templates mode="FED" select="monitorable[@name='State']"/>
+	    <tr>
+	      <th>Errors</th>
+	      <td class="layout">
+		<table class="layout"><tr class="layout">
+		  <xsl:apply-templates mode="FED" select="monitorable[substring-after(@name,' ')='Errors']"/>
+		</tr></table>
+	      </td>
+	    </tr>
+	    <tr>
+	      <th>DCC</th>
+	      <td class="layout">
+		<table class="layout"><tr class="layout">
+		  <xsl:apply-templates mode="FED" select="monitorable[substring-after(@name,' ')='Total Output Rate' or substring-after(@name,' ')='Total Input Rate']"/>
+		</tr></table>
+	      </td>
+	    </tr>
+	  </xsl:if>
+
+	  <xsl:if test="@application = 'emu::daq::manager::Application'">
+	    <tr><th colspan="5" class="title">
+	      <xsl:if test="monitorable[@name='title']">
+		<a id="{$TITLEID}" target="_blank">
+		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
+		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
+		  <xsl:value-of select="monitorable[@name='title']/@value"/>
+		</a>
+	      </xsl:if>
+	      <xsl:if test="not(monitorable[@name='title'])">
+		<xsl:value-of select="@application"/>
+	      </xsl:if>
+	    </th></tr>
+	    <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	    <xsl:apply-templates mode="DAQ" select="monitorable[not(substring-after(@name,' ')='events') and not(@name='title')]"/>
+	    <tr>
+	      <th>events</th>
+	      <td class="layout">
+		<table class="layout"><tr class="layout">
+		  <xsl:apply-templates mode="DAQ" select="monitorable[substring-after(@name,' ')='events']"/>
+		</tr></table>
+	      </td>
+	    </tr>
+	  </xsl:if>
+
+	  <xsl:if test="@application = 'xmas::las::Application'">
+	    <tr><th colspan="2" class="title">
+	      <xsl:if test="monitorable[@name='title']">
+		<a id="a_value_title" target="_blank">
+		  <xsl:attribute name="href"><xsl:value-of select="monitorable[@name='title']/@valueURL"/></xsl:attribute>
+		  <xsl:attribute name="title"><xsl:value-of select="monitorable[@name='title']/@valueDescription"/></xsl:attribute>
+		  <xsl:value-of select="monitorable[@name='title']/@value"/>
+		</a>
+	      </xsl:if>
+	      <xsl:if test="not(monitorable[@name='title'])">
+		<xsl:value-of select="@application"/>
+	      </xsl:if>
+	    </th></tr>
+	    <xsl:if test="child::monitorable[@name='title' and @value='Local DAQ disks']">
+	      <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
+	      <xsl:for-each select="monitorable[@name!='title']">
+		<tr>
+		  <th id="th_name_0">
+		    <a target="_blank" id="a_name_0" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
+		  </th>
+		  <td id="td_value_0">
+		    <a target="_blank" id="a_value_0" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
+		  </td>
+		</tr>
+	      </xsl:for-each>
+	    </xsl:if>
+	    <xsl:if test="child::monitorable[@name='title' and @value='CSC Track Finder']">
+	      <tr><td colspan="2" class="time"><span style="float:left;" id="td_ageOfPage"/><span style="float:right;">Values at <span id="td_localDateTime"><xsl:value-of select="@localDateTime"/></span></span></td></tr>
 	      <tr>
-		<th>
-		  <xsl:attribute name="id">th_name_0</xsl:attribute>
-		  <a class="with_popup" target="_blank">
-		    <xsl:attribute name="id">a_name_0</xsl:attribute>
-		    <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
-		    <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
-		    <xsl:value-of select="@name"/>
-		  </a>
-		</th>
-		<td>
-		  <xsl:attribute name="id">td_value_0</xsl:attribute>
-		  <a class="with_popup" target="_blank">
-		    <xsl:attribute name="id">a_value_0</xsl:attribute>
-		    <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
-		    <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
-		    <xsl:value-of select="@value"/>
-		    <div id="div_value_0" class="popup">blabla</div>
-		  </a>
+		<th id="th_name_state"><a target="_blank" id="a_name_state" href="{monitorable[@name='state']/@nameURL}" title="{monitorable[@name='state']/@nameDescription}">state</a></th>
+		<td id="td_value_state"><a target="_blank" id="a_value_state" href="{monitorable[@name='state']/@valueURL}" title="{monitorable[@name='state']/@valueDescription}"><xsl:value-of select="monitorable[@name='state']/@value"/></a></td>
+	      </tr>
+	      <tr>
+		<th>rates</th>
+		<td class="layout">
+		  <table class="layout"><tr class="layout">
+		    <th id="th_name_min"><a target="_blank" id="a_name_min" href="{monitorable[@name='min']/@nameURL}" title="{monitorable[@name='min']/@nameDescription}">min</a></th>
+		    <td id="td_value_min"><a target="_blank" id="a_value_min" href="{monitorable[@name='min']/@valueURL}" title="{monitorable[@name='min']/@valueDescription}"><xsl:value-of select="monitorable[@name='min']/@value"/></a></td>
+		    <th id="th_name_total"><a target="_blank" id="a_name_total" href="{monitorable[@name='total']/@nameURL}" title="{monitorable[@name='total']/@nameDescription}">total</a></th>
+		    <td id="td_value_total"><a target="_blank" id="a_value_total" href="{monitorable[@name='total']/@valueURL}" title="{monitorable[@name='total']/@valueDescription}"><xsl:value-of select="monitorable[@name='total']/@value"/></a></td>
+		  </tr></table>
 		</td>
 	      </tr>
-	    </xsl:for-each>
+	    </xsl:if>
 	  </xsl:if>
 
 	</table>
 
 	</td></tr>
 
-	<xsl:if test="document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@graph = 'show'">
+	<xsl:if test="child::monitorable[@name='title' and @value='CSC Track Finder'] or document('EmuPage1_XSL.xml')/xsl:transform/xsl:template[@name='pageParameters']/application[attribute::name=$APPLICATION]/@graph = 'show'">
 	  <tr><td style="padding: 0px 0px 0px 0px;">
 	    
 	    <xsl:call-template name="graph"/>
@@ -152,77 +198,61 @@
   <xsl:template mode="PC" match="monitorable[not(@name = 'title')]">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <xsl:variable name="STATE"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
-    <xsl:variable name="CLASSES"><xsl:value-of select="$STATE"/></xsl:variable>
+    <xsl:variable name="CLASSES"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
     <tr>
-      <th>
-	<xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<a class="with_popup" target="_blank">
-	  <xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	  <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
-	  <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
-	  <xsl:value-of select="@name"/>
-	</a>
+      <th id="th_name_{$INDEX}">
+	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
       </th>
-      <td class="{$CLASSES}">
-	<xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<a class="with_popup" target="_blank">
-	  <xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	  <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
-	  <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
-	  <xsl:value-of select="@value"/>
-	</a>
+      <td class="{$CLASSES}" id="td_value_{$INDEX}">
+	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
       </td>
     </tr>
+  </xsl:template>
+
+  <xsl:template mode="PCMon" match="monitorable[not(@name = 'title')]">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <xsl:variable name="CLASSES"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
+    <th id="th_name_{$INDEX}">
+      <a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
+    </th>
+    <td class="{$CLASSES}" id="td_value_{$INDEX}">
+      <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
+    </td>
   </xsl:template>
 
   <xsl:template mode="FED" match="monitorable[@name = 'State']">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
     <tr>
-      <th>
-	<xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<a class="with_popup" target="_blank">
-	  <xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	  <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
-	  <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
-	  <xsl:value-of select="@name"/>
-	</a>
+      <th id="th_name_{$INDEX}">
+	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
       </th>
-      <td colspan="6">
-	<xsl:attribute name="class"><xsl:value-of select="@value"/></xsl:attribute>
-	<xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<a class="with_popup" target="_blank">
-	  <xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	  <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
-	  <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
-	  <xsl:value-of select="@value"/>
-	</a>
+      <td colspan="6" class="{@value}" id="td_value_{$INDEX}">
+	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
       </td>
     </tr>
   </xsl:template>
 
-  <xsl:template mode="FED" match="monitorable[not(@name='title') and not(@name='State')]">
+  <xsl:template mode="FED" match="monitorable[substring-after(@name,' ')='Total Output Rate' or substring-after(@name,' ')='Total Input Rate']">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <th>
-      <xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-      <a class="with_popup" target="_blank">
-	<xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
-	<xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
-	<xsl:value-of select="@name"/>
-      </a>
+    <th id="th_name_{$INDEX}">
+      <a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="substring-before(substring-after(@name,'Total '),'put Rate')"/></a>
     </th>
-    <td>
-      <xsl:attribute name="class"><xsl:value-of select="@value"/></xsl:attribute>
-      <xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-      <a class="with_popup" target="_blank">
-	<xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
-	<xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
-	<xsl:value-of select="@value"/>
-      </a>
+    <td class="{@value}" id="td_value_{$INDEX}">
+      <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
+    </td>
+  </xsl:template>
+
+  <xsl:template mode="FED" match="monitorable[substring-after(@name,' ')='Errors']">
+    <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
+    <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
+    <th id="th_name_{$INDEX}">
+      <a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
+    </th>
+    <td class="{@value}" id="td_value_{$INDEX}">
+      <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
     </td>
   </xsl:template>
 
@@ -230,26 +260,13 @@
   <xsl:template mode="DAQ" match="monitorable[not(@name = 'title')]">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <xsl:variable name="STATE"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
-    <xsl:variable name="CLASSES"><xsl:value-of select="$STATE"/></xsl:variable>
+    <xsl:variable name="CLASSES"><xsl:if test="@name = 'state'"><xsl:value-of select="@value"/></xsl:if></xsl:variable>
     <tr>
-      <th>
-	<xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<a class="with_popup" target="_blank">
-	  <xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	  <xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
-	  <xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
-	  <xsl:value-of select="@name"/>
-	</a>
+      <th id="th_name_{$INDEX}">
+	<a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
       </th>
-      <td  colspan="4" class="{$CLASSES}">
-	<xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<a class="with_popup" target="_blank">
-	  <xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	  <xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
-	  <xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
-	  <xsl:value-of select="@value"/>
-	</a>
+      <td colspan="4" class="{$CLASSES}" id="td_value_{$INDEX}">
+	<a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
       </td>
     </tr>
   </xsl:template>
@@ -257,24 +274,11 @@
   <xsl:template mode="DAQ" match="monitorable[substring-after(@name,' ')='events']">
     <xsl:variable name="NAME"><xsl:value-of select="@name"/></xsl:variable>
     <xsl:variable name="INDEX"><xsl:value-of select="count(//monitorable[@name=$NAME]/preceding::monitorable)"/></xsl:variable>
-    <th>
-      <xsl:attribute name="id">th_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-      <a class="with_popup" target="_blank">
-	<xsl:attribute name="id">a_name_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<xsl:attribute name="href"><xsl:value-of select="@nameURL"/></xsl:attribute>
-	<xsl:attribute name="title"><xsl:value-of select="@nameDescription"/></xsl:attribute>
-	<xsl:value-of select="@name"/>
-      </a>
+    <th id="th_name_{$INDEX}">
+      <a target="_blank" id="a_name_{$INDEX}" href="{@nameURL}" title="{@nameDescription}"><xsl:value-of select="@name"/></a>
     </th>
-    <td>
-      <xsl:attribute name="class"><xsl:value-of select="@value"/></xsl:attribute>
-      <xsl:attribute name="id">td_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-      <a class="with_popup" target="_blank">
-	<xsl:attribute name="id">a_value_<xsl:value-of select="$INDEX"/></xsl:attribute>
-	<xsl:attribute name="href"><xsl:value-of select="@valueURL"/></xsl:attribute>
-	<xsl:attribute name="title"><xsl:value-of select="@valueDescription"/></xsl:attribute>
-	<xsl:value-of select="@value"/>
-      </a>
+    <td class="{@value}" id="td_value_{$INDEX}">
+      <a target="_blank" id="a_value_{$INDEX}" href="{@valueURL}" title="{@valueDescription}"><xsl:value-of select="@value"/></a>
     </td>
   </xsl:template>
 

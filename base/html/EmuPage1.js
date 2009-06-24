@@ -35,7 +35,7 @@ var DataURL   = null; // = document.URL;
 
 function onLoad( refreshPeriod, dataURL ) {
 
-  //alert('onLoad');
+  //alert('onLoad:' + dataURL );
   pageRefreshPeriod = refreshPeriod;
   DataURL = dataURL;
 
@@ -176,10 +176,12 @@ function onMouseOverGraph(e){
 function onMouseUp(e){
     if ( document.body ) document.body.style.cursor = 'default';
     dragging = false;
-    var msg = 'mouseup: ';
-    graph_element.transform.baseVal.consolidate();
-    graph_element.transform.animVal.consolidate();
-    msg += ' readout: ' + graph_element.getAttribute("transform") + ' or ' + printTransforms( graph_element.transform.baseVal ) +'   ' + printTransforms( graph_element.transform.animVal );
+    //var msg = 'mouseup: ';
+    if ( graph_element ){
+	 graph_element.transform.baseVal.consolidate();
+	 graph_element.transform.animVal.consolidate();
+    }
+    //msg += ' readout: ' + graph_element.getAttribute("transform") + ' or ' + printTransforms( graph_element.transform.baseVal ) +'   ' + printTransforms( graph_element.transform.animVal );
     if (span2_element) span2_element.innerHTML = xAxis.print() + '   ' + yAxis.print(); 
 }
 
@@ -202,7 +204,7 @@ function printSvgMatrix( matrix ){
 	    ')';
 }
 
- 
+
 function mouseMove(ev){
     if ( cursorOverGraph ) coords_element.firstChild.nodeValue = '('+xAxis.pixelToValue(ev.pageX,true)+', '+yAxis.pixelToValue(ev.pageY,true)+')';
     if ( dragging ){
@@ -539,14 +541,26 @@ function appendPoint( p ){
 }
 
 function toUnixTime( dateTime ){
-    // YYYY-MM-DD hh:mm:ss
     var d = new Date();
-    d.setFullYear( Number( dateTime.substr( 0,4) )     );
-    d.setMonth   ( Number( dateTime.substr( 5,2) ) - 1 );
-    d.setDate    ( Number( dateTime.substr( 8,2) )     );
-    d.setHours   ( Number( dateTime.substr(11,2) )     );
-    d.setMinutes ( Number( dateTime.substr(14,2) )     );
-    d.setSeconds ( Number( dateTime.substr(17,2) )     );
+    if ( dateTime.length == 19 ){
+	 // YYYY-MM-DD hh:mm:ss
+	 d.setFullYear( Number( dateTime.substr( 0,4) )     );
+	 d.setMonth   ( Number( dateTime.substr( 5,2) ) - 1 );
+	 d.setDate    ( Number( dateTime.substr( 8,2) )     );
+	 d.setHours   ( Number( dateTime.substr(11,2) )     );
+	 d.setMinutes ( Number( dateTime.substr(14,2) )     );
+	 d.setSeconds ( Number( dateTime.substr(17,2) )     );
+    }
+    else {
+	 var months = { 'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7, 'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12 }
+	 // Wed, Jun 10 2009 21:47:35 GMT
+	 d.setUTCFullYear( Number( dateTime.substr(12,4) )     );
+	 d.setUTCMonth   ( months[ dateTime.substr( 5,3) ] - 1 );
+	 d.setUTCDate    ( Number( dateTime.substr( 9,2) )     );
+	 d.setUTCHours   ( Number( dateTime.substr(17,2) )     );
+	 d.setUTCMinutes ( Number( dateTime.substr(20,2) )     );
+	 d.setUTCSeconds ( Number( dateTime.substr(23,2) )     );
+    }
     return d.getTime();
 }
 
@@ -682,6 +696,10 @@ function valuesFromXmlToGraph(){
 	  graphPoint.name   = 'all errors'
 	  graphPoint.value += Number(monitorables[i].value);
 	}
+	else if ( monitorables[i].name.indexOf(' Input Rate') > 0 ){
+	  graphPoint.name  = 'DCC input [kB/s]';
+	  graphPoint.value = Number(monitorables[i].value)*0.001;
+	}
 	// Table:
 	// name
 	var th_name = document.getElementById( 'th_name_'+i );
@@ -690,7 +708,7 @@ function valuesFromXmlToGraph(){
 	if ( a_name ){
 	  a_name.href = monitorables[i].nameURL;
 	  a_name.title = monitorables[i].nameDescr;
-	  a_name.innerHTML = monitorables[i].name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) Errors$/,'$1').replace(/^([^ ]*) events$/,'$1').replace(/ /g,'&#160;');
+	  if ( monitorables[i].name.indexOf(' Rate') < 0 ) a_name.innerHTML = monitorables[i].name.replace(/ME-/g,'ME&#8211;').replace(/^([^ ]*) Errors$/,'$1').replace(/^([^ ]*) events$/,'$1').replace(/ /g,'&#160;');
 	}
 	// value
 	var td_value = document.getElementById( 'td_value_'+i );
@@ -703,8 +721,9 @@ function valuesFromXmlToGraph(){
 	if ( a_value ){
 	  a_value.href = monitorables[i].valueURL;
 	  a_value.title = monitorables[i].valueDescr;
-	  if ( monitorables[i].name == 'Heartbeat' ) a_value.innerHTML = monitorables[i].rate().toFixed(4) + ' Hz';
-	  else                                        a_value.innerHTML = monitorables[i].value;
+	  if ( monitorables[i].name == 'Heartbeat' ) a_value.innerHTML = monitorables[i].rate().toFixed(4) + '&#160;Hz';
+	  else if ( monitorables[i].name.indexOf(' Rate') > 0 ) a_value.innerHTML = (Number(monitorables[i].value)*0.001).toFixed(3) + '&#160;kB/s';
+	  else a_value.innerHTML = monitorables[i].value;
 	}
     }
     // Append point to graph
@@ -717,31 +736,11 @@ function valuesFromXmlToGraph(){
 //=================
 
 function autoReloadJsonDoc(){
-  valuesFromJsonToGraph();
+  //alert('autoReloadJsonDoc()');
+  if ( DataURL.search('diskInfo') > 0 ) diskUsageFromJson();
+  else                                  TrackFinderFromJson();
   setTimeout('autoReloadJsonDoc()', pageRefreshPeriod);
 }
-
-// function byContext( a, b ){
-//   return a.context > b.context;
-// }
-
-// function valuesFromJsonToGraph(){
-
-//   $(document).ready(function() {
-//     $.getJSON( DataURL, function(json) {
-//       $.each( json.table.rows.sort(byContext), function(i,contextRow){
-// 	if ( contextRow.context.lastIndexOf(':9999') > 0 ){
-// 	  $.each( contextRow.diskUsage.rows, function(j,fsRow){ 
-// 	    if ( fsRow.fileSystem == '/data' ){
-// 	      $('table').append('<tr><th>' + contextRow.context.match('^http://([^:]+):[0-9]+')[1] + '</th><td>' + fsRow.fileSystem + '</td><td>' + fsRow.usePercent + '</td></tr>');
-// 	    }
-// 	  });
-// 	}
-//       });
-//     });
-//   });
-  
-// }
 
 function Disk( host, mount, time, state, usage, free ){
   this.host  = host ;
@@ -760,13 +759,14 @@ function byHost( a, b ){
   return a.host > b.host;
 }
 
-function valuesFromJsonToGraph(){
-  //alert( 'valuesFromJsonToGraph' );
+function diskUsageFromJson(){
+  //alert( 'diskUsageFromJson' );
 
 
   // Get data disk info
   $.getJSON( DataURL, function(json) {
-    $('#td_localDateTime').text( json.table.properties.LastUpdate );
+    var time = toUnixTime( json.table.properties.LastUpdate );
+    $('#td_localDateTime').text( timeToString( time ) );
     var disks  = new Array();
     $.each( json.table.rows, function(i,contextRow){
       if ( contextRow.context.lastIndexOf(':9999') > 0 ){
@@ -786,6 +786,77 @@ function valuesFromJsonToGraph(){
     else if ( d.usage > 95 ) klass = 'OFF';
     $('#td_value_0').attr('class',klass);
     $('#a_value_0').attr('title',d.host+':'+d.mount+' has '+d.free.toFixed(0)+' MB free left at '+d.time+'.').text(d.usage.toFixed(0)+' %');
+
+    clearTimeout(Clock);
+    ageOfPageClock(0);
+  });
+
+}
+
+function zeroPadTo2( number ){
+     return ( number < 10 ? '0' : '' )+number.toString();
+}
+
+function timeToString( time ){
+     var d = new Date();
+     d.setTime( time );
+     return    zeroPadTo2( d.getFullYear() )
+	  +'-'+zeroPadTo2( d.getMonth()+1  )
+	  +'-'+zeroPadTo2( d.getDate()     )
+	  +' '+zeroPadTo2( d.getHours()    )
+	  +':'+zeroPadTo2( d.getMinutes()  )
+	  +':'+zeroPadTo2( d.getSeconds()  );
+}
+
+function TrackFinderFromJson(){
+     //alert( 'TrackFinderFromJson' );
+
+
+  // Get info on Track Finder
+  $.getJSON( DataURL, function(json) {
+    var time = toUnixTime( json.table.properties.LastUpdate );
+    $('#td_localDateTime').text( timeToString( time ) );
+    var msg = '';
+    $.each( json.table.rows, function(i,row){
+      if ( i == 0 ){
+	msg += 'FSM_STATE.rows.length='+row.FSM_STATE.rows.length+'   EMUPAGEONE_RATES.rows.length='+row.EMUPAGEONE_RATES.rows.length;
+	if ( row.FSM_STATE.rows.length == 0 ){
+	  $('#td_value_state').attr( 'class', 'UNKNOWN' );
+	  $('#a_value_state').text( 'UNKNOWN' );
+	  $('#a_value_state').attr( 'title', 'No configuration found.' );
+	}
+	$.each( row.FSM_STATE.rows, function(j,configRow){ 
+	  if ( j == 0 ){
+	    $('#td_value_state').attr( 'class', configRow['state'] );
+	    $('#a_value_state').text( configRow['state'] );
+	    $('#a_value_state').attr( 'title', configRow['id']+' is in '+configRow['state']+' state.' );
+	  }
+	  else {
+	    $('#td_value_state').attr( 'class', 'INDEFINITE' );
+	    $('#a_value_state').text( 'INDEFINITE' );
+	    $('#a_value_state').attr( 'title', 'More than one configuration found. Please delete the unused one(s). Click for control page.' );
+	  }
+	});
+	$.each( row.EMUPAGEONE_RATES.rows, function(j,ratesRow){ 
+	  if ( j == 0 ){
+	    var graphPoint = { name:'min SP rate', time:time, value:ratesRow['Min Single SP Rate'] };
+	    appendPoint( graphPoint );
+	    $('#a_value_min').text( ratesRow['Min Single SP Rate'] );
+	    if ( ratesRow['Min Single SP Rate'] == 0 && ratesRow['Total SPs Rate'] > 0 ){
+	      $('#td_value_min').attr('class', 'WARN' );
+	      $('#a_value_min').attr('title', 'One or more SPs may be dead. Click to check.' );
+	    }
+	    else{
+	      $('#td_value_min').attr('class', '');
+	      $('#a_value_min').attr('title', '');
+	    }
+	    $('#a_value_total').text( ratesRow['Total SPs Rate'] );
+	  }
+	});
+      }
+    });
+
+    //if ( alertCount == 0 ){ alert( msg ); alertCount=1; }
 
     clearTimeout(Clock);
     ageOfPageClock(0);
