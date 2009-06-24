@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xml-stylesheet type="text/xml" href="/emu/base/html/EmuPage1_XSL.xml"?>
+<ForEmuPage1 application="xmas::las::Application" url="http://csc-tf.cms:5005">
+  <monitorable name="title" value="CSC Track Finder" nameDescription="" valueDescription="Click to visit the CSC Track Finder Cell's page." nameURL="/" valueURL=""/>
+  <monitorable name="state" value="" nameDescription="The state of the TF cell." valueDescription="" nameURL="" valueURL=""/>
+  <monitorable name="min" value="" nameDescription="The lowest rate of any Sector Processor." valueDescription="" nameURL="" valueURL=""/>
+  <monitorable name="total" value="" nameDescription="The total rate of all Sector Processors." valueDescription="" nameURL="" valueURL=""/>
+</ForEmuPage1>

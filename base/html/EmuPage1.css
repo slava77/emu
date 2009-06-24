@@ -1,18 +1,20 @@
+body { background-color:#eeeeee; }
 table { width: 100%; background-color:#ffffff; border-collapse: separate; }
 td, th { color:#000000; font-size:90%; }
-th { background-color:#dddddd; width:20%; }
+th { background-color:#dddddd; width:5%; }
 td { background-color:#eeeeee; text-align:center; }
+.layout { width: 100%; height: 100%; background-color: transparent; padding: 0px; border-collapse: collapse; }
+th.title { background-color:#dddddd; width: 100%; }
 td.time { font-size:70%; }
-td.Halted { background-color:#2222ff; }
-td.Ready { background-color:#ffff22; }
-td.Configured { background-color:#ffff22; }
-td.Enabled { background-color:#22ff22; }
+td.Halted, td.halted { background-color:#2222ff; }
+td.Ready, td.ready { background-color:#ffff22; }
+td.Configured, td.configured { background-color:#ffff22; }
+td.Enabled, td.enabled { background-color:#22ff22; }
 td.ON { background-color:#22ff22; }
+td.Calibration { background-color:#22ff22; }
 td.Failed { background-color:#ff2222; }
-td.UNKNOWN { background-color:#ff2222; }
-td.Unknown { background-color:#ff2222; }
-td.INDEFINITE { background-color:#ff2222; }
-td.Indefinite { background-color:#ff2222; }
+td.UNKNOWN, td.Unknown { background-color:#ff2222; }
+td.INDEFINITE, td.Indefinite { background-color:#ff2222; }
 td.OFF { background-color:#ff2222; }
 table.root { width: 100%; border-collapse: collapse; background-color:#ffffff; }
 table.root td { color:#000000; }
