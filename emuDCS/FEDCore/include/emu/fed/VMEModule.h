@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.4 2009/06/13 17:59:28 paste Exp $
+* $Id: VMEModule.h,v 1.5 2009/06/24 04:53:51 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMEMODULE_H__
 #define __EMU_FED_VMEMODULE_H__
@@ -37,7 +37,8 @@ namespace emu {
 			virtual ~VMEModule() {};
 
 			/** @returns the slot number. **/
-			inline unsigned int slot() {return slot_;}
+			inline unsigned int slot() { return slot_; }
+			inline unsigned int getSlot() { return slot_; }
 
 			/** Sets the appropriate BHandle for proper CAEN communication.
 			*
