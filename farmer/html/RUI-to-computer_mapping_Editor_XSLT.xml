@@ -94,7 +94,7 @@
 	      </tr>
 	    </table>
 	    </td><td class="help">
-	    When the fiber connections to the computers are changed, please edit this table to make sure that the <a href="/emu/daq/xml/RUI-to-chamber_mapping.xml" target="_blank">RUI-to-DDU correspondence</a> remains the same. (That is, RUI 0 reads the Track Finder DDU, and RUI <em>n</em> reads DDU <em>n</em>.)
+	    When the fiber connections to the computers are changed, please edit this table to make sure that the <a href="/emu/farmer/xml/RUI-to-chamber_mapping.xml" target="_blank">RUI-to-DDU correspondence</a> remains the same. (That is, RUI 0 reads the Track Finder DDU, and RUI <em>n</em> reads DDU <em>n</em>.)
 	  </td></tr>
 	  <tr><td>
 	    <table style="width:100%;"><tr><td>
