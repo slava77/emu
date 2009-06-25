@@ -26,7 +26,7 @@ namespace emu{
       public:
 	/// Constructor.
 	///
-	/// @param limitInHz rate limit in Hertz 
+	/// @param limitInHz rate limit in Hertz; set it to 0 for no limit
 	/// @param sampleSize sample size (number of events)
 	///
 	RateLimiter( const int limitInHz, const int sampleSize );
