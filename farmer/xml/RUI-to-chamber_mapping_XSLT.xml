@@ -323,6 +323,7 @@
       <head>
 	<title>CSC RUI-to-chamber mapping of <xsl:value-of select="@date"/> and RUI-to-computer mapping of <xsl:value-of select="document('RUI-to-computer_mapping.xml')/RUI-to-computer_mapping/@date"/></title>
 	<style>
+	  body { background-color: #222222; }
 	  table.mapping td, th { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; color:#99BBFF; }
 	  table.mapping { background-color: #2A3B90; }
 	  table.mapping td.RUI,td.DCC,td.fiber,td.chamber,td.SP { background-color: #334499; }
