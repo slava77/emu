@@ -4,12 +4,13 @@
 emu::daq::writer::RateLimiter::RateLimiter( const int limitInHz, const int sampleSize ) :
   limitInHz_( limitInHz ),
   sampleSize_( sampleSize ),
-  minTimeSpanInMicrosec_( int( 1000000 * double(sampleSize) / double(limitInHz) ) ),
   timeStamps_( new timeval[sampleSize] ),
   firstTimeIndex_( 0 ),
   lastTimeIndex_( 0 ),
   eventCount_( 0 )
 {
+  if ( limitInHz_ >= 0 ) minTimeSpanInMicrosec_ = int( 1000000 * double(sampleSize) / double(limitInHz) );
+  else                   minTimeSpanInMicrosec_ = 0; // This means no limit.
   endOfVetoPeriod_.tv_sec  = 0;
   endOfVetoPeriod_.tv_usec = 0;
 }
@@ -18,7 +19,8 @@ emu::daq::writer::RateLimiter::~RateLimiter(){
   delete [] timeStamps_;
 }
 
-bool emu::daq::writer::RateLimiter::acceptEvent(){ 
+bool emu::daq::writer::RateLimiter::acceptEvent(){
+  if ( minTimeSpanInMicrosec_ == 0 ) return true;
   if ( gettimeofday( &now_, &dummy_ ) > 0 ) return false;
   
   timeStamps_[lastTimeIndex_] = now_; // the current time
@@ -28,17 +30,18 @@ bool emu::daq::writer::RateLimiter::acceptEvent(){
     timeStamps_[firstTimeIndex_].tv_usec + minTimeSpanInMicrosec_ % 1000000
   };
 
-  if ( eventCount_ % 1000 == 0 ) std::cout 
-				   << now_.tv_sec  << " s   "
-				   << now_.tv_usec << " us   "
-				   << endOfVetoPeriod_.tv_sec  << " s   "
-				   << endOfVetoPeriod_.tv_usec << " us  ["
-				   << firstTimeIndex_ << ","
-				   << lastTimeIndex_  << "]"
-				   << "   eventCount " << eventCount_
-				   << std::endl;
+  //   if ( eventCount_ % 1000 == 0 ) std::cout 
+  // 				   << now_.tv_sec  << " s   "
+  // 				   << now_.tv_usec << " us   "
+  // 				   << endOfVetoPeriod_.tv_sec  << " s   "
+  // 				   << endOfVetoPeriod_.tv_usec << " us  ["
+  // 				   << firstTimeIndex_ << ","
+  // 				   << lastTimeIndex_  << "]"
+  // 				   << "   eventCount " << eventCount_
+  // 				   << std::endl;
 
-  eventCount_++;
+  if ( eventCount_ == 0x8fffffff ){ eventCount_ = 0; } // assumes 32-bit integer
+  else                            { eventCount_++; }
 
   lastTimeIndex_++;
   lastTimeIndex_ = ( lastTimeIndex_ % sampleSize_ );
