@@ -848,6 +848,7 @@ void Test_Generic::bookCommonHistos()
 {
   MonHistos emuhistos;
   emucnvs.clear();
+  tlimits.clear();
   char *stopstring;
   for (testParamsCfg::iterator itr=xmlCfg.begin(); itr != xmlCfg.end(); ++itr)
     {
@@ -856,7 +857,9 @@ void Test_Generic::bookCommonHistos()
         {
           std::string cnvtype = params["Type"];
           std::string scope = params["Prefix"];
-          std::string name = "sum_"+testID+"_"+params["Name"];
+	  std::string tname = params["Name"];
+
+          std::string name = "sum_"+testID+"_"+tname;
           std::string title = "Summary: "+testID+" "+params["Title"];
           double xmin=0., xmax=0.;
           int xbins=0;
@@ -914,6 +917,12 @@ void Test_Generic::bookCommonHistos()
                 {
                   high1limit = atof(params["High1Limit"].c_str());
                 }
+
+	      tlimits[tname].low0 = low0limit;
+	      tlimits[tname].low1 = low1limit;
+              tlimits[tname].high0 = high0limit;
+	      tlimits[tname].high1 = high1limit;
+		
 
               // TestCanvas_6gr1h* cnv = new TestCanvas_6gr1h((cscID+"_CFEB02_R03").c_str(), (cscID+": CFEB02 R03").c_str(),80, 0.0, 80.0, 60, 0., 6.0);
               // TH1F* h = new TH1F(name.c_str(), title.c_str(), ybins, ymin, ymax);
@@ -1484,6 +1493,18 @@ void Test_Generic::finish()
     }
   //  saveCSCList();
 
+}
+
+bool Test_Generic::checkChannel(TestData& cscdata, std::vector<std::string>& tests, int layer, int strip)
+{
+        for (unsigned i = 0; i < tests.size(); i++)
+        {
+                if ((cscdata[tests[i]].content[layer][strip] > tlimits[tests[i]].high1) 
+                       || (cscdata[tests[i]].content[layer][strip] < tlimits[tests[i]].low1))
+                        return false;
+        }
+
+        return true;
 }
 
 void Test_Generic::addCSCtoMap(std::string cscid, int dmbcrate, int dmbslot)

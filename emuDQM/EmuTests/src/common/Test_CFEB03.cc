@@ -902,17 +902,33 @@ void Test_CFEB03::finishCSC(std::string cscID)
           // == Save results for database transfer
           std::ofstream res_out((path+cscID+"_"+testID+"_DB.dat").c_str());
 
+          std::vector<std::string> tests;
+          tests.push_back("R01");
+          tests.push_back("R02");
+          tests.push_back("R03");
+          tests.push_back("R04");
+	  tests.push_back("R05");
+
+
           for (int layer=0; layer<NLAYERS; layer++)
             {
               for (int strip=0; strip<strips_per_layer; strip++)
                 {
-                  res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-                  << r01.content[layer][strip]  << "  " << r02.content[layer][strip] << "  " <<  r03.content[layer][strip]
-                  << std::setprecision(3) << "  " << r04.content[layer][strip] << "  " << r05.content[layer][strip]
-                  << "  " << (int)(mask.content[layer][strip]) << std::endl;
+                  res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+layer*strips_per_layer+strip) << " "
+                  << r01.content[layer][strip]  << " " << r02.content[layer][strip] << " " <<  r03.content[layer][strip]
+                  << std::setprecision(3) << " " << r04.content[layer][strip] << " " << r05.content[layer][strip]
+                  << " " << (int)(mask.content[layer][strip]) 
+		  << " " << (int)(checkChannel(cscdata, tests, layer, strip))
+		  << std::endl;
                 }
             }
           res_out.close();
+          
+	  tests.clear();
+	  tests.push_back("R06");
+          tests.push_back("R07");
+          tests.push_back("R09");
+          tests.push_back("R10");
 
           res_out.open((path+cscID+"_"+testID+"_DB_Xtalk.dat").c_str());
 
@@ -920,10 +936,11 @@ void Test_CFEB03::finishCSC(std::string cscID)
             {
               for (int strip=0; strip<strips_per_layer; strip++)
                 {
-                  res_out << std::fixed <<  (first_strip_index+layer*strips_per_layer+strip) << "  "
-                  << r06.content[layer][strip]  << "  " << r07.content[layer][strip] << "  " << r08.content[layer][strip] << "  "
-                  << r09.content[layer][strip] << "  " << r10.content[layer][strip] << r11.content[layer][strip] << "  "
-                  << (int)(mask.content[layer][strip]) << std::endl;
+                  res_out << std::fixed << std::resetiosflags(std::ios::fixed) << std::setprecision(-1) 
+		  << (first_strip_index+layer*strips_per_layer+strip) << " "
+                  << r06.content[layer][strip]  << " " << r07.content[layer][strip] << " " /* << r08.content[layer][strip] << " "*/
+                  << r09.content[layer][strip] << " " << r10.content[layer][strip] << " " /* << r11.content[layer][strip] << " " */
+                  << (int)(mask.content[layer][strip]) << " " << (int)(checkChannel(cscdata, tests, layer, strip)) << std::endl;
                 }
             }
           res_out.close();
@@ -936,6 +953,7 @@ void Test_CFEB03::finishCSC(std::string cscID)
         }
     }
 }
+
 
 bool Test_CFEB03::checkResults(std::string cscID)
 {

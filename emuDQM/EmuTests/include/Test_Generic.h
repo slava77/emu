@@ -68,6 +68,7 @@ typedef ConsumerCanvas MonitoringCanvas;
 // Invalid Value for constants
 #define INVAL -999.0
 
+
 typedef std::map<std::string, TestData2D> TestData;
 typedef std::map<std::string, TestData> cscTestData;
 typedef std::map<std::string, TH1*> MonHistos;
@@ -80,6 +81,15 @@ typedef std::map<std::string, bookParams> testParamsCfg;
 typedef std::map<std::string, std::pair<int,int> >CSCtoHWmap;
 typedef std::map<std::string, int> ResultsCodes;
 typedef std::map<std::string, ResultsCodes> cscResultsCodes;
+
+// Test Limits
+typedef struct test_limits
+{
+  double low0;
+  double low1;
+  double high0;
+  double high1;
+} test_limits;
 
 
 // == CFEB SCA cell sample pair (value, count)
@@ -258,6 +268,7 @@ protected:
   // virtual void bookTestCanvases(std::string cscID);
   virtual void analyzeCSC(const CSCEventData& data) = 0;
   virtual void finishCSC(std::string cscID) = 0;
+  virtual bool checkChannel(TestData& cscdata, std::vector<std::string>& tests, int layer, int strip);
 
 
   unsigned long binCheckMask;
@@ -292,6 +303,7 @@ protected:
 
   std::map<std::string, TH2F*> hFormatErrors;
   std::map<std::string, int> tmap; // Map of CSC types for Format Errors histogram
+  std::map<std::string, test_limits> tlimits;
   CSCtoHWmap cscmap;
   CSCCrateMap* cratemap;
 //  	cscmap1 *map;

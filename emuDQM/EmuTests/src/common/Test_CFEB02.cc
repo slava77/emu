@@ -583,7 +583,7 @@ void Test_CFEB02::finishCSC(std::string cscID)
 
       TestData& cscdata= td_itr->second;
 
-      // TestData2D& mask = cscdata["_MASK"];
+      TestData2D& mask = cscdata["_MASK"];
       // TestData2D& _mv0 = cscdata["_MV0"];
       // TestData2D& _rms0 = cscdata["_RMS0"];
       TestData2D& _q12 = cscdata["_Q12"];
@@ -957,18 +957,40 @@ void Test_CFEB02::finishCSC(std::string cscID)
           // == Save results for database transfer Pedestals and RMS
           // i - layer, j - strip
           res_out.open((path+cscID+"_CFEB02_DB.dat").c_str());
+	  std::vector<std::string> tests;
+          tests.push_back("R01");
+          tests.push_back("R02");
+
           for (int i=0; i<NLAYERS; i++)
             {
               for (int j=0; j<strips_per_layer; j++)
                 {
                   res_out << std::fixed << std::setprecision(2) <<  (first_strip_index+i*strips_per_layer+j) << " "
-                  << r01.content[i][j]  << " " << r02.content[i][j] << std::endl;
+                  << r01.content[i][j]  << " " << r02.content[i][j] 
+		  << " " << (int)(mask.content[i][j])
+                  << " " << (int)(checkChannel(cscdata, tests, i, j))
+		  << std::endl;
                 }
             }
           res_out.close();
 
           // == Save results for database transfer of Noise Matrix
           res_out.open((path+cscID+"_CFEB02_DB_NoiseMatrix.dat").c_str());
+		
+          tests.clear();
+          tests.push_back("R12");
+          tests.push_back("R13");
+          tests.push_back("R14");
+          tests.push_back("R15");
+	  tests.push_back("R16");
+          tests.push_back("R17");
+          tests.push_back("R18");
+          tests.push_back("R19");
+	  tests.push_back("R20");
+          tests.push_back("R21");
+          tests.push_back("R22");
+          tests.push_back("R23");
+
           for (int i=0; i<NLAYERS; i++)
             {
               for (int j=0; j<strips_per_layer; j++)
@@ -980,6 +1002,8 @@ void Test_CFEB02::finishCSC(std::string cscID)
                   << " " << r18.content[i][j]  << " " << r19.content[i][j]
                   << " " << r20.content[i][j]  << " " << r21.content[i][j]
                   << " " << r22.content[i][j]  << " " << r23.content[i][j]
+		  << " " << (int)(mask.content[i][j])
+		  << " " << (int)(checkChannel(cscdata, tests, i, j))
                   << std::endl;
 
                 }
