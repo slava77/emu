@@ -503,7 +503,9 @@ private:
   void CheckCrateFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   //
   void PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
+  void CheckFirmware(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   void FixCFEB(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
+  void SetNumberOfHardResets(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   void ReadbackALCTFirmware(xgi::Input * in, xgi::Output * out )throw (xgi::exception::Exception);
   //
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -543,7 +545,10 @@ private:
   int dmb_check_ok[60][9];
   int time_since_reset[60][9];
   //
-  int crates_firmware_ok;;
+  //
+  int firmware_checked_;
+  //
+  int crates_firmware_ok;
   int crate_firmware_ok[60];
   int ccb_firmware_ok[60];
   int mpc_firmware_ok[60];
@@ -553,6 +558,22 @@ private:
   int dmb_control_firmware_ok[60][9];
   int cfeb_firmware_ok[60][9][5];
   //
+  int tmbcfg_ok[60][9];
+  int dmbcfg_ok[60][9];
+  int alctcfg_ok[60][9];
+  int alct_lvmb_current_ok[60][9];
+  int alct_adc_current_ok[60][9];;
+  int cfeb_current_ok[60][9][5];
+  //
+  int number_of_hard_resets_;
+  //
+  std::vector<int> crate_to_reload;
+  std::vector<int> slot_to_reload;
+  std::vector<int> component_to_reload;
+  std::vector<std::string> component_string;
+  std::vector<std::string> reason_for_reload;
+  std::vector<int> loaded_ok;
+  //
   int number_of_alct_firmware_errors[9];
   int number_of_tmb_firmware_errors[9];
   int able_to_load_alct;
@@ -560,7 +581,6 @@ private:
   bool print_stuff;
   char date_and_time_[13];
   //
-    
 };
 
   } // namespace emu::pc

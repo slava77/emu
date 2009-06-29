@@ -99,6 +99,13 @@ const std::string ALCT_READBACK_FILENAME_ME41 = "alct576mirror/alct576mirror_ver
 //const std::string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror.svf";//
 //const std::string ALCT_READBACK_FILENAME_ME41 = "readback-576-672";               //
 //
+const int CCB_LABEL         = 0;
+const int MPC_LABEL         = 1;
+const int TMB_LABEL         = 2;
+const int ALCT_LABEL        = 3;
+const int DMB_VME_LABEL     = 4;
+const int DMB_CONTROL_LABEL = 5;
+const int CFEB_LABEL[5]     = {6, 7, 8, 9, 10};
 //
 /////////////////////////////////////////////////////////////////////
 // Instantiation and main page
@@ -147,10 +154,20 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
       tmb_firmware_ok[i][j] = -1;
       dmb_vme_firmware_ok[i][j] = -1;
       dmb_control_firmware_ok[i][j] = -1;
-      for (int k=0; k<5; k++) 
+      dmbcfg_ok[i][j]  = -1;
+      alctcfg_ok[i][j]  = -1;
+      alct_lvmb_current_ok[i][j]  = -1;
+      alct_adc_current_ok[i][j]  = -1;
+      //
+      for (int k=0; k<5; k++) {
 	cfeb_firmware_ok[i][j][k] = -1;
+	cfeb_current_ok[i][j][k]     = -1;
+      }
     }
   }
+  //
+  firmware_checked_ = 0;
+  number_of_hard_resets_ = 10;
   //
   xgi::bind(this,&EmuPeripheralCrateConfig::Default, "Default");
   xgi::bind(this,&EmuPeripheralCrateConfig::MainPage, "MainPage");
@@ -181,7 +198,9 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateConfiguration, "CheckCrateConfiguration");
   xgi::bind(this,&EmuPeripheralCrateConfig::CheckCrateFirmware, "CheckCrateFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::PowerOnFixCFEB, "PowerOnFixCFEB");
+  xgi::bind(this,&EmuPeripheralCrateConfig::CheckFirmware, "CheckFirmware");
   xgi::bind(this,&EmuPeripheralCrateConfig::FixCFEB, "FixCFEB");
+  xgi::bind(this,&EmuPeripheralCrateConfig::SetNumberOfHardResets, "SetNumberOfHardResets");
   xgi::bind(this,&EmuPeripheralCrateConfig::ReadbackALCTFirmware, "ReadbackALCTFirmware");
   //
   //------------------------------
@@ -3017,477 +3036,426 @@ void EmuPeripheralCrateConfig::CheckPeripheralCrateConfiguration() {
 }
 //
 
-
-void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )
+void EmuPeripheralCrateConfig::CheckFirmware(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
   //
-  int cur18a[5]={1,1,1,2,2};
-  int cur18b[5]={1,4,7,2,5};
-  int slot2num[22]={0,0,0,0,0,1,0,2,0,3,0,4,0,0,0,5,0,6,0,7,0,8};
-  int me11_odd[5]={3,1,0,2,4};
-  int me11_even[5]={1,3,4,2,0};
-  int misscable[3][6]={
-    {+14,1,4,3,2,0},
-    {+21,3,0,1,2,4},
-    {+29,3,0,1,2,4}
-  };
-
-  MyHeader(in,out,"Check System Firmware");
-
-  *out << "CFEB FPGAs not programmed " << std::endl;
-  *out << cgicc::table().set("border","1");
-  *out << cgicc::tr();
-  *out << cgicc::td();
-  *out << " Chamber ";
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " Crate ";
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " Slot " ;
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " CFEB " ;
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " Current" ;
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " " ;
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " " ;
-  *out << cgicc::td();
-  *out << cgicc::tr()<<std::endl;
-  //
-  // std::cout << " LSD: crate size " << crateVector.size() << std::endl;
+  std::cout << "Checking System Firmware " << std::dec << number_of_hard_resets_ << " times..." << std::endl;
   //
   int initial_crate = current_crate_;
-
-  for(unsigned i=0; i< crateVector.size(); i++){
+  //
+  const float cfeb_minimum_current_value =  0.01;
+  const float cfeb_maximum_current_value =  0.85;
+  const float alct_maximum_current_value =  0.2 ;
+  const float alct_minimum_current_value =  0.05;
+  //
+  // initialize the number of times each of the following checks are OK.
+  //
+  for (int i=0; i<60; i++) {
+    ccb_firmware_ok[i] = 0;
+    mpc_firmware_ok[i] = 0;
+    for (int j=0; j<9; j++) {
+      alct_firmware_ok[i][j] = 0;
+      tmb_firmware_ok[i][j] = 0;
+      dmb_vme_firmware_ok[i][j] = 0;
+      dmb_control_firmware_ok[i][j] = 0;
+      dmbcfg_ok[i][j]  = 0;
+      alctcfg_ok[i][j]  = 0;
+      tmbcfg_ok[i][j]  = 0;
+      alct_lvmb_current_ok[i][j]  = 0;
+      alct_adc_current_ok[i][j]  = 0;
+      //
+      for (int k=0; k<5; k++) {
+	cfeb_firmware_ok[i][j][k] = 0;
+	cfeb_current_ok[i][j][k]  = 0;
+      }
+    }
+  }
+  //
+  for (int hard_reset_index=0; hard_reset_index<number_of_hard_resets_; hard_reset_index++) {
     //
-    // std::cout << "LSD: Crate: " << crateVector[i]->GetLabel() << std::endl;
+    std::cout << "Firmware check iteration " << hard_reset_index << std::endl;
     //
-    int  this_crate_no_=i;
-    SetCurrentCrate(this_crate_no_);
-    if (!thisCrate->IsAlive()) continue;
+    // send hard reset from CCB to load FPGA's from EEPROM's in all electronics modules
+    for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
+      //
+      SetCurrentCrate(crate_index);
+      if (!thisCrate->IsAlive()) continue;
+      //
+      thisCCB->hardReset();
+    }
     //
-    int CSRA3=0x04;
-    thisCCB->ReadRegister(CSRA3);
-    //
-    for (unsigned int k=0; k<dmbVector.size(); k++) {
-      DAQMB * thisDMB = dmbVector[k];
-      int slot = thisDMB->slot();
-      if(slot<22){
-        int dmbcfg= thisCCB->GetReadDMBConfigDone(slot2num[slot]);
-        Chamber *thisChamber = chamberVector[k];
-        // std::cout << " LSD: slot: " << slot << " " << " k: " << k << " slot2num " 
-	// << slot2num[slot] << "daqcfg " << dmbcfg << " chamber " << thisChamber->GetLabel() << std::endl;
-        std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
-        for(unsigned int j=0;j<thisCFEBs.size();j++){
-          int numcfeb;
-          for(unsigned int jj=0;jj<thisCFEBs.size();jj++){
-            if(j==(unsigned int)thisCFEBs[jj].number())numcfeb=jj;
-          }
-	  //          std::cout << " LSD febpromid " << " " << thisChamber->GetLabel() << ":" 
-	  //		    << numcfeb << " " << std::hex << thisDMB->febpromid(thisCFEBs[numcfeb]) 
-	  //		    << std::dec << std::endl;
-        }
-        if(dmbcfg==0){
+    // Check that the firmware status is A-OK:
+    for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
+      //
+      SetCurrentCrate(crate_index);
+      if (!thisCrate->IsAlive()) continue;
+      //
+      // check CCB and MPC firmware versions by reading the FPGA ID's
+      ccb_firmware_ok[current_crate_] = thisCrate->ccb()->CheckFirmwareDate();
+      mpc_firmware_ok[current_crate_] = thisCrate->mpc()->CheckFirmwareDate();
+      //
+      // read the "FPGA configuration done" bits which have been sent to the CCB
+      const int CSRA3=0x04;
+      thisCCB->ReadRegister(CSRA3);
+      //
+      const int CSRA2=0x02;
+      thisCCB->ReadRegister(CSRA2);
+      //
+      // check TMB, DMB, ALCT, and CFEB's attached to this chamber...
+      for (unsigned int chamber_index=0; chamber_index<dmbVector.size(); chamber_index++) {
+	DAQMB * thisDMB = dmbVector[chamber_index];
+	std::vector<CFEB> thisCFEBs = thisDMB->cfebs() ;
+        int dslot = thisDMB->slot();
+	//
+	TMB * thisTMB   = tmbVector[chamber_index];
+	ALCTController * thisALCT   = thisTMB->alctController();
+	//
+        Chamber * thisChamber = chamberVector[chamber_index];
+	//
+	if(dslot<22){
 	  //
-          for(unsigned int j=0;j<thisCFEBs.size();j++){
-            int numcfeb=0;
-            for(unsigned int jj=0;jj<thisCFEBs.size();jj++){
-              if(j==(unsigned int)thisCFEBs[jj].number())numcfeb=jj;
-            }
-            // std::cout << " LSD febpromid " << j << " " << thisChamber->GetLabel() 
+	  // check if the CCB has received the "config done" bit from the component's FPGA
+	  if (thisCCB->GetReadTMBConfigDone(chamber_index) == thisCCB->GetExpectedTMBConfigDone() )
+	    tmbcfg_ok[current_crate_][chamber_index]++;
+	  //
+	  if (thisCCB->GetReadALCTConfigDone(chamber_index) == thisCCB->GetExpectedALCTConfigDone() )
+	    alctcfg_ok[current_crate_][chamber_index]++;
+	  //
+	  // The DMB config done bit depends on whether or not it is ME1/3.  I.e., if it is ME1/3, this 
+	  // check will always fail.  That's OK, that just means we look at the currents and ID's of 
+	  // all CFEBs and DMB for ME1/3 in detail, below.
+	  if (thisCCB->GetReadDMBConfigDone(chamber_index) == thisCCB->GetExpectedDMBConfigDone() )
+	    dmbcfg_ok[current_crate_][chamber_index]++;
+	  // 
+	  // check firmware versions by reading the FPGA ID's
+	  tmb_firmware_ok[current_crate_][chamber_index]         += (int) thisTMB->CheckFirmwareDate();
+	  alct_firmware_ok[current_crate_][chamber_index]        += (int) thisALCT->CheckFirmwareDate();
+	  dmb_vme_firmware_ok[current_crate_][chamber_index]     += (int) thisDMB->CheckVMEFirmwareVersion();
+	  dmb_control_firmware_ok[current_crate_][chamber_index] += (int) thisDMB->CheckControlFirmwareVersion();
+	  typedef std::vector<CFEB>::iterator CFEBItr;
+	  for(CFEBItr cfebItr = thisCFEBs.begin(); cfebItr != thisCFEBs.end(); ++cfebItr) {
+	    int cfeb_index = (*cfebItr).number();
+	    cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] += (int) thisDMB->CheckCFEBFirmwareVersion(*cfebItr);
+	  }
+	  //
+	  // check if the currents drawn by the FPGA are within bounds or without
+	  // ALCT current reading from LVMB
+          float alct_lvmb_current = thisDMB->lowv_adc(3,0)/1000.;
+          if(alct_lvmb_current > alct_maximum_current_value)        //the FPGA is drawing sufficient current to be called "OK"
+            alct_lvmb_current_ok[current_crate_][chamber_index]++;
+	  else if (alct_lvmb_current < alct_minimum_current_value)
+            alct_lvmb_current_ok[current_crate_][chamber_index] += 2; //the FPGA is drawing less current than an unloaded FPGA:  blown fuse!
+	  //
+	  // ALCT current reading from on-board ADC
+	  thisALCT->ReadAlctTemperatureAndVoltages();
+	  float alct_adc_current = thisALCT->GetAlct_1p8_Current();
+          if(alct_adc_current > alct_maximum_current_value)        //the FPGA is drawing sufficient current to be called "OK"
+            alct_adc_current_ok[current_crate_][chamber_index]++;
+	  else if (alct_adc_current < alct_minimum_current_value)
+            alct_adc_current_ok[current_crate_][chamber_index] += 2; //the FPGA is drawing less current than an unloaded FPGA:  blown fuse!
+	  //
+	  // get the CFEB currents from LVMB.  Note, the ME1/1 have the cabling in a non-standard order on the LVMB
+	  for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
+	    //
+	    int cur18a[5]={1,1,1,2,2};
+	    int cur18b[5]={1,4,7,2,5};
+	    int me11_odd[5]={3,1,0,2,4};
+	    int me11_even[5]={1,3,4,2,0};
+	    int misscable[3][6]={
+	      {+14,1,4,3,2,0},
+	      {+21,3,0,1,2,4},
+	      {+29,3,0,1,2,4}
+	    };
+	    // std::cout << " LSD febpromid " << cfeb_index << " " << thisChamber->GetLabel() 
 	    // << " " << std::hex << thisDMB->febpromid(thisCFEBs[numcfeb]) << std::dec << std::endl;
 	    //	    unsigned int mbid = thisDMB->mbfpgaid();
 	    //	    std::cout << "LSD:DMB Problem " << thisChamber << " mbfpgaid " << mbid << std::endl;  
-	    // fix me11 cabling problem
-            int lv=j;
-            int ts,tr,tc;
-            sscanf(thisChamber->GetLabel().c_str(),"ME%d/%d/%d",&ts,&tr,&tc);
-            int tus=ts;
-            if(ts<0)tus=-tus;
-            if(tus==1&&tr==1){
-              if(tc%2==0){
-                lv=me11_even[j]; 
-              }else{
-                lv=me11_odd[j]; 
-              }
-              for(int t=0;t<3;t++){
-                if(ts*tc==misscable[t][0]){
-                  lv=misscable[t][j+1];
-                }
-              } 
-            }
-            float current=thisDMB->lowv_adc(cur18a[lv],cur18b[lv])/1000.;
-            if(current<0.85&&current>0.01){
-              *out << cgicc::tr();
-              *out << cgicc::td();
-              *out << thisChamber->GetLabel();
-              *out << cgicc::td();
-              *out << cgicc::td();
-              *out <<  crateVector[i]->GetLabel();
-              *out << cgicc::td();
-              *out << cgicc::td();
-              *out << slot;
-              *out << cgicc::td();
-              *out << cgicc::td();
-              *out << "CFEB"<<j+1;
-              *out << cgicc::td();
-              *out << cgicc::td();
-              *out << std::setprecision(2) << current;
-              *out << cgicc::td();
-              *out << cgicc::td();
-              std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
-              *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
-              *out << cgicc::input().set("type","submit").set("value","Hard Reset").set("style","color:blue") << std::endl ;
-              char buf[20];
-              sprintf(buf,"%d",i);
-              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
-              sprintf(buf,"%d",k);
-              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
-              sprintf(buf,"%d",numcfeb);
-              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
-              int numcmd=1;
-              sprintf(buf,"%d",numcmd);
-              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
-              *out << cgicc::form() << std::endl ;
-              *out << cgicc::td();
-              *out << cgicc::td();
-              *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
-              *out << cgicc::input().set("type","submit").set("value","Pgrm Prom").set("style","color:red") << std::endl ;
-              sprintf(buf,"%d",i);
-              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
-              sprintf(buf,"%d",k);
-              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
-              sprintf(buf,"%d",numcfeb);
-              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
-              numcmd=2;
-              sprintf(buf,"%d",numcmd);
-              *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
-              *out << cgicc::form() << std::endl ;
-              *out << cgicc::td();
-              *out << cgicc::tr() << std::endl;
-            }
-          }
-        }
-      }
-    }
-  }
-  *out << cgicc::table() << std::endl;
-
-  // now ALCTs
-  *out << "ALCT FPGAs not programmed " << std::endl;
-  *out << cgicc::table().set("border","1");
-  *out << cgicc::tr();
-  *out << cgicc::td();
-  *out << " Chamber ";
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " Crate ";
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " Slot " ;
-  *out << cgicc::td();
-  *out << cgicc::td();
-  *out << " Current" ;
-  *out << cgicc::td();
-  *out << cgicc::tr()<<std::endl;
-
-  for(unsigned i=0; i< crateVector.size(); i++){
-    // std::cout << "LSD: Crate: " << crateVector[i]->GetLabel() << std::endl;
+	    int lv=cfeb_index;
+	    int ts,tr,tc;
+	    sscanf(thisChamber->GetLabel().c_str(),"ME%d/%d/%d",&ts,&tr,&tc);
+	    int tus=ts;
+	    if(ts<0)tus=-tus;
+	    if(tus==1&&tr==1){
+	      if(tc%2==0){
+		lv=me11_even[cfeb_index]; 
+	      }else{
+		lv=me11_odd[cfeb_index]; 
+	      }
+	      for(int t=0;t<3;t++){
+		if(ts*tc==misscable[t][0]){
+		  lv=misscable[t][cfeb_index+1];
+		}
+	      } 
+	    }
+	    float cfeb_current = thisDMB->lowv_adc(cur18a[lv],cur18b[lv])/1000.;
+	    if(cfeb_current > cfeb_maximum_current_value) {       
+	      //the FPGA is drawing sufficient current to be called "OK"
+	      cfeb_current_ok[current_crate_][chamber_index][cfeb_index]++;
+	    } else if (cfeb_current < cfeb_minimum_current_value) {
+	      //the FPGA is drawing less current than an unloaded FPGA:  blown fuse!
+	      cfeb_current_ok[current_crate_][chamber_index][cfeb_index] += 2; 
+	    }
+	  }  //loop over cfeb current check 
+	}   // if (slot<22)
+      }     // loop over chambers in crate
+    }       // loop over crates
+  }         // loop over hard resets
+  //
+  // Now that we've done the hard resets and checked all the checks, next we make a list of which components need their firmware reloaded
+  //
+  crate_to_reload.clear();
+  slot_to_reload.clear();
+  component_to_reload.clear();
+  component_string.clear();
+  reason_for_reload.clear();
+  loaded_ok.clear();
+  //
+  for(unsigned crate_index=0; crate_index< crateVector.size(); crate_index++){
     //
-    int  this_crate_no_=i;
-    SetCurrentCrate(this_crate_no_);
+    SetCurrentCrate(crate_index);
     if (!thisCrate->IsAlive()) continue;
     //
-    int CSRA2=0x02;
-    thisCCB->ReadRegister(CSRA2);
-    for (unsigned int k=0; k<tmbVector.size(); k++) {
-      TMB * thisTMB = tmbVector[k];
+    if (ccb_firmware_ok[crate_index] != number_of_hard_resets_) {
+      //
+      int number_of_bad_readings = number_of_hard_resets_ - ccb_firmware_ok[crate_index];
+      //
+      crate_to_reload.push_back(crate_index);
+      slot_to_reload.push_back(thisCCB->slot());
+      component_to_reload.push_back(CCB_LABEL);
+      //
+      std::ostringstream problem_label;
+      problem_label << "CCB"; 
+      component_string.push_back(problem_label.str());
+      //
+      std::ostringstream reason;
+      reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times";
+      reason_for_reload.push_back(reason.str());
+      loaded_ok.push_back(-1);
+    }
+    //
+    if (mpc_firmware_ok[crate_index] != number_of_hard_resets_) {
+      //
+      int number_of_bad_readings = number_of_hard_resets_ - mpc_firmware_ok[crate_index];
+      //
+      std::ostringstream problem_label;
+      problem_label << "MPC"; 
+      component_string.push_back(problem_label.str());
+      //
+      crate_to_reload.push_back(crate_index);
+      slot_to_reload.push_back(thisMPC->slot());
+      component_to_reload.push_back(MPC_LABEL);
+      std::ostringstream reason;
+      reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times";
+      reason_for_reload.push_back(reason.str());
+      loaded_ok.push_back(-1);
+    }
+    //
+    for (unsigned int chamber_index=0; chamber_index<dmbVector.size(); chamber_index++) {
+      DAQMB * thisDMB = dmbVector[chamber_index];
+      std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      int dslot = thisDMB->slot();
+      //
+      TMB * thisTMB   = tmbVector[chamber_index];
       int tslot = thisTMB->slot();
-      for (unsigned int k2=0; k2<dmbVector.size(); k2++) {
-        DAQMB * thisDMB = dmbVector[k2];
-        int dslot = thisDMB->slot();
-        Chamber *thisChamber = chamberVector[slot2num[dslot]];
-        if( (dslot-1)==tslot ){
-          float current=thisDMB->lowv_adc(3,0)/1000.;
-          if(current<0.2 && current>0.05) {
-	    //
-	    int alctcfg=thisCCB->GetReadALCTConfigDone(slot2num[dslot]);
-            std::cout << "ALCT Problem:  " << thisChamber->GetLabel() 
-		      << ", alct cfg=" << std::hex << alctcfg 
-		      << ", expected alct cfg=" << thisCCB->GetExpectedALCTConfigDone()
-		      << ", current="  << std::dec << std::setprecision(2) << current << std::endl;
-	    //
-            *out << cgicc::tr();
-	    //
-            *out << cgicc::td(); *out << thisChamber->GetLabel();                      *out << cgicc::td();
-            *out << cgicc::td(); *out << crateVector[i]->GetLabel();                   *out << cgicc::td();
-            *out << cgicc::td(); *out << tslot;                                        *out << cgicc::td();
-            *out << cgicc::td(); *out << std::setprecision(2) << current << std::endl; *out << cgicc::td();
-	    //
-	    *out << cgicc::td();
-	    std::string ReadbackALCTFirmware = toolbox::toString("/%s/ReadbackALCTFirmware",getApplicationDescriptor()->getURN().c_str());
-	    *out << cgicc::form().set("method","GET").set("action",ReadbackALCTFirmware) << std::endl ;
-	    *out << cgicc::input().set("type","submit").set("value","Readback ALCT PROM").set("style","color:blue") << std::endl ;
-	    char buf[20];
-	    sprintf(buf,"%d",i);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
-	    sprintf(buf,"%d",k);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ntmb"); 
-	    *out << cgicc::form() << std::endl ;
-	    *out << cgicc::td();
-	    //
-            *out << cgicc::tr();
-          }
-        }
-      }
-    }
-  }
-  *out << cgicc::table() << std::endl;
-  // 
-   *out << "DAQMB FPGAs not programmed " << std::endl;
-   *out << cgicc::table().set("border","1");
-   *out << cgicc::tr();
-   *out << cgicc::td();
-   *out << " Chamber ";
-   *out << cgicc::td();
-   *out << cgicc::td();
-   *out << " Crate ";
-   *out << cgicc::td();
-   *out << cgicc::td();
-   *out << " Slot ";
-   *out << cgicc::td();
-   *out << cgicc::td();
-   *out << " MBFPGA ";
-   *out << cgicc::td();
-   *out << cgicc::td();
-   *out << " "; 
-   *out << cgicc::td();
-   *out << cgicc::tr();
-   for(unsigned i=0; i< crateVector.size(); i++){
-     int  this_crate_no_=i;
-     SetCurrentCrate(this_crate_no_); 
-     if (!thisCrate->IsAlive()) continue;
-     int CSRA3=0x04;
-     thisCCB->ReadRegister(CSRA3);
-     for (unsigned int k=0; k<dmbVector.size(); k++) {
-       DAQMB * thisDMB = dmbVector[k];
-       Chamber *thisChamber = chamberVector[k];
-       int slot = thisDMB->slot();
-       if(slot<22){
-         int dmbcfg = thisCCB->GetReadDMBConfigDone(slot2num[slot]);
-         if(dmbcfg==0){
-           // unsigned int vmeid = thisDMB->vmefpgaid();
-           unsigned long int mbid = thisDMB->mbfpgaid();
-           std::cout << "LSD:DMB Problem " << thisChamber->GetLabel() << " mbfpgaid " << mbid << std::endl;
-           if(mbid!=0x1020093){
-             *out << cgicc::tr();
-             *out << cgicc::td();
-             *out << thisChamber->GetLabel() ;
-             *out << cgicc::td();
-             *out << cgicc::td();
-             *out <<  crateVector[i]->GetLabel();
-             *out << cgicc::td();
-             *out << cgicc::td();
-             *out << slot;
-             *out << cgicc::td();
-             *out << cgicc::td();
-             *out << std::hex << mbid << std::dec;
-             *out << cgicc::td();
-	     *out << cgicc::td();
-	     std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
-	     *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
-	     *out << cgicc::input().set("type","submit").set("value","Hard Reset").set("style","color:blue") << std::endl ;
-             char buf[20];
-	     sprintf(buf,"%d",i);
-	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
-	     sprintf(buf,"%d",k);
-	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
-             int dummy=99;
-	     sprintf(buf,"%d",dummy);
-	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
-	     int numcmd=3;
-	     sprintf(buf,"%d",numcmd);
-	     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd");
-	     *out << cgicc::form() << std::endl ;
-	     *out << cgicc::td();
-             *out << cgicc::tr();
-	     // thisDMB->restoreIdle(RESET);
-             // thisDMB->restoreIdle(MPROM);
-             // usleep(500000);
-             // thisCCB->hardReset();
-           }
-         }
-       }
-     }
-   }
-   *out << cgicc::table() << std::endl;
-   //
-   crates_firmware_ok = 0;
-   //
-   for(unsigned i=0; i< crateVector.size(); i++) {
-     //
-     if ( crateVector[i]->IsAlive() ) {
-       //
-       SetCurrentCrate(i);	
-       //
-       CheckPeripheralCrateFirmware();
-       //
-       crates_firmware_ok &= crate_firmware_ok[i];
-     } else {
-       //
-       crate_firmware_ok[i] = -1;
-     }
-   }
-   //
-   SetCurrentCrate(initial_crate);
-   //
-   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;") << std::endl;
-   *out << cgicc::legend("Firmware Version Readback Does Not Match Expected").set("style","color:blue") << cgicc::p() << std::endl ;
-   //
-   char date_and_time[13];
-   //
-   if (crates_firmware_ok >= 0) {
-     //
-     OutputCheckFirmware.str(""); //clear the output string
-     //
-     // get the date and time of this check:
-     time_t rawtime;
-     struct tm * timeinfo;
-     //
-     time ( &rawtime );
-     timeinfo = localtime ( &rawtime );
-     //
-     int yearAD = timeinfo->tm_year + 1900;
-     int month_counting_from_one = timeinfo->tm_mon + 1;
-     int day = timeinfo->tm_mday;
-     int hour = timeinfo->tm_hour;     
-     int minute = timeinfo->tm_min;     
-     //
-     //
-     sprintf(date_and_time,"%4u%02u%02u_%02u%02u",yearAD,month_counting_from_one,day,hour,minute);
-     //
-     *out                << "date_time = " << date_and_time << cgicc::br() << std::endl;
-     OutputCheckFirmware << "date_time = " << date_and_time                << std::endl;
-     //
-     for(unsigned crate_number=0; crate_number< crateVector.size(); crate_number++) {
       //
-      SetCurrentCrate(crate_number);
-      //
-      if (crate_firmware_ok[current_crate_] == 0) {
+      if (
+	  alctcfg_ok[crate_index][chamber_index]           != number_of_hard_resets_ ||
+	  alct_lvmb_current_ok[crate_index][chamber_index] != number_of_hard_resets_ || 
+	  alct_adc_current_ok[crate_index][chamber_index]  != number_of_hard_resets_ || 
+	  alct_firmware_ok[crate_index][chamber_index]     != number_of_hard_resets_  
+	  ) {
+	crate_to_reload.push_back(crate_index);
+	slot_to_reload.push_back(tslot);
+	component_to_reload.push_back(ALCT_LABEL);
 	//
-	*out << cgicc::span().set("style","color:black");
+	std::ostringstream problem_label;
+	problem_label << "ALCT"; 
+	component_string.push_back(problem_label.str());
 	//
-	// There is something not right with this chamber's firmware, print out the information for all 
-	// components in a comma separated format:
-	//
-        if (ccb_firmware_ok[current_crate_] == 0) {
-	  *out                << crateVector[crate_number]->GetLabel() <<", CCB " << cgicc::br() << std::endl ;
-	  OutputCheckFirmware << crateVector[crate_number]->GetLabel() <<", CCB "                << std::endl ;
+	std::ostringstream reason;
+	if (alct_firmware_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
+	  int number_of_bad_readings = number_of_hard_resets_ - alct_firmware_ok[crate_index][chamber_index];
+	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
 	}
 	//
-        if (mpc_firmware_ok[current_crate_] == 0) {
-	  *out                << crateVector[crate_number]->GetLabel() <<", MPC " << cgicc::br() << std::endl ;
-	  OutputCheckFirmware << crateVector[crate_number]->GetLabel() <<", MPC "                << std::endl ;
+	if (alctcfg_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
+	  int number_of_bad_readings = number_of_hard_resets_ - alctcfg_ok[crate_index][chamber_index];
+	  reason << "CCB cfg bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
 	}
-        //
-	for (unsigned chamber_index=0; chamber_index<(tmbVector.size()<9?tmbVector.size():9) ; chamber_index++) {
-	  //
-	  bool tmb_ok = true;
-	  bool alct_ok = true;
-	  bool dmb_vme_ok = true;
-	  bool dmb_control_ok = true;
-	  bool cfeb_ok[5] = {true,true,true,true,true};
-	  //
-	  if (tmb_firmware_ok[current_crate_][chamber_index] == 0)  tmb_ok = false;
-	  if (alct_firmware_ok[current_crate_][chamber_index] == 0) alct_ok = false;
-	  if (dmb_vme_firmware_ok[current_crate_][chamber_index] == 0)  dmb_vme_ok = false;
-	  if (dmb_control_firmware_ok[current_crate_][chamber_index] == 0)  dmb_control_ok = false;
-	  //
-	  std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	  typedef std::vector<CFEB>::iterator CFEBItr;
-	  for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-	    int cfeb_index = (*cfebItr).number();
-	    if (cfeb_firmware_ok[current_crate_][chamber_index][cfeb_index] == 0)  cfeb_ok[cfeb_index] = false;
-	  }
-	  //
-	  if (!tmb_ok || !alct_ok || !dmb_vme_ok || !dmb_control_ok || !cfeb_ok[0] || !cfeb_ok[1] || !cfeb_ok[2] || !cfeb_ok[3] || !cfeb_ok[4]) {
-	    //
-	    // crate, chamber
-	    *out                << crateVector[crate_number]->GetLabel() << ", " 
-				<< thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str();
-	    OutputCheckFirmware << crateVector[crate_number]->GetLabel() << ", " 
-				<< thisCrate->GetChamber(tmbVector[chamber_index]->slot())->GetLabel().c_str();
-	    //
-	    // TMB, ALCT, DMB VME, DMB control
-	    if (!tmb_ok) { 
-	      *out                << ", TMB";         
-	      OutputCheckFirmware << ", TMB";         
-	    } else { 
-	      *out                << ", "; 
-	      OutputCheckFirmware << ", "; 
-	    }	      
-	    if (!alct_ok) { 
-	      *out                << ", ALCT";        
-	      OutputCheckFirmware << ", ALCT";        
-	    } else { 
-	      *out                << ", "; 
-	      OutputCheckFirmware << ", "; 
-	    }	      
-	    if (!dmb_vme_ok) { 
-	      *out                << ", DMB VME";     
-	      OutputCheckFirmware << ", DMB VME";     
-	    } else { 
-	      *out                << ", "; 
-	      OutputCheckFirmware << ", "; 
-	    }	      
-	    if (!dmb_control_ok) { 
-	      *out                << ", DMB control"; 
-	      OutputCheckFirmware << ", DMB control"; 
-	    } else { 
-	      *out                << ", "; 
-	      OutputCheckFirmware << ", "; 
-	    }	      
-	    //
-	    std::vector<CFEB> cfebs = dmbVector[chamber_index]->cfebs() ;
-	    typedef std::vector<CFEB>::iterator CFEBItr;
-	    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-	      int cfeb_index = (*cfebItr).number();
-	      if (!cfeb_ok[cfeb_index]) { 
-		*out                << ", CFEB" << cfeb_index+1; 
-		OutputCheckFirmware << ", CFEB" << cfeb_index+1; 
-	      } else { 
-		*out                << ", "; 
-		OutputCheckFirmware << ", "; 
-	      }	      
-	    }
-	    *out                << cgicc::br() << std::endl ;
-	    OutputCheckFirmware                << std::endl ;
-	  }
+	//
+	if (alct_adc_current_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
+	  int number_of_bad_readings = number_of_hard_resets_ - alct_adc_current_ok[crate_index][chamber_index];
+	  reason << "I(ADC) bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
 	}
-	*out << cgicc::span() << std::endl ;
 	//
-      } else if (crate_firmware_ok[current_crate_] == -1) {
+	if (alct_lvmb_current_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
+	  int number_of_bad_readings = number_of_hard_resets_ - alct_lvmb_current_ok[crate_index][chamber_index];
+	  reason << "I(LVMB) bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	}
 	//
-	*out << crateVector[crate_number]->GetLabel() << std::endl ;
-	//
-	*out << cgicc::span().set("style","color:blue");
-	*out << " firmware not checked" << cgicc::br();
-	*out << cgicc::span() << std::endl ;
+	reason_for_reload.push_back(reason.str());
+	loaded_ok.push_back(-1);
       }
       //
+      if (
+	  tmbcfg_ok[crate_index][chamber_index]       != number_of_hard_resets_ || 
+	  tmb_firmware_ok[crate_index][chamber_index] != number_of_hard_resets_  
+	  ) {
+	crate_to_reload.push_back(crate_index);
+	slot_to_reload.push_back(tslot);
+	component_to_reload.push_back(TMB_LABEL);
+	//
+	std::ostringstream problem_label;
+	problem_label << "TMB"; 
+	component_string.push_back(problem_label.str());
+	//
+	std::ostringstream reason;
+	if (tmb_firmware_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
+	  int number_of_bad_readings = number_of_hard_resets_ - tmb_firmware_ok[crate_index][chamber_index];
+	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	}
+	//
+	if (tmbcfg_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
+	  int number_of_bad_readings = number_of_hard_resets_ - tmbcfg_ok[crate_index][chamber_index];
+	  reason << "cfg bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	}
+	//
+	reason_for_reload.push_back(reason.str());
+	loaded_ok.push_back(-1);
+      }
+      //
+      if (dmb_vme_firmware_ok[crate_index][chamber_index] != number_of_hard_resets_ ) { 
+	crate_to_reload.push_back(crate_index);
+	slot_to_reload.push_back(dslot);
+	component_to_reload.push_back(DMB_VME_LABEL);
+	//
+	std::ostringstream problem_label;
+	problem_label << "DMB VME"; 
+	component_string.push_back(problem_label.str());
+	//
+	std::ostringstream reason;
+	if (dmb_vme_firmware_ok[crate_index][chamber_index]     != number_of_hard_resets_ ) {
+	  int number_of_bad_readings = number_of_hard_resets_ - dmb_vme_firmware_ok[crate_index][chamber_index];
+	  reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	}
+	//
+	reason_for_reload.push_back(reason.str());
+	loaded_ok.push_back(-1);
+      }
+      //  
+      // The following will always check ME1/3, because the dmbcfg check will never pass for ME1/3, see above
+      if (dmbcfg_ok[crate_index][chamber_index] != number_of_hard_resets_ ) {
+	//
+	if (dmb_control_firmware_ok[crate_index][chamber_index] < number_of_hard_resets_ ) {
+	  crate_to_reload.push_back(crate_index);
+	  slot_to_reload.push_back(dslot);
+	  component_to_reload.push_back(DMB_CONTROL_LABEL);
+	  //
+	  std::ostringstream problem_label;
+	  problem_label << "DMB Control"; 
+	  component_string.push_back(problem_label.str());
+	  //
+	  std::ostringstream reason;
+	  if (dmb_control_firmware_ok[crate_index][chamber_index]     < number_of_hard_resets_ ) {
+	    int number_of_bad_readings = number_of_hard_resets_ - dmb_control_firmware_ok[crate_index][chamber_index];
+	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	  }
+	  //
+	  reason_for_reload.push_back(reason.str());
+	  loaded_ok.push_back(-1);
+	}
+      }
+      //
+      for(unsigned int cfeb_index=0;cfeb_index<thisCFEBs.size();cfeb_index++){
+	if (
+	    cfeb_firmware_ok[crate_index][chamber_index][cfeb_index] < number_of_hard_resets_ ||
+	    cfeb_current_ok[crate_index][chamber_index][cfeb_index]  < number_of_hard_resets_ 
+	    ) {
+	  crate_to_reload.push_back(crate_index);
+	  slot_to_reload.push_back(dslot);
+	  component_to_reload.push_back(CFEB_LABEL[cfeb_index]);
+	  //
+	  std::ostringstream problem_label;
+	  problem_label << "CFEB " << cfeb_index+1; 
+	  component_string.push_back(problem_label.str());
+	  //
+	  std::ostringstream reason;
+	  if (cfeb_firmware_ok[crate_index][chamber_index][cfeb_index]     < number_of_hard_resets_ ) {
+	    int number_of_bad_readings = number_of_hard_resets_ - cfeb_firmware_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "userID bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	  }
+	  //
+	  if (cfeb_current_ok[crate_index][chamber_index][cfeb_index]     < number_of_hard_resets_ ) {
+	    int number_of_bad_readings = number_of_hard_resets_ - cfeb_current_ok[crate_index][chamber_index][cfeb_index];
+	    reason << "I(LVMB) bad " << number_of_bad_readings << "/" << number_of_hard_resets_ << " times ";
+	  }
+	  //
+	  reason_for_reload.push_back(reason.str());
+	  loaded_ok.push_back(-1);
+	}
+      } 
+      //
+    }    //loop over chambers 
+  }      //loop over crates
+  //
+  //
+  // Log the output...
+  //
+  char date_and_time[13];
+  //
+  OutputCheckFirmware.str(""); //clear the output string
+  //
+  // get the date and time of this check:
+  time_t rawtime;
+  struct tm * timeinfo;
+  //
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  //
+  int yearAD = timeinfo->tm_year + 1900;
+  int month_counting_from_one = timeinfo->tm_mon + 1;
+  int day = timeinfo->tm_mday;
+  int hour = timeinfo->tm_hour;     
+  int minute = timeinfo->tm_min;     
+  //
+  //
+  sprintf(date_and_time,"%4u%02u%02u_%02u%02u",yearAD,month_counting_from_one,day,hour,minute);
+  //
+  //  *out                << "date_time = " << date_and_time << cgicc::br() << std::endl;
+  OutputCheckFirmware << "date_time = " << date_and_time                << std::endl;
+  OutputCheckFirmware << "Crate, Chamber, slot, Component, Problem "    << std::endl;
+  //
+  //
+  for (unsigned problem_index=0; problem_index<crate_to_reload.size(); problem_index++) {
+    int problem_crate     = crate_to_reload[problem_index];
+    int problem_slot      = slot_to_reload[problem_index];
+    //
+    SetCurrentCrate(problem_crate);
+    //
+    int within_crate_problem_index = -1;
+    for (unsigned int chamber_index=0; chamber_index<dmbVector.size(); chamber_index++) {
+      DAQMB * thisDMB = dmbVector[chamber_index];
+      int dslot = thisDMB->slot();
+      //
+      TMB * thisTMB   = tmbVector[chamber_index];
+      int tslot = thisTMB->slot();
+      //
+      if (dslot == problem_slot || tslot == problem_slot) 
+	within_crate_problem_index = chamber_index;
     }
+    //
+    if (within_crate_problem_index < 0) continue;  // this is a CCB or MPC.  skip it for the time being
+    //
+    Chamber * thisChamber = chamberVector[within_crate_problem_index];
+    //
+    OutputCheckFirmware << thisCrate->GetLabel()            << ", ";
+    OutputCheckFirmware << thisChamber->GetLabel()          << ", ";
+    OutputCheckFirmware << problem_slot                     << ", ";
+    OutputCheckFirmware << component_string[problem_index]  << ", ";
+    OutputCheckFirmware << reason_for_reload[problem_index] << std::endl;
+    //
   }
-  //
-  //
-  *out << cgicc::fieldset();
-  //
-  // write the output file at the end of the check
+  // write the output file
   //
   // The peripheral crate labels have the convention:  VME[p,n]N_M.  Here we use 
   // the "p" or "n" to label which endcap we are checking the firmware status on...
@@ -3505,97 +3473,318 @@ void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out
   LogFileCheckFirmware << OutputCheckFirmware.str() ;
   LogFileCheckFirmware.close();
   //
+  firmware_checked_ = 1;
+  SetCurrentCrate(initial_crate);
+  //
+  this->PowerOnFixCFEB(in,out);
+}
+//
+void EmuPeripheralCrateConfig::PowerOnFixCFEB(xgi::Input * in, xgi::Output * out )
+  throw (xgi::exception::Exception) {
+  //
+  MyHeader(in,out,"Check System Firmware");
+  //
+  char buf[200];
+  //
+  *out << cgicc::br();
+  std::string SetNumberOfHardResets = toolbox::toString("/%s/SetNumberOfHardResets",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",SetNumberOfHardResets) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Number of iterations (~1 minute per iteration)").set("style","color:black") << std::endl ;
+  sprintf(buf,"%d",number_of_hard_resets_);
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","number_of_hard_resets") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::br();
+  //
+  //
+  std::string CheckFirmware = toolbox::toString("/%s/CheckFirmware",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",CheckFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Check firmware in CFEBs and ALCTs").set("style","color:black") << std::endl ;
+  *out << cgicc::form() << std::endl ;
+  //
+  int initial_crate = current_crate_;
+  //
+  if (firmware_checked_ == 1) {
+    //
+    // list the problems found...
+    //
+    *out << "The following FPGAs showed problems.  Number of hard resets issued = " << number_of_hard_resets_ << std::endl;
+    *out << cgicc::table().set("border","1");
+    *out << cgicc::tr();
+    *out << cgicc::td() << " Crate "     << cgicc::td();
+    *out << cgicc::td() << " Chamber "   << cgicc::td();
+    *out << cgicc::td() << " Slot "      << cgicc::td();
+    *out << cgicc::td() << " Component " << cgicc::td();
+    *out << cgicc::td() << " Reason "    << cgicc::td();
+    *out << cgicc::tr() << std::endl;
+    //
+    for (unsigned problem_index=0; problem_index<crate_to_reload.size(); problem_index++) {
+      int problem_crate     = crate_to_reload[problem_index];
+      int problem_slot      = slot_to_reload[problem_index];
+      int problem_component = component_to_reload[problem_index];
+      //
+      SetCurrentCrate(problem_crate);
+      //
+      int within_crate_problem_index = -1;
+      for (unsigned int chamber_index=0; chamber_index<dmbVector.size(); chamber_index++) {
+	DAQMB * thisDMB = dmbVector[chamber_index];
+        int dslot = thisDMB->slot();
+	//
+	TMB * thisTMB   = tmbVector[chamber_index];
+	int tslot = thisTMB->slot();
+	//
+	if (dslot == problem_slot || tslot == problem_slot) 
+	  within_crate_problem_index = chamber_index;
+      }
+      //
+      if (within_crate_problem_index < 0) continue;  // this is a CCB or MPC.  skip it for the time being
+      //
+      Chamber * thisChamber = chamberVector[within_crate_problem_index];
+      //
+      *out << cgicc::tr();
+      *out << cgicc::td() << thisCrate->GetLabel()            << cgicc::td();
+      *out << cgicc::td() << thisChamber->GetLabel()          << cgicc::td();
+      *out << cgicc::td() << problem_slot                     << cgicc::td();
+      *out << cgicc::td() << component_string[problem_index]  << cgicc::td();
+      *out << cgicc::td() << reason_for_reload[problem_index] << cgicc::td();
+      *out << cgicc::td();
+      std::string FixCFEB = toolbox::toString("/%s/FixCFEB",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
+      if (loaded_ok[problem_index] < 0) {
+	*out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:blue") << std::endl ;
+      } else if (loaded_ok[problem_index] == 0) {
+	*out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:green") << std::endl ;
+      } else if (loaded_ok[problem_index] > 0) {
+	*out << cgicc::input().set("type","submit").set("value","Load Firmware").set("style","color:red") << std::endl ;
+      }
+      sprintf(buf,"%d",problem_crate);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+      sprintf(buf,"%d",within_crate_problem_index);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
+      sprintf(buf,"%d",problem_component);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+      sprintf(buf,"%d",problem_index);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
+      *out << cgicc::form() << std::endl ;
+      *out << cgicc::td();
+      //
+      *out << cgicc::td();
+      *out << cgicc::form().set("method","GET").set("action",FixCFEB) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","CCB Hard Reset").set("style","color:black") << std::endl ;
+      sprintf(buf,"%d",problem_crate);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncrt");
+      sprintf(buf,"%d",within_crate_problem_index);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ndmb");
+      sprintf(buf,"%d",problem_component);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncfeb");
+      int ccb_hard_reset = -1;
+      sprintf(buf,"%d",ccb_hard_reset);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ncmd"); 
+      *out << cgicc::form() << std::endl ;
+      *out << cgicc::td();
+      //
+      *out << cgicc::tr() << std::endl;
+    }
+    *out << cgicc::table() << std::endl;
+  }
+  //
+  SetCurrentCrate(initial_crate);
+  //
 }
 //
 void EmuPeripheralCrateConfig::FixCFEB(xgi::Input * in, xgi::Output * out )
   throw (xgi::exception::Exception) {
-  std::cout << " Entered FixCFEB " << std::endl;
+  std::cout << "Entered FixCFEB" << std::endl;
   cgicc::Cgicc cgi(in);
   //
   cgicc::form_iterator name1 = cgi.getElement("ncrt");
-  int ncrt;
+  int crate_index;
   if(name1 != cgi.getElements().end()) {
-    ncrt = cgi["ncrt"]->getIntegerValue();
-    std::cout << "ncrt " << ncrt << std::endl;
+    crate_index = cgi["ncrt"]->getIntegerValue();
+    std::cout << "crate_index = " << crate_index << std::endl;
   } else {
-    std::cout << "Not ncrt" << std::endl ;
-    ncrt=-1;
+    std::cout << "No crate_index" << std::endl ;
+    crate_index=-1;
   }
   cgicc::form_iterator name2 = cgi.getElement("ndmb");
-  int ndmb;
+  int chamber_index;
   if(name2 != cgi.getElements().end()) {
-    ndmb = cgi["ndmb"]->getIntegerValue();
-    std::cout << "ndmb " << ndmb << std::endl;
+    chamber_index = cgi["ndmb"]->getIntegerValue();
+    std::cout << "chamber_index = " << chamber_index << std::endl;
   } else {
-    std::cout << "Not ndmb" << std::endl ;
-    ndmb=-1;
+    std::cout << "No chamber_index" << std::endl ;
+    chamber_index=-1;
   }
   cgicc::form_iterator name3 = cgi.getElement("ncfeb");
-  int ncfeb;
+  int problem_component;
   if(name3 != cgi.getElements().end()) {
-    ncfeb = cgi["ncfeb"]->getIntegerValue();
-    std::cout << "ncfeb " << ncfeb << std::endl;
+    problem_component = cgi["ncfeb"]->getIntegerValue();
+    std::cout << "problem_component = " << problem_component << std::endl;
   } else {
-    std::cout << "Not ncfeb" << std::endl ;
-    ncfeb=-1;
+    std::cout << "No problem_component" << std::endl ;
+    problem_component=-1;
   }
+  //
   cgicc::form_iterator name4 = cgi.getElement("ncmd");
-  int ncmd;
+  int problem_index;
   if(name4 != cgi.getElements().end()) {
-    ncmd = cgi["ncmd"]->getIntegerValue();
-    std::cout << "ncnd " << ncmd << std::endl;
+    problem_index = cgi["ncmd"]->getIntegerValue();
+    std::cout << "problem_index = " << problem_index << std::endl;
   } else {
-    std::cout << "Not ncmd" << std::endl ;
-    ncmd=-1;
+    std::cout << "No problem_index" << std::endl ;
+    problem_index=-2;
   }
-
-  if(ncrt>-1&&ndmb>-1&&ncfeb>-1&&ncmd>-1){
-    SetCurrentCrate(ncrt);
-    DAQMB * thisDMB = dmbVector[ndmb];
-    std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
-    CFEB thisCFEB = thisCFEBs[ncfeb];
-
-    if(ncmd==1){
-      thisDMB->lowv_onoff(0x20);
-      usleep(500000);
-      thisDMB->lowv_onoff(0x3f);
-    }
-
-    if(ncmd==2){
-      // now readback bit contents of prom
-      char * outp="....";    // recast dword
-      thisDMB->epromload_verify(thisCFEB.promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
-      std::cout << " time calculation " << std::endl;
-      time_t rawtime;
-      time(&rawtime);
-      std::string buf;
-      std::string time_dump = ctime(&rawtime);
-      std::string time = time_dump.substr(0,time_dump.length()-1);
-      while( time.find(" ",0) != std::string::npos ) {
-        int thispos = time.find(" ",0);
-        time.replace(thispos,1,"_");
+  //
+  //
+  int initial_crate = current_crate_;
+  //
+  if(crate_index>-1 && chamber_index>-1 && problem_component>-1 && problem_index>-1){
+    //
+    SetCurrentCrate(crate_index);
+    //
+    if (problem_component == CCB_LABEL) {
+      //
+      //
+    } else if (problem_component == MPC_LABEL) {
+      //
+      //
+    } else if (problem_component == TMB_LABEL) {
+      //
+      //
+    } else if (problem_component == ALCT_LABEL) {
+      //
+      TMB * thisTMB = tmbVector[chamber_index];
+      ALCTController  * thisALCT = thisTMB->alctController();
+      //
+      if (!thisALCT) {
+	std::cout << "This ALCT not defined" << std::endl;
+	SetCurrentCrate(initial_crate);
+	this->PowerOnFixCFEB(in,out);
       }
-      std::cout << "time " << time << std::endl;
-      std::string temp = toolbox::toString("mv eprom.bit /tmp/verify_%s_slot%d_cfeb%d_%s.bit",crateVector[ncrt]->GetLabel().c_str(),thisDMB->slot(),thisCFEB.number()+1,time.c_str());
-      std::cout  << temp << std::endl;
-      system(temp.c_str());
-
-      // now reprogram the prom
+      //
+      int config_check = thisALCT->CheckFirmwareConfiguration();
+      //
+      if (config_check == 0 || config_check > 1) {
+	std::cout << "----------------------------------------------------------------" << std::endl;
+	std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
+	std::cout << "---- Firmware database check did not pass for this crate. ------" << std::endl;
+	std::cout << "---- ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR------" << std::endl;
+	std::cout << "----------------------------------------------------------------" << std::endl;
+	SetCurrentCrate(initial_crate);
+	this->PowerOnFixCFEB(in,out);
+      }
+      //
+      //
+      // Put CCB in FPGA mode to make the CCB ignore TTC commands (such as hard reset) during ALCT downloading...
+      thisCCB->setCCBMode(CCB::VMEFPGA);
+      //
+      LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware");
+      //
+      std::cout <<  "Loading ALCT firmware to slot " << thisTMB->slot() 
+		<< " with " << ALCTFirmware_[chamber_index].toString() 
+		<< " in 5 seconds...  Current firmware types are:" << std::endl;
+      //
+      thisALCT->ReadSlowControlId();
+      thisALCT->PrintSlowControlId();
+      //
+      thisALCT->ReadFastControlId();
+      thisALCT->PrintFastControlId();
+      //
+      ::sleep(5);
+      //
+      thisTMB->disableAllClocks();
+      //
+      thisTMB->SetXsvfFilename(ALCTFirmware_[chamber_index].toString().c_str());
+      thisALCT->ProgramALCTProms();
+      thisTMB->ClearXsvfFilename();
+      loaded_ok[problem_index] = thisTMB->GetNumberOfVerifyErrors();
+      //
+      // programming with svf file to be deprecated, since it cannot verify...
+      //  int debugMode(0);
+      //  int jch(3);
+      //  int status = thisALCT->SVFLoad(&jch,ALCTFirmware_[chamber_index].toString().c_str(),debugMode);
+      //
+      thisTMB->enableAllClocks();
+      //
+      if (loaded_ok[problem_index] >= 0){
+	LOG4CPLUS_INFO(getApplicationLogger(), "Program ALCT firmware finished");
+	std::cout << "=== Programming finished"<< std::endl;
+	std::cout << "=== " << loaded_ok[problem_index] << " Verify Errors  occured" << std::endl;
+      } else {
+	std::cout << "=== Fatal Error. Exiting with " << loaded_ok[problem_index] << std::endl;
+      }
+      //
+      // Put CCB back into DLOG mode to listen to TTC commands...
+      thisCCB->setCCBMode(CCB::DLOG);
+      //
+      //
+    } else if (problem_component == DMB_VME_LABEL) {
+      //
+      //
+    } else if (problem_component == DMB_CONTROL_LABEL) {
+      //
+      //
+    } else if (problem_component == CFEB_LABEL[0] ||
+	       problem_component == CFEB_LABEL[1] ||
+	       problem_component == CFEB_LABEL[2] ||
+	       problem_component == CFEB_LABEL[3] ||
+	       problem_component == CFEB_LABEL[4] ) {
+      //
+      int cfeb_index = problem_component - CFEB_LABEL[0];      // begin CFEB indexing at 0
+      //
+      DAQMB * thisDMB = dmbVector[chamber_index];
+      std::vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      //
       unsigned short int dword[2];
-      dword[0]=thisDMB->febpromuser(thisCFEB);
-      char * outp2=(char *)dword;   // recast dword
-      thisDMB->epromload(thisCFEB.promDevice(),CFEBFirmware_.toString().c_str(),1,outp2);
-      // now do a hard reset
-      thisDMB->lowv_onoff(0x20);
-      usleep(500000);
-      thisDMB->lowv_onoff(0x3f);
- 
+      for (unsigned int i=0; i<thisCFEBs.size(); i++) {
+	if (thisCFEBs[i].number() == cfeb_index ) {
+	  dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
+	  CFEBid_[chamber_index][i] = dword[0];  // fill summary file with user ID value read from this CFEB
+	  char * outp=(char *)dword;   // recast dword
+	  thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
+	}
+      }
+      loaded_ok[problem_index] = 0;
+      //    
     }
-
-    if(ncmd==3){
-      thisCCB->hardReset(); 
-    }
+  }  else if(problem_index == -1){
+    //
+    SetCurrentCrate(crate_index);
+    thisCCB->hardReset(); 
+    //
   }
+  //
+  SetCurrentCrate(initial_crate);
+  //
+  //
+  //    if(ncmd==2){
+  //      // now readback bit contents of prom
+  //      char * outp="....";    // recast dword
+  //      thisDMB->epromload_verify(thisCFEB.promDevice(),CFEBVerify_.toString().c_str(),1,outp);  // load mprom
+  //      std::cout << " time calculation " << std::endl;
+  //      time_t rawtime;
+  //      time(&rawtime);
+  //      std::string buf;
+  //      std::string time_dump = ctime(&rawtime);
+  //      std::string time = time_dump.substr(0,time_dump.length()-1);
+  //      while( time.find(" ",0) != std::string::npos ) {
+  //        int thispos = time.find(" ",0);
+  //        time.replace(thispos,1,"_");
+  //      }
+  //      std::cout << "time " << time << std::endl;
+  //      std::string temp = toolbox::toString("mv eprom.bit /tmp/verify_%s_slot%d_cfeb%d_%s.bit",crateVector[crate_index]->GetLabel().c_str(),thisDMB->slot(),thisCFEB.number()+1,time.c_str());
+  //      std::cout  << temp << std::endl;
+  //      system(temp.c_str());
+  
+  // now reprogram the prom
+  //      unsigned short int dword[2];
+  //    dword[0]=thisDMB->febpromuser(thisCFEB);
+  //    char * outp2=(char *)dword;   // recast dword
+  //    thisDMB->epromload(thisCFEB.promDevice(),CFEBFirmware_.toString().c_str(),1,outp2);
+  //    // now do a hard reset
+  //    thisDMB->lowv_onoff(0x20);
+  //    usleep(500000);
+  //    thisDMB->lowv_onoff(0x3f);
+  //
   this->PowerOnFixCFEB(in,out);
 }
 //
@@ -5435,6 +5624,24 @@ void EmuPeripheralCrateConfig::setTMBCounterReadValues(xgi::Input * in, xgi::Out
   MyTest[tmb][current_crate_].setPauseAtEachSetting(time_to_pause);
   //
   this->ChamberTests(in,out);
+  //
+}
+//
+void EmuPeripheralCrateConfig::SetNumberOfHardResets(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  std::cout << "in here..." << std::endl;
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("number_of_hard_resets");
+  //
+  if(name != cgi.getElements().end()) {
+    number_of_hard_resets_ = strtol(cgi["number_of_hard_resets"]->getValue().c_str(),NULL,10);
+    std::cout << "Setting number of hard resets to " << number_of_hard_resets_ << std::endl;
+  }
+  //
+  this->PowerOnFixCFEB(in,out);
   //
 }
 //
