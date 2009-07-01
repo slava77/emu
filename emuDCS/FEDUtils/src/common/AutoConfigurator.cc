@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.cc,v 1.2 2009/06/13 17:59:45 paste Exp $
+* $Id: AutoConfigurator.cc,v 1.3 2009/07/01 14:51:40 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AutoConfigurator.h"
@@ -57,7 +57,7 @@ throw (emu::fed::exception::ConfigurationException)
 					if (idCode == 0x05036093) {
 						// Read all the normal configuration information from the board itself
 						testDDU->gbe_prescale_ = testDDU->readGbEPrescale();
-						testDDU->killfiber_ = testDDU->readKillFiber();
+						testDDU->killfiber_ = (testDDU->readKillFiber() & 0xf7000) | (testDDU->readFlashKillFiber());
 						ruiTotal += testDDU->readFlashRUI();
 						testCrate->addBoard(testDDU);
 						continue;

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.h,v 1.4 2009/06/13 17:59:45 paste Exp $
+* $Id: DBAgent.h,v 1.5 2009/07/01 14:51:40 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBAGENT_H__
 #define __EMU_FED_DBAGENT_H__
@@ -64,9 +64,7 @@ namespace emu {
 			/** Get all matching rows from the table given a configuration key. **/
 			xdata::Table getByKey(xdata::UnsignedInteger64 &key)
 			throw (emu::fed::exception::DBException);
-
-		protected:
-		
+			
 			/** Required to make maps with xdata::UnsignedInteger64 keys. 
 			*
 			*	@note Seriously?  Who is responsibile for defining special comparison operators without defining const versions of the same?  Good thing I'm a c++ ninja, or this would end me.
@@ -74,6 +72,8 @@ namespace emu {
 			struct comp {
 				bool operator() (const xdata::UnsignedInteger64 &lhs, const xdata::UnsignedInteger64 &rhs) const { return *(const_cast<xdata::UnsignedInteger64 *>(&lhs)) < *(const_cast<xdata::UnsignedInteger64 *>(&rhs)); }
 			};
+
+		protected:
 			
 			/** Send a SOAP message to the given application **/
 			xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message, const std::string &klass, const int instance = -1)
