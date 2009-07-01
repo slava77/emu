@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: EmuFCrateHyperDAQ.h,v 1.3 2009/06/13 17:59:08 paste Exp $
+* $Id: EmuFCrateHyperDAQ.h,v 1.4 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_EMUFCRATEHYPERDAQ_H__
 #define __EMU_FED_EMUFCRATEHYPERDAQ_H__
@@ -222,6 +222,9 @@ namespace emu {
 			
 			/// The crates that are under direct control of this application.
 			std::vector<Crate*> crateVector_;
+			
+			/// For backwards compatability.
+			xdata::String systemName_;
 
 		};
 		

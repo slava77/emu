@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.cc,v 1.11 2009/06/15 17:25:45 paste Exp $
+* $Id: Manager.cc,v 1.12 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Manager.h"
 
@@ -23,8 +23,6 @@ emu::base::WebReporter(stub),
 ttsID_(0),
 ttsBits_(0)
 {
-	// The name of the "endcap," which determines certain file names
-	systemName_ = "Manager";
 
 	// Variables that are to be made available to other applications
 	xdata::InfoSpace *infoSpace = getApplicationInfoSpace();
@@ -33,7 +31,8 @@ ttsBits_(0)
 
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Manager::webDefault, "Default");
-	xgi::bind(this, &emu::fed::Manager::webGetStatus, "GetStatus");
+	xgi::bind(this, &emu::fed::Manager::webGetSystemStatus, "GetSystemStatus");
+	xgi::bind(this, &emu::fed::Manager::webGetCommunicatorStatus, "GetCommunicatorStatus");
 
 	// SOAP call-back functions which fire the transitions to the FSM
 	BIND_DEFAULT_SOAP2FSM_ACTION(Manager, Configure);
@@ -95,25 +94,26 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("errorFlasher.js");
-	jsFileNames.push_back("common.js");
+	jsFileNames.push_back("definitions.js");
 	jsFileNames.push_back("manager.js");
+	jsFileNames.push_back("common.js");
 	*out << Header("FED Crate Manager", jsFileNames);
 
 	
 	// Current condition of the FED system
 	*out << cgicc::div()
-		.set("class", "titlebar")
+		.set("class", "titlebar default_width")
 		.set("id", "FED_System_Status_titlebar") << std::endl;
 	*out << cgicc::div("FED System Status")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::div()
-		.set("class", "statusbar")
+		.set("class", "statusbar default_width")
 		.set("id", "FED_System_Status_statusbar") << std::endl;
-	*out << cgicc::div("Time since last update:")
+	*out << cgicc::div("Time of last update:")
 		.set("class", "timetext") << std::endl;
-	*out << cgicc::div("0:00")
+	*out << cgicc::div("never")
 		.set("class", "loadtime")
 		.set("id", "FED_System_Status_loadtime") << std::endl;
 	*out << cgicc::img()
@@ -126,7 +126,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset()
-		.set("class", "dialog")
+		.set("class", "dialog default_width")
 		.set("id", "FED_System_Status_dialog") << std::endl;
 	
 	*out << cgicc::img()
@@ -171,7 +171,6 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("id", "halt_icon")
 		.set("src", "/emu/emuDCS/FEDApps/images/process-stop.png");
 	*out << "Halt" << std::endl;
 	*out << cgicc::button() << std::endl;
@@ -184,7 +183,6 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("id", "previous_icon")
 		.set("src", "/emu/emuDCS/FEDApps/images/go-next.png");
 	*out << "Enable" << std::endl;
 	*out << cgicc::button() << std::endl;
@@ -197,7 +195,6 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("id", "next_icon")
 		.set("src", "/emu/emuDCS/FEDApps/images/go-previous.png");
 	*out << "Disable" << std::endl;
 	*out << cgicc::button() << std::endl;
@@ -210,7 +207,6 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("id", "next_icon")
 		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
 	*out << "Configure" << std::endl;
 	*out << cgicc::button() << std::endl;
@@ -220,18 +216,18 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	
 	// Current condition of the individual Communicator systems
 	*out << cgicc::div()
-		.set("class", "titlebar")
+		.set("class", "titlebar default_width")
 		.set("id", "FED_Communicator_Status_titlebar") << std::endl;
 	*out << cgicc::div("FED Communicator Application Status")
 		.set("class", "titletext");
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::div()
-		.set("class", "statusbar")
+		.set("class", "statusbar default_width")
 		.set("id", "FED_Communicator_Status_statusbar") << std::endl;
-	*out << cgicc::div("Time since last update:")
+	*out << cgicc::div("Time of last update:")
 		.set("class", "timetext") << std::endl;
-	*out << cgicc::div("0:00")
+	*out << cgicc::div("never")
 		.set("class", "loadtime")
 		.set("id", "FED_Communicator_Status_loadtime") << std::endl;
 	*out << cgicc::img()
@@ -244,7 +240,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset()
-		.set("class", "dialog")
+		.set("class", "dialog default_width")
 		.set("id", "FED_Communicator_Status_dialog") << std::endl;
 		
 	*out << cgicc::div("Waiting for data from the Communicator applications...")
@@ -263,7 +259,7 @@ void emu::fed::Manager::webDefault(xgi::Input *in, xgi::Output *out)
 
 
 
-void emu::fed::Manager::webGetStatus(xgi::Input *in, xgi::Output *out)
+void emu::fed::Manager::webGetSystemStatus(xgi::Input *in, xgi::Output *out)
 {
 	cgicc::Cgicc cgi(in);
 	
@@ -277,14 +273,33 @@ void emu::fed::Manager::webGetStatus(xgi::Input *in, xgi::Output *out)
 	// Make a JSON output object
 	JSONSpirit::Object output;
 	
-	// First get the info from the underlying states
+	// Push back my FSM state
+	output.push_back(JSONSpirit::Pair("state", state_.toString()));
+	
+	// And now return everything as JSON
+	*out << JSONSpirit::write(output);
+}
+
+
+
+void emu::fed::Manager::webGetCommunicatorStatus(xgi::Input *in, xgi::Output *out)
+{
+	cgicc::Cgicc cgi(in);
+	
+	// Need some header information to be able to return JSON
+	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
+		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
+		jsonHeader.addHeader("Content-type", "application/json");
+		out->setHTTPResponseHeader(jsonHeader);
+	}
+	
+	// Make a JSON output object
+	JSONSpirit::Object output;
+	
+	// Get the info from the underlying states
 	JSONSpirit::Array underlyingStatus = getUnderlyingStatus();
-	
-	// Calculate my state
-	std::string myState = getManagerState(state_.toString(), underlyingStatus);
-	
+
 	// Add that to the JSON output
-	output.push_back(JSONSpirit::Pair("state", myState));
 	output.push_back(JSONSpirit::Pair("communicators", underlyingStatus));
 	
 	// And now return everything as JSON

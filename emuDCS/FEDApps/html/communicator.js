@@ -1,11 +1,28 @@
 /*****************************************************************************\
-* $Id: communicator.js,v 1.2 2009/06/13 17:59:08 paste Exp $
+* $Id: communicator.js,v 1.3 2009/07/01 14:54:02 paste Exp $
 \*****************************************************************************/
 
-var reloadElements = ["FED_Communicator_Status", "FED_Communicator_Configuration"];
 var defaultConfigurationMode = "XML";
 
 Event.observe(window, "load", function(event) {
+	
+	var statusReloadElement = new ReloadElement();
+	statusReloadElement.id = "FED_Communicator_Status";
+	statusReloadElement.reloadFunction = getStatus;
+	statusReloadElement.callbackSuccess = updateStatus;
+	statusReloadElement.callbackError = reportErrorAndStop;
+	statusReloadElement.timeToReload = 10;
+	statusReloadElement.timeToError = 60;
+	reloadElements.push(statusReloadElement);
+	
+	var configurationReloadElement = new ReloadElement();
+	configurationReloadElement.id = "FED_Communicator_Configuration";
+	configurationReloadElement.reloadFunction = getConfiguration;
+	configurationReloadElement.callbackSuccess = updateConfiguration;
+	configurationReloadElement.callbackError = reportErrorAndStop;
+	configurationReloadElement.timeToReload = 10;
+	configurationReloadElement.timeToError = 60;
+	reloadElements.push(configurationReloadElement);
 	
 	// enable buttons with check-box
 	$("enable_buttons").observe("change", function(ev) {
@@ -28,7 +45,7 @@ Event.observe(window, "load", function(event) {
 		}
 		element.observe("click", function(ev) {
 			$$("button.statechange").each(function(el) { el.disabled = true; });
-			doCommand(ev.element().readAttribute("command"));
+			doCommand(ev.element().readAttribute("command"), statusReloadElement);
 		});
 	});
 	
@@ -37,70 +54,43 @@ Event.observe(window, "load", function(event) {
 		element.observe("change", function(ev) {
 			var el = ev.element();
 			if (el.checked) {
-				changeConfigMode(el.value);
+				changeConfigMode(el.value, configurationReloadElement);
 			}
 		});
 	});
 	
 	// Make the configuration file change automatically submit.
 	$("xml_file_select").observe("change", function(ev) {
-		changeXMLFile();
+		changeXMLFile($("xml_file_select").value, configurationReloadElement);
+	});
+	
+	// Make the DB key change automatically submit.
+	$("db_key_select").observe("change", function(ev) {
+		changeDBKey($("db_key_select").value, configurationReloadElement);
 	});
 	
 });
 
-function changeConfigMode(mode) {
-
-	if (mode != defaultConfigurationMode && !confirm("Changing the configuration mode to something else other than the default is not recommended, and will likely have undesired consequences in future runs.\n\nIf you are sure you wish to change the configuration mode, click \"OK\".  If you want to use the default setting, click \"Cancel\".")) {
-		$$(".config_type").each(function(element) {
-			if (element.value == defaultConfigurationMode) element.checked = true;
-		});
-		return;
-	}
-
-	stop = true;
-
-	var url = URL + "/ChangeConfigMode";
-	var params = {"configMode": mode};
+function getStatus() {
+	// Bind the special callbacks
+	var successCallback = this.callbackSuccess.bind(this);
+	var errorCallback = this.callbackError.bind(this);
+	
+	var url = URL + "/GetStatus";
+	
 	new Ajax.Request(url, {
 		method: "get",
-		parameters: params,
-		onSuccess: finishConfigMode,
-		onFailure: reportError
+		onSuccess: successCallback,
+		onFailure: errorCallback
 	});
 }
 
-function changeXMLFile() {
-	stop = true;
-
-	var url = URL + "/ChangeXMLFile";
-	var params = {"xmlFile": $("xml_file_select").value};
-	new Ajax.Request(url, {
-		method: "get",
-		parameters: params,
-		onSuccess: finishXMLFile,
-		onFailure: reportError
-	});
-}
-
-function finishConfigMode(transport) {
-	var data = transport.responseJSON;
-	stop = false;
-	getStatus();
-}
-
-function finishXMLFile(transport) {
-	var data = transport.responseJSON;
-	stop = false;
-	getStatus();
-}
-
-function updateStates(transport) {
+function updateStatus(transport) {
 	var data = transport.responseJSON;
 	
 	$$(".deleteme").invoke("remove");
 	
-	var state = data["state"] ? data["state"] : "Unknown";
+	var state = data.state ? data.state : "Unknown";
 	var classesToRemove = $("communicator_state").classNames();
 	classesToRemove.each(function(name) {
 		$("communicator_state").removeClassName(name);
@@ -133,43 +123,15 @@ function updateStates(transport) {
 		$("disable_button").disabled = false;
 	}
 	
-	var monitorURL = data["monitorURL"];
+	var monitorURL = data.monitorURL;
 	$("monitorURL").update(monitorURL).setAttribute("href", monitorURL);
-	var commanderURL = data["commanderURL"];
+	var commanderURL = data.commanderURL;
 	$("commanderURL").update(commanderURL).setAttribute("href", commanderURL);
 	
-	var configMode = data["configMode"];
-	if (configMode == "XML") {
-		$("config_type_xml").checked = true;
-		$("xml_file_select").disabled = false;
-	} else if (configMode == "Database") {
-		$("config_type_database").checked = true;
-		$("xml_file_select").disabled = true;
-	} else if (configMode == "Autodetect") {
-		$("config_type_autodetect").checked = true;
-		$("xml_file_select").disabled = true;
-	}
-	
-	var xmlFile = data["xmlFile"];
-	$("xml_file_select").childElements().each(function(element) {
-		if (element.value == data["xmlFile"]) element.selected = true;
-		else element.selected = false;
-	});
-	
-	var systemName = data["systemName"];
+	var systemName = data.systemName;
 	$("application_title").update("FED Crate Communicator (" + systemName + ")");
 	
-	// Unset loading icons
-	reloadElements.each(function(str) {
-		$(str + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/empty.gif");
-	});
-	
-	// Update times since reload
-	reloadElements.each(function(str) {
-		timeSinceReload[str] = 0;
-	});
-	updateTimes();
-	
-	stop = false;
+	this.reset();
 }
+
 

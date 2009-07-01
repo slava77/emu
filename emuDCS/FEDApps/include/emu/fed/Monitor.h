@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.h,v 1.4 2009/06/13 17:59:08 paste Exp $
+* $Id: Monitor.h,v 1.5 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MONITOR_H__
 #define __EMU_FED_MONITOR_H__
@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "Application.h"
+#include "emu/fed/Configurable.h"
 #include "emu/fed/Exception.h"
 #include "emu/fed/JSONSpiritValue.h"
 
@@ -22,7 +22,7 @@ namespace emu {
 		*
 		*	@author Phillip Killewald
 		**/
-		class Monitor: public emu::fed::Application
+		class Monitor: public virtual emu::fed::Configurable
 		{
 			
 		public:
@@ -66,27 +66,14 @@ namespace emu {
 			/** Returns DCC rate information in an AJAX form. **/
 			void webGetDCCStatus(xgi::Input *in, xgi::Output *out);
 			
-			/** Diggs out a crate from the input xgi stream. **/
-			Crate *parseCrate(xgi::Input *in)
-			throw (emu::fed::exception::ParseException);
-			
-			/** Configures the software using the XML configuration file. **/
-			void configure()
-			throw (emu::fed::exception::ConfigurationException);
+			/** Serializes the appropriate variables to send to whatever application requests them. **/
+			xoap::MessageReference onGetParameters(xoap::MessageReference message);
 			
 		private:
 			
-			/// The ever-useful crate vector.
-			std::vector<Crate *> crateVector_;
-			
-			/// The XML configuration file name.
-			xdata::String xmlFile_;
-			
-			/// The database username
-			xdata::String dbUsername_;
-			
-			/// The database password
-			xdata::String dbPassword_;
+			/** Diggs out a crate from the input xgi stream. **/
+			Crate *parseCrate(xgi::Input *in)
+			throw (emu::fed::exception::ParseException);
 			
 		};
 		

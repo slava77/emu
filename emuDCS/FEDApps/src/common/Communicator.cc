@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.12 2009/06/15 17:25:45 paste Exp $
+* $Id: Communicator.cc,v 1.13 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -28,26 +28,22 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::Communicator)
 
 emu::fed::Communicator::Communicator(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
-emu::base::Supervised(stub),
 emu::fed::Application(stub),
+emu::fed::Configurable(stub),
+emu::base::Supervised(stub),
 emu::fed::Supervised(stub),
 ttsCrate_(0),
 ttsSlot_(0),
 ttsBits_(0),
-configMode_("XML"),
 fibersWithErrors_(0),
 totalDCCInputRate_(0),
 totalDCCOutputRate_(0)
 {
 
 	// Variables that are to be made available to other applications
-	getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
-	getApplicationInfoSpace()->fireItemAvailable("dbUsername", &dbUsername_);
-	getApplicationInfoSpace()->fireItemAvailable("dbPassword", &dbPassword_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsCrate", &ttsCrate_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsSlot",  &ttsSlot_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsBits",  &ttsBits_);
-	getApplicationInfoSpace()->fireItemAvailable("configMode",  &configMode_);
 	getApplicationInfoSpace()->fireItemAvailable("fibersWithErrors", &fibersWithErrors_);
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCInputRate", &totalDCCInputRate_);
 	getApplicationInfoSpace()->fireItemAvailable("totalDCCOutputRate", &totalDCCOutputRate_);
@@ -56,8 +52,6 @@ totalDCCOutputRate_(0)
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Communicator::webDefault, "Default");
 	xgi::bind(this, &emu::fed::Communicator::webGetStatus, "GetStatus");
-	xgi::bind(this, &emu::fed::Communicator::webChangeConfigMode, "ChangeConfigMode");
-	xgi::bind(this, &emu::fed::Communicator::webChangeXMLFile, "ChangeXMLFile");
 
 	// SOAP call-back functions which fire the transitions to the FSM
 	BIND_DEFAULT_SOAP2FSM_ACTION(Communicator, Configure);
@@ -102,6 +96,7 @@ totalDCCOutputRate_(0)
 
 	// Other initializations
 	TM_ = new IRQThreadManager(this, fmmErrorThreshold_);
+	configMode_ = "XML";
 
 }
 
@@ -109,9 +104,6 @@ totalDCCOutputRate_(0)
 
 emu::fed::Communicator::~Communicator()
 {
-	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
-		delete crateVector_[iCrate];
-	}
 	delete TM_;
 }
 
@@ -121,27 +113,40 @@ emu::fed::Communicator::~Communicator()
 void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 {
 
+	// Configure the software so it knows to what it is talking
+	try {
+		softwareConfigure();
+		REVOKE_ALARM("CommunicatorConfigurator", NULL);
+	} catch (emu::fed::exception::ConfigurationException &e) {
+		std::ostringstream error;
+		error << "Unable to properly configure the Communicator software.";
+		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+		notifyQualified("FATAL", e);
+		
+		*out << printException(e);
+	}
 	
 	std::vector<std::string> jsFileNames;
 	jsFileNames.push_back("errorFlasher.js");
-	jsFileNames.push_back("common.js");
+	jsFileNames.push_back("definitions.js");
 	jsFileNames.push_back("communicator.js");
+	jsFileNames.push_back("common.js");
 	*out << Header("FED Crate Communicator (" + systemName_.toString() + ")", jsFileNames);
 	
 	// Current condition of the Communicator
 	*out << cgicc::div()
-		.set("class", "titlebar")
+		.set("class", "titlebar default_width")
 		.set("id", "FED_Communicator_Status_titlebar") << std::endl;
 	*out << cgicc::div("FED Communicator Status")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::div()
-		.set("class", "statusbar")
+		.set("class", "statusbar default_width")
 		.set("id", "FED_Communicator_Status_statusbar") << std::endl;
-	*out << cgicc::div("Time since last update:")
+	*out << cgicc::div("Time of last update:")
 		.set("class", "timetext") << std::endl;
-	*out << cgicc::div("0:00")
+	*out << cgicc::div("never")
 		.set("class", "loadtime")
 		.set("id", "FED_Communicator_Status_loadtime") << std::endl;
 	*out << cgicc::img()
@@ -154,7 +159,7 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset()
-		.set("class", "dialog")
+		.set("class", "dialog default_width")
 		.set("id", "FED_Communicator_Status_dialog") << std::endl;
 	
 	*out << cgicc::img()
@@ -217,7 +222,6 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("id", "halt_icon")
 		.set("src", "/emu/emuDCS/FEDApps/images/process-stop.png");
 	*out << "Halt" << std::endl;
 	*out << cgicc::button() << std::endl;
@@ -230,7 +234,6 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("id", "previous_icon")
 		.set("src", "/emu/emuDCS/FEDApps/images/go-next.png");
 	*out << "Enable" << std::endl;
 	*out << cgicc::button() << std::endl;
@@ -243,7 +246,6 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("id", "next_icon")
 		.set("src", "/emu/emuDCS/FEDApps/images/go-previous.png");
 	*out << "Disable" << std::endl;
 	*out << cgicc::button() << std::endl;
@@ -256,7 +258,6 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 		.set("style", "display: none") << std::endl;
 	*out << cgicc::img()
 		.set("class", "icon")
-		.set("id", "next_icon")
 		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
 	*out << "Configure" << std::endl;
 	*out << cgicc::button() << std::endl;
@@ -266,18 +267,18 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 
 	// Advanced configuration options
 	*out << cgicc::div()
-		.set("class", "titlebar")
+		.set("class", "titlebar default_width")
 		.set("id", "FED_Communicator_Configuration_titlebar") << std::endl;
 	*out << cgicc::div("FED Communicator Configuration Options")
 		.set("class", "titletext") << std::endl;
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::div()
-		.set("class", "statusbar")
+		.set("class", "statusbar default_width")
 		.set("id", "FED_Communicator_Configuration_statusbar") << std::endl;
-	*out << cgicc::div("Time since last update:")
+	*out << cgicc::div("Time of last update:")
 		.set("class", "timetext") << std::endl;
-	*out << cgicc::div("0:00")
+	*out << cgicc::div("never")
 		.set("class", "loadtime")
 		.set("id", "FED_Communicator_Configuration_loadtime") << std::endl;
 	*out << cgicc::img()
@@ -290,86 +291,10 @@ void emu::fed::Communicator::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << std::endl;
 	
 	*out << cgicc::fieldset()
-		.set("class", "dialog")
+		.set("class", "dialog default_width")
 		.set("id", "FED_Communicator_Configuration_dialog") << std::endl;
 	
-	*out << cgicc::div()
-		.set("class", "category tier1") << std::endl;
-	*out << cgicc::input().set("type", "radio")
-		.set("class", "config_type")
-		.set("name", "config_type")
-		.set("id", "config_type_database")
-		.set("value", "Database") << std::endl;
-	*out << cgicc::label("Database")
-		.set("for", "config_type_database") << std::endl;
-	*out << cgicc::div() << std::endl;
-	
-	*out << cgicc::div()
-		.set("class", "category tier1") << std::endl;
-	*out << cgicc::input()
-		.set("type", "radio")
-		.set("class", "config_type")
-		.set("name", "config_type")
-		.set("id", "config_type_xml")
-		.set("value", "XML") << std::endl;
-	*out << cgicc::label("XML")
-		.set("for", "config_type_xml") << std::endl;
-	*out << cgicc::div() << std::endl;
-	
-	// To access the available files, we need a few directories.
-	std::string homeDir(getenv("HOME"));
-	boost::filesystem::path configPath(homeDir + "/config/fed/");
-	
-	// Use boost to get all the xml files in this directory
-	std::vector<std::string> xmlFiles;
-	
-	if (boost::filesystem::exists(configPath)) {
-		// The default iterator is the end iterator.
-		boost::filesystem::directory_iterator end;
-		for (boost::filesystem::directory_iterator iFile(configPath); iFile != end; iFile++) {
-			std::string lastThree;
-			try {
-				std::string name = iFile->native_file_string();
-				lastThree = name.substr(name.length() - 3);
-			} catch (...) {
-				// Don't do anything with file names shorter than 3 characters
-				continue;
-			}
-			boost::algorithm::to_lower(lastThree);
-			if (lastThree == "xml") xmlFiles.push_back(iFile->native_file_string());
-		}
-	}
-	
-	*out << cgicc::table()
-		.set("class", "noborder dialog tier2") << std::endl;
-	*out << cgicc::tr() << std::endl;
-	*out << cgicc::td("XML file name: ") << std::endl;
-	*out << cgicc::td() << std::endl;
-	*out << cgicc::select()
-		.set("id", "xml_file_select")
-		.set("name", "xml_file_select")
-		.set("disabled", "true") << std::endl;
-	for (std::vector<std::string>::const_iterator iFile = xmlFiles.begin(); iFile != xmlFiles.end(); iFile++) {
-		cgicc::option opt(*iFile);
-		opt.set("value", *iFile);
-		if (xmlFile_ == *iFile) opt.set("selected", "true");
-		*out << opt << std::endl;
-	}
-	*out << cgicc::select() << std::endl;
-	*out << cgicc::td() << std::endl;
-	*out << cgicc::tr() << std::endl;
-	*out << cgicc::table() << std::endl;
-	
-	*out << cgicc::div()
-		.set("class", "category tier1") << std::endl;
-	*out << cgicc::input().set("type", "radio")
-		.set("class", "config_type")
-		.set("name", "config_type")
-		.set("id", "config_type_autodetect")
-		.set("value", "Autodetect") << std::endl;
-	*out << cgicc::label("Autodetect")
-		.set("for", "config_type_autodetect") << std::endl;
-	*out << cgicc::div() << std::endl;
+	*out << printConfigureOptions() << std::endl;
 	
 	*out << cgicc::fieldset() << std::endl;
 
@@ -396,8 +321,7 @@ void emu::fed::Communicator::webGetStatus(xgi::Input *in, xgi::Output *out)
 	output.push_back(JSONSpirit::Pair("state", state_.toString()));
 	
 	// Other useful variables
-	output.push_back(JSONSpirit::Pair("configMode", configMode_.toString()));
-	output.push_back(JSONSpirit::Pair("xmlFile", xmlFile_.toString()));
+	output.push_back(JSONSpirit::Pair("systemName", systemName_.toString()));
 	
 	// Find the Monitor and Commander applications that match me
 	std::string monitorURL = "none found";
@@ -428,69 +352,6 @@ void emu::fed::Communicator::webGetStatus(xgi::Input *in, xgi::Output *out)
 
 
 
-void emu::fed::Communicator::webChangeConfigMode(xgi::Input *in, xgi::Output *out)
-{
-	cgicc::Cgicc cgi(in);
-	
-	// Need some header information to be able to return JSON
-	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
-		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
-		jsonHeader.addHeader("Content-type", "application/json");
-		out->setHTTPResponseHeader(jsonHeader);
-	}
-	
-	// Make a JSON output object
-	JSONSpirit::Object output;
-	
-	if (cgi.getElement("configMode") != cgi.getElements().end()) {
-		configMode_ = cgi["configMode"]->getValue();
-		if (configMode_ != "XML" && configMode_ != "Database" && configMode_ != "Autodetect") configMode_ = "Autodetect";
-		LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuration Mode changed to " << configMode_.toString());
-	}
-	
-	output.push_back(JSONSpirit::Pair("configMode", configMode_.toString()));
-	*out << JSONSpirit::write(output);
-}
-
-
-
-void emu::fed::Communicator::webChangeXMLFile(xgi::Input *in, xgi::Output *out)
-{
-	cgicc::Cgicc cgi(in);
-	
-	// Need some header information to be able to return JSON
-	if (cgi.getElement("debug") == cgi.getElements().end() || cgi["debug"]->getIntegerValue() != 1) {
-		cgicc::HTTPResponseHeader jsonHeader("HTTP/1.1", 200, "OK");
-		jsonHeader.addHeader("Content-type", "application/json");
-		out->setHTTPResponseHeader(jsonHeader);
-	}
-	
-	// Make a JSON output object
-	JSONSpirit::Object output;
-	
-	if (cgi.getElement("xmlFile") != cgi.getElements().end()) {
-		std::string oldXMLFile = xmlFile_;
-		xmlFile_ = cgi["xmlFile"]->getValue();
-		// Make sure the file exists and, if not, return to the previous value
-		if (!boost::filesystem::exists(xmlFile_.toString())) {
-			std::ostringstream error;
-			error << "Configuration XML file " << xmlFile_.toString() << " doesn't exist, falling back to " << oldXMLFile;
-			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-			XCEPT_DECLARE(emu::fed::exception::FileException, e2, error.str());
-			notifyQualified("ERROR", e2);
-			xmlFile_ = oldXMLFile;
-			return;
-		} else {
-			LOG4CPLUS_DEBUG(getApplicationLogger(), "Configuration XML file changed to " << xmlFile_.toString());
-		}
-	}
-	
-	output.push_back(JSONSpirit::Pair("xmlFile", xmlFile_.toString()));
-	*out << JSONSpirit::write(output);
-}
-
-
-
 void emu::fed::Communicator::configureAction(toolbox::Event::Reference event)
 throw (toolbox::fsm::exception::Exception)
 {
@@ -499,60 +360,17 @@ throw (toolbox::fsm::exception::Exception)
 	
 	LOG4CPLUS_INFO(getApplicationLogger(), "Configuring Communicator appliction using mode " << configMode_.toString());
 	
-	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
-		delete crateVector_[iCrate];
+	// Configure the software so it knows to what it is talking
+	try {
+		softwareConfigure();
+		REVOKE_ALARM("CommunicatorConfigurator", NULL);
+	} catch (emu::fed::exception::ConfigurationException &e) {
+		std::ostringstream error;
+		error << "Unable to properly configure the Communicator software.";
+		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigurator", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 	}
-	
-	if (configMode_ == "Autodetect") {
-		AutoConfigurator configurator;
-		
-		try {
-			crateVector_ = configurator.setupCrates();
-			systemName_ = configurator.getSystemName();
-			REVOKE_ALARM("CommunicatorConfigurator", NULL);
-		} catch (emu::fed::exception::Exception &e) {
-			std::ostringstream error;
-			error << "Unable to autodetect FED objects";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigurator", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
-			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-		}
-		
-	} else if (configMode_ == "XML") {
-
-		// PGK Easier parsing.  Less confusing.
-		LOG4CPLUS_INFO(getApplicationLogger(), "XML configuration using file " << xmlFile_.toString());
-		XMLConfigurator configurator(xmlFile_.toString());
-		
-		try {
-			crateVector_ = configurator.setupCrates();
-			systemName_ = configurator.getSystemName();
-			REVOKE_ALARM("CommunicatorConfigurator", NULL);
-		} catch (emu::fed::exception::Exception &e) {
-			std::ostringstream error;
-			error << "Unable to create FED objects by parsing file " << xmlFile_.toString();
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigurator", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
-			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-		}
-		
-	} else if (configMode_ == "Database") {
-		
-		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString());
-		
-		try {
-			crateVector_ = configurator.setupCrates();
-			systemName_ = configurator.getSystemName();
-			REVOKE_ALARM("CommunicatorConfigureator", NULL);
-		} catch (emu::fed::exception::Exception &e) {
-			std::ostringstream error;
-			error << "Unable to create FED objects using the online database";
-			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
-			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigurator", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
-			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
-		}
-	}
-
 
 	// PGK No hard reset or sync reset is coming any time soon, so we should
 	//  do it ourselves.
@@ -573,7 +391,7 @@ throw (toolbox::fsm::exception::Exception)
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->number() << " FMM " << dccs[0]->getFMMID(); 
-				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCCReset", "ERROR", error.str(),tag.str(), NULL, e);
+				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCCReset", "ERROR", error.str(), tag.str(), NULL, e);
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 			}
 		}
@@ -589,7 +407,7 @@ throw (toolbox::fsm::exception::Exception)
 			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 			std::ostringstream tag;
 			tag << "FEDCrate " << (*iCrate)->number(); 
-			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigure", "ERROR", error.str(),tag.str(), NULL, e);
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigure", "ERROR", error.str(), tag.str(), NULL, e);
 			XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 		}
 		
@@ -606,7 +424,7 @@ throw (toolbox::fsm::exception::Exception)
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->number() << " FMM " << dccs[0]->getFMMID(); 
-				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCCResync", "ERROR", error.str(),tag.str(), NULL, e);
+				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCCResync", "ERROR", error.str(), tag.str(), NULL, e);
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 			}
 		}
@@ -640,7 +458,7 @@ throw (toolbox::fsm::exception::Exception)
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->number(); 
-				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFMMDisable", "ERROR", error.str(),tag.str(), NULL, e);
+				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFMMDisable", "ERROR", error.str(), tag.str(), NULL, e);
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 			}
 		}
@@ -670,7 +488,7 @@ throw (toolbox::fsm::exception::Exception)
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 						std::ostringstream tag;
 						tag << "FEDCrate " << (*iCrate)->number() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
-						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFlashKillFiber", "ERROR", error.str(),tag.str(), NULL);
+						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFlashKillFiber", "ERROR", error.str(), tag.str(), NULL);
 						XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 					}
 				}
@@ -688,7 +506,7 @@ throw (toolbox::fsm::exception::Exception)
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 						std::ostringstream tag;
 						tag << "FEDCrate " << (*iCrate)->number() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
-						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFPGAKillFiber", "ERROR", error.str(),tag.str(), NULL);
+						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFPGAKillFiber", "ERROR", error.str(), tag.str(), NULL);
 						XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 					}
 				}
@@ -710,7 +528,7 @@ throw (toolbox::fsm::exception::Exception)
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 						std::ostringstream tag;
 						tag << "FEDCrate " << (*iCrate)->number() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
-						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFPGAGbEPrescale", "ERROR", error.str(),tag.str(), NULL);
+						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFPGAGbEPrescale", "ERROR", error.str(), tag.str(), NULL);
 						XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 					}
 				}
@@ -732,7 +550,7 @@ throw (toolbox::fsm::exception::Exception)
 					LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 					std::ostringstream tag;
 					tag << "FEDCrate " << (*iCrate)->number() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID();
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureCalculatedRUI", "WARN", error.str(),tag.str(), NULL);
+					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureCalculatedRUI", "WARN", error.str(), tag.str(), NULL);
 				} else {
 					REVOKE_ALARM("CommunicatorConfigureCalculatedRUI", NULL);
 				}
@@ -749,7 +567,7 @@ throw (toolbox::fsm::exception::Exception)
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 						std::ostringstream tag;
 						tag << "FEDCrate " << (*iCrate)->number() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
-						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFlashRUI", "ERROR", error.str(),tag.str(), NULL);
+						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFlashRUI", "ERROR", error.str(), tag.str(), NULL);
 						XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 					}
 				}
@@ -760,9 +578,9 @@ throw (toolbox::fsm::exception::Exception)
 				LOG4CPLUS_DEBUG(getApplicationLogger(), "Checking status of DDU in crate " << (*iCrate)->number() << ", slot " << (*iDDU)->slot());
 				
 				uint16_t fmmReg = (*iDDU)->readFMM();
-				if ((*iCrate)->number() != 5 && fmmReg != (0xFED0)) {
+				if (((*iCrate)->number() != 5 && fmmReg != (0xFED0)) || fmmReg & 0xF != 0) {
 					std::ostringstream error;
-					error << "FMM register is wrong.  Got " << std::hex << fmmReg << ", shoud be FED0 for DDU in crate " << std::dec << (*iCrate)->number() << ", slot " << (*iDDU)->slot();
+					error << "FMM register is wrong.  Got " << std::hex << fmmReg << " for DDU in crate " << std::dec << (*iCrate)->number() << ", slot " << (*iDDU)->slot();
 					LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 					XCEPT_DECLARE(emu::fed::exception::ConfigurationException, e, error.str());
 					notifyQualified("ERROR", e);
@@ -790,7 +608,7 @@ throw (toolbox::fsm::exception::Exception)
 					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 					std::ostringstream tag;
 					tag << "FEDCrate " << (*iCrate)->number() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDDU", "ERROR", error.str(),tag.str(), NULL);
+					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDDU", "ERROR", error.str(), tag.str(), NULL);
 					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 				}
 				if (inFPGA1Stat) {
@@ -829,7 +647,7 @@ throw (toolbox::fsm::exception::Exception)
 					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 					std::ostringstream tag;
 					tag << "FEDCrate " << (*iCrate)->number() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDDU", "ERROR", error.str(),tag.str(), NULL);
+					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDDU", "ERROR", error.str(), tag.str(), NULL);
 					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 				}
 				
@@ -839,7 +657,7 @@ throw (toolbox::fsm::exception::Exception)
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->number() << " RUI " << (*iDDU)->getRUI() << " FMM " << (*iDDU)->getFMMID(); 
-				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDDU", "ERROR", error.str(),tag.str(), NULL, e);
+				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDDU", "ERROR", error.str(), tag.str(), NULL, e);
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 			}
 		}
@@ -867,7 +685,7 @@ throw (toolbox::fsm::exception::Exception)
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 						std::ostringstream tag;
 						tag << "FEDCrate " << (*iCrate)->number() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFPGAFIFOInUse", "ERROR", error.str(),tag.str(), NULL);
+						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFPGAFIFOInUse", "ERROR", error.str(), tag.str(), NULL);
 						XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 					}
 				}
@@ -891,7 +709,7 @@ throw (toolbox::fsm::exception::Exception)
 						LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 						std::ostringstream tag;
 						tag << "FEDCrate " << (*iCrate)->number() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFPGASoftwareSwitch", "ERROR", error.str(),tag.str(), NULL);
+						RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureFPGASoftwareSwitch", "ERROR", error.str(), tag.str(), NULL);
 						XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 					}
 				}
@@ -899,7 +717,7 @@ throw (toolbox::fsm::exception::Exception)
 				REVOKE_ALARM("CommunicatorConfigureFPGASoftwareSwitch", NULL);
 				
 				uint16_t dccL1A = (*iDCC)->readStatusLow(); // should be all 0
-				uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2fff
+				uint16_t status = (*iDCC)->readStatusHigh(); // should 0x2ff5
 				
 				LOG4CPLUS_DEBUG(getApplicationLogger(), "DCC Status for crate " << (*iCrate)->number() << ", slot " << std::dec << (*iDCC)->slot() << ": L1A: " << dccL1A << ", status: " << std::hex << status << std::dec);
 				
@@ -909,7 +727,7 @@ throw (toolbox::fsm::exception::Exception)
 					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 					std::ostringstream tag;
 					tag << "FEDCrate " << (*iCrate)->number() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(),tag.str(), NULL);
+					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(), tag.str(), NULL);
 					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 				}
 				if (status != 0x2ff5) {
@@ -918,7 +736,7 @@ throw (toolbox::fsm::exception::Exception)
 					LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 					std::ostringstream tag;
 					tag << "FEDCrate " << (*iCrate)->number() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(),tag.str(), NULL);
+					RAISE_ALARM(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(), tag.str(), NULL);
 					//FIXME for local running, if S-Link is not ignored, this will probably fail
 					//XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 				}
@@ -929,7 +747,7 @@ throw (toolbox::fsm::exception::Exception)
 				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->number() << " FMM " << (*iDCC)->getFMMID() << " SLINK1 " << (*iDCC)->getSLinkID(1) << " SLINK2 " << (*iDCC)->getSLinkID(2); 
-				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(),tag.str(), NULL, e);
+				RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigureDCC", "ERROR", error.str(), tag.str(), NULL, e);
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 			}
 		}
@@ -1037,6 +855,19 @@ throw (toolbox::fsm::exception::Exception)
 //  Manager asks for or else they won't be updated!
 xoap::MessageReference emu::fed::Communicator::onGetParameters(xoap::MessageReference message)
 {
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("CommunicatorGetParameters", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Communicator appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorGetParameters", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
 	fibersWithErrors_ = 0;
 	totalDCCInputRate_ = 0;
 	totalDCCOutputRate_ = 0;

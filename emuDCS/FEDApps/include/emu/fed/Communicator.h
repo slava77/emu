@@ -1,13 +1,12 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.5 2009/06/13 17:59:08 paste Exp $
+* $Id: Communicator.h,v 1.6 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
 
-#include "Application.h"
+#include "Configurable.h"
 #include "Supervised.h"
 
-#include "xdata/xdata.h"
 #include <vector>
 #include <string>
 
@@ -18,7 +17,7 @@
 namespace emu {
 	namespace fed {
 		/** @class Communicator A class that is directly responsible for hardware communication with the FED Crates. **/
-		class Communicator : public emu::fed::Application, public emu::fed::Supervised
+		class Communicator: virtual public emu::fed::Configurable, public emu::fed::Supervised
 		{
 
 		public:
@@ -36,12 +35,6 @@ namespace emu {
 			
 			/** Get the status of the application and report in JSON **/
 			void webGetStatus(xgi::Input *in, xgi::Output *out);
-			
-			/** Change the type of configuration being used **/
-			void webChangeConfigMode(xgi::Input *in, xgi::Output *out);
-			
-			/** Change the name of the XML file used in configuring **/
-			void webChangeXMLFile(xgi::Input *in, xgi::Output *out);
 
 			// FSM transition call-back functions
 			/** Send the 'Configure' command to the crates **/
@@ -105,17 +98,6 @@ namespace emu {
 			int readTTSBits(const unsigned int crate, const unsigned int slot)
 			throw (emu::fed::exception::TTSException);
 			
-			/// The XML configuration file name.
-			xdata::String xmlFile_;
-			
-			/// The username for database communication.
-			xdata::String dbUsername_;
-			
-			/// The password for database communication.
-			xdata::String dbPassword_;
-			
-			//xdata::String errorChambers_;
-			
 			/// The target crate for TTS tests.
 			xdata::UnsignedInteger ttsCrate_;
 			
@@ -125,16 +107,8 @@ namespace emu {
 			/// The target FMM bits for TTS tests.
 			xdata::Integer ttsBits_;
 			
-			/// The way this application is set to be configured
-			xdata::String configMode_;
-			
 			/// A manager that takes care of FMM interrupt handling.
 			IRQThreadManager *TM_;
-			
-			//xdata::Vector<xdata::Vector<xdata::UnsignedInteger> > dccInOut_;
-			//xdata::Vector<xdata::UnsignedInteger> dduNumbers_;
-			//xdata::Vector<xdata::UnsignedInteger> dccNumbers_;
-			//xdata::Vector<xdata::UnsignedInteger> cscNumbers_;
 			
 			/// Number of chambers with errors (for Page One)
 			xdata::UnsignedInteger fibersWithErrors_;
@@ -147,9 +121,6 @@ namespace emu {
 			
 			/// The threshold number of chambers required to be in an error state before sending an FMM
 			xdata::UnsignedInteger fmmErrorThreshold_;
-			
-			/// The crates that this application controls.
-			std::vector<Crate *> crateVector_;
 
 		};
 	}
