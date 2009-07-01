@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.5 2009/06/13 17:59:28 paste Exp $
+* $Id: VMEController.cc,v 1.6 2009/07/01 14:17:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -15,7 +15,7 @@
 #include "CAENVMEtypes.h"
 #include "emu/fed/VMEModule.h"
 
-emu::fed::VMEController::VMEController(const int Device, const int Link)
+emu::fed::VMEController::VMEController(const int &Device, const int &Link)
 throw (emu::fed::exception::CAENException):
 Device_(Device),
 Link_(Link),
@@ -94,7 +94,7 @@ emu::fed::VMEController::~VMEController() {
 
 
 
-bool emu::fed::VMEController::waitIRQ(const unsigned int mSecs)
+bool emu::fed::VMEController::waitIRQ(const unsigned int &mSecs)
 throw (emu::fed::exception::CAENException)
 {
 	// If the BHandle is not set properly, just return a good signal (true)

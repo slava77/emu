@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCC.cc,v 1.6 2009/06/13 17:59:28 paste Exp $
+* $Id: DCC.cc,v 1.7 2009/07/01 14:17:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCC.h"
 
@@ -10,7 +10,7 @@
 #include "emu/fed/JTAGElement.h"
 #include "emu/fed/FIFO.h"
 
-emu::fed::DCC::DCC(const unsigned int slot):
+emu::fed::DCC::DCC(const unsigned int &slot):
 VMEModule(slot),
 fifoinuse_(0x3fe),
 softsw_(0),
@@ -184,7 +184,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeFIFOInUse(const uint16_t value)
+void emu::fed::DCC::writeFIFOInUse(const uint16_t &value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -207,7 +207,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-uint16_t emu::fed::DCC::readRate(const unsigned int fifo)
+uint16_t emu::fed::DCC::readRate(const unsigned int &fifo)
 throw (emu::fed::exception::DCCException)
 {
 	if (fifo > 11) {
@@ -252,7 +252,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeSoftwareSwitch(const uint16_t value)
+void emu::fed::DCC::writeSoftwareSwitch(const uint16_t &value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -290,7 +290,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeFMM(const uint16_t value)
+void emu::fed::DCC::writeFMM(const uint16_t &value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -328,7 +328,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeTTCCommand(const uint8_t value)
+void emu::fed::DCC::writeTTCCommand(const uint8_t &value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -389,7 +389,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::writeFakeL1A(const uint16_t value)
+void emu::fed::DCC::writeFakeL1A(const uint16_t &value)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -409,7 +409,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-uint32_t emu::fed::DCC::readIDCode(const enum DEVTYPE dev)
+uint32_t emu::fed::DCC::readIDCode(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DCCException)
 {
 	uint16_t command = 0;
@@ -443,7 +443,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-uint32_t emu::fed::DCC::readUserCode(const enum DEVTYPE dev)
+uint32_t emu::fed::DCC::readUserCode(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DCCException)
 {
 	uint16_t command = 0;
@@ -477,7 +477,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::resetPROM(const enum DEVTYPE dev)
+void emu::fed::DCC::resetPROM(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DCCException)
 {
 	if (dev != INPROM && dev != MPROM && dev != RESET) {
@@ -510,7 +510,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-unsigned int emu::fed::DCC::getDDUSlotFromFIFO(const unsigned int fifo)
+unsigned int emu::fed::DCC::getDDUSlotFromFIFO(const unsigned int &fifo)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (slot() == 8) {
@@ -566,7 +566,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-unsigned int emu::fed::DCC::getFIFOFromDDUSlot(const unsigned int mySlot)
+unsigned int emu::fed::DCC::getFIFOFromDDUSlot(const unsigned int &mySlot)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	if (slot() == 8) {
@@ -622,7 +622,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-unsigned int emu::fed::DCC::getSLinkFromFIFO(const unsigned int fifo)
+unsigned int emu::fed::DCC::getSLinkFromFIFO(const unsigned int &fifo)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	switch (fifo) {
@@ -642,7 +642,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-unsigned int emu::fed::DCC::getFIFOFromSLink(const unsigned int slink)
+unsigned int emu::fed::DCC::getFIFOFromSLink(const unsigned int &slink)
 throw (emu::fed::exception::OutOfBoundsException)
 {
 	switch (slink) {
@@ -662,7 +662,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 
 
 
-uint16_t emu::fed::DCC::readDDURate(const unsigned int mySlot)
+uint16_t emu::fed::DCC::readDDURate(const unsigned int &mySlot)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -680,7 +680,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-uint16_t emu::fed::DCC::readSLinkRate(const unsigned int slink)
+uint16_t emu::fed::DCC::readSLinkRate(const unsigned int &slink)
 throw (emu::fed::exception::DCCException)
 {
 	try {
@@ -742,7 +742,7 @@ throw (emu::fed::exception::DCCException)
 
 
 
-void emu::fed::DCC::reloadFIFOUsedBits(const uint16_t fifoInUse)
+void emu::fed::DCC::reloadFIFOUsedBits(const uint16_t &fifoInUse)
 {
 	for (size_t iFIFO = 0; iFIFO < fifoVector_.size(); iFIFO++) {
 		fifoVector_[iFIFO]->used_ = (fifoInUse & (1 << iFIFO));
@@ -751,7 +751,7 @@ void emu::fed::DCC::reloadFIFOUsedBits(const uint16_t fifoInUse)
 
 
 
-std::vector<uint16_t> emu::fed::DCC::readRegister(const enum DEVTYPE dev, const uint16_t myRegister, const unsigned int nBits, const bool debug)
+std::vector<uint16_t> emu::fed::DCC::readRegister(const enum DEVTYPE &dev, const uint16_t &myRegister, const unsigned int &nBits, const bool &debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -811,7 +811,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::DCC::writeRegister(const enum DEVTYPE dev, const uint16_t myRegister, const unsigned int nBits, std::vector<uint16_t> myData, const bool debug)
+std::vector<uint16_t> emu::fed::DCC::writeRegister(const enum DEVTYPE &dev, const uint16_t &myRegister, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -841,7 +841,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			const uint32_t myAddress = (myRegister << 2) | chain.front()->bitCode;
 			//std::cout << "address " << std::hex << myAddress << std::dec << std::endl;
 
-			writeCycle(myAddress, nBits, myData, debug);
+			writeCycle(myAddress, nBits, data, debug);
 
 			// This sort of write does not read back, so return an empty vector.
 			std::vector<uint16_t> bogoBits;
@@ -854,7 +854,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			commandCycle(dev, myRegister, debug);
 
 			// Shove in (and read out)
-			std::vector<uint16_t> result = jtagWrite(dev, nBits, myData, false, debug);
+			std::vector<uint16_t> result = jtagWrite(dev, nBits, data, false, debug);
 
 			// Finally, set the bypass
 			commandCycle(dev, chain.front()->bypassCommand, debug);
@@ -864,7 +864,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 		}
 	} catch (emu::fed::exception::CAENException &e) {
 		std::ostringstream error;
-		error << "Exception in writeRegister(dev=" << dev << ", myRegister=" << myRegister << ", nBits=" << nBits << ", myData=" << &myData << ")";
+		error << "Exception in writeRegister(dev=" << dev << ", myRegister=" << myRegister << ", nBits=" << nBits << ", data=" << &data << ")";
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		std::ostringstream tag;
 		tag << "FMM " << fmm_id_;

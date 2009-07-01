@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: JTAGElement.h,v 1.2 2009/04/14 17:50:50 paste Exp $
+* $Id: JTAGElement.h,v 1.3 2009/07/01 14:17:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_JTAGELEMENT_H__
 #define __EMU_FED_JTAGELEMENT_H__
@@ -22,7 +22,7 @@ namespace emu {
 
 		public:
 
-			JTAGElement(std::string myName, enum DEVTYPE myDev, int myChannel, int16_t myBypassCommand, unsigned int myCmdBits, int32_t myBitCode, bool myDirectVME):
+			JTAGElement(const std::string &myName, const enum DEVTYPE &myDev, const int &myChannel, const int16_t &myBypassCommand, const unsigned int &myCmdBits, const int32_t &myBitCode, const bool &myDirectVME):
 				name(myName),
 				dev(myDev),
 				channel(myChannel),

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.cc,v 1.6 2009/06/13 17:59:28 paste Exp $
+* $Id: Crate.cc,v 1.7 2009/07/01 14:17:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Crate.h"
 
@@ -7,7 +7,7 @@
 
 #include "emu/fed/VMEController.h"
 
-emu::fed::Crate::Crate(const unsigned int myNumber):
+emu::fed::Crate::Crate(const unsigned int &myNumber):
 number_(myNumber)
 {
 	boardVector_.reserve(18);
@@ -57,7 +57,7 @@ void emu::fed::Crate::setController(VMEController *controller) {
 
 
 
-uint16_t emu::fed::Crate::getRUI(const int slot) {
+uint16_t emu::fed::Crate::getRUI(const int &slot) {
 	// TF is special.
 	if (number_ == 5) return 192;
 	// Test crate is special

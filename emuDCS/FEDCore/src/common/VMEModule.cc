@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.5 2009/06/13 17:59:28 paste Exp $
+* $Id: VMEModule.cc,v 1.6 2009/07/01 14:17:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -15,7 +15,7 @@
 #include "CAENVMEtypes.h"
 //#include "emu/fed/VMEController.h"
 
-emu::fed::VMEModule::VMEModule(const unsigned int mySlot):
+emu::fed::VMEModule::VMEModule(const unsigned int &mySlot):
 slot_(mySlot)
 {
 	// Initialize mutexes
@@ -26,7 +26,7 @@ slot_(mySlot)
 
 
 
-void emu::fed::VMEModule::writeCycle(const uint32_t myAddress, const unsigned int nBits, const std::vector<uint16_t> &myData, const bool debug)
+void emu::fed::VMEModule::writeCycle(const uint32_t &myAddress, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &debug)
 throw (emu::fed::exception::CAENException)
 {
 	// What I really need is the number of words and remainder bits.
@@ -43,11 +43,11 @@ throw (emu::fed::exception::CAENException)
 		if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
 
 		try {
-			writeVME(myAddress,myData[iWord] & bitMask, debug);
+			writeVME(myAddress, data[iWord] & bitMask, debug);
 		} catch (emu::fed::exception::CAENException &e) {
 			pthread_mutex_unlock(&mutex_);
 			std::ostringstream error;
-			error << "Exception in writeCycle(myAddress=" << myAddress << ", nBits=" << nBits << ", myData=" << &myData << ")";
+			error << "Exception in writeCycle(myAddress=" << myAddress << ", nBits=" << nBits << ", data=" << &data << ")";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
 			throw e2;
 		}
@@ -59,7 +59,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::readCycle(const uint32_t myAddress, const unsigned int nBits, const bool debug)
+std::vector<uint16_t> emu::fed::VMEModule::readCycle(const uint32_t &myAddress, const unsigned int &nBits, const bool &debug)
 throw (emu::fed::exception::CAENException)
 {
 	// What I really need is the number of words and remainder bits.
@@ -93,7 +93,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::commandCycle(const enum DEVTYPE dev, const uint16_t myCommand, const bool debug)
+void emu::fed::VMEModule::commandCycle(const enum DEVTYPE &dev, const uint16_t &myCommand, const bool &debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -215,9 +215,11 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(const enum DEVTYPE dev, const unsigned int nBits, std::vector<uint16_t> &myData, const bool noRead, const bool debug)
+std::vector<uint16_t> emu::fed::VMEModule::jtagWrite(const enum DEVTYPE &dev, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &noRead, const bool &debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
+	std::vector<uint16_t> myData = data;
+	
 	// Get the chain.  Very important to know.
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
 		std::ostringstream error;
@@ -378,7 +380,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::VMEModule::jtagRead(const enum DEVTYPE dev, const unsigned int nBits, const bool debug)
+std::vector<uint16_t> emu::fed::VMEModule::jtagRead(const enum DEVTYPE &dev, const unsigned int &nBits, const bool &debug)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// Get the chain.  Very important to know.
@@ -484,11 +486,11 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-uint16_t emu::fed::VMEModule::readVME(uint32_t Address, const bool debug)
+uint16_t emu::fed::VMEModule::readVME(const uint32_t &Address, const bool &debug)
 throw (emu::fed::exception::CAENException)
 {
 	// The address always has the board slot encoded.
-	Address |= vmeAddress_;
+	uint32_t myAddress = Address | vmeAddress_;
 
 	// The address modifier for talking to other boards
 	CVAddressModifier AM = cvA24_U_DATA;
@@ -501,13 +503,13 @@ throw (emu::fed::exception::CAENException)
 	//uint64_t *data;
 
 	// Read and return error code
-	if (debug) std::cerr << std::hex << "Read BHandle_(" << BHandle_ << ") Address(" << Address << ") " << std::flush;
-	CVErrorCodes err = CAENVME_ReadCycle(BHandle_, Address, &data, AM, DW);
+	if (debug) std::cerr << std::hex << "Read BHandle_(" << BHandle_ << ") Address(" << myAddress << ") " << std::flush;
+	CVErrorCodes err = CAENVME_ReadCycle(BHandle_, myAddress, &data, AM, DW);
 	if (debug) std::cerr << std::hex << "data(" << data << ") err(" << err << ")" << std::flush << std::endl;
 
 	if (err != cvSuccess) {
 		std::ostringstream error;
-		error << "Exception in readVME(Address=" << Address << "): " << CAENVME_DecodeError(err);
+		error << "Exception in readVME(Address=" << myAddress << "): " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
 	}
@@ -517,11 +519,13 @@ throw (emu::fed::exception::CAENException)
 
 
 
-void emu::fed::VMEModule::writeVME(uint32_t Address, uint16_t data, const bool debug)
+void emu::fed::VMEModule::writeVME(const uint32_t &Address, const uint16_t &data, const bool &debug)
 throw (emu::fed::exception::CAENException)
 {
+	uint16_t myData = data;
+	
 	// The address always has the board slot encoded.
-	Address |= vmeAddress_;
+	uint32_t myAddress = Address | vmeAddress_;
 
 	// The address modifier for talking to other boards
 	CVAddressModifier AM = cvA24_U_DATA;
@@ -530,13 +534,13 @@ throw (emu::fed::exception::CAENException)
 	CVDataWidth DW = cvD16;
 
 	// Write and return error code
-	if (debug) std::cerr << std::hex << "Write BHandle_(" << BHandle_ << ") Address(" << Address << ") data(" << data << ")" << std::flush;
-	CVErrorCodes err = CAENVME_WriteCycle(BHandle_, Address, &data, AM, DW);
+	if (debug) std::cerr << std::hex << "Write BHandle_(" << BHandle_ << ") Address(" << myAddress << ") data(" << data << ")" << std::flush;
+	CVErrorCodes err = CAENVME_WriteCycle(BHandle_, myAddress, &myData, AM, DW);
 	if (debug) std::cerr << std::hex << " err(" << err << ")" << std::endl << std::flush;
 
 	if (err != cvSuccess) {
 		std::ostringstream error;
-		error << "Exception in writeVME(Address=" << Address << ", data=" << data << "): " << CAENVME_DecodeError(err);
+		error << "Exception in writeVME(Address=" << myAddress << ", data=" << data << "): " << CAENVME_DecodeError(err);
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
 	}
@@ -546,7 +550,7 @@ throw (emu::fed::exception::CAENException)
 
 
 
-int emu::fed::VMEModule::loadPROM(const enum DEVTYPE dev, const char *fileName, std::string startString, const std::string &stopString, const bool debug)
+int emu::fed::VMEModule::loadPROM(const enum DEVTYPE &dev, const char *fileName, const std::string &startString, const std::string &stopString, const bool &debug)
 throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
@@ -580,6 +584,7 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 	try {
 		// Now start parsing the file.  Read lines until we have an eof.
+		std::string myStartString = startString;
 		while (!inFile.eof()) {
 
 			// Each line is a command (or comment)
@@ -588,9 +593,9 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 			// Start after a particular command
 			// (useful for after loading a custom value into the usercode)
-			if (startString != "") {
-				if (myLine.find(startString) != std::string::npos) {
-					startString = "";
+			if (myStartString != "") {
+				if (myLine.find(myStartString) != std::string::npos) {
+					myStartString = "";
 					//std::cerr << "START!" << std::flush << std::endl;
 				}
 				continue;

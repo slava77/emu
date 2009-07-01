@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.5 2009/06/24 04:53:51 paste Exp $
+* $Id: VMEModule.h,v 1.6 2009/07/01 14:17:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMEMODULE_H__
 #define __EMU_FED_VMEMODULE_H__
@@ -32,7 +32,7 @@ namespace emu {
 			*
 			*	@param mySlot is the board's slot number in the crate (needed for proper VME communication.)
 			**/
-			VMEModule(const unsigned int mySlot);
+			VMEModule(const unsigned int &mySlot);
 
 			virtual ~VMEModule() {};
 
@@ -44,7 +44,7 @@ namespace emu {
 			*
 			*	@param myHandle is the new BHandle to use.
 			**/
-			inline void setBHandle(const int32_t myHandle) { BHandle_ = myHandle; }
+			inline void setBHandle(const int32_t &myHandle) { BHandle_ = myHandle; }
 
 			/** @returns the current BHandle. **/
 			inline int32_t getBHandle() { return BHandle_; }
@@ -61,10 +61,10 @@ namespace emu {
 			 *
 			 * @returns zero if no errors occurred, a positive int for warnings, a negative int for errors.
 			 **/
-			int loadPROM(const enum DEVTYPE dev, const char *fileName, std::string startString = "", const std::string &stopString = "", const bool debug = false)
+			int loadPROM(const enum DEVTYPE &dev, const char *fileName, const std::string &startString = "", const std::string &stopString = "", const bool &debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
-			int loadPROM(const enum DEVTYPE dev, const std::string &fileName, std::string startString = "", const std::string &stopString = "", const bool debug = false)
+			int loadPROM(const enum DEVTYPE &dev, const std::string &fileName, const std::string &startString = "", const std::string &stopString = "", const bool &debug = false)
 			throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 			{
 				try {
@@ -78,10 +78,10 @@ namespace emu {
 			*
 			*	@param dev the JTAG device to which the data will be sent
 			*	@param nbits the number of bits to write
-			*	@param myData the data to write, with the first element of the vector being the LSB
+			*	@param data the data to write, with the first element of the vector being the LSB
 			*	@param noRead if true, will read back the data shifted out of the JTAG device and return it
 			**/
-			std::vector<uint16_t> jtagWrite(const enum DEVTYPE dev, const unsigned int nBits, std::vector<uint16_t> &myData, const bool noRead = false, const bool debug = false)
+			std::vector<uint16_t> jtagWrite(const enum DEVTYPE &dev, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &noRead = false, const bool &debug = false)
 			throw(emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Reads data from a particular JTAG device.
@@ -89,7 +89,7 @@ namespace emu {
 			*	@param dev the JTAG device from which the data will be read
 			*	@param nbits the number of bits to read
 			**/
-			std::vector<uint16_t> jtagRead(const enum DEVTYPE dev, const unsigned int nBits, const bool debug = false)
+			std::vector<uint16_t> jtagRead(const enum DEVTYPE &dev, const unsigned int &nBits, const bool &debug = false)
 			throw(emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 		protected:
@@ -98,7 +98,7 @@ namespace emu {
 			*	@param dev the JTAG device to which the command will be sent
 			*	@param myCommand the command code to send
 			**/
-			void commandCycle(const enum DEVTYPE dev, const uint16_t myCommand, const bool debug = false)
+			void commandCycle(const enum DEVTYPE &dev, const uint16_t &myCommand, const bool &debug = false)
 			throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException);
 
 			/** Reads 16 bits from a given VME address.
@@ -107,17 +107,17 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			uint16_t readVME(uint32_t myAddress, const bool debug = false)
+			uint16_t readVME(const uint32_t &myAddress, const bool &debug = false)
 			throw (emu::fed::exception::CAENException);
 
 			/** Writes 16 bits to a given VME address.
 			*
 			*	@param myAddress the address to which to send the data.
-			*	@param myData the data to send.
+			*	@param data the data to send.
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			void writeVME(const uint32_t myAddress, uint16_t myData, const bool debug = false)
+			void writeVME(const uint32_t &myAddress, const uint16_t &data, const bool &debug = false)
 			throw (emu::fed::exception::CAENException);
 
 			/** Reads any arbitrary number of bits from a given VME address.
@@ -127,7 +127,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			std::vector<uint16_t> readCycle(const uint32_t myAddress, const unsigned int nBits, const bool debug = false)
+			std::vector<uint16_t> readCycle(const uint32_t &myAddress, const unsigned int &nBits, const bool &debug = false)
 			throw(emu::fed::exception::CAENException);
 
 			/** Writes any arbitrary number of bits to a given VME address.
@@ -137,7 +137,7 @@ namespace emu {
 			*
 			*	@note The slot number should NOT be encoded in myAddress.
 			**/
-			void writeCycle(const uint32_t myAddress, const unsigned int nBits, const std::vector<uint16_t> &myData, const bool debug = false)
+			void writeCycle(const uint32_t &myAddress, const unsigned int &nBits, const std::vector<uint16_t> &data, const bool &debug = false)
 			throw(emu::fed::exception::CAENException);
 
 			/// A map of JTAG chains on this device.

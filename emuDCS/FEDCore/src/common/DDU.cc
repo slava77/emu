@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.8 2009/06/13 17:59:28 paste Exp $
+* $Id: DDU.cc,v 1.9 2009/07/01 14:17:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -314,7 +314,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readInputRegister(const uint8_t iReg)
+uint16_t emu::fed::DDU::readInputRegister(const uint8_t &iReg)
 throw (emu::fed::exception::DDUException)
 {
 	if (iReg > 2) {
@@ -377,7 +377,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readTestRegister(const uint8_t iReg)
+uint16_t emu::fed::DDU::readTestRegister(const uint8_t &iReg)
 throw (emu::fed::exception::DDUException)
 {
 	if (iReg > 4) {
@@ -442,7 +442,7 @@ throw (emu::fed::exception::DDUException)
 // Write VME Parallel
 ///////////////////////////////////////////////////////////////////////////////
 
-void emu::fed::DDU::writeFMM(const uint16_t value)
+void emu::fed::DDU::writeFMM(const uint16_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -461,7 +461,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-void emu::fed::DDU::writeFakeL1(const uint16_t value)
+void emu::fed::DDU::writeFakeL1(const uint16_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -480,12 +480,12 @@ throw (emu::fed::exception::DDUException)
 
 
 
-void emu::fed::DDU::writeGbEPrescale(uint8_t value)
+void emu::fed::DDU::writeGbEPrescale(const uint8_t &value)
 throw (emu::fed::exception::DDUException)
 {
-	value &= 0xf;
-	const uint8_t complement = 0xf - value;
-	const uint16_t loadMe = (complement << 12) | (value << 8) | (complement << 4) | value;
+	uint8_t myValue = value & 0xf;
+	const uint8_t complement = 0xf - myValue;
+	const uint16_t loadMe = (complement << 12) | (myValue << 8) | (complement << 4) | myValue;
 	try {
 		std::vector<uint16_t> bogoBits(1, loadMe);
 		writeRegister(VMEPARA, 0x8009, 16, bogoBits);
@@ -502,7 +502,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-void emu::fed::DDU::writeInputRegister(const uint16_t value)
+void emu::fed::DDU::writeInputRegister(const uint16_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -615,7 +615,7 @@ throw (emu::fed::exception::DDUException)
 // Write VME Serial/Flash
 ///////////////////////////////////////////////////////////////////////////////
 
-void emu::fed::DDU::writeFlashKillFiber(const uint16_t value)
+void emu::fed::DDU::writeFlashKillFiber(const uint16_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -639,7 +639,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-void emu::fed::DDU::writeFlashBoardID(const uint16_t value)
+void emu::fed::DDU::writeFlashBoardID(const uint16_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -663,7 +663,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-void emu::fed::DDU::writeFlashRUI(const uint16_t value)
+void emu::fed::DDU::writeFlashRUI(const uint16_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -724,7 +724,7 @@ throw (emu::fed::exception::DDUException)
 // Read SADC
 ///////////////////////////////////////////////////////////////////////////////
 
-float emu::fed::DDU::readTemperature(const uint8_t sensor)
+float emu::fed::DDU::readTemperature(const uint8_t &sensor)
 throw (emu::fed::exception::DDUException)
 {
 	if (sensor >= 4) {
@@ -754,7 +754,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-float emu::fed::DDU::readVoltage(const uint8_t sensor)
+float emu::fed::DDU::readVoltage(const uint8_t &sensor)
 throw (emu::fed::exception::DDUException)
 {
 	if (sensor >= 4) {
@@ -801,7 +801,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readFIFOStatus(const uint8_t fifo)
+uint16_t emu::fed::DDU::readFIFOStatus(const uint8_t &fifo)
 throw (emu::fed::exception::DDUException)
 {
 	if (fifo < 1 || fifo > 3) {
@@ -1233,7 +1233,7 @@ throw (emu::fed::exception::DDUException)
 // Write DDUFPGA
 ///////////////////////////////////////////////////////////////////////////////
 
-void emu::fed::DDU::writeKillFiber(const uint32_t value)
+void emu::fed::DDU::writeKillFiber(const uint32_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -1258,7 +1258,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-void emu::fed::DDU::writeBXOrbit(const uint16_t value)
+void emu::fed::DDU::writeBXOrbit(const uint16_t &value)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -1279,7 +1279,7 @@ throw (emu::fed::exception::DDUException)
 // Read INFPGA
 ///////////////////////////////////////////////////////////////////////////////
 
-uint32_t emu::fed::DDU::readL1Scaler1(const enum DEVTYPE dev)
+uint32_t emu::fed::DDU::readL1Scaler1(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 	if (dev != INFPGA0 && dev != INFPGA1) {
@@ -1307,7 +1307,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readFiberStatus(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readFiberStatus(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1335,7 +1335,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readDMBSync(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readDMBSync(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1363,7 +1363,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readFIFOStatus(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readFIFOStatus(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1391,7 +1391,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readFIFOFull(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readFIFOFull(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1419,7 +1419,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readRxError(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readRxError(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1447,7 +1447,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readTimeout(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readTimeout(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1475,7 +1475,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readTxError(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readTxError(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1504,7 +1504,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readActiveWriteMemory(const enum DEVTYPE dev, uint8_t iFiber)
+uint16_t emu::fed::DDU::readActiveWriteMemory(const enum DEVTYPE &dev, const uint8_t &iFiber)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1543,7 +1543,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readAvailableMemory(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readAvailableMemory(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1572,7 +1572,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readMinMemory(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readMinMemory(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1600,7 +1600,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readLostError(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readLostError(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1628,7 +1628,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readCCodeStatus(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readCCodeStatus(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1656,7 +1656,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint16_t emu::fed::DDU::readDMBWarning(const enum DEVTYPE dev)
+uint16_t emu::fed::DDU::readDMBWarning(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1685,7 +1685,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint32_t emu::fed::DDU::readFiberDiagnostics(const enum DEVTYPE dev, const uint8_t iDiagnostic)
+uint32_t emu::fed::DDU::readFiberDiagnostics(const enum DEVTYPE &dev, const uint8_t &iDiagnostic)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1727,7 +1727,7 @@ throw (emu::fed::exception::DDUException)
 // Read User/ID codes
 ///////////////////////////////////////////////////////////////////////////////
 
-uint32_t emu::fed::DDU::readUserCode(const enum DEVTYPE dev)
+uint32_t emu::fed::DDU::readUserCode(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1786,7 +1786,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint32_t emu::fed::DDU::readIDCode(const enum DEVTYPE dev)
+uint32_t emu::fed::DDU::readIDCode(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 
@@ -1848,7 +1848,7 @@ throw (emu::fed::exception::DDUException)
 // Resets
 ///////////////////////////////////////////////////////////////////////////////
 
-void emu::fed::DDU::resetFPGA(const enum DEVTYPE dev)
+void emu::fed::DDU::resetFPGA(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 	if (dev != DDUFPGA && dev != INFPGA0 && dev != INFPGA1) {
@@ -1877,7 +1877,7 @@ throw (emu::fed::exception::DDUException)
 // Universal reads
 ///////////////////////////////////////////////////////////////////////////////
 
-uint32_t emu::fed::DDU::readFPGAStatus(const enum DEVTYPE dev)
+uint32_t emu::fed::DDU::readFPGAStatus(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 	if (dev != DDUFPGA && dev != INFPGA0 && dev != INFPGA1) {
@@ -1905,7 +1905,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-uint32_t emu::fed::DDU::readL1Scaler(const enum DEVTYPE dev)
+uint32_t emu::fed::DDU::readL1Scaler(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 	if (dev != DDUFPGA && dev != INFPGA0 && dev != INFPGA1) {
@@ -1933,7 +1933,7 @@ throw (emu::fed::exception::DDUException)
 
 
 
-std::vector<uint16_t> emu::fed::DDU::readDebugTrap(const enum DEVTYPE dev)
+std::vector<uint16_t> emu::fed::DDU::readDebugTrap(const enum DEVTYPE &dev)
 throw (emu::fed::exception::DDUException)
 {
 	try {
@@ -2037,7 +2037,7 @@ throw (emu::fed::exception::DDUException)
 // Private methods
 ///////////////////////////////////////////////////////////////////////////////
 
-void emu::fed::DDU::reloadFiberKillBits(const uint16_t killfiber)
+void emu::fed::DDU::reloadFiberKillBits(const uint16_t &killfiber)
 {
 	for (size_t iFiber = 0; iFiber < fiberVector_.size(); iFiber++) {
 		fiberVector_[iFiber]->killed_ = (killfiber & (1 << iFiber));
@@ -2045,7 +2045,7 @@ void emu::fed::DDU::reloadFiberKillBits(const uint16_t killfiber)
 }
 
 
-std::vector<uint16_t> emu::fed::DDU::readRegister(const enum DEVTYPE dev, const uint16_t myRegister, const unsigned int nBits)
+std::vector<uint16_t> emu::fed::DDU::readRegister(const enum DEVTYPE &dev, const uint16_t &myRegister, const unsigned int &nBits)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 	// The information about the element being written
@@ -2199,7 +2199,7 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 
 
 
-std::vector<uint16_t> emu::fed::DDU::writeRegister(const enum DEVTYPE dev, const uint16_t myRegister, const unsigned int nBits, std::vector<uint16_t> myData)
+std::vector<uint16_t> emu::fed::DDU::writeRegister(const enum DEVTYPE &dev, const uint16_t &myRegister, const unsigned int &nBits, const std::vector<uint16_t> &myData)
 throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException)
 {
 
