@@ -15,7 +15,7 @@ Package=emuDCS/PeripheralXtop
 PackageName=PeripheralXtop
 Description="XDAQ to PVSS communication libraries for Peripheral Crates"
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=05
+PACKAGE_VER_MINOR=06
 PACKAGE_VER_PATCH=00
 
 Sources=\
