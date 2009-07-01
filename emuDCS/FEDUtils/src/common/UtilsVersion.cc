@@ -1,24 +1,26 @@
 /*****************************************************************************\
-* $Id: UtilsVersion.cc,v 1.2 2009/05/21 15:30:49 paste Exp $
+* $Id: UtilsVersion.cc,v 1.3 2009/07/01 14:51:40 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/UtilsVersion.h"
 #include "emu/fed/CoreVersion.h"
+//#include "tstore/version.h"
 
-GETPACKAGEINFO(emuFEDUtils)
+GETPACKAGEINFO(EmuFEDUtils)
 
-void emuFEDUtils::checkPackageDependencies()
+void EmuFEDUtils::checkPackageDependencies()
 throw (config::PackageInfo::VersionException)
 {
-	CHECKDEPENDENCY(emuFEDCore);
+	CHECKDEPENDENCY(EmuFEDCore);
+	//CHECKDEPENDENCY(tstore);
 }
 
-std::set<std::string, std::less<std::string> > emuFEDUtils::getPackageDependencies()
+std::set<std::string, std::less<std::string> > EmuFEDUtils::getPackageDependencies()
 {
 	std::set<std::string, std::less<std::string> > dependencies;
 	
-	ADDDEPENDENCY(dependencies, emuFEDCore);
+	ADDDEPENDENCY(dependencies, EmuFEDCore);
+	//ADDDEPENDENCY(dependencies, tstore);
 	
 	return dependencies;
 }
-
