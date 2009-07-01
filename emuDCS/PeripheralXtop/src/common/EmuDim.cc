@@ -1,4 +1,4 @@
-// $Id: EmuDim.cc,v 1.21 2009/06/18 13:41:49 liu Exp $
+// $Id: EmuDim.cc,v 1.22 2009/07/01 17:03:26 liu Exp $
 
 #include "emu/x2p/EmuDim.h"
 
@@ -179,14 +179,12 @@ void EmuDim::SwitchBoard(xgi::Input * in, xgi::Output * out ) throw (xgi::except
        {   
            XmasLoader->reload(xmas_start);
            Suspended_ = false;
-           start_powerup=false;
            std::cout << getLocalDateTime() << " SwitchBoard: Resume Reading" << std::endl;
        }
        else if (command_argu=="OFF" || command_argu=="off")
        { 
            XmasLoader->reload(xmas_stop);
            Suspended_ = true;
-           start_powerup=false;
            std::cout << getLocalDateTime() << " SwitchBoard: Stop Reading" << std::endl;
        }
     }
@@ -506,6 +504,11 @@ void EmuDim::CheckCommand()
       {
          int cr=CrateToNumber(cmnd.substr(17).c_str());
          if(cr>=0 && cr<TOTAL_CRATES) crate_state[cr] = 1;
+         if(!Suspended_)
+         {
+            XmasLoader->reload(xmas_stop);
+            Suspended_ = true;  
+         }
       }
       else if(cmnd.substr(0,13)=="EXECUTE_POWER")
       {
