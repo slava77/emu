@@ -1,10 +1,10 @@
 /*****************************************************************************\
-* $Id: Commander.h,v 1.2 2009/06/13 17:59:08 paste Exp $
+* $Id: Commander.h,v 1.3 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMANDER_H__
 #define __EMU_FED_COMMANDER_H__
 
-#include "Application.h"
+#include "emu/fed/Configurable.h"
 #include "emu/fed/Exception.h"
 
 namespace emu {
@@ -16,7 +16,7 @@ namespace emu {
 		*
 		*	@author Phillip Killewald
 		**/
-		class Commander: public emu::fed::Application
+		class Commander: public virtual emu::fed::Configurable
 		{
 			
 		public:
@@ -40,23 +40,43 @@ namespace emu {
 			**/
 			void webDefault(xgi::Input *in, xgi::Output *out);
 			
+			/** Returns common DDU and DCC status information **/
+			void webGetStatus(xgi::Input *in, xgi::Output *out);
+			
+			/** Serializes the appropriate variables to send to whatever application requests them. **/
+			xoap::MessageReference onGetParameters(xoap::MessageReference message);
+			
+		private:
+			
 			/** Does firmware management **/
 			//void webFirmware(xgi::Input *in, xgi::Output *out);
 			
 			/** Backend for firmware uploading and downloading **/
 			//void firmwareBackend(xgi::Input *in, xgi::Output *out);
 			
-			/** Configures the software using the XML configuration file. **/
-			void configure()
-			throw(emu::fed::exception::SoftwareException);
+			/// @class Register a class for generating various register checkboxes with ease
+			class Register
+			{
+				public:
+				Register(const std::string &myDescription = "", const std::string &myID = "", const std::string &myStyle = ""):
+				description(myDescription),
+				id(myID),
+				style(myStyle)
+				{};
+				
+				std::string description;
+				
+				std::string id;
+				
+				std::string style;
+			};
 			
-		private:
-			
-			/// The ever-useful crate vector.
-			std::vector<Crate *> crateVector_;
-			
-			/// The XML configuration file name.
-			xdata::String xmlFile_;
+			/** Print a formatted table of commands.
+			*
+			*	@param registers is a vector of Register objects to print.
+			*	@param id is the identifier to use for the checkboxes.
+			**/
+			std::string printRegisterTable(const std::vector<Register> &registers, const std::string &id);
 			
 		};
 	}

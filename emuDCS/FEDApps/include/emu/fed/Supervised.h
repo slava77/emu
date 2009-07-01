@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Supervised.h,v 1.3 2009/06/13 17:59:08 paste Exp $
+* $Id: Supervised.h,v 1.4 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_SUPERVISED_H__
 #define __EMU_FED_SUPERVISED_H__
@@ -39,24 +39,13 @@ namespace emu {
 		*
 		*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 		**/
-		class Supervised: public virtual emu::base::Supervised {
+		class Supervised: public virtual emu::base::Supervised
+		{
 
 		public:
 
 			/** Default constructor. **/
 			Supervised(xdaq::ApplicationStub *stub);
-
-			/* Method used as a general call-back from FSM state changes.
-			*
-			*	@param fsm is the finite state machine that just transitioned stated
-			**/
-			//void stateChanged(toolbox::fsm::FiniteStateMachine &fsm);
-
-			/* Method used as a general call-back when the FSM transitions to the Failed state.
-			*
-			*	@param event is the event (exception) that caused the failure
-			**/
-			//void transitionFailed(toolbox::Event::Reference event);
 
 			/** Method that will cause the FSM to perform a transition bound to a given event if it exists.
 			*

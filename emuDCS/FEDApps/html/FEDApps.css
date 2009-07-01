@@ -207,6 +207,10 @@ table.data td {
 	color: #009;
 }
 
+.bold {
+	font-weight: bold;
+}
+
 div.exception {
 	background-color: #333;
 	color: #F33;
@@ -219,6 +223,7 @@ div.exception {
 table.crate_table {
 	border-collapse: collapse;
 	width: 952px;
+	font-size: 80%;
 }
 
 
@@ -412,10 +417,13 @@ div.category {
 	font-weight: bold;
 }
 
-.tier1, .tier2, .tier3, .tier4, .tier5 {
-	margin-left: 24px;
+.tier0, .tier1, .tier2, .tier3, .tier4, .tier5 {
 	margin-right: 12px;
 	margin-top: 6px;
+}
+
+.tier1 {
+	margin-left: 24px;
 }
 
 .tier2 {
@@ -473,19 +481,11 @@ img.icon {
 	vertical-align: middle;
 }
 
-#FED_System_Status_titlebar,
-#FED_System_Status_statusbar,
-#FED_System_Status_dialog,
-#FED_Communicator_Status_titlebar,
-#FED_Communicator_Status_statusbar,
-#FED_Communicator_Status_dialog,
-#FED_Communicator_Configuration_titlebar,
-#FED_Communicator_Configuration_statusbar,
-#FED_Communicator_Configuration_dialog {
-	width: 600px;
+.default_width {
+	width: 700px;
 }
 
-.monitor {
+.monitor_width, .commander_width {
 	width: 1000px;
 }
 
@@ -499,5 +499,40 @@ img.icon {
 
 td.spacer {
 	height: 3px;
+}
+
+select.file_select {
+	width: 400px;
+}
+
+select.key_select {
+	width: 200px;
+}
+
+table.small_crate {
+	border-collapse: collapse;
+	font-size: 80%;
+}
+
+td.board, td.slot {
+	border: 1px solid #000;
+}
+
+td.slot {
+	border-right: 1px dotted #000;
+}
+
+td.fibers {
+	padding: 2px;
+}
+
+td.fiber {
+	padding: 1px;
+	border: 1px solid #000;
+}
+
+table.fibers {
+	border-collapse: collapse;
+	border: 1px solid #000;
 }
 

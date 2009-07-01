@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Monitor.cc,v 1.11 2009/06/13 18:30:32 paste Exp $
+* $Id: Monitor.cc,v 1.12 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Monitor.h"
 
@@ -30,12 +30,9 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::Monitor)
 
 emu::fed::Monitor::Monitor(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
-Application(stub)
+emu::fed::Application(stub),
+emu::fed::Configurable(stub)
 {
-	// Variables that are to be made available to other applications
-	getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
-	getApplicationInfoSpace()->fireItemAvailable("dbUsername", &dbUsername_);
-	getApplicationInfoSpace()->fireItemAvailable("dbPassword", &dbPassword_);
 	
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Monitor::webDefault, "Default");
@@ -46,15 +43,18 @@ Application(stub)
 	xgi::bind(this, &emu::fed::Monitor::webGetFiberStatus, "GetFiberStatus");
 	xgi::bind(this, &emu::fed::Monitor::webGetDDUStatus, "GetDDUStatus");
 	xgi::bind(this, &emu::fed::Monitor::webGetDCCStatus, "GetDCCStatus");
+	
+	// Other SOAP call-back functions
+	xoap::bind(this, &emu::fed::Monitor::onGetParameters, "GetParameters", XDAQ_NS_URI);
+	
+	// Other initializations
+	configMode_ = "XML";
 }
 
 
 
 emu::fed::Monitor::~Monitor()
 {
-	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
-		delete crateVector_[iCrate];
-	}
 }
 
 
@@ -62,27 +62,26 @@ emu::fed::Monitor::~Monitor()
 // HyperDAQ pages
 void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 {
-	// If not configured, parse and configure already!
+	// Configure yourself if you haven't yet.  This is a software-only configure.
 	if (!crateVector_.size()) {
 		try {
-			configure();
+			softwareConfigure();
+			REVOKE_ALARM("MonitorDefault", NULL);
 		} catch (emu::fed::exception::ConfigurationException &e) {
 			std::ostringstream error;
-			error << "Exception caught while configuring";
+			error << "Unable to properly configure the Monitor appliction";
 			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-			notifyQualified("FATAL", e);
-
-			*out << printException(e);
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorDefault", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		}
 	}
 	
 	std::stringstream sTitle;
 	sTitle << "FED Crate Monitor (" << systemName_.toString() << ")";
 	std::vector<std::string> jsFileNames;
-	//jsFileNames.push_back("reload.js");
+	jsFileNames.push_back("definitions.js");
 	jsFileNames.push_back("errorFlasher.js");
-	jsFileNames.push_back("common.js");
 	jsFileNames.push_back("monitor.js");
+	jsFileNames.push_back("common.js");
 	*out << Header(sTitle.str(), jsFileNames);
 
 
@@ -93,19 +92,20 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 		crateName << (*iCrate)->number();
 	
 		*out << cgicc::div()
-			.set("class", "titlebar monitor")
+			.set("class", "titlebar monitor_width")
 			.set("id", "FED_Monitor_" + crateName.str() + "_titlebar") << std::endl;
 		*out << cgicc::div("Crate " + crateName.str() + " Monitor")
 			.set("class", "titletext") << std::endl;
 		*out << cgicc::div() << std::endl;
 		
 		*out << cgicc::div()
-			.set("class", "statusbar monitor")
+			.set("class", "statusbar monitor_width")
 			.set("id", "FED_Monitor_" + crateName.str() + "_statusbar") << std::endl;
-		*out << cgicc::div("Time since last update:")
+		*out << cgicc::div("Time of last update:")
 			.set("class", "timetext") << std::endl;
-		*out << cgicc::div("0:00")
+		*out << cgicc::div("never")
 			.set("class", "loadtime")
+			.set("name", "FED_Monitor_" + crateName.str())
 			.set("id", "FED_Monitor_" + crateName.str() + "_loadtime") << std::endl;
 		*out << cgicc::img()
 			.set("class", "loadicon")
@@ -117,7 +117,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::div() << std::endl;
 		
 		*out << cgicc::fieldset()
-			.set("class", "dialog monitor")
+			.set("class", "dialog monitor_width")
 			.set("id", "FED_Monitor_" + crateName.str() + "_dialog") << std::endl;
 		
 		*out << cgicc::table()
@@ -127,6 +127,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::td() << std::endl;
 		*out << cgicc::select()
 			.set("class", "monitor_select")
+			.set("name", "FED_Monitor_" + crateName.str())
 			.set("crate", crateName.str()) << std::endl;
 		*out << cgicc::option("Fiber status")
 			.set("value", "FiberStatus")
@@ -155,9 +156,9 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 		
 		// Draw the header
 		
-		crateTable(1,0) << "Slot";
-		crateTable(1,1) << "Board" << cgicc::br() << "#L1A";
-		crateTable(1,2) << "Monitor";
+		crateTable(1, 0) << "Slot";
+		crateTable(1, 1) << "Board" << cgicc::br() << "#L1A";
+		crateTable(1, 2) << "Monitor";
 		crateTable[1]->set("class", "headers");
 		
 		std::vector<DDU *> myDDUs = (*iCrate)->getDDUs();
@@ -171,7 +172,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 			crateTable(iRow, 0)->set("id", "crate_" + crateName.str() + "_slot_" + slotText.str() + "_slot");
 			crateTable(iRow, 0) << slotText.str();
 			crateTable(iRow, 1).setClass("name");
-			crateTable(iRow, 1) << "RUI " << (*iDDU)->getRUI() << cgicc::br();
+			crateTable(iRow, 1) << "DDU " << (*iDDU)->getRUI() << cgicc::br();
 			crateTable(iRow, 1) << cgicc::div(" ")
 				.set("class", "l1a")
 				.set("id", "crate_" + crateName.str() + "_slot_" + slotText.str() + "_l1a");
@@ -195,7 +196,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 			crateTable(iRow, 0)->set("id", "crate_" + crateName.str() + "_slot_" + slotText.str() + "_slot");
 			crateTable(iRow, 0) << slotText.str();
 			crateTable(iRow, 1).setClass("name");
-			crateTable(iRow, 1) << "DCC" << cgicc::br();
+			crateTable(iRow, 1) << "DCC " << (*iDCC)->getFMMID() << cgicc::br();
 			crateTable(iRow, 1) << cgicc::span(" ")
 				.set("class", "l1a")
 				.set("id", "crate_" + crateName.str() + "_slot_" + slotText.str() + "_l1a");
@@ -212,6 +213,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 		
 		*out << cgicc::button()
 			.set("class", "right button statechange start_button")
+			.set("name", "FED_Monitor_" + crateName.str())
 			.set("command", "start")
 			.set("disabled", "true") << std::endl;
 		*out << cgicc::img()
@@ -222,6 +224,7 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 		
 		*out << cgicc::button()
 			.set("class", "right button statechange pause_button")
+			.set("name", "FED_Monitor_" + crateName.str())
 			.set("command", "pause") << std::endl;
 		*out << cgicc::img()
 			.set("class", "icon")
@@ -232,6 +235,48 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << cgicc::fieldset() << std::endl;
 	}
 	
+	// Advanced configuration options
+	*out << cgicc::div()
+		.set("class", "titlebar default_width")
+		.set("id", "FED_Monitor_Configuration_titlebar") << std::endl;
+	*out << cgicc::div("FED Commander Configuration Options")
+		.set("class", "titletext") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::div()
+		.set("class", "statusbar default_width")
+		.set("id", "FED_Monitor_Configuration_statusbar") << std::endl;
+	*out << cgicc::div("Time of last update:")
+		.set("class", "timetext") << std::endl;
+	*out << cgicc::div("never")
+		.set("class", "loadtime")
+		.set("id", "FED_Monitor_Configuration_loadtime") << std::endl;
+	*out << cgicc::img()
+		.set("class", "loadicon")
+		.set("id", "FED_Monitor_Configuration_loadicon")
+		.set("src", "/emu/emuDCS/FEDApps/images/empty.gif")
+		.set("alt", "Loading...") << std::endl;
+	*out << cgicc::br()
+		.set("class", "clear") << std::endl;
+	*out << cgicc::div() << std::endl;
+	
+	*out << cgicc::fieldset()
+		.set("class", "dialog default_width")
+		.set("id", "FED_Monitor_Configuration_dialog") << std::endl;
+	
+	*out << printConfigureOptions() << std::endl;;
+	
+	*out << cgicc::button()
+		.set("class", "right button")
+		.set("id", "reconfigure_button") << std::endl;
+	*out << cgicc::img()
+		.set("class", "icon")
+		.set("src", "/emu/emuDCS/FEDApps/images/view-refresh.png");
+	*out << "Reconfigure Software" << std::endl;
+	*out << cgicc::button() << std::endl;
+	
+	*out << cgicc::fieldset() << std::endl;
+	
 	*out << Footer() << std::endl;
 	
 }
@@ -240,6 +285,19 @@ void emu::fed::Monitor::webDefault(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Monitor::webGetTemperatures(xgi::Input *in, xgi::Output *out)
 {
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("MonitorGetTemperatures", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Monitor appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetTemperatures", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
 	cgicc::Cgicc cgi(in);
 	
 	// Need some header information to be able to return JSON
@@ -316,6 +374,19 @@ void emu::fed::Monitor::webGetTemperatures(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Monitor::webGetVoltages(xgi::Input *in, xgi::Output *out)
 {
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("MonitorGetVoltages", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Monitor appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetVoltages", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
 	cgicc::Cgicc cgi(in);
 	
 	// Need some header information to be able to return JSON
@@ -393,6 +464,19 @@ void emu::fed::Monitor::webGetVoltages(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Monitor::webGetOccupancies(xgi::Input *in, xgi::Output *out)
 {
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("MonitorGetOccupancies", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Monitor appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetOccupancies", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
 	cgicc::Cgicc cgi(in);
 	
 	// Need some header information to be able to return JSON
@@ -514,6 +598,19 @@ void emu::fed::Monitor::webGetOccupancies(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Monitor::webGetCounts(xgi::Input *in, xgi::Output *out)
 {
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("MonitorGetCounts", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Monitor appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetCounts", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
 	cgicc::Cgicc cgi(in);
 	
 	// Need some header information to be able to return JSON
@@ -624,6 +721,19 @@ void emu::fed::Monitor::webGetCounts(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 {
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("MonitorGetFiberStatus", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Monitor appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetFiberStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
 	cgicc::Cgicc cgi(in);
 	
 	// Need some header information to be able to return JSON
@@ -667,7 +777,7 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 		uint16_t fiberStatus = 0;
 		uint16_t liveFibers = 0;
 		try {
-			fiberStatus = (*iDDU)->readCSCStatus() | (*iDDU)->readAdvancedFiberErrors();
+			fiberStatus = (*iDDU)->readFiberErrors();
 			liveFibers = (*iDDU)->readLiveFibers();
 		} catch (emu::fed::exception::DDUException &e) {
 			dduObject.push_back(JSONSpirit::Pair("exception", e.what()));
@@ -724,6 +834,19 @@ void emu::fed::Monitor::webGetFiberStatus(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 {
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("MonitorGetDCCStatus", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Monitor appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetDCCStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
 	cgicc::Cgicc cgi(in);
 	
 	// Need some header information to be able to return JSON
@@ -807,24 +930,18 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			unsigned int jFIFO = iFIFO/2;
 			
 			uint16_t rate = 0;
-			std::string status = "green";
-			std::string message = "OK";
+			std::string status = "ok";
+			std::string message = "bytes/s";
 			try {
 				rate = (*iDCC)->readDDURate(iSlot);
 			} catch (emu::fed::exception::DCCException &e) {
 				fifoObject.push_back(JSONSpirit::Pair("exception", e.what()));
 			}
 			
-			FIFO *fifo;
-			try {
-				fifo = (*iDCC)->getFIFO(iFIFO);
-			} catch (emu::fed::exception::OutOfBoundsException &e) {
-				fifo = new FIFO(iFIFO);
-				fifoObject.push_back(JSONSpirit::Pair("exception", e.what()));
-			}
+			FIFO *fifo = (*iDCC)->getFIFO(iFIFO);
 			
 			if (!fifo->isUsed()) {
-				status = "undefined";
+				status = "killed";
 				message = "not used";
 			} else if (!(fifoStatus & (1 << (jFIFO + 3)))) {
 				status = "error";
@@ -832,8 +949,6 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			} else if (jFIFO < 3 && !(fifoStatus & (1 << jFIFO))) {
 				status = "warning";
 				message = "1/2 full";
-			} else {
-				message = "bytes/s";
 			}
 			
 			fifoObject.push_back(JSONSpirit::Pair("rate", rate));
@@ -859,8 +974,8 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			slinkObject.push_back(JSONSpirit::Pair("slink", (int) iLink));
 			
 			uint16_t rate = 0;
-			std::string status;
-			std::string message;
+			std::string status = "ok";
+			std::string message = "bytes/s";
 			
 			try {
 				rate = (*iDCC)->readSLinkRate(iLink);
@@ -874,10 +989,8 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 			} else if (!(slinkStatus & (1 << ((iLink - 1) * 2 )))) {
 				status = "warning";
 				message = "backpressure";
-			} else {
-				message = "bytes/s";
 			}
-				
+			
 			slinkObject.push_back(JSONSpirit::Pair("rate", rate));
 			slinkObject.push_back(JSONSpirit::Pair("status", status));
 			slinkObject.push_back(JSONSpirit::Pair("message", message));
@@ -900,6 +1013,19 @@ void emu::fed::Monitor::webGetDCCStatus(xgi::Input *in, xgi::Output *out)
 
 void emu::fed::Monitor::webGetDDUStatus(xgi::Input *in, xgi::Output *out)
 {
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("MonitorGetDDUStatus", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Monitor appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetDDUStatus", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
+	}
+	
 	cgicc::Cgicc cgi(in);
 	
 	// Need some header information to be able to return JSON
@@ -998,61 +1124,22 @@ throw (emu::fed::exception::ParseException)
 
 
 
-void emu::fed::Monitor::configure()
-throw (emu::fed::exception::ConfigurationException)
+// PGK Ugly, but it must be done.  We have to update the parameters that the
+//  Manager asks for or else they won't be updated!
+xoap::MessageReference emu::fed::Monitor::onGetParameters(xoap::MessageReference message)
 {
-	
-	// For now, try the XML file first (will be removed in later versions)
-	try {
-		LOG4CPLUS_INFO(getApplicationLogger(), "XML configuration using file " << xmlFile_.toString());
-		XMLConfigurator configurator(xmlFile_.toString());
-
-		crateVector_ = configurator.setupCrates();
-		systemName_ = configurator.getSystemName();
-		REVOKE_ALARM("MonitorConfigure", NULL);
-		
-		return;
-
-	} catch (emu::fed::exception::Exception &e) {
-		std::ostringstream error;
-		error << "Unable to create FED objects by parsing file " << xmlFile_.toString();
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorConfigure", "WARN", error.str(), e.getProperty("tag"), NULL, e);
+	// Configure yourself if you haven't yet.  This is a software-only configure.
+	if (!crateVector_.size()) {
+		try {
+			softwareConfigure();
+			REVOKE_ALARM("MonitorGetParameters", NULL);
+		} catch (emu::fed::exception::ConfigurationException &e) {
+			std::ostringstream error;
+			error << "Unable to properly configure the Monitor appliction";
+			LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+			RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorGetParameters", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		}
 	}
-		
-	try {
-		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString());
+	return emu::fed::Application::onGetParameters(message);
 	
-		crateVector_ = configurator.setupCrates();
-		systemName_ = configurator.getSystemName();
-		REVOKE_ALARM("MonitorConfigure", NULL);
-		
-		return;
-		
-	} catch (emu::fed::exception::Exception &e) {
-		std::ostringstream error;
-		error << "Unable to create FED objects using the online database";
-		LOG4CPLUS_WARN(getApplicationLogger(), error.str());
-		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorConfigure", "WARN", error.str(), e.getProperty("tag"), NULL, e);
-	}
-	
-	try {
-		AutoConfigurator configurator;
-	
-		crateVector_ = configurator.setupCrates();
-		systemName_ = configurator.getSystemName();
-		REVOKE_ALARM("MonitorConfigure", NULL);
-		
-		return;
-		
-	} catch (emu::fed::exception::Exception &e) {
-		std::ostringstream error;
-		error << "Unable to create FED objects using automatic configuration";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MonitorConfigure", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
-		XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
-	}
-
 }
-
-

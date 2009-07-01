@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.h,v 1.4 2009/06/13 17:59:08 paste Exp $
+* $Id: Manager.h,v 1.5 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MANAGER_H__
 #define __EMU_FED_MANAGER_H__
@@ -30,8 +30,11 @@ namespace emu {
 			/** Default HyperDAQ page **/
 			void webDefault(xgi::Input *in, xgi::Output *out);
 			
+			/** Get the status of the FSM and report in JSON **/
+			void webGetSystemStatus(xgi::Input *in, xgi::Output *out);
+			
 			/** Get the status of the child Communicator applications and report in JSON **/
-			void webGetStatus(xgi::Input *in, xgi::Output *out);
+			void webGetCommunicatorStatus(xgi::Input *in, xgi::Output *out);
 			
 			/** Combines information from the Communicators and gives to CSCPageOne **/
 			std::vector<emu::base::WebReportItem> materialToReportOnPage1();
@@ -122,6 +125,8 @@ namespace emu {
 
 			/// The target TTS bits to set for FMM tests.
 			xdata::Integer ttsBits_;
+			
+			/// This is technically a different variable from the 
 
 		};
 	}

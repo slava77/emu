@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.7 2009/06/15 17:25:45 paste Exp $
+* $Id: Application.cc,v 1.8 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -14,27 +14,25 @@
 #include "log4cplus/fileappender.h"
 #include "log4cplus/configurator.h"
 #include "emu/fed/DataTable.h"
+#include "xoap/DOMParserFactory.h"
 
 emu::fed::Application::Application(xdaq::ApplicationStub *stub):
-xdaq::WebApplication(stub),
-systemName_("unnamed")
+xdaq::WebApplication(stub)
 {
-
-	getApplicationInfoSpace()->fireItemAvailable("systemName", &systemName_);
-
 	xoap::bind(this, &emu::fed::Application::onGetParameters, "GetParameters", XDAQ_NS_URI);
 
 	getApplicationLogger().setLogLevel(DEBUG_LOG_LEVEL);
+	
+	myClassName_ = getApplicationDescriptor()->getClassName();
+	// Get rid of the emu::fed:: crap
+	if (myClassName_.substr(0, 10) == "emu::fed::") myClassName_ = myClassName_.substr(10);
 	
 	// Appender file name
 	char datebuf[32];
 	char filebuf[255];
 	std::time_t theTime = time(NULL);
 	std::strftime(datebuf, sizeof(datebuf), "%Y-%m-%d-%H-%M-%S", localtime(&theTime));
-	std::string fileName = getApplicationDescriptor()->getClassName() + "-%s.log";
-	// Get rid of the emu::fed:: crap
-	if (fileName.substr(0,10) == "emu::fed::") fileName = "emu-" + fileName.substr(10);
-	//fileName = "testing" + fileName.substr(10);
+	std::string fileName = "emu-" + myClassName_ + "-%s.log";
 	std::sprintf(filebuf, fileName.c_str(), datebuf);
 	log4cplus::SharedAppenderPtr myAppender = new log4cplus::FileAppender(filebuf);
 	myAppender->setName(getApplicationDescriptor()->getClassName() + "Appender");
@@ -44,12 +42,17 @@ systemName_("unnamed")
 	myAppender->setLayout( myLayout );
 	getApplicationLogger().addAppender(myAppender);
 	
+	// Build the SOAP parser.  This will throw an uncaught exception if it fails, which is kind of what we want, because it means you are out of memory.
+	soapParser_ = xoap::getDOMParserFactory()->get("ParseFromSOAP");
+
 }
 
 
 
 emu::fed::Application::~Application()
 {
+	// Destroy the SOAP parser, even though this is actually never called.
+	xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 }
 
 
@@ -186,7 +189,6 @@ std::string emu::fed::Application::Header(const std::string &myTitle, const std:
 	
 	out << cgicc::title(myTitle) << std::endl;
 
-
 	// Include the javascript files
 	// This is a universal global that I want to always have around.
 	out << "<script type=\"text/javascript\">var URL = \"" << getApplicationDescriptor()->getContextDescriptor()->getURL() << "/" << getApplicationDescriptor()->getURN() << "\";</script>";
@@ -199,46 +201,48 @@ std::string emu::fed::Application::Header(const std::string &myTitle, const std:
 	out << cgicc::head() << std::endl;
 
 	// Dynamic backgrounds
-	out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + systemName_.toString() + ".png);\">" << std::endl;
+	out << "<body style=\"background-image: url(/emu/emuDCS/FEDApps/images/Background-" + myClassName_ + ".png);\">" << std::endl;
 
 	out << cgicc::fieldset()
-		.set("class","header") << std::endl;
+		.set("class", "header") << std::endl;
 
 	out << cgicc::a()
-		.set("href","/"+getApplicationDescriptor()->getURN()+"/") << std::endl;
+		.set("href", "/") << std::endl;
 
 	out << cgicc::img()
-	.set("src","/emu/emuDCS/FEDApps/images/EmuFEDSeal.png")
-		.set("style","float: left; width: 100px; height: 100px") << std::endl;
+		.set("src", "/emu/emuDCS/FEDApps/images/CMS_EMU_Seal.png")
+		.set("border", "0")
+		.set("style", "float: left; width: 100px; height: 100px") << std::endl;
 
 	out << cgicc::a() << std::endl;
 
 	out << cgicc::img()
-	.set("src","/emu/emuDCS/FEDApps/images/OSUCMS.png")
-		.set("style","float: right; width: 100px; height: 100px") << std::endl;
+		.set("src", "/emu/emuDCS/FEDApps/images/CMS-OSU-Color-Alt.png")
+		.set("border", "0")
+		.set("style", "float: right; width: 100px; height: 100px") << std::endl;
 
 	out << cgicc::div(myTitle)
-		.set("class","title")
+		.set("class", "title")
 		.set("id", "application_title") << std::endl;
 
 	out << cgicc::div()
-		.set("class","expert_names") << std::endl;
+		.set("class", "expert_names") << std::endl;
 	out << cgicc::span("Experts ")
-		.set("style","font-weight: bold") << std::endl;
+		.set("style", "font-weight: bold") << std::endl;
 	out << cgicc::a("Stan Durkin")
-		.set("href","mailto:durkin@mps.ohio-state.edu") << ", " << std::endl;
+		.set("href", "mailto:durkin@mps.ohio-state.edu") << ", " << std::endl;
 	out << cgicc::a("Jason Gilmore")
-		.set("href","mailto:gilmore@mps.ohio-state.edu") << ", " << std::endl;
+		.set("href", "mailto:gilmore@mps.ohio-state.edu") << ", " << std::endl;
 	out << cgicc::a("Jianhui Gu")
-		.set("href","mailto:gujh@mps.ohio-state.edu") << ", " << std::endl;
+		.set("href", "mailto:gujh@mps.ohio-state.edu") << ", " << std::endl;
 	out << cgicc::a("Phillip Killewald")
-		.set("href","mailto:paste@mps.ohio-state.edu") << std::endl;
+		.set("href", "mailto:paste@mps.ohio-state.edu") << std::endl;
 	out << cgicc::div() << std::endl;
 
 	out << cgicc::fieldset() << std::endl;
 
 	out << cgicc::br()
-		.set("style","clear: both;") << std::endl;
+		.set("style", "clear: both;") << std::endl;
 
 	return out.str();
 }
@@ -250,7 +254,7 @@ std::string emu::fed::Application::Footer()
 	std::stringstream out;
 
 	out << cgicc::fieldset()
-		.set("class","footer") << std::endl;
+		.set("class", "footer") << std::endl;
 	out << "Built on " << __DATE__ << " at " << __TIME__ << "." << cgicc::br() << std::endl;
 	out << "Eddie the Emu thanks you." << std::endl;
 	out << cgicc::fieldset() << std::endl;

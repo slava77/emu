@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.h,v 1.6 2009/06/16 06:36:55 paste Exp $
+* $Id: Application.h,v 1.7 2009/07/01 14:54:03 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_APPLICATION_H__
 #define __EMU_FED_APPLICATION_H__
@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "xoap/DOMParser.h"
-#include "xoap/DOMParserFactory.h"
 #include "xercesc/parsers/XercesDOMParser.hpp"
 #include "xoap/MessageReference.h"
 #include "xdata/soap/Serializer.h"
@@ -31,7 +30,8 @@ namespace emu {
 		*
 		*	@author Phillip Killewald &lt;paste@mps.ohio-state.edu&gt;
 		**/
-		class Application: public virtual xdaq::WebApplication {
+		class Application: public virtual xdaq::WebApplication
+		{
 
 		public:
 
@@ -112,25 +112,14 @@ namespace emu {
 				std::string messageStr;
 				message->writeTo(messageStr);
 				
-				xoap::DOMParser *parser;
-				try {
-					parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
-				} catch (xoap::exception::Exception &e) {
-					std::ostringstream error;
-					error << "Unable to create DOMParser";
-					XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
-				}
-				
 				xercesc::DOMDocument *doc;
 				try {
-					doc = parser->parse(messageStr);
+					doc = soapParser_->parse(messageStr);
 				} catch (xoap::exception::Exception &e) {
-					xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 					std::ostringstream error;
 					error << "Unable to parse SOAP message: " << messageStr;
 					XCEPT_RETHROW(emu::fed::exception::SOAPException, error.str(), e);
 				}
-				xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 
 				xoap::SOAPName name(parameterName, "xdaq", XDAQ_NS_URI);
 				bool found = false;
@@ -149,7 +138,10 @@ namespace emu {
 						}
 					}
 				}
+				
+				// Saves 50 KB from being lost forever!
 				doc->release();
+				
 				if (!found) {
 					std::ostringstream error;
 					error << "Unable to find parameter " << parameterName;
@@ -174,7 +166,7 @@ namespace emu {
 				std::set<xdaq::ApplicationDescriptor *> descriptors = getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors(myClass);
 				
 				for (std::set<xdaq::ApplicationDescriptor *>::iterator jDescriptor = descriptors.begin(); jDescriptor != descriptors.end(); jDescriptor++) {
-
+					
 					xoap::MessageReference reply;
 					try {
 						reply = getParameters((*jDescriptor));
@@ -203,7 +195,7 @@ namespace emu {
 				}
 				
 				std::ostringstream error;
-				//error << "Unable to find an application of class '" << myClass << "' with a parameter '" << parameter << "' matching '" << value << "'";
+				error << "Unable to find an application of class '" << myClass << "' with a parameter '" << parameter << "' matching '" << value << "'";
 				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 				XCEPT_RAISE(emu::fed::exception::SoftwareException, error.str());
 			}
@@ -291,10 +283,13 @@ namespace emu {
 			
 
 		protected:
-
-			/// The system name for the application.  This is just some name that can be used to distinguish differently-configured applications from each other.
-			xdata::String systemName_;
-
+			
+			/// Let the SOAP DOMParser be a member to avoid thrashing
+			xoap::DOMParser *soapParser_;
+			
+			/// A string that holds my class name (without the namespace)
+			std::string myClassName_;
+			
 		};
 	}
 }

@@ -1,10 +1,26 @@
 /*****************************************************************************\
-* $Id: manager.js,v 1.3 2009/06/15 17:25:44 paste Exp $
+* $Id: manager.js,v 1.4 2009/07/01 14:54:02 paste Exp $
 \*****************************************************************************/
 
-var reloadElements = ["FED_System_Status", "FED_Communicator_Status"];
-
 Event.observe(window, "load", function(event) {
+	
+	var systemReloadElement = new ReloadElement();
+	systemReloadElement.id = "FED_System_Status";
+	systemReloadElement.reloadFunction = getSystemStatus;
+	systemReloadElement.callbackSuccess = updateSystemStatus;
+	systemReloadElement.callbackError = reportErrorAndStop;
+	systemReloadElement.timeToReload = 10;
+	systemReloadElement.timeToError = 60;
+	reloadElements.push(systemReloadElement);
+	
+	var communicatorReloadElement = new ReloadElement();
+	communicatorReloadElement.id = "FED_Communicator_Status";
+	communicatorReloadElement.reloadFunction = getCommunicatorStatus;
+	communicatorReloadElement.callbackSuccess = updateCommunicatorStatus;
+	communicatorReloadElement.callbackError = reportErrorAndStop;
+	communicatorReloadElement.timeToReload = 10;
+	communicatorReloadElement.timeToError = 60;
+	reloadElements.push(communicatorReloadElement);
 	
 	// enable buttons with check-box
 	$("enable_buttons").observe("change", function(ev) {
@@ -27,50 +43,47 @@ Event.observe(window, "load", function(event) {
 		}
 		element.observe("click", function(ev) {
 			$$("button.statechange").each(function(el) { el.disabled = true; });
-			doCommand(ev.element().readAttribute("command"));
+			doCommand(ev.element().readAttribute("command"), systemReloadElement);
 		});
 	});
-	
-	testForPage1();
-});
-/*
-var errors = 0;
-var trial = 0;
 
-function testForPage1() {
 	
-	if (errors >= 5) return;
-	trial++;
+});
+
+function getSystemStatus() {
+	// Bind the special callbacks
+	var successCallback = this.callbackSuccess.bind(this);
+	var errorCallback = this.callbackError.bind(this);
 	
-	var url = URL + "/ForEmuPage1";
+	var url = URL + "/GetSystemStatus";
+	
 	new Ajax.Request(url, {
 		method: "get",
-		onSuccess: updateTestForPage1,
-		onFailure: reportErrorPage1
+		onSuccess: successCallback,
+		onFailure: errorCallback
 	});
 }
 
-function reportErrorPage1(transport) {
-	errors++;
-	$("updateMe").update(new Element("div").update("Trial " + trial + ": Error " + errors + " " + transport.status + ": " + transport.statusText));
-	testForPage1();
+function getCommunicatorStatus() {
+	// Bind the special callbacks
+	var successCallback = this.callbackSuccess.bind(this);
+	var errorCallback = this.callbackError.bind(this);
+	
+	var url = URL + "/GetCommunicatorStatus";
+	
+	new Ajax.Request(url, {
+		method: "get",
+		onSuccess: successCallback,
+		onFailure: errorCallback
+	});
 }
 
-function updateTestForPage1(transport) {
-	if (!transport.responseText || transport.responseText == "") reportErrorPage1(transport);
-	errors = 0;
-	$("updateMe").update(new Element("div").update("Trial " + trial + ": " + transport.status + ": " + transport.statusText));
-	testForPage1();
-}
-*/
-
-
-function updateStates(transport) {
+function updateSystemStatus(transport) {
 	var data = transport.responseJSON;
 	
 	$$(".deleteme").invoke("remove");
 	
-	var state = data["state"] ? data["state"] : "Unknown";
+	var state = data.state ? data.state : "Unknown";
 	var classesToRemove = $("manager_state").classNames();
 	classesToRemove.each(function(name) {
 		$("manager_state").removeClassName(name);
@@ -107,10 +120,17 @@ function updateStates(transport) {
 		$("disable_button").disabled = false;
 	}
 	
-	var communicators = data["communicators"];
+	this.reset();
+
+}
+
+function updateCommunicatorStatus(transport) {
+	var data = transport.responseJSON;
+	
+	var communicators = data.communicators;
 	
 	communicators.each(function(communicator) {
-	
+		
 		var instance = communicator["instance"];
 		
 		if (!$("systemName" + instance)) {
@@ -175,23 +195,11 @@ function updateStates(transport) {
 		
 		$("communicatorURL" + instance).update(communicator["url"]).setAttribute("href", communicator["url"]);
 		
-		$("commanderURL" + instance).update(communicator["commanderURL"] ? communicator["commanderURL"] : "none found").setAttribute("href", communicator["ommanderURL"]);
+		$("commanderURL" + instance).update(communicator["commanderURL"] ? communicator["commanderURL"] : "none found").setAttribute("href", communicator["commanderURL"]);
 		
 		$("monitorURL" + instance).update(communicator["monitorURL"] ? communicator["monitorURL"] : "none found").setAttribute("href", communicator["monitorURL"]);
 		
 	});
 	
-	// Unset loading icons
-	reloadElements.each(function(str) {
-		$(str + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/empty.gif");
-	});
-	
-	// Update times since reload
-	reloadElements.each(function(str) {
-		timeSinceReload[str] = 0;
-	});
-	updateTimes();
-	
-	stop = false;
-
+	this.reset();
 }

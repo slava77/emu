@@ -1,79 +1,140 @@
 /*****************************************************************************\
-* $Id: monitor.js,v 1.6 2009/05/21 15:29:44 paste Exp $
+* $Id: monitor.js,v 1.7 2009/07/01 14:54:02 paste Exp $
 \*****************************************************************************/
-
-var reloadElements = new Array();
 
 Event.observe(window, "load", function(event) {
 
-	// Update DDU and DCC status separately
-	getDDUStatus();
-	new PeriodicalExecuter(getDDUStatus, reloadSecs);
-	getDCCStatus();
-	new PeriodicalExecuter(getDCCStatus, reloadSecs);
-
-	// Don't know these a priori
+	// Don't know these a priori because the crate numbers are encoded herein
 	$$(".loadtime").each(function(element) {
 		var id = element.readAttribute("id");
+		if (id == "FED_Monitor_Configuration_loadtime") return;
 		id = id.substr(0, id.length - 9);
-		reloadElements.push(id);
-		timeSinceReload[id] = 0;
+		
+		var reloadElement = new ReloadElement();
+		reloadElement.id = id;
+		reloadElement.reloadFunction = getDDUMonitor;
+		reloadElement.callbackSuccess = updateStatuses;
+		// Special function
+		reloadElement.updateDDUMonitor = updateDDUMonitor;
+		// Special function
+		reloadElement.updateDDUStatus = updateDDUStatus;
+		// Special function
+		reloadElement.updateDCCStatus = updateDCCStatus;
+		reloadElement.callbackError = reportErrorAndStop;
+		reloadElement.timeToReload = 10;
+		reloadElement.timeToError = 60;
+		reloadElements.push(reloadElement);
 	});
 	
 	// Starting and stopping
 	$$(".pause_button").each(function(element) {
 		element.observe("click", function(event) {
-			$$(".start_button").each(function(element) { element.disabled = false; });
-			$$(".pause_button").each(function(element) { element.disabled = true; });
-			stop = true;
+			$$(".start_button").each(function(e) {
+				if (e.name == element.name) e.disabled = false;
+			});
+			element.disabled = true;
+			reloadElements.each(function(e) {
+				if (element.name == e.id) e.stop = true;
+			});
 		});
 	});
 	$$(".start_button").each(function(element) {
 		element.observe("click", function(event) {
-			$$(".start_button").each(function(element) { element.disabled = true; });
-			$$(".pause_button").each(function(element) { element.disabled = false; });
-			stop = false;
-			getStatus();
+			$$(".pause_button").each(function(e) {
+				if (e.name == element.name) e.disabled = false;
+			});
+			element.disabled = true;
+			reloadElements.each(function(e) {
+				if (element.name == e.id) {
+					e.stop = false;
+					e.tick(true);
+				}
+			});
 		});
 	});
 	
 	// Updating monitor
 	$$(".monitor_select").each(function(element) {
 		element.observe("change", function(event) {
-			getStatus();
+			reloadElements.each(function(e) {
+				if (element.name == e.id) {
+					e.tick(true);
+				}
+			});
 		});
+	});
+	
+	var configurationReloadElement = new ReloadElement();
+	configurationReloadElement.id = "FED_Monitor_Configuration";
+	configurationReloadElement.reloadFunction = getConfiguration;
+	configurationReloadElement.callbackSuccess = updateConfiguration;
+	configurationReloadElement.callbackError = reportErrorAndStop;
+	configurationReloadElement.timeToReload = 10;
+	configurationReloadElement.timeToError = 60;
+	reloadElements.push(configurationReloadElement);
+	
+	// Change configuration settings
+	$$(".config_type").each(function(element) {
+		element.observe("change", function(ev) {
+			var el = ev.element();
+			if (el.checked) {
+				changeConfigMode(el.value, configurationReloadElement);
+			}
+		});
+	});
+	
+	// Make the configuration file change automatically submit.
+	$("xml_file_select").observe("change", function(ev) {
+		changeXMLFile($("xml_file_select").value, configurationReloadElement);
+	});
+	
+	// Make the DB key change automatically submit.
+	$("db_key_select").observe("change", function(ev) {
+		changeDBKey($("db_key_select").value, configurationReloadElement);
+	});
+	
+	// Reconfigure
+	// Firefox is an idiot when it comes to refreshing the DOM, so I need this here.
+	$("reconfigure_button").disabled = false;
+	$("reconfigure_button").observe("click", function(ev) {
+		ev.element().disabled = true;
+		reconfigure(configurationReloadElement);
 	});
 	
 });
 
-function getStatus(pe) {
-	if (stop) {
-		return;
-	}
-	// Loop through crates
+function getDDUMonitor() {
+	
+	// Bind the special callbacks
+	var successCallback = this.updateDDUMonitor.bind(this);
+	var errorCallback = this.callbackError.bind(this);
+	
+	// Loop through crates and get the DDU status based on what is selected
 	$$(".monitor_select").each(function(element) {
 		var crateNumber = element.readAttribute("crate");
 		var url = URL + "/Get" + element.value;
 		var params = {"CrateNumber": crateNumber};
 		
-		$("FED_Monitor_" + crateNumber + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/ajax-loader.gif");
-		
 		new Ajax.Request(url, {
 			method: "get",
 			parameters: params,
-			onSuccess: updateStatus,
-			onFailure: reportError
+			onSuccess: successCallback,
+			onFailure: errorCallback
 		});
 		
 	});
 }
 
-function updateStatus(transport) {
+function updateDDUMonitor(transport) {
+	// Bind the special callbacks
+	var successCallback = this.updateDDUStatus.bind(this);
+	var errorCallback = this.callbackError.bind(this);
+	
 	var data = transport.responseJSON;
 	
-	var crateNumber = data["crate"];
+	var crateNumber = data.crate;
 	
-	var what = data["action"];
+	var what = data.action;
 	
 	if (what == "Temperatures") updateTemperatures(data);
 	if (what == "Voltages") updateVoltages(data);
@@ -81,148 +142,158 @@ function updateStatus(transport) {
 	if (what == "Counts") updateCounts(data);
 	if (what == "FiberStatus") updateFiberStatus(data);
 	
-	$("FED_Monitor_" + crateNumber + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/empty.gif");
+	// Now jump to updating the common DDU information
+	var params = {"CrateNumber": crateNumber};
+	var url = URL + "/GetDDUStatus";
 	
-	timeSinceReload["FED_Monitor_" + crateNumber] = 0;
-	updateTimes();
+	new Ajax.Request(url, {
+		method: "get",
+		parameters: params,
+		onSuccess: successCallback,
+		onFailure: errorCallback
+	});
+}
+
+function updateDDUStatus(transport) {
+	// Bind the special callbacks
+	var successCallback = this.updateDCCStatus.bind(this);
+	var errorCallback = this.callbackError.bind(this);
+	
+	var data = transport.responseJSON;
+	
+	var crateNumber = data.crate;
+	data.ddus.each(function(board) {
+		var crateSlot = "crate_" + crateNumber + "_slot_" + board.slot;
+		$(crateSlot + "_slot").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(board.fmmStatus);
+		
+		$(crateSlot + "_l1a").update(board.L1A);
+	});
+	
+	// Now jump to updating the DCC information
+	var params = {"CrateNumber": crateNumber};
+	var url = URL + "/GetDCCStatus";
+	
+	new Ajax.Request(url, {
+		method: "get",
+		parameters: params,
+		onSuccess: successCallback,
+		onFailure: errorCallback
+	});
+}
+
+function updateDCCStatus(transport) {
+	var data = transport.responseJSON;
+	
+	var crateNumber = data.crate;
+	
+	data.dccs.each(function(board) {
+		var slot = board.slot;
+		if (!$("dcc_cartilage_" + crateNumber + "_" + slot)) drawDCCCartilage(crateNumber, slot);
+		var crateSlot = "crate_" + crateNumber + "_slot_" + slot;
+		
+		$(crateSlot + "_slot").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(board.fmmStatus);
+		
+		$(crateSlot + "_l1a").update(board.L1A);
+		
+		board.ddurates.each(function(ddurate) {
+			var dduSlot = ddurate["slot"];
+			$(crateSlot + "_fifo_" + dduSlot + "_rate").update(ddurate["rate"]);
+			$(crateSlot + "_fifo_" + dduSlot + "_status").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(ddurate["status"]).update(ddurate["message"]);
+		});
+		board.slinkrates.each(function(slinkrate) {
+			var slink = slinkrate["slink"];
+			$(crateSlot + "_slink_" + slink + "_rate").update(slinkrate["rate"]);
+			$(crateSlot + "_slink_" + slink + "_status").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(slinkrate["status"]).update(slinkrate["message"]);
+		});
+	});
+	
+	// Finally, we are done!
+	var updateStatuses = this.callbackSuccess.bind(this);
+	updateStatuses();
+}
+
+function updateStatuses() {
+	this.reset();
 }
 
 function updateTemperatures(data) {
-	var crateNumber = data["crate"];
+	var crateNumber = data.crate;
 	
-	data["ddus"].each(function(board) {
-		var slot = board["slot"];
+	data.ddus.each(function(board) {
+		var slot = board.slot;
 		if (!$("ddu_cartilage_" + crateNumber + "_" + slot) || $("ddu_cartilage_" + crateNumber + "_" + slot).readAttribute("what") != "Temperatures") drawDDUCartilage(crateNumber, slot, "Temperatures");
 		
 		var crateSlot = "crate_" + crateNumber + "_slot_" + slot;
-		board["temperatures"].each(function(temperature) {
-			$(crateSlot + "_temp_" + temperature["number"]).update(temperature["temperature"]);
-			$(crateSlot + "_temp_" + temperature["number"] + "_status").removeClassName("green").removeClassName("orange").removeClassName("red").removeClassName("yellow").removeClassName("blue").removeClassName("undefined").addClassName(temperature["status"]).update(temperature["message"]);
+		board.temperatures.each(function(temperature) {
+			$(crateSlot + "_temp_" + temperature.number).update(temperature.temperature);
+			$(crateSlot + "_temp_" + temperature.number + "_status").removeClassName("green").removeClassName("orange").removeClassName("red").removeClassName("yellow").removeClassName("blue").removeClassName("undefined").addClassName(temperature.status).update(temperature.message);
 		});
 	});
 }
 
 function updateVoltages(data) {
-	var crateNumber = data["crate"];
+	var crateNumber = data.crate;
 	
-	data["ddus"].each(function(board) {
-		var slot = board["slot"];
+	data.ddus.each(function(board) {
+		var slot = board.slot;
 		if (!$("ddu_cartilage_" + crateNumber + "_" + slot) || $("ddu_cartilage_" + crateNumber + "_" + slot).readAttribute("what") != "Voltages") drawDDUCartilage(crateNumber, slot, "Voltages");
 		
 		var crateSlot = "crate_" + crateNumber + "_slot_" + slot;
-		board["voltages"].each(function(voltage) {
-			$(crateSlot + "_volt_" + voltage["number"]).update(voltage["voltage"]);
-			$(crateSlot + "_volt_" + voltage["number"] + "_status").removeClassName("green").removeClassName("orange").removeClassName("red").removeClassName("yellow").removeClassName("blue").removeClassName("undefined").addClassName(voltage["status"]).update(voltage["message"]);
+		board.voltages.each(function(voltage) {
+			$(crateSlot + "_volt_" + voltage.number).update(voltage.voltage);
+			$(crateSlot + "_volt_" + voltage.number + "_status").removeClassName("green").removeClassName("orange").removeClassName("red").removeClassName("yellow").removeClassName("blue").removeClassName("undefined").addClassName(voltage.status).update(voltage.message);
 		});
 	});
 }
 
 function updateOccupancies(data) {
-	var crateNumber = data["crate"];
+	var crateNumber = data.crate;
 	
-	data["ddus"].each(function(board) {
-		var slot = board["slot"];
+	data.ddus.each(function(board) {
+		var slot = board.slot;
 		if (!$("ddu_cartilage_" + crateNumber + "_" + slot) || $("ddu_cartilage_" + crateNumber + "_" + slot).readAttribute("what") != "Occupancies") drawDDUCartilage(crateNumber, slot, "Occupancies");
 		
 		var crateSlot = "crate_" + crateNumber + "_slot_" + slot;
 
-		board["fibers"].each(function(fiber) {
-			crateSlotFiber = crateSlot + "_fiber_" + fiber["fiber"];
-			$(crateSlotFiber + "_name").update(fiber["name"]);
+		board.fibers.each(function(fiber) {
+			crateSlotFiber = crateSlot + "_fiber_" + fiber.fiber;
+			$(crateSlotFiber + "_name").update(fiber.name);
 			
-			fiber["occupancies"].each(function(occupancy) {
-				$(crateSlotFiber + "_" + occupancy["type"] + "_count").update(occupancy["count"]);
-				$(crateSlotFiber + "_" + occupancy["type"] + "_percent").update(occupancy["percent"]);
+			fiber.occupancies.each(function(occupancy) {
+				$(crateSlotFiber + "_" + occupancy.type + "_count").update(occupancy.count);
+				$(crateSlotFiber + "_" + occupancy.type + "_percent").update(occupancy.percent);
 			});
 		});
 	});
 }
 
 function updateCounts(data) {
-	var crateNumber = data["crate"];
+	var crateNumber = data.crate;
 	
-	data["ddus"].each(function(board) {
-		var slot = board["slot"];
+	data.ddus.each(function(board) {
+		var slot = board.slot;
 		if (!$("ddu_cartilage_" + crateNumber + "_" + slot) || $("ddu_cartilage_" + crateNumber + "_" + slot).readAttribute("what") != "Counts") drawDDUCartilage(crateNumber, slot, "Counts");
 		
 		var crateSlot = "crate_" + crateNumber + "_slot_" + slot;
-		board["counts"].each(function(count) {
-			$(crateSlot + "_register_" + count["name"] + "_count").update(count["count"]);
+		board.counts.each(function(count) {
+			$(crateSlot + "_register_" + count.name + "_count").update(count.count);
 		});
 	});
 }
 
 function updateFiberStatus(data) {
-	var crateNumber = data["crate"];
+	var crateNumber = data.crate;
 	
-	data["ddus"].each(function(board) {
-		var slot = board["slot"];
+	data.ddus.each(function(board) {
+		var slot = board.slot;
 		if (!$("ddu_cartilage_" + crateNumber + "_" + slot) || $("ddu_cartilage_" + crateNumber + "_" + slot).readAttribute("what") != "FiberStatus") drawDDUCartilage(crateNumber, slot, "FiberStatus");
 		
 		var crateSlot = "crate_" + crateNumber + "_slot_" + slot;
-		board["fibers"].each(function(fiber) {
-			$(crateSlot + "_fiber_" + fiber["number"] + "_name").update(fiber["name"]);
-			$(crateSlot + "_fiber_" + fiber["number"] + "_status").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(fiber["status"]).update(fiber["message"]);
+		board.fibers.each(function(fiber) {
+			$(crateSlot + "_fiber_" + fiber.number + "_name").update(fiber.name);
+			$(crateSlot + "_fiber_" + fiber.number + "_status").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(fiber.status).update(fiber.message);
 		});
 	});
-}
-
-function getDDUStatus(pe) {
-	if (stop) {
-		return;
-	}
-	// Loop through crates
-	$$(".monitor_select").each(function(element) {
-		var crateNumber = element.readAttribute("crate");
-		var url = URL + "/GetDDUStatus";
-		var params = {"CrateNumber": crateNumber};
-		
-		$("FED_Monitor_" + crateNumber + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/ajax-loader.gif");
-		
-		new Ajax.Request(url, {
-			method: "get",
-			parameters: params,
-			onSuccess: updateDDU,
-			onFailure: reportError
-		});
-		
-	});
-}
-
-function getDCCStatus(pe) {
-	if (stop) {
-		return;
-	}
-	// Loop through crates
-	$$(".monitor_select").each(function(element) {
-		var crateNumber = element.readAttribute("crate");
-		var url = URL + "/GetDCCStatus";
-		var params = {"CrateNumber": crateNumber};
-		
-		$("FED_Monitor_" + crateNumber + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/ajax-loader.gif");
-		
-		new Ajax.Request(url, {
-			method: "get",
-			parameters: params,
-			onSuccess: updateDCC,
-			onFailure: reportError
-		});
-		
-	});
-}
-
-function updateDDU(transport) {
-	var data = transport.responseJSON;
-	
-	var crateNumber = data["crate"];
-	data["ddus"].each(function(board) {
-		var crateSlot = "crate_" + crateNumber + "_slot_" + board["slot"];
-		$(crateSlot + "_slot").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(board["fmmStatus"]);
-		
-		$(crateSlot + "_l1a").update(board["L1A"]);
-	});
-	
-	$("FED_Monitor_" + crateNumber + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/empty.gif");
 }
 
 function drawDDUCartilage(crate, slot, what) {
@@ -336,35 +407,6 @@ function drawDDUCartilage(crate, slot, what) {
 		element.insert(table);
 	});
 	
-}
-
-function updateDCC(transport) {
-	var data = transport.responseJSON;
-	
-	var crateNumber = data["crate"];
-	
-	data["dccs"].each(function(board) {
-		var slot = board["slot"];
-		if (!$("dcc_cartilage_" + crateNumber + "_" + slot)) drawDCCCartilage(crateNumber, slot);
-		var crateSlot = "crate_" + crateNumber + "_slot_" + slot;
-		
-		$(crateSlot + "_slot").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(board["fmmStatus"]);
-		
-		$(crateSlot + "_l1a").update(board["L1A"]);
-		
-		board["ddurates"].each(function(ddurate) {
-			var dduSlot = ddurate["slot"];
-			$(crateSlot + "_fifo_" + dduSlot + "_rate").update(ddurate["rate"]);
-			$(crateSlot + "_fifo_" + dduSlot + "_status").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(ddurate["status"]).update(ddurate["message"]);
-		});
-		board.slinkrates.each(function(slinkrate) {
-			var slink = slinkrate["slink"];
-			$(crateSlot + "_slink_" + slink + "_rate").update(slinkrate["rate"]);
-			$(crateSlot + "_slink_" + slink + "_status").removeClassName("ok").removeClassName("warning").removeClassName("error").removeClassName("error_black").removeClassName("caution").removeClassName("undefined").addClassName(slinkrate["status"]).update(slinkrate["message"]);
-		});
-	});
-	
-	$("FED_Monitor_" + crateNumber + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/empty.gif");
 }
 
 function drawDCCCartilage(crate, slot) {
