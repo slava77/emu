@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.cc,v 1.4 2009/06/13 17:59:28 paste Exp $
+* $Id: Fiber.cc,v 1.5 2009/07/01 14:17:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Fiber.h"
 
@@ -23,7 +23,7 @@ killed_(false)
 
 
 
-emu::fed::Fiber::Fiber(const unsigned int fiberNumber, const unsigned int plusMinus, const unsigned int station, const unsigned int ring, const unsigned int number, const bool killed):
+emu::fed::Fiber::Fiber(const unsigned int &fiberNumber, const unsigned int &plusMinus, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed):
 fiberNumber_(fiberNumber),
 name_("???"),
 endcap_("?"),
@@ -50,7 +50,7 @@ killed_(killed)
 
 
 
-emu::fed::Fiber::Fiber(const unsigned int fiberNumber, const std::string &endcap, const unsigned int station, const unsigned int ring, const unsigned int number, const bool killed):
+emu::fed::Fiber::Fiber(const unsigned int &fiberNumber, const std::string &endcap, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed):
 fiberNumber_(fiberNumber),
 name_("???"),
 endcap_(endcap),

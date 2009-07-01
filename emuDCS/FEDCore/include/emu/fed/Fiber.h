@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Fiber.h,v 1.3 2009/06/13 17:59:28 paste Exp $
+* $Id: Fiber.h,v 1.4 2009/07/01 14:17:18 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_FIBER_H__
 #define __EMU_FED_FIBER_H__
@@ -21,10 +21,10 @@ namespace emu {
 			Fiber();
 			
 			/** Constructor used to set all the variables **/
-			Fiber(const unsigned int fifoNumber, const unsigned int plusMinus, const unsigned int station, const unsigned int ring, const unsigned int number, const bool killed = false);
+			Fiber(const unsigned int &fifoNumber, const unsigned int &plusMinus, const unsigned int &station, const unsigned int &ring, const unsigned int &number, const bool &killed = false);
 			
 			/** Constructor with a string for the endcap **/
-			Fiber(const unsigned int fifoNumber, const std::string &endcap = "?", const unsigned int station = 0, const unsigned int ring = 0, const unsigned int number = 0, const bool killed = false);
+			Fiber(const unsigned int &fifoNumber, const std::string &endcap = "?", const unsigned int &station = 0, const unsigned int &ring = 0, const unsigned int &number = 0, const bool &killed = false);
 			
 			/** @returns the fiber input number. **/
 			inline unsigned int getFiberNumber() { return fiberNumber_; }
