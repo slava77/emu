@@ -238,6 +238,7 @@
 	    <clientsInstance xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 	      <item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0</item>
 	    </clientsInstance>
+	    <fileWritingRateLimitInHz xsi:type="xsd:unsignedLong">2000</fileWritingRateLimitInHz>
 	  </properties>
 	</xc:Application>
 	<xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqrui.so</xc:Module>
@@ -317,6 +318,7 @@
 	      <poolSizeForClient xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0x4000000</item>
 	      </poolSizeForClient>
+	      <fileWritingRateLimitInHz xsi:type="xsd:unsignedLong">1000000</fileWritingRateLimitInHz>
 	    </properties>
 	  </xc:Application>
 	  <xc:Module><xsl:value-of select="$LIBDIR"/>/libemudaqrui.so</xc:Module>
