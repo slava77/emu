@@ -22,8 +22,8 @@ Summary="Emu (CSC) FED XDAQ Applications"
 Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=06
-PACKAGE_VER_PATCH=05
+PACKAGE_VER_MINOR=07
+PACKAGE_VER_PATCH=00
 
 Sources=\
 	AppsVersion.cc \
@@ -33,6 +33,7 @@ Sources=\
 	Configurable.cc \
 	Communicator.cc \
 	Monitor.cc \
+	MicroMonitor.cc \
 	Commander.cc \
 	EmuFCrateHyperDAQ.cc
 

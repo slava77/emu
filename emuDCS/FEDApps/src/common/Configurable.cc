@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.1 2009/07/01 14:54:03 paste Exp $
+* $Id: Configurable.cc,v 1.2 2009/07/06 15:50:10 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/path.hpp"
@@ -229,7 +229,7 @@ throw (emu::fed::exception::ConfigurationException)
 			systemName_ = configurator.getSystemName();
 		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
-			error << "Unable to autodetect FED objects";
+			error << "Unable to autodetect FED objects: " << e.what();
 			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 		}
@@ -329,7 +329,8 @@ std::string emu::fed::Configurable::printConfigureOptions()
 	
 	// To access the available files, we need a few directories.
 	std::string homeDir(getenv("HOME"));
-	boost::filesystem::path configPath(homeDir + "/config/fed/");
+	boost::filesystem::path configPath;
+	configPath = boost::filesystem::path(homeDir + "config/fed/");
 	
 	// Use boost to get all the xml files in this directory
 	std::vector<std::string> xmlFiles;
