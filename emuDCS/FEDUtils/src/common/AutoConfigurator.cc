@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.cc,v 1.3 2009/07/01 14:51:40 paste Exp $
+* $Id: AutoConfigurator.cc,v 1.4 2009/07/06 15:59:20 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AutoConfigurator.h"
@@ -93,7 +93,7 @@ throw (emu::fed::exception::ConfigurationException)
 	// The only way this can fail is if I don't find any controllers attached to the machine
 	if (crateVector_.size() == 0) {
 		std::ostringstream error;
-		error << "Could not auto-detect and controllers on this system.";
+		error << "Could not auto-detect any controllers on this system.";
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	}
 	
