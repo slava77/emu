@@ -5,7 +5,7 @@
 
 namespace emufarmer {
 	const std::string package     = "emufarmer";
-	const std::string versions    = "07.05.00";
+	const std::string versions    = "07.06.00";
 	const std::string description = "Emu (CSC) Farmer";
 
 	const std::string summary     = "emu/farmer";
