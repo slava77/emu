@@ -17,7 +17,7 @@ Summary="Emu (CSC) Farmer"
 Authors="Karoly Banicz"
 Link=""
 PACKAGE_VER_MAJOR=7
-PACKAGE_VER_MINOR=5
+PACKAGE_VER_MINOR=6
 PACKAGE_VER_PATCH=0
 
 Sources = \
