@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.h,v 1.5 2009/07/01 14:17:18 paste Exp $
+* $Id: Crate.h,v 1.6 2009/07/06 16:05:40 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATE_H__
 #define __EMU_FED_CRATE_H__
@@ -14,6 +14,8 @@ namespace emu {
 	namespace fed {
 
 		class VMEController;
+		
+		class VMELock;
 
 		/** @class Crate An object that contains VMEModules and a VMEController.  **/
 		class Crate
@@ -24,7 +26,8 @@ namespace emu {
 			*
 			*	@param myNumber the identification number of the crate.
 			**/
-			Crate(const unsigned int &myNumber);
+			Crate(const unsigned int &myNumber)
+			throw(emu::fed::exception::SoftwareException);
 			
 			/** Default destructor.**/
 			~Crate();
@@ -93,7 +96,8 @@ namespace emu {
 			/// A pointer to the special broadcast DDU for the crate.
 			DDU *broadcastDDU_;
 
-			//DCC *broadcastDCC_;
+			/// A pointer to a shared mutex for everybody in the crate.
+			VMELock *mutex_;
 
 		};
 

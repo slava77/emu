@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.6 2009/07/01 14:17:19 paste Exp $
+* $Id: VMEModule.cc,v 1.7 2009/07/06 16:05:40 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -13,14 +13,11 @@
 
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
-//#include "emu/fed/VMEController.h"
+#include "emu/fed/VMELock.h"
 
 emu::fed::VMEModule::VMEModule(const unsigned int &mySlot):
 slot_(mySlot)
 {
-	// Initialize mutexes
-	pthread_mutex_init(&mutex_, NULL);
-
 	vmeAddress_ = slot_ << 19;
 }
 
@@ -36,23 +33,38 @@ throw (emu::fed::exception::CAENException)
 
 
 	// Now, I start the sending process...
-	pthread_mutex_lock(&mutex_);
-	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
-		// If this is the last thing I am writing, be sure to use a bitmask.
-		uint16_t bitMask = 0xffff;
-		if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
-
-		try {
-			writeVME(myAddress, data[iWord] & bitMask, debug);
-		} catch (emu::fed::exception::CAENException &e) {
-			pthread_mutex_unlock(&mutex_);
-			std::ostringstream error;
-			error << "Exception in writeCycle(myAddress=" << myAddress << ", nBits=" << nBits << ", data=" << &data << ")";
-			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			throw e2;
-		}
+	try {
+		mutex_->lock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception locking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 	}
-	pthread_mutex_unlock(&mutex_);
+	try {
+		for (unsigned int iWord = 0; iWord < nWords; iWord++) {
+			// If this is the last thing I am writing, be sure to use a bitmask.
+			uint16_t bitMask = 0xffff;
+			if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
+
+			writeVME(myAddress, data[iWord] & bitMask, debug);
+		}
+	} catch (emu::fed::exception::CAENException &e) {
+		try {
+			mutex_->unlock();
+		} catch (emu::fed::exception::Exception &e2) {
+			std::ostringstream error;
+			error << "Exception unlocking mutex: " << e2.what();
+			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e2);
+		}
+		throw e;
+	}
+	try {
+		mutex_->unlock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception unlocking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+	}
 
 	return;
 }
@@ -72,22 +84,37 @@ throw (emu::fed::exception::CAENException)
 	result.reserve(nWords);
 
 	// Now, I start the reading process...
-	pthread_mutex_lock(&mutex_);
-	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
-		// If this is the last thing I am read, be sure to use a bitmask.
-		uint16_t bitMask = 0xffff;
-		if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
-		try {
-			result.push_back(readVME(myAddress, debug) & bitMask);
-		} catch (emu::fed::exception::CAENException &e) {
-			pthread_mutex_unlock(&mutex_);
-			std::ostringstream error;
-			error << "Exception in readCycle(myAddress=" << myAddress << ", nBits=" << nBits << ")";
-			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			throw e2;
-		}
+	try {
+		mutex_->lock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception locking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 	}
-	pthread_mutex_unlock(&mutex_);
+	try {
+		for (unsigned int iWord = 0; iWord < nWords; iWord++) {
+			// If this is the last thing I am read, be sure to use a bitmask.
+			uint16_t bitMask = 0xffff;
+			if (iWord == nWords - 1 && remainderBits) bitMask = (1 << remainderBits) - 1;
+			result.push_back(readVME(myAddress, debug) & bitMask);
+		}
+	} catch (emu::fed::exception::CAENException &e) {
+		try {
+			mutex_->unlock();
+		} catch (emu::fed::exception::Exception &e2) {
+			std::ostringstream error;
+			error << "Exception unlocking mutex: " << e2.what();
+			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e2);
+		}
+		throw e;
+	}
+	try {
+		mutex_->unlock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception unlocking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+	}
 	return result;
 }
 
@@ -102,14 +129,22 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 	if (JTAGMap.find(dev) == JTAGMap.end()) {
 		std::ostringstream error;
 		error << "JTAGChain not defined for dev=" << dev;
-		XCEPT_DECLARE(emu::fed::exception::DevTypeException, e2, error.str());
-		throw e2;
+		XCEPT_RAISE(emu::fed::exception::DevTypeException, error.str());
 	}
 
 	JTAGChain chain = JTAGMap[dev];
 	uint32_t myAddress = chain.front()->bitCode;
 
 	try {
+		mutex_->lock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception locking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+	}
+	
+	try {
+		
 		// The RESET command is very straight forward
 		if (dev == RESET) {
 
@@ -150,67 +185,77 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			// End the reset command
 			writeCycle(myAddress, 2, bogoData1, debug);
 			writeCycle(myAddress, 2, bogoData0, debug);
+			
+		} else {
 
-			return;
-		}
+			// Now we need to know the total number of bits our command has.
+			// It is very important that we calculate this correctly.
+			unsigned int nBits = 0;
 
-		// Now we need to know the total number of bits our command has.
-		// It is very important that we calculate this correctly.
-		unsigned int nBits = 0;
+			// We also need to know what the commands are along the chain.
+			std::vector<uint16_t> commands;
 
-		// We also need to know what the commands are along the chain.
-		std::vector<uint16_t> commands;
+			// This is needed for smart pushing back of arbitrarily-sized commands
+			unsigned int remainder = 0;
+			unsigned int iCommand = 0;
 
-		// This is needed for smart pushing back of arbitrarily-sized commands
-		unsigned int remainder = 0;
-		unsigned int iCommand = 0;
+			// Traverse the chain.
+			for (JTAGChain::iterator iElement = chain.begin(); iElement != chain.end(); iElement++) {
 
-		// Traverse the chain.
-		for (JTAGChain::iterator iElement = chain.begin(); iElement != chain.end(); iElement++) {
+				// If this is the element we are commanding, push back the command.
+				// Else, push back a bypass signal.
 
-			// If this is the element we are commanding, push back the command.
-			// Else, push back a bypass signal.
+				if ((*iElement)->dev == dev) {
+					commands.push_back(myCommand);
+				} else {
+					commands.push_back((*iElement)->bypassCommand);
+				}
 
-			if ((*iElement)->dev == dev) {
-				commands.push_back(myCommand);
-			} else {
-				commands.push_back((*iElement)->bypassCommand);
+				// Push the command into the vector of commands, but make sure you count the bits!
+				// Now we need to be smart and connect the commands together as one long
+				// set of 16-bit numbers for the CAEN writing to work properly.
+				// Only do the magic shifting if this is not the first and the commands are not
+				// 16 bits long.
+				if (remainder && iCommand) {
+					commands[iCommand - 1] |= commands[iCommand] << (16 - remainder);
+					commands[iCommand] = commands[iCommand] >> remainder;
+				}
+
+				// Add together the total number of bits in the command.
+				nBits += (*iElement)->cmdBits;
+
+				// Set the remainder for the next iteration
+				remainder = nBits % 16;
+				iCommand++;
+
 			}
 
-			// Push the command into the vector of commands, but make sure you count the bits!
-			// Now we need to be smart and connect the commands together as one long
-			// set of 16-bit numbers for the CAEN writing to work properly.
-			// Only do the magic shifting if this is not the first and the commands are not
-			// 16 bits long.
-			if (remainder && iCommand) {
-				commands[iCommand - 1] |= commands[iCommand] << (16 - remainder);
-				commands[iCommand] = commands[iCommand] >> remainder;
-			}
+			// The address has encoded in it the number of bits that are bing sent.
+			myAddress |= 0x0000001c | ((nBits - 1) << 8);
 
-			// Add together the total number of bits in the command.
-			nBits += (*iElement)->cmdBits;
-
-			// Set the remainder for the next iteration
-			remainder = nBits % 16;
-			iCommand++;
+			// Send the command
+			writeCycle(myAddress, nBits, commands, debug);
 
 		}
-
-		// The address has encoded in it the number of bits that are bing sent.
-		myAddress |= 0x0000001c | ((nBits - 1) << 8);
-
-		// Send the command
-		writeCycle(myAddress, nBits, commands, debug);
 
 	} catch (emu::fed::exception::CAENException &e) {
-		std::ostringstream error;
-		error << "Exception in commandCycle(dev=" << dev << ", myCommand=" << myCommand << ")";
-		XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-		throw e2;
+		try {
+			mutex_->unlock();
+		} catch (emu::fed::exception::Exception &e2) {
+			std::ostringstream error;
+			error << "Exception unlocking mutex: " << e2.what();
+			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e2);
+		}
+		throw e;
 	}
 
-	// Nothing to return
-	return;
+	try {
+		mutex_->unlock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception unlocking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+	}
 }
 
 
@@ -249,11 +294,19 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			break;
 		}
 	}
+	
+	try {
+		mutex_->lock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception locking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+	}
+	
+	try {
 
-	// The RESET command writes things bit-by-bit.
-	if (dev == RESET) {
-
-		try {
+		// The RESET command writes things bit-by-bit.
+		if (dev == RESET) {
 
 			// Some fake vectors for sending data.
 			const std::vector<uint16_t> bogoData0(1,0);
@@ -291,88 +344,95 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 			// End the reset command
 			writeCycle(myAddress, 2, bogoData1, debug);
 			writeCycle(myAddress, 2, bogoData0, debug);
+			
+			// Return nothing.
+			return result;
+		} else {
 
-		} catch (emu::fed::exception::CAENException &e) {
-			std::ostringstream error;
-			error << "Exception in jtagWrite(dev=" << dev << ", nBits=" << nBits << ", myData=" << &myData << ", noRead=" << noRead << ")";
-			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			throw e2;
-		}
+			// What I really need is the number of words and remainder bits.
+			// These are incomplete words, a sort of ceiling function for unsigned ints
+			const unsigned int nWords = (nBits + extraBits == 0) ? 0 : (nBits + extraBits - 1)/16 + 1;
+			const unsigned int remainderBits = (nBits + extraBits) % 16;
 
-		// Return nothing.
-		return result;
-	}
+			// We have to push extra bits through, so be sure that we have enough in myData
+			// to actually push through.
+			while (myData.size() < nWords) {
+				myData.push_back(0xffff);
+			}
 
-	// What I really need is the number of words and remainder bits.
-	// These are incomplete words, a sort of ceiling function for unsigned ints
-	const unsigned int nWords = (nBits + extraBits == 0) ? 0 : (nBits + extraBits - 1)/16 + 1;
-	const unsigned int remainderBits = (nBits + extraBits) % 16;
+			
 
-	// We have to push extra bits through, so be sure that we have enough in myData
-	// to actually push through.
-	while (myData.size() < nWords) {
-		myData.push_back(0xffff);
-	}
+			// Now, I start the sending process...
+			for (unsigned int iWord = 0; iWord < nWords; iWord++) {
 
-	// Now, I start the sending process...
-	pthread_mutex_lock(&mutex_);
-	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
+				// If this is the last thing I am writing, be sure to use a bitmask.
+				uint16_t bitMask = 0xffff;
 
-		// If this is the last thing I am writing, be sure to use a bitmask.
-		uint16_t bitMask = 0xffff;
-
-		// Check to see if this is the first word and flag appropriately.
-		uint32_t address = myAddress & 0xfffff0ff;
-		if (iWord == 0) address |= 0x4; // first
-		if (iWord == nWords - 1) address |= 0x8; // last
-		if ((iWord == nWords - 1) && remainderBits) {
-			address |= ((remainderBits - 1) << 8); // remainder, if any.
-			// For writing, the mask is on the write, so we want to mask out the HIGH bits.
-			bitMask = (1 << remainderBits) - 1;
-		}
-		else address |= 0x0f00;
-
-
-		// Do the write command first, as this is required for every read-back.
-		try {
-			writeVME(address, myData[iWord] & bitMask, debug);
-
-			// Read now and store it for later.
-			if (!noRead) {
-				address = myAddress | 0x14;
-				uint16_t tempResult = readVME(address, debug);
-
-				// Do some bit manipulations if this is the remainder.
-				if (iWord == nWords - 1 && remainderBits) {
-					tempResult = tempResult >> (16 - remainderBits);
+				// Check to see if this is the first word and flag appropriately.
+				uint32_t address = myAddress & 0xfffff0ff;
+				if (iWord == 0) address |= 0x4; // first
+				if (iWord == nWords - 1) address |= 0x8; // last
+				if ((iWord == nWords - 1) && remainderBits) {
+					address |= ((remainderBits - 1) << 8); // remainder, if any.
+					// For writing, the mask is on the write, so we want to mask out the HIGH bits.
+					bitMask = (1 << remainderBits) - 1;
 				}
+				else address |= 0x0f00;
 
-				// Problem:  There are extraBits garbage bits at the beginning of this read.
-				// Everything needs to be shifted right extraBits times.
-				// This means I have to manipulate previous entries in the vector.
-				if (extraBits) {
 
-					// Make sure the bits I shift off the end carry to the previous value.
-					if (iWord > 0) {
-						const uint16_t carryValue = tempResult << (16 - extraBits);
-						result[iWord - 1] |= carryValue;
+				// Do the write command first, as this is required for every read-back.
+				writeVME(address, myData[iWord] & bitMask, debug);
+
+				// Read now and store it for later.
+				if (!noRead) {
+					address = myAddress | 0x14;
+					uint16_t tempResult = readVME(address, debug);
+
+					// Do some bit manipulations if this is the remainder.
+					if (iWord == nWords - 1 && remainderBits) {
+						tempResult = tempResult >> (16 - remainderBits);
 					}
 
-					// Then shift the garbage off.
-					tempResult = tempResult >> extraBits;
-				}
+					// Problem:  There are extraBits garbage bits at the beginning of this read.
+					// Everything needs to be shifted right extraBits times.
+					// This means I have to manipulate previous entries in the vector.
+					if (extraBits) {
 
-				result.push_back(tempResult);
+						// Make sure the bits I shift off the end carry to the previous value.
+						if (iWord > 0) {
+							const uint16_t carryValue = tempResult << (16 - extraBits);
+							result[iWord - 1] |= carryValue;
+						}
+
+						// Then shift the garbage off.
+						tempResult = tempResult >> extraBits;
+					}
+
+					result.push_back(tempResult);
+				}
+				
 			}
-		} catch (emu::fed::exception::CAENException &e) {
-			pthread_mutex_unlock(&mutex_);
-			std::ostringstream error;
-			error << "Exception in jtagWrite(dev=" << dev << ", nBits=" << nBits << ", myData=" << &myData << ", noRead=" << noRead << ")";
-			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			throw e2;
+			
 		}
+		
+	} catch (emu::fed::exception::CAENException &e) {
+		try {
+			mutex_->unlock();
+		} catch (emu::fed::exception::Exception &e2) {
+			std::ostringstream error;
+			error << "Exception unlocking mutex: " << e2.what();
+			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e2);
+		}
+		throw e;
 	}
-	pthread_mutex_unlock(&mutex_);
+	
+	try {
+		mutex_->unlock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception unlocking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+	}
 
 	return result;
 
@@ -418,67 +478,83 @@ throw (emu::fed::exception::CAENException, emu::fed::exception::DevTypeException
 	const unsigned int remainderBits = (nBits + extraBits) % 16;
 
 	// Now, I start the sending process...
-	pthread_mutex_lock(&mutex_);
-	for (unsigned int iWord = 0; iWord < nWords; iWord++) {
+	try {
+		mutex_->lock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception locking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+	}
+	try {
+		for (unsigned int iWord = 0; iWord < nWords; iWord++) {
 
-		// If this is the last thing I am reading, be sure to use a bitmask.
-		uint16_t bitMask = 0xffff;
+			// If this is the last thing I am reading, be sure to use a bitmask.
+			uint16_t bitMask = 0xffff;
 
-		// Check to see if this is the first word and flag appropriately.
-		uint32_t address = myAddress & 0xfffff0ff;
-		if (iWord == 0) address |= 0x4; // first
-		if (iWord == nWords - 1) address |= 0x8; // last
-		if ((iWord == nWords - 1) && remainderBits) {
-			address |= ((remainderBits - 1) << 8); // remainder, if any.
-			// The bit mask is to mask in the HIGH remainderBits bits, not the LOW bits.
-			bitMask = (1 << remainderBits) - 1;
-			bitMask = bitMask << (16 - remainderBits);
-		}
-		else address |= 0x0f00;
+			// Check to see if this is the first word and flag appropriately.
+			uint32_t address = myAddress & 0xfffff0ff;
+			if (iWord == 0) address |= 0x4; // first
+			if (iWord == nWords - 1) address |= 0x8; // last
+			if ((iWord == nWords - 1) && remainderBits) {
+				address |= ((remainderBits - 1) << 8); // remainder, if any.
+				// The bit mask is to mask in the HIGH remainderBits bits, not the LOW bits.
+				bitMask = (1 << remainderBits) - 1;
+				bitMask = bitMask << (16 - remainderBits);
+			}
+			else address |= 0x0f00;
 
 
-		// Do the write command first, as this is required for every read-back.
-		uint16_t tempResult = 0;
-		try {
+			// Do the write command first, as this is required for every read-back.
+			uint16_t tempResult = 0;
+			
 			writeVME(address, 0xffff, debug);
 
 			// Read now and store it for later.
 			address = myAddress | 0x14;
 			tempResult = readVME(address, debug) & bitMask;
 			//std::cerr << "tempResult is " << std::hex << tempResult << " mask " << bitMask << std::endl;
-		} catch (emu::fed::exception::CAENException &e) {
-			pthread_mutex_unlock(&mutex_);
-			std::ostringstream error;
-			error << "Exception in jtagRead(dev=" << dev << ", nBits=" << nBits << ")";
-			XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-			throw e2;
-		}
 
-		// Do some bit manipulations if this is the remainder.
-		if ((iWord == nWords - 1) && remainderBits) {
-			tempResult = tempResult >> (16 - remainderBits);
-		}
-
-		// Problem:  There are extraBits garbage bits at the beginning of this read.
-		// Everything needs to be shifted right extraBits times.
-		// This means I have to manipulate previous entries in the vector.
-		if (extraBits) {
-
-			// Make sure the bits I shift off the end carry to the previous value.
-			if (iWord > 0) {
-				const uint16_t carryValue = tempResult << (16 - extraBits);
-				result[iWord - 1] |= carryValue;
+			// Do some bit manipulations if this is the remainder.
+			if ((iWord == nWords - 1) && remainderBits) {
+				tempResult = tempResult >> (16 - remainderBits);
 			}
 
-			// Then shift the garbage off.
-			tempResult = tempResult >> extraBits;
+			// Problem:  There are extraBits garbage bits at the beginning of this read.
+			// Everything needs to be shifted right extraBits times.
+			// This means I have to manipulate previous entries in the vector.
+			if (extraBits) {
+
+				// Make sure the bits I shift off the end carry to the previous value.
+				if (iWord > 0) {
+					const uint16_t carryValue = tempResult << (16 - extraBits);
+					result[iWord - 1] |= carryValue;
+				}
+
+				// Then shift the garbage off.
+				tempResult = tempResult >> extraBits;
+			}
+
+			//std::cerr << "tempResult finally is " << std::hex << tempResult << std::endl;
+
+			result.push_back(tempResult);
 		}
-
-		//std::cerr << "tempResult finally is " << std::hex << tempResult << std::endl;
-
-		result.push_back(tempResult);
+	} catch (emu::fed::exception::CAENException &e) {
+		try {
+			mutex_->unlock();
+		} catch (emu::fed::exception::Exception &e2) {
+			std::ostringstream error;
+			error << "Exception unlocking mutex: " << e2.what();
+			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e2);
+		}
+		throw e;
 	}
-	pthread_mutex_unlock(&mutex_);
+	try {
+		mutex_->unlock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception unlocking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+	}
 
 	return result;
 
@@ -580,6 +656,14 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		error << "Cannot open file " << fileName;
 		XCEPT_DECLARE(emu::fed::exception::CAENException, e2, error.str());
 		throw e2;
+	}
+
+	try {
+		mutex_->lock();
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Exception locking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 	}
 
 	try {
@@ -716,13 +800,13 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 
 				// Send instructions, but only if it makes sense to.
 				if (command == "SIR") {
-					/*
-					if (nBits != element->cmdBits) {
-						std::stringstream error;
-						error << "SIR command " << value << " with nBits " << nBits << " does not match the number of bits in the command bus of dev " << element->name << " (" << element->cmdBits << ")";
-						XCEPT_RAISE(emu::fed::exception::FEDException, error.str());
-					}
-					*/
+					
+// 					if (nBits != element->cmdBits) {
+// 						std::stringstream error;
+// 						error << "SIR command " << value << " with nBits " << nBits << " does not match the number of bits in the command bus of dev " << element->name << " (" << element->cmdBits << ")";
+// 						XCEPT_RAISE(emu::fed::exception::FEDException, error.str());
+// 					}
+					
 					// The number of bits matches that of the command bus.
 					//std::clog << "Attempting commandCycle with dev " << dev << " data " << myData[0] << std::endl;
 					commandCycle(dev, myData[0], debug);
@@ -816,14 +900,27 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 		}
 
 	} catch (emu::fed::exception::CAENException &e) {
+		inFile.close();
+		try {
+			mutex_->unlock();
+		} catch (emu::fed::exception::Exception &e2) {
+			std::ostringstream error;
+			error << "Exception unlocking mutex: " << e2.what();
+			XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e2);
+		}
+		throw e;
+	}
+	
+	inFile.close();
+	
+	try {
+		mutex_->unlock();
+	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
-		error << "Exception in loadPROM(dev=" << dev << ", fileName=" << fileName << ", startString=" << startString << ", stopString=" << stopString << ")";
-		XCEPT_DECLARE_NESTED(emu::fed::exception::CAENException, e2, error.str(), e);
-		throw e2;
+		error << "Exception unlocking mutex: " << e.what();
+		XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
 	}
 
-	inFile.close();
 	return 0;
 }
-
 

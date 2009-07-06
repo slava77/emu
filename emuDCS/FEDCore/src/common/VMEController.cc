@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEController.cc,v 1.6 2009/07/01 14:17:19 paste Exp $
+* $Id: VMEController.cc,v 1.7 2009/07/06 16:05:40 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEController.h"
 
@@ -21,8 +21,6 @@ Device_(Device),
 Link_(Link),
 BHandle_(-1)
 {
-	// Initialize mutexes
-	pthread_mutex_init(&mutex_, NULL);
 
 	CVBoardTypes VMEBoard = cvV2718;
 
@@ -100,9 +98,7 @@ throw (emu::fed::exception::CAENException)
 	// If the BHandle is not set properly, just return a good signal (true)
 	if (BHandle_ < 0) return true;
 
-	pthread_mutex_lock(&mutex_);
 	CVErrorCodes err = CAENVME_IRQEnable(BHandle_, cvIRQ1);
-	pthread_mutex_unlock(&mutex_);
 
 	if (err != cvSuccess) {
 		std::ostringstream error;
@@ -111,9 +107,7 @@ throw (emu::fed::exception::CAENException)
 		throw e2;
 	}
 
-	pthread_mutex_lock(&mutex_);
 	const bool status = CAENVME_IRQWait(BHandle_, cvIRQ1, mSecs);
-	pthread_mutex_unlock(&mutex_);
 	return status;
 }
 
@@ -127,9 +121,7 @@ throw (emu::fed::exception::CAENException)
 
 	uint16_t errorData;
 
-	pthread_mutex_lock(&mutex_);
 	CVErrorCodes err = CAENVME_IACKCycle(BHandle_, cvIRQ1, &errorData, cvD16);
-	pthread_mutex_unlock(&mutex_);
 
 	if (err != cvSuccess) {
 		std::ostringstream error;
