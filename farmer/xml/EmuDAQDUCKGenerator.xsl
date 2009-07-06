@@ -26,9 +26,9 @@
 
   <xsl:param name="CONFIG_FILE"><xsl:value-of select="$DIR"/>/<xsl:value-of select="$NAME"/>.xml</xsl:param>
   <xsl:param name="FM_CONFIG_PATH">
-    <xsl:if test="$FARM='DAQ'">tmp/DAQ/<xsl:value-of select="$NAME"/></xsl:if>
-    <xsl:if test="$FARM='DQM'">tmp/DQM/DQM<xsl:if test="$SIDE='P' or $SIDE='M'">_side<xsl:value-of select="$SIDE"/></xsl:if></xsl:if>
-    <xsl:if test="$FARM='DQM_Display'">tmp/DQM/DQM_Display</xsl:if>
+    <xsl:if test="$FARM='DAQ'">DAQ/<xsl:value-of select="$NAME"/></xsl:if>
+    <xsl:if test="$FARM='DQM'">DQM/DQM<xsl:if test="$SIDE='P' or $SIDE='M'">_side<xsl:value-of select="$SIDE"/></xsl:if></xsl:if>
+    <xsl:if test="$FARM='DQM_Display'">DQM/DQM_Display</xsl:if>
   </xsl:param>
   <xsl:param name="PATHTOEXECUTIVE">/opt/xdaq/bin/xdaq.exe</xsl:param>
   <xsl:param name="DAQ_ENVIRONMENTSTRING">HOME=/nfshome0/cscdaq LD_LIBRARY_PATH=/nfshome0/cscdaq/TriDAS/x86/lib:/opt/xdaq/lib XDAQ_ROOT=/opt/xdaq XDAQ_SETUP_ROOT=/opt/xdaq/share XDAQ_LOG=/var/log/emu BUILD_HOME=/nfshome0/cscdaq/TriDAS XDAQ_DOCUMENT_ROOT=/opt/xdaq/htdocs XDAQ_PLATFORM=x86 XDAQ_OS=linux XDAQ_ZONE=emu PATH=/bin:/usr/bin</xsl:param>
