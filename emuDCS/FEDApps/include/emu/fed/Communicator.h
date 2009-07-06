@@ -1,11 +1,11 @@
 /*****************************************************************************\
-* $Id: Communicator.h,v 1.6 2009/07/01 14:54:03 paste Exp $
+* $Id: Communicator.h,v 1.7 2009/07/06 15:50:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_COMMUNICATOR_H__
 #define __EMU_FED_COMMUNICATOR_H__
 
-#include "Configurable.h"
-#include "Supervised.h"
+#include "emu/fed/Configurable.h"
+#include "emu/fed/Supervised.h"
 
 #include <vector>
 #include <string>

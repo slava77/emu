@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Manager.h,v 1.5 2009/07/01 14:54:03 paste Exp $
+* $Id: Manager.h,v 1.6 2009/07/06 15:50:10 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_MANAGER_H__
 #define __EMU_FED_MANAGER_H__
@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "Application.h"
-#include "Supervised.h"
+#include "emu/fed/Application.h"
+#include "emu/fed/Supervised.h"
 #include "emu/base/WebReporter.h"
 #include "emu/fed/JSONSpiritValue.h"
 

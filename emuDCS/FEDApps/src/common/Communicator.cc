@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.13 2009/07/01 14:54:03 paste Exp $
+* $Id: Communicator.cc,v 1.14 2009/07/06 15:50:10 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -587,7 +587,7 @@ throw (toolbox::fsm::exception::Exception)
 					XCEPT_RAISE(toolbox::fsm::exception::Exception, error.str());
 				}
 				
-				uint32_t CSCStat = (*iDDU)->readCSCStatus() | (*iDDU)->readAdvancedFiberErrors();
+				uint32_t CSCStat = (*iDDU)->readFiberErrors();
 				uint32_t dduFPGAStat = (*iDDU)->readFPGAStatus(DDUFPGA) & 0xdecfffff;  // <<- note the mask
 				uint32_t inFPGA0Stat = (*iDDU)->readFPGAStatus(INFPGA0) & 0xf7eedfff;  // <<- note the mask
 				uint32_t inFPGA1Stat = (*iDDU)->readFPGAStatus(INFPGA1) & 0xf7eedfff;  // <<- note the mask
