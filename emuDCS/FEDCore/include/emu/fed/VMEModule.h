@@ -1,10 +1,8 @@
 /*****************************************************************************\
-* $Id: VMEModule.h,v 1.6 2009/07/01 14:17:18 paste Exp $
+* $Id: VMEModule.h,v 1.7 2009/07/06 16:05:40 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMEMODULE_H__
 #define __EMU_FED_VMEMODULE_H__
-
-#include <pthread.h> // For mutexes
 
 #include "emu/fed/JTAG_constants.h"
 #include "emu/fed/Exception.h"
@@ -18,6 +16,8 @@ namespace emu {
 		class VMEController;
 
 		struct JTAGElement;
+		
+		class VMELock;
 
 		/** @class VMEModule A inherited class for DCC and DDU classes.
 		*	A VMEModule should be ignorant of the controller and crate, just as how a hardware board
@@ -48,6 +48,12 @@ namespace emu {
 
 			/** @returns the current BHandle. **/
 			inline int32_t getBHandle() { return BHandle_; }
+			
+			/** Sets the mutex to that given by the Crate.
+			*
+			*	@param myMutex is the new mutex to use.
+			**/
+			inline void setMutex(VMELock *myMutex) { mutex_ = myMutex; }
 
 			/** Call the appropriate methods to configure the board. **/
 			virtual void configure() = 0;
@@ -155,7 +161,7 @@ namespace emu {
 			uint32_t vmeAddress_;
 
 			/// Mutex so that communication to and from the board is atomic.
-			pthread_mutex_t mutex_;
+			VMELock *mutex_;
 
 		};
 

@@ -1,18 +1,34 @@
 /*****************************************************************************\
-* $Id: Crate.cc,v 1.7 2009/07/01 14:17:19 paste Exp $
+* $Id: Crate.cc,v 1.8 2009/07/06 16:05:40 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Crate.h"
 
 #include <sstream>
 
 #include "emu/fed/VMEController.h"
+#include "emu/fed/VMELock.h"
 
-emu::fed::Crate::Crate(const unsigned int &myNumber):
+emu::fed::Crate::Crate(const unsigned int &myNumber)
+throw(emu::fed::exception::SoftwareException):
 number_(myNumber)
 {
 	boardVector_.reserve(18);
-
 	broadcastDDU_ = new DDU(28); // broadcast slot.
+	
+	// The name of the lock should be unique to the crate, so use the crate number
+	std::ostringstream lockName;
+	lockName << "/tmp/FEDCrate_" << myNumber << ".lock";
+	try {
+		mutex_ = new VMELock(lockName.str());
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to create mutex: " << e.what();
+		XCEPT_DECLARE(emu::fed::exception::SoftwareException, e2, error.str());
+		std::ostringstream tag;
+		tag << "FEDCrate " << number_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
 }
 
 
@@ -21,6 +37,7 @@ emu::fed::Crate::~Crate()
 {
 	delete broadcastDDU_;
 	delete vmeController_;
+	delete mutex_;
 }
 
 
@@ -40,6 +57,7 @@ throw (emu::fed::exception::OutOfBoundsException)
 	if (vmeController_ != NULL) {
 		myBoard->setBHandle(vmeController_->getBHandle());
 	}
+	myBoard->setMutex(mutex_);
 	boardVector_.push_back(myBoard);
 }
 
@@ -49,9 +67,11 @@ void emu::fed::Crate::setController(VMEController *controller) {
 	vmeController_ = controller;
 
 	broadcastDDU_->setBHandle(vmeController_->getBHandle());
+	broadcastDDU_->setMutex(mutex_);
 
 	for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
 		(*iBoard)->setBHandle(vmeController_->getBHandle());
+		(*iBoard)->setMutex(mutex_);
 	}
 }
 
@@ -84,7 +104,7 @@ throw (emu::fed::exception::ConfigurationException)
 			error << "Configuration of board in crate " << number_ << " slot " << (*iBoard)->slot() << " has failed";
 			XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
 			std::ostringstream tag;
-			tag << "FEDCrate " << number_;
+			tag << e.getProperty("tag") << " FEDCrate " << number_;
 			e2.setProperty("tag", tag.str());
 			throw e2;
 		}
