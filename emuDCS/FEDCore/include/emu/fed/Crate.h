@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.h,v 1.6 2009/07/06 16:05:40 paste Exp $
+* $Id: Crate.h,v 1.7 2009/07/08 12:07:48 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_CRATE_H__
 #define __EMU_FED_CRATE_H__
@@ -26,8 +26,8 @@ namespace emu {
 			*
 			*	@param myNumber the identification number of the crate.
 			**/
-			Crate(const unsigned int &myNumber)
-			throw(emu::fed::exception::SoftwareException);
+			Crate(const unsigned int &myNumber = 0)
+			throw (emu::fed::exception::SoftwareException);
 			
 			/** Default destructor.**/
 			~Crate();
@@ -35,16 +35,26 @@ namespace emu {
 			/** @returns the identification number of the crate. **/
 			const unsigned int number() {return number_;}
 			const unsigned int getNumber() {return number_;}
+			
+			/** Set the number of the crate **/
+			void setNumber(const unsigned int &myNumber)
+			throw (emu::fed::exception::SoftwareException);
 
 			/** Adds a VMEModule to the crate. **/
-			void addBoard(VMEModule* myBoard)
+			void addBoard(VMEModule *myBoard)
 			throw (emu::fed::exception::OutOfBoundsException);
 
 			/** Sets the VMEController in the crate. **/
-			void setController(VMEController* controller);
+			void setController(VMEController *controller);
+			
+			/** Sets the mutex to some other mutex **/
+			void setMutex(VMELock *myMutex);
 
 			/** @returns a pointer to the crate's VMEController. **/
-			VMEController *getController() { return vmeController_; }
+			inline VMEController *getController() { return vmeController_; }
+			
+			/** @returns a pointer to the crate's mutex. **/
+			inline VMELock *getMutex() { return mutex_; }
 
 			/** @returns all the boards of type T that are in the crate. **/
 			template<typename T>
