@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUDebugger.cc,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: DDUDebugger.cc,v 1.4 2009/07/08 15:42:55 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUDebugger.h"
 
@@ -10,7 +10,7 @@
 #include "emu/fed/DDU.h"
 #include "emu/fed/Fiber.h"
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(const uint32_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(const uint32_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -74,7 +74,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::DDUFPGAStat(const uint
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -122,7 +122,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::OutputStat(uint16_t st
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -166,7 +166,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg1(uint16_t stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -210,7 +210,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg2(uint16_t stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -257,7 +257,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::EBReg3(uint16_t stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -279,7 +279,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFO2(uint16_t stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -300,7 +300,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FFError(uint16_t stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -334,7 +334,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::InCHistory(uint16_t st
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::WarnMon(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1091,7 +1091,7 @@ std::vector <std::string> emu::fed::DDUDebugger::DDUDebugTrap(const std::vector<
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(const uint32_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(const uint32_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1107,7 +1107,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::KillFiber(const uint32
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(const enum DEVTYPE dt, const uint32_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(const enum DEVTYPE &dt, const uint32_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1205,7 +1205,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::InFPGAStat(const enum 
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(const enum DEVTYPE dt, const uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(const enum DEVTYPE &dt, const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1235,7 +1235,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOStat(const enum DE
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(const enum DEVTYPE dt, const uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(const enum DEVTYPE &dt, const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1259,7 +1259,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FIFOFull(const enum DE
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(const enum DEVTYPE dt, const uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(const enum DEVTYPE &dt, const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1296,7 +1296,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::CCodeStat(const enum D
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FiberDiagnostics(const enum DEVTYPE dt, const uint16_t reg, const uint32_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FiberDiagnostics(const enum DEVTYPE &dt, const uint16_t &reg, const uint32_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1329,7 +1329,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FiberDiagnostics(const
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(enum DEVTYPE dt, const uint16_t iFiber, const uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(const enum DEVTYPE &dt, const uint16_t &iFiber, const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1360,7 +1360,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::WriteMemoryActive(enum
 
 
 
-std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const std::vector<uint16_t> &lcode, const enum DEVTYPE dt)
+std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const std::vector<uint16_t> &lcode, const enum DEVTYPE &dt)
 {
 	std::vector<std::string> out;
 	std::ostringstream outStream;
@@ -1495,7 +1495,7 @@ std::vector<std::string> emu::fed::DDUDebugger::INFPGADebugTrap(const std::vecto
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStat(const uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStat(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1511,17 +1511,17 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::ParallelStat(const uin
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FMM(uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FMM(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 	
-	stat &= 0xf;
+	uint16_t myStat = stat & 0xf;
 	
-	if (stat == 1) returnValues["Warning"] = "warning";
-	else if (stat == 2) returnValues["Out-of-Sync"] = "error";
-	else if (stat == 4) returnValues["Busy"] = "caution";
-	else if (stat == 8) returnValues["Ready"] = "ok";
-	else if (stat == 0xC) returnValues["Error"] = "error";
+	if (myStat == 1) returnValues["Warning"] = "warning";
+	else if (myStat == 2) returnValues["Out-of-Sync"] = "error";
+	else if (myStat == 4) returnValues["Busy"] = "caution";
+	else if (myStat == 8) returnValues["Ready"] = "ok";
+	else if (myStat == 0xC) returnValues["Error"] = "error";
 	else returnValues["Undefined"] = "undefined";
 
 	return returnValues;
@@ -1529,7 +1529,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FMM(uint16_t stat)
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(const uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1556,7 +1556,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::GbEPrescale(const uint
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(const uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1578,7 +1578,7 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::FakeL1Reg(const uint16
 
 
 
-std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(const uint16_t stat)
+std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(const uint16_t &stat)
 {
 	std::map<std::string, std::string> returnValues;
 
@@ -1590,18 +1590,57 @@ std::map<std::string, std::string> emu::fed::DDUDebugger::F0EReg(const uint16_t 
 
 
 
-std::pair<std::string, std::string> emu::fed::DDUDebugger::Temperature(const float temp)
+std::pair<std::string, std::string> emu::fed::DDUDebugger::Temperature(const float &temp, const enum DDU::TEMPSCALE &scale)
 {
+	float warnTemp = 30;
+	float errorTemp = 40;
+	std::string degreeText = "&deg;C";
+	if (scale == DDU::FAHRENHEIT) {
+		warnTemp = warnTemp * 9. / 5. + 32.;
+		errorTemp = errorTemp * 9. / 5. + 32.;
+		degreeText = "&deg;F";
+	} else if (scale == DDU::KELVIN) {
+		warnTemp = warnTemp + 273.15;
+		errorTemp = errorTemp + 273.15;
+		degreeText = " K";
+	} else if (scale == DDU::RANKINE) {
+		warnTemp = (warnTemp + 273.15) * 9. / 5.;
+		errorTemp = (errorTemp +273.15) * 9. / 5.;
+		degreeText = " Ra";
+	} else if (scale == DDU::DELISLE) {
+		warnTemp = (100. - warnTemp) * 3. / 2.;
+		errorTemp = (100. - errorTemp) * 3. / 2.;
+		degreeText = "&deg;D";
+	} else if (scale == DDU::NEWTON) {
+		warnTemp = warnTemp * 33. / 100.;
+		errorTemp = errorTemp * 33. / 100.;
+		degreeText = "&deg;N";
+	} else if (scale == DDU::REAUMUR) {
+		warnTemp = warnTemp * 4. / 5.;
+		errorTemp = errorTemp * 4. / 5.;
+		degreeText = "&deg;R&eacute;";
+	} else if (scale == DDU::ROMER) {
+		warnTemp = warnTemp * 21. / 40. + 7.5;
+		errorTemp = errorTemp * 21. / 40. + 7.5;
+		degreeText = "&deg;R&oslash;";
+	}
+	
+	if ((scale == DDU::DELISLE && temp < errorTemp) || temp > errorTemp) {
+		std::ostringstream response;
+		response << "&gt; " << errorTemp << degreeText;
+		return std::make_pair(response.str(), "error");
+	} else if ((scale == DDU::DELISLE && temp < warnTemp) || temp > warnTemp) {
+		std::ostringstream response;
+		response << "&gt; " << warnTemp << degreeText;
+		return std::make_pair(response.str(), "warning");
+	}
 
-	if (temp > 90) return std::make_pair("&gt; 90&deg;F", "warning");
-	else if (temp > 100) return std::make_pair("&gt; 100&deg;F", "error");
-
-	return std::make_pair("&deg;F", "green");
+	return std::make_pair(degreeText, "ok");
 }
 
 
 
-std::pair<std::string, std::string> emu::fed::DDUDebugger::Voltage(const uint8_t sensor, const float voltage)
+std::pair<std::string, std::string> emu::fed::DDUDebugger::Voltage(const uint8_t &sensor, const float &voltage)
 {
 
 	unsigned int targetVoltage = 0;
@@ -1629,6 +1668,6 @@ std::pair<std::string, std::string> emu::fed::DDUDebugger::Voltage(const uint8_t
 		return std::make_pair(targetText.str(), "warning");
 	}
 	
-	return std::make_pair("mV", "green");
+	return std::make_pair("mV", "ok");
 
 }
