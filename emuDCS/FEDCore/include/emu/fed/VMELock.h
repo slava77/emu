@@ -1,10 +1,10 @@
 /*****************************************************************************\
-* $Id: VMELock.h,v 1.1 2009/07/06 16:05:40 paste Exp $
+* $Id: VMELock.h,v 1.2 2009/07/08 12:07:49 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_VMELOCK_H__
 #define __EMU_FED_VMELOCK_H__
 
-#include <boost/thread/recursive_mutex.hpp>
+#include <pthread.h>
 #include "emu/fed/Exception.h"
 #include <string>
 
@@ -35,16 +35,16 @@ namespace emu {
 		private:
 			
 			/// A mutex for intra-process locking
-			boost::recursive_mutex mutex_;
-			
-			/// A scoped lock
-			boost::recursive_mutex::scoped_lock *lock_;
+			pthread_mutex_t mutex_;
 			
 			/// The name of the lock file
 			std::string lockfile_;
 			
 			/// A file descriptor to use while the file is locked
 			int fd_;
+			
+			/// Used to make the file lock recursive
+			unsigned int nFileLock_;
 		};
 
 	}

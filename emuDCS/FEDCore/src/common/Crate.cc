@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Crate.cc,v 1.8 2009/07/06 16:05:40 paste Exp $
+* $Id: Crate.cc,v 1.9 2009/07/08 12:07:49 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Crate.h"
 
@@ -23,12 +23,14 @@ number_(myNumber)
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Unable to create mutex: " << e.what();
-		XCEPT_DECLARE(emu::fed::exception::SoftwareException, e2, error.str());
+		XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
 		std::ostringstream tag;
 		tag << "FEDCrate " << number_;
 		e2.setProperty("tag", tag.str());
 		throw e2;
 	}
+	
+	broadcastDDU_->setMutex(mutex_);
 }
 
 
@@ -38,6 +40,36 @@ emu::fed::Crate::~Crate()
 	delete broadcastDDU_;
 	delete vmeController_;
 	delete mutex_;
+}
+
+
+
+void emu::fed::Crate::setNumber(const unsigned int &myNumber)
+throw(emu::fed::exception::SoftwareException)
+{
+	number_ = myNumber;
+	
+	// The name of the lock should be unique to the crate, so use the crate number
+	delete mutex_;
+	std::ostringstream lockName;
+	lockName << "/tmp/FEDCrate_" << myNumber << ".lock";
+	try {
+		mutex_ = new VMELock(lockName.str());
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to create mutex: " << e.what();
+		XCEPT_DECLARE_NESTED(emu::fed::exception::SoftwareException, e2, error.str(), e);
+		std::ostringstream tag;
+		tag << "FEDCrate " << number_;
+		e2.setProperty("tag", tag.str());
+		throw e2;
+	}
+	
+	broadcastDDU_->setMutex(mutex_);
+	
+	for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
+		(*iBoard)->setMutex(mutex_);
+	}
 }
 
 
@@ -67,10 +99,20 @@ void emu::fed::Crate::setController(VMEController *controller) {
 	vmeController_ = controller;
 
 	broadcastDDU_->setBHandle(vmeController_->getBHandle());
-	broadcastDDU_->setMutex(mutex_);
 
 	for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
 		(*iBoard)->setBHandle(vmeController_->getBHandle());
+	}
+}
+
+
+
+void emu::fed::Crate::setMutex(VMELock *myMutex) {
+	mutex_ = myMutex;
+	
+	broadcastDDU_->setMutex(mutex_);
+	
+	for (std::vector<VMEModule *>::iterator iBoard = boardVector_.begin(); iBoard != boardVector_.end(); iBoard++) {
 		(*iBoard)->setMutex(mutex_);
 	}
 }

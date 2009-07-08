@@ -1,6 +1,6 @@
 //#define CAEN_DEBUG 1
 /*****************************************************************************\
-* $Id: VMEModule.cc,v 1.7 2009/07/06 16:05:40 paste Exp $
+* $Id: VMEModule.cc,v 1.8 2009/07/08 12:07:49 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/VMEModule.h"
 
@@ -691,6 +691,13 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 				if (myLine.find(stopString) != std::string::npos) {
 					inFile.close();
 					//std::cerr << "STOP!" << std::flush << std::endl;
+					try {
+						mutex_->unlock();
+					} catch (emu::fed::exception::Exception &e) {
+						std::ostringstream error;
+						error << "Exception unlocking mutex: " << e.what();
+						XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+					}
 					return 0;
 				}
 			}
@@ -708,6 +715,13 @@ throw (emu::fed::exception::FileException, emu::fed::exception::CAENException, e
 				if (inFile.eof()) {
 					//std::cout << "Warning: reached end-of-file and discarding the line " << myLine << std::endl;
 					inFile.close();
+					try {
+						mutex_->unlock();
+					} catch (emu::fed::exception::Exception &e) {
+						std::ostringstream error;
+						error << "Exception unlocking mutex: " << e.what();
+						XCEPT_RETHROW(emu::fed::exception::CAENException, error.str(), e);
+					}
 					return 1;
 				}
 
