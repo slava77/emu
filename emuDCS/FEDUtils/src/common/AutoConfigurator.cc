@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: AutoConfigurator.cc,v 1.4 2009/07/06 15:59:20 paste Exp $
+* $Id: AutoConfigurator.cc,v 1.5 2009/07/08 12:05:16 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/AutoConfigurator.h"
@@ -21,6 +21,9 @@ emu::fed::AutoConfigurator::AutoConfigurator()
 std::vector<emu::fed::Crate *> emu::fed::AutoConfigurator::setupCrates()
 throw (emu::fed::exception::ConfigurationException)
 {
+	// An incrementing crate number
+	unsigned int crateNumber = 0;
+	
 	// Wipe present configuration
 	crateVector_.clear();
 	
@@ -32,7 +35,18 @@ throw (emu::fed::exception::ConfigurationException)
 	for (unsigned int iDevice = 0; iDevice < 4; iDevice++) {
 		for (unsigned int iLink = 0; iLink < 4; iLink++) {
 			
-			Crate *testCrate = new Crate(0);
+			Crate *testCrate;
+			try {
+				testCrate = new Crate(crateNumber++);
+			} catch (emu::fed::exception::Exception &e) {
+				std::ostringstream error;
+				error << "Unable to create crate: " << e.what();
+				XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
+				std::ostringstream tag;
+				tag << "FEDCrate " << crateNumber;
+				e2.setProperty("tag", tag.str());
+				throw e2;
+			}
 			VMEController *testController;
 			
 			// If this throws, then this is not a legal device/link combination
@@ -51,6 +65,7 @@ throw (emu::fed::exception::ConfigurationException)
 				try {
 					DDU *testDDU = new DDU(iSlot);
 					testDDU->setBHandle(testController->getBHandle());
+					testDDU->setMutex(testCrate->getMutex());
 					
 					// Gives nonsense for DCCs, but standard answer for DDUs
 					uint32_t idCode = testDDU->readIDCode(VMEPROM);
@@ -58,7 +73,8 @@ throw (emu::fed::exception::ConfigurationException)
 						// Read all the normal configuration information from the board itself
 						testDDU->gbe_prescale_ = testDDU->readGbEPrescale();
 						testDDU->killfiber_ = (testDDU->readKillFiber() & 0xf7000) | (testDDU->readFlashKillFiber());
-						ruiTotal += testDDU->readFlashRUI();
+						testDDU->rui_ = testDDU->readFlashRUI();
+						ruiTotal += testDDU->getRUI();
 						testCrate->addBoard(testDDU);
 						continue;
 					}
@@ -103,6 +119,17 @@ throw (emu::fed::exception::ConfigurationException)
 		std::vector<DCC *> dccVector = crateVector_[0]->getDCCs();
 		if (dduVector.size() == 1 && dccVector.size() == 0 && dduVector[0]->slot() == 2) {
 			systemName_ = "Track-Finder";
+			try {
+				crateVector_[0]->setNumber(5);
+			} catch (emu::fed::exception::Exception &e) {
+				std::ostringstream error;
+				error << "Unable to change crate number for Track Finder crate: " << e.what();
+				XCEPT_DECLARE_NESTED(emu::fed::exception::ConfigurationException, e2, error.str(), e);
+				std::ostringstream tag;
+				tag << "FEDCrate " << 5;
+				e2.setProperty("tag", tag.str());
+				throw e2;
+			}
 		} else {
 			systemName_ = "Test-Crate";
 		}
