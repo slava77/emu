@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Commander.cc,v 1.6 2009/07/01 14:54:03 paste Exp $
+* $Id: Commander.cc,v 1.7 2009/07/08 12:03:09 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Commander.h"
 
@@ -35,6 +35,9 @@ emu::fed::Configurable(stub)
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::Commander::webDefault, "Default");
 	xgi::bind(this, &emu::fed::Commander::webGetStatus, "GetStatus");
+	
+	// Other SOAP call-back functions
+	xoap::bind(this, &emu::fed::Commander::onGetParameters, "GetParameters", XDAQ_NS_URI);
 	
 	// Other initializations
 	configMode_ = "XML";

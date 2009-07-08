@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: MicroMonitor.cc,v 1.1 2009/07/06 15:50:10 paste Exp $
+* $Id: MicroMonitor.cc,v 1.2 2009/07/08 12:03:09 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/MicroMonitor.h"
 
@@ -24,11 +24,50 @@ XDAQ_INSTANTIATOR_IMPL(emu::fed::MicroMonitor)
 emu::fed::MicroMonitor::MicroMonitor(xdaq::ApplicationStub *stub):
 xdaq::WebApplication(stub),
 emu::fed::Application(stub),
-emu::fed::Configurable(stub)
+emu::fed::Configurable(stub),
+emu::base::Supervised(stub),
+emu::fed::Supervised(stub)
 {
 	
 	// HyperDAQ pages
 	xgi::bind(this, &emu::fed::MicroMonitor::DCSOutput, "DCSOutput");
+	
+	// SOAP call-back functions which fire the transitions to the FSM
+	BIND_DEFAULT_SOAP2FSM_ACTION(MicroMonitor, Configure);
+	BIND_DEFAULT_SOAP2FSM_ACTION(MicroMonitor, Enable);
+	BIND_DEFAULT_SOAP2FSM_ACTION(MicroMonitor, Disable);
+	BIND_DEFAULT_SOAP2FSM_ACTION(MicroMonitor, Halt);
+	
+	// FSM state definitions and state-change call-back functions
+	fsm_.addState('H', "Halted", this, &emu::fed::MicroMonitor::stateChanged);
+	fsm_.addState('C', "Configured", this, &emu::fed::MicroMonitor::stateChanged);
+	fsm_.addState('E', "Enabled", this, &emu::fed::MicroMonitor::stateChanged);
+	
+	// FSM transition definitions
+	fsm_.addStateTransition('H', 'C', "Configure", this, &emu::fed::MicroMonitor::configureAction);
+	fsm_.addStateTransition('C', 'C', "Configure", this, &emu::fed::MicroMonitor::configureAction);
+	fsm_.addStateTransition('E', 'C', "Configure", this, &emu::fed::MicroMonitor::configureAction);
+	fsm_.addStateTransition('F', 'C', "Configure", this, &emu::fed::MicroMonitor::configureAction);
+	
+	fsm_.addStateTransition('H', 'C', "Disable", this, &emu::fed::MicroMonitor::disableAction);
+	fsm_.addStateTransition('C', 'C', "Disable", this, &emu::fed::MicroMonitor::disableAction);
+	fsm_.addStateTransition('E', 'C', "Disable", this, &emu::fed::MicroMonitor::disableAction);
+	fsm_.addStateTransition('F', 'C', "Disable", this, &emu::fed::MicroMonitor::disableAction);
+	
+	fsm_.addStateTransition('H', 'E', "Enable", this, &emu::fed::MicroMonitor::enableAction);
+	fsm_.addStateTransition('C', 'E', "Enable", this, &emu::fed::MicroMonitor::enableAction);
+	fsm_.addStateTransition('E', 'E', "Enable", this, &emu::fed::MicroMonitor::enableAction);
+	fsm_.addStateTransition('F', 'E', "Enable", this, &emu::fed::MicroMonitor::enableAction);
+	
+	fsm_.addStateTransition('H', 'H', "Halt", this, &emu::fed::MicroMonitor::haltAction);
+	fsm_.addStateTransition('C', 'H', "Halt", this, &emu::fed::MicroMonitor::haltAction);
+	fsm_.addStateTransition('E', 'H', "Halt", this, &emu::fed::MicroMonitor::haltAction);
+	fsm_.addStateTransition('F', 'H', "Halt", this, &emu::fed::MicroMonitor::haltAction);
+	
+	fsm_.setInitialState('H');
+	fsm_.reset();
+	
+	state_ = fsm_.getStateName(fsm_.getCurrentState());
 	
 	// Configure the software with the Autoconfigurator
 	configMode_ = "Autodetect";
@@ -41,7 +80,6 @@ emu::fed::Configurable(stub)
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MicroMonitorConfigure", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 	}
-	
 }
 
 
@@ -112,3 +150,57 @@ void emu::fed::MicroMonitor::DCSOutput(xgi::Input *in, xgi::Output *out)
 		}
 	}
 }
+
+
+
+void emu::fed::MicroMonitor::configureAction(toolbox::Event::Reference event)
+throw (toolbox::fsm::exception::Exception)
+{
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Configure");
+	
+	// Configure the software with the Autoconfigurator
+	configMode_ = "Autodetect";
+	try {
+		softwareConfigure();
+		REVOKE_ALARM("MicroMonitorConfigure", NULL);
+	} catch (emu::fed::exception::Exception &e) {
+		std::ostringstream error;
+		error << "Unable to properly configure the MicroMonitor.  Please destroy and re-initialize the application.";
+		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "MicroMonitorConfigure", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
+	}
+	
+}
+
+
+
+void emu::fed::MicroMonitor::enableAction(toolbox::Event::Reference event)
+throw (toolbox::fsm::exception::Exception)
+{
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Enable");
+	// Dummy
+}
+
+
+
+void emu::fed::MicroMonitor::disableAction(toolbox::Event::Reference event)
+throw (toolbox::fsm::exception::Exception)
+{
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Disable");
+	// Dummy
+}
+
+
+
+void emu::fed::MicroMonitor::haltAction(toolbox::Event::Reference event)
+throw (toolbox::fsm::exception::Exception)
+{
+	
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "FSM transition received:  Halt");
+	// Dummy
+}
+

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: definitions.js,v 1.1 2009/07/03 23:33:29 paste Exp $
+* $Id: definitions.js,v 1.2 2009/07/08 12:03:09 paste Exp $
 \*****************************************************************************/
 
 function ReloadElement() {
@@ -26,16 +26,20 @@ function ReloadElement() {
 			updateElement.update(this.lastReloadTime + " (" + time + " ago)");
 		}
 		this.timeSinceReload++;
-		if (this.timeSinceReload % this.timeToReload == 0 || now == true) {
-			if (this.timeSinceReload > this.timeToError) {
-				if (updateElement && !updateElement.hasClassName("Failed")) {
-					updateElement.addClassName("Failed");
-				}
+		if (this.timeSinceReload > this.timeToError) {
+			if (updateElement && !updateElement.hasClassName("Failed")) {
+				updateElement.addClassName("Failed");
 			}
+		} else {
+			if (updateElement && updateElement.hasClassName("Failed")) {
+				updateElement.removeClassName("Failed");
+			}
+		}
+		if (this.timeSinceReload % this.timeToReload == 0 || now == true) {
 			if (this.stop) return;
 			$(this.id + "_loadicon").setAttribute("src", "/emu/emuDCS/FEDApps/images/ajax-loader.gif");
 			this.reloadFunction();
-		} else if (updateElement && updateElement.hasClassName("Failed")) updateElement.removeClassName("Failed");
+		}
 	}
 	this.tick = tickFunction;
 	function resetFunction() {
