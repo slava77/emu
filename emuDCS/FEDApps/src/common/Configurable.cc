@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.2 2009/07/06 15:50:10 paste Exp $
+* $Id: Configurable.cc,v 1.3 2009/07/08 12:03:09 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/path.hpp"
@@ -214,7 +214,7 @@ void emu::fed::Configurable::webReconfigure(xgi::Input *in, xgi::Output *out)
 void emu::fed::Configurable::softwareConfigure()
 throw (emu::fed::exception::ConfigurationException)
 {
-	
+
 	for (size_t iCrate = 0; iCrate < crateVector_.size(); iCrate++) {
 		delete crateVector_[iCrate];
 	}
