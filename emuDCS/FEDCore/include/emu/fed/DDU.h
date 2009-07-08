@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.h,v 1.8 2009/07/01 14:17:18 paste Exp $
+* $Id: DDU.h,v 1.9 2009/07/08 14:38:31 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DDU_H__
 #define __EMU_FED_DDU_H__
@@ -24,6 +24,17 @@ namespace emu {
 			friend class DDUParser;
 			friend class AutoConfigurator;
 			friend class DDUDBAgent;
+			
+			enum TEMPTYPE {
+				FARENHEIT,
+				CELSIUS,
+				KELVIN,
+				RANKINE,
+				REAUMUR,
+				ROMER,
+				NEWTON,
+				DELISLE
+			};
 
 		public:
 
@@ -193,6 +204,10 @@ namespace emu {
 
 			// Read SADC registers
 
+			/** @returns the calculated temperature of a given SADC sensor in F. **/
+			float readTemperature(const uint8_t &sensor, const enum TEMPTYPE &temp = FARENHEIT)
+			throw (emu::fed::exception::DDUException);
+			
 			/** @returns the calculated temperature of a given SADC sensor. **/
 			float readTemperature(const uint8_t &sensor)
 			throw (emu::fed::exception::DDUException);

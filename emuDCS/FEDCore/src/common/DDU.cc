@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.9 2009/07/01 14:17:19 paste Exp $
+* $Id: DDU.cc,v 1.10 2009/07/08 14:38:31 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -724,7 +724,7 @@ throw (emu::fed::exception::DDUException)
 // Read SADC
 ///////////////////////////////////////////////////////////////////////////////
 
-float emu::fed::DDU::readTemperature(const uint8_t &sensor)
+float emu::fed::DDU::readTemperature(const uint8_t &sensor, const enum TEMPTYPE &temp)
 throw (emu::fed::exception::DDUException)
 {
 	if (sensor >= 4) {
@@ -738,9 +738,18 @@ throw (emu::fed::exception::DDUException)
 	}
 	try {
 		float Vout= (float) readRegister(SADC, 0x0089 | (sensor << 4), 16)[0] / 1000.;
-		float cval = 1/(0.1049406423E-2+0.2133635468E-3*log(65000.0/Vout-13000.0)+0.7522287E-7*pow(log(65000.0/Vout-13000.0),3.0))-0.27315E3; // Celcius
-		float fval=9.0/5.0*cval+32.; // Ferinheit
-		return fval;
+		float cval = 1 / (0.1049406423E-2 + 0.2133635468E-3 * log(65000.0 / Vout - 13000.0) + 0.7522287E-7 * pow(log(65000.0 / Vout - 13000.0), 3.0)) - 0.27315E+3;
+		if (temp == CELSIUS) return cval;
+		else if (temp == FARENHEIT) return 9.0 / 5.0 * cval + 32.0;
+		else if (temp == KELVIN) return cval + 273.15;
+		else if (temp == RANKINE) return (cval + 273.15) * 9.0 / 5.0;
+		else if (temp == REAUMUR) return cval * 4 / 5;
+		else if (temp == ROMER) return cval * 21 / 40 + 7.5;
+		else if (temp == NEWTON) return cval * 33.0 / 100.0;
+		else if (temp == DELISLE) return (100 - cval) * 3.0 / 2.0;
+		else {
+			XCEPT_RAISE(emu::fed::exception::OutOfBoundsException, "Unknown temperature type given");
+		}
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
 		error << "Exception communicating with DDU";
