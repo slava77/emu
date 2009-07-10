@@ -4,11 +4,17 @@ td.Halted {
 td.Configured {
 	background-color: #FFFF44;
 }
+td.Ready {
+	background-color: #FFFF44;
+}
 td.Enabled {
 	background-color: #99FF99;
 }
 td.Running {
 	background-color: #99FF99;
+}
+td.Error {
+	background-color: #FF9999;
 }
 td.Failed {
 	color: #FFFFFF;
