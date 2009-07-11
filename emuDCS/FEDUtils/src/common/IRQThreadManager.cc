@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.cc,v 1.8 2009/06/13 17:59:45 paste Exp $
+* $Id: IRQThreadManager.cc,v 1.9 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/IRQThreadManager.h"
 
@@ -23,7 +23,7 @@
 
 
 
-emu::fed::IRQThreadManager::IRQThreadManager(xdaq::WebApplication *application, const unsigned int fmmErrorThreshold):
+emu::fed::IRQThreadManager::IRQThreadManager(xdaq::WebApplication *application, const unsigned int &fmmErrorThreshold):
 systemName_(""),
 fmmErrorThreshold_(fmmErrorThreshold),
 application_(application)
@@ -56,7 +56,7 @@ void emu::fed::IRQThreadManager::attachCrate(Crate *crate)
 
 
 
-void emu::fed::IRQThreadManager::startThreads(const unsigned long int runNumber)
+void emu::fed::IRQThreadManager::startThreads(const unsigned long int &runNumber)
 throw (emu::fed::exception::FMMThreadException)
 {
 

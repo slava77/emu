@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DCCParser.cc,v 1.6 2009/06/13 17:59:45 paste Exp $
+* $Id: DCCParser.cc,v 1.7 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DCCParser.h"
 
@@ -50,7 +50,7 @@ Parser(pNode)
 	dcc_->softsw_ = 0;
 
 	try {
-		dcc_->softsw_ |= (extract<bool>("ENABLE_SW_SWITCH") == 0) ? 0 : 0x200;
+		if (extract<bool>("ENABLE_SW_SWITCH")) dcc_->softsw_ |= 0x200;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse ENABLE_SW_SWITCH from element";
@@ -58,7 +58,7 @@ Parser(pNode)
 	}
 	
 	try {
-		dcc_->softsw_ |= (extract<bool>("TTCRX_NOT_READY") == 0) ? 0 : 0x1000;
+		if (extract<bool>("TTCRX_NOT_READY")) dcc_->softsw_ |= 0x1000;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse TTCRX_NOT_READY from element";
@@ -66,7 +66,7 @@ Parser(pNode)
 	}
 	
 	try {
-		dcc_->softsw_ |= (extract<bool>("SW_BIT4") == 0) ? 0 : 0x10;
+		if (extract<bool>("SW_BIT4")) dcc_->softsw_ |= 0x10;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse SW_BIT4 from element";
@@ -74,7 +74,7 @@ Parser(pNode)
 	}
 	
 	try {
-		dcc_->softsw_ |= (extract<bool>("SW_BIT5") == 0) ? 0 : 0x20;
+		if (extract<bool>("SW_BIT5")) dcc_->softsw_ |= 0x20;
 	} catch (emu::fed::exception::ParseException &e) {
 		std::ostringstream error;
 		error << "Unable to parse SW_BIT5 from element";

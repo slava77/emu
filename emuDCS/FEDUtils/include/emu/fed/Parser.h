@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Parser.h,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: Parser.h,v 1.4 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_PARSER_H__
 #define __EMU_FED_PARSER_H__
@@ -32,7 +32,7 @@ namespace emu {
 			*	@param flags the format flags to be used when extracting from the string representation of the attribute value to the type T.
 			**/
 			template<class T>
-			T extract(const char *item, std::ios_base::fmtflags flags = std::ios::dec)
+			T extract(const char *item, const std::ios_base::fmtflags &flags = std::ios::dec)
 			throw (emu::fed::exception::ParseException)
 			{
 				XMLCh *name = xercesc::XMLString::transcode(item);
@@ -60,7 +60,7 @@ namespace emu {
 			}
 			
 			template<class T>
-			T extract(const std::string &item, std::ios_base::fmtflags flags = std::ios::dec)
+			T extract(const std::string &item, const std::ios_base::fmtflags &flags = std::ios::dec)
 			throw (emu::fed::exception::ParseException)
 			{
 				try {

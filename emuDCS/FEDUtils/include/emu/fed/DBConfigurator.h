@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBConfigurator.h,v 1.2 2009/06/13 17:59:45 paste Exp $
+* $Id: DBConfigurator.h,v 1.3 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_DBCONFIGURATOR_H__
 #define __EMU_FED_DBCONFIGURATOR_H__
@@ -8,6 +8,7 @@
 
 #include <string>
 #include "xdaq/WebApplication.h"
+#include "xdata/UnsignedInteger64.h"
 
 namespace emu {
 	namespace fed {
@@ -23,9 +24,12 @@ namespace emu {
 			*	@param username The database username.
 			*	@param password The database password.
 			**/
-			DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password);
+			DBConfigurator(xdaq::WebApplication *application, const std::string &username, const std::string &password, xdata::UnsignedInteger64 &key);
 
-			/** Configure the crates and return them **/
+			/** Configure the crates and return them.
+			*
+			*	@param key The database key to use when configuring.
+			**/
 			std::vector<emu::fed::Crate *> setupCrates()
 			throw (emu::fed::exception::ConfigurationException);
 
@@ -41,6 +45,9 @@ namespace emu {
 			
 			/// The database password
 			std::string dbPassword_;
+			
+			/// The database key to use
+			xdata::UnsignedInteger64 dbKey_;
 		
 		};
 
