@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Configurable.cc,v 1.3 2009/07/08 12:03:09 paste Exp $
+* $Id: Configurable.cc,v 1.4 2009/07/11 19:53:20 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Configurable.h"
 #include "boost/filesystem/path.hpp"
@@ -245,21 +245,21 @@ throw (emu::fed::exception::ConfigurationException)
 			systemName_ = configurator.getSystemName();
 		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
-			error << "Unable to create FED objects by parsing file " << xmlFile_.toString();
+			error << "Unable to create FED objects by parsing file " << xmlFile_.toString() << ": " << e.what();
 			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 		}
 		
 	} else if (configMode_ == "Database") {
 		
-		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString());
+		DBConfigurator configurator(this, dbUsername_.toString(), dbPassword_.toString(), dbKey_);
 		
 		try {
 			crateVector_ = configurator.setupCrates();
 			systemName_ = configurator.getSystemName();
 		} catch (emu::fed::exception::Exception &e) {
 			std::ostringstream error;
-			error << "Unable to create FED objects using the online database";
+			error << "Unable to create FED objects using the online database: " << e.what();
 			LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 		}

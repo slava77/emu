@@ -22,8 +22,8 @@ Summary="Emu (CSC) FED XDAQ Applications"
 Authors="Phillip Killewald, Stan Durkin, Jason Gilmore, Jianhui Gu"
 Link="http://physics.ohio-state.edu/~cms"
 PACKAGE_VER_MAJOR=07
-PACKAGE_VER_MINOR=07
-PACKAGE_VER_PATCH=01
+PACKAGE_VER_MINOR=06
+PACKAGE_VER_PATCH=06
 
 Sources=\
 	AppsVersion.cc \
