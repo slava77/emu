@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Application.cc,v 1.8 2009/07/01 14:54:03 paste Exp $
+* $Id: Application.cc,v 1.9 2009/07/11 19:53:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Application.h"
 
@@ -394,23 +394,26 @@ throw (emu::fed::exception::SOAPException)
 	// send the message
 	// postSOAP() may throw an exception when failed.
 	for (std::set<xdaq::ApplicationDescriptor *>::iterator iApp = apps.begin(); iApp != apps.end(); iApp++) {
-		for (unsigned int iTries = 5; iTries > 0; iTries--) {
+		unsigned int iTries = 1;
+		while (iTries++) {
 			try {
 				getApplicationContext()->postSOAP(message, *getApplicationDescriptor(), *(*iApp));
-				return;
+				break;
 			} catch (xcept::Exception &e) {
 				std::ostringstream error;
 				std::string messageOut;
 				message->writeTo(messageOut);
-				error << "sendCommand failed sending command=" << command << " to klass=" << klass << ", instance=" << instance << ": message " << messageOut;
+				error << "sendCommand failed sending command=" << command << " to klass=" << klass << ", instance=" << instance << ": " << e.what();
 				LOG4CPLUS_WARN(getApplicationLogger(), error.str());
 			}
+			
+			if (iTries >= 5) {
+				std::ostringstream error;
+				error << "sendCommand reached the maximum number of retries";
+				LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+				XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
+			}
 		}
-
-		std::ostringstream error;
-		error << "sendCommand reached the maximum number of retries";
-		LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
-		XCEPT_RAISE(emu::fed::exception::SOAPException, error.str());
 	}
 
 }

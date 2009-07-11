@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: Communicator.cc,v 1.14 2009/07/06 15:50:10 paste Exp $
+* $Id: Communicator.cc,v 1.15 2009/07/11 19:53:19 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/Communicator.h"
 
@@ -366,7 +366,7 @@ throw (toolbox::fsm::exception::Exception)
 		REVOKE_ALARM("CommunicatorConfigurator", NULL);
 	} catch (emu::fed::exception::ConfigurationException &e) {
 		std::ostringstream error;
-		error << "Unable to properly configure the Communicator software.";
+		error << "Unable to properly configure the Communicator software: " << e.what();
 		LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
 		RAISE_ALARM_NESTED(emu::fed::exception::ConfigurationException, "CommunicatorConfigurator", "ERROR", error.str(), e.getProperty("tag"), NULL, e);
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
@@ -413,6 +413,7 @@ throw (toolbox::fsm::exception::Exception)
 		
 		// Resync now to get rid of any DCC status we might have.
 		// Don't reset crate 5 (TF)
+		/*
 		if (dccs.size() > 0 && (*iCrate)->number() <= 4) {
 			LOG4CPLUS_DEBUG(getApplicationLogger(), "RESYNC THROUGH DCC!");
 			try {
@@ -428,6 +429,7 @@ throw (toolbox::fsm::exception::Exception)
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e);
 			}
 		}
+		*/
 	}
 
 	// JRG, add loop over all DDUs in the FED Crates
@@ -780,6 +782,22 @@ throw (toolbox::fsm::exception::Exception)
 				XCEPT_DECLARE_NESTED(emu::fed::exception::Exception, e2, error.str(), e);
 				std::ostringstream tag;
 				tag << "FEDCrate " << (*iCrate)->number() << " FMM " << dccs[0]->getFMMID() << " SLINK1 " << dccs[0]->getSLinkID(1) << " SLINK2 " << dccs[0]->getSLinkID(2);
+				e2.setProperty("tag", tag.str());
+				notifyQualified("FATAL", e2);
+				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e2);
+			}
+		} else {
+			// TF crate recieves a hard reset on Disable, so I have to make sure the GbE prescale is set properly here.
+			DDU *myDDU = (*iCrate)->getDDUs()[0];
+			try {
+				myDDU->configure();
+			} catch (emu::fed::exception::DDUException &e) {
+				std::ostringstream error;
+				error << "Unable to reset GbEPrescale of TF DDU";
+				LOG4CPLUS_FATAL(getApplicationLogger(), error.str());
+				XCEPT_DECLARE_NESTED(emu::fed::exception::Exception, e2, error.str(), e);
+				std::ostringstream tag;
+				tag << "FEDCrate " << (*iCrate)->number() << " DDU " << myDDU->getRUI();
 				e2.setProperty("tag", tag.str());
 				notifyQualified("FATAL", e2);
 				XCEPT_RETHROW(toolbox::fsm::exception::Exception, error.str(), e2);
