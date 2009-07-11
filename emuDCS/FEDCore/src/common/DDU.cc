@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDU.cc,v 1.11 2009/07/08 15:31:34 paste Exp $
+* $Id: DDU.cc,v 1.12 2009/07/11 19:36:44 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDU.h"
 
@@ -92,6 +92,7 @@ throw (emu::fed::exception::DDUException)
 {
 	try {
 		writeGbEPrescale(gbe_prescale_);
+		writeFlashKillFiber(killfiber_);
 		writeKillFiber(killfiber_);
 	} catch (emu::fed::exception::Exception &e) {
 		std::ostringstream error;
