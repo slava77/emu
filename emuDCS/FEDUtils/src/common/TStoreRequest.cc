@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: TStoreRequest.cc,v 1.1 2009/05/16 18:55:20 paste Exp $
+* $Id: TStoreRequest.cc,v 1.2 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/TStoreRequest.h"
 
@@ -39,11 +39,11 @@ throw (xcept::Exception)
 
 
 
-void emu::fed::TStoreRequest::addParametersWithNamespace(xoap::SOAPElement &element, xoap::SOAPEnvelope &envelope, std::map<const std::string,std::string> &parameters, const std::string &namespaceURI, const std::string &namespacePrefix)
+void emu::fed::TStoreRequest::addParametersWithNamespace(xoap::SOAPElement &element, xoap::SOAPEnvelope &envelope, const std::map<const std::string,std::string> &parameters, const std::string &namespaceURI, const std::string &namespacePrefix)
 {
 	if (!parameters.empty()) element.addNamespaceDeclaration(namespacePrefix, namespaceURI); 
-	std::map<const std::string,std::string>::iterator parameter;
-	for (parameter = parameters.begin(); parameter != parameters.end(); parameter++) {
+
+	for (std::map<const std::string,std::string>::const_iterator parameter = parameters.begin(); parameter != parameters.end(); parameter++) {
 		//(*parameter).first is the attribute name, (*parameter).second is the value
 		xoap::SOAPName property = envelope.createName((*parameter).first, namespacePrefix, namespaceURI);
 		element.addAttribute(property, (*parameter).second); 

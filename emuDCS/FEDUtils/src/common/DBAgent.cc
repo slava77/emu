@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DBAgent.cc,v 1.4 2009/06/13 17:59:45 paste Exp $
+* $Id: DBAgent.cc,v 1.5 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DBAgent.h"
 
@@ -150,7 +150,7 @@ throw (emu::fed::exception::DBException) {
 
 
 
-void emu::fed::DBAgent::insert(const std::string &insertViewName, xdata::Table &newRows)
+void emu::fed::DBAgent::insert(const std::string &insertViewName, const xdata::Table &newRows)
 throw (emu::fed::exception::DBException) {
 
 	//for a query, we need to send some parameters which are specific to SQLView.
@@ -176,7 +176,9 @@ throw (emu::fed::exception::DBException) {
 	
 	//add our new rows as an attachment to the SOAP message
 	//the last parameter is the ID of the attachment. The SQLView does not mind what it is, as there should only be one attachment per message.
-	tstoreclient::addAttachment(message, newRows, "whatever");
+	// For shame!
+	xdata::Table myNewRows = newRows;
+	tstoreclient::addAttachment(message, myNewRows, "whatever");
 	
 	xoap::MessageReference response;
 	try {
@@ -209,7 +211,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-xdata::Table emu::fed::DBAgent::getByID(xdata::UnsignedInteger64 &id)
+xdata::Table emu::fed::DBAgent::getByID(const xdata::UnsignedInteger64 &id)
 throw (emu::fed::exception::DBException)
 {
 	// Push back the table name
@@ -217,7 +219,9 @@ throw (emu::fed::exception::DBException)
 	parameters["TABLE"] = table_;
 	
 	// Push back the ID
-	parameters["ID"] = id.toString();
+	// XDATA people are lazy
+	xdata::UnsignedInteger64 myID = id;
+	parameters["ID"] = myID.toString();
 	
 	// Return the results of the query
 	try {
@@ -229,7 +233,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-xdata::Table emu::fed::DBAgent::getByKey(xdata::UnsignedInteger64 &key)
+xdata::Table emu::fed::DBAgent::getByKey(const xdata::UnsignedInteger64 &key)
 throw (emu::fed::exception::DBException)
 {
 	// Push back the table name
@@ -237,7 +241,9 @@ throw (emu::fed::exception::DBException)
 	parameters["TABLE"] = table_;
 	
 	// Push back the key
-	parameters["KEY"] = key.toString();
+	// XDATA people are lazy
+	xdata::UnsignedInteger64 myKey = key;
+	parameters["KEY"] = myKey.toString();
 	
 	// Return the results of the query
 	try {
@@ -249,7 +255,7 @@ throw (emu::fed::exception::DBException)
 
 
 
-xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(xoap::MessageReference &message, const std::string &klass, const int instance)
+xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(const xoap::MessageReference &message, const std::string &klass, const int &instance)
 throw (emu::fed::exception::SOAPException)
 {
 	
@@ -276,14 +282,16 @@ throw (emu::fed::exception::SOAPException)
 }
 
 
-xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(xoap::MessageReference &message, xdaq::ApplicationDescriptor *app)
+xoap::MessageReference emu::fed::DBAgent::sendSOAPMessage(const xoap::MessageReference &message, xdaq::ApplicationDescriptor *app)
 throw (emu::fed::exception::SOAPException)
 {
+	// XDAQ people are lazy
+	xoap::MessageReference myMessage = message;
 	// postSOAP() may throw an exception when failed.
 	unsigned int iTries = 5;
 	while (iTries > 0) {
 		try {
-			return application_->getApplicationContext()->postSOAP(message, *(application_->getApplicationDescriptor()), *app);
+			return application_->getApplicationContext()->postSOAP(myMessage, *(application_->getApplicationDescriptor()), *app);
 		} catch (xcept::Exception &e) {
 			iTries--;
 		}

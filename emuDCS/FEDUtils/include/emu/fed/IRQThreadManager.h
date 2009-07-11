@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: IRQThreadManager.h,v 1.3 2009/06/13 17:59:45 paste Exp $
+* $Id: IRQThreadManager.h,v 1.4 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_IRQTHREADMANAGER_H__
 #define __EMU_FED_IRQTHREADMANAGER_H__
@@ -39,7 +39,7 @@ namespace emu {
 			*	@param application The application from which this thread is run (for SOAP alarms)
 			*	@param systemName The name of the system from which this thread is run (for log file naming)
 			**/
-			IRQThreadManager(xdaq::WebApplication *application, const unsigned int fmmErrorThreshold = 0);
+			IRQThreadManager(xdaq::WebApplication *application, const unsigned int &fmmErrorThreshold = 0);
 			
 			/** Default destructor **/
 			~IRQThreadManager();
@@ -48,7 +48,7 @@ namespace emu {
 			void attachCrate(Crate *crate);
 			
 			/** Begin monitoring with an optional run number. **/
-			void startThreads(const unsigned long int runNumber = 0)
+			void startThreads(const unsigned long int &runNumber = 0)
 			throw (emu::fed::exception::FMMThreadException);
 			
 			/** Stop the threads. **/
@@ -59,7 +59,7 @@ namespace emu {
 			inline void setSystemName(const std::string &systemName) { systemName_ = systemName; }
 			
 			/** Change the error threshold **/
-			inline void setFMMErrorThreshold(const unsigned int threshold) { fmmErrorThreshold_ = threshold; }
+			inline void setFMMErrorThreshold(const unsigned int &threshold) { fmmErrorThreshold_ = threshold; }
 		
 			/** The actual thread routine **/
 			static void *IRQThread(void *data);

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: TStoreRequest.h,v 1.2 2009/06/13 17:59:45 paste Exp $
+* $Id: TStoreRequest.h,v 1.3 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #ifndef __EMU_FED_TSTOREREQUEST_H__
 #define __EMU_FED_TSTOREREQUEST_H__
@@ -55,7 +55,7 @@ namespace emu {
 			std::map<const std::string, std::string> viewSpecificParameters_;
 			
 			/// Add the parameters to a SOAP message with a corresponding namespace
-			void addParametersWithNamespace(xoap::SOAPElement &element, xoap::SOAPEnvelope &envelope, std::map<const std::string,std::string> &parameters, const std::string &namespaceURI, const std::string &namespacePrefix);
+			void addParametersWithNamespace(xoap::SOAPElement &element, xoap::SOAPEnvelope &envelope, const std::map<const std::string, std::string> &parameters, const std::string &namespaceURI, const std::string &namespacePrefix);
 			
 			/// Send the SOAP message
 			//xoap::MessageReference sendSOAPMessage(xoap::MessageReference &message);

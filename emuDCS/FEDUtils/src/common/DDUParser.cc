@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: DDUParser.cc,v 1.5 2009/06/13 17:59:45 paste Exp $
+* $Id: DDUParser.cc,v 1.6 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 #include "emu/fed/DDUParser.h"
 
@@ -69,7 +69,7 @@ Parser(pNode)
 	for (unsigned int iOption = 0; iOption < optionNames.size(); iOption++) {
 		std::string optionName = optionNames[iOption];
 		try {
-			ddu_->killfiber_ |= (extract<bool>(optionName) ? 0 : 1) << (15 + iOption);
+			if (extract<bool>(optionName)) ddu_->killfiber_ |= (1 << (15 + iOption));
 		} catch (emu::fed::exception::ParseException &e) {
 			std::ostringstream error;
 			error << "Unable to parse " << optionName << " from element";

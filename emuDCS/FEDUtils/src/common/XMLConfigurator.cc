@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* $Id: XMLConfigurator.cc,v 1.5 2009/06/15 17:27:00 paste Exp $
+* $Id: XMLConfigurator.cc,v 1.6 2009/07/11 19:38:32 paste Exp $
 \*****************************************************************************/
 
 #include "emu/fed/XMLConfigurator.h"
@@ -52,13 +52,13 @@ throw (emu::fed::exception::ConfigurationException)
 		delete parser;
 		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
-		error << "Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
+		error << "XML Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	} catch (xercesc::DOMException& e) {
 		delete parser;
 		xercesc::XMLPlatformUtils::Terminate();
 		std::ostringstream error;
-		error << "Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
+		error << "DOM Error during parsing: " << xercesc::XMLString::transcode(e.getMessage());
 		XCEPT_RAISE(emu::fed::exception::ConfigurationException, error.str());
 	} catch (...) {
 		delete parser;
@@ -118,7 +118,9 @@ throw (emu::fed::exception::ConfigurationException)
 		} catch (emu::fed::exception::ParseException &e) {
 			delete parser;
 			xercesc::XMLPlatformUtils::Terminate();
-			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing Crate element", e);
+			std::ostringstream error;
+			error << "Exception in parsing Crate element: " << e.what();
+			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 		}
 		
 		// Get VMEController
@@ -140,7 +142,9 @@ throw (emu::fed::exception::ConfigurationException)
 		} catch (emu::fed::exception::ParseException &e) {
 			delete parser;
 			xercesc::XMLPlatformUtils::Terminate();
-			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing VMEController element", e);
+			std::ostringstream error;
+			error << "Exception in parsing VMEController element: " << e.what();
+			XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 		}
 		
 		// Get DDUs.  If there are none, then that is a valid crate anyway (even though it doesn't make sense).
@@ -156,7 +160,9 @@ throw (emu::fed::exception::ConfigurationException)
 			} catch (emu::fed::exception::ParseException &e) {
 				delete parser;
 				xercesc::XMLPlatformUtils::Terminate();
-				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing DDU element", e);
+				std::ostringstream error;
+				error << "Exception in parsing DDU element: " << e.what();
+				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 			}
 			
 			// Get Chambers.  OK if there are none.
@@ -171,7 +177,9 @@ throw (emu::fed::exception::ConfigurationException)
 				} catch (emu::fed::exception::Exception &e) {
 					delete parser;
 					xercesc::XMLPlatformUtils::Terminate();
-					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing Fiber element", e);
+					std::ostringstream error;
+					error << "Exception in parsing Fiber element: " << e.what();
+					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 				}
 			}
 			
@@ -192,7 +200,9 @@ throw (emu::fed::exception::ConfigurationException)
 			} catch (emu::fed::exception::ParseException &e) {
 				delete parser;
 				xercesc::XMLPlatformUtils::Terminate();
-				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing DCC element", e);
+				std::ostringstream error;
+				error << "Exception in parsing DCC element: " << e.what();
+				XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 			}
 			
 			// Get FIFOs.  OK if there are none.
@@ -210,7 +220,9 @@ throw (emu::fed::exception::ConfigurationException)
 				} catch (emu::fed::exception::ParseException &e) {
 					delete parser;
 					xercesc::XMLPlatformUtils::Terminate();
-					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, "Exception in parsing FIFO element", e);
+					std::ostringstream error;
+					error << "Exception in parsing FIFO element: " << e.what();
+					XCEPT_RETHROW(emu::fed::exception::ConfigurationException, error.str(), e);
 				}
 			}
 			
