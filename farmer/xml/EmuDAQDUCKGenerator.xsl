@@ -184,7 +184,7 @@
   <!-- JobControls -->
   <xsl:template name="JobControls">
     <xsl:comment>JobControls</xsl:comment>
-    <xsl:for-each select="//RUI[not(../@alias = preceding::RUI/../@alias) and not(string-length(../@alias)=0) and not(../@alias = document('')//XdaqExecutive/@hostname)]">
+    <xsl:for-each select="//RUI[@status = 'in' and not(../@alias = preceding::RUI/../@alias) and not(string-length(../@alias)=0) and not(../@alias = document('')//XdaqExecutive/@hostname)]">
       <Service name="JobControl" hostname="{../@alias}" port="9999" urn="urn:xdaq-application:lid=10" qualifiedResourceType="rcms.fm.resource.qualifiedresource.JobControl"/>
     </xsl:for-each>
     <xsl:for-each select="document('')//XdaqExecutive[not(@hostname = preceding::XdaqExecutive/@hostname)]">
